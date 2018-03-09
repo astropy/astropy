@@ -88,7 +88,7 @@ int fits_read_ascii_region( const char *filename,
    /*  Open Region File  */
 
    if( (rgnFile = fopen( filename, "r" ))==NULL ) {
-      sprintf(currLine,"Could not open Region file %s.",filename);
+      snprintf(currLine,allocLen,"Could not open Region file %s.",filename);
       ffpmsg( currLine );
       free( currLine );
       free( aRgn );
@@ -1558,7 +1558,7 @@ int fits_read_fits_region ( fitsfile *fptr,
 
     /* set the shape type */
 
-    for (j=0; j<9; j++) {
+    for (j=0; j<17; j++) {
       if ( !strcmp(cvalue2, shapename[j]) ) newShape->shape = shapetype[j];
     }
 

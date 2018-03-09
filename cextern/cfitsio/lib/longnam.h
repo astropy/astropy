@@ -593,4 +593,8 @@
 #define fits_transfer_member    ffgmtf 
 #define fits_remove_member      ffgmrm
 
+#define fits_init_https         ffihtps
+#define fits_cleanup_https      ffchtps
+#define fits_verbose_https      ffvhtps
+
 #endif

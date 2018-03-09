@@ -196,7 +196,7 @@ int ffpky( fitsfile *fptr,     /* I - FITS file pointer        */
   Writes a keyword value with the datatype specified by the 2nd argument.
 */
 {
-    char errmsg[81];
+    char errmsg[FLEN_ERRMSG];
 
     if (*status > 0)           /* inherit input status value if > 0 */
         return(*status);
@@ -265,7 +265,7 @@ int ffpky( fitsfile *fptr,     /* I - FITS file pointer        */
     }
     else
     {
-        sprintf(errmsg, "Bad keyword datatype code: %d (ffpky)", datatype);
+        snprintf(errmsg, FLEN_ERRMSG,"Bad keyword datatype code: %d (ffpky)", datatype);
         ffpmsg(errmsg);
         *status = BAD_DATATYPE;
     }
@@ -964,19 +964,19 @@ int ffverifydate(int year,          /* I - year (0 - 9999)           */
 */
 {
     int ndays[] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
-    char errmsg[81];
+    char errmsg[FLEN_ERRMSG];
     
 
     if (year < 0 || year > 9999)
     {
-       sprintf(errmsg, 
+       snprintf(errmsg, FLEN_ERRMSG,
        "input year value = %d is out of range 0 - 9999", year);
        ffpmsg(errmsg);
        return(*status = BAD_DATE);
     }
     else if (month < 1 || month > 12)
     {
-       sprintf(errmsg, 
+       snprintf(errmsg, FLEN_ERRMSG,
        "input month value = %d is out of range 1 - 12", month);
        ffpmsg(errmsg);
        return(*status = BAD_DATE);
@@ -985,7 +985,7 @@ int ffverifydate(int year,          /* I - year (0 - 9999)           */
     if (ndays[month] == 31) {
         if (day < 1 || day > 31)
         {
-           sprintf(errmsg, 
+           snprintf(errmsg, FLEN_ERRMSG,
            "input day value = %d is out of range 1 - 31 for month %d", day, month);
            ffpmsg(errmsg);
            return(*status = BAD_DATE);
@@ -993,7 +993,7 @@ int ffverifydate(int year,          /* I - year (0 - 9999)           */
     } else if (ndays[month] == 30) {
         if (day < 1 || day > 30)
         {
-           sprintf(errmsg, 
+           snprintf(errmsg, FLEN_ERRMSG,
            "input day value = %d is out of range 1 - 30 for month %d", day, month);
            ffpmsg(errmsg);
            return(*status = BAD_DATE);
@@ -1009,11 +1009,11 @@ int ffverifydate(int year,          /* I - year (0 - 9999)           */
 	        if ((year % 4 == 0 && year % 100 != 0 ) || year % 400 == 0)
 		   return (*status);
 		   
- 	        sprintf(errmsg, 
+ 	        snprintf(errmsg, FLEN_ERRMSG,
            "input day value = %d is out of range 1 - 28 for February %d (not leap year)", day, year);
                 ffpmsg(errmsg);
 	    } else {
-                sprintf(errmsg, 
+                snprintf(errmsg, FLEN_ERRMSG,
                 "input day value = %d is out of range 1 - 28 (or 29) for February", day);
                 ffpmsg(errmsg);
 	    }
@@ -1203,7 +1203,7 @@ int fftm2s(int year,          /* I - year (0 - 9999)           */
 */
 {
     int width;
-    char errmsg[81];
+    char errmsg[FLEN_ERRMSG];
 
     if (*status > 0)           /* inherit input status value if > 0 */
         return(*status);
@@ -1221,28 +1221,28 @@ int fftm2s(int year,          /* I - year (0 - 9999)           */
 
     if (hour < 0 || hour > 23)
     {
-       sprintf(errmsg, 
+       snprintf(errmsg, FLEN_ERRMSG,
        "input hour value is out of range 0 - 23: %d (fftm2s)", hour);
        ffpmsg(errmsg);
        return(*status = BAD_DATE);
     }
     else if (minute < 0 || minute > 59)
     {
-       sprintf(errmsg, 
+       snprintf(errmsg, FLEN_ERRMSG,
        "input minute value is out of range 0 - 59: %d (fftm2s)", minute);
        ffpmsg(errmsg);
        return(*status = BAD_DATE);
     }
     else if (second < 0. || second >= 61)
     {
-       sprintf(errmsg, 
+       snprintf(errmsg, FLEN_ERRMSG,
        "input second value is out of range 0 - 60.999: %f (fftm2s)", second);
        ffpmsg(errmsg);
        return(*status = BAD_DATE);
     }
     else if (decimals > 25)
     {
-       sprintf(errmsg, 
+       snprintf(errmsg, FLEN_ERRMSG,
        "input decimals value is out of range 0 - 25: %d (fftm2s)", decimals);
        ffpmsg(errmsg);
        return(*status = BAD_DATE);
@@ -1288,7 +1288,7 @@ int ffs2tm(char *datestr,     /* I - date string: "YYYY-MM-DD"    */
 */
 {
     int slen;
-    char errmsg[81];
+    char errmsg[FLEN_ERRMSG];
 
     if (*status > 0)           /* inherit input status value if > 0 */
         return(*status);
@@ -1398,7 +1398,7 @@ int ffs2tm(char *datestr,     /* I - date string: "YYYY-MM-DD"    */
     if (hour)
        if (*hour < 0 || *hour > 23)
        {
-          sprintf(errmsg, 
+          snprintf(errmsg,FLEN_ERRMSG, 
           "hour value is out of range 0 - 23: %d (ffs2tm)", *hour);
           ffpmsg(errmsg);
           return(*status = BAD_DATE);
@@ -1407,7 +1407,7 @@ int ffs2tm(char *datestr,     /* I - date string: "YYYY-MM-DD"    */
     if (minute)
        if (*minute < 0 || *minute > 59)
        {
-          sprintf(errmsg, 
+          snprintf(errmsg, FLEN_ERRMSG,
           "minute value is out of range 0 - 59: %d (ffs2tm)", *minute);
           ffpmsg(errmsg);
           return(*status = BAD_DATE);
@@ -1416,7 +1416,7 @@ int ffs2tm(char *datestr,     /* I - date string: "YYYY-MM-DD"    */
     if (second)
        if (*second < 0 || *second >= 61.)
        {
-          sprintf(errmsg, 
+          snprintf(errmsg, FLEN_ERRMSG,
           "second value is out of range 0 - 60.9999: %f (ffs2tm)", *second);
           ffpmsg(errmsg);
           return(*status = BAD_DATE);
@@ -1942,7 +1942,7 @@ int ffptdm( fitsfile *fptr, /* I - FITS file pointer                        */
 */
 {
     char keyname[FLEN_KEYWORD], tdimstr[FLEN_VALUE], comm[FLEN_COMMENT];
-    char value[80], message[81];
+    char value[80], message[FLEN_ERRMSG];
     int ii;
     long totalpix = 1, repeat;
     tcolumn *colptr;
@@ -1989,7 +1989,7 @@ int ffptdm( fitsfile *fptr, /* I - FITS file pointer                        */
             return(*status = BAD_TDIM);
         }
 
-        sprintf(value, "%ld", naxes[ii]);
+        snprintf(value, 80,"%ld", naxes[ii]);
         strcat(tdimstr, value);     /* append the axis size */
 
         totalpix *= naxes[ii];
@@ -2010,7 +2010,7 @@ int ffptdm( fitsfile *fptr, /* I - FITS file pointer                        */
 
       if (*status > 0 || repeat != totalpix)
       {
-        sprintf(message,
+        snprintf(message,FLEN_ERRMSG,
         "column vector length, %ld, does not equal TDIMn array size, %ld",
         (long) colptr->trepeat, totalpix);
         ffpmsg(message);
@@ -2086,7 +2086,7 @@ int ffptdmll( fitsfile *fptr, /* I - FITS file pointer                      */
         /* cast to double because the 64-bit int conversion character in */
         /* sprintf is platform dependent ( %lld, %ld, %I64d )            */
 
-        sprintf(value, "%.0f", (double) naxes[ii]);
+        snprintf(value, 80, "%.0f", (double) naxes[ii]);
 
         strcat(tdimstr, value);     /* append the axis size */
 
@@ -2108,7 +2108,7 @@ int ffptdmll( fitsfile *fptr, /* I - FITS file pointer                      */
 
       if (*status > 0 || repeat != totalpix)
       {
-        sprintf(message,
+        snprintf(message,FLEN_ERRMSG,
         "column vector length, %.0f, does not equal TDIMn array size, %.0f",
         (double) (colptr->trepeat), (double) totalpix);
         ffpmsg(message);
@@ -2254,7 +2254,7 @@ int ffphprll( fitsfile *fptr, /* I - FITS file pointer                        */
         longbitpix != LONG_IMG && longbitpix != LONGLONG_IMG &&
         longbitpix != FLOAT_IMG && longbitpix != DOUBLE_IMG)
     {
-        sprintf(message,
+        snprintf(message,FLEN_ERRMSG,
         "Illegal value for BITPIX keyword: %d", bitpix);
         ffpmsg(message);
         return(*status = BAD_BITPIX);
@@ -2266,7 +2266,7 @@ int ffphprll( fitsfile *fptr, /* I - FITS file pointer                        */
 
     if (naxis < 0 || naxis > 999)
     {
-        sprintf(message,
+        snprintf(message,FLEN_ERRMSG,
         "Illegal value for NAXIS keyword: %d", naxis);
         ffpmsg(message);
         return(*status = BAD_NAXIS);
@@ -2280,13 +2280,13 @@ int ffphprll( fitsfile *fptr, /* I - FITS file pointer                        */
     {
         if (naxes[ii] < 0)
         {
-            sprintf(message,
+            snprintf(message,FLEN_ERRMSG,
             "Illegal negative value for NAXIS%d keyword: %.0f", ii + 1, (double) (naxes[ii]));
             ffpmsg(message);
             return(*status = BAD_NAXES);
         }
 
-        sprintf(&comm[20], "%d", ii + 1);
+        snprintf(&comm[20], FLEN_COMMENT-20,"%d", ii + 1);
         ffkeyn("NAXIS", ii + 1, name, status);
         ffpkyj(fptr, name, naxes[ii], comm, status);
     }
@@ -2452,7 +2452,7 @@ int ffphtb(fitsfile *fptr,  /* I - FITS file pointer                        */
     {
         if ( *(ttype[ii]) )  /* optional TTYPEn keyword */
         {
-          sprintf(comm, "label for field %3d", ii + 1);
+          snprintf(comm, FLEN_COMMENT,"label for field %3d", ii + 1);
           ffkeyn("TTYPE", ii + 1, name, status);
           ffpkys(fptr, name, ttype[ii], comm, status);
         }
@@ -2460,7 +2460,7 @@ int ffphtb(fitsfile *fptr,  /* I - FITS file pointer                        */
         if (tbcol[ii] < 1 || tbcol[ii] > rowlen)
            *status = BAD_TBCOL;
 
-        sprintf(comm, "beginning column of field %3d", ii + 1);
+        snprintf(comm, FLEN_COMMENT,"beginning column of field %3d", ii + 1);
         ffkeyn("TBCOL", ii + 1, name, status);
         ffpkyj(fptr, name, tbcol[ii], comm, status);
 
@@ -2577,7 +2577,7 @@ int ffphbn(fitsfile *fptr,  /* I - FITS file pointer                        */
     {
         if ( *(ttype[ii]) )  /* optional TTYPEn keyword */
         {
-          sprintf(comm, "label for field %3d", ii + 1);
+          snprintf(comm, FLEN_COMMENT,"label for field %3d", ii + 1);
           ffkeyn("TTYPE", ii + 1, name, status);
           ffpkys(fptr, name, ttype[ii], comm, status);
         }
@@ -2754,7 +2754,7 @@ int ffphext(fitsfile *fptr,  /* I - FITS file pointer                       */
 
     if (naxis < 0 || naxis > 999)
     {
-        sprintf(message,
+        snprintf(message,FLEN_ERRMSG,
         "Illegal value for NAXIS keyword: %d", naxis);
         ffpmsg(message);
         return(*status = BAD_NAXIS);
@@ -2772,13 +2772,13 @@ int ffphext(fitsfile *fptr,  /* I - FITS file pointer                       */
     {
         if (naxes[ii] < 0)
         {
-            sprintf(message,
+            snprintf(message,FLEN_ERRMSG,
             "Illegal negative value for NAXIS%d keyword: %.0f", ii + 1, (double) (naxes[ii]));
             ffpmsg(message);
             return(*status = BAD_NAXES);
         }
 
-        sprintf(&comm[20], "%d", ii + 1);
+        snprintf(&comm[20], 61, "%d", ii + 1);
         ffkeyn("NAXIS", ii + 1, name, status);
         ffpkyj(fptr, name, naxes[ii], comm, status);
     }
