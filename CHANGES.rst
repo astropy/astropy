@@ -202,6 +202,10 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Added support for ``copy.copy`` and ``copy.deepcopy`` for ``HDUList``. [#7218]
+
+- Override ``HDUList.copy()`` to return a shallow HDUList instance. [#7218]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
