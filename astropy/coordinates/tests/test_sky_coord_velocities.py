@@ -118,7 +118,7 @@ def test_useful_error_missing():
 
 # ----------------------Operations on SkyCoords w/ velocities-------------------
 
-# define some fixtires to get baseline coordinates to try operations with
+# define some fixtures to get baseline coordinates to try operations with
 @pytest.fixture(scope="module", params=[(False, False),
                                         (True, False),
                                         (False, True),
@@ -177,12 +177,14 @@ def test_transforms(sc):
     assert isinstance(trans.frame, Galactic)
 
 
-@pytest.mark.xfail
 def test_transforms_diff(sc):
     # note that arguably this *should* fail for the no-distance cases: 3D
     # information is necessary to truly solve this, hence the xfail
-    trans = sc.transform_to(PrecessedGeocentric(equinox='B1975'))
-    assert isinstance(trans.frame, PrecessedGeocentric)
+    if not sc.distance.unit.is_equivalent(u.m):
+        pytest.xfail('Should fail for no-distance cases')
+    else:
+        trans = sc.transform_to(PrecessedGeocentric(equinox='B1975'))
+        assert isinstance(trans.frame, PrecessedGeocentric)
 
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
