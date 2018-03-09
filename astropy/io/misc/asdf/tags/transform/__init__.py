@@ -3,8 +3,6 @@
 
 import astropy.units as u
 
-__all__ = ['_parameter_to_value']
-
 
 def _parameter_to_value(param):
     if param.unit is not None:
