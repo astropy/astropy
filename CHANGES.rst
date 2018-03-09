@@ -37,6 +37,10 @@ astropy.io.fits
 - Make sure that lazily-loaded ``HDUList`` is automatically loaded when calling
   ``hdulist.pop``. [#7186]
 
+- Updated the bundled CFITSIO library to 3.430. This is to remedy a critical
+  security vulnerability that was identified by NASA. See
+  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#7275]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
