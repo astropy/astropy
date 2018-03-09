@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -euv
+
 # This script should be run every time cfitsio is updated.
 # This moves all the code needed for the actual library to lib
 # and deletes everything else (except License.txt and doc/changes.txt)

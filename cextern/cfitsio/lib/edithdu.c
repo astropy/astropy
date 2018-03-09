@@ -428,14 +428,14 @@ int ffiimgll(fitsfile *fptr,    /* I - FITS file pointer           */
         bytlen = 8;
     else
     {
-        sprintf(errmsg,
+        snprintf(errmsg, FLEN_ERRMSG,
         "Illegal value for BITPIX keyword: %d", bitpix);
         ffpmsg(errmsg);
         return(*status = BAD_BITPIX);  /* illegal bitpix value */
     }
     if (naxis < 0 || naxis > 999)
     {
-        sprintf(errmsg,
+        snprintf(errmsg, FLEN_ERRMSG,
         "Illegal value for NAXIS keyword: %d", naxis);
         ffpmsg(errmsg);
         return(*status = BAD_NAXIS);
@@ -445,7 +445,7 @@ int ffiimgll(fitsfile *fptr,    /* I - FITS file pointer           */
     {
         if (naxes[ii] < 0)
         {
-            sprintf(errmsg,
+            snprintf(errmsg, FLEN_ERRMSG,
             "Illegal value for NAXIS%d keyword: %ld", ii + 1,  (long) naxes[ii]);
             ffpmsg(errmsg);
             return(*status = BAD_NAXES);
@@ -561,7 +561,7 @@ int ffitab(fitsfile *fptr,  /* I - FITS file pointer                        */
     int nexthdu, maxhdu, ii, nunit, nhead, ncols, gotmem = 0;
     long nblocks, rowlen;
     LONGLONG datasize, newstart;
-    char errmsg[81], extnm[FLEN_VALUE];
+    char errmsg[FLEN_ERRMSG], extnm[FLEN_VALUE];
 
     if (*status > 0)
         return(*status);
@@ -592,7 +592,7 @@ int ffitab(fitsfile *fptr,  /* I - FITS file pointer                        */
         return(*status = NEG_ROWS);
     else if (tfields < 0 || tfields > 999)
     {
-        sprintf(errmsg,
+        snprintf(errmsg, FLEN_ERRMSG,
         "Illegal value for TFIELDS keyword: %d", tfields);
         ffpmsg(errmsg);
         return(*status = BAD_TFIELDS);
@@ -698,7 +698,7 @@ int ffibin(fitsfile *fptr,  /* I - FITS file pointer                        */
     LONGLONG naxis1;
     long nblocks, repeat, width;
     LONGLONG datasize, newstart;
-    char errmsg[81], extnm[FLEN_VALUE];
+    char errmsg[FLEN_ERRMSG], extnm[FLEN_VALUE];
 
     if (*status > 0)
         return(*status);
@@ -727,7 +727,7 @@ int ffibin(fitsfile *fptr,  /* I - FITS file pointer                        */
         return(*status = NEG_ROWS);
     else if (tfields < 0 || tfields > 999)
     {
-        sprintf(errmsg,
+        snprintf(errmsg, FLEN_ERRMSG,
         "Illegal value for TFIELDS keyword: %d", tfields);
         ffpmsg(errmsg);
         return(*status = BAD_TFIELDS);

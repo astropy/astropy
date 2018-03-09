@@ -269,7 +269,7 @@ static char *irafrdhead (
     FILE *fd;
     int nbr;
     char *irafheader;
-    char errmsg[81];
+    char errmsg[FLEN_ERRMSG];
     long nbhead;
     int nihead;
 
@@ -310,7 +310,7 @@ static char *irafrdhead (
     nihead = nbhead + 5000;
     irafheader = (char *) calloc (1, nihead);
     if (irafheader == NULL) {
-	sprintf(errmsg, "IRAFRHEAD Cannot allocate %d-byte header",
+	snprintf(errmsg, FLEN_ERRMSG,"IRAFRHEAD Cannot allocate %d-byte header",
 		      nihead);
         ffpmsg(errmsg);
         ffpmsg(filename);
@@ -324,7 +324,7 @@ static char *irafrdhead (
 
     /* Reject if header less than minimum length */
     if (nbr < LEN_PIXHDR) {
-	sprintf(errmsg, "IRAFRHEAD header file: %d / %d bytes read.",
+	snprintf(errmsg, FLEN_ERRMSG,"IRAFRHEAD header file: %d / %d bytes read.",
 		      nbr,LEN_PIXHDR);
         ffpmsg(errmsg);
         ffpmsg(filename);
@@ -351,7 +351,7 @@ static int irafrdimage (
     char *linebuff;
     int imhver, lpixhead = 0;
     char pixname[SZ_IM2PIXFILE+1];
-    char errmsg[81];
+    char errmsg[FLEN_ERRMSG];
     size_t newfilesize;
  
     fitsheader = *buffptr;           /* pointer to start of header */
@@ -385,7 +385,7 @@ static int irafrdimage (
 
     /* Check size of pixel header */
     if (nbr < lpixhead) {
-	sprintf(errmsg, "IRAF pixel file: %d / %d bytes read.",
+	snprintf(errmsg, FLEN_ERRMSG,"IRAF pixel file: %d / %d bytes read.",
 		      nbr,LEN_PIXHDR);
         ffpmsg(errmsg);
 	free (pixheader);
@@ -432,7 +432,7 @@ static int irafrdimage (
     {
       fitsheader =  (char *) realloc (*buffptr, newfilesize);
       if (fitsheader == NULL) {
-	sprintf(errmsg, "IRAFRIMAGE Cannot allocate %d-byte image buffer",
+	snprintf(errmsg, FLEN_ERRMSG,"IRAFRIMAGE Cannot allocate %d-byte image buffer",
 		(int) (*filesize));
         ffpmsg(errmsg);
         ffpmsg(pixname);
@@ -470,7 +470,7 @@ static int irafrdimage (
 
     /* Check size of image */
     if (nbr < nbimage) {
-	sprintf(errmsg, "IRAF pixel file: %d / %d bytes read.",
+	snprintf(errmsg, FLEN_ERRMSG,"IRAF pixel file: %d / %d bytes read.",
 		      nbr,nbimage);
         ffpmsg(errmsg);
         ffpmsg(pixname);
@@ -570,7 +570,7 @@ static int iraftofits (
     int imhver, n, imu, pixoff, impixoff;
 /*    int immax, immin, imtime;  */
     int imndim, imlen, imphyslen, impixtype;
-    char errmsg[81];
+    char errmsg[FLEN_ERRMSG];
 
     /* Set up last line of FITS header */
     (void)strncpy (endline,"END", 3);
@@ -613,7 +613,7 @@ static int iraftofits (
     *nbfits = (nblock + 5) * 2880 + 4;
     fitsheader = (char *) calloc (*nbfits, 1);
     if (fitsheader == NULL) {
-	sprintf(errmsg, "IRAF2FITS Cannot allocate %d-byte FITS header",
+	snprintf(errmsg, FLEN_ERRMSG,"IRAF2FITS Cannot allocate %d-byte FITS header",
 		(int) (*nbfits));
         ffpmsg(hdrname);
 	return (*status = FILE_NOT_OPENED);
@@ -664,7 +664,7 @@ static int iraftofits (
 	    nbits = -64;
 	    break;
 	default:
-	    sprintf(errmsg,"Unsupported IRAF data type: %d", pixtype);
+	    snprintf(errmsg,FLEN_ERRMSG,"Unsupported IRAF data type: %d", pixtype);
             ffpmsg(errmsg);
             ffpmsg(hdrname);
 	    return (*status = FILE_NOT_OPENED);
@@ -1807,7 +1807,7 @@ hputi4 (hstring,keyword,ival)
     char value[30];
 
     /* Translate value from binary to ASCII */
-    sprintf (value,"%d",ival);
+    snprintf (value,30,"%d",ival);
 
     /* Put value into header string */
     hputc (hstring,keyword,value);

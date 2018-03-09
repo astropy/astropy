@@ -1583,7 +1583,7 @@ int ffdkey(fitsfile *fptr,    /* I - FITS file pointer  */
 
     if (ffgkey(fptr, keyname, valstring, comm, status) > 0) /* read keyword */
     {
-        sprintf(message, "Could not find the %s keyword to delete (ffdkey)",
+        snprintf(message, FLEN_ERRMSG,"Could not find the %s keyword to delete (ffdkey)",
                 keyname);
         ffpmsg(message);
         return(*status);
@@ -1640,7 +1640,7 @@ int ffdstr(fitsfile *fptr,    /* I - FITS file pointer  */
 
     if (ffgstr(fptr, string, card, status) > 0) /* read keyword */
     {
-        sprintf(message, "Could not find the %s keyword to delete (ffdkey)",
+        snprintf(message, FLEN_ERRMSG,"Could not find the %s keyword to delete (ffdkey)",
                 string);
         ffpmsg(message);
         return(*status);
@@ -1712,7 +1712,7 @@ int ffdrec(fitsfile *fptr,   /* I - FITS file pointer  */
 
     if (nshift <= 0)
     {
-        sprintf(message, "Cannot delete keyword number %d.  It does not exist.",
+        snprintf(message, FLEN_ERRMSG,"Cannot delete keyword number %d.  It does not exist.",
                 keypos);
         ffpmsg(message);
         return(*status = KEY_OUT_BOUNDS);

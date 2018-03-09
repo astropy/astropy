@@ -1154,6 +1154,12 @@ int http_open(char *filename, int rwmode, int *driverhandle);
 int http_file_open(char *filename, int rwmode, int *driverhandle);
 int http_compress_open(char *filename, int rwmode, int *driverhandle);
 
+/* https driver I/O routines */
+int https_checkfile(char* urltype, char *infile, char *outfile);
+int https_open(char *filename, int rwmode, int *driverhandle);
+int https_file_open(char *filename, int rwmode, int *driverhandle);
+void https_set_verbose(int flag);
+
 /* ftp driver I/O routines */
 
 int ftp_checkfile(char *urltype, char *infile, char *outfile);
