@@ -123,10 +123,6 @@ Astropy or affiliated packages, as well as coding, documentation, and
 testing guidelines. For the guiding vision of this process and the project
 as a whole, see :doc:`development/vision`.
 
-There are additional tools of use for developers in the
-`astropy/astropy-tools repository
-<https://github.com/astropy/astropy-tools>`__.
-
 .. toctree::
    :maxdepth: 1
 
@@ -141,6 +137,10 @@ There are additional tools of use for developers in the
    development/workflow/maintainer_workflow
    development/astropy-package-template
    changelog
+
+There are some additional tools, mostly of use for maintainers, in the
+`astropy/astropy-procedures repository
+<https://github.com/astropy/astropy-procedures>`__.
 
 .. _project-details:
 
