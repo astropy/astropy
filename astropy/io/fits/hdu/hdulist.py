@@ -309,13 +309,14 @@ class HDUList(list, _Verify):
 
     def __contains__(self, item):
         """
-        Returns `True` if ``HDUList.index_of(item)`` succeeds.
+        Returns `True` if ``HDUList.index_of(item)`` or
+        ``HDUList.index(item)`` succeeds.
         """
 
         try:
             self._try_while_unread_hdus(self.index_of, item)
         except KeyError:
-            return False
+            return self.index(item)
 
         return True
 
