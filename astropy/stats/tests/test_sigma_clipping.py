@@ -201,8 +201,8 @@ def test_sigma_clip_axis_tuple_3D():
     data = np.sin(0.78 * np.arange(27)).reshape(3,3,3)
     mask = np.zeros_like(data, dtype=np.bool)
 
-    data_t = np.moveaxis(data, 1, 0)
-    mask_t = np.moveaxis(mask, 1, 0)
+    data_t = np.rollaxis(data, 1, 0)
+    mask_t = np.rollaxis(mask, 1, 0)
 
     # Loop over what was originally axis 1 and clip each plane directly:
     for data_plane, mask_plane in zip(data_t, mask_t):
