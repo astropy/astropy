@@ -755,7 +755,7 @@ class HDUList(list, _Verify):
         all HDUs.  Therefore using negative indices on HDULists is inherently
         inefficient.
         """
-        index = self.index_of(key)
+        index = key if _is_int(key) else self.index_of(key)
         return index if index >=0 else len(self) + index
 
     def readall(self):

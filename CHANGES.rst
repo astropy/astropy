@@ -43,6 +43,15 @@ astropy.io.fits
 - ``HDUList.pop()`` now accepts string and tuple extension name
   specifications. [#7236]
 
+- ``HDUList.__contains__()`` now works correctly with integer keys and does not
+  automatically assume that all HDUs specified by integer keys are present
+  in the list. [#7281]
+
+- ``HDUList.index_of()`` now works correctly with integer keys and does not
+  automatically assume that all HDUs specified by integer keys are present
+  in the list. Now ``HDUList.index_of()`` will raise ``IndexError`` if
+  integer extension number is not within correct range. [#7281]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
