@@ -97,7 +97,7 @@ astropy.io.fits
 - The ``fitsheader`` command line tool now supports a ``dfits+fitsort`` mode,
   and the dotted notation for keywords (e.g. ``ESO.INS.ID``). [#7240]
 - ``HDUList.__contains__()`` now works with HDU arguments. That is,
-  ``hdulist[0] in hdulist`` now works as expected. [#7269]
+  ``hdulist[0] in hdulist`` now works as expected. [#7282]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
