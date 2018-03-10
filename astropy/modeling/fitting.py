@@ -651,10 +651,11 @@ class FittingWithOutlierRemoval:
 
             # Expand input co-ordinates over the model sets (issue 7159):
             set_shape = (len(model),) + x.shape
-            mx = np.moveaxis(np.broadcast_to(x, set_shape), 0, model_set_axis)
+            mx = np.rollaxis(np.broadcast_to(x, set_shape),
+                             0, model_set_axis+1)
             if z is not None:
-                my = np.moveaxis(np.broadcast_to(y, set_shape),
-                                 0, model_set_axis)
+                my = np.rollaxis(np.broadcast_to(y, set_shape),
+                                 0, model_set_axis+1)
 
         # Construct input co-ordinate tuples for fitters & models that are
         # appropriate for the dimensionality being fitted:
@@ -721,12 +722,12 @@ class FittingWithOutlierRemoval:
                         # Get views transposed appropriately for iteration
                         # over the set (handling data & mask separately due to
                         # NumPy issue #8506):
-                        data_T = np.moveaxis(filtered_data, model_set_axis, 0)
-                        mask_T = np.moveaxis(filtered_data.mask,
+                        data_T = np.rollaxis(filtered_data, model_set_axis, 0)
+                        mask_T = np.rollaxis(filtered_data.mask,
                                              model_set_axis, 0)
 
             if loop:
-                model_vals_T = np.moveaxis(model_vals, model_set_axis, 0)
+                model_vals_T = np.rollaxis(model_vals, model_set_axis, 0)
                 for row_data, row_mask, row_mod_vals in zip(data_T, mask_T,
                                                             model_vals_T):
                     masked_residuals = self.outlier_func(
