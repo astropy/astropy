@@ -1,26 +1,8 @@
-3.0.1 (unreleased)
+3.0.1 (2018-03-12)
 ==================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -57,38 +39,14 @@ astropy.modeling
 
 - Fix model set evaluation over common input when model_set_axis > 0. [#7222]
 
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
+- Fixed the evaluation of compound models with units. This required adding the
+  ability to have ``input_units_strict`` and ``input_units_allow_dimensionless``
+  be dictionaries with input names as keys. [#6952]
 
 astropy.units
 ^^^^^^^^^^^^^
 
 - ``quantity_helper`` no longer requires ``scipy>=0.18``. [#7219]
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
 
 
 3.0 (2018-02-12)
@@ -320,6 +278,7 @@ astropy.visualization
   ``WCSPixel2WorldTransform`` classes by setting ``has_inverse`` to ``True``.
   In order to implement a unit test, also implement the equality comparison
   operator for both classes. [#6531]
+
 - Added automatic hiding of axes labels when no tick labels are drawn on that
   axis. This parameter can be configured with
   ``WCSAxes.coords[*].set_axislabel_visibility_rule`` so that labels are automatically
@@ -479,10 +438,6 @@ astropy.io.fits
 - Fixed potential problems with the compression module [#6732]
 
 - Always use the 'D' format for floating point values in ascii tables. [#6938]
-
-- Fix bug of dropping table column meta (format, description, meta) when
-  writing a table to FITS using Table.write().  Since #6912 this should be
-  written if it would be lost.  [#7147]
 
 astropy.table
 ^^^^^^^^^^^^^
