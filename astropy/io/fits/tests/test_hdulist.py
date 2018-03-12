@@ -874,6 +874,7 @@ class TestHDUListFunctions(FitsTestCase):
         assert ('b', 1) not in hdulist
         assert ('b', 2) not in hdulist
         assert hdulist[0] in hdulist
+        assert fits.ImageHDU() not in hdulist
 
     def test_overwrite_vs_clobber(self):
         hdulist = fits.HDUList([fits.PrimaryHDU()])
