@@ -237,18 +237,29 @@ packages that use the full bugfix/maintenance branch approach.)
       but this should *not* be done, as it might push up some unintended tags.
 
 #. If this is a release of the current release (i.e., not an LTS supported along
-   side a more recent version), update the "stable" branch to point to the new
+   side a more recent version), update the "stable" tag to point to the new
    release::
 
-      $ git checkout stable
-      $ git reset --hard v<version>
-      $ git push upstream stable --force
+      $ git checkout v<version>
+      $ git tag -d stable
+      $ git tag -s "stable" -m "Tagging v<version> as latest stable"
+      $ git push upstream :stable
+      $ git push upstream stable
 
-#. Update Readthedocs so that it builds docs for the version you just released.
-   You'll find this in the "admin" tab, with checkboxes next to each github tag.
-   Also verify that the ``stable`` Readthedocs version builds correctly for
-   the new version (it should trigger automatically once you've done the
-   previous step).
+#. If this release is an LTS release, update the "LTS" tag to point to the
+   new release::
+
+      $ git checkout v<version>
+      $ git tag -d LTS
+      $ git tag -s "LTS" -m "Tagging v<version> as latest LTS"
+      $ git push upstream :LTS
+      $ git push upstream LTS
+
+#. Update Readthedocs so that it builds docs for the version you just
+   released.  You'll find this in the "admin" tab, with checkboxes next to
+   each github tag.  Also verify that the ``stable`` or ``LTS`` Readthedocs
+   version builds correctly for the new version (it should trigger
+   automatically once you've done the previous step).
 
 #. When releasing a patch release, also set the previous RTD version in the
    release history to "protected".  For example when releasing v1.1.2, set
