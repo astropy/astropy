@@ -861,8 +861,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         Regression test for https://github.com/astropy/astropy/issues/3060
         """
-
-        hdulist = fits.HDUList()
+        hdulist = fits.open(self.data('o4sp040b0_raw.fits'))
         hdulist.append(fits.ImageHDU(name='a'))
 
         assert 'a' in hdulist
