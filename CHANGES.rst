@@ -547,20 +547,11 @@ Other Changes and Additions
 - The bundled version of PLY was updated to 3.10. [#7174]
 
 
-2.0.4 (2018-02-06)
+2.0.5 (2018-03-12)
 ==================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -569,66 +560,25 @@ astropy.coordinates
 
 - Fix problems with printing ``Angle`` instances under numpy 1.14.1. [#7234]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
-- Fixed the ``fitsdiff`` script for matching fits file with one in a directory path. [#7085]
+- Fixed the ``fitsdiff`` script for matching fits file with one in a
+  directory path. [#7085]
 
 - Make sure that lazily-loaded ``HDUList`` is automatically loaded when calling
   ``hdulist.pop``. [#7186]
 
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+
 - Propagate weights to underlying fitter in ``FittingWithOutlierRemoval`` [#7249]
-
-- Fixed the evaluation of compound models with units. This required adding
-  the ability to have ``input_units_strict`` and ``input_units_allow_dimensionless``
-  be dictionaries with input names as keys. [#6952]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
 
 astropy.tests
 ^^^^^^^^^^^^^
 
 - Support dotted package names as namespace packages when gathering test
   coverage. [#7170]
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -638,24 +588,20 @@ astropy.visualization
   This is useful for drawing scale bars or inset boxes, which should have a
   z-order that places them above all ticks and gridlines. [#7098]
 
-astropy.vo
-^^^^^^^^^^
 
-astropy.wcs
-^^^^^^^^^^^
+Other Changes and Additions
+---------------------------
+
+- Updated the bundled CFITSIO library to 3.430. This is to remedy a critical
+  security vulnerability that was identified by NASA. See
+  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#7274, #7275]
 
 
-2.0.4 (unreleased)
+2.0.4 (2018-02-06)
 ==================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
