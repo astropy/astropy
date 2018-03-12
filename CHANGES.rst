@@ -69,6 +69,9 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Support dotted package names as namespace packages when gathering test
+  coverage. [#7170]
+
 astropy.time
 ^^^^^^^^^^^^
 
