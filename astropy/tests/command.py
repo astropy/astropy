@@ -278,13 +278,14 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         # requires importing astropy.config and thus screwing
         # up coverage results for those packages.
         coveragerc = os.path.join(
-            self.testing_path, self.package_name, 'tests', 'coveragerc')
+            self.testing_path, self.package_name.replace('.', '/'),
+            'tests', 'coveragerc')
 
         with open(coveragerc, 'r') as fd:
             coveragerc_content = fd.read()
 
         coveragerc_content = coveragerc_content.replace(
-            "{packagename}", self.package_name)
+            "{packagename}", self.package_name.replace('.', '/'))
         tmp_coveragerc = os.path.join(self.tmp_dir, 'coveragerc')
         with open(tmp_coveragerc, 'wb') as tmp:
             tmp.write(coveragerc_content.encode('utf-8'))
