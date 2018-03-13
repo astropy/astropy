@@ -5,13 +5,7 @@ Tests for model evaluation.
 Compare the results of some models with other programs.
 """
 
-
-
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-
+import pickle
 import pytest
 import numpy as np
 
