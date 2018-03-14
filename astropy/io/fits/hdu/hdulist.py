@@ -510,6 +510,11 @@ class HDUList(list, _Verify):
 
         return output
 
+    def __add__(self, hdulist):
+        new_hdulist = self.copy()
+        new_hdulist.extend(hdulist)
+        return new_hdulist
+
     def __copy__(self):
         """
         Return a shallow copy of an HDUList.

@@ -414,6 +414,25 @@ class TestHDUListFunctions(FitsTestCase):
             assert hdulcopy[index].header == hdul[index].header
             np.testing.assert_array_equal(hdulcopy[index].data, hdul[index].data)
 
+    def test_concatenate(self):
+        """
+        Tests that addition of two HDULists return an HDUList.
+        """
+
+        n = np.arange(10.0)
+        primary_hdu = fits.PrimaryHDU(n)
+        hdu = fits.ImageHDU(n)
+        primary_hdul = fits.HDUList([primary_hdu, hdu])
+        hdul = fits.HDUList([hdu, hdu])
+
+        primary = len(primary_hdul)
+        result = primary_hdul + hdul
+
+        assert isinstance(result, fits.HDUList)
+        assert len(result) == primary + len(hdul)
+        assert result[:primary] == primary_hdul
+        assert result[primary:] == hdul
+
     def test_new_hdu_extname(self):
         """
         Tests that new extension HDUs that are added to an HDUList can be

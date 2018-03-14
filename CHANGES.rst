@@ -206,6 +206,9 @@ astropy.io.fits
 
 - Override ``HDUList.copy()`` to return a shallow HDUList instance. [#7218]
 
+- Override ``HDUList.__add__()`` to return an HDUList instance instead of
+  list. [#7284]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
