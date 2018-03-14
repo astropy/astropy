@@ -305,6 +305,8 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fix validate with xmllint=True. [#7255]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
