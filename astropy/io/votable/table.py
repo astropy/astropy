@@ -294,13 +294,13 @@ def validate(source, output=None, xmllint=False, filename=None):
 
     success = 0
     if xmllint and os.path.exists(filename):
-        from ...utils.xml import validate
+        from . import xmlutil
 
         if votable is None:
             version = "1.1"
         else:
             version = votable.version
-        success, stdout, stderr = validate.validate_schema(
+        success, stdout, stderr = xmlutil.validate_schema(
             filename, version)
 
         if success != 0:

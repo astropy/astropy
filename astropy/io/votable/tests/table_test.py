@@ -177,3 +177,16 @@ def test_empty_table():
         pedantic=False)
     table = votable.get_first_table()
     astropy_table = table.to_table()
+
+
+def test_validate_xmllint_true(monkeypatch):
+    from ..table import validate
+    from .. import xmlutil
+
+    file = get_pkg_data_filename('data/empty_table.xml')
+
+    def mock_xmllint_validate(filename, version):
+        return 0, 'ok', 'ko'
+    monkeypatch.setattr(xmlutil, 'validate_schema', mock_xmllint_validate)
+
+    assert validate(file, xmllint=True)
