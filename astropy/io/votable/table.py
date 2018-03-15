@@ -5,8 +5,6 @@ This file contains a contains the high-level functions to read a
 VOTable file.
 """
 
-
-
 # STDLIB
 import io
 import os
@@ -133,8 +131,8 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         config['filename'] = source
 
     with iterparser.get_xml_iterator(
-        source,
-        _debug_python_based_parser=_debug_python_based_parser) as iterator:
+            source,
+            _debug_python_based_parser=_debug_python_based_parser) as iterator:
         return tree.VOTableFile(
             config=config, pos=(1, 1)).parse(iterator, config)
 
@@ -306,7 +304,7 @@ def validate(source, output=None, xmllint=False, filename=None):
         if success != 0:
             output.write(
                 'xmllint schema violations:\n\n')
-            output.write(stderr)
+            output.write(stderr.decode('utf-8'))
         else:
             output.write('xmllint passed\n')
 
@@ -352,12 +350,12 @@ def is_votable(source):
     """
     try:
         with iterparser.get_xml_iterator(source) as iterator:
-            for start, tag, data, pos in iterator:
+            for start, tag, d, pos in iterator:
                 if tag != 'xml':
                     return False
                 break
 
-            for start, tag, data, pos in iterator:
+            for start, tag, d, pos in iterator:
                 if tag != 'VOTABLE':
                     return False
                 break
