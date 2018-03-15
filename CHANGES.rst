@@ -290,6 +290,8 @@ astropy.io.registry
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+- Fix validate with xmllint=True. [#7255, #7283]
+
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
@@ -304,8 +306,6 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
-
-- Fix validate with xmllint=True. [#7255]
 
 astropy.tests
 ^^^^^^^^^^^^^
