@@ -13,6 +13,7 @@ import io
 import pathlib
 import sys
 import gzip
+from unittest import mock
 
 # THIRD-PARTY
 import pytest
@@ -154,7 +155,7 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
             'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
     with open(str(tmpdir.join("regression.bin.tabledata.xml")),
-                 'rt', encoding='utf-8') as fd:
+              'rt', encoding='utf-8') as fd:
         output = fd.readlines()
 
     # If the lines happen to be different, print a diff
@@ -814,6 +815,18 @@ def test_validate(test_path_object=False):
         difflib.unified_diff(truth, output, fromfile='truth', tofile='output'))
 
     assert truth == output
+
+
+@mock.patch('subprocess.Popen')
+def test_validate_xmllint_true(mock_subproc_popen):
+    process_mock = mock.Mock()
+    attrs = {'communicate.return_value': ('ok', 'ko'),
+             'returncode': 0}
+    process_mock.configure_mock(**attrs)
+    mock_subproc_popen.return_value = process_mock
+
+    assert validate(get_pkg_data_filename('data/empty_table.xml'),
+                    xmllint=True)
 
 
 def test_validate_path_object():
