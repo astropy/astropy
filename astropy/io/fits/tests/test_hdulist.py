@@ -423,11 +423,13 @@ class TestHDUListFunctions(FitsTestCase):
         f = fits.open(self.data('test0.fits'))
         hdul = fits.HDUList()
         hdul.append(f[0].copy())
-        hdul.append(fits.ImageHDU(header=f[1].header))
+        hdu = fits.ImageHDU(header=f[1].header)
+        hdul.append(hdu)
 
         assert hdul[1].header['EXTNAME'] == 'SCI'
         assert hdul[1].header['EXTVER'] == 1
         assert hdul.index_of(('SCI', 1)) == 1
+        assert hdul.index_of(hdu) == len(hdul) - 1
 
     def test_update_filelike(self):
         """Test opening a file-like object in update mode and resizing the
