@@ -37,7 +37,7 @@ matplotlib's default of 10 bins, the second with an arbitrarily chosen
 
     fig.subplots_adjust(left=0.1, right=0.95, bottom=0.15)
     for i, bins in enumerate([10, 200]):
-        ax[i].hist(t, bins=bins, histtype='stepfilled', alpha=0.2, normed=True)
+        ax[i].hist(t, bins=bins, histtype='stepfilled', alpha=0.2, density=True)
         ax[i].set_xlabel('t')
         ax[i].set_ylabel('P(t)')
         ax[i].set_title('plt.hist(t, bins={0})'.format(bins),
@@ -88,12 +88,11 @@ The following figure shows the results of these two rules on the above dataset:
 
     # draw histograms with two different bin widths
     fig, ax = plt.subplots(1, 2, figsize=(10, 4))
-    hist_kwds1 = dict(histtype='stepfilled', alpha=0.2, normed=True)
 
     fig.subplots_adjust(left=0.1, right=0.95, bottom=0.15)
     for i, bins in enumerate(['scott', 'freedman']):
         hist(t, bins=bins, ax=ax[i], histtype='stepfilled',
-             alpha=0.2, normed=True)
+             alpha=0.2, density=True)
         ax[i].set_xlabel('t')
         ax[i].set_ylabel('P(t)')
         ax[i].set_title('hist(t, bins="{0}")'.format(bins),
@@ -143,14 +142,13 @@ the results of these procedures for the above dataset:
 
     # draw histograms with two different bin widths
     fig, ax = plt.subplots(1, 2, figsize=(10, 4))
-    hist_kwds1 = dict(histtype='stepfilled', alpha=0.2, normed=True)
 
     fig.subplots_adjust(left=0.1, right=0.95, bottom=0.15)
     for i, bins in enumerate(['knuth', 'blocks']):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')  # Ignore bayesian block p0 warning
             hist(t, bins=bins, ax=ax[i], histtype='stepfilled',
-                 alpha=0.2, normed=True)
+                 alpha=0.2, density=True)
         ax[i].set_xlabel('t')
         ax[i].set_ylabel('P(t)')
         ax[i].set_title('hist(t, bins="{0}")'.format(bins),

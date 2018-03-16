@@ -173,12 +173,12 @@ class TestRunnerBase:
         """
         Run the tests for the package.
 
+        This method builds arguments for and then calls ``pytest.main``.
+
         Parameters
         ----------
         {keywords}
-        See Also
-        --------
-        pytest.main : This method builds arguments for and then calls this function.
+
         """
 
     def run_tests(self, **kwargs):
