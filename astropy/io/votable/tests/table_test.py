@@ -2,8 +2,6 @@
 """
 Test the conversion to/from astropy.table
 """
-
-
 import io
 import os
 
@@ -176,4 +174,4 @@ def test_empty_table():
         get_pkg_data_filename('data/empty_table.xml'),
         pedantic=False)
     table = votable.get_first_table()
-    astropy_table = table.to_table()
+    astropy_table = table.to_table()  # noqa
