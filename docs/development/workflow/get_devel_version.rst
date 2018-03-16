@@ -222,16 +222,14 @@ of `Astropy`_, for now this straightforward way will work (if you want to jump
 ahead to the more sophisticated method look at :ref:`virtual_envs`).
 
 .. note::
-    There are a couple of circumstances in which this quick method of
-    activating your copy of `Astropy`_ will NOT work and you need to go
-    straight to using a virtual python environment:
+    This quick method of activating your copy of `Astropy`_ will NOT work  
+    if you want to work on C or Cython code in `Astropy`_. 
+    You need to go straight to using a virtual python environment.
 
-    + You use Python 3.
-    + You want to work on C or Cython code in `Astropy`_.
 
 In the directory where your copy of `Astropy`_ is type::
 
-    python setup.py develop
+    python3 setup.py develop
 
 Several pages of output will follow the first time you do this; this wouldn't
 be a bad time to get a fresh cup of coffee. At the end of it you should see
@@ -273,7 +271,7 @@ If the test *don't* complete successfully, that is itself a bug--please
 To run the tests, navigate back to the directory your copy of astropy is in on
 your computer, then, at the shell prompt, type::
 
-    python setup.py test
+    python3 setup.py test
 
 This is another good time to get some coffee or tea. The number of test is
 large. When the test are done running you will see a message something like
@@ -311,7 +309,7 @@ science work with Astropy.
 Navigate to the directory where your local copy of the development version is,
 then run::
 
-    python setup.py develop -u
+    python3 setup.py develop -u
 
 You should really confirm it is deactivated by **changing to a different
 directory outside of the astropy distribution** and running this in python::
