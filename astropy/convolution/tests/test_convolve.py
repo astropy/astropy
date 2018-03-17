@@ -768,3 +768,9 @@ def test_regression_6099():
     series_result  = convolve(wave_series, np.ones((boxcar,))/boxcar)
 
     assert_array_almost_equal(nonseries_result, series_result)
+
+def test_invalid_array_convolve():
+    kernel = np.ones(3)/3.
+
+    with pytest.raises(TypeError):
+        convolve('glork', kernel)
