@@ -40,7 +40,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
     Parameters
     ----------
-    array : `numpy.ndarray` or `~astropy.nddata.NDData`
+    array : `~astropy.nddata.NDData` or `numpy.ndarray` or array-like
         The array to convolve. This should be a 1, 2, or 3-dimensional array
         or a list or a set of nested lists representing a 1, 2, or
         3-dimensional array.  If an `~astropy.nddata.NDData`, the ``mask`` of
@@ -159,16 +159,19 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
     # Check that the arguments are lists or Numpy arrays
 
-    if isinstance(array, list):
-        array_internal = np.array(array, dtype=float)
-        array_dtype = array_internal.dtype
-    elif isinstance(array, np.ndarray):
+    if isinstance(array, np.ndarray):
         # Note this won't copy if it doesn't have to -- which is okay
         # because none of what follows modifies array_internal.
         array_dtype = array.dtype
         array_internal = array.astype(float, copy=False)
     else:
-        raise TypeError("array should be a list or a Numpy array")
+        try:
+            array_internal = np.array(array, dtype=float)
+        except Exception as e:
+            raise TypeError("array should be a Numpy array or something "
+                            "convertable into a float array", e)
+        array_dtype = array_internal.dtype
+
 
     if isinstance(kernel, list):
         kernel_internal = np.array(kernel, dtype=float)
