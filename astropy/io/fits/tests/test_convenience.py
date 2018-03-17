@@ -2,6 +2,7 @@
 
 
 import os
+import shutil
 import warnings
 
 import pytest
@@ -144,12 +145,15 @@ class TestConvenience(FitsTestCase):
         """
         Regression test for https://github.com/astropy/astropy/issues/6937
         """
-        # test without datafile
+        # copy fits file to the temp directory
         filename = self.data('tb.fits')
-        fits.tabledump(filename)
-        assert os.path.isfile(self.data('tb_1.txt'))
-        os.remove(self.data('tb_1.txt'))
+        temp_filename = self.temp('tb.fits')
+        shutil.copyfile(filename, temp_filename)
+
+        # test without datafile
+        fits.tabledump(temp_filename)
+        assert os.path.isfile(self.temp('tb_1.txt'))
 
         # test with datafile
-        fits.tabledump(filename, datafile=self.temp('test_tb.txt'))
+        fits.tabledump(temp_filename, datafile=self.temp('test_tb.txt'))
         assert os.path.isfile(self.temp('test_tb.txt'))
