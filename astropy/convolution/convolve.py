@@ -167,7 +167,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     else:
         try:
             array_internal = np.array(array, dtype=float)
-        except Exception as e:
+        except (TypeError, ValueError) as e:
             raise TypeError("array should be a Numpy array or something "
                             "convertable into a float array", e)
         array_dtype = array_internal.dtype
