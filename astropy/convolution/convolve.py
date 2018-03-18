@@ -158,19 +158,14 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         kernel = kernel.array
 
     # Check that the arguments are lists or Numpy arrays
-
-    if isinstance(array, np.ndarray):
+    try:
         # Note this won't copy if it doesn't have to -- which is okay
         # because none of what follows modifies array_internal.
-        array_dtype = array.dtype
-        array_internal = array.astype(float, copy=False)
-    else:
-        try:
-            array_internal = np.array(array, dtype=float)
-        except (TypeError, ValueError) as e:
-            raise TypeError("array should be a Numpy array or something "
-                            "convertable into a float array", e)
-        array_dtype = array_internal.dtype
+        array_internal = np.asanyarray(array, dtype=float)
+    except (TypeError, ValueError) as e:
+        raise TypeError('array should be a Numpy array or something '
+                        'convertable into a float array', e)
+    array_dtype = getattr(array, 'dtype', array_internal.dtype)
 
 
     if isinstance(kernel, list):
