@@ -54,7 +54,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     Returns
     -------
     hist : array
-        The values of the histogram. See ``normed`` and ``weights`` for a
+        The values of the histogram. See ``density`` and ``weights`` for a
         description of the possible semantics.
     bin_edges : array of dtype float
         Return the bin edges ``(length(hist)+1)``.
