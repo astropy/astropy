@@ -1376,16 +1376,15 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
             kwargs['Inputter'] = Inputter
         return Reader(**kwargs)
 
-    # If user explicitly passed a fast reader with 'force' or with non-default
-    # options for the fast reader, raise an error for slow readers
+    # If user explicitly passed a fast reader with enable='force'
+    # (e.g. by passing non-default options), raise an error for slow readers
     if 'fast_reader' in kwargs:
-        if (kwargs['fast_reader'] == 'force' or
-            isinstance(kwargs['fast_reader'] , dict)):
+        if kwargs['fast_reader']['enable'] == 'force':
             raise ParameterError('fast_reader required with ' +
                                  '{0}, but this is not a fast C reader: {1}'
                                  .format(kwargs['fast_reader'], Reader))
         else:
-            del kwargs['fast_reader'] # otherwise ignore fast_reader parameter
+            del kwargs['fast_reader'] # Otherwise ignore fast_reader parameter
 
     reader_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_reader_pars)
     reader = Reader(**reader_kwargs)

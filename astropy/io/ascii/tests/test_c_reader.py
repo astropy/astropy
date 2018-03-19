@@ -1225,24 +1225,28 @@ def test_fortran_reader_notbasic():
 
     assert t3['b'].dtype.kind == 'f'
 
-    # In the special case of fast_converter=True (the default),
-    # incompatibility is ignored
-    t4 = ascii.read(tabrst.split('\n'), format='rst', fast_reader=True)
+    t4 = ascii.read(tabrst.split('\n'), guess=True)
 
     assert t4['b'].dtype.kind == 'f'
 
-    with pytest.raises(ParameterError):
-        t5 = ascii.read(tabrst.split('\n'), format='rst', guess=False,
-                        fast_reader='force')
+    # In the special case of fast_converter=True (the default),
+    # incompatibility is ignored
+    t5 = ascii.read(tabrst.split('\n'), format='rst', fast_reader=True)
+
+    assert t5['b'].dtype.kind == 'f'
 
     with pytest.raises(ParameterError):
         t6 = ascii.read(tabrst.split('\n'), format='rst', guess=False,
+                        fast_reader='force')
+
+    with pytest.raises(ParameterError):
+        t7 = ascii.read(tabrst.split('\n'), format='rst', guess=False,
                         fast_reader=dict(use_fast_converter=False))
 
     tabrst = tabrst.replace('E', 'D')
 
     with pytest.raises(ParameterError):
-        t7 = ascii.read(tabrst.split('\n'), format='rst', guess=False,
+        t8 = ascii.read(tabrst.split('\n'), format='rst', guess=False,
                         fast_reader=dict(exponent_style='D'))
 
 @pytest.mark.parametrize("guess", [True, False])
