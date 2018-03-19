@@ -333,6 +333,8 @@ astropy.utils
 ^^^^^^^^^^^^^
 
 - ``InheritDocstrings`` now also works on class properties. [#7166]
+- ``deprecated_renamed_argument`` now shows
+  ``AstropyPendingDeprecationWarning`` when ``pending=True``. [#7311]
 
 - ``diff_values()``, ``report_diff_values()``, and ``where_not_allclose()``
   utility functions are moved from ``astropy.io.fits.diff``. [#7444]
