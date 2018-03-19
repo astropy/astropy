@@ -643,7 +643,7 @@ class BaseHeader:
                     len(name) == 0 or
                     name[0] in bads or
                     name[-1] in bads):
-                    raise ValueError('Column name {0!r} does not meet strict name requirements'
+                        raise ValueError('Column name {0!r} does not meet strict name requirements'
                                      .format(name))
         # When guessing require at least two columns
         if guessing and len(self.colnames) <= 1:
@@ -1175,8 +1175,8 @@ class BaseReader(metaclass=MetaBaseReader):
                               ' data columns ({}) at data line {}\n'
                               'Header values: {}\n'
                               'Data values: {}'.format(
-                            n_cols, len(str_vals), i,
-                            [x.name for x in cols], str_vals))
+                                  n_cols, len(str_vals), i,
+                                  [x.name for x in cols], str_vals))
 
                     raise InconsistentTableError(errmsg)
 
@@ -1384,7 +1384,7 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
                                  '{0}, but this is not a fast C reader: {1}'
                                  .format(kwargs['fast_reader'], Reader))
         else:
-            del kwargs['fast_reader'] # Otherwise ignore fast_reader parameter
+            del kwargs['fast_reader']  # Otherwise ignore fast_reader parameter
 
     reader_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_reader_pars)
     reader = Reader(**reader_kwargs)

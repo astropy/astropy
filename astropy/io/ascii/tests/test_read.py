@@ -160,9 +160,9 @@ def test_read_all_files(fast_reader):
             test_opts = testfile['opts'].copy()
             if 'guess' not in test_opts:
                 test_opts['guess'] = guess
-            if ('Reader' in test_opts and 'fast_{0}'.format(test_opts['Reader']._format_name) 
+            if ('Reader' in test_opts and 'fast_{0}'.format(test_opts['Reader']._format_name)
                 in core.FAST_CLASSES):  # has fast version
-                if 'Inputter' not in test_opts:  # fast reader doesn't allow this
+                    if 'Inputter' not in test_opts:  # fast reader doesn't allow this
                     test_opts['fast_reader'] = fast_reader
             table = ascii.read(testfile['name'], **test_opts)
             assert_equal(table.dtype.names, testfile['cols'])
@@ -307,7 +307,7 @@ def test_set_include_names(fast_reader):
     names = ('c1', 'c2', 'c3', 'c4', 'c5', 'c6')
     include_names = ('c1', 'c3')
     data = ascii.read('t/simple3.txt', names=names, include_names=include_names,
-                           delimiter='|', fast_reader=fast_reader)
+                      delimiter='|', fast_reader=fast_reader)
     assert_equal(data.dtype.names, include_names)
 
 
@@ -453,7 +453,7 @@ def test_fill_values_include_names(fast_reader):
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
     data = ascii.read(f, fill_values=('a', '1'), fast_reader=fast_reader,
-                           fill_include_names=['b'], **testfile['opts'])
+                      fill_include_names=['b'], **testfile['opts'])
     check_fill_values(data)
 
 
@@ -462,7 +462,7 @@ def test_fill_values_exclude_names(fast_reader):
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
     data = ascii.read(f, fill_values=('a', '1'), fast_reader=fast_reader,
-                           fill_exclude_names=['a'], **testfile['opts'])
+                      fill_exclude_names=['a'], **testfile['opts'])
     check_fill_values(data)
 
 
@@ -528,7 +528,7 @@ def test_Ipac_meta():
 def test_set_guess_kwarg():
     """Read a file using guess with one of the typical guess_kwargs explicitly set."""
     data = ascii.read('t/space_delim_no_header.dat',
-                           delimiter=',', guess=True)
+                      delimiter=',', guess=True)
     assert(data.dtype.names == ('1 3.4 hello',))
     assert(len(data) == 1)
 
@@ -857,7 +857,8 @@ def test_header_start_exception():
     This was implemented in response to issue #885.
     '''
     for readerclass in [ascii.NoHeader, ascii.SExtractor, ascii.Ipac,
-                   ascii.BaseReader, ascii.FixedWidthNoHeader, ascii.Cds, ascii.Daophot]:
+                        ascii.BaseReader, ascii.FixedWidthNoHeader,
+                        ascii.Cds, ascii.Daophot]:
         with pytest.raises(ValueError):
             reader = ascii.core._get_reader(readerclass, header_start=5)
 
@@ -890,8 +891,8 @@ def test_sextractor_units():
     """
     table = ascii.read('t/sextractor2.dat', Reader=ascii.SExtractor, guess=False)
     expected_units = [None, Unit('pix'), Unit('pix'), Unit('mag'),
-                Unit('mag'), None, Unit('pix**2'), Unit('m**(-6)'),
-                Unit('mag * arcsec**(-2)')]
+                      Unit('mag'), None, Unit('pix**2'), Unit('m**(-6)'),
+                      Unit('mag * arcsec**(-2)')]
     expected_descrs = ['Running object number',
                        'Windowed position estimate along x',
                        'Windowed position estimate along y',
@@ -1076,7 +1077,7 @@ def test_probably_html():
                   'junk < table baz> <tr foo > <td bar> </td> </tr> </table> junk',
                   ['junk < table baz>', ' <tr foo >', ' <td bar> ', '</td> </tr>', '</table> junk'],
                   (' <! doctype html > ', ' hello world'),
-    ):
+                   ):
         assert _probably_html(table) is True
 
     for table in ('t/html.htms',
@@ -1088,7 +1089,7 @@ def test_probably_html():
                   ['junk < table baz>', ' <t foo >', ' <td bar> ', '</td> </tr>', '</table> junk'],
                   (' <! doctype htm > ', ' hello world'),
                   [[1, 2, 3]],
-    ):
+                   ):
         assert _probably_html(table) is False
 
 
@@ -1102,8 +1103,8 @@ def test_data_header_start(fast_reader):
                '1 2'],  # line 2
               [{'header_start': 1},
                {'header_start': 1, 'data_start': 2}
-           ]
-           ),
+               ]
+               ),
 
              (['# comment',
                '',

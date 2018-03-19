@@ -22,6 +22,7 @@ from .common import assert_equal, assert_almost_equal, assert_true
 StringIO = lambda x: BytesIO(x.encode('ascii'))
 TRAVIS = os.environ.get('TRAVIS', False)
 
+
 def assert_table_equal(t1, t2, check_meta=False, rtol=1.e-15, atol=1.e-300):
     """
     Test equality of all columns in a table, with stricter tolerances for
@@ -957,6 +958,7 @@ def test_read_big_table(tmpdir):
     t = Table.read(filename, format='ascii.csv', fast_reader=True)
     assert len(t) == NB_ROWS
 
+
 # Test these both with guessing turned on and off
 @pytest.mark.parametrize("guess", [True, False])
 # fast_reader configurations: False| 'use_fast_converter'=False|True
@@ -988,7 +990,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
             pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
 
     fields = ['10.1E+199', '3.14e+313', '2048e+306', '0.6E-325', '-2.e345']
-    values = np.array([ 1.01e200, np.inf, np.inf, 0.0, -np.inf ])
+    values = np.array([1.01e200, np.inf, np.inf, 0.0, -np.inf])
     t = ascii.read(StringIO(' '.join(fields)), format='no_header',
                    guess=guess, fast_reader=fast_reader)
     read_values = np.array([col[0] for col in t.itercols()])
@@ -1078,10 +1080,10 @@ def test_fortran_reader(parallel, guess):
     expc = Table([[1.0001e101, 0.42], [2, 0.5], [2.e-103, 6.e3], [3, 1.7e307]],
                  names=('A', 'B', 'C', 'D'))
 
-    expstyles = { 'e': 6*('E'),
-                  'D': ('D', 'd', 'd', 'D', 'd', 'D'),
-                  'Q': 3*('q', 'Q'),
-                  'Fortran': ('E', '0', 'D', 'Q', 'd', '0') }
+    expstyles = {'e': 6*('E'),
+                 'D': ('D', 'd', 'd', 'D', 'd', 'D'),
+                 'Q': 3*('q', 'Q'),
+                  'Fortran': ('E', '0', 'D', 'Q', 'd', '0')}
 
     # C strtod (not-fast converter) can't handle Fortran exp
     with pytest.raises(FastOptionsError) as e:
@@ -1118,9 +1120,6 @@ def test_fortran_invalid_exp(parallel, guess):
     """
     if parallel and TRAVIS:
         pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
-
-    rtol = 1.e-15
-    atol = 0.0
 
     formats = {'basic': ' ', 'tab': '\t', 'csv': ','}
     header = ['S1', 'F2', 'S2', 'F3', 'S3', 'F4', 'F5', 'S4', 'I1', 'F6', 'F7']
@@ -1248,6 +1247,7 @@ def test_fortran_reader_notbasic():
     with pytest.raises(ParameterError):
         t8 = ascii.read(tabrst.split('\n'), format='rst', guess=False,
                         fast_reader=dict(exponent_style='D'))
+
 
 @pytest.mark.parametrize("guess", [True, False])
 @pytest.mark.parametrize('fast_reader', [ dict(exponent_style='D'),
