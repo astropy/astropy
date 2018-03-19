@@ -34,6 +34,8 @@ except ImportError:
 else:
     HAS_BZ2 = True
 
+asciiIO = lambda x: BytesIO(x.encode('ascii'))
+
 
 @pytest.mark.parametrize('fast_reader', [True, False, {'use_fast_converter': False},
                                          {'use_fast_converter': True}, 'force'])
@@ -113,12 +115,12 @@ def test_guess_with_delimiter_arg():
     values = [1.01e20, 3.14, 2048, -23]
 
     # Default guess should recognise CSV with optional spaces
-    t0 = ascii.read(StringIO(', '.join(fields)), guess=True)
+    t0 = ascii.read(asciiIO(', '.join(fields)), guess=True)
     for n, v in zip(t0.colnames, values):
         assert t0[n][0] == v
 
     # Forcing space as delimiter produces type str columns ('10.1E+19,')
-    t1 = ascii.read(StringIO(', '.join(fields)), guess=True, delimiter=' ')
+    t1 = ascii.read(asciiIO(', '.join(fields)), guess=True, delimiter=' ')
     for n, v in zip(t1.colnames[:-1], fields[:-1]):
         assert t1[n][0] == v+','
 
@@ -158,8 +160,8 @@ def test_read_all_files(fast_reader):
             test_opts = testfile['opts'].copy()
             if 'guess' not in test_opts:
                 test_opts['guess'] = guess
-            if 'Reader' in test_opts and 'fast_{0}'.format(test_opts['Reader']._format_name) \
-                in core.FAST_CLASSES:  # has fast version
+            if ('Reader' in test_opts and 'fast_{0}'.format(test_opts['Reader']._format_name) 
+                in core.FAST_CLASSES):  # has fast version
                 if 'Inputter' not in test_opts:  # fast reader doesn't allow this
                     test_opts['fast_reader'] = fast_reader
             table = ascii.read(testfile['name'], **test_opts)
