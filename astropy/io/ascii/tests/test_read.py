@@ -105,6 +105,24 @@ def test_guess_with_format_arg():
     assert dat.colnames == ['a', 'b']
 
 
+def test_guess_with_delimiter_arg():
+    """
+    When the delimiter is explicitly given then do not try others in guessing.
+    """
+    fields = ['10.1E+19', '3.14', '2048', '-23']
+    values = [1.01e20, 3.14, 2048, -23]
+
+    # Default guess should recognise CSV with optional spaces
+    t0 = ascii.read(StringIO(', '.join(fields)), guess=True)
+    for n, v in zip(t0.colnames, values):
+        assert t0[n][0] == v
+
+    # Forcing space as delimiter produces type str columns ('10.1E+19,')
+    t1 = ascii.read(StringIO(', '.join(fields)), guess=True, delimiter=' ')
+    for n, v in zip(t1.colnames[:-1], fields[:-1]):
+        assert t1[n][0] == v+','
+
+
 def test_reading_mixed_delimiter_tabs_spaces():
     # Regression test for https://github.com/astropy/astropy/issues/6770
     dat = ascii.read('1 2\t3\n1 2\t3', format='no_header', names=list('abc'))

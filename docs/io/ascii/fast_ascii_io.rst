@@ -37,11 +37,15 @@ To disable the fast engine, specify ``fast_reader=False`` or
 
 .. Note:: Guessing and Fast reading
 
-   By default |read| will try to guess the format of in the input data by
+   By default |read| will try to guess the format of the input data by
    successively trying different formats until one succeeds
-   (see the section on :ref:`guess_formats`).
-   For the default ``'ascii'`` format it will try all fast reader formats
-   before testing any pure Python readers with no fast implementation.
+   (see the section on :ref:`guess_formats`). For each supported
+   format it will first try the fast, then the slow version of that
+   reader. Without any additional options this means that both some pure
+   Python readers with no fast implementation and the Python versions
+   of some readers will be tried before getting to some of the fast
+   readers. To bypass them entirely a fast reader should be explicitly
+   requested as above.
 
    **For optimum performance** however, it is recommended to turn off
    guessing entirely (``guess=False``) or narrow down the format options
