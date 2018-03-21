@@ -133,8 +133,8 @@ class WCSAxes(Axes):
 
         world = coords._transform.transform(np.array([pixel]))[0]
 
-        xw = coords[self._x_index].format_coord(world[self._x_index])
-        yw = coords[self._y_index].format_coord(world[self._y_index])
+        xw = coords[self._x_index].format_coord(world[self._x_index], format='ascii')
+        yw = coords[self._y_index].format_coord(world[self._y_index], format='ascii')
 
         if self._display_coords_index == 0:
             system = "world"
