@@ -2,6 +2,7 @@
 from __future__ import division
 import numpy as np
 cimport numpy as np
+from .utils import KernelSizeError
 
 
 DTYPE = np.float
@@ -12,6 +13,28 @@ cdef extern from "numpy/npy_math.h" nogil:
 
 cimport cython
 
+cdef _raise_if_kernel_larger_than_array(const np.npy_intp * array_shape, const np.npy_intp * kernel_shape, length):
+    """
+    Helper function to raise an exception due to the following:
+
+    For boundary=None only the center space is convolved. All array indices within a
+    distance kernel.shape//2 from the edge are completely ignored (zeroed).
+    E.g. (1D list) only the indices len(kernel)//2 : len(array)-len(kernel)//2
+    are convolved. It is therefore not possible to use this method to convolve an
+    array by a kernel that is larger* than the array - as ALL pixels would be ignored
+    leaving an array of only zeros.
+    * For even kernels the correctness condition is array_shape > kernel_shape.
+    For odd kernels it is:
+    array_shape >= kernel_shape OR array_shape > kernel_shape-1 OR array_shape > 2*(kernel_shape//2).
+    Since the latter is equal to the former two for even lengths, the latter condition is complete.
+    """
+
+    for i in range(length):
+        if not array_shape[i] > 2*(kernel_shape[i]//2):
+            raise KernelSizeError("for boundary=None all kernel axes must be smaller than array's. "
+                                  "Triggered by: if not numpy.all(array.shape > 2*(kernel.shape//2)). "
+                                  "Use boundary in ('fill', 'extend', 'wrap') instead.")
+
 
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
 def convolve1d_boundary_none(np.ndarray[DTYPE_t, ndim=1] f,
@@ -20,6 +43,8 @@ def convolve1d_boundary_none(np.ndarray[DTYPE_t, ndim=1] f,
 
     if g.shape[0] % 2 != 1:
         raise ValueError("Convolution kernel must have odd dimensions")
+
+    _raise_if_kernel_larger_than_array(f.shape, g.shape, 1)
 
     assert f.dtype == DTYPE and g.dtype == DTYPE
 
@@ -68,6 +93,8 @@ def convolve2d_boundary_none(np.ndarray[DTYPE_t, ndim=2] f,
 
     if g.shape[0] % 2 != 1 or g.shape[1] % 2 != 1:
         raise ValueError("Convolution kernel must have odd dimensions")
+
+    _raise_if_kernel_larger_than_array(f.shape, g.shape, 2)
 
     assert f.dtype == DTYPE and g.dtype == DTYPE
 
@@ -122,6 +149,8 @@ def convolve3d_boundary_none(np.ndarray[DTYPE_t, ndim=3] f,
 
     if g.shape[0] % 2 != 1 or g.shape[1] % 2 != 1 or g.shape[2] % 2 != 1:
         raise ValueError("Convolution kernel must have odd dimensions")
+
+    _raise_if_kernel_larger_than_array(f.shape, g.shape, 3)
 
     assert f.dtype == DTYPE and g.dtype == DTYPE
 
