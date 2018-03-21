@@ -27,6 +27,27 @@ DSEC_RE = re.compile('^s(.(s)+)?$')
 SCAL_RE = re.compile('^x(.(x)+)?$')
 
 
+# Units with custom representations
+
+CUSTOM_UNITS = {
+    u.degree: u.def_unit('custom_degree', represents=u.degree,
+                         format={'generic': '\xb0',
+                                 'latex': '^\circ',
+                                 'unicode': '°'}),
+    u.arcmin: u.def_unit('custom_arcmin', represents=u.arcmin,
+                         format={'generic': "'",
+                                 'latex': '^\prime',
+                                 'unicode': '′'}),
+    u.arcsec: u.def_unit('custom_arcsec', represents=u.arcsec,
+                         format={'generic': '"',
+                                 'latex': '^{\prime\prime}',
+                                 'unicode': '″'}),
+    u.hourangle: u.def_unit('custom_hourangle', represents=u.hourangle,
+                            format={'generic': 'h',
+                                    'latex': r'^\mathrm{h}',
+                                    'unicode': r'$\mathregular{^h}$'})}
+
+
 class BaseFormatterLocator:
     """
     A joint formatter/locator
@@ -116,7 +137,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
     """
 
     def __init__(self, values=None, number=None, spacing=None, format=None,
-                 unit=None, decimal=None, format_unit=None):
+                 unit=None, decimal=None, format_unit=None, show_decimal_unit=True):
 
         if unit is None:
             unit = u.degree
@@ -132,6 +153,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
         self._format_unit = format_unit or unit
         self._decimal = decimal
         self._sep = None
+        self.show_decimal_unit = show_decimal_unit
         super().__init__(values=values, number=number, spacing=spacing,
                          format=format)
 
@@ -147,6 +169,9 @@ class AngleFormatterLocator(BaseFormatterLocator):
             decimal = False
         return decimal
 
+    @decimal.setter
+    def decimal(self, value):
+        self._decimal = value
 
     @property
     def spacing(self):
@@ -319,8 +344,12 @@ class AngleFormatterLocator(BaseFormatterLocator):
             raise TypeError("values should be a Quantities array")
 
         if len(values) > 0:
+
             decimal = self.decimal
             unit = self._format_unit
+
+            if unit is u.hour:
+                unit = u.hourangle
 
             if self.format is None:
                 if decimal:
@@ -357,24 +386,36 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 fields = self._fields
                 precision = self._precision
 
+            is_latex = format == 'latex' or (format == 'auto' and rcParams['text.usetex'])
+
             if decimal:
-                sep = None
-                fmt = None
-
-                decimal = False
-                sep = 'fromunit'
-                if format == 'latex' or (format == 'auto' and rcParams['text.usetex']):
-                    fmt = 'latex'
+                # At the moment, the Angle class doesn't have a consistent way
+                # to always convert angles to strings in decimal form with
+                # symbols for units (instead of e.g 3arcsec). So as a workaround
+                # we take advantage of the fact that Angle.to_string converts
+                # the unit to a string manually when decimal=False and the unit
+                # is not strictly u.degree or u.hourangle
+                if self.show_decimal_unit:
+                    decimal = False
+                    sep = 'fromunit'
+                    if is_latex:
+                        fmt = 'latex'
+                    else:
+                        if unit is u.hourangle:
+                            fmt = 'unicode'
+                        else:
+                            fmt = None
+                    unit = CUSTOM_UNITS.get(unit, unit)
                 else:
-                    fmt = 'unicode'
-
+                    sep = None
+                    fmt = None
             elif self.sep is not None:
                 sep = self.sep
                 fmt = None
             else:
                 sep = 'fromunit'
                 if unit == u.degree:
-                    if format == 'latex' or (format == 'auto' and rcParams['text.usetex']):
+                    if is_latex:
                         fmt = 'latex'
                     else:
                         sep = ('\xb0', "'", '"')
@@ -382,7 +423,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 else:
                     if format == 'ascii':
                         fmt = None
-                    elif format == 'latex' or (format == 'auto' and rcParams['text.usetex']):
+                    elif is_latex:
                         fmt = 'latex'
                     else:
                         # Here we still use LaTeX but this is for Matplotlib's
