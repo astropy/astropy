@@ -845,6 +845,10 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
+- convolve(boundary=None) requires the kernel to be smaller than the image.
+  This was never actually checked, it now is and an exception is raised.
+  [#7313]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
