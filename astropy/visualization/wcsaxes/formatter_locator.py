@@ -297,7 +297,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                     spacing_value = self.base_spacing.to_value(self._unit)
                 else:
                     # otherwise we clip to the nearest 'sensible' spacing
-                    if self._decimal:
+                    if self.decimal:
                         from .utils import select_step_scalar
                         spacing_value = select_step_scalar(dv.to_value(self._format_unit)) * self._format_unit.to(self._unit)
                     else:
