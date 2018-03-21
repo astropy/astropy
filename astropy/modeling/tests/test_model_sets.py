@@ -40,8 +40,9 @@ def test_model_axis_1():
     Test that a model initialized with model_set_axis=1
     can be evaluated with model_set_axis=False.
     """
-
-    p1 = Polynomial1D(1, n_models=2, model_set_axis=1)
+    model_axis = 1
+    n_models = 2
+    p1 = Polynomial1D(1, n_models=n_models, model_set_axis=model_axis)
     p1.c0 = [2, 3]
     p1.c1 = [1, 2]
     t1 = Polynomial1D(1, c0=2, c1=1)
@@ -54,19 +55,19 @@ def test_model_axis_1():
         p1(xx)
 
     y = p1(x, model_set_axis=False)
-    assert len(y) == 2
-    assert_allclose(y[0], t1(x))
-    assert_allclose(y[1], t2(x))
+    assert y.shape[model_axis] == n_models
+    assert_allclose(y[:, 0], t1(x))
+    assert_allclose(y[:, 1], t2(x))
 
     y = p1(xx, model_set_axis=False)
-    assert len(y) == 2
-    assert_allclose(y[0], t1(xx))
-    assert_allclose(y[1], t2(xx))
+    assert y.shape[model_axis] == n_models
+    assert_allclose(y[:, 0, :], t1(xx))
+    assert_allclose(y[:, 1, :], t2(xx))
 
     y = p1(xxx, model_set_axis=False)
-    assert_allclose(y[0], t1(xxx))
-    assert_allclose(y[1], t2(xxx))
-    assert len(y) == 2
+    assert y.shape[model_axis] == n_models
+    assert_allclose(y[:, 0, :, :], t1(xxx))
+    assert_allclose(y[:, 1, :, :], t2(xxx))
 
 
 def test_model_axis_2():
@@ -87,7 +88,7 @@ def test_model_axis_2():
         p1(xx)
 
     y = p1(x, model_set_axis=False)
-    assert y.shape == (4, 1, 3)
+    assert y.shape == (1, 4, 3)
     assert_allclose(y[:, :, 0].flatten(), t1(x))
     assert_allclose(y[:, :, 1].flatten(), t2(x))
     assert_allclose(y[:, :, 2].flatten(), t3(x))
@@ -100,7 +101,7 @@ def test_model_axis_2():
 
     assert p2.c0_0.shape == ()
     y = p2(x, x, model_set_axis=False)
-    assert y.shape == (4, 1, 3)
+    assert y.shape == (1, 4, 3)
     # These are columns along the 2nd axis.
     assert_allclose(y[:, :, 0].flatten(), t1(x, x))
     assert_allclose(y[:, :, 1].flatten(), t2(x, x))
@@ -220,5 +221,16 @@ def test_linearlsqfitter():
 
     m1 = Polynomial1D(1, c0=fit.c0[0][0], c1=fit.c1[0][0])
     m2 = Polynomial1D(1, c0=fit.c0[0][1], c1=fit.c1[0][1])
-    assert_allclose(model_y[0], m1(x))
-    assert_allclose(model_y[1], m2(x))
+    assert_allclose(model_y[:, 0], m1(x))
+    assert_allclose(model_y[:, 1], m2(x))
+
+
+def test_model_set_axis_outputs():
+    fitter = LinearLSQFitter()
+    model_set = Polynomial2D(1, n_models=2, model_set_axis=2)
+    y, x = np.mgrid[: 5, : 5]
+    # z = np.moveaxis([x + y, 1 - 0.1 * x + 0.2 * y]), 0, 2)
+    z = np.rollaxis(np.array([x + y, 1 - 0.1 * x + 0.2 * y]), 2, 1).T
+    model = fitter(model_set, x, y, z)
+    res = model(x, y, model_set_axis=False)
+    assert z.shape == res.shape
