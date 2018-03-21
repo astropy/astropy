@@ -301,6 +301,9 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fix the shape of the outputs when a model set is evaluated with
+  ``model_set_axis`` different from the one it was initialized with. [#7317]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
