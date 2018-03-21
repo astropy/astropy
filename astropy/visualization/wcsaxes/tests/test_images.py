@@ -109,6 +109,12 @@ class TestBasic(BaseImageTests):
         ax.set_xlim(0., 720.)
         ax.set_ylim(0., 720.)
 
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
+
         return fig
 
     @pytest.mark.remote_data(source='astropy')
@@ -232,6 +238,12 @@ class TestBasic(BaseImageTests):
         ax.coords[0].grid(grid_type='contours', color='blue', linestyle='solid')
         ax.coords[1].grid(grid_type='contours', color='red', linestyle='solid')
 
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
+
         return fig
 
     @pytest.mark.remote_data(source='astropy')
@@ -248,6 +260,12 @@ class TestBasic(BaseImageTests):
         c = SkyCoord(266 * u.deg, -29 * u.deg)
         ax.plot_coord(c, 'o')
 
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
+
         return fig
 
     @pytest.mark.remote_data(source='astropy')
@@ -263,6 +281,12 @@ class TestBasic(BaseImageTests):
 
         c = SkyCoord([266, 266.8] * u.deg, [-29, -28.9] * u.deg)
         ax.plot_coord(c)
+
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
 
         return fig
 
@@ -382,6 +406,11 @@ class TestBasic(BaseImageTests):
         ax.grid(color='gray', alpha=0.5, linestyle='solid')
         ax.coords['ra'].set_ticks(color='red', size=20)
         ax.coords['dec'].set_ticks(color='red', size=20)
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
         return fig
 
     @pytest.mark.remote_data(source='astropy')
@@ -406,6 +435,11 @@ class TestBasic(BaseImageTests):
         ax.grid(color='gray', alpha=0.5, linestyle='solid')
         ax.coords['ra'].set_ticks(color='red', size=20)
         ax.coords['dec'].set_ticks(color='red', size=20)
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
         return fig
 
     @pytest.mark.remote_data(source='astropy')
@@ -565,4 +599,31 @@ class TestBasic(BaseImageTests):
         wcs = WCS(self.msx_header)
         fig = plt.figure(figsize=(5, 3))
         ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, frame_class=EllipticalFrame)
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
+    def test_hms_labels(self):
+        # This tests the apparance of the hms superscripts in tick labels
+        fig = plt.figure(figsize=(3, 3))
+        ax = fig.add_axes([0.3, 0.2, 0.65, 0.6],
+                          projection=WCS(self.twoMASS_k_header),
+                          aspect='equal')
+        ax.set_xlim(-0.5, 0.5)
+        ax.set_ylim(-0.5, 0.5)
+        ax.coords[0].set_ticks(spacing=0.2 * 15 * u.arcsec)
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={'text.usetex': True})
+    def test_latex_labels(self):
+        fig = plt.figure(figsize=(3, 3))
+        ax = fig.add_axes([0.3, 0.2, 0.65, 0.6],
+                          projection=WCS(self.twoMASS_k_header),
+                          aspect='equal')
+        ax.set_xlim(-0.5, 0.5)
+        ax.set_ylim(-0.5, 0.5)
+        ax.coords[0].set_ticks(spacing=0.2 * 15 * u.arcsec)
         return fig

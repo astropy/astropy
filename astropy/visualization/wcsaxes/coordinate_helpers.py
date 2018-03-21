@@ -55,14 +55,17 @@ class CoordinateHelper:
         and do not wrap.
     coord_unit : `~astropy.units.Unit`
         The unit that this coordinate is in given the output of transform.
+    format_unit : `~astropy.units.Unit`, optional
+        The unit to use to display the coordinates.
     coord_wrap : float
         The angle at which the longitude wraps (defaults to 360)
     frame : `~astropy.visualization.wcsaxes.frame.BaseFrame`
         The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
     """
 
-    def __init__(self, parent_axes=None, parent_map=None, transform=None, coord_index=None,
-                 coord_type='scalar', coord_unit=None, coord_wrap=None, frame=None):
+    def __init__(self, parent_axes=None, parent_map=None, transform=None,
+                 coord_index=None, coord_type='scalar', coord_unit=None,
+                 coord_wrap=None, frame=None, format_unit=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
@@ -70,6 +73,7 @@ class CoordinateHelper:
         self.transform = transform
         self.coord_index = coord_index
         self.coord_unit = coord_unit
+        self.format_unit = format_unit
         self.frame = frame
 
         self.set_coord_type(coord_type, coord_wrap)
@@ -126,7 +130,7 @@ class CoordinateHelper:
         ----------
         draw_grid : bool
             Whether to show the gridlines
-        grid_type : { 'lines' | 'contours' }
+        grid_type : {'lines', 'contours'}
             Whether to plot the contours by determining the grid lines in
             world coordinates and then plotting them in world coordinates
             (``'lines'``) or by determining the world coordinates at many
@@ -183,7 +187,8 @@ class CoordinateHelper:
                 self._coord_unit_scale = None
             else:
                 self._coord_unit_scale = self.coord_unit.to(u.deg)
-            self._formatter_locator = AngleFormatterLocator()
+            self._formatter_locator = AngleFormatterLocator(unit=self.coord_unit,
+                                                            format_unit=self.format_unit)
         else:
             raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
 
@@ -204,10 +209,19 @@ class CoordinateHelper:
             raise TypeError("formatter should be a string or a Formatter "
                             "instance")
 
-    def format_coord(self, value):
+    def format_coord(self, value, format='auto'):
         """
         Given the value of a coordinate, will format it according to the
         format of the formatter_locator.
+
+        Parameters
+        ----------
+        value : float
+            The value to format
+        format : {'auto', 'ascii', 'latex'}, optional
+            The format to use - by default the formatting will be adjusted
+            depending on whether Matplotlib is using LaTeX or MathTex. To
+            get plain ASCII strings, use format='ascii'.
         """
 
         if not hasattr(self, "_fl_spacing"):
@@ -226,7 +240,7 @@ class CoordinateHelper:
             value = value.to_value(fl._unit)
 
         spacing = self._fl_spacing
-        string = fl.formatter(values=[value] * fl._unit, spacing=spacing)
+        string = fl.formatter(values=[value] * fl._unit, spacing=spacing, format=format)
 
         return string[0]
 
@@ -255,9 +269,7 @@ class CoordinateHelper:
         unit : class:`~astropy.units.Unit`
             The unit to which the tick labels should be converted to.
         """
-        if not issubclass(unit.__class__, u.UnitBase):
-            raise TypeError("unit should be an astropy UnitBase subclass")
-        self._formatter_locator.format_unit = unit
+        self._formatter_locator.format_unit = u.Unit(unit)
 
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
                   width=None, color=None, alpha=None, exclude_overlapping=False):

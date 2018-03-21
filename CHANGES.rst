@@ -242,6 +242,10 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Right ascension coordinates are now shown in hours by default, and the
+  ``set_format_unit`` method on ``CoordinateHelper`` now works correctly
+  with angle coordinates. [#7215]
+
 astropy.wcs
 ^^^^^^^^^^^
 
