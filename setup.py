@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
 import sys
+
+if sys.version_info < (3, 5):
+    sys.stderr.write("ERROR: Astropy requires Python 3.5 or later\n")
+    sys.exit(1)
+
+import os
 import glob
 
 import ah_bootstrap
