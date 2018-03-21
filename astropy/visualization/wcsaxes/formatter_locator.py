@@ -27,7 +27,8 @@ DSEC_RE = re.compile('^s(.(s)+)?$')
 SCAL_RE = re.compile('^x(.(x)+)?$')
 
 
-# Units with custom representations
+# Units with custom representations - see the note where it is used inside
+# AngleFormatterLocator.formatter for more details.
 
 CUSTOM_UNITS = {
     u.degree: u.def_unit('custom_degree', represents=u.degree,
