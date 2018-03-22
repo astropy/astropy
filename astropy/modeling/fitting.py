@@ -257,11 +257,10 @@ class LinearLSQFitter(metaclass=_FitterMeta):
     Uses `numpy.linalg.lstsq` to do the fitting.
     Given a model and data, fits the model to the data and changes the
     model's parameters. Keeps a dictionary of auxiliary fitting information.
-    
+
     Notes
     -----
     Note that currently LinearLSQFitter does not support compound models.
-   
     """
 
     supported_constraints = ['fixed']
@@ -357,6 +356,9 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         if not model.linear:
             raise ModelLinearityError('Model is not linear in parameters, '
                                       'linear fit methods should not be used.')
+
+        if hasattr(model, "sunbmodel_names"):
+            raise ValueError("Model must be simple, not compound")
 
         _validate_constraints(self.supported_constraints, model)
 
