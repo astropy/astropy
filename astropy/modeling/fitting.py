@@ -259,7 +259,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
     model's parameters. Keeps a dictionary of auxiliary fitting information.
     
     Notes
-    ----------
+    -----
     Note that currently LinearLSQFitter does not support compound models.
    
     """
