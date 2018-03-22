@@ -257,6 +257,11 @@ class LinearLSQFitter(metaclass=_FitterMeta):
     Uses `numpy.linalg.lstsq` to do the fitting.
     Given a model and data, fits the model to the data and changes the
     model's parameters. Keeps a dictionary of auxiliary fitting information.
+    
+    Notes
+    ----------
+    Note that currently LinearLSQFitter does not support compound models.
+   
     """
 
     supported_constraints = ['fixed']
