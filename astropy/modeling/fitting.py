@@ -357,7 +357,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             raise ModelLinearityError('Model is not linear in parameters, '
                                       'linear fit methods should not be used.')
 
-        if hasattr(model, "sunbmodel_names"):
+        if hasattr(model, "submodel_names"):
             raise ValueError("Model must be simple, not compound")
 
         _validate_constraints(self.supported_constraints, model)
