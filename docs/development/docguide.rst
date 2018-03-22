@@ -56,10 +56,10 @@ The details of the docstring format are described on a separate page:
 Sphinx Documentation Themes
 ===========================
 
-An Astropy-branded Sphinx HTML theme is included in the astropy-sphinx-theme_
+An Astropy Project Sphinx HTML theme is included in the astropy-sphinx-theme_
 package. This allows the theme to be used by both Astropy and affiliated
-packages. This is done by setting the theme in the global Astropy sphinx
-configuration in sphinx-astropy_, which is imported in the sphinx
+packages. The theme is activated by setting the theme in the global Astropy
+sphinx configuration in sphinx-astropy_, which is imported in the sphinx
 configuration of both Astropy and affiliated packages.
 
 A different theme can be used by overriding a few sphinx
@@ -104,6 +104,14 @@ In addition, the sphinx-astropy_ includes a few small extensions:
 * ``sphinx_astropy.ext.doctest`` - an extension that makes it possible to
   add metadata about doctests inside ``.rst`` files
 
+Note that packages that make use of astropy-helpers_ have access to the::
+
+    python setup.py build_docs
+
+command. Provided that Sphinx is installed, the above command will temporarily
+install sphinx-astropy_ and all its dependencies automatically.
+
+.. _astropy-helpers: https://github.com/astropy/astropy-helpers
 .. _NumPy: http://www.numpy.org/
 .. _numpydoc: https://pypi.python.org/pypi/numpydoc/0.3.1
 .. _Matplotlib: http://matplotlib.org/
