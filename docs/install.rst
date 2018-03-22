@@ -340,29 +340,44 @@ Building documentation
     the latest (and archive) versions of astropy's documentation should
     be available at `docs.astropy.org <http://docs.astropy.org>`_ .
 
+Dependencies
+^^^^^^^^^^^^
+
 Building the documentation requires the Astropy source code and some additional
-packages:
+packages. The easiest way to install all the required dependencies is to install
+the `sphinx-astropy <https://github.com/astropy/sphinx-astropy>`_ package,
+either with pip::
 
-    - `Sphinx <http://sphinx.pocoo.org>`_ (and its dependencies) 1.0 or later
+    pip install sphinx-astropy
 
-    - `Graphviz <http://www.graphviz.org>`_
+or with conda::
 
-    - `Astropy-helpers <https://github.com/astropy/astropy-helpers>`_ (Astropy
-      and most affiliated packages include this as a submodule in the source
-      repository, so it does not need to be installed separately.)
+    conda install -c astropy sphinx-astropy
 
-    - `Pillow <http://python-pillow.org/>`_
+In addition to providing configuration common to packages in the Astropy
+ecosystem, this package also serves as a way to automatically get the main
+dependencies, including:
 
-    - (optional) `sphinx-gallery <http://sphinx-gallery.readthedocs.io/>`_
+* `Sphinx <http://sphinx.pocoo.org>`_ - the main package we use to build
+  the documentation.
+* `astropy-sphinx-theme <https://github.com/astropy/astropy-sphinx-theme>`_ -
+  the default 'bootstrap' theme use by Astropy and a number of affilited
+  packages.
+* `sphinx-automodapi <http://sphinx-automodapi.readthedocs.io>`_ - an extension
+  that makes it easy to automatically generate API documentation.
+* `sphinx-gallery <https://sphinx-gallery.readthedocs.io/en/latest/>`_ - an
+  extension to generate example galleries
+* `numpydoc <https://numpydoc.readthedocs.io>`_ - an extension to parse
+  docstrings in NumpyDoc format
 
-.. note::
+In addition, if you want inheritance graphs to be generated, you will need to
+make sure that `Graphviz <http://www.graphviz.org>`_ is installed. If you
+install sphinx-astropy with conda, graphviz will automatically get installed,
+but if you use pip, you will need to install Graphviz separately as it isn't
+a Python package.
 
-    If sphinx-gallery is not installed, you will see many Sphinx warnings
-    building the documentation, e.g.::
-
-        .../docs/coordinates/frames.rst:278: WARNING: undefined label:
-            sphx_glr_generated_examples_coordinates_plot_sgr-coordinate-frame.py
-            (if the link has no caption the label must precede a section header)
+Building
+^^^^^^^^
 
 There are two ways to build the Astropy documentation. The most straightforward
 way is to execute the command (from the astropy source directory)::
@@ -387,6 +402,29 @@ Alternatively, you can do::
 
 And the documentation will be generated in the same location, but using the
 *installed* version of Astropy.
+
+Reporting issues/requesting features
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As mentioned above, building the documentation depends on a number of sphinx
+extensions and other packages. Since it isn't necessarily straightforward to
+know which package is causing issues or would need to have a new feature
+implemented, you can simply open an issue in the `core astropy package issue
+tracker <https://github.com/astropy/astropy/issues>`_. However, if you wish you
+can also open issues in the repositories for some of the dependencies:
+
+* For requests/issues related to the appearance of the docs (e.g. related to
+  the CSS), you can open an issue in the `astropy-sphinx-theme issue tracker
+  <https://github.com/astropy/astropy-sphinx-theme/issues>`_.
+
+* For requests/issues related to the auto-generated API docs which appear to
+  be general issues rather than an issue with a specific docstring, you can use
+  the `sphinx-automodapi issue tracker
+  <https://github.com/astropy/sphinx-automodapi/issues>`_.
+
+* For issues related to the default configuration (e.g which extensions are
+  enabled by default), you can use the `sphinx-astropy issue tracker
+  <https://github.com/astropy/sphinx-astropy/issues>`_.
 
 .. _sourcebuildtest:
 

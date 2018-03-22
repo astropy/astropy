@@ -91,7 +91,7 @@ matrix:
         - os: linux
           env: SETUP_CMD='build_docs -w'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='sphinx-gallery>=0.1.12 pillow --no-deps jplephem'
+               PIP_DEPENDENCIES='sphinx-astropy jplephem pillow'
                LC_CTYPE=C LC_ALL=C LANG=C
 
         # Try all python versions and Numpy versions. Since we can assume that
