@@ -15,6 +15,7 @@ __all__ = ['TabularType']
 
 class TabularType(TransformType):
     name = "transform/tabular"
+    version = '1.2.0'
     types = [
         modeling.models.Tabular2D, modeling.models.Tabular1D
     ]

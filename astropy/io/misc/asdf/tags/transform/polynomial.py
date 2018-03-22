@@ -6,21 +6,23 @@ from numpy.testing import assert_array_equal
 
 from asdf import yamlutil
 
+import astropy.units as u
 from astropy import modeling
 from .basic import TransformType
-
+from . import _parameter_to_value
 
 __all__ = ['ShiftType', 'ScaleType', 'PolynomialType']
 
 
 class ShiftType(TransformType):
     name = "transform/shift"
+    version = '1.2.0'
     types = ['astropy.modeling.models.Shift']
 
     @classmethod
     def from_tree_transform(cls, node, ctx):
         offset = node['offset']
-        if not np.isscalar(offset):
+        if not isinstance(offset, u.Quantity) and not np.isscalar(offset):
             raise NotImplementedError(
                 "Asdf currently only supports scalar inputs to Shift transform.")
 
@@ -28,8 +30,9 @@ class ShiftType(TransformType):
 
     @classmethod
     def to_tree_transform(cls, model, ctx):
-        return {'offset': model.offset.value}
-        #return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        offset = model.offset
+        node = {'offset': _parameter_to_value(offset)}
+        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -42,12 +45,13 @@ class ShiftType(TransformType):
 
 class ScaleType(TransformType):
     name = "transform/scale"
+    version = '1.2.0'
     types = ['astropy.modeling.models.Scale']
 
     @classmethod
     def from_tree_transform(cls, node, ctx):
         factor = node['factor']
-        if not np.isscalar(factor):
+        if not isinstance(factor, u.Quantity) and not np.isscalar(factor):
             raise NotImplementedError(
                 "Asdf currently only supports scalar inputs to Scale transform.")
 
@@ -55,7 +59,8 @@ class ScaleType(TransformType):
 
     @classmethod
     def to_tree_transform(cls, model, ctx):
-        node = {'factor': model.factor.value}
+        factor = model.factor
+        node = {'factor': _parameter_to_value(factor)}
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
