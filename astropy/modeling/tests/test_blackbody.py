@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Tests for blackbody model and functions."""
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import pytest
 import numpy as np
@@ -23,7 +21,7 @@ except ImportError:
 __doctest_skip__ = ['*']
 
 
-class TestBlackbody1D(object):
+class TestBlackbody1D:
 
     # Make sure the temperature equivalency automatically applies by trying
     # to pass temperatures in celsius

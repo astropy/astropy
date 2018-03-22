@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function
 
 import os
 import re
@@ -9,9 +8,11 @@ from collections import OrderedDict
 
 from .. import registry as io_registry
 from ... import units as u
-from ...extern.six import string_types
-from ...table import Table
+from ...table import Table, serialize, meta, Column, MaskedColumn
+from ...table.table import has_info_class
+from ...time import Time
 from ...utils.exceptions import AstropyUserWarning
+from ...utils.data_info import MixinInfo, serialize_context_as
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .column import KEYWORD_NAMES
 from .convenience import table_to_hdu
@@ -65,7 +66,54 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
-def read_table_fits(input, hdu=None, astropy_native=False):
+def _decode_mixins(tbl):
+    """Decode a Table ``tbl`` that has astropy Columns + appropriate meta-data into
+    the corresponding table with mixin columns (as appropriate).
+    """
+    # If available read in __serialized_columns__ meta info which is stored
+    # in FITS COMMENTS between two sentinels.
+    try:
+        i0 = tbl.meta['comments'].index('--BEGIN-ASTROPY-SERIALIZED-COLUMNS--')
+        i1 = tbl.meta['comments'].index('--END-ASTROPY-SERIALIZED-COLUMNS--')
+    except (ValueError, KeyError):
+        return tbl
+
+    # The YAML data are split into COMMENT cards, with lines longer than 70
+    # characters being split with a continuation character \ (backslash).
+    # Strip the backslashes and join together.
+    continuation_line = False
+    lines = []
+    for line in tbl.meta['comments'][i0 + 1:i1]:
+        if continuation_line:
+            lines[-1] = lines[-1] + line[:70]
+        else:
+            lines.append(line[:70])
+        continuation_line = len(line) == 71
+
+    del tbl.meta['comments'][i0:i1 + 1]
+    if not tbl.meta['comments']:
+        del tbl.meta['comments']
+    info = meta.get_header_from_yaml(lines)
+
+    # Add serialized column information to table meta for use in constructing mixins
+    tbl.meta['__serialized_columns__'] = info['meta']['__serialized_columns__']
+
+    # Use the `datatype` attribute info to update column attributes that are
+    # NOT already handled via standard FITS column keys (name, dtype, unit).
+    for col in info['datatype']:
+        for attr in ['format', 'description', 'meta']:
+            if attr in col:
+                setattr(tbl[col['name']].info, attr, col[attr])
+
+    # Construct new table with mixins, using tbl.meta['__serialized_columns__']
+    # as guidance.
+    tbl = serialize._construct_mixins_from_columns(tbl)
+
+    return tbl
+
+
+def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
+                    character_as_bytes=True):
     """
     Read a Table object from an FITS file
 
@@ -91,6 +139,20 @@ def read_table_fits(input, hdu=None, astropy_native=False):
     astropy_native : bool, optional
         Read in FITS columns as native astropy objects where possible instead
         of standard Table Column objects. Default is False.
+    memmap : bool, optional
+        Whether to use memory mapping, which accesses data on disk as needed. If
+        you are only accessing part of the data, this is often more efficient.
+        If you want to access all the values in the table, and you are able to
+        fit the table in memory, you may be better off leaving memory mapping
+        off. However, if your table would not fit in memory, you should set this
+        to `True`.
+    character_as_bytes : bool, optional
+        If `True`, string columns are stored as Numpy byte arrays (dtype ``S``)
+        and are converted on-the-fly to unicode strings when accessing
+        individual elements. If you need to use Numpy unicode arrays (dtype
+        ``U``) internally, you should set this to `False`, but note that this
+        will use more memory. If set to `False`, string columns will not be
+        memory-mapped even if ``memmap`` is `True`.
     """
 
     if isinstance(input, HDUList):
@@ -129,7 +191,8 @@ def read_table_fits(input, hdu=None, astropy_native=False):
 
     else:
 
-        hdulist = fits_open(input)
+        hdulist = fits_open(input, character_as_bytes=character_as_bytes,
+                            memmap=memmap)
 
         try:
             return read_table_fits(hdulist, hdu=hdu,
@@ -138,29 +201,35 @@ def read_table_fits(input, hdu=None, astropy_native=False):
             hdulist.close()
 
     # Check if table is masked
-    masked = False
-    for col in table.columns:
-        if col.null is not None:
-            masked = True
-            break
+    masked = any(col.null is not None for col in table.columns)
 
-    # Convert to an astropy.table.Table object
-    # Note: in future, it may make more sense to do this column-by-column,
+    # TODO: in future, it may make more sense to do this column-by-column,
     # rather than via the structured array.
-    t = Table(table.data, masked=masked)
 
-    # Copy over null values if needed
-    if masked:
-        for col in table.columns:
+    # In the loop below we access the data using data[col.name] rather than
+    # col.array to make sure that the data is scaled correctly if needed.
+    data = table.data
+
+    columns = []
+    for col in data.columns:
+
+        # Set column data
+        if masked:
+            column = MaskedColumn(data=data[col.name], name=col.name, copy=False)
             if col.null is not None:
-                t[col.name].set_fill_value(col.null)
-                t[col.name].mask[t[col.name] == col.null] = True
+                column.set_fill_value(col.null)
+                column.mask[column.data == col.null] = True
+        else:
+            column = Column(data=data[col.name], name=col.name, copy=False)
 
-    # Copy over units
-    for col in table.columns:
+        # Copy over units
         if col.unit is not None:
-            t[col.name].unit = u.Unit(
-                col.unit, format='fits', parse_strict='silent')
+            column.unit = u.Unit(col.unit, format='fits', parse_strict='silent')
+
+        columns.append(column)
+
+    # Create Table object
+    t = Table(columns, masked=masked, copy=False)
 
     # TODO: deal properly with unsigned integers
 
@@ -199,18 +268,101 @@ def read_table_fits(input, hdu=None, astropy_native=False):
 
     # TODO: implement masking
 
+    # Decode any mixin columns that have been stored as standard Columns.
+    t = _decode_mixins(t)
+
     return t
 
 
-def write_table_fits(input, output, overwrite=False, astropy_native=False):
+def _encode_mixins(tbl):
+    """Encode a Table ``tbl`` that may have mixin columns to a Table with only
+    astropy Columns + appropriate meta-data to allow subsequent decoding.
+    """
+    # Determine if information will be lost without serializing meta.  This is hardcoded
+    # to the set difference between column info attributes and what FITS can store
+    # natively (name, dtype, unit).  See _get_col_attributes() in table/meta.py for where
+    # this comes from.
+    info_lost = any(any(getattr(col.info, attr, None) not in (None, {})
+                        for attr in ('format', 'description', 'meta'))
+                    for col in tbl.itercols())
+
+    # If PyYAML is not available then check to see if there are any mixin cols
+    # that *require* YAML serialization.  FITS already has support for Time,
+    # Quantity, so if those are the only mixins the proceed without doing the
+    # YAML bit, for backward compatibility (i.e. not requiring YAML to write
+    # Time or Quantity).  In this case other mixin column meta (e.g.
+    # description or meta) will be silently dropped, consistent with astropy <=
+    # 2.0 behavior.
+    try:
+        import yaml
+    except ImportError:
+        for col in tbl.itercols():
+            if (has_info_class(col, MixinInfo) and
+                    col.__class__ not in (u.Quantity, Time)):
+                raise TypeError("cannot write type {} column '{}' "
+                                "to FITS without PyYAML installed."
+                                .format(col.__class__.__name__, col.info.name))
+        else:
+            if info_lost:
+                warnings.warn("table contains column(s) with defined 'format',"
+                              " 'description', or 'meta' info attributes. These"
+                              " will be dropped unless you install PyYAML.",
+                              AstropyUserWarning)
+            return tbl
+
+    # Convert the table to one with no mixins, only Column objects.  This adds
+    # meta data which is extracted with meta.get_yaml_from_table.  This ignores
+    # Time-subclass columns and leave them in the table so that the downstream
+    # FITS Time handling does the right thing.
+
+    with serialize_context_as('fits'):
+        encode_tbl = serialize._represent_mixins_as_columns(
+            tbl, exclude_classes=(Time,))
+
+    # If the encoded table is unchanged then there were no mixins.  But if there
+    # is column metadata (format, description, meta) that would be lost, then
+    # still go through the serialized columns machinery.
+    if encode_tbl is tbl and not info_lost:
+        return tbl
+
+    # Get the YAML serialization of information describing the table columns.
+    # This is re-using ECSV code that combined existing table.meta with with
+    # the extra __serialized_columns__ key.  For FITS the table.meta is handled
+    # by the native FITS connect code, so don't include that in the YAML
+    # output.
+    ser_col = '__serialized_columns__'
+
+    # encode_tbl might not have a __serialized_columns__ key if there were no mixins,
+    # but machinery below expects it to be available, so just make an empty dict.
+    encode_tbl.meta.setdefault(ser_col, {})
+
+    tbl_meta_copy = encode_tbl.meta.copy()
+    try:
+        encode_tbl.meta = {ser_col: encode_tbl.meta[ser_col]}
+        meta_yaml_lines = meta.get_yaml_from_table(encode_tbl)
+    finally:
+        encode_tbl.meta = tbl_meta_copy
+    del encode_tbl.meta[ser_col]
+
+    if 'comments' not in encode_tbl.meta:
+        encode_tbl.meta['comments'] = []
+    encode_tbl.meta['comments'].append('--BEGIN-ASTROPY-SERIALIZED-COLUMNS--')
+
+    for line in meta_yaml_lines:
+        # Split line into 70 character chunks for COMMENT cards
+        idxs = list(range(0, len(line) + 70, 70))
+        lines = [line[i0:i1] + '\\' for i0, i1 in zip(idxs[:-1], idxs[1:])]
+        lines[-1] = lines[-1][:-1]
+        encode_tbl.meta['comments'].extend(lines)
+
+    encode_tbl.meta['comments'].append('--END-ASTROPY-SERIALIZED-COLUMNS--')
+
+    return encode_tbl
+
+
+def write_table_fits(input, output, overwrite=False):
     """
     Write a Table object to a FITS file
-
-    If the ``astropy_native`` argument is ``True``, then astropy core objects in
-    the input Table, also called "mixin columns", will be converted to their
-    respective representations in FITS tables. Currently this is limited to
-    `~astropy.time.Time` columns in the input Table, in which case they will be
-    converted to FITS columns which adhere to the FITS Time standard.
 
     Parameters
     ----------
@@ -220,19 +372,19 @@ def write_table_fits(input, output, overwrite=False, astropy_native=False):
         The filename to write the table to.
     overwrite : bool
         Whether to overwrite any existing file without warning.
-    astropy_native : bool, optional
-        Write native astropy objects as per their respective FITS standard
-        specifications. Default is False.
     """
 
-    table_hdu = table_to_hdu(input, astropy_native=astropy_native)
+    # Encode any mixin columns into standard Columns.
+    input = _encode_mixins(input)
+
+    table_hdu = table_to_hdu(input, character_as_bytes=True)
 
     # Check if output file already exists
-    if isinstance(output, string_types) and os.path.exists(output):
+    if isinstance(output, str) and os.path.exists(output):
         if overwrite:
             os.remove(output)
         else:
-            raise IOError("File exists: {0}".format(output))
+            raise OSError("File exists: {0}".format(output))
 
     table_hdu.writeto(output)
 

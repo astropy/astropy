@@ -9,7 +9,6 @@ import warnings
 
 from ... import fits
 from ..util import fill
-from ....extern.six.moves import zip
 from ....utils.exceptions import AstropyDeprecationWarning
 
 
@@ -80,7 +79,7 @@ def handle_options(argv=None):
             try:
                 values = [v.strip() for v in open(value, 'r').readlines()]
                 setattr(parser.values, option.dest, values)
-            except IOError as exc:
+            except OSError as exc:
                 log.warning('reading {} for {} failed: {}; ignoring this '
                             'argument'.format(value, opt, exc))
                 del exc
@@ -222,46 +221,60 @@ def setup_logging(outfile=None):
 
 
 def match_files(paths):
-    filelists = []
+    if os.path.isfile(paths[0]) and os.path.isfile(paths[1]):
+        # shortcut if both paths are files
+        return [paths]
 
-    for path in paths:
+    dirnames = [None, None]
+    filelists = [None, None]
+
+    for i, path in enumerate(paths):
         if glob.has_magic(path):
-            files = [os.path.abspath(f) for f in glob.glob(path)]
+            files = [os.path.split(f) for f in glob.glob(path)]
             if not files:
-                log.error('Wildcard pattern {!r} did not match '
-                          'any files.'.format(path))
+                log.error('Wildcard pattern %r did not match any files.', path)
                 sys.exit(2)
-            filelists.append(files)
+
+            dirs, files = list(zip(*files))
+            if len(set(dirs)) > 1:
+                log.error('Wildcard pattern %r should match only one '
+                          'directory.', path)
+                sys.exit(2)
+
+            dirnames[i] = set(dirs).pop()
+            filelists[i] = sorted(files)
         elif os.path.isdir(path):
-            filelists.append([os.path.abspath(f) for f in os.listdir(path)])
+            dirnames[i] = path
+            filelists[i] = sorted(os.listdir(path))
         elif os.path.isfile(path):
-            filelists.append([path])
+            dirnames[i] = os.path.dirname(path)
+            filelists[i] = [os.path.basename(path)]
         else:
             log.error(
-                '{!r} is not an existing file, directory, or wildcard pattern; '
-                'see `fitsdiff --help` for more usage help.'.format(path))
+                '%r is not an existing file, directory, or wildcard '
+                'pattern; see `fitsdiff --help` for more usage help.', path)
             sys.exit(2)
 
-    filelists[0].sort()
-    filelists[1].sort()
+        dirnames[i] = os.path.abspath(dirnames[i])
+
+    filematch = set(filelists[0]) & set(filelists[1])
 
     for a, b in [(0, 1), (1, 0)]:
-        if len(filelists[a]) > len(filelists[b]):
-            for extra in filelists[a][len(filelists[b]):]:
-                log.warning('{!r} has no match in {!r}'.format(extra, paths[b]))
-            filelists[a] = filelists[a][:len(filelists[b])]
-            break
+        if len(filelists[a]) > len(filematch) and not os.path.isdir(paths[a]):
+            for extra in sorted(set(filelists[a]) - filematch):
+                log.warning('%r has no match in %r', extra, dirnames[b])
 
-    return zip(*filelists)
+    return [(os.path.join(dirnames[0], f),
+             os.path.join(dirnames[1], f)) for f in filematch]
 
 
-def main():
+def main(args=None):
+    args = args or sys.argv[1:]
+
     if 'FITSDIFF_SETTINGS' in os.environ:
-        argv = os.environ['FITSDIFF_SETTINGS'].split() + sys.argv[1:]
-    else:
-        argv = sys.argv[1:]
+        args = os.environ['FITSDIFF_SETTINGS'].split() + args
 
-    opts, args = handle_options(argv)
+    opts, args = handle_options(args)
 
     if opts.tolerance is not None:
         warnings.warn(
@@ -293,7 +306,7 @@ def main():
     if opts.quiet:
         out_file = None
     elif opts.output_file:
-        out_file = open(opts.output_file, 'wb')
+        out_file = open(opts.output_file, 'w')
         close_file = True
     else:
         out_file = sys.stdout
@@ -320,3 +333,9 @@ def main():
     finally:
         if close_file:
             out_file.close()
+        # Close the file if used for the logging output, and remove handlers to
+        # avoid having them multiple times for unit tests.
+        for handler in log.handlers:
+            if isinstance(handler, logging.FileHandler):
+                handler.close()
+            log.removeHandler(handler)

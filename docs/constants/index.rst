@@ -1,3 +1,5 @@
+.. _astropy-constants:
+
 *******************************
 Constants (`astropy.constants`)
 *******************************
@@ -51,8 +53,8 @@ and you can use them in conjunction with unit and other non-constant
 
 It is possible to convert most constants to cgs using e.g.::
 
-    >>> const.c.cgs
-    <Quantity 29979245800.0 cm / s>
+    >>> const.c.cgs  # doctest: +FLOAT_CMP
+    <Quantity   2.99792458e+10 cm / s>
 
 However, some constants are defined with different physical dimensions in cgs
 and cannot be directly converted. Because of this ambiguity, such constants
@@ -66,6 +68,8 @@ cannot be used in expressions without specifying a system::
     values without specifying a system (eg. e.emu)
     >>> 100 * const.e.esu  # doctest: +FLOAT_CMP
     <Quantity 4.8032045057134676e-08 Fr>
+
+.. _astropy-constants-prior:
 
 Collections of constants (and prior versions)
 =============================================
@@ -93,7 +97,7 @@ Physical CODATA constants are in modules with names like ``codata2010`` or
       Unit  = J s
       Reference = CODATA 2010
 
-Astronomical constants defined (primarily) by the IAU are collected in 
+Astronomical constants defined (primarily) by the IAU are collected in
 modules with names like ``iau2012`` or ``iau2015``:
 
     >>> from astropy.constants import iau2012 as const
@@ -113,9 +117,26 @@ modules with names like ``iau2012`` or ``iau2015``:
       Reference = IAU 2015 Resolution B 3
 
 The astronomical and physical constants are combined into modules with
-names like ``astropyconst13`` and ``astropyconst20``.
+names like ``astropyconst13`` and ``astropyconst20``. To temporarily set
+constants to an older version (e.g., for regression testing), a context
+manager is available, as follows:
 
-.. warning:: 
+    >>> from astropy import constants as const
+    >>> with const.set_enabled_constants('astropyconst13'):
+    ...     print(const.h)
+      Name   = Planck constant
+      Value  = 6.62606957e-34
+      Uncertainty  = 2.9e-41
+      Unit  = J s
+      Reference = CODATA 2010
+    >>> print(const.h)
+      Name   = Planck constant
+      Value  = 6.62607004e-34
+      Uncertainty  = 8.1e-42
+      Unit  = J s
+      Reference = CODATA 2014
+
+.. warning::
 
     Units such as ``u.M_sun`` will use the current version of the
     corresponding constant. When using prior versions of the constants,

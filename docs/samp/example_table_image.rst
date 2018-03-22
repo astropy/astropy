@@ -11,7 +11,7 @@ In the following examples, we make use of:
 
 * `TOPCAT <http://www.star.bris.ac.uk/~mbt/topcat/>`_, which is a tool to
   explore tabular data.
-* `SAO Ds9 <http://hea-www.harvard.edu/RD/ds9>`_, which is an image
+* `SAO Ds9 <http://ds9.si.edu/>`_, which is an image
   visualization tool, which can also overplot catalogs.
 * `Aladin Desktop <http://aladin.u-strasbg.fr>`_, which is another tool that
   can visualize images and catalogs.
@@ -64,7 +64,7 @@ Finally, we can broadcast this to all clients that are listening for
     >>> client.notify_all(message)
 
 The above message will actually be broadcast to all applications connected via
-SAMP. For example, if we open `SAO Ds9 <http://hea-www.harvard.edu/RD/ds9>`_ in
+SAMP. For example, if we open `SAO Ds9 <http://ds9.si.edu/>`_ in
 addition to TOPCAT, and we run the above command, both applications will load
 the table. We can use the
 :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.get_registered_clients` method to

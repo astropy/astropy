@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import warnings
 
@@ -17,7 +15,6 @@ from ..nddata import support_nddata
 from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
 
-from ..extern.six.moves import range, zip
 
 
 # Disabling all doctests in this module until a better way of handling warnings
@@ -135,7 +132,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # kernel_internal.  However -- we do want to keep track of what type
     # the input array was so we can cast the result to that at the end
     # if it's a floating point type.  Don't bother with this for lists --
-    # just always push those as np.float.
+    # just always push those as float.
     # It is always necessary to make a copy of kernel (since it is modified),
     # but, if we just so happen to be lucky enough to have the input array
     # have exactly the desired type, we just alias to array_internal
@@ -163,18 +160,13 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # Check that the arguments are lists or Numpy arrays
 
     if isinstance(array, list):
-        array_internal = np.array(array, dtype=np.float)
+        array_internal = np.array(array, dtype=float)
         array_dtype = array_internal.dtype
     elif isinstance(array, np.ndarray):
         # Note this won't copy if it doesn't have to -- which is okay
-        # because none of what follows modifies array_internal.  However,
-        # only numpy > 1.7 has support for no-copy astype, so we use
-        # a try/except because astropy supports 1.5 and 1.6
+        # because none of what follows modifies array_internal.
         array_dtype = array.dtype
-        try:
-            array_internal = array.astype(float, copy=False)
-        except TypeError:
-            array_internal = array.astype(float)
+        array_internal = array.astype(float, copy=False)
     else:
         raise TypeError("array should be a list or a Numpy array")
 
@@ -329,7 +321,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                  fft_pad=None, psf_pad=None, quiet=False,
                  min_wt=0.0, allow_huge=False,
                  fftn=np.fft.fftn, ifftn=np.fft.ifftn,
-                 complex_dtype=np.complex):
+                 complex_dtype=complex):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     ``shape = array.shape``.  Assumes kernel is centered.
@@ -346,8 +338,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     * (optionally) It pads to the nearest 2^n size to improve FFT speed.
     * Its only valid ``mode`` is 'same' (i.e., the same shape array is returned)
     * It lets you use your own fft, e.g.,
-      `pyFFTW <http://pypi.python.org/pypi/pyFFTW>`_ or
-      `pyFFTW3 <http://pypi.python.org/pypi/PyFFTW3/0.2.1>`_ , which can lead to
+      `pyFFTW <https://pypi.python.org/pypi/pyFFTW>`_ or
+      `pyFFTW3 <https://pypi.python.org/pypi/PyFFTW3/0.2.1>`_ , which can lead to
       performance improvements, depending on your system configuration.  pyFFTW3
       is threaded, and therefore may yield significant performance benefits on
       multi-core machines at the cost of greater memory requirements.  Specify
@@ -520,8 +512,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     # Convert array dtype to complex
     # and ensure that list inputs become arrays
-    array = np.asarray(array, dtype=np.complex)
-    kernel = np.asarray(kernel, dtype=np.complex)
+    array = np.asarray(array, dtype=complex)
+    kernel = np.asarray(kernel, dtype=complex)
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
@@ -708,9 +700,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         # need to re-zero weights outside of the image (if it is padded, we
         # still don't weight those regions)
         bigimwt[arrayslices] = wtsm.real[arrayslices]
-        # curiously, at the floating-point limit, can get slightly negative numbers
-        # they break the min_wt=0 "flag" and must therefore be removed
-        bigimwt[bigimwt < 0] = 0
     else:
         bigimwt = 1
 
@@ -732,14 +721,17 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     if interpolate_nan:
         rifft = (ifftn(fftmult)) / bigimwt
         if not np.isscalar(bigimwt):
-            rifft[bigimwt < min_wt] = np.nan
-            if min_wt == 0.0:
-                rifft[bigimwt == 0.0] = 0.0
+            if min_wt > 0.:
+                rifft[bigimwt < min_wt] = np.nan
+            else:
+                # Set anything with no weight to zero (taking into account
+                # slight offsets due to floating-point errors).
+                rifft[bigimwt < 10 * np.finfo(bigimwt.dtype).eps] = 0.0
     else:
-        rifft = (ifftn(fftmult))
+        rifft = ifftn(fftmult)
 
     if preserve_nan:
-        rifft[nanmaskarray] = np.nan
+        rifft[arrayslices][nanmaskarray] = np.nan
 
     if crop:
         result = rifft[arrayslices].real

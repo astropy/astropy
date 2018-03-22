@@ -5,13 +5,12 @@ import io
 import os
 import platform
 import sys
+import copy
 
 import pytest
 import numpy as np
 
 from ..verify import VerifyError
-from ....extern.six.moves import range
-from ....extern import six
 from ....io import fits
 from ....tests.helper import raises, catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
@@ -378,6 +377,43 @@ class TestHDUListFunctions(FitsTestCase):
         info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', '')]
         assert fits.info(self.temp('tmpfile.fits'), output=False) == info
 
+    def test_shallow_copy(self):
+        """
+        Tests that `HDUList.__copy__()` and `HDUList.copy()` return a
+        shallow copy (regression test for #7211).
+        """
+
+        n = np.arange(10.0)
+        primary_hdu = fits.PrimaryHDU(n)
+        hdu = fits.ImageHDU(n)
+        hdul = fits.HDUList([primary_hdu, hdu])
+
+        for hdulcopy in (hdul.copy(), copy.copy(hdul)):
+            assert isinstance(hdulcopy, fits.HDUList)
+            assert hdulcopy is not hdul
+            assert hdulcopy[0] is hdul[0]
+            assert hdulcopy[1] is hdul[1]
+
+    def test_deep_copy(self):
+        """
+        Tests that `HDUList.__deepcopy__()` returns a deep copy.
+        """
+
+        n = np.arange(10.0)
+        primary_hdu = fits.PrimaryHDU(n)
+        hdu = fits.ImageHDU(n)
+        hdul = fits.HDUList([primary_hdu, hdu])
+
+        hdulcopy = copy.deepcopy(hdul)
+
+        assert isinstance(hdulcopy, fits.HDUList)
+        assert hdulcopy is not hdul
+
+        for index in range(len(hdul)):
+            assert hdulcopy[index] is not hdul[index]
+            assert hdulcopy[index].header == hdul[index].header
+            np.testing.assert_array_equal(hdulcopy[index].data, hdul[index].data)
+
     def test_new_hdu_extname(self):
         """
         Tests that new extension HDUs that are added to an HDUList can be
@@ -534,7 +570,7 @@ class TestHDUListFunctions(FitsTestCase):
         Open files with nulls for header block padding instead of spaces.
         """
 
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         hdu = fits.PrimaryHDU(data=a)
         hdu.writeto(self.temp('temp.fits'))
 
@@ -658,7 +694,7 @@ class TestHDUListFunctions(FitsTestCase):
         entire multi-extension FITS file at once.
         """
 
-        # Tests HDUList.fromstring for all of PyFITS' built in test files
+        # Tests HDUList.fromstring for all of Astropy's built in test files
         def test_fromstring(filename):
             with fits.open(filename) as hdul:
                 orig_info = hdul.info(output=False)
@@ -694,8 +730,13 @@ class TestHDUListFunctions(FitsTestCase):
         for filename in glob.glob(os.path.join(self.data_dir, '*.fits')):
             if sys.platform == 'win32' and filename == 'zerowidth.fits':
                 # Running this test on this file causes a crash in some
-                # versions of Numpy on Windows.  See PyFITS ticket
+                # versions of Numpy on Windows.  See ticket:
                 # https://aeon.stsci.edu/ssb/trac/pyfits/ticket/174
+                continue
+            elif filename.endswith('variable_length_table.fits'):
+                # Comparing variable length arrays is non-trivial and thus
+                # skipped at this point.
+                # TODO: That's probably possible, so one could make it work.
                 continue
             test_fromstring(filename)
 
@@ -909,12 +950,10 @@ class TestHDUListFunctions(FitsTestCase):
         with codecs.open(filename, mode='w', encoding='utf=8') as f:
             f.write(u'Ce\xe7i ne marche pas')
 
-        # This should raise an IOError because there is no end card.
-        with pytest.raises(IOError):
+        # This should raise an OSError because there is no end card.
+        with pytest.raises(OSError):
             fits.open(filename)
 
-    @pytest.mark.skipif(six.PY2,
-                        reason='ResourceWarning is not created in Python 2')
     def test_no_resource_warning_raised_on_non_fits_file(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/6168
@@ -962,3 +1001,34 @@ class TestHDUListFunctions(FitsTestCase):
                 fits.open(filename, ignore_missing_end=True)
 
         assert len(ws) == 0
+
+    def test_pop_with_lazy_load(self):
+        filename = self.data('checksum.fits')
+        hdul = fits.open(filename)
+        # Try popping the hdulist before doing anything else. This makes sure
+        # that https://github.com/astropy/astropy/issues/7185 is fixed.
+        hdu = hdul.pop()
+        assert len(hdul) == 1
+
+        # Read the file again and try popping from the beginning
+        hdul2 = fits.open(filename)
+        hdu2 = hdul2.pop(0)
+        assert len(hdul2) == 1
+
+        # Just a sanity check
+        hdul3 = fits.open(filename)
+        assert len(hdul3) == 2
+        assert hdul3[0].header == hdu2.header
+        assert hdul3[1].header == hdu.header
+
+    def test_pop_extname(self):
+        hdul = fits.open(self.data('o4sp040b0_raw.fits'))
+        assert len(hdul) == 7
+        hdu1 = hdul[1]
+        hdu4 = hdul[4]
+        hdu_popped = hdul.pop(('SCI', 2))
+        assert len(hdul) == 6
+        assert hdu_popped is hdu4
+        hdu_popped = hdul.pop('SCI')
+        assert len(hdul) == 5
+        assert hdu_popped is hdu1

@@ -5,23 +5,18 @@
 This module contains the fundamental classes used for representing
 coordinates in astropy.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-import math
 from collections import namedtuple
 
 import numpy as np
 
-from ..extern import six
 from . import angle_utilities as util
 from .. import units as u
 from ..utils import isiterable
+from ..utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
 
 __all__ = ['Angle', 'Latitude', 'Longitude']
 
-
-TWOPI = math.pi * 2.0  # no need to calculate this all the time
 
 # these are used by the `hms` and `dms` attributes
 hms_tuple = namedtuple('hms_tuple', ('h', 'm', 's'))
@@ -44,7 +39,7 @@ class Angle(u.SpecificTypeQuantity):
       Angle('1:2:30.43 degrees')
       Angle('1 2 0 hours')
       Angle(np.arange(1, 8), unit=u.deg)
-      Angle(u'1°2′3″')
+      Angle('1°2′3″')
       Angle('1d2m3.4s')
       Angle('-1h2m3s')
       Angle('-1h2.5m')
@@ -94,7 +89,7 @@ class Angle(u.SpecificTypeQuantity):
             if isinstance(angle, tuple):
                 angle = cls._tuple_to_float(angle, unit)
 
-            elif isinstance(angle, six.string_types):
+            elif isinstance(angle, str):
                 angle, angle_unit = util.parse_angle(angle, unit)
                 if angle_unit is None:
                     angle_unit = unit
@@ -111,8 +106,7 @@ class Angle(u.SpecificTypeQuantity):
                        angle.dtype.kind not in 'SUVO')):
                 angle = [Angle(x, unit, copy=False) for x in angle]
 
-        return super(Angle, cls).__new__(cls, angle, unit, dtype=dtype,
-                                         copy=copy)
+        return super().__new__(cls, angle, unit, dtype=dtype, copy=copy)
 
     @staticmethod
     def _tuple_to_float(angle, unit):
@@ -134,7 +128,7 @@ class Angle(u.SpecificTypeQuantity):
         return u.hourangle if unit is u.hour else unit
 
     def _set_unit(self, unit):
-        super(Angle, self)._set_unit(self._convert_unit_to_angle_unit(unit))
+        super()._set_unit(self._convert_unit_to_angle_unit(unit))
 
     @property
     def hour(self):
@@ -359,12 +353,12 @@ class Angle(u.SpecificTypeQuantity):
           >>> import astropy.units as u
           >>> a = Angle([-20.0, 150.0, 350.0] * u.deg)
 
-          >>> a.wrap_at(360 * u.deg).degree  # Wrap into range 0 to 360 degrees
-          array([ 340.,  150.,  350.])
+          >>> a.wrap_at(360 * u.deg).degree  # Wrap into range 0 to 360 degrees  # doctest: +FLOAT_CMP
+          array([340., 150., 350.])
 
-          >>> a.wrap_at('180d', inplace=True)  # Wrap into range -180 to 180 degrees
-          >>> a.degree
-          array([ -20.,  150.,  -10.])
+          >>> a.wrap_at('180d', inplace=True)  # Wrap into range -180 to 180 degrees  # doctest: +FLOAT_CMP
+          >>> a.degree  # doctest: +FLOAT_CMP
+          array([-20., 150., -10.])
 
         Parameters
         ----------
@@ -432,17 +426,26 @@ class Angle(u.SpecificTypeQuantity):
             ok &= np.all(self < Angle(upper))
         return bool(ok)
 
+    def _str_helper(self, format=None):
+        if self.isscalar:
+            return self.to_string(format=format)
+
+        if NUMPY_LT_1_14_1 or not NUMPY_LT_1_14_2:
+            def formatter(x):
+                return x.to_string(format=format)
+        else:
+            # In numpy 1.14.1, array2print formatters get passed plain numpy scalars instead
+            # of subclass array scalars, so we need to recreate an array scalar.
+            def formatter(x):
+                return self._new_view(x).to_string(format=format)
+
+        return np.array2string(self, formatter={'all': formatter})
+
     def __str__(self):
-        return str(self.to_string())
+        return self._str_helper()
 
     def _repr_latex_(self):
-        if self.isscalar:
-            return self.to_string(format='latex')
-        else:
-            # Need to do a magic incantation to convert to str.  Regular str
-            # or array2string causes all backslashes to get doubled.
-            return np.array2string(self.to_string(format='latex'),
-                                   formatter={'str_kind': lambda x: x})
+        return self._str_helper(format='latex')
 
 
 def _no_angle_subclass(obj):
@@ -507,7 +510,7 @@ class Latitude(Angle):
         # Forbid creating a Lat from a Long.
         if isinstance(angle, Longitude):
             raise TypeError("A Latitude angle cannot be created from a Longitude angle")
-        self = super(Latitude, cls).__new__(cls, angle, unit=unit, **kwargs)
+        self = super().__new__(cls, angle, unit=unit, **kwargs)
         self._validate_angles()
         return self
 
@@ -533,15 +536,15 @@ class Latitude(Angle):
             raise TypeError("A Longitude angle cannot be assigned to a Latitude angle")
         # first check bounds
         self._validate_angles(value)
-        super(Latitude, self).__setitem__(item, value)
+        super().__setitem__(item, value)
 
     # Any calculation should drop to Angle
     def __array_wrap__(self, obj, context=None):
-        obj = super(Angle, self).__array_wrap__(obj, context=context)
+        obj = super().__array_wrap__(obj, context=context)
         return _no_angle_subclass(obj)
 
     def __array_ufunc__(self, *args, **kwargs):
-        results = super(Latitude, self).__array_ufunc__(*args, **kwargs)
+        results = super().__array_ufunc__(*args, **kwargs)
         return _no_angle_subclass(results)
 
 
@@ -613,7 +616,7 @@ class Longitude(Angle):
         if isinstance(angle, Latitude):
             raise TypeError("A Longitude angle cannot be created from "
                             "a Latitude angle.")
-        self = super(Longitude, cls).__new__(cls, angle, unit=unit, **kwargs)
+        self = super().__new__(cls, angle, unit=unit, **kwargs)
         if wrap_angle is None:
             wrap_angle = getattr(angle, 'wrap_angle', self._default_wrap_angle)
         self.wrap_angle = wrap_angle
@@ -623,7 +626,7 @@ class Longitude(Angle):
         # Forbid assigning a Lat to a Long.
         if isinstance(value, Latitude):
             raise TypeError("A Latitude angle cannot be assigned to a Longitude angle")
-        super(Longitude, self).__setitem__(item, value)
+        super().__setitem__(item, value)
         self._wrap_internal()
 
     def _wrap_internal(self):
@@ -643,7 +646,7 @@ class Longitude(Angle):
         if np.any(self_angle < wrap_angle_floor) or np.any(self_angle >= wrap_angle):
             wrapped = np.mod(self_angle - wrap_angle, a360) + wrap_angle_floor
             value = u.Quantity(wrapped, self.unit)
-            super(Longitude, self).__setitem__((), value)
+            super().__setitem__((), value)
 
     @property
     def wrap_angle(self):
@@ -655,15 +658,15 @@ class Longitude(Angle):
         self._wrap_internal()
 
     def __array_finalize__(self, obj):
-        super(Longitude, self).__array_finalize__(obj)
+        super().__array_finalize__(obj)
         self._wrap_angle = getattr(obj, '_wrap_angle',
                                    self._default_wrap_angle)
 
     # Any calculation should drop to Angle
     def __array_wrap__(self, obj, context=None):
-        obj = super(Angle, self).__array_wrap__(obj, context=context)
+        obj = super().__array_wrap__(obj, context=context)
         return _no_angle_subclass(obj)
 
     def __array_ufunc__(self, *args, **kwargs):
-        results = super(Longitude, self).__array_ufunc__(*args, **kwargs)
+        results = super().__array_ufunc__(*args, **kwargs)
         return _no_angle_subclass(results)

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 # Dependencies
 import numpy as np
@@ -10,7 +8,6 @@ import warnings
 
 # Project
 from .. import units as u
-from ..utils.compat.numpy import broadcast_to as np_broadcast_to
 from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils import OrderedDescriptor, ShapedLikeNDArray
 
@@ -62,7 +59,7 @@ class Attribute(OrderedDescriptor):
     def __init__(self, default=None, secondary_attribute=''):
         self.default = default
         self.secondary_attribute = secondary_attribute
-        super(Attribute, self).__init__()
+        super().__init__()
 
     def convert_input(self, value):
         """
@@ -113,10 +110,10 @@ class Attribute(OrderedDescriptor):
                 # If the shapes do not match, try broadcasting.
                 try:
                     if isinstance(out, ShapedLikeNDArray):
-                        out = out._apply(np_broadcast_to, shape=instance_shape,
+                        out = out._apply(np.broadcast_to, shape=instance_shape,
                                          subok=True)
                     else:
-                        out = np_broadcast_to(out, instance_shape, subok=True)
+                        out = np.broadcast_to(out, instance_shape, subok=True)
                 except ValueError:
                     # raise more informative exception.
                     raise ValueError(
@@ -189,6 +186,10 @@ class TimeAttribute(Attribute):
                                                                value, err))
             converted = True
 
+        # Set attribute as read-only for arrays (not allowed by numpy
+        # for array scalars)
+        if out.shape:
+            out.writeable = False
         return out, converted
 
 
@@ -209,8 +210,7 @@ class CartesianRepresentationAttribute(Attribute):
     """
 
     def __init__(self, default=None, secondary_attribute='', unit=None):
-        super(CartesianRepresentationAttribute, self).__init__(
-            default, secondary_attribute)
+        super().__init__(default, secondary_attribute)
         self.unit = unit
 
     def convert_input(self, value):
@@ -278,7 +278,7 @@ class QuantityAttribute(Attribute):
     """
 
     def __init__(self, default=None, secondary_attribute='', unit=None, shape=None):
-        super(QuantityAttribute, self).__init__(default, secondary_attribute)
+        super().__init__(default, secondary_attribute)
         self.unit = unit
         self.shape = shape
 
@@ -317,6 +317,7 @@ class QuantityAttribute(Attribute):
                                                                   self.shape))
             converted = oldvalue is not value
             return value, converted
+
 
 class EarthLocationAttribute(Attribute):
     """
@@ -391,7 +392,7 @@ class CoordinateAttribute(Attribute):
 
     def __init__(self, frame, default=None, secondary_attribute=''):
         self._frame = frame
-        super(CoordinateAttribute, self).__init__(default, secondary_attribute)
+        super().__init__(default, secondary_attribute)
 
     def convert_input(self, value):
         """
@@ -455,8 +456,7 @@ class DifferentialAttribute(Attribute):
         else:
             self.allowed_classes = BaseDifferential
 
-        super(DifferentialAttribute, self).__init__(default,
-                                                    secondary_attribute)
+        super().__init__(default, secondary_attribute)
 
     def convert_input(self, value):
         """
@@ -497,21 +497,24 @@ class FrameAttribute(Attribute):
     def __init__(self, *args, **kwargs):
         warnings.warn("FrameAttribute has been renamed to Attribute.",
                       AstropyDeprecationWarning)
-        super(FrameAttribute, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+
 
 class TimeFrameAttribute(TimeAttribute):
 
     def __init__(self, *args, **kwargs):
         warnings.warn("TimeFrameAttribute has been renamed to TimeAttribute.",
                       AstropyDeprecationWarning)
-        super(TimeFrameAttribute, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+
 
 class QuantityFrameAttribute(QuantityAttribute):
 
     def __init__(self, *args, **kwargs):
         warnings.warn("QuantityFrameAttribute has been renamed to "
                       "QuantityAttribute.", AstropyDeprecationWarning)
-        super(QuantityFrameAttribute, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+
 
 class CartesianRepresentationFrameAttribute(CartesianRepresentationAttribute):
 
@@ -519,8 +522,7 @@ class CartesianRepresentationFrameAttribute(CartesianRepresentationAttribute):
         warnings.warn("CartesianRepresentationFrameAttribute has been renamed "
                       "to CartesianRepresentationAttribute.",
                       AstropyDeprecationWarning)
-        super(CartesianRepresentationFrameAttribute, self).__init__(
-            *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 # do this here to prevent a series of complicated circular imports

@@ -1,17 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import numpy as np
 import warnings
 from ..utils.exceptions import AstropyUserWarning
-from ..extern.six.moves import range
 
 
 __all__ = ['SigmaClip', 'sigma_clip', 'sigma_clipped_stats']
 
 
-class SigmaClip(object):
+class SigmaClip:
     """
     Class to perform sigma clipping.
 
@@ -26,7 +23,7 @@ class SigmaClip(object):
 
     .. note::
         `scipy.stats.sigmaclip
-        <http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
         provides a subset of the functionality in this class.
 
     Parameters
@@ -231,7 +228,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
 
     .. note::
         `scipy.stats.sigmaclip
-        <http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
         provides a subset of the functionality in this function.
 
     Parameters
@@ -456,9 +453,9 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     std = np.ma.std(data_clip, ddof=std_ddof, axis=axis)
 
     if axis is None and np.ma.isMaskedArray(median):
-        # With Numpy 1.10 np.ma.median always return a MaskedArray, even with
-        # one element. So for compatibility with previous versions, we take the
-        # scalar value
+        # np.ma.median now always return a MaskedArray, even with one
+        # element. So for compatibility with previous versions of astropy,
+        # we keep taking the scalar value.
         median = median.item()
 
     return mean, median, std

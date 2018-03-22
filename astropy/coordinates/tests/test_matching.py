@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import pytest
 import numpy as np
 from numpy import testing as npt
 
 from ...tests.helper import assert_quantity_allclose as assert_allclose
-from ...extern.six.moves import zip
 
 from ... import units as u
 from ...utils import minversion

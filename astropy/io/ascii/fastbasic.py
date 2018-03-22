@@ -1,18 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import re
+import copy
 from collections import OrderedDict
 
 from . import core
-from ...extern import six
 from ...table import Table
 from . import cparser
-from ...extern.six.moves import zip
 from ...utils import set_locale
 
 
-@six.add_metaclass(core.MetaBaseReader)
-class FastBasic(object):
+class FastBasic(metaclass=core.MetaBaseReader):
     """
     This class is intended to handle the same format addressed by the
     ordinary :class:`Basic` writer, but it acts as a wrapper for underlying C
@@ -92,6 +90,14 @@ class FastBasic(object):
 
         self.strict_names = self.kwargs.pop('strict_names', False)
 
+        fast_reader = self.kwargs.get('fast_reader', True)
+        if not isinstance(fast_reader, dict):
+            fast_reader = {}
+
+        fast_reader.pop('enable', None)
+        self.return_header_chars = fast_reader.pop('return_header_chars', False)
+        self.kwargs['fast_reader'] = fast_reader
+
         self.engine = cparser.CParser(table, self.strip_whitespace_lines,
                                       self.strip_whitespace_fields,
                                       delimiter=self.delimiter,
@@ -112,7 +118,15 @@ class FastBasic(object):
 
         with set_locale('C'):
             data, comments = self.engine.read(try_int, try_float, try_string)
+        out = self.make_table(data, comments)
 
+        if self.return_header_chars:
+            out.meta['__ascii_fast_reader_header_chars__'] = self.engine.header_chars
+
+        return out
+
+    def make_table(self, data, comments):
+        """Actually make the output table give the data and comments."""
         meta = OrderedDict()
         if comments:
             meta['comments'] = comments
@@ -132,7 +146,8 @@ class FastBasic(object):
                                      .format(name))
         # When guessing require at least two columns
         if self.guessing and len(names) <= 1:
-            raise ValueError('Strict name guessing requires at least two columns')
+            raise ValueError('Table format guessing requires at least two columns, got {}'
+                             .format(names))
 
     def write(self, table, output):
         """
@@ -169,7 +184,7 @@ class FastCsv(FastBasic):
     fill_extra_cols = True
 
     def __init__(self, **kwargs):
-        super(FastCsv, self).__init__({'delimiter': ',', 'comment': None}, **kwargs)
+        super().__init__({'delimiter': ',', 'comment': None}, **kwargs)
 
     def write(self, table, output):
         """
@@ -189,7 +204,7 @@ class FastTab(FastBasic):
     _fast = True
 
     def __init__(self, **kwargs):
-        super(FastTab, self).__init__({'delimiter': '\t'}, **kwargs)
+        super().__init__({'delimiter': '\t'}, **kwargs)
         self.strip_whitespace_lines = False
         self.strip_whitespace_fields = False
 
@@ -205,7 +220,7 @@ class FastNoHeader(FastBasic):
     _fast = True
 
     def __init__(self, **kwargs):
-        super(FastNoHeader, self).__init__({'header_start': None, 'data_start': 0}, **kwargs)
+        super().__init__({'header_start': None, 'data_start': 0}, **kwargs)
 
     def write(self, table, output):
         """
@@ -226,27 +241,25 @@ class FastCommentedHeader(FastBasic):
     _fast = True
 
     def __init__(self, **kwargs):
-        super(FastCommentedHeader, self).__init__({}, **kwargs)
+        super().__init__({}, **kwargs)
         # Mimic CommentedHeader's behavior in which data_start
         # is relative to header_start if unspecified; see #2692
         if 'data_start' not in kwargs:
             self.data_start = 0
 
-    def read(self, table):
+    def make_table(self, data, comments):
         """
-        Read input data (file-like object, filename, list of strings, or
-        single string) into a Table and return the result.
+        Actually make the output table give the data and comments.  This is
+        slightly different from the base FastBasic method in the way comments
+        are handled.
         """
-        out = super(FastCommentedHeader, self).read(table)
+        meta = OrderedDict()
+        if comments:
+            meta['comments'] = comments[1:]
+            if not meta['comments']:
+                del meta['comments']
 
-        # Strip off first comment since this is the header line for
-        # commented_header format.
-        if 'comments' in out.meta:
-            out.meta['comments'] = out.meta['comments'][1:]
-            if not out.meta['comments']:
-                del out.meta['comments']
-
-        return out
+        return Table(data, names=list(self.engine.get_names()), meta=meta)
 
     def _read_header(self):
         tmp = self.engine.source
@@ -286,7 +299,7 @@ class FastRdb(FastBasic):
     _fast = True
 
     def __init__(self, **kwargs):
-        super(FastRdb, self).__init__({'delimiter': '\t', 'data_start': 2}, **kwargs)
+        super().__init__({'delimiter': '\t', 'data_start': 2}, **kwargs)
         self.strip_whitespace_lines = False
         self.strip_whitespace_fields = False
 

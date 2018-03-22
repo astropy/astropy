@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-import io
 import os
 import sys
 import subprocess
@@ -12,7 +9,6 @@ import subprocess
 import pytest
 
 from ...tests.helper import catch_warnings
-from ...extern import six
 
 from ...utils.data import get_pkg_data_filename
 from .. import configuration
@@ -137,7 +133,7 @@ def test_configitem_types():
     assert isinstance(conf.tstnm1, int)
     assert isinstance(conf.tstnm2, float)
     assert isinstance(conf.tstnm3, bool)
-    assert isinstance(conf.tstnm4, six.text_type)
+    assert isinstance(conf.tstnm4, str)
 
     with pytest.raises(TypeError):
         conf.tstnm1 = 34.3
@@ -161,7 +157,7 @@ def test_configitem_options(tmpdir):
 
     sec = get_config(cio.module)
 
-    assert isinstance(cio(), six.text_type)
+    assert isinstance(cio(), str)
     assert cio() == 'op1'
     assert sec['tstnmo'] == 'op1'
 
@@ -175,9 +171,9 @@ def test_configitem_options(tmpdir):
     while apycfg.parent is not apycfg:
         apycfg = apycfg.parent
     f = tmpdir.join('astropy.cfg')
-    with io.open(f.strpath, 'wb') as fd:
+    with open(f.strpath, 'wb') as fd:
         apycfg.write(fd)
-    with io.open(f.strpath, 'rU', encoding='utf-8') as fd:
+    with open(f.strpath, 'r', encoding='utf-8') as fd:
         lns = [x.strip() for x in f.readlines()]
 
     assert 'tstnmo = op2' in lns
@@ -250,7 +246,7 @@ def test_empty_config_file():
     from ..configuration import is_unedited_config_file
 
     def get_content(fn):
-        with io.open(get_pkg_data_filename(fn), 'rt', encoding='latin-1') as fd:
+        with open(get_pkg_data_filename(fn), 'rt', encoding='latin-1') as fd:
             return fd.read()
 
     content = get_content('data/empty.cfg')
@@ -266,7 +262,7 @@ def test_empty_config_file():
     assert is_unedited_config_file(content)
 
 
-class TestAliasRead(object):
+class TestAliasRead:
 
     def setup_class(self):
         configuration._override_config_file = get_pkg_data_filename('data/alias.cfg')
@@ -303,7 +299,7 @@ def test_configitem_unicode(tmpdir):
 
     sec = get_config(cio.module)
 
-    assert isinstance(cio(), six.text_type)
+    assert isinstance(cio(), str)
     assert cio() == 'ასტრონომიის'
     assert sec['tstunicode'] == 'ასტრონომიის'
 

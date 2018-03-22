@@ -1,17 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import pytest
 import numpy as np
+from inspect import signature
 from numpy.testing.utils import assert_allclose
 
 from ..core import Model, custom_model
 from ..parameters import Parameter
 from .. import models
 
-from ...utils.compat.funcsigs import signature
 
 
 class NonFittableModel(Model):
@@ -20,8 +18,7 @@ class NonFittableModel(Model):
     a = Parameter()
 
     def __init__(self, a, model_set_axis=None):
-        super(NonFittableModel, self).__init__(
-            a, model_set_axis=model_set_axis)
+        super().__init__(a, model_set_axis=model_set_axis)
 
     @staticmethod
     def evaluate():
@@ -29,8 +26,8 @@ class NonFittableModel(Model):
 
 
 def test_Model_instance_repr_and_str():
-    m = NonFittableModel(42)
-    assert repr(m) == "<NonFittableModel(a=42.0)>"
+    m = NonFittableModel(42.5)
+    assert repr(m) == "<NonFittableModel(a=42.5)>"
     assert (str(m) ==
         "Model: NonFittableModel\n"
         "Inputs: ()\n"
@@ -39,7 +36,7 @@ def test_Model_instance_repr_and_str():
         "Parameters:\n"
         "     a  \n"
         "    ----\n"
-        "    42.0")
+        "    42.5")
 
     assert len(m) == 1
 
@@ -102,7 +99,7 @@ def test_custom_model_signature():
     assert model_a.param_names == ()
     assert model_a.n_inputs == 1
     sig = signature(model_a.__init__)
-    assert list(sig.parameters.keys()) == ['self', 'args', 'kwargs']
+    assert list(sig.parameters.keys()) == ['self', 'args', 'meta', 'name', 'kwargs']
     sig = signature(model_a.__call__)
     assert list(sig.parameters.keys()) == ['self', 'x', 'model_set_axis',
                                            'with_bounding_box', 'fill_value',
@@ -148,7 +145,7 @@ def test_custom_model_subclass():
         # Override the evaluate from model_a
         @classmethod
         def evaluate(cls, x, a):
-            return -super(model_b, cls).evaluate(x, a)
+            return -super().evaluate(x, a)
 
     b = model_b()
     assert b.param_names == ('a',)
@@ -375,3 +372,13 @@ def test_custom_bounding_box_1d():
 def test_n_submodels_in_single_models():
     assert models.Gaussian1D.n_submodels() == 1
     assert models.Gaussian2D.n_submodels() == 1
+
+
+def test_compound_deepcopy():
+    model = (models.Gaussian1D(10, 2,3) | models.Shift(2)) & models.Rotation2D(21.3)
+    new_model = model.deepcopy()
+    assert id(model) != id(new_model)
+    assert id(model._submodels) != id(new_model._submodels)
+    assert id(model._submodels[0]) != id(new_model._submodels[0])
+    assert id(model._submodels[1]) != id(new_model._submodels[1])
+    assert id(model._submodels[2]) != id(new_model._submodels[2])

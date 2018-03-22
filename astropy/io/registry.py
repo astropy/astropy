@@ -1,9 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import contextlib
+import pathlib
 import re
 import sys
 
@@ -12,8 +11,6 @@ from operator import itemgetter
 
 import numpy as np
 
-from ..extern import six
-from ..extern.six.moves import zip
 
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
            'identify_format', 'get_reader', 'get_writer', 'read', 'write',
@@ -27,14 +24,7 @@ _readers = OrderedDict()
 _writers = OrderedDict()
 _identifiers = OrderedDict()
 
-PATH_TYPES = six.string_types
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
-    PATH_TYPES += (pathlib.Path,)
+PATH_TYPES = (str, pathlib.Path)
 
 
 class IORegistryError(Exception):
@@ -163,7 +153,7 @@ def _update__doc__(data_class, readwrite):
     # Get the existing read or write method and its docstring
     class_readwrite_func = getattr(data_class, readwrite)
 
-    if not isinstance(class_readwrite_func.__doc__, six.string_types):
+    if not isinstance(class_readwrite_func.__doc__, str):
         # No docstring--could just be test code, or possibly code compiled
         # without docstrings
         return
@@ -355,8 +345,7 @@ def register_identifier(data_format, data_class, identifier, force=False):
     filename as a first argument, you can do for example::
 
         >>> def my_identifier(*args, **kwargs):
-        ...     return (isinstance(args[0], basestring) and
-        ...             args[0].endswith('.tbl'))
+        ...     return isinstance(args[0], str) and args[0].endswith('.tbl')
         >>> register_identifier('ipac', Table, my_identifier)
     """
 
@@ -488,14 +477,12 @@ def get_writer(data_format, data_class):
                 data_format, data_class.__name__, format_table_str))
 
 
-def read(cls, *args, **kwargs):
+def read(cls, *args, format=None, **kwargs):
     """
     Read in data.
 
     The arguments passed to this method depend on the format.
     """
-
-    format = kwargs.pop('format', None)
 
     ctx = None
     try:
@@ -506,15 +493,14 @@ def read(cls, *args, **kwargs):
             if len(args):
                 if isinstance(args[0], PATH_TYPES):
                     from ..utils.data import get_readable_fileobj
-                    # path might be a pathlib.Path object if HAS_PATHLIB,
-                    # so coerce to a regular string.
-                    if HAS_PATHLIB and isinstance(args[0], pathlib.Path):
+                    # path might be a pathlib.Path object
+                    if isinstance(args[0], pathlib.Path):
                         args = (str(args[0]),) + args[1:]
                     path = args[0]
                     try:
                         ctx = get_readable_fileobj(args[0], encoding='binary')
                         fileobj = ctx.__enter__()
-                    except IOError:
+                    except OSError:
                         raise
                     except Exception:
                         fileobj = None
@@ -531,18 +517,14 @@ def read(cls, *args, **kwargs):
         data = reader(*args, **kwargs)
 
         if not isinstance(data, cls):
-            if issubclass(cls, data.__class__):
-                # User has read with a subclass where only the parent class is
-                # registered.  This returns the parent class, so try coercing
-                # to desired subclass.
-                try:
-                    data = cls(data)
-                except Exception:
-                    raise TypeError('could not convert reader output to {0} '
-                                    'class.'.format(cls.__name__))
-            else:
-                raise TypeError("reader should return a {0} instance"
-                                "".format(cls.__name__))
+            # User has read with a subclass where only the parent class is
+            # registered.  This returns the parent class, so try coercing
+            # to desired subclass.
+            try:
+                data = cls(data)
+            except Exception:
+                raise TypeError('could not convert reader output to {0} '
+                                'class.'.format(cls.__name__))
     finally:
         if ctx is not None:
             ctx.__exit__(*sys.exc_info())
@@ -550,23 +532,20 @@ def read(cls, *args, **kwargs):
     return data
 
 
-def write(data, *args, **kwargs):
+def write(data, *args, format=None, **kwargs):
     """
     Write out data.
 
     The arguments passed to this method depend on the format.
     """
 
-    format = kwargs.pop('format', None)
-
     if format is None:
         path = None
         fileobj = None
         if len(args):
             if isinstance(args[0], PATH_TYPES):
-                # path might be a pathlib.Path object if HAS_PATHLIB,
-                # so coerce to a regular string.
-                if HAS_PATHLIB and isinstance(args[0], pathlib.Path):
+                # path might be a pathlib.Path object
+                if isinstance(args[0], pathlib.Path):
                     args = (str(args[0]),) + args[1:]
                 path = args[0]
                 fileobj = None
@@ -586,15 +565,19 @@ def _is_best_match(class1, class2, format_classes):
     Determine if class2 is the "best" match for class1 in the list
     of classes.  It is assumed that (class2 in classes) is True.
     class2 is the the best match if:
-      - class1 is class2 => class1 was directly registered.
-      - OR class1 is a subclass of class2 and class1 is not in classes.
-        In this case the subclass will use the parent reader/writer.
+
+    - ``class1`` is a subclass of ``class2`` AND
+    - ``class2`` is the nearest ancestor of ``class1`` that is in classes
+      (which includes the case that ``class1 is class2``)
     """
-    # The set with the classes is only created if class1 is not class2 and
-    # class1 is a subclass of class2.
-    return (class1 is class2 or
-            (issubclass(class1, class2) and
-             class1 not in {cls for fmt, cls in format_classes}))
+    if issubclass(class1, class2):
+        classes = {cls for fmt, cls in format_classes}
+        for parent in class1.__mro__:
+            if parent is class2:  # class2 is closest registered ancestor
+                return True
+            if parent in classes:  # class2 was superceded
+                return False
+    return False
 
 
 def _get_valid_format(mode, cls, path, fileobj, args, kwargs):

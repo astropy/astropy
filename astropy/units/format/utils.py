@@ -4,14 +4,10 @@
 Utilities shared by the different formats.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import warnings
 from fractions import Fraction
 
-from ...extern import six
-from ...extern.six.moves import zip
 from ...utils.misc import did_you_mean
 
 
@@ -128,7 +124,7 @@ def format_power(power):
                 power = int(power.numerator)
         else:
             power = int(power)
-    return six.text_type(power)
+    return str(power)
 
 
 def _try_decomposed(unit, format_decomposed):

@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 import numpy as np
 from matplotlib.patches import Polygon
@@ -88,4 +87,4 @@ class SphericalCircle(Polygon):
         # Create polygon vertices
         vertices = np.array([lon, lat]).transpose()
 
-        super(SphericalCircle, self).__init__(vertices, **kwargs)
+        super().__init__(vertices, **kwargs)

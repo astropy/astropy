@@ -1,11 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ..extern.six.moves.urllib.parse import parse_qs
-from ..extern.six.moves.urllib.request import urlopen
-from ..extern.six.moves import input
+from urllib.parse import parse_qs
+from urllib.request import urlopen
+
 from ..utils.data import get_pkg_data_contents
 
 from .standard_profile import (SAMPSimpleXMLRPCRequestHandler,
@@ -115,7 +113,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
                 self.end_headers()
                 self.wfile.write(proxyfile.read())
                 proxyfile.close()
-            except IOError:
+            except OSError:
                 self.report_404()
                 return
 

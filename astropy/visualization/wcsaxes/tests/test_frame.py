@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from ....wcs import WCS
-from ....tests.helper import remote_data
 
 from .. import WCSAxes
 from ..frame import BaseFrame
@@ -37,10 +36,10 @@ class HexagonalFrame(BaseFrame):
 
 class TestFrame(BaseImageTests):
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='custom_frame.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_custom_frame(self):
 
         wcs = WCS(self.msx_header)
@@ -79,10 +78,10 @@ class TestFrame(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='update_clip_path_rectangular.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_update_clip_path_rectangular(self, tmpdir):
 
         fig = plt.figure()
@@ -103,10 +102,10 @@ class TestFrame(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='update_clip_path_nonrectangular.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_update_clip_path_nonrectangular(self, tmpdir):
 
         fig = plt.figure()
@@ -128,10 +127,10 @@ class TestFrame(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='update_clip_path_change_wcs.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_update_clip_path_change_wcs(self, tmpdir):
 
         # When WCS is changed, a new frame is created, so we need to make sure

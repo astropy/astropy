@@ -1,25 +1,16 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 from ... import units as u
+from ...utils.decorators import format_doc
 from .. import representation as r
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping
+from ..baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
 from .galactic import Galactic
 
+__all__ = ['Supergalactic']
 
-class Supergalactic(BaseCoordinateFrame):
-    """
-    Supergalactic Coordinates
-    (see Lahav et al. 2000, <http://adsabs.harvard.edu/abs/2000MNRAS.312..166L>,
-    and references therein).
 
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
-
+doc_components = """
     sgl : `Angle`, optional, must be keyword
         The supergalactic longitude for this object (``sgb`` must also be given and
         ``representation`` must be None).
@@ -37,18 +28,14 @@ class Supergalactic(BaseCoordinateFrame):
         also be given).
     radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
         The radial velocity of this object.
+"""
 
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
-
-    differential_cls : `BaseDifferential`, dict, optional
-        A differential class or dictionary of differential classes (currently
-        only a velocity differential with key 's' is supported). This sets
-        the expected input differential class, thereby changing the expected
-        keyword arguments of the data passed in. For example, passing
-        ``differential_cls=CartesianDifferential`` will make the classes
-        expect velocity data with the argument names ``v_x, v_y, v_z``.
+@format_doc(base_doc, components=doc_components, footer="")
+class Supergalactic(BaseCoordinateFrame):
+    """
+    Supergalactic Coordinates
+    (see Lahav et al. 2000, <http://adsabs.harvard.edu/abs/2000MNRAS.312..166L>,
+    and references therein).
     """
 
     frame_specific_representation_info = {
@@ -61,28 +48,12 @@ class Supergalactic(BaseCoordinateFrame):
             RepresentationMapping('y', 'sgy'),
             RepresentationMapping('z', 'sgz')
         ],
-        r.SphericalCosLatDifferential: [
-            RepresentationMapping('d_lon_coslat', 'pm_sgl_cossgb', u.mas/u.yr),
-            RepresentationMapping('d_lat', 'pm_sgb', u.mas/u.yr),
-            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
-        ],
-        r.SphericalDifferential: [
-            RepresentationMapping('d_lon', 'pm_sgl', u.mas/u.yr),
-            RepresentationMapping('d_lat', 'pm_sgb', u.mas/u.yr),
-            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
-        ],
         r.CartesianDifferential: [
             RepresentationMapping('d_x', 'v_x', u.km/u.s),
             RepresentationMapping('d_y', 'v_y', u.km/u.s),
             RepresentationMapping('d_z', 'v_z', u.km/u.s)
         ],
     }
-    frame_specific_representation_info[r.UnitSphericalRepresentation] = \
-        frame_specific_representation_info[r.SphericalRepresentation]
-    frame_specific_representation_info[r.UnitSphericalCosLatDifferential] = \
-        frame_specific_representation_info[r.SphericalCosLatDifferential]
-    frame_specific_representation_info[r.UnitSphericalDifferential] = \
-        frame_specific_representation_info[r.SphericalDifferential]
 
     default_representation = r.SphericalRepresentation
     default_differential = r.SphericalCosLatDifferential

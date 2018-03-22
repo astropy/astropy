@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import division
 import numpy as np
 cimport numpy as np
 
 
-DTYPE = np.float
+DTYPE = float
 ctypedef np.float_t DTYPE_t
 
 cdef extern from "numpy/npy_math.h" nogil:

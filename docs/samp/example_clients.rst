@@ -11,7 +11,7 @@ Communication between integrated clients objects
 As shown in :doc:`example_table_image`, the |SAMPIntegratedClient| class can be
 used to communicate with other SAMP-enabled tools such as `TOPCAT
 <http://www.star.bris.ac.uk/~mbt/topcat/>`_, `SAO Ds9
-<http://hea-www.harvard.edu/RD/ds9>`_, or `Aladin Desktop
+<http://ds9.si.edu/>`_, or `Aladin Desktop
 <http://aladin.u-strasbg.fr>`_.
 
 In this section, we look at how we can set up two |SAMPIntegratedClient|
@@ -21,7 +21,7 @@ First, start up a SAMP hub as described in :doc:`example_hub`.
 
 Next, we create two clients and connect them to the hub::
 
-   >>> from astropy.vo import samp
+   >>> from astropy import samp
    >>> client1 = samp.SAMPIntegratedClient(name="Client 1", description="Test Client 1",
    ...                                     metadata = {"client1.version":"0.01"})
    >>> client2 = samp.SAMPIntegratedClient(name="Client 2", description="Test Client 2",

@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import copy
 import os
@@ -11,10 +9,10 @@ import threading
 import time
 import uuid
 import warnings
+import queue
+import xmlrpc.client as xmlrpc
+from urllib.parse import urlunparse
 
-from ..extern.six.moves import queue, range
-from ..extern.six.moves import xmlrpc_client as xmlrpc
-from ..extern.six.moves.urllib.parse import urlunparse
 from .. import log
 
 from .constants import SAMP_STATUS_OK
@@ -32,7 +30,7 @@ __all__ = ['SAMPHubServer', 'WebProfileDialog']
 __doctest_skip__ = ['.', 'SAMPHubServer.*']
 
 
-class SAMPHubServer(object):
+class SAMPHubServer:
     """
     SAMP Hub Server.
 
@@ -353,7 +351,7 @@ class SAMPHubServer(object):
         hub_metadata = {"samp.name": "Astropy SAMP Hub",
                         "samp.description.text": self._label,
                         "author.name": "The Astropy Collaboration",
-                        "samp.documentation.url": "http://docs.astropy.org/en/stable/vo/samp",
+                        "samp.documentation.url": "http://docs.astropy.org/en/stable/samp",
                         "samp.icon.url": self._url + "/samp/icon"}
 
         result = self._register(self._hub_secret)
@@ -535,7 +533,7 @@ class SAMPHubServer(object):
 
             try:
                 read_ready = select.select([self._server.socket], [], [], 0.01)[0]
-            except select.error as exc:
+            except OSError as exc:
                 warnings.warn("Call to select() in SAMPHubServer failed: {0}".format(exc),
                               SAMPWarning)
             else:
@@ -558,7 +556,7 @@ class SAMPHubServer(object):
                 # also update the pop-up in case there are any changes.
                 try:
                     read_ready = select.select([self._web_profile_server.socket], [], [], 0.01)[0]
-                except select.error as exc:
+                except OSError as exc:
                     warnings.warn("Call to select() in SAMPHubServer failed: {0}".format(exc),
                                   SAMPWarning)
                 else:
@@ -1121,7 +1119,7 @@ class SAMPHubServer(object):
             self._sync_msg_ids_heap[msg_id] = None
 
             while self._is_running:
-                if timeout > 0 and time.time() - now >= timeout:
+                if 0 < timeout <= time.time() - now:
                     del(self._sync_msg_ids_heap[msg_id])
                     raise SAMPProxyError(1, "Timeout expired!")
 
@@ -1356,7 +1354,7 @@ class SAMPHubServer(object):
                                  .format(private_key))
 
 
-class WebProfileDialog(object):
+class WebProfileDialog:
     """
     A base class to make writing Web Profile GUI consent dialogs
     easier.

@@ -1,10 +1,86 @@
+WCSLIB version 5.18 (2018/01/10)
+--------------------------------
+
+* C library
+
+  - New routines introduced to preclude altering the global variables
+    NPVMAX, NPSMAX, and NDPMAX, which determine how much memory to
+    allocate for storing PVi_ma, PSi_ma, DPja, and DQia keyvalues:
+    wcsinit(), lininit(), lindist(), and disinit().  These are now used
+    by various WCSLIB routines, such as the header parsers, which
+    previously temporarily altered the global variables, thus posing a
+    thread hazard.  Testing and feedback on thread-safety issues, with
+    patches, from Rodrigo Tobar Carrizo.
+
+  - The Flex scanners, fitshdr(), wcsbth(), wcspih(), wcsulexe(), and
+    wcsutrne(), have been rewritten as thin wrappers (with the same API)
+    over scanners that were modified (with changed API) as required to
+    use Flex's "reentrant" option.  Consequently, they are now reentrant
+    and should be thread-safe.  That also passes through to the
+    deprecated wrappers, wcsulex() and wcsutrn().
+
+  - Fixed memory leaks in lindist() and lincpy() uncovered by valgrind.
+
+  - Test programs tfitshdr, tpih1, tpih2, and ttab3 are now careful to
+    free all allocated memory before exit to defeat spurious reports of
+    memory leaks by valgrind.
+
+* Fortran wrappers
+
+  - New wrappers for wcsinit(), lininit(), lindist(), and disinit().
+
+* Installation
+
+  - configure now recognises the value of ARFLAGS obtained from the
+    environment.
+
+* User manual
+
+  - Updates and amendments in line with the above changes.
+
+  - Documentation generation moved to doxygen 1.8.14 (was 1.8.13).
+
+
+WCSLIB version 5.17 (2017/09/18)
+--------------------------------
+
+* C library
+
+  - Fixed a memory leak in wcspih().  Reported by Pim Schellart.
+
+  - Fixed compiler warnings about comparison between signed and unsigned
+    integers in tab.c (Pey-Lian Lim).  Also fixed warnings in other
+    functions about unused parameters.
+
+* Fortran wrappers
+
+  - Fixed compiler warnings about comparison between signed and unsigned
+    integers in several routines.
+
+* PGSBOX
+
+  - Fixed a compiler warning about comparison between signed and
+    unsigned ints.
+
+* Installation
+
+  - Removed setgid permission on installation directories (for Fedora
+    Linux, reported by Sergio Pascual).
+
+* User manual
+
+  - Minor updates and amendments.
+
+  - Documentation generation moved to doxygen 1.8.13 (was 1.8.10).
+
+
 WCSLIB version 5.16 (2017/01/15)
 --------------------------------
 
 * C library
 
-  - Bug fix in spcfix() for the previous change.  Reported by
-    Peter Williams.
+  - Bug fix in spcfix() for the previous change.  Reported separately by
+    Julian Taylor & Peter Williams.
 
 
 WCSLIB version 5.15 (2016/04/05)
@@ -2574,4 +2650,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 5.16 2017/01/15 04:25:03 mcalabre Exp $
+$Id: CHANGES,v 5.18 2018/01/10 08:32:14 mcalabre Exp $

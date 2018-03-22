@@ -1,24 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 import copy
 import functools
 import datetime
 from copy import deepcopy
 
-import pytest
 import numpy as np
 
-from ...tests.helper import catch_warnings
-from ...tests.disable_internet import INTERNET_OFF
-from ...extern import six
-from ...extern.six.moves import zip
+from ...tests.helper import catch_warnings, pytest
 from ...utils import isiterable
 from .. import Time, ScaleValueError, TIME_SCALES, TimeString, TimezoneInfo
 from ...coordinates import EarthLocation
 from ... import units as u
 from ... import _erfa as erfa
+from ...table import Column
 try:
     import pytz
     HAS_PYTZ = True
@@ -51,16 +47,17 @@ class TestBasic():
         t = Time(times, format='iso', scale='utc')
         assert (repr(t) == "<Time object: scale='utc' format='iso' "
                 "value=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>")
-        assert allclose_jd(t.jd1, np.array([2451179.5, 2455197.5]))
-        assert allclose_jd2(t.jd2, np.array([1.4288980208333335e-06,
-                                             0.00000000e+00]))
+        assert allclose_jd(t.jd1, np.array([2451180., 2455198.]))
+        assert allclose_jd2(t.jd2, np.array([-0.5+1.4288980208333335e-06,
+                                             -0.50000000e+00]))
 
         # Set scale to TAI
         t = t.tai
         assert (repr(t) == "<Time object: scale='tai' format='iso' "
                 "value=['1999-01-01 00:00:32.123' '2010-01-01 00:00:34.000']>")
-        assert allclose_jd(t.jd1, np.array([2451179.5, 2455197.5]))
-        assert allclose_jd2(t.jd2, np.array([0.00037179926839122024, 0.00039351851851851852]))
+        assert allclose_jd(t.jd1, np.array([2451180., 2455198.]))
+        assert allclose_jd2(t.jd2, np.array([-0.5+0.00037179926839122024,
+                                             -0.5+0.00039351851851851852]))
 
         # Get a new ``Time`` object which is referenced to the TT scale
         # (internal JD1 and JD1 are now with respect to TT scale)"""
@@ -728,7 +725,7 @@ class TestSofaErrors():
         with catch_warnings() as w:
             djm0, djm = erfa.cal2jd(iy, im, id)
         assert len(w) == 1
-        assert 'bad day    (JD computed)' in six.text_type(w[0].message)
+        assert 'bad day    (JD computed)' in str(w[0].message)
 
         assert allclose_jd(djm0, [2400000.5])
         assert allclose_jd(djm, [53574.])
@@ -753,7 +750,7 @@ class TestCopyReplicate():
 
     def test_replicate(self):
         """Test replicate method"""
-        t = Time('2000:001', format='yday', scale='tai',
+        t = Time(['2000:001'], format='yday', scale='tai',
                  location=('45d', '45d'))
         t_yday = t.yday
         t_loc_x = t.location.x.copy()
@@ -909,16 +906,9 @@ def test_TimeFormat_scale():
     assert t.unix == t.utc.unix
 
 
+@pytest.mark.remote_data
 def test_scale_conversion():
-    if INTERNET_OFF:
-        # With internet off (which is the default for testing) then this will
-        # fall back to the bundled IERS-B table and raise an exception.  But when
-        # testing with --remote-data the IERS_Auto class will get the latest IERS-A
-        # and this works.
-        with pytest.raises(ScaleValueError):
-            Time(Time.now().cxcsec, format='cxcsec', scale='ut1')
-    else:
-        Time(Time.now().cxcsec, format='cxcsec', scale='ut1')
+    Time(Time.now().cxcsec, format='cxcsec', scale='ut1')
 
 
 def test_byteorder():
@@ -1100,7 +1090,7 @@ def test_cache():
     t2 = Time('2010-09-03 00:00:00')
 
     # Time starts out without a cache
-    assert 'cache' not in t.__dict__
+    assert 'cache' not in t._time.__dict__
 
     # Access the iso format and confirm that the cached version is as expected
     t.iso
@@ -1111,11 +1101,210 @@ def test_cache():
     assert t.cache['scale']['tai'] == t2.tai
 
     # New Time object after scale transform does not have a cache yet
-    assert 'cache' not in t.tt.__dict__
+    assert 'cache' not in t.tt._time.__dict__
 
     # Clear the cache
     del t.cache
-    assert 'cache' not in t.__dict__
+    assert 'cache' not in t._time.__dict__
     # Check accessing the cache creates an empty dictionary
     assert not t.cache
-    assert 'cache' in t.__dict__
+    assert 'cache' in t._time.__dict__
+
+
+def test_epoch_date_jd_is_day_fraction():
+    """
+    Ensure that jd1 and jd2 of an epoch Time are respect the (day, fraction) convention
+    (see #6638)
+    """
+    t0 = Time("J2000", scale="tdb")
+
+    assert t0.jd1 == 2451545.0
+    assert t0.jd2 == 0.0
+
+    t1 = Time(datetime.datetime(2000, 1, 1, 12, 0, 0), scale="tdb")
+
+    assert t1.jd1 == 2451545.0
+    assert t1.jd2 == 0.0
+
+
+def test_sum_is_equivalent():
+    """
+    Ensure that two equal dates defined in different ways behave equally (#6638)
+    """
+    t0 = Time("J2000", scale="tdb")
+    t1 = Time("2000-01-01 12:00:00", scale="tdb")
+
+    assert t0 == t1
+    assert (t0 + 1 * u.second) == (t1 + 1 * u.second)
+
+
+def test_string_valued_columns():
+    # Columns have a nice shim that translates bytes to string as needed.
+    # Ensure Time can handle these.  Use multi-d array just to be sure.
+    times = [[['{:04d}-{:02d}-{:02d}'.format(y, m, d) for d in range(1, 3)]
+              for m in range(5, 7)] for y in range(2012, 2014)]
+    cutf32 = Column(times)
+    cbytes = cutf32.astype('S')
+    tutf32 = Time(cutf32)
+    tbytes = Time(cbytes)
+    assert np.all(tutf32 == tbytes)
+    tutf32 = Time(Column(['B1950']))
+    tbytes = Time(Column([b'B1950']))
+    assert tutf32 == tbytes
+    # Regression tests for arrays with entries with unequal length. gh-6903.
+    times = Column([b'2012-01-01', b'2012-01-01T00:00:00'])
+    assert np.all(Time(times) == Time(['2012-01-01', '2012-01-01T00:00:00']))
+
+
+def test_bytes_input():
+    tstring = '2011-01-02T03:04:05'
+    tbytes = b'2011-01-02T03:04:05'
+    assert tbytes.decode('ascii') == tstring
+    t0 = Time(tstring)
+    t1 = Time(tbytes)
+    assert t1 == t0
+    tarray = np.array(tbytes)
+    assert tarray.dtype.kind == 'S'
+    t2 = Time(tarray)
+    assert t2 == t0
+
+
+def test_writeable_flag():
+    t = Time([1, 2, 3], format='cxcsec')
+    t[1] = 5.0
+    assert allclose_sec(t[1].value, 5.0)
+
+    t.writeable = False
+    with pytest.raises(ValueError) as err:
+        t[1] = 5.0
+    assert 'Time object is read-only. Make a copy()' in str(err)
+
+    with pytest.raises(ValueError) as err:
+        t[:] = 5.0
+    assert 'Time object is read-only. Make a copy()' in str(err)
+
+    t.writeable = True
+    t[1] = 10.0
+    assert allclose_sec(t[1].value, 10.0)
+
+    # Scalar is not writeable
+    t = Time('2000:001', scale='utc')
+    with pytest.raises(ValueError) as err:
+        t[()] = '2000:002'
+    assert 'scalar Time object is read-only.' in str(err)
+
+    # Transformed attribute is not writeable
+    t = Time(['2000:001', '2000:002'], scale='utc')
+    t2 = t.tt  # t2 is read-only now because t.tt is cached
+    with pytest.raises(ValueError) as err:
+        t2[0] = '2005:001'
+    assert 'Time object is read-only. Make a copy()' in str(err)
+
+
+def test_setitem_location():
+    loc = EarthLocation(x=[1, 2] * u.m, y=[3, 4] * u.m, z=[5, 6] * u.m)
+    t = Time([[1, 2], [3, 4]], format='cxcsec', location=loc)
+
+    # Succeeds because the right hand side makes no implication about
+    # location and just inherits t.location
+    t[0, 0] = 0
+    assert allclose_sec(t.value, [[0, 2], [3, 4]])
+
+    # Fails because the right hand side has location=None
+    with pytest.raises(ValueError) as err:
+        t[0, 0] = Time(-1, format='cxcsec')
+    assert ('cannot set to Time with different location: '
+            'expected location=(1.0, 3.0, 5.0) m and '
+            'got location=None') in str(err)
+
+    # Succeeds because the right hand side correctly sets location
+    t[0, 0] = Time(-2, format='cxcsec', location=loc[0])
+    assert allclose_sec(t.value, [[-2, 2], [3, 4]])
+
+    # Fails because the right hand side has different location
+    with pytest.raises(ValueError) as err:
+        t[0, 0] = Time(-2, format='cxcsec', location=loc[1])
+    assert ('cannot set to Time with different location: '
+            'expected location=(1.0, 3.0, 5.0) m and '
+            'got location=(2.0, 4.0, 6.0) m') in str(err)
+
+    # Fails because the Time has None location and RHS has defined location
+    t = Time([[1, 2], [3, 4]], format='cxcsec')
+    with pytest.raises(ValueError) as err:
+        t[0, 0] = Time(-2, format='cxcsec', location=loc[1])
+    assert ('cannot set to Time with different location: '
+            'expected location=None and '
+            'got location=(2.0, 4.0, 6.0) m') in str(err)
+
+    # Broadcasting works
+    t = Time([[1, 2], [3, 4]], format='cxcsec', location=loc)
+    t[0, :] = Time([-3, -4], format='cxcsec', location=loc)
+    assert allclose_sec(t.value, [[-3, -4], [3, 4]])
+
+
+def test_setitem_from_python_objects():
+    t = Time([[1, 2], [3, 4]], format='cxcsec')
+    assert t.cache == {}
+    t.iso
+    assert 'iso' in t.cache['format']
+    assert np.all(t.iso == [['1998-01-01 00:00:01.000', '1998-01-01 00:00:02.000'],
+                            ['1998-01-01 00:00:03.000', '1998-01-01 00:00:04.000']])
+
+    # Setting item clears cache
+    t[0, 1] = 100
+    assert t.cache == {}
+    assert allclose_sec(t.value, [[1, 100],
+                                  [3, 4]])
+    assert np.all(t.iso == [['1998-01-01 00:00:01.000', '1998-01-01 00:01:40.000'],
+                            ['1998-01-01 00:00:03.000', '1998-01-01 00:00:04.000']])
+
+    # Set with a float value
+    t.iso
+    t[1, :] = 200
+    assert t.cache == {}
+    assert allclose_sec(t.value, [[1, 100],
+                                  [200, 200]])
+
+    # Array of strings in yday format
+    t[:, 1] = ['1998:002', '1998:003']
+    assert allclose_sec(t.value, [[1, 86400 * 1],
+                                  [200, 86400 * 2]])
+
+    # Incompatible numeric value
+    t = Time(['2000:001', '2000:002'])
+    t[0] = '2001:001'
+    with pytest.raises(ValueError) as err:
+        t[0] = 100
+    assert 'cannot convert value to a compatible Time object' in str(err)
+
+
+def test_setitem_from_time_objects():
+    """Set from existing Time object.
+    """
+    # Set from time object with different scale
+    t = Time(['2000:001', '2000:002'], scale='utc')
+    t2 = Time(['2000:010'], scale='tai')
+    t[1] = t2[0]
+    assert t.value[1] == t2.utc.value[0]
+
+    # Time object with different scale and format
+    t = Time(['2000:001', '2000:002'], scale='utc')
+    t2.format = 'jyear'
+    t[1] = t2[0]
+    assert t.yday[1] == t2.utc.yday[0]
+
+
+def test_setitem_bad_item():
+    t = Time([1, 2], format='cxcsec')
+    with pytest.raises(IndexError):
+        t['asdf'] = 3
+
+
+def test_setitem_deltas():
+    """Setting invalidates any transform deltas"""
+    t = Time([1, 2], format='cxcsec')
+    t.delta_tdb_tt = [1, 2]
+    t.delta_ut1_utc = [3, 4]
+    t[1] = 3
+    assert not hasattr(t, '_delta_tdb_tt')
+    assert not hasattr(t, '_delta_ut1_utc')

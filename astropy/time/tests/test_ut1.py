@@ -4,17 +4,16 @@ import functools
 import pytest
 import numpy as np
 
-from ...tests.disable_internet import INTERNET_OFF
 from .. import Time
 from ...utils.iers import iers  # used in testing
 
-allclose_jd = functools.partial(np.allclose, rtol=1e-15, atol=0)
-allclose_sec = functools.partial(np.allclose, rtol=1e-15, atol=1e-9)
-# 1 nanosec atol
+allclose_jd = functools.partial(np.allclose, rtol=0, atol=1e-9)
+allclose_sec = functools.partial(np.allclose, rtol=1e-15, atol=1e-4)
+# 0.1 ms atol; IERS-B files change at that level.
 
 try:
     iers.IERS_A.open()  # check if IERS_A is available
-except IOError:
+except OSError:
     HAS_IERS_A = False
 else:
     HAS_IERS_A = True
@@ -23,6 +22,7 @@ else:
 class TestTimeUT1():
     """Test Time.ut1 using IERS tables"""
 
+    @pytest.mark.remote_data
     def test_utc_to_ut1(self):
         "Test conversion of UTC to UT1, making sure to include a leap second"""
         t = Time(['2012-06-30 12:00:00', '2012-06-30 23:59:59',
@@ -40,15 +40,7 @@ class TestTimeUT1():
 
         tnow = Time.now()
 
-        # With internet off (which is the default for testing) then this will
-        # fall back to the bundled IERS-B table and raise an exception.  But when
-        # testing with --remote-data the IERS_Auto class will get the latest IERS-A
-        # and this works.
-        if INTERNET_OFF:
-            with pytest.raises(IndexError):
-                tnow.ut1
-        else:
-            tnow.ut1
+        tnow.ut1
 
     def test_ut1_to_utc(self):
         """Also test the reverse, around the leap second
@@ -88,7 +80,7 @@ class TestTimeUT1_IERSA():
         assert tnow_ut1_jd != tnow.jd
 
 
-@pytest.mark.skipif('INTERNET_OFF')
+@pytest.mark.remote_data
 class TestTimeUT1_IERS_Auto():
     def test_ut1_iers_auto(self):
         tnow = Time.now()

@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 # TODO: this file should be refactored to use a more thread-safe and
 # race-condition-safe lockfile mechanism.
@@ -11,16 +9,15 @@ import os
 import socket
 import stat
 import warnings
+from contextlib import suppress
+from urllib.parse import urlparse
+import xmlrpc.client as xmlrpc
 
 from ..config.paths import _find_home
 
-from ..extern.six.moves.urllib.parse import urlparse
-from ..extern.six.moves import xmlrpc_client as xmlrpc
-from ..extern import six
 
 from .. import log
 
-from ..utils.compat import suppress
 from ..utils.data import get_readable_fileobj
 
 from .errors import SAMPHubError, SAMPWarning
@@ -51,7 +48,7 @@ def write_lockfile(lockfilename, lockfiledict):
     now_iso = datetime.datetime.now().isoformat()
     lockfile.write("# SAMP lockfile written on {}\n".format(now_iso))
     lockfile.write("# Standard Profile required keys\n")
-    for key, value in six.iteritems(lockfiledict):
+    for key, value in lockfiledict.items():
         lockfile.write("{0}={1}\n".format(key, value))
     lockfile.close()
 
@@ -220,7 +217,7 @@ def check_running_hub(lockfilename):
     # Check whether a lockfile already exists
     try:
         lockfiledict = read_lockfile(lockfilename)
-    except IOError:
+    except OSError:
         return is_running, lockfiledict
 
     if "samp.hub.xmlrpc.url" in lockfiledict:

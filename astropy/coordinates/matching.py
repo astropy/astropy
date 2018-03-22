@@ -3,12 +3,9 @@
 """
 This module contains functions for matching coordinate catalogs.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
-from ..extern import six
 from .representation import UnitSphericalRepresentation
 from .. import units as u
 from . import Angle
@@ -60,7 +57,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='k
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ to be installed
+    This function requires `SciPy <https://www.scipy.org/>`_ to be installed
     or it will fail.
     """
     if catalogcoord.isscalar or len(catalogcoord) < 1:
@@ -132,7 +129,7 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ to be installed
+    This function requires `SciPy <https://www.scipy.org/>`_ to be installed
     or it will fail.
     """
     if catalogcoord.isscalar or len(catalogcoord) < 1:
@@ -162,7 +159,7 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
         sep3d = catalogcoord[idx].separation_3d(newmatch)
 
     # update the kdtree on the actual passed-in coordinate
-    if isinstance(storekdtree, six.string_types):
+    if isinstance(storekdtree, str):
         catalogcoord.cache[storekdtree] = newcat_u.cache[storekdtree]
     elif storekdtree is True:
         # the old backwards-compatible name
@@ -212,7 +209,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ (>=0.12.0)
+    This function requires `SciPy <https://www.scipy.org/>`_ (>=0.12.0)
     to be installed or it will fail.
 
     If you are using this function to search in a catalog for matches around
@@ -238,7 +235,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
 
     if len(coords1) == 0 or len(coords2) == 0:
         # Empty array input: return empty match
-        return (np.array([], dtype=np.int), np.array([], dtype=np.int),
+        return (np.array([], dtype=int), np.array([], dtype=int),
                 Angle([], u.deg),
                 u.Quantity([], coords1.distance.unit))
 
@@ -261,8 +258,8 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
         for match in matches:
             idxs1.append(i)
             idxs2.append(match)
-    idxs1 = np.array(idxs1, dtype=np.int)
-    idxs2 = np.array(idxs2, dtype=np.int)
+    idxs1 = np.array(idxs1, dtype=int)
+    idxs2 = np.array(idxs2, dtype=int)
 
     if idxs1.size == 0:
         d2ds = Angle([], u.deg)
@@ -318,7 +315,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ (>=0.12.0)
+    This function requires `SciPy <https://www.scipy.org/>`_ (>=0.12.0)
     to be installed or it will fail.
 
     In the current implementation, the return values are always sorted in the
@@ -342,7 +339,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
             distunit = u.dimensionless_unscaled
         else:
             distunit = coords1.distance.unit
-        return (np.array([], dtype=np.int), np.array([], dtype=np.int),
+        return (np.array([], dtype=int), np.array([], dtype=int),
                 Angle([], u.deg),
                 u.Quantity([], distunit))
 
@@ -379,8 +376,8 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
         for match in matches:
             idxs1.append(i)
             idxs2.append(match)
-    idxs1 = np.array(idxs1, dtype=np.int)
-    idxs2 = np.array(idxs2, dtype=np.int)
+    idxs1 = np.array(idxs1, dtype=int)
+    idxs2 = np.array(idxs2, dtype=int)
 
     if idxs1.size == 0:
         if coords2.distance.unit == u.dimensionless_unscaled:
@@ -440,7 +437,7 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='kdtree', forceunit=None):
         attrname_or_kdt = 'kdtree'
 
     # figure out where any cached KDTree might be
-    if isinstance(attrname_or_kdt, six.string_types):
+    if isinstance(attrname_or_kdt, str):
         kdt = coord.cache.get(attrname_or_kdt, None)
         if kdt is not None and not isinstance(kdt, KDTree):
             raise TypeError('The `attrname_or_kdt` "{0}" is not a scipy KD tree!'.format(attrname_or_kdt))

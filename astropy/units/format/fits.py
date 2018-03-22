@@ -4,9 +4,6 @@
 Handles the "FITS" unit format.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ...extern.six.moves import zip
 
 import numpy as np
 
@@ -22,7 +19,7 @@ class Fits(generic.Generic):
     The FITS standard unit format.
 
     This supports the format defined in the Units section of the `FITS
-    Standard <http://fits.gsfc.nasa.gov/fits_standard.html>`_.
+    Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`_.
     """
 
     name = 'fits'
@@ -153,7 +150,7 @@ class Fits(generic.Generic):
 
     @classmethod
     def parse(cls, s, debug=False):
-        result = super(Fits, cls).parse(s, debug)
+        result = super().parse(s, debug)
         if hasattr(result, 'function_unit'):
             raise ValueError("Function units are not yet supported for "
                              "FITS units.")

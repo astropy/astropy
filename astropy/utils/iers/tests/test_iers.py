@@ -1,25 +1,23 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import os
+import urllib.request
 
 import pytest
 import numpy as np
 
-from ....tests.helper import assert_quantity_allclose, catch_warnings, remote_data
+from ....tests.helper import assert_quantity_allclose, catch_warnings
 from .. import iers
 from .... import units as u
 from ....table import QTable
 from ....time import Time
-from ....extern.six.moves import urllib
 
 
-FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', IOError)
+FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', OSError)
 
 try:
-    iers.IERS_A.open()  # check if IERS_A is available
-except IOError:
+    iers.IERS_A.open('finals2000A.all')  # check if IERS_A is available
+except OSError:
     HAS_IERS_A = False
 else:
     HAS_IERS_A = True
@@ -44,9 +42,10 @@ class TestBasic():
         ut1_utc = iers_tab.ut1_utc(jd1, jd2)
         assert isinstance(ut1_utc, u.Quantity)
         assert ut1_utc.unit is u.second
+        # IERS files change at the 0.1 ms level; see gh-6981
         assert_quantity_allclose(ut1_utc, [-0.5868211, -0.5868184, -0.5868184,
                                            0.4131816, 0.41328895] * u.s,
-                                 atol=1.*u.ns)
+                                 atol=0.1*u.ms)
         # should be future-proof; surely we've moved to another planet by then
         with pytest.raises(IndexError):
             ut1_utc2, status2 = iers_tab.ut1_utc(1e11, 0.)
@@ -61,7 +60,7 @@ class TestBasic():
         ut1_utc3 = iers_tab.ut1_utc(t)
         assert_quantity_allclose(ut1_utc3, [-0.5868211, -0.5868184, -0.5868184,
                                             0.4131816, 0.41328895] * u.s,
-                                 atol=1.*u.ns)
+                                 atol=0.1*u.ms)
 
         # Table behaves properly as a table (e.g. can be sliced)
         assert len(iers_tab[:2]) == 2
@@ -97,6 +96,15 @@ class TestIERS_AExcerpt():
                       (iers_tab['UT1Flag'] == 'P') |
                       (iers_tab['UT1Flag'] == 'B'))
 
+        assert iers_tab['dX_2000A'].unit is u.marcsec
+        assert iers_tab['dY_2000A'].unit is u.marcsec
+        assert 'P' in iers_tab['NutFlag']
+        assert 'I' in iers_tab['NutFlag']
+        assert 'B' in iers_tab['NutFlag']
+        assert np.all((iers_tab['NutFlag'] == 'P') |
+                      (iers_tab['NutFlag'] == 'I') |
+                      (iers_tab['NutFlag'] == 'B'))
+
         assert iers_tab['PM_x'].unit is u.arcsecond
         assert iers_tab['PM_y'].unit is u.arcsecond
         assert 'P' in iers_tab['PolPMFlag']
@@ -114,17 +122,32 @@ class TestIERS_AExcerpt():
         # match to double precision accuracy.
         assert_quantity_allclose(ut1_utc,
                                  [-0.4916557, -0.4925323, -0.4934373] * u.s,
-                                 atol=1.*u.ns)
+                                 atol=0.1*u.ms)
+
+
+        dcip_x,dcip_y, status = iers_tab.dcip_xy(t, return_status=True)
+        assert status[0] == iers.FROM_IERS_B
+        assert np.all(status[1:] == iers.FROM_IERS_A)
+        # These values are *exactly* as given in the table, so they should
+        # match to double precision accuracy.
+        print(dcip_x)
+        print(dcip_y)
+        assert_quantity_allclose(dcip_x,
+                                 [-0.086, -0.093, -0.087] * u.marcsec,
+                                 atol=1.*u.narcsec)
+        assert_quantity_allclose(dcip_y,
+                                 [0.094, 0.081, 0.072] * u.marcsec,
+                                 atol=1*u.narcsec)
 
         pm_x, pm_y, status = iers_tab.pm_xy(t, return_status=True)
         assert status[0] == iers.FROM_IERS_B
         assert np.all(status[1:] == iers.FROM_IERS_A)
         assert_quantity_allclose(pm_x,
                                  [0.003734, 0.004581, 0.004623] * u.arcsec,
-                                 atol=1.*u.narcsec)
+                                 atol=0.1*u.marcsec)
         assert_quantity_allclose(pm_y,
                                  [0.310824, 0.313150, 0.315517] * u.arcsec,
-                                 atol=1.*u.narcsec)
+                                 atol=0.1*u.marcsec)
 
         # Table behaves properly as a table (e.g. can be sliced)
         assert len(iers_tab[:2]) == 2
@@ -134,6 +157,9 @@ class TestIERS_AExcerpt():
 class TestIERS_A():
 
     def test_simple(self):
+        """Test that open() by default reads a 'finals2000A.all' file."""
+        # Ensure we remove any cached table (gh-5131).
+        iers.IERS_A.close()
         iers_tab = iers.IERS_A.open()
         jd1 = np.array([2456108.5, 2456108.5, 2456108.5, 2456109.5, 2456109.5])
         jd2 = np.array([0.49999421, 0.99997685, 0.99998843, 0., 0.5])
@@ -141,7 +167,7 @@ class TestIERS_A():
         assert np.all(status == iers.FROM_IERS_B)
         assert_quantity_allclose(ut1_utc, [-0.5868211, -0.5868184, -0.5868184,
                                            0.4131816, 0.41328895] * u.s,
-                                 atol=1.*u.ns)
+                                 atol=0.1*u.ms)
         ut1_utc2, status2 = iers_tab.ut1_utc(1e11, 0., return_status=True)
         assert status2 == iers.TIME_BEYOND_IERS_RANGE
 
@@ -154,18 +180,18 @@ class TestIERS_A():
 
 class TestIERS_Auto():
 
-    @remote_data
+    @pytest.mark.remote_data
     def test_no_auto_download(self):
         with iers.conf.set_temp('auto_download', False):
             t = iers.IERS_Auto.open()
         assert type(t) is iers.IERS_B
 
-    @remote_data
+    @pytest.mark.remote_data
     def test_simple(self):
         iers_a_file_1 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-02-30-test')
         iers_a_file_2 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-04-30-test')
-        iers_a_url_1 = 'file://' + os.path.abspath(iers_a_file_1)
-        iers_a_url_2 = 'file://' + os.path.abspath(iers_a_file_2)
+        iers_a_url_1 = os.path.normpath('file://' + os.path.abspath(iers_a_file_1))
+        iers_a_url_2 = os.path.normpath('file://' + os.path.abspath(iers_a_file_2))
 
         with iers.conf.set_temp('iers_auto_url', iers_a_url_1):
 

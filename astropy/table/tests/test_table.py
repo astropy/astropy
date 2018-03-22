@@ -1,26 +1,24 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
-
-import copy
 import gc
 import sys
+import copy
+from io import StringIO
 from collections import OrderedDict
 
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ...extern import six
 from ...io import fits
-from ...tests.helper import (pytest, assert_follows_unicode_guidelines,
+from ...tests.helper import (assert_follows_unicode_guidelines,
                              ignore_warnings, catch_warnings)
 from ...utils.data import get_pkg_data_filename
 from ... import table
 from ... import units as u
 from .conftest import MaskedTable
 
-from ...extern.six.moves import zip, range, cStringIO as StringIO
 
 try:
     with ignore_warnings(DeprecationWarning):
@@ -33,7 +31,7 @@ else:
     HAS_PANDAS = True
 
 
-class SetupData(object):
+class SetupData:
     def _setup(self, table_types):
         self._table_type = table_types.Table
         self._column_type = table_types.Column
@@ -113,7 +111,7 @@ class TestSetTableColumn(SetupData):
         t = table_types.Table([self.a, self.b])
         with pytest.raises(ValueError):
             t[1] = (20, 21, 22)
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             t[1] = 0
 
     def test_set_row_fail_2(self, table_types):
@@ -905,6 +903,41 @@ class TestRemove(SetupData):
         assert self.t.dtype == np.dtype([(str('a'), 'int'),
                                          (str('b'), 'int')])
 
+    def test_delitem_row(self, table_types):
+        self._setup(table_types)
+        self.t.add_column(self.b)
+        self.t.add_column(self.c)
+        del self.t[1]
+        assert self.t.colnames == ['a', 'b', 'c']
+        assert np.all(self.t['a'] == np.array([1, 3]))
+
+    @pytest.mark.parametrize("idx", [[0, 2], np.array([0, 2])])
+    def test_delitem_row_list(self, table_types, idx):
+        self._setup(table_types)
+        self.t.add_column(self.b)
+        self.t.add_column(self.c)
+        del self.t[idx]
+        assert self.t.colnames == ['a', 'b', 'c']
+        assert np.all(self.t['c'] == np.array([8]))
+
+    def test_delitem_row_slice(self, table_types):
+        self._setup(table_types)
+        self.t.add_column(self.b)
+        self.t.add_column(self.c)
+        del self.t[0:2]
+        assert self.t.colnames == ['a', 'b', 'c']
+        assert np.all(self.t['c'] == np.array([9]))
+
+    def test_delitem_row_fail(self, table_types):
+        self._setup(table_types)
+        with pytest.raises(IndexError):
+            del self.t[4]
+
+    def test_delitem_row_float(self, table_types):
+        self._setup(table_types)
+        with pytest.raises(IndexError):
+            del self.t[1.]
+
     def test_delitem1(self, table_types):
         self._setup(table_types)
         del self.t['a']
@@ -1049,16 +1082,16 @@ class TestSort():
         t = table_types.Table()
         t.add_column(table_types.Column(
             name='firstname',
-            data=[six.text_type(x) for x in ["Max", "Jo", "John"]]))
+            data=[str(x) for x in ["Max", "Jo", "John"]]))
         t.add_column(table_types.Column(
             name='name',
-            data=[six.text_type(x) for x in ["Miller", "Miller", "Jackson"]]))
+            data=[str(x) for x in ["Miller", "Miller", "Jackson"]]))
         t.add_column(table_types.Column(name='tel', data=[12, 15, 19]))
         t.sort(['name', 'firstname'])
         assert np.all([t['firstname'] == np.array(
-            [six.text_type(x) for x in ["John", "Jo", "Max"]])])
+            [str(x) for x in ["John", "Jo", "Max"]])])
         assert np.all([t['name'] == np.array(
-            [six.text_type(x) for x in ["Jackson", "Miller", "Miller"]])])
+            [str(x) for x in ["Jackson", "Miller", "Miller"]])])
         assert np.all([t['tel'] == np.array([19, 15, 12])])
 
     def test_argsort(self, table_types):
@@ -1087,10 +1120,10 @@ class TestSort():
         t = table_types.Table()
         t.add_column(table_types.Column(
             name='firstname',
-            data=[six.text_type(x) for x in ["Max", "Jo", "John"]]))
+            data=[str(x) for x in ["Max", "Jo", "John"]]))
         t.add_column(table_types.Column(
             name='name',
-            data=[six.text_type(x) for x in ["Miller", "Miller", "Jackson"]]))
+            data=[str(x) for x in ["Miller", "Miller", "Jackson"]]))
         t.add_column(table_types.Column(name='tel', data=[12, 15, 19]))
         assert np.all(t.argsort(['name', 'firstname']) == np.array([2, 1, 0]))
 
@@ -1201,7 +1234,7 @@ class TestConvertNumpyArray():
         for idx in range(len(arr.dtype)):
             assert arr.dtype[idx].byteorder != non_native_order
 
-        with fits.open(filename) as hdul:
+        with fits.open(filename, character_as_bytes=True) as hdul:
             data = hdul[1].data
             for colname in data.columns.names:
                 assert np.all(data[colname] == arr[colname])
@@ -1415,18 +1448,6 @@ class TestMetaTable(MetaBaseTest):
     args = ()
 
 
-def test_unicode_column_names(table_types):
-    """
-    Test that unicode column names are accepted.  Only do this for
-    Python 2 since strings are unicode already in Python 3.
-    """
-    if six.PY2:
-        t = table_types.Table([[1]], names=(six.text_type('a'),))
-        assert t.colnames == ['a']
-        t[six.text_type('b')] = 0.0
-        assert t.colnames == ['a', 'b']
-
-
 def test_unicode_content():
     # If we don't have unicode literals then return
     if isinstance('', bytes):
@@ -1441,7 +1462,7 @@ def test_unicode_content():
          [string_b, 3]],
         names=('a', 'b'))
 
-    assert string_a in six.text_type(a)
+    assert string_a in str(a)
     # This only works because the coding of this file is utf-8, which
     # matches the default encoding of Table.__str__
     assert string_a.encode('utf-8') in bytes(a)
@@ -1481,8 +1502,8 @@ def test_unicode_bytestring_conversion(table_types):
     assert t1['col0'].dtype.kind == 'U'
     assert t1['col1'].dtype.kind == 'U'
     assert t1['col2'].dtype.kind == 'i'
-    assert t1['col0'][0] == six.text_type('abc')
-    assert t1['col1'][0] == six.text_type('def')
+    assert t1['col0'][0] == str('abc')
+    assert t1['col1'][0] == str('def')
     assert t1['col2'][0] == 1
 
 
@@ -1535,7 +1556,7 @@ def test_table_init_from_degenerate_arrays(table_types):
 
 
 @pytest.mark.skipif('not HAS_PANDAS')
-class TestPandas(object):
+class TestPandas:
 
     def test_simple(self):
 
@@ -1691,7 +1712,7 @@ class Test__Astropy_Table__():
     implements the __astropy_table__ interface method.
     """
 
-    class SimpleTable(object):
+    class SimpleTable:
         def __init__(self):
             self.columns = [[1, 2, 3],
                             [4, 5, 6],

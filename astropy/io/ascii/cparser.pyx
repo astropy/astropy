@@ -18,7 +18,6 @@ from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release
 from ...utils.data import get_readable_fileobj
 from ...utils.exceptions import AstropyWarning
 from ...table import pprint
-from ...extern import six
 from . import core
 
 try:
@@ -126,19 +125,15 @@ cdef class FileString:
     def __cinit__(self, fname):
         self.fhandle = open(fname, 'r')
         if not self.fhandle:
-            raise IOError('File "{0}" could not be opened'.format(fname))
+            raise OSError('File "{0}" could not be opened'.format(fname))
         self.mmap = mmap.mmap(self.fhandle.fileno(), 0, access=mmap.ACCESS_READ)
         cdef Py_ssize_t buf_len = len(self.mmap)
-        if six.PY2:
-            PyObject_AsReadBuffer(self.mmap, &self.mmap_ptr, &buf_len)
-        else:
-            PyObject_GetBuffer(self.mmap, &self.buf, PyBUF_SIMPLE)
-            self.mmap_ptr = self.buf.buf
+        PyObject_GetBuffer(self.mmap, &self.buf, PyBUF_SIMPLE)
+        self.mmap_ptr = self.buf.buf
 
     def __dealloc__(self):
         if self.mmap:
-            if not six.PY2: # free buffer memory to prevent a resource leak
-                PyBuffer_Release(&self.buf)
+            PyBuffer_Release(&self.buf)
             self.mmap.close()
             self.fhandle.close()
 
@@ -191,6 +186,7 @@ cdef class CParser:
         int width
         object source
         object header_start
+        object header_chars
 
     def __cinit__(self, source, strip_line_whitespace, strip_line_fields,
                   delimiter=',',
@@ -208,11 +204,7 @@ cdef class CParser:
                   fill_extra_cols=0,
                   fast_reader=True):
 
-        # Handle fast_reader parameter (True or dict specifying options)
-        if fast_reader is True or fast_reader == 'force':
-            fast_reader = {}
-        elif fast_reader is False: # shouldn't happen
-            raise core.ParameterError("fast_reader cannot be False for fast readers")
+        # Handle fast_reader parameter
         expchar = fast_reader.pop('exponent_style', 'E').upper()
         # parallel and use_fast_reader are False by default, but only the latter
         # supports Fortran double precision notation
@@ -281,7 +273,7 @@ cdef class CParser:
     cpdef setup_tokenizer(self, source):
         cdef FileString fstring
 
-        if isinstance(source, six.string_types): # filename or data
+        if isinstance(source, str): # filename or data
             if '\n' not in source and '\r' not in source: # filename
                 fstring = FileString(source)
                 self.tokenizer.source = <char *>fstring.mmap_ptr
@@ -381,6 +373,8 @@ cdef class CParser:
             self.raise_error("an error occurred while advancing to the first "
                              "line of data")
 
+        self.header_chars = self.source[:self.tokenizer.source_pos]
+
         cdef int data_end = -1 # keep reading data until the end
         if self.data_end is not None and self.data_end >= 0:
             data_end = max(self.data_end - self.data_start, 0) # read nothing if data_end < 0
@@ -426,6 +420,8 @@ cdef class CParser:
         cdef int i
         cdef size_t index
 
+        # Build up chunkindices which has the indices for all N chunks
+        # in an length N+1 array.
         for i in range(1, N):
             index = max(offset + chunksize * i, chunkindices[i - 1])
             while index < source_len and self.source[index] != '\n':
@@ -440,6 +436,7 @@ cdef class CParser:
         chunkindices.append(source_len)
         cdef list processes = []
 
+        # Create and start N parallel processes to read the N chunks
         for i in range(N):
             process = multiprocessing.Process(target=_read_chunk, args=(self,
                 chunkindices[i], chunkindices[i + 1],
@@ -447,10 +444,15 @@ cdef class CParser:
             processes.append(process)
             process.start()
 
+        # Define outputs in advance
         cdef list chunks = [None] * N
         cdef list comments_chunks = [None] * N
         cdef dict failed_procs = {}
 
+        # Asyncronously get the read results for the N chunks.  These
+        # come back in a non-deterministic order using the ``queue``
+        # to return results and the chunk index as ``proc``.  ``queue.get()``
+        # is blocking and waiting for a result.
         for i in range(N):
             queue_ret, err, proc = queue.get()
             if isinstance(err, Exception):
@@ -459,9 +461,12 @@ cdef class CParser:
                 raise err
             elif err is not None: # err is (error code, error line)
                 failed_procs[proc] = err
+
             comments, data = queue_ret
             comments_chunks[proc] = comments
             chunks[proc] = data
+
+        # Accumulate all the comments through file into a single list of comments
         for chunk in comments_chunks:
             line_comments.extend(chunk)
 
@@ -483,6 +488,9 @@ cdef class CParser:
             seen_str[name] = False
             seen_numeric[name] = False
 
+        # Go through each chunk and each column name and see if it was parsed
+        # as both a string in at least one chunck and/or numeric in at least
+        # one chunk.
         for chunk in chunks:
             for name in chunk:
                 if chunk[name].dtype.kind in ('S', 'U'):
@@ -491,19 +499,31 @@ cdef class CParser:
                 elif len(chunk[name]) > 0: # ignore empty chunk columns
                     seen_numeric[name] = True
 
+        # Go through each column name and see if it was parsed as both
+        # string and float in different chunks.  If so reconvert back
+        # to string.
         reconvert_cols = []
-
         for i, name in enumerate(self.names):
             if seen_str[name] and seen_numeric[name]:
                 # Reconvert to str to avoid conversion issues, e.g.
                 # 5 (int) -> 5.0 (float) -> 5.0 (string)
                 reconvert_cols.append(i)
 
+        # Slightly confusing: put the list of col numbers to reconvert
+        # onto the queue.  All of the reading processes are blocked and
+        # waiting for a value on the reconvert_queue.  One-by-one each
+        # process will manage to be first in line and get the value,
+        # handle, and the put reconvert_cols back on the queue for
+        # another waiting process.
+        # CONSIDER just putting reconvert_cols on the queue N times
+        # in a row here and don't have _read_chunk do that chaining.
         reconvert_queue.put(reconvert_cols)
         for process in processes:
             process.join() # wait for each process to finish
         try:
             while True:
+                # Each column that was reconverted gets passed back in the queue
+                # and is then substituted over the original (incorrect) type.
                 reconverted, proc, col = queue.get(False)
                 chunks[proc][self.names[col]] = reconverted
         except Queue.Empty:
@@ -533,6 +553,7 @@ cdef class CParser:
                         break
                     line_no += num_rows
 
+        # Concatenate the chunk data, one column at a time.
         ret = {}
         for name in self.get_names():
             col_chunks = [chunk.pop(name) for chunk in chunks]
@@ -541,6 +562,7 @@ cdef class CParser:
             else:
                 ret[name] = np.concatenate(col_chunks)
 
+        # Clean up processes
         for process in processes:
             process.terminate()
 
@@ -814,6 +836,7 @@ def _copy_cparser(bytes src_ptr, bytes source_bytes, use_cols, fill_names, fill_
         parser.tokenizer.source = source_bytes
     return parser
 
+
 def _read_chunk(CParser self, start, end, try_int,
                 try_float, try_string, queue, reconvert_queue, i):
     cdef tokenizer_t *chunk_tokenizer = self.tokenizer
@@ -845,6 +868,7 @@ def _read_chunk(CParser self, start, end, try_int,
         delete_tokenizer(chunk_tokenizer)
         queue.pop()
         queue.put((None, e, i))
+
     reconvert_cols = reconvert_queue.get()
     for col in reconvert_cols:
         queue.put((self._convert_str(chunk_tokenizer, col, -1), i, col))
@@ -912,7 +936,7 @@ cdef class FastWriter:
         # to the fill_values dict. This prevents the writer from having
         # to call unicode() on every value, which is a major
         # performance hit.
-        for key, val in six.iteritems(fill_values):
+        for key, val in fill_values.items():
             try:
                 self.fill_values[int(key)] = val
                 self.fill_values[float(key)] = val
@@ -941,17 +965,17 @@ cdef class FastWriter:
         self.format_funcs = []
         self.line_comments = table.meta.get('comments', [])
 
-        for col in six.itervalues(table.columns):
+        for col in table.columns.values():
             if col.name in self.use_names: # iterate over included columns
                 # If col.format is None then don't use any formatter to improve
                 # speed.  However, if the column is a byte string and this
                 # is Py3, then use the default formatter (which in this case
                 # does val.decode('utf-8')) in order to avoid a leading 'b'.
-                if col.format is None and not (six.PY3 and col.dtype.kind == 'S'):
+                if col.format is None and not col.dtype.kind == 'S':
                     self.format_funcs.append(None)
                 else:
-                    self.format_funcs.append(pprint._format_funcs.get(
-                        (col.format, col.name), pprint.get_auto_format_func(col.name)))
+                    self.format_funcs.append(col.info._format_funcs.get(
+                        col.format, pprint.get_auto_format_func(col)))
                 # col is a numpy.ndarray, so we convert it to
                 # an ordinary list because csv.writer will call
                 # np.array_str() on each numpy value, which is
@@ -1057,7 +1081,7 @@ cdef class FastWriter:
             output.close()
 
 def get_fill_values(fill_values, read=True):
-    if len(fill_values) > 0 and isinstance(fill_values[0], six.string_types):
+    if len(fill_values) > 0 and isinstance(fill_values[0], str):
         # e.g. fill_values=('999', '0')
         fill_values = [fill_values]
     else:

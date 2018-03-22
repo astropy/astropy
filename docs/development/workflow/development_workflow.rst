@@ -534,7 +534,7 @@ can delete any backup branches that may have been created::
 .. include:: links.inc
 
 .. _Interactive tutorial: http://try.github.io/
-.. _Git Basics: http://git-scm.com/book/en/Getting-Started-Git-Basics
-.. _git book: http://git-scm.com/book/
+.. _Git Basics: https://git-scm.com/book/en/Getting-Started-Git-Basics
+.. _git book: https://git-scm.com/book/
 .. _Astropy issue list: https://github.com/astropy/astropy/issues
 .. _git choose-your-own-adventure: http://sethrobertson.github.io/GitFixUm/fixup.html

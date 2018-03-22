@@ -8,6 +8,7 @@ name: astropy
 
 dependencies:
   - python>=3
+  - sphinx
   - numpy
   - cython
   - matplotlib
@@ -22,6 +23,7 @@ dependencies:
   - beautifulsoup4
   - ipython
   - mpmath
+  - pytest
   - pip:
-    - sphinx-gallery>=0.1.9
+    - "git+https://github.com/sphinx-gallery/sphinx-gallery.git"
     - jplephem

@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 """
 This file defines the classes used to represent a 'coordinate', which includes
@@ -15,7 +14,6 @@ from matplotlib.patches import PathPatch
 from matplotlib import rcParams
 
 from ... import units as u
-from ...extern import six
 
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
@@ -33,7 +31,7 @@ def wrap_angle_at(values, coord_wrap):
         return np.mod(values - coord_wrap, 360.) - (360. - coord_wrap)
 
 
-class CoordinateHelper(object):
+class CoordinateHelper:
     """
     Helper class to control one of the coordinates in the
     :class:`~astropy.visualization.wcsaxes.WCSAxes`.
@@ -200,7 +198,7 @@ class CoordinateHelper(object):
         """
         if isinstance(formatter, Formatter):
             raise NotImplementedError()  # figure out how to swap out formatter
-        elif isinstance(formatter, six.string_types):
+        elif isinstance(formatter, str):
             self._formatter_locator.format = formatter
         else:
             raise TypeError("formatter should be a string or a Formatter "
@@ -243,7 +241,7 @@ class CoordinateHelper(object):
         """
         if not (self._formatter_locator.__class__ == AngleFormatterLocator):
             raise TypeError("Separator can only be specified for angle coordinates")
-        if isinstance(separator, six.string_types) or isinstance(separator, tuple):
+        if isinstance(separator, str) or isinstance(separator, tuple):
             self._formatter_locator.sep = separator
         else:
             raise TypeError("separator should be a string or a tuple")
@@ -419,6 +417,26 @@ class CoordinateHelper(object):
         """
         self.axislabels.set_visible_axes(position)
 
+    def set_axislabel_visibility_rule(self, rule):
+        """
+        Set the rule used to determine when the axis label is drawn.
+
+        Parameters
+        ----------
+        rule : str
+            If the rule is 'always' axis labels will always be drawn on the
+            axis. If the rule is 'ticks' the label will only be drawn if ticks
+            were drawn on that axis. If the rule is 'labels' the axis label
+            will only be drawn if tick labels were drawn on that axis.
+        """
+        self.axislabels.set_visibility_rule(rule)
+
+    def get_axislabel_visibility_rule(self, rule):
+        """
+        Get the rule used to determine when the axis label is drawn.
+        """
+        return self.axislabels.get_visibility_rule()
+
     @property
     def locator(self):
         return self._formatter_locator.locator
@@ -456,22 +474,24 @@ class CoordinateHelper(object):
 
         renderer.close_group('grid lines')
 
-    def _draw_ticks(self, renderer, bboxes, ticklabels_bbox):
+    def _draw_ticks(self, renderer, bboxes, ticklabels_bbox, ticks_locs):
 
         renderer.open_group('ticks')
 
-        self.ticks.draw(renderer)
+        self.ticks.draw(renderer, ticks_locs)
         self.ticklabels.draw(renderer, bboxes=bboxes,
                              ticklabels_bbox=ticklabels_bbox)
 
         renderer.close_group('ticks')
 
-    def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, visible_ticks):
+    def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, ticks_locs, visible_ticks):
 
         renderer.open_group('axis labels')
 
         self.axislabels.draw(renderer, bboxes=bboxes,
-                             ticklabels_bbox_list=ticklabels_bbox,
+                             ticklabels_bbox=ticklabels_bbox,
+                             coord_ticklabels_bbox=ticklabels_bbox[self],
+                             ticks_locs=ticks_locs,
                              visible_ticks=visible_ticks)
 
         renderer.close_group('axis labels')
@@ -509,7 +529,7 @@ class CoordinateHelper(object):
         transData = self.parent_axes.transData
         invertedTransLimits = transData.inverted()
 
-        for axis, spine in six.iteritems(frame):
+        for axis, spine in frame.items():
 
             # Determine tick rotation in display coordinates and compare to
             # the normal angle in display coordinates.

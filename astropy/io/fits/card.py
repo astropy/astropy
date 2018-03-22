@@ -5,19 +5,18 @@ import warnings
 
 import numpy as np
 
-from .util import _str_to_num, _is_int, maketrans, translate, _words_group
+from .util import _str_to_num, _is_int, translate, _words_group
 from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 from . import conf
-from ...extern.six import string_types, integer_types, text_type, binary_type
 from ...utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['Card', 'Undefined']
 
 
-FIX_FP_TABLE = maketrans('de', 'DE')
-FIX_FP_TABLE2 = maketrans('dD', 'eE')
+FIX_FP_TABLE = str.maketrans('de', 'DE')
+FIX_FP_TABLE2 = str.maketrans('dD', 'eE')
 
 
 CARD_LENGTH = 80
@@ -28,7 +27,7 @@ VALUE_INDICATOR = '= '  # The standard FITS value indicator
 HIERARCH_VALUE_INDICATOR = '='  # HIERARCH cards may use a shortened indicator
 
 
-class Undefined(object):
+class Undefined:
     """Undefined value."""
 
     def __init__(self):
@@ -146,7 +145,7 @@ class Card(_Verify):
     # (ex "'AXIS.1: 1' / a comment")
     _rvkc_keyword_val_comm_RE = re.compile(_rvkc_keyword_val_comm)
 
-    _commentary_keywords = set(['', 'COMMENT', 'HISTORY', 'END'])
+    _commentary_keywords = {'', 'COMMENT', 'HISTORY', 'END'}
 
     # The default value indicator; may be changed if required by a convention
     # (namely HIERARCH cards)
@@ -228,7 +227,7 @@ class Card(_Verify):
         if self._keyword is not None:
             raise AttributeError(
                 'Once set, the Card keyword may not be modified')
-        elif isinstance(keyword, string_types):
+        elif isinstance(keyword, str):
             # Be nice and remove trailing whitespace--some FITS code always
             # pads keywords out with spaces; leading whitespace, however,
             # should be strictly disallowed.
@@ -242,12 +241,14 @@ class Card(_Verify):
                     raise ValueError("Keyword 'END' not allowed.")
                 keyword = keyword_upper
             elif self._keywd_hierarch_RE.match(keyword):
-                # In prior versions of PyFITS HIERARCH cards would only be
+                # In prior versions of PyFITS (*) HIERARCH cards would only be
                 # created if the user-supplied keyword explicitly started with
                 # 'HIERARCH '.  Now we will create them automatically for long
                 # keywords, but we still want to support the old behavior too;
                 # the old behavior makes it possible to create HEIRARCH cards
                 # that would otherwise be recognized as RVKCs
+                # (*) This has never affected Astropy, because it was changed
+                # before PyFITS was merged into Astropy!
                 self._hierarch = True
                 self._value_indicator = HIERARCH_VALUE_INDICATOR
 
@@ -285,7 +286,7 @@ class Card(_Verify):
         else:
             self._value = value = ''
 
-        if conf.strip_header_whitespace and isinstance(value, string_types):
+        if conf.strip_header_whitespace and isinstance(value, str):
             value = value.rstrip()
 
         return value
@@ -303,26 +304,27 @@ class Card(_Verify):
         if oldvalue is None:
             oldvalue = ''
 
-        if not isinstance(value, string_types + integer_types +
-                                 (float, complex, bool, Undefined, np.floating,
-                                  np.integer, np.complexfloating, np.bool_)):
+        if not isinstance(value,
+                          (str, int, float, complex, bool, Undefined,
+                           np.floating, np.integer, np.complexfloating,
+                           np.bool_)):
             raise ValueError('Illegal value: {!r}.'.format(value))
 
         if isinstance(value, float) and (np.isnan(value) or np.isinf(value)):
             raise ValueError("Floating point {!r} values are not allowed "
                              "in FITS headers.".format(value))
 
-        elif isinstance(value, text_type):
+        elif isinstance(value, str):
             m = self._ascii_text_re.match(value)
             if not m:
                 raise ValueError(
                     'FITS header values must contain standard printable ASCII '
                     'characters; {!r} contains characters not representable in '
                     'ASCII or non-printable characters.'.format(value))
-        elif isinstance(value, binary_type):
+        elif isinstance(value, bytes):
             # Allow str, but only if they can be decoded to ASCII text; note
             # this is not even allowed on Python 3 since the `bytes` type is
-            # not included in `six.string_types`.  Presently we simply don't
+            # not included in `str`.  Presently we simply don't
             # allow bytes to be assigned to headers, as doing so would too
             # easily mask potential user error
             valid = True
@@ -344,8 +346,7 @@ class Card(_Verify):
             value = bool(value)
 
         if (conf.strip_header_whitespace and
-            (isinstance(oldvalue, string_types) and
-             isinstance(value, string_types))):
+            (isinstance(oldvalue, str) and isinstance(value, str))):
             # Ignore extra whitespace when comparing the new value to the old
             different = oldvalue.rstrip() != value.rstrip()
         elif isinstance(oldvalue, bool) or isinstance(value, bool):
@@ -433,7 +434,7 @@ class Card(_Verify):
         if comment is None:
             comment = ''
 
-        if isinstance(comment, text_type):
+        if isinstance(comment, str):
             m = self._ascii_text_re.match(comment)
             if not m:
                 raise ValueError(
@@ -524,7 +525,7 @@ class Card(_Verify):
         # explicitly check that it is a string value, since a blank value is
         # returned as '')
         return (not self.keyword and
-                (isinstance(self.value, string_types) and not self.value) and
+                (isinstance(self.value, str) and not self.value) and
                 not self.comment)
 
     @classmethod
@@ -550,7 +551,7 @@ class Card(_Verify):
 
         Parameters
         ----------
-        key : or str
+        keyword : or str
             A keyword value or a ``keyword.field-specifier`` value
         """
 
@@ -606,7 +607,7 @@ class Card(_Verify):
             self._check_if_rvkc_image(*args)
         elif len(args) == 2:
             keyword, value = args
-            if not isinstance(keyword, string_types):
+            if not isinstance(keyword, str):
                 return False
             if keyword in self._commentary_keywords:
                 return False
@@ -618,7 +619,7 @@ class Card(_Verify):
 
             # Testing for ': ' is a quick way to avoid running the full regular
             # expression, speeding this up for the majority of cases
-            if isinstance(value, string_types) and value.find(': ') > 0:
+            if isinstance(value, str) and value.find(': ') > 0:
                 match = self._rvkc_field_specifier_val_RE.match(value)
                 if match and self._keywd_FSC_RE.match(keyword):
                     self._init_rvkc(keyword, match.group('keyword'), value,
@@ -886,7 +887,7 @@ class Card(_Verify):
         if self.keyword:
             if self.field_specifier:
                 return '{:{len}}'.format(self.keyword.split('.', 1)[0],
-                                          len=KEYWORD_LENGTH)
+                                         len=KEYWORD_LENGTH)
             elif self._hierarch:
                 return 'HIERARCH {} '.format(self.keyword)
             else:
@@ -970,7 +971,7 @@ class Card(_Verify):
             # longstring case (CONTINUE card)
             # try not to use CONTINUE if the string value can fit in one line.
             # Instead, just truncate the comment
-            if (isinstance(self.value, string_types) and
+            if (isinstance(self.value, str) and
                 len(value) > (self.length - 10)):
                 output = self._format_long_image()
             else:
@@ -1187,7 +1188,7 @@ def _format_value(value):
 
     # string value should occupies at least 8 columns, unless it is
     # a null string
-    if isinstance(value, string_types):
+    if isinstance(value, str):
         if value == '':
             return "''"
         else:

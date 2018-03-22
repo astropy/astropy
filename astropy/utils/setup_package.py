@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import
 
 from distutils.core import Extension
 from os.path import dirname, join, relpath
@@ -35,7 +34,3 @@ def get_package_data():
             'tests/finals2000A-2016-02-30-test',
             'tests/iers_a_excerpt']
     }
-
-
-def requires_2to3():
-    return False

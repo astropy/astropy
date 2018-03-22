@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import division
 import numpy as np
 cimport numpy as np
 
 
-DTYPE = np.float
+DTYPE = float
 ctypedef np.float_t DTYPE_t
 
 cdef extern from "numpy/npy_math.h" nogil:
@@ -164,7 +163,7 @@ def convolve3d_boundary_none(np.ndarray[DTYPE_t, ndim=3] f,
                                 if not npy_isnan(val):
                                     top += val * ker
                                     bot += ker
-                    if normalize_by_kernel: 
+                    if normalize_by_kernel:
                         if bot == 0:
                             conv[i, j, k] = f[i, j, k]
                         else:

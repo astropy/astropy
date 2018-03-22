@@ -4,9 +4,6 @@
 This module contains models representing polynomials and polynomial series.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
-
 from collections import OrderedDict
 
 import numpy as np
@@ -16,7 +13,6 @@ from .functional_models import Shift
 from .parameters import Parameter
 from .utils import poly_map_domain, comb
 from ..utils import indent, check_broadcast
-from ..extern.six.moves import range
 from ..units import Quantity
 
 __all__ = [
@@ -79,7 +75,7 @@ class PolynomialBase(FittableModel):
             # Parameter.__set__ method here
             param.__set__(self, value)
         else:
-            super(PolynomialBase, self).__setattr__(attr, value)
+            super().__setattr__(attr, value)
 
 
 class PolynomialModel(PolynomialBase):
@@ -97,7 +93,7 @@ class PolynomialModel(PolynomialBase):
         self._order = self.get_num_coeff(self.n_inputs)
         self._param_names = self._generate_coeff_names(self.n_inputs)
 
-        super(PolynomialModel, self).__init__(
+        super().__init__(
             n_models=n_models, model_set_axis=model_set_axis, name=name,
             meta=meta, **params)
 
@@ -199,7 +195,7 @@ class OrthoPolynomialBase(PolynomialBase):
         self.y_window = y_window
         self._param_names = self._generate_coeff_names()
 
-        super(OrthoPolynomialBase, self).__init__(
+        super().__init__(
             n_models=n_models, model_set_axis=model_set_axis,
             name=name, meta=meta, **params)
 
@@ -309,8 +305,7 @@ class OrthoPolynomialBase(PolynomialBase):
         return self.imhorner(x, y, invcoeff)
 
     def prepare_inputs(self, x, y, **kwargs):
-        inputs, format_info = \
-                super(OrthoPolynomialBase, self).prepare_inputs(x, y, **kwargs)
+        inputs, format_info = super().prepare_inputs(x, y, **kwargs)
 
         x, y = inputs
 
@@ -356,12 +351,13 @@ class Chebyshev1D(PolynomialModel):
 
     inputs = ('x',)
     outputs = ('y',)
+    _separable = True
 
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
         self.domain = domain
         self.window = window
-        super(Chebyshev1D, self).__init__(
+        super().__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
             name=name, meta=meta, **params)
 
@@ -382,7 +378,7 @@ class Chebyshev1D(PolynomialModel):
             The Vandermonde matrix
         """
 
-        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=False, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
         v[0] = 1
         if self.degree > 0:
@@ -462,12 +458,13 @@ class Hermite1D(PolynomialModel):
 
     inputs = ('x')
     outputs = ('y')
+    _separable = True
 
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
         self.domain = domain
         self.window = window
-        super(Hermite1D, self).__init__(
+        super().__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
             name=name, meta=meta, **params)
 
@@ -488,7 +485,7 @@ class Hermite1D(PolynomialModel):
             The Vandermonde matrix
         """
 
-        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=False, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
         v[0] = 1
         if self.degree > 0:
@@ -570,11 +567,12 @@ class Hermite2D(OrthoPolynomialBase):
     example, the third Hermite polynomial (H2) is 4x^2-2, but if x was
     specified with units, 4x^2 and -2 would have incompatible units.
     """
+    _separable = False
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
                  y_domain=None, y_window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
-        super(Hermite2D, self).__init__(
+        super().__init__(
             x_degree, y_degree, x_domain=x_domain, y_domain=y_domain,
             x_window=x_window, y_window=y_window, n_models=n_models,
             model_set_axis=model_set_axis, name=name, meta=meta, **params)
@@ -644,7 +642,7 @@ class Hermite2D(OrthoPolynomialBase):
         Derivative of 1D Hermite series
         """
 
-        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=False, ndmin=1)
         d = np.empty((deg + 1, len(x)), dtype=x.dtype)
         d[0] = x * 0 + 1
         if deg > 0:
@@ -692,12 +690,13 @@ class Legendre1D(PolynomialModel):
 
     inputs = ('x',)
     outputs = ('y',)
+    _separable = False
 
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
         self.domain = domain
         self.window = window
-        super(Legendre1D, self).__init__(
+        super().__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
             name=name, meta=meta, **params)
 
@@ -731,7 +730,7 @@ class Legendre1D(PolynomialModel):
             The Vandermonde matrix
         """
 
-        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=False, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
         v[0] = 1
         if self.degree > 0:
@@ -785,18 +784,18 @@ class Polynomial1D(PolynomialModel):
 
     inputs = ('x',)
     outputs = ('y',)
+    _separable = True
 
     def __init__(self, degree, domain=[-1, 1], window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
         self.domain = domain
         self.window = window
-        super(Polynomial1D, self).__init__(
+        super().__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
             name=name, meta=meta, **params)
 
     def prepare_inputs(self, x, **kwargs):
-        inputs, format_info = \
-                super(Polynomial1D, self).prepare_inputs(x, **kwargs)
+        inputs, format_info = super().prepare_inputs(x, **kwargs)
 
         x = inputs[0]
         return (x,), format_info
@@ -823,7 +822,7 @@ class Polynomial1D(PolynomialModel):
             The Vandermonde matrix
         """
 
-        v = np.empty((self.degree + 1,) + x.shape, dtype=np.float)
+        v = np.empty((self.degree + 1,) + x.shape, dtype=float)
         v[0] = 1
         if self.degree > 0:
             v[1] = x
@@ -886,11 +885,12 @@ class Polynomial2D(PolynomialModel):
 
     inputs = ('x', 'y')
     outputs = ('z',)
+    _separable = False
 
     def __init__(self, degree, x_domain=[-1, 1], y_domain=[-1, 1],
                  x_window=[-1, 1], y_window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
-        super(Polynomial2D, self).__init__(
+        super().__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
             name=name, meta=meta, **params)
         self.x_domain = x_domain
@@ -899,8 +899,7 @@ class Polynomial2D(PolynomialModel):
         self.y_window = y_window
 
     def prepare_inputs(self, x, y, **kwargs):
-        inputs, format_info = \
-                super(Polynomial2D, self).prepare_inputs(x, y, **kwargs)
+        inputs, format_info = super().prepare_inputs(x, y, **kwargs)
 
         x, y = inputs
 
@@ -987,7 +986,7 @@ class Polynomial2D(PolynomialModel):
         Parameters
         ----------
         x, y : array
-        coeff : array of coefficients in inverse lexical order
+        coeffs : array of coefficients in inverse lexical order
         """
 
         alpha = self._invlex()
@@ -1063,11 +1062,12 @@ class Chebyshev2D(OrthoPolynomialBase):
     example, the third Chebyshev polynomial (T2) is 2x^2-1, but if x was
     specified with units, 2x^2 and -1 would have incompatible units.
     """
+    _separable = False
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
                  y_domain=None, y_window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
-        super(Chebyshev2D, self).__init__(
+        super().__init__(
             x_degree, y_degree, x_domain=x_domain, y_domain=y_domain,
             x_window=x_window, y_window=y_window, n_models=n_models,
             model_set_axis=model_set_axis, name=name, meta=meta, **params)
@@ -1137,7 +1137,7 @@ class Chebyshev2D(OrthoPolynomialBase):
         Derivative of 1D Chebyshev series
         """
 
-        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=False, ndmin=1)
         d = np.empty((deg + 1, len(x)), dtype=x.dtype)
         d[0] = x * 0 + 1
         if deg > 0:
@@ -1193,11 +1193,12 @@ class Legendre2D(OrthoPolynomialBase):
     third Legendre polynomial (P2) is 1.5x^2-0.5, but if x was specified with
     units, 1.5x^2 and -0.5 would have incompatible units.
     """
+    _separable = False
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
                  y_domain=None, y_window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
-        super(Legendre2D, self).__init__(
+        super().__init__(
             x_degree, y_degree, x_domain=x_domain, y_domain=y_domain,
             x_window=x_window, y_window=y_window, n_models=n_models,
             model_set_axis=model_set_axis, name=name, meta=meta, **params)
@@ -1262,7 +1263,7 @@ class Legendre2D(OrthoPolynomialBase):
     def _legendderiv1d(self, x, deg):
         """Derivative of 1D Legendre polynomial"""
 
-        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=False, ndmin=1)
         d = np.empty((deg + 1,) + x.shape, dtype=x.dtype)
         d[0] = x * 0 + 1
         if deg > 0:
@@ -1282,6 +1283,8 @@ class _SIP1D(PolynomialBase):
 
     inputs = ('u', 'v')
     outputs = ('w',)
+    _separable = False
+
 
     def __init__(self, order, coeff_prefix, n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
@@ -1289,9 +1292,8 @@ class _SIP1D(PolynomialBase):
         self.coeff_prefix = coeff_prefix
         self._param_names = self._generate_coeff_names(coeff_prefix)
 
-        super(_SIP1D, self).__init__(n_models=n_models,
-                                     model_set_axis=model_set_axis,
-                                     name=name, meta=meta, **params)
+        super().__init__(n_models=n_models, model_set_axis=model_set_axis,
+                         name=name, meta=meta, **params)
 
     def __repr__(self):
         return self._format_repr(args=[self.order, self.coeff_prefix])
@@ -1357,7 +1359,7 @@ class _SIP1D(PolynomialBase):
 
         for i in range(coef.shape[0]):
             for j in range(coef.shape[1]):
-                if i + j > 1 and i + j < self.order + 1:
+                if 1 < i + j < self.order + 1:
                     result = result + coef[i, j] * x ** i * y ** j
         return result
 
@@ -1397,6 +1399,7 @@ class SIP(Model):
 
     inputs = ('u', 'v')
     outputs = ('x', 'y')
+    _separable = False
 
     def __init__(self, crpix, a_order, b_order, a_coeff={}, b_coeff={},
                  ap_order=None, bp_order=None, ap_coeff={}, bp_coeff={},
@@ -1416,9 +1419,8 @@ class SIP(Model):
                               model_set_axis=model_set_axis, **a_coeff)
         self.sip1d_b = _SIP1D(b_order, coeff_prefix='B', n_models=n_models,
                               model_set_axis=model_set_axis, **b_coeff)
-        super(SIP, self).__init__(n_models=n_models,
-                                  model_set_axis=model_set_axis, name=name,
-                                  meta=meta)
+        super().__init__(n_models=n_models, model_set_axis=model_set_axis,
+                         name=name, meta=meta)
 
     def __repr__(self):
         return '<{0}({1!r})>'.format(self.__class__.__name__,
@@ -1467,6 +1469,7 @@ class InverseSIP(Model):
 
     inputs = ('x', 'y')
     outputs = ('u', 'v')
+    _separable = False
 
     def __init__(self, ap_order, bp_order, ap_coeff={}, bp_coeff={},
                  n_models=None, model_set_axis=None, name=None, meta=None):
@@ -1490,9 +1493,8 @@ class InverseSIP(Model):
         self.sip1d_bp = Polynomial2D(degree=bp_order,
                                      model_set_axis=model_set_axis,
                                      **bp_coeff_params)
-        super(InverseSIP, self).__init__(n_models=n_models,
-                                         model_set_axis=model_set_axis,
-                                         name=name, meta=meta)
+        super().__init__(n_models=n_models, model_set_axis=model_set_axis,
+                         name=name, meta=meta)
 
     def __repr__(self):
         return '<{0}({1!r})>'.format(self.__class__.__name__,

@@ -7,8 +7,6 @@ It is unlikely users will need to work with these classes directly, unless they
 define their own models.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import functools
 import numbers
@@ -20,8 +18,6 @@ import numpy as np
 from .. import units as u
 from ..units import Quantity, UnitsError
 from ..utils import isiterable, OrderedDescriptor
-from ..extern import six
-from ..extern.six.moves import zip
 from .utils import array_repr_oneline
 
 from .utils import get_inputs_and_params
@@ -46,7 +42,7 @@ def _tofloat(value):
 
     if isiterable(value):
         try:
-            value = np.asanyarray(value, dtype=np.float)
+            value = np.asanyarray(value, dtype=float)
         except (TypeError, ValueError):
             # catch arrays with strings or user errors like different
             # types of parameters in a parameter set
@@ -216,7 +212,7 @@ class Parameter(OrderedDescriptor):
     def __init__(self, name='', description='', default=None, unit=None,
                  getter=None, setter=None, fixed=False, tied=False, min=None,
                  max=None, bounds=None, model=None):
-        super(Parameter, self).__init__()
+        super().__init__()
 
         self._name = name
         self.__doc__ = self._description = description.strip()
@@ -509,8 +505,16 @@ class Parameter(OrderedDescriptor):
 
             if model_axis < 0:
                 model_axis = len(shape) + model_axis
+                shape = shape[:model_axis] + shape[model_axis + 1:]
+            else:
+                # When a model set is initialized, the dimension of the parameters
+                # is increased by model_set_axis+1. To find the shape of a parameter
+                # within a single model the extra dimensions need to be removed first.
+                # The following dimension shows the number of models.
+                # The rest of the shape tuple represents the shape of the parameter
+                # in a single model.
 
-            shape = shape[:model_axis] + shape[model_axis + 1:]
+                shape = shape[model_axis + 1:]
 
         return shape
 
@@ -565,7 +569,7 @@ class Parameter(OrderedDescriptor):
         """Tie a parameter"""
 
         if self._model is not None:
-            if not six.callable(value) and value not in (False, None):
+            if not callable(value) and value not in (False, None):
                 raise TypeError("Tied must be a callable")
             self._model._constraints['tied'][self._name] = value
         else:
@@ -708,10 +712,7 @@ class Parameter(OrderedDescriptor):
                 if self._validator is not None:
                     return self._validator(self._model, value)
 
-            if six.PY2:
-                return types.MethodType(validator, self, type(self))
-            else:
-                return types.MethodType(validator, self)
+            return types.MethodType(validator, self)
 
     def copy(self, name=None, description=None, default=None, unit=None,
              getter=None, setter=None, fixed=False, tied=False, min=None,
@@ -733,7 +734,7 @@ class Parameter(OrderedDescriptor):
         kwargs = locals().copy()
         del kwargs['self']
 
-        for key, value in six.iteritems(kwargs):
+        for key, value in kwargs.items():
             if value is None:
                 # Annoying special cases for min/max where are just aliases for
                 # the components of bounds
@@ -878,13 +879,11 @@ class Parameter(OrderedDescriptor):
 
         return arr
 
-    def __nonzero__(self):
+    def __bool__(self):
         if self._model is None:
             return True
         else:
             return bool(self.value)
-
-    __bool__ = __nonzero__
 
     __add__ = _binary_arithmetic_operation(operator.add)
     __radd__ = _binary_arithmetic_operation(operator.add, reflected=True)

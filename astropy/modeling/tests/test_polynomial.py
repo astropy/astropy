@@ -2,8 +2,6 @@
 
 """Tests for polynomial models."""
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import os
 
 from itertools import product
@@ -93,7 +91,7 @@ linear2d = {
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-class TestFitting(object):
+class TestFitting:
     """Test linear fitter with polynomial models."""
 
     def setup_class(self):

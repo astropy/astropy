@@ -1,11 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ...extern import six
-
 import copy
 
 import pytest
@@ -107,7 +101,7 @@ def test_unit():
 
     from .. import astropyconst13 as const
 
-    for key, val in six.iteritems(vars(const)):
+    for key, val in vars(const).items():
         if isinstance(val, Constant):
             # Getting the unit forces the unit parser to run.  Confirm
             # that none of the constants defined in astropy have
@@ -159,3 +153,16 @@ def test_view():
 
     c4 = Q(c, subok=True, copy=False)
     assert c4 is c
+
+
+def test_context_manager():
+    from ... import constants as const
+
+    with const.set_enabled_constants('astropyconst13'):
+        assert const.h.value == 6.62606957e-34  # CODATA2010
+
+    assert const.h.value == 6.626070040e-34  # CODATA2014
+
+    with pytest.raises(ValueError):
+        with const.set_enabled_constants('notreal'):
+            const.h

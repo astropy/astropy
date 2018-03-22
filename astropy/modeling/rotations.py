@@ -19,16 +19,12 @@ References
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
-
 import math
 
 import numpy as np
 
 from .core import Model
 from .parameters import Parameter
-from ..extern.six.moves import zip
 from ..coordinates.matrix_utilities import rotation_matrix, matrix_product
 from .. import units as u
 from ..utils.decorators import deprecated
@@ -38,10 +34,12 @@ __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
            'EulerAngleRotation']
 
 
-class _EulerRotation(object):
+class _EulerRotation:
     """
     Base class which does the actual computation.
     """
+
+    _separable = False
 
     def _create_matrix(self, phi, theta, psi, axes_order):
         matrices = []
@@ -98,9 +96,9 @@ class _EulerRotation(object):
             b.shape = shape
         return a, b
 
-    input_units_strict = True
+    _input_units_strict = True
 
-    input_units_allow_dimensionless = True
+    _input_units_allow_dimensionless = True
 
     @property
     def input_units(self):
@@ -153,7 +151,7 @@ class EulerAngleRotation(_EulerRotation, Model):
         if any(qs) and not all(qs):
             raise TypeError("All parameters should be of the same type - float or Quantity.")
 
-        super(EulerAngleRotation, self).__init__(phi=phi, theta=theta, psi=psi, **kwargs)
+        super().__init__(phi=phi, theta=theta, psi=psi, **kwargs)
 
     def inverse(self):
         return self.__class__(phi=-self.psi,
@@ -162,7 +160,7 @@ class EulerAngleRotation(_EulerRotation, Model):
                               axes_order=self.axes_order[::-1])
 
     def evaluate(self, alpha, delta, phi, theta, psi):
-        a, b = super(EulerAngleRotation, self).evaluate(alpha, delta, phi, theta, psi, self.axes_order)
+        a, b = super().evaluate(alpha, delta, phi, theta, psi, self.axes_order)
         return a, b
 
 
@@ -179,12 +177,12 @@ class _SkyRotation(_EulerRotation, Model):
         qs = [isinstance(par, u.Quantity) for par in [lon, lat, lon_pole]]
         if any(qs) and not all(qs):
             raise TypeError("All parameters should be of the same type - float or Quantity.")
-        super(_SkyRotation, self).__init__(lon, lat, lon_pole, **kwargs)
+        super().__init__(lon, lat, lon_pole, **kwargs)
         self.axes_order = 'zxz'
 
     def _evaluate(self, phi, theta, lon, lat, lon_pole):
-        alpha, delta = super(_SkyRotation, self).evaluate(phi, theta, lon, lat,
-                                                          lon_pole, self.axes_order)
+        alpha, delta = super().evaluate(phi, theta, lon, lat, lon_pole,
+                                        self.axes_order)
         mask = alpha < 0
         if isinstance(mask, np.ndarray):
             alpha[mask] += 360
@@ -228,7 +226,7 @@ class RotateNative2Celestial(_SkyRotation):
         return {'alpha_C': u.deg, 'delta_C': u.deg}
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
-        super(RotateNative2Celestial, self).__init__(lon, lat, lon_pole, **kwargs)
+        super().__init__(lon, lat, lon_pole, **kwargs)
 
     def evaluate(self, phi_N, theta_N, lon, lat, lon_pole):
         """
@@ -253,8 +251,7 @@ class RotateNative2Celestial(_SkyRotation):
         phi = lon_pole - np.pi / 2
         theta = - (np.pi / 2 - lat)
         psi = -(np.pi / 2 + lon)
-        alpha_C, delta_C = super(RotateNative2Celestial, self)._evaluate(phi_N, theta_N,
-                                                                         phi, theta, psi)
+        alpha_C, delta_C = super()._evaluate(phi_N, theta_N, phi, theta, psi)
         return alpha_C, delta_C
 
     @property
@@ -298,7 +295,7 @@ class RotateCelestial2Native(_SkyRotation):
         return {'phi_N': u.deg, 'theta_N': u.deg}
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
-        super(RotateCelestial2Native, self).__init__(lon, lat, lon_pole, **kwargs)
+        super().__init__(lon, lat, lon_pole, **kwargs)
 
     def evaluate(self, alpha_C, delta_C, lon, lat, lon_pole):
         """
@@ -323,8 +320,7 @@ class RotateCelestial2Native(_SkyRotation):
         phi = (np.pi / 2 + lon)
         theta = (np.pi / 2 - lat)
         psi = -(lon_pole - np.pi / 2)
-        phi_N, theta_N = super(RotateCelestial2Native, self)._evaluate(alpha_C, delta_C,
-                                                                       phi, theta, psi)
+        phi_N, theta_N = super()._evaluate(alpha_C, delta_C, phi, theta, psi)
 
         return phi_N, theta_N
 
@@ -347,12 +343,13 @@ class Rotation2D(Model):
 
     inputs = ('x', 'y')
     outputs = ('x', 'y')
+    _separable = False
 
     angle = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian)
 
-    input_units_strict = True
+    _input_units_strict = True
 
-    input_units_allow_dimensionless = True
+    _input_units_allow_dimensionless = True
 
     @property
     def inverse(self):

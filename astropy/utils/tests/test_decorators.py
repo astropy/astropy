@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import functools
 import inspect
@@ -12,7 +10,6 @@ from ..decorators import (deprecated_attribute, deprecated, wraps,
                           sharedmethod, classproperty,
                           format_doc, deprecated_renamed_argument)
 from ..exceptions import AstropyDeprecationWarning, AstropyUserWarning
-from ...extern import six
 from ...tests.helper import catch_warnings
 
 
@@ -42,12 +39,8 @@ def test_wraps():
     if hasattr(foo, '__qualname__'):
         assert bar.__qualname__ == foo.__qualname__
 
-    if six.PY2:
-        argspec = inspect.getargspec(bar)
-        assert argspec.keywords == 'kwargs'
-    else:
-        argspec = inspect.getfullargspec(bar)
-        assert argspec.varkw == 'kwargs'
+    argspec = inspect.getfullargspec(bar)
+    assert argspec.varkw == 'kwargs'
 
     assert argspec.args == ['a', 'b', 'c', 'd', 'e']
     assert argspec.defaults == (1, 2, 3)
@@ -61,7 +54,7 @@ def test_wraps_exclude_names():
     # This particular test demonstrates wrapping an instance method
     # as a function and excluding the "self" argument:
 
-    class TestClass(object):
+    class TestClass:
         def method(self, a, b, c=1, d=2, **kwargs):
             return (a, b, c, d, kwargs)
 
@@ -71,10 +64,7 @@ def test_wraps_exclude_names():
     def func(*args, **kwargs):
         return test.method(*args, **kwargs)
 
-    if six.PY2:
-        argspec = inspect.getargspec(func)
-    else:
-        argspec = inspect.getfullargspec(func)
+    argspec = inspect.getfullargspec(func)
     assert argspec.args == ['a', 'b', 'c', 'd']
 
     assert func('a', 'b', e=3) == ('a', 'b', 1, 2, {'e': 3})
@@ -133,7 +123,7 @@ def test_deprecated_attribute():
 # This needs to be defined outside of the test function, because we
 # want to try to pickle it.
 @deprecated('100.0')
-class TA(object):
+class TA:
     """
     This is the class docstring.
     """
@@ -150,8 +140,7 @@ class TMeta(type):
 
 
 @deprecated('100.0')
-@six.add_metaclass(TMeta)
-class TB(object):
+class TB(metaclass=TMeta):
     pass
 
 
@@ -180,6 +169,37 @@ def test_deprecated_class():
     pickle.dumps(TA)
 
 
+def test_deprecated_class_with_new_method():
+    """
+    Test that a class with __new__ method still works even if it accepts
+    additional arguments.
+    This previously failed because the deprecated decorator would wrap objects
+    __init__ which takes no arguments.
+    """
+    @deprecated('1.0')
+    class A:
+        def __new__(cls, a):
+            return super().__new__(cls)
+
+    # Creating an instance should work but raise a DeprecationWarning
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        A(1)
+    assert len(w) == 1
+
+    @deprecated('1.0')
+    class B:
+        def __new__(cls, a):
+            return super().__new__(cls)
+
+        def __init__(self, a):
+            pass
+
+    # Creating an instance should work but raise a DeprecationWarning
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        B(1)
+    assert len(w) == 1
+
+
 def test_deprecated_class_with_super():
     """
     Regression test for an issue where classes that used `super()` in their
@@ -188,9 +208,9 @@ def test_deprecated_class_with_super():
     """
 
     @deprecated('100.0')
-    class TB(object):
+    class TB:
         def __init__(self, a, b):
-            super(TB, self).__init__()
+            super().__init__()
 
     with catch_warnings(AstropyDeprecationWarning) as w:
         TB(1, 2)
@@ -206,8 +226,7 @@ def test_deprecated_class_with_super():
 def test_deprecated_class_with_custom_metaclass():
     """
     Regression test for an issue where deprecating a class with a metaclass
-    other than type did not restore the metaclass properly (at least not
-    on Python 3).
+    other than type did not restore the metaclass properly.
     """
 
     with catch_warnings(AstropyDeprecationWarning) as w:
@@ -226,7 +245,7 @@ def test_deprecated_static_and_classmethod():
     where it appears that deprecated staticmethods didn't work on Python 2.6.
     """
 
-    class A(object):
+    class A:
         """Docstring"""
 
         @deprecated('1.0')
@@ -257,7 +276,7 @@ def test_deprecated_static_and_classmethod():
 def test_deprecated_argument():
     # Tests the decorator with function, method, staticmethod and classmethod.
 
-    class Test(object):
+    class Test:
 
         @classmethod
         @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
@@ -451,56 +470,6 @@ def test_deprecated_argument_not_allowed_use():
             return kwargs
 
 
-@pytest.mark.skipif('not six.PY2')
-def test_sharedmethod_imfunc():
-    """
-    Test that the im_func of a sharedmethod always points to the correct
-    underlying function.
-
-    This only applies to Python 2 as Python 3 does not have an im_func
-    attribute on methods.
-    """
-
-    # The original function
-    def foo(self): pass
-    actual_foo = foo
-
-    class Bar(object):
-        foo = sharedmethod(actual_foo)
-
-    assert Bar.foo.im_func is actual_foo
-    assert Bar().foo.im_func is actual_foo
-
-    # Now test the case where there the metaclass has a separate
-    # implementation
-    def foo(cls): pass
-    actual_foo_2 = foo
-
-    class MetaBar(type):
-        foo = actual_foo_2
-
-    class Bar(object):
-        __metaclass__ = MetaBar
-
-        foo = sharedmethod(actual_foo)
-
-    assert Bar.foo.im_func is actual_foo_2
-    assert Bar().foo.im_func is actual_foo
-
-    # Finally, test case where the metaclass also has an attribute called
-    # 'foo', but it is not a method (hence sharedmethod should ignore it)
-    class MetaBar(type):
-        foo = None
-
-    class Bar(object):
-        __metaclass__ = MetaBar
-
-        foo = sharedmethod(actual_foo)
-
-    assert Bar.foo.im_func is actual_foo
-    assert Bar().foo.im_func is actual_foo
-
-
 def test_sharedmethod_reuse_on_subclasses():
     """
     Regression test for an issue where sharedmethod would bind to one class
@@ -515,9 +484,7 @@ def test_sharedmethod_reuse_on_subclasses():
         def foo(cls):
             return cls.x
 
-    six.add_metaclass(AMeta)
-
-    class A(object):
+    class A:
         x = 3
 
         def __init__(self, x):
@@ -551,7 +518,7 @@ def test_classproperty_docstring():
     set __doc__ properly on instances of property subclasses.
     """
 
-    class A(object):
+    class A:
         # Inherits docstring from getter
         @classproperty
         def foo(cls):
@@ -561,7 +528,7 @@ def test_classproperty_docstring():
 
     assert A.__dict__['foo'].__doc__ == "The foo."
 
-    class B(object):
+    class B:
         # Use doc passed to classproperty constructor
         def _get_foo(cls): return 1
 
@@ -735,7 +702,7 @@ def test_format_doc_onMethod():
     # decorator
     docstring = 'what we do {__doc__}'
 
-    class TestClass(object):
+    class TestClass:
         @format_doc(docstring)
         @format_doc(None, 'strange.')
         def test_method(self):
@@ -745,13 +712,12 @@ def test_format_doc_onMethod():
     assert inspect.getdoc(TestClass.test_method) == 'what we do is strange.'
 
 
-# @pytest.mark.skipif('six.PY2')
 def test_format_doc_onClass():
     # Check if the decorator works on classes too
     docstring = 'what we do {__doc__} {0}{opt}'
 
     @format_doc(docstring, 'strange', opt='.')
-    class TestClass(object):
+    class TestClass:
         '''is'''
         pass
 

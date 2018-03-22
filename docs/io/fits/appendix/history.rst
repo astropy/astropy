@@ -4,8 +4,8 @@ astropy.io.fits History
 ***********************
 
 Prior to its inclusion in Astropy, the `astropy.io.fits` package was a stand-
-alone package called `PyFITS`_.  Though for the time being active development
-is continuing on PyFITS, that development is also being merged into Astropy.
+alone package called `PyFITS`_.  PyFITS is no longer actively maintained, and
+its development is now solely in Astropy.
 This page documents the release history of PyFITS prior to its merge into
 Astropy.
 
@@ -14,7 +14,13 @@ Astropy.
    :local:
 
 
-3.3.0 (unreleased)
+3.4.0 (2016-01-29)
+==================
+
+This is the last released version of PyFITS as a standalone package.
+
+
+3.3.0 (2014-07-17)
 ==================
 
 New Features
@@ -135,18 +141,12 @@ Bug Fixes
   GZIP_COMPRESSED_DATA column. (spacetelescope/#71)
 
 
-3.2.4 (unreleased)
+3.2.4 (2014-06-02)
 ==================
 
 - Fixed a regression where multiple consecutive calls of the ``writeto``
   method on the same HDU but to different files could lead to corrupt data or
   crashes on the subsequent calls after the first. (spacetelescope/PyFITS#40)
-
-
-3.1.7 (unreleased)
-==================
-
-- Nothing changed yet.
 
 
 3.2.3 (2014-05-14)
@@ -2335,7 +2335,7 @@ The following bugs were fixed:
   an ImageHDU header with a PCOUNT card that is missing or has a value other
   than 0.
 
-.. _[1]: http://fits.gsfc.nasa.gov/registry/tilecompression.html
+.. _[1]: https://fits.gsfc.nasa.gov/registry/tilecompression.html
 
 
 1.4.1 (2008-11-04)
@@ -2664,19 +2664,19 @@ The following enhancements were made:
     the appropriate card object given an input string.  These two methods are
     also available as convenience functions:
 
-      >>> c1 = pyfits.RecordValuedKeywordCard.createCard('DP1','AUX: 1','comment)
+      >>> c1 = pyfits.RecordValuedKeywordCard.createCard('DP1','AUX: 1','comment')
 
     or
 
-      >>> c1 = pyfits.createCard('DP1','AUX: 1','comment)
+      >>> c1 = pyfits.createCard('DP1','AUX: 1','comment')
       >>> print type(c1)
       <'pyfits.NP_pyfits.RecordValuedKeywordCard'>
 
-      >>> c1 = pyfits.RecordValuedKeywordCard.createCard('DP1','AUX 1','comment)
+      >>> c1 = pyfits.RecordValuedKeywordCard.createCard('DP1','AUX 1','comment')
 
     or
 
-      >>> c1 = pyfits.createCard('DP1','AUX 1','comment)
+      >>> c1 = pyfits.createCard('DP1','AUX 1','comment')
       >>> print type(c1)
       <'pyfits.NP_pyfits.Card'>
 
@@ -3239,4 +3239,4 @@ Things not yet supported but are part of future development:
 - Support for tables with TNULL values. This awaits an enhancement to numarray
   to support mask arrays (planned).  (At least a couple of months off).
 
-.. _PyFITS: http://www.stsci.edu/resources/software_hardware/pyfits
+.. _PyFITS: http://www.stsci.edu/institute/software_hardware/pyfits

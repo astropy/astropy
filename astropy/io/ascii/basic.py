@@ -9,12 +9,10 @@ basic.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import re
 
 from . import core
-from ...extern.six.moves import zip
 
 
 class BasicHeader(core.BaseHeader):
@@ -155,7 +153,7 @@ class CommentedHeader(Basic):
         Read input data (file-like object, filename, list of strings, or
         single string) into a Table and return the result.
         """
-        out = super(CommentedHeader, self).read(table)
+        out = super().read(table)
 
         # Strip off first comment since this is the header line for
         # commented_header format.

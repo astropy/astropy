@@ -10,6 +10,8 @@ Requires `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_
 to be installed.
 """
 
+from io import StringIO
+
 from .. import html
 from .. import core
 from ....table import Table
@@ -19,7 +21,6 @@ import numpy as np
 
 from .common import setup_function, teardown_function
 from ... import ascii
-from ....extern.six.moves import range, cStringIO as StringIO
 from ....utils.xml.writer import HAS_BLEACH
 
 # Check to see if the BeautifulSoup dependency is present.
@@ -547,7 +548,7 @@ def test_multicolumn_read():
     """
 
     table = Table.read('t/html2.html', format='ascii.html')
-    str_type = np.dtype((np.str, 21))
+    str_type = np.dtype((str, 21))
     expected = Table(np.array([(['1', '2.5000000000000000001'], 3),
                                (['1a', '1'], 3.5)],
                               dtype=[('A', str_type, (2,)), ('B', '<f8')]))

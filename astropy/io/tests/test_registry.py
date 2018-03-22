@@ -1,12 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import os
 from copy import copy
+from io import StringIO
 
 import pytest
 import numpy as np
@@ -14,15 +10,20 @@ import numpy as np
 from ..registry import _readers, _writers, _identifiers
 from .. import registry as io_registry
 from ...table import Table
-from ...extern.six.moves import zip, range
-from ...extern.six import StringIO
+from ... import units as u
 
 _READERS_ORIGINAL = copy(_readers)
 _WRITERS_ORIGINAL = copy(_writers)
 _IDENTIFIERS_ORIGINAL = copy(_identifiers)
 
+try:
+    import yaml  # pylint: disable=W0611
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
 
-class TestData(object):
+
+class TestData:
     read = classmethod(io_registry.read)
     write = io_registry.write
 
@@ -321,17 +322,10 @@ def test_read_valid_return():
     assert isinstance(t, TestData)
 
 
-def test_read_invalid_return():
-    io_registry.register_reader('test', TestData, lambda: 'spam')
-    with pytest.raises(TypeError) as exc:
-        TestData.read(format='test')
-    assert str(exc.value) == "reader should return a TestData instance"
-
-
 def test_non_existing_unknown_ext():
     """Raise the correct error when attempting to read a non-existing
     file with an unknown extension."""
-    with pytest.raises(IOError):
+    with pytest.raises(OSError):
         data = Table.read('non-existing-file-with-unknown.ext')
 
 
@@ -355,6 +349,34 @@ def test_register_readers_with_same_name_on_different_classes():
     assert isinstance(t, TestData)
     tbl = Table.read(format='test')
     assert isinstance(tbl, Table)
+
+
+def test_inherited_registration():
+    # check that multi-generation inheritance works properly,
+    # meaning that a child inherits from parents before
+    # grandparents, see astropy/astropy#7156
+
+    class Child1(Table):
+        pass
+
+    class Child2(Child1):
+        pass
+
+    def _read():
+        return Table()
+
+    def _read1():
+        return Child1()
+
+    # check that reader gets inherited
+    io_registry.register_reader('test', Table, _read)
+    assert io_registry.get_reader('test', Child2) is _read
+
+    # check that nearest ancestor is identified
+    # (i.e. that the reader for Child2 is the registered method
+    #  for Child1, and not Table)
+    io_registry.register_reader('test', Child1, _read1)
+    assert io_registry.get_reader('test', Child2) is _read1
 
 
 def teardown_function(function):
@@ -386,3 +408,30 @@ class TestSubclass:
         mt = MyTable([[1], [2]], names=['a', 'b'])
         mt.write(buffer, format='ascii')
         assert buffer.getvalue() == os.linesep.join(['a b', '1 2', ''])
+
+    def test_read_table_subclass_with_columns_attributes(self, tmpdir):
+        """Regression test for https://github.com/astropy/astropy/issues/7181
+        """
+
+        class MTable(Table):
+            pass
+
+        mt = MTable([[1, 2.5]], names=['a'])
+        mt['a'].unit = u.m
+        mt['a'].format = '.4f'
+        mt['a'].description = 'hello'
+
+        testfile = str(tmpdir.join('junk.fits'))
+        mt.write(testfile, overwrite=True)
+
+        t = MTable.read(testfile)
+        assert np.all(mt == t)
+        assert mt.colnames == t.colnames
+        assert type(t) is MTable
+        assert t['a'].unit == u.m
+        if HAS_YAML:
+            assert t['a'].format == '.4f'
+            assert t['a'].description == 'hello'
+        else:
+            assert t['a'].format is None
+            assert t['a'].description is None

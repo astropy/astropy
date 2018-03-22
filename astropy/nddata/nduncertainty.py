@@ -1,17 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
-from abc import ABCMeta, abstractproperty, abstractmethod
+from abc import ABCMeta, abstractmethod
 from copy import deepcopy
 import weakref
 
 # from ..utils.compat import ignored
 from .. import log
 from ..units import Unit, Quantity
-from ..extern import six
 
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',
@@ -30,8 +27,7 @@ class MissingDataAssociationException(Exception):
     """
 
 
-@six.add_metaclass(ABCMeta)
-class NDUncertainty(object):
+class NDUncertainty(metaclass=ABCMeta):
     """This is the metaclass for uncertainty classes used with `NDData`.
 
     Parameters
@@ -100,7 +96,8 @@ class NDUncertainty(object):
         self.array = array
         self.parent_nddata = None  # no associated NDData - until it is set!
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def uncertainty_type(self):
         """`str` : Short description of the type of uncertainty.
 
@@ -386,14 +383,14 @@ class StdDevUncertainty(NDUncertainty):
         >>> from astropy.nddata import NDData, StdDevUncertainty
         >>> ndd = NDData([1,2,3],
         ...              uncertainty=StdDevUncertainty([0.1, 0.1, 0.1]))
-        >>> ndd.uncertainty
-        StdDevUncertainty([ 0.1,  0.1,  0.1])
+        >>> ndd.uncertainty  # doctest: +FLOAT_CMP
+        StdDevUncertainty([0.1, 0.1, 0.1])
 
     or by setting it manually on the `NDData` instance::
 
         >>> ndd.uncertainty = StdDevUncertainty([0.2], unit='m', copy=True)
-        >>> ndd.uncertainty
-        StdDevUncertainty([ 0.2])
+        >>> ndd.uncertainty  # doctest: +FLOAT_CMP
+        StdDevUncertainty([0.2])
 
     the uncertainty ``array`` can also be set directly::
 

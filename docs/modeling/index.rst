@@ -82,9 +82,9 @@ Models can be evaluated by calling them as functions::
 
     >>> g(0.1)
     0.22242984036255528
-    >>> g(np.linspace(0.5, 1.5, 7))
-    array([ 0.58091923,  0.71746405,  0.7929204 ,  0.78415894,  0.69394278,
-            0.54952605,  0.3894018 ])
+    >>> g(np.linspace(0.5, 1.5, 7))  # doctest: +FLOAT_CMP
+    array([0.58091923, 0.71746405, 0.7929204 , 0.78415894, 0.69394278,
+           0.54952605, 0.3894018 ])
 
 As the above example demonstrates, in general most models evaluate array-like
 inputs according to the standard `Numpy broadcasting rules`_ for arrays.
@@ -236,14 +236,14 @@ Single models have a length of 1, and are not considered a model set as such.
 When evaluating a model set, by default the input must be the same length as
 the number of models, with one input per model::
 
-    >>> g([0, 0.1])
-    array([ 1.        ,  1.76499381])
+    >>> g([0, 0.1])  # doctest: +FLOAT_CMP
+    array([1.        , 1.76499381])
 
 The result is an array with one result per model in the set.  It is also
 possible to broadcast a single value to all models in the set::
 
-    >>> g(0)
-    array([ 1.,  2.])
+    >>> g(0)  # doctest: +FLOAT_CMP
+    array([1., 2.])
 
 Model sets are used primarily for fitting, allowing a large number of models of
 the same type to be fitted simultaneously (and independently from each other)
@@ -342,10 +342,41 @@ function in which the resulting mean (variance) is the sum of the means
     g2 = models.Gaussian1D(1, 1, 1)
     g3 = convolve_models(g1, g2)
 
-    x = np.linspace(-3, -3, 50)
+    x = np.linspace(-3, 3, 50)
     plt.plot(x, g1(x), 'k-')
     plt.plot(x, g2(x), 'k-')
     plt.plot(x, g3(x), 'k-')
+
+.. _modeling-getting-started-masked-data:
+
+Fitting masked data
+-------------------
+
+.. versionadded:: 2.0.4
+
+When `astropy.modeling.fitting.LinearLSQFitter` is provided with the dependent
+co-ordinate values as a `numpy.ma.MaskedArray`, it ignores any masked values
+when performing the fit::
+
+    >>> p_init = models.Polynomial1D(degree=1)
+    >>> x = np.arange(10)
+    >>> y = np.ma.masked_array(2*x+1, mask=np.zeros_like(x))
+    >>> y[7] = 100.       # simulate spurious value
+    >>> y.mask[7] = True
+    >>> fitter = fitting.LinearLSQFitter()
+    >>> p = fitter(p_init, x, y)
+    >>> print('Fit intercept={:.3f}, slope={:.3f}'.format(p.c0.value, p.c1.value))  # doctest: +FLOAT_CMP
+    Fit intercept=1.000, slope=2.000
+
+At present, the non-linear fitters do not distinguish between good and bad
+values in this way.
+
+Note that model set fitting is currently about an order of magnitude slower in
+the presence of masked values, because the matrix equation has to be solved for
+each model separately, on their respective co-ordinate grids. This is still an
+order of magnitude faster than fitting separate model instances, however.
+Supplying a `numpy.ma.MaskedArray` without any bad (``True``) mask values
+produces the normal, faster behaviour.
 
 .. _modeling-using:
 
@@ -381,3 +412,4 @@ Reference/API
 .. automodapi:: astropy.modeling.fitting
 .. automodapi:: astropy.modeling.optimizers
 .. automodapi:: astropy.modeling.statistic
+.. automodapi:: astropy.modeling.separable

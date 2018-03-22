@@ -6,14 +6,20 @@ Python. It also provides an index for other astronomy packages and tools for
 managing them.
 """
 
-from __future__ import absolute_import
 
 import sys
 import os
 from warnings import warn
 
-if sys.version_info[:2] < (2, 7):
-    warn("Astropy does not support Python 2.6 (in v1.2 and later)")
+__minimum_python_version__ = '3.5'
+__minimum_numpy_version__ = '1.10.0'
+
+
+class UnsupportedPythonError(Exception):
+    pass
+
+if sys.version_info < tuple((int(val) for val in __minimum_python_version__.split('.'))):
+    raise UnsupportedPythonError("Astropy does not support Python < {}".format(__minimum_python_version__))
 
 
 def _is_astropy_source(path=None):
@@ -54,10 +60,7 @@ try:
     _ASTROPY_SETUP_
 except NameError:
     from sys import version_info
-    if version_info[0] >= 3:
-        import builtins
-    else:
-        import __builtin__ as builtins
+    import builtins
 
     # This will set the _ASTROPY_SETUP_ to True by default if
     # we are running Astropy's setup.py
@@ -74,9 +77,6 @@ try:
 except ImportError:
     # TODO: Issue a warning using the logging framework
     __githash__ = ''
-
-
-__minimum_numpy_version__ = '1.9.0'
 
 
 # The location of the online documentation for astropy
@@ -223,7 +223,6 @@ def _rebuild_extensions():
     import time
 
     from .utils.console import Spinner
-    from .extern.six import next
 
     devnull = open(os.devnull, 'w')
     old_cwd = os.getcwd()
@@ -302,7 +301,7 @@ def online_help(query):
     query : str
         The search query.
     """
-    from .extern.six.moves.urllib.parse import urlencode
+    from urllib.parse import urlencode
     import webbrowser
 
     version = __version__

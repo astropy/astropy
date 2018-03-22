@@ -67,12 +67,13 @@ These parameters are:
 .. _fast_conversion_opts:
 
 Parallel and fast conversion options
-====================================
+------------------------------------
 In addition to ``True`` and ``False``, the parameter ``fast_reader`` can also
 be a dict specifying any of three additional parameters, ``parallel``,
 ``use_fast_converter`` and ``exponent_style``. For example::
 
-   >>> ascii.read('data.txt', format='basic', fast_reader={'parallel': True, 'use_fast_converter': True}) # doctest: +SKIP
+   >>> ascii.read('data.txt', format='basic',
+   ...            fast_reader={'parallel': True, 'use_fast_converter': True}) # doctest: +SKIP
 
 These options allow for even faster table reading when enabled, but both are
 disabled by default because they come with some caveats.
@@ -92,6 +93,38 @@ The special setting ``'fortran'`` enables auto-detection of any valid
 exponent character under Fortran notation.
 For details see the section on :ref:`fortran_style_exponents`.
 
+Fast converter
+--------------
+Input floating-point values should ideally be converted to the
+nearest possible floating-point approximation; that is, the conversion
+should be correct within half of the distance between the two closest
+representable values, or 0.5 `ULP
+<https://en.wikipedia.org/wiki/Unit_in_the_last_place>`__. The ordinary readers,
+as well as the default fast reader, are guaranteed to convert floating-point
+values within 0.5 ULP, but there is also a faster and less accurate
+conversion method accessible via ``use_fast_converter``. If the input
+data has less than about 15 significant figures, or if accuracy is relatively
+unimportant, this converter might be the best option in
+performance-critical scenarios.
+
+`Here
+<http://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/conversion_profile.ipynb>`__
+is an IPython notebook analyzing the error of the fast converter, both in
+decimal values and in ULP. For values with a reasonably small number of
+significant figures, the fast converter is guaranteed to produce an optimal
+conversion (within 0.5 ULP). Once the number of significant figures exceeds
+the precision of 64-bit floating-point values, the fast converter is no
+longer guaranteed to be within 0.5 ULP, but about 60% of values end up
+within 0.5 ULP and about 90% within 1.0 ULP. Another notebook analyzing
+the fast converter's behavior with extreme values (such as subnormals
+and values out of the range of floats) is available `here
+<http://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/test_converter.ipynb>`__.
+
+Reading large tables
+--------------------
+For reading very large tables using the fast reader see the section on
+:ref:`chunk_reading`.
+
 Writing
 =======
 The fast engine supports the same functionality as the ordinary writing engine
@@ -105,33 +138,6 @@ sample file including a mixture of floating-point, integer, and text data.
 Also note that stripping string values slows down the writing process, so
 specifying ``strip_whitespace=False`` can improve performance.
 
-Fast converter
-==============
-Input floating-point values should ideally be converted to the
-nearest possible floating-point approximation; that is, the conversion
-should be correct within half of the distance between the two closest
-representable values, or 0.5 `ULP
-<http://en.wikipedia.org/wiki/Unit_in_the_last_place>`__. The ordinary readers,
-as well as the default fast reader, are guaranteed to convert floating-point
-values within 0.5 ULP, but there is also a faster and less accurate
-conversion method accessible via ``use_fast_converter``. If the input
-data has less than about 15 significant figures, or if accuracy is relatively
-unimportant, this converter might be the best option in
-performance-critical scenarios.
-
-`Here
-<http://nbviewer.ipython.org/github/astropy/astropy-notebooks/blob/master/io/ascii/conversion_profile.ipynb>`__
-is an IPython notebook analyzing the error of the fast converter, both in
-decimal values and in ULP. For values with a reasonably small number of
-significant figures, the fast converter is guaranteed to produce an optimal
-conversion (within 0.5 ULP). Once the number of significant figures exceeds
-the precision of 64-bit floating-point values, the fast converter is no
-longer guaranteed to be within 0.5 ULP, but about 60% of values end up
-within 0.5 ULP and about 90% within 1.0 ULP. Another notebook analyzing
-the fast converter's behavior with extreme values (such as subnormals
-and values out of the range of floats) is available `here
-<http://nbviewer.ipython.org/github/astropy/astropy-notebooks/blob/master/io/ascii/test_converter.ipynb>`__.
-
 Speed gains
 ===========
 The fast ASCII engine was designed based on the general parsing strategy
@@ -139,7 +145,7 @@ used in the `Pandas <http://pandas.pydata.org/>`__ data analysis library, so
 its performance is generally comparable (although slightly slower by
 default) to the Pandas ``read_csv`` method.
 `Here
-<http://nbviewer.ipython.org/github/astropy/astropy-notebooks/blob/master/io/ascii/ascii_read_bench.ipynb>`__
+<http://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/ascii_read_bench.ipynb>`__
 is an IPython notebook comparing the performance of the ordinary
 :mod:`astropy.io.ascii` reader, the fast reader, the fast reader with the
 fast converter enabled, numpy's ``genfromtxt``, and Pandas' ``read_csv``
@@ -166,10 +172,10 @@ about 100,000 rows or greater), and particularly if the data doesn't
 contain primarily integer data or repeated string values, specifying
 ``parallel`` as ``True`` can yield further performance gains. Although
 IPython doesn't work well with ``multiprocessing``, there is a
-`script <https://github.com/amras1/ascii-profiling/blob/master/parallel.py>`__
+`script <https://github.com/mdmueller/ascii-profiling/blob/master/parallel.py>`__
 available for testing the performance of the fast engine in parallel,
 and a sample result may be viewed `here
-<http://amras1.github.io/ascii-profiling/>`__. This profile uses the
+<http://mdmueller.github.io/ascii-profiling/>`__. This profile uses the
 fast converter for both the serial and parallel Astropy
 readers.
 
@@ -178,4 +184,3 @@ if a filename is supplied as input. If you want to avoid this for whatever
 reason, supply an open file object instead. However, this will generally
 be less efficient from both a time and a memory perspective, as the entire
 file input will have to be read at once.
-

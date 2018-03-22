@@ -29,7 +29,7 @@ RESULTS[HistEqStretch(DATA ** 0.5)] = np.array([0., 0.125, 0.25, 0.5674767,
                                                 1.])
 
 
-class TestStretch(object):
+class TestStretch:
 
     @pytest.mark.parametrize('stretch', RESULTS.keys())
     def test_no_clip(self, stretch):

@@ -4,9 +4,7 @@ This module contains convenience functions for retrieving solar system
 ephemerides from jplephem.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
+from urllib.parse import urlparse
 from collections import OrderedDict
 
 import numpy as np
@@ -23,7 +21,6 @@ from .representation import CartesianRepresentation
 from .orbital_elements import calc_moon
 from .builtin_frames import GCRS, ICRS
 from .builtin_frames.utils import get_jd12
-from ..extern import six
 
 __all__ = ["get_body", "get_moon", "get_body_barycentric",
            "get_body_barycentric_posvel", "solar_system_ephemeris"]
@@ -84,7 +81,7 @@ class solar_system_ephemeris(ScienceState):
     - 'builtin': polynomial approximations to the orbital elements.
     - 'de430' or 'de432s': short-cuts for recent JPL dynamical models.
     - 'jpl': Alias for the default JPL ephemeris (currently, 'de430').
-    - URL: (str) The url to a SPK ephemeris in SPICE binary (.bst) format.
+    - URL: (str) The url to a SPK ephemeris in SPICE binary (.bsp) format.
     - `None`: Ensure an Exception is raised without an explicit ephemeris.
 
     The default is 'builtin', which uses the ``epv00`` and ``plan94``
@@ -160,7 +157,7 @@ def _get_kernel(value):
                  '/spk/planets/{:s}.bsp'.format(value.lower()))
     else:
         try:
-            six.moves.urllib.parse.urlparse(value)
+            urlparse(value)
         except Exception:
             raise ValueError('{} was not one of the standard strings and '
                              'could not be parsed as a URL'.format(value))
@@ -250,7 +247,7 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
                 copy=False)
 
     else:
-        if isinstance(body, six.string_types):
+        if isinstance(body, str):
             # Look up kernel chain for JPL ephemeris, based on name
             try:
                 kernel_spec = BODY_NAME_TO_KERNEL_SPEC[body.lower()]
@@ -422,7 +419,8 @@ _get_apparent_body_position.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 def get_body(body, time, location=None, ephemeris=None):
     """
     Get a `~astropy.coordinates.SkyCoord` for a solar system body as observed
-    from a location on Earth.
+    from a location on Earth in the `~astropy.coordinates.GCRS` reference
+    system.
 
     Parameters
     ----------
@@ -469,7 +467,8 @@ get_body.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 def get_moon(time, location=None, ephemeris=None):
     """
     Get a `~astropy.coordinates.SkyCoord` for the Earth's Moon as observed
-    from a location on Earth.
+    from a location on Earth in the `~astropy.coordinates.GCRS` reference
+    system.
 
     Parameters
     ----------
@@ -486,7 +485,7 @@ def get_moon(time, location=None, ephemeris=None):
     Returns
     -------
     skycoord : `~astropy.coordinates.SkyCoord`
-        Coordinate for the Moon
+        GCRS Coordinate for the Moon
 
     Notes
     -----

@@ -8,7 +8,6 @@ core.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import copy
 import csv
@@ -20,16 +19,14 @@ import re
 import warnings
 
 from collections import OrderedDict
+from contextlib import suppress
+from io import StringIO
 
 import numpy
 
-from ...extern import six
-from ...extern.six.moves import zip, range
-from ...extern.six.moves import cStringIO as StringIO
 from ...utils.exceptions import AstropyWarning
 
 from ...table import Table
-from ...utils.compat import suppress
 from ...utils.data import get_readable_fileobj
 from . import connect
 
@@ -40,7 +37,7 @@ FORMAT_CLASSES = {}
 FAST_CLASSES = {}
 
 
-class CsvWriter(object):
+class CsvWriter:
     """
     Internal class to replace the csv writer ``writerow`` and ``writerows``
     functions so that in the case of ``delimiter=' '`` and
@@ -191,7 +188,7 @@ class FastOptionsError(NotImplementedError):
     """
 
 
-class NoType(object):
+class NoType:
     """
     Superclass for ``StrType`` and ``NumType`` classes.
 
@@ -239,7 +236,7 @@ class AllType(StrType, FloatType, IntType):
     """
 
 
-class Column(object):
+class Column:
     """Table column.
 
     The key attributes of a Column object are:
@@ -259,7 +256,7 @@ class Column(object):
         self.fill_values = {}
 
 
-class BaseInputter(object):
+class BaseInputter:
     """
     Get the lines from the table input and return a list of lines.
 
@@ -322,7 +319,7 @@ class BaseInputter(object):
         return lines
 
 
-class BaseSplitter(object):
+class BaseSplitter:
     """
     Base splitter that uses python's split method to do the work.
 
@@ -425,20 +422,13 @@ class DefaultSplitter(BaseSplitter):
         if self.process_line:
             lines = [self.process_line(x) for x in lines]
 
-        # In Python 2.x the inputs to csv cannot be unicode.  In Python 3 these
-        # lines do nothing.
-        escapechar = None if self.escapechar is None else str(self.escapechar)
-        quotechar = None if self.quotechar is None else str(self.quotechar)
-        delimiter = None if self.delimiter is None else str(self.delimiter)
-
-        if delimiter == r'\s':
-            delimiter = ' '
+        delimiter = ' ' if self.delimiter == r'\s' else self.delimiter
 
         csv_reader = csv.reader(lines,
                                 delimiter=delimiter,
                                 doublequote=self.doublequote,
-                                escapechar=escapechar,
-                                quotechar=quotechar,
+                                escapechar=self.escapechar,
+                                quotechar=self.quotechar,
                                 quoting=self.quoting,
                                 skipinitialspace=self.skipinitialspace
                                 )
@@ -450,16 +440,13 @@ class DefaultSplitter(BaseSplitter):
 
     def join(self, vals):
 
-        # In Python 2.x the inputs to csv cannot be unicode
-        escapechar = None if self.escapechar is None else str(self.escapechar)
-        quotechar = None if self.quotechar is None else str(self.quotechar)
         delimiter = ' ' if self.delimiter is None else str(self.delimiter)
 
         if self.csv_writer is None:
             self.csv_writer = CsvWriter(delimiter=delimiter,
                                         doublequote=self.doublequote,
-                                        escapechar=escapechar,
-                                        quotechar=quotechar,
+                                        escapechar=self.escapechar,
+                                        quotechar=self.quotechar,
                                         quoting=self.quoting,
                                         lineterminator='')
         if self.process_val:
@@ -516,7 +503,7 @@ def _get_line_index(line_or_func, lines):
         return line_or_func
 
 
-class BaseHeader(object):
+class BaseHeader:
     """
     Base table header reader
     """
@@ -660,14 +647,15 @@ class BaseHeader(object):
                                      .format(name))
         # When guessing require at least two columns
         if guessing and len(self.colnames) <= 1:
-            raise ValueError('Strict name guessing requires at least two columns')
+            raise ValueError('Table format guessing requires at least two columns, got {}'
+                             .format(list(self.colnames)))
 
         if names is not None and len(names) != len(self.colnames):
             raise ValueError('Length of names argument ({0}) does not match number'
                              ' of table columns ({1})'.format(len(names), len(self.colnames)))
 
 
-class BaseData(object):
+class BaseData:
     """
     Base table data reader.
     """
@@ -848,7 +836,7 @@ def convert_numpy(numpy_type):
     ----------
     numpy_type : numpy data-type
         The numpy type required of an array returned by ``converter``. Must be a
-        valid `numpy type <http://docs.scipy.org/doc/numpy/user/basics.types.html>`_,
+        valid `numpy type <https://docs.scipy.org/doc/numpy/user/basics.types.html>`_,
         e.g. numpy.int, numpy.uint, numpy.int8, numpy.int64, numpy.float,
         numpy.float64, numpy.str.
 
@@ -908,7 +896,7 @@ def convert_numpy(numpy_type):
     return converter, converter_type
 
 
-class BaseOutputter(object):
+class BaseOutputter:
     """Output table as a dict of column objects keyed on column name.  The
     table data are stored as plain python lists within the column objects.
     """
@@ -1007,7 +995,7 @@ class TableOutputter(BaseOutputter):
 
 class MetaBaseReader(type):
     def __init__(cls, name, bases, dct):
-        super(MetaBaseReader, cls).__init__(name, bases, dct)
+        super().__init__(name, bases, dct)
 
         format = dct.get('_format_name')
         if format is None:
@@ -1079,8 +1067,7 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
         table.remove_columns(remove_names)
 
 
-@six.add_metaclass(MetaBaseReader)
-class BaseReader(object):
+class BaseReader(metaclass=MetaBaseReader):
     """Class providing methods to read and write an ASCII table using the specified
     header, data, inputter, and outputter instances.
 
@@ -1287,7 +1274,7 @@ class BaseReader(object):
         """
 
         # Check column names before altering
-        self.header.cols = list(six.itervalues(table.columns))
+        self.header.cols = list(table.columns.values())
         self.header.check_column_names(self.names, self.strict_names, False)
 
         # In-place update of columns in input ``table`` to reflect column
@@ -1301,7 +1288,7 @@ class BaseReader(object):
         table = self.update_table_data(table)
 
         # Now use altered columns
-        new_cols = list(six.itervalues(table.columns))
+        new_cols = list(table.columns.values())
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = new_cols
         self.data.cols = new_cols
@@ -1457,12 +1444,8 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     if 'fill_exclude_names' in kwargs:
         reader.data.fill_exclude_names = kwargs['fill_exclude_names']
     if 'encoding' in kwargs:
-        if six.PY2:
-            raise ValueError("the encoding parameter is not supported on "
-                             "Python 2")
-        else:
-            reader.encoding = kwargs['encoding']
-            reader.inputter.encoding = kwargs['encoding']
+        reader.encoding = kwargs['encoding']
+        reader.inputter.encoding = kwargs['encoding']
 
     return reader
 

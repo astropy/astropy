@@ -301,7 +301,7 @@ Formatted printing
 The values in a table or column can be printed or retrieved as a formatted
 table using one of several methods:
 
-- `print` statement (Python 2) or `print()` function (Python 3).
+- `print()` function.
 - Table :meth:`~astropy.table.Table.more` or Column
   :meth:`~astropy.table.Column.more` methods to interactively scroll
   through table values.
@@ -588,10 +588,10 @@ explicitly to a `~astropy.units.Quantity` object via the
   >>> t = Table(data, names=('a', 'b'))
   >>> t['a'].unit = u.m
   >>> t['b'].unit = 'km/s'
-  >>> t['a'].quantity
-  <Quantity [ 1., 2., 3.] m>
+  >>> t['a'].quantity  # doctest: +FLOAT_CMP
+  <Quantity [1., 2., 3.] m>
   >>> t['b'].to(u.kpc/u.Myr)  # doctest: +FLOAT_CMP
-  <Quantity [ 40.9084866 , 51.13560825, 61.3627299 ] kpc / Myr>
+  <Quantity [40.9084866 , 51.13560825, 61.3627299 ] kpc / Myr>
 
 Note that the :attr:`~astropy.table.Column.quantity` property is actually
 a *view* of the data in the column, not a copy.  Hence, you can set the
@@ -615,11 +615,11 @@ Even without explicit conversion, columns with units can be treated like
 like an Astropy `~astropy.units.Quantity` in *some* arithmetic
 expressions (see the warning below for caveats to this)::
 
-  >>> t['a'] + .005*u.km
-  <Quantity [ 6., 7., 8.] m>
+  >>> t['a'] + .005*u.km  # doctest: +FLOAT_CMP
+  <Quantity [6., 7., 8.] m>
   >>> from astropy.constants import c
   >>> (t['b'] / c).decompose()  # doctest: +FLOAT_CMP
-  <Quantity [ 0.15010384, 0.16678205, 0.20013846]>
+  <Quantity [0.15010384, 0.16678205, 0.20013846]>
 
 .. warning::
 
@@ -647,7 +647,7 @@ expressions (see the warning below for caveats to this)::
   `~astropy.units.Quantity`::
 
     >>> np.sin(t['angle'].quantity)  # doctest: +FLOAT_CMP
-    <Quantity [ 0.5, 1. ]>
+    <Quantity [0.5, 1. ]>
 
 .. _bytestring-columns-python-3:
 
@@ -658,9 +658,7 @@ Prior to astropy 2.0, using bytestring columns (numpy ``'S'`` dtype) in Python
 3 was inconvenient because it was not possible to compare with the natural
 Python string (``str``) type.  See `The bytes/str dichotomy in Python 3
 <http://eli.thegreenplace.net/2012/01/30/the-bytesstr-dichotomy-in-python-3>`_
-for a very brief overview of the difference.  In Python 2 this is not an issue
-because of the language itself blurs the distinction between bytes, string, and
-unicode.
+for a very brief overview of the difference.
 
 The standard method of representing Python 3 strings in `numpy` is via the
 unicode ``'U'`` dtype.  The problem is that this requires 4 bytes per
@@ -669,12 +667,6 @@ fill memory and impact performance.  A very common use case is that these
 strings are actually ASCII and can be represented with 1 byte per character.
 Starting with astropy 2.0 it is possible to work directly and conveniently with
 bytestring data in astropy Table and Column
-
-Taking this further, there is an *advantage* to using Python 3 because it is
-supported to reliably store arbitrary UTF-8 encoded characters in bytestring
-columns.  This is not possible in Python 2, and in fact it should be emphasized
-that astropy 2.0 makes absolutely no change the handling of bytestrings for
-Python 2 -- this only applies to Python 3.
 
 Note that the bytestring issue is a particular problem when dealing with HDF5
 files, where character data are read as bytestrings (``'S'`` dtype) when using

@@ -1,22 +1,16 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
-from __future__ import division, with_statement
 
 import gzip
 import bz2
 import io
 import mmap
 import os
+import pathlib
 import warnings
 import zipfile
 
 import pytest
 import numpy as np
-
-try:
-    import StringIO
-    HAVE_STRINGIO = True
-except ImportError:
-    HAVE_STRINGIO = False
 
 from . import FitsTestCase
 
@@ -24,21 +18,10 @@ from ..convenience import _getext
 from ..diff import FITSDiff
 from ..file import _File, GZIP_MAGIC
 
-from ....extern import six
-from ....extern.six.moves import range, zip
 from ....io import fits
 from ....tests.helper import raises, catch_warnings, ignore_warnings
-from ....tests.helper import remote_data
 from ....utils.data import conf, get_pkg_data_filename
 from ....utils import data
-
-
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
 
 
 class TestCore(FitsTestCase):
@@ -46,9 +29,13 @@ class TestCore(FitsTestCase):
         with fits.open(self.data('ascii.fits')) as f:
             pass
 
-    @raises(IOError)
+    @raises(OSError)
     def test_missing_file(self):
         fits.open(self.temp('does-not-exist.fits'))
+
+    def test_filename_is_bytes_object(self):
+        with pytest.raises(TypeError):
+            fits.open(self.data('ascii.fits').encode())
 
     def test_naxisj_check(self):
         hdulist = fits.open(self.data('o4sp040b0_raw.fits'))
@@ -80,7 +67,6 @@ class TestCore(FitsTestCase):
         with fits.open(self.temp('test.fits')) as p:
             assert p[1].data[1]['foo'] == 60000.0
 
-    @pytest.mark.skipif('not HAS_PATHLIB')
     def test_fits_file_path_object(self):
         """
         Testing when fits file is passed as pathlib.Path object #4412.
@@ -204,7 +190,7 @@ class TestCore(FitsTestCase):
     def test_unfixable_missing_card(self):
         class TestHDU(fits.hdu.base.NonstandardExtHDU):
             def _verify(self, option='warn'):
-                errs = super(TestHDU, self)._verify(option)
+                errs = super()._verify(option)
                 hdu.req_cards('TESTKW', None, None, None, 'fix', errs)
                 return errs
 
@@ -243,6 +229,16 @@ class TestCore(FitsTestCase):
     def test_unrecognized_verify_option(self):
         hdu = fits.ImageHDU()
         hdu.verify('foobarbaz')
+
+    def test_errlist_basic(self):
+        # Just some tests to make sure that _ErrList is setup correctly.
+        # No arguments
+        error_list = fits.verify._ErrList()
+        assert error_list == []
+        # Some contents - this is not actually working, it just makes sure they
+        # are kept.
+        error_list = fits.verify._ErrList([1, 2, 3])
+        assert error_list == [1, 2, 3]
 
     def test_combined_verify_options(self):
         """
@@ -578,12 +574,12 @@ class TestFileFunctions(FitsTestCase):
 
     def test_open_nonexistent(self):
         """Test that trying to open a non-existent file results in an
-        IOError (and not some other arbitrary exception).
+        OSError (and not some other arbitrary exception).
         """
 
         try:
             fits.open(self.temp('foobar.fits'))
-        except IOError as e:
+        except OSError as e:
             assert 'No such file or directory' in str(e)
 
         # But opening in ostream or append mode should be okay, since they
@@ -595,8 +591,53 @@ class TestFileFunctions(FitsTestCase):
             assert os.path.exists(self.temp('foobar.fits'))
             os.remove(self.temp('foobar.fits'))
 
-    @pytest.mark.skipif(six.PY2,
-        reason="urrlib has incompatible Py2 API, but we will deprecate anyway")
+    def test_open_file_handle(self):
+        # Make sure we can open a FITS file from an open file handle
+        with open(self.data('test0.fits'), 'rb') as handle:
+            with fits.open(handle) as fitsfile:
+                pass
+
+        with open(self.temp('temp.fits'), 'wb') as handle:
+            with fits.open(handle, mode='ostream') as fitsfile:
+                pass
+
+        # Opening without explicitly specifying binary mode should fail
+        with pytest.raises(ValueError):
+            with open(self.data('test0.fits')) as handle:
+                with fits.open(handle) as fitsfile:
+                    pass
+
+        # All of these read modes should fail
+        for mode in ['r', 'rt', 'r+', 'rt+', 'a', 'at', 'a+', 'at+']:
+            with pytest.raises(ValueError):
+                with open(self.data('test0.fits'), mode=mode) as handle:
+                    with fits.open(handle) as fitsfile:
+                        pass
+
+        # These write modes should fail as well
+        for mode in ['w', 'wt', 'w+', 'wt+']:
+            with pytest.raises(ValueError):
+                with open(self.temp('temp.fits'), mode=mode) as handle:
+                    with fits.open(handle) as fitsfile:
+                        pass
+
+    def test_fits_file_handle_mode_combo(self):
+        # This should work fine since no mode is given
+        with open(self.data('test0.fits'), 'rb') as handle:
+            with fits.open(handle) as fitsfile:
+                pass
+
+        # This should work fine since the modes are compatible
+        with open(self.data('test0.fits'), 'rb') as handle:
+            with fits.open(handle, mode='readonly') as fitsfile:
+                pass
+
+        # This should not work since the modes conflict
+        with pytest.raises(ValueError):
+            with open(self.data('test0.fits'), 'rb') as handle:
+                with fits.open(handle, mode='ostream') as fitsfile:
+                    pass
+
     def test_open_from_url(self):
         import urllib.request
         file_url = "file:///" + self.data('test0.fits')
@@ -611,31 +652,55 @@ class TestFileFunctions(FitsTestCase):
                     with fits.open(urlobj, mode=mode) as fits_handle:
                         pass
 
-    @remote_data(source='astropy')
-    @pytest.mark.skipif(six.PY2,
-        reason="urrlib has incompatible Py2 API, but we will deprecate anyway")
+    @pytest.mark.remote_data(source='astropy')
     def test_open_from_remote_url(self):
-        import urllib.request
-        remote_url = '{}/{}'.format(conf.dataurl, 'allsky/allsky_rosat.fits')
-        with urllib.request.urlopen(remote_url) as urlobj:
-            with fits.open(urlobj) as fits_handle:
-                pass
 
-        for mode in ('ostream', 'append', 'update'):
-            with pytest.raises(ValueError):
+        import urllib.request
+
+        for dataurl in (conf.dataurl, conf.dataurl_mirror):
+
+            remote_url = '{}/{}'.format(dataurl, 'allsky/allsky_rosat.fits')
+
+            try:
+
                 with urllib.request.urlopen(remote_url) as urlobj:
-                    with fits.open(urlobj, mode=mode) as fits_handle:
-                        pass
+                    with fits.open(urlobj) as fits_handle:
+                        assert len(fits_handle) == 1
+
+                for mode in ('ostream', 'append', 'update'):
+                    with pytest.raises(ValueError):
+                        with urllib.request.urlopen(remote_url) as urlobj:
+                            with fits.open(urlobj, mode=mode) as fits_handle:
+                                assert len(fits_handle) == 1
+
+            except (urllib.error.HTTPError, urllib.error.URLError):
+                continue
+            else:
+                break
+        else:
+            raise Exception("Could not download file")
 
     def test_open_gzipped(self):
+        gzip_file = self._make_gzip_file()
         with ignore_warnings():
-            assert len(fits.open(self._make_gzip_file())) == 5
+            with fits.open(gzip_file) as fits_handle:
+                assert fits_handle._file.compression == 'gzip'
+                assert len(fits_handle) == 5
+            with fits.open(gzip.GzipFile(gzip_file)) as fits_handle:
+                assert fits_handle._file.compression == 'gzip'
+                assert len(fits_handle) == 5
+
+    def test_open_gzipped_from_handle(self):
+        with open(self._make_gzip_file(), 'rb') as handle:
+            with fits.open(handle) as fits_handle:
+                assert fits_handle._file.compression == 'gzip'
 
     def test_detect_gzipped(self):
         """Test detection of a gzip file when the extension is not .gz."""
-
         with ignore_warnings():
-            assert len(fits.open(self._make_gzip_file('test0.fz'))) == 5
+            with fits.open(self._make_gzip_file('test0.fz')) as fits_handle:
+                assert fits_handle._file.compression == 'gzip'
+                assert len(fits_handle) == 5
 
     def test_writeto_append_mode_gzip(self):
         """Regression test for
@@ -660,14 +725,28 @@ class TestFileFunctions(FitsTestCase):
             assert hdul[0].header == h.header
 
     def test_open_bzipped(self):
+        bzip_file = self._make_bzip2_file()
         with ignore_warnings():
-            assert len(fits.open(self._make_bzip2_file())) == 5
+            with fits.open(bzip_file) as fits_handle:
+                assert fits_handle._file.compression == 'bzip2'
+                assert len(fits_handle) == 5
+
+            with fits.open(bz2.BZ2File(bzip_file)) as fits_handle:
+                assert fits_handle._file.compression == 'bzip2'
+                assert len(fits_handle) == 5
+
+    def test_open_bzipped_from_handle(self):
+        with open(self._make_bzip2_file(), 'rb') as handle:
+            with fits.open(handle) as fits_handle:
+                assert fits_handle._file.compression == 'bzip2'
+                assert len(fits_handle) == 5
 
     def test_detect_bzipped(self):
         """Test detection of a bzip2 file when the extension is not .bz2."""
-
         with ignore_warnings():
-            assert len(fits.open(self._make_bzip2_file('test0.xx'))) == 5
+            with fits.open(self._make_bzip2_file('test0.xx')) as fits_handle:
+                assert fits_handle._file.compression == 'bzip2'
+                assert len(fits_handle) == 5
 
     def test_writeto_bzip2_fileobj(self):
         """Test writing to a bz2.BZ2File file like object"""
@@ -691,13 +770,20 @@ class TestFileFunctions(FitsTestCase):
             assert hdul[0].header == h.header
 
     def test_open_zipped(self):
-        zf = self._make_zip_file()
-
+        zip_file = self._make_zip_file()
         with ignore_warnings():
-            assert len(fits.open(self._make_zip_file())) == 5
+            with fits.open(zip_file) as fits_handle:
+                assert fits_handle._file.compression == 'zip'
+                assert len(fits_handle) == 5
+            with fits.open(zipfile.ZipFile(zip_file)) as fits_handle:
+                assert fits_handle._file.compression == 'zip'
+                assert len(fits_handle) == 5
 
-        with ignore_warnings():
-            assert len(fits.open(zipfile.ZipFile(zf))) == 5
+    def test_open_zipped_from_handle(self):
+        with open(self._make_zip_file(), 'rb') as handle:
+            with fits.open(handle) as fits_handle:
+                assert fits_handle._file.compression == 'zip'
+                assert len(fits_handle) == 5
 
     def test_detect_zipped(self):
         """Test detection of a zip file when the extension is not .zip."""
@@ -710,12 +796,12 @@ class TestFileFunctions(FitsTestCase):
         """Opening zipped files in a writeable mode should fail."""
 
         zf = self._make_zip_file()
-        pytest.raises(IOError, fits.open, zf, 'update')
-        pytest.raises(IOError, fits.open, zf, 'append')
+        pytest.raises(OSError, fits.open, zf, 'update')
+        pytest.raises(OSError, fits.open, zf, 'append')
 
         zf = zipfile.ZipFile(zf, 'a')
-        pytest.raises(IOError, fits.open, zf, 'update')
-        pytest.raises(IOError, fits.open, zf, 'append')
+        pytest.raises(OSError, fits.open, zf, 'update')
+        pytest.raises(OSError, fits.open, zf, 'append')
 
     def test_read_open_astropy_gzip_file(self):
         """
@@ -730,7 +816,7 @@ class TestFileFunctions(FitsTestCase):
         finally:
             gf.close()
 
-    @raises(IOError)
+    @raises(OSError)
     def test_open_multiple_member_zipfile(self):
         """
         Opening zip files containing more than one member files should fail
@@ -773,10 +859,12 @@ class TestFileFunctions(FitsTestCase):
         gf = self._make_gzip_file()
         with fits.open(gf, mode='update') as h:
             h[0].header['EXPFLAG'] = 'ABNORMAL'
+            h[1].data[0, 0] = 1
         with fits.open(gf) as h:
             # Just to make sur ethe update worked; if updates work
             # normal writes should work too...
             assert h[0].header['EXPFLAG'] == 'ABNORMAL'
+            assert h[1].data[0, 0] == 1
 
     def test_write_read_gzip_file(self):
         """
@@ -882,7 +970,7 @@ class TestFileFunctions(FitsTestCase):
 
         class MockMmap(mmap.mmap):
             def flush(self):
-                raise mmap.error('flush is broken on this platform')
+                raise OSError('flush is broken on this platform')
 
         old_mmap = mmap.mmap
         mmap.mmap = MockMmap
@@ -965,7 +1053,7 @@ class TestFileFunctions(FitsTestCase):
         that don't have an obvious "open" or "closed" state.
         """
 
-        class MyFileLike(object):
+        class MyFileLike:
             def __init__(self, foobar):
                 self._foobar = foobar
 
@@ -989,20 +1077,7 @@ class TestFileFunctions(FitsTestCase):
                         if hdu1.data is not None and hdu2.data is not None:
                             assert np.all(hdu1.data == hdu2.data)
 
-    @pytest.mark.skipif('not HAVE_STRINGIO')
-    def test_write_stringio(self):
-        """
-        Regression test for https://github.com/astropy/astropy/issues/2463
-
-        Only test against `StringIO.StringIO` on Python versions that have it.
-        Note: `io.StringIO` is not supported for this purpose as it does not
-        accept a bytes stream.
-        """
-
-        self._test_write_string_bytes_io(StringIO.StringIO())
-
-    @pytest.mark.skipif('not HAVE_STRINGIO')
-    def test_write_stringio_discontiguous(self):
+    def test_write_bytesio_discontiguous(self):
         """
         Regression test related to
         https://github.com/astropy/astropy/issues/2794#issuecomment-55441539
@@ -1013,7 +1088,7 @@ class TestFileFunctions(FitsTestCase):
 
         data = np.arange(100)[::3]
         hdu = fits.PrimaryHDU(data=data)
-        fileobj = StringIO.StringIO()
+        fileobj = io.BytesIO()
         hdu.writeto(fileobj)
 
         fileobj.seek(0)
@@ -1068,7 +1143,7 @@ class TestFileFunctions(FitsTestCase):
             hdulist = fits.HDUList(hdu)
             filename = self.temp('test.fits')
 
-            with open(filename, mode='wb+') as fileobj:
+            with open(filename, mode='wb') as fileobj:
                 hdulist.writeto(fileobj)
 
         assert ("Not enough space on disk: requested 8000, available 0. "

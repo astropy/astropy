@@ -1,7 +1,6 @@
 # This Python file uses the following encoding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 import pytest
 import numpy as np
@@ -10,7 +9,6 @@ from ... import table
 from ...table import Table, QTable
 from ...table.table_helpers import simple_table
 from ... import units as u
-from ...extern.six import PY2
 from ...utils import console
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
@@ -43,7 +41,7 @@ class TestMultiD():
                          '</table>']
         nbclass = table.conf.default_notebook_table_class
         assert t._repr_html_().splitlines() == [
-            '&lt;{0} masked={1} length=2&gt;'.format(table_type.__name__, t.masked),
+            '<i>{0} masked={1} length=2</i>'.format(table_type.__name__, t.masked),
             '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
             '<thead><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
@@ -82,7 +80,7 @@ class TestMultiD():
                          '</table>']
         nbclass = table.conf.default_notebook_table_class
         assert t._repr_html_().splitlines() == [
-            '&lt;{0} masked={1} length=2&gt;'.format(table_type.__name__, t.masked),
+            '<i>{0} masked={1} length=2</i>'.format(table_type.__name__, t.masked),
             '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
             '<thead><tr><th>col0 [1,1]</th><th>col1 [1,1]</th><th>col2 [1,1]</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
@@ -102,7 +100,7 @@ def test_html_escaping():
     t = table.Table([(str('<script>alert("gotcha");</script>'), 2, 3)])
     nbclass = table.conf.default_notebook_table_class
     assert t._repr_html_().splitlines() == [
-        '&lt;Table length=3&gt;',
+        '<i>Table length=3</i>',
         '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
         '<thead><tr><th>col0</th></tr></thead>',
         '<thead><tr><th>str33</th></tr></thead>',
@@ -142,8 +140,7 @@ class TestPprint():
         nlines, width = console.terminal_size()
         assert len(lines) == nlines
         for line in lines[:-1]:  # skip last "Length = .. rows" line
-            assert (len(line) > width - 10 and
-                    len(line) <= width)
+            assert width - 10 < len(line) <= width
 
     def test_format1(self, table_type):
         """Basic test of formatting, unit header row included"""
@@ -293,6 +290,7 @@ class TestFormat():
         #  Invalid format spec
         with pytest.raises(ValueError):
             t['a'].format = 'fail'
+        assert t['a'].format == '%4.2f {0:}'  # format did not change
 
     def test_column_format_with_threshold(self, table_type):
         from ... import conf
@@ -337,7 +335,7 @@ class TestFormat():
         t = table_type([[1., 2.], [3, 4]], names=('a', 'b'))
 
         # mathematical function
-        class format(object):
+        class format:
             def __call__(self, x):
                 return str(x * 3.)
         t['a'].format = format()
@@ -478,7 +476,7 @@ class TestFormatWithMaskedElements():
         t['a'].mask = [True, False, True]
 
         # mathematical function
-        class format(object):
+        class format:
             def __call__(self, x):
                 return str(x * 3.)
         t['a'].format = format()
@@ -528,9 +526,8 @@ def test_pprint_py3_bytes():
     """
     Test for #1346 and #4944. Make sure a bytestring (dtype=S<N>) in Python 3
     is printed correctly (without the "b" prefix like b'string').
-    Also make sure special characters are printed in Python 2.
     """
-    val = str('val') if PY2 else bytes('val', encoding='utf-8')
+    val = bytes('val', encoding='utf-8')
     blah = u'bläh'.encode('utf-8')
     dat = np.array([val, blah], dtype=[(str('col'), 'S10')])
     t = table.Table(dat)

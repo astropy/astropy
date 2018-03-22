@@ -96,13 +96,13 @@ disable the fast engine::
 
    >>> data = ascii.read(lines, format='csv', fast_reader=False)
 
+For reading very large tables see the section on :ref:`chunk_reading`.
+
 .. Note::
 
-   Reading a table which contains non-ASCII (unicode) characters is only
-   supported in Python 3 or greater.  If you have Python 2.x and need
-   this functionality, consider using a newer version of Python. With Python
-   3 and the pure-Python readers, it is also possible to specify the encoding
-   of the file with the ``encoding`` parameter.
+   Reading a table which contains unicode characters is supported; if you need
+   a different encoding, you can specify the ``encoding`` parameter in the
+   pure-Python readers.
 
 Writing Tables
 --------------
@@ -157,8 +157,8 @@ ASCII with no loss of information.
   >>> t['x'][1] = np.ma.masked
   >>> t['y'] = MaskedColumn([False, True], dtype='bool')
 
-  >>> from astropy.extern.six.moves import StringIO
-  >>> fh = StringIO()
+  >>> import io
+  >>> fh = io.StringIO()
   >>> t.write(fh, format='ascii.ecsv')  # doctest: +SKIP
   >>> table_string = fh.getvalue()      # doctest: +SKIP
   >>> print(table_string)               # doctest: +SKIP

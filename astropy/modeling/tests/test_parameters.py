@@ -3,8 +3,6 @@
 Tests models.parameters
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import itertools
 
@@ -38,7 +36,7 @@ class SetterModel(FittableModel):
 
     def __init__(self, xc, yc, p):
         self.p = p  # p is a value intended to be used by the setter
-        super(SetterModel, self).__init__()
+        super().__init__()
         self.xc = xc
         self.yc = yc
 
@@ -58,7 +56,7 @@ class TParModel(Model):
     e = Parameter()
 
     def __init__(self, coeff, e, **kwargs):
-        super(TParModel, self).__init__(coeff=coeff, e=e, **kwargs)
+        super().__init__(coeff=coeff, e=e, **kwargs)
 
     @staticmethod
     def evaluate(coeff, e):
@@ -130,7 +128,7 @@ def test_parameter_operators():
     assert abs(par) == abs(num)
 
 
-class TestParameters(object):
+class TestParameters:
 
     def setup_class(self):
         """
@@ -305,7 +303,7 @@ class TestParameters(object):
             sh1.offset = [3, 3]
 
 
-class TestMultipleParameterSets(object):
+class TestMultipleParameterSets:
 
     def setup_class(self):
         self.x1 = np.arange(1, 10, .1)
@@ -351,7 +349,7 @@ class TestMultipleParameterSets(object):
         utils.assert_almost_equal(self.gmodel.mean.value, [9., 5.2])
 
 
-class TestParameterInitialization(object):
+class TestParameterInitialization:
     """
     This suite of tests checks most if not all cases if instantiating a model
     with parameters of different shapes/sizes and with different numbers of
@@ -371,7 +369,7 @@ class TestParameterInitialization(object):
         t = TParModel(10, [1, 2])
         assert len(t) == 1
         assert t.model_set_axis is False
-        assert np.issubdtype(t.param_sets.dtype, object)
+        assert np.issubdtype(t.param_sets.dtype, np.object_)
         assert len(t.param_sets) == 2
         assert np.all(t.param_sets[0] == [10])
         assert np.all(t.param_sets[1] == [[1, 2]])
@@ -439,7 +437,7 @@ class TestParameterInitialization(object):
         assert len(t) == 1
         assert t.model_set_axis is False
         assert len(t.param_sets) == 2
-        assert np.issubdtype(t.param_sets.dtype, object)
+        assert np.issubdtype(t.param_sets.dtype, np.object_)
         assert np.all(t.param_sets[0] == [[[10, 20, 30], [40, 50, 60]]])
         assert np.all(t.param_sets[1] == [[1, 2, 3]])
         assert np.all(t.parameters == [10, 20, 30, 40, 50, 60, 1, 2, 3])
@@ -471,7 +469,7 @@ class TestParameterInitialization(object):
         assert len(t) == 2
         assert t.model_set_axis == 0
         assert len(t.param_sets) == 2
-        assert np.issubdtype(t.param_sets.dtype, object)
+        assert np.issubdtype(t.param_sets.dtype, np.object_)
         assert np.all(t.param_sets[0] == [[10], [20]])
         assert np.all(t.param_sets[1] == [[1, 2], [3, 4]])
         assert np.all(t.parameters == [10, 20, 1, 2, 3, 4])
@@ -510,7 +508,7 @@ class TestParameterInitialization(object):
         assert len(t) == 2
         assert t.model_set_axis == 0
         assert len(t.param_sets) == 2
-        assert np.issubdtype(t.param_sets.dtype, object)
+        assert np.issubdtype(t.param_sets.dtype, np.object_)
         assert np.all(t.param_sets[0] == [[[10, 20], [30, 40]],
                                           [[50, 60], [70, 80]]])
         assert np.all(t.param_sets[1] == [[[1, 2]], [[3, 4]]])
@@ -536,22 +534,22 @@ class TestParameterInitialization(object):
     def test_two_model_nonzero_model_set_axis(self):
         # An example where the model set axis is the *last* axis of the
         # parameter arrays
-        coeff = np.array([[[10, 20], [30, 40]], [[50, 60], [70, 80]]])
+        coeff = np.array([[[10, 20, 30], [30, 40, 50]], [[50, 60, 70], [70, 80, 90]]])
         coeff = np.rollaxis(coeff, 0, 3)
-        e = np.array([[1, 2], [3, 4]])
+        e = np.array([[1, 2, 3], [3, 4, 5]])
         e = np.rollaxis(e, 0, 2)
-        t = TParModel(coeff, e, model_set_axis=-1)
+        t = TParModel(coeff, e, n_models=2, model_set_axis=-1)
         assert len(t) == 2
         assert t.model_set_axis == -1
         assert len(t.param_sets) == 2
-        assert np.issubdtype(t.param_sets.dtype, object)
-        assert np.all(t.param_sets[0] == [[[10, 50], [20, 60]],
-                                          [[30, 70], [40, 80]]])
-        assert np.all(t.param_sets[1] == [[[1, 3], [2, 4]]])
-        assert np.all(t.parameters == [10, 50, 20, 60, 30, 70, 40, 80,
-                                       1, 3, 2, 4])
-        assert t.coeff.shape == (2, 2)
-        assert t.e.shape == (2,)
+        assert np.issubdtype(t.param_sets.dtype, np.object_)
+        assert np.all(t.param_sets[0] == [[[10, 50], [20, 60], [30, 70]],
+                                          [[30, 70], [40, 80], [50, 90]]])
+        assert np.all(t.param_sets[1] == [[[1, 3], [2, 4], [3, 5]]])
+        assert np.all(t.parameters == [10, 50, 20, 60, 30, 70, 30, 70, 40, 80,
+                                       50, 90, 1, 3, 2, 4, 3, 5])
+        assert t.coeff.shape == (2, 3)
+        assert t.e.shape == (3,)
 
     def test_wrong_number_of_params(self):
         with pytest.raises(InputParameterError):
@@ -584,7 +582,7 @@ class TestParameterInitialization(object):
         assert len(t4) == 1
         assert t4.coeff.shape == (2, 2)
         assert t4.e.shape == (2,)
-        assert np.issubdtype(t4.param_sets.dtype, object)
+        assert np.issubdtype(t4.param_sets.dtype, np.object_)
         assert np.all(t4.param_sets[0] == [[1, 2], [3, 4]])
         assert np.all(t4.param_sets[1] == [5, 6])
 

@@ -3,8 +3,6 @@
 Astronomical and physics constants in SI units.  See :mod:`astropy.constants`
 for a complete listing of constants defined in Astropy.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
@@ -20,8 +18,8 @@ class CODATA2010(Constant):
 
     def __new__(cls, abbrev, name, value, unit, uncertainty,
                 reference=default_reference, system=None):
-        return(super(CODATA2010, cls).__new__(cls, abbrev, name, value, unit,
-                        uncertainty, reference, system))
+        return super().__new__(
+            cls, abbrev, name, value, unit, uncertainty, reference, system)
 
 
 class EMCODATA2010(CODATA2010, EMConstant):

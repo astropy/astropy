@@ -14,7 +14,7 @@ Like the example introduced in :ref:`initialization`, we will read in the
 data using `astropy.io.fits
 <http://docs.astropy.org/en/stable/io/fits/index.html>`_ and parse the WCS
 information. The original FITS file can be downloaded from `here
-<http://astrofrog.github.io/wcsaxes-datasets/L1448_13CO.fits>`_.
+<http://astropy.github.io/wcsaxes-datasets/L1448_13CO.fits>`_.
 
 .. plot::
    :context: reset
@@ -22,6 +22,7 @@ information. The original FITS file can be downloaded from `here
    :align: center
    :nofigs:
 
+    import matplotlib.pyplot as plt
     from astropy.wcs import WCS
     from astropy.io import fits
     from astropy.utils.data import get_pkg_data_filename
@@ -105,5 +106,6 @@ If we don't want to reverse the dimensions plotted, we can simply do:
    :include-source:
    :align: center
 
+    import matplotlib.pyplot as plt
     ax = plt.subplot(projection=wcs, slices=(50, 'x', 'y'))
     ax.imshow(image_data[:, :, 50])

@@ -4,13 +4,10 @@
 Handles the "LaTeX" unit format.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
 from . import base, core, utils
-from ...extern.six.moves import zip
 
 
 class Latex(base.Base):
@@ -18,7 +15,7 @@ class Latex(base.Base):
     Output LaTeX to display the unit based on IAU style guidelines.
 
     Attempts to follow the `IAU Style Manual
-    <http://www.iau.org/static/publications/stylemanual1989.pdf>`_.
+    <https://www.iau.org/static/publications/stylemanual1989.pdf>`_.
     """
 
     @classmethod
@@ -132,9 +129,9 @@ class LatexInline(Latex):
     powers.
 
     Attempts to follow the `IAU Style Manual
-    <http://www.iau.org/static/publications/stylemanual1989.pdf>`_ and the
+    <https://www.iau.org/static/publications/stylemanual1989.pdf>`_ and the
     `ApJ and AJ style guide
-    <http://aas.org/authors/manuscript-preparation-aj-apj-author-instructions>`_.
+    <http://journals.aas.org/authors/manuscript.html>`_.
     """
     name = 'latex_inline'
 

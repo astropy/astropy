@@ -18,8 +18,6 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
     >>> u.imperial.enable()  # doctest: +SKIP
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from .core import UnitBase, def_unit
 from . import si

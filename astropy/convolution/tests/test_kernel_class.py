@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import itertools
 
@@ -17,7 +15,8 @@ from ..kernels import (
 
 from ..utils import KernelSizeError
 from ...modeling.models import Box2D, Gaussian1D, Gaussian2D
-from ...utils.exceptions import AstropyWarning, AstropyUserWarning
+from ...utils.exceptions import AstropyDeprecationWarning
+from ...tests.helper import catch_warnings
 
 try:
     from scipy.ndimage import filters
@@ -34,7 +33,7 @@ KERNEL_TYPES = [Gaussian1DKernel, Gaussian2DKernel,
                 MexicanHat1DKernel, Tophat2DKernel, AiryDisk2DKernel, Ring2DKernel]
 
 
-NUMS = [1, 1., np.float(1.), np.float32(1.), np.float64(1.)]
+NUMS = [1, 1., np.float32(1.), np.float64(1.)]
 
 
 # Test data
@@ -48,7 +47,7 @@ random_data_1D = np.random.rand(61)
 random_data_2D = np.random.rand(61, 61)
 
 
-class TestKernels(object):
+class TestKernels:
     """
     Test class for the built-in convolution kernels.
     """
@@ -392,6 +391,22 @@ class TestKernels(object):
         """
         gauss = Gaussian2DKernel(3, x_size=10, y_size=10)
         assert gauss.array.shape == (10, 10)
+
+    # https://github.com/astropy/astropy/issues/3605
+    def test_Gaussian2DKernel_rotated(self):
+        with catch_warnings(AstropyDeprecationWarning) as w:
+            Gaussian2DKernel(stddev=10)
+        assert len(w) == 1
+
+        gauss = Gaussian2DKernel(
+            x_stddev=3, y_stddev=1.5, theta=0.7853981633974483,
+            x_size=5, y_size=5)  # rotated 45 deg ccw
+        ans = [[0.02267712, 0.02464785, 0.02029238, 0.01265463, 0.00597762],
+               [0.02464785, 0.03164847, 0.03078144, 0.02267712, 0.01265463],
+               [0.02029238, 0.03078144, 0.03536777, 0.03078144, 0.02029238],
+               [0.01265463, 0.02267712, 0.03078144, 0.03164847, 0.02464785],
+               [0.00597762, 0.01265463, 0.02029238, 0.02464785, 0.02267712]]
+        assert_allclose(gauss, ans, rtol=0.001)  # Rough comparison at 0.1 %
 
     def test_normalize_peak(self):
         """

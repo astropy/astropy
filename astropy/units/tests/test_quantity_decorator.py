@@ -243,10 +243,10 @@ def test_kwarg_equivalencies(x_unit, energy_unit):
 
 
 def test_no_equivalent():
-    class test_unit(object):
+    class test_unit:
         pass
 
-    class test_quantity(object):
+    class test_quantity:
         unit = test_unit()
 
     @u.quantity_input(x=u.arcsec)

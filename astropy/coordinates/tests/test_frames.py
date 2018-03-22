@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from copy import deepcopy
 import numpy as np
 
 from ... import units as u
-from ...extern import six
 from ...tests.helper import (catch_warnings,
                              pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 from ...utils import OrderedDescriptorContainer
+from ...utils.compat import NUMPY_LT_1_14
 from ...utils.exceptions import AstropyWarning
 from .. import representation as r
 from ..representation import REPRESENTATION_CLASSES
+
+from .test_representation import unitphysics  # this fixture is used below
 
 
 def setup_function(func):
@@ -31,8 +31,7 @@ def test_frame_attribute_descriptor():
     """ Unit tests of the Attribute descriptor """
     from ..attributes import Attribute
 
-    @six.add_metaclass(OrderedDescriptorContainer)
-    class TestAttributes(object):
+    class TestAttributes(metaclass=OrderedDescriptorContainer):
         attr_none = Attribute()
         attr_2 = Attribute(default=2)
         attr_3_attr2 = Attribute(default=3, secondary_attribute='attr_2')
@@ -187,18 +186,27 @@ def test_frame_repr():
     i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)
 
     assert repr(i2) == ('<ICRS Coordinate: (ra, dec) in deg\n'
-                        '    ( 1.,  2.)>')
+                        '    ({})>').format(' 1.,  2.' if NUMPY_LT_1_14
+                                             else '1., 2.')
     assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
-                        '    ( 1.,  2.,  3.)>')
+                        '    ({})>').format(' 1.,  2.,  3.' if NUMPY_LT_1_14
+                                            else '1., 2., 3.')
 
     # try with arrays
     i2 = ICRS(ra=[1.1, 2.1]*u.deg, dec=[2.1, 3.1]*u.deg)
     i3 = ICRS(ra=[1.1, 2.1]*u.deg, dec=[-15.6, 17.1]*u.deg, distance=[11., 21.]*u.kpc)
 
     assert repr(i2) == ('<ICRS Coordinate: (ra, dec) in deg\n'
-                        '    [( 1.1,  2.1), ( 2.1,  3.1)]>')
-    assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
-                        '    [( 1.1, -15.6,  11.), ( 2.1,  17.1,  21.)]>')
+                        '    [{}]>').format('( 1.1,  2.1), ( 2.1,  3.1)'
+                                            if NUMPY_LT_1_14 else
+                                            '(1.1, 2.1), (2.1, 3.1)')
+
+    if NUMPY_LT_1_14:
+        assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
+                            '    [( 1.1, -15.6,  11.), ( 2.1,  17.1,  21.)]>')
+    else:
+        assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
+                            '    [(1.1, -15.6, 11.), (2.1,  17.1, 21.)]>')
 
 
 def test_frame_repr_vels():
@@ -210,9 +218,10 @@ def test_frame_repr_vels():
     # unit comes out as mas/yr because of the preferred units defined in the
     # frame RepresentationMapping
     assert repr(i) == ('<ICRS Coordinate: (ra, dec) in deg\n'
-                       '    ( 1.,  2.)\n'
+                       '    ({0})\n'
                        ' (pm_ra_cosdec, pm_dec) in mas / yr\n'
-                       '    ( 1.,  2.)>')
+                       '    ({0})>').format(' 1.,  2.' if NUMPY_LT_1_14 else
+                                            '1., 2.')
 
 
 def test_converting_units():
@@ -248,19 +257,10 @@ def test_converting_units():
     # but that *shouldn't* hold if we turn off units for the representation
     class FakeICRS(ICRS):
         frame_specific_representation_info = {
-            'spherical': {'names': ('ra', 'dec', 'distance'),
-                          'units': (None, None, None)},
-            'unitspherical': {'names': ('ra', 'dec'),
-                              'units': (None, None)}
-        }
-
-        frame_specific_representation_info = {
             'spherical': [RepresentationMapping('lon', 'ra', u.hourangle),
                           RepresentationMapping('lat', 'dec', None),
                           RepresentationMapping('distance', 'distance')]  # should fall back to default of None unit
         }
-        frame_specific_representation_info['unitspherical'] = \
-            frame_specific_representation_info['spherical']
 
     fi = FakeICRS(i4.data)
     ri2 = ''.join(rexrepr.split(repr(i2)))
@@ -274,6 +274,74 @@ def test_converting_units():
     assert i2.dec.unit != fi.dec.unit
     assert i2.ra.unit != fi.ra.unit
     assert fi.ra.unit == u.hourangle
+
+
+def test_representation_info():
+    from ..baseframe import RepresentationMapping
+    from ..builtin_frames import ICRS
+
+    class NewICRS1(ICRS):
+        frame_specific_representation_info = {
+            r.SphericalRepresentation: [
+                RepresentationMapping('lon', 'rara', u.hourangle),
+                RepresentationMapping('lat', 'decdec', u.degree),
+                RepresentationMapping('distance', 'distance', u.kpc)]
+        }
+
+    i1 = NewICRS1(rara=10*u.degree, decdec=-12*u.deg, distance=1000*u.pc,
+                  pm_rara_cosdecdec=100*u.mas/u.yr,
+                  pm_decdec=17*u.mas/u.yr,
+                  radial_velocity=10*u.km/u.s)
+    assert allclose(i1.rara, 10*u.deg)
+    assert i1.rara.unit == u.hourangle
+    assert allclose(i1.decdec, -12*u.deg)
+    assert allclose(i1.distance, 1000*u.pc)
+    assert i1.distance.unit == u.kpc
+    assert allclose(i1.pm_rara_cosdecdec, 100*u.mas/u.yr)
+    assert allclose(i1.pm_decdec, 17*u.mas/u.yr)
+
+    # this should auto-set the names of UnitSpherical:
+    i1.set_representation_cls(r.UnitSphericalRepresentation,
+                              s=r.UnitSphericalCosLatDifferential)
+    assert allclose(i1.rara, 10*u.deg)
+    assert allclose(i1.decdec, -12*u.deg)
+    assert allclose(i1.pm_rara_cosdecdec, 100*u.mas/u.yr)
+    assert allclose(i1.pm_decdec, 17*u.mas/u.yr)
+
+    # For backwards compatibility, we also support the string name in the
+    # representation info dictionary:
+    class NewICRS2(ICRS):
+        frame_specific_representation_info = {
+            'spherical': [
+                RepresentationMapping('lon', 'ang1', u.hourangle),
+                RepresentationMapping('lat', 'ang2', u.degree),
+                RepresentationMapping('distance', 'howfar', u.kpc)]
+        }
+
+    i2 = NewICRS2(ang1=10*u.degree, ang2=-12*u.deg, howfar=1000*u.pc)
+    assert allclose(i2.ang1, 10*u.deg)
+    assert i2.ang1.unit == u.hourangle
+    assert allclose(i2.ang2, -12*u.deg)
+    assert allclose(i2.howfar, 1000*u.pc)
+    assert i2.howfar.unit == u.kpc
+
+    # Test that the differential kwargs get overridden
+    class NewICRS3(ICRS):
+        frame_specific_representation_info = {
+            r.SphericalCosLatDifferential: [
+                RepresentationMapping('d_lon_coslat', 'pm_ang1', u.hourangle/u.year),
+                RepresentationMapping('d_lat', 'pm_ang2'),
+                RepresentationMapping('d_distance', 'vlos', u.kpc/u.Myr)]
+        }
+
+    i3 = NewICRS3(lon=10*u.degree, lat=-12*u.deg, distance=1000*u.pc,
+                  pm_ang1=1*u.mas/u.yr, pm_ang2=2*u.mas/u.yr,
+                  vlos=100*u.km/u.s)
+    assert allclose(i3.pm_ang1, 1*u.mas/u.yr)
+    assert i3.pm_ang1.unit == u.hourangle/u.year
+    assert allclose(i3.pm_ang2, 2*u.mas/u.yr)
+    assert allclose(i3.vlos, 100*u.km/u.s)
+    assert i3.vlos.unit == u.kpc/u.Myr
 
 
 def test_realizing():
@@ -297,6 +365,12 @@ def test_realizing():
     assert f2.equinox == f.equinox
     assert f2.equinox != FK5.get_frame_attr_names()['equinox']
 
+    # Check that a nicer error message is returned:
+    with pytest.raises(TypeError) as excinfo:
+        f.realize_frame(f.representation)
+
+    assert ('Class passed as data instead of a representation' in
+            excinfo.value.args[0])
 
 def test_replicating():
     from ..builtin_frames import ICRS, AltAz
@@ -764,7 +838,8 @@ def test_representation_subclass():
     # A similar issue then happened in __repr__ with subclasses of
     # SphericalRepresentation.
     assert repr(frame) == ("<FK5 Coordinate (equinox=J2000.000): (lon, lat) in deg\n"
-                           "    ( 32.,  20.)>")
+                           "    ({})>").format(' 32.,  20.' if NUMPY_LT_1_14
+                                               else '32., 20.')
 
     # A more subtle issue is when specifying a custom
     # UnitSphericalRepresentation subclass for the data and
@@ -884,3 +959,70 @@ def test_representation_with_multiple_differentials():
     # check warning is raised for a scalar
     with pytest.raises(ValueError):
         ICRS(rep)
+
+
+def test_representation_arg_backwards_compatibility():
+    # TODO: this test can be removed when the `representation` argument is
+    # removed from the BaseCoordinateFrame initializer.
+    from ..builtin_frames import ICRS
+
+    c1 = ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+              representation_type=r.CartesianRepresentation)
+
+    c2 = ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+              representation=r.CartesianRepresentation)
+
+    c3 = ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+              representation='cartesian')
+
+    assert c1.x == c2.x
+    assert c1.y == c2.y
+    assert c1.z == c2.z
+
+    assert c1.x == c3.x
+    assert c1.y == c3.y
+    assert c1.z == c3.z
+
+    assert c1.representation == c1.representation_type
+
+    with pytest.raises(ValueError):
+        ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+             representation='cartesian',
+             representation_type='cartesian')
+
+
+def test_missing_component_error_names():
+    """
+    This test checks that the component names are frame component names, not
+    representation or differential names, when referenced in an exception raised
+    when not passing in enough data. For example:
+
+    ICRS(ra=10*u.deg)
+
+    should state:
+
+    TypeError: __init__() missing 1 required positional argument: 'dec'
+    """
+    from ..builtin_frames import ICRS
+
+    with pytest.raises(TypeError) as e:
+        ICRS(ra=150 * u.deg)
+    assert "missing 1 required positional argument: 'dec'" in str(e)
+
+    with pytest.raises(TypeError) as e:
+        ICRS(ra=150*u.deg, dec=-11*u.deg,
+             pm_ra=100*u.mas/u.yr, pm_dec=10*u.mas/u.yr)
+    assert "pm_ra_cosdec" in str(e)
+
+
+def test_non_spherical_representation_unit_creation(unitphysics):
+    from ..builtin_frames import ICRS
+
+    class PhysicsICRS(ICRS):
+        default_representation = r.PhysicsSphericalRepresentation
+
+    pic = PhysicsICRS(phi=1*u.deg, theta=25*u.deg, r=1*u.kpc)
+    assert isinstance(pic.data, r.PhysicsSphericalRepresentation)
+
+    picu = PhysicsICRS(phi=1*u.deg, theta=25*u.deg)
+    assert isinstance(picu.data, unitphysics)

@@ -6,28 +6,25 @@ Tests for the SkyCoord class.  Note that there are also SkyCoord tests in
 test_api_ape5.py
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import copy
 
+import pytest
 import numpy as np
 import numpy.testing as npt
 
 from ... import units as u
-from ...tests.helper import (pytest, remote_data, catch_warnings,
-                             quantity_allclose,
+from ...tests.helper import (catch_warnings, quantity_allclose,
                              assert_quantity_allclose as assert_allclose)
-from ...extern.six.moves import zip
 from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation,
                             UnitSphericalRepresentation, AltAz,
                             BaseCoordinateFrame, Attribute,
-                            frame_transform_graph)
+                            frame_transform_graph, RepresentationMapping)
 from ...coordinates import Latitude, EarthLocation
 from ...time import Time
 from ...utils import minversion, isiterable
+from ...utils.compat import NUMPY_LT_1_14
 from ...utils.exceptions import AstropyDeprecationWarning
 
 RA = 1.0 * u.deg
@@ -491,16 +488,19 @@ def test_repr():
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
 
     assert repr(sc1) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
-                         '    ( 0.,  1.)>')
+                         '    ({})>').format(' 0.,  1.' if NUMPY_LT_1_14 else
+                                             '0., 1.')
     assert repr(sc2) == ('<SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, kpc)\n'
-                         '    ( 1.,  1.,  1.)>')
+                         '    ({})>').format(' 1.,  1.,  1.' if NUMPY_LT_1_14
+                                             else '1., 1., 1.')
 
     sc3 = SkyCoord(0.25 * u.deg, [1, 2.5] * u.deg, frame='icrs')
     assert repr(sc3).startswith('<SkyCoord (ICRS): (ra, dec) in deg\n')
 
     sc_default = SkyCoord(0 * u.deg, 1 * u.deg)
     assert repr(sc_default) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
-                                '    ( 0.,  1.)>')
+                                '    ({})>').format(' 0.,  1.' if NUMPY_LT_1_14
+                                                    else '0., 1.')
 
 
 def test_repr_altaz():
@@ -1215,7 +1215,7 @@ def test_constellations():
     npt.assert_equal(scs.get_constellation(short_name=True), ['UMa']*2)
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_constellations_with_nameresolve():
     assert SkyCoord.from_name('And I').get_constellation(short_name=True) == 'And'
 
@@ -1382,3 +1382,98 @@ def test_extra_attributes():
     # Finally, check that we can delete such attributes.
     del sc3.obstime
     assert sc3.obstime is None
+
+
+def test_apply_space_motion():
+    # use this 12 year period because it's a multiple of 4 to avoid the quirks
+    # of leap years while having 2 leap seconds in it
+    t1 = Time('2000-01-01T00:00')
+    t2 = Time('2012-01-01T00:00')
+
+    # Check a very simple case first:
+    frame = ICRS(ra=10.*u.deg, dec=0*u.deg,
+                 distance=10.*u.pc,
+                 pm_ra_cosdec=0.1*u.deg/u.yr,
+                 pm_dec=0*u.mas/u.yr,
+                 radial_velocity=0*u.km/u.s)
+
+    # Cases that should work (just testing input for now):
+    c1 = SkyCoord(frame, obstime=t1, pressure=101*u.kPa)
+    applied1 = c1.apply_space_motion(new_obstime=t2)
+    applied2 = c1.apply_space_motion(dt=12*u.year)
+
+    assert isinstance(applied1.frame, c1.frame.__class__)
+    assert isinstance(applied2.frame, c1.frame.__class__)
+    assert_allclose(applied1.ra, applied2.ra)
+    assert_allclose(applied1.pm_ra, applied2.pm_ra)
+    assert_allclose(applied1.dec, applied2.dec)
+    assert_allclose(applied1.distance, applied2.distance)
+
+    # ensure any frame attributes that were there before get passed through
+    assert applied1.pressure == c1.pressure
+
+    # there were 2 leap seconds between 2000 and 2010, so the difference in
+    # the two forms of time evolution should be ~2 sec
+    adt = np.abs(applied2.obstime - applied1.obstime)
+    assert 1.9*u.second < adt.to(u.second) < 2.1*u.second
+
+    c2 = SkyCoord(frame)
+    applied3 = c2.apply_space_motion(dt=6*u.year)
+    assert isinstance(applied3.frame, c1.frame.__class__)
+    assert applied3.obstime is None
+
+    # this should *not* be .6 deg due to space-motion on a sphere, but it
+    # should be fairly close
+    assert 0.5*u.deg < applied3.ra-c1.ra < .7*u.deg
+
+    # the two cases should only match somewhat due to it being space motion, but
+    # they should be at least this close
+    assert quantity_allclose(applied1.ra-c1.ra, (applied3.ra-c1.ra)*2, atol=1e-3*u.deg)
+    # but *not* this close
+    assert not quantity_allclose(applied1.ra-c1.ra, (applied3.ra-c1.ra)*2, atol=1e-4*u.deg)
+
+    with pytest.raises(ValueError):
+        c2.apply_space_motion(new_obstime=t2)
+
+
+def test_custom_frame_skycoord():
+    # also regression check for the case from #7069
+
+    class BlahBleeBlopFrame(BaseCoordinateFrame):
+        default_representation = SphericalRepresentation
+        # without a differential, SkyCoord creation fails
+        # default_differential = SphericalDifferential
+
+        _frame_specific_representation_info = {
+            'spherical': [
+                RepresentationMapping('lon', 'lon', 'recommended'),
+                RepresentationMapping('lat', 'lat', 'recommended'),
+                RepresentationMapping('distance', 'radius', 'recommended')
+            ]
+        }
+    SkyCoord(lat=1*u.deg, lon=2*u.deg, frame=BlahBleeBlopFrame)
+
+
+def test_user_friendly_pm_error():
+    """
+    This checks that a more user-friendly error message is raised for the user
+    if they pass, e.g., pm_ra instead of pm_ra_cosdec
+    """
+
+    with pytest.raises(ValueError) as e:
+        SkyCoord(ra=150*u.deg, dec=-11*u.deg,
+                 pm_ra=100*u.mas/u.yr, pm_dec=10*u.mas/u.yr)
+    assert 'pm_ra_cosdec' in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        SkyCoord(l=150*u.deg, b=-11*u.deg,
+                 pm_l=100*u.mas/u.yr, pm_b=10*u.mas/u.yr,
+                 frame='galactic')
+    assert 'pm_l_cosb' in str(e.value)
+
+    # The special error should not turn on here:
+    with pytest.raises(ValueError) as e:
+        SkyCoord(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+                 pm_ra=100*u.mas/u.yr, pm_dec=10*u.mas/u.yr,
+                 representation_type='cartesian')
+    assert 'pm_ra_cosdec' not in str(e.value)

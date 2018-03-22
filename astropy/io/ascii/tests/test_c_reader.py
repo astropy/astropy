@@ -1,14 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-try:
-    from cStringIO import StringIO
-except ImportError:  # cStringIO doesn't exist in Python 3
-    from io import BytesIO
-    StringIO = lambda x: BytesIO(x.encode('ascii'))
-
 import os
 import functools
 
+from io import BytesIO
 from textwrap import dedent
 
 import pytest
@@ -19,12 +14,12 @@ from ....table import Table, MaskedColumn
 from ... import ascii
 from ...ascii.core import ParameterError, FastOptionsError
 from ...ascii.cparser import CParserError
-from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, \
-    FastRdb, FastNoHeader
+from ..fastbasic import (
+    FastBasic, FastCsv, FastTab, FastCommentedHeader, FastRdb, FastNoHeader)
 from .common import assert_equal, assert_almost_equal, assert_true
-from ....extern import six
-from ....extern.six.moves import range
 
+
+StringIO = lambda x: BytesIO(x.encode('ascii'))
 TRAVIS = os.environ.get('TRAVIS', False)
 
 
@@ -39,9 +34,9 @@ def assert_table_equal(t1, t2, check_meta=False):
         if not isinstance(t1[name], MaskedColumn):
             for i, el in enumerate(t1[name]):
                 try:
-                    if not isinstance(el, six.string_types) and np.isnan(el):
-                        assert_true(not isinstance(t2[name][i], six.string_types) and np.isnan(t2[name][i]))
-                    elif isinstance(el, six.string_types):
+                    if not isinstance(el, str) and np.isnan(el):
+                        assert_true(not isinstance(t2[name][i], str) and np.isnan(t2[name][i]))
+                    elif isinstance(el, str):
                         assert_equal(el, t2[name][i])
                     else:
                         assert_almost_equal(el, t2[name][i])
@@ -332,38 +327,36 @@ a b "   c
     assert_table_equal(table, expected)
 
 
-def test_invalid_parameters():
+@pytest.mark.parametrize("key,val", [
+    ('delimiter', ',,'),  # multi-char delimiter
+    ('comment', '##'),  # multi-char comment
+    ('data_start', None),  # data_start=None
+    ('data_start', -1),  # data_start negative
+    ('quotechar', '##'),  # multi-char quote signifier
+    ('header_start', -1),  # negative header_start
+    ('converters', dict((i + 1, ascii.convert_numpy(np.uint)) for i in range(3))),  # passing converters
+    ('Inputter', ascii.ContinuationLinesInputter),  # passing Inputter
+    ('header_Splitter', ascii.DefaultSplitter),  # passing Splitter
+    ('data_Splitter', ascii.DefaultSplitter)])
+def test_invalid_parameters(key, val):
     """
     Make sure the C reader raises an error if passed parameters it can't handle.
     """
-    int_converter = ascii.convert_numpy(np.uint)
-    converters = dict((i + 1, ascii.convert_numpy(np.uint)) for i in range(3))
-    invalid_params = {'delimiter': ',,',  # multi-char delimiter
-                      'comment': '##',  # multi-char comment
-                      'data_start': None,  # data_start=None
-                      'quotechar': '##',  # multi-char quote signifier
-                      'data_start': -1,  # negative data_start
-                      'header_start': -1,  # negative header_start
-                      'converters': converters,  # passing converters
-                      'Inputter': ascii.ContinuationLinesInputter,  # passing Inputter
-                      'header_Splitter': ascii.DefaultSplitter,  # passing Splitter
-                      'data_Splitter': ascii.DefaultSplitter
-                      }
-    for key, val in invalid_params.items():
-        with pytest.raises(ParameterError):
-            print('Trying {0}={1} using constructor'.format(key, val))
-            table = FastBasic(**{key: val}).read('1 2 3\n4 5 6')
-        with pytest.raises(ParameterError):
-            print('Trying {0}={1} using ascii.read'.format(key, val))
-            table = ascii.read('1 2 3\n4 5 6', format='fast_basic', guess=False, **{key: val})
+    with pytest.raises(ParameterError):
+        FastBasic(**{key: val}).read('1 2 3\n4 5 6')
+    with pytest.raises(ParameterError):
+        ascii.read('1 2 3\n4 5 6',
+                   format='fast_basic', guess=False, **{key: val})
 
+
+def test_invalid_parameters_other():
     with pytest.raises(TypeError):
-        table = FastBasic(foo=7).read('1 2 3\n4 5 6')  # unexpected argument
+        FastBasic(foo=7).read('1 2 3\n4 5 6')  # unexpected argument
     with pytest.raises(FastOptionsError):  # don't fall back on the slow reader
-        table = ascii.read('1 2 3\n4 5 6', format='basic', fast_reader={'foo': 7})
+        ascii.read('1 2 3\n4 5 6', format='basic', fast_reader={'foo': 7})
     with pytest.raises(ParameterError):
         # Outputter cannot be specified in constructor
-        table = FastBasic(Outputter=ascii.TableOutputter).read('1 2 3\n4 5 6')
+        FastBasic(Outputter=ascii.TableOutputter).read('1 2 3\n4 5 6')
 
 
 def test_too_many_cols1():
@@ -964,7 +957,7 @@ def test_read_big_table(tmpdir):
 @pytest.mark.parametrize('reader', [0, 1, 2])
 # catch Windows environment since we cannot use _read() with custom fast_reader
 @pytest.mark.parametrize("parallel", [False,
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True)])
+    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows"))])
 def test_data_out_of_range(parallel, reader):
     """
     Numbers with exponents beyond float64 range (|~4.94e-324 to 1.7977e+308|)
@@ -995,7 +988,7 @@ def test_data_out_of_range(parallel, reader):
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
 
     # test some additional corner cases
-    fields = ['.0101E202', '0.000000314E+314', '1777E+305', '-1799E+305', '0.2e-323',
+    fields = ['.0101E202', '0.000000314E+314', '1777E+305', '-1799E+305', '0.4e-324',
                '2500e-327', ' 0.0000000000000000000001024E+330']
     values = np.array([1.01e200, 3.14e307, 1.777e308, -np.inf, 0.0, 4.94e-324, 1.024e308])
     t = ascii.read(StringIO(' '.join(fields)), format='no_header', guess=False,
@@ -1017,15 +1010,15 @@ def test_data_out_of_range(parallel, reader):
 
 # catch Windows environment since we cannot use _read() with custom fast_reader
 @pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
+    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
     False])
 def test_int_out_of_range(parallel):
     """
     Integer numbers outside int range shall be returned as string columns
     consistent with the standard (Python) parser (no 'upcasting' to float).
     """
-    imin = np.iinfo(np.int).min+1
-    imax = np.iinfo(np.int).max-1
+    imin = np.iinfo(int).min+1
+    imax = np.iinfo(int).max-1
     huge = '{:d}'.format(imax+2)
 
     text = 'P M S\n {:d} {:d} {:s}'.format(imax, imin, huge)
@@ -1056,7 +1049,7 @@ def test_int_out_of_range(parallel):
 
 
 @pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
+    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
     False])
 def test_fortran_reader(parallel):
     """
@@ -1099,7 +1092,7 @@ def test_fortran_reader(parallel):
 
 
 @pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
+    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
     False])
 def test_fortran_invalid_exp(parallel):
     """

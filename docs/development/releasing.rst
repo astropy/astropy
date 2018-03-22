@@ -6,11 +6,25 @@ The current release procedure for Astropy involves a combination of an
 automated release script and some manual steps.  Future versions will automate
 more of the process, if not all.
 
+There are several different procedures below, depending on the situation:
+
+* :ref:`release-procedure`
+    - :ref:`release-procedure-beta-rc`
+* :ref:`release-procedure-new-major`
+* :ref:`release-procedure-bug-fix`
+    - :ref:`release-procedure-bug-fix-backport`
+    - :ref:`release-procedure-bug-fix-direct`
+    - :ref:`release-procedure-bug-fix-release`
+* :ref:`helpers-release-info`
+
+For a signed release, see :ref:`key-signing-info` for relevant setup
+instructions.
+
 
 .. _release-procedure:
 
-Release Procedure
-=================
+Standard Release Procedure
+==========================
 
 This is the standard release procedure for releasing Astropy (or affiliated
 packages that use the full bugfix/maintenance branch approach.)
@@ -50,7 +64,6 @@ packages that use the full bugfix/maintenance branch approach.)
    significant changes in the helpers.  See :ref:`helpers-release-info` for more
    on this.
 
-
 #. Make sure that the continuous integration services (e.g., Travis) are passing
    for the `astropy core repository`_ branch you're going to release.  You may
    also want to locally run the tests (with remote data on to ensure all the
@@ -83,9 +96,6 @@ packages that use the full bugfix/maintenance branch approach.)
       $ git add CHANGES.rst
       $ git commit -m "Finalizing changelog for v<version>"
 
-
-
-
 #. Edit the ``setup.py`` file by removing the ``".dev"`` at the end of the
    ``VERSION`` string, then add and commit that change as the final step prior
    to release::
@@ -98,21 +108,6 @@ packages that use the full bugfix/maintenance branch approach.)
    ``-s`` option::
 
       $ git tag -s v<version> -m "Tagging v<version>"
-
-#. Edit the ``VERSION`` in ``setup.py`` to be the next version number, but with
-   a ``.dev`` suffix at the end (E.g., ``1.2.3.dev``).  Then add and commit::
-
-      <use your favorite editor on setup.py>
-      $ git add setup.py
-      $ git commit -m "Back to development: v<next_version>.dev"
-
-#. Also update the ``CHANGES.rst`` file with a new section for the next version.
-   You will likely want to use the ``add_to_changelog.py`` script in the
-   `astropy-tools repository`_ for this.  Then add and commit::
-
-      <use your favorite editor on CHANGES.rst>
-      $ git add CHANGES.rst
-      $ git commit -m "Add v<next_version> to the changelog"
 
 #. Now go back and check out the tag of the released version with
    ``git checkout v<version>``.  For example::
@@ -177,7 +172,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
    * build and upload the Astropy wheels;
    * make and upload the Astropy source release.
-   
+
 
 #. For the wheel build / upload, follow the `wheel builder README`_
    instructions again.  Edit the ``.travis.yml`` and ``appveyor.yml`` files
@@ -202,7 +197,7 @@ packages that use the full bugfix/maintenance branch approach.)
       $ python setup.py build sdist
       $ gpg --detach-sign -a dist/astropy-<version>.tar.gz
       $ twine upload dist/astropy-<version>*
-      
+
 #. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
    and ensure that only the most recent releases in each actively maintained
    release line are *not* marked hidden.  For example, if v1.2.2 was
@@ -211,6 +206,23 @@ packages that use the full bugfix/maintenance branch approach.)
 
    Do not enabled "Auto-hide old releases" as that may hide bugfix releases
    from older release lines that we may still want to make available.
+
+#. Go back to release branch (e.g., ``1.2.x``) and edit the ``VERSION`` in
+   ``setup.py`` to be the next version number, but with
+   a ``.dev`` suffix at the end (e.g., ``1.2.3.dev``).  Then add and commit::
+
+      $ git checkout v1.2.x
+      <use your favorite editor on setup.py>
+      $ git add setup.py
+      $ git commit -m "Back to development: v<next_version>.dev"
+
+#. Also update the ``CHANGES.rst`` file with a new section for the next version.
+   You will likely want to use the ``add_to_changelog.py`` script in the
+   `astropy-tools repository`_ for this.  Then add and commit::
+
+      <use your favorite editor on CHANGES.rst>
+      $ git add CHANGES.rst
+      $ git commit -m "Add v<next_version> to the changelog"
 
 #. Push up these changes and the tag to the `astropy core repository`_::
 
@@ -279,6 +291,8 @@ packages that use the full bugfix/maintenance branch approach.)
    available.
 
 
+.. _release-procedure-beta-rc:
+
 Modifications for a beta/release candidate release
 --------------------------------------------------
 
@@ -301,6 +315,8 @@ Modifications for a beta/release candidate release
    * Do not do step #26 or later, as those are tasks for an actual release.
 
 
+.. _release-procedure-new-major:
+
 Performing a Feature Freeze/Branching new Major Versions
 ========================================================
 
@@ -314,10 +330,10 @@ soon-to-be-released version can focus on bug fixes and documentation updates.
 
 The procedure for this is straightforward:
 
-#. Make sure you're on master, and updated to the latest version from github::
+#. Update your local master branch to use to the latest version from github::
 
       $ git fetch upstream
-      $ git checkout upstream/master
+      $ git checkout -B master upstream/master
 
 #. Create a new branch from master at the point you want the feature freeze to
    occur::
@@ -361,7 +377,7 @@ The procedure for this is straightforward:
 #. Push all of these changes up to github::
 
       $ git push upstream v<version>.x:v<version>.x
-      $ git push upstream HEAD:master
+      $ git push upstream master:master
 
    .. note::
 
@@ -371,6 +387,9 @@ The procedure for this is straightforward:
 #. On the github issue tracker, add a new milestone for the next major version.
 
 #. Repeat the above steps for the astropy-helpers, using the same version series.
+
+
+.. _release-procedure-bug-fix:
 
 Maintaining Bug Fix Releases
 ============================
@@ -412,6 +431,9 @@ milestone.  Any issues that implement new features would go into the v0.3.0
 milestone--this is any work that goes in the master branch that should not
 be backported.  For a more detailed set of guidelines on using milestones, see
 :ref:`milestones-and-labels`.
+
+
+.. _release-procedure-bug-fix-backport:
 
 Backporting fixes from master
 -----------------------------
@@ -471,6 +493,9 @@ fixes will have an issues associated with it in the issue tracker, so make sure
 to reference all commits related to that issue in the commit message.  That way
 it's harder for commits that need to be backported from getting lost.
 
+
+.. _release-procedure-bug-fix-direct:
+
 Making fixes directly to the bug fix branch
 -------------------------------------------
 
@@ -490,6 +515,9 @@ there are two choices:
    drop-down and instead select the bug fix branch ("v1.2.x" for example). Then
    GitHub will instead compare your fix against that branch, and merge into
    that branch when the PR is accepted.
+
+
+.. _release-procedure-bug-fix-release:
 
 Preparing the bug fix branch for release
 ----------------------------------------
@@ -518,7 +546,7 @@ workflow.  Run the scripts in order (they are numbered 1.<something>.py,
 2.<something>.py, etc.), entering your github login credentials as needed (if
 you are going to run them multiple times, using a ``~/.netrc`` file is
 recommended - see `this Stack Overflow post
-<http://stackoverflow.com/questions/5343068/is-there-a-way-to-skip-password-typing-when-using-https-on-github/18362082>`_
+<https://stackoverflow.com/questions/5343068/is-there-a-way-to-skip-password-typing-when-using-https-on-github/18362082>`_
 for more on how to do that, or
 `a similar github help page <https://help.github.com/articles/caching-your-github-password-in-git>`_).
 The script to actually check consistency should be run like:
@@ -677,7 +705,7 @@ Using a signed tag ensures the integrity of the contents of that tag for the
 future.  On a distributed VCS like git, anyone can create a tag of Astropy
 called "0.1" in their repository--and where it's easy to monkey around even
 after the tag has been created.  But only one "0.1" will be signed by one of
-the Astropy project coordinators and will be verifiable with their public key.
+the Astropy Project coordinators and will be verifiable with their public key.
 
 Generating a public/private key pair
 ------------------------------------
@@ -789,6 +817,6 @@ that for you.  You can delete this tag by doing::
 .. _signed tags: http://git-scm.com/book/en/Git-Basics-Tagging#Signed-Tags
 .. _cython: http://www.cython.org/
 .. _astropy-tools repository: https://github.com/astropy/astropy-tools
-.. _Anaconda: http://conda.pydata.org/docs/
+.. _Anaconda: https://conda.io/docs/
 .. _astropy-helpers repository: https://github.com/astropy/astropy-helpers
 .. _twine: https://packaging.python.org/key_projects/#twine

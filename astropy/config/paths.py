@@ -2,10 +2,7 @@
 """ This module contains functions to determine where configuration and
 data/cache files used by Astropy should be placed.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ..extern import six
 from ..utils.decorators import wraps
 
 import os
@@ -29,19 +26,12 @@ def _find_home():
         directories.
     """
 
-    # this is used below to make fix up encoding issues that sometimes crop up
-    # in py2.x but not in py3.x
-    if six.PY2:
-        decodepath = lambda pth: pth.decode(sys.getfilesystemencoding())
-    else:
-        decodepath = lambda pth: pth
-
     # First find the home directory - this is inspired by the scheme ipython
     # uses to identify "home"
     if os.name == 'posix':
         # Linux, Unix, AIX, OS X
         if 'HOME' in os.environ:
-            homedir = decodepath(os.environ['HOME'])
+            homedir = os.environ['HOME']
         else:
             raise OSError('Could not find unix home directory to search for '
                           'astropy config dir')
@@ -49,38 +39,36 @@ def _find_home():
         if 'MSYSTEM' in os.environ and os.environ.get('HOME'):
             # Likely using an msys shell; use whatever it is using for its
             # $HOME directory
-            homedir = decodepath(os.environ['HOME'])
+            homedir = os.environ['HOME']
         # Next try for a network home
         elif 'HOMESHARE' in os.environ:
-            homedir = decodepath(os.environ['HOMESHARE'])
+            homedir = os.environ['HOMESHARE']
         # See if there's a local home
         elif 'HOMEDRIVE' in os.environ and 'HOMEPATH' in os.environ:
             homedir = os.path.join(os.environ['HOMEDRIVE'],
                                    os.environ['HOMEPATH'])
-            homedir = decodepath(homedir)
         # Maybe a user profile?
         elif 'USERPROFILE' in os.environ:
-            homedir = decodepath(os.path.join(os.environ['USERPROFILE']))
+            homedir = os.path.join(os.environ['USERPROFILE'])
         else:
             try:
-                from ..extern.six.moves import winreg as wreg
+                import winreg as wreg
                 shell_folders = r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
                 key = wreg.OpenKey(wreg.HKEY_CURRENT_USER, shell_folders)
 
                 homedir = wreg.QueryValueEx(key, 'Personal')[0]
-                homedir = decodepath(homedir)
                 key.Close()
             except Exception:
                 # As a final possible resort, see if HOME is present
                 if 'HOME' in os.environ:
-                    homedir = decodepath(os.environ['HOME'])
+                    homedir = os.environ['HOME']
                 else:
                     raise OSError('Could not find windows home directory to '
                                   'search for astropy config dir')
     else:
         # for other platforms, try HOME, although it probably isn't there
         if 'HOME' in os.environ:
-            homedir = decodepath(os.environ['HOME'])
+            homedir = os.environ['HOME']
         else:
             raise OSError('Could not find a home directory to search for '
                           'astropy config dir - are you on an unspported '
@@ -171,7 +159,7 @@ def get_cache_dir():
     return os.path.abspath(_find_or_create_astropy_dir('cache', linkto))
 
 
-class _SetTempPath(object):
+class _SetTempPath:
     _temp_path = None
     _default_path_getter = None
 
@@ -238,14 +226,14 @@ class set_temp_config(_SetTempPath):
         # cached config objects
         from .configuration import _cfgobjs
 
-        path = super(set_temp_config, self).__enter__()
+        path = super().__enter__()
         _cfgobjs.clear()
         return path
 
     def __exit__(self, *args):
         from .configuration import _cfgobjs
 
-        super(set_temp_config, self).__exit__(*args)
+        super().__exit__(*args)
         _cfgobjs.clear()
 
 
@@ -295,7 +283,7 @@ def _find_or_create_astropy_dir(dirnm, linkto):
                     raise
         elif not os.path.isdir(innerdir):
             msg = 'Intended Astropy directory {0} is actually a file.'
-            raise IOError(msg.format(innerdir))
+            raise OSError(msg.format(innerdir))
 
         try:
             os.mkdir(maindir)
@@ -310,6 +298,6 @@ def _find_or_create_astropy_dir(dirnm, linkto):
 
     elif not os.path.isdir(maindir):
         msg = 'Intended Astropy {0} directory {1} is actually a file.'
-        raise IOError(msg.format(dirnm, maindir))
+        raise OSError(msg.format(dirnm, maindir))
 
     return os.path.abspath(maindir)

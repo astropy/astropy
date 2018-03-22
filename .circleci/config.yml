@@ -1,0 +1,57 @@
+version: 2
+
+jobs:
+  32bit:
+    docker:
+      - image: quay.io/pypa/manylinux1_i686
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: /opt/python/cp36-cp36m/bin/pip install numpy scipy pytest-astropy pytest-xdist Cython jinja2
+      - run:
+          name: Run tests
+          command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4
+  image-tests-mpl153:
+    docker:
+      - image: astropy/image-tests-py35-mpl153:1.0
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: |
+            pip3 install coveralls
+            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+            coveralls || true
+  image-tests-mpl202:
+    docker:
+      - image: astropy/image-tests-py35-mpl202:1.0
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: |
+            pip3 install coveralls
+            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+            coveralls || true
+  image-tests-mpl212:
+    docker:
+      - image: astropy/image-tests-py35-mpl212:1.0
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: |
+            pip3 install coveralls
+            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+            coveralls || true
+
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - 32bit
+      - image-tests-mpl153
+      - image-tests-mpl202
+      - image-tests-mpl212

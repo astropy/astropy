@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 import pytest
 import numpy as np
@@ -8,7 +7,6 @@ import matplotlib.pyplot as plt
 
 from .... import units as u
 from ....wcs import WCS
-from ....tests.helper import remote_data
 
 from .. import WCSAxes
 from .test_images import BaseImageTests
@@ -22,7 +20,7 @@ from ....tests.image_tests import IMAGE_REFERENCE_DIR
 class DistanceToLonLat(CurvedTransform):
 
     def __init__(self, R=6e3):
-        super(DistanceToLonLat, self).__init__()
+        super().__init__()
         self.R = R
 
     def transform(self, xy):
@@ -40,7 +38,7 @@ class DistanceToLonLat(CurvedTransform):
 class LonLatToDistance(CurvedTransform):
 
     def __init__(self, R=6e3):
-        super(LonLatToDistance, self).__init__()
+        super().__init__()
         self.R = R
 
     def transform(self, lamphi):
@@ -58,8 +56,10 @@ class LonLatToDistance(CurvedTransform):
 
 class TestTransformCoordMeta(BaseImageTests):
 
-    @remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR, filename='coords_overlay.png', tolerance=1.5)
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   filename='coords_overlay.png',
+                                   tolerance=0, style={})
     def test_coords_overlay(self):
 
         # Set up a simple WCS that maps pixels to non-projected distances
@@ -106,8 +106,10 @@ class TestTransformCoordMeta(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR, filename='coords_overlay_auto_coord_meta.png', tolerance=1.5)
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   filename='coords_overlay_auto_coord_meta.png',
+                                   tolerance=0, style={})
     def test_coords_overlay_auto_coord_meta(self):
 
         fig = plt.figure(figsize=(4, 4))
@@ -129,8 +131,10 @@ class TestTransformCoordMeta(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR, filename='direct_init.png', tolerance=1.5)
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   filename='direct_init.png',
+                                   tolerance=0, style={})
     def test_direct_init(self):
 
         s = DistanceToLonLat(R=6378.273)

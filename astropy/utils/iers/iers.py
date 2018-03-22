@@ -8,8 +8,6 @@ motions are also used for determining earth orientation for
 celestial-to-terrestrial coordinate transformations
 (in `astropy.coordinates`).
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from warnings import warn
 
@@ -26,7 +24,6 @@ from ...table import Table, QTable
 from ...utils.data import get_pkg_data_filename, clear_download_cache
 from ... import utils
 from ...utils.exceptions import AstropyWarning
-from ...tests import disable_internet
 
 __all__ = ['Conf', 'conf',
            'IERS', 'IERS_B', 'IERS_A', 'IERS_Auto',
@@ -106,10 +103,6 @@ class Conf(_config.ConfigNamespace):
 
 conf = Conf()
 
-# If internet is off for testing then do not download.  This
-# makes most tests fall back to using the built-in IERS-B table.
-conf.auto_download &= not disable_internet.INTERNET_OFF
-
 
 class IERSRangeError(IndexError):
     """
@@ -121,7 +114,7 @@ class IERS(QTable):
     """Generic IERS table class, defining interpolation functions.
 
     Sub-classed from `astropy.table.QTable`.  The table should hold columns
-    'MJD', 'UT1_UTC', and 'PM_x'/'PM_y'.
+    'MJD', 'UT1_UTC', 'dX_2000A'/'dY_2000A', and 'PM_x'/'PM_y'.
     """
 
     iers_table = None
@@ -199,6 +192,7 @@ class IERS(QTable):
             jd1, jd2 = jd1.utc.jd1, jd1.utc.jd2
         except Exception:
             pass
+
         mjd = np.floor(jd1 - MJD_ZERO + jd2)
         utc = jd1 - (MJD_ZERO+mjd) + jd2
         return mjd, utc
@@ -232,6 +226,37 @@ class IERS(QTable):
         """
         return self._interpolate(jd1, jd2, ['UT1_UTC'],
                                  self.ut1_utc_source if return_status else None)
+
+    def dcip_xy(self, jd1, jd2=0., return_status=False):
+        """Interpolate CIP corrections in IERS Table for given dates.
+
+        Parameters
+        ----------
+        jd1 : float, float array, or Time object
+            first part of two-part JD, or Time object
+        jd2 : float or float array, optional
+            second part of two-part JD (default 0., ignored if jd1 is Time)
+        return_status : bool
+            Whether to return status values.  If False (default),
+            raise ``IERSRangeError`` if any time is out of the range covered
+            by the IERS table.
+
+        Returns
+        -------
+        D_x : Quantity with angle units
+            x component of CIP correction for the requested times
+        D_y : Quantity with angle units
+            y component of CIP correction for the requested times
+        status : int or int array
+            Status values (if ``return_status``=``True``)::
+            ``iers.FROM_IERS_B``
+            ``iers.FROM_IERS_A``
+            ``iers.FROM_IERS_A_PREDICTION``
+            ``iers.TIME_BEFORE_IERS_RANGE``
+            ``iers.TIME_BEYOND_IERS_RANGE``
+        """
+        return self._interpolate(jd1, jd2, ['dX_2000A', 'dY_2000A'],
+                                 self.dcip_source if return_status else None)
 
     def pm_xy(self, jd1, jd2=0., return_status=False):
         """Interpolate polar motions from IERS Table for given dates.
@@ -344,6 +369,10 @@ class IERS(QTable):
         """Source for UT1-UTC.  To be overridden by subclass."""
         return np.zeros_like(i)
 
+    def dcip_source(self, i):
+        """Source for CIP correction.  To be overridden by subclass."""
+        return np.zeros_like(i)
+
     def pm_source(self, i):
         """Source for polar motion.  To be overridden by subclass."""
         return np.zeros_like(i)
@@ -414,6 +443,20 @@ class IERS_A(IERS):
                                       table['PolPMFlag_A'].data,
                                       'B')
 
+        table['dX_2000A'] = np.where(table['dX_2000A_B'].mask,
+                                     table['dX_2000A_A'].data,
+                                     table['dX_2000A_B'].data)
+        table['dX_2000A'].unit = table['dX_2000A_A'].unit
+
+        table['dY_2000A'] = np.where(table['dY_2000A_B'].mask,
+                                     table['dY_2000A_A'].data,
+                                     table['dY_2000A_B'].data)
+        table['dY_2000A'].unit = table['dY_2000A_A'].unit
+
+        table['NutFlag'] = np.where(table['dX_2000A_B'].mask,
+                                    table['NutFlag_A'].data,
+                                    'B')
+
         # Get the table index for the first row that has predictive values
         # PolPMFlag_A  IERS (I) or Prediction (P) flag for
         #              Bull. A polar motion values
@@ -472,6 +515,14 @@ class IERS_A(IERS):
         source[ut1flag == 'P'] = FROM_IERS_A_PREDICTION
         return source
 
+    def dcip_source(self, i):
+        """Set CIP correction source flag for entries in IERS table"""
+        nutflag = self['NutFlag'][i]
+        source = np.ones_like(i) * FROM_IERS_B
+        source[nutflag == 'I'] = FROM_IERS_A
+        source[nutflag == 'P'] = FROM_IERS_A_PREDICTION
+        return source
+
     def pm_source(self, i):
         """Set polar motion source flag for entries in IERS table"""
         pmflag = self['PolPMFlag'][i]
@@ -526,6 +577,10 @@ class IERS_B(IERS):
 
     def ut1_utc_source(self, i):
         """Set UT1-UTC source flag for entries in IERS table"""
+        return np.ones_like(i) * FROM_IERS_B
+
+    def dcip_source(self, i):
+        """Set CIP correction source flag for entries in IERS table"""
         return np.ones_like(i) * FROM_IERS_B
 
     def pm_source(self, i):
@@ -601,7 +656,7 @@ class IERS_Auto(IERS_A):
 
         # See explanation in _refresh_table_as_needed for these conditions
         auto_max_age = (conf.auto_max_age if conf.auto_max_age is not None
-                        else np.finfo(np.float).max)
+                        else np.finfo(float).max)
         if (max_input_mjd > predictive_mjd and
                 self.time_now.mjd - predictive_mjd > auto_max_age):
             raise ValueError(INTERPOLATE_ERROR)
@@ -630,7 +685,7 @@ class IERS_Auto(IERS_A):
 
         # Update table in place if necessary
         auto_max_age = (conf.auto_max_age if conf.auto_max_age is not None
-                        else np.finfo(np.float).max)
+                        else np.finfo(float).max)
 
         # If auto_max_age is smaller than IERS update time then repeated downloads may
         # occur without getting updated values (giving a IERSStaleWarning).

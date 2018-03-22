@@ -3,19 +3,15 @@
 This module provides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the `pytest` testing framework.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-import functools
 import os
 import sys
 import types
+import pickle
 import warnings
+import functools
 
 import pytest
-
-from ..extern import six
-from ..extern.six.moves import cPickle as pickle
 
 try:
     # Import pkg_resources to prevent it from issuing warnings upon being
@@ -39,12 +35,11 @@ __all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
            'pickle_protocol', 'generic_recursive_equality_test']
 
 # pytest marker to mark tests which get data from the web
+# This is being maintained for backwards compatibility
 remote_data = pytest.mark.remote_data
 
 
-# This is for Python 2.x and 3.x compatibility.  distutils expects
-# options to all be byte strings on Python 2 and Unicode strings on
-# Python 3.
+# distutils expects options to be Unicode strings
 def _fix_user_options(options):
     def to_str_or_none(x):
         if x is None:
@@ -94,7 +89,7 @@ def _save_coverage(cov, result, rootdir, testing_path):
     cov.html_report(directory=os.path.join(rootdir, 'htmlcov'))
 
 
-class raises(object):
+class raises:
     """
     A decorator to mark that a test should raise a given exception.
     Use as follows::
@@ -135,24 +130,23 @@ _modules_to_ignore_on_import = set([
     'scipy',
     'pygments',
     'ipykernel',
+    'IPython',   # deprecation warnings for async and await
     'setuptools'])
 _warnings_to_ignore_entire_module = set([])
 _warnings_to_ignore_by_pyver = {
-    (3, 4): set([
-        # py.test reads files with the 'U' flag, which is now
-        # deprecated in Python 3.4.
-        r"'U' mode is deprecated",
-        # BeautifulSoup4 triggers warning in stdlib's html module.x
-        r"The strict argument and mode are deprecated\.",
-        r"The value of convert_charrefs will become True in 3\.5\. "
-        r"You are encouraged to set the value explicitly\."]),
     (3, 5): set([
+        # py.test reads files with the 'U' flag, which is
+        # deprecated.
+        r"'U' mode is deprecated",
         # py.test raised this warning in inspect on Python 3.5.
         # See https://github.com/pytest-dev/pytest/pull/1009
         # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
         r"inspect\.getargspec\(\) is deprecated, use "
         r"inspect\.signature\(\) instead"]),
     (3, 6): set([
+        # py.test reads files with the 'U' flag, which is
+        # deprecated.
+        r"'U' mode is deprecated",
         # inspect raises this slightly different warning on Python 3.6.
         # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
         r"inspect\.getargspec\(\) is deprecated, use "
@@ -204,7 +198,7 @@ def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
     _warnings_to_ignore_entire_module.update(warnings_to_ignore_entire_module)
 
     global _warnings_to_ignore_by_pyver
-    for key, val in six.iteritems(warnings_to_ignore_by_pyver):
+    for key, val in warnings_to_ignore_by_pyver.items():
         if key in _warnings_to_ignore_by_pyver:
             _warnings_to_ignore_by_pyver[key].update(val)
         else:
@@ -224,7 +218,7 @@ def treat_deprecations_as_exceptions():
     # First, totally reset the warning state. The modules may change during
     # this iteration thus we copy the original state to a list to iterate
     # on. See https://github.com/astropy/astropy/pull/5513.
-    for module in list(six.itervalues(sys.modules)):
+    for module in list(sys.modules.values()):
         # We don't want to deal with six.MovedModules, only "real"
         # modules.
         if (isinstance(module, types.ModuleType) and
@@ -269,7 +263,7 @@ def treat_deprecations_as_exceptions():
             warnings.filterwarnings('ignore', category=w, module=m)
 
     for v in _warnings_to_ignore_by_pyver:
-        if sys.version_info[:2] >= v:
+        if sys.version_info[:2] == v:
             for s in _warnings_to_ignore_by_pyver[v]:
                 warnings.filterwarnings("ignore", s, DeprecationWarning)
 
@@ -364,22 +358,21 @@ def assert_follows_unicode_guidelines(
     roundtrip : module, optional
         When provided, this namespace will be used to evaluate
         ``repr(x)`` and ensure that it roundtrips.  It will also
-        ensure that ``__bytes__(x)`` and ``__unicode__(x)`` roundtrip.
+        ensure that ``__bytes__(x)`` roundtrip.
         If not provided, no roundtrip testing will be performed.
     """
     from .. import conf
-    from ..extern import six
 
     with conf.set_temp('unicode_output', False):
         bytes_x = bytes(x)
-        unicode_x = six.text_type(x)
+        unicode_x = str(x)
         repr_x = repr(x)
 
         assert isinstance(bytes_x, bytes)
         bytes_x.decode('ascii')
-        assert isinstance(unicode_x, six.text_type)
+        assert isinstance(unicode_x, str)
         unicode_x.encode('ascii')
-        assert isinstance(repr_x, six.string_types)
+        assert isinstance(repr_x, str)
         if isinstance(repr_x, bytes):
             repr_x.decode('ascii')
         else:
@@ -392,13 +385,13 @@ def assert_follows_unicode_guidelines(
 
     with conf.set_temp('unicode_output', True):
         bytes_x = bytes(x)
-        unicode_x = six.text_type(x)
+        unicode_x = str(x)
         repr_x = repr(x)
 
         assert isinstance(bytes_x, bytes)
         bytes_x.decode('ascii')
-        assert isinstance(unicode_x, six.text_type)
-        assert isinstance(repr_x, six.string_types)
+        assert isinstance(unicode_x, str)
+        assert isinstance(repr_x, str)
         if isinstance(repr_x, bytes):
             repr_x.decode('ascii')
         else:

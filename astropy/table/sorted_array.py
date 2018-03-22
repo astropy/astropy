@@ -1,8 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import numpy as np
-from ..extern.six.moves import range, zip
 
 
 def _searchsorted(array, val, side='left'):
@@ -28,7 +25,7 @@ def _searchsorted(array, val, side='left'):
     return begin
 
 
-class SortedArray(object):
+class SortedArray:
     '''
     Implements a sorted array container using
     a list of numpy arrays.
@@ -217,7 +214,7 @@ class SortedArray(object):
             return False
 
         self.data.remove_row(pos)
-        keep_mask = np.ones(len(self.row_index), dtype=np.bool)
+        keep_mask = np.ones(len(self.row_index), dtype=bool)
         keep_mask[pos] = False
         self.row_index = self.row_index[keep_mask]
         return True
@@ -256,7 +253,7 @@ class SortedArray(object):
             Mapping of row numbers to new row numbers
         '''
         num_rows = len(row_map)
-        keep_rows = np.zeros(len(self.row_index), dtype=np.bool)
+        keep_rows = np.zeros(len(self.row_index), dtype=bool)
         tagged = 0
         for i, row in enumerate(self.row_index):
             if row in row_map:

@@ -287,7 +287,7 @@ the already known parameter values.  We can see this by checking the type of
     Fittable parameters: ('amplitude_0', 'mean_0', 'stddev_0', 'amplitude_1', 'mean_1', 'stddev_1')
     Expression: [0] + [1]
     Components:
-        [0]: <Gaussian1D(amplitude=1.0, mean=0.0, stddev=0.2)>
+        [0]: <Gaussian1D(amplitude=1., mean=0., stddev=0.2)>
     <BLANKLINE>
         [1]: <Gaussian1D(amplitude=2.5, mean=0.5, stddev=0.1)>
 
@@ -296,7 +296,7 @@ combination of classes *and* instances in the same expression::
 
     >>> from astropy.modeling.models import Linear1D, Sine1D
     >>> MyModel = Linear1D + Sine1D(amplitude=1, frequency=1, phase=0)
-    >>> MyModel
+    >>> MyModel  # doctest: +FLOAT_CMP
     <class '__main__.CompoundModel...'>
     Name: CompoundModel...
     Inputs: ('x',)
@@ -310,7 +310,7 @@ combination of classes *and* instances in the same expression::
         Outputs: ('y',)
         Fittable parameters: ('slope', 'intercept')
     <BLANKLINE>
-        [1]: <Sine1D(amplitude=1.0, frequency=1.0, phase=0.0)>
+        [1]: <Sine1D(amplitude=1., frequency=1., phase=0.)>
 
 In this case the result is always a class.  However (and this is not
 immediately obvious by the representation) the difference is that the
@@ -395,7 +395,7 @@ when evaluated, is equivalent to evaluating :math:`g \circ f = g(f(x))`.
     This is in part because there is no operator symbol supported in Python
     that corresponds well to this.  The ``|`` operator should instead be read
     like the `pipe operator
-    <http://en.wikipedia.org/wiki/Pipeline_%28Unix%29>`_ of UNIX shell syntax:
+    <https://en.wikipedia.org/wiki/Pipeline_%28Unix%29>`_ of UNIX shell syntax:
     It chains together models by piping the output of the left-hand operand to
     the input of the right-hand operand, forming a "pipeline" of models, or
     transformations.
@@ -426,6 +426,7 @@ example, to create the following compound model:
     :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling.models import RedshiftScaleFactor, Gaussian1D
 
     class RedshiftedGaussian(RedshiftScaleFactor | Gaussian1D(1, 0.75, 0.1)):
@@ -454,6 +455,7 @@ model *instances*:
     :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling.models import RedshiftScaleFactor, Gaussian1D, Scale
 
     x = np.linspace(1000, 5000, 1000)
@@ -501,6 +503,7 @@ example:
     :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling.models import Rotation2D, Gaussian2D
 
     class RotatedGaussian(Rotation2D | Gaussian2D(1, 0, 0, 0.1, 0.3)):
@@ -711,8 +714,8 @@ The new compound model for the subexpression can be instantiated and evaluated
 like any other::
 
     >>> m = M[1:](2, 3)
-    >>> m
-    <CompoundModel...(amplitude_1=2.0, amplitude_2=3.0)>
+    >>> m  # doctest: +FLOAT_CMP
+    <CompoundModel...(amplitude_1=2., amplitude_2=3.)>
     >>> m(0)
     6.0
 

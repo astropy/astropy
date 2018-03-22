@@ -3,8 +3,6 @@
 This module tests fitting and model evaluation with various inputs
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import pytest
 import numpy as np
@@ -14,7 +12,6 @@ from .. import models
 from .. import fitting
 from ..core import Model, FittableModel, Fittable1DModel
 from ..parameters import Parameter
-from ...extern.six.moves import range
 
 try:
     from scipy import optimize  # pylint: disable=W0611
@@ -38,7 +35,7 @@ model2d_params = [
 ]
 
 
-class TestInputType(object):
+class TestInputType:
     """
     This class tests that models accept numbers, lists and arrays.
 
@@ -67,7 +64,7 @@ class TestInputType(object):
         m(self.x2, self.y2)
 
 
-class TestFitting(object):
+class TestFitting:
     """Test various input options to fitting routines."""
 
     def setup_class(self):
@@ -218,7 +215,7 @@ class TestFitting(object):
             model = gfit(g2, self.x, self.y, z)
 
 
-class TestEvaluation(object):
+class TestEvaluation:
     """
     Test various input options to model evaluation
 
@@ -261,7 +258,7 @@ class TestEvaluation(object):
 
         p1 = models.Polynomial1D(4, n_models=2)
         y1 = p1(np.array([self.x1, self.x1]).T, model_set_axis=-1)
-        assert y1.shape == (2, 20)
+        assert y1.shape == (20, 2)
         assert_allclose(y1[0, :], y1[1, :], atol=10 ** (-12))
 
     def test_p2_1set_1pset(self):
@@ -282,21 +279,26 @@ class TestEvaluation(object):
 
     def test_nset_domain(self):
         """
-        Polynomial evaluation of multiple data sets with different domain
+        Test model set with negative model_set_axis.
+
+        In this case model_set_axis=-1 is identical to model_set_axis=1.
         """
 
         xx = np.array([self.x1, self.x1]).T
         xx[0, 0] = 100
         xx[1, 0] = 100
         xx[2, 0] = 99
-        p1 = models.Polynomial1D(5, n_models=2)
+        p1 = models.Polynomial1D(5, c0=[1, 2], c1=[3, 4], n_models=2)
         yy = p1(xx, model_set_axis=-1)
-        x1 = xx[:, 0]
-        x2 = xx[:, 1]
-        p1 = models.Polynomial1D(5)
-        assert_allclose(p1(x1), yy[0, :], atol=10 ** (-12))
-        p1 = models.Polynomial1D(5)
-        assert_allclose(p1(x2), yy[1, :], atol=10 ** (-12))
+        assert_allclose(xx.shape, yy.shape)
+        yy1 = p1(xx, model_set_axis=1)
+        assert_allclose(yy, yy1)
+        #x1 = xx[:, 0]
+        #x2 = xx[:, 1]
+        #p1 = models.Polynomial1D(5)
+        #assert_allclose(p1(x1), yy[0, :], atol=10 ** (-12))
+        #p1 = models.Polynomial1D(5)
+        #assert_allclose(p1(x2), yy[1, :], atol=10 ** (-12))
 
     def test_evaluate_gauss2d(self):
         cov = np.array([[1., 0.8], [0.8, 3]])
@@ -314,7 +316,7 @@ class TModel_1_1(Fittable1DModel):
         return x + p1 + p2
 
 
-class TestSingleInputSingleOutputSingleModel(object):
+class TestSingleInputSingleOutputSingleModel:
     """
     A suite of tests to check various cases of parameter and input combinations
     on models with n_input = n_output = 1 on a toy model with n_models=1.
@@ -460,7 +462,7 @@ class TestSingleInputSingleOutputSingleModel(object):
                                [31.10, 32.11, 33.12]]]])
 
 
-class TestSingleInputSingleOutputTwoModel(object):
+class TestSingleInputSingleOutputTwoModel:
     """
     A suite of tests to check various cases of parameter and input combinations
     on models with n_input = n_output = 1 on a toy model with n_models=2.
@@ -637,7 +639,7 @@ class TModel_1_2(FittableModel):
         return (x + p1 + p2, x + p1 + p2 + p3)
 
 
-class TestSingleInputDoubleOutputSingleModel(object):
+class TestSingleInputDoubleOutputSingleModel:
     """
     A suite of tests to check various cases of parameter and input combinations
     on models with n_input = 1 but n_output = 2 on a toy model with n_models=1.

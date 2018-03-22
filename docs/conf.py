@@ -25,6 +25,7 @@
 # Thus, any C-extensions that are needed to build the documentation will *not*
 # be accessible, and the documentation will not build correctly.
 
+from datetime import datetime
 import os
 ON_RTD = os.environ.get('READTHEDOCS') == 'True'
 ON_TRAVIS = os.environ.get('TRAVIS') == 'true'
@@ -45,16 +46,21 @@ except ImportError:
 
 # Load all of the global Astropy configuration
 from astropy_helpers.sphinx.conf import *
-from astropy.extern import six
 
 import astropy
 
-# Use the astropy style when building docs
-from astropy import visualization
-plot_rcparams = visualization.astropy_mpl_docs_style
+plot_rcparams = {}
+plot_rcparams['figure.figsize'] = (6, 6)
+plot_rcparams['savefig.facecolor'] = 'none'
+plot_rcparams['savefig.bbox'] = 'tight'
+plot_rcparams['axes.labelsize'] = 'large'
+plot_rcparams['figure.subplot.hspace'] = 0.5
+
 plot_apply_rcparams = True
 plot_html_show_source_link = False
 plot_formats = ['png', 'svg', 'pdf']
+# Don't use the default - which includes a numpy and matplotlib import
+plot_pre_code = ""
 
 # -- General configuration ----------------------------------------------------
 
@@ -103,7 +109,7 @@ rst_epilog += """
 
 project = u'Astropy'
 author = u'The Astropy Developers'
-copyright = u'2011-2016, ' + author
+copyright = u'2011–{0}, '.format(datetime.utcnow().year) + author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -215,10 +221,7 @@ for line in open('nitpick-exceptions'):
         continue
     dtype, target = line.split(None, 1)
     target = target.strip()
-    nitpick_ignore.append((dtype, six.u(target)))
-
-if six.PY2:
-    nitpick_ignore.extend([('py:obj', six.u('bases'))])
+    nitpick_ignore.append((dtype, target))
 
 # -- Options for the Sphinx gallery -------------------------------------------
 
@@ -245,3 +248,5 @@ except ImportError:
                  'gallery will not be built.  You will probably see '
                  'additional warnings about undefined references due '
                  'to this.')
+
+linkcheck_anchors = False

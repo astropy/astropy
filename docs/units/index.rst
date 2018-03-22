@@ -28,13 +28,13 @@ a |quantity| is to simply multiply or divide a value by one of the built-in
 units.  It works with scalars, sequences and Numpy arrays::
 
     >>> from astropy import units as u
-    >>> 42.0 * u.meter
-    <Quantity 42.0 m>
-    >>> [1., 2., 3.] * u.m
-    <Quantity [ 1., 2., 3.] m>
+    >>> 42.0 * u.meter  # doctest: +FLOAT_CMP
+    <Quantity  42. m>
+    >>> [1., 2., 3.] * u.m  # doctest: +FLOAT_CMP
+    <Quantity [1., 2., 3.] m>
     >>> import numpy as np
-    >>> np.array([1., 2., 3.]) * u.m
-    <Quantity [ 1., 2., 3.] m>
+    >>> np.array([1., 2., 3.]) * u.m  # doctest: +FLOAT_CMP
+    <Quantity [1., 2., 3.] m>
 
 You can get the unit and value from a |quantity| using the unit and
 value members::
@@ -120,12 +120,12 @@ normally work:
 
 but by passing an equivalency list, in this case ``spectral()``, it does:
 
-    >>> (1000 * u.nm).to(u.Hz, equivalencies=u.spectral())
-    <Quantity 299792457999999.94 Hz>
+    >>> (1000 * u.nm).to(u.Hz, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
+    <Quantity  2.99792458e+14 Hz>
 
 Quantities and units can be :ref:`printed nicely to strings
 <astropy-units-format>` using the `Format String Syntax
-<http://docs.python.org/library/string.html#format-string-syntax>`_, the
+<https://docs.python.org/3/library/string.html#format-string-syntax>`_, the
 preferred string formatting syntax in recent versions of python.  Format
 specifiers (like ``0.03f``) in new-style format strings will used to format the
 quantity value::
@@ -163,7 +163,7 @@ Using `astropy.units`
 See Also
 ========
 
-- `FITS Standard <http://fits.gsfc.nasa.gov/fits_standard.html>`_ for
+- `FITS Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`_ for
   units in FITS.
 
 - The `Units in the VO 1.0 Standard
@@ -171,16 +171,16 @@ See Also
   the VO.
 
 - OGIP Units: A standard for storing units in `OGIP FITS files
-  <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
+  <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
 
 - `Standards for astronomical catalogues units
   <http://cds.u-strasbg.fr/doc/catstd-3.2.htx>`_.
 
 - `IAU Style Manual
-  <http://www.iau.org/static/publications/stylemanual1989.pdf>`_.
+  <https://www.iau.org/static/publications/stylemanual1989.pdf>`_.
 
 - `A table of astronomical unit equivalencies
-  <http://astro.wku.edu/strolger/UNITS.txt>`_
+  <http://www.stsci.edu/~strolger/docs/UNITS.txt>`_
 
 Reference/API
 =============
@@ -216,5 +216,5 @@ Acknowledgments
 
 This code is adapted from the `pynbody
 <https://github.com/pynbody/pynbody>`__ units module written by Andrew
-Pontzen, who has granted the Astropy project permission to use the code
+Pontzen, who has granted the Astropy Project permission to use the code
 under a BSD license.

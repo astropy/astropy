@@ -105,11 +105,11 @@ display: inline-block; margin-right: 1em; }
 """
 
 
-class JSViewer(object):
+class JSViewer:
     """Provides an interactive HTML export of a Table.
 
     This class provides an interface to the `DataTables
-    <http://datatables.net/>`_ library, which allow to visualize interactively
+    <https://datatables.net/>`_ library, which allow to visualize interactively
     an HTML table. It is used by the `~astropy.table.Table.show_in_browser`
     method.
 
@@ -172,7 +172,7 @@ class JSViewer(object):
 
 def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
                          table_class="display compact", jskwargs=None,
-                         css=DEFAULT_CSS):
+                         css=DEFAULT_CSS, htmldict=None):
     if table_id is None:
         table_id = 'table{id}'.format(id=id(table))
 
@@ -181,7 +181,7 @@ def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
 
     sortable_columns = [i for i, col in enumerate(table.columns.values())
                         if col.dtype.kind in 'iufc']
-    htmldict = {
+    html_options = {
         'table_id': table_id,
         'table_class': table_class,
         'css': css,
@@ -189,10 +189,12 @@ def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
         'jsfiles': jsv.jquery_urls,
         'js': jsv.html_js(table_id=table_id, sort_columns=sortable_columns)
     }
+    if htmldict:
+        html_options.update(htmldict)
 
     if max_lines < len(table):
         table = table[:max_lines]
-    table.write(filename, format='html', htmldict=htmldict)
+    table.write(filename, format='html', htmldict=html_options)
 
 
 io_registry.register_writer('jsviewer', Table, write_table_jsviewer)

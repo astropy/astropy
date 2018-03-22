@@ -8,7 +8,6 @@ ui.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import re
 import os
@@ -16,6 +15,10 @@ import sys
 import copy
 import time
 import warnings
+import contextlib
+from io import StringIO
+
+import numpy as np
 
 from . import core
 from . import basic
@@ -30,9 +33,8 @@ from . import fastbasic
 from . import cparser
 from . import fixedwidth
 
-from ...table import Table
+from ...table import Table, vstack
 from ...utils.data import get_readable_fileobj
-from ...extern import six
 from ...utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 _read_trace = []
@@ -52,7 +54,7 @@ def _probably_html(table, maxchars=100000):
     Determine if ``table`` probably contains HTML content.  See PR #3693 and issue
     #3691 for context.
     """
-    if not isinstance(table, six.string_types):
+    if not isinstance(table, str):
         try:
             # If table is an iterable (list of strings) then take the first
             # maxchars of these.  Make sure this is something with random
@@ -68,7 +70,7 @@ def _probably_html(table, maxchars=100000):
         except Exception:
             pass
 
-    if isinstance(table, six.string_types):
+    if isinstance(table, str):
         # Look for signs of an HTML table in the first maxchars characters
         table = table[:maxchars]
 
@@ -244,6 +246,14 @@ def read(table, guess=None, **kwargs):
             One-character string defining the exponent or ``'Fortran'`` to auto-detect
             Fortran-style scientific notation like ``'3.14159D+00'`` (``'E'``, ``'D'``, ``'Q'``),
             all case-insensitive; default ``'E'``, all other imply ``use_fast_converter``
+        chunk_size : int
+            If supplied with a value > 0 then read the table in chunks of
+            approximately ``chunk_size`` bytes. Default is reading table in one pass.
+        chunk_generator : bool
+            If True and ``chunk_size > 0`` then return an iterator that returns a
+            table for each chunk.  The default is to return a single stacked table
+            for all the chunks.
+
     Reader : `~astropy.io.ascii.BaseReader`
         Reader class (DEPRECATED)
     encoding: str
@@ -251,19 +261,35 @@ def read(table, guess=None, **kwargs):
 
     Returns
     -------
-    dat : `~astropy.table.Table`
+    dat : `~astropy.table.Table` OR <generator>
         Output table
+
     """
     del _read_trace[:]
+
+    # Downstream readers might munge kwargs
+    kwargs = copy.deepcopy(kwargs)
+
+    # Convert fast_reader into a dict if not already and make sure 'enable'
+    # key is available.
+    fast_reader = kwargs.get('fast_reader', True)
+    if isinstance(fast_reader, dict):
+        fast_reader.setdefault('enable', 'force')
+    else:
+        fast_reader = {'enable': fast_reader}
+    kwargs['fast_reader'] = fast_reader
+
+    if fast_reader['enable'] and fast_reader.get('chunk_size'):
+        return _read_in_chunks(table, **kwargs)
 
     if 'fill_values' not in kwargs:
         kwargs['fill_values'] = [('', '0')]
 
     # If an Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
-    fast_reader_param = kwargs.get('fast_reader', True)
     if 'Outputter' in kwargs:  # user specified Outputter, not supported for fast reading
-        fast_reader_param = False
+        fast_reader['enable'] = False
+
     format = kwargs.get('format')
     new_kwargs.update(kwargs)
 
@@ -322,36 +348,43 @@ def read(table, guess=None, **kwargs):
         # then there was just one set of kwargs in the guess list so fall
         # through below to the non-guess way so that any problems result in a
         # more useful traceback.
-        dat = _guess(table, new_kwargs, format, fast_reader_param)
+        dat = _guess(table, new_kwargs, format, fast_reader)
         if dat is None:
             guess = False
 
     if not guess:
         reader = get_reader(**new_kwargs)
+        if format is None:
+            format = reader._format_name
+
         # Try the fast reader version of `format` first if applicable.  Note that
         # if user specified a fast format (e.g. format='fast_basic') this test
         # will fail and the else-clause below will be used.
-        if fast_reader_param and format is not None and 'fast_{0}'.format(format) \
-                                                        in core.FAST_CLASSES:
-            fast_kwargs = copy.copy(new_kwargs)
+        if fast_reader['enable'] and 'fast_{0}'.format(format) in core.FAST_CLASSES:
+            fast_kwargs = copy.deepcopy(new_kwargs)
             fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
-            fast_reader = get_reader(**fast_kwargs)
+            fast_reader_rdr = get_reader(**fast_kwargs)
             try:
-                dat = fast_reader.read(table)
+                dat = fast_reader_rdr.read(table)
                 _read_trace.append({'kwargs': fast_kwargs,
+                                    'Reader': fast_reader_rdr.__class__,
                                     'status': 'Success with fast reader (no guessing)'})
-            except (core.ParameterError, cparser.CParserError) as e:
+            except (core.ParameterError, cparser.CParserError, UnicodeEncodeError) as err:
                 # special testing value to avoid falling back on the slow reader
-                if fast_reader_param == 'force':
-                    raise e
+                if fast_reader['enable'] == 'force':
+                    raise core.InconsistentTableError(
+                        'fast reader {} exception: {}'
+                        .format(fast_reader_rdr.__class__, err))
                 # If the fast reader doesn't work, try the slow version
                 dat = reader.read(table)
                 _read_trace.append({'kwargs': new_kwargs,
+                                    'Reader': reader.__class__,
                                     'status': 'Success with slow reader after failing'
                                              ' with fast (no guessing)'})
         else:
             dat = reader.read(table)
             _read_trace.append({'kwargs': new_kwargs,
+                                'Reader': reader.__class__,
                                 'status': 'Success with specified Reader class '
                                           '(no guessing)'})
 
@@ -374,19 +407,8 @@ def _guess(table, read_kwargs, format, fast_reader):
         Keyword arguments from user to be supplied to reader
     format : str
         Table format
-    fast_reader : bool
-    fast_reader : bool or dict
-        Whether to use the C engine, can also be a dict with options which
-        defaults to `False`; parameters for options dict:
-
-        use_fast_converter: bool
-            enable faster but slightly imprecise floating point conversion method
-        parallel: bool or int
-            multiprocessing conversion using ``cpu_count()`` or ``'number'`` processes
-        exponent_style: str
-            Character to use for exponent or ``'Fortran'`` to auto-detect any
-            Fortran-style scientific notation like ``'3.14159D+00'`` (``'E'``, ``'D'``, ``'Q'``),
-            all case-insensitive; default ``'E'``, all other imply ``use_fast_converter``
+    fast_reader : dict
+        Options for the C engine fast reader.  See read() function for details.
 
     Returns
     -------
@@ -402,7 +424,7 @@ def _guess(table, read_kwargs, format, fast_reader):
     full_list_guess = _get_guess_kwargs_list(read_kwargs)
 
     # If a fast version of the reader is available, try that before the slow version
-    if fast_reader and format is not None and 'fast_{0}'.format(format) in \
+    if fast_reader['enable'] and format is not None and 'fast_{0}'.format(format) in \
                                                          core.FAST_CLASSES:
         fast_kwargs = read_kwargs.copy()
         fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
@@ -417,11 +439,13 @@ def _guess(table, read_kwargs, format, fast_reader):
 
     for guess_kwargs in full_list_guess:
         # If user specified slow reader then skip all fast readers
-        if fast_reader is False and guess_kwargs['Reader'] in core.FAST_CLASSES.values():
+        if (fast_reader['enable'] is False and
+                guess_kwargs['Reader'] in core.FAST_CLASSES.values()):
             continue
 
-        # If user required a fast reader with 'force' then skip all non-fast readers
-        if fast_reader == 'force' and guess_kwargs['Reader'] not in core.FAST_CLASSES.values():
+        # If user required a fast reader then skip all non-fast readers
+        if (fast_reader['enable'] == 'force' and
+                guess_kwargs['Reader'] not in core.FAST_CLASSES.values()):
             continue
 
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
@@ -452,7 +476,7 @@ def _guess(table, read_kwargs, format, fast_reader):
         return None
 
     # Define whitelist of exceptions that are expected from readers when
-    # processing invalid inputs.  Note that IOError must fall through here
+    # processing invalid inputs.  Note that OSError must fall through here
     # so one cannot simply catch any exception.
     guess_exception_classes = (core.InconsistentTableError, ValueError, TypeError,
                                AttributeError, core.OptionalTableImportError,
@@ -471,7 +495,9 @@ def _guess(table, read_kwargs, format, fast_reader):
             reader = get_reader(**guess_kwargs)
             reader.guessing = True
             dat = reader.read(table)
-            _read_trace.append({'kwargs': guess_kwargs, 'status': 'Success (guessing)',
+            _read_trace.append({'kwargs': guess_kwargs,
+                                'Reader': reader.__class__,
+                                'status': 'Success (guessing)',
                                 'dt': '{0:.3f} ms'.format((time.time() - t0) * 1000)})
             return dat
 
@@ -487,6 +513,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             reader = get_reader(**read_kwargs)
             dat = reader.read(table)
             _read_trace.append({'kwargs': read_kwargs,
+                                'Reader': reader.__class__,
                                 'status': 'Success with original kwargs without strict_names '
                                           '(guessing)'})
             return dat
@@ -595,6 +622,127 @@ def _get_guess_kwargs_list(read_kwargs):
     return guess_kwargs_list
 
 
+def _read_in_chunks(table, **kwargs):
+    """
+    For fast_reader read the ``table`` in chunks and vstack to create
+    a single table, OR return a generator of chunk tables.
+    """
+    fast_reader = kwargs['fast_reader']
+    chunk_size = fast_reader.pop('chunk_size')
+    chunk_generator = fast_reader.pop('chunk_generator', False)
+    fast_reader['parallel'] = False  # No parallel with chunks
+
+    tbl_chunks = _read_in_chunks_generator(table, chunk_size, **kwargs)
+    if chunk_generator:
+        return tbl_chunks
+
+    tbl0 = next(tbl_chunks)
+    masked = tbl0.masked
+
+    # Numpy won't allow resizing the original so make a copy here.
+    out_cols = {col.name: col.data.copy() for col in tbl0.itercols()}
+
+    str_kinds = ('S', 'U')
+    for tbl in tbl_chunks:
+        masked |= tbl.masked
+        for name, col in tbl.columns.items():
+            # Concatenate current column data and new column data
+
+            # If one of the inputs is string-like and the other is not, then
+            # convert the non-string to a string.  In a perfect world this would
+            # be handled by numpy, but as of numpy 1.13 this results in a string
+            # dtype that is too long (https://github.com/numpy/numpy/issues/10062).
+
+            col1, col2 = out_cols[name], col.data
+            if col1.dtype.kind in str_kinds and col2.dtype.kind not in str_kinds:
+                col2 = np.array(col2.tolist(), dtype=col1.dtype.kind)
+            elif col2.dtype.kind in str_kinds and col1.dtype.kind not in str_kinds:
+                col1 = np.array(col1.tolist(), dtype=col2.dtype.kind)
+
+            # Choose either masked or normal concatenation
+            concatenate = np.ma.concatenate if masked else np.concatenate
+
+            out_cols[name] = concatenate([col1, col2])
+
+    # Make final table from numpy arrays, converting dict to list
+    out_cols = [out_cols[name] for name in tbl0.colnames]
+    out = tbl0.__class__(out_cols, names=tbl0.colnames, meta=tbl0.meta,
+                         copy=False)
+
+    return out
+
+
+def _read_in_chunks_generator(table, chunk_size, **kwargs):
+    """
+    For fast_reader read the ``table`` in chunks and return a generator
+    of tables for each chunk.
+    """
+
+    @contextlib.contextmanager
+    def passthrough_fileobj(fileobj, encoding=None):
+        """Stub for get_readable_fileobj, which does not seem to work in Py3
+        for input File-like object, see #6460"""
+        yield fileobj
+
+    # Set up to coerce `table` input into a readable file object by selecting
+    # an appropriate function.
+
+    # Convert table-as-string to a File object.  Finding a newline implies
+    # that the string is not a filename.
+    if (isinstance(table, str) and ('\n' in table or '\r' in table)):
+        table = StringIO(table)
+        fileobj_context = passthrough_fileobj
+    elif hasattr(table, 'read') and hasattr(table, 'seek'):
+        fileobj_context = passthrough_fileobj
+    else:
+        # string filename or pathlib
+        fileobj_context = get_readable_fileobj
+
+    # Set up for iterating over chunks
+    kwargs['fast_reader']['return_header_chars'] = True
+    header = ''  # Table header (up to start of data)
+    prev_chunk_chars = ''  # Chars from previous chunk after last newline
+    first_chunk = True  # True for the first chunk, False afterward
+
+    with fileobj_context(table, encoding=kwargs.get('encoding')) as fh:
+
+        while True:
+            chunk = fh.read(chunk_size)
+            # Got fewer chars than requested, must be end of file
+            final_chunk = len(chunk) < chunk_size
+
+            # If this is the last chunk and there is only whitespace then break
+            if final_chunk and not re.search(r'\S', chunk):
+                break
+
+            # Step backwards from last character in chunk and find first newline
+            for idx in range(len(chunk) - 1, -1, -1):
+                if final_chunk or chunk[idx] == '\n':
+                    break
+            else:
+                raise ValueError('no newline found in chunk (chunk_size too small?)')
+
+            # Stick on the header to the chunk part up to (and including) the
+            # last newline.  Make sure the small strings are concatenated first.
+            complete_chunk = (header + prev_chunk_chars) + chunk[:idx + 1]
+            prev_chunk_chars = chunk[idx + 1:]
+
+            # Now read the chunk as a complete table
+            tbl = read(complete_chunk, guess=False, **kwargs)
+
+            # For the first chunk pop the meta key which contains the header
+            # characters (everything up to the start of data) then fix kwargs
+            # so it doesn't return that in meta any more.
+            if first_chunk:
+                header = tbl.meta.pop('__ascii_fast_reader_header_chars__')
+                first_chunk = False
+
+            yield tbl
+
+            if final_chunk:
+                break
+
+
 extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
                      'names', 'include_names', 'exclude_names', 'strip_whitespace')
 
@@ -645,7 +793,7 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     # a default comment character, there is no other option but to tell user to
     # simply remove the meta['comments'].
     if (isinstance(writer, (basic.CommentedHeader, fastbasic.FastCommentedHeader))
-            and not isinstance(kwargs.get('comment', ''), six.string_types)):
+            and not isinstance(kwargs.get('comment', ''), str)):
         raise ValueError("for the commented_header writer you must supply a string\n"
                          "value for the `comment` keyword.  In order to disable writing\n"
                          "table comments use `del t.meta['comments']` prior to writing.")
@@ -653,7 +801,8 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     return writer
 
 
-def write(table, output=None, format=None, Writer=None, fast_writer=True, **kwargs):
+def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
+          overwrite=None, **kwargs):
     """Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
 
@@ -695,8 +844,7 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, **kwar
         Writer class (DEPRECATED).
 
     """
-    overwrite = kwargs.pop('overwrite', None)
-    if isinstance(output, six.string_types):
+    if isinstance(output, str):
         if os.path.lexists(output):
             if overwrite is None:
                 warnings.warn(
@@ -705,7 +853,7 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, **kwar
                     "Use the argument 'overwrite=True' in the future.".format(
                         output), AstropyDeprecationWarning)
             elif not overwrite:
-                raise IOError("{} already exists".format(output))
+                raise OSError("{} already exists".format(output))
 
     if output is None:
         output = sys.stdout

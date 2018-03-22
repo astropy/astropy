@@ -1,23 +1,19 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 """
 Regression tests for the units package
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
+import pickle
 from fractions import Fraction
 
 import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose
 
-from ...extern import six
-from ...extern.six.moves import range, cPickle as pickle
 from ...tests.helper import raises, catch_warnings
 
 from ... import units as u
@@ -259,7 +255,7 @@ def test_convertible_exception2():
 
 @raises(TypeError)
 def test_invalid_type():
-    class A(object):
+    class A:
         pass
 
     u.Unit(A())
@@ -352,10 +348,9 @@ for val in u.cgs.__dict__.values():
 @pytest.mark.parametrize('unit', sorted(COMPOSE_CGS_TO_SI, key=_unit_as_str),
                          ids=_unit_as_str)
 def test_compose_cgs_to_si(unit):
-    for iter in range(10):
-        si = unit.to_system(u.si)
-        assert [x.is_equivalent(unit) for x in si]
-        assert si[0] == unit.si
+    si = unit.to_system(u.si)
+    assert [x.is_equivalent(unit) for x in si]
+    assert si[0] == unit.si
 
 
 # We use a set to make sure we don't have any duplicates.
@@ -404,6 +399,25 @@ def test_compose_issue_579():
     assert result[0]._powers == [4, 1, -2]
 
 
+def test_compose_prefix_unit():
+    x =  u.m.compose(units=(u.m,))
+    assert x[0].bases[0] is u.m
+    assert x[0].scale == 1.0
+    x = u.m.compose(units=[u.km], include_prefix_units=True)
+    assert x[0].bases[0] is u.km
+    assert x[0].scale == 0.001
+    x = u.m.compose(units=[u.km])
+    assert x[0].bases[0] is u.km
+    assert x[0].scale == 0.001
+
+    x = (u.km/u.s).compose(units=(u.pc, u.Myr))
+    assert x[0].bases == [u.pc, u.Myr]
+    assert_allclose(x[0].scale, 1.0227121650537077)
+
+    with raises(u.UnitsError):
+        (u.km/u.s).compose(units=(u.pc, u.Myr), include_prefix_units=False)
+
+
 def test_self_compose():
     unit = u.kg * u.s
 
@@ -418,7 +432,10 @@ def test_compose_failed():
 
 
 def test_compose_fractional_powers():
-    x = (u.kg / u.s ** 3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2)
+    # Warning: with a complicated unit, this test becomes very slow;
+    # e.g., x = (u.kg / u.s ** 3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2)
+    # takes 3 s
+    x = u.m ** 0.5 / u.yr ** 1.5
 
     factored = x.compose()
 
@@ -637,7 +654,7 @@ def test_suggestions():
         try:
             u.Unit(search)
         except ValueError as e:
-            assert 'Did you mean {0}?'.format(matches) in six.text_type(e)
+            assert 'Did you mean {0}?'.format(matches) in str(e)
         else:
             assert False, 'Expected ValueError'
 

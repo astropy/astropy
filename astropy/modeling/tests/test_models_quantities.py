@@ -6,7 +6,7 @@ import numpy as np
 from ... import units as u
 from ...tests.helper import assert_quantity_allclose
 
-from ..functional_models import (Gaussian1D, GaussianAbsorption1D,
+from ..functional_models import (Gaussian1D,
                                  Sersic1D, Sine1D, Linear1D,
                                  Lorentz1D, Voigt1D, Const1D,
                                  Box1D, Trapezoid1D, MexicanHat1D,
@@ -26,9 +26,6 @@ try:
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
-
-# TODO: GaussianAbsorption1D doesn't work with units because the 1- part doesn't
-# have units. How do we want to deal with that?
 
 FUNC_MODELS_1D = [
 {'class': Gaussian1D,
@@ -285,18 +282,20 @@ def test_models_bounding_box(model):
 
     m = model['class'](**model['parameters'])
 
-    if model['bounding_box']:
-        # A bounding box may have inhomogeneous units so we need to check the
-        # values one by one.
-        for i in range(len(model['bounding_box'])):
-            bbox = m.bounding_box
-            assert_quantity_allclose(bbox[i], model['bounding_box'][i])
-    else:
+    # In the following we need to explicitly test that the value is False
+    # since Quantities no longer evaluate as as True
+    if model['bounding_box'] is False:
         # Check that NotImplementedError is raised, so that if bounding_box is
         # implemented we remember to set bounding_box=True in the list of models
         # above
         with pytest.raises(NotImplementedError):
             m.bounding_box
+    else:
+        # A bounding box may have inhomogeneous units so we need to check the
+        # values one by one.
+        for i in range(len(model['bounding_box'])):
+            bbox = m.bounding_box
+            assert_quantity_allclose(bbox[i], model['bounding_box'][i])
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

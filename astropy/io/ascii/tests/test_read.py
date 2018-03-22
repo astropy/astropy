@@ -1,27 +1,31 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 import re
 from io import BytesIO, open
 from collections import OrderedDict
 import locale
 import platform
+from io import StringIO
 
+import pathlib
 import pytest
 import numpy as np
 
-from ....extern import six  # noqa
-from ....extern.six.moves import zip, cStringIO as StringIO
 from ... import ascii
 from ....table import Table
+from .... import table
 from ....units import Unit
+from ....table.table_helpers import simple_table
 
 from .common import (raises, assert_equal, assert_almost_equal,
-                     assert_true, setup_function, teardown_function)
+                     assert_true)
 from .. import core
-from ..ui import _probably_html, get_read_trace
+from ..ui import _probably_html, get_read_trace, cparser
+
+# setup/teardown function to have the tests run in the correct directory
+from .common import setup_function, teardown_function
 
 try:
     import bz2  # pylint: disable=W0611
@@ -29,13 +33,6 @@ except ImportError:
     HAS_BZ2 = False
 else:
     HAS_BZ2 = True
-
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, {'use_fast_converter': False},
@@ -45,12 +42,11 @@ def test_convert_overflow(fast_reader):
     Test reading an extremely large integer, which falls through to
     string due to an overflow error (#2234). The C parsers used to
     return inf (kind 'f') for this.
-    Kind should be 'S' in Python2, 'U' in Python3.
     """
-    expected_kind = ('S', 'U')
+    expected_kind = 'U'
     dat = ascii.read(['a', '1' * 10000], format='basic',
                      fast_reader=fast_reader, guess=False)
-    assert dat['a'].dtype.kind in expected_kind
+    assert dat['a'].dtype.kind == expected_kind
 
 
 def test_guess_with_names_arg():
@@ -109,13 +105,23 @@ def test_guess_with_format_arg():
     assert dat.colnames == ['a', 'b']
 
 
+def test_reading_mixed_delimiter_tabs_spaces():
+    # Regression test for https://github.com/astropy/astropy/issues/6770
+    dat = ascii.read('1 2\t3\n1 2\t3', format='no_header', names=list('abc'))
+    assert len(dat) == 2
+
+    Table.read(['1 2\t3', '1 2\t3'], format='ascii.no_header',
+               names=['a', 'b', 'c'])
+    assert len(dat) == 2
+
+
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_read_with_names_arg(fast_reader):
     """
     Test that a bad value of `names` raises an exception.
     """
     with pytest.raises(ValueError):
-        dat = ascii.read(['c d', 'e f'], names=('a', ), guess=False, fast_reader=fast_reader)
+        ascii.read(['c d', 'e f'], names=('a', ), guess=False, fast_reader=fast_reader)
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
@@ -236,31 +242,31 @@ def test_daophot_multiple_aperture2():
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_empty_table_no_header(fast_reader):
     with pytest.raises(ascii.InconsistentTableError):
-        table = ascii.read('t/no_data_without_header.dat', Reader=ascii.NoHeader,
-                            guess=False, fast_reader=fast_reader)
+        ascii.read('t/no_data_without_header.dat', Reader=ascii.NoHeader,
+                   guess=False, fast_reader=fast_reader)
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_wrong_quote(fast_reader):
     with pytest.raises(ascii.InconsistentTableError):
-        table = ascii.read('t/simple.txt', guess=False, fast_reader=fast_reader)
+        ascii.read('t/simple.txt', guess=False, fast_reader=fast_reader)
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_extra_data_col(fast_reader):
     with pytest.raises(ascii.InconsistentTableError):
-        table = ascii.read('t/bad.txt', fast_reader=fast_reader)
+        ascii.read('t/bad.txt', fast_reader=fast_reader)
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_extra_data_col2(fast_reader):
     with pytest.raises(ascii.InconsistentTableError):
-        table = ascii.read('t/simple5.txt', delimiter='|', fast_reader=fast_reader)
+        ascii.read('t/simple5.txt', delimiter='|', fast_reader=fast_reader)
 
 
-@raises(IOError)
+@raises(OSError)
 def test_missing_file():
-    table = ascii.read('does_not_exist')
+    ascii.read('does_not_exist')
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
@@ -1141,7 +1147,6 @@ def test_table_with_no_newline():
         assert len(t) == 0
 
 
-@pytest.mark.skipif('not HAS_PATHLIB')
 def test_path_object():
     fpath = pathlib.Path('t/simple.txt')
     data = ascii.read(fpath)
@@ -1259,7 +1264,6 @@ def text_aastex_no_trailing_backslash():
     assert np.all(dat['c'] == ['c', 'e'])
 
 
-@pytest.mark.skipif('six.PY2')
 @pytest.mark.parametrize('encoding', ['utf8', 'latin1', 'cp1252'])
 def test_read_with_encoding(tmpdir, encoding):
     data = {
@@ -1292,8 +1296,94 @@ def test_unsupported_read_with_encoding(tmpdir):
         ascii.read('t/simple3.txt', guess=False, fast_reader='force',
                    encoding='latin1', format='fast_csv')
 
-    # Python 2 is not supported, make sure it raises an exception
-    if six.PY2:
-        with pytest.raises(ValueError):
-            ascii.read('t/simple3.txt', guess=False, fast_reader=False,
-                       encoding='latin1', format='csv')
+
+def test_read_chunks_input_types():
+    """
+    Test chunked reading for different input types: file path, file object,
+    and string input.
+    """
+    fpath = 't/test5.dat'
+    t1 = ascii.read(fpath, header_start=1, data_start=3, )
+
+    for fp in (fpath, open(fpath, 'r'), open(fpath, 'r').read()):
+        t_gen = ascii.read(fp, header_start=1, data_start=3,
+                           guess=False, format='fast_basic',
+                           fast_reader={'chunk_size': 400, 'chunk_generator': True})
+        ts = list(t_gen)
+        for t in ts:
+            for col, col1 in zip(t.columns.values(), t1.columns.values()):
+                assert col.name == col1.name
+                assert col.dtype.kind == col1.dtype.kind
+
+        assert len(ts) == 4
+        t2 = table.vstack(ts)
+        assert np.all(t1 == t2)
+
+    for fp in (fpath, open(fpath, 'r'), open(fpath, 'r').read()):
+        # Now read the full table in chunks
+        t3 = ascii.read(fp, header_start=1, data_start=3,
+                        fast_reader={'chunk_size': 300})
+        assert np.all(t1 == t3)
+
+
+@pytest.mark.parametrize('masked', [True, False])
+def test_read_chunks_formats(masked):
+    """
+    Test different supported formats for chunked reading.
+    """
+    t1 = simple_table(size=102, cols=10, kinds='fS', masked=masked)
+    for i, name in enumerate(t1.colnames):
+        t1.rename_column(name, 'col{}'.format(i + 1))
+
+    # TO DO commented_header does not currently work due to the special-cased
+    # implementation of header parsing.
+
+    for format in 'tab', 'csv', 'no_header', 'rdb', 'basic':
+        out = StringIO()
+        ascii.write(t1, out, format=format)
+        t_gen = ascii.read(out.getvalue(), format=format,
+                           fast_reader={'chunk_size': 400, 'chunk_generator': True})
+        ts = list(t_gen)
+        for t in ts:
+            for col, col1 in zip(t.columns.values(), t1.columns.values()):
+                assert col.name == col1.name
+                assert col.dtype.kind == col1.dtype.kind
+
+        assert len(ts) > 4
+        t2 = table.vstack(ts)
+        assert np.all(t1 == t2)
+
+        # Now read the full table in chunks
+        t3 = ascii.read(out.getvalue(), format=format, fast_reader={'chunk_size': 400})
+        assert np.all(t1 == t3)
+
+
+def test_read_chunks_chunk_size_too_small():
+    fpath = 't/test5.dat'
+    with pytest.raises(ValueError) as err:
+        ascii.read(fpath, header_start=1, data_start=3,
+                   fast_reader={'chunk_size': 10})
+    assert 'no newline found in chunk (chunk_size too small?)' in str(err)
+
+
+def test_read_chunks_table_changes():
+    """Column changes type or size between chunks.  This also tests the case with
+    no final newline.
+    """
+    col = ['a b c'] + ['1.12334 xyz a'] * 50 + ['abcdefg 555 abc'] * 50
+    table = '\n'.join(col)
+    t1 = ascii.read(table, guess=False)
+    t2 = ascii.read(table, fast_reader={'chunk_size': 100})
+
+    # This also confirms that the dtypes are exactly the same, i.e.
+    # the string itemsizes are the same.
+    assert np.all(t1 == t2)
+
+
+def test_read_non_ascii():
+    """Test that pure-Python reader is used in case the file contains non-ASCII characters
+    in it.
+    """
+    table = Table.read(['col1, col2', '\u2119, \u01b4', '1, 2'], format='csv')
+    assert np.all(table['col1'] == ['\u2119', '1'])
+    assert np.all(table['col2'] == ['\u01b4', '2'])

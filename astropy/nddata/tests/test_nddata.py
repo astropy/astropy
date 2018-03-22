@@ -1,9 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import textwrap
 from collections import OrderedDict
@@ -37,14 +34,14 @@ class FakeUncertainty(NDUncertainty):
         pass
 
 
-class FakeNumpyArray(object):
+class FakeNumpyArray:
     """
     Class that has a few of the attributes of a numpy array.
 
     These attributes are checked for by NDData.
     """
     def __init__(self):
-        super(FakeNumpyArray, self).__init__()
+        super().__init__()
 
     def shape(self):
         pass
@@ -60,7 +57,7 @@ class FakeNumpyArray(object):
         return 'fake'
 
 
-class MinimalUncertainty(object):
+class MinimalUncertainty:
     """
     Define the minimum attributes acceptable as an uncertainty object.
     """
@@ -280,7 +277,7 @@ def test_nddata_init_data_fail():
         NDData({'a': 'dict'})
 
     # This has a shape but is not sliceable
-    class Shape(object):
+    class Shape:
         def __init__(self):
             self.shape = 5
 

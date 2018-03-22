@@ -5,10 +5,7 @@ Astropy
 .. image:: https://img.shields.io/pypi/v/astropy.svg
     :target: https://pypi.python.org/pypi/astropy
 
-.. image:: https://badges.gitter.im/Join%20Chat.svg
-    :target: https://gitter.im/astropy/astropy
-
-Astropy (http://astropy.org/) is a package intended to contain much of
+Astropy (http://www.astropy.org) is a package intended to contain much of
 the core functionality and some common tools needed for performing
 astronomy and astrophysics with Python.
 
@@ -47,6 +44,20 @@ with the Astropy Project, see http://dashboard.astropy.org.
 .. image:: https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A
     :target: http://numfocus.org
     :alt: Powered by NumFOCUS
+
+
+Contributing Code, Documentation, or Feedback
+---------------------------------------------
+The Astropy project is made both by and for its users, so we welcome and encourage
+contributions of many kinds. Our goal is to keep this a positive, inclusive,
+successful, and growing community, by abiding with the
+`Astropy Community Code of Conduct <http://www.astropy.org/about.html#codeofconduct>`_.
+
+More detailed information on contributing to the project or submitting feedback
+can be found on the `contributions <http://www.astropy.org/contribute.html>`_ page.
+
+A `summary of contribution guidelines <CONTRIBUTING.md>`_ can also be used as a quick
+reference when you're ready to start writing or validating code for submission.
 
 License
 -------

@@ -16,9 +16,10 @@ converted in any way but are used natively.
 
 The available built-in mixin column classes are:
 
-- |Quantity|
-- |SkyCoord|
-- |Time|
+- |Quantity| and subclasses
+- |SkyCoord| and coordinate frame classes
+- |Time| and :class:`~astropy.time.TimeDelta`
+- :class:`~astropy.coordinates.EarthLocation`
 - `~astropy.table.NdarrayMixin`
 
 As a first example we can create a table and add a time column::
@@ -38,8 +39,8 @@ The important point here is that the ``time`` column is a bona fide |Time| objec
 
   >>> t['time']
   <Time object: scale='utc' format='isot' value=['2001-01-02T12:34:56.000' '2001-02-03T00:01:02.000']>
-  >>> t['time'].mjd
-  array([ 51911.52425926,  51943.00071759])
+  >>> t['time'].mjd  # doctest: +FLOAT_CMP
+  array([51911.52425926, 51943.00071759])
 
 .. _quantity_and_qtable:
 
@@ -185,16 +186,16 @@ This mode of initializing a table does not work with mixin columns, so both of
 the following will fail::
 
    >>> qt = QTable([{'a': 1 * u.m, 'b': 2},
-   ...              {'a': 2 * u.m, 'b': 3}])
+   ...              {'a': 2 * u.m, 'b': 3}])  # doctest: +SKIP
    Traceback (most recent call last):
     ...
-   ValueError: setting an array element with a sequence.
+   TypeError: only dimensionless scalar quantities can be converted to Python scalars
 
    >>> qt = QTable(rows=[[1 * u.m, 2],
-   ...                   [2 * u.m, 3]])
+   ...                   [2 * u.m, 3]])  # doctest: +SKIP
    Traceback (most recent call last):
     ...
-   ValueError: setting an array element with a sequence.
+   TypeError: only dimensionless scalar quantities can be converted to Python scalars
 
 The problem lies in knowing if and how to assemble the individual elements
 for each column into an appropriate mixin column.  The current code uses
@@ -237,10 +238,19 @@ that contain mixin columns:
 
 **ASCII table writing**
 
-Mixin columns can be written out to file using the `astropy.io.ascii` module,
-but the fast C-based writers are not available.  Instead the legacy pure-Python
-writers will be used.
+Tables with mixin columns can be written out to file using the `astropy.io.ascii` module,
+but the fast C-based writers are not available.  Instead the pure-Python
+writers will be used.  For writing tables with mixin columns it is recommended
+to use the ``'ecsv'`` ASCII format.  This will fully serialize the table data and
+metadata, allowing full "round-trip" of the table when it is read back.  See
+:ref:`ecsv_format` for details.
 
+**Binary table writing**
+
+Starting with astropy 3.0, tables with mixin columns can be written in binary
+format to file using both FITS and HDF5 formats.  These can be read back to
+recover exactly the original Table including mixin columns and metadata. See
+:ref:`table_io` for details.
 
 .. _mixin_protocol:
 

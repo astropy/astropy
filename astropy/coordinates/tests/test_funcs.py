@@ -5,14 +5,11 @@
 Tests for miscellaneous functionality in the `funcs` module
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import pytest
 import numpy as np
 from numpy import testing as npt
 
-from ...extern import six
 
 from ... import units as u
 from ...time import Time
@@ -63,7 +60,7 @@ def test_constellations():
     res_short = get_constellation(inuma, short_name=True)
     assert res == 'Ursa Major'
     assert res_short == 'UMa'
-    assert isinstance(res, six.string_types) or getattr(res, 'shape', None) == tuple()
+    assert isinstance(res, str) or getattr(res, 'shape', None) == tuple()
 
     # these are taken from the ReadMe for Roman 1987
     ras = [9, 23.5, 5.12, 9.4555, 12.8888, 15.6687, 19, 6.2222]
@@ -78,4 +75,4 @@ def test_constellations():
     bootest = SkyCoord(15*u.hour, 30*u.deg, frame='icrs')
     boores = get_constellation(bootest)
     assert boores == u'Boötes'
-    assert isinstance(boores, six.string_types) or getattr(boores, 'shape', None) == tuple()
+    assert isinstance(boores, str) or getattr(boores, 'shape', None) == tuple()

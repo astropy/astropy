@@ -42,13 +42,11 @@ header that describes the compression.
 With Astropy installed, please run ``fitsheader --help`` to see the full usage
 documentation.
 """
-from __future__ import absolute_import, division, print_function
 
 import sys
 
 from ... import fits
 from .... import log
-from ....extern.six.moves import range
 
 
 class ExtensionNotFoundException(Exception):
@@ -56,7 +54,7 @@ class ExtensionNotFoundException(Exception):
     pass
 
 
-class HeaderFormatter(object):
+class HeaderFormatter:
     """Class to format the header(s) of a FITS file for display by the
     `fitsheader` tool; essentially a wrapper around a `HDUList` object.
 
@@ -71,7 +69,7 @@ class HeaderFormatter(object):
 
     Raises
     ------
-    IOError
+    OSError
         If `filename` does not exist or cannot be read.
     """
     def __init__(self, filename):
@@ -241,7 +239,7 @@ def print_headers_traditional(args):
             print(formatter.parse(args.extensions,
                                   args.keywords,
                                   args.compressed), end='')
-        except IOError as e:
+        except OSError as e:
             log.error(str(e))
 
 
@@ -263,7 +261,7 @@ def print_headers_as_table(args):
                                   args.compressed)
             if tbl:
                 tables.append(tbl)
-        except IOError as e:
+        except OSError as e:
             log.error(str(e))  # file not found or unreadable
     # Concatenate the tables
     if len(tables) == 0:
@@ -323,7 +321,7 @@ def main(args=None):
             print_headers_as_table(args)
         else:
             print_headers_traditional(args)
-    except IOError as e:
-        # A 'Broken pipe' IOError may occur when stdout is closed prematurely,
+    except OSError as e:
+        # A 'Broken pipe' OSError may occur when stdout is closed prematurely,
         # eg. when calling `fitsheader file.fits | head`. We let this pass.
         pass

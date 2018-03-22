@@ -3,8 +3,6 @@
 Module to test fitting routines
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import os.path
 
@@ -12,6 +10,7 @@ import pytest
 import numpy as np
 from numpy import linalg
 from numpy.testing.utils import assert_allclose, assert_almost_equal
+from unittest import mock
 
 from . import irafutil
 from .. import models
@@ -32,15 +31,6 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-HAS_MOCK = True
-try:
-    from unittest import mock
-except ImportError:
-    try:
-        import mock
-    except ImportError:
-        HAS_MOCK = False
-
 try:
     from pkg_resources import EntryPoint
     HAS_PKG = True
@@ -53,7 +43,7 @@ fitters = [SimplexLSQFitter, SLSQPLSQFitter]
 _RANDOM_SEED = 0x1337
 
 
-class TestPolynomial2D(object):
+class TestPolynomial2D:
     """Tests for 2D polynomail fitting."""
 
     def setup_class(self):
@@ -83,7 +73,7 @@ class TestPolynomial2D(object):
         assert_allclose(new_model.parameters, [1, 2, 3, 4, 5, 6])
 
 
-class TestICheb2D(object):
+class TestICheb2D:
     """
     Tests 2D Chebyshev polynomial fitting
 
@@ -137,7 +127,7 @@ class TestICheb2D(object):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-class TestJointFitter(object):
+class TestJointFitter:
 
     """
     Tests the joint fitting routine using 2 gaussian models
@@ -194,7 +184,7 @@ class TestJointFitter(object):
         assert_allclose(coeff, self.jf.fitparams, rtol=10 ** (-2))
 
 
-class TestLinearLSQFitter(object):
+class TestLinearLSQFitter:
     def test_chebyshev1D(self):
         """Tests fitting a 1D Chebyshev polynomial to some real world data."""
 
@@ -299,9 +289,49 @@ class TestLinearLSQFitter(object):
         assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
                         atol=1e-14)
 
+    def test_linear_fit_model_set_masked_values(self):
+        """
+        Tests model set fitting with masked value(s) (#4824, #6819).
+        """
+        # NB. For single models, there is an equivalent doctest.
+
+        init_model = models.Polynomial1D(degree=1, n_models=2)
+        x = np.arange(10)
+        y = np.ma.masked_array([2*x+1, x-2], mask=np.zeros_like([x, x]))
+
+        y[0, 7] = 100.  # throw off fit coefficients if unmasked
+        y.mask[0, 7] = True
+        y[1, 1:3] = -100.
+        y.mask[1, 1:3] = True
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y)
+
+        assert_allclose(fitted_model.c0, [1., -2.], atol=1e-14)
+        assert_allclose(fitted_model.c1, [2., 1.], atol=1e-14)
+
+    def test_linear_fit_2d_model_set_masked_values(self):
+        """
+        Tests 2D model set fitting with masked value(s) (#4824, #6819).
+        """
+        init_model = models.Polynomial2D(1, n_models=2)
+        x, y = np.mgrid[0:5, 0:5]
+        z = np.ma.masked_array([2*x+3*y+1, x-0.5*y-2],
+                               mask=np.zeros_like([x, x]))
+
+        z[0, 3, 1] = -1000.  # throw off fit coefficients if unmasked
+        z.mask[0, 3, 1] = True
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y, z)
+
+        assert_allclose(fitted_model.c0_0, [1., -2.], atol=1e-14)
+        assert_allclose(fitted_model.c1_0, [2., 1.], atol=1e-14)
+        assert_allclose(fitted_model.c0_1, [3., -0.5], atol=1e-14)
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
-class TestNonLinearFitters(object):
+class TestNonLinearFitters:
     """Tests non-linear least squares fitting and the SLSQP algorithm."""
 
     def setup_class(self):
@@ -472,9 +502,8 @@ class TestNonLinearFitters(object):
         assert_allclose(olscov, fitter.fit_info['param_cov'])
 
 
-@pytest.mark.skipif('not HAS_MOCK')
 @pytest.mark.skipif('not HAS_PKG')
-class TestEntryPoint(object):
+class TestEntryPoint:
     """Tests population of fitting with entry point fitters"""
 
     def setup_class(self):
@@ -498,7 +527,7 @@ class TestEntryPoint(object):
 
     def returnbadclass(self):
         # This should import But it should fail subclass type check
-        class badclass(object):
+        class badclass:
             pass
         return badclass
 
@@ -562,7 +591,7 @@ class TestEntryPoint(object):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-class Test1DFittingWithOutlierRemoval(object):
+class Test1DFittingWithOutlierRemoval:
     def setup_class(self):
         self.x = np.linspace(-5., 5., 200)
         self.model_params = (3.0, 1.3, 0.8)
@@ -599,7 +628,7 @@ class Test1DFittingWithOutlierRemoval(object):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-class Test2DFittingWithOutlierRemoval(object):
+class Test2DFittingWithOutlierRemoval:
     def setup_class(self):
         self.y, self.x = np.mgrid[-3:3:128j, -3:3:128j]
         self.model_params = (3.0, 1.0, 0.0, 0.8, 0.8)
@@ -663,6 +692,82 @@ class Test2DFittingWithOutlierRemoval(object):
         _, fitted_model = fit(g2_init, self.x, self.y, self.z)
         assert_allclose(fitted_model.parameters[0:5], self.model_params,
                         atol=1e-1)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+class TestWeightedFittingWithOutlierRemoval:
+    """Issue #7020 """
+
+    def setup_class(self):
+        # values of x,y not important as we fit y(x,y) = p0 model here
+        self.y, self.x = np.mgrid[0:20, 0:20]
+        self.z = np.mod(self.x + self.y, 2) * 2 - 1 # -1,1 chessboard
+        self.weights = np.mod(self.x + self.y, 2) * 2 + 1 # 1,3 chessboard
+        self.z[0,0] = 1000.0 # outlier
+        self.z[0,1] = 1000.0 # outlier
+        self.x1d = self.x.flatten()
+        self.z1d = self.z.flatten()
+        self.weights1d = self.weights.flatten()
+
+    def test_1d_without_weights_without_sigma_clip(self):
+        model = models.Polynomial1D(0)
+        fitter = LinearLSQFitter()
+        fit = fitter(model, self.x1d, self.z1d)
+        assert_allclose(fit.parameters[0], self.z1d.mean(), atol=10**(-2))
+
+    def test_1d_without_weights_with_sigma_clip(self):
+        model = models.Polynomial1D(0)
+        fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        filtered, fit = fitter(model, self.x1d, self.z1d)
+        assert(filtered.count() == self.z1d.size - 2)
+        assert(filtered.mask[0] and filtered.mask[1])
+        assert_allclose(fit.parameters[0], 0.0, atol=10**(-2)) # with removed outliers mean is 0.0
+
+    def test_1d_with_weights_without_sigma_clip(self):
+        model = models.Polynomial1D(0)
+        fitter = LinearLSQFitter()
+        fit = fitter(model, self.x1d, self.z1d, weights=self.weights1d)
+        assert(fit.parameters[0] > 1.0)     # outliers pulled it high
+
+    def test_1d_with_weights_with_sigma_clip(self):
+        """smoke test for #7020 - fails without fitting.py patch because weights does not propagate"""
+        model = models.Polynomial1D(0)
+        fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        filtered, fit = fitter(model, self.x1d, self.z1d, weights=self.weights1d)
+        assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
+        assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
+
+    def test_2d_without_weights_without_sigma_clip(self):
+        model = models.Polynomial2D(0)
+        fitter = LinearLSQFitter()
+        fit = fitter(model, self.x, self.y, self.z)
+        assert_allclose(fit.parameters[0], self.z.mean(), atol=10**(-2))
+
+    def test_2d_without_weights_with_sigma_clip(self):
+        model = models.Polynomial2D(0)
+        fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        filtered, fit = fitter(model, self.x, self.y, self.z)
+        assert(filtered.count() == self.z.size - 2)
+        assert(filtered.mask[0,0] and filtered.mask[0,1])
+        assert_allclose(fit.parameters[0], 0.0, atol=10**(-2))
+
+    def test_2d_with_weights_without_sigma_clip(self):
+        model = models.Polynomial2D(0)
+        fitter = LevMarLSQFitter() # LinearLSQFitter doesn't handle weights properly in 2D
+        fit = fitter(model, self.x, self.y, self.z, weights=self.weights)
+        assert(fit.parameters[0] > 1.0)     # outliers pulled it high
+
+    def test_2d_with_weights_with_sigma_clip(self):
+        """smoke test for #7020 - fails without fitting.py patch because weights does not propagate"""
+        model = models.Polynomial2D(0)
+        fitter = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        filtered, fit = fitter(model, self.x, self.y, self.z, weights=self.weights)
+        assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
+        assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

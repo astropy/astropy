@@ -1,8 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import pytest
+
 import numpy as np
 from numpy.random import randn, normal
 from numpy.testing import assert_equal
@@ -24,9 +23,7 @@ else:
 
 from .. import funcs
 from ... import units as u
-from ...extern.six.moves import range
 from ...tests.helper import catch_warnings
-from ...utils.compat import NUMPY_LT_1_10  # pylint: disable=W0611
 from ...utils.misc import NumpyRNGContext
 
 
@@ -45,8 +42,8 @@ def test_median_absolute_deviation():
         assert len(mad) == 1000
         assert mad.size < randvar.size
         # Test some actual values in a 3 dimensional array
-        x = np.arange(3*4*5)
-        a = np.array([sum(x[:i+1]) for i in range(len(x))]).reshape(3, 4, 5)
+        x = np.arange(3 * 4 * 5)
+        a = np.array([sum(x[:i + 1]) for i in range(len(x))]).reshape(3, 4, 5)
         mad = funcs.median_absolute_deviation(a)
         assert mad == 389.5
         mad = funcs.median_absolute_deviation(a, axis=0)
@@ -79,7 +76,7 @@ def test_median_absolute_deviation_masked():
     # Just cross check if that's identical to the function on the unmasked
     # values only
     assert funcs.median_absolute_deviation(array) == (
-            funcs.median_absolute_deviation(array[~array.mask]))
+        funcs.median_absolute_deviation(array[~array.mask]))
 
     # Multidimensional masked array
     array = np.ma.array([[1, 4], [2, 2]], mask=[[1, 0], [0, 0]])
@@ -95,7 +92,6 @@ def test_median_absolute_deviation_masked():
         funcs.median_absolute_deviation(array, axis=1).data, [0, 0])
 
 
-@pytest.mark.skipif('NUMPY_LT_1_10')
 def test_median_absolute_deviation_nans():
     array = np.array([[1, 4, 3, np.nan],
                       [2, 5, np.nan, 4]])
@@ -212,7 +208,7 @@ def test_binned_binom_proportion():
     # Check that it works.
     nbins = 20
     x = np.linspace(0., 10., 100)  # Guarantee an `x` in every bin.
-    success = np.ones(len(x), dtype=np.bool)
+    success = np.ones(len(x), dtype=bool)
     bin_ctr, bin_hw, p, perr = funcs.binned_binom_proportion(x, success,
                                                              bins=nbins)
 
@@ -325,7 +321,6 @@ def test_mad_std():
         assert_allclose(funcs.mad_std(data), 2.0, rtol=0.05)
 
 
-@pytest.mark.xfail('not NUMPY_LT_1_10')
 def test_mad_std_scalar_return():
     with NumpyRNGContext(12345):
         data = normal(5, 2, size=(10, 10))
@@ -341,7 +336,12 @@ def test_mad_std_scalar_return():
         with catch_warnings():
             rslt = funcs.mad_std(data)
             assert np.isscalar(rslt)
-            assert not np.isnan(rslt)
+            try:
+                assert not np.isnan(rslt)
+            # This might not be an issue anymore when only numpy>=1.13 is
+            # supported. NUMPY_LT_1_13 xref #7267
+            except AssertionError:
+                pytest.xfail('See #5232')
 
 
 def test_mad_std_warns():
@@ -351,11 +351,7 @@ def test_mad_std_warns():
 
         with catch_warnings() as warns:
             rslt = funcs.mad_std(data, ignore_nan=False)
-            if NUMPY_LT_1_10:
-                w = warns[0]
-                assert str(w.message).startswith("Numpy versions <1.10 will return")
-            else:
-                assert np.isnan(rslt)
+            assert np.isnan(rslt)
 
 
 def test_mad_std_withnan():
@@ -365,8 +361,7 @@ def test_mad_std_withnan():
         data[1:-1, 1:-1] = normal(5, 2, size=(100, 100))
         assert_allclose(funcs.mad_std(data, ignore_nan=True), 2.0, rtol=0.05)
 
-    if not NUMPY_LT_1_10:
-        assert np.isnan(funcs.mad_std([1, 2, 3, 4, 5, np.nan]))
+    assert np.isnan(funcs.mad_std([1, 2, 3, 4, 5, np.nan]))
     assert_allclose(funcs.mad_std([1, 2, 3, 4, 5, np.nan], ignore_nan=True),
                     1.482602218505602)
 
@@ -637,3 +632,119 @@ def test_poisson_limit_nodependencies():
     with pytest.raises(ImportError):
         funcs.poisson_conf_interval(20., interval='kraft-burrows-nousek',
                                     background=10., conflevel=.95)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N', [10, 100, 1000, 10000])
+def test_uniform(N):
+    with NumpyRNGContext(12345):
+        assert funcs.kuiper(np.random.random(N))[1] > 0.01
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N,M', [(100, 100),
+                                 (20, 100),
+                                 (100, 20),
+                                 (10, 20),
+                                 (5, 5),
+                                 (1000, 100)])
+def test_kuiper_two_uniform(N, M):
+    with NumpyRNGContext(12345):
+        assert funcs.kuiper_two(np.random.random(N),
+                                np.random.random(M))[1] > 0.01
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N,M', [(100, 100),
+                                 (20, 100),
+                                 (100, 20),
+                                 (10, 20),
+                                 (5, 5),
+                                 (1000, 100)])
+def test_kuiper_two_nonuniform(N, M):
+    with NumpyRNGContext(12345):
+        assert funcs.kuiper_two(np.random.random(N)**2,
+                                np.random.random(M)**2)[1] > 0.01
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_detect_kuiper_two_different():
+    with NumpyRNGContext(12345):
+        D, f = funcs.kuiper_two(np.random.random(500) * 0.5,
+                                np.random.random(500))
+        assert f < 0.01
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N,M', [(100, 100),
+                                 (20, 100),
+                                 (100, 20),
+                                 (10, 20),
+                                 (5, 5),
+                                 (1000, 100)])
+def test_fpp_kuiper_two(N, M):
+    with NumpyRNGContext(12345):
+        R = 100
+        fpp = 0.05
+        fps = 0
+        for i in range(R):
+            D, f = funcs.kuiper_two(np.random.random(N), np.random.random(M))
+            if f < fpp:
+                fps += 1
+        assert scipy.stats.binom(R, fpp).sf(fps - 1) > 0.005
+        assert scipy.stats.binom(R, fpp).cdf(fps - 1) > 0.005
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_histogram():
+    with NumpyRNGContext(1234):
+        a, b = 0.3, 3.14
+        s = np.random.uniform(a, b, 10000) % 1
+
+        b, w = funcs.fold_intervals([(a, b, 1. / (b - a))])
+
+        h = funcs.histogram_intervals(16, b, w)
+        nn, bb = np.histogram(s, bins=len(h), range=(0, 1))
+
+        uu = np.sqrt(nn)
+        nn, uu = len(h) * nn / h / len(s), len(h) * uu / h / len(s)
+
+        c2 = np.sum(((nn - 1) / uu)**2)
+
+        assert scipy.stats.chi2(len(h)).cdf(c2) > 0.01
+        assert scipy.stats.chi2(len(h)).sf(c2) > 0.01
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize("ii,rr", [
+    ((4, (0, 1), (1,)), (1, 1, 1, 1)),
+    ((2, (0, 1), (1,)), (1, 1)),
+    ((4, (0, 0.5, 1), (1, 1)), (1, 1, 1, 1)),
+    ((4, (0, 0.5, 1), (1, 2)), (1, 1, 2, 2)),
+    ((3, (0, 0.5, 1), (1, 2)), (1, 1.5, 2)),
+])
+def test_histogram_intervals_known(ii, rr):
+    with NumpyRNGContext(1234):
+        assert_allclose(funcs.histogram_intervals(*ii), rr)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N,m,p', [(100, 10000, 0.01),
+                                   (300, 10000, 0.001),
+                                   (10, 10000, 0.001),
+                                   ])
+def test_uniform_binomial(N, m, p):
+    """Check that the false positive probability is right
+
+    In particular, run m trials with N uniformly-distributed photons
+    and check that the number of false positives is consistent with
+    a binomial distribution. The more trials, the tighter the bounds
+    but the longer the runtime.
+
+    """
+    with NumpyRNGContext(1234):
+        fpps = [funcs.kuiper(np.random.random(N))[1]
+                for i in range(m)]
+        assert (scipy.stats.binom(n=m, p=p).ppf(0.01) <
+                len([fpp for fpp in fpps if fpp < p]) <
+                scipy.stats.binom(n=m, p=p).ppf(0.99))

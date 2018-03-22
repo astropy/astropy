@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """This module implements the base CCDData class."""
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
@@ -62,8 +60,8 @@ class CCDData(NDDataArray):
     """A class describing basic CCD data.
 
     The CCDData class is based on the NDData object and includes a data array,
-    uncertainty frame, mask frame, meta data, units, and WCS information for a
-    single CCD image.
+    uncertainty frame, mask frame, flag frame, meta data, units, and WCS
+    information for a single CCD image.
 
     Parameters
     -----------
@@ -160,7 +158,7 @@ class CCDData(NDDataArray):
         if 'header' in kwd:
             raise ValueError("can't have both header and meta.")
 
-        super(CCDData, self).__init__(*args, **kwd)
+        super().__init__(*args, **kwd)
 
         # Check if a unit is set. This can be temporarly disabled by the
         # _CCDDataUnit contextmanager.
@@ -401,9 +399,15 @@ def _generate_wcs_and_update_header(hdr):
     new_header, wcs
     """
 
-    # Try constructing a WCS object. This may generate a warning, but never
-    # an error.
-    wcs = WCS(hdr)
+    # Try constructing a WCS object.
+    try:
+        wcs = WCS(hdr)
+    except Exception as exc:
+        # Normally WCS only raises Warnings and doesn't fail but in rare
+        # cases (malformed header) it could fail...
+        log.info('An exception happened while extracting WCS informations from '
+                 'the Header.\n{}: {}'.format(type(exc).__name__, str(exc)))
+        return hdr, None
     # Test for success by checking to see if the wcs ctype has a non-empty
     # value, return None for wcs if ctype is empty.
     if not wcs.wcs.ctype[0]:
@@ -498,7 +502,11 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
             for i in range(len(hdus)):
                 if hdus.fileinfo(i)['datSpan'] > 0:
                     hdu = i
-                    hdr = hdr + hdus[hdu].header
+                    comb_hdr = hdus[hdu].header.copy()
+                    # Add header values from the primary header that aren't
+                    # present in the extension header.
+                    comb_hdr.extend(hdr, unique=True)
+                    hdr = comb_hdr
                     log.info("first HDU with data is extension "
                              "{0}.".format(hdu))
                     break

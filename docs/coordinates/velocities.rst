@@ -5,19 +5,52 @@
 Working with velocities in Astropy coordinates
 **********************************************
 
-.. warning::
-    Velocities support, new in Astropy v2.0, is an experimental feature and is
-    subject to change based on user feedback.  While we do not expect major API
-    changes, the possibility exists based on the precedent of earlier changes
-    in the ``coordinates`` subpackage based on user feedback from previous
-    versions of Astropy.
+Using velocities with ``SkyCoord``
+==================================
+
+The easiest way of getting a coordinate object with velocities is to use the
+|skycoord| interface.  For example, a |skycoord| to represent a star with a
+measured radial velocity but unknown proper motion and distance could be
+created as::
+
+    >>> from astropy.coordinates import SkyCoord
+    >>> import astropy.units as u
+    >>> sc = SkyCoord(1*u.deg, 2*u.deg, radial_velocity=20*u.km/u.s)
+    >>> sc  # doctest: +SKIP
+    <SkyCoord (ICRS): (ra, dec) in deg
+        ( 1.,  2.)
+     (radial_velocity) in km / s
+        ( 20.,)>
+    >>> sc.radial_velocity  # doctest: +FLOAT_CMP
+    <Quantity 20.0 km / s>
+
+.. the SKIP above in the ``sc`` line is because numpy has a subtly different output in versions < 12 - the trailing comma is missing.  If a NPY_LT_1_12 comes in to being this can switch to that.  But don't forget to *also* change this in the coordinates/index.rst file
+
+|skycoord| objects created in this manner follow all the same transformation
+rules, and will correctly update their velocities when transformed to other
+frames.  For example, to determine proper motions in Galactic coordinates for
+a star with proper motions measured in ICRS::
+
+    >>> sc = SkyCoord(1*u.deg, 2*u.deg, pm_ra_cosdec=.2*u.mas/u.yr, pm_dec=.1*u.mas/u.yr)
+    >>> sc.galactic  # doctest: +FLOAT_CMP
+    <SkyCoord (Galactic): (l, b) in deg
+      ( 99.63785528, -58.70969293)
+    (pm_l_cosb, pm_b) in mas / yr
+      ( 0.22240398,  0.02316181)>
+
+For more details on valid operations and limitations of velocity support in
+`astropy.coordinates` (particularly the :ref:`current accuracy limitations
+<astropy-coordinate-finite-difference-velocities>` ), see the more detailed
+discussions below of velocity support in the lower-level frame objects.  All
+these same rules apply for |skycoord| objects, as they are built directly on top
+of the frame classes' velocity functionality detailed here.
 
 .. _astropy-coordinate-custom-frame-with-velocities:
 
 Creating frame objects with velocity data
 =========================================
 
-The coordinate frame classes now support storing and transforming velocity data
+The coordinate frame classes support storing and transforming velocity data
 (along side the positional coordinate data). Similar to the positional data ---
 that use the ``Representation`` classes to abstract away the particular
 representation and allow re-representing from, e.g., Cartesian to Spherical
@@ -36,31 +69,30 @@ term. For example, the proper motion components for the ``ICRS`` frame are
 (``pm_ra_cosdec``, ``pm_dec``)::
 
     >>> from astropy.coordinates import ICRS
-    >>> import astropy.units as u
     >>> ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
-    ...      pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr)
+    ...      pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr)  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec) in deg
-        ( 8.67,  53.09)
+        (8.67, 53.09)
      (pm_ra_cosdec, pm_dec) in mas / yr
-        ( 4.8, -15.16)>
+        (4.8, -15.16)>
     >>> ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
     ...      pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr,
-    ...      radial_velocity=23.42*u.km/u.s)
+    ...      radial_velocity=23.42*u.km/u.s)  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec) in deg
-        ( 8.67,  53.09)
+        (8.67, 53.09)
      (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-        ( 4.8, -15.16,  23.42)>
+        (4.8, -15.16, 23.42)>
 
 For proper motion components in the ``Galactic`` frame, the names track the
 longitude and latitude names::
 
     >>> from astropy.coordinates import Galactic
     >>> Galactic(l=11.23*u.degree, b=58.13*u.degree,
-    ...          pm_l_cosb=21.34*u.mas/u.yr, pm_b=-55.89*u.mas/u.yr)
+    ...          pm_l_cosb=21.34*u.mas/u.yr, pm_b=-55.89*u.mas/u.yr)  # doctest: +FLOAT_CMP
     <Galactic Coordinate: (l, b) in deg
-        ( 11.23,  58.13)
+        (11.23, 58.13)
      (pm_l_cosb, pm_b) in mas / yr
-        ( 21.34, -55.89)>
+        (21.34, -55.89)>
 
 Like the positional data, velocity data must be passed in as
 `~astropy.units.Quantity` objects.
@@ -74,11 +106,11 @@ changed by specifying the `~astropy.coordinates.SphericalDifferential` class
     >>> from astropy.coordinates import SphericalDifferential
     >>> Galactic(l=11.23*u.degree, b=58.13*u.degree,
     ...          pm_l=21.34*u.mas/u.yr, pm_b=-55.89*u.mas/u.yr,
-    ...          differential_cls=SphericalDifferential)
+    ...          differential_type=SphericalDifferential)  # doctest: +FLOAT_CMP
     <Galactic Coordinate: (l, b) in deg
-        ( 11.23,  58.13)
+        (11.23, 58.13)
      (pm_l, pm_b) in mas / yr
-        ( 21.34, -55.89)>
+        (21.34, -55.89)>
 
 This works in parallel to specifying the expected representation class, as long
 as the differential class is compatible with the representation. For example, to
@@ -88,12 +120,12 @@ specify all coordinate and velocity components in Cartesian::
     ...                                  CartesianDifferential)
     >>> Galactic(u=103*u.pc, v=-11*u.pc, w=93.*u.pc,
     ...          U=31*u.km/u.s, V=-10*u.km/u.s, W=75*u.km/u.s,
-    ...          representation=CartesianRepresentation,
-    ...          differential_cls=CartesianDifferential)
+    ...          representation_type=CartesianRepresentation,
+    ...          differential_type=CartesianDifferential)  # doctest: +FLOAT_CMP
     <Galactic Coordinate: (u, v, w) in pc
-        ( 103., -11.,  93.)
+        (103., -11., 93.)
      (U, V, W) in km / s
-        ( 31., -10.,  75.)>
+        (31., -10., 75.)>
 
 Note that the ``Galactic`` frame has special, standard names for Cartesian
 position and velocity components. For other frames, these are just ``x,y,z`` and
@@ -101,12 +133,34 @@ position and velocity components. For other frames, these are just ``x,y,z`` and
 
     >>> ICRS(x=103*u.pc, y=-11*u.pc, z=93.*u.pc,
     ...      v_x=31*u.km/u.s, v_y=-10*u.km/u.s, v_z=75*u.km/u.s,
-    ...      representation=CartesianRepresentation,
-    ...      differential_cls=CartesianDifferential)
+    ...      representation_type=CartesianRepresentation,
+    ...      differential_type=CartesianDifferential)  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (x, y, z) in pc
-        ( 103., -11.,  93.)
+        (103., -11., 93.)
      (v_x, v_y, v_z) in km / s
-        ( 31., -10.,  75.)>
+        (31., -10., 75.)>
+
+For any frame with velocity data with any representation, there are also
+shorthands that provide easier access to the underlying velocity data in
+commonly-needed formats. With any frame object with 3D velocity data, the 3D
+Cartesian velocity can be accessed with::
+
+    >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
+    ...             distance=171*u.pc,
+    ...             pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr,
+    ...             radial_velocity=23.42*u.km/u.s)
+    >>> icrs.velocity # doctest: +FLOAT_CMP
+    <CartesianDifferential (d_x, d_y, d_z) in km / s
+        ( 23.03160789,  7.44794505,  11.34587732)>
+
+There are also shorthands for retrieving a single `~astropy.units.Quantity`
+object that contains the two-dimensional proper motion data, and for retrieving
+the radial (line-of-sight) velocity::
+
+    >>> icrs.proper_motion # doctest: +FLOAT_CMP
+    <Quantity [  4.8 ,-15.16] mas / yr>
+    >>> icrs.radial_velocity # doctest: +FLOAT_CMP
+    <Quantity 23.42 km / s>
 
 .. _astropy-coordinate-transform-with-velocities:
 
@@ -119,12 +173,12 @@ is done  exactly the same way transforming position-only frame instances::
 
     >>> from astropy.coordinates import Galactic
     >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
-    ...             pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr)
+    ...             pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr)  # doctest: +FLOAT_CMP
     >>> icrs.transform_to(Galactic) # doctest: +FLOAT_CMP
     <Galactic Coordinate: (l, b) in deg
-        ( 120.38084191, -9.69872044)
+        (120.38084191, -9.69872044)
      (pm_l_cosb, pm_b) in mas / yr
-        ( 3.78957965, -15.44359693)>
+        (3.78957965, -15.44359693)>
 
 However, the details of how the velocity components are transformed depends on
 the particular set of transforms required to get from the starting frame to the
@@ -153,12 +207,12 @@ on proper-motion-only data or full-space, 3D velocities::
 
     >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
     ...             pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr,
-    ...             radial_velocity=23.42*u.km/u.s) # doctest: +FLOAT_CMP
-    >>> icrs.transform_to(Galactic) # doctest: +FLOAT_CMP
+    ...             radial_velocity=23.42*u.km/u.s)
+    >>> icrs.transform_to(Galactic)  # doctest: +FLOAT_CMP
     <Galactic Coordinate: (l, b) in deg
-        ( 120.38084191, -9.69872044)
+        (120.38084191, -9.69872044)
      (pm_l_cosb, pm_b, radial_velocity) in (mas / yr, mas / yr, km / s)
-        ( 3.78957965, -15.44359693,  23.42)>
+        (3.78957965, -15.44359693, 23.42)>
 
 The same rotation matrix is applied to both the position vector and the velocity
 vector. Any transformation that involves a velocity offset requires all 3D
@@ -169,12 +223,14 @@ for example, `~astropy.coordinates.ICRS` to `~astropy.coordinates.LSR`::
     >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
     ...             distance=117*u.pc,
     ...             pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr,
-    ...             radial_velocity=23.42*u.km/u.s) # doctest: +FLOAT_CMP
-    >>> icrs.transform_to(LSR) # doctest: +FLOAT_CMP
-    <LSR Coordinate (v_bary=( 11.1,  12.24,  7.25) km / s): (ra, dec, distance) in (deg, deg, pc)
-        ( 8.67,  53.09,  117.)
+    ...             radial_velocity=23.42*u.km/u.s)
+    >>> icrs.transform_to(LSR)  # doctest: +FLOAT_CMP
+    <LSR Coordinate (v_bary=(11.1, 12.24, 7.25) km / s): (ra, dec, distance) in (deg, deg, pc)
+        (8.67, 53.09, 117.)
      (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-        (-24.51315607, -2.67935501,  27.07339176)>
+        (-24.51315607, -2.67935501, 27.07339176)>
+
+.. _astropy-coordinate-finite-difference-velocities:
 
 Finite Difference Transformations
 ---------------------------------
@@ -278,15 +334,6 @@ a particular direction changes dramatically over the course of one year).
 Future versions of Astropy will improve on this algorithm to make the results
 more numerically stable and practical for use in these (not unusual) use cases.
 
-
-``SkyCoord`` support for Velocities
-===================================
-
-|skycoord| currently does *not* support velocities as of Astropy v2.0.  This is
-an intentional choice, allowing the "power-user" community to provide feedback
-on the API and functionality in the frame-level classes before it is adopted in
-|skycoord| (currently planned for the next Astropy version, v3.0).
-
 .. _astropy-coordinates-rv-corrs:
 
 Radial Velocity Corrections
@@ -302,8 +349,9 @@ details).
 
 An example of this is below.  It demonstrates how to compute this correction if
 observing some object at a known RA and Dec from the Keck observatory at a
-particular time.  The computed correction would then be added to any observed
-radial velocity to determine the final heliocentric radial velocity::
+particular time.  If a precision of around 3 m/s is sufficient, the computed
+correction can then be added to any observed radial velocity to determine
+the final heliocentric radial velocity::
 
     >>> from astropy.time import Time
     >>> from astropy.coordinates import SkyCoord, EarthLocation
@@ -312,12 +360,51 @@ radial velocity to determine the final heliocentric radial velocity::
     >>> sc = SkyCoord(ra=4.88375*u.deg, dec=35.0436389*u.deg)
     >>> barycorr = sc.radial_velocity_correction(obstime=Time('2016-6-4'), location=keck)
     >>> barycorr.to(u.km/u.s)  # doctest: +FLOAT_CMP
-    <Quantity 20.07369348639167 km / s>
+    <Quantity 20.077135 km / s>
     >>> heliocorr = sc.radial_velocity_correction('heliocentric', obstime=Time('2016-6-4'), location=keck)
     >>> heliocorr.to(u.km/u.s)  # doctest: +FLOAT_CMP
-    <Quantity 20.071122815002827 km / s>
+    <Quantity 20.070039 km / s>
 
 Note that there are a few different ways to specify the options for the
 correction (e.g., the location, observation time, etc).  See the
 `~astropy.coordinates.SkyCoord.radial_velocity_correction` docs for more
 information.
+
+Precision of `~astropy.coordinates.SkyCoord.radial_velocity_correction`
+------------------------------------------------------------------------
+
+The correction computed by `~astropy.coordinates.SkyCoord.radial_velocity_correction`
+can be added to any observed radial velocity to provide a correction that is accurate
+to a level of approximately 3 m/s. If you need more precise corrections, there are a number
+of subtleties you must be aware of.
+
+The first is that one should always use a barycentric correction, as the barycenter is a fixed
+point where gravity is constant. Since the heliocentre does not satisfy these conditions, corrections
+to the heliocentre are only suitable for low precision work. As a result, and
+to increase speed, the heliocentric correction in
+`~astropy.coordinates.SkyCoord.radial_velocity_correction` does not include effects such as the
+gravitational redshift due to the potential at the Earth's surface. For these reasons, the
+barycentric correction in `~astropy.coordinates.SkyCoord.radial_velocity_correction` should always
+be used for high precision work.
+
+Other considerations necessary for radial velocity corrections at the cm/s level are outlined
+in `Wright & Eastmann (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_. Most important
+is that the barycentric correction is, strictly speaking, *multiplicative*, so that one should apply it
+as
+
+.. math::
+
+    v_t = v_m + v_b + \frac{v_b v_m}{c},
+
+where :math:`v_t` is the true radial velocity,  :math:`v_m` is the measured radial velocity and :math:`v_b`
+is the barycentric correction returned by `~astropy.coordinates.SkyCoord.radial_velocity_correction`.
+Failure to apply the barycentric correction in this way leads to errors of order 3 m/s.
+
+The barycentric correction in `~astropy.coordinates.SkyCoord.radial_velocity_correction` is consistent
+with the `IDL implementation <http://astroutils.astronomy.ohio-state.edu/exofast/barycorr.html>`_ of
+the Wright & Eastmann (2014) paper to a level of 10 mm/s for a source at infinite distance. We do not include
+the Shapiro delay, nor any effect related to the finite distance or proper motion of the source.
+The Shapiro delay is unlikely to be important unless you seek mm/s precision, but the effects of the
+source's parallax and proper motion can be important at the cm/s level. These effects are likely to be
+added to future versions of Astropy along with velocity support for |skycoord|, but in the meantime
+see `Wright & Eastmann (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_.

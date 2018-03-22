@@ -42,15 +42,15 @@ If a parameter has been initialized as a Quantity, it should always be set to a
 quantity, but the units don't have to be compatible with the initial ones::
 
     >>> g1.mean = 3 * u.s
-    >>> g1
-    <Gaussian1D(amplitude=3.0 Jy, mean=3.0 s, stddev=2.0 cm)>
+    >>> g1  # doctest: +FLOAT_CMP
+    <Gaussian1D(amplitude=3. Jy, mean=3. s, stddev=2. cm)>
 
 To change the value of a parameter and not the unit, simply set the value
 property::
 
     >>> g1.mean.value = 2
-    >>> g1
-    <Gaussian1D(amplitude=3.0 Jy, mean=2.0 s, stddev=2.0 cm)>
+    >>> g1  # doctest: +FLOAT_CMP
+    <Gaussian1D(amplitude=3. Jy, mean=2. s, stddev=2. cm)>
 
 Setting a parameter which was originally set to a quantity to a scalar doesn't
 work because it's ambiguous whether the user means to change just the value and
@@ -138,7 +138,7 @@ Fitting models with units to data
 =================================
 
 Fitting models with units to data with units should be seamless provided that
-the model supports fitting with units. To demonstate this, we start off by
+the model supports fitting with units. To demonstrate this, we start off by
 generating synthetic data:
 
 .. plot::
@@ -147,6 +147,7 @@ generating synthetic data:
 
     import numpy as np
     from astropy import units as u
+    import matplotlib.pyplot as plt
 
     x = np.linspace(1, 5, 30) * u.micron
     y = np.exp(-0.5 * (x - 2.5 * u.micron)**2 / (200 * u.nm)**2) * u.mJy
@@ -275,6 +276,10 @@ If the return values are quantities in different units, they are converted to
 If set to `True`, values that are passed in compatible units will be converted
 to the exact units specified in ``input_units``.
 
+This attribute can also be a
+dictionary that maps input names to a Boolean to enable converting of that input
+to the specified unit.
+
 ``input_units_equivalencies``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -286,10 +291,12 @@ equivalencies, for example::
 ``input_units_allow_dimensionless``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If set to `True`, values that are plain scalars or Numpy arrays can be passed
-to evaluate even if ``input_units`` specifies that the input should have units.
-It is up to the :meth:`~astropy.modeling.Model.evaluate` to then decide how to
-handle these dimensionless values.
+If set to `True`, values that are plain scalars or Numpy arrays can be passed to
+evaluate even if ``input_units`` specifies that the input should have units. It
+is up to the :meth:`~astropy.modeling.Model.evaluate` to then decide how to
+handle these dimensionless values. This attribute can also be a dictionary that
+maps input names to a Boolean to enable passing dimensionless values to
+:meth:`~astropy.modeling.Model.evaluate` for that input.
 
 
 Fitting

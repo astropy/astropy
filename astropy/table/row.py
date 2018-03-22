@@ -1,16 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import collections
 
 import numpy as np
 
-from ..extern import six
 
-
-class Row(object):
+class Row:
     """A class to represent one row of a Table object.
 
     A Row object is returned when a Table object is indexed with an integer
@@ -42,10 +38,23 @@ class Row(object):
                              .format(index, len(table)))
 
     def __getitem__(self, item):
-        return self._table.columns[item][self._index]
+        if self._table._is_list_or_tuple_of_str(item):
+            cols = [self._table[name] for name in item]
+            out = self._table.__class__(cols, copy=False)[self._index]
+
+        else:
+            out = self._table.columns[item][self._index]
+
+        return out
 
     def __setitem__(self, item, val):
-        self._table.columns[item][self._index] = val
+        if self._table._is_list_or_tuple_of_str(item):
+            self._table._set_row(self._index, colnames=item, vals=val)
+        else:
+            self._table.columns[item][self._index] = val
+
+    def _ipython_key_completions_(self):
+        return self.colnames
 
     def __eq__(self, other):
         if self._table.masked:
@@ -78,7 +87,7 @@ class Row(object):
 
     def __iter__(self):
         index = self._index
-        for col in six.itervalues(self._table.columns):
+        for col in self._table.columns.values():
             yield col[index]
 
     @property
@@ -115,7 +124,7 @@ class Row(object):
             masks = tuple(col.mask[index] if hasattr(col, 'mask') else False
                           for col in cols)
             descrs = (descr(col) for col in cols)
-            mask_dtypes = [(name, np.bool, shape) for name, type_, shape in descrs]
+            mask_dtypes = [(name, bool, shape) for name, type_, shape in descrs]
             row_mask = np.array([masks], dtype=mask_dtypes)[0]
 
             # Make np.void version of values, and then the final mvoid row
@@ -161,16 +170,12 @@ class Row(object):
     def __repr__(self):
         return self._base_repr_(html=False)
 
-    def __unicode__(self):
+    def __str__(self):
         index = self.index if (self.index >= 0) else self.index + len(self._table)
         return '\n'.join(self.table[index:index + 1].pformat(max_width=-1))
-    if not six.PY2:
-        __str__ = __unicode__
 
     def __bytes__(self):
-        return six.text_type(self).encode('utf-8')
-    if six.PY2:
-        __str__ = __bytes__
+        return str(self).encode('utf-8')
 
 
 collections.Sequence.register(Row)

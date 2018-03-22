@@ -3,8 +3,6 @@
 """
 Utilities for console input and output.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import codecs
 import locale
@@ -25,8 +23,6 @@ try:
 except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
-from ..extern import six
-from ..extern.six.moves import range
 from .. import conf
 
 from .misc import isiterable
@@ -41,7 +37,7 @@ __all__ = [
 _DEFAULT_ENCODING = 'utf-8'
 
 
-class _IPython(object):
+class _IPython:
     """Singleton class given access to IPython streams, etc."""
 
     @classproperty
@@ -166,7 +162,7 @@ def isatty(file):
         # pyreadline.Console objects if pyreadline is available; this should
         # be considered a TTY.
         try:
-            from pyreadyline.console import Console as PyreadlineConsole
+            from pyreadline.console import Console as PyreadlineConsole
         except ImportError:
             return False
 
@@ -325,7 +321,7 @@ def _write_with_fallback(s, write, fileobj):
     return write
 
 
-def color_print(*args, **kwargs):
+def color_print(*args, end='\n', **kwargs):
     """
     Prints colors and styles to the terminal uses ANSI escape
     sequences.
@@ -358,8 +354,6 @@ def color_print(*args, **kwargs):
 
     file = kwargs.get('file', _get_stdout())
 
-    end = kwargs.get('end', '\n')
-
     write = file.write
     if isatty(file) and conf.use_color:
         for i in range(0, len(args), 2):
@@ -375,8 +369,6 @@ def color_print(*args, **kwargs):
             # Some file objects support writing unicode sensibly on some Python
             # versions; if this fails try creating a writer using the locale's
             # preferred encoding. If that fails too give up.
-            if six.PY2 and isinstance(msg, bytes):
-                msg = _decode_preferred_encoding(msg)
 
             write = _write_with_fallback(msg, write, file)
 
@@ -384,11 +376,6 @@ def color_print(*args, **kwargs):
     else:
         for i in range(0, len(args), 2):
             msg = args[i]
-            if six.PY2 and isinstance(msg, bytes):
-                # Support decoding bytes to unicode on Python 2; use the
-                # preferred encoding for the locale (which is *sometimes*
-                # sensible)
-                msg = _decode_preferred_encoding(msg)
             write(msg)
         write(end)
 
@@ -498,7 +485,20 @@ def human_file_size(size):
     return "{0:>3s}{1}".format(str_value, suffix)
 
 
-class ProgressBar(six.Iterator):
+class _mapfunc(object):
+    """
+    A function wrapper to support ProgressBar.map().
+    """
+
+    def __init__(self, func):
+        self._func = func
+
+    def __call__(self, i_arg):
+        i, arg = i_arg
+        return i, self._func(arg)
+
+
+class ProgressBar:
     """
     A class to display a progress bar in the terminal.
 
@@ -695,7 +695,68 @@ class ProgressBar(six.Iterator):
             ipython_widget=False):
         """
         Does a `map` operation while displaying a progress bar with
-        percentage complete.
+        percentage complete. The map operation may run on arbitrary order
+        on the items, but the results are returned in sequential order.
+
+        ::
+
+            def work(i):
+                print(i)
+
+            ProgressBar.map(work, range(50))
+
+        Parameters
+        ----------
+        function : function
+            Function to call for each step
+
+        items : sequence
+            Sequence where each element is a tuple of arguments to pass to
+            *function*.
+
+        multiprocess : bool, optional
+            If `True`, use the `multiprocessing` module to distribute each
+            task to a different processor core.
+
+        ipython_widget : bool, optional
+            If `True`, the progress bar will display as an IPython
+            notebook widget.
+
+        file : writeable file-like object, optional
+            The file to write the progress bar to.  Defaults to
+            `sys.stdout`.  If ``file`` is not a tty (as determined by
+            calling its `isatty` member, if any), the scrollbar will
+            be completely silent.
+
+        step : int, optional
+            Update the progress bar at least every *step* steps (default: 100).
+            If ``multiprocess`` is `True`, this will affect the size
+            of the chunks of ``items`` that are submitted as separate tasks
+            to the process pool.  A large step size may make the job
+            complete faster if ``items`` is very long.
+        """
+
+        if multiprocess:
+            function = _mapfunc(function)
+            items = list(enumerate(items))
+
+        results = cls.map_unordered(function, items, multiprocess=multiprocess,
+                                    file=file, step=step,
+                                    ipython_widget=ipython_widget)
+
+        if multiprocess:
+            _, results = zip(*sorted(results))
+            results = list(results)
+
+        return results
+
+    @classmethod
+    def map_unordered(cls, function, items, multiprocess=False, file=None,
+                      step=100, ipython_widget=False):
+        """
+        Does a `map` operation while displaying a progress bar with
+        percentage complete. The map operation may run on arbitrary order
+        on the items, and the results may be returned in arbitrary order.
 
         ::
 
@@ -763,7 +824,7 @@ class ProgressBar(six.Iterator):
         return results
 
 
-class Spinner(object):
+class Spinner:
     """
     A class to display a spinner in the terminal.
 
@@ -879,7 +940,7 @@ class Spinner(object):
             yield
 
 
-class ProgressBarOrSpinner(object):
+class ProgressBarOrSpinner:
     """
     A class that displays either a `ProgressBar` or `Spinner`
     depending on whether the total size of the operation is
@@ -1038,7 +1099,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
 # http://code.activestate.com/recipes/134892-getch-like-unbuffered-character-reading-from-stdin/
 #
 
-class Getch(object):
+class Getch:
     """Get a single character from standard input without screen echo.
 
     Returns
@@ -1059,7 +1120,7 @@ class Getch(object):
         return self.impl()
 
 
-class _GetchUnix(object):
+class _GetchUnix:
     def __init__(self):
         import tty  # pylint: disable=W0611
         import sys  # pylint: disable=W0611
@@ -1082,7 +1143,7 @@ class _GetchUnix(object):
         return ch
 
 
-class _GetchWindows(object):
+class _GetchWindows:
     def __init__(self):
         import msvcrt  # pylint: disable=W0611
 
@@ -1091,7 +1152,7 @@ class _GetchWindows(object):
         return msvcrt.getch()
 
 
-class _GetchMacCarbon(object):
+class _GetchMacCarbon:
     """
     A function which returns the current ASCII key that is down;
     if no ASCII key is down, the null string is returned.  The

@@ -23,8 +23,6 @@ Example usage of ``fitsinfo``:
     $ fitsinfo *.fits
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import argparse
 import astropy.io.fits as fits
 from astropy import log
@@ -42,7 +40,7 @@ def fitsinfo(filename):
 
     try:
         fits.info(filename)
-    except IOError as e:
+    except OSError as e:
         log.error(str(e))
     return
 

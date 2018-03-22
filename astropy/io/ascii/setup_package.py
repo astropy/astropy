@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license
-from __future__ import absolute_import
 
 import os
 from distutils.extension import Extension
@@ -88,7 +87,3 @@ def get_package_data():
                                    't/cds/description/table.dat',
                                    ]
     }
-
-
-def requires_2to3():
-    return False

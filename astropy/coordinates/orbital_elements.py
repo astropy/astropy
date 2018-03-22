@@ -5,8 +5,6 @@ algorithms contained within Jean Meeus, 'Astronomical Algorithms',
 second edition, 1998, Willmann-Bell.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import numpy as np
 from numpy.polynomial.polynomial import polyval
 
@@ -186,7 +184,7 @@ def calc_moon(t):
 
     Parameters
     -----------
-    time : `~astropy.time.Time`
+    t : `~astropy.time.Time`
         Time of observation.
 
     Returns

@@ -1,25 +1,38 @@
 """Implements the Astropy TestRunner which is a thin wrapper around py.test."""
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import inspect
 import os
+import glob
 import copy
 import shlex
 import sys
 import tempfile
 import warnings
+import importlib
 from collections import OrderedDict
+from importlib.util import find_spec
 
 from ..config.paths import set_temp_config, set_temp_cache
-from ..extern import six
 from ..utils import wraps, find_current_module
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 __all__ = ['TestRunner', 'TestRunnerBase', 'keyword']
 
 
-class keyword(object):
+def _has_test_dependencies(): # pragma: no cover
+    # Using the test runner will not work without these dependencies, but
+    # pytest-openfiles is optional, so it's not listed here.
+    required = ['pytest', 'pytest_remotedata', 'pytest_doctestplus']
+    for module in required:
+        spec = find_spec(module)
+        # Checking loader accounts for packages that were uninstalled
+        if spec is None or spec.loader is None:
+            return False
+
+    return True
+
+
+class keyword:
     """
     A decorator to mark a method as keyword argument for the ``TestRunner``.
 
@@ -49,7 +62,7 @@ class keyword(object):
         return keyword
 
 
-class TestRunnerBase(object):
+class TestRunnerBase:
     """
     The base class for the TestRunner.
 
@@ -97,10 +110,7 @@ class TestRunnerBase(object):
         # method decorated with ``@keyword`` and with the ``self, name, kwargs``
         # signature.
         # Get all 'function' members as the wrapped methods are functions
-        if six.PY2:
-            functions = inspect.getmembers(cls, predicate=inspect.ismethod)
-        else:
-            functions = inspect.getmembers(cls, predicate=inspect.isfunction)
+        functions = inspect.getmembers(cls, predicate=inspect.isfunction)
 
         # Filter out anything that's not got the name 'keyword'
         keywords = filter(lambda func: func[1].__name__ == 'keyword', functions)
@@ -132,10 +142,7 @@ class TestRunnerBase(object):
                 doc_keywords += func.__doc__.strip()
                 doc_keywords += '\n\n'
 
-        if six.PY2:
-            cls.run_tests.__func__.__doc__ = cls.RUN_TESTS_DOCSTRING.format(keywords=doc_keywords)
-        else:
-            cls.run_tests.__doc__ = cls.RUN_TESTS_DOCSTRING.format(keywords=doc_keywords)
+        cls.run_tests.__doc__ = cls.RUN_TESTS_DOCSTRING.format(keywords=doc_keywords)
 
         return super(TestRunnerBase, cls).__new__(cls)
 
@@ -150,7 +157,7 @@ class TestRunnerBase(object):
             func = getattr(self, keyword)
             result = func(keywords[keyword], keywords)
 
-            # Allow disabaling of options in a subclass
+            # Allow disabling of options in a subclass
             if result is NotImplemented:
                 raise TypeError("run_tests() got an unexpected keyword argument {}".format(keyword))
 
@@ -159,9 +166,6 @@ class TestRunnerBase(object):
                 raise TypeError("{} keyword method must return a list".format(keyword))
 
             args += result
-
-        if six.PY2:
-            args = [x.encode('utf-8') for x in args]
 
         return args
 
@@ -178,6 +182,27 @@ class TestRunnerBase(object):
         """
 
     def run_tests(self, **kwargs):
+
+        # The following option will include eggs inside a .eggs folder in
+        # sys.path when running the tests. This is possible so that when
+        # runnning python setup.py test, test dependencies installed via e.g.
+        # tests_requires are available here. This is not an advertised option
+        # since it is only for internal use
+        if kwargs.pop('add_local_eggs_to_path', False):
+
+            # Add each egg to sys.path individually
+            for egg in glob.glob(os.path.join('.eggs', '*.egg')):
+                sys.path.insert(0, egg)
+
+            # We now need to force reload pkg_resources in case any pytest
+            # plugins were added above, so that their entry points are picked up
+            import pkg_resources
+            importlib.reload(pkg_resources)
+
+        if not _has_test_dependencies():  # pragma: no cover
+            msg = "Test dependencies are missing. You should install the 'pytest-astropy' package."
+            raise RuntimeError(msg)
+
         # The docstring for this method is defined as a class variable.
         # This allows it to be built for each subclass in __new__.
 
@@ -192,6 +217,15 @@ class TestRunnerBase(object):
             raise TypeError("run_tests() got an unexpected keyword argument {}".format(wrong_kwargs[0]))
 
         args = self._generate_args(**kwargs)
+
+        if 'plugins' not in self.keywords or self.keywords['plugins'] is None:
+            self.keywords['plugins'] = []
+
+        # Make plugins available to test runner without registering them
+        self.keywords['plugins'].extend([
+            'astropy.tests.plugins.display',
+            'astropy.tests.plugins.config'
+        ])
 
         # override the config locations to not make a new directory nor use
         # existing cache or config
@@ -308,12 +342,8 @@ class TestRunner(TestRunnerBase):
                 common = os.path.commonprefix((abs_docs_path, abs_test_path))
 
                 if os.path.exists(abs_test_path) and common == abs_docs_path:
-                    # Since we aren't testing any Python files within
-                    # the astropy tree, we need to forcibly load the
-                    # astropy py.test plugins, and then turn on the
-                    # doctest_rst plugin.
-                    all_args.extend(['-p', 'astropy.tests.pytest_plugins',
-                                     '--doctest-rst'])
+                    # Turn on the doctest_rst plugin
+                    all_args.append('--doctest-rst')
                     test_path = abs_test_path
 
             if not (os.path.isdir(test_path) or ext in ('.py', '.rst')):
@@ -377,7 +407,7 @@ class TestRunner(TestRunnerBase):
     def remote_data(self, remote_data, kwargs):
         """
         remote_data : {'none', 'astropy', 'any'}, optional
-            Controls whether to run tests marked with @remote_data. This can be
+            Controls whether to run tests marked with @pytest.mark.remote_data. This can be
             set to run no tests with remote data (``none``), only ones that use
             data from http://data.astropy.org (``astropy``), or all tests that
             use remote data (``any``). The default is ``none``.
@@ -469,7 +499,7 @@ class TestRunner(TestRunnerBase):
                 raise SystemError(
                     "running tests in parallel requires the pytest-xdist package")
 
-            return ['-n', six.text_type(parallel)]
+            return ['-n', str(parallel)]
 
         return []
 

@@ -1,10 +1,8 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
-from __future__ import unicode_literals
 
 import operator
 import warnings
 
-from ...extern.six import next
 from ...utils import indent
 from ...utils.exceptions import AstropyUserWarning
 
@@ -26,7 +24,7 @@ VERIFY_OPTIONS = ['ignore', 'warn', 'exception', 'fix', 'silentfix',
                   'silentfix+ignore', 'silentfix+warn', 'silentfix+exception']
 
 
-class _Verify(object):
+class _Verify:
     """
     Shared methods for verification.
     """
@@ -128,10 +126,8 @@ class _ErrList(list):
     different class levels.
     """
 
-    def __new__(cls, val=None, unit='Element'):
-        return super(cls, cls).__new__(cls, val)
-
-    def __init__(self, val=None, unit='Element'):
+    def __init__(self, val=(), unit='Element'):
+        super().__init__(val)
         self.unit = unit
 
     def __str__(self):

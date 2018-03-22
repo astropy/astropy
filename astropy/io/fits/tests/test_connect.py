@@ -1,4 +1,6 @@
 import os
+import gc
+import pathlib
 import warnings
 
 import pytest
@@ -10,19 +12,22 @@ from .. import HDUList, PrimaryHDU, BinTableHDU
 from ... import fits
 
 from .... import units as u
-from ....extern.six.moves import range, zip
-from ....table import Table, QTable
+from ....table import Table, QTable, NdarrayMixin, Column
 from ....tests.helper import catch_warnings
 from ....units.format.fits import UnitScaleError
 
-DATA = os.path.join(os.path.dirname(__file__), 'data')
+from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
+from ....time import Time, TimeDelta
+from ....tests.helper import quantity_allclose
+from ....units.quantity import QuantityInfo
 
 try:
-    import pathlib
+    import yaml  # pylint: disable=W0611
+    HAS_YAML = True
 except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
+    HAS_YAML = False
+
+DATA = os.path.join(os.path.dirname(__file__), 'data')
 
 
 def equal_data(a, b):
@@ -32,7 +37,7 @@ def equal_data(a, b):
     return True
 
 
-class TestSingleTable(object):
+class TestSingleTable:
 
     def setup_class(self):
         self.data = np.array(list(zip([1, 2, 3, 4],
@@ -47,7 +52,6 @@ class TestSingleTable(object):
         t2 = Table.read(filename)
         assert equal_data(t1, t2)
 
-    @pytest.mark.skipif('not HAS_PATHLIB')
     def test_simple_pathlib(self, tmpdir):
         filename = pathlib.Path(str(tmpdir.join('test_simple.fit')))
         t1 = Table(self.data)
@@ -155,8 +159,35 @@ class TestSingleTable(object):
         t = Table.read(hdu)
         assert equal_data(t, self.data)
 
+    def test_memmap(self, tmpdir):
+        filename = str(tmpdir.join('test_simple.fts'))
+        t1 = Table(self.data)
+        t1.write(filename, overwrite=True)
+        t2 = Table.read(filename, memmap=False)
+        t3 = Table.read(filename, memmap=True)
+        assert equal_data(t2, t3)
+        # To avoid issues with --open-files, we need to remove references to
+        # data that uses memory mapping and force the garbage collection
+        del t1, t2, t3
+        gc.collect()
 
-class TestMultipleHDU(object):
+    @pytest.mark.parametrize('memmap', (False, True))
+    def test_character_as_bytes(self, tmpdir, memmap):
+        filename = str(tmpdir.join('test_simple.fts'))
+        t1 = Table(self.data)
+        t1.write(filename, overwrite=True)
+        t2 = Table.read(filename, character_as_bytes=False, memmap=memmap)
+        t3 = Table.read(filename, character_as_bytes=True, memmap=memmap)
+        assert t2['b'].dtype.kind == 'U'
+        assert t3['b'].dtype.kind == 'S'
+        assert equal_data(t2, t3)
+        # To avoid issues with --open-files, we need to remove references to
+        # data that uses memory mapping and force the garbage collection
+        del t1, t2, t3
+        gc.collect()
+
+
+class TestMultipleHDU:
 
     def setup_class(self):
         self.data1 = np.array(list(zip([1, 2, 3, 4],
@@ -258,7 +289,7 @@ def test_masking_regression_1795():
     assert np.all(t['c3'].mask == np.array([False, False]))
     assert np.all(t['c4'].mask == np.array([False, False]))
     assert np.all(t['c1'].data == np.array([1, 2]))
-    assert np.all(t['c2'].data == np.array(['abc', 'xy ']))
+    assert np.all(t['c2'].data == np.array([b'abc', b'xy ']))
     assert_allclose(t['c3'].data, np.array([3.70000007153, 6.6999997139]))
     assert np.all(t['c4'].data == np.array([False, True]))
 
@@ -349,3 +380,222 @@ def test_convert_comment_convention(tmpdir):
         ' *** Column formats ***',
         ''
     ]
+
+
+def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
+    if compare_class:
+        assert obj1.__class__ is obj2.__class__
+
+    info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description', 'info.meta']
+    for attr in attrs + info_attrs:
+        a1 = obj1
+        a2 = obj2
+        for subattr in attr.split('.'):
+            try:
+                a1 = getattr(a1, subattr)
+                a2 = getattr(a2, subattr)
+            except AttributeError:
+                a1 = a1[subattr]
+                a2 = a2[subattr]
+
+        # Mixin info.meta can None instead of empty OrderedDict(), #6720 would
+        # fix this.
+        if attr == 'info.meta':
+            if a1 is None:
+                a1 = {}
+            if a2 is None:
+                a2 = {}
+
+        assert np.all(a1 == a2)
+
+# Testing FITS table read/write with mixins.  This is mostly
+# copied from ECSV mixin testing.
+
+el = EarthLocation(x=1 * u.km, y=3 * u.km, z=5 * u.km)
+el2 = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
+sc = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4',
+              obstime='J1990.5')
+scc = sc.copy()
+scc.representation = 'cartesian'
+tm = Time([2450814.5, 2450815.5], format='jd', scale='tai', location=el)
+
+
+mixin_cols = {
+    'tm': tm,
+    'dt': TimeDelta([1, 2] * u.day),
+    'sc': sc,
+    'scc': scc,
+    'scd': SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
+                    obstime=['J1990.5', 'J1991.5']),
+    'q': [1, 2] * u.m,
+    'lat': Latitude([1, 2] * u.deg),
+    'lon': Longitude([1, 2] * u.deg, wrap_angle=180. * u.deg),
+    'ang': Angle([1, 2] * u.deg),
+    'el2': el2,
+}
+
+time_attrs = ['value', 'shape', 'format', 'scale', 'location']
+compare_attrs = {
+    'c1': ['data'],
+    'c2': ['data'],
+    'tm': time_attrs,
+    'dt': ['shape', 'value', 'format', 'scale'],
+    'sc': ['ra', 'dec', 'representation', 'frame.name'],
+    'scc': ['x', 'y', 'z', 'representation', 'frame.name'],
+    'scd': ['ra', 'dec', 'distance', 'representation', 'frame.name'],
+    'q': ['value', 'unit'],
+    'lon': ['value', 'unit', 'wrap_angle'],
+    'lat': ['value', 'unit'],
+    'ang': ['value', 'unit'],
+    'el2': ['x', 'y', 'z', 'ellipsoid'],
+    'nd': ['x', 'y', 'z'],
+}
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_fits_mixins_qtable_to_table(tmpdir):
+    """Test writing as QTable and reading as Table.  Ensure correct classes
+    come out.
+    """
+    filename = str(tmpdir.join('test_simple.fits'))
+
+    names = sorted(mixin_cols)
+
+    t = QTable([mixin_cols[name] for name in names], names=names)
+    t.write(filename, format='fits')
+    t2 = Table.read(filename, format='fits', astropy_native=True)
+
+    assert t.colnames == t2.colnames
+
+    for name, col in t.columns.items():
+        col2 = t2[name]
+
+        # Special-case Time, which does not yet support round-tripping
+        # the format.
+        if isinstance(col2, Time):
+            col2.format = col.format
+
+        attrs = compare_attrs[name]
+        compare_class = True
+
+        if isinstance(col.info, QuantityInfo):
+            # Downgrade Quantity to Column + unit
+            assert type(col2) is Column
+            # Class-specific attributes like `value` or `wrap_angle` are lost.
+            attrs = ['unit']
+            compare_class = False
+            # Compare data values here (assert_objects_equal doesn't know how in this case)
+            assert np.all(col.value == col2)
+
+        assert_objects_equal(col, col2, attrs, compare_class)
+
+
+@pytest.mark.skipif('not HAS_YAML')
+@pytest.mark.parametrize('table_cls', (Table, QTable))
+def test_fits_mixins_as_one(table_cls, tmpdir):
+    """Test write/read all cols at once and validate intermediate column names"""
+    filename = str(tmpdir.join('test_simple.fits'))
+    names = sorted(mixin_cols)
+
+    serialized_names = ['ang',
+                        'dt.jd1', 'dt.jd2',
+                        'el2.x', 'el2.y', 'el2.z',
+                        'lat',
+                        'lon',
+                        'q',
+                        'sc.ra', 'sc.dec',
+                        'scc.x', 'scc.y', 'scc.z',
+                        'scd.ra', 'scd.dec', 'scd.distance',
+                        'scd.obstime.jd1', 'scd.obstime.jd2',
+                        'tm',  # serialize_method is formatted_value
+                        ]
+
+    t = table_cls([mixin_cols[name] for name in names], names=names)
+    t.meta['C'] = 'spam'
+    t.meta['comments'] = ['this', 'is', 'a', 'comment']
+    t.meta['history'] = ['first', 'second', 'third']
+
+    t.write(filename, format="fits")
+
+    t2 = table_cls.read(filename, format='fits', astropy_native=True)
+    assert t2.meta['C'] == 'spam'
+    assert t2.meta['comments'] == ['this', 'is', 'a', 'comment']
+    assert t2.meta['HISTORY'] == ['first', 'second', 'third']
+
+    assert t.colnames == t2.colnames
+
+    # Read directly via fits and confirm column names
+    hdus = fits.open(filename)
+    assert hdus[1].columns.names == serialized_names
+
+
+@pytest.mark.skipif('not HAS_YAML')
+@pytest.mark.parametrize('name_col', list(mixin_cols.items()))
+@pytest.mark.parametrize('table_cls', (Table, QTable))
+def test_fits_mixins_per_column(table_cls, name_col, tmpdir):
+    """Test write/read one col at a time and do detailed validation"""
+    filename = str(tmpdir.join('test_simple.fits'))
+    name, col = name_col
+
+    c = [1.0, 2.0]
+    t = table_cls([c, col, c], names=['c1', name, 'c2'])
+    t[name].info.description = 'my description'
+    t[name].info.meta = {'list': list(range(50)), 'dict': {'a': 'b' * 200}}
+
+    if not t.has_mixin_columns:
+        pytest.skip('column is not a mixin (e.g. Quantity subclass in Table)')
+
+    if isinstance(t[name], NdarrayMixin):
+        pytest.xfail('NdarrayMixin not supported')
+
+    t.write(filename, format="fits")
+    t2 = table_cls.read(filename, format='fits', astropy_native=True)
+
+    assert t.colnames == t2.colnames
+
+    for colname in t.colnames:
+        assert_objects_equal(t[colname], t2[colname], compare_attrs[colname])
+
+    # Special case to make sure Column type doesn't leak into Time class data
+    if name.startswith('tm'):
+        assert t2[name]._time.jd1.__class__ is np.ndarray
+        assert t2[name]._time.jd2.__class__ is np.ndarray
+
+
+@pytest.mark.skipif('HAS_YAML')
+def test_warn_for_dropped_info_attributes(tmpdir):
+    filename = str(tmpdir.join('test.fits'))
+    t = Table([[1, 2]])
+    t['col0'].info.description = 'hello'
+    with catch_warnings() as warns:
+        t.write(filename, overwrite=True)
+    assert len(warns) == 1
+    assert str(warns[0].message).startswith(
+        "table contains column(s) with defined 'format'")
+
+
+@pytest.mark.skipif('HAS_YAML')
+def test_error_for_mixins_but_no_yaml(tmpdir):
+    filename = str(tmpdir.join('test.fits'))
+    t = Table([mixin_cols['sc']])
+    with pytest.raises(TypeError) as err:
+        t.write(filename)
+    assert "cannot write type SkyCoord column 'col0' to FITS without PyYAML" in str(err)
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_info_attributes_with_no_mixins(tmpdir):
+    """Even if there are no mixin columns, if there is metadata that would be lost it still
+    gets serialized
+    """
+    filename = str(tmpdir.join('test.fits'))
+    t = Table([[1.0, 2.0]])
+    t['col0'].description = 'hello' * 40
+    t['col0'].format = '%8.4f'
+    t['col0'].meta['a'] = {'b': 'c'}
+    t.write(filename, overwrite=True)
+
+    t2 = Table.read(filename)
+    assert t2['col0'].description == 'hello' * 40
+    assert t2['col0'].format == '%8.4f'
+    assert t2['col0'].meta['a'] == {'b': 'c'}

@@ -1,5 +1,15 @@
 .. include:: references.txt
 
+.. We call EarthLocation.of_site here first to force the downloading
+.. of sites.json so that future doctest output isn't clutted with
+.. "Downloading ... [done]". This can be removed once we have a better
+.. way of ignoring output lines based on pattern-matching, e.g.:
+.. https://github.com/astropy/pytest-doctestplus/issues/11
+
+.. testsetup::
+    >>> from astropy.coordinates import EarthLocation
+    >>> EarthLocation.of_site('greenwich') # doctest: +IGNORE_OUTPUT
+
 Using and Designing Coordinate Frames
 *************************************
 
@@ -69,12 +79,12 @@ with keywords appropriate for the frame (e.g. ``ra`` and ``dec`` for
 equatorial systems)::
 
     >>> from astropy import units as u
-    >>> ICRS(ra=1.1*u.deg, dec=2.2*u.deg)
+    >>> ICRS(ra=1.1*u.deg, dec=2.2*u.deg)  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec) in deg
-        ( 1.1,  2.2)>
-    >>> FK5(ra=1.1*u.deg, dec=2.2*u.deg, equinox='J1975')
+        (1.1, 2.2)>
+    >>> FK5(ra=1.1*u.deg, dec=2.2*u.deg, equinox='J1975')  # doctest: +FLOAT_CMP
     <FK5 Coordinate (equinox=J1975.000): (ra, dec) in deg
-        ( 1.1,  2.2)>
+        (1.1, 2.2)>
 
 These same attributes can be used to access the data in the frames, as
 |Angle| objects (or |Angle| subclasses)::
@@ -85,9 +95,9 @@ These same attributes can be used to access the data in the frames, as
     >>> coo.ra.value  # doctest: +FLOAT_CMP
     1.1
     >>> coo.ra.to(u.hourangle)  # doctest: +FLOAT_CMP
-    <Longitude 0.07333333333333335 hourangle>
+    <Longitude 0.07333333 hourangle>
 
-You can use the ``representation`` attribute in conjunction
+You can use the ``representation_type`` attribute in conjunction
 with the ``representation_component_names`` attribute to figure out what
 keywords are accepted by a particular class object.  The former will be the
 representation class the system is expressed in (e.g.,
@@ -97,7 +107,7 @@ class::
 
     >>> import astropy.units as u
     >>> icrs = ICRS(1*u.deg, 2*u.deg)
-    >>> icrs.representation
+    >>> icrs.representation_type
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
     >>> icrs.representation_component_names
     OrderedDict([('ra', 'lon'), ('dec', 'lat'), ('distance', 'distance')])
@@ -106,7 +116,20 @@ One can get the data in a different representation if needed::
 
     >>> icrs.represent_as('cartesian')  # doctest: +FLOAT_CMP
     <CartesianRepresentation (x, y, z) [dimensionless]
-         ( 0.99923861,  0.01744177,  0.0348995)>
+         (0.99923861, 0.01744177, 0.0348995)>
+
+.. note::
+
+    In previous versions of Astropy, both the frame attribute and the argument
+    to frame classes that are now named ``representation_type`` used to be
+    simply ``representation``. The name of this attribute/argument is confusing
+    as it points to the representation *class*, not the object containing the
+    underlying frame data (this is accessed via the frame attribute ``.data``).
+    To clarify, we have renamed ``representation`` to ``representation_type``.
+    In this version 3.0, we have only changed the references to this attribute
+    in the documentation. In the next major version, we will issue a deprecation
+    warning. In two major versions, we will remove the ``.representation``
+    attribute and ``representation=`` argument.
 
 The representation of the coordinate object can also be changed directly, as
 shown below.  This actually does *nothing* to the object internal data which
@@ -114,25 +137,25 @@ stores the coordinate values, but it changes the external view of that data in
 two ways: (1) the object prints itself in accord with the new representation,
 and (2) the available attributes change to match those of the new
 representation (e.g. from ``ra, dec, distance`` to ``x, y, z``).  Setting the
-``representation`` thus changes a *property* of the object (how it appears)
+``representation_type`` thus changes a *property* of the object (how it appears)
 without changing the intrinsic object itself which represents a point in 3d
 space.::
 
     >>> from astropy.coordinates import CartesianRepresentation
-    >>> icrs.representation = CartesianRepresentation
+    >>> icrs.representation_type = CartesianRepresentation
     >>> icrs  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (x, y, z) [dimensionless]
-        ( 0.99923861, 0.01744177, 0.0348995)>
+        (0.99923861, 0.01744177, 0.0348995)>
     >>> icrs.x  # doctest: +FLOAT_CMP
-    <Quantity 0.9992386149554826>
+    <Quantity 0.99923861>
 
 The representation can also be set at the time of creating a coordinate
 and affects the set of keywords used to supply the coordinate data.  For
 example to create a coordinate with cartesian data do::
 
-    >>> ICRS(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc, representation=CartesianRepresentation)
+    >>> ICRS(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc, representation_type='cartesian')  #  doctest: +FLOAT_CMP
     <ICRS Coordinate: (x, y, z) in kpc
-        ( 1.,  2.,  3.)>
+        (1., 2., 3.)>
 
 For more information about the use of representations in coordinates see the
 :ref:`astropy-skycoord-representations` section, and for details about the
@@ -144,9 +167,9 @@ any  frame attributes required::
 
     >>> from astropy.coordinates import SphericalRepresentation
     >>> rep = SphericalRepresentation(lon=1.1*u.deg, lat=2.2*u.deg, distance=3.3*u.kpc)
-    >>> FK5(rep, equinox='J1975')
+    >>> FK5(rep, equinox='J1975')  # doctest: +FLOAT_CMP
     <FK5 Coordinate (equinox=J1975.000): (ra, dec, distance) in (deg, deg, kpc)
-        ( 1.1,  2.2,  3.3)>
+        (1.1, 2.2, 3.3)>
 
 A final way is to create a frame object from an already existing frame
 (either one with or without data), using the ``realize_frame`` method. This
@@ -156,9 +179,9 @@ will yield a frame with the same attributes, but new data::
     >>> f1
     <FK5 Frame (equinox=J1975.000)>
     >>> rep = SphericalRepresentation(lon=1.1*u.deg, lat=2.2*u.deg, distance=3.3*u.kpc)
-    >>> f1.realize_frame(rep)
+    >>> f1.realize_frame(rep)  # doctest: +FLOAT_CMP
     <FK5 Coordinate (equinox=J1975.000): (ra, dec, distance) in (deg, deg, kpc)
-        ( 1.1,  2.2,  3.3)>
+        (1.1, 2.2, 3.3)>
 
 You can check if a frame object has data using the ``has_data`` attribute, and
 if it is preset, it can be accessed from the ``data`` attribute::
@@ -168,24 +191,24 @@ if it is preset, it can be accessed from the ``data`` attribute::
     >>> cooi = ICRS(ra=1.1*u.deg, dec=2.2*u.deg)
     >>> cooi.has_data
     True
-    >>> cooi.data
+    >>> cooi.data  # doctest: +FLOAT_CMP
     <UnitSphericalRepresentation (lon, lat) in deg
-        ( 1.1,  2.2)>
+        (1.1, 2.2)>
 
 All of the above methods can also accept array data (in the form of
 class:`~astropy.units.Quantity`, or other Python sequences) to create arrays of
 coordinates::
 
-    >>> ICRS(ra=[1.5, 2.5]*u.deg, dec=[3.5, 4.5]*u.deg)
+    >>> ICRS(ra=[1.5, 2.5]*u.deg, dec=[3.5, 4.5]*u.deg)  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec) in deg
-        [( 1.5,  3.5), ( 2.5,  4.5)]>
+        [(1.5, 3.5), (2.5, 4.5)]>
 
 If you pass in mixed arrays and scalars, the arrays will be broadcast
 over the scalars appropriately::
 
-    >>> ICRS(ra=[1.5, 2.5]*u.deg, dec=[3.5, 4.5]*u.deg, distance=5*u.kpc)
+    >>> ICRS(ra=[1.5, 2.5]*u.deg, dec=[3.5, 4.5]*u.deg, distance=5*u.kpc)  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
-        [( 1.5,  3.5,  5.), ( 2.5,  4.5,  5.)]>
+        [(1.5, 3.5, 5.), (2.5, 4.5, 5.)]>
 
 Similar broadcasting happens if you transform to another frame.  E.g.::
 
@@ -197,7 +220,7 @@ Similar broadcasting happens if you transform to another frame.  E.g.::
     >>> lcoo = coo.transform_to(lf)  # this can load finals2000A.all # doctest: +IGNORE_OUTPUT
     >>> lcoo  # doctest: +FLOAT_CMP
     <AltAz Coordinate (obstime=['2012-03-21T00:00:00.000' '2012-06-21T00:00:00.000'], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): (az, alt) in deg
-        [(  94.71264994,  89.2142425 ), ( 307.69488826,  37.98077772)]>
+        [( 94.71264944, 89.21424252), (307.69488825, 37.98077771)]>
 
 Above, the shapes -- ``()`` for ``coo`` and ``(2,)`` for ``lf`` -- were
 broadcast against each other.  If you wished to determine the positions for a
@@ -220,10 +243,10 @@ set of coordinates, you'd need to make sure that the shapes allowed this::
       '2012-03-21T00:00:00.000']
      ['2012-06-21T00:00:00.000' '2012-06-21T00:00:00.000'
       '2012-06-21T00:00:00.000']], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): (az, alt) in deg
-        [[(  93.09845202,  89.21613119), ( 126.85789652,  25.46600543),
-          (  51.37993229,  37.18532521)],
-         [( 307.71713699,  37.99437658), ( 231.37407871,  26.36768329),
-          (  85.42187335,  89.69297997)]]>
+        [[( 93.09845202, 89.21613119), (126.85789652, 25.46600543),
+          ( 51.37993229, 37.18532521)],
+         [(307.71713699, 37.99437658), (231.37407871, 26.36768329),
+          ( 85.42187335, 89.69297997)]]>
 
 .. Note::
    One sees that frames without data have a ``shape`` that is determined by
@@ -243,10 +266,10 @@ data)::
     >>> cooi = ICRS(1.5*u.deg, 2.5*u.deg)
     >>> cooi.transform_to(FK5)  # doctest: +FLOAT_CMP
     <FK5 Coordinate (equinox=J2000.000): (ra, dec) in deg
-        ( 1.50000661,  2.50000238)>
+        (1.50000661, 2.50000238)>
     >>> cooi.transform_to(FK5(equinox='J1975'))  # doctest: +FLOAT_CMP
     <FK5 Coordinate (equinox=J1975.000): (ra, dec) in deg
-        ( 1.17960348,  2.36085321)>
+        (1.17960348, 2.36085321)>
 
 The :ref:`astropy-coordinates-api` includes a list of all of the frames built
 into `astropy.coordinates`, as well as the defined transformations between
@@ -299,7 +322,7 @@ the way you want.  As an example::
   >>> c = MyFrame(R=10*u.deg, D=20*u.deg)
   >>> c  # doctest: +FLOAT_CMP
   <MyFrame Coordinate (location=None, equinox=B1950.000, obstime=B1950.000): (R, D) in rad
-      ( 0.17453293,  0.34906585)>
+      (0.17453293, 0.34906585)>
   >>> c.equinox
   <Time object: scale='utc' format='byear_str' value=B1950.000>
 

@@ -420,3 +420,31 @@ class TestTimeDeltaScales():
         assert allclose_jd(t3.jd, t[0].jd) ^ (scale == 'utc')
         t4 = t[-1] - q_day
         assert allclose_jd(t4.jd, t[0].jd) ^ (scale == 'utc')
+
+
+def test_timedelta_setitem():
+    t = TimeDelta([1, 2, 3] * u.d, format='jd')
+
+    t[0] = 0.5
+    assert allclose_jd(t.value, [0.5, 2, 3])
+
+    t[1:] = 4.5
+    assert allclose_jd(t.value, [0.5, 4.5, 4.5])
+
+    t[:] = 86400 * u.s
+    assert allclose_jd(t.value, [1, 1, 1])
+
+    t[1] = TimeDelta(2, format='jd')
+    assert allclose_jd(t.value, [1, 2, 1])
+
+    with pytest.raises(ValueError) as err:
+        t[1] = 1 * u.m
+    assert 'cannot convert value to a compatible TimeDelta' in str(err)
+
+
+def test_timedelta_mask():
+    t = TimeDelta([1, 2] * u.d, format='jd')
+    t[1] = np.ma.masked
+    assert np.all(t.mask == [False, True])
+    assert allclose_jd(t[0].value, 1)
+    assert t.value[1] is np.ma.masked

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, unicode_literals,
-                        division, print_function)
 import numpy as np
 
 from .. import CompositeUnit, UnitsError, dimensionless_unscaled
@@ -122,7 +120,7 @@ class MagUnit(LogUnit):
     def __init__(self, *args, **kwargs):
         # Ensure we recognize magnitude zero points here.
         with mag0.enable():
-            super(MagUnit, self).__init__(*args, **kwargs)
+            super().__init__(*args, **kwargs)
 
     @property
     def _default_function_unit(self):
@@ -213,15 +211,15 @@ class LogQuantity(FunctionQuantity):
     Examples
     --------
     Typically, use is made of an `~astropy.units.function.FunctionQuantity`
-    subclasses, as in::
+    subclass, as in::
 
         >>> import astropy.units as u
-        >>> u.Magnitude(15.)
-        <Magnitude 15.0 mag>
+        >>> u.Magnitude(-2.5)
+        <Magnitude -2.5 mag>
         >>> u.Magnitude(10.*u.count/u.second)
         <Magnitude -2.5 mag(ct / s)>
-        >>> u.Decibel(1.*u.W, u.DecibelUnit(u.mW))
-        <Decibel 30.0 dB(mW)>
+        >>> u.Decibel(1.*u.W, u.DecibelUnit(u.mW))  # doctest: +FLOAT_CMP
+        <Decibel 30. dB(mW)>
 
     """
     # only override of FunctionQuantity

@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 """Test initialization of angles not already covered by the API tests"""
 
 import pickle
@@ -15,9 +10,10 @@ import numpy as np
 
 from ..earth import EarthLocation, ELLIPSOIDS
 from ..angles import Longitude, Latitude
-from ...tests.helper import quantity_allclose, remote_data
-from ...extern.six.moves import zip
+from ...tests.helper import quantity_allclose
 from ... import units as u
+from ...time import Time
+from ... import constants
 from ..name_resolve import NameResolveError
 
 
@@ -288,23 +284,36 @@ def test_repr_latex():
     somelocation2._repr_latex_()
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_of_address():
-    # no match
+    # just a location
+    try:
+        loc = EarthLocation.of_address("New York, NY")
+    except NameResolveError as e:
+        # Google map API limit might surface even here in Travis CI.
+        pytest.xfail(str(e))
+    else:
+        assert quantity_allclose(loc.lat, 40.7128*u.degree)
+        assert quantity_allclose(loc.lon, -74.0059*u.degree)
+        assert np.allclose(loc.height.value, 0.)
+
+    # Put this one here as buffer to get around Google map API limit per sec.
+    # no match: This always raises NameResolveError
     with pytest.raises(NameResolveError):
         EarthLocation.of_address("lkjasdflkja")
 
-    # just a location
-    loc = EarthLocation.of_address("New York, NY")
-    assert quantity_allclose(loc.lat, 40.7128*u.degree)
-    assert quantity_allclose(loc.lon, -74.0059*u.degree)
-    assert np.allclose(loc.height.value, 0.)
-
     # a location and height
-    loc = EarthLocation.of_address("New York, NY", get_height=True)
-    assert quantity_allclose(loc.lat, 40.7128*u.degree)
-    assert quantity_allclose(loc.lon, -74.0059*u.degree)
-    assert quantity_allclose(loc.height, 10.438659669*u.meter, atol=1.*u.cm)
+    try:
+        loc = EarthLocation.of_address("New York, NY", get_height=True)
+    except NameResolveError as e:
+        # Buffer above sometimes insufficient to get around API limit but
+        # we also do not want to drag things out with time.sleep(0.195),
+        # where 0.195 was empirically determined on some physical machine.
+        pytest.xfail(str(e))
+    else:
+        assert quantity_allclose(loc.lat, 40.7128*u.degree)
+        assert quantity_allclose(loc.lon, -74.0059*u.degree)
+        assert quantity_allclose(loc.height, 10.438659669*u.meter, atol=1.*u.cm)
 
 
 def test_geodetic_tuple():
@@ -320,3 +329,56 @@ def test_geodetic_tuple():
     assert res1.lat == res2.lat and quantity_allclose(res1.lat, lat)
     assert res1.lon == res2.lon and quantity_allclose(res1.lon, lon)
     assert res1.height == res2.height and quantity_allclose(res1.height, height)
+
+
+def test_gravitational_redshift():
+    someloc = EarthLocation(lon=-87.7*u.deg, lat=37*u.deg)
+    sometime = Time('2017-8-21 18:26:40')
+    zg0 = someloc.gravitational_redshift(sometime)
+
+    # should be of order ~few mm/s change per week
+    zg_week = someloc.gravitational_redshift(sometime + 7 * u.day)
+    assert 1.*u.mm/u.s < abs(zg_week - zg0) < 1*u.cm/u.s
+
+    # ~cm/s over a half-year
+    zg_halfyear = someloc.gravitational_redshift(sometime + 0.5 * u.yr)
+    assert 1*u.cm/u.s < abs(zg_halfyear - zg0) < 1*u.dm/u.s
+
+    # but when back to the same time in a year, should be tenths of mm
+    # even over decades
+    zg_year = someloc.gravitational_redshift(sometime - 20 * u.year)
+    assert .1*u.mm/u.s < abs(zg_year - zg0) < 1*u.mm/u.s
+
+    # Check mass adjustments.
+    # If Jupiter and the moon are ignored, effect should be off by ~ .5 mm/s
+    masses = {'sun': constants.G*constants.M_sun,
+              'jupiter': 0*constants.G*u.kg,
+              'moon': 0*constants.G*u.kg}
+    zg_moonjup = someloc.gravitational_redshift(sometime, masses=masses)
+    assert .1*u.mm/u.s < abs(zg_moonjup - zg0) < 1*u.mm/u.s
+    # Check that simply not including the bodies gives the same result.
+    assert zg_moonjup == someloc.gravitational_redshift(sometime,
+                                                        bodies=('sun',))
+    # And that earth can be given, even not as last argument
+    assert zg_moonjup == someloc.gravitational_redshift(
+        sometime, bodies=('earth', 'sun',))
+
+    # If the earth is also ignored, effect should be off by ~ 20 cm/s
+    # This also tests the conversion of kg to gravitational units.
+    masses['earth'] = 0*u.kg
+    zg_moonjupearth = someloc.gravitational_redshift(sometime, masses=masses)
+    assert 1*u.dm/u.s < abs(zg_moonjupearth - zg0) < 1*u.m/u.s
+
+    # If all masses are zero, redshift should be 0 as well.
+    masses['sun'] = 0*u.kg
+    assert someloc.gravitational_redshift(sometime, masses=masses) == 0
+
+    with pytest.raises(KeyError):
+        someloc.gravitational_redshift(sometime, bodies=('saturn',))
+
+    with pytest.raises(u.UnitsError):
+        masses = {'sun': constants.G*constants.M_sun,
+                  'jupiter': constants.G*constants.M_jup,
+                  'moon': 1*u.km,  # wrong units!
+                  'earth': constants.G*constants.M_earth}
+        someloc.gravitational_redshift(sometime, masses=masses)

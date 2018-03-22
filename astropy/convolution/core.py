@@ -14,8 +14,6 @@ integrates to one per default.
 
 Currently only symmetric 2D kernels are supported.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import warnings
 import copy
@@ -30,7 +28,7 @@ MAX_NORMALIZATION = 100
 __all__ = ['Kernel', 'Kernel1D', 'Kernel2D', 'kernel_arithmetics']
 
 
-class Kernel(object):
+class Kernel:
     """
     Convolution kernel base class.
 
@@ -239,7 +237,7 @@ class Kernel1D(Kernel):
         elif array is not None:
             self._model = None
 
-        super(Kernel1D, self).__init__(array)
+        super().__init__(array)
 
 
 class Kernel2D(Kernel):
@@ -311,7 +309,7 @@ class Kernel2D(Kernel):
         elif array is not None:
             self._model = None
 
-        super(Kernel2D, self).__init__(array)
+        super().__init__(array)
 
 
 def kernel_arithmetics(kernel, value, operation):

@@ -15,12 +15,12 @@ except ImportError:
     HAS_YAML = False
 
 import copy
+import pickle
+from io import StringIO
 
 import pytest
 import numpy as np
 
-from ...extern import six
-from ...extern.six.moves import cPickle as pickle, cStringIO as StringIO
 from ...coordinates import EarthLocation
 from ...table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
 from ... import time
@@ -109,30 +109,21 @@ def test_io_ascii_write():
             t.write(out, format=fmt['Format'])
 
 
-def test_io_quantity_write(tmpdir):
+def test_votable_quantity_write(tmpdir):
     """
-    Test that table with Quantity mixin column can be written by io.fits and
-    io.votable but not by io.misc.hdf5. Validation of the output is done.
-    Test that io.fits writes a table containing Quantity mixin columns that can
-    be round-tripped (metadata unit).
+    Test that table with Quantity mixin column can be round-tripped by
+    io.votable.  Note that FITS and HDF5 mixin support are tested (much more
+    thoroughly) in their respective subpackage tests
+    (io/fits/tests/test_connect.py and io/misc/tests/test_hdf5.py).
     """
     t = QTable()
     t['a'] = u.Quantity([1, 2, 4], unit='Angstrom')
 
     filename = str(tmpdir.join('table-tmp'))
-
-    # Show that FITS and VOTable formats succeed
-    for fmt in ('fits', 'votable'):
-        t.write(filename, format=fmt, overwrite=True)
-        qt = QTable.read(filename, format=fmt)
-        assert isinstance(qt['a'], u.Quantity)
-        assert qt['a'].unit == 'Angstrom'
-
-    # Show that HDF5 format fails
-    if HAS_H5PY:
-        with pytest.raises(ValueError) as err:
-            t.write(filename, format='hdf5', overwrite=True)
-        assert 'cannot write table with mixin column(s)' in str(err.value)
+    t.write(filename, format='votable', overwrite=True)
+    qt = QTable.read(filename, format='votable')
+    assert isinstance(qt['a'], u.Quantity)
+    assert qt['a'].unit == 'Angstrom'
 
 
 @pytest.mark.parametrize('table_types', (Table, QTable))
@@ -140,7 +131,7 @@ def test_io_time_write_fits(tmpdir, table_types):
     """
     Test that table with Time mixin columns can be written by io.fits.
     Validation of the output is done. Test that io.fits writes a table
-    containing Time mixin columns that can be considerably round-tripped
+    containing Time mixin columns that can be partially round-tripped
     (metadata scale, location).
     """
     t = table_types([[1,2], ['string', 'column']])
@@ -155,7 +146,7 @@ def test_io_time_write_fits(tmpdir, table_types):
     filename = str(tmpdir.join('table-tmp'))
 
     # Show that FITS format succeeds
-    t.write(filename, format='fits', overwrite=True, astropy_native=True)
+    t.write(filename, format='fits', overwrite=True)
     tm = table_types.read(filename, format='fits', astropy_native=True)
 
     for scale in time.TIME_SCALES:
@@ -184,7 +175,12 @@ def test_io_time_write_fits(tmpdir, table_types):
         # Assert that the non-time columns' data round-trips
         assert (tm[name] == t[name]).all()
 
-    # Test for default read/write behaviour (raw data)
+    # Test for conversion of time data to its value, as defined by its format
+    for scale in time.TIME_SCALES:
+        for ab in ('a', 'b'):
+            name = ab + scale
+            t[name].info.serialize_method['fits'] = 'formatted_value'
+
     t.write(filename, format='fits', overwrite=True)
     tm = table_types.read(filename, format='fits')
 
@@ -196,30 +192,23 @@ def test_io_time_write_fits(tmpdir, table_types):
             assert (tm[name] == t[name].value).all()
 
 
-def test_io_write_fail(mixin_cols):
+def test_votable_mixin_write_fail(mixin_cols):
     """
     Test that table with mixin columns (excluding Quantity) cannot be written by
-    io.votable, io.fits and io.misc.hdf5. Also test that table with Time mixin
-    columns cannot be written by io.votable and io.misc.hdf5.
+    io.votable.
     """
     t = QTable(mixin_cols)
     # Only do this test if there are unsupported column types (i.e. anything besides
     # BaseColumn and Quantity class instances).
     unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity))
-    # Partially supported columns (FITS)
-    fits_unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity, time.Time))
 
     if not unsupported_cols:
         pytest.skip("no unsupported column types")
-    for fmt in ('fits', 'votable', 'hdf5'):
-        if fmt == 'fits' and not fits_unsupported_cols:
-            pytest.skip("no unsupported column types")
-        if fmt == 'hdf5' and not HAS_H5PY:
-            continue
-        out = StringIO()
-        with pytest.raises(ValueError) as err:
-            t.write(out, format=fmt)
-        assert 'cannot write table with mixin column(s)' in str(err.value)
+
+    out = StringIO()
+    with pytest.raises(ValueError) as err:
+        t.write(out, format='votable')
+    assert 'cannot write table with mixin column(s)' in str(err.value)
 
 
 def test_join(table_types):
@@ -521,15 +510,6 @@ def test_conversion_qtable_table():
         assert_table_name_col_equal(qt2, name, qt[name])
 
 
-@pytest.mark.xfail
-def test_column_rename():
-    qt = QTable(MIXIN_COLS)
-    names = qt.colnames
-    for name in names:
-        qt.rename_column(name, name + '2')
-    assert qt.colnames == [name + '2' for name in names]
-
-
 def test_setitem_as_column_name():
     """
     Test for mixin-related regression described in #3321.
@@ -594,9 +574,9 @@ def test_ndarray_mixin():
     tests apply.
     """
     a = np.array([(1, 'a'), (2, 'b'), (3, 'c'), (4, 'd')],
-                 dtype='<i4,' + ('|S1' if six.PY2 else '|U1'))
+                 dtype='<i4,' + ('|U1'))
     b = np.array([(10, 'aa'), (20, 'bb'), (30, 'cc'), (40, 'dd')],
-                 dtype=[('x', 'i4'), ('y', ('S2' if six.PY2 else 'U2'))])
+                 dtype=[('x', 'i4'), ('y', ('U2'))])
     c = np.rec.fromrecords([(100, 'raa'), (200, 'rbb'), (300, 'rcc'), (400, 'rdd')],
                            names=['rx', 'ry'])
     d = np.arange(8).reshape(4, 2).view(NdarrayMixin)

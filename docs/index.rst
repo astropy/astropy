@@ -28,9 +28,12 @@ Astropy Documentation
 
     .. image:: _static/astropy_logo.pdf
 
-Welcome to the Astropy documentation! Astropy is a community-driven
-package intended to contain much of the core functionality and some common
-tools needed for performing astronomy and astrophysics with Python.
+The ``astropy`` package contains key functionality and common tools needed for
+performing astronomy and astrophysics with Python.  It is at the core of the
+`Astropy Project <http://www.astropy.org/about.html>`_, which aims to enable
+the community to develop a robust ecosystem of `Affiliated Packages
+<http://www.astropy.org/affiliated/index.html>`_ covering a broad range of
+needs for astronomical research, data processing, and data analysis.
 
 .. _getting-started:
 
@@ -42,13 +45,13 @@ Getting Started
    :maxdepth: 1
 
    install
-   whatsnew/2.0
+   whatsnew/3.1
    importing_astropy
    Example Gallery <generated/examples/index>
    Tutorials <http://tutorials.astropy.org/>
    Get Help <http://www.astropy.org/help.html>
    Contribute and Report Problems <http://www.astropy.org/contribute.html>
-   About the astropy project <http://www.astropy.org/about.html>
+   About the Astropy Project <http://www.astropy.org/about.html>
 
 .. _user-docs:
 
@@ -70,7 +73,6 @@ Data structures and transformations
    coordinates/index
    wcs/index
    modeling/index
-   analytic_functions/index
 
 Files, I/O, and Communication
 -----------------------------
@@ -84,7 +86,6 @@ Files, I/O, and Communication
    io/votable/index
    io/misc
    samp/index
-   vo/index
 
 Computations and utilities
 --------------------------
@@ -122,10 +123,6 @@ Astropy or affiliated packages, as well as coding, documentation, and
 testing guidelines. For the guiding vision of this process and the project
 as a whole, see :doc:`development/vision`.
 
-There are additional tools of use for developers in the
-`astropy/astropy-tools repository
-<http://github.com/astropy/astropy-tools>`__.
-
 .. toctree::
    :maxdepth: 1
 
@@ -138,8 +135,12 @@ There are additional tools of use for developers in the
    development/ccython
    development/releasing
    development/workflow/maintainer_workflow
-   development/affiliated-packages
+   development/astropy-package-template
    changelog
+
+There are some additional tools, mostly of use for maintainers, in the
+`astropy/astropy-procedures repository
+<https://github.com/astropy/astropy-procedures>`__.
 
 .. _project-details:
 

@@ -3,8 +3,6 @@
 Validates a large collection of web-accessible VOTable files,
 and generates a report as a directory tree of HTML files.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-from ....extern import six
 
 # STDLIB
 import os
@@ -34,7 +32,7 @@ def get_urls(destdir, s):
             'urls/cone.{0}.dat.gz'.format(type))
         with gzip.open(filename, 'rb') as fd:
             for url in fd.readlines():
-                six.next(s)
+                next(s)
                 url = url.strip()
                 if url not in seen:
                     with result.Result(url, root=destdir) as r:

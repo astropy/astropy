@@ -4,8 +4,6 @@ This module contains functions for computing robust statistics using
 Tukey's biweight function.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
@@ -92,7 +90,7 @@ def biweight_location(data, c=6.0, M=None, axis=None):
     -0.0175741540445
     """
 
-    data = np.asanyarray(data)
+    data = np.asanyarray(data).astype(np.float64)
 
     if M is None:
         M = np.median(data, axis=axis)
@@ -271,7 +269,7 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
 
     Parameters
     ----------
-    dat : array-like
+    data : array-like
         Input array or object that can be converted to an array.
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).
@@ -326,7 +324,7 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     0.97362869104
     """
 
-    data = np.asanyarray(data)
+    data = np.asanyarray(data).astype(np.float64)
 
     if M is None:
         M = np.median(data, axis=axis)
@@ -512,7 +510,7 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
     [ 0.90820237  3.13091961]
     """
 
-    data = np.asanyarray(data)
+    data = np.asanyarray(data).astype(np.float64)
 
     # ensure data is 2D
     if data.ndim == 1:

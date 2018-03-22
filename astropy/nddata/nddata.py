@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module implements the base NDData class.
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 from copy import deepcopy
@@ -99,8 +97,8 @@ class NDData(NDDataBase):
         >>> q = np.array([1,2,3,4]) * u.m
         >>> nd2 = NDData(q, unit=u.cm)
         INFO: overwriting Quantity's current unit with specified unit. [astropy.nddata.nddata]
-        >>> nd2.data
-        array([ 1.,  2.,  3.,  4.])
+        >>> nd2.data  # doctest: +FLOAT_CMP
+        array([1., 2., 3., 4.])
         >>> nd2.unit
         Unit("cm")
 
@@ -121,7 +119,7 @@ class NDData(NDDataBase):
         # but before the NDDataBase did call the uncertainty
         # setter. But if anyone wants to alter this behaviour again the call
         # to the superclass NDDataBase should be in here.
-        super(NDData, self).__init__()
+        super().__init__()
 
         # Check if data is any type from which to collect some implicitly
         # passed parameters.

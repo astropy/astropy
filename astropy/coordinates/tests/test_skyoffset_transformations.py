@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
+import pytest
 import numpy as np
 
 from ... import units as u
@@ -11,10 +9,7 @@ from ..distances import Distance
 from ..builtin_frames import ICRS, FK5, Galactic, AltAz, SkyOffsetFrame
 from .. import SkyCoord, EarthLocation
 from ...time import Time
-from ...tests.helper import (pytest, quantity_allclose as allclose,
-                             assert_quantity_allclose as assert_allclose)
-
-from ...extern.six.moves import range
+from ...tests.helper import assert_quantity_allclose as assert_allclose
 
 
 @pytest.mark.parametrize("inradec,expectedlatlon, tolsep", [
@@ -295,18 +290,29 @@ def test_skyoffset_lonwrap():
     assert sc.lon < 180 * u.deg
 
 
-def test_skyoffset_velerr():
-    # TODO: remove this when the SkyOffsetFrame's support velocities
-    origin = ICRS(45*u.deg, 45*u.deg)
-    originwvel = ICRS(45*u.deg, 45*u.deg, radial_velocity=1*u.km/u.s)
+def test_skyoffset_velocity():
+    c = ICRS(ra=170.9*u.deg, dec=-78.4*u.deg,
+             pm_ra_cosdec=74.4134*u.mas/u.yr,
+             pm_dec=-93.2342*u.mas/u.yr)
+    skyoffset_frame = SkyOffsetFrame(origin=c)
+    c_skyoffset = c.transform_to(skyoffset_frame)
 
-    SkyOffsetFrame(origin=origin)
-    with pytest.raises(NotImplementedError):
-        SkyOffsetFrame(origin=originwvel)
-    SkyOffsetFrame(origin.data, origin=origin)
-    with pytest.raises(NotImplementedError):
-        SkyOffsetFrame(originwvel.data, origin=origin)
-    with pytest.raises(NotImplementedError):
-        SkyOffsetFrame(origin.data, origin=originwvel)
-    with pytest.raises(NotImplementedError):
-        SkyOffsetFrame(originwvel.data, origin=originwvel)
+    assert_allclose(c_skyoffset.pm_lon_coslat, c.pm_ra_cosdec)
+    assert_allclose(c_skyoffset.pm_lat, c.pm_dec)
+
+
+@pytest.mark.parametrize("rotation, expectedpmlonlat", [
+    (0*u.deg, [1, 2]*u.mas/u.yr),
+    (45*u.deg, [-2**-0.5, 3*2**-0.5]*u.mas/u.yr),
+    (90*u.deg, [-2, 1]*u.mas/u.yr),
+    (180*u.deg, [-1, -2]*u.mas/u.yr),
+    (-90*u.deg, [2, -1]*u.mas/u.yr)
+    ])
+def test_skyoffset_velocity_rotation(rotation, expectedpmlonlat):
+    sc = SkyCoord(ra=170.9*u.deg, dec=-78.4*u.deg,
+                  pm_ra_cosdec=1*u.mas/u.yr,
+                  pm_dec=2*u.mas/u.yr)
+
+    c_skyoffset0 = sc.transform_to(sc.skyoffset_frame(rotation=rotation))
+    assert_allclose(c_skyoffset0.pm_lon_coslat, expectedpmlonlat[0])
+    assert_allclose(c_skyoffset0.pm_lat, expectedpmlonlat[1])

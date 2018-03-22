@@ -19,7 +19,7 @@ import astropy
 NAME = 'astropy'
 
 # VERSION should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
-VERSION = '3.0.dev'
+VERSION = '3.1.dev'
 
 # Indicates if this version is a release version
 RELEASE = 'dev' not in VERSION
@@ -54,18 +54,30 @@ entry_points['console_scripts'] = [
     'fitsheader = astropy.io.fits.scripts.fitsheader:main',
     'fitsinfo = astropy.io.fits.scripts.fitsinfo:main',
     'samp_hub = astropy.samp.hub_script:hub_script',
+    'showtable = astropy.table.scripts.showtable:main',
     'volint = astropy.io.votable.volint:main',
     'wcslint = astropy.wcs.wcslint:main',
 ]
+# Register ASDF extensions
+entry_points['asdf_extensions'] = [
+    'astropy = astropy.io.misc.asdf.extension:AstropyExtension',
+    'astropy-asdf = astropy.io.misc.asdf.extension:AstropyAsdfExtension',
+]
 
-setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
+min_numpy_version = 'numpy>=' + astropy.__minimum_numpy_version__
+setup_requires = [min_numpy_version]
 
 # Make sure to have the packages needed for building astropy, but do not require them
 # when installing from an sdist as the c files are included there.
 if not os.path.exists(os.path.join(os.path.dirname(__file__), 'PKG-INFO')):
     setup_requires.extend(['cython>=0.21', 'jinja2>=2.7'])
 
-install_requires = ['pytest>=2.8', 'numpy>=' + astropy.__minimum_numpy_version__]
+install_requires = [min_numpy_version]
+
+extras_require = {
+    'test': ['pytest-astropy']
+}
+
 # Avoid installing setup_requires dependencies if the user just
 # queries for information
 if is_distutils_display_option():
@@ -78,6 +90,7 @@ setup(name=NAME,
       requires=['numpy'],  # scipy not required, but strongly recommended
       setup_requires=setup_requires,
       install_requires=install_requires,
+      extras_require=extras_require,
       provides=[NAME],
       author='The Astropy Developers',
       author_email='astropy.team@gmail.com',
@@ -85,7 +98,7 @@ setup(name=NAME,
       url='http://astropy.org',
       long_description=astropy.__doc__,
       keywords=['astronomy', 'astrophysics', 'cosmology', 'space', 'science',
-                'units', 'table', 'wcs', 'vo', 'samp', 'coordinate', 'fits',
+                'units', 'table', 'wcs', 'samp', 'coordinate', 'fits',
                 'modeling', 'models', 'fitting', 'ascii'],
       classifiers=[
           'Intended Audience :: Science/Research',
@@ -93,7 +106,6 @@ setup(name=NAME,
           'Operating System :: OS Independent',
           'Programming Language :: C',
           'Programming Language :: Cython',
-          'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: Implementation :: CPython',
           'Topic :: Scientific/Engineering :: Astronomy',
@@ -101,8 +113,8 @@ setup(name=NAME,
       ],
       cmdclass=cmdclassd,
       zip_safe=False,
-      use_2to3=False,
       entry_points=entry_points,
-      python_requires='>=2.7',
+      python_requires='>=' + astropy.__minimum_python_version__,
+      tests_require=['pytest-astropy'],
       **package_info
 )

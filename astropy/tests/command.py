@@ -5,28 +5,13 @@ Implements the wrapper for the Astropy test runner in the form of the
 
 
 import os
+import glob
 import shutil
 import subprocess
 import sys
 import tempfile
 
 from setuptools import Command
-
-from ..extern import six
-
-
-def _fix_user_options(options):
-    """
-    This is for Python 2.x and 3.x compatibility.  distutils expects Command
-    options to all be byte strings on Python 2 and Unicode strings on Python 3.
-    """
-
-    def to_str_or_none(x):
-        if x is None:
-            return None
-        return str(x)
-
-    return [tuple(to_str_or_none(x) for x in y) for y in options]
 
 
 class FixRemoteDataOption(type):
@@ -56,8 +41,7 @@ class FixRemoteDataOption(type):
         return super(FixRemoteDataOption, cls).__init__(name, bases, dct)
 
 
-@six.add_metaclass(FixRemoteDataOption)
-class AstropyTest(Command, object):
+class AstropyTest(Command, metaclass=FixRemoteDataOption):
     description = 'Run the tests for this package'
 
     user_options = [
@@ -108,8 +92,6 @@ class AstropyTest(Command, object):
          'in the documentation for tempfile.mkstemp.')
     ]
 
-    user_options = _fix_user_options(user_options)
-
     package_name = ''
 
     def initialize_options(self):
@@ -148,10 +130,7 @@ class AstropyTest(Command, object):
             cmd_pre += pre
             cmd_post += post
 
-        if six.PY2:
-            set_flag = "import __builtin__; __builtin__._ASTROPY_TEST_ = True"
-        else:
-            set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
+        set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
 
         cmd = ('{cmd_pre}{0}; import {1.package_name}, sys; result = ('
                '{1.package_name}.test('
@@ -168,6 +147,7 @@ class AstropyTest(Command, object):
                'parallel={1.parallel!r}, '
                'docs_path={1.docs_path!r}, '
                'skip_docs={1.skip_docs!r}, '
+               'add_local_eggs_to_path=True, '  # see _build_temp_install below
                'repeat={1.repeat!r})); '
                '{cmd_post}'
                'sys.exit(result)')
@@ -177,12 +157,10 @@ class AstropyTest(Command, object):
         """
         Run the tests!
         """
-        # Install the runtime and test dependencies.
+
+        # Install the runtime dependencies.
         if self.distribution.install_requires:
-            self.distribution.fetch_build_eggs(
-                self.distribution.install_requires)
-        if self.distribution.tests_require:
-            self.distribution.fetch_build_eggs(self.distribution.tests_require)
+            self.distribution.fetch_build_eggs(self.distribution.install_requires)
 
         # Ensure there is a doc path
         if self.docs_path is None:
@@ -200,6 +178,20 @@ class AstropyTest(Command, object):
         # Build a testing install of the package
         self._build_temp_install()
 
+        # Install the test dependencies
+        # NOTE: we do this here after _build_temp_install because there is
+        # a weird but which occurs if psutil is installed in this way before
+        # astropy is built, Cython can have segmentation fault. Strange, eh?
+        if self.distribution.tests_require:
+            self.distribution.fetch_build_eggs(self.distribution.tests_require)
+
+        # Copy any additional dependencies that may have been installed via
+        # tests_requires or install_requires. We then pass the
+        # add_local_eggs_to_path=True option to package.test() to make sure the
+        # eggs get included in the path.
+        if os.path.exists('.eggs'):
+            shutil.copytree('.eggs', os.path.join(self.testing_path, '.eggs'))
+
         # Run everything in a try: finally: so that the tmp dir gets deleted.
         try:
             # Construct this modules testing command
@@ -209,21 +201,8 @@ class AstropyTest(Command, object):
             # new extension modules may have appeared, and this is the
             # easiest way to set up a new environment
 
-            # On Python 3.x prior to 3.3, the creation of .pyc files
-            # is not atomic.  py.test jumps through some hoops to make
-            # this work by parsing import statements and carefully
-            # importing files atomically.  However, it can't detect
-            # when __import__ is used, so its carefulness still fails.
-            # The solution here (admittedly a bit of a hack), is to
-            # turn off the generation of .pyc files altogether by
-            # passing the `-B` switch to `python`.  This does mean
-            # that each core will have to compile .py file to bytecode
-            # itself, rather than getting lucky and borrowing the work
-            # already done by another core.  Compilation is an
-            # insignificant fraction of total testing time, though, so
-            # it's probably not worth worrying about.
             testproc = subprocess.Popen(
-                [sys.executable, '-B', '-c', cmd],
+                [sys.executable, '-c', cmd],
                 cwd=self.testing_path, close_fds=False)
             retcode = testproc.wait()
         except KeyboardInterrupt:
@@ -240,35 +219,44 @@ class AstropyTest(Command, object):
 
     def _build_temp_install(self):
         """
-        Build the package and copy the build to a temporary directory for
-        the purposes of testing this avoids creating pyc and __pycache__
-        directories inside the build directory
+        Install the package and to a temporary directory for the purposes of
+        testing. This allows us to test the install command, include the
+        entry points, and also avoids creating pyc and __pycache__ directories
+        inside the build directory
         """
-        self.reinitialize_command('build', inplace=True)
-        self.run_command('build')
-        build_cmd = self.get_finalized_command('build')
-        new_path = os.path.abspath(build_cmd.build_lib)
 
         # On OSX the default path for temp files is under /var, but in most
         # cases on OSX /var is actually a symlink to /private/var; ensure we
         # dereference that link, because py.test is very sensitive to relative
         # paths...
+
         tmp_dir = tempfile.mkdtemp(prefix=self.package_name + '-test-',
                                    dir=self.temp_root)
         self.tmp_dir = os.path.realpath(tmp_dir)
-        self.testing_path = os.path.join(self.tmp_dir, os.path.basename(new_path))
-        shutil.copytree(new_path, self.testing_path)
+
+        # We now install the package to the temporary directory. We do this
+        # rather than build and copy because this will ensure that e.g. entry
+        # points work.
+        self.reinitialize_command('install')
+        install_cmd = self.distribution.get_command_obj('install')
+        install_cmd.prefix = self.tmp_dir
+        self.run_command('install')
+
+        # We now get the path to the site-packages directory that was created
+        # inside self.tmp_dir
+        install_cmd = self.get_finalized_command('install')
+        self.testing_path = install_cmd.install_lib
 
         # Ideally, docs_path is set properly in run(), but if it is still
         # not set here, do not pretend it is, otherwise bad things happen.
         # See astropy/package-template#157
         if self.docs_path is not None:
-            new_docs_path = os.path.join(self.tmp_dir,
+            new_docs_path = os.path.join(self.testing_path,
                                          os.path.basename(self.docs_path))
             shutil.copytree(self.docs_path, new_docs_path)
             self.docs_path = new_docs_path
 
-        shutil.copy('setup.cfg', self.tmp_dir)
+        shutil.copy('setup.cfg', self.testing_path)
 
     def _generate_coverage_commands(self):
         """
@@ -290,20 +278,14 @@ class AstropyTest(Command, object):
         # requires importing astropy.config and thus screwing
         # up coverage results for those packages.
         coveragerc = os.path.join(
-            self.testing_path, self.package_name, 'tests', 'coveragerc')
+            self.testing_path, self.package_name.replace('.', '/'),
+            'tests', 'coveragerc')
 
-        # We create a coveragerc that is specific to the version
-        # of Python we're running, so that we can mark branches
-        # as being specifically for Python 2 or Python 3
         with open(coveragerc, 'r') as fd:
             coveragerc_content = fd.read()
-        if not six.PY2:
-            ignore_python_version = '2'
-        else:
-            ignore_python_version = '3'
+
         coveragerc_content = coveragerc_content.replace(
-            "{ignore_python_version}", ignore_python_version).replace(
-                "{packagename}", self.package_name)
+            "{packagename}", self.package_name.replace('.', '/'))
         tmp_coveragerc = os.path.join(self.tmp_dir, 'coveragerc')
         with open(tmp_coveragerc, 'wb') as tmp:
             tmp.write(coveragerc_content.encode('utf-8'))

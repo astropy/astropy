@@ -4,7 +4,6 @@ which outputs from a source model are mapped to which inputs of a target model.
 """
 
 from .core import FittableModel
-from ..extern.six.moves import range
 
 
 __all__ = ['Mapping', 'Identity']
@@ -56,7 +55,10 @@ class Mapping(FittableModel):
                                  for idx in range(n_inputs))
         self._outputs = tuple('x' + str(idx) for idx in range(len(mapping)))
         self._mapping = mapping
-        super(Mapping, self).__init__(name=name, meta=meta)
+        self.input_units_strict = {key: False for key in self._inputs}
+        self.input_units_allow_dimensionless = {key: False for key in self._inputs}
+        super().__init__(name=name, meta=meta)
+
 
     @property
     def inputs(self):
@@ -159,7 +161,7 @@ class Identity(Mapping):
 
     def __init__(self, n_inputs, name=None, meta=None):
         mapping = tuple(range(n_inputs))
-        super(Identity, self).__init__(mapping, name=name, meta=meta)
+        super().__init__(mapping, name=name, meta=meta)
 
     def __repr__(self):
         if self.name is None:

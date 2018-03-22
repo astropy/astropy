@@ -1,9 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import numpy as np
-from ..extern.six.moves import range
 
 
 __all__ = ['jackknife_resampling', 'jackknife_stats']
@@ -41,9 +38,7 @@ def jackknife_resampling(data):
         Resampling Plans". Technical Report No. 63, Division of Biostatistics,
         Stanford University, December, 1980.
 
-    .. [3] Cowles, Kate. "Computing in Statistics: The Jackknife, Lecture 11".
-        <http://homepage.stat.uiowa.edu/~kcowles/s166_2009/lect11.pdf>.
-        September, 2009.
+    .. [3] Jackknife resampling <https://en.wikipedia.org/wiki/Jackknife_resampling>
     """
 
     n = data.shape[0]
@@ -61,7 +56,7 @@ def jackknife_resampling(data):
 def jackknife_stats(data, statistic, conf_lvl=0.95):
     """ Performs jackknife estimation on the basis of jackknife resamples.
 
-    This function requires `SciPy <http://www.scipy.org>`_ to be installed.
+    This function requires `SciPy <https://www.scipy.org/>`_ to be installed.
 
     Parameters
     ----------

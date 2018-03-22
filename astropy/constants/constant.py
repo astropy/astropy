@@ -1,7 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ..extern import six
 
 import functools
 import types
@@ -40,7 +37,7 @@ class ConstantMeta(InheritDocstrings):
                 name_lower = self.name.lower()
                 instances = self._registry[name_lower]
                 if not self._checked_units:
-                    for inst in six.itervalues(instances):
+                    for inst in instances.values():
                         try:
                             self.unit.to(inst.unit)
                         except UnitsError:
@@ -66,18 +63,17 @@ class ConstantMeta(InheritDocstrings):
         exclude = set(['__new__', '__array_finalize__', '__array_wrap__',
                        '__dir__', '__getattr__', '__init__', '__str__',
                        '__repr__', '__hash__', '__iter__', '__getitem__',
-                       '__len__', '__nonzero__', '__quantity_subclass__'])
-        for attr, value in six.iteritems(vars(Quantity)):
+                       '__len__', '__bool__', '__quantity_subclass__'])
+        for attr, value in vars(Quantity).items():
             if (isinstance(value, types.FunctionType) and
                     attr.startswith('__') and attr.endswith('__') and
                     attr not in exclude):
                 d[attr] = wrap(value)
 
-        return super(ConstantMeta, mcls).__new__(mcls, name, bases, d)
+        return super().__new__(mcls, name, bases, d)
 
 
-@six.add_metaclass(ConstantMeta)
-class Constant(Quantity):
+class Constant(Quantity, metaclass=ConstantMeta):
     """A physical or astronomical constant.
 
     These objects are quantities that are meant to represent physical
@@ -102,7 +98,7 @@ class Constant(Quantity):
                 warnings.warn('Constant {0!r} already has a definition in the '
                               '{1!r} system from {2!r} reference'.format(
                               name, system, reference), AstropyUserWarning)
-        for c in six.itervalues(instances):
+        for c in instances.values():
             if system is not None and not hasattr(c.__class__, system):
                 setattr(c, system, inst)
             if c.system is not None and not hasattr(inst.__class__, c.system):
@@ -137,7 +133,7 @@ class Constant(Quantity):
                                            self.reference))
 
     def __quantity_subclass__(self, unit):
-        return super(Constant, self).__quantity_subclass__(unit)[0], False
+        return super().__quantity_subclass__(unit)[0], False
 
     def copy(self):
         """
@@ -189,14 +185,21 @@ class Constant(Quantity):
 
         return self._system
 
+    def _instance_or_super(self, key):
+        instances = self._registry[self.name.lower()]
+        inst = instances.get(key)
+        if inst is not None:
+            return inst
+        else:
+            return getattr(super(), key)
+
     @property
     def si(self):
         """If the Constant is defined in the SI system return that instance of
         the constant, else convert to a Quantity in the appropriate SI units.
         """
 
-        instances = self._registry[self.name.lower()]
-        return instances.get('si') or super(Constant, self).si
+        return self._instance_or_super('si')
 
     @property
     def cgs(self):
@@ -204,12 +207,11 @@ class Constant(Quantity):
         the constant, else convert to a Quantity in the appropriate CGS units.
         """
 
-        instances = self._registry[self.name.lower()]
-        return instances.get('cgs') or super(Constant, self).cgs
+        return self._instance_or_super('cgs')
 
     def __array_finalize__(self, obj):
         for attr in ('_abbrev', '_name', '_value', '_unit_string',
-                      '_uncertainty', '_reference', '_system'):
+                     '_uncertainty', '_reference', '_system'):
             setattr(self, attr, getattr(obj, attr, None))
 
         self._checked_units = getattr(obj, '_checked_units', False)

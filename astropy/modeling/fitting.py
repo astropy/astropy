@@ -21,23 +21,19 @@ function.  `~astropy.modeling.fitting.LevMarLSQFitter` uses
 implementation.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import abc
 import inspect
 import operator
 import warnings
 
-from functools import reduce
+from functools import reduce, wraps
 
 import numpy as np
 
 from .utils import poly_map_domain, _combine_equivalency_dict
 from ..units import Quantity
 from ..utils.exceptions import AstropyUserWarning
-from ..extern import six
-from ..extern.six.moves import range
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
 
@@ -84,7 +80,7 @@ class _FitterMeta(abc.ABCMeta):
     registry = set()
 
     def __new__(mcls, name, bases, members):
-        cls = super(_FitterMeta, mcls).__new__(mcls, name, bases, members)
+        cls = super().__new__(mcls, name, bases, members)
 
         if not inspect.isabstract(cls) and not name.startswith('_'):
             mcls.registry.add(cls)
@@ -99,8 +95,9 @@ def fitter_unit_support(func):
     quantities itself. This is done by temporarily removing units from all
     parameters then adding them back once the fitting has completed.
     """
-
-    def wrapper(self, model, x, y, z=None, equivalencies=None, **kwargs):
+    @wraps(func)
+    def wrapper(self, model, x, y, z=None, **kwargs):
+        equivalencies = kwargs.pop('equivalencies', None)
 
         data_has_units = (isinstance(x, Quantity) or
                           isinstance(y, Quantity) or
@@ -115,9 +112,9 @@ def fitter_unit_support(func):
                 # We now combine any instance-level input equivalencies with user
                 # specified ones at call-time.
 
-                input_units_equivalencies = _combine_equivalency_dict(model.inputs,
-                                                                      equivalencies,
-                                                                      model.input_units_equivalencies)
+
+                input_units_equivalencies = _combine_equivalency_dict(
+                    model.inputs, equivalencies, model.input_units_equivalencies)
 
                 # If input_units is defined, we transform the input data into those
                 # expected by the model. We hard-code the input names 'x', and 'y'
@@ -183,8 +180,7 @@ def fitter_unit_support(func):
     return wrapper
 
 
-@six.add_metaclass(_FitterMeta)
-class Fitter(object):
+class Fitter(metaclass=_FitterMeta):
     """
     Base class for all fitters.
 
@@ -254,8 +250,7 @@ class Fitter(object):
 # TODO: I have ongoing branch elsewhere that's refactoring this module so that
 # all the fitter classes in here are Fitter subclasses.  In the meantime we
 # need to specify that _FitterMeta is its metaclass.
-@six.add_metaclass(_FitterMeta)
-class LinearLSQFitter(object):
+class LinearLSQFitter(metaclass=_FitterMeta):
     """
     A class performing a linear least square fitting.
 
@@ -265,6 +260,7 @@ class LinearLSQFitter(object):
     """
 
     supported_constraints = ['fixed']
+    supports_masked_input = True
 
     def __init__(self):
         self.fit_info = {'residuals': None,
@@ -321,17 +317,28 @@ class LinearLSQFitter(object):
         model : `~astropy.modeling.FittableModel`
             model to fit to x, y, z
         x : array
-            input coordinates
-        y : array
-            input coordinates
-        z : array (optional)
-            input coordinates
+            Input coordinates
+        y : array-like
+            Input coordinates
+        z : array-like (optional)
+            Input coordinates.
+            If the dependent (``y`` or ``z``) co-ordinate values are provided
+            as a `numpy.ma.MaskedArray`, any masked points are ignored when
+            fitting. Note that model set fitting is significantly slower when
+            there are masked points (not just an empty mask), as the matrix
+            equation has to be solved for each model separately when their
+            co-ordinate grids differ.
         weights : array (optional)
-            weights
+            Weights for fitting.
+            For data with Gaussian uncertainties, the weights should be
+            1/sigma.
         rcond :  float, optional
             Cut-off ratio for small singular values of ``a``.
             Singular values are set to zero if they are smaller than ``rcond``
             times the largest singular value of ``a``.
+        equivalencies : list or None, optional and keyword-only argument
+            List of *additional* equivalencies that are should be applied in
+            case x, y and/or z have units. Default is None.
 
         Returns
         -------
@@ -415,7 +422,7 @@ class LinearLSQFitter(object):
                     # axis is *last*.  That's fine, but this could be
                     # generalized for other dimensionalities of z.
                     # TODO: See above comment
-                    rhs = np.array([i.flatten() for i in z]).T
+                    rhs = z.reshape((z.shape[0], -1)).T
                 else:
                     rhs = z.T
             else:
@@ -424,6 +431,14 @@ class LinearLSQFitter(object):
         # If the derivative is defined along rows (as with non-linear models)
         if model_copy.col_fit_deriv:
             lhs = np.asarray(lhs).T
+
+        # Some models (eg. Polynomial1D) don't flatten multi-dimensional inputs
+        # when constructing their Vandermonde matrix, which can lead to obscure
+        # failures below. Ultimately, np.linalg.lstsq can't handle >2D matrices,
+        # so just raise a slightly more informative error when this happens:
+        if lhs.ndim > 2:
+            raise ValueError('{0} gives unsupported >2D derivative matrix for '
+                             'this x/y'.format(type(model_copy).__name__))
 
         # Subtract any terms fixed by the user from (a copy of) the RHS, in
         # order to fit the remaining terms correctly:
@@ -446,7 +461,7 @@ class LinearLSQFitter(object):
             rhs = rhs - sum_of_implicit_terms
 
         if weights is not None:
-            weights = np.asarray(weights, dtype=np.float)
+            weights = np.asarray(weights, dtype=float)
             if len(x) != len(weights):
                 raise ValueError("x and weights should have the same length")
             if rhs.ndim == 2:
@@ -462,7 +477,48 @@ class LinearLSQFitter(object):
             rcond = len(x) * np.finfo(x.dtype).eps
 
         scl = (lhs * lhs).sum(0)
-        lacoef, resids, rank, sval = np.linalg.lstsq(lhs / scl, rhs, rcond)
+        lhs /= scl
+
+        masked = np.any(np.ma.getmask(rhs))
+
+        if len(model_copy) == 1 or not masked:
+
+            # If we're fitting one or more models over a common set of points,
+            # we only have to solve a single matrix equation, which is an order
+            # of magnitude faster than calling lstsq() once per model below:
+
+            good = ~rhs.mask if masked else slice(None)  # latter is a no-op
+
+            # Solve for one or more models:
+            lacoef, resids, rank, sval = np.linalg.lstsq(lhs[good],
+                                                         rhs[good], rcond)
+
+        else:
+
+            # Where fitting multiple models with masked pixels, initialize an
+            # empty array of coefficients and populate it one model at a time.
+            # The shape matches the number of coefficients from the Vandermonde
+            # matrix and the number of models from the RHS:
+            lacoef = np.zeros(lhs.shape[-1:] + rhs.shape[-1:], dtype=rhs.dtype)
+
+            # Loop over the models and solve for each one. By this point, the
+            # model set axis is the second of two. Transpose rather than using,
+            # say, np.moveaxis(array, -1, 0), since it's slightly faster and
+            # lstsq can't handle >2D arrays anyway. This could perhaps be
+            # optimized by collecting together models with identical masks
+            # (eg. those with no rejected points) into one operation, though it
+            # will still be relatively slow when calling lstsq repeatedly.
+            for model_rhs, model_lacoef in zip(rhs.T, lacoef.T):
+
+                # Cull masked points on both sides of the matrix equation:
+                good = ~model_rhs.mask
+                model_lhs = lhs[good]
+                model_rhs = model_rhs[good][..., np.newaxis]
+
+                # Solve for this model:
+                t_coef, resids, rank, sval = np.linalg.lstsq(model_lhs,
+                                                             model_rhs, rcond)
+                model_lacoef[:] = t_coef.T
 
         self.fit_info['residuals'] = resids
         self.fit_info['rank'] = rank
@@ -481,7 +537,7 @@ class LinearLSQFitter(object):
         return model_copy
 
 
-class FittingWithOutlierRemoval(object):
+class FittingWithOutlierRemoval:
     """
     This class combines an outlier removal technique with a fitting procedure.
     Basically, given a number of iterations ``niter``, outliers are removed
@@ -549,15 +605,19 @@ class FittingWithOutlierRemoval(object):
         """
 
         fitted_model = self.fitter(model, x, y, z, weights=weights, **kwargs)
+        filtered_weights = weights
         if z is None:
             filtered_data = y
             for n in range(self.niter):
                 filtered_data = self.outlier_func(filtered_data - fitted_model(x),
                                                   **self.outlier_kwargs)
                 filtered_data += fitted_model(x)
+                if weights is not None:
+                    filtered_weights = weights[~filtered_data.mask]
                 fitted_model = self.fitter(fitted_model,
                                x[~filtered_data.mask],
                                filtered_data.data[~filtered_data.mask],
+                               weights=filtered_weights,
                                **kwargs)
         else:
             filtered_data = z
@@ -565,16 +625,18 @@ class FittingWithOutlierRemoval(object):
                 filtered_data = self.outlier_func(filtered_data - fitted_model(x, y),
                                                   **self.outlier_kwargs)
                 filtered_data += fitted_model(x, y)
+                if weights is not None:
+                    filtered_weights = weights[~filtered_data.mask]
                 fitted_model = self.fitter(fitted_model,
                                x[~filtered_data.mask],
                                y[~filtered_data.mask],
                                filtered_data.data[~filtered_data.mask],
+                               weights=filtered_weights,
                                **kwargs)
         return filtered_data, fitted_model
 
 
-@six.add_metaclass(_FitterMeta)
-class LevMarLSQFitter(object):
+class LevMarLSQFitter(metaclass=_FitterMeta):
     """
     Levenberg-Marquardt algorithm and least squares statistic.
 
@@ -616,7 +678,7 @@ class LevMarLSQFitter(object):
                          'param_jac': None,
                          'param_cov': None}
 
-        super(LevMarLSQFitter, self).__init__()
+        super().__init__()
 
     def objective_function(self, fps, *args):
         """
@@ -657,7 +719,9 @@ class LevMarLSQFitter(object):
         z : array (optional)
            input coordinates
         weights : array (optional)
-           weights
+            Weights for fitting.
+            For data with Gaussian uncertainties, the weights should be
+            1/sigma.
         maxiter : int
             maximum number of iterations
         acc : float
@@ -672,6 +736,9 @@ class LevMarLSQFitter(object):
             If False (default) and if the model has a fit_deriv method,
             it will be used. Otherwise the Jacobian will be estimated.
             If True, the Jacobian will be estimated in any case.
+        equivalencies : list or None, optional and keyword-only argument
+            List of *additional* equivalencies that are should be applied in
+            case x, y and/or z have units. Default is None.
 
         Returns
         -------
@@ -729,11 +796,20 @@ class LevMarLSQFitter(object):
             weights = 1.0
 
         if any(model.fixed.values()) or any(model.tied.values()):
-
+            # update the parameters with the current values from the fitter
+            _fitter_to_model_params(model, params)
             if z is None:
-                full_deriv = np.ravel(weights) * np.array(model.fit_deriv(x, *model.parameters))
+                full = np.array(model.fit_deriv(x, *model.parameters))
+                if not model.col_fit_deriv:
+                    full_deriv = np.ravel(weights) * full.T
+                else:
+                    full_deriv = np.ravel(weights) * full
             else:
-                full_deriv = (np.ravel(weights) * np.array(model.fit_deriv(x, y, *model.parameters)).T).T
+                full = np.array([np.ravel(_) for _ in model.fit_deriv(x, y, *model.parameters)])
+                if not model.col_fit_deriv:
+                    full_deriv = np.ravel(weights) * full.T
+                else:
+                    full_deriv = np.ravel(weights) * full
 
             pars = [getattr(model, name) for name in model.param_names]
             fixed = [par.fixed for par in pars]
@@ -744,7 +820,6 @@ class LevMarLSQFitter(object):
             ind = np.logical_not(fix_and_tie)
 
             if not model.col_fit_deriv:
-                full_deriv = np.asarray(full_deriv).T
                 residues = np.asarray(full_deriv[np.nonzero(ind)]).T
             else:
                 residues = full_deriv[np.nonzero(ind)]
@@ -755,7 +830,8 @@ class LevMarLSQFitter(object):
                 return [np.ravel(_) for _ in np.ravel(weights) * np.array(model.fit_deriv(x, *params))]
             else:
                 if not model.col_fit_deriv:
-                    return [np.ravel(_) for _ in (np.ravel(weights) * np.array(model.fit_deriv(x, y, *params)).T).T]
+                    return [np.ravel(_) for _ in (
+                        np.ravel(weights) * np.array(model.fit_deriv(x, y, *params)).T).T]
                 else:
                     return [np.ravel(_) for _ in (weights * np.array(model.fit_deriv(x, y, *params)))]
 
@@ -775,7 +851,7 @@ class SLSQPLSQFitter(Fitter):
     supported_constraints = SLSQP.supported_constraints
 
     def __init__(self):
-        super(SLSQPLSQFitter, self).__init__(optimizer=SLSQP, statistic=leastsquare)
+        super().__init__(optimizer=SLSQP, statistic=leastsquare)
         self.fit_info = {}
 
     @fitter_unit_support
@@ -794,7 +870,9 @@ class SLSQPLSQFitter(Fitter):
         z : array (optional)
             input coordinates
         weights : array (optional)
-            weights
+            Weights for fitting.
+            For data with Gaussian uncertainties, the weights should be
+            1/sigma.
         kwargs : dict
             optional keyword arguments to be passed to the optimizer or the statistic
 
@@ -808,6 +886,9 @@ class SLSQPLSQFitter(Fitter):
             the step size for finite-difference derivative estimates
         acc : float
             Requested accuracy
+        equivalencies : list or None, optional and keyword-only argument
+            List of *additional* equivalencies that are should be applied in
+            case x, y and/or z have units. Default is None.
 
         Returns
         -------
@@ -841,8 +922,7 @@ class SimplexLSQFitter(Fitter):
     supported_constraints = Simplex.supported_constraints
 
     def __init__(self):
-        super(SimplexLSQFitter, self).__init__(optimizer=Simplex,
-                                               statistic=leastsquare)
+        super().__init__(optimizer=Simplex, statistic=leastsquare)
         self.fit_info = {}
 
     @fitter_unit_support
@@ -861,7 +941,9 @@ class SimplexLSQFitter(Fitter):
         z : array (optional)
             input coordinates
         weights : array (optional)
-            weights
+            Weights for fitting.
+            For data with Gaussian uncertainties, the weights should be
+            1/sigma.
         kwargs : dict
             optional keyword arguments to be passed to the optimizer or the statistic
 
@@ -869,6 +951,9 @@ class SimplexLSQFitter(Fitter):
             maximum number of iterations
         acc : float
             Relative error in approximate solution
+        equivalencies : list or None, optional and keyword-only argument
+            List of *additional* equivalencies that are should be applied in
+            case x, y and/or z have units. Default is None.
 
         Returns
         -------
@@ -889,8 +974,7 @@ class SimplexLSQFitter(Fitter):
         return model_copy
 
 
-@six.add_metaclass(_FitterMeta)
-class JointFitter(object):
+class JointFitter(metaclass=_FitterMeta):
     """
     Fit models which share a parameter.
 
@@ -1042,11 +1126,11 @@ class JointFitter(object):
 def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
     """Convert inputs to float arrays."""
 
-    x = np.asarray(x, dtype=np.float)
-    y = np.asarray(y, dtype=np.float)
+    x = np.asanyarray(x, dtype=float)
+    y = np.asanyarray(y, dtype=float)
 
     if z is not None:
-        z = np.asarray(z, dtype=np.float)
+        z = np.asanyarray(z, dtype=float)
 
     # For compatibility with how the linear fitter code currently expects to
     # work, shift the dependent variable's axes to the expected locations
@@ -1172,16 +1256,16 @@ def _validate_constraints(supported_constraints, model):
 
     message = 'Optimizer cannot handle {0} constraints.'
 
-    if (any(six.itervalues(model.fixed)) and
+    if (any(model.fixed.values()) and
             'fixed' not in supported_constraints):
         raise UnsupportedConstraintError(
                 message.format('fixed parameter'))
 
-    if any(six.itervalues(model.tied)) and 'tied' not in supported_constraints:
+    if any(model.tied.values()) and 'tied' not in supported_constraints:
         raise UnsupportedConstraintError(
                 message.format('tied parameter'))
 
-    if (any(tuple(b) != (None, None) for b in six.itervalues(model.bounds)) and
+    if (any(tuple(b) != (None, None) for b in model.bounds.values()) and
             'bounds' not in supported_constraints):
         raise UnsupportedConstraintError(
                 message.format('bound parameter'))

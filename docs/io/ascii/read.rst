@@ -87,6 +87,11 @@ Parameters for ``read()``
   This includes only significant non-comment line and can be negative to count
   from end.  See `Specifying header and data location`_ for more details.
 
+**encoding**: encoding to read the file (default=`None`)
+  When `None` use `locale.getpreferredencoding` as an encoding.  This matches
+  the default behavior of the built-in `open` when no ``mode`` argument is
+  provided.
+
 **converters** : dict of data type converters
   See the `Converters`_ section for more information.
 
@@ -408,7 +413,7 @@ These take advantage of the :func:`~astropy.io.ascii.convert_numpy`
 function which returns a 2-element tuple ``(converter_func, converter_type)``
 as described in the previous section.  The type provided to
 :func:`~astropy.io.ascii.convert_numpy` must be a valid `numpy type
-<http://docs.scipy.org/doc/numpy/user/basics.types.html>`_, for example
+<https://docs.scipy.org/doc/numpy/user/basics.types.html>`_, for example
 ``numpy.int``, ``numpy.uint``, ``numpy.int8``, ``numpy.int64``,
 ``numpy.float``, ``numpy.float64``, ``numpy.str``.
 
@@ -564,3 +569,78 @@ in a function::
    # Create an RDB reader and override the splitter.process_val function
    rdb_reader = astropy.io.ascii.get_reader(Reader=astropy.io.ascii.Rdb)
    rdb_reader.data.splitter.process_val = process_val
+
+.. _chunk_reading:
+
+Reading large tables in chunks
+==============================
+
+The default process for reading ASCII tables is not memory efficient and may
+temporarily require much more memory than the size of the file (up to a factor
+of 5 to 10).  In cases where the temporary memory requirement exceeds available
+memory this can cause significant slowdown when disk cache gets used.
+
+In this situation there is a way to read the table in smaller chunks which are
+limited in size.  There are two possible ways to do this:
+
+- Read the table in chunks and aggregate the final table along the way.  This
+  uses only somewhat more memory than the final table requires.
+- Use a Python generator function to return a `~astropy.table.Table` object for
+  each chunk of the input table.  This allows for scanning through arbitrarily
+  large tables since it never returns the final aggregate table.
+
+The chunk reading functionality is most useful for very large tables, so this is
+available only for the :ref:`fast_ascii_io` readers.  The following formats are
+supported: ``tab``, ``csv``, ``no_header``, ``rdb``, and ``basic``.  The
+``commented_header`` format is not directly supported, but as a workaround one
+can read using the ``no_header`` format and explicitly supply the column names
+using the ``names`` argument.
+
+In order to read a table in chunks one must provide the ``fast_reader`` keyword
+argument with a ``dict`` that includes the ``chunk_size`` key with the value
+being the approximate size (in bytes) of each chunk of the input table to read.
+In addition, if one provides a ``chunk_generator`` key which is set to
+``True``, then instead of returning a single table for the whole input it
+returns an iterator that provides a table for each chunk of the input.
+
+**Example**: Reading an entire table while limiting peak memory usage.
+::
+
+  # Read a large CSV table in 100 Mb chunks.
+
+  tbl = ascii.read('large_table.csv', format='csv', guess=False,
+                   fast_reader={'chunk_size': 100 * 1000000})
+
+**Example**: Reading the table in chunks with an iterator.
+
+Here we iterate over a CSV table and select all rows where the ``Vmag`` column is
+less than 8.0 (e.g. all stars in table brighter than 8.0 mag).  We collect all
+these sub-tables and then stack them at the end.
+::
+
+  from astropy.table import vstack
+
+  # tbls is an iterator over the chunks (no actual reading done yet)
+  tbls = ascii.read('large_table.csv', format='csv', guess=False,
+                    fast_reader={'chunk_size': 100 * 1000000,
+                                 'chunk_generator': True})
+
+  out_tbls = []
+
+  # At this point the file is actually read in chunks.
+  for tbl in tbls:
+      bright = tbl['Vmag'] < 8.0
+      if np.count_nonzero(bright):
+          out_tbls.append(tbl[bright])
+
+  out_tbl = vstack(out_tbls)
+
+.. Note:: **Performance**
+
+  Specifying the ``format`` explicitly and using ``guess=False`` is a good idea
+  for large tables.  This prevent unneccesary guessing in the typical case
+  where the format is already known.
+
+  The ``chunk_size`` should generally be set to the largest value that is 
+  reasonable given available system memory.  There is overhead associated
+  with processing each chunk, so the fewer chunks the better.

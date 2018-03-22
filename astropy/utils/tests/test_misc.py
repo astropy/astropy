@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import json
 import os
@@ -11,9 +9,6 @@ import pytest
 import numpy as np
 
 from .. import data, misc
-from ...tests.helper import remote_data
-from ...extern import six
-from ..compat import NUMPY_LT_1_10
 
 
 def test_isiterable():
@@ -30,7 +25,7 @@ def test_signal_number_to_name_no_failure():
     misc.signal_number_to_name(0)
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_api_lookup():
     strurl = misc.find_api_page('astropy.utils.misc', 'dev', False, timeout=3)
     objurl = misc.find_api_page(misc, 'dev', False, timeout=3)
@@ -55,6 +50,7 @@ def test_skip_hidden():
 
 
 def test_JsonCustomEncoder():
+    from ... import units as u
     assert json.dumps(np.arange(3), cls=misc.JsonCustomEncoder) == '[0, 1, 2]'
     assert json.dumps(1+2j, cls=misc.JsonCustomEncoder) == '[1.0, 2.0]'
     assert json.dumps(set([1, 2, 1]), cls=misc.JsonCustomEncoder) == '[1, 2]'
@@ -62,22 +58,47 @@ def test_JsonCustomEncoder():
                       cls=misc.JsonCustomEncoder) == '"hello world \\u00c5"'
     assert json.dumps({1: 2},
                       cls=misc.JsonCustomEncoder) == '{"1": 2}'  # default
+    assert json.dumps({1: u.m}, cls=misc.JsonCustomEncoder) == '{"1": "m"}'
+    # Quantities
+    tmp = json.dumps({'a': 5*u.cm}, cls=misc.JsonCustomEncoder)
+    newd = json.loads(tmp)
+    tmpd = {"a": {"unit": "cm", "value": 5.0}}
+    assert newd == tmpd
+    tmp2 = json.dumps({'a': np.arange(2)*u.cm}, cls=misc.JsonCustomEncoder)
+    newd = json.loads(tmp2)
+    tmpd = {"a": {"unit": "cm", "value": [0., 1.]}}
+    assert newd == tmpd
+    tmp3 = json.dumps({'a': np.arange(2)*u.erg/u.s}, cls=misc.JsonCustomEncoder)
+    newd = json.loads(tmp3)
+    tmpd = {"a": {"unit": "erg / s", "value": [0., 1.]}}
+    assert newd == tmpd
 
 
 def test_inherit_docstrings():
-    @six.add_metaclass(misc.InheritDocstrings)
-    class Base(object):
+    class Base(metaclass=misc.InheritDocstrings):
         def __call__(self, *args):
             "FOO"
+            pass
+
+        @property
+        def bar(self):
+            "BAR"
             pass
 
     class Subclass(Base):
         def __call__(self, *args):
             pass
 
+        @property
+        def bar(self):
+            return 42
+
     if Base.__call__.__doc__ is not None:
         # TODO: Maybe if __doc__ is None this test should be skipped instead?
         assert Subclass.__call__.__doc__ == "FOO"
+
+    if Base.bar.__doc__ is not None:
+        assert Subclass.bar.__doc__ == "BAR"
 
 
 def test_set_locale():
@@ -119,7 +140,7 @@ def test_check_broadcast():
 
 def test_dtype_bytes_or_chars():
     assert misc.dtype_bytes_or_chars(np.dtype(np.float64)) == 8
-    assert misc.dtype_bytes_or_chars(np.dtype(object)) == (8 if NUMPY_LT_1_10 else None)
+    assert misc.dtype_bytes_or_chars(np.dtype(object)) is None
     assert misc.dtype_bytes_or_chars(np.dtype(np.int32)) == 4
     assert misc.dtype_bytes_or_chars(np.array(b'12345').dtype) == 5
     assert misc.dtype_bytes_or_chars(np.array(u'12345').dtype) == 5

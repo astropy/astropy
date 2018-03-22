@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 # This file defines the AngleFormatterLocator class which is a class that
 # provides both a method for a formatter and one for a locator, for a given
@@ -16,7 +15,6 @@ import numpy as np
 
 from matplotlib import rcParams
 
-from ...extern import six
 from ... import units as u
 from ...coordinates import Angle
 
@@ -28,7 +26,7 @@ DSEC_RE = re.compile('^s(.(s)+)?$')
 SCAL_RE = re.compile('^x(.(x)+)?$')
 
 
-class BaseFormatterLocator(object):
+class BaseFormatterLocator:
     """
     A joint formatter/locator
     """
@@ -108,10 +106,8 @@ class AngleFormatterLocator(BaseFormatterLocator):
     def __init__(self, values=None, number=None, spacing=None, format=None):
         self._unit = u.degree
         self._sep = None
-        super(AngleFormatterLocator, self).__init__(values=values,
-                                                    number=number,
-                                                    spacing=spacing,
-                                                    format=format)
+        super().__init__(values=values, number=number, spacing=spacing,
+                         format=format)
 
     @property
     def spacing(self):
@@ -311,7 +307,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                     if rcParams['text.usetex']:
                         deg = r'$^\circ$'
                     else:
-                        deg = six.u('\xb0')
+                        deg = '\xb0'
                     sep = (deg, "'", '"')
                 else:
                     sep = ('h', 'm', 's')
@@ -342,10 +338,8 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         elif values is not None:
             self._unit = values.unit
             self._format_unit = values.unit
-        super(ScalarFormatterLocator, self).__init__(values=values,
-                                                     number=number,
-                                                     spacing=spacing,
-                                                     format=format)
+        super().__init__(values=values, number=number, spacing=spacing,
+                         format=format)
 
     @property
     def format_unit(self):

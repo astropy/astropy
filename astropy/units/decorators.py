@@ -3,8 +3,8 @@
 
 __all__ = ['quantity_input']
 
+import inspect
 from ..utils.decorators import wraps
-from ..utils.compat import funcsigs
 from ..utils.misc import isiterable
 
 from .core import Unit, UnitsError, add_enabled_equivalencies
@@ -79,7 +79,7 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
                                      str(targets[0])))
 
 
-class QuantityInput(object):
+class QuantityInput:
 
     @classmethod
     def as_decorator(cls, func=None, **kwargs):
@@ -87,7 +87,7 @@ class QuantityInput(object):
         A decorator for validating the units of arguments to functions.
 
         Unit specifications can be provided as keyword arguments to the decorator,
-        or by using Python 3's function annotation syntax. Arguments to the decorator
+        or by using function annotation syntax. Arguments to the decorator
         take precedence over any function annotations present.
 
         A `~astropy.units.UnitsError` will be raised if the unit attribute of
@@ -108,27 +108,26 @@ class QuantityInput(object):
         Examples
         --------
 
-        Python 2 and 3::
+        .. code-block:: python
 
             import astropy.units as u
             @u.quantity_input(myangle=u.arcsec)
             def myfunction(myangle):
                 return myangle**2
 
-        Python 3 only:
 
-        .. code-block:: python3
+        .. code-block:: python
 
             import astropy.units as u
             @u.quantity_input
             def myfunction(myangle: u.arcsec):
                 return myangle**2
 
-        Also in Python 3 you can specify a return value annotation, which will
+        Also you can specify a return value annotation, which will
         cause the function to always return a `~astropy.units.Quantity` in that
         unit.
 
-        .. code-block:: python3
+        .. code-block:: python
 
             import astropy.units as u
             @u.quantity_input
@@ -156,7 +155,7 @@ class QuantityInput(object):
     def __call__(self, wrapped_function):
 
         # Extract the function signature for the function we are wrapping.
-        wrapped_signature = funcsigs.signature(wrapped_function)
+        wrapped_signature = inspect.signature(wrapped_function)
 
         # Define a new function to return in place of the wrapped one
         @wraps(wrapped_function)
@@ -167,8 +166,8 @@ class QuantityInput(object):
             # Iterate through the parameters of the original signature
             for param in wrapped_signature.parameters.values():
                 # We do not support variable arguments (*args, **kwargs)
-                if param.kind in (funcsigs.Parameter.VAR_KEYWORD,
-                                  funcsigs.Parameter.VAR_POSITIONAL):
+                if param.kind in (inspect.Parameter.VAR_KEYWORD,
+                                  inspect.Parameter.VAR_POSITIONAL):
                     continue
 
                 # Catch the (never triggered) case where bind relied on a default value.
@@ -187,7 +186,7 @@ class QuantityInput(object):
 
                 # If the targets is empty, then no target units or physical
                 #   types were specified so we can continue to the next arg
-                if targets is funcsigs.Parameter.empty:
+                if targets is inspect.Parameter.empty:
                     continue
 
                 # If the argument value is None, and the default value is None,
@@ -221,7 +220,7 @@ class QuantityInput(object):
             # Call the original function with any equivalencies in force.
             with add_enabled_equivalencies(self.equivalencies):
                 return_ = wrapped_function(*func_args, **func_kwargs)
-            if wrapped_signature.return_annotation is not funcsigs.Signature.empty:
+            if wrapped_signature.return_annotation is not inspect.Signature.empty:
                 return return_.to(wrapped_signature.return_annotation)
             else:
                 return return_

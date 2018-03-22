@@ -88,8 +88,6 @@ See Also
 Rybicki, G. B., & Lightman, A. P. 1979, Radiative Processes in Astrophysics (New York, NY: Wiley)
 
 """
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import warnings
 from collections import OrderedDict
@@ -115,7 +113,7 @@ FLAM = u.erg / (u.cm**2 * u.s * u.AA)
 # See https://github.com/astropy/astropy/issues/4171
 with warnings.catch_warnings():
     warnings.simplefilter('ignore', RuntimeWarning)
-    _has_buggy_expm1 = np.isnan(np.expm1(1000))
+    _has_buggy_expm1 = np.isnan(np.expm1(1000)) or np.isnan(np.expm1(1e10))
 
 
 class BlackBody1D(Fittable1DModel):
@@ -176,7 +174,7 @@ class BlackBody1D(Fittable1DModel):
 
     # We allow values without units to be passed when evaluating the model, and
     # in this case the input x values are assumed to be frequencies in Hz.
-    input_units_allow_dimensionless = True
+    _input_units_allow_dimensionless = True
 
     # We enable the spectral equivalency by default for the spectral axis
     input_units_equivalencies = {'x': u.spectral()}

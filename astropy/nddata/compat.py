@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module contains a class equivalent to pre-1.0 NDData.
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
@@ -81,12 +79,10 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         shape) onto ``data``.
     """
 
-    def __init__(self, data, *args, **kwd):
-        # Remove the flag argument from input.
-        flags = kwd.pop('flags', None)
+    def __init__(self, data, *args, flags=None, **kwargs):
 
         # Initialize with the parent...
-        super(NDDataArray, self).__init__(data, *args, **kwd)
+        super().__init__(data, *args, **kwargs)
 
         # ...then reset uncertainty to force it to go through the
         # setter logic below. In base NDData all that is done is to

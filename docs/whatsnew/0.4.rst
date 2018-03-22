@@ -79,12 +79,12 @@ SAMP
 ====
 
 The :ref:`vo-samp` sub-package is a new sub-package (adapted from the `SAMPy
-package <http://packages.python.org/sampy/>`_) that contains an
+package <https://pythonhosted.org/sampy/>`_) that contains an
 implementation of the `Simple Application Messaging Protocol (SAMP)
 <http://www.ivoa.net/documents/SAMP/>`_ standard that allows communication
 with any SAMP-enabled application (such as `TOPCAT
 <http://www.star.bris.ac.uk/~mbt/topcat/>`_, `SAO Ds9
-<http://hea-www.harvard.edu/RD/ds9>`_, and `Aladin
+<http://ds9.si.edu/>`_, and `Aladin
 <http://aladin.u-strasbg.fr>`_). This sub-package includes both classes for a
 hub and a client, as well as an *integrated client* which automatically
 connects to any running SAMP hub and acts as a client::
@@ -135,7 +135,7 @@ Reading and writing HTML tables
 The :ref:`io-ascii` sub-package now provides the capability to read a table
 within an HTML file or web URL into an astropy `~astropy.table.Table` object.
 This requires the `BeautifulSoup4
-<http://www.crummy.com/software/BeautifulSoup/>`_ package to be installed.
+<https://www.crummy.com/software/BeautifulSoup/>`_ package to be installed.
 Conversely a `~astropy.table.Table` object can now be written out as an HTML
 table.
 

@@ -28,7 +28,7 @@ that the |Time| object maintains sub-nanosecond precision over times spanning
 the age of the universe.
 
 .. [#] `Shewchuk, 1997, Discrete & Computational Geometry 18(3):305-363
-        <http://www.cs.berkeley.edu/~jrs/papers/robustr.pdf>`_
+        <https://people.eecs.berkeley.edu/~jrs/papers/robustr.pdf>`_
 
 Getting Started
 ===============
@@ -39,6 +39,7 @@ object by supplying one or more input time values as well as the `time format`_ 
 ``"2010-01-01 00:00:00"`` or a list or a `numpy` array of values as shown below.
 In general any output values have the same shape (scalar or array) as the input.
 
+  >>> import numpy as np
   >>> from astropy.time import Time
   >>> times = ['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00']
   >>> t = Time(times, format='isot', scale='utc')
@@ -63,10 +64,10 @@ When the format of the input can be unambiguously determined then the
 Now let's get the representation of these times in the JD and MJD
 formats by requesting the corresponding |Time| attributes::
 
-  >>> t.jd
-  array([ 2451179.50000143,  2455197.5       ])
-  >>> t.mjd
-  array([ 51179.00000143,  55197.        ])
+  >>> t.jd  # doctest: +FLOAT_CMP
+  array([2451179.50000143, 2455197.5       ])
+  >>> t.mjd  # doctest: +FLOAT_CMP
+  array([51179.00000143, 55197.        ])
 
 The default representation can be changed by setting the `format` attribute::
 
@@ -83,8 +84,8 @@ TT.  This uses the same attribute mechanism as above but now returns a new
   >>> t2 = t.tt
   >>> t2
   <Time object: scale='tt' format='isot' value=['1999-01-01T00:01:04.307' '2010-01-01T00:01:06.184']>
-  >>> t2.jd
-  array([ 2451179.5007443 ,  2455197.50076602])
+  >>> t2.jd  # doctest: +FLOAT_CMP
+  array([2451179.5007443 , 2455197.50076602])
 
 Note that both the ISO (ISOT) and JD representations of ``t2`` are different
 than for ``t`` because they are expressed relative to the TT time scale.  Of
@@ -93,6 +94,21 @@ this information is kept is the ``fits`` format::
 
   >>> print(t2.fits)
   ['1999-01-01T00:01:04.307(TT)' '2010-01-01T00:01:06.184(TT)']
+
+One can set the time values in-place using the usual numpy array setting
+item syntax::
+
+  >>> t2 = t.tt.copy()  # Copy required if transformed Time will be modified
+  >>> t2[1] = '2014-12-25'
+  >>> print(t2)
+  ['1999-01-01T00:01:04.307' '2014-12-25T00:00:00.000']
+
+The |Time| object also has support for missing values, which is particularly
+useful for :ref:`table_operations` such as joining and stacking::
+
+  >>> t2[0] = np.ma.masked  # Declare that first time is missing or invalid
+  >>> print(t2)
+  [-- '2014-12-25T00:00:00.000']
 
 Finally, some further examples of what is possible.  For details, see
 the API documentation below.
@@ -113,8 +129,8 @@ can only have scales in which one day is always equal to 86400 seconds.
    '2007-01-01T04:21:49.579' '2008-01-01T10:54:33.386'
    '2008-12-31T17:27:17.193' '2010-01-01T00:00:00.000']>
 
-  >>> t.sidereal_time('apparent', 'greenwich')
-  <Longitude [ 6.68050179, 6.70281947] hourangle>
+  >>> t.sidereal_time('apparent', 'greenwich')  # doctest: +FLOAT_CMP
+  <Longitude [6.68050179, 6.70281947] hourangle>
 
 Using `astropy.time`
 =====================
@@ -128,12 +144,6 @@ independent of the way the time is represented (the "format") and the time
 There is no distinction made between a "date" and a "time" since both concepts
 (as loosely defined in common usage) are just different representations of a
 moment in time.
-
-Once a |Time| object is created it cannot be altered internally.  In code lingo
-it is "immutable."  In particular the common operation of "converting" to a
-different `time scale`_ is always performed by returning a copy of the original
-|Time| object which has been converted to the new time scale.
-
 
 .. _time-format:
 
@@ -258,7 +268,7 @@ Time Scale
 ^^^^^^^^^^
 
 The time scale (or `time standard
-<http://en.wikipedia.org/wiki/Time_standard>`_) is "a specification for
+<https://en.wikipedia.org/wiki/Time_standard>`_) is "a specification for
 measuring time: either the rate at which time passes; or points in time; or
 both" [#]_. See also [#]_ and [#]_.
 ::
@@ -278,7 +288,7 @@ ut1    Universal Time              (UT1)
 utc    Coordinated Universal Time  (UTC)
 ====== =================================
 
-.. [#] Wikipedia `time standard <http://en.wikipedia.org/wiki/Time_standard>`_ article
+.. [#] Wikipedia `time standard <https://en.wikipedia.org/wiki/Time_standard>`_ article
 .. [#] SOFA Time Scale and Calendar Tools
        `(PDF) <http://www.iausofa.org/sofa_ts_c.pdf>`_
 .. [#] `<http://www.ucolick.org/~sla/leapsecs/timescales.html>`_
@@ -303,20 +313,20 @@ appropriate::
   >>> t.jd
   2400100.5
   >>> t = Time([100.0, 200.0, 300.], format='mjd')
-  >>> t.jd
-  array([ 2400100.5,  2400200.5,  2400300.5])
-  >>> t[:2]
-  <Time object: scale='utc' format='mjd' value=[ 100.  200.]>
+  >>> t.jd  # doctest: +FLOAT_CMP
+  array([2400100.5, 2400200.5, 2400300.5])
+  >>> t[:2]  # doctest: +FLOAT_CMP
+  <Time object: scale='utc' format='mjd' value=[100. 200.]>
   >>> t[2]
   <Time object: scale='utc' format='mjd' value=300.0>
   >>> t = Time(np.arange(50000., 50003.)[:, np.newaxis],
   ...          np.arange(0., 1., 0.5), format='mjd')
-  >>> t
-  <Time object: scale='utc' format='mjd' value=[[ 50000.   50000.5]
-   [ 50001.   50001.5]
-   [ 50002.   50002.5]]>
-  >>> t[0]
-  <Time object: scale='utc' format='mjd' value=[ 50000.   50000.5]>
+  >>> t  # doctest: +FLOAT_CMP
+  <Time object: scale='utc' format='mjd' value=[[50000.  50000.5]
+   [50001.  50001.5]
+   [50002.  50002.5]]>
+  >>> t[0]  # doctest: +FLOAT_CMP
+  <Time object: scale='utc' format='mjd' value=[50000.  50000.5]>
 
 
 .. _astropy-time-shape-methods:
@@ -333,12 +343,12 @@ that work on `~numpy.ndarray` instances can be used.  E.g., one can reshape
 :meth:`~astropy.time.Time.swapaxes`, :meth:`~astropy.time.Time.diagonal`,
 :meth:`~astropy.time.Time.squeeze`, :meth:`~astropy.time.Time.take`::
 
-  >>> t.reshape(2, 3)
-  <Time object: scale='utc' format='mjd' value=[[ 50000.   50000.5  50001. ]
-   [ 50001.5  50002.   50002.5]]>
-  >>> t.T
-  <Time object: scale='utc' format='mjd' value=[[ 50000.   50001.   50002. ]
-   [ 50000.5  50001.5  50002.5]]>
+  >>> t.reshape(2, 3)  # doctest: +FLOAT_CMP
+  <Time object: scale='utc' format='mjd' value=[[50000.  50000.5 50001. ]
+   [50001.5 50002.  50002.5]]>
+  >>> t.T  # doctest: +FLOAT_CMP
+  <Time object: scale='utc' format='mjd' value=[[50000.  50001.  50002. ]
+   [50000.5 50001.5 50002.5]]>
 
 Note that similarly to the `~numpy.ndarray` methods, all but
 :meth:`~astropy.time.Time.flatten` try to use new views of the data,
@@ -353,8 +363,8 @@ E.g.::
 
   >> t.max()
   <Time object: scale='utc' format='mjd' value=50002.5>
-  >> t.ptp(axis=0)
-  <TimeDelta object: scale='tai' format='jd' value=[ 2.  2.]>
+  >> t.ptp(axis=0)  # doctest: +FLOAT_CMP
+  <TimeDelta object: scale='tai' format='jd' value=[2. 2.]>
 
 .. _astropy-time-inferring-input:
 
@@ -397,10 +407,10 @@ and ``jd2`` attributes::
 
   >>> t = Time('2010-01-01 00:00:00', scale='utc')
   >>> t.jd1, t.jd2
-  (2455197.5, 0.0)
+  (2455198.0, -0.5)
   >>> t2 = t.tai
   >>> t2.jd1, t2.jd2  # doctest: +FLOAT_CMP
-  (2455197.5, 0.0003935185185185185)
+  (2455198., -0.49960648148148146)
 
 Creating a Time object
 ----------------------
@@ -447,8 +457,8 @@ objects.  In this case the format and scale will be inferred from the
 first object unless explicitly specified.
 ::
 
-  >>> Time([t1, t2])
-  <Time object: scale='tt' format='mjd' value=[ 50100.  55197.00076602]>
+  >>> Time([t1, t2])  # doctest: +FLOAT_CMP
+  <Time object: scale='tt' format='mjd' value=[50100. 55197.00076602]>
 
 val2
 ^^^^
@@ -464,7 +474,7 @@ the two values in a way that maintains the highest precision.  Example::
 
   >>> t = Time(100.0, 0.000001, format='mjd', scale='tt')
   >>> t.jd, t.jd1, t.jd2  # doctest: +FLOAT_CMP
-  (2400100.500001, 2400100.5, 1e-06)
+  (2400100.500001, 2400101.0, -0.499999)
 
 format
 ^^^^^^
@@ -504,7 +514,7 @@ The ``in_subfmt`` argument provides a mechanism to select one or more
 `subformat`_ values from the available subformats for string input.  Multiple
 allowed subformats can be selected using Unix-style wildcard characters, in
 particular ``*`` and ``?``, as documented in the Python `fnmatch
-<http://docs.python.org/library/fnmatch.html>`_ module.
+<https://docs.python.org/3/library/fnmatch.html>`_ module.
 
 The default value for ``in_subfmt`` is ``*`` which matches any available
 subformat.  This allows for convenient input of values with unknown or
@@ -554,9 +564,9 @@ no explicit longitude is given.
   >>> t = Time('2001-03-22 00:01:44.732327132980', scale='utc',
   ...          location=('120d', '40d'))
   >>> t.sidereal_time('apparent', 'greenwich')  # doctest: +FLOAT_CMP
-  <Longitude 12.00000000000001 hourangle>
+  <Longitude 12. hourangle>
   >>> t.sidereal_time('apparent')  # doctest: +FLOAT_CMP
-  <Longitude 20.00000000000001 hourangle>
+  <Longitude 20. hourangle>
 
 .. note:: In future versions, we hope to add the possibility to add observatory
           objects and/or names.
@@ -573,18 +583,140 @@ The current time can be determined as a |Time| object using the
 The two should be very close to each other.
 
 
-
-
 Using Time objects
 -------------------
 
-There are four basic operations available with |Time| objects:
+The operations available with |Time| objects include:
 
+- Get and set time values(s) for an array-valued |Time| object:
+- Set missing (masked) values.
 - Get the representation of the time value(s) in a particular `time format`_.
 - Get a new time object for the same time value(s) but referenced to a different
   `time scale`_.
 - Calculate the `sidereal time`_ corresponding to the time value(s).
 - Do time arithmetic involving |Time| and/or |TimeDelta| objects.
+
+Get and set values
+^^^^^^^^^^^^^^^^^^
+
+For an existing |Time| object which is array-valued, one can use the
+usual numpy array item syntax to get either a single item or a subset
+of items.  The returned value is a |Time| object with all the same
+attributes::
+
+  >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
+  ...          out_subfmt='date')
+  >>> print(t[1])
+  2001:040
+  >>> print(t[1:])
+  ['2001:040' '2001:060' '2001:080']
+  >>> print(t[[2, 0]])
+  ['2001:060' '2001:020']
+
+As of astropy version 3.1, one can also set values in-place for an
+array-valued |Time| object::
+
+  >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
+  ...          out_subfmt='date')
+  >>> t[1] = '2010:001'
+  >>> print(t)
+  ['2001:020' '2010:001' '2001:060' '2001:080']
+  >>> t[[2, 0]] = '1990:123'
+  >>> print(t)
+  ['1990:123' '2010:001' '1990:123' '2001:080']
+
+The new value (on the right hand side) when setting can be one of three
+possibilities:
+
+- Scalar string value or array of string values where each value
+  is in a valid time format that can be automatically parsed and
+  used to create a |Time| object.
+- Value or array of values where each value has the same ``format`` as
+  the |Time| object being set.  For instance, a float or numpy array
+  of floats for an object with ``format='unix'``.
+- |Time| object with identical ``location`` (but ``scale`` and
+  ``format`` need not be the same).  The right side value will be
+  transformed so the time ``scale`` matches.
+
+Whenever any item is set then the internal cache (see `Caching`_) is cleared
+along with the ``delta_tdb_tt`` and/or ``delta_ut1_utc`` transformation
+offsets, if they have been set.
+
+If it is required that the |Time| object be immutable then set the
+``writeable`` attribute to `False`.  In this case attemping to set a value will
+raise a ``ValueError: Time object is read-only``.  See the section on
+`Caching`_ for an example.
+
+Missing values
+^^^^^^^^^^^^^^
+
+The |Time| and |TimeDelta| objects support functionality for marking values as
+missing or invalid (added in astropy 3.1).  This is also known as masking,
+and is especially useful for :ref:`table_operations` such as joining and
+stacking.  To set one or more items as missing, assign the special value
+`numpy.ma.masked`, for example::
+
+  >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
+  ...          out_subfmt='date')
+  >>> t[2] = np.ma.masked
+  >>> print(t)
+  ['2001:020' '2001:040' -- '2001:080']
+
+.. note:: The operation of setting an array element to `numpy.ma.masked`
+   (missing) *overwrites* the actual time data and therefore there is no way to
+   recover the original value.  In this sense the `numpy.ma.masked` value
+   behaves just like any other valid |Time| value when setting.  This is
+   similar to how `Pandas missing data
+   <https://pandas.pydata.org/pandas-docs/stable/missing_data.html>`_ works,
+   but somewhat different from `NumPy masked arrays
+   <https://docs.scipy.org/doc/numpy/reference/maskedarray.html>`_ which
+   maintain a separate mask array and retain the underlying data.  In the
+   |Time| object the ``mask`` attribute is read-only and cannot be directly set.
+
+Once one or more values in the object are masked, any operations will
+propagate those values as masked, and access to format attributes such
+as ``unix`` or ``value`` will return a `~numpy.ma.MaskedArray`
+object::
+
+  >>> t.unix  # doctest: +SKIP
+  masked_array(data = [979948800.0 981676800.0 -- 985132800.0],
+               mask = [False False  True False],
+         fill_value = 1e+20)
+
+One can view the ``mask``, but note that it is read-only and
+setting the mask is always done by setting the item to `~numpy.ma.masked`.
+
+  >>> t.mask
+  array([False, False,  True, False]...)
+  >>> t[:2] = np.ma.masked
+
+.. warning:: The internal implementation of missing value support is
+   provisional and may change in a subsequent release.  This would impact
+   information in the next section.  However, the documented API for using missing
+   values with |Time| and |TimeDelta| objects is stable.
+
+Custom format classes and missing values
+""""""""""""""""""""""""""""""""""""""""
+
+For advanced users who have written a custom time format via a
+`~astropy.time.TimeFormat` subclass, it may be necessary to modify your
+class *if you wish to support missing values*.  For applications that
+do not take advantage of missing values then no changes are required.
+
+Missing values in a `~astropy.time.TimeFormat` subclass object are marked by
+setting the corresponding entries of the ``jd2`` attribute to be ``numpy.nan``
+(but this is never done directly by the user).  For most array operations and
+numpy functions the ``numpy.nan`` entries are propagated as expected and all is
+well.  However, this is not always the case, and in particular the `ERFA
+<https://github.com/liberfa/erfa>`_ routines do not generally support
+``numpy.nan`` values gracefully.
+
+In cases where ``numpy.nan`` is not acceptable, format class methods should use the
+``jd2_filled`` property instead of ``jd2``.  This replaces ``numpy.nan`` with
+``0.0``.  Since ``jd2`` is always in the range -1 to +1, substituing ``0.0``
+will allow functions to return "reasonable" values which will then be masked in
+any subsequent outputs.  See the ``value`` property of the
+`~astropy.time.TimeDecimalYear` format for any example.
 
 Get representation
 ^^^^^^^^^^^^^^^^^^^
@@ -654,7 +786,7 @@ The computations for transforming to different time scales or formats can be
 time-consuming for large arrays.  In order to avoid repeated computations, each
 |Time| or |TimeDelta| instance caches such transformations internally::
 
-  >>> t = Time(np.arange(1e6), format='unix', scale='utc')  # doctest: +SKIP
+  >>> t = Time(np.arange(1e6), format='unix', scale='utc')
 
   >>> time x = t.tt  # doctest: +SKIP
   CPU times: user 263 ms, sys: 4.02 ms, total: 267 ms
@@ -667,14 +799,24 @@ time-consuming for large arrays.  In order to avoid repeated computations, each
 Actions such as changing the output precision or sub-format will clear
 the cache.  In order to explicitly clear the internal cache do::
 
-  >>> del t.cache  # doctest: +SKIP
+  >>> del t.cache
 
   >>> time x = t.tt  # doctest: +SKIP
   CPU times: user 263 ms, sys: 4.02 ms, total: 267 ms
   Wall time: 267 ms
 
-Since these objects are immutable (cannot be changed internally), this should
-not normally be required.
+Since astropy 3.1 these objects can be changed internally.  In order
+to ensure consistency between the transformed (and cached) version and
+the original, the transformed object is set to be not writeable.  For
+example::
+
+  >>> x = t.tt
+  >>> x[1] = '2000:001'
+  Traceback (most recent call last):
+    ...
+  ValueError: Time object is read-only. Make a copy() or set "writeable" attribute to True.
+
+If you require modifying the object then make a copy first, e.g. ``x = t.tt.copy()``.
 
 Transformation offsets
 """"""""""""""""""""""
@@ -739,21 +881,21 @@ longitude).::
 
   >>> import astropy.units as u
   >>> t = Time('2006-01-15 21:24:37.5', format='iso', scale='utc',
-  ...          location=(-155.933222*u.deg, 19.48125*u.deg), precision=6)
+  ...          location=(-155.933222*u.deg, 19.48125*u.deg))
   >>> t.utc.iso
-  '2006-01-15 21:24:37.500000'
+  '2006-01-15 21:24:37.500'
   >>> t.ut1.iso
-  '2006-01-15 21:24:37.834078'
+  '2006-01-15 21:24:37.834'
   >>> t.tai.iso
-  '2006-01-15 21:25:10.500000'
+  '2006-01-15 21:25:10.500'
   >>> t.tt.iso
-  '2006-01-15 21:25:42.684000'
+  '2006-01-15 21:25:42.684'
   >>> t.tcg.iso
-  '2006-01-15 21:25:43.322690'
+  '2006-01-15 21:25:43.323'
   >>> t.tdb.iso
-  '2006-01-15 21:25:42.684373'
+  '2006-01-15 21:25:42.684'
   >>> t.tcb.iso
-  '2006-01-15 21:25:56.893952'
+  '2006-01-15 21:25:56.894'
 
 Sidereal Time
 -------------
@@ -767,15 +909,15 @@ calculations following different IAU resolutions.  Sample usage::
 
   >>> t = Time('2006-01-15 21:24:37.5', scale='utc', location=('120d', '45d'))
   >>> t.sidereal_time('mean')  # doctest: +FLOAT_CMP
-  <Longitude 13.089521870640212 hourangle>
+  <Longitude 13.08952187 hourangle>
   >>> t.sidereal_time('apparent')  # doctest: +FLOAT_CMP
-  <Longitude 13.089503675087027 hourangle>
+  <Longitude 13.08950368 hourangle>
   >>> t.sidereal_time('apparent', 'greenwich')  # doctest: +FLOAT_CMP
-  <Longitude 5.089503675087027 hourangle>
+  <Longitude 5.08950368 hourangle>
   >>> t.sidereal_time('apparent', '-90d')  # doctest: +FLOAT_CMP
-  <Longitude 23.08950367508703 hourangle>
+  <Longitude 23.08950368 hourangle>
   >>> t.sidereal_time('apparent', '-90d', 'IAU1994')  # doctest: +FLOAT_CMP
-  <Longitude 23.08950365423405 hourangle>
+  <Longitude 23.08950365 hourangle>
 
 Time Deltas
 -----------
@@ -945,7 +1087,7 @@ dynamical models). An example using the JPL ephemerides is:
     >>> ltt_bary_jpl # doctest: +REMOTE_DATA +FLOAT_CMP
     <TimeDelta object: scale='tdb' format='jd' value=[-0.0037715  -0.00377286]>
     >>> (ltt_bary_jpl - ltt_bary).to(u.ms) # doctest: +REMOTE_DATA +FLOAT_CMP
-    <Quantity [ 0.00058527, 0.00058518] ms>
+    <Quantity [0.00058527, 0.00058518] ms>
 
 The difference between the builtin ephemerides and the JPL ephemerides is normally
 of the order of 1/100th of a millisecond, so the builtin ephemerides should be suitable
@@ -981,19 +1123,19 @@ of time.  Usage is most easily illustrated by examples::
   <TimeDelta object: scale='None' format='jd' value=3652.5>
 
   >>> dt = TimeDelta([10., 20., 30.], format='jd')
-  >>> dt.to(u.hr)                    # can convert TimeDelta to a quantity
-  <Quantity [ 240., 480., 720.] h>
+  >>> dt.to(u.hr)                    # can convert TimeDelta to a quantity  # doctest: +FLOAT_CMP
+  <Quantity [240., 480., 720.] h>
   >>> dt > 400. * u.hr               # and compare to quantities with units of time
-  array([False,  True,  True], dtype=bool)
-  >>> dt + 1.*u.hr                   # can also add/subtract such quantities
-  <TimeDelta object: scale='None' format='jd' value=[ 10.04166667  20.04166667  30.04166667]>
+  array([False,  True,  True]...)
+  >>> dt + 1.*u.hr                   # can also add/subtract such quantities  # doctest: +FLOAT_CMP
+  <TimeDelta object: scale='None' format='jd' value=[10.04166667 20.04166667 30.04166667]>
   >>> Time(50000., format='mjd', scale='utc') + 1.*u.hr  # doctest: +FLOAT_CMP
   <Time object: scale='utc' format='mjd' value=50000.0416667>
   >>> dt * 10.*u.km/u.s              # for multiplication and division with a
-  ...                                # Quantity, TimeDelta is converted
-  <Quantity [ 100., 200., 300.] d km / s>
-  >>> dt * 10.*u.Unit(1)             # unless the Quantity is dimensionless
-  <TimeDelta object: scale='None' format='jd' value=[ 100.  200.  300.]>
+  ...                                # Quantity, TimeDelta is converted  # doctest: +FLOAT_CMP
+  <Quantity [100., 200., 300.] d km / s>
+  >>> dt * 10.*u.Unit(1)             # unless the Quantity is dimensionless  # doctest: +FLOAT_CMP
+  <TimeDelta object: scale='None' format='jd' value=[100. 200. 300.]>
 
 Writing a Custom Format
 -----------------------

@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import copy
 import os
@@ -9,9 +7,7 @@ import select
 import socket
 import threading
 import warnings
-
-from .. import log
-from ..extern.six.moves.urllib.parse import urlunparse
+from urllib.parse import urlunparse
 
 from .constants import SAMP_STATUS_OK, SAMP_STATUS_WARNING
 from .hub import SAMPHubServer
@@ -24,7 +20,7 @@ from .standard_profile import ThreadingXMLRPCServer
 __all__ = ['SAMPClient']
 
 
-class SAMPClient(object):
+class SAMPClient:
     """
     Utility class which provides facilities to create and manage a SAMP
     compliant XML-RPC server that acts as SAMP callable client application.
@@ -182,7 +178,7 @@ class SAMPClient(object):
         while self._is_running:
             try:
                 read_ready = select.select([self.client.socket], [], [], 0.1)[0]
-            except select.error as exc:
+            except OSError as exc:
                 warnings.warn("Call to select in SAMPClient failed: {0}".format(exc),
                               SAMPWarning)
             else:

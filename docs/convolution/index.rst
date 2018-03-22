@@ -61,9 +61,9 @@ within a kernel of any NaN value, which is often not the desired result.
     img_zerod = img.copy()
     img_zerod[np.isnan(img)] = 0
 
-    # We smooth with a Gaussian kernel with stddev=1
+    # We smooth with a Gaussian kernel with x_stddev=1 (and y_stddev=1)
     # It is a 9x9 array
-    kernel = Gaussian2DKernel(stddev=1)
+    kernel = Gaussian2DKernel(x_stddev=1)
 
     # Convolution: scipy's direct convolution mode spreads out NaNs (see
     # panel 2 below)
@@ -157,8 +157,8 @@ is much more efficient for larger kernels.
 For example, to convolve a 1-d dataset with a user-specified kernel, you can do::
 
     >>> from astropy.convolution import convolve
-    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
-    array([ 1.4,  3.6,  5. ,  5.6,  5.6,  6.8,  6.2])
+    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])  # doctest: +FLOAT_CMP
+    array([1.4, 3.6, 5. , 5.6, 5.6, 6.8, 6.2])
 
 Notice that the end points are set to zero - by default, points that are too
 close to the boundary to have a convolved value calculated are set to zero.
@@ -169,8 +169,8 @@ computed, assuming the original data is simply extended using a constant
 extrapolation beyond the boundary::
 
     >>> from astropy.convolution import convolve
-    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
-    array([ 1.6,  3.6,  5. ,  5.6,  5.6,  6.8,  7.8])
+    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')  # doctest: +FLOAT_CMP
+    array([1.6, 3.6, 5. , 5.6, 5.6, 6.8, 7.8])
 
 The values at the end are computed assuming that any value below the first
 point is ``1``, and any value above the last point is ``8``. For a more
@@ -186,13 +186,13 @@ To use a kernel, first create a specific instance of the kernel::
 
 ``gauss`` is not an array, but a kernel object. The underlying array can be retrieved with::
 
-    >>> gauss.array
-    array([  6.69151129e-05,   4.36341348e-04,   2.21592421e-03,
-             8.76415025e-03,   2.69954833e-02,   6.47587978e-02,
-             1.20985362e-01,   1.76032663e-01,   1.99471140e-01,
-             1.76032663e-01,   1.20985362e-01,   6.47587978e-02,
-             2.69954833e-02,   8.76415025e-03,   2.21592421e-03,
-             4.36341348e-04,   6.69151129e-05])
+    >>> gauss.array  # doctest: +FLOAT_CMP
+    array([6.69151129e-05, 4.36341348e-04, 2.21592421e-03,
+           8.76415025e-03, 2.69954833e-02, 6.47587978e-02,
+           1.20985362e-01, 1.76032663e-01, 1.99471140e-01,
+           1.76032663e-01, 1.20985362e-01, 6.47587978e-02,
+           2.69954833e-02, 8.76415025e-03, 2.21592421e-03,
+           4.36341348e-04, 6.69151129e-05])
 
 The kernel can then be used directly when calling
 :func:`~astropy.convolution.convolve`:
@@ -278,9 +278,9 @@ flagged-out pixels:
    # pixels to NaN to simulate a "saturated" data set
    img[img > 2e1] = np.nan
 
-   # We smooth with a Gaussian kernel with stddev=1
+   # We smooth with a Gaussian kernel with x_stddev=1 (and y_stddev=1)
    # It is a 9x9 array
-   kernel = Gaussian2DKernel(stddev=1)
+   kernel = Gaussian2DKernel(x_stddev=1)
 
    # create a "fixed" image with NaNs replaced by interpolated values
    fixed_image = interpolate_replace_nans(img, kernel)
@@ -338,9 +338,9 @@ eye).
    new_img = np.tile(np.nan, img.shape)
    new_img.flat[indices] = sampled_data
 
-   # We smooth with a Gaussian kernel with stddev=1
+   # We smooth with a Gaussian kernel with x_stddev=1 (and y_stddev=1)
    # It is a 9x9 array
-   kernel = Gaussian2DKernel(stddev=1)
+   kernel = Gaussian2DKernel(x_stddev=1)
 
    # create a "reconstructed" image with NaNs replaced by interpolated values
    reconstructed_image = interpolate_replace_nans(new_img, kernel)
@@ -377,10 +377,11 @@ eye).
 A note on backward compatibility (pre v2.0)
 -------------------------------------------
 
-While you probably do not want unless you are explicitly comparing to
-data convolved with direct convolution in old versions of astropy (see below),
-to get the behavior of the old (astropy version <2.0) direct convolution
-function you can interpolate and then convolve, e.g.:
+The behavior of astropy's direct convolution
+(:func:`~astropy.convolution.convolve`) changed in version 2.0.  Generally, the
+old version is undesirable.  However, to recover the behavior of the old
+(astropy version <2.0) direct convolution function, you can interpolate and
+then convolve, e.g.:
 
 .. code-block:: python
 

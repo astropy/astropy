@@ -2,11 +2,7 @@
 """
 Handles the "VOUnit" unit format.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ...extern import six
-from ...extern.six.moves import zip
 
 import copy
 import keyword
@@ -141,7 +137,7 @@ class VOUnit(generic.Generic):
 
         name = unit.get_format_name('vounit')
 
-        if unit in six.itervalues(cls._custom_units):
+        if unit in cls._custom_units.values():
             return name
 
         if name not in cls._units:

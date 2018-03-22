@@ -4,25 +4,25 @@ used to represent low-level cartesian, spherical, cylindrical, and other
 coordinates.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import abc
 import functools
 import operator
 from collections import OrderedDict
 import inspect
+import warnings
 
 import numpy as np
 import astropy.units as u
 
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
-from ..extern import six
 from ..utils import ShapedLikeNDArray, classproperty
+
+from ..utils import deprecated_attribute
+from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.misc import InheritDocstrings
-from ..utils.compat import NUMPY_LT_1_12
-from ..utils.compat.numpy import broadcast_arrays, broadcast_to
+from ..utils.compat import NUMPY_LT_1_12, NUMPY_LT_1_14
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
@@ -42,9 +42,20 @@ REPRESENTATION_CLASSES = {}
 DIFFERENTIAL_CLASSES = {}
 
 
+# recommended_units deprecation message; if the attribute is removed later,
+# also remove its use in BaseFrame._get_representation_info.
+_recommended_units_deprecation = """
+The 'recommended_units' attribute is deprecated since 3.0 and may be removed
+in a future version. Its main use, of representing angles in degrees in frames,
+is now done automatically in frames. Further overrides are discouraged but can
+be done using a frame's ``frame_specific_representation_info``.
+"""
+
+
 def _array2string(values, prefix=''):
     # Mimic numpy >=1.12 array2string, in which structured arrays are
     # typeset taking into account all printoptions.
+    kwargs = {'separator': ', ', 'prefix': prefix}
     if NUMPY_LT_1_12:  # pragma: no cover
         # Mimic StructureFormat from numpy >=1.12 assuming float-only data.
         from numpy.core.arrayprint import FloatFormat
@@ -60,13 +71,15 @@ def _array2string(values, prefix=''):
                                            zip(x, format_functions)))
         # Before 1.12, structures arrays were set as "numpystr",
         # so that is the formmater we need to replace.
-        formatter = {'numpystr': fmt}
-    else:
-        fmt = repr
-        formatter = {}
+        kwargs['formatter'] = {'numpystr': fmt}
+        kwargs['style'] = fmt
 
-    return np.array2string(values, formatter=formatter, style=fmt,
-                           separator=', ', prefix=prefix)
+    else:
+        kwargs['formatter'] = {}
+        if NUMPY_LT_1_14:  # in 1.14, style is no longer used (and deprecated)
+            kwargs['style'] = repr
+
+    return np.array2string(values, **kwargs)
 
 
 def _combine_xyz(x, y, z, xyz_axis=0):
@@ -155,7 +168,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         attrs = [self.attr_classes[component](attr, copy=copy)
                  for component, attr in zip(components, attrs)]
         try:
-            attrs = broadcast_arrays(*attrs, subok=True)
+            attrs = np.broadcast_arrays(*attrs, subok=True)
         except ValueError:
             if len(components) <= 2:
                 c_str = ' and '.join(components)
@@ -187,9 +200,9 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         return name
 
     # The two methods that any subclass has to define.
-    # Should be replaced by abstractclassmethod once we support only PY3
+    @classmethod
     @abc.abstractmethod
-    def from_cartesian(self, other):
+    def from_cartesian(cls, other):
         """Create a representation of this class from a supplied Cartesian one.
 
         Parameters
@@ -254,8 +267,11 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         else:
             apply_method = operator.methodcaller(method, *args, **kwargs)
 
-        return self.__class__(*[apply_method(getattr(self, component))
-                                for component in self.components], copy=False)
+        new = super().__new__(self.__class__)
+        for component in self.components:
+            setattr(new, '_' + component,
+                    apply_method(getattr(self, component)))
+        return new
 
     @property
     def shape(self):
@@ -345,8 +361,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
         The record array fields will have the component names.
         """
-        # The "str(c)" is needed for PY2; it can be removed for astropy 3.0.
-        coo_items = [(str(c), getattr(self, c)) for c in self.components]
+        coo_items = [(c, getattr(self, c)) for c in self.components]
         result = np.empty(self.shape, [(c, coo.dtype) for c, coo in coo_items])
         for c, coo in coo_items:
             result[c] = coo.value
@@ -411,7 +426,7 @@ def _make_getter(component):
 #  (non-strict) subclass of the metaclasses of all its bases"
 class MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
     def __init__(cls, name, bases, dct):
-        super(MetaBaseRepresentation, cls).__init__(name, bases, dct)
+        super().__init__(name, bases, dct)
 
         # Register representation name (except for BaseRepresentation)
         if cls.__name__ == 'BaseRepresentation':
@@ -420,6 +435,13 @@ class MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
         if 'attr_classes' not in dct:
             raise NotImplementedError('Representations must have an '
                                       '"attr_classes" class attribute.')
+
+        if 'recommended_units' in dct:
+            warnings.warn(_recommended_units_deprecation,
+                          AstropyDeprecationWarning)
+            # Ensure we don't override the property that warns about the
+            # deprecation, but that the value remains the same.
+            dct.setdefault('_recommended_units', dct.pop('recommended_units'))
 
         repr_name = cls.get_name()
 
@@ -438,8 +460,8 @@ class MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
                                       .format(component))))
 
 
-@six.add_metaclass(MetaBaseRepresentation)
-class BaseRepresentation(BaseRepresentationOrDifferential):
+class BaseRepresentation(BaseRepresentationOrDifferential,
+                         metaclass=MetaBaseRepresentation):
     """Base for representing a point in a 3D coordinate system.
 
     Parameters
@@ -468,18 +490,15 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     that want to define a smarter transformation path can overload the
     ``represent_as`` method. If one wants to use an associated differential
     class, one should also define ``unit_vectors`` and ``scale_factors``
-    methods (see those methods for details). Finally, classes can also define a
-    ``recommended_units`` dictionary, which maps component names to the units
-    they are best presented to users in (this is used only in representations
-    of coordinates, and may be overridden by frame classes).
+    methods (see those methods for details).
     """
 
-    recommended_units = {}  # subclasses can override
+    recommended_units = deprecated_attribute('recommended_units', since='3.0')
+    _recommended_units = {}
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
-        differentials = kwargs.pop('differentials', None)
-        super(BaseRepresentation, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._differentials = self._validate_differentials(differentials)
 
     def _validate_differentials(self, differentials):
@@ -670,7 +689,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             return self.without_differentials()
 
         else:
-            if isinstance(other_class, six.string_types):
+            if isinstance(other_class, str):
                 raise ValueError("Input to a representation's represent_as "
                                  "must be a class, not a string. For "
                                  "strings, use frame objects")
@@ -764,7 +783,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             Any keyword arguments for ``method``.
 
         """
-        rep = super(BaseRepresentation, self)._apply(method, *args, **kwargs)
+        rep = super()._apply(method, *args, **kwargs)
 
         rep._differentials = dict(
             [(k, diff._apply(method, *args, **kwargs))
@@ -1001,22 +1020,21 @@ class CartesianRepresentation(BaseRepresentation):
             z = u.Quantity(z, unit, copy=copy, subok=True)
             copy = False
 
-        super(CartesianRepresentation, self).__init__(x, y, z, copy=copy,
-                                                      differentials=differentials)
+        super().__init__(x, y, z, copy=copy, differentials=differentials)
         if not (self._x.unit.physical_type ==
                 self._y.unit.physical_type == self._z.unit.physical_type):
             raise u.UnitsError("x, y, and z should have matching physical types")
 
     def unit_vectors(self):
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
-        o = broadcast_to(0.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
+        o = np.broadcast_to(0.*u.one, self.shape, subok=True)
         return OrderedDict(
             (('x', CartesianRepresentation(l, o, o, copy=False)),
              ('y', CartesianRepresentation(o, l, o, copy=False)),
              ('z', CartesianRepresentation(o, o, l, copy=False))))
 
     def scale_factors(self):
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('x', l), ('y', l), ('z', l)))
 
     def get_xyz(self, xyz_axis=0):
@@ -1107,7 +1125,14 @@ class CartesianRepresentation(BaseRepresentation):
         else:
             # Matrix multiply all pmat items and coordinates, broadcasting the
             # remaining dimensions.
-            newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value)
+            if np.__version__ == '1.14.0':
+                # there is a bug in numpy v1.14.0 (fixed in 1.14.1) that causes
+                # this einsum call to break with the default of optimize=True
+                # see https://github.com/astropy/astropy/issues/7051
+                newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value,
+                                   optimize=False)
+            else:
+                newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value)
 
         newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
         # Handle differentials attached to this representation
@@ -1243,15 +1268,13 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     attr_classes = OrderedDict([('lon', Longitude),
                                 ('lat', Latitude)])
-    recommended_units = {'lon': u.deg, 'lat': u.deg}
 
     @classproperty
     def _dimensional_representation(cls):
         return SphericalRepresentation
 
     def __init__(self, lon, lat, differentials=None, copy=True):
-        super(UnitSphericalRepresentation,
-              self).__init__(lon, lat, differentials=differentials, copy=copy)
+        super().__init__(lon, lat, differentials=differentials, copy=copy)
 
     @property
     def _compatible_differentials(self):
@@ -1284,7 +1307,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
                                              coslat, copy=False))))
 
     def scale_factors(self, omit_coslat=False):
-        sf_lat = broadcast_to(1./u.radian, self.shape, subok=True)
+        sf_lat = np.broadcast_to(1./u.radian, self.shape, subok=True)
         sf_lon = sf_lat if omit_coslat else np.cos(self.lat) / u.radian
         return OrderedDict((('lon', sf_lon),
                             ('lat', sf_lat)))
@@ -1327,8 +1350,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
                 return other_class(lon=self.lon, lat=self.lat, distance=1.0,
                                    copy=False)
 
-        return super(UnitSphericalRepresentation,
-                     self).represent_as(other_class, differential_class)
+        return super().represent_as(other_class, differential_class)
 
     def __mul__(self, other):
         self._raise_if_has_differentials('multiplication')
@@ -1449,8 +1471,7 @@ class RadialRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('distance', u.Quantity)])
 
     def __init__(self, distance, differentials=None, copy=True):
-        super(RadialRepresentation, self).__init__(distance, copy=copy,
-                                                   differentials=differentials)
+        super().__init__(distance, copy=copy, differentials=differentials)
 
     @property
     def distance(self):
@@ -1465,7 +1486,7 @@ class RadialRepresentation(BaseRepresentation):
                                   '{0} instances'.format(self.__class__))
 
     def scale_factors(self):
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('distance', l),))
 
     def to_cartesian(self):
@@ -1535,13 +1556,11 @@ class SphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('lon', Longitude),
                                 ('lat', Latitude),
                                 ('distance', u.Quantity)])
-    recommended_units = {'lon': u.deg, 'lat': u.deg}
     _unit_representation = UnitSphericalRepresentation
 
     def __init__(self, lon, lat, distance, differentials=None, copy=True):
-        super(SphericalRepresentation,
-              self).__init__(lon, lat, distance, copy=copy,
-                             differentials=differentials)
+        super().__init__(lon, lat, distance, copy=copy,
+                         differentials=differentials)
         if self._distance.unit.physical_type == 'length':
             self._distance = self._distance.view(Distance)
 
@@ -1585,7 +1604,7 @@ class SphericalRepresentation(BaseRepresentation):
     def scale_factors(self, omit_coslat=False):
         sf_lat = self.distance / u.radian
         sf_lon = sf_lat if omit_coslat else sf_lat * np.cos(self.lat)
-        sf_distance = broadcast_to(1.*u.one, self.shape, subok=True)
+        sf_distance = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('lon', sf_lon),
                             ('lat', sf_lat),
                             ('distance', sf_distance)))
@@ -1602,8 +1621,7 @@ class SphericalRepresentation(BaseRepresentation):
             elif issubclass(other_class, UnitSphericalRepresentation):
                 return other_class(lon=self.lon, lat=self.lat, copy=False)
 
-        return super(SphericalRepresentation,
-                     self).represent_as(other_class, differential_class)
+        return super().represent_as(other_class, differential_class)
 
     def to_cartesian(self):
         """
@@ -1690,12 +1708,9 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('phi', Angle),
                                 ('theta', Angle),
                                 ('r', u.Quantity)])
-    recommended_units = {'phi': u.deg, 'theta': u.deg}
 
     def __init__(self, phi, theta, r, differentials=None, copy=True):
-        super(PhysicsSphericalRepresentation,
-              self).__init__(phi, theta, r, copy=copy,
-                             differentials=differentials)
+        super().__init__(phi, theta, r, copy=copy, differentials=differentials)
 
         # Wrap/validate phi/theta
         if copy:
@@ -1747,7 +1762,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     def scale_factors(self):
         r = self.r / u.radian
         sintheta = np.sin(self.theta)
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('phi', r * sintheta),
                             ('theta', r),
                             ('r', l)))
@@ -1764,8 +1779,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
             elif issubclass(other_class, UnitSphericalRepresentation):
                 return other_class(lon=self.phi, lat=90 * u.deg - self.theta)
 
-        return super(PhysicsSphericalRepresentation,
-                     self).represent_as(other_class, differential_class)
+        return super().represent_as(other_class, differential_class)
 
     def to_cartesian(self):
         """
@@ -1849,12 +1863,9 @@ class CylindricalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('rho', u.Quantity),
                                 ('phi', Angle),
                                 ('z', u.Quantity)])
-    recommended_units = {'phi': u.deg}
 
     def __init__(self, rho, phi, z, differentials=None, copy=True):
-        super(CylindricalRepresentation,
-              self).__init__(rho, phi, z, copy=copy,
-                             differentials=differentials)
+        super().__init__(rho, phi, z, copy=copy, differentials=differentials)
 
         if not self._rho.unit.is_equivalent(self._z.unit):
             raise u.UnitsError("rho and z should have matching physical types")
@@ -1882,7 +1893,7 @@ class CylindricalRepresentation(BaseRepresentation):
 
     def unit_vectors(self):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
-        l = broadcast_to(1., self.shape)
+        l = np.broadcast_to(1., self.shape)
         return OrderedDict(
             (('rho', CartesianRepresentation(cosphi, sinphi, 0, copy=False)),
              ('phi', CartesianRepresentation(-sinphi, cosphi, 0, copy=False)),
@@ -1890,7 +1901,7 @@ class CylindricalRepresentation(BaseRepresentation):
 
     def scale_factors(self):
         rho = self.rho / u.radian
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('rho', l),
                             ('phi', rho),
                             ('z', l)))
@@ -1927,7 +1938,7 @@ class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
     by 'd_', and the class is `~astropy.units.Quantity`.
     """
     def __init__(cls, name, bases, dct):
-        super(MetaBaseDifferential, cls).__init__(name, bases, dct)
+        super().__init__(name, bases, dct)
 
         # Don't do anything for base helper classes.
         if cls.__name__ in ('BaseDifferential', 'BaseSphericalDifferential',
@@ -1943,6 +1954,13 @@ class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
             base_attr_classes = cls.base_representation.attr_classes
             cls.attr_classes = OrderedDict([('d_' + c, u.Quantity)
                                             for c in base_attr_classes])
+
+        if 'recommended_units' in dct:
+            warnings.warn(_recommended_units_deprecation,
+                          AstropyDeprecationWarning)
+            # Ensure we don't override the property that warns about the
+            # deprecation, but that the value remains the same.
+            dct.setdefault('_recommended_units', dct.pop('recommended_units'))
 
         repr_name = cls.get_name()
         if repr_name in DIFFERENTIAL_CLASSES:
@@ -1960,8 +1978,8 @@ class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
                                       .format(component))))
 
 
-@six.add_metaclass(MetaBaseDifferential)
-class BaseDifferential(BaseRepresentationOrDifferential):
+class BaseDifferential(BaseRepresentationOrDifferential,
+                       metaclass=MetaBaseDifferential):
     r"""A base class representing differentials of representations.
 
     These represent differences or derivatives along each component.
@@ -1987,7 +2005,8 @@ class BaseDifferential(BaseRepresentationOrDifferential):
     those, and a default ``__init__`` for initialization.
     """
 
-    recommended_units = {}  # subclasses can override
+    recommended_units = deprecated_attribute('recommended_units', since='3.0')
+    _recommended_units = {}
 
     @classmethod
     def _check_base(cls, base):
@@ -2009,7 +2028,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         for name in base.components:
             comp = getattr(base, name)
             d_comp = getattr(self, 'd_{0}'.format(name), None)
-            if d_comp:
+            if d_comp is not None:
                 d_unit = comp.unit / d_comp.unit
                 # Get the si unit without a scale by going via Quantity;
                 # `.si` causes the scale to be included in the value.
@@ -2080,7 +2099,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         """
         base_e, base_sf = cls._get_base_vectors(base)
         return cls(*(other.dot(e / base_sf[component])
-                     for component, e in six.iteritems(base_e)), copy=False)
+                     for component, e in base_e.items()), copy=False)
 
     def represent_as(self, other_class, base):
         """Convert coordinates to another representation.
@@ -2177,7 +2196,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         # avoid "differential - representation".
         if isinstance(other, BaseRepresentation):
             return NotImplemented
-        return super(BaseDifferential, self).__sub__(other)
+        return super().__sub__(other)
 
     def norm(self, base=None):
         """Vector norm.
@@ -2244,7 +2263,7 @@ class CartesianDifferential(BaseDifferential):
             d_z = u.Quantity(d_z, unit, copy=copy, subok=True)
             copy = False
 
-        super(CartesianDifferential, self).__init__(d_x, d_y, d_z, copy=copy)
+        super().__init__(d_x, d_y, d_z, copy=copy)
         if not (self._d_x.unit.is_equivalent(self._d_y.unit) and
                 self._d_x.unit.is_equivalent(self._d_z.unit)):
             raise u.UnitsError('d_x, d_y and d_z should have equivalent units.')
@@ -2334,8 +2353,7 @@ class BaseSphericalDifferential(BaseDifferential):
                            for c in all_components}
             return SphericalDifferential(**result_args)
 
-        return super(BaseSphericalDifferential,
-                     self)._combine_operation(op, other, reverse)
+        return super()._combine_operation(op, other, reverse)
 
 
 class UnitSphericalDifferential(BaseSphericalDifferential):
@@ -2355,8 +2373,7 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
         return SphericalDifferential
 
     def __init__(self, d_lon, d_lat, copy=True):
-        super(UnitSphericalDifferential,
-              self).__init__(d_lon, d_lat, copy=copy)
+        super().__init__(d_lon, d_lat, copy=copy)
         if not self._d_lon.unit.is_equivalent(self._d_lat.unit):
             raise u.UnitsError('d_lon and d_lat should have equivalent units.')
 
@@ -2366,18 +2383,17 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
         elif isinstance(base, PhysicsSphericalRepresentation):
             scale = base.r
         else:
-            return super(UnitSphericalDifferential, self).to_cartesian(base)
+            return super().to_cartesian(base)
 
         base = base.represent_as(UnitSphericalRepresentation)
-        return scale * super(UnitSphericalDifferential, self).to_cartesian(base)
+        return scale * super().to_cartesian(base)
 
     def represent_as(self, other_class, base=None):
         # Only have enough information to represent other unit-spherical.
         if issubclass(other_class, UnitSphericalCosLatDifferential):
             return other_class(self._d_lon_coslat(base), self.d_lat)
 
-        return super(UnitSphericalDifferential,
-                     self).represent_as(other_class, base)
+        return super().represent_as(other_class, base)
 
     @classmethod
     def from_representation(cls, representation, base=None):
@@ -2392,8 +2408,7 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
         elif isinstance(representation, PhysicsSphericalDifferential):
             return cls(representation.d_phi, -representation.d_theta)
 
-        return super(UnitSphericalDifferential,
-                     cls).from_representation(representation, base)
+        return super().from_representation(representation, base)
 
 
 class SphericalDifferential(BaseSphericalDifferential):
@@ -2412,8 +2427,7 @@ class SphericalDifferential(BaseSphericalDifferential):
     _unit_differential = UnitSphericalDifferential
 
     def __init__(self, d_lon, d_lat, d_distance, copy=True):
-        super(SphericalDifferential, self).__init__(d_lon, d_lat, d_distance,
-                                                    copy=copy)
+        super().__init__(d_lon, d_lat, d_distance, copy=copy)
         if not self._d_lon.unit.is_equivalent(self._d_lat.unit):
             raise u.UnitsError('d_lon and d_lat should have equivalent units.')
 
@@ -2432,8 +2446,7 @@ class SphericalDifferential(BaseSphericalDifferential):
         elif issubclass(other_class, PhysicsSphericalDifferential):
             return other_class(self.d_lon, -self.d_lat, self.d_distance)
         else:
-            return super(SphericalDifferential,
-                         self).represent_as(other_class, base)
+            return super().represent_as(other_class, base)
 
     @classmethod
     def from_representation(cls, representation, base=None):
@@ -2446,8 +2459,7 @@ class SphericalDifferential(BaseSphericalDifferential):
             return cls(representation.d_phi, -representation.d_theta,
                        representation.d_r)
 
-        return super(SphericalDifferential,
-                     cls).from_representation(representation, base)
+        return super().from_representation(representation, base)
 
 
 class BaseSphericalCosLatDifferential(BaseDifferential):
@@ -2537,8 +2549,7 @@ class BaseSphericalCosLatDifferential(BaseDifferential):
                            for c in all_components}
             return SphericalCosLatDifferential(**result_args)
 
-        return super(BaseSphericalCosLatDifferential,
-                     self)._combine_operation(op, other, reverse)
+        return super()._combine_operation(op, other, reverse)
 
 
 class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
@@ -2560,8 +2571,7 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
         return SphericalCosLatDifferential
 
     def __init__(self, d_lon_coslat, d_lat, copy=True):
-        super(UnitSphericalCosLatDifferential,
-              self).__init__(d_lon_coslat, d_lat, copy=copy)
+        super().__init__(d_lon_coslat, d_lat, copy=copy)
         if not self._d_lon_coslat.unit.is_equivalent(self._d_lat.unit):
             raise u.UnitsError('d_lon_coslat and d_lat should have equivalent '
                                'units.')
@@ -2572,20 +2582,17 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
         elif isinstance(base, PhysicsSphericalRepresentation):
             scale = base.r
         else:
-            return super(UnitSphericalCosLatDifferential,
-                         self).to_cartesian(base)
+            return super().to_cartesian(base)
 
         base = base.represent_as(UnitSphericalRepresentation)
-        return scale * super(UnitSphericalCosLatDifferential,
-                             self).to_cartesian(base)
+        return scale * super().to_cartesian(base)
 
     def represent_as(self, other_class, base=None):
         # Only have enough information to represent other unit-spherical.
         if issubclass(other_class, UnitSphericalDifferential):
             return other_class(self._d_lon(base), self.d_lat)
 
-        return super(UnitSphericalCosLatDifferential,
-                     self).represent_as(other_class, base)
+        return super().represent_as(other_class, base)
 
     @classmethod
     def from_representation(cls, representation, base=None):
@@ -2601,8 +2608,7 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
             d_lon_coslat = cls._get_d_lon_coslat(representation.d_phi, base)
             return cls(d_lon_coslat, -representation.d_theta)
 
-        return super(UnitSphericalDifferential,
-                     cls).from_representation(representation, base)
+        return super().from_representation(representation, base)
 
 
 class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
@@ -2624,8 +2630,7 @@ class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
                                 ('d_distance', u.Quantity)])
 
     def __init__(self, d_lon_coslat, d_lat, d_distance, copy=True):
-        super(SphericalCosLatDifferential,
-              self).__init__(d_lon_coslat, d_lat, d_distance, copy=copy)
+        super().__init__(d_lon_coslat, d_lat, d_distance, copy=copy)
         if not self._d_lon_coslat.unit.is_equivalent(self._d_lat.unit):
             raise u.UnitsError('d_lon_coslat and d_lat should have equivalent '
                                'units.')
@@ -2644,8 +2649,7 @@ class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
         elif issubclass(other_class, PhysicsSphericalDifferential):
             return other_class(self._d_lon(base), -self.d_lat, self.d_distance)
 
-        return super(SphericalCosLatDifferential,
-                     self).represent_as(other_class, base)
+        return super().represent_as(other_class, base)
 
     @classmethod
     def from_representation(cls, representation, base=None):
@@ -2660,8 +2664,7 @@ class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
             return cls(d_lon_coslat, -representation.d_theta,
                        representation.d_r)
 
-        return super(SphericalCosLatDifferential,
-                     cls).from_representation(representation, base)
+        return super().from_representation(representation, base)
 
 
 class RadialDifferential(BaseDifferential):
@@ -2693,8 +2696,7 @@ class RadialDifferential(BaseDifferential):
         elif isinstance(representation, PhysicsSphericalDifferential):
             return cls(representation.d_r)
         else:
-            return super(RadialDifferential,
-                         cls).from_representation(representation, base)
+            return super().from_representation(representation, base)
 
     def _combine_operation(self, op, other, reverse=False):
         if isinstance(other, self.base_representation):
@@ -2712,8 +2714,7 @@ class RadialDifferential(BaseDifferential):
             return SphericalDifferential(**result_args)
 
         else:
-            return super(RadialDifferential,
-                         self)._combine_operation(op, other, reverse)
+            return super()._combine_operation(op, other, reverse)
 
 
 class PhysicsSphericalDifferential(BaseDifferential):
@@ -2731,8 +2732,7 @@ class PhysicsSphericalDifferential(BaseDifferential):
     base_representation = PhysicsSphericalRepresentation
 
     def __init__(self, d_phi, d_theta, d_r, copy=True):
-        super(PhysicsSphericalDifferential,
-              self).__init__(d_phi, d_theta, d_r, copy=copy)
+        super().__init__(d_phi, d_theta, d_r, copy=copy)
         if not self._d_phi.unit.is_equivalent(self._d_theta.unit):
             raise u.UnitsError('d_phi and d_theta should have equivalent '
                                'units.')
@@ -2756,8 +2756,7 @@ class PhysicsSphericalDifferential(BaseDifferential):
         elif issubclass(other_class, RadialDifferential):
             return other_class(self.d_r)
 
-        return super(PhysicsSphericalDifferential,
-                     self).represent_as(other_class, base)
+        return super().represent_as(other_class, base)
 
     @classmethod
     def from_representation(cls, representation, base=None):
@@ -2772,8 +2771,7 @@ class PhysicsSphericalDifferential(BaseDifferential):
             d_phi = representation.d_lon_coslat / np.sin(base.theta)
             return cls(d_phi, -representation.d_lat, representation.d_distance)
 
-        return super(PhysicsSphericalDifferential,
-                     cls).from_representation(representation, base)
+        return super().from_representation(representation, base)
 
 
 class CylindricalDifferential(BaseDifferential):
@@ -2793,7 +2791,6 @@ class CylindricalDifferential(BaseDifferential):
     base_representation = CylindricalRepresentation
 
     def __init__(self, d_rho, d_phi, d_z, copy=False):
-        super(CylindricalDifferential,
-              self).__init__(d_rho, d_phi, d_z, copy=copy)
+        super().__init__(d_rho, d_phi, d_z, copy=copy)
         if not self._d_rho.unit.is_equivalent(self._d_z.unit):
             raise u.UnitsError("d_rho and d_z should have equivalent units.")

@@ -1,12 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import operator
 import numpy as np
-from ..extern.six.moves import zip, range
 
 
-class MaxValue(object):
+class MaxValue:
     '''
     Represents an infinite value for purposes
     of tuple comparison.
@@ -32,7 +29,7 @@ class MaxValue(object):
     __str__ = __repr__
 
 
-class MinValue(object):
+class MinValue:
     '''
     The opposite of MaxValue, i.e. a representation of
     negative infinity.
@@ -58,7 +55,7 @@ class MinValue(object):
     __str__ = __repr__
 
 
-class Epsilon(object):
+class Epsilon:
     '''
     Represents the "next largest" version of a given value,
     so that for all valid comparisons we have
@@ -92,7 +89,7 @@ class Epsilon(object):
         return repr(self.val) + " + epsilon"
 
 
-class Node(object):
+class Node:
     '''
     An element in a binary search tree, containing
     a key, data, and references to children nodes and
@@ -151,7 +148,7 @@ class Node(object):
         return str(self)
 
 
-class BST(object):
+class BST:
     '''
     A basic binary search tree in pure Python, used
     as an engine for indexing.
@@ -492,7 +489,7 @@ class BST(object):
             data[:] = [row_map[x] for x in data if x in row_map]
 
 
-class FastBase(object):
+class FastBase:
     '''
     A fast binary search tree implementation for indexing,
     using the bintrees library.

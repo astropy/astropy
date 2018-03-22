@@ -17,18 +17,18 @@ One can create logarithmic quantities either directly or by multiplication with
 a logarithmic unit.  For instance::
 
   >>> import astropy.units as u, astropy.constants as c, numpy as np
-  >>> u.Magnitude(-10.)
-  <Magnitude -10.0 mag>
-  >>> u.Magnitude(10 * u.ct / u.s)
+  >>> u.Magnitude(-10.)  # doctest: +FLOAT_CMP
+  <Magnitude -10. mag>
+  >>> u.Magnitude(10 * u.ct / u.s)  # doctest: +FLOAT_CMP
   <Magnitude -2.5 mag(ct / s)>
-  >>> u.Magnitude(-2.5, "mag(ct/s)")
+  >>> u.Magnitude(-2.5, "mag(ct/s)")  # doctest: +FLOAT_CMP
   <Magnitude -2.5 mag(ct / s)>
-  >>> -2.5 * u.mag(u.ct / u.s)
+  >>> -2.5 * u.mag(u.ct / u.s)  # doctest: +FLOAT_CMP
   <Magnitude -2.5 mag(ct / s)>
   >>> u.Dex((c.G * u.M_sun / u.R_sun**2).cgs)  # doctest: +FLOAT_CMP
   <Dex 4.438067627303133 dex(cm / s2)>
-  >>> np.linspace(2., 5., 7) * u.Unit("dex(cm/s2)")
-  <Dex [ 2. , 2.5, 3. , 3.5, 4. , 4.5, 5. ] dex(cm / s2)>
+  >>> np.linspace(2., 5., 7) * u.Unit("dex(cm/s2)")  # doctest: +FLOAT_CMP
+  <Dex [2. , 2.5, 3. , 3.5, 4. , 4.5, 5. ] dex(cm / s2)>
 
 Above, we make use of the fact that the units ``mag``, ``dex``, and
 ``dB`` are special in that, when used as functions, they return a
@@ -47,8 +47,8 @@ to a |quantity| with the physical unit using the
     >>> logg = 5. * u.dex(u.cm / u.s**2)
     >>> logg.value
     5.0
-    >>> logg.physical
-    <Quantity 100000.0 cm / s2>
+    >>> logg.physical  # doctest: +FLOAT_CMP
+    <Quantity 100000. cm / s2>
 
 Converting to different units
 =============================
@@ -57,17 +57,17 @@ Like |quantity| objects, logarithmic quantities can be converted to different
 units, be it another logarithmic unit or a physical one::
 
     >>> logg = 5. * u.dex(u.cm / u.s**2)
-    >>> logg.to(u.m / u.s**2)
-    <Quantity 1000.0 m / s2>
-    >>> logg.to('dex(m/s2)')
-    <Dex 3.0 dex(m / s2)>
+    >>> logg.to(u.m / u.s**2)  # doctest: +FLOAT_CMP
+    <Quantity 1000. m / s2>
+    >>> logg.to('dex(m/s2)')  # doctest: +FLOAT_CMP
+    <Dex 3. dex(m / s2)>
 
 For convenience, the `~astropy.units.function.FunctionQuantity.si` and
 `~astropy.units.function.FunctionQuantity.cgs` attributes can be used
 to convert the |quantity| to base S.I. or c.g.s units::
 
-    >>> logg.si
-    <Dex 3.0 dex(m / s2)>
+    >>> logg.si  # doctest: +FLOAT_CMP
+    <Dex 3. dex(m / s2)>
 
 Arithmetic
 ==========
@@ -82,13 +82,13 @@ calculate instrumental magnitudes assuming some count rates for three objects::
     >>> cr_v = ([4000., 90., 25.] * u.ct) / tint
     >>> b_i, v_i = u.Magnitude(cr_b), u.Magnitude(cr_v)
     >>> b_i, v_i  # doctest: +FLOAT_CMP
-    (<Magnitude [-1.19280314, 2.5       , 4.55977185] mag(ct / s)>,
-     <Magnitude [-1.50514998, 2.61439373, 4.00514998] mag(ct / s)>)
+    (<Magnitude [-1.19280314,  2.5       ,  4.55977185] mag(ct / s)>,
+     <Magnitude [-1.50514998,  2.61439373,  4.00514998] mag(ct / s)>)
 
 Then, the instrumental B-V color is simply::
 
-    >>> b_i - v_i
-    <Magnitude [ 0.31234684,-0.11439373, 0.55462187] mag>
+    >>> b_i - v_i  # doctest: +FLOAT_CMP
+    <Magnitude [ 0.31234684, -0.11439373,  0.55462187] mag>
 
 Note that the physical unit has become dimensionless.  The following step might
 be used to correct for atmospheric extinction::
@@ -98,24 +98,24 @@ be used to correct for atmospheric extinction::
     >>> b_i0 = b_i - atm_ext_b * secz
     >>> v_i0 = v_i - atm_ext_b * secz
     >>> b_i0, v_i0  # doctest: +FLOAT_CMP
-    (<Magnitude [-1.36250876, 2.33029437, 4.39006622] mag(ct / s)>,
-     <Magnitude [-1.67485561, 2.4446881 , 3.83544435] mag(ct / s)>)
+    (<Magnitude [-1.36250876,  2.33029437,  4.39006622] mag(ct / s)>,
+     <Magnitude [-1.67485561,  2.4446881 ,  3.83544435] mag(ct / s)>)
 
 Since the extinction is dimensionless, the units do not change.  Now suppose
 the first star has a known ST magnitude, so we can calculate zero points::
 
     >>> b_ref, v_ref = 17.2 * u.STmag, 17.0 * u.STmag
     >>> b_ref, v_ref  # doctest: +FLOAT_CMP
-    (<Magnitude 17.2 mag(ST)>, <Magnitude 17.0 mag(ST)>)
+    (<Magnitude 17.2 mag(ST)>, <Magnitude 17. mag(ST)>)
     >>> zp_b, zp_v = b_ref - b_i0[0], v_ref - v_i0[0]
     >>> zp_b, zp_v  # doctest: +FLOAT_CMP
-    (<Magnitude 18.562508764283926 mag(s ST / ct)>,
-     <Magnitude 18.674855605804677 mag(s ST / ct)>)
+    (<Magnitude 18.56250876 mag(s ST / ct)>,
+     <Magnitude 18.67485561 mag(s ST / ct)>)
 
 Here, ``ST`` is a short-hand for the ST zero-point flux::
 
     >>> (0. * u.STmag).to(u.erg/u.s/u.cm**2/u.AA)  # doctest: +FLOAT_CMP
-    <Quantity 3.6307805477010028e-09 erg / (Angstrom cm2 s)>
+    <Quantity 3.63078055e-09 erg / (Angstrom cm2 s)>
     >>> (-21.1 * u.STmag).to(u.erg/u.s/u.cm**2/u.AA)  # doctest: +FLOAT_CMP
     <Quantity 1. erg / (Angstrom cm2 s)>
 
@@ -128,14 +128,14 @@ Now applying the calibration, we find (note the proper change in units)::
 
     >>> B, V = b_i0 + zp_b, v_i0 + zp_v
     >>> B, V  # doctest: +FLOAT_CMP
-    (<Magnitude [ 17.2       , 20.89280314, 22.95257499] mag(ST)>,
-     <Magnitude [ 17.        , 21.1195437 , 22.51029996] mag(ST)>)
+    (<Magnitude [17.2       , 20.89280314, 22.95257499] mag(ST)>,
+     <Magnitude [17.        , 21.1195437 , 22.51029996] mag(ST)>)
 
 We could convert these magnitudes to another system, e.g., ABMag, using
 appropriate equivalency::
 
     >>> V.to(u.ABmag, u.spectral_density(5500.*u.AA))  # doctest: +FLOAT_CMP
-    <Magnitude [ 16.99023831, 21.10978201, 22.50053827] mag(AB)>
+    <Magnitude [16.99023831, 21.10978201, 22.50053827] mag(AB)>
 
 Suppose we also knew the intrinsic color of the first star, then we can
 calculate the reddening::
@@ -146,9 +146,7 @@ calculate the reddening::
     >>> A_V = R_V * EB_V
     >>> A_B = (R_V+1) * EB_V
     >>> EB_V, A_V, A_B  # doctest: +FLOAT_CMP
-    (<Magnitude 0.3999999999999993 mag>,
-     <Quantity 1.2399999999999978 mag>,
-     <Quantity 1.639999999999997 mag>)
+    (<Magnitude 0.4 mag>, <Quantity 1.24 mag>, <Quantity 1.64 mag>)
 
 Here, one sees that the extinctions have been converted to quantities. This
 happens generally for division and multiplication, since these processes
@@ -167,7 +165,7 @@ distance modulus::
     >>> BC_V, M_bol, DM  # doctest: +FLOAT_CMP
     (<Magnitude -0.3 mag(bol / ST)>,
      <Magnitude 5.46 mag(Bol)>,
-     <Magnitude 10.0 mag(bol / Bol)>)
+     <Magnitude 10. mag(bol / Bol)>)
 
 With a proper equivalency, we can also convert to distance without remembering
 the 5-5log rule::
@@ -176,7 +174,7 @@ the 5-5log rule::
     ...                            lambda x: 1./(4.*np.pi*x**2),
     ...                            lambda x: np.sqrt(1./(4.*np.pi*x)))]
     >>> DM.to(u.pc, equivalencies=radius_and_inverse_area)  # doctest: +FLOAT_CMP
-    <Quantity 1000.0 pc>
+    <Quantity 1000. pc>
 
 Numpy functions
 ===============
@@ -186,9 +184,9 @@ make sense, hence they are disabled.  But one can use those one would expect to
 work::
 
     >>> np.max(v_i)  # doctest: +FLOAT_CMP
-    <Magnitude 4.005149978319905 mag(ct / s)>
+    <Magnitude 4.00514998 mag(ct / s)>
     >>> np.std(v_i)  # doctest: +FLOAT_CMP
-    <Magnitude 2.339711494548601 mag>
+    <Magnitude 2.33971149 mag>
 
 .. note:: This is implemented by having a list of supported ufuncs in
 	  ``units/function/core.py`` and by explicitly disabling some
@@ -208,11 +206,11 @@ supported as logarithmic units.  For instance::
     >>> dBm = u.dB(u.mW)
     >>> signal_in, signal_out = 100. * dBm, 50 * dBm
     >>> cable_loss = (signal_in - signal_out) / (100. * u.m)
-    >>> signal_in, signal_out, cable_loss
-    (<Decibel 100.0 dB(mW)>, <Decibel 50.0 dB(mW)>, <Quantity 0.5 dB / m>)
+    >>> signal_in, signal_out, cable_loss  # doctest: +FLOAT_CMP
+    (<Decibel 100. dB(mW)>, <Decibel 50. dB(mW)>, <Quantity 0.5 dB / m>)
     >>> better_cable_loss = 0.2 * u.dB / u.m
-    >>> signal_in - better_cable_loss * 100. * u.m
-    <Decibel 80.0 dB(mW)>
+    >>> signal_in - better_cable_loss * 100. * u.m  # doctest: +FLOAT_CMP
+    <Decibel 80. dB(mW)>
 
 
 .. [M15] Mamajek et al., 2015, `arXiv:1510.06262

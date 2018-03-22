@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import
 
 import os
 from distutils.extension import Extension
@@ -19,7 +18,3 @@ def get_extensions():
     ]
 
     return exts
-
-
-def requires_2to3():
-    return False

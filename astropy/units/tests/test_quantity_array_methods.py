@@ -5,10 +5,10 @@ import pytest
 import numpy as np
 
 from ... import units as u
-from ...utils.compat import NUMPY_LT_1_9_1, NUMPY_LT_1_10_4
+from ...utils.compat import NUMPY_LT_1_10_4
 
 
-class TestQuantityArrayCopy(object):
+class TestQuantityArrayCopy:
     """
     Test whether arrays are properly copied/used in place
     """
@@ -74,7 +74,7 @@ class TestQuantityArrayCopy(object):
         assert q[2, 2] == -1. * u.km / u.s
 
 
-class TestQuantityReshapeFuncs(object):
+class TestQuantityReshapeFuncs:
     """Test different ndarray methods that alter the array shape
 
     tests: reshape, squeeze, ravel, flatten, transpose, swapaxes
@@ -123,7 +123,7 @@ class TestQuantityReshapeFuncs(object):
         assert np.all(q_swapaxes.value == q.value.swapaxes(0, 2))
 
 
-class TestQuantityStatsFuncs(object):
+class TestQuantityStatsFuncs:
     """
     Test statistical functions
     """
@@ -143,9 +143,6 @@ class TestQuantityStatsFuncs(object):
         q1 = np.array([1., 2.]) * u.m
         assert np.std(q1) == 0.5 * u.m
 
-    # For 1.7 <= Numpy < 1.9.1, inplace causes the variance to be stored instead
-    # of the standard deviation; https://github.com/numpy/numpy/issues/5240
-    @pytest.mark.xfail(NUMPY_LT_1_9_1, reason="Numpy 1.9.1 or later is required")
     def test_std_inplace(self):
         q1 = np.array([1., 2.]) * u.m
         qi = 1.5 * u.s
@@ -396,7 +393,7 @@ class TestQuantityStatsFuncs(object):
         assert np.all(cont == expected)
 
 
-class TestArrayConversion(object):
+class TestArrayConversion:
     """
     Test array conversion methods
     """
@@ -539,7 +536,7 @@ class TestArrayConversion(object):
             q1.dumps()
 
 
-class TestRecArray(object):
+class TestRecArray:
     """Record arrays are not specifically supported, but we should not
     prevent their use unnecessarily"""
 

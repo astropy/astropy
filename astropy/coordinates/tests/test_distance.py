@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 """
 This includes tests for the Distance class and related calculations
@@ -13,6 +11,7 @@ import numpy as np
 from numpy import testing as npt
 
 from ... import units as u
+from ...tests.helper import quantity_allclose
 from .. import Longitude, Latitude, Distance, CartesianRepresentation
 from ..builtin_frames import ICRS, Galactic
 
@@ -203,6 +202,23 @@ def test_distmod():
     # if an array, uses the mean of the log of the distances
     assert Distance(distmod=[1, 11, 26]).unit == u.kpc
 
+
+def test_parallax():
+
+    d = Distance(parallax=1*u.arcsecond)
+    assert d.pc == 1.
+
+    with pytest.raises(ValueError):
+        d = Distance(15*u.pc, parallax=20*u.milliarcsecond)
+
+    with pytest.raises(ValueError):
+        d = Distance(parallax=20*u.milliarcsecond, distmod=20)
+
+    # array
+    plx = [1, 10, 100.]*u.mas
+    d = Distance(parallax=plx)
+    assert quantity_allclose(d.pc, [1000., 100., 10.])
+    assert quantity_allclose(plx, d.parallax)
 
 def test_distance_in_coordinates():
     """

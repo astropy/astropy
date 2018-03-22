@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from .client import SAMPClient
 from .hub_proxy import SAMPHubProxy
@@ -11,7 +9,7 @@ __all__ = ['SAMPIntegratedClient']
 __doctest_skip__ = ['SAMPIntegratedClient.*']
 
 
-class SAMPIntegratedClient(object):
+class SAMPIntegratedClient:
     """
     A Simple SAMP client.
 

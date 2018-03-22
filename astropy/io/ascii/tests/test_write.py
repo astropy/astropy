@@ -1,15 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 import os
 import copy
+from io import StringIO
 from itertools import chain
+
 
 import pytest
 import numpy as np
 
-from ....extern.six.moves import cStringIO as StringIO
 from ... import ascii
 from .... import table
 from ....table.table_helpers import simple_table
@@ -676,7 +676,7 @@ def test_write_overwrite_ascii(format, fast_writer, tmpdir):
     open(filename, 'w').close()
     t = table.Table([['Hello', ''], ['', '']], dtype=['S10', 'S10'])
 
-    with pytest.raises(IOError) as err:
+    with pytest.raises(OSError) as err:
         t.write(filename, overwrite=False, format=format,
                 fast_writer=fast_writer)
     assert str(err.value).endswith('already exists')

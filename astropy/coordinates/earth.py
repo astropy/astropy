@@ -1,21 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import, division, print_function
 
 from warnings import warn
 import collections
 import socket
 import json
+import urllib.request
+import urllib.error
+import urllib.parse
 
 import numpy as np
 from .. import units as u
+from .. import constants as consts
 from ..units.quantity import QuantityInfoBase
-from ..extern import six
-from ..extern.six.moves import urllib
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.compat.numpycompat import NUMPY_LT_1_12
-from ..utils.compat.numpy import broadcast_to
 from .angles import Longitude, Latitude
-from .representation import CartesianRepresentation
+from .representation import CartesianRepresentation, CartesianDifferential
 from .errors import UnknownSiteException
 from ..utils import data, deprecated
 
@@ -245,7 +245,7 @@ class EarthLocation(u.Quantity):
         x, y, z = np.broadcast_arrays(x, y, z)
         struc = np.empty(x.shape, cls._location_dtype)
         struc['x'], struc['y'], struc['z'] = x, y, z
-        return super(EarthLocation, cls).__new__(cls, struc, unit, copy=False)
+        return super().__new__(cls, struc, unit, copy=False)
 
     @classmethod
     def from_geodetic(cls, lon, lat, height=0., ellipsoid=None):
@@ -472,15 +472,11 @@ class EarthLocation(u.Quantity):
             reg = getattr(cls, '_site_registry', None)
             if force_download or not reg:
                 try:
-                    if isinstance(force_download, six.string_types):
+                    if isinstance(force_download, str):
                         reg = get_downloaded_sites(force_download)
                     else:
                         reg = get_downloaded_sites()
-                except (six.moves.urllib.error.URLError, IOError):
-                    # In Python 2.7 the IOError raised by @remote_data stays as
-                    # is, while in Python 3.6 the IOError gets converted to a
-                    # URLError, so we catch IOError above too, but this can be
-                    # removed once we don't support Python 2.7 anymore.
+                except OSError:
                     if force_download:
                         raise
                     msg = ('Could not access the online site list. Falling '
@@ -597,7 +593,7 @@ class EarthLocation(u.Quantity):
         # Broadcast for a single position at multiple times, but don't attempt
         # to be more general here.
         if obstime and self.size == 1 and obstime.size > 1:
-            self = broadcast_to(self, obstime.shape, subok=True)
+            self = np.broadcast_to(self, obstime.shape, subok=True)
 
         # do this here to prevent a series of complicated circular imports
         from .builtin_frames import ITRS
@@ -606,6 +602,30 @@ class EarthLocation(u.Quantity):
     itrs = property(get_itrs, doc="""An `~astropy.coordinates.ITRS` object  with
                                      for the location of this object at the
                                      default ``obstime``.""")
+
+    def get_gcrs(self, obstime):
+        """GCRS position with velocity at ``obstime`` as a GCRS coordinate.
+
+        Parameters
+        ----------
+        obstime : `~astropy.time.Time`
+            The ``obstime`` to calculate the GCRS position/velocity at.
+
+        Returns
+        --------
+        gcrs : `~astropy.coordinates.GCRS` instance
+            With velocity included.
+        """
+        # do this here to prevent a series of complicated circular imports
+        from .builtin_frames import GCRS
+
+        itrs = self.get_itrs(obstime)
+        # Assume the observatory itself is fixed on the ground.
+        # We do a direct assignment rather than an update to avoid validation
+        # and creation of a new object.
+        zeros = np.broadcast_to(0. * u.km / u.s, (3,) + itrs.shape, subok=True)
+        itrs.data.differentials['s'] = CartesianDifferential(zeros)
+        return itrs.transform_to(GCRS(obstime=obstime))
 
     def get_gcrs_posvel(self, obstime):
         """
@@ -624,18 +644,79 @@ class EarthLocation(u.Quantity):
         obsgeovel : `~astropy.coordinates.CartesianRepresentation`
             The GCRS velocity of the object
         """
-        # do this here to prevent a series of complicated circular imports
-        from .builtin_frames import GCRS
-
-        itrs = self.get_itrs(obstime)
-        geocentric_frame = GCRS(obstime=obstime)
         # GCRS position
-        obsgeoloc = itrs.transform_to(geocentric_frame).cartesian
-        vel_x = -OMEGA_EARTH * obsgeoloc.y
-        vel_y = OMEGA_EARTH * obsgeoloc.x
-        vel_z = 0. * vel_x.unit
-        obsgeovel = CartesianRepresentation(vel_x, vel_y, vel_z)
-        return obsgeoloc, obsgeovel
+        gcrs_data = self.get_gcrs(obstime).data
+        obsgeopos = gcrs_data.without_differentials()
+        obsgeovel = gcrs_data.differentials['s'].to_cartesian()
+        return obsgeopos, obsgeovel
+
+    def gravitational_redshift(self, obstime,
+                               bodies=['sun', 'jupiter', 'moon'],
+                               masses={}):
+        """Return the gravitational redshift at this EarthLocation.
+
+        Calculates the gravitational redshift, of order 3 m/s, due to the
+        requested solar system bodies.
+
+        Parameters
+        ----------
+        obstime : `~astropy.time.Time`
+            The ``obstime`` to calculate the redshift at.
+
+        bodies : iterable, optional
+            The bodies (other than the Earth) to include in the redshift
+            calculation.  List elements should be any body name
+            `get_body_barycentric` accepts.  Defaults to Jupiter, the Sun, and
+            the Moon.  Earth is always included (because the class represents
+            an *Earth* location).
+
+        masses : dict of str to Quantity, optional
+            The mass or gravitational parameters (G * mass) to assume for the
+            bodies requested in ``bodies``. Can be used to override the
+            defaults for the Sun, Jupiter, the Moon, and the Earth, or to
+            pass in masses for other bodies.
+
+        Returns
+        --------
+        redshift :  `~astropy.units.Quantity`
+            Gravitational redshift in velocity units at given obstime.
+        """
+        # needs to be here to avoid circular imports
+        from .solar_system import get_body_barycentric
+
+        bodies = list(bodies)
+        # Ensure earth is included and last in the list.
+        if 'earth' in bodies:
+            bodies.remove('earth')
+        bodies.append('earth')
+        _masses = {'sun': consts.GM_sun,
+                   'jupiter': consts.GM_jup,
+                   'moon': consts.G * 7.34767309e22*u.kg,
+                   'earth': consts.GM_earth}
+        _masses.update(masses)
+        GMs = []
+        M_GM_equivalency = (u.kg, u.Unit(consts.G * u.kg))
+        for body in bodies:
+            try:
+                GMs.append(_masses[body].to(u.m**3/u.s**2, [M_GM_equivalency]))
+            except KeyError as exc:
+                raise KeyError('body "{}" does not have a mass!'.format(body))
+            except u.UnitsError as exc:
+                exc.args += ('"masses" argument values must be masses or '
+                             'gravitational parameters',)
+                raise
+
+        positions = [get_body_barycentric(name, obstime) for name in bodies]
+        # Calculate distances to objects other than earth.
+        distances = [(pos - positions[-1]).norm() for pos in positions[:-1]]
+        # Append distance from Earth's center for Earth's contribution.
+        distances.append(CartesianRepresentation(self.geocentric).norm())
+        # Get redshifts due to all objects.
+        redshifts = [-GM / consts.c / distance for (GM, distance) in
+                     zip(GMs, distances)]
+        # Reverse order of summing, to go from small to big, and to get
+        # "earth" first, which gives m/s as unit.
+        return sum(redshifts[::-1])
 
     @property
     def x(self):
@@ -653,14 +734,14 @@ class EarthLocation(u.Quantity):
         return self['z']
 
     def __getitem__(self, item):
-        result = super(EarthLocation, self).__getitem__(item)
+        result = super().__getitem__(item)
         if result.dtype is self.dtype:
             return result.view(self.__class__)
         else:
             return result.view(u.Quantity)
 
     def __array_finalize__(self, obj):
-        super(EarthLocation, self).__array_finalize__(obj)
+        super().__array_finalize__(obj)
         if hasattr(obj, '_ellipsoid'):
             self._ellipsoid = obj._ellipsoid
 
@@ -668,7 +749,7 @@ class EarthLocation(u.Quantity):
         if self.shape == ():
             raise IndexError('0-d EarthLocation arrays cannot be indexed')
         else:
-            return super(EarthLocation, self).__len__()
+            return super().__len__()
 
     def _to_value(self, unit, equivalencies=[]):
         """Helper method for to and to_value."""

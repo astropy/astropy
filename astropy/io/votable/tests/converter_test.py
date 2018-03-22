@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import io
 
@@ -16,7 +14,6 @@ from .. import exceptions
 from .. import tree
 
 from ..table import parse_single_table
-from ....extern.six.moves import range
 from ....tests.helper import raises, catch_warnings
 from ....utils.data import get_pkg_data_filename
 
@@ -237,8 +234,8 @@ def test_float_default_precision():
         None, name='c', datatype='float', arraysize="4",
         config=config)
     c = converters.get_converter(field, config=config)
-    assert (c.output([1, 2, 3, 8.999999], [False, False, False, False]) ==
-            '1 2 3 8.9999990000000007')
+    assert (c.output([1, 2, 3, 8.9990234375], [False, False, False, False]) ==
+            '1 2 3 8.9990234375')
 
 
 def test_vararray():
