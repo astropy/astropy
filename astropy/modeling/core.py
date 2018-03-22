@@ -1562,7 +1562,7 @@ class Model(metaclass=_ModelMeta):
             else:
                 return_units = self.return_units
 
-            outputs = tuple([Quantity(out, return_units[out_name], subok=True)
+            outputs = tuple([Quantity(out, return_units.get(out_name, None), subok=True)
                             for out, out_name in zip(outputs, self.outputs)])
 
         return outputs
