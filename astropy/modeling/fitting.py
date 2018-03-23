@@ -636,9 +636,6 @@ class FittingWithOutlierRemoval:
 
         if len(model) == 1:
             model_set_axis = None
-            mx = x
-            my = y
-
         else:
             if not hasattr(self.fitter, 'supports_masked_input') or \
                self.fitter.supports_masked_input is not True:
@@ -649,23 +646,13 @@ class FittingWithOutlierRemoval:
             # model_set_axis to determine how their input data are stacked:
             model_set_axis = model.model_set_axis
 
-            # Expand input co-ordinates over the model sets (issue 7159):
-            set_shape = (len(model),) + x.shape
-            mx = np.rollaxis(np.broadcast_to(x, set_shape),
-                             0, model_set_axis+1)
-            if z is not None:
-                my = np.rollaxis(np.broadcast_to(y, set_shape),
-                                 0, model_set_axis+1)
-
         # Construct input co-ordinate tuples for fitters & models that are
         # appropriate for the dimensionality being fitted:
         if z is None:
-            fcoords = x,
-            mcoords = mx,
+            coords = x,
             data = y
         else:
-            fcoords = x, y
-            mcoords = mx, my
+            coords = x, y
             data = z
 
         # For model sets, first try passing the numpy-standard "axis" parameter
@@ -689,7 +676,7 @@ class FittingWithOutlierRemoval:
         for n in range(self.niter):
 
             # (Re-)evaluate the last model:
-            model_vals = fitted_model(*mcoords)
+            model_vals = fitted_model(*coords, model_set_axis=False)
 
             # Determine the outliers:
             if not loop:
@@ -755,11 +742,11 @@ class FittingWithOutlierRemoval:
                     filtered_weights = weights[good]
 
                 fitted_model = self.fitter(fitted_model,
-                                           *(c[good] for c in fcoords),
+                                           *(c[good] for c in coords),
                                            filtered_data.data[good],
                                            weights=filtered_weights, **kwargs)
             else:
-                fitted_model = self.fitter(fitted_model, *fcoords,
+                fitted_model = self.fitter(fitted_model, *coords,
                                            filtered_data,
                                            weights=filtered_weights, **kwargs)
 
