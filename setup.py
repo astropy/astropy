@@ -1,8 +1,17 @@
 #!/usr/bin/env python
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
 import sys
+
+# This is the same check as astropy/__init__.py but this one has to
+# happen before importing ah_bootstrap
+__minimum_python_version__ = '3.5'
+if sys.version_info < tuple((int(val) for val in __minimum_python_version__.split('.'))):
+    sys.stderr.write("ERROR: Astropy requires Python {} or later\n".format(
+        __minimum_python_version__))
+    sys.exit(1)
+
+import os
 import glob
 
 import ah_bootstrap
@@ -114,7 +123,7 @@ setup(name=NAME,
       cmdclass=cmdclassd,
       zip_safe=False,
       entry_points=entry_points,
-      python_requires='>=' + astropy.__minimum_python_version__,
+      python_requires='>=' + __minimum_python_version__,
       tests_require=['pytest-astropy'],
       **package_info
 )
