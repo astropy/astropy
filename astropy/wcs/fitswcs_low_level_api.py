@@ -186,6 +186,8 @@ def _get_components_and_classes(wcs):
                 else:
                     raise NotImplementedError("Don't yet know how to serialize {0}".format(type(attr)))
 
+                kwargs['frame'] = frame.name
+
         classes['celestial'] = ('astropy.coordinates.SkyCoord', kwargs)
 
         components[wcs.wcs.lng] = ('celestial', 0)
