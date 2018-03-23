@@ -132,8 +132,74 @@ class FITSLowLevelWCS(BaseLowLevelWCS):
 
     @property
     def world_axis_object_components(self):
-        raise NotImplementedError()
+        return _get_components_and_classes(self._wcs)[0]
 
     @property
     def world_axis_object_classes(self):
-        raise NotImplementedError()
+        return _get_components_and_classes(self._wcs)[1]
+
+
+def _get_components_and_classes(wcs):
+
+    # The aim of this function is to return whatever is needed for
+    # world_axis_object_components and world_axis_object_classes. It's easier
+    # to figure it out in one go and then return the values and let the
+    # properties return part of it.
+
+    from .utils import wcs_to_celestial_frame
+
+    from ..coordinates.attributes import Attribute, QuantityAttribute, TimeAttribute
+
+    components = [None] * wcs.naxis
+    classes = {}
+
+    # Let's start off by checking whether the WCS has a pair of celestial
+    # components
+
+    if wcs.has_celestial:
+
+        frame = wcs_to_celestial_frame(wcs)
+
+        if frame is not None:
+
+            kwargs = {}
+
+            # TODO: don't need to list attributes that have default values
+
+            for name, attr in frame.frame_attributes.items():
+                value = attr.__get__(frame)
+
+                # Don't use isinstance as we don't want to match subclasses
+
+                if type(attr) is Attribute:
+                    kwargs[name] = value
+                elif type(attr) is QuantityAttribute:
+                    # TODO: update APE14 to allow tuple to mean nested classes
+                    kwargs[name] = ('astropy.units.Quantity',
+                                    {'value': value.value,
+                                     'unit': value.unit.to_string('vounit')})
+                elif type(attr) is TimeAttribute:
+                    kwargs[name] = ('astropy.time.Time',
+                                    {'val': value.value,
+                                     'format': value.format,
+                                     'scale': value.scale})
+                else:
+                    raise NotImplementedError("Don't yet know how to serialize {0}".format(type(attr)))
+
+        classes['celestial'] = ('astropy.coordinates.SkyCoord', kwargs)
+
+        components[wcs.wcs.lng] = ('celestial', 0)
+        components[wcs.wcs.lat] = ('celestial', 1)
+
+    # Fallback: for any remaining components that haven't been identified, just
+    # return Quantity as the class to use
+
+    for i in range(wcs.naxis):
+        if components[i] is None:
+            name = wcs.axis_type_names[i].lower()
+            while name in classes:
+                name += "_"
+            classes[name] = ('astropy.units.Quantity', {'unit': wcs.wcs.cunit[i]})
+            components[i] = (name, 0)
+
+    return components, classes
