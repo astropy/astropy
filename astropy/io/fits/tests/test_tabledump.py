@@ -32,7 +32,7 @@ class TestConvenience(FitsTestCase):
 
         # test with cdfile, hfile
         """
-        test for https://github.com//astropy/astropy/issues/7015
+        testing tabledump and tableload for https://github.com//astropy/astropy/issues/7015
         """
         fits.tabledump(filename, datafile=self.temp('test_tb.txt'), \
         hfile=self.temp('hfile.txt'), cdfile=self.temp('cdfile.txt'),\
