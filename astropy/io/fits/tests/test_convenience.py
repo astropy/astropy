@@ -157,3 +157,23 @@ class TestConvenience(FitsTestCase):
         # test with datafile
         fits.tabledump(temp_filename, datafile=self.temp('test_tb.txt'))
         assert os.path.isfile(self.temp('test_tb.txt'))
+
+        # test with cdfile, hfile
+        """
+        test for https://github.com//astropy/astropy/issues/7015
+        """
+        fits.tabledump(filename, datafile = self.temp('test_tb.txt'), hfile = self.temp('hfile.txt'), cdfile = self.temp('cdfile.txt'), overwrite = True )
+        assert os.path.isfile(self.temp('hfile.txt'))
+        assert os.path.isfile(self.temp('cdfile.txt'))
+        sizeh =  os.path.getsize(self.temp('hfile.txt'))
+        sizecd =  os.path.getsize(self.temp('cdfile.txt'))
+        assert sizeh > 0
+        assert sizecd > 0
+        fits.tableload(self.temp('test_tb.txt'), hfile=self.temp('hfile.txt'), cdfile = self.temp('cdfile.txt'))
+        assert os.path.isfile(self.temp('test_tb.txt'))
+        os.remove(self.temp('test_tb.txt'))
+        os.remove(self.temp('hfile.txt'))
+        os.remove(self.temp('cdfile.txt'))
+
+
+
