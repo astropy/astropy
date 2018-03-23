@@ -1,9 +1,57 @@
+from .. import units as u
+
 from .base_low_level_api import BaseLowLevelWCS
 
-__all__ = ['FITSWCSLowLevelWCS']
+__all__ = ['FITSLowLevelWCS']
+
+# Mapping from CTYPE axis name to UCD1
+
+CTYPE_TO_UCD1 = {
+
+    # Celestial coordinates
+    'RA': 'pos.eq.ra',
+    'DEC': 'pos.eq.dec',
+    'GLON': 'pos.galactic.lon',
+    'GLAT': 'pos.galactic.lat',
+    'ELON': 'pos.ecliptic.lon',
+    'ELAT': 'pos.ecliptic.lat',
+    'TLON': 'pos.bodyrc.lon',
+    'TLAT': 'pos.bodyrc.lat',
+
+    # Spectral coordinates (WCS paper 3)
+    'FREQ': 'em.freq',  # Frequency
+    'ENER': 'em.energy',  # Energy
+    'WAVN': 'em.wavenumber',  # Wavenumber
+    'WAVE': 'em.wl',  # Vacuum wavelength
+    'VRAD': 'spect.dopplerVeloc.radio',  # Radio velocity
+    'VOPT': 'spect.dopplerVeloc.opt',  # Optical velocity
+    'ZOPT': 'src.redshift',  # Redshift
+    'AWAV': 'em.wl',  # Air wavelength
+    'VELO': 'spect.dopplerVeloc',  # Apparent radial velocity
+    'BETA': None,  # Beta factor (v/c)
+
+    # Time coordinates (https://www.aanda.org/articles/aa/pdf/2015/02/aa24653-14.pdf)
+    'TIME': 'time',
+    'TAI': 'time',
+    'TT': 'time',
+    'TDT': 'time',
+    'ET': 'time',
+    'IAT': 'time',
+    'UT1': 'time',
+    'UTC': 'time',
+    'GMT': 'time',
+    'GPS': 'time',
+    'TCG': 'time',
+    'TCB': 'time',
+    'TDB': 'time',
+    'LOCAL': 'time'
+
+    # UT() is handled separately in world_axis_physical_types
+
+}
 
 
-class FITSWCSLowLevelWCS(BaseLowLevelWCS):
+class FITSLowLevelWCS(BaseLowLevelWCS):
     """
     A wrapper around the :class:`astropy.wcs.WCS` class that provides the
     low-level WCS API from APE 14.
@@ -21,27 +69,37 @@ class FITSWCSLowLevelWCS(BaseLowLevelWCS):
         return len(self._wcs.wcs.ctype)
 
     @property
-    def pixel_shape(self):
-        return None
-
-    @property
-    def pixel_bounds(self):
-        return None
-
-    @property
     def world_axis_physical_types(self):
-        raise NotImplementedError()
+        types = []
+        for axis_type in self._wcs.axis_type_names:
+            if axis_type.startswith('UT('):
+                types.append('time')
+            else:
+                types.append(CTYPE_TO_UCD1.get(axis_type, None))
+        return types
 
     @property
     def world_axis_units(self):
-        return self._wcs.wcs.cunit
+        units = []
+        for unit in self._wcs.wcs.cunit:
+            if unit is None:
+                unit = ''
+            elif isinstance(unit, u.Unit):
+                unit = unit.to_string(format='vounit')
+            else:
+                try:
+                    unit = u.Unit(unit).to_string(format='vounit')
+                except u.UnitsError:
+                    unit = ''
+            units.append(unit)
+        return units
 
     @property
     def axis_correlation_matrix(self):
 
         # If there are any distortions present, we assume that there may be
         # correlations between all axes. Maybe if some distortions only apply
-        # to the image plane we can improve this
+        # to the image plane we can improve this?
         for distortion_attribute in ('sip', 'det2im1', 'det2im2'):
             if getattr(self._wcs, distortion_attribute):
                 return np.ones((self.n_world, self.n_pixel), dtype=bool)
