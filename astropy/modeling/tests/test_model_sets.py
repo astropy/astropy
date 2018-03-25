@@ -21,7 +21,7 @@ class TParModel(Model):
     """
     A toy model to test parameters machinery
     """
-    #standard_broadasting = False
+    # standard_broadasting = False
     inputs = ('x',)
     outputs = ('x',)
     coeff = Parameter()
@@ -113,10 +113,6 @@ def test_axis_0():
     Test that a model initialized with model_set_axis=0
     can be evaluated with model_set_axis=False.
     """
-    x = np.arange(4)
-    xx = np.array([x, x + 10])
-    xxx = np.arange(24).reshape((3, 4, 2))
-
     p1 = Polynomial1D(1, n_models=2, model_set_axis=0)
     p1.c0 = [2, 3]
     p1.c1 = [1, 2]
@@ -148,8 +144,6 @@ def test_axis_0():
 
 def test_negative_axis():
     p1 = Polynomial1D(1, c0=[1, 2], c1=[3, 4], n_models=2, model_set_axis=-1)
-    x = np.arange(4)
-    xx = np.array([x, x + 10])
     t1 = Polynomial1D(1, c0=1,c1=3)
     t2 = Polynomial1D(1, c0=2,c1=4)
 
@@ -207,7 +201,6 @@ def test_linearlsqfitter():
     """
     Issue #7159
     """
-    x = np.arange(0,4)
     p = Polynomial1D(1, n_models=2, model_set_axis=1)
 
     # Generate data for fitting 2 models and re-stack them along the last axis:
@@ -228,9 +221,27 @@ def test_linearlsqfitter():
 def test_model_set_axis_outputs():
     fitter = LinearLSQFitter()
     model_set = Polynomial2D(1, n_models=2, model_set_axis=2)
-    y, x = np.mgrid[: 5, : 5]
-    # z = np.moveaxis([x + y, 1 - 0.1 * x + 0.2 * y]), 0, 2)
-    z = np.rollaxis(np.array([x + y, 1 - 0.1 * x + 0.2 * y]), 2, 1).T
-    model = fitter(model_set, x, y, z)
-    res = model(x, y, model_set_axis=False)
+    y2, x2 = np.mgrid[: 5, : 5]
+    # z = np.moveaxis([x2 + y2, 1 - 0.1 * x2 + 0.2 * y2]), 0, 2)
+    z = np.rollaxis(np.array([x2 + y2, 1 - 0.1 * x2 + 0.2 * y2]), 0, 3)
+    model = fitter(model_set, x2, y2, z)
+    res = model(x2, y2, model_set_axis=False)
     assert z.shape == res.shape
+
+    # Test initializing with integer model_set_axis
+    # and evaluating with a different model_set_axis
+    model_set = Polynomial1D(1, c0=[1, 2], c1=[2, 3],
+                             n_models=2, model_set_axis=0)
+    y0 = model_set(xx)
+    y1 = model_set(xx.T, model_set_axis=1)
+    assert_allclose(y0[0], y1[:, 0])
+    assert_allclose(y0[1], y1[:, 1])
+
+    model_set = Polynomial1D(1, c0=[[1, 2]], c1=[[2, 3]],
+                             n_models=2, model_set_axis=1)
+    y0 = model_set(xx.T)
+    y1 = model_set(xx, model_set_axis=0)
+    assert_allclose(y0[:, 0], y1[0])
+    assert_allclose(y0[:, 1], y1[1])
+    with pytest.raises(ValueError):
+        model_set(x)
