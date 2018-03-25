@@ -3369,7 +3369,7 @@ def _prepare_outputs_model_set(model, outputs, format_info, model_set_axis):
 
     # If model_set_axis = False was passed then use
     # model._model_set_axis to format the output.
-    if model_set_axis is None or not model_set_axis:
+    if model_set_axis is None or model_set_axis is False:
         model_set_axis = model.model_set_axis
     outputs = list(outputs)
     for idx, output in enumerate(outputs):
