@@ -125,10 +125,10 @@ class FITSLowLevelWCS(BaseLowLevelWCS):
         return matrix
 
     def pixel_to_world_values(self, *pixel_arrays):
-        return self.all_pixel_to_world(*pixel_arrays, 0)
+        return self._wcs.all_pix2world(*pixel_arrays, 0)
 
     def world_to_pixel_values(self, *world_arrays):
-        return self.all_world_to_pixel(*world_arrays, 0)
+        return self._wcs.all_world2pix(*world_arrays, 0)
 
     @property
     def world_axis_object_components(self):
@@ -175,23 +175,23 @@ def _get_components_and_classes(wcs):
                     kwargs[name] = value
                 elif type(attr) is QuantityAttribute:
                     # TODO: update APE14 to allow tuple to mean nested classes
-                    kwargs[name] = ('astropy.units.Quantity',
-                                    {'value': value.value,
-                                     'unit': value.unit.to_string('vounit')})
+                    kwargs[name] = ('astropy.units.Quantity', (value.value,),
+                                    {'unit': value.unit.to_string('vounit')})
                 elif type(attr) is TimeAttribute:
-                    kwargs[name] = ('astropy.time.Time',
-                                    {'val': value.value,
-                                     'format': value.format,
+                    kwargs[name] = ('astropy.time.Time', (value.value,),
+                                    {'format': value.format,
                                      'scale': value.scale})
                 else:
                     raise NotImplementedError("Don't yet know how to serialize {0}".format(type(attr)))
 
                 kwargs['frame'] = frame.name
 
-        classes['celestial'] = ('astropy.coordinates.SkyCoord', kwargs)
+        kwargs['unit'] = 'deg'
 
-        components[wcs.wcs.lng] = ('celestial', 0)
-        components[wcs.wcs.lat] = ('celestial', 1)
+        classes['celestial'] = ('astropy.coordinates.SkyCoord', (), kwargs)
+
+        components[wcs.wcs.lng] = ('celestial', 0, 'spherical.lon.degree')
+        components[wcs.wcs.lat] = ('celestial', 1, 'spherical.lat.degree')
 
     # Fallback: for any remaining components that haven't been identified, just
     # return Quantity as the class to use
@@ -201,7 +201,7 @@ def _get_components_and_classes(wcs):
             name = wcs.axis_type_names[i].lower()
             while name in classes:
                 name += "_"
-            classes[name] = ('astropy.units.Quantity', {'unit': wcs.wcs.cunit[i]})
-            components[i] = (name, 0)
+            classes[name] = ('astropy.units.Quantity', (), {'unit': wcs.wcs.cunit[i]})
+            components[i] = (name, 0, 'value')
 
     return components, classes
