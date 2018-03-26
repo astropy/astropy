@@ -1,6 +1,8 @@
 import importlib
 from collections import defaultdict, OrderedDict
 
+__all__ = ['HighLevelWCS']
+
 
 def rec_getattr(obj, att):
     for a in att.split('.'):

@@ -28,9 +28,12 @@ try:
     # Not guaranteed available at setup time
     from .wcs import *
     from . import utils
+    from .fitswcs_low_level_api import *
+    from .high_level_api import *
 except ImportError:
     if not _ASTROPY_SETUP_:
         raise
+
 
 def get_include():
     """
