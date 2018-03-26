@@ -202,7 +202,7 @@ def freedman_bin_width(data, return_bins=False):
         raise ValueError("data should have more than three entries")
 
     v25, v75 = np.percentile(data, [25, 75])
-    dx = 2 * (v75 - v25) / (n ** (1 / 3))
+    dx = max(1, 2 * (v75 - v25) / (n ** (1 / 3)))
 
     if return_bins:
         dmin, dmax = data.min(), data.max()
