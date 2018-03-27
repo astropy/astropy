@@ -175,7 +175,7 @@ class WCSAxes(Axes):
         All arguments are passed to :meth:`~matplotlib.axes.Axes.imshow`.
         """
 
-        origin = kwargs.get('origin', None)
+        origin = kwargs.get('origin', 'lower')
 
         if origin == 'upper':
             raise ValueError("Cannot use images with origin='upper' in WCSAxes.")
