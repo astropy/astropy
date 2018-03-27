@@ -748,7 +748,6 @@ class Model(metaclass=_ModelMeta):
         Evaluate this model using the given input(s) and the parameter values
         that were specified when the model was instantiated.
         """
-
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
 
         # Check whether any of the inputs are quantities
@@ -1585,12 +1584,8 @@ class Model(metaclass=_ModelMeta):
 
         return outputs
 
-    def prepare_outputs(self, format_info, *outputs, model_set_axis=None, **kwargs):
-        if model_set_axis is None:
-            # By default the model_set_axis for the input is assumed to be the
-            # same as that for the parameters the model was defined with
-            # TODO: Ensure that negative model_set_axis arguments are respected
-            model_set_axis = self.model_set_axis
+    def prepare_outputs(self, format_info, *outputs, **kwargs):
+        model_set_axis = kwargs.get('model_set_axis', None)
 
         if len(self) == 1:
             return _prepare_outputs_single_model(self, outputs, format_info)
@@ -3372,6 +3367,10 @@ def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis,
 def _prepare_outputs_model_set(model, outputs, format_info, model_set_axis):
     pivots = format_info[0]
 
+    # If model_set_axis = False was passed then use
+    # model._model_set_axis to format the output.
+    if model_set_axis is None or model_set_axis is False:
+        model_set_axis = model.model_set_axis
     outputs = list(outputs)
     for idx, output in enumerate(outputs):
         pivot = pivots[idx]

@@ -426,10 +426,9 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                     # z has 3 dimensions it represents multiple models where
                     # the value of z is one plane per model.  It's then
                     # flattening each plane and transposing so that the model
-                    # axis is *last*.  That's fine, but this could be
-                    # generalized for other dimensionalities of z.
-                    # TODO: See above comment
-                    rhs = z.reshape((z.shape[0], -1)).T
+                    # axis is *last*.
+                    model_axis = model_copy.model_set_axis or 0
+                    rhs = z.reshape((z.shape[model_axis], -1)).T
                 else:
                     rhs = z.T
             else:
