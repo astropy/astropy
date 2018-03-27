@@ -107,7 +107,10 @@ class HighLevelWCS(object):
 
     def pixel_to_world(self, *pixel):
 
+        # Compute the world coordinate values
         world = self._wcs.pixel_to_world_values(*pixel)
+
+        # Cache the classes and components since this may be expensive
         components = self._wcs.world_axis_object_components
         classes = self._wcs.world_axis_object_classes
 
@@ -116,13 +119,10 @@ class HighLevelWCS(object):
         for key, value in classes.items():
             classes_new[key] = deserialize_class(value, construct=False)
 
-        order = []
         args = defaultdict(list)
         kwargs = defaultdict(dict)
 
         for i, (key, attr, _) in enumerate(components):
-            if key not in order:
-                order.append(key)
             if isinstance(attr, str):
                 kwargs[attr] = world[i]
             else:
@@ -132,7 +132,7 @@ class HighLevelWCS(object):
 
         result = []
 
-        for key in order:
+        for key in default_order(components):
             klass, ar, kw = classes_new[key]
             result.append(klass(*args[key], *ar, **kwargs[key], **kw))
 
