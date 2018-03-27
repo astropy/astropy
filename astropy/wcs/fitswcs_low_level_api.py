@@ -160,32 +160,8 @@ def _get_components_and_classes(wcs):
 
         frame = wcs_to_celestial_frame(wcs)
 
-        if frame is not None:
-
-            kwargs = {}
-
-            # TODO: don't need to list attributes that have default values
-
-            for name, attr in frame.frame_attributes.items():
-                value = attr.__get__(frame)
-
-                # Don't use isinstance as we don't want to match subclasses
-
-                if type(attr) is Attribute:
-                    kwargs[name] = value
-                elif type(attr) is QuantityAttribute:
-                    # TODO: update APE14 to allow tuple to mean nested classes
-                    kwargs[name] = ('astropy.units.Quantity', (value.value,),
-                                    {'unit': value.unit.to_string('vounit')})
-                elif type(attr) is TimeAttribute:
-                    kwargs[name] = ('astropy.time.Time', (value.value,),
-                                    {'format': value.format,
-                                     'scale': value.scale})
-                else:
-                    raise NotImplementedError("Don't yet know how to serialize {0}".format(type(attr)))
-
-                kwargs['frame'] = frame.name
-
+        kwargs = {}
+        kwargs['frame'] = frame
         kwargs['unit'] = 'deg'
 
         classes['celestial'] = ('astropy.coordinates.SkyCoord', (), kwargs)
