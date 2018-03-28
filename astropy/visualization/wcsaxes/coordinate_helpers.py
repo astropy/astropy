@@ -180,13 +180,13 @@ class CoordinateHelper:
 
         # Initialize tick formatter/locator
         if coord_type == 'scalar':
-            self._coord_unit_scale = None
+            self._coord_scale_to_deg = None
             self._formatter_locator = ScalarFormatterLocator(unit=self.coord_unit)
         elif coord_type in ['longitude', 'latitude']:
             if self.coord_unit is u.deg:
-                self._coord_unit_scale = None
+                self._coord_scale_to_deg = None
             else:
-                self._coord_unit_scale = self.coord_unit.to(u.deg)
+                self._coord_scale_to_deg = self.coord_unit.to(u.deg)
             self._formatter_locator = AngleFormatterLocator(unit=self.coord_unit,
                                                             format_unit=self.format_unit)
         else:
@@ -231,8 +231,8 @@ class CoordinateHelper:
         if isinstance(fl, AngleFormatterLocator):
 
             # Convert to degrees if needed
-            if self._coord_unit_scale is not None:
-                value *= self._coord_unit_scale
+            if self._coord_scale_to_deg is not None:
+                value *= self._coord_scale_to_deg
 
             if self.coord_type == 'longitude':
                 value = wrap_angle_at(value, self.coord_wrap)
@@ -522,6 +522,7 @@ class CoordinateHelper:
 
         # First find the ticks we want to show
         tick_world_coordinates, self._fl_spacing = self.locator(*coord_range[self.coord_index])
+
         if self.ticks.get_display_minor_ticks():
             minor_ticks_w_coordinates = self._formatter_locator.minor_locator(self._fl_spacing, self.get_minor_frequency(), *coord_range[self.coord_index])
 
@@ -569,11 +570,12 @@ class CoordinateHelper:
             # Rotate by 90 degrees
             dx, dy = -dy, dx
 
-            if self._coord_unit_scale is not None:
-                dx *= self._coord_unit_scale
-                dy *= self._coord_unit_scale
-
             if self.coord_type == 'longitude':
+
+                if self._coord_scale_to_deg is not None:
+                    dx *= self._coord_scale_to_deg
+                    dy *= self._coord_scale_to_deg
+
                 # Here we wrap at 180 not self.coord_wrap since we want to
                 # always ensure abs(dx) < 180 and abs(dy) < 180
                 dx = wrap_angle_at(dx, 180.)
@@ -593,16 +595,21 @@ class CoordinateHelper:
             w1 = spine.world[:-1, self.coord_index]
             w2 = spine.world[1:, self.coord_index]
 
-            if self._coord_unit_scale is not None:
-                w1 = w1 * self._coord_unit_scale
-                w2 = w2 * self._coord_unit_scale
-
             if self.coord_type == 'longitude':
+
+                if self._coord_scale_to_deg is not None:
+                    w1 = w1 * self._coord_scale_to_deg
+                    w2 = w2 * self._coord_scale_to_deg
+
                 w1 = wrap_angle_at(w1, self.coord_wrap)
                 w2 = wrap_angle_at(w2, self.coord_wrap)
                 with np.errstate(invalid='ignore'):
                     w1[w2 - w1 > 180.] += 360
                     w2[w1 - w2 > 180.] += 360
+
+                if self._coord_scale_to_deg is not None:
+                    w1 = w1 / self._coord_scale_to_deg
+                    w2 = w2 / self._coord_scale_to_deg
 
             # For longitudes, we need to check ticks as well as ticks + 360,
             # since the above can produce pairs such as 359 to 361 or 0.5 to
@@ -619,11 +626,16 @@ class CoordinateHelper:
         for kwargs, txt in zip(self.lblinfo, text):
             self.ticklabels.add(text=txt, **kwargs)
 
-    def _compute_ticks(self, tick_world_coordinates, spine, axis, w1, w2, tick_angle, ticks='major'):
-        tick_world_coordinates_values = tick_world_coordinates.value
+    def _compute_ticks(self, tick_world_coordinates, spine, axis, w1, w2,
+                       tick_angle, ticks='major'):
+
         if self.coord_type == 'longitude':
+            tick_world_coordinates_values = tick_world_coordinates.to_value(u.deg)
             tick_world_coordinates_values = np.hstack([tick_world_coordinates_values,
                                                        tick_world_coordinates_values + 360])
+            tick_world_coordinates_values *= u.deg.to(self.coord_unit)
+        else:
+            tick_world_coordinates_values = tick_world_coordinates.to_value(self.coord_unit)
 
         for t in tick_world_coordinates_values:
 
@@ -661,7 +673,15 @@ class CoordinateHelper:
                     angle_i = tick_angle[imin] + frac * delta_angle
 
                 if self.coord_type == 'longitude':
+
+                    if self._coord_scale_to_deg is not None:
+                        t *= self._coord_scale_to_deg
+
                     world = wrap_angle_at(t, self.coord_wrap)
+
+                    if self._coord_scale_to_deg is not None:
+                        world /= self._coord_scale_to_deg
+
                 else:
                     world = t
 
@@ -753,8 +773,8 @@ class CoordinateHelper:
 
         # Currently xy_world is in deg, but transform function needs it in
         # native units
-        if self._coord_unit_scale is not None:
-            xy_world /= self._coord_unit_scale
+        if self._coord_scale_to_deg is not None:
+            xy_world /= self._coord_scale_to_deg
 
         # Transform line to pixel coordinates
         pixel = self.transform.inverted().transform(xy_world)
