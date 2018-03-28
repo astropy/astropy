@@ -54,6 +54,11 @@ def test_testwarn(tw):
 class TestUfuncCoverage:
     """Test that we cover all ufunc's"""
 
+    # Ignore possible scipy ufuncs; for scipy in particular, we have support
+    # for some, but for others it still has to be decided whether we can
+    # support them or not.
+    @pytest.mark.skipif(HAS_SCIPY,
+                        reason='scipy.special coverage is incomplete')
     def test_coverage(self):
 
         all_extern_ufuncs = set([])
@@ -64,15 +69,6 @@ class TestUfuncCoverage:
 
         all_q_ufuncs = (qh.UNSUPPORTED_UFUNCS |
                         set(qh.UFUNC_HELPERS.keys()))
-
-        # Ignore possible non-numpy ufuncs; for scipy in particular, we have
-        # support for some, but for others it still has to be decided whether
-        # we can support them or not.
-        if HAS_SCIPY:
-            import scipy.special as sps
-            all_sps_ufuncs = set([ufunc for ufunc in sps.__dict__.values()
-                                  if type(ufunc) == np.ufunc])
-            all_q_ufuncs -= all_sps_ufuncs
 
         assert all_extern_ufuncs - all_q_ufuncs == set([])
         assert all_q_ufuncs - all_extern_ufuncs == set([])
