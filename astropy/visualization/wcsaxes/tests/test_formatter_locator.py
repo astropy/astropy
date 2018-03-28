@@ -6,6 +6,7 @@ from numpy.testing import assert_almost_equal
 
 from matplotlib import rc_context
 
+from ....tests.helper import assert_quantity_allclose
 from .... import units as u
 from ..formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 
@@ -191,6 +192,16 @@ class TestAngleFormatterLocator:
         fl.spacing = 0.032 * u.deg
         fl.format = 'dd:mm:ss'
         assert_almost_equal(fl.spacing.to_value(u.arcsec), 115.)
+
+    def test_decimal_values(self):
+
+        # Regression test for a bug that meant that the spacing was not
+        # determined correctly for decimal coordinates
+
+        fl = AngleFormatterLocator()
+        fl.format = 'd.dddd'
+        assert_quantity_allclose(fl.locator(266.9730, 266.9750)[0],
+                                 [266.9735, 266.9740, 266.9745, 266.9750] * u.deg)
 
     @pytest.mark.parametrize(('spacing', 'string'), [(2 * u.deg, '15\xb0'),
                                                      (2 * u.arcmin, '15\xb024\''),
