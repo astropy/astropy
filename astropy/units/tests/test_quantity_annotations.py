@@ -213,3 +213,12 @@ def test_return_annotation():
 
     solarx = myfunc_args(1*u.arcsec)
     assert solarx.unit is u.deg
+
+
+def test_return_annotation_none():
+    @u.quantity_input
+    def myfunc_args(solarx: u.arcsec) -> None:
+        pass
+
+    solarx = myfunc_args(1*u.arcsec)
+    assert solarx is None
