@@ -52,7 +52,7 @@ def test_label_visibility_rules_default(ax):
 def test_label_visibility_rules_label(ax):
 
     ax.coords[0].set_ticklabel_visible(False)
-    ax.coords[1].set_ticks(values=[-9999]*u.deg)
+    ax.coords[1].set_ticks(values=[-9999]*u.one)
 
     assert_label_draw(ax, False, False)
 
@@ -64,7 +64,7 @@ def test_label_visibility_rules_ticks(ax):
     ax.coords[1].set_axislabel_visibility_rule('ticks')
 
     ax.coords[0].set_ticklabel_visible(False)
-    ax.coords[1].set_ticks(values=[-9999]*u.deg)
+    ax.coords[1].set_ticks(values=[-9999]*u.one)
 
     assert_label_draw(ax, True, False)
 
@@ -76,6 +76,6 @@ def test_label_visibility_rules_always(ax):
     ax.coords[1].set_axislabel_visibility_rule('always')
 
     ax.coords[0].set_ticklabel_visible(False)
-    ax.coords[1].set_ticks(values=[-9999]*u.deg)
+    ax.coords[1].set_ticks(values=[-9999]*u.one)
 
     assert_label_draw(ax, True, True)

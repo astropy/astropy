@@ -5,8 +5,7 @@ from ..utils.decorators import wraps
 
 MPL_VERSION = matplotlib.__version__
 
-ROOT = "http://{server}/testing/astropy/2018-02-01T23:31:45.013149/{mpl_version}/"
-
+ROOT = "http://{server}/testing/astropy/2018-03-27T18:38:34.793133/{mpl_version}/"
 IMAGE_REFERENCE_DIR = (ROOT.format(server='data.astropy.org', mpl_version=MPL_VERSION[:3] + '.x') + ',' +
                        ROOT.format(server='www.astropy.org/astropy-data', mpl_version=MPL_VERSION[:3] + '.x'))
 
