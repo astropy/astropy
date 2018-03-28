@@ -122,19 +122,20 @@ class TestAngleFormatterLocator:
                                                     ('hh:mm:ss', '1h01m34s'),
                                                     ('hh:mm:ss.s', '1h01m34.1s'),
                                                     ('hh:mm:ss.ssss', '1h01m34.1354s'),
-                                                    ('d', '15'),
-                                                    ('d.d', '15.4'),
-                                                    ('d.dd', '15.39'),
-                                                    ('d.ddd', '15.392'),
-                                                    ('m', '924'),
-                                                    ('m.m', '923.5'),
-                                                    ('m.mm', '923.53'),
-                                                    ('s', '55412'),
-                                                    ('s.s', '55412.0'),
-                                                    ('s.ss', '55412.03'),
+                                                    ('d', '15\xb0'),
+                                                    ('d.d', '15.4\xb0'),
+                                                    ('d.dd', '15.39\xb0'),
+                                                    ('d.ddd', '15.392\xb0'),
+                                                    ('m', '924\''),
+                                                    ('m.m', '923.5\''),
+                                                    ('m.mm', '923.53\''),
+                                                    ('s', '55412"'),
+                                                    ('s.s', '55412.0"'),
+                                                    ('s.ss', '55412.03"'),
                                                     ])
     def test_format(self, format, string):
         fl = AngleFormatterLocator(number=5, format=format)
+        print(fl.formatter([15.392231] * u.degree, None, format='ascii')[0], string)
         assert fl.formatter([15.392231] * u.degree, None, format='ascii')[0] == string
 
     @pytest.mark.parametrize(('separator', 'format', 'string'), [(('deg', "'", '"'), 'dd', '15deg'),
@@ -144,8 +145,8 @@ class TestAngleFormatterLocator:
                                                                  (':', 'dd:mm:ss.s', '15:23:32.0'),
                                                                  ((':', ":", 's'), 'hh', '1:'),
                                                                  (('-', "-", 's'), 'hh:mm:ss.ssss', '1-01-34.1354s'),
-                                                                 (('d', ":", '"'), 'd', '15'),
-                                                                 (('d', ":", '"'), 'd.d', '15.4'),
+                                                                 (('d', ":", '"'), 'd', '15\xb0'),
+                                                                 (('d', ":", '"'), 'd.d', '15.4\xb0'),
                                                                  ])
     def test_separator(self, separator, format, string):
         fl = AngleFormatterLocator(number=5, format=format)
@@ -249,16 +250,16 @@ class TestAngleFormatterLocator:
                               (u.hourangle, False, 15 * u.arcmin, '1h02m'),
                               (u.hourangle, False, 15 * u.arcsec, '1h01m34s'),
                               (u.hourangle, False, 1.5 * u.arcsec, '1h01m34.1s'),
-                              (u.degree, True, 15 * u.degree, '15'),
-                              (u.degree, True, 0.12 * u.degree, '15.39'),
-                              (u.degree, True, 0.0036 * u.arcsec, '15.392231'),
-                              (u.arcmin, True, 15 * u.degree, '924'),
-                              (u.arcmin, True, 0.12 * u.degree, '923.5'),
-                              (u.arcmin, True, 0.1 * u.arcmin, '923.5'),
-                              (u.arcmin, True, 0.0002 * u.arcmin, '923.5339'),
+                              (u.degree, True, 15 * u.degree, '15\xb0'),
+                              (u.degree, True, 0.12 * u.degree, '15.39\xb0'),
+                              (u.degree, True, 0.0036 * u.arcsec, '15.392231\xb0'),
+                              (u.arcmin, True, 15 * u.degree, '924\''),
+                              (u.arcmin, True, 0.12 * u.degree, '923.5\''),
+                              (u.arcmin, True, 0.1 * u.arcmin, '923.5\''),
+                              (u.arcmin, True, 0.0002 * u.arcmin, '923.5339\''),
                               # Make sure that specifying None defaults to
                               # decimal for non-degree or non-hour angles
-                              (u.arcsec, None, 0.01 * u.arcsec, '55412.03')])
+                              (u.arcsec, None, 0.01 * u.arcsec, '55412.03"')])
     def test_formatter_no_format_with_units(self, format_unit, decimal, spacing, string):
         # Check the formatter works when specifying the default units and
         # decimal behavior to use.
