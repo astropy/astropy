@@ -56,6 +56,9 @@ class BaseFormatterLocator:
     def values(self, values):
         if not isinstance(values, u.Quantity) or (not values.ndim == 1):
             raise TypeError("values should be an astropy.units.Quantity array")
+        if not values.unit.is_equivalent(self._unit):
+            raise UnitsError("value should be in units compatible with "
+                             "coordinate units ({0}) but found {1}".format(self._unit, values.unit))
         self._number = None
         self._spacing = None
         self._values = values
