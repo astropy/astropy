@@ -914,6 +914,9 @@ astropy.visualization
 
 - Explicilty default to origin='lower' in WCSAxes. [#7331]
 
+- Fixed a bug that caused the position of the tick values in decimal mode
+  to be incorrectly determined. [#7332]
+
 astropy.vo
 ^^^^^^^^^^
 
