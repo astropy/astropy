@@ -941,6 +941,9 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug that caused the position of the tick values in decimal mode
+  to be incorrectly determined. [#7332]
+
 astropy.vo
 ^^^^^^^^^^
 

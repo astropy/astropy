@@ -105,6 +105,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
     def __init__(self, values=None, number=None, spacing=None, format=None):
         self._unit = u.degree
+        self._decimal = False
         self._sep = None
         super().__init__(values=values, number=number, spacing=spacing,
                          format=format)
@@ -258,12 +259,16 @@ class AngleFormatterLocator(BaseFormatterLocator):
                     spacing_deg = self.base_spacing.to_value(u.degree)
                 else:
                     # otherwise we clip to the nearest 'sensible' spacing
-                    if self._unit is u.degree:
-                        from .utils import select_step_degree
-                        spacing_deg = select_step_degree(dv).to_value(u.degree)
+                    if self._decimal:
+                        from .utils import select_step_scalar
+                        spacing_deg = select_step_scalar(dv.to_value(self._unit)) * self._unit.to(u.degree)
                     else:
-                        from .utils import select_step_hour
-                        spacing_deg = select_step_hour(dv).to_value(u.degree)
+                        if self._unit is u.degree:
+                            from .utils import select_step_degree
+                            spacing_deg = select_step_degree(dv).to_value(u.degree)
+                        else:
+                            from .utils import select_step_hour
+                            spacing_deg = select_step_hour(dv).to_value(u.degree)
 
             # We now find the interval values as multiples of the spacing and
             # generate the tick positions from this.

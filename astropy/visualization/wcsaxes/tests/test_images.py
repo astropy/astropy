@@ -499,6 +499,12 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_major_formatter('s.s')
         ax.coords[1].set_major_formatter('s.s')
 
+        # The decimal spacing is now better determined but for
+        # backward-compatibility with previous reference images, we hard-code
+        # the spacing here.
+        ax.coords[0].set_ticks(spacing=225 * u.arcsec)
+        ax.coords[1].set_ticks(spacing=225 * u.arcsec)
+
         ax.grid(color='white', ls='solid')
 
         # Force drawing (needed for format_coord)
