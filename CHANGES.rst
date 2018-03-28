@@ -90,11 +90,21 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug that caused the position of the tick values in decimal mode
+  to be incorrectly determined. [#7332]
+
 astropy.vo
 ^^^^^^^^^^
 
 astropy.wcs
 ^^^^^^^^^^^
+
+- Fixed an bug when creating the ``WCS`` slice (see ``WCS.slice()``)
+  when ``WCS`` contains ``SIP`` distortion corrections by
+  adjusting the ``WCS.sip.crpix`` in addition to adjusting
+  ``WCS.wcs.crpix``. This bug had the potential to produce large errors in
+  ``WCS`` coordinate transformations depending on the position of the slice
+  relative to ``WCS.wcs.crpix``. [#7556, #7550]
 
 
 Other Changes and Additions
