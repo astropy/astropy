@@ -13,10 +13,22 @@ from ...tests.helper import raises
 from ...extern.six.moves import zip
 from ...utils.compat import NUMPY_LT_1_13
 
+try:
+    import scipy  # pylint: disable=W0611
+except ImportError:
+    HAS_SCIPY = False
+else:
+    HAS_SCIPY = True
+
 
 class TestUfuncCoverage(object):
     """Test that we cover all ufunc's"""
 
+    # Ignore possible scipy ufuncs; for scipy in particular, we have support
+    # for some, but for others it still has to be decided whether we can
+    # support them or not.
+    @pytest.mark.skipif(HAS_SCIPY,
+                        reason='scipy.special coverage is incomplete')
     def test_coverage(self):
         all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
                              if type(ufunc) == np.ufunc])
