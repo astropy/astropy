@@ -208,6 +208,30 @@ class TestAngleFormatterLocator:
         assert_quantity_allclose(fl.locator(266.9730, 266.9750)[0],
                                  [17.79825, 17.79830] * u.hourangle)
 
+    def test_values_unit(self):
+
+        # Make sure that the intrinsic unit and format unit are correctly
+        # taken into account when using the locator
+
+        fl = AngleFormatterLocator(unit=u.arcsec, format_unit=u.arcsec, decimal=True)
+        assert_quantity_allclose(fl.locator(850, 2150)[0],
+                                 [1000., 1200., 1400., 1600., 1800., 2000.] * u.arcsec)
+
+        fl = AngleFormatterLocator(unit=u.arcsec, format_unit=u.degree, decimal=False)
+        assert_quantity_allclose(fl.locator(850, 2150)[0],
+                                 [15., 20., 25., 30., 35.] * u.arcmin)
+
+        fl = AngleFormatterLocator(unit=u.arcsec, format_unit=u.hourangle, decimal=False)
+        assert_quantity_allclose(fl.locator(850, 2150)[0],
+                                 [60., 75., 90., 105., 120., 135.] * (15 * u.arcsec))
+
+        fl = AngleFormatterLocator(unit=u.arcsec)
+        fl.format = 'dd:mm:ss'
+        assert_quantity_allclose(fl.locator(0.9, 1.1)[0], [1] * u.arcsec)
+
+        fl = AngleFormatterLocator(unit=u.arcsec, spacing=0.2 * u.arcsec)
+        assert_quantity_allclose(fl.locator(0.3, 0.9)[0], [0.4, 0.6, 0.8] * u.arcsec)
+
     @pytest.mark.parametrize(('spacing', 'string'), [(2 * u.deg, '15\xb0'),
                                                      (2 * u.arcmin, '15\xb024\''),
                                                      (2 * u.arcsec, '15\xb023\'32"'),
@@ -383,3 +407,16 @@ class TestScalarFormatterLocator:
         fl.spacing = 0.032 * u.m
         fl.format = 'x.xx'
         assert_almost_equal(fl.spacing.to_value(u.m), 0.03)
+
+    def test_values_unit(self):
+
+        # Make sure that the intrinsic unit and format unit are correctly
+        # taken into account when using the locator
+
+        fl = ScalarFormatterLocator(unit=u.cm, format_unit=u.m)
+        assert_quantity_allclose(fl.locator(850, 2150)[0],
+                                 [1000., 1200., 1400., 1600., 1800., 2000.] * u.cm)
+
+        fl = ScalarFormatterLocator(unit=u.cm, format_unit=u.m)
+        fl.format = 'x.x'
+        assert_quantity_allclose(fl.locator(1, 19)[0], [10] * u.cm)

@@ -265,44 +265,41 @@ class AngleFormatterLocator(BaseFormatterLocator):
             # don't locate any ticks. This can occur for example when taking a
             # slice for a cube (along the dimension sliced).
             if value_min == value_max:
-                return [] * u.deg, 0 * u.arcsec
+                return [] * self._unit, 0 * self._unit
 
             if self.spacing is not None:
 
                 # spacing was manually specified
-                spacing_deg = self.spacing.to_value(u.degree)
+                spacing_value = self.spacing.to_value(self._unit)
 
             elif self.number is not None:
 
                 # number of ticks was specified, work out optimal spacing
 
                 # first compute the exact spacing
-                dv = abs(float(value_max - value_min)) / self.number * u.degree
+                dv = abs(float(value_max - value_min)) / self.number * self._unit
 
                 if self.format is not None and dv < self.base_spacing:
                     # if the spacing is less than the minimum spacing allowed by the format, simply
                     # use the format precision instead.
-                    spacing_deg = self.base_spacing.to_value(u.degree)
+                    spacing_value = self.base_spacing.to_value(self._unit)
                 else:
                     # otherwise we clip to the nearest 'sensible' spacing
                     if self._decimal:
                         from .utils import select_step_scalar
-                        if self._format_unit in (u.hour, u.hourangle):
-                            spacing_deg = select_step_scalar(dv.to_value(u.hourangle)) * 15
-                        else:
-                            spacing_deg = select_step_scalar(dv.to_value(u.degree))
+                        spacing_value = select_step_scalar(dv.to_value(self._format_unit)) * self._format_unit.to(self._unit)
                     else:
                         if self._format_unit is u.degree:
                             from .utils import select_step_degree
-                            spacing_deg = select_step_degree(dv).to_value(u.degree)
+                            spacing_value = select_step_degree(dv).to_value(self._unit)
                         else:
                             from .utils import select_step_hour
-                            spacing_deg = select_step_hour(dv).to_value(u.degree)
+                            spacing_value = select_step_hour(dv).to_value(self._unit)
 
             # We now find the interval values as multiples of the spacing and
             # generate the tick positions from this.
-            values = self._locate_values(value_min, value_max, spacing_deg)
-            return values * spacing_deg * u.degree, spacing_deg * u.degree
+            values = self._locate_values(value_min, value_max, spacing_value)
+            return values * spacing_value * self._unit, spacing_value * self._unit
 
     def formatter(self, values, spacing, format='auto'):
 
@@ -392,16 +389,17 @@ class ScalarFormatterLocator(BaseFormatterLocator):
     A joint formatter/locator
     """
 
-    def __init__(self, values=None, number=None, spacing=None, format=None, unit=None):
+    def __init__(self, values=None, number=None, spacing=None, format=None,
+                 unit=None, format_unit=None):
         if unit is not None:
             self._unit = unit
-            self._format_unit = unit
+            self._format_unit = format_unit or unit
         elif spacing is not None:
             self._unit = spacing.unit
-            self._format_unit = spacing.unit
+            self._format_unit = format_unit or spacing.unit
         elif values is not None:
             self._unit = values.unit
-            self._format_unit = values.unit
+            self._format_unit = format_unit or values.unit
         super().__init__(values=values, number=number, spacing=spacing,
                          format=format)
 
@@ -479,15 +477,15 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                 # number of ticks was specified, work out optimal spacing
 
                 # first compute the exact spacing
-                dv = abs(float(value_max - value_min)) / self.number
+                dv = abs(float(value_max - value_min)) / self.number * self._unit
 
-                if self.format is not None and (not self.format.startswith('%')) and dv < self.base_spacing.value:
+                if self.format is not None and (not self.format.startswith('%')) and dv < self.base_spacing:
                     # if the spacing is less than the minimum spacing allowed by the format, simply
                     # use the format precision instead.
                     spacing = self.base_spacing.to_value(self._unit)
                 else:
                     from .utils import select_step_scalar
-                    spacing = select_step_scalar(dv)
+                    spacing = select_step_scalar(dv.to_value(self._format_unit)) * self._format_unit.to(self._unit)
 
             # We now find the interval values as multiples of the spacing and
             # generate the tick positions from this
