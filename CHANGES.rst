@@ -304,6 +304,9 @@ astropy.modeling
 - Fix the shape of the outputs when a model set is evaluated with
   ``model_set_axis=False`` . [#7317]
 
+- The fitter ``LinearLSQFitter`` currently does not handle compound models, 
+  so I added an error that raises when compound models are used. [#7321]
+  
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -814,12 +817,6 @@ astropy.utils
 
 - Make ``HomogeneousList`` work with iterators and generators when creating the
   instance, extending it, or using when setting a slice. [#6773]
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-- The fitter ``LinearLSQFitter`` currently does not handle compound models, 
-  so I added an error that raises when compound models are used. [#7321]
 
 Other Changes and Additions
 ---------------------------
