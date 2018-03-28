@@ -120,6 +120,10 @@ def find_coordinate_range(transform, extent, coord_types, coord_units):
             xw_min = max(-90., xw_min - 0.1 * x_range)
             xw_max = min(+90., xw_max + 0.1 * x_range)
 
+        if coord_type in ['longitude', 'latitude']:
+            xw_min *= u.deg.to(unit)
+            xw_max *= u.deg.to(unit)
+
         ranges.append((xw_min, xw_max))
 
     return ranges
