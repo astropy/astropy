@@ -748,7 +748,7 @@ class CoordinateHelper:
         coord_range = self.parent_map.get_coord_range()
 
         tick_world_coordinates, spacing = self.locator(*coord_range[self.coord_index])
-        tick_world_coordinates_values = tick_world_coordinates.value
+        tick_world_coordinates_values = tick_world_coordinates.to_value(self.coord_unit)
 
         n_coord = len(tick_world_coordinates_values)
 
@@ -770,11 +770,6 @@ class CoordinateHelper:
         # We now convert all the world coordinates to pixel coordinates in a
         # single go rather than doing this in the gridline to path conversion
         # to fully benefit from vectorized coordinate transformations.
-
-        # Currently xy_world is in deg, but transform function needs it in
-        # native units
-        if self._coord_scale_to_deg is not None:
-            xy_world /= self._coord_scale_to_deg
 
         # Transform line to pixel coordinates
         pixel = self.transform.inverted().transform(xy_world)
