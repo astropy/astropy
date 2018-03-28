@@ -538,8 +538,7 @@ class TestBasic(BaseImageTests):
         # Force drawing (needed for format_coord)
         fig.savefig(tmpdir.join('nothing').strpath)
 
-        # TODO: the formatted string should show units
-        assert ax.format_coord(512, 512) == "513.0 513.0 (world)"
+        assert ax.format_coord(512, 512) == '513.0" 513.0" (world)'
 
         return fig
 
