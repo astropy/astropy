@@ -642,8 +642,8 @@ class FittingWithOutlierRemoval:
                 raise ValueError("{0} cannot fit model sets with masked "
                                  "values".format(type(self.fitter).__name__))
 
-            # The intention appears to be that fitters use their input model's
-            # model_set_axis to determine how their input data are stacked:
+            # Fitters use their input model's model_set_axis to determine how
+            # their input data are stacked:
             model_set_axis = model.model_set_axis
 
         # Construct input co-ordinate tuples for fitters & models that are
