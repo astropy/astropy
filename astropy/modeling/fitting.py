@@ -655,15 +655,19 @@ class FittingWithOutlierRemoval:
             coords = x, y
             data = z
 
-        # For model sets, first try passing the numpy-standard "axis" parameter
-        # to the outlier function, to make it treat each model separately. If
-        # this fails, fall back to looping over the model set below.
+        # For model sets, construct a numpy-standard "axis" tuple for the
+        # outlier function, to treat each model separately (if supported):
         if model_set_axis is not None:
+
+            if model_set_axis < 0:
+                model_set_axis += data.ndim
+
             if 'axis' not in self.outlier_kwargs:  # allow user override
                 # This also works for False (like model instantiation):
                 self.outlier_kwargs['axis'] = tuple(
                     n for n in range(data.ndim) if n != model_set_axis
                 )
+
         loop = False
 
         # Starting fit, prior to iteration and masking:
