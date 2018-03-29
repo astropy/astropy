@@ -7,8 +7,8 @@ Verification options
 
 There are 5 options for the ``output_verify`` argument of the following methods
 of :class:`HDUList`: :meth:`~HDUList.close`, :meth:`~HDUList.writeto`, and
-:meth:`~HDUList.flush`, or the :meth:``~_BaseHDU.writeto`` method on any HDU
-object.  In these cases, the verification option is passed to a :meth:``verify``
+:meth:`~HDUList.flush`, or the ``_BaseHDU.writeto`` method on any HDU
+object.  In these cases, the verification option is passed to a ``verify``
 call within these methods.
 
 exception
