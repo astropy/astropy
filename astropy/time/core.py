@@ -1769,6 +1769,10 @@ class TimeDelta(Time):
         out.SCALES = self.SCALES
         return out
 
+    def to_datetime(self):
+        tm = self.replicate(format='datetime')
+        return tm
+
     def _set_scale(self, scale):
         """
         This is the key routine that actually does time scale conversions.
