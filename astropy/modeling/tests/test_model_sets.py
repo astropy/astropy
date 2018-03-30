@@ -4,7 +4,7 @@ This module tests model set evaluation for some common use cases.
 """
 import pytest
 import numpy as np
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_allclose
 
 from ..models import Polynomial1D, Polynomial2D
 from ..fitting import LinearLSQFitter

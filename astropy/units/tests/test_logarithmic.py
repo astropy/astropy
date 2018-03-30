@@ -4,13 +4,12 @@
     Test the Logarithmic Units and Quantities
 """
 
-
 import pickle
 import itertools
 
 import pytest
 import numpy as np
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_allclose
 
 from ...tests.helper import assert_quantity_allclose
 from ... import units as u, constants as c

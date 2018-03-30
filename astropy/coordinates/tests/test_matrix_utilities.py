@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
-from numpy.testing.utils import assert_allclose, assert_array_equal
+from numpy.testing import assert_allclose, assert_array_equal
 
 from ... import units as u
 from ..matrix_utilities import rotation_matrix, angle_axis
