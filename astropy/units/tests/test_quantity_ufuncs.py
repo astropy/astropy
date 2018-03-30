@@ -2,11 +2,11 @@
 # returns quantities with the right units, or raises exceptions.
 
 import warnings
+from collections import namedtuple
 
 import pytest
 import numpy as np
-from numpy.testing.utils import assert_allclose
-from collections import namedtuple
+from numpy.testing import assert_allclose
 
 from ... import units as u
 from ...tests.helper import raises
