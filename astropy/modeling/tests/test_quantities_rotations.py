@@ -3,7 +3,7 @@
 
 import pytest
 import numpy as np
-from numpy.testing import utils
+from numpy.testing import assert_allclose
 
 from ...wcs import wcs
 from .. import models
@@ -29,8 +29,8 @@ def test_against_wcslib(inp):
     radec = w.wcs_pix2world(inp[0], inp[1], 1)
     xy = w.wcs_world2pix(radec[0], radec[1], 1)
 
-    utils.assert_allclose(m(*inp), radec, atol=1e-12)
-    utils.assert_allclose(minv(*radec), xy, atol=1e-12)
+    assert_allclose(m(*inp), radec, atol=1e-12)
+    assert_allclose(minv(*radec), xy, atol=1e-12)
 
 
 @pytest.mark.parametrize(('inp'), [(40 * u.deg, -0.057 * u.rad), (21.5 * u.arcsec, 45.9 * u.deg)])
@@ -62,7 +62,7 @@ def test_euler_angle_rotations():
 
     # rotate y into minus z
     model = models.EulerAngleRotation(0 * u.rad, np.pi / 2 * u.rad, 0 * u.rad, 'zxz')
-    utils.assert_allclose(model(*z), y, atol=10**-12)
+    assert_allclose(model(*z), y, atol=10**-12)
     model = models.EulerAngleRotation(0 * u.deg, 90 * u.deg, 0 * u.deg, 'zxz')
     assert_quantity_allclose(model(*(z * u.deg)), ydeg, atol=10**-12 * u.deg)
 
@@ -79,7 +79,7 @@ def test_euler_rotations_with_units(params):
 
     urot = models.EulerAngleRotation(phi, theta, psi, axes_order='xyz')
     a, b = urot(x.value, y.value)
-    utils.assert_allclose((a, b), (-23.614457631192547, 9.631254579686113))
+    assert_allclose((a, b), (-23.614457631192547, 9.631254579686113))
     a, b = urot(x, y)
     assert_quantity_allclose((a, b), (-23.614457631192547 * u.deg, 9.631254579686113 * u.deg))
     a, b = urot(x.to(u.rad), y.to(u.rad))
@@ -88,12 +88,12 @@ def test_euler_rotations_with_units(params):
 
 def test_attributes():
     n2c = models.RotateNative2Celestial(20016 * u.arcsec, -72.3 * u.deg, np.pi * u.rad)
-    utils.assert_allclose(n2c.lat.value, -72.3)
-    utils.assert_allclose(n2c.lat._raw_value, -1.2618730491919001)
-    utils.assert_allclose(n2c.lon.value, 20016)
-    utils.assert_allclose(n2c.lon._raw_value, 0.09704030641088472)
-    utils.assert_allclose(n2c.lon_pole.value, np.pi)
-    utils.assert_allclose(n2c.lon_pole._raw_value, np.pi)
+    assert_allclose(n2c.lat.value, -72.3)
+    assert_allclose(n2c.lat._raw_value, -1.2618730491919001)
+    assert_allclose(n2c.lon.value, 20016)
+    assert_allclose(n2c.lon._raw_value, 0.09704030641088472)
+    assert_allclose(n2c.lon_pole.value, np.pi)
+    assert_allclose(n2c.lon_pole._raw_value, np.pi)
     assert(n2c.lon.unit is u.Unit("arcsec"))
     assert(n2c._param_metrics['lon']['raw_unit'] is u.Unit("rad"))
     assert(n2c.lat.unit is u.Unit("deg"))

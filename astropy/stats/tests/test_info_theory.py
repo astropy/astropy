@@ -1,5 +1,5 @@
 
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_allclose
 
 from ..info_theory import bayesian_info_criterion, bayesian_info_criterion_lsq
 from ..info_theory import akaike_info_criterion, akaike_info_criterion_lsq
