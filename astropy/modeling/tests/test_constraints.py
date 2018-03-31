@@ -1,11 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import types
 
 import pytest
 import numpy as np
-from numpy.testing import utils
+from numpy.testing import assert_allclose
 from numpy.random import RandomState
 
 from ..core import Fittable1DModel
@@ -52,8 +51,8 @@ class TestNonLinearConstraints:
         g1 = models.Gaussian1D(10, mean=14.9, stddev=.3, tied={'mean': tied})
         fitter = fitting.LevMarLSQFitter()
         model = fitter(g1, self.x, self.ny1)
-        utils.assert_allclose(model.mean.value, 50 * model.stddev,
-                              rtol=10 ** (-5))
+        assert_allclose(model.mean.value, 50 * model.stddev,
+                        rtol=10 ** (-5))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_joint_fitter(self):
@@ -82,8 +81,8 @@ class TestNonLinearConstraints:
                       compmodel(p[0], p[3:], x2) - y2])
 
         fitparams, _ = optimize.leastsq(errf, p, args=(x, ny1, x, ny2))
-        utils.assert_allclose(jf.fitparams, fitparams, rtol=10 ** (-5))
-        utils.assert_allclose(g1.amplitude.value, g2.amplitude.value)
+        assert_allclose(jf.fitparams, fitparams, rtol=10 ** (-5))
+        assert_allclose(g1.amplitude.value, g2.amplitude.value)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_no_constraints(self):
@@ -102,7 +101,7 @@ class TestNonLinearConstraints:
         fitpar, s = optimize.leastsq(errf, p0, args=(self.x, ny))
         fitter = fitting.LevMarLSQFitter()
         model = fitter(g1, self.x, ny)
-        utils.assert_allclose(model.parameters, fitpar, rtol=5 * 10 ** (-3))
+        assert_allclose(model.parameters, fitpar, rtol=5 * 10 ** (-3))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -228,7 +227,7 @@ class TestLinearConstraints:
         self.p1.c1.fixed = True
         pfit = fitting.LinearLSQFitter()
         model = pfit(self.p1, self.x, self.y)
-        utils.assert_allclose(self.y, model(self.x))
+        assert_allclose(self.y, model(self.x))
 
 # Test constraints as parameter properties
 
@@ -471,11 +470,11 @@ def test_gaussian2d_positive_stddev():
     # Compare with @ysBach original result:
     # - x_stddev was negative, so its abs value is used for comparison here.
     # - theta is beyond (-90, 90) deg, which doesn't make sense, so ignored.
-    utils.assert_allclose([g_fit.amplitude.value, g_fit.y_stddev.value],
-                          [984.7694929790363, 3.1840618351417307], rtol=1.5e-6)
-    utils.assert_allclose(g_fit.x_mean.value, 7.198391516587464)
-    utils.assert_allclose(g_fit.y_mean.value, 7.49720660088511, rtol=5e-7)
-    utils.assert_allclose(g_fit.x_stddev.value, 1.9840185107597297, rtol=2e-6)
+    assert_allclose([g_fit.amplitude.value, g_fit.y_stddev.value],
+                    [984.7694929790363, 3.1840618351417307], rtol=1.5e-6)
+    assert_allclose(g_fit.x_mean.value, 7.198391516587464)
+    assert_allclose(g_fit.y_mean.value, 7.49720660088511, rtol=5e-7)
+    assert_allclose(g_fit.x_stddev.value, 1.9840185107597297, rtol=2e-6)
 
 
 # Issue #6403
@@ -497,28 +496,28 @@ def test_2d_model():
         n = np.random.randn(x.size)
         n.shape = x.shape
         m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
-        utils.assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
         m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
-        utils.assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
 
         # 2D model with LevMarLSQFitter, fixed constraint
         gauss2d.x_stddev.fixed = True
         m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
-        utils.assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
         m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
-        utils.assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
 
         # Polynomial2D, col_fit_deriv=False
         p2 = models.Polynomial2D(1, c0_0=1, c1_0=1.2, c0_1=3.2)
         z = p2(x, y)
         m = fitter(p2, x, y, z + 2 * n, weights=None)
-        utils.assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
         m = fitter(p2, x, y, z + 2 * n, weights=w)
-        utils.assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
 
         # Polynomial2D, col_fit_deriv=False, fixed constraint
         p2.c1_0.fixed = True
         m = fitter(p2, x, y, z + 2 * n, weights=w)
-        utils.assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
         m = fitter(p2, x, y, z + 2 * n, weights=None)
-        utils.assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
