@@ -10,7 +10,7 @@ from ...extern.six.moves import zip
 # THIRD-PARTY
 import pytest
 import numpy as np
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_allclose
 
 # LOCAL
 from ... import units as u

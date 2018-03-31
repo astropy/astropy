@@ -10,7 +10,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import pytest
 import numpy as np
-from numpy.testing.utils import assert_allclose, assert_array_equal
+from numpy.testing import assert_allclose, assert_array_equal
 
 from ..angles import Longitude, Latitude, Angle
 from ... import units as u

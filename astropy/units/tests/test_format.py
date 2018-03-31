@@ -11,7 +11,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import pytest
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_allclose
 
 from ...extern import six
 from ...tests.helper import catch_warnings

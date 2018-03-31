@@ -14,7 +14,7 @@ from fractions import Fraction
 
 import pytest
 import numpy as np
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_allclose
 
 from ...extern import six
 from ...extern.six.moves import range, cPickle as pickle

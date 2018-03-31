@@ -11,7 +11,7 @@ import os.path
 import pytest
 import numpy as np
 from numpy import linalg
-from numpy.testing.utils import assert_allclose, assert_almost_equal
+from numpy.testing import assert_allclose, assert_almost_equal
 
 from . import irafutil
 from .. import models

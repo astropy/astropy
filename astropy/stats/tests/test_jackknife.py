@@ -6,8 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 import pytest
 import numpy as np
 
-from numpy.testing import assert_equal
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_equal, assert_allclose
 
 try:
     import scipy  # pylint: disable=W0611

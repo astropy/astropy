@@ -8,7 +8,7 @@ import os
 
 import pytest
 import numpy as np
-from numpy.testing import utils
+from numpy.testing import assert_allclose, assert_almost_equal
 
 from .. import projections
 from ..parameters import InputParameterError
@@ -60,8 +60,8 @@ def test_Sky2Pix(code):
     model = getattr(projections, 'Sky2Pix_' + code)
     tinv = model(*params)
     x, y = tinv(wcslibout['phi'], wcslibout['theta'])
-    utils.assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
-    utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
+    assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
+    assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
 
 @pytest.mark.parametrize(('code',), pars)
@@ -89,8 +89,8 @@ def test_Pix2Sky(code):
     model = getattr(projections, 'Pix2Sky_' + code)
     tanprj = model(*params)
     phi, theta = tanprj(*PIX_COORDINATES)
-    utils.assert_almost_equal(np.asarray(phi), wcs_phi)
-    utils.assert_almost_equal(np.asarray(theta), wcs_theta)
+    assert_almost_equal(np.asarray(phi), wcs_phi)
+    assert_almost_equal(np.asarray(theta), wcs_theta)
 
 
 @pytest.mark.parametrize(('code',), pars)
@@ -192,15 +192,15 @@ class TestZenithalPerspective(object):
         wcs_phi = wcslibout['phi']
         wcs_theta = wcslibout['theta']
         phi, theta = self.azp(-10, 30)
-        utils.assert_almost_equal(np.asarray(phi), wcs_phi)
-        utils.assert_almost_equal(np.asarray(theta), wcs_theta)
+        assert_almost_equal(np.asarray(phi), wcs_phi)
+        assert_almost_equal(np.asarray(theta), wcs_theta)
 
     def test_AZP_s2p(self):
         wcslibout = self.wazp.wcs.p2s([[-10, 30]], 1)
         wcs_pix = self.wazp.wcs.s2p(wcslibout['world'], 1)['pixcrd']
         x, y = self.azp.inverse(wcslibout['phi'], wcslibout['theta'])
-        utils.assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
-        utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
+        assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
+        assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
 
 class TestCylindricalPerspective(object):
@@ -224,15 +224,15 @@ class TestCylindricalPerspective(object):
         wcs_phi = wcslibout['phi']
         wcs_theta = wcslibout['theta']
         phi, theta = self.azp(-10, 30)
-        utils.assert_almost_equal(np.asarray(phi), wcs_phi)
-        utils.assert_almost_equal(np.asarray(theta), wcs_theta)
+        assert_almost_equal(np.asarray(phi), wcs_phi)
+        assert_almost_equal(np.asarray(theta), wcs_theta)
 
     def test_CYP_s2p(self):
         wcslibout = self.wazp.wcs.p2s([[-10, 30]], 1)
         wcs_pix = self.wazp.wcs.s2p(wcslibout['world'], 1)['pixcrd']
         x, y = self.azp.inverse(wcslibout['phi'], wcslibout['theta'])
-        utils.assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
-        utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
+        assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
+        assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
 
 def test_AffineTransformation2D():
@@ -268,7 +268,7 @@ def test_AffineTransformation2D_inverse():
 
     x_new, y_new = model2.inverse(*model2(x, y))
 
-    utils.assert_allclose([x, y], [x_new, y_new], atol=1e-10)
+    assert_allclose([x, y], [x_new, y_new], atol=1e-10)
 
 
 def test_c_projection_striding():
@@ -280,11 +280,11 @@ def test_c_projection_striding():
 
     phi, theta = model(coords[:, 0], coords[:, 1])
 
-    utils.assert_almost_equal(
+    assert_almost_equal(
         phi,
         [0., 2.2790416, 4.4889294, 6.6250643, 8.68301])
 
-    utils.assert_almost_equal(
+    assert_almost_equal(
         theta,
         [-76.4816918, -75.3594654, -74.1256332, -72.784558, -71.3406629])
 
@@ -299,12 +299,12 @@ def test_c_projections_shaped():
 
     phi, theta = model(xv, yv)
 
-    utils.assert_allclose(
+    assert_allclose(
         phi,
         [[0., 90., 90., 90., 90.],
          [180., 165.96375653, 153.43494882, 143.13010235, 135.]])
 
-    utils.assert_allclose(
+    assert_allclose(
         theta,
         [[90., 89.75000159, 89.50001269, 89.25004283, 89.00010152],
          [89.00010152, 88.96933478, 88.88210788, 88.75019826, 88.58607353]])

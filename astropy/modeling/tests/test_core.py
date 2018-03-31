@@ -5,14 +5,13 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import pytest
 import numpy as np
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_allclose
 
 from ..core import Model, custom_model
 from ..parameters import Parameter
 from .. import models
 
 from ...utils.compat.funcsigs import signature
-
 
 class NonFittableModel(Model):
     """An example class directly subclassing Model for testing."""

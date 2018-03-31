@@ -11,7 +11,7 @@ from itertools import product
 import pytest
 import numpy as np
 
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_allclose
 
 from .. import fitting
 from ... import wcs
