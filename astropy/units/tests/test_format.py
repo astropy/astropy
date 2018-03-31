@@ -5,10 +5,8 @@
 Regression tests for the units.format package
 """
 
-
-
 import pytest
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_allclose
 
 from ...tests.helper import catch_warnings
 from ... import units as u
