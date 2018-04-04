@@ -25,6 +25,7 @@ from ....utils.exceptions import AstropyUserWarning
 from ....utils.decorators import deprecated_renamed_argument
 
 connectedToHDFS = False
+hdfs = None
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
@@ -168,6 +169,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
 
     # If hadoop is True, then the code connects to the specified host and port
     if 'hadoop' in kwargs and kwargs['hadoop']:
+        global hdfs
         if not connectedToHDFS:
             hdfs = connectToHDFS()
         if hdfs is None:
@@ -198,6 +200,7 @@ def connectToHDFS():
     hosty = input("Type the HDFS host: ")
     porty = int(input("Type the NameNode port: "))
     hdfs = HDFileSystem(host=hosty, port=porty)
+    global connectedToHDFS
     connectedToHDFS = True
     return hdfs
 
