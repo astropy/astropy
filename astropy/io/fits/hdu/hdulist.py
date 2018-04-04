@@ -24,6 +24,8 @@ from ....utils import indent
 from ....utils.exceptions import AstropyUserWarning
 from ....utils.decorators import deprecated_renamed_argument
 
+connectedToHDFS = False
+
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
              cache=True, lazy_load_hdus=None, **kwargs):
@@ -132,6 +134,13 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
             if scaling back to integer values after performing floating point
             operations on the data.
 
+        - **hadoop** : bool
+
+            If `True`, then the FITS file to be opened is stored in the Hadoop Distributed File System.
+            In order to be able to open the file, a copy is made on the pc executing this script.
+            If the file is in HDFS, then the specified name when calling .open() needs to be the HDFS path of the file.
+            Example: .open('HDFS_file_path', hadoop=True)
+
     Returns
     -------
         hdulist : an `HDUList` object
@@ -157,11 +166,40 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
     if 'uint' not in kwargs:
         kwargs['uint'] = conf.enable_uint
 
+    # If hadoop is True, then the code connects to the specified host and port
+    if 'hadoop' in kwargs and kwargs['hadoop']:
+        if not connectedToHDFS:
+            hdfs = connectToHDFS()
+        if hdfs is None:
+            return
+
+        local_path = input(
+            "Type the local filesystem path where you want to save the file, including the name of the copied file: ")
+        # Example: "/home/user/Downloads/x.fits" as input will copy x.fits (stored in HDFS)
+        # to the specified path in the local file system
+
+        hdfs.get(name, local_path)
+        name = local_path
+
     if not name:
         raise ValueError('Empty filename: {!r}'.format(name))
 
     return HDUList.fromfile(name, mode, memmap, save_backup, cache,
                             lazy_load_hdus, **kwargs)
+
+
+def connectToHDFS():
+    try:
+        from hdfs3 import HDFileSystem
+    except ImportError:
+        warnings.warn('HDFileSystem is not present, so connectToHDFS() will not work.')
+        return
+
+    hosty = input("Type the HDFS host: ")
+    porty = int(input("Type the NameNode port: "))
+    hdfs = HDFileSystem(host=hosty, port=porty)
+    connectedToHDFS = True
+    return hdfs
 
 
 class HDUList(list, _Verify):
@@ -352,7 +390,7 @@ class HDUList(list, _Verify):
             self._try_while_unread_hdus(super().__setitem__, _key, hdu)
         except IndexError:
             raise IndexError('Extension {} is out of bound or not found.'
-                            .format(key))
+                             .format(key))
 
         self._resize = True
         self._truncate = False
@@ -721,7 +759,7 @@ class HDUList(list, _Verify):
                 name = name.strip().upper()
             # 'PRIMARY' should always work as a reference to the first HDU
             if ((name == _key or (_key == 'PRIMARY' and idx == 0)) and
-                (_ver is None or _ver == hdu.ver)):
+                    (_ver is None or _ver == hdu.ver)):
                 found = idx
                 break
 
@@ -784,7 +822,7 @@ class HDUList(list, _Verify):
 
         if self._file.mode not in ('append', 'update', 'ostream'):
             warnings.warn("Flush for '{}' mode is not supported."
-                         .format(self._file.mode), AstropyUserWarning)
+                          .format(self._file.mode), AstropyUserWarning)
             return
 
         if self._save_backup and self._file.mode in ('append', 'update'):
@@ -798,7 +836,7 @@ class HDUList(list, _Verify):
                     backup = filename + '.bak.' + str(idx)
                     idx += 1
                 warnings.warn('Saving a backup of {} to {}.'.format(
-                        filename, backup), AstropyUserWarning)
+                    filename, backup), AstropyUserWarning)
                 try:
                     shutil.copy(filename, backup)
                 except OSError as exc:
@@ -1115,7 +1153,7 @@ class HDUList(list, _Verify):
             self._in_read_next_hdu = True
 
             if ('disable_image_compression' in kwargs and
-                kwargs['disable_image_compression']):
+                    kwargs['disable_image_compression']):
                 compressed.COMPRESSION_ENABLED = False
 
             # read all HDUs
@@ -1185,7 +1223,7 @@ class HDUList(list, _Verify):
 
         # the first (0th) element must be a primary HDU
         if len(self) > 0 and (not isinstance(self[0], PrimaryHDU)) and \
-                             (not isinstance(self[0], _NonstandardHDU)):
+                (not isinstance(self[0], _NonstandardHDU)):
             err_text = "HDUList's 0th element is not a primary HDU."
             fix_text = 'Fixed by inserting one as 0th HDU.'
 
