@@ -421,16 +421,23 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             sum_of_implicit_terms = model_copy.sum_of_implicit_terms(x, y)
 
             if len(model_copy) > 1:
+
+                # Just to be explicit (rather than baking in False == 0):
+                model_axis = model_copy.model_set_axis or 0
+
                 if z.ndim > 2:
-                    # Basically this code here is making the assumption that if
-                    # z has 3 dimensions it represents multiple models where
-                    # the value of z is one plane per model.  It's then
-                    # flattening each plane and transposing so that the model
-                    # axis is *last*.
-                    model_axis = model_copy.model_set_axis or 0
-                    rhs = z.reshape((z.shape[model_axis], -1)).T
+                    # For higher-dimensional z, flatten all the axes except the
+                    # dimension along which models are stacked and transpose so
+                    # the model axis is *last* (I think this resolves Erik's
+                    # pending generalization from 80a6f25a):
+                    rhs = np.rollaxis(z, model_axis, z.ndim)
+                    rhs = rhs.reshape(-1, rhs.shape[-1])
                 else:
-                    rhs = z.T
+                    # This "else" seems to handle the corner case where the
+                    # user has already flattened x/y before attempting a 2D fit
+                    # but z has a second axis for the model set. NB. This is
+                    # ~5-10x faster than using rollaxis.
+                    rhs = z.T if model_axis == 0 else z
             else:
                 rhs = z.flatten()
 
@@ -553,9 +560,16 @@ class FittingWithOutlierRemoval:
     ----------
     fitter : An Astropy fitter
         An instance of any Astropy fitter, i.e., LinearLSQFitter,
-        LevMarLSQFitter, SLSQPLSQFitter, SimplexLSQFitter, JointFitter.
+        LevMarLSQFitter, SLSQPLSQFitter, SimplexLSQFitter, JointFitter. For
+        model set fitting, this must understand masked input data (as
+        indicated by the fitter class attribute ``supports_masked_input``).
     outlier_func : function
         A function for outlier removal.
+        If this accepts an ``axis`` parameter like the `numpy` functions, the
+        appropriate value will be supplied automatically when fitting model
+        sets (unless overridden in ``outlier_kwargs``), to find outliers for
+        each model separately; otherwise, the same filtering must be performed
+        in a loop over models, which is almost an order of magnitude slower.
     niter : int (optional)
         Number of iterations.
     outlier_kwargs : dict (optional)
@@ -610,35 +624,136 @@ class FittingWithOutlierRemoval:
             Fitted model after outlier removal.
         """
 
-        fitted_model = self.fitter(model, x, y, z, weights=weights, **kwargs)
-        filtered_weights = weights
-        if z is None:
-            filtered_data = y
-            for n in range(self.niter):
-                filtered_data = self.outlier_func(filtered_data - fitted_model(x),
-                                                  **self.outlier_kwargs)
-                filtered_data += fitted_model(x)
-                if weights is not None:
-                    filtered_weights = weights[~filtered_data.mask]
-                fitted_model = self.fitter(fitted_model,
-                               x[~filtered_data.mask],
-                               filtered_data.data[~filtered_data.mask],
-                               weights=filtered_weights,
-                               **kwargs)
+        # For single models, the data get filtered here at each iteration and
+        # then passed to the fitter, which is the historical behaviour and
+        # works even for fitters that don't understand masked arrays. For model
+        # sets, the fitter must be able to filter masked data internally,
+        # because fitters require a single set of x/y co-ordinates whereas the
+        # eliminated points can vary between models. To avoid this limitation,
+        # we could fall back to looping over individual model fits, but it
+        # would likely be fiddly and involve even more overhead (and the
+        # non-linear fitters don't work with model sets anyway, as of writing).
+
+        if len(model) == 1:
+            model_set_axis = None
         else:
-            filtered_data = z
-            for n in range(self.niter):
-                filtered_data = self.outlier_func(filtered_data - fitted_model(x, y),
-                                                  **self.outlier_kwargs)
-                filtered_data += fitted_model(x, y)
+            if not hasattr(self.fitter, 'supports_masked_input') or \
+               self.fitter.supports_masked_input is not True:
+                raise ValueError("{0} cannot fit model sets with masked "
+                                 "values".format(type(self.fitter).__name__))
+
+            # Fitters use their input model's model_set_axis to determine how
+            # their input data are stacked:
+            model_set_axis = model.model_set_axis
+
+        # Construct input co-ordinate tuples for fitters & models that are
+        # appropriate for the dimensionality being fitted:
+        if z is None:
+            coords = x,
+            data = y
+        else:
+            coords = x, y
+            data = z
+
+        # For model sets, construct a numpy-standard "axis" tuple for the
+        # outlier function, to treat each model separately (if supported):
+        if model_set_axis is not None:
+
+            if model_set_axis < 0:
+                model_set_axis += data.ndim
+
+            if 'axis' not in self.outlier_kwargs:  # allow user override
+                # This also works for False (like model instantiation):
+                self.outlier_kwargs['axis'] = tuple(
+                    n for n in range(data.ndim) if n != model_set_axis
+                )
+
+        loop = False
+
+        # Starting fit, prior to iteration and masking:
+        fitted_model = self.fitter(model, x, y, z, weights=weights, **kwargs)
+        filtered_data = data
+        filtered_weights = weights
+
+        # Perform the iterative fitting:
+        # TO DO: add a stopping criterion when results aren't changing?
+        for n in range(self.niter):
+
+            # (Re-)evaluate the last model:
+            model_vals = fitted_model(*coords, model_set_axis=False)
+
+            # Determine the outliers:
+            if not loop:
+
+                # Pass axis parameter if outlier_func accepts it, otherwise
+                # prepare for looping over models:
+                try:
+                    filtered_data = self.outlier_func(
+                        filtered_data - model_vals, **self.outlier_kwargs
+                    )
+                # If this happens to catch an error with a parameter other
+                # than axis, the next attempt will fail accordingly:
+                except TypeError:
+                    if model_set_axis is None:
+                        raise
+                    else:
+                        self.outlier_kwargs.pop('axis', None)
+                        loop = True
+
+                        # Construct MaskedArray to hold filtered values:
+                        filtered_data = np.ma.masked_array(
+                            filtered_data,
+                            dtype=np.result_type(filtered_data, model_vals),
+                            copy=True
+                        )
+                        # Make sure the mask is an array, not just nomask:
+                        if filtered_data.mask is np.ma.nomask:
+                            filtered_data.mask = False
+
+                        # Get views transposed appropriately for iteration
+                        # over the set (handling data & mask separately due to
+                        # NumPy issue #8506):
+                        data_T = np.rollaxis(filtered_data, model_set_axis, 0)
+                        mask_T = np.rollaxis(filtered_data.mask,
+                                             model_set_axis, 0)
+
+            if loop:
+                model_vals_T = np.rollaxis(model_vals, model_set_axis, 0)
+                for row_data, row_mask, row_mod_vals in zip(data_T, mask_T,
+                                                            model_vals_T):
+                    masked_residuals = self.outlier_func(
+                        row_data - row_mod_vals, **self.outlier_kwargs
+                    )
+                    row_data.data[:] = masked_residuals.data
+                    row_mask[:] = masked_residuals.mask
+
+                # Issue speed warning after the fact, so it only shows up when
+                # the TypeError is genuinely due to the axis argument.
+                warnings.warn('outlier_func did not accept axis argument; '
+                              'reverted to slow loop over models.',
+                              AstropyUserWarning)
+
+            # Recombine newly-masked residuals with model to get masked values:
+            filtered_data += model_vals
+
+            # Re-fit the data after filtering, passing masked/unmasked values
+            # for single models / sets, respectively:
+            if model_set_axis is None:
+
+                good = ~filtered_data.mask
+
                 if weights is not None:
-                    filtered_weights = weights[~filtered_data.mask]
+                    filtered_weights = weights[good]
+
                 fitted_model = self.fitter(fitted_model,
-                               x[~filtered_data.mask],
-                               y[~filtered_data.mask],
-                               filtered_data.data[~filtered_data.mask],
-                               weights=filtered_weights,
-                               **kwargs)
+                                           *(c[good] for c in coords),
+                                           filtered_data.data[good],
+                                           weights=filtered_weights, **kwargs)
+            else:
+                fitted_model = self.fitter(fitted_model, *coords,
+                                           filtered_data,
+                                           weights=filtered_weights, **kwargs)
+
         return filtered_data, fitted_model
 
 

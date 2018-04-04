@@ -192,3 +192,27 @@ def test_sigmaclip_empty():
     data = np.array([])
     clipped_data = sigma_clip(data)
     assert_equal(data, clipped_data)
+
+
+def test_sigma_clip_axis_tuple_3D():
+    """Test sigma clipping over a subset of axes (issue #7227).
+    """
+
+    data = np.sin(0.78 * np.arange(27)).reshape(3,3,3)
+    mask = np.zeros_like(data, dtype=np.bool)
+
+    data_t = np.rollaxis(data, 1, 0)
+    mask_t = np.rollaxis(mask, 1, 0)
+
+    # Loop over what was originally axis 1 and clip each plane directly:
+    for data_plane, mask_plane in zip(data_t, mask_t):
+
+        mean = data_plane.mean()
+        maxdev = 1.5 * data_plane.std()
+        mask_plane[:] = np.logical_or(data_plane < mean - maxdev,
+                                      data_plane > mean + maxdev)
+
+    # Do the equivalent thing using sigma_clip:
+    result = sigma_clip(data, sigma=1.5, cenfunc=np.mean, iters=1, axis=(0,-1))
+
+    assert_equal(result.mask, mask)
