@@ -334,6 +334,8 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- ``u.quantity_input`` no longer errors if the return annotation for a function is ``None``. [#7336]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
