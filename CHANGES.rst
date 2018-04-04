@@ -42,6 +42,12 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- ``FittingWithOutlierRemoval`` now handles model sets, as long as the
+  underlying fitter supports masked values. [#7199]
+
+- Remove assumption that ``model_set_axis == 0`` for 2D models in
+  ``LinearLSQFitter``. [#7317, #7199]
+
 - Fix the shape of the outputs when a model set is evaluated with
   ``model_set_axis=False`` . [#7317]
 
@@ -53,6 +59,9 @@ astropy.samp
 
 astropy.stats
 ^^^^^^^^^^^^^
+
+- Accept a tuple for the ``axis`` parameter in ``sigma_clip``, like the
+  underlying ``numpy`` functions and some other functions in ``stats``. [#7199]
 
 astropy.table
 ^^^^^^^^^^^^^
