@@ -208,6 +208,8 @@ astropy.io.fits
 
 - Override ``HDUList.copy()`` to return a shallow HDUList instance. [#7218]
 
+- ``.open()`` is now able to read FITS files stored in HDFS.
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
