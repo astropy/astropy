@@ -45,6 +45,8 @@ astropy.io.fits
 - ``HDUList.pop()`` now accepts string and tuple extension name
   specifications. [#7236]
 
+- ``.open()`` is now able to read FITS files stored in HDFS.
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
@@ -207,8 +209,6 @@ astropy.io.fits
 - Added support for ``copy.copy`` and ``copy.deepcopy`` for ``HDUList``. [#7218]
 
 - Override ``HDUList.copy()`` to return a shallow HDUList instance. [#7218]
-
-- ``.open()`` is now able to read FITS files stored in HDFS.
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
