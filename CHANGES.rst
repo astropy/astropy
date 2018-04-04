@@ -45,6 +45,8 @@ astropy.io.fits
 - ``HDUList.pop()`` now accepts string and tuple extension name
   specifications. [#7236]
 
+- ``.open()`` is now able to read FITS files stored in HDFS.
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
