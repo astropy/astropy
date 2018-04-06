@@ -474,8 +474,12 @@ class WCSAxes(Axes):
 
         if isinstance(frame, WCS):
 
-            coord_in = wcs_to_celestial_frame(self.wcs)
-            coord_out = wcs_to_celestial_frame(frame)
+            try:
+                coord_in = wcs_to_celestial_frame(self.wcs)
+                coord_out = wcs_to_celestial_frame(frame)
+            except:
+                coord_in = self.wcs
+                coord_out = frame
 
             if coord_in == coord_out:
 
