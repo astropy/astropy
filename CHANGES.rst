@@ -16,6 +16,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Additional information about a site loaded from the Astropy sites registry is
+  now available in ``EarthLocation.info.meta``. [#7083]
+  
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 

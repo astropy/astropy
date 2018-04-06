@@ -166,3 +166,11 @@ def check_builtin_matches_remote(download_url=True):
             if not matches[name] and in_dl[name]:
                 print('    ', name, 'builtin:', builtin_registry[name], 'download:', dl_registry[name])
         assert False, "Builtin and download registry aren't consistent - failures printed to stdout"
+
+
+def test_meta_present():
+    reg = get_builtin_sites()
+
+    greenwich = reg['greenwich']
+    assert greenwich.info.meta['source'] == ('Ordnance Survey via '
+           'http://gpsinformation.net/main/greenwich.htm and UNESCO')
