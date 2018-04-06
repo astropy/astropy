@@ -477,7 +477,7 @@ class WCSAxes(Axes):
             try:
                 coord_in = wcs_to_celestial_frame(self.wcs)
                 coord_out = wcs_to_celestial_frame(frame)
-            except:
+            except ValueError:
                 coord_in = self.wcs
                 coord_out = frame
 
