@@ -5,6 +5,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
+from .. import median_absolute_deviation
 from .. import histogram, scott_bin_width, freedman_bin_width, knuth_bin_width
 
 try:
@@ -44,6 +45,16 @@ def test_freedman_bin_width(N=10000, rseed=0):
     with pytest.raises(ValueError):
         freedman_bin_width(rng.rand(2, 10))
 
+    # data with too small IQR and median absolute deviation value
+    test_x = [1,2,3] + [4] * 100 + [5, 6, 7]
+    with pytest.raises(ValueError):
+        freedman_bin_width(test_x, return_bins=True)
+
+    # data with too samll IQR, use median absolute deviation value instead
+    test_x = np.asarray([1,2,3]*100+ [4] + [5, 6, 7],dtype=np.float32)
+    test_x = test_x * 1.5e-6
+    delta, bins = freedman_bin_width(test_x, return_bins=True)
+    assert_allclose(delta, median_absolute_deviation(test_x))
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_knuth_bin_width(N=10000, rseed=0):
