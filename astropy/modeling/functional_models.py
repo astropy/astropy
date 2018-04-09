@@ -495,12 +495,19 @@ class Shift(Fittable1DModel):
 
 class Scale(Fittable1DModel):
     """
-    Multiply a model by a factor.
+    Multiply a model by a dimensionless factor.
 
     Parameters
     ----------
     factor : float
         Factor by which to scale a coordinate.
+
+    Notes
+    -----
+
+    If ``factor`` is a `~astropy.units.Quantity` then the units will be
+    stripped before the scaling operation.
+
     """
 
     inputs = ('x',)
@@ -509,6 +516,16 @@ class Scale(Fittable1DModel):
     factor = Parameter(default=1)
     linear = True
     fittable = True
+
+    _input_units_strict = True
+    _input_units_allow_dimensionless = True
+
+    @property
+    def input_units(self):
+        if self.factor.unit is None:
+            return None
+        else:
+            return {'x': self.factor.unit}
 
     @property
     def inverse(self):
@@ -520,11 +537,51 @@ class Scale(Fittable1DModel):
     @staticmethod
     def evaluate(x, factor):
         """One dimensional Scale model function"""
+        if isinstance(factor, u.Quantity):
+            factor = factor.value
+
         return factor * x
 
     @staticmethod
     def fit_deriv(x, *params):
         """One dimensional Scale model derivative with respect to parameter"""
+
+        d_factor = x
+        return [d_factor]
+
+
+class Multiply(Fittable1DModel):
+    """
+    Multiply a model by a quantity or number.
+
+    Parameters
+    ----------
+    factor : float
+        Factor by which to multiply a coordinate.
+    """
+
+    inputs = ('x',)
+    outputs = ('x',)
+
+    factor = Parameter(default=1)
+    linear = True
+    fittable = True
+
+    @property
+    def inverse(self):
+        """One dimensional inverse multiply model function"""
+        inv = self.copy()
+        inv.factor = 1 / self.factor
+        return inv
+
+    @staticmethod
+    def evaluate(x, factor):
+        """One dimensional multiply model function"""
+        return factor * x
+
+    @staticmethod
+    def fit_deriv(x, *params):
+        """One dimensional multiply model derivative with respect to parameter"""
 
         d_factor = x
         return [d_factor]

@@ -11,7 +11,7 @@ from astropy import modeling
 from .basic import TransformType
 from . import _parameter_to_value
 
-__all__ = ['ShiftType', 'ScaleType', 'PolynomialType']
+__all__ = ['ShiftType', 'ScaleType', 'PolynomialType', 'Linear1DType']
 
 
 class ShiftType(TransformType):
