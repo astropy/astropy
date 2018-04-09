@@ -126,3 +126,15 @@ def test_bounding_box(tmpdir):
     model.bounding_box = ((1, 3), (2, 4))
     tree = {'model': model}
     helpers.assert_roundtrip_tree(tree, tmpdir)
+
+
+def test_linear1d(tmpdir):
+    model = astmodels.Linear1D()
+    tree = {'model': model}
+    helpers.assert_roundtrip_tree(tree, tmpdir)
+
+
+def test_linear1d_quantity(tmpdir):
+    model = astmodels.Linear1D(1*u.nm, 1*(u.nm/u.pixel))
+    tree = {'model': model}
+    helpers.assert_roundtrip_tree(tree, tmpdir)
