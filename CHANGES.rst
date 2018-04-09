@@ -310,6 +310,12 @@ astropy.modeling
 - Fix the shape of the outputs when a model set is evaluated with
   ``model_set_axis=False`` . [#7317]
 
+- Fix behaviour of certain models with units, by making certain unit-related
+  attributes readonly. [#7210]
+
+- Add a ``Multiply`` model which preseves unit through evaluate, unlike
+  ``Scale`` which is dimensionless. [#7210]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
