@@ -6,7 +6,7 @@ import pytest
 
 from astropy import units
 
-asdf = pytest.importorskip('asdf', minversion='2.0.0')
+asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
 from asdf.tests import helpers
 
 

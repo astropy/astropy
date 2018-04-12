@@ -4,7 +4,7 @@
 import pytest
 import numpy as np
 
-asdf = pytest.importorskip('asdf', minversion='2.0.0')
+asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
 from asdf import util
 from asdf.tests import helpers
 
@@ -124,5 +124,17 @@ def test_tabular_model(tmpdir):
 def test_bounding_box(tmpdir):
     model = astmodels.Shift(1) & astmodels.Shift(2)
     model.bounding_box = ((1, 3), (2, 4))
+    tree = {'model': model}
+    helpers.assert_roundtrip_tree(tree, tmpdir)
+
+
+def test_linear1d(tmpdir):
+    model = astmodels.Linear1D()
+    tree = {'model': model}
+    helpers.assert_roundtrip_tree(tree, tmpdir)
+
+
+def test_linear1d_quantity(tmpdir):
+    model = astmodels.Linear1D(1*u.nm, 1*(u.nm/u.pixel))
     tree = {'model': model}
     helpers.assert_roundtrip_tree(tree, tmpdir)
