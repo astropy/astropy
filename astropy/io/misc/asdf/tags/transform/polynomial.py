@@ -72,6 +72,31 @@ class ScaleType(TransformType):
         assert_array_equal(a.factor, b.factor)
 
 
+class MultiplyType(TransformType):
+    name = "transform/multiplyscale"
+    version = '1.0.0'
+    types = ['astropy.modeling.models.Multiply']
+
+    @classmethod
+    def from_tree_transform(cls, node, ctx):
+        factor = node['factor']
+        return modeling.models.Multiply(factor)
+
+    @classmethod
+    def to_tree_transform(cls, model, ctx):
+        factor = model.factor
+        node = {'factor': _parameter_to_value(factor)}
+        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+
+    @classmethod
+    def assert_equal(cls, a, b):
+        # TODO: If models become comparable themselves, remove this.
+        TransformType.assert_equal(a, b)
+        assert (isinstance(a, modeling.models.Multiply) and
+                isinstance(b, modeling.models.Multiply))
+        assert_array_equal(a.factor, b.factor)
+
+
 class PolynomialType(TransformType):
     name = "transform/polynomial"
     types = ['astropy.modeling.models.Polynomial1D',
