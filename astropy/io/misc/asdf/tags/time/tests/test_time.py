@@ -10,7 +10,7 @@ import numpy as np
 
 from astropy import time
 
-asdf = pytest.importorskip('asdf', minversion='2.0.0')
+asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
 from asdf import AsdfFile, yamlutil, tagged
 from asdf.tests import helpers
 import asdf.schema as asdf_schema
