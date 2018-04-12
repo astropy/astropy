@@ -3,7 +3,7 @@
 
 import pytest
 
-asdf = pytest.importorskip('asdf', minversion='2.0.0')
+asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
 from asdf.tests.helpers import assert_roundtrip_tree
 
 from astropy import units
