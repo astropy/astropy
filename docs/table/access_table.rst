@@ -288,6 +288,20 @@ selected rows or columns.  ::
        9.000  11
       12.000  14
 
+We can select rows from a table using conditionals to create boolean masks. A
+table indexed with a boolean array will only return rows where the mask array
+element is `True`. Different conditionals can be combined using the bitwise
+operators.  ::
+
+  >>> mask = (t['a'] > 4) & (t['b'] > 8)  # Table rows where column a > 4
+  >>> print(t[mask])                      # and b > 8
+  ...
+       a      b   c
+    m sec^-1
+    -------- --- ---
+       9.000  10  11
+      12.000  13  14
+
 Finally, you can access the underlying table data as a native `numpy`
 structured array by creating a copy or reference with ``np.array``::
 
