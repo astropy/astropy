@@ -11,7 +11,7 @@ from astropy import modeling
 from .basic import TransformType
 from . import _parameter_to_value
 
-__all__ = ['ShiftType', 'ScaleType', 'PolynomialType']
+__all__ = ['ShiftType', 'ScaleType', 'PolynomialType', 'Linear1DType']
 
 
 class ShiftType(TransformType):
@@ -113,7 +113,7 @@ class PolynomialType(TransformType):
             for i in range(degree + 1):
                 for j in range(degree + 1):
                     if i + j < degree + 1:
-                        name = 'c' + str(i) + '_' +str(j)
+                        name = 'c' + str(i) + '_' + str(j)
                         coefficients[i, j] = getattr(model, name).value
         node = {'coefficients': coefficients}
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
@@ -125,3 +125,33 @@ class PolynomialType(TransformType):
         assert (isinstance(a, (modeling.models.Polynomial1D, modeling.models.Polynomial2D)) and
                 isinstance(b, (modeling.models.Polynomial1D, modeling.models.Polynomial2D)))
         assert_array_equal(a.parameters, b.parameters)
+
+
+class Linear1DType(TransformType):
+    name = "transform/linear1d"
+    version = '1.0.0'
+    types = ['astropy.modeling.models.Linear1D']
+
+    @classmethod
+    def from_tree_transform(cls, node, ctx):
+        slope = node.get('slope', None)
+        intercept = node.get('intercept', None)
+
+        return modeling.models.Linear1D(slope=slope, intercept=intercept)
+
+    @classmethod
+    def to_tree_transform(cls, model, ctx):
+        node = {
+            'slope': _parameter_to_value(model.slope),
+            'intercept': _parameter_to_value(model.intercept),
+        }
+        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+
+    @classmethod
+    def assert_equal(cls, a, b):
+        # TODO: If models become comparable themselves, remove this.
+        TransformType.assert_equal(a, b)
+        assert (isinstance(a, modeling.models.Linear1D) and
+                isinstance(b, modeling.models.Linear1D))
+        assert_array_equal(a.slope, b.slope)
+        assert_array_equal(a.intercept, b.intercept)
