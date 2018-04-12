@@ -7,6 +7,9 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
+import astropy.units as u
+from astropy.tests.helper import assert_quantity_allclose
+
 from .. import models
 from ...wcs import wcs
 
@@ -53,6 +56,12 @@ def test_Rotation2D():
     model = models.Rotation2D(angle=90)
     x, y = model(1, 0)
     assert_allclose([x, y], [0, 1], atol=1e-10)
+
+
+def test_Rotation2D_quantity():
+    model = models.Rotation2D(angle=90*u.deg)
+    x, y = model(1*u.deg, 0*u.arcsec)
+    assert_quantity_allclose([x, y], [0, 1]*u.deg, atol=1e-10*u.deg)
 
 
 def test_Rotation2D_inverse():
