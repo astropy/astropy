@@ -319,6 +319,8 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Make pytest dependency optional for ``astropy.tests.helper``. [#7366]
+
 astropy.time
 ^^^^^^^^^^^^
 
