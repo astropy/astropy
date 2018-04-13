@@ -30,7 +30,7 @@ from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
                               check_output)
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
-           "QuantityInfoBase", "QuantityInfo", "allclose"]
+           "QuantityInfoBase", "QuantityInfo", "allclose", "isclose"]
 
 
 # We don't want to run doctests in the docstrings we inherit from Numpy
@@ -1722,6 +1722,19 @@ class SpecificTypeQuantity(Quantity):
                  ", so cannot set it to '{0}'.".format(unit)))
 
         super()._set_unit(unit)
+
+
+def isclose(a, b, rtol=1.e-5, atol=None, **kwargs):
+    """
+    Notes
+    -----
+    Returns True if two arrays are element-wise equal within a tolerance.
+
+    This is a :class:`~astropy.units.Quantity`-aware version of
+    :func:`numpy.isclose`.
+    """
+    return np.isclose(*_unquantify_allclose_arguments(a, b, rtol, atol),
+                      **kwargs)
 
 
 def allclose(a, b, rtol=1.e-5, atol=None, **kwargs):
