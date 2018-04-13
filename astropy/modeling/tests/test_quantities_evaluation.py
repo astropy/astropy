@@ -107,7 +107,7 @@ class TestInputUnits():
 
     def test_input_units(self):
 
-        self.model.input_units = {'a': u.deg}
+        self.model._input_units = {'a': u.deg}
 
         assert_quantity_allclose(self.model(3 * u.deg, 4), 12 * u.deg)
         assert_quantity_allclose(self.model(4 * u.rad, 2), 8 * u.rad)
@@ -125,8 +125,8 @@ class TestInputUnits():
 
     def test_input_units_allow_dimensionless(self):
 
-        self.model.input_units = {'a': u.deg}
-        self.model.input_units_allow_dimensionless = True
+        self.model._input_units = {'a': u.deg}
+        self.model._input_units_allow_dimensionless = True
 
         assert_quantity_allclose(self.model(3 * u.deg, 4), 12 * u.deg)
         assert_quantity_allclose(self.model(4 * u.rad, 2), 8 * u.rad)
@@ -140,8 +140,8 @@ class TestInputUnits():
 
     def test_input_units_strict(self):
 
-        self.model.input_units = {'a': u.deg}
-        self.model.input_units_strict = True
+        self.model._input_units = {'a': u.deg}
+        self.model._input_units_strict = True
 
         assert_quantity_allclose(self.model(3 * u.deg, 4), 12 * u.deg)
 
@@ -151,7 +151,7 @@ class TestInputUnits():
 
     def test_input_units_equivalencies(self):
 
-        self.model.input_units = {'a': u.micron}
+        self.model._input_units = {'a': u.micron}
 
         with pytest.raises(UnitsError) as exc:
             self.model(3 * u.PHz, 3)
@@ -166,8 +166,8 @@ class TestInputUnits():
 
     def test_return_units(self):
 
-        self.model.input_units = {'a': u.deg}
-        self.model.return_units = {'f': u.rad}
+        self.model._input_units = {'a': u.deg}
+        self.model._return_units = {'f': u.rad}
 
         result = self.model(3 * u.deg, 4)
 
@@ -179,8 +179,8 @@ class TestInputUnits():
         # Check that return_units also works when giving a single unit since
         # there is only one output, so is unambiguous.
 
-        self.model.input_units = {'a': u.deg}
-        self.model.return_units = u.rad
+        self.model._input_units = {'a': u.deg}
+        self.model._return_units = u.rad
 
         result = self.model(3 * u.deg, 4)
 
@@ -357,7 +357,7 @@ def test_compound_input_units_allow_dimensionless():
         input_units = {'x': u.deg}
 
     s1 = ScaleDegrees(2)
-    s1.input_units_allow_dimensionless = True
+    s1._input_units_allow_dimensionless = True
     s2 = Scale(2)
 
     cs = s1 | s2
@@ -372,7 +372,7 @@ def test_compound_input_units_allow_dimensionless():
         out = cs(10 * u.m)
     assert exc.value.args[0] == "TestModel: Units of input 'x', m (length), could not be converted to required input units of deg (angle)"
 
-    s1.input_units_allow_dimensionless = False
+    s1._input_units_allow_dimensionless = False
 
     cs = s1 | s2
     cs = cs.rename('TestModel')
@@ -381,7 +381,7 @@ def test_compound_input_units_allow_dimensionless():
         out = cs(10)
     assert exc.value.args[0] == "TestModel: Units of input 'x', (dimensionless), could not be converted to required input units of deg (angle)"
 
-    s1.input_units_allow_dimensionless = True
+    s1._input_units_allow_dimensionless = True
 
     cs = s2 | s1
     cs = cs.rename('TestModel')
@@ -396,7 +396,7 @@ def test_compound_input_units_allow_dimensionless():
         out = cs(10 * u.m)
     assert exc.value.args[0] == "ScaleDegrees: Units of input 'x', m (length), could not be converted to required input units of deg (angle)"
 
-    s1.input_units_allow_dimensionless = False
+    s1._input_units_allow_dimensionless = False
 
     cs = s2 | s1
 
@@ -404,12 +404,12 @@ def test_compound_input_units_allow_dimensionless():
         out = cs(10)
     assert exc.value.args[0] == "ScaleDegrees: Units of input 'x', (dimensionless), could not be converted to required input units of deg (angle)"
 
-    s1.input_units_allow_dimensionless = True
+    s1._input_units_allow_dimensionless = True
 
     s1 = ScaleDegrees(2)
-    s1.input_units_allow_dimensionless = True
+    s1._input_units_allow_dimensionless = True
     s2 = ScaleDegrees(2)
-    s2.input_units_allow_dimensionless = False
+    s2._input_units_allow_dimensionless = False
 
     cs = s1 & s2
     cs = cs.rename('TestModel')

@@ -707,14 +707,11 @@ class Model(metaclass=_ModelMeta):
         they are converted. If this is a dictionary then it should map input
         name to a bool to set strict input units for that parameter.
         """
-        return self._input_units_strict
-
-    @input_units_strict.setter
-    def input_units_strict(self, val):
+        val = self._input_units_strict
         if isinstance(val, bool):
-            self._input_units_strict = {key: val for key in self.__class__.inputs}
+            return {key: val for key in self.__class__.inputs}
         else:
-            self._input_units_strict = val
+            return val
 
     @property
     def input_units_allow_dimensionless(self):
@@ -725,14 +722,11 @@ class Model(metaclass=_ModelMeta):
         dimensionless numbers for that input.
         Only has an effect if input_units is defined.
         """
-        return self._input_units_allow_dimensionless
-
-    @input_units_allow_dimensionless.setter
-    def input_units_allow_dimensionless(self, val):
+        val = self._input_units_allow_dimensionless
         if isinstance(val, bool):
-            self._input_units_allow_dimensionless = {key: val for key in self.__class__.inputs}
+            return {key: val for key in self.__class__.inputs}
         else:
-            self._input_units_allow_dimensionless = val
+            return val
 
     def __repr__(self):
         return self._format_repr()
@@ -749,9 +743,6 @@ class Model(metaclass=_ModelMeta):
         that were specified when the model was instantiated.
         """
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
-
-        # Check whether any of the inputs are quantities
-        inputs_are_quantity = any([isinstance(i, Quantity) for i in inputs])
 
         parameters = self._param_sets(raw=True, units=True)
         with_bbox = kwargs.pop('with_bounding_box', False)
@@ -1424,10 +1415,6 @@ class Model(metaclass=_ModelMeta):
             # None means any unit is accepted
             return None
 
-    @input_units.setter
-    def input_units(self, input_units):
-        self._input_units = input_units
-
     @property
     def return_units(self):
         """
@@ -1447,10 +1434,6 @@ class Model(metaclass=_ModelMeta):
         else:
             # None means any unit is accepted
             return None
-
-    @return_units.setter
-    def return_units(self, return_units):
-        self._return_units = return_units
 
     def prepare_inputs(self, *inputs, model_set_axis=None, equivalencies=None,
                        **kwargs):
@@ -1579,7 +1562,7 @@ class Model(metaclass=_ModelMeta):
             else:
                 return_units = self.return_units
 
-            outputs = tuple([Quantity(out, return_units[out_name], subok=True)
+            outputs = tuple([Quantity(out, return_units.get(out_name, None), subok=True)
                             for out, out_name in zip(outputs, self.outputs)])
 
         return outputs
