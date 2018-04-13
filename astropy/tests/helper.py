@@ -11,8 +11,6 @@ import pickle
 import warnings
 import functools
 
-import pytest
-
 try:
     # Import pkg_resources to prevent it from issuing warnings upon being
     # imported from within py.test.  See
@@ -28,15 +26,11 @@ from ..utils.exceptions import (AstropyDeprecationWarning,
 # For backward-compatibility with affiliated packages
 from .runner import TestRunner  # pylint: disable=W0611
 
-__all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
+__all__ = ['enable_deprecations_as_exceptions',
            'treat_deprecations_as_exceptions', 'catch_warnings',
            'assert_follows_unicode_guidelines', 'quantity_allclose',
            'assert_quantity_allclose', 'check_pickling_recovery',
-           'pickle_protocol', 'generic_recursive_equality_test']
-
-# pytest marker to mark tests which get data from the web
-# This is being maintained for backwards compatibility
-remote_data = pytest.mark.remote_data
+           'generic_recursive_equality_test']
 
 
 # distutils expects options to be Unicode strings
@@ -87,40 +81,6 @@ def _save_coverage(cov, result, rootdir, testing_path):
 
     color_print('Saving HTML coverage report in htmlcov...', 'green')
     cov.html_report(directory=os.path.join(rootdir, 'htmlcov'))
-
-
-class raises:
-    """
-    A decorator to mark that a test should raise a given exception.
-    Use as follows::
-
-        @raises(ZeroDivisionError)
-        def test_foo():
-            x = 1/0
-
-    This can also be used a context manager, in which case it is just
-    an alias for the ``pytest.raises`` context manager (because the
-    two have the same name this help avoid confusion by being
-    flexible).
-    """
-
-    # pep-8 naming exception -- this is a decorator class
-    def __init__(self, exc):
-        self._exc = exc
-        self._ctx = None
-
-    def __call__(self, func):
-        @functools.wraps(func)
-        def run_raises_test(*args, **kwargs):
-            pytest.raises(self._exc, func, *args, **kwargs)
-        return run_raises_test
-
-    def __enter__(self):
-        self._ctx = pytest.raises(self._exc)
-        return self._ctx.__enter__()
-
-    def __exit__(self, *exc_info):
-        return self._ctx.__exit__(*exc_info)
 
 
 _deprecations_as_exceptions = False
@@ -403,15 +363,6 @@ def assert_follows_unicode_guidelines(
             assert eval(repr_x, roundtrip) == x
 
 
-@pytest.fixture(params=[0, 1, -1])
-def pickle_protocol(request):
-    """
-    Fixture to run all the tests for protocols 0 and 1, and -1 (most advanced).
-    (Originally from astropy.table.tests.test_pickle)
-    """
-    return request.param
-
-
 def generic_recursive_equality_test(a, b, class_history):
     """
     Check if the attributes of a and b are equal. Then,
@@ -510,3 +461,57 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         raise u.UnitsError("`rtol` should be dimensionless")
 
     return actual.value, desired.value, rtol.value, atol.value
+
+
+try:
+    import pytest
+
+    __all__ += ['pickle_protocol', 'raises', 'remote_data']
+
+    # pytest marker to mark tests which get data from the web
+    # This is being maintained for backwards compatibility
+    remote_data = pytest.mark.remote_data
+
+    @pytest.fixture(params=[0, 1, -1])
+    def pickle_protocol(request):
+        """
+        Fixture to run all the tests for protocols 0 and 1, and -1 (most advanced).
+        (Originally from astropy.table.tests.test_pickle)
+        """
+        return request.param
+
+    class raises:
+        """
+        A decorator to mark that a test should raise a given exception.
+        Use as follows::
+
+            @raises(ZeroDivisionError)
+            def test_foo():
+                x = 1/0
+
+        This can also be used a context manager, in which case it is just
+        an alias for the ``pytest.raises`` context manager (because the
+        two have the same name this help avoid confusion by being
+        flexible).
+        """
+
+        # pep-8 naming exception -- this is a decorator class
+        def __init__(self, exc):
+            self._exc = exc
+            self._ctx = None
+
+        def __call__(self, func):
+            @functools.wraps(func)
+            def run_raises_test(*args, **kwargs):
+                pytest.raises(self._exc, func, *args, **kwargs)
+            return run_raises_test
+
+        def __enter__(self):
+            self._ctx = pytest.raises(self._exc)
+            return self._ctx.__enter__()
+
+        def __exit__(self, *exc_info):
+            return self._ctx.__exit__(*exc_info)
+
+except ImportError:
+    pass
