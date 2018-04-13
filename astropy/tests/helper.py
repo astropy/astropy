@@ -19,7 +19,7 @@ try:
 except ImportError:
     pass
 
-from ...units.quantity import allclose as quantity_allclose
+from ..units import allclose as quantity_allclose
 from ..utils.exceptions import (AstropyDeprecationWarning,
                                 AstropyPendingDeprecationWarning)
 
@@ -459,4 +459,9 @@ def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=None,
     This is a :class:`~astropy.units.Quantity`-aware version of
     :func:`numpy.testing.assert_allclose`.
     """
-    assert quantity_allclose(actual, desired, rtol, atol, **kwargs)
+    import numpy as np
+    from astropy.units.quantity import _unquantify_allclose_arguments
+
+    np.testing.assert_allclose(*_unquantify_allclose_arguments(actual, desired,
+                                                               rtol, atol),
+                               **kwargs)

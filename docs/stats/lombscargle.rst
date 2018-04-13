@@ -407,8 +407,7 @@ Next we compute the two versions of the PSD from uniformly-sampled data:
 
 Examining the results, we see that the two outputs match:
 
->>> from astropy.units.quantity import allclose as quantity_allclose
->>> quantity_allclose(PSD_fourier, PSD_LS)
+>>> u.allclose(PSD_fourier, PSD_LS)
 True
 
 This equivalence is one reason the Lomb-Scargle periodogram is considered
