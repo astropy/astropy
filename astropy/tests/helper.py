@@ -10,7 +10,6 @@ import pickle
 import warnings
 import functools
 import pytest
-from ..utils.decorators import deprecated
 
 try:
     # Import pkg_resources to prevent it from issuing warnings upon being
@@ -459,11 +458,7 @@ def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=None,
     This is a :class:`~astropy.units.Quantity`-aware version of
     :func:`numpy.testing.assert_allclose`.
     """
-    import numpy as np
-    from ..units.quantity import _unquantify_allclose_arguments
-    np.testing.assert_allclose(*_unquantify_allclose_arguments(actual, desired,
-                                                               rtol, atol),
-                               **kwargs)
+    assert quantity_allclose(actual, desired, rtol, atol, **kwargs)
 
 
 def quantity_allclose(a, b, rtol=1.e-5, atol=None, **kwargs):
@@ -473,5 +468,5 @@ def quantity_allclose(a, b, rtol=1.e-5, atol=None, **kwargs):
     This is a :class:`~astropy.units.Quantity`-aware version of
     :func:`numpy.allclose`.
     """
-    from ..units.quantity import allclose as quantity_allclose_units
-    quantity_allclose_units(a, b, rtol=1.e-5, atol=None, **kwargs)
+    from ..units.quantity import allclose
+    allclose(a, b, rtol=1.e-5, atol=None, **kwargs)
