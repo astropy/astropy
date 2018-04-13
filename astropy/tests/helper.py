@@ -142,7 +142,9 @@ _warnings_to_ignore_by_pyver = {
         # See https://github.com/pytest-dev/pytest/pull/1009
         # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
         r"inspect\.getargspec\(\) is deprecated, use "
-        r"inspect\.signature\(\) instead"]),
+        r"inspect\.signature\(\) instead",
+        # https://github.com/astropy/astropy/pull/7372
+        r"Importing from numpy\.testing\.decorators is deprecated, import from numpy\.testing instead\."]),
     (3, 6): set([
         # py.test reads files with the 'U' flag, which is
         # deprecated.
@@ -150,7 +152,9 @@ _warnings_to_ignore_by_pyver = {
         # inspect raises this slightly different warning on Python 3.6.
         # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
         r"inspect\.getargspec\(\) is deprecated, use "
-        r"inspect\.signature\(\) or inspect\.getfullargspec\(\)"])}
+        r"inspect\.signature\(\) or inspect\.getfullargspec\(\)",
+        # https://github.com/astropy/astropy/pull/7372
+        r"Importing from numpy\.testing\.decorators is deprecated, import from numpy\.testing instead\."])}
 
 
 def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
