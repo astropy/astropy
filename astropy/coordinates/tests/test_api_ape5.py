@@ -17,7 +17,7 @@ import numpy as np
 from numpy.random import randn
 from numpy import testing as npt
 
-from ...tests.helper import (raises, assert_quantity_allclose as assert_allclose)
+from ...tests.helper import raises, assert_quantity_allclose as assert_allclose
 from ... import units as u
 from ... import time
 from ... import coordinates as coords
