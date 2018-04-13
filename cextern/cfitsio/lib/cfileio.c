@@ -1490,7 +1490,7 @@ int fits_already_open(fitsfile **fptr, /* I/O - FITS file pointer       */
     char oldbinspec[FLEN_FILENAME], oldcolspec[FLEN_FILENAME];
     char cwd[FLEN_FILENAME];
     char tmpStr[FLEN_FILENAME];
-    char tmpinfile[FLEN_FILENAME];
+    char tmpinfile[FLEN_FILENAME]; 
 
     *isopen = 0;
 
@@ -1508,7 +1508,8 @@ int fits_already_open(fitsfile **fptr, /* I/O - FITS file pointer       */
 
     if(fits_strcasecmp(urltype,"FILE://") == 0)
       {
-        fits_path2url(infile,tmpinfile,status);
+        if (fits_path2url(infile,FLEN_FILENAME,tmpinfile,status))
+           return (*status);
 
         if(tmpinfile[0] != '/')
           {
@@ -1546,7 +1547,8 @@ int fits_already_open(fitsfile **fptr, /* I/O - FITS file pointer       */
 
           if(fits_strcasecmp(oldurltype,"FILE://") == 0)
             {
-              fits_path2url(oldinfile,tmpStr,status);
+              if(fits_path2url(oldinfile,FLEN_FILENAME,tmpStr,status))
+                 return(*status);
               
               if(tmpStr[0] != '/')
                 {
@@ -1856,7 +1858,7 @@ int ffedit_columns(
     fitsfile *newptr;
     int ii, hdunum, slen, colnum = -1, testnum, deletecol = 0, savecol = 0;
     int numcols = 0, *colindex = 0, tstatus = 0;
-    char *cptr, *cptr2, *cptr3, *clause = NULL, keyname[FLEN_KEYWORD];
+    char *tstbuff=0, *cptr, *cptr2, *cptr3, *clause = NULL, keyname[FLEN_KEYWORD];
     char colname[FLEN_VALUE], oldname[FLEN_VALUE], colformat[FLEN_VALUE];
     char *file_expr = NULL, testname[FLEN_VALUE], card[FLEN_CARD];
 
@@ -1962,11 +1964,15 @@ int ffedit_columns(
 
         if (clause[0] == '!' || clause[0] == '-')
         {
+	    char *clause1 = clause+1;
             /* ===================================== */
             /* Case I. delete this column or keyword */
             /* ===================================== */
 
-            if (ffgcno(*fptr, CASEINSEN, &clause[1], &colnum, status) <= 0)
+	    /* Check that clause does not have leading '#' and
+	       that column name exists */
+            if (clause1[0] && clause1[0] != '#' &&
+		ffgcno(*fptr, CASEINSEN, clause1, &colnum, status) <= 0)
             {
                 /* a column with this name exists, so try to delete it */
                 if (ffdcol(*fptr, colnum, status) > 0)
@@ -1984,18 +1990,41 @@ int ffedit_columns(
             }
             else
             {
+	      int delall = 0, clen = 0;
 	        ffcmsg();   /* clear previous error message from ffgcno */
                 /* try deleting a keyword with this name */
                 *status = 0;
-                if (ffdkey(*fptr, &clause[1], status) > 0)
-                {
-                    ffpmsg("column or keyword to be deleted does not exist:");
-                    ffpmsg(clause);
-                    if( colindex ) free( colindex );
-                    if( file_expr ) free( file_expr );
-		    if( clause ) free(clause);
-                    return(*status);
-                }
+		/* skip past leading '#' if any */
+		if (clause1[0] == '#') clause1++;
+		clen = strlen(clause1);
+
+		/* Repeat deletion of keyword if requested with trailing '+' */
+		if (clen > 1 && clause1[clen-1] == '+') {
+		  delall = 1;
+		  clause1[clen-1] = 0;
+		}
+		/* Single or repeated deletions until done */
+		do {
+		  if (ffdkey(*fptr, clause1, status) > 0)
+		    {
+		      if (delall && *status == KEY_NO_EXIST &&
+			  (strchr(clause1,'*') || strchr(clause1,'?')) ) {
+			/* Found last wildcard item. Stop deleting */
+			ffcmsg();
+			*status = 0;
+			delall = 0; /* Force end of this loop */
+		      } else {
+			/* This was not a wildcard deletion, or it resulted in
+			   another kind of error */
+			ffpmsg("column or keyword to be deleted does not exist:");
+			ffpmsg(clause1);
+			if( colindex ) free( colindex );
+			if( file_expr ) free( file_expr );
+			if( clause ) free(clause);
+			return(*status);
+		      }
+		    }
+		} while(delall); /* end do{} */
             }
         }
         else
@@ -2011,17 +2040,32 @@ int ffedit_columns(
 	       calculation expression (case 2B) */
             /* ===================================================== */
             cptr2 = clause;
-            slen = fits_get_token(&cptr2, "( =", colname, NULL);
+            slen = fits_get_token2(&cptr2, "( =", &tstbuff, NULL, status);
 
-            if (slen == 0)
+            if (slen == 0 || *status)
             {
-                ffpmsg("error: column or keyword name is blank:");
+                ffpmsg("error: column or keyword name is blank (ffedit_columns):");
                 ffpmsg(clause);
                 if( colindex ) free( colindex );
                 if( file_expr ) free( file_expr );
 		if (clause) free(clause);
+                if (*status==0)
+                   *status=URL_PARSE_ERROR;
+                return(*status);
+            }
+            if (strlen(tstbuff) > FLEN_VALUE-1)
+            {
+                ffpmsg("error: column or keyword name is too long (ffedit_columns):");
+                ffpmsg(clause);
+                if( colindex ) free( colindex );
+                if( file_expr ) free( file_expr );
+		if (clause) free(clause);
+                free(tstbuff);
                 return(*status= URL_PARSE_ERROR);
             }
+            strcpy(colname, tstbuff);
+            free(tstbuff);
+            tstbuff=0;
 
 	    /* If this is a keyword of the form 
 	         #KEYWORD# 
@@ -2091,9 +2135,22 @@ int ffedit_columns(
             */
             if (*cptr2  == '(')
             {
-                fits_get_token(&cptr2, ")", oldname, NULL);
-                strcat(colname, oldname);
+                fits_get_token2(&cptr2, ")", &tstbuff, NULL, status);
+                if (*status || (strlen(tstbuff) + strlen(colname) + 1) >
+                     FLEN_VALUE-1)
+                {
+                   ffpmsg("error: column name is too long (ffedit_columns):");
+                   if( file_expr ) free( file_expr );
+		   if (clause) free(clause);
+                   free(tstbuff);
+                   if (*status==0)
+                      *status=URL_PARSE_ERROR;
+		   return (*status);
+                }
+                strcat(colname, tstbuff);
                 strcat(colname, ")");
+                free(tstbuff);
+                tstbuff=0;
                 cptr2++;
             }
 
@@ -2177,7 +2234,20 @@ int ffedit_columns(
                 while (*cptr2 == ' ')
                       cptr2++;       /* skip white space */
 
-                fits_get_token(&cptr2, " ", oldname, NULL);
+                fits_get_token2(&cptr2, " ", &tstbuff, NULL, status);
+                if (*status || strlen(tstbuff) > FLEN_VALUE-1)
+                {
+                   ffpmsg("error: column name syntax is too long (ffedit_columns):");
+                   if( file_expr ) free( file_expr );
+		   if (clause) free(clause);
+                   free(tstbuff);
+                   if (*status==0)
+                      *status=URL_PARSE_ERROR;
+		   return (*status);
+                }
+                strcpy(oldname, tstbuff);
+                free(tstbuff);
+                tstbuff=0;
 
                 /* get column number of the existing column */
                 if (ffgcno(*fptr, CASEINSEN, oldname, &colnum, status) <= 0)
@@ -2232,12 +2302,40 @@ int ffedit_columns(
                 colformat[0] = '\0';
                 cptr3 = colname;
 
-                fits_get_token(&cptr3, "(", oldname, NULL);
+                fits_get_token2(&cptr3, "(", &tstbuff, NULL, status);
+                if (*status || strlen(tstbuff) > FLEN_VALUE-1)
+                {
+                      ffpmsg("column expression is too long (ffedit_columns)");
+                      if( colindex ) free( colindex );
+                      if( file_expr ) free( file_expr );
+		      if (clause) free(clause);
+                      free(tstbuff);
+                      if (*status==0)
+                         *status=URL_PARSE_ERROR;
+                      return(*status);
+                }
+                strcpy(oldname, tstbuff);
+                free(tstbuff);
+                tstbuff=0;
 
                 if (cptr3[0] == '(' )
                 {
                    cptr3++;  /* skip the '(' */
-                   fits_get_token(&cptr3, ")", colformat, NULL);
+                   fits_get_token2(&cptr3, ")", &tstbuff, NULL, status);
+                   if (*status || strlen(tstbuff) > FLEN_VALUE-1)
+                   {
+                         ffpmsg("column expression is too long (ffedit_columns)");
+                         if( colindex ) free( colindex );
+                         if( file_expr ) free( file_expr );
+		         if (clause) free(clause);
+                         free(tstbuff);
+                         if (*status==0)
+                            *status=URL_PARSE_ERROR;
+                         return(*status);
+                   }
+                   strcpy(colformat, tstbuff);
+                   free(tstbuff);
+                   tstbuff=0;
                 }
 
                 /* calculate values for the column or keyword */
@@ -3282,13 +3380,24 @@ int fits_get_section_range(char **ptr,
 */
 {
     int slen, isanumber;
-    char token[FLEN_VALUE];
+    char token[FLEN_VALUE], *tstbuff=0;
 
     if (*status > 0)
         return(*status);
 
-    slen = fits_get_token(ptr, " ,:", token, &isanumber); /* get 1st token */
-
+    slen = fits_get_token2(ptr, " ,:", &tstbuff, &isanumber, status); /* get 1st token */
+    if (*status || strlen(tstbuff) > FLEN_VALUE-1)
+    {
+       ffpmsg("Error: image section string too long (fits_get_section_range)");
+       free(tstbuff);
+       if (*status==0)
+          *status = URL_PARSE_ERROR;
+       return(*status);
+    }
+    strcpy(token, tstbuff);
+    free(tstbuff);
+    tstbuff=0;
+    
     /* support [:2,:2] type syntax, where the leading * is implied */
     if (slen==0) strcpy(token,"*");
 
@@ -3311,8 +3420,18 @@ int fits_get_section_range(char **ptr,
       *secmin = atol(token);
 
       (*ptr)++;  /* skip the colon between the min and max values */
-      slen = fits_get_token(ptr, " ,:", token, &isanumber); /* get token */
-
+      slen = fits_get_token2(ptr, " ,:", &tstbuff, &isanumber, status); /* get token */
+      if (*status || strlen(tstbuff) > FLEN_VALUE-1)
+      {
+         ffpmsg("Error: image section string too long (fits_get_section_range)");
+         free(tstbuff);
+         if (*status==0)
+            *status = URL_PARSE_ERROR;
+         return(*status);
+      }
+      strcpy(token, tstbuff);
+      free(tstbuff);
+      tstbuff=0;
       if (slen == 0 || !isanumber)
         return(*status = URL_PARSE_ERROR);   
 
@@ -3323,7 +3442,18 @@ int fits_get_section_range(char **ptr,
     if (**ptr == ':')
     {
         (*ptr)++;  /* skip the colon between the max and incre values */
-        slen = fits_get_token(ptr, " ,", token, &isanumber); /* get token */
+        slen = fits_get_token2(ptr, " ,", &tstbuff, &isanumber, status); /* get token */
+        if (*status || strlen(tstbuff) > FLEN_VALUE-1)
+        {
+           ffpmsg("Error: image section string too long (fits_get_section_range)");
+           free(tstbuff);
+           if (*status==0)
+              *status = URL_PARSE_ERROR;
+           return(*status);
+        }
+        strcpy(token, tstbuff);
+        free(tstbuff);
+        tstbuff=0;
 
         if (slen == 0 || !isanumber)
             return(*status = URL_PARSE_ERROR);   
@@ -5063,9 +5193,14 @@ int ffifile2(char *url,       /* input filename */
            /* to the output file, and is not the urltype of the input file */
            ptr2 = 0;   /* so reset pointer to zero */
         }
-
+        
         if (ptr2)            /* copy the explicit urltype string */ 
         {
+            if (ptr2-ptr1+3 >= MAX_PREFIX_LEN)
+            {
+               ffpmsg("Name of urltype is too long.");
+               return(*status = URL_PARSE_ERROR);
+            }
             if (urltype)
                  strncat(urltype, ptr1, ptr2 - ptr1 + 3);
             ptr1 = ptr2 + 3;

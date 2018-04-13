@@ -1451,6 +1451,10 @@ int ffgkns( fitsfile *fptr,     /* I - FITS file pointer                    */
           equalssign = strchr(card, '=');
 	  if (equalssign == 0) continue;  /* keyword has no value */
 
+          if (equalssign - card - lenroot > 7)
+          {
+             return (*status=BAD_KEYCHAR);
+          }
           strncat(keyindex, &card[lenroot], equalssign - card  - lenroot);  /*  copy suffix  */
           tstatus = 0;
           if (ffc2ii(keyindex, &ival, &tstatus) <= 0)     /*  test suffix  */
@@ -1528,6 +1532,10 @@ int ffgknl( fitsfile *fptr,     /* I - FITS file pointer                    */
           equalssign = strchr(card, '=');
 	  if (equalssign == 0) continue;  /* keyword has no value */
 
+          if (equalssign - card - lenroot > 7)
+          {
+             return (*status=BAD_KEYCHAR);
+          }
           strncat(keyindex, &card[lenroot], equalssign - card  - lenroot);  /*  copy suffix  */
 
           tstatus = 0;
@@ -1605,6 +1613,10 @@ int ffgknj( fitsfile *fptr,     /* I - FITS file pointer                    */
           equalssign = strchr(card, '=');
 	  if (equalssign == 0) continue;  /* keyword has no value */
 
+          if (equalssign - card - lenroot > 7)
+          {
+             return (*status=BAD_KEYCHAR);
+          }
           strncat(keyindex, &card[lenroot], equalssign - card  - lenroot);  /*  copy suffix  */
 
           tstatus = 0;
@@ -1682,6 +1694,10 @@ int ffgknjj( fitsfile *fptr,    /* I - FITS file pointer                    */
           equalssign = strchr(card, '=');
 	  if (equalssign == 0) continue;  /* keyword has no value */
 
+          if (equalssign - card - lenroot > 7)
+          {
+             return (*status=BAD_KEYCHAR);
+          }
           strncat(keyindex, &card[lenroot], equalssign - card  - lenroot);  /*  copy suffix  */
 
           tstatus = 0;
@@ -1759,6 +1775,10 @@ int ffgkne( fitsfile *fptr,     /* I - FITS file pointer                    */
           equalssign = strchr(card, '=');
 	  if (equalssign == 0) continue;  /* keyword has no value */
 
+          if (equalssign - card - lenroot > 7)
+          {
+             return (*status=BAD_KEYCHAR);
+          }
           strncat(keyindex, &card[lenroot], equalssign - card  - lenroot);  /*  copy suffix  */
 
           tstatus = 0;
@@ -1835,6 +1855,10 @@ int ffgknd( fitsfile *fptr,     /* I - FITS file pointer                    */
           equalssign = strchr(card, '=');
 	  if (equalssign == 0) continue;  /* keyword has no value */
 
+          if (equalssign - card - lenroot > 7)
+          {
+             return (*status=BAD_KEYCHAR);
+          }
           strncat(keyindex, &card[lenroot], equalssign - card  - lenroot);  /*  copy suffix  */
           tstatus = 0;
           if (ffc2ii(keyindex, &ival, &tstatus) <= 0)      /*  test suffix */

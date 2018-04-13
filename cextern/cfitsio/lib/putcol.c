@@ -855,7 +855,8 @@ int fits_iter_set_by_name(iteratorCol *col, /* I - iterator col structure */
 */
 {
     col->fptr = fptr;
-    strcpy(col->colname, colname);
+    strncpy(col->colname, colname,69);
+    col->colname[69]=0;
     col->colnum = 0;  /* set column number undefined since name is given */
     col->datatype = datatype;
     col->iotype = iotype;
@@ -894,7 +895,8 @@ int fits_iter_set_colname(iteratorCol *col, /* I - iterator col structure  */
   set iterator column parameter
 */
 {
-    strcpy(col->colname, colname);
+    strncpy(col->colname, colname,69);
+    col->colname[69]=0;
     col->colnum = 0;  /* set column number undefined since name is given */
     return(0);
 }
