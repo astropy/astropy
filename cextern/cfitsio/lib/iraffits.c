@@ -1329,6 +1329,8 @@ char val[30];
 /* Translate value from ASCII to binary */
 	if (value != NULL) {
 	    minint = -MAXINT - 1;
+            if (strlen(value) > 29)
+               return(0);
 	    strcpy (val, value);
 	    dval = atof (val);
 	    if (dval+0.001 > MAXINT)
@@ -1372,10 +1374,13 @@ char *str;	/* String (returned) */
 	    lval = strlen (value);
 	    if (lval < lstr)
 		strcpy (str, value);
-	    else if (lstr > 1)
+	    else if (lstr > 1) {
 		strncpy (str, value, lstr-1);
-	    else
+                str[lstr-1]=0;
+            }
+	    else {
 		str[0] = value[0];
+            }
 	    return (1);
 	    }
 	else
@@ -1422,6 +1427,7 @@ char *keyword0;	/* character string containing the name of the keyword
 
 /* Find length of variable name */
 	strncpy (keyword,keyword0, sizeof(keyword)-1);
+        keyword[80]=0;
 	brack1 = strsrch (keyword,lbracket);
 	if (brack1 == NULL)
 	    brack1 = strsrch (keyword,comma);

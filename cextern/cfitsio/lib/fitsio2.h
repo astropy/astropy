@@ -387,8 +387,8 @@ int fits_already_open(fitsfile **fptr, char *url,
     char *urltype, char *infile, char *extspec, char *rowfilter,
     char *binspec, char *colspec, int  mode,int  *isopen, int  *status);
 int ffedit_columns(fitsfile **fptr, char *outfile, char *expr, int *status);
-int fits_get_col_minmax(fitsfile *fptr, int colnum, float *datamin, 
-                     float *datamax, int *status);
+int fits_get_col_minmax(fitsfile *fptr, int colnum, double *datamin, 
+                     double *datamax, int *status);
 int ffwritehisto(long totaln, long offset, long firstn, long nvalues,
              int narrays, iteratorCol *imagepars, void *userPointer);
 int ffcalchist(long totalrows, long offset, long firstrow, long nrows,

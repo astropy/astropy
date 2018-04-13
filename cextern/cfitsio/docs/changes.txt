@@ -1,4 +1,31 @@
                    Log of Changes Made to CFITSIO
+
+Version 3.44 - April 2018
+
+  - This release primarily patches security vulnerabilities.  We
+    strongly encourage this upgrade, particularly for those running 
+    CFITSIO in web accessible applications.
+    
+    In addition, the following enhancements and fixes were made: 
+
+  - Enhancement to 'template' and 'colfilter' functionality.  It is now
+    possible to delete multiple keywords using wildcard syntax. See
+    "Column and Keyword Filtering Specification" section of manual for
+    details.
+  
+  - histo.c uses double precision internally for all floating point
+    binning; new double-precision subroutines fits_calc_binningd(),
+    fits_rebin_wcsd(), and fits_make_histd(); existing
+    single-precision histogram functions still work but convert values
+    to double-precision internally.
+
+  - new subroutine fits_copy_cols() / ffccls() to copy multiple columns
+  
+  - Fix in imcompress.c for HCOMPRESS and PLIO compression of unsigned
+    short integers.
+  
+  - Fix to fits_insert_card(ffikey).  It had wrongly been capitalizing
+    letters that appeared before an '=' sign on a CONTINUE line.
                    
 Version 3.43 - March 2018
                    

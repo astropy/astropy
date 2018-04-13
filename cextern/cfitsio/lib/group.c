@@ -1543,6 +1543,13 @@ int ffgtam(fitsfile *gfptr,   /* FITS file pointer to grouping table HDU     */
 		  else
 		    {
 		      strcpy(memberLocation,cwd);
+                      if (strlen(memberLocation)+strlen(memberFileName)+1 > 
+                                FLEN_FILENAME-1)
+                      {
+                         ffpmsg("member path and filename is too long (ffgtam)");
+                         *status = URL_PARSE_ERROR;
+                         continue;
+                      }
 		      strcat(memberLocation,"/");
 		      strcat(memberLocation,memberFileName);
 		    }
@@ -1565,6 +1572,14 @@ int ffgtam(fitsfile *gfptr,   /* FITS file pointer to grouping table HDU     */
 		  else
 		    {
 		      strcpy(groupLocation,cwd);
+                      if (strlen(groupLocation)+strlen(groupFileName)+1 > 
+                                FLEN_FILENAME-1)
+                      {
+                         ffpmsg("group path and filename is too long (ffgtam)");
+                         *status = URL_PARSE_ERROR;
+                         continue;
+                      }
+                      
 		      strcat(groupLocation,"/");
 		      strcat(groupLocation,groupFileName);
 		    }
@@ -1782,11 +1797,18 @@ int ffgtam(fitsfile *gfptr,   /* FITS file pointer to grouping table HDU     */
 
                     /* make grplc absolute if necessary */
                     if(!fits_is_url_absolute(grplc)) {
-		      fits_path2url(grplc,groupLocation,status);
+		      fits_path2url(grplc,FLEN_FILENAME,groupLocation,status);
 
 		      if(groupLocation[0] != '/')
 			{
 			  strcpy(tmp, cwd);
+                          if (strlen(tmp)+strlen(groupLocation)+1 > 
+                                    FLEN_FILENAME-1)
+                          {
+                             ffpmsg("path and group location is too long (ffgtam)");
+                             *status = URL_PARSE_ERROR;
+                             continue;
+                          }
 			  strcat(tmp,"/");
 			  strcat(tmp,groupLocation);
 			  fits_clean_url(tmp,grplc,status);
@@ -1795,11 +1817,18 @@ int ffgtam(fitsfile *gfptr,   /* FITS file pointer to grouping table HDU     */
 
                     /* make groupFileName absolute if necessary */
                     if(!fits_is_url_absolute(groupFileName)) {
-		      fits_path2url(groupFileName,groupLocation,status);
+		      fits_path2url(groupFileName,FLEN_FILENAME,groupLocation,status);
 
 		      if(groupLocation[0] != '/')
 			{
 			  strcpy(tmp, cwd);
+                          if (strlen(tmp)+strlen(groupLocation)+1 > 
+                                    FLEN_FILENAME-1)
+                          {
+                             ffpmsg("path and group location is too long (ffgtam)");
+                             *status = URL_PARSE_ERROR;
+                             continue;
+                          }
 			  strcat(tmp,"/");
 			  strcat(tmp,groupLocation);
                           /*
@@ -2145,7 +2174,14 @@ int ffgmop(fitsfile *gfptr,  /* FITS file pointer to grouping table          */
 		       &locationCol,&uriCol,&grptype,status);
 
       if(*status != 0) continue;
+      
+      /* verify the column formats */
+      
+      *status = ffvcfm(gfptr,xtensionCol,extnameCol,extverCol,positionCol,
+		       locationCol,uriCol,status);
 
+      if(*status != 0) continue;
+      
       /*
 	 extract the member information from grouping table
       */
@@ -2415,6 +2451,13 @@ int ffgmop(fitsfile *gfptr,  /* FITS file pointer to grouping table          */
 			{
 			  fits_get_cwd(cwd,status);
 			  strcat(cwd,"/");
+                          if (strlen(cwd)+strlen(grpLocation1)+1 > 
+                                    FLEN_FILENAME-1)
+                          {
+                             ffpmsg("cwd and group location1 is too long (ffgmop)");
+                             *status = URL_PARSE_ERROR;
+                             continue;
+                          }
 			  strcat(cwd,grpLocation1);
 			  strcpy(grpLocation1,cwd);
 			}
@@ -2477,6 +2520,13 @@ int ffgmop(fitsfile *gfptr,  /* FITS file pointer to grouping table          */
 			                              *grpLocation2 != '/')
 			{
 			  fits_get_cwd(cwd,status);
+                          if (strlen(cwd)+strlen(grpLocation2)+1 > 
+                                    FLEN_FILENAME-1)
+                          {
+                             ffpmsg("cwd and group location2 is too long (ffgmop)");
+                             *status = URL_PARSE_ERROR;
+                             continue;
+                          }
 			  strcat(cwd,"/");
 			  strcat(cwd,grpLocation2);
 			  strcpy(grpLocation2,cwd);
@@ -3112,6 +3162,13 @@ int ffgmrm(fitsfile *gfptr,  /* FITS file pointer to group table             */
 		 !fits_is_url_absolute(grpLocation1))
 		{
 		  strcpy(grpLocation3,cwd);
+                  if (strlen(grpLocation3)+strlen(grpLocation1)+1 > 
+                            FLEN_FILENAME-1)
+                  {
+                     ffpmsg("group locations are too long (ffgmrm)");
+                     *status = URL_PARSE_ERROR;
+                     continue;
+                  }
 		  strcat(grpLocation3,"/");
 		  strcat(grpLocation3,grpLocation1);
 		  fits_clean_url(grpLocation3,grpLocation1,status);
@@ -3121,6 +3178,13 @@ int ffgmrm(fitsfile *gfptr,  /* FITS file pointer to group table             */
 		 !fits_is_url_absolute(grpLocation2))
 		{
 		  strcpy(grpLocation3,cwd);
+                  if (strlen(grpLocation3)+strlen(grpLocation2)+1 > 
+                            FLEN_FILENAME-1)
+                  {
+                     ffpmsg("group locations are too long (ffgmrm)");
+                     *status = URL_PARSE_ERROR;
+                     continue;
+                  }
 		  strcat(grpLocation3,"/");
 		  strcat(grpLocation3,grpLocation2);
 		  fits_clean_url(grpLocation3,grpLocation2,status);
@@ -3225,6 +3289,13 @@ int ffgmrm(fitsfile *gfptr,  /* FITS file pointer to group table             */
 				*editLocation = '\0';
 			    }
 				
+                          if (strlen(grpLocation3)+strlen(grplc)+1 > 
+                                    FLEN_FILENAME-1)
+                          {
+                             ffpmsg("group locations are too long (ffgmrm)");
+                             *status = URL_PARSE_ERROR;
+                             continue;
+                          }
 			  strcat(grpLocation3,"/");
 			  strcat(grpLocation3,grplc);
 			  *status = fits_clean_url(grpLocation3,grplc,
@@ -3464,6 +3535,87 @@ int ffgtgc(fitsfile *gfptr,  /* pointer to the grouping table                */
 
   return(*status);
 }
+
+/*****************************************************************************/
+int ffvcfm(fitsfile *gfptr, int xtensionCol, int extnameCol, int extverCol,
+	   int positionCol, int locationCol, int uriCol, int *status)
+{
+/*
+   Perform validation on column formats to ensure this matches the grouping
+   format the get functions expect.  Particularly want to check widths of
+   string columns.
+*/
+
+   int typecode=0;
+   long repeat=0, width=0;
+   
+   if (*status != 0) return (*status);
+   
+   do {
+       if (xtensionCol)
+       {
+          fits_get_coltype(gfptr, xtensionCol, &typecode, &repeat, &width, status);
+          if (*status || typecode != TSTRING || repeat != width || repeat > 8)
+          {
+             if (*status==0) *status=NOT_GROUP_TABLE;
+             ffpmsg("Wrong format for Grouping xtension col. (ffvcfm)");
+             continue;
+          }          
+       }
+       if (extnameCol)
+       {
+          fits_get_coltype(gfptr, extnameCol, &typecode, &repeat, &width, status);
+          if (*status || typecode != TSTRING || repeat != width || repeat > 32)
+          {
+             if (*status==0) *status=NOT_GROUP_TABLE;
+             ffpmsg("Wrong format for Grouping name col. (ffvcfm)");
+             continue;
+          }          
+       }
+       if (extverCol)
+       {
+          fits_get_coltype(gfptr, extverCol, &typecode, &repeat, &width, status);
+          if (*status || typecode != TINT32BIT ||  repeat > 1)
+          {
+             if (*status==0) *status=NOT_GROUP_TABLE;
+             ffpmsg("Wrong format for Grouping version col. (ffvcfm)");
+             continue;
+          }          
+       }
+       if (positionCol)
+       {
+          fits_get_coltype(gfptr, positionCol, &typecode, &repeat, &width, status);
+          if (*status || typecode != TINT32BIT ||  repeat > 1)
+          {
+             if (*status==0) *status=NOT_GROUP_TABLE;
+             ffpmsg("Wrong format for Grouping position col. (ffvcfm)");
+             continue;
+          }          
+       }
+       if (locationCol)
+       {
+          fits_get_coltype(gfptr, locationCol, &typecode, &repeat, &width, status);
+          if (*status || typecode != TSTRING || repeat != width || repeat > 256)
+          {
+             if (*status==0) *status=NOT_GROUP_TABLE;
+             ffpmsg("Wrong format for Grouping location col. (ffvcfm)");
+             continue;
+          }          
+       }
+       if (uriCol)
+       {
+          fits_get_coltype(gfptr, uriCol, &typecode, &repeat, &width, status);
+          if (*status || typecode != TSTRING || repeat != width || repeat > 3)
+          {
+             if (*status==0) *status=NOT_GROUP_TABLE;
+             ffpmsg("Wrong format for Grouping URI col. (ffvcfm)");
+             continue;
+          }          
+       }
+   } while (0);
+   return (*status);
+}
+
 
 /*****************************************************************************/
 int ffgtdc(int   grouptype,     /* code specifying the type of
@@ -3977,11 +4129,17 @@ int ffgmf(fitsfile *gfptr, /* pointer to grouping table HDU to search       */
 
   else if(!fits_is_url_absolute(location))
     {
-      fits_path2url(location,tmpLocation,status);
+      fits_path2url(location,FLEN_FILENAME,tmpLocation,status);
 
       if(*tmpLocation != '/')
 	{
 	  fits_get_cwd(cwd,status);
+          if (strlen(cwd)+strlen(tmpLocation)+1 > 
+                    FLEN_FILENAME-1)
+          {
+             ffpmsg("cwd and location are too long (ffgmf)");
+             return (*status = URL_PARSE_ERROR);
+          }
 	  strcat(cwd,"/");
 	  strcat(cwd,tmpLocation);
 	  fits_clean_url(cwd,tmpLocation,status);
@@ -4084,6 +4242,13 @@ int ffgmf(fitsfile *gfptr, /* pointer to grouping table HDU to search       */
 	     *mbrLocation1 != '/')
 	    {
 	      fits_get_cwd(cwd,status);
+              if (strlen(cwd)+strlen(mbrLocation1)+1 > 
+                        FLEN_FILENAME-1)
+              {
+                 ffpmsg("cwd and member locations are too long (ffgmf)");
+                 *status = URL_PARSE_ERROR;
+                 continue;
+              }
 	      strcat(cwd,"/");
 	      strcat(cwd,mbrLocation1);
 	      fits_clean_url(cwd,mbrLocation1,status);
@@ -4094,6 +4259,13 @@ int ffgmf(fitsfile *gfptr, /* pointer to grouping table HDU to search       */
 	     *mbrLocation2 != '/')
 	    {
 	      fits_get_cwd(cwd,status);
+              if (strlen(cwd)+strlen(mbrLocation2)+1 > 
+                        FLEN_FILENAME-1)
+              {
+                 ffpmsg("cwd and member locations are too long (ffgmf)");
+                 *status = URL_PARSE_ERROR;
+                 continue;
+              }
 	      strcat(cwd,"/");
 	      strcat(cwd,mbrLocation2);
 	      fits_clean_url(cwd,mbrLocation2,status);
@@ -4119,6 +4291,13 @@ int ffgmf(fitsfile *gfptr, /* pointer to grouping table HDU to search       */
 	      if(!fits_is_url_absolute(grpLocation1) && *grpLocation1 != '/')
 		{
 		  fits_get_cwd(cwd,status);
+                  if (strlen(cwd)+strlen(grpLocation1)+1 > 
+                            FLEN_FILENAME-1)
+                  {
+                     ffpmsg("cwd and group locations are too long (ffgmf)");
+                     *status = URL_PARSE_ERROR;
+                     continue;
+                  }
 		  strcat(cwd,"/");
 		  strcat(cwd,grpLocation1);
 		  fits_clean_url(cwd,grpLocation1,status);
@@ -4154,6 +4333,13 @@ int ffgmf(fitsfile *gfptr, /* pointer to grouping table HDU to search       */
 	      if(!fits_is_url_absolute(grpLocation2) && *grpLocation2 != '/')
 		{
 		  fits_get_cwd(cwd,status);
+                  if (strlen(cwd)+strlen(grpLocation2)+1 > 
+                            FLEN_FILENAME-1)
+                  {
+                     ffpmsg("cwd and group locations are too long (ffgmf)");
+                     *status = URL_PARSE_ERROR;
+                     continue;
+                  }
 		  strcat(cwd,"/");
 		  strcat(cwd,grpLocation2);
 		  fits_clean_url(cwd,grpLocation2,status);
@@ -4823,6 +5009,8 @@ void prepare_keyvalue(char *keyvalue) /* string containing keyword value     */
         Host dependent directory path to/from URL functions
   --------------------------------------------------------------------------*/
 int fits_path2url(char *inpath,  /* input file path string                  */
+                  int maxlength, /* I max number of chars that can be written
+                             to output, including terminating NULL */
 		  char *outpath, /* output file path string                 */
 		  int  *status)
   /*
@@ -5187,7 +5375,7 @@ int fits_path2url(char *inpath,  /* input file path string                  */
     encode all "unsafe" and "reserved" URL characters
   */
 
-  *status = fits_encode_url(buff,outpath,status);
+  *status = fits_encode_url(buff,maxlength,outpath,status);
 
   return(*status);
 }
@@ -5473,7 +5661,12 @@ int fits_get_cwd(char *cwd,  /* IO current working directory string */
     Good old getcwd() seems to work with all other platforms
   */
 
-  getcwd(buff,FLEN_FILENAME);
+  if (!getcwd(buff,FLEN_FILENAME))
+  {
+     cwd[0]=0;
+     ffpmsg("Path and file name too long (fits_get_cwd)");
+     return (*status=URL_PARSE_ERROR);
+  }
 
 #endif
 
@@ -5481,7 +5674,7 @@ int fits_get_cwd(char *cwd,  /* IO current working directory string */
     convert the cwd string to a URL standard path string
   */
 
-  fits_path2url(buff,cwd,status);
+  fits_path2url(buff,FLEN_FILENAME,cwd,status);
 
   return(*status);
 }
@@ -5788,7 +5981,7 @@ int  fits_get_url(fitsfile *fptr,       /* I ptr to FITS file to evaluate    */
 		  i = 0;
 		}
 
-	      *status = fits_path2url(tmpPtr,realURL+i,status);
+	      *status = fits_path2url(tmpPtr,FLEN_FILENAME-i,realURL+i,status);
 	    }
 	}
 
@@ -5810,7 +6003,7 @@ int  fits_get_url(fitsfile *fptr,       /* I ptr to FITS file to evaluate    */
 		  i = 0;
 		}
 
-	      *status = fits_path2url(tmpPtr,startURL+i,status);
+	      *status = fits_path2url(tmpPtr,FLEN_FILENAME-i,startURL+i,status);
 	    }
 	}
 
@@ -5923,6 +6116,14 @@ int fits_clean_url(char *inURL,  /* I input URL string                      */
      * onto output string until stack is empty */
     while(0 < mystack->stack_size) {
       tmp = shift_grp_stack(mystack);
+      if (strlen(outURL) + strlen(tmp) + 1 > FLEN_FILENAME-1)
+      {
+         outURL[0]=0;
+         ffpmsg("outURL is too long (fits_clean_url)");
+         *status = URL_PARSE_ERROR;
+         delete_grp_stack(&mystack);
+         return *status;         
+      }
       strcat(outURL, tmp);
       strcat(outURL, "/");
     }
@@ -6118,10 +6319,25 @@ int fits_url2relurl(char     *refURL, /* I reference URL string             */
 	  */
 
 	  for(j = refcount; j < refsize; ++j)
-	    if(refURL[j] == '/') strcat(relURL,"../");
+	    if(refURL[j] == '/') 
+            {
+               if (strlen(relURL)+3 > FLEN_FILENAME-1)
+               {
+	          *status = URL_PARSE_ERROR;
+	          ffpmsg("relURL too long (fits_url2relurl)");
+	          return (*status);
+               }
+               strcat(relURL,"../");
+            }
 	  
 	  /* copy all remaining characters of absURL to the output relURL */
 
+          if (strlen(relURL) + strlen(absURL+abscount) > FLEN_FILENAME-1)
+          {
+	     *status = URL_PARSE_ERROR;
+	     ffpmsg("relURL too long (fits_url2relurl)");
+	     return (*status);
+          }
 	  strcat(relURL,absURL+abscount);
 	  
 	  /* we are done building the relative URL */
@@ -6168,6 +6384,13 @@ int fits_relurl2url(char     *refURL, /* I reference URL string             */
 	make a copy of the reference URL string refURL for parsing purposes
       */
 
+      if (strlen(refURL) > FLEN_FILENAME-1)
+      {
+         absURL[0]=0;
+         ffpmsg("ref URL is too long (fits_relurl2url)");
+         *status = URL_PARSE_ERROR;
+         continue;
+      }
       strcpy(tmpStr,refURL);
 
       /*
@@ -6199,6 +6422,13 @@ int fits_relurl2url(char     *refURL, /* I reference URL string             */
 	  if(tmpStr1 != NULL) tmpStr1[1] = 0;
 	  else                tmpStr[0]  = 0;
 	  
+          if (strlen(tmpStr)+strlen(relURL) > FLEN_FILENAME-1)
+          {
+              absURL[0]=0;
+              ffpmsg("rel + ref URL is too long (fits_relurl2url)");
+              *status = URL_PARSE_ERROR;
+              continue;
+          }
 	  strcat(tmpStr,relURL);
 	}
       else
@@ -6220,7 +6450,17 @@ int fits_relurl2url(char     *refURL, /* I reference URL string             */
 	  
 	  strcpy(absURL,"/");
 	  
-	  for(i = 0; relURL[i] == '/'; ++i) strcat(absURL,"/");
+	  for(i = 0; relURL[i] == '/'; ++i) 
+          {
+             if (strlen(absURL) + 1 > FLEN_FILENAME-1)
+             {
+                 absURL[0]=0;
+                 ffpmsg("abs URL is too long (fits_relurl2url)");
+                 *status = URL_PARSE_ERROR;
+                 return (*status);
+             }
+             strcat(absURL,"/");
+          }
 	  
 	  /*
 	    loop over the refURL string until the slash pattern stored
@@ -6265,6 +6505,13 @@ int fits_relurl2url(char     *refURL, /* I reference URL string             */
 	    the absURL
 	   */
 
+          if (strlen(tmpStr)+strlen(relURL) > FLEN_FILENAME-1)
+          {
+              absURL[0]=0;
+              ffpmsg("rel + ref URL is too long (fits_relurl2url)");
+              *status = URL_PARSE_ERROR;
+              continue;
+          }
 	  strcat(tmpStr,relURL);
 	}
 
@@ -6280,7 +6527,9 @@ int fits_relurl2url(char     *refURL, /* I reference URL string             */
   return(*status);
 }
 /*--------------------------------------------------------------------------*/
-int fits_encode_url(char *inpath,  /* I URL  to be encoded                  */ 
+int fits_encode_url(char *inpath,  /* I URL  to be encoded                  */
+                    int maxlength, /* I max number of chars that may be copied
+                               to outpath, including terminating NULL. */ 
 		    char *outpath, /* O output encoded URL                  */
 		    int *status)
      /*
@@ -6288,12 +6537,12 @@ int fits_encode_url(char *inpath,  /* I URL  to be encoded                  */
        convention, where XX stand for the two hexidecimal digits of the
        encode character's ASCII code.
 
-       Note that the output path is at least as large as, if not larger than
-       the input path, so that OUTPATH should be passed to this function
-       with room for growth. If not a runtime error could result. It is
-       assumed that OUTPATH has been allocated with enough room to hold
-       the resulting encoded URL.
-
+       Note that the outpath length, as specified by the maxlength argument,
+       should be at least as large as inpath and preferably larger (to hold
+       any characters that need encoding).  If more than maxlength chars are 
+       required for outpath, including the terminating NULL, outpath will
+       be set to size 0 and an error status will be returned.
+       
        This function was adopted from code in the libwww.a library available
        via the W3 consortium <URL: http://www.w3.org>
      */
@@ -6303,6 +6552,7 @@ int fits_encode_url(char *inpath,  /* I URL  to be encoded                  */
   char *p;
   char *q;
   char *hex = "0123456789ABCDEF";
+  int iout=0;
   
 unsigned const char isAcceptable[96] =
 {/* 0x0 0x1 0x2 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0xA 0xB 0xC 0xD 0xE 0xF */
@@ -6325,7 +6575,7 @@ unsigned const char isAcceptable[96] =
   
   /* loop over all characters in inpath until '\0' is encountered */
 
-  for(q = outpath, p = inpath; *p; p++)
+  for(q = outpath, p = inpath; *p && (iout < maxlength-1) ; p++)
     {
       a = (unsigned char)*p;
 
@@ -6333,19 +6583,41 @@ unsigned const char isAcceptable[96] =
 
       if(!( a>=32 && a<128 && (isAcceptable[a-32])))
 	{
-	  /* add a '%' character to the outpath */
-	  *q++ = HEX_ESCAPE;
-	  /* add the most significant ASCII code hex value */
-	  *q++ = hex[a >> 4];
-	  /* add the least significant ASCII code hex value */
-	  *q++ = hex[a & 15];
+           if (iout+2 < maxlength-1)
+           {
+	     /* add a '%' character to the outpath */
+	     *q++ = HEX_ESCAPE;
+	     /* add the most significant ASCII code hex value */
+	     *q++ = hex[a >> 4];
+	     /* add the least significant ASCII code hex value */
+	     *q++ = hex[a & 15];
+             iout += 3;
+           }
+           else
+           {
+              ffpmsg("URL input is too long to encode (fits_encode_url)");
+              *status = URL_PARSE_ERROR;
+              outpath[0] = 0;
+              return (*status);
+           }
 	}
       /* else just copy the character as is */
-      else *q++ = *p;
+      else 
+      {
+         *q++ = *p;
+         iout++;
+      }
     }
 
   /* null terminate the outpath string */
 
+  if (*p && (iout == maxlength-1))
+  {
+     ffpmsg("URL input is too long to encode (fits_encode_url)");
+     *status = URL_PARSE_ERROR;
+     outpath[0] = 0;
+     return (*status);
+  }
   *q++ = 0; 
   
   return(*status);
