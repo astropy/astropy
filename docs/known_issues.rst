@@ -284,3 +284,22 @@ processing and you just want docstrings to work, this may be
 acceptable.
 
 The IPython issue: https://github.com/ipython/ipython/pull/2738
+
+Conflicts with the Spyder User Module Reloader under Python 2.7
+---------------------------------------------------------------
+
+When running Astropy in the Python 2 version of the
+`Spyder IDE <https://pythonhosted.org/spyder/>`_, failures to reload
+``astropy`` modules by Spyder's User Module Reloader (UMR) have been
+observed on repeatedly running a script through the builtin
+``runfile()``, raising an Exception in `astropy.logger`. In such a
+case it is recommended to disable the reloading in
+
+``Preferences > Console > Advanced settings > Set UMR excluded``
+(for Spyder < 3)
+
+``Preferences > Python Interpreter > Set UMR excluded`` (in Spyder 3)
+
+by adding ``astropy`` to the list of modules not to be reloaded.
+
+See: https://github.com/astropy/astropy/issues/7363
