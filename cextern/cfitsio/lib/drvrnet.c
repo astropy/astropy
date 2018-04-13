@@ -920,6 +920,12 @@ static int http_open_network(char *url, FILE **httpfile, char *contentencoding,
              /* return the new URL string, and set contentencoding to "ftp" as
 	        a flag to the http_checkfile routine
 	     */
+             if (strlen(scratchstr2) > FLEN_FILENAME-1) 
+             {
+                ffpmsg("Error: redirected url string too long (http_open_network)");
+                fclose(*httpfile);
+                return URL_PARSE_ERROR;
+             }
 	     strcpy(url, scratchstr2);
              strcpy(contentencoding,"ftp://");
 	     fclose (*httpfile); 
@@ -935,6 +941,12 @@ static int http_open_network(char *url, FILE **httpfile, char *contentencoding,
              /* return the new URL string, and set contentencoding to "https" as
 	        a flag to the http_checkfile routine
 	     */
+             if (strlen(scratchstr2) > FLEN_FILENAME-1) 
+             {
+                ffpmsg("Error: redirected url string too long (http_open_network)");
+                fclose(*httpfile);
+                return URL_PARSE_ERROR;
+             }
              strcpy(url, scratchstr2);
              strcpy(contentencoding,"https://");
              fclose(*httpfile);
@@ -973,6 +985,12 @@ static int http_open_network(char *url, FILE **httpfile, char *contentencoding,
 	/* Found the : */
 	scratchstr++; /* skip the : */
 	scratchstr++; /* skip the extra space */
+        if (strlen(scratchstr) > SHORTLEN-1) 
+        {
+           ffpmsg("Error: content-encoding string too long (http_open_network)");
+           fclose(*httpfile);
+           return URL_PARSE_ERROR;
+        }
 	strcpy(contentencoding,scratchstr);
       }
     }
@@ -2556,6 +2574,11 @@ static int NET_ParseUrl(const char *url, char *proto, char *host, int *port,
     if ((thost = strchr(urlcopy, '@')) != NULL)
       urlcopy = thost+1;
 
+    if (strlen(urlcopy) > SHORTLEN-1)
+    {
+       free(urlcopyorig);
+       return 1;
+    }
     strcpy(host,urlcopy);
     thost = host;
     while (*urlcopy != '/' && *urlcopy != ':' && *urlcopy) {
@@ -2572,6 +2595,11 @@ static int NET_ParseUrl(const char *url, char *proto, char *host, int *port,
     }
   } else {
     /* do this for ftp */
+    if (strlen(urlcopy) > SHORTLEN-1)
+    {
+       free(urlcopyorig);
+       return 1;
+    }
     strcpy(host,urlcopy);
     thost = host;
     while (*urlcopy != '/' && *urlcopy) {
@@ -2585,6 +2613,11 @@ static int NET_ParseUrl(const char *url, char *proto, char *host, int *port,
   /* Now the rest is a fn */
 
   if (*urlcopy) {
+    if (strlen(urlcopy) > MAXLEN-1)
+    {
+       free(urlcopyorig);
+       return 1;
+    }
     strcpy(fn,urlcopy);
   }
   free(urlcopyorig);
@@ -2645,7 +2678,11 @@ int http_checkfile (char *urltype, char *infile, char *outfile1)
   if (!strstr(infile,".gz") && (!strstr(infile,".Z"))) {
     /* The infile string does not contain the name of a compressed file.  */
     /* Fisrt, look for a .gz compressed version of the file. */
-      
+    
+    if (strlen(infile) + 3 > MAXLEN-1)
+    {
+       return URL_PARSE_ERROR;
+    }  
     strcpy(newinfile,infile);
     strcat(newinfile,".gz");
 
@@ -2700,7 +2737,11 @@ int http_checkfile (char *urltype, char *infile, char *outfile1)
 
    if (!foundfile) {
     /* did not find .gz compressed version of the file, so look for .Z file. */
-      
+    
+    if (strlen(infile+2) > MAXLEN-1)
+    {
+       return URL_PARSE_ERROR;
+    }  
     strcpy(newinfile,infile);
     strcat(newinfile,".Z");
     if (!http_open_network(newinfile,&httpfile,contentencoding,
@@ -2878,6 +2919,10 @@ int ftp_checkfile (char *urltype, char *infile, char *outfile1)
     /* The infile string does not contain the name of a compressed file.  */
     /* Fisrt, look for a .gz compressed version of the file. */
       
+    if (strlen(infile)+3 > MAXLEN-1)
+    {
+       return URL_PARSE_ERROR;
+    }
     strcpy(newinfile,infile);
     strcat(newinfile,".gz");
  
@@ -2888,6 +2933,10 @@ int ftp_checkfile (char *urltype, char *infile, char *outfile1)
     }
 
     if (!foundfile) {
+      if (strlen(infile)+2 > MAXLEN-1)
+      {
+         return URL_PARSE_ERROR;
+      }
       strcpy(newinfile,infile);
       strcat(newinfile,".Z");
  
@@ -3312,6 +3361,11 @@ int root_openfile(char *url, char *rwmode, int *sock)
   
   
   /* Parse the URL apart again */
+  if (strlen(url)+7 > MAXLEN-1)
+  {
+     ffpmsg("Error: url too long");
+     return(FILE_NOT_OPENED);
+  }
   strcpy(turl,"root://");
   strcat(turl,url);
   if (NET_ParseUrl(turl,proto,host,&port,fn)) {
@@ -3329,6 +3383,11 @@ int root_openfile(char *url, char *rwmode, int *sock)
   
   /* get the username */
   if (NULL != getenv("ROOTUSERNAME")) {
+    if (strlen(getenv("ROOTUSERNAME")) > MAXLEN-1)
+    {
+       ffpmsg("root user name too long (root_openfile)");
+       return (FILE_NOT_OPENED);
+    }
     strcpy(recbuf,getenv("ROOTUSERNAME"));
   } else {
     printf("Username: ");
@@ -3357,6 +3416,11 @@ int root_openfile(char *url, char *rwmode, int *sock)
 
   /* now the password */
   if (NULL != getenv("ROOTPASSWORD")) {
+    if (strlen(getenv("ROOTPASSWORD")) > MAXLEN-1)
+    {
+       ffpmsg("root password too long (root_openfile)");
+       return (FILE_NOT_OPENED);
+    }
     strcpy(recbuf,getenv("ROOTPASSWORD"));
   } else {
     printf("Password: ");
@@ -3387,6 +3451,11 @@ int root_openfile(char *url, char *rwmode, int *sock)
   }
   
   /* now the file open request */
+  if (strlen(fn)+strlen(rwmode)+1 > MAXLEN-1)
+  {
+     ffpmsg("root file name too long (root_openfile)");
+     return (FILE_NOT_OPENED);
+  }
   strcpy(recbuf,fn);
   strcat(recbuf," ");
   strcat(recbuf,rwmode);
