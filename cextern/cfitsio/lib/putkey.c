@@ -724,9 +724,19 @@ int ffpkyc( fitsfile *fptr,      /* I - FITS file pointer                   */
 
     strcpy(valstring, "(" );
     ffr2e(value[0], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring)+strlen(tmpstring)+2 > FLEN_VALUE-1)
+    {
+       ffpmsg("Error converting complex to string (ffpkyc)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ", ");
     ffr2e(value[1], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring)+strlen(tmpstring)+1 > FLEN_VALUE-1)
+    {
+       ffpmsg("Error converting complex to string (ffpkyc)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ")");
 
@@ -755,9 +765,19 @@ int ffpkym( fitsfile *fptr,      /* I - FITS file pointer                   */
 
     strcpy(valstring, "(" );
     ffd2e(value[0], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring)+strlen(tmpstring)+2 > FLEN_VALUE-1)
+    {
+       ffpmsg("Error converting complex to string (ffpkym)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ", ");
     ffd2e(value[1], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring)+strlen(tmpstring)+1 > FLEN_VALUE-1)
+    {
+       ffpmsg("Error converting complex to string (ffpkym)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ")");
 
@@ -786,9 +806,19 @@ int ffpkfc( fitsfile *fptr,      /* I - FITS file pointer                   */
 
     strcpy(valstring, "(" );
     ffr2f(value[0], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring)+strlen(tmpstring)+2 > FLEN_VALUE-1)
+    {
+       ffpmsg("Error converting complex to string (ffpkfc)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ", ");
     ffr2f(value[1], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring)+strlen(tmpstring)+1 > FLEN_VALUE-1)
+    {
+       ffpmsg("Error converting complex to string (ffpkfc)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ")");
 
@@ -817,9 +847,19 @@ int ffpkfm( fitsfile *fptr,      /* I - FITS file pointer                   */
 
     strcpy(valstring, "(" );
     ffd2f(value[0], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring)+strlen(tmpstring)+2 > FLEN_VALUE-1)
+    {
+       ffpmsg("Error converting complex to string (ffpkfm)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ", ");
     ffd2f(value[1], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring)+strlen(tmpstring)+1 > FLEN_VALUE-1)
+    {
+       ffpmsg("Error converting complex to string (ffpkfm)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ")");
 
@@ -858,6 +898,11 @@ int ffpkyt( fitsfile *fptr,      /* I - FITS file pointer        */
     ffd2f(fraction, 16, fstring, status);  /* convert to 16 decimal string */
 
     cptr = strchr(fstring, '.');    /* find the decimal point */
+    if (strlen(valstring)+strlen(cptr) > FLEN_VALUE-1)
+    {
+       ffpmsg("converted numerical string too long");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, cptr);    /* append the fraction to the integer */
 
     ffmkky(keyname, valstring, comm, card, status);  /* construct the keyword*/
@@ -1990,6 +2035,12 @@ int ffptdm( fitsfile *fptr, /* I - FITS file pointer                        */
         }
 
         snprintf(value, 80,"%ld", naxes[ii]);
+        /* This will either be followed by a ',' or ')'. */
+        if (strlen(tdimstr)+strlen(value)+1 > FLEN_VALUE-1)
+        {
+            ffpmsg("TDIM string too long (ffptdm)");
+            return(*status = BAD_TDIM);
+        }
         strcat(tdimstr, value);     /* append the axis size */
 
         totalpix *= naxes[ii];
@@ -2087,7 +2138,12 @@ int ffptdmll( fitsfile *fptr, /* I - FITS file pointer                      */
         /* sprintf is platform dependent ( %lld, %ld, %I64d )            */
 
         snprintf(value, 80, "%.0f", (double) naxes[ii]);
-
+        
+        if (strlen(tdimstr)+strlen(value)+1 > FLEN_VALUE-1)
+        {
+            ffpmsg("TDIM string too long (ffptdmll)");
+            return(*status = BAD_TDIM);
+        }
         strcat(tdimstr, value);     /* append the axis size */
 
         totalpix *= naxes[ii];
@@ -2464,6 +2520,12 @@ int ffphtb(fitsfile *fptr,  /* I - FITS file pointer                        */
         ffkeyn("TBCOL", ii + 1, name, status);
         ffpkyj(fptr, name, tbcol[ii], comm, status);
 
+        if (strlen(tform[ii]) > 29)
+        {
+          ffpmsg("Error: ASCII table TFORM code is too long (ffphtb)");
+          *status = BAD_TFORM;
+          break;
+        }
         strcpy(tfmt, tform[ii]);  /* required TFORMn keyword */
         ffupch(tfmt);
         ffkeyn("TFORM", ii + 1, name, status);
@@ -2582,6 +2644,12 @@ int ffphbn(fitsfile *fptr,  /* I - FITS file pointer                        */
           ffpkys(fptr, name, ttype[ii], comm, status);
         }
 
+        if (strlen(tform[ii]) > 29)
+        {
+          ffpmsg("Error: BIN table TFORM code is too long (ffphbn)");
+          *status = BAD_TFORM;
+          break;
+        }
         strcpy(tfmt, tform[ii]);  /* required TFORMn keyword */
         ffupch(tfmt);
 
@@ -2915,7 +2983,7 @@ int ffr2f(float fval,   /* I - value to be converted to a string */
         return(*status = BAD_DECIM);
     }
 
-    if (sprintf(cval, "%.*f", decim, fval) < 0)
+    if (snprintf(cval, FLEN_VALUE,"%.*f", decim, fval) < 0)
     {
         ffpmsg("Error in ffr2f converting float to string");
         *status = BAD_F2C;
@@ -2951,7 +3019,7 @@ int ffr2e(float fval,  /* I - value to be converted to a string */
 
     if (decim < 0)
     {   /* use G format if decim is negative */
-        if ( sprintf(cval, "%.*G", -decim, fval) < 0)
+        if ( snprintf(cval, FLEN_VALUE,"%.*G", -decim, fval) < 0)
         {
             ffpmsg("Error in ffr2e converting float to string");
             *status = BAD_F2C;
@@ -2962,7 +3030,7 @@ int ffr2e(float fval,  /* I - value to be converted to a string */
             if ( !strchr(cval, '.') && strchr(cval,'E') )
             {
                 /* reformat value with a decimal point and single zero */
-                if ( sprintf(cval, "%.1E", fval) < 0)
+                if ( snprintf(cval, FLEN_VALUE,"%.1E", fval) < 0)
                 {
                     ffpmsg("Error in ffr2e converting float to string");
                     *status = BAD_F2C;
@@ -2974,7 +3042,7 @@ int ffr2e(float fval,  /* I - value to be converted to a string */
     }
     else
     {
-        if ( sprintf(cval, "%.*E", decim, fval) < 0)
+        if ( snprintf(cval, FLEN_VALUE,"%.*E", decim, fval) < 0)
         {
             ffpmsg("Error in ffr2e converting float to string");
             *status = BAD_F2C;
@@ -2992,7 +3060,7 @@ int ffr2e(float fval,  /* I - value to be converted to a string */
             ffpmsg("Error in ffr2e: float value is a NaN or INDEF");
             *status = BAD_F2C;
         }
-        else if ( !strchr(cval, '.') && !strchr(cval,'E') )
+        else if ( !strchr(cval, '.') && !strchr(cval,'E') && strlen(cval) < FLEN_VALUE-1 )
         {
             /* add decimal point if necessary to distinquish from integer */
             strcat(cval, ".");
@@ -3023,7 +3091,7 @@ int ffd2f(double dval,  /* I - value to be converted to a string */
         return(*status = BAD_DECIM);
     }
 
-    if (sprintf(cval, "%.*f", decim, dval) < 0)
+    if (snprintf(cval, FLEN_VALUE,"%.*f", decim, dval) < 0)
     {
         ffpmsg("Error in ffd2f converting double to string");
         *status = BAD_F2C;
@@ -3059,7 +3127,7 @@ int ffd2e(double dval,  /* I - value to be converted to a string */
 
     if (decim < 0)
     {   /* use G format if decim is negative */
-        if ( sprintf(cval, "%.*G", -decim, dval) < 0)
+        if ( snprintf(cval, FLEN_VALUE,"%.*G", -decim, dval) < 0)
         {
             ffpmsg("Error in ffd2e converting float to string");
             *status = BAD_F2C;
@@ -3070,7 +3138,7 @@ int ffd2e(double dval,  /* I - value to be converted to a string */
             if ( !strchr(cval, '.') && strchr(cval,'E') )
             {
                 /* reformat value with a decimal point and single zero */
-                if ( sprintf(cval, "%.1E", dval) < 0)
+                if ( snprintf(cval, FLEN_VALUE,"%.1E", dval) < 0)
                 {
                     ffpmsg("Error in ffd2e converting float to string");
                     *status = BAD_F2C;
@@ -3082,7 +3150,7 @@ int ffd2e(double dval,  /* I - value to be converted to a string */
     }
     else
     {
-        if ( sprintf(cval, "%.*E", decim, dval) < 0)
+        if ( snprintf(cval, FLEN_VALUE,"%.*E", decim, dval) < 0)
         {
             ffpmsg("Error in ffd2e converting float to string");
             *status = BAD_F2C;
@@ -3100,7 +3168,7 @@ int ffd2e(double dval,  /* I - value to be converted to a string */
             ffpmsg("Error in ffd2e: double value is a NaN or INDEF");
             *status = BAD_F2C;
         }
-        else if ( !strchr(cval, '.') && !strchr(cval,'E') )
+        else if ( !strchr(cval, '.') && !strchr(cval,'E') && strlen(cval) < FLEN_VALUE-1)
         {
             /* add decimal point if necessary to distinquish from integer */
             strcat(cval, ".");

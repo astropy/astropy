@@ -358,7 +358,7 @@ printf("rootstring=%s, cwd=%s.\n", rootstring, cwd);
 	/* Get the current working directory */
 	fits_get_cwd(cwd, &status);  
 	slen = strlen(cwd);
-	if (cwd[slen-1] != '/') strcat(cwd,"/"); /* make sure the CWD ends with slash */
+	if ((slen < FLEN_FILENAME) && cwd[slen-1] != '/') strcat(cwd,"/"); /* make sure the CWD ends with slash */
 
 
 	/* check that CWD string matches the rootstring */
@@ -370,6 +370,7 @@ printf("rootstring=%s, cwd=%s.\n", rootstring, cwd);
 
 	    /* get the user name from CWD (it follows the root string) */
 	    strncpy(username, cwd+rootlen, 50);  /* limit length of user name */
+            username[50]=0;
 	    cpos=strchr(username, '/');
 	    if (!cpos) {
                ffpmsg("invalid CWD: not equal to root data directory + username");
@@ -765,7 +766,7 @@ int file_is_compressed(char *filename) /* I - FITS file name          */
     /* Open file.  Try various suffix combinations */  
     if (file_openfile(filename, 0, &diskfile))
     {
-      if (strlen(filename) > FLEN_FILENAME - 1)
+      if (strlen(filename) > FLEN_FILENAME - 5)
           return(0);
 
       strcpy(tmpfilename,filename);
@@ -773,7 +774,7 @@ int file_is_compressed(char *filename) /* I - FITS file name          */
       if (file_openfile(filename, 0, &diskfile))
       {
 #if HAVE_BZIP2
-        strcpy(tmpfilename,filename);
+        strcpy(filename,tmpfilename);
         strcat(filename,".bz2");
         if (file_openfile(filename, 0, &diskfile))
         {
