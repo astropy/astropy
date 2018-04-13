@@ -19,7 +19,7 @@ __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
            'Gaussian2D', 'Linear1D', 'Lorentz1D',
            'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor',
-           'Scale', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
+           'Scale', 'Multiply', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
            'TrapezoidDisk2D', 'Ring2D', 'Voigt1D']
 
 TWOPI = 2 * np.pi
@@ -461,10 +461,6 @@ class Shift(Fittable1DModel):
     offset = Parameter(default=0)
     linear = True
 
-    _input_units_strict = True
-
-    _input_units_allow_dimensionless = True
-
     @property
     def input_units(self):
         if self.offset.unit is None:
@@ -499,12 +495,19 @@ class Shift(Fittable1DModel):
 
 class Scale(Fittable1DModel):
     """
-    Multiply a model by a factor.
+    Multiply a model by a dimensionless factor.
 
     Parameters
     ----------
     factor : float
         Factor by which to scale a coordinate.
+
+    Notes
+    -----
+
+    If ``factor`` is a `~astropy.units.Quantity` then the units will be
+    stripped before the scaling operation.
+
     """
 
     inputs = ('x',)
@@ -515,7 +518,6 @@ class Scale(Fittable1DModel):
     fittable = True
 
     _input_units_strict = True
-
     _input_units_allow_dimensionless = True
 
     @property
@@ -535,11 +537,51 @@ class Scale(Fittable1DModel):
     @staticmethod
     def evaluate(x, factor):
         """One dimensional Scale model function"""
+        if isinstance(factor, u.Quantity):
+            factor = factor.value
+
         return factor * x
 
     @staticmethod
     def fit_deriv(x, *params):
         """One dimensional Scale model derivative with respect to parameter"""
+
+        d_factor = x
+        return [d_factor]
+
+
+class Multiply(Fittable1DModel):
+    """
+    Multiply a model by a quantity or number.
+
+    Parameters
+    ----------
+    factor : float
+        Factor by which to multiply a coordinate.
+    """
+
+    inputs = ('x',)
+    outputs = ('x',)
+
+    factor = Parameter(default=1)
+    linear = True
+    fittable = True
+
+    @property
+    def inverse(self):
+        """One dimensional inverse multiply model function"""
+        inv = self.copy()
+        inv.factor = 1 / self.factor
+        return inv
+
+    @staticmethod
+    def evaluate(x, factor):
+        """One dimensional multiply model function"""
+        return factor * x
+
+    @staticmethod
+    def fit_deriv(x, *params):
+        """One dimensional multiply model derivative with respect to parameter"""
 
         d_factor = x
         return [d_factor]

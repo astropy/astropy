@@ -171,6 +171,11 @@ def test_Scale_inverse():
     assert_allclose(m.inverse(m(6.789)), 6.789)
 
 
+def test_Multiply_inverse():
+    m = models.Multiply(1.2345)
+    assert_allclose(m.inverse(m(6.789)), 6.789)
+
+
 def test_Shift_inverse():
     m = models.Shift(1.2345)
     assert_allclose(m.inverse(m(6.789)), 6.789)
@@ -205,10 +210,11 @@ def test_Shift_model_set_linear_fit():
     assert_allclose(fitted_model.parameters, [0.1, -0.2], atol=1e-15)
 
 
-def test_Scale_model_set_linear_fit():
+@pytest.mark.parametrize('Model', (models.Scale, models.Multiply))
+def test_Scale_model_set_linear_fit(Model):
     """Test linear fitting of Scale model (#6103)."""
 
-    init_model = models.Scale(factor=[0, 0], n_models=2)
+    init_model = Model(factor=[0, 0], n_models=2)
 
     x = np.arange(-3, 7)
     yy = np.array([1.15*x, 0.96*x])
