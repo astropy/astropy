@@ -73,11 +73,12 @@ float ffvers(float *version)  /* IO - version number */
   return the current version number of the FITSIO software
 */
 {
-      *version = (float) 3.43;
+      *version = (float) 3.44;
 
-/*       Mar 2018
+/*       Apr 2018
 
    Previous releases:
+      *version = 3.43       Mar 2018
       *version = 3.42       Mar 2017
       *version = 3.41       Nov 2016
       *version = 3.40       Oct 2016
@@ -976,21 +977,21 @@ int fftrec(char *card,       /* I -  keyword card to test */
               (int) (ii+1), (int) card[ii] );
 
             if (card[ii] == 0)
-	        strcat(msg, " (NULL char.)");
+	        strncat(msg, " (NULL char.)",FLEN_ERRMSG-strlen(msg)-1);
             else if (card[ii] == 9)
-	        strcat(msg, " (TAB char.)");
+	        strncat(msg, " (TAB char.)",FLEN_ERRMSG-strlen(msg)-1);
             else if (card[ii] == 10)
-	        strcat(msg, " (Line Feed char.)");
+	        strncat(msg, " (Line Feed char.)",FLEN_ERRMSG-strlen(msg)-1);
             else if (card[ii] == 11)
-	        strcat(msg, " (Vertical Tab)");
+	        strncat(msg, " (Vertical Tab)",FLEN_ERRMSG-strlen(msg)-1);
             else if (card[ii] == 12)
-	        strcat(msg, " (Form Feed char.)");
+	        strncat(msg, " (Form Feed char.)",FLEN_ERRMSG-strlen(msg)-1);
             else if (card[ii] == 13)
-	        strcat(msg, " (Carriage Return)");
+	        strncat(msg, " (Carriage Return)",FLEN_ERRMSG-strlen(msg)-1);
             else if (card[ii] == 27)
-	        strcat(msg, " (Escape char.)");
+	        strncat(msg, " (Escape char.)",FLEN_ERRMSG-strlen(msg)-1);
             else if (card[ii] == 127)
-	        strcat(msg, " (Delete char.)");
+	        strncat(msg, " (Delete char.)",FLEN_ERRMSG-strlen(msg)-1);
 
             ffpmsg(msg);
 
@@ -1118,6 +1119,13 @@ int ffmkky(const char *keyname,   /* I - keyword name    */
 	    /* for now at least, treat all cases as an implicit ESO HIERARCH keyword. */
 	    /* This could  change if FITS is ever expanded to directly support longer keywords. */
 	    
+            if (namelen + 11 > FLEN_CARD-1)
+            {
+                ffpmsg(
+               "The following keyword is too long to fit on a card:");
+                ffpmsg(keyname);
+                return(*status = BAD_KEYCHAR);
+            }
             strcat(card, "HIERARCH ");
             strcat(card, tmpname);
 	    namelen += 9;
@@ -1293,7 +1301,6 @@ int ffkeyn(const char *keyroot,   /* I - root string for keyword name */
 /*
   Construct a keyword name string by appending the index number to the root.
   e.g., if root = "TTYPE" and value = 12 then keyname = "TTYPE12".
-  Note: this allows keyword names longer than 8 characters.
 */
 {
     char suffix[16];
@@ -1312,7 +1319,9 @@ int ffkeyn(const char *keyroot,   /* I - root string for keyword name */
         rootlen--;                 /* remove trailing spaces in root name */
         keyname[rootlen] = '\0';
     }
-
+    if (strlen(suffix) + strlen(keyname) > 8)
+       return (*status=206);
+       
     strcat(keyname, suffix);    /* append suffix to the root */
     return(*status);
 }
@@ -1582,7 +1591,7 @@ int ffgthd(char *tmplt, /* I - input header template string */
 {
     char keyname[FLEN_KEYWORD], value[140], comment[140];
     char *tok, *suffix, *loc, tvalue[140];
-    int len, vlen, more, tstatus;
+    int len, vlen, more, tstatus, lentok1=0, remainlen=0;
     double dval;
 
     if (*status > 0)
@@ -1619,35 +1628,40 @@ int ffgthd(char *tmplt, /* I - input header template string */
         tok++;
         len = strspn(tok, " ");  /* no. of spaces before keyword */
         tok += len;
-        if (len < 8)  /* not a blank name? */
+        
+        len = strcspn(tok, " =+");  /* length of name */
+        if (len >= FLEN_KEYWORD)
+          return(*status = BAD_KEYCHAR);
+
+        lentok1 = len;
+        strncat(card, tok, len);
+
+        /*
+          The HIERARCH convention supports non-standard characters
+          in the keyword name, so don't always convert to upper case or
+          abort if there are illegal characters in the name or if the
+          name is greater than 8 characters long.
+        */
+
+        if (len < 9)  /* this is possibly a normal FITS keyword name */
         {
-          len = strcspn(tok, " =");  /* length of name */
-          if (len >= FLEN_KEYWORD)
-            return(*status = BAD_KEYCHAR);
-
-          strncat(card, tok, len);
-
-          /*
-            The HIERARCH convention supports non-standard characters
-            in the keyword name, so don't always convert to upper case or
-            abort if there are illegal characters in the name or if the
-            name is greater than 8 characters long.
-          */
-
-          if (len < 9)  /* this is possibly a normal FITS keyword name */
+          ffupch(card);
+          tstatus = 0;
+          if (fftkey(card, &tstatus) > 0)
           {
-            ffupch(card);
-            tstatus = 0;
-            if (fftkey(card, &tstatus) > 0)
-            {
-               /* name contained non-standard characters, so reset */
-               card[0] = '\0';
-               strncat(card, tok, len);
-            }
+             /* name contained non-standard characters, so reset */
+             card[0] = '\0';
+             strncat(card, tok, len);
           }
-
-          tok += len;
         }
+
+        tok += len;
+
+	/* Check optional "+" indicator to delete multiple keywords */
+	if (tok[0] == '+' && len < FLEN_KEYWORD) {
+	  strcat(card, "+");
+	  return (*status);
+	}
 
         /* second token, if present, is the new name for the keyword */
 
@@ -1659,13 +1673,24 @@ int ffgthd(char *tmplt, /* I - input header template string */
 
         *hdtype = -2;
         len = strcspn(tok, " ");  /* length of new name */
-        if (len > 40)  /* name has to fit on columns 41-80 of card */
-          return(*status = BAD_KEYCHAR);
+        /* this name has to fit on columns 41-80 of card,
+           and first name must now fit in 1-40 */
+        if (lentok1 > 40)
+        {
+           card[0] = '\0';
+           return (*status = BAD_KEYCHAR);
+        }
+        if (len > 40)
+        {
+           card[0] = '\0'; 
+           return(*status = BAD_KEYCHAR);
+        }
 
         /* copy the new name to card + 40;  This is awkward, */
         /* but is consistent with the way the Fortran FITSIO works */
 	strcat(card,"                                        ");
-        strncpy(&card[40], tok, len+1); /* copy len+1 to get terminator */
+        strncpy(&card[40], tok, len);
+        card[80] = '\0'; /* necessary to add terminator in case len = 40 */
 
         /*
             The HIERARCH convention supports non-standard characters
@@ -1728,7 +1753,7 @@ int ffgthd(char *tmplt, /* I - input header template string */
       {
         *hdtype = 1;   /* simply append COMMENT and HISTORY keywords */
         strcpy(card, keyname);
-        strncat(card, tok, 73);
+        strncat(card, tok, 72);
         return(*status);
       }
 
@@ -1739,12 +1764,16 @@ int ffgthd(char *tmplt, /* I - input header template string */
       if (*tok == '\'') /* is value enclosed in quotes? */
       {
           more = TRUE;
+          remainlen = 139;
           while (more)
           {
             tok++;  /* temporarily move past the quote char */
             len = strcspn(tok, "'");  /* length of quoted string */
             tok--;
-            strncat(value, tok, len + 2); 
+            if (len+2 > remainlen)
+               return (*status=BAD_KEYCHAR);
+            strncat(value, tok, len + 2);
+            remainlen -= (len+2); 
  
             tok += len + 1;
             if (tok[0] != '\'')   /* check there is a closing quote */
@@ -1762,7 +1791,8 @@ int ffgthd(char *tmplt, /* I - input header template string */
       else   /* not a quoted string value */
       {
           len = strcspn(tok, " /"); /* length of value string */
-
+          if (len > 139)
+             return (*status=BAD_KEYCHAR);
           strncat(value, tok, len);
           if (!( (tok[0] == 'T' || tok[0] == 'F') &&
                  (tok[1] == ' ' || tok[1] == '/' || tok[1] == '\0') )) 
@@ -1796,6 +1826,8 @@ int ffgthd(char *tmplt, /* I - input header template string */
             if (*suffix != '\0' && *suffix != ' ' && *suffix != '/')
             { 
               /* value is not a number; must enclose it in quotes */
+              if (len > 137)
+                return (*status=BAD_KEYCHAR);              
               strcpy(value, "'");
               strncat(value, tok, len);
               strcat(value, "'");
@@ -2607,6 +2639,11 @@ int ffasfm(char *tform,    /* I - format code from the TFORMn keyword */
     while (tform[ii] != 0 && tform[ii] == ' ') /* find first non-blank char */
          ii++;
 
+    if (strlen(&tform[ii]) > FLEN_VALUE-1)
+    {
+       ffpmsg("Error: ASCII table TFORM code is too long (ffasfm)");
+       return(*status = BAD_TFORM);
+    }
     strcpy(temp, &tform[ii]); /* copy format string */
     ffupch(temp);     /* make sure it is in upper case */
     form = temp;      /* point to start of format string */
@@ -2764,6 +2801,11 @@ int ffbnfm(char *tform,     /* I - format code from the TFORMn keyword */
         return(*status = BAD_TFORM);
     }
 
+    if (nchar-ii > FLEN_VALUE-1)
+    {
+        ffpmsg("Error: binary table TFORM code is too long (ffbnfm).");
+        return (*status = BAD_TFORM);
+    }
     strcpy(temp, &tform[ii]); /* copy format string */
     ffupch(temp);     /* make sure it is in upper case */
     form = temp;      /* point to start of format string */
@@ -2779,7 +2821,13 @@ int ffbnfm(char *tform,     /* I - format code from the TFORMn keyword */
     if (ii == 0)
         repeat = 1;  /* no explicit repeat count */
     else
-        sscanf(form,"%ld", &repeat);  /* read repeat count */
+    {
+        if (sscanf(form,"%ld", &repeat) != 1) /* read repeat count */
+        {
+           ffpmsg("Error: Bad repeat format in TFORM (ffbnfm).");
+           return(*status = BAD_TFORM);
+        }  
+    }
 
     /*-----------------------------------------------*/
     /*             determine datatype code           */
@@ -2948,7 +2996,12 @@ int ffbnfmll(char *tform,     /* I - format code from the TFORMn keyword */
         ffpmsg("Error: binary table TFORM code is blank (ffbnfmll).");
         return(*status = BAD_TFORM);
     }
-
+    
+    if (strlen(&tform[ii]) > FLEN_VALUE-1)
+    {
+       ffpmsg("Error: binary table TFORM code is too long (ffbnfmll).");
+       return(*status = BAD_TFORM);
+    }
     strcpy(temp, &tform[ii]); /* copy format string */
     ffupch(temp);     /* make sure it is in upper case */
     form = temp;      /* point to start of format string */
@@ -6559,7 +6612,7 @@ int ffuptf(fitsfile *fptr,      /* I - FITS file pointer */
   'len' is the maximum length of the vector in the table (e.g., '1PE(400)')
 */
 {
-    int ii;
+    int ii, lenform=0;
     long tflds;
     LONGLONG length, addr, maxlen, naxis2, jj;
     char comment[FLEN_COMMENT], keyname[FLEN_KEYWORD];
@@ -6598,13 +6651,20 @@ int ffuptf(fitsfile *fptr,      /* I - FITS file pointer */
           /* construct the new keyword value */
           strcpy(newform, "'");
           tmp = strchr(tform, '(');  /* truncate old length, if present */
-          if (tmp) *tmp = 0;       
-          strcat(newform, tform);
+          if (tmp) *tmp = 0;
+          lenform = strlen(tform);
 
           /* print as double, because the string-to-64-bit */
           /* conversion is platform dependent (%lld, %ld, %I64d) */
 
           snprintf(lenval,40, "(%.0f)", (double) maxlen);
+          
+          if (lenform+strlen(lenval)+2 > FLEN_VALUE-1)
+          {
+             ffpmsg("Error assembling TFORMn string (ffuptf).");
+             return(*status = BAD_TFORM);
+          }
+          strcat(newform, tform);
 
           strcat(newform,lenval);
           while(strlen(newform) < 9)
@@ -9234,7 +9294,7 @@ int ffc2jj(const char *cval,  /* I - string representation of the value */
     if (errno == ERANGE)
     {
         strcpy(msg,"Range Error in ffc2jj converting string to longlong int: ");
-        strncat(msg,cval,25);
+        strncat(msg,cval,23);
         ffpmsg(msg);
 
         *status = NUM_OVERFLOW;
@@ -9349,6 +9409,12 @@ int ffc2rr(const char *cval,   /* I - string representation of the value */
 
     if (strchr(cval, 'D') || decimalpt == ',')  {
         /* strtod expects a comma, not a period, as the decimal point */
+        if (strlen(cval) > 72)
+        {
+           strcpy(msg,"Error: Invalid string to float in ffc2rr");
+           ffpmsg(msg);
+           return (*status=BAD_C2F);
+        }
         strcpy(tval, cval);
 
         /*  The C language does not support a 'D'; replace with 'E' */
@@ -9419,6 +9485,12 @@ int ffc2dd(const char *cval,   /* I - string representation of the value */
 
     if (strchr(cval, 'D') || decimalpt == ',') {
         /* need to modify a temporary copy of the string before parsing it */
+        if (strlen(cval) > 72)
+        {
+           strcpy(msg,"Error: Invalid string to double in ffc2dd");
+           ffpmsg(msg);
+           return (*status=BAD_C2D);
+        }
         strcpy(tval, cval);
         /*  The C language does not support a 'D'; replace with 'E' */
         if ((loc = strchr(tval, 'D'))) *loc = 'E';

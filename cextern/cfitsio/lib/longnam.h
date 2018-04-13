@@ -554,6 +554,7 @@
 #define fits_insert_cols  fficls
 #define fits_delete_col   ffdcol
 #define fits_copy_col     ffcpcl
+#define fits_copy_cols    ffccls
 #define fits_copy_rows    ffcprw
 #define fits_modify_vector_len  ffmvec
 

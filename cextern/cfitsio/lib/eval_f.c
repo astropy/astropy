@@ -593,7 +593,7 @@ int ffcalc_rng( fitsfile *infptr,   /* I - Input FITS file                  */
          if( parInfo==NULL || *parInfo=='\0' ) {
             /*  Figure out best default column type  */
             if( gParse.hdutype==BINARY_TBL ) {
-               snprintf(tform,16,"%ld",nelem);
+               snprintf(tform,15,"%ld",nelem);
                switch( Info.datatype ) {
                case TLOGICAL:  strcat(tform,"L");  break;
                case TLONG:     strcat(tform,"J");  break;

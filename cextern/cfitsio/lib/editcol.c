@@ -1080,7 +1080,7 @@ int fficls(fitsfile *fptr,  /* I - FITS file pointer                        */
 
     if ((fptr->Fptr)->hdutype == IMAGE_HDU)
     {
-       ffpmsg("Can only add columns to TABLE or BINTABLE extension (fficol)");
+       ffpmsg("Can only add columns to TABLE or BINTABLE extension (fficls)");
        return(*status = NOT_TABLE);
     }
 
@@ -1097,6 +1097,11 @@ int fficls(fitsfile *fptr,  /* I - FITS file pointer                        */
     delbyte = 0;
     for (ii = 0; ii < ncols; ii++)
     {
+        if (strlen(tform[ii]) > FLEN_VALUE-1)
+        {
+           ffpmsg("Column format string too long (fficls)");
+           return (*status=BAD_TFORM);
+        }
         strcpy(tfm, tform[ii]);
         ffupch(tfm);         /* make sure format is in upper case */
 
@@ -1844,6 +1849,208 @@ int ffcpcl(fitsfile *infptr,    /* I - FITS file pointer to input file  */
     else
     {
         free(dvalues);
+    }
+
+    return(*status);
+}
+/*--------------------------------------------------------------------------*/
+int ffccls(fitsfile *infptr,    /* I - FITS file pointer to input file  */
+           fitsfile *outfptr,   /* I - FITS file pointer to output file */
+           int incol,           /* I - number of first input column   */
+           int outcol,          /* I - number for first output column  */
+	   int ncols,           /* I - number of columns to copy from input to output */
+           int create_col,      /* I - create new col if TRUE, else overwrite */
+           int *status)         /* IO - error status     */
+/*
+  copy multiple columns from infptr and insert them in the outfptr
+  table.  Optimized for multiple-column case since it only expands the
+  output file once using fits_insert_cols() instead of calling
+  fits_insert_col() multiple times.
+*/
+{
+    int tstatus, colnum, typecode, otypecode, anynull;
+    int inHduType, outHduType;
+    long tfields, repeat, orepeat, width, owidth, nrows, outrows;
+    long inloop, outloop, maxloop, ndone, ntodo, npixels;
+    long firstrow, firstelem, ii;
+    char keyname[FLEN_KEYWORD], ttype[FLEN_VALUE], tform[FLEN_VALUE];
+    char ttype_comm[FLEN_COMMENT],tform_comm[FLEN_COMMENT];
+    char *lvalues = 0, nullflag, **strarray = 0;
+    char nulstr[] = {'\5', '\0'};  /* unique null string value */
+    double dnull = 0.l, *dvalues = 0;
+    float fnull = 0., *fvalues = 0;
+    int typecodes[1000];
+    char *ttypes[1000], *tforms[1000], keyarr[1001][FLEN_CARD];
+    int ikey = 0;
+    int icol, incol1, outcol1;
+
+    if (*status > 0)
+        return(*status);
+
+    if (infptr->HDUposition != (infptr->Fptr)->curhdu)
+    {
+        ffmahd(infptr, (infptr->HDUposition) + 1, NULL, status);
+    }
+    else if ((infptr->Fptr)->datastart == DATA_UNDEFINED)
+        ffrdef(infptr, status);                /* rescan header */
+    inHduType = (infptr->Fptr)->hdutype;
+    
+    if (outfptr->HDUposition != (outfptr->Fptr)->curhdu)
+    {
+        ffmahd(outfptr, (outfptr->HDUposition) + 1, NULL, status);
+    }
+    else if ((outfptr->Fptr)->datastart == DATA_UNDEFINED)
+        ffrdef(outfptr, status);               /* rescan header */
+    outHduType = (outfptr->Fptr)->hdutype;
+    
+    if (*status > 0)
+        return(*status);
+
+    if (inHduType == IMAGE_HDU || outHduType == IMAGE_HDU)
+    {
+       ffpmsg
+       ("Can not copy columns to or from IMAGE HDUs (ffccls)");
+       return(*status = NOT_TABLE);
+    }
+
+    if ( (inHduType == BINARY_TBL &&  outHduType == ASCII_TBL) ||
+	 (inHduType == ASCII_TBL  &&  outHduType == BINARY_TBL) )
+    {
+       ffpmsg
+       ("Copying between Binary and ASCII tables is not supported (ffccls)");
+       return(*status = NOT_BTABLE);
+    }
+
+    /* Do not allow copying multiple columns in the same HDU because the
+       permutations of possible overlapping copies is mind-bending */
+    if ((infptr->Fptr == outfptr->Fptr)
+	&& (infptr->HDUposition == outfptr->HDUposition))
+    {
+       ffpmsg
+       ("Copying multiple columns in same HDU is not supported (ffccls)");
+       return(*status = NOT_BTABLE);
+    }
+
+    /* Retrieve the number of columns in output file */
+    tstatus=0;
+    if (ffgkyj(outfptr, "TFIELDS", &tfields, 0, &tstatus))
+    {
+      ffpmsg
+	("Could not read TFIELDS keyword in output table (ffccls)");
+      return(*status = NO_TFIELDS);
+    }
+
+    colnum = minvalue((int) tfields + 1, outcol); /* output col. number */
+
+    /* Collect data about input column (type, repeat, etc) */
+    for (incol1 = incol, outcol1 = colnum, icol = 0; 
+	 icol < ncols; 
+	 icol++, incol1++, outcol1++)
+    {
+      ffgtcl(infptr, incol1, &typecode, &repeat, &width, status);
+
+      if (typecode < 0)
+	{
+	  ffpmsg("Variable-length columns are not supported (ffccls)");
+	  return(*status = BAD_TFORM);
+	}
+
+      typecodes[icol] = typecode;
+
+      tstatus = 0;
+      ffkeyn("TTYPE", incol1, keyname, &tstatus);
+      ffgkys(infptr, keyname, ttype, ttype_comm, &tstatus);
+
+      ffkeyn("TFORM", incol1, keyname, &tstatus);
+    
+      if (ffgkys(infptr, keyname, tform, tform_comm, &tstatus) )
+        {
+          ffpmsg
+	    ("Could not find TTYPE and TFORM keywords in input table (ffccls)");
+          return(*status = NO_TFORM);
+        }
+
+      /* If creating columns, we need to save these values */
+      if ( create_col ) {
+	tforms[icol] = keyarr[ikey++];
+	ttypes[icol] = keyarr[ikey++];
+
+	strcpy(tforms[icol], tform);
+	strcpy(ttypes[icol], ttype);
+      } else {
+	/* If not creating columns, then check the datatype and vector
+	   repeat length of the output column */
+        ffgtcl(outfptr, outcol1, &otypecode, &orepeat, &owidth, status);
+
+        if (orepeat != repeat) {
+            ffpmsg("Input and output vector columns must have same length (ffccls)");
+            return(*status = BAD_TFORM);
+        }
+      }
+    }
+
+    /* Insert columns into output file and copy all meta-data
+       keywords, if requested */
+    if (create_col)
+    {
+        /* create the empty columns */
+        if (fficls(outfptr, colnum, ncols, ttypes, tforms, status) > 0)
+        {
+           ffpmsg
+           ("Could not append new columns to output file (ffccls)");
+           return(*status);
+        }
+
+	/* Copy meta-data strings from input column to output */
+	for (incol1 = incol, outcol1 = colnum, icol = 0; 
+	     icol < ncols; 
+	     icol++, incol1++, outcol1++)
+	{
+	  /* copy the comment strings from the input file for TTYPE and TFORM */
+	  ffkeyn("TTYPE", incol1, keyname, status);
+	  ffgkys(infptr, keyname, ttype, ttype_comm, status);
+	  ffkeyn("TTYPE", outcol1, keyname, status);
+	  ffmcom(outfptr, keyname, ttype_comm, status);
+	  
+	  ffkeyn("TFORM", incol1, keyname, status);
+	  ffgkys(infptr, keyname, tform, tform_comm, status);
+	  ffkeyn("TFORM", outcol1, keyname, status);
+	  ffmcom(outfptr, keyname, tform_comm, status);
+	  
+	  /* copy other column-related keywords if they exist */
+	  
+	  ffcpky(infptr, outfptr, incol1, outcol1, "TUNIT", status);
+	  ffcpky(infptr, outfptr, incol1, outcol1, "TSCAL", status);
+	  ffcpky(infptr, outfptr, incol1, outcol1, "TZERO", status);
+	  ffcpky(infptr, outfptr, incol1, outcol1, "TDISP", status);
+	  ffcpky(infptr, outfptr, incol1, outcol1, "TLMIN", status);
+	  ffcpky(infptr, outfptr, incol1, outcol1, "TLMAX", status);
+	  ffcpky(infptr, outfptr, incol1, outcol1, "TDIM", status);
+
+	  /*  WCS keywords */
+	  ffcpky(infptr, outfptr, incol1, outcol1, "TCTYP", status);
+	  ffcpky(infptr, outfptr, incol1, outcol1, "TCUNI", status);
+	  ffcpky(infptr, outfptr, incol1, outcol1, "TCRVL", status);
+	  ffcpky(infptr, outfptr, incol1, outcol1, "TCRPX", status);
+	  ffcpky(infptr, outfptr, incol1, outcol1, "TCDLT", status);
+	  ffcpky(infptr, outfptr, incol1, outcol1, "TCROT", status);
+	  
+	  ffcpky(infptr, outfptr, incol1, outcol1, "TNULL", status);
+
+	}
+
+	/* rescan header to recognize the new keywords */
+	if (ffrdef(outfptr, status) )
+	  return(*status);
+    }
+	
+    /* Copy columns using standard ffcpcl(); do this in a loop because
+       the I/O-intensive column expanding is done */
+    for (incol1 = incol, outcol1 = colnum, icol = 0; 
+	 icol < ncols; 
+	 icol++, incol1++, outcol1++)
+    {
+      ffcpcl(infptr, outfptr, incol1, outcol1, 0, status);
     }
 
     return(*status);

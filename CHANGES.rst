@@ -890,6 +890,10 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Updated the bundled CFITSIO library to 3.44. This is to remedy another
+  critical security vulnerability that was identified by NASA. See
+  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#7370]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
