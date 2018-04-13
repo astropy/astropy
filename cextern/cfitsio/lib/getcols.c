@@ -296,8 +296,9 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
 
       /* write the formated string for each value */
       if (nulval) {
-          strcpy(tmpnull, nulval);
-          nulwidth = strlen(nulval);
+          strncpy(tmpnull, nulval,79);
+          tmpnull[79]='\0'; /* In case len(nulval) >= 79 */
+          nulwidth = strlen(tmpnull);
       } else {
           strcpy(tmpnull, " ");
           nulwidth = 1;
@@ -430,8 +431,9 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
       } 
 
       if (nulval) {
-          strcpy(tmpnull, nulval);
-          nulwidth = strlen(nulval);
+          strncpy(tmpnull, nulval,79);
+          tmpnull[79]='\0';
+          nulwidth = strlen(tmpnull);
       } else {
           strcpy(tmpnull, " ");
           nulwidth = 1;

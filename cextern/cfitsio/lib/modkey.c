@@ -754,6 +754,11 @@ int ffmkls( fitsfile *fptr,           /* I - FITS file pointer        */
     contin = 0;
     while (remain > 0)
     {
+        if (nchar > FLEN_VALUE-1)
+        {
+           ffpmsg("longstr keyword value is too long (ffmkls)");
+           return (*status=BAD_KEYCHAR);
+        }
         strncpy(tstring, &value[next], nchar); /* copy string to temp buff */
         tstring[nchar] = '\0';
         ffs2c(tstring, valstring, status);  /* put quotes around the string */
@@ -984,9 +989,19 @@ int ffmkfc(fitsfile *fptr,          /* I - FITS file pointer  */
 
     strcpy(valstring, "(" );
     ffr2f(value[0], decim, tmpstring, status); /* convert to string */
+    if (strlen(tmpstring)+3 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffmkfc)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ", ");
     ffr2f(value[1], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring) + strlen(tmpstring)+1 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffmkfc)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ")");
 
@@ -1019,9 +1034,19 @@ int ffmkyc(fitsfile *fptr,          /* I - FITS file pointer  */
 
     strcpy(valstring, "(" );
     ffr2e(value[0], decim, tmpstring, status); /* convert to string */
+    if (strlen(tmpstring)+3 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffmkyc)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ", ");
     ffr2e(value[1], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring) + strlen(tmpstring)+1 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffmkyc)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ")");
 
@@ -1054,9 +1079,19 @@ int ffmkfm(fitsfile *fptr,          /* I - FITS file pointer  */
 
     strcpy(valstring, "(" );
     ffd2f(value[0], decim, tmpstring, status); /* convert to string */
+    if (strlen(tmpstring)+3 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffmkfm)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ", ");
     ffd2f(value[1], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring) + strlen(tmpstring)+1 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffmkfm)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ")");
 
@@ -1089,9 +1124,19 @@ int ffmkym(fitsfile *fptr,    /* I - FITS file pointer  */
 
     strcpy(valstring, "(" );
     ffd2e(value[0], decim, tmpstring, status); /* convert to string */
+    if (strlen(tmpstring)+3 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffmkym)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ", ");
     ffd2e(value[1], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring) + strlen(tmpstring)+1 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffmkym)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ")");
 
@@ -1208,6 +1253,11 @@ int ffikls( fitsfile *fptr,           /* I - FITS file pointer        */
     contin = 0;
     while (remain > 0)
     {
+        if (nchar > FLEN_VALUE-1)
+        {
+           ffpmsg("longstr keyword value is too long (ffikls)");
+           return (*status=BAD_KEYCHAR);
+        }
         strncpy(tstring, &value[next], nchar); /* copy string to temp buff */
         tstring[nchar] = '\0';
         ffs2c(tstring, valstring, status);  /* put quotes around the string */
@@ -1379,9 +1429,19 @@ int ffikfc(fitsfile *fptr,          /* I - FITS file pointer  */
 
     strcpy(valstring, "(" );
     ffr2f(value[0], decim, tmpstring, status); /* convert to string */
+    if (strlen(tmpstring)+3 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffikfc)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ", ");
     ffr2f(value[1], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring) + strlen(tmpstring)+1 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffikfc)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ")");
 
@@ -1406,9 +1466,19 @@ int ffikyc(fitsfile *fptr,          /* I - FITS file pointer  */
 
     strcpy(valstring, "(" );
     ffr2e(value[0], decim, tmpstring, status); /* convert to string */
+    if (strlen(tmpstring)+3 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffikyc)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ", ");
     ffr2e(value[1], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring) + strlen(tmpstring)+1 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffikyc)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ")");
 
@@ -1434,9 +1504,19 @@ int ffikfm(fitsfile *fptr,          /* I - FITS file pointer  */
 
     strcpy(valstring, "(" );
     ffd2f(value[0], decim, tmpstring, status); /* convert to string */
+    if (strlen(tmpstring)+3 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffikfm)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ", ");
     ffd2f(value[1], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring) + strlen(tmpstring)+1 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffikfm)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ")");
 
@@ -1461,9 +1541,19 @@ int ffikym(fitsfile *fptr,          /* I - FITS file pointer  */
 
     strcpy(valstring, "(" );
     ffd2e(value[0], decim, tmpstring, status); /* convert to string */
+    if (strlen(tmpstring)+3 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffikym)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ", ");
     ffd2e(value[1], decim, tmpstring, status); /* convert to string */
+    if (strlen(valstring) + strlen(tmpstring)+1 > FLEN_VALUE-1)
+    {
+       ffpmsg("complex key value too long (ffikym)");
+       return(*status=BAD_F2C);
+    }
     strcat(valstring, tmpstring);
     strcat(valstring, ")");
 
@@ -1531,6 +1621,11 @@ int ffikey(fitsfile *fptr,    /* I - FITS file pointer  */
     keylength = strcspn(buff2, "=");
     if (keylength == 80) keylength = 8;
     
+    /* test for the common commentary keywords which by definition have 8-char names */
+    if ( !fits_strncasecmp( "COMMENT ", buff2, 8) || !fits_strncasecmp( "HISTORY ", buff2, 8) ||
+         !fits_strncasecmp( "        ", buff2, 8) || !fits_strncasecmp( "CONTINUE", buff2, 8) )
+	 keylength = 8;
+
     for (ii=0; ii < keylength; ii++)       /* make sure keyword name is uppercase */
         buff2[ii] = toupper(buff2[ii]);
 
