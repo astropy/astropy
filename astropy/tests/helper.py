@@ -19,6 +19,7 @@ try:
 except ImportError:
     pass
 
+from ...units.quantity import allclose as quantity_allclose
 from ..utils.exceptions import (AstropyDeprecationWarning,
                                 AstropyPendingDeprecationWarning)
 
@@ -459,14 +460,3 @@ def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=None,
     :func:`numpy.testing.assert_allclose`.
     """
     assert quantity_allclose(actual, desired, rtol, atol, **kwargs)
-
-
-def quantity_allclose(a, b, rtol=1.e-5, atol=None, **kwargs):
-    """
-    Returns True if two arrays are element-wise equal within a tolerance.
-
-    This is a :class:`~astropy.units.Quantity`-aware version of
-    :func:`numpy.allclose`.
-    """
-    from ..units.quantity import allclose
-    allclose(a, b, rtol=1.e-5, atol=None, **kwargs)
