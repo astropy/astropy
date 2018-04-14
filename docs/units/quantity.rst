@@ -105,7 +105,7 @@ Comparing quantities
     >>> from astropy import units as u
     >>> u.allclose([1, 2] * u.m, [100, 200] * u.cm)
     True
-    >>> u.isclose([1, 2] * u.m, [100, 20] * u.cm)
+    >>> u.isclose([1, 2] * u.m, [100, 20] * u.cm)  # doctest: +SKIP
     array([ True, False])
 
 .. _plotting-quantities:
