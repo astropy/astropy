@@ -19,7 +19,7 @@ try:
 except ImportError:
     pass
 
-from ..units import allclose as quantity_allclose
+from ..units import allclose as quantity_allclose  # noqa
 from ..utils.exceptions import (AstropyDeprecationWarning,
                                 AstropyPendingDeprecationWarning)
 

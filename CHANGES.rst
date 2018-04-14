@@ -347,8 +347,9 @@ astropy.units
 
 - ``u.quantity_input`` no longer errors if the return annotation for a function is ``None``. [#7336]
 
--  Added a units-aware ``allclose`` function (this was previously available in
-  the ``tests`` module as ``quantity_allclose``) [#7252]
+- Added a units-aware ``allclose`` function (this was previously available in
+  the ``tests`` module as ``quantity_allclose``). To complement ``allclose``,
+  a new ``isclose`` function is also added and backported. [#7252]
 
 astropy.utils
 ^^^^^^^^^^^^^

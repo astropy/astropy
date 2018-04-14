@@ -97,6 +97,17 @@ If you want the value of the quantity in a different unit, you can use
           :meth:`~astropy.units.Quantity.to` always returns a copy (which also
           means it is slower for the case where conversion is necessary).
 
+Comparing quantities
+====================
+
+|quantity| objects can be compared as follows:
+
+    >>> from astropy import units as u
+    >>> u.allclose([1, 2] * u.m, [100, 200] * u.cm)
+    True
+    >>> u.isclose([1, 2] * u.m, [100, 20] * u.cm)
+    array([ True, False])
+
 .. _plotting-quantities:
 
 Plotting quantities
