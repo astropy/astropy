@@ -29,7 +29,7 @@ from .runner import TestRunner  # pylint: disable=W0611
 
 __all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
            'treat_deprecations_as_exceptions', 'catch_warnings',
-           'assert_follows_unicode_guidelines', 'quantity_allclose',
+           'assert_follows_unicode_guidelines',
            'assert_quantity_allclose', 'check_pickling_recovery',
            'pickle_protocol', 'generic_recursive_equality_test']
 
