@@ -19,12 +19,13 @@ astropy.coordinates
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
-Distance calculations with ``FlatLambaCDM`` with no radiation (T_CMB0=0)
-are now 20x faster by using the hypergeometric function solution
-for this special case.  [#7087]
+- Distance calculations with ``FlatLambaCDM`` with no radiation (T_CMB0=0)
+  are now 20x faster by using the hypergeometric function solution
+  for this special case. [#7087]
 
-Age calculations with ``FlatLambdaCDM`` with no radiation (Tcmb0=0)
-are now 1000x faster by using analytic solutions instead of integrating. [#7117]
+- Age calculations with ``FlatLambdaCDM`` with no radiation (Tcmb0=0)
+  are now 1000x faster by using analytic solutions instead of integrating.
+  [#7117]
 
 astropy.extern
 ^^^^^^^^^^^^^^
@@ -35,9 +36,10 @@ astropy.io.ascii
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
-Added support for saving all representation classes and many coordinate frames to the asdf format. [#7079]
+- Added support for saving all representation classes and many coordinate
+  frames to the asdf format. [#7079]
 
-Added support for saving models with units to the asdf format. [#7237]
+- Added support for saving models with units to the asdf format. [#7237]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
