@@ -1123,3 +1123,17 @@ def dtype_bytes_or_chars(dtype):
     match = re.search(r'(\d+)$', dtype.str)
     out = int(match.group(1)) if match else None
     return out
+
+
+def pizza():  # pragma: no cover
+    """
+    Open browser loaded with pizza options near you.
+
+    *Disclaimers: Payments not included. Astropy is not
+    responsible for any liability from using this function.*
+
+    .. note:: Accuracy depends on your browser settings.
+
+    """
+    import webbrowser
+    webbrowser.open('https://www.google.com/search?q=pizza+near+me')
