@@ -5,7 +5,7 @@ Accuracy tests for Ecliptic coordinate systems.
 
 import numpy as np
 
-from ....tests.helper import quantity_allclose
+from ....units import allclose as quantity_allclose
 from .... import units as u
 from ... import SkyCoord
 from ...builtin_frames import FK5, ICRS, GCRS, GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic

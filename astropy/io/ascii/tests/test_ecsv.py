@@ -18,8 +18,8 @@ from ....table import Table, Column, QTable, NdarrayMixin
 from ....table.table_helpers import simple_table
 from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
 from ....time import Time, TimeDelta
-from ....tests.helper import quantity_allclose
-from ....units.quantity import QuantityInfo
+from ....units import allclose as quantity_allclose
+from ....units import QuantityInfo
 
 from ..ecsv import DELIMITERS
 from ... import ascii
