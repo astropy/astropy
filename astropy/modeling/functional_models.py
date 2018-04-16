@@ -592,7 +592,7 @@ class Sersic1D(Fittable1DModel):
     Parameters
     ----------
     amplitude : float
-        Central surface brightness, within r_eff.
+        Surface brightness at r_eff.
     r_eff : float
         Effective (half-light) radius
     n : float
@@ -2347,7 +2347,7 @@ class Sersic2D(Fittable2DModel):
     Parameters
     ----------
     amplitude : float
-        Central surface brightness, within r_eff.
+        Surface brightness at r_eff.
     r_eff : float
         Effective (half-light) radius
     n : float
