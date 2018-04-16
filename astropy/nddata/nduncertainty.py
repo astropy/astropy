@@ -247,6 +247,18 @@ class NDUncertainty(metaclass=ABCMeta):
             body = str(self.array)
         return ''.join([prefix, body, ')'])
 
+    def __reduce__(self):
+        """Because of the weak reference the class wouldn't be picklable."""
+        try:
+            return (type(self),
+                    (self._array, False, self._unit),
+                    (self.parent_nddata, ))
+        except MissingDataAssociationException:
+            return type(self), (self._array, False, self._unit)
+
+    def __setstate__(self, state):
+        self.parent_nddata = state[0]
+
     def __getitem__(self, item):
         """Normal slicing on the array, keep the unit and return a reference.
         """
