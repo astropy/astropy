@@ -19,7 +19,7 @@ try:
 except ImportError:
     pass
 
-from ..units import allclose as quantity_allclose  # noqa
+from ..units import allclose as _quantity_allclose  # noqa
 from ..utils.exceptions import (AstropyDeprecationWarning,
                                 AstropyPendingDeprecationWarning)
 
@@ -465,3 +465,9 @@ def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=None,
     np.testing.assert_allclose(*_unquantify_allclose_arguments(actual, desired,
                                                                rtol, atol),
                                **kwargs)
+
+# TODO: This is a workaround to preserve API compatibility for the bugfix
+def quantity_allclose(*args, **kwargs):
+    return _quantity_allclose(*args, **kwargs)
+
+quantity_allclose.__doc__ = _quantity_allclose.__doc__
