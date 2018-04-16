@@ -2134,7 +2134,7 @@ def _convert_fits2record(format):
     elif dtype == 'F':
         output_format = 'f8'
     else:
-        raise ValueError('Illegal format {}.'.format(format))
+        raise ValueError('Illegal format `{}`.'.format(format))
 
     return output_format
 
@@ -2178,7 +2178,7 @@ def _convert_record2fits(format):
             repeat = ''
         output_format = repeat + NUMPY2FITS[recformat]
     else:
-        raise ValueError('Illegal format {}.'.format(format))
+        raise ValueError('Illegal format `{}`.'.format(format))
 
     return output_format
 
