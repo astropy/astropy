@@ -1009,6 +1009,9 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- Added support for pickling ``NDData`` instances that have an uncertainty.
+  [#7383]
+
 astropy.samp
 ^^^^^^^^^^^^
 

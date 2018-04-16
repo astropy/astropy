@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-
+import pickle
 import textwrap
 from collections import OrderedDict
 
@@ -353,6 +353,15 @@ def test_param_unit():
     # (another NDData as data)
     nd3 = NDData(nd, unit='km')
     assert nd3.unit == u.km
+
+
+def test_pickle_nddata_with_uncertainty():
+    ndd = NDData(np.ones(3), uncertainty=StdDevUncertainty(np.ones(5), unit=u.m))
+    dumped = pickle.dumps(ndd)
+    ndd_restored = pickle.loads(dumped)
+    assert type(ndd_restored.uncertainty) is StdDevUncertainty
+    assert ndd_restored.uncertainty.parent_nddata is ndd_restored
+    assert ndd_restored.uncertainty.unit == u.m
 
 
 # Check that the meta descriptor is working as expected. The MetaBaseTest class
