@@ -4,7 +4,7 @@
 
 import pytest
 import numpy as np
-from ...tests.helper import quantity_allclose
+from ...units import allclose as quantity_allclose
 
 from ... import units as u
 from ... import constants

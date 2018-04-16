@@ -12,7 +12,8 @@ from ..solar_system import (get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
                             _apparent_position_in_true_coordinates,
                             get_body_barycentric, get_body_barycentric_posvel)
 from ..funcs import get_sun
-from ...tests.helper import assert_quantity_allclose, quantity_allclose
+from ...tests.helper import assert_quantity_allclose
+from ...units import allclose as quantity_allclose
 
 try:
     import jplephem  # pylint: disable=W0611

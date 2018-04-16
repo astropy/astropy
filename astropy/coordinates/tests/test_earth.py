@@ -10,7 +10,7 @@ import numpy as np
 
 from ..earth import EarthLocation, ELLIPSOIDS
 from ..angles import Longitude, Latitude
-from ...tests.helper import quantity_allclose
+from ...units import allclose as quantity_allclose
 from ... import units as u
 from ...time import Time
 from ... import constants
