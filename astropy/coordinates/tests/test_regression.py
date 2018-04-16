@@ -23,8 +23,9 @@ from ...time import Time
 from ...utils import iers
 from ...table import Table
 
-from ...tests.helper import assert_quantity_allclose, catch_warnings, quantity_allclose
+from ...tests.helper import assert_quantity_allclose, catch_warnings
 from .test_matching import HAS_SCIPY, OLDER_SCIPY
+from ...units import allclose as quantity_allclose
 
 try:
     import yaml  # pylint: disable=W0611

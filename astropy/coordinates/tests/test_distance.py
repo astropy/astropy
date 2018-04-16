@@ -11,7 +11,7 @@ import numpy as np
 from numpy import testing as npt
 
 from ... import units as u
-from ...tests.helper import quantity_allclose
+from ...units import allclose as quantity_allclose
 from .. import Longitude, Latitude, Distance, CartesianRepresentation
 from ..builtin_frames import ICRS, Galactic
 

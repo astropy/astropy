@@ -69,6 +69,11 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- The function ``quantity_allclose`` was moved to the ``units`` package with
+  the new, shorter name ``allclose``. This eliminates a runtime dependency on
+  ``pytest`` which was causing issues for some affiliated packages. The old
+  import will continue to work but may be deprecated in the future. [#7252]
+
 astropy.time
 ^^^^^^^^^^^^
 
@@ -76,6 +81,10 @@ astropy.units
 ^^^^^^^^^^^^^
 
 - ``u.quantity_input`` no longer errors if the return annotation for a function is ``None``. [#7336]
+
+- Added a units-aware ``allclose`` function (this was previously available in
+  the ``tests`` module as ``quantity_allclose``). To complement ``allclose``,
+  a new ``isclose`` function is also added and backported. [#7252]
 
 astropy.utils
 ^^^^^^^^^^^^^
