@@ -32,12 +32,12 @@ DELAYED = _Delayed()
 
 
 BITPIX2DTYPE = {8: 'uint8', 16: 'int16', 32: 'int32', 64: 'int64',
-                -32: 'float32', -64: 'float64'}
+                -16: 'float16', -32: 'float32', -64: 'float64'}
 """Maps FITS BITPIX values to Numpy dtype names."""
 
-DTYPE2BITPIX = {'uint8': 8, 'int16': 16, 'uint16': 16, 'int32': 32,
-                'uint32': 32, 'int64': 64, 'uint64': 64, 'float32': -32,
-                'float64': -64}
+DTYPE2BITPIX = {'int8': 8, 'int16': 16, 'int32': 32, 'int64': 64,
+                'uint8': 8, 'uint16': 16, 'uint32': 32, 'uint64': 64, 
+                'float16': -16, 'float32': -32, 'float64': -64}
 """
 Maps Numpy dtype names to FITS BITPIX values (this includes unsigned
 integers, with the assumption that the pseudo-unsigned integer convention
