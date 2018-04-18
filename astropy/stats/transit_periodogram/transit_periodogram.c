@@ -60,13 +60,14 @@ int run_transit_periodogram (
 ) {
     // Start by finding the period and duration ranges
     double max_period = periods[0], min_period = periods[0];
-    for (int k = 1; k < n_periods; ++k) {
+    int k;
+    for (k = 1; k < n_periods; ++k) {
         if (periods[k] < min_period) min_period = periods[k];
         if (periods[k] > max_period) max_period = periods[k];
     }
     if (min_period < DBL_EPSILON) return 1;
     double min_duration = durations[0], max_duration = durations[0];
-    for (int k = 1; k < n_durations; ++k) {
+    for (k = 1; k < n_durations; ++k) {
         if (durations[k] < min_duration) min_duration = durations[k];
         if (durations[k] > max_duration) max_duration = durations[k];
     }
@@ -77,7 +78,7 @@ int run_transit_periodogram (
     int max_n_bins = (int)(max_period / bin_duration) + oversample;
     int* durations_index = (int*)malloc(n_durations*sizeof(int));
     if (durations_index == NULL) return -1;
-    for (int k = 0; k < n_durations; ++k) {
+    for (k = 0; k < n_durations; ++k) {
         durations_index[k] = (int)(round(durations[k] / bin_duration));
         if (durations_index[k] <= 0) durations_index[k] = 1;
     }
@@ -107,15 +108,17 @@ int run_transit_periodogram (
 
     // Pre-accumulate some factors.
     double sum_y = 0.0, sum_ivar = 0.0;
+    int i;
     #pragma omp parallel for reduction(+:sum_y), reduction(+:sum_ivar)
-    for (int n = 0; n < N; ++n) {
-        sum_y += y[n] * ivar[n];
-        sum_ivar += ivar[n];
+    for (i = 0; i < N; ++i) {
+        sum_y += y[i] * ivar[i];
+        sum_ivar += ivar[i];
     }
 
     // Loop over periods and do the search
+    int p;
     #pragma omp parallel for
-    for (int p = 0; p < n_periods; ++p) {
+    for (p = 0; p < n_periods; ++p) {
 #if defined(_OPENMP)
         int ithread = omp_get_thread_num();
 #else
@@ -131,11 +134,12 @@ int run_transit_periodogram (
         // This first pass bins the data into a fine-grain grid in phase from zero
         // to period and computes the weighted sum and inverse variance for each
         // bin.
-        for (int n = 0; n < n_bins+1; ++n) {
+        int n, ind;
+        for (n = 0; n < n_bins+1; ++n) {
             mean_y[n] = 0.0;
             mean_ivar[n] = 0.0;
         }
-        for (int n = 0; n < N; ++n) {
+        for (n = 0; n < N; ++n) {
             int ind = (int)(fabs(fmod(t[n], period)) / bin_duration) + 1;
             mean_y[ind] += y[n] * ivar[n];
             mean_ivar[ind] += ivar[n];
@@ -143,7 +147,7 @@ int run_transit_periodogram (
 
         // To simplify calculations below, we wrap the binned values around and pad
         // the end of the array with the first ``oversample`` samples.
-        for (int n = 1, ind = n_bins - oversample; n <= oversample; ++n, ++ind) {
+        for (n = 1, ind = n_bins - oversample; n <= oversample; ++n, ++ind) {
             mean_y[ind] = mean_y[n];
             mean_ivar[ind] = mean_ivar[n];
         }
@@ -153,7 +157,7 @@ int run_transit_periodogram (
         // fast, we can compute the cumulative sum and then use differences between
         // points separated by ``duration`` bins. Here we convert the mean arrays
         // to cumulative sums.
-        for (int n = 1; n <= n_bins; ++n) {
+        for (n = 1; n <= n_bins; ++n) {
             mean_y[n] += mean_y[n-1];
             mean_ivar[n] += mean_ivar[n-1];
         }
@@ -163,10 +167,11 @@ int run_transit_periodogram (
         // the computations that we did above.
         double objective, log_like, depth, depth_err, depth_snr;
         best_objective[p] = -INFINITY;
-        for (int k = 0; k < n_durations; ++k) {
+        int k;
+        for (k = 0; k < n_durations; ++k) {
             int dur = durations_index[k];
             int n_max = n_bins-dur;
-            for (int n = 0; n <= n_max; ++n) {
+            for (n = 0; n <= n_max; ++n) {
                 // Estimate the in-transit and out-of-transit flux
                 double y_in = mean_y[n+dur] - mean_y[n];
                 double ivar_in = mean_ivar[n+dur] - mean_ivar[n];
