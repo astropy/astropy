@@ -1703,15 +1703,6 @@ class Box1D(Fittable1DModel):
         else:
             return result
 
-    @classmethod
-    def fit_deriv(cls, x, amplitude, x_0, width):
-        """One dimensional Box model derivative with respect to parameters"""
-
-        d_amplitude = cls.evaluate(x, 1, x_0, width)
-        d_x_0 = np.zeros_like(x)
-        d_width = np.zeros_like(x)
-        return [d_amplitude, d_x_0, d_width]
-
     @property
     def bounding_box(self):
         """
