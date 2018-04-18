@@ -279,7 +279,7 @@ astropy.coordinates
 
 - Computing a 3D separation between two ``SkyCoord`` objects (with the
   ``separation_3d`` method) now works with or without velocity data attached to
-  the objects. [#9999]
+  the objects. [#7387]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
