@@ -6,6 +6,10 @@
 #include <omp.h>
 #endif
 
+#ifndef INFINITY
+#define INFINITY (1.0 / 0.0)
+#endif
+
 void compute_objective(
     double y_in,
     double y_out,
