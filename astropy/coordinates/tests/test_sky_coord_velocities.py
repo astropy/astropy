@@ -201,6 +201,7 @@ def test_constellations(sc):
     const = sc.get_constellation()
     assert const == 'Pisces'
 
+
 def test_separation_3d_with_differentials():
     c1 = SkyCoord(ra=138*u.deg, dec=-17*u.deg, distance=100*u.pc,
                   pm_ra_cosdec=5*u.mas/u.yr,
