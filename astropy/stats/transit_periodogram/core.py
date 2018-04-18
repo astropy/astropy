@@ -374,6 +374,7 @@ class TransitPeriodogram(object):
         -------
         stats : dict
             A dictionary containing several descriptive statistics:
+
             - ``depth``: The depth and uncertainty (as a tuple with two
                 values) on the depth for the fiducial model.
             - ``depth_odd``: The depth and uncertainty on the depth for a
@@ -738,7 +739,18 @@ class TransitPeriodogramResults(dict):
     def __dir__(self):
         return list(self.keys())
 
-    def assert_allclose(self, other):
+    def assert_allclose(self, other, **kwargs):
+        """Assert that another TransitPeriodogramResults object is consistent
+
+        This method loops over all attributes and compares the values using
+        :func:`~astropy.tests.helper.assert_quantity_allclose` function.
+
+        Parameters
+        ----------
+        other : TransitPeriodogramResults
+            The other results object to compare.
+
+        """
         for k, v in self.items():
             if k not in other:
                 raise AssertionError("missing key '{0}'".format(k))
@@ -748,6 +760,4 @@ class TransitPeriodogramResults(dict):
                     .format(v, other[k])
                 )
                 continue
-            assert_quantity_allclose(v, other[k],
-                                     err_msg="Mismatch in attribute '{0}'"
-                                     .format(k))
+            assert_quantity_allclose(v, other[k], **kwargs)
