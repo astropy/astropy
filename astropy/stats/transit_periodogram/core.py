@@ -54,7 +54,7 @@ class TransitPeriodogram(object):
     >>> model = TransitPeriodogram(t, y)
     >>> results = model.autopower(0.16)
     >>> results.period[np.argmax(results.power)]  # doctest: +FLOAT_CMP
-    1.9858542275986908
+    2.005441310651872
 
     Compute the periodogram on a user-specified period grid:
 
@@ -760,4 +760,4 @@ class TransitPeriodogramResults(dict):
                     .format(v, other[k])
                 )
                 continue
-            assert_quantity_allclose(v, other[k], **kwargs)
+            assert_quantity_allclose(v, other[k], err_msg=k, **kwargs)

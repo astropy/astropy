@@ -79,13 +79,7 @@ int run_transit_periodogram (
 
     // Compute the durations in terms of bin_duration
     double bin_duration = min_duration / ((double)oversample);
-    int max_n_bins = (int)(max_period / bin_duration) + oversample;
-    int* durations_index = (int*)malloc(n_durations*sizeof(int));
-    if (durations_index == NULL) return -1;
-    for (k = 0; k < n_durations; ++k) {
-        durations_index[k] = (int)(round(durations[k] / bin_duration));
-        if (durations_index[k] <= 0) durations_index[k] = 1;
-    }
+    int max_n_bins = (int)(ceil(max_period / bin_duration)) + oversample;
 
     int nthreads, blocksize = max_n_bins+1;
 #pragma omp parallel
@@ -100,13 +94,11 @@ int run_transit_periodogram (
     // Allocate the work arrays
     double* mean_y_0 = (double*)malloc(nthreads*blocksize*sizeof(double));
     if (mean_y_0 == NULL) {
-        free(durations_index);
         return -2;
     }
     double* mean_ivar_0 = (double*)malloc(nthreads*blocksize*sizeof(double));
     if (mean_ivar_0 == NULL) {
         free(mean_y_0);
-        free(durations_index);
         return -3;
     }
 
@@ -130,7 +122,7 @@ int run_transit_periodogram (
 #endif
         int block = blocksize * ithread;
         double period = periods[p];
-        int n_bins = (int)(period / bin_duration) + oversample;
+        int n_bins = (int)(ceil(period / bin_duration)) + oversample;
 
         double* mean_y = mean_y_0 + block;
         double* mean_ivar = mean_ivar_0 + block;
@@ -173,7 +165,7 @@ int run_transit_periodogram (
         best_objective[p] = -INFINITY;
         int k;
         for (k = 0; k < n_durations; ++k) {
-            int dur = durations_index[k];
+            int dur = (int)(round(durations[k] / bin_duration));
             int n_max = n_bins-dur;
             for (n = 0; n <= n_max; ++n) {
                 // Estimate the in-transit and out-of-transit flux
@@ -208,7 +200,7 @@ int run_transit_periodogram (
                     best_depth_err[p] = depth_err;
                     best_depth_snr[p] = depth_snr;
                     best_log_like[p]  = log_like;
-                    best_duration[p]  = durations_index[k] * bin_duration;
+                    best_duration[p]  = dur * bin_duration;
                     best_phase[p]     = fmod(n*bin_duration + 0.5*best_duration[p], period);
                 }
             }
@@ -216,7 +208,6 @@ int run_transit_periodogram (
     }
 
     // Clean up
-    free(durations_index);
     free(mean_y_0);
     free(mean_ivar_0);
 
