@@ -94,6 +94,14 @@ def pytest_report_header(config):
                 version = 'unknown (no __version__ attribute)'
             s += "{0}: {1}\n".format(module_display, version)
 
+    # Helpers version
+    try:
+        from ...version import astropy_helpers_version
+    except ImportError:
+        pass
+    else:
+        s += "astropy_helpers: {0}\n".format(astropy_helpers_version)
+
     special_opts = ["remote_data", "pep8"]
     opts = []
     for op in special_opts:
