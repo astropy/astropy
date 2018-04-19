@@ -27,6 +27,25 @@ def data():
                           duration=duration, depth=depth)
 
 
+def test_32bit_bug():
+    rand = np.random.RandomState(42)
+    t = rand.uniform(0, 10, 500)
+    y = np.ones_like(t)
+    y[np.abs((t + 1.0) % 2.0-1) < 0.08] = 1.0 - 0.1
+    y += 0.01 * rand.randn(len(t))
+
+    model = TransitPeriodogram(t, y)
+    results = model.autopower(0.16)
+    assert np.allclose(results.period[np.argmax(results.power)],
+                       2.005441310651872)
+    periods = np.linspace(1.9, 2.1, 5)
+    results = model.power(periods, 0.16)
+    assert np.allclose(
+        results.power,
+        np.array([0.01479464, 0.03804835, 0.09640946, 0.05199547, 0.01970484])
+    )
+
+
 @pytest.mark.parametrize("objective", ["likelihood", "snr"])
 def test_correct_model(data, objective):
     t, y, dy, params = data
@@ -42,8 +61,11 @@ def test_correct_model(data, objective):
 
 
 @pytest.mark.parametrize("objective", ["likelihood", "snr"])
-def test_fast_method(data, objective):
+@pytest.mark.parametrize("offset", [False, True])
+def test_fast_method(data, objective, offset):
     t, y, dy, params = data
+    if offset:
+        t = t - params["transit_time"] + params["period"]
     model = TransitPeriodogram(t, y, dy)
     periods = np.exp(np.linspace(np.log(params["period"]) - 1,
                                  np.log(params["period"]) + 1, 10))
