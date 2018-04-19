@@ -35,21 +35,25 @@ def _merge_table_meta(out, tables, metadata_conflicts='warn'):
 
 def _get_list_of_tables(tables):
     """
-    Check that tables is a Table or sequence of Tables.  Returns the
-    corresponding list of Tables.
+    Check that tables is a Table or sequence of Tables, Columns and/or rows. Convert each Row and
+    Column in the sequence to the corresponding Table objects and finally return the sequence of Tables.
     """
-    from .table import Table, Row
+    from .table import Table, Row, has_info_class, BaseColumn
+    from .column import ColumnInfo
 
     # Make sure we have a list of things
     if not isinstance(tables, collections.Sequence):
         tables = [tables]
 
-    # Make sure each thing is a Table or Row
-    if any(not isinstance(x, (Table, Row)) for x in tables) or len(tables) == 0:
-        raise TypeError('`tables` arg must be a Table or sequence of Tables or Rows')
+    # Make sure each thing is a Table or Row or Column
+    if any(not isinstance(x, (Table, Row, BaseColumn)) for x in tables) or len(tables) == 0:
+        raise TypeError('`tables` arg must be a Table or sequence of Tables or Rows or Column')
 
     # Convert any Rows to Tables
-    tables = [(x if isinstance(x, Table) else Table(x)) for x in tables]
+    tables = [(Table(x) if isinstance(x, Row) else x) for x in tables]
+
+    # Convert any Columns to Tables
+    tables = [(Table([x]) if has_info_class(x, ColumnInfo) else x) for x in tables]
 
     return tables
 
@@ -233,7 +237,7 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
 
     Parameters
     ----------
-    tables : Table or list of Table objects
+    tables : Table or list of Table and/or Row objects
         Table(s) to stack along rows (vertically) with the current table
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'outer'
@@ -300,7 +304,7 @@ def hstack(tables, join_type='outer',
 
     Parameters
     ----------
-    tables : List of Table objects
+    tables : Table or list of Table and/or Column objects
         Tables to stack along columns (horizontally) with the current table
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'outer'

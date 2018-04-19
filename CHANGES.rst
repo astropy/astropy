@@ -231,6 +231,8 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Allowed ``Column`` to be passed as valid input to the ``hstack`` Table operation. [#6818]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
