@@ -1,24 +1,24 @@
 .. module:: astropy.stats
 
-.. _stats-transit_periodogram:
+.. _stats-bls:
 
-********************
-Transit Periodograms
-********************
+***********************************
+Box least squares (BLS) periodogram
+***********************************
 
-The "transit periodogram" (also known the "box least squares spectrum"
-following [1]_) is a statistical tool used for detecting transiting exoplanets
-and eclipsing binaries in time series photometric data.
-The main interface to this implementation is the :class:`TransitPeriodogram`
+The "box least squares (BLS) periodogram" [1]_ is a statistical tool used for
+detecting transiting exoplanets and eclipsing binaries in time series
+photometric data.
+The main interface to this implementation is the :class:`BoxLeastSquares`
 class.
 
 
 Mathematical Background
 =======================
 
-The transit periodogram method finds transit candidates by modeling a transit
-as a periodic upside down top hat with four parameters: period, duration,
-depth, and a reference time.
+The BLS method finds transit candidates by modeling a transit as a periodic
+upside down top hat with four parameters: period, duration, depth, and a
+reference time.
 In this implementation, the reference time is chosen to be the mid-transit
 time of the first transit in the observational baseline.
 These parameters are shown in the following sketch:
@@ -100,7 +100,7 @@ box least squares spectrum from [1]_.
 In practice, this is achieved by finding the maximum likelihood model over a
 grid in duration and reference time as specified by the ``durations`` and
 ``oversample`` parameters for the
-:func:`TransitPeriodogram.power` method.
+:func:`BoxLeastSquares.power` method.
 Behind the scenes, this implementation minimizes the number of required
 calculations by pre-binning the observations onto a fine grid following [1]_
 and [2]_.
@@ -111,22 +111,22 @@ Basic Usage
 
 The transit periodogram takes as input time series observations where the
 timestamps ``t`` and the observations ``y`` (usually brightness) are stored as
-NumPy arrays or :class:`~astropy.Quantity`.
+NumPy arrays or :class:`~astropy.units.Quantity`.
 If known, error bars ``dy`` can also optionally be provided.
 For example, to evaluate the periodogram for a simulated data set, can be
 computed as follows:
 
 >>> import numpy as np
 >>> import astropy.units as u
->>> from astropy.stats import TransitPeriodogram
+>>> from astropy.stats import BoxLeastSquares
 >>> np.random.seed(42)
 >>> t = np.random.uniform(0, 20, 2000)
 >>> y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*np.random.randn(len(t))
->>> model = TransitPeriodogram(t * u.day, y, dy=0.01)
+>>> model = BoxLeastSquares(t * u.day, y, dy=0.01)
 >>> periodogram = model.autopower(0.2)
 
-The output of the :func:`TransitPeriodogram.autopower` method
-is a :class:`TransitPeriodogramResults` object with several
+The output of the :func:`BoxLeastSquares.autopower` method
+is a :class:`BoxLeastSquaresResults` object with several
 useful attributes, the most useful of which are generally the ``period`` and
 ``power`` attributes.
 This result can be plotted using matplotlib:
@@ -139,12 +139,12 @@ This result can be plotted using matplotlib:
     import numpy as np
     import astropy.units as u
     import matplotlib.pyplot as plt
-    from astropy.stats import TransitPeriodogram
+    from astropy.stats import BoxLeastSquares
 
     np.random.seed(42)
     t = np.random.uniform(0, 20, 2000)
     y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*np.random.randn(len(t))
-    model = TransitPeriodogram(t * u.day, y, dy=0.01)
+    model = BoxLeastSquares(t * u.day, y, dy=0.01)
     periodogram = model.autopower(0.2)
 
     plt.figure(figsize=(8, 4))
@@ -158,14 +158,14 @@ In this figure, you can see the peak at the correct period of 3 days.
 Objectives
 ==========
 
-By default, the :func:`TransitPeriodogram.power` method computes the log
+By default, the :func:`BoxLeastSquares.power` method computes the log
 likelihood of the model fit and maximizes over reference time and duration.
 It is also possible to use the signal-to-noise ratio with which the transit
 depth is measured as an objective function.
-To do this, call :func:`TransitPeriodogram.power` or
-:func:`TransitPeriodogram.autopower` with ``objective='snr'`` as follows:
+To do this, call :func:`BoxLeastSquares.power` or
+:func:`BoxLeastSquares.autopower` with ``objective='snr'`` as follows:
 
->>> model = TransitPeriodogram(t * u.day, y, dy=0.01)
+>>> model = BoxLeastSquares(t * u.day, y, dy=0.01)
 >>> periodogram = model.autopower(0.2, objective="snr")
 
 .. plot::
@@ -173,12 +173,12 @@ To do this, call :func:`TransitPeriodogram.power` or
     import numpy as np
     import astropy.units as u
     import matplotlib.pyplot as plt
-    from astropy.stats import TransitPeriodogram
+    from astropy.stats import BoxLeastSquares
 
     np.random.seed(42)
     t = np.random.uniform(0, 20, 2000)
     y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*np.random.randn(len(t))
-    model = TransitPeriodogram(t * u.day, y, dy=0.01)
+    model = BoxLeastSquares(t * u.day, y, dy=0.01)
     periodogram = model.autopower(0.2, objective="snr")
 
     plt.figure(figsize=(8, 4))
@@ -201,13 +201,13 @@ more sensitive to the period grid than the
 :class:`LombScargle` periodogram.
 This implementation of the transit periodogram includes a conservative
 heuristic for estimating the required period grid that is used by the
-:func:`TransitPeriodogram.autoperiod` and
-:func:`TransitPeriodogram.autopower` methods and the details of
+:func:`BoxLeastSquares.autoperiod` and
+:func:`BoxLeastSquares.autopower` methods and the details of
 this method are given in the API documentation for
-:func:`TransitPeriodogram.autoperiod`.
+:func:`BoxLeastSquares.autoperiod`.
 It is also possible to provide a specific period grid as follows:
 
->>> model = TransitPeriodogram(t * u.day, y, dy=0.01)
+>>> model = BoxLeastSquares(t * u.day, y, dy=0.01)
 >>> periods = np.linspace(2.5, 3.5, 1000) * u.day
 >>> periodogram = model.power(periods, 0.2)
 
@@ -216,12 +216,12 @@ It is also possible to provide a specific period grid as follows:
     import numpy as np
     import astropy.units as u
     import matplotlib.pyplot as plt
-    from astropy.stats import TransitPeriodogram
+    from astropy.stats import BoxLeastSquares
 
     np.random.seed(42)
     t = np.random.uniform(0, 20, 2000)
     y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*np.random.randn(len(t))
-    model = TransitPeriodogram(t * u.day, y, dy=0.01)
+    model = BoxLeastSquares(t * u.day, y, dy=0.01)
     periods = np.linspace(2.5, 3.5, 1000) * u.day
     periodogram = model.power(periods, 0.2)
 
@@ -233,7 +233,7 @@ It is also possible to provide a specific period grid as follows:
 However, if the period grid is too coarse, the correct period can easily be
 missed.
 
->>> model = TransitPeriodogram(t * u.day, y, dy=0.01)
+>>> model = BoxLeastSquares(t * u.day, y, dy=0.01)
 >>> periods = np.linspace(0.5, 10.5, 15) * u.day
 >>> periodogram = model.power(periods, 0.2)
 
@@ -242,12 +242,12 @@ missed.
     import numpy as np
     import astropy.units as u
     import matplotlib.pyplot as plt
-    from astropy.stats import TransitPeriodogram
+    from astropy.stats import BoxLeastSquares
 
     np.random.seed(42)
     t = np.random.uniform(0, 20, 2000)
     y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*np.random.randn(len(t))
-    model = TransitPeriodogram(t * u.day, y, dy=0.01)
+    model = BoxLeastSquares(t * u.day, y, dy=0.01)
     periods = np.linspace(0.5, 10.5, 15) * u.day
     periodogram = model.power(periods, 0.2)
 
@@ -261,13 +261,13 @@ Peak Statistics
 ===============
 
 To help in the transit vetting process and to debug problems with candidate
-peaks, the :func:`TransitPeriodogram.compute_stats` method can be used to
+peaks, the :func:`BoxLeastSquares.compute_stats` method can be used to
 calculate several statistics of a candidate transit.
 Many of these statistics are based on the VARTOOLS package described in [2]_.
 This will often be used as follows to compute stats for the maximum point in
 the periodogram:
 
->>> model = TransitPeriodogram(t * u.day, y, dy=0.01)
+>>> model = BoxLeastSquares(t * u.day, y, dy=0.01)
 >>> periodogram = model.autopower(0.2)
 >>> max_power = np.argmax(periodogram.power)
 >>> stats = model.compute_stats(periodogram.period[max_power],
@@ -276,7 +276,7 @@ the periodogram:
 
 This calculates a dictionary with statistics about this candidate.
 Each entry in this dictionary is described in the documentation for
-:func:`TransitPeriodogram.compute_stats`.
+:func:`BoxLeastSquares.compute_stats`.
 
 
 Literature References

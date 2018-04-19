@@ -1,14 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-transit_periodogram
-===================
+Box Least Squares
+=================
 
 AstroPy-compatible reference implementation of the transit periorogram used
 to discover transiting exoplanets.
 
 """
 
-__all__ = ["TransitPeriodogram", "TransitPeriodogramResults"]
+__all__ = ["BoxLeastSquares", "BoxLeastSquaresResults"]
 
-from .core import TransitPeriodogram, TransitPeriodogramResults
+from .core import BoxLeastSquares, BoxLeastSquaresResults

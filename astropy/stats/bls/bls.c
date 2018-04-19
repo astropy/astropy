@@ -34,7 +34,7 @@ void compute_objective(
     }
 }
 
-int run_transit_periodogram (
+int run_bls (
     // Inputs
     int N,                   // Length of the time array
     double* t,               // The list of timestamps
