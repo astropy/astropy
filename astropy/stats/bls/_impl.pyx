@@ -12,7 +12,7 @@ ctypedef np.float64_t DTYPE_t
 IDTYPE = np.int64
 ctypedef np.int64_t IDTYPE_t
 
-cdef extern int run_transit_periodogram (
+cdef extern int run_bls (
     int N,                   # Length of the time array
     double* t,               # The list of timestamps
     double* y,               # The y measured at ``t``
@@ -44,7 +44,7 @@ cdef extern int run_transit_periodogram (
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def transit_periodogram_impl(
+def bls_impl(
     np.ndarray[DTYPE_t, mode='c'] t_array,
     np.ndarray[DTYPE_t, mode='c'] y_array,
     np.ndarray[DTYPE_t, mode='c'] ivar_array,
@@ -64,7 +64,7 @@ def transit_periodogram_impl(
     cdef int flag, N = len(t_array), n_periods = len(period_array), n_durations = len(duration_array)
 
     with nogil:
-        flag = run_transit_periodogram(
+        flag = run_bls(
             N,
             <double*>t_array.data,
             <double*>y_array.data,

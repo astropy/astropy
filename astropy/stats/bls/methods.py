@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ["transit_periodogram_fast"]
+__all__ = ["bls_fast", "bls_slow"]
 
 import numpy as np
 from functools import partial
 
-from ._impl import transit_periodogram_impl
+from ._impl import bls_impl
 
 
-def transit_periodogram_slow(t, y, ivar, period, duration,
-                             oversample, use_likelihood):
+def bls_slow(t, y, ivar, period, duration, oversample, use_likelihood):
     """Compute the periodogram using a brute force reference method
 
     t : array-like
@@ -47,13 +46,12 @@ def transit_periodogram_slow(t, y, ivar, period, duration,
         The log likelihood of the maximum power model.
 
     """
-    f = partial(_transit_periodogram_slow_one, t, y, ivar, duration,
+    f = partial(_bls_slow_one, t, y, ivar, duration,
                 oversample, use_likelihood)
     return _apply(f, period)
 
 
-def transit_periodogram_fast(t, y, ivar, period, duration, oversample,
-                             use_likelihood):
+def bls_fast(t, y, ivar, period, duration, oversample, use_likelihood):
     """Compute the periodogram using an optimized Cython implementation
 
     t : array-like
@@ -91,13 +89,12 @@ def transit_periodogram_fast(t, y, ivar, period, duration, oversample,
         The log likelihood of the maximum power model.
 
     """
-    return transit_periodogram_impl(
+    return bls_impl(
         t, y, ivar, period, duration, oversample, use_likelihood
     )
 
 
-def _transit_periodogram_slow_one(t, y, ivar, duration, oversample,
-                                  use_likelihood, period):
+def _bls_slow_one(t, y, ivar, duration, oversample, use_likelihood, period):
     """A private function to compute the brute force periodogram result"""
     best = (-np.inf, None)
     hp = 0.5*period

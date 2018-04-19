@@ -6,7 +6,7 @@ from numpy.testing import assert_allclose
 
 from .... import units
 from ....tests.helper import assert_quantity_allclose
-from .. import TransitPeriodogram
+from .. import BoxLeastSquares
 from ...lombscargle.core import has_units
 
 
@@ -34,7 +34,7 @@ def test_32bit_bug():
     y[np.abs((t + 1.0) % 2.0-1) < 0.08] = 1.0 - 0.1
     y += 0.01 * rand.randn(len(t))
 
-    model = TransitPeriodogram(t, y)
+    model = BoxLeastSquares(t, y)
     results = model.autopower(0.16)
     assert np.allclose(results.period[np.argmax(results.power)],
                        2.005441310651872)
@@ -49,7 +49,7 @@ def test_32bit_bug():
 @pytest.mark.parametrize("objective", ["likelihood", "snr"])
 def test_correct_model(data, objective):
     t, y, dy, params = data
-    model = TransitPeriodogram(t, y, dy)
+    model = BoxLeastSquares(t, y, dy)
     periods = np.exp(np.linspace(np.log(params["period"]) - 0.1,
                                  np.log(params["period"]) + 0.1, 1000))
     results = model.power(periods, params["duration"], objective=objective)
@@ -66,7 +66,7 @@ def test_fast_method(data, objective, offset):
     t, y, dy, params = data
     if offset:
         t = t - params["transit_time"] + params["period"]
-    model = TransitPeriodogram(t, y, dy)
+    model = BoxLeastSquares(t, y, dy)
     periods = np.exp(np.linspace(np.log(params["period"]) - 1,
                                  np.log(params["period"]) + 1, 10))
     durations = params["duration"]
@@ -82,16 +82,16 @@ def test_input_units(data):
     y_unit = units.mag
 
     with pytest.raises(units.UnitConversionError):
-        TransitPeriodogram(t * t_unit, y * y_unit, dy * units.one)
+        BoxLeastSquares(t * t_unit, y * y_unit, dy * units.one)
     with pytest.raises(units.UnitConversionError):
-        TransitPeriodogram(t * t_unit, y * units.one, dy * y_unit)
+        BoxLeastSquares(t * t_unit, y * units.one, dy * y_unit)
     with pytest.raises(units.UnitConversionError):
-        TransitPeriodogram(t * t_unit, y, dy * y_unit)
-    model = TransitPeriodogram(t*t_unit, y * units.one, dy)
+        BoxLeastSquares(t * t_unit, y, dy * y_unit)
+    model = BoxLeastSquares(t*t_unit, y * units.one, dy)
     assert model.dy.unit == model.y.unit
-    model = TransitPeriodogram(t*t_unit, y * y_unit, dy)
+    model = BoxLeastSquares(t*t_unit, y * y_unit, dy)
     assert model.dy.unit == model.y.unit
-    model = TransitPeriodogram(t*t_unit, y*y_unit)
+    model = BoxLeastSquares(t*t_unit, y*y_unit)
     assert model.dy is None
 
 
@@ -99,7 +99,7 @@ def test_period_units(data):
     t, y, dy, params = data
     t_unit = units.day
     y_unit = units.mag
-    model = TransitPeriodogram(t * t_unit, y * y_unit, dy)
+    model = BoxLeastSquares(t * t_unit, y * y_unit, dy)
 
     p = model.autoperiod(params["duration"])
     assert p.unit == t_unit
@@ -143,7 +143,7 @@ def test_results_units(data, method, with_err, t_unit, y_unit, objective):
     if not with_err:
         dy = None
 
-    model = TransitPeriodogram(t, y, dy)
+    model = BoxLeastSquares(t, y, dy)
     results = model.power(periods, params["duration"], method=method,
                           objective=objective)
 
@@ -182,7 +182,7 @@ def test_autopower(data):
     t, y, dy, params = data
     duration = params["duration"] + np.linspace(-0.1, 0.1, 3)
 
-    model = TransitPeriodogram(t, y, dy)
+    model = BoxLeastSquares(t, y, dy)
     period = model.autoperiod(duration)
     results1 = model.power(period, duration)
     results2 = model.autopower(duration)
@@ -211,7 +211,7 @@ def test_model(data, with_units):
         model_true = model_true * units.mag
 
     # Compute the model using the periodogram
-    pgram = TransitPeriodogram(t, y, dy)
+    pgram = BoxLeastSquares(t, y, dy)
     model = pgram.model(t, p, params["duration"], params["transit_time"])
 
     # Make sure that the transit mask is consistent with the model
@@ -227,7 +227,7 @@ def test_model(data, with_units):
 def test_shapes(data, shape):
     t, y, dy, params = data
     duration = params["duration"]
-    model = TransitPeriodogram(t, y, dy)
+    model = BoxLeastSquares(t, y, dy)
 
     period = np.empty(shape)
     period.flat = np.linspace(params["period"]-1, params["period"]+1,
@@ -261,7 +261,7 @@ def test_compute_stats(data, with_units, with_err):
     if not with_err:
         dy = None
 
-    model = TransitPeriodogram(t, y, dy)
+    model = BoxLeastSquares(t, y, dy)
     results = model.power(params["period"], params["duration"],
                           oversample=1000)
     stats = model.compute_stats(params["period"], params["duration"],

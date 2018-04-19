@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ["TransitPeriodogram", "TransitPeriodogramResults"]
+__all__ = ["BoxLeastSquares", "BoxLeastSquaresResults"]
 
 import numpy as np
 
@@ -21,8 +21,8 @@ def validate_unit_consistency(reference_object, input_object):
     return input_object
 
 
-class TransitPeriodogram(object):
-    """Compute the Transit Periodogram
+class BoxLeastSquares(object):
+    """Compute the box least squares periodogram
 
     This method is a commonly used tool for discovering transiting exoplanets
     or eclipsing binaries in photometric time series datasets. This
@@ -51,7 +51,7 @@ class TransitPeriodogram(object):
     Compute the transit periodogram on a heuristically determined period grid
     and find the period with maximum power:
 
-    >>> model = TransitPeriodogram(t, y)
+    >>> model = BoxLeastSquares(t, y)
     >>> results = model.autopower(0.16)
     >>> results.period[np.argmax(results.power)]  # doctest: +FLOAT_CMP
     2.005441310651872
@@ -69,7 +69,7 @@ class TransitPeriodogram(object):
     >>> from astropy import units as u
     >>> t = t * u.day
     >>> y = y * u.dimensionless_unscaled
-    >>> model = TransitPeriodogram(t, y)
+    >>> model = BoxLeastSquares(t, y)
     >>> results = model.autopower(0.16 * u.day)
     >>> results.period.unit
     Unit("d")
@@ -195,8 +195,8 @@ class TransitPeriodogram(object):
                   maximum_period=None, frequency_factor=1.0):
         """Compute the periodogram at set of heuristically determined periods
 
-        This method calls :func:`TransitPeriodogram.autoperiod` to determine
-        the period grid and then :func:`TransitPeriodogram.power` to compute
+        This method calls :func:`BoxLeastSquares.autoperiod` to determine
+        the period grid and then :func:`BoxLeastSquares.power` to compute
         the periodogram. See those methods for documentation of the arguments.
 
         """
@@ -237,8 +237,8 @@ class TransitPeriodogram(object):
 
         Returns
         -------
-        results : TransitPeriodogramResults
-            The periodogram results as a :class:`TransitPeriodogramResults`
+        results : BoxLeastSquaresResults
+            The periodogram results as a :class:`BoxLeastSquaresResults`
             object.
 
         Raises
@@ -295,12 +295,12 @@ class TransitPeriodogram(object):
 
         # Select the correct implementation for the chosen method
         if method == "fast":
-            transit_periodogram = methods.transit_periodogram_fast
+            bls = methods.bls_fast
         else:
-            transit_periodogram = methods.transit_periodogram_slow
+            bls = methods.bls_slow
 
         # Run the implementation
-        results = transit_periodogram(
+        results = bls(
             t, y - np.median(y), ivar, period_fmt, duration,
             oversample, use_likelihood)
 
@@ -661,9 +661,9 @@ class TransitPeriodogram(object):
                 power = units.Quantity(power, unit=units.one)
                 log_likelihood = units.Quantity(log_likelihood, unit=units.one)
 
-        return TransitPeriodogramResults(objective, period, power, depth,
-                                         depth_err, transit_time, duration,
-                                         depth_snr, log_likelihood)
+        return BoxLeastSquaresResults(
+            objective, period, power, depth, depth_err, transit_time, duration,
+            depth_snr, log_likelihood)
 
     def _t_unit(self):
         if has_units(self.t):
@@ -678,24 +678,30 @@ class TransitPeriodogram(object):
             return 1
 
 
-class TransitPeriodogramResults(dict):
-    """The results of a TransitPeriodogram search
+class BoxLeastSquaresResults(dict):
+    """The results of a BoxLeastSquares search
 
     Attributes
     ----------
     objective : string
         The scalar used to optimize to find the best fit phase, duration, and
-        depth. See :func:`TransitPeriodogram.power` for more information.
+        depth. See :func:`BoxLeastSquares.power` for more information.
     period : array-like or Quantity
         The set of test periods.
     power : array-like or Quantity
         The periodogram evaluated at the periods in ``period``. If
         ``objective`` is:
+<<<<<<< HEAD
+        - ``'likelihood'``: the values of ``power`` are the
+=======
+
         * ``'likelihood'``: the values of ``power`` are the
+>>>>>>> db93b52ae... add mandatory sphinx whitespace
           log likelihood maximized over phase, depth, and duration, or
-        * ``'snr'``: the values of ``power`` are the signal-to-noise with
+        - ``'snr'``: the values of ``power`` are the signal-to-noise with
           which the depth is measured maximized over phase, depth, and
           duration.
+
     depth : array-like or Quantity
         The estimated depth of the maximum power model at each period.
     depth_err : array-like or Quantity
@@ -713,7 +719,7 @@ class TransitPeriodogramResults(dict):
 
     """
     def __init__(self, *args):
-        super(TransitPeriodogramResults, self).__init__(zip(
+        super(BoxLeastSquaresResults, self).__init__(zip(
             ("objective", "period", "power", "depth", "depth_err",
              "duration", "transit_time", "depth_snr", "log_likelihood"),
             args
@@ -740,14 +746,14 @@ class TransitPeriodogramResults(dict):
         return list(self.keys())
 
     def assert_allclose(self, other, **kwargs):
-        """Assert that another TransitPeriodogramResults object is consistent
+        """Assert that another BoxLeastSquaresResults object is consistent
 
         This method loops over all attributes and compares the values using
         :func:`~astropy.tests.helper.assert_quantity_allclose` function.
 
         Parameters
         ----------
-        other : TransitPeriodogramResults
+        other : BoxLeastSquaresResults
             The other results object to compare.
 
         """
@@ -760,4 +766,4 @@ class TransitPeriodogramResults(dict):
                     .format(v, other[k])
                 )
                 continue
-            assert_quantity_allclose(v, other[k], err_msg=k, **kwargs)
+            assert_quantity_allclose(v, other[k], **kwargs)
