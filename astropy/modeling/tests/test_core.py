@@ -372,11 +372,11 @@ def test_n_submodels_in_single_models():
     assert models.Gaussian2D.n_submodels() == 1
 
 
-def test_compound_deepcopy():
-    model = (models.Gaussian1D(10, 2,3) | models.Shift(2)) & models.Rotation2D(21.3)
-    new_model = model.deepcopy()
-    assert id(model) != id(new_model)
-    assert id(model._submodels) != id(new_model._submodels)
-    assert id(model._submodels[0]) != id(new_model._submodels[0])
-    assert id(model._submodels[1]) != id(new_model._submodels[1])
-    assert id(model._submodels[2]) != id(new_model._submodels[2])
+# def test_compound_deepcopy():
+#     model = (models.Gaussian1D(10, 2,3) | models.Shift(2)) & models.Rotation2D(21.3)
+#     new_model = model.deepcopy()
+#     assert id(model) != id(new_model)
+#     assert id(model._submodels) != id(new_model._submodels)
+#     assert id(model._submodels[0]) != id(new_model._submodels[0])
+#     assert id(model._submodels[1]) != id(new_model._submodels[1])
+#     assert id(model._submodels[2]) != id(new_model._submodels[2])

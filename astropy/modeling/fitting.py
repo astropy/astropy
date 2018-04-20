@@ -1307,6 +1307,7 @@ def _fitter_to_model_params(model, fps):
     has_tied = any(model.tied.values())
     has_fixed = any(model.fixed.values())
     has_bound = any(b != (None, None) for b in model.bounds.values())
+    parameters = model.parameters
 
     if not (has_tied or has_fixed or has_bound):
         # We can just assign directly
@@ -1336,7 +1337,7 @@ def _fitter_to_model_params(model, fps):
             if _max is not None:
                 values = np.fmin(values, _max)
 
-        model.parameters[slice_] = values
+        parameters[slice_] = values
         offset += size
 
     # This has to be done in a separate loop due to how tied parameters are
@@ -1348,7 +1349,8 @@ def _fitter_to_model_params(model, fps):
             if model.tied[name]:
                 value = model.tied[name](model)
                 slice_ = param_metrics[name]['slice']
-                model.parameters[slice_] = value
+                parameters[slice_] = value
+    model._array_to_parameters()
 
 
 def _model_to_fit_params(model):
