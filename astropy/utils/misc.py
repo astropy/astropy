@@ -4,7 +4,11 @@
 A "grab bag" of relatively small general-purpose utilities that don't have
 a clear module/package to live in.
 """
+
+
+
 import abc
+import copy
 import contextlib
 import difflib
 import inspect
@@ -31,7 +35,6 @@ __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'OrderedDescriptor', 'OrderedDescriptorContainer', 'set_locale',
            'ShapedLikeNDArray', 'check_broadcast', 'IncompatibleShapeError',
            'dtype_bytes_or_chars']
-
 
 def isiterable(obj):
     """Returns `True` if the given object is iterable."""
@@ -530,9 +533,9 @@ class InheritDocstrings(type):
                 not key.startswith('_'))
 
         for key, val in dct.items():
-            if ((inspect.isfunction(val) or inspect.isdatadescriptor(val)) and
-                    is_public_member(key) and
-                    val.__doc__ is None):
+            if (inspect.isfunction(val) and
+                is_public_member(key) and
+                val.__doc__ is None):
                 for base in cls.__mro__[1:]:
                     super_method = getattr(base, key, None)
                     if super_method is not None:
@@ -822,7 +825,25 @@ class OrderedDescriptorContainer(type):
             instances = OrderedDict((key, value) for value, key in instances)
             setattr(cls, descriptor_cls._class_attribute_, instances)
 
-        super().__init__(cls_name, bases, members)
+        super(OrderedDescriptorContainer, cls).__init__(cls_name, bases,
+                                                        members)
+
+
+def get_parameters(members):
+
+    pdict = OrderedDict()
+    for name, obj in members.items():
+        if (not isinstance(obj, OrderedDescriptor)):
+            continue
+        if obj._name_attribute_ is not None:
+            setattr(obj, '_name', name)
+        pdict[name] = obj
+    #for name in pdict.keys():
+    #    del members[name]
+    members['_parameter_vals_'] = pdict
+    members['_parameters_'] = pdict.keys()
+
+
 
 
 LOCALE_LOCK = threading.Lock()

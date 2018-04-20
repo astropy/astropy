@@ -55,27 +55,27 @@ class PolynomialBase(FittableModel):
 
         return self._param_names
 
-    def __getattr__(self, attr):
-        if self._param_names and attr in self._param_names:
-            return Parameter(attr, default=0.0, model=self)
+    # def __getattr__(self, attr):
+    #     if self._param_names and attr in self._param_names:
+    #         return Parameter(attr, default=0.0, model=self)
 
-        raise AttributeError(attr)
+    #     raise AttributeError(attr)
 
-    def __setattr__(self, attr, value):
-        # TODO: Support a means of specifying default values for coefficients
-        # Check for self._ndim first--if it hasn't been defined then the
-        # instance hasn't been initialized yet and self.param_names probably
-        # won't work.
-        # This has to vaguely duplicate the functionality of
-        # Parameter.__set__.
-        # TODO: I wonder if there might be a way around that though...
-        if attr[0] != '_' and self._param_names and attr in self._param_names:
-            param = Parameter(attr, default=0.0, model=self)
-            # This is a little hackish, but we can actually reuse the
-            # Parameter.__set__ method here
-            param.__set__(self, value)
-        else:
-            super().__setattr__(attr, value)
+    # def __setattr__(self, attr, value):
+    #     # TODO: Support a means of specifying default values for coefficients
+    #     # Check for self._ndim first--if it hasn't been defined then the
+    #     # instance hasn't been initialized yet and self.param_names probably
+    #     # won't work.
+    #     # This has to vaguely duplicate the functionality of
+    #     # Parameter.__set__.
+    #     # TODO: I wonder if there might be a way around that though...
+    #     if attr[0] != '_' and self._param_names and attr in self._param_names:
+    #         param = Parameter(attr, default=0.0, model=self)
+    #         # This is a little hackish, but we can actually reuse the
+    #         # Parameter.__set__ method here
+    #         param.__set__(self, value)
+    #     else:
+    #         super().__setattr__(attr, value)
 
 
 class PolynomialModel(PolynomialBase):
@@ -92,6 +92,15 @@ class PolynomialModel(PolynomialBase):
         self._degree = degree
         self._order = self.get_num_coeff(self.n_inputs)
         self._param_names = self._generate_coeff_names(self.n_inputs)
+        if n_models:
+            if model_set_axis is None:
+                model_set_axis = 0
+            minshape = (1,) * model_set_axis + (n_models,)
+        else:
+            minshape = ()
+        for param_name in self._param_names:
+            self._parameter_vals_[param_name] = \
+                Parameter(param_name, default=np.zeros(minshape))
 
         super().__init__(
             n_models=n_models, model_set_axis=model_set_axis, name=name,
@@ -194,7 +203,9 @@ class OrthoPolynomialBase(PolynomialBase):
         self.x_window = x_window
         self.y_window = y_window
         self._param_names = self._generate_coeff_names()
-
+        for param_name in self._param_names:
+            self._parameter_vals_[param_name] = \
+                Parameter(param_name, default=0.0)
         super().__init__(
             n_models=n_models, model_set_axis=model_set_axis,
             name=name, meta=meta, **params)
