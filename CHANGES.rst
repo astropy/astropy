@@ -1,3 +1,267 @@
+3.1 (unreleased)
+================
+
+New Features
+------------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- Distance calculations with ``FlatLambaCDM`` with no radiation (T_CMB0=0)
+  are now 20x faster by using the hypergeometric function solution
+  for this special case. [#7087]
+
+- Age calculations with ``FlatLambdaCDM`` with no radiation (Tcmb0=0)
+  are now 1000x faster by using analytic solutions instead of integrating.
+  [#7117]
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Added support for saving all representation classes and many coordinate
+  frames to the asdf format. [#7079]
+
+- Added support for saving models with units to the asdf format. [#7237]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- ``HDUList.pop()`` now accepts string and tuple extension name
+  specifications. [#7236]
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+- Allow array-valued ``Time`` object to be modified in place. [#6028]
+
+- Added support for missing values (masking) to the ``Time`` class. [#6028]
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+- Lists of units are now converted in the Matplotlib unit converter. This means
+  that for Matplotlib versions later than 2.2, more plotting functions now work
+  with units (e.g. errorbar). [#7037]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Map ITRS frames to terrestrial WCS coordinates. This will make it possible to
+  use WCSAxes to make figures that combine both celestial and terrestrial
+  features. An example is plotting the coordinates of an astronomical transient
+  over an all- sky satellite image to illustrate the position relative to the
+  Earth at the time of the event. The ITRS frame is identified with WCSs that
+  use the ``TLON-`` and ``TLAT-`` coordinate types. There are several examples
+  of WCSs where this syntax is used to describe terrestrial coordinate systems:
+  Section 7.4.1 of `WCS in FITS "Paper II" <http://adsabs.harvard.edu/abs/2002A%26A...395.1077C>`_
+  and the `WCSTools documentation <http://tdc-www.harvard.edu/software/wcstools/wcstools.multiwcs.html>`_.
+  [#6990]
+
+API Changes
+-----------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+- In ``UnitBase.compose()``, if a sequence (list|tuple) is passed in to
+  ``units``, the default for ``include_prefix_units`` is set to
+  `True`, so that no units get ignored. [#6957]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- ``InheritDocstrings`` now also works on class properties. [#7166]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Added support for ``copy.copy`` and ``copy.deepcopy`` for ``HDUList``. [#7218]
+
+- Override ``HDUList.copy()`` to return a shallow HDUList instance. [#7218]
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Right ascension coordinates are now shown in hours by default, and the
+  ``set_format_unit`` method on ``CoordinateHelper`` now works correctly
+  with angle coordinates. [#7215]
+
+astropy.wcs
+^^^^^^^^^^^
+
+Other Changes and Additions
+---------------------------
+
+- The documentation build now uses the Sphinx configuration from sphinx-astropy
+  rather than from astropy-helpers. [#7139]
+
 3.0.2 (unreleased)
 ==================
 
