@@ -9,7 +9,7 @@ The `package-template`_ repository provides a template for Python
 packages. This package design mirrors the layout of the main `Astropy`_
 repository, as well as reusing much of the helper code used to organize
 `Astropy`_. See the
-:ref:`pacakge template documentation <packagetemplate:package-template>`
+:ref:`package template documentation <packagetemplate:package-template>`
 for instructions on using the package template.
 
 
