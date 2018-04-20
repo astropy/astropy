@@ -86,6 +86,9 @@ astropy.utils
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
+- Lists of units are now converted in the Matplotlib unit converter. This means
+  that for Matplotlib versions later than 2.2, more plotting functions now work
+  with units (e.g. errorbar). [#7037]
 
 astropy.wcs
 ^^^^^^^^^^^
