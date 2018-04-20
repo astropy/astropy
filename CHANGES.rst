@@ -158,6 +158,11 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- ``from astropy.tests.helper import *`` no longer includes
+  ``quantity_allclose``. However,
+  ``from astropy.tests.helper import quantity_allclose`` would still work.
+  [#7381]
+
 astropy.time
 ^^^^^^^^^^^^
 
