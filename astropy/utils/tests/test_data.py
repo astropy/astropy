@@ -67,7 +67,7 @@ def test_download_parallel():
     main_url = 'http://data.astropy.org/intersphinx/README'
     mirror_url = 'http://www.astropy.org/astropy-data/intersphinx/README'
     fnout = download_files_in_parallel([
-        'http://data.astropy.org', main_url, mirror_url])
+        'http://data.astropy.org', main_url, mirror_url], cache=True)
     assert all([os.path.isfile(f) for f in fnout]), fnout
 
     # Now test that download_file looks in mirror's cache before download.
