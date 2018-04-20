@@ -554,7 +554,7 @@ def test_tabular_interp_1d():
     assert_allclose(model([0., .7, 1.4, 2.1, 3.9, 4.1]),
                           [1., 7.3, 6.8, 6.3, 1.8, -7.8])
 
-    
+
 @pytest.mark.skipif("not HAS_SCIPY_14")
 def test_tabular_interp_2d():
     table = np.array([
