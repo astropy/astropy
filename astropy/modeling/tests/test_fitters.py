@@ -183,20 +183,15 @@ class TestJointFitter:
                                     args=(self.x, self.ny1, self.x, self.ny2))
         assert_allclose(coeff, self.jf.fitparams, rtol=10 ** (-2))
 
-
 class TestLinearLSQFitter:
     def test_compound_model_raises_error(self):
         """Test that if an user tries to use a compound model, raises an error"""
-        
         with pytest.raises(ValueError) as excinfo:
             init_model1 = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
             init_model2 = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
             init_model_comp = init_model1 + init_model2
-
             x = np.arange(10)
-            y_expected = init_model_comp(x, model_set_axis=False)
-            with NumpyRNGContext(_RANDOM_SEED):
-                y = y_expected + np.random.normal(0, 0.01, size=y_expected.shape)
+            y = init_model_comp(x, model_set_axis=False)
             fitter = LinearLSQFitter()
             fitted_model = fitter(init_model_comp, x, y)
         assert "Model must be simple, not compound" in str(excinfo.value)
