@@ -638,6 +638,7 @@ def test_with_bounding_box():
     """
     p = models.Polynomial2D(2) & models.Polynomial2D(2)
     m = models.Mapping((0, 1, 0, 1)) | p
+    m.map_parameters()
     with NumpyRNGContext(1234567):
         m.parameters = np.random.rand(12)
 
