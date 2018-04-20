@@ -182,8 +182,19 @@ class TestJointFitter:
                                     args=(self.x, self.ny1, self.x, self.ny2))
         assert_allclose(coeff, self.jf.fitparams, rtol=10 ** (-2))
 
-
 class TestLinearLSQFitter:
+    def test_compound_model_raises_error(self):
+        """Test that if an user tries to use a compound model, raises an error"""
+        with pytest.raises(ValueError) as excinfo:
+            init_model1 = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
+            init_model2 = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
+            init_model_comp = init_model1 + init_model2
+            x = np.arange(10)
+            y = init_model_comp(x, model_set_axis=False)
+            fitter = LinearLSQFitter()
+            fitted_model = fitter(init_model_comp, x, y)
+        assert "Model must be simple, not compound" in str(excinfo.value)
+
     def test_chebyshev1D(self):
         """Tests fitting a 1D Chebyshev polynomial to some real world data."""
 
