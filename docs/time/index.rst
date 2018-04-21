@@ -1278,6 +1278,28 @@ for example, may be more convenient to use to create `~datetime.tzinfo`
 objects used to specify timezones rather than the `~astropy.time.TimezoneInfo`
 object.
 
+strftime and strptime
+---------------------
+Sometimes you want the time represented by a `~astropy.time.Time` object to be custom
+formatted but don't find the need for a custom format, then you can use
+`~astropy.time.Time.strftime`::
+
+  >>> from astropy.time import Time
+  >>> t = Time('2018-01-01T10:12:58')
+  >>> t.strftime('%H:%M:%S %d %b %Y')
+  '10:12:58 01 Jan 2018'
+
+Further examples and documentation for the format specification supported can
+be found in the documentation of python standard library `~time.strftime`.
+
+If you want to get a `~astropy.time.Time` object from a string but don't find the
+need for a custom format, you can use `~astropy.time.Time.strptime`::
+
+  >>> from astropy.time import Time
+  >>> t = Time.strptime('23:59:60 30 June 2015', '%H:%M:%S %d %B %Y')
+  >>> t
+  <Time object: scale='utc' format='isot' value=2015-06-30T23:59:60.000>
+
 .. note that if this section gets too long, it should be moved to a separate 
    doc page - see the top of performance.inc.rst for the instructions on how to do 
    that
