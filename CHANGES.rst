@@ -6,6 +6,8 @@ New Features
 
 astropy.config
 ^^^^^^^^^^^^^^
+  - The environment variable ``ASTROPY_SUPPRESS_CONFIG`` can now be used to
+    avoid loading of configuration files. [#5907]
 
 astropy.constants
 ^^^^^^^^^^^^^^^^^

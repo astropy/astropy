@@ -57,6 +57,18 @@ want to see your changes immediately in your current Astropy session, just do::
     data download systems will then use those directories and never try to
     access the ``$HOME/.astropy`` directory.
 
+If you need to bypass the configuration system, for example when you are using
+astropy in a daemon and don't want it to access any configuraton file (yet),
+set the environment variable ``ASTROPY_SUPPRESS_CONFIG``.  If it exists,
+astropy will not load any external configuration.
+
+.. note::
+    To re-activate loading of external configurations, just unset the
+    environment variable.
+
+    >>> import os
+    >>> del os.environ['ASTROPY_SUPPRESS_CONFIG']
+
 
 Using `astropy.config`
 ======================
