@@ -3,7 +3,6 @@
 """Sundry function and class decorators."""
 
 
-
 import functools
 import inspect
 import textwrap
@@ -19,6 +18,8 @@ from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
 __all__ = ['classproperty', 'deprecated', 'deprecated_attribute',
            'deprecated_renamed_argument', 'format_doc',
            'lazyproperty', 'sharedmethod', 'wraps']
+
+_NotFound = object()
 
 
 def deprecated(since, message='', name='', alternative='', pending=False,
@@ -703,11 +704,13 @@ class lazyproperty(property):
 
     def __get__(self, obj, owner=None):
         try:
-            return obj.__dict__[self._key]
-        except KeyError:
-            val = self.fget(obj)
-            obj.__dict__[self._key] = val
-            return val
+            val = obj.__dict__.get(self._key, _NotFound)
+            if val is not _NotFound:
+                return val
+            else:
+                val = self.fget(obj)
+                obj.__dict__[self._key] = val
+                return val
         except AttributeError:
             if obj is None:
                 return self
