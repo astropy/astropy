@@ -24,12 +24,12 @@ Astropy also depends on other packages for optional features:
 - `PyYAML <http://pyyaml.org>`_: To read/write
   :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table format.
 
-- `scipy`_: To power a variety of features (currently
-  mainly cosmology-related functionality).
+- `scipy`_: To power a variety of features in several modules.
 
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
 
-- `matplotlib <http://matplotlib.org/>`_ 1.5 or later: To provide plotting functionality that `astropy.visualization` enhances.
+- `matplotlib <http://matplotlib.org/>`_ 1.5 or later: To provide plotting
+  functionality that `astropy.visualization` enhances.
 
 - `pytz <http://pythonhosted.org/pytz/>`_: To specify and convert between timezones.
 
@@ -40,7 +40,8 @@ Astropy also depends on other packages for optional features:
 
 - `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
 
-- `setuptools <https://setuptools.readthedocs.io>`_: Used for discovery of entry points which are used to insert fitters into modeling.fitting
+- `setuptools <https://setuptools.readthedocs.io>`_: Used for discovery of
+  entry points which are used to insert fitters into `astropy.modeling.fitting`.
 
 - `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
   disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
@@ -48,6 +49,13 @@ Astropy also depends on other packages for optional features:
 - `bintrees <https://pypi.python.org/pypi/bintrees>`_ for faster ``FastRBT`` and
   ``FastBST`` indexing engines with ``Table``, although these will still be
   slower in most cases than the default indexing engine.
+
+- `mpmath <http://mpmath.org/>`_: Used for the 'kraft-burrows-nousek'
+  interval in `~astropy.stats.poisson_conf_interval`.
+
+- `jplephem <https://pypi.org/project/jplephem/>`_: To retrieve JPL
+  ephemeris of Solar System objects.
+
 
 However, note that these only need to be installed if those particular features
 are needed. Astropy will import even if these dependencies are not installed.
