@@ -13,8 +13,8 @@ repository, as well as reusing much of the helper code used to organize
 for instructions on using the package template.
 
 
-Releasing an affiliated package
-*******************************
+Releasing a Python package
+**************************
 
 You can release a package using the steps given below. In these
 instructions, we assume that the release is made from a fresh clone of the
@@ -22,6 +22,11 @@ remote "main" repository and not from a forked copy. We also assume that
 the changelog file is named ``CHANGES.rst``, like for the astropy core
 package. If instead you use Markdown, then you should replace ``CHANGES.rst``
 by ``CHANGES.md`` in the instructions.
+
+.. note:: The instructions below assume that you do not make use of bug fix
+          branches in your workflow. If you do wish to create a bug fix branch,
+          we recommend that you read over the more complete astropy
+          :doc:`releasing` and adapt them for your package.
 
 #. Make sure that Travis and any other continuous integration is passing.
 
@@ -136,11 +141,6 @@ by ``CHANGES.md`` in the instructions.
 #. If your package is available in the ``conda-forge`` conda channel, you
    should also submit a pull request to update the version number in the
    feedstock of your package.
-
-.. note:: The instructions above assume that you do not make use of bug fix
-          branches in your workflow. If you do wish to create a bug fix branch,
-          we recommend that you read over the more complete astropy
-          :doc:`releasing` and adapt these for your package.
 
 
 Modifications for a beta/release candidate release
