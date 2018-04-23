@@ -15,39 +15,48 @@ Astropy has the following strict requirements:
 
 Astropy also depends on other packages for optional features:
 
+- `scipy`_: To power a variety of features in several modules.
+
 - `h5py <http://www.h5py.org/>`_: To read/write
   :class:`~astropy.table.Table` objects from/to HDF5 files.
 
 - `BeautifulSoup <https://www.crummy.com/software/BeautifulSoup/>`_: To read
   :class:`~astropy.table.table.Table` objects from HTML files.
 
+- `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
+  disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
+
 - `PyYAML <http://pyyaml.org>`_: To read/write
   :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table format.
 
-- `scipy`_: To power a variety of features (currently
-  mainly cosmology-related functionality).
-
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
-
-- `matplotlib <http://matplotlib.org/>`_ 1.5 or later: To provide plotting functionality that `astropy.visualization` enhances.
-
-- `pytz <http://pythonhosted.org/pytz/>`_: To specify and convert between timezones.
-
-- `scikit-image <http://scikit-image.org/>`_: To downsample a data array in `astropy.nddata.utils`.
 
 - `pandas <http://pandas.pydata.org/>`_: To read/write
   :class:`~astropy.table.Table` objects from/to pandas DataFrame objects.
 
-- `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
-
-- `setuptools <https://setuptools.readthedocs.io>`_: Used for discovery of entry points which are used to insert fitters into modeling.fitting
-
-- `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
-  disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
-
 - `bintrees <https://pypi.python.org/pypi/bintrees>`_ for faster ``FastRBT`` and
   ``FastBST`` indexing engines with ``Table``, although these will still be
   slower in most cases than the default indexing engine.
+
+- `pytz <http://pythonhosted.org/pytz/>`_: To specify and convert between timezones.
+
+- `jplephem <https://pypi.org/project/jplephem/>`_: To retrieve JPL
+  ephemeris of Solar System objects.
+
+- `matplotlib <http://matplotlib.org/>`_ 1.5 or later: To provide plotting
+  functionality that `astropy.visualization` enhances.
+
+- `scikit-image <http://scikit-image.org/>`_: To downsample a data array in `astropy.nddata.utils`.
+
+- `setuptools <https://setuptools.readthedocs.io>`_: Used for discovery of
+  entry points which are used to insert fitters into `astropy.modeling.fitting`.
+
+- `mpmath <http://mpmath.org/>`_: Used for the 'kraft-burrows-nousek'
+  interval in `~astropy.stats.poisson_conf_interval`.
+
+- `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
+
+
 
 However, note that these only need to be installed if those particular features
 are needed. Astropy will import even if these dependencies are not installed.
