@@ -1,281 +1,8 @@
-3.1 (unreleased)
-================
-
-New Features
-------------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-- Distance calculations with ``FlatLambaCDM`` with no radiation (T_CMB0=0)
-  are now 20x faster by using the hypergeometric function solution
-  for this special case. [#7087]
-
-- Age calculations with ``FlatLambdaCDM`` with no radiation (Tcmb0=0)
-  are now 1000x faster by using analytic solutions instead of integrating.
-  [#7117]
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-- Added support for saving all representation classes and many coordinate
-  frames to the asdf format. [#7079]
-
-- Added support for saving models with units to the asdf format. [#7237]
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-- ``HDUList.pop()`` now accepts string and tuple extension name
-  specifications. [#7236]
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-- Allow array-valued ``Time`` object to be modified in place. [#6028]
-
-- Added support for missing values (masking) to the ``Time`` class. [#6028]
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-- Lists of units are now converted in the Matplotlib unit converter. This means
-  that for Matplotlib versions later than 2.2, more plotting functions now work
-  with units (e.g. errorbar). [#7037]
-
-astropy.wcs
-^^^^^^^^^^^
-
-- Map ITRS frames to terrestrial WCS coordinates. This will make it possible to
-  use WCSAxes to make figures that combine both celestial and terrestrial
-  features. An example is plotting the coordinates of an astronomical transient
-  over an all- sky satellite image to illustrate the position relative to the
-  Earth at the time of the event. The ITRS frame is identified with WCSs that
-  use the ``TLON-`` and ``TLAT-`` coordinate types. There are several examples
-  of WCSs where this syntax is used to describe terrestrial coordinate systems:
-  Section 7.4.1 of `WCS in FITS "Paper II" <http://adsabs.harvard.edu/abs/2002A%26A...395.1077C>`_
-  and the `WCSTools documentation <http://tdc-www.harvard.edu/software/wcstools/wcstools.multiwcs.html>`_.
-  [#6990]
-
-API Changes
------------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-- In ``UnitBase.compose()``, if a sequence (list|tuple) is passed in to
-  ``units``, the default for ``include_prefix_units`` is set to
-  `True`, so that no units get ignored. [#6957]
-
-astropy.utils
-^^^^^^^^^^^^^
-
-- ``InheritDocstrings`` now also works on class properties. [#7166]
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-Bug Fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-- Added support for ``copy.copy`` and ``copy.deepcopy`` for ``HDUList``. [#7218]
-
-- Override ``HDUList.copy()`` to return a shallow HDUList instance. [#7218]
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-- Right ascension coordinates are now shown in hours by default, and the
-  ``set_format_unit`` method on ``CoordinateHelper`` now works correctly
-  with angle coordinates. [#7215]
-
-astropy.wcs
-^^^^^^^^^^^
-
-Other Changes and Additions
----------------------------
-
-- The documentation build now uses the Sphinx configuration from sphinx-astropy
-  rather than from astropy-helpers. [#7139]
-
-3.0.2 (unreleased)
+3.0.2 (2018-04-23)
 ==================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -283,24 +10,6 @@ astropy.coordinates
 - Computing a 3D separation between two ``SkyCoord`` objects (with the
   ``separation_3d`` method) now works with or without velocity data attached to
   the objects. [#7387]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
@@ -319,20 +28,11 @@ astropy.modeling
 - Fix the shape of the outputs when a model set is evaluated with
   ``model_set_axis=False`` . [#7317]
 
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
 astropy.stats
 ^^^^^^^^^^^^^
 
 - Accept a tuple for the ``axis`` parameter in ``sigma_clip``, like the
   underlying ``numpy`` functions and some other functions in ``stats``. [#7199]
-
-astropy.table
-^^^^^^^^^^^^^
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -342,26 +42,12 @@ astropy.tests
   ``pytest`` which was causing issues for some affiliated packages. The old
   import will continue to work but may be deprecated in the future. [#7252]
 
-astropy.time
-^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
-
-- ``u.quantity_input`` no longer errors if the return annotation for a function is ``None``. [#7336]
 
 - Added a units-aware ``allclose`` function (this was previously available in
   the ``tests`` module as ``quantity_allclose``). To complement ``allclose``,
   a new ``isclose`` function is also added and backported. [#7252]
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
 
 
 3.0.1 (2018-03-12)
@@ -868,17 +554,11 @@ Other Changes and Additions
 - The bundled version of PLY was updated to 3.10. [#7174]
 
 
-2.0.6 (unreleased)
+2.0.6 (2018-04-23)
 ==================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
@@ -887,71 +567,28 @@ astropy.convolution
   This was never actually checked, it now is and an exception is raised.
   [#7313]
 
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-- Updated the bundled CFITSIO library to 3.44. This is to remedy another
-  critical security vulnerability that was identified by NASA. See
-  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#7370]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
-astropy.utils
-^^^^^^^^^^^^^
+- ``u.quantity_input`` no longer errors if the return annotation for a
+  function is ``None``. [#7336, #7380]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
 - Explicilty default to origin='lower' in WCSAxes. [#7331]
 
-astropy.vo
-^^^^^^^^^^
+- Lists of units are now converted in the Matplotlib unit converter. This means
+  that for Matplotlib versions later than 2.2, more plotting functions now work
+  with units (e.g. errorbar). [#7037]
 
-astropy.wcs
-^^^^^^^^^^^
+
+Other Changes and Additions
+---------------------------
+
+- Updated the bundled CFITSIO library to 3.44. This is to remedy another
+  critical security vulnerability that was identified by NASA. See
+  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#7370]
 
 
 2.0.5 (2018-03-12)
