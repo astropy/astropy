@@ -49,6 +49,10 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- In ``freedman_bin_width``, if the data has too small IQR, use median
+  absolute deviation instead. If both IQR and median absolute deviation
+  values are too small, give an value error. [#7248]
+
 astropy.table
 ^^^^^^^^^^^^^
 

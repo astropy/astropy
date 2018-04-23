@@ -13,6 +13,7 @@ from ..extern import six
 
 import numpy as np
 from . import bayesian_blocks
+from . import median_absolute_deviation
 
 __all__ = ['histogram', 'scott_bin_width', 'freedman_bin_width',
            'knuth_bin_width']
@@ -211,6 +212,10 @@ def freedman_bin_width(data, return_bins=False):
 
     if return_bins:
         dmin, dmax = data.min(), data.max()
+        if dx < 1e-6:
+            dx = median_absolute_deviation(data)
+        if dx < 1e-6:
+            raise ValueError("data has too small IQR and median_absolute_deviation values")
         Nbins = max(1, np.ceil((dmax - dmin) / dx))
         bins = dmin + dx * np.arange(Nbins + 1)
         return dx, bins
