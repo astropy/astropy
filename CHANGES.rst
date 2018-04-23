@@ -33,7 +33,8 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
-Latex reader now ignores ``\toprule``, ``\midrule``, and ``\bottomrule`` commands [#7349]
+- Latex reader now ignores ``\toprule``, ``\midrule``, and ``\bottomrule``
+  commands [#7349]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
@@ -57,6 +58,9 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+
+- Add a ``Multiply`` model which preseves unit through evaluate, unlike
+  ``Scale`` which is dimensionless. [#7210]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
@@ -88,9 +92,6 @@ astropy.utils
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
-- Lists of units are now converted in the Matplotlib unit converter. This means
-  that for Matplotlib versions later than 2.2, more plotting functions now work
-  with units (e.g. errorbar). [#7037]
 
 astropy.wcs
 ^^^^^^^^^^^
@@ -229,6 +230,9 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fix behaviour of certain models with units, by making certain unit-related
+  attributes readonly. [#7210]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -269,7 +273,8 @@ Other Changes and Additions
 - The documentation build now uses the Sphinx configuration from sphinx-astropy
   rather than from astropy-helpers. [#7139]
 
-3.0.2 (unreleased)
+
+3.0.3 (unreleased)
 ==================
 
 Bug Fixes
@@ -286,10 +291,6 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
-
-- Computing a 3D separation between two ``SkyCoord`` objects (with the
-  ``separation_3d`` method) now works with or without velocity data attached to
-  the objects. [#7387]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -312,6 +313,61 @@ astropy.io.registry
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+Other Changes and Additions
+---------------------------
+
+
+
+3.0.2 (2018-04-23)
+==================
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Computing a 3D separation between two ``SkyCoord`` objects (with the
+  ``separation_3d`` method) now works with or without velocity data attached to
+  the objects. [#7387]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
 - Fix validate with xmllint=True. [#7255, #7283]
 
 astropy.modeling
@@ -326,26 +382,11 @@ astropy.modeling
 - Fix the shape of the outputs when a model set is evaluated with
   ``model_set_axis=False`` . [#7317]
 
-- Fix behaviour of certain models with units, by making certain unit-related
-  attributes readonly. [#7210]
-
-- Add a ``Multiply`` model which preseves unit through evaluate, unlike
-  ``Scale`` which is dimensionless. [#7210]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
 astropy.stats
 ^^^^^^^^^^^^^
 
 - Accept a tuple for the ``axis`` parameter in ``sigma_clip``, like the
   underlying ``numpy`` functions and some other functions in ``stats``. [#7199]
-
-astropy.table
-^^^^^^^^^^^^^
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -355,26 +396,12 @@ astropy.tests
   ``pytest`` which was causing issues for some affiliated packages. The old
   import will continue to work but may be deprecated in the future. [#7252]
 
-astropy.time
-^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
-
-- ``u.quantity_input`` no longer errors if the return annotation for a function is ``None``. [#7336]
 
 - Added a units-aware ``allclose`` function (this was previously available in
   the ``tests`` module as ``quantity_allclose``). To complement ``allclose``,
   a new ``isclose`` function is also added and backported. [#7252]
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
 
 
 3.0.1 (2018-03-12)
@@ -881,7 +908,7 @@ Other Changes and Additions
 - The bundled version of PLY was updated to 3.10. [#7174]
 
 
-2.0.6 (unreleased)
+2.0.7 (unreleased)
 ==================
 
 Bug Fixes
@@ -895,10 +922,6 @@ astropy.constants
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
-
-- convolve(boundary=None) requires the kernel to be smaller than the image.
-  This was never actually checked, it now is and an exception is raised.
-  [#7313]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -914,10 +937,6 @@ astropy.io.ascii
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
-
-- Updated the bundled CFITSIO library to 3.44. This is to remedy another
-  critical security vulnerability that was identified by NASA. See
-  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#7370]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
@@ -962,8 +981,6 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-- Explicilty default to origin='lower' in WCSAxes. [#7331]
-
 - Fixed a bug that caused the position of the tick values in decimal mode
   to be incorrectly determined. [#7332]
 
@@ -972,6 +989,48 @@ astropy.vo
 
 astropy.wcs
 ^^^^^^^^^^^
+
+
+Other Changes and Additions
+---------------------------
+
+
+
+2.0.6 (2018-04-23)
+==================
+
+Bug Fixes
+---------
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- convolve(boundary=None) requires the kernel to be smaller than the image.
+  This was never actually checked, it now is and an exception is raised.
+  [#7313]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- ``u.quantity_input`` no longer errors if the return annotation for a
+  function is ``None``. [#7336, #7380]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Explicilty default to origin='lower' in WCSAxes. [#7331]
+
+- Lists of units are now converted in the Matplotlib unit converter. This means
+  that for Matplotlib versions later than 2.2, more plotting functions now work
+  with units (e.g. errorbar). [#7037]
+
+
+Other Changes and Additions
+---------------------------
+
+- Updated the bundled CFITSIO library to 3.44. This is to remedy another
+  critical security vulnerability that was identified by NASA. See
+  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#7370]
 
 
 2.0.5 (2018-03-12)
