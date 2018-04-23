@@ -19,7 +19,7 @@ import astropy
 NAME = 'astropy'
 
 # VERSION should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
-VERSION = '2.0.6'
+VERSION = '2.0.7.dev'
 
 # Indicates if this version is a release version
 RELEASE = 'dev' not in VERSION
