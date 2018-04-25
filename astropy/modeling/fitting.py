@@ -618,10 +618,12 @@ class FittingWithOutlierRemoval:
 
         Returns
         -------
-        filtered_data : numpy.ma.core.MaskedArray
-            Data used to perform the fitting after outlier removal.
         fitted_model : `~astropy.modeling.FittableModel`
             Fitted model after outlier removal.
+        mask : `numpy.ndarray`
+            Boolean mask array, identifying which points were used in the final
+            fitting iteration (False) and which were found to be outliers or
+            were masked in the input (True).
         """
 
         # For single models, the data get filtered here at each iteration and
