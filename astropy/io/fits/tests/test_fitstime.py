@@ -338,15 +338,12 @@ class TestFitsTime(FitsTestCase):
         bhdu = fits.BinTableHDU.from_columns([c])
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
-        with catch_warnings() as w:
-            tm = table_types.read(self.temp('time.fits'), astropy_native=True)
-            assert len(w) == 1
-            assert 'FITS recognized time scale value "LOCAL"' in str(w[0].message)
+        tm = table_types.read(self.temp('time.fits'), astropy_native=True)
 
         assert isinstance(tm['local_time'], Time)
         assert tm['local_time'].format == 'mjd'
-        # Default scale is UTC
-        assert tm['local_time'].scale == 'utc'
+
+        assert tm['local_time'].scale == 'local'
         assert (tm['local_time'].value == local_time).all()
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
