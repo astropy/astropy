@@ -670,9 +670,11 @@ class FittingWithOutlierRemoval:
 
         loop = False
 
-        # Starting fit, prior to iteration and masking:
+        # Starting fit, prior to any iteration and masking:
         fitted_model = self.fitter(model, x, y, z, weights=weights, **kwargs)
-        filtered_data = data
+        filtered_data = np.ma.masked_array(data)
+        if filtered_data.mask is np.ma.nomask:
+            filtered_data.mask = False
         filtered_weights = weights
 
         # Perform the iterative fitting:
@@ -754,7 +756,7 @@ class FittingWithOutlierRemoval:
                                            filtered_data,
                                            weights=filtered_weights, **kwargs)
 
-        return filtered_data, fitted_model
+        return fitted_model, filtered_data.mask
 
 
 class LevMarLSQFitter(metaclass=_FitterMeta):
