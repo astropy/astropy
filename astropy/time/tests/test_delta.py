@@ -327,13 +327,21 @@ class TestTimeDeltaScales():
         # check that time quantity can be subtracted from T(local)
         q = 10 * u.s
         assert (t2 - q).value == (t2 - dt2).value
+        # Check that one cannot subtract/add times with a standard scale
+        # from a local one (or vice versa)
+        t1 = self.t['local']
         for scale in STANDARD_TIME_SCALES:
-            t1 = self.t['local']
             t2 = self.t[scale]
             with pytest.raises(TypeError):
-                dt = t1 - t2
+                t1 - t2
             with pytest.raises(TypeError):
-                t3 = t2 - dt
+                t2 - t1
+            with pytest.raises(TypeError):
+                t2 - dt
+            with pytest.raises(TypeError):
+                t2 + dt
+            with pytest.raises(TypeError):
+                dt + t2
 
     def test_scales_for_delta_minus_delta(self):
         """dT(X) +/- dT2(Y) -- Add/substract JDs for dT(X) and dT(Y).X
