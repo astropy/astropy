@@ -7,10 +7,11 @@ import datetime
 from copy import deepcopy
 
 import numpy as np
+from numpy.testing import assert_allclose
 
 from ...tests.helper import catch_warnings, pytest
 from ...utils import isiterable
-from .. import Time, ScaleValueError, TIME_SCALES, TimeString, TimezoneInfo
+from .. import Time, ScaleValueError, STANDARD_TIME_SCALES, TimeString, TimezoneInfo
 from ...coordinates import EarthLocation
 from ... import units as u
 from ... import _erfa as erfa
@@ -311,18 +312,24 @@ class TestBasic():
         assert t5.location.shape == t5.shape
         assert t5.tdb.shape == t5.shape
 
-    def test_all_transforms(self):
-        """Test that all transforms work.  Does not test correctness,
-        except reversibility [#2074]"""
+    def test_all_scale_transforms(self):
+        """Test that standard scale transforms work.  Does not test correctness,
+        except reversibility [#2074]. Also tests that standard scales can't be
+        converted to local scales"""
         lat = 19.48125
         lon = -155.933222
-        for scale1 in TIME_SCALES:
+        for scale1 in STANDARD_TIME_SCALES:
             t1 = Time('2006-01-15 21:24:37.5', format='iso', scale=scale1,
                       location=(lon, lat))
-            for scale2 in TIME_SCALES:
+            for scale2 in STANDARD_TIME_SCALES:
                 t2 = getattr(t1, scale2)
                 t21 = getattr(t2, scale1)
                 assert allclose_jd(t21.jd, t1.jd)
+
+            # test for conversion to local scale
+            scale3 = 'local'
+            with pytest.raises(ScaleValueError):
+                    t2 = getattr(t1, scale3)
 
     def test_creating_all_formats(self):
         """Create a time object using each defined format"""
@@ -348,6 +355,35 @@ class TestBasic():
         dt = datetime.datetime(2000, 1, 2, 3, 4, 5, 123456)
         Time(dt, format='datetime', scale='tai')
         Time([dt, dt], format='datetime', scale='tai')
+
+    def test_local_format_transforms(self):
+        """
+        Test trasformation of local time to different formats
+        Transformation to formats with reference time should give
+        ScalevalueError
+        """
+        t = Time('2006-01-15 21:24:37.5', scale='local')
+        assert_allclose(t.jd, 2453751.3921006946, atol=0.001/3600./24., rtol=0.)
+        assert_allclose(t.mjd, 53750.892100694444, atol=0.001/3600./24., rtol=0.)
+        assert_allclose(t.decimalyear, 2006.0408002758752, atol=0.001/3600./24./365., rtol=0.)
+        assert t.datetime == datetime.datetime(2006, 1, 15, 21, 24, 37, 500000)
+        assert t.isot == '2006-01-15T21:24:37.500'
+        assert t.yday == '2006:015:21:24:37.500'
+        assert t.fits == '2006-01-15T21:24:37.500(LOCAL)'
+        assert_allclose(t.byear, 2006.04217888831, atol=0.001/3600./24./365., rtol=0.)
+        assert_allclose(t.jyear, 2006.0407723496082, atol=0.001/3600./24./365., rtol=0.)
+        assert t.byear_str == 'B2006.042'
+        assert t.jyear_str == 'J2006.041'
+
+        # epochTimeFormats
+        with pytest.raises(ScaleValueError):
+            t2 = t.gps
+        with pytest.raises(ScaleValueError):
+            t2 = t.unix
+        with pytest.raises(ScaleValueError):
+            t2 = t.cxcsec
+        with pytest.raises(ScaleValueError):
+            t2 = t.plot_date
 
     def test_datetime(self):
         """
@@ -491,6 +527,11 @@ class TestBasic():
         t5 = Time([t4[:2], t4[4:5]])
         assert t5.shape == (3, 5)
 
+        # throw error when deriving local scale time
+        # from non local time scale
+        with pytest.raises(ValueError):
+            t6 = Time(t1, scale='local')
+
 
 class TestVal2():
     """Tests related to val2"""
@@ -629,6 +670,9 @@ class TestSubFormat():
         # Test with scale and FITS string scale
         t = Time('2045-11-08T00:00:00.000(UTC)', scale='utc')
         assert t.scale == 'utc'
+        # Test with local time scale and FITS string scale
+        t = Time('2045-11-08T00:00:00.000(LOCAL)')
+        assert t.scale == 'local'
         # Check that inconsistent scales lead to errors.
         with pytest.raises(ValueError):
             Time('2000-01-02(TAI)', scale='utc')

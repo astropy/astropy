@@ -420,7 +420,14 @@ class TimeFromEpoch(TimeFormat):
         if self.scale != self.epoch_scale:
             if parent is None:
                 raise ValueError('cannot compute value without parent Time object')
-            tm = getattr(parent, self.epoch_scale)
+            try:
+                tm = getattr(parent, self.epoch_scale)
+            except Exception as err:
+                raise ScaleValueError("Cannot convert from '{0}' epoch scale '{1}'"
+                                      "to specified scale '{2}', got error:\n{3}"
+                                      .format(self.name, self.epoch_scale,
+                                              self.scale, err))
+
             jd1, jd2 = tm._time.jd1, tm._time.jd2
         else:
             jd1, jd2 = self.jd1, self.jd2
