@@ -133,14 +133,17 @@ def test_io_time_write_fits_standard(tmpdir, table_types):
     Validation of the output is done. Test that io.fits writes a table
     containing Time mixin columns that can be partially round-tripped
     (metadata scale, location).
+
+    Note that we postpone checking the "local" scale, since that cannot
+    be done with format 'cxcsec', as it requires an epoch.
     """
-    t = table_types([[1,2], ['string', 'column']])
+    t = table_types([[1, 2], ['string', 'column']])
     for scale in time.STANDARD_TIME_SCALES:
-        t['a'+scale] = time.Time([[1,2],[3,4]], format='cxcsec', scale=scale,
-                                  location=EarthLocation(-2446354,
-                                  4237210, 4077985, unit='m'))
+        t['a'+scale] = time.Time([[1, 2], [3, 4]], format='cxcsec',
+                                 scale=scale, location=EarthLocation(
+                                     -2446354, 4237210, 4077985, unit='m'))
         t['b'+scale] = time.Time(['1999-01-01T00:00:00.123456789',
-                                  '2010-01-01T00:00:00'], format='isot', scale=scale)
+                                  '2010-01-01T00:00:00'], scale=scale)
     t['c'] = [3., 4.]
 
     filename = str(tmpdir.join('table-tmp'))
@@ -195,21 +198,18 @@ def test_io_time_write_fits_standard(tmpdir, table_types):
 @pytest.mark.parametrize('table_types', (Table, QTable))
 def test_io_time_write_fits_local(tmpdir, table_types):
     """
-    Test that table with Time mixin columns can be written by io.fits.
-    Validation of the output is done. Test that io.fits writes a table
-    containing Time mixin columns that can be partially round-tripped
-    (metadata scale, location).
-    This test is only done for Time mixin columns with local timescale
-    and since it can't be converted to standard timescales, this test
-    is done seperately from the standard one.
+    Test that table with a Time mixin with scale local can also be written
+    by io.fits. Like ``test_io_time_write_fits_standard`` above, but avoiding
+    ``cxcsec`` format, which requires an epoch and thus cannot be used for a
+    local time scale.
     """
-    t = table_types([[1,2], ['string', 'column']])
-    scale = 'local'
-    t['a'+scale] = time.Time([[1,2],[3,4]], format='jd', scale=scale,
-                              location=EarthLocation(-2446354,
-                              4237210, 4077985, unit='m'))
-    t['b'+scale] = time.Time(['1999-01-01T00:00:00.123456789',
-                              '2010-01-01T00:00:00'], format='isot', scale=scale)
+    t = table_types([[1, 2], ['string', 'column']])
+    t['a_local'] = time.Time([[50001, 50002], [50003, 50004]],
+                             format='mjd', scale='local',
+                             location=EarthLocation(-2446354, 4237210, 4077985,
+                                                    unit='m'))
+    t['b_local'] = time.Time(['1999-01-01T00:00:00.123456789',
+                              '2010-01-01T00:00:00'], scale='local')
     t['c'] = [3., 4.]
 
     filename = str(tmpdir.join('table-tmp'))
@@ -219,7 +219,7 @@ def test_io_time_write_fits_local(tmpdir, table_types):
     tm = table_types.read(filename, format='fits', astropy_native=True)
 
     for ab in ('a', 'b'):
-        name = ab + scale
+        name = ab + '_local'
 
         # Assert that the time columns are read as Time
         assert isinstance(tm[name], time.Time)
@@ -243,16 +243,16 @@ def test_io_time_write_fits_local(tmpdir, table_types):
         # Assert that the non-time columns' data round-trips
         assert (tm[name] == t[name]).all()
 
-    # Test for conversion of time data to its value, as defined by its format
+    # Test for conversion of time data to its value, as defined by its format.
     for ab in ('a', 'b'):
-        name = ab + scale
+        name = ab + '_local'
         t[name].info.serialize_method['fits'] = 'formatted_value'
 
     t.write(filename, format='fits', overwrite=True)
     tm = table_types.read(filename, format='fits')
 
     for ab in ('a', 'b'):
-        name = ab + scale
+        name = ab + '_local'
 
         assert not isinstance(tm[name], time.Time)
         assert (tm[name] == t[name].value).all()
