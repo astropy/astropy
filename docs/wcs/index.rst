@@ -1,4 +1,3 @@
-.. doctest-skip-all
 .. _astropy-wcs:
 
 ***************************************
@@ -95,6 +94,7 @@ For example, to convert pixel coordinates from a two dimensional image to world 
     >>> w = WCS('image.fits')
     >>> lon, lat = w.all_pix2world(30, 40, 0)
     >>> print(lon, lat)
+    31.0 41.0
 
 
 Using `astropy.wcs`
