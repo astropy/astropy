@@ -10,13 +10,24 @@ import numpy as np
 
 from numpy.testing import assert_allclose, assert_array_equal
 
-
+from ...utils import minversion
 from ..core import Model, ModelDefinitionError
 from ..parameters import Parameter
 from ..models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
                       Gaussian2D, Polynomial1D, Polynomial2D,
                       Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D,
-                      AffineTransformation2D, Identity, Mapping)
+                      AffineTransformation2D, Identity, Mapping,
+                      Tabular1D)
+
+
+try:
+    import scipy
+    from scipy import optimize  # pylint: disable=W0611
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
+
+HAS_SCIPY_14 = HAS_SCIPY and minversion(scipy, "0.14")
 
 
 @pytest.mark.parametrize(('expr', 'result'),
@@ -899,3 +910,21 @@ def test_name():
     m1 = m.rename("M1")
     assert m.name == "M"
     assert m1.name == "M1"
+
+@pytest.mark.skipif("not HAS_SCIPY_14")
+def test_tabular_in_compound():
+    """
+    Issue #7411 - evaluate should not change the shape of the output.
+    """
+    t = Tabular1D(points=([1, 5, 7],), lookup_table=[12, 15, 19],
+                  bounds_error=False)
+    rot = Rotation2D(2)
+    p = Polynomial1D(1)
+    x = np.arange(12).reshape((3,4))
+    # Create a compound model which does ot execute Tabular.__call__,
+    # but model.evaluate and is followed by a Rotation2D which
+    # checks the exact shapes.
+    model = p & t | rot
+    x1, y1 = model(x, x)
+    assert x1.ndim == 2
+    assert y1.ndim == 2
