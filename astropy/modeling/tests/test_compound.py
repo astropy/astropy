@@ -10,7 +10,7 @@ import numpy as np
 
 from numpy.testing import assert_allclose, assert_array_equal
 
-
+from ...utils import minversion
 from ..core import Model, ModelDefinitionError
 from ..parameters import Parameter
 from ..models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
