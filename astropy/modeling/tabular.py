@@ -180,13 +180,22 @@ class _Tabular(Model):
             Input coordinates. The number of inputs must be equal
             to the dimensions of the lookup table.
         """
+
+        shape = inputs[0].shape
         inputs = [inp.flatten() for inp in inputs[: self.n_inputs]]
         inputs = np.array(inputs).T
         if not has_scipy:
             raise ImportError("This model requires scipy >= v0.14")
-        return interpn(self.points, self.lookup_table, inputs,
-                       method=self.method, bounds_error=self.bounds_error,
-                       fill_value=self.fill_value)
+
+        result = interpn(self.points, self.lookup_table, inputs,
+                         method=self.method, bounds_error=self.bounds_error,
+                         fill_value=self.fill_value)
+
+        if self.n_outputs == 1:
+            result = result.reshape(shape)
+        else:
+            result = [r.reshape(shape) for r in result]
+        return result
 
 
 def tabular_model(dim, name=None):
