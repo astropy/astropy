@@ -20,6 +20,16 @@ from ..models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
                       Tabular1D)
 
 
+try:
+    import scipy
+    from scipy import optimize  # pylint: disable=W0611
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
+
+HAS_SCIPY_14 = HAS_SCIPY and minversion(scipy, "0.14")
+
+
 @pytest.mark.parametrize(('expr', 'result'),
                          [(lambda x, y: x + y, 5.0),
                           (lambda x, y: x - y, -1.0),
@@ -901,7 +911,7 @@ def test_name():
     assert m.name == "M"
     assert m1.name == "M1"
 
-
+@pytest.mark.skipif("not HAS_SCIPY_14")
 def test_tabular_in_compound():
     """
     Issue #7411 - evaluate should not change the shape of the output.
