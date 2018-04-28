@@ -674,6 +674,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fixed ``Tabular`` models to not change the shape of data. [#7411]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 

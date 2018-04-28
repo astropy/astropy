@@ -215,7 +215,7 @@ class _Tabular(Model):
         """
         if isinstance(inputs, u.Quantity):
             inputs = inputs.value
-
+        shape = inputs[0].shape
         inputs = [inp.flatten() for inp in inputs[: self.n_inputs]]
         inputs = np.array(inputs).T
         if not has_scipy:  # pragma: no cover
@@ -229,6 +229,10 @@ class _Tabular(Model):
                 not isinstance(self.points[0], u.Quantity)):
             result = result * self.lookup_table.unit
 
+        if self.n_outputs == 1:
+            result = result.reshape(shape)
+        else:
+            result = [r.reshape(shape) for r in result]
         return result
 
 
