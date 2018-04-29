@@ -482,7 +482,7 @@ def _guess(table, read_kwargs, format, fast_reader, fulltrace=False):
             # Do guess_kwargs.update(read_kwargs) except that if guess_args has
             # a conflicting key/val pair then skip this guess entirely.
             if key not in guess_kwargs:
-                guess_kwargs[key] = val
+                guess_kwargs[key] = copy.deepcopy(val)
             elif val != guess_kwargs[key] and guess_kwargs != fast_kwargs:
                 guess_kwargs_ok = False
                 break
@@ -617,37 +617,23 @@ def _get_guess_kwargs_list(read_kwargs):
     # (actually include all here - check for compatibility of arguments later).
     # FixedWidthTwoLine would also be read by Basic, so it needs to come first;
     # same for RST.
-    for reader in [fixedwidth.FixedWidthTwoLine, rst.RST,
+    for reader in (fixedwidth.FixedWidthTwoLine, rst.RST,
                    fastbasic.FastBasic, basic.Basic,
                    fastbasic.FastRdb, basic.Rdb,
                    fastbasic.FastTab, basic.Tab,
                    cds.Cds, daophot.Daophot, sextractor.SExtractor,
-                   ipac.Ipac, latex.Latex, latex.AASTex]:
-        first_kwargs = copy.deepcopy(read_kwargs)
-        first_kwargs.update(dict(Reader=reader))
-        guess_kwargs_list.append(first_kwargs)
+                   ipac.Ipac, latex.Latex, latex.AASTex):
+        guess_kwargs_list.append(dict(Reader=reader))
 
     # Cycle through the basic-style readers using all combinations of delimiter
-    # and quotechar, unless already specified explicitly in input.
-    # The latter might result in duplicate attempts for [Fast]Basic readers...
-    for reader in [fastbasic.FastCommentedHeader, basic.CommentedHeader,
+    # and quotechar.
+    for Reader in (fastbasic.FastCommentedHeader, basic.CommentedHeader,
                    fastbasic.FastBasic, basic.Basic,
-                   fastbasic.FastNoHeader, basic.NoHeader]:
-        first_kwargs = copy.deepcopy(read_kwargs)
-        first_kwargs.update(dict(Reader=reader))
-        if 'delimiter' in read_kwargs:
-            delimiters = (read_kwargs['delimiter'], )
-        else:
-            delimiters = ("|", ",", " ", r"\s")
-        for delimiter in delimiters:
-            first_kwargs.update(dict(delimiter=delimiter))
-            if 'quotechar' in read_kwargs:
-                quotechars = (read_kwargs['quotechar'], )
-            else:
-                quotechars = ('"', "'")
-            for quotechar in quotechars:
-                first_kwargs.update(dict(quotechar=quotechar))
-                guess_kwargs_list.append(copy.deepcopy(first_kwargs))
+                   fastbasic.FastNoHeader, basic.NoHeader):
+        for delimiter in ("|", ",", " ", r"\s"):
+            for quotechar in ('"', "'"):
+                guess_kwargs_list.append(dict(
+                    Reader=Reader, delimiter=delimiter, quotechar=quotechar))
 
     return guess_kwargs_list
 
