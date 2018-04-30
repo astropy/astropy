@@ -50,6 +50,9 @@ from .parameters import (Parameter, InputParameterError,
 class _CompoundModel:
     pass
 
+class _CompoundModelMeta:
+    pass
+
 class ModelDefinitionError(TypeError):
     """Used for incorrect models definitions"""
 
