@@ -46,6 +46,9 @@ from astropy.nddata.utils import add_array, extract_array
 class _CompoundModel:
     pass
 
+class _CompoundModelMeta:
+    pass
+
 class ModelDefinitionError(TypeError):
     """Used for incorrect models definitions"""
 
