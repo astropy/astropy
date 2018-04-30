@@ -117,11 +117,13 @@ class TestSingleTable:
         filename = str(tmpdir.join('test_with_format.fits'))
         t1 = table_type(self.data)
         t1['a'].format = '{:5d}'
+        t1['b'].format = '{:>20}'
         t1['c'].format = '{:6.2f}'
         t1.write(filename, overwrite=True)
         t2 = table_type.read(filename)
         assert equal_data(t1, t2)
         assert t2['a'].format == '{:5d}'
+        assert t2['b'].format == '{:>20}'
         assert t2['c'].format == '{:6.2f}'
 
     def test_masked(self, tmpdir):
@@ -324,6 +326,7 @@ def test_scale_error():
                          [('EN10.5', ('EN', '10', '5', None)),
                           ('F6.2', ('F', '6', '2', None)),
                           ('B5.10', ('B', '5', '10', None)),
+                          ('E10.5E3', ('E', '10', '5', '3')),
                           ('A21', ('A', '21', None, None))])
 def test_parse_tdisp_format(tdisp_str, format_return):
     assert _parse_tdisp_format(tdisp_str) == format_return
@@ -341,6 +344,8 @@ def test_fortran_to_python_format(tdisp_str, format_str_return):
 
 @pytest.mark.parametrize('fmt_str, tdisp_str',
                          [('{:3d}', 'I3'),
+                          ('3d', 'I3'),
+                          ('7.3f', 'F7.3'),
                           ('{:>4}', 'A4'),
                           ('{:7.4f}', 'F7.4'),
                           ('%5.3g', 'G5.3'),
