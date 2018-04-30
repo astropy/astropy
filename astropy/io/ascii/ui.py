@@ -262,9 +262,6 @@ def read(table, guess=None, **kwargs):
         Reader class (DEPRECATED)
     encoding: str
         Allow to specify encoding to read the file (default= ``None``).
-    fulltrace: bool
-        Keep a full trace of guessed readers in ascii.get_read_trace(),
-        including those skipped due to inconsistent options
 
     Returns
     -------
@@ -312,11 +309,6 @@ def read(table, guess=None, **kwargs):
     # Remove format keyword if there, this is only allowed in read() not get_reader()
     if 'format' in new_kwargs:
         del new_kwargs['format']
-    if 'fulltrace' in new_kwargs:
-        fulltrace = new_kwargs['fulltrace']
-        del new_kwargs['fulltrace']
-    else:
-        fulltrace = False
 
     if guess is None:
         guess = _GUESS
@@ -408,7 +400,7 @@ def read(table, guess=None, **kwargs):
     return dat
 
 
-def _guess(table, read_kwargs, format, fast_reader, fulltrace=False):
+def _guess(table, read_kwargs, format, fast_reader):
     """
     Try to read the table using various sets of keyword args.  Start with the
     standard guess list and filter to make it unique and consistent with
@@ -426,9 +418,6 @@ def _guess(table, read_kwargs, format, fast_reader, fulltrace=False):
         Table format
     fast_reader : dict
         Options for the C engine fast reader.  See read() function for details.
-    fulltrace : bool
-        Keep a full trace of guessed readers in ascii.get_read_trace(),
-        including those skipped due to inconsistent options
 
     Returns
     -------
@@ -461,20 +450,20 @@ def _guess(table, read_kwargs, format, fast_reader, fulltrace=False):
         # If user specified slow reader then skip all fast readers
         if (fast_reader['enable'] is False and
                 guess_kwargs['Reader'] in core.FAST_CLASSES.values()):
-            if fulltrace:
-                _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
-                                    'status': 'Reader only available in fast version',
-                                    'dt': '{0:.3f} ms'.format(0.0)})
+            _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
+                                'Reader': guess_kwargs['Reader'].__class__,
+                                'status': 'Reader only available in fast version',
+                                'dt': '{0:.3f} ms'.format(0.0)})
             continue
 
         # If user explicitly required a fast reader with 'force' or as dict of
         # options then skip all non-fast readers
         if (fast_reader['enable'] == 'force' and
                 guess_kwargs['Reader'] not in core.FAST_CLASSES.values()):
-            if fulltrace:
-                _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
-                                    'status': 'No fast version of reader available',
-                                    'dt': '{0:.3f} ms'.format(0.0)})
+            _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
+                                'Reader': guess_kwargs['Reader'].__class__,
+                                'status': 'No fast version of reader available',
+                                'dt': '{0:.3f} ms'.format(0.0)})
             continue
 
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
