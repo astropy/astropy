@@ -277,7 +277,6 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
 
         # Copy over display format
         if col.disp is not None:
-            #print(_fortran_to_python_format(col.disp))
             column.format = _fortran_to_python_format(col.disp)
 
         columns.append(column)
@@ -464,13 +463,10 @@ def _parse_tdisp_format(tdisp):
     -------
     formatc: str
         The format characters from TDISPn
-
     width: str
         The width int value from TDISPn
-
     precision: str
         The precision int value from TIDISPn
-
     exponential: str
         The exponential int value from TDISPn
 
@@ -494,7 +490,7 @@ def _parse_tdisp_format(tdisp):
     precision = None
     exponential = None
 
-    # Some formats have
+    # Some formats have precision and exponential
     if tdisp[0] in ('I', 'B', 'O', 'Z', 'F', 'E', 'G', 'D'):
         precision = match.group('precision')
         if precision is None:
@@ -544,9 +540,9 @@ def python_to_tdisp(format_string, logical_dtype = False):
     ----------
     format_string: str
         TDISPn FITS Header keyword.  Used to specify display formatting.
-
     logical_dtype: bool
-        True is this format type should be a logical type, 'L'
+        True is this format type should be a logical type, 'L'. Needs special
+        handeling.
 
     Returns
     -------
@@ -558,20 +554,16 @@ def python_to_tdisp(format_string, logical_dtype = False):
                     'X': 'Z', 'f': 'F', 'F': 'F', 'g': 'G', 'G': 'G', 'e': 'E',
                     'E': 'E'}
 
-    if format_string is None or format_string == "":
+    if format_string in [None, "", "{}"]:
         return None
 
     # Strip out extra format characters that aren't a type or a width/precision
     if format_string[0] == '{' and format_string != "{}":
         fmt_str = format_string.lstrip("{:").rstrip('}')
     elif format_string[0] == '%':
-        fmt_str = format_string.lstrip("%")
+            fmt_str = format_string.lstrip("%")
     else:
-        warnings.warn('Format {} cannot be mapped to the accepted '
-                      'TDISPn keyword values.  Format will not be '
-                      'moved into TDISPn keyword.'.format(format_string),
-                      AstropyUserWarning)
-        return None
+        fmt_str = format_string
 
     precision, sep = '', ''
 

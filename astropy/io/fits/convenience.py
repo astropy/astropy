@@ -452,7 +452,7 @@ def table_to_hdu(table, character_as_bytes=False):
     if table.has_mixin_columns:
         # Import is done here, in order to avoid it at build time as erfa is not
         # yet available then.
-        from ...table.column import Column, BaseColumn
+        from ...table.column import BaseColumn, Column
         from ...time import Time
         from .fitstime import time_to_fits
 
@@ -502,7 +502,7 @@ def table_to_hdu(table, character_as_bytes=False):
 
         if table[col.name].info.format is not None:
             # check for boolean types, special format case
-            logical = False if table[col.name].dtype != bool else True
+            logical = table[col.name].info.dtype == bool
 
             tdisp_format = python_to_tdisp(table[col.name].info.format,
                                            logical_dtype=logical)
