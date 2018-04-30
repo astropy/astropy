@@ -33,8 +33,13 @@ class FastBasic(metaclass=core.MetaBaseReader):
                 user_kwargs.get('header_start', 0) is None):
             raise ValueError('header_start cannot be set to None for this Reader')
 
+        # Set up kwargs and copy any user kwargs.  Use deepcopy user kwargs
+        # since they may contain a dict item which would end up as a ref to the
+        # original and get munged later (e.g. in cparser.pyx validation of
+        # fast_reader dict).
         kwargs = default_kwargs.copy()
-        kwargs.update(user_kwargs)  # user kwargs take precedence over defaults
+        kwargs.update(copy.deepcopy(user_kwargs))
+
         delimiter = kwargs.pop('delimiter', ' ')
         self.delimiter = str(delimiter) if delimiter is not None else None
         self.write_comment = kwargs.get('comment', '# ')
@@ -90,12 +95,15 @@ class FastBasic(metaclass=core.MetaBaseReader):
 
         self.strict_names = self.kwargs.pop('strict_names', False)
 
+        # Process fast_reader kwarg, which may or may not exist (though ui.py will always
+        # pass this as a dict with at least 'enable' set).
         fast_reader = self.kwargs.get('fast_reader', True)
         if not isinstance(fast_reader, dict):
             fast_reader = {}
 
         fast_reader.pop('enable', None)
         self.return_header_chars = fast_reader.pop('return_header_chars', False)
+        # Put fast_reader dict back into kwargs.
         self.kwargs['fast_reader'] = fast_reader
 
         self.engine = cparser.CParser(table, self.strip_whitespace_lines,
