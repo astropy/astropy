@@ -141,12 +141,22 @@ class MaskedConstant(numpy.ma.core.MaskedConstant):
     The constant ``numpy.ma.masked`` is not hashable (see
     https://github.com/numpy/numpy/issues/4660), so we need to extend it
     here with a hash value.
+
+    See https://github.com/numpy/numpy/issues/11021 for rationale for
+    __copy__ and __deepcopy__ methods.
     """
 
     def __hash__(self):
         '''All instances of this class shall have the same hash.'''
         # Any large number will do.
         return 1234567890
+
+    def __copy__(self):
+        """This is a singleton so just return self."""
+        return self
+
+    def __deepcopy__(self, memo):
+        return self
 
 
 masked = MaskedConstant()

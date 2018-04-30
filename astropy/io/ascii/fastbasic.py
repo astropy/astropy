@@ -37,7 +37,7 @@ class FastBasic(metaclass=core.MetaBaseReader):
         # since they may contain a dict item which would end up as a ref to the
         # original and get munged later (e.g. in cparser.pyx validation of
         # fast_reader dict).
-        kwargs = default_kwargs.copy()
+        kwargs = copy.deepcopy(default_kwargs)
         kwargs.update(copy.deepcopy(user_kwargs))
 
         delimiter = kwargs.pop('delimiter', ' ')
