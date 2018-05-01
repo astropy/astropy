@@ -88,10 +88,6 @@ Other Tips
 
       $ git commit -m "Fixed typo [docs only]"
 
-- There is no naming standard for branches, but don't name your working 
-  branch ``master``.
-
-
 Checklist for Contributed Code
 ------------------------------
 
