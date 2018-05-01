@@ -165,10 +165,13 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     # This function is a light wrapper around core._get_reader to provide a
     # public interface with a default Reader.
     if Reader is None:
-        if kwargs.get('fast_reader', False) and len(kwargs.get('delimiter', ' ')) < 2:
+        # Default reader is Basic unless fast reader is forced
+        fast_reader = _get_fast_reader_dict(kwargs)
+        if fast_reader['enable'] == 'force':
             Reader = fastbasic.FastBasic
         else:
             Reader = basic.Basic
+
     reader = core._get_reader(Reader, Inputter=Inputter, Outputter=Outputter, **kwargs)
     return reader
 
@@ -184,6 +187,18 @@ def _get_format_class(format, ReaderWriter, label):
             raise ValueError('ASCII format {0!r} not in allowed list {1}'
                              .format(format, sorted(core.FORMAT_CLASSES)))
     return ReaderWriter
+
+
+def _get_fast_reader_dict(kwargs):
+    """Convert 'fast_reader' key in kwargs into a dict if not already and make sure
+    'enable' key is available.
+    """
+    fast_reader = copy.deepcopy(kwargs.get('fast_reader', True))
+    if isinstance(fast_reader, dict):
+        fast_reader.setdefault('enable', 'force')
+    else:
+        fast_reader = {'enable': fast_reader}
+    return fast_reader
 
 
 def read(table, guess=None, **kwargs):
@@ -274,13 +289,9 @@ def read(table, guess=None, **kwargs):
     # Downstream readers might munge kwargs
     kwargs = copy.deepcopy(kwargs)
 
-    # Convert fast_reader into a dict if not already and make sure 'enable'
-    # key is available.
-    fast_reader = kwargs.get('fast_reader', True)
-    if isinstance(fast_reader, dict):
-        fast_reader.setdefault('enable', 'force')
-    else:
-        fast_reader = {'enable': fast_reader}
+    # Convert 'fast_reader' key in kwargs into a dict if not already and make sure
+    # 'enable' key is available.
+    fast_reader = _get_fast_reader_dict(kwargs)
     kwargs['fast_reader'] = fast_reader
 
     if fast_reader['enable'] and fast_reader.get('chunk_size'):
