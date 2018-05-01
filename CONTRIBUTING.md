@@ -15,8 +15,7 @@ So you're interested in contributing code to Astropy? Excellent!
 
 Most contributions to Astropy are done via pull requests from GitHub users'
 forks of the [astropy repository](https://github.com/astropy/astropy). If 
-you're new to this style of development, you'll want to read over our 
-[development workflow](http://docs.astropy.org/en/latest/development/workflow/development_workflow.html).
+you're new to this style of development, you'll want to read over our [development workflow](http://docs.astropy.org/en/latest/development/workflow/development_workflow.html).
 
 You may also/instead be interested in contributing to to an 
 [astropy affiliated package](http://www.astropy.org/affiliated/). 
@@ -24,7 +23,7 @@ Affiliated packages are astronomy-related software packages that are not a part
 of the astropy core package, but build on it for more specialized applications
 and follow the astropy guidelines for reuse, interoperability, and interfacing.
 Each affiliated package has its own developers/maintainers and its own 
-specific guidelines for contributions, so be sure to read their docs.
+specific guidelines for contributions, so be sure to read their docs. 
 
 Once you open a pull request (which should be opened against the ``master``
 branch, not against any of the other branches), please make sure that you
