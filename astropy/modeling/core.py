@@ -728,6 +728,21 @@ class Model(metaclass=_ModelMeta):
         else:
             return val
 
+    @property
+    def uses_quantity(self):
+        """
+        True if this model has been created with `~astropy.units.Quantity`
+        objects or if there are no parameters.
+
+        This can be used to determine if this model should be evaluated with
+        `~astropy.units.Quantity` or regular floats.
+        """
+        pisq = [isinstance(p, Quantity) for p in self._param_sets(units=True)]
+        if not len(pisq) or any(pisq):
+            return True
+        else:
+            return False
+
     def __repr__(self):
         return self._format_repr()
 
