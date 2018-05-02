@@ -738,10 +738,7 @@ class Model(metaclass=_ModelMeta):
         `~astropy.units.Quantity` or regular floats.
         """
         pisq = [isinstance(p, Quantity) for p in self._param_sets(units=True)]
-        if not len(pisq) or any(pisq):
-            return True
-        else:
-            return False
+        return (len(pisq) == 0) or any(pisq)
 
     def __repr__(self):
         return self._format_repr()
