@@ -321,6 +321,9 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Add a ``uses_quantity`` property to ``Model`` which allows introspection of if
+  the ``Model`` can accept ``Quantity`` objects. [#7417]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
