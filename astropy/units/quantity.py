@@ -1257,9 +1257,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                                  prefix=prefixstr)
         return '{0}{1}{2:s}>'.format(prefixstr, arrstr, self._unitstr)
 
-    def _repr_latex_(self):
+    def to_string(self, delimiter="$"):
         """
-        Generate a latex representation of the quantity and its unit.
+        Generate a string representation of the quantity and its unit.
 
         The behavior of this function can be altered via the
         `numpy.set_printoptions` function and its various keywords.  The
@@ -1268,10 +1268,15 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         This is treated separately because the numpy default of 1000 is too big
         for most browsers to handle.
 
+        Parameters
+        ----------
+        delimiter : str, optional
+            Character that opens and closes the string (by default '$').
+
         Returns
         -------
         lstr
-            A LaTeX string with the contents of this Quantity
+            A string with the contents of this Quantity
         """
         # need to do try/finally because "threshold" cannot be overridden
         # with array2string
@@ -1311,7 +1316,16 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                       if self.unit is not None
                       else _UNIT_NOT_INITIALISED)
 
-        return r'${0} \; {1}$'.format(latex_value, latex_unit)
+        return r'{2}{0} \; {1}{2}'.format(latex_value, latex_unit, delimiter)
+
+    def _repr_latex_(self):
+        """
+        Generate a latex representation of the quantity and its unit.
+
+        For more documentation, read the Quantity.to_string() method.
+
+        """
+        return self.to_string(delimiter="$")
 
     def __format__(self, format_spec):
         """

@@ -875,6 +875,12 @@ class TestQuantityDisplay:
         qinfnan = [np.inf, -np.inf, np.nan] * u.m
         assert qinfnan._repr_latex_() == r'$[\infty,~-\infty,~{\rm NaN}] \; \mathrm{m}$'
 
+    def test_to_string(self):
+        q2scalar = u.Quantity(1.5e14, 'm/s')
+        delimiter = "_"
+
+        assert q2scalar.to_string(delimiter=delimiter) == "{1}{0}{1}".format(q2scalar._repr_latex_()[1:-1], delimiter)
+
 
 def test_decompose():
     q1 = 5 * u.N
