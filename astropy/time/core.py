@@ -174,16 +174,18 @@ class TimeInfo(MixinInfo):
 
     def new_like(self, cols, length, metadata_conflicts='warn', name=None):
         """
-        Return a new Time instance which is consistent with the
-        input ``cols`` and has ``length`` rows.
+        Return a new Time instance which is consistent with the input Time objects
+        ``cols`` and has ``length`` rows.
 
-        This is intended for creating an empty column object whose elements can
-        be set in-place for table operations like join or vstack.
+        This is intended for creating an empty Time instance whose elements can
+        be set in-place for table operations like join or vstack.  It checks
+        that the input locations and attributes are consistent.  This is used
+        when a Time object is used as a mixin column in an astropy Table.
 
         Parameters
         ----------
         cols : list
-            List of input columns
+            List of input columns (Time objects)
         length : int
             Length of the output column object
         metadata_conflicts : str ('warn'|'error'|'silent')

@@ -514,7 +514,7 @@ class TestJoin():
             assert np.all(out['m1'].mask == [False, False, True, False])
             assert np.all(out['m2'].mask == [False, True, False, False])
         else:
-            # Otherwise make sure it fails with the right excpetion message
+            # Otherwise make sure it fails with the right exception message
             for join_type in ('outer', 'left', 'right'):
                 with pytest.raises(NotImplementedError) as err:
                     table.join(t1, t2, join_type='outer')
