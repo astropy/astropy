@@ -74,6 +74,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Added support for full use of ``Time`` mixin column for join, hstack, and
+  vstack table operations. [#6888]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
