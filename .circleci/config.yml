@@ -12,15 +12,6 @@ jobs:
       - run:
           name: Run tests
           command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4
-  image-tests-mpl153:
-    docker:
-      - image: astropy/image-tests-py35-mpl153:1.2
-    steps:
-      - checkout
-      - run:
-          name: Run tests
-          command: |
-            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
   image-tests-mpl202:
     docker:
       - image: astropy/image-tests-py35-mpl202:1.2
@@ -46,6 +37,5 @@ workflows:
   build_and_test:
     jobs:
       - 32bit
-      - image-tests-mpl153
       - image-tests-mpl202
       - image-tests-mpl212
