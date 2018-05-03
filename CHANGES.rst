@@ -16,6 +16,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- The new function :func:`~.coordinates.make_transform_graph_docs` can
+  be used to create a docstring graph from a custom
+  `~.coordinates.TransformGraph` object. [#7135]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
