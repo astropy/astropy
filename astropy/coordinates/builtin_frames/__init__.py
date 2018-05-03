@@ -71,6 +71,12 @@ def make_transform_graph_docs(transform_graph):
     Parameters
     ----------
     transform_graph : `~.coordinates.TransformGraph`
+
+    Returns
+    -------
+    docstring : str
+        A string that can be added to the end of a docstring to show the
+        transform graph.
     """
     from textwrap import dedent
     coosys = [transform_graph.lookup_name(item) for
