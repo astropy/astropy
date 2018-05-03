@@ -65,6 +65,8 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- Add WCS slicing to NDSlicingMixin. [#7427]
+
 astropy.samp
 ^^^^^^^^^^^^
 
