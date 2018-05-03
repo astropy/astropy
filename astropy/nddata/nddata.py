@@ -113,13 +113,7 @@ class NDData(NDDataBase):
     meta = MetaData(doc=_meta_doc, copy=False)
 
     def __init__(self, data, uncertainty=None, mask=None, wcs=None,
-                 meta=None, unit=None, copy=False):
-
-        # Rather pointless since the NDDataBase does not implement any setting
-        # but before the NDDataBase did call the uncertainty
-        # setter. But if anyone wants to alter this behaviour again the call
-        # to the superclass NDDataBase should be in here.
-        super().__init__()
+                 meta=None, unit=None, copy=False, missing_axes=None):
 
         # Check if data is any type from which to collect some implicitly
         # passed parameters.
@@ -142,29 +136,30 @@ class NDData(NDDataBase):
             elif data.unit is not None:
                 unit = data.unit
 
-            if uncertainty is not None and data.uncertainty is not None:
-                log.info("overwriting NDData's current "
-                         "uncertainty with specified uncertainty.")
-            elif data.uncertainty is not None:
-                uncertainty = data.uncertainty
+            if data.uncertainty is not None:
+                if uncertainty is None:
+                    uncertainty = data.uncertainty
+                else:
+                    log.info("overwriting NDData's current uncertainty "
+                             "with specified uncertainty.")
 
-            if mask is not None and data.mask is not None:
-                log.info("overwriting NDData's current "
-                         "mask with specified mask.")
-            elif data.mask is not None:
-                mask = data.mask
+            if data.mask is not None:
+                if mask is None:
+                    mask = data.mask
+                else:
+                    log.info("overwriting NDData's current mask with specified mask.")
 
-            if wcs is not None and data.wcs is not None:
-                log.info("overwriting NDData's current "
-                         "wcs with specified wcs.")
-            elif data.wcs is not None:
-                wcs = data.wcs
+            if data.wcs is not None:
+                if wcs is None:
+                    wcs = data.wcs
+                else:
+                    log.info("overwriting NDData's current wcs with specified wcs.")
 
-            if meta is not None and data.meta is not None:
-                log.info("overwriting NDData's current "
-                         "meta with specified meta.")
-            elif data.meta is not None:
-                meta = data.meta
+            if data.meta is not None:
+                if meta is None:
+                    meta = data.meta
+                else:
+                    log.info("overwriting NDData's current meta with specified meta.")
 
             data = data.data
 
@@ -226,6 +221,14 @@ class NDData(NDDataBase):
         self._unit = unit
         # Call the setter for uncertainty to further check the uncertainty
         self.uncertainty = uncertainty
+        # Define a missing axes attribute to say which WCS axes are missing from the data.
+        if missing_axes is None:
+            if data.ndim != wcs.naxis:
+                raise ValueError("Number of data axes does not match the number of WCS axes. "
+                                 "WCS incompatible with data or missing axes must be set.")
+            self.missing_axes = [False] * wcs.naxis
+        else:
+            self.missing_axes = missing_axes
 
     def __str__(self):
         return str(self.data)
