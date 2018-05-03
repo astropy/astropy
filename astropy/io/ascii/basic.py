@@ -14,7 +14,6 @@ import re
 
 from . import core
 
-
 class BasicHeader(core.BaseHeader):
     """
     Basic table Header Reader
@@ -340,10 +339,10 @@ class RdbHeader(TabHeader):
         self.names, raw_types = header_vals_list
 
         if len(self.names) != len(raw_types):
-            raise ValueError('RDB header mismatch between number of column names and column types')
+            raise core.InconsistentTableError('RDB header mismatch between number of column names and column types.')
 
         if any(not re.match(r'\d*(N|S)$', x, re.IGNORECASE) for x in raw_types):
-            raise ValueError('RDB types definitions do not all match [num](N|S): {}'.format(raw_types))
+            raise core.InconsistentTableError('RDB types definitions do not all match [num](N|S): {}'.format(raw_types))
 
         self._set_cols_from_names()
         for col, raw_type in zip(self.cols, raw_types):
