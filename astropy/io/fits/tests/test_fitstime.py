@@ -41,12 +41,20 @@ class TestFitsTime(FitsTestCase):
         t['a'] = Time(self.time, format='isot', scale='utc')
         t['b'] = Time(self.time, format='isot', scale='tt')
 
-        # Check that vectorized location raises an exception
+        # Check that vectorized location is stored using Green Bank convention
         t['a'].location = EarthLocation([1,2], [2,3], [3,4])
 
-        with pytest.raises(ValueError) as err:
-            table, hdr = time_to_fits(t)
-        assert 'Vectorized Location of Time Column' in str(err.value)
+        table, hdr = time_to_fits(t)
+        table['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')
+        table['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')
+        table['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')
+
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits',
+                              astropy_native=True)
+
+        tm['a'].location == t['a'].location
+        tm['b'].location == t['b'].location
 
         # Check that multiple Time columns with different locations raise an exception
         t['a'].location = EarthLocation(1, 2, 3)
