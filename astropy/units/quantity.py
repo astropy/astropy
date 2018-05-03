@@ -197,7 +197,7 @@ class QuantityInfo(QuantityInfoBase):
         return out
 
 
-class Quantity(np.ndarray, metaclass=InheritDocstrings):
+class QuantitySlow(np.ndarray, metaclass=InheritDocstrings):
     """A `~astropy.units.Quantity` represents a number with some associated unit.
 
     Parameters
@@ -1680,6 +1680,15 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         out_array = np.insert(self.value, obj, self._to_own_unit(values), axis)
         return self._new_view(out_array)
 
+
+class Quantity(QuantitySlow):
+    def __new__(cls, value, unit, dtype=None, copy=True, order=None,
+                subok=False, ndmin=0):
+        value = np.array(value, dtype=float, copy=copy, order=order,
+                         subok=False, ndmin=ndmin).view(cls)
+
+        value._set_unit(unit)
+        return value
 
 class SpecificTypeQuantity(Quantity):
     """Superclass for Quantities of specific physical type.

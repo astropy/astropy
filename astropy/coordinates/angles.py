@@ -608,7 +608,7 @@ class Longitude(Angle):
     """
 
     _wrap_angle = None
-    _default_wrap_angle = Angle(360 * u.deg)
+    _default_wrap_angle = Angle(360, u.deg)
     info = LongitudeInfo()
 
     def __new__(cls, angle, unit=None, wrap_angle=None, **kwargs):
@@ -654,7 +654,7 @@ class Longitude(Angle):
 
     @wrap_angle.setter
     def wrap_angle(self, value):
-        self._wrap_angle = Angle(value)
+        self._wrap_angle = Angle(value.value, value.unit)
         self._wrap_internal()
 
     def __array_finalize__(self, obj):

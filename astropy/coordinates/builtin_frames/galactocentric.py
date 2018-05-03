@@ -28,7 +28,7 @@ __all__ = ['Galactocentric']
 #   l=0, b=[-90,90] and the Galactocentric x-z plane
 # This is not used directly, but accessed via `get_roll0`.  We define it here to
 # prevent having to create new Angle objects every time `get_roll0` is called.
-_ROLL0 = Angle(58.5986320306*u.degree)
+_ROLL0 = Angle(58.5986320306, u.degree)
 
 doc_components = """
     x : `~astropy.units.Quantity`, optional
