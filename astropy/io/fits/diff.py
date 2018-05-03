@@ -432,7 +432,62 @@ class HDUDiff(_BaseDiff):
                  ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0,
                  ignore_blanks=True, ignore_blank_cards=True, tolerance=None):
         """
-        See `FITSDiff` for explanations of the initialization parameters.
+        Parameters
+        ----------
+        a : `HDUList`
+            An `HDUList` object.
+
+        b : str or `HDUList`
+            An `HDUList` object to compare to the first `HDUList` object.
+
+        ignore_keywords : sequence, optional
+            Header keywords to ignore when comparing two headers; the presence
+            of these keywords and their values are ignored.  Wildcard strings
+            may also be included in the list.
+
+        ignore_comments : sequence, optional
+            A list of header keywords whose comments should be ignored in the
+            comparison.  May contain wildcard strings as with ignore_keywords.
+
+        ignore_fields : sequence, optional
+            The (case-insensitive) names of any table columns to ignore if any
+            table data is to be compared.
+
+        numdiffs : int, optional
+            The number of pixel/table values to output when reporting HDU data
+            differences.  Though the count of differences is the same either
+            way, this allows controlling the number of different values that
+            are kept in memory or output.  If a negative value is given, then
+            numdiffs is treated as unlimited (default: 10).
+
+        rtol : float, optional
+            The relative difference to allow when comparing two float values
+            either in header values, image arrays, or table columns
+            (default: 0.0). Values which satisfy the expression
+
+            .. math::
+
+                \\left| a - b \\right| > \\text{atol} + \\text{rtol} \\cdot \\left| b \\right|
+
+            are considered to be different.
+            The underlying function used for comparison is `numpy.allclose`.
+
+            .. versionchanged:: 2.0
+               ``rtol`` replaces the deprecated ``tolerance`` argument.
+
+        atol : float, optional
+            The allowed absolute difference. See also ``rtol`` parameter.
+
+            .. versionadded:: 2.0
+
+        ignore_blanks : bool, optional
+            Ignore extra whitespace at the end of string values either in
+            headers or data. Extra leading whitespace is not ignored
+            (default: True).
+
+        ignore_blank_cards : bool, optional
+            Ignore all cards that are blank, i.e. they only contain
+            whitespace (default: True).
         """
 
         self.ignore_keywords = {k.upper() for k in ignore_keywords}
@@ -571,7 +626,58 @@ class HeaderDiff(_BaseDiff):
                  rtol=0.0, atol=0.0, ignore_blanks=True, ignore_blank_cards=True,
                  tolerance=None):
         """
-        See `FITSDiff` for explanations of the initialization parameters.
+        Parameters
+        ----------
+        a : `HDUList`
+            An `HDUList` object.
+
+        b : `HDUList`
+            An `HDUList` object to compare to the first `HDUList` object.
+
+        ignore_keywords : sequence, optional
+            Header keywords to ignore when comparing two headers; the presence
+            of these keywords and their values are ignored.  Wildcard strings
+            may also be included in the list.
+
+        ignore_comments : sequence, optional
+            A list of header keywords whose comments should be ignored in the
+            comparison.  May contain wildcard strings as with ignore_keywords.
+
+        numdiffs : int, optional
+            The number of pixel/table values to output when reporting HDU data
+            differences.  Though the count of differences is the same either
+            way, this allows controlling the number of different values that
+            are kept in memory or output.  If a negative value is given, then
+            numdiffs is treated as unlimited (default: 10).
+
+        rtol : float, optional
+            The relative difference to allow when comparing two float values
+            either in header values, image arrays, or table columns
+            (default: 0.0). Values which satisfy the expression
+
+            .. math::
+
+                \\left| a - b \\right| > \\text{atol} + \\text{rtol} \\cdot \\left| b \\right|
+
+            are considered to be different.
+            The underlying function used for comparison is `numpy.allclose`.
+
+            .. versionchanged:: 2.0
+               ``rtol`` replaces the deprecated ``tolerance`` argument.
+
+        atol : float, optional
+            The allowed absolute difference. See also ``rtol`` parameter.
+
+            .. versionadded:: 2.0
+
+        ignore_blanks : bool, optional
+            Ignore extra whitespace at the end of string values either in
+            headers or data. Extra leading whitespace is not ignored
+            (default: True).
+
+        ignore_blank_cards : bool, optional
+            Ignore all cards that are blank, i.e. they only contain
+            whitespace (default: True).
         """
 
         self.ignore_keywords = {k.upper() for k in ignore_keywords}
@@ -826,7 +932,40 @@ class ImageDataDiff(_BaseDiff):
 
     def __init__(self, a, b, numdiffs=10, rtol=0.0, atol=0.0, tolerance=None):
         """
-        See `FITSDiff` for explanations of the initialization parameters.
+        Parameters
+        ----------
+        a : `HDUList`
+            An `HDUList` object.
+
+        b : `HDUList`
+            An `HDUList` object to compare to the first `HDUList` object.
+
+        numdiffs : int, optional
+            The number of pixel/table values to output when reporting HDU data
+            differences.  Though the count of differences is the same either
+            way, this allows controlling the number of different values that
+            are kept in memory or output.  If a negative value is given, then
+            numdiffs is treated as unlimited (default: 10).
+
+        rtol : float, optional
+            The relative difference to allow when comparing two float values
+            either in header values, image arrays, or table columns
+            (default: 0.0). Values which satisfy the expression
+
+            .. math::
+
+                \\left| a - b \\right| > \\text{atol} + \\text{rtol} \\cdot \\left| b \\right|
+
+            are considered to be different.
+            The underlying function used for comparison is `numpy.allclose`.
+
+            .. versionchanged:: 2.0
+               ``rtol`` replaces the deprecated ``tolerance`` argument.
+
+        atol : float, optional
+            The allowed absolute difference. See also ``rtol`` parameter.
+
+            .. versionadded:: 2.0
         """
 
         self.numdiffs = numdiffs
@@ -942,7 +1081,20 @@ class RawDataDiff(ImageDataDiff):
 
     def __init__(self, a, b, numdiffs=10):
         """
-        See `FITSDiff` for explanations of the initialization parameters.
+        Parameters
+        ----------
+        a : `HDUList`
+            An `HDUList` object.
+
+        b : `HDUList`
+            An `HDUList` object to compare to the first `HDUList` object.
+
+        numdiffs : int, optional
+            The number of pixel/table values to output when reporting HDU data
+            differences.  Though the count of differences is the same either
+            way, this allows controlling the number of different values that
+            are kept in memory or output.  If a negative value is given, then
+            numdiffs is treated as unlimited (default: 10).
         """
 
         self.diff_dimensions = ()
@@ -1034,7 +1186,44 @@ class TableDataDiff(_BaseDiff):
     def __init__(self, a, b, ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0,
                  tolerance=None):
         """
-        See `FITSDiff` for explanations of the initialization parameters.
+        Parameters
+        ----------
+        a : `HDUList`
+            An `HDUList` object.
+
+        b : `HDUList`
+            An `HDUList` object to compare to the first `HDUList` object.
+
+        ignore_fields : sequence, optional
+            The (case-insensitive) names of any table columns to ignore if any
+            table data is to be compared.
+
+        numdiffs : int, optional
+            The number of pixel/table values to output when reporting HDU data
+            differences.  Though the count of differences is the same either
+            way, this allows controlling the number of different values that
+            are kept in memory or output.  If a negative value is given, then
+            numdiffs is treated as unlimited (default: 10).
+
+        rtol : float, optional
+            The relative difference to allow when comparing two float values
+            either in header values, image arrays, or table columns
+            (default: 0.0). Values which satisfy the expression
+
+            .. math::
+
+                \\left| a - b \\right| > \\text{atol} + \\text{rtol} \\cdot \\left| b \\right|
+
+            are considered to be different.
+            The underlying function used for comparison is `numpy.allclose`.
+
+            .. versionchanged:: 2.0
+               ``rtol`` replaces the deprecated ``tolerance`` argument.
+
+        atol : float, optional
+            The allowed absolute difference. See also ``rtol`` parameter.
+
+            .. versionadded:: 2.0
         """
 
         self.ignore_fields = set(ignore_fields)
