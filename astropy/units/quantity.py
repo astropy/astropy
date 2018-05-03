@@ -366,7 +366,8 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                 elif unit is not value_unit:
                     copy = False  # copy will be made in conversion at end
 
-        value = np.array(value, dtype=dtype, copy=copy, order=order,
+        # reduce the data to a basic numpy.ndarray
+        value = np.array(value, dtype=dtype, copy=False, order=order,
                          subok=False, ndmin=ndmin)
 
         # check that array contains numbers or long int objects
@@ -382,14 +383,23 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                               or value.dtype.kind == 'O'):
             value = value.astype(float)
 
-        value = value.view(cls)
-        value._set_unit(value_unit)
+        # cast the data to 'cls' (some Quantity subclass)
+        if copy:  # create new array and copy data
+            qvalue = super(Quantity, cls).__new__(
+                cls, value.shape, dtype=value.dtype, order=order)
+            super(Quantity, qvalue).__setitem__(None, value)
+        else:  # simply view as the right type
+            qvalue = value.view(cls)
+
+        qvalue._set_unit(value_unit)
+
+        # and make sure the unit is correct
         if unit is value_unit:
-            return value
+            return qvalue
         else:
             # here we had non-Quantity input that had a "unit" attribute
             # with a unit different from the desired one.  So, convert.
-            return value.to(unit)
+            return qvalue.to(unit)
 
     def __array_finalize__(self, obj):
         # If we're a new object or viewing an ndarray, nothing has to be done.

@@ -156,23 +156,23 @@ class TestQuantityCreation:
 
         a = np.arange(10.)
 
-        q0 = u.Quantity(a, unit=u.m / u.s)
-        assert q0.base is not a
+        q0 = u.Quantity(a, unit=u.m / u.s)  # copy=True
+        assert q0.base is None  # no reference to a
+        assert q0.flags.owndata
 
         q1 = u.Quantity(a, unit=u.m / u.s, copy=False)
         assert q1.base is a
+        assert not q1.flags.owndata
 
         q2 = u.Quantity(q0)
         assert q2 is not q0
-        assert q2.base is not q0.base
+        assert q2.base is None
 
         q2 = u.Quantity(q0, copy=False)
         assert q2 is q0
-        assert q2.base is q0.base
 
         q3 = u.Quantity(q0, q0.unit, copy=False)
         assert q3 is q0
-        assert q3.base is q0.base
 
         q4 = u.Quantity(q0, u.cm / u.s, copy=False)
         assert q4 is not q0
