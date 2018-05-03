@@ -403,13 +403,11 @@ def block_reduce(data, block_size, func=np.sum):
     size_init = size_resampled * block_size
 
     # trim data if necessary
-    # todo: benchmark which method is faster, but most likely this one should be it
-
-    # for i in range(data.ndim):
-    #     if data.shape[i] != size_init[i]:
-    #         data = data.swapaxes(0, i)
-    #         data = data[:size_init[i]]
-    #         data = data.swapaxes(0, i)
+    for i in range(data.ndim):
+        if data.shape[i] != size_init[i]:
+            data = data.swapaxes(0, i)
+            data = data[:size_init[i]]
+            data = data.swapaxes(0, i)
 
     return block_reduce(data, tuple(block_size), func=func)
 
