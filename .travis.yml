@@ -121,6 +121,36 @@ matrix:
             - $INSTALL_CMD
             - $TEST_CMD
 
+        # Run this test using native pytest
+        - env: PYTHON_VERSION=3.5
+               NUMPY_VERSION=1.12
+               PIP_DEPENDENCIES='pytest-astropy'
+               INSTALL_CMD='python setup.py build_ext --inplace'
+               TEST_CMD='pytest --open-files --doctest-rst'
+          script:
+            - $INSTALL_CMD
+            - $TEST_CMD
+
+        # Run this test using native pytest
+        - env: PYTHON_VERSION=3.5
+               NUMPY_VERSION=1.11
+               PIP_DEPENDENCIES='pytest-astropy'
+               INSTALL_CMD='python setup.py build_ext --inplace'
+               TEST_CMD='pytest --open-files --doctest-rst'
+          script:
+            - $INSTALL_CMD
+            - $TEST_CMD
+
+        # Run this test using native pytest
+        - env: PYTHON_VERSION=3.5
+               NUMPY_VERSION=1.10
+               PIP_DEPENDENCIES='pytest-astropy'
+               INSTALL_CMD='python setup.py build_ext --inplace'
+               TEST_CMD='pytest --open-files --doctest-rst'
+          script:
+            - $INSTALL_CMD
+            - $TEST_CMD
+
         # Try pre-release version of Numpy without optional dependencies
         - env: EVENT_TYPE='push pull_request cron'
                NUMPY_VERSION=prerelease
