@@ -198,7 +198,7 @@ class Parameter(OrderedDescriptor):
         as class attributes
     """
 
-    constraints = ('fixed', 'tied', 'bounds')
+    constraints = ('fixed', 'tied', 'bounds', 'prior', 'posterior')
     """
     Types of constraints a parameter can have.  Excludes 'min' and 'max'
     which are just aliases for the first and second elements of the 'bounds'
@@ -530,19 +530,41 @@ class Parameter(OrderedDescriptor):
 
     @property
     def prior(self):
-        return self._prior
+        if self._model is not None:
+            prior = self._model._constraints['prior']
+            return prior.get(self._name, self._prior)
+        else:
+            return self._prior
 
     @prior.setter
     def prior(self, val):
-        self._prior = val
+        if self._model is not None:
+            #if not isinstance(value, bool):
+            #    raise TypeError("check for type")
+            self._model._constraints['prior'][self._name] = val
+        else:
+            raise AttributeError("can't set attribute 'prior' on Parameter "
+                                 "definition")
+        
 
     @property
     def posterior(self):
-        return self._posterior
+        if self._model is not None:
+            posterior = self._model._constraints['posterior']
+            return posterior.get(self._name, self._posterior)
+        else:
+            return self._posterior
+      
 
     @posterior.setter
     def posterior(self, val):
-        self._posterior = val
+        if self._model is not None:
+            #if not isinstance(value, bool):
+            #    raise TypeError("check for type")
+            self._model._constraints['posterior'][self._name] = val
+        else:
+            raise AttributeError("can't set attribute 'posterior' on Parameter "
+                                 "definition")
         
     @property
     def fixed(self):
