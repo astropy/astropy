@@ -141,8 +141,8 @@ class NDUncertainty(metaclass=ABCMeta):
 
     @unit.setter
     def unit(self, value):
-        """Each subclass should interpret how it transform parent's unit into the correct Uncertainty Unit (
-        i.e. StdDev should have the same, Variance should have its square, ...
+        """Each subclass should interpret how it transform parent's unit into the correct Uncertainty Unit
+        (i.e. StdDev should have the same, Variance should have its square, ...)
         """
         if isinstance(value, NDUncertainty):
             raise NotImplemented("How to interpret the parent's unit into NDUncertainty class "
