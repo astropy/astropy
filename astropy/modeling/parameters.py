@@ -211,7 +211,7 @@ class Parameter(OrderedDescriptor):
 
     def __init__(self, name='', description='', default=None, unit=None,
                  getter=None, setter=None, fixed=False, tied=False, min=None,
-                 max=None, bounds=None, model=None):
+                 max=None, bounds=None, prior = None, posterior=None, model=None):
         super().__init__()
 
         self._name = name
@@ -244,7 +244,8 @@ class Parameter(OrderedDescriptor):
         self._fixed = fixed
         self._tied = tied
         self._bounds = bounds
-
+        self._posterior = posterior
+        self._prior = prior
         self._order = None
         self._model = None
 
@@ -527,6 +528,22 @@ class Parameter(OrderedDescriptor):
 
         return np.size(self.value)
 
+    @property
+    def prior(self):
+        return self._prior
+
+    @property.setter
+    def prior(self, val):
+        self._prior = val
+
+    @property
+    def posterior(self):
+        return self._posterior
+
+    @property.setter
+    def posterior(self, val):
+        self._posterior = val
+        
     @property
     def fixed(self):
         """
