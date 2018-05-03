@@ -188,8 +188,9 @@ class NDUncertainty(metaclass=ABCMeta):
             # https://github.com/astropy/astropy/pull/4799#discussion_r61236832
             value = weakref.ref(value)
         self._parent_nddata = value
-        #set uncertainty unit to that of the parent if it was not already set.
-        if self.unit is None:
+        #set uncertainty unit to that of the parent if it was not already set, unless initializing
+        # with empty parent (Value=None)
+        if value is not None and self.unit is None:
             if self.parent_nddata.unit is None:
                 #warning("No units specified")
                 self.unit = None
