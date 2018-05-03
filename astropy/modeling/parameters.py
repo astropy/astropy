@@ -755,7 +755,7 @@ class Parameter(OrderedDescriptor):
 
     def copy(self, name=None, description=None, default=None, unit=None,
              getter=None, setter=None, fixed=False, tied=False, min=None,
-             max=None, bounds=None):
+             max=None, bounds=None, prior=None, posterior=None):
         """
         Make a copy of this `Parameter`, overriding any of its core attributes
         in the process (or an exact copy).
