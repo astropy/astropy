@@ -76,6 +76,8 @@ astropy.io.fits
 
 - Add an ``ignore_hdus`` keyword to ``FITSDiff`` to allow ignoring HDUs by
   NAME when diffing two FITS files [#7538]
+- All time coordinates can now be written to and read from FITS binary tables,
+  including those with vectorized locations. [#7430]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
@@ -479,6 +481,9 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
+- Added a feature to write and read vectorized location for time coordinates 
+  to/from FITS Binary Table. [#7430]
 
 astropy.tests
 ^^^^^^^^^^^^^
