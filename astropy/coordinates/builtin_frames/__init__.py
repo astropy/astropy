@@ -50,30 +50,31 @@ from . import cirs_observed_transforms
 from . import intermediate_rotation_transforms
 from . import ecliptic_transforms
 
-# we define an __all__ because otherwise the transformation modules get included
+from ..baseframe import frame_transform_graph
+
+# we define an __all__ because otherwise the transformation modules
+# get included
 __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
            'Supergalactic', 'AltAz', 'GCRS', 'CIRS', 'ITRS', 'HCRS',
            'PrecessedGeocentric', 'GeocentricTrueEcliptic',
            'BarycentricTrueEcliptic', 'HeliocentricTrueEcliptic',
            'SkyOffsetFrame', 'GalacticLSR', 'LSR',
-           'BaseEclipticFrame', 'BaseRADecFrame']
+           'BaseEclipticFrame', 'BaseRADecFrame', 'make_transform_graph_docs']
 
 
-def _make_transform_graph_docs(transform_graph=None):
+def make_transform_graph_docs(transform_graph):
     """
-    Generates a string for use with the coordinate package's docstring
-    to show the available transforms and coordinate systems.
-    """
-    if transform_graph is None:
-        from ..baseframe import frame_transform_graph
-        transform_graph = frame_transform_graph
+    Generates a string that can be used in other docstrings to include a
+    transformation graph, showing the available transforms and
+    coordinate systems.
 
-    import inspect
+    Parameters
+    ----------
+    transform_graph : `~.coordinates.TransformGraph`
+    """
     from textwrap import dedent
-    from ..baseframe import BaseCoordinateFrame
-
-    isclass = inspect.isclass
-    coosys = [transform_graph.lookup_name(item) for item in transform_graph.get_names()]
+    coosys = [transform_graph.lookup_name(item) for
+              item in transform_graph.get_names()]
 
     # currently, all of the priorities are set to 1, so we don't need to show
     #   then in the transform graph.
@@ -126,4 +127,4 @@ def _make_transform_graph_docs(transform_graph=None):
     return docstr
 
 
-_transform_graph_docs = _make_transform_graph_docs()
+_transform_graph_docs = make_transform_graph_docs(frame_transform_graph)
