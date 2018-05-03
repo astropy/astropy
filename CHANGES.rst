@@ -153,6 +153,7 @@ astropy.io.ascii
 - The fast readers will now raise ``InconsistentTableError`` instead of
   ``CParserError`` if the number of data and header columns do not match.
   [#5578]
+- Updated some ValueError exceptions to throw InconsistentTableError. [#7425]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
