@@ -59,6 +59,7 @@ stages:
    - name: Initial tests
    # Do the rest of the tests
    - name: Comprehensive tests
+   # Some tests we run regularly, not on push, PR (such as MacOS, numpy-dev)
    - name: Cron tests
      if: type = cron
 
@@ -69,111 +70,89 @@ matrix:
 
     include:
 
-        - stage: Initial tests
-          env: PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
+        # *** INITIAL TESTS ***
 
         - stage: Initial tests
-          env: PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
+          env: SETUP_CMD='egg_info'
 
-        # Try MacOS X. Use a slightly old numpy version to help test against
-        # all supported numpy versions.
-        - os: osx
-          stage: Cron tests
-          env: SETUP_CMD='test --remote-data=astropy'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='jplephem' EVENT_TYPE='cron'
+        # Test with all dependencies but jplephem (which needs ephemeris files)
+        # We also keep track of the slowest tests.
+        - stage: Initial tests
+          env: CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               SETUP_CMD='test -a "--durations=50"'
+          compiler: clang
+
+        # Do a PEP8/pyflakes test with flake8
+        - stage: Initial tests
+          env: MAIN_CMD="flake8 astropy --count $FLAKE8_OPT" SETUP_CMD=''
+
+        # *** COMPREHENSIVE TESTS ***
 
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time. The sphinx build also has some additional
         # dependencies. Using a more stringent locale than UTF-8.
-        - os: linux
-          env: SETUP_CMD='build_docs -w'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+        - env: CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='sphinx-astropy jplephem pillow'
                LC_CTYPE=C LC_ALL=C LANG=C
+               SETUP_CMD='build_docs -w'
+
+        # Now try with all optional dependencies, and determine coverage.
+        - env: CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               PIP_DEPENDENCIES="cpp-coveralls objgraph jplephem bintrees"
+               LC_CTYPE=C.ascii LC_ALL=C
+               CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
+               EVENT_TYPE='push pull_request cron'
+               SETUP_CMD='test --coverage --remote-data=astropy'
 
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
         # versions of Python, we can vary Python and Numpy versions at the same
-        # time. Since we test the latest Numpy as part of the builds with all
-        # optional dependencies below, we can focus on older builds here.
-        # Numpy 1.11 is tested below, 1.12 in the Initial stage test.
+        # time.
+        - env: PYTHON_VERSION=3.5
+               SETUP_CMD='egg_info'
+
         # Run this test using native pytest
-        - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10
-               INSTALL_CMD='python setup.py build_ext --inplace'
+        - env: PYTHON_VERSION=3.5
+               NUMPY_VERSION=1.13
                PIP_DEPENDENCIES='pytest-astropy'
+               INSTALL_CMD='python setup.py build_ext --inplace'
                TEST_CMD='pytest --open-files --doctest-rst'
           script:
             - $INSTALL_CMD
             - $TEST_CMD
 
-        # Now try with all optional dependencies.
-        - os: linux
-          env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data=astropy'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="jplephem"
-               LC_CTYPE=C.ascii LC_ALL=C
-               NUMPY_VERSION=1.11
-               MATPLOTLIB_VERSION=1.5
-
-        - os: linux
-          stage: Initial tests
-          env: CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PYTEST_VERSION='>3.2'
-               SETUP_CMD='test -a "--durations=50"'
-          compiler: clang
-
-        # Pinning conda version temporarily to 4.3.21, as some anaconda
-        # packges build with 4.3.27 are faulty and we see this job failing,
-        # while locally there are no issues when the same version of
-        # packages are installed from pip.
-        # TODO: remove the pinning once the issue is solved upstream.
-        - os: linux
-          env: SETUP_CMD='test --coverage --remote-data=astropy'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="cpp-coveralls objgraph jplephem bintrees"
-               LC_CTYPE=C.ascii LC_ALL=C
-               CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
-               MATPLOTLIB_VERSION=2.0 NUMPY_VERSION=1.13
-               EVENT_TYPE='push pull_request cron'
-               CONDA_VERSION=4.3.21
-
         # Try pre-release version of Numpy without optional dependencies
-        - os: linux
-          env: NUMPY_VERSION=prerelease
-               EVENT_TYPE='push pull_request cron'
-
-        # Try older numpy versions
-        - os: linux
-          env: NUMPY_VERSION=1.12
-               EVENT_TYPE='push pull_request cron'
-
-        # Do a PEP8/pyflakes test with flake8
-        - os: linux
-          stage: Initial tests
-          env: MAIN_CMD="flake8 astropy --count $FLAKE8_OPT" SETUP_CMD=''
+        - env: EVENT_TYPE='push pull_request cron'
+               NUMPY_VERSION=prerelease
 
         # Try developer version of Numpy with optional dependencies and also
         # run all remote tests. Since both cases will be potentially
         # unstable, we combine them into a single unstable build that we can
         # mark as an allowed failure below.
-        - os: linux
-          env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
+        - env: NUMPY_VERSION=dev
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               SETUP_CMD='test --remote-data'
+
+        # *** CRON-ONLY TESTS ***
 
         # We check numpy-dev also in a job that only runs from cron, so that
         # we can spot issues sooner. We do not use remote data here, since
         # that gives too many false positives due to URL timeouts.
-        - os: linux
-          stage: Cron tests
-          env: NUMPY_VERSION=dev EVENT_TYPE='cron'
+        - stage: Cron tests
+          env: NUMPY_VERSION=dev
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
 
+        # Try MacOS X as a cron job (often too clogged to run every time)
+        - stage: Cron tests
+          os: osx
+          env: SETUP_CMD='test --remote-data=astropy'
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               PIP_DEPENDENCIES='jplephem' EVENT_TYPE='cron'
+
     allow_failures:
-      - os: linux
-        env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
+      - env: NUMPY_VERSION=dev
              CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+             SETUP_CMD='test --remote-data'
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
