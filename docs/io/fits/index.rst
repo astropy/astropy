@@ -106,7 +106,7 @@ Working with large files
 The :func:`open` function supports a ``memmap=True`` argument that allows the
 array data of each HDU to be accessed with mmap, rather than being read into
 memory all at once.  This is particularly useful for working with very large
-arrays that cannot fit entirely into physical memory. Here ``memmap=True`` by defualt, and this value is obtained from a configuration item.
+arrays that cannot fit entirely into physical memory. Here ``memmap=True`` by default, and this value is obtained from the configuration item ``astropy.io.fits.Conf.use_memmap``.
 
 This has minimal impact on smaller files as well, though some operations, such
 as reading the array data sequentially, may incur some additional overhead.  On
