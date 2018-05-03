@@ -1114,8 +1114,14 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
                 description=None, unit=None, format=None, meta=None,
                 copy=False, copy_indices=True):
 
-        if mask is None and hasattr(data, 'mask'):
-            mask = data.mask
+        if mask is None:
+            if hasattr(data, 'mask'):
+                mask = data.mask
+            else:
+                # Issue #7399 with fix #7422.  Passing mask=None to ma.MaskedArray
+                # is extremely slow (~3 seconds for 1e7 elements), while mask=False
+                # gets quickly broadcast to the expected bool array of False.
+                mask = False
         else:
             mask = deepcopy(mask)
 

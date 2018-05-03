@@ -972,6 +972,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fix a performance issue in ``MaskedColumn`` where initialization was
+  extremely slow for large arrays with the default ``mask=None``. [#7422]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
