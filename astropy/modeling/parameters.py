@@ -532,7 +532,7 @@ class Parameter(OrderedDescriptor):
     def prior(self):
         return self._prior
 
-    @property.setter
+    @prior.setter
     def prior(self, val):
         self._prior = val
 
@@ -540,7 +540,7 @@ class Parameter(OrderedDescriptor):
     def posterior(self):
         return self._posterior
 
-    @property.setter
+    @posterior.setter
     def posterior(self, val):
         self._posterior = val
         
