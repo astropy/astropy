@@ -1,10 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+from .nddata_base import NDDataBase
+
 import numpy as np
 from abc import ABCMeta, abstractmethod
 from copy import deepcopy
 import weakref
+
+
 
 # from ..utils.compat import ignored
 from .. import log
@@ -144,9 +148,9 @@ class NDUncertainty(metaclass=ABCMeta):
         """Each subclass should interpret how it transform parent's unit into the correct Uncertainty Unit
         (i.e. StdDev should have the same, Variance should have its square, ...)
         """
-        if isinstance(value, NDUncertainty):
-            raise NotImplemented("How to interpret the parent's unit into NDUncertainty class "
-                                 "needs to be specified on each subclass")
+        if isinstance(value, NDDataBase):
+            raise NotImplementedError("How to interpret the parent's unit into NDUncertainty class "
+                                      "needs to be specified on each subclass")
         self._unit = value
 
     @property
@@ -188,7 +192,7 @@ class NDUncertainty(metaclass=ABCMeta):
             # https://github.com/astropy/astropy/pull/4799#discussion_r61236832
             value = weakref.ref(value)
         self._parent_nddata = value
-        #set uncertainty unit to that of the parent if it was not already set, unless initializing
+        # set uncertainty unit to that of the parent if it was not already set, unless initializing
         # with empty parent (Value=None)
         if value is not None and self.unit is None:
             if self.parent_nddata.unit is None:
@@ -425,34 +429,27 @@ class _VariancePropagationMixin:
 
         if other_uncert.array is not None:
             # Formula: sigma = dB
-            if (other_uncert.unit is not None and
-                    (result_data.unit**2 != to_variance(other_uncert.unit))):
+            if other_uncert.unit is not None and (result_data.unit**2 != to_variance(other_uncert.unit)):
                 # If the other uncertainty has a unit and this unit differs
                 # from the unit of the result convert it to the results unit
-                other = from_variance(to_variance(other_uncert.array *
-                                                        other_uncert.unit).to(
-                    result_data.unit**2).value)
+                other = to_variance(other_uncert.array *
+                                    other_uncert.unit).to(result_data.unit**2).value
             else:
-                # Copy the result because _propagate will not copy it but for
-                # arithmetic operations users will expect copies.
-                other =  deepcopy(other_uncert.array)
+                other = to_variance(other_uncert.array)
         else:
-            other = 0.0
+            other = 0
 
         if self.array is not None:
             # Formula: sigma**2 = dA
 
-            if (self.unit is not None and
-                    to_variance(self.unit) != self.parent_nddata.unit**2):
+            if self.unit is not None and to_variance(self.unit) != self.parent_nddata.unit**2:
                 # If the uncertainty has a different unit than the result we
                 # need to convert it to the results unit.
-                this = from_variance(to_variance(self.array * self.unit).to(result_data.unit**2))
+                this = to_variance(self.array * self.unit).to(result_data.unit**2).value
             else:
-                # Copy the result because _propagate will not copy it but for
-                # arithmetic operations users will expect copies.
-                this = deepcopy(self.array)
+                this = to_variance(self.array)
         else:
-            this = 0.0
+            this = 0
 
         # Formula: sigma**2 = dA + dB +/- 2*cor*sqrt(dA*dB)
         # Formula: sigma**2 = sigma_other + sigma_self +/- 2*cor*sqrt(dA*dB)
@@ -518,59 +515,59 @@ class _VariancePropagationMixin:
             if (other_uncert.unit and
                 to_variance(1 * other_uncert.unit) !=
                     ((1 * other_uncert.parent_nddata.unit)**2).unit):
-                other = to_variance((other_uncert.array * other_uncert.unit)).to(
+                d_b = to_variance((other_uncert.array * other_uncert.unit)).to(
                     (1 * other_uncert.parent_nddata.unit)**2).value
             else:
-                other = to_variance(other_uncert.array)
-            # Formula: sigma**2 = |A|**2 * dB
-            right = from_variance(np.abs(self.parent_nddata.data**2 * other))
+                d_b = to_variance(other_uncert.array)
+            # Formula: sigma**2 = |A|**2 * d_b
+            right = np.abs(self.parent_nddata.data**2 * d_b)
         else:
-            right = 0.0
+            right = 0
 
         if self.array is not None:
             # Just the reversed case
             if (self.unit and
                 to_variance(1 * self.unit) !=
                     ((1 * self.parent_nddata.unit)**2).unit):
-                this = to_variance(self.array * self.unit).to(
+                d_a = to_variance(self.array * self.unit).to(
                     (1 * self.parent_nddata.unit)**2).value
             else:
-                this = to_variance(self.array)
-            # Formula: sigma**2 = dA * |B|**2
-            left = from_variance(np.abs(other_uncert.parent_nddata.data**2 * this))
+                d_a = to_variance(self.array)
+            # Formula: sigma**2 = d_a * |B|**2
+            left = np.abs(other_uncert.parent_nddata.data**2 * d_a)
         else:
-            left = 0.0
+            left = 0
 
         # Multiplication
         #
         # The fundamental formula is:
-        #   sigma**2 = |AB|**2*(dA/A**2+dB/B**2+2*sqrt(dA)/A*sqrt(dB)/B*cor)
+        #   sigma**2 = |AB|**2*(d_a/A**2+d_b/B**2+2*sqrt(d_a)/A*sqrt(d_b)/B*cor)
         #
         # This formula is not very handy since it generates NaNs for every
         # zero in A and B. So we rewrite it:
         #
         # Multiplication Formula:
-        #   sigma**2 = (dA*B**2 + dB*A**2 + (2 * cor * ABsqrt(dAdB)))
+        #   sigma**2 = (d_a*B**2 + d_b*A**2 + (2 * cor * ABsqrt(dAdB)))
         #   sigma**2 = (left + right + (2 * cor * ABsqrt(dAdB)))
         #
         # Division
         #
         # The fundamental formula for division is:
-        #   sigma**2 = |A/B|**2*(dA/A**2+dB/B**2-2*sqrt(dA)/A*sqrt(dB)/B*cor)
+        #   sigma**2 = |A/B|**2*(d_a/A**2+d_b/B**2-2*sqrt(d_a)/A*sqrt(d_b)/B*cor)
         #
         # As with multiplication, it is convenient to rewrite this to avoid
         # nans where A is zero.
         #
         # Division formula (rewritten):
-        #   sigma**2 = dA/B**2 + (A/B)**2 * dB/B**2
+        #   sigma**2 = d_a/B**2 + (A/B)**2 * d_b/B**2
         #                   - 2 * cor * A *sqrt(dAdB) / B**3
-        #   sigma**2 = dA/B**2 + (A/B)**2 * dB/B**2
-        #                   - 2*cor * sqrt(dA)/B**2  * sqrt(dB) * A / B
+        #   sigma**2 = d_a/B**2 + (A/B)**2 * d_b/B**2
+        #                   - 2*cor * sqrt(d_a)/B**2  * sqrt(d_b) * A / B
         #   sigma**2 = multiplication formula/B**4 (and sign change in
         #               the correlation)
 
         if isinstance(correlation, np.ndarray) or correlation != 0:
-            corr = (2 * correlation * np.sqrt(dA * dB) *
+            corr = (2 * correlation * np.sqrt(d_a * d_b) *
                     self.parent_nddata.data *
                     other_uncert.parent_nddata.data)
         else:
@@ -634,8 +631,8 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
         If the unit is not set, the unit of the
         parent will be returned.
         """
-        if isinstance(value, NDUncertainty):
-            #warning("using square of the parent")
+        if isinstance(value, NDDataBase):
+            # warning("using square of the parent")
             self._unit = value.unit
         else:
             self._unit = value
@@ -687,6 +684,7 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
                                                   divide=True,
                                                   to_variance=lambda x: x**2,
                                                   from_variance=np.sqrt)
+
 
 class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
     """
@@ -758,8 +756,8 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
         If the unit is not set, the square of the unit of the
         parent will be returned.
         """
-        if isinstance(value, NDUncertainty):
-            #warning("using square of the parent")
+        if isinstance(value, NDDataBase):
+            # warning("using square of the parent")
             self._unit = value.unit**2
         else:
             self._unit = value
@@ -858,8 +856,8 @@ class InverseVariance(_VariancePropagationMixin, NDUncertainty):
         If the unit is not set, the square of the inverse of the unit of the
         parent will be returned.
         """
-        if isinstance(value, NDUncertainty):
-            #warning("using square of the parent")
+        if isinstance(value, NDDataBase):
+            # warning("using square of the parent")
             self._unit = 1.0/value.unit**2
         else:
             self._unit = value

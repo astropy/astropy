@@ -231,7 +231,7 @@ def test_nddata_init_data_nddata():
     assert nd1.data[2, 3] != nd2.data[2, 3]
 
     # Now let's see what happens if we have all explicitly set
-    nd1 = NDData(np.array([1]), mask=False, uncertainty=10, unit=u.s,
+    nd1 = NDData(np.array([1]), mask=False, uncertainty=StdDevUncertainty(10), unit=u.s,
                  meta={'dest': 'mordor'}, wcs=10)
     nd2 = NDData(nd1)
     assert nd2.data is nd1.data
@@ -242,7 +242,7 @@ def test_nddata_init_data_nddata():
     assert nd2.meta == nd1.meta
 
     # now what happens if we overwrite them all too
-    nd3 = NDData(nd1, mask=True, uncertainty=200, unit=u.km,
+    nd3 = NDData(nd1, mask=True, uncertainty=StdDevUncertainty(200), unit=u.km,
                  meta={'observer': 'ME'}, wcs=4)
     assert nd3.data is nd1.data
     assert nd3.wcs != nd1.wcs
@@ -253,6 +253,7 @@ def test_nddata_init_data_nddata():
 
 
 def test_nddata_init_data_nddata_subclass():
+    uncert = StdDevUncertainty(3)
     # There might be some incompatible subclasses of NDData around.
     bnd = BadNDDataSubclass(False, True, 3, 2, 'gollum', 100)
     # Before changing the NDData init this would not have raised an error but
@@ -260,12 +261,12 @@ def test_nddata_init_data_nddata_subclass():
     with pytest.raises(TypeError):
         NDData(bnd)
     # but if it has no actual incompatible attributes it passes
-    bnd_good = BadNDDataSubclass(np.array([1, 2]), True, 3, 2,
+    bnd_good = BadNDDataSubclass(np.array([1, 2]), uncert, 3, 2,
                                  {'enemy': 'black knight'}, u.km)
     nd = NDData(bnd_good)
     assert nd.unit == bnd_good.unit
     assert nd.meta == bnd_good.meta
-    assert nd.uncertainty.array == bnd_good.uncertainty
+    assert nd.uncertainty == bnd_good.uncertainty
     assert nd.mask == bnd_good.mask
     assert nd.wcs == bnd_good.wcs
     assert nd.data is bnd_good.data
