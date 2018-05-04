@@ -1894,10 +1894,11 @@ class CylindricalRepresentation(BaseRepresentation):
     def unit_vectors(self):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
         l = np.broadcast_to(1., self.shape)
+        zero_ = u.Quantity(0, u.one)
         return OrderedDict(
-            (('rho', CartesianRepresentation(cosphi, sinphi, 0, copy=False)),
-             ('phi', CartesianRepresentation(-sinphi, cosphi, 0, copy=False)),
-             ('z', CartesianRepresentation(0, 0, l, unit=u.one, copy=False))))
+            (('rho', CartesianRepresentation(cosphi, sinphi, zero_, copy=False)),
+             ('phi', CartesianRepresentation(-sinphi, cosphi, zero_, copy=False)),
+             ('z', CartesianRepresentation(zero_, zero_, l, unit=u.one, copy=False))))
 
     def scale_factors(self):
         rho = self.rho / u.radian

@@ -30,6 +30,7 @@ from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
                               check_output)
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
+           "QuantitySlow",
            "QuantityInfoBase", "QuantityInfo", "allclose", "isclose"]
 
 
@@ -1690,7 +1691,8 @@ class Quantity(QuantitySlow):
         value._set_unit(unit)
         return value
 
-class SpecificTypeQuantity(Quantity):
+
+class SpecificTypeQuantity(QuantitySlow):
     """Superclass for Quantities of specific physical type.
 
     Subclasses of these work just like :class:`~astropy.units.Quantity`, except

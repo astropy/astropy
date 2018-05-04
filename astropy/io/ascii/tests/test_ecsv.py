@@ -254,7 +254,7 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
 
 
 el = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
-sc = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4',
+sc = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, frame='fk4',
               obstime='J1990.5')
 scc = sc.copy()
 scc.representation = 'cartesian'
@@ -271,7 +271,7 @@ mixin_cols = {
     'dt': TimeDelta([1, 2] * u.day),
     'sc': sc,
     'scc': scc,
-    'scd': SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
+    'scd': SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, [5, 6] * u.m, frame='fk4',
                     obstime=['J1990.5'] * 2),
     'q': [1, 2] * u.m,
     'lat': Latitude([1, 2] * u.deg),

@@ -149,7 +149,7 @@ class EarthLocationInfo(QuantityInfoBase):
         return out
 
 
-class EarthLocation(u.Quantity):
+class EarthLocation(u.QuantitySlow):
     """
     Location on the Earth.
 

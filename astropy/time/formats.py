@@ -184,9 +184,9 @@ class TimeFormat(metaclass=TimeFormatMeta):
         if getattr(val1, 'unit', None) is not None:
             # Possibly scaled unit any quantity-likes should be converted to
             _unit = u.CompositeUnit(getattr(self, 'unit', 1.), [u.day], [1])
-            val1 = u.Quantity(val1, copy=False).to_value(_unit)
+            val1 = u.Quantity(val1.value, val1.unit, copy=False).to_value(_unit)
             if val2 is not None:
-                val2 = u.Quantity(val2, copy=False).to_value(_unit)
+                val2 = u.Quantity(val2.value, val2.unit, copy=False).to_value(_unit)
         elif getattr(val2, 'unit', None) is not None:
             raise TypeError('Cannot mix float and Quantity inputs')
 
