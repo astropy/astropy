@@ -222,7 +222,7 @@ class NDData(NDDataBase):
         # Call the setter for uncertainty to further check the uncertainty
         self.uncertainty = uncertainty
         # Define a missing axes attribute to say which WCS axes are missing from the data.
-        if missing_axes is None:
+        if wcs is not None and missing_axes is None:
             if data.ndim != wcs.naxis:
                 raise ValueError("Number of data axes does not match the number of WCS axes. "
                                  "WCS incompatible with data or missing axes must be set.")
