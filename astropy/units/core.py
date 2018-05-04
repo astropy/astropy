@@ -691,7 +691,7 @@ class UnitBase(metaclass=InheritDocstrings):
         # Cannot handle this as Unit, re-try as Quantity.
         try:
             from .quantity import Quantity
-            return Quantity(1, self) * m
+            return Quantity(m, self)
         except TypeError:
             return NotImplemented
 
