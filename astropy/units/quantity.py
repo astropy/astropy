@@ -30,6 +30,7 @@ from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
                               check_output)
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
+           "QuantitySlow",
            "QuantityInfoBase", "QuantityInfo", "allclose", "isclose"]
 
 
@@ -197,7 +198,7 @@ class QuantityInfo(QuantityInfoBase):
         return out
 
 
-class Quantity(np.ndarray, metaclass=InheritDocstrings):
+class QuantitySlow(np.ndarray, metaclass=InheritDocstrings):
     """A `~astropy.units.Quantity` represents a number with some associated unit.
 
     Parameters
@@ -1681,7 +1682,17 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         return self._new_view(out_array)
 
 
-class SpecificTypeQuantity(Quantity):
+class Quantity(QuantitySlow):
+    def __new__(cls, value, unit, dtype=None, copy=True, order=None,
+                subok=False, ndmin=0):
+        value = np.array(value, dtype=float, copy=copy, order=order,
+                         subok=False, ndmin=ndmin).view(cls)
+
+        value._set_unit(unit)
+        return value
+
+
+class SpecificTypeQuantity(QuantitySlow):
     """Superclass for Quantities of specific physical type.
 
     Subclasses of these work just like :class:`~astropy.units.Quantity`, except

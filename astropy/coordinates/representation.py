@@ -165,7 +165,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
             raise TypeError('unexpected keyword arguments: {0}'.format(kwargs))
 
         # Pass attributes through the required initializing classes.
-        attrs = [self.attr_classes[component](attr, copy=copy)
+        attrs = [self.attr_classes[component](attr.value, attr.unit, copy=copy)
                  for component, attr in zip(components, attrs)]
         try:
             attrs = np.broadcast_arrays(*attrs, subok=True)
@@ -1894,10 +1894,11 @@ class CylindricalRepresentation(BaseRepresentation):
     def unit_vectors(self):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
         l = np.broadcast_to(1., self.shape)
+        zero_ = u.Quantity(0, u.one)
         return OrderedDict(
-            (('rho', CartesianRepresentation(cosphi, sinphi, 0, copy=False)),
-             ('phi', CartesianRepresentation(-sinphi, cosphi, 0, copy=False)),
-             ('z', CartesianRepresentation(0, 0, l, unit=u.one, copy=False))))
+            (('rho', CartesianRepresentation(cosphi, sinphi, zero_, copy=False)),
+             ('phi', CartesianRepresentation(-sinphi, cosphi, zero_, copy=False)),
+             ('z', CartesianRepresentation(zero_, zero_, l, unit=u.one, copy=False))))
 
     def scale_factors(self):
         rho = self.rho / u.radian

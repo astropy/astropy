@@ -35,7 +35,7 @@ _col = [1, 2, 3, 4, 5]
 
 @pytest.fixture(params=[
     _col,
-    u.Quantity(_col),
+    u.Quantity(_col, u.one),
     Time(_col, format='jyear'),
 ])
 def main_col(request):
