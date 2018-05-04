@@ -76,7 +76,7 @@ def test_slicing_1dmask_ndslice(prop_name):
 def test_slicing_all_npndarray_1d():
     data = np.arange(10)
     mask = data > 3
-    uncertainty = np.linspace(10, 20, 10)
+    uncertainty = StdDevUncertainty(np.linspace(10, 20, 10))
     wcs = np.linspace(1, 1000, 10)
     # Just to have them too
     unit = u.s
@@ -87,7 +87,7 @@ def test_slicing_all_npndarray_1d():
     nd2 = nd[2:5]
     assert_array_equal(data[2:5], nd2.data)
     assert_array_equal(mask[2:5], nd2.mask)
-    assert_array_equal(uncertainty[2:5], nd2.uncertainty.array)
+    assert_array_equal(uncertainty[2:5].array, nd2.uncertainty.array)
     assert_array_equal(wcs[2:5], nd2.wcs)
     assert unit is nd2.unit
     assert meta == nd.meta
