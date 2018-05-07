@@ -22,6 +22,7 @@ from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
 from .verify import VerifyError, VerifyWarning
 
 from ...utils import lazyproperty, isiterable, indent
+from ...utils.exceptions import AstropyUserWarning
 
 __all__ = ['Column', 'ColDefs', 'Delayed']
 
@@ -78,6 +79,54 @@ ASCII2STR = {'A': '', 'I': 'd', 'J': 'd', 'F': 'f', 'E': 'E', 'D': 'E'}
 ASCII_DEFAULT_WIDTHS = {'A': (1, 0), 'I': (10, 0), 'J': (15, 0),
                         'E': (15, 7), 'F': (16, 7), 'D': (25, 17)}
 
+# TDISPn for both ASCII and Binary tables
+TDISP_RE_DICT = {}
+TDISP_RE_DICT['F'] = re.compile(r'(?:(?P<formatc>[F])(?:(?P<width>[0-9]+)\.{1}'
+                                r'(?P<precision>[0-9])+)+)|')
+TDISP_RE_DICT['A'] = TDISP_RE_DICT['L'] = \
+    re.compile(r'(?:(?P<formatc>[AL])(?P<width>[0-9]+)+)|')
+TDISP_RE_DICT['I'] = TDISP_RE_DICT['B'] = \
+    TDISP_RE_DICT['O'] = TDISP_RE_DICT['Z'] =  \
+    re.compile(r'(?:(?P<formatc>[IBOZ])(?:(?P<width>[0-9]+)'
+               r'(?:\.{0,1}(?P<precision>[0-9]+))?))|')
+TDISP_RE_DICT['E'] = TDISP_RE_DICT['G'] = \
+    TDISP_RE_DICT['D'] = \
+    re.compile(r'(?:(?P<formatc>[EGD])(?:(?P<width>[0-9]+)\.'
+               r'(?P<precision>[0-9]+))+)'
+               r'(?:E{0,1}(?P<exponential>[0-9]+)?)|')
+TDISP_RE_DICT['EN'] = TDISP_RE_DICT['ES'] = \
+    re.compile(r'(?:(?P<formatc>E[NS])(?:(?P<width>[0-9]+)\.{1}'
+               r'(?P<precision>[0-9])+)+)')
+
+# mapping from TDISP format to python format
+# A: Character
+# L: Logical (Boolean)
+# I: 16-bit Integer
+#    Can't predefine zero padding and space padding before hand without
+#    knowing the value being formatted, so grabbing precision and using that
+#    to zero pad, ignoring width. Same with B, O, and Z
+# B: Binary Integer
+# O: Octal Integer
+# Z: Hexadecimal Integer
+# F: Float (64-bit; fixed decimal notation)
+# EN: Float (engineering fortran format, exponential multiple of thee
+# ES: Float (scientific, same as EN but non-zero leading digit
+# E: Float, exponential notation
+#    Can't get exponential restriction to work without knowing value
+#    before hand, so just using width and precision, same with D, G, EN, and
+#    ES formats
+# D: Double-precision Floating Point with exponential
+#    (E but for double precision)
+# G: Double-precision Floating Point, may or may not show exponent
+TDISP_FMT_DICT = {'I' : '{{:{width}d}}',
+                  'B' : '{{:{width}b}}',
+                  'O' : '{{:{width}o}}',
+                  'Z' : '{{:{width}x}}',
+                  'F' : '{{:{width}.{precision}f}}',
+                  'G' : '{{:{width}.{precision}g}}'}
+TDISP_FMT_DICT['A'] = TDISP_FMT_DICT['L'] = '{{:>{width}}}'
+TDISP_FMT_DICT['E'] = TDISP_FMT_DICT['D'] =  \
+    TDISP_FMT_DICT['EN'] = TDISP_FMT_DICT['ES'] ='{{:{width}.{precision}e}}'
 
 # tuple of column/field definition common names and keyword names, make
 # sure to preserve the one-to-one correspondence when updating the list(s).
@@ -2402,3 +2451,163 @@ def _convert_ascii_format(format, reverse=False):
             recformat += str(width)
 
         return recformat
+
+
+def _parse_tdisp_format(tdisp):
+    """
+    Parse the ``TDISPn`` keywords for ASCII and binary tables into a
+    ``(format, width, precision, exponential)`` tuple (the TDISP values
+    for ASCII and binary are identical except for 'Lw',
+    which is only present in BINTABLE extensions
+
+    Parameters
+    ----------
+    tdisp: str
+        TDISPn FITS Header keyword.  Used to specify display formatting.
+
+    Returns
+    -------
+    formatc: str
+        The format characters from TDISPn
+    width: str
+        The width int value from TDISPn
+    precision: str
+        The precision int value from TDISPn
+    exponential: str
+        The exponential int value from TDISPn
+
+    """
+
+    # Use appropriate regex for format type
+    tdisp = tdisp.strip()
+    fmt_key = tdisp[0] if tdisp[0] !='E' or tdisp[1] not in 'NS' else tdisp[:2]
+    try:
+        tdisp_re = TDISP_RE_DICT[fmt_key]
+    except KeyError:
+        raise VerifyError('Format {} is not recognized.'.format(tdisp))
+
+
+    match = tdisp_re.match(tdisp.strip())
+    if not match or match.group('formatc') is None:
+        raise VerifyError('Format {} is not recognized.'.format(tdisp))
+
+    formatc = match.group('formatc')
+    width = match.group('width')
+    precision = None
+    exponential = None
+
+    # Some formats have precision and exponential
+    if tdisp[0] in ('I', 'B', 'O', 'Z', 'F', 'E', 'G', 'D'):
+        precision = match.group('precision')
+        if precision is None:
+            precision = 1
+    if tdisp[0] in ('E', 'D', 'G') and tdisp[1] not in ('N', 'S'):
+        exponential = match.group('exponential')
+        if exponential is None:
+            exponential = 1
+
+    # Once parsed, check format dict to do conversion to a formatting string
+    return formatc, width, precision, exponential
+
+
+def _fortran_to_python_format(tdisp):
+    """
+    Turn the TDISPn fortran format pieces into a final Python format string.
+    See the format_type definitions above the TDISP_FMT_DICT. If codes is
+    changed to take advantage of the exponential specification, will need to
+    add it as another input parameter.
+
+    Parameters
+    ----------
+    tdisp: str
+        TDISPn FITS Header keyword.  Used to specify display formatting.
+
+    Returns
+    -------
+    format_string: str
+        The TDISPn keyword string translated into a Python format string.
+    """
+    format_type, width, precision, exponential = _parse_tdisp_format(tdisp)
+
+    try:
+        fmt = TDISP_FMT_DICT[format_type]
+        return fmt.format(width=width, precision=precision)
+
+    except KeyError:
+        raise VerifyError('Format {} is not recognized.'.format(format_type))
+
+
+def python_to_tdisp(format_string, logical_dtype = False):
+    """
+    Turn the Python format string to a TDISP FITS compliant format string. Not
+    all formats convert. these will cause a Warning and return None.
+
+    Parameters
+    ----------
+    format_string: str
+        TDISPn FITS Header keyword.  Used to specify display formatting.
+    logical_dtype: bool
+        True is this format type should be a logical type, 'L'. Needs special
+        handeling.
+
+    Returns
+    -------
+    tdsip_string: str
+        The TDISPn keyword string translated into a Python format string.
+    """
+
+    fmt_to_tdisp = {'a': 'A', 's': 'A', 'd': 'I', 'b': 'B', 'o': 'O', 'x': 'Z',
+                    'X': 'Z', 'f': 'F', 'F': 'F', 'g': 'G', 'G': 'G', 'e': 'E',
+                    'E': 'E'}
+
+    if format_string in [None, "", "{}"]:
+        return None
+
+    # Strip out extra format characters that aren't a type or a width/precision
+    if format_string[0] == '{' and format_string != "{}":
+        fmt_str = format_string.lstrip("{:").rstrip('}')
+    elif format_string[0] == '%':
+            fmt_str = format_string.lstrip("%")
+    else:
+        fmt_str = format_string
+
+    precision, sep = '', ''
+
+    # Character format, only translate right aligned, and don't take zero fills
+    if fmt_str[-1].isdigit() and fmt_str[0] == '>' and fmt_str[1] != '0':
+        ftype = fmt_to_tdisp['a']
+        width = fmt_str[1:]
+
+    elif fmt_str[-1] == 's' and fmt_str != 's':
+        ftype = fmt_to_tdisp['a']
+        width = fmt_str[:-1].lstrip('0')
+
+    # Number formats, don't take zero fills
+    elif fmt_str[-1].isalpha() and len(fmt_str) > 1 and fmt_str[0] != '0':
+        ftype = fmt_to_tdisp[fmt_str[-1]]
+        fmt_str = fmt_str[:-1]
+
+        # If format has a "." split out the width and precision
+        if '.' in fmt_str:
+            width, precision = fmt_str.split('.')
+            sep = '.'
+            if width == "":
+                ascii_key = ftype if ftype != 'G' else 'F'
+                width = str(int(precision) + (ASCII_DEFAULT_WIDTHS[ascii_key][0] -
+                                     ASCII_DEFAULT_WIDTHS[ascii_key][1]))
+        # Otherwise we just have a width
+        else:
+            width = fmt_str
+
+    else:
+        warnings.warn('Format {} cannot be mapped to the accepted '
+                      'TDISPn keyword values.  Format will not be '
+                      'moved into TDISPn keyword.'.format(format_string),
+                      AstropyUserWarning)
+        return None
+
+    # Catch logical data type, set the format type back to L in this case
+    if logical_dtype:
+        ftype = 'L'
+
+    return ftype + width + sep + precision

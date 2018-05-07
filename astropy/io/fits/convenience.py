@@ -443,7 +443,8 @@ def table_to_hdu(table, character_as_bytes=False):
         The FITS binary table HDU.
     """
     # Avoid circular imports
-    from .connect import is_column_keyword, python_to_tdisp, REMOVE_KEYWORDS
+    from .connect import is_column_keyword, REMOVE_KEYWORDS
+    from .column import python_to_tdisp
 
     # Header to store Time related metadata
     hdr = None
