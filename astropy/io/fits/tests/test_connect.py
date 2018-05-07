@@ -7,7 +7,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ..connect import _parse_tdisp_format, _fortran_to_python_format, \
+from ..column import _parse_tdisp_format, _fortran_to_python_format, \
     python_to_tdisp
 
 from .. import HDUList, PrimaryHDU, BinTableHDU
