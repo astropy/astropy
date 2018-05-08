@@ -62,6 +62,9 @@ astropy.modeling
 - Add a ``Multiply`` model which preseves unit through evaluate, unlike
   ``Scale`` which is dimensionless. [#7210]
 
+- Add a ``uses_quantity`` property to ``Model`` which allows introspection of if
+  the ``Model`` can accept ``Quantity`` objects. [#7417]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -320,9 +323,6 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
-
-- Add a ``uses_quantity`` property to ``Model`` which allows introspection of if
-  the ``Model`` can accept ``Quantity`` objects. [#7417]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
