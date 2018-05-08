@@ -15,3 +15,4 @@ pillow
 jplephem
 sphinx-astropy
 sphinx-gallery
+pyyaml
