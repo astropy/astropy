@@ -5,11 +5,7 @@ FITS files, individual HDUs, FITS headers, or just FITS data.
 
 Used to implement the fitsdiff program.
 """
-
-
-import difflib
 import fnmatch
-import functools
 import glob
 import io
 import operator
@@ -18,7 +14,6 @@ import textwrap
 import warnings
 
 from collections import defaultdict
-from functools import reduce
 from inspect import signature
 from itertools import islice
 
@@ -26,7 +21,6 @@ import numpy as np
 
 from ... import __version__
 
-from ...utils import indent
 from .card import Card, BLANK_CARD
 from .header import Header
 from ...utils.decorators import deprecated_renamed_argument
@@ -34,6 +28,7 @@ from ...utils.decorators import deprecated_renamed_argument
 from .hdu.hdulist import fitsopen  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
 from ...utils.exceptions import AstropyDeprecationWarning
+from ...utils.diff import report_diff_values, fixed_width_indent
 
 __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',
            'TableDataDiff']
@@ -42,10 +37,6 @@ __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',
 _COL_ATTRS = [('unit', 'units'), ('null', 'null values'),
               ('bscale', 'bscales'), ('bzero', 'bzeros'),
               ('disp', 'display formats'), ('dim', 'dimensions')]
-
-
-# Smaller default shift-width for indent:
-indent = functools.partial(indent, width=2)
 
 
 class _BaseDiff:
@@ -187,7 +178,7 @@ class _BaseDiff:
             return fileobj.getvalue()
 
     def _writeln(self, text):
-        self._fileobj.write(indent(text, self._indent) + '\n')
+        self._fileobj.write(fixed_width_indent(text, self._indent) + '\n')
 
     def _diff(self):
         raise NotImplementedError
@@ -1472,56 +1463,6 @@ def diff_values(a, b, rtol=0.0, atol=0.0):
         return a != b
 
 
-def report_diff_values(fileobj, a, b, ind=0):
-    """Write a diff between two values to the specified file-like object."""
-
-    typea = type(a)
-    typeb = type(b)
-
-    if (isinstance(a, str) and not isinstance(b, str)):
-        a = repr(a).lstrip('u')
-    elif (isinstance(b, str) and not isinstance(a, str)):
-        b = repr(b).lstrip('u')
-
-    if isinstance(a, (int, float, complex, np.number)):
-        a = repr(a)
-
-    if isinstance(b, (int, float, complex, np.number)):
-        b = repr(b)
-
-    if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
-        diff_indices = np.where(a != b)
-        num_diffs = reduce(operator.mul, map(len, diff_indices), 1)
-        for idx in islice(zip(*diff_indices), 3):
-            fileobj.write(indent('  at {!r}:\n'.format(list(idx)), ind))
-            report_diff_values(fileobj, a[idx], b[idx], ind=ind + 1)
-
-        if num_diffs > 3:
-            fileobj.write(indent('  ...and at {} more indices.\n'
-                                 .format(num_diffs - 3), ind))
-        return
-
-    padding = max(len(typea.__name__), len(typeb.__name__)) + 3
-
-    for line in difflib.ndiff(str(a).splitlines(), str(b).splitlines()):
-        if line[0] == '-':
-            line = 'a>' + line[1:]
-            if typea != typeb:
-                typename = '(' + typea.__name__ + ') '
-                line = typename.rjust(padding) + line
-
-        elif line[0] == '+':
-            line = 'b>' + line[1:]
-            if typea != typeb:
-                typename = '(' + typeb.__name__ + ') '
-                line = typename.rjust(padding) + line
-        else:
-            line = ' ' + line
-            if typea != typeb:
-                line = ' ' * padding + line
-        fileobj.write(indent('  {}\n'.format(line.rstrip('\n')), ind))
-
-
 def report_diff_keyword_attr(fileobj, attr, diffs, keyword, ind=0):
     """
     Write a diff between two header keyword values or comments to the specified
@@ -1537,8 +1478,9 @@ def report_diff_keyword_attr(fileobj, attr, diffs, keyword, ind=0):
                 dup = ''
             else:
                 dup = '[{}]'.format(idx + 1)
-            fileobj.write(indent(' Keyword {:8}{} has different {}:\n'
-                                 .format(keyword, dup, attr), ind))
+            fileobj.write(
+                fixed_width_indent(' Keyword {:8}{} has different {}:\n'
+                                   .format(keyword, dup, attr), ind))
             report_diff_values(fileobj, val[0], val[1], ind=ind + 1)
 
 

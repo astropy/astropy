@@ -143,6 +143,9 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- ``report_diff_values()`` utility function is moved to ``astropy.utils.diff``.
+  [#7444]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
@@ -188,6 +191,8 @@ astropy.utils
 ^^^^^^^^^^^^^
 
 - ``InheritDocstrings`` now also works on class properties. [#7166]
+- ``report_diff_values()`` utility function is moved from
+  ``astropy.io.fits.diff``. [#7444]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
