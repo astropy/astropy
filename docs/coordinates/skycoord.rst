@@ -530,7 +530,7 @@ Initialization
 
 Most of what you need to know can be inferred from the examples below and
 by extrapolating the previous documentation for spherical representations.
-Initialization just requires setting the ``representation`` keyword and
+Initialization just requires setting the ``representation_type`` keyword and
 supplying the corresponding components for that representation::
 
     >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation_type='cartesian')
@@ -609,9 +609,9 @@ can specify one or more coordinate positions as follows:
 
 The representation can be supplied either as a
 `~astropy.coordinates.representation.BaseRepresentation` class (e.g.
-`~astropy.coordinates.CartesianRepresentation` or as a string name which is
-simply the class name in lower case and without the final ``representation``
-(e.g. ``'cartesian'``).
+`~astropy.coordinates.CartesianRepresentation` or as a string name
+that is simply the class name in lower case without the
+``'representation'`` suffix (e.g. ``'cartesian'``).
 
 The rest of the inputs for creating a |SkyCoord| object in the general case are
 the same as for spherical.
@@ -667,7 +667,7 @@ This is a bit messy but it shows that for each representation there is a
 - ``units``: defines the units of each component when output, where ``None``
   means to not force a particular unit.
 
-For a particular coordinate instance you can use the ``representation``
+For a particular coordinate instance you can use the ``representation_type``
 attribute in conjunction with the ``representation_component_names`` attribute
 to figure out what keywords are accepted by a particular class object.  The
 former will be the representation class the system is expressed in (e.g.,
@@ -693,10 +693,9 @@ data in two ways:
 - The available attributes change to match those of the new representation
   (e.g. from ``ra, dec, distance`` to ``x, y, z``).
 
-Setting the ``representation`` thus changes a *property* of the object (how it
-appears) without changing the intrinsic object itself which represents a point
-in 3d space.
-::
+Setting the ``representation_type`` thus changes a *property* of the
+object (how it appears) without changing the intrinsic object itself
+which represents a point in 3d space::
 
     >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation_type='cartesian')
     >>> c  # doctest: +FLOAT_CMP
