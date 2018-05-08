@@ -33,7 +33,7 @@ env:
         - NUMPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
-        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach asdf bottleneck'
+        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach asdf'
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
         - SETUP_CMD='test'
@@ -68,11 +68,8 @@ matrix:
     fast_finish: true
 
     include:
-
-        - stage: Initial tests
-          env: PYTHON_VERSION=3.7 SETUP_CMD='egg_info'
-
-        # Try MacOS X.
+        # Try MacOS X. Use a slightly old numpy version to help test against
+        # all supported numpy versions.
         - os: osx
           stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
