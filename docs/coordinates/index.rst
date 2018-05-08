@@ -165,7 +165,7 @@ So far we have been using a spherical coordinate representation in the all the
 examples, and this is the default for the built-in frames.  Frequently it is
 convenient to initialize or work with a coordinate using a different
 representation such as cartesian or cylindrical.  This can be done by setting
-the ``representation`` for either |skycoord| objects or low-level frame
+the ``representation_type`` for either |skycoord| objects or low-level frame
 coordinate objects::
 
     >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation_type='cartesian')
