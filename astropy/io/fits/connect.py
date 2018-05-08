@@ -102,7 +102,7 @@ def _decode_mixins(tbl):
     # Use the `datatype` attribute info to update column attributes that are
     # NOT already handled via standard FITS column keys (name, dtype, unit).
     for col in info['datatype']:
-        for attr in ['format', 'description', 'meta']:
+        for attr in ['description', 'meta']:
             if attr in col:
                 setattr(tbl[col['name']].info, attr, col[attr])
 
@@ -288,7 +288,7 @@ def _encode_mixins(tbl):
     # natively (name, dtype, unit).  See _get_col_attributes() in table/meta.py for where
     # this comes from.
     info_lost = any(any(getattr(col.info, attr, None) not in (None, {})
-                        for attr in ('format', 'description', 'meta'))
+                        for attr in ('description', 'meta'))
                     for col in tbl.itercols())
 
     # If PyYAML is not available then check to see if there are any mixin cols
