@@ -10,7 +10,7 @@ astronomy.
 
 import copy
 import operator
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import numpy as np
 
@@ -1603,7 +1603,7 @@ class Time(ShapedLikeNDArray):
                 other = getattr(other, out.scale)
         else:
             if other.scale is None:
-                    out._set_scale('tai')
+                out._set_scale('tai')
             else:
                 if self.scale not in TIME_TYPES[other.scale]:
                     raise TypeError("Cannot add Time and TimeDelta instances "
@@ -1708,7 +1708,7 @@ class TimeDelta(Time):
     The allowed values for ``format`` can be listed with::
 
       >>> list(TimeDelta.FORMATS)
-      ['sec', 'jd']
+      ['sec', 'jd', 'datetime']
 
     Note that for time differences, the scale can be among three groups:
     geocentric ('tai', 'tt', 'tcg'), barycentric ('tcb', 'tdb'), and rotational
@@ -1744,6 +1744,9 @@ class TimeDelta(Time):
     info = TimeDeltaInfo()
 
     def __init__(self, val, val2=None, format=None, scale=None, copy=False):
+        if isinstance(val, timedelta) and not format:
+            format = 'datetime'
+
         if isinstance(val, TimeDelta):
             if scale is not None:
                 self._set_scale(scale)
@@ -1771,7 +1774,7 @@ class TimeDelta(Time):
 
     def to_datetime(self):
         tm = self.replicate(format='datetime')
-        return tm
+        return tm._shaped_like_input(tm._time.value)
 
     def _set_scale(self, scale):
         """
