@@ -649,11 +649,9 @@ class BaseHeader:
             # Impose strict requirements on column names (normally used in guessing)
             bads = [" ", ",", "|", "\t", "'", '"']
             for name in self.colnames:
-                if (_is_number(name) or
-                    len(name) == 0 or
-                    name[0] in bads or
-                    name[-1] in bads):
-                        raise ValueError('Column name {0!r} does not meet strict name requirements'
+                if (_is_number(name) or len(name) == 0
+                        or name[0] in bads or name[-1] in bads):
+                    raise ValueError('Column name {0!r} does not meet strict name requirements'
                                      .format(name))
         # When guessing require at least two columns
         if guessing and len(self.colnames) <= 1:
@@ -661,7 +659,7 @@ class BaseHeader:
                              .format(list(self.colnames)))
 
         if names is not None and len(names) != len(self.colnames):
-            raise ValueError('Length of names argument ({0}) does not match number'
+            raise InconsistentTableError('Length of names argument ({0}) does not match number'
                              ' of table columns ({1})'.format(len(names), len(self.colnames)))
 
 
