@@ -28,11 +28,10 @@ def test_float_comparison():
     Regression test for https://github.com/spacetelescope/PyFITS/issues/21
     """
     f = io.StringIO()
-
     a = np.float32(0.029751372)
     b = np.float32(0.029751368)
-
-    report_diff_values(f, a, b)
+    identical = report_diff_values(f, a, b)
+    assert not identical
     out = f.getvalue()
 
     # This test doesn't care about what the exact output is, just that it
@@ -46,15 +45,36 @@ def test_diff_types():
     Regression test for https://github.com/astropy/astropy/issues/4122
     """
     f = io.StringIO()
-
     a = 1.0
     b = '1.0'
-
-    report_diff_values(f, a, b)
+    identical = report_diff_values(f, a, b)
+    assert not identical
     out = f.getvalue()
-
-    assert out.lstrip('u') == ("  (float) a> 1.0\n    (str) b> '1.0'\n"
+    assert out.lstrip('u') == ("  (float) a> 1.0\n"
+                               "    (str) b> '1.0'\n"
                                "           ? +   +\n")
+
+
+def test_array_comparison():
+    """
+    Test diff-ing two arrays.
+    """
+    f = io.StringIO()
+    a = np.arange(9).reshape(3, 3)
+    b = a + 1
+    identical = report_diff_values(f, a, b)
+    assert not identical
+    out = f.getvalue()
+    assert out == ('  at [0, 0]:\n'
+                   '    a> 0\n'
+                   '    b> 1\n'
+                   '  at [0, 1]:\n'
+                   '    a> 1\n'
+                   '    b> 2\n'
+                   '  at [0, 2]:\n'
+                   '    a> 2\n'
+                   '    b> 3\n'
+                   '  ...and at 78 more indices.\n')
 
 
 def test_tablediff():
@@ -71,7 +91,8 @@ M82     2012-10-29  16.2   15.2
 M101    2012-10-30  15.1   15.5
 NEW     2018-05-08   nan    9.0""", format='ascii')
     f = io.StringIO()
-    report_diff_values(f, a, b)
+    identical = report_diff_values(f, a, b)
+    assert not identical
     out = f.getvalue()
     assert out == ('     name  obs_date  mag_b mag_v\n'
                    '     ---- ---------- ----- -----\n'
@@ -85,6 +106,9 @@ NEW     2018-05-08   nan    9.0""", format='ascii')
                    '  b> M101 2012-10-30  15.1  15.5\n'
                    '   ?               ^\n'
                    '  b>  NEW 2018-05-08   nan   9.0\n')
+
+    # Identical
+    assert report_diff_values(f, a, a)
 
 
 @pytest.mark.parametrize('kwargs', [{}, {'atol': 0, 'rtol': 0}])
