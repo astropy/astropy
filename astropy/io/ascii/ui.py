@@ -463,7 +463,7 @@ def _guess(table, read_kwargs, format, fast_reader):
                 guess_kwargs['Reader'] in core.FAST_CLASSES.values()):
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'Reader': guess_kwargs['Reader'].__class__,
-                                'status': 'Reader only available in fast version',
+                                'status': 'Disabled: reader only available in fast version',
                                 'dt': '{0:.3f} ms'.format(0.0)})
             continue
 
@@ -473,7 +473,7 @@ def _guess(table, read_kwargs, format, fast_reader):
                 guess_kwargs['Reader'] not in core.FAST_CLASSES.values()):
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'Reader': guess_kwargs['Reader'].__class__,
-                                'status': 'No fast version of reader available',
+                                'status': 'Disabled: no fast version of reader available',
                                 'dt': '{0:.3f} ms'.format(0.0)})
             continue
 

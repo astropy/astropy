@@ -36,11 +36,13 @@ astropy.io.ascii
 - Latex reader now ignores ``\toprule``, ``\midrule``, and ``\bottomrule``
   commands [#7349]
 
-- Added the RST (Restructured-text) table format to the set of formats that are
-  guessed by default. [#5578]
+- Added the RST (Restructured-text) table format and the fast version of the
+  RDB reader to the set of formats that are guessed by default. [#5578]
 
 - The read trace (used primarily for debugging) now includes guess argument
-  sets that were skipped entirely for some reason. [#5578]
+  sets that were skipped entirely e.g. for not supporting user-supplied kwargs.
+  All guesses thus removed from ``filtered_guess_kwargs`` are now listed as
+  "Disabled" at the beginning of the trace. [#5578]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
