@@ -28,7 +28,8 @@ from ...utils.decorators import deprecated_renamed_argument
 from .hdu.hdulist import fitsopen  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
 from ...utils.exceptions import AstropyDeprecationWarning
-from ...utils.diff import report_diff_values, fixed_width_indent
+from ...utils.diff import (report_diff_values, fixed_width_indent,
+                           where_not_allclose, diff_values)
 
 __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',
            'TableDataDiff']
@@ -1449,20 +1450,6 @@ class TableDataDiff(_BaseDiff):
                       .format(self.diff_total, self.diff_ratio))
 
 
-def diff_values(a, b, rtol=0.0, atol=0.0):
-    """
-    Diff two scalar values.  If both values are floats they are compared to
-    within the given absolute and relative tolerance.
-    """
-
-    if isinstance(a, float) and isinstance(b, float):
-        if np.isnan(a) and np.isnan(b):
-            return False
-        return not np.allclose(a, b, rtol=rtol, atol=atol)
-    else:
-        return a != b
-
-
 def report_diff_keyword_attr(fileobj, attr, diffs, keyword, ind=0):
     """
     Write a diff between two header keyword values or comments to the specified
@@ -1482,22 +1469,3 @@ def report_diff_keyword_attr(fileobj, attr, diffs, keyword, ind=0):
                 fixed_width_indent(' Keyword {:8}{} has different {}:\n'
                                    .format(keyword, dup, attr), ind))
             report_diff_values(fileobj, val[0], val[1], ind=ind + 1)
-
-
-def where_not_allclose(a, b, rtol=1e-5, atol=1e-8):
-    """
-    A version of numpy.allclose that returns the indices where the two arrays
-    differ, instead of just a boolean value.
-    """
-
-    # Create fixed mask arrays to handle INF and NaN; currently INF and NaN
-    # are handled as equivalent
-    if not np.all(np.isfinite(a)):
-        a = np.ma.fix_invalid(a).data
-    if not np.all(np.isfinite(b)):
-        b = np.ma.fix_invalid(b).data
-
-    if atol == 0.0 and rtol == 0.0:
-        # Use a faster comparison for the most simple (and common) case
-        return np.where(a != b)
-    return np.where(np.abs(a - b) > (atol + rtol * np.abs(b)))

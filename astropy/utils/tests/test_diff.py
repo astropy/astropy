@@ -5,9 +5,22 @@ Some might be indirectly tested already in ``astropy.io.fits.tests``.
 import io
 
 import numpy as np
+import pytest
 
-from ..diff import report_diff_values
+from ..diff import diff_values, report_diff_values, where_not_allclose
 from ...table import Table
+
+
+@pytest.mark.parametrize('a', [np.nan, np.inf, 1.11, 1, 'a'])
+def test_diff_values_false(a):
+    assert not diff_values(a, a)
+
+
+@pytest.mark.parametrize(
+    ('a', 'b'),
+    [(np.inf, np.nan), (1.11, 1.1), (1, 2), (1, 'a'), ('a', 'b')])
+def test_diff_values_true(a, b):
+    assert diff_values(a, b)
 
 
 def test_float_comparison():
@@ -72,3 +85,12 @@ NEW     2018-05-08   nan    9.0""", format='ascii')
                    '  b> M101 2012-10-30  15.1  15.5\n'
                    '   ?               ^\n'
                    '  b>  NEW 2018-05-08   nan   9.0\n')
+
+
+@pytest.mark.parametrize('kwargs', [{}, {'atol': 0, 'rtol': 0}])
+def test_where_not_allclose(kwargs):
+    a = np.array([1, np.nan, np.inf, 4.5])
+    b = np.array([1, np.inf, np.nan, 4.6])
+
+    assert where_not_allclose(a, b, **kwargs) == ([3], )
+    assert len(where_not_allclose(a, a, **kwargs)[0]) == 0
