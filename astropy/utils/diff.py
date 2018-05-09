@@ -11,16 +11,30 @@ from .misc import indent
 __all__ = ['fixed_width_indent', 'diff_values', 'report_diff_values',
            'where_not_allclose']
 
-# Smaller default shift-width for indent:
+# Smaller default shift-width for indent
 fixed_width_indent = functools.partial(indent, width=2)
 
 
 def diff_values(a, b, rtol=0.0, atol=0.0):
     """
-    Diff two scalar values.  If both values are floats they are compared to
+    Diff two scalar values. If both values are floats, they are compared to
     within the given absolute and relative tolerance.
-    """
 
+    Parameters
+    ----------
+    a, b : int, float, str
+        Scalar values to compare.
+
+    rtol, atol : float
+        Relative and absolute tolerances as accepted by
+        :func:`numpy.allclose`.
+
+    Returns
+    -------
+    is_different : bool
+        `True` if they are different, else `False`.
+
+    """
     if isinstance(a, float) and isinstance(b, float):
         if np.isnan(a) and np.isnan(b):
             return False
@@ -30,8 +44,23 @@ def diff_values(a, b, rtol=0.0, atol=0.0):
 
 
 def report_diff_values(fileobj, a, b, ind=0):
-    """Write a diff between two values to the specified file-like object."""
+    """
+    Write a diff report between two values to the specified file-like object.
 
+    Parameters
+    ----------
+    fileobj : obj
+        File-like object to write to.
+        To write to terminal, use ``sys.stdout``.
+
+    a, b
+        Values to compare. Anything that can be turned into strings
+        and compared using :py:mod:`difflib` should work.
+
+    ind : int
+        Character column(s) to indent.
+
+    """
     typea = type(a)
     typeb = type(b)
 
@@ -83,10 +112,24 @@ def report_diff_values(fileobj, a, b, ind=0):
 
 def where_not_allclose(a, b, rtol=1e-5, atol=1e-8):
     """
-    A version of numpy.allclose that returns the indices where the two arrays
-    differ, instead of just a boolean value.
-    """
+    A version of :func:`numpy.allclose` that returns the indices
+    where the two arrays differ, instead of just a boolean value.
 
+    Parameters
+    ----------
+    a, b : array_like
+        Input arrays to compare.
+
+    rtol, atol : float
+        Relative and absolute tolerances as accepted by
+        :func:`numpy.allclose`.
+
+    Returns
+    -------
+    idx : tuple of arrays
+        Indices where the two arrays differ.
+
+    """
     # Create fixed mask arrays to handle INF and NaN; currently INF and NaN
     # are handled as equivalent
     if not np.all(np.isfinite(a)):
