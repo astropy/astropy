@@ -982,6 +982,9 @@ def test_data_out_of_range(parallel, fast_reader, guess):
         fast_reader['parallel'] = parallel
         if fast_reader.get('use_fast_converter'):
             rtol = 1.e-15
+        elif np.iinfo(np.int).dtype == np.dtype(np.int32):
+            # On 32bit the standard C parser (strtod) returns strings for these
+            pytest.xfail("C parser cannot handle float64 on 32bit systems")
 
     if parallel:
         if not fast_reader:
