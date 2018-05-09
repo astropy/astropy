@@ -157,9 +157,9 @@ def test_read_all_files(fast_reader):
             if 'guess' not in test_opts:
                 test_opts['guess'] = guess
             if ('Reader' in test_opts and 'fast_{0}'.format(test_opts['Reader']._format_name)
-                in core.FAST_CLASSES):  # has fast version
-                    if 'Inputter' not in test_opts:  # fast reader doesn't allow this
-                        test_opts['fast_reader'] = fast_reader
+                    in core.FAST_CLASSES):  # has fast version
+                if 'Inputter' not in test_opts:  # fast reader doesn't allow this
+                    test_opts['fast_reader'] = fast_reader
             table = ascii.read(testfile['name'], **test_opts)
             assert_equal(table.dtype.names, testfile['cols'])
             for colname in table.dtype.names:
