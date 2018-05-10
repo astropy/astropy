@@ -301,7 +301,6 @@ def read(table, guess=None, **kwargs):
         kwargs['fill_values'] = [('', '0')]
 
     # If an Outputter is supplied in kwargs that will take precedence.
-    fast_reader_param = kwargs.get('fast_reader', True)
     if 'Outputter' in kwargs:  # user specified Outputter, not supported for fast reading
         fast_reader['enable'] = False
 
@@ -467,8 +466,7 @@ def _guess(table, read_kwargs, format, fast_reader):
                                 'dt': '{0:.3f} ms'.format(0.0)})
             continue
 
-        # If user explicitly required a fast reader with 'force' or as dict of
-        # options then skip all non-fast readers
+        # If user required a fast reader then skip all non-fast readers
         if (fast_reader['enable'] == 'force' and
                 guess_kwargs['Reader'] not in core.FAST_CLASSES.values()):
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
