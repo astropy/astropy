@@ -1002,7 +1002,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
     # Test some additional corner cases
     fields = ['.0101E202', '0.000000314E+314', '1777E+305', '-1799E+305',
               '0.2e-323', '5200e-327', ' 0.0000000000000000000001024E+330']
-    values = np.array([ 1.01e200, 3.14e307, 1.777e308, -np.inf, 0.0, 4.94e-324, 1.024e308 ])
+    values = np.array([1.01e200, 3.14e307, 1.777e308, -np.inf, 0.0, 4.94e-324, 1.024e308])
     t = ascii.read(StringIO(' '.join(fields)), format='no_header',
                    guess=guess, fast_reader=fast_reader)
     read_values = np.array([col[0] for col in t.itercols()])
@@ -1253,8 +1253,8 @@ def test_fortran_reader_notbasic():
 
 
 @pytest.mark.parametrize("guess", [True, False])
-@pytest.mark.parametrize('fast_reader', [ dict(exponent_style='D'),
-                                          dict(exponent_style='A') ])
+@pytest.mark.parametrize('fast_reader', [dict(exponent_style='D'),
+                                         dict(exponent_style='A')])
 
 def test_dict_kwarg_integrity(fast_reader, guess):
     """
@@ -1262,7 +1262,7 @@ def test_dict_kwarg_integrity(fast_reader, guess):
     left intact by ascii.read()
     """
     expstyle = fast_reader.get('exponent_style', 'E')
-    fields = [ '10.1D+199', '3.14d+313', '2048d+306', '0.6D-325', '-2.d345' ]
+    fields = ['10.1D+199', '3.14d+313', '2048d+306', '0.6D-325', '-2.d345']
 
     t = ascii.read(StringIO(' '.join(fields)), guess=guess,
                    fast_reader=fast_reader)
