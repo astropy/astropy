@@ -164,6 +164,15 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- The private ``_parent`` attribute in the ``info`` attribute of table
+  columns was changed from a direct reference to the parent column to a weak
+  reference.  This was in response to a memory leak caused by having a
+  circular reference cycle.  This change means that expressions like
+  ``col[3:5].info`` will now fail because at the point of the ``info``
+  property being evaluated the ``col[3:5]`` weak reference is dead.  Instead
+  force a reference with ``c = col[3:5]`` followed by
+  ``c.info.indices``. [#6277, #7448]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -252,6 +261,10 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
+- Fix memory leak where updating a table column or deleting a table
+  object was not releasing the memory due to a reference cycle
+  in the column ``info`` attributes. [#6277, #7448]
 
 astropy.tests
 ^^^^^^^^^^^^^
