@@ -318,8 +318,8 @@ Guess order
 The order of guessing is shown by this Python code, where ``Reader`` is the
 class which actually implements reading the different file formats::
 
-  for Reader in (Ecsv, FixedWidthTwoLine, FastBasic, Basic,
-                 Rdb, FastTab, Tab, Cds, Daophot, SExtractor,
+  for Reader in (Ecsv, FixedWidthTwoLine, Rst, FastBasic, Basic,
+                 FastRdb, Rdb, FastTab, Tab, Cds, Daophot, SExtractor,
                  Ipac, Latex, AASTex):
       read(Reader=Reader)
 
@@ -340,13 +340,16 @@ without checking the column requirements.  In this way a table with only one
 column or column names that look like a number can still be successfully read.
 
 The guessing process respects any values of the Reader, delimiter, and
-quotechar parameters that were supplied to the read() function.  Any guesses
-that would conflict are skipped.  For example the call::
+quotechar parameters as well as options for the fast reader that were
+supplied to the read() function.  Any guesses that would conflict are
+skipped.  For example the call::
 
  >>> data = ascii.read(table, Reader=ascii.NoHeader, quotechar="'")
 
 would only try the four delimiter possibilities, skipping all the conflicting
-Reader and quotechar combinations.
+Reader and quotechar combinations.  Similarly with any setting of
+``fast_reader`` that requires use of the fast engine, only the fast
+variants in the Reader list above will be tried.
 
 Disabling
 ---------
