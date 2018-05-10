@@ -1409,3 +1409,16 @@ def test_read_non_ascii():
     table = Table.read(['col1, col2', '\u2119, \u01b4', '1, 2'], format='csv')
     assert np.all(table['col1'] == ['\u2119', '1'])
     assert np.all(table['col2'] == ['\u01b4', '2'])
+
+
+@pytest.mark.parametrize('enable', [True, False, 'force'])
+def test_kwargs_dict_guess(enable):
+    """Test that fast_reader dictionary is preserved through guessing sequence.
+    """
+    # Fails for enable=(True, 'force') - #5578
+    ascii.read('a\tb\n 1\t2\n3\t 4.0', fast_reader=dict(enable=enable))
+    assert get_read_trace()[-1]['kwargs']['Reader'] is (
+        ascii.Tab if (enable is False) else ascii.FastTab)
+    for k in get_read_trace():
+        if not k.get('status', 'Disabled').startswith('Disabled'):
+            assert k.get('kwargs').get('fast_reader').get('enable') is enable
