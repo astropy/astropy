@@ -414,6 +414,14 @@ class HTML(core.BaseReader):
                                 w.end(indent=False)
                         col_str_iters = []
                         new_cols_escaped = []
+
+                        # Make a container to hold any new_col objects created
+                        # below for multicolumn elements.  This is purely to
+                        # maintain a reference for these objects during
+                        # subsequent iteration to format column values.  This
+                        # requires that the weakref info._parent be maintained.
+                        new_cols = []
+
                         for col, col_escaped in zip(cols, cols_escaped):
                             if len(col.shape) > 1 and self.html['multicol']:
                                 span = col.shape[1]
@@ -424,6 +432,7 @@ class HTML(core.BaseReader):
                                     new_col_iter_str_vals = self.fill_values(col, new_col.info.iter_str_vals())
                                     col_str_iters.append(new_col_iter_str_vals)
                                     new_cols_escaped.append(col_escaped)
+                                    new_cols.append(new_col)
                             else:
 
                                 col_iter_str_vals = self.fill_values(col, col.info.iter_str_vals())
