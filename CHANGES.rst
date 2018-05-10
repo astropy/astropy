@@ -143,9 +143,6 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
-- ``diff_values()`, ``report_diff_values()``, and ``where_not_allclose()``
-  utility functions are moved to ``astropy.utils.diff``. [#7444]
-
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
