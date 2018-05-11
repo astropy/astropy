@@ -329,7 +329,7 @@ class TestBasic():
             # test for conversion to local scale
             scale3 = 'local'
             with pytest.raises(ScaleValueError):
-                    t2 = getattr(t1, scale3)
+                t2 = getattr(t1, scale3)
 
     def test_creating_all_formats(self):
         """Create a time object using each defined format"""
@@ -1352,3 +1352,17 @@ def test_setitem_deltas():
     t[1] = 3
     assert not hasattr(t, '_delta_tdb_tt')
     assert not hasattr(t, '_delta_ut1_utc')
+
+
+def test_subclass():
+    """Check that we can initialize subclasses with a Time instance."""
+    # Ref: Issue gh-#7449 and PR gh-#7453.
+
+    class _Time(Time):
+        pass
+
+    t1 = Time('1999-01-01T01:01:01')
+    t2 = _Time(t1)
+
+    assert t2.__class__ == _Time
+    assert t1 == t2
