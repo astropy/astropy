@@ -43,8 +43,8 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         append (ab+), ostream (w), denywrite (rb)).
 
     memmap : bool, optional
-        Is memory mapping to be used? ``memmap=True`` by default. This value 
-        is obtained from the configuration item 
+        Is memory mapping to be used? ``memmap=True`` by default. This value
+        is obtained from the configuration item
         ``astropy.io.fits.Conf.use_memmap``.
 
     save_backup : bool, optional
