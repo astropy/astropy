@@ -451,7 +451,7 @@ def fits_to_time(hdr, table):
             hcopy.remove(key)
 
         elif (value in ('OBSGEO-X', 'OBSGEO-Y', 'OBSGEO-Z') and
-                re.match('TTYPE[0-9]+', key) is not None):
+              re.match('TTYPE[0-9]+', key)):
 
             global_info[value] = table[value]
 
@@ -559,7 +559,7 @@ def time_to_fits(table):
             if location is None:
                 # Set global geocentric location
                 location = col.location
-                if col.location.size > 1:
+                if location.size > 1:
                     for dim in ('x', 'y', 'z'):
                         newtable.add_column(Column(getattr(location, dim).to_value(u.m)),
                                             name='OBSGEO-{}'.format(dim.upper()))
