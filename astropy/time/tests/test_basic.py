@@ -1352,3 +1352,14 @@ def test_setitem_deltas():
     t[1] = 3
     assert not hasattr(t, '_delta_tdb_tt')
     assert not hasattr(t, '_delta_ut1_utc')
+
+
+def test_subclass():
+    class _Time(Time):
+        pass
+
+    t1 = Time('1999-01-01T01:01:01')
+    t2 = _Time(t1)
+
+    assert t2.__class__ == _Time
+    assert t1 == t2
