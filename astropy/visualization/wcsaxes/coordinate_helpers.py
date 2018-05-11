@@ -272,7 +272,7 @@ class CoordinateHelper:
         decimal : bool, optional
             Whether to use decimal formatting. By default this is `False`
             for degrees or hours (which therefore use sexagesimal formatting)
-            and decimal for all other units.
+            and `True` for all other units.
         show_decimal_unit : bool, optional
             Whether to include units when in decimal mode.
         """
