@@ -241,30 +241,42 @@ class TestAngleFormatterLocator:
         fl = AngleFormatterLocator()
         assert fl.formatter([15.392231] * u.degree, spacing)[0] == string
 
-    @pytest.mark.parametrize(('format_unit', 'decimal', 'spacing', 'string'),
-                             [(u.degree, False, 2 * u.degree, '15\xb0'),
-                              (u.degree, False, 2 * u.arcmin, '15\xb024\''),
-                              (u.degree, False, 2 * u.arcsec, '15\xb023\'32"'),
-                              (u.degree, False, 0.1 * u.arcsec, '15\xb023\'32.0"'),
-                              (u.hourangle, False, 15 * u.degree, '1h'),
-                              (u.hourangle, False, 15 * u.arcmin, '1h02m'),
-                              (u.hourangle, False, 15 * u.arcsec, '1h01m34s'),
-                              (u.hourangle, False, 1.5 * u.arcsec, '1h01m34.1s'),
-                              (u.degree, True, 15 * u.degree, '15\xb0'),
-                              (u.degree, True, 0.12 * u.degree, '15.39\xb0'),
-                              (u.degree, True, 0.0036 * u.arcsec, '15.392231\xb0'),
-                              (u.arcmin, True, 15 * u.degree, '924\''),
-                              (u.arcmin, True, 0.12 * u.degree, '923.5\''),
-                              (u.arcmin, True, 0.1 * u.arcmin, '923.5\''),
-                              (u.arcmin, True, 0.0002 * u.arcmin, '923.5339\''),
+    @pytest.mark.parametrize(('format_unit', 'decimal', 'show_decimal_unit', 'spacing', 'ascii', 'latex'),
+                             [(u.degree, False, True, 2 * u.degree, '15\xb0', '$15^\circ$'),
+                              (u.degree, False, True, 2 * u.arcmin, '15\xb024\'', '$15^\circ24{}^\prime$'),
+                              (u.degree, False, True, 2 * u.arcsec, '15\xb023\'32"', '$15^\circ23{}^\prime32{}^{\prime\prime}$'),
+                              (u.degree, False, True, 0.1 * u.arcsec, '15\xb023\'32.0"', '$15^\circ23{}^\prime32.0{}^{\prime\prime}$'),
+                              (u.hourangle, False, True, 15 * u.degree, '1h', '$1^\mathrm{h}$'),
+                              (u.hourangle, False, True, 15 * u.arcmin, '1h02m', '$1^\mathrm{h}02^\mathrm{m}$'),
+                              (u.hourangle, False, True, 15 * u.arcsec, '1h01m34s', '$1^\mathrm{h}01^\mathrm{m}34^\mathrm{s}$'),
+                              (u.hourangle, False, True, 1.5 * u.arcsec, '1h01m34.1s', '$1^\mathrm{h}01^\mathrm{m}34.1^\mathrm{s}$'),
+                              (u.degree, True, True, 15 * u.degree, '15\xb0', '$15\mathrm{^\circ}$'),
+                              (u.degree, True, True, 0.12 * u.degree, '15.39\xb0', '$15.39\mathrm{^\circ}$'),
+                              (u.degree, True, True, 0.0036 * u.arcsec, '15.392231\xb0', '$15.392231\mathrm{^\circ}$'),
+                              (u.arcmin, True, True, 15 * u.degree, '924\'', '$924\mathrm{^\prime}$'),
+                              (u.arcmin, True, True, 0.12 * u.degree, '923.5\'', '$923.5\mathrm{^\prime}$'),
+                              (u.arcmin, True, True, 0.1 * u.arcmin, '923.5\'', '$923.5\mathrm{^\prime}$'),
+                              (u.arcmin, True, True, 0.0002 * u.arcmin, '923.5339\'', '$923.5339\mathrm{^\prime}$'),
+                              (u.arcsec, True, True, 0.01 * u.arcsec, '55412.03"', '$55412.03\mathrm{^{\prime\prime}}$'),
+                              (u.arcsec, True, True, 0.001 * u.arcsec, '55412.032"', '$55412.032\mathrm{^{\prime\prime}}$'),
+                              (u.degree, True, False, 15 * u.degree, '15', '15'),
+                              (u.degree, True, False, 0.12 * u.degree, '15.39', '15.39'),
+                              (u.degree, True, False, 0.0036 * u.arcsec, '15.392231', '15.392231'),
+                              (u.arcmin, True, False, 15 * u.degree, '924', '924'),
+                              (u.arcmin, True, False, 0.12 * u.degree, '923.5', '923.5'),
+                              (u.arcmin, True, False, 0.1 * u.arcmin, '923.5', '923.5'),
+                              (u.arcmin, True, False, 0.0002 * u.arcmin, '923.5339', '923.5339'),
+                              (u.arcsec, True, False, 0.01 * u.arcsec, '55412.03', '55412.03'),
+                              (u.arcsec, True, False, 0.001 * u.arcsec, '55412.032', '55412.032'),
                               # Make sure that specifying None defaults to
                               # decimal for non-degree or non-hour angles
-                              (u.arcsec, None, 0.01 * u.arcsec, '55412.03"')])
-    def test_formatter_no_format_with_units(self, format_unit, decimal, spacing, string):
+                              (u.arcsec, None, True, 0.01 * u.arcsec, '55412.03"', '$55412.03\mathrm{^{\prime\prime}}$')])
+    def test_formatter_no_format_with_units(self, format_unit, decimal, show_decimal_unit, spacing, ascii, latex):
         # Check the formatter works when specifying the default units and
         # decimal behavior to use.
-        fl = AngleFormatterLocator(unit=u.degree, format_unit=format_unit, decimal=decimal)
-        assert fl.formatter([15.392231] * u.degree, spacing, format='ascii')[0] == string
+        fl = AngleFormatterLocator(unit=u.degree, format_unit=format_unit, decimal=decimal, show_decimal_unit=show_decimal_unit)
+        assert fl.formatter([15.392231] * u.degree, spacing, format='ascii')[0] == ascii
+        assert fl.formatter([15.392231] * u.degree, spacing, format='latex')[0] == latex
 
     def test_incompatible_unit_decimal(self):
         with pytest.raises(UnitsError) as exc:
