@@ -1168,3 +1168,17 @@ def test_bytes_input():
     assert tarray.dtype.kind == 'S'
     t2 = Time(tarray)
     assert t2 == t0
+
+
+def test_subclass():
+    """Check that we can initialize subclasses with a Time instance."""
+    # Ref: Issue gh-#7449 and PR gh-#7453.
+
+    class _Time(Time):
+        pass
+
+    t1 = Time('1999-01-01T01:01:01')
+    t2 = _Time(t1)
+
+    assert t2.__class__ == _Time
+    assert t1 == t2
