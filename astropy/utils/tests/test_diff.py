@@ -30,7 +30,7 @@ def test_float_comparison():
     f = io.StringIO()
     a = np.float32(0.029751372)
     b = np.float32(0.029751368)
-    identical = report_diff_values(f, a, b)
+    identical = report_diff_values(a, b, fileobj=f)
     assert not identical
     out = f.getvalue()
 
@@ -47,7 +47,7 @@ def test_diff_types():
     f = io.StringIO()
     a = 1.0
     b = '1.0'
-    identical = report_diff_values(f, a, b)
+    identical = report_diff_values(a, b, fileobj=f)
     assert not identical
     out = f.getvalue()
     assert out.lstrip('u') == ("  (float) a> 1.0\n"
@@ -62,7 +62,7 @@ def test_array_comparison():
     f = io.StringIO()
     a = np.arange(9).reshape(3, 3)
     b = a + 1
-    identical = report_diff_values(f, a, b)
+    identical = report_diff_values(a, b, fileobj=f)
     assert not identical
     out = f.getvalue()
     assert out == ('  at [0, 0]:\n'
@@ -91,7 +91,7 @@ M82     2012-10-29  16.2   15.2
 M101    2012-10-30  15.1   15.5
 NEW     2018-05-08   nan    9.0""", format='ascii')
     f = io.StringIO()
-    identical = report_diff_values(f, a, b)
+    identical = report_diff_values(a, b, fileobj=f)
     assert not identical
     out = f.getvalue()
     assert out == ('     name  obs_date  mag_b mag_v\n'
@@ -108,7 +108,7 @@ NEW     2018-05-08   nan    9.0""", format='ascii')
                    '  b>  NEW 2018-05-08   nan   9.0\n')
 
     # Identical
-    assert report_diff_values(f, a, a)
+    assert report_diff_values(a, a, fileobj=f)
 
 
 @pytest.mark.parametrize('kwargs', [{}, {'atol': 0, 'rtol': 0}])
