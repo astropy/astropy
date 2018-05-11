@@ -1040,8 +1040,8 @@ class ImageDataDiff(_BaseDiff):
         for index, values in self.diff_pixels:
             index = [x + 1 for x in reversed(index)]
             self._writeln(' Data differs at {}:'.format(index))
-            report_diff_values(self._fileobj, values[0], values[1],
-                               ind=self._indent + 1)
+            report_diff_values(values[0], values[1], fileobj=self._fileobj,
+                               indent_width=self._indent + 1)
 
         if self.diff_total > self.numdiffs:
             self._writeln(' ...')
@@ -1119,8 +1119,8 @@ class RawDataDiff(ImageDataDiff):
 
         for index, values in self.diff_bytes:
             self._writeln(' Data differs at byte {}:'.format(index))
-            report_diff_values(self._fileobj, values[0], values[1],
-                               ind=self._indent + 1)
+            report_diff_values(values[0], values[1], fileobj=self._fileobj,
+                               indent_width=self._indent + 1)
 
         self._writeln(' ...')
         self._writeln(' {} different bytes found ({:.2%} different).'
@@ -1419,8 +1419,8 @@ class TableDataDiff(_BaseDiff):
             name, attr = col_attr
             self._writeln(' Column {} has different {}:'.format(
                     name, col_attrs[attr]))
-            report_diff_values(self._fileobj, vals[0], vals[1],
-                               ind=self._indent + 1)
+            report_diff_values(vals[0], vals[1], fileobj=self._fileobj,
+                               indent_width=self._indent + 1)
 
         if self.diff_rows:
             self._writeln(' Table rows differ:')
@@ -1435,8 +1435,8 @@ class TableDataDiff(_BaseDiff):
         # Finally, let's go through and report column data differences:
         for indx, values in self.diff_values:
             self._writeln(' Column {} data differs in row {}:'.format(*indx))
-            report_diff_values(self._fileobj, values[0], values[1],
-                               ind=self._indent + 1)
+            report_diff_values(values[0], values[1], fileobj=self._fileobj,
+                               indent_width=self._indent + 1)
 
         if self.diff_values and self.numdiffs < self.diff_total:
             self._writeln(' ...{} additional difference(s) found.'.format(
@@ -1468,4 +1468,5 @@ def report_diff_keyword_attr(fileobj, attr, diffs, keyword, ind=0):
             fileobj.write(
                 fixed_width_indent(' Keyword {:8}{} has different {}:\n'
                                    .format(keyword, dup, attr), ind))
-            report_diff_values(fileobj, val[0], val[1], ind=ind + 1)
+            report_diff_values(val[0], val[1], fileobj=fileobj,
+                               indent_width=ind + 1)

@@ -1010,7 +1010,7 @@ simple tables::
   ...                       M82     2012-10-29  16.2   15.2
   ...                       M101    2012-10-30  15.1   15.5
   ...                       NEW     2018-05-08   nan    9.0""", format='ascii')
-  >>> identical = report_diff_values(sys.stdout, cat_1, cat_2)
+  >>> identical = report_diff_values(cat_1, cat_2, fileobj=sys.stdout)
        name  obs_date  mag_b mag_v
        ---- ---------- ----- -----
     a>  M31 2012-01-02  17.0  16.0

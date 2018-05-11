@@ -1,6 +1,7 @@
 import difflib
 import functools
 import operator
+import sys
 from functools import reduce
 from itertools import islice
 
@@ -43,21 +44,21 @@ def diff_values(a, b, rtol=0.0, atol=0.0):
         return a != b
 
 
-def report_diff_values(fileobj, a, b, ind=0):
+def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0):
     """
     Write a diff report between two values to the specified file-like object.
 
     Parameters
     ----------
-    fileobj : obj
-        File-like object to write to.
-        To write to terminal, use ``sys.stdout``.
-
     a, b
         Values to compare. Anything that can be turned into strings
         and compared using :py:mod:`difflib` should work.
 
-    ind : int
+    fileobj : obj
+        File-like object to write to.
+        The default is ``sys.stdout``, which writes to terminal.
+
+    indent_width : int
         Character column(s) to indent.
 
     Returns
@@ -87,12 +88,15 @@ def report_diff_values(fileobj, a, b, ind=0):
         num_diffs = reduce(operator.mul, map(len, diff_indices), 1)
         for idx in islice(zip(*diff_indices), 3):
             fileobj.write(
-                fixed_width_indent('  at {!r}:\n'.format(list(idx)), ind))
-            report_diff_values(fileobj, a[idx], b[idx], ind=ind + 1)
+                fixed_width_indent('  at {!r}:\n'.format(list(idx)),
+                                   indent_width))
+            report_diff_values(a[idx], b[idx], fileobj=fileobj,
+                               indent_width=indent_width + 1)
 
         if num_diffs > 3:
-            fileobj.write(fixed_width_indent('  ...and at {} more indices.\n'
-                                             .format(num_diffs - 3), ind))
+            fileobj.write(fixed_width_indent(
+                '  ...and at {} more indices.\n'.format(num_diffs - 3),
+                indent_width))
         return num_diffs == 0
 
     padding = max(len(typea.__name__), len(typeb.__name__)) + 3
@@ -116,8 +120,8 @@ def report_diff_values(fileobj, a, b, ind=0):
             line = ' ' + line
             if typea != typeb:
                 line = ' ' * padding + line
-        fileobj.write(
-            fixed_width_indent('  {}\n'.format(line.rstrip('\n')), ind))
+        fileobj.write(fixed_width_indent(
+            '  {}\n'.format(line.rstrip('\n')), indent_width))
 
     return identical
 
