@@ -268,7 +268,7 @@ class Time(ShapedLikeNDArray):
         else:
             self.location = None
 
-        if isinstance(val, Time):
+        if isinstance(val, self.__class__):
             # Update _time formatting parameters if explicitly specified
             if precision is not None:
                 self._time.precision = precision
