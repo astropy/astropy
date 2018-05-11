@@ -20,6 +20,7 @@ class TestFitsTime(FitsTestCase):
 
     def setup_class(self):
         self.time = np.array(['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00'])
+        self.time_3d = np.array([[[1, 2], [1, 3], [3, 4]]])
 
     def test_is_time_column_keyword(self):
         # Time column keyword without column number
@@ -42,19 +43,20 @@ class TestFitsTime(FitsTestCase):
         t['b'] = Time(self.time, format='isot', scale='tt')
 
         # Check that vectorized location is stored using Green Bank convention
-        t['a'].location = EarthLocation([1,2], [2,3], [3,4])
+        t['a'].location = EarthLocation([1., 2.], [2., 3.], [3., 4.],
+                                        unit='Mm')
 
         table, hdr = time_to_fits(t)
-        table['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')
-        table['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')
-        table['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')
+        assert (table['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')).all()
+        assert (table['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')).all()
+        assert (table['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')).all()
 
         t.write(self.temp('time.fits'), format='fits', overwrite=True)
         tm = table_types.read(self.temp('time.fits'), format='fits',
                               astropy_native=True)
 
-        tm['a'].location == t['a'].location
-        tm['b'].location == t['b'].location
+        assert (tm['a'].location == t['a'].location).all()
+        assert tm['b'].location == t['b'].location
 
         # Check that multiple Time columns with different locations raise an exception
         t['a'].location = EarthLocation(1, 2, 3)
@@ -90,6 +92,40 @@ class TestFitsTime(FitsTestCase):
                 assert len(w) == 1
                 assert str(w[0].message).startswith('Earth Location "TOPOCENTER" '
                                                     'for Time Column')
+
+        # Check that multidimensional vectorized location (ndim=3) is stored
+        # using Green Bank convention.
+        t = table_types()
+        location = EarthLocation([[[1., 2.], [1., 3.], [3., 4.]]],
+                                 [[[1., 2.], [1., 3.], [3., 4.]]],
+                                 [[[1., 2.], [1., 3.], [3., 4.]]], unit='Mm')
+        t['a'] = Time(self.time_3d, format='jd', location=location)
+
+        table, hdr = time_to_fits(t)
+        assert (table['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')).all()
+        assert (table['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')).all()
+        assert (table['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')).all()
+
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits',
+                              astropy_native=True)
+
+        assert (tm['a'].location == t['a'].location).all()
+
+        # Check that singular location with ndim>1 can be written
+        t['a'] = Time(self.time, location=EarthLocation([[[1.]]], [[[2.]]],
+                                                        [[[3.]]], unit='Mm'))
+
+        table, hdr = time_to_fits(t)
+        assert hdr['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')
+        assert hdr['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')
+        assert hdr['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')
+
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits',
+                              astropy_native=True)
+
+        assert tm['a'].location == t['a'].location
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_time_to_fits_header(self, table_types):
@@ -205,19 +241,19 @@ class TestFitsTime(FitsTestCase):
         table, hdr = time_to_fits(t)
 
         # Check the header
-        hdr['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')
-        hdr['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')
-        hdr['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')
+        assert hdr['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')
+        assert hdr['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')
+        assert hdr['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')
 
         t.write(self.temp('time.fits'), format='fits', overwrite=True)
         tm = table_types.read(self.temp('time.fits'), format='fits',
                               astropy_native=True)
 
         # Check the round-trip of location
-        tm['a'].location == t['a'].location
-        tm['a'].location.x.value == t['a'].location.x.to_value(unit='m')
-        tm['a'].location.y.value == t['a'].location.y.to_value(unit='m')
-        tm['a'].location.z.value == t['a'].location.z.to_value(unit='m')
+        assert (tm['a'].location == t['a'].location).all()
+        assert tm['a'].location.x.value == t['a'].location.x.to_value(unit='m')
+        assert tm['a'].location.y.value == t['a'].location.y.to_value(unit='m')
+        assert tm['a'].location.z.value == t['a'].location.z.to_value(unit='m')
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_io_time_read_fits(self, table_types):
