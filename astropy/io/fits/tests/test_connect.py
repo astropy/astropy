@@ -645,11 +645,11 @@ def test_info_attributes_with_no_mixins(tmpdir):
     filename = str(tmpdir.join('test.fits'))
     t = Table([[1.0, 2.0]])
     t['col0'].description = 'hello' * 40
-    t['col0'].format = '%8.4f'
+    t['col0'].format = '{:8.4f}'
     t['col0'].meta['a'] = {'b': 'c'}
     t.write(filename, overwrite=True)
 
     t2 = Table.read(filename)
     assert t2['col0'].description == 'hello' * 40
-    assert t2['col0'].format == '%8.4f'
+    assert t2['col0'].format == '{:8.4f}'
     assert t2['col0'].meta['a'] == {'b': 'c'}
