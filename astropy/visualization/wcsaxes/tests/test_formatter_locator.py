@@ -259,6 +259,7 @@ class TestAngleFormatterLocator:
                               (u.arcmin, True, True, 0.0002 * u.arcmin, '923.5339\'', '$923.5339\mathrm{^\prime}$'),
                               (u.arcsec, True, True, 0.01 * u.arcsec, '55412.03"', '$55412.03\mathrm{^{\prime\prime}}$'),
                               (u.arcsec, True, True, 0.001 * u.arcsec, '55412.032"', '$55412.032\mathrm{^{\prime\prime}}$'),
+                              (u.mas, True, True, 0.001 * u.arcsec, '55412032mas', '$55412032\mathrm{mas}$'),
                               (u.degree, True, False, 15 * u.degree, '15', '15'),
                               (u.degree, True, False, 0.12 * u.degree, '15.39', '15.39'),
                               (u.degree, True, False, 0.0036 * u.arcsec, '15.392231', '15.392231'),
@@ -268,6 +269,7 @@ class TestAngleFormatterLocator:
                               (u.arcmin, True, False, 0.0002 * u.arcmin, '923.5339', '923.5339'),
                               (u.arcsec, True, False, 0.01 * u.arcsec, '55412.03', '55412.03'),
                               (u.arcsec, True, False, 0.001 * u.arcsec, '55412.032', '55412.032'),
+                              (u.mas, True, False, 0.001 * u.arcsec, '55412032', '55412032'),
                               # Make sure that specifying None defaults to
                               # decimal for non-degree or non-hour angles
                               (u.arcsec, None, True, 0.01 * u.arcsec, '55412.03"', '$55412.03\mathrm{^{\prime\prime}}$')])

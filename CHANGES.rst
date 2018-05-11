@@ -129,6 +129,10 @@ astropy.visualization
 
 - Add support for setting ``set_separator(None)`` in WCSAxes to use default
   separators. [#7570]
+- Added two keyword argument options to ``CoordinateHelper.set_format_unit``: ``decimal`` can
+  be used to specify whether to use decimal formatting for the labels (by default this is
+  False for degrees and hours and True otherwise), and ``show_decimal_unit`` can be used to
+  determine whether the units should be shown for decimal labels. [#7318]
 
 astropy.wcs
 ^^^^^^^^^^^
