@@ -329,7 +329,7 @@ class TestBasic():
             # test for conversion to local scale
             scale3 = 'local'
             with pytest.raises(ScaleValueError):
-                    t2 = getattr(t1, scale3)
+                t2 = getattr(t1, scale3)
 
     def test_creating_all_formats(self):
         """Create a time object using each defined format"""
@@ -1355,6 +1355,9 @@ def test_setitem_deltas():
 
 
 def test_subclass():
+    """Check that we can initialize subclasses with a Time instance."""
+    # Ref: Issue gh-#7449 and PR gh-#7453.
+
     class _Time(Time):
         pass
 
