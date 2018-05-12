@@ -12,7 +12,7 @@ from numpy import ma
 
 from ....table import Table, MaskedColumn
 from ... import ascii
-from ...ascii.core import ParameterError, FastOptionsError
+from ...ascii.core import ParameterError, FastOptionsError, InconsistentTableError
 from ...ascii.cparser import CParserError
 from ..fastbasic import (
     FastBasic, FastCsv, FastTab, FastCommentedHeader, FastRdb, FastNoHeader)
@@ -23,7 +23,11 @@ StringIO = lambda x: BytesIO(x.encode('ascii'))
 TRAVIS = os.environ.get('TRAVIS', False)
 
 
-def assert_table_equal(t1, t2, check_meta=False):
+def assert_table_equal(t1, t2, check_meta=False, rtol=1.e-15, atol=1.e-300):
+    """
+    Test equality of all columns in a table, with stricter tolerances for
+    float columns than the np.allclose default.
+    """
     assert_equal(len(t1), len(t2))
     assert_equal(t1.colnames, t2.colnames)
     if check_meta:
@@ -39,7 +43,7 @@ def assert_table_equal(t1, t2, check_meta=False):
                     elif isinstance(el, str):
                         assert_equal(el, t2[name][i])
                     else:
-                        assert_almost_equal(el, t2[name][i])
+                        assert_almost_equal(el, t2[name][i], rtol=rtol, atol=atol)
                 except (TypeError, NotImplementedError):
                     pass  # ignore for now
 
@@ -370,10 +374,10 @@ A B C
 7 8 9 10
 11 12 13
 """
-    with pytest.raises(CParserError) as e:
+    with pytest.raises(InconsistentTableError) as e:
         table = FastBasic().read(text)
-    assert 'CParserError: an error occurred while parsing table data: too many ' \
-        'columns found in line 3 of data' in str(e)
+    assert 'InconsistentTableError: Number of header columns (3) ' \
+           'inconsistent with data columns in data line 2' in str(e)
 
 
 def test_too_many_cols2():
@@ -382,10 +386,10 @@ aaa,bbb
 1,2,
 3,4,
 """
-    with pytest.raises(CParserError) as e:
+    with pytest.raises(InconsistentTableError) as e:
         table = FastCsv().read(text)
-    assert 'CParserError: an error occurred while parsing table data: too many ' \
-        'columns found in line 1 of data' in str(e)
+    assert 'InconsistentTableError: Number of header columns (2) ' \
+           'inconsistent with data columns in data line 0' in str(e)
 
 
 def test_too_many_cols3():
@@ -394,10 +398,10 @@ aaa,bbb
 1,2,,
 3,4,
 """
-    with pytest.raises(CParserError) as e:
+    with pytest.raises(InconsistentTableError) as e:
         table = FastCsv().read(text)
-    assert 'CParserError: an error occurred while parsing table data: too many ' \
-        'columns found in line 1 of data' in str(e)
+    assert 'InconsistentTableError: Number of header columns (2) ' \
+           'inconsistent with data columns in data line 0' in str(e)
 
 
 @pytest.mark.parametrize("parallel", [True, False])
@@ -416,7 +420,7 @@ A,B,C
     assert table['B'][1] is not ma.masked
     assert table['C'][1] is ma.masked
 
-    with pytest.raises(CParserError) as e:
+    with pytest.raises(InconsistentTableError) as e:
         table = FastBasic(delimiter=',').read(text)
 
 
@@ -751,10 +755,11 @@ A B C
     expected = Table([[7, 10], [8, 11], [91, 12]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
-    with pytest.raises(CParserError) as e:
+    with pytest.raises(InconsistentTableError) as e:
         # tries to begin in the middle of quoted field
         read_basic(text, data_start=4, parallel=parallel)
-    assert 'not enough columns found in line 1 of data' in str(e)
+    assert 'header columns (3) inconsistent with data columns in data line 0' \
+        in str(e)
 
     table = read_basic(text, data_start=5, parallel=parallel)
     # ignore commented line
@@ -821,9 +826,10 @@ def test_strip_line_trailing_whitespace(parallel, read_basic):
     row.
     """
     text = 'a b c\n1 2 \n3 4 5'
-    with pytest.raises(CParserError) as e:
+    with pytest.raises(InconsistentTableError) as e:
         ascii.read(StringIO(text), format='fast_basic', guess=False)
-    assert 'not enough columns found in line 1' in str(e)
+    assert 'header columns (3) inconsistent with data columns in data line 0' \
+        in str(e)
 
     text = 'a b c\n 1 2 3   \t \n 4 5 6 '
     table = read_basic(text, parallel=parallel)
@@ -953,12 +959,15 @@ def test_read_big_table(tmpdir):
     assert len(t) == NB_ROWS
 
 
+# Test these both with guessing turned on and off
+@pytest.mark.parametrize("guess", [True, False])
 # fast_reader configurations: False| 'use_fast_converter'=False|True
-@pytest.mark.parametrize('reader', [0, 1, 2])
-# catch Windows environment since we cannot use _read() with custom fast_reader
+@pytest.mark.parametrize('fast_reader', [False, dict(use_fast_converter=False),
+                                         dict(use_fast_converter=True)])
+# Catch Windows environment since we cannot use _read() with custom fast_reader
 @pytest.mark.parametrize("parallel", [False,
     pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows"))])
-def test_data_out_of_range(parallel, reader):
+def test_data_out_of_range(parallel, fast_reader, guess):
     """
     Numbers with exponents beyond float64 range (|~4.94e-324 to 1.7977e+308|)
     shall be returned as 0 and +-inf respectively by the C parser, just like
@@ -967,52 +976,59 @@ def test_data_out_of_range(parallel, reader):
     """
     # Python reader and strtod() are expected to return precise results
     rtol = 1.e-30
-    if reader > 1:
-        rtol = 1.e-15
-    # passing fast_reader dict with parametrize does not work!
-    if reader > 0:
-        fast_reader = {'parallel': parallel, 'use_fast_converter': reader > 1}
-    else:
-        fast_reader = False
+
+    # Update fast_reader dict
+    if fast_reader:
+        fast_reader['parallel'] = parallel
+        if fast_reader.get('use_fast_converter'):
+            rtol = 1.e-15
+        elif np.iinfo(np.int).dtype == np.dtype(np.int32):
+            # On 32bit the standard C parser (strtod) returns strings for these
+            pytest.xfail("C parser cannot handle float64 on 32bit systems")
+
     if parallel:
-        if reader < 1:
+        if not fast_reader:
             pytest.skip("Multiprocessing only available in fast reader")
         elif TRAVIS:
             pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
 
     fields = ['10.1E+199', '3.14e+313', '2048e+306', '0.6E-325', '-2.e345']
     values = np.array([1.01e200, np.inf, np.inf, 0.0, -np.inf])
-    t = ascii.read(StringIO(' '.join(fields)), format='no_header', guess=False,
-                   fast_reader=fast_reader)
+    t = ascii.read(StringIO(' '.join(fields)), format='no_header',
+                   guess=guess, fast_reader=fast_reader)
     read_values = np.array([col[0] for col in t.itercols()])
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
 
-    # test some additional corner cases
-    fields = ['.0101E202', '0.000000314E+314', '1777E+305', '-1799E+305', '0.4e-324',
-               '2500e-327', ' 0.0000000000000000000001024E+330']
+    # Test some additional corner cases
+    fields = ['.0101E202', '0.000000314E+314', '1777E+305', '-1799E+305',
+              '0.2e-323', '5200e-327', ' 0.0000000000000000000001024E+330']
     values = np.array([1.01e200, 3.14e307, 1.777e308, -np.inf, 0.0, 4.94e-324, 1.024e308])
-    t = ascii.read(StringIO(' '.join(fields)), format='no_header', guess=False,
-                   fast_reader=fast_reader)
+    t = ascii.read(StringIO(' '.join(fields)), format='no_header',
+                   guess=guess, fast_reader=fast_reader)
     read_values = np.array([col[0] for col in t.itercols()])
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
 
-    # test corner cases again with non-standard exponent_style (auto-detection)
-    if reader < 2:
+    # Test corner cases again with non-standard exponent_style (auto-detection)
+    if fast_reader and fast_reader.get('use_fast_converter'):
+        fast_reader.update({'exponent_style': 'A'})
+    else:
         pytest.skip("Fortran exponent style only available in fast converter")
-    fast_reader.update({'exponent_style': 'A'})
-    fields = ['.0101D202', '0.000000314d+314', '1777+305', '-1799E+305', '0.2e-323',
-               '2500-327', ' 0.0000000000000000000001024Q+330']
-    t = ascii.read(StringIO(' '.join(fields)), format='no_header', guess=False,
-                   fast_reader=fast_reader)
+
+    fields = ['.0101D202', '0.000000314d+314', '1777+305', '-1799E+305',
+              '0.2e-323', '2500-327', ' 0.0000000000000000000001024Q+330']
+    t = ascii.read(StringIO(' '.join(fields)), format='no_header',
+                   guess=guess, fast_reader=fast_reader)
     read_values = np.array([col[0] for col in t.itercols()])
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
 
 
+@pytest.mark.parametrize("guess", [True, False])
 # catch Windows environment since we cannot use _read() with custom fast_reader
 @pytest.mark.parametrize("parallel", [
     pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
     False])
-def test_int_out_of_range(parallel):
+
+def test_int_out_of_range(parallel, guess):
     """
     Integer numbers outside int range shall be returned as string columns
     consistent with the standard (Python) parser (no 'upcasting' to float).
@@ -1023,78 +1039,83 @@ def test_int_out_of_range(parallel):
 
     text = 'P M S\n {:d} {:d} {:s}'.format(imax, imin, huge)
     expected = Table([[imax], [imin], [huge]], names=('P', 'M', 'S'))
-    table = ascii.read(text, format='basic', guess=False,
+    table = ascii.read(text, format='basic', guess=guess,
                        fast_reader={'parallel': parallel})
     assert_table_equal(table, expected)
 
     # check with leading zeroes to make sure strtol does not read them as octal
     text = 'P M S\n000{:d} -0{:d} 00{:s}'.format(imax, -imin, huge)
     expected = Table([[imax], [imin], ['00'+huge]], names=('P', 'M', 'S'))
-    table = ascii.read(text, format='basic', guess=False,
+    table = ascii.read(text, format='basic', guess=guess,
                        fast_reader={'parallel': parallel})
     assert_table_equal(table, expected)
 
-    # mixed columns should be returned as float, but if the out-of-range integer
+    # Mixed columns should be returned as float, but if the out-of-range integer
     # shows up first, it will produce a string column - with both readers
     pytest.xfail("Integer fallback depends on order of rows")
     text = 'A B\n 12.3 {0:d}9\n {0:d}9 45.6e7'.format(imax)
     expected = Table([[12.3, 10.*imax], [10.*imax, 4.56e8]],
                      names=('A', 'B'))
 
-    table = ascii.read(text, format='basic', guess=False,
+    table = ascii.read(text, format='basic', guess=guess,
                        fast_reader={'parallel': parallel})
     assert_table_equal(table, expected)
-    table = ascii.read(text, format='basic', guess=False, fast_reader=False)
+    table = ascii.read(text, format='basic', guess=guess, fast_reader=False)
     assert_table_equal(table, expected)
 
 
+@pytest.mark.parametrize("guess", [True, False])
 @pytest.mark.parametrize("parallel", [
     pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
     False])
-def test_fortran_reader(parallel):
+
+def test_fortran_reader(parallel, guess):
     """
     Make sure that ascii.read() can read Fortran-style exponential notation
     using the fast_reader.
     """
-    text = 'A B C\n100.01{:s}+99 2.0 3\n 4.2{:s}-1 5.0{:s}-1 0.6{:s}4'
-    expected = Table([[1.0001e101, 0.42], [2, 0.5], [3.0, 6000]],
-                     names=('A', 'B', 'C'))
 
-    expstyles = {'e': 4*('E'), 'D': ('D', 'd', 'd', 'D'), 'Q': 2*('q', 'Q'),
-                  'fortran': ('D', 'E', 'Q', 'd')}
+    # check for nominal np.float64 precision
+    rtol = 1.e-15
+    atol = 0.0
+    text = 'A B C D\n100.01{:s}99       2.0  2.0{:s}-103 3\n' + \
+           ' 4.2{:s}-1 5.0{:s}-1     0.6{:s}4 .017{:s}+309'
+    expc = Table([[1.0001e101, 0.42], [2, 0.5], [2.e-103, 6.e3], [3, 1.7e307]],
+                 names=('A', 'B', 'C', 'D'))
+
+    expstyles = {'e': 6*('E'),
+                 'D': ('D', 'd', 'd', 'D', 'd', 'D'),
+                 'Q': 3*('q', 'Q'),
+                  'Fortran': ('E', '0', 'D', 'Q', 'd', '0')}
 
     # C strtod (not-fast converter) can't handle Fortran exp
     with pytest.raises(FastOptionsError) as e:
-        ascii.read(text.format(*(4*('D'))), format='basic', guess=False,
+        ascii.read(text.format(*(6*('D'))), format='basic', guess=guess,
                    fast_reader={'use_fast_converter': False,
                                 'parallel': parallel, 'exponent_style': 'D'})
     assert 'fast_reader: exponent_style requires use_fast_converter' in str(e)
 
-    # enable multiprocessing and the fast converter
-    # iterate over all style-exponent combinations
+    # Enable multiprocessing and the fast converter iterate over
+    # all style-exponent combinations, with auto-detection
     for s, c in expstyles.items():
-        table = ascii.read(text.format(*c), format='basic', guess=False,
-                           fast_reader={'parallel': parallel,
-                                        'exponent_style': s})
-        assert_table_equal(table, expected)
+        table = ascii.read(text.format(*c), guess=guess,
+                           fast_reader={'parallel': parallel, 'exponent_style': s})
+        assert_table_equal(table, expc, rtol=rtol, atol=atol)
 
-    # mixes and triple-exponents without any character using autodetect option
-    text = 'A B C\n1.0001+101 2.0E0 3\n.42d0 0.5 6.+003'
-    table = ascii.read(text, format='basic', guess=False,
-                       fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
-    assert_table_equal(table, expected)
-
-    # additional corner-case checks
-    text = 'A B C\n1.0001+101 2.0+000 3\n0.42+000 0.5 6000.-000'
-    table = ascii.read(text, format='basic', guess=False,
-                       fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
-    assert_table_equal(table, expected)
+    # Additional corner-case checks including triple-exponents without
+    # any character and mixed whitespace separators
+    text = 'A B\t\t C D\n1.0001+101 2.0+000\t 0.0002-099 3\n ' + \
+           '0.42-000 \t 0.5 6.+003   0.000000000000000000000017+330'
+    table = ascii.read(text, guess=guess,
+                       fast_reader={'parallel': parallel, 'exponent_style': 'A'})
+    assert_table_equal(table, expc, rtol=rtol, atol=atol)
 
 
+@pytest.mark.parametrize("guess", [True, False])
 @pytest.mark.parametrize("parallel", [
     pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
     False])
-def test_fortran_invalid_exp(parallel):
+def test_fortran_invalid_exp(parallel, guess):
     """
     Test Fortran-style exponential notation in the fast_reader with invalid
     exponent-like patterns (no triple-digits) to make sure they are returned
@@ -1103,12 +1124,146 @@ def test_fortran_invalid_exp(parallel):
     if parallel and TRAVIS:
         pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
 
+    formats = {'basic': ' ', 'tab': '\t', 'csv': ','}
+    header = ['S1', 'F2', 'S2', 'F3', 'S3', 'F4', 'F5', 'S4', 'I1', 'F6', 'F7']
+    # Tested entries and expected returns, first for auto-detect,
+    # then for different specified exponents
     fields = ['1.0001+1', '.42d1', '2.3+10', '0.5', '3+1001', '3000.',
-               '2', '4.56e-2.3', '8000', '4.2-122']
-    values = ['1.0001+1', 4.2, '2.3+10', 0.5, '3+1001', 3.e3,
-               2, '4.56e-2.3', 8000, 4.2e-122]
+              '2', '4.56e-2.3', '8000', '4.2-022', '.00000145e314']
+    vals_e = ['1.0001+1', '.42d1', '2.3+10',   0.5, '3+1001',  3.e3,
+              2, '4.56e-2.3',    8000,  '4.2-022', 1.45e308]
+    vals_d = ['1.0001+1',     4.2, '2.3+10',   0.5, '3+1001',  3.e3,
+              2, '4.56e-2.3',    8000,  '4.2-022', '.00000145e314']
+    vals_a = ['1.0001+1',     4.2, '2.3+10',   0.5, '3+1001',  3.e3,
+              2, '4.56e-2.3',    8000,   4.2e-22,  1.45e308]
+    vals_v = ['1.0001+1', 4.2, '2.3+10',   0.5, '3+1001',  3.e3,
+               2, '4.56e-2.3',    8000,  '4.2-022', 1.45e308]
 
-    t = ascii.read(StringIO(' '.join(fields)), format='no_header', guess=False,
-                   fast_reader={'parallel': parallel, 'exponent_style': 'A'})
-    read_values = [col[0] for col in t.itercols()]
-    assert read_values == values
+    # Iterate over supported format types and separators
+    for f, s in formats.items():
+        t1 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)),
+                        format=f, guess=guess,
+                        fast_reader={'parallel': parallel, 'exponent_style': 'A'})
+        assert_table_equal(t1, Table([[col] for col in vals_a], names=header))
+
+    # Non-basic separators require guessing enabled to be detected
+    if guess:
+        formats['bar'] = '|'
+    else:
+        formats = {'basic': ' '}
+
+    for s in formats.values():
+        t2 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)), guess=guess,
+                fast_reader={'parallel': parallel, 'exponent_style': 'a'})
+
+        assert_table_equal(t2, Table([[col] for col in vals_a], names=header))
+
+    # Iterate for (default) expchar 'E'
+    for s in formats.values():
+        t3 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)), guess=guess,
+                fast_reader={'parallel': parallel, 'use_fast_converter': True})
+
+        assert_table_equal(t3, Table([[col] for col in vals_e], names=header))
+
+    # Iterate for expchar 'D'
+    for s in formats.values():
+        t4 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)), guess=guess,
+                fast_reader={'parallel': parallel, 'exponent_style': 'D'})
+
+        assert_table_equal(t4, Table([[col] for col in vals_d], names=header))
+
+    # Iterate for regular converter (strtod)
+    for s in formats.values():
+        t5 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)), guess=guess,
+                fast_reader={'parallel': parallel, 'use_fast_converter': False})
+
+        read_values = [col[0] for col in t5.itercols()]
+        if os.name == 'nt':
+            # Apparently C strtod() on (some?) MSVC recognises 'd' exponents!
+            assert read_values == vals_v or read_values == vals_e
+        else:
+            assert read_values == vals_e
+
+
+def test_fortran_reader_notbasic():
+    """
+    Check if readers without a fast option raise a value error when a
+    fast_reader is asked for (implies the default 'guess=True').
+    """
+
+    tabstr = dedent("""
+    a b
+    1 1.23D4
+    2 5.67D-8
+    """)[1:-1]
+
+    t1 = ascii.read(tabstr.split('\n'), fast_reader=dict(exponent_style='D'))
+
+    assert t1['b'].dtype.kind == 'f'
+
+    tabrdb = dedent("""
+    a\tb
+    # A simple RDB table
+    N\tN
+    1\t 1.23D4
+    2\t 5.67-008
+    """)[1:-1]
+
+    t2 = ascii.read(tabrdb.split('\n'), format='rdb',
+                    fast_reader=dict(exponent_style='fortran'))
+
+    assert t2['b'].dtype.kind == 'f'
+
+    tabrst = dedent("""
+    = =======
+    a b
+    = =======
+    1 1.23E4
+    2 5.67E-8
+    = =======
+    """)[1:-1]
+
+    t3 = ascii.read(tabrst.split('\n'), format='rst')
+
+    assert t3['b'].dtype.kind == 'f'
+
+    t4 = ascii.read(tabrst.split('\n'), guess=True)
+
+    assert t4['b'].dtype.kind == 'f'
+
+    # In the special case of fast_converter=True (the default),
+    # incompatibility is ignored
+    t5 = ascii.read(tabrst.split('\n'), format='rst', fast_reader=True)
+
+    assert t5['b'].dtype.kind == 'f'
+
+    with pytest.raises(ParameterError):
+        t6 = ascii.read(tabrst.split('\n'), format='rst', guess=False,
+                        fast_reader='force')
+
+    with pytest.raises(ParameterError):
+        t7 = ascii.read(tabrst.split('\n'), format='rst', guess=False,
+                        fast_reader=dict(use_fast_converter=False))
+
+    tabrst = tabrst.replace('E', 'D')
+
+    with pytest.raises(ParameterError):
+        t8 = ascii.read(tabrst.split('\n'), format='rst', guess=False,
+                        fast_reader=dict(exponent_style='D'))
+
+
+@pytest.mark.parametrize("guess", [True, False])
+@pytest.mark.parametrize('fast_reader', [dict(exponent_style='D'),
+                                         dict(exponent_style='A')])
+
+def test_dict_kwarg_integrity(fast_reader, guess):
+    """
+    Check if dictionaries passed as kwargs (fast_reader in this test) are
+    left intact by ascii.read()
+    """
+    expstyle = fast_reader.get('exponent_style', 'E')
+    fields = ['10.1D+199', '3.14d+313', '2048d+306', '0.6D-325', '-2.d345']
+
+    t = ascii.read(StringIO(' '.join(fields)), guess=guess,
+                   fast_reader=fast_reader)
+    assert fast_reader.get('exponent_style', None) == expstyle

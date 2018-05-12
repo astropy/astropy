@@ -29,6 +29,7 @@ from . import sextractor
 from . import ipac
 from . import latex
 from . import html
+from . import rst
 from . import fastbasic
 from . import cparser
 from . import fixedwidth
@@ -161,10 +162,16 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     reader : `~astropy.io.ascii.BaseReader` subclass
         ASCII format reader instance
     """
-    # This function is a light wrapper around core._get_reader to provide a public interface
-    # with a default Reader.
+    # This function is a light wrapper around core._get_reader to provide a
+    # public interface with a default Reader.
     if Reader is None:
-        Reader = basic.Basic
+        # Default reader is Basic unless fast reader is forced
+        fast_reader = _get_fast_reader_dict(kwargs)
+        if fast_reader['enable'] == 'force':
+            Reader = fastbasic.FastBasic
+        else:
+            Reader = basic.Basic
+
     reader = core._get_reader(Reader, Inputter=Inputter, Outputter=Outputter, **kwargs)
     return reader
 
@@ -180,6 +187,18 @@ def _get_format_class(format, ReaderWriter, label):
             raise ValueError('ASCII format {0!r} not in allowed list {1}'
                              .format(format, sorted(core.FORMAT_CLASSES)))
     return ReaderWriter
+
+
+def _get_fast_reader_dict(kwargs):
+    """Convert 'fast_reader' key in kwargs into a dict if not already and make sure
+    'enable' key is available.
+    """
+    fast_reader = copy.deepcopy(kwargs.get('fast_reader', True))
+    if isinstance(fast_reader, dict):
+        fast_reader.setdefault('enable', 'force')
+    else:
+        fast_reader = {'enable': fast_reader}
+    return fast_reader
 
 
 def read(table, guess=None, **kwargs):
@@ -270,13 +289,9 @@ def read(table, guess=None, **kwargs):
     # Downstream readers might munge kwargs
     kwargs = copy.deepcopy(kwargs)
 
-    # Convert fast_reader into a dict if not already and make sure 'enable'
-    # key is available.
-    fast_reader = kwargs.get('fast_reader', True)
-    if isinstance(fast_reader, dict):
-        fast_reader.setdefault('enable', 'force')
-    else:
-        fast_reader = {'enable': fast_reader}
+    # Convert 'fast_reader' key in kwargs into a dict if not already and make sure
+    # 'enable' key is available.
+    fast_reader = _get_fast_reader_dict(kwargs)
     kwargs['fast_reader'] = fast_reader
 
     if fast_reader['enable'] and fast_reader.get('chunk_size'):
@@ -286,12 +301,14 @@ def read(table, guess=None, **kwargs):
         kwargs['fill_values'] = [('', '0')]
 
     # If an Outputter is supplied in kwargs that will take precedence.
-    new_kwargs = {}
     if 'Outputter' in kwargs:  # user specified Outputter, not supported for fast reading
         fast_reader['enable'] = False
 
     format = kwargs.get('format')
-    new_kwargs.update(kwargs)
+    # Dictionary arguments are passed by reference per default and thus need
+    # special protection:
+    new_kwargs = copy.deepcopy(kwargs)
+    kwargs['fast_reader'] = copy.deepcopy(fast_reader)
 
     # Get the Reader class based on possible format and Reader kwarg inputs.
     Reader = _get_format_class(format, kwargs.get('Reader'), 'Reader')
@@ -353,8 +370,8 @@ def read(table, guess=None, **kwargs):
             guess = False
 
     if not guess:
-        reader = get_reader(**new_kwargs)
         if format is None:
+            reader = get_reader(**new_kwargs)
             format = reader._format_name
 
         # Try the fast reader version of `format` first if applicable.  Note that
@@ -366,7 +383,7 @@ def read(table, guess=None, **kwargs):
             fast_reader_rdr = get_reader(**fast_kwargs)
             try:
                 dat = fast_reader_rdr.read(table)
-                _read_trace.append({'kwargs': fast_kwargs,
+                _read_trace.append({'kwargs': copy.deepcopy(fast_kwargs),
                                     'Reader': fast_reader_rdr.__class__,
                                     'status': 'Success with fast reader (no guessing)'})
             except (core.ParameterError, cparser.CParserError, UnicodeEncodeError) as err:
@@ -376,14 +393,16 @@ def read(table, guess=None, **kwargs):
                         'fast reader {} exception: {}'
                         .format(fast_reader_rdr.__class__, err))
                 # If the fast reader doesn't work, try the slow version
+                reader = get_reader(**new_kwargs)
                 dat = reader.read(table)
-                _read_trace.append({'kwargs': new_kwargs,
+                _read_trace.append({'kwargs': copy.deepcopy(new_kwargs),
                                     'Reader': reader.__class__,
                                     'status': 'Success with slow reader after failing'
                                              ' with fast (no guessing)'})
         else:
+            reader = get_reader(**new_kwargs)
             dat = reader.read(table)
-            _read_trace.append({'kwargs': new_kwargs,
+            _read_trace.append({'kwargs': copy.deepcopy(new_kwargs),
                                 'Reader': reader.__class__,
                                 'status': 'Success with specified Reader class '
                                           '(no guessing)'})
@@ -424,9 +443,9 @@ def _guess(table, read_kwargs, format, fast_reader):
     full_list_guess = _get_guess_kwargs_list(read_kwargs)
 
     # If a fast version of the reader is available, try that before the slow version
-    if fast_reader['enable'] and format is not None and 'fast_{0}'.format(format) in \
-                                                         core.FAST_CLASSES:
-        fast_kwargs = read_kwargs.copy()
+    if (fast_reader['enable'] and format is not None and 'fast_{0}'.format(format) in
+        core.FAST_CLASSES):
+        fast_kwargs = copy.deepcopy(read_kwargs)
         fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
         full_list_guess = [fast_kwargs] + full_list_guess
     else:
@@ -441,11 +460,19 @@ def _guess(table, read_kwargs, format, fast_reader):
         # If user specified slow reader then skip all fast readers
         if (fast_reader['enable'] is False and
                 guess_kwargs['Reader'] in core.FAST_CLASSES.values()):
+            _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
+                                'Reader': guess_kwargs['Reader'].__class__,
+                                'status': 'Disabled: reader only available in fast version',
+                                'dt': '{0:.3f} ms'.format(0.0)})
             continue
 
         # If user required a fast reader then skip all non-fast readers
         if (fast_reader['enable'] == 'force' and
                 guess_kwargs['Reader'] not in core.FAST_CLASSES.values()):
+            _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
+                                'Reader': guess_kwargs['Reader'].__class__,
+                                'status': 'Disabled: no fast version of reader available',
+                                'dt': '{0:.3f} ms'.format(0.0)})
             continue
 
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
@@ -453,7 +480,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             # Do guess_kwargs.update(read_kwargs) except that if guess_args has
             # a conflicting key/val pair then skip this guess entirely.
             if key not in guess_kwargs:
-                guess_kwargs[key] = val
+                guess_kwargs[key] = copy.deepcopy(val)
             elif val != guess_kwargs[key] and guess_kwargs != fast_kwargs:
                 guess_kwargs_ok = False
                 break
@@ -493,16 +520,17 @@ def _guess(table, read_kwargs, format, fast_reader):
                 guess_kwargs['strict_names'] = True
 
             reader = get_reader(**guess_kwargs)
+
             reader.guessing = True
             dat = reader.read(table)
-            _read_trace.append({'kwargs': guess_kwargs,
+            _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'Reader': reader.__class__,
                                 'status': 'Success (guessing)',
                                 'dt': '{0:.3f} ms'.format((time.time() - t0) * 1000)})
             return dat
 
         except guess_exception_classes as err:
-            _read_trace.append({'kwargs': guess_kwargs,
+            _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'status': '{0}: {1}'.format(err.__class__.__name__,
                                                             str(err)),
                                 'dt': '{0:.3f} ms'.format((time.time() - t0) * 1000)})
@@ -512,14 +540,14 @@ def _guess(table, read_kwargs, format, fast_reader):
         try:
             reader = get_reader(**read_kwargs)
             dat = reader.read(table)
-            _read_trace.append({'kwargs': read_kwargs,
+            _read_trace.append({'kwargs': copy.deepcopy(read_kwargs),
                                 'Reader': reader.__class__,
                                 'status': 'Success with original kwargs without strict_names '
                                           '(guessing)'})
             return dat
 
         except guess_exception_classes as err:
-            _read_trace.append({'kwargs': guess_kwargs,
+            _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'status': '{0}: {1}'.format(err.__class__.__name__,
                                                             str(err))})
             failed_kwargs.append(read_kwargs)
@@ -583,31 +611,17 @@ def _get_guess_kwargs_list(read_kwargs):
     if HAS_YAML:
         guess_kwargs_list.append(dict(Reader=ecsv.Ecsv))
 
-    # Now try readers that accept the common arguments with the input arguments
-    # (Unless there are not arguments - we try that in the next step anyway.)
-    # FixedWidthTwoLine would also be read by Basic, so it needs to come first.
-    if len(read_kwargs) > 0:
-        for reader in [fixedwidth.FixedWidthTwoLine,
-                       fastbasic.FastBasic,
-                       basic.Basic]:
-            first_kwargs = read_kwargs.copy()
-            first_kwargs.update(dict(Reader=reader))
-            guess_kwargs_list.append(first_kwargs)
-
-    # Then try a list of readers with default arguments
-    guess_kwargs_list.extend([dict(Reader=fixedwidth.FixedWidthTwoLine),
-                              dict(Reader=fastbasic.FastBasic),
-                              dict(Reader=basic.Basic),
-                              dict(Reader=basic.Rdb),
-                              dict(Reader=fastbasic.FastTab),
-                              dict(Reader=basic.Tab),
-                              dict(Reader=cds.Cds),
-                              dict(Reader=daophot.Daophot),
-                              dict(Reader=sextractor.SExtractor),
-                              dict(Reader=ipac.Ipac),
-                              dict(Reader=latex.Latex),
-                              dict(Reader=latex.AASTex)
-                              ])
+    # Now try readers that accept the user-supplied keyword arguments
+    # (actually include all here - check for compatibility of arguments later).
+    # FixedWidthTwoLine would also be read by Basic, so it needs to come first;
+    # same for RST.
+    for reader in (fixedwidth.FixedWidthTwoLine, rst.RST,
+                   fastbasic.FastBasic, basic.Basic,
+                   fastbasic.FastRdb, basic.Rdb,
+                   fastbasic.FastTab, basic.Tab,
+                   cds.Cds, daophot.Daophot, sextractor.SExtractor,
+                   ipac.Ipac, latex.Latex, latex.AASTex):
+        guess_kwargs_list.append(dict(Reader=reader))
 
     # Cycle through the basic-style readers using all combinations of delimiter
     # and quotechar.
