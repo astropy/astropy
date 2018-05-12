@@ -36,6 +36,14 @@ astropy.io.ascii
 - Latex reader now ignores ``\toprule``, ``\midrule``, and ``\bottomrule``
   commands [#7349]
 
+- Added the RST (Restructured-text) table format and the fast version of the
+  RDB reader to the set of formats that are guessed by default. [#5578]
+
+- The read trace (used primarily for debugging) now includes guess argument
+  sets that were skipped entirely e.g. for not supporting user-supplied kwargs.
+  All guesses thus removed from ``filtered_guess_kwargs`` are now listed as
+  "Disabled" at the beginning of the trace. [#5578]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -137,6 +145,15 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- If a fast reader is explicitly selected (e.g. ``fast_reader='force') and
+  options which are incompatible with the fast reader are provided
+  (e.g. ``quotechar='##') then now a ``ParameterError`` exception will be
+  raised. [#5578]
+
+- The fast readers will now raise ``InconsistentTableError`` instead of
+  ``CParserError`` if the number of data and header columns do not match.
+  [#5578]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -218,6 +235,9 @@ astropy.extern
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
+
+- Fixed a problem when ``guess=True`` that ``fast_reader`` options
+  could be dropped after the first fast reader class was tried. [#5578]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
