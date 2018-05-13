@@ -43,7 +43,7 @@
 *
 =   "Definition of the Flexible Image Transport System (FITS), version 3.0",
 =   Pence, W.D., Chiappetti, L., Page, C.G., Shaw, R.A., & Stobie, E. 2010,
-=   A&A, 524, A42 - http://dx.doi.org/10.1051/0004-6361/201015362
+=   A&A, 524, A42 - https://doi.org/10.1051/0004-6361/201015362
 *
 * See also http://fits.gsfc.nasa.gov
 *
