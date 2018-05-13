@@ -347,7 +347,10 @@ class TestRunner(TestRunnerBase):
                     all_args.append('--doctest-rst')
                     test_path = abs_test_path
 
-            if not (os.path.isdir(test_path) or ext in ('.py', '.rst')):
+            # Check that the extensions are in the path and not at the end to
+            # support specifying the name of the test, i.e.
+            # test_quantity.py::test_unit
+            if not (os.path.isdir(test_path) or ('.py' in test_path or '.rst' in test_path)):
                 raise ValueError("Test path must be a directory or a path to "
                                  "a .py or .rst file")
 
