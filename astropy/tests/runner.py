@@ -168,17 +168,18 @@ class TestRunnerBase:
 
         """
 
-    @staticmethod
-    def _has_test_dependencies():  # pragma: no cover
+    _required_dependancies = ['pytest', 'pytest_remotedata', 'pytest_doctestplus']
+    _missing_dependancy_error = "Test dependencies are missing. You should install the 'pytest-astropy' package."
+
+    @classmethod
+    def _has_test_dependencies(cls):  # pragma: no cover
         # Using the test runner will not work without these dependencies, but
         # pytest-openfiles is optional, so it's not listed here.
-        required = ['pytest', 'pytest_remotedata', 'pytest_doctestplus']
-        for module in required:
+        for module in cls._required_dependancies:
             spec = find_spec(module)
             # Checking loader accounts for packages that were uninstalled
             if spec is None or spec.loader is None:
-                msg = "Test dependencies are missing. You should install the 'pytest-astropy' package."
-                raise RuntimeError(msg)
+                raise RuntimeError(cls._missing_dependancy_error)
 
     def run_tests(self, **kwargs):
 
