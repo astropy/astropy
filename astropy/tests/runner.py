@@ -19,19 +19,6 @@ from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 __all__ = ['TestRunner', 'TestRunnerBase', 'keyword']
 
 
-def _has_test_dependencies(): # pragma: no cover
-    # Using the test runner will not work without these dependencies, but
-    # pytest-openfiles is optional, so it's not listed here.
-    required = ['pytest', 'pytest_remotedata', 'pytest_doctestplus']
-    for module in required:
-        spec = find_spec(module)
-        # Checking loader accounts for packages that were uninstalled
-        if spec is None or spec.loader is None:
-            return False
-
-    return True
-
-
 class keyword:
     """
     A decorator to mark a method as keyword argument for the ``TestRunner``.
@@ -181,6 +168,19 @@ class TestRunnerBase:
 
         """
 
+    _required_dependancies = ['pytest', 'pytest_remotedata', 'pytest_doctestplus']
+    _missing_dependancy_error = "Test dependencies are missing. You should install the 'pytest-astropy' package."
+
+    @classmethod
+    def _has_test_dependencies(cls):  # pragma: no cover
+        # Using the test runner will not work without these dependencies, but
+        # pytest-openfiles is optional, so it's not listed here.
+        for module in cls._required_dependancies:
+            spec = find_spec(module)
+            # Checking loader accounts for packages that were uninstalled
+            if spec is None or spec.loader is None:
+                raise RuntimeError(cls._missing_dependancy_error)
+
     def run_tests(self, **kwargs):
 
         # The following option will include eggs inside a .eggs folder in
@@ -199,9 +199,7 @@ class TestRunnerBase:
             import pkg_resources
             importlib.reload(pkg_resources)
 
-        if not _has_test_dependencies():  # pragma: no cover
-            msg = "Test dependencies are missing. You should install the 'pytest-astropy' package."
-            raise RuntimeError(msg)
+        self._has_test_dependencies()  # pragma: no cover
 
         # The docstring for this method is defined as a class variable.
         # This allows it to be built for each subclass in __new__.
@@ -218,14 +216,17 @@ class TestRunnerBase:
 
         args = self._generate_args(**kwargs)
 
-        if 'plugins' not in self.keywords or self.keywords['plugins'] is None:
-            self.keywords['plugins'] = []
+        if kwargs.get('plugins', None) is not None:
+            plugins = kwargs.pop('plugins')
+        elif self.keywords.get('plugins', None) is not None:
+            plugins = self.keywords['plugins']
+        else:
+            plugins = []
 
-        # Make plugins available to test runner without registering them
-        self.keywords['plugins'].extend([
-            'astropy.tests.plugins.display',
-            'astropy.tests.plugins.config'
-        ])
+        # If we are running the astropy tests with the astropy plugins handle
+        # the config stuff, otherwise ignore it.
+        if 'astropy.tests.plugins.config' not in plugins:
+            return pytest.main(args=args, plugins=plugins)
 
         # override the config locations to not make a new directory nor use
         # existing cache or config
@@ -238,7 +239,7 @@ class TestRunnerBase:
         # also harmless to nest the contexts
         with set_temp_config(astropy_config, delete=True):
             with set_temp_cache(astropy_cache, delete=True):
-                return pytest.main(args=args, plugins=self.keywords['plugins'])
+                return pytest.main(args=args, plugins=plugins)
 
     @classmethod
     def make_test_runner_in(cls, path):
@@ -346,7 +347,10 @@ class TestRunner(TestRunnerBase):
                     all_args.append('--doctest-rst')
                     test_path = abs_test_path
 
-            if not (os.path.isdir(test_path) or ext in ('.py', '.rst')):
+            # Check that the extensions are in the path and not at the end to
+            # support specifying the name of the test, i.e.
+            # test_quantity.py::test_unit
+            if not (os.path.isdir(test_path) or ('.py' in test_path or '.rst' in test_path)):
                 raise ValueError("Test path must be a directory or a path to "
                                  "a .py or .rst file")
 
@@ -366,13 +370,15 @@ class TestRunner(TestRunnerBase):
 
         return []
 
-    @keyword()
+    @keyword(default_value=['astropy.tests.plugins.display', 'astropy.tests.plugins.config'])
     def plugins(self, plugins, kwargs):
         """
         plugins : list, optional
             Plugins to be passed to ``pytest.main`` in the ``plugins`` keyword
             argument.
         """
+        # Plugins are handled independently by `run_tests` so we define this
+        # keyword just for the docstring
         return []
 
     @keyword()
