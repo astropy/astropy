@@ -522,19 +522,28 @@ class TestRunner(TestRunnerBase):
         docs_path : str, optional
             The path to the documentation .rst files.
         """
+
+        paths = []
+
         if docs_path is not None and not kwargs['skip_docs']:
             if kwargs['package'] is not None:
-                docs_path = os.path.join(
-                    docs_path, kwargs['package'].replace('.', os.path.sep))
-            if not os.path.exists(docs_path):
-                warnings.warn(
-                    "Can not test .rst docs, since docs path "
-                    "({0}) does not exist.".format(docs_path))
-                docs_path = None
-        if docs_path and not kwargs['skip_docs'] and not kwargs['test_path']:
-            return [docs_path, '--doctest-rst']
+                packages = kwargs['package'].split(',')
 
-        return []
+                for package in packages:
+                    path = os.path.join(docs_path,
+                                        package.replace('.', os.path.sep))
+
+                    if not os.path.exists(path):
+                        warnings.warn(
+                            "Can not test .rst docs for {0}, since docs path "
+                            "({1}) does not exist.".format(package, path))
+                    else:
+                        paths.append(path)
+
+        if len(paths) and not kwargs['test_path']:
+            paths.append('--doctest-rst')
+
+        return paths
 
     @keyword()
     def skip_docs(self, skip_docs, kwargs):
