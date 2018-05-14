@@ -302,16 +302,23 @@ class TestRunner(TestRunnerBase):
             If nothing is specified all default Astropy tests are run.
         """
         if package is None:
-            self.package_path = self.base_path
+            self.package_path = [self.base_path]
         else:
-            self.package_path = os.path.join(self.base_path,
-                                        package.replace('.', os.path.sep))
+            packages = package.split(',')
 
-            if not os.path.isdir(self.package_path):
-                raise ValueError('Package not found: {0}'.format(package))
+            self.package_path = []
+            for package in packages:
+                package_path = os.path.join(self.base_path,
+                                            package.replace('.', os.path.sep))
+                if not os.path.isdir(package_path):
+                    warnings.warn('Package not found: {0}'.format(package))
+                else:
+                    self.package_path.append(package_path)
+            if len(self.package_path) == 0:
+                raise ValueError('No packages found: {0}'.format(packages))
 
         if not kwargs['test_path']:
-            return [self.package_path]
+            return self.package_path
 
         return []
 
