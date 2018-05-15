@@ -3,10 +3,10 @@ import pytest
 
 from ...tests.helper import assert_quantity_allclose
 from ... import units as u
-from ..functional_models import Gaussian1D
 
+from astropy.modeling.models import Mapping, Pix2Sky_TAN, Gaussian1D
 from astropy.modeling import models
-from astropy.modeling.core import Model, _ModelMeta
+from astropy.modeling.core import _ModelMeta
 
 
 def test_gaussian1d_bounding_box():
@@ -63,6 +63,46 @@ def test_default_parameters():
     g = Gaussian1D(mean=3 * u.m, stddev=3 * u.cm)
     assert isinstance(g, Gaussian1D)
     g(10*u.m)
+
+
+def test_uses_quantity():
+    """
+    Test Quantity
+    """
+    g = Gaussian1D(mean=3 * u.m, stddev=3 * u.cm, amplitude=3 * u.Jy)
+
+    assert g.uses_quantity
+
+    g = Gaussian1D(mean=3, stddev=3, amplitude=3)
+
+    assert not g.uses_quantity
+
+    g.mean = 3 * u.m
+
+    assert g.uses_quantity
+
+
+def test_uses_quantity_compound():
+    """
+    Test Quantity
+    """
+    g = Gaussian1D(mean=3 * u.m, stddev=3 * u.cm, amplitude=3 * u.Jy)
+    g2 = Gaussian1D(mean=5 * u.m, stddev=5 * u.cm, amplitude=5 * u.Jy)
+
+    assert (g | g2).uses_quantity
+
+    g = Gaussian1D(mean=3, stddev=3, amplitude=3)
+    g2 = Gaussian1D(mean=5, stddev=5, amplitude=5)
+
+    comp = g | g2
+
+    assert not (comp).uses_quantity
+
+
+def test_uses_quantity_no_param():
+    comp = Mapping((0, 1)) | Pix2Sky_TAN()
+
+    assert comp.uses_quantity
 
 
 def _allmodels():
