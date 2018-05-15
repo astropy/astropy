@@ -694,6 +694,8 @@ astropy.table
 - Fix a performance issue in ``MaskedColumn`` where initialization was
   extremely slow for large arrays with the default ``mask=None``. [#7422]
 
+- Fix printing table row indexed with unsigned integer. [#7469]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
