@@ -305,4 +305,3 @@ def test_uint_indexing():
     assert repr(t[1]).splitlines() == trepr
     assert repr(t[np.int(1)]).splitlines() == trepr
     assert repr(t[np.uint(1)]).splitlines() == trepr
-    
