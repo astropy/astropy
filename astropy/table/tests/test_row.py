@@ -289,8 +289,10 @@ def test_uint_indexing():
     This is non-trivial: adding a signed and unsigned
     integer in numpy results in a float, which is an
     invalid slice index.
+
+    Regression test for gh-7464.
     """
-    t = table.Table([[1.,2.,3.]], names='a')
+    t = table.Table([[1., 2., 3.]], names='a')
     assert t['a'][1] == 2.
     assert t['a'][np.int(1)] == 2.
     assert t['a'][np.uint(1)] == 2.
