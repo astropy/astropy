@@ -202,3 +202,32 @@ class TestRow():
         for ibad in (-5, -4, 3, 4):
             with pytest.raises(IndexError):
                 self.t[ibad]
+
+
+def test_uint_indexing():
+    """
+    Test that accessing a row with an unsigned integer
+    works as with a signed integer.  Similarly tests
+    that printing such a row works.
+
+    This is non-trivial: adding a signed and unsigned
+    integer in numpy results in a float, which is an
+    invalid slice index.
+
+    Regression test for gh-7464.
+    """
+    t = table.Table([[1., 2., 3.]], names='a')
+    assert t['a'][1] == 2.
+    assert t['a'][np.int(1)] == 2.
+    assert t['a'][np.uint(1)] == 2.
+    assert t[np.uint(1)]['a'] == 2.
+
+    trepr = ['<Row index=1>',
+             '   a   ',
+             'float64',
+             '-------',
+             '    2.0']
+
+    assert repr(t[1]).splitlines() == trepr
+    assert repr(t[np.int(1)]).splitlines() == trepr
+    assert repr(t[np.uint(1)]).splitlines() == trepr

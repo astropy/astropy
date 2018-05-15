@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import collections
+import operator
 
 import numpy as np
 
@@ -34,7 +35,7 @@ class Row(object):
 
     def __init__(self, table, index):
         self._table = table
-        self._index = index
+        self._index = operator.index(index)
 
         n = len(table)
         if index < -n or index >= n:
