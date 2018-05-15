@@ -5,6 +5,8 @@ Miscellaneous Features
 
 This section describes some of the miscellaneous features of :mod:`astropy.io.fits`.
 
+.. _io-fits-differs:
+
 Differs
 =======
 

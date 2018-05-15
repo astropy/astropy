@@ -1,13 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-import io
-
 import pytest
 import numpy as np
 
 from ..column import Column
 from ..diff import (FITSDiff, HeaderDiff, ImageDataDiff, TableDataDiff,
-                    HDUDiff, report_diff_values)
+                    HDUDiff)
 from ..hdu import HDUList, PrimaryHDU, ImageHDU
 from ..hdu.table import BinTableHDU
 from ..header import Header
@@ -727,39 +724,6 @@ class TestDiff(FitsTestCase):
         assert diff.diff_values[1][0] == ('colb', 1)
         assert np.isnan(diff.diff_values[1][1][0])
         assert diff.diff_values[1][1][1] == 2.0
-
-    def test_diff_types(self):
-        """
-        Regression test for https://github.com/astropy/astropy/issues/4122
-        """
-
-        f = io.StringIO()
-
-        a = 1.0
-        b = '1.0'
-
-        report_diff_values(f, a, b)
-        out = f.getvalue()
-
-        assert out.lstrip('u') == "  (float) a> 1.0\n    (str) b> '1.0'\n           ? +   +\n"
-
-    def test_float_comparison(self):
-        """
-        Regression test for https://github.com/spacetelescope/PyFITS/issues/21
-        """
-
-        f = io.StringIO()
-
-        a = np.float32(0.029751372)
-        b = np.float32(0.029751368)
-
-        report_diff_values(f, a, b)
-        out = f.getvalue()
-
-        # This test doesn't care about what the exact output is, just that it
-        # did show a difference in their text representations
-        assert 'a>' in out
-        assert 'b>' in out
 
     def test_file_output_from_path_string(self):
         outpath = self.temp('diff_output.txt')
