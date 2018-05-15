@@ -309,8 +309,8 @@ the mixin column with column(s) representing the underlying data component(s)
 and then inserting meta data which informs the reader how to reconstruct the
 original column.  For example a `~astropy.coordinates.SkyCoord` mixin column in
 ``'spherical'`` representation would have data attributes ``ra``, ``dec``,
-``distance``, along with object attributes like ``representation`` or ``frame``.
-For example::
+``distance``, along with object attributes like ``representation_type`` or
+``frame``.  For example::
 
   >>> from astropy.io import ascii
   >>> from astropy.coordinates import SkyCoord
