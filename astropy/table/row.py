@@ -2,6 +2,7 @@
 
 
 import collections
+import operator
 
 import numpy as np
 
@@ -30,7 +31,7 @@ class Row:
 
     def __init__(self, table, index):
         self._table = table
-        self._index = index
+        self._index = operator.index(index)
 
         n = len(table)
         if index < -n or index >= n:

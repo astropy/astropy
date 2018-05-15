@@ -212,7 +212,7 @@ astropy.utils
 
 - ``InheritDocstrings`` now also works on class properties. [#7166]
 
-- ``diff_values()`, ``report_diff_values()``, and ``where_not_allclose()``
+- ``diff_values()``, ``report_diff_values()``, and ``where_not_allclose()``
   utility functions are moved from ``astropy.io.fits.diff``. [#7444]
 
 astropy.visualization
@@ -281,6 +281,8 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
+- Fix printing table row indexed with unsigned integer. [#7464]
 
 astropy.tests
 ^^^^^^^^^^^^^
