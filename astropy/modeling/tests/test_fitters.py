@@ -623,17 +623,17 @@ class Test1DFittingWithOutlierRemoval:
         # test with Levenberg-Marquardt Least Squares fitter
         fit = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
                                         niter=3, sigma=3.0)
-        _, fitted_model = fit(g_init, self.x, self.y)
+        fitted_model, _ = fit(g_init, self.x, self.y)
         assert_allclose(fitted_model.parameters, self.model_params, rtol=1e-1)
         # test with Sequential Least Squares Programming fitter
         fit = FittingWithOutlierRemoval(SLSQPLSQFitter(), sigma_clip,
                                         niter=3, sigma=3.0)
-        _, fitted_model = fit(g_init, self.x, self.y)
+        fitted_model, _ = fit(g_init, self.x, self.y)
         assert_allclose(fitted_model.parameters, self.model_params, rtol=1e-1)
         # test with Simplex LSQ fitter
         fit = FittingWithOutlierRemoval(SimplexLSQFitter(), sigma_clip,
                                         niter=3, sigma=3.0)
-        _, fitted_model = fit(g_init, self.x, self.y)
+        fitted_model, _ = fit(g_init, self.x, self.y)
         assert_allclose(fitted_model.parameters, self.model_params, atol=1e-1)
 
 
@@ -687,19 +687,19 @@ class Test2DFittingWithOutlierRemoval:
         # test with Levenberg-Marquardt Least Squares fitter
         fit = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
                                         niter=3, sigma=3.)
-        _, fitted_model = fit(g2_init, self.x, self.y, self.z)
+        fitted_model, _ = fit(g2_init, self.x, self.y, self.z)
         assert_allclose(fitted_model.parameters[0:5], self.model_params,
                         atol=1e-1)
         # test with Sequential Least Squares Programming fitter
         fit = FittingWithOutlierRemoval(SLSQPLSQFitter(), sigma_clip, niter=3,
                                         sigma=3.)
-        _, fitted_model = fit(g2_init, self.x, self.y, self.z)
+        fitted_model, _ = fit(g2_init, self.x, self.y, self.z)
         assert_allclose(fitted_model.parameters[0:5], self.model_params,
                         atol=1e-1)
         # test with Simplex LSQ fitter
         fit = FittingWithOutlierRemoval(SimplexLSQFitter(), sigma_clip,
                                         niter=3, sigma=3.)
-        _, fitted_model = fit(g2_init, self.x, self.y, self.z)
+        fitted_model, _ = fit(g2_init, self.x, self.y, self.z)
         assert_allclose(fitted_model.parameters[0:5], self.model_params,
                         atol=1e-1)
 
@@ -717,7 +717,7 @@ def test_1d_set_fitting_with_outlier_removal():
     y = np.array([2.5*x - 4, 2*x*x + x + 10])
     y[1,5] = -1000  # outlier
 
-    filt_y, poly_set = fitter(poly_set, x, y)
+    poly_set, filt_y = fitter(poly_set, x, y)
 
     assert_allclose(poly_set.c0, [-4., 10.], atol=1e-14)
     assert_allclose(poly_set.c1, [2.5, 1.], atol=1e-14)
@@ -737,7 +737,7 @@ def test_2d_set_axis_2_fitting_with_outlier_removal():
     z = np.rollaxis(np.array([x+y, 1-0.1*x+0.2*y]), 0, 3)
     z[3,3:5,0] = 100.   # outliers
 
-    filt_z, poly_set = fitter(poly_set, x, y, z)
+    poly_set, filt_z = fitter(poly_set, x, y, z)
 
     assert_allclose(poly_set.c0_0, [[[0., 1.]]], atol=1e-14)
     assert_allclose(poly_set.c1_0, [[[1., -0.1]]], atol=1e-14)
@@ -769,9 +769,9 @@ class TestWeightedFittingWithOutlierRemoval:
         model = models.Polynomial1D(0)
         fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
                                            niter=3, sigma=3.)
-        filtered, fit = fitter(model, self.x1d, self.z1d)
-        assert(filtered.count() == self.z1d.size - 2)
-        assert(filtered.mask[0] and filtered.mask[1])
+        fit, mask = fitter(model, self.x1d, self.z1d)
+        assert((~mask).sum() == self.z1d.size - 2)
+        assert(mask[0] and mask[1])
         assert_allclose(fit.parameters[0], 0.0, atol=10**(-2)) # with removed outliers mean is 0.0
 
     def test_1d_with_weights_without_sigma_clip(self):
@@ -785,7 +785,7 @@ class TestWeightedFittingWithOutlierRemoval:
         model = models.Polynomial1D(0)
         fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
                                            niter=3, sigma=3.)
-        filtered, fit = fitter(model, self.x1d, self.z1d, weights=self.weights1d)
+        fit, filtered = fitter(model, self.x1d, self.z1d, weights=self.weights1d)
         assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
         assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
 
@@ -796,7 +796,7 @@ class TestWeightedFittingWithOutlierRemoval:
                                            niter=3, sigma=3.)
         z1d = np.array([self.z1d, self.z1d])
 
-        filtered, fit = fitter(model, self.x1d, z1d, weights=self.weights1d)
+        fit, filtered = fitter(model, self.x1d, z1d, weights=self.weights1d)
         assert_allclose(fit.parameters, [0.8, 0.8], atol=1e-14)
 
     def test_2d_without_weights_without_sigma_clip(self):
@@ -809,9 +809,9 @@ class TestWeightedFittingWithOutlierRemoval:
         model = models.Polynomial2D(0)
         fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
                                            niter=3, sigma=3.)
-        filtered, fit = fitter(model, self.x, self.y, self.z)
-        assert(filtered.count() == self.z.size - 2)
-        assert(filtered.mask[0,0] and filtered.mask[0,1])
+        fit, mask = fitter(model, self.x, self.y, self.z)
+        assert((~mask).sum() == self.z.size - 2)
+        assert(mask[0,0] and mask[0,1])
         assert_allclose(fit.parameters[0], 0.0, atol=10**(-2))
 
     def test_2d_with_weights_without_sigma_clip(self):
@@ -825,7 +825,7 @@ class TestWeightedFittingWithOutlierRemoval:
         model = models.Polynomial2D(0)
         fitter = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
                                            niter=3, sigma=3.)
-        filtered, fit = fitter(model, self.x, self.y, self.z, weights=self.weights)
+        fit, filtered = fitter(model, self.x, self.y, self.z, weights=self.weights)
         assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
         assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
 

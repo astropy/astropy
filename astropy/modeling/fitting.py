@@ -618,10 +618,12 @@ class FittingWithOutlierRemoval:
 
         Returns
         -------
-        filtered_data : numpy.ma.core.MaskedArray
-            Data used to perform the fitting after outlier removal.
         fitted_model : `~astropy.modeling.FittableModel`
             Fitted model after outlier removal.
+        mask : `numpy.ndarray`
+            Boolean mask array, identifying which points were used in the final
+            fitting iteration (False) and which were found to be outliers or
+            were masked in the input (True).
         """
 
         # For single models, the data get filtered here at each iteration and
@@ -670,9 +672,11 @@ class FittingWithOutlierRemoval:
 
         loop = False
 
-        # Starting fit, prior to iteration and masking:
+        # Starting fit, prior to any iteration and masking:
         fitted_model = self.fitter(model, x, y, z, weights=weights, **kwargs)
-        filtered_data = data
+        filtered_data = np.ma.masked_array(data)
+        if filtered_data.mask is np.ma.nomask:
+            filtered_data.mask = False
         filtered_weights = weights
 
         # Perform the iterative fitting:
@@ -754,7 +758,7 @@ class FittingWithOutlierRemoval:
                                            filtered_data,
                                            weights=filtered_weights, **kwargs)
 
-        return filtered_data, fitted_model
+        return fitted_model, filtered_data.mask
 
 
 class LevMarLSQFitter(metaclass=_FitterMeta):

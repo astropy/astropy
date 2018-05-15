@@ -184,6 +184,13 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Change the order of the return values from ``FittingWithOutlierRemoval``,
+  such that ``fitted_model`` comes first, for consistency with other fitters.
+  For the second value, return only a boolean outlier ``mask``, instead of the
+  previous ``MaskedArray`` (which included a copy of the input data that was
+  both redundant and inadvertently corrupted at masked points). Return a
+  consistent type for the second value when ``niter=0``. [#7407]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
