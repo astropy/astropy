@@ -7,6 +7,9 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
+from ..column import _parse_tdisp_format, _fortran_to_python_format, \
+    python_to_tdisp
+
 from .. import HDUList, PrimaryHDU, BinTableHDU
 
 from ... import fits
@@ -108,6 +111,20 @@ class TestSingleTable:
         assert equal_data(t1, t2)
         assert t2['a'].unit == u.m
         assert t2['c'].unit == u.km / u.s
+
+    @pytest.mark.parametrize('table_type', (Table, QTable))
+    def test_with_format(self, table_type, tmpdir):
+        filename = str(tmpdir.join('test_with_format.fits'))
+        t1 = table_type(self.data)
+        t1['a'].format = '{:5d}'
+        t1['b'].format = '{:>20}'
+        t1['c'].format = '{:6.2f}'
+        t1.write(filename, overwrite=True)
+        t2 = table_type.read(filename)
+        assert equal_data(t1, t2)
+        assert t2['a'].format == '{:5d}'
+        assert t2['b'].format == '{:>20}'
+        assert t2['c'].format == '{:6.2f}'
 
     def test_masked(self, tmpdir):
         filename = str(tmpdir.join('test_masked.fits'))
@@ -303,6 +320,43 @@ def test_scale_error():
     with pytest.raises(UnitScaleError) as exc:
         t.write('t.fits', format='fits', overwrite=True)
     assert exc.value.args[0] == "The column 'a' could not be stored in FITS format because it has a scale '(1.2)' that is not recognized by the FITS standard. Either scale the data or change the units."
+
+
+@pytest.mark.parametrize('tdisp_str, format_return',
+                         [('EN10.5', ('EN', '10', '5', None)),
+                          ('F6.2', ('F', '6', '2', None)),
+                          ('B5.10', ('B', '5', '10', None)),
+                          ('E10.5E3', ('E', '10', '5', '3')),
+                          ('A21', ('A', '21', None, None))])
+def test_parse_tdisp_format(tdisp_str, format_return):
+    assert _parse_tdisp_format(tdisp_str) == format_return
+
+
+@pytest.mark.parametrize('tdisp_str, format_str_return',
+                         [('G15.4E2', '{:15.4g}'),
+                          ('Z5.10', '{:5x}'),
+                          ('I6.5', '{:6d}'),
+                          ('L8', '{:>8}'),
+                          ('E20.7', '{:20.7e}')])
+def test_fortran_to_python_format(tdisp_str, format_str_return):
+    assert _fortran_to_python_format(tdisp_str) == format_str_return
+
+
+@pytest.mark.parametrize('fmt_str, tdisp_str',
+                         [('{:3d}', 'I3'),
+                          ('3d', 'I3'),
+                          ('7.3f', 'F7.3'),
+                          ('{:>4}', 'A4'),
+                          ('{:7.4f}', 'F7.4'),
+                          ('%5.3g', 'G5.3'),
+                          ('%10s', 'A10'),
+                          ('%.4f', 'F13.4')])
+def test_python_to_tdisp(fmt_str, tdisp_str):
+    assert python_to_tdisp(fmt_str) == tdisp_str
+
+
+def test_logical_python_to_tdisp():
+    assert python_to_tdisp('{:>7}', logical_dtype=True) == 'L7'
 
 
 def test_bool_column(tmpdir):
@@ -591,11 +645,11 @@ def test_info_attributes_with_no_mixins(tmpdir):
     filename = str(tmpdir.join('test.fits'))
     t = Table([[1.0, 2.0]])
     t['col0'].description = 'hello' * 40
-    t['col0'].format = '%8.4f'
+    t['col0'].format = '{:8.4f}'
     t['col0'].meta['a'] = {'b': 'c'}
     t.write(filename, overwrite=True)
 
     t2 = Table.read(filename)
     assert t2['col0'].description == 'hello' * 40
-    assert t2['col0'].format == '%8.4f'
+    assert t2['col0'].format == '{:8.4f}'
     assert t2['col0'].meta['a'] == {'b': 'c'}

@@ -159,6 +159,9 @@ astropy.io.misc
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
+- The ``fits.table_to_hdu()`` function will translate any column ``format``
+  attributes to a TDISPn format string, if possible, and store it as a TDISPn
+  keyword in the ``HDU`` header. [#7226]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
@@ -180,6 +183,9 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+- ``Table.read()`` on a FITS binary table file will convert any TDISPn header
+  keywords to a Python formatting string when possible, and store it in the
+  column ``format`` attribute. [#7226]
 
 astropy.tests
 ^^^^^^^^^^^^^

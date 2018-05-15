@@ -269,6 +269,73 @@ FITS header (for example, keyword comments are dropped).
 
 .. _fits_astropy_native:
 
+
+TDISPn Keyword
+^^^^^^^^^^^^^^
+
+TDISPn FITS keywords will map to and from the `~astropy.table.Column` ``format``
+attribute if the display format is convertible to and from a Python display
+format. Below are the rules used for both conversion directions.
+
+TDISPn to Python Format String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TDISPn format characters are defined in the table below.
+
+============   ================================================================
+   Format                              Description
+============   ================================================================
+Aw             Character
+Lw             Logical
+Iw.m           Integer
+Bw.m           Binary, integers only
+Ow.m           Octal, integers only
+Zw.m           Hexadecimal, integers only
+Fw.d           Floating-point, fixed decimal notation
+Ew.dEe         Floating-point, exponential notation
+ENw.d          Engineering; E format with exponent multiple of three
+ESw.d          Scientific; same as EN but non-zero leading digit if not zero
+Gw.dEe         General; appears as F if significance not lost, also E
+Dw.dEe         Floating-point, exponential notation, double precision
+============   ================================================================
+
+Where w is the width in characters of displayed values, m is the minimum number
+of digits dsiplayed, d is the number of digits to the right of decimal, and e
+is number of digits in the exponent.  The .m and Ee fields are optional.
+
+The A (character), L (logical), F (floating point), and G (general) display
+formats can be directly translated to Python format strings.  The other formats
+need to be modified to match Python display formats.
+
+For the integer formats (I, B, O, and Z), the width (w) value is used to add
+space padding to the left of the column value.  The minimum number (m) value is
+not used.  For the E, G, D, EN, and ES formats (floating point exponential) the
+width (w) and precision (d) are both used, but the exponential (e) is not used.
+
+Python Format String to TDISPn
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The conversion from Python format strings back to TDISPn is slightly more
+complicated.
+
+Python strings map to the TDISP format A if the Python formatting string does
+not contain right space padding.  It will accept left space padding. The same
+applies to the logical format L.
+
+The integer formats (decimal integer, binary, octal, hexidecimal) map to the
+I, B, O, and Z TDISP formats respectively. Integer formats do not accept a
+zero padded format string or a format string with no left padding defined (a
+width is required in the TDISP format standard for the Integer formats).
+
+For all float and exponential values zero padding is not accepted.  There
+must be at least a width or precision defined.  If only a width is defined,
+there is no precision set for the TDISPn format.  If only a precision is
+defined, the width is set to the precision plus an extra padding value
+depending on format type, and both are set in the TDISPn format.  Otherwise,
+if both a width and precision are present they are both set in the TDISPn
+format.  A Python ``f`` or ``F`` map to TDISP F format.  The Python ``g`` or
+``G`` map to TDISP G format.  The Python ``e`` and ``E`` map to TDISP E format.
+
 Astropy native objects (mixin columns)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

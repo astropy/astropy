@@ -14,10 +14,11 @@ from ...time import Time
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.data_info import MixinInfo, serialize_context_as
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
-from .column import KEYWORD_NAMES
+from .column import KEYWORD_NAMES, ASCII_DEFAULT_WIDTHS, _fortran_to_python_format
 from .convenience import table_to_hdu
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
+from .verify import VerifyError, VerifyWarning
 
 
 # FITS file signature as per RFC 4047
@@ -101,7 +102,7 @@ def _decode_mixins(tbl):
     # Use the `datatype` attribute info to update column attributes that are
     # NOT already handled via standard FITS column keys (name, dtype, unit).
     for col in info['datatype']:
-        for attr in ['format', 'description', 'meta']:
+        for attr in ['description', 'meta']:
             if attr in col:
                 setattr(tbl[col['name']].info, attr, col[attr])
 
@@ -226,6 +227,10 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
         if col.unit is not None:
             column.unit = u.Unit(col.unit, format='fits', parse_strict='silent')
 
+        # Copy over display format
+        if col.disp is not None:
+            column.format = _fortran_to_python_format(col.disp)
+
         columns.append(column)
 
     # Create Table object
@@ -283,7 +288,7 @@ def _encode_mixins(tbl):
     # natively (name, dtype, unit).  See _get_col_attributes() in table/meta.py for where
     # this comes from.
     info_lost = any(any(getattr(col.info, attr, None) not in (None, {})
-                        for attr in ('format', 'description', 'meta'))
+                        for attr in ('description', 'meta'))
                     for col in tbl.itercols())
 
     # If PyYAML is not available then check to see if there are any mixin cols

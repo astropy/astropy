@@ -444,6 +444,7 @@ def table_to_hdu(table, character_as_bytes=False):
     """
     # Avoid circular imports
     from .connect import is_column_keyword, REMOVE_KEYWORDS
+    from .column import python_to_tdisp
 
     # Header to store Time related metadata
     hdr = None
@@ -497,8 +498,18 @@ def table_to_hdu(table, character_as_bytes=False):
     else:
         table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr, character_as_bytes=character_as_bytes)
 
-    # Set units for output HDU
+    # Set units and format display for output HDU
     for col in table_hdu.columns:
+
+        if table[col.name].info.format is not None:
+            # check for boolean types, special format case
+            logical = table[col.name].info.dtype == bool
+
+            tdisp_format = python_to_tdisp(table[col.name].info.format,
+                                           logical_dtype=logical)
+            if tdisp_format is not None:
+                col.disp = tdisp_format
+
         unit = table[col.name].unit
         if unit is not None:
             try:
