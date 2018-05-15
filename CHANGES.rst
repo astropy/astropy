@@ -215,7 +215,7 @@ astropy.utils
 
 - ``InheritDocstrings`` now also works on class properties. [#7166]
 
-- ``diff_values()`, ``report_diff_values()``, and ``where_not_allclose()``
+- ``diff_values()``, ``report_diff_values()``, and ``where_not_allclose()``
   utility functions are moved from ``astropy.io.fits.diff``. [#7444]
 
 astropy.visualization
@@ -1009,6 +1009,8 @@ astropy.table
 
 - Fix a performance issue in ``MaskedColumn`` where initialization was
   extremely slow for large arrays with the default ``mask=None``. [#7422]
+
+- Fix printing table row indexed with unsigned integer. [#7469]
 
 astropy.tests
 ^^^^^^^^^^^^^
