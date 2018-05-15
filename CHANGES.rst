@@ -151,14 +151,20 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
-- If a fast reader is explicitly selected (e.g. ``fast_reader='force') and
+- If a fast reader is explicitly selected (e.g. ``fast_reader='force'``) and
   options which are incompatible with the fast reader are provided
-  (e.g. ``quotechar='##') then now a ``ParameterError`` exception will be
+  (e.g. ``quotechar='##'``) then now a ``ParameterError`` exception will be
   raised. [#5578]
 
 - The fast readers will now raise ``InconsistentTableError`` instead of
   ``CParserError`` if the number of data and header columns do not match.
   [#5578]
+
+- Changed a number of ``ValueError`` exceptions to ``InconsistentTableError``
+  in places where the exception is related to parsing a table which is
+  inconsistent with the specified table format.  Note that
+  ``InconsistentTableError`` inherits from ``ValueError`` so no user code
+  changes are required. [#7425]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
