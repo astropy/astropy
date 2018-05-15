@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module's main purpose is to act as a script to create new versions
-of erfa.c when ERFA is updated (or this generator is enhanced).
+of ufunc.c when ERFA is updated (or this generator is enhanced).
 
 `Jinja2 <http://jinja.pocoo.org/>`_ must be installed for this
 module/script to function.
@@ -16,15 +16,9 @@ import re
 import os.path
 from collections import OrderedDict
 
-
-ctype_to_dtype = {'double': "numpy.double",
-                  'int': "numpy.intc",
-                  'eraASTROM': "dt_eraASTROM",
-                  'eraLDBODY': "dt_eraLDBODY",
-                  'char': "numpy.dtype('S1')",
-                  'const char': "numpy.dtype('S16')",
-                  }
-
+DEFAULT_ERFA_LOC = os.path.join(os.path.split(__file__)[0],
+                                '../../cextern/erfa')
+DEFAULT_TEMPLATE_LOC = os.path.split(__file__)[0]
 
 NDIMS_REX = re.compile(re.escape("numpy.dtype([('fi0', '.*', <(.*)>)])").replace(r'\.\*', '.*').replace(r'\<', '(').replace(r'\>', ')'))
 
@@ -47,6 +41,12 @@ class FunctionDoc:
                 for i in __input.split("\n"):
                     arg_doc = ArgumentDoc(i)
                     if arg_doc.name is not None:
+                        # Special-case LDBODY: for those, the previous argument
+                        # is always the number of bodies, but we don't need it
+                        # as an input argument for the ufunc since we're going
+                        # to determine this from the array itself.
+                        if 'LDBODY' in arg_doc.type:
+                            self.__input.pop()
                         self.__input.append(arg_doc)
             result = re.search("Given and returned([^\n]*):\n(.+?)  \n", self.doc, re.DOTALL)
             if result is not None:
@@ -115,9 +115,53 @@ class ArgumentDoc:
         return "    {0:15} {1:15} {2}".format(self.name, self.type, self.doc)
 
 
-class Argument:
+class Variable:
+    """Properties shared by Argument and Return."""
+    @property
+    def npy_type(self):
+        """Predefined type used by numpy ufuncs to indicate a given ctype.
+
+        Eg., NPY_DOUBLE for double.
+        """
+        return "NPY_" + self.ctype.upper()
+
+    @property
+    def dtype(self):
+        """Name of dtype corresponding to the ctype.
+
+        E.g., dt_double for double, dt_double33 for double[3][3].
+
+        This is used both in the loop definitions in ufunc.c and
+        to label structured dtypes in core.py
+        """
+        if self.ctype == 'const char':
+            return 'dt_char12'
+        elif self.ctype == 'char':
+            return 'dt_char1'
+        else:
+            return 'dt_' + self.ctype + ''.join(['{0}'.format(s)
+                                                 for s in self.shape])
+
+    @property
+    def ndim(self):
+        return len(self.shape)
+
+    @property
+    def size(self):
+        size = 1
+        for s in self.shape:
+            size *= s
+        return size
+
+    @property
+    def cshape(self):
+        return ''.join(['[{0}]'.format(s) for s in self.shape])
+
+
+class Argument(Variable):
 
     def __init__(self, definition, doc):
+        self.definition = definition
         self.doc = doc
         self.__inout_state = None
         self.ctype, ptr_name_arr = definition.strip().rsplit(" ", 1)
@@ -147,47 +191,31 @@ class Argument:
             for o in self.doc.output:
                 if self.name in o.name.split(','):
                     if self.__inout_state == 'in':
-                        self.__inout_state = 'inout'
+                        # Should really only happen for astrom, but
+                        # astrom lists a whole slew of other variables
+                        # -> refa and refb should not be done.
+                        if self.name == 'astrom':
+                            self.__inout_state = 'inout'
+                        elif self.name != 'refa' and self.name != 'refb':
+                            raise RuntimeError('Variable given in both '
+                                               'in and out sections')
                     else:
                         self.__inout_state = 'out'
         return self.__inout_state
 
     @property
-    def ctype_ptr(self):
-        if (self.is_ptr) | (len(self.shape) > 0):
-            return self.ctype+" *"
-        else:
-            return self.ctype
-
-    @property
-    def name_in_broadcast(self):
-        if len(self.shape) > 0:
-            return "{0}_in[...{1}]".format(self.name, ",0"*len(self.shape))
-        else:
-            return "{0}_in".format(self.name)
-
-    @property
-    def name_out_broadcast(self):
-        if len(self.shape) > 0:
-            return "{0}_out[...{1}]".format(self.name, ",0"*len(self.shape))
-        else:
-            return "{0}_out".format(self.name)
-
-    @property
-    def dtype(self):
-        return ctype_to_dtype[self.ctype]
-
-    @property
-    def ndim(self):
-        return len(self.shape)
-
-    @property
-    def cshape(self):
-        return ''.join(['[{0}]'.format(s) for s in self.shape])
-
-    @property
     def name_for_call(self):
-        if self.is_ptr:
+        """How the argument should be used in the call to the ERFA function.
+
+        This takes care of ensuring that inputs are passed by value,
+        as well as adding back the number of bodies for any LDBODY argument.
+        The latter presumes that in the ufunc inner loops, that number is
+        called 'nb'.
+        """
+        if self.ctype == 'eraLDBODY':
+            assert self.name == 'b'
+            return 'nb, _' + self.name
+        elif self.is_ptr:
             return '_'+self.name
         else:
             return '*_'+self.name
@@ -226,31 +254,17 @@ class ReturnDoc:
         return "Return value, type={0:15}, {1}, {2}".format(self.type, self.descr, self.doc)
 
 
-class Return:
+class Return(Variable):
 
     def __init__(self, ctype, doc):
         self.name = 'c_retval'
-        self.name_out_broadcast = self.name+"_out"
         self.inout_state = 'stat' if ctype == 'int' else 'ret'
         self.ctype = ctype
-        self.ctype_ptr = ctype
         self.shape = ()
         self.doc = doc
 
     def __repr__(self):
         return "Return(name='{0}', ctype='{1}', inout_state='{2}')".format(self.name, self.ctype, self.inout_state)
-
-    @property
-    def dtype(self):
-        return ctype_to_dtype[self.ctype]
-
-    @property
-    def nd_dtype(self):
-        """
-        This if the return type has a multi-dimensional output, like
-        double[3][3]
-        """
-        return "'fi0'" in self.dtype
 
     @property
     def doc_info(self):
@@ -342,6 +356,37 @@ class Function:
         else:
             return result
 
+    @property
+    def user_dtype(self):
+        """The non-standard dtype, if any, needed by this function's ufunc.
+
+        This would be any structured array for any input or output, but
+        we give preference to LDBODY, since that also decides that the ufunc
+        should be a generalized ufunc.
+        """
+        user_dtype = None
+        for arg in self.args_by_inout('in|inout|out'):
+            if arg.ctype == 'eraLDBODY':
+                return arg.dtype
+            elif user_dtype is None and (arg.ctype == 'eraASTROM' or
+                                         arg.shape or
+                                         arg.ctype.endswith('char')):
+                user_dtype = arg.dtype
+
+        return user_dtype
+
+    @property
+    def signature(self):
+        """Possible signature, if this function should be a gufunc."""
+        if self.user_dtype != 'dt_eraLDBODY':
+            return None
+
+        return '->'.join(
+            [','.join([('(n)' if arg.ctype == 'eraLDBODY' else '()')
+                       for arg in args])
+             for args in (self.args_by_inout('in|inout'),
+                          self.args_by_inout('inout|out|ret|stat'))])
+
     def __repr__(self):
         return "Function(name='{0}', pyname='{1}', filename='{2}', filepath='{3}')".format(self.name, self.pyname, self.filename, self.filepath)
 
@@ -419,7 +464,8 @@ class ExtraFunction(Function):
         return r
 
 
-def main(srcdir, outfn, templateloc, verbose=True):
+def main(srcdir=DEFAULT_ERFA_LOC, outfn='core.py', ufuncfn='ufunc.c',
+         templateloc=DEFAULT_TEMPLATE_LOC, verbose=True):
     from jinja2 import Environment, FileSystemLoader
 
     if verbose:
@@ -442,8 +488,8 @@ def main(srcdir, outfn, templateloc, verbose=True):
     env.filters['postfix'] = postfix
     env.filters['surround'] = surround
 
-    erfa_c_in = env.get_template('core.c.templ')
-    erfa_py_in = env.get_template('core.py.templ')
+    erfa_c_in = env.get_template(ufuncfn + '.templ')
+    erfa_py_in = env.get_template(outfn + '.templ')
 
     # Extract all the ERFA function names from erfa.h
     if os.path.isdir(srcdir):
@@ -457,14 +503,17 @@ def main(srcdir, outfn, templateloc, verbose=True):
         erfa_h = f.read()
 
     funcs = OrderedDict()
-    section_subsection_functions = re.findall(r'/\* (\w*)/(\w*) \*/\n(.*?)\n\n',
-                                              erfa_h, flags=re.DOTALL | re.MULTILINE)
+    section_subsection_functions = re.findall(
+        r'/\* (\w*)/(\w*) \*/\n(.*?)\n\n', erfa_h,
+        flags=re.DOTALL | re.MULTILINE)
     for section, subsection, functions in section_subsection_functions:
         print_("{0}.{1}".format(section, subsection))
+        # TODO: just compile all sections?
         if ((section == "Astronomy") or (subsection == "AngleOps")
-            or (subsection == "SphericalCartesian")
-            or (subsection == "MatrixVectorProducts")):
-            func_names = re.findall(r' (\w+)\(.*?\);', functions, flags=re.DOTALL)
+                or (subsection == "SphericalCartesian")
+                or (subsection == "MatrixVectorProducts")):
+            func_names = re.findall(r' (\w+)\(.*?\);', functions,
+                                    flags=re.DOTALL)
             for name in func_names:
                 print_("{0}.{1}.{2}...".format(section, subsection, name))
                 if multifilserc:
@@ -491,7 +540,7 @@ def main(srcdir, outfn, templateloc, verbose=True):
                                          "spawned it.  This should be "
                                          "impossible!")
 
-    funcs = list(funcs.values())
+    funcs = funcs.values()
 
     # Extract all the ERFA constants from erfam.h
     erfamhfn = os.path.join(srcdir, 'erfam.h')
@@ -499,13 +548,15 @@ def main(srcdir, outfn, templateloc, verbose=True):
         erfa_m_h = f.read()
     constants = []
     for chunk in erfa_m_h.split("\n\n"):
-        result = re.findall(r"#define (ERFA_\w+?) (.+?)$", chunk, flags=re.DOTALL | re.MULTILINE)
+        result = re.findall(r"#define (ERFA_\w+?) (.+?)$", chunk,
+                            flags=re.DOTALL | re.MULTILINE)
         if result:
             doc = re.findall(r"/\* (.+?) \*/\n", chunk, flags=re.DOTALL)
             for (name, value) in result:
                 constants.append(Constant(name, value, doc))
 
-    # TODO: re-enable this when const char* return values and non-status code integer rets are possible
+    # TODO: re-enable this when const char* return values and
+    #       non-status code integer rets are possible
     # #Add in any "extra" functions from erfaextra.h
     # erfaextrahfn = os.path.join(srcdir, 'erfaextra.h')
     # with open(erfaextrahfn, 'r') as f:
@@ -521,21 +572,16 @@ def main(srcdir, outfn, templateloc, verbose=True):
     erfa_py = erfa_py_in.render(funcs=funcs, constants=constants)
 
     if outfn is not None:
-        outfn_c = os.path.splitext(outfn)[0] + ".c"
-        print_("Saving to", outfn, 'and', outfn_c)
-        with open(outfn, "w") as f:
+        print_("Saving to", outfn, 'and', ufuncfn)
+        with open(os.path.join(templateloc, outfn), "w") as f:
             f.write(erfa_py)
-        with open(outfn_c, "w") as f:
+        with open(os.path.join(templateloc, ufuncfn), "w") as f:
             f.write(erfa_c)
 
     print_("Done!")
 
     return erfa_c, erfa_py, funcs
 
-
-DEFAULT_ERFA_LOC = os.path.join(os.path.split(__file__)[0],
-                                '../../cextern/erfa')
-DEFAULT_TEMPLATE_LOC = os.path.split(__file__)[0]
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
@@ -548,15 +594,15 @@ if __name__ == '__main__':
                          'erfa.h). Defaults to the builtin astropy '
                          'erfa: "{0}"'.format(DEFAULT_ERFA_LOC))
     ap.add_argument('-o', '--output', default='core.py',
-                    help='The output filename.  This is the name for only the '
-                         'pure-python output, the C part will have the '
-                         'same name but with a ".c" extension.')
+                    help='The output filename for the pure-python output.')
+    ap.add_argument('-u', '--ufunc', default='ufunc.c',
+                    help='The output filename for the ufunc .c output')
     ap.add_argument('-t', '--template-loc',
                     default=DEFAULT_TEMPLATE_LOC,
-                    help='the location where the "core.c.templ" '
-                         'template can be found.')
+                    help='the location where the "core.py.templ" and '
+                         '"ufunc.c.templ templates can be found.')
     ap.add_argument('-q', '--quiet', action='store_false', dest='verbose',
                     help='Suppress output normally printed to stdout.')
 
     args = ap.parse_args()
-    main(args.srcdir, args.output, args.template_loc)
+    main(args.srcdir, args.output, args.ufunc, args.template_loc)

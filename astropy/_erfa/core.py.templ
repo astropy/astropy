@@ -6,16 +6,14 @@
 # update it.
 
 """
-This module uses the Python/C API to wrap the ERFA library in
-numpy-vectorized equivalents.
+Python wrappers for the ufunc wrappers of the ERFA library.
 
 ..warning::
     This is currently *not* part of the public Astropy API, and may change in
     the future.
 
-
 The key idea is that any function can be called with inputs that are arrays,
-and the wrappers will automatically vectorize and call the ERFA functions for
+and the ufuncs will automatically vectorize and call the ERFA functions for
 each item using broadcasting rules for numpy.  So the return values are always
 numpy arrays of some sort.
 
@@ -24,13 +22,10 @@ dimension(s) are always the *last* dimension(s).  For example, if you
 want to give ten matrices (i.e., the ERFA input type is double[3][3]),
 you would pass in a (10, 3, 3) numpy array.  If the output of the ERFA
 function is scalar, you'll get back a length-10 1D array.
+(Note that the ufuncs take this into account using structured dtypes.)
 
-Note that the C part of these functions are implemented in a separate
-module (compiled as ``_core``), derived from the ``core.c`` file.
-Splitting the wrappers into separate pure-python and C portions
-dramatically reduces compilation time without notably impacting
-performance. (See issue [#3063] on the github repository for more
-about this.)
+Note that the ufunc part of these functions are implemented in a separate
+module (compiled as ``ufunc``), derived from the ``ufunc.c`` file.
 """
 
 import warnings
@@ -38,10 +33,9 @@ import warnings
 from ..utils.exceptions import AstropyUserWarning
 
 import numpy
-from . import _core
-
-# TODO: remove the above variable and the code using it and make_outputs_scalar
-# when numpy < 1.8 is no longer supported
+from . import ufunc
+from .ufunc import (dt_eraASTROM, dt_eraLDBODY, dt_double3, dt_double23,
+                    dt_double33, dt_int4, dt_char1, dt_char12)
 
 __all__ = ['ErfaError', 'ErfaWarning',
            {{ funcs|map(attribute='pyname')|surround("'","'")|join(", ") }},
@@ -75,6 +69,8 @@ STATUS_CODES_REMAP = {
 
 
 def check_errwarn(statcodes, func_name):
+    if not numpy.any(statcodes):
+        return
     # Remap any errors into warnings in the STATUS_CODES_REMAP dict.
     if func_name in STATUS_CODES_REMAP:
         for before, after in STATUS_CODES_REMAP[func_name].items():
@@ -120,44 +116,23 @@ def check_errwarn(statcodes, func_name):
 
 # <-------------------------trailing shape verification----------------------->
 
-def check_trailing_shape(arr, shape, name):
+def convert_to_dtype(arr, dtype, dtype_shape, dtype_ndim, name):
+    arr = numpy.array(arr, copy=False, subok=True)
     try:
-        if arr.shape[-len(shape):] != shape:
-            raise Exception()
-    except:
-        raise ValueError("{0} must be of trailing dimensions {1}".format(name, shape))
+        return arr.ravel().view(dtype).reshape(arr.shape[:-dtype_ndim])
+    except Exception:
+        raise ValueError("{0} must be of trailing dimensions {1}"
+                         .format(name, dtype_shape))
 
 # <--------------------------Actual ERFA-wrapping code------------------------>
-
-dt_eraASTROM = numpy.dtype([('pmt','d'),
-                         ('eb','d',(3,)),
-                         ('eh','d',(3,)),
-                         ('em','d'),
-                         ('v','d',(3,)),
-                         ('bm1','d'),
-                         ('bpn','d',(3,3)),
-                         ('along','d'),
-                         ('phi','d'),
-                         ('xpl','d'),
-                         ('ypl','d'),
-                         ('sphi','d'),
-                         ('cphi','d'),
-                         ('diurab','d'),
-                         ('eral','d'),
-                         ('refa','d'),
-                         ('refb','d')], align=True)
-
-dt_eraLDBODY = numpy.dtype([('bm','d'),
-                         ('dl','d'),
-                         ('pv','d',(2,3))], align=True)
-
 
 {% for constant in constants %}
 {{ constant.name }} = {{ constant.value }}
 """{{ constant.doc|join(' ') }}"""
 {%- endfor %}
 
-{% for func in funcs %}
+
+{% for func in funcs -%}
 def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }}):
     """
     Wrapper for ERFA function ``{{ func.name }}``.
@@ -181,64 +156,64 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
 {{ func.doc }}
     """
 
-    #Turn all inputs into arrays
-    {%- for arg in func.args_by_inout('in|inout') %}
-    {{ arg.name }}_in = numpy.array({{ arg.name }}, dtype={{ arg.dtype }}, order="C", copy=False, subok=True)
-    {%- endfor %}
-    {%- for arg in func.args_by_inout('in|inout') %}
-    {%- if arg.ndim > 0 %}
-    check_trailing_shape({{ arg.name }}_in, {{ arg.shape }}, "{{arg.name}}")
+    {#-
+     # Change dtype for all inputs that need it: those that have a
+     # structured dtype, but not one of the era ones (for which
+     # the inputs already should be in the right dtype).
+     #}
+    {%- for arg in func.args_by_inout('in|inout') -%}
+    {%- if 'era' not in arg.ctype and arg.shape %}
+    {{ arg.name }}_orig = {{ arg.name }}
+    {{ arg.name }} = convert_to_dtype({{ arg.name }}, {{ arg.dtype }}, {{ arg.shape }}, {{ arg.ndim }}, '{{ arg.name }}')
     {%- endif %}
     {%- endfor %}
-
-    {%- if func.args_by_inout('in|inout') %}
-    make_outputs_scalar = False
-    {%- endif %}
-
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), {{ func.args_by_inout('in|inout')|map(attribute='name_in_broadcast')|join(', ') }})
-    {%- for arg in func.args_by_inout('inout|out|ret|stat') %}
-    {{ arg.name }}_out = numpy.empty(broadcast.shape + {{ arg.shape }}, dtype={{ arg.dtype }})
-    {%- endfor %}
-    {%- for arg in func.args_by_inout('inout') %}
-    numpy.copyto({{ arg.name }}_out, {{ arg.name }}_in)
-    {%- endfor %}
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [{{ (func.args_by_inout('in')|map(attribute='name_in_broadcast')|list + func.args_by_inout('inout|out|ret|stat')|map(attribute='name_out_broadcast')|list)|join(', ') }}]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*{{ func.args_by_inout('in')|count }} + [['readwrite']]*{{ func.args_by_inout('inout|out|ret|stat')|count }}
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
-
-    #Iterate
-    stat_ok = _core._{{ func.pyname }}(it)
-
+    {#-
+     # Call the ufunc. Note that we pass inout twice, once as input
+     # and once as output, so that changes are done in-place
+     #}
+    {{ func.args_by_inout('inout|out|stat|ret')|map(attribute='name')|join(', ') }} = ufunc.{{ func.pyname }}({{ (func.args_by_inout('in|inout')|map(attribute='name')|list() + func.args_by_inout('inout')|map(attribute='name')|list())|join(', ') }})
+    {#-
+     # Check whether any warnings or errors occurred.
+     #}
     {%- for arg in func.args_by_inout('stat') %}
-
-    if not stat_ok:
-        check_errwarn({{ arg.name }}_out, '{{ func.pyname }}')
+    check_errwarn({{ arg.name }}, '{{ func.pyname }}')
     {%- endfor %}
-
-    {%- if func.args_by_inout('in|inout') %}
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        {%- for arg in func.args_by_inout('inout|out|ret') %}
-        assert len({{ arg.name }}_out.shape) > 0 and {{ arg.name }}_out.shape[0] == 1
-        {{ arg.name }}_out = {{ arg.name }}_out.reshape({{ arg.name }}_out.shape[1:])
-        {%- else %}
-        pass
-        {%- endfor %}
+    {#-
+     # For in-place arguments, check whether our cast was just a view;
+     # if so, all is fine. But if not, we need to copy back.
+     #}
+    {%- for arg in func.args_by_inout('inout') -%}
+    {%- if 'era' not in arg.ctype and arg.shape %}
+    if not numpy.may_share_memory({{ arg.name }}, {{ arg.name }}_orig):
+        {{ arg.name }}_orig[...] = {{ arg.name }}.view({{ arg.dtype }}.fields[{{ arg.dtype }}.names[0]][0])
+    {{ arg.name }} = {{ arg.name }}_orig
     {%- endif %}
+    {%- endfor %}
+    {#-
+     # View any structured output arguments as their based type.
+     #}
+    {%- for arg in func.args_by_inout('out') -%}
+    {%- if 'era' not in arg.ctype and (arg.shape or 'char' in arg.ctype) %}
+    {{ arg.name }} = {{ arg.name }}.view({{ arg.dtype }}.fields[{{ arg.dtype }}.names[0]][0])
+    {%- endif %}
+    {%- endfor %}
+    {#-
+     # Return the output arguments (including the inplace ones)
+     #}
+    return {{ func.args_by_inout('inout|out|ret')|map(attribute='name')|join(', ') }}
 
-    return {{ func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|join(', ') }}
 
-{%- for stat in func.args_by_inout('stat') %}
-{%- if stat.doc_info.statuscodes %}
+{#
+ # Define the status codes that this function returns.
+ #}
+{%- if func.args_by_inout('stat') -%}
+{%- for stat in func.args_by_inout('stat') -%}
+{%- if stat.doc_info.statuscodes -%}
 STATUS_CODES['{{ func.pyname }}'] = {{ stat.doc_info.statuscodes|string }}
 {% endif %}
-{%- endfor %}
-
 {% endfor %}
+{% endif -%}
+{% endfor -%}
 
 
 # TODO: delete the functions below when they can get auto-generated
