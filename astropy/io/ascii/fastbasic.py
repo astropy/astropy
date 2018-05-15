@@ -335,11 +335,11 @@ class FastRdb(FastBasic):
         self.engine.read_header()
 
         if len(self.engine.get_names()) != len(types):
-            raise ValueError('RDB header mismatch between number of '
+            raise core.InconsistentTableError('RDB header mismatch between number of '
                              'column names and column types')
 
         if any(not re.match(r'\d*(N|S)$', x, re.IGNORECASE) for x in types):
-            raise ValueError('RDB type definitions do not all match '
+            raise core.InconsistentTableError('RDB type definitions do not all match '
                              '[num](N|S): {0}'.format(types))
 
         try_int = {}
