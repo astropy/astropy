@@ -94,7 +94,8 @@ Fitting examples
                                                 niter=3, sigma=3.0)
 
      # get fitted model and filtered data
-     filtered_data, or_fitted_model = or_fit(g_init, x, y)
+     or_fitted_model, mask = or_fit(g_init, x, y)
+     filtered_data = np.ma.masked_array(y, mask=mask)
      fitted_model = fit(g_init, x, y)
 
      # plot data and fitted models
