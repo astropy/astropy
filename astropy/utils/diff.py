@@ -67,20 +67,6 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0):
         `True` if no diff, else `False`.
 
     """
-    typea = type(a)
-    typeb = type(b)
-
-    if (isinstance(a, str) and not isinstance(b, str)):
-        a = repr(a).lstrip('u')
-    elif (isinstance(b, str) and not isinstance(a, str)):
-        b = repr(b).lstrip('u')
-
-    if isinstance(a, (int, float, complex, np.number)):
-        a = repr(a)
-
-    if isinstance(b, (int, float, complex, np.number)):
-        b = repr(b)
-
     if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
         diff_indices = np.where(a != b)
         # NOTE: Two 5x5 arrays that are completely different would
@@ -99,27 +85,33 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0):
                 indent_width))
         return num_diffs == 0
 
-    padding = max(len(typea.__name__), len(typeb.__name__)) + 3
+    typea = type(a)
+    typeb = type(b)
+    a = repr(a) if isinstance(a, (int, float, complex, np.number)) else str(a)
+    b = repr(b) if isinstance(b, (int, float, complex, np.number)) else str(b)
+
+    if typea == typeb:
+        lnpad = ' '
+        sign_a = 'a>'
+        sign_b = 'b>'
+    else:
+        padding = max(len(typea.__name__), len(typeb.__name__)) + 3
+        lnpad = padding * ' '
+        tname = ('(' + typea.__name__ + ') ').rjust(padding)
+        sign_a = tname + 'a>'
+        sign_b = tname + 'b>'
+
     identical = True
 
-    for line in difflib.ndiff(str(a).splitlines(), str(b).splitlines()):
+    for line in difflib.ndiff(a.splitlines(), b.splitlines()):
         if line[0] == '-':
             identical = False
-            line = 'a>' + line[1:]
-            if typea != typeb:
-                typename = '(' + typea.__name__ + ') '
-                line = typename.rjust(padding) + line
-
+            line = sign_a + line[1:]
         elif line[0] == '+':
             identical = False
-            line = 'b>' + line[1:]
-            if typea != typeb:
-                typename = '(' + typeb.__name__ + ') '
-                line = typename.rjust(padding) + line
+            line = sign_b + line[1:]
         else:
-            line = ' ' + line
-            if typea != typeb:
-                line = ' ' * padding + line
+            line = lnpad + line
         fileobj.write(fixed_width_indent(
             '  {}\n'.format(line.rstrip('\n')), indent_width))
 
