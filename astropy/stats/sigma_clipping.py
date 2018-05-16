@@ -173,6 +173,34 @@ class SigmaClip:
 
         return _filtered_data
 
+    def _sigmaclip_noaxis(self, data, copy=True):
+        return self._sigmaclip_withaxis(data, copy=copy)
+
+    def _sigmaclip_withaxis(self, data, axis=None, copy=True):
+        if np.any(~np.isfinite(data)):
+            data = np.ma.masked_invalid(data)
+            warnings.warn('Input data contains invalid values (NaNs or '
+                          'infs), which were automatically masked.',
+                          AstropyUserWarning)
+
+        filtered_data = np.ma.array(data, copy=copy)
+
+        if self.iters is None:
+            lastrej = filtered_data.count() + 1
+            while filtered_data.count() != lastrej:
+                lastrej = filtered_data.count()
+                self._perform_clip(filtered_data, axis=axis)
+        else:
+            for i in range(self.iters):
+                self._perform_clip(filtered_data, axis=axis)
+
+        # prevent filtered_data.mask = False (scalar) if no values are clipped
+        if filtered_data.mask.shape == ():
+            # make .mask shape match .data shape
+            filtered_data.mask = False
+
+        return filtered_data
+
     def __call__(self, data, axis=None, copy=True):
         """
         Perform sigma clipping on the provided data.
@@ -199,29 +227,10 @@ class SigmaClip:
             the points rejected by the algorithm have been masked.
         """
 
-        if np.any(~np.isfinite(data)):
-            data = np.ma.masked_invalid(data)
-            warnings.warn('Input data contains invalid values (NaNs or '
-                          'infs), which were automatically masked.',
-                          AstropyUserWarning)
-
-        filtered_data = np.ma.array(data, copy=copy)
-
-        if self.iters is None:
-            lastrej = filtered_data.count() + 1
-            while filtered_data.count() != lastrej:
-                lastrej = filtered_data.count()
-                self._perform_clip(filtered_data, axis=axis)
+        if axis is None:
+            return self._sigmaclip_noaxis(data, copy=copy)
         else:
-            for i in range(self.iters):
-                self._perform_clip(filtered_data, axis=axis)
-
-        # prevent filtered_data.mask = False (scalar) if no values are clipped
-        if filtered_data.mask.shape == ():
-            # make .mask shape match .data shape
-            filtered_data.mask = False
-
-        return filtered_data
+            return self._sigmaclip_withaxis(data, axis=axis, copy=copy)
 
 
 def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
