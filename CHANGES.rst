@@ -360,6 +360,9 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Raise error when attempting to open gzipped FITS file in 'append' mode.
+  [#7473]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
