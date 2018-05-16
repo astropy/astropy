@@ -77,6 +77,22 @@ def test_array_comparison():
                    '  ...and at 6 more indices.\n')
 
 
+def test_diff_shaped_array_comparison():
+    """
+    Test diff-ing two differently shaped arrays.
+    """
+    f = io.StringIO()
+    a = np.empty((1, 2, 3))
+    b = np.empty((2, 3))
+    identical = report_diff_values(a, b, fileobj=f)
+    assert not identical
+    out = f.getvalue()
+    assert out == ('  Different array shapes:\n'
+                   '    a> (1, 2, 3)\n'
+                   '     ?  ---\n'
+                   '    b> (2, 3)\n')
+
+
 def test_tablediff():
     """
     Test diff-ing two simple Table objects.

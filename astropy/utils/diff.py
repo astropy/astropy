@@ -70,6 +70,14 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0):
 
     """
     if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
+        if a.shape != b.shape:
+            fileobj.write(
+                fixed_width_indent('  Different array shapes:\n',
+                                   indent_width))
+            report_diff_values(str(a.shape), str(b.shape), fileobj=fileobj,
+                               indent_width=indent_width + 1)
+            return False
+
         diff_indices = np.transpose(np.where(a != b))
         num_diffs = diff_indices.shape[0]
 
