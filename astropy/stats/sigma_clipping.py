@@ -116,7 +116,7 @@ class SigmaClip:
         self.sigma_lower = sigma_lower
         self.sigma_upper = sigma_upper
 
-        self.iters = iters
+        self.iters = iters or np.inf
         self.cenfunc = cenfunc
         self.stdfunc = stdfunc
 
@@ -185,14 +185,12 @@ class SigmaClip:
 
         filtered_data = np.ma.array(data, copy=copy)
 
-        if self.iters is None:
-            lastrej = filtered_data.count() + 1
-            while filtered_data.count() != lastrej:
-                lastrej = filtered_data.count()
-                self._perform_clip(filtered_data, axis=axis)
-        else:
-            for i in range(self.iters):
-                self._perform_clip(filtered_data, axis=axis)
+        count = filtered_data.count() + 1
+        iteration = 0
+        while filtered_data.count() != count and (iteration < self.iters):
+            iteration += 1
+            count = filtered_data.count()
+            self._perform_clip(filtered_data, axis=axis)
 
         # prevent filtered_data.mask = False (scalar) if no values are clipped
         if filtered_data.mask.shape == ():
