@@ -1773,6 +1773,9 @@ class TimeDelta(Time):
         return out
 
     def to_datetime(self):
+        """
+        Convert to ``datetime.timedelta`` object.
+        """
         tm = self.replicate(format='datetime')
         return tm._shaped_like_input(tm._time.value)
 

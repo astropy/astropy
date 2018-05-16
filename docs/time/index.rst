@@ -952,6 +952,7 @@ Format            Class
 =========  ===================================================
 sec        :class:`~astropy.time.TimeDeltaSec`
 jd         :class:`~astropy.time.TimeDeltaJD`
+datetime   :class:`~astropy.time.TimeDeltaDatetime`
 =========  ===================================================
 
 Examples
