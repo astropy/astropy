@@ -231,6 +231,14 @@ class SigmaClip:
             the points rejected by the algorithm have been masked.
         """
 
+        data = np.asanyarray(data)
+
+        if data.size == 0:
+            return data
+
+        if isinstance(data, np.ma.MaskedArray) and data.mask.all():
+            return data
+
         if axis is None:
             return self._sigmaclip_noaxis(data, copy=copy)
         else:
