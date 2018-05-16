@@ -107,9 +107,15 @@ class SigmaClip:
 
     def __init__(self, sigma=3., sigma_lower=None, sigma_upper=None, iters=5,
                  cenfunc=np.ma.median, stdfunc=np.std):
+
         self.sigma = sigma
+        if sigma_lower is None:
+            sigma_lower = sigma
+        if sigma_upper is None:
+            sigma_upper = sigma
         self.sigma_lower = sigma_lower
         self.sigma_upper = sigma_upper
+
         self.iters = iters
         self.cenfunc = cenfunc
         self.stdfunc = stdfunc
@@ -192,11 +198,6 @@ class SigmaClip:
             A masked array with the same shape as ``data`` input, where
             the points rejected by the algorithm have been masked.
         """
-
-        if self.sigma_lower is None:
-            self.sigma_lower = self.sigma
-        if self.sigma_upper is None:
-            self.sigma_upper = self.sigma
 
         if np.any(~np.isfinite(data)):
             data = np.ma.masked_invalid(data)
