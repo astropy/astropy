@@ -74,7 +74,7 @@ def test_array_comparison():
                    '  at [0, 2]:\n'
                    '    a> 2\n'
                    '    b> 3\n'
-                   '  ...and at 78 more indices.\n')
+                   '  ...and at 6 more indices.\n')
 
 
 def test_tablediff():
