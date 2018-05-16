@@ -366,9 +366,9 @@ documentation::
   sc.itrs                                sc.z_sun
   sc.location
 
-Here we see a bunch of stuff there but much of it should be recognizable or
-easily guessed.  The most obvious may be the longitude and latitude attributes
-which are named ``ra`` and ``dec`` for the ``ICRS`` frame::
+Here we see many attributes and methods, the most recognizable may be the
+longitude and latitude attributes which are named ``ra`` and ``dec`` for the
+``ICRS`` frame::
 
   >>> sc.ra  # doctest: +FLOAT_CMP
   <Longitude 1. deg>

@@ -295,7 +295,7 @@ arguments which control the model for the data:
   and likely other names as well.
 - ``nterms`` (``1`` by default) controls how many Fourier terms are used in the
   model. As seen above, the standard Lomb-Scargle periodogram is equivalent to
-  a single-term sinusoidal fit to the data at each frequency; the obvious
+  a single-term sinusoidal fit to the data at each frequency; the
   generalization is to expand this to a truncated Fourier series with multiple
   frequencies. While this can be very useful in some cases, in others the
   additional model complexity can lead to spurious periodogram peaks that
