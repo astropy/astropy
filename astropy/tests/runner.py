@@ -292,11 +292,11 @@ class TestRunner(TestRunnerBase):
             Base path to the source code or documentation.
         error : str
             Error message to be raised as ``ValueError``. Individual package
-            name and path can be accessed by ``{0}`` or ``{1}``
+            name and path can be accessed by ``{name}`` and ``{path}``
             respectively. No error is raised if `None`. (Default: `None`)
         warning : str
             Warning message to be issued. Individual package
-            name and path can be accessed by ``{0}`` or ``{1}``
+            name and path can be accessed by ``{name}`` and ``{path}``
             respectively. No warning is issues if `None`. (Default: `None`)
 
         Returns
@@ -311,10 +311,11 @@ class TestRunner(TestRunnerBase):
             path = os.path.join(
                 base_path, package.replace('.', os.path.sep))
             if not os.path.isdir(path):
+                info = {'name': package, 'path': path}
                 if error is not None:
-                    raise ValueError(error.format(package, path))
+                    raise ValueError(error.format(**info))
                 if warning is not None:
-                    warnings.warn(warning.format(package, path))
+                    warnings.warn(warning.format(**info))
             else:
                 paths.append(path)
 
@@ -344,7 +345,8 @@ class TestRunner(TestRunnerBase):
         if package is None:
             self.package_path = [self.base_path]
         else:
-            error_message = 'package to test is not found: {0} (at path {1}).'
+            error_message = ('package to test is not found: {name} '
+                             '(at path {path}).')
             self.package_path = self.packages_path(package, self.base_path,
                                                    error=error_message)
 
@@ -554,19 +556,17 @@ class TestRunner(TestRunnerBase):
             The path to the documentation .rst files.
         """
 
+        paths = []
         if docs_path is not None and not kwargs['skip_docs']:
             if kwargs['package'] is not None:
-                warning_message = ("Can not test .rst docs for {0}, since "
-                                   "docs path ({1}) does not exist.")
+                warning_message = ("Can not test .rst docs for {name}, since "
+                                   "docs path ({path}) does not exist.")
                 paths = self.packages_path(kwargs['package'], docs_path,
                                            warning=warning_message)
             if len(paths) and not kwargs['test_path']:
                 paths.append('--doctest-rst')
 
-            return paths
-
-        else:
-            return []
+        return paths
 
     @keyword()
     def skip_docs(self, skip_docs, kwargs):
