@@ -416,6 +416,9 @@ class _File:
     def _try_read_compressed(self, obj_or_name, magic, mode, ext=''):
         """Attempt to determine if the given file is compressed"""
         if ext == '.gz' or magic.startswith(GZIP_MAGIC):
+            if mode == 'append':
+                raise OSError("'append' mode is not supported with gzip files."
+                              "Use 'update' mode instead")
             # Handle gzip files
             kwargs = dict(mode=IO_FITS_MODES[mode])
             if isinstance(obj_or_name, str):
