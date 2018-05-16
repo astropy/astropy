@@ -140,6 +140,17 @@ class SigmaClip:
             lines.append('    {0}: {1}'.format(attr, getattr(self, attr)))
         return '\n'.join(lines)
 
+    def _perform_sigclip_noaxis(self, _filtered_data, axis=None):
+        max_value = self.cenfunc(_filtered_data, axis=axis)
+        std = self.stdfunc(_filtered_data, axis=axis)
+        min_value = max_value - std * self.sigma_lower
+        max_value += std * self.sigma_upper
+
+        _filtered_data = _filtered_data[(_filtered_data >= min_value) &
+                                        (_filtered_data <= max_value)]
+
+        return _filtered_data, min_value, max_value
+
     def _perform_clip(self, _filtered_data, axis=None):
         """
         Perform sigma clip by comparing the data to the minimum and
@@ -176,7 +187,35 @@ class SigmaClip:
         return _filtered_data
 
     def _sigmaclip_noaxis(self, data, copy=True):
-        return self._sigmaclip_withaxis(data, copy=copy)
+        filtered_data = data.ravel()
+
+        # remove masked values and convert to ndarray
+        if isinstance(filtered_data, np.ma.MaskedArray):
+            filtered_data = filtered_data.data[~filtered_data.mask]
+
+        # remove invalid values
+        good_mask = np.isfinite(filtered_data)
+        if np.any(~good_mask):
+            filtered_data = filtered_data[good_mask]
+            warnings.warn('Input data contains invalid values (NaNs or '
+                          'infs), which were automatically clipped.',
+                          AstropyUserWarning)
+
+        size = filtered_data.size + 1
+        iteration = 0
+        while filtered_data.size != size and (iteration < self.maxiters):
+            iteration += 1
+            size = filtered_data.size
+            filtered_data, min_value, max_value = self._perform_sigclip_noaxis(
+                filtered_data, axis=None)
+
+        # return a masked array
+        data = np.ma.masked_invalid(data, copy=copy)
+
+        # update the mask in place
+        data.mask |= np.logical_or(data < min_value, data > max_value)
+
+        return data
 
     def _sigmaclip_withaxis(self, data, axis=None, copy=True):
         if np.any(~np.isfinite(data)):
