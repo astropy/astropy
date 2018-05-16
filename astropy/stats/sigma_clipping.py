@@ -170,10 +170,6 @@ class SigmaClip:
             min_value = min_value.reshape(mshape)
             max_value = max_value.reshape(mshape)
 
-        if max_value is np.ma.masked:
-            max_value = np.ma.MaskedArray(np.nan, mask=True)
-            min_value = np.ma.MaskedArray(np.nan, mask=True)
-
         _filtered_data.mask |= _filtered_data > max_value
         _filtered_data.mask |= _filtered_data < min_value
 
