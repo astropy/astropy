@@ -168,18 +168,8 @@ class SigmaClip:
         min_value = max_value - std * self.sigma_lower
         max_value += std * self.sigma_upper
 
-        # Ensure min/max can be broadcast with the data (if arrays):
-        if axis is not None:
-            if not isiterable(axis):
-                axis = (axis,)
-
-            # Convert negative indices & restore reduced axes, with length 1:
-            axis = tuple(_filtered_data.ndim + n if n < 0 else n for n in axis)
-            mshape = tuple(1 if dim in axis else sz
-                           for dim, sz in enumerate(_filtered_data.shape))
-
-            min_value = min_value.reshape(mshape)
-            max_value = max_value.reshape(mshape)
+        min_value = min_value.reshape(self._mshape)
+        max_value = max_value.reshape(self._mshape)
 
         _filtered_data.mask |= _filtered_data > max_value
         _filtered_data.mask |= _filtered_data < min_value
@@ -225,6 +215,16 @@ class SigmaClip:
                           AstropyUserWarning)
 
         filtered_data = np.ma.array(data, copy=copy)
+
+        # convert negative axis/axes
+        if not isiterable(axis):
+            axis = (axis,)
+        axis = tuple(filtered_data.ndim + n if n < 0 else n for n in axis)
+
+        # define the shape of min/max arrays so that they can be broadcast
+        # with the data
+        self._mshape = tuple(1 if dim in axis else sz
+                             for dim, sz in enumerate(filtered_data.shape))
 
         count = filtered_data.count() + 1
         iteration = 0
