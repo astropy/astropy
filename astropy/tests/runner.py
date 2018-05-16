@@ -280,8 +280,29 @@ class TestRunner(TestRunnerBase):
     A test runner for astropy tests
     """
 
-    def packages_path(self, packages, base_path, warning=None, error=None):
+    def packages_path(self, packages, base_path, error=None, warning=None):
         """
+        Generates the path for multiple packages.
+
+        Parameters
+        ----------
+        packages : str
+            Comma separated string of packages.
+        base_path : str
+            Base path to the source code or documentation.
+        error : str
+            Error message to be raised as ``ValueError``. Individual package
+            name and path can be accessed by ``{0}`` or ``{1}``
+            respectively. No error is raised if `None`. (Default: `None`)
+        warning : str
+            Warning message to be issued. Individual package
+            name and path can be accessed by ``{0}`` or ``{1}``
+            respectively. No warning is issues if `None`. (Default: `None`)
+
+        Returns
+        -------
+        paths : list of str
+            List of stings of existing package paths.
         """
         packages = packages.split(",")
 
@@ -323,7 +344,7 @@ class TestRunner(TestRunnerBase):
         if package is None:
             self.package_path = [self.base_path]
         else:
-            error_message = 'package not found: {0}.'
+            error_message = 'package to test is not found: {0} (at path {1}).'
             self.package_path = self.packages_path(package, self.base_path,
                                                    error=error_message)
 
