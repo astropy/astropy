@@ -176,7 +176,7 @@ resulting mask will be. There are several options.
       ...     result[start+1::2] = mask2[start+1::2]
       ...     return result
 
-  This function is obviously non-sense but let's see how it performs::
+  This function is non-sense but let's see how it performs::
 
       >>> ndd1 = NDDataRef(1, mask=np.array([True, False, True, False]))
       >>> ndd2 = NDDataRef(1, mask=np.array([True, False, False, True]))
