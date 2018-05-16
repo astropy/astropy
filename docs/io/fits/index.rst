@@ -94,8 +94,9 @@ After exiting the ``with`` scope the file will be closed automatically. That's
 (generally) the preferred way to open a file in Python, because it will close
 the file even if an exception happens.
 
-The headers will still be accessible after the HDUList is closed. The data may
-or may not be accessible depending on whether the data are touched and if they
+If the file is opened with ``lazy_load_hdus=False``, all of the headers will 
+still be accessible after the HDUList is closed. The headers and data may or
+may not be  accessible depending on whether the data are touched and if they
 are memory-mapped, see later chapters for detail.
 
 .. _fits-large-files:
