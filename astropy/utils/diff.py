@@ -12,6 +12,8 @@ from .misc import indent
 __all__ = ['fixed_width_indent', 'diff_values', 'report_diff_values',
            'where_not_allclose']
 
+_NUMERIC_TYPES = (int, float, complex, np.number)
+
 # Smaller default shift-width for indent
 fixed_width_indent = functools.partial(indent, width=2)
 
@@ -68,38 +70,51 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0):
 
     """
     if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
-        diff_indices = np.where(a != b)
-        # NOTE: Two 5x5 arrays that are completely different would
-        # report num_diffs of 625 (25 * 25).
-        num_diffs = reduce(operator.mul, map(len, diff_indices), 1)
-        for idx in islice(zip(*diff_indices), 3):
+        diff_indices = np.transpose(np.where(a != b))
+        num_diffs = diff_indices.shape[0]
+
+        for idx in diff_indices[:3]:
+            lidx = idx.tolist()
             fileobj.write(
-                fixed_width_indent('  at {!r}:\n'.format(list(idx)),
-                                   indent_width))
-            report_diff_values(a[idx], b[idx], fileobj=fileobj,
+                fixed_width_indent('  at {!r}:\n'.format(lidx), indent_width))
+            report_diff_values(a[tuple(idx)], b[tuple(idx)], fileobj=fileobj,
                                indent_width=indent_width + 1)
 
         if num_diffs > 3:
             fileobj.write(fixed_width_indent(
-                '  ...and at {} more indices.\n'.format(num_diffs - 3),
+                '  ...and at {:d} more indices.\n'.format(num_diffs - 3),
                 indent_width))
+            return False
+
         return num_diffs == 0
 
     typea = type(a)
     typeb = type(b)
-    a = repr(a) if isinstance(a, (int, float, complex, np.number)) else str(a)
-    b = repr(b) if isinstance(b, (int, float, complex, np.number)) else str(b)
 
     if typea == typeb:
         lnpad = ' '
         sign_a = 'a>'
         sign_b = 'b>'
+        if isinstance(a, _NUMERIC_TYPES):
+            a = repr(a)
+            b = repr(b)
+        else:
+            a = str(a)
+            b = str(b)
     else:
         padding = max(len(typea.__name__), len(typeb.__name__)) + 3
-        lnpad = padding * ' '
-        tname = ('(' + typea.__name__ + ') ').rjust(padding)
-        sign_a = tname + 'a>'
-        sign_b = tname + 'b>'
+        lnpad = (padding + 1) * ' '
+        sign_a = ('(' + typea.__name__ + ') ').rjust(padding) + 'a>'
+        sign_b = ('(' + typeb.__name__ + ') ').rjust(padding) + 'b>'
+
+        is_a_str = isinstance(a, str)
+        is_b_str = isinstance(b, str)
+        a = (repr(a) if ((is_a_str and not is_b_str) or
+                         (not is_a_str and isinstance(a, _NUMERIC_TYPES)))
+             else str(a))
+        b = (repr(b) if ((is_b_str and not is_a_str) or
+                         (not is_b_str and isinstance(b, _NUMERIC_TYPES)))
+             else str(b))
 
     identical = True
 

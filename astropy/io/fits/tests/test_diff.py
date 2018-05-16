@@ -554,7 +554,7 @@ class TestDiff(FitsTestCase):
         assert ('Column A data differs in row 0:\n'
                 '    a> True\n'
                 '    b> False') in report
-        assert ('...and at 13 more indices.\n'
+        assert ('...and at 1 more indices.\n'
                 ' Column D data differs in row 0:') in report
         assert ('13 different table data element(s) found (65.00% different)'
                 in report)
