@@ -47,7 +47,7 @@ class SigmaClip:
     maxiters : int or `None`, optional
         The maximum number of sigma-clipping iterations to perform or
         `None` to clip until convergence is achieved (i.e., iterate
-        until the last iteration clips nothing). If convergence is
+        until the last iteration clips nothing).  If convergence is
         achieved prior to ``maxiters`` iterations, the clipping
         iterations will stop.  Defaults to 5.
     cenfunc : callable, optional
@@ -275,7 +275,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
     maxiters : int or `None`, optional
         The maximum number of sigma-clipping iterations to perform or
         `None` to clip until convergence is achieved (i.e., iterate
-        until the last iteration clips nothing). If convergence is
+        until the last iteration clips nothing).  If convergence is
         achieved prior to ``maxiters`` iterations, the clipping
         iterations will stop.  Defaults to 5.
     cenfunc : callable, optional
@@ -383,8 +383,9 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
     return sigclip(data, axis=axis, copy=copy)
 
 
+@deprecated_renamed_argument('iters', 'maxiters', '3.1')
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
-                        sigma_lower=None, sigma_upper=None, iters=5,
+                        sigma_lower=None, sigma_upper=None, maxiters=5,
                         cenfunc=np.ma.median, stdfunc=np.std, std_ddof=0,
                         axis=None):
     """
@@ -420,11 +421,12 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         the clipping limit.  If `None` then the value of ``sigma`` is used.
         Defaults to `None`.
 
-    iters : int, optional
-        The number of iterations to perform sigma clipping, or `None` to
-        clip until convergence is achieved (i.e., continue until the
-        last iteration clips nothing) when calculating the statistics.
-        Defaults to 5.
+    iters : int or `None`, optional
+        The maximum number of sigma-clipping iterations to perform or
+        `None` to clip until convergence is achieved (i.e., iterate
+        until the last iteration clips nothing).  If convergence is
+        achieved prior to ``maxiters`` iterations, the clipping
+        iterations will stop.  Defaults to 5.
 
     cenfunc : callable, optional
         The function used to compute the center for the clipping. Must
@@ -472,7 +474,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         data = np.ma.masked_values(data, mask_value)
 
     data_clip = sigma_clip(data, sigma=sigma, sigma_lower=sigma_lower,
-                           sigma_upper=sigma_upper, iters=iters,
+                           sigma_upper=sigma_upper, maxiters=maxiters,
                            cenfunc=cenfunc, stdfunc=stdfunc, axis=axis)
 
     mean = np.ma.mean(data_clip, axis=axis)
