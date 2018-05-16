@@ -280,6 +280,25 @@ class TestRunner(TestRunnerBase):
     A test runner for astropy tests
     """
 
+    def packages_path(self, packages, base_path, warning=None, error=None):
+        """
+        """
+        packages = packages.split(",")
+
+        paths = []
+        for package in packages:
+            path = os.path.join(
+                base_path, package.replace('.', os.path.sep))
+            if not os.path.isdir(path):
+                if error is not None:
+                    raise ValueError(error.format(package, path))
+                if warning is not None:
+                    warnings.warn(warning.format(package, path))
+            else:
+                paths.append(path)
+
+        return paths
+
     # Increase priority so this warning is displayed first.
     @keyword(priority=1000)
     def coverage(self, coverage, kwargs):
@@ -304,18 +323,9 @@ class TestRunner(TestRunnerBase):
         if package is None:
             self.package_path = [self.base_path]
         else:
-            packages = package.split(',')
-
-            self.package_path = []
-            for package in packages:
-                package_path = os.path.join(self.base_path,
-                                            package.replace('.', os.path.sep))
-                if not os.path.isdir(package_path):
-                    warnings.warn('Package not found: {0}'.format(package))
-                else:
-                    self.package_path.append(package_path)
-            if len(self.package_path) == 0:
-                raise ValueError('No packages found: {0}'.format(packages))
+            error_message = 'package not found: {0}.'
+            self.package_path = self.packages_path(package, self.base_path,
+                                                   error=error_message)
 
         if not kwargs['test_path']:
             return self.package_path
@@ -523,27 +533,19 @@ class TestRunner(TestRunnerBase):
             The path to the documentation .rst files.
         """
 
-        paths = []
-
         if docs_path is not None and not kwargs['skip_docs']:
             if kwargs['package'] is not None:
-                packages = kwargs['package'].split(',')
+                warning_message = ("Can not test .rst docs for {0}, since "
+                                   "docs path ({1}) does not exist.")
+                paths = self.packages_path(kwargs['package'], docs_path,
+                                           warning=warning_message)
+            if len(paths) and not kwargs['test_path']:
+                paths.append('--doctest-rst')
 
-                for package in packages:
-                    path = os.path.join(docs_path,
-                                        package.replace('.', os.path.sep))
+            return paths
 
-                    if not os.path.exists(path):
-                        warnings.warn(
-                            "Can not test .rst docs for {0}, since docs path "
-                            "({1}) does not exist.".format(package, path))
-                    else:
-                        paths.append(path)
-
-        if len(paths) and not kwargs['test_path']:
-            paths.append('--doctest-rst')
-
-        return paths
+        else:
+            return []
 
     @keyword()
     def skip_docs(self, skip_docs, kwargs):
