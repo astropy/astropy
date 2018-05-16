@@ -1,9 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import numpy as np
 import warnings
-from ..utils.exceptions import AstropyUserWarning
+
+import numpy as np
+
 from ..utils import isiterable
+from ..utils.decorators import deprecated_renamed_argument
+from ..utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['SigmaClip', 'sigma_clip', 'sigma_clipped_stats']
@@ -41,10 +44,12 @@ class SigmaClip:
         The number of standard deviations to use as the upper bound for
         the clipping limit. If `None` then the value of ``sigma`` is
         used. Defaults to `None`.
-    iters : int or `None`, optional
-        The number of iterations to perform sigma clipping, or `None` to
-        clip until convergence is achieved (i.e., continue until the
-        last iteration clips nothing). Defaults to 5.
+    maxiters : int or `None`, optional
+        The maximum number of sigma-clipping iterations to perform or
+        `None` to clip until convergence is achieved (i.e., iterate
+        until the last iteration clips nothing). If convergence is
+        achieved prior to ``maxiters`` iterations, the clipping
+        iterations will stop.  Defaults to 5.
     cenfunc : callable, optional
         The function used to compute the center for the clipping. Must
         be a callable that takes in a masked array and outputs the
@@ -77,7 +82,7 @@ class SigmaClip:
         >>> from astropy.stats import SigmaClip
         >>> from numpy.random import randn
         >>> randvar = randn(10000)
-        >>> sigclip = SigmaClip(sigma=2, iters=5)
+        >>> sigclip = SigmaClip(sigma=2, maxiters=5)
         >>> filtered_data = sigclip(randvar)
 
     This example sigma clips on a similar distribution, but uses 3 sigma
@@ -88,7 +93,7 @@ class SigmaClip:
         >>> from numpy.random import randn
         >>> from numpy import mean
         >>> randvar = randn(10000)
-        >>> sigclip = SigmaClip(sigma=3, iters=None, cenfunc=mean)
+        >>> sigclip = SigmaClip(sigma=3, maxiters=None, cenfunc=mean)
         >>> filtered_data = sigclip(randvar, copy=False)
 
     This example sigma clips along one axis on a similar distribution
@@ -105,8 +110,9 @@ class SigmaClip:
     variance is higher.
     """
 
-    def __init__(self, sigma=3., sigma_lower=None, sigma_upper=None, iters=5,
-                 cenfunc=np.ma.median, stdfunc=np.std):
+    @deprecated_renamed_argument('iters', 'maxiters', '3.1')
+    def __init__(self, sigma=3., sigma_lower=None, sigma_upper=None,
+                 maxiters=5, cenfunc=np.ma.median, stdfunc=np.std):
 
         self.sigma = sigma
         if sigma_lower is None:
@@ -116,19 +122,19 @@ class SigmaClip:
         self.sigma_lower = sigma_lower
         self.sigma_upper = sigma_upper
 
-        self.iters = iters or np.inf
+        self.maxiters = maxiters or np.inf
         self.cenfunc = cenfunc
         self.stdfunc = stdfunc
 
     def __repr__(self):
         return ('SigmaClip(sigma={0}, sigma_lower={1}, sigma_upper={2}, '
-                'iters={3}, cenfunc={4}, stdfunc={5})'
+                'maxiters={3}, cenfunc={4}, stdfunc={5})'
                 .format(self.sigma, self.sigma_lower, self.sigma_upper,
-                        self.iters, self.cenfunc, self.stdfunc))
+                        self.maxiters, self.cenfunc, self.stdfunc))
 
     def __str__(self):
         lines = ['<' + self.__class__.__name__ + '>']
-        attrs = ['sigma', 'sigma_lower', 'sigma_upper', 'iters', 'cenfunc',
+        attrs = ['sigma', 'sigma_lower', 'sigma_upper', 'maxiters', 'cenfunc',
                  'stdfunc']
         for attr in attrs:
             lines.append('    {0}: {1}'.format(attr, getattr(self, attr)))
@@ -187,7 +193,7 @@ class SigmaClip:
 
         count = filtered_data.count() + 1
         iteration = 0
-        while filtered_data.count() != count and (iteration < self.iters):
+        while filtered_data.count() != count and (iteration < self.maxiters):
             iteration += 1
             count = filtered_data.count()
             self._perform_clip(filtered_data, axis=axis)
@@ -231,7 +237,8 @@ class SigmaClip:
             return self._sigmaclip_withaxis(data, axis=axis, copy=copy)
 
 
-def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
+@deprecated_renamed_argument('iters', 'maxiters', '3.1')
+def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
                cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True):
     """
     Perform sigma-clipping on the provided data.
@@ -265,10 +272,12 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         The number of standard deviations to use as the upper bound for
         the clipping limit. If `None` then the value of ``sigma`` is
         used. Defaults to `None`.
-    iters : int or `None`, optional
-        The number of iterations to perform sigma clipping, or `None` to
-        clip until convergence is achieved (i.e., continue until the
-        last iteration clips nothing). Defaults to 5.
+    maxiters : int or `None`, optional
+        The maximum number of sigma-clipping iterations to perform or
+        `None` to clip until convergence is achieved (i.e., iterate
+        until the last iteration clips nothing). If convergence is
+        achieved prior to ``maxiters`` iterations, the clipping
+        iterations will stop.  Defaults to 5.
     cenfunc : callable, optional
         The function used to compute the center for the clipping. Must
         be a callable that takes in a masked array and outputs the
@@ -342,7 +351,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         >>> from astropy.stats import sigma_clip
         >>> from numpy.random import randn
         >>> randvar = randn(10000)
-        >>> filtered_data = sigma_clip(randvar, sigma=2, iters=5)
+        >>> filtered_data = sigma_clip(randvar, sigma=2, maxiters=5)
 
     This example sigma clips on a similar distribution, but uses 3 sigma
     relative to the sample *mean*, clips until convergence, and does not
@@ -352,7 +361,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         >>> from numpy.random import randn
         >>> from numpy import mean
         >>> randvar = randn(10000)
-        >>> filtered_data = sigma_clip(randvar, sigma=3, iters=None,
+        >>> filtered_data = sigma_clip(randvar, sigma=3, maxiters=None,
         ...                            cenfunc=mean, copy=False)
 
     This example sigma clips along one axis on a similar distribution
@@ -369,7 +378,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
     """
 
     sigclip = SigmaClip(sigma=sigma, sigma_lower=sigma_lower,
-                        sigma_upper=sigma_upper, iters=iters,
+                        sigma_upper=sigma_upper, maxiters=maxiters,
                         cenfunc=cenfunc, stdfunc=stdfunc)
     return sigclip(data, axis=axis, copy=copy)
 
