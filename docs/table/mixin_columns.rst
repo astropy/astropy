@@ -199,7 +199,7 @@ the following will fail::
 
 The problem lies in knowing if and how to assemble the individual elements
 for each column into an appropriate mixin column.  The current code uses
-numpy to perform this function on numerical or string types, but it obviously
+numpy to perform this function on numerical or string types, but it
 does not handle mixin column types like |Quantity| or |SkyCoord|.
 
 **Masking**
@@ -209,7 +209,7 @@ mixins within a masked table.  In this case a ``mask`` attribute is assigned to
 the mixin column object.  This ``mask`` is a special object that is a boolean
 array of ``False`` corresponding to the mixin data shape.  The ``mask`` looks
 like a normal numpy array but an exception will be raised if ``True`` is assigned
-to any element.  The consequences of the limitation are most obvious in the
+to any element.  The consequences of the limitation are most apparent in the
 high-level table operations.
 
 **High-level table operations**
