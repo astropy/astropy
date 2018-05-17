@@ -6,6 +6,8 @@ import operator
 
 import pytest
 
+from datetime import timedelta
+
 from .. import (Time, TimeDelta, OperandTypeError, ScaleValueError,
                 TIME_SCALES, STANDARD_TIME_SCALES, TIME_DELTA_SCALES)
 from ... import units as u
@@ -246,6 +248,10 @@ class TestTimeDelta():
         dt.format = 'jd'
         assert dt.value == 1.0
         assert dt.format == 'jd'
+
+        dt.format = 'datetime'
+        assert dt.value == timedelta(days=1)
+        assert dt.format == 'datetime'
 
 
 class TestTimeDeltaScales():
@@ -504,3 +510,37 @@ def test_timedelta_mask():
     assert np.all(t.mask == [False, True])
     assert allclose_jd(t[0].value, 1)
     assert t.value[1] is np.ma.masked
+
+
+def test_python_timedelta_scalar():
+    td = timedelta(days=1, seconds=1)
+    td1 = TimeDelta(td, format='datetime')
+
+    assert td1.sec == 86401.0
+
+    td2 = TimeDelta(86401.0, format='sec')
+    assert td2.datetime == td
+
+
+def test_python_timedelta_vector():
+    td = [[timedelta(days=1), timedelta(days=2)],
+          [timedelta(days=3), timedelta(days=4)]]
+
+    td1 = TimeDelta(td, format='datetime')
+
+    assert np.all(td1.jd == [[1, 2], [3, 4]])
+
+    td2 = TimeDelta([[1, 2], [3, 4]], format='jd')
+    assert np.all(td2.datetime == td)
+
+
+def test_timedelta_to_datetime():
+    td = TimeDelta(1, format='jd')
+
+    assert td.to_datetime() == timedelta(days=1)
+
+    td2 = TimeDelta([[1, 2], [3, 4]], format='jd')
+    td = [[timedelta(days=1), timedelta(days=2)],
+          [timedelta(days=3), timedelta(days=4)]]
+
+    assert np.all(td2.to_datetime() == td)

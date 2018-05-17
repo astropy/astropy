@@ -62,3 +62,6 @@ htmlcov
 
 # Pytest
 v
+
+# VSCode
+.vscode
