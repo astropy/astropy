@@ -104,6 +104,8 @@ astropy.time
 - Added supper for a 'local' time scale (for free-running clocks, etc.),
   and round-tripping to the corresponding FITS time scale. [#7122]
 
+- Added `datetime.timedelta` format class for ``TimeDelta``. [#7441]
+
 astropy.units
 ^^^^^^^^^^^^^
 

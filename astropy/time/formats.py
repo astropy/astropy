@@ -23,7 +23,7 @@ __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeDeltaFormat', 'TimeDeltaSec', 'TimeDeltaJD',
            'TimeEpochDateString', 'TimeBesselianEpochString',
            'TimeJulianEpochString', 'TIME_FORMATS', 'TIME_DELTA_FORMATS',
-           'TimezoneInfo']
+           'TimezoneInfo', 'TimeDeltaDatetime']
 
 __doctest_skip__ = ['TimePlotDate']
 
@@ -1188,6 +1188,41 @@ class TimeDeltaJD(TimeDeltaFormat):
     """Time delta in Julian days (86400 SI seconds)"""
     name = 'jd'
     unit = 1.
+
+
+class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
+    """Time delta in datetime.timedelta"""
+    name = 'datetime'
+
+    def _check_val_type(self, val1, val2):
+        # Note: don't care about val2 for this class
+        if not all(isinstance(val, datetime.timedelta) for val in val1.flat):
+            raise TypeError('Input values for {0} class must be '
+                            'datetime.timedelta objects'.format(self.name))
+        return val1, None
+
+    def set_jds(self, val1, val2):
+        self._check_scale(self._scale)  # Validate scale.
+        iterator = np.nditer([val1, None],
+                             flags=['refs_ok'],
+                             op_dtypes=[object] + [np.double])
+
+        for val, sec in iterator:
+            sec[...] = val.item().total_seconds()
+
+        self.jd1, self.jd2 = day_frac(iterator.operands[-1], 0.0,
+                                      divisor=erfa.DAYSEC)
+
+    @property
+    def value(self):
+        iterator = np.nditer([self.jd1 + self.jd2, None],
+                             flags=['refs_ok'],
+                             op_dtypes=[self.jd1.dtype] + [object])
+
+        for jd, out in iterator:
+            out[...] = datetime.timedelta(days=jd.item())
+
+        return self.mask_if_needed(iterator.operands[-1])
 
 
 from .core import Time, TIME_SCALES, TIME_DELTA_SCALES, ScaleValueError
