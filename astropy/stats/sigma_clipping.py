@@ -494,6 +494,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
 
         If your data is a `~numpy.ndarray` with no invalid values and
         you want to use the mean as the centering function with
+<<<<<<< HEAD
         ``axis=None`` and iterate to convergence, then
         `scipy.stats.sigmaclip` is ~25-30% faster than the equivalent
         settings here (``sigma_clip(data, cenfunc='mean', maxiters=None,
@@ -502,6 +503,15 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
     Parameters
     ----------
     data : array-like or `~numpy.ma.MaskedArray`
+=======
+        ``axis=None``, then `scipy.stats.sigmaclip` is ~25-30% faster
+        than the equivalent settings here (``SigmaClip(cenfunc=np.mean,
+        maxiters=None)``).
+
+    Parameters
+    ----------
+    data : array-like or `~np.ma.MaskedArray`
+>>>>>>> Update sigma_clip and SigmaClip docstrings
         The data to be sigma clipped.
 
     sigma : float, optional
