@@ -140,16 +140,18 @@ class SigmaClip:
             lines.append('    {0}: {1}'.format(attr, getattr(self, attr)))
         return '\n'.join(lines)
 
+    def _compute_bounds(self, data, axis=None):
+        self._max_value = self.cenfunc(data, axis=axis)
+        std = self.stdfunc(data, axis=axis)
+        self._min_value = self._max_value - (std * self.sigma_lower)
+        self._max_value += std * self.sigma_upper
+
     def _perform_sigclip_noaxis(self, _filtered_data, axis=None):
-        max_value = self.cenfunc(_filtered_data, axis=axis)
-        std = self.stdfunc(_filtered_data, axis=axis)
-        min_value = max_value - std * self.sigma_lower
-        max_value += std * self.sigma_upper
+        self._compute_bounds(_filtered_data, axis=None)
+        _filtered_data = _filtered_data[(_filtered_data >= self._min_value) &
+                                        (_filtered_data <= self._max_value)]
 
-        _filtered_data = _filtered_data[(_filtered_data >= min_value) &
-                                        (_filtered_data <= max_value)]
-
-        return _filtered_data, min_value, max_value
+        return _filtered_data
 
     def _perform_clip(self, _filtered_data, axis=None):
         """
@@ -163,16 +165,12 @@ class SigmaClip:
         if _filtered_data.size == 0:
             return _filtered_data
 
-        max_value = self.cenfunc(_filtered_data, axis=axis)
-        std = self.stdfunc(_filtered_data, axis=axis)
-        min_value = max_value - std * self.sigma_lower
-        max_value += std * self.sigma_upper
+        self._compute_bounds(_filtered_data, axis=axis)
+        self._min_value = self._min_value.reshape(self._mshape)
+        self._max_value = self._max_value.reshape(self._mshape)
 
-        min_value = min_value.reshape(self._mshape)
-        max_value = max_value.reshape(self._mshape)
-
-        _filtered_data.mask |= _filtered_data > max_value
-        _filtered_data.mask |= _filtered_data < min_value
+        _filtered_data.mask |= _filtered_data > self._max_value
+        _filtered_data.mask |= _filtered_data < self._min_value
 
         return _filtered_data
 
@@ -196,14 +194,15 @@ class SigmaClip:
         while filtered_data.size != size and (iteration < self.maxiters):
             iteration += 1
             size = filtered_data.size
-            filtered_data, min_value, max_value = self._perform_sigclip_noaxis(
-                filtered_data, axis=None)
+            filtered_data = self._perform_sigclip_noaxis(filtered_data,
+                                                         axis=None)
 
         # return a masked array
         data = np.ma.masked_invalid(data, copy=copy)
 
         # update the mask in place
-        data.mask |= np.logical_or(data < min_value, data > max_value)
+        data.mask |= np.logical_or(data < self._min_value,
+                                   data > self._max_value)
 
         return data
 
