@@ -141,10 +141,14 @@ class SigmaClip:
         return '\n'.join(lines)
 
     def _compute_bounds(self, data, axis=None):
-        self._max_value = self.cenfunc(data, axis=axis)
-        std = self.stdfunc(data, axis=axis)
-        self._min_value = self._max_value - (std * self.sigma_lower)
-        self._max_value += std * self.sigma_upper
+        # ignore RuntimeWarning if the array has only NaNs (or along an
+        # axis)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            self._max_value = self.cenfunc(data, axis=axis)
+            std = self.stdfunc(data, axis=axis)
+            self._min_value = self._max_value - (std * self.sigma_lower)
+            self._max_value += std * self.sigma_upper
 
     def _sigmaclip_noaxis(self, data, copy=True):
         filtered_data = data.ravel()
@@ -176,9 +180,11 @@ class SigmaClip:
         # return a masked array
         data = np.ma.masked_invalid(data, copy=copy)
 
-        # update the mask in place
-        data.mask |= np.logical_or(data < self._min_value,
-                                   data > self._max_value)
+        # update the mask in place, ignoring RuntimeWarnings for
+        # comparisons with NaN data values
+        with np.errstate(invalid='ignore'):
+            data.mask |= np.logical_or(data < self._min_value,
+                                       data > self._max_value)
 
         return data
 
@@ -230,9 +236,11 @@ class SigmaClip:
         if copy:
             return np.ma.masked_invalid(filtered_data)
         else:
-            return np.ma.masked_where(np.logical_or(
-                data < self._min_value, data > self._max_value),
-                data, copy=False)
+            # ignore RuntimeWarnings for comparisons with NaN data values
+            with np.errstate(invalid='ignore'):
+                return np.ma.masked_where(np.logical_or(
+                    data < self._min_value, data > self._max_value),
+                    data, copy=False)
 
     def __call__(self, data, axis=None, copy=True):
         """
