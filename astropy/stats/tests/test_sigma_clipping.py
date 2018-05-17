@@ -201,7 +201,7 @@ def test_sigma_clip_axis_tuple_3D():
     """Test sigma clipping over a subset of axes (issue #7227).
     """
 
-    data = np.sin(0.78 * np.arange(27)).reshape(3,3,3)
+    data = np.sin(0.78 * np.arange(27)).reshape(3, 3, 3)
     mask = np.zeros_like(data, dtype=np.bool)
 
     data_t = np.rollaxis(data, 1, 0)
@@ -217,6 +217,17 @@ def test_sigma_clip_axis_tuple_3D():
 
     # Do the equivalent thing using sigma_clip:
     result = sigma_clip(data, sigma=1.5, cenfunc=np.mean, maxiters=1,
-                        axis=(0,-1))
+                        axis=(0, -1))
 
     assert_equal(result.mask, mask)
+
+
+def test_sigmaclip_repr():
+    sigclip = SigmaClip()
+    sigclip_repr = ('SigmaClip(sigma=3.0, sigma_lower=3.0, sigma_upper=3.0,'
+                    ' maxiters=5, cenfunc=')
+    sigclip_str = ('<SigmaClip>\n    sigma: 3.0\n    sigma_lower: 3.0\n'
+                   '    sigma_upper: 3.0\n    maxiters: 5\n    cenfunc: ')
+
+    assert repr(sigclip).startswith(sigclip_repr)
+    assert str(sigclip).startswith(sigclip_str)
