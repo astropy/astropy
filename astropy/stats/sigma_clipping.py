@@ -498,7 +498,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
 
     Parameters
     ----------
-    data : array-like
+    data : array-like or `~np.ma.MaskedArray`
         Data array or object that can be converted to an array.
 
     mask : `numpy.ndarray` (bool), optional
@@ -512,59 +512,52 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         input ``mask``.
 
     sigma : float, optional
-        The number of standard deviations to use as the lower and upper
-        clipping limit.  These limits are overridden by ``sigma_lower``
-        and ``sigma_upper``, if input. Defaults to 3.
+        The number of standard deviations to use for both the lower and
+        upper clipping limit.  These limits are overridden by
+        ``sigma_lower`` and ``sigma_upper``, if input.  The default is
+        3.
 
-    sigma_lower : float, optional
+    sigma_lower : float or `None`, optional
         The number of standard deviations to use as the lower bound for
-        the clipping limit.  If `None` then the value of ``sigma`` is used.
-        Defaults to `None`.
+        the clipping limit.  If `None` then the value of ``sigma`` is
+        used.  The default is `None`.
 
-    sigma_upper : float, optional
+    sigma_upper : float or `None`, optional
         The number of standard deviations to use as the upper bound for
-        the clipping limit.  If `None` then the value of ``sigma`` is used.
-        Defaults to `None`.
+        the clipping limit.  If `None` then the value of ``sigma`` is
+        used.  The default is `None`.
 
-    iters : int or `None`, optional
+    maxiters : int or `None`, optional
         The maximum number of sigma-clipping iterations to perform or
         `None` to clip until convergence is achieved (i.e., iterate
         until the last iteration clips nothing).  If convergence is
         achieved prior to ``maxiters`` iterations, the clipping
-        iterations will stop.  Defaults to 5.
+        iterations will stop.  The default is 5.
 
     cenfunc : callable, optional
-        The function used to compute the center for the clipping. Must
-        be a callable that takes in a masked array and outputs the
-        central value. Defaults to the median (`numpy.ma.median`).
+        The function used to compute the center value for the clipping.
+        If the ``axis`` keyword is used, then it must be callable that
+        can ignore NaNs (e.g. `numpy.nanmean`) and has an ``axis``
+        keyword to return an array with axis dimension(s) removed.  The
+        default is `numpy.nanmedian`.
 
     stdfunc : callable, optional
         The function used to compute the standard deviation about the
-        center. Must be a callable that takes in a masked array and
-        outputs a width estimator. Masked (rejected) pixels are those
-        where::
-
-             deviation < (-sigma_lower * stdfunc(deviation))
-             deviation > (sigma_upper * stdfunc(deviation))
-
-        where::
-
-            deviation = data - cenfunc(data [,axis=int])
-
-        Defaults to the standard deviation (`numpy.std`).
+        center value.  If the ``axis`` keyword is used, then it must be
+        callable that can ignore NaNs (e.g. `numpy.nanstd`) and has an
+        ``axis`` keyword to return an array with axis dimension(s)
+        removed.  The default is `numpy.nanstd`.
 
     std_ddof : int, optional
         The delta degrees of freedom for the standard deviation
         calculation.  The divisor used in the calculation is ``N -
         std_ddof``, where ``N`` represents the number of elements.  The
-        default is zero.
+        default is 0.
 
     axis : `None` or int or tuple of int, optional
-        If not `None`, clip along the given axis or axes.  For this case,
-        ``axis`` will be passed on to ``cenfunc`` and ``stdfunc``, which
-        are expected to return an array with the axis dimension(s) removed
-        (like the numpy functions).  If `None`, clip over all axes.
-        Defaults to `None`.
+        The axis or axes along which to sigma clip the data.  If `None`,
+        then the flattened data will be used.  ``axis`` is passed
+        to the ``cenfunc`` and ``stdfunc``.  The default is `None`.
 
     Returns
     -------
@@ -578,18 +571,13 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     if mask_value is not None:
         data = np.ma.masked_values(data, mask_value)
 
-    data_clip = sigma_clip(data, sigma=sigma, sigma_lower=sigma_lower,
-                           sigma_upper=sigma_upper, maxiters=maxiters,
-                           cenfunc=cenfunc, stdfunc=stdfunc, axis=axis)
+    sigclip = SigmaClip(sigma=sigma, sigma_lower=sigma_lower,
+                        sigma_upper=sigma_upper, maxiters=maxiters,
+                        cenfunc=cenfunc, stdfunc=stdfunc)
+    data_clipped = sigclip(data, axis=axis, masked=False, copy=False)[0]
 
-    mean = np.ma.mean(data_clip, axis=axis)
-    median = np.ma.median(data_clip, axis=axis)
-    std = np.ma.std(data_clip, ddof=std_ddof, axis=axis)
-
-    if axis is None and np.ma.isMaskedArray(median):
-        # np.ma.median now always return a MaskedArray, even with one
-        # element. So for compatibility with previous versions of astropy,
-        # we keep taking the scalar value.
-        median = median.item()
+    mean = np.nanmean(data_clipped, axis=axis)
+    median = np.nanmedian(data_clipped, axis=axis)
+    std = np.nanstd(data_clipped, ddof=std_ddof, axis=axis)
 
     return mean, median, std
