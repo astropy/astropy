@@ -273,7 +273,7 @@ class SigmaClip:
 
         Parameters
         ----------
-        data : array-like or `~np.ma.MaskedArray`
+        data : array-like or `~numpy.ma.MaskedArray`
             The data to be sigma clipped.
 
         axis : `None` or int or tuple of int, optional
@@ -368,7 +368,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
 
     Parameters
     ----------
-    data : array-like or `~np.ma.MaskedArray`
+    data : array-like or `~numpy.ma.MaskedArray`
         The data to be sigma clipped.
 
     sigma : float, optional
@@ -502,7 +502,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
 
     Parameters
     ----------
-    data : array-like or `~np.ma.MaskedArray`
+    data : array-like or `~numpy.ma.MaskedArray`
         Data array or object that can be converted to an array.
 
     mask : `numpy.ndarray` (bool), optional
