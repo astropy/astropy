@@ -150,7 +150,7 @@ class SigmaClip:
             self._min_value = self._max_value - (std * self.sigma_lower)
             self._max_value += std * self.sigma_upper
 
-    def _sigmaclip_noaxis(self, data, copy=True):
+    def _sigmaclip_noaxis(self, data, masked=True, copy=True):
         filtered_data = data.ravel()
 
         # remove masked values and convert to ndarray
@@ -177,18 +177,22 @@ class SigmaClip:
 
         self._niterations = iteration
 
-        # return a masked array
-        data = np.ma.masked_invalid(data, copy=copy)
+        if masked:
+            # return a masked array
+            data = np.ma.masked_invalid(data, copy=copy)
 
-        # update the mask in place, ignoring RuntimeWarnings for
-        # comparisons with NaN data values
-        with np.errstate(invalid='ignore'):
-            data.mask |= np.logical_or(data < self._min_value,
-                                       data > self._max_value)
+            # update the mask in place, ignoring RuntimeWarnings for
+            # comparisons with NaN data values
+            with np.errstate(invalid='ignore'):
+                data.mask |= np.logical_or(data < self._min_value,
+                                           data > self._max_value)
 
-        return data
+            return data
+        else:
+            # return the truncated array with the mix/max clipping thresholds
+            return filtered_data, self._min_value, self._max_value
 
-    def _sigmaclip_withaxis(self, data, axis=None, copy=True):
+    def _sigmaclip_withaxis(self, data, axis=None, masked=True, copy=True):
         # float array type is needed to insert nans into the array
         filtered_data = np.copy(data).astype(float)
 
@@ -233,16 +237,20 @@ class SigmaClip:
 
         self._niterations = iteration
 
-        if copy:
-            return np.ma.masked_invalid(filtered_data)
+        if masked:
+            if copy:
+                return np.ma.masked_invalid(filtered_data)
+            else:
+                # ignore RuntimeWarnings for comparisons with NaN data values
+                with np.errstate(invalid='ignore'):
+                    return np.ma.masked_where(np.logical_or(
+                        data < self._min_value, data > self._max_value),
+                        data, copy=False)
         else:
-            # ignore RuntimeWarnings for comparisons with NaN data values
-            with np.errstate(invalid='ignore'):
-                return np.ma.masked_where(np.logical_or(
-                    data < self._min_value, data > self._max_value),
-                    data, copy=False)
+            # return the truncated array with the mix/max clipping thresholds
+            return filtered_data, self._min_value, self._max_value
 
-    def __call__(self, data, axis=None, copy=True):
+    def __call__(self, data, axis=None, masked=True, copy=True):
         """
         Perform sigma clipping on the provided data.
 
@@ -277,9 +285,10 @@ class SigmaClip:
             return data
 
         if axis is None:
-            return self._sigmaclip_noaxis(data, copy=copy)
+            return self._sigmaclip_noaxis(data, masked=masked, copy=copy)
         else:
-            return self._sigmaclip_withaxis(data, axis=axis, copy=copy)
+            return self._sigmaclip_withaxis(data, axis=axis, masked=masked,
+                                            copy=copy)
 
 
 @deprecated_renamed_argument('iters', 'maxiters', '3.1')
