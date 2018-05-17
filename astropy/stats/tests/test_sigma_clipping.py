@@ -108,6 +108,9 @@ def test_sigma_clipped_stats():
     assert isinstance(result[1], float)
     assert result == (1., 1., 0.)
 
+    result2 = sigma_clipped_stats(data, mask=mask, axis=0)
+    assert_equal(result, result2)
+
     # test list data with mask_value
     result = sigma_clipped_stats(data, mask_value=0.)
     assert isinstance(result[1], float)
