@@ -1450,7 +1450,7 @@ class Time(ShapedLikeNDArray):
             if scale == 'ut1':
                 # calculate UTC using the offset we got; the ERFA routine
                 # is tolerant of leap seconds, so will do this right
-                jd1_utc, jd2_utc = erfa.ut1utc(jd1, jd2, delta)
+                jd1_utc, jd2_utc = erfa.ut1utc(jd1, jd2, delta.to_value(u.s))
                 # calculate a better estimate using the nearly correct UTC
                 delta = iers_table.ut1_utc(jd1_utc, jd2_utc)
 
