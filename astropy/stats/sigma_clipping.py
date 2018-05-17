@@ -309,7 +309,7 @@ class SigmaClip:
             output `~numpy.ndarray` will have the same shape as the
             input ``data`` and contain ``np.nan`` where values were
             clipped.  In this case the returned minimum and maximum
-            clipping thresholds will be also be `~numpy.ndarray`\s.
+            clipping thresholds will be also be `~numpy.ndarray`\\s.
         """
 
         data = np.asanyarray(data)
@@ -440,7 +440,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         `~numpy.ndarray` will have the same shape as the input ``data``
         and contain ``np.nan`` where values were clipped.  In this case
         the returned minimum and maximum clipping thresholds will be
-        also be `~numpy.ndarray`\s.
+        also be `~numpy.ndarray`\\s.
 
     See Also
     --------
@@ -564,6 +564,10 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     mean, median, stddev : float
         The mean, median, and standard deviation of the sigma-clipped
         data.
+
+    See Also
+    --------
+    SigmaClip, sigma_clip
     """
 
     if mask is not None:

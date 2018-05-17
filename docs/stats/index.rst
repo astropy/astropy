@@ -28,11 +28,12 @@ they can be accessed by importing them::
 A full list of the different tools are provided below.  Please see the
 documentation for their different usage.  For example, sigma clipping,
 which is common way to estimate the background of an image, can be
-performed with the :func:`~astropy.stats.sigma_clip` function.  The
-function returns a masked array where outliers are masked::
+performed with the :func:`~astropy.stats.sigma_clip` function.  By
+default, the function returns a masked array where outliers are
+masked::
 
     >>> data = [1, 5, 6, 8, 100, 5, 3, 2]
-    >>> stats.sigma_clip(data, sigma=2, iters=5)  # doctest: +SKIP
+    >>> stats.sigma_clip(data, sigma=2, maxiters=5)  # doctest: +SKIP
     masked_array(data=[1, 5, 6, 8, --, 5, 3, 2],
                  mask=[False, False, False, False,  True, False, False, False],
            fill_value=999999)
@@ -41,9 +42,10 @@ function returns a masked array where outliers are masked::
    "not NUMPY_LT_1_14"
 
 Alternatively, the :class:`~astropy.stats.SigmaClip` class provides an
-object-oriented interface to sigma clipping::
+object-oriented interface to sigma clipping, which also returns a
+masked array by default::
 
-    >>> sigclip = stats.SigmaClip(sigma=2, iters=5)
+    >>> sigclip = stats.SigmaClip(sigma=2, maxiters=5)
     >>> sigclip(data)  # doctest: +SKIP
     masked_array(data=[1, 5, 6, 8, --, 5, 3, 2],
                  mask=[False, False, False, False,  True, False, False, False],
@@ -54,7 +56,7 @@ the calculation of statistics even easier.  For example,
 :func:`~astropy.stats.sigma_clipped_stats` will return the mean,
 median, and standard deviation of a sigma-clipped array::
 
-     >>> stats.sigma_clipped_stats(data, sigma=2, iters=5)  # doctest: +FLOAT_CMP
+     >>> stats.sigma_clipped_stats(data, sigma=2, maxiters=5)  # doctest: +FLOAT_CMP
      (4.2857142857142856, 5.0, 2.2497165354319457)
 
 There are also tools for calculating :ref:`robust statistics

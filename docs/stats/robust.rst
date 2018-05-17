@@ -18,15 +18,15 @@ Sigma Clipping
 
 Sigma clipping provides a fast method to identify outliers in a
 distribution.  For a distribution of points, a center and a standard
-deviation are calculated.  Values which are a set number of sigma
-times the standard deviation away from the center are rejected.  The
-process can be iterated to further reject outliers.
+deviation are calculated.  Values which are less or more than a
+specified number of standard deviations from a center value are
+rejected.  The process can be iterated to further reject outliers.
 
 The `astropy.stats` package provides both a functional and
 object-oriented interface for sigma clipping.  The function is called
 :func:`~astropy.stats.sigma_clip` and the class is called
-:class:`~astropy.stats.SigmaClip`.  They both return a masked array
-where the rejected points are masked.
+:class:`~astropy.stats.SigmaClip`.  By default, they both return a
+masked array where the rejected points are masked.
 
 First, let's generate some data that has a mean of 0 and standard
 deviation of 0.2, but with outliers:
@@ -48,7 +48,7 @@ clipping on the data:
 .. doctest-requires:: scipy
 
      >>> from astropy.stats import sigma_clip
-     >>> filtered_data = sigma_clip(y, sigma=3, iters=10)
+     >>> filtered_data = sigma_clip(y, sigma=3, maxiters=10)
 
 The output masked array then can be used to calculate statistics on
 the data, fit models to the data, or otherwise explore the data.
@@ -59,13 +59,13 @@ To perform the same sigma clipping with the
 .. doctest-requires:: scipy
 
      >>> from astropy.stats import SigmaClip
-     >>> sigclip = SigmaClip(sigma=3, iters=10)
+     >>> sigclip = SigmaClip(sigma=3, maxiters=10)
      >>> print(sigclip)  # doctest: +SKIP
      <SigmaClip>
         sigma: 3
         sigma_lower: None
         sigma_upper: None
-        iters: 10
+        maxiters: 10
         cenfunc: <function median at 0x108dbde18>
         stdfunc: <function std at 0x103ab52f0>
      >>> filtered_data = sigclip(y)
@@ -84,7 +84,7 @@ outliers returns accurate values for the underlying distribution:
      >>> from astropy.stats import sigma_clipped_stats
      >>> y.mean(), np.median(y), y.std()  # doctest: +FLOAT_CMP
      (0.86586417693378226, 0.03265864495523732, 3.2913811977676444)
-     >>> sigma_clipped_stats(y, sigma=3, iters=10)  # doctest: +FLOAT_CMP
+     >>> sigma_clipped_stats(y, sigma=3, maxiters=10)  # doctest: +FLOAT_CMP
      (-0.0020337793767186197, -0.023632809025713953, 0.19514652532636906)
 
 :func:`~astropy.stats.sigma_clip` and
@@ -107,7 +107,7 @@ statistics to provide improved outlier rejection as well.
     y += (np.random.normal(0., 0.2, x.shape) +
           c*np.random.normal(3.0, 5.0, x.shape))
 
-    filtered_data = sigma_clip(y, sigma=3, iters=1, stdfunc=mad_std)
+    filtered_data = sigma_clip(y, sigma=3, maxiters=1, stdfunc=mad_std)
 
     # plot the original and rejected data
     plt.figure(figsize=(8,5))
@@ -117,6 +117,8 @@ statistics to provide improved outlier rejection as well.
     plt.xlabel('x')
     plt.ylabel('y')
     plt.legend(loc=2, numpoints=1)
+
+.. automodapi:: astropy.stats.sigma_clipping
 
 
 Median Absolute Deviation
