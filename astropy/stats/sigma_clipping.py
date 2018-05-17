@@ -257,9 +257,11 @@ class SigmaClip:
             else:
                 # ignore RuntimeWarnings for comparisons with NaN data values
                 with np.errstate(invalid='ignore'):
+                    out = np.ma.masked_invalid(data, copy=False)
+
                     return np.ma.masked_where(np.logical_or(
-                        data < self._min_value, data > self._max_value),
-                        data, copy=False)
+                        out < self._min_value, out > self._max_value),
+                        out, copy=False)
         else:
             # return the truncated array with the mix/max clipping thresholds
             return filtered_data, self._min_value, self._max_value

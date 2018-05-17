@@ -157,10 +157,23 @@ def test_invalid_sigma_clip():
     # Pre #4051 if data contains any NaN or infs sigma_clip returns the
     # mask containing `False` only or TypeError if data also contains a
     # masked value.
-
     assert result.mask[2, 2]
     assert result.mask[3, 4]
     assert result.mask[1, 1]
+
+    result2 = sigma_clip(data, axis=0)
+    assert result2.mask[1, 1]
+    assert result2.mask[3, 4]
+
+    result3 = sigma_clip(data, axis=0, copy=False)
+    assert result3.mask[1, 1]
+    assert result3.mask[3, 4]
+
+    # stats along axis with all nans
+    data[0, :] = np.nan     # row of all nans
+    result4, minarr, maxarr = sigma_clip(data, axis=1, masked=False)
+    assert np.isnan(minarr[0])
+    assert np.isnan(maxarr[0])
 
 
 def test_sigmaclip_negative_axis():
