@@ -146,34 +146,6 @@ class SigmaClip:
         self._min_value = self._max_value - (std * self.sigma_lower)
         self._max_value += std * self.sigma_upper
 
-    def _perform_sigclip_noaxis(self, _filtered_data, axis=None):
-        self._compute_bounds(_filtered_data, axis=None)
-        _filtered_data = _filtered_data[(_filtered_data >= self._min_value) &
-                                        (_filtered_data <= self._max_value)]
-
-        return _filtered_data
-
-    def _perform_clip(self, _filtered_data, axis=None):
-        """
-        Perform sigma clip by comparing the data to the minimum and
-        maximum values (median + sig * standard deviation). Use
-        sigma_lower and sigma_upper to get the correct limits. Data
-        values less or greater than the minimum / maximum values
-        will have True set in the mask array.
-        """
-
-        if _filtered_data.size == 0:
-            return _filtered_data
-
-        self._compute_bounds(_filtered_data, axis=axis)
-        self._min_value = self._min_value.reshape(self._mshape)
-        self._max_value = self._max_value.reshape(self._mshape)
-
-        _filtered_data.mask |= _filtered_data > self._max_value
-        _filtered_data.mask |= _filtered_data < self._min_value
-
-        return _filtered_data
-
     def _sigmaclip_noaxis(self, data, copy=True):
         filtered_data = data.ravel()
 
@@ -189,13 +161,17 @@ class SigmaClip:
                           'infs), which were automatically clipped.',
                           AstropyUserWarning)
 
-        size = filtered_data.size + 1
+        nchanged = 1
         iteration = 0
-        while filtered_data.size != size and (iteration < self.maxiters):
+        while nchanged != 0 and (iteration < self.maxiters):
             iteration += 1
             size = filtered_data.size
-            filtered_data = self._perform_sigclip_noaxis(filtered_data,
-                                                         axis=None)
+            self._compute_bounds(filtered_data, axis=None)
+            filtered_data = filtered_data[(filtered_data >= self._min_value) &
+                                          (filtered_data <= self._max_value)]
+            nchanged = size - filtered_data.size
+
+        self._niterations = iteration
 
         # return a masked array
         data = np.ma.masked_invalid(data, copy=copy)
@@ -222,15 +198,25 @@ class SigmaClip:
 
         # define the shape of min/max arrays so that they can be broadcast
         # with the data
-        self._mshape = tuple(1 if dim in axis else sz
-                             for dim, sz in enumerate(filtered_data.shape))
+        mshape = tuple(1 if dim in axis else sz
+                       for dim, sz in enumerate(filtered_data.shape))
 
-        count = filtered_data.count() + 1
+        nchanged = 1
         iteration = 0
-        while filtered_data.count() != count and (iteration < self.maxiters):
+        while nchanged != 0 and (iteration < self.maxiters):
             iteration += 1
-            count = filtered_data.count()
-            self._perform_clip(filtered_data, axis=axis)
+            size = filtered_data.size
+
+            self._compute_bounds(filtered_data, axis=axis)
+            self._min_value = self._min_value.reshape(mshape)
+            self._max_value = self._max_value.reshape(mshape)
+
+            filtered_data.mask |= (filtered_data > self._max_value)
+            filtered_data.mask |= (filtered_data < self._min_value)
+
+            nchanged = size - filtered_data.size
+
+        self._niterations = iteration
 
         # prevent filtered_data.mask = False (scalar) if no values are clipped
         if filtered_data.mask.shape == ():
