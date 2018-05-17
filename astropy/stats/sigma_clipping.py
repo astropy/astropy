@@ -208,7 +208,7 @@ class SigmaClip:
 
     def _sigmaclip_withaxis(self, data, axis=None, masked=True, copy=True):
         # float array type is needed to insert nans into the array
-        filtered_data = np.copy(data).astype(float)
+        filtered_data = data.astype(float)    # also makes a copy
 
         # remove invalid values
         bad_mask = ~np.isfinite(filtered_data)
