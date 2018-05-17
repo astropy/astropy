@@ -183,13 +183,21 @@ class SigmaClip:
         return data
 
     def _sigmaclip_withaxis(self, data, axis=None, copy=True):
-        if np.any(~np.isfinite(data)):
-            data = np.ma.masked_invalid(data)
+        # float array type is needed to insert nans into the array
+        filtered_data = np.copy(data).astype(float)
+
+        # remove invalid values
+        bad_mask = ~np.isfinite(filtered_data)
+        if np.any(bad_mask):
+            filtered_data[bad_mask] = np.nan
             warnings.warn('Input data contains invalid values (NaNs or '
-                          'infs), which were automatically masked.',
+                          'infs), which were automatically clipped.',
                           AstropyUserWarning)
 
-        filtered_data = np.ma.array(data, copy=copy)
+        # remove masked values and convert to plain ndarray
+        if isinstance(filtered_data, np.ma.MaskedArray):
+            filtered_data = np.ma.masked_invalid(filtered_data).astype(float)
+            filtered_data = filtered_data.filled(np.nan)
 
         # convert negative axis/axes
         if not isiterable(axis):
@@ -198,8 +206,8 @@ class SigmaClip:
 
         # define the shape of min/max arrays so that they can be broadcast
         # with the data
-        mshape = tuple(1 if dim in axis else sz
-                       for dim, sz in enumerate(filtered_data.shape))
+        mshape = tuple(1 if dim in axis else size
+                       for dim, size in enumerate(filtered_data.shape))
 
         nchanged = 1
         iteration = 0
@@ -211,19 +219,20 @@ class SigmaClip:
             self._min_value = self._min_value.reshape(mshape)
             self._max_value = self._max_value.reshape(mshape)
 
-            filtered_data.mask |= (filtered_data > self._max_value)
-            filtered_data.mask |= (filtered_data < self._min_value)
+            with np.errstate(invalid='ignore'):
+                filtered_data[(filtered_data < self._min_value) |
+                              (filtered_data > self._max_value)] = np.nan
 
             nchanged = size - filtered_data.size
 
         self._niterations = iteration
 
-        # prevent filtered_data.mask = False (scalar) if no values are clipped
-        if filtered_data.mask.shape == ():
-            # make .mask shape match .data shape
-            filtered_data.mask = False
-
-        return filtered_data
+        if copy:
+            return np.ma.masked_invalid(filtered_data)
+        else:
+            return np.ma.masked_where(np.logical_or(
+                data < self._min_value, data > self._max_value),
+                data, copy=False)
 
     def __call__(self, data, axis=None, copy=True):
         """
