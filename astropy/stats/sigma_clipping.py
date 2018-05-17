@@ -112,7 +112,7 @@ class SigmaClip:
 
     @deprecated_renamed_argument('iters', 'maxiters', '3.1')
     def __init__(self, sigma=3., sigma_lower=None, sigma_upper=None,
-                 maxiters=5, cenfunc=np.ma.median, stdfunc=np.std):
+                 maxiters=5, cenfunc=np.nanmedian, stdfunc=np.nanstd):
 
         self.sigma = sigma
         if sigma_lower is None:
