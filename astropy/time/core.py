@@ -105,6 +105,10 @@ class TimeInfo(MixinInfo):
     _represent_as_dict_extra_attrs = ('format', 'scale', 'precision',
                                       'in_subfmt', 'out_subfmt', 'location',
                                       '_delta_ut1_utc', '_delta_tdb_tt')
+
+    # When serializing, write out the `value` attribute using the column name.
+    _represent_as_dict_primary_data = 'value'
+
     mask_val = np.ma.masked
 
     @property

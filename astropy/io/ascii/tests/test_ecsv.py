@@ -436,3 +436,60 @@ def test_ecsv_but_no_yaml_warning():
     with pytest.raises(ascii.InconsistentTableError) as exc:
         ascii.read(SIMPLE_LINES, format='ecsv')
     assert "PyYAML package is required" in str(exc)
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_round_trip_masked_table_default(tmpdir):
+    """Test (mostly) round-trip of MaskedColumn through ECSV using default serialization
+    that uses an empty string "" to mark NULL values.  Note:
+
+    >>> simple_table(masked=True)
+    <Table masked=True length=3>
+      a      b     c
+    int64 float64 str1
+    ----- ------- ----
+       --     1.0    c
+        2     2.0   --
+        3      --    e
+    """
+    filename = str(tmpdir.join('test.ecsv'))
+
+    t = simple_table(masked=True)  # int, float, and str cols with one masked element
+    t.write(filename)
+
+    t2 = Table.read(filename)
+    assert t2.masked is True
+    assert t2.colnames == t.colnames
+    for name in t2.colnames:
+        # From formal perspective the round-trip columns are the "same"
+        assert np.all(t2[name].mask == t[name].mask)
+        assert np.all(t2[name] == t[name])
+
+        # But peeking under the mask shows that the underlying data are changed
+        # because by default ECSV uses "" to represent masked elements.
+        t[name].mask = False
+        t2[name].mask = False
+        assert not np.all(t2[name] == t[name])  # Expected diff
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_round_trip_masked_table_serialize_mask(tmpdir):
+    """Same as prev but set the serialize_method to 'data_mask' so mask is written out"""
+    filename = str(tmpdir.join('test.ecsv'))
+
+    t = simple_table(masked=True)  # int, float, and str cols with one masked element
+    t['c'][0] = ''  # This would come back as masked for default "" NULL marker
+
+    t.write(filename, serialize_method='data_mask')
+
+    t2 = Table.read(filename)
+    assert t2.masked is True
+    assert t2.colnames == t.colnames
+    for name in t2.colnames:
+        assert np.all(t2[name].mask == t[name].mask)
+        assert np.all(t2[name] == t[name])
+
+        # Data under the mask round-trips also (unmask data to show this).
+        t[name].mask = False
+        t2[name].mask = False
+        assert np.all(t2[name] == t[name])

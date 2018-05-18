@@ -141,12 +141,8 @@ class QuantityInfo(QuantityInfoBase):
     be used as a general way to store meta information.
     """
     _represent_as_dict_attrs = ('value', 'unit')
-
-    def _construct_from_dict(self, map):
-        # Need to pop value because different Quantity subclasses use
-        # different first arg name for the value.  :-(
-        value = map.pop('value')
-        return self._parent_cls(value, **map)
+    _construct_from_dict_args = ['value']
+    _represent_as_dict_primary_data = 'value'
 
     def new_like(self, cols, length, metadata_conflicts='warn', name=None):
         """
