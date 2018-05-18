@@ -1,6 +1,7 @@
 from importlib import import_module
 import re
 from copy import deepcopy
+from collections import OrderedDict
 
 from ..utils.data_info import MixinInfo
 from .column import Column
@@ -17,7 +18,8 @@ __construct_mixin_classes = ('astropy.time.core.Time',
                              'astropy.coordinates.distances.Distance',
                              'astropy.coordinates.earth.EarthLocation',
                              'astropy.coordinates.sky_coordinate.SkyCoord',
-                             'astropy.table.table.NdarrayMixin')
+                             'astropy.table.table.NdarrayMixin',
+                             'astropy.table.column.MaskedColumn')
 
 
 class SerializedColumn(dict):
@@ -35,10 +37,13 @@ class SerializedColumn(dict):
 def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
                                exclude_classes=()):
     """Convert a mixin column to a plain columns or a set of mixin columns."""
+    obj_attrs = col.info._represent_as_dict()
+    ordered_keys = col.info._represent_as_dict_attrs
+
     # If not a mixin, or if class in ``exclude_classes`` tuple then
     # treat as a normal column.  Excluded sub-classes must be explicitly
     # specified.
-    if not has_info_class(col, MixinInfo) or col.__class__ in exclude_classes:
+    if not obj_attrs or col.__class__ in exclude_classes:
         new_cols.append(col)
         return
 
@@ -51,7 +56,7 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
     # - description: DO store
     # - meta: DO store
     info = {}
-    for attr, nontrivial, xform in (('unit', lambda x: x not in (None, ''), str),
+    for attr, nontrivial, xform in (('unit', lambda x: x is not None and x != '', str),
                                     ('format', lambda x: x is not None, None),
                                     ('description', lambda x: x is not None, None),
                                     ('meta', lambda x: x, None)):
@@ -59,44 +64,36 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         if nontrivial(col_attr):
             info[attr] = xform(col_attr) if xform else col_attr
 
-    obj_attrs = col.info._represent_as_dict()
-    ordered_keys = col.info._represent_as_dict_attrs
-
     data_attrs = [key for key in ordered_keys if key in obj_attrs and
                   getattr(obj_attrs[key], 'shape', ())[:1] == col.shape[:1]]
 
     for data_attr in data_attrs:
         data = obj_attrs[data_attr]
-        if len(data_attrs) == 1 and not has_info_class(data, MixinInfo):
-            # For one non-mixin attribute, we need only one serialized column.
-            # We can store info there, and keep the column name as is.
-            new_cols.append(Column(data, name=name, **info))
-            obj_attrs[data_attr] = SerializedColumn({'name': name})
-            # Remove attributes that are already on the serialized column.
-            for attr in info:
-                if attr in obj_attrs:
-                    del obj_attrs[attr]
 
+        # New column name combines the old name and attribute
+        # (e.g. skycoord.ra, skycoord.dec).unless it is the primary data
+        # attribute for the column (e.g. value for Quantity or data
+        # for MaskedColumn)
+        if data_attr == col.info._represent_as_dict_primary_data:
+            new_name = name
         else:
-            # New column name combines the old name and attribute
-            # (e.g. skycoord.ra, skycoord.dec).
             new_name = name + '.' + data_attr
-            # TODO masking, MaskedColumn
-            if not has_info_class(data, MixinInfo):
-                new_cols.append(Column(data, name=new_name))
-                obj_attrs[data_attr] = SerializedColumn({'name': new_name})
-            else:
-                # recurse. This will define obj_attrs[new_name].
-                _represent_mixin_as_column(data, new_name, new_cols, obj_attrs)
-                obj_attrs[data_attr] = SerializedColumn(obj_attrs.pop(new_name))
 
-            # Strip out from info any attributes defined by the parent
-            for attr in col.info.attrs_from_parent:
-                if attr in info:
-                    del info[attr]
+        if not has_info_class(data, MixinInfo):
+            new_cols.append(Column(data, name=new_name, **info))
+            obj_attrs[data_attr] = SerializedColumn({'name': new_name})
+        else:
+            # recurse. This will define obj_attrs[new_name].
+            _represent_mixin_as_column(data, new_name, new_cols, obj_attrs)
+            obj_attrs[data_attr] = SerializedColumn(obj_attrs.pop(new_name))
 
-            if info:
-                obj_attrs['__info__'] = info
+        # Strip out from info any attributes defined by the parent
+        for attr in col.info.attrs_from_parent:
+            if attr in info:
+                del info[attr]
+
+        if info:
+            obj_attrs['__info__'] = info
 
     # Store the fully qualified class name
     obj_attrs['__class__'] = col.__module__ + '.' + col.__class__.__name__
@@ -110,16 +107,23 @@ def _represent_mixins_as_columns(tbl, exclude_classes=()):
     return a new table.  Exclude any mixin columns in ``exclude_classes``,
     which must be a tuple of classes.
     """
-    if not tbl.has_mixin_columns:
-        return tbl
-
+    # Dict of metadata for serializing each column, keyed by column name.
+    # Gets filled in place by _represent_mixin_as_column().
     mixin_cols = {}
 
+    # List of columns for the output table.  For plain Column objects
+    # this will just be the original column object.
     new_cols = []
 
+    # Go through table columns and represent each column as one or more
+    # plain Column objects (in new_cols) + metadata (in mixin_cols).
     for col in tbl.itercols():
         _represent_mixin_as_column(col, col.info.name, new_cols, mixin_cols,
                                    exclude_classes=exclude_classes)
+
+    # If no metadata was created then just return the original table.
+    if not mixin_cols:
+        return tbl
 
     meta = deepcopy(tbl.meta)
     meta['__serialized_columns__'] = mixin_cols
@@ -148,6 +152,32 @@ def _construct_mixin_from_obj_attrs_and_info(obj_attrs, info):
         if attr not in obj_attrs:
             setattr(mixin.info, attr, value)
     return mixin
+
+
+class _TableLite(OrderedDict):
+    """
+    Minimal table-like object for _construct_mixin_from_columns.  This allows
+    manipulating the object like a Table but without the actual overhead
+    for a full Table.
+
+    More pressing, there is an issue with constructing MaskedColumn, where the
+    encoded Column components (data, mask) are turned into a MaskedColumn.
+    When this happens in a real table then all other columns are immediately
+    Masked and a warning is issued. This is not desirable.
+    """
+    def add_column(self, col, index=0):
+        colnames = self.colnames
+        self[col.info.name] = col
+        for ii, name in enumerate(colnames):
+            if ii >= index:
+                self.move_to_end(name)
+
+    @property
+    def colnames(self):
+        return list(self.keys())
+
+    def itercols(self):
+        return self.values()
 
 
 def _construct_mixin_from_columns(new_name, obj_attrs, out):
@@ -196,11 +226,10 @@ def _construct_mixins_from_columns(tbl):
     if '__serialized_columns__' not in tbl.meta:
         return tbl
 
-    # Don't know final output class but assume QTable so no columns get
-    # downgraded.
-    out = QTable(tbl, copy=False)
+    meta = tbl.meta.copy()
+    mixin_cols = meta.pop('__serialized_columns__')
 
-    mixin_cols = out.meta.pop('__serialized_columns__')
+    out = _TableLite(tbl.columns)
 
     for new_name, obj_attrs in mixin_cols.items():
         _construct_mixin_from_columns(new_name, obj_attrs, out)
@@ -211,7 +240,6 @@ def _construct_mixins_from_columns(tbl):
     # represents the table file.
     has_quantities = any(isinstance(col.info, QuantityInfo)
                          for col in out.itercols())
-    if not has_quantities:
-        out = Table(out, copy=False)
+    out_cls = QTable if has_quantities else Table
 
-    return out
+    return out_cls(list(out.values()), names=out.colnames, copy=False, meta=meta)

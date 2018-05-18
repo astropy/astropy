@@ -205,8 +205,29 @@ class DataInfo:
     attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
     _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
-    _represent_as_dict_attrs = ()
     _parent_ref = None
+
+    # This specifies the list of object attributes which must be stored in
+    # order to re-create the object after serialization.  This is independent
+    # of normal `info` attributes like name or description.  Subclasses will
+    # generally either define this statically (QuantityInfo) or dynamically
+    # (SkyCoordInfo).  These attributes may be scalars or arrays.  If arrays
+    # that match the object length they will be serialized as an independent
+    # column.
+    _represent_as_dict_attrs = ()
+
+    # This specifies attributes which are to be provided to the class
+    # initializer as ordered args instead of keyword args.  This is needed
+    # for Quantity subclasses where the keyword for data varies (e.g.
+    # between Quantity and Angle).
+    _construct_from_dict_args = ()
+
+    # This specifies the name of an attribute which is the "primary" data.
+    # Then when representing as columns
+    # (table.serialize._represent_mixin_as_column) the output for this
+    # attribute will be written with the just name of the mixin instead of the
+    # usual "<name>.<attr>".
+    _represent_as_dict_primary_data = None
 
     def __init__(self, bound=False):
         # If bound to a data object instance then create the dict of attributes
@@ -329,7 +350,8 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
         return _get_obj_attrs_map(self._parent, self._represent_as_dict_attrs)
 
     def _construct_from_dict(self, map):
-        return self._parent_cls(**map)
+        args = [map.pop(attr) for attr in self._construct_from_dict_args]
+        return self._parent_cls(*args, **map)
 
     info_summary_attributes = staticmethod(
         data_info_factory(names=_info_summary_attrs,
