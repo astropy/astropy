@@ -1033,7 +1033,57 @@ class MaskedColumnInfo(ColumnInfo):
     but can be used as a general way to store meta information.  In this case
     it just adds the ``mask_val`` attribute.
     """
+    # Add `serialize_method` attribute to the attrs that MaskedColumnInfo knows
+    # about.  This allows customization of the way that MaskedColumn objects
+    # get written to file depending on format.  The default is to use whatever
+    # the writer would normally do, which in the case of FITS or ECSV is to use
+    # a NULL value within the data itself.  If serialize_method is 'data_mask'
+    # then the mask is explicitly written out as a separate column if there
+    # are any masked values.  See also code below.
+    attr_names = ColumnInfo.attr_names | {'serialize_method'}
+
+    # When `serialize_method` is 'data_mask', and data and mask are being written
+    # as separate columns, use column names <name> and <name>.mask (instead
+    # of default encoding as <name>.data and <name>.mask).
+    _represent_as_dict_primary_data = 'data'
+
     mask_val = np.ma.masked
+
+    def __init__(self, bound=False):
+        super().__init__(bound)
+
+        # If bound to a data object instance then create the dict of attributes
+        # which stores the info attribute values.
+        if bound:
+            # Specify how to serialize this object depending on context.
+            self.serialize_method = {'fits': 'null_value',
+                                     'ecsv': 'null_value',
+                                     'hdf5': 'data_mask',
+                                     None: 'null_value'}
+
+    def _represent_as_dict(self):
+        out = super()._represent_as_dict()
+
+        col = self._parent
+
+        # If the serialize method for this context (e.g. 'fits' or 'ecsv') is
+        # 'data_mask', that means to serialize using an explicit mask column.
+        method = self.serialize_method[self._serialize_context]
+        if method == 'data_mask':
+            if np.any(col.mask):
+                # Note that adding to _represent_as_dict_attrs triggers later code which
+                # will add this to the '__serialized_columns__' meta YAML dict.
+                out['data'] = col.data.data
+                out['mask'] = col.mask
+                self._represent_as_dict_attrs += ('data', 'mask',)
+
+        elif method is 'null_value':
+            pass
+
+        else:
+            raise ValueError('serialize method must be either "data_mask" or "null_value"')
+
+        return out
 
 
 class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):

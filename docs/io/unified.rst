@@ -5,8 +5,7 @@ Unified file read/write interface
 
 Astropy provides a unified interface for reading and writing data in different formats.
 For many common cases this will simplify the process of file I/O and reduce the need to
-master the separate details of all the I/O packages within Astropy.  This functionality is
-still in active development and the number of supported formats will be increasing.  For
+master the separate details of all the I/O packages within Astropy.  For
 details on the implementation see :ref:`io_registry`.
 
 Getting started with Table I/O
@@ -53,6 +52,13 @@ The underlying file handler will also automatically detect various
 compressed data formats and transparently uncompress them as far as
 supported by the Python installation (see
 :meth:`~astropy.utils.data.get_readable_fileobj`).
+
+For writing, one can also specify details about the `Table serialization
+methods`_ via the ``serialize_method`` keyword argument.  This allows
+fine control of the way to write out certain columns, for instance
+writing an ISO format Time column as a pair of JD1 / JD2 floating
+point values (for full resolution) or as a formatted ISO date string.
+
 
 Any additional arguments specified will depend on the format.  For examples of this see the
 section `Built-in table readers/writers`_.  This section also provides the full list of
@@ -175,6 +181,18 @@ column delimiter and the output format for the ``colc`` column use:
 
    For compatibility with astropy version 0.2 and earlier, the following format
    values are also allowed in ``Table.read()``: ``daophot``, ``ipac``, ``html``, ``latex``, and ``rdb``.
+
+.. attention:: **ECSV is recommended**
+
+   For writing and reading tables to ASCII in a way that fully reproduces the
+   table data, types and metadata (i.e. the table will "round-trip"), we highly
+   recommend using the :ref:`ecsv_format`.  This writes the actual data in a
+   simple space-delimited format (the ``basic`` format) that any ASCII table
+   reader can parse, but also includes metadata encoded in a comment block that
+   allows full reconstruction of the original columns.  This includes support
+   for :ref:`ecsv_format_mixin_columns` (such as
+   `~astropy.coordinates.SkyCoord` or `~astropy.time.Time`) and
+   :ref:`ecsv_format_masked_columns`.
 
 .. _table_io_fits:
 
@@ -335,6 +353,71 @@ depending on format type, and both are set in the TDISPn format.  Otherwise,
 if both a width and precision are present they are both set in the TDISPn
 format.  A Python ``f`` or ``F`` map to TDISP F format.  The Python ``g`` or
 ``G`` map to TDISP G format.  The Python ``e`` and ``E`` map to TDISP E format.
+
+Masked columns
+^^^^^^^^^^^^^^
+
+Tables that contain `~astropy.table.MaskedColumn` columns can be written to
+FITS.  By default this will replace the masked data elements with certain
+sentinel values according to the FITS standard:
+
+- ``NaN`` for float columns
+- Value of ``TNULLn`` for integer columns
+- Null string for string columns (not currently implemented)
+
+When the file is read back those elements are marked as masked in the
+returned table.
+
+The FITS standard has a few limitations:
+
+- Not all data types are supported (e.g. logical / boolean)
+- Integer columns require picking one value as the NULL indicator.  If
+  all possible values are represented in valid data (e.g. an unsigned
+  int columns with all 256 possible values in valid data) then there
+  is no way to represent missing data.
+- The masked data values are permanently lost, precluding the possibility
+  of later unmasking the values.
+
+Astropy provides a work-around for this limitation that users can choose to
+use.  The key part using the ``serialize_method='data_mask'`` keyword argument
+when writing the table.  This tells the FITS writer to split each masked
+column into two separate columns, one for the data and one for the mask.
+When it gets read back that process is reversed and the two columns are
+merged back into one masked column.
+
+.. doctest-skip::
+
+  >>> from astropy.table.table_helpers import simple_table
+  >>> t = simple_table(masked=True)
+  >>> t['d'] = [False, False, True]
+  >>> t['d'].mask = [True, False, False]
+  >>> t
+  <Table masked=True length=3>
+    a      b     c     d
+  int64 float64 str1  bool
+  ----- ------- ---- -----
+     --     1.0    c    --
+      2     2.0   -- False
+      3      --    e  True
+
+.. doctest-skip::
+
+  >>> t.write('data.fits', serialize_method='data_mask', overwrite=True)
+  >>> Table.read('data.fits')
+  <Table masked=True length=3>
+    a      b      c      d
+  int64 float64 bytes1  bool
+  ----- ------- ------ -----
+     --     1.0      c    --
+      2     2.0     -- False
+      3      --      e  True
+
+.. warning:: This option goes outside of the established FITS standard for
+   representing missing data so users should be careful about choosing this option,
+   especially if other (non-astropy) users will be reading the file(s).  Behind
+   the scenes, astropy is converting the masked columns into two distinct
+   data and mask columns, then writing metadata into ``COMMENT`` cards to
+   allow reconstruction of the original data.
 
 Astropy native objects (mixin columns)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -619,8 +702,9 @@ of the `~astropy.time.Time` column, instead of the ``(jd1, jd2)`` format, with
 no extra metadata in the header. This is the "lossy" version, but can help
 portability. For the above example, the FITS column corresponding
 to ``t['a']`` will then store ``[100.0 200.0]`` instead of
-``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``. This is done by using a special
-``info.serialize_method`` attribute, as in the following example:
+``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``. This is done by setting the
+`Table serialization methods`_ for Time columns when writing, as in the
+following example:
 
 .. doctest-skip::
 
@@ -629,8 +713,8 @@ to ``t['a']`` will then store ``[100.0 200.0]`` instead of
     >>> from astropy.coordinates import EarthLocation
     >>> t = Table()
     >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd')
-    >>> t['a'].info.serialize_method['fits'] = 'formatted_value'
-    >>> t.write('my_table.fits', overwrite=True)
+    >>> t.write('my_table.fits', overwrite=True,
+    ...         serialize_method={Time: 'formatted_value'})
     >>> tm = Table.read('my_table.fits')
     >>> tm['a']
     <Column name='a' dtype='float64' length=2>
@@ -639,7 +723,7 @@ to ``t['a']`` will then store ``[100.0 200.0]`` instead of
     >>> all(tm['a'] == t['a'].value)
     True
 
-By default, ``serialize_method['fits']`` in a Time column ``info`` is equal to
+By default, ``serialize_method`` for Time columns is equal to
 ``'jd1_jd2'``, that is, Time column will be written in full precision.
 
 .. note::
@@ -827,3 +911,86 @@ To write to a new file, the ID of the table should also be specified (unless
 When writing, the ``compression=True`` argument can be used to force
 compression of the data on disk, and the ``overwrite=True`` argument can be
 used to overwrite an existing file.
+
+.. _table_serialization_methods:
+
+Table serialization methods
+===========================
+
+Astropy supports fine-grained control of the way to write out (serialize)
+the columns in a Table.  For instance if you are writing an ISO format
+Time column to an ECSV ASCII table file, you may want to write this as a pair
+of JD1 / JD2 floating point values for full resolution (perfect round-trip), or
+as a formatted ISO date string so that the values are easily readable by you or
+other applications.
+
+The default method for serialization depends on the format (FITS, ECSV, HDF5).
+For instance HDF5 is a binary format and so it would make sense to store a Time
+object as JD1 / JD2, while ECSV is a flat ASCII format and commonly you
+would want to see the date in the same format as the Time object.  The defaults
+also reflect an attempt to minimize compatibility issues between astropy
+versions.  For instance it was possible to write Time columns to ECSV as
+formatted strings in a version prior to the ability to write as JD1 / JD2
+pairs, so the current default for ECSV is to write as formatted strings.
+
+The two classes which have configurable serialization method are
+`~astropy.time.Time` and `~astropy.table.MaskedColumn`.  See the sections
+on Time `Details`_ and `Masked columns`_, respectively, for additional
+information.  The defaults for each format are listed below:
+
+====== ==================== ===============
+Format    Time                MaskedColumn
+====== ==================== ===============
+FITS    ``jd1_jd2``          ``null_value``
+ECSV    ``formatted_value``  ``null_value``
+HDF5    ``jd1_jd2``          ``data_mask``
+YAML    ``jd2_jd2``            ---
+====== ==================== ===============
+
+As an example, start by making a table with a Time column and masked column:
+
+  >>> import sys
+  >>> from astropy.time import Time
+  >>> from astropy.table import Table, MaskedColumn
+
+  >>> t = Table(masked=True)
+  >>> t['tm'] = Time(['2000-01-01', '2000-01-02'])
+  >>> t['mc1'] = MaskedColumn([1.0, 2.0], mask=[True, False])
+  >>> t['mc2'] = MaskedColumn([3.0, 4.0], mask=[False, True])
+  >>> t
+  <Table masked=True length=2>
+             tm             mc1     mc2
+           object         float64 float64
+  ----------------------- ------- -------
+  2000-01-01 00:00:00.000      --     3.0
+  2000-01-02 00:00:00.000     2.0      --
+
+Now specify that you want all `~astropy.time.Time` columns written as JD1 / JD2
+and the ``mc1`` column written as a data / mask pair and
+write to ECSV:
+
+.. doctest-skip::
+
+  >>> serialize_method = {Time: 'jd1_jd2', 'mc1': 'data_mask'}
+  >>> t.write(sys.stdout, format='ascii.ecsv', serialize_method=serialize_method)
+  # %ECSV 0.9
+   ...
+  # schema: astropy-2.0
+   tm.jd1    tm.jd2  mc1  mc1.mask  mc2
+  2451544.0    0.5   1.0   True     3.0
+  2451546.0   -0.5   2.0   False     ""
+
+(Spaces added for clarity)
+
+Notice that the ``tm`` column has been replaced by the ``tm.jd1`` and ``tm.jd2``
+columns, and likewise a new column ``mc1.mask`` has appeared and it explicitly
+contains the mask values.  When this table is read back with the ``ascii.ecsv``
+reader then the original columns are reconstructed.
+
+The ``serialize_method`` argument can be set in two different ways:
+
+- As a single string like ``data_mask``.  This value then applies to every column,
+  and is a convenient strategy for a masked table with no Time columns.
+- As a `dict`, where the key can be either a single column name or a class (as
+  shown in the example above), and the value is the corresponding serialization
+  method.
