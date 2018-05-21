@@ -334,6 +334,9 @@ Other Changes and Additions
 - The documentation build now uses the Sphinx configuration from sphinx-astropy
   rather than from astropy-helpers. [#7139]
 
+- The ERFA functions are now wrapped in ufuncs instead of custom C code,
+  leading to some speed improvements, and setting the stage for allowing
+  overrides with ``__array_ufunc__``. [#7484]
 
 3.0.3 (unreleased)
 ==================
