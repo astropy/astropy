@@ -339,8 +339,9 @@ class TestRunner(TestRunnerBase):
     def package(self, package, kwargs):
         """
         package : str, optional
-            The name of a specific package to test, e.g. 'io.fits' or 'utils'.
-            If nothing is specified all default Astropy tests are run.
+            The name of a specific package to test, e.g. 'io.fits' or
+            'utils'. Accepts comma separated string to specify multiple
+            packages. If nothing is specified all default tests are run.
         """
         if package is None:
             self.package_path = [self.base_path]
