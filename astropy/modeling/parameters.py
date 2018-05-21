@@ -295,15 +295,30 @@ class Parameter(OrderedDescriptor):
     def value(self):
         """The unadorned value proxied by this parameter."""
         if self._getter is None and self._setter is None:
-            return self._value
+            return np.float64(self._value)
         else:
             if self.internal_unit:
                 return np.float64(self._getter(self._internal_value,
                                   self.internal_unit, self.unit).value)
             elif self._getter:
-                return self._getter(self._internal_value)
+                return np.float64(self._getter(self._internal_value))
             elif self._setter:
-                return self._internal_value
+                return np.float64(self._internal_value)
+
+
+    # @property
+    # def value(self):
+    #     """The unadorned value proxied by this parameter."""
+    #     if self._getter is None and self._setter is None:
+    #         return self._value
+    #     else:
+    #         if self.internal_unit:
+    #             return np.float64(self._getter(self._internal_value,
+    #                               self.internal_unit, self.unit).value)
+    #         elif self._getter:
+    #             return self._getter(self._internal_value)
+    #         elif self._setter:
+    #             return self._internal_value
 
     @value.setter
     def value(self, value):
@@ -318,6 +333,11 @@ class Parameter(OrderedDescriptor):
         else:
             self._internal_value = np.array(self._setter(value),
                                             dtype=np.float64)
+        # if self._setter is None:
+        #     self._value = np.float64(value)
+        # else:
+        #     self._internal_value = np.float64(self._setter(value))
+
 
     @property
     def unit(self):
@@ -385,6 +405,14 @@ class Parameter(OrderedDescriptor):
             return self._value.shape
         else:
             return self._internal_value.shape
+
+    @shape.setter
+    def shape(self, value):
+        if isinstance(self.value, np.generic):
+            if value != () and value != (1,):
+                raise ValueError("Cannot assign this shape to a scalar quantity")
+        else:
+            self.value.shape = value
 
     @property
     def size(self):
