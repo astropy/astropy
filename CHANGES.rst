@@ -13,6 +13,9 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
+- ``convolve`` now accepts any array-like input, not just ``numpy.ndarray`` or
+  lists. [#7303]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
