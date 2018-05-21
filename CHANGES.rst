@@ -58,6 +58,9 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Enabling running tests for multiple packages when specified comma
+  separated. [#7463]
+
 astropy.time
 ^^^^^^^^^^^^
 
