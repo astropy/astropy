@@ -30,6 +30,12 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
+HAS_PANDAS = True
+try:
+    import pandas
+except ImportError:
+    HAS_PANDAS = False
+
 
 class TestConvolve1D:
     def test_list(self):
@@ -751,3 +757,20 @@ def test_astropy_convolution_against_scipy():
                               convolve(y, x, normalize_kernel=False))
     assert_array_almost_equal(fftconvolve(y, x, 'same'),
                               convolve_fft(y, x, normalize_kernel=False))
+
+@pytest.mark.skipif('not HAS_PANDAS')
+def test_regression_6099():
+    wave = np.array((np.linspace(5000, 5100, 10)))
+    boxcar = 3
+    nonseries_result = convolve(wave, np.ones((boxcar,))/boxcar)
+
+    wave_series = pandas.Series(wave)
+    series_result  = convolve(wave_series, np.ones((boxcar,))/boxcar)
+
+    assert_array_almost_equal(nonseries_result, series_result)
+
+def test_invalid_array_convolve():
+    kernel = np.ones(3)/3.
+
+    with pytest.raises(TypeError):
+        convolve('glork', kernel)
