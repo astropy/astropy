@@ -280,6 +280,47 @@ class TestRunner(TestRunnerBase):
     A test runner for astropy tests
     """
 
+    def packages_path(self, packages, base_path, error=None, warning=None):
+        """
+        Generates the path for multiple packages.
+
+        Parameters
+        ----------
+        packages : str
+            Comma separated string of packages.
+        base_path : str
+            Base path to the source code or documentation.
+        error : str
+            Error message to be raised as ``ValueError``. Individual package
+            name and path can be accessed by ``{name}`` and ``{path}``
+            respectively. No error is raised if `None`. (Default: `None`)
+        warning : str
+            Warning message to be issued. Individual package
+            name and path can be accessed by ``{name}`` and ``{path}``
+            respectively. No warning is issues if `None`. (Default: `None`)
+
+        Returns
+        -------
+        paths : list of str
+            List of stings of existing package paths.
+        """
+        packages = packages.split(",")
+
+        paths = []
+        for package in packages:
+            path = os.path.join(
+                base_path, package.replace('.', os.path.sep))
+            if not os.path.isdir(path):
+                info = {'name': package, 'path': path}
+                if error is not None:
+                    raise ValueError(error.format(**info))
+                if warning is not None:
+                    warnings.warn(warning.format(**info))
+            else:
+                paths.append(path)
+
+        return paths
+
     # Increase priority so this warning is displayed first.
     @keyword(priority=1000)
     def coverage(self, coverage, kwargs):
@@ -298,20 +339,20 @@ class TestRunner(TestRunnerBase):
     def package(self, package, kwargs):
         """
         package : str, optional
-            The name of a specific package to test, e.g. 'io.fits' or 'utils'.
-            If nothing is specified all default Astropy tests are run.
+            The name of a specific package to test, e.g. 'io.fits' or
+            'utils'. Accepts comma separated string to specify multiple
+            packages. If nothing is specified all default tests are run.
         """
         if package is None:
-            self.package_path = self.base_path
+            self.package_path = [self.base_path]
         else:
-            self.package_path = os.path.join(self.base_path,
-                                        package.replace('.', os.path.sep))
-
-            if not os.path.isdir(self.package_path):
-                raise ValueError('Package not found: {0}'.format(package))
+            error_message = ('package to test is not found: {name} '
+                             '(at path {path}).')
+            self.package_path = self.packages_path(package, self.base_path,
+                                                   error=error_message)
 
         if not kwargs['test_path']:
-            return [self.package_path]
+            return self.package_path
 
         return []
 
@@ -515,19 +556,18 @@ class TestRunner(TestRunnerBase):
         docs_path : str, optional
             The path to the documentation .rst files.
         """
+
+        paths = []
         if docs_path is not None and not kwargs['skip_docs']:
             if kwargs['package'] is not None:
-                docs_path = os.path.join(
-                    docs_path, kwargs['package'].replace('.', os.path.sep))
-            if not os.path.exists(docs_path):
-                warnings.warn(
-                    "Can not test .rst docs, since docs path "
-                    "({0}) does not exist.".format(docs_path))
-                docs_path = None
-        if docs_path and not kwargs['skip_docs'] and not kwargs['test_path']:
-            return [docs_path, '--doctest-rst']
+                warning_message = ("Can not test .rst docs for {name}, since "
+                                   "docs path ({path}) does not exist.")
+                paths = self.packages_path(kwargs['package'], docs_path,
+                                           warning=warning_message)
+            if len(paths) and not kwargs['test_path']:
+                paths.append('--doctest-rst')
 
-        return []
+        return paths
 
     @keyword()
     def skip_docs(self, skip_docs, kwargs):

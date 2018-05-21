@@ -161,15 +161,20 @@ Test-running options
 Running parts of the test suite
 -------------------------------
 
-It is possible to run only the tests for a particular subpackage.  For
-example, to run only the ``wcs`` tests from the commandline::
+It is possible to run only the tests for a particular subpackage or set of
+subpackages.  For example, to run only the ``wcs`` tests from the
+commandline::
 
     python setup.py test -P wcs
+
+Or, to run only the ``wcs`` and ``utils`` tests::
+
+    python setup.py test -P wcs,utils
 
 Or from Python::
 
     >>> import astropy
-    >>> astropy.test(package="wcs")
+    >>> astropy.test(package="wcs,utils")
 
 You can also specify a single file to test from the commandline::
 

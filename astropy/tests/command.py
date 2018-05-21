@@ -46,7 +46,8 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
 
     user_options = [
         ('package=', 'P',
-         "The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
+         "The name of a specific package to test, e.g. 'io.fits' or 'utils'. "
+         "Accepts comma separated string to specify multiple packages. "
          "If nothing is specified, all default tests are run."),
         ('test-path=', 't',
          'Specify a test location by path.  If a relative path to a  .py file, '
