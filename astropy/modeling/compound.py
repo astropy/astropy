@@ -650,7 +650,7 @@ class CompoundModel(object):
         for name in self.param_names:
             param = getattr(self, name)
             param.value = self._parameters[param_metrics[name]['slice']]
-            param.value.shape = param_metrics[name]['shape']
+            param.shape = param_metrics[name]['shape']
     
     @property
     def _has_units(self):

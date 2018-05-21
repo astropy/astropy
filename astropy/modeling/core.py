@@ -1976,7 +1976,7 @@ class Model(metaclass=_ModelMeta):
         for name in self.param_names:
             param = getattr(self, name)
             param.value = self._parameters[param_metrics[name]['slice']]
-            param.value.shape = param_metrics[name]['shape']
+            param.shape = param_metrics[name]['shape']
 
     def _check_param_broadcast(self, max_ndim):
         """
