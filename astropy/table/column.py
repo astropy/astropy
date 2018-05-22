@@ -1115,13 +1115,17 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
                 copy=False, copy_indices=True):
 
         if mask is None:
-            if hasattr(data, 'mask'):
+            # Issue #7399 with fix #7422.  Passing mask=None to ma.MaskedArray
+            # is extremely slow (~3 seconds for 1e7 elements), while mask=False
+            # gets quickly broadcast to the expected bool array of False.
+            mask = getattr(data, 'mask', False)
+            if mask is not False:
                 mask = np.array(data.mask, copy=copy)
-            else:
-                # Issue #7399 with fix #7422.  Passing mask=None to ma.MaskedArray
-                # is extremely slow (~3 seconds for 1e7 elements), while mask=False
-                # gets quickly broadcast to the expected bool array of False.
-                mask = False
+        elif mask is np.ma.nomask:
+            # Force the creation of a full mask array as nomask is tricky to
+            # use and will fail in an unexpected manner when setting a value
+            # to the mask.
+            mask = False
         else:
             mask = deepcopy(mask)
 
