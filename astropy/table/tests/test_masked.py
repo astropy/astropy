@@ -414,3 +414,19 @@ def test_coercing_fill_value_type():
     c.set_fill_value('0')
     c2 = MaskedColumn(c, dtype=np.int32)
     assert isinstance(c2.fill_value, np.int32)
+
+
+def test_mask_copy():
+    """Test that the mask is copied when copying a table (issue #7362)."""
+
+    t = Table([[2, 4, 1, 3], [3., 2., np.nan, 4]],
+              names=('a', 'b'), masked=True)
+    t['b'] = np.ma.masked_invalid(t['b'])
+    orig_mask = t['b'].mask.copy()
+
+    t2 = t.copy()
+    t2.sort('a')
+
+    # Check that the mask from the initial table was not modified
+    np.testing.assert_array_equal(t['b'].mask, orig_mask)
+    np.testing.assert_array_equal(t2['b'].mask, [True, False, False, False])
