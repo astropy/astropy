@@ -1116,7 +1116,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         if mask is None:
             if hasattr(data, 'mask'):
-                mask = data.mask
+                mask = np.array(data.mask, copy=copy)
             else:
                 # Issue #7399 with fix #7422.  Passing mask=None to ma.MaskedArray
                 # is extremely slow (~3 seconds for 1e7 elements), while mask=False
