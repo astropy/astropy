@@ -143,7 +143,9 @@ _warnings_to_ignore_by_pyver = {
         r"inspect\.getargspec\(\) is deprecated, use "
         r"inspect\.signature\(\) instead",
         # https://github.com/astropy/astropy/pull/7372
-        r"Importing from numpy\.testing\.decorators is deprecated, import from numpy\.testing instead\."]),
+        r"Importing from numpy\.testing\.decorators is deprecated, import from numpy\.testing instead\.",
+        # Deprecation warnings ahead of pytest 4.x
+        r"MarkInfo objects are deprecated"]),
     (3, 6): set([
         # py.test reads files with the 'U' flag, which is
         # deprecated.
@@ -153,7 +155,9 @@ _warnings_to_ignore_by_pyver = {
         r"inspect\.getargspec\(\) is deprecated, use "
         r"inspect\.signature\(\) or inspect\.getfullargspec\(\)",
         # https://github.com/astropy/astropy/pull/7372
-        r"Importing from numpy\.testing\.decorators is deprecated, import from numpy\.testing instead\."])}
+        r"Importing from numpy\.testing\.decorators is deprecated, import from numpy\.testing instead\.",
+        # Deprecation warnings ahead of pytest 4.x
+        r"MarkInfo objects are deprecated"])}
 
 
 def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
