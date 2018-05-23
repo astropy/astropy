@@ -17,6 +17,7 @@ import astropy.units as u
 
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
+from .._erfa import ufunc as erfa_ufunc
 from ..utils import ShapedLikeNDArray, classproperty
 
 from ..utils import deprecated_attribute
@@ -1315,11 +1316,11 @@ class UnitSphericalRepresentation(BaseRepresentation):
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
-        x = np.cos(self.lat) * np.cos(self.lon)
-        y = np.cos(self.lat) * np.sin(self.lon)
-        z = np.sin(self.lat)
-
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+        # NUMPY_LT_1_16 cannot create a vector automatically
+        p = u.Quantity(np.empty(self.shape + (3,)), u.dimensionless_unscaled,
+                       copy=False)
+        p = erfa_ufunc.s2c(self.lon, self.lat, p)
+        return CartesianRepresentation(p, xyz_axis=-1, copy=False)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -1327,13 +1328,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
-
-        s = np.hypot(cart.x, cart.y)
-
-        lon = np.arctan2(cart.y, cart.x)
-        lat = np.arctan2(cart.z, s)
-
-        return cls(lon=lon, lat=lat, copy=False)
+        p = cart.get_xyz(xyz_axis=-1)
+        return cls(*erfa_ufunc.c2s(p), copy=False)
 
     def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
@@ -1633,11 +1629,11 @@ class SphericalRepresentation(BaseRepresentation):
         else:
             d = self.distance
 
-        x = d * np.cos(self.lat) * np.cos(self.lon)
-        y = d * np.cos(self.lat) * np.sin(self.lon)
-        z = d * np.sin(self.lat)
+        # NUMPY_LT_1_16 cannot create a vector automatically
+        p = u.Quantity(np.empty(self.shape + (3,)), d.unit, copy=False)
+        p = erfa_ufunc.s2p(self.lon, self.lat, d, p)
 
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+        return CartesianRepresentation(p, xyz_axis=-1, copy=False)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -1645,14 +1641,8 @@ class SphericalRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
-
-        s = np.hypot(cart.x, cart.y)
-        r = np.hypot(s, cart.z)
-
-        lon = np.arctan2(cart.y, cart.x)
-        lat = np.arctan2(cart.z, s)
-
-        return cls(lon=lon, lat=lat, distance=r, copy=False)
+        p = cart.get_xyz(xyz_axis=-1)
+        return cls(*erfa_ufunc.p2s(p), copy=False)
 
     def norm(self):
         """Vector norm.
