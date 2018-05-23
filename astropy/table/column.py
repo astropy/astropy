@@ -1120,7 +1120,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             # gets quickly broadcast to the expected bool array of False.
             mask = getattr(data, 'mask', False)
             if mask is not False:
-                mask = np.array(data.mask, copy=copy)
+                mask = np.array(mask, copy=copy)
         elif mask is np.ma.nomask:
             # Force the creation of a full mask array as nomask is tricky to
             # use and will fail in an unexpected manner when setting a value
