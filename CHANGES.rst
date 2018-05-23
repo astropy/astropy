@@ -62,6 +62,10 @@ astropy.table
 
 - Fix printing table row indexed with unsigned integer. [#7469]
 
+- Fix copy of mask when copying a Table, as this is no more done systematically
+  by Numpy since version 1.14. Also fixed a problem when MaskedColumn was
+  initialized with ``mask=np.ma.nomask``. [#7486]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

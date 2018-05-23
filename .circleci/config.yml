@@ -19,7 +19,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: /opt/python/cp36-cp36m/bin/pip install numpy scipy pytest-astropy pytest-xdist Cython jinja2
+          command: /opt/python/cp36-cp36m/bin/pip install numpy scipy "pytest<3.6" pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests
           command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4
