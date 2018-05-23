@@ -31,50 +31,70 @@ class FunctionDoc:
         self.__output = None
         self.__ret_info = None
 
+    def _get_arg_doc_list(self, doc_lines):
+        """Parse input/output doc section lines, getting arguments from them.
+
+        Ensure all elements of eraASTROM and eraLDBODY are left out, as those
+        are not input or output arguments themselves.  Also remove the nb
+        argument in from of eraLDBODY, as we infer nb from the python array.
+        """
+        doc_list = []
+        skip = []
+        for d in doc_lines:
+            arg_doc = ArgumentDoc(d)
+            if arg_doc.name is not None:
+                if skip:
+                    if skip[0] == arg_doc.name:
+                        skip.pop(0)
+                        continue
+                    else:
+                        raise RuntimeError("We whould be skipping {} "
+                                           "but {} encountered."
+                                           .format(skip[0], arg_doc.name))
+
+                if arg_doc.type.startswith('eraLDBODY'):
+                    # Special-case LDBODY: for those, the previous argument
+                    # is always the number of bodies, but we don't need it
+                    # as an input argument for the ufunc since we're going
+                    # to determine this from the array itself. Also skip
+                    # the description of its contents; those are not arguments.
+                    doc_list.pop()
+                    skip = ['bm', 'dl', 'pv']
+                elif arg_doc.type.startswith('eraASTROM'):
+                    # Special-case ASTROM: need to skip the description
+                    # of its contents; those are not arguments.
+                    skip = ['pmt', 'eb', 'eh', 'em', 'v', 'bm1',
+                            'bpn', 'along', 'xpl', 'ypl', 'sphi',
+                            'cphi', 'diurab', 'eral', 'refa', 'refb']
+
+                doc_list.append(arg_doc)
+
+        return doc_list
+
     @property
     def input(self):
         if self.__input is None:
             self.__input = []
-            result = re.search("Given([^\n]*):\n(.+?)  \n", self.doc, re.DOTALL)
-            if result is not None:
-                __input = result.group(2)
-                for i in __input.split("\n"):
-                    arg_doc = ArgumentDoc(i)
-                    if arg_doc.name is not None:
-                        # Special-case LDBODY: for those, the previous argument
-                        # is always the number of bodies, but we don't need it
-                        # as an input argument for the ufunc since we're going
-                        # to determine this from the array itself.
-                        if 'LDBODY' in arg_doc.type:
-                            self.__input.pop()
-                        self.__input.append(arg_doc)
-            result = re.search("Given and returned([^\n]*):\n(.+?)  \n", self.doc, re.DOTALL)
-            if result is not None:
-                __input = result.group(2)
-                for i in __input.split("\n"):
-                    arg_doc = ArgumentDoc(i)
-                    if arg_doc.name is not None:
-                        self.__input.append(arg_doc)
+            for regex in ("Given([^\n]*):\n(.+?)  \n",
+                          "Given and returned([^\n]*):\n(.+?)  \n"):
+                result = re.search(regex, self.doc, re.DOTALL)
+                if result is not None:
+                    doc_lines = result.group(2).split("\n")
+                    self.__input += self._get_arg_doc_list(doc_lines)
+
         return self.__input
 
     @property
     def output(self):
         if self.__output is None:
             self.__output = []
-            result = re.search("Returned([^\n]*):\n(.+?)  \n", self.doc, re.DOTALL)
-            if result is not None:
-                __output = result.group(2)
-                for i in __output.split("\n"):
-                    arg_doc = ArgumentDoc(i)
-                    if arg_doc.name is not None:
-                        self.__output.append(arg_doc)
-            result = re.search("Given and returned([^\n]*):\n(.+?)  \n", self.doc, re.DOTALL)
-            if result is not None:
-                __output = result.group(2)
-                for i in __output.split("\n"):
-                    arg_doc = ArgumentDoc(i)
-                    if arg_doc.name is not None:
-                        self.__output.append(arg_doc)
+            for regex in ("Given and returned([^\n]*):\n(.+?)  \n",
+                          "Returned([^\n]*):\n(.+?)  \n"):
+                result = re.search(regex, self.doc, re.DOTALL)
+                if result is not None:
+                    doc_lines = result.group(2).split("\n")
+                    self.__output += self._get_arg_doc_list(doc_lines)
+
         return self.__output
 
     @property
@@ -191,14 +211,7 @@ class Argument(Variable):
             for o in self.doc.output:
                 if self.name in o.name.split(','):
                     if self.__inout_state == 'in':
-                        # Should really only happen for astrom, but
-                        # astrom lists a whole slew of other variables
-                        # -> refa and refb should not be done.
-                        if self.name == 'astrom':
-                            self.__inout_state = 'inout'
-                        elif self.name != 'refa' and self.name != 'refb':
-                            raise RuntimeError('Variable given in both '
-                                               'in and out sections')
+                        self.__inout_state = 'inout'
                     else:
                         self.__inout_state = 'out'
         return self.__inout_state
