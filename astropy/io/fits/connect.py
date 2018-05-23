@@ -349,10 +349,13 @@ def _encode_mixins(tbl):
     encode_tbl.meta['comments'].append('--BEGIN-ASTROPY-SERIALIZED-COLUMNS--')
 
     for line in meta_yaml_lines:
-        # Split line into 70 character chunks for COMMENT cards
-        idxs = list(range(0, len(line) + 70, 70))
-        lines = [line[i0:i1] + '\\' for i0, i1 in zip(idxs[:-1], idxs[1:])]
-        lines[-1] = lines[-1][:-1]
+        if len(line) == 0:
+            lines = ['']
+        else:
+            # Split line into 70 character chunks for COMMENT cards
+            idxs = list(range(0, len(line) + 70, 70))
+            lines = [line[i0:i1] + '\\' for i0, i1 in zip(idxs[:-1], idxs[1:])]
+            lines[-1] = lines[-1][:-1]
         encode_tbl.meta['comments'].extend(lines)
 
     encode_tbl.meta['comments'].append('--END-ASTROPY-SERIALIZED-COLUMNS--')

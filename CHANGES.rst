@@ -31,6 +31,9 @@ astropy.io.fits
 - Raise error when attempting to open gzipped FITS file in 'append' mode.
   [#7473]
 
+- Fix a bug when writing to FITS a table that has a column description
+  with embedded blank lines. [#7482]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
