@@ -593,7 +593,7 @@ def test_fits_mixins_per_column(table_cls, name_col, tmpdir):
 
     c = [1.0, 2.0]
     t = table_cls([c, col, c], names=['c1', name, 'c2'])
-    t[name].info.description = 'my description'
+    t[name].info.description = 'my \n\n\n description'
     t[name].info.meta = {'list': list(range(50)), 'dict': {'a': 'b' * 200}}
 
     if not t.has_mixin_columns:
