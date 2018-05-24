@@ -9,6 +9,10 @@
  * to update it.
  */
 
+/*
+ * TODO: memcpy is almost certainly broken...
+ * This would work better if one could give fixed sizes to a ufunc....
+ */
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include "Python.h"
 #include "numpy/arrayobject.h"
@@ -22,6 +26,115 @@
     "Python wrappers are also provided, which convert between\n" \
     "trailing dimensions and structured dtypes where necessary,\n" \
     "and combine status codes."
+
+static inline void copy_to_double2(char *ptr, npy_intp s, double d[2]) {
+    char *p = ptr;
+    int j;
+    for (j = 0; j < 2; j++, p += s) {
+        d[j] = *(double *)p;
+    }
+}
+
+static inline void copy_from_double2(char *ptr, npy_intp s, double d[2]) {
+    char *p = ptr;
+    int j;
+    for (j = 0; j < 2; j++, p += s) {
+        *(double *)p = d[j];
+    }
+}
+
+static inline void copy_to_double3(char *ptr, npy_intp s, double d[3]) {
+    char *p = ptr;
+    int j;
+    for (j = 0; j < 3; j++, p += s) {
+        d[j] = *(double *)p;
+    }
+}
+
+static inline void copy_from_double3(char *ptr, npy_intp s, double d[3]) {
+    char *p = ptr;
+    int j;
+    for (j = 0; j < 3; j++, p += s) {
+        *(double *)p = d[j];
+    }
+}
+
+static inline void copy_to_double23(char *ptr, npy_intp s0, npy_intp s1,
+                                 double d[2][3]) {
+    char *p0 = ptr;
+    int j0, j1;
+    for (j0 = 0; j0 < 2; j0++, p0 += s0) {
+        char *p1 = p0;
+        for (j1 = 0; j1 < 3; j1++, p1 += s1) {
+            d[j0][j1] = *(double *)p1;
+        }
+    }
+}
+
+static inline void copy_from_double23(char *ptr, npy_intp s0, npy_intp s1,
+                                      double d[2][3]) {
+    char *p = ptr;
+    int j;
+    char *p0 = ptr;
+    int j0, j1;
+    for (j0 = 0; j0 < 2; j0++, p0 += s0) {
+        char *p1 = p0;
+        for (j1 = 0; j1 < 3; j1++, p1 += s1) {
+            *(double *)p = d[j0][j1];
+        }
+    }
+}
+
+static inline void copy_to_double33(char *ptr, npy_intp s0, npy_intp s1,
+                                    double d[3][3]) {
+    char *p0 = ptr;
+    int j0, j1;
+    for (j0 = 0; j0 < 3; j0++, p0 += s0) {
+        char *p1 = p0;
+        for (j1 = 0; j1 < 3; j1++, p1 += s1) {
+            d[j0][j1] = *(double *)p1;
+        }
+    }
+}
+
+static inline void copy_from_double33(char *ptr, npy_intp s0, npy_intp s1,
+                                      double d[3][3]) {
+    char *p = ptr;
+    int j;
+    char *p0 = ptr;
+    int j0, j1;
+    for (j0 = 0; j0 < 3; j0++, p0 += s0) {
+        char *p1 = p0;
+        for (j1 = 0; j1 < 3; j1++, p1 += s1) {
+            *(double *)p = d[j0][j1];
+        }
+    }
+}
+
+static inline void copy_to_int4(char *ptr, npy_intp s, int i[4]) {
+    char *p = ptr;
+    int j;
+    for (j = 0; j < 4; j++, p += s) {
+        i[j] = *(int *)p;
+    }
+}
+
+static inline void copy_from_int4(char *ptr, npy_intp s, double i[3]) {
+    char *p = ptr;
+    int j;
+    for (j = 0; j < 4; j++, p += s) {
+        *(int *)p = i[j];
+    }
+}
+
+static inline void copy_to_eraLDBODY(char *ptr, npy_intp s, npy_intp n,
+                                  eraLDBODY b[]) {
+    char *p = ptr;
+    npy_intp j;
+    for (j = 0; j < n; j++, p += s) {
+        b[j] = *(eraLDBODY *)p;
+    }
+}
 
 /*
  * INNER LOOPS - iteratively call the erfa function for a chunk of data.
@@ -78,13 +191,32 @@ static void ufunc_loop_{{ func.pyname }}(
     npy_intp s_{{ arg.name }} = *steps++;
     {{ arg.ctype }} _{{ arg.name }};
     {%- endfor %}
-    {#- /* for generalized ufunc, get number of elements (inner loop) */ #}
+    {#- /* for generalized ufunc, get information for inner loop */ #}
     {%- if func.signature %}
-    npy_intp j;
+    {%- for arg in func.args_by_inout('in|inout|out') %}
+    {#- /* the only non-fixed dimension is for LDBODY, which always comes first */ #}
+    {%- if arg.ctype == 'eraLDBODY' %}
     npy_intp nb = dimensions[0];
-    npy_intp s_ib = steps[0];
+    npy_intp is_b0 = *steps++;
+    int copy_b = (is_b0 != sizeof(eraLDBODY));
+    {%- elif arg.shape %}
+    double buff_{{ arg.name }}{{ arg.cshape }};
+    {%- for i in range(arg.ndim) %}
+    npy_intp is_{{ arg.name }}{{ i }} = *steps++;
+    {%- endfor %}
+    {#- /* copy should be made if buffer not contiguous;
+           note: one can only have 1 or 2 dimensions */ #}
+    {%- if arg.ndim == 1 %}
+    int copy_{{ arg.name }} = (is_{{ arg.name }}0 != sizeof({{ arg.ctype }}));
+    {%- else %}
+    int copy_{{ arg.name }} = (is_{{ arg.name }}1 != sizeof({{ arg.ctype }}) &&
+                               is_{{ arg.name }}0 != {{ arg.shape[1] }} * sizeof({{ arg.ctype }}));
+    {%- endif %}
+    {%- endif %}
+    {%- endfor %}
+    {%- for arg in func.args_by_inout('in|inout|out') %}
+    {%- if arg.ctype == 'eraLDBODY' %}
     {#- /* allocate memory for copies for non-contiguous input */ #}
-    int copy_b = (s_ib != sizeof(eraLDBODY));
     if (copy_b) {
         _b = PyArray_malloc(nb * sizeof(eraLDBODY));
         if (_b == NULL) {
@@ -92,9 +224,10 @@ static void ufunc_loop_{{ func.pyname }}(
             return;
         }
     }
-    else {
-        _b = NULL;
-    }
+    {%- elif arg.shape %}
+    _{{ arg.name }} = &buff_{{ arg.name }};
+    {%- endif %}
+    {%- endfor %}
     {%- endif %}
     {#- /* Inner loop, increasing all pointers by their steps */ #}
     for (i_o = 0; i_o < n_o;
@@ -104,37 +237,54 @@ static void ufunc_loop_{{ func.pyname }}(
              {%- for arg in func.args_by_inout('inout') -%}
              , {{ arg.name }}_in += s_{{ arg.name }}_in
              {%- endfor -%}) {
-        {# /* for generalized ufunc, copy b if needed (always called that way)
-               and set up pointers to other input/output arguments */ -#}
-        {% if func.signature -%}
-        {% for arg in func.args_by_inout('in|inout|out') -%}
-        {%- if arg.name == 'b' -%}
-        if (copy_b) {
-            char *ib = b;
-            for (j = 0; j < nb; j++, ib += s_ib) {
-                _b[j] = *(eraLDBODY *)ib;
-            }
+        {%- if func.signature %}
+        {%- for arg in func.args_by_inout('in|inout') %}
+        {#- /* for generalized ufunc, copy argument if needed */ #}
+        {%- if arg.ctype == 'eraLDBODY' %}
+        if (copy_{{ arg.name }}) {
+            copy_to_eraLDBODY(b, is_b0, nb, _b);
         }
         else {
-            _b = ((eraLDBODY (*))b);
+            _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
         }
-        {% else -%}
+        {% elif arg.shape %}
+        if (copy_{{ arg.name }}) {
+            copy_to_{{ arg.ctype }}{{ arg.shape|join('') }}({{ arg.name }}
+                {%- for i in range(arg.ndim or 1) -%}
+                , is_{{ arg.name }}{{ i }}
+                {%- endfor %}, {{ arg.name_for_call}});
+        }
+        else {
+            _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
+        }
+        {%- else %}
         _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
-        {% endif -%}
-        {% endfor -%}
-        {%- else -%}
-        {#- /* for normal ufunc, just set up pointers to input/output arguments */ -#}
-        {% for arg in func.args_by_inout('in|inout|out') -%}
+        {%- endif %}
+        {%- endfor %}
+        {%- for arg in func.args_by_inout('out') %}
+        {#- /* eraLDBODY never in output */ #}
+        {%- if arg.shape %}
+        if (!copy_{{ arg.name }}) {
+            _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
+        }
+        {%- else %}
         _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
-        {% endfor -%}
-        {%- endif -%}
+        {%- endif %}
+        _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
+        {%- endfor %}
+        {%- else %}
+        {#- /* for normal ufunc, just set up pointers to input/output arguments */ #}
+        {%- for arg in func.args_by_inout('in|inout|out') %}
+        _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
+        {%- endfor %}
+        {%- endif %}
         {#- /* for arguments changed in-place, copy from in to out, if needed */ -#}
-        {%- for arg in func.args_by_inout('inout') -%}
+        {%- for arg in func.args_by_inout('inout') %}
         if ({{ arg.name }}_in != {{ arg.name }}) {
-            memcpy({{ arg.name}}, {{ arg.name }}_in, {{ arg.size }}*sizeof({{ arg.ctype }}));
+            memcpy({{ arg.name }}, {{ arg.name }}_in, {{ arg.size }}*sizeof({{ arg.ctype }}));
         }
-        {% endfor -%}
-        {#- /* call the actual erfa function */ -#}
+        {%- endfor %}
+        {#- /* call the actual erfa function */ #}
         {{ func.args_by_inout('ret|stat') |
                     map(attribute='name') |
                     surround('_', ' = ') |
@@ -147,8 +297,21 @@ static void ufunc_loop_{{ func.pyname }}(
         {%- for arg in func.args_by_inout('ret|stat') %}
         *(({{ arg.ctype }} *){{ arg.name }}) = _{{ arg.name }};
         {%- endfor %}
+        {%- if func.signature %}
+        {%- for arg in func.args_by_inout('inout|out') %}
+        {#- /* for generalized ufunc, copy result */ #}
+        {%- if arg.shape %}
+        if (copy_{{ arg.name }}) {
+            copy_from_{{ arg.ctype }}{{ arg.shape|join('') }}({{ arg.name }}
+                {%- for i in range(arg.ndim or 1) -%}
+                , is_{{ arg.name }}{{ i }}
+                {%- endfor %}, {{ arg.name_for_call}});
+        }
+        {%- endif %}
+        {%- endfor %}
+        {%- endif %}
     }
-    {%- if func.signature %}
+    {%- if func.user_dtype == 'dt_eraLBODY' %}
     if (copy_b) {
         PyArray_free(_b);
     }
@@ -599,11 +762,12 @@ PyMODINIT_FUNC PyInit_ufunc(void)
      */
     {%- for func in funcs %}
     {%- if not func.user_dtype %}
-    ufunc = (PyUFuncObject *)PyUFunc_FromFuncAndData(
+    ufunc = (PyUFuncObject *)PyUFunc_FromFuncAndDataAndSignature(
         funcs_{{ func.pyname }}, data, types_{{ func.pyname }},
         1, {{ func.args_by_inout('in|inout')|count }}, {{ func.args_by_inout('inout|out|ret|stat')|count }}, PyUFunc_None,
         "{{ func.pyname }}",
-        "UFunc wrapper for {{ func.name }}", 0);
+        "UFunc wrapper for {{ func.name }}",
+        0, {% if func.signature -%} "{{ func.signature }}" {%- else -%} NULL {%- endif -%});
     if (ufunc == NULL) {
         goto fail;
     }
