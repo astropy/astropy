@@ -56,9 +56,9 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         A flag indicating how to handle boundaries:
             * `None`
                 Set the ``result`` values to zero where the kernel
-                extends beyond the edge of the array (default).
+                extends beyond the edge of the array.
             * 'fill'
-                Set values outside the array boundary to ``fill_value``.
+                Set values outside the array boundary to ``fill_value`` (default).
             * 'wrap'
                 Periodic boundary that wrap to the other side of ``array``.
             * 'extend'
