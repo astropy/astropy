@@ -1162,6 +1162,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             if new_frame is self.__class__:
                 # no special transform needed, but should update frame info
                 return new_frame.realize_frame(self.data)
+            elif isinstance(new_frame, str):
+                raise ConvertError("Could not find frame with name " +
+                                   "'{}' ".format(new_frame) +
+                                   "in the frame transformation graph")
             msg = 'Cannot transform from {0} to {1}'
             raise ConvertError(msg.format(self.__class__, new_frame.__class__))
         return trans(self, new_frame)
