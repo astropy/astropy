@@ -450,8 +450,45 @@ class Function:
              for args in (self.args_by_inout('in|inout'),
                           self.args_by_inout('inout|out|ret|stat'))])
 
+    def _d3_fix_arg_and_index(self):
+        if not any('d3' in arg.signature_shape
+                   for arg in self.args_by_inout('in|inout')):
+            for j, arg in enumerate(self.args_by_inout('out')):
+                if 'd3' in arg.signature_shape:
+                    return j, arg
+
+        return None, None
+
+    @property
+    def d3_fix_op_index(self):
+        """Whether only output arguments have a d3 dimension."""
+        index = self._d3_fix_arg_and_index()[0]
+        if index is not None:
+            len_in = len(list(self.args_by_inout('in')))
+            len_inout = len(list(self.args_by_inout('inout')))
+            index += + len_in + 2 * len_inout
+        return index
+
+    @property
+    def d3_fix_arg(self):
+        """Whether only output arguments have a d3 dimension."""
+        return self._d3_fix_arg_and_index()[1]
+
+    @property
+    def python_call(self):
+        outnames = [arg.name for arg in self.args_by_inout('inout|out|stat|ret')]
+        argnames = [arg.name for arg in self.args_by_inout('in|inout')]
+        argnames += [arg.name for arg in self.args_by_inout('inout')]
+        d3fix_index = self._d3_fix_arg_and_index()[0]
+        if d3fix_index is not None:
+            argnames += ['None'] * d3fix_index + ['d3fix']
+        return '{out} = {func}({args})'.format(out=', '.join(outnames),
+                                               func='ufunc.' + self.pyname,
+                                               args=', '.join(argnames))
+
     def __repr__(self):
         return "Function(name='{0}', pyname='{1}', filename='{2}', filepath='{3}')".format(self.name, self.pyname, self.filename, self.filepath)
+
 
 
 class Constant:
@@ -528,7 +565,8 @@ class ExtraFunction(Function):
 
 
 def main(srcdir=DEFAULT_ERFA_LOC, outfn='core.py', ufuncfn='ufunc.c',
-         templateloc=DEFAULT_TEMPLATE_LOC, verbose=True):
+         templateloc=DEFAULT_TEMPLATE_LOC, extra='erfa_additions.h',
+         verbose=True):
     from jinja2 import Environment, FileSystemLoader
 
     if verbose:
@@ -564,6 +602,11 @@ def main(srcdir=DEFAULT_ERFA_LOC, outfn='core.py', ufuncfn='ufunc.c',
 
     with open(erfahfn, "r") as f:
         erfa_h = f.read()
+        print_("read erfa header")
+    if extra:
+        with open(os.path.join(templateloc or '.', extra), "r") as f:
+            erfa_h += f.read()
+        print_("read extra header")
 
     funcs = OrderedDict()
     section_subsection_functions = re.findall(
@@ -572,7 +615,9 @@ def main(srcdir=DEFAULT_ERFA_LOC, outfn='core.py', ufuncfn='ufunc.c',
     for section, subsection, functions in section_subsection_functions:
         print_("{0}.{1}".format(section, subsection))
         # TODO: just compile all sections?
-        if ((section == "Astronomy") or (subsection == "AngleOps")
+        if ((section == 'Extra')
+                or (section == "Astronomy")
+                or (subsection == "AngleOps")
                 or (subsection == "SphericalCartesian")
                 or (subsection == "MatrixVectorProducts")
                 or True):
@@ -582,7 +627,9 @@ def main(srcdir=DEFAULT_ERFA_LOC, outfn='core.py', ufuncfn='ufunc.c',
                 print_("{0}.{1}.{2}...".format(section, subsection, name))
                 if multifilserc:
                     # easy because it just looks in the file itself
-                    funcs[name] = Function(name, srcdir)
+                    cdir = (srcdir if section != 'Extra' else
+                            templateloc or '.')
+                    funcs[name] = Function(name, cdir)
                 else:
                     # Have to tell it to look for a declaration matching
                     # the start of the header declaration, otherwise it
@@ -596,7 +643,7 @@ def main(srcdir=DEFAULT_ERFA_LOC, outfn='core.py', ufuncfn='ufunc.c',
                             # argument names and line-breaking or
                             # whitespace
                             match_line = line[:-1].split('(')[0]
-                            funcs[name] = Function(name, srcdir, match_line)
+                            funcs[name] = Function(name, cdir, match_line)
                             break
                     else:
                         raise ValueError("A name for a C file wasn't "
@@ -665,8 +712,13 @@ if __name__ == '__main__':
                     default=DEFAULT_TEMPLATE_LOC,
                     help='the location where the "core.py.templ" and '
                          '"ufunc.c.templ templates can be found.')
+    ap.add_argument('-x', '--extra',
+                    default='erfa_additions.h',
+                    help='header file for any extra files in the template '
+                         'location that should be included.')
     ap.add_argument('-q', '--quiet', action='store_false', dest='verbose',
                     help='Suppress output normally printed to stdout.')
 
     args = ap.parse_args()
-    main(args.srcdir, args.output, args.ufunc, args.template_loc)
+    main(args.srcdir, args.output, args.ufunc, args.template_loc,
+         args.extra)

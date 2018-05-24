@@ -163,7 +163,13 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
      # Call the ufunc. Note that we pass inout twice, once as input
      # and once as output, so that changes are done in-place
      #}
-    {{ func.args_by_inout('inout|out|stat|ret')|map(attribute='name')|join(', ') }} = ufunc.{{ func.pyname }}({{ (func.args_by_inout('in|inout')|map(attribute='name')|list() + func.args_by_inout('inout')|map(attribute='name')|list())|join(', ') }})
+    {%- if func.d3_fix_arg %}
+    d3fix = numpy.empty((0,) * max(0
+        {%- for arg in func.args_by_inout('in|inout') -%}
+        , getattr({{ arg.name }}, 'ndim', numpy.asanyarray({{ arg.name }}).ndim) - {{ arg.ndim }}
+        {%- endfor %}) + {{ func.d3_fix_arg.shape }}, numpy.{{ func.d3_fix_arg.ctype }})
+    {%- endif %}
+    {{ func.python_call }}
     {#-
      # Check whether any warnings or errors occurred.
      #}
