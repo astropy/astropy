@@ -11,13 +11,17 @@ from astropy_helpers.version_helpers import get_pkg_version_module
 
 ERFAPKGDIR = os.path.relpath(os.path.dirname(__file__))
 
-ERFA_SRC = os.path.abspath(os.path.join(ERFAPKGDIR, '..', '..', 'cextern', 'erfa'))
+ERFA_SRC = os.path.abspath(os.path.join(ERFAPKGDIR, '..', '..',
+                                        'cextern', 'erfa'))
 
 SRC_FILES = glob.glob(os.path.join(ERFA_SRC, '*'))
 SRC_FILES += [os.path.join(ERFAPKGDIR, filename)
-              for filename in ['core.py.templ', 'ufunc.c.templ', 'erfa_generator.py']]
+              for filename in ['pav2pv.c', 'pv2pav.c', 'erfa_additions.h',
+                               'ufunc.c.templ', 'core.py.templ',
+                               'erfa_generator.py']]
 
-GEN_FILES = [os.path.join(ERFAPKGDIR, 'core.py'), os.path.join(ERFAPKGDIR, 'ufunc.c')]
+GEN_FILES = [os.path.join(ERFAPKGDIR, 'core.py'),
+             os.path.join(ERFAPKGDIR, 'ufunc.c')]
 
 
 def pre_build_py_hook(cmd_obj):
@@ -83,7 +87,8 @@ def preprocess_source():
 
 
 def get_extensions():
-    sources = [os.path.join(ERFAPKGDIR, "ufunc.c")]
+    sources = [os.path.join(ERFAPKGDIR, fn)
+               for fn in ("ufunc.c", "pav2pv.c", "pv2pav.c")]
     include_dirs = ['numpy']
     libraries = []
 
@@ -92,7 +97,8 @@ def get_extensions():
     else:
         # get all of the .c files in the cextern/erfa directory
         erfafns = os.listdir(ERFA_SRC)
-        sources.extend(['cextern/erfa/'+fn for fn in erfafns if fn.endswith('.c')])
+        sources.extend(['cextern/erfa/' + fn
+                        for fn in erfafns if fn.endswith('.c')])
 
         include_dirs.append('cextern/erfa')
 
