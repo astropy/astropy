@@ -40,10 +40,13 @@ def test_skip_remote_data_astropy(pytestconfig):
     # Test Astropy URL
     get_pkg_data_filename('galactic_center/gc_2mass_k.fits')
 
+    # Test GitHub URL
+    download_file('http://astropy.github.io')
+
     # Test non-Astropy URL
     if pytestconfig.getoption('remote_data') == 'astropy':
         with pytest.raises(Exception) as exc:
             download_file('http://www.google.com')
         assert "An attempt was made to connect to the internet" in str(exc.value)
-    else:
+    else:  # remote_data=any
         download_file('http://www.google.com')
