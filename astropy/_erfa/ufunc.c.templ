@@ -455,9 +455,10 @@ PyMODINIT_FUNC PyInit_ufunc(void)
     /* structured dtypes and their definition */
     PyObject *dtype_def;
     PyArray_Descr *dt_double = NULL, *dt_int = NULL;
-    PyArray_Descr *dt_double3 = NULL, *dt_double23 = NULL;
-    PyArray_Descr *dt_double33 = NULL, *dt_int4 = NULL;
-    PyArray_Descr *dt_char1 = NULL, *dt_char12 = NULL;
+    PyArray_Descr *dt_vector = NULL, *dt_pv = NULL;
+    PyArray_Descr *dt_matrix = NULL, *dt_ymdf = NULL;
+    PyArray_Descr *dt_hmsf = NULL, *dt_dmsf = NULL;
+    PyArray_Descr *dt_sign = NULL, *dt_type = NULL;
     PyArray_Descr *dt_eraASTROM = NULL, *dt_eraLDBODY = NULL;
     PyArray_Descr *dtypes[NPY_MAXARGS];
     /* ufuncs and their definitions */
@@ -492,27 +493,37 @@ PyMODINIT_FUNC PyInit_ufunc(void)
     dt_int = PyArray_DescrFromType(NPY_INT);
     /* double[3] */
     dtype_def = Py_BuildValue("[(s, s)]", "p", "(3,)f8");
-    PyArray_DescrAlignConverter(dtype_def, &dt_double3);
+    PyArray_DescrAlignConverter(dtype_def, &dt_vector);
     Py_DECREF(dtype_def);
-    /* double[2][3] */
-    dtype_def = Py_BuildValue("[(s, s)]", "pv", "(2,3)f8");
-    PyArray_DescrAlignConverter(dtype_def, &dt_double23);
+    /* double[2][3] = pv */
+    dtype_def = Py_BuildValue("[(s, s), (s, s)]",
+                              "p", "(3,)f8", "v", "(3,)f8");
+    PyArray_DescrAlignConverter(dtype_def, &dt_pv);
     Py_DECREF(dtype_def);
     /* double[3][3] */
     dtype_def = Py_BuildValue("[(s, s)]", "r", "(3,3)f8");
-    PyArray_DescrAlignConverter(dtype_def, &dt_double33);
+    PyArray_DescrAlignConverter(dtype_def, &dt_matrix);
     Py_DECREF(dtype_def);
-    /* int[4] */
-    dtype_def = Py_BuildValue("[(s, s)]", "parts", "(4,)i4");
-    PyArray_DescrAlignConverter(dtype_def, &dt_int4);
+    /* int[4] = ymdf, hmsf, dmsf */
+    dtype_def = Py_BuildValue("[(s, s), (s, s), (s, s), (s, s)]",
+                              "y", "i4", "m", "i4", "d", "i4", "f", "i4");
+    PyArray_DescrAlignConverter(dtype_def, &dt_ymdf);
+    Py_DECREF(dtype_def);
+    dtype_def = Py_BuildValue("[(s, s), (s, s), (s, s), (s, s)]",
+                              "h", "i4", "m", "i4", "s", "i4", "f", "i4");
+    PyArray_DescrAlignConverter(dtype_def, &dt_hmsf);
+    Py_DECREF(dtype_def);
+    dtype_def = Py_BuildValue("[(s, s), (s, s), (s, s), (s, s)]",
+                              "h", "i4", "m", "i4", "s", "i4", "f", "i4");
+    PyArray_DescrAlignConverter(dtype_def, &dt_dmsf);
     Py_DECREF(dtype_def);
     /* char1 (have to use structured, otherwise it cannot be a user type) */
-    dtype_def = Py_BuildValue("[(s, s)]", "c", "S1");
-    PyArray_DescrAlignConverter(dtype_def, &dt_char1);
+    dtype_def = Py_BuildValue("[(s, s)]", "sign", "S1");
+    PyArray_DescrAlignConverter(dtype_def, &dt_sign);
     Py_DECREF(dtype_def);
     /* char12 */
-    dtype_def = Py_BuildValue("[(s, s)]", "s", "S12");
-    PyArray_DescrAlignConverter(dtype_def, &dt_char12);
+    dtype_def = Py_BuildValue("[(s, s)]", "type", "S12");
+    PyArray_DescrAlignConverter(dtype_def, &dt_type);
     Py_DECREF(dtype_def);
     /* eraLDBODY */
     dtype_def = Py_BuildValue(
@@ -549,20 +560,23 @@ PyMODINIT_FUNC PyInit_ufunc(void)
         );
     PyArray_DescrAlignConverter(dtype_def, &dt_eraASTROM);
     Py_DECREF(dtype_def);
-    if (dt_double == NULL || dt_double3 == NULL ||
-        dt_double23 == NULL || dt_double33 == NULL ||
-        dt_int == NULL || dt_int4 == NULL ||
-        dt_char1 == NULL || dt_char12 == NULL ||
+    if (dt_double == NULL || dt_vector == NULL ||
+        dt_pv == NULL || dt_matrix == NULL ||
+        dt_int == NULL || dt_ymdf == NULL ||
+        dt_hmsf == NULL || dt_dmsf == NULL ||
+        dt_sign == NULL || dt_type == NULL ||
         dt_eraLDBODY == NULL || dt_eraASTROM == NULL) {
         goto fail;
     }
     /* Make the structured dtypes available in the module */
-    PyDict_SetItemString(d, "dt_double3", (PyObject *)dt_double3);
-    PyDict_SetItemString(d, "dt_double23", (PyObject *)dt_double23);
-    PyDict_SetItemString(d, "dt_double33", (PyObject *)dt_double33);
-    PyDict_SetItemString(d, "dt_int4", (PyObject *)dt_int4);
-    PyDict_SetItemString(d, "dt_char1", (PyObject *)dt_char1);
-    PyDict_SetItemString(d, "dt_char12", (PyObject *)dt_char12);
+    PyDict_SetItemString(d, "dt_vector", (PyObject *)dt_vector);
+    PyDict_SetItemString(d, "dt_pv", (PyObject *)dt_pv);
+    PyDict_SetItemString(d, "dt_matrix", (PyObject *)dt_matrix);
+    PyDict_SetItemString(d, "dt_ymdf", (PyObject *)dt_ymdf);
+    PyDict_SetItemString(d, "dt_hmsf", (PyObject *)dt_hmsf);
+    PyDict_SetItemString(d, "dt_dmsf", (PyObject *)dt_dmsf);
+    PyDict_SetItemString(d, "dt_sign", (PyObject *)dt_sign);
+    PyDict_SetItemString(d, "dt_type", (PyObject *)dt_type);
     PyDict_SetItemString(d, "dt_eraLDBODY", (PyObject *)dt_eraLDBODY);
     PyDict_SetItemString(d, "dt_eraASTROM", (PyObject *)dt_eraASTROM);
     /*
@@ -625,12 +639,14 @@ fail:
 decref:
     Py_XDECREF(dt_double);
     Py_XDECREF(dt_int);
-    Py_XDECREF(dt_double3);
-    Py_XDECREF(dt_double23);
-    Py_XDECREF(dt_double33);
-    Py_XDECREF(dt_int4);
-    Py_XDECREF(dt_char1);
-    Py_XDECREF(dt_char12);
+    Py_XDECREF(dt_vector);
+    Py_XDECREF(dt_pv);
+    Py_XDECREF(dt_matrix);
+    Py_XDECREF(dt_ymdf);
+    Py_XDECREF(dt_hmsf);
+    Py_XDECREF(dt_dmsf);
+    Py_XDECREF(dt_sign);
+    Py_XDECREF(dt_type);
     Py_XDECREF(dt_eraASTROM);
     Py_XDECREF(dt_eraLDBODY);
     return m;

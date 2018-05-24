@@ -149,15 +149,53 @@ class Variable:
     def dtype(self):
         """Name of dtype corresponding to the ctype.
 
-        E.g., dt_double for double, dt_double33 for double[3][3].
+        Specifically,
+        double : dt_double
+        int : dt_int
+        double[3]: dt_vector
+        double[2][3] : dt_pv
+        double[3][3] : dt_matrix
+        int[4] : dt_ymdf | dt_hmsf | dt_dmsf, depding on name
+        eraASTROM: dt_eraASTROM
+        eraLDBODY: dt_eraLDBODY
+        char : dt_sign
+        char[] : dt_type
 
-        This is used both in the loop definitions in ufunc.c and
-        to label structured dtypes in core.py
+        The corresponding dtypes are defined in ufunc.c, where they are
+        used for the loop definitions.  In core.py, they are also used
+        to view-cast regular arrays to these structured dtypes.
         """
         if self.ctype == 'const char':
-            return 'dt_char12'
+            return 'dt_type'
         elif self.ctype == 'char':
-            return 'dt_char1'
+            return 'dt_sign'
+        elif self.ctype == 'int' and self.shape == (4,):
+            return 'dt_' + self.name[1:]
+        elif self.ctype == 'double' and self.shape == (3,):
+            return 'dt_vector'
+        elif self.ctype == 'double' and self.shape == (2, 3):
+            return 'dt_pv'
+        elif self.ctype == 'double' and self.shape == (3, 3):
+            return 'dt_matrix'
+        elif not self.shape:
+            return 'dt_' + self.ctype
+        else:
+            raise ValueError("ctype {} with shape {} not recognized."
+                             .format(self.ctype, self.shape))
+
+    @property
+    def view_dtype(self):
+        """Name of dtype corresponding to the ctype for viewing back as array.
+
+        E.g., dt_double for double, dt_double33 for double[3][3].
+
+        The types are defined in core.py, where they are used for view-casts
+        of structured results as regular arrays.
+        """
+        if self.ctype == 'const char':
+            return 'dt_bytes12'
+        elif self.ctype == 'char':
+            return 'dt_bytes1'
         else:
             return 'dt_' + self.ctype + ''.join(['{0}'.format(s)
                                                  for s in self.shape])
