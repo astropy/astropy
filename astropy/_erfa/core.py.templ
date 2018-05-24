@@ -34,8 +34,9 @@ from ..utils.exceptions import AstropyUserWarning
 
 import numpy
 from . import ufunc
-from .ufunc import (dt_eraASTROM, dt_eraLDBODY, dt_double3, dt_double23,
-                    dt_double33, dt_int4, dt_char1, dt_char12)
+from .ufunc import (dt_eraASTROM, dt_eraLDBODY, dt_pv,
+                    dt_vector, dt_matrix, dt_sign, dt_type,
+                    dt_ymdf, dt_hmsf, dt_dmsf)
 
 __all__ = ['ErfaError', 'ErfaWarning',
            {{ funcs|map(attribute='pyname')|surround("'","'")|join(", ") }},
@@ -114,15 +115,22 @@ def check_errwarn(statcodes, func_name):
         warnings.warn('ERFA function "' + func_name + '" yielded ' + wmsg, ErfaWarning)
 
 
-# <-------------------------trailing shape verification----------------------->
+# <------------------------structured dtype conversion------------------------>
 
 def convert_to_dtype(arr, dtype, dtype_shape, dtype_ndim, name):
     arr = numpy.array(arr, copy=False, subok=True)
-    try:
-        return arr.ravel().view(dtype).reshape(arr.shape[:-dtype_ndim])
-    except Exception:
+    if arr.shape[-dtype_ndim:] != dtype_shape:
         raise ValueError("{0} must be of trailing dimensions {1}"
                          .format(name, dtype_shape))
+    return arr.ravel().view(dtype).reshape(arr.shape[:-dtype_ndim])
+
+
+dt_int4 = numpy.dtype('4i4')
+dt_double3 = numpy.dtype('3f8')
+dt_double23 = numpy.dtype('(2,3)f8')
+dt_double33 = numpy.dtype('(3,3)f8')
+dt_bytes1 = numpy.dtype('S1')
+dt_bytes12 = numpy.dtype('S12')
 
 # <--------------------------Actual ERFA-wrapping code------------------------>
 
@@ -159,9 +167,16 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
     {#-
      # Change dtype for all inputs that need it: those that have a
      # structured dtype, but not one of the era ones (for which
-     # the inputs already should be in the right dtype).
+     # the inputs already should be in the right dtype).  For arguments
+     # which are also used as output, we keep a link to the original for
+     # possible later reshaping.
      #}
-    {%- for arg in func.args_by_inout('in|inout') -%}
+    {%- for arg in func.args_by_inout('in') -%}
+    {%- if 'era' not in arg.ctype and arg.shape %}
+    {{ arg.name }} = convert_to_dtype({{ arg.name }}, {{ arg.dtype }}, {{ arg.shape }}, {{ arg.ndim }}, '{{ arg.name }}')
+    {%- endif %}
+    {%- endfor %}
+    {%- for arg in func.args_by_inout('inout') -%}
     {%- if 'era' not in arg.ctype and arg.shape %}
     {{ arg.name }}_orig = {{ arg.name }}
     {{ arg.name }} = convert_to_dtype({{ arg.name }}, {{ arg.dtype }}, {{ arg.shape }}, {{ arg.ndim }}, '{{ arg.name }}')
@@ -185,7 +200,7 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
     {%- for arg in func.args_by_inout('inout') -%}
     {%- if 'era' not in arg.ctype and arg.shape %}
     if not numpy.may_share_memory({{ arg.name }}, {{ arg.name }}_orig):
-        {{ arg.name }}_orig[...] = {{ arg.name }}.view({{ arg.dtype }}.fields[{{ arg.dtype }}.names[0]][0])
+        {{ arg.name }}_orig[...] = {{ arg.name }}.view({{ arg.view_dtype }})
     {{ arg.name }} = {{ arg.name }}_orig
     {%- endif %}
     {%- endfor %}
@@ -194,7 +209,7 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
      #}
     {%- for arg in func.args_by_inout('out') -%}
     {%- if 'era' not in arg.ctype and (arg.shape or 'char' in arg.ctype) %}
-    {{ arg.name }} = {{ arg.name }}.view({{ arg.dtype }}.fields[{{ arg.dtype }}.names[0]][0])
+    {{ arg.name }} = {{ arg.name }}.view({{ arg.view_dtype }})
     {%- endif %}
     {%- endfor %}
     {#-
