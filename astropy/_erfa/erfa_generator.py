@@ -154,6 +154,7 @@ class Variable:
         int : dt_int
         double[3]: dt_vector
         double[2][3] : dt_pv
+        double[2] : dt_pvdpv
         double[3][3] : dt_matrix
         int[4] : dt_ymdf | dt_hmsf | dt_dmsf, depding on name
         eraASTROM: dt_eraASTROM
@@ -175,6 +176,8 @@ class Variable:
             return 'dt_vector'
         elif self.ctype == 'double' and self.shape == (2, 3):
             return 'dt_pv'
+        elif self.ctype == 'double' and self.shape == (2,):
+            return 'dt_pvdpv'
         elif self.ctype == 'double' and self.shape == (3, 3):
             return 'dt_matrix'
         elif not self.shape:
