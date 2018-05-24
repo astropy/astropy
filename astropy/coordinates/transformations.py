@@ -395,6 +395,10 @@ class TransformGraph:
         1-hop transformations.
 
         """
+        if isinstance(fromsys, str):
+            fromsys = self.lookup_name(fromsys)
+        if isinstance(tosys, str):
+            tosys = self.lookup_name(tosys)
         if not inspect.isclass(fromsys):
             raise TypeError('fromsys is not a class')
         if not inspect.isclass(tosys):

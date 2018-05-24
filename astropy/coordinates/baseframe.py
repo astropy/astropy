@@ -1119,7 +1119,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         Parameters
         ----------
-        new_frame : class or frame object or SkyCoord object
+        new_frame : class or frame object or SkyCoord object or string
             The frame to transform this coordinate frame into.
 
         Returns
@@ -1156,8 +1156,17 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             # likely a SkyCoord object.
             new_frame = new_frame._sky_coord_frame
 
+        if isinstance(new_frame, str):
+            new_frame_cls = frame_transform_graph.lookup_name(new_frame)
+            if new_frame_cls is None:
+                raise ConvertError("Could not find frame with name " +
+                                   "'{}' ".format(new_frame) +
+                                   "in the frame transformation graph.")
+        else:
+            new_frame_cls = new_frame.__class__
+
         trans = frame_transform_graph.get_transform(self.__class__,
-                                                    new_frame.__class__)
+                                                    new_frame_cls)
         if trans is None:
             if new_frame is self.__class__:
                 # no special transform needed, but should update frame info

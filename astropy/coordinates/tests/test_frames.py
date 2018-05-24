@@ -424,6 +424,7 @@ def test_transform():
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
     f = i.transform_to(FK5)
     i2 = f.transform_to(ICRS)
+    i3 = f.transform_to('icrs')
 
     assert i2.data.__class__ == r.UnitSphericalRepresentation
 
