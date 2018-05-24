@@ -200,8 +200,9 @@ class Variable:
         elif self.ctype == 'char':
             return 'dt_bytes1'
         else:
-            return 'dt_' + self.ctype + ''.join(['{0}'.format(s)
-                                                 for s in self.shape])
+            return 'dt_' + self.ctype
+        # + ''.join(['{0}'.format(s)
+        #                                         for s in self.shape])
 
     @property
     def ndim(self):
@@ -217,6 +218,14 @@ class Variable:
     @property
     def cshape(self):
         return ''.join(['[{0}]'.format(s) for s in self.shape])
+
+    @property
+    def signature_shape(self):
+        if self.ctype == 'eraLDBODY':
+            return '(n)'
+
+        return '({})'.format(','.join(['d{}'.format(sh)
+                                       for sh in self.shape]))
 
 
 class Argument(Variable):
@@ -423,7 +432,7 @@ class Function:
             if arg.ctype == 'eraLDBODY':
                 return arg.dtype
             elif user_dtype is None and (arg.ctype == 'eraASTROM' or
-                                         arg.shape or
+                                         # XXXX arg.shape or
                                          arg.ctype.endswith('char')):
                 user_dtype = arg.dtype
 
@@ -432,12 +441,12 @@ class Function:
     @property
     def signature(self):
         """Possible signature, if this function should be a gufunc."""
-        if self.user_dtype != 'dt_eraLDBODY':
+        if all(arg.signature_shape == '()'
+               for arg in self.args_by_inout('in|inout|out')):
             return None
 
         return '->'.join(
-            [','.join([('(n)' if arg.ctype == 'eraLDBODY' else '()')
-                       for arg in args])
+            [','.join([arg.signature_shape for arg in args])
              for args in (self.args_by_inout('in|inout'),
                           self.args_by_inout('inout|out|ret|stat'))])
 
