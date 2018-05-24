@@ -574,7 +574,8 @@ def main(srcdir=DEFAULT_ERFA_LOC, outfn='core.py', ufuncfn='ufunc.c',
         # TODO: just compile all sections?
         if ((section == "Astronomy") or (subsection == "AngleOps")
                 or (subsection == "SphericalCartesian")
-                or (subsection == "MatrixVectorProducts")):
+                or (subsection == "MatrixVectorProducts")
+                or True):
             func_names = re.findall(r' (\w+)\(.*?\);', functions,
                                     flags=re.DOTALL)
             for name in func_names:
