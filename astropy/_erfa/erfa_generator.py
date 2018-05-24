@@ -173,13 +173,13 @@ class Variable:
         elif self.ctype == 'int' and self.shape == (4,):
             return 'dt_' + self.name[1:]
         elif self.ctype == 'double' and self.shape == (3,):
-            return 'dt_vector'
+            return 'dt_double'
         elif self.ctype == 'double' and self.shape == (2, 3):
             return 'dt_pv'
         elif self.ctype == 'double' and self.shape == (2,):
             return 'dt_pvdpv'
         elif self.ctype == 'double' and self.shape == (3, 3):
-            return 'dt_matrix'
+            return 'dt_double'
         elif not self.shape:
             return 'dt_' + self.ctype
         else:
@@ -200,9 +200,7 @@ class Variable:
         elif self.ctype == 'char':
             return 'dt_bytes1'
         else:
-            return 'dt_' + self.ctype
-        # + ''.join(['{0}'.format(s)
-        #                                         for s in self.shape])
+            raise ValueError('Only char ctype should need view back!')
 
     @property
     def ndim(self):
@@ -223,9 +221,12 @@ class Variable:
     def signature_shape(self):
         if self.ctype == 'eraLDBODY':
             return '(n)'
-
-        return '({})'.format(','.join(['d{}'.format(sh)
-                                       for sh in self.shape]))
+        elif self.ctype == 'double' and self.shape == (3,):
+            return '(d3)'
+        elif self.ctype == 'double' and self.shape == (3, 3):
+            return '(d3, d3)'
+        else:
+            return '()'
 
 
 class Argument(Variable):
@@ -431,9 +432,8 @@ class Function:
         for arg in self.args_by_inout('in|inout|out'):
             if arg.ctype == 'eraLDBODY':
                 return arg.dtype
-            elif user_dtype is None and (arg.ctype == 'eraASTROM' or
-                                         # XXXX arg.shape or
-                                         arg.ctype.endswith('char')):
+            elif user_dtype is None and arg.dtype not in ('dt_double',
+                                                          'dt_int'):
                 user_dtype = arg.dtype
 
         return user_dtype

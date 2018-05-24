@@ -27,22 +27,6 @@
     "trailing dimensions and structured dtypes where necessary,\n" \
     "and combine status codes."
 
-static inline void copy_to_double2(char *ptr, npy_intp s, double d[2]) {
-    char *p = ptr;
-    int j;
-    for (j = 0; j < 2; j++, p += s) {
-        d[j] = *(double *)p;
-    }
-}
-
-static inline void copy_from_double2(char *ptr, npy_intp s, double d[2]) {
-    char *p = ptr;
-    int j;
-    for (j = 0; j < 2; j++, p += s) {
-        *(double *)p = d[j];
-    }
-}
-
 static inline void copy_to_double3(char *ptr, npy_intp s, double d[3]) {
     char *p = ptr;
     int j;
@@ -56,32 +40,6 @@ static inline void copy_from_double3(char *ptr, npy_intp s, double d[3]) {
     int j;
     for (j = 0; j < 3; j++, p += s) {
         *(double *)p = d[j];
-    }
-}
-
-static inline void copy_to_double23(char *ptr, npy_intp s0, npy_intp s1,
-                                 double d[2][3]) {
-    char *p0 = ptr;
-    int j0, j1;
-    for (j0 = 0; j0 < 2; j0++, p0 += s0) {
-        char *p1 = p0;
-        for (j1 = 0; j1 < 3; j1++, p1 += s1) {
-            d[j0][j1] = *(double *)p1;
-        }
-    }
-}
-
-static inline void copy_from_double23(char *ptr, npy_intp s0, npy_intp s1,
-                                      double d[2][3]) {
-    char *p = ptr;
-    int j;
-    char *p0 = ptr;
-    int j0, j1;
-    for (j0 = 0; j0 < 2; j0++, p0 += s0) {
-        char *p1 = p0;
-        for (j1 = 0; j1 < 3; j1++, p1 += s1) {
-            *(double *)p = d[j0][j1];
-        }
     }
 }
 
@@ -100,7 +58,6 @@ static inline void copy_to_double33(char *ptr, npy_intp s0, npy_intp s1,
 static inline void copy_from_double33(char *ptr, npy_intp s0, npy_intp s1,
                                       double d[3][3]) {
     char *p = ptr;
-    int j;
     char *p0 = ptr;
     int j0, j1;
     for (j0 = 0; j0 < 3; j0++, p0 += s0) {
@@ -111,22 +68,7 @@ static inline void copy_from_double33(char *ptr, npy_intp s0, npy_intp s1,
     }
 }
 
-static inline void copy_to_int4(char *ptr, npy_intp s, int i[4]) {
-    char *p = ptr;
-    int j;
-    for (j = 0; j < 4; j++, p += s) {
-        i[j] = *(int *)p;
-    }
-}
-
-static inline void copy_from_int4(char *ptr, npy_intp s, double i[3]) {
-    char *p = ptr;
-    int j;
-    for (j = 0; j < 4; j++, p += s) {
-        *(int *)p = i[j];
-    }
-}
-
+/* eraLDBODY is never returned, so we do not need a copy_from */
 static inline void copy_to_eraLDBODY(char *ptr, npy_intp s, npy_intp n,
                                   eraLDBODY b[]) {
     char *p = ptr;
@@ -160,63 +102,88 @@ static inline void copy_to_eraLDBODY(char *ptr, npy_intp s, npy_intp n,
  *    the n elements are not contiguous.
  */
 
+{%- macro inner_loop_steps_and_copy(arg, arg_name) %}
+  {%- for i in range(arg.ndim or 1) %}
+    npy_intp is_{{ arg_name }}{{ i }} = *steps++;
+  {%- endfor %}
+  {#- /* copy should be made if buffer not contiguous;
+         note: one can only have 1 or 2 dimensions */ #}
+  {%- if arg.ndim == 2 %}
+    int copy_{{ arg_name
+        }} = (is_{{ arg_name }}1 != sizeof({{ arg.ctype }}) &&
+              is_{{ arg_name }}0 != {{ arg.shape[1] }} * sizeof({{ arg.ctype }}));
+  {%- else %}
+    int copy_{{ arg_name }} = (is_{{ arg_name }}0 != sizeof({{ arg.ctype }}));
+  {%- endif %}
+{%- endmacro %}
+
 {%- for func in funcs %}
 
 static void ufunc_loop_{{ func.pyname }}(
     char **args, npy_intp *dimensions, npy_intp* steps, void* data)
 {
-    {#- /* index and length of loop */ #}
+  {#- /* index and length of loop */ #}
     npy_intp i_o;
     npy_intp n_o = *dimensions++;
-    {#- /* pointer to each argument, required step size, and cast pointer */ #}
-    {%- for arg in func.args_by_inout('in') %}
+  {#- /*
+       * Pointers to each argument, required step size
+       */ #}
+  {#- /* normal input arguments */ #}
+  {%- for arg in func.args_by_inout('in') %}
     char *{{ arg.name }} = *args++;
     npy_intp s_{{ arg.name }} = *steps++;
-    {{ arg.ctype }} (*_{{ arg.name }}){{ arg.cshape }};
-    {%- endfor -%}
-    {#- /* for inout arguments, we do not need the cast pointer, since data
-           is just copied anyway */ #}
-    {%- for arg in func.args_by_inout('inout') %}
+  {%- endfor -%}
+  {#- /* for in part of in-place arguments, we need a different name */ #}
+  {%- for arg in func.args_by_inout('inout') %}
     char *{{ arg.name }}_in = *args++;
     npy_intp s_{{ arg.name }}_in = *steps++;
-    {%- endfor -%}
-    {%- for arg in func.args_by_inout('inout|out') %}
+  {%- endfor -%}
+  {#- /* out part of input, and output arguments, including status */ #}
+  {%- for arg in func.args_by_inout('inout|out|stat|ret') %}
     char *{{ arg.name }} = *args++;
     npy_intp s_{{ arg.name }} = *steps++;
+  {%- endfor -%}
+  {#- /*
+       * Cast pointers and possible contiguous buffers (for gufuncs)
+       */ #}
+  {%- for arg in func.args_by_inout('in|inout|out') %}
+   {%- if arg.signature_shape == '()' or arg.ctype == 'eraLDBODY'  %}
     {{ arg.ctype }} (*_{{ arg.name }}){{ arg.cshape }};
-    {%- endfor -%}
-    {#- /* not a pointer, but just value for status codes and return values */ #}
-    {%- for arg in func.args_by_inout('stat|ret') %}
-    char *{{ arg.name }} = *args++;
-    npy_intp s_{{ arg.name }} = *steps++;
+   {%- else %}
+    double b_{{ arg.name }}{{ arg.cshape }};
+    {{ arg.ctype }} (*_{{ arg.name }}){{ arg.cshape }} = &b_{{ arg.name }};
+   {%- endif %}
+  {%- endfor %}
+  {#- /* variables to hold status and return values */ #}
+  {%- for arg in func.args_by_inout('stat|ret') %}
     {{ arg.ctype }} _{{ arg.name }};
-    {%- endfor %}
-    {#- /* for generalized ufunc, get information for inner loop */ #}
-    {%- if func.signature %}
-    {%- for arg in func.args_by_inout('in|inout|out') %}
-    {#- /* the only non-fixed dimension is for LDBODY, which always comes first */ #}
+  {%- endfor %}
+  {#- /*
+       * For GENERALIZED UFUNCS - inner loop steps, needs for copying.
+       */ #}
+  {%- if func.signature %}
+   {#- /* loop step sizes and whether copies are needed */ #}
+   {%- for arg in func.args_by_inout('in') %}
+    {#- /* only LDBODY has non-fixed dimension; it is always first */ #}
     {%- if arg.ctype == 'eraLDBODY' %}
     npy_intp nb = dimensions[0];
-    npy_intp is_b0 = *steps++;
-    int copy_b = (is_b0 != sizeof(eraLDBODY));
-    {%- elif arg.shape %}
-    double buff_{{ arg.name }}{{ arg.cshape }};
-    {%- for i in range(arg.ndim) %}
-    npy_intp is_{{ arg.name }}{{ i }} = *steps++;
-    {%- endfor %}
-    {#- /* copy should be made if buffer not contiguous;
-           note: one can only have 1 or 2 dimensions */ #}
-    {%- if arg.ndim == 1 %}
-    int copy_{{ arg.name }} = (is_{{ arg.name }}0 != sizeof({{ arg.ctype }}));
-    {%- else %}
-    int copy_{{ arg.name }} = (is_{{ arg.name }}1 != sizeof({{ arg.ctype }}) &&
-                               is_{{ arg.name }}0 != {{ arg.shape[1] }} * sizeof({{ arg.ctype }}));
     {%- endif %}
+    {%- if arg.signature_shape != '()' -%}
+    {{ inner_loop_steps_and_copy(arg, arg.name) }}
     {%- endif %}
-    {%- endfor %}
-    {%- for arg in func.args_by_inout('in|inout|out') %}
-    {%- if arg.ctype == 'eraLDBODY' %}
-    {#- /* allocate memory for copies for non-contiguous input */ #}
+   {%- endfor %}
+   {%- for arg in func.args_by_inout('inout') %}
+    {%- if arg.signature_shape != '()' -%}
+    {{ inner_loop_steps_and_copy(arg, arg.name + '_in') }}
+    {%- endif %}
+   {%- endfor %}
+   {%- for arg in func.args_by_inout('inout|out') %}
+    {%- if arg.signature_shape != '()' -%}
+    {{ inner_loop_steps_and_copy(arg, arg.name) }}
+    {%- endif %}
+   {%- endfor %}
+   {#- /* if needed, allocate memory for contiguous eraLDBODY copies */ #}
+   {%- if func.user_dtype == 'dt_eraLDBODY' %}
     if (copy_b) {
         _b = PyArray_malloc(nb * sizeof(eraLDBODY));
         if (_b == NULL) {
@@ -224,12 +191,11 @@ static void ufunc_loop_{{ func.pyname }}(
             return;
         }
     }
-    {%- elif arg.shape %}
-    _{{ arg.name }} = &buff_{{ arg.name }};
-    {%- endif %}
-    {%- endfor %}
-    {%- endif %}
-    {#- /* Inner loop, increasing all pointers by their steps */ #}
+   {%- endif %}
+  {%- endif %} {#- /* end of GUFUNC inner loop definitions */ #}
+  {#- /*
+       * Actual inner loop, increasing all pointers by their steps
+       */ #}
     for (i_o = 0; i_o < n_o;
          i_o++ {%- for arg in func.args_by_inout('in|inout|out|stat|ret') -%}
              , {{ arg.name }} += s_{{ arg.name }}
@@ -237,17 +203,13 @@ static void ufunc_loop_{{ func.pyname }}(
              {%- for arg in func.args_by_inout('inout') -%}
              , {{ arg.name }}_in += s_{{ arg.name }}_in
              {%- endfor -%}) {
-        {%- if func.signature %}
-        {%- for arg in func.args_by_inout('in|inout') %}
-        {#- /* for generalized ufunc, copy argument if needed */ #}
-        {%- if arg.ctype == 'eraLDBODY' %}
-        if (copy_{{ arg.name }}) {
-            copy_to_eraLDBODY(b, is_b0, nb, _b);
-        }
-        else {
-            _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
-        }
-        {% elif arg.shape %}
+      {%- if func.signature %}
+       {#- /*
+            * GENERALIZED UFUNC, prepare for call.
+            */ #}
+       {#- /* copy input arguments to buffer if needed */ #}
+       {%- for arg in func.args_by_inout('in') %}
+        {%- if arg.signature_shape != '()' %}
         if (copy_{{ arg.name }}) {
             copy_to_{{ arg.ctype }}{{ arg.shape|join('') }}({{ arg.name }}
                 {%- for i in range(arg.ndim or 1) -%}
@@ -260,31 +222,55 @@ static void ufunc_loop_{{ func.pyname }}(
         {%- else %}
         _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
         {%- endif %}
-        {%- endfor %}
-        {%- for arg in func.args_by_inout('out') %}
-        {#- /* eraLDBODY never in output */ #}
-        {%- if arg.shape %}
+       {%- endfor %} {#- end of loop over 'in' #}
+       {#- /* for inout arguments, set up output first,
+              and then copy to it if needed */ #}
+       {%- for arg in func.args_by_inout('inout') %}
+        {%- if arg.signature_shape != '()' %}
+        if (!copy_{{ arg.name }}) {
+            _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
+        }
+        if (copy_{{ arg.name }}_in || {{ arg.name }} != {{ arg.name }}_in) {
+            copy_to_{{ arg.ctype }}{{ arg.shape|join('') }}({{ arg.name }}_in
+                {%- for i in range(arg.ndim or 1) -%}
+                , is_{{ arg.name }}_in{{ i }}
+                {%- endfor %}, {{ arg.name_for_call}});
+        }
+        {%- else %}
+        _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
+        if ({{ arg.name }}_in != {{ arg.name }}) {
+            memcpy({{ arg.name }}, {{ arg.name }}_in, {{ arg.size }}*sizeof({{ arg.ctype }}));
+        }
+        {%- endif %}
+       {%- endfor %} {#- end of loop over 'inout' #}
+       {#- /* set up gufunc outputs */ #}
+       {%- for arg in func.args_by_inout('out') %}
+        {%- if arg.signature_shape != '()' %}
         if (!copy_{{ arg.name }}) {
             _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
         }
         {%- else %}
         _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
         {%- endif %}
+       {%- endfor %} {#- end of loop over 'out' #}
+      {%- else %}
+       {#- /*
+            * NORMAL UFUNC, prepare for call
+            */ #}
+       {#- /* set up pointers to input/output arguments */ #}
+       {%- for arg in func.args_by_inout('in|inout|out') %}
         _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
-        {%- endfor %}
-        {%- else %}
-        {#- /* for normal ufunc, just set up pointers to input/output arguments */ #}
-        {%- for arg in func.args_by_inout('in|inout|out') %}
-        _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }}){{ arg.name }});
-        {%- endfor %}
-        {%- endif %}
-        {#- /* for arguments changed in-place, copy from in to out, if needed */ -#}
-        {%- for arg in func.args_by_inout('inout') %}
+       {%- endfor %}
+       {#- /* copy from in to out for arugments changed in-place */ #}
+       {%- for arg in func.args_by_inout('inout') %}
         if ({{ arg.name }}_in != {{ arg.name }}) {
             memcpy({{ arg.name }}, {{ arg.name }}_in, {{ arg.size }}*sizeof({{ arg.ctype }}));
         }
-        {%- endfor %}
-        {#- /* call the actual erfa function */ #}
+       {%- endfor %}
+      {%- endif %} {#- end of gufunc/ufunc preparation #}
+      {#- /*
+           * call the actual erfa function
+           */ #}
         {{ func.args_by_inout('ret|stat') |
                     map(attribute='name') |
                     surround('_', ' = ') |
@@ -293,14 +279,14 @@ static void ufunc_loop_{{ func.pyname }}(
         }}({{ func.args_by_inout('in|inout|out') |
                     map(attribute='name_for_call') |
                     join(', ') }});
-        {#- /* store any return values */ #}
-        {%- for arg in func.args_by_inout('ret|stat') %}
+      {#- /* store any return values */ #}
+      {%- for arg in func.args_by_inout('ret|stat') %}
         *(({{ arg.ctype }} *){{ arg.name }}) = _{{ arg.name }};
-        {%- endfor %}
-        {%- if func.signature %}
-        {%- for arg in func.args_by_inout('inout|out') %}
-        {#- /* for generalized ufunc, copy result */ #}
-        {%- if arg.shape %}
+      {%- endfor %}
+      {%- if func.signature %}
+       {#- /* for generalized ufunc, copy output from buffer if needed */ #}
+       {%- for arg in func.args_by_inout('inout|out') %}
+        {%- if arg.signature_shape != '()' %}
         if (copy_{{ arg.name }}) {
             copy_from_{{ arg.ctype }}{{ arg.shape|join('') }}({{ arg.name }}
                 {%- for i in range(arg.ndim or 1) -%}
@@ -308,8 +294,8 @@ static void ufunc_loop_{{ func.pyname }}(
                 {%- endfor %}, {{ arg.name_for_call}});
         }
         {%- endif %}
-        {%- endfor %}
-        {%- endif %}
+       {%- endfor %}
+      {%- endif %}
     }
     {%- if func.user_dtype == 'dt_eraLBODY' %}
     if (copy_b) {
@@ -618,9 +604,8 @@ PyMODINIT_FUNC PyInit_ufunc(void)
     /* structured dtypes and their definition */
     PyObject *dtype_def;
     PyArray_Descr *dt_double = NULL, *dt_int = NULL;
-    PyArray_Descr *dt_vector = NULL, *dt_pv = NULL, *dt_pvdpv = NULL;
-    PyArray_Descr *dt_matrix = NULL, *dt_ymdf = NULL;
-    PyArray_Descr *dt_hmsf = NULL, *dt_dmsf = NULL;
+    PyArray_Descr *dt_pv = NULL, *dt_pvdpv = NULL;
+    PyArray_Descr *dt_ymdf = NULL, *dt_hmsf = NULL, *dt_dmsf = NULL;
     PyArray_Descr *dt_sign = NULL, *dt_type = NULL;
     PyArray_Descr *dt_eraASTROM = NULL, *dt_eraLDBODY = NULL;
     PyArray_Descr *dtypes[NPY_MAXARGS];
@@ -654,10 +639,6 @@ PyMODINIT_FUNC PyInit_ufunc(void)
      */
     dt_double = PyArray_DescrFromType(NPY_DOUBLE);
     dt_int = PyArray_DescrFromType(NPY_INT);
-    /* double[3] */
-    dtype_def = Py_BuildValue("[(s, s)]", "p", "(3,)f8");
-    PyArray_DescrAlignConverter(dtype_def, &dt_vector);
-    Py_DECREF(dtype_def);
     /* double[2][3] = pv */
     dtype_def = Py_BuildValue("[(s, s), (s, s)]",
                               "p", "(3,)f8", "v", "(3,)f8");
@@ -667,10 +648,6 @@ PyMODINIT_FUNC PyInit_ufunc(void)
     dtype_def = Py_BuildValue("[(s, s), (s, s)]",
                               "pdp", "f8", "pdv", "f8");
     PyArray_DescrAlignConverter(dtype_def, &dt_pvdpv);
-    Py_DECREF(dtype_def);
-    /* double[3][3] */
-    dtype_def = Py_BuildValue("[(s, s)]", "r", "(3,3)f8");
-    PyArray_DescrAlignConverter(dtype_def, &dt_matrix);
     Py_DECREF(dtype_def);
     /* int[4] = ymdf, hmsf, dmsf */
     dtype_def = Py_BuildValue("[(s, s), (s, s), (s, s), (s, s)]",
@@ -728,19 +705,16 @@ PyMODINIT_FUNC PyInit_ufunc(void)
         );
     PyArray_DescrAlignConverter(dtype_def, &dt_eraASTROM);
     Py_DECREF(dtype_def);
-    if (dt_double == NULL || dt_vector == NULL ||
-        dt_pv == NULL || dt_pvdpv == NULL || dt_matrix == NULL ||
-        dt_int == NULL || dt_ymdf == NULL ||
-        dt_hmsf == NULL || dt_dmsf == NULL ||
+    if (dt_double == NULL || dt_int == NULL ||
+        dt_pv == NULL || dt_pvdpv == NULL ||
+        dt_ymdf == NULL || dt_hmsf == NULL || dt_dmsf == NULL ||
         dt_sign == NULL || dt_type == NULL ||
         dt_eraLDBODY == NULL || dt_eraASTROM == NULL) {
         goto fail;
     }
     /* Make the structured dtypes available in the module */
-    PyDict_SetItemString(d, "dt_vector", (PyObject *)dt_vector);
     PyDict_SetItemString(d, "dt_pv", (PyObject *)dt_pv);
     PyDict_SetItemString(d, "dt_pvdpv", (PyObject *)dt_pvdpv);
-    PyDict_SetItemString(d, "dt_matrix", (PyObject *)dt_matrix);
     PyDict_SetItemString(d, "dt_ymdf", (PyObject *)dt_ymdf);
     PyDict_SetItemString(d, "dt_hmsf", (PyObject *)dt_hmsf);
     PyDict_SetItemString(d, "dt_dmsf", (PyObject *)dt_dmsf);
@@ -809,10 +783,8 @@ fail:
 decref:
     Py_XDECREF(dt_double);
     Py_XDECREF(dt_int);
-    Py_XDECREF(dt_vector);
     Py_XDECREF(dt_pv);
     Py_XDECREF(dt_pvdpv);
-    Py_XDECREF(dt_matrix);
     Py_XDECREF(dt_ymdf);
     Py_XDECREF(dt_hmsf);
     Py_XDECREF(dt_dmsf);
