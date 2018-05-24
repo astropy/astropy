@@ -206,13 +206,39 @@ class DataInfo:
     _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
     _represent_as_dict_attrs = ()
-    _parent = None
+    _parent_ref = None
 
     def __init__(self, bound=False):
         # If bound to a data object instance then create the dict of attributes
         # which stores the info attribute values.
         if bound:
             self._attrs = dict((attr, None) for attr in self.attr_names)
+
+    @property
+    def _parent(self):
+        if self._parent_ref is None:
+            return None
+        else:
+            parent = self._parent_ref()
+            if parent is not None:
+                return parent
+
+            else:
+                raise AttributeError("""\
+failed access "info" attribute on a temporary object.
+
+It looks like you have done something like ``col[3:5].info``, i.e.
+you accessed ``info`` from a temporary slice object ``col[3:5]`` that
+only exists momentarily.  This has failed because the reference to
+that temporary object is now lost.  Instead force a permanent
+reference with ``c = col[3:5]`` followed by ``c.info``.""")
+
+    @_parent.setter
+    def _parent(self, value):
+        if value is None:
+            self._parent_ref = None
+        else:
+            self._parent_ref = weakref.ref(value)
 
     def __get__(self, instance, owner_cls):
         if instance is None:

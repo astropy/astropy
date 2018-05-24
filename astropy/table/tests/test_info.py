@@ -7,6 +7,7 @@ from io import StringIO
 from collections import OrderedDict
 
 import numpy as np
+import pytest
 
 from ... import units as u
 from ... import time
@@ -243,3 +244,10 @@ def test_no_deprecation_warning():
     with warnings.catch_warnings(record=True) as warns:
         t.info()
         assert len(warns) == 0
+
+
+def test_lost_parent_error():
+    c = table.Column([1, 2, 3], name='a')
+    with pytest.raises(AttributeError) as err:
+        c[:].info.name
+    assert 'failed access "info" attribute' in str(err)
