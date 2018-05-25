@@ -286,15 +286,13 @@ class EarthLocation(u.Quantity):
         # don't convert to m by default, so we can use the height unit below.
         if not isinstance(height, u.Quantity):
             height = u.Quantity(height, u.m, copy=False)
-        # convert to float in units required for erfa routine, and ensure
-        # all broadcast to same shape, and are at least 1-dimensional.
-        _lon, _lat, _height = np.broadcast_arrays(lon.to_value(u.radian),
-                                                  lat.to_value(u.radian),
-                                                  height.to_value(u.m))
         # get geocentric coordinates. Have to give one-dimensional array.
-        xyz = erfa.gd2gc(getattr(erfa, ellipsoid), _lon.ravel(),
-                                 _lat.ravel(), _height.ravel())
-        self = xyz.view(cls._location_dtype, cls).reshape(_lon.shape)
+        xyz = erfa.gd2gc(getattr(erfa, ellipsoid),
+                         lon.to_value(u.radian),
+                         lat.to_value(u.radian),
+                         height.to_value(u.m))
+        self = xyz.ravel().view(cls._location_dtype,
+                                cls).reshape(xyz.shape[:-1])
         self._unit = u.meter
         self._ellipsoid = ellipsoid
         return self.to(height.unit)
