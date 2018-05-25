@@ -230,7 +230,7 @@ set of coordinates, you'd need to make sure that the shapes allowed this::
     >>> coo2.transform_to(lf)
     Traceback (most recent call last):
     ...
-    ValueError: operands could not be broadcast together with shapes () (3,) (3,) (2,) (2,) ()
+    ValueError: operands could not be broadcast together...
     >>> coo2.shape
     (3,)
     >>> lf.shape
