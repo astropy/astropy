@@ -81,6 +81,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Fixed a bug that improperly handled unicode case of URL mirror in Python 2.
+  [#7493]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
