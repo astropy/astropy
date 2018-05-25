@@ -640,10 +640,10 @@ class TimeDatetime(TimeUnique):
         scale = self.scale.upper().encode('ascii')
         iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 6,  # 6 for microsec
                                            self.jd1, self.jd2_filled)
-        ihrs = ihmsfs[..., 0]
-        imins = ihmsfs[..., 1]
-        isecs = ihmsfs[..., 2]
-        ifracs = ihmsfs[..., 3]
+        ihrs = ihmsfs['h']
+        imins = ihmsfs['m']
+        isecs = ihmsfs['s']
+        ifracs = ihmsfs['f']
         iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
                              flags=['refs_ok'],
                              op_dtypes=7*[iys.dtype] + [object])
@@ -811,10 +811,10 @@ class TimeString(TimeUnique):
             has_yday = False
             yday = None
 
-        ihrs = ihmsfs[..., 0]
-        imins = ihmsfs[..., 1]
-        isecs = ihmsfs[..., 2]
-        ifracs = ihmsfs[..., 3]
+        ihrs = ihmsfs['h']
+        imins = ihmsfs['m']
+        isecs = ihmsfs['s']
+        ifracs = ihmsfs['f']
         for iy, im, id, ihr, imin, isec, ifracsec in np.nditer(
                 [iys, ims, ids, ihrs, imins, isecs, ifracs]):
             if has_yday:
