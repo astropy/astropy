@@ -31,6 +31,7 @@ module (compiled as ``ufunc``), derived from the ``ufunc.c`` file.
 import warnings
 
 from ..utils.exceptions import AstropyUserWarning
+from ..utils.misc import check_broadcast
 
 import numpy
 from . import ufunc
@@ -42,7 +43,7 @@ __all__ = ['ErfaError', 'ErfaWarning',
            {{ constants|map(attribute='name')|surround("'","'")|join(", ") }},
            # TODO: delete the functions below when they can get auto-generated
            'version', 'version_major', 'version_minor', 'version_micro', 'sofa_version',
-           'dt_eraASTROM', 'dt_eraLDBODY']
+           'dt_eraASTROM', 'dt_eraLDBODY', 'dt_pv', 'dt_ymdf', 'dt_hmsf', 'dt_dmsf']
 
 
 # <---------------------------------Error-handling---------------------------->
@@ -116,12 +117,31 @@ def check_errwarn(statcodes, func_name):
 
 # <------------------------structured dtype conversion------------------------>
 
-def convert_to_dtype(arr, dtype, dtype_shape, dtype_ndim, name):
-    arr = numpy.array(arr, copy=False, subok=True)
-    if arr.shape[-dtype_ndim:] != dtype_shape:
-        raise ValueError("{0} must be of trailing dimensions {1}"
-                         .format(name, dtype_shape))
-    return arr.ravel().view(dtype).reshape(arr.shape[:-dtype_ndim])
+class D3Fix(numpy.ndarray):
+    # We do this to help ensure Quantity happily lets this pass...
+    def __quantity_subclass__(self, unit):
+        return type(self), True
+
+    def __array_wrap__(self, obj, context):
+        return obj.view(numpy.ndarray)
+
+
+def arrayify_inputs_and_create_d3_fix(inputs, core_dims, out_core_shape, out_dtype):
+    # Need to ensure we can get a shape
+    shapes = []
+    arrays = []
+    for input, core_dim in zip(inputs, core_dims):
+        try:
+            shape = input.shape
+        except AttributeError:
+            input = numpy.asanyarray(input)
+            shape = input.shape
+        shapes.append(shape[:-core_dim] if core_dim else shape)
+        arrays.append(input)
+
+    broadcast_shape = check_broadcast(*shapes)
+    d3_fix = numpy.empty(broadcast_shape + out_core_shape, out_dtype).view(D3Fix)
+    return arrays, d3_fix
 
 
 dt_bytes1 = numpy.dtype('S1')
@@ -164,10 +184,15 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
      # and once as output, so that changes are done in-place
      #}
     {%- if func.d3_fix_arg %}
-    d3fix = numpy.empty((0,) * max(0
-        {%- for arg in func.args_by_inout('in|inout') -%}
-        , getattr({{ arg.name }}, 'ndim', numpy.asanyarray({{ arg.name }}).ndim) - {{ arg.ndim }}
-        {%- endfor %}) + {{ func.d3_fix_arg.shape }}, numpy.{{ func.d3_fix_arg.ctype }})
+    {% if func.args_by_inout('in|inout') -%}
+    ({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }},)
+    {%- else -%}_{%- endif -%}, {{ func.d3_fix_arg.name
+        }} = arrayify_inputs_and_create_d3_fix(
+        [{{ func.args_by_inout('in|inout')|map(attribute='name')|list()|join(', ')
+        }}], core_dims=[{{
+        func.args_by_inout('in|inout')|map(attribute='ndim')|list()|join(', ')
+        }}], out_core_shape={{ func.d3_fix_arg.shape
+        }}, out_dtype=numpy.{{ func.d3_fix_arg.ctype }})
     {%- endif %}
     {{ func.python_call }}
     {#-

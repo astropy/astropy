@@ -481,7 +481,7 @@ class Function:
         argnames += [arg.name for arg in self.args_by_inout('inout')]
         d3fix_index = self._d3_fix_arg_and_index()[0]
         if d3fix_index is not None:
-            argnames += ['None'] * d3fix_index + ['d3fix']
+            argnames += ['None'] * d3fix_index + [self.d3_fix_arg.name]
         return '{out} = {func}({args})'.format(out=', '.join(outnames),
                                                func='ufunc.' + self.pyname,
                                                args=', '.join(argnames))

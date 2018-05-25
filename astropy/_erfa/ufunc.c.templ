@@ -620,43 +620,6 @@ static int ErfaUFuncD3CheckTypeResolver(PyUFuncObject *ufunc,
 }
 
 /*
- * The following is a complete and utter hack, which can be removed
- * once ufuncs support fixed dimensions (see numpy gh-5015 and gh-11132)
- *
- * Here, we make use of the fact that the type resolver is called after
- * checks on core dimensions are done: we ensure the tests pass by letting
- * the python wrapper of our ufunc insert a fake output array, and then
- * remove that array here.
- *
- * In order to ensure that we do not remove real output arrays, the fake
- * array is constructed such that its extra dimensions beyond the
- * number of core dimensions all have zero length.
- */
-static int ErfaUFuncD3FixTypeResolver(PyUFuncObject *ufunc,
-                                      NPY_CASTING casting,
-                                      PyArrayObject **operands,
-                                      PyObject *type_tup,
-                                      PyArray_Descr **out_dtypes)
-{
-    int i;
-
-    for (i = ufunc->nin; i < ufunc->nargs; i++) {
-        PyArrayObject *op = operands[i];
-        if (op) {
-            if ((PyArray_NDIM(op) > ufunc->core_num_dims[i]) &&
-                (PyArray_DIMS(op)[0] == 0)) {
-                Py_DECREF(op);
-                operands[i] = NULL;
-                break;
-            }
-        }
-    }
-    return ErfaUFuncTypeResolver(ufunc, casting, operands, type_tup,
-                                 out_dtypes);
-}
-
-
-/*
  * UFUNC MODULE DEFINITIONS AND INITIALIZATION
  */
 static PyMethodDef ErfaUFuncMethods[] = {
@@ -847,9 +810,7 @@ PyMODINIT_FUNC PyInit_ufunc(void)
         goto fail;
     }
     {%- endif %}
-    {%- if func.d3_fix_arg %}
-    ufunc->type_resolver = &ErfaUFuncD3FixTypeResolver;
-    {%- elif func.signature and 'd3' in func.signature %}
+    {%- if func.signature and 'd3' in func.signature and not func.d3_fix_arg %}
     ufunc->type_resolver = &ErfaUFuncD3CheckTypeResolver;
     {%- else %}
     ufunc->type_resolver = &ErfaUFuncTypeResolver;
