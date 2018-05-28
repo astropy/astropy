@@ -3,12 +3,14 @@
 """
 Test Structured units and quantities.
 """
+import numpy as np
+
 from ... import units as u
-from ...units import StructuredUnit
+from ...units import StructuredUnit, StructuredQuantity, Unit, Quantity
 
 
 class TestStructuredUnitBasics:
-    def test_initialization(self):
+    def test_initialization_and_keying(self):
         p_unit = u.m
         v_unit = u.m / u.s
         t_unit = u.s
@@ -27,9 +29,52 @@ class TestStructuredUnitBasics:
         p_unit = u.m
         v_unit = u.m / u.s
         su = StructuredUnit((p_unit, v_unit), [('p', 'O'), ('v', 'O')])
-        assert u.Unit(su) is su
+        assert Unit(su) is su
 
 
 class TestStructuredQuantity:
-    def test_initialization(self):
-        pass
+    def setup(self):
+        p_unit = u.m
+        v_unit = u.m / u.s
+        t_unit = u.s
+        self.pv_unit = StructuredUnit((p_unit, v_unit),
+                                      [('p', 'O'), ('v', 'O')])
+        self.pv_t_unit = StructuredUnit(((p_unit, v_unit), (t_unit)),
+                                        [('pv', [('p', 'O'), ('v', 'O')]),
+                                         ('t', 'O')])
+        self.pv_dtype = np.dtype([('p', 'f8'), ('v', 'f8')])
+        self.pv_t_dtype = np.dtype([('pv', self.pv_dtype), ('t', 'f8')])
+        self.pv = np.array([(1., 0.25), (2., 0.5), (3., 0.75)],
+                           self.pv_dtype)
+        self.pv_t = np.array([((1., 0.25), 0.),
+                              ((2., 0.5), -1.),
+                              ((3., 0.75), -2.)], self.pv_t_dtype)
+
+    def test_initialization_and_keying(self):
+        q_pv = StructuredQuantity(self.pv, self.pv_unit)
+        q_p = q_pv['p']
+        assert isinstance(q_p, Quantity)
+        assert isinstance(q_p.unit, u.UnitBase)
+        assert np.all(q_p == self.pv['p'] * self.pv_unit['p'])
+        q_v = q_pv['v']
+        assert isinstance(q_v, Quantity)
+        assert isinstance(q_v.unit, u.UnitBase)
+        assert np.all(q_v == self.pv['v'] * self.pv_unit['v'])
+        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_t = q_pv_t['t']
+        assert np.all(q_t == self.pv_t['t'] * self.pv_t_unit['t'])
+        q_pv2 = q_pv_t['pv']
+        assert isinstance(q_pv2, StructuredQuantity)
+        assert q_pv2.unit == self.pv_unit
+
+    def test_getitem(self):
+        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_pv_t01 = q_pv_t[:2]
+        assert isinstance(q_pv_t01, StructuredQuantity)
+        assert q_pv_t01.unit == q_pv_t.unit
+        assert np.all(q_pv_t01['t'] == q_pv_t['t'][:2])
+        q_pv_t1 = q_pv_t[1]
+        assert isinstance(q_pv_t1, StructuredQuantity)
+        assert q_pv_t1.unit == q_pv_t.unit
+        assert q_pv_t1.shape is ()
+        assert q_pv_t1['t'] == q_pv_t['t'][1]
