@@ -36,6 +36,7 @@ from .equivalencies import *
 from .function.core import *
 from .function.logarithmic import *
 
+from .structured import *
 from .decorators import *
 
 del bases
