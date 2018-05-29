@@ -10,6 +10,10 @@ from ...units import StructuredUnit, StructuredQuantity, Unit, Quantity
 
 
 class TestStructuredUnitBasics:
+    def setup(self):
+        self.pv_dtype = np.dtype([('p', 'f8'), ('v', 'f8')])
+        self.pv_t_dtype = np.dtype([('pv', self.pv_dtype), ('t', 'f8')])
+
     def test_initialization_and_keying(self):
         p_unit = u.m
         v_unit = u.m / u.s
@@ -24,6 +28,9 @@ class TestStructuredUnitBasics:
         assert su2['pv']['v'] is v_unit
         assert su2['t'] is t_unit
         assert su2['pv'] == su
+        su3 = StructuredUnit(('km', 'km/s'), [('p', 'O'), ('v', 'O')])
+        assert isinstance(su3['p'], u.UnitBase)
+        assert isinstance(su3['v'], u.UnitBase)
 
     def test_looks_like_unit(self):
         p_unit = u.m
@@ -31,11 +38,23 @@ class TestStructuredUnitBasics:
         su = StructuredUnit((p_unit, v_unit), [('p', 'O'), ('v', 'O')])
         assert Unit(su) is su
 
+    def test_initialize_with_float_dtype(self):
+        su = StructuredUnit((('km', 'km/s'), 'yr'), self.pv_t_dtype)
+        assert isinstance(su['pv'], StructuredUnit)
+        assert isinstance(su['pv']['p'], u.UnitBase)
+        assert isinstance(su['t'], u.UnitBase)
+        assert su['pv']['v'] == u.km / u.s
+        su = StructuredUnit((('km', 'km/s'), 'yr'), self.pv_t_dtype)
+        assert isinstance(su['pv'], StructuredUnit)
+        assert isinstance(su['pv']['p'], u.UnitBase)
+        assert isinstance(su['t'], u.UnitBase)
+        assert su['pv']['v'] == u.km / u.s
+
 
 class TestStructuredQuantity:
     def setup(self):
-        p_unit = u.m
-        v_unit = u.m / u.s
+        p_unit = u.km
+        v_unit = u.km / u.s
         t_unit = u.s
         self.pv_unit = StructuredUnit((p_unit, v_unit),
                                       [('p', 'O'), ('v', 'O')])
@@ -46,9 +65,9 @@ class TestStructuredQuantity:
         self.pv_t_dtype = np.dtype([('pv', self.pv_dtype), ('t', 'f8')])
         self.pv = np.array([(1., 0.25), (2., 0.5), (3., 0.75)],
                            self.pv_dtype)
-        self.pv_t = np.array([((1., 0.25), 0.),
-                              ((2., 0.5), -1.),
-                              ((3., 0.75), -2.)], self.pv_t_dtype)
+        self.pv_t = np.array([((4., 2.5), 0.),
+                              ((5., 5.0), 1.),
+                              ((6., 7.5), 2.)], self.pv_t_dtype)
 
     def test_initialization_and_keying(self):
         q_pv = StructuredQuantity(self.pv, self.pv_unit)
@@ -66,6 +85,11 @@ class TestStructuredQuantity:
         q_pv2 = q_pv_t['pv']
         assert isinstance(q_pv2, StructuredQuantity)
         assert q_pv2.unit == self.pv_unit
+
+    def test_initialization_with_unit_tuples(self):
+        q_pv_t = StructuredQuantity(self.pv_t, (('km', 'km/s'), 's'))
+        assert isinstance(q_pv_t.unit, StructuredUnit)
+        assert q_pv_t.unit == self.pv_t_unit
 
     def test_getitem(self):
         q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
