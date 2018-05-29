@@ -10,8 +10,26 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from contextlib import contextmanager
 
 from setuptools import Command
+
+
+@contextmanager
+def _suppress_stdout():
+    '''
+    A context manager to temporarily disable stdout.
+
+    Used later when installing a temperory copy of astropy to avoid a
+    very verbose output.
+    '''
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
 
 
 class FixRemoteDataOption(type):
@@ -241,7 +259,8 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         self.reinitialize_command('install')
         install_cmd = self.distribution.get_command_obj('install')
         install_cmd.prefix = self.tmp_dir
-        self.run_command('install')
+        with _suppress_stdout():
+            self.run_command('install')
 
         # We now get the path to the site-packages directory that was created
         # inside self.tmp_dir
