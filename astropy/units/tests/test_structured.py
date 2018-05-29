@@ -39,6 +39,11 @@ class TestStructuredUnitBasics:
         assert Unit(su) is su
 
     def test_initialize_with_float_dtype(self):
+        su = StructuredUnit(('AU', 'AU/d'), self.pv_dtype)
+        assert isinstance(su['p'], u.UnitBase)
+        assert isinstance(su['v'], u.UnitBase)
+        assert su['p'] == u.AU
+        assert su['v'] == u.AU / u.day
         su = StructuredUnit((('km', 'km/s'), 'yr'), self.pv_t_dtype)
         assert isinstance(su['pv'], StructuredUnit)
         assert isinstance(su['pv']['p'], u.UnitBase)
@@ -102,3 +107,19 @@ class TestStructuredQuantity:
         assert q_pv_t1.unit == q_pv_t.unit
         assert q_pv_t1.shape is ()
         assert q_pv_t1['t'] == q_pv_t['t'][1]
+
+    def test_conversion(self):
+        q_pv = StructuredQuantity(self.pv, self.pv_unit)
+        q1 = q_pv.to(('AU', 'AU/day'))
+        assert q1['p'].unit == u.AU
+        assert q1['v'].unit == u.AU / u.day
+        assert np.all(q1['p'] == q_pv['p'].to(u.AU))
+        assert np.all(q1['v'] == q_pv['v'].to(u.AU/u.day))
+        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q2 = q_pv_t.to((('kpc', 'kpc/Myr'), 'Myr'))
+        assert q2['pv']['p'].unit == u.kpc
+        assert q2['pv']['v'].unit == u.kpc / u.Myr
+        assert q2['t'].unit == u.Myr
+        assert np.all(q2['pv']['p'] == q_pv_t['pv']['p'].to(u.kpc))
+        assert np.all(q2['pv']['v'] == q_pv_t['pv']['v'].to(u.kpc/u.Myr))
+        assert np.all(q2['t'] == q_pv_t['t'].to(u.Myr))

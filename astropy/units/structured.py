@@ -74,3 +74,26 @@ class StructuredQuantity(Quantity):
         if not isinstance(unit, StructuredUnit):
             unit = StructuredUnit(unit)
         self._unit = unit
+
+    def _to_value(self, unit, equivalencies=[]):
+        """Helper method for to and to_value."""
+        if equivalencies == []:
+            equivalencies = self._equivalencies
+        result = np.empty(self.shape, self.dtype)
+        for name, u_name in zip(self.dtype.names, unit.dtype.names):
+            result[name] = self[name]._to_value(
+                unit[u_name], equivalencies=equivalencies)
+        return result
+
+    def to_value(self, unit, equivalencies=[]):
+        if not isinstance(unit, StructuredUnit):
+            unit = StructuredUnit(unit, self.dtype)
+        return self._to_value(self, unit, equivalencies)
+
+    def to(self, unit, equivalencies=[]):
+        if not isinstance(unit, StructuredUnit):
+            unit = StructuredUnit(unit, self.dtype)
+        result = self._to_value(unit, equivalencies=equivalencies)
+        result = result.view(self.__class__)
+        result._set_unit(unit)
+        return result
