@@ -55,7 +55,7 @@ def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
     except ImportError:
         return False
     else:
-        return isinstance(args[0], (h5py.highlevel.File, h5py.highlevel.Group, h5py.highlevel.Dataset))
+        return isinstance(args[0], (h5py.File, h5py.Group, h5py.Dataset))
 
 
 def read_table_hdf5(input, path=None):
@@ -88,7 +88,7 @@ def read_table_hdf5(input, path=None):
     # Here, we save its value to be used at the end when the conditions are
     # right.
     input_save = input
-    if isinstance(input, (h5py.highlevel.File, h5py.highlevel.Group)):
+    if isinstance(input, (h5py.File, h5py.Group)):
 
         # If a path was specified, follow the path
 
@@ -103,7 +103,7 @@ def read_table_hdf5(input, path=None):
         # is one we can proceed otherwise an error is raised. If it is a
         # dataset, we just proceed with the reading.
 
-        if isinstance(input, h5py.highlevel.Group):
+        if isinstance(input, h5py.Group):
 
             # Find all structured arrays in group
             arrays = _find_all_structured_arrays(input)
@@ -119,7 +119,7 @@ def read_table_hdf5(input, path=None):
                               AstropyUserWarning)
                 return read_table_hdf5(input, path=path)
 
-    elif not isinstance(input, h5py.highlevel.Dataset):
+    elif not isinstance(input, h5py.Dataset):
 
         # If a file object was passed, then we need to extract the filename
         # because h5py cannot properly read in file objects.
@@ -262,7 +262,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
     else:
         group, name = None, path
 
-    if isinstance(output, (h5py.highlevel.File, h5py.highlevel.Group)):
+    if isinstance(output, (h5py.File, h5py.Group)):
 
         if group:
             try:
