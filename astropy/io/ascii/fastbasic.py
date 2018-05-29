@@ -263,7 +263,10 @@ class FastCommentedHeader(FastBasic):
         """
         meta = OrderedDict()
         if comments:
-            meta['comments'] = comments[1:]
+            idx = self.header_start
+            if idx < 0:
+                idx = len(comments) + idx
+            meta['comments'] = comments[:idx] + comments[idx+1:]
             if not meta['comments']:
                 del meta['comments']
 
