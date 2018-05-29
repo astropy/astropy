@@ -7,6 +7,7 @@ This module defines structured units and quantities.
 
 # Standard library
 import numpy as np
+from numpy.ma.core import _replace_dtype_fields  # May need our own version
 
 from .core import Unit, UnitBase
 from .quantity import Quantity
@@ -17,11 +18,21 @@ __all__ = ['StructuredUnit', 'StructuredQuantity']
 
 class StructuredUnit(np.void):
 
-    def __new__(cls, units, dtype):
+    def __new__(cls, units, dtype=None):
         if not isinstance(dtype, cls):
+            dtype = _replace_dtype_fields(dtype, 'O')
             dtype = np.dtype((cls, dtype))
         self = np.array(units, dtype)[()]
+        self._recursively_check()
         return self
+
+    def _recursively_check(self):
+        for field in self.dtype.names:
+            unit = self[field]
+            if isinstance(unit, type(self)):
+                unit._recursively_check()
+            else:
+                self[field] = Unit(unit)
 
     @property
     def _quantity_class(self):
@@ -41,9 +52,9 @@ class StructuredUnit(np.void):
 
 class StructuredQuantity(Quantity):
     def __new__(cls, value, unit=None, dtype=None, *args, **kwargs):
-        if not isinstance(unit, StructuredUnit):
-            unit = StructuredUnit(unit, dtype)
         self = np.array(value, dtype, *args, **kwargs).view(cls)
+        if not isinstance(unit, StructuredUnit):
+            unit = StructuredUnit(unit, self.dtype)
         self._unit = unit
         return self
 
