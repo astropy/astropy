@@ -347,6 +347,10 @@ Other Changes and Additions
 - The documentation build now uses the Sphinx configuration from sphinx-astropy
   rather than from astropy-helpers. [#7139]
 
+- Running tests now suppresses the output of the installation stage by default,
+  to allow easier viewing of the test results. To re-enable the output as
+  before, use ``python setup.py test --verbose-install``. [#7512]
+
 
 3.0.3 (unreleased)
 ==================
