@@ -353,7 +353,7 @@ Other Changes and Additions
 
 - The ERFA functions are now wrapped in ufuncs instead of custom C code,
   leading to some speed improvements, and setting the stage for allowing
-  overrides with ``__array_ufunc__``. [#7484]
+  overrides with ``__array_ufunc__``. [#7502]
 
 3.0.3 (unreleased)
 ==================
