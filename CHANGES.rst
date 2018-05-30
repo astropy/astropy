@@ -81,6 +81,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Fixed a bug that improperly handled unicode case of URL mirror in Python 2.
+  [#7493]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -94,6 +97,7 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+- Bundled ``pytest-remotedata`` plugin is upgraded to 0.3. [#7493]
 
 
 2.0.6 (2018-04-23)

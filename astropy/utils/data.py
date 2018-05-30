@@ -1071,6 +1071,9 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                         if url_key.startswith(cur_url):
                             url_mirror = url_key.replace(cur_url,
                                                          conf.dataurl_mirror)
+                            if six.PY2 and isinstance(url_mirror,
+                                                      six.text_type):
+                                url_mirror = url_mirror.encode('utf-8')
                             if url_mirror in url2hash:
                                 return url2hash[url_mirror]
 
