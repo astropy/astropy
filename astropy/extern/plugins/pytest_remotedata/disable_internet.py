@@ -12,7 +12,9 @@ socket_create_connection = socket.create_connection
 socket_bind = socket.socket.bind
 socket_connect = socket.socket.connect
 
-ASTROPY_HOSTS = ['data.astropy.org', 'astropy.stsci.edu', 'www.astropy.org']
+GITHUB_HOSTS = ['www.github.io']
+ASTROPY_HOSTS = (['data.astropy.org', 'astropy.stsci.edu', 'www.astropy.org'] +
+                 GITHUB_HOSTS)
 
 INTERNET_OFF = False
 
@@ -22,14 +24,31 @@ INTERNET_OFF = False
 _orig_opener = None
 
 
+def _resolve_host_ips(hostname, port=80):
+    """
+    Obtain all the IPs, including aliases, in a way that supports
+    IPv4/v6 dual stack.
+    """
+    try:
+        ips = set([s[-1][0] for s in socket.getaddrinfo(hostname, port)])
+    except socket.gaierror:
+        ips = set([])
+
+    ips.add(hostname)
+    return ips
+
+
 # ::1 is apparently another valid name for localhost?
 # it is returned by getaddrinfo when that function is given localhost
 
-def check_internet_off(original_function, allow_astropy_data=False):
+def check_internet_off(original_function, allow_astropy_data=False,
+                       allow_github_data=False):
     """
     Wraps ``original_function``, which in most cases is assumed
     to be a `socket.socket` method, to raise an `IOError` for any operations
     on non-local AF_INET sockets.
+
+    Allowing Astropy data also automatically allow GitHub data.
     """
 
     def new_function(*args, **kwargs):
@@ -41,7 +60,7 @@ def check_internet_off(original_function, allow_astropy_data=False):
                 return original_function(*args, **kwargs)
             host = args[1][0]
             addr_arg = 1
-            valid_hosts = ('localhost', '127.0.0.1', '::1')
+            valid_hosts = set(['localhost', '127.0.0.1', '::1'])
         else:
             # The only other function this is used to wrap currently is
             # socket.create_connection, which should be passed a 2-tuple, but
@@ -51,22 +70,30 @@ def check_internet_off(original_function, allow_astropy_data=False):
 
             host = args[0][0]
             addr_arg = 0
-            valid_hosts = ('localhost', '127.0.0.1')
+            valid_hosts = set(['localhost', '127.0.0.1'])
 
+        # Astropy + GitHub data
         if allow_astropy_data:
             for valid_host in ASTROPY_HOSTS:
-                valid_host_ip = socket.gethostbyname(valid_host)
-                valid_hosts += (valid_host, valid_host_ip)
+                valid_hosts = valid_hosts.union(_resolve_host_ips(valid_host))
+
+        # Only GitHub data
+        elif allow_github_data:
+            for valid_host in GITHUB_HOSTS:
+                valid_hosts = valid_hosts.union(_resolve_host_ips(valid_host))
 
         hostname = socket.gethostname()
         fqdn = socket.getfqdn()
 
         if host in (hostname, fqdn):
             host = 'localhost'
+            host_ips = set([host])
             new_addr = (host, args[addr_arg][1])
             args = args[:addr_arg] + (new_addr,) + args[addr_arg + 1:]
+        else:
+            host_ips = _resolve_host_ips(host)
 
-        if any(h in host for h in valid_hosts):
+        if len(host_ips & valid_hosts) > 0:  # Any overlap is acceptable
             return original_function(*args, **kwargs)
         else:
             raise IOError("An attempt was made to connect to the internet "
@@ -75,7 +102,8 @@ def check_internet_off(original_function, allow_astropy_data=False):
     return new_function
 
 
-def turn_off_internet(verbose=False, allow_astropy_data=False):
+def turn_off_internet(verbose=False, allow_astropy_data=False,
+                      allow_github_data=False):
     """
     Disable internet access via python by preventing connections from being
     created using the socket module.  Presumably this could be worked around by
@@ -103,9 +131,15 @@ def turn_off_internet(verbose=False, allow_astropy_data=False):
     opener = urllib.request.build_opener(no_proxy_handler)
     urllib.request.install_opener(opener)
 
-    socket.create_connection = check_internet_off(socket_create_connection, allow_astropy_data=allow_astropy_data)
-    socket.socket.bind = check_internet_off(socket_bind, allow_astropy_data=allow_astropy_data)
-    socket.socket.connect = check_internet_off(socket_connect, allow_astropy_data=allow_astropy_data)
+    socket.create_connection = check_internet_off(
+        socket_create_connection, allow_astropy_data=allow_astropy_data,
+        allow_github_data=allow_github_data)
+    socket.socket.bind = check_internet_off(
+        socket_bind, allow_astropy_data=allow_astropy_data,
+        allow_github_data=allow_github_data)
+    socket.socket.connect = check_internet_off(
+        socket_connect, allow_astropy_data=allow_astropy_data,
+        allow_github_data=allow_github_data)
 
     return socket
 

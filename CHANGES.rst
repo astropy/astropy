@@ -97,6 +97,7 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+- Bundled ``pytest-remotedata`` plugin is upgraded to 0.3. [#7493]
 
 
 2.0.6 (2018-04-23)
