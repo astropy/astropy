@@ -35,7 +35,7 @@ else:
     HAS_XZ = True
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_download_nocache():
     from ..data import download_file
 
@@ -43,7 +43,7 @@ def test_download_nocache():
     assert os.path.isfile(fnout)
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_download_parallel():
     import shelve
     from ..data import (download_file, download_files_in_parallel,
@@ -69,7 +69,7 @@ def test_download_parallel():
             (mirror_url in c_urls) and (main_url not in c_urls))
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_download_noprogress():
     from ..data import download_file
 
@@ -77,7 +77,7 @@ def test_download_noprogress():
     assert os.path.isfile(fnout)
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_download_cache():
 
     from ..data import download_file, clear_download_cache
@@ -110,7 +110,7 @@ def test_download_cache():
     assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_url_nocache():
 
     from ..data import get_readable_fileobj
@@ -119,7 +119,7 @@ def test_url_nocache():
         assert page.read().find('Astropy') > -1
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_find_by_hash():
 
     from ..data import get_readable_fileobj, get_pkg_data_filename, clear_download_cache
@@ -138,7 +138,7 @@ def test_find_by_hash():
     assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_find_invalid():
     from ..data import get_pkg_data_filename
 
@@ -284,7 +284,7 @@ def test_get_pkg_data_contents():
     assert contents1 == contents2
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_data_noastropy_fallback(monkeypatch):
     """
     Tests to make sure the default behavior when the cache directory can't
@@ -418,7 +418,7 @@ def test_compressed_stream():
         assert f.read().rstrip() == b'CONTENT'
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_invalid_location_download():
     """
     checks that download_file gives a URLError and not an AttributeError,
@@ -441,7 +441,7 @@ def test_invalid_location_download_noconnect():
         download_file('http://astropy.org/nonexistentfile')
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_is_url_in_cache():
     from ..data import download_file, is_url_in_cache
 
