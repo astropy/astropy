@@ -87,6 +87,12 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug that caused the position of the tick values in decimal mode
+  to be incorrectly determined. [#7332]
+
+- Fixed a bug that prevented legends from being added to plots done with
+  units. [#7510]
+
 astropy.vo
 ^^^^^^^^^^
 
