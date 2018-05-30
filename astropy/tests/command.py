@@ -10,8 +10,26 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from contextlib import contextmanager
 
 from setuptools import Command
+
+
+@contextmanager
+def _suppress_stdout():
+    '''
+    A context manager to temporarily disable stdout.
+
+    Used later when installing a temporary copy of astropy to avoid a
+    very verbose output.
+    '''
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
 
 
 class FixRemoteDataOption(type):
@@ -90,7 +108,10 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         ('temp-root=', None,
          'The root directory in which to create the temporary testing files. '
          'If unspecified the system default is used (e.g. /tmp) as explained '
-         'in the documentation for tempfile.mkstemp.')
+         'in the documentation for tempfile.mkstemp.'),
+        ('verbose-install', None,
+         'Turn on terminal output from the installation of astropy in a '
+         'temporary folder.')
     ]
 
     package_name = ''
@@ -112,6 +133,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         self.skip_docs = False
         self.repeat = None
         self.temp_root = None
+        self.verbose_install = False
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -241,7 +263,11 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         self.reinitialize_command('install')
         install_cmd = self.distribution.get_command_obj('install')
         install_cmd.prefix = self.tmp_dir
-        self.run_command('install')
+        if self.verbose_install:
+            self.run_command('install')
+        else:
+            with _suppress_stdout():
+                self.run_command('install')
 
         # We now get the path to the site-packages directory that was created
         # inside self.tmp_dir
