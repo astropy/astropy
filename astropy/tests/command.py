@@ -20,7 +20,7 @@ def _suppress_stdout():
     '''
     A context manager to temporarily disable stdout.
 
-    Used later when installing a temperory copy of astropy to avoid a
+    Used later when installing a temporary copy of astropy to avoid a
     very verbose output.
     '''
     with open(os.devnull, "w") as devnull:
@@ -111,7 +111,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
          'in the documentation for tempfile.mkstemp.'),
         ('verbose-install', None,
          'Turn on terminal output from the installation of astropy in a '
-         'temperory folder.')
+         'temporary folder.')
     ]
 
     package_name = ''
