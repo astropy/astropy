@@ -19,9 +19,8 @@ __all__ = ['StructuredUnit', 'StructuredQuantity']
 class StructuredUnit(np.void):
 
     def __new__(cls, units, dtype=None):
-        if not isinstance(dtype, cls):
-            dtype = _replace_dtype_fields(dtype, 'O')
-            dtype = np.dtype((cls, dtype))
+        dtype = _replace_dtype_fields(dtype, 'O')
+        dtype = np.dtype((cls, dtype))
         self = np.array(units, dtype)[()]
         self._recursively_check()
         return self
