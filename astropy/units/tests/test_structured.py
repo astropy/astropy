@@ -25,6 +25,16 @@ class StructuredTestBase:
                               ((6., 7.5), 2.)], self.pv_t_dtype)
 
 
+class StructuredTestBaseWithUnits(StructuredTestBase):
+    def setup(self):
+        super().setup()
+        self.pv_unit = StructuredUnit((self.p_unit, self.v_unit),
+                                      [('p', 'O'), ('v', 'O')])
+        self.pv_t_unit = StructuredUnit(
+            ((self.p_unit, self.v_unit), (self.t_unit)),
+            [('pv', [('p', 'O'), ('v', 'O')]), ('t', 'O')])
+
+
 class TestStructuredUnitBasics(StructuredTestBase):
 
     def test_initialization_and_keying(self):
@@ -66,15 +76,31 @@ class TestStructuredUnitBasics(StructuredTestBase):
         assert su['pv']['v'] == u.km / u.s
 
 
-class TestStructuredQuantity(StructuredTestBase):
-    def setup(self):
-        super().setup()
-        self.pv_unit = StructuredUnit((self.p_unit, self.v_unit),
-                                      [('p', 'O'), ('v', 'O')])
-        self.pv_t_unit = StructuredUnit(
-            ((self.p_unit, self.v_unit), (self.t_unit)),
-            [('pv', [('p', 'O'), ('v', 'O')]), ('t', 'O')])
+class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
+    def test_conversion(self):
+        pv1 = self.pv_unit.to(('AU', 'AU/day'), self.pv)
+        assert isinstance(pv1, np.ndarray)
+        assert pv1.dtype == self.pv.dtype
+        assert np.all(pv1['p'] * u.AU == self.pv['p'] * self.p_unit)
+        assert np.all(pv1['v'] * u.AU / u.day == self.pv['v'] * self.v_unit)
+        # Names should be from value.
+        su2 = StructuredUnit((self.p_unit, self.v_unit),
+                             [('position', 'O'), ('velocity', 'O')])
+        pv2 = su2.to(('Mm', 'mm/s'), self.pv)
+        assert pv2.dtype.names == ('p', 'v')
+        assert pv2.dtype == self.pv.dtype
+        # Check recursion.
+        pv_t1 = self.pv_t_unit.to((('AU', 'AU/day'), 'Myr'), self.pv_t)
+        assert isinstance(pv_t1, np.ndarray)
+        assert pv_t1.dtype == self.pv_t.dtype
+        assert np.all(pv_t1['pv']['p'] * u.AU ==
+                      self.pv_t['pv']['p'] * self.p_unit)
+        assert np.all(pv_t1['pv']['v'] * u.AU / u.day ==
+                      self.pv_t['pv']['v'] * self.v_unit)
+        assert np.all(pv_t1['t'] * u.Myr == self.pv_t['t'] * self.t_unit)
 
+
+class TestStructuredQuantity(StructuredTestBaseWithUnits):
     def test_initialization_and_keying(self):
         q_pv = StructuredQuantity(self.pv, self.pv_unit)
         q_p = q_pv['p']
@@ -109,13 +135,30 @@ class TestStructuredQuantity(StructuredTestBase):
         assert q_pv_t1.shape is ()
         assert q_pv_t1['t'] == q_pv_t['t'][1]
 
+    def test_value(self):
+        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        value = q_pv_t.value
+        assert type(value) is np.ndarray
+        assert np.all(value == self.pv_t)
+        value1 = q_pv_t[1].value
+        assert type(value1) is np.void
+        assert np.all(value1 == self.pv_t[1])
+
     def test_conversion(self):
         q_pv = StructuredQuantity(self.pv, self.pv_unit)
         q1 = q_pv.to(('AU', 'AU/day'))
+        assert isinstance(q1, StructuredQuantity)
         assert q1['p'].unit == u.AU
         assert q1['v'].unit == u.AU / u.day
         assert np.all(q1['p'] == q_pv['p'].to(u.AU))
         assert np.all(q1['v'] == q_pv['v'].to(u.AU/u.day))
+        pv1 = q_pv.to_value(('AU', 'AU/day'))
+        assert type(pv1) is np.ndarray
+        assert np.all(pv1['p'] == q_pv['p'].to_value(u.AU))
+        assert np.all(pv1['v'] == q_pv['v'].to_value(u.AU/u.day))
+        pv11 = q_pv[1].to_value(('AU', 'AU/day'))
+        assert type(pv11) is np.void
+        assert pv11 == pv1[1]
         q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
         q2 = q_pv_t.to((('kpc', 'kpc/Myr'), 'Myr'))
         assert q2['pv']['p'].unit == u.kpc
