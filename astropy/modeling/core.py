@@ -569,9 +569,9 @@ class Model(object):
         parameters.
 
     bounds : dict, optional
-        Dictionary ``{parameter_name: value}`` of lower and upper bounds of
-        parameters. Keys are parameter names. Values are a list of length 2
-        giving the desired range for the parameter.
+        A dictionary ``{parameter_name: value}`` of lower and upper bounds of
+        parameters. Keys are parameter names. Values are a list or a tuple
+        of length 2 giving the desired range for the parameter.
 
         Alternatively the `~astropy.modeling.Parameter.min` and
         `~astropy.modeling.Parameter.max` or
@@ -938,7 +938,7 @@ class Model(object):
     def bounds(self):
         """
         A `dict` mapping parameter names to their upper and lower bounds as
-        ``(min, max)`` tuples.
+        ``(min, max)`` tuples or ``[min, max]`` lists.
         """
 
         return self._constraints['bounds']
