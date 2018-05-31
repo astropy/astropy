@@ -672,7 +672,7 @@ class Model(metaclass=_ModelMeta):
     # whether their inverse is *actually* an inverse to the model they assign
     # it to.
     _inverse = None
-    _user_inverse = None
+    _user_inverse = False
 
     _bounding_box = None
     _user_bounding_box = None
@@ -983,9 +983,8 @@ class Model(metaclass=_ModelMeta):
         base class.
         """
 
-        if self._user_inverse is not None:
-            return self._user_inverse
-        elif self._inverse is not None:
+
+        if self._inverse is not None:
             return self._inverse()
 
         raise NotImplementedError("An analytical inverse transform has not "
@@ -999,7 +998,8 @@ class Model(metaclass=_ModelMeta):
                 "instance or `None` (where `None` explicitly forces the "
                 "model to have no inverse.")
 
-        self._user_inverse = value
+        self._user_inverse = True
+        self._inverse = value
 
     @inverse.deleter
     def inverse(self):
@@ -1017,7 +1017,7 @@ class Model(metaclass=_ModelMeta):
         assigned to this model by a user, via assignment to ``model.inverse``.
         """
 
-        return self._user_inverse is not None
+        return self._user_inverse
 
     @property
     def bounding_box(self):
