@@ -43,9 +43,9 @@ class TransformType(AstropyAsdfType):
 
     @classmethod
     def _to_tree_base_transform_members(cls, model, node, ctx):
-        if getattr(model, '_user_inverse', None) is not None:
+        if getattr(model, '_user_inverse', False):
             node['inverse'] = yamlutil.custom_tree_to_tagged_tree(
-            model._user_inverse, ctx)
+            model._inverse, ctx)
 
         if model.name is not None:
             node['name'] = model.name
