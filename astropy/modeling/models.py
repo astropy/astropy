@@ -38,8 +38,9 @@ CONSTRAINTS_DOC = """
         may be used.
     bounds : dict, optional
         A dictionary ``{parameter_name: value}`` of lower and upper bounds of
-        parameters. Keys  are parameter names. Values  are a list of length 2
-        or a tuple giving the desired range for the parameter.  Alternatively the
+        parameters. Keys are parameter names. Values are a list or a tuple
+        of length 2 giving the desired range for the parameter.
+        Alternatively, the
         `~astropy.modeling.Parameter.min` and
         `~astropy.modeling.Parameter.max` properties of a parameter
         may be used.
