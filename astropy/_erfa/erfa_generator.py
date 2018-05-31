@@ -620,7 +620,8 @@ def main(srcdir=DEFAULT_ERFA_LOC, outfn='core.py', ufuncfn='ufunc.c',
                 or (subsection == "AngleOps")
                 or (subsection == "SphericalCartesian")
                 or (subsection == "MatrixVectorProducts")
-                or True):
+                or (subsection == 'VectorOps')):
+
             func_names = re.findall(r' (\w+)\(.*?\);', functions,
                                     flags=re.DOTALL)
             for name in func_names:
