@@ -49,6 +49,24 @@ class StructuredUnit(np.void):
     def _get_physical_type_id(self):
         return NotImplementedError
 
+    def _get_converter(self, unit, equivalencies=[]):
+        """Helper method for to and to_value."""
+        if not isinstance(unit, type(self)):
+            unit = self.__class__(unit, self.dtype)
+
+        def converter(value):
+            result = np.empty(value.shape, value.dtype)
+            for name, r_name, u_name in zip(self.dtype.names,
+                                            result.dtype.names,
+                                            unit.dtype.names):
+                result[r_name] = self[name].to(unit[u_name], value[r_name],
+                                               equivalencies=equivalencies)
+            return result
+        return converter
+
+    def to(self, other, value, equivalencies=[]):
+        return self._get_converter(other, equivalencies=equivalencies)(value)
+
 
 class StructuredQuantity(Quantity):
     def __new__(cls, value, unit=None, dtype=None, *args, **kwargs):
@@ -75,21 +93,6 @@ class StructuredQuantity(Quantity):
             unit = StructuredUnit(unit)
         self._unit = unit
 
-    def _to_value(self, unit, equivalencies=[]):
-        """Helper method for to and to_value."""
-        if equivalencies == []:
-            equivalencies = self._equivalencies
-        result = np.empty(self.shape, self.dtype)
-        for name, u_name in zip(self.dtype.names, unit.dtype.names):
-            result[name] = self[name]._to_value(
-                unit[u_name], equivalencies=equivalencies)
-        return result
-
-    def to_value(self, unit, equivalencies=[]):
-        if not isinstance(unit, StructuredUnit):
-            unit = StructuredUnit(unit, self.dtype)
-        return self._to_value(self, unit, equivalencies)
-
     def to(self, unit, equivalencies=[]):
         if not isinstance(unit, StructuredUnit):
             unit = StructuredUnit(unit, self.dtype)
@@ -97,3 +100,19 @@ class StructuredQuantity(Quantity):
         result = result.view(self.__class__)
         result._set_unit(unit)
         return result
+
+    def to_value(self, unit=None, equivalencies=[]):
+        if unit is None or unit is self.unit:
+            result = self.view(np.ndarray)
+        else:
+            result = self._to_value(unit, equivalencies)
+        # [()] to return a void rather than a tuple.
+        return result if result.shape else result[()]
+
+    value = property(to_value,
+                     doc="""The numerical value of this instance.
+
+    See also
+    --------
+    to_value : Get the numerical value in a given unit.
+    """)
