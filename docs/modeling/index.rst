@@ -115,8 +115,10 @@ and `~astropy.modeling.functional_models.Trapezoid1D` models and the
     y = 3 * np.exp(-0.5 * (x - 1.3)**2 / 0.8**2)
     y += np.random.normal(0., 0.2, x.shape)
 
-    # Fit the data using a box model
-    t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5, bounds={"x_0": (-5., 5.)})
+    # Fit the data using a box model.
+    # Bounds are not really needed but included here to demonstrate usage.
+    t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5,
+                                bounds={"x_0": (-5., 5.)})
     fit_t = fitting.LevMarLSQFitter()
     t = fit_t(t_init, x, y)
 
