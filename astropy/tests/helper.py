@@ -139,6 +139,9 @@ _modules_to_ignore_on_import = set([
     'setuptools'])
 _warnings_to_ignore_entire_module = set([])
 _warnings_to_ignore_by_pyver = {
+    (2, 7): set([
+        # Deprecation warnings ahead of pytest 4.x
+        r"MarkInfo objects are deprecated"]),
     (3, 4): set([
         # py.test reads files with the 'U' flag, which is now
         # deprecated in Python 3.4.
@@ -146,7 +149,9 @@ _warnings_to_ignore_by_pyver = {
         # BeautifulSoup4 triggers warning in stdlib's html module.x
         r"The strict argument and mode are deprecated\.",
         r"The value of convert_charrefs will become True in 3\.5\. "
-        r"You are encouraged to set the value explicitly\."]),
+        r"You are encouraged to set the value explicitly\.",
+        # Deprecation warnings ahead of pytest 4.x
+        r"MarkInfo objects are deprecated"]),
     (3, 5): set([
         # py.test reads files with the 'U' flag, which is
         # deprecated.
