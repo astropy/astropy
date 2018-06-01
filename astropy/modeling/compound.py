@@ -110,9 +110,9 @@ class CompoundModel(object):
         self._param_metrics = None
         self._has_inverse = False  # may be set to True in following code
         if inverse:
-            self._user_inverse = True
+            self._user_inverse = inverse
         else:
-            self._user_inverse = False
+            self._user_inverse = None
         if op != '%' and len(left) != len(right):
             raise ValueError(
                 'Both operands must have equal values for n_models')
@@ -495,7 +495,10 @@ class CompoundModel(object):
         '''
         '''
         if self.has_inverse():
-            return self._inverse
+            if self._user_inverse is not None:
+                return self._user_inverse
+            else:
+                return self._inverse
         else:
             raise NotImplementedError("Inverse function not provided")
 
@@ -552,8 +555,7 @@ class CompoundModel(object):
                 isinstance(invmodel, CompoundModel)):
             raise ValueError("Attempt to assign non model to inverse")
         self._has_inverse = True
-        self._inverse = invmodel
-        self._user_inverse = True
+        self._user_inverse = invmodel
 
     __add__ =     _model_oper('+')
     __sub__ =     _model_oper('-')
