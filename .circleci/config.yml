@@ -22,7 +22,7 @@ jobs:
           command: /opt/python/cp36-cp36m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests
-          command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4
+          command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4 || (git reset HEAD && PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4)
   image-tests-mpl153:
     docker:
       - image: astropy/image-tests-py35-mpl153:1.0
