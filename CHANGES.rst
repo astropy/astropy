@@ -1,29 +1,14 @@
-3.0.3 (unreleased)
+3.0.3 (2018-06-01)
 ==================
 
 Bug Fixes
 ---------
 
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
+
+- Fix stripping correct (header) comment line from ``meta['comments']``
+  in the ``CommentedHeader`` reader for all ``header_start`` settings. [#7508]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -34,55 +19,11 @@ astropy.io.fits
 - Fix a bug when writing to FITS a table that has a column description
   with embedded blank lines. [#7482]
 
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
 astropy.tests
 ^^^^^^^^^^^^^
 
 - Enabling running tests for multiple packages when specified comma
   separated. [#7463]
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Other Changes and Additions
----------------------------
-
 
 
 3.0.2 (2018-04-23)
@@ -641,58 +582,16 @@ Other Changes and Additions
 - The bundled version of PLY was updated to 3.10. [#7174]
 
 
-2.0.7 (unreleased)
+2.0.7 (2018-06-01)
 ==================
 
 Bug Fixes
 ---------
 
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-- Fix stripping correct (header) comment line from ``meta['comments']``
-  in the ``CommentedHeader`` reader for all ``header_start`` settings. [#7508]
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - Fixed ``Tabular`` models to not change the shape of data. [#7411]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -712,20 +611,17 @@ astropy.table
   by Numpy since version 1.14. Also fixed a problem when MaskedColumn was
   initialized with ``mask=np.ma.nomask``. [#7486]
 
-astropy.tests
-^^^^^^^^^^^^^
-
 astropy.time
 ^^^^^^^^^^^^
 
 - Fixed a bug in Time that raised an error when initializing a subclass of Time
   with a Time object. [#7453]
 
-astropy.units
-^^^^^^^^^^^^^
-
 astropy.utils
 ^^^^^^^^^^^^^
+
+- Fixed a bug that improperly handled unicode case of URL mirror in Python 2.
+  [#7493]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -736,16 +632,11 @@ astropy.visualization
 - Fixed a bug that prevented legends from being added to plots done with
   units. [#7510]
 
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
 
 Other Changes and Additions
 ---------------------------
 
+- Bundled ``pytest-remotedata`` plugin is upgraded to 0.3. [#7493]
 
 
 2.0.6 (2018-04-23)
