@@ -11,7 +11,7 @@ jobs:
           command: /opt/python/cp27-cp27m/bin/pip install numpy scipy pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests
-          command: PYTHONHASHSEED=42 /opt/python/cp27-cp27m/bin/python setup.py test --parallel=4
+          command: PYTHONHASHSEED=42 /opt/python/cp27-cp27m/bin/python setup.py test --parallel=4 || (git reset HEAD && PYTHONHASHSEED=42 /opt/python/cp27-cp27m/bin/python setup.py test --parallel=4)
   32bit_py3:
     docker:
       - image: quay.io/pypa/manylinux1_i686
