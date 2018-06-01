@@ -457,7 +457,15 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='kdtree', forceunit=None):
         else:
             cartxyz = coord.cartesian.xyz.to(forceunit)
         flatxyz = cartxyz.reshape((3, np.prod(cartxyz.shape) // 3))
-        kdt = KDTree(flatxyz.value.T)
+        try:
+            # Set compact_nodes=False, balanced_tree=False to use
+            # "sliding midpoint" rule, which is much faster than standard for
+            # many common use cases
+            kdt = KDTree(flatxyz.value.T, compact_nodes=False, balanced_tree=False)
+        except TypeError:
+            # Python implementation does not take compact_nodes and balanced_tree
+            # as arguments.  However, it uses sliding midpoint rule by default
+            kdt = KDTree(flatxyz.value.T)
 
     if attrname_or_kdt:
         # cache the kdtree in `coord`

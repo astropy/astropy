@@ -22,6 +22,12 @@ astropy.coordinates
 - The new function ``make_transform_graph_docs`` can be used to create a
   docstring graph from a custom ``TransformGraph`` object. [#7135]
 
+- ``KDTree`` for catalog matching is now built with sliding midpoint rule
+  rather than standard.  In code, this means setting ``compact_nodes=False``
+  and ``balanced_tree=False`` in ``cKDTree``. The sliding midpoint rule is much
+  more suitable for catalog matching, and results in 1000x speedup in some
+  cases. [#7324]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 

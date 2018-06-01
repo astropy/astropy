@@ -124,6 +124,17 @@ def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
 
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
+def test_python_kdtree(monkeypatch):
+    from .. import ICRS
+
+    cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 2]*u.kpc)
+    ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree, distance=[1, 2, 3, 4]*u.kpc)
+
+    monkeypatch.delattr("scipy.spatial.cKDTree")
+    matching.match_coordinates_sky(cmatch, ccatalog)
+
+
+@pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_method():
     from .. import ICRS, SkyCoord
     from ...utils import NumpyRNGContext
