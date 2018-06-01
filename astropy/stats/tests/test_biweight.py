@@ -5,7 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 import pytest
 import numpy as np
 from numpy.random import randn, normal
-from numpy.testing import assert_equal, assert_allclose
+from numpy.testing import assert_allclose, assert_array_almost_equal_nulp
 
 from ..biweight import (biweight_location, biweight_scale,
                         biweight_midvariance, biweight_midcovariance,
@@ -216,10 +216,10 @@ def test_biweight_midcovariance_symmetric():
     rng = np.random.RandomState(1)
     d = rng.gamma(2, 2, size=(3, 500))
     cov = biweight_midcovariance(d)
-    assert_equal(cov, cov.T)
+    assert_array_almost_equal_nulp(cov, cov.T)
 
     cov = biweight_midcovariance(d, modify_sample_size=True)
-    assert_equal(cov, cov.T)
+    assert_array_almost_equal_nulp(cov, cov.T)
 
 
 def test_biweight_midcorrelation():
