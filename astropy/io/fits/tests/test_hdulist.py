@@ -890,6 +890,7 @@ class TestHDUListFunctions(FitsTestCase):
         """
         Make sure invalid keys in the 'in' operator return False.
         Regression test for https://github.com/astropy/astropy/issues/5583
+        and for https://github.com/astropy/astropy/issues/7269.
         """
         hdulist = fits.HDUList(fits.PrimaryHDU())
         hdulist.append(fits.ImageHDU())
@@ -1032,3 +1033,42 @@ class TestHDUListFunctions(FitsTestCase):
         hdu_popped = hdul.pop('SCI')
         assert len(hdul) == 5
         assert hdu_popped is hdu1
+
+    def test_hdulist_indexing(self):
+        """
+        Regression test for `index_of`, see
+        https://github.com/astropy/astropy/issues/7269.
+        """
+        phdu = fits.PrimaryHDU()
+        hdu1 = fits.ImageHDU(name='SCI', ver=2)
+        hdu2 = fits.ImageHDU(name='DQ')
+        hdu3 = fits.ImageHDU(name='SCI', ver=3)
+        hdu4 = fits.ImageHDU(name='DQ')
+        hdulist = fits.HDUList([phdu, hdu1, hdu2, hdu3, hdu4])
+
+        assert hdulist.index(phdu) == 0
+        assert hdulist.index(hdu1) == 1
+        assert hdulist.index(hdu2) == 2
+        assert hdulist.index(hdu3) == 3
+        assert hdulist.index(hdu4) == 4
+
+        assert hdulist.index_of('DQ') == 2
+        assert hdulist.index_of('SCI') == 1
+        assert hdulist.index_of(('SCI', 3)) == 3
+        assert hdulist.index_of(-1) == -1
+        assert hdulist.index_of(4) == 4
+
+        with pytest.raises(IndexError):
+            hdulist.index_of(-10)
+
+        with pytest.raises(IndexError):
+            hdulist.index_of(10)
+
+        with pytest.raises(KeyError):
+            hdulist.index_of(None)
+
+        with pytest.raises(KeyError):
+            hdulist.index_of('ERR')
+
+        with pytest.raises(KeyError):
+            hdulist.index_of(hdu1)
