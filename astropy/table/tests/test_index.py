@@ -6,6 +6,7 @@ import numpy as np
 from .test_table import SetupData
 from ..bst import BST, FastRBT, FastBST
 from ..sorted_array import SortedArray
+from ..soco import SCEngine, HAS_SOCO
 from ..table import QTable, Row, Table
 from ... import units as u
 from ...time import Time
@@ -23,6 +24,9 @@ if HAS_BINTREES:
     available_engines = [BST, FastBST, FastRBT, SortedArray]
 else:
     available_engines = [BST, SortedArray]
+
+if HAS_SOCO:
+    available_engines.append(SCEngine)
 
 
 @pytest.fixture(params=available_engines)

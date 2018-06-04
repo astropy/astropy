@@ -45,6 +45,7 @@ from .table import (Table, QTable, TableColumns, Row, TableFormatter,
 from .operations import join, setdiff, hstack, vstack, unique, TableMergeError
 from .bst import BST, FastBST, FastRBT
 from .sorted_array import SortedArray
+from .soco import SCEngine
 from .serialize import SerializedColumn
 
 # Finally import the formats for the read and write method but delay building

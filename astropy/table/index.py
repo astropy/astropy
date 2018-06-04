@@ -59,7 +59,7 @@ class Index:
         create an empty index for purposes of deep copying.
     engine : type, instance, or None
         Indexing engine class to use (from among SortedArray, BST,
-        FastBST, and FastRBT) or actual engine instance.
+        FastBST, FastRBT, and SCEngine) or actual engine instance.
         If the supplied argument is None (by default), use SortedArray.
     unique : bool (defaults to False)
         Whether the values of the index must be unique
