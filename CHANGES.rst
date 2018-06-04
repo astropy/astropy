@@ -114,6 +114,9 @@ astropy.table
 - Added support for full use of ``Time`` mixin column for join, hstack, and
   vstack table operations. [#6888]
 
+- Added a new table index engine, ``SCEngine``, based on the Sorted Containers
+  package. [#7574]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
