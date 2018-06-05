@@ -198,15 +198,6 @@ packages that use the full bugfix/maintenance branch approach.)
       $ gpg --detach-sign -a dist/astropy-<version>.tar.gz
       $ twine upload dist/astropy-<version>*
 
-#. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
-   and ensure that only the most recent releases in each actively maintained
-   release line are *not* marked hidden.  For example, if v1.2.2 was
-   just released, v1.2.1 should be hidden.  This is so that users only find
-   the latest bugfix releases.
-
-   Do not enabled "Auto-hide old releases" as that may hide bugfix releases
-   from older release lines that we may still want to make available.
-
 #. Go back to release branch (e.g., ``1.2.x``) and edit the ``VERSION`` in
    ``setup.py`` to be the next version number, but with
    a ``.dev`` suffix at the end (e.g., ``1.2.3.dev``).  Then add and commit::
