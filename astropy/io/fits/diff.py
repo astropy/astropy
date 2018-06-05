@@ -202,8 +202,9 @@ class FITSDiff(_BaseDiff):
       representing the differences between the two HDUs.
     """
 
-    def __init__(self, a, b, ignore_keywords=[], ignore_comments=[],
-                 ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0,
+    def __init__(self, a, b, ignore_hdus=[], ignore_keywords=[],
+                 ignore_comments=[], ignore_fields=[],
+                 numdiffs=10, rtol=0.0, atol=0.0,
                  ignore_blanks=True, ignore_blank_cards=True, tolerance=None):
         """
         Parameters
@@ -214,6 +215,11 @@ class FITSDiff(_BaseDiff):
         b : str or `HDUList`
             The filename of a FITS file on disk, or an `HDUList` object to
             compare to the first file.
+
+        ignore_hdus : sequence, optional
+            HDU names to ignore when comparing two FITS files or HDU lists; the
+            presence of these HDUs and their contents are ignored.  Wildcard
+            strings may also be included in the list.
 
         ignore_keywords : sequence, optional
             Header keywords to ignore when comparing two headers; the presence
@@ -286,6 +292,7 @@ class FITSDiff(_BaseDiff):
             close_b = False
 
         # Normalize keywords/fields to ignore to upper case
+        self.ignore_hdus = set(k.upper() for k in ignore_hdus)
         self.ignore_keywords = set(k.upper() for k in ignore_keywords)
         self.ignore_comments = set(k.upper() for k in ignore_comments)
         self.ignore_fields = set(k.upper() for k in ignore_fields)
@@ -305,6 +312,13 @@ class FITSDiff(_BaseDiff):
         self.ignore_blanks = ignore_blanks
         self.ignore_blank_cards = ignore_blank_cards
 
+        # Some hdu names may be pattern wildcards.  Find them.
+        self.ignore_hdu_patterns = set()
+        for name in list(self.ignore_hdus):
+            if name != '*' and glob.has_magic(name):
+                self.ignore_hdus.remove(name)
+                self.ignore_hdu_patterns.add(name)
+
         self.diff_hdu_count = ()
         self.diff_hdus = []
 
@@ -317,11 +331,20 @@ class FITSDiff(_BaseDiff):
                 b.close()
 
     def _diff(self):
+        if self.ignore_hdus:
+            self.a = [h for h in self.a if h.name not in self.ignore_hdus]
+            self.b = [h for h in self.b if h.name not in self.ignore_hdus]
+        if self.ignore_hdu_patterns:
+            for pattern in self.ignore_hdu_patterns:
+                self.a = [h for h in self.a if not fnmatch.fnmatch(h.name, pattern)]
+                self.b = [h for h in self.b if not fnmatch.fnmatch(h.name, pattern)]
+
         if len(self.a) != len(self.b):
             self.diff_hdu_count = (len(self.a), len(self.b))
 
-        # For now, just compare the extensions one by one in order...might
-        # allow some more sophisticated types of diffing later...
+        # For now, just compare the extensions one by one in order.
+        # Might allow some more sophisticated types of diffing later.
+
         # TODO: Somehow or another simplify the passing around of diff
         # options--this will become important as the number of options grows
         for idx in range(min(len(self.a), len(self.b))):
@@ -348,6 +371,17 @@ class FITSDiff(_BaseDiff):
         self._fileobj.write('\n')
         self._writeln(' fitsdiff: {}'.format(__version__))
         self._writeln(' a: {}\n b: {}'.format(filenamea, filenameb))
+
+        if self.ignore_hdus:
+            ignore_hdus = ' '.join(sorted(self.ignore_hdus))
+            self._writeln(' HDU(s) not to be compared:\n{}'
+                          .format(wrapper.fill(ignore_hdus)))
+
+        if self.ignore_hdu_patterns:
+            ignore_hdu_patterns = ' '.join(sorted(self.ignore_hdu_patterns))
+            self._writeln(' HDU(s) not to be compared:\n{}'
+                          .format(wrapper.fill(ignore_hdu_patterns)))
+
         if self.ignore_keywords:
             ignore_keywords = ' '.join(sorted(self.ignore_keywords))
             self._writeln(' Keyword(s) not to be compared:\n{}'
@@ -357,10 +391,12 @@ class FITSDiff(_BaseDiff):
             ignore_comments = ' '.join(sorted(self.ignore_comments))
             self._writeln(' Keyword(s) whose comments are not to be compared'
                           ':\n{}'.format(wrapper.fill(ignore_comments)))
+
         if self.ignore_fields:
             ignore_fields = ' '.join(sorted(self.ignore_fields))
             self._writeln(' Table column(s) not to be compared:\n{}'
                           .format(wrapper.fill(ignore_fields)))
+
         self._writeln(' Maximum number of different data values to be '
                       'reported: {}'.format(self.numdiffs))
         self._writeln(' Relative tolerance: {}, Absolute tolerance: {}'

@@ -222,6 +222,36 @@ class TestDiff(FitsTestCase):
         # ignored:
         assert not HeaderDiff(hb, hc, ignore_blank_cards=False).identical
 
+    def test_ignore_hdus(self):
+        a = np.arange(100).reshape(10, 10)
+        b = np.arange(100).reshape(10, 10)
+        ha = Header([('A', 1), ('B', 2), ('C', 3)])
+        xa = np.array([(1.0, 1), (3.0, 4)], dtype=[('x', float), ('y', int)])
+        xb = np.array([(1.0, 2), (3.0, 5)], dtype=[('x', float), ('y', int)])
+        phdu = PrimaryHDU(header=ha)
+        ihdua = ImageHDU(data=a, name='SCI')
+        ihdub = ImageHDU(data=b, name='SCI')
+        bhdu1 = BinTableHDU(data=xa, name='ASDF')
+        bhdu2 = BinTableHDU(data=xb, name='ASDF')
+        hdula = HDUList([phdu, ihdua, bhdu1])
+        hdulb = HDUList([phdu, ihdub, bhdu2])
+        diff = FITSDiff(hdula, hdulb)
+        assert not diff.identical
+        assert diff.diff_hdus[0][0] == 2
+
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=['ASDF'])
+        assert diff.identical
+
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=['ASD*'])
+        assert diff.identical
+
+        hdulb['SCI'].data += 1
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=['ASDF'])
+        assert not diff.identical
+
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=['SCI', 'ASDF'])
+        assert diff.identical
+
     def test_ignore_keyword_values(self):
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
         hb = ha.copy()
@@ -689,7 +719,9 @@ class TestDiff(FitsTestCase):
         assert 'a: 1\n    b: 2' in report
 
     def test_diff_nans(self):
-        """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/204"""
+        """
+        Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/204
+        """
 
         # First test some arrays that should be equivalent....
         arr = np.empty((10, 10), dtype=np.float64)
@@ -755,8 +787,8 @@ class TestDiff(FitsTestCase):
         diffobj.report(fileobj=outpath)
         report_as_string = diffobj.report()
         diffobj.report(fileobj=outpath, overwrite=True)
-        assert open(outpath).read() == report_as_string, ("overwritten output "
-            "file is not identical to report string")
+        assert open(outpath).read() == report_as_string, (
+            "overwritten output file is not identical to report string")
 
     def test_file_output_overwrite_vs_clobber(self):
         """Verify uses of clobber and overwrite."""
@@ -767,7 +799,6 @@ class TestDiff(FitsTestCase):
         hb['C'] = 4
         diffobj = HeaderDiff(ha, hb)
         diffobj.report(fileobj=outpath)
-        report_as_string = diffobj.report()
         with catch_warnings(AstropyDeprecationWarning) as warning_lines:
             diffobj.report(fileobj=outpath, clobber=True)
             assert warning_lines[0].category == AstropyDeprecationWarning
