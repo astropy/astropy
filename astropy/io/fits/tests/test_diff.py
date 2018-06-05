@@ -235,20 +235,31 @@ class TestDiff(FitsTestCase):
         bhdu2 = BinTableHDU(data=xb, name='ASDF')
         hdula = HDUList([phdu, ihdua, bhdu1])
         hdulb = HDUList([phdu, ihdub, bhdu2])
+
+        # ASDF extension should be different
         diff = FITSDiff(hdula, hdulb)
         assert not diff.identical
         assert diff.diff_hdus[0][0] == 2
 
+        # ASDF extension should be ignored
         diff = FITSDiff(hdula, hdulb, ignore_hdus=['ASDF'])
         assert diff.identical
 
         diff = FITSDiff(hdula, hdulb, ignore_hdus=['ASD*'])
         assert diff.identical
 
+        # SCI extension should be different
         hdulb['SCI'].data += 1
         diff = FITSDiff(hdula, hdulb, ignore_hdus=['ASDF'])
         assert not diff.identical
 
+        # SCI and ASDF extensions should be ignored
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=['SCI', 'ASDF'])
+        assert diff.identical
+
+        # All EXTVER of SCI should be ignored
+        ihduc = ImageHDU(data=a, name='SCI', ver=2)
+        hdulb.append(ihduc)
         diff = FITSDiff(hdula, hdulb, ignore_hdus=['SCI', 'ASDF'])
         assert diff.identical
 
