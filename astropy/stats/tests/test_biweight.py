@@ -216,10 +216,10 @@ def test_biweight_midcovariance_symmetric():
     rng = np.random.RandomState(1)
     d = rng.gamma(2, 2, size=(3, 500))
     cov = biweight_midcovariance(d)
-    assert_array_almost_equal_nulp(cov, cov.T)
+    assert_array_almost_equal_nulp(cov, cov.T, nulp=5)
 
     cov = biweight_midcovariance(d, modify_sample_size=True)
-    assert_array_almost_equal_nulp(cov, cov.T)
+    assert_array_almost_equal_nulp(cov, cov.T, nulp=5)
 
 
 def test_biweight_midcorrelation():
