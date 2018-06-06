@@ -1035,6 +1035,8 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
+- Correct data type conversion for non-float masked kernels. [#7542]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
