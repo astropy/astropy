@@ -219,8 +219,6 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
     if not kernel_sums_to_zero:
         kernel_internal /= kernel_sum
-    else:
-        kernel_internal = kernel
 
     renormalize_by_kernel = not kernel_sums_to_zero
 
