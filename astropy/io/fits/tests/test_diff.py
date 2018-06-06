@@ -243,10 +243,10 @@ class TestDiff(FitsTestCase):
 
         # ASDF extension should be ignored
         diff = FITSDiff(hdula, hdulb, ignore_hdus=['ASDF'])
-        assert diff.identical
+        assert diff.identical, diff.report()
 
         diff = FITSDiff(hdula, hdulb, ignore_hdus=['ASD*'])
-        assert diff.identical
+        assert diff.identical, diff.report()
 
         # SCI extension should be different
         hdulb['SCI'].data += 1
@@ -255,13 +255,13 @@ class TestDiff(FitsTestCase):
 
         # SCI and ASDF extensions should be ignored
         diff = FITSDiff(hdula, hdulb, ignore_hdus=['SCI', 'ASDF'])
-        assert diff.identical
+        assert diff.identical, diff.report()
 
         # All EXTVER of SCI should be ignored
         ihduc = ImageHDU(data=a, name='SCI', ver=2)
         hdulb.append(ihduc)
         diff = FITSDiff(hdula, hdulb, ignore_hdus=['SCI', 'ASDF'])
-        assert diff.identical
+        assert diff.identical, diff.report()
 
     def test_ignore_keyword_values(self):
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
