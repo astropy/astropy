@@ -325,6 +325,8 @@ astropy.table
   object was not releasing the memory due to a reference cycle
   in the column ``info`` attributes. [#6277, #7448]
 
+- Fixed a bug in add_columns where ``rename_duplicate=True`` would cause an error if there were in fact no duplicates. [#7539]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
