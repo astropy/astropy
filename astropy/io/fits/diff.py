@@ -25,7 +25,7 @@ from .card import Card, BLANK_CARD
 from .header import Header
 from ...utils.decorators import deprecated_renamed_argument
 # HDUList is used in one of the doctests
-from .hdu.hdulist import fitsopen  # pylint: disable=W0611
+from .hdu.hdulist import fitsopen, HDUList  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
 from ...utils.exceptions import AstropyDeprecationWarning
 from ...utils.diff import (report_diff_values, fixed_width_indent,
@@ -332,12 +332,16 @@ class FITSDiff(_BaseDiff):
 
     def _diff(self):
         if self.ignore_hdus:
-            self.a = [h for h in self.a if h.name not in self.ignore_hdus]
-            self.b = [h for h in self.b if h.name not in self.ignore_hdus]
+            self.a = HDUList([h for h in self.a if h.name not in self.ignore_hdus])
+            self.b = HDUList([h for h in self.b if h.name not in self.ignore_hdus])
         if self.ignore_hdu_patterns:
+            a_names = [hdu.name for hdu in self.a]
+            b_names = [hdu.name for hdu in self.b]
             for pattern in self.ignore_hdu_patterns:
-                self.a = [h for h in self.a if not fnmatch.fnmatch(h.name, pattern)]
-                self.b = [h for h in self.b if not fnmatch.fnmatch(h.name, pattern)]
+                self.a = HDUList([h for h in self.a if h.name not in fnmatch.filter(
+                    a_names, pattern)])
+                self.b = HDUList([h for h in self.b if h.name not in fnmatch.filter(
+                    b_names, pattern)])
 
         if len(self.a) != len(self.b):
             self.diff_hdu_count = (len(self.a), len(self.b))
