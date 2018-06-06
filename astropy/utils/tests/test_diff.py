@@ -50,10 +50,16 @@ def test_diff_types():
     identical = report_diff_values(a, b, fileobj=f)
     assert not identical
     out = f.getvalue()
-    assert out.lstrip('u') == ("  (float) a> 1.0\n"
-                               "    (str) b> '1.0'\n"
-                               "           ? +   +\n")
+    assert out == ("  (float) a> 1.0\n"
+                   "    (str) b> '1.0'\n"
+                   "           ? +   +\n")
 
+def test_diff_numeric_scalar_types():
+    """ Test comparison of different numeric scalar types. """
+    f = io.StringIO()
+    assert not report_diff_values(1.0, 1, fileobj=f)
+    out = f.getvalue()
+    assert out == '  (float) a> 1.0\n    (int) b> 1\n'
 
 def test_array_comparison():
     """
@@ -74,7 +80,22 @@ def test_array_comparison():
                    '  at [0, 2]:\n'
                    '    a> 2\n'
                    '    b> 3\n'
-                   '  ...and at 78 more indices.\n')
+                   '  ...and at 6 more indices.\n')
+
+
+def test_diff_shaped_array_comparison():
+    """
+    Test diff-ing two differently shaped arrays.
+    """
+    f = io.StringIO()
+    a = np.empty((1, 2, 3))
+    identical = report_diff_values(a, a[0], fileobj=f)
+    assert not identical
+    out = f.getvalue()
+    assert out == ('  Different array shapes:\n'
+                   '    a> (1, 2, 3)\n'
+                   '     ?  ---\n'
+                   '    b> (2, 3)\n')
 
 
 def test_tablediff():
