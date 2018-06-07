@@ -676,6 +676,9 @@ astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
 - Correct data type conversion for non-float masked kernels. [#7542]
+- Fix non-float or masked, zero sum kernels when ``normalize_kernel=False``.
+  Non-floats would yeild a type error and masked kernels were not being filled.
+  [#7541]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
