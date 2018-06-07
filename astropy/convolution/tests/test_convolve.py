@@ -2,6 +2,7 @@
 
 import pytest
 import numpy as np
+import numpy.ma as ma
 
 from ..convolve import convolve, convolve_fft
 
@@ -213,6 +214,31 @@ class TestConvolve1D:
 
         assert_array_almost_equal_nulp(z, np.array(rslt, dtype='>f8'), 10)
 
+    @pytest.mark.parametrize(('boundary', 'normalize_kernel'),
+                             itertools.product(BOUNDARY_OPTIONS,
+                                               NORMALIZE_OPTIONS))
+    def test_int_masked_kernel(self, boundary, normalize_kernel):
+        """
+        Test that convolve works correctly with integer masked kernels.
+        """
+
+        if normalize_kernel:
+            pytest.xfail("You can't normalize by a zero sum kernel")
+
+        x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        y = ma.array([-1, -1, -1, -1, 8, -1, -1, -1, -1], mask=[1, 0, 0, 0, 0, 0, 0, 0, 0], fill_value=0.)
+
+        z = convolve(x, y, boundary=boundary, normalize_kernel=normalize_kernel)
+
+        # boundary, normalize_kernel == False
+        rslt = {
+                (None): [0.,  0.,  0.,  0.,  9.,  0.,  0.,  0.,  0.],
+                ('fill'): [-1.,   3.,   6.,   8.,   9.,  10.,  21.,  33.,  46.],
+                ('wrap'): [-31., -21., -11.,  -1.,   9.,  10.,  20.,  30.,  40.],
+                ('extend'): [-5.,   0.,   4.,   7.,   9.,  10.,  12.,  15.,  19.]
+                }[boundary]
+
+        assert_array_almost_equal_nulp(z, np.array(rslt, dtype='>f8'), 10)
 
 class TestConvolve2D:
     def test_list(self):
