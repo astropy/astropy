@@ -202,7 +202,7 @@ def validate_power(p, support_tuples=False):
     p : float, int, Rational, Fraction
         Power to be converted
     """
-    if isinstance(p, (numbers.Rational, Fraction)):
+    if isinstance(p, (Fraction, numbers.Rational)):
         denom = p.denominator
         if denom == 1:
             p = int(p.numerator)
