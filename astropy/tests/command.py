@@ -91,7 +91,7 @@ class AstropyTest(Command, object):
          'psutil package.'),
         ('parallel=', 'j',
          'Run the tests in parallel on the specified number of '
-         'CPUs.  If negative, all the cores on the machine will be '
+         'CPUs.  If "auto", all the cores on the machine will be '
          'used.  Requires the pytest-xdist plugin.'),
         ('docs-path=', None,
          'The path to the documentation .rst files.  If not provided, and '
