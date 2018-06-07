@@ -197,7 +197,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         array_internal[mask != 0] = np.nan
     if np.ma.is_masked(kernel):
         # *kernel* doesn't support NaN interpolation, so instead we just fill it
-        kernel_internal = kernel.filled(fill_value)
+        kernel_internal = kernel_internal.filled(fill_value)
 
     # Mark the NaN values so we can replace them later if interpolate_nan is
     # not set
