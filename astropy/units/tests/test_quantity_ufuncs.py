@@ -359,15 +359,12 @@ class TestQuantityMathFuncs:
         assert np.all(np.reciprocal(np.array([1., 2., 4.]) * u.m)
                       == np.array([1., 0.5, 0.25]) / u.m)
 
-    # heaviside only introduced in numpy 1.13
-    @pytest.mark.skipif("not hasattr(np, 'heaviside')")
     def test_heaviside_scalar(self):
         assert np.heaviside(0. * u.m, 0.5) == 0.5 * u.dimensionless_unscaled
         assert np.heaviside(0. * u.s,
                             25 * u.percent) == 0.25 * u.dimensionless_unscaled
         assert np.heaviside(2. * u.J, 0.25) == 1. * u.dimensionless_unscaled
 
-    @pytest.mark.skipif("not hasattr(np, 'heaviside')")
     def test_heaviside_array(self):
         values = np.array([-1., 0., 0., +1.])
         halfway = np.array([0.75, 0.25, 0.75, 0.25]) * u.dimensionless_unscaled
@@ -562,12 +559,10 @@ class TestQuantityMathFuncs:
 
 class TestInvariantUfuncs:
 
-    # np.positive was only added in numpy 1.13.
     @pytest.mark.parametrize(('ufunc'), [np.absolute, np.fabs,
                                          np.conj, np.conjugate,
                                          np.negative, np.spacing, np.rint,
-                                         np.floor, np.ceil] +
-                             [np.positive] if hasattr(np, 'positive') else [])
+                                         np.floor, np.ceil, np.positive])
     def test_invariant_scalar(self, ufunc):
 
         q_i = 4.7 * u.m
@@ -716,7 +711,7 @@ class TestInplaceUfuncs:
         v_copy = v.copy()
         tmp = v.copy()
         check = v
-        np.modf(v, tmp, v)  # cannot use out1,out2 keywords with numpy 1.7
+        np.modf(v, tmp, v)
         assert check is v
         assert check.unit == u.dimensionless_unscaled
         v2 = v_copy.to(u.dimensionless_unscaled)
@@ -730,7 +725,7 @@ class TestInplaceUfuncs:
         np.modf(v3, v3, tmp)
         assert check3 is v3
         assert check3.unit == u.dimensionless_unscaled
-        # in np<1.13, without __array_ufunc__, one cannot replace input with
+        # And now, with numpy >= 1.13, one can also replace input with
         # first output when scaling
         v4 = v_copy.copy()
         check4 = v4
