@@ -573,6 +573,11 @@ class TestAddColumns(SetupData):
         # Check new column didn't change (since name conflict forced a copy)
         assert t['a_3'][0] == self.a[0]
 
+        # Check that rename_duplicate=True is ok if there are no duplicates
+        t.add_column(table_types.Column(name='q', data=[0, 1, 2]),
+                     rename_duplicate=True)
+        assert t.colnames == ['a', 'a_1', 'b', 'c', 'a_2', 'a_3', 'q']
+
     def test_add_duplicate_columns(self, table_types):
         self._setup(table_types)
         t = table_types.Table([self.a, self.b, self.c])
