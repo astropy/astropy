@@ -1693,15 +1693,17 @@ class Table(object):
             for col in cols:
                 i = 1
                 orig_name = col.info.name
-                while col.info.name in existing_names:
+                if col.info.name in existing_names:
                     # If the column belongs to another table then copy it
                     # before renaming
-                    if col.info.parent_table is not None:
-                        col = col_copy(col)
-                    new_name = '{0}_{1}'.format(orig_name, i)
-                    col.info.name = new_name
-                    i += 1
-                existing_names.add(new_name)
+                    while col.info.name in existing_names:
+                        # Iterate until a unique name is found
+                        if col.info.parent_table is not None:
+                            col = col_copy(col)
+                        new_name = '{0}_{1}'.format(orig_name, i)
+                        col.info.name = new_name
+                        i += 1
+                    existing_names.add(new_name)
 
         self._init_from_cols(newcols)
 

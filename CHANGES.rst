@@ -52,6 +52,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fixed a bug in ``add_columns`` method where ``rename_duplicate=True`` would
+  cause an error if there were no duplicates. [#7540]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
