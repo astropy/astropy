@@ -237,8 +237,8 @@ commandline option.  For example, to use 4 processes::
 
     python setup.py test --parallel=4
 
-Pass a negative number to ``'--parallel'`` to create the same number of
-processes as cores on your machine.
+Pass ``--parallel=auto`` to create the same number of processes as cores
+on your machine.
 
 Similarly, this feature can be invoked from Python::
 
