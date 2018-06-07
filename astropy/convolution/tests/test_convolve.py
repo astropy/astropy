@@ -213,6 +213,33 @@ class TestConvolve1D(object):
     @pytest.mark.parametrize(('boundary', 'normalize_kernel'),
                              itertools.product(BOUNDARY_OPTIONS,
                                                NORMALIZE_OPTIONS))
+    def test_zero_sum_kernel(self, boundary, normalize_kernel):
+        """
+        Test that convolve works correctly with zero sum kernels.
+        """
+
+        if normalize_kernel:
+            pytest.xfail("You can't normalize by a zero sum kernel")
+
+        x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        y = [-1, -1, -1, -1, 8, -1, -1, -1, -1]
+        assert(np.isclose(sum(y), 0, atol=1e-8))
+
+        z = convolve(x, y, boundary=boundary, normalize_kernel=normalize_kernel)
+
+        # boundary, normalize_kernel == False
+        rslt = {
+                (None): [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+                ('fill'): [-6.,  -3.,  -1.,   0.,   0.,  10.,  21.,  33.,  46.],
+                ('wrap'): [-36., -27., -18.,  -9.,   0.,   9.,  18.,  27.,  36.],
+                ('extend'): [-10.,  -6.,  -3.,  -1.,   0.,   1.,   3.,   6.,  10.]
+                }[boundary]
+
+        assert_array_almost_equal_nulp(z, np.array(rslt, dtype='>f8'), 10)
+
+    @pytest.mark.parametrize(('boundary', 'normalize_kernel'),
+                             itertools.product(BOUNDARY_OPTIONS,
+                                               NORMALIZE_OPTIONS))
     def test_int_masked_kernel(self, boundary, normalize_kernel):
         """
         Test that convolve works correctly with integer masked kernels.
@@ -235,6 +262,7 @@ class TestConvolve1D(object):
                 }[boundary]
 
         assert_array_almost_equal_nulp(z, np.array(rslt, dtype='>f8'), 10)
+
 
 class TestConvolve2D(object):
     def test_list(self):
