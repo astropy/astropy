@@ -355,12 +355,10 @@ for ufunc in onearg_test_ufuncs:
 
 # ufuncs that return a value with the same unit as the input
 invariant_ufuncs = (np.absolute, np.fabs, np.conj, np.conjugate, np.negative,
-                    np.spacing, np.rint, np.floor, np.ceil, np.trunc)
+                    np.spacing, np.rint, np.floor, np.ceil, np.trunc,
+                    np.positive)
 for ufunc in invariant_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_invariant
-# positive was added in numpy 1.13
-if isinstance(getattr(np, 'positive', None), np.ufunc):
-    UFUNC_HELPERS[np.positive] = helper_invariant
 
 # ufuncs that require dimensionless input and and give dimensionless output
 dimensionless_to_dimensionless_ufuncs = (np.exp, np.expm1, np.exp2, np.log,
@@ -437,15 +435,9 @@ UFUNC_HELPERS[np.power] = helper_power
 UFUNC_HELPERS[np.ldexp] = helper_ldexp
 UFUNC_HELPERS[np.copysign] = helper_copysign
 UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
-# heaviside only was added in numpy 1.13
-if isinstance(getattr(np, 'heaviside', None), np.ufunc):
-    UFUNC_HELPERS[np.heaviside] = helper_heaviside
-# float_power was added in numpy 1.12
-if isinstance(getattr(np, 'float_power', None), np.ufunc):
-    UFUNC_HELPERS[np.float_power] = helper_power
-# divmod only was added in numpy 1.13
-if isinstance(getattr(np, 'divmod', None), np.ufunc):
-    UFUNC_HELPERS[np.divmod] = helper_divmod
+UFUNC_HELPERS[np.heaviside] = helper_heaviside
+UFUNC_HELPERS[np.float_power] = helper_power
+UFUNC_HELPERS[np.divmod] = helper_divmod
 
 
 # UFUNCS FROM SCIPY.SPECIAL
