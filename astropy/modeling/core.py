@@ -2729,8 +2729,7 @@ class CompoundModel:
 
     def __repr__(self):
         if self._parameters_ is None:
-            return ("CompoundModel--call map_parameters()"+
-                    " method to get full __repr__")
+            self.map_parameters()
         expression = self._format_expression()
         components = self._format_components()
         keywords = [
