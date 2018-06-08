@@ -458,3 +458,10 @@ class TestCutout2D:
                                                    c.center_cutout[0], c.wcs)
         assert_quantity_allclose(skycoord_original.ra, skycoord_cutout.ra)
         assert_quantity_allclose(skycoord_original.dec, skycoord_cutout.dec)
+
+    def test_naxis_update(self):
+        xsize = 2
+        ysize = 3
+        c = Cutout2D(self.data, self.position, (ysize, xsize), wcs=self.wcs)
+        assert c.wcs._naxis[0] == xsize
+        assert c.wcs._naxis[1] == ysize
