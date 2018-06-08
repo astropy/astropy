@@ -17,6 +17,17 @@ __all__ = ['StructuredUnit', 'StructuredQuantity']
 
 
 class StructuredUnit(np.void):
+    """Container for units for a Structured Quantity.
+
+    Parameters
+    ----------
+    units : nested tuple or `~numpy.void`
+        Containing items that can initialize regular `~astropy.units.Unit`.
+    dtype : `~numpy.dtype`, optional
+        A dtype of the `~astropy.units.StructuredQuantity` the units
+        are associated with.  Each element will be replaced with a unit.
+        Optional only if ``units`` is alread a structured `~numpy.void`.
+    """
 
     def __new__(cls, units, dtype=None):
         dtype = _replace_dtype_fields(dtype, 'O')
@@ -27,6 +38,7 @@ class StructuredUnit(np.void):
 
     def _recursively_check(self):
         for field in self.dtype.names:
+            # For nested items, __getitem__ ensures this is a StructuredUnit.
             unit = self[field]
             if isinstance(unit, type(self)):
                 unit._recursively_check()
@@ -49,7 +61,6 @@ class StructuredUnit(np.void):
         return NotImplementedError
 
     def _get_converter(self, unit, equivalencies=[]):
-        """Helper method for to and to_value."""
         if not isinstance(unit, type(self)):
             unit = self.__class__(unit, self.dtype)
 
@@ -64,16 +75,58 @@ class StructuredUnit(np.void):
         return converter
 
     def to(self, other, value, equivalencies=[]):
+        """Return values converted to the specified unit.
+
+        Parameters
+        ----------
+        other : `~astropy.units.StructuredUnit` or (nested) tuple of str
+            The unit to convert to.  If necessary, will be converted to
+            a Structured Unit using the dtype of ``value``.
+        value : scalar void or array, or sequence convertible to array.
+            Value(s) in the current unit to be converted to the
+            specified unit.
+        equivalencies : list of equivalence pairs, optional
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`unit_equivalencies`.
+            This list is in addition to possible global defaults set by, e.g.,
+            `set_enabled_equivalencies`.
+            Use `None` to turn off all equivalencies.
+
+        Returns
+        -------
+        values : scalar or array
+            Converted value(s).
+
+        Raises
+        ------
+        UnitsError
+            If units are inconsistent
+        """
         return self._get_converter(other, equivalencies=equivalencies)(value)
 
 
 class StructuredQuantity(Quantity):
-    def __new__(cls, value, unit=None, dtype=None, *args, **kwargs):
-        self = np.array(value, dtype, *args, **kwargs).view(cls)
-        if not isinstance(unit, StructuredUnit):
-            unit = StructuredUnit(unit, self.dtype)
-        self._unit = unit
-        return self
+    """Structured array with associated units.
+
+    Parameters
+    ----------
+    value : structured `~numpy.ndarray` or (nested) tuple
+        Numerical values of the various elements of the structure.
+    unit : `~astropy.units.StructuredUnit` or (nested) tuple
+        Associated units.
+    dtype : `~numpy.dtype`, optional
+        If not given, inferred from ``value``
+    *args, **kwargs
+        All other arguments are passed on to the `~numpy.array` constructor.
+    """
+    def __new__(cls, value, unit, dtype=None, *args, **kwargs):
+        value = np.array(value, dtype, *args, **kwargs)
+        if not value.dtype.fields:
+            raise TypeError("Values should be structured.")
+        if not isinstance(value, cls):
+            value = value.view(cls)
+        value._set_unit(unit)
+        return value
 
     def __getitem__(self, item):
         out = super().__getitem__(item)
@@ -89,18 +142,37 @@ class StructuredQuantity(Quantity):
 
     def _set_unit(self, unit):
         if not isinstance(unit, StructuredUnit):
-            unit = StructuredUnit(unit)
+            unit = StructuredUnit(unit, self.dtype)
         self._unit = unit
 
     def to(self, unit, equivalencies=[]):
+        """Convert to the specific structured unit.
+
+        Parameters
+        ----------
+        unit : `~astropy.units.StructuredUnit` or (nested) tuple of units
+            Will be converted if necessary.
+        equivalencies : list of equivalence pairs, optional
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`unit_equivalencies`.
+            These will apply to all elements in the structured quantity.
+        """
         if not isinstance(unit, StructuredUnit):
             unit = StructuredUnit(unit, self.dtype)
-        result = self._to_value(unit, equivalencies=equivalencies)
-        result = result.view(self.__class__)
-        result._set_unit(unit)
-        return result
+        return self._new_view(self._to_value(unit, equivalencies), unit)
 
     def to_value(self, unit=None, equivalencies=[]):
+        """The numerical value, possibly in a different unit.
+
+        Parameters
+        ----------
+        unit : `~astropy.units.StructuredUnit` or (nested) tuple of units
+            Will be converted if necessary.
+        equivalencies : list of equivalence pairs, optional
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`unit_equivalencies`.
+            These will apply to all elements in the structured quantity.
+        """
         if unit is None or unit is self.unit:
             result = self.view(np.ndarray)
         else:
