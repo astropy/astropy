@@ -17,8 +17,7 @@ returns an array of shape (``n_outputs``, ``n_inputs``).
 
 import numpy as np
 
-from .core import Model, ModelDefinitionError
-from .compound import CompoundModel
+from .core import Model, ModelDefinitionError, CompoundModel
 from .mappings import Mapping
 
 
