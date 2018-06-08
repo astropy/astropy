@@ -471,6 +471,37 @@ To create a copy of an existing table that is empty (has no rows)::
  float64 float64
  ------- -------
 
+Empty array of a known size
+---------------------------
+
+If you do know the size your table will be, but don't know the values in
+advance, you can create a zeroed numpy array and build the astropy table from
+it::
+
+  >>> N = 3
+  >>> dtype = [('a', 'i4'), ('b', 'f8'), ('c', 'bool')]
+  >>> t = Table(data=np.zeros(N, dtype=dtype))
+  >>> t
+  <Table length=3>
+    a      b      c
+  int32 float64  bool
+  ----- ------- -----
+      0     0.0 False
+      0     0.0 False
+      0     0.0 False
+
+For example, you can then fill in this table row-by-row from extracted from another table, or generated on the fly::
+
+  >>> for i in range(len(t)):
+  ...     t[i] = (i, 2.5*i, i % 2)
+  >>> t
+  <Table length=3>
+    a      b      c
+  int32 float64  bool
+  ----- ------- -----
+      0     0.0 False
+      1     2.5  True
+      2     5.0 False
 
 Initialization Details
 ======================
