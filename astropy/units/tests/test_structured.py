@@ -77,6 +77,45 @@ class TestStructuredUnitBasics(StructuredTestBase):
 
 
 class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
+    def test_physical_type_id(self):
+        pv_ptid = self.pv_unit._get_physical_type_id()
+        expected = np.array((self.pv_unit['p']._get_physical_type_id(),
+                             self.pv_unit['v']._get_physical_type_id()),
+                            dtype=self.pv_unit.dtype)
+        assert (pv_ptid == expected)
+        pv_t_ptid = self.pv_t_unit._get_physical_type_id()
+        expected = np.array(((self.pv_unit['p']._get_physical_type_id(),
+                              self.pv_unit['v']._get_physical_type_id()),
+                             self.pv_t_unit['t']._get_physical_type_id()),
+                            dtype=self.pv_t_unit.dtype)
+        assert (pv_t_ptid == expected)
+
+    def test_physical_type(self):
+        pv_pt = self.pv_unit.physical_type
+        assert pv_pt == np.array(('length', 'speed'), self.pv_unit.dtype)
+        assert pv_pt.item() == ('length', 'speed')
+        pv_t_pt = self.pv_t_unit.physical_type
+        assert pv_t_pt.item() == (('length', 'speed'), 'time')
+
+    def test_si(self):
+        pv_t_si = self.pv_t_unit.si
+        assert pv_t_si == self.pv_t_unit
+        assert pv_t_si['pv']['v'].scale == 1000
+
+    def test_cgs(self):
+        pv_t_cgs = self.pv_t_unit.cgs
+        assert pv_t_cgs == self.pv_t_unit
+        assert pv_t_cgs['pv']['v'].scale == 100000
+
+    def test_decompose(self):
+        pv_t_decompose = self.pv_t_unit.decompose()
+        assert pv_t_decompose['pv']['v'].scale == 1000
+
+    def test_is_equivalent(self):
+        assert self.pv_unit.is_equivalent(('AU', 'AU/day'))
+        assert not self.pv_unit.is_equivalent('m')
+        assert not self.pv_unit.is_equivalent(('AU', 'AU'))
+
     def test_conversion(self):
         pv1 = self.pv_unit.to(('AU', 'AU/day'), self.pv)
         assert isinstance(pv1, np.ndarray)

@@ -4,8 +4,9 @@
 This module defines structured units and quantities.
 """
 
-
 # Standard library
+import operator
+
 import numpy as np
 from numpy.ma.core import _replace_dtype_fields  # May need our own version
 
@@ -56,9 +57,83 @@ class StructuredUnit(np.void):
         else:
             return val
 
-    # define this to pass through Unit initializer
+    def _recursively_apply(self, func, cls=None):
+        r = self.copy()
+        if cls is not None:
+            r = r.view((cls, self.dtype))
+        for field in self.dtype.fields:
+            r[field] = func(self[field])
+
+        return r
+
+    @property
+    def si(self):
+        """Returns a copy of the current `Unit` instance in SI units."""
+        return self._recursively_apply(operator.attrgetter('si'))
+
+    @property
+    def cgs(self):
+        """Returns a copy of the current `Unit` instance in SI units."""
+        return self._recursively_apply(operator.attrgetter('cgs'))
+
+    # Needed to pass through Unit initializer, so might as well use it.
     def _get_physical_type_id(self):
-        return NotImplementedError
+        return self._recursively_apply(
+            operator.methodcaller('_get_physical_type_id'), np.void)
+
+    @property
+    def physical_type(self):
+        """Physical types of all the fields."""
+        return self._recursively_apply(
+            operator.attrgetter('physical_type'), np.void)
+
+    def decompose(self, bases=set()):
+        """Return a unit object composed of only irreducible units.
+
+        Parameters
+        ----------
+        bases : sequence of UnitBase, optional
+            The bases to decompose into.  When not provided,
+            decomposes down to any irreducible units.  When provided,
+            the decomposed result will only contain the given units.
+            This will raises a `UnitsError` if it's not possible
+            to do so.
+
+        Returns
+        -------
+        unit : New `~astropy.units.StructuredUnit` instance
+            With the unit for each field containing only irreducible units.
+        """
+        return self._recursively_apply(
+            operator.methodcaller('decompose', bases=bases))
+
+    def is_equivalent(self, other, equivalencies=[]):
+        """`True` if all fields are equivalent to the other's fields.
+
+        Parameters
+        ----------
+        other : `~astropy.units.StructuredUnit` or (nested) tuple
+            The unit to compare with.
+        equivalencies : list of equivalence pairs, optional
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`unit_equivalencies`.
+            The list will be applied to all fields.
+
+        Returns
+        -------
+        bool
+        """
+        if not isinstance(other, type(self)):
+            try:
+                other = self.__class__(other, self.dtype)
+            except Exception:
+                return False
+
+        is_equivalent = self.dtype.fields == other.dtype.fields
+        for field in self.dtype.fields:
+            is_equivalent = is_equivalent and self[field].is_equivalent(
+                other[field], equivalencies=equivalencies)
+        return is_equivalent
 
     def _get_converter(self, unit, equivalencies=[]):
         if not isinstance(unit, type(self)):
