@@ -75,6 +75,16 @@ class TestStructuredUnitBasics(StructuredTestBase):
         assert isinstance(su['t'], u.UnitBase)
         assert su['pv']['v'] == u.km / u.s
 
+    def test_initialize_single_field(self):
+        su = StructuredUnit('AU', [('p', 'O')])
+        assert isinstance(su, StructuredUnit)
+        assert isinstance(su['p'], u.UnitBase)
+        assert su['p'] == u.AU
+        su = StructuredUnit('AU')
+        assert isinstance(su, StructuredUnit)
+        assert isinstance(su['f0'], u.UnitBase)
+        assert su['f0'] == u.AU
+
 
 class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
     def test_physical_type_id(self):
