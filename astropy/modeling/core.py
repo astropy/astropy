@@ -167,8 +167,8 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
     def __init__(cls, name, bases, members):
         super(_ModelMeta, cls).__init__(name, bases, members)
-
-        cls._create_inverse_property(members)
+        if cls.__name__ != "CompoundModel":
+            cls._create_inverse_property(members)
         cls._create_bounding_box_property(members)
         cls._handle_special_methods(members)
         if not inspect.isabstract(cls) and not name.startswith('_'):
@@ -800,7 +800,7 @@ class Model(metaclass=_ModelMeta):
         return self._n_models
 
     def __setattr__(self, attr, value):
-        if attr in self.param_names:
+        if self.param_names is not None and attr in self.param_names:
             param = self.__dict__[attr]
             value = _tofloat(value)
             if param.unit is None:
@@ -999,7 +999,6 @@ class Model(metaclass=_ModelMeta):
         make the inverse manually-overridable is added automatically by the
         base class.
         """
-
         if self._user_inverse is not None:
             return self._user_inverse
         elif self._inverse is not None:
@@ -2355,7 +2354,7 @@ Things that will never be supported:
 - Fitting (the focus of this almost entirely on evaluation)
 """
 
-class CompoundModel:
+class CompoundModel(Model):
     '''
     Lightweight compound model implementation: see altcompound.py documentation
     for details.
@@ -2406,10 +2405,6 @@ class CompoundModel:
                                               inverse=self)
         elif op == '|':
             if left.n_outputs != right.n_inputs:
-                print('>>>>>>>>', left.n_outputs, right.n_inputs)
-                print(left.name, right.name)
-                print(left)
-                print(right)
                 raise ModelDefinitionError(
                     'left operand number of outputs must'
                     'match right operand number of inputs')
@@ -2482,6 +2477,9 @@ class CompoundModel:
 
     def __len__(self):
         return self._n_models
+
+    def evaluate(self, *args, **kwargs):
+        pass
 
     @property
     def n_submodels(self):
@@ -2622,29 +2620,60 @@ class CompoundModel:
             return leaflist[index]
         else:
             raise TypeError('index must be integer or slice')
+    @property
+    def n_inputs(self):
+        return self._n_inputs
 
-    def __setattr__(self, attr, value):
-        # TODO should eliminate the duplicate code here with that in core
-        if self.param_names is not None and attr in self.param_names:
-            param = self.__dict__[attr]
-            value = _tofloat(value)
-            if param.unit is None:
-                if isinstance(value, Quantity):
-                    param._unit = value.unit
-                    param.value = value.value
-                else:
-                    param.value = value
-            else:
-                if not isinstance(value, Quantity):
-                    raise UnitsError("The '{0}' parameter should be given "
-                                     "as a Quantity because it was originally "
-                                     "initialized as a "
-                                     "Quantity".format(param.name))
-                else:
-                    param._unit = value.unit
-                    param.value = value.value
-        else:
-            super().__setattr__(attr, value)
+    @n_inputs.setter
+    def n_inputs(self, value):
+        self._n_inputs = value
+    
+    @property
+    def n_outputs(self):
+        return self._n_outputs
+
+    @n_outputs.setter
+    def n_outputs(self, value):
+        self._n_outputs = value
+
+    @property
+    def eqcons(self):
+        return self._eqcons
+    
+    @eqcons.setter
+    def eqcons(self, value):
+        self._eqcons = value
+
+    @property
+    def ineqcons(self):
+        return self._eqcons
+    
+    @ineqcons.setter
+    def ineqcons(self, value):
+        self._eqcons = value
+
+    # def __setattr__(self, attr, value):
+    #     # TODO should eliminate the duplicate code here with that in core
+    #     if self.param_names is not None and attr in self.param_names:
+    #         param = self.__dict__[attr]
+    #         value = _tofloat(value)
+    #         if param.unit is None:
+    #             if isinstance(value, Quantity):
+    #                 param._unit = value.unit
+    #                 param.value = value.value
+    #             else:
+    #                 param.value = value
+    #         else:
+    #             if not isinstance(value, Quantity):
+    #                 raise UnitsError("The '{0}' parameter should be given "
+    #                                  "as a Quantity because it was originally "
+    #                                  "initialized as a "
+    #                                  "Quantity".format(param.name))
+    #             else:
+    #                 param._unit = value.unit
+    #                 param.value = value.value
+    #     else:
+    #         super().__setattr__(attr, value)
 
     def traverse_postorder(self):
         stack = deque([self])
@@ -2760,8 +2789,6 @@ class CompoundModel:
 
     @property
     def inverse(self):
-        '''
-        '''
         if self.has_inverse():
             if self._user_inverse is not None:
                 return self._user_inverse
@@ -2769,6 +2796,11 @@ class CompoundModel:
                 return self._inverse
         else:
             raise NotImplementedError("Inverse function not provided")
+
+    @inverse.setter
+    def inverse(self, value):
+        self._inverse = value
+
 
     @property
     def parameters(self):
@@ -2889,6 +2921,14 @@ class CompoundModel:
             param_metrics[name]['shape'] = param_shape
             total_size += param_size
         self._parameters = np.empty(total_size, dtype=np.float64)
+
+    @property
+    def _constraints(self):
+        return self._constraints_compound
+
+    @_constraints.setter
+    def _constraints(self, value):
+        self._constraints_compound = value
 
     def _initialize_constraints(self):
 
