@@ -110,6 +110,7 @@ def test_simple_two_model_compose_2d():
     """
 
     r1 = Rotation2D(45) | Rotation2D(45)
+    print("[[[[[[[[[[",type(r1))
     assert isinstance(r1, CompoundModel)
     assert r1.n_inputs == 2
     assert r1.n_outputs == 2
