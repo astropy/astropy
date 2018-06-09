@@ -8,13 +8,54 @@ This module defines structured units and quantities.
 import operator
 
 import numpy as np
-from numpy.ma.core import _replace_dtype_fields  # May need our own version
 
 from .core import Unit, UnitBase
 from .quantity import Quantity
 
 
 __all__ = ['StructuredUnit', 'StructuredQuantity']
+
+
+def _replace_dtype_fields_recursive(dtype, primitive_dtype):
+    "Private function allowing recursion in replace_dtype_fields."
+    # Copied from numpy.ma.core, except that we don't do subarrays.
+    _recurse = _replace_dtype_fields_recursive
+
+    # Do we have some name fields ?
+    if dtype.names:
+        descr = []
+        for name in dtype.names:
+            field = dtype.fields[name]
+            if len(field) == 3:
+                # Prepend the title to the name
+                name = (field[-1], name)
+            descr.append((name, _recurse(field[0], primitive_dtype)))
+        new_dtype = np.dtype(descr)
+
+    # this is a sub-array or primitive type, so do a direct replacement
+    else:
+        new_dtype = primitive_dtype
+
+    # preserve identity of dtypes
+    if new_dtype == dtype:
+        new_dtype = dtype
+
+    return new_dtype
+
+
+def _replace_dtype_fields(dtype, primitive_dtype):
+    """Construct a dtype description list from a given dtype.
+
+    Returns a new dtype object, with all fields and subtypes in the
+    given type recursively replaced with ``primitive_dtype``, but with
+    sub-arrays removed.
+
+    Arguments are coerced to dtypes first.
+    """
+    # Copied from numpy.ma.core.
+    dtype = np.dtype(dtype)
+    primitive_dtype = np.dtype(primitive_dtype)
+    return _replace_dtype_fields_recursive(dtype, primitive_dtype)
 
 
 class StructuredUnit(np.void):
@@ -31,8 +72,15 @@ class StructuredUnit(np.void):
     """
 
     def __new__(cls, units, dtype=None):
-        dtype = _replace_dtype_fields(dtype, 'O')
-        dtype = np.dtype((cls, dtype))
+        if dtype is None:
+            dtype = getattr(units, 'dtype', None)
+            if dtype is None:
+                # Assume single field is wanted.
+                dtype = [('f0', 'O')]
+
+        if not isinstance(dtype, cls):
+            dtype = _replace_dtype_fields(dtype, 'O')
+            dtype = np.dtype((cls, dtype))
         self = np.array(units, dtype)[()]
         self._recursively_check()
         return self
@@ -140,6 +188,9 @@ class StructuredUnit(np.void):
             unit = self.__class__(unit, self.dtype)
 
         def converter(value):
+            if not hasattr(value, 'dtype'):
+                dtype = _replace_dtype_fields(self.dtype, 'f8')
+                value = np.array(value, dtype)
             result = np.empty(value.shape, value.dtype)
             for name, r_name, u_name in zip(self.dtype.names,
                                             result.dtype.names,
@@ -195,6 +246,11 @@ class StructuredQuantity(Quantity):
         All other arguments are passed on to the `~numpy.array` constructor.
     """
     def __new__(cls, value, unit, dtype=None, *args, **kwargs):
+        if dtype is None and not hasattr(value, 'dtype'):
+            try:
+                dtype = _replace_dtype_fields(unit.dtype, 'f8')
+            except AttributeError:
+                pass
         value = np.array(value, dtype, *args, **kwargs)
         if not value.dtype.fields:
             raise TypeError("Values should be structured.")
