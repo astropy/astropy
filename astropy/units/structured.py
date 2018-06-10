@@ -5,57 +5,26 @@ This module defines structured units and quantities.
 """
 
 # Standard library
+from collections import OrderedDict
 import operator
 
 import numpy as np
 
-from .core import Unit, UnitBase
+from .core import Unit
 from .quantity import Quantity
 
 
 __all__ = ['StructuredUnit', 'StructuredQuantity']
 
 
-def _replace_dtype_fields_recursive(dtype, primitive_dtype):
-    "Private function allowing recursion in replace_dtype_fields."
-    # Copied from numpy.ma.core, except that we don't do subarrays.
-    _recurse = _replace_dtype_fields_recursive
-
-    # Do we have some name fields ?
-    if dtype.names:
-        descr = []
-        for name in dtype.names:
-            field = dtype.fields[name]
-            if len(field) == 3:
-                # Prepend the title to the name
-                name = (field[-1], name)
-            descr.append((name, _recurse(field[0], primitive_dtype)))
-        new_dtype = np.dtype(descr)
-
-    # this is a sub-array or primitive type, so do a direct replacement
-    else:
-        new_dtype = primitive_dtype
-
-    # preserve identity of dtypes
-    if new_dtype == dtype:
-        new_dtype = dtype
-
-    return new_dtype
-
-
-def _replace_dtype_fields(dtype, primitive_dtype):
-    """Construct a dtype description list from a given dtype.
-
-    Returns a new dtype object, with all fields and subtypes in the
-    given type recursively replaced with ``primitive_dtype``, but with
-    sub-arrays removed.
-
-    Arguments are coerced to dtypes first.
-    """
-    # Copied from numpy.ma.core.
-    dtype = np.dtype(dtype)
-    primitive_dtype = np.dtype(primitive_dtype)
-    return _replace_dtype_fields_recursive(dtype, primitive_dtype)
+def _names_from_dtype(dtype):
+    names = []
+    for field, (subdtype, offset) in dtype.fields.items():
+        if subdtype.fields:
+            names.append([field, _names_from_dtype(subdtype)])
+        else:
+            names.append(field)
+    return tuple(names)
 
 
 class StructuredUnit(np.void):
@@ -65,54 +34,78 @@ class StructuredUnit(np.void):
     ----------
     units : nested tuple or `~numpy.void`
         Containing items that can initialize regular `~astropy.units.Unit`.
-    dtype : `~numpy.dtype`, optional
-        A dtype of the `~astropy.units.StructuredQuantity` the units
-        are associated with.  Each element will be replaced with a unit.
-        Optional only if ``units`` is alread a structured `~numpy.void`.
+    names : nested tuple of names or `~numpy.dtype`, optional
+        For nested tuples, by default the name of the upper entry will just
+        be the concatenation of the names of the lower levels.  One can
+        pass in a list with the upper-level name and a tuple of lower-level
+        names to avoid this.
     """
+    def __new__(cls, units=(), names=None):
+        if not isinstance(units, tuple):
+            units = (units,)
+        if units == ():
+            return
 
-    def __new__(cls, units, dtype=None):
-        if dtype is None:
-            dtype = getattr(units, 'dtype', None)
-            if dtype is None:
-                # Assume single field is wanted.
-                dtype = [('f0', 'O')]
+        if names is None:
+            names = tuple('f{}'.format(i) for i in range(len(units)))
+        elif isinstance(names, str):
+            names = (names,)
+        elif isinstance(names, np.dtype):
+            names = _names_from_dtype(names)
 
-        if not isinstance(dtype, cls):
-            dtype = _replace_dtype_fields(dtype, 'O')
-            dtype = np.dtype((cls, dtype))
-        self = np.array(units, dtype)[()]
-        self._recursively_check()
-        return self
+        if len(units) != len(names):
+            raise ValueError("lengths of units and names must match.")
 
-    def _recursively_check(self):
-        for field in self.dtype.names:
-            # For nested items, __getitem__ ensures this is a StructuredUnit.
-            unit = self[field]
-            if isinstance(unit, type(self)):
-                unit._recursively_check()
+        dtype = []
+        converted = []
+        for unit, name in zip(units, names):
+            if isinstance(unit, tuple):
+                if isinstance(name, list):
+                    assert len(name) == 2
+                    unit = cls(unit, name[1])
+                    name = name[0]
+                elif isinstance(name, tuple):
+                    unit = cls(unit, name)
+                    name = ''.join(name)
+                else:
+                    unit = cls(unit)
             else:
-                self[field] = Unit(unit)
+                unit = Unit(unit)
+
+            converted.append(unit)
+            dtype.append((name, 'O'))
+
+        dtype = np.dtype((cls, dtype))
+        self = np.array(tuple(converted), dtype)[()]
+        return self
 
     @property
     def _quantity_class(self):
         return StructuredQuantity
 
-    def __getitem__(self, item):
-        val = super().__getitem__(item)
-        if isinstance(val, np.void) and val.dtype.fields:
-            return val.view((self.__class__, val.dtype.fields))
-        else:
-            return val
+    def parts(self):
+        for name in self.dtype.names:
+            yield self[name]
 
     def _recursively_apply(self, func, cls=None):
-        r = self.copy()
-        if cls is not None:
-            r = r.view((cls, self.dtype))
-        for field in self.dtype.fields:
-            r[field] = func(self[field])
+        if cls is None:
+            dtype = self.dtype
+        else:
+            dtype = np.dtype((cls, self.dtype))
 
-        return r
+        results = tuple([func(part) for part in self.parts()])
+
+        return np.array(results, dtype)[()]
+
+    def _recursively_replace(self, base):
+        new_dtype = []
+        for name in self.dtype.names:
+            part = self[name]
+            if isinstance(part, type(self)):
+                new_dtype.append((name, part._recursively_replace(base)))
+            else:
+                new_dtype.append((name, base))
+        return np.dtype(new_dtype)
 
     @property
     def si(self):
@@ -177,26 +170,26 @@ class StructuredUnit(np.void):
             except Exception:
                 return False
 
-        is_equivalent = self.dtype.fields == other.dtype.fields
-        for field in self.dtype.fields:
-            is_equivalent = is_equivalent and self[field].is_equivalent(
-                other[field], equivalencies=equivalencies)
+        is_equivalent = self.dtype == other.dtype
+        for self_part, other_part in zip(self.parts(), other.parts()):
+            is_equivalent = is_equivalent and self_part.is_equivalent(
+                other_part, equivalencies=equivalencies)
         return is_equivalent
 
-    def _get_converter(self, unit, equivalencies=[]):
-        if not isinstance(unit, type(self)):
-            unit = self.__class__(unit, self.dtype)
+    def _get_converter(self, other, equivalencies=[]):
+        if not isinstance(other, type(self)):
+            other = self.__class__(other, self.dtype)
 
         def converter(value):
             if not hasattr(value, 'dtype'):
-                dtype = _replace_dtype_fields(self.dtype, 'f8')
+                dtype = self._recursively_replace(np.dtype('f8'))
                 value = np.array(value, dtype)
             result = np.empty(value.shape, value.dtype)
-            for name, r_name, u_name in zip(self.dtype.names,
-                                            result.dtype.names,
-                                            unit.dtype.names):
-                result[r_name] = self[name].to(unit[u_name], value[r_name],
-                                               equivalencies=equivalencies)
+            for name, self_part, other_part in zip(result.dtype.names,
+                                                   self.parts(),
+                                                   other.parts()):
+                result[name] = self_part.to(other_part, value[name],
+                                            equivalencies=equivalencies)
             return result
         return converter
 
@@ -248,7 +241,7 @@ class StructuredQuantity(Quantity):
     def __new__(cls, value, unit, dtype=None, *args, **kwargs):
         if dtype is None and not hasattr(value, 'dtype'):
             try:
-                dtype = _replace_dtype_fields(unit.dtype, 'f8')
+                dtype = unit.dtype('f8')
             except AttributeError:
                 pass
         value = np.array(value, dtype, *args, **kwargs)
@@ -258,6 +251,10 @@ class StructuredQuantity(Quantity):
             value = value.view(cls)
         value._set_unit(unit)
         return value
+
+    def parts(self):
+        for name in self.dtype.names:
+            yield self[name]
 
     def __getitem__(self, item):
         out = super().__getitem__(item)
