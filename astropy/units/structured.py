@@ -5,12 +5,11 @@ This module defines structured units and quantities.
 """
 
 # Standard library
-from collections import OrderedDict
 import operator
 
 import numpy as np
 
-from .core import Unit
+from .core import Unit, UnitConversionError
 from .quantity import Quantity
 
 
@@ -184,6 +183,11 @@ class StructuredUnit(np.void):
         if not isinstance(other, type(self)):
             other = self.__class__(other, self.dtype)
 
+        converters = [self_part._get_converter(other_part,
+                                               equivalencies=equivalencies)
+                      for (self_part, other_part) in zip(self.parts(),
+                                                         other.parts())]
+
         def converter(value):
             if not hasattr(value, 'dtype'):
                 # Get inner tuple.
@@ -195,12 +199,10 @@ class StructuredUnit(np.void):
                 # Use that for second conversion.
                 value = np.array(value, dtype)
             result = np.empty(value.shape, value.dtype)
-            for name, self_part, other_part in zip(result.dtype.names,
-                                                   self.parts(),
-                                                   other.parts()):
-                result[name] = self_part.to(other_part, value[name],
-                                            equivalencies=equivalencies)
+            for name, converter_ in zip(result.dtype.names, converters):
+                result[name] = converter_(value[name])
             return result
+
         return converter
 
     def to(self, other, value, equivalencies=[]):
