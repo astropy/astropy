@@ -18,12 +18,11 @@ from .base import DELAYED, _ValidHDU, ExtensionHDU
 # This module may have many dependencies on astropy.io.fits.column, but
 # astropy.io.fits.column has fewer dependencies overall, so it's easier to
 # keep table/column-related utilities in astropy.io.fits.column
-from .. import _numpy_hacks as nh
 from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
                       ATTRIBUTE_TO_KEYWORD, TDEF_RE, Column, ColDefs,
                       _AsciiColDefs, _FormatP, _FormatQ, _makep,
                       _parse_tformat, _scalar_to_format, _convert_format,
-                      _cmp_recformats, _get_index)
+                      _cmp_recformats)
 from ..fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
 from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
@@ -1530,10 +1529,9 @@ def _binary_table_byte_swap(data):
     for arr in reversed(to_swap):
         arr.byteswap(True)
 
-    new_dtype = nh.realign_dtype(np.dtype(list(zip(names, formats))),
-                                 offsets)
-
-    data.dtype = new_dtype
+    data.dtype = np.dtype({'names': names,
+                           'formats': formats,
+                           'offsets': offsets})
 
     yield data
 
