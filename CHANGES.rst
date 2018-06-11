@@ -710,6 +710,9 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- Fixed ``Cutout2D`` output WCS NAXIS values to reflect the cutout
+  image size. [#7552]
+
 astropy.samp
 ^^^^^^^^^^^^
 
