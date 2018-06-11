@@ -250,7 +250,7 @@ class TestRunnerBase:
 
         runner = cls(path)
 
-        @wraps(runner.run_tests, ('__doc__',), exclude_args=('self',))
+        @wraps(runner.run_tests, ('__doc__',))
         def test(**kwargs):
             return runner.run_tests(**kwargs)
 
