@@ -202,15 +202,8 @@ def validate_power(p, support_tuples=False):
     p : float, int, Rational, Fraction
         Power to be converted
     """
-    if isinstance(p, (numbers.Rational, Fraction)):
-        denom = p.denominator
-        if denom == 1:
-            p = int(p.numerator)
-        # This is bit-twiddling hack to see if the integer is a
-        # power of two
-        elif (denom & (denom - 1)) == 0:
-            p = float(p)
-    else:
+    denom = getattr(p, 'denominator', None)
+    if denom is None:
         try:
             p = float(p)
         except Exception:
@@ -238,6 +231,13 @@ def validate_power(p, support_tuples=False):
                    8. * _float_finfo.eps):
                     p = Fraction(int(round(scaled)), i)
                     break
+
+    elif denom == 1:
+        p = int(p.numerator)
+
+    elif (denom & (denom - 1)) == 0:
+        # Above is a bit-twiddling hack to see if denom is a power of two.
+        p = float(p)
 
     return p
 

@@ -260,6 +260,16 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+Performance Improvements
+------------------------
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Sped up creating new composite units, and raising units to some power
+  [#7549]
+
+
 Bug Fixes
 ---------
 

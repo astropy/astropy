@@ -637,7 +637,8 @@ class UnitBase(metaclass=InheritDocstrings):
         return normalized
 
     def __pow__(self, p):
-        return CompositeUnit(1, [self], [p])
+        p = validate_power(p)
+        return CompositeUnit(1, [self], [p], _error_check=False)
 
     def __div__(self, m):
         if isinstance(m, (bytes, str)):
@@ -2036,7 +2037,7 @@ class CompositeUnit(UnitBase):
 
     def _expand_and_gather(self, decompose=False, bases=set()):
         def add_unit(unit, power, scale):
-            if unit not in bases:
+            if bases and unit not in bases:
                 for base in bases:
                     try:
                         scale *= unit._to(base) ** power
@@ -2054,9 +2055,9 @@ class CompositeUnit(UnitBase):
             return scale
 
         new_parts = {}
-        scale = self.scale
+        scale = self._scale
 
-        for b, p in zip(self.bases, self.powers):
+        for b, p in zip(self._bases, self._powers):
             if decompose and b not in bases:
                 b = b.decompose(bases=bases)
 
@@ -2072,7 +2073,7 @@ class CompositeUnit(UnitBase):
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], 'name', '')))
 
         self._bases = [x[0] for x in new_parts]
-        self._powers = [validate_power(x[1]) for x in new_parts]
+        self._powers = [x[1] for x in new_parts]
         self._scale = sanitize_scale(scale)
 
     def __copy__(self):
