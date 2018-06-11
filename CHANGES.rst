@@ -1082,7 +1082,7 @@ astropy.nddata
   adjusting the ``crpix`` of the ``astropy.wcs.WCS`` object). This bug
   had the potential to produce large errors in ``WCS`` coordinate
   transformations depending on the position of the cutout relative
-  to the input image's ``crpix``. [#7553, #7550]
+  to the input image's ``crpix``. [#7556, #7550]
 
 astropy.samp
 ^^^^^^^^^^^^
@@ -1122,7 +1122,7 @@ astropy.wcs
   adjusting the ``WCS.sip.crpix`` in addition to adjusting
   ``WCS.wcs.crpix``. This bug had the potential to produce large errors in
   ``WCS`` coordinate transformations depending on the position of the slice
-  relative to ``WCS.wcs.crpix``. [#7553, #7550]
+  relative to ``WCS.wcs.crpix``. [#7556, #7550]
 
 
 Other Changes and Additions
