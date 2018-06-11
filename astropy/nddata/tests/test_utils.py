@@ -334,7 +334,7 @@ class TestCutout2D(object):
         rho = np.pi / 3.
         scale = 0.05 / 3600.
         wcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
-                        [scale*np.sin(rho), scale*np.cos(rho)]]
+                      [scale*np.sin(rho), scale*np.cos(rho)]]
         wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
         wcs.wcs.crval = [self.position.ra.to_value(u.deg),
                          self.position.dec.to_value(u.deg)]
@@ -410,7 +410,7 @@ class TestCutout2D(object):
     def test_cutout_partial_overlap_fill_value(self):
         fill_value = -99
         c = Cutout2D(self.data, (0, 0), (3, 3), mode='partial',
-                   fill_value=fill_value)
+                     fill_value=fill_value)
         assert c.data.shape == (3, 3)
         assert c.data[1, 1] == 0
         assert c.data[0, 0] == fill_value
@@ -453,7 +453,7 @@ class TestCutout2D(object):
 
     def test_skycoord_partial(self):
         c = Cutout2D(self.data, self.position, (3, 3), wcs=self.wcs,
-                   mode='partial')
+                     mode='partial')
         skycoord_original = self.position.from_pixel(c.center_original[1],
                                                      c.center_original[0],
                                                      self.wcs)
@@ -461,3 +461,10 @@ class TestCutout2D(object):
                                                    c.center_cutout[0], c.wcs)
         assert_quantity_allclose(skycoord_original.ra, skycoord_cutout.ra)
         assert_quantity_allclose(skycoord_original.dec, skycoord_cutout.dec)
+
+    def test_naxis_update(self):
+        xsize = 2
+        ysize = 3
+        c = Cutout2D(self.data, self.position, (ysize, xsize), wcs=self.wcs)
+        assert c.wcs._naxis[0] == xsize
+        assert c.wcs._naxis[1] == ysize
