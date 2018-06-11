@@ -732,6 +732,7 @@ class Cutout2D:
         if wcs is not None:
             self.wcs = deepcopy(wcs)
             self.wcs.wcs.crpix -= self._origin_original_true
+            self.wcs._naxis = [self.data.shape[1], self.data.shape[0]]
         else:
             self.wcs = None
 
