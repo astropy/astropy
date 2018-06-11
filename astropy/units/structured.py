@@ -97,14 +97,18 @@ class StructuredUnit(np.void):
 
         return np.array(results, dtype)[()]
 
-    def _recursively_replace(self, base):
+    def _recursively_get_dtype(self, value):
+        if not isinstance(value, tuple) or len(self.dtype.names) != len(value):
+            raise ValueError("cannot interpret value for unit {}"
+                             .format(self))
         new_dtype = []
-        for name in self.dtype.names:
+        for name, value_part in zip(self.dtype.names, value):
             part = self[name]
             if isinstance(part, type(self)):
-                new_dtype.append((name, part._recursively_replace(base)))
+                new_dtype.append((name, part._recursively_get_dtype(value_part)))
             else:
-                new_dtype.append((name, base))
+                value_part = np.array(value_part)
+                new_dtype.append((name, 'f8', value_part.shape))
         return np.dtype(new_dtype)
 
     @property
@@ -182,7 +186,13 @@ class StructuredUnit(np.void):
 
         def converter(value):
             if not hasattr(value, 'dtype'):
-                dtype = self._recursively_replace(np.dtype('f8'))
+                # Get inner tuple.
+                tmp = value
+                while isinstance(tmp, list):
+                    tmp = tmp[0]
+                # Get correct dtype using first element.
+                dtype = self._recursively_get_dtype(tmp)
+                # Use that for second conversion.
                 value = np.array(value, dtype)
             result = np.empty(value.shape, value.dtype)
             for name, self_part, other_part in zip(result.dtype.names,

@@ -157,6 +157,12 @@ class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
         assert pv_t2['pv']['p'] == self.p_unit.to('AU', 1.)
         assert pv_t2['pv']['v'] == self.v_unit.to('AU/day', 0.1)
         assert pv_t2['t'] == self.t_unit.to('Myr', 10.)
+        pv_t3 = self.pv_t_unit.to((('AU', 'AU/day'), 'Myr'),
+                                  [((1., 0.1), 10.),
+                                   ((2., 0.2), 20.)])
+        assert np.all(pv_t3['pv']['p'] == self.p_unit.to('AU', [1., 2.]))
+        assert np.all(pv_t3['pv']['v'] == self.v_unit.to('AU/day', [0.1, 0.2]))
+        assert np.all(pv_t3['t'] == self.t_unit.to('Myr', [10., 20.]))
 
 
 class TestStructuredQuantity(StructuredTestBaseWithUnits):
