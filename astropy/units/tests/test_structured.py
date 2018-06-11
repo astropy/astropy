@@ -91,6 +91,32 @@ class TestStructuredUnitBasics(StructuredTestBase):
         assert isinstance(su['f0'], u.UnitBase)
         assert su['f0'] == u.AU
 
+    def test_parsing(self):
+        su = u.Unit('AU, AU/d')
+        assert isinstance(su, StructuredUnit)
+        assert isinstance(su['f0'], u.UnitBase)
+        assert isinstance(su['f1'], u.UnitBase)
+        assert su['f0'] == u.AU
+        assert su['f1'] == u.AU/u.day
+        su2 = u.Unit('AU, AU/d, yr')
+        assert isinstance(su2, StructuredUnit)
+        assert su2 == StructuredUnit(('AU', 'AU/d', 'yr'))
+        su2a = u.Unit('(AU, AU/d, yr)')
+        assert isinstance(su2a, StructuredUnit)
+        assert su2a == su2
+        su3 = u.Unit('(km, km/s), yr')
+        assert isinstance(su3, StructuredUnit)
+        assert su3 == StructuredUnit((('km', 'km/s'), 'yr'))
+        su4 = u.Unit('km,')
+        assert isinstance(su4, StructuredUnit)
+        assert su4 == StructuredUnit((u.km,))
+        su5 = u.Unit('(m,s),')
+        assert isinstance(su5, StructuredUnit)
+        assert su5 == StructuredUnit(((u.m, u.s),))
+        ldbody_unit = u.Unit('Msun, 0.5rad^2, (au, au/day)')
+        assert ldbody_unit == StructuredUnit(
+            (u.Msun, u.Unit(u.rad**2 / 2), (u.AU, u.AU / u.day)))
+
 
 class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
     def test_physical_type_id(self):
