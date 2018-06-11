@@ -835,31 +835,19 @@ class sharedmethod(classmethod):
 
 
 def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
-          updated=functools.WRAPPER_UPDATES, exclude_args=()):
+          updated=functools.WRAPPER_UPDATES):
     """
     An alternative to `functools.wraps` which also preserves the original
-    function's call signature by way of
-    `~astropy.utils.codegen.make_function_with_signature`.
-
-    This also adds an optional ``exclude_args`` argument.  If given it should
-    be a sequence of argument names that should not be copied from the wrapped
-    function (either positional or keyword arguments).
+    function's call signature by way of assigning the ``__signature__``
+    attribute with the signature of the wrapped function.
 
     The documentation for the original `functools.wraps` follows:
-
     """
 
-    wrapped_args = _get_function_args(wrapped, exclude_args=exclude_args)
-
     def wrapper(func):
-        if '__name__' in assigned:
-            name = wrapped.__name__
-        else:
-            name = func.__name__
-
-        func = make_function_with_signature(func, name=name, **wrapped_args)
         func = functools.update_wrapper(func, wrapped, assigned=assigned,
                                         updated=updated)
+        func.__signature__ = inspect.signature(wrapped)
         return func
 
     return wrapper

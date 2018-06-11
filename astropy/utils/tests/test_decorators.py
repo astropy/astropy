@@ -53,55 +53,6 @@ def test_wraps():
     assert argspec.defaults == (1, 2, 3)
 
 
-def test_wraps_exclude_names():
-    """
-    Test the optional ``exclude_names`` argument to the wraps decorator.
-    """
-
-    # This particular test demonstrates wrapping an instance method
-    # as a function and excluding the "self" argument:
-
-    class TestClass:
-        def method(self, a, b, c=1, d=2, **kwargs):
-            return (a, b, c, d, kwargs)
-
-    test = TestClass()
-
-    @wraps(test.method, exclude_args=('self',))
-    def func(*args, **kwargs):
-        return test.method(*args, **kwargs)
-
-    argspec = inspect.getfullargspec(func)
-    assert argspec.args == ['a', 'b', 'c', 'd']
-
-    assert func('a', 'b', e=3) == ('a', 'b', 1, 2, {'e': 3})
-
-
-def test_wraps_keep_orig_name():
-    """
-    Test that when __name__ is excluded from the ``assigned`` argument
-    to ``wrap`` that the function being wrapped keeps its original name.
-
-    Regression test for https://github.com/astropy/astropy/pull/4016
-    """
-
-    def foo():
-        pass
-
-    assigned = list(functools.WRAPPER_ASSIGNMENTS)
-    assigned.remove('__name__')
-
-    def bar():
-        pass
-
-    orig_bar = bar
-
-    bar = wraps(foo, assigned=assigned)(bar)
-
-    assert bar is not orig_bar
-    assert bar.__name__ == 'bar'
-
-
 def test_deprecated_attribute():
     class DummyClass:
         def __init__(self):
