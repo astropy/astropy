@@ -11,6 +11,7 @@ from .. import units as u
 from ..coordinates import SkyCoord
 from ..utils import lazyproperty
 from ..wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
+from ..wcs import Sip
 
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',
@@ -733,6 +734,10 @@ class Cutout2D:
             self.wcs = deepcopy(wcs)
             self.wcs.wcs.crpix -= self._origin_original_true
             self.wcs._naxis = [self.data.shape[1], self.data.shape[0]]
+            if wcs.sip is not None:
+                self.wcs.sip = Sip(wcs.sip.a, wcs.sip.b,
+                                   wcs.sip.ap, wcs.sip.bp,
+                                   wcs.sip.crpix - self._origin_original_true)
         else:
             self.wcs = None
 
