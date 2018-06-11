@@ -114,11 +114,6 @@ def helper_invariant(f, unit):
     return ([None], _d(unit))
 
 
-def helper_sqrt(f, unit):
-    return ([None], unit ** Fraction(1, 2) if unit is not None
-            else dimensionless_unscaled)
-
-
 def helper_square(f, unit):
     return ([None], unit ** 2 if unit is not None else dimensionless_unscaled)
 
@@ -127,8 +122,17 @@ def helper_reciprocal(f, unit):
     return ([None], unit ** -1 if unit is not None else dimensionless_unscaled)
 
 
+one_half = 0.5  # faster than Fraction(1, 2)
+one_third = Fraction(1, 3)
+
+
+def helper_sqrt(f, unit):
+    return ([None], unit ** one_half if unit is not None
+            else dimensionless_unscaled)
+
+
 def helper_cbrt(f, unit):
-    return ([None], (unit ** Fraction(1, 3) if unit is not None
+    return ([None], (unit ** one_third if unit is not None
                      else dimensionless_unscaled))
 
 
