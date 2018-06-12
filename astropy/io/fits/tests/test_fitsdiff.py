@@ -7,6 +7,7 @@ import os
 from . import FitsTestCase
 from ..convenience import writeto
 from ..hdu import PrimaryHDU, hdulist
+from .. import Header, ImageHDU, HDUList
 from ..scripts import fitsdiff
 from ....tests.helper import catch_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
@@ -263,3 +264,24 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
         tmp_f = self.data('tb.fits')
         assert fitsdiff.main(["-q", tmp_f, self.data_dir]) == 0
         assert fitsdiff.main(["-q", self.data_dir, tmp_f]) == 0
+
+    def test_ignore_hdus(self):
+        a = np.arange(100).reshape(10, 10)
+        b = a.copy() + 1
+        ha = Header([('A', 1), ('B', 2), ('C', 3)])
+        phdu_a = PrimaryHDU(header=ha)
+        phdu_b = PrimaryHDU(header=ha)
+        ihdu_a = ImageHDU(data=a, name='SCI')
+        ihdu_b = ImageHDU(data=b, name='SCI')
+        hdulist_a = HDUList([phdu_a, ihdu_a])
+        hdulist_b = HDUList([phdu_b, ihdu_b])
+        tmp_a = self.temp('testa.fits')
+        tmp_b = self.temp('testb.fits')
+        hdulist_a.writeto(tmp_a)
+        hdulist_b.writeto(tmp_b)
+
+        numdiff = fitsdiff.main([tmp_a, tmp_b])
+        assert numdiff == 1
+
+        numdiff = fitsdiff.main([tmp_a, tmp_b, "-u", "SCI"])
+        assert numdiff == 0
