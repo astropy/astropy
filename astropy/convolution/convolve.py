@@ -168,7 +168,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     array_dtype = getattr(array, 'dtype', array_internal.dtype)
 
 
-    if isinstance(kernel, list):
+    if isinstance(kernel, (list, tuple)):
         kernel_internal = np.array(kernel, dtype=float)
     elif isinstance(kernel, np.ndarray):
         # Note this always makes a copy, since we will be modifying it

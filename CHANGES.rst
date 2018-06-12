@@ -150,6 +150,8 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
+ - ``kernel`` can now be a tuple. [#7561]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
