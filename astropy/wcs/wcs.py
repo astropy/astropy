@@ -2932,6 +2932,9 @@ reduce these to 2 dimensions using the naxis kwarg.
                              "axes.")
 
         wcs_new = self.deepcopy()
+        if wcs_new.sip is not None:
+            sip_crpix = wcs_new.sip.crpix.tolist()
+
         for i, iview in enumerate(view):
             if iview.step is not None and iview.step < 0:
                 raise NotImplementedError("Reversing an axis is not "
@@ -2958,9 +2961,13 @@ reduce these to 2 dimensions using the naxis kwarg.
                     crp = ((crpix - iview.start - 1.)/iview.step
                            + 0.5 + 1./iview.step/2.)
                     wcs_new.wcs.crpix[wcs_index] = crp
+                    if wcs_new.sip is not None:
+                        sip_crpix[wcs_index] = crp
                     wcs_new.wcs.cdelt[wcs_index] = cdelt * iview.step
                 else:
                     wcs_new.wcs.crpix[wcs_index] -= iview.start
+                    if wcs_new.sip is not None:
+                        sip_crpix[wcs_index] -= iview.start
 
             try:
                 # range requires integers but the other attributes can also
@@ -2974,6 +2981,10 @@ reduce these to 2 dimensions using the naxis kwarg.
                               "".format(wcs_index, iview), AstropyUserWarning)
             else:
                 wcs_new._naxis[wcs_index] = nitems
+
+        if wcs_new.sip is not None:
+            wcs_new.sip = Sip(self.sip.a, self.sip.b, self.sip.ap, self.sip.bp,
+                              sip_crpix)
 
         return wcs_new
 

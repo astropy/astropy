@@ -410,6 +410,45 @@ def test_validate_with_2_wcses():
     assert "WCS key 'A':" in str(results)
 
 
+def test_crpix_maps_to_crval():
+    twcs = wcs.WCS(naxis=2)
+    twcs.wcs.crval = [251.29, 57.58]
+    twcs.wcs.cdelt = [1, 1]
+    twcs.wcs.crpix = [507, 507]
+    twcs.wcs.pc = np.array([[7.7e-6, 3.3e-5], [3.7e-5, -6.8e-6]])
+    twcs._naxis = [1014, 1014]
+    twcs.wcs.ctype = ['RA---TAN-SIP', 'DEC--TAN-SIP']
+    a = np.array(
+        [[0, 0, 5.33092692e-08, 3.73753773e-11, -2.02111473e-13],
+         [0, 2.44084308e-05, 2.81394789e-11, 5.17856895e-13, 0.0],
+         [-2.41334657e-07, 1.29289255e-10, 2.35753629e-14, 0.0, 0.0],
+         [-2.37162007e-10, 5.43714947e-13, 0.0, 0.0, 0.0],
+         [ -2.81029767e-13, 0.0, 0.0, 0.0, 0.0]]
+    )
+    b = np.array(
+        [[0, 0, 2.99270374e-05, -2.38136074e-10, 7.23205168e-13],
+         [0, -1.71073858e-07, 6.31243431e-11, -5.16744347e-14, 0.0],
+         [6.95458963e-06, -3.08278961e-10, -1.75800917e-13, 0.0, 0.0],
+         [3.51974159e-11, 5.60993016e-14, 0.0, 0.0, 0.0],
+         [-5.92438525e-13, 0.0, 0.0, 0.0, 0.0]]
+    )
+    twcs.sip = wcs.Sip(a, b, None, None, twcs.wcs.crpix)
+    twcs.wcs.set()
+    pscale = np.sqrt(wcs.utils.proj_plane_pixel_area(twcs))
+
+    # test that CRPIX maps to CRVAL:
+    assert_allclose(
+        twcs.wcs_pix2world(*twcs.wcs.crpix, 1), twcs.wcs.crval,
+        rtol=0.0, atol=1e-6 * pscale
+    )
+
+    # test that CRPIX maps to CRVAL:
+    assert_allclose(
+        twcs.all_pix2world(*twcs.wcs.crpix, 1), twcs.wcs.crval,
+        rtol=0.0, atol=1e-6 * pscale
+    )
+
+
 def test_all_world2pix(fname=None, ext=0,
                        tolerance=1.0e-4, origin=0,
                        random_npts=25000,
