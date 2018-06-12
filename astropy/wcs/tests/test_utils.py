@@ -10,8 +10,9 @@ from ...utils.data import get_pkg_data_contents, get_pkg_data_filename
 from ...time import Time
 from ... import units as u
 
-from ..wcs import WCS
-from ..utils import (proj_plane_pixel_scales, is_proj_plane_distorted,
+from ..wcs import WCS, Sip
+from ..utils import (proj_plane_pixel_scales, proj_plane_pixel_area,
+                     is_proj_plane_distorted,
                      non_celestial_pixel_scales, wcs_to_celestial_frame,
                      celestial_frame_to_wcs, skycoord_to_pixel,
                      pixel_to_skycoord, custom_wcs_to_frame_mappings,
@@ -87,10 +88,17 @@ def test_slice():
     mywcs.wcs.cdelt = [0.1, 0.1]
     mywcs.wcs.crpix = [1, 1]
     mywcs._naxis = [1000, 500]
+    pscale = 0.1 # from cdelt
 
     slice_wcs = mywcs.slice([slice(1, None), slice(0, None)])
     assert np.all(slice_wcs.wcs.crpix == np.array([1, 0]))
     assert slice_wcs._naxis == [1000, 499]
+
+    # test that CRPIX maps to CRVAL:
+    assert_allclose(
+        slice_wcs.wcs_pix2world(*slice_wcs.wcs.crpix, 1),
+        slice_wcs.wcs.crval, rtol=0.0, atol=1e-6 * pscale
+    )
 
     slice_wcs = mywcs.slice([slice(1, None, 2), slice(0, None, 4)])
     assert np.all(slice_wcs.wcs.crpix == np.array([0.625, 0.25]))
@@ -108,6 +116,46 @@ def test_slice():
     assert slice_wcs._naxis == [20, 500]
     slice_wcs = mywcs.slice([slice(50), slice(20.5)])
     assert slice_wcs._naxis == [1000, 50]
+
+
+def test_slice_with_sip():
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.crval = [1, 1]
+    mywcs.wcs.cdelt = [0.1, 0.1]
+    mywcs.wcs.crpix = [1, 1]
+    mywcs._naxis = [1000, 500]
+    mywcs.wcs.ctype = ['RA---TAN-SIP', 'DEC--TAN-SIP']
+    a = np.array(
+        [[0, 0, 5.33092692e-08, 3.73753773e-11, -2.02111473e-13],
+         [0, 2.44084308e-05, 2.81394789e-11, 5.17856895e-13, 0.0],
+         [-2.41334657e-07, 1.29289255e-10, 2.35753629e-14, 0.0, 0.0],
+         [-2.37162007e-10, 5.43714947e-13, 0.0, 0.0, 0.0],
+         [ -2.81029767e-13, 0.0, 0.0, 0.0, 0.0]]
+    )
+    b = np.array(
+        [[0, 0, 2.99270374e-05, -2.38136074e-10, 7.23205168e-13],
+         [0, -1.71073858e-07, 6.31243431e-11, -5.16744347e-14, 0.0],
+         [6.95458963e-06, -3.08278961e-10, -1.75800917e-13, 0.0, 0.0],
+         [3.51974159e-11, 5.60993016e-14, 0.0, 0.0, 0.0],
+         [-5.92438525e-13, 0.0, 0.0, 0.0, 0.0]]
+    )
+    mywcs.sip = Sip(a, b, None, None, mywcs.wcs.crpix)
+    mywcs.wcs.set()
+    pscale = 0.1 # from cdelt
+
+    slice_wcs = mywcs.slice([slice(1, None), slice(0, None)])
+    # test that CRPIX maps to CRVAL:
+    assert_allclose(
+        slice_wcs.all_pix2world(*slice_wcs.wcs.crpix, 1),
+        slice_wcs.wcs.crval, rtol=0.0, atol=1e-6 * pscale
+    )
+
+    slice_wcs = mywcs.slice([slice(1, None, 2), slice(0, None, 4)])
+    # test that CRPIX maps to CRVAL:
+    assert_allclose(
+        slice_wcs.all_pix2world(*slice_wcs.wcs.crpix, 1),
+        slice_wcs.wcs.crval, rtol=0.0, atol=1e-6 * pscale
+    )
 
 
 def test_slice_getitem():
