@@ -9,7 +9,8 @@ from ..utils import (extract_array, add_array, subpixel_indices,
                      block_reduce, block_replicate,
                      overlap_slices, NoOverlapError, PartialOverlapError,
                      Cutout2D)
-from ...wcs import WCS
+from ...wcs import WCS, Sip
+from ...wcs.utils import proj_plane_pixel_area
 from ...coordinates import SkyCoord
 from ... import units as u
 
@@ -338,6 +339,27 @@ class TestCutout2D:
         wcs.wcs.crpix = [3, 3]
         self.wcs = wcs
 
+        # add SIP
+        sipwcs = wcs.deepcopy()
+        sipwcs.wcs.ctype = ['RA---TAN-SIP', 'DEC--TAN-SIP']
+        a = np.array(
+            [[0, 0, 5.33092692e-08, 3.73753773e-11, -2.02111473e-13],
+             [0, 2.44084308e-05, 2.81394789e-11, 5.17856895e-13, 0.0],
+             [-2.41334657e-07, 1.29289255e-10, 2.35753629e-14, 0.0, 0.0],
+             [-2.37162007e-10, 5.43714947e-13, 0.0, 0.0, 0.0],
+             [ -2.81029767e-13, 0.0, 0.0, 0.0, 0.0]]
+        )
+        b = np.array(
+            [[0, 0, 2.99270374e-05, -2.38136074e-10, 7.23205168e-13],
+             [0, -1.71073858e-07, 6.31243431e-11, -5.16744347e-14, 0.0],
+             [6.95458963e-06, -3.08278961e-10, -1.75800917e-13, 0.0, 0.0],
+             [3.51974159e-11, 5.60993016e-14, 0.0, 0.0, 0.0],
+             [-5.92438525e-13, 0.0, 0.0, 0.0, 0.0]]
+        )
+        sipwcs.sip = Sip(a, b, None, None, wcs.wcs.crpix)
+        sipwcs.wcs.set()
+        self.sipwcs = sipwcs
+
     def test_cutout(self):
         sizes = [3, 3*u.pixel, (3, 3), (3*u.pixel, 3*u.pix), (3., 3*u.pixel),
                  (2.9, 3.3)]
@@ -465,3 +487,16 @@ class TestCutout2D:
         c = Cutout2D(self.data, self.position, (ysize, xsize), wcs=self.wcs)
         assert c.wcs._naxis[0] == xsize
         assert c.wcs._naxis[1] == ysize
+
+    def test_crpix_maps_to_crval(self):
+        w = Cutout2D(self.data, (0, 0), (3, 3), wcs=self.sipwcs,
+                     mode='partial').wcs
+        pscale = np.sqrt(proj_plane_pixel_area(w))
+        assert_allclose(
+            w.wcs_pix2world(*w.wcs.crpix, 1), w.wcs.crval,
+            rtol=0.0, atol=1e-6 * pscale
+        )
+        assert_allclose(
+            w.all_pix2world(*w.wcs.crpix, 1), w.wcs.crval,
+            rtol=0.0, atol=1e-6 * pscale
+        )
