@@ -331,6 +331,9 @@ class FITSDiff(_BaseDiff):
                 b.close()
 
     def _diff(self):
+        if len(self.a) != len(self.b):
+            self.diff_hdu_count = (len(self.a), len(self.b))
+
         if self.ignore_hdus:
             self.a = HDUList([h for h in self.a if h.name not in self.ignore_hdus])
             self.b = HDUList([h for h in self.b if h.name not in self.ignore_hdus])
@@ -342,9 +345,6 @@ class FITSDiff(_BaseDiff):
                     a_names, pattern)])
                 self.b = HDUList([h for h in self.b if h.name not in fnmatch.filter(
                     b_names, pattern)])
-
-        if len(self.a) != len(self.b):
-            self.diff_hdu_count = (len(self.a), len(self.b))
 
         # For now, just compare the extensions one by one in order.
         # Might allow some more sophisticated types of diffing later.

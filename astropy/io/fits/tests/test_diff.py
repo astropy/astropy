@@ -224,7 +224,7 @@ class TestDiff(FitsTestCase):
 
     def test_ignore_hdus(self):
         a = np.arange(100).reshape(10, 10)
-        b = np.arange(100).reshape(10, 10)
+        b = a.copy()
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
         xa = np.array([(1.0, 1), (3.0, 4)], dtype=[('x', float), ('y', int)])
         xb = np.array([(1.0, 2), (3.0, 5)], dtype=[('x', float), ('y', int)])
@@ -261,7 +261,8 @@ class TestDiff(FitsTestCase):
         ihduc = ImageHDU(data=a, name='SCI', ver=2)
         hdulb.append(ihduc)
         diff = FITSDiff(hdula, hdulb, ignore_hdus=['SCI', 'ASDF'])
-        assert diff.identical, diff.report()
+        assert not any(diff.diff_hdus), diff.report()
+        assert any(diff.diff_hdu_count), diff.report()
 
     def test_ignore_keyword_values(self):
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
