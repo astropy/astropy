@@ -45,18 +45,18 @@ include the following:
   detailed [documentation guidelines](http://docs.astropy.org/en/latest/development/docguide.html)
   to help you out.
 
-  **Performance improvements**: if you are making changes that impact Astropy
+- **Performance improvements**: if you are making changes that impact Astropy
   performance, consider adding a performance benchmark in the
   [astropy-benchmarks](https://github.com/astropy/astropy-benchmarks)
   repository. You can find out more about how to do this
   [in the README for that repository](https://github.com/astropy/astropy-benchmarks#contributing-a-benchmark).
 
-- **Changelog entry**: whether you are fixing a bug or adding new functionality,
-  you should add an entry to the ``CHANGES.rst`` file that includes the PR
-  number and if possible the issue number (if you are opening a pull request you
-  may not know this yet, but you can add it once the pull request is open). If
-  you're not sure where to put the changelog entry, wait at least until a
-  maintainer has reviewed your PR and assigned it to a milestone.
+- **Changelog entry**: whether you are fixing a bug or adding new
+  functionality, you should add an entry to the ``CHANGES.rst`` file that
+  includes the PR number (if you are opening a pull request you may not know
+  this yet, but you can add it once the pull request is open). If you're not
+  sure where to put the changelog entry, wait at least until a maintainer
+  has reviewed your PR and assigned it to a milestone.
 
   You do not need to include a changelog entry for fixes to bugs introduced in
   the developer version and therefore are not present in the stable releases. In
