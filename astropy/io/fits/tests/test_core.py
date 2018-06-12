@@ -608,14 +608,15 @@ class TestFileFunctions(FitsTestCase):
                     pass
 
         # All of these read modes should fail
-        for mode in ['r', 'rt', 'r+', 'rt+', 'a', 'at', 'a+', 'at+']:
+        for mode in ['r', 'rt']:
             with pytest.raises(ValueError):
                 with open(self.data('test0.fits'), mode=mode) as handle:
                     with fits.open(handle) as fitsfile:
                         pass
 
-        # These write modes should fail as well
-        for mode in ['w', 'wt', 'w+', 'wt+']:
+        # These update or write modes should fail as well
+        for mode in ['w', 'wt', 'w+', 'wt+', 'r+', 'rt+',
+                     'a', 'at', 'a+', 'at+']:
             with pytest.raises(ValueError):
                 with open(self.temp('temp.fits'), mode=mode) as handle:
                     with fits.open(handle) as fitsfile:
