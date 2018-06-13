@@ -50,6 +50,17 @@ class TestConvolve1D:
         assert_array_almost_equal_nulp(z,
             np.array([0., 3.6, 5., 5.6, 5.6, 6.8, 0.]), 10)
 
+    def test_tuple(self):
+        """
+        Test that convolve works correctly when inputs are tuples
+        """
+
+        x = (1, 4, 5, 6, 5, 7, 8)
+        y = (0.2, 0.6, 0.2)
+        z = convolve(x, y, boundary=None)
+        assert_array_almost_equal_nulp(z,
+            np.array([0., 3.6, 5., 5.6, 5.6, 6.8, 0.]), 10)
+
     def test_input_unmodified(self):
         """
         Test that convolve works correctly when inputs are lists
