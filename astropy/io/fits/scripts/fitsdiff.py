@@ -149,6 +149,13 @@ def handle_options(argv=None):
         help='Output results to this file; otherwise results are printed to '
              'stdout.')
 
+    parser.add_option(
+        '-u', '--ignore-hdus', action='callback', callback=store_list,
+        nargs=1, type='str', default=[], dest='ignore_hdus',
+        metavar='HDU_NAMES',
+        help='Comma-separated list of HDU names not to be compared.  HDU '
+             'names may contain wildcard patterns.')
+
     group = optparse.OptionGroup(parser, 'Header Comparison Options')
 
     group.add_option(
@@ -317,6 +324,7 @@ def main(args=None):
             # TODO: pass in any additional arguments here too
             diff = fits.diff.FITSDiff(
                 a, b,
+                ignore_hdus=opts.ignore_hdus,
                 ignore_keywords=opts.ignore_keywords,
                 ignore_comments=opts.ignore_comments,
                 ignore_fields=opts.ignore_fields,
