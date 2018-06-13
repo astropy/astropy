@@ -70,6 +70,9 @@ astropy.io.fits
 - ``HDUList.pop()`` now accepts string and tuple extension name
   specifications. [#7236]
 
+- Add an ``ignore_hdus`` keyword to ``FITSDiff`` to allow ignoring HDUs by
+  NAME when diffing two FITS files [#7538]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
