@@ -456,7 +456,7 @@ class Angle(u.SpecificTypeQuantity):
 def _no_angle_subclass(obj):
     """Return any Angle subclass objects as an Angle objects.
 
-    This is used to ensure that Latitute and Longitude change to Angle
+    This is used to ensure that Latitude and Longitude change to Angle
     objects when they are used in calculations (such as lon/2.)
     """
     if isinstance(obj, tuple):
