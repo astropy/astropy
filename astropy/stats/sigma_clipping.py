@@ -232,13 +232,13 @@ class SigmaClip:
                 if HAS_BOTTLENECK:
                     cenfunc = _nanmedian
                 else:
-                    cenfunc = np.nanmedian
+                    cenfunc = np.nanmedian  # pragma: no cover
 
             elif cenfunc == 'mean':
                 if HAS_BOTTLENECK:
                     cenfunc = _nanmean
                 else:
-                    cenfunc = np.nanmean
+                    cenfunc = np.nanmean  # pragma: no cover
 
             else:
                 raise ValueError('{} is an invalid cenfunc.'.format(cenfunc))
@@ -253,7 +253,7 @@ class SigmaClip:
             if HAS_BOTTLENECK:
                 stdfunc = _nanstd
             else:
-                stdfunc = np.nanstd
+                stdfunc = np.nanstd  # pragma: no cover
 
         return stdfunc
 
@@ -706,7 +706,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         mean = _nanmean(data_clipped, axis=axis)
         median = _nanmedian(data_clipped, axis=axis)
         std = _nanstd(data_clipped, ddof=std_ddof, axis=axis)
-    else:
+    else:  # pragma: no cover
         mean = np.nanmean(data_clipped, axis=axis)
         median = np.nanmedian(data_clipped, axis=axis)
         std = np.nanstd(data_clipped, ddof=std_ddof, axis=axis)

@@ -98,6 +98,24 @@ def test_sigma_clip_class():
         assert_equal(sobj(data), sfunc)
 
 
+def test_sigma_clip_mean():
+    with NumpyRNGContext(12345):
+        data = np.random.normal(0., 0.05, (10, 10))
+        data[2, 2] = 1.e5
+        sobj1 = SigmaClip(sigma=1, maxiters=2, cenfunc='mean')
+        sobj2 = SigmaClip(sigma=1, maxiters=2, cenfunc=np.nanmean)
+        assert_equal(sobj1(data), sobj2(data))
+        assert_equal(sobj1(data, axis=0), sobj2(data, axis=0))
+
+
+def test_sigma_clip_invalid_cenfunc_stdfunc():
+    with pytest.raises(ValueError):
+        SigmaClip(cenfunc='invalid')
+
+    with pytest.raises(ValueError):
+        SigmaClip(stdfunc='invalid')
+
+
 def test_sigma_clipped_stats():
     """Test list data with input mask or mask_value (#3268)."""
     # test list data with mask
