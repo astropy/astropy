@@ -19,6 +19,62 @@ except ImportError:
 __all__ = ['SigmaClip', 'sigma_clip', 'sigma_clipped_stats']
 
 
+def _move_tuple_axes_first(array, axis):
+    """
+    Bottleneck can only take integer axis, not tuple, so this function
+    takes all the axes to be operated on and combines them into the
+    first dimension of the array so that we can then use axis=0
+    """
+
+    # Figure out how many axes we are operating over
+    naxis = len(axis)
+
+    # Add remaining axes to the axis tuple
+    axis += tuple(i for i in range(array.ndim) if i not in axis)
+
+    # The new position of each axis is just in order
+    destination = tuple(range(array.ndim))
+
+    # Reorder the array so that the axes being operated on are at the beginning
+    array_new = np.moveaxis(array, axis, destination)
+
+    # Figure out the size of the product of the dimensions being operated on
+    first = np.prod(array_new.shape[:naxis])
+
+    # Collapse the dimensions being operated on into a single dimension so that
+    # we can then use axis=0 with the bottleneck functions
+    array_new = array_new.reshape((first,) + array_new.shape[naxis:])
+
+    return array_new
+
+
+def _nanmean(array, axis=None):
+    """Bottleneck nanmean function that handle tuple axis."""
+
+    if isinstance(axis, tuple):
+        array = _move_tuple_axes_first(array, axis=axis)
+        axis = 0
+    return bottleneck.nanmean(array, axis=axis)
+
+
+def _nanmedian(array, axis=None):
+    """Bottleneck nanmedian function that handle tuple axis."""
+
+    if isinstance(axis, tuple):
+        array = _move_tuple_axes_first(array, axis=axis)
+        axis = 0
+    return bottleneck.nanmedian(array, axis=axis)
+
+
+def _nanstd(array, axis=None, ddof=0):
+    """Bottleneck nanstd function that handle tuple axis."""
+
+    if isinstance(axis, tuple):
+        array = _move_tuple_axes_first(array, axis=axis)
+        axis = 0
+    return bottleneck.nanstd(array, axis=axis, ddof=ddof)
+
+
 class SigmaClip:
     """
     Class to perform sigma clipping.
@@ -174,13 +230,13 @@ class SigmaClip:
         if isinstance(cenfunc, str):
             if cenfunc == 'median':
                 if HAS_BOTTLENECK:
-                    cenfunc = bottleneck.nanmedian
+                    cenfunc = _nanmedian
                 else:
                     cenfunc = np.nanmedian
 
             elif cenfunc == 'mean':
                 if HAS_BOTTLENECK:
-                    cenfunc = bottleneck.nanmean
+                    cenfunc = _nanmean
                 else:
                     cenfunc = np.nanmean
 
@@ -195,7 +251,7 @@ class SigmaClip:
                 raise ValueError('{} is an invalid stdfunc.'.format(stdfunc))
 
             if HAS_BOTTLENECK:
-                stdfunc = bottleneck.nanstd
+                stdfunc = _nanstd
             else:
                 stdfunc = np.nanstd
 
@@ -647,9 +703,9 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     data_clipped = sigclip(data, axis=axis, masked=False, copy=False)[0]
 
     if HAS_BOTTLENECK:
-        mean = bottleneck.nanmean(data_clipped, axis=axis)
-        median = bottleneck.nanmedian(data_clipped, axis=axis)
-        std = bottleneck.nanstd(data_clipped, ddof=std_ddof, axis=axis)
+        mean = _nanmean(data_clipped, axis=axis)
+        median = _nanmedian(data_clipped, axis=axis)
+        std = _nanstd(data_clipped, ddof=std_ddof, axis=axis)
     else:
         mean = np.nanmean(data_clipped, axis=axis)
         median = np.nanmedian(data_clipped, axis=axis)
