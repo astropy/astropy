@@ -343,8 +343,9 @@ class SigmaClip:
             size = filtered_data.size
 
             self._compute_bounds(filtered_data, axis=axis)
-            self._min_value = self._min_value.reshape(mshape)
-            self._max_value = self._max_value.reshape(mshape)
+            if not np.isscalar(self._min_value):
+                self._min_value = self._min_value.reshape(mshape)
+                self._max_value = self._max_value.reshape(mshape)
 
             with np.errstate(invalid='ignore'):
                 filtered_data[(filtered_data < self._min_value) |
