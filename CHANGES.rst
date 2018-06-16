@@ -97,6 +97,10 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- The ``SigmaClip`` class and ``sigma_clip`` and
+  ``sigma_clipped_stats`` functions are now significantly faster.
+  [#7478]
+
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -215,6 +219,19 @@ astropy.samp
 
 astropy.stats
 ^^^^^^^^^^^^^
+
+- String values can now be used for the ``cenfunc`` and ``stdfunc``
+  keywords in the ``SigmaClip`` class and ``sigma_clip`` and
+  ``sigma_clipped_stats`` functions. [#7478]
+
+- The ``SigmaClip`` class and ``sigma_clip`` and
+  ``sigma_clipped_stats`` functions now have a ``masked`` keyword,
+  which can be used to return either a masked array (default) or an
+  ndarray with the min/max values. [#7478]
+
+- The ``iters`` keyword has been renamed (and deprecated) to
+  ``maxiters`` in the ``SigmaClip`` class and ``sigma_clip`` and
+  ``sigma_clipped_stats`` functions. [#7478]
 
 astropy.table
 ^^^^^^^^^^^^^
