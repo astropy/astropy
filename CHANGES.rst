@@ -277,7 +277,7 @@ astropy.units
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-- Significantly sped up drawing of contours in WCSAxes.
+- Significantly sped up drawing of contours in WCSAxes. [#7568]
 
 Bug Fixes
 ---------
