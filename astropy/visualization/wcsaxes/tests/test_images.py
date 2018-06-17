@@ -119,6 +119,38 @@ class TestBasic(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   filename='contourf_overlay.png',
+                                   tolerance=0, style={})
+    def test_contourf_overlay(self):
+        # Test for overlaying contours on images
+        hdu_msx = datasets.fetch_msx_hdu()
+        wcs_msx = WCS(self.msx_header)
+
+        fig = plt.figure(figsize=(6, 6))
+        ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],
+                          projection=WCS(self.twoMASS_k_header),
+                          aspect='equal')
+        ax.set_xlim(-0.5, 720.5)
+        ax.set_ylim(-0.5, 720.5)
+
+        # Overplot contour
+        ax.contourf(hdu_msx.data, transform=ax.get_transform(wcs_msx),
+                    levels=[2.5e-5, 5e-5, 1.e-4])
+        ax.coords[0].set_ticks(size=5, width=1)
+        ax.coords[1].set_ticks(size=5, width=1)
+        ax.set_xlim(0., 720.)
+        ax.set_ylim(0., 720.)
+
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
+
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='overlay_features_image.png',
                                    tolerance=0, style={})
     def test_overlay_features_image(self):
