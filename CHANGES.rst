@@ -274,6 +274,10 @@ astropy.units
 - Sped up creating new composite units, and raising units to some power
   [#7549]
 
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Significantly sped up drawing of contours in WCSAxes.
 
 Bug Fixes
 ---------

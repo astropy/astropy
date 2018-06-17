@@ -16,7 +16,7 @@ from ...wcs.utils import wcs_to_celestial_frame
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
 from .coordinates_map import CoordinatesMap
-from .utils import get_coord_meta
+from .utils import get_coord_meta, transform_contour_set_inplace
 from .frame import EllipticalFrame, RectangularFrame
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
@@ -195,6 +195,46 @@ class WCSAxes(Axes):
                 kwargs['origin'] = 'lower'
 
         return super().imshow(X, *args, **kwargs)
+
+    def contour(self, *args, **kwargs):
+
+        # In Matplotlib, when calling contour() with a transform, each
+        # individual path in the contour map is transformed separately. However,
+        # this is much too slow for us since each call to the transforms results
+        # in an Astropy coordinate transformation, which has a non-negligeable
+        # overhead - therefore a better approach is to override contour(), call
+        # the Matplotlib one with no transform, then apply the transform in one
+        # go to all the segments that make up the contour map.
+
+        transform = kwargs.pop('transform', None)
+
+        cset = super(WCSAxes, self).contour(*args, **kwargs)
+
+        if transform is not None:
+            # The transform passed to self.contour will normally include
+            # a transData component at the end, but we can remove that since
+            # we are already working in data space.
+            transform = transform - self.transData
+            cset = transform_contour_set_inplace(cset, transform)
+
+        return cset
+
+    def contourf(self, *args, **kwargs):
+
+        # See notes for contour above.
+
+        transform = kwargs.pop('transform', None)
+
+        cset = super(WCSAxes, self).contourf(*args, **kwargs)
+
+        if transform is not None:
+            # The transform passed to self.contour will normally include
+            # a transData component at the end, but we can remove that since
+            # we are already working in data space.
+            transform = transform - self.transData
+            cset = transform_contour_set_inplace(cset, transform)
+
+        return cset
 
     def plot_coord(self, *args, **kwargs):
         """

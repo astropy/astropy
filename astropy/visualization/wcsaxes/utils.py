@@ -6,8 +6,8 @@ import numpy as np
 from ... import units as u
 from ...coordinates import BaseCoordinateFrame
 
-# Modified from axis_artist, supports astropy.units
-
+__all__ = ['select_step_degree', 'select_step_hour', 'select_step_scalar',
+           'coord_type_from_ctype', 'transform_contour_set_inplace']
 
 def select_step_degree(dv):
 
@@ -134,3 +134,56 @@ def coord_type_from_ctype(ctype):
         return 'latitude', None, None
     else:
         return 'scalar', None, None
+
+
+def transform_contour_set_inplace(cset, transform):
+    """
+    Transform a contour set in-place using a specified
+    :class:`matplotlib.transform.Transform`
+
+    Using transforms with the native Matplotlib contour/contourf can be slow if
+    the transforms have a non-negligible overhead (which is the case for
+    WCS/Skycoord transforms) since the transform is called for each individual
+    contour line. It is more efficient to stack all the contour lines together
+    temporarily and transform them in one go.
+    """
+
+    # The contours are represented as paths grouped into levels. Each can have
+    # one or more paths. The approach we take here is to stack the vertices of
+    # all paths and transform them in one go. The pos_level list helps us keep
+    # track of where the set of segments for each overall contour level ends.
+    # The pos_segments list helps us keep track of where each segmnt ends for
+    # each contour level.
+    all_paths = []
+    pos_level = []
+    pos_segments = []
+
+    for collection in cset.collections:
+
+        paths = collection.get_paths()
+        all_paths.append(paths)
+
+        # The last item in pos isn't needed for np.split and in fact causes
+        # issues if we keep it because it will cause an extra empty array to be
+        # returned.
+        pos = np.cumsum([len(x) for x in paths])
+        pos_segments.append(pos[:-1])
+        pos_level.append(pos[-1])
+
+    # As above the last item isn't needed
+    pos_level = np.cumsum(pos_level)[:-1]
+
+    # Stack all the segments into a single (n, 2) array
+    vertices = np.vstack(path.vertices for paths in all_paths for path in paths)
+
+    # Transform all coordinates in one go
+    vertices = transform.transform(vertices)
+
+    # Split up into levels again
+    vertices = np.split(vertices, pos_level)
+
+    # Now re-populate the segments in the line collections
+    for ilevel, vert in enumerate(vertices):
+        vert = np.split(vert, pos_segments[ilevel])
+        for iseg in range(len(vert)):
+            all_paths[ilevel][iseg].vertices = vert[iseg]
