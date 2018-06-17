@@ -250,15 +250,16 @@ class CoordinateHelper:
 
         Parameters
         ----------
-        separator : The separator between numbers in sexagesimal
-        representation. Can be either a string or a tuple.
+        separator : str or tuple or None
+            The separator between numbers in sexagesimal representation. Can be
+            either a string or a tuple (or `None` for default).
         """
         if not (self._formatter_locator.__class__ == AngleFormatterLocator):
             raise TypeError("Separator can only be specified for angle coordinates")
-        if isinstance(separator, str) or isinstance(separator, tuple):
+        if isinstance(separator, (str, tuple)) or separator is None:
             self._formatter_locator.sep = separator
         else:
-            raise TypeError("separator should be a string or a tuple")
+            raise TypeError("separator should be a string, a tuple, or None")
 
     def set_format_unit(self, unit):
         """
