@@ -187,32 +187,27 @@ def test_pv_in():
     # values from t_erfa_c
     np.testing.assert_allclose(astrom['pmt'], 12.65133794027378508)
     np.testing.assert_allclose(astrom['em'], 1.010428384373318379)
-    np.testing.assert_allclose(astrom['eb'], [.9012691529023298391,
-                                             -.4173999812023068781,
-                                             -.1809906511146821008])
+    np.testing.assert_allclose(astrom['eb'], [0.9012691529023298391,
+                                              -.4173999812023068781,
+                                              -.1809906511146821008])
     np.testing.assert_allclose(astrom['bpn'], np.eye(3))
 
-    # # first make sure it *fails* if we mess with the input orders
-    # pvmatbad = np.roll(pvmat.ravel(), 1).reshape((2, 3))
-    # astrombad = erfa.apcs13(jd1, jd2, pvmatbad)
-    # assert not np.allclose(astrombad['em'], 1.010428384373318379)
+    # first make sure it *fails* if we mess with the input orders
+    pvbad = np.empty_like(pv)
+    pvbad['p'], pvbad['v'] = pv['v'], pv['p']
+    astrombad = erfa.apcs13(jd1, jd2, pvbad)
+    assert not np.allclose(astrombad['em'], 1.010428384373318379)
 
-    # pvmatarr = np.array([pvmat]*3)
-    # astrom2 = erfa.apcs13(jd1, jd2, pvmatarr)
-    # assert astrom2.shape == (3,)
-    # np.testing.assert_allclose(astrom2['em'], 1.010428384373318379)
+    pvarr = np.array([pv]*3)
+    astrom2 = erfa.apcs13(jd1, jd2, pvarr)
+    assert astrom2.shape == (3,)
+    np.testing.assert_allclose(astrom2['em'], 1.010428384373318379)
 
-    # # try striding of the input array to make non-contiguous
-    # pvmatarr = np.array([pvmat]*9)[::3]
-    # astrom3 = erfa.apcs13(jd1, jd2, pvmatarr)
-    # assert astrom3.shape == (3,)
-    # np.testing.assert_allclose(astrom3['em'], 1.010428384373318379)
-
-    # # try fortran-order
-    # pvmatarr = np.array([pvmat]*3, order='F')
-    # astrom4 = erfa.apcs13(jd1, jd2, pvmatarr)
-    # assert astrom4.shape == (3,)
-    # np.testing.assert_allclose(astrom4['em'], 1.010428384373318379)
+    # try striding of the input array to make non-contiguous
+    pvmatarr = np.array([pv]*9)[::3]
+    astrom3 = erfa.apcs13(jd1, jd2, pvmatarr)
+    assert astrom3.shape == (3,)
+    np.testing.assert_allclose(astrom3['em'], 1.010428384373318379)
 
 
 def test_structs():

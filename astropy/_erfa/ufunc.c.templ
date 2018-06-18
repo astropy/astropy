@@ -97,6 +97,9 @@ static inline void copy_to_eraLDBODY(char *ptr, npy_intp s, npy_intp n,
  *    relevant variable is marked (i.e., '(),...,(n), (), ... -> (),...').
  *    In the inner loops, an appropriate copy is done if in the numpy array
  *    the n elements are not contiguous.
+ * 3. Similar copies are done for erfa functions that require vectors or
+ *    matrices, if the corresponding axes in the input or output operands are
+ *    not contiguous.
  */
 
 {%- macro inner_loop_steps_and_copy(arg, arg_name) %}
@@ -187,6 +190,9 @@ static void ufunc_loop_{{ func.pyname }}(
             PyErr_NoMemory();
             return;
         }
+    }
+    else { {#- /* just to keep compiler happy */ #}
+        _b = NULL;
     }
    {%- endif %}
   {%- endif %} {#- /* end of GUFUNC inner loop definitions */ #}

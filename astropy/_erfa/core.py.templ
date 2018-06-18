@@ -118,7 +118,10 @@ def check_errwarn(statcodes, func_name):
 # <------------------------structured dtype conversion------------------------>
 
 class D3Fix(numpy.ndarray):
-    # We do this to help ensure Quantity happily lets this pass...
+    """NDarray subclass that can transfer itself into a Quantity.
+
+    For the rationale for this, see arrayify_inputs_and_create_d3_fix.
+    """
     def __quantity_subclass__(self, unit):
         return type(self), True
 
@@ -127,7 +130,48 @@ class D3Fix(numpy.ndarray):
 
 
 def arrayify_inputs_and_create_d3_fix(inputs, core_dims, out_core_shape, out_dtype):
-    # Need to ensure we can get a shape
+    """Create an empty array of the right trailing shape.
+
+    Gufuncs currently do not allow one to pass in fixed dimensions, which
+    means that for functions with signatures like `()->(n)`, one has to pass in
+    an output argument for the gufunc to determine `n` (to be 3 for instance).
+
+    For those gufuncs, this functions creates the output array upfront,
+    with properly broadcast dimensions.
+
+    A problem that arises, though, is that if anything overrides the function
+    using ``__array_ufunc__``, it will fail because the output is of the wrong
+    class.  To work around this for `~astropy.units.Quantity` at least, we
+    create the output with a special class (``D3Fix``), which has an
+    ``__array_wrap__`` that will turn it into a regular ndarray for normal
+    usage, and a ``__quantity_subclass__`` that allows it to be replaced by a
+    `~astropy.units.Quantity`.
+
+    Obviously, this is a hack, and only works easily for Quantity (which,
+    however, is the only class likely to use this private implementation).  As
+    an alternative, one could create a regular empty ndarray and then remove
+    it in the C type resolver, so that a new one with the proper class is
+    created by the iterator.  But that seemed even more fragile.
+
+    Parameters
+    ----------
+    inputs : array-like
+        Input arguments, used to determine the required broadcast shape.
+    core_dims: list of int
+        Number of core dimensions for the inputs; these are removed for
+        calculating the broadcast shape.
+    out_core_shape : tuple
+        Output core shape; the full shape will be the broadcast shape
+        determined from the inputs plus this core shape.
+    out_dtype : `~numpy.dtype`
+        Data type of the array.
+
+    Notes
+    -----
+    Once https://github.com/numpy/numpy/pull/11175 is in, this will no
+    longer be necessary for all but NUMPY_LT_1_16, since we'll be able to just
+    define the signature with explicit numerical dimensions.
+    """
     shapes = []
     arrays = []
     for input, core_dim in zip(inputs, core_dims):
