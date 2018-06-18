@@ -51,22 +51,32 @@ def test_download_parallel():
 
     main_url = 'http://data.astropy.org/intersphinx/README'
     mirror_url = 'http://www.astropy.org/astropy-data/intersphinx/README'
-    fnout = download_files_in_parallel([
-        'http://data.astropy.org', main_url, mirror_url])
+    main_alive = True
+    try:
+        fnout = download_files_in_parallel(
+            ['http://data.astropy.org', main_url])
+    except urllib.error.URLError:  # Use mirror if timed out
+        main_alive = False
+        fnout = download_files_in_parallel(
+            ['http://www.astropy.org/astropy-data/', mirror_url])
     assert all([os.path.isfile(f) for f in fnout]), fnout
 
-    # Now test that download_file looks in mirror's cache before download.
-    # https://github.com/astropy/astropy/issues/6982
-    dldir, urlmapfn = _get_download_cache_locs()
-    with shelve.open(urlmapfn) as url2hash:
-        del url2hash[main_url]
-    # NOTE: Cannot disable internet in a remote_data test, so comparing hash
-    #       should be good enough?
-    # This test also tests for "assert TESTURL in get_cached_urls()".
-    c_urls = get_cached_urls()
-    assert ((download_file(main_url, cache=True) ==
-             download_file(mirror_url, cache=True)) and
-            (mirror_url in c_urls) and (main_url not in c_urls))
+    # Only test the rest if main URL did not timed out
+    if main_alive:
+        download_file(mirror_url, cache=True)  # Cache mirror copy as well
+
+        # Now test that download_file looks in mirror's cache before download.
+        # https://github.com/astropy/astropy/issues/6982
+        dldir, urlmapfn = _get_download_cache_locs()
+        with shelve.open(urlmapfn) as url2hash:
+            del url2hash[main_url]
+        # NOTE: Cannot disable internet in a remote_data test, so comparing
+        #       hash should be good enough?
+        # This test also tests for "assert TESTURL in get_cached_urls()".
+        c_urls = get_cached_urls()
+        assert ((download_file(main_url, cache=True) ==
+                 download_file(mirror_url, cache=True)) and
+                (mirror_url in c_urls) and (main_url not in c_urls))
 
 
 @pytest.mark.remote_data(source='astropy')
