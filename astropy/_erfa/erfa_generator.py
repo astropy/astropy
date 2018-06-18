@@ -614,13 +614,16 @@ def main(srcdir=DEFAULT_ERFA_LOC, outfn='core.py', ufuncfn='ufunc.c',
         flags=re.DOTALL | re.MULTILINE)
     for section, subsection, functions in section_subsection_functions:
         print_("{0}.{1}".format(section, subsection))
-        # TODO: just compile all sections?
-        if ((section == 'Extra')
-                or (section == "Astronomy")
-                or (subsection == "AngleOps")
-                or (subsection == "SphericalCartesian")
-                or (subsection == "MatrixVectorProducts")
-                or (subsection == 'VectorOps')):
+        # Right now, we compile everything, but one could be more selective.
+        # In particular, at the time of writing (2018-06-11), what was
+        # actually require for astropy was not quite everything, but:
+        # ((section == 'Extra')
+        #       or (section == "Astronomy")
+        #       or (subsection == "AngleOps")
+        #       or (subsection == "SphericalCartesian")
+        #       or (subsection == "MatrixVectorProducts")
+        #       or (subsection == 'VectorOps'))
+        if True:
 
             func_names = re.findall(r' (\w+)\(.*?\);', functions,
                                     flags=re.DOTALL)
