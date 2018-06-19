@@ -8,7 +8,8 @@ __all__ = ['BaseLowLevelWCS']
 
 class BaseLowLevelWCS(metaclass=abc.ABCMeta):
     """
-    Abstract base class for the low-level WCS interface described in APE 14
+    Abstract base class for the low-level WCS interface described in *APE 14:
+    A shared Python interface for World Coordinate Systems*
     (https://doi.org/10.5281/zenodo.1188875)
     """
 
@@ -103,7 +104,8 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
           to access on the corresponding class from
           ``world_axis_object_classes`` in order to get numerical values.
 
-        See https://doi.org/10.5281/zenodo.1188875 for examples.
+        See the document *APE 14: A shared Python interface for World Coordinate
+        Systems* for more examples (https://doi.org/10.5281/zenodo.1188875).
         """
         raise NotImplementedError()
 
@@ -149,7 +151,8 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         in Python, we recommend simply returning the actual objects (not
         the serialized form) for optimal performance.
 
-        See https://doi.org/10.5281/zenodo.1188875 for examples.
+        See the document *APE 14: A shared Python interface for World Coordinate
+        Systems* for more examples (https://doi.org/10.5281/zenodo.1188875).
         """
         raise NotImplementedError()
 
