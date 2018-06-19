@@ -1,3 +1,4 @@
+import os
 import abc
 
 import numpy as np
@@ -194,3 +195,18 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         would be `True` and all other entries `False`.
         """
         return np.ones((self.world_n_dim, self.pixel_n_dim), dtype=bool)
+
+
+UCDS_FILE = os.path.join(os.path.dirname(__file__), 'ucds.txt')
+VALID_UCDS = set([x.strip() for x in open(UCDS_FILE).read().splitlines()[1:]])
+
+
+def validate_physical_types(physical_types):
+    """
+    Validate a list of physical types against the UCD1+ standard
+    """
+    for physical_type in physical_types:
+        if (physical_type is not None and
+            physical_type not in VALID_UCDS and
+                not physical_type.startswith('custom:')):
+            raise ValueError("Invalid physical type: {0}".format(physical_type))
