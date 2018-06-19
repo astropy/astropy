@@ -1037,7 +1037,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                     check_free_space_in_dir(dldir, size)
 
             if show_progress:
-                progress_stream = sys.stdout
+                progress_stream = sys.stderr
             else:
                 progress_stream = io.StringIO()
 
@@ -1178,7 +1178,7 @@ def download_files_in_parallel(urls, cache=True, show_progress=True,
         cache = True
 
     if show_progress:
-        progress = sys.stdout
+        progress = sys.stderr
     else:
         progress = io.BytesIO()
 
