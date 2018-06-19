@@ -189,7 +189,8 @@ def test_invalid_sigma_clip():
 
     # stats along axis with all nans
     data[0, :] = np.nan     # row of all nans
-    result4, minarr, maxarr = sigma_clip(data, axis=1, masked=False)
+    result4, minarr, maxarr = sigma_clip(data, axis=1, masked=False,
+                                         return_bounds=True)
     assert np.isnan(minarr[0])
     assert np.isnan(maxarr[0])
 

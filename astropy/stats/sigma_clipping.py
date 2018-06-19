@@ -262,7 +262,8 @@ class SigmaClip:
             self._min_value = self._max_value - (std * self.sigma_lower)
             self._max_value += std * self.sigma_upper
 
-    def _sigmaclip_noaxis(self, data, masked=True, copy=True):
+    def _sigmaclip_noaxis(self, data, masked=True, return_bounds=False,
+                          copy=True):
         """
         Sigma clip the data when ``axis`` is None.
 
@@ -297,21 +298,22 @@ class SigmaClip:
         self._niterations = iteration
 
         if masked:
-            # return a masked array
-            data = np.ma.masked_invalid(data, copy=copy)
+            # return a masked array and optional bounds
+            filtered_data = np.ma.masked_invalid(data, copy=copy)
 
             # update the mask in place, ignoring RuntimeWarnings for
             # comparisons with NaN data values
             with np.errstate(invalid='ignore'):
-                data.mask |= np.logical_or(data < self._min_value,
-                                           data > self._max_value)
+                filtered_data.mask |= np.logical_or(data < self._min_value,
+                                                    data > self._max_value)
 
-            return data
-        else:
-            # return the truncated array with the mix/max clipping thresholds
+        if return_bounds:
             return filtered_data, self._min_value, self._max_value
+        else:
+            return filtered_data
 
-    def _sigmaclip_withaxis(self, data, axis=None, masked=True, copy=True):
+    def _sigmaclip_withaxis(self, data, axis=None, masked=True,
+                            return_bounds=False, copy=True):
         """
         Sigma clip the data when ``axis`` is specified.
 
@@ -349,7 +351,7 @@ class SigmaClip:
         iteration = 0
         while nchanged != 0 and (iteration < self.maxiters):
             iteration += 1
-            size = filtered_data.size
+            n_nan = np.count_nonzero(np.isnan(filtered_data))
 
             self._compute_bounds(filtered_data, axis=axis)
             if not np.isscalar(self._min_value):
@@ -360,26 +362,30 @@ class SigmaClip:
                 filtered_data[(filtered_data < self._min_value) |
                               (filtered_data > self._max_value)] = np.nan
 
-            nchanged = size - filtered_data.size
+            nchanged = n_nan - np.count_nonzero(np.isnan(filtered_data))
 
         self._niterations = iteration
 
         if masked:
+            # create an output masked array
             if copy:
-                return np.ma.masked_invalid(filtered_data)
+                filtered_data = np.ma.masked_invalid(filtered_data)
             else:
                 # ignore RuntimeWarnings for comparisons with NaN data values
                 with np.errstate(invalid='ignore'):
                     out = np.ma.masked_invalid(data, copy=False)
 
-                    return np.ma.masked_where(np.logical_or(
+                    filtered_data = np.ma.masked_where(np.logical_or(
                         out < self._min_value, out > self._max_value),
                         out, copy=False)
-        else:
-            # return the truncated array with the mix/max clipping thresholds
-            return filtered_data, self._min_value, self._max_value
 
-    def __call__(self, data, axis=None, masked=True, copy=True):
+        if return_bounds:
+            return filtered_data, self._min_value, self._max_value
+        else:
+            return filtered_data
+
+    def __call__(self, data, axis=None, masked=True, return_bounds=False,
+                 copy=True):
         """
         Perform sigma clipping on the provided data.
 
@@ -399,6 +405,10 @@ class SigmaClip:
             `~numpy.ndarray` and the minimum and maximum clipping
             thresholds are returned.  The default is `True`.
 
+        return_bounds : bool, optional
+            If `True`, then the minimum and maximum clipping bounds are
+            also returned.
+
         copy : bool, optional
             If `True`, then the ``data`` array will be copied.  If
             `False` and ``masked=True``, then the returned masked array
@@ -410,21 +420,24 @@ class SigmaClip:
         -------
         result : flexible
             If ``masked=True``, then a `~numpy.ma.MaskedArray` is
-            returned, where the mask is `True` for clipped values.
+            returned, where the mask is `True` for clipped values.  If
+            ``masked=False``, then a `~numpy.ndarray` is returned.
 
-            If ``masked=False``, then a `~numpy.ndarray` and the minimum
-            and maximum clipping thresholds are returned.
+            If ``return_bounds=True``, then in addition to the (masked)
+            array above, the minimum and maximum clipping bounds are
+            returned.
 
             If ``masked=False`` and ``axis=None``, then the output array
             is a flattened 1D `~numpy.ndarray` where the clipped values
-            have been removed and the output minimum and maximum
-            thresholds are scalars.
+            have been removed.  If ``return_bounds=True`` then the
+            returned minimum and maximum thresholds are scalars.
 
             If ``masked=False`` and ``axis`` is specified, then the
             output `~numpy.ndarray` will have the same shape as the
             input ``data`` and contain ``np.nan`` where values were
-            clipped.  In this case the returned minimum and maximum
-            clipping thresholds will be also be `~numpy.ndarray`\\s.
+            clipped.  If ``return_bounds=True`` then the returned
+            minimum and maximum clipping thresholds will be be
+            `~numpy.ndarray`\\s.
         """
 
         data = np.asanyarray(data)
@@ -441,16 +454,19 @@ class SigmaClip:
         # instead we replace clipped values with NaNs as a placeholder
         # value.
         if axis is None:
-            return self._sigmaclip_noaxis(data, masked=masked, copy=copy)
+            return self._sigmaclip_noaxis(data, masked=masked,
+                                          return_bounds=return_bounds,
+                                          copy=copy)
         else:
             return self._sigmaclip_withaxis(data, axis=axis, masked=masked,
+                                            return_bounds=return_bounds,
                                             copy=copy)
 
 
 @deprecated_renamed_argument('iters', 'maxiters', '3.1')
 def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
                cenfunc='median', stdfunc='std', axis=None, masked=True,
-               copy=True):
+               return_bounds=False, copy=True):
     """
     Perform sigma-clipping on the provided data.
 
@@ -544,6 +560,10 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         `~numpy.ndarray` and the minimum and maximum clipping thresholds
         are returned.  The default is `True`.
 
+    return_bounds : bool, optional
+        If `True`, then the minimum and maximum clipping bounds are also
+        returned.
+
     copy : bool, optional
         If `True`, then the ``data`` array will be copied.  If `False`
         and ``masked=True``, then the returned masked array data will
@@ -555,21 +575,23 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
     -------
     result : flexible
         If ``masked=True``, then a `~numpy.ma.MaskedArray` is returned,
-        where the mask is `True` for clipped values.
+        where the mask is `True` for clipped values.  If
+        ``masked=False``, then a `~numpy.ndarray` is returned.
 
-        If ``masked=False``, then a `~numpy.ndarray` and the minimum and
-        maximum clipping thresholds are returned.
+        If ``return_bounds=True``, then in addition to the (masked)
+        array above, the minimum and maximum clipping bounds are
+        returned.
 
         If ``masked=False`` and ``axis=None``, then the output array is
         a flattened 1D `~numpy.ndarray` where the clipped values have
-        been removed and the output minimum and maximum thresholds are
-        scalars.
+        been removed.  If ``return_bounds=True`` then the returned
+        minimum and maximum thresholds are scalars.
 
         If ``masked=False`` and ``axis`` is specified, then the output
         `~numpy.ndarray` will have the same shape as the input ``data``
-        and contain ``np.nan`` where values were clipped.  In this case
-        the returned minimum and maximum clipping thresholds will be
-        also be `~numpy.ndarray`\\s.
+        and contain ``np.nan`` where values were clipped.  If
+        ``return_bounds=True`` then the returned minimum and maximum
+        clipping thresholds will be be `~numpy.ndarray`\\s.
 
     See Also
     --------
@@ -614,7 +636,8 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
                         sigma_upper=sigma_upper, maxiters=maxiters,
                         cenfunc=cenfunc, stdfunc=stdfunc)
 
-    return sigclip(data, axis=axis, masked=masked, copy=copy)
+    return sigclip(data, axis=axis, masked=masked,
+                   return_bounds=return_bounds, copy=copy)
 
 
 @deprecated_renamed_argument('iters', 'maxiters', '3.1')
@@ -715,7 +738,8 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     sigclip = SigmaClip(sigma=sigma, sigma_lower=sigma_lower,
                         sigma_upper=sigma_upper, maxiters=maxiters,
                         cenfunc=cenfunc, stdfunc=stdfunc)
-    data_clipped = sigclip(data, axis=axis, masked=False, copy=False)[0]
+    data_clipped = sigclip(data, axis=axis, masked=False, return_bounds=False,
+                           copy=False)
 
     if HAS_BOTTLENECK:
         mean = _nanmean(data_clipped, axis=axis)
