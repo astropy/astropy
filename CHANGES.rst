@@ -56,6 +56,10 @@ astropy.io.ascii
   All guesses thus removed from ``filtered_guess_kwargs`` are now listed as
   "Disabled" at the beginning of the trace. [#5578]
 
+- Emit a warning when reading an ECSV file without specifying the ``format``
+  and without PyYAML installed.  Previously this silently fell through to
+  parsing as a basic format file and the file metadata was lost. [#7579]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
