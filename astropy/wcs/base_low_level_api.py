@@ -59,7 +59,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         coordinates should be zero-based. Returns ``world_n_dim`` scalars or
         arrays in units given by ``world_axis_units``. Note that pixel
         coordinates are assumed to be 0 at the center of the first pixel in each
-        dimension.
+        dimension. If a pixel is in a region where the WCS is not defined, NaN
+        can be returned. The coordinates should be specified in the ``(x, y)``
+        order, where for an image, ``x`` is the horizontal coordinate and ``y``
+        is the vertical coordinate.
         """
         raise NotImplementedError()
 
@@ -71,26 +74,33 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         This method takes ``world_n_dim`` scalars or arrays as input in units
         given by ``world_axis_units``. Returns ``pixel_n_dim`` scalars or
         arrays. Note that pixel coordinates are assumed to be 0 at the center of
-        the first pixel in each dimension.
+        the first pixel in each dimension. If a world coordinate does not have a
+        matching pixel coordinate, NaN can be returned.  The coordinates should
+        be returned in the ``(x, y)`` order, where for an image, ``x`` is the
+        horizontal coordinate and ``y`` is the vertical coordinate.
         """
         raise NotImplementedError()
 
     @abc.abstractproperty
     def world_axis_object_components(self):
         """
-        A list with ``world_n_dim`` elements, where each element is a tuple with
-        two items:
+        A list with n_dim_world elements, where each element is a tuple with
+        three items:
 
         * The first is a name for the world object this world array
           corresponds to, which *must* match the string names used in
-          `world_axis_object_classes`. Note that names might appear twice
+          ``world_axis_object_classes``. Note that names might appear twice
           because two world arrays might correspond to a single world object
-          (e.g. a celestial coordinate might have both "ra" and "dec"
+          (e.g. a celestial coordinate might have both “ra” and “dec”
           arrays, which correspond to a single sky coordinate object).
 
         * The second element is either a string keyword argument name or a
           positional index for the corresponding class from
           ``world_axis_object_classes``
+
+        * The third argument is a string giving the name of the property
+          to access on the corresponding class from
+          ``world_axis_object_classes`` in order to get numerical values.
 
         See https://doi.org/10.5281/zenodo.1188875 for examples.
         """
@@ -101,15 +111,42 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         """
         A dictionary with each key being a string key from
         ``world_axis_object_components``, and each value being a tuple with
-        two elements:
+        two or three elements:
 
         * The first element of the tuple must be a string specifying the
           fully-qualified name of a class, which will specify the actual
           Python object to be created.
 
-        * The second tuple element must be a
-          dictionary with the keyword arguments required to initialize the
-          class.
+        * The second element, which is optional, should be a tuple
+          specifying the positional arguments required to initialize the
+          class. If ``world_axis_object_components`` specifies that
+          the world coordinates should be passed as a positional argument,
+          this this tuple should include ``None`` placeholders for the
+          world coordinates. This tuple only needs to be specified if there
+          are additional positional arguments.
+
+        * The last tuple element must be a dictionary with the keyword
+          arguments required to initialize the class.
+
+        See below for an example of this property. Note that we don't
+        require the classes to be Astropy classes since there is no
+        guarantee that Astropy will have all the classes to represent all
+        kinds of world coordinates. Furthermore, we recommend that the
+        output be kept as human-readable as possible.
+
+        The classes used here should have the ability to do conversions by
+        passing an instance as the first argument to the same class with
+        different arguments (e.g. ``Time(Time(...), scale='tai')``). This is
+        a requirement for the implementation of the high-level interface.
+
+        The second tuple element for each value of this dictionary can in
+        turn contain either instances of classes, or if necessary can contain
+        serialized versions that should take the same form as the main
+        classes described above (a tuple with three elements with the
+        fully qualified name of the class, then the positional arguments
+        and the keyword arguments). For low-level API objects implemented
+        in Python, we recommend simply returning the actual objects (not
+        the serialized form) for optimal performance.
 
         See https://doi.org/10.5281/zenodo.1188875 for examples.
         """
