@@ -133,6 +133,8 @@ class IERS(QTable):
         cache : bool
             Whether to use cache. Defaults to False, since IERS files
             are regularly updated.
+        show_progress : bool
+            Whether to show download progress bar. Defaults to True.
 
         Returns
         -------
