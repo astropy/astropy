@@ -105,7 +105,7 @@ class SigmaClip:
         you want to use the mean as the centering function with
         ``axis=None`` and iterate to convergence, then
         `scipy.stats.sigmaclip` is ~25-30% faster than the equivalent
-        settings here (``s = SigmaClip(cenfunc=np.mean, maxiters=None);
+        settings here (``s = SigmaClip(cenfunc='mean', maxiters=None);
         s(data, axis=None)``).
 
     Parameters
@@ -174,13 +174,13 @@ class SigmaClip:
 
     This example clips all points that are more than 3 sigma relative to
     the sample *mean*, clips until convergence, returns an unmasked
-    `~numpy.ndarray`, and does not copy the data::
+    `~numpy.ndarray`, and modifies the data in-place::
 
         >>> from astropy.stats import SigmaClip
         >>> from numpy.random import randn
         >>> from numpy import mean
         >>> randvar = randn(10000)
-        >>> sigclip = SigmaClip(sigma=3, maxiters=None, cenfunc=mean)
+        >>> sigclip = SigmaClip(sigma=3, maxiters=None, cenfunc='mean')
         >>> filtered_data = sigclip(randvar, masked=False, copy=False)
 
     This example sigma clips along one axis::
@@ -201,13 +201,8 @@ class SigmaClip:
                  maxiters=5, cenfunc='median', stdfunc='std'):
 
         self.sigma = sigma
-        if sigma_lower is None:
-            sigma_lower = sigma
-        if sigma_upper is None:
-            sigma_upper = sigma
-        self.sigma_lower = sigma_lower
-        self.sigma_upper = sigma_upper
-
+        self.sigma_lower = sigma_lower or sigma
+        self.sigma_upper = sigma_upper or sigma
         self.maxiters = maxiters or np.inf
         self.cenfunc = self._parse_cenfunc(cenfunc)
         self.stdfunc = self._parse_stdfunc(stdfunc)
@@ -268,6 +263,13 @@ class SigmaClip:
             self._max_value += std * self.sigma_upper
 
     def _sigmaclip_noaxis(self, data, masked=True, copy=True):
+        """
+        Sigma clip the data when ``axis`` is None.
+
+        In this simple case, we remove clipped elements from the
+        flattened array during each iteration.
+        """
+
         filtered_data = data.ravel()
 
         # remove masked values and convert to ndarray
@@ -310,6 +312,13 @@ class SigmaClip:
             return filtered_data, self._min_value, self._max_value
 
     def _sigmaclip_withaxis(self, data, axis=None, masked=True, copy=True):
+        """
+        Sigma clip the data when ``axis`` is specified.
+
+        In this case, we replace clipped values with NaNs as placeholder
+        values.
+        """
+
         # float array type is needed to insert nans into the array
         filtered_data = data.astype(float)    # also makes a copy
 
@@ -426,6 +435,11 @@ class SigmaClip:
         if isinstance(data, np.ma.MaskedArray) and data.mask.all():
             return data
 
+        # These two cases are treated separately because when
+        # ``axis=None`` we can simply remove clipped values from the
+        # array.  This is not possible when ``axis`` is specified, so
+        # instead we replace clipped values with NaNs as a placeholder
+        # value.
         if axis is None:
             return self._sigmaclip_noaxis(data, masked=masked, copy=copy)
         else:
@@ -466,8 +480,8 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         you want to use the mean as the centering function with
         ``axis=None`` and iterate to convergence, then
         `scipy.stats.sigmaclip` is ~25-30% faster than the equivalent
-        settings here (``sigma_clip(data, cenfunc=np.mean,
-        maxiters=None, axis=None)``).
+        settings here (``sigma_clip(data, cenfunc='mean', maxiters=None,
+        axis=None)``).
 
     Parameters
     ----------
