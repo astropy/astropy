@@ -351,8 +351,8 @@ class AngleFormatterLocator(BaseFormatterLocator):
             if decimal:
                 sep = None
                 fmt = None
-            elif self._sep is not None:
-                sep = self._sep
+            elif self.sep is not None:
+                sep = self.sep
                 fmt = None
             else:
                 sep = 'fromunit'
