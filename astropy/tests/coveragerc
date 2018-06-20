@@ -7,7 +7,6 @@ omit =
    astropy/*/tests/*
    astropy/tests/test_*
    astropy/extern/*
-   astropy/sphinx/*
    astropy/utils/compat/*
    astropy/version*
    astropy/wcs/docstrings*
@@ -33,3 +32,15 @@ exclude_lines =
 
    # Don't complain about IPython completion helper
    def _ipython_key_completions_
+
+omit =
+   astropy/__init__*
+   astropy/conftest.py
+   astropy/*setup*
+   astropy/*/tests/*
+   astropy/tests/test_*
+   astropy/extern/*
+   astropy/utils/compat/*
+   astropy/version*
+   astropy/wcs/docstrings*
+   astropy/_erfa/*
