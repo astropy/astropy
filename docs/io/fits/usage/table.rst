@@ -284,35 +284,52 @@ Here are a few Columns using various combination of these arguments::
 
     >>> counts = np.array([312, 334, 308, 317])
     >>> names = np.array(['NGC1', 'NGC2', 'NGC3', 'NGC4'])
+    >>> values = np.arange(2*2*4).reshape(4, 2, 2)
     >>> col1 = fits.Column(name='target', format='10A', array=names)
     >>> col2 = fits.Column(name='counts', format='J', unit='DN', array=counts)
     >>> col3 = fits.Column(name='notes', format='A10')
-    >>> col4 = fits.Column(name='spectrum', format='1000E')
+    >>> col4 = fits.Column(name='spectrum', format='10E')
     >>> col5 = fits.Column(name='flag', format='L', array=[True, False, True, True])
+    >>> col6 = fits.Column(name='intarray', format='4I', dim='(2, 2)', array=values)
 
 In this example, formats are specified with the FITS letter codes. When there
 is a number (>1) preceding a (numeric type) letter code, it means each cell in
-that field is a one-dimensional array. In the case of column c4, each cell is
-an array (a numpy array) of 1000 elements.
+that field is a one-dimensional array. In the case of column "col4", each cell
+is an array (a Numpy array) of 10 elements. And in the case of column "col6",
+with the use of the "dim" argument, each cell is a multi-dimensional array of
+2x2 elements.
 
 For character string fields, the number be to the *left* of the letter 'A' when
 creating binary tables, and should be to the *right* when creating ASCII
 tables.  However, as this is a common confusion both formats are understood
 when creating binary tables (note, however, that upon writing to a file the
-correct format will be written in the header).  So, for columns c1 and c3, they
-both have 10 characters in each of their cells. For numeric data type, the
-dimension number must be before the letter code, not after.
+correct format will be written in the header).  So, for columns "col1" and
+"col3", they both have 10 characters in each of their cells. For numeric data
+type, the dimension number must be before the letter code, not after.
 
 After the columns are constructed, the :meth:`BinTableHDU.from_columns` class
 method can be used to construct a table HDU. We can either go through the
 column definition object::
 
-    >>> coldefs = fits.ColDefs([col1, col2, col3, col4, col5])
+    >>> coldefs = fits.ColDefs([col1, col2, col3, col4, col5, col6])
     >>> hdu = fits.BinTableHDU.from_columns(coldefs)
+    >>> coldefs
+    ColDefs(
+        name = 'target'; format = '10A'
+        name = 'counts'; format = 'J'; unit = 'DN'
+        name = 'notes'; format = '10A'
+        name = 'spectrum'; format = '10E'
+        name = 'flag'; format = 'L'
+        name = 'intarray'; format = '4I'; dim = '(2, 2)'
+    )
 
 or directly use the :meth:`BinTableHDU.from_columns` method::
 
-    >>> hdu = fits.BinTableHDU.from_columns([col1, col2, col3, col4, col5])
+    >>> hdu = fits.BinTableHDU.from_columns([col1, col2, col3, col4, col5, col6])
+    >>> hdu.data[:2]
+    FITS_rec([('NGC1', 312, '', [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],  1, [[0, 1], [2, 3]]),
+            ('NGC2', 334, '', [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],  0, [[4, 5], [6, 7]])],
+            dtype=(numpy.record, [('target', 'S10'), ('counts', '<i4'), ('notes', 'S10'), ('spectrum', '<f4', (10,)), ('flag', 'i1'), ('intarray', '<i2', (2, 2))]))
 
 .. note::
 
@@ -329,11 +346,11 @@ properly populated::
     XTENSION= 'BINTABLE'           / binary table extension
     BITPIX  =                    8 / array data type
     NAXIS   =                    2 / number of array dimensions
-    NAXIS1  =                 4025 / length of dimension 1
+    NAXIS1  =                   73 / length of dimension 1
     NAXIS2  =                    4 / length of dimension 2
     PCOUNT  =                    0 / number of group parameters
     GCOUNT  =                    1 / number of groups
-    TFIELDS =                    5 / number of table fields
+    TFIELDS =                    6 / number of table fields
     TTYPE1  = 'target  '
     TFORM1  = '10A     '
     TTYPE2  = 'counts  '
@@ -342,9 +359,12 @@ properly populated::
     TTYPE3  = 'notes   '
     TFORM3  = '10A     '
     TTYPE4  = 'spectrum'
-    TFORM4  = '1000E   '
+    TFORM4  = '10E     '
     TTYPE5  = 'flag    '
     TFORM5  = 'L       '
+    TTYPE6  = 'intarray'
+    TFORM6  = '4I      '
+    TDIM6   = '(2, 2)  '
 
 .. warning::
 
