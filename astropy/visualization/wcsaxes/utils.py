@@ -143,7 +143,7 @@ def transform_contour_set_inplace(cset, transform):
 
     Using transforms with the native Matplotlib contour/contourf can be slow if
     the transforms have a non-negligible overhead (which is the case for
-    WCS/Skycoord transforms) since the transform is called for each individual
+    WCS/SkyCoord transforms) since the transform is called for each individual
     contour line. It is more efficient to stack all the contour lines together
     temporarily and transform them in one go.
     """
@@ -159,10 +159,8 @@ def transform_contour_set_inplace(cset, transform):
     pos_segments = []
 
     for collection in cset.collections:
-
         paths = collection.get_paths()
         all_paths.append(paths)
-
         # The last item in pos isn't needed for np.split and in fact causes
         # issues if we keep it because it will cause an extra empty array to be
         # returned.
@@ -185,5 +183,5 @@ def transform_contour_set_inplace(cset, transform):
     # Now re-populate the segments in the line collections
     for ilevel, vert in enumerate(vertices):
         vert = np.split(vert, pos_segments[ilevel])
-        for iseg in range(len(vert)):
-            all_paths[ilevel][iseg].vertices = vert[iseg]
+        for iseg, ivert in enumerate(vert):
+            all_paths[ilevel][iseg].vertices = ivert

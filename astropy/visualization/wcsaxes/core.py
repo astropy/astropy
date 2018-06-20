@@ -197,11 +197,20 @@ class WCSAxes(Axes):
         return super().imshow(X, *args, **kwargs)
 
     def contour(self, *args, **kwargs):
+        """
+        Plot contours.
+
+        This is a custom implementation of :meth:`~matplotlib.axes.Axes.contour`
+        which applies the transform (if specified) to all contours in one go for
+        performance rather than to each contour line individually. All
+        positional and keyword arguments are the same as for
+        :meth:`~matplotlib.axes.Axes.contour`.
+        """
 
         # In Matplotlib, when calling contour() with a transform, each
         # individual path in the contour map is transformed separately. However,
         # this is much too slow for us since each call to the transforms results
-        # in an Astropy coordinate transformation, which has a non-negligeable
+        # in an Astropy coordinate transformation, which has a non-negligible
         # overhead - therefore a better approach is to override contour(), call
         # the Matplotlib one with no transform, then apply the transform in one
         # go to all the segments that make up the contour map.
@@ -220,6 +229,15 @@ class WCSAxes(Axes):
         return cset
 
     def contourf(self, *args, **kwargs):
+        """
+        Plot filled contours.
+
+        This is a custom implementation of :meth:`~matplotlib.axes.Axes.contourf`
+        which applies the transform (if specified) to all contours in one go for
+        performance rather than to each contour line individually. All
+        positional and keyword arguments are the same as for
+        :meth:`~matplotlib.axes.Axes.contourf`.
+        """
 
         # See notes for contour above.
 
