@@ -130,6 +130,14 @@ the input table is generated::
     ...     hdu = fits.BinTableHDU(data=newdata)
     ...     hdu.writeto('newtable.fits')
 
+It is also possible to update in-place the data from the HDU object::
+
+    >>> with fits.open(fits_table_filename) as hdul:
+    ...     hdu = hdul[1]
+    ...     mask = hdu.data['mag'] > -0.5
+    ...     hdu.data = hdu.data[mask]
+    ...     hdu.writeto('newtable2.fits')
+
 
 Merging Tables
 --------------
