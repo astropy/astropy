@@ -58,7 +58,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         # Test that it displays the overlay world coordinates
         string_world3 = ax._display_world_coords(0.523412, 0.518311)
 
-        assert string_world3 == '267.176 -28\xb045\'56" (world, overlay 1)'
+        assert string_world3 == '267.176\xb0 -28\xb045\'56" (world, overlay 1)'
 
         overlay = ax.get_coords_overlay(FK5())
 
@@ -75,7 +75,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         # Test that it displays the overlay world coordinates
         string_world4 = ax._display_world_coords(0.523412, 0.518311)
 
-        assert string_world4 == '267.176 -28\xb045\'56" (world, overlay 2)'
+        assert string_world4 == '267.176\xb0 -28\xb045\'56" (world, overlay 2)'
 
         overlay = ax.get_coords_overlay(FK5(equinox=Time("J2030")))
 
@@ -92,7 +92,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         # Test that it displays the overlay world coordinates
         string_world5 = ax._display_world_coords(0.523412, 0.518311)
 
-        assert string_world5 == '267.652 -28\xb046\'23" (world, overlay 3)'
+        assert string_world5 == '267.652\xb0 -28\xb046\'23" (world, overlay 3)'
 
     @ignore_matplotlibrc
     def test_cube_coords(self, tmpdir):
