@@ -36,10 +36,6 @@ can change the unit to an equivalent one by:
     ax.coords[2].set_major_formatter('x.x') # Otherwise values round to the nearest whole number
     ax.coords[2].set_format_unit(u.km / u.s)
 
-
-This feature is only for non-angular coordinate axes. To change the format of
-angles, refer to :ref:`tick_label_format`.
-
 Changing Axis Directions
 ************************
 

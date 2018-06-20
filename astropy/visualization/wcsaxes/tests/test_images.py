@@ -533,13 +533,15 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_major_formatter('s.s')
         ax.coords[1].set_major_formatter('s.s')
 
+        ax.coords[0].set_format_unit(u.arcsec, show_decimal_unit=False)
+        ax.coords[1].set_format_unit(u.arcsec, show_decimal_unit=False)
+
         ax.grid(color='white', ls='solid')
 
         # Force drawing (needed for format_coord)
         fig.savefig(tmpdir.join('nothing').strpath)
 
-        # TODO: the formatted string should show units
-        assert ax.format_coord(512, 512) == "513.0 513.0 (world)"
+        assert ax.format_coord(512, 512) == '513.0 513.0 (world)'
 
         return fig
 

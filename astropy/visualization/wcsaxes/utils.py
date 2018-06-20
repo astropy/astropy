@@ -124,13 +124,17 @@ def coord_type_from_ctype(ctype):
     Determine whether a particular WCS ctype corresponds to an angle or scalar
     coordinate.
     """
-    if ctype[:4] in ['RA--']:
+    if ctype[:4] == 'RA--':
         return 'longitude', u.hourangle, None
-    elif ctype[1:4] == 'LON':
-        return 'longitude', None, None
-    elif ctype[:4] in ['HPLN']:
+    elif ctype[:4] == 'HPLN':
+        return 'longitude', u.arcsec, 180.
+    elif ctype[:4] == 'HPLT':
+        return 'latitude', u.arcsec, None
+    elif ctype[:4] == 'HGLN':
         return 'longitude', None, 180.
-    elif ctype[:4] in ['DEC-', 'HPLT'] or ctype[1:4] == 'LAT':
+    elif ctype[1:4] == 'LON' or ctype[2:4] == 'LN':
+        return 'longitude', None, None
+    elif ctype[:4] == 'DEC-' or ctype[1:4] == 'LAT' or ctype[2:4] == 'LT':
         return 'latitude', None, None
     else:
         return 'scalar', None, None
