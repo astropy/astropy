@@ -7,7 +7,7 @@ This module contains utililies used for constructing rotation matrices.
 from functools import reduce
 import numpy as np
 
-from .. import units as u
+from .. import units as u, _erfa as erfa
 from .angles import Angle
 
 
@@ -17,14 +17,13 @@ def matrix_product(*matrices):
     Arguments should have dimension 2 or larger. Larger dimensional objects
     are interpreted as stacks of matrices residing in the last two dimensions.
 
-    This function mostly exists for readability: using `~numpy.matmul`
-    directly, one would have ``matmul(matmul(m1, m2), m3)``, etc. For even
-    better readability, one might consider using `~numpy.matrix` for the
-    arguments (so that one could write ``m1 * m2 * m3``), but then it is not
-    possible to handle stacks of matrices. Once only python >=3.5 is supported,
-    this function can be replaced by ``m1 @ m2 @ m3``.
+    This function mostly exists for readability: using erfa's ``rxr``
+    directly, one would have ``rxr(rxr(m1, m2), m3)``, etc. For even
+    better readability, one might consider using `~numpy.matmul` via
+    the new ``@`` operator, i.e., ``m1 @ m2 @ m3``, but this is
+    substantially slower, since it is not optimized for 3x3 matrices.
     """
-    return reduce(np.matmul, matrices)
+    return reduce(erfa.rxr, matrices)
 
 
 def matrix_transpose(matrix):

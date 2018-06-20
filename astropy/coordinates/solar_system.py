@@ -226,7 +226,7 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
             return calc_moon(time).cartesian
 
         else:
-            sun_pv_bary = earth_pv_bary - earth_pv_helio
+            sun_pv_bary = erfa.pvmpv(earth_pv_bary, earth_pv_helio)
             if body == 'sun':
                 body_pv_bary = sun_pv_bary
             else:
@@ -237,13 +237,13 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
                                    "calculated with the '{1}' ephemeris."
                                    .format(body, ephemeris))
                 body_pv_helio = erfa.plan94(jd1, jd2, body_index)
-                body_pv_bary = body_pv_helio + sun_pv_bary
+                body_pv_bary = erfa.pvppv(body_pv_helio, sun_pv_bary)
 
         body_pos_bary = CartesianRepresentation(
-            body_pv_bary[..., 0, :], unit=u.au, xyz_axis=-1, copy=False)
+            body_pv_bary['p'], unit=u.au, xyz_axis=-1, copy=False)
         if get_velocity:
             body_vel_bary = CartesianRepresentation(
-                body_pv_bary[..., 1, :], unit=u.au/u.day, xyz_axis=-1,
+                body_pv_bary['v'], unit=u.au/u.day, xyz_axis=-1,
                 copy=False)
 
     else:
