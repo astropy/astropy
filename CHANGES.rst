@@ -58,7 +58,7 @@ astropy.io.ascii
 
 - Emit a warning when reading an ECSV file without specifying the ``format``
   and without PyYAML installed.  Previously this silently fell through to
-  parsing as a basic format file and the file metadata was lost. [#7579]
+  parsing as a basic format file and the file metadata was lost. [#7580]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
