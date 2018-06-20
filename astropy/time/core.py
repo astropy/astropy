@@ -777,7 +777,8 @@ class Time(ShapedLikeNDArray):
             if hasattr(self, attr):
                 delattr(self, attr)
 
-        if value in (np.ma.masked, np.nan):
+        if (value is np.ma.masked or value is np.nan or
+                (getattr(value, 'ndim', 0) == 0 and value == np.nan)):
             self._time.jd2[item] = np.nan
             return
 
