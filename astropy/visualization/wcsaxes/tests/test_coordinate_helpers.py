@@ -1,13 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import os
 from unittest.mock import patch
 
 import pytest
 import matplotlib.pyplot as plt
+from astropy.wcs import WCS
+from astropy.io import fits
 
 from ..core import WCSAxes
 from .... import units as u
 from ....tests.image_tests import ignore_matplotlibrc
+
+ROOT = os.path.join(os.path.dirname(__file__))
+MSX_HEADER = fits.Header.fromtextfile(os.path.join(ROOT, 'data', 'msx_header'))
 
 
 @ignore_matplotlibrc
@@ -79,3 +85,22 @@ def test_label_visibility_rules_always(ax):
     ax.coords[1].set_ticks(values=[-9999]*u.one)
 
     assert_label_draw(ax, True, True)
+
+
+def test_set_separator(tmpdir):
+
+    fig = plt.figure()
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+
+    # Force a draw which is required for format_coord to work
+    ax.figure.canvas.draw()
+
+    ax.coords[1].set_format_unit('deg')
+    assert ax.coords[1].format_coord(4) == '4\xb000\'00\"'
+    ax.coords[1].set_separator((':', ':', ''))
+    assert ax.coords[1].format_coord(4) == '4:00:00'
+    ax.coords[1].set_separator('abc')
+    assert ax.coords[1].format_coord(4) == '4a00b00c'
+    ax.coords[1].set_separator(None)
+    assert ax.coords[1].format_coord(4) == '4\xb000\'00\"'
