@@ -608,8 +608,7 @@ def _get_guess_kwargs_list(read_kwargs):
 
     # Start with ECSV because an ECSV file will be read by Basic.  This format
     # has very specific header requirements and fails out quickly.
-    if HAS_YAML:
-        guess_kwargs_list.append(dict(Reader=ecsv.Ecsv))
+    guess_kwargs_list.append(dict(Reader=ecsv.Ecsv))
 
     # Now try readers that accept the user-supplied keyword arguments
     # (actually include all here - check for compatibility of arguments later).
