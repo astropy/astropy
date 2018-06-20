@@ -82,10 +82,6 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         ``uint16`` data.  This is enabled by default so that the
         pseudo-unsigned integer convention is assumed.
 
-        Note, for backward compatibility, the kwarg **uint16** may be used
-        instead.  The kwarg was renamed when support was added for integers of
-        any size.
-
     ignore_missing_end : bool
         Do not issue an exception when opening a file that is missing an
         ``END`` card in the last header.
