@@ -28,9 +28,6 @@ class TestTimeComparisons():
                            (operator.lt, '<')):
             with pytest.raises(TypeError) as err:
                 op(t1, None)
-            assert str(err).endswith(
-                "'{0}' not supported between instances of 'Time' and 'NoneType'"
-                .format(op_str))
         # Keep == and != as they are specifically meant to test Time.__eq__
         # and Time.__ne__
         assert (t1 == None) is False  # nopep8
