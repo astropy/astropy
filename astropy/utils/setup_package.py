@@ -19,6 +19,8 @@ def get_package_data():
         'astropy.utils.tests': [
             'data/test_package/*.py',
             'data/test_package/data/*.txt',
+            'data/dataurl/index.html',
+            'data/dataurl_mirror/index.html',
             'data/*.dat',
             'data/*.txt',
             'data/*.gz',
