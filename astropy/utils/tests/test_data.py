@@ -60,28 +60,55 @@ def test_download_nocache():
 
 @remote_data(source='astropy')
 def test_download_parallel():
-    from ..data import (download_file, download_files_in_parallel,
-                        _get_download_cache_locs, get_cached_urls,
+    from ..data import conf, download_files_in_parallel
+
+    main_url = conf.dataurl
+    mirror_url = conf.dataurl_mirror
+    fileloc = 'intersphinx/README'
+    try:
+        fnout = download_files_in_parallel(
+            [main_url, main_url + fileloc], cache=True)
+    except urllib.error.URLError:  # Use mirror if timed out
+        fnout = download_files_in_parallel(
+            [mirror_url, mirror_url + fileloc], cache=True)
+    assert all([os.path.isfile(f) for f in fnout]), fnout
+
+
+# NOTE: Does not need remote data.
+@pytest.mark.skipif(not HAS_PATHLIB and sys.platform.startswith('win'),
+                    reason="URI incorrect for Windows without pathlib")
+def test_download_mirror_cache():
+    from ..data import (_find_pkg_data_path, download_file, get_cached_urls,
                         _open_shelve)
 
-    main_url = 'http://data.astropy.org/intersphinx/README'
-    mirror_url = 'http://www.astropy.org/astropy-data/intersphinx/README'
-    fnout = download_files_in_parallel([
-        'http://data.astropy.org', main_url, mirror_url], cache=True)
-    assert all([os.path.isfile(f) for f in fnout]), fnout
+    main_path = _find_pkg_data_path(os.path.join('data', 'dataurl'))
+    mirror_path = _find_pkg_data_path(os.path.join('data', 'dataurl_mirror'))
+
+    if HAS_PATHLIB:
+        main_url = pathlib.Path(main_path).as_uri()
+        mirror_url = pathlib.Path(mirror_path).as_uri()
+    else:  # Falls back to brute force URI
+        main_url = 'file://' + main_path
+        mirror_url = 'file://' + mirror_path
+
+    main_file = str(main_url + '/index.html')
+    mirror_file = str(mirror_url + '/index.html')
+
+    # "Download" files by rerouting URLs to local URIs.
+    download_file(main_file, cache=True)
+    download_file(mirror_file, cache=True)
 
     # Now test that download_file looks in mirror's cache before download.
     # https://github.com/astropy/astropy/issues/6982
     dldir, urlmapfn = _get_download_cache_locs()
     with _open_shelve(urlmapfn, True) as url2hash:
-        del url2hash[main_url]
-    # NOTE: Cannot disable internet in a remote_data test, so comparing hash
-    #       should be good enough?
+        del url2hash[main_file]
+    # Comparing hash should be good enough?
     # This test also tests for "assert TESTURL in get_cached_urls()".
     c_urls = get_cached_urls()
-    assert ((download_file(main_url, cache=True) ==
-             download_file(mirror_url, cache=True)) and
-            (mirror_url in c_urls) and (main_url not in c_urls))
+    assert ((download_file(main_file, cache=True) ==
+             download_file(mirror_file, cache=True)) and
+            (mirror_file in c_urls) and (main_file not in c_urls))
 
 
 @remote_data(source='astropy')
@@ -127,9 +154,6 @@ def test_download_cache():
 
 @remote_data(source='astropy')
 def test_url_nocache():
-
-    from ..data import get_readable_fileobj
-
     with get_readable_fileobj(TESTURL, cache=False, encoding='utf-8') as page:
         assert page.read().find('Astropy') > -1
 
@@ -137,7 +161,7 @@ def test_url_nocache():
 @remote_data(source='astropy')
 def test_find_by_hash():
 
-    from ..data import get_readable_fileobj, get_pkg_data_filename, clear_download_cache
+    from ..data import clear_download_cache
 
     with get_readable_fileobj(TESTURL, encoding="binary", cache=True) as page:
         hash = hashlib.md5(page.read())
@@ -155,8 +179,6 @@ def test_find_by_hash():
 
 @remote_data(source='astropy')
 def test_find_invalid():
-    from ..data import get_pkg_data_filename
-
     # this is of course not a real data file and not on any remote server, but
     # it should *try* to go to the remote server
     with pytest.raises(urllib.error.URLError):
@@ -227,8 +249,6 @@ def test_local_data_obj_invalid(bad_compressed):
 
 
 def test_local_data_name():
-    from ..data import get_pkg_data_filename
-
     fnout = get_pkg_data_filename('data/local.dat')
     assert os.path.isfile(fnout) and fnout.endswith('local.dat')
 
@@ -265,8 +285,6 @@ def test_data_name_third_party_package():
 
 @raises(RuntimeError)
 def test_local_data_nonlocalfail():
-    from ..data import get_pkg_data_filename
-
     # this would go *outside* the atropy tree
     get_pkg_data_filename('../../../data/README.rst')
 
@@ -406,7 +424,6 @@ def test_read_unicode(filename):
 
 def test_compressed_stream():
     import base64
-    from ..data import get_readable_fileobj
 
     gzipped_data = (b"H4sICIxwG1AAA2xvY2FsLmRhdAALycgsVkjLzElVANKlxakpCpl5CiUZqQ"
                     b"olqcUl8Tn5yYk58SmJJYnxWmCRzLx0hbTSvOSSzPy8Yi5nf78QV78QLgAlLytnRQAAAA==")
