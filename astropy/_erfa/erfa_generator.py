@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module's main purpose is to act as a script to create new versions
-of erfa.c when ERFA is updated (or this generator is enhanced).
+of ufunc.c when ERFA is updated (or this generator is enhanced).
 
 `Jinja2 <http://jinja.pocoo.org/>`_ must be installed for this
 module/script to function.
@@ -16,15 +16,9 @@ import re
 import os.path
 from collections import OrderedDict
 
-
-ctype_to_dtype = {'double': "numpy.double",
-                  'int': "numpy.intc",
-                  'eraASTROM': "dt_eraASTROM",
-                  'eraLDBODY': "dt_eraLDBODY",
-                  'char': "numpy.dtype('S1')",
-                  'const char': "numpy.dtype('S16')",
-                  }
-
+DEFAULT_ERFA_LOC = os.path.join(os.path.split(__file__)[0],
+                                '../../cextern/erfa')
+DEFAULT_TEMPLATE_LOC = os.path.split(__file__)[0]
 
 NDIMS_REX = re.compile(re.escape("numpy.dtype([('fi0', '.*', <(.*)>)])").replace(r'\.\*', '.*').replace(r'\<', '(').replace(r'\>', ')'))
 
@@ -37,44 +31,70 @@ class FunctionDoc:
         self.__output = None
         self.__ret_info = None
 
+    def _get_arg_doc_list(self, doc_lines):
+        """Parse input/output doc section lines, getting arguments from them.
+
+        Ensure all elements of eraASTROM and eraLDBODY are left out, as those
+        are not input or output arguments themselves.  Also remove the nb
+        argument in from of eraLDBODY, as we infer nb from the python array.
+        """
+        doc_list = []
+        skip = []
+        for d in doc_lines:
+            arg_doc = ArgumentDoc(d)
+            if arg_doc.name is not None:
+                if skip:
+                    if skip[0] == arg_doc.name:
+                        skip.pop(0)
+                        continue
+                    else:
+                        raise RuntimeError("We whould be skipping {} "
+                                           "but {} encountered."
+                                           .format(skip[0], arg_doc.name))
+
+                if arg_doc.type.startswith('eraLDBODY'):
+                    # Special-case LDBODY: for those, the previous argument
+                    # is always the number of bodies, but we don't need it
+                    # as an input argument for the ufunc since we're going
+                    # to determine this from the array itself. Also skip
+                    # the description of its contents; those are not arguments.
+                    doc_list.pop()
+                    skip = ['bm', 'dl', 'pv']
+                elif arg_doc.type.startswith('eraASTROM'):
+                    # Special-case ASTROM: need to skip the description
+                    # of its contents; those are not arguments.
+                    skip = ['pmt', 'eb', 'eh', 'em', 'v', 'bm1',
+                            'bpn', 'along', 'xpl', 'ypl', 'sphi',
+                            'cphi', 'diurab', 'eral', 'refa', 'refb']
+
+                doc_list.append(arg_doc)
+
+        return doc_list
+
     @property
     def input(self):
         if self.__input is None:
             self.__input = []
-            result = re.search("Given([^\n]*):\n(.+?)  \n", self.doc, re.DOTALL)
-            if result is not None:
-                __input = result.group(2)
-                for i in __input.split("\n"):
-                    arg_doc = ArgumentDoc(i)
-                    if arg_doc.name is not None:
-                        self.__input.append(arg_doc)
-            result = re.search("Given and returned([^\n]*):\n(.+?)  \n", self.doc, re.DOTALL)
-            if result is not None:
-                __input = result.group(2)
-                for i in __input.split("\n"):
-                    arg_doc = ArgumentDoc(i)
-                    if arg_doc.name is not None:
-                        self.__input.append(arg_doc)
+            for regex in ("Given([^\n]*):\n(.+?)  \n",
+                          "Given and returned([^\n]*):\n(.+?)  \n"):
+                result = re.search(regex, self.doc, re.DOTALL)
+                if result is not None:
+                    doc_lines = result.group(2).split("\n")
+                    self.__input += self._get_arg_doc_list(doc_lines)
+
         return self.__input
 
     @property
     def output(self):
         if self.__output is None:
             self.__output = []
-            result = re.search("Returned([^\n]*):\n(.+?)  \n", self.doc, re.DOTALL)
-            if result is not None:
-                __output = result.group(2)
-                for i in __output.split("\n"):
-                    arg_doc = ArgumentDoc(i)
-                    if arg_doc.name is not None:
-                        self.__output.append(arg_doc)
-            result = re.search("Given and returned([^\n]*):\n(.+?)  \n", self.doc, re.DOTALL)
-            if result is not None:
-                __output = result.group(2)
-                for i in __output.split("\n"):
-                    arg_doc = ArgumentDoc(i)
-                    if arg_doc.name is not None:
-                        self.__output.append(arg_doc)
+            for regex in ("Given and returned([^\n]*):\n(.+?)  \n",
+                          "Returned([^\n]*):\n(.+?)  \n"):
+                result = re.search(regex, self.doc, re.DOTALL)
+                if result is not None:
+                    doc_lines = result.group(2).split("\n")
+                    self.__output += self._get_arg_doc_list(doc_lines)
+
         return self.__output
 
     @property
@@ -115,9 +135,104 @@ class ArgumentDoc:
         return "    {0:15} {1:15} {2}".format(self.name, self.type, self.doc)
 
 
-class Argument:
+class Variable:
+    """Properties shared by Argument and Return."""
+    @property
+    def npy_type(self):
+        """Predefined type used by numpy ufuncs to indicate a given ctype.
+
+        Eg., NPY_DOUBLE for double.
+        """
+        return "NPY_" + self.ctype.upper()
+
+    @property
+    def dtype(self):
+        """Name of dtype corresponding to the ctype.
+
+        Specifically,
+        double : dt_double
+        int : dt_int
+        double[3]: dt_vector
+        double[2][3] : dt_pv
+        double[2] : dt_pvdpv
+        double[3][3] : dt_matrix
+        int[4] : dt_ymdf | dt_hmsf | dt_dmsf, depding on name
+        eraASTROM: dt_eraASTROM
+        eraLDBODY: dt_eraLDBODY
+        char : dt_sign
+        char[] : dt_type
+
+        The corresponding dtypes are defined in ufunc.c, where they are
+        used for the loop definitions.  In core.py, they are also used
+        to view-cast regular arrays to these structured dtypes.
+        """
+        if self.ctype == 'const char':
+            return 'dt_type'
+        elif self.ctype == 'char':
+            return 'dt_sign'
+        elif self.ctype == 'int' and self.shape == (4,):
+            return 'dt_' + self.name[1:]
+        elif self.ctype == 'double' and self.shape == (3,):
+            return 'dt_double'
+        elif self.ctype == 'double' and self.shape == (2, 3):
+            return 'dt_pv'
+        elif self.ctype == 'double' and self.shape == (2,):
+            return 'dt_pvdpv'
+        elif self.ctype == 'double' and self.shape == (3, 3):
+            return 'dt_double'
+        elif not self.shape:
+            return 'dt_' + self.ctype
+        else:
+            raise ValueError("ctype {} with shape {} not recognized."
+                             .format(self.ctype, self.shape))
+
+    @property
+    def view_dtype(self):
+        """Name of dtype corresponding to the ctype for viewing back as array.
+
+        E.g., dt_double for double, dt_double33 for double[3][3].
+
+        The types are defined in core.py, where they are used for view-casts
+        of structured results as regular arrays.
+        """
+        if self.ctype == 'const char':
+            return 'dt_bytes12'
+        elif self.ctype == 'char':
+            return 'dt_bytes1'
+        else:
+            raise ValueError('Only char ctype should need view back!')
+
+    @property
+    def ndim(self):
+        return len(self.shape)
+
+    @property
+    def size(self):
+        size = 1
+        for s in self.shape:
+            size *= s
+        return size
+
+    @property
+    def cshape(self):
+        return ''.join(['[{0}]'.format(s) for s in self.shape])
+
+    @property
+    def signature_shape(self):
+        if self.ctype == 'eraLDBODY':
+            return '(n)'
+        elif self.ctype == 'double' and self.shape == (3,):
+            return '(d3)'
+        elif self.ctype == 'double' and self.shape == (3, 3):
+            return '(d3, d3)'
+        else:
+            return '()'
+
+
+class Argument(Variable):
 
     def __init__(self, definition, doc):
+        self.definition = definition
         self.doc = doc
         self.__inout_state = None
         self.ctype, ptr_name_arr = definition.strip().rsplit(" ", 1)
@@ -153,41 +268,18 @@ class Argument:
         return self.__inout_state
 
     @property
-    def ctype_ptr(self):
-        if (self.is_ptr) | (len(self.shape) > 0):
-            return self.ctype+" *"
-        else:
-            return self.ctype
-
-    @property
-    def name_in_broadcast(self):
-        if len(self.shape) > 0:
-            return "{0}_in[...{1}]".format(self.name, ",0"*len(self.shape))
-        else:
-            return "{0}_in".format(self.name)
-
-    @property
-    def name_out_broadcast(self):
-        if len(self.shape) > 0:
-            return "{0}_out[...{1}]".format(self.name, ",0"*len(self.shape))
-        else:
-            return "{0}_out".format(self.name)
-
-    @property
-    def dtype(self):
-        return ctype_to_dtype[self.ctype]
-
-    @property
-    def ndim(self):
-        return len(self.shape)
-
-    @property
-    def cshape(self):
-        return ''.join(['[{0}]'.format(s) for s in self.shape])
-
-    @property
     def name_for_call(self):
-        if self.is_ptr:
+        """How the argument should be used in the call to the ERFA function.
+
+        This takes care of ensuring that inputs are passed by value,
+        as well as adding back the number of bodies for any LDBODY argument.
+        The latter presumes that in the ufunc inner loops, that number is
+        called 'nb'.
+        """
+        if self.ctype == 'eraLDBODY':
+            assert self.name == 'b'
+            return 'nb, _' + self.name
+        elif self.is_ptr:
             return '_'+self.name
         else:
             return '*_'+self.name
@@ -226,31 +318,17 @@ class ReturnDoc:
         return "Return value, type={0:15}, {1}, {2}".format(self.type, self.descr, self.doc)
 
 
-class Return:
+class Return(Variable):
 
     def __init__(self, ctype, doc):
         self.name = 'c_retval'
-        self.name_out_broadcast = self.name+"_out"
         self.inout_state = 'stat' if ctype == 'int' else 'ret'
         self.ctype = ctype
-        self.ctype_ptr = ctype
         self.shape = ()
         self.doc = doc
 
     def __repr__(self):
         return "Return(name='{0}', ctype='{1}', inout_state='{2}')".format(self.name, self.ctype, self.inout_state)
-
-    @property
-    def dtype(self):
-        return ctype_to_dtype[self.ctype]
-
-    @property
-    def nd_dtype(self):
-        """
-        This if the return type has a multi-dimensional output, like
-        double[3][3]
-        """
-        return "'fi0'" in self.dtype
 
     @property
     def doc_info(self):
@@ -342,8 +420,75 @@ class Function:
         else:
             return result
 
+    @property
+    def user_dtype(self):
+        """The non-standard dtype, if any, needed by this function's ufunc.
+
+        This would be any structured array for any input or output, but
+        we give preference to LDBODY, since that also decides that the ufunc
+        should be a generalized ufunc.
+        """
+        user_dtype = None
+        for arg in self.args_by_inout('in|inout|out'):
+            if arg.ctype == 'eraLDBODY':
+                return arg.dtype
+            elif user_dtype is None and arg.dtype not in ('dt_double',
+                                                          'dt_int'):
+                user_dtype = arg.dtype
+
+        return user_dtype
+
+    @property
+    def signature(self):
+        """Possible signature, if this function should be a gufunc."""
+        if all(arg.signature_shape == '()'
+               for arg in self.args_by_inout('in|inout|out')):
+            return None
+
+        return '->'.join(
+            [','.join([arg.signature_shape for arg in args])
+             for args in (self.args_by_inout('in|inout'),
+                          self.args_by_inout('inout|out|ret|stat'))])
+
+    def _d3_fix_arg_and_index(self):
+        if not any('d3' in arg.signature_shape
+                   for arg in self.args_by_inout('in|inout')):
+            for j, arg in enumerate(self.args_by_inout('out')):
+                if 'd3' in arg.signature_shape:
+                    return j, arg
+
+        return None, None
+
+    @property
+    def d3_fix_op_index(self):
+        """Whether only output arguments have a d3 dimension."""
+        index = self._d3_fix_arg_and_index()[0]
+        if index is not None:
+            len_in = len(list(self.args_by_inout('in')))
+            len_inout = len(list(self.args_by_inout('inout')))
+            index += + len_in + 2 * len_inout
+        return index
+
+    @property
+    def d3_fix_arg(self):
+        """Whether only output arguments have a d3 dimension."""
+        return self._d3_fix_arg_and_index()[1]
+
+    @property
+    def python_call(self):
+        outnames = [arg.name for arg in self.args_by_inout('inout|out|stat|ret')]
+        argnames = [arg.name for arg in self.args_by_inout('in|inout')]
+        argnames += [arg.name for arg in self.args_by_inout('inout')]
+        d3fix_index = self._d3_fix_arg_and_index()[0]
+        if d3fix_index is not None:
+            argnames += ['None'] * d3fix_index + [self.d3_fix_arg.name]
+        return '{out} = {func}({args})'.format(out=', '.join(outnames),
+                                               func='ufunc.' + self.pyname,
+                                               args=', '.join(argnames))
+
     def __repr__(self):
         return "Function(name='{0}', pyname='{1}', filename='{2}', filepath='{3}')".format(self.name, self.pyname, self.filename, self.filepath)
+
 
 
 class Constant:
@@ -419,7 +564,9 @@ class ExtraFunction(Function):
         return r
 
 
-def main(srcdir, outfn, templateloc, verbose=True):
+def main(srcdir=DEFAULT_ERFA_LOC, outfn='core.py', ufuncfn='ufunc.c',
+         templateloc=DEFAULT_TEMPLATE_LOC, extra='erfa_additions.h',
+         verbose=True):
     from jinja2 import Environment, FileSystemLoader
 
     if verbose:
@@ -442,8 +589,8 @@ def main(srcdir, outfn, templateloc, verbose=True):
     env.filters['postfix'] = postfix
     env.filters['surround'] = surround
 
-    erfa_c_in = env.get_template('core.c.templ')
-    erfa_py_in = env.get_template('core.py.templ')
+    erfa_c_in = env.get_template(ufuncfn + '.templ')
+    erfa_py_in = env.get_template(outfn + '.templ')
 
     # Extract all the ERFA function names from erfa.h
     if os.path.isdir(srcdir):
@@ -455,21 +602,38 @@ def main(srcdir, outfn, templateloc, verbose=True):
 
     with open(erfahfn, "r") as f:
         erfa_h = f.read()
+        print_("read erfa header")
+    if extra:
+        with open(os.path.join(templateloc or '.', extra), "r") as f:
+            erfa_h += f.read()
+        print_("read extra header")
 
     funcs = OrderedDict()
-    section_subsection_functions = re.findall(r'/\* (\w*)/(\w*) \*/\n(.*?)\n\n',
-                                              erfa_h, flags=re.DOTALL | re.MULTILINE)
+    section_subsection_functions = re.findall(
+        r'/\* (\w*)/(\w*) \*/\n(.*?)\n\n', erfa_h,
+        flags=re.DOTALL | re.MULTILINE)
     for section, subsection, functions in section_subsection_functions:
         print_("{0}.{1}".format(section, subsection))
-        if ((section == "Astronomy") or (subsection == "AngleOps")
-            or (subsection == "SphericalCartesian")
-            or (subsection == "MatrixVectorProducts")):
-            func_names = re.findall(r' (\w+)\(.*?\);', functions, flags=re.DOTALL)
+        # Right now, we compile everything, but one could be more selective.
+        # In particular, at the time of writing (2018-06-11), what was
+        # actually require for astropy was not quite everything, but:
+        # ((section == 'Extra')
+        #       or (section == "Astronomy")
+        #       or (subsection == "AngleOps")
+        #       or (subsection == "SphericalCartesian")
+        #       or (subsection == "MatrixVectorProducts")
+        #       or (subsection == 'VectorOps'))
+        if True:
+
+            func_names = re.findall(r' (\w+)\(.*?\);', functions,
+                                    flags=re.DOTALL)
             for name in func_names:
                 print_("{0}.{1}.{2}...".format(section, subsection, name))
                 if multifilserc:
                     # easy because it just looks in the file itself
-                    funcs[name] = Function(name, srcdir)
+                    cdir = (srcdir if section != 'Extra' else
+                            templateloc or '.')
+                    funcs[name] = Function(name, cdir)
                 else:
                     # Have to tell it to look for a declaration matching
                     # the start of the header declaration, otherwise it
@@ -483,7 +647,7 @@ def main(srcdir, outfn, templateloc, verbose=True):
                             # argument names and line-breaking or
                             # whitespace
                             match_line = line[:-1].split('(')[0]
-                            funcs[name] = Function(name, srcdir, match_line)
+                            funcs[name] = Function(name, cdir, match_line)
                             break
                     else:
                         raise ValueError("A name for a C file wasn't "
@@ -491,7 +655,7 @@ def main(srcdir, outfn, templateloc, verbose=True):
                                          "spawned it.  This should be "
                                          "impossible!")
 
-    funcs = list(funcs.values())
+    funcs = funcs.values()
 
     # Extract all the ERFA constants from erfam.h
     erfamhfn = os.path.join(srcdir, 'erfam.h')
@@ -499,13 +663,15 @@ def main(srcdir, outfn, templateloc, verbose=True):
         erfa_m_h = f.read()
     constants = []
     for chunk in erfa_m_h.split("\n\n"):
-        result = re.findall(r"#define (ERFA_\w+?) (.+?)$", chunk, flags=re.DOTALL | re.MULTILINE)
+        result = re.findall(r"#define (ERFA_\w+?) (.+?)$", chunk,
+                            flags=re.DOTALL | re.MULTILINE)
         if result:
             doc = re.findall(r"/\* (.+?) \*/\n", chunk, flags=re.DOTALL)
             for (name, value) in result:
                 constants.append(Constant(name, value, doc))
 
-    # TODO: re-enable this when const char* return values and non-status code integer rets are possible
+    # TODO: re-enable this when const char* return values and
+    #       non-status code integer rets are possible
     # #Add in any "extra" functions from erfaextra.h
     # erfaextrahfn = os.path.join(srcdir, 'erfaextra.h')
     # with open(erfaextrahfn, 'r') as f:
@@ -521,21 +687,16 @@ def main(srcdir, outfn, templateloc, verbose=True):
     erfa_py = erfa_py_in.render(funcs=funcs, constants=constants)
 
     if outfn is not None:
-        outfn_c = os.path.splitext(outfn)[0] + ".c"
-        print_("Saving to", outfn, 'and', outfn_c)
-        with open(outfn, "w") as f:
+        print_("Saving to", outfn, 'and', ufuncfn)
+        with open(os.path.join(templateloc, outfn), "w") as f:
             f.write(erfa_py)
-        with open(outfn_c, "w") as f:
+        with open(os.path.join(templateloc, ufuncfn), "w") as f:
             f.write(erfa_c)
 
     print_("Done!")
 
     return erfa_c, erfa_py, funcs
 
-
-DEFAULT_ERFA_LOC = os.path.join(os.path.split(__file__)[0],
-                                '../../cextern/erfa')
-DEFAULT_TEMPLATE_LOC = os.path.split(__file__)[0]
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
@@ -548,15 +709,20 @@ if __name__ == '__main__':
                          'erfa.h). Defaults to the builtin astropy '
                          'erfa: "{0}"'.format(DEFAULT_ERFA_LOC))
     ap.add_argument('-o', '--output', default='core.py',
-                    help='The output filename.  This is the name for only the '
-                         'pure-python output, the C part will have the '
-                         'same name but with a ".c" extension.')
+                    help='The output filename for the pure-python output.')
+    ap.add_argument('-u', '--ufunc', default='ufunc.c',
+                    help='The output filename for the ufunc .c output')
     ap.add_argument('-t', '--template-loc',
                     default=DEFAULT_TEMPLATE_LOC,
-                    help='the location where the "core.c.templ" '
-                         'template can be found.')
+                    help='the location where the "core.py.templ" and '
+                         '"ufunc.c.templ templates can be found.')
+    ap.add_argument('-x', '--extra',
+                    default='erfa_additions.h',
+                    help='header file for any extra files in the template '
+                         'location that should be included.')
     ap.add_argument('-q', '--quiet', action='store_false', dest='verbose',
                     help='Suppress output normally printed to stdout.')
 
     args = ap.parse_args()
-    main(args.srcdir, args.output, args.template_loc)
+    main(args.srcdir, args.output, args.ufunc, args.template_loc,
+         args.extra)

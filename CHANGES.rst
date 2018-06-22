@@ -390,6 +390,9 @@ Other Changes and Additions
   to allow easier viewing of the test results. To re-enable the output as
   before, use ``python setup.py test --verbose-install``. [#7512]
 
+- The ERFA functions are now wrapped in ufuncs instead of custom C code,
+  leading to some speed improvements, and setting the stage for allowing
+  overrides with ``__array_ufunc__``. [#7502]
 
 3.0.4 (unreleased)
 ==================
