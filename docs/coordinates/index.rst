@@ -353,9 +353,6 @@ class.
     example of using the `~astropy.coordinates` functionality to prepare for an
     observing run.
 
-.. note that if this section gets too long, it should be moved to a separate doc page - see the top of performance.inc for the instructions on how to do that
-.. include:: performance.inc
-
 Using `astropy.coordinates`
 ===========================
 
@@ -391,6 +388,9 @@ IPython session::
     In [1]: from astropy.coordinates.tests import test_api_ape5
     In [2]: test_api_ape5??
 
+
+.. note that if this section gets too long, it should be moved to a separate doc page - see the top of performance.inc for the instructions on how to do that
+.. include:: performance.inc
 
 .. _astropy-coordinates-seealso:
 
