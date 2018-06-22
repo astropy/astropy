@@ -263,6 +263,8 @@ Other information
    relax
    history
 
+.. note that if this section gets too long, it should be moved to a separate doc page - see the top of performance.inc for the instructions on how to do that
+.. include:: performance.inc
 
 See Also
 ========
