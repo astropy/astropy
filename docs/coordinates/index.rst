@@ -353,6 +353,9 @@ class.
     example of using the `~astropy.coordinates` functionality to prepare for an
     observing run.
 
+.. note that if this section gets too long, it should be moved to a separate doc page - see the top of performance.inc for the instructions on how to do that
+.. include:: performance.inc
+
 Using `astropy.coordinates`
 ===========================
 
