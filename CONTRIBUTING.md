@@ -14,16 +14,16 @@ Contributing code
 So you're interested in contributing code to Astropy? Excellent!
 
 Most contributions to Astropy are done via pull requests from GitHub users'
-forks of the [astropy repository](https://github.com/astropy/astropy). If 
+forks of the [astropy repository](https://github.com/astropy/astropy). If
 you're new to this style of development, you'll want to read over our [development workflow](http://docs.astropy.org/en/latest/development/workflow/development_workflow.html).
 
-You may also/instead be interested in contributing to to an 
-[astropy affiliated package](http://www.astropy.org/affiliated/). 
+You may also/instead be interested in contributing to to an
+[astropy affiliated package](http://www.astropy.org/affiliated/).
 Affiliated packages are astronomy-related software packages that are not a part
 of the astropy core package, but build on it for more specialized applications
 and follow the astropy guidelines for reuse, interoperability, and interfacing.
-Each affiliated package has its own developers/maintainers and its own 
-specific guidelines for contributions, so be sure to read their docs. 
+Each affiliated package has its own developers/maintainers and its own
+specific guidelines for contributions, so be sure to read their docs.
 
 Once you open a pull request (which should be opened against the ``master``
 branch, not against any of the other branches), please make sure that you
@@ -43,6 +43,12 @@ include the following:
   description in the main documentation (in ``docs/``). Again, we have some
   detailed [documentation guidelines](http://docs.astropy.org/en/latest/development/docguide.html)
   to help you out.
+
+  **Performance improvements**: if you are making changes that impact Astropy
+  performance, consider adding a performance benchmark in the
+  [astropy-benchmarks](https://github.com/astropy/astropy-benchmarks)
+  repository. You can find out more about how to do this
+  [here](https://github.com/astropy/astropy-benchmarks#contributing-a-benchmark)
 
 - **Changelog entry**: whether you are fixing a bug or adding new
   functionality, you should add an entry to the ``CHANGES.rst`` file that
@@ -139,7 +145,7 @@ in the package.
   * Is the astropy license included at the top of the file?
   * Are there any conflicts with this code and existing codes?
 
-**astropy requirements**
+**Astropy requirements**
   * Do all the Travis CI, AppVeyor, and CircleCI tests pass?
   * If applicable, has an entry been added into the changelog?
   * Can you checkout the pull request and repeat the examples and tests?
