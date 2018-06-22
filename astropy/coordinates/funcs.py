@@ -151,8 +151,8 @@ def get_sun(time):
 
     # We have to manually do aberration because we're outputting directly into
     # GCRS
-    earth_p = earth_pv_helio[..., 0, :]
-    earth_v = earth_pv_bary[..., 1, :]
+    earth_p = earth_pv_helio['p']
+    earth_v = earth_pv_bary['v']
 
     # convert barycentric velocity to units of c, but keep as array for passing in to erfa
     earth_v /= c.to_value(u.au/u.d)

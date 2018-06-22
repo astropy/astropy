@@ -11,13 +11,17 @@ from astropy_helpers.version_helpers import get_pkg_version_module
 
 ERFAPKGDIR = os.path.relpath(os.path.dirname(__file__))
 
-ERFA_SRC = os.path.abspath(os.path.join(ERFAPKGDIR, '..', '..', 'cextern', 'erfa'))
+ERFA_SRC = os.path.abspath(os.path.join(ERFAPKGDIR, '..', '..',
+                                        'cextern', 'erfa'))
 
 SRC_FILES = glob.glob(os.path.join(ERFA_SRC, '*'))
 SRC_FILES += [os.path.join(ERFAPKGDIR, filename)
-              for filename in ['core.py.templ', 'core.c.templ', 'erfa_generator.py']]
+              for filename in ['pav2pv.c', 'pv2pav.c', 'erfa_additions.h',
+                               'ufunc.c.templ', 'core.py.templ',
+                               'erfa_generator.py']]
 
-GEN_FILES = [os.path.join(ERFAPKGDIR, 'core.py'), os.path.join(ERFAPKGDIR, 'core.c')]
+GEN_FILES = [os.path.join(ERFAPKGDIR, 'core.py'),
+             os.path.join(ERFAPKGDIR, 'ufunc.c')]
 
 
 def pre_build_py_hook(cmd_obj):
@@ -35,7 +39,7 @@ def pre_sdist_hook(cmd_obj):
 def preprocess_source():
     # Generating the ERFA wrappers should only be done if needed. This also
     # ensures that it is not done for any release tarball since those will
-    # include core.py and core.c.
+    # include core.py and ufunc.c.
     if all(os.path.exists(filename) for filename in GEN_FILES):
 
         # Determine modification times
@@ -65,7 +69,7 @@ def preprocess_source():
             import jinja2  # pylint: disable=W0611
         except ImportError:
             log.warn("WARNING: jinja2 could not be imported, so the existing "
-                     "ERFA core.py and core.c files will be used")
+                     "ERFA core.py and ufunc.c files will be used")
             return
 
     name = 'erfa_generator'
@@ -79,14 +83,12 @@ def preprocess_source():
         import imp
         gen = imp.load_source(name, filename)
 
-    gen.main(gen.DEFAULT_ERFA_LOC,
-             os.path.join(ERFAPKGDIR, 'core.py'),
-             gen.DEFAULT_TEMPLATE_LOC,
-             verbose=False)
+    gen.main(verbose=False)
 
 
 def get_extensions():
-    sources = [os.path.join(ERFAPKGDIR, "core.c")]
+    sources = [os.path.join(ERFAPKGDIR, fn)
+               for fn in ("ufunc.c", "pav2pv.c", "pv2pav.c")]
     include_dirs = ['numpy']
     libraries = []
 
@@ -95,12 +97,13 @@ def get_extensions():
     else:
         # get all of the .c files in the cextern/erfa directory
         erfafns = os.listdir(ERFA_SRC)
-        sources.extend(['cextern/erfa/'+fn for fn in erfafns if fn.endswith('.c')])
+        sources.extend(['cextern/erfa/' + fn
+                        for fn in erfafns if fn.endswith('.c')])
 
         include_dirs.append('cextern/erfa')
 
     erfa_ext = Extension(
-        name="astropy._erfa._core",
+        name="astropy._erfa.ufunc",
         sources=sources,
         include_dirs=include_dirs,
         libraries=libraries,
