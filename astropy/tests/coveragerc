@@ -12,6 +12,8 @@ omit =
    astropy/wcs/docstrings*
    astropy/_erfa/*
    astropy/_compiler.c
+   cextern/*
+   cextern/*/*
 
 [report]
 exclude_lines =
@@ -46,3 +48,5 @@ omit =
    astropy/wcs/docstrings*
    astropy/_erfa/*
    astropy/_compiler.c
+   cextern/*
+   cextern/*/*
