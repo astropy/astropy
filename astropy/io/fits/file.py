@@ -18,7 +18,6 @@ import re
 from functools import reduce
 
 import numpy as np
-from numpy import memmap as Memmap
 
 from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
@@ -62,6 +61,11 @@ TEXT_RE = re.compile(r'^[rwa]((t?\+?)|(\+?t?))$')
 # that means something like "read only" but isn't readonly.
 MEMMAP_MODES = {'readonly': 'c', 'copyonwrite': 'c', 'update': 'r+',
                 'append': 'c', 'denywrite': 'r'}
+
+# Translate the numpy.memmap modes 'c', 'r', 'r+' to the appropriate
+# mmap modes.
+MMAP_MODES = {'r': mmap.ACCESS_READ, 'r+': mmap.ACCESS_WRITE,
+              'c': mmap.ACCESS_COPY}
 
 # TODO: Eventually raise a warning, and maybe even later disable the use of
 # 'copyonwrite' and 'denywrite' modes unless memmap=True.  For now, however,
@@ -291,20 +295,10 @@ class _File:
                     # Instantiate Memmap array of the file offset at 0 (so we
                     # can return slices of it to offset anywhere else into the
                     # file)
-                    memmap = Memmap(self._file, mode=MEMMAP_MODES[self.mode],
-                                    dtype=np.uint8)
-
-                    # Now we immediately discard the memmap array; we are
-                    # really just using it as a factory function to instantiate
-                    # the mmap object in a convenient way (may later do away
-                    # with this usage)
-                    self._mmap = memmap.base
-
-                    # Prevent dorking with self._memmap._mmap by memmap.__del__
-                    # in Numpy 1.6 (see
-                    # https://github.com/numpy/numpy/commit/dcc355a0b179387eeba10c95baf2e1eb21d417c7)
-                    memmap._mmap = None
-                    del memmap
+                    access_mode = MMAP_MODES[MEMMAP_MODES[self.mode]]
+                    self._mmap = mmap.mmap(self._file.fileno(), 0,
+                                           access=access_mode,
+                                           offset=0)
 
                 return np.ndarray(shape=shape, dtype=dtype, offset=offset,
                                   buffer=self._mmap)
