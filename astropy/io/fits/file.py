@@ -296,6 +296,16 @@ class _File:
                     # can return slices of it to offset anywhere else into the
                     # file)
                     access_mode = MMAP_MODES[MEMMAP_MODES[self.mode]]
+
+                    # For reasons unknown the file needs to point to (near)
+                    # the beginning or end of the file. No idea how close to
+                    # the beginning or end.
+                    # If I had to guess there is some bug in the mmap module
+                    # of CPython or perhaps in microsoft's underlying code
+                    # for generating the mmap.
+                    self._file.seek(0, 0)
+                    # This would also work:
+                    # self._file.seek(0, 2)   # moves to the end
                     self._mmap = mmap.mmap(self._file.fileno(), 0,
                                            access=access_mode,
                                            offset=0)
