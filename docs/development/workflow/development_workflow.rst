@@ -370,15 +370,17 @@ Add a changelog entry
 *********************
 
 Add an entry to the file ``CHANGES.rst`` briefly describing the change you
-made. Include the pull request number if the change fixes an issue. An
+made. Include the pull request number, too at the end of the entry. An
 example entry, for the changes which fixed
 `issue 1845 <https://github.com/astropy/astropy/pull/1845>`_, is::
 
   - ``astropy.wcs.Wcs.printwcs`` will no longer warn that ``cdelt`` is
     being ignored when none was present in the FITS file. [#1845]
 
-If the change is a new feature, rather than an existing issue, you will not be
-able to put in the issue number until *after* you make the pull request.
+If you are opening a new pull request, you may not know its number yet, but you
+can add it *after* you make the pull request. If you're not sure where to
+put the changelog entry, wait at least until a maintainer has reviewed your
+PR and assigned it to a milestone.
 
 When writing changelog entries, do not attempt to make API reference links
 by using single-backticks.  This is because the changelog (in its current
