@@ -108,9 +108,11 @@ matrix:
             - $INSTALL_CMD
             - $TEST_CMD
 
-        # Now try with all optional dependencies.
+        # Now try with all optional dependencies. We also include the --readonly
+        # flag to make sure no files are being written to the temporary install
+        # location during testing.
         - os: linux
-          env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data=astropy'
+          env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data=astropy --readonly'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="jplephem"
                LC_CTYPE=C.ascii LC_ALL=C
@@ -130,7 +132,7 @@ matrix:
         # packages are installed from pip.
         # TODO: remove the pinning once the issue is solved upstream.
         - os: linux
-          env: SETUP_CMD='test --coverage --remote-data=astropy'
+          env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="cpp-coveralls objgraph jplephem bintrees"
                LC_CTYPE=C.ascii LC_ALL=C
