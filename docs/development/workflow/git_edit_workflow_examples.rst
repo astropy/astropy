@@ -495,19 +495,21 @@ entry went there.
     .. image:: milestone.png
 
 The entry in ``CHANGES.rst`` should summarize was you did and include the
-issue number. For writing changelog entries you don't need to know much about
-the markup language being used (though you can read as much as you want about
-it at the `Sphinx primer`_); look at other entries and imitate.
+pull request number. For writing changelog entries you don't need to know
+much about the markup language being used (though you can read as much as
+you want about it at the `Sphinx primer`_); look at other entries and
+imitate.
 
 For this issue the entry was the line that starts ``- Implemented``::
 
-    - ``astropy.coordinates``
+    astropy.coordinates
+    ^^^^^^^^^^^^^^^^^^^
 
-      - Implemented `len()` for coordinate objects. [#1761]
+    - Implemented ``len()`` for coordinate objects. [#1761]
 
 Starting the line with a ``-`` makes a bulleted list item, indenting it makes
-it a sublist of ``astropy.coordinates`` and putting ``len()`` in single
-backticks makes that text render in a typewriter font.
+it a sublist of ``astropy.coordinates`` and putting ``len()`` in double
+backticks makes that text render in a monospace font.
 
 Commit your changes to the CHANGES.rst
 --------------------------------------
