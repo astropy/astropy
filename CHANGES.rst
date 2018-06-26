@@ -110,6 +110,9 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Added an option ``--readonly`` to the test command to change the
+  permissions on the temporary installation location to read-only. [#7598]
+
 astropy.time
 ^^^^^^^^^^^^
 
