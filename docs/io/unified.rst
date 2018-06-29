@@ -362,11 +362,13 @@ FITS.  By default this will replace the masked data elements with certain
 sentinel values according to the FITS standard:
 
 - ``NaN`` for float columns
-- Value of ``TNULLn`` for integer columns
+- Value of ``TNULLn`` for integer columns, as defined by the column
+  ``fill_value`` attribute
 - Null string for string columns (not currently implemented)
 
-When the file is read back those elements are marked as masked in the
-returned table.
+When the file is read back those elements are marked as masked in the returned
+table, but see `issue #4708 <https://github.com/astropy/astropy/issues/4708>`_
+for problems in all three cases.
 
 The FITS standard has a few limitations:
 

@@ -80,6 +80,7 @@ astropy.io.fits
 
 - Add an ``ignore_hdus`` keyword to ``FITSDiff`` to allow ignoring HDUs by
   NAME when diffing two FITS files [#7538]
+
 - Optionally allow writing masked columns to FITS with the mask explicitly
   specified as a separate column instead of using the FITS standard of
   certain embedded null values (``NaN`` for float, ``TNULL`` for integers).
