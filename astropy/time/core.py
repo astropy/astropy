@@ -776,7 +776,7 @@ class Time(ShapedLikeNDArray):
             if hasattr(self, attr):
                 delattr(self, attr)
 
-        if value in (np.ma.masked, np.nan):
+        if value is np.ma.masked or value is np.nan:
             self._time.jd2[item] = np.nan
             return
 
@@ -1513,7 +1513,7 @@ class Time(ShapedLikeNDArray):
             try:
                 other = TimeDelta(other)
             except Exception:
-                raise OperandTypeError(self, other, '-')
+                return NotImplemented
 
         # Tdelta - something is dealt with in TimeDelta, so we have
         # T      - Tdelta = T
@@ -1572,7 +1572,7 @@ class Time(ShapedLikeNDArray):
             try:
                 other = TimeDelta(other)
             except Exception:
-                raise OperandTypeError(self, other, '+')
+                return NotImplemented
 
         # Tdelta + something is dealt with in TimeDelta, so we have
         # T      + Tdelta = T
@@ -1619,31 +1619,35 @@ class Time(ShapedLikeNDArray):
         out = self.__sub__(other)
         return -out
 
-    def _time_difference(self, other, op=None):
-        """If other is of same class as self, return difference in self.scale.
-        Otherwise, raise OperandTypeError.
+    def _time_comparison(self, other, op):
+        """If other is of same class as self, compare difference in self.scale.
+        Otherwise, return NotImplemented
         """
         if other.__class__ is not self.__class__:
             try:
                 other = self.__class__(other, scale=self.scale)
             except Exception:
-                raise OperandTypeError(self, other, op)
+                # Let other have a go.
+                return NotImplemented
 
         if(self.scale is not None and self.scale not in other.SCALES or
            other.scale is not None and other.scale not in self.SCALES):
-            raise TypeError("Cannot compare TimeDelta instances with scales "
-                            "'{0}' and '{1}'".format(self.scale, other.scale))
+            # Other will also not be able to do it, so raise a TypeError
+            # immediately, allowing us to explain why it doesn't work.
+            raise TypeError("Cannot compare {0} instances with scales "
+                            "'{1}' and '{2}'".format(self.__class__.__name__,
+                                                     self.scale, other.scale))
 
         if self.scale is not None and other.scale is not None:
             other = getattr(other, self.scale)
 
-        return (self.jd1 - other.jd1) + (self.jd2 - other.jd2)
+        return op((self.jd1 - other.jd1) + (self.jd2 - other.jd2), 0.)
 
     def __lt__(self, other):
-        return self._time_difference(other, '<') < 0.
+        return self._time_comparison(other, operator.lt)
 
     def __le__(self, other):
-        return self._time_difference(other, '<=') <= 0.
+        return self._time_comparison(other, operator.le)
 
     def __eq__(self, other):
         """
@@ -1651,11 +1655,7 @@ class Time(ShapedLikeNDArray):
         Otherwise, return `True` if the time difference between self and
         other is zero.
         """
-        try:
-            diff = self._time_difference(other)
-        except OperandTypeError:
-            return False
-        return diff == 0.
+        return self._time_comparison(other, operator.eq)
 
     def __ne__(self, other):
         """
@@ -1663,17 +1663,13 @@ class Time(ShapedLikeNDArray):
         Otherwise, return `False` if the time difference between self and
         other is zero.
         """
-        try:
-            diff = self._time_difference(other)
-        except OperandTypeError:
-            return True
-        return diff != 0.
+        return self._time_comparison(other, operator.ne)
 
     def __gt__(self, other):
-        return self._time_difference(other, '>') > 0.
+        return self._time_comparison(other, operator.gt)
 
     def __ge__(self, other):
-        return self._time_difference(other, '>=') >= 0.
+        return self._time_comparison(other, operator.ge)
 
     def to_datetime(self, timezone=None):
         tm = self.replicate(format='datetime')
@@ -1800,7 +1796,7 @@ class TimeDelta(Time):
             try:
                 other = TimeDelta(other)
             except Exception:
-                raise OperandTypeError(self, other, '+')
+                return NotImplemented
 
         # the scales should be compatible (e.g., cannot convert TDB to TAI)
         if(self.scale is not None and self.scale not in other.SCALES or
@@ -1832,7 +1828,7 @@ class TimeDelta(Time):
             try:
                 other = TimeDelta(other)
             except Exception:
-                raise OperandTypeError(self, other, '-')
+                return NotImplemented
 
         # the scales should be compatible (e.g., cannot convert TDB to TAI)
         if(self.scale is not None and self.scale not in other.SCALES or
