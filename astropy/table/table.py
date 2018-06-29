@@ -2527,8 +2527,22 @@ class Table:
           >>> dat = Table.read('table.dat', format='ascii')
           >>> events = Table.read('events.fits', format='fits')
 
-        The arguments and keywords (other than ``format``) provided to this function are
-        passed through to the underlying data reader (e.g. `~astropy.io.ascii.read`).
+        See http://docs.astropy.org/en/stable/io/unified.html for details.
+
+        Parameters
+        ----------
+        format : str
+            File format specifier.
+        *args
+            Positional arguments passed through to data reader. If supplied the
+            first argument is the input filename.
+        **kwargs
+            Keyword arguments passed through to data reader.
+
+        -------
+        out : `Table`
+            Table corresponding to file contents
+
         """
         out = io_registry.read(cls, *args, **kwargs)
         # For some readers (e.g., ascii.ecsv), the returned `out` class is not
@@ -2555,9 +2569,19 @@ class Table:
           >>> dat = Table([[1, 2], [3, 4]], names=('a', 'b'))
           >>> dat.write('table.dat', format='ascii')
 
-        The arguments and keywords (other than ``format`` and
-        ``serialize_methods``) provided to this function are passed through to
-        the underlying data reader (e.g. `~astropy.io.ascii.write`).
+        See http://docs.astropy.org/en/stable/io/unified.html for details.
+
+        Parameters
+        ----------
+        format : str
+            File format specifier.
+        serialize_method : str, dict, optional
+            Serialization method specifier for columns.
+        *args
+            Positional arguments passed through to data writer. If supplied the
+            first argument is the output filename.
+        **kwargs
+            Keyword arguments passed through to data writer.
         """
         serialize_method = kwargs.pop('serialize_method', None)
         with serialize_method_as(self, serialize_method):

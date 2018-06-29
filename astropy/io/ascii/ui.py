@@ -877,7 +877,7 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
     if isinstance(table, Table):
         # Note that making a copy of the table here is inefficient but
         # without this copy a number of tests break (e.g. in test_fixedwidth).
-        # TODO: investigate.
+        # See #7605.
         new_tbl = table.__class__(table, names=names)
 
         # This makes a copy of the table columns.  This is subject to a
