@@ -961,7 +961,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     show_progress : bool, optional
         Whether to display a progress bar during the download (default
-        is `True`)
+        is `True`). Regardless of this setting, the progress bar is only
+        displayed when outputting to a terminal.
 
     timeout : float, optional
         The timeout, in seconds.  Otherwise, use
@@ -1036,7 +1037,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                 if cache:
                     check_free_space_in_dir(dldir, size)
 
-            if show_progress:
+            if show_progress and sys.stdout.isatty():
                 progress_stream = sys.stdout
             else:
                 progress_stream = io.StringIO()

@@ -394,6 +394,9 @@ astropy.utils
 - Fixed a bug due to which ``report_diff_values()`` was reporting incorrect
   number of differences when comparing two ``numpy.ndarray``. [#7470]
 
+- The download progress bar is now only displayed in terminals, to avoid
+  polluting piped output. [#7577]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
