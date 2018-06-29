@@ -1124,6 +1124,9 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
                                meta=meta, copy=copy, copy_indices=copy_indices)
         self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
 
+        del self.__dict__['info']
+        self.info = self_data.info
+
         # Note: do not set fill_value in the MaskedArray constructor because this does not
         # go through the fill_value workarounds.
         if fill_value is None and getattr(data, 'fill_value', None) is not None:
