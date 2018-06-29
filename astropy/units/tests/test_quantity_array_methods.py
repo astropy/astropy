@@ -5,7 +5,6 @@ import pytest
 import numpy as np
 
 from ... import units as u
-from ...utils.compat import NUMPY_LT_1_10_4
 
 
 class TestQuantityArrayCopy:
@@ -355,8 +354,6 @@ class TestQuantityStatsFuncs:
         assert q3.value == np.dot(q1.value, q2.value)
         assert q3.unit == u.m * u.s
 
-    @pytest.mark.xfail(NUMPY_LT_1_10_4,
-                       reason="Numpy 1.10.4 or later is required")
     def test_trace_func(self):
 
         q = np.array([[1., 2.], [3., 4.]]) * u.m

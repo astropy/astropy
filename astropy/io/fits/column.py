@@ -15,7 +15,6 @@ from contextlib import suppress
 import numpy as np
 from numpy import char as chararray
 
-from . import _numpy_hacks as nh
 from .card import Card, CARD_LENGTH
 from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
                    NotifierMixin)
@@ -1564,10 +1563,10 @@ class ColDefs(NotifierMixin):
         # Now this incorporates TDIMn from the start, which makes *this* method
         # a little more complicated, but simplifies code elsewhere (for example
         # fields will have the correct shapes even in the raw recarray).
-        fields = []
+        formats = []
         offsets = [0]
 
-        for name, format_, dim in zip(self.names, self.formats, self._dims):
+        for format_, dim in zip(self.formats, self._dims):
             dt = format_.dtype
 
             if len(offsets) < len(self.formats):
@@ -1583,9 +1582,11 @@ class ColDefs(NotifierMixin):
                 else:
                     dt = np.dtype((dt.base, dim))
 
-            fields.append((name, dt))
+            formats.append(dt)
 
-        return nh.realign_dtype(np.dtype(fields), offsets)
+        return np.dtype({'names': self.names,
+                         'formats': formats,
+                         'offsets': offsets})
 
     @lazyproperty
     def names(self):

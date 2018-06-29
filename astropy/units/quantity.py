@@ -20,7 +20,7 @@ from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitTypeError)
 from .utils import is_effectively_unity
 from .format.latex import Latex
-from ..utils.compat import NUMPY_LT_1_13, NUMPY_LT_1_14
+from ..utils.compat import NUMPY_LT_1_14
 from ..utils.compat.misc import override__dir__
 from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.misc import isiterable, InheritDocstrings
@@ -408,104 +408,6 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         if 'info' in obj.__dict__:
             self.info = obj.info
 
-    def __array_prepare__(self, obj, context=None):
-        # This method gets called by Numpy whenever a ufunc is called on the
-        # array. The object passed in ``obj`` is an empty version of the
-        # output array which we can e.g. change to an array sub-class, add
-        # attributes to, etc. After this is called, then the ufunc is called
-        # and the values in this empty array are set.
-
-        # In principle, this should not be needed any more in numpy >= 1.13,
-        # but it is still called in some np.linalg modules.
-
-        # If no context is set, just return the input
-        if context is None:
-            return obj
-
-        # Find out which ufunc is being used
-        function = context[0]
-        args = context[1][:function.nin]
-        # determine required converter functions -- to bring the unit of the
-        # input to that expected (e.g., radian for np.sin), or to get
-        # consistent units between two inputs (e.g., in np.add) --
-        # and the unit of the result
-        converters, result_unit = converters_and_unit(function, '__call__',
-                                                      *args)
-        if function.nout > 1:
-            result_unit = result_unit[context[2]]
-
-        # We now prepare the output object
-        if self is obj:
-            # this happens if the output object is self, which happens
-            # for in-place operations such as q1 += q2
-
-            # Check that we're not trying to store a plain Numpy array or a
-            # Quantity with an inconsistent unit (e.g., not angular for Angle),
-            # and that we can handle the type (e.g., that we are not int when
-            # float is required).
-            check_output(obj, result_unit, (args + tuple(
-                (np.float16 if converter and converter(1.) % 1. != 0.
-                 else np.int8)
-                for converter in converters)),
-                         function=function)
-            result = self  # no view needed since already a Quantity.
-
-            # in principle, if self is also an argument, it could be rescaled
-            # here, since it won't be needed anymore.  But maybe not change
-            # inputs before the calculation even if they will get destroyed
-
-        else:  # normal case: set up output as a Quantity
-
-            result = self._new_view(obj, result_unit)
-
-        # We now need to treat the case where the inputs have to be converted -
-        # the issue is that we can't actually convert the inputs since that
-        # would be changing the objects passed to the ufunc, which would not
-        # be expected by the user.
-        if any(converters):
-
-            # If self is both output and input (which happens for in-place
-            # operations), input will get overwritten with junk. To avoid
-            # that, hide it in a new object
-            if self is obj and any(self is arg for arg in args):
-                # but with two outputs it would become unhidden too soon
-                # [ie., np.modf(q1, q1, other)].  Bail.
-                if context[2] < function.nout - 1:
-                    raise TypeError("Cannot apply multi-output {0} function "
-                                    "to quantities with in-place replacement "
-                                    "of an input by any but the last output."
-                                    .format(function.__name__))
-
-                # If self is already contiguous, we don't need to do
-                # an additional copy back into the original array, so
-                # we store it in `result._result`.  Otherwise, we
-                # store it in `result._contiguous`.  `__array_wrap__`
-                # knows how to handle putting either form back into
-                # the original array.
-                if self.flags['C_CONTIGUOUS']:
-                    result = self.copy()
-                    result._result = self
-                else:
-                    result._contiguous = self.copy()
-
-            # ensure we remember the converter functions we need
-            result._converters = converters
-
-            if function in _UFUNCS_FILTER_WARNINGS:
-                # Filter out RuntimeWarning's caused by the ufunc being called on
-                # the unscaled quantity first (e.g., np.arcsin(15*u.pc/u.kpc))
-                self._catch_warnings = warnings.catch_warnings()
-                self._catch_warnings.__enter__()
-                warnings.filterwarnings('ignore',
-                                        message='invalid value encountered in',
-                                        category=RuntimeWarning)
-
-        # unit output will get (setting _unit could prematurely change input
-        # if obj is self, which happens for in-place operations; see above)
-        result._result_unit = result_unit
-
-        return result
-
     def __array_wrap__(self, obj, context=None):
 
         if context is None:
@@ -513,86 +415,10 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             # __array_wrap__ to turn the array into self's subclass.
             return self._new_view(obj)
 
-        else:
-            # with context defined, we are continuing after a ufunc evaluation.
-            if hasattr(obj, '_result_unit'):
-                result_unit = obj._result_unit
-                del obj._result_unit
-            else:
-                result_unit = None
-
-            # We now need to re-calculate quantities for which the input
-            # needed to be scaled.
-            if hasattr(obj, '_converters'):
-
-                converters = obj._converters
-                del obj._converters
-
-                if hasattr(self, '_catch_warnings'):
-                    self._catch_warnings.__exit__()
-                    del self._catch_warnings
-
-                # For in-place operations, input will get overwritten with
-                # junk. To avoid that, we hid it in a new object in
-                # __array_prepare__ and retrieve it here.
-                if hasattr(obj, '_result'):
-                    obj = obj._result
-                elif hasattr(obj, '_contiguous'):
-                    obj[()] = obj._contiguous
-                    del obj._contiguous
-
-                # take array view to which output can be written without
-                # getting back here
-                obj_array = obj.view(np.ndarray)
-
-                # Find out which ufunc was called and with which inputs
-                function = context[0]
-                args = context[1][:function.nin]
-
-                # Set the inputs, rescaling as necessary
-                inputs = []
-                for arg, converter in zip(args, converters):
-                    if converter:
-                        inputs.append(converter(arg.value))
-                    else:  # with no conversion, input can be non-Quantity.
-                        inputs.append(getattr(arg, 'value', arg))
-
-                # For output arrays that require scaling, we can reuse the
-                # output array to perform the scaling in place, as long as the
-                # array is not integral. Here, we set the obj_array to `None`
-                # when it cannot be used to store the scaled result.
-                # Use a try/except, since np.result_type can fail, which would
-                # break the wrapping #4770.
-                try:
-                    tmp_dtype = np.result_type(*inputs)
-                # Catch the appropriate exceptions: TypeError or ValueError in
-                # case the result_type raised an Exception, i.e. inputs is list
-                except (TypeError, ValueError):
-                    obj_array = None
-                else:
-                    # Explicitly check if it can store the result.
-                    if not (result_unit is None or
-                            np.can_cast(tmp_dtype, obj_array.dtype)):
-                        obj_array = None
-
-                # Re-compute the output using the ufunc
-                if context[2] == 0:
-                    inputs.append(obj_array)
-                else:
-                    inputs += [None, obj_array]
-                out = function(*inputs)
-                if obj_array is None:
-                    if function.nout > 1:
-                        out = out[context[2]]
-                    obj = self._new_view(out, result_unit)
-
-            if result_unit is None:  # return a plain array
-                return obj.view(np.ndarray)
-            elif obj is self:  # all OK now, so set unit.
-                obj._set_unit(result_unit)
-                return obj
-            else:
-                return obj
+        raise NotImplementedError('__array_wrap__ should not be used '
+                                  'with a context any more, since we require '
+                                  'numpy >=1.13.  Please raise an issue on '
+                                  'https://github.com/astropy/astropy')
 
     def __array_ufunc__(self, function, method, *inputs, **kwargs):
         """Wrap numpy ufuncs, taking care of units.
@@ -1103,15 +929,6 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         """ Division between `Quantity` objects. """
         return self.__rtruediv__(other)
 
-    if not hasattr(np, 'divmod'):  # NUMPY_LT_1_13
-        # In numpy 1.13, divmod goes via a ufunc and thus works without change.
-        def __divmod__(self, other):
-            other_value = self._to_own_unit(other)
-            result_tuple = divmod(self.value, other_value)
-
-            return (self._new_view(result_tuple[0], dimensionless_unscaled),
-                    self._new_view(result_tuple[1]))
-
     def __pow__(self, other):
         if isinstance(other, Fraction):
             # Avoid getting object arrays by raising the value to a Fraction.
@@ -1131,21 +948,13 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         result_array = np.matmul(getattr(other, 'value', other), self.value)
         return self._new_view(result_array, result_unit)
 
-    if NUMPY_LT_1_13:
-        # Pre-numpy 1.13, there was no np.positive ufunc and the copy done
-        # by ndarray did not properly work for scalar quantities.
-        def __pos__(self):
-            """Plus the quantity."""
-            return self.copy()
-
-    else:
-        # In numpy 1.13, a np.positive ufunc exists, but ndarray.__pos__
-        # does not yet go through it, so we still need to define it, to allow
-        # subclasses to override it inside __array_ufunc__.
-        # Presumably, this can eventually be removed.
-        def __pos__(self):
-            """Plus the quantity."""
-            return np.positive(self)
+    # In numpy 1.13, 1.14, a np.positive ufunc exists, but ndarray.__pos__
+    # does not go through it, so we define it, to allow subclasses to override
+    # it inside __array_ufunc__. This can be removed if a solution to
+    # https://github.com/numpy/numpy/issues/9081 is merged.
+    def __pos__(self):
+        """Plus the quantity."""
+        return np.positive(self)
 
     # other overrides of special functions
     def __hash__(self):

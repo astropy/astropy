@@ -11,7 +11,8 @@ import sys
 import os
 from warnings import warn
 
-__minimum_numpy_version__ = '1.10.0'
+__minimum_python_version__ = '3.5'
+__minimum_numpy_version__ = '1.13.0'
 
 
 class UnsupportedPythonError(Exception):
@@ -19,7 +20,6 @@ class UnsupportedPythonError(Exception):
 
 
 # This is the same check as the one at the top of setup.py
-__minimum_python_version__ = '3.5'
 if sys.version_info < tuple((int(val) for val in __minimum_python_version__.split('.'))):
     raise UnsupportedPythonError("Astropy does not support Python < {}".format(__minimum_python_version__))
 

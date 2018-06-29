@@ -527,26 +527,6 @@ class FunctionQuantity(Quantity):
         return self.__class__(self.physical.decompose(bases))
 
     # ↓↓↓ methods overridden to add additional behaviour
-    def __array_prepare__(self, obj, context=None):
-        """Check that the ufunc can deal with a FunctionQuantity."""
-
-        # If no context is set, just return the input
-        if context is None:  # pragma: no cover
-            return obj
-
-        # Find out whether ufunc is supported
-        function = context[0]
-        if not (function in self._supported_ufuncs or
-                all(arg.unit.physical_unit == dimensionless_unscaled
-                    for arg in context[1][:function.nin]
-                    if (hasattr(arg, 'unit') and
-                        hasattr(arg.unit, 'physical_unit')))):
-            raise UnitTypeError("Cannot use function '{0}' with function "
-                                "quantities that are not dimensionless."
-                                .format(context[0].__name__))
-
-        return super().__array_prepare__(obj, context)
-
     def __quantity_subclass__(self, unit):
         if isinstance(unit, FunctionUnitBase):
             return self.__class__, True

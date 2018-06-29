@@ -75,8 +75,7 @@ matrix:
         - stage: Initial tests
           env: PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
 
-        # Try MacOS X. Use a slightly old numpy version to help test against
-        # all supported numpy versions.
+        # Try MacOS X.
         - os: osx
           stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
@@ -95,12 +94,10 @@ matrix:
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
         # versions of Python, we can vary Python and Numpy versions at the same
-        # time. Since we test the latest Numpy as part of the builds with all
-        # optional dependencies below, we can focus on older builds here.
-        # Numpy 1.11 is tested below, 1.12 in the Initial stage test.
+        # time.
         # Run this test using native pytest
         - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.13
                INSTALL_CMD='python setup.py build_ext --inplace'
                PIP_DEPENDENCIES='pytest-astropy'
                TEST_CMD='pytest --open-files --doctest-rst'
@@ -114,8 +111,6 @@ matrix:
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="jplephem"
                LC_CTYPE=C.ascii LC_ALL=C
-               NUMPY_VERSION=1.11
-               MATPLOTLIB_VERSION=1.5
 
         - os: linux
           stage: Initial tests
@@ -124,29 +119,19 @@ matrix:
                SETUP_CMD='test -a "--durations=50"'
           compiler: clang
 
-        # Pinning conda version temporarily to 4.3.21, as some anaconda
-        # packges build with 4.3.27 are faulty and we see this job failing,
-        # while locally there are no issues when the same version of
-        # packages are installed from pip.
-        # TODO: remove the pinning once the issue is solved upstream.
+        # Full tests with coverage checks.
         - os: linux
           env: SETUP_CMD='test --coverage --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="cpp-coveralls objgraph jplephem bintrees"
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
-               MATPLOTLIB_VERSION=2.0 NUMPY_VERSION=1.13
+               MATPLOTLIB_VERSION=2.0
                EVENT_TYPE='push pull_request cron'
-               CONDA_VERSION=4.3.21
 
         # Try pre-release version of Numpy without optional dependencies
         - os: linux
           env: NUMPY_VERSION=prerelease
-               EVENT_TYPE='push pull_request cron'
-
-        # Try older numpy versions
-        - os: linux
-          env: NUMPY_VERSION=1.12
                EVENT_TYPE='push pull_request cron'
 
         # Do a PEP8/pyflakes test with flake8
