@@ -211,8 +211,5 @@ def serialize_method_as(tbl, serialize_method):
         # Teardown (restore) for the context block.  Be sure to do this even
         # if an exception occurred.
         if serialize_method:
-            for col in tbl.itercols():
-                # Go through every column and if it has a serialize_method info
-                # attribute then potentially update it for the duration of the write.
-                if col.info.name in original_sms:
-                    col.info.serialize_method = original_sms[col.info.name]
+            for name, original_sm in original_sms.items():
+                tbl[name].info.serialize_method = original_sm
