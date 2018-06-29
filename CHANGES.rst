@@ -272,6 +272,13 @@ astropy.time
 - Added the ability to use ``local`` as time scale in ``Time`` and
   ``TimeDelta``. [#6487]
 
+- Comparisons, addition, and subtraction of ``Time`` instances with non-time
+  instances will now return `NotImplemented` rather than raise the
+  ``Time``-specific ``OperandTypeError``.  This will generally lead to a
+  regular `TypeError`.  As a result, ``OperandTypeError`` now only occurs if
+  the operation is between ``Time`` instances of incompatible type or scale.
+  [#7584]
+
 astropy.units
 ^^^^^^^^^^^^^
 
