@@ -342,8 +342,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def __array_finalize__(self, obj):
         # Tracer()()
-        print('__array_finalize__ self: {} {} obj: {} {}'
-              .format(type(self), id(self), type(obj), id(obj)))
+        # print('__array_finalize__ self: {} {} obj: {} {}'
+        #       .format(type(self), id(self), type(obj), id(obj)))
         # Obj will be none for direct call to Column() creator
         if obj is None:
             return
@@ -707,8 +707,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         for attr in ('name', 'unit', 'format', 'description'):
             val = getattr(obj, attr, None)
-            if val is not None:
-                print('Setting {} = {}'.format(attr, val))
+            # if val is not None:
+            #     print('Setting {} = {}'.format(attr, val))
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
 

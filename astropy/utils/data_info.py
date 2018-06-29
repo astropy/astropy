@@ -202,13 +202,11 @@ class DataInfo:
     """
     _stats = ['mean', 'std', 'min', 'max']
     attrs_from_parent = set()
-    attr_names = set(['name', 'unit', 'dtype', 'format', 'description'])
+    attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
     _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
     _represent_as_dict_attrs = ()
     _parent_ref = None
-
-    meta = metadata.MetaData()
 
     def __init__(self, bound=False):
         # If bound to a data object instance then create the dict of attributes
