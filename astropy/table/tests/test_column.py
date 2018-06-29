@@ -321,11 +321,13 @@ class TestColumn():
         assert np.all(c1 == ['a', [100, 200], 1, None])
 
     def test_insert_masked(self):
-        c = table.MaskedColumn([0, 1, 2], name='a', mask=[False, True, False])
+        c = table.MaskedColumn([0, 1, 2], name='a', fill_value=9999,
+                               mask=[False, True, False])
 
         # Basic insert
         c1 = c.insert(1, 100)
         assert np.all(c1.data.data == [0, 100, 1, 2])
+        assert c1.fill_value == 9999
         assert np.all(c1.data.mask == [False, False, True, False])
         assert type(c) is type(c1)
 
