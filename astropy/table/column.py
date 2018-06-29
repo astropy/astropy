@@ -710,6 +710,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         for attr in ('name', 'unit', 'format', 'description'):
             val = getattr(obj, attr, None)
+            if attr == 'format':
+                print('HERE in _copy_attrs():', type(obj), id(obj), val)
             # if val is not None:
             #     print('Setting {} = {}'.format(attr, val))
             setattr(self, attr, val)
