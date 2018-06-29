@@ -1250,6 +1250,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         out.parent_table = None
         out.indices = []
         out._copy_attrs(self)
+        out.fill_value = self.fill_value
 
         return out
 

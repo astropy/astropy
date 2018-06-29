@@ -762,6 +762,10 @@ astropy.table
   ``Time``, ``SkyCoord``, ``Latitude``, and ``EarthLocation`` via the
   ASCII ECSV format. [#6181]
 
+- Bug fix for ``MaskedColumn`` insert method, where ``fill_value`` attribute
+  was not being passed along to the copy of the ``MaskedColumn`` that was
+  returned. [#7585]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
