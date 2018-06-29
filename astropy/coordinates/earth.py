@@ -13,7 +13,6 @@ from .. import units as u
 from .. import constants as consts
 from ..units.quantity import QuantityInfoBase
 from ..utils.exceptions import AstropyUserWarning
-from ..utils.compat.numpycompat import NUMPY_LT_1_12
 from .angles import Longitude, Latitude
 from .representation import CartesianRepresentation, CartesianDifferential
 from .errors import UnknownSiteException
@@ -759,14 +758,6 @@ class EarthLocation(u.Quantity):
             equivalencies = self._equivalencies
         new_array = self.unit.to(unit, array_view, equivalencies=equivalencies)
         return new_array.view(self.dtype).reshape(self.shape)
-
-    if NUMPY_LT_1_12:
-        def __repr__(self):
-            # Use the numpy >=1.12 way to format structured arrays.
-            from .representation import _array2string
-            prefixstr = '<' + self.__class__.__name__ + ' '
-            arrstr = _array2string(self.view(np.ndarray), prefix=prefixstr)
-            return '{0}{1}{2:s}>'.format(prefixstr, arrstr, self._unitstr)
 
 
 # need to do this here at the bottom to avoid circular dependencies

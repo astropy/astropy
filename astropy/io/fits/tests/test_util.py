@@ -18,7 +18,6 @@ except ImportError:
 from ....tests.helper import catch_warnings
 from .. import util
 from ..util import ignore_sigint, _rstrip_inplace
-from .._numpy_hacks import realign_dtype
 
 from . import FitsTestCase
 
@@ -41,31 +40,37 @@ class TestUtils(FitsTestCase):
 
     def test_realign_dtype(self):
         """
-        Tests a few corner-cases for the realign_dtype hack.
+        Tests a few corner-cases for numpy dtype creation.
 
-        These are unlikely to come in practice given how this is currently
-        used in astropy.io.fits, but nonetheless tests for bugs that were
-        present in earlier versions of the function.
+        These originally were the reason for having a realign_dtype hack.
         """
 
         dt = np.dtype([('a', np.int32), ('b', np.int16)])
-        dt2 = realign_dtype(dt, [0, 0])
+        names = dt.names
+        formats = [dt.fields[name][0] for name in names]
+        dt2 = np.dtype({'names': names, 'formats': formats,
+                        'offsets': [0, 0]})
         assert dt2.itemsize == 4
 
-        dt2 = realign_dtype(dt, [0, 1])
+        dt2 = np.dtype({'names': names, 'formats': formats,
+                        'offsets': [0, 1]})
         assert dt2.itemsize == 4
 
-        dt2 = realign_dtype(dt, [1, 0])
+        dt2 = np.dtype({'names': names, 'formats': formats,
+                        'offsets': [1, 0]})
         assert dt2.itemsize == 5
 
         dt = np.dtype([('a', np.float64), ('b', np.int8), ('c', np.int8)])
-        dt2 = realign_dtype(dt, [0, 0, 0])
+        names = dt.names
+        formats = [dt.fields[name][0] for name in names]
+        dt2 = np.dtype({'names': names, 'formats': formats,
+                        'offsets': [0, 0, 0]})
         assert dt2.itemsize == 8
-
-        dt2 = realign_dtype(dt, [0, 0, 1])
+        dt2 = np.dtype({'names': names, 'formats': formats,
+                        'offsets': [0, 0, 1]})
         assert dt2.itemsize == 8
-
-        dt2 = realign_dtype(dt, [0, 0, 27])
+        dt2 = np.dtype({'names': names, 'formats': formats,
+                        'offsets': [0, 0, 27]})
         assert dt2.itemsize == 28
 
 

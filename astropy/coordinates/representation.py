@@ -22,7 +22,7 @@ from ..utils import ShapedLikeNDArray, classproperty
 from ..utils import deprecated_attribute
 from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.misc import InheritDocstrings
-from ..utils.compat import NUMPY_LT_1_12, NUMPY_LT_1_14
+from ..utils.compat import NUMPY_LT_1_14
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
@@ -53,31 +53,11 @@ be done using a frame's ``frame_specific_representation_info``.
 
 
 def _array2string(values, prefix=''):
-    # Mimic numpy >=1.12 array2string, in which structured arrays are
-    # typeset taking into account all printoptions.
+    # Work around version differences for array2string.
     kwargs = {'separator': ', ', 'prefix': prefix}
-    if NUMPY_LT_1_12:  # pragma: no cover
-        # Mimic StructureFormat from numpy >=1.12 assuming float-only data.
-        from numpy.core.arrayprint import FloatFormat
-        opts = np.get_printoptions()
-        format_functions = [FloatFormat(np.atleast_1d(values[component]).ravel(),
-                                        precision=opts['precision'],
-                                        suppress_small=opts['suppress'])
-                            for component in values.dtype.names]
-
-        def fmt(x):
-            return '({})'.format(', '.join(format_function(field)
-                                           for field, format_function in
-                                           zip(x, format_functions)))
-        # Before 1.12, structures arrays were set as "numpystr",
-        # so that is the formmater we need to replace.
-        kwargs['formatter'] = {'numpystr': fmt}
-        kwargs['style'] = fmt
-
-    else:
-        kwargs['formatter'] = {}
-        if NUMPY_LT_1_14:  # in 1.14, style is no longer used (and deprecated)
-            kwargs['style'] = repr
+    kwargs['formatter'] = {}
+    if NUMPY_LT_1_14:  # in 1.14, style is no longer used (and deprecated)
+        kwargs['style'] = repr
 
     return np.array2string(values, **kwargs)
 
