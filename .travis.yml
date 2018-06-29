@@ -155,6 +155,10 @@ matrix:
           env: NUMPY_VERSION=dev EVENT_TYPE='cron'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
 
+        - language: python
+          python: "3.7-dev"
+          install: pip install -r pip-requirements matplotlib jplephem Cython>=0.28 jinja2>=2.7 beautifulsoup4 bleach pytest-astropy skyfield mpmath pytest-mpl
+
     allow_failures:
       - os: linux
         env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
