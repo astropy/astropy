@@ -351,6 +351,9 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if callable(super().__array_finalize__):
             super().__array_finalize__(obj)
 
+        if not self.shape:
+            return
+
         # Self was created from template (e.g. obj[slice] or (obj * 2))
         # or viewcast e.g. obj.view(Column).  In either case we want to
         # init Column attributes for self from obj if possible.
