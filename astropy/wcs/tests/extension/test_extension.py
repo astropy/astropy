@@ -11,12 +11,15 @@ import pytest
 def test_wcsapi_extension(tmpdir):
     # Test that we can build a simple C extension with the astropy.wcs C API
 
+    build_dir = tmpdir.mkdir('build').strpath
+    install_dir = tmpdir.mkdir('install').strpath
+
     setup_path = os.path.dirname(__file__)
     astropy_path = os.path.abspath(
         os.path.join(setup_path, '..', '..', '..', '..'))
 
     env = os.environ.copy()
-    paths = [str(tmpdir), astropy_path]
+    paths = [install_dir, astropy_path]
     if env.get('PYTHONPATH'):
         paths.append(env.get('PYTHONPATH'))
     env[str('PYTHONPATH')] = str(os.pathsep.join(paths))
@@ -27,8 +30,9 @@ def test_wcsapi_extension(tmpdir):
     # *unless* the output is redirected.  This bug also did not occur in an
     # interactive session, so it likely had something to do with pytest's
     # output capture
-    p = subprocess.Popen([sys.executable, 'setup.py', 'install',
-                          '--install-lib={0}'.format(tmpdir),
+    p = subprocess.Popen([sys.executable, 'setup.py', 'build',
+                          '--build-base={0}'.format(build_dir), 'install',
+                          '--install-lib={0}'.format(install_dir),
                           astropy_path], cwd=setup_path, env=env,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
