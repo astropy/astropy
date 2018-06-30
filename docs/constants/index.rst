@@ -142,7 +142,9 @@ manager is available, as follows:
     corresponding constant. When using prior versions of the constants,
     quantities should be constructed with constants instead of units.
 
-.. note that if this section gets too long, it should be moved to a separate doc page - see the top of performance.inc for the instructions on how to do that
+.. note that if this section gets too long, it should be moved to a separate
+   doc page - see the top of performance.inc for the instructions on how to do
+   that
 .. include:: performance.inc
 
 Reference/API

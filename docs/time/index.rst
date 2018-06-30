@@ -1278,7 +1278,9 @@ for example, may be more convenient to use to create `~datetime.tzinfo`
 objects used to specify timezones rather than the `~astropy.time.TimezoneInfo`
 object.
 
-.. note that if this section gets too long, it should be moved to a separate doc page - see the top of performance.inc for the instructions on how to do that
+.. note that if this section gets too long, it should be moved to a separate 
+   doc page - see the top of performance.inc for the instructions on how to do 
+   that
 .. include:: performance.inc
 
 Reference/API
