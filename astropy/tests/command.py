@@ -5,11 +5,12 @@ Implements the wrapper for the Astropy test runner in the form of the
 
 
 import os
-import glob
+import stat
 import shutil
 import subprocess
 import sys
 import tempfile
+from distutils import log
 from contextlib import contextmanager
 
 from setuptools import Command
@@ -111,7 +112,9 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
          'in the documentation for tempfile.mkstemp.'),
         ('verbose-install', None,
          'Turn on terminal output from the installation of astropy in a '
-         'temporary folder.')
+         'temporary folder.'),
+        ('readonly', None,
+         'Make the temporary installation being tested read-only.')
     ]
 
     package_name = ''
@@ -134,6 +137,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         self.repeat = None
         self.temp_root = None
         self.verbose_install = False
+        self.readonly = False
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -215,6 +219,12 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         if os.path.exists('.eggs'):
             shutil.copytree('.eggs', os.path.join(self.testing_path, '.eggs'))
 
+        # This option exists so that we can make sure that the tests don't
+        # write to an installed location.
+        if self.readonly:
+            log.info('changing permissions of temporary installation to read-only')
+            self._change_permissions_testing_path(writable=False)
+
         # Run everything in a try: finally: so that the tmp dir gets deleted.
         try:
             # Construct this modules testing command
@@ -236,6 +246,8 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             retcode = testproc.wait()
         finally:
             # Remove temporary directory
+            if self.readonly:
+                self._change_permissions_testing_path(writable=True)
             shutil.rmtree(self.tmp_dir)
 
         raise SystemExit(retcode)
@@ -256,6 +268,8 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         tmp_dir = tempfile.mkdtemp(prefix=self.package_name + '-test-',
                                    dir=self.temp_root)
         self.tmp_dir = os.path.realpath(tmp_dir)
+
+        log.info('installing to temporary directory: {0}'.format(self.tmp_dir))
 
         # We now install the package to the temporary directory. We do this
         # rather than build and copy because this will ensure that e.g. entry
@@ -284,6 +298,17 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             self.docs_path = new_docs_path
 
         shutil.copy('setup.cfg', self.testing_path)
+
+    def _change_permissions_testing_path(self, writable=False):
+        if writable:
+            basic_flags = stat.S_IRUSR | stat.S_IWUSR
+        else:
+            basic_flags = stat.S_IRUSR
+        for root, dirs, files in os.walk(self.testing_path):
+            for dirname in dirs:
+                os.chmod(os.path.join(root, dirname), basic_flags | stat.S_IXUSR)
+            for filename in files:
+                os.chmod(os.path.join(root, filename), basic_flags)
 
     def _generate_coverage_commands(self):
         """
