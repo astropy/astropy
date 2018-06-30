@@ -245,6 +245,20 @@ Similarly, this feature can be invoked from Python::
     >>> import astropy
     >>> astropy.test(parallel=4)
 
+Running tests to catch permissions errors
+-----------------------------------------
+
+It is possible to write code or tests that write into the source directory. This
+is not desirable because Python packages can be (and frequestly are) installed
+in locations where the user may not have write permissions.  To check for these
+cases, the test runner has an option to have the test-runner
+directory be set as read-only to ensure the tests are not writing to that
+location.  This mode can be triggered by running the tests like so::
+
+    python setup.py test --readonly
+
+
+
 Writing tests
 *************
 
