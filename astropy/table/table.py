@@ -2533,16 +2533,19 @@ class Table:
         ----------
         format : str
             File format specifier.
-        *args
+        *args : tuple, optional
             Positional arguments passed through to data reader. If supplied the
             first argument is the input filename.
-        **kwargs
+        **kwargs : dict, optional
             Keyword arguments passed through to data reader.
 
+        Returns
         -------
         out : `Table`
             Table corresponding to file contents
 
+        Notes
+        -----
         """
         out = io_registry.read(cls, *args, **kwargs)
         # For some readers (e.g., ascii.ecsv), the returned `out` class is not
@@ -2577,11 +2580,14 @@ class Table:
             File format specifier.
         serialize_method : str, dict, optional
             Serialization method specifier for columns.
-        *args
+        *args : tuple, optional
             Positional arguments passed through to data writer. If supplied the
             first argument is the output filename.
-        **kwargs
+        **kwargs : dict, optional
             Keyword arguments passed through to data writer.
+
+        Notes
+        -----
         """
         serialize_method = kwargs.pop('serialize_method', None)
         with serialize_method_as(self, serialize_method):
