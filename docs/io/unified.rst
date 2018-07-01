@@ -381,7 +381,7 @@ The FITS standard has a few limitations:
   of later unmasking the values.
 
 Astropy provides a work-around for this limitation that users can choose to
-use.  The key part using the ``serialize_method='data_mask'`` keyword argument
+use.  The key part is to use the ``serialize_method='data_mask'`` keyword argument
 when writing the table.  This tells the FITS writer to split each masked
 column into two separate columns, one for the data and one for the mask.
 When it gets read back that process is reversed and the two columns are

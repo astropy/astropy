@@ -36,7 +36,27 @@ class SerializedColumn(dict):
 
 def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
                                exclude_classes=()):
-    """Convert a mixin column to a plain columns or a set of mixin columns."""
+    """Carry out processing needed to serialize ``col`` in an output table
+    consisting purely of plain ``Column`` or ``MaskedColumn`` columns.  This
+    relies on the object determine if any transformation is required and may
+    depend on the ``serialize_method`` and ``serialize_context`` context
+    variables.  For instance a ``MaskedColumn`` may be stored directly to
+    FITS, but can also be serialized as separate data and mask columns.
+
+    This function builds up a list of plain columns in the ``new_cols`` arg (which
+    is passed as a persistent list).  This includes both plain columns from the
+    original table and plain columns that represent data from serialized columns
+    (e.g. ``jd1`` and ``jd2`` arrays from a ``Time`` column).
+
+    For serialized columns the ``mixin_cols`` dict is updated with required
+    attributes and information to subsequently reconstruct the table.
+
+    Table mixin columns are always serialized and get represented by one
+    or more data columns.  In earlier versions of the code *only* mixin
+    columns were serialized, hence the use within this code of "mixin"
+    to imply serialization.  Starting with version 3.1, the non-mixin
+    ``MaskedColumn`` can also be serialized.
+    """
     obj_attrs = col.info._represent_as_dict()
     ordered_keys = col.info._represent_as_dict_attrs
 

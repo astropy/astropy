@@ -59,6 +59,7 @@ astropy.io.ascii
 - Emit a warning when reading an ECSV file without specifying the ``format``
   and without PyYAML installed.  Previously this silently fell through to
   parsing as a basic format file and the file metadata was lost. [#7580]
+
 - Optionally allow writing masked columns to ECSV with the mask explicitly
   specified as a separate column instead of marking masked elements with ""
   (empty string).  This allows handling the case of a masked string column
@@ -157,6 +158,7 @@ astropy.visualization
 
 - Add support for setting ``set_separator(None)`` in WCSAxes to use default
   separators. [#7570]
+
 - Added two keyword argument options to ``CoordinateHelper.set_format_unit``: ``decimal`` can
   be used to specify whether to use decimal formatting for the labels (by default this is
   False for degrees and hours and True otherwise), and ``show_decimal_unit`` can be used to
