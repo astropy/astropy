@@ -505,6 +505,10 @@ astropy.coordinates
 
 - Refactored ``SkyCoord`` initializer to improve performance and code clarity.
   [#7958]
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Sped up initialization of Longitude by ~40%. [#7616]
 
 astropy.units
 ^^^^^^^^^^^^^
