@@ -764,6 +764,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     def representation(self, value):
         self.representation_type = value
 
+    _representation_info_cache = None
+
     @classmethod
     def _get_representation_info(cls):
 
@@ -771,7 +773,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         # without units, which are deprecated and will be removed.  This can be
         # moved into the representation_info property at that time.
 
-        if hasattr(cls, '_representation_info_cache'):
+        if cls._representation_info_cache is not None:
             return cls._representation_info_cache
 
         repr_attrs = {}
