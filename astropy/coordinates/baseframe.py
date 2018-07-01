@@ -808,7 +808,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         return repr_attrs
 
-    @property
+    @lazyproperty
     def representation_info(self):
         """
         A dictionary with the information of what attribute names for this frame
