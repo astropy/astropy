@@ -650,7 +650,7 @@ class Longitude(Angle):
 
     @wrap_angle.setter
     def wrap_angle(self, value):
-        self._wrap_angle = Angle(value)
+        self._wrap_angle = Angle(value, copy=False)
         self._wrap_internal()
 
     def __array_finalize__(self, obj):
