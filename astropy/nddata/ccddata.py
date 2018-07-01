@@ -500,7 +500,7 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
         # the primary header is empty.
         if hdu == 0 and hdus[hdu].data is None:
             for i in range(len(hdus)):
-                if hdus.fileinfo(i)['datSpan'] > 0:
+                if hdus.info(hdu)[i][3] == 'ImageHDU' and hdus.fileinfo(i)['datSpan'] > 0:
                     hdu = i
                     comb_hdr = hdus[hdu].header.copy()
                     # Add header values from the primary header that aren't
