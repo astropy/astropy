@@ -317,17 +317,17 @@ def online_help(query):
     webbrowser.open(url)
 
 
-__dir__ = ['__version__', '__githash__', '__minimum_numpy_version__',
-           '__bibtex__', 'test', 'log', 'find_api_page', 'online_help',
-           'online_docs_root', 'conf']
+__dir_inc__ = ['__version__', '__githash__', '__minimum_numpy_version__',
+               '__bibtex__', 'test', 'log', 'find_api_page', 'online_help',
+               'online_docs_root', 'conf']
 
 
 from types import ModuleType as __module_type__
-# Clean up top-level namespace--delete everything that isn't in __dir__
+# Clean up top-level namespace--delete everything that isn't in __dir_inc__
 # or is a magic attribute, and that isn't a submodule of this package
 for varname in dir():
     if not ((varname.startswith('__') and varname.endswith('__')) or
-            varname in __dir__ or
+            varname in __dir_inc__ or
             (varname[0] != '_' and
                 isinstance(locals()[varname], __module_type__) and
                 locals()[varname].__name__.startswith(__name__ + '.'))):

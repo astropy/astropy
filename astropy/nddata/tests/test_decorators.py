@@ -189,10 +189,9 @@ def test_wrap_preserve_signature_docstring():
         signature = inspect.formatargspec(
             *inspect.getargspec(wrapped_function_6))
     else:
-        signature = inspect.formatargspec(
-            *inspect.getfullargspec(wrapped_function_6))
+        signature = inspect.signature(wrapped_function_6)
 
-    assert signature == "(data, wcs=None, unit=None)"
+    assert str(signature) == "(data, wcs=None, unit=None)"
 
 
 def test_setup_failures1():
