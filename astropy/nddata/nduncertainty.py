@@ -754,7 +754,6 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
         parent will be returned.
         """
         if isinstance(value, NDDataBase):
-            # warning("using square of the parent")
             self._unit = value.unit**2
         else:
             self._unit = value

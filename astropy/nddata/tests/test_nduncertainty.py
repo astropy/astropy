@@ -6,6 +6,7 @@ from numpy.testing import assert_array_equal
 
 from ..nduncertainty import (StdDevUncertainty,
                              VarianceUncertainty,
+                             InverseVariance,
                              NDUncertainty,
                              IncompatibleUncertaintiesException,
                              UnknownUncertainty)
@@ -170,6 +171,8 @@ def test_uncertainty_type():
     assert std_uncert.uncertainty_type == 'std'
     var_uncert = VarianceUncertainty([10, 2])
     assert var_uncert.uncertainty_type == 'var'
+    ivar_uncert = InverseVariance([10, 2])
+    assert ivar_uncert.uncertainty_type == 'ivar'
 
 
 def test_uncertainty_correlated():
