@@ -59,13 +59,11 @@ TEXT_RE = re.compile(r'^[rwa]((t?\+?)|(\+?t?))$')
 # should be clarified that 'denywrite' mode is not directly analogous to the
 # use of that flag; it was just taken, for lack of anything better, as a name
 # that means something like "read only" but isn't readonly.
-MEMMAP_MODES = {'readonly': 'c', 'copyonwrite': 'c', 'update': 'r+',
-                'append': 'c', 'denywrite': 'r'}
-
-# Translate the numpy.memmap modes 'c', 'r', 'r+' to the appropriate
-# mmap modes.
-MMAP_MODES = {'r': mmap.ACCESS_READ, 'r+': mmap.ACCESS_WRITE,
-              'c': mmap.ACCESS_COPY}
+MEMMAP_MODES = {'readonly': mmap.ACCESS_COPY,
+                'copyonwrite': mmap.ACCESS_COPY,
+                'update': mmap.ACCESS_WRITE,
+                'append': mmap.ACCESS_COPY,
+                'denywrite': mmap.ACCESS_READ}
 
 # TODO: Eventually raise a warning, and maybe even later disable the use of
 # 'copyonwrite' and 'denywrite' modes unless memmap=True.  For now, however,
@@ -295,7 +293,7 @@ class _File:
                     # Instantiate Memmap array of the file offset at 0 (so we
                     # can return slices of it to offset anywhere else into the
                     # file)
-                    access_mode = MMAP_MODES[MEMMAP_MODES[self.mode]]
+                    access_mode = MEMMAP_MODES[self.mode]
 
                     # For reasons unknown the file needs to point to (near)
                     # the beginning or end of the file. No idea how close to
