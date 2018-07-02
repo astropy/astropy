@@ -519,7 +519,7 @@ class Time(ShapedLikeNDArray):
 
         for time, formatted in iterator:
             time_tuple = strptime(to_string(time), format_string)
-            formatted[...] = '{}-{}-{}T{}:{}:{}'.format(*time_tuple)
+            formatted[...] = '{:04}-{}-{}T{}:{}:{}'.format(*time_tuple)
 
         format = kwargs.pop('format', None)
         out = cls(*iterator.operands[1:], format='isot', **kwargs)
