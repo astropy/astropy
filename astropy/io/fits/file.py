@@ -18,7 +18,6 @@ import re
 from functools import reduce
 
 import numpy as np
-from numpy import memmap as Memmap
 
 from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
@@ -60,8 +59,11 @@ TEXT_RE = re.compile(r'^[rwa]((t?\+?)|(\+?t?))$')
 # should be clarified that 'denywrite' mode is not directly analogous to the
 # use of that flag; it was just taken, for lack of anything better, as a name
 # that means something like "read only" but isn't readonly.
-MEMMAP_MODES = {'readonly': 'c', 'copyonwrite': 'c', 'update': 'r+',
-                'append': 'c', 'denywrite': 'r'}
+MEMMAP_MODES = {'readonly': mmap.ACCESS_COPY,
+                'copyonwrite': mmap.ACCESS_COPY,
+                'update': mmap.ACCESS_WRITE,
+                'append': mmap.ACCESS_COPY,
+                'denywrite': mmap.ACCESS_READ}
 
 # TODO: Eventually raise a warning, and maybe even later disable the use of
 # 'copyonwrite' and 'denywrite' modes unless memmap=True.  For now, however,
@@ -291,20 +293,20 @@ class _File:
                     # Instantiate Memmap array of the file offset at 0 (so we
                     # can return slices of it to offset anywhere else into the
                     # file)
-                    memmap = Memmap(self._file, mode=MEMMAP_MODES[self.mode],
-                                    dtype=np.uint8)
+                    access_mode = MEMMAP_MODES[self.mode]
 
-                    # Now we immediately discard the memmap array; we are
-                    # really just using it as a factory function to instantiate
-                    # the mmap object in a convenient way (may later do away
-                    # with this usage)
-                    self._mmap = memmap.base
-
-                    # Prevent dorking with self._memmap._mmap by memmap.__del__
-                    # in Numpy 1.6 (see
-                    # https://github.com/numpy/numpy/commit/dcc355a0b179387eeba10c95baf2e1eb21d417c7)
-                    memmap._mmap = None
-                    del memmap
+                    # For reasons unknown the file needs to point to (near)
+                    # the beginning or end of the file. No idea how close to
+                    # the beginning or end.
+                    # If I had to guess there is some bug in the mmap module
+                    # of CPython or perhaps in microsoft's underlying code
+                    # for generating the mmap.
+                    self._file.seek(0, 0)
+                    # This would also work:
+                    # self._file.seek(0, 2)   # moves to the end
+                    self._mmap = mmap.mmap(self._file.fileno(), 0,
+                                           access=access_mode,
+                                           offset=0)
 
                 return np.ndarray(shape=shape, dtype=dtype, offset=offset,
                                   buffer=self._mmap)
