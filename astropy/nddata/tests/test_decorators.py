@@ -181,10 +181,9 @@ def test_wrap_preserve_signature_docstring():
     if wrapped_function_6.__doc__ is not None:
         assert wrapped_function_6.__doc__.strip() == "An awesome function"
 
-    signature = inspect.formatargspec(
-        *inspect.getfullargspec(wrapped_function_6))
+    signature = inspect.signature(wrapped_function_6)
 
-    assert signature == "(data, wcs=None, unit=None)"
+    assert str(signature) == "(data, wcs=None, unit=None)"
 
 
 def test_setup_failures1():
