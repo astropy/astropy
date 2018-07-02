@@ -9,7 +9,6 @@ from copy import deepcopy
 import weakref
 
 
-
 # from ..utils.compat import ignored
 from .. import log
 from ..units import Unit, Quantity
@@ -196,10 +195,8 @@ class NDUncertainty(metaclass=ABCMeta):
         # with empty parent (Value=None)
         if value is not None and self.unit is None:
             if self.parent_nddata.unit is None:
-                #warning("No units specified")
                 self.unit = None
             else:
-                #warning("Setting units from that of parent")
                 self.unit = self.parent_nddata
 
     def __repr__(self):
@@ -427,13 +424,15 @@ class _VariancePropagationMixin:
         else:
             correlation_sign = 1
 
+        result_unit_sq = result_data.unit ** 2
         if other_uncert.array is not None:
-            # Formula: sigma = dB
-            if other_uncert.unit is not None and (result_data.unit**2 != to_variance(other_uncert.unit)):
+            # Formula: sigma**2 = dB
+            if (other_uncert.unit is not None and
+                result_unit_sq != to_variance(other_uncert.unit)):
                 # If the other uncertainty has a unit and this unit differs
                 # from the unit of the result convert it to the results unit
                 other = to_variance(other_uncert.array *
-                                    other_uncert.unit).to(result_data.unit**2).value
+                                    other_uncert.unit).to(result_unit_sq).value
             else:
                 other = to_variance(other_uncert.array)
         else:
@@ -445,7 +444,7 @@ class _VariancePropagationMixin:
             if self.unit is not None and to_variance(self.unit) != self.parent_nddata.unit**2:
                 # If the uncertainty has a different unit than the result we
                 # need to convert it to the results unit.
-                this = to_variance(self.array * self.unit).to(result_data.unit**2).value
+                this = to_variance(self.array * self.unit).to(result_unit_sq).value
             else:
                 this = to_variance(self.array)
         else:
@@ -533,7 +532,7 @@ class _VariancePropagationMixin:
                     (1 * self.parent_nddata.unit)**2).value
             else:
                 d_a = to_variance(self.array)
-            # Formula: sigma**2 = d_a * |B|**2
+            # Formula: sigma**2 = |B|**2 * d_a
             left = np.abs(other_uncert.parent_nddata.data**2 * d_a)
         else:
             left = 0
@@ -624,7 +623,6 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
         The unit will not be displayed.
     """
 
-
     @NDUncertainty.unit.setter
     def unit(self, value):
         """
@@ -632,7 +630,6 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
         parent will be returned.
         """
         if isinstance(value, NDDataBase):
-            # warning("using square of the parent")
             self._unit = value.unit
         else:
             self._unit = value
@@ -662,27 +659,27 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
     def _propagate_add(self, other_uncert, result_data, correlation):
         return super()._propagate_add_sub(other_uncert, result_data,
                                           correlation, subtract=False,
-                                          to_variance=lambda x: x**2,
+                                          to_variance=np.square,
                                           from_variance=np.sqrt)
 
     def _propagate_subtract(self, other_uncert, result_data, correlation):
         return super()._propagate_add_sub(other_uncert, result_data,
                                           correlation, subtract=True,
-                                          to_variance=lambda x: x**2,
+                                          to_variance=np.square,
                                           from_variance=np.sqrt)
 
     def _propagate_multiply(self, other_uncert, result_data, correlation):
         return super()._propagate_multiply_divide(other_uncert,
                                                   result_data, correlation,
                                                   divide=False,
-                                                  to_variance=lambda x: x**2,
+                                                  to_variance=np.square,
                                                   from_variance=np.sqrt)
 
     def _propagate_divide(self, other_uncert, result_data, correlation):
         return super()._propagate_multiply_divide(other_uncert,
                                                   result_data, correlation,
                                                   divide=True,
-                                                  to_variance=lambda x: x**2,
+                                                  to_variance=np.square,
                                                   from_variance=np.sqrt)
 
 
@@ -695,7 +692,7 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
     ``subtraction``, ``multiplication`` and ``division`` with other instances
     of `VarianceUncertainty`. The class can handle if the uncertainty has a
     unit that differs from (but is convertible to) the parents `NDData` unit.
-    The unit of the resulting uncertainty will have the same unit as the
+    The unit of the resulting uncertainty will be the square of the unit of the
     resulting data. Also support for correlation is possible but requires the
     correlation as input. It cannot handle correlation determination itself.
 
@@ -793,11 +790,12 @@ class InverseVariance(_VariancePropagationMixin, NDUncertainty):
 
     This class implements uncertainty propagation for ``addition``,
     ``subtraction``, ``multiplication`` and ``division`` with other instances
-    of `InverseVariance`. The class can handle if the uncertainty has a
-    unit that differs from (but is convertible to) the parents `NDData` unit.
-    The unit of the resulting uncertainty will have the same unit as the
-    resulting data. Also support for correlation is possible but requires the
-    correlation as input. It cannot handle correlation determination itself.
+    of `InverseVariance`. The class can handle if the uncertainty has a unit
+    that differs from (but is convertible to) the parents `NDData` unit. The
+    unit of the resulting uncertainty will the inverse square of the unit of
+    the resulting data. Also support for correlation is possible but requires
+    the correlation as input. It cannot handle correlation determination
+    itself.
 
     Parameters
     ----------
@@ -858,7 +856,7 @@ class InverseVariance(_VariancePropagationMixin, NDUncertainty):
         """
         if isinstance(value, NDDataBase):
             # warning("using square of the parent")
-            self._unit = 1.0/value.unit**2
+            self._unit = 1.0 / value.unit ** 2
         else:
             self._unit = value
 
