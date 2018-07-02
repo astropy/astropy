@@ -169,7 +169,11 @@ _warnings_to_ignore_by_pyver = {
         # https://github.com/astropy/astropy/pull/7372
         r"Importing from numpy\.testing\.decorators is deprecated, import from numpy\.testing instead\.",
         # Deprecation warnings ahead of pytest 4.x
-        r"MarkInfo objects are deprecated"]),
+        r"MarkInfo objects are deprecated",
+        # Deprecation warning for collections.abc, fixed in Astropy but still
+        # used in lxml, and maybe others
+        r"Using or importing the ABCs from 'collections'",
+    ]),
 }
 
 
