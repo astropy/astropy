@@ -7,7 +7,7 @@ misc.py:
 """
 
 
-import collections
+import collections.abc
 import itertools
 import operator
 
@@ -95,10 +95,10 @@ def sortmore(*args, **kw):
     if globalkey is None:
         globalkey = lambda *x: 0
 
-    if not isinstance(globalkey, collections.Callable):
+    if not isinstance(globalkey, collections.abc.Callable):
         raise ValueError('globalkey needs to be callable')
 
-    if isinstance(key, collections.Callable):
+    if isinstance(key, collections.abc.Callable):
         k = lambda x: (globalkey(*x), key(x[0]))
     elif isinstance(key, tuple):
         key = (k if k else lambda x: 0 for k in key)
