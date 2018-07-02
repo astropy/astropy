@@ -691,6 +691,62 @@ class TimeDatetime(TimeUnique):
     value = property(to_value)
 
 
+class TimeYMDHMS(TimeUnique):
+    """
+    ymdhms: A Time format to represent Time as year, month, day, hour,
+    minute, second (thus the name ymdhms)
+    Example::
+
+      >>> from astropy.time import Time
+      >>> t = Time({'year': [2015, 2016], 'minute': [1, 2]}, scale='utc')
+      >>> t.iso
+      array(['2015-01-01 00:01:00.000', '2016-01-01 00:02:00.000'], dtype='<U23')
+      >>> t.ymdhms['year']
+      array([[2015.],
+       [2016.]])
+    """
+    name = 'ymdhms'
+
+    def _check_val_type(self, val1, val2):
+        # Note: don't care about val2 for this class
+        if not all(isinstance(val, dict) for val in val1.flat):
+            raise TypeError('Input values for {0} class must be '
+                            'dict objects'.format(self.name))
+        return val1, None
+
+    def set_jds(self, val1, val2):
+        times_dict = val1.item()
+        jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
+                              times_dict.get('year', 0),
+                              times_dict.get('month', 1),
+                              times_dict.get('day', 1),
+                              times_dict.get('hour', 0),
+                              times_dict.get('minute', 0),
+                              times_dict.get('second', 0))
+        self.jd1, self.jd2 = day_frac(jd1, jd2)
+
+    @property
+    def value(self):
+        scale = self.scale.upper().encode('ascii')
+        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, self.precision,
+                                           self.jd1, self.jd2_filled)
+        ihrs = ihmsfs['h']
+        imins = ihmsfs['m']
+        isecs = ihmsfs['s']
+        ifracs = ihmsfs['f']
+        out = np.array([iys, ims, ids, ihrs, imins,
+                        isecs + ifracs * 10**(-self.precision)])\
+            .transpose().copy().view([
+                ('year', 'f8'),
+                ('month', 'f8'),
+                ('day', 'f8'),
+                ('hour', 'f8'),
+                ('minute', 'f8'),
+                ('second', 'f8'),
+            ])
+        return self.mask_if_needed(out)
+
+
 class TimezoneInfo(datetime.tzinfo):
     """
     Subclass of the `~datetime.tzinfo` object, used in the

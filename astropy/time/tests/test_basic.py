@@ -1735,3 +1735,107 @@ def test_get_time_fmt_exception_messages():
         Time(200, format='iso')
     assert ('Input values did not match the format class iso:' + os.linesep +
             'TypeError: Input values for iso class must be strings') == str(err.value)
+
+
+def test_ymdhms_init():
+    time = Time('2001-01-01T00:00:00')
+
+    time_dict = {
+        'year': 2001,
+    }
+
+    t1 = Time(time_dict, format='ymdhms')
+    assert t1 == time
+
+    time_dict['month'] = 1
+    t2 = Time(time_dict, format='ymdhms')
+    assert t2 == time
+
+    time_dict['month'] = 1
+    t2 = Time(time_dict, format='ymdhms')
+    assert t2 == time
+
+    time_dict['day'] = 1
+    t3 = Time(time_dict, format='ymdhms')
+    assert t3 == time
+
+    time_dict['hour'] = 0
+    t4 = Time(time_dict, format='ymdhms')
+    assert t4 == time
+
+
+def test_ymdhms_init2():
+    time_dict = {
+        'year': 2001,
+        'month': 11,
+        'day': 14,
+    }
+
+    assert Time(time_dict, format='ymdhms') == Time('2001-11-14')
+
+
+def test_ymdhms_init_non_scalar():
+    times = {
+        'year': [2001, 2002, 2003],
+    }
+    times_str = [
+        '2001-01-01T00:00:00',
+        '2002-01-01T00:00:00',
+        '2003-01-01T00:00:00',
+    ]
+
+    assert all(Time(times, format='ymdhms') == Time(times_str))
+
+
+def test_ymdhms_leapsecond():
+    time_dict = {
+        'year': 2016,
+        'month': 12,
+        'day': 31,
+        'hour': 23,
+        'minute': 59,
+        'second': 60
+    }
+
+    assert Time(time_dict) == Time('2016-12-31T23:59:60')
+
+
+def test_ymdhms_keys():
+    time_dict = {
+        'year': 2016,
+        'month': 12,
+        'day': 31,
+        'hour': 23,
+        'minute': 59,
+        'second': 60
+    }
+
+    time = Time(time_dict, format='ymdhms')
+    assert time.value['year'][0] == 2016
+    assert time.value['month'][0] == 12
+    assert time.value['day'][0] == 31
+    assert time.value['hour'][0] == 23
+    assert time.value['minute'][0] == 59
+    assert time.value['second'][0] == 60
+
+
+def test_ymdhms_precision():
+    time_dict = {
+        'year': 2016,
+        'month': 12,
+        'day': 31,
+        'hour': 23,
+        'minute': 59,
+        'second': 56.123123123,
+    }
+
+    time = Time(time_dict, format='ymdhms')
+
+    assert time.value['second'][0] == 56.123
+
+    time.precision = 6
+    assert time.value['second'][0] == 56.123123
+
+    time.precision = 9
+    assert time.value['second'][0] == 56.123123123
+
