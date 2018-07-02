@@ -150,7 +150,7 @@ _warnings_to_ignore_by_pyver = {
         # py.test reads files with the 'U' flag, which is
         # deprecated.
         r"'U' mode is deprecated",
-        # inspect raises this slightly different warning on Python 3.6.
+        # inspect raises this slightly different warning on Python 3.6-3.7.
         # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
         r"inspect\.getargspec\(\) is deprecated, use "
         r"inspect\.signature\(\) or inspect\.getfullargspec\(\)",
@@ -162,7 +162,7 @@ _warnings_to_ignore_by_pyver = {
         # py.test reads files with the 'U' flag, which is
         # deprecated.
         r"'U' mode is deprecated",
-        # inspect raises this slightly different warning on Python 3.6.
+        # inspect raises this slightly different warning on Python 3.6-3.7.
         # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
         r"inspect\.getargspec\(\) is deprecated, use "
         r"inspect\.signature\(\) or inspect\.getfullargspec\(\)",
