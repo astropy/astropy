@@ -653,14 +653,20 @@ By default, ``serialize_method['fits']`` in a Time column ``info`` is equal to
      Astropy Time allows for many other formats like ``unix`` or ``cxcsec``
      for representing the values.
 
+     Hence, the ``format`` attribute of Time is not stored.  After reading from FITS
+     the user must set the ``format`` as desired.
+
    * LOCATION
 
-     In Astropy Time, location can be an array which is broadcastable to the
-     Time values. In the FITS standard, location is a scalar expressed via
-     keywords.
+     In the FITS standard, the reference position for a time coordinate is a scalar
+     expressed via keywords. However, vectorized reference position or location can
+     be supported by the `Green Bank Keyword Convention
+     <https://fits.gsfc.nasa.gov/registry/greenbank.html/>`_ which is a Registered FITS
+     Convention. In Astropy Time, location can be an array which is broadcastable to the
+     Time values.
 
-   Hence the ``format`` attribute and a vector ``location`` attribute are not
-   stored.  After reading from FITS the user must set the ``format`` as desired.
+     Hence, vectorized ``location`` attribute of Time is stored and read following this
+     convention.
 
 .. doctest-skip-all
 
