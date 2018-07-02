@@ -48,17 +48,18 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         ``astropy.io.fits.Conf.use_memmap``.
 
     save_backup : bool, optional
-        If the file was opened in update or append mode, this ensures that a
-        backup of the original file is saved before any changes are flushed.
-        The backup has the same name as the original file with ".bak" appended.
-        If "file.bak" already exists then "file.bak.1" is used, and so on.
+        If the file was opened in update or append mode, this ensures that
+        a backup of the original file is saved before any changes are flushed
+        (default: False).  The backup has the same name as the original file
+        with ".bak" appended.  If "file.bak" already exists then "file.bak.1"
+        is used, and so on.
 
     cache : bool, optional
         If the file name is a URL, `~astropy.utils.data.download_file` is used
         to open the file.  This specifies whether or not to save the file
         locally in Astropy's download cache (default: `True`).
 
-    lazy_load_hdus : bool, option
+    lazy_load_hdus : bool, optional
         By default `~astropy.io.fits.open` will not read all the HDUs and
         headers in a FITS file immediately upon opening.  This is an
         optimization especially useful for large files, as FITS has no way
@@ -75,48 +76,48 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
 
         .. versionadded:: 1.3
 
-    uint : bool
+    uint : bool, optional
         Interpret signed integer data where ``BZERO`` is the central value and
         ``BSCALE == 1`` as unsigned integer data.  For example, ``int16`` data
         with ``BZERO = 32768`` and ``BSCALE = 1`` would be treated as
         ``uint16`` data.  This is enabled by default so that the
         pseudo-unsigned integer convention is assumed.
 
-    ignore_missing_end : bool
+    ignore_missing_end : bool, optional
         Do not issue an exception when opening a file that is missing an
-        ``END`` card in the last header.
+        ``END`` card in the last header (default: False).
 
-    checksum : bool, str
+    checksum : bool, str, optional
         If `True`, verifies that both ``DATASUM`` and ``CHECKSUM`` card values
         (when present in the HDU header) match the header and data of all HDU's
-        in the file.  Updates to a file that already has a checksum will
-        preserve and update the existing checksums unless this argument is
-        given a value of 'remove', in which case the CHECKSUM and DATASUM
-        values are not checked, and are removed when saving changes to the
-        file.
+        in the file (default: False).  Updates to a file that already has
+        a checksum will preserve and update the existing checksums unless this
+        argument is given a value of 'remove', in which case the CHECKSUM and
+        DATASUM values are not checked, and are removed when saving changes to
+        the file.
 
-    disable_image_compression : bool
+    disable_image_compression : bool, optional
         If `True`, treats compressed image HDU's like normal binary table
-        HDU's.
+        HDU's (default: False).
 
-    do_not_scale_image_data : bool
+    do_not_scale_image_data : bool, optional
         If `True`, image data is not scaled using BSCALE/BZERO values
-        when read.
+        when read (default: False).
 
-    character_as_bytes : bool
+    character_as_bytes : bool, optional
         Whether to return bytes for string columns. By default this is `False`
         and (unicode) strings are returned, but this does not respect memory
         mapping and loads the whole column in memory when accessed.
 
-    ignore_blank : bool
-        If `True`, the BLANK keyword is ignored if present.
+    ignore_blank : bool, optional
+        If `True`, the BLANK keyword is ignored if present (default: False).
 
-    scale_back : bool
-        If `True`, when saving changes to a file that contained scaled
-        image data, restore the data to the original type and reapply the
-        original BSCALE/BZERO values.  This could lead to loss of accuracy
-        if scaling back to integer values after performing floating point
-        operations on the data.
+    scale_back : bool, optional
+        If `True`, when saving changes to a file that contained scaled image
+        data, restore the data to the original type and reapply the original
+        BSCALE/BZERO values (default: False).  This could lead to loss of
+        accuracy if scaling back to integer values after performing floating
+        point operations on the data.
 
     Returns
     -------
