@@ -301,7 +301,8 @@ class TestFitsTime(FitsTestCase):
         assert isinstance(tm['datetime'], Time)
         assert tm['datetime'].location.lon.value == 0
         assert tm['datetime'].location.lat.value == 0
-        assert tm['datetime'].location.height.value == 0
+        assert np.isclose(tm['datetime'].location.height.value, 0,
+                          rtol=0, atol=1e-9)
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_io_time_read_fits_scale(self, table_types):
