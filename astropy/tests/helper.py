@@ -150,14 +150,31 @@ _warnings_to_ignore_by_pyver = {
         # py.test reads files with the 'U' flag, which is
         # deprecated.
         r"'U' mode is deprecated",
-        # inspect raises this slightly different warning on Python 3.6.
+        # inspect raises this slightly different warning on Python 3.6-3.7.
         # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
         r"inspect\.getargspec\(\) is deprecated, use "
         r"inspect\.signature\(\) or inspect\.getfullargspec\(\)",
         # https://github.com/astropy/astropy/pull/7372
         r"Importing from numpy\.testing\.decorators is deprecated, import from numpy\.testing instead\.",
         # Deprecation warnings ahead of pytest 4.x
-        r"MarkInfo objects are deprecated"])}
+        r"MarkInfo objects are deprecated"]),
+    (3, 7): set([
+        # py.test reads files with the 'U' flag, which is
+        # deprecated.
+        r"'U' mode is deprecated",
+        # inspect raises this slightly different warning on Python 3.6-3.7.
+        # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
+        r"inspect\.getargspec\(\) is deprecated, use "
+        r"inspect\.signature\(\) or inspect\.getfullargspec\(\)",
+        # https://github.com/astropy/astropy/pull/7372
+        r"Importing from numpy\.testing\.decorators is deprecated, import from numpy\.testing instead\.",
+        # Deprecation warnings ahead of pytest 4.x
+        r"MarkInfo objects are deprecated",
+        # Deprecation warning for collections.abc, fixed in Astropy but still
+        # used in lxml, and maybe others
+        r"Using or importing the ABCs from 'collections'",
+    ]),
+}
 
 
 def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
