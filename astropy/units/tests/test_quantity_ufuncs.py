@@ -9,8 +9,6 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from ... import units as u
-from .. import quantity_helper as qh
-
 from ...tests.helper import raises
 
 try:
@@ -61,7 +59,8 @@ class TestUfuncCoverage:
     @pytest.mark.skipif(HAS_SCIPY,
                         reason='scipy.special coverage is incomplete')
     def test_coverage(self):
-
+        # Local import, since this accesses implementation details.
+        from ..quantity import helpers as qh
         all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
                              if isinstance(ufunc, np.ufunc)])
 
