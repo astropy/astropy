@@ -11,9 +11,11 @@ units for a given ufunc, given input units.
 from fractions import Fraction
 
 import numpy as np
-from .core import (UnitsError, UnitConversionError, UnitTypeError,
-                   dimensionless_unscaled, get_current_unit_registry)
-from .._erfa import ufunc as erfa_ufunc
+
+from . import UFUNC_HELPERS
+from ..core import (UnitsError, UnitConversionError, UnitTypeError,
+                    dimensionless_unscaled, get_current_unit_registry)
+from ..._erfa import ufunc as erfa_ufunc
 
 
 def _d(unit):
@@ -168,7 +170,7 @@ def helper_dimensionless_to_dimensionless(f, unit):
 
 
 def helper_dimensionless_to_radian(f, unit):
-    from .si import radian
+    from ..si import radian
     if unit is None:
         return [None], radian
 
@@ -181,7 +183,7 @@ def helper_dimensionless_to_radian(f, unit):
 
 
 def helper_degree_to_radian(f, unit):
-    from .si import degree, radian
+    from ..si import degree, radian
     try:
         return [get_converter(unit, degree)], radian
     except UnitsError:
@@ -191,7 +193,7 @@ def helper_degree_to_radian(f, unit):
 
 
 def helper_radian_to_degree(f, unit):
-    from .si import degree, radian
+    from ..si import degree, radian
     try:
         return [get_converter(unit, radian)], degree
     except UnitsError:
@@ -201,7 +203,7 @@ def helper_radian_to_degree(f, unit):
 
 
 def helper_radian_to_dimensionless(f, unit):
-    from .si import radian
+    from ..si import radian
     try:
         return [get_converter(unit, radian)], dimensionless_unscaled
     except UnitsError:
@@ -296,7 +298,7 @@ def helper_twoarg_comparison(f, unit1, unit2):
 
 
 def helper_twoarg_invtrig(f, unit1, unit2):
-    from .si import radian
+    from ..si import radian
     converters, _ = get_converters_and_unit(f, unit1, unit2)
     return converters, radian
 
@@ -312,7 +314,7 @@ def helper_divmod(f, unit1, unit2):
 
 
 def helper_degree_to_dimensionless(f, unit):
-    from .si import degree
+    from ..si import degree
     try:
         return [get_converter(unit, degree)], dimensionless_unscaled
     except UnitsError:
@@ -322,7 +324,7 @@ def helper_degree_to_dimensionless(f, unit):
 
 
 def helper_degree_minute_second_to_radian(f, unit1, unit2, unit3):
-    from .si import degree, arcmin, arcsec, radian
+    from ..si import degree, arcmin, arcsec, radian
     try:
         return [get_converter(unit1, degree),
                 get_converter(unit2, arcmin),
@@ -335,7 +337,6 @@ def helper_degree_minute_second_to_radian(f, unit1, unit2, unit3):
 
 # list of ufuncs:
 # http://docs.scipy.org/doc/numpy/reference/ufuncs.html#available-ufuncs
-UFUNC_HELPERS = {}
 
 UNSUPPORTED_UFUNCS = {
     np.bitwise_and, np.bitwise_or, np.bitwise_xor, np.invert, np.left_shift,
@@ -447,7 +448,7 @@ UFUNC_HELPERS[np.divmod] = helper_divmod
 
 # ERFA UFUNCS
 def helper_s2c(f, unit1, unit2):
-    from .si import radian
+    from ..si import radian
     try:
         return [get_converter(unit1, radian),
                 get_converter(unit2, radian)], dimensionless_unscaled
@@ -458,7 +459,7 @@ def helper_s2c(f, unit1, unit2):
 
 
 def helper_s2p(f, unit1, unit2, unit3):
-    from .si import radian
+    from ..si import radian
     try:
         return [get_converter(unit1, radian),
                 get_converter(unit2, radian), None], unit3
@@ -469,12 +470,12 @@ def helper_s2p(f, unit1, unit2, unit3):
 
 
 def helper_c2s(f, unit1):
-    from .si import radian
+    from ..si import radian
     return [None], (radian, radian)
 
 
 def helper_p2s(f, unit1):
-    from .si import radian
+    from ..si import radian
     return [None], (radian, radian, unit1)
 
 
@@ -498,7 +499,7 @@ try:
 except ImportError:
     pass
 else:
-    from ..utils import minversion
+    from ...utils import minversion
 
     # ufuncs that require dimensionless input and give dimensionless output
     dimensionless_to_dimensionless_sps_ufuncs = [
