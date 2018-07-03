@@ -11,8 +11,8 @@ units for a given ufunc, given input units.
 from fractions import Fraction
 
 import numpy as np
-from .core import (UnitsError, UnitConversionError, UnitTypeError,
-                   dimensionless_unscaled, get_current_unit_registry)
+from ..core import (UnitsError, UnitConversionError, UnitTypeError,
+                    dimensionless_unscaled, get_current_unit_registry)
 
 
 def _d(unit):
@@ -167,7 +167,7 @@ def helper_dimensionless_to_dimensionless(f, unit):
 
 
 def helper_dimensionless_to_radian(f, unit):
-    from .si import radian
+    from ..si import radian
     if unit is None:
         return [None], radian
 
@@ -180,7 +180,7 @@ def helper_dimensionless_to_radian(f, unit):
 
 
 def helper_degree_to_radian(f, unit):
-    from .si import degree, radian
+    from ..si import degree, radian
     try:
         return [get_converter(unit, degree)], radian
     except UnitsError:
@@ -190,7 +190,7 @@ def helper_degree_to_radian(f, unit):
 
 
 def helper_radian_to_degree(f, unit):
-    from .si import degree, radian
+    from ..si import degree, radian
     try:
         return [get_converter(unit, radian)], degree
     except UnitsError:
@@ -200,7 +200,7 @@ def helper_radian_to_degree(f, unit):
 
 
 def helper_radian_to_dimensionless(f, unit):
-    from .si import radian
+    from ..si import radian
     try:
         return [get_converter(unit, radian)], dimensionless_unscaled
     except UnitsError:
@@ -295,7 +295,7 @@ def helper_twoarg_comparison(f, unit1, unit2):
 
 
 def helper_twoarg_invtrig(f, unit1, unit2):
-    from .si import radian
+    from ..si import radian
     converters, _ = get_converters_and_unit(f, unit1, unit2)
     return converters, radian
 
@@ -311,7 +311,7 @@ def helper_divmod(f, unit1, unit2):
 
 
 def helper_degree_to_dimensionless(f, unit):
-    from .si import degree
+    from ..si import degree
     try:
         return [get_converter(unit, degree)], dimensionless_unscaled
     except UnitsError:
@@ -321,7 +321,7 @@ def helper_degree_to_dimensionless(f, unit):
 
 
 def helper_degree_minute_second_to_radian(f, unit1, unit2, unit3):
-    from .si import degree, arcmin, arcsec, radian
+    from ..si import degree, arcmin, arcsec, radian
     try:
         return [get_converter(unit1, degree),
                 get_converter(unit2, arcmin),
@@ -454,7 +454,7 @@ try:
 except ImportError:
     pass
 else:
-    from ..utils import minversion
+    from ...utils import minversion
 
     # ufuncs that require dimensionless input and give dimensionless output
     dimensionless_to_dimensionless_sps_ufuncs = [

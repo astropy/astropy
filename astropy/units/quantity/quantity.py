@@ -6,7 +6,6 @@ associated units. `Quantity` objects support operations like ordinary numbers,
 but will deal with unit conversions internally.
 """
 
-
 # Standard library
 import re
 import numbers
@@ -16,18 +15,18 @@ import warnings
 import numpy as np
 
 # AstroPy
-from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
-                   UnitBase, UnitsError, UnitTypeError)
-from .utils import is_effectively_unity
-from .format.latex import Latex
-from ..utils.compat import NUMPY_LT_1_14
-from ..utils.compat.misc import override__dir__
-from ..utils.exceptions import AstropyDeprecationWarning
-from ..utils.misc import isiterable, InheritDocstrings
-from ..utils.data_info import ParentDtypeInfo
-from .. import config as _config
-from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
-                              check_output)
+from ..core import (Unit, dimensionless_unscaled, get_current_unit_registry,
+                    UnitBase, UnitsError, UnitTypeError)
+from ..utils import is_effectively_unity
+from ..format.latex import Latex
+from ...utils.compat import NUMPY_LT_1_14
+from ...utils.compat.misc import override__dir__
+from ...utils.exceptions import AstropyDeprecationWarning
+from ...utils.misc import isiterable, InheritDocstrings
+from ...utils.data_info import ParentDtypeInfo
+from ... import config as _config
+from .helper import (converters_and_unit, can_have_arbitrary_unit,
+                     check_output)
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
            "QuantityInfoBase", "QuantityInfo", "allclose", "isclose"]
