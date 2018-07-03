@@ -9,3 +9,4 @@ UFUNC_HELPERS = {}
 UNSUPPORTED_UFUNCS = set()
 from .converters import *
 from .helpers import *
+from .scipy_special import *
