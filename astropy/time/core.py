@@ -324,6 +324,8 @@ class Time(ShapedLikeNDArray):
                 self.location = location
             else:
                 self.location = EarthLocation(*location)
+            if self.location.size == 1:
+                self.location = self.location.squeeze()
         else:
             self.location = None
 
