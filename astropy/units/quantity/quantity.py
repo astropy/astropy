@@ -25,8 +25,8 @@ from ...utils.exceptions import AstropyDeprecationWarning
 from ...utils.misc import isiterable, InheritDocstrings
 from ...utils.data_info import ParentDtypeInfo
 from ... import config as _config
-from .helper import (converters_and_unit, can_have_arbitrary_unit,
-                     check_output)
+from .helpers import (converters_and_unit, can_have_arbitrary_unit,
+                      check_output)
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
            "QuantityInfoBase", "QuantityInfo", "allclose", "isclose"]
