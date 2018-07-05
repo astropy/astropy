@@ -1278,8 +1278,8 @@ for example, may be more convenient to use to create `~datetime.tzinfo`
 objects used to specify timezones rather than the `~astropy.time.TimezoneInfo`
 object.
 
-Custom string formats with `strftime` and `strptime`
-----------------------------------------------------
+Custom string formats with ``strftime`` and ``strptime``
+--------------------------------------------------------
 The `~astropy.time.Time` object supports output string representation
 using the format specification language
 defined in the Python standard library for `time.strftime`.
