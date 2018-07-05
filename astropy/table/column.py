@@ -710,8 +710,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         for attr in ('name', 'unit', 'format', 'description'):
             val = getattr(obj, attr, None)
-            if attr == 'format':
-                print('HERE in _copy_attrs():', type(obj), id(obj), val)
+            # if attr == 'format':
+            #     print('HERE in _copy_attrs():', type(obj), id(obj), val)
             # if val is not None:
             #     print('Setting {} = {}'.format(attr, val))
             setattr(self, attr, val)
@@ -1177,10 +1177,16 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
     @property
     def data(self):
-        out = self.view(ma.MaskedArray)
-        # The following is necessary because of a bug in Numpy, which was
-        # fixed in numpy/numpy#2703. The fix should be included in Numpy 1.8.0.
-        out.fill_value = self.fill_value
+        baseclass = self._baseclass
+        try:
+            self._baseclass = np.ndarray
+            out = self.view(ma.MaskedArray)
+        finally:
+            self._baseclass = baseclass
+        # out = self.view(ma.MaskedArray)
+        # # The following is necessary because of a bug in Numpy, which was
+        # # fixed in numpy/numpy#2703. The fix should be included in Numpy 1.8.0.
+        # out.fill_value = self.fill_value
         return out
 
     def filled(self, fill_value=None):
