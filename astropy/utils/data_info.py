@@ -644,8 +644,10 @@ class BaseColumnInfo(DataInfo):
         try:
             # test whether it formats without error exemplarily
             self.pformat(max_lines=1)
-        except TypeError as err:
-            # revert to restore previous format if there was one
+        except Exception as err:
+            # Something went wrong so revert to restore previous format if there was one.
+            # With Python 3 exception chaining the original exception will also be shown
+            # so we can be safe with the generic Exception catch here.
             self._attrs['format'] = prev_format
             raise ValueError(
                 "Invalid format for column '{0}': could not display "
