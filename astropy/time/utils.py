@@ -8,6 +8,7 @@ Geometry 18(3):305-363 -- http://www.cs.berkeley.edu/~jrs/papers/robustr.pdf
 """
 
 import numpy as np
+from .. import units as u
 
 
 def day_frac(val1, val2, factor=1., divisor=1.):
@@ -50,6 +51,46 @@ def day_frac(val1, val2, factor=1., divisor=1.):
     extra, frac = two_sum(sum12, -day)
     frac += extra + err12
     return day, frac
+
+
+def quantity_day_frac(val1, val2=None):
+    """Like ``day_frac``, but for quantities with units of time.
+
+    The quantities are separately converted to days. Here, we need to take
+    care with the conversion since while the routines here can do accurate
+    multiplication, the conversion factor itself may not be accurate.  For
+    instance, if the quantity is in seconds, the conversion factor is
+    1./86400., which is not exactly representable as a float.
+
+    To work around this, for conversion factors less than unity, rather than
+    multiply by that possibly inaccurate factor, the value is divided by the
+    conversion factor of a day to that unit (i.e., by 86400. for seconds).  For
+    conversion factors larger than 1, such as 365.25 for years, we do just
+    multiply.  With this scheme, one has precise conversion factors for all
+    regular time units that astropy defines.  Note, however, that it does not
+    necessarily work for all custom time units, and cannot work when conversion
+    to time is via an equivalency.  For those cases, one remains limited by the
+    fact that Quantity calculations are done in double precision, not in
+    quadruple precision as for time.
+    """
+    if val2 is not None:
+        res11, res12 = quantity_day_frac(val1)
+        res21, res22 = quantity_day_frac(val2)
+        # This summation is can at most lose 1 ULP in the second number.
+        return res11 + res21, res12 + res22
+
+    try:
+        factor = val1.unit.to(u.day)
+    except Exception:
+        # Not a simple scaling, so cannot do the full-precision one.
+        # But at least try normal conversion, since equivalencies may be set.
+        return val1.to_value(u.day), 0.
+
+    if factor >= 1.:
+        return day_frac(val1.value, 0., factor=factor)
+    else:
+        divisor = u.day.to(val1.unit)
+        return day_frac(val1.value, 0., divisor=divisor)
 
 
 def two_sum(a, b):

@@ -216,3 +216,28 @@ class TestDeltaAttributes():
         assert t.tdb.iso == '2010-01-01 00:00:40.000000'
         t.delta_tdb_tt = TimeDelta(50./24./3600., format='jd')
         assert t.tdb.iso == '2010-01-01 00:00:50.000000'
+
+
+@pytest.mark.parametrize('q1, q2', ((5e8*u.s, None),
+                                    (5e17*u.ns, None),
+                                    (4e8*u.s, 1e17*u.ns),
+                                    (4e14*u.us, 1e17*u.ns)))
+def test_quantity_conversion_rounding(q1, q2):
+    """Check that no rounding errors are incurred by unit conversion.
+
+    This occurred before as quantities in seconds were converted to days
+    before trying to split them into two-part doubles.  See gh-7622.
+    """
+    t = Time('2001-01-01T00:00:00.', scale='tai')
+    expected = Time('2016-11-05T00:53:20.', scale='tai')
+    if q2 is None:
+        t0 = t + q1
+    else:
+        t0 = t + q1 + q2
+    assert abs(t0 - expected) < 20 * u.ps
+    dt1 = TimeDelta(q1, q2)
+    t1 = t + dt1
+    assert abs(t1 - expected) < 20 * u.ps
+    dt2 = TimeDelta(q1, q2, format='sec')
+    t2 = t + dt2
+    assert abs(t2 - expected) < 20 * u.ps
