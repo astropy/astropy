@@ -1531,14 +1531,6 @@ class TimeDelta(Time):
                 self._set_scale(scale)
         else:
             if format is None:
-                try:
-                    val = val.to(u.day)
-                    if val2 is not None:
-                        val2 = val2.to(u.day)
-                except Exception:
-                    raise ValueError('Only Quantities with Time units can '
-                                     'be used to initiate {0} instances .'
-                                     .format(self.__class__.__name__))
                 format = 'jd'
 
             self._init_from_vals(val, val2, format, scale, copy)
