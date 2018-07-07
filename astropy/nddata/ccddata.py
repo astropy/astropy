@@ -534,7 +534,7 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
                         'argument explicitly or change the header of the FITS '
                         'file before reading it.'
                         .format(fits_unit_string))
-            if unit is not None and fits_unit_string:
+            else:
                 log.info("using the unit {0} passed to the FITS reader instead "
                          "of the unit {1} in the FITS file."
                          .format(unit, fits_unit_string))
