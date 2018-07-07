@@ -520,10 +520,24 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
         else:
             fits_unit_string = None
 
-        if unit is not None and fits_unit_string:
-            log.info("using the unit {0} passed to the FITS reader instead of "
-                     "the unit {1} in the FITS file.".format(unit,
-                                                             fits_unit_string))
+        if fits_unit_string:
+            if unit is None:
+                # Convert the BUNIT header keyword to a unit and if that's not
+                # possible raise a meaningful error message.
+                try:
+                    fits_unit_string = u.Unit(fits_unit_string)
+                except ValueError:
+                    raise ValueError(
+                        'The Header value for the key BUNIT ({}) cannot be '
+                        'interpreted as valid unit. To successfully read the '
+                        'file as CCDData you can pass in a valid `unit` '
+                        'argument explicitly or change the header of the FITS '
+                        'file before reading it.'
+                        .format(fits_unit_string))
+            else:
+                log.info("using the unit {0} passed to the FITS reader instead "
+                         "of the unit {1} in the FITS file."
+                         .format(unit, fits_unit_string))
 
         use_unit = unit or fits_unit_string
         hdr, wcs = _generate_wcs_and_update_header(hdr)
