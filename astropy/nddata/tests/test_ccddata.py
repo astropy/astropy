@@ -147,6 +147,15 @@ def test_initialize_from_fits_with_ADU_in_header(tmpdir):
     assert ccd.unit is u.adu
 
 
+def test_initialize_from_fits_with_invalid_unit_in_header(tmpdir):
+    hdu = fits.PrimaryHDU(np.ones((2, 2)))
+    hdu.header['bunit'] = 'definetely-not-a-unit'
+    filename = tmpdir.join('afile.fits').strpath
+    hdu.writeto(filename)
+    with pytest.raises(ValueError):
+        CCDData.read(filename)
+
+
 def test_initialize_from_fits_with_data_in_different_extension(tmpdir):
     fake_img = np.random.random(size=(100, 100))
     hdu1 = fits.PrimaryHDU()
