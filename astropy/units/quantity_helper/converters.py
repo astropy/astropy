@@ -6,11 +6,29 @@ import numpy as np
 
 from ..core import (UnitsError, UnitConversionError, UnitTypeError,
                     dimensionless_unscaled)
-from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
-
 
 __all__ = ['can_have_arbitrary_unit', 'converters_and_unit',
-           'check_output']
+           'check_output', 'UFUNC_HELPERS', 'UNSUPPORTED_UFUNCS']
+
+
+class UfuncHelperDict(dict):
+    """Dict with a missing method to load other possible ufuncs."""
+    def __missing__(self, ufunc):
+        """Called if a ufunc is not found.
+
+        Try loading any other modules where the ufunc might be.
+        """
+        if ufunc in UNSUPPORTED_UFUNCS:
+            raise TypeError("Cannot use ufunc '{0}' with quantities"
+                            .format(ufunc.__name__))
+        else:
+            raise TypeError("Unknown ufunc {0}.  Please raise issue on "
+                            "https://github.com/astropy/astropy"
+                            .format(ufunc.__name__))
+
+
+UFUNC_HELPERS = UfuncHelperDict()
+UNSUPPORTED_UFUNCS = set()
 
 
 def can_have_arbitrary_unit(value):
@@ -59,19 +77,10 @@ def converters_and_unit(function, method, *args):
     """
 
     # Check whether we support this ufunc, by getting the helper function
-    # (defined above) which returns a list of function(s) that convert the
+    # (defined in helpers) which returns a list of function(s) that convert the
     # input(s) to the unit required for the ufunc, as well as the unit the
     # result will have (a tuple of units if there are multiple outputs).
-    try:
-        ufunc_helper = UFUNC_HELPERS[function]
-    except KeyError:
-        if function in UNSUPPORTED_UFUNCS:
-            raise TypeError("Cannot use function '{0}' with quantities"
-                            .format(function.__name__))
-        else:
-            raise TypeError("Unknown ufunc {0}.  Please raise issue on "
-                            "https://github.com/astropy/astropy"
-                            .format(function.__name__))
+    ufunc_helper = UFUNC_HELPERS[function]
 
     if method == '__call__' or (method == 'outer' and function.nin == 2):
         # Find out the units of the arguments passed to the ufunc; usually,
