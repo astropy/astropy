@@ -89,10 +89,16 @@ class UfuncHelpers(dict):
                         .format(ufunc.__name__))
 
     def __setitem__(self, key, value):
+        # Implementation note: in principle, we could just let `None`
+        # mean that something is not implemented, but this means an
+        # extra if clause for the output, slowing down the common
+        # path where a ufunc is supported.
         if value is None:
-            self.UNSUPPORTED_UFUNCS |= {key}
+            self.UNSUPPORTED |= {key}
+            self.pop(key, None)
         else:
             super().__setitem__(key, value)
+            self.UNSUPPORTED -= {key}
 
 
 UFUNC_HELPERS = UfuncHelpers()
