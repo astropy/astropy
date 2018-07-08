@@ -55,8 +55,9 @@ def test_testwarn(tw):
 class TestUfuncCoverage:
     """Test that we cover all ufunc's"""
 
+    # Note that this test should work even if scipy is present, since
+    # the scipy.special ufuncs are only loaded on demand.
     def test_coverage(self):
-
         all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
                              if isinstance(ufunc, np.ufunc)])
 
@@ -69,14 +70,7 @@ class TestUfuncCoverage:
         # this the other way).
         all_erfa_ufuncs = set([ufunc for ufunc in erfa_ufunc.__dict__.values()
                                if isinstance(ufunc, np.ufunc)])
-        if HAS_SCIPY:
-            import scipy.special as sps
-            all_sps_ufuncs = set([ufunc for ufunc in sps.__dict__.values()
-                                  if isinstance(ufunc, np.ufunc)])
-        else:
-            all_sps_ufuncs = set()
-        assert (all_q_ufuncs - all_np_ufuncs -
-                all_sps_ufuncs - all_erfa_ufuncs == set())
+        assert (all_q_ufuncs - all_np_ufuncs - all_erfa_ufuncs == set())
 
 
 class TestQuantityTrigonometricFuncs:
@@ -1041,8 +1035,19 @@ class TestUfuncOuter:
         assert np.all(s13_greater_outer == check13_greater_outer)
 
 
+def test_scipy_registered():
+    # Should be registered as existing even if scipy is not available.
+    assert 'scipy.special' in qh.UFUNC_HELPERS.modules
+
+
 if HAS_SCIPY:
     from scipy import special as sps
+
+    def test_scipy_registration():
+        """Check that scipy gets loaded upon first use."""
+        assert sps.erf not in qh.UFUNC_HELPERS
+        sps.erf(1. * u.percent)
+        assert sps.erf in qh.UFUNC_HELPERS
 
     class TestScipySpecialUfuncs:
 
