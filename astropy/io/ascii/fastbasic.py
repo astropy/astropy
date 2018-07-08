@@ -239,10 +239,13 @@ class FastCommentedHeader(FastBasic):
         """
         out = super(FastCommentedHeader, self).read(table)
 
-        # Strip off first comment since this is the header line for
-        # commented_header format.
+        # Strip off the comment line set as the header line for
+        # commented_header format (first by default).
         if 'comments' in out.meta:
-            out.meta['comments'] = out.meta['comments'][1:]
+            idx = self.header_start
+            if idx < 0:
+                idx = len(out.meta['comments']) + idx
+            out.meta['comments'] = out.meta['comments'][:idx] + out.meta['comments'][idx+1:]
             if not out.meta['comments']:
                 del out.meta['comments']
 

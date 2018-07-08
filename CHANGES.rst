@@ -30,6 +30,9 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Fix stripping correct (header) comment line from ``meta['comments']``
+  in the ``CommentedHeader`` reader for all ``header_start`` settings. [#7527]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 

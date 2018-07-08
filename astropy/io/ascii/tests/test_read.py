@@ -1006,29 +1006,51 @@ def test_almost_but_not_quite_daophot():
     assert len(dat) == 3
 
 
-@pytest.mark.parametrize('fast', [True, False])
+@pytest.mark.parametrize('fast', [False, 'force'])
 def test_commented_header_comments(fast):
     """
-    Test that comments in commented_header are as expected and that the
-    table round-trips.
+    Test that comments in commented_header are as expected with header_start
+    at different positions, and that the table round-trips.
     """
+    comments = ['comment 1', 'comment 2', 'comment 3']
     lines = ['# a b',
              '# comment 1',
              '# comment 2',
+             '# comment 3',
              '1 2',
              '3 4']
     dat = ascii.read(lines, format='commented_header', fast_reader=fast)
-    assert dat.meta['comments'] == ['comment 1', 'comment 2']
+    assert dat.meta['comments'] == comments
+    assert dat.colnames == ['a', 'b']
 
     out = StringIO()
     ascii.write(dat, out, format='commented_header', fast_writer=fast)
     assert out.getvalue().splitlines() == lines
+
+    lines.insert(1, lines.pop(0))
+    dat = ascii.read(lines, format='commented_header', header_start=1, fast_reader=fast)
+    assert dat.meta['comments'] == comments
+    assert dat.colnames == ['a', 'b']
+
+    lines.insert(2, lines.pop(1))
+    dat = ascii.read(lines, format='commented_header', header_start=2, fast_reader=fast)
+    assert dat.meta['comments'] == comments
+    assert dat.colnames == ['a', 'b']
+    dat = ascii.read(lines, format='commented_header', header_start=-2, fast_reader=fast)
+    assert dat.meta['comments'] == comments
+    assert dat.colnames == ['a', 'b']
+
+    lines.insert(3, lines.pop(2))
+    dat = ascii.read(lines, format='commented_header', header_start=-1, fast_reader=fast)
+    assert dat.meta['comments'] == comments
+    assert dat.colnames == ['a', 'b']
 
     lines = ['# a b',
              '1 2',
              '3 4']
     dat = ascii.read(lines, format='commented_header', fast_reader=fast)
     assert 'comments' not in dat.meta
+    assert dat.colnames == ['a', 'b']
 
 
 def test_probably_html():
