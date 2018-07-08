@@ -4,9 +4,6 @@
 In particular, this implements the logic that determines scaling and result
 units for a given ufunc, given input units.
 """
-
-UFUNC_HELPERS = {}
-UNSUPPORTED_UFUNCS = set()
 from .converters import *
 from .helpers import *
 from .scipy_special import *
