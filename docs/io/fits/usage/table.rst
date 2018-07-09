@@ -334,10 +334,15 @@ column definition object::
 or directly use the :meth:`BinTableHDU.from_columns` method::
 
     >>> hdu = fits.BinTableHDU.from_columns([col1, col2, col3, col4, col5, col6])
-    >>> hdu.data[:2]
-    FITS_rec([('NGC1', 312, '', [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],  1, [[0, 1], [2, 3]]),
-            ('NGC2', 334, '', [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],  0, [[4, 5], [6, 7]])],
-            dtype=(numpy.record, [('target', 'S10'), ('counts', '<i4'), ('notes', 'S10'), ('spectrum', '<f4', (10,)), ('flag', 'i1'), ('intarray', '<i2', (2, 2))]))
+    >>> hdu.columns
+    ColDefs(
+        name = 'target'; format = '10A'
+        name = 'counts'; format = 'J'; unit = 'DN'
+        name = 'notes'; format = '10A'
+        name = 'spectrum'; format = '10E'
+        name = 'flag'; format = 'L'
+        name = 'intarray'; format = '4I'; dim = '(2, 2)'
+    )
 
 .. note::
 
