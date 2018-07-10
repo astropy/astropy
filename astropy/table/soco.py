@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-The SCEngine class uses the `sortedcontainers` package to implement an
+The SCEngine class uses the ``sortedcontainers`` package to implement an
 Index engine for Tables.
 """
 
@@ -61,7 +61,7 @@ class Node(object):
 class SCEngine:
     '''
     Fast tree-based implementation for indexing, using the
-    `sortedcontainers` package.
+    ``sortedcontainers`` package.
 
     Parameters
     ----------
