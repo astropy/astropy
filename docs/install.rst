@@ -38,6 +38,10 @@ Astropy also depends on other packages for optional features:
   ``FastBST`` indexing engines with ``Table``, although these will still be
   slower in most cases than the default indexing engine.
 
+- `sortedcontainers <https://pypi.org/project/sortedcontainers/>`_ for faster
+  ``SCEngine`` indexing engine with ``Table``, although this may still be
+  slower in some cases than the default indexing engine.
+
 - `pytz <http://pythonhosted.org/pytz/>`_: To specify and convert between timezones.
 
 - `jplephem <https://pypi.org/project/jplephem/>`_: To retrieve JPL
