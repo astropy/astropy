@@ -333,6 +333,9 @@ astropy.coordinates
 
 - Sped up creating SkyCoord objects by a factor of ~2 in some cases. [#7615]
 
+- Sped up getting xyz vectors from ``CartesianRepresentation`` (which
+  is used a lot internally). [#7638]
+
 astropy.units
 ^^^^^^^^^^^^^
 
