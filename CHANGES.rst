@@ -14,6 +14,7 @@ astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
 - Correct data type conversion for non-float masked kernels. [#7542]
+
 - Fix non-float or masked, zero sum kernels when ``normalize_kernel=False``.
   Non-floats would yeild a type error and masked kernels were not being filled.
   [#7541]
@@ -53,6 +54,7 @@ astropy.nddata
 
 - Fixed ``Cutout2D`` output WCS NAXIS values to reflect the cutout
   image size. [#7552]
+
 astropy.samp
 ^^^^^^^^^^^^
 
@@ -61,6 +63,7 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
 - ``Table.read()`` on a FITS binary table file will convert any TDISPn header
   keywords to a Python formatting string when possible, and store it in the
   column ``format`` attribute. [#7226]
@@ -84,6 +87,7 @@ astropy.tests
 
 astropy.time
 ^^^^^^^^^^^^
+
 - Added the ability to use ``local`` as time scale in ``Time`` and
   ``TimeDelta``. [#6487]
 
@@ -171,6 +175,7 @@ astropy.table
 
 - Fixed a bug in ``add_columns`` method where ``rename_duplicate=True`` would
   cause an error if there were no duplicates. [#7540]
+
 - Fix memory leak where updating a table column or deleting a table
   object was not releasing the memory due to a reference cycle
   in the column ``info`` attributes. [#6277, #7448]
