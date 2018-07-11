@@ -764,11 +764,17 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     def representation(self, value):
         self.representation_type = value
 
+    _representation_info_cache = None
+
     @classmethod
     def _get_representation_info(cls):
+
         # This exists as a class method only to support handling frame inputs
         # without units, which are deprecated and will be removed.  This can be
         # moved into the representation_info property at that time.
+
+        if cls._representation_info_cache is not None:
+            return cls._representation_info_cache
 
         repr_attrs = {}
         for repr_diff_cls in (list(r.REPRESENTATION_CLASSES.values()) +
@@ -805,6 +811,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             # Convert to tuples so that this can't mess with frame internals
             repr_attrs[repr_diff_cls]['names'] = tuple(nms)
             repr_attrs[repr_diff_cls]['units'] = tuple(uns)
+
+        cls._representation_info_cache = repr_attrs
 
         return repr_attrs
 

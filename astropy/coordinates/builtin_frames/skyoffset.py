@@ -67,7 +67,13 @@ def make_skyoffset_cls(framecls):
             newname = name[:-5] if name.endswith('Frame') else name
             newname += framecls.__name__
 
-            return super().__new__(cls, newname, bases, members)
+            newcls = super().__new__(cls, newname, bases, members)
+
+            # Reset representation info cache to make sure that this is not
+            # inherited from a base class
+            newcls._representation_info_cache = None
+
+            return newcls
 
     # We need this to handle the intermediate metaclass correctly, otherwise we could
     # just subclass SkyOffsetFrame.

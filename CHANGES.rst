@@ -312,6 +312,11 @@ astropy.wcs
 Performance Improvements
 ------------------------
 
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Sped up creating SkyCoord objects by a factor of ~2-3 in some cases. [#7614]
+
 astropy.units
 ^^^^^^^^^^^^^
 
