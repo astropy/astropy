@@ -483,6 +483,9 @@ UFUNC_HELPERS[erfa_ufunc.s2p] = helper_s2p
 UFUNC_HELPERS[erfa_ufunc.c2s] = helper_c2s
 UFUNC_HELPERS[erfa_ufunc.p2s] = helper_p2s
 UFUNC_HELPERS[erfa_ufunc.pm] = helper_invariant
+UFUNC_HELPERS[erfa_ufunc.pdp] = helper_multiplication
+UFUNC_HELPERS[erfa_ufunc.pxp] = helper_multiplication
+UFUNC_HELPERS[erfa_ufunc.rxp] = helper_multiplication
 
 
 # UFUNCS FROM SCIPY.SPECIAL

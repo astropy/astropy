@@ -1099,41 +1099,7 @@ class CartesianRepresentation(BaseRepresentation):
                        [ 1.23205081, 1.59807621],
                        [ 3.        , 4.        ]] pc>
         """
-
-        # Avoid doing gratuitous np.array for things that look like arrays.
-        try:
-            matrix_shape = matrix.shape
-        except AttributeError:
-            matrix = np.array(matrix)
-            matrix_shape = matrix.shape
-
-        if matrix_shape[-2:] != (3, 3):
-            raise ValueError("tried to do matrix multiplication with an array "
-                             "that doesn't end in 3x3")
-
-        # TODO: since this is likely to be a widely used function in coordinate
-        # transforms, it should be optimized (for example in Cython).
-
-        # Get xyz once since it's an expensive operation
-        oldxyz = self.xyz
-        # Note that neither dot nor einsum handles Quantity properly, so we use
-        # the arrays and put the unit back in the end.
-        if self.isscalar and not matrix_shape[:-2]:
-            # a fast path for scalar coordinates.
-            newxyz = matrix.dot(oldxyz.value)
-        else:
-            # Matrix multiply all pmat items and coordinates, broadcasting the
-            # remaining dimensions.
-            if np.__version__ == '1.14.0':
-                # there is a bug in numpy v1.14.0 (fixed in 1.14.1) that causes
-                # this einsum call to break with the default of optimize=True
-                # see https://github.com/astropy/astropy/issues/7051
-                newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value,
-                                   optimize=False)
-            else:
-                newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value)
-
-        newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
+        p = erfa_ufunc.rxp(matrix, self.get_xyz(xyz_axis=-1))
         # Handle differentials attached to this representation
         if self.differentials:
             # TODO: speed this up going via d.d_xyz.
@@ -1143,7 +1109,7 @@ class CartesianRepresentation(BaseRepresentation):
         else:
             new_diffs = None
 
-        return self.__class__(*newxyz, copy=False, differentials=new_diffs)
+        return self.__class__(p, xyz_axis=-1, copy=False, differentials=new_diffs)
 
     def _combine_operation(self, op, other, reverse=False):
         self._raise_if_has_differentials(op.__name__)
