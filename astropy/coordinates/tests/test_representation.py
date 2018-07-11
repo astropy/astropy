@@ -550,6 +550,23 @@ class TestCartesianRepresentation:
         assert_allclose_quantity(y, s1.y)
         assert_allclose_quantity(z, s1.z)
 
+    def test_xyz_is_view_if_possible(self):
+        xyz = np.arange(1., 10.).reshape(3, 3)
+        s1 = CartesianRepresentation(xyz, unit=u.kpc, copy=False)
+        s1_xyz = s1.xyz
+        assert s1_xyz.value[0, 0] == 1.
+        xyz[0, 0] = 0.
+        assert s1.x[0] == 0.
+        assert s1_xyz.value[0, 0] == 0.
+        # Not possible: we don't check that tuples are from the same array
+        xyz = np.arange(1., 10.).reshape(3, 3)
+        s2 = CartesianRepresentation(*xyz, unit=u.kpc, copy=False)
+        s2_xyz = s2.xyz
+        assert s2_xyz.value[0, 0] == 1.
+        xyz[0, 0] = 0.
+        assert s2.x[0] == 0.
+        assert s2_xyz.value[0, 0] == 1.
+
     def test_reprobj(self):
 
         s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
