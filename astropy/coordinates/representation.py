@@ -1159,6 +1159,23 @@ class CartesianRepresentation(BaseRepresentation):
                                    getattr(second, component))
                                 for component in first.components))
 
+    def norm(self):
+        """Vector norm.
+
+        The norm is the standard Frobenius norm, i.e., the square root of the
+        sum of the squares of all components with non-angular units.
+
+        Note that any associated differentials will be dropped during this
+        operation.
+
+        Returns
+        -------
+        norm : `astropy.units.Quantity`
+            Vector norm, with the same shape as the representation.
+        """
+        # erfa pm: Modulus of p-vector.
+        return erfa_ufunc.pm(self.get_xyz(xyz_axis=-1))
+
     def mean(self, *args, **kwargs):
         """Vector mean.
 
@@ -1208,10 +1225,8 @@ class CartesianRepresentation(BaseRepresentation):
             raise TypeError("cannot only take dot product with another "
                             "representation, not a {0} instance."
                             .format(type(other)))
-        return functools.reduce(operator.add,
-                                (getattr(self, component) *
-                                 getattr(other_c, component)
-                                 for component in self.components))
+        return erfa_ufunc.pdp(self.get_xyz(xyz_axis=-1),
+                              other_c.get_xyz(xyz_axis=-1))
 
     def cross(self, other):
         """Cross product of two representations.
@@ -1233,9 +1248,9 @@ class CartesianRepresentation(BaseRepresentation):
             raise TypeError("cannot only take cross product with another "
                             "representation, not a {0} instance."
                             .format(type(other)))
-        return self.__class__(self.y * other_c.z - self.z * other_c.y,
-                              self.z * other_c.x - self.x * other_c.z,
-                              self.x * other_c.y - self.y * other_c.x)
+        sxo = erfa_ufunc.pxp(self.get_xyz(xyz_axis=-1),
+                             other_c.get_xyz(xyz_axis=-1))
+        return self.__class__(sxo, xyz_axis=-1)
 
 
 class UnitSphericalRepresentation(BaseRepresentation):
