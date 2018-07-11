@@ -14,6 +14,7 @@ astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
 - Correct data type conversion for non-float masked kernels. [#7542]
+
 - Fix non-float or masked, zero sum kernels when ``normalize_kernel=False``.
   Non-floats would yeild a type error and masked kernels were not being filled.
   [#7541]
@@ -63,8 +64,121 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- ``Table.read()`` on a FITS binary table file will convert any TDISPn header
+  keywords to a Python formatting string when possible, and store it in the
+  column ``format`` attribute. [#7226]
+
+- The private ``_parent`` attribute in the ``info`` attribute of table
+  columns was changed from a direct reference to the parent column to a weak
+  reference.  This was in response to a memory leak caused by having a
+  circular reference cycle.  This change means that expressions like
+  ``col[3:5].info`` will now fail because at the point of the ``info``
+  property being evaluated the ``col[3:5]`` weak reference is dead.  Instead
+  force a reference with ``c = col[3:5]`` followed by
+  ``c.info.indices``. [#6277, #7448]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+- ``from astropy.tests.helper import *`` no longer includes
+  ``quantity_allclose``. However,
+  ``from astropy.tests.helper import quantity_allclose`` would still work.
+  [#7381]
+
+astropy.time
+^^^^^^^^^^^^
+
+- Added the ability to use ``local`` as time scale in ``Time`` and
+  ``TimeDelta``. [#6487]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- In ``UnitBase.compose()``, if a sequence (list|tuple) is passed in to
+  ``units``, the default for ``include_prefix_units`` is set to
+  `True`, so that no units get ignored. [#6957]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- ``InheritDocstrings`` now also works on class properties. [#7166]
+
+- ``diff_values()``, ``report_diff_values()``, and ``where_not_allclose()``
+  utility functions are moved from ``astropy.io.fits.diff``. [#7444]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- Fixed a problem when ``guess=True`` that ``fast_reader`` options
+  could be dropped after the first fast reader class was tried. [#5578]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Added support for ``copy.copy`` and ``copy.deepcopy`` for ``HDUList``. [#7218]
+
+- Override ``HDUList.copy()`` to return a shallow HDUList instance. [#7218]
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fix behaviour of certain models with units, by making certain unit-related
+  attributes readonly. [#7210]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
 - Fixed a bug in ``add_columns`` method where ``rename_duplicate=True`` would
   cause an error if there were no duplicates. [#7540]
+
+- Fix memory leak where updating a table column or deleting a table
+  object was not releasing the memory due to a reference cycle
+  in the column ``info`` attributes. [#6277, #7448]
 
 astropy.tests
 ^^^^^^^^^^^^^
