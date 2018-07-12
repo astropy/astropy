@@ -1772,11 +1772,11 @@ class _UnitMetaClass(InheritDocstrings):
             if is_effectively_unity(represents.value):
                 represents = represents.unit
             else:
-                # cannot use _error_check=False: scale may be effectively unity
                 represents = CompositeUnit(represents.value *
                                            represents.unit.scale,
                                            bases=represents.unit.bases,
-                                           powers=represents.unit.powers)
+                                           powers=represents.unit.powers,
+                                           _error_check=False)
 
         if isinstance(s, Quantity):
             if is_effectively_unity(s.value):
@@ -1784,7 +1784,8 @@ class _UnitMetaClass(InheritDocstrings):
             else:
                 s = CompositeUnit(s.value * s.unit.scale,
                                   bases=s.unit.bases,
-                                  powers=s.unit.powers)
+                                  powers=s.unit.powers,
+                                  _error_check=False)
 
         # now decide what we really need to do; define derived Unit?
         if isinstance(represents, UnitBase):
@@ -1833,7 +1834,7 @@ class _UnitMetaClass(InheritDocstrings):
                 return UnrecognizedUnit(s)
 
         elif isinstance(s, (int, float, np.floating, np.integer)):
-            return CompositeUnit(s, [], [])
+            return CompositeUnit(s, [], [], _error_check=False)
 
         elif s is None:
             raise TypeError("None is not a valid Unit")
@@ -1958,7 +1959,8 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         if len(physical_type_id) == 1 and powers[0] == 1:
             unit = bases[0]
         else:
-            unit = CompositeUnit(1, bases, powers)
+            unit = CompositeUnit(1, bases, powers,
+                                 _error_check=False)
 
         return unit
 
@@ -2006,7 +2008,6 @@ class CompositeUnit(UnitBase):
         # kwarg `_error_check` is False, the error checking is turned
         # off.
         if _error_check:
-            scale = sanitize_scale(scale)
             for base in bases:
                 if not isinstance(base, UnitBase):
                     raise TypeError(
