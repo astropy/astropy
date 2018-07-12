@@ -932,7 +932,7 @@ class UnitBase(metaclass=InheritDocstrings):
         raise UnitConversionError(
             "'{0!r}' is not a scaled version of '{1!r}'".format(self, other))
 
-    def to(self, other, value=1.0, equivalencies=[]):
+    def to(self, other, value=None, equivalencies=[]):
         """
         Return the converted values in the specified unit.
 
@@ -963,7 +963,11 @@ class UnitBase(metaclass=InheritDocstrings):
         UnitsError
             If units are inconsistent
         """
-        return self._get_converter(other, equivalencies=equivalencies)(value)
+        if other is self and value is None:
+            return 1.0
+        else:
+            converter = self._get_converter(other, equivalencies=equivalencies)
+            return converter(1.0 if value is None else value)
 
     def in_units(self, other, value=1.0, equivalencies=[]):
         """
