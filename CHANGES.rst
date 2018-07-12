@@ -338,6 +338,9 @@ astropy.coordinates
 - Sped up getting xyz vectors from ``CartesianRepresentation`` (which
   is used a lot internally). [#7638]
 
+- Sped up transformations and some representation methods by replacing
+  python code with (compiled) ``erfa`` ufuncs. [#7639]
+
 astropy.units
 ^^^^^^^^^^^^^
 
