@@ -17,7 +17,6 @@ import unicodedata
 import locale
 import threading
 import re
-import urllib.request
 
 from itertools import zip_longest
 from contextlib import contextmanager
@@ -195,7 +194,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
 
     """
     import webbrowser
-
+    import urllib.request
     from zlib import decompress
 
     if (not isinstance(obj, str) and
