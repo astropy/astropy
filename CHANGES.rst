@@ -89,7 +89,7 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Add a ``Multiply`` model which preseves unit through evaluate, unlike
+- Add a ``Multiply`` model which preserves unit through evaluate, unlike
   ``Scale`` which is dimensionless. [#7210]
 
 - Add a ``uses_quantity`` property to ``Model`` which allows introspection of if
