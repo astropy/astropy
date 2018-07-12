@@ -29,6 +29,8 @@ __all__ = [
     'set_enabled_equivalencies', 'add_enabled_equivalencies',
     'dimensionless_unscaled', 'one']
 
+UNITY = 1.0
+
 
 def _flatten_units_collection(items):
     """
@@ -932,7 +934,7 @@ class UnitBase(metaclass=InheritDocstrings):
         raise UnitConversionError(
             "'{0!r}' is not a scaled version of '{1!r}'".format(self, other))
 
-    def to(self, other, value=None, equivalencies=[]):
+    def to(self, other, value=UNITY, equivalencies=[]):
         """
         Return the converted values in the specified unit.
 
@@ -963,11 +965,10 @@ class UnitBase(metaclass=InheritDocstrings):
         UnitsError
             If units are inconsistent
         """
-        if other is self and value is None:
-            return 1.0
+        if other is self and value is UNITY:
+            return UNITY
         else:
-            converter = self._get_converter(other, equivalencies=equivalencies)
-            return converter(1.0 if value is None else value)
+            return self._get_converter(other, equivalencies=equivalencies)(value)
 
     def in_units(self, other, value=1.0, equivalencies=[]):
         """
