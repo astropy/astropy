@@ -4,7 +4,6 @@
 
 
 import inspect
-import re
 import types
 import importlib
 from distutils.version import LooseVersion
