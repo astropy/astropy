@@ -12,7 +12,6 @@ code under a BSD license.
 
 from .core import *
 from .quantity import *
-from .decorators import *
 
 from . import si
 from . import cgs
@@ -32,6 +31,8 @@ from .equivalencies import *
 from .function.core import *
 from .function.logarithmic import *
 from .function import magnitude_zero_points
+
+from .decorators import *
 
 del bases
 
