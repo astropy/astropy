@@ -538,8 +538,9 @@ def _guess(table, read_kwargs, format, fast_reader):
                    '** ERROR: Unable to guess table format with the guesses listed above. **',
                    '**                                                                    **',
                    '** To figure out why the table did not read, use guess=False and      **',
-                   '** appropriate arguments to read().  In particular specify the format **',
-                   '** and any known attributes like the delimiter.                       **',
+                   '** fast_reader=False, along with any appropriate arguments to read(). **',
+                   '** In particular specify the format and any known attributes like the **',
+                   '** delimiter.                                                         **',
                    '************************************************************************']
             lines.extend(msg)
             raise core.InconsistentTableError('\n'.join(lines))
