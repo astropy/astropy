@@ -174,18 +174,22 @@ def sanitize_scale(scale):
     if is_effectively_unity(scale):
         return 1.0
 
-    if np.iscomplex(scale):  # scale is complex
-        if scale == 0.0:
-            return 0.0
+    # Maximum speed for regular case where scale is a float.
+    if scale.__class__ is float:
+        return scale
 
+    if scale.imag:
         if abs(scale.real) > abs(scale.imag):
             if is_effectively_unity(scale.imag/scale.real + 1):
-                scale = scale.real
-        else:
-            if is_effectively_unity(scale.real/scale.imag + 1):
-                scale = complex(0., scale.imag)
+                return scale.real
 
-    return scale
+        elif is_effectively_unity(scale.real/scale.imag + 1):
+            return complex(0., scale.imag)
+
+        return scale
+
+    else:
+        return scale.real
 
 
 def validate_power(p, support_tuples=False):

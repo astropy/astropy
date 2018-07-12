@@ -1994,6 +1994,8 @@ class CompositeUnit(UnitBase):
         A sequence of powers (in parallel with ``bases``) for each
         of the base units.
     """
+    _decomposed_cache = None
+    _hash = None
 
     def __init__(self, scale, bases, powers, decompose=False,
                  decompose_bases=set(), _error_check=True):
@@ -2011,12 +2013,18 @@ class CompositeUnit(UnitBase):
                         "bases must be sequence of UnitBase instances")
             powers = [validate_power(p) for p in powers]
 
-        self._scale = scale
-        self._bases = bases
-        self._powers = powers
-        self._decomposed_cache = None
-        self._expand_and_gather(decompose=decompose, bases=decompose_bases)
-        self._hash = None
+        if not decompose and len(bases) == 1 and powers == [1]:
+            # Short-cut
+            unit = bases[0]
+            self._scale = sanitize_scale(scale * unit.scale)
+            self._bases = unit.bases
+            self._powers = unit.powers
+        else:
+            self._scale = scale
+            self._bases = bases
+            self._powers = powers
+            self._expand_and_gather(decompose=decompose,
+                                    bases=decompose_bases)
 
     def __repr__(self):
         if len(self._bases):
