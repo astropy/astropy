@@ -63,7 +63,7 @@ def test_find_mod_objs():
     assert namedtuple not in objs
 
 
-def _minversion_test():
+def test_minversion():
     from types import ModuleType
     test_module = ModuleType(str("test_module"))
     test_module.__version__ = '0.12.2'
