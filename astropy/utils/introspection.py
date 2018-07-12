@@ -92,10 +92,6 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     Returns `True` if the specified Python module satisfies a minimum version
     requirement, and `False` if not.
 
-    By default this uses `pkg_resources.parse_version` to do the version
-    comparison if available.  Otherwise it falls back on
-    `distutils.version.LooseVersion`.
-
     Parameters
     ----------
 
@@ -143,22 +139,19 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     else:
         have_version = resolve_name(module.__name__, version_path)
 
-    try:
-        from pkg_resources import parse_version
-    except ImportError:
-        from distutils.version import LooseVersion as parse_version
-        # LooseVersion raises a TypeError when strings like dev, rc1 are part
-        # of the version number. Match the dotted numbers only. Regex taken
-        # from PEP440, https://www.python.org/dev/peps/pep-0440/, Appendix B
-        expr = '^([1-9]\\d*!)?(0|[1-9]\\d*)(\\.(0|[1-9]\\d*))*'
-        m = re.match(expr, version)
-        if m:
-            version = m.group(0)
+    from distutils.version import LooseVersion
+    # LooseVersion raises a TypeError when strings like dev, rc1 are part
+    # of the version number. Match the dotted numbers only. Regex taken
+    # from PEP440, https://www.python.org/dev/peps/pep-0440/, Appendix B
+    expr = '^([1-9]\\d*!)?(0|[1-9]\\d*)(\\.(0|[1-9]\\d*))*'
+    m = re.match(expr, version)
+    if m:
+        version = m.group(0)
 
     if inclusive:
-        return parse_version(have_version) >= parse_version(version)
+        return LooseVersion(have_version) >= LooseVersion(version)
     else:
-        return parse_version(have_version) > parse_version(version)
+        return LooseVersion(have_version) > LooseVersion(version)
 
 
 def find_current_module(depth=1, finddiff=False):
