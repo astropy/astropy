@@ -418,7 +418,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
 
         >>> from astropy.utils.data import get_pkg_data_fileobj
         >>> with get_pkg_data_fileobj('allsky/allsky_rosat.fits',
-        ...                           encoding='binary') as fobj:  # doctest: +REMOTE_DATA
+        ...                           encoding='binary') as fobj:  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         ...     fcontents = fobj.read()
         ...
         Downloading http://data.astropy.org/allsky/allsky_rosat.fits [Done]
@@ -426,7 +426,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
     This does the same thing but does *not* cache it locally::
 
         >>> with get_pkg_data_fileobj('allsky/allsky_rosat.fits',
-        ...                           encoding='binary', cache=False) as fobj:  # doctest: +REMOTE_DATA
+        ...                           encoding='binary', cache=False) as fobj:  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         ...     fcontents = fobj.read()
         ...
         Downloading http://data.astropy.org/allsky/allsky_rosat.fits [Done]
