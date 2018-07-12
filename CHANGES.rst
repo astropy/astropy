@@ -186,6 +186,8 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Avoid rounding errors when converting ``Quantity`` to ``TimeDelta``. [#7645]
+
 astropy.units
 ^^^^^^^^^^^^^
 
