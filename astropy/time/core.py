@@ -2260,7 +2260,7 @@ def _make_array(val, copy=False):
     # Allow only float64, string or object arrays as input
     # (object is for datetime, maybe add more specific test later?)
     # This also ensures the right byteorder for float64 (closes #2942).
-    if not (val.dtype == np.float64 or val.dtype.kind in 'OSUMa'):
+    if not (val.dtype == np.float64 or val.dtype.kind in 'OSUMaV'):
         val = np.asanyarray(val, dtype=np.float64)
 
     return val

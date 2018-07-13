@@ -25,7 +25,7 @@ __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeDeltaFormat', 'TimeDeltaSec', 'TimeDeltaJD',
            'TimeEpochDateString', 'TimeBesselianEpochString',
            'TimeJulianEpochString', 'TIME_FORMATS', 'TIME_DELTA_FORMATS',
-           'TimezoneInfo', 'TimeDeltaDatetime', 'TimeDatetime64']
+           'TimezoneInfo', 'TimeDeltaDatetime', 'TimeDatetime64', 'TimeYMDHMS']
 
 __doctest_skip__ = ['TimePlotDate']
 
@@ -709,13 +709,21 @@ class TimeYMDHMS(TimeUnique):
 
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class
-        if not all(isinstance(val, dict) for val in val1.flat):
+        if not all(isinstance(val, dict) or
+                   (isinstance(val, np.record) and val.dtype.kind == 'V')
+                   for val in val1.flat):
             raise TypeError('Input values for {0} class must be '
-                            'dict objects'.format(self.name))
+                            'dict or numpy recarray or numpy structured'
+                            ' array objects'.format(self.name))
         return val1, None
 
     def set_jds(self, val1, val2):
-        times_dict = val1.item()
+        if val1.dtype.kind == 'V':
+            times_dict = dict([(dtype, val1[dtype])
+                               for dtype in val1.dtype.names])
+        else:
+            times_dict = val1.item()
+
         jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
                               times_dict['year'],
                               times_dict.get('month', 1),
