@@ -2014,12 +2014,23 @@ class CompositeUnit(UnitBase):
                         "bases must be sequence of UnitBase instances")
             powers = [validate_power(p) for p in powers]
 
-        if not decompose and len(bases) == 1 and powers == [1]:
-            # Short-cut
+        if not decompose and len(bases) == 1:
+            # Short-cut; with one unit there's no expand and gather.
             unit = bases[0]
-            self._scale = sanitize_scale(scale * unit.scale)
-            self._bases = unit.bases
-            self._powers = unit.powers
+            power = powers[0]
+            if power == 1:
+                scale *= unit.scale
+                self._bases = unit.bases
+                self._powers = unit.powers
+            elif power == 0:
+                self._bases = []
+                self._powers = []
+            else:
+                scale *= unit.scale ** power
+                self._bases = unit.bases
+                self._powers = [operator.mul(*resolve_fractions(p, power))
+                                for p in unit.powers]
+            self._scale = sanitize_scale(scale)
         else:
             self._scale = scale
             self._bases = bases
