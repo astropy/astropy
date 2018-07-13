@@ -1731,15 +1731,12 @@ class TimeDelta(Time):
     info = TimeDeltaInfo()
 
     def __init__(self, val, val2=None, format=None, scale=None, copy=False):
-        if isinstance(val, timedelta) and not format:
-            format = 'datetime'
-
         if isinstance(val, TimeDelta):
             if scale is not None:
                 self._set_scale(scale)
         else:
             if format is None:
-                format = 'jd'
+                format = 'datetime' if isinstance(val, timedelta) else 'jd'
 
             self._init_from_vals(val, val2, format, scale, copy)
 
