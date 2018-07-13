@@ -498,6 +498,8 @@ class UnitBase(metaclass=InheritDocstrings):
     # arrays to avoid element-wise multiplication.
     __array_priority__ = 1000
 
+    _hash = None
+
     def __deepcopy__(self, memo):
         # This may look odd, but the units conversion will be very
         # broken after deep-copying if we don't guarantee that a given
@@ -730,9 +732,12 @@ class UnitBase(metaclass=InheritDocstrings):
         return NotImplemented
 
     def __hash__(self):
-        # This must match the hash used in CompositeUnit for a unit
-        # with only one base and no scale or power.
-        return hash((str(self.scale), self.name, str('1')))
+        if self._hash is None:
+            parts = ([str(self.scale)] +
+                     [x.name for x in self.bases] +
+                     [str(x) for x in self.powers])
+            self._hash = hash(tuple(parts))
+        return self._hash
 
     def __eq__(self, other):
         if self is other:
@@ -1948,7 +1953,9 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         return self._represents.is_unity()
 
     def __hash__(self):
-        return hash(self.name) + hash(self._represents)
+        if self._hash is None:
+            self._hash = hash((self.name, self._represents))
+        return self._hash
 
     @classmethod
     def _from_physical_type_id(cls, physical_type_id):
@@ -1997,7 +2004,6 @@ class CompositeUnit(UnitBase):
         of the base units.
     """
     _decomposed_cache = None
-    _hash = None
 
     def __init__(self, scale, bases, powers, decompose=False,
                  decompose_bases=set(), _error_check=True):
@@ -2047,14 +2053,6 @@ class CompositeUnit(UnitBase):
                     self._scale)
             else:
                 return 'Unit(dimensionless)'
-
-    def __hash__(self):
-        if self._hash is None:
-            parts = ([str(self._scale)] +
-                     [x.name for x in self._bases] +
-                     [str(x) for x in self._powers])
-            self._hash = hash(tuple(parts))
-        return self._hash
 
     @property
     def scale(self):
