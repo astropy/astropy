@@ -252,8 +252,10 @@ def resolve_fractions(a, b):
     This ensures that any operation involving a Fraction will use
     rational arithmetic and preserve precision.
     """
-    a_is_fraction = isinstance(a, Fraction)
-    b_is_fraction = isinstance(b, Fraction)
+    a_is_fraction = (a.__class__ is not int and a.__class__ is not float and
+                     isinstance(a, Fraction))
+    b_is_fraction = (b.__class__ is not int and b.__class__ is not float and
+                     isinstance(b, Fraction))
     if a_is_fraction and not b_is_fraction:
         b = Fraction(b)
     elif not a_is_fraction and b_is_fraction:
