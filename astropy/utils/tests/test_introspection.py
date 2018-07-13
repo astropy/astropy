@@ -63,7 +63,7 @@ def test_find_mod_objs():
     assert namedtuple not in objs
 
 
-def _minversion_test():
+def test_minversion():
     from types import ModuleType
     test_module = ModuleType(str("test_module"))
     test_module.__version__ = '0.12.2'
@@ -73,14 +73,3 @@ def _minversion_test():
         assert minversion(test_module, version)
     for version in bad_versions:
         assert not minversion(test_module, version)
-
-
-def test_minversion():
-    import sys
-    if 'pkg_resources' in sys.modules:
-        pkg_resources_saved = sys.modules['pkg_resources']
-        # Force ImportError for pkg_resources in minversion()
-        sys.modules['pkg_resource'] = None
-        _minversion_test()
-        sys.modules['pkg_resource'] = pkg_resources_saved
-    _minversion_test()
