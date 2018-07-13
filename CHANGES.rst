@@ -91,6 +91,8 @@ astropy.time
 - Added the ability to use ``local`` as time scale in ``Time`` and
   ``TimeDelta``. [#6487]
 
+- Avoid rounding errors when converting ``Quantity`` to ``TimeDelta``. [#7625]
+
 astropy.units
 ^^^^^^^^^^^^^
 
