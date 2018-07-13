@@ -853,7 +853,7 @@ class Time(ShapedLikeNDArray):
         if value.dtype.kind == 'M':
             return value[()]
         if not self._time.jd1.shape and not np.ma.is_masked(value):
-            out = value.item()
+            out = value[()] if value.dtype.names else value.item()
         return out
 
     @property
