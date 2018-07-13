@@ -1839,3 +1839,19 @@ def test_ymdhms_precision():
     time.precision = 9
     assert time.value['second'][0] == 56.123123123
 
+
+def test_ymdhms_roundtrip():
+    time_dict = {
+        'year': 2016,
+        'month': 12,
+        'day': 31,
+        'hour': 23,
+        'minute': 59,
+        'second': 56.123,
+    }
+
+    time = Time(time_dict, format='ymdhms')
+    time_rt = Time(time.ymdhms, format='ymdhms')
+
+    assert time == time_rt
+
