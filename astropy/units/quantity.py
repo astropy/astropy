@@ -17,7 +17,7 @@ import numpy as np
 
 # AstroPy
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
-                   UnitBase, UnitsError, UnitTypeError)
+                   UnitBase, UnitsError, UnitConversionError, UnitTypeError)
 from .utils import is_effectively_unity
 from .format.latex import Latex
 from ..utils.compat import NUMPY_LT_1_14
@@ -857,6 +857,43 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             return True
         except TypeError:
             return NotImplemented
+
+    # Unit conversion operator (|).
+    def __or__(self, other):
+        try:
+            other = Unit(other, parse_strict='silent')
+        except UnitTypeError:
+            return NotImplemented
+
+        return self.__class__(self, other, copy=False, subok=True)
+
+    def __ior__(self, other):
+        try:
+            other = Unit(other, parse_strict='silent')
+        except UnitTypeError:
+            return NotImplemented
+
+        try:
+            factor = self.unit._to(other)
+        except UnitConversionError:
+            # Maybe via equivalencies?  Now we do make a temporary copy.
+            try:
+                value = self._to_value(other)
+            except UnitConversionError:
+                return NotImplemented
+
+            self.view(np.ndarray)[...] = value
+
+        else:
+            self.view(np.ndarray)[...] *= factor
+
+        self._set_unit(other)
+        return self
+
+    def __ror__(self, other):
+        if not self.isscalar:
+            return NotImplemented
+        return Unit(self).__ror__(other)
 
     # Arithmetic operations
     def __mul__(self, other):
