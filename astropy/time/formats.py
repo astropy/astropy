@@ -717,7 +717,7 @@ class TimeYMDHMS(TimeUnique):
     def set_jds(self, val1, val2):
         times_dict = val1.item()
         jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
-                              times_dict.get('year', 0),
+                              times_dict['year'],
                               times_dict.get('month', 1),
                               times_dict.get('day', 1),
                               times_dict.get('hour', 0),
@@ -734,16 +734,24 @@ class TimeYMDHMS(TimeUnique):
         imins = ihmsfs['m']
         isecs = ihmsfs['s']
         ifracs = ihmsfs['f']
-        out = np.array([iys, ims, ids, ihrs, imins,
-                        isecs + ifracs * 10**(-self.precision)])\
-            .transpose().copy().view([
-                ('year', 'f8'),
-                ('month', 'f8'),
-                ('day', 'f8'),
-                ('hour', 'f8'),
-                ('minute', 'f8'),
-                ('second', 'f8'),
-            ])
+
+        shape = 1 if not self.jd1.shape else self.jd1.shape
+        out = np.empty(shape, dtype=[
+                                ('year', 'i4'),
+                                ('month', 'i4'),
+                                ('day', 'i4'),
+                                ('hour', 'i4'),
+                                ('minute', 'i4'),
+                                ('second', 'f8'),
+                        ])
+        out['year'] = iys
+        out['month'] = ims
+        out['day'] = ids
+        out['hour'] = ihrs
+        out['minute'] = imins
+        out['second'] = isecs + ifracs * 10**(-self.precision)
+        out = out.view(np.recarray)
+
         return self.mask_if_needed(out)
 
 
