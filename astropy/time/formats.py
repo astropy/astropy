@@ -702,8 +702,7 @@ class TimeYMDHMS(TimeUnique):
       >>> t.iso
       array(['2015-01-01 00:01:00.000', '2016-01-01 00:02:00.000'], dtype='<U23')
       >>> t.ymdhms['year']
-      array([[2015.],
-       [2016.]])
+      array([2015, 2016], dtype=int32)
     """
     name = 'ymdhms'
 
