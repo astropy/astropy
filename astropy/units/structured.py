@@ -235,6 +235,35 @@ class StructuredUnit(np.void):
         """
         return self._get_converter(other, equivalencies=equivalencies)(value)
 
+    def to_string(self, format='generic'):
+        """Output the unit in the given format as a string.
+
+        Units are separated by commas.
+
+        Parameters
+        ----------
+        format : `astropy.units.format.Base` instance or str
+            The name of a format or a formatter object.  If not
+            provided, defaults to the generic format.
+        """
+        if format not in ('generic', 'unscaled', 'latex'):
+            raise ValueError("Structured units cannot be written in {0} format. "
+                             "Only 'generic', 'unscaled' and 'latex' are "
+                             "supported.".format(format))
+        items = self.item()
+        out = '({})'.format(', '.join([item.to_string(format)
+                                       for item in items]))
+        return out if len(items) > 1 else out[:-1] + ',)'
+
+    def _repr_latex_(self):
+        return self.to_string('latex')
+
+    def __str__(self):
+        return self.to_string('generic')
+
+    def __repr__(self):
+        return 'Unit("{}")'.format(self.to_string())
+
 
 class StructuredQuantity(Quantity):
     """Structured array with associated units.
@@ -268,14 +297,19 @@ class StructuredQuantity(Quantity):
         for name in self.dtype.names:
             yield self[name]
 
+    def __quantity_subclass__(self, unit):
+        if isinstance(unit, StructuredUnit):
+            return type(self), True
+        else:
+            return super().__quantity_subclass__(unit)[0], False
+
     def __getitem__(self, item):
         out = super().__getitem__(item)
         if out.dtype is not self.dtype:
             # item caused dtype change -> indexed with string-like.
             out_unit = self.unit[item]
             if not out.dtype.fields:
-                out = out.view(getattr(out_unit, '_quantity_cls',
-                                       Quantity))
+                out = self._new_view(out, out_unit)
             out._unit = out_unit
 
         return out
