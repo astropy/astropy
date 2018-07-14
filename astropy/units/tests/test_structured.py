@@ -8,7 +8,8 @@ from collections import OrderedDict
 import numpy as np
 
 from ... import units as u
-from ...units import StructuredUnit, StructuredQuantity, Unit, Quantity
+from ...units import (StructuredUnit, StructuredQuantity,
+                      Unit, UnitBase, Quantity)
 
 
 class StructuredTestBase:
@@ -49,8 +50,8 @@ class TestStructuredUnitBasics(StructuredTestBase):
         assert su2['t'] is self.t_unit
         assert su2['pv'] == su
         su3 = StructuredUnit(('AU', 'AU/day'), ('p', 'v'))
-        assert isinstance(su3['p'], u.UnitBase)
-        assert isinstance(su3['v'], u.UnitBase)
+        assert isinstance(su3['p'], UnitBase)
+        assert isinstance(su3['v'], UnitBase)
 
     def test_recursive_initialization(self):
         su = StructuredUnit(((self.p_unit, self.v_unit), self.t_unit),
@@ -66,56 +67,66 @@ class TestStructuredUnitBasics(StructuredTestBase):
 
     def test_initialize_with_float_dtype(self):
         su = StructuredUnit(('AU', 'AU/d'), self.pv_dtype)
-        assert isinstance(su['p'], u.UnitBase)
-        assert isinstance(su['v'], u.UnitBase)
+        assert isinstance(su['p'], UnitBase)
+        assert isinstance(su['v'], UnitBase)
         assert su['p'] == u.AU
         assert su['v'] == u.AU / u.day
         su = StructuredUnit((('km', 'km/s'), 'yr'), self.pv_t_dtype)
         assert isinstance(su['pv'], StructuredUnit)
-        assert isinstance(su['pv']['p'], u.UnitBase)
-        assert isinstance(su['t'], u.UnitBase)
+        assert isinstance(su['pv']['p'], UnitBase)
+        assert isinstance(su['t'], UnitBase)
         assert su['pv']['v'] == u.km / u.s
         su = StructuredUnit((('km', 'km/s'), 'yr'), self.pv_t_dtype)
         assert isinstance(su['pv'], StructuredUnit)
-        assert isinstance(su['pv']['p'], u.UnitBase)
-        assert isinstance(su['t'], u.UnitBase)
+        assert isinstance(su['pv']['p'], UnitBase)
+        assert isinstance(su['t'], UnitBase)
         assert su['pv']['v'] == u.km / u.s
 
     def test_initialize_single_field(self):
         su = StructuredUnit('AU', 'p')
         assert isinstance(su, StructuredUnit)
-        assert isinstance(su['p'], u.UnitBase)
+        assert isinstance(su['p'], UnitBase)
         assert su['p'] == u.AU
         su = StructuredUnit('AU')
         assert isinstance(su, StructuredUnit)
-        assert isinstance(su['f0'], u.UnitBase)
+        assert isinstance(su['f0'], UnitBase)
         assert su['f0'] == u.AU
 
     def test_parsing(self):
-        su = u.Unit('AU, AU/d')
+        su = Unit('AU, AU/d')
         assert isinstance(su, StructuredUnit)
-        assert isinstance(su['f0'], u.UnitBase)
-        assert isinstance(su['f1'], u.UnitBase)
+        assert isinstance(su['f0'], UnitBase)
+        assert isinstance(su['f1'], UnitBase)
         assert su['f0'] == u.AU
         assert su['f1'] == u.AU/u.day
-        su2 = u.Unit('AU, AU/d, yr')
+        su2 = Unit('AU, AU/d, yr')
         assert isinstance(su2, StructuredUnit)
         assert su2 == StructuredUnit(('AU', 'AU/d', 'yr'))
-        su2a = u.Unit('(AU, AU/d, yr)')
+        su2a = Unit('(AU, AU/d, yr)')
         assert isinstance(su2a, StructuredUnit)
         assert su2a == su2
-        su3 = u.Unit('(km, km/s), yr')
+        su3 = Unit('(km, km/s), yr')
         assert isinstance(su3, StructuredUnit)
         assert su3 == StructuredUnit((('km', 'km/s'), 'yr'))
-        su4 = u.Unit('km,')
+        su4 = Unit('km,')
         assert isinstance(su4, StructuredUnit)
         assert su4 == StructuredUnit((u.km,))
-        su5 = u.Unit('(m,s),')
+        su5 = Unit('(m,s),')
         assert isinstance(su5, StructuredUnit)
         assert su5 == StructuredUnit(((u.m, u.s),))
-        ldbody_unit = u.Unit('Msun, 0.5rad^2, (au, au/day)')
+        ldbody_unit = Unit('Msun, 0.5rad^2, (au, au/day)')
         assert ldbody_unit == StructuredUnit(
-            (u.Msun, u.Unit(u.rad**2 / 2), (u.AU, u.AU / u.day)))
+            (u.Msun, Unit(u.rad**2 / 2), (u.AU, u.AU / u.day)))
+
+    def test_str(self):
+        su = StructuredUnit(((u.km, u.km/u.s), u.yr))
+        assert str(su) == '((km, km / s), yr)'
+        assert Unit(str(su)) == su
+
+    def test_repr(self):
+        su = StructuredUnit(((u.km, u.km/u.s), u.yr))
+        assert repr(su) == 'Unit("((km, km / s), yr)")'
+        assert eval(repr(su)) == su
 
 
 class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
@@ -196,11 +207,11 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         q_pv = StructuredQuantity(self.pv, self.pv_unit)
         q_p = q_pv['p']
         assert isinstance(q_p, Quantity)
-        assert isinstance(q_p.unit, u.UnitBase)
+        assert isinstance(q_p.unit, UnitBase)
         assert np.all(q_p == self.pv['p'] * self.pv_unit['p'])
         q_v = q_pv['v']
         assert isinstance(q_v, Quantity)
-        assert isinstance(q_v.unit, u.UnitBase)
+        assert isinstance(q_v.unit, UnitBase)
         assert np.all(q_v == self.pv['v'] * self.pv_unit['v'])
         q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
         q_t = q_pv_t['t']
