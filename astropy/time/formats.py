@@ -701,7 +701,7 @@ class TimeYMDHMS(TimeUnique):
       >>> t = Time({'year': [2015, 2016], 'minute': [1, 2]}, scale='utc')
       >>> t.iso
       array(['2015-01-01 00:01:00.000', '2016-01-01 00:02:00.000'], dtype='<U23')
-      >>> t.ymdhms['year']
+      >>> t.ymdhms.year
       array([2015, 2016], dtype=int32)
     """
     name = 'ymdhms'
@@ -709,7 +709,8 @@ class TimeYMDHMS(TimeUnique):
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class
         if not all(isinstance(val, dict) or
-                   (isinstance(val, np.record) and val.dtype.kind == 'V')
+                   (isinstance(val, (np.ndarray, np.record, np.void))
+                    and val.dtype.kind == 'V')
                    for val in val1.flat):
             raise TypeError('Input values for {0} class must be '
                             'dict or numpy recarray or numpy structured'
@@ -717,11 +718,16 @@ class TimeYMDHMS(TimeUnique):
         return val1, None
 
     def set_jds(self, val1, val2):
+        from astropy.table import Table
+
         if val1.dtype.kind == 'V':
-            times_dict = dict([(dtype, val1[dtype])
-                               for dtype in val1.dtype.names])
+            times_dict = dict(Table(val1, copy=False))
         else:
             times_dict = val1.item()
+            if not all(isinstance(val, (int, float))
+                       for val in times_dict.values()):
+                times_dict = Table(times_dict)
+                times_dict = dict(times_dict)
 
         jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
                               times_dict['year'],
@@ -735,7 +741,7 @@ class TimeYMDHMS(TimeUnique):
     @property
     def value(self):
         scale = self.scale.upper().encode('ascii')
-        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, self.precision,
+        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 9,
                                            self.jd1, self.jd2_filled)
         ihrs = ihmsfs['h']
         imins = ihmsfs['m']
@@ -756,7 +762,7 @@ class TimeYMDHMS(TimeUnique):
         out['day'] = ids
         out['hour'] = ihrs
         out['minute'] = imins
-        out['second'] = isecs + ifracs * 10**(-self.precision)
+        out['second'] = isecs + ifracs * 10**(-9)
         out = out.view(np.recarray)
 
         return self.mask_if_needed(out)
