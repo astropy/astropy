@@ -52,6 +52,13 @@ class TestStructuredUnitBasics(StructuredTestBase):
         su3 = StructuredUnit(('AU', 'AU/day'), ('p', 'v'))
         assert isinstance(su3['p'], UnitBase)
         assert isinstance(su3['v'], UnitBase)
+        su4 = StructuredUnit('AU, AU/day', ('p', 'v'))
+        assert su4['p'] == u.AU
+        assert su4['v'] == u.AU / u.day
+        su5 = StructuredUnit(('AU', 'AU/day'))
+        assert su5.dtype.names == ('f0', 'f1')
+        assert su5['f0'] == u.AU
+        assert su5['f1'] == u.AU / u.day
 
     def test_recursive_initialization(self):
         su = StructuredUnit(((self.p_unit, self.v_unit), self.t_unit),
@@ -60,6 +67,23 @@ class TestStructuredUnitBasics(StructuredTestBase):
         assert su['pv']['p'] is self.p_unit
         assert su['pv']['v'] is self.v_unit
         assert su['t'] is self.t_unit
+        su2 = StructuredUnit(((self.p_unit, self.v_unit), self.t_unit),
+                             (['p_v', ('p', 'v')], 't'))
+        assert isinstance(su2['p_v'], StructuredUnit)
+        assert su2['p_v']['p'] is self.p_unit
+        assert su2['p_v']['v'] is self.v_unit
+        assert su2['t'] is self.t_unit
+        su3 = StructuredUnit((('AU', 'AU/day'), 'yr'),
+                             (['p_v', ('p', 'v')], 't'))
+        assert isinstance(su3['p_v'], StructuredUnit)
+        assert su3['p_v']['p'] == u.AU
+        assert su3['p_v']['v'] == u.AU / u.day
+        assert su3['t'] == u.yr
+        su4 = StructuredUnit('(AU, AU/day), yr', (('p', 'v'), 't'))
+        assert isinstance(su4['pv'], StructuredUnit)
+        assert su4['pv']['p'] == u.AU
+        assert su4['pv']['v'] == u.AU / u.day
+        assert su4['t'] == u.yr
 
     def test_looks_like_unit(self):
         su = StructuredUnit((self.p_unit, self.v_unit), ('p', 'v'))
@@ -76,7 +100,7 @@ class TestStructuredUnitBasics(StructuredTestBase):
         assert isinstance(su['pv']['p'], UnitBase)
         assert isinstance(su['t'], UnitBase)
         assert su['pv']['v'] == u.km / u.s
-        su = StructuredUnit((('km', 'km/s'), 'yr'), self.pv_t_dtype)
+        su = StructuredUnit('(km, km/s), yr', self.pv_t_dtype)
         assert isinstance(su['pv'], StructuredUnit)
         assert isinstance(su['pv']['p'], UnitBase)
         assert isinstance(su['t'], UnitBase)
@@ -222,6 +246,11 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
 
     def test_initialization_with_unit_tuples(self):
         q_pv_t = StructuredQuantity(self.pv_t, (('km', 'km/s'), 's'))
+        assert isinstance(q_pv_t.unit, StructuredUnit)
+        assert q_pv_t.unit == self.pv_t_unit
+
+    def test_initialization_with_string(self):
+        q_pv_t = StructuredQuantity(self.pv_t, '(km, km/s), s')
         assert isinstance(q_pv_t.unit, StructuredUnit)
         assert q_pv_t.unit == self.pv_t_unit
 
