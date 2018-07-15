@@ -88,6 +88,44 @@ An incomplete list of specific functions which are known to exhibit this behavio
 See: https://github.com/astropy/astropy/issues/1274
 
 
+Care has to be taken when setting array slices using Quantities::
+
+    >>> a = np.ones(4)
+    >>> a[2:3] = 2*u.kg
+    >>> a
+    array([1., 1., 2., 1.])
+
+::
+
+    >>> a = np.ones(4)
+    >>> a[2:3] = 1*u.cm/u.m
+    >>> a
+    array([1., 1., 1., 1.])
+
+Either set single array entries or use lists of Quantities::
+
+    >>> a = np.ones(4)
+    >>> a[2] = 1*u.cm/u.m
+    >>> a
+    array([1., 1., 0.01, 1.])
+
+::
+
+    >>> a = np.ones(4)
+    >>> a[2:3] = [1*u.cm/u.m]
+    >>> a
+    array([1., 1., 0.01, 1.])
+
+Both will throw an exception (albeit not the expected UnitsError), if units do not cancel, e.g.::
+
+    >>> a = np.ones(4)
+    >>> a[2] = 1*u.cm
+    ValueError: setting an array element with a sequence.
+
+
+See: https://github.com/astropy/astropy/issues/7582
+
+
 Quantities float comparison with np.isclose fails
 -------------------------------------------------
 
