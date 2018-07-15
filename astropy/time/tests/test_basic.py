@@ -17,7 +17,8 @@ from astropy.time import (Time, TimeDelta, ScaleValueError, STANDARD_TIME_SCALES
 from astropy.coordinates import EarthLocation
 from astropy import units as u
 from astropy import _erfa as erfa
-from astropy.table import Column
+from astropy.table import Column, Table
+
 try:
     import pytz
     HAS_PYTZ = True
@@ -1740,38 +1741,86 @@ def test_get_time_fmt_exception_messages():
 def test_ymdhms_init():
     time = Time('2001-01-01T00:00:00')
 
-    time_dict = {
-        'year': 2001,
-    }
 
-    t1 = Time(time_dict, format='ymdhms')
-    assert t1 == time
+class TestYMDHMS:
+    def setup(self):
+        self.default_time = Time('2001-01-01T00:00:00')
 
-    time_dict['month'] = 1
-    t2 = Time(time_dict, format='ymdhms')
-    assert t2 == time
+        self.time_dict_scalar = {
+            'year': 2001,
+            'month': 11,
+            'day': 14,
+            'hour': 2,
+            'minute': 10,
+            'second': 59.123,
+        }
+        self.time_scalar = Time('2001-11-14T02:10:59.123')
 
-    time_dict['month'] = 1
-    t2 = Time(time_dict, format='ymdhms')
-    assert t2 == time
+        # non scalar
+        self.times_dict_ns = {
+            'year': [2001, 2002],
+            'month': [2, 3],
+            'hour': [4, 5],
+        }
+        self.table_ns = Table(self.times_dict_ns)
+        self.struct_array_ns = self.table_ns.as_array()
+        self.rec_array_ns = self.struct_array_ns.view(np.recarray)
+        self.time_ns = Time(['2001-02-01T04:00:00', '2002-03-01T05:00:00'])
 
-    time_dict['day'] = 1
-    t3 = Time(time_dict, format='ymdhms')
-    assert t3 == time
+        self.times_dict_shape = {
+            'year': [[2001, 2002], [2003, 2004]]
+        }
+        self.time_shape = Time(
+            [
+                ['2001-01-01', '2002-01-01'],
+                ['2003-01-01', '2004-01-01'],
+            ]
+        )
 
-    time_dict['hour'] = 0
-    t4 = Time(time_dict, format='ymdhms')
-    assert t4 == time
+    def test_defaults(self):
 
+        time_dict = {
+            'year': 2001,
+        }
 
-def test_ymdhms_init2():
-    time_dict = {
-        'year': 2001,
-        'month': 11,
-        'day': 14,
-    }
+        t1 = Time(time_dict, format='ymdhms')
+        assert t1 == self.default_time
 
-    assert Time(time_dict, format='ymdhms') == Time('2001-11-14')
+    def test_init_from_struc_array(self):
+        time = Time(self.struct_array_ns, format='ymdhms')
+        assert np.all(time == self.time_ns)
+
+    def test_init_from_rec_array(self):
+        time = Time(self.rec_array_ns, format='ymdhms')
+        assert np.all(time == self.time_ns)
+
+    def test_init_from_table(self):
+        time = Time(self.table_ns, format='ymdhms')
+        assert np.all(time == self.time_ns)
+
+    def test_shape(self):
+        time = Time(self.times_dict_shape, format='ymdhms')
+
+        assert np.all(time == self.time_shape)
+        assert time.ymdhms.shape == self.time_shape.shape
+
+    def test_ymdhms_keys(self):
+        time = Time(self.time_dict_scalar, format='ymdhms')
+        assert time.value['year'][0] == 2001
+        assert time.value['month'][0] == 11
+        assert time.value['day'][0] == 14
+        assert time.value['hour'][0] == 2
+        assert time.value['minute'][0] == 10
+        assert time.value['second'][0] == 59.123
+
+    def test_malformed_input(self):
+        time_dict = {
+            'year': [2015, 2016],
+            'month': [10],
+        }
+
+        with pytest.raises(ValueError):
+            Time(time_dict, format='ymdhms')
 
 
 def test_ymdhms_init_non_scalar():
@@ -1800,25 +1849,6 @@ def test_ymdhms_leapsecond():
     assert Time(time_dict) == Time('2016-12-31T23:59:60')
 
 
-def test_ymdhms_keys():
-    time_dict = {
-        'year': 2016,
-        'month': 12,
-        'day': 31,
-        'hour': 23,
-        'minute': 59,
-        'second': 60
-    }
-
-    time = Time(time_dict, format='ymdhms')
-    assert time.value['year'][0] == 2016
-    assert time.value['month'][0] == 12
-    assert time.value['day'][0] == 31
-    assert time.value['hour'][0] == 23
-    assert time.value['minute'][0] == 59
-    assert time.value['second'][0] == 60
-
-
 def test_ymdhms_precision():
     time_dict = {
         'year': 2016,
@@ -1830,13 +1860,6 @@ def test_ymdhms_precision():
     }
 
     time = Time(time_dict, format='ymdhms')
-
-    assert time.value['second'][0] == 56.123
-
-    time.precision = 6
-    assert time.value['second'][0] == 56.123123
-
-    time.precision = 9
     assert time.value['second'][0] == 56.123123123
 
 
