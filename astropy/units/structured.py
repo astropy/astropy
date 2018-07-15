@@ -40,9 +40,18 @@ class StructuredUnit(np.void):
         names to avoid this.
     """
     def __new__(cls, units=(), names=None):
+        if isinstance(units, str):
+            units = Unit(units)
+
+        if isinstance(units, StructuredUnit):
+            if names is None:
+                return units
+            else:
+                units = units.item()
+
         if not isinstance(units, tuple):
             units = (units,)
-        if units == ():
+        elif units == ():
             return
 
         if names is None:
@@ -58,18 +67,17 @@ class StructuredUnit(np.void):
         dtype = []
         converted = []
         for unit, name in zip(units, names):
-            if isinstance(unit, tuple):
-                if isinstance(name, list):
-                    assert len(name) == 2
-                    unit = cls(unit, name[1])
-                    name = name[0]
-                elif isinstance(name, tuple):
-                    unit = cls(unit, name)
-                    name = ''.join(name)
-                else:
-                    unit = cls(unit)
-            else:
+            if isinstance(name, list):
+                assert len(name) == 2
+                unit = cls(unit, name[1])
+                name = name[0]
+            elif isinstance(name, tuple):
+                unit = cls(unit, name)
+                name = ''.join(name)
+            elif isinstance(unit, str):
                 unit = Unit(unit)
+            elif isinstance(unit, tuple):
+                unit = cls(unit)
 
             converted.append(unit)
             dtype.append((name, 'O'))
