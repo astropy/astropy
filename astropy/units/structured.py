@@ -9,7 +9,7 @@ import operator
 
 import numpy as np
 
-from .core import Unit, UnitConversionError
+from .core import Unit, UnitBase
 from .quantity import Quantity
 
 
@@ -255,9 +255,9 @@ class StructuredUnit(np.void):
             provided, defaults to the generic format.
         """
         if format not in ('generic', 'unscaled', 'latex'):
-            raise ValueError("Structured units cannot be written in {0} format. "
-                             "Only 'generic', 'unscaled' and 'latex' are "
-                             "supported.".format(format))
+            raise ValueError("Structured units cannot be written in {0} "
+                             "format. Only 'generic', 'unscaled' and "
+                             "'latex' are supported.".format(format))
         items = self.item()
         out = '({})'.format(', '.join([item.to_string(format)
                                        for item in items]))
@@ -265,6 +265,41 @@ class StructuredUnit(np.void):
 
     def _repr_latex_(self):
         return self.to_string('latex')
+
+    __array_ufunc__ = None
+
+    def __mul__(self, other):
+        if isinstance(other, str):
+            try:
+                other = Unit(other, parse_strict='silent')
+            except Exception:
+                return NotImplemented
+        if isinstance(other, UnitBase):
+            new_units = tuple(part * other for part in self.item())
+            return self.__class__(new_units, _names_from_dtype(self.dtype))
+        if isinstance(other, StructuredUnit):
+            return NotImplemented
+
+        # Anything not like a unit, try initialising as a function quantity.
+        try:
+            return self._quantity_class(other, unit=self)
+        except Exception:
+            return NotImplemented
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __truediv__(self, other):
+        if isinstance(other, str):
+            try:
+                other = Unit(other, parse_strict='silent')
+            except Exception:
+                return NotImplemented
+
+        if isinstance(other, UnitBase):
+            new_units = tuple(part / other for part in self.item())
+            return self.__class__(new_units, _names_from_dtype(self.dtype))
+        return NotImplemented
 
     def __str__(self):
         return self.to_string('generic')

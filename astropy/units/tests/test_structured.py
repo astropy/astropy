@@ -3,8 +3,7 @@
 """
 Test Structured units and quantities.
 """
-from collections import OrderedDict
-
+import pytest
 import numpy as np
 
 from ... import units as u
@@ -226,6 +225,38 @@ class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
         assert np.all(pv_t3['t'] == self.t_unit.to('Myr', [10., 20.]))
 
 
+class TestStructuredUnitArithmatic(StructuredTestBaseWithUnits):
+    def test_multiplication(self):
+        pv_times_au = self.pv_unit * u.au
+        assert isinstance(pv_times_au, StructuredUnit)
+        assert pv_times_au.dtype.names == ('p', 'v')
+        assert pv_times_au['p'] == self.p_unit * u.AU
+        assert pv_times_au['v'] == self.v_unit * u.AU
+        au_times_pv = u.au * self.pv_unit
+        assert au_times_pv == pv_times_au
+        pv_times_au2 = self.pv_unit * 'au'
+        assert pv_times_au2 == pv_times_au
+        au_times_pv2 = 'AU' * self.pv_unit
+        assert au_times_pv2 == pv_times_au
+        with pytest.raises(TypeError):
+            self.pv_unit * self.pv_unit
+        with pytest.raises(TypeError):
+            's,s' * self.pv_unit
+
+    def test_division(self):
+        pv_by_s = self.pv_unit / u.s
+        assert isinstance(pv_by_s, StructuredUnit)
+        assert pv_by_s.dtype.names == ('p', 'v')
+        assert pv_by_s['p'] == self.p_unit / u.s
+        assert pv_by_s['v'] == self.v_unit / u.s
+        pv_by_s2 = self.pv_unit / 's'
+        assert pv_by_s2 == pv_by_s
+        with pytest.raises(TypeError):
+            1. / self.pv_unit
+        with pytest.raises(TypeError):
+            u.s / self.pv_unit
+
+
 class TestStructuredQuantity(StructuredTestBaseWithUnits):
     def test_initialization_and_keying(self):
         q_pv = StructuredQuantity(self.pv, self.pv_unit)
@@ -253,6 +284,13 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         q_pv_t = StructuredQuantity(self.pv_t, '(km, km/s), s')
         assert isinstance(q_pv_t.unit, StructuredUnit)
         assert q_pv_t.unit == self.pv_t_unit
+
+    def test_initialization_by_multiplication_with_unit(self):
+        q_pv_t = self.pv_t * self.pv_t_unit
+        assert q_pv_t.unit is self.pv_t_unit
+        assert np.all(q_pv_t.value == self.pv_t)
+        q_pv_t2 = self.pv_t_unit * self.pv_t
+        assert np.all(q_pv_t2 == q_pv_t)
 
     def test_getitem(self):
         q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
