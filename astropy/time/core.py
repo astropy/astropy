@@ -642,6 +642,7 @@ class Time(ShapedLikeNDArray):
             The time offset between the barycentre or Heliocentre and Earth,
             in TDB seconds.  Should be added to the original time to get the
             time in the Solar system barycentre or the Heliocentre.
+            Also, the time conversion to BJD will then include the relativistic correction as well.
         """
 
         if kind.lower() not in ('barycentric', 'heliocentric'):
