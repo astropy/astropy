@@ -104,7 +104,7 @@ class StructuredUnit(np.void):
 
         return np.array(results, dtype)[()]
 
-    def _recursively_get_dtype(self, value):
+    def _recursively_get_dtype(self, value, subdtype=np.dtype('f8')):
         if not isinstance(value, tuple) or len(self.dtype.names) != len(value):
             raise ValueError("cannot interpret value for unit {}"
                              .format(self))
@@ -112,10 +112,11 @@ class StructuredUnit(np.void):
         for name, value_part in zip(self.dtype.names, value):
             part = self[name]
             if isinstance(part, type(self)):
-                new_dtype.append((name, part._recursively_get_dtype(value_part)))
+                new_dtype.append((name, part._recursively_get_dtype(
+                    value_part, subdtype)))
             else:
                 value_part = np.array(value_part)
-                new_dtype.append((name, 'f8', value_part.shape))
+                new_dtype.append((name, subdtype, value_part.shape))
         return np.dtype(new_dtype)
 
     @property
