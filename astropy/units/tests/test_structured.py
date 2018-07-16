@@ -274,6 +274,10 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         q_pv2 = q_pv_t['pv']
         assert isinstance(q_pv2, StructuredQuantity)
         assert q_pv2.unit == self.pv_unit
+        with pytest.raises(ValueError):
+            StructuredQuantity(self.pv, self.pv_t_unit)
+        with pytest.raises(ValueError):
+            StructuredQuantity(self.pv_t, self.pv_unit)
 
     def test_initialization_with_unit_tuples(self):
         q_pv_t = StructuredQuantity(self.pv_t, (('km', 'km/s'), 's'))
