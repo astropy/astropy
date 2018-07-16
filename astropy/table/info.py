@@ -4,11 +4,13 @@ Table property for providing information about table.
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import sys
 import os
+from contextlib import contextmanager
+from inspect import isclass
 
 import numpy as np
 from ..utils.data_info import DataInfo
 
-__all__ = ['table_info', 'TableInfo']
+__all__ = ['table_info', 'TableInfo', 'serialize_method_as']
 
 
 def table_info(tbl, option='attributes', out=''):
@@ -121,3 +123,93 @@ class TableInfo(DataInfo):
         return table_info(self._parent, option, out)
 
     __call__.__doc__ = table_info.__doc__
+
+
+@contextmanager
+def serialize_method_as(tbl, serialize_method):
+    """Context manager to temporarily override individual
+    column info.serialize_method dict values.  The serialize_method
+    attribute is an optional dict which might look like ``{'fits':
+    'jd1_jd2', 'ecsv': 'formatted_value', ..}``.
+
+    ``serialize_method`` is a str or dict.  If str then it the the value
+    is the ``serialize_method`` that will be used for all formats.
+    If dict then the key values can be either:
+
+    - Column name.  This has higher precedence than the second option of
+      matching class.
+    - Class (matches any column which is an instance of the class)
+
+    This context manager is expected to be used only within ``Table.write``.
+    It could have been a private method on Table but prefer not to add
+    clutter to that class.
+
+    Parameters
+    ----------
+    tbl : Table object
+        Input table
+    serialize_method : dict, str
+        Dict with key values of column names or types, or str
+
+    Returns
+    -------
+    None (context manager)
+    """
+    def get_override_sm(col):
+        """
+        Determine if the ``serialize_method`` str or dict specifies an
+        override of column presets for ``col``.  Returns the matching
+        serialize_method value or ``None``.
+        """
+        # If a string then all columns match
+        if isinstance(serialize_method, str):
+            return serialize_method
+
+        # If column name then return that serialize_method
+        if col.info.name in serialize_method:
+            return serialize_method[col.info.name]
+
+        # Otherwise look for subclass matches
+        for key in serialize_method:
+            if isclass(key) and isinstance(col, key):
+                return serialize_method[key]
+
+        return None
+
+    # Setup for the context block.  Set individual column.info.serialize_method
+    # values as appropriate and keep a backup copy.  If ``serialize_method``
+    # is None or empty then don't do anything.
+
+    if serialize_method:
+        # Original serialize_method dict, keyed by column name.  This only
+        # gets set if there is an override.
+        original_sms = {}
+
+        # Go through every column and if it has a serialize_method info
+        # attribute then potentially update it for the duration of the write.
+        for col in tbl.itercols():
+            if hasattr(col.info, 'serialize_method'):
+                override_sm = get_override_sm(col)
+                if override_sm:
+                    # Make a reference copy of the column serialize_method
+                    # dict which maps format (e.g. 'fits') to the
+                    # appropriate method (e.g. 'data_mask').
+                    original_sms[col.info.name] = col.info.serialize_method
+
+                    # Set serialize method for *every* available format.  This is
+                    # brute force, but at this point the format ('fits', 'ecsv', etc)
+                    # is not actually known (this gets determined by the write function
+                    # in registry.py).  Note this creates a new temporary dict object
+                    # so that the restored version is the same original object.
+                    col.info.serialize_method = {fmt: override_sm
+                                                 for fmt in col.info.serialize_method}
+
+    # Finally yield for the context block
+    try:
+        yield
+    finally:
+        # Teardown (restore) for the context block.  Be sure to do this even
+        # if an exception occurred.
+        if serialize_method:
+            for name, original_sm in original_sms.items():
+                tbl[name].info.serialize_method = original_sm

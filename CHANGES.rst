@@ -60,6 +60,11 @@ astropy.io.ascii
   and without PyYAML installed.  Previously this silently fell through to
   parsing as a basic format file and the file metadata was lost. [#7580]
 
+- Optionally allow writing masked columns to ECSV with the mask explicitly
+  specified as a separate column instead of marking masked elements with ""
+  (empty string).  This allows handling the case of a masked string column
+  with "" data rows.  [#7481]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -76,6 +81,11 @@ astropy.io.fits
 
 - Add an ``ignore_hdus`` keyword to ``FITSDiff`` to allow ignoring HDUs by
   NAME when diffing two FITS files [#7538]
+
+- Optionally allow writing masked columns to FITS with the mask explicitly
+  specified as a separate column instead of using the FITS standard of
+  certain embedded null values (``NaN`` for float, ``TNULL`` for integers).
+  This can be used to work around limitations in the FITS standard. [#7481]
 
 - All time coordinates can now be written to and read from FITS binary tables,
   including those with vectorized locations. [#7430]
@@ -117,6 +127,9 @@ astropy.table
 - Added a new table index engine, ``SCEngine``, based on the Sorted Containers
   package. [#7574]
 
+- Add a new keyword argument ``serialize_method`` to ``Table.write`` to
+  control how ``Time`` and ``MaskedColumn`` columns are written. [#7481]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -146,6 +159,7 @@ astropy.visualization
 
 - Add support for setting ``set_separator(None)`` in WCSAxes to use default
   separators. [#7570]
+
 - Added two keyword argument options to ``CoordinateHelper.set_format_unit``: ``decimal`` can
   be used to specify whether to use decimal formatting for the labels (by default this is
   False for degrees and hours and True otherwise), and ``show_decimal_unit`` can be used to
@@ -362,6 +376,11 @@ astropy.io.ascii
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
+
+- Fixed bug when writing a table with masked columns to HDF5. Previously
+  the mask was being silently dropped.  If the ``serialize_meta`` option is
+  enabled the data mask will now be written as an additional column and the
+  masked columns will round-trip correctly. [#7481]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^

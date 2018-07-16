@@ -6,6 +6,7 @@ import numpy as np
 
 from ....tests.helper import catch_warnings
 from ....table import Table, QTable, NdarrayMixin, Column
+from ....table.table_helpers import simple_table
 
 from .... import units as u
 
@@ -767,3 +768,37 @@ def test_error_for_mixins_but_no_yaml(tmpdir):
     with pytest.raises(TypeError) as err:
         t.write(filename, path='root', serialize_meta=True)
     assert "cannot write type SkyCoord column 'col0' to HDF5 without PyYAML" in str(err)
+
+
+@pytest.mark.skipif('not HAS_YAML or not HAS_H5PY')
+def test_round_trip_masked_table_default(tmpdir):
+    """Test round-trip of MaskedColumn through HDF5 using default serialization
+    that writes a separate mask column.  Note:
+
+    >>> simple_table(masked=True)
+    <Table masked=True length=3>
+      a      b     c
+    int64 float64 str1
+    ----- ------- ----
+       --     1.0    c
+        2     2.0   --
+        3      --    e
+    """
+    filename = str(tmpdir.join('test.h5'))
+
+    t = simple_table(masked=True)  # int, float, and str cols with one masked element
+    t['c'] = [b'c', b'd', b'e']
+    t['c'].mask[1] = True
+    t.write(filename, format='hdf5', path='root', serialize_meta=True)
+
+    t2 = Table.read(filename)
+    assert t2.masked is True
+    assert t2.colnames == t.colnames
+    for name in t2.colnames:
+        assert np.all(t2[name].mask == t[name].mask)
+        assert np.all(t2[name] == t[name])
+
+        # Data under the mask round-trips also (unmask data to show this).
+        t[name].mask = False
+        t2[name].mask = False
+        assert np.all(t2[name] == t[name])

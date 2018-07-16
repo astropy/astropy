@@ -201,6 +201,37 @@ class EcsvOutputter(core.TableOutputter):
         return out
 
 
+class EcsvData(basic.BasicData):
+    def _set_fill_values(self, cols):
+        """Set the fill values of the individual cols based on fill_values of BaseData
+
+        For ECSV handle the corner case of data that has been serialized using
+        the serialize_method='data_mask' option, which writes the full data and
+        mask directly, AND where that table includes a string column with zero-length
+        string entries ("") which are valid data.
+
+        Normally the super() method will set col.fill_value=('', '0') to replace
+        blanks with a '0'.  But for that corner case subset, instead do not do
+        any filling.
+        """
+        super()._set_fill_values(cols)
+
+        # Get the serialized columns spec.  It might not exist and there might
+        # not even be any table meta, so punt in those cases.
+        try:
+            scs = self.header.table_meta['__serialized_columns__']
+        except (AttributeError, KeyError):
+            return
+
+        # Got some serialized columns, so check for string type and serialized
+        # as a MaskedColumn.  Without 'data_mask', MaskedColumn objects are
+        # stored to ECSV as normal columns.
+        for col in cols:
+            if (col.dtype == 'str' and col.name in scs and
+                    scs[col.name]['__class__'] == 'astropy.table.column.MaskedColumn'):
+                col.fill_values = {}  # No data value replacement
+
+
 class Ecsv(basic.Basic):
     """
     Read a file which conforms to the ECSV (Enhanced Character Separated
@@ -235,6 +266,7 @@ class Ecsv(basic.Basic):
     _io_registry_suffix = '.ecsv'
 
     header_class = EcsvHeader
+    data_class = EcsvData
     outputter_class = EcsvOutputter
 
     def update_table_data(self, table):

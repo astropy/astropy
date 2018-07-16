@@ -222,6 +222,19 @@ the fast Cython/C engine for reading and writing.
 ========================= ===== ==== ============================================================================================
 
 
+.. attention:: **ECSV is recommended**
+
+   For writing and reading tables to ASCII in a way that fully reproduces the
+   table data, types and metadata (i.e. the table will "round-trip"), we highly
+   recommend using the :ref:`ecsv_format`.  This writes the actual data in a
+   simple space-delimited format (the ``basic`` format) that any ASCII table
+   reader can parse, but also includes metadata encoded in a comment block that
+   allows full reconstruction of the original columns.  This includes support
+   for :ref:`ecsv_format_mixin_columns` (such as
+   `~astropy.coordinates.SkyCoord` or `~astropy.time.Time`) and
+   :ref:`ecsv_format_masked_columns`.
+
+
 Using `astropy.io.ascii`
 ========================
 
