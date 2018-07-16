@@ -2547,6 +2547,10 @@ class Table:
         Notes
         -----
         """
+        # The hanging Notes section just above is a section placeholder for
+        # import-time processing that collects available formats into an
+        # RST table and inserts at the end of the docstring.  DO NOT REMOVE.
+
         out = io_registry.read(cls, *args, **kwargs)
         # For some readers (e.g., ascii.ecsv), the returned `out` class is not
         # guaranteed to be the same as the desired output `cls`.  If so,
