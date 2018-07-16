@@ -60,9 +60,8 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
     obj_attrs = col.info._represent_as_dict()
     ordered_keys = col.info._represent_as_dict_attrs
 
-    # If not a mixin, or if class in ``exclude_classes`` tuple then
-    # treat as a normal column.  Excluded sub-classes must be explicitly
-    # specified.
+    # If serialization is not required (see function docstring above)
+    # or explicitly specified as excluded, then treat as a normal column.
     if not obj_attrs or col.__class__ in exclude_classes:
         new_cols.append(col)
         return
