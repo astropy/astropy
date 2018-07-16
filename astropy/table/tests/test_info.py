@@ -5,6 +5,7 @@
 import warnings
 from io import StringIO
 from collections import OrderedDict
+from copy import deepcopy
 
 import numpy as np
 import pytest
@@ -13,6 +14,7 @@ from ... import units as u
 from ... import time
 from ... import coordinates
 from ... import table
+from ..info import serialize_method_as
 from ...utils.data_info import data_info_factory, dtype_info_name
 from ..table_helpers import simple_table
 
@@ -251,3 +253,74 @@ def test_lost_parent_error():
     with pytest.raises(AttributeError) as err:
         c[:].info.name
     assert 'failed access "info" attribute' in str(err)
+
+
+def test_info_serialize_method():
+    """
+    Unit test of context manager to set info.serialize_method.  Normally just
+    used to set this for writing a Table to file (FITS, ECSV, HDF5).
+    """
+    t = table.Table({'tm': time.Time([1, 2], format='cxcsec'),
+                     'sc': coordinates.SkyCoord([1, 2], [1, 2], unit='deg'),
+                     'mc': table.MaskedColumn([1, 2], mask=[True, False]),
+                     'mc2': table.MaskedColumn([1, 2], mask=[True, False])}
+                    )
+
+    origs = {}
+    for name in ('tm', 'mc', 'mc2'):
+        origs[name] = deepcopy(t[name].info.serialize_method)
+
+    # Test setting by name and getting back to originals
+    with serialize_method_as(t, {'tm': 'test_tm', 'mc': 'test_mc'}):
+        for name in ('tm', 'mc'):
+            assert all(t[name].info.serialize_method[key] == 'test_' + name
+                       for key in t[name].info.serialize_method)
+        assert t['mc2'].info.serialize_method == origs['mc2']
+        assert not hasattr(t['sc'].info, 'serialize_method')
+
+    for name in ('tm', 'mc', 'mc2'):
+        assert t[name].info.serialize_method == origs[name]  # dict compare
+    assert not hasattr(t['sc'].info, 'serialize_method')
+
+    # Test setting by name and class, where name takes precedence.  Also
+    # test that it works for subclasses.
+    with serialize_method_as(t, {'tm': 'test_tm', 'mc': 'test_mc',
+                                 table.Column: 'test_mc2'}):
+        for name in ('tm', 'mc', 'mc2'):
+            assert all(t[name].info.serialize_method[key] == 'test_' + name
+                       for key in t[name].info.serialize_method)
+        assert not hasattr(t['sc'].info, 'serialize_method')
+
+    for name in ('tm', 'mc', 'mc2'):
+        assert t[name].info.serialize_method == origs[name]  # dict compare
+    assert not hasattr(t['sc'].info, 'serialize_method')
+
+    # Test supplying a single string that all applies to all columns with
+    # a serialize_method.
+    with serialize_method_as(t, 'test'):
+        for name in ('tm', 'mc', 'mc2'):
+            assert all(t[name].info.serialize_method[key] == 'test'
+                       for key in t[name].info.serialize_method)
+        assert not hasattr(t['sc'].info, 'serialize_method')
+
+    for name in ('tm', 'mc', 'mc2'):
+        assert t[name].info.serialize_method == origs[name]  # dict compare
+    assert not hasattr(t['sc'].info, 'serialize_method')
+
+
+def test_info_serialize_method_exception():
+    """
+    Unit test of context manager to set info.serialize_method.  Normally just
+    used to set this for writing a Table to file (FITS, ECSV, HDF5).
+    """
+    t = simple_table(masked=True)
+    origs = deepcopy(t['a'].info.serialize_method)
+    try:
+        with serialize_method_as(t, 'test'):
+            assert all(t['a'].info.serialize_method[key] == 'test'
+                       for key in t['a'].info.serialize_method)
+            raise ZeroDivisionError()
+    except ZeroDivisionError:
+        pass
+
+    assert t['a'].info.serialize_method == origs  # dict compare

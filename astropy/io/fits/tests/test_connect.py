@@ -16,6 +16,7 @@ from ... import fits
 
 from .... import units as u
 from ....table import Table, QTable, NdarrayMixin, Column
+from ....table.table_helpers import simple_table
 from ....tests.helper import catch_warnings
 from ....units.format.fits import UnitScaleError
 
@@ -653,3 +654,37 @@ def test_info_attributes_with_no_mixins(tmpdir):
     assert t2['col0'].description == 'hello' * 40
     assert t2['col0'].format == '{:8.4f}'
     assert t2['col0'].meta['a'] == {'b': 'c'}
+
+
+@pytest.mark.skipif('not HAS_YAML')
+@pytest.mark.parametrize('method', ['set_cols', 'names', 'class'])
+def test_round_trip_masked_table_serialize_mask(tmpdir, method):
+    """
+    Same as previous test but set the serialize_method to 'data_mask' so mask is
+    written out and the behavior is all correct.
+    """
+    filename = str(tmpdir.join('test.fits'))
+
+    t = simple_table(masked=True)  # int, float, and str cols with one masked element
+
+    if method == 'set_cols':
+        for col in t.itercols():
+            col.info.serialize_method['fits'] = 'data_mask'
+        t.write(filename)
+    elif method == 'names':
+        t.write(filename, serialize_method={'a': 'data_mask', 'b': 'data_mask',
+                                            'c': 'data_mask'})
+    elif method == 'class':
+        t.write(filename, serialize_method='data_mask')
+
+    t2 = Table.read(filename)
+    assert t2.masked is True
+    assert t2.colnames == t.colnames
+    for name in t2.colnames:
+        assert np.all(t2[name].mask == t[name].mask)
+        assert np.all(t2[name] == t[name])
+
+        # Data under the mask round-trips also (unmask data to show this).
+        t[name].mask = False
+        t2[name].mask = False
+        assert np.all(t2[name] == t[name])

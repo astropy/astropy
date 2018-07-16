@@ -23,6 +23,7 @@ import numpy as np
 
 from ...coordinates import EarthLocation
 from ...table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
+from ...table import serialize
 from ... import time
 from ... import coordinates
 from ... import units as u
@@ -738,3 +739,14 @@ def test_rename_mixin_columns(mixin_cols):
         assert np.all(t['mm'].dec == tc['m'].dec)
     else:
         assert np.all(t['mm'] == tc['m'])
+
+
+def test_represent_mixins_as_columns_unit_fix():
+    """
+    If the unit is invalid for a column that gets serialized this would
+    cause an exception.  Fixed in #7481.
+    """
+    t = Table({'a': [1, 2]}, masked=True)
+    t['a'].unit = 'not a valid unit'
+    t['a'].mask[1] = True
+    serialize._represent_mixins_as_columns(t)

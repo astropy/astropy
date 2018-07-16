@@ -285,6 +285,8 @@ metadata by using a YAML-encoded data structure. The actual tabular data are
 stored in a standard character separated values (CSV) format, giving
 compatibility with a wide variety of non-specialized CSV table readers.
 
+.. _ecsv_format_mixin_columns:
+
 Mixin columns
 -------------
 
@@ -371,3 +373,76 @@ one of the specifically-allowed astropy classes.  There is no option to add
 user-specified allowed classes.  The ``'__info__'`` keyword contains values for
 standard `~astropy.table.Column` attributes like ``description`` or ``format``,
 for any mixin columns that are represented by more than one serialized column.
+
+.. _ecsv_format_masked_columns:
+
+Masked columns
+--------------
+
+By default, the ECSV format uses an empty (zero-length) string in the output
+table to represent masked or misssing data in `~astropy.table.MaskedColumn`
+columns.  In certain cases this may not be sufficient:
+
+- String column that contains empty (zero-length) string(s) as valid data.
+- Masked data values must be stored so those values can later be unmasked.
+
+In this case there is an available mechanism to specify that the full data
+and the mask itself should be written as columns in the output table as
+shown in the example below.  For further context see the section on
+:ref:`table_serialization_methods`.
+::
+
+  >>> from astropy.table.table_helpers import simple_table
+  >>> t = simple_table(masked=True)
+  >>> t['c'][0] = ""  # Valid empty string in data
+  >>> t
+  <Table masked=True length=3>
+    a      b     c
+  int64 float64 str1
+  ----- ------- ----
+     --     1.0
+      2     2.0   --
+      3      --    e
+
+Now we tell ECSV writer to output separate data and mask columns for the
+string column ``'c'``::
+
+  >>> t['c'].info.serialize_method['ecsv'] = 'data_mask'
+
+When this is written out notice that the output shows all the
+data values for the ``'c'`` column (include the masked ``'d'``
+value) and a new column ``'c.masked'``.  It also stores metadata
+that tells the ECSV reader to interpret the ``'c'`` and ``'c.masked'``
+columns as components of one `~astropy.table.MaskedColumn` object:
+
+.. doctest-skip::
+
+  >>> ascii.write(t, format='ecsv')
+  # %ECSV 0.9
+  # ---
+  # datatype:
+  # - {name: a, datatype: int64}
+  # - {name: b, datatype: float64}
+  # - {name: c, datatype: string}
+  # - {name: c.mask, datatype: bool}
+  # meta: !!omap
+  # - __serialized_columns__:
+  #     c:
+  #       __class__: astropy.table.column.MaskedColumn
+  #       data: !astropy.table.SerializedColumn {name: c}
+  #       mask: !astropy.table.SerializedColumn {name: c.mask}
+  # schema: astropy-2.0
+  a b c c.mask
+  "" 1.0 "" False
+  2 2.0 d True
+  3 "" e False
+
+When you read this back in, the empty (zero-length) string in the
+first row of column ``'c'`` will be preserved.  One can easily write
+all the columns out as data and mask pairs using the Unified I/O
+interface for tables with the ``serialize_method`` keyword argument::
+
+  >>> t.write('out.ecsv', format='ascii.ecsv', serialize_method='data_mask')  # doctest: +SKIP
+
+In this case all data values, including those "under the mask" in the
+original table, will be restored exactly when you read the file back.
