@@ -148,6 +148,11 @@ astropy.time
 
 - Added `datetime.timedelta` format class for ``TimeDelta``. [#7441]
 
+- Added ``strftime`` and ``strptime`` methods to ``Time`` class. 
+  These methods are similar to those in the Python standard library 
+  `time` package and provide flexible input and output formatting. [#7323]
+
+
 astropy.units
 ^^^^^^^^^^^^^
 
