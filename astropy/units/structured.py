@@ -37,20 +37,21 @@ class StructuredUnit(np.void):
 
     Parameters
     ----------
-    units : nested tuple or `~numpy.void`
-        Containing items that can initialize regular `~astropy.units.Unit`.
-    names : nested tuple of names or `~numpy.dtype`, optional
+    units : nested tuple of units, or str
+        Tuple elements should contain items that can initialize regular units.
+    names : nested tuple of str or `~numpy.dtype`, optional
         For nested tuples, by default the name of the upper entry will just
         be the concatenation of the names of the lower levels.  One can
         pass in a list with the upper-level name and a tuple of lower-level
-        names to avoid this.
+        names to avoid this.  Not all levels have to be given, except when
+        a `~numpy.dtype` is passed in.
     """
     def __new__(cls, units, names=None):
         allow_default_names = True
         if names is not None:
             if isinstance(names, np.dtype):
                 if not names.names:
-                    raise ValueError('dtype should hold names')
+                    raise ValueError('dtype should structured, with names.')
                 names = _names_from_dtype(names)
                 allow_default_names = False
             else:
@@ -65,7 +66,9 @@ class StructuredUnit(np.void):
                 # are given, or if all names are the same already anyway.
                 if names is None or units.names == names:
                     return units
-                units = tuple(units.values())
+
+                # Otherwise, turn (the upper level) into a tuple.
+                units = units.item()
             else:
                 # Single regular unit: make a tuple for iteration below.
                 units = (units,)
@@ -73,21 +76,25 @@ class StructuredUnit(np.void):
         if names is None:
             names = tuple('f{}'.format(i) for i in range(len(units)))
 
-        if len(units) != len(names):
+        elif len(units) != len(names):
             raise ValueError("lengths of units and names must match.")
 
         dtype = []
         converted = []
         for unit, name in zip(units, names):
             if isinstance(name, list):
+                # For list, the first item is the name of our level,
+                # and the second another tuple, i.e., we recurse.
                 assert len(name) == 2
                 unit = cls(unit, name[1])
                 name = name[0]
             else:
+                # We are at the lowest level.  Check unit.
                 if isinstance(unit, str):
                     unit = Unit(unit)
-                if isinstance(unit, tuple):
+                elif isinstance(unit, tuple):
                     unit = cls(unit)
+
                 if not allow_default_names and isinstance(unit,
                                                           StructuredUnit):
                     raise ValueError('units and names from dtype do not '
@@ -106,12 +113,17 @@ class StructuredUnit(np.void):
 
     @property
     def names(self):
+        """Possibly nested tuple of the names of the parts."""
         return tuple(([name, part.names]
                       if isinstance(part, StructuredUnit) else name)
                      for name, part in self.items())
 
+    # Allow StructuredUnit to be treated as an (ordered) mapping.
     def __len__(self):
         return len(self.dtype.names)
+
+    def values(self):
+        return self.item()
 
     def keys(self):
         return self.dtype.names
@@ -119,14 +131,13 @@ class StructuredUnit(np.void):
     def items(self):
         return zip(self.dtype.names, self.item())
 
-    def values(self):
-        return self.item()
-
     def __iter__(self):
         for name in self.dtype.names:
             yield name
 
+    # Helpers for methods below.
     def _recursively_apply(self, func, cls=None):
+        """Apply func recursively, storing the results in an instance of cls"""
         if cls is None:
             dtype = self.dtype
         else:
@@ -137,6 +148,8 @@ class StructuredUnit(np.void):
         return np.array(results, dtype)[()]
 
     def _recursively_get_dtype(self, value):
+        """Get structured dtype according to value, using our names."""
+        # Helper for _create_array below.
         if not isinstance(value, tuple) or len(self.dtype.names) != len(value):
             raise ValueError("cannot interpret value for unit {}"
                              .format(self))
@@ -149,14 +162,31 @@ class StructuredUnit(np.void):
                 new_dtype.append((name, value_part.dtype, value_part.shape))
         return np.dtype(new_dtype)
 
+    def _create_array(self, value):
+        """Turn a (nested) list of properly nested tuples into an array.
+
+        This routine is needed since ``np.array(value)`` would treat the
+        tuples as lower levels of the array, rather than as elements
+        of a structured array.  The routine does presume that the type
+        of the first tuple is representative of the rest.
+        """
+        # Get inner tuple.
+        tmp = value
+        while isinstance(tmp, list):
+            tmp = tmp[0]
+        # Get correct dtype using first element.
+        dtype = self._recursively_get_dtype(tmp)
+        # Use that for second conversion.
+        return np.array(value, dtype)
+
     @property
     def si(self):
-        """Returns a copy of the current `Unit` instance in SI units."""
+        """The `StructuredUnit` instance in SI units."""
         return self._recursively_apply(operator.attrgetter('si'))
 
     @property
     def cgs(self):
-        """Returns a copy of the current `Unit` instance in SI units."""
+        """The `StructuredUnit` instance in SI units."""
         return self._recursively_apply(operator.attrgetter('cgs'))
 
     # Needed to pass through Unit initializer, so might as well use it.
@@ -171,11 +201,11 @@ class StructuredUnit(np.void):
             operator.attrgetter('physical_type'), np.void)
 
     def decompose(self, bases=set()):
-        """Return a unit object composed of only irreducible units.
+        """Return a StructuredUnit object composed of only irreducible units.
 
         Parameters
         ----------
-        bases : sequence of UnitBase, optional
+        bases : sequence of `~astropy.units.UnitBase`, optional
             The bases to decompose into.  When not provided,
             decomposes down to any irreducible units.  When provided,
             the decomposed result will only contain the given units.
@@ -195,8 +225,8 @@ class StructuredUnit(np.void):
 
         Parameters
         ----------
-        other : `~astropy.units.StructuredUnit` or (nested) tuple
-            The unit to compare with.
+        other : `~astropy.units.StructuredUnit`, or what can initialize one
+            The structured unit to compare with.
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
@@ -212,11 +242,15 @@ class StructuredUnit(np.void):
             except Exception:
                 return False
 
-        is_equivalent = self.dtype == other.dtype
+        if self.dtype != other.dtype:
+            return False
+
         for self_part, other_part in zip(self.values(), other.values()):
-            is_equivalent = is_equivalent and self_part.is_equivalent(
-                other_part, equivalencies=equivalencies)
-        return is_equivalent
+            if not self_part.is_equivalent(other_part,
+                                           equivalencies=equivalencies):
+                return False
+
+        return True
 
     def _get_converter(self, other, equivalencies=[]):
         if not isinstance(other, type(self)):
@@ -229,14 +263,7 @@ class StructuredUnit(np.void):
 
         def converter(value):
             if not hasattr(value, 'dtype'):
-                # Get inner tuple.
-                tmp = value
-                while isinstance(tmp, list):
-                    tmp = tmp[0]
-                # Get correct dtype using first element.
-                dtype = self._recursively_get_dtype(tmp)
-                # Use that for second conversion.
-                value = np.array(value, dtype)
+                value = self._create_array(value)
             result = np.empty(value.shape, value.dtype)
             for name, converter_ in zip(result.dtype.names, converters):
                 result[name] = converter_(value[name])
@@ -249,12 +276,14 @@ class StructuredUnit(np.void):
 
         Parameters
         ----------
-        other : `~astropy.units.StructuredUnit` or (nested) tuple of str
+        other : `~astropy.units.StructuredUnit`, or what can initialize one
             The unit to convert to.  If necessary, will be converted to
             a Structured Unit using the dtype of ``value``.
         value : scalar void or array, or sequence convertible to array.
             Value(s) in the current unit to be converted to the
-            specified unit.
+            specified unit.  If a sequence, the first element must have
+            entries of the correct type to represent all elements (i.e.,
+            not have, e.g., an ``int`` where other elements have ``float``).
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
@@ -345,7 +374,7 @@ class StructuredQuantity(Quantity):
     ----------
     value : structured `~numpy.ndarray` or (nested) tuple
         Numerical values of the various elements of the structure.
-    unit : `~astropy.units.StructuredUnit` or (nested) tuple
+    unit : `~astropy.units.StructuredUnit` or (nested) tuple of units or str
         Associated units.
     dtype : `~numpy.dtype`, optional
         If not given, inferred from ``value``
@@ -353,22 +382,20 @@ class StructuredQuantity(Quantity):
         All other arguments are passed on to the `~numpy.array` constructor.
     """
     def __new__(cls, value, unit, dtype=None, *args, **kwargs):
-        if dtype is None and not hasattr(value, 'dtype'):
-            try:
-                dtype = unit._recursively_get_dtype(value)
-            except AttributeError:
-                pass
-        value = np.array(value, dtype, *args, **kwargs)
+        # TODO: special-case StructuredQuantity input.
+        # Tuples of tuples get interpreted as an array rather than
+        # as a structured void, so avoid that.
+        if (dtype is None and not hasattr(value, 'dtype') and
+                isinstance(unit, StructuredUnit)):
+            value = unit._create_array(value)
+        else:
+            value = np.array(value, dtype, *args, **kwargs)
         if not value.dtype.fields:
             raise TypeError("Values should be structured.")
         if not isinstance(value, cls):
             value = value.view(cls)
         value._set_unit(unit)
         return value
-
-    def parts(self):
-        for name in self.dtype.names:
-            yield self[name]
 
     def __quantity_subclass__(self, unit):
         if isinstance(unit, StructuredUnit):
@@ -396,7 +423,7 @@ class StructuredQuantity(Quantity):
 
         Parameters
         ----------
-        unit : `~astropy.units.StructuredUnit` or (nested) tuple of units
+        unit : `~astropy.units.StructuredUnit`, or what can initialize one
             Will be converted if necessary.
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
