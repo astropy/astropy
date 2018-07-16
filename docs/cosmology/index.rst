@@ -434,9 +434,9 @@ unless explicitly overridden.
     included in the Astropy core or an affiliated package.
 
 .. note that if this section gets too long, it should be moved to a separate 
-   doc page - see the top of performance.inc for the instructions on how to do 
+   doc page - see the top of performance.inc.rst for the instructions on how to do 
    that
-.. include:: performance.inc
+.. include:: performance.inc.rst
 
 See Also
 ========
