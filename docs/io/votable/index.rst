@@ -413,9 +413,9 @@ See Also
   <http://www.ivoa.net/documents/VOTable/20130315/PR-VOTable-1.3-20130315.html>`_
 
 .. note that if this section gets too long, it should be moved to a separate 
-   doc page - see the top of performance.inc for the instructions on how to do 
+   doc page - see the top of performance.inc.rst for the instructions on how to do 
    that
-.. include:: performance.inc
+.. include:: performance.inc.rst
 
 Reference/API
 =============
