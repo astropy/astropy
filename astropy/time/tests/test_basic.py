@@ -1806,12 +1806,12 @@ class TestYMDHMS:
 
     def test_ymdhms_keys(self):
         time = Time(self.time_dict_scalar, format='ymdhms')
-        assert time.value['year'][0] == 2001
-        assert time.value['month'][0] == 11
-        assert time.value['day'][0] == 14
-        assert time.value['hour'][0] == 2
-        assert time.value['minute'][0] == 10
-        assert time.value['second'][0] == 59.123
+        assert time.value['year'] == 2001
+        assert time.value['month'] == 11
+        assert time.value['day'] == 14
+        assert time.value['hour'] == 2
+        assert time.value['minute'] == 10
+        assert time.value['second'] == 59.123
 
     def test_malformed_input(self):
         time_dict = {
@@ -1860,7 +1860,7 @@ def test_ymdhms_precision():
     }
 
     time = Time(time_dict, format='ymdhms')
-    assert time.value['second'][0] == 56.123123123
+    assert time.value['second'] == 56.123123123
 
 
 def test_ymdhms_roundtrip():

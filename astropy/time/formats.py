@@ -748,8 +748,7 @@ class TimeYMDHMS(TimeUnique):
         isecs = ihmsfs['s']
         ifracs = ihmsfs['f']
 
-        shape = 1 if not self.jd1.shape else self.jd1.shape
-        out = np.empty(shape, dtype=[
+        out = np.empty(self.jd1.shape, dtype=[
                                 ('year', 'i4'),
                                 ('month', 'i4'),
                                 ('day', 'i4'),
