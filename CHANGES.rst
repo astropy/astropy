@@ -126,6 +126,7 @@ astropy.table
 
 - Added a new table index engine, ``SCEngine``, based on the Sorted Containers
   package. [#7574]
+
 - Add a new keyword argument ``serialize_method`` to ``Table.write`` to
   control how ``Time`` and ``MaskedColumn`` columns are written. [#7481]
 
