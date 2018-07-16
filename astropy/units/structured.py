@@ -26,6 +26,12 @@ def _names_from_dtype(dtype):
     return tuple(names)
 
 
+def _normalize_tuples(names):
+    return tuple(
+        ([''.join(name), _normalize_tuples(name)]
+         if isinstance(name, tuple) else name) for name in names)
+
+
 class StructuredUnit(np.void):
     """Container for units for a Structured Quantity.
 
@@ -39,27 +45,33 @@ class StructuredUnit(np.void):
         pass in a list with the upper-level name and a tuple of lower-level
         names to avoid this.
     """
-    def __new__(cls, units=(), names=None):
-        if isinstance(units, str):
-            units = Unit(units)
-
-        if isinstance(units, StructuredUnit):
-            if names is None:
-                return units
+    def __new__(cls, units, names=None):
+        allow_default_names = True
+        if names is not None:
+            if isinstance(names, np.dtype):
+                if not names.names:
+                    raise ValueError('dtype should hold names')
+                names = _names_from_dtype(names)
+                allow_default_names = False
             else:
-                units = units.item()
+                if not isinstance(names, tuple):
+                    names = (names,)
+                names = _normalize_tuples(names)
 
         if not isinstance(units, tuple):
-            units = (units,)
-        elif units == ():
-            return
+            units = Unit(units)
+            if isinstance(units, StructuredUnit):
+                # Avoid constructing a new StructuredUnit if no names
+                # are given, or if all names are the same already anyway.
+                if names is None or units.names == names:
+                    return units
+                units = tuple(units.values())
+            else:
+                # Single regular unit: make a tuple for iteration below.
+                units = (units,)
 
         if names is None:
             names = tuple('f{}'.format(i) for i in range(len(units)))
-        elif isinstance(names, str):
-            names = (names,)
-        elif isinstance(names, np.dtype):
-            names = _names_from_dtype(names)
 
         if len(units) != len(names):
             raise ValueError("lengths of units and names must match.")
@@ -71,13 +83,15 @@ class StructuredUnit(np.void):
                 assert len(name) == 2
                 unit = cls(unit, name[1])
                 name = name[0]
-            elif isinstance(name, tuple):
-                unit = cls(unit, name)
-                name = ''.join(name)
-            elif isinstance(unit, str):
-                unit = Unit(unit)
-            elif isinstance(unit, tuple):
-                unit = cls(unit)
+            else:
+                if isinstance(unit, str):
+                    unit = Unit(unit)
+                if isinstance(unit, tuple):
+                    unit = cls(unit)
+                if not allow_default_names and isinstance(unit,
+                                                          StructuredUnit):
+                    raise ValueError('units and names from dtype do not '
+                                     'match in depth.')
 
             converted.append(unit)
             dtype.append((name, 'O'))
@@ -90,9 +104,27 @@ class StructuredUnit(np.void):
     def _quantity_class(self):
         return StructuredQuantity
 
-    def parts(self):
+    @property
+    def names(self):
+        return tuple(([name, part.names]
+                      if isinstance(part, StructuredUnit) else name)
+                     for name, part in self.items())
+
+    def __len__(self):
+        return len(self.dtype.names)
+
+    def keys(self):
+        return self.dtype.names
+
+    def items(self):
+        return zip(self.dtype.names, self.item())
+
+    def values(self):
+        return self.item()
+
+    def __iter__(self):
         for name in self.dtype.names:
-            yield self[name]
+            yield name
 
     def _recursively_apply(self, func, cls=None):
         if cls is None:
@@ -100,23 +132,21 @@ class StructuredUnit(np.void):
         else:
             dtype = np.dtype((cls, self.dtype))
 
-        results = tuple([func(part) for part in self.parts()])
+        results = tuple([func(part) for part in self.values()])
 
         return np.array(results, dtype)[()]
 
-    def _recursively_get_dtype(self, value, subdtype=np.dtype('f8')):
+    def _recursively_get_dtype(self, value):
         if not isinstance(value, tuple) or len(self.dtype.names) != len(value):
             raise ValueError("cannot interpret value for unit {}"
                              .format(self))
         new_dtype = []
-        for name, value_part in zip(self.dtype.names, value):
-            part = self[name]
-            if isinstance(part, type(self)):
-                new_dtype.append((name, part._recursively_get_dtype(
-                    value_part, subdtype)))
+        for (name, unit), part in zip(self.items(), value):
+            if isinstance(unit, type(self)):
+                new_dtype.append((name, unit._recursively_get_dtype(part)))
             else:
-                value_part = np.array(value_part)
-                new_dtype.append((name, subdtype, value_part.shape))
+                value_part = np.array(part)
+                new_dtype.append((name, value_part.dtype, value_part.shape))
         return np.dtype(new_dtype)
 
     @property
@@ -178,24 +208,24 @@ class StructuredUnit(np.void):
         """
         if not isinstance(other, type(self)):
             try:
-                other = self.__class__(other, self.dtype)
+                other = self.__class__(other, self.names)
             except Exception:
                 return False
 
         is_equivalent = self.dtype == other.dtype
-        for self_part, other_part in zip(self.parts(), other.parts()):
+        for self_part, other_part in zip(self.values(), other.values()):
             is_equivalent = is_equivalent and self_part.is_equivalent(
                 other_part, equivalencies=equivalencies)
         return is_equivalent
 
     def _get_converter(self, other, equivalencies=[]):
         if not isinstance(other, type(self)):
-            other = self.__class__(other, self.dtype)
+            other = self.__class__(other, self.names)
 
         converters = [self_part._get_converter(other_part,
                                                equivalencies=equivalencies)
-                      for (self_part, other_part) in zip(self.parts(),
-                                                         other.parts())]
+                      for (self_part, other_part) in zip(self.values(),
+                                                         other.values())]
 
         def converter(value):
             if not hasattr(value, 'dtype'):
@@ -259,10 +289,9 @@ class StructuredUnit(np.void):
             raise ValueError("Structured units cannot be written in {0} "
                              "format. Only 'generic', 'unscaled' and "
                              "'latex' are supported.".format(format))
-        items = self.item()
-        out = '({})'.format(', '.join([item.to_string(format)
-                                       for item in items]))
-        return out if len(items) > 1 else out[:-1] + ',)'
+        out = '({})'.format(', '.join([part.to_string(format)
+                                       for part in self.values()]))
+        return out if len(self) > 1 else out[:-1] + ',)'
 
     def _repr_latex_(self):
         return self.to_string('latex')
@@ -276,8 +305,8 @@ class StructuredUnit(np.void):
             except Exception:
                 return NotImplemented
         if isinstance(other, UnitBase):
-            new_units = tuple(part * other for part in self.item())
-            return self.__class__(new_units, _names_from_dtype(self.dtype))
+            new_units = tuple(part * other for part in self.values())
+            return self.__class__(new_units, self.names)
         if isinstance(other, StructuredUnit):
             return NotImplemented
 
@@ -298,8 +327,8 @@ class StructuredUnit(np.void):
                 return NotImplemented
 
         if isinstance(other, UnitBase):
-            new_units = tuple(part / other for part in self.item())
-            return self.__class__(new_units, _names_from_dtype(self.dtype))
+            new_units = tuple(part / other for part in self.values())
+            return self.__class__(new_units, self.names)
         return NotImplemented
 
     def __str__(self):
@@ -326,7 +355,7 @@ class StructuredQuantity(Quantity):
     def __new__(cls, value, unit, dtype=None, *args, **kwargs):
         if dtype is None and not hasattr(value, 'dtype'):
             try:
-                dtype = unit.dtype('f8')
+                dtype = unit._recursively_get_dtype(value)
             except AttributeError:
                 pass
         value = np.array(value, dtype, *args, **kwargs)
@@ -348,19 +377,18 @@ class StructuredQuantity(Quantity):
             return super().__quantity_subclass__(unit)[0], False
 
     def __getitem__(self, item):
-        out = super().__getitem__(item)
-        if out.dtype is not self.dtype:
+        out_value = self.value[item]
+        if out_value.dtype is self.dtype:
+            out_unit = self.unit
+        else:
             # item caused dtype change -> indexed with string-like.
+            # Index unit as well.
             out_unit = self.unit[item]
-            if not out.dtype.fields:
-                out = self._new_view(out, out_unit)
-            out._unit = out_unit
 
-        return out
+        return self._new_view(out_value, out_unit)
 
     def _set_unit(self, unit):
-        if not isinstance(unit, StructuredUnit):
-            unit = StructuredUnit(unit, self.dtype)
+        unit = StructuredUnit(unit, self.dtype)
         self._unit = unit
 
     def to(self, unit, equivalencies=[]):

@@ -294,7 +294,9 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert q_pv_t.unit is self.pv_t_unit
         assert np.all(q_pv_t.value == self.pv_t)
         q_pv_t2 = self.pv_t_unit * self.pv_t
-        assert np.all(q_pv_t2 == q_pv_t)
+        assert q_pv_t.unit is self.pv_t_unit
+        # Not testing equality of StructuredQuantity here.
+        assert np.all(q_pv_t2.value == q_pv_t.value)
 
     def test_getitem(self):
         q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
