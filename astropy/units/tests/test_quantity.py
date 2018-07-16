@@ -290,6 +290,7 @@ class TestQuantityCreation:
         # But one can do an in-place unit change.
         a2_copy = a2.copy()
         q2 |= u.mm / u.s
+        assert q2.unit == u.mm / u.s
         # Of course, this changes a2 as well.
         assert np.all(q2.value == a2)
         # Sanity check on the values.

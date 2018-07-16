@@ -890,6 +890,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         else:
             self.view(np.ndarray)[...] *= factor
 
+        self._set_unit(other)
         return self
 
     def __ror__(self, other):
