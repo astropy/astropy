@@ -80,27 +80,16 @@ def _combine_xyz(x, y, z, xyz_axis=0):
         With dimension 3 along ``xyz_axis``, i.e., using the default of ``0``,
         the shape will be ``(3,) + x.shape``.
     """
-    # Add new axis in x, y, z so one can concatenate them around it.
-    # NOTE: just use np.stack once our minimum numpy version is 1.10.
-    result_ndim = x.ndim + 1
-    if not -result_ndim <= xyz_axis < result_ndim:
-        raise IndexError('xyz_axis {0} out of bounds [-{1}, {1})'
-                         .format(xyz_axis, result_ndim))
-
-    if xyz_axis < 0:
-        xyz_axis += result_ndim
-
     # Get x, y, z to the same units (this is very fast for identical units)
-    # since np.concatenate cannot deal with quantity.
+    # since np.stack cannot deal with quantity.
     cls = x.__class__
-    y = cls(y, x.unit, copy=False)
-    z = cls(z, x.unit, copy=False)
+    unit = x.unit
+    x = x.value
+    y = y.to_value(unit)
+    z = z.to_value(unit)
 
-    sh = x.shape
-    sh = sh[:xyz_axis] + (1,) + sh[xyz_axis:]
-    xyz_value = np.concatenate([c.reshape(sh).value for c in (x, y, z)],
-                               axis=xyz_axis)
-    return cls(xyz_value, unit=x.unit, copy=False)
+    xyz = np.stack([x, y, z], axis=xyz_axis)
+    return cls(xyz, unit=unit, copy=False)
 
 
 class BaseRepresentationOrDifferential(ShapedLikeNDArray):
@@ -979,18 +968,37 @@ class CartesianRepresentation(BaseRepresentation):
                                 ('y', u.Quantity),
                                 ('z', u.Quantity)])
 
+    _xyz = None
+
     def __init__(self, x, y=None, z=None, unit=None, xyz_axis=None,
                  differentials=None, copy=True):
 
         if y is None and z is None:
-            if xyz_axis is not None and xyz_axis != 0:
-                x = np.rollaxis(x, xyz_axis, 0)
-            x, y, z = x
-        elif xyz_axis is not None:
+            if isinstance(x, np.ndarray) and x.dtype.kind not in 'OV':
+                # Short-cut for 3-D array input.
+                x = u.Quantity(x, unit, copy=copy, subok=True)
+                # Keep a link to the array with all three coordinates
+                # so that we can return it quickly if needed in get_xyz.
+                self._xyz = x
+                if xyz_axis:
+                    x = np.moveaxis(x, xyz_axis, 0)
+                    self._xyz_axis = xyz_axis
+                else:
+                    self._xyz_axis = 0
+
+                self._x, self._y, self._z = x
+                self._differentials = self._validate_differentials(differentials)
+                return
+
+            else:
+                x, y, z = x
+
+        if xyz_axis is not None:
             raise ValueError("xyz_axis should only be set if x, y, and z are "
                              "in a single array passed in through x, "
                              "i.e., y and z should not be not given.")
-        elif (y is None and z is not None) or (y is not None and z is None):
+
+        if y is None or z is None:
             raise ValueError("x, y, and z are required to instantiate {0}"
                              .format(self.__class__.__name__))
 
@@ -1001,8 +1009,8 @@ class CartesianRepresentation(BaseRepresentation):
             copy = False
 
         super().__init__(x, y, z, copy=copy, differentials=differentials)
-        if not (self._x.unit.physical_type ==
-                self._y.unit.physical_type == self._z.unit.physical_type):
+        if not (self._x.unit.is_equivalent(self._y.unit) and
+                self._x.unit.is_equivalent(self._z.unit)):
             raise u.UnitsError("x, y, and z should have matching physical types")
 
     def unit_vectors(self):
@@ -1029,8 +1037,18 @@ class CartesianRepresentation(BaseRepresentation):
         Returns
         -------
         xyz : `~astropy.units.Quantity`
-            With dimension 3 along ``xyz_axis``.
+            With dimension 3 along ``xyz_axis``.  Note that, if possible,
+            this will be a view.
         """
+        if self._xyz is not None:
+            if self._xyz_axis == xyz_axis:
+                return self._xyz
+            else:
+                return np.moveaxis(self._xyz, self._xyz_axis, xyz_axis)
+
+        # Create combined array.  TO DO: keep it in _xyz for repeated use?
+        # But then in-place changes have to cancel it. Likely best to
+        # also update components.
         return _combine_xyz(self._x, self._y, self._z, xyz_axis=xyz_axis)
 
     xyz = property(get_xyz)
@@ -2220,20 +2238,36 @@ class CartesianDifferential(BaseDifferential):
         If `True` (default), arrays will be copied rather than referenced.
     """
     base_representation = CartesianRepresentation
+    _d_xyz = None
 
     def __init__(self, d_x, d_y=None, d_z=None, unit=None, xyz_axis=None,
                  copy=True):
 
         if d_y is None and d_z is None:
-            if xyz_axis is not None and xyz_axis != 0:
-                d_x = np.rollaxis(d_x, xyz_axis, 0)
-            d_x, d_y, d_z = d_x
-        elif xyz_axis is not None:
+            if isinstance(d_x, np.ndarray) and d_x.dtype.kind not in 'OV':
+                # Short-cut for 3-D array input.
+                d_x = u.Quantity(d_x, unit, copy=copy, subok=True)
+                # Keep a link to the array with all three coordinates
+                # so that we can return it quickly if needed in get_xyz.
+                self._d_xyz = d_x
+                if xyz_axis:
+                    d_x = np.moveaxis(d_x, xyz_axis, 0)
+                    self._xyz_axis = xyz_axis
+                else:
+                    self._xyz_axis = 0
+
+                self._d_x, self._d_y, self._d_z = d_x
+                return
+
+            else:
+                d_x, d_y, d_z = d_x
+
+        if xyz_axis is not None:
             raise ValueError("xyz_axis should only be set if d_x, d_y, and d_z "
                              "are in a single array passed in through d_x, "
                              "i.e., d_y and d_z should not be not given.")
-        elif ((d_y is None and d_z is not None) or
-              (d_y is not None and d_z is None)):
+
+        if d_y is None or d_z is None:
             raise ValueError("d_x, d_y, and d_z are required to instantiate {0}"
                              .format(self.__class__.__name__))
 
@@ -2267,9 +2301,19 @@ class CartesianDifferential(BaseDifferential):
 
         Returns
         -------
-        xyz : `~astropy.units.Quantity`
-            With dimension 3 along ``xyz_axis``.
+        d_xyz : `~astropy.units.Quantity`
+            With dimension 3 along ``xyz_axis``.  Note that, if possible,
+            this will be a view.
         """
+        if self._d_xyz is not None:
+            if self._xyz_axis == xyz_axis:
+                return self._d_xyz
+            else:
+                return np.moveaxis(self._d_xyz, self._xyz_axis, xyz_axis)
+
+        # Create combined array.  TO DO: keep it in _d_xyz for repeated use?
+        # But then in-place changes have to cancel it. Likely best to
+        # also update components.
         return _combine_xyz(self._d_x, self._d_y, self._d_z, xyz_axis=xyz_axis)
 
     d_xyz = property(get_d_xyz)
