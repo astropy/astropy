@@ -54,7 +54,7 @@ MJD_ZERO = 2400000.5
 
 INTERPOLATE_ERROR = """\
 interpolating from IERS_Auto using predictive values that are more
-than {} days old.
+than {0} days old.
 
 Normally you should not see this error because this class
 automatically downloads the latest IERS-A table.  Perhaps you are
@@ -658,7 +658,7 @@ class IERS_Auto(IERS_A):
                         else np.finfo(float).max)
         if (max_input_mjd > predictive_mjd and
                 self.time_now.mjd - predictive_mjd > auto_max_age):
-            raise ValueError(INTERPOLATE_ERROR)
+            raise ValueError(INTERPOLATE_ERROR.format(auto_max_age))
 
     def _refresh_table_as_needed(self, mjd):
         """Potentially update the IERS table in place depending on the requested
