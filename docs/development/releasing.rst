@@ -258,7 +258,7 @@ packages that use the full bugfix/maintenance branch approach.)
    performed and to include the new section of the changelog.  Often the easiest
    way to do this is to use ``git cherry-pick`` the changelog commit just before
    the release commit from above. If you aren't sure how to do this, you might
-   be better off just copying-and-pasting the relevant parts of the maintenance
+   be better off copying-and-pasting the relevant parts of the maintenance
    branch's ``CHANGES.rst`` into master.
 
 #. If there are any issues in the Github issue tracker that are labeled
@@ -432,7 +432,7 @@ Backporting fixes from master
 Most fixes are backported using the ``git cherry-pick`` command, which applies
 the diff from a single commit like a patch.  For the sake of example, say the
 current bug fix branch is 'v1.2.x', and that a bug was fixed in master in a
-commit ``abcd1234``.  In order to backport the fix, simply checkout the v1.2.x
+commit ``abcd1234``.  In order to backport the fix, checkout the v1.2.x
 branch (it's also good to make sure it's in sync with the
 `astropy core repository`_) and cherry-pick the appropriate commit::
 
@@ -471,7 +471,7 @@ not brought in as a pull request, read on.
     cherry-pick command and how it works with merge commits.
 
 If not cherry-picking a merge commit there are still other options for dealing
-with multiple commits.  The simplest, though potentially tedious, is to simply
+with multiple commits.  The simplest, though potentially tedious, is to
 run the cherry-pick command once for each commit in the correct order.
 However, as of Git 1.7.2 it is possible to merge a range of commits like so::
 
@@ -709,7 +709,7 @@ command, consult the documentation for your system on how to install it.
 
 For OSX, GPG can be installed from MacPorts using ``sudo port install gnupg``.
 
-To create a new public/private key pair, simply run::
+To create a new public/private key pair, run::
 
     $ gpg --gen-key
 
