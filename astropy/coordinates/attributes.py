@@ -306,7 +306,7 @@ class QuantityAttribute(Attribute):
         if np.all(value == 0) and self.unit is not None:
             return u.Quantity(np.zeros(self.shape), self.unit), True
         else:
-            if not hasattr(value, 'unit'):
+            if not hasattr(value, 'unit') and self.unit != u.dimensionless_unscaled:
                 raise TypeError('Tried to set a QuantityAttribute with '
                                 'something that does not have a unit.')
             oldvalue = value
