@@ -750,8 +750,8 @@ class TestConvolve3D(object):
             raise ValueError("Invalid Boundary Option")
 
 
-@pytest.mark.parametrize(('convfunc', 'boundary'), BOUNDARIES_AND_CONVOLUTIONS)
-def test_asymmetric_kernel(boundary, convfunc):
+@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+def test_asymmetric_kernel(boundary):
     '''
     Regression test for #6264: make sure that asymmetric convolution
     functions go the right direction
