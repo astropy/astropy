@@ -160,12 +160,14 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         # A copy prevents possible function side-effects of the input array.
         if nan_treatment == 'fill' or np.ma.is_masked(array) or mask is not None:
             if np.ma.is_masked(array):
-                # np.ma.maskedarray.filled() returns a copy.
+                # ``np.ma.maskedarray.filled()`` returns a copy, however there is no way to specify the return type
+                # or order etc.
+                # In addition ``np.nan`` is a ``float`` and there is no conversion to an ``int`` type.
+                # Therefore, a pre-fill copy is needed for non ``float`` masked arrays.
+                # ``subok=True`` is needed to retain ``np.ma.maskedarray.filled()``.
+                # ``copy=False`` allows the fill to act as the copy if type and order are already correct.
+                array_internal = np.array(array, dtype=float, copy=False, order='C', subok=True)
                 array_internal = array_internal.filled(np.nan)
-                # MaskedArray.astype() has neither copy nor order params like ndarray.astype has.
-                # np.ma.maskedarray.filled() returns an ndarray not a maksedarray (implicit default subok=False).
-                # astype must be called after filling the masked data to avoid possible additional copying.
-                array_internal = array_internal.astype(float, copy=False, order='C', subok=True) # subok=True is redundant but leave for future.
             else:
                 # Since we're making a copy, we might as well use `subok=False` to save,
                 # what is probably, a negligible amount of memory.
