@@ -19,12 +19,23 @@ of commits is excessive for the changes made.  The definition of 'excessive' is
 subjective, but would never apply for 5 or fewer commits even for a trivial
 change.  Reviewers should use their discretion in suggesting to combine/squash
 commits.  Be mindful of maintaining a welcoming environment and be helpful with
-advice, especially for new contributors.
+advice, especially for new contributors.  E.g., It is expected that a maintainer
+offer to help a contributor who is a novice git user do any squashing that that
+maintainer asks for, or do the squash themselves by directly pushing to the PR
+branch.
 
 As an example, for a change affecting < 10 lines of source code and including a
 changelog entry, more than 5 commits would be excessive. For a larger pull
 request adding significant functionality, 20 or 30 commits may on the other hand
 be appropriate/acceptable.
+
+As a general guideline, squashing should remove extraneous information but
+should not be used to remove useful information for how a PR was developed.  For
+example, 4 commits that are testing  changes and have a commit message of just
+"debug" should be squashed.  But a series of commit messages that are
+"Implemented feature X", "added test for feature X", "fixed bugs revealed by
+tests for feature X" are useful information and should not be squashed away
+without reason.
 
 When to rebase
 ==============
