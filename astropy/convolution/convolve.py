@@ -137,65 +137,82 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # but, if we just so happen to be lucky enough to have the input array
     # have exactly the desired type, we just alias to array_internal
 
-    # Check if kernel is kernel instance
-    if isinstance(kernel, Kernel):
-        # Check if array is also kernel instance, if so convolve and
-        # return new kernel instance
-        if isinstance(array, Kernel):
-            if isinstance(array, Kernel1D) and isinstance(kernel, Kernel1D):
-                new_array = convolve1d_boundary_fill(array.array, kernel.array,
-                                                     0, True)
-                new_kernel = Kernel1D(array=new_array)
-            elif isinstance(array, Kernel2D) and isinstance(kernel, Kernel2D):
-                new_array = convolve2d_boundary_fill(array.array, kernel.array,
-                                                     0, True)
-                new_kernel = Kernel2D(array=new_array)
-            else:
-                raise Exception("Can't convolve 1D and 2D kernel.")
-            new_kernel._separable = kernel._separable and array._separable
-            new_kernel._is_bool = False
-            return new_kernel
-        kernel = kernel.array
+    # If array and kernel are both Kernal instances, convolve here and return.
+    if isinstance(kernel, Kernel) and isinstance(array, Kernel):
+        if isinstance(array, Kernel1D) and isinstance(kernel, Kernel1D):
+            new_array = convolve1d_boundary_fill(array.array, kernel.array,
+                                                 0, True)
+            new_kernel = Kernel1D(array=new_array)
+        elif isinstance(array, Kernel2D) and isinstance(kernel, Kernel2D):
+            new_array = convolve2d_boundary_fill(array.array, kernel.array,
+                                                 0, True)
+            new_kernel = Kernel2D(array=new_array)
+        else:
+            raise Exception("Can't convolve 1D and 2D kernel.")
+        new_kernel._separable = kernel._separable and array._separable
+        new_kernel._is_bool = False
+        return new_kernel
 
-    # Check that the arguments are lists or Numpy arrays
+    # Copy or alias array to array_internal
     try:
-        # Note this won't copy if it doesn't have to -- which is okay
-        # because none of what follows modifies array_internal.
-        array_internal = np.asanyarray(array, dtype=float)
+        # Anything that's masked must be turned into NaNs for the interpolation.
+        # This requires copying. A copy is also needed for nan_treatment == 'fill'
+        # A copy prevents possible function side-effects of the input array.
+        if nan_treatment == 'fill' or np.ma.is_masked(array) or mask is not None:
+            if np.ma.is_masked(array):
+                # np.ma.maskedarray.filled() returns a copy.
+                array_internal = array_internal.filled(np.nan)
+                # MaskedArray.astype() has neither copy nor order params like ndarray.astype has.
+                # np.ma.maskedarray.filled() returns an ndarray not a maksedarray (implicit default subok=False).
+                # astype must be called after filling the masked data to avoid possible additional copying.
+                array_internal = array_internal.astype(float, copy=False, order='C', subok=True) # subok=True is redundant but leave for future.
+            else:
+                # Since we're making a copy, we might as well use `subok=False` to save,
+                # what is probably, a negligible amount of memory.
+                array_internal = np.array(array, dtype=float, copy=True, order='C', subok=False)
+
+            if mask is not None:
+                # mask != 0 yields a bool mask for all ints/floats/bool
+                array_internal[mask != 0] = np.nan
+        else:
+            # The call below is synonymous with np.asanyarray(array, ftype=float, order='C')
+            # The advantage of `subok=True` is that it won't copy when array is an ndarray subclass. If it
+            # is and `subok=False` (default), then it will copy even if `copy=False`. This uses less memory
+            # when ndarray subclasses are passed in.
+            array_internal = np.array(array, dtype=float, copy=False, order='C', subok=True)
     except (TypeError, ValueError) as e:
         raise TypeError('array should be a Numpy array or something '
                         'convertable into a float array', e)
     array_dtype = getattr(array, 'dtype', array_internal.dtype)
 
 
-    if isinstance(kernel, (list, tuple)):
-        kernel_internal = np.array(kernel, dtype=float)
-    elif isinstance(kernel, np.ndarray):
-        # Note this always makes a copy, since we will be modifying it
-        kernel_internal = kernel.astype(float)
+    # Copy or alias kernel to kernel_internal
+    # Due to NaN interpolation and kernel normalization, a copy must always be made.
+    # 1st alias and then copy after depending on whether kernel is masked (so as not to copy twice).
+    if isinstance(kernel, Kernel):
+        kernel_internal = kernel.array
     else:
-        raise TypeError("kernel should be a list or a Numpy array")
+        kernel_internal = kernel
+    if np.ma.is_masked(kernel_internal):
+        # *kernel* doesn't support NaN interpolation, so instead we just fill it.
+        # np.ma.maskedarray.filled() returns a copy.
+        kernel_internal = kernel_internal.filled(fill_value)
+        # MaskedArray.astype() has neither copy nor order params like ndarray.astype has.
+        # np.ma.maskedarray.filled() returns an ndarray not a maksedarray (implicit default subok=False).
+        # astype must be called after filling the masked data to avoid possible additional copying.
+        kernel_internal = kernel_internal.astype(float, copy=False, order='C', subok=True) # subok=True is redundant here but leave for future.
+    else:
+        try:
+            kernel_internal = np.array(kernel_internal, dtype=float, copy=True, order='C', subok=False)
+        except (TypeError, ValueError) as e:
+            raise TypeError('kernel should be a Numpy array or something '
+                            'convertable into a float array', e)
+
 
     # Check that the number of dimensions is compatible
     if array_internal.ndim != kernel_internal.ndim:
         raise Exception('array and kernel have differing number of '
                         'dimensions.')
-
-    # anything that's masked must be turned into NaNs for the interpolation.
-    # This requires copying the array_internal
-    array_internal_copied = False
-    if np.ma.is_masked(array):
-        array_internal = array_internal.filled(np.nan)
-        array_internal_copied = True
-    if mask is not None:
-        if not array_internal_copied:
-            array_internal = array_internal.copy()
-            array_internal_copied = True
-        # mask != 0 yields a bool mask for all ints/floats/bool
-        array_internal[mask != 0] = np.nan
-    if np.ma.is_masked(kernel):
-        # *kernel* doesn't support NaN interpolation, so instead we just fill it
-        kernel_internal = kernel_internal.filled(fill_value)
 
     # Mark the NaN values so we can replace them later if interpolate_nan is
     # not set
