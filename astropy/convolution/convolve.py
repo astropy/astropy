@@ -162,7 +162,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             if np.ma.is_masked(array):
                 # np.ma.maskedarray.filled() returns a copy.
                 array_internal = array_internal.filled(np.nan)
-                # MaskedArray.astype() has niether copy nor order params like ndarray.astype has.
+                # MaskedArray.astype() has neither copy nor order params like ndarray.astype has.
                 # np.ma.maskedarray.filled() returns an ndarray not a maksedarray (implicit default subok=False).
                 # astype must be called after filling the masked data to avoid possible additional copying.
                 array_internal = array_internal.astype(float, copy=False, order='C', subok=True) # subok=True is redundant but leave for future.
@@ -197,7 +197,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         # *kernel* doesn't support NaN interpolation, so instead we just fill it.
         # np.ma.maskedarray.filled() returns a copy.
         kernel_internal = kernel_internal.filled(fill_value)
-        # MaskedArray.astype() has niether copy nor order params like ndarray.astype has.
+        # MaskedArray.astype() has neither copy nor order params like ndarray.astype has.
         # np.ma.maskedarray.filled() returns an ndarray not a maksedarray (implicit default subok=False).
         # astype must be called after filling the masked data to avoid possible additional copying.
         kernel_internal = kernel_internal.astype(float, copy=False, order='C', subok=True) # subok=True is redundant here but leave for future.
