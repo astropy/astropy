@@ -19,7 +19,10 @@ of commits is excessive for the changes made.  The definition of 'excessive' is
 subjective, but would never apply for 5 or fewer commits even for a trivial
 change.  Reviewers should use their discretion in suggesting to combine/squash
 commits.  Be mindful of maintaining a welcoming environment and be helpful with
-advice, especially for new contributors.
+advice, especially for new contributors.  E.g., maintainers should avoid
+demanding a squash from a novice git user unfamiliar with rebasing (although
+they should feel free to  help the contributor, or implement a squash themselves
+if it is called for.)
 
 As an example, for a change affecting < 10 lines of source code and including a
 changelog entry, more than 5 commits would be excessive. For a larger pull
