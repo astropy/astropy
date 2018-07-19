@@ -39,7 +39,7 @@ to the PR branch.
 
 As a general guideline, squashing should remove extraneous information but
 should not be used to remove useful information for how a PR was developed.  For
-example, 4 commits with a that are testing various changes and have a message
+example, 4 commits that are testing  changes and have a commit message of just
 "debug" should be squashed.  But a series of commit messages that are
 "Implemented feature X", "added test for feature X", "fixed bugs revealed by
 tests for feature X" are useful information and should not be squashed away
