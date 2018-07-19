@@ -6,7 +6,7 @@ import itertools
 
 import pytest
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_almost_equal_nulp
 
 from ..convolve import convolve_fft
 
@@ -597,3 +597,21 @@ class TestConvolve2D(object):
                                            [2., 3., -4.]], dtype='float'))
         else:
             raise ValueError("Invalid boundary specification")
+
+@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+def test_asymmetric_kernel(boundary):
+    '''
+    Make sure that asymmetric convolution
+    functions go the right direction
+    '''
+
+    x = np.array([3., 0., 1.], dtype='>f8')
+
+    y = np.array([1, 2, 3], dtype='>f8')
+
+    z = convolve_fft(x, y, boundary=boundary, normalize_kernel=False)
+
+    if boundary in (None, 'fill'):
+        assert_array_almost_equal_nulp(z, np.array([6., 10., 2.], dtype='float'), 10)
+    elif boundary == 'wrap':
+        assert_array_almost_equal_nulp(z, np.array([9., 10., 5.], dtype='float'), 10)
