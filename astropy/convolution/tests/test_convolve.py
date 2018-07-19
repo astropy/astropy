@@ -333,6 +333,22 @@ class TestConvolve1D:
 
         assert_array_almost_equal_nulp(z, np.array(rslt, dtype='>f8'), 10)
 
+    @pytest.mark.parametrize('preserve_nan', PRESERVE_NAN_OPTIONS)
+    def test_int_masked_array(self, preserve_nan):
+        """
+        Test that convolve works correctly with integer masked arrays.
+        """
+
+        x = ma.array([3, 5, 7, 11, 13], mask=[0, 0, 1, 0, 0], fill_value=0.)
+        y = np.array([1., 1., 1.], dtype='>f8')
+
+        z = convolve(x, y, preserve_nan=preserve_nan)
+
+        if preserve_nan:
+            assert np.isnan(z[2])
+            z[2] = 8
+
+        assert_array_almost_equal_nulp(z, (8/3., 4, 8, 12, 8), 10)
 
 class TestConvolve2D:
     def test_list(self):
