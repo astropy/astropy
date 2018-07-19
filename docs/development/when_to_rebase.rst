@@ -47,7 +47,7 @@ commit) if at least one of the following conditions is met:
 * There are merge commits from upstream/master in the PR commit history (merge
   commits from PRs to the user's fork are fine)
 * There are commit messages include offensive language or violate the code of
-  conduct
+  conduct (in this case the rebase must also edit the commit messages)
 
 Github 'Squash and Merge' button
 ================================
