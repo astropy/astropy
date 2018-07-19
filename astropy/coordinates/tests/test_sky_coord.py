@@ -512,7 +512,7 @@ def test_repr_altaz():
     assert repr(sc4).startswith("<SkyCoord (AltAz: obstime=2005-03-21 00:00:00.000, "
                          "location=(-2309223.0, -3695529.0, "
                                 "-4641767.0) m, pressure=0.0 hPa, "
-                         "temperature=0.0 deg_C, relative_humidity=0, "
+                         "temperature=0.0 deg_C, relative_humidity=0.0, "
                          "obswl=1.0 micron): (az, alt, distance) in "
                          "(deg, deg, m)\n")
 
