@@ -11,10 +11,7 @@ from numpy.testing import assert_array_almost_equal_nulp, assert_array_almost_eq
 import itertools
 
 VALID_DTYPES = ('>f4', '<f4', '>f8', '<f8')
-VALID_DTYPE_MATRIX = []
-for dtype_array in VALID_DTYPES:
-    for dtype_kernel in VALID_DTYPES:
-        VALID_DTYPE_MATRIX.append((dtype_array, dtype_kernel))
+VALID_DTYPE_MATRIX = list(itertools.product(VALID_DTYPES, VALID_DTYPES))
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 NANHANDLING_OPTIONS = ['interpolate', 'fill']
@@ -61,7 +58,7 @@ class TestConvolve1D:
         z = convolve(x, y, boundary=None)
         assert_array_almost_equal_nulp(z,
             np.array([0., 3.6, 5., 5.6, 5.6, 6.8, 0.]), 10)
-        
+
     @pytest.mark.parametrize(('boundary', 'nan_treatment',
                               'normalize_kernel', 'preserve_nan', 'dtype'),
                              itertools.product(BOUNDARY_OPTIONS,
