@@ -26,6 +26,14 @@ changelog entry, more than 5 commits would be excessive. For a larger pull
 request adding significant functionality, 20 or 30 commits may on the other hand
 be appropriate/acceptable.
 
+As a general guideline, squashing should remove extraneous information but
+should not be used to remove useful information for how a PR was developed.  For
+example, 4 commits with a that are testing various changes and have a message
+"debug" should be squashed.  But a series of commit messages that are
+"Implemented feature X", "added test for feature X", "fixed bugs revealed by
+tests for feature X" are useful information and should not be squashed away
+without reason.
+
 When to rebase
 ==============
 
