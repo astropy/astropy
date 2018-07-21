@@ -22,6 +22,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Ensure that relative humidities can be given as Quantities, rather than take
+  any quantity and just strip its unit. [#7668]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
