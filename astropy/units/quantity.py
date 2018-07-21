@@ -22,7 +22,7 @@ from .utils import is_effectively_unity
 from .format.latex import Latex
 from ..utils.compat import NUMPY_LT_1_14
 from ..utils.compat.misc import override__dir__
-from ..utils.exceptions import AstropyDeprecationWarning
+from ..utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from ..utils.misc import isiterable, InheritDocstrings
 from ..utils.data_info import ParentDtypeInfo
 from .. import config as _config
@@ -858,8 +858,8 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         except TypeError:
             return NotImplemented
 
-    # Unit conversion operator (|).
-    def __or__(self, other):
+    # Unit conversion operator (<<).
+    def __lshift__(self, other):
         try:
             other = Unit(other, parse_strict='silent')
         except UnitTypeError:
@@ -867,7 +867,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
 
         return self.__class__(self, other, copy=False, subok=True)
 
-    def __ior__(self, other):
+    def __ilshift__(self, other):
         try:
             other = Unit(other, parse_strict='silent')
         except UnitTypeError:
@@ -890,10 +890,26 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         self._set_unit(other)
         return self
 
-    def __ror__(self, other):
+    def __rlshift__(self, other):
         if not self.isscalar:
             return NotImplemented
-        return Unit(self).__ror__(other)
+        return Unit(self).__rlshift__(other)
+
+    # Give warning for other >> self, since probably other << self was meant.
+    def __rrshift__(self, other):
+        warnings.warn(">> is not implemented. Did you mean to convert "
+                      "something to this quantity as a unit using '<<'?",
+                      AstropyWarning)
+        return NotImplemented
+
+    # Also define __rshift__ and __irshift__ so we override default ndarray
+    # behaviour, but instead of emitting a warning here, let it be done by
+    # other (which likely is a unit if this was a mistake).
+    def __rshift__(self, other):
+        return NotImplemented
+
+    def __irshift__(self, other):
+        return NotImplemented
 
     # Arithmetic operations
     def __mul__(self, other):

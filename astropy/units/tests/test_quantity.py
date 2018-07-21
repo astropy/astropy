@@ -17,7 +17,7 @@ from numpy.testing import (assert_allclose, assert_array_equal,
 from ...tests.helper import catch_warnings, raises
 from ...utils import isiterable, minversion
 from ...utils.compat import NUMPY_LT_1_14
-from ...utils.exceptions import AstropyDeprecationWarning
+from ...utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 
@@ -306,6 +306,33 @@ class TestQuantityCreation:
         q6 = a6 << not_quite_a_foot
         assert q6.unit == u.Unit(not_quite_a_foot)
         assert np.all(q6.to_value(u.cm) == 30. * a6)
+
+    def test_rshift_warns(self):
+        with pytest.raises(TypeError), \
+                catch_warnings() as warning_lines:
+            1 >> u.m
+        assert len(warning_lines) == 1
+        assert warning_lines[0].category == AstropyWarning
+        assert 'is not implemented' in str(warning_lines[0].message)
+        q = 1. * u.km
+        with pytest.raises(TypeError), \
+                catch_warnings() as warning_lines:
+            q >> u.m
+        assert len(warning_lines) == 1
+        assert warning_lines[0].category == AstropyWarning
+        assert 'is not implemented' in str(warning_lines[0].message)
+        with pytest.raises(TypeError), \
+                catch_warnings() as warning_lines:
+            q >>= u.m
+        assert len(warning_lines) == 1
+        assert warning_lines[0].category == AstropyWarning
+        assert 'is not implemented' in str(warning_lines[0].message)
+        with pytest.raises(TypeError), \
+                catch_warnings() as warning_lines:
+            1. >> q
+        assert len(warning_lines) == 1
+        assert warning_lines[0].category == AstropyWarning
+        assert 'is not implemented' in str(warning_lines[0].message)
 
 
 class TestQuantityOperations:
