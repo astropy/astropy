@@ -52,9 +52,9 @@ doc_footer = """
     temperature : `~astropy.units.Quantity`
         The ground-level temperature as an `~astropy.units.Quantity` in
         deg C.  This is necessary for performing refraction corrections.
-    relative_humidity`` : numeric
-        The relative humidity as a number from 0 to 1.  This is necessary for
-        performing refraction corrections.
+    relative_humidity`` : `~astropy.units.Quantity` or number.
+        The relative humidity as a dimensionless quantity between 0 to 1.
+        This is necessary for performing refraction corrections.
     obswl : `~astropy.units.Quantity`
         The average wavelength of observations as an `~astropy.units.Quantity`
          with length units.  This is necessary for performing refraction
@@ -98,7 +98,7 @@ class AltAz(BaseCoordinateFrame):
     location = EarthLocationAttribute(default=None)
     pressure = QuantityAttribute(default=0, unit=u.hPa)
     temperature = QuantityAttribute(default=0, unit=u.deg_C)
-    relative_humidity = Attribute(default=0)
+    relative_humidity = QuantityAttribute(default=0, unit=u.dimensionless_unscaled)
     obswl = QuantityAttribute(default=1*u.micron, unit=u.micron)
 
     def __init__(self, *args, **kwargs):
