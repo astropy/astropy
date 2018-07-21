@@ -151,6 +151,8 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- Accept non-unit type annotations in @quantity_input. [#7672]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
