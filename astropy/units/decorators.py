@@ -23,8 +23,10 @@ def _get_allowed_units(targets):
         try:  # unit passed in as a string
             target_unit = Unit(target)
 
-        except ValueError:
+        except TypeError:  # unable to convert to target_unit
+            target_unit = target
 
+        except ValueError:
             try:  # See if the function writer specified a physical type
                 physical_type_id = _unit_physical_mapping[target]
 
@@ -50,8 +52,12 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
 
     for allowed_unit in allowed_units:
         try:
-            is_equivalent = arg.unit.is_equivalent(allowed_unit,
-                                                   equivalencies=equivalencies)
+            # any other annotation was provided except for ``astropy.unit``
+            if inspect.isclass(allowed_unit):
+                is_equivalent = True
+            else:
+                is_equivalent = arg.unit.is_equivalent(allowed_unit,
+                                                       equivalencies=equivalencies)
 
             if is_equivalent:
                 break
