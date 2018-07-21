@@ -136,8 +136,6 @@ astropy.tests
 - Added an option ``--readonly`` to the test command to change the
   permissions on the temporary installation location to read-only. [#7598]
 
-- Fix running ``./setup.py test --coverage`` on Windows machines. [#7673]
-
 astropy.time
 ^^^^^^^^^^^^
 
@@ -1203,6 +1201,8 @@ astropy.table
 
 astropy.tests
 ^^^^^^^^^^^^^
+
+- Fixed bug in ``python setup.py test --coverage`` on Windows machines. [#7673]
 
 astropy.time
 ^^^^^^^^^^^^
