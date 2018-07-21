@@ -835,6 +835,8 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Fixed bug in ``python setup.py test --coverage`` on Windows machines. [#7673]
+
 astropy.time
 ^^^^^^^^^^^^
 

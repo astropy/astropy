@@ -293,13 +293,13 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
 
         cmd_pre = (
             'import coverage; '
-            'cov = coverage.coverage(data_file="{0}", config_file="{1}"); '
+            'cov = coverage.coverage(data_file=r"{0}", config_file=r"{1}"); '
             'cov.start();'.format(
-                os.path.abspath(".coverage"), tmp_coveragerc))
+                os.path.abspath(".coverage"), os.path.abspath(tmp_coveragerc)))
         cmd_post = (
             'cov.stop(); '
             'from astropy.tests.helper import _save_coverage; '
-            '_save_coverage(cov, result, "{0}", "{1}");'.format(
-                os.path.abspath('.'), self.testing_path))
+            '_save_coverage(cov, result, r"{0}", r"{1}");'.format(
+                os.path.abspath('.'), os.path.abspath(self.testing_path)))
 
         return cmd_pre, cmd_post
