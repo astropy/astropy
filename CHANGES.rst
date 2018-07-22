@@ -141,6 +141,7 @@ astropy.table
 - Allow mixin columns to be used in table ``group`` and ``unique``
   functions. This applies to both the key columns and the other data
   columns. [#7712]
+- Added support for stacking ``Column`` objects. [#7674]
 
 astropy.tests
 ^^^^^^^^^^^^^
