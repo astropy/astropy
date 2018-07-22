@@ -16,7 +16,7 @@ from collections import OrderedDict, Counter
 import numpy as np
 
 from ..utils import metadata
-from .column import Column
+from .table import Table, Row, Column, has_info_class, MixinInfo
 
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
@@ -36,7 +36,6 @@ def _get_list_of_tables(tables):
     Check that tables is a Table or sequence of Tables.  Returns the
     corresponding list of Tables.
     """
-    from .table import Table, Row
 
     # Make sure we have a list of things
     if not isinstance(tables, collections.Sequence):
@@ -108,7 +107,6 @@ def join(left, right, keys=None, join_type='inner',
     joined_table : `~astropy.table.Table` object
         New table containing the result of the join operation.
     """
-    from .table import Table
 
     # Try converting inputs to Table as needed
     if not isinstance(left, Table):
