@@ -949,6 +949,10 @@ class TestVStack():
             assert np.all(out['b'][len_col:] == col)
             assert np.all(out['a'].mask == [False] * len_col + [True] * len_col)
             assert np.all(out['b'].mask == [True] * len_col + [False] * len_col)
+            # check direcltly stacking mixin columns:
+            out2 = table.vstack([t, t2['b']])
+            assert np.all(out['a'] == out2['a'])
+            assert np.all(out['b'] == out2['b'])
         else:
             with pytest.raises(NotImplementedError) as err:
                 table.vstack([t, t2], join_type='outer')
@@ -1197,6 +1201,11 @@ class TestHStack():
             assert np.all(out['col0_1'] == col1)
             assert np.all(out['col0_2'][:len(col2)] == col2)
             assert np.all(out['col0_2'].mask == [False, False, True, True])
+
+            # check direcltly stacking mixin columns:
+            out2 = table.hstack([t1, t2['col0']], join_type='outer')
+            assert np.all(out['col0_1'] == out2['col0_1'])
+            assert np.all(out['col0_2'] == out2['col0_2'])
         else:
             with pytest.raises(NotImplementedError) as err:
                 table.hstack([t1, t2], join_type='outer')
@@ -1350,9 +1359,8 @@ def test_get_out_class():
     assert _get_out_class([mc, c]) is mc.__class__
     assert _get_out_class([c, c]) is c.__class__
     assert _get_out_class([c]) is c.__class__
-
-    with pytest.raises(ValueError):
-        _get_out_class([c, q])
+    assert _get_out_class([c, q]) is c.__class__
+    assert _get_out_class([mc, q]) is mc.__class__
 
     with pytest.raises(ValueError):
         _get_out_class([q, c])
