@@ -641,6 +641,18 @@ class TestVStack():
                                  '1.0 bar',
                                  '1.0 bar']
 
+    def test_stack_columns(self, operation_table_type):
+        self._setup(operation_table_type)
+        t2 = self.t1.copy()
+        t2.meta.clear()
+        out = table.vstack([self.t1, t2['a']])
+        assert out.pformat() == [' a   b ',
+                                 '--- ---',
+                                 '0.0 foo',
+                                 '1.0 bar',
+                                 '0.0  --',
+                                 '1.0  --']
+
     def test_table_meta_merge(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.vstack([self.t1, self.t2, self.t4], join_type='inner')
@@ -994,6 +1006,17 @@ class TestHStack():
         assert out.pformat() == ['a_1 b_1 a_2 b_2  c ',
                                  '--- --- --- --- ---',
                                  '0.0 foo 3.0 sez   5']
+
+    def test_stack_columns(self, operation_table_type):
+        self._setup(operation_table_type)
+        out = table.hstack([self.t1, self.t2['c']])
+        assert type(out['a']) is type(self.t1['a'])
+        assert type(out['b']) is type(self.t1['b'])
+        assert type(out['c']) is type(self.t2['c'])
+        assert out.pformat() == [' a   b   c ',
+                                 '--- --- ---',
+                                 '0.0 foo   4',
+                                 '1.0 bar   5']
 
     def test_table_meta_merge(self, operation_table_type):
         self._setup(operation_table_type)
