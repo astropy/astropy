@@ -9,13 +9,11 @@ High-level table operations:
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from copy import deepcopy
-import warnings
 import collections
 import itertools
 from collections import OrderedDict, Counter
 
 import numpy as np
-from numpy import ma
 
 from ..utils import metadata
 from .column import Column
@@ -44,12 +42,15 @@ def _get_list_of_tables(tables):
     if not isinstance(tables, collections.Sequence):
         tables = [tables]
 
-    # Make sure each thing is a Table or Row
-    if any(not isinstance(x, (Table, Row)) for x in tables) or len(tables) == 0:
-        raise TypeError('`tables` arg must be a Table or sequence of Tables or Rows')
+    # Make sure each thing is a Table or Row or Column
+    if any(not isinstance(x, (Table, Row, Column)) for x in tables) or len(tables) == 0:
+        raise TypeError('`tables` arg must be a Table or sequence of Tables or Rows or Columns')
 
-    # Convert any Rows to Tables
-    tables = [(x if isinstance(x, Table) else Table(x)) for x in tables]
+    for ii, tbl in enumerate(tables):
+        if isinstance(tbl, Row):
+            tables[ii] = Table(tbl)
+        elif isinstance(tbl, Column):
+            tables[ii] = Table([tbl])
 
     return tables
 
