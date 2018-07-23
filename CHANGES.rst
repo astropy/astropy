@@ -151,6 +151,8 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- Add complex numbers support for ``Quantity._repr_latex_``. [#7676]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
