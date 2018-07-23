@@ -18,7 +18,6 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
-Added the container directive in order to wrap all graphs in a div, done deliberatley so that the sunpy sphinx theme can write css for the container to style it differently. [#7121]
 
 - The new function ``make_transform_graph_docs`` can be used to create a
   docstring graph from a custom ``TransformGraph`` object. [#7135]
