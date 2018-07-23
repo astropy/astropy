@@ -100,7 +100,8 @@ def make_transform_graph_docs(transform_graph):
     frames) is set by the type of transformation; the legend box defines the
     mapping from transform class name to color.
 
-    .. container:: gvcustom
+    .. Wrap the graph in a div with a custom class to allow themeing.
+    .. container:: frametransformgraph
 
         .. graphviz::
 
