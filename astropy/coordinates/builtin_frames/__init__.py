@@ -90,12 +90,14 @@ def _make_transform_graph_docs():
     frames) is set by the type of transformation; the legend box defines the
     mapping from transform class name to color.
 
+    .. Wrap the graph in a div with a custom class to allow themeing.
+    .. container:: frametransformgraph
 
-    .. graphviz::
+        .. graphviz::
 
     """
 
-    docstr = dedent(docstr) + '    ' + graphstr.replace('\n', '\n    ')
+    docstr = dedent(docstr) + '        ' + graphstr.replace('\n', '\n        ')
 
     # colors are in dictionary at the bottom of transformations.py
     from ..transformations import trans_to_color
