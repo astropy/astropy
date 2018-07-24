@@ -2483,12 +2483,16 @@ class CompoundModel(Model):
 
     @property
     def n_submodels(self):
-        if self._n_submodels is None:
-            tdict = {}
-            leaflist = []
-            make_subtree_dict(self, '', tdict, leaflist)
-            self._n_submodels = len(leaflist)
-        return self._n_submodels
+        if self._leaflist is None:
+            self._make_leaflist()
+        return len(self._leaflist)
+
+    @property
+    def submodel_names(self):
+        if self._leaflist is None:
+            self._make_leaflist()
+        return tuple(item.name for item in self._leaflist)
+    
 
     def both_inverses_exist(self):
         '''
