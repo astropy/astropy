@@ -42,13 +42,14 @@ def _get_list_of_tables(tables):
         tables = [tables]
 
     # Make sure each thing is a Table or Row or Column
-    if any(not isinstance(x, (Table, Row, Column)) for x in tables) or len(tables) == 0:
+    if any(not (isinstance(x, (Table, Row, Column)) or has_info_class(x, MixinInfo))
+           for x in tables) or len(tables) == 0:
         raise TypeError('`tables` arg must be a Table or sequence of Tables or Rows or Columns')
 
     for ii, tbl in enumerate(tables):
         if isinstance(tbl, Row):
             tables[ii] = Table(tbl)
-        elif isinstance(tbl, Column):
+        elif isinstance(tbl, Column) or has_info_class(tbl, MixinInfo):
             tables[ii] = Table([tbl])
 
     return tables
