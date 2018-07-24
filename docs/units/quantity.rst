@@ -11,7 +11,7 @@ associated with the number.
 Creating Quantity instances
 ===========================
 
-|quantity| objects are created through multiplication with
+|quantity| objects are normally created through multiplication with
 :class:`~astropy.units.Unit` objects. For example, to create a |quantity|
 to represent 15 m/s:
 
@@ -47,7 +47,7 @@ configuration files, etc.):
     >>> u.Quantity('15 m/s')  # doctest: +FLOAT_CMP
     <Quantity 15. m / s>
 
-Finally, the current unit and value can be accessed via the
+The current unit and value can be accessed via the
 `~astropy.units.quantity.Quantity.unit` and
 `~astropy.units.quantity.Quantity.value` attributes:
 
@@ -59,8 +59,10 @@ Finally, the current unit and value can be accessed via the
 
 .. note:: |quantity| objects are converted to float by default.  Furthermore,
 	  any data passed in are copied, which for large arrays may not be
-	  optimal.  One can instead obtain a `~numpy.ndarray.view` by
-	  passing ``copy=False`` to |quantity|.
+	  optimal.  As discussed :ref:`further below
+	  <astropy-units-quantity-no-copy>`.  one can instead obtain a
+	  `~numpy.ndarray.view` by passing ``copy=False`` to |quantity| or use
+	  the ``<<`` operator.
 
 Converting to different units
 =============================
@@ -95,7 +97,10 @@ If you want the value of the quantity in a different unit, you can use
           returning an :meth:`~numpy.ndarray.view` of the data (just as if you
           had done ``q.value``).  In contrast,
           :meth:`~astropy.units.Quantity.to` always returns a copy (which also
-          means it is slower for the case where conversion is necessary).
+          means it is slower for the case where no conversion is necessary).
+          As discussed :ref:`further below <astropy-units-quantity-no-copy>`,
+          one can avoid the copy if the unit is already correct by using the
+          ``<<`` operator.
 
 Comparing quantities
 ====================
@@ -456,6 +461,52 @@ vectors, one can use instead the representations underlying coordinates, which
 allow one to use representations other than cartesian (such as spherical or
 cylindrical), as well as simple vector arithmetic.  For details, see
 :ref:`astropy-coordinates-representations`.
+
+.. _astropy-units-quantity-no-copy:
+
+Creating and converting quantities without copies
+=================================================
+
+When creating a |quantity| using multiplication with a unit, a copy of the
+underlying data is made. This can be avoided by passing on ``copy=False`` in
+the initializer::
+
+    >>> a = np.arange(5.)
+    >>> q = u.Quantity(a, u.m, copy=False)
+    >>> q
+    <Quantity [0., 1., 2., 3., 4.] m>
+    >>> np.may_share_memory(a, q)
+    True
+    >>> a[0] = -1.
+    >>> q
+    <Quantity [-1.,  1.,  2.,  3.,  4.] m>
+
+This may be particularly useful in functions which do not change their input;
+it also ensures that if a user passes in a |quantity| with units of length,
+it will be converted to meters.
+
+As a shortcut, one can "shift" to the requested unit using the ``<<``
+operator::
+
+    >>> q = a << u.m
+    >>> np.may_share_memory(a, q)
+    True
+    >>> q
+    <Quantity [-1.,  1.,  2.,  3.,  4.] m>
+
+The operator works identically to the initialization with ``copy=False``
+mentioned above::
+
+    >>> q << u.cm
+    <Quantity [-100.,  100.,  200.,  300.,  400.] cm>
+
+It can also be used for in-place conversion::
+
+    >>> q <<= u.cm
+    >>> q
+    <Quantity [-100.,  100.,  200.,  300.,  400.] cm>
+    >>> a
+    array([-100.,  100.,  200.,  300.,  400.])
 
 Known issues with conversion to numpy arrays
 ============================================
