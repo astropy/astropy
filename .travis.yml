@@ -73,8 +73,10 @@ matrix:
         - os: osx
           stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='jplephem' EVENT_TYPE='cron'
+               CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang llvm-openmp"
+               PIP_DEPENDENCIES='jplephem'
+               CCOMPILER=clang
+               EVENT_TYPE='cron'
 
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different

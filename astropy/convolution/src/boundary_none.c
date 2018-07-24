@@ -12,6 +12,17 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "convolve.h"
+
+// Distutils on Windows will automatically exports ``PyInit_lib_convolve``,
+// create dummy to prevent linker complaining about missing symbol.
+#if defined(_MSC_VER)
+void PyInit_lib_convolve(void)
+{
+    return;
+}
+#endif
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -19,7 +30,7 @@
 #include "numpy/ndarrayobject.h"
 #define DTYPE npy_float64
 
-void convolveNd_boundary_none_c(DTYPE * const result,
+LIB_CONVOLVE_EXPORT void convolveNd_boundary_none_c(DTYPE * const result,
         const DTYPE * const f,
         const unsigned n_dim,
         const size_t * const image_shape,
@@ -34,7 +45,7 @@ void convolve1d_boundary_none_c(DTYPE * const result,
         const DTYPE * const g, const size_t nkx,
         const bool nan_interpolate,
         const unsigned n_threads);
-inline __attribute__((always_inline)) void convolve1d_boundary_none(DTYPE * const result,
+FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
         const DTYPE * const f, const size_t nx,
         const DTYPE * const g, const size_t nkx,
         const bool nan_interpolate,
@@ -46,7 +57,7 @@ void convolve2d_boundary_none_c(DTYPE * const result,
         const DTYPE * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate,
         const unsigned n_threads);
-inline __attribute__((always_inline)) void convolve2d_boundary_none(DTYPE * const result,
+FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny,
         const DTYPE * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate,
@@ -58,7 +69,7 @@ void convolve3d_boundary_none_c(DTYPE * const result,
         const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate,
         const unsigned n_threads);
-inline __attribute__((always_inline)) void convolve3d_boundary_none(DTYPE * const result,
+FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny, const size_t nz,
         const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate,
@@ -178,7 +189,7 @@ void convolve3d_boundary_none_c(DTYPE * const result,
 }
 
 // 1D
-inline __attribute__((always_inline)) void convolve1d_boundary_none(DTYPE * const result,
+FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
         const DTYPE * const f, const size_t _nx,
         const DTYPE * const g, const size_t _nkx,
         const bool _nan_interpolate,
@@ -219,18 +230,19 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(DTYPE * cons
     const unsigned nkx_minus_1 = nkx-1;
     unsigned wkx_minus_i;
     unsigned ker_i;
-    const unsigned nx_minus_wkx = nx - wkx;
+    const omp_iter_var nx_minus_wkx = nx - wkx;
     unsigned i_minus_wkx;
     const unsigned wkx_plus_1 = wkx + 1;
-    unsigned i_plus_wkx_plus_1;
+    omp_iter_var i_plus_wkx_plus_1;
     unsigned nkx_minus_1_minus_wkx_plus_i;
 
     DTYPE top, bot=0., ker, val;
 
+    {omp_iter_var i;
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
-    for (unsigned i = wkx; i < nx_minus_wkx; ++i)
+    for (i = wkx; i < nx_minus_wkx; ++i)
     {
         wkx_minus_i = wkx - i; // wkx - 1
         i_minus_wkx = i - wkx; //i - wkx
@@ -240,7 +252,8 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(DTYPE * cons
         top = 0.;
         if (nan_interpolate) // compile time constant
             bot = 0.;
-        for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
+        {omp_iter_var ii;
+        for (ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
         {
             ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
             val = f[ii];
@@ -255,7 +268,7 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(DTYPE * cons
             }
             else
                 top += val * ker;
-        }
+        }}
 
         if (nan_interpolate) // compile time constant
         {
@@ -266,14 +279,14 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(DTYPE * cons
         }
         else
             result[i] = top;
-    }
+    }}
 #ifdef _OPENMP
     }//end parallel scope
 #endif
 }
 
 // 2D
-inline __attribute__((always_inline)) void convolve2d_boundary_none(DTYPE * const result,
+FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
         const DTYPE * const f, const size_t _nx, const size_t _ny,
         const DTYPE * const g, const size_t _nkx, const size_t _nky,
         const bool _nan_interpolate,
@@ -317,27 +330,29 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(DTYPE * cons
     const unsigned nkx_minus_1 = nkx-1, nky_minus_1 = nky-1;
     unsigned wkx_minus_i, wky_minus_j;
     unsigned ker_i, ker_j;
-    const unsigned nx_minus_wkx = nx - wkx;
-    const unsigned ny_minus_wky = ny - wky;
+    const omp_iter_var nx_minus_wkx = nx - wkx;
+    const omp_iter_var ny_minus_wky = ny - wky;
     unsigned i_minus_wkx, j_minus_wky;
     const unsigned wkx_plus_1 = wkx + 1;
     const unsigned wky_plus_1 = wky + 1;
-    unsigned i_plus_wkx_plus_1, j_plus_wky_plus_1;
+    omp_iter_var i_plus_wkx_plus_1, j_plus_wky_plus_1;
     unsigned nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j;
 
     DTYPE top, bot=0., ker, val;
 
+    {omp_iter_var i;
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
-    for (unsigned i = wkx; i < nx_minus_wkx; ++i)
+    for (i = wkx; i < nx_minus_wkx; ++i)
     {
         wkx_minus_i = wkx - i; // wkx - 1
         i_minus_wkx = i - wkx; //i - wkx
         i_plus_wkx_plus_1 = i + wkx_plus_1; // i + wkx + 1
         nkx_minus_1_minus_wkx_plus_i = nkx_minus_1 - wkx_minus_i; // nkx - 1 - (wkx - i)
 
-        for (unsigned j = wky; j < ny_minus_wky; ++j)
+        {omp_iter_var j;
+        for (j = wky; j < ny_minus_wky; ++j)
         {
             wky_minus_j = wkx - j; // wky - j
             j_minus_wky = j - wky; // j - wky
@@ -347,10 +362,12 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(DTYPE * cons
             top = 0.;
             if (nan_interpolate) // compile time constant
                 bot = 0.;
-            for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
+            {omp_iter_var ii;
+            for (ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
             {
                 ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
-                for (unsigned jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
+                {omp_iter_var jj;
+                for (jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
                 {
                     ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
                     val = f[ii*ny + jj]; //[ii, jj];
@@ -365,8 +382,8 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(DTYPE * cons
                     }
                     else
                         top += val * ker;
-                }
-            }
+                }}
+            }}
             if (nan_interpolate) // compile time constant
             {
                 if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
@@ -376,15 +393,15 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(DTYPE * cons
             }
             else
                 result[i*ny + j] = top;
-        }
-    }
+        }}
+    }}
 #ifdef _OPENMP
     }//end parallel scope
 #endif
 }
 
 // 3D
-inline __attribute__((always_inline)) void convolve3d_boundary_none(DTYPE * const result,
+FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
         const DTYPE * const f, const size_t _nx, const size_t _ny, const size_t _nz,
         const DTYPE * const g, const size_t _nkx, const size_t _nky, const size_t _nkz,
         const bool _nan_interpolate,
@@ -432,35 +449,38 @@ inline __attribute__((always_inline)) void convolve3d_boundary_none(DTYPE * cons
     unsigned wkx_minus_i, wky_minus_j, wkz_minus_k;
     unsigned ker_i, ker_j, ker_k;
     const unsigned nx_minus_wkx = nx - wkx;
-    const unsigned ny_minus_wky = ny - wky;
-    const unsigned nz_minus_wkz = nz - wkz;
+    const omp_iter_var ny_minus_wky = ny - wky;
+    const omp_iter_var nz_minus_wkz = nz - wkz;
     unsigned i_minus_wkx, j_minus_wky, k_minus_wkz;
     const unsigned wkx_plus_1 = wkx + 1;
     const unsigned wky_plus_1 = wky + 1;
     const unsigned wkz_plus_1 = wkz + 1;
-    unsigned i_plus_wkx_plus_1, j_plus_wky_plus_1, k_plus_wkz_plus_1;
+    omp_iter_var i_plus_wkx_plus_1, j_plus_wky_plus_1, k_plus_wkz_plus_1;
     unsigned nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j, nkz_minus_1_minus_wkz_plus_k;
 
     DTYPE top, bot=0., ker, val;
 
+    {omp_iter_var i;
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
-    for (unsigned i = wkx; i < nx_minus_wkx; ++i)
+    for (i = wkx; i < nx_minus_wkx; ++i)
     {
         wkx_minus_i = wkx - i; // wkx - 1
         i_minus_wkx = i - wkx; //i - wkx
         i_plus_wkx_plus_1 = i + wkx_plus_1; // i + wkx + 1
         nkx_minus_1_minus_wkx_plus_i = nkx_minus_1 - wkx_minus_i; // nkx - 1 - (wkx - i)
 
-        for (unsigned j = wky; j < ny_minus_wky; ++j)
+        {omp_iter_var j;
+        for (j = wky; j < ny_minus_wky; ++j)
         {
             wky_minus_j = wkx - j; // wky - j
             j_minus_wky = j - wky; // j - wky
             j_plus_wky_plus_1 = j + wky_plus_1; // j + wky + 1
             nky_minus_1_minus_wky_plus_j = nky_minus_1 - wky_minus_j; // nky - 1 - (wky - i)
 
-            for (unsigned k = wkz; k < nz_minus_wkz; ++k)
+            {omp_iter_var k;
+            for (k = wkz; k < nz_minus_wkz; ++k)
             {
                 wkz_minus_k = wkz - k; // wkz - k
                 k_minus_wkz = k - wkz; // k - wkz
@@ -470,13 +490,16 @@ inline __attribute__((always_inline)) void convolve3d_boundary_none(DTYPE * cons
                 top = 0.;
                 if (nan_interpolate) // compile time constant
                     bot = 0.;
-                for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
+                {omp_iter_var ii;
+                for (ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
                 {
                     ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
-                    for (unsigned jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
+                    {omp_iter_var jj;
+                    for (jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
                     {
                         ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
-                        for (unsigned kk = k_minus_wkz; kk < k_plus_wkz_plus_1; ++kk)
+                        {omp_iter_var kk;
+                        for (kk = k_minus_wkz; kk < k_plus_wkz_plus_1; ++kk)
                         {
                             ker_k = nkz_minus_1_minus_wkz_plus_k - kk; // nkz - 1 - (wkz + kk - k)
 
@@ -492,9 +515,9 @@ inline __attribute__((always_inline)) void convolve3d_boundary_none(DTYPE * cons
                             }
                             else
                                 top += val * ker;
-                        }
-                    }
-                }
+                        }}
+                    }}
+                }}
                 if (nan_interpolate) // compile time constant
                 {
                     if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
@@ -504,9 +527,9 @@ inline __attribute__((always_inline)) void convolve3d_boundary_none(DTYPE * cons
                 }
                 else
                     result[(i*ny + j)*nz + k] = top;
-            }
-        }
-    }
+            }}
+        }}
+    }}
 #ifdef _OPENMP
     }//end parallel scope
 #endif
