@@ -190,7 +190,7 @@ Reference/API
 .. automodapi:: astropy.vo.client.conesearch
    :no-inheritance-diagram:
 
-.. automodapi:: astropy.vo.client.async
+.. automodapi:: astropy.vo.client.vo_async
    :no-inheritance-diagram:
 
 .. automodapi:: astropy.vo.client.exceptions
