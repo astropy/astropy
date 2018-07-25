@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Tests for `astropy.vo.client.conesearch` and `astropy.vo.client.async`."""
+"""Tests for `astropy.vo.client.conesearch` and `astropy.vo.client.vo_async`."""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
