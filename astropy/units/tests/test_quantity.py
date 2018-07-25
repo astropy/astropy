@@ -760,6 +760,12 @@ class TestQuantityDisplay:
     scalarfloatq = u.Quantity(1.3, unit='m')
     arrq = u.Quantity([1, 2.3, 8.9], unit='m')
 
+    scalar_complex_q = u.Quantity(complex(1.0, 2.0))
+    scalar_big_complex_q = u.Quantity(complex(1.0, 2.0e27) * 1e25)
+    scalar_big_neg_complex_q = u.Quantity(complex(-1.0, -2.0e27) * 1e36)
+    arr_complex_q = u.Quantity(np.arange(3) * (complex(-1.0, -2.0e27) * 1e36))
+    big_arr_complex_q = u.Quantity(np.arange(125) * (complex(-1.0, -2.0e27) * 1e36))
+
     def test_dimensionless_quantity_repr(self):
         q2 = u.Quantity(1., unit='m-1')
         q3 = u.Quantity(1, unit='m-1', dtype=int)
@@ -824,6 +830,17 @@ class TestQuantityDisplay:
         assert (q2scalar._repr_latex_() ==
                 r'$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$')
         assert self.arrq._repr_latex_() == r'$[1,~2.3,~8.9] \; \mathrm{m}$'
+
+        # Complex quantities
+        assert self.scalar_complex_q._repr_latex_() == r'$(1+2i) \; \mathrm{}$'
+        assert (self.scalar_big_complex_q._repr_latex_() ==
+                r'$(1 \times 10^{25}+2 \times 10^{52}i) \; \mathrm{}$')
+        assert (self.scalar_big_neg_complex_q._repr_latex_() ==
+                r'$(-1 \times 10^{36}-2 \times 10^{63}i) \; \mathrm{}$')
+        assert (self.arr_complex_q._repr_latex_() ==
+                (r'$[(0-0i),~(-1 \times 10^{36}-2 \times 10^{63}i),'
+                 r'~(-2 \times 10^{36}-4 \times 10^{63}i)] \; \mathrm{}$'))
+        assert r'\dots' in self.big_arr_complex_q._repr_latex_()
 
         qmed = np.arange(100)*u.m
         qbig = np.arange(1000)*u.m
