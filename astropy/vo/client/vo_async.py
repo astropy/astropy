@@ -11,7 +11,7 @@ __all__ = ['AsyncBase']
 
 
 @deprecated(
-    '2.0', alternative='astroquery.vo_conesearch.async.AsyncBase')
+    '2.0', alternative='astroquery.vo_conesearch.vo_async.AsyncBase')
 class AsyncBase(object):
     """Base class for asynchronous VO service requests
     using :py:class:`concurrent.futures.ThreadPoolExecutor`.

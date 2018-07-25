@@ -11,7 +11,7 @@ import numpy as np
 
 # LOCAL
 from . import vos_catalog
-from .async import AsyncBase
+from .vo_async import AsyncBase
 from .exceptions import ConeSearchError, VOSError
 from ... import units as u
 from ...coordinates import (ICRS, BaseCoordinateFrame, Longitude, Latitude,
@@ -39,7 +39,7 @@ class AsyncConeSearch(AsyncBase):
 
     .. note::
 
-        See `~astropy.vo.client.async.AsyncBase` for more details.
+        See `~astropy.vo.client.vo_async.AsyncBase` for more details.
 
     Parameters
     ----------
@@ -201,7 +201,7 @@ class AsyncSearchAll(AsyncBase):
 
     .. note::
 
-        See `~astropy.vo.client.async.AsyncBase` for more details.
+        See `~astropy.vo.client.vo_async.AsyncBase` for more details.
 
     Parameters
     ----------
