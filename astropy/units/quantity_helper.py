@@ -124,6 +124,8 @@ UFUNC_HELPERS[np.log10] = helper_dimensionless_to_dimensionless
 UFUNC_HELPERS[np.log2] = helper_dimensionless_to_dimensionless
 UFUNC_HELPERS[np.log1p] = helper_dimensionless_to_dimensionless
 
+# As found out in gh-7058, some numpy 1.13 conda installations also provide
+# np.erf, even though upstream doesn't have it.  We include it if present.
 if isinstance(getattr(np.core.umath, 'erf', None), np.ufunc):
     UFUNC_HELPERS[np.core.umath.erf] = helper_dimensionless_to_dimensionless
 
