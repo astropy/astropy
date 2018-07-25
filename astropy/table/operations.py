@@ -16,7 +16,8 @@ from collections import OrderedDict, Counter
 import numpy as np
 
 from ..utils import metadata
-from .table import Table, Row, Column, has_info_class, MixinInfo
+from .table import Table, QTable, Row, Column
+from ..units import Quantity
 
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
@@ -41,16 +42,25 @@ def _get_list_of_tables(tables):
     if not isinstance(tables, collections.Sequence):
         tables = [tables]
 
-    # Make sure each thing is a Table or Row or Column
-    if any(not (isinstance(x, (Table, Row, Column)) or has_info_class(x, MixinInfo))
-           for x in tables) or len(tables) == 0:
-        raise TypeError('`tables` arg must be a Table or sequence of Tables or Rows or Columns')
+    # Make sure there is something to stack
+    if len(tables) == 0:
+        raise ValueError('no values provided to stack.')
 
-    for ii, tbl in enumerate(tables):
-        if isinstance(tbl, Row):
-            tables[ii] = Table(tbl)
-        elif isinstance(tbl, Column) or has_info_class(tbl, MixinInfo):
-            tables[ii] = Table([tbl])
+    # Convert inputs (Table, Row, or anything column-like) to Tables.
+    # Special case that Quantity converts to a QTable.
+    for ii, val in enumerate(tables):
+        if isinstance(val, Table):
+            pass
+        elif isinstance(val, Row):
+            tables[ii] = Table(val)
+        elif isinstance(val, Quantity):
+            tables[ii] = QTable([val])
+        else:
+            try:
+                tables[ii] = Table([val])
+            except (ValueError, TypeError):
+                raise TypeError('cannot convert {} to table column.'
+                                .format(val))
 
     return tables
 
