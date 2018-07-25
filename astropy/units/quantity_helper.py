@@ -124,6 +124,9 @@ UFUNC_HELPERS[np.log10] = helper_dimensionless_to_dimensionless
 UFUNC_HELPERS[np.log2] = helper_dimensionless_to_dimensionless
 UFUNC_HELPERS[np.log1p] = helper_dimensionless_to_dimensionless
 
+if isinstance(getattr(np.core.umath, 'erf', None), np.ufunc):
+    UFUNC_HELPERS[np.core.umath.erf] = helper_dimensionless_to_dimensionless
+
 
 def helper_modf(f, unit):
     if unit is None:
