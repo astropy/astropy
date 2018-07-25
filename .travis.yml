@@ -75,6 +75,9 @@ matrix:
         - stage: Initial tests
           env: PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
 
+        - stage: Initial tests
+          env: PYTHON_VERSION=3.7 SETUP_CMD='egg_info'
+
         # Try MacOS X. Use a slightly old numpy version to help test against
         # all supported numpy versions.
         - os: osx
@@ -119,8 +122,7 @@ matrix:
 
         - os: linux
           stage: Initial tests
-          env: CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PYTEST_VERSION='>3.2'
+          env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                SETUP_CMD='test -a "--durations=50"'
           compiler: clang
 
