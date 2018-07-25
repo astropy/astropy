@@ -130,7 +130,7 @@ the input table is generated::
     ...     hdu = fits.BinTableHDU(data=newdata)
     ...     hdu.writeto('newtable.fits')
 
-It is also possible to update in-place the data from the HDU object::
+It is also possible to update the data from the HDU object in-place::
 
     >>> with fits.open(fits_table_filename) as hdul:
     ...     hdu = hdul[1]
