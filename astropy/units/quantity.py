@@ -1088,8 +1088,16 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             return Latex.format_exponential_notation(value,
                                                      format_spec=format_spec)
 
+        def complex_formatter(value):
+            return '({0}{1}i)'.format(
+                Latex.format_exponential_notation(value.real,
+                                                  format_spec=format_spec),
+                Latex.format_exponential_notation(value.imag,
+                                                  format_spec='+' + format_spec))
+
         try:
-            formatter = {'float_kind': float_formatter}
+            formatter = {'float_kind': float_formatter,
+                         'complex_kind': complex_formatter}
             if conf.latex_array_threshold > -1:
                 np.set_printoptions(threshold=conf.latex_array_threshold,
                                     formatter=formatter)
@@ -1099,6 +1107,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                 latex_value = np.array2string(
                     self.view(np.ndarray),
                     style=(float_formatter if self.dtype.kind == 'f'
+                           else complex_formatter if self.dtype.kind == 'c'
                            else repr),
                     max_line_width=np.inf, separator=',~')
             else:
