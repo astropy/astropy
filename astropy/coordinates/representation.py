@@ -1099,6 +1099,7 @@ class CartesianRepresentation(BaseRepresentation):
                        [ 1.23205081, 1.59807621],
                        [ 3.        , 4.        ]] pc>
         """
+        # erfa rxp: Multiply a p-vector by an r-matrix.
         p = erfa_ufunc.rxp(matrix, self.get_xyz(xyz_axis=-1))
         # Handle differentials attached to this representation
         if self.differentials:
@@ -1191,6 +1192,7 @@ class CartesianRepresentation(BaseRepresentation):
             raise TypeError("cannot only take dot product with another "
                             "representation, not a {0} instance."
                             .format(type(other)))
+        # erfa pdp: p-vector inner (=scalar=dot) product.
         return erfa_ufunc.pdp(self.get_xyz(xyz_axis=-1),
                               other_c.get_xyz(xyz_axis=-1))
 
@@ -1214,6 +1216,7 @@ class CartesianRepresentation(BaseRepresentation):
             raise TypeError("cannot only take cross product with another "
                             "representation, not a {0} instance."
                             .format(type(other)))
+        # erfa pxp: p-vector outer (=vector=cross) product.
         sxo = erfa_ufunc.pxp(self.get_xyz(xyz_axis=-1),
                              other_c.get_xyz(xyz_axis=-1))
         return self.__class__(sxo, xyz_axis=-1)
@@ -1300,6 +1303,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         # NUMPY_LT_1_16 cannot create a vector automatically
         p = u.Quantity(np.empty(self.shape + (3,)), u.dimensionless_unscaled,
                        copy=False)
+        # erfa s2c: Convert [unit]spherical coordinates to Cartesian.
         p = erfa_ufunc.s2c(self.lon, self.lat, p)
         return CartesianRepresentation(p, xyz_axis=-1, copy=False)
 
@@ -1310,6 +1314,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         coordinates.
         """
         p = cart.get_xyz(xyz_axis=-1)
+        # erfa c2s: P-vector to [unit]spherical coordinates.
         return cls(*erfa_ufunc.c2s(p), copy=False)
 
     def represent_as(self, other_class, differential_class=None):
@@ -1612,6 +1617,7 @@ class SphericalRepresentation(BaseRepresentation):
 
         # NUMPY_LT_1_16 cannot create a vector automatically
         p = u.Quantity(np.empty(self.shape + (3,)), d.unit, copy=False)
+        # erfa s2p: Convert spherical polar coordinates to p-vector.
         p = erfa_ufunc.s2p(self.lon, self.lat, d, p)
 
         return CartesianRepresentation(p, xyz_axis=-1, copy=False)
@@ -1623,6 +1629,7 @@ class SphericalRepresentation(BaseRepresentation):
         coordinates.
         """
         p = cart.get_xyz(xyz_axis=-1)
+        # erfa p2s: P-vector to spherical polar coordinates.
         return cls(*erfa_ufunc.p2s(p), copy=False)
 
     def norm(self):
