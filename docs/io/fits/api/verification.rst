@@ -39,7 +39,7 @@ No warning message will be printed out. This is like a silent warn (see below)
 option.
 
 fix
-^^^
+===
 
 This option will try to fix any FITS standard violations. It is not always
 possible to fix such violations. In general, there are two kinds of FITS
