@@ -35,36 +35,36 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         File to be opened.
 
     mode : str, optional
-        Open mode, 'readonly' (default), 'update', 'append', 'denywrite', or
-        'ostream'.
+        Open mode, 'readonly', 'update', 'append', 'denywrite', or
+        'ostream'. Default is 'readonly'.
 
         If ``name`` is a file object that is already opened, ``mode`` must
         match the mode the file was opened with, readonly (rb), update (rb+),
         append (ab+), ostream (w), denywrite (rb)).
 
     memmap : bool, optional
-        Is memory mapping to be used? ``memmap=True`` by default. This value
-        is obtained from the configuration item
-        ``astropy.io.fits.Conf.use_memmap``.
+        Is memory mapping to be used? This value is obtained from the
+        configuration item ``astropy.io.fits.Conf.use_memmap``.
+        Default is `True`.
 
     save_backup : bool, optional
         If the file was opened in update or append mode, this ensures that
-        a backup of the original file is saved before any changes are flushed
-        (default: False).  The backup has the same name as the original file
-        with ".bak" appended.  If "file.bak" already exists then "file.bak.1"
-        is used, and so on.
+        a backup of the original file is saved before any changes are flushed.
+        The backup has the same name as the original file with ".bak" appended.
+        If "file.bak" already exists then "file.bak.1" is used, and so on.
+        Default is `False`.
 
     cache : bool, optional
         If the file name is a URL, `~astropy.utils.data.download_file` is used
         to open the file.  This specifies whether or not to save the file
-        locally in Astropy's download cache (default: `True`).
+        locally in Astropy's download cache. Default is `True`.
 
     lazy_load_hdus : bool, optional
-        By default `~astropy.io.fits.open` will not read all the HDUs and
-        headers in a FITS file immediately upon opening.  This is an
-        optimization especially useful for large files, as FITS has no way
-        of determining the number and offsets of all the HDUs in a file
-        without scanning through the file and reading all the headers.
+        To avoid reading all the HDUs and headers in a FITS file immediately
+        upon opening.  This is an optimization especially useful for large
+        files, as FITS has no way of determining the number and offsets of all
+        the HDUs in a file without scanning through the file and reading all
+        the headers. Default is `True`.
 
         To disable lazy loading and read all HDUs immediately (the old
         behavior) use ``lazy_load_hdus=False``.  This can lead to fewer
@@ -80,44 +80,45 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         Interpret signed integer data where ``BZERO`` is the central value and
         ``BSCALE == 1`` as unsigned integer data.  For example, ``int16`` data
         with ``BZERO = 32768`` and ``BSCALE = 1`` would be treated as
-        ``uint16`` data.  This is enabled by default so that the
-        pseudo-unsigned integer convention is assumed.
+        ``uint16`` data. Default is `True` so that the pseudo-unsigned
+        integer convention is assumed.
 
     ignore_missing_end : bool, optional
         Do not issue an exception when opening a file that is missing an
-        ``END`` card in the last header (default: False).
+        ``END`` card in the last header. Default is `False`.
 
     checksum : bool, str, optional
         If `True`, verifies that both ``DATASUM`` and ``CHECKSUM`` card values
         (when present in the HDU header) match the header and data of all HDU's
-        in the file (default: False).  Updates to a file that already has
-        a checksum will preserve and update the existing checksums unless this
-        argument is given a value of 'remove', in which case the CHECKSUM and
-        DATASUM values are not checked, and are removed when saving changes to
-        the file.
+        in the file.  Updates to a file that already has a checksum will
+        preserve and update the existing checksums unless this argument is
+        given a value of 'remove', in which case the CHECKSUM and DATASUM
+        values are not checked, and are removed when saving changes to the
+        file. Default is `False`.
 
     disable_image_compression : bool, optional
         If `True`, treats compressed image HDU's like normal binary table
-        HDU's (default: False).
+        HDU's.  Default is `False`.
 
     do_not_scale_image_data : bool, optional
         If `True`, image data is not scaled using BSCALE/BZERO values
-        when read (default: False).
+        when read.  Default is `False`.
 
     character_as_bytes : bool, optional
-        Whether to return bytes for string columns. By default this is `False`
-        and (unicode) strings are returned, but this does not respect memory
-        mapping and loads the whole column in memory when accessed.
+        Whether to return bytes for string columns, otherwise unicode strings
+        are returned, but this does not respect memory mapping and loads the
+        whole column in memory when accessed. Default is `False`.
 
     ignore_blank : bool, optional
-        If `True`, the BLANK keyword is ignored if present (default: False).
+        If `True`, the BLANK keyword is ignored if present.
+        Default is `False`.
 
     scale_back : bool, optional
         If `True`, when saving changes to a file that contained scaled image
         data, restore the data to the original type and reapply the original
-        BSCALE/BZERO values (default: False).  This could lead to loss of
-        accuracy if scaling back to integer values after performing floating
-        point operations on the data.
+        BSCALE/BZERO values. This could lead to loss of accuracy if scaling
+        back to integer values after performing floating point operations on
+        the data. Default is `False`.
 
     Returns
     -------
