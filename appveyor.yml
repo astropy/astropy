@@ -23,7 +23,7 @@ matrix:
 platform:
     -x64
 
-os: Visual Studio 2015 Update 2
+os: Visual Studio 2017
 
 install:
     - "git clone git://github.com/astropy/ci-helpers.git"
