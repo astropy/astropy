@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  WCSLIB 5.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
+  $Id: wcs.c,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -613,7 +613,7 @@ int wcssub(
   static const char *function = "wcssub";
 
   const char *pq = "PQ";
-  char *c, ctypei[16], ctmp[8], *fp;
+  char *c, ctypei[16], ctmp[16], *fp;
   int  axis, axmap[10], cubeface, dealloc, dummy, i, idp, itab, *itmp = 0x0,
        j, jhat, k, latitude, longitude, m, *map, msub, naxis, ndp, ndpmax,
        Nhat, npv, npvmax, nps, npsmax, ntmp, other, spectral, status, stokes;
@@ -1111,9 +1111,10 @@ int wcssub(
           axmap[jhat] = -1;
         }
 
+        Nhat = 0;
         dpsrc = dissrc->dp;
         for (idp = 0; idp < dissrc->ndp; idp++, dpsrc++) {
-          if (dpsrc->j != j+1) continue;
+          if (dpsrc->j != axes[j]) continue;
           if (dpsrc->field[1] != pq[m]) continue;
           if ((fp = strchr(dpsrc->field, '.')) == 0x0) continue;
           fp++;
@@ -1906,7 +1907,7 @@ int wcsset(struct wcsprm *wcs)
 {
   static const char *function = "wcsset";
 
-  char   dpq[8], scode[4], stype[5];
+  char   dpq[16], scode[4], stype[5];
   int    i, j, k, m, n, naxis, ndpmax, status;
   double lambda, rho;
   double *cd, *pc;
@@ -2282,7 +2283,7 @@ int wcs_types(struct wcsprm *wcs)
   const char aliases [6][4] = {"NCP", "GLS", "TPU", "TPV", "TNX", "ZPX"};
 
   const char *alt = "";
-  char ctypei[16], pcode[4], requir[9], scode[4], specsys[9];
+  char ctypei[16], pcode[4], requir[16], scode[4], specsys[9];
   int i, j, m, naxis, *ndx = 0x0, type;
   struct wcserr **err;
 

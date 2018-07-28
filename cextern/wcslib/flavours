@@ -12,7 +12,7 @@
 #
 # Reminder: add '-d' to FLFLAGS for debugging.
 #
-# $Id: flavours,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
+# $Id: flavours,v 5.19.1.1 2018/07/26 15:41:42 mcalabre Exp mcalabre $
 #-----------------------------------------------------------------------------
 
 # The list of FLAVOURs can be set on the command line.
@@ -56,6 +56,20 @@ ifeq "$(FLAVOUR)" "Linux"
   export FFLAGS   := -g -O0 -fimplicit-none -Wall -I.
   export ARFLAGS  := U
   export LDFLAGS  :=
+         VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
+         VALGRIND += --track-origins=yes
+endif
+
+ifeq "$(FLAVOUR)" "Linux8"
+  F := $(FLAVOUR)
+  export CC       := gcc-8.1.0 -std=c89 -pedantic
+  export CPPFLAGS := $(FEATURES) -D_FORTIFY_SOURCE=2
+  export CFLAGS   := -g -O2 -Wall -Wextra -Wpadded -Wno-long-long
+  export F77      := gfortran-8.1.0
+  export FFLAGS   := -g -O2 -fimplicit-none -Wall -I.
+  export ARFLAGS  := U
+  export LDFLAGS  :=
+  export LD_RUN_PATH := /usr/local/lib64
          VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
          VALGRIND += --track-origins=yes
 endif
