@@ -1,5 +1,20 @@
 Platforms on which the installation procedures and test suite were exercised.
 
+WCSLIB version 5.19 (2018/07/27)
+--------------------------------
+
+* Dell Latitude E6530 (Intel Core i7-3740QM, 4 cores, 8 processors, x86_64)
+  Debian linux 8.10 (jessie)
+  uname -r (kernel version): 3.16.0-4-amd64
+  gcc --version: gcc-8.1.0 (GCC) 8.1.0 (local build)
+  gfortran --version: GNU Fortran (GCC) 8.1.0 (local build)
+
+    and
+
+  gcc --version: gcc (Debian 4.9.2-10) 4.9.2
+  gfortran --version: GNU Fortran (Debian 4.9.2-10) 4.9.2
+
+
 WCSLIB version 5.18 (2018/01/10)
 --------------------------------
 
@@ -537,4 +552,4 @@ WCSLIB version 4.4 (2009/08/06)
           2004/04/23
 
 ------------------------------------------------------------------------------
-$Id: VALIDATION,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
+$Id: VALIDATION,v 5.19.1.1 2018/07/26 15:41:42 mcalabre Exp mcalabre $

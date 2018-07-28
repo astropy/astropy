@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  WCSLIB 5.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spx.c,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
+  $Id: spx.c,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -352,6 +352,9 @@ int stat[];
   register const double *freqp;
   register double *wavep;
 
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
+
   freqp = freq;
   wavep = wave;
   statp = stat;
@@ -386,6 +389,9 @@ int stat[];
   register int iwave, *statp;
   register const double *wavep;
   register double *freqp;
+
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
 
   wavep = wave;
   freqp = freq;
@@ -539,6 +545,9 @@ int stat[];
   register const double *wavep;
   register double *awavp;
 
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
+
   wavep = wave;
   awavp = awav;
   statp = stat;
@@ -583,6 +592,9 @@ int stat[];
   register int iawav, *statp;
   register const double *awavp;
   register double *wavep;
+
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
 
   awavp = awav;
   wavep = wave;
@@ -739,6 +751,9 @@ int stat[];
   register const double *freqp;
   register double *afrqp;
 
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
+
   freqp = freq;
   afrqp = afrq;
   statp = stat;
@@ -767,6 +782,9 @@ int stat[];
   register int iafrq, *statp;
   register const double *afrqp;
   register double *freqp;
+
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
 
   afrqp = afrq;
   freqp = freq;
@@ -799,6 +817,9 @@ int stat[];
   register const double *freqp;
   register double *enerp;
 
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
+
   freqp = freq;
   enerp = ener;
   statp = stat;
@@ -827,6 +848,9 @@ int stat[];
   register int iener, *statp;
   register const double *enerp;
   register double *freqp;
+
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
 
   enerp = ener;
   freqp = freq;
@@ -859,6 +883,9 @@ int stat[];
   register const double *freqp;
   register double *wavnp;
 
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
+
   freqp = freq;
   wavnp = wavn;
   statp = stat;
@@ -887,6 +914,9 @@ int stat[];
   register int iwavn, *statp;
   register const double *wavnp;
   register double *freqp;
+
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
 
   wavnp = wavn;
   freqp = freq;
@@ -1118,6 +1148,9 @@ int stat[];
   register const double *velop;
   register double *betap;
 
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
+
   velop = velo;
   betap = beta;
   statp = stat;
@@ -1146,6 +1179,9 @@ int stat[];
   register int ibeta, *statp;
   register const double *betap;
   register double *velop;
+
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
 
   betap = beta;
   velop = velo;
