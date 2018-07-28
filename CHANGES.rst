@@ -169,6 +169,96 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+- The documentation build now uses the Sphinx configuration from sphinx-astropy
+  rather than from astropy-helpers. [#7139]
+
+- Versions of Numpy <1.13 are no longer supported. [#7058]
+
+- Running tests now suppresses the output of the installation stage by default,
+  to allow easier viewing of the test results. To re-enable the output as
+  before, use ``python setup.py test --verbose-install``. [#7512]
+
+- The ERFA functions are now wrapped in ufuncs instead of custom C code,
+  leading to some speed improvements, and setting the stage for allowing
+  overrides with ``__array_ufunc__``. [#7502]
+
+3.0.4 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+- updated wcslib to v 5.19.1 [#7688]
+
+Other Changes and Additions
+---------------------------
+
 
 
 3.0.3 (2018-06-01)
