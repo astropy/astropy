@@ -67,7 +67,6 @@ CRPIX3  = 45
 CDELT1  = -0.1
 CDELT2  =  0.5
 CDELT3  =  0.1
-CROTA2  = 0.
 CUNIT1  = deg
 CUNIT2  = Hz
 CUNIT3  = deg
@@ -107,3 +106,21 @@ def test_spectral_cube():
 
     assert_allclose(llwcs.world_to_pixel_values(10, 20, 25), (29., 39., 44.))
     assert_equal(llwcs.world_to_numpy_index_values(10, 20, 25), (44, 39, 29))
+
+
+HEADER_SPECTRAL_CUBE_NONALIGNED = HEADER_SPECTRAL_CUBE.strip() + os.linesep + """
+PC2_3 = -0.5
+PC3_2 = +0.5
+"""
+
+
+def test_spectral_cube_nonaligned():
+
+    # Make sure that correlation matrix gets adjusted if there are non-identity
+    # CD matrix terms.
+
+    header = Header.fromstring(HEADER_SPECTRAL_CUBE_NONALIGNED, sep=os.linesep)
+    wcs = WCS(header)
+    llwcs = FITSLowLevelWCS(wcs)
+
+    assert_equal(llwcs.axis_correlation_matrix, [[True, True, True], [False, True, True], [True, True, True]])
