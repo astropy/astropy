@@ -1316,6 +1316,7 @@ astropy.vo
 astropy.wcs
 ^^^^^^^^^^^
 
+- updated wcslib to v 5.19.1 [#7688]
 
 Other Changes and Additions
 ---------------------------
