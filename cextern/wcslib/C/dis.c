@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  WCSLIB 5.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.c,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
+  $Id: dis.c,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -300,7 +300,7 @@ int discpy(int alloc, const struct disprm *dissrc, struct disprm *disdst)
 {
   static const char *function = "discpy";
 
-  int naxis, ndp, status;
+  int naxis, status;
   struct wcserr **err;
 
   if (dissrc == 0x0) return DISERR_NULL_POINTER;
@@ -531,7 +531,7 @@ int disprt(const struct disprm *dis)
   WCSPRINTF_PTR("     disp2x: ", dis->disp2x, "\n");
   for (j = 0; j < naxis; j++) {
     wcsprintf("  disp2x[%d]: %s", j,
-      wcsutil_fptr2str((int (*)(void))dis->disp2x[j], hext));
+      wcsutil_fptr2str((void (*)(void))dis->disp2x[j], hext));
     if (dis->disp2x[j] == dispoly) {
       wcsprintf("  (= dispoly)\n");
     } else if (dis->disp2x[j] == tpd1) {
@@ -559,7 +559,7 @@ int disprt(const struct disprm *dis)
   WCSPRINTF_PTR("     disx2p: ", dis->disx2p, "\n");
   for (j = 0; j < naxis; j++) {
     wcsprintf("  disx2p[%d]: %s\n", j,
-      wcsutil_fptr2str((int (*)(void))dis->disx2p[j], hext));
+      wcsutil_fptr2str((void (*)(void))dis->disx2p[j], hext));
   }
   WCSPRINTF_PTR("     tmpmem: ", dis->tmpmem, "\n");
 
@@ -675,6 +675,10 @@ int disset(struct disprm *dis)
         "No DPja or DQia keywords, NAXES at least is required for each "
         "distortion");
     }
+
+    /* A Clayton's distortion.  Avert compiler warnings about possible use of
+       uninitialized variables. */
+    dpq = 0x0;
   }
 
 
@@ -1736,7 +1740,7 @@ int tpdset(int j, struct disprm *dis)
 {
   static const char *function = "tpdset";
 
-  char   *fp, id[16];
+  char   *fp, id[32];
   int    doaux, docorr, doradial, idis, idp, k, m, ncoeff[2], ndparm, niparm;
   struct dpkey *keyp;
   struct wcserr **err;
@@ -2170,7 +2174,7 @@ int tpvset(int j, struct disprm *dis)
 {
   static const char *function = "tpvset";
 
-  char   *fp, id[16];
+  char   *fp, id[32];
   int    doradial, idp, k, ndparm, niparm;
   struct dpkey *keyp;
   struct wcserr **err;
@@ -2322,7 +2326,7 @@ int sipset(int j, struct disprm *dis)
                                 {40, 50, -1, -1, -1, -1, -1, -1, -1, -1},
                                 {49, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-  char   *fp, id[16];
+  char   *fp, id[32];
   int    deg, degree[2], idis, idp, jhat, naxis, ncoeff[2], ndparm, niparm,
          p, q;
   struct dpkey *keyp;
@@ -2506,7 +2510,7 @@ int dssset(int j, struct disprm *dis)
 {
   static const char *function = "dssset";
 
-  char   *fp, id[16];
+  char   *fp, id[32];
   int    degree, idp, m, ncoeff, ndparm, niparm;
   double A1, A2, A3, B1, B2, B3, coeff, *dparm, S, X0, Y0;
   struct dpkey *keyp;
@@ -2724,7 +2728,7 @@ int watset(int j, struct disprm *dis)
                                 {40, 50, -1, -1, -1, -1, -1, -1, -1, -1},
                                 {49, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-  char   *fp, id[20];
+  char   *fp, id[32];
   int    deg, degree, doaux, idis, idp, im, in, *iparm, kind, m, n, ncoeff,
          ndparm, niparm;
   double coeff, coeffm[10], coeffn[10], *dparm, dx, dy, x0, xmax, xmin,
@@ -3017,6 +3021,9 @@ int dispoly(
   int    ip, ivar, jhat, k, m;
   const double *cptr, *dpolp, *pptr;
   double *aux, auxp0, *dvarpow, *dpowp, term, var;
+
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
 
   /* Check for zeroes. */
   for (jhat = 0; jhat < Nhat; jhat++) {

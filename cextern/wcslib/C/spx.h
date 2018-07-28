@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  WCSLIB 5.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spx.h,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
+  $Id: spx.h,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
 *=============================================================================
 *
-* WCSLIB 5.18 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.19 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -97,6 +97,39 @@
 * These are the workhorse routines, to be used for fast transformations.
 * Conversions may be done "in place" by calling the routine with the output
 * vector set to the input.
+*
+* Air-to-vacuum wavelength conversion:
+* ------------------------------------
+* The air-to-vacuum wavelength conversion in early drafts of WCS Paper III
+* cites Cox (ed., 2000, Allen’s Astrophysical Quantities, AIP Press,
+* Springer-Verlag, New York), which itself derives from Edlén (1953, Journal
+* of the Optical Society of America, 43, 339).  This is the IAU standard,
+* adopted in 1957 and again in 1991.  No more recent IAU resolution replaces
+* this relation, and it is the one used by WCSLIB.
+*
+* However, the Cox relation was replaced in later drafts of Paper III, and as
+* eventually published, by the IUGG relation (1999, International Union of
+* Geodesy and Geophysics, comptes rendus of the 22nd General Assembly,
+* Birmingham UK, p111).  There is a nearly constant ratio between the two,
+* with IUGG/Cox = 1.000015 over most of the range between 200nm and 10,000nm.
+*
+* The IUGG relation itself is derived from the work of Ciddor (1996, Applied
+* Optics, 35, 1566), which is used directly by the Sloan Digital Sky Survey.
+* It agrees closely with Cox; longwards of 2500nm, the ratio Ciddor/Cox is
+* fixed at 1.000000021, decreasing only slightly, to 1.000000018, at 1000nm.
+*
+* The Cox, IUGG, and Ciddor relations all accurately provide the wavelength
+* dependence of the air-to-vacuum wavelength conversion.  However, for full
+* accuracy, the atmospheric temperature, pressure, and partial pressure of
+* water vapour must be taken into account.  These will determine a small,
+* wavelength-independent scale factor and offset, which is not considered by
+* WCS Paper III.
+*
+* WCS Paper III is also silent on the question of the range of validity of the
+* air-to-vacuum wavelength conversion.  Cox's relation would appear to be
+* valid in the range 200nm to 10,000nm.  Both the Cox and the Ciddor relations
+* have singularities below 200nm, with Cox's at 156nm and 83nm.  WCSLIB checks
+* neither the range of validity, nor for these singularities.
 *
 * Argument checking:
 * ------------------

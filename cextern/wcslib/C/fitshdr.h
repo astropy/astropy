@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  WCSLIB 5.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: fitshdr.h,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
+  $Id: fitshdr.h,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
 *=============================================================================
 *
-* WCSLIB 5.18 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.19 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -37,7 +37,7 @@
 *
 =   "Definition of the Flexible Image Transport System (FITS), version 3.0",
 =   Pence, W.D., Chiappetti, L., Page, C.G., Shaw, R.A., & Stobie, E. 2010,
-=   A&A, 524, A42 - https://doi.org/10.1051/0004-6361/201015362
+=   A&A, 524, A42 - http://dx.doi.org/10.1051/0004-6361/201015362
 *
 * See also http://fits.gsfc.nasa.gov
 *

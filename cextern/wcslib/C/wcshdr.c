@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  WCSLIB 5.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.c,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
+  $Id: wcshdr.c,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -504,11 +504,11 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
   const int  nTPD[] = {1, 4, 7, 12, 17, 24, 31, 40, 49, 60};
 
   char alt, comment[72], ctemp[32], *ctypei, format[16], fmt01[8],
-       keyvalue[72], keyword[16], *kp, *kp0, obsg[8] = "OBSG?",
+       keyvalue[96], keyword[16], *kp, *kp0, obsg[8] = "OBSG?",
        obsgeo[8] = "OBSGEO-?", pq, ptype, xtype, term[16], tpdsrc[24],
        xyz[] = "XYZ";
-  int  *axmap, bintab, col0, *colax, colnum, degree, direct, doaux, dofmt,
-       dosip, dotpd, dotpv, i, idis, idp, *iparm, j, jhat, k, m, naxis,
+  int  *axmap, bintab, col0, *colax, colnum, degree, direct = 0, doaux = 0,
+       dofmt, dosip, dotpd, dotpv, i, idis, idp, *iparm, j, jhat, k, m, naxis,
        ncoeff, Nhat, p, pixlist, precision, primage, q, status = 0;
   double *dparm, keyval;
   struct disprm *dis;
@@ -1135,7 +1135,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
         kp0 = kp;
       }
 
-      precision = kp - (keyvalue + 2);
+      precision = kp0 - (keyvalue + 2);
       if (precision < 1)  precision = 1;
       if (13 < precision) precision = 13;
       sprintf(format, "%%20.%dE", precision);
@@ -1779,7 +1779,7 @@ void wcshdo_util(
   int  *status)
 
 {
-  char ch0, ch1, *hptr, keyword[16], *kptr;
+  char ch0, ch1, *hptr, keyword[32], *kptr;
   int  nbyte, nc = 47, nv;
 
   if (*status) return;

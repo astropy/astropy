@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  WCSLIB 5.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.h,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
+  $Id: wcsutil.h,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
 *=============================================================================
 *
-* WCSLIB 5.18 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.19 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -268,7 +268,7 @@
 * http://stackoverflow.com/questions/2741683/how-to-format-a-function-pointer
 *
 * Given:
-*   fptr      int(*)()  Pointer to function.
+*   fptr      void(*)() Pointer to function.
 *
 * Returned:
 *   hext      char[19]  Null-terminated string.  Should be at least 19 bytes
@@ -368,7 +368,7 @@ int  wcsutil_strEq(int nelem, char (*arr1)[72], char (*arr2)[72]);
 void wcsutil_setAll(int nvec, int nelem, double *first);
 void wcsutil_setAli(int nvec, int nelem, int *first);
 void wcsutil_setBit(int nelem, const int *sel, int bits, int *array);
-char *wcsutil_fptr2str(int (*func)(void), char hext[19]);
+char *wcsutil_fptr2str(void (*func)(void), char hext[19]);
 int  wcsutil_str2double(const char *buf, double *value);
 void wcsutil_double2str(char *buf, const char *format, double value);
 int    wcsutil_dpkey_int(const struct dpkey *dp);
