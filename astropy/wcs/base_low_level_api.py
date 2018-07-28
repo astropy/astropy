@@ -68,6 +68,16 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
+    def numpy_index_to_world_values(self, *index_arrays):
+        """
+        Convert Numpy array indices to world coordinates.
+
+        This is the same as ``pixel_to_world_values`` except that the indices
+        should be given in ``(i, j)`` order, where for an image ``i`` is the row
+        and ``j`` is the column (i.e. the opposite order to ``pixel_to_world_values``).
+        """
+        raise NotImplementedError()
+
     @abc.abstractmethod
     def world_to_pixel_values(self, *world_arrays):
         """
@@ -80,6 +90,18 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         matching pixel coordinate, NaN can be returned.  The coordinates should
         be returned in the ``(x, y)`` order, where for an image, ``x`` is the
         horizontal coordinate and ``y`` is the vertical coordinate.
+        """
+        raise NotImplementedError()
+
+    def world_to_numpy_index_values(self, *world_arrays):
+        """
+        Convert world coordinates to array indices.
+
+        This is the same as ``world_to_pixel_values`` except that the indices
+        should be returned in ``(i, j)`` order, where for an image ``i`` is the
+        row and ``j`` is the column (i.e. the opposite order to
+        ``pixel_to_world_values``). The indices should be returned as rounded
+        integers.
         """
         raise NotImplementedError()
 
@@ -114,19 +136,18 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         """
         A dictionary with each key being a string key from
         ``world_axis_object_components``, and each value being a tuple with
-        two or three elements:
+        three elements:
 
-        * The first element of the tuple must be a string specifying the
-          fully-qualified name of a class, which will specify the actual
+        * The first element of the tuple must be a class or a string specifying
+          the fully-qualified name of a class, which will specify the actual
           Python object to be created.
 
-        * The second element, which is optional, should be a tuple
-          specifying the positional arguments required to initialize the
-          class. If ``world_axis_object_components`` specifies that
-          the world coordinates should be passed as a positional argument,
-          this this tuple should include ``None`` placeholders for the
-          world coordinates. This tuple only needs to be specified if there
-          are additional positional arguments.
+        * The second element, should be a tuple specifying the positional
+          arguments required to initialize the class. If
+          ``world_axis_object_components`` specifies that the world
+          coordinates should be passed as a positional argument, this this
+          tuple should include ``None`` placeholders for the world
+          coordinates.
 
         * The last tuple element must be a dictionary with the keyword
           arguments required to initialize the class.
@@ -142,14 +163,14 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         different arguments (e.g. ``Time(Time(...), scale='tai')``). This is
         a requirement for the implementation of the high-level interface.
 
-        The second tuple element for each value of this dictionary can in
-        turn contain either instances of classes, or if necessary can contain
-        serialized versions that should take the same form as the main
-        classes described above (a tuple with three elements with the
-        fully qualified name of the class, then the positional arguments
-        and the keyword arguments). For low-level API objects implemented
-        in Python, we recommend simply returning the actual objects (not
-        the serialized form) for optimal performance.
+        The second and third tuple elements for each value of this dictionary
+        can in turn contain either instances of classes, or if necessary can
+        contain serialized versions that should take the same form as the main
+        classes described above (a tuple with three elements with the fully
+        qualified name of the class, then the positional arguments and the
+        keyword arguments). For low-level API objects implemented in Python, we
+        recommend simply returning the actual objects (not the serialized form)
+        for optimal performance.
 
         See the document *APE 14: A shared Python interface for World Coordinate
         Systems* for more examples (https://doi.org/10.5281/zenodo.1188875).
