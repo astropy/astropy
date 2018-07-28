@@ -170,7 +170,9 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         qualified name of the class, then the positional arguments and the
         keyword arguments). For low-level API objects implemented in Python, we
         recommend simply returning the actual objects (not the serialized form)
-        for optimal performance.
+        for optimal performance. Implementations should either always or never
+        use serialized classes to represent Python objects, and should indicate
+        which of these they follow using the ``serialized_classes`` attribute.
 
         See the document *APE 14: A shared Python interface for World Coordinate
         Systems* for more examples (https://doi.org/10.5281/zenodo.1188875).
@@ -219,6 +221,14 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         would be `True` and all other entries `False`.
         """
         return np.ones((self.world_n_dim, self.pixel_n_dim), dtype=bool)
+
+    @abc.abstractproperty
+    def serialized_classes(self):
+        """
+        Indicates whether Python objects are given in serialized form or as
+        actual Python objects.
+        """
+        return False
 
 
 UCDS_FILE = os.path.join(os.path.dirname(__file__), 'ucds.txt')
