@@ -3,12 +3,12 @@
 #-----------------------------------------------------------------------------
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: configure.ac,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
+# $Id: configure.ac,v 5.19.1.2 2018/07/28 12:54:15 mcalabre Exp mcalabre $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB], [5.18], [mark@calabretta.id.au], [wcslib-5.18])
+AC_INIT([WCSLIB], [5.19.1], [mark@calabretta.id.au], [wcslib-5.19.1])
 AC_PREREQ([2.53])
-AC_REVISION([$Revision: 5.18 $])
+AC_REVISION([$Revision: 5.19.1.2 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 
@@ -20,8 +20,8 @@ AC_CONFIG_SRCDIR([C/wcs.h])
 AC_CONFIG_AUX_DIR([config])
 
 # Get the system type.
-AC_CANONICAL_BUILD
-ARCH="${build_cpu}-$build_os"
+AC_CANONICAL_HOST
+ARCH="${host_cpu}-$host_os"
 AC_SUBST([ARCH])
 
 
@@ -238,7 +238,7 @@ if test "x$ac_cv_c_compiler_gnu" = xyes ; then
   SHRFLAGS="-fPIC"
   SHRLD="\$(CC) \$(SHRFLAGS)"
 
-  case "$build_os" in
+  case "$host_os" in
   darwin*)
     SHRLIB="libwcs.$LIBVER.dylib"
     SONAME="libwcs.$SHVER.dylib"
@@ -246,7 +246,7 @@ if test "x$ac_cv_c_compiler_gnu" = xyes ; then
     SHRLD="$SHRLD -compatibility_version $SHVER -current_version $LIBVER"
     SHRLN="libwcs.dylib"
 
-    case "$build_cpu" in
+    case "$host_cpu" in
     powerpc*)
       # Switch off -fPIC (not applicable for PowerPC Macs).
       CFLAGS="$CFLAGS -mdynamic-no-pic"

@@ -1,3 +1,67 @@
+WCSLIB version 5.19.1 (2018/07/28)
+----------------------------------
+
+* Installation
+
+  - Updated ./config/config.{guess,sub} to the latest versions from the
+    GIT repository, timestamped 2018-07-18 and 2018-07-25, respectively.
+    The previous pair were dated 2012-02-10 and 2012-04-18.
+
+
+WCSLIB version 5.19 (2018/07/27)
+--------------------------------
+
+* C library
+
+  - In wcssub(), fixed a bug in handling distortion functions on axes
+    with changed axis number in the subimage (i.e. via deletion or
+    addition of an axis).
+
+  - In various routines within dis.c, wcs.c, wcshdr.c, and wcspih.l,
+    increased the size of various sprintf() output buffers to avert
+    -Wformat-overflow warnings from gcc 8.1.0 (with -DFORTIFY_SOURCE=2).
+    Reported by Simon Conseil.
+
+    Also fixed other warnings in these routines from gcc 8.1.0
+    relating to -Wcast-function-type, -Wmaybe-uninitialized, and
+    -Wunused-parameter.
+
+  - In wcsutrn.l (the units alias translator used by wcsfix), recognise
+    'Deg', 'Degree', and 'Degrees' as aliases for 'deg'.  Rogue header
+    reported by Jim Lewis.
+
+  - Added a note to the prologue of spx.h explaining WCSLIB's use of
+    Cox's air-to-vacuum transformation equation rather than the IUGG
+    relation cited in WCS Paper III.  Noted by Benjamin Alan Weaver.
+
+  - In the test suite, avert nuisance compiler warnings in tdis1.
+    Made tsphdpa more robust in handling user coordinate input.
+
+* PGSBOX
+
+  - In pgwcsl_(), avert nuisance warnings from gcc 8.1.0 relating to
+    unused parameters (-Wunused-parameter).  Also averted nuisance
+    compiler warnings in cpgtest.
+
+* Utilities
+
+  - wcsware was not reading the -TAB table from the FITS file for
+    alternate descriptions, bug reported by Chiara Marmo.  Nor was
+    wcsfix() ever invoked for them.
+
+    Made it more robust in handling user input of coordinates for the
+    -x and -w options.
+
+  - Fixed compiler warnings from gcc 8.1.0 in HPXcvt
+    (-Wmaybe-uninitialized), and wcsgrid (-Wformat-overflow).
+
+* Installation
+
+  - Amended configure.ac to allow cross-compilation, and also updated
+    the auxiliary configure scripts in the config/ directory.  Patch
+    supplied by Mosè Giordano.
+
+
 WCSLIB version 5.18 (2018/01/10)
 --------------------------------
 
@@ -2650,4 +2714,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
+$Id: CHANGES,v 5.19.1.2 2018/07/28 12:54:15 mcalabre Exp mcalabre $

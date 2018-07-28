@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  WCSLIB 5.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.c,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
+  $Id: lin.c,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <stdio.h>
@@ -1029,6 +1029,7 @@ int linwarp(
 
   /* Work out increments on each axis. */
   pixinc = lin->tmpcrd;
+  ncoord = 0;
   for (j = 0; j < naxis; j++) {
     pixspan = pixtrc[j] - (pixblc ? pixblc[j] : 1.0);
 
