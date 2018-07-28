@@ -1,3 +1,5 @@
+import numpy as np
+
 from .. import units as u
 
 from .base_low_level_api import BaseLowLevelWCS
@@ -127,8 +129,14 @@ class FITSLowLevelWCS(BaseLowLevelWCS):
     def pixel_to_world_values(self, *pixel_arrays):
         return self._wcs.all_pix2world(*pixel_arrays, 0)
 
+    def numpy_index_to_world_values(self, *indices):
+        return self._wcs.all_pix2world(*indices[::-1], 0)
+
     def world_to_pixel_values(self, *world_arrays):
         return self._wcs.all_world2pix(*world_arrays, 0)
+
+    def world_to_numpy_index_values(self, *world_arrays):
+        return np.round(self._wcs.all_world2pix(*world_arrays, 0)[::-1]).astype(int)
 
     @property
     def world_axis_object_components(self):
@@ -137,6 +145,10 @@ class FITSLowLevelWCS(BaseLowLevelWCS):
     @property
     def world_axis_object_classes(self):
         return _get_components_and_classes(self._wcs)[1]
+
+    @property
+    def serialized_classes(self):
+        return False
 
 
 def _get_components_and_classes(wcs):
@@ -147,8 +159,6 @@ def _get_components_and_classes(wcs):
     # properties return part of it.
 
     from .utils import wcs_to_celestial_frame
-
-    from ..coordinates.attributes import Attribute, QuantityAttribute, TimeAttribute
 
     components = [None] * wcs.naxis
     classes = {}
