@@ -2,7 +2,9 @@ import os
 
 from numpy.testing import assert_equal, assert_allclose
 
-from ...coordinates import ICRS, Galactic
+from ... import units as u
+from ...units import Quantity
+from ...coordinates import ICRS, Galactic, SkyCoord
 from ...io.fits import Header
 from ..wcs import WCS
 from ..fitswcs_low_level_api import FITSLowLevelWCS
@@ -41,7 +43,7 @@ def test_simple_celestial():
     assert llwcs.world_axis_object_components == [('celestial', 0, 'spherical.lon.degree'),
                                                   ('celestial', 1, 'spherical.lat.degree')]
 
-    assert llwcs.world_axis_object_classes['celestial'][0] == 'astropy.coordinates.SkyCoord'
+    assert llwcs.world_axis_object_classes['celestial'][0] is SkyCoord
     assert llwcs.world_axis_object_classes['celestial'][1] == ()
     assert isinstance(llwcs.world_axis_object_classes['celestial'][2]['frame'], ICRS)
     assert llwcs.world_axis_object_classes['celestial'][2]['unit'], 'deg'
@@ -92,12 +94,12 @@ def test_spectral_cube():
                                                   ('freq', 0, 'value'),
                                                   ('celestial', 0, 'spherical.lon.degree')]
 
-    assert llwcs.world_axis_object_classes['celestial'][0] == 'astropy.coordinates.SkyCoord'
+    assert llwcs.world_axis_object_classes['celestial'][0] is SkyCoord
     assert llwcs.world_axis_object_classes['celestial'][1] == ()
     assert isinstance(llwcs.world_axis_object_classes['celestial'][2]['frame'], Galactic)
-    assert llwcs.world_axis_object_classes['celestial'][2]['unit'], 'deg'
+    assert llwcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
 
-    assert llwcs.world_axis_object_classes['freq'][0] == 'astropy.units.Quantity'
+    assert llwcs.world_axis_object_classes['freq'][0] is Quantity
     assert llwcs.world_axis_object_classes['freq'][1] == ()
     assert llwcs.world_axis_object_classes['freq'][2] == {'unit': 'Hz'}
 
