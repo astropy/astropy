@@ -1,7 +1,6 @@
 import numpy as np
 
 from .. import units as u
-from ..coordinates import SkyCoord
 
 from .base_low_level_api import BaseLowLevelWCS
 
@@ -159,7 +158,9 @@ def _get_components_and_classes(wcs):
     # to figure it out in one go and then return the values and let the
     # properties return part of it.
 
+    # Avoid circular imports by importing here
     from .utils import wcs_to_celestial_frame
+    from ..coordinates import SkyCoord
 
     components = [None] * wcs.naxis
     classes = {}
