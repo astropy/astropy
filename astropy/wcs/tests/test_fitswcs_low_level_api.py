@@ -28,7 +28,7 @@ CUNIT1  = deg
 CUNIT2  = deg
 """
 
-WCS_SIMPLE_CELESTIAL = WCS(Header.fromstring(HEADER_SIMPLE_CELESTIAL, sep=os.linesep))
+WCS_SIMPLE_CELESTIAL = WCS(Header.fromstring(HEADER_SIMPLE_CELESTIAL, sep='\n'))
 
 
 def test_simple_celestial():
@@ -80,7 +80,7 @@ CUNIT2  = Hz
 CUNIT3  = deg
 """
 
-WCS_SPECTRAL_CUBE = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep=os.linesep))
+WCS_SPECTRAL_CUBE = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep='\n'))
 
 
 def test_spectral_cube():
@@ -116,12 +116,12 @@ def test_spectral_cube():
     assert_equal(llwcs.world_to_numpy_index_values(10, 20, 25), (44, 39, 29))
 
 
-HEADER_SPECTRAL_CUBE_NONALIGNED = HEADER_SPECTRAL_CUBE.strip() + os.linesep + """
+HEADER_SPECTRAL_CUBE_NONALIGNED = HEADER_SPECTRAL_CUBE.strip() + '\n' + """
 PC2_3 = -0.5
 PC3_2 = +0.5
 """
 
-WCS_SPECTRAL_CUBE_NONALIGNED = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE_NONALIGNED, sep=os.linesep))
+WCS_SPECTRAL_CUBE_NONALIGNED = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE_NONALIGNED, sep='\n'))
 
 
 def test_spectral_cube_nonaligned():
@@ -189,7 +189,7 @@ PV1_1   = 1. / ZPN linear term
 PV1_3   = 42. / ZPN cubic term
 """
 
-WCS_TIME_CUBE = WCS(Header.fromstring(HEADER_TIME_CUBE, sep=os.linesep))
+WCS_TIME_CUBE = WCS(Header.fromstring(HEADER_TIME_CUBE, sep='\n'))
 
 
 def test_time_cube():
