@@ -1,6 +1,7 @@
 import numpy as np
 
 from .. import units as u
+from ..coordinates import SkyCoord
 
 from .base_low_level_api import BaseLowLevelWCS
 
@@ -172,9 +173,9 @@ def _get_components_and_classes(wcs):
 
         kwargs = {}
         kwargs['frame'] = frame
-        kwargs['unit'] = 'deg'
+        kwargs['unit'] = u.deg
 
-        classes['celestial'] = ('astropy.coordinates.SkyCoord', (), kwargs)
+        classes['celestial'] = (SkyCoord, (), kwargs)
 
         components[wcs.wcs.lng] = ('celestial', 0, 'spherical.lon.degree')
         components[wcs.wcs.lat] = ('celestial', 1, 'spherical.lat.degree')
@@ -187,7 +188,7 @@ def _get_components_and_classes(wcs):
             name = wcs.axis_type_names[i].lower()
             while name in classes:
                 name += "_"
-            classes[name] = ('astropy.units.Quantity', (), {'unit': wcs.wcs.cunit[i]})
+            classes[name] = (u.Quantity, (), {'unit': wcs.wcs.cunit[i]})
             components[i] = (name, 0, 'value')
 
     return components, classes
