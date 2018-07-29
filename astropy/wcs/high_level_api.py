@@ -1,6 +1,8 @@
 import importlib
 from collections import defaultdict, OrderedDict
 
+import numpy as np
+
 __all__ = ['HighLevelWCS']
 
 
@@ -83,7 +85,14 @@ class HighLevelWCS(object):
         if unique_match:
 
             for key, (klass, args, kwargs) in classes.items():
-                objects[key] = klass(world_by_key[key], *args, **kwargs)
+
+                # FIXME: For now SkyCoord won't auto-convert upon initialization
+                # https://github.com/astropy/astropy/issues/7689
+                from ..coordinates import SkyCoord
+                if isinstance(world_by_key[key], SkyCoord):
+                    objects[key] = world_by_key[key].transform_to(kwargs['frame'])
+                else:
+                    objects[key] = klass(world_by_key[key], *args, **kwargs)
 
         else:
 
@@ -93,7 +102,14 @@ class HighLevelWCS(object):
                 if not isinstance(w, klass):
                     raise ValueError("Expected the following order of world "
                                      "arguments: {0}".format(', '.join([k.__name__ for (k, _, _) in classes.values()])))
-                objects[key] = klass(w, *args, **kwargs)
+
+                # FIXME: For now SkyCoord won't auto-convert upon initialization
+                # https://github.com/astropy/astropy/issues/7689
+                from ..coordinates import SkyCoord
+                if isinstance(w, SkyCoord):
+                    objects[key] = w.transform_to(kwargs['frame'])
+                else:
+                    objects[key] = klass(w, *args, **kwargs)
 
         # We now extract the attributes needed for the world values
         world = []
@@ -136,4 +152,13 @@ class HighLevelWCS(object):
             klass, ar, kw = classes_new[key]
             result.append(klass(*args[key], *ar, **kwargs[key], **kw))
 
-        return result
+        if len(result) == 1:
+            return result[0]
+        else:
+            return result
+
+    def numpy_index_to_world(self, *indices):
+        return self.pixel_to_world(*indices[::-1])
+
+    def world_to_numpy_index(self, *world):
+        return np.round(self.world_to_pixel(*world)[::-1]).astype(int)
