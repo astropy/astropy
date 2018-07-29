@@ -22,14 +22,14 @@ CUNIT1  = deg
 CUNIT2  = deg
 """
 
+WCS_SIMPLE_CELESTIAL = WCS(Header.fromstring(HEADER_SIMPLE_CELESTIAL, sep=os.linesep))
+
 
 def test_simple_celestial():
 
     # 2D image with lon,lat axes ordering
 
-    header = Header.fromstring(HEADER_SIMPLE_CELESTIAL, sep=os.linesep)
-    wcs = WCS(header)
-    llwcs = FITSLowLevelWCS(wcs)
+    llwcs = FITSLowLevelWCS(WCS_SIMPLE_CELESTIAL)
 
     assert llwcs.pixel_n_dim == 2
     assert llwcs.world_n_dim == 2
@@ -72,14 +72,14 @@ CUNIT2  = Hz
 CUNIT3  = deg
 """
 
+WCS_SPECTRAL_CUBE = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep=os.linesep))
+
 
 def test_spectral_cube():
 
     # Spectral cube with a weird axis ordering
 
-    header = Header.fromstring(HEADER_SPECTRAL_CUBE, sep=os.linesep)
-    wcs = WCS(header)
-    llwcs = FITSLowLevelWCS(wcs)
+    llwcs = FITSLowLevelWCS(WCS_SPECTRAL_CUBE)
 
     assert llwcs.pixel_n_dim == 3
     assert llwcs.world_n_dim == 3
@@ -99,7 +99,7 @@ def test_spectral_cube():
 
     assert llwcs.world_axis_object_classes['freq'][0] == 'astropy.units.Quantity'
     assert llwcs.world_axis_object_classes['freq'][1] == ()
-    assert llwcs.world_axis_object_classes['freq'][2]['unit'], 'micron'
+    assert llwcs.world_axis_object_classes['freq'][2] == {'unit': 'Hz'}
 
     assert_allclose(llwcs.pixel_to_world_values(29, 39, 44), (10, 20, 25))
     assert_allclose(llwcs.numpy_index_to_world_values(44, 39, 29), (10, 20, 25))
@@ -113,14 +113,14 @@ PC2_3 = -0.5
 PC3_2 = +0.5
 """
 
+WCS_SPECTRAL_CUBE_NONALIGNED = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE_NONALIGNED, sep=os.linesep))
+
 
 def test_spectral_cube_nonaligned():
 
     # Make sure that correlation matrix gets adjusted if there are non-identity
     # CD matrix terms.
 
-    header = Header.fromstring(HEADER_SPECTRAL_CUBE_NONALIGNED, sep=os.linesep)
-    wcs = WCS(header)
-    llwcs = FITSLowLevelWCS(wcs)
+    llwcs = FITSLowLevelWCS(WCS_SPECTRAL_CUBE_NONALIGNED)
 
     assert_equal(llwcs.axis_correlation_matrix, [[True, True, True], [False, True, True], [True, True, True]])
