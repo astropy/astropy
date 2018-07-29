@@ -1317,6 +1317,16 @@ astropy.wcs
 ^^^^^^^^^^^
 
 - updated wcslib to v 5.19.1 [#7688]
+- Fixed an bug when creating the ``WCS`` slice (see ``WCS.slice()``)
+  when ``WCS`` contains ``SIP`` distortion corrections by
+  adjusting the ``WCS.sip.crpix`` in addition to adjusting
+  ``WCS.wcs.crpix``. This bug had the potential to produce large errors in
+  ``WCS`` coordinate transformations depending on the position of the slice
+  relative to ``WCS.wcs.crpix``. [#7556, #7550]
+
+- Fixed a bug that caused ``wcs_to_celestial_frame``, ``skycoord_to_pixel``, and
+  ``pixel_to_skycoord`` to raise an error if the axes of the celestial WCS were
+  swapped. [#7691]
 
 Other Changes and Additions
 ---------------------------
