@@ -10,7 +10,7 @@ from ...utils.data import get_pkg_data_contents, get_pkg_data_filename
 from ...time import Time
 from ... import units as u
 
-from ..wcs import WCS, Sip
+from ..wcs import WCS, Sip, WCSSUB_LONGITUDE, WCSSUB_LATITUDE
 from ..utils import (proj_plane_pixel_scales, proj_plane_pixel_area,
                      is_proj_plane_distorted,
                      non_celestial_pixel_scales, wcs_to_celestial_frame,
@@ -238,64 +238,89 @@ def test_wcs_to_celestial_frame():
     from ...coordinates.builtin_frames import ICRS, ITRS, FK5, FK4, Galactic
 
     mywcs = WCS(naxis=2)
+    mywcs.wcs.set()
     with pytest.raises(ValueError) as exc:
         assert wcs_to_celestial_frame(mywcs) is None
     assert exc.value.args[0] == "Could not determine celestial frame corresponding to the specified WCS object"
 
+    mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ['XOFFSET', 'YOFFSET']
+    mywcs.wcs.set()
     with pytest.raises(ValueError):
         assert wcs_to_celestial_frame(mywcs) is None
 
+    mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, ICRS)
 
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     mywcs.wcs.equinox = 1987.
+    mywcs.wcs.set()
+    print(mywcs.to_header())
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, FK5)
     assert frame.equinox == Time(1987., format='jyear')
 
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     mywcs.wcs.equinox = 1982
+    mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, FK4)
     assert frame.equinox == Time(1982., format='byear')
 
-    mywcs.wcs.equinox = np.nan
+    mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ['GLON-SIN', 'GLAT-SIN']
+    mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, Galactic)
 
+    mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ['TLON-CAR', 'TLAT-CAR']
     mywcs.wcs.dateobs = '2017-08-17T12:41:04.430'
+    mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, ITRS)
     assert frame.obstime == Time('2017-08-17T12:41:04.430')
 
-    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
-    mywcs.wcs.radesys = 'ICRS'
-
     for equinox in [np.nan, 1987, 1982]:
+        mywcs = WCS(naxis=2)
+        mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+        mywcs.wcs.radesys = 'ICRS'
         mywcs.wcs.equinox = equinox
+        mywcs.wcs.set()
         frame = wcs_to_celestial_frame(mywcs)
         assert isinstance(frame, ICRS)
 
     # Flipped order
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ['DEC--TAN', 'RA---TAN']
+    mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, ICRS)
 
     # More than two dimensions
     mywcs = WCS(naxis=3)
     mywcs.wcs.ctype = ['DEC--TAN', 'VELOCITY', 'RA---TAN']
+    mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, ICRS)
+
+    mywcs = WCS(naxis=3)
+    mywcs.wcs.ctype = ['GLAT-CAR', 'VELOCITY', 'GLON-CAR']
+    mywcs.wcs.set()
+    frame = wcs_to_celestial_frame(mywcs)
+    assert isinstance(frame, Galactic)
 
 
 def test_wcs_to_celestial_frame_extend():
 
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ['XOFFSET', 'YOFFSET']
+    mywcs.wcs.set()
     with pytest.raises(ValueError):
         wcs_to_celestial_frame(mywcs)
 
@@ -550,6 +575,36 @@ def test_skycoord_to_pixel(mode):
     assert new2.__class__ is SkyCoord2
     assert_allclose(new2.ra.degree, ref.ra.degree)
     assert_allclose(new2.dec.degree, ref.dec.degree)
+
+
+def test_skycoord_to_pixel_swapped():
+
+    # Regression test for a bug that caused skycoord_to_pixel and
+    # pixel_to_skycoord to not work correctly if the axes were swapped in the
+    # WCS.
+
+    # Import astropy.coordinates here to avoid circular imports
+    from ...coordinates import SkyCoord
+
+    header = get_pkg_data_contents('maps/1904-66_TAN.hdr', encoding='binary')
+    wcs = WCS(header)
+
+    wcs_swapped = wcs.sub([WCSSUB_LATITUDE, WCSSUB_LONGITUDE])
+
+    ref = SkyCoord(0.1 * u.deg, -89. * u.deg, frame='icrs')
+
+    xp1, yp1 = skycoord_to_pixel(ref, wcs)
+    xp2, yp2 = skycoord_to_pixel(ref, wcs_swapped)
+
+    assert_allclose(xp1, xp2)
+    assert_allclose(yp1, yp2)
+
+    # WCS is in FK5 so we need to transform back to ICRS
+    new1 = pixel_to_skycoord(xp1, yp1, wcs).transform_to('icrs')
+    new2 = pixel_to_skycoord(xp1, yp1, wcs_swapped).transform_to('icrs')
+
+    assert_allclose(new1.ra.degree, new2.ra.degree)
+    assert_allclose(new1.dec.degree, new2.dec.degree)
 
 
 def test_is_proj_plane_distorted():
