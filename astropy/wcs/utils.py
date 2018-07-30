@@ -4,7 +4,7 @@ import numpy as np
 
 from .. import units as u
 
-from .wcs import WCS, WCSSUB_CELESTIAL
+from .wcs import WCS, WCSSUB_LONGITUDE, WCSSUB_LATITUDE
 
 __doctest_skip__ = ['wcs_to_celestial_frame', 'celestial_frame_to_wcs']
 
@@ -51,7 +51,7 @@ def _wcs_to_celestial_frame_builtin(wcs):
     from ..time import Time
 
     # Keep only the celestial part of the axes
-    wcs = wcs.sub([WCSSUB_CELESTIAL])
+    wcs = wcs.sub([WCSSUB_LONGITUDE, WCSSUB_LATITUDE])
 
     if wcs.wcs.lng == -1 or wcs.wcs.lat == -1:
         return None
@@ -517,7 +517,7 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
     # Keep only the celestial part of the axes, also re-orders lon/lat
-    wcs = wcs.sub([WCSSUB_CELESTIAL])
+    wcs = wcs.sub([WCSSUB_LONGITUDE, WCSSUB_LATITUDE])
 
     if wcs.naxis != 2:
         raise ValueError("WCS should contain celestial component")
@@ -599,7 +599,7 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
     # Keep only the celestial part of the axes, also re-orders lon/lat
-    wcs = wcs.sub([WCSSUB_CELESTIAL])
+    wcs = wcs.sub([WCSSUB_LONGITUDE, WCSSUB_LATITUDE])
 
     if wcs.naxis != 2:
         raise ValueError("WCS should contain celestial component")

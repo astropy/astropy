@@ -957,6 +957,9 @@ astropy.wcs
   ``WCS`` coordinate transformations depending on the position of the slice
   relative to ``WCS.wcs.crpix``. [#7556, #7550]
 
+- Fixed a bug that caused ``wcs_to_celestial_frame``, ``skycoord_to_pixel``, and
+  ``pixel_to_skycoord`` to raise an error if the axes of the celestial WCS were
+  swapped. [#7691]
 
 Other Changes and Additions
 ---------------------------
