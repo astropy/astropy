@@ -66,10 +66,10 @@ def overlap_slices(large_array_shape, small_array_shape, position,
 
     Parameters
     ----------
-    large_array_shape : tuple or int
+    large_array_shape : tuple of int or int
         The shape of the large array (for 1D arrays, this can be an
         `int`).
-    small_array_shape : tuple or int
+    small_array_shape : tuple of int or int
         The shape of the small array (for 1D arrays, this can be an
         `int`).  See the ``mode`` keyword for additional details.
     position : tuple of numbers or number
@@ -95,7 +95,7 @@ def overlap_slices(large_array_shape, small_array_shape, position,
         A tuple of slice objects for each axis of the large array, such
         that ``large_array[slices_large]`` extracts the region of the
         large array that overlaps with the small array.
-    slices_small : slice
+    slices_small : tuple of slices
         A tuple of slice objects for each axis of the small array, such
         that ``small_array[slices_small]`` extracts the region that is
         inside the large array.
