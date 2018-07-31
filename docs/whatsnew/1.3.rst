@@ -100,12 +100,6 @@ function to create RGB composite images from individual (high dynamic range)
 images.  The technique is detailed in `Lupton et al. (2004)`_ and implemented in `~astropy.visualization.make_lupton_rgb`. For more details, see
 :ref:`astropy-visualization-rgb`.
 
-
-.. We use raw here because image directives pointing to external locations fail for some sphinx versions
-.. raw:: html
-
-    <a class="reference internal image-reference" href="http://data.astropy.org/visualization/ngc6976.jpeg"><img alt="lupton RGB image" src="http://data.astropy.org/visualization/ngc6976-small.jpeg" /></a>
-
 .. _whatsnew-1.3-representation-arithmetic:
 
 Vector arithmetic using representations
