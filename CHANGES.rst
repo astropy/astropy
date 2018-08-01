@@ -172,6 +172,8 @@ astropy.visualization
   False for degrees and hours and True otherwise), and ``show_decimal_unit`` can be used to
   determine whether the units should be shown for decimal labels. [#7318]
 
+- Added documentation for ``transform=`` and ``coord_meta=``. [#7698]
+
 astropy.wcs
 ^^^^^^^^^^^
 
