@@ -1,14 +1,8 @@
-2.0.8 (unreleased)
+2.0.8 (2018-08-02)
 ==================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
@@ -25,51 +19,17 @@ astropy.coordinates
 - Ensure that relative humidities can be given as Quantities, rather than take
   any quantity and just strip its unit. [#7668]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
 astropy.nddata
 ^^^^^^^^^^^^^^
 
 - Fixed ``Cutout2D`` output WCS NAXIS values to reflect the cutout
   image size. [#7552]
 
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
 astropy.table
 ^^^^^^^^^^^^^
 
 - Fixed a bug in ``add_columns`` method where ``rename_duplicate=True`` would
   cause an error if there were no duplicates. [#7540]
-
-- Fix memory leak where updating a table column or deleting a table
-  object was not releasing the memory due to a reference cycle
-  in the column ``info`` attributes. [#6277, #7448]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -81,38 +41,18 @@ astropy.time
 
 - Avoid rounding errors when converting ``Quantity`` to ``TimeDelta``. [#7625]
 
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
 - Fixed a bug that caused the position of the tick values in decimal mode
   to be incorrectly determined. [#7332]
 
-astropy.vo
-^^^^^^^^^^
-
 astropy.wcs
 ^^^^^^^^^^^
-
-- Fixed an bug when creating the ``WCS`` slice (see ``WCS.slice()``)
-  when ``WCS`` contains ``SIP`` distortion corrections by
-  adjusting the ``WCS.sip.crpix`` in addition to adjusting
-  ``WCS.wcs.crpix``. This bug had the potential to produce large errors in
-  ``WCS`` coordinate transformations depending on the position of the slice
-  relative to ``WCS.wcs.crpix``. [#7556, #7550]
 
 - Fixed a bug that caused ``wcs_to_celestial_frame``, ``skycoord_to_pixel``, and
   ``pixel_to_skycoord`` to raise an error if the axes of the celestial WCS were
   swapped. [#7691]
-
-Other Changes and Additions
----------------------------
-
 
 
 2.0.7 (2018-06-01)
