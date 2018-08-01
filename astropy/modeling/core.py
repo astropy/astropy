@@ -3625,49 +3625,49 @@ def _prepare_outputs_single_model(model, outputs, format_info):
     return tuple(outputs)
 
 
-def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis,
+def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis_input,
                               **kwargs):
     reshaped = []
     pivots = []
 
+    model_set_axis_param = model.model_set_axis # needed to reshape param
     for idx, _input in enumerate(inputs):
         max_param_shape = ()
-
-        if n_models > 1 and model_set_axis is not False:
+        if n_models > 1 and model_set_axis_input is not False:
             # Use the shape of the input *excluding* the model axis
-            input_shape = (_input.shape[:model_set_axis] +
-                           _input.shape[model_set_axis + 1:])
+            input_shape = (_input.shape[:model_set_axis_input] +
+                           _input.shape[model_set_axis_input + 1:])
         else:
             input_shape = _input.shape
 
         for param in params:
             try:
                 check_broadcast(input_shape,
-                                remove_axis_from_shape(param.shape,
-                                                       model_set_axis))
+                                remove_axes_from_shape(param.shape,
+                                                       model_set_axis_param))
             except IncompatibleShapeError:
                 raise ValueError(
                     "Model input argument {0!r} of shape {1!r} cannot be "
                     "broadcast with parameter {2!r} of shape "
                     "{3!r}.".format(model.inputs[idx], input_shape,
                                     param.name,
-                                    remove_axis_from_shape(param.shape,
-                                                           model_set_axis)))
+                                    remove_axes_from_shape(param.shape,
+                                                           model_set_axis_param)))
 
             if len(param.shape) - 1 > len(max_param_shape):
-                max_param_shape = remove_axis_from_shape(param.shape,
-                                                         model_set_axis)
+                max_param_shape = remove_axes_from_shape(param.shape,
+                                                         model_set_axis_param)
 
         # We've now determined that, excluding the model_set_axis, the
         # input can broadcast with all the parameters
         input_ndim = len(input_shape)
-        if model_set_axis is False:
+        if model_set_axis_input is False:
             if len(max_param_shape) > input_ndim:
                 # Just needs to prepend new axes to the input
                 n_new_axes = 1 + len(max_param_shape) - input_ndim
                 new_axes = (1,) * n_new_axes
                 new_shape = new_axes + _input.shape
-                pivot = model.model_set_axis
+                pivot = model_set_axis_param
             else:
                 pivot = input_ndim - len(max_param_shape)
                 new_shape = (_input.shape[:pivot] + (1,) +
@@ -3683,33 +3683,29 @@ def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis,
                 new_input = _input.reshape(new_shape)
             else:
                 pivot = _input.ndim - len(max_param_shape) - 1
-                new_input = np.rollaxis(_input, model_set_axis,
+                new_input = np.rollaxis(_input, model_set_axis_input,
                                         pivot + 1)
-
         pivots.append(pivot)
         reshaped.append(new_input)
 
     if model.n_inputs < model.n_outputs:
-        pivots.extend([model_set_axis] * (model.n_outputs - model.n_inputs))
+        pivots.extend([model_set_axis_input] * (model.n_outputs - model.n_inputs))
 
     return reshaped, (pivots,)
 
 
 def _prepare_outputs_model_set(model, outputs, format_info, model_set_axis):
     pivots = format_info[0]
-
     # If model_set_axis = False was passed then use
     # model._model_set_axis to format the output.
     if model_set_axis is None or model_set_axis is False:
         model_set_axis = model.model_set_axis
     outputs = list(outputs)
-
     for idx, output in enumerate(outputs):
         pivot = pivots[idx]
-        if pivot < output.ndim and pivot != model.model_set_axis:
+        if pivot < output.ndim and pivot != model_set_axis:
             outputs[idx] = np.rollaxis(output, pivot,
                                        model_set_axis)
-
     return tuple(outputs)
 
 
@@ -3779,15 +3775,35 @@ def remove_axis_from_shape(shape, axis):
     that particular axis from the shape. Negative axis numbers are permittted,
     where the axis is relative to the last axis.
     """
+    if len(shape) == 0:
+        return shape
     if axis < 0:
         axis = len(shape) + axis
+    if axis >= len(shape):
+        axis = len(shape)-1
     shape = shape[:axis] + shape[axis+1:]
+    if shape == (1,):
+        return ()
     return shape
 
+def remove_axes_from_shape(shape, axis):
+    """
+    Given a shape tuple as the first input, construct a new one by  removing
+    that particular axis from the shape and all preceeding axes. Negative axis
+    numbers are permittted, where the axis is relative to the last axis.
+    """
+    if len(shape) == 0:
+        return shape
+    if axis < 0:
+        axis = len(shape) + axis
+        return shape[:axis] + shape[axis+1:]
+    if axis >= len(shape):
+        axis = len(shape)-1
+    shape = shape[axis+1:]
+    return shape
 
 def generic_call(self, *inputs, **kwargs):
     inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
-
     # Check whether any of the inputs are quantities
     inputs_are_quantity = any([isinstance(i, Quantity) for i in inputs])
     if isinstance(self, CompoundModel):
@@ -3857,7 +3873,6 @@ def generic_call(self, *inputs, **kwargs):
         outputs = self.evaluate(*chain(inputs, parameters))
     if self.n_outputs == 1:
         outputs = (outputs,)
-
     outputs = self.prepare_outputs(format_info, *outputs, **kwargs)
 
     outputs = self._process_output_units(inputs, outputs)
