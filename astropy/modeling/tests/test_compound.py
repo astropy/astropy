@@ -110,7 +110,7 @@ def test_simple_two_model_compose_2d():
     """
 
     r1 = Rotation2D(45) | Rotation2D(45)
-    print("[[[[[[[[[[",type(r1))
+
     assert isinstance(r1, CompoundModel)
     assert r1.n_inputs == 2
     assert r1.n_outputs == 2
@@ -498,7 +498,7 @@ def test_pickle_compound():
 #     scl = Scale(2)
 #     m = offx | scl
 #     scl.name = "scale"
-#     assert m._submodel_names == ('None_0', 'None_1')
+#     assert m.submodel_names == ('None_0', 'None_1')
 #     assert m.name is None
 #     m.name = "M"
 #     assert m.name == "M"
