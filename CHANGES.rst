@@ -1,53 +1,8 @@
-3.0.4 (unreleased)
+3.0.4 (2018-08-02)
 ==================
 
-Bug Fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
+API Changes
+-----------
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -61,81 +16,20 @@ astropy.table
   force a reference with ``c = col[3:5]`` followed by
   ``c.info.indices``. [#6277, #7448]
 
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
 
 Bug Fixes
 ---------
 
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-- Fixed a problem when ``guess=True`` that ``fast_reader`` options
-  could be dropped after the first fast reader class was tried. [#5578]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-- Added support for ``copy.copy`` and ``copy.deepcopy`` for ``HDUList``. [#7218]
-
-- Override ``HDUList.copy()`` to return a shallow HDUList instance. [#7218]
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-- Fix behaviour of certain models with units, by making certain unit-related
-  attributes readonly. [#7210]
-
 astropy.nddata
 ^^^^^^^^^^^^^^
 
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
+- Fixed an bug when creating the ``WCS`` of a cutout (see ``nddata.Cutout2D``)
+  when input image's ``WCS`` contains ``SIP`` distortion corrections by
+  adjusting the ``crpix`` of the ``astropy.wcs.Sip`` (in addition to
+  adjusting the ``crpix`` of the ``astropy.wcs.WCS`` object). This bug
+  had the potential to produce large errors in ``WCS`` coordinate
+  transformations depending on the position of the cutout relative
+  to the input image's ``crpix``. [#7556, #7550]
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -144,121 +38,21 @@ astropy.table
   object was not releasing the memory due to a reference cycle
   in the column ``info`` attributes. [#6277, #7448]
 
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-- Right ascension coordinates are now shown in hours by default, and the
-  ``set_format_unit`` method on ``CoordinateHelper`` now works correctly
-  with angle coordinates. [#7215]
-
 astropy.wcs
 ^^^^^^^^^^^
+
+- Fixed an bug when creating the ``WCS`` slice (see ``WCS.slice()``)
+  when ``WCS`` contains ``SIP`` distortion corrections by
+  adjusting the ``WCS.sip.crpix`` in addition to adjusting
+  ``WCS.wcs.crpix``. This bug had the potential to produce large errors in
+  ``WCS`` coordinate transformations depending on the position of the slice
+  relative to ``WCS.wcs.crpix``. [#7556, #7550]
+
 
 Other Changes and Additions
 ---------------------------
 
-- The documentation build now uses the Sphinx configuration from sphinx-astropy
-  rather than from astropy-helpers. [#7139]
-
-- Versions of Numpy <1.13 are no longer supported. [#7058]
-
-- Running tests now suppresses the output of the installation stage by default,
-  to allow easier viewing of the test results. To re-enable the output as
-  before, use ``python setup.py test --verbose-install``. [#7512]
-
-- The ERFA functions are now wrapped in ufuncs instead of custom C code,
-  leading to some speed improvements, and setting the stage for allowing
-  overrides with ``__array_ufunc__``. [#7502]
-
-3.0.4 (unreleased)
-==================
-
-Bug Fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-- updated wcslib to v 5.19.1 [#7688]
-
-Other Changes and Additions
----------------------------
-
+- Updated bundled wcslib to v 5.19.1 [#7688]
 
 
 3.0.3 (2018-06-01)
@@ -845,17 +639,11 @@ Other Changes and Additions
 - The bundled version of PLY was updated to 3.10. [#7174]
 
 
-2.0.8 (unreleased)
+2.0.8 (2018-08-02)
 ==================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
@@ -872,49 +660,11 @@ astropy.coordinates
 - Ensure that relative humidities can be given as Quantities, rather than take
   any quantity and just strip its unit. [#7668]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
 astropy.nddata
 ^^^^^^^^^^^^^^
 
 - Fixed ``Cutout2D`` output WCS NAXIS values to reflect the cutout
   image size. [#7552]
-
-- Fixed an bug when creating the ``WCS`` of a cutout (see ``nddata.Cutout2D``)
-  when input image's ``WCS`` contains ``SIP`` distortion corrections by
-  adjusting the ``crpix`` of the ``astropy.wcs.Sip`` (in addition to
-  adjusting the ``crpix`` of the ``astropy.wcs.WCS`` object). This bug
-  had the potential to produce large errors in ``WCS`` coordinate
-  transformations depending on the position of the cutout relative
-  to the input image's ``crpix``. [#7556, #7550]
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -932,37 +682,18 @@ astropy.time
 
 - Avoid rounding errors when converting ``Quantity`` to ``TimeDelta``. [#7625]
 
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
 - Fixed a bug that caused the position of the tick values in decimal mode
   to be incorrectly determined. [#7332]
 
-astropy.vo
-^^^^^^^^^^
-
 astropy.wcs
 ^^^^^^^^^^^
-
-- Fixed an bug when creating the ``WCS`` slice (see ``WCS.slice()``)
-  when ``WCS`` contains ``SIP`` distortion corrections by
-  adjusting the ``WCS.sip.crpix`` in addition to adjusting
-  ``WCS.wcs.crpix``. This bug had the potential to produce large errors in
-  ``WCS`` coordinate transformations depending on the position of the slice
-  relative to ``WCS.wcs.crpix``. [#7556, #7550]
 
 - Fixed a bug that caused ``wcs_to_celestial_frame``, ``skycoord_to_pixel``, and
   ``pixel_to_skycoord`` to raise an error if the axes of the celestial WCS were
   swapped. [#7691]
-
-Other Changes and Additions
----------------------------
 
 
 2.0.7 (2018-06-01)
