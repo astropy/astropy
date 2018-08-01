@@ -907,10 +907,10 @@ class Polynomial2D(PolynomialModel):
         self.y_window = y_window
 
     def prepare_inputs(self, x, y, **kwargs):
+
         inputs, format_info = super().prepare_inputs(x, y, **kwargs)
 
         x, y = inputs
-
         if x.shape != y.shape:
             raise ValueError("Expected input arrays to have the same shape")
         return (x, y), format_info

@@ -247,6 +247,42 @@ class Parameter(OrderedDescriptor):
         # Only Parameters declared as class-level descriptors require
         # and ordering ID
 
+    def __len__(self):
+        val = self.value
+        if val.shape == ():
+            return 1
+        else:
+            return val.shape[0]
+
+    def __getitem__(self, key):
+        value = self.value
+        if len(value.shape) == 0:
+            # Wrap the value in a list so that getitem can work for sensible
+            # indices like [0] and [-1]
+            value = [value]
+        return value[key]
+
+    def __setitem__(self, key, value):
+        # Get the existing value and check whether it even makes sense to
+        # apply this index
+        oldvalue = self.value
+
+        if isinstance(key, slice):
+            if len(oldvalue[key]) == 0:
+                raise InputParameterError(
+                    "Slice assignment outside the parameter dimensions for "
+                    "'{0}'".format(self.name))
+            for idx, val in zip(range(*key.indices(len(self))), value):
+                self.__setitem__(idx, val)
+        else:
+            try:
+                oldvalue[key] = value
+            except IndexError:
+                raise InputParameterError(
+                    "Input dimension {0} invalid for {1!r} parameter with "
+                    "dimension {2}".format(key, self.name, value.shape[0])) # likely wrong
+
+
     def __repr__(self):
         args = "'{0}'".format(self._name)
         args += ', value={0}'.format(self.value)
