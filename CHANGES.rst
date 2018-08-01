@@ -520,6 +520,7 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+
 astropy.samp
 ^^^^^^^^^^^^
 
@@ -1238,6 +1239,21 @@ astropy.modeling
 
 astropy.nddata
 ^^^^^^^^^^^^^^
+
+- Fixed ``Cutout2D`` output WCS NAXIS values to reflect the cutout
+  image size. [#7552]
+
+- Fixed an bug when creating the ``WCS`` of a cutout (see ``nddata.Cutout2D``)
+  when input image's ``WCS`` contains ``SIP`` distortion corrections by
+  adjusting the ``crpix`` of the ``astropy.wcs.Sip`` (in addition to
+  adjusting the ``crpix`` of the ``astropy.wcs.WCS`` object). This bug
+  had the potential to produce large errors in ``WCS`` coordinate
+  transformations depending on the position of the cutout relative
+  to the input image's ``crpix``. [#7556, #7550]
+  
+- Fixed the bug in CCData.read when the HDU is not specified and the first one is empty 
+  so the function searches for the first HDU with data which may not have an 
+  image extension. [#7613]
 
 astropy.samp
 ^^^^^^^^^^^^
