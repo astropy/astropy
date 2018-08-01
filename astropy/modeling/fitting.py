@@ -645,7 +645,6 @@ class FittingWithOutlierRemoval:
             # Fitters use their input model's model_set_axis to determine how
             # their input data are stacked:
             model_set_axis = model.model_set_axis
-
         # Construct input co-ordinate tuples for fitters & models that are
         # appropriate for the dimensionality being fitted:
         if z is None:
