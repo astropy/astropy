@@ -209,17 +209,3 @@ class Distance(u.SpecificTypeQuantity):
     def parallax(self):
         """The parallax angle as an `~astropy.coordinates.Angle` object"""
         return Angle(self.to(u.milliarcsecond, u.parallax()))
-
-
-def _convert_to_and_validate_length_unit(unit, allow_dimensionless=False):
-    """
-    raises UnitsError if not a length unit
-    """
-    try:
-        unit = u.Unit(unit)
-        assert (unit.is_equivalent(u.kpc) or
-                allow_dimensionless and unit == u.dimensionless_unscaled)
-    except (TypeError, AssertionError):
-        raise u.UnitsError('Unit "{0}" is not a length type'.format(unit))
-
-    return unit
