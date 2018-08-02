@@ -23,6 +23,8 @@ by the `~astropy.coordinates.Galactic` class.
 See Also
 --------
 
+* The `gala package <http://gala.adrian.pw/>`_, which defines a number of
+  Astropy coordinate frames for stellar stream coordinate systems.
 * Majewski et al. 2003, "A Two Micron All Sky Survey View of the Sagittarius
   Dwarf Galaxy. I. Morphology of the Sagittarius Core and Tidal Arms",
   https://arxiv.org/abs/astro-ph/0304198
@@ -91,6 +93,7 @@ class Sagittarius(coord.BaseCoordinateFrame):
         The radial velocity of this object.
 
     """
+
     default_representation = coord.SphericalRepresentation
     default_differential = coord.SphericalCosLatDifferential
 
@@ -98,23 +101,8 @@ class Sagittarius(coord.BaseCoordinateFrame):
         coord.SphericalRepresentation: [
             coord.RepresentationMapping('lon', 'Lambda'),
             coord.RepresentationMapping('lat', 'Beta'),
-            coord.RepresentationMapping('distance', 'distance')],
-        coord.SphericalCosLatDifferential: [
-            coord.RepresentationMapping('d_lon_coslat', 'pm_Lambda_cosBeta'),
-            coord.RepresentationMapping('d_lat', 'pm_Beta'),
-            coord.RepresentationMapping('d_distance', 'radial_velocity')],
-        coord.SphericalDifferential: [
-            coord.RepresentationMapping('d_lon', 'pm_Lambda'),
-            coord.RepresentationMapping('d_lat', 'pm_Beta'),
-            coord.RepresentationMapping('d_distance', 'radial_velocity')]
+            coord.RepresentationMapping('distance', 'distance')]
     }
-
-    frame_specific_representation_info[coord.UnitSphericalRepresentation] = \
-        frame_specific_representation_info[coord.SphericalRepresentation]
-    frame_specific_representation_info[coord.UnitSphericalCosLatDifferential] = \
-        frame_specific_representation_info[coord.SphericalCosLatDifferential]
-    frame_specific_representation_info[coord.UnitSphericalDifferential] = \
-        frame_specific_representation_info[coord.SphericalDifferential]
 
 ##############################################################################
 # Breaking this down line-by-line, we define the class as a subclass of
