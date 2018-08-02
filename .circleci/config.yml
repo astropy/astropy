@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: /opt/python/cp27-cp27m/bin/pip install numpy scipy pytest-astropy pytest-xdist Cython jinja2
+          command: /opt/python/cp27-cp27m/bin/pip install numpy scipy "pytest<3.7" pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests
           command: PYTHONHASHSEED=42 /opt/python/cp27-cp27m/bin/python setup.py test --parallel=4 || (git reset HEAD && PYTHONHASHSEED=42 /opt/python/cp27-cp27m/bin/python setup.py test --parallel=4)
