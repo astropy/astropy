@@ -13,21 +13,24 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
     (https://doi.org/10.5281/zenodo.1188875)
     """
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def pixel_n_dim(self):
         """
         The number of axes in the pixel coordinate system.
         """
-        raise NotImplementedError()
+        pass
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def world_n_dim(self):
         """
         The number of axes in the world coordinate system.
         """
-        raise NotImplementedError()
+        pass
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def world_axis_physical_types(self):
         """
         An iterable of strings describing the physical type for each world axis.
@@ -38,9 +41,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         arbitrary string.  Alternatively, if the physical type is
         unknown/undefined, an element can be `None`.
         """
-        raise NotImplementedError()
+        pass
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def world_axis_units(self):
         """
         An iterable of strings given the units of the world coordinates for each
@@ -50,7 +54,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         noted in the VOUnit specification document, units that do not follow
         this standard are still allowed, but just not recommended).
         """
-        raise NotImplementedError()
+        pass
 
     @abc.abstractmethod
     def pixel_to_world_values(self, *pixel_arrays):
@@ -66,8 +70,9 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         order, where for an image, ``x`` is the horizontal coordinate and ``y``
         is the vertical coordinate.
         """
-        raise NotImplementedError()
+        pass
 
+    @abc.abstractmethod
     def numpy_index_to_world_values(self, *index_arrays):
         """
         Convert Numpy array indices to world coordinates.
@@ -76,7 +81,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         should be given in ``(i, j)`` order, where for an image ``i`` is the row
         and ``j`` is the column (i.e. the opposite order to ``pixel_to_world_values``).
         """
-        raise NotImplementedError()
+        pass
 
     @abc.abstractmethod
     def world_to_pixel_values(self, *world_arrays):
@@ -91,8 +96,9 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         be returned in the ``(x, y)`` order, where for an image, ``x`` is the
         horizontal coordinate and ``y`` is the vertical coordinate.
         """
-        raise NotImplementedError()
+        pass
 
+    @abc.abstractmethod
     def world_to_numpy_index_values(self, *world_arrays):
         """
         Convert world coordinates to array indices.
@@ -103,9 +109,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         ``pixel_to_world_values``). The indices should be returned as rounded
         integers.
         """
-        raise NotImplementedError()
+        pass
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def world_axis_object_components(self):
         """
         A list with n_dim_world elements, where each element is a tuple with
@@ -130,9 +137,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         *APE 14: A shared Python interface for World Coordinate Systems*
         for more examples (https://doi.org/10.5281/zenodo.1188875).
         """
-        raise NotImplementedError()
+        pass
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def world_axis_object_classes(self):
         """
         A dictionary with each key being a string key from
@@ -179,7 +187,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         *APE 14: A shared Python interface for World Coordinate Systems*
         for more examples (https://doi.org/10.5281/zenodo.1188875).
         """
-        raise NotImplementedError()
+        pass
 
     # The following three properties have default fallback implementations, so
     # they are not abstract.
@@ -193,8 +201,8 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         If the WCS is valid in the context of a dataset with a particular
         shape, then this property can be used to store the shape of the
         data. This can be used for example if implementing slicing of WCS
-        objects. This is an optional property, and it should return `None`
-        if a shape is not known or relevant.
+        objects. This is an optional property, and it should return `None` if
+        the shape of the data the WCS applies to is not known or not relevant.
         """
         return None
 
@@ -224,7 +232,8 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         """
         return np.ones((self.world_n_dim, self.pixel_n_dim), dtype=bool)
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def serialized_classes(self):
         """
         Indicates whether Python objects are given in serialized form or as
