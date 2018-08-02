@@ -1230,17 +1230,8 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
-- Correct data type conversion for non-float masked kernels. [#7542]
-
-- Fix non-float or masked, zero sum kernels when ``normalize_kernel=False``.
-  Non-floats would yeild a type error and masked kernels were not being filled.
-  [#7541]
-
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
-
-- Ensure that relative humidities can be given as Quantities, rather than take
-  any quantity and just strip its unit. [#7668]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -1296,12 +1287,8 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
-- Fixed bug in ``python setup.py test --coverage`` on Windows machines. [#7673]
-
 astropy.time
 ^^^^^^^^^^^^
-
-- Avoid rounding errors when converting ``Quantity`` to ``TimeDelta``. [#7625]
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -1326,12 +1313,66 @@ astropy.wcs
   ``WCS`` coordinate transformations depending on the position of the slice
   relative to ``WCS.wcs.crpix``. [#7556, #7550]
 
+Other Changes and Additions
+---------------------------
+
+
+
+2.0.8 (2018-08-02)
+==================
+
+Bug Fixes
+---------
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Correct data type conversion for non-float masked kernels. [#7542]
+
+- Fix non-float or masked, zero sum kernels when ``normalize_kernel=False``.
+  Non-floats would yeild a type error and masked kernels were not being filled.
+  [#7541]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Ensure that relative humidities can be given as Quantities, rather than take
+  any quantity and just strip its unit. [#7668]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Fixed ``Cutout2D`` output WCS NAXIS values to reflect the cutout
+  image size. [#7552]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fixed a bug in ``add_columns`` method where ``rename_duplicate=True`` would
+  cause an error if there were no duplicates. [#7540]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+- Fixed bug in ``python setup.py test --coverage`` on Windows machines. [#7673]
+
+astropy.time
+^^^^^^^^^^^^
+
+- Avoid rounding errors when converting ``Quantity`` to ``TimeDelta``. [#7625]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed a bug that caused the position of the tick values in decimal mode
+  to be incorrectly determined. [#7332]
+
+astropy.wcs
+^^^^^^^^^^^
+
 - Fixed a bug that caused ``wcs_to_celestial_frame``, ``skycoord_to_pixel``, and
   ``pixel_to_skycoord`` to raise an error if the axes of the celestial WCS were
   swapped. [#7691]
-
-Other Changes and Additions
----------------------------
 
 
 
