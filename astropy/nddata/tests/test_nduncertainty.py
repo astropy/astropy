@@ -240,3 +240,15 @@ def test_for_stolen_uncertainty():
     ndd2 = NDData(2, uncertainty=ndd1.uncertainty)
     # uncertainty.parent_nddata.data should be the original data!
     assert ndd1.uncertainty.parent_nddata.data == ndd1.data
+
+
+@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty,
+                                           UnknownUncertainty])
+def test_quantity(UncertClass):
+    fake_uncert = UncertClass([1, 2, 3], unit=u.adu)
+    assert isinstance(fake_uncert.quantity, u.Quantity)
+    assert fake_uncert.quantity.unit.is_equivalent(u.adu)
+
+    fake_uncert_nounit = UncertClass([1, 2, 3])
+    assert isinstance(fake_uncert_nounit.quantity, u.Quantity)
+    assert fake_uncert_nounit.quantity.unit.is_equivalent(u.dimensionless_unscaled)
