@@ -145,6 +145,13 @@ class NDUncertainty(metaclass=ABCMeta):
         return self._unit
 
     @property
+    def quantity(self):
+        """
+        This uncertainty as an `~astropy.units.Quantity` object.
+        """
+        return u.Quantity(self.array, self.unit, copy=False)
+
+    @property
     def parent_nddata(self):
         """`NDData` : reference to `NDData` instance with this uncertainty.
 
