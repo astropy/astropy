@@ -148,8 +148,8 @@ astropy.time
 
 - Added `datetime.timedelta` format class for ``TimeDelta``. [#7441]
 
-- Added ``strftime`` and ``strptime`` methods to ``Time`` class. 
-  These methods are similar to those in the Python standard library 
+- Added ``strftime`` and ``strptime`` methods to ``Time`` class.
+  These methods are similar to those in the Python standard library
   `time` package and provide flexible input and output formatting. [#7323]
 
 
@@ -279,15 +279,6 @@ astropy.table
 - ``Table.read()`` on a FITS binary table file will convert any TDISPn header
   keywords to a Python formatting string when possible, and store it in the
   column ``format`` attribute. [#7226]
-
-- The private ``_parent`` attribute in the ``info`` attribute of table
-  columns was changed from a direct reference to the parent column to a weak
-  reference.  This was in response to a memory leak caused by having a
-  circular reference cycle.  This change means that expressions like
-  ``col[3:5].info`` will now fail because at the point of the ``info``
-  property being evaluated the ``col[3:5]`` weak reference is dead.  Instead
-  force a reference with ``c = col[3:5]`` followed by
-  ``c.info.indices``. [#6277, #7448]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -423,10 +414,6 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
-- Fix memory leak where updating a table column or deleting a table
-  object was not releasing the memory due to a reference cycle
-  in the column ``info`` attributes. [#6277, #7448]
-
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -471,7 +458,8 @@ Other Changes and Additions
   leading to some speed improvements, and setting the stage for allowing
   overrides with ``__array_ufunc__``. [#7502]
 
-3.0.4 (unreleased)
+
+3.0.5 (unreleased)
 ==================
 
 Bug Fixes
@@ -543,11 +531,65 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
-- updated wcslib to v 5.19.1 [#7688]
+Other Changes and Additions
+---------------------------
+
+
+3.0.4 (2018-08-02)
+==================
+
+API Changes
+-----------
+
+astropy.table
+^^^^^^^^^^^^^
+
+- The private ``_parent`` attribute in the ``info`` attribute of table
+  columns was changed from a direct reference to the parent column to a weak
+  reference.  This was in response to a memory leak caused by having a
+  circular reference cycle.  This change means that expressions like
+  ``col[3:5].info`` will now fail because at the point of the ``info``
+  property being evaluated the ``col[3:5]`` weak reference is dead.  Instead
+  force a reference with ``c = col[3:5]`` followed by
+  ``c.info.indices``. [#6277, #7448]
+
+
+Bug Fixes
+---------
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Fixed an bug when creating the ``WCS`` of a cutout (see ``nddata.Cutout2D``)
+  when input image's ``WCS`` contains ``SIP`` distortion corrections by
+  adjusting the ``crpix`` of the ``astropy.wcs.Sip`` (in addition to
+  adjusting the ``crpix`` of the ``astropy.wcs.WCS`` object). This bug
+  had the potential to produce large errors in ``WCS`` coordinate
+  transformations depending on the position of the cutout relative
+  to the input image's ``crpix``. [#7556, #7550]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fix memory leak where updating a table column or deleting a table
+  object was not releasing the memory due to a reference cycle
+  in the column ``info`` attributes. [#6277, #7448]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fixed an bug when creating the ``WCS`` slice (see ``WCS.slice()``)
+  when ``WCS`` contains ``SIP`` distortion corrections by
+  adjusting the ``WCS.sip.crpix`` in addition to adjusting
+  ``WCS.wcs.crpix``. This bug had the potential to produce large errors in
+  ``WCS`` coordinate transformations depending on the position of the slice
+  relative to ``WCS.wcs.crpix``. [#7556, #7550]
+
 
 Other Changes and Additions
 ---------------------------
 
+- Updated bundled wcslib to v 5.19.1 [#7688]
 
 
 3.0.3 (2018-06-01)
@@ -1134,7 +1176,9 @@ Other Changes and Additions
 - The bundled version of PLY was updated to 3.10. [#7174]
 
 
-2.0.8 (unreleased)
+
+
+2.0.9 (unreleased)
 ==================
 
 Bug Fixes
@@ -1149,17 +1193,8 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
-- Correct data type conversion for non-float masked kernels. [#7542]
-
-- Fix non-float or masked, zero sum kernels when ``normalize_kernel=False``.
-  Non-floats would yeild a type error and masked kernels were not being filled.
-  [#7541]
-
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
-
-- Ensure that relative humidities can be given as Quantities, rather than take
-  any quantity and just strip its unit. [#7668]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -1188,22 +1223,68 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
-- Fixed ``Cutout2D`` output WCS NAXIS values to reflect the cutout
-  image size. [#7552]
-
-- Fixed an bug when creating the ``WCS`` of a cutout (see ``nddata.Cutout2D``)
-  when input image's ``WCS`` contains ``SIP`` distortion corrections by
-  adjusting the ``crpix`` of the ``astropy.wcs.Sip`` (in addition to
-  adjusting the ``crpix`` of the ``astropy.wcs.WCS`` object). This bug
-  had the potential to produce large errors in ``WCS`` coordinate
-  transformations depending on the position of the cutout relative
-  to the input image's ``crpix``. [#7556, #7550]
-
 astropy.samp
 ^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.vo
+^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+Other Changes and Additions
+---------------------------
+
+
+
+2.0.8 (2018-08-02)
+==================
+
+Bug Fixes
+---------
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Correct data type conversion for non-float masked kernels. [#7542]
+
+- Fix non-float or masked, zero sum kernels when ``normalize_kernel=False``.
+  Non-floats would yeild a type error and masked kernels were not being filled.
+  [#7541]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Ensure that relative humidities can be given as Quantities, rather than take
+  any quantity and just strip its unit. [#7668]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Fixed ``Cutout2D`` output WCS NAXIS values to reflect the cutout
+  image size. [#7552]
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -1221,34 +1302,18 @@ astropy.time
 
 - Avoid rounding errors when converting ``Quantity`` to ``TimeDelta``. [#7625]
 
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-astropy.vo
-^^^^^^^^^^
+- Fixed a bug that caused the position of the tick values in decimal mode
+  to be incorrectly determined. [#7332]
 
 astropy.wcs
 ^^^^^^^^^^^
 
-- Fixed an bug when creating the ``WCS`` slice (see ``WCS.slice()``)
-  when ``WCS`` contains ``SIP`` distortion corrections by
-  adjusting the ``WCS.sip.crpix`` in addition to adjusting
-  ``WCS.wcs.crpix``. This bug had the potential to produce large errors in
-  ``WCS`` coordinate transformations depending on the position of the slice
-  relative to ``WCS.wcs.crpix``. [#7556, #7550]
-
 - Fixed a bug that caused ``wcs_to_celestial_frame``, ``skycoord_to_pixel``, and
   ``pixel_to_skycoord`` to raise an error if the axes of the celestial WCS were
   swapped. [#7691]
-
-Other Changes and Additions
----------------------------
 
 
 2.0.7 (2018-06-01)
@@ -1294,9 +1359,6 @@ astropy.utils
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
-
-- Fixed a bug that caused the position of the tick values in decimal mode
-  to be incorrectly determined. [#7332]
 
 - Fixed a bug that prevented legends from being added to plots done with
   units. [#7510]
