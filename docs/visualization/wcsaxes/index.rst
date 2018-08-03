@@ -4,8 +4,8 @@
 Making plots with world coordinates (WCSAxes)
 *********************************************
 
-WCSAxes is a framework for making plots of Astronomical data in 
-`Matplotlib <http://matplotlib.org/>`_. It was previously distributed 
+WCSAxes is a framework for making plots of Astronomical data in
+`Matplotlib <http://matplotlib.org/>`_. It was previously distributed
 as a standalone package, but is now included in
 :ref:`astropy.visualization <astropy-visualization>`.
 
@@ -40,7 +40,7 @@ package:
     plt.ylabel('Galactic Latitude')
 
 This example uses the :mod:`matplotlib.pyplot` interface to Matplotlib, but WCSAxes
-can be used with any of the other ways of using Matplotlib (some examples of which 
+can be used with any of the other ways of using Matplotlib (some examples of which
 are given in :ref:`initialization`). For example, using the partially object-oriented
 interface, you can do::
 
@@ -50,7 +50,7 @@ interface, you can do::
     ax.set_xlabel('Galactic Longitude')
     ax.set_ylabel('Galactic Latitude')
 
-However, the axes object is needed to access some of the more advanced functionality 
+However, the axes object is needed to access some of the more advanced functionality
 of WCSAxes.  An example of this usage is:
 
 .. plot::
@@ -94,6 +94,7 @@ Using WCSAxes
    overlaying_coordinate_systems
    slicing_datacubes
    controlling_axes
+   generic_transforms
    custom_frames
 
 Reference/API
