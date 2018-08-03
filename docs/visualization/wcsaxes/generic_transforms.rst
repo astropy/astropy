@@ -31,7 +31,7 @@ The ``coord_meta`` dictionary should include the following keys:
   giving the units to use for the formatting of the labels. These can be set to
   `None` to default to the units given in ``unit``, but can be set for example
   if the :class:`~matplotlib.transforms.Transform` returns values in degrees
-  and you want the labels should be formatted in hours.
+  and you want the labels to be formatted in hours.
 
 The following example illustrates a custom projection using a transform and
 ``coord_meta``:
