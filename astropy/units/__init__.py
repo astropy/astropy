@@ -9,7 +9,10 @@ This code is adapted from the `pynbody
 Pontzen, who has granted the Astropy project permission to use the
 code under a BSD license.
 """
-
+# Lots of things to import - go from more basic to advanced, so that
+# whatever advanced ones need generally has been imported already;
+# this helps prevent circular imports and makes it easier to understand
+# where most time is spent (e.g., using python -X importtime).
 from .core import *
 from .quantity import *
 
