@@ -885,8 +885,8 @@ def test_stddevuncertainty_compat_descriptor_no_weakref():
 
 
 def test_CCDataread_returns_image():
-    # Test if CCData.read returns a image when reading a fits file containing 
-    #a table and image, in that order.   
+    # Test if CCData.read returns a image when reading a fits file containing
+    #a table and image, in that order.
     fits_table_image = get_pkg_data_filename('data/table_image.fits', package = 'astropy.nddata.tests')
     ccd = CCDData.read(fits_table_image, unit='adu')
     assert ccd.data.shape == (100,100)
