@@ -1770,7 +1770,7 @@ class LambdaCDM(FLRW):
                 raise ValueError(msg)
 
         # The analytic solution is not valid for any of Om0, Ode0, Ok0 == 0.
-        # Use the explicit inmtegral solution for these cases.
+        # Use the explicit integral solution for these cases.
         if self._Om0 == 0 or self._Ode0 == 0 or self._Ok0 == 0:
             return self._integral_comoving_distance_z1z2(z1, z2)
 
