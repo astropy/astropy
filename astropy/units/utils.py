@@ -178,6 +178,8 @@ def sanitize_scale(scale):
     if scale.__class__ is float:
         return scale
 
+    # All classes that scale can be (int, float, complex, Fraction)
+    # have an "imag" attribute.
     if scale.imag:
         if abs(scale.real) > abs(scale.imag):
             if is_effectively_unity(scale.imag/scale.real + 1):
@@ -252,6 +254,8 @@ def resolve_fractions(a, b):
     This ensures that any operation involving a Fraction will use
     rational arithmetic and preserve precision.
     """
+    # We short-circuit on the most common cases of int and float, since
+    # isinstance(a, Fraction) is very slow for any non-Fraction instances.
     a_is_fraction = (a.__class__ is not int and a.__class__ is not float and
                      isinstance(a, Fraction))
     b_is_fraction = (b.__class__ is not int and b.__class__ is not float and

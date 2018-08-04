@@ -2021,7 +2021,7 @@ class CompositeUnit(UnitBase):
             powers = [validate_power(p) for p in powers]
 
         if not decompose and len(bases) == 1:
-            # Short-cut; with one unit there's no expand and gather.
+            # Short-cut; with one unit there's nothing to expand and gather.
             unit = bases[0]
             power = powers[0]
             if power == 1:
@@ -2038,6 +2038,8 @@ class CompositeUnit(UnitBase):
                                 for p in unit.powers]
             self._scale = sanitize_scale(scale)
         else:
+            # Regular case: use inputs as preliminary scale, bases, and powers,
+            # then "expand and gather" identical bases, sanitize the scale, &c.
             self._scale = scale
             self._bases = bases
             self._powers = powers
