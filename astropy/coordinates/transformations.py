@@ -1347,7 +1347,7 @@ class CompositeTransform(CoordinateTransform):
 
             if (isinstance(lasttrans, StaticMatrixTransform) and
                     isinstance(currtrans, StaticMatrixTransform)):
-                combinedmat = np.dot(lasttrans.matrix, currtrans.matrix)
+                combinedmat = np.dot(currtrans.matrix, lasttrans.matrix)
                 newtrans[-1] = StaticMatrixTransform(combinedmat,
                                                      lasttrans.fromsys,
                                                      currtrans.tosys)
