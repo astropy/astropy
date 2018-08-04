@@ -38,9 +38,13 @@ def_unit(['mi', 'mile'], 5280 * ft, namespace=_ns,
 def_unit(['mil', 'thou'], 0.001 * inch, namespace=_ns,
          doc="Thousandth of an inch")
 def_unit(['nmi', 'nauticalmile', 'NM'], 1852 * si.m, namespace=_ns,
-         doc="Nautical mile")
+         doc="International nautical mile")
 def_unit(['fur', 'furlong'], 660 * ft, namespace=_ns,
          doc="Furlong")
+def_unit(['point'], inch / 72, namespace=_ns,
+         doc="Typographic point")
+def_unit(['pica'], 12 * point, namespace=_ns,
+         doc="Typographic pica")
 
 
 ###########################################################################
@@ -53,7 +57,7 @@ def_unit(['ac', 'acre'], 43560 * ft ** 2, namespace=_ns,
 ###########################################################################
 # VOLUMES
 
-def_unit(['gallon'], si.liter / 0.264172052, namespace=_ns,
+def_unit(['gallon'], 3.785411784 * si.liter, namespace=_ns,
          doc="U.S. liquid gallon")
 def_unit(['quart'], gallon / 4, namespace=_ns,
          doc="U.S. liquid quart")
@@ -67,6 +71,16 @@ def_unit(['tbsp', 'tablespoon'], foz / 2, namespace=_ns,
          doc="U.S. customary tablespoon")
 def_unit(['tsp', 'teaspoon'], tbsp / 3, namespace=_ns,
          doc="U.S. customary teaspoon")
+def_unit(['Imp_gallon'], 4.54609 * si.liter, namespace=_ns,
+         doc="Imperial gallon")
+def_unit(['Imp_quart'], Imp_gallon / 4, namespace=_ns,
+         doc="Imperial quart")
+def_unit(['Imp_pint'], Imp_quart / 2, namespace=_ns,
+         doc="Imperial pint")
+def_unit(['Imp_oz', 'Imp_ounce'], Imp_pint / 20, namespace=_ns,
+         doc="Imperial fluid ounce")
+def_unit(['bbl', 'barrel', 'petrol_barrel', 'tierce'], 159 * si.liter, namespace=_ns,
+         doc="Petrol barrel")
 
 
 ###########################################################################
@@ -79,7 +93,9 @@ def_unit(['lb', 'lbm', 'pound'], 16 * oz, namespace=_ns,
 def_unit(['st', 'stone'], 14 * lb, namespace=_ns,
          doc="International avoirdupois stone: mass")
 def_unit(['ton'], 2000 * lb, namespace=_ns,
-         doc="International avoirdupois ton: mass")
+         doc="U.S. short ton: mass")
+def_unit(['long_ton'], 160 * stone, namespace=_ns,
+         doc="U.S. long ton: mass")
 def_unit(['slug'], 32.174049 * lb, namespace=_ns,
          doc="slug: mass")
 
@@ -88,7 +104,7 @@ def_unit(['slug'], 32.174049 * lb, namespace=_ns,
 # SPEED
 
 def_unit(['kn', 'kt', 'knot', 'NMPH'], nmi / si.h, namespace=_ns,
-         doc="nautical unit of speed: 1 nmi per hour")
+         doc="Knot: nautical unit of speed")
 
 
 ###########################################################################
@@ -98,12 +114,16 @@ def_unit('lbf', slug * ft * si.s**-2, namespace=_ns,
          doc="Pound: force")
 def_unit(['kip', 'kilopound'], 1000 * lbf, namespace=_ns,
          doc="Kilopound: force")
+def_unit(['pdl', 'poundal'], lb * ft * si.s**-2, namespace=_ns,
+         doc="Poundal: force")
 
 
 ##########################################################################
 # ENERGY
 
 def_unit(['BTU', 'btu'], 1.05505585 * si.kJ, namespace=_ns,
+         doc="British thermal unit")
+def_unit(['therm'], 100000 * BTU, namespace=_ns,
          doc="British thermal unit")
 def_unit(['cal', 'calorie'], 4.184 * si.J, namespace=_ns,
          doc="Thermochemical calorie: pre-SI metric unit of energy")
