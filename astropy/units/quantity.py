@@ -714,7 +714,8 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                     # not in-place!
                     value = value * scale
 
-        return value if self.shape else value.item()
+        return value if self.shape else (value[()] if self.dtype.fields
+                                         else value.item())
 
     value = property(to_value,
                      doc="""The numerical value of this instance.

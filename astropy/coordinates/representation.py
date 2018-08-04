@@ -17,6 +17,7 @@ import astropy.units as u
 
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
+from .._erfa import ufunc as erfa_ufunc
 from ..utils import ShapedLikeNDArray, classproperty
 
 from ..utils import deprecated_attribute
@@ -1098,41 +1099,8 @@ class CartesianRepresentation(BaseRepresentation):
                        [ 1.23205081, 1.59807621],
                        [ 3.        , 4.        ]] pc>
         """
-
-        # Avoid doing gratuitous np.array for things that look like arrays.
-        try:
-            matrix_shape = matrix.shape
-        except AttributeError:
-            matrix = np.array(matrix)
-            matrix_shape = matrix.shape
-
-        if matrix_shape[-2:] != (3, 3):
-            raise ValueError("tried to do matrix multiplication with an array "
-                             "that doesn't end in 3x3")
-
-        # TODO: since this is likely to be a widely used function in coordinate
-        # transforms, it should be optimized (for example in Cython).
-
-        # Get xyz once since it's an expensive operation
-        oldxyz = self.xyz
-        # Note that neither dot nor einsum handles Quantity properly, so we use
-        # the arrays and put the unit back in the end.
-        if self.isscalar and not matrix_shape[:-2]:
-            # a fast path for scalar coordinates.
-            newxyz = matrix.dot(oldxyz.value)
-        else:
-            # Matrix multiply all pmat items and coordinates, broadcasting the
-            # remaining dimensions.
-            if np.__version__ == '1.14.0':
-                # there is a bug in numpy v1.14.0 (fixed in 1.14.1) that causes
-                # this einsum call to break with the default of optimize=True
-                # see https://github.com/astropy/astropy/issues/7051
-                newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value,
-                                   optimize=False)
-            else:
-                newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value)
-
-        newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
+        # erfa rxp: Multiply a p-vector by an r-matrix.
+        p = erfa_ufunc.rxp(matrix, self.get_xyz(xyz_axis=-1))
         # Handle differentials attached to this representation
         if self.differentials:
             # TODO: speed this up going via d.d_xyz.
@@ -1142,7 +1110,7 @@ class CartesianRepresentation(BaseRepresentation):
         else:
             new_diffs = None
 
-        return self.__class__(*newxyz, copy=False, differentials=new_diffs)
+        return self.__class__(p, xyz_axis=-1, copy=False, differentials=new_diffs)
 
     def _combine_operation(self, op, other, reverse=False):
         self._raise_if_has_differentials(op.__name__)
@@ -1157,6 +1125,23 @@ class CartesianRepresentation(BaseRepresentation):
         return self.__class__(*(op(getattr(first, component),
                                    getattr(second, component))
                                 for component in first.components))
+
+    def norm(self):
+        """Vector norm.
+
+        The norm is the standard Frobenius norm, i.e., the square root of the
+        sum of the squares of all components with non-angular units.
+
+        Note that any associated differentials will be dropped during this
+        operation.
+
+        Returns
+        -------
+        norm : `astropy.units.Quantity`
+            Vector norm, with the same shape as the representation.
+        """
+        # erfa pm: Modulus of p-vector.
+        return erfa_ufunc.pm(self.get_xyz(xyz_axis=-1))
 
     def mean(self, *args, **kwargs):
         """Vector mean.
@@ -1207,10 +1192,9 @@ class CartesianRepresentation(BaseRepresentation):
             raise TypeError("cannot only take dot product with another "
                             "representation, not a {0} instance."
                             .format(type(other)))
-        return functools.reduce(operator.add,
-                                (getattr(self, component) *
-                                 getattr(other_c, component)
-                                 for component in self.components))
+        # erfa pdp: p-vector inner (=scalar=dot) product.
+        return erfa_ufunc.pdp(self.get_xyz(xyz_axis=-1),
+                              other_c.get_xyz(xyz_axis=-1))
 
     def cross(self, other):
         """Cross product of two representations.
@@ -1232,9 +1216,10 @@ class CartesianRepresentation(BaseRepresentation):
             raise TypeError("cannot only take cross product with another "
                             "representation, not a {0} instance."
                             .format(type(other)))
-        return self.__class__(self.y * other_c.z - self.z * other_c.y,
-                              self.z * other_c.x - self.x * other_c.z,
-                              self.x * other_c.y - self.y * other_c.x)
+        # erfa pxp: p-vector outer (=vector=cross) product.
+        sxo = erfa_ufunc.pxp(self.get_xyz(xyz_axis=-1),
+                             other_c.get_xyz(xyz_axis=-1))
+        return self.__class__(sxo, xyz_axis=-1)
 
 
 class UnitSphericalRepresentation(BaseRepresentation):
@@ -1315,11 +1300,12 @@ class UnitSphericalRepresentation(BaseRepresentation):
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
-        x = np.cos(self.lat) * np.cos(self.lon)
-        y = np.cos(self.lat) * np.sin(self.lon)
-        z = np.sin(self.lat)
-
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+        # NUMPY_LT_1_16 cannot create a vector automatically
+        p = u.Quantity(np.empty(self.shape + (3,)), u.dimensionless_unscaled,
+                       copy=False)
+        # erfa s2c: Convert [unit]spherical coordinates to Cartesian.
+        p = erfa_ufunc.s2c(self.lon, self.lat, p)
+        return CartesianRepresentation(p, xyz_axis=-1, copy=False)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -1327,13 +1313,9 @@ class UnitSphericalRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
-
-        s = np.hypot(cart.x, cart.y)
-
-        lon = np.arctan2(cart.y, cart.x)
-        lat = np.arctan2(cart.z, s)
-
-        return cls(lon=lon, lat=lat, copy=False)
+        p = cart.get_xyz(xyz_axis=-1)
+        # erfa c2s: P-vector to [unit]spherical coordinates.
+        return cls(*erfa_ufunc.c2s(p), copy=False)
 
     def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
@@ -1633,11 +1615,12 @@ class SphericalRepresentation(BaseRepresentation):
         else:
             d = self.distance
 
-        x = d * np.cos(self.lat) * np.cos(self.lon)
-        y = d * np.cos(self.lat) * np.sin(self.lon)
-        z = d * np.sin(self.lat)
+        # NUMPY_LT_1_16 cannot create a vector automatically
+        p = u.Quantity(np.empty(self.shape + (3,)), d.unit, copy=False)
+        # erfa s2p: Convert spherical polar coordinates to p-vector.
+        p = erfa_ufunc.s2p(self.lon, self.lat, d, p)
 
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+        return CartesianRepresentation(p, xyz_axis=-1, copy=False)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -1645,14 +1628,9 @@ class SphericalRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
-
-        s = np.hypot(cart.x, cart.y)
-        r = np.hypot(s, cart.z)
-
-        lon = np.arctan2(cart.y, cart.x)
-        lat = np.arctan2(cart.z, s)
-
-        return cls(lon=lon, lat=lat, distance=r, copy=False)
+        p = cart.get_xyz(xyz_axis=-1)
+        # erfa p2s: P-vector to spherical polar coordinates.
+        return cls(*erfa_ufunc.p2s(p), copy=False)
 
     def norm(self):
         """Vector norm.

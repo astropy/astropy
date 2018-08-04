@@ -10,7 +10,7 @@ from numpy.testing import assert_allclose
 
 from ... import units as u
 from .. import quantity_helper as qh
-
+from ..._erfa import ufunc as erfa_ufunc
 from ...tests.helper import raises
 
 try:
@@ -55,11 +55,6 @@ def test_testwarn(tw):
 class TestUfuncCoverage:
     """Test that we cover all ufunc's"""
 
-    # Ignore possible scipy ufuncs; for scipy in particular, we have support
-    # for some, but for others it still has to be decided whether we can
-    # support them or not.
-    @pytest.mark.skipif(HAS_SCIPY,
-                        reason='scipy.special coverage is incomplete')
     def test_coverage(self):
 
         all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
@@ -67,9 +62,21 @@ class TestUfuncCoverage:
 
         all_q_ufuncs = (qh.UNSUPPORTED_UFUNCS |
                         set(qh.UFUNC_HELPERS.keys()))
-
+        # Check that every numpy ufunc is covered.
         assert all_np_ufuncs - all_q_ufuncs == set()
-        assert all_q_ufuncs - all_np_ufuncs == set()
+        # Check that all ufuncs we cover come from numpy, erfa, and scipy.
+        # (Since coverage for scipy and erfa is incomplete, we do not check
+        # this the other way).
+        all_erfa_ufuncs = set([ufunc for ufunc in erfa_ufunc.__dict__.values()
+                               if isinstance(ufunc, np.ufunc)])
+        if HAS_SCIPY:
+            import scipy.special as sps
+            all_sps_ufuncs = set([ufunc for ufunc in sps.__dict__.values()
+                                  if isinstance(ufunc, np.ufunc)])
+        else:
+            all_sps_ufuncs = set()
+        assert (all_q_ufuncs - all_np_ufuncs -
+                all_sps_ufuncs - all_erfa_ufuncs == set())
 
 
 class TestQuantityTrigonometricFuncs:

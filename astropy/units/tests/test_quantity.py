@@ -953,7 +953,7 @@ def test_arrays():
     qkpc = u.Quantity(a, u.kpc)
     assert not qkpc.isscalar
     qkpc0 = qkpc[0]
-    assert qkpc0.value == a[0].item()
+    assert qkpc0.value == a[0]
     assert qkpc0.unit == qkpc.unit
     assert isinstance(qkpc0, u.Quantity)
     assert qkpc0.isscalar
