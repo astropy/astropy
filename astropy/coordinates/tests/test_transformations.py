@@ -455,3 +455,50 @@ def test_frame_override_component_with_attribute():
     assert ('BorkedFrame' in exc.value.args[0] and
             "'ra'" in exc.value.args[0] and
             "'dec'" in exc.value.args[0])
+
+
+def test_static_matrix_combine_paths():
+    """
+    Check that combined staticmatrixtransform matrices provide the same
+    transformation as using an intermediate transformation.
+
+    This is somewhat of a regression test for #7706
+    """
+    from ..baseframe import BaseCoordinateFrame
+    from ..matrix_utilities import rotation_matrix
+
+    class AFrame(BaseCoordinateFrame):
+        default_representation = r.SphericalRepresentation
+        default_differential = r.SphericalCosLatDifferential
+
+    t1 = t.StaticMatrixTransform(rotation_matrix(30.*u.deg, 'z'),
+                                 ICRS, AFrame)
+    t1.register(frame_transform_graph)
+    t2 = t.StaticMatrixTransform(rotation_matrix(30.*u.deg, 'z').T,
+                                 AFrame, ICRS)
+    t2.register(frame_transform_graph)
+
+    class BFrame(BaseCoordinateFrame):
+        default_representation = r.SphericalRepresentation
+        default_differential = r.SphericalCosLatDifferential
+
+    t3 = t.StaticMatrixTransform(rotation_matrix(30.*u.deg, 'x'),
+                                 ICRS, BFrame)
+    t3.register(frame_transform_graph)
+    t4 = t.StaticMatrixTransform(rotation_matrix(30.*u.deg, 'x').T,
+                                 BFrame, ICRS)
+    t4.register(frame_transform_graph)
+
+    c = Galactic(123*u.deg, 45*u.deg)
+    c1 = c.transform_to(BFrame) # direct
+    c2 = c.transform_to(AFrame).transform_to(BFrame) # thru A
+    c3 = c.transform_to(ICRS).transform_to(BFrame) # thru ICRS
+
+    assert quantity_allclose(c1.lon, c2.lon)
+    assert quantity_allclose(c1.lat, c2.lat)
+
+    assert quantity_allclose(c1.lon, c3.lon)
+    assert quantity_allclose(c1.lat, c3.lat)
+
+    for t_ in [t1, t2, t3, t4]:
+        t_.unregister(frame_transform_graph)
