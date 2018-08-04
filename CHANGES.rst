@@ -479,6 +479,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Fixed bug in which consecutive ``StaticMatrixTransform``'s in a frame
+  transform path would be combined in the incorrect order. [#7707]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
