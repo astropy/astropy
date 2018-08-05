@@ -31,6 +31,7 @@ from .. import units as u
 from ..utils.exceptions import AstropyWarning
 
 from .representation import REPRESENTATION_CLASSES
+from .matrix_utilities import matrix_product
 
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
            'BaseAffineTransform', 'AffineTransform',
@@ -1347,7 +1348,7 @@ class CompositeTransform(CoordinateTransform):
 
             if (isinstance(lasttrans, StaticMatrixTransform) and
                     isinstance(currtrans, StaticMatrixTransform)):
-                combinedmat = np.dot(lasttrans.matrix, currtrans.matrix)
+                combinedmat = matrix_product(currtrans.matrix, lasttrans.matrix)
                 newtrans[-1] = StaticMatrixTransform(combinedmat,
                                                      lasttrans.fromsys,
                                                      currtrans.tosys)
