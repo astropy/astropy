@@ -236,13 +236,13 @@ Finite Difference Transformations
 ---------------------------------
 
 Some frame transformations  cannot be expressed as affine transformations.
-For example, transformations from the `~astropy.coordinates.AltAz` frame can
-include an atmospheric dispersion correction, which is inherently non-linear.
-Additionally, some frames are simply more easily implemented as functions, even
-if they can be cast as affine transformations. For these frames, a finite
-difference approach to transforming velocities is available.  Note that this
-approach is implemented such that user-defined frames can use it in the exact
-same manner as (by defining a transformation of the
+For example, transformations from the `~astropy.coordinates.Horizontal` frame
+can include an atmospheric dispersion correction, which is inherently
+non-linear.  Additionally, some frames are simply more easily implemented as
+functions, even if they can be cast as affine transformations. For these frames,
+a finite difference approach to transforming velocities is available.  Note that
+this approach is implemented such that user-defined frames can use it in the
+exact same manner as (by defining a transformation of the
 `~astropy.coordinates.FunctionTransformWithFiniteDifference` type).
 
 This finite difference approach actually combines two separate (but important)
@@ -268,7 +268,7 @@ elements of the transformation:
 
 However, it is important to recognize that the finite difference transformations
 have inherent limits set by the finite difference algorithm and machine
-precision. To illustrate this problem, consider the AltAz to GCRS  (i.e.,
+precision. To illustrate this problem, consider the Horizontal to GCRS  (i.e.,
 geocentric) transformation. Lets try to compute the radial velocity in the GCRS
 frame for something observed from the Earth at a distance of 100 AU with a
 radial velocity of 10 km/s:
@@ -282,13 +282,13 @@ radial velocity of 10 km/s:
 
     from astropy import units as u
     from astropy.time import Time
-    from astropy.coordinates import EarthLocation, AltAz, GCRS
+    from astropy.coordinates import EarthLocation, Horizontal, GCRS
 
     time = Time('J2010') + np.linspace(-1,1,1000)*u.min
     location = EarthLocation(lon=0*u.deg, lat=45*u.deg)
-    aa = AltAz(alt=[45]*1000*u.deg, az=90*u.deg, distance=100*u.au,
-               radial_velocity=[10]*1000*u.km/u.s,
-               location=location, obstime=time)
+    aa = Horizontal(alt=[45]*1000*u.deg, az=90*u.deg, distance=100*u.au,
+                    radial_velocity=[10]*1000*u.km/u.s,
+                    location=location, obstime=time)
     gcrs = aa.transform_to(GCRS(obstime=time))
     plt.plot_date(time.plot_date, gcrs.radial_velocity.to(u.km/u.s))
     plt.ylabel('RV [km/s]')
@@ -305,9 +305,9 @@ the same: the radial velocity should be essentially the same in both frames:
 
     time = Time('J2010') + np.linspace(-1,1,1000)*u.min
     location = EarthLocation(lon=0*u.deg, lat=45*u.deg)
-    aa = AltAz(alt=[45]*1000*u.deg, az=90*u.deg, distance=100*u.kpc,
-               radial_velocity=[10]*1000*u.km/u.s,
-               location=location, obstime=time)
+    aa = Horizontal(alt=[45]*1000*u.deg, az=90*u.deg, distance=100*u.kpc,
+                    radial_velocity=[10]*1000*u.km/u.s,
+                    location=location, obstime=time)
     gcrs = aa.transform_to(GCRS(obstime=time))
     plt.plot_date(time.plot_date, gcrs.radial_velocity.to(u.km/u.s))
     plt.ylabel('RV [km/s]')
@@ -321,8 +321,8 @@ the default values.
 It is possible to override the timestep over which the finite difference occurs.
 For example::
 
-    >>> from astropy.coordinates import frame_transform_graph, AltAz, CIRS
-    >>> trans = frame_transform_graph.get_transform(AltAz, CIRS).transforms[0]
+    >>> from astropy.coordinates import frame_transform_graph, Horizontal, CIRS
+    >>> trans = frame_transform_graph.get_transform(Horizontal, CIRS).transforms[0]
     >>> trans.finite_difference_dt = 1*u.year
     >>> gcrs = aa.transform_to(GCRS(obstime=time))  # doctest: +SKIP
     >>> trans.finite_difference_dt = 1*u.second  # return to default

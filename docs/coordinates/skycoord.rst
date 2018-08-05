@@ -216,7 +216,7 @@ instance of such a class, or the corresponding string alias. The frame
 classes that are built in to astropy are `~astropy.coordinates.ICRS`,
 `~astropy.coordinates.FK5`, `~astropy.coordinates.FK4`,
 `~astropy.coordinates.FK4NoETerms`, `~astropy.coordinates.Galactic`, and
-`~astropy.coordinates.AltAz`. The string aliases are simply lower-case
+`~astropy.coordinates.Horizontal`. The string aliases are simply lower-case
 versions of the class name.
 
 If the frame is not supplied then you will see a special ``ICRS``
