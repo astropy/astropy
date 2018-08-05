@@ -2,7 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Contains the transformation functions for getting to/from ITRS, GCRS, and CIRS.
-These are distinct from the ICRS and AltAz functions because they are just
+These are distinct from the ICRS and Horizontal functions because they are just
 rotations without aberration corrections or offsets.
 """
 
