@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pickle
+
 import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
@@ -9,6 +11,7 @@ from ..nduncertainty import (StdDevUncertainty,
                              InverseVariance,
                              NDUncertainty,
                              IncompatibleUncertaintiesException,
+                             MissingDataAssociationException)
                              UnknownUncertainty)
 from ..nddata import NDData
 from ..compat import NDDataArray
@@ -257,6 +260,13 @@ def test_for_stolen_uncertainty():
     assert ndd1.uncertainty.parent_nddata.data == ndd1.data
     assert ndd2.uncertainty.parent_nddata.data == ndd2.data
 
+def test_stddevuncertainty_pickle():
+    uncertainty = StdDevUncertainty(np.ones(3), unit=u.m)
+    uncertainty_restored = pickle.loads(pickle.dumps(uncertainty))
+    np.testing.assert_array_equal(uncertainty.array, uncertainty_restored.array)
+    assert uncertainty.unit == uncertainty_restored.unit
+    with pytest.raises(MissingDataAssociationException):
+        uncertainty_restored.parent_nddata
 
 @pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
 def test_quantity(UncertClass):
