@@ -87,7 +87,7 @@ def compare_coord(c, cy):
         assert np.all(getattr(c, attr) == getattr(cy, attr))
 
 
-@pytest.mark.parametrize('frame', ['fk4', 'altaz'])
+@pytest.mark.parametrize('frame', ['fk4', 'horizontal'])
 def test_skycoord(frame):
 
     c = SkyCoord([[1, 2], [3, 4]], [[5, 6], [7, 8]],
