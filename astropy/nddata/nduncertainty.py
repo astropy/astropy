@@ -180,21 +180,34 @@ class NDUncertainty(metaclass=ABCMeta):
         possible since propagation might need the uncertain data besides the
         uncertainty.
         """
-        message = "uncertainty is not associated with an NDData object"
+        no_parent_message = "uncertainty is not associated with an NDData object"
+        parent_lost_message = (
+            "the associated NDData object was deleted and cannot be accessed "
+            "anymore. You can prevent the NDData object from being deleted by "
+            "assigning it to a variable. If this happened after unpickling "
+            "make sure you pickle the parent not the uncertainty directly."
+        )
         try:
-            if self._parent_nddata is None:
-                raise MissingDataAssociationException(message)
+            parent = self._parent_nddata
+        except AttributeError:
+            raise MissingDataAssociationException(no_parent_message)
+        else:
+            if parent is None:
+                raise MissingDataAssociationException(no_parent_message)
             else:
                 # The NDData is saved as weak reference so we must call it
-                # to get the object the reference points to.
+                # to get the object the reference points to. However because
+                # we have a weak reference here it's possible that the parent
+                # was deleted because its reference count dropped to zero.
                 if isinstance(self._parent_nddata, weakref.ref):
-                    return self._parent_nddata()
+                    resolved_parent = self._parent_nddata()
+                    if resolved_parent is None:
+                        log.info(parent_lost_message)
+                    return resolved_parent
                 else:
                     log.info("parent_nddata should be a weakref to an NDData "
                              "object.")
                     return self._parent_nddata
-        except AttributeError:
-            raise MissingDataAssociationException(message)
 
     @parent_nddata.setter
     def parent_nddata(self, value):
@@ -253,17 +266,14 @@ class NDUncertainty(metaclass=ABCMeta):
             return self._array, self._unit, self.parent_nddata
         except MissingDataAssociationException:
             # In case there's no parent
-            return self._array, self._unit
+            return self._array, self._unit, None
 
     def __setstate__(self, state):
-        if len(state) in (2, 3):
-            self.array = state[0]
-            self._unit = state[1]
-        else:
-            raise TypeError('The state should contain only 2 or 3 items.')
-        if len(state) == 3:
-            self.parent_nddata = state[2]
-
+        if len(state) != 3:
+            raise TypeError('The state should contain 3 items.')
+        self.array = state[0]
+        self._unit = state[1]
+        self.parent_nddata = state[2]
 
     def __getitem__(self, item):
         """Normal slicing on the array, keep the unit and return a reference.
