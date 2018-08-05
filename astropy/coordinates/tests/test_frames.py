@@ -577,7 +577,7 @@ def test_altaz_attributes_and_deprecation():
     TODO: Remove this when the deprecated AltAz class is removed.
     """
     from ...time import Time
-    from .. import EarthLocation, AltAz
+    from .. import EarthLocation, AltAz, ICRS
 
     with catch_warnings(AstropyDeprecationWarning) as w:
         aa = AltAz(1*u.deg, 2*u.deg)
@@ -591,6 +591,17 @@ def test_altaz_attributes_and_deprecation():
     aa3 = AltAz(1*u.deg, 2*u.deg,
                 location=EarthLocation(0*u.deg, 0*u.deg, 0*u.m))
     assert isinstance(aa3.location, EarthLocation)
+
+    # Make sure that transformations still work with the deprecated class:
+    aa4 = AltAz(1*u.deg, 2*u.deg,
+                location=EarthLocation(0*u.deg, 0*u.deg, 0*u.m),
+                obstime='J2000')
+    aa4.transform_to(ICRS)
+    aa4.transform_to(AltAz(location=EarthLocation(0*u.deg, 0*u.deg, 0*u.m),
+                           obstime='J2015'))
+
+    c = ICRS(ra=15*u.deg, dec=20*u.deg)
+    c.transform_to(aa4)
 
 
 def test_representation():

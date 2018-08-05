@@ -132,3 +132,18 @@ def horizontal_to_horizontal(from_coo, to_frame):
     # for now we just implement this through CIRS to make sure we get everything
     # covered
     return from_coo.transform_to(CIRS(obstime=from_coo.obstime)).transform_to(to_frame)
+
+
+# TODO: remove these once AltAz is removed (see #7708)
+from .horizontal import AltAz
+t = FunctionTransformWithFiniteDifference(cirs_to_horizontal,
+                                          CIRS, AltAz)
+t.register(frame_transform_graph)
+
+t = FunctionTransformWithFiniteDifference(horizontal_to_cirs,
+                                          AltAz, CIRS)
+t.register(frame_transform_graph)
+
+t = FunctionTransformWithFiniteDifference(horizontal_to_horizontal,
+                                          AltAz, AltAz)
+t.register(frame_transform_graph)
