@@ -97,7 +97,7 @@ def test_all_arg_options(kwargs):
     [bf.ICRS, 'ra', 'dec'], [bf.FK4, 'ra', 'dec'], [bf.FK4NoETerms, 'ra', 'dec'],
     [bf.FK5, 'ra', 'dec'], [bf.GCRS, 'ra', 'dec'], [bf.HCRS, 'ra', 'dec'],
     [bf.LSR, 'ra', 'dec'], [bf.CIRS, 'ra', 'dec'], [bf.Galactic, 'l', 'b'],
-    [bf.AltAz, 'az', 'alt'], [bf.Supergalactic, 'sgl', 'sgb'],
+    [bf.Horizontal, 'az', 'alt'], [bf.Supergalactic, 'sgl', 'sgb'],
     [bf.GalacticLSR, 'l', 'b'], [bf.HeliocentricTrueEcliptic, 'lon', 'lat'],
     [bf.GeocentricTrueEcliptic, 'lon', 'lat'],
     [bf.BarycentricTrueEcliptic, 'lon', 'lat'],

@@ -6,7 +6,7 @@ import numpy as np
 
 from ... import units as u
 from ..distances import Distance
-from ..builtin_frames import ICRS, FK5, Galactic, AltAz, SkyOffsetFrame
+from ..builtin_frames import ICRS, FK5, Galactic, Horizontal, SkyOffsetFrame
 from .. import SkyCoord, EarthLocation
 from ...time import Time
 from ...tests.helper import assert_quantity_allclose as assert_allclose
@@ -208,16 +208,18 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
 
 
 def test_altaz_attribute_transforms():
-    """Test transforms between AltAz frames with different attributes."""
+    """Test transforms between Horizontal frames with different attributes."""
     el1 = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)
-    origin1 = AltAz(0 * u.deg, 0*u.deg, obstime=Time("2000-01-01T12:00:00"),
-                    location=el1)
+    origin1 = Horizontal(0 * u.deg, 0*u.deg,
+                         obstime=Time("2000-01-01T12:00:00"),
+                         location=el1)
     frame1 = SkyOffsetFrame(origin=origin1)
     coo1 = SkyCoord(1 * u.deg, 1 * u.deg, frame=frame1)
 
     el2 = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)
-    origin2 = AltAz(0 * u.deg, 0*u.deg, obstime=Time("2000-01-01T11:00:00"),
-                    location=el2)
+    origin2 = Horizontal(0 * u.deg, 0*u.deg,
+                         obstime=Time("2000-01-01T11:00:00"),
+                         location=el2)
     frame2 = SkyOffsetFrame(origin=origin2)
     coo2 = coo1.transform_to(frame2)
     coo2_expected = [1.22522446, 0.70624298] * u.deg
@@ -225,8 +227,9 @@ def test_altaz_attribute_transforms():
                     coo2_expected, atol=convert_precision)
 
     el3 = EarthLocation(0*u.deg, 90*u.deg, 0*u.m)
-    origin3 = AltAz(0 * u.deg, 90*u.deg, obstime=Time("2000-01-01T12:00:00"),
-                    location=el3)
+    origin3 = Horizontal(0 * u.deg, 90*u.deg,
+                         obstime=Time("2000-01-01T12:00:00"),
+                         location=el3)
     frame3 = SkyOffsetFrame(origin=origin3)
     coo3 = coo2.transform_to(frame3)
     assert_allclose([coo3.lon.wrap_at(180*u.deg), coo3.lat],

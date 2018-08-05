@@ -9,7 +9,7 @@ from ...units import allclose as quantity_allclose
 from ... import units as u
 from ... import constants
 from ...time import Time
-from ..builtin_frames import ICRS, AltAz, LSR, GCRS, Galactic, FK5
+from ..builtin_frames import ICRS, Horizontal, LSR, GCRS, Galactic, FK5
 from ..baseframe import frame_transform_graph
 from ..sites import get_builtin_sites
 from .. import (TimeAttribute,
@@ -143,7 +143,7 @@ def test_gcrs_diffs():
 def test_altaz_diffs():
     time = Time('J2015') + np.linspace(-1, 1, 1000)*u.day
     loc = get_builtin_sites()['greenwich']
-    aa = AltAz(obstime=time, location=loc)
+    aa = Horizontal(obstime=time, location=loc)
 
     icoo = ICRS(np.zeros_like(time)*u.deg, 10*u.deg, 100*u.au,
                 pm_ra_cosdec=np.zeros_like(time)*u.marcsec/u.yr,

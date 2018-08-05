@@ -7,7 +7,7 @@ import pytest
 
 from ... import units as u
 from .. import transformations as t
-from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, AltAz
+from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, Horizontal
 from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import (assert_quantity_allclose as assert_allclose,
@@ -399,10 +399,10 @@ def test_vel_transformation_obstime_err():
 
     loc = get_builtin_sites()['example_site']
 
-    aaf = AltAz(obstime='J2010', location=loc)
-    aaf2 = AltAz(obstime=aaf.obstime + 3*u.day, location=loc)
-    aaf3 = AltAz(obstime=aaf.obstime + np.arange(3)*u.day, location=loc)
-    aaf4 = AltAz(obstime=aaf.obstime, location=loc)
+    aaf = Horizontal(obstime='J2010', location=loc)
+    aaf2 = Horizontal(obstime=aaf.obstime + 3*u.day, location=loc)
+    aaf3 = Horizontal(obstime=aaf.obstime + np.arange(3)*u.day, location=loc)
+    aaf4 = Horizontal(obstime=aaf.obstime, location=loc)
 
     aa = aaf.realize_frame(rep)
 

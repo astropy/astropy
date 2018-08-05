@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Accuracy tests for GCRS coordinate transformations, primarily to/from AltAz.
+"""Accuracy tests for GCRS coordinate transformations, primarily to/from
+Horizontal.
 
 """
 
@@ -9,7 +10,7 @@ import numpy as np
 from ... import units as u
 from ...tests.helper import (assert_quantity_allclose as assert_allclose)
 from ...time import Time
-from .. import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
+from .. import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, Horizontal,
                 PrecessedGeocentric, CartesianRepresentation, SkyCoord,
                 SphericalRepresentation, UnitSphericalRepresentation,
                 HCRS, HeliocentricTrueEcliptic)
@@ -140,8 +141,8 @@ def test_icrs_gcrs_dist_diff(gframe):
 
 def test_cirs_to_altaz():
     """
-    Check the basic CIRS<->AltAz transforms.  More thorough checks implicitly
-    happen in `test_iau_fullstack`
+    Check the basic CIRS<->Horizontal transforms.  More thorough checks
+    implicitly happen in `test_iau_fullstack`
     """
     from .. import EarthLocation
 
@@ -151,7 +152,7 @@ def test_cirs_to_altaz():
     cirscart = CIRS(crepr, obstime=cirs.obstime, representation=CartesianRepresentation)
 
     loc = EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m)
-    altazframe = AltAz(location=loc, obstime=Time('J2005'))
+    altazframe = Horizontal(location=loc, obstime=Time('J2005'))
 
     cirs2 = cirs.transform_to(altazframe).transform_to(cirs)
     cirs3 = cirscart.transform_to(altazframe).transform_to(cirs)
@@ -234,7 +235,7 @@ def test_gcrs_cirs():
 
 def test_gcrs_altaz():
     """
-    Check GCRS<->AltAz transforms for round-tripping.  Has multiple paths
+    Check GCRS<->Horizontal transforms for round-tripping.  Has multiple paths
     """
     from .. import EarthLocation
 
@@ -246,7 +247,7 @@ def test_gcrs_altaz():
                  format='jd', scale='utc')
 
     loc = EarthLocation(lon=10 * u.deg, lat=80. * u.deg)
-    aaframe = AltAz(obstime=times, location=loc)
+    aaframe = Horizontal(obstime=times, location=loc)
 
     aa1 = gcrs.transform_to(aaframe)
     aa2 = gcrs.transform_to(ICRS).transform_to(CIRS).transform_to(aaframe)
@@ -284,17 +285,18 @@ def test_precessed_geocentric():
     assert_allclose(gcrs_coo.distance, gcrs2_roundtrip.distance)
 
 
-# shared by parametrized tests below.  Some use the whole AltAz, others use just obstime
-totest_frames = [AltAz(location=EarthLocation(-90*u.deg, 65*u.deg),
-                       obstime=Time('J2000')),  # J2000 is often a default so this might work when others don't
-                 AltAz(location=EarthLocation(120*u.deg, -35*u.deg),
-                       obstime=Time('J2000')),
-                 AltAz(location=EarthLocation(-90*u.deg, 65*u.deg),
-                       obstime=Time('2014-01-01 00:00:00')),
-                 AltAz(location=EarthLocation(-90*u.deg, 65*u.deg),
-                       obstime=Time('2014-08-01 08:00:00')),
-                 AltAz(location=EarthLocation(120*u.deg, -35*u.deg),
-                       obstime=Time('2014-01-01 00:00:00'))
+# shared by parametrized tests below.  Some use the whole Horizontal, others
+# use just obstime
+totest_frames = [Horizontal(location=EarthLocation(-90*u.deg, 65*u.deg),
+                            obstime=Time('J2000')),  # J2000 is often a default so this might work when others don't
+                 Horizontal(location=EarthLocation(120*u.deg, -35*u.deg),
+                            obstime=Time('J2000')),
+                 Horizontal(location=EarthLocation(-90*u.deg, 65*u.deg),
+                            obstime=Time('2014-01-01 00:00:00')),
+                 Horizontal(location=EarthLocation(-90*u.deg, 65*u.deg),
+                            obstime=Time('2014-08-01 08:00:00')),
+                 Horizontal(location=EarthLocation(120*u.deg, -35*u.deg),
+                            obstime=Time('2014-01-01 00:00:00'))
                 ]
 MOONDIST = 385000*u.km  # approximate moon semi-major orbit axis of moon
 MOONDIST_CART = CartesianRepresentation(3**-0.5*MOONDIST, 3**-0.5*MOONDIST, 3**-0.5*MOONDIST)
@@ -321,7 +323,7 @@ def test_gcrs_altaz_sunish(testframe):
 def test_gcrs_altaz_moonish(testframe):
     """
     Sanity-check that an object resembling the moon goes to the right place with
-    a GCRS->AltAz transformation
+    a GCRS->Horizontal transformation
     """
     moon = GCRS(MOONDIST_CART, obstime=testframe.obstime)
 
@@ -359,7 +361,7 @@ def test_gcrs_altaz_bothroutes(testframe):
 def test_cirs_altaz_moonish(testframe):
     """
     Sanity-check that an object resembling the moon goes to the right place with
-    a CIRS<->AltAz transformation
+    a CIRS<->Horizontal transformation
     """
     moon = CIRS(MOONDIST_CART, obstime=testframe.obstime)
 
@@ -375,7 +377,7 @@ def test_cirs_altaz_moonish(testframe):
 def test_cirs_altaz_nodist(testframe):
     """
     Check that a UnitSphericalRepresentation coordinate round-trips for the
-    CIRS<->AltAz transformation.
+    CIRS<->Horizontal transformation.
     """
     coo0 = CIRS(UnitSphericalRepresentation(10*u.deg, 20*u.deg), obstime=testframe.obstime)
 
@@ -431,7 +433,7 @@ def test_icrs_gcrscirs_sunish(testframe):
 def test_icrs_altaz_moonish(testframe):
     """
     Check that something expressed in *ICRS* as being moon-like goes to the
-    right AltAz distance
+    right Horizontal distance
     """
     # we use epv00 instead of get_sun because get_sun includes aberration
     earth_pv_helio, earth_pv_bary = epv00(*get_jd12(testframe.obstime, 'tdb'))

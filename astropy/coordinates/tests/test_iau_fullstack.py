@@ -8,7 +8,7 @@ from numpy import testing as npt
 
 from ... import units as u
 from ...time import Time
-from ..builtin_frames import ICRS, AltAz
+from ..builtin_frames import ICRS, Horizontal
 from ..builtin_frames.utils import get_jd12
 from .. import EarthLocation
 from .. import SkyCoord
@@ -27,8 +27,10 @@ def fullstack_icrs():
 
 @pytest.fixture(scope="function")
 def fullstack_fiducial_altaz(fullstack_icrs):
-    altazframe = AltAz(location=EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m),
-                       obstime=Time('J2000'))
+    altazframe = Horizontal(location=EarthLocation(lat=0*u.deg,
+                                                   lon=0*u.deg,
+                                                   height=0*u.m),
+                            obstime=Time('J2000'))
     return fullstack_icrs.transform_to(altazframe)
 
 
@@ -73,19 +75,20 @@ def test_iau_fullstack(fullstack_icrs, fullstack_fiducial_altaz,
                        fullstack_times, fullstack_locations,
                        fullstack_obsconditions):
     """
-    Test the full transform from ICRS <-> AltAz
+    Test the full transform from ICRS <-> Horizontal
     """
 
     # create the altaz frame
-    altazframe = AltAz(obstime=fullstack_times, location=fullstack_locations,
-                       pressure=fullstack_obsconditions[0],
-                       temperature=fullstack_obsconditions[1],
-                       relative_humidity=fullstack_obsconditions[2],
-                       obswl=fullstack_obsconditions[3])
+    altazframe = Horizontal(obstime=fullstack_times,
+                            location=fullstack_locations,
+                            pressure=fullstack_obsconditions[0],
+                            temperature=fullstack_obsconditions[1],
+                            relative_humidity=fullstack_obsconditions[2],
+                            obswl=fullstack_obsconditions[3])
 
     aacoo = fullstack_icrs.transform_to(altazframe)
 
-    # compare aacoo to the fiducial AltAz - should always be different
+    # compare aacoo to the fiducial Horizontal - should always be different
     assert np.all(np.abs(aacoo.alt - fullstack_fiducial_altaz.alt) > 50*u.milliarcsecond)
     assert np.all(np.abs(aacoo.az - fullstack_fiducial_altaz.az) > 50*u.milliarcsecond)
 
@@ -135,7 +138,7 @@ def test_iau_fullstack(fullstack_icrs, fullstack_fiducial_altaz,
 
 def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
     """
-    Test the full transform from ICRS <-> AltAz
+    Test the full transform from ICRS <-> Horizontal
     """
     aacoo = fullstack_icrs.transform_to(fullstack_fiducial_altaz)
 
@@ -148,7 +151,7 @@ def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
 def test_future_altaz():
     """
     While this does test the full stack, it is mostly meant to check that a
-    warning is raised when attempting to get to AltAz in the future (beyond
+    warning is raised when attempting to get to Horizontal in the future (beyond
     IERS tables)
     """
     from ...utils.exceptions import AstropyWarning
@@ -164,7 +167,8 @@ def test_future_altaz():
         location = EarthLocation(lat=0*u.deg, lon=0*u.deg)
         t = Time('J2161')
 
-        SkyCoord(1*u.deg, 2*u.deg).transform_to(AltAz(location=location, obstime=t))
+        SkyCoord(1*u.deg, 2*u.deg).transform_to(Horizontal(location=location,
+                                                           obstime=t))
 
     # check that these message(s) appear among any other warnings.  If tests are run with
     # --remote-data then the IERS table will be an instance of IERS_Auto which is

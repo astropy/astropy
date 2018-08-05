@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Accuracy tests for AltAz to ICRS coordinate transformations.
+"""Accuracy tests for Horizontal to ICRS coordinate transformations.
 
 We use "known good" examples computed with other coordinate libraries.
 
@@ -13,7 +13,7 @@ import pytest
 
 from .... import units as u
 from ....time import Time
-from ...builtin_frames import AltAz
+from ...builtin_frames import Horizontal
 from ... import EarthLocation
 from ... import Angle, SkyCoord
 
@@ -63,10 +63,11 @@ def test_against_hor2eq():
 
     obstime = Time(2451545.0, format='jd', scale='ut1')
 
-    altaz_frame = AltAz(obstime=obstime, location=location,
-                        temperature=0 * u.deg_C, pressure=0.781 * u.bar)
-    altaz_frame_noatm = AltAz(obstime=obstime, location=location,
-                              temperature=0 * u.deg_C, pressure=0.0 * u.bar)
+    altaz_frame = Horizontal(obstime=obstime, location=location,
+                             temperature=0 * u.deg_C, pressure=0.781 * u.bar)
+    altaz_frame_noatm = Horizontal(obstime=obstime, location=location,
+                                   temperature=0 * u.deg_C,
+                                   pressure=0.0 * u.bar)
     altaz = SkyCoord('264d55m06s 37d54m41s', frame=altaz_frame)
     altaz_noatm = SkyCoord('264d55m06s 37d54m41s', frame=altaz_frame_noatm)
 
@@ -107,8 +108,8 @@ def test_against_pyephem():
     # We are using the default pressure and temperature in PyEphem
     # relative_humidity = ?
     # obswl = ?
-    altaz_frame = AltAz(obstime=obstime, location=location,
-                        temperature=15 * u.deg_C, pressure=1.010 * u.bar)
+    altaz_frame = Horizontal(obstime=obstime, location=location,
+                             temperature=15 * u.deg_C, pressure=1.010 * u.bar)
 
     altaz = SkyCoord('6.8927d -60.7665d', frame=altaz_frame)
     radec_actual = altaz.transform_to('icrs')
@@ -139,7 +140,7 @@ def test_against_jpl_horizons():
                              lat=Angle('31.9585d'),
                              height=2.06 * u.km)
     # No atmosphere
-    altaz_frame = AltAz(obstime=obstime, location=location)
+    altaz_frame = Horizontal(obstime=obstime, location=location)
 
     altaz = SkyCoord('143.2970d 2.6223d', frame=altaz_frame)
     radec_actual = altaz.transform_to('icrs')
@@ -163,8 +164,8 @@ def test_fk5_equinox_and_epoch_j2000_0_to_topocentric_observed():
     obstime = Time('2010-01-01 12:00:00', scale='utc')
     # relative_humidity = ?
     # obswl = ?
-    altaz_frame = AltAz(obstime=obstime, location=location,
-                        temperature=0 * u.deg_C, pressure=0.781 * u.bar)
+    altaz_frame = Horizontal(obstime=obstime, location=location,
+                             temperature=0 * u.deg_C, pressure=0.781 * u.bar)
 
     radec = SkyCoord('12h22m54.899s 15d49m20.57s', frame='fk5')
 
@@ -179,8 +180,8 @@ def test_fk5_equinox_and_epoch_j2000_0_to_topocentric_observed():
     # print(distance)
     """TODO: Current output is completely incorrect ... xfailing this test for now.
 
-    <SkyCoord (AltAz: obstime=2010-01-01 12:00:00.000, location=(-1994497.7199061865, -5037954.447348028, 3357437.2294832403) m, pressure=781.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron):00:00.000, location=(-1994497.7199061865, -5037954.447348028, 3357437.2294832403) m, pressure=781.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): az=133.4869896371561 deg, alt=67.97857990957701 deg>
-    <SkyCoord (AltAz: obstime=None, location=None, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): az=264.91833333333335 deg, alt=37.91138888888889 deg>
+    <SkyCoord (Horizontal: obstime=2010-01-01 12:00:00.000, location=(-1994497.7199061865, -5037954.447348028, 3357437.2294832403) m, pressure=781.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron):00:00.000, location=(-1994497.7199061865, -5037954.447348028, 3357437.2294832403) m, pressure=781.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): az=133.4869896371561 deg, alt=67.97857990957701 deg>
+    <SkyCoord (Horizontal: obstime=None, location=None, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): az=264.91833333333335 deg, alt=37.91138888888889 deg>
     68d02m45.732s
     """
 
