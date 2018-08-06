@@ -698,7 +698,7 @@ class BoxLeastSquaresResults(dict):
         * ``'likelihood'``: the values of ``power`` are the
 >>>>>>> db93b52ae... add mandatory sphinx whitespace
           log likelihood maximized over phase, depth, and duration, or
-        - ``'snr'``: the values of ``power`` are the signal-to-noise with
+        * ``'snr'``: the values of ``power`` are the signal-to-noise with
           which the depth is measured maximized over phase, depth, and
           duration.
 
