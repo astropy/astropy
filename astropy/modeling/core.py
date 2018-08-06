@@ -800,7 +800,11 @@ class Model(metaclass=_ModelMeta):
         return self._n_models
 
     def __setattr__(self, attr, value):
-        if self.param_names is not None and attr in self.param_names:
+        if isinstance(self, CompoundModel):
+            param_names = self._param_names
+        else:
+            param_names = self.param_names
+        if param_names is not None and attr in self.param_names:
             param = self.__dict__[attr]
             value = _tofloat(value)
             if param.unit is None:
@@ -2362,7 +2366,7 @@ class CompoundModel(Model):
     '''
 
     def __init__(self, op, left, right, name=None, inverse=None):
-        self.__dict__['param_names'] = None
+        self.__dict__['_param_names'] = None
         self._n_submodels = None
         self.op = op
         self.left = left
@@ -2586,6 +2590,13 @@ class CompoundModel(Model):
             return self.left(*newargs, **kw)
         else:
             raise ModelDefinitionError('unrecognized operator')
+
+    @property
+    def param_names(self):
+        if self._param_names is None:
+            self.map_parameters()
+        return self._param_names
+    
 
     def _make_leaflist(self):
         tdict = {}
@@ -2899,14 +2910,14 @@ class CompoundModel(Model):
         if self._leaflist is None:
             self._make_leaflist()
         self._parameters_ = OrderedDict()
-        self.param_names = []
+        self._param_names = []
         for lindex, leaf in enumerate(self._leaflist):
             for param_name in leaf.param_names:
                 param = getattr(leaf, param_name)
                 new_param_name = "{}_{}".format(param_name, lindex)
                 self.__dict__[new_param_name] = param
                 self._parameters_[new_param_name] = param
-                self.param_names.append(new_param_name)
+                self._param_names.append(new_param_name)
         self._param_metrics = {}
         self._initialize_slices()
         self._initialize_constraints()
