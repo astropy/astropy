@@ -130,6 +130,10 @@ astropy.table
 - Add a new keyword argument ``serialize_method`` to ``Table.write`` to
   control how ``Time`` and ``MaskedColumn`` columns are written. [#7481]
 
+- Allow mixin columns to be used in table ``group`` and ``unique``
+  functions. This applies to both the key columns and the other data
+  columns. [#7712]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
