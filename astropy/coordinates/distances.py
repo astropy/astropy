@@ -190,17 +190,3 @@ class Distance(u.SpecificTypeQuantity):
     def _distmod_to_pc(cls, dm):
         dm = u.Quantity(dm, u.mag)
         return cls(10 ** ((dm.value + 5) / 5.), u.pc, copy=False)
-
-
-def _convert_to_and_validate_length_unit(unit, allow_dimensionless=False):
-    """
-    raises UnitsError if not a length unit
-    """
-    try:
-        unit = u.Unit(unit)
-        assert (unit.is_equivalent(u.kpc) or
-                allow_dimensionless and unit == u.dimensionless_unscaled)
-    except (TypeError, AssertionError):
-        raise u.UnitsError('Unit "{0}" is not a length type'.format(unit))
-
-    return unit

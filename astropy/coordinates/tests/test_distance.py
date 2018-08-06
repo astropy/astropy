@@ -127,6 +127,12 @@ def test_distances_scipy():
     d6 = Distance(z=0.23, cosmology=WMAP5, unit=u.km)
     npt.assert_allclose(d6.value, 3.5417046898762366e+22)
 
+    with pytest.raises(ValueError):
+        d7 = Distance(cosmology=WMAP5, unit=u.km)
+
+    with pytest.raises(ValueError):
+        d8 = Distance()
+
 
 def test_distance_change():
 
@@ -245,7 +251,7 @@ def test_distance_comparison():
 
 
 def test_distance_to_quantity_when_not_units_of_length():
-    """Any operatation that leaves units other than those of length
+    """Any operation that leaves units other than those of length
     should turn a distance into a quantity (#2206, #2250)"""
     d = Distance(15*u.kpc)
     twice = 2.*d
