@@ -1,6 +1,17 @@
 -r pip-requirements
+cython
+pyyaml
+jinja2
+h5py
+scikit-image
+pandas
+pytz
+beautifulsoup4
+ipython
+mpmath
 matplotlib
 scipy
 pillow
 sphinx-gallery
 jplephem
+
