@@ -1991,8 +1991,9 @@ class Model(metaclass=_ModelMeta):
         param_metrics = self._param_metrics
         for name in self.param_names:
             param = getattr(self, name)
-            param.value = self._parameters[param_metrics[name]['slice']]
-            param.shape = param_metrics[name]['shape']
+            value = self._parameters[param_metrics[name]['slice']]
+            value.shape = param_metrics[name]['shape']
+            param.value = value
 
     def _check_param_broadcast(self, max_ndim):
         """
@@ -2491,8 +2492,9 @@ class CompoundModel(Model):
     def submodel_names(self):
         if self._leaflist is None:
             self._make_leaflist()
-        return tuple(item.name for item in self._leaflist)
-    
+        names = [item.name for item in self._leaflist]
+        nonecount = 1
+
 
     def both_inverses_exist(self):
         '''
