@@ -284,3 +284,4 @@ Literature References
 
 .. [1] Kovacs, Zucker, & Mazeh (2002), A&A, 391, 369 (arXiv:astro-ph/0206099)
 .. [2] Hartman & Bakos (2016), Astronomy & Computing, 17, 1 (arXiv:1605.06811)
+
