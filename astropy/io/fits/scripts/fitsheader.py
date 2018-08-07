@@ -92,6 +92,7 @@ class HeaderFormatter:
     OSError
         If `filename` does not exist or cannot be read.
     """
+
     def __init__(self, filename, verbose=True):
         self.filename = filename
         self.verbose = verbose
@@ -227,6 +228,7 @@ class TableHeaderFormatter(HeaderFormatter):
 
     Subclassed from HeaderFormatter, which contains the meat of the formatting.
     """
+
     def _parse_internal(self, hdukeys, keywords, compressed):
         """Method called by the parse method in the parent class."""
         tablerows = []
@@ -319,7 +321,7 @@ def print_headers_as_comparison(args):
                                   args.compressed)
             if tbl:
                 # Remove empty keywords
-                tbl = tbl[np.where(tbl['keyword']!='')]
+                tbl = tbl[np.where(tbl['keyword'] != '')]
             else:
                 tbl = table.Table([[filename]], names=('filename',))
             tables.append(tbl)
@@ -340,7 +342,7 @@ def print_headers_as_comparison(args):
     if len(np.unique(hdus)) > 1:
         for tab in tables:
             new_column = table.Column(
-                ['{}:{}'.format(row['hdu'],row['keyword']) for row in tab])
+                ['{}:{}'.format(row['hdu'], row['keyword']) for row in tab])
             tab.add_column(new_column, name='hdu+keyword')
         keyword_column_name = 'hdu+keyword'
     else:
@@ -352,6 +354,8 @@ def print_headers_as_comparison(args):
         final_table = [table.Column([tab['filename'][0]], name='filename')]
         if 'value' in tab.colnames:
             for row in tab:
+                if row['keyword'] in ('COMMENT', 'HISTORY'):
+                    continue
                 final_table.append(table.Column([row['value']],
                                                 name=row[keyword_column_name]))
         final_tables.append(table.Table(final_table))
@@ -365,7 +369,7 @@ def print_headers_as_comparison(args):
 
 class KeywordAppendAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        keyword = values.replace('.',' ')
+        keyword = values.replace('.', ' ')
         if namespace.keywords is None:
             namespace.keywords = []
         if keyword not in namespace.keywords:
