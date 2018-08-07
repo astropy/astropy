@@ -83,6 +83,9 @@ class HeaderFormatter:
     ----------
     filename : str
         Path to a single FITS file.
+    verbose : bool
+        Verbose flag, to show more information about missing extensions,
+        keywords, etc.
 
     Raises
     ------
