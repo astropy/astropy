@@ -55,9 +55,9 @@ class FakeUncertainty(NDUncertainty):
 # Test the fake (added also StdDevUncertainty which should behave identical)
 
 # the list of classes used for parametrization in tests below
-paramet_uncert_classes = [FakeUncertainty, StdDevUncertainty, UnknownUncertainty]
+uncertainty_types_to_be_tested = [FakeUncertainty, StdDevUncertainty, UnknownUncertainty]
 
-@pytest.mark.parametrize(('UncertClass'), paramet_uncert_classes)
+@pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
 def test_init_fake_with_list(UncertClass):
     fake_uncert = UncertClass([1, 2, 3])
     assert_array_equal(fake_uncert.array, np.array([1, 2, 3]))
@@ -69,7 +69,7 @@ def test_init_fake_with_list(UncertClass):
     assert fake_uncert.unit is u.adu
 
 
-@pytest.mark.parametrize(('UncertClass'), paramet_uncert_classes)
+@pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
 def test_init_fake_with_ndarray(UncertClass):
     uncert = np.arange(100).reshape(10, 10)
     fake_uncert = UncertClass(uncert)
@@ -86,7 +86,7 @@ def test_init_fake_with_ndarray(UncertClass):
     assert fake_uncert.unit is u.adu
 
 
-@pytest.mark.parametrize(('UncertClass'), paramet_uncert_classes)
+@pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
 def test_init_fake_with_quantity(UncertClass):
     uncert = np.arange(10).reshape(2, 5) * u.adu
     fake_uncert = UncertClass(uncert)
@@ -105,7 +105,7 @@ def test_init_fake_with_quantity(UncertClass):
     assert fake_uncert.unit is u.m  # It took the explicit one
 
 
-@pytest.mark.parametrize(('UncertClass'), paramet_uncert_classes)
+@pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
 def test_init_fake_with_fake(UncertClass):
     uncert = np.arange(5).reshape(5, 1)
     fake_uncert1 = UncertClass(uncert)
@@ -131,7 +131,7 @@ def test_init_fake_with_fake(UncertClass):
     assert fake_uncert2.unit is u.cm
 
 
-@pytest.mark.parametrize(('UncertClass'), paramet_uncert_classes)
+@pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
 def test_init_fake_with_somethingElse(UncertClass):
     # What about a dict?
     uncert = {'rdnoise': 2.9, 'gain': 0.6}
@@ -239,7 +239,7 @@ def test_for_stolen_uncertainty():
     assert ndd1.uncertainty.parent_nddata.data == ndd1.data
 
 
-@pytest.mark.parametrize(('UncertClass'), paramet_uncert_classes)
+@pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
 def test_quantity(UncertClass):
     fake_uncert = UncertClass([1, 2, 3], unit=u.adu)
     assert isinstance(fake_uncert.quantity, u.Quantity)
