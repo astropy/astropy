@@ -317,9 +317,12 @@ def print_headers_as_comparison(args):
             tbl = formatter.parse(args.extensions,
                                   args.keywords,
                                   args.compressed)
-            tbl = tbl[np.where(tbl['keyword']!='')]  # Remove empty keywords
             if tbl:
-                tables.append(tbl)
+                # Remove empty keywords
+                tbl = tbl[np.where(tbl['keyword']!='')]
+            else:
+                tbl = table.Table([[filename]], names=('filename',))
+            tables.append(tbl)
         except OSError as e:
             log.error(str(e))  # file not found or unreadable
     # Concatenate the tables
@@ -329,20 +332,28 @@ def print_headers_as_comparison(args):
         resulting_table = tables[0]
     else:
         resulting_table = table.vstack(tables)
+
     # If we obtained more than one hdu, merge hdu and keywords columns
-    if len(np.unique(resulting_table['hdu']))>1:
+    hdus = resulting_table['hdu']
+    if np.ma.isMaskedArray(hdus):
+        hdus = hdus.compressed()
+    if len(np.unique(hdus)) > 1:
         for tab in tables:
-            new_column = table.Column(['{}:{}'.format(row['hdu'],row['keyword']) for row in tab])
+            new_column = table.Column(
+                ['{}:{}'.format(row['hdu'],row['keyword']) for row in tab])
             tab.add_column(new_column, name='hdu+keyword')
         keyword_column_name = 'hdu+keyword'
     else:
         keyword_column_name = 'keyword'
+
     # Check how many hdus we are processing
     final_tables = []
     for tab in tables:
         final_table = [table.Column([tab['filename'][0]], name='filename')]
-        for row in tab:
-            final_table.append(table.Column([row['value']], name=row[keyword_column_name]))
+        if 'value' in tab.colnames:
+            for row in tab:
+                final_table.append(table.Column([row['value']],
+                                                name=row[keyword_column_name]))
         final_tables.append(table.Table(final_table))
     final_table = table.vstack(final_tables)
     # Sort if requested

@@ -103,6 +103,14 @@ class TestFITSheader_script(FitsTestCase):
         assert out[2].endswith('tdim.fits       0       2      --      --      --')
         assert out[3].endswith('test1.fits       0       2       2       2       2')
 
+        fitsheader.main(['-f', '-k', 'DATE-OBS',
+                         self.data('table.fits'), self.data('test0.fits')])
+        out, err = capsys.readouterr()
+        out = out.splitlines()
+        assert len(out) == 4
+        assert out[2].endswith('table.fits       --')
+        assert out[3].endswith('test0.fits 19/05/94')
+
     def test_dotkeyword(self, capsys):
         fitsheader.main(['-e', '0', '-k', 'ESO DET ID',
                          self.data('fixed-1890.fits')])
