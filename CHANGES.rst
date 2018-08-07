@@ -89,9 +89,9 @@ astropy.io.fits
 
 - All time coordinates can now be written to and read from FITS binary tables,
   including those with vectorized locations. [#7430]
-- The ``fitsheader`` command line tool now supports a ``dfits+fitsort`` mode, 
-The ``fitsheader`` command line tool now supports a ``dfits+fitsort`` mode, 
-and the dotted notation for keywords (e.g. ``ESO.INS.ID``). [#7240]
+
+- The ``fitsheader`` command line tool now supports a ``dfits+fitsort`` mode,
+  and the dotted notation for keywords (e.g. ``ESO.INS.ID``). [#7240]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
