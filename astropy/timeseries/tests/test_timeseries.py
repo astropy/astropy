@@ -12,7 +12,6 @@ INPUT_TIME = Time(['2016-03-22T12:30:31', '2015-01-21T12:30:32', '2016-03-22T12:
 INPUT_DATA = Table([[1, 2, 11], [3, 4, 1], [1, 1, 1]], names=['a', 'b', 'c'])
 
 
-@pytest.mark.xfail
 def test_empty_initialization():
     ts = TimeSeries()
     assert ts.time is None
@@ -21,7 +20,6 @@ def test_empty_initialization():
     assert isinstance(ts, QTable)
 
 
-@pytest.mark.xfail
 def test_initialize_only_time():
     ts = TimeSeries(time=INPUT_TIME)
 
@@ -29,7 +27,6 @@ def test_initialize_only_time():
     assert isinstance(ts, QTable)
 
 
-@pytest.mark.xfail
 def test_initialization():
     ts = TimeSeries(time=INPUT_TIME, data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
 
@@ -41,7 +38,6 @@ def test_initialization():
     ts = TimeSeries(time=INPUT_TIME, data=INPUT_DATA)
 
 
-@pytest.mark.xfail
 def test_initialization_with_deltatime():
     date = datetime(2018, 7, 1, 10, 10, 10)
 
@@ -81,7 +77,6 @@ def test_initialization_with_time_in_data():
 # TODO remove redundancy for input table initialization, or just simply structure better
 
 
-@pytest.mark.xfail
 def test_adding_more_columns():
     ts = TimeSeries(time=INPUT_TIME, data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
     ts['c'] = Column([5, 4, 3])
@@ -98,7 +93,6 @@ def test_access_column():
     assert ts['a'].name == 'a'
 
 
-@pytest.mark.xfail
 def test_access_time():
     ts = TimeSeries(time=INPUT_TIME, data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
 
@@ -130,7 +124,6 @@ def test_access_time_value():
     assert ts['time'][0] == Time('2015-01-21T12:30:32')
 
 
-@pytest.mark.xfail
 def test_normal_Columns():
     ts = TimeSeries(time=INPUT_TIME, data=INPUT_DATA)
 
