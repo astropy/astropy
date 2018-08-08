@@ -275,6 +275,7 @@ def _get_bibtex():
 
 __bibtex__ = _get_bibtex()
 
+__citation__ = _get_bibtex()
 
 import logging
 
