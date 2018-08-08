@@ -48,7 +48,6 @@ def test_initialization_with_deltatime():
     #  initialize with the start time and step size
 
 
-@pytest.mark.xfail
 def test_initialization_with_time_in_data():
     data = INPUT_DATA.copy()
     data['time'] = INPUT_TIME
@@ -60,17 +59,24 @@ def test_initialization_with_time_in_data():
     assert set(ts.colnames) == set(['a', 'b', 'c', 'time'])
     assert all(ts.time == INPUT_TIME)
 
-    # TODO: add more valid cases when a time is passed in data & names
     ts2 = TimeSeries(data=[[10, 2, 3], INPUT_TIME], names=['a', 'time'])
 
-
-    with pytest.raises.ValueError:
+    with pytest.raises(ValueError):
         # Don't allow ambiguous cases of passing multiple 'time' columns
         TimeSeries(data=data, time=INPUT_TIME)
 
-    with pytest.raises.ValueError:
+    with pytest.raises(ValueError):
         # 'time' is a protected name, don't allow ambiguous cases
         TimeSeries(time=INPUT_TIME, data=[[10, 2, 3], INPUT_TIME], names=['a', 'time'])
+
+
+@pytest.mark.xfail
+def test_initialization_with_timeseries():
+    ts = TimeSeries(data=INPUT_DATA, time=INPUT_TIME)
+    table = Table([[1, 2, 11], [3, 4, 1], [1, 1, 1]], names=['a2', 'b2', 'c2'])
+
+    # TODO: decide which initializations to allow
+    ts2 = TimeSeries([ts, table])
 
 
 
@@ -84,10 +90,11 @@ def test_adding_more_columns():
     ts.add_column(Column([6, 5, 4], name='d'))
 
 
-@pytest.mark.xfail
 def test_access_column():
     ts = TimeSeries(time=INPUT_TIME, data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
-    assert isinstance(ts['a'], TimeSeriesColumn)
+
+    # TODO update this to TimeSeriesColumn if we end up adding extra features to them
+    assert isinstance(ts['a'], Column)
     # assert all(ts['a'].time == INPUT_TIME)  # not sure whether we need this
 
     assert ts['a'].name == 'a'
@@ -134,11 +141,14 @@ def test_normal_Columns():
 
 @pytest.mark.xfail
 def test_operations():
-    # TODO: hstack, vstack, join
     ts = TimeSeries(time=INPUT_TIME, data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
     new_column = Column([5, 4, 3], name='c')
 
-    hstack([ts, new_column])
+    tstack = hstack([ts, new_column])
+
+    assert isinstance(tstack, TimeSeries)
+
+    # TODO: do join and vstack, too (but need to decide desired Row behaviour first
 
 
 @pytest.mark.xfail
@@ -174,11 +184,17 @@ def test_adding_index_column():
 @pytest.mark.xfail
 def test_access_multiple_columns():
     ts = TimeSeries(time=INPUT_TIME, data=[[1, 20, 3], [4, 5, 6], [4, 3, 2]], names=['a', 'b', 'c'])
-    ts_out = TimeSeries(time=INPUT_TIME, data=[[1, 20, 3], [4, 5, 6]], names=['a', 'b'])
+    t_out = QTable(data=[[1, 20, 3], [4, 5, 6]], names=['a', 'b'])
+    ts_out = TimeSeries(time=INPUT_TIME, data=[[4, 5, 6], ], names=['b', ])
 
     # TODO: For this we need to be able to do TimeSeries([TimeSeries, TimeSeries, Time])
     # type initialization, or override TimeSeries.__getitem__
 
     t = ts['a', 'b']
+    assert not isinstance(t, TimeSeries)
+    assert isinstance(t, QTable)
+    assert all(t == t_out)
+
+    t = ts['time', 'b']
     assert isinstance(t, TimeSeries)
-    assert t == ts_out
+    assert all(t == ts_out)
