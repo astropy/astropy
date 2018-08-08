@@ -724,7 +724,9 @@ class Model(metaclass=_ModelMeta):
         for cls in mro:
             if issubclass(cls, Model):
                 for parname, val in cls._parameter_vals_.items():
-                    self.__dict__[parname] = copy.deepcopy(val)
+                    newpar = copy.deepcopy(val)
+                    self.__dict__[parname] = newpar
+                    #newpar._validator = val._validator
         self._initialize_constraints(kwargs)
         # Remaining keyword args are either parameter values or invalid
         # Parameter values must be passed in as keyword arguments in order to
@@ -807,6 +809,8 @@ class Model(metaclass=_ModelMeta):
         if param_names is not None and attr in self.param_names:
             param = self.__dict__[attr]
             value = _tofloat(value)
+            if param._validator is not None:
+                param._validator(self, value)
             if param.unit is None:
                 if isinstance(value, Quantity):
                     param._unit = value.unit
@@ -1902,6 +1906,11 @@ class Model(metaclass=_ModelMeta):
             self._check_param_broadcast(None)
 
         self._n_models = n_models
+        ## now validate parameters
+        for name in params:
+            param = getattr(self, name)
+            if param._validator is not None:
+                param._validator(self, param.value)
         ##
         # for name in params:
         #    param = getattr(self, name)
