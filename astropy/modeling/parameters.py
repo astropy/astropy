@@ -635,9 +635,13 @@ class Parameter(OrderedDescriptor):
 
 
         def validator(func, self=self):
-            self._validator = func
-            return self
-
+            if callable(func):
+                self._validator = func
+                return self
+            else:
+                raise ValueError("This decorator method expects a callable.\n"
+                                 "The use of this method as a direct validator is\n"
+                                 "deprecated; use the new validate method instead\n")
         return validator
 
 
