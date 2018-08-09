@@ -883,7 +883,6 @@ def test_stddevuncertainty_compat_descriptor_no_weakref():
     assert uncert.parent_nddata is ccd
     uncert._parent_nddata = None
 
-    
 def test_CCDataread_returns_image(ccd_data, tmpdir):
     # Test if CCData.read returns a image when reading a fits file containing 
     #a table and image, in that order.
