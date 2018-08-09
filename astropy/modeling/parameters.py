@@ -633,24 +633,17 @@ class Parameter(OrderedDescriptor):
             to parameter 'b'
         """
 
-        if self._model is None:
-            # For unbound parameters return the validator setter
-            def validator(func, self=self):
-                self._validator = func
-                return self
 
-            return validator
-        else:
-            # Return the validator method, bound to the Parameter instance with
-            # the name "validator"
-            def validator(self, value):
-                if self._validator is not None:
-                    return self._validator(self._model, value)
+        def validator(func, self=self):
+            self._validator = func
+            return self
 
-            if six.PY2:
-                return types.MethodType(validator, self, type(self))
-            else:
-                return types.MethodType(validator, self)
+        return validator
+
+
+    def validate(self, value):
+        if self._validator is not None and self._model is not None:
+            self._validator(self._model, value)
 
     def copy(self, name=None, description=None, default=None, unit=None,
              getter=None, setter=None, fixed=False, tied=False, min=None,

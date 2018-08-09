@@ -725,6 +725,7 @@ class Model(metaclass=_ModelMeta):
             if issubclass(cls, Model):
                 for parname, val in cls._parameter_vals_.items():
                     newpar = copy.deepcopy(val)
+                    newpar._model = self
                     self.__dict__[parname] = newpar
                     #newpar._validator = val._validator
         self._initialize_constraints(kwargs)
