@@ -266,7 +266,6 @@ def _get_bibtex():
 
     citation_file = os.path.join(os.path.dirname(__file__), 'CITATION')
 
-    print(citation_file)
     with open(citation_file, 'r') as citation:
         refs = re.findall(r'\{[^()]*\}', citation.read())
         if len(refs) == 0: return ''
@@ -274,9 +273,7 @@ def _get_bibtex():
     return bibtexreference
 
 
-__bibtex__ = _get_bibtex()
-
-__citation__ = _get_bibtex()
+__citation__ = __bibtex__ = _get_bibtex()
 
 import logging
 
