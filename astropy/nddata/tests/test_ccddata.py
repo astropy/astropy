@@ -894,5 +894,3 @@ def test_CCDataread_returns_image(ccd_data, tmpdir):
     ccd = CCDData.read(filename, unit='adu')
     # Expecting to get (100, 100), the size of the image
     assert ccd.data.shape == (100,100)
-    
-
