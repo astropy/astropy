@@ -31,7 +31,7 @@ def pytest_addoption(parser):
                           "file other than the default can cause some tests "
                           "to fail unexpectedly")
 
-    parser.addoption("--cache-dir", nargs='?', type=writeable_directory,
+    parser.addoption("--astropy-cache-dir", nargs='?', type=writeable_directory,
                      help="specify directory for storing and retrieving the "
                           "Astropy cache during tests (default is "
                           "to use a temporary directory created by the test "
@@ -44,7 +44,7 @@ def pytest_addoption(parser):
                   "file other than the default can cause some tests "
                   "to fail unexpectedly", default=None)
 
-    parser.addini("cache_dir",
+    parser.addini("astropy_cache_dir",
                   "specify directory for storing and retrieving the "
                   "Astropy cache during tests (default is "
                   "to use a temporary directory created by the test "
@@ -55,11 +55,11 @@ def pytest_configure(config):
 
 def pytest_runtest_setup(item):
     config_dir = item.config.getini('config_dir')
-    cache_dir = item.config.getini('cache_dir')
+    cache_dir = item.config.getini('astropy_cache_dir')
 
     # Command-line options can override, however
     config_dir = item.config.getoption('config_dir') or config_dir
-    cache_dir = item.config.getoption('cache_dir') or cache_dir
+    cache_dir = item.config.getoption('astropy_cache_dir') or cache_dir
 
     # We can't really use context managers directly in py.test (although
     # py.test 2.7 adds the capability), so this may look a bit hacky
