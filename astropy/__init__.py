@@ -263,14 +263,15 @@ def _rebuild_extensions():
 # Set the bibtex entry to the article referenced in CITATION
 def _get_bibtex():
     import re
-    if os.path.exists('CITATION'):
-        with open('CITATION', 'r') as citation:
-            refs = re.findall(r'\{[^()]*\}', citation.read())
-            if len(refs) == 0: return ''
-            bibtexreference = "@ARTICLE{0}".format(refs[0])
-        return bibtexreference
-    else:
-        return ''
+
+    citation_file = os.path.join(os.path.dirname(__file__), 'CITATION')
+
+    print(citation_file)
+    with open(citation_file, 'r') as citation:
+        refs = re.findall(r'\{[^()]*\}', citation.read())
+        if len(refs) == 0: return ''
+        bibtexreference = "@ARTICLE{0}".format(refs[0])
+    return bibtexreference
 
 
 __bibtex__ = _get_bibtex()
