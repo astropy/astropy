@@ -382,6 +382,10 @@ class BoxLeastSquares(object):
             - ``depth_even``: The depth and uncertainty on the depth for a
                 model where the period is twice the fiducial period and the
                 phase is offset by one orbital period.
+            - ``depth_half``: The depth and uncertainty for a model with a
+                period of half the fiducial period.
+            - ``depth_phased``: The depth and uncertainty for a model with the
+                fiducial period and the phase offset by half a period.
             - ``harmonic_amplitude``: The amplitude of the best fit sinusoidal
                 model.
             - ``harmonic_delta_log_likelihood``: The difference in log
