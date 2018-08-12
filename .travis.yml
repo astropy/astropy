@@ -52,7 +52,11 @@ env:
         # E722 - do not use bare except
         # E901 - SyntaxError or IndentationError
         # E902 - IOError
-        - FLAKE8_OPT="--select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E502,E722,E901,E902"
+        # E999: SyntaxError -- failed to compile a file into an Abstract Syntax Tree
+        # # F821: undefined name  # Note: Removed for now because of heavy use of units.si
+        # F822: undefined name in __all__
+        # F823: local variable name referenced before assignment
+        - FLAKE8_OPT="--select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E502,E722,E901,E902,E999,F822,F823"
 
 stages:
    # Do the style check and a single test job, don't proceed if it fails
