@@ -62,6 +62,7 @@ class TestUfuncCoverage:
 
         all_q_ufuncs = (qh.UNSUPPORTED_UFUNCS |
                         set(qh.UFUNC_HELPERS.keys()))
+
         # Check that every numpy ufunc is covered.
         assert all_np_ufuncs - all_q_ufuncs == set()
         # Check that all ufuncs we cover come from numpy, erfa, and scipy.
@@ -77,6 +78,7 @@ class TestUfuncCoverage:
             all_sps_ufuncs = set()
         assert (all_q_ufuncs - all_np_ufuncs -
                 all_sps_ufuncs - all_erfa_ufuncs == set())
+
 
 
 class TestQuantityTrigonometricFuncs:
