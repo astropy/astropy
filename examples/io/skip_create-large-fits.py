@@ -20,9 +20,9 @@ memory) from scratch using `astropy.io.fits`.
 #  Normally to create a single image FITS file one would do something like:
 
 import os
-import numpy
+import numpy as np
 from astropy.io import fits
-data = numpy.zeros((40000, 40000), dtype=numpy.float64)
+data = np.zeros((40000, 40000), dtype=np.float64)
 hdu = fits.PrimaryHDU(data=data)
 
 ##############################################################################
@@ -53,7 +53,7 @@ hdu.writeto('large.fits')
 # exact size is irrelevant, as long as it has the desired number of
 # dimensions
 
-data = numpy.zeros((100, 100), dtype=numpy.float64)
+data = np.zeros((100, 100), dtype=np.float64)
 hdu = fits.PrimaryHDU(data=data)
 header = hdu.header
 while len(header) < (36 * 4 - 1):
