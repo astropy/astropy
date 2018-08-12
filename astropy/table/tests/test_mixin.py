@@ -542,16 +542,6 @@ def test_assignment_and_copy():
                 assert np.all(t0['m'][i0] != t['m'][i0])
 
 
-def test_grouping():
-    """
-    Test grouping with mixin columns.  Raises not yet implemented error.
-    """
-    t = QTable(MIXIN_COLS)
-    t['index'] = ['a', 'b', 'b', 'c']
-    with pytest.raises(NotImplementedError):
-        t.group_by('index')
-
-
 def test_conversion_qtable_table():
     """
     Test that a table round trips from QTable => Table => QTable

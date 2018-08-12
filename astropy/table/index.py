@@ -620,12 +620,32 @@ def get_index(table, table_copy):
         Subset of the columns in the table argument
     '''
     cols = set(table_copy.columns)
-    indices = set()
     for column in cols:
         for index in table[column].info.indices:
             if set([x.info.name for x in index.columns]) == cols:
                 return index
     return None
+
+
+def get_index_by_names(table, names):
+    '''
+    Returns an index in ``table`` corresponding to the ``names`` columns or None
+    if no such index exists.
+
+    Parameters
+    ----------
+    table : `Table`
+        Input table
+    nmaes : tuple, list
+        Column names
+    '''
+    names = list(names)
+    for index in table.indices:
+        index_names = [col.info.name for col in index.columns]
+        if index_names == names:
+            return index
+    else:
+        return None
 
 
 class _IndexModeContext:
