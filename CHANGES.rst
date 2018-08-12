@@ -182,6 +182,10 @@ astropy.table
 
 - Added support for stacking ``Column``, mixin column (e.g. ``Quantity``,
   ``Time``) or column-like objects. [#7674]
+- Expose ``represent_mixins_as_columns`` as a public function in the
+  ``astropy.table`` subpackage.  This previously-private function in the
+  ``table.serialize`` module is used to represent mixin columns in a Table as
+  one or more plain Column objects. [#7729]
 
 - Added support for inserting a row into a Table that has ``Time`` or
   ``TimeDelta`` column(s). [#7897]
