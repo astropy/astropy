@@ -739,4 +739,4 @@ def test_represent_mixins_as_columns_unit_fix():
     t = Table({'a': [1, 2]}, masked=True)
     t['a'].unit = 'not a valid unit'
     t['a'].mask[1] = True
-    serialize._represent_mixins_as_columns(t)
+    serialize.represent_mixins_as_columns(t)
