@@ -336,6 +336,11 @@ astropy.coordinates
 - Sped up getting xyz vectors from ``CartesianRepresentation`` (which
   is used a lot internally). [#7638]
 
+
+- Sped up transformations and some representation methods by replacing
+  python code with (compiled) ``erfa`` ufuncs. [#7639]
+
+
 astropy.units
 ^^^^^^^^^^^^^
 
@@ -478,6 +483,9 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
+
+- Fixed bug in which consecutive ``StaticMatrixTransform``'s in a frame
+  transform path would be combined in the incorrect order. [#7707]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -1226,6 +1234,7 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+
 - Fixed ``Cutout2D`` output WCS NAXIS values to reflect the cutout
   image size. [#7552]
 
@@ -1240,6 +1249,7 @@ astropy.nddata
 - Fixed the bug in CCData.read when the HDU is not specified and the first one is empty 
   so the function searches for the first HDU with data which may not have an 
   image extension. [#7613]
+
 
 astropy.samp
 ^^^^^^^^^^^^
