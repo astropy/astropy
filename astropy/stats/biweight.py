@@ -102,8 +102,15 @@ def biweight_location(data, c=6.0, M=None, axis=None):
 
     # set up the weighting
     mad = median_absolute_deviation(data, axis=axis)
+
+    if axis is None and mad == 0.:
+        return M  # return median if data is a constant array
+
     if axis is not None:
         mad = np.expand_dims(mad, axis=axis)
+        const_mask = (mad == 0.)
+        mad[const_mask] = 1.  # prevent divide by zero
+
     u = d / (c * mad)
 
     # now remove the outlier points
@@ -111,6 +118,8 @@ def biweight_location(data, c=6.0, M=None, axis=None):
     u = (1 - u ** 2) ** 2
     u[mask] = 0
 
+    # along the input axis if data is constant, d will be zero, thus
+    # the median value will be returned along that axis
     return M.squeeze() + (d * u).sum(axis=axis) / u.sum(axis=axis)
 
 
