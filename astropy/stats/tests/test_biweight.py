@@ -20,6 +20,40 @@ def test_biweight_location():
         assert abs(cbl - 0) < 1e-2
 
 
+def test_biweight_location_constant():
+    cbl = biweight_location(np.ones((10, 5)))
+    assert cbl == 1.
+
+
+def test_biweight_location_constant_axis_2d():
+    shape = (10, 5)
+    data = np.ones(shape)
+    cbl = biweight_location(data, axis=0)
+    assert_allclose(cbl, np.ones(shape[1]))
+    cbl = biweight_location(data, axis=1)
+    assert_allclose(cbl, np.ones(shape[0]))
+
+    val1 = 100.
+    val2 = 2.
+    data = np.arange(50).reshape(10, 5)
+    data[2] = val1
+    data[7] = val2
+    cbl = biweight_location(data, axis=1)
+    assert_allclose(cbl[2], val1)
+    assert_allclose(cbl[7], val2)
+
+
+def test_biweight_location_constant_axis_3d():
+    shape = (10, 5, 2)
+    data = np.ones(shape)
+    cbl = biweight_location(data, axis=0)
+    assert_allclose(cbl, np.ones((shape[1], shape[2])))
+    cbl = biweight_location(data, axis=1)
+    assert_allclose(cbl, np.ones((shape[0], shape[2])))
+    cbl = biweight_location(data, axis=2)
+    assert_allclose(cbl, np.ones((shape[0], shape[1])))
+
+
 def test_biweight_location_small():
     cbl = biweight_location([1, 3, 5, 500, 2])
     assert abs(cbl - 2.745) < 1e-3
