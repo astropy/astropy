@@ -149,19 +149,18 @@ def represent_mixins_as_columns(tbl, exclude_classes=()):
     >>> from astropy.time import Time
     >>> from astropy.coordinates import SkyCoord
 
-    >>> x = [100, 200]
+    >>> x = [100.0, 200.0]
     >>> obstime = Time([1999.0, 2000.0], format='jyear')
     >>> sc = SkyCoord([1, 2], [3, 4], unit='deg', obstime=obstime)
     >>> tbl = Table([sc, x], names=['sc', 'x'])
-
     >>> represent_mixins_as_columns(tbl)
     <Table length=2>
-     sc.ra   sc.dec sc.obstime.jd1 sc.obstime.jd2   x
+     sc.ra   sc.dec sc.obstime.jd1 sc.obstime.jd2    x
       deg     deg
-    float64 float64    float64        float64     int64
-    ------- ------- -------------- -------------- -----
-        1.0     3.0      2451180.0          -0.25   100
-        2.0     4.0      2451545.0            0.0   200
+    float64 float64    float64        float64     float64
+    ------- ------- -------------- -------------- -------
+        1.0     3.0      2451180.0          -0.25   100.0
+        2.0     4.0      2451545.0            0.0   200.0
 
     Parameters
     ----------
