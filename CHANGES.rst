@@ -118,6 +118,10 @@ astropy.stats
   ``sigma_clipped_stats`` functions are now significantly faster.
   [#7478]
 
+- Add an ``astropy.stats.bls`` module with an implementation of the "box least
+  squares" periodogram that is commonly used for discovering transiting
+  exoplanets and eclipsing binaries. [#7391]
+
 astropy.table
 ^^^^^^^^^^^^^
 

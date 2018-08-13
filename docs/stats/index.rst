@@ -80,6 +80,7 @@ listed below.
    robust.rst
    circ.rst
    lombscargle.rst
+   bls.rst
    ripley.rst
    ../visualization/histogram.rst
 
