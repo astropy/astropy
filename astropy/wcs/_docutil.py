@@ -5,7 +5,7 @@ astropy.wcs-specific utilities for generating boilerplate in docstrings.
 
 
 
-__all__ = ['TWO_OR_THREE_ARGS', 'RETURNS', 'ORIGIN', 'RA_DEC_ORDER']
+__all__ = ['RETURNS', 'ORIGIN', 'RA_DEC_ORDER']
 
 
 def _fix(content, indent=0):
