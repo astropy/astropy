@@ -31,6 +31,10 @@ example, 4 commits that are testing  changes and have a commit message of just
 tests for feature X" are useful information and should not be squashed away
 without reason.
 
+When squashing, extra care should be taken to keep authorship credit to all
+individuals who provided substantial contribution to the given PR,
+e.g. only squash commits made by the same author.
+
 In all cases, be mindful of maintaining a welcoming environment and be helpful
 with advice, especially for new contributors.  E.g., It is expected that a
 maintainer offer to help a contributor who is a novice git user do any squashing
