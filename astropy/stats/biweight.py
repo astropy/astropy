@@ -546,6 +546,10 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
 
     # set up the weighting
     mad = median_absolute_deviation(data, axis=1)
+
+    const_mask = (mad == 0.)
+    mad[const_mask] = 1.  # prevent divide by zero
+
     u = (d.T / (c * mad)).T
 
     # now remove the outlier points
