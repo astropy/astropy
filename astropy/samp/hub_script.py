@@ -10,8 +10,6 @@ from .. import log, __version__
 
 from .hub import SAMPHubServer
 
-__all__ = ['main']
-
 
 def hub_script(timeout=0):
     """
