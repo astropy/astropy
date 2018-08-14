@@ -2,4 +2,4 @@
 
 
 def get_package_data():
-    return {'astropy': ['astropy.cfg']}
+    return {'astropy': ['astropy.cfg', 'CITATION']}

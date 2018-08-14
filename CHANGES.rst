@@ -1273,6 +1273,10 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+- Added a new ``astropy.__citation__`` attribute which gives a citation
+  for Astropy in bibtex format. Made sure that both this and
+  ``astropy.__bibtex__`` works outside the source environment, too. [#7718]
+
 
 
 2.0.8 (2018-08-02)
