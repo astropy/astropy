@@ -930,7 +930,7 @@ class Cutout2D:
 def cutout_tool(image, catalog, wcs=None, image_ext=0, origin=0,
                 to_fits=False, output_dir=None, overwrite=False,
                 delimiter=None, suppress_rotation=False, verbose=True):
-    """Make cutouts from a 2D image and write them to FITS files.
+    """Make cutouts of catalog targets from a 2D image.
 
     The input Catalog must have the following columns, which must have
     `~astropy.unit.Unit`s where applicable:
