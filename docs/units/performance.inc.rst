@@ -35,5 +35,5 @@ Conversion that copies only when necessary::
 In-place conversion to a different unit::
 
   >>> q2 <<= u.cm
-  >>> q2
+  >>> q2  # doctest: +FLOAT_CMP
   <Quantity [  0., 100., 200., 300., 400.] cm>
