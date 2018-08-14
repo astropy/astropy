@@ -55,6 +55,8 @@ def test_testwarn(tw):
 class TestUfuncHelpers:
     # Note that this test should work even if scipy is present, since
     # the scipy.special ufuncs are only loaded on demand.
+    # The test passes independently of whether erfa is already loaded
+    # (which will be the case for a full test, since coordinates uses it).
     def test_coverage(self):
         """Test that we cover all ufunc's"""
 

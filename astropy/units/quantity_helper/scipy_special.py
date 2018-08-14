@@ -1,6 +1,10 @@
-# UFUNCS FROM SCIPY.SPECIAL
-# available ufuncs in this module are at
-# https://docs.scipy.org/doc/scipy/reference/special.html
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""Quantity helpers for the scipy.special ufuncs.
+
+Available ufuncs in this module are at
+https://docs.scipy.org/doc/scipy/reference/special.html
+"""
 
 from ..core import UnitsError, UnitTypeError, dimensionless_unscaled
 from . import UFUNC_HELPERS
