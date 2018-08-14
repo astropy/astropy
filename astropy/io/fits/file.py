@@ -65,6 +65,11 @@ MEMMAP_MODES = {'readonly': mmap.ACCESS_COPY,
                 'append': mmap.ACCESS_COPY,
                 'denywrite': mmap.ACCESS_READ}
 
+# Translate the numpy.memmap modes 'c', 'r', 'r+' to the appropriate
+# mmap modes.
+MMAP_MODES = {'r': mmap.ACCESS_READ, 'r+': mmap.ACCESS_WRITE,
+              'c': mmap.ACCESS_COPY}
+
 # TODO: Eventually raise a warning, and maybe even later disable the use of
 # 'copyonwrite' and 'denywrite' modes unless memmap=True.  For now, however,
 # that would generate too many warnings for too many users.  If nothing else,

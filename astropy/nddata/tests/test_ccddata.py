@@ -17,6 +17,7 @@ from ...utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
                            get_pkg_data_contents)
 
 from ..ccddata import CCDData
+from astropy.table import Table
 
 # If additional pytest markers are defined the key in the dictionary below
 # should be the name of the marker.
@@ -881,3 +882,15 @@ def test_stddevuncertainty_compat_descriptor_no_weakref():
     uncert._parent_nddata = ccd
     assert uncert.parent_nddata is ccd
     uncert._parent_nddata = None
+
+def test_CCDataread_returns_image(ccd_data, tmpdir):
+    # Test if CCData.read returns a image when reading a fits file containing
+    #a table and image, in that order.
+    tbl = Table([np.random.rand(10) for _ in range(20)])
+    img = np.random.rand(100, 100)
+    hdul = fits.HDUList(hdus=[fits.PrimaryHDU(), fits.TableHDU(tbl.as_array()), fits.ImageHDU(img)])
+    filename = tmpdir.join('table_image.fits').strpath
+    hdul.writeto(filename)
+    ccd = CCDData.read(filename, unit='adu')
+    # Expecting to get (100, 100), the size of the image
+    assert ccd.data.shape == (100,100)

@@ -24,6 +24,23 @@ For a larger pull request adding significant functionality, however, more
 commits may well be appropriate.
 
 As another guideline, squashing should remove extraneous information but
+<<<<<<< HEAD
+should not be used to remove useful information for how a PR was developed.  For
+example, 4 commits that are testing  changes and have a commit message of just
+"debug" should be squashed.  But a series of commit messages that are
+"Implemented feature X", "added test for feature X", "fixed bugs revealed by
+tests for feature X" are useful information and should not be squashed away
+without reason.
+
+In all cases, be mindful of maintaining a welcoming environment and be helpful
+with advice, especially for new contributors.  E.g., It is expected that a
+maintainer offer to help a contributor who is a novice git user do any squashing
+that that maintainer asks for, or do the squash themselves by directly pushing
+to the PR branch.
+
+As a general guideline, squashing should remove extraneous information but
+=======
+>>>>>>> Implement @mhvk's suggestion and harmonize with new additions
 should not be used to remove useful information for how a PR was developed.  For
 example, 4 commits that are testing  changes and have a commit message of just
 "debug" should be squashed.  But a series of commit messages that are

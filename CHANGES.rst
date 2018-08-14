@@ -65,6 +65,11 @@ astropy.io.ascii
   (empty string).  This allows handling the case of a masked string column
   with "" data rows.  [#7481]
 
+- Optionally allow writing masked columns to ECSV with the mask explicitly
+  specified as a separate column instead of marking masked elements with ""
+  (empty string).  This allows handling the case of a masked string column
+  with "" data rows.  [#7481]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -81,6 +86,14 @@ astropy.io.fits
 
 - Add an ``ignore_hdus`` keyword to ``FITSDiff`` to allow ignoring HDUs by
   NAME when diffing two FITS files [#7538]
+
+- Optionally allow writing masked columns to FITS with the mask explicitly
+  specified as a separate column instead of using the FITS standard of
+  certain embedded null values (``NaN`` for float, ``TNULL`` for integers).
+  This can be used to work around limitations in the FITS standard. [#7481]
+
+- All time coordinates can now be written to and read from FITS binary tables,
+  including those with vectorized locations. [#7430]
 
 - Optionally allow writing masked columns to FITS with the mask explicitly
   specified as a separate column instead of using the FITS standard of
@@ -134,6 +147,9 @@ astropy.table
 - Add a new keyword argument ``serialize_method`` to ``Table.write`` to
   control how ``Time`` and ``MaskedColumn`` columns are written. [#7481]
 
+- Add a new keyword argument ``serialize_method`` to ``Table.write`` to
+  control how ``Time`` and ``MaskedColumn`` columns are written. [#7481]
+
 - Allow mixin columns to be used in table ``group`` and ``unique``
   functions. This applies to both the key columns and the other data
   columns. [#7712]
@@ -158,6 +174,8 @@ astropy.time
 
 - Added ``strftime`` and ``strptime`` methods to ``Time`` class.
   These methods are similar to those in the Python standard library
+- Added ``strftime`` and ``strptime`` methods to ``Time`` class. 
+  These methods are similar to those in the Python standard library 
   `time` package and provide flexible input and output formatting. [#7323]
 
 
@@ -344,8 +362,10 @@ astropy.coordinates
 - Sped up getting xyz vectors from ``CartesianRepresentation`` (which
   is used a lot internally). [#7638]
 
+
 - Sped up transformations and some representation methods by replacing
   python code with (compiled) ``erfa`` ufuncs. [#7639]
+
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -418,6 +438,10 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- Fix the bug in CCData.read when the HDU is not specified and the first one is empty 
+  so the function searches for the first HDU with data which may not have an 
+  image extension. [#7613]
+
 astropy.samp
 ^^^^^^^^^^^^
 
@@ -460,6 +484,8 @@ Other Changes and Additions
 
 - The documentation build now uses the Sphinx configuration from sphinx-astropy
   rather than from astropy-helpers. [#7139]
+
+- Versions of Numpy <1.13 are no longer supported. [#7058]
 
 - Versions of Numpy <1.13 are no longer supported. [#7058]
 
@@ -519,6 +545,7 @@ astropy.modeling
 
 astropy.nddata
 ^^^^^^^^^^^^^^
+
 
 astropy.samp
 ^^^^^^^^^^^^
@@ -1239,6 +1266,27 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+
+- Fixed ``Cutout2D`` output WCS NAXIS values to reflect the cutout
+  image size. [#7552]
+
+- Fixed an bug when creating the ``WCS`` of a cutout (see ``nddata.Cutout2D``)
+  when input image's ``WCS`` contains ``SIP`` distortion corrections by
+  adjusting the ``crpix`` of the ``astropy.wcs.Sip`` (in addition to
+  adjusting the ``crpix`` of the ``astropy.wcs.WCS`` object). This bug
+  had the potential to produce large errors in ``WCS`` coordinate
+  transformations depending on the position of the cutout relative
+  to the input image's ``crpix``. [#7556, #7550]
+  
+- Fixed the bug in CCData.read when the HDU is not specified and the first one is empty
+  so the function searches for the first HDU with data which may not have an
+  image extension. [#7613]
+
+- Fixed the bug in CCData.read when the HDU is not specified and the first one is empty 
+  so the function searches for the first HDU with data which may not have an 
+  image extension. [#7613]
+
+
 astropy.samp
 ^^^^^^^^^^^^
 
@@ -1269,6 +1317,13 @@ astropy.vo
 astropy.wcs
 ^^^^^^^^^^^
 
+- updated wcslib to v 5.19.1 [#7688]
+- Fixed an bug when creating the ``WCS`` slice (see ``WCS.slice()``)
+  when ``WCS`` contains ``SIP`` distortion corrections by
+  adjusting the ``WCS.sip.crpix`` in addition to adjusting
+  ``WCS.wcs.crpix``. This bug had the potential to produce large errors in
+  ``WCS`` coordinate transformations depending on the position of the slice
+  relative to ``WCS.wcs.crpix``. [#7556, #7550]
 
 Other Changes and Additions
 ---------------------------
@@ -1276,6 +1331,64 @@ Other Changes and Additions
 - Added a new ``astropy.__citation__`` attribute which gives a citation
   for Astropy in bibtex format. Made sure that both this and
   ``astropy.__bibtex__`` works outside the source environment, too. [#7718]
+
+
+
+2.0.8 (2018-08-02)
+==================
+
+Bug Fixes
+---------
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Correct data type conversion for non-float masked kernels. [#7542]
+
+- Fix non-float or masked, zero sum kernels when ``normalize_kernel=False``.
+  Non-floats would yeild a type error and masked kernels were not being filled.
+  [#7541]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Ensure that relative humidities can be given as Quantities, rather than take
+  any quantity and just strip its unit. [#7668]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Fixed ``Cutout2D`` output WCS NAXIS values to reflect the cutout
+  image size. [#7552]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fixed a bug in ``add_columns`` method where ``rename_duplicate=True`` would
+  cause an error if there were no duplicates. [#7540]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+- Fixed bug in ``python setup.py test --coverage`` on Windows machines. [#7673]
+
+astropy.time
+^^^^^^^^^^^^
+
+- Avoid rounding errors when converting ``Quantity`` to ``TimeDelta``. [#7625]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed a bug that caused the position of the tick values in decimal mode
+  to be incorrectly determined. [#7332]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fixed a bug that caused ``wcs_to_celestial_frame``, ``skycoord_to_pixel``, and
+  ``pixel_to_skycoord`` to raise an error if the axes of the celestial WCS were
+  swapped. [#7691]
 
 
 
