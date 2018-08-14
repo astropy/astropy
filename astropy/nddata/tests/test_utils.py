@@ -1,18 +1,22 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
+import tempfile
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_almost_equal
 
 from ...tests.helper import assert_quantity_allclose
 from ..utils import (extract_array, add_array, subpixel_indices,
                      block_reduce, block_replicate,
                      overlap_slices, NoOverlapError, PartialOverlapError,
-                     Cutout2D)
+                     Cutout2D, cutout_tool)
 from ...wcs import WCS, Sip
 from ...wcs.utils import proj_plane_pixel_area
 from ...coordinates import SkyCoord
 from ... import units as u
+from ...io import fits
+from ...io.fits.tests import FitsTestCase
+from ...table import Table
 
 try:
     import skimage  # pylint: disable=W0611
@@ -500,3 +504,122 @@ class TestCutout2D:
             w.all_pix2world(*w.wcs.crpix, 1), w.wcs.crval,
             rtol=0.0, atol=1e-6 * pscale
         )
+
+
+class TestCutoutTool(FitsTestCase):
+    def setup(self):
+        self.temp_dir = tempfile.mkdtemp(prefix='fits-test-')
+        fits.conf.enable_record_valued_keyword_cards = True
+        fits.conf.extension_name_case_sensitive = False
+        fits.conf.strip_header_whitespace = True
+        fits.conf.use_memmap = True
+
+    @staticmethod
+    def construct_test_image():
+        # Construct data: 9 X 9 array where
+        # the value at each pixel (x, y) is x*10 + y
+        data = np.array([i * 9 + np.arange(9) for i in range(9)])
+
+        # Construct a WCS for test image
+        # N.B: Pixel scale should be 1 deg/pix
+        w = WCS()
+        w.wcs.crpix = [5, 5]
+        w.wcs.crval = [0, 45]
+        w.wcs.cdelt = [-1, 1]
+        w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+
+        # Construct fits header
+        h = w.to_header()
+
+        # Construct Image and return:
+        return fits.PrimaryHDU(data, h)
+
+    def test_cutout_tool_inputs(self):
+        # Construct image:
+        image_hdu = self.construct_test_image()
+
+        # Construct catalog
+        ra = [0, 1] * u.deg
+        dec = [45, 46] * u.deg
+        ids = ["Target_1", "Target_2"]
+        cutout_width = cutout_height = [4.0, 4.0] * u.pix
+
+        catalog = Table(
+            data=[ids, ra, dec, cutout_width, cutout_height],
+            names=['id', 'ra', 'dec', 'cutout_width', 'cutout_height'])
+
+        # Test with no rotation
+
+        # - From memory:
+        assert None not in cutout_tool(image_hdu, catalog)
+
+        # - From fits file:
+        fits_file = self.temp("input_image.fits")
+        image_hdu.writeto(fits_file)
+        assert None not in cutout_tool(fits_file, catalog)
+
+        # - From HDUList:
+        hdu_list = fits.HDUList(image_hdu)
+        assert None not in cutout_tool(hdu_list, catalog)
+
+        # - From Array and WCS:
+        array = image_hdu.data
+        w = WCS(image_hdu.header)
+        assert None not in cutout_tool(array, catalog, wcs=w)
+
+        # - From ECSV file
+        ecsv_file = self.temp("input_catalog.ecsv")
+        catalog.write(ecsv_file, format="ascii.ecsv")
+        assert None not in cutout_tool(image_hdu, ecsv_file)
+
+        # Test with rotation column:
+        pa = [90, 45] * u.deg
+        catalog.add_column(pa, name="cutout_pa")
+        assert None not in cutout_tool(image_hdu, catalog)
+
+    def test_cutout_tool_correctness(self):
+        # Construct image:
+        image_hdu = self.construct_test_image()
+
+        # Construct catalog
+        ra = [0] * u.deg  # Center pixel
+        dec = [45] * u.deg  # Center pixel
+        ids = ["target_1"]
+        # Cutout should be 3 by 3:
+        cutout_width = cutout_height = [3.0] * u.pix
+        catalog = Table(
+            data=[ids, ra, dec, cutout_width, cutout_height],
+            names=['id', 'ra', 'dec', 'cutout_width', 'cutout_height'])
+
+        cutout = cutout_tool(image_hdu, catalog, to_fits=True)[0]
+
+        # check if values are correct:
+        w_orig = WCS(image_hdu.header)
+        w_new = WCS(cutout.header)
+
+        for x_new, x_orig in enumerate(range(3, 6)):
+            for y_new, y_orig in enumerate(range(3, 6)):
+                coords_orig = SkyCoord.from_pixel(x_orig, y_orig, w_orig, origin=0)
+                coords_new = SkyCoord.from_pixel(x_new, y_new, w_new, origin=0)
+
+                assert_almost_equal(image_hdu.data[x_orig][y_orig], cutout.data[x_new][y_new])
+                assert_almost_equal(coords_orig.ra.value, coords_new.ra.value)
+                assert_almost_equal(coords_orig.dec.value, coords_new.dec.value)
+        # Test for rotation:
+        pa = [180] * u.deg
+        catalog.add_column(pa, name="cutout_pa")
+
+        cutout = cutout_tool(image_hdu, catalog, to_fits=True)[0]
+
+        # check if values are correct:
+        w_orig = WCS(image_hdu.header)
+        w_new = WCS(cutout.header)
+
+        for x_new, x_orig in enumerate(range(5, 2, -1)):
+            for y_new, y_orig in enumerate(range(5, 2, -1)):
+                coords_orig = SkyCoord.from_pixel(x_orig, y_orig, w_orig, origin=0)
+                coords_new = SkyCoord.from_pixel(x_new, y_new, w_new, origin=0)
+
+                assert_almost_equal(image_hdu.data[x_orig][y_orig], cutout.data[x_new][y_new])
+                assert_almost_equal(coords_orig.ra.value, coords_new.ra.value)
+                assert_almost_equal(coords_orig.dec.value, coords_new.dec.value)
