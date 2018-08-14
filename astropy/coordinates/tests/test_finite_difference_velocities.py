@@ -41,8 +41,8 @@ def test_faux_lsr(dt, symmetric):
                                      LSR2, ICRS, finite_difference_dt=dt,
                                      symmetric_finite_difference=symmetric)
     def lsr_to_icrs(lsr_coo, icrs_frame):
-        dt = lsr_frame.obstime - J2000
-        offset = lsr_frame.v_bary * dt.to(u.second)
+        dt = icrs_frame.obstime - J2000
+        offset = icrs_frame.v_bary * dt.to(u.second)
         return icrs_frame.realize_frame(lsr_coo.data - offset)
 
     ic = ICRS(ra=12.3*u.deg, dec=45.6*u.deg, distance=7.8*u.au,
