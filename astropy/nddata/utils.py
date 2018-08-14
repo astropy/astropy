@@ -1023,7 +1023,10 @@ def cutout_tool(image, catalog, wcs=None, image_ext=0, origin=0,
        `None` will be added as a place holder.
     """
     # Optional dependencies...
-    from reproject.interpolation.high_level import reproject_interp
+    try:
+        from reproject.interpolation.high_level import reproject_interp
+    except ImportError:
+        raise
 
     save_to_file = output_dir is not None
 

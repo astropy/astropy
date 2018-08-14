@@ -32,7 +32,7 @@ env:
         - PYTHON_VERSION=3.6
         - NUMPY_VERSION=stable
         - MAIN_CMD='python setup.py'
-        - CONDA_DEPENDENCIES='Cython jinja2 '
+        - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach asdf bottleneck reproject'
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
