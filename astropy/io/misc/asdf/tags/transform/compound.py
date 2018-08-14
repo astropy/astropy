@@ -8,8 +8,7 @@ from asdf import tagged
 from asdf import yamlutil
 
 from .basic import TransformType, ConstantType
-from ......modeling.core import Model
-from ......modeling.compound import CompoundModel
+from ......modeling.core import Model, CompoundModel
 from ......modeling.models import Identity, Mapping
 
 
@@ -51,32 +50,39 @@ class CompoundType(TransformType):
         oper = _tag_to_method_mapping[tag]
         left = yamlutil.tagged_tree_to_custom_tree(
             node['forward'][0], ctx)
-        if not isinstance(left, modeling.Model):
-            raise TypeError("Unknown model type '{}'".format(
+        if not (isinstance(left, Model)):
+            raise TypeError("Unknown model type '{0}'".format(
                 node['forward'][0]._tag))
         right = yamlutil.tagged_tree_to_custom_tree(
             node['forward'][1], ctx)
-        if not isinstance(right, modeling.Model):
-            raise TypeError("Unknown model type '{}'".format(
+        if not (isinstance(right, Model)):
+            raise TypeError("Unknown model type '{0}'".format(
                 node['forward'][1]._tag))
         model = getattr(left, oper)(right)
+
         model = cls._from_tree_base_transform_members(model, node, ctx)
         model.map_parameters()
         return model
 
     @classmethod
     def _to_tree_from_model_tree(cls, tree, ctx):
-        if isinstance(tree, CompoundModel) and isinstance(tree.left, Model):
-            left = yamlutil.custom_tree_to_tagged_tree(tree.left, ctx)
+
+        if not isinstance(tree.left, CompoundModel):
+            left = yamlutil.custom_tree_to_tagged_tree(
+                tree.left, ctx)
         else:
             left = cls._to_tree_from_model_tree(tree.left, ctx)
-        if isinstance(tree, CompoundModel) and isinstance(tree.right, Model):
-            right = yamlutil.custom_tree_to_tagged_tree(tree.right, ctx)
+
+        if not isinstance(tree.right, CompoundModel):
+            right = yamlutil.custom_tree_to_tagged_tree(
+                tree.right, ctx)
         else:
             right = cls._to_tree_from_model_tree(tree.right, ctx)
+
         node = {
             'forward': [left, right]
         }
+
         try:
             value = tree.op
             tag_name = 'transform/' + _operator_to_tag_mapping[value]
@@ -85,6 +91,7 @@ class CompoundType(TransformType):
 
         node = tagged.tag_object(cls.make_yaml_tag(tag_name), node, ctx=ctx)
         return node
+
 
     @classmethod
     def to_tree_tagged(cls, model, ctx):
