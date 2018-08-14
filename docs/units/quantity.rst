@@ -473,12 +473,12 @@ the initializer::
 
     >>> a = np.arange(5.)
     >>> q = u.Quantity(a, u.m, copy=False)
-    >>> q
+    >>> q  # doctest: +FLOAT_CMP
     <Quantity [0., 1., 2., 3., 4.] m>
     >>> np.may_share_memory(a, q)
     True
     >>> a[0] = -1.
-    >>> q
+    >>> q  # doctest: +FLOAT_CMP
     <Quantity [-1.,  1.,  2.,  3.,  4.] m>
 
 This may be particularly useful in functions which do not change their input;
@@ -491,21 +491,21 @@ operator::
     >>> q = a << u.m
     >>> np.may_share_memory(a, q)
     True
-    >>> q
+    >>> q  # doctest: +FLOAT_CMP
     <Quantity [-1.,  1.,  2.,  3.,  4.] m>
 
 The operator works identically to the initialization with ``copy=False``
 mentioned above::
 
-    >>> q << u.cm
+    >>> q << u.cm  # doctest: +FLOAT_CMP
     <Quantity [-100.,  100.,  200.,  300.,  400.] cm>
 
 It can also be used for in-place conversion::
 
     >>> q <<= u.cm
-    >>> q
+    >>> q  # doctest: +FLOAT_CMP
     <Quantity [-100.,  100.,  200.,  300.,  400.] cm>
-    >>> a
+    >>> a  # doctest: +FLOAT_CMP
     array([-100.,  100.,  200.,  300.,  400.])
 
 Known issues with conversion to numpy arrays
