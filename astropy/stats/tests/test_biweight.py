@@ -172,6 +172,38 @@ def test_biweight_midvariance_axis_3d():
         assert_allclose(bw[y], bwi)
 
 
+def test_biweight_midvariance_constant_axis():
+    bw = biweight_midvariance(np.ones((10, 5)))
+    assert bw == 0.0
+
+
+def test_biweight_midvariance_constant_axis_2d():
+    shape = (10, 5)
+    data = np.ones(shape)
+    cbl = biweight_midvariance(data, axis=0)
+    assert_allclose(cbl, np.zeros(shape[1]))
+    cbl = biweight_midvariance(data, axis=1)
+    assert_allclose(cbl, np.zeros(shape[0]))
+
+    data = np.arange(50).reshape(10, 5)
+    data[2] = 100.
+    data[7] = 2.
+    bw = biweight_midvariance(data, axis=1)
+    assert_allclose(bw[2], 0.)
+    assert_allclose(bw[7], 0.)
+
+
+def test_biweight_midvariance_constant_axis_3d():
+    shape = (10, 5, 2)
+    data = np.ones(shape)
+    cbl = biweight_midvariance(data, axis=0)
+    assert_allclose(cbl, np.zeros((shape[1], shape[2])))
+    cbl = biweight_midvariance(data, axis=1)
+    assert_allclose(cbl, np.zeros((shape[0], shape[2])))
+    cbl = biweight_midvariance(data, axis=2)
+    assert_allclose(cbl, np.zeros((shape[0], shape[1])))
+
+
 def test_biweight_midcovariance_1d():
     d = [0, 1, 2]
     cov = biweight_midcovariance(d)
@@ -193,6 +225,12 @@ def test_biweight_midcovariance_2d():
     cov = biweight_midcovariance(d, modify_sample_size=True)
     assert_allclose(cov, [[14.54159077, -5.19350838],
                           [-5.19350838, 4.61391501]])
+
+
+def test_biweight_midcovariance_constant():
+    data = np.ones((3, 10))
+    cov = biweight_midcovariance(data)
+    assert_allclose(cov, np.zeros((3, 3)))
 
 
 def test_biweight_midcovariance_midvariance():
