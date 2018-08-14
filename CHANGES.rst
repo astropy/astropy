@@ -1239,6 +1239,10 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- Fixed the bug in CCData.read when the HDU is not specified and the first one is empty
+  so the function searches for the first HDU with data which may not have an
+  image extension. [#7613]
+
 astropy.samp
 ^^^^^^^^^^^^
 
