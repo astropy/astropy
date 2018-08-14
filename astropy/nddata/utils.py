@@ -1025,8 +1025,8 @@ def cutout_tool(image, catalog, wcs=None, image_ext=0, origin=0,
     # Optional dependencies...
     try:
         from reproject.interpolation.high_level import reproject_interp
-    except ImportError:
-        raise
+    except ImportError as e:
+        raise ImportError("Optional requirement not met: " + e.msg)
 
     save_to_file = output_dir is not None
 
