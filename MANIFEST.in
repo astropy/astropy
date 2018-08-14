@@ -3,6 +3,8 @@ include LICENSE.rst
 include README.rst
 include CHANGES.rst
 include pip-requirements*
+include CITATION
+include astropy/CITATION
 
 include ah_bootstrap.py
 include setup.cfg
