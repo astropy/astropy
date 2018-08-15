@@ -70,12 +70,6 @@ matrix:
     include:
 
         - stage: Initial tests
-          env: PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
-
-        - stage: Initial tests
-          env: PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
-
-        - stage: Initial tests
           env: PYTHON_VERSION=3.7 SETUP_CMD='egg_info'
 
         # Try MacOS X. Use a slightly old numpy version to help test against
