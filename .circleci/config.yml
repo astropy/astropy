@@ -34,6 +34,7 @@ jobs:
     steps:
       - checkout
       - run: python setup.py egg_info
+
   32bit:
     docker:
       - image: quay.io/pypa/manylinux1_i686
@@ -45,6 +46,7 @@ jobs:
       - run:
           name: Run tests
           command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4
+
   image-tests-mpl202:
     docker:
       - image: astropy/image-tests-py35-mpl202:1.2
@@ -54,6 +56,7 @@ jobs:
           name: Run tests
           command: |
             python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
   image-tests-mpl212:
     docker:
       - image: astropy/image-tests-py35-mpl212:1.2
@@ -63,6 +66,7 @@ jobs:
           name: Run tests
           command: |
             python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
   html-docs:
     docker:
       - image: circleci/python:3.6
@@ -71,6 +75,10 @@ jobs:
       - run: *apt-install
       - run: *pip-install
       - run: venv/bin/python setup.py build_docs -w
+        environment:
+          LC_CTYPE: C
+          LC_ALL: C
+          LANG: C
 
       - store_artifacts:
           path: docs/_build/html
