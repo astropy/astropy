@@ -74,11 +74,13 @@ jobs:
       - checkout
       - run: *apt-install
       - run: *pip-install
-      - run: venv/bin/python setup.py build_docs -w
-        environment:
-          LC_CTYPE: C
-          LC_ALL: C
-          LANG: C
+      - run:
+          name: Build Docs
+          command: venv/bin/python setup.py build_docs -w
+          environment:
+            LC_CTYPE: C
+            LC_ALL: C
+            LANG: C
 
       - store_artifacts:
           path: docs/_build/html
@@ -90,13 +92,12 @@ jobs:
 
 workflows:
   version: 2
-  docs_and_egg:
+  tests_and_docs:
     jobs:
       - egg-info-35
       - egg-info-36
       - egg-info-37
       - html-docs
-  tests:
       - 32bit
       - image-tests-mpl202
       - image-tests-mpl212
