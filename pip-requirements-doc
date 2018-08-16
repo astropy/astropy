@@ -13,7 +13,7 @@ matplotlib
 scipy
 pillow
 jplephem
-sphinx<1.7
+sphinx
 sphinx-astropy
 sphinx-gallery
 pyyaml
