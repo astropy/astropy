@@ -100,3 +100,7 @@ workflows:
       - 32bit
       - image-tests-mpl202
       - image-tests-mpl212
+
+notify:
+  webhooks:
+    - url: https://giles.cadair.com/circleci
