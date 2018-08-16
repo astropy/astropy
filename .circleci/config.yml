@@ -21,20 +21,6 @@ jobs:
       - checkout
       - run: python setup.py egg_info
 
-  egg-info-36:
-    docker:
-      - image: circleci/python:3.6
-    steps:
-      - checkout
-      - run: python setup.py egg_info
-
-  egg-info-35:
-    docker:
-      - image: circleci/python:3.5
-    steps:
-      - checkout
-      - run: python setup.py egg_info
-
   32bit:
     docker:
       - image: quay.io/pypa/manylinux1_i686
@@ -94,8 +80,6 @@ workflows:
   version: 2
   tests_and_docs:
     jobs:
-      - egg-info-35
-      - egg-info-36
       - egg-info-37
       - html-docs
       - 32bit
