@@ -90,12 +90,13 @@ jobs:
 
 workflows:
   version: 2
-  build_and_test:
+  docs_and_egg:
     jobs:
       - egg-info-35
       - egg-info-36
       - egg-info-37
       - html-docs
+  tests:
       - 32bit
       - image-tests-mpl202
       - image-tests-mpl212
