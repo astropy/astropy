@@ -1319,7 +1319,7 @@ class HDUList(list, _Verify):
                 # flushing (on Windows--again, this is no problem on Linux).
                 for idx, mmap, arr in mmaps:
                     if mmap is not None:
-                        arr.data = self[idx].data.data
+                        arr = self[idx].data
                 del mmaps  # Just to be sure
 
         else:
