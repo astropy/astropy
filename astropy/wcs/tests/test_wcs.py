@@ -1101,8 +1101,13 @@ def test_zero_size_input():
 
     inp = np.zeros((0, 2))
     assert_array_equal(inp, w.all_pix2world(inp, 0))
+    assert_array_equal(inp, w.all_world2pix(inp, 0))
 
     inp = [], [1]
     result = w.all_pix2world([], [1], 0)
+    assert_array_equal(inp[0], result[0])
+    assert_array_equal(inp[1], result[1])
+
+    result = w.all_world2pix([], [1], 0)
     assert_array_equal(inp[0], result[0])
     assert_array_equal(inp[1], result[1])
