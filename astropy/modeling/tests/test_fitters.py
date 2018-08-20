@@ -530,7 +530,7 @@ class TestNonLinearFitters:
         # becuase bound removed stddev could go neg
         res.parameters[-1] = abs(res.parameters[-1])
         assert_allclose(res.parameters, self.initial_values, rtol=0.1)
-        assert res['success'], "fit was not successful"
+        assert mm.scipy_opt_result['success'], "fit was not successful"
 
 
 
