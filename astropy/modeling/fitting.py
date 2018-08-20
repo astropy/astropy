@@ -1288,7 +1288,7 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
 class MinimizeLSQFitter(Fitter):
     """
 
-    A fitter for the minimize optimizer.
+    A fitter for scipy's minimize optimizer.
 
     Parameters
     ----------
@@ -1296,9 +1296,9 @@ class MinimizeLSQFitter(Fitter):
         select minimization method
 
     supported_constraints : list
-        lists the constraint types supported by the Optimization method default is fixed
-        and tied parameters, these can be set for custom methods for predifined methods
-        this will be changed atomatically
+        lists the constraint types supported by the Optimization method.
+        The default is fixed and tied parameters, these can be set for custom
+        methods for predefined methods this will be changed automatically
     """
 
     def __init__(self, method='slsqp', supported_constraints=None):
@@ -1325,7 +1325,8 @@ class MinimizeLSQFitter(Fitter):
         weights : array (optional)
             weights
         kwargs : dict
-            optional keyword arguments to be passed to the optimizer or the statistic
+            optional keyword arguments to be passed to the optimizer
+            or the statistic
 
         Returns
         -------
@@ -1339,7 +1340,8 @@ class MinimizeLSQFitter(Fitter):
 
         p0, _ = _model_to_fit_params(model_copy)
 
-        fitparams, self.fit_info = self._opt_method(self.objective_function, p0, farg, **kwargs)
+        fitparams, self.fit_info = self._opt_method(self.objective_function,
+                                                    p0, farg, **kwargs)
         self.scipy_opt_result = self._opt_method.scipy_opt_result
         _fitter_to_model_params(model_copy, fitparams)
         return model_copy
