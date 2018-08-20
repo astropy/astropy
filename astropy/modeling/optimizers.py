@@ -288,7 +288,7 @@ class Minimize(Optimization):
                 self.supported_constraints = ['fixed', 'tied', 'eqcons',
                                               'ineqcons', 'bounds']
 
-            if ['newton-cg', 'trust-ncg']:
+            if method in ['newton-cg', 'trust-ncg']:
                 self.jac_required = True
 
         self._method = method
