@@ -73,6 +73,8 @@ astropy.vo
 astropy.wcs
 ^^^^^^^^^^^
 
+- Instead of raising an error ``astropy.wcs`` now returns the input when
+  the input has zero size.                                       [#7746]
 
 Other Changes and Additions
 ---------------------------
