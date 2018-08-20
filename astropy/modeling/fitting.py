@@ -45,7 +45,7 @@ except ImportError:
 
 __all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'FittingWithOutlierRemoval',
            'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter',
-           'MinimizeFitter']
+           'MinimizeLSQFitter']
 
 # Statistic functions implemented in `astropy.modeling.statistic.py
 STATISTICS = [leastsquare]
