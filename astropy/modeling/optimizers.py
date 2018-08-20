@@ -344,7 +344,7 @@ class Minimize(Optimization):
             kwargs['bounds'] = np.asarray(bounds, dtype=np.float)
 
         if 'eqcons' in self.supported_constraints and \
-           np.array(model.eqcons) > 0:
+           np.array(model.eqcons).size > 0:
 
             if not 'constraints' in kwargs:
                 kwargs['constraints']=[]
@@ -352,7 +352,7 @@ class Minimize(Optimization):
                 kwargs['constraints'].append({"type":"eq", "fun":eq})
 
         if 'ineqcons' in self.supported_constraints and \
-           np.array(model.ineqcons) > 0:
+           np.array(model.ineqcons).size > 0:
 
             if not 'constraints' in kwargs:
                 kwargs['constraints']=[]
