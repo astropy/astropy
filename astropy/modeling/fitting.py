@@ -1293,7 +1293,7 @@ class MinimizeLSQFitter(Fitter):
     Parameters
     ----------
     method : str or callable(custom)
-        select minimization method
+        select a valid ~scipy.optimize.minimize method
 
     supported_constraints : list
         lists the constraint types supported by the Optimization method.
