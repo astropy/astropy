@@ -2721,7 +2721,7 @@ class Table:
         out = OrderedDict()
 
         for name, column in self.columns.items():
-            if isinstance(column, MaskedColumn):
+            if isinstance(column, MaskedColumn) and np.any(column.mask):
                 if column.dtype.kind in ['i', 'u']:
                     out[name] = column.astype(float).filled(np.nan)
                 elif column.dtype.kind in ['f', 'c']:
