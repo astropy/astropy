@@ -341,7 +341,7 @@ class Minimize(Optimization):
                 if i[1] is None:
                     i[1] = DEFAULT_BOUNDS[1]
                 # older versions of scipy require this array to be float
-                kwargs['bounds'] = np.asarray(bounds, dtype=np.float)
+            kwargs['bounds'] = np.asarray(bounds, dtype=np.float)
 
         if 'eqcons' in self.supported_constraints and \
            np.array(model.eqcons) > 0:
