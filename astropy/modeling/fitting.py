@@ -1285,7 +1285,7 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
     return farg
 
 
-class MinimizeFitter(Fitter):
+class MinimizeLSQFitter(Fitter):
     """
 
     A fitter for the minimize optimizer.
@@ -1302,7 +1302,11 @@ class MinimizeFitter(Fitter):
     """
 
     def __init__(self, method='slsqp', supported_constraints=None):
-        super(MinimizeFitter, self).__init__(optimizer=Minimize, statistic=leastsquare, method=method, supported_constraints=supported_constraints)
+        super(MinimizeLSQFitter, self).__init__(
+            optimizer=Minimize,
+            statistic=leastsquare,
+            method=method,
+            supported_constraints=supported_constraints)
 
     def __call__(self, model, x, y, z=None, weights=None, **kwargs):
         """
