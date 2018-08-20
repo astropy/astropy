@@ -120,11 +120,7 @@ class CdsHeader(core.BaseHeader):
                 if unit == '---':
                     col.unit = None  # "---" is the marker for no unit in CDS table
                 else:
-                    try:
-                        col.unit = Unit(unit, format='cds')
-                    except ValueError:
-                        raise ValueError('Unrecognized CDS unit "{}" for column "{}"'.format(
-                            unit, col.name))
+                    col.unit = Unit(unit, format='cds', parse_strict='warn')
                 col.description = (match.group('descr') or '').strip()
                 col.raw_type = match.group('format')
                 col.type = self.get_col_type(col)
