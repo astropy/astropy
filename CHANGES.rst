@@ -1252,6 +1252,10 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fixed a bug where ``int64`` get converted to float and lose precision when
+  converted back via ``to_pandas()``. This fix only applies to masked column
+  that is not really masked. [#7741, #7747]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
