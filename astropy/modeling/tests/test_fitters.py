@@ -37,7 +37,7 @@ except ImportError:
     HAS_PKG = False
 
 
-fitters = [SimplexLSQFitter, SLSQPLSQFitter, MinimizeFitter]
+fitters = [SimplexLSQFitter, SLSQPLSQFitter, MinimizeLSQFitter]
 
 _RANDOM_SEED = 0x1337
 
@@ -340,6 +340,8 @@ class TestLinearLSQFitter:
         assert_allclose(fitted_model.c0_1, [3., -0.5], atol=1e-14)
 
 
+methods = ['Nelder-Mead', 'Powell', 'CG', 'BFGS', 'L-BFGS-B', 'TNC', 'SLSQP']
+
 @pytest.mark.skipif('not HAS_SCIPY')
 class TestNonLinearFitters:
     """Tests non-linear least squares fitting and the SLSQP algorithm."""
@@ -511,19 +513,24 @@ class TestNonLinearFitters:
         assert_allclose(fmod.parameters, beta.A.ravel())
         assert_allclose(olscov, fitter.fit_info['param_cov'])
 
-    def test_minimize(self):
+    @pytest.mark.parametrize('method', methods)
+    def test_minimize(self, method):
         """
         Runs MinimizeFitter with most methods.
         """
         # get rid of tiny bound so the method which don't support
         # bounds can be tested
+        self.gauss.mean *= 0.95
+        self.gauss.stddev *= 0.95
+        self.gauss.amplitude *= 1.1
+
         self.gauss.bounds['stddev'] = (None, None)
-        for meth in ['Nelder-Mead', 'Powell', 'CG', 'BFGS', 'L-BFGS-B', 'TNC', 'SLSQP']:
-            mm = MinimizeFitter(meth)
-            res=mm(self.gauss, self.xdata, self.ydata)
-            # becuase bound removed stddev could go neg
-            res.parameters[-1] = abs(res.parameters[-1])
-            assert_allclose(res.parameters, self.initial_values, rtol=0.1)
+        mm = MinimizeLSQFitter(method)
+        res = mm(self.gauss, self.xdata, self.ydata)
+        # becuase bound removed stddev could go neg
+        res.parameters[-1] = abs(res.parameters[-1])
+        assert_allclose(res.parameters, self.initial_values, rtol=0.1)
+        assert res['success'], "fit was not successful"
 
 
 
