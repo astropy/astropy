@@ -380,6 +380,9 @@ astropy.io.ascii
 - Fixed a problem when ``guess=True`` that ``fast_reader`` options
   could be dropped after the first fast reader class was tried. [#5578]
 
+- Units in CDS-formatted tables are now parsed correctly by the units
+  module. [#7348]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
