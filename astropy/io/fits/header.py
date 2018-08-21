@@ -93,7 +93,9 @@ class Header:
 
             .. versionadded:: 1.3
         """
-        self.clear()
+        self._cards = []
+        self._keyword_indices = collections.defaultdict(list)
+        self._rvkc_indices = collections.defaultdict(list)
 
         if isinstance(cards, Header):
             if copy:
@@ -951,13 +953,14 @@ class Header:
         instance has the same behavior.
         """
 
-        return self.__iter__()
+        for card in self._cards:
+            yield card.keyword
 
     def values(self):
         """Like :meth:`dict.values`."""
 
-        for _, v in self.items():
-            yield v
+        for card in self._cards:
+            yield card.value
 
     def pop(self, *args):
         """
@@ -1254,7 +1257,7 @@ class Header:
             temp._strip()
 
         if len(self):
-            first = self.cards[0].keyword
+            first = self._cards[0].keyword
         else:
             first = None
 
@@ -1517,10 +1520,10 @@ class Header:
                                  'renamed to each other.')
         elif not force and newkeyword in self:
             raise ValueError('Intended keyword {} already exists in header.'
-                            .format(newkeyword))
+                             .format(newkeyword))
 
         idx = self.index(oldkeyword)
-        card = self.cards[idx]
+        card = self._cards[idx]
         del self[idx]
         self.insert(idx, (newkeyword, card.value, card.comment))
 
