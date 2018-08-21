@@ -301,6 +301,34 @@ As expected, the sky coordinates in the original ``data`` and the
 cutout array agree.
 
 
+Saving the 2D Cutout object
+---------------------------
+
+The `~astropy.nddata.utils.Cutout2D` object can be saved as a FITS
+file by acessing the cutout array, using the ``cutout.data``. In this
+aspect, the `~astropy.nddata.utils.Cutout2D` object can be treated as
+a FITS object, since the need to acess the data as ``cutout.data``.
+The method ``cutout.wcs.to_header()`` vinculates the original header
+of the `~astropy.nddata.utils.Cutout2D` object to the FITS file. The
+``hdu.writeto()`` saves the `~astropy.nddata.utils.Cutout2D` object
+as a FITS file.
+
+For this example, we'll use the ``cutout`` variable and its header.
+This `~astropy.nddata.utils.Cutout2D` object was produced in the
+previous section::
+
+    >>> from astropy.io import fits
+    >>> hdu = fits.PrimaryHDU(data=cutout.data, header=cutout.wcs.to_header())
+    >>> hdu.writeto('cutout.fits')
+
+The command ``!ls`` in jupyter notebook can check if the file was
+created. Alternatively, the same can be done by accessing the
+contents of the folder that python runs::
+
+    >>> !ls
+    cutout.fits
+
+
 2D Cutout using an angular ``size``
 -----------------------------------
 
