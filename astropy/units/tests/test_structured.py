@@ -342,3 +342,28 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert np.all(q2['pv']['p'] == q_pv_t['pv']['p'].to(u.kpc))
         assert np.all(q2['pv']['v'] == q_pv_t['pv']['v'].to(u.kpc/u.Myr))
         assert np.all(q2['t'] == q_pv_t['t'].to(u.Myr))
+
+    def test_equality(self):
+        q_pv = StructuredQuantity(self.pv, self.pv_unit)
+        equal = q_pv == q_pv
+        not_equal = q_pv != q_pv
+        assert np.all(equal)
+        assert not np.any(not_equal)
+        equal2 = q_pv == q_pv[1]
+        not_equal2 = q_pv != q_pv[1]
+        assert np.all(equal2 == [False, True, False])
+        assert np.all(not_equal2 != equal2)
+        q1 = q_pv.to(('AU', 'AU/day'))
+        # Ensure same conversion is done, by placing q1 first.
+        assert np.all(q1 == q_pv)
+        assert not np.any(q1 != q_pv)
+        # Check different names in dtype.
+        assert np.all(q1.value * u.Unit('AU, AU/day') == q_pv)
+        assert not np.any(q1.value * u.Unit('AU, AU/day') != q_pv)
+        assert (q_pv == 'b') is False
+        assert ('b' != q_pv) is True
+        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        assert np.all((q_pv_t[2] == q_pv_t) == [False, False, True])
+        assert np.all((q_pv_t[2] != q_pv_t) != [False, False, True])
+        assert (q_pv == q_pv_t) is False
+        assert (q_pv_t != q_pv) is True
