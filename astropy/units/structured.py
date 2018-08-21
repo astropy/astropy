@@ -9,7 +9,7 @@ import operator
 
 import numpy as np
 
-from .core import Unit, UnitBase
+from .core import Unit, UnitBase, UnitsError
 from .quantity import Quantity
 
 
@@ -460,3 +460,28 @@ class StructuredQuantity(Quantity):
     --------
     to_value : Get the numerical value in a given unit.
     """)
+
+    def _to_own_unit(self, other, check_precision=False):
+        other_value = super()._to_own_unit(other, check_precision)
+        # Setting names to ensure things like equality work (note that
+        # above will have failed already if units did not match).
+        other_value.dtype.names = self.dtype.names
+        return other_value
+
+    def __eq__(self, other):
+        try:
+            other_value = self._to_own_unit(other)
+        except UnitsError:
+            return False
+        except Exception:
+            return NotImplemented
+        return self.value.__eq__(other_value)
+
+    def __ne__(self, other):
+        try:
+            other_value = self._to_own_unit(other)
+        except UnitsError:
+            return True
+        except Exception:
+            return NotImplemented
+        return self.value.__ne__(other_value)
