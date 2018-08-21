@@ -414,6 +414,15 @@ class StructuredQuantity(Quantity):
 
         return self._new_view(out_value, out_unit)
 
+    def __setitem__(self, item, value):
+        out_item = self[item]
+        if out_item.dtype is self.dtype:
+            super(StructuredQuantity, out_item).__setitem__(Ellipsis, value)
+        else:
+            # item caused dtype change -> indexed with string-like, so we
+            # have a different unit (and may well be a Quantity); try again.
+            out_item[...] = value
+
     def _set_unit(self, unit):
         unit = StructuredUnit(unit, self.dtype)
         self._unit = unit

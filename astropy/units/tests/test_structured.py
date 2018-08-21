@@ -367,3 +367,25 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert np.all((q_pv_t[2] != q_pv_t) != [False, False, True])
         assert (q_pv == q_pv_t) is False
         assert (q_pv_t != q_pv) is True
+
+    def test_setitem(self):
+        q_pv = StructuredQuantity(self.pv, self.pv_unit)
+        q_pv[1] = (2., 2.) * self.pv_unit
+        assert q_pv[1].value == np.array((2., 2.), self.pv_dtype)
+        q_pv[1:2] = (1., 0.5) * u.Unit('AU, AU/day')
+        assert q_pv['p'][1] == 1. * u.AU
+        assert q_pv['v'][1] == 0.5 * u.AU / u.day
+        q_pv['v'] = 1. * u.km / u.s
+        assert np.all(q_pv['v'] == 1. * u.km / u.s)
+        with pytest.raises(u.UnitsError):
+            q_pv[1] = (1., 1.) * u.Unit('AU, AU')
+        with pytest.raises(u.UnitsError):
+            q_pv['v'] = 1. * u.km
+        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_pv_t[1] = ((2., 2.), 3.) * self.pv_t_unit
+        assert q_pv_t[1].value == np.array(((2., 2.), 3.), self.pv_t_dtype)
+        q_pv_t[1:2] = ((1., 0.5), 5.) * u.Unit('(AU, AU/day), yr')
+        assert q_pv_t['pv'][1] == (1., 0.5) * u.Unit('AU, AU/day')
+        assert q_pv_t['t'][1] == 5. * u.yr
+        q_pv_t['pv'] = (1., 0.5) * self.pv_unit
+        assert np.all(q_pv_t['pv'] == (1., 0.5) * self.pv_unit)
