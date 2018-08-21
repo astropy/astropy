@@ -161,10 +161,10 @@ def test_hide_unit(capsys):
                     '--format', 'ascii.cds'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
-        'Index RAh RAm  RAs  DE- DEd  DEm    DEs   Match Class  AK Fit ',
-        '       h  min   s       deg arcmin arcsec             mag     ',
-        '----- --- --- ----- --- --- ------ ------ ----- ----- --- ----',
-        '    1   3  28 39.09   +  31      6    1.9    --    I*  -- 1.35',
+        'Index RAh RAm  RAs  DE- DEd  DEm    DEs   Match Class  AK  Fit ',
+        '       h  min   s       deg arcmin arcsec             mag GMsun',
+        '----- --- --- ----- --- --- ------ ------ ----- ----- --- -----',
+        '    1   3  28 39.09   +  31      6    1.9    --    I*  --  1.35',
     ]
 
     showtable.main([os.path.join(ASCII_ROOT, 't/cds.dat'),
