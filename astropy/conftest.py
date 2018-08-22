@@ -30,4 +30,27 @@ except ImportError:
 else:
     matplotlib.use('Agg')
 
+
+matplotlibrc_cache = {}
+
+def pytest_configure(config):
+    try:
+        import matplotlib
+    except ImportError:
+        pass
+    else:
+        matplotlibrc_cache.update(matplotlib.rcParams)
+        matplotlib.rcdefaults()
+
+def pytest_unconfigure(config):
+    try:
+        import matplotlib
+    except ImportError:
+        pass
+    else:
+        for k, v in matplotlibrc_cache.items():
+            matplotlib.rcParams[k] = v
+        matplotlibrc_cache.clear()
+
+    
 PYTEST_HEADER_MODULES['Cython'] = 'cython'
