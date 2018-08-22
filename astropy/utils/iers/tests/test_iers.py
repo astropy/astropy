@@ -34,14 +34,14 @@ class TestBasic():
         iers_tab = iers.IERS.open()
         assert iers.IERS.iers_table is not None
         assert isinstance(iers.IERS.iers_table, QTable)
-        assert iers_tab['UT1_UTC'].unit is u.second
-        assert iers_tab['PM_x'].unit is u.arcsecond
-        assert iers_tab['PM_y'].unit is u.arcsecond
+        assert (iers_tab['UT1_UTC'].unit / u.second).is_unity()
+        assert (iers_tab['PM_x'].unit / u.arcsecond).is_unity()
+        assert (iers_tab['PM_y'].unit / u.arcsecond).is_unity()
         jd1 = np.array([2456108.5, 2456108.5, 2456108.5, 2456109.5, 2456109.5])
         jd2 = np.array([0.49999421, 0.99997685, 0.99998843, 0., 0.5])
         ut1_utc = iers_tab.ut1_utc(jd1, jd2)
         assert isinstance(ut1_utc, u.Quantity)
-        assert ut1_utc.unit is u.second
+        assert (ut1_utc.unit / u.second).is_unity()
         # IERS files change at the 0.1 ms level; see gh-6981
         assert_quantity_allclose(ut1_utc, [-0.5868211, -0.5868184, -0.5868184,
                                            0.4131816, 0.41328895] * u.s,
@@ -88,7 +88,7 @@ class TestIERS_AExcerpt():
         # values do not get overridden by IERS B; see #4933.
         iers_tab = iers.IERS_A.open(IERS_A_EXCERPT)
 
-        assert iers_tab['UT1_UTC'].unit is u.second
+        assert (iers_tab['UT1_UTC'].unit / u.second).is_unity()
         assert 'P' in iers_tab['UT1Flag']
         assert 'I' in iers_tab['UT1Flag']
         assert 'B' in iers_tab['UT1Flag']
@@ -96,8 +96,8 @@ class TestIERS_AExcerpt():
                       (iers_tab['UT1Flag'] == 'P') |
                       (iers_tab['UT1Flag'] == 'B'))
 
-        assert iers_tab['dX_2000A'].unit is u.marcsec
-        assert iers_tab['dY_2000A'].unit is u.marcsec
+        assert (iers_tab['dX_2000A'].unit / u.marcsec).is_unity()
+        assert (iers_tab['dY_2000A'].unit / u.marcsec).is_unity()
         assert 'P' in iers_tab['NutFlag']
         assert 'I' in iers_tab['NutFlag']
         assert 'B' in iers_tab['NutFlag']
@@ -105,8 +105,8 @@ class TestIERS_AExcerpt():
                       (iers_tab['NutFlag'] == 'I') |
                       (iers_tab['NutFlag'] == 'B'))
 
-        assert iers_tab['PM_x'].unit is u.arcsecond
-        assert iers_tab['PM_y'].unit is u.arcsecond
+        assert (iers_tab['PM_x'].unit / u.arcsecond).is_unity()
+        assert (iers_tab['PM_y'].unit / u.arcsecond).is_unity()
         assert 'P' in iers_tab['PolPMFlag']
         assert 'I' in iers_tab['PolPMFlag']
         assert 'B' in iers_tab['PolPMFlag']
