@@ -2692,9 +2692,12 @@ class Table(object):
         out = OrderedDict()
 
         for name, column in self.columns.items():
-            if isinstance(column, MaskedColumn):
+            if isinstance(column, MaskedColumn) and np.any(column.mask):
                 if column.dtype.kind in ['i', 'u']:
                     out[name] = column.astype(float).filled(np.nan)
+                    warnings.warn(
+                        "converted column '{}' from integer to float".format(
+                            name), TableReplaceWarning, stacklevel=3)
                 elif column.dtype.kind in ['f', 'c']:
                     out[name] = column.filled(np.nan)
                 else:
