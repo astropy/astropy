@@ -58,6 +58,9 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Fixing bug that doctests were not picked up from the narrative
+  documentation when tests were run for all modules. [#7767]
+
 astropy.time
 ^^^^^^^^^^^^
 
