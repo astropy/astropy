@@ -131,3 +131,7 @@ linkcheck:
 doctest:
 	@echo "Run 'python setup.py test' in the root directory to run doctests " \
 	@echo "in the documentation."
+
+spelling:
+	$(SPHINXBUILD) -b spelling $(ALLSPHINXOPTS) $(BUILDDIR)/spelling
+	@echo "Spell check complete; look for any errors in the above output."

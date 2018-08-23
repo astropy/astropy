@@ -241,3 +241,7 @@ except ImportError:
                  'to this.')
 
 linkcheck_anchors = False
+
+# Enable spell-checking extension
+extensions.append('sphinxcontrib.spelling')
+
