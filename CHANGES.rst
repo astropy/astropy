@@ -61,6 +61,13 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Change the name of the configuration variable controlling the location of the
+  Astropy cache in the Pytest plugin from ``cache_dir`` to
+  ``astropy_cache_dir``. The command line flag also changed to
+  ``--astropy-cache-dir``.  This prevents a conflict with the ``cache_dir``
+  variable provided by pytest itself. Also made similar change to
+  ``config_dir`` option as a precaution. [#7721]
+
 astropy.time
 ^^^^^^^^^^^^
 
