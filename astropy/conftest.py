@@ -9,6 +9,12 @@ from importlib.util import find_spec
 from astropy.tests.plugins.display import PYTEST_HEADER_MODULES
 from astropy.tests.helper import enable_deprecations_as_exceptions
 
+try:
+    import matplotlib
+except ImportError:
+    HAS_MATPLOTLIB = False
+else:
+    HAS_MATPLOTLIB = True
 
 if find_spec('asdf') is not None:
     from asdf import __version__ as asdf_version
@@ -23,11 +29,24 @@ enable_deprecations_as_exceptions(
     # installed. This can be removed once pyopenssl 1.7.20+ is released.
     modules_to_ignore_on_import=['requests'])
 
-try:
-    import matplotlib
-except ImportError:
-    pass
-else:
+if HAS_MATPLOTLIB:
     matplotlib.use('Agg')
+
+matplotlibrc_cache = {}
+
+
+def pytest_configure(config):
+    # do not assign to matplotlibrc_cache in function scope
+    if HAS_MATPLOTLIB:
+        matplotlibrc_cache.update(matplotlib.rcParams)
+        matplotlib.rcdefaults()
+
+
+def pytest_unconfigure(config):
+    # do not assign to matplotlibrc_cache in function scope
+    if HAS_MATPLOTLIB:
+        matplotlib.rcParams.update(matplotlibrc_cache)
+        matplotlibrc_cache.clear()
+
 
 PYTEST_HEADER_MODULES['Cython'] = 'cython'
