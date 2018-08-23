@@ -7,10 +7,32 @@ from .tests.pytest_plugins import *
 try:
     import matplotlib
 except ImportError:
-    pass
+    HAS_MATPLOTLIB = False
 else:
-    matplotlib.use('Agg')
+    HAS_MATPLOTLIB = True
 
 enable_deprecations_as_exceptions(include_astropy_deprecations=False)
+
+
+if HAS_MATPLOTLIB:
+    matplotlib.use('Agg')
+
+
+matplotlibrc_cache = {}
+
+
+def pytest_configure(config):
+    # do not assign to matplotlibrc_cache in function scope
+    if HAS_MATPLOTLIB:
+        matplotlibrc_cache.update(matplotlib.rcParams)
+        matplotlib.rcdefaults()
+
+
+def pytest_unconfigure(config):
+    # do not assign to matplotlibrc_cache in function scope
+    if HAS_MATPLOTLIB:
+        matplotlib.rcParams.update(matplotlibrc_cache)
+        matplotlibrc_cache.clear()
+
 
 PYTEST_HEADER_MODULES['Cython'] = 'cython'
