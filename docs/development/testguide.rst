@@ -423,14 +423,14 @@ a context manager within a test to temporarily set the cache to a custom
 location, or as a *decorator* that takes effect for an entire test function
 (not including setup or teardown, which would have to be decorated separately).
 
-Furthermore, it is possible to set an option ``cache_dir`` in the pytest
-config file which sets the cache location for the entire test run.  A
-``--cache-dir`` command-line option is also supported (which overrides all
-other settings).  Currently it is not directly supported by the
+Furthermore, it is possible to set an option ``astropy_cache_dir`` in the
+pytest config file which sets the cache location for the entire test run.  A
+``--astropy-cache-dir`` command-line option is also supported (which overrides
+all other settings).  Currently it is not directly supported by the
 ``./setup.py test`` command, so it is necessary to use it with the ``-a``
 argument like::
 
-    $ ./setup.py test -a "--cache-dir=/path/to/custom/cache/dir"
+    $ ./setup.py test -a "--astropy-cache-dir=/path/to/custom/cache/dir"
 
 
 Tests that create files
