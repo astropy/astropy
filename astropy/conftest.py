@@ -45,8 +45,7 @@ def pytest_configure(config):
 def pytest_unconfigure(config):
     # do not assign to matplotlibrc_cache in function scope
     if HAS_MATPLOTLIB:
-        for k, v in matplotlibrc_cache.items():
-            matplotlib.rcParams[k] = v
+        matplotlib.rcParams.update(matplotlibrc_cache)
         matplotlibrc_cache.clear()
 
 
