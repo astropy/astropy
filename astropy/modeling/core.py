@@ -1912,11 +1912,7 @@ class Model(metaclass=_ModelMeta):
             param = getattr(self, name)
             if param._validator is not None:
                 param._validator(self, param.value)
-        ##
-        # for name in params:
-        #    param = getattr(self, name)
-        #    param.validator(param.value)
-
+ 
     def _initialize_parameter_value(self, param_name, value):
         """
         Mostly deals with consistency checks and determining unit issues.
@@ -1962,7 +1958,6 @@ class Model(metaclass=_ModelMeta):
                 param._internal_value = np.array(_val)
         else:
             param._value = np.array(value)
-
 
     def _initialize_slices(self):
 
@@ -2300,37 +2295,7 @@ BINARY_OPERATORS = {
 
 """
 This module provides an alternate implementation of compound models that
-is lighter weight than the default implementation. This is primarily done
-to minimize the memory and construction time demands when compound models
-become very complex.
-
-The motivation for this arose when JWST NIRSPEC compound models for its
-MOS mode were involving nearly 100 constituent model elements and on the
-order of 300 parameters. Since the default compound model implementation
-maps parameters from the consistuent components (which themselves are often
-compound models), this led to many thousands of parameter instances since
-the total tends to go with the square of the number of model instances.
-This led to enormous memory usage and very long instantiation times.
-
-The current implementation is already very complex and relies heavily
-on metaclass tools making it difficult for mere mortals to understand
-and modify. In principle it is possible to optimize the current
-implementation but it is very hard to see how to avoid embedding operator
-expressions in strings to avoid the many instantiations. Besides being
-complex and difficult to add, it adds clumsiness to the user interface
-(though admittedly, the alternate solution has its own clumsy aspect).
-So this led to a completely different approach that seems much simpler
-for certain use cases (it does forgo the ability to fit compound models
-for example, though adding such capability without affecting the
-performance issues isn't out of the question in the following approach)
-
-This is an initial implementation that implements only very basic
-functionality. Some of the functionality that the default implementation
-provides will never be provided by this implementation; other functionality
-is deferred depending on the experience in using this initial implementation.
-Note that this does not affect the underlying basic model classes at all.
-This model class does not inherit from the basic model class! (So some
-solution to making generic tests for models is needed)
+is lighter weight than the default implementation. 
 
 Using this alternate version of compound models requires calling a function
 in core to make this one the default. If this is used, *is is higly recommended
@@ -2352,27 +2317,18 @@ Things currently supported:
 
 Things not currently supported (but will be if adopted):
 
-- named access to constituent models (And thus their parameters)
-- good string representation and such
-- conversion to and from the default compound model scheme
-- pickling
-- possibly more efficient evaluation as done in the style of the current
+- picklingt
   compound models (this implementation walks the tree every time)
-- support for units, when available
 - and other things I've overlooked at this moment...
 
 Things that will never be supported:
 
 - Compound models of model classes (as opposed to instances)
-- Transparent and automatic mapping of parameters of constituent
-  models to the compound model level.
-- Fitting (the focus of this almost entirely on evaluation)
 """
 
 class CompoundModel(Model):
     '''
-    Lightweight compound model implementation: see altcompound.py documentation
-    for details.
+    Lightweight compound model implementation
     '''
 
     def __init__(self, op, left, right, name=None, inverse=None):
@@ -2678,29 +2634,6 @@ class CompoundModel(Model):
     @ineqcons.setter
     def ineqcons(self, value):
         self._eqcons = value
-
-    # def __setattr__(self, attr, value):
-    #     # TODO should eliminate the duplicate code here with that in core
-    #     if self.param_names is not None and attr in self.param_names:
-    #         param = self.__dict__[attr]
-    #         value = _tofloat(value)
-    #         if param.unit is None:
-    #             if isinstance(value, Quantity):
-    #                 param._unit = value.unit
-    #                 param.value = value.value
-    #             else:
-    #                 param.value = value
-    #         else:
-    #             if not isinstance(value, Quantity):
-    #                 raise UnitsError("The '{0}' parameter should be given "
-    #                                  "as a Quantity because it was originally "
-    #                                  "initialized as a "
-    #                                  "Quantity".format(param.name))
-    #             else:
-    #                 param._unit = value.unit
-    #                 param.value = value.value
-    #     else:
-    #         super().__setattr__(attr, value)
 
     def traverse_postorder(self):
         stack = deque([self])
