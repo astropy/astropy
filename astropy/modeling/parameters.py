@@ -114,27 +114,32 @@ def _unary_arithmetic_operation(op):
 
 class Parameter(OrderedDescriptor):
     """
-    *** Warning: DOCSTRING CURRENTLY INVALID...
     +++++++++++++++++++++++++++++++++++++++++++
     Wraps individual parameters.
 
-    This class represents a model's parameter (in a somewhat broad sense).  It
-    acts as both a descriptor that can be assigned to a class attribute to
-    describe the parameters accepted by an individual model (this is called an
-    "unbound parameter"), or it can act as a proxy for the parameter values on
-    an individual model instance (called a "bound parameter").
+    Note: this is a new implementation of the Parameter class, and despite
+    the fact that it inherits from OrderedDescriptor, it no longer is a
+    descriptor.
 
-    Parameter instances never store the actual value of the parameter directly.
-    Rather, each instance of a model stores its own parameters parameter values
-    in an array.  A *bound* Parameter simply wraps the value in a Parameter
-    proxy which provides some additional information about the parameter such
-    as its constraints.  In other words, this is a high-level interface to a
-    model's adjustable parameter values.
+    This class represents a model's parameter (in a somewhat broad sense). It 
+    serves a number of purposes:
 
-    *Unbound* Parameters are not associated with any specific model instance,
-    and are merely used by model classes to determine the names of their
-    parameters and other information about each parameter such as their default
-    values and default constraints.
+    1) A type to be recognized by models and treated specially at class 
+    initialization (i.e., if it is found that there is a class definition
+    of a Parameter, the model initializer makes a copy at the instance level).
+
+    2) Managing the handling of allowable parameter values and once defined, 
+    ensuring updates are consistent with the Parameter definition. This 
+    includes the optional use of units and quantities as well as tranforming
+    values to an internally consistent representation (e.g., from degrees to
+    radians through the use of getters and setters).
+
+    3) Holding attributes of parameters relevant to fitting, such as whether
+    the parameter may be varied in fitting, or whether there are constraints
+    that must be satisfied.
+
+    Parameters now do store values locally (as instead previously in the 
+    associated model)
 
     See :ref:`modeling-parameters` for more details.
 
@@ -178,13 +183,10 @@ class Parameter(OrderedDescriptor):
         specify min and max as a single tuple--bounds may not be specified
         simultaneously with min or max
     model : `Model` instance
-        binds the the `Parameter` instance to a specific model upon
-        instantiation; this should only be used internally for creating bound
-        Parameters, and should not be used for `Parameter` descriptors defined
-        as class attributes
+        This parameter is no longer of general use and is provided for backward
+        compatibilty.
     """
-    # Reworked to have Parmeter instance hold all information instead of
-    # Model instance.
+
     constraints = ('fixed', 'tied', 'bounds')
     """
     Types of constraints a parameter can have.  Excludes 'min' and 'max'
@@ -310,25 +312,7 @@ class Parameter(OrderedDescriptor):
         """Parameter default value"""
 
 
-        # Otherwise the model we are providing for has more than one parameter
-        # sets, so ensure that the default is repeated the correct number of
-        # times along the model_set_axis if necessary
-        #n_models = len(self._model)
-        #model_set_axis = self._model._model_set_axis
-        default = self._default
-        #new_shape = (np.shape(default) +
-        #             (1,) * (model_set_axis + 1 - np.ndim(default)))
-        #default = np.reshape(default, new_shape)
-        # Now roll the new axis into its correct position if necessary
-        #default = np.rollaxis(default, -1, model_set_axis)
-        # Finally repeat the last newly-added axis to match n_models
-        #default = np.repeat(default, n_models, axis=-1)
-
-        # NOTE: Regardless of what order the last two steps are performed in,
-        # the resulting array will *look* the same, but only if the repeat is
-        # performed last will it result in a *contiguous* array
-
-        return default
+        return self._default
 
     @property
     def value(self):
@@ -344,21 +328,6 @@ class Parameter(OrderedDescriptor):
             elif self._setter:
                 return np.float64(self._internal_value)
 
-
-    # @property
-    # def value(self):
-    #     """The unadorned value proxied by this parameter."""
-    #     if self._getter is None and self._setter is None:
-    #         return self._value
-    #     else:
-    #         if self.internal_unit:
-    #             return np.float64(self._getter(self._internal_value,
-    #                               self.internal_unit, self.unit).value)
-    #         elif self._getter:
-    #             return self._getter(self._internal_value)
-    #         elif self._setter:
-    #             return self._internal_value
-
     @value.setter
     def value(self, value):
 
@@ -372,10 +341,6 @@ class Parameter(OrderedDescriptor):
         else:
             self._internal_value = np.array(self._setter(value),
                                             dtype=np.float64)
-        # if self._setter is None:
-        #     self._value = np.float64(value)
-        # else:
-        #     self._internal_value = np.float64(self._setter(value))
 
 
     @property
@@ -456,9 +421,6 @@ class Parameter(OrderedDescriptor):
     @property
     def size(self):
         """The size of this parameter's value array."""
-
-        # TODO: Rather than using self.value this could be determined from the
-        # size of the parameter in _param_metrics
 
         return np.size(self.value)
 
