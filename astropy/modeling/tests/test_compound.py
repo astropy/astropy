@@ -309,20 +309,20 @@ def test_compound_with_polynomials(poly):
     assert_allclose(result, result_compound)
 
 
-def test_variable_substitution():
-    g1 = Gaussian2D(1, 0, 0, 1, 2)
-    g2 = Gaussian2D(1.5, .5, -.2, .5, .3)
-    sg1_1 = g1 % {1: 0}
-    assert_almost_equal(sg1_1(0), g1(0, 0))
-    sg1_2 = g1 % {'x': 1}
-    assert_almost_equal(sg1_2(1.5), g1(1, 1.5))
-    gg1 = g1 & g2
-    sgg1_1 = gg1 % {1: 0.1, 3: 0.2}
-    assert_almost_equal(sgg1_1(0, 0), gg1(0, 0.1, 0, 0.2))
-    sgg1_2 = gg1 % {'x0': -.1, 2: .1}
-    assert_almost_equal(sgg1_2(1,1), gg1(-0.1, 1, 0.1, 1))
-    with pytest.raises(ValueError):
-        egg1 = gg1 % {'x0': 0, 0: 0}
+# def test_variable_substitution():
+#     g1 = Gaussian2D(1, 0, 0, 1, 2)
+#     g2 = Gaussian2D(1.5, .5, -.2, .5, .3)
+#     sg1_1 = g1 % {1: 0}
+#     assert_almost_equal(sg1_1(0), g1(0, 0))
+#     sg1_2 = g1 % {'x': 1}
+#     assert_almost_equal(sg1_2(1.5), g1(1, 1.5))
+#     gg1 = g1 & g2
+#     sgg1_1 = gg1 % {1: 0.1, 3: 0.2}
+#     assert_almost_equal(sgg1_1(0, 0), gg1(0, 0.1, 0, 0.2))
+#     sgg1_2 = gg1 % {'x0': -.1, 2: .1}
+#     assert_almost_equal(sgg1_2(1,1), gg1(-0.1, 1, 0.1, 1))
+#     with pytest.raises(ValueError):
+#         egg1 = gg1 % {'x0': 0, 0: 0}
 
 
 def test_indexing_on_instance():

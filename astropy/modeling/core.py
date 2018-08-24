@@ -140,7 +140,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             ('__pow__', _model_oper('**')),
             ('__or__', _model_oper('|')),
             ('__and__',_model_oper('&')),
-            ('__mod__', _model_oper('%'))
+            ###('__mod__', _model_oper('%'))
         ]
         for opermethod, opercall in opermethods:
             members[opermethod] = opercall
@@ -469,7 +469,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     __pow__ =     _model_oper('**')
     __or__ =      _model_oper('|')
     __and__ =     _model_oper('&')
-    __mod__ =     _model_oper('%')
+    ###__mod__ =     _model_oper('%')
 
     # *** Other utilities ***
 
@@ -2389,51 +2389,51 @@ class CompoundModel(Model):
                                               self.right.inverse,
                                               self.left.inverse,
                                               inverse=self)
-        elif op == '%':
-            if not isinstance(right, dict):
-                raise ValueError('expecting dictionary for right side of "%"'
-                                 ' operator')
-            else:
-                # Dict keys must match either possible indices
-                # for model on left side,
-                # or names for inputs.
-                self.n_inputs = left.n_inputs - len(right)
-                self.outputs = left.outputs
-                self.n_outputs = left.n_outputs
-                newinputs = list(left.inputs)
-                keys = right.keys()
-                input_ind = []
-                for key in keys:
-                    if isinstance(key, int):
-                        if key >= left.n_inputs or key < 0:
-                            raise ValueError(
-                                'substitution key integer value '
-                                'not among possible input choices')
-                        else:
-                            if key in input_ind:
-                                raise ValueError("Duplicate specification of "
-                                                 "same input (index/name)")
-                            else:
-                                input_ind.append(key)
-                    elif isinstance(key, str):
-                        if key not in left.inputs:
-                            raise ValueError(
-                                'Substitution key string not among possible '
-                                'input choices')
-                        # Check to see it doesn't match positional
-                        # specification.
-                        ind = left.inputs.index(key)
-                        if ind in input_ind:
-                            raise ValueError("Duplicate specification of "
-                                             "same input (index/name)")
-                        else:
-                            input_ind.append(ind)
-                # Remove substituted inputs
-                input_ind.sort()
-                input_ind.reverse()
-                for ind in input_ind:
-                    del newinputs[ind]
-                self.inputs = tuple(newinputs)
+        ###elif op == '%':
+        ###    if not isinstance(right, dict):
+        ###        raise ValueError('expecting dictionary for right side of "%"'
+        ###                         ' operator')
+            # else:
+            #     # Dict keys must match either possible indices
+            #     # for model on left side,
+            #     # or names for inputs.
+            #     self.n_inputs = left.n_inputs - len(right)
+            #     self.outputs = left.outputs
+            #     self.n_outputs = left.n_outputs
+            #     newinputs = list(left.inputs)
+            #     keys = right.keys()
+            #     input_ind = []
+            #     for key in keys:
+            #         if isinstance(key, int):
+            #             if key >= left.n_inputs or key < 0:
+            #                 raise ValueError(
+            #                     'substitution key integer value '
+            #                     'not among possible input choices')
+            #             else:
+            #                 if key in input_ind:
+            #                     raise ValueError("Duplicate specification of "
+            #                                      "same input (index/name)")
+            #                 else:
+            #                     input_ind.append(key)
+            #         elif isinstance(key, str):
+            #             if key not in left.inputs:
+            #                 raise ValueError(
+            #                     'Substitution key string not among possible '
+            #                     'input choices')
+            #             # Check to see it doesn't match positional
+            #             # specification.
+            #             ind = left.inputs.index(key)
+            #             if ind in input_ind:
+            #                 raise ValueError("Duplicate specification of "
+            #                                  "same input (index/name)")
+            #             else:
+            #                 input_ind.append(ind)
+            #     # Remove substituted inputs
+            #     input_ind.sort()
+            #     input_ind.reverse()
+            #     for ind in input_ind:
+            #         del newinputs[ind]
+            #     self.inputs = tuple(newinputs)
 
         else:
             raise ModelDefinitionError('Illegal operator: ', self.op)
@@ -2514,46 +2514,46 @@ class CompoundModel(Model):
                     return self.right(*leftval, **kw)
                 else:
                     return self.right(leftval, **kw)
-        elif op == '%':
-            subs = self.right
-            newargs = list(args)
-            subinds = []
-            subvals = []
-            for key in subs.keys():
-                if isinstance(key, int):
-                    subinds.append(key)
-                elif isinstance(key, str):
-                    ind = self.left.inputs.index(key)
-                    subinds.append(ind)
-                subvals.append(subs[key])
-            # Turn inputs specified in kw into positional indices.
-            # Names for compound inputs do not propagate to sub models.
-            kwind = []
-            kwval = []
-            for kwkey in list(kw.keys()):
-                if kwkey in self.inputs:
-                    ind = self.inputs.index(kwkey)
-                    if ind < len(args):
-                        raise ValueError("Keyword argument duplicates "
-                                        "positional value supplied")
-                    kwind.append(ind)
-                    kwval.append(kw[kwkey])
-                    del kw[kwkey]
-            # Build new argument list
-            # Append keyword specified args first
-            if kwind:
-                kwargs = list(zip(kwind, kwval))
-                kwargs.sort()
-                kwindsorted, kwvalsorted = list(zip(*kwargs))
-                newargs = newargs + list(kwvalsorted)
-            if subinds:
-                subargs = list(zip(subinds, subvals))
-                subargs.sort()
-                subindsorted, subvalsorted = list(zip(*subargs))
-            # The substitutions must be inserted in order
-            for ind, val in subargs:
-                newargs.insert(ind, val)
-            return self.left(*newargs, **kw)
+        # elif op == '%':
+        #     subs = self.right
+        #     newargs = list(args)
+        #     subinds = []
+        #     subvals = []
+        #     for key in subs.keys():
+        #         if isinstance(key, int):
+        #             subinds.append(key)
+        #         elif isinstance(key, str):
+        #             ind = self.left.inputs.index(key)
+        #             subinds.append(ind)
+        #         subvals.append(subs[key])
+        #     # Turn inputs specified in kw into positional indices.
+        #     # Names for compound inputs do not propagate to sub models.
+        #     kwind = []
+        #     kwval = []
+        #     for kwkey in list(kw.keys()):
+        #         if kwkey in self.inputs:
+        #             ind = self.inputs.index(kwkey)
+        #             if ind < len(args):
+        #                 raise ValueError("Keyword argument duplicates "
+        #                                 "positional value supplied")
+        #             kwind.append(ind)
+        #             kwval.append(kw[kwkey])
+        #             del kw[kwkey]
+        #     # Build new argument list
+        #     # Append keyword specified args first
+        #     if kwind:
+        #         kwargs = list(zip(kwind, kwval))
+        #         kwargs.sort()
+        #         kwindsorted, kwvalsorted = list(zip(*kwargs))
+        #         newargs = newargs + list(kwvalsorted)
+        #     if subinds:
+        #         subargs = list(zip(subinds, subvals))
+        #         subargs.sort()
+        #         subindsorted, subvalsorted = list(zip(*subargs))
+        #     # The substitutions must be inserted in order
+        #     for ind, val in subargs:
+        #         newargs.insert(ind, val)
+        #     return self.left(*newargs, **kw)
         else:
             raise ModelDefinitionError('unrecognized operator')
 
@@ -2823,7 +2823,7 @@ class CompoundModel(Model):
     __pow__ =     _model_oper('**')
     __or__ =      _model_oper('|')
     __and__ =     _model_oper('&')
-    __mod__ =     _model_oper('%')
+    ###__mod__ =     _model_oper('%')
 
     def map_parameters(self, namestyle=None):
         """
