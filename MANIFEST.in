@@ -19,15 +19,12 @@ include astropy/astropy.cfg
 include astropy/extern/configobj/*.py
 recursive-include astropy/utils/compat *.py
 
-include astropy/utils/misc/data/.hidden_file.txt
-
 recursive-include docs *
 recursive-include examples *
 recursive-include licenses *
 recursive-include cextern *
 recursive-include scripts *
 recursive-include static *
-recursive-include astropy/sphinx/themes *
 
 prune docs/_build
 prune build
