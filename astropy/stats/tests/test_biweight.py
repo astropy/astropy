@@ -2,7 +2,6 @@
 
 import pytest
 import numpy as np
-from numpy.random import randn, normal
 from numpy.testing import assert_allclose, assert_array_almost_equal_nulp
 
 from ..biweight import (biweight_location, biweight_scale,
@@ -15,7 +14,7 @@ from ...utils.misc import NumpyRNGContext
 def test_biweight_location():
     with NumpyRNGContext(12345):
         # test that it runs
-        randvar = randn(10000)
+        randvar = np.random.randn(10000)
         cbl = biweight_location(randvar)
         assert abs(cbl - 0) < 1e-2
 
@@ -30,7 +29,7 @@ def test_biweight_location_axis():
     with NumpyRNGContext(12345):
         ny = 100
         nx = 200
-        data = normal(5, 2, (ny, nx))
+        data = np.random.normal(5, 2, (ny, nx))
 
         bw = biweight_location(data, axis=0)
         bwi = []
@@ -53,7 +52,7 @@ def test_biweight_location_axis_3d():
         nz = 3
         ny = 4
         nx = 5
-        data = normal(5, 2, (nz, ny, nx))
+        data = np.random.normal(5, 2, (nz, ny, nx))
         bw = biweight_location(data, axis=0)
         assert bw.shape == (ny, nx)
 
@@ -76,7 +75,7 @@ def test_biweight_scale():
 def test_biweight_midvariance():
     with NumpyRNGContext(12345):
         # test that it runs
-        randvar = randn(10000)
+        randvar = np.random.randn(10000)
         var = biweight_midvariance(randvar)
         assert_allclose(var, 1.0, rtol=0.02)
 
@@ -103,7 +102,7 @@ def test_biweight_midvariance_axis():
     with NumpyRNGContext(12345):
         ny = 100
         nx = 200
-        data = normal(5, 2, (ny, nx))
+        data = np.random.normal(5, 2, (ny, nx))
 
         bw = biweight_midvariance(data, axis=0)
         bwi = []
@@ -126,7 +125,7 @@ def test_biweight_midvariance_axis_3d():
         nz = 3
         ny = 4
         nx = 5
-        data = normal(5, 2, (nz, ny, nx))
+        data = np.random.normal(5, 2, (nz, ny, nx))
         bw = biweight_midvariance(data, axis=0)
         assert bw.shape == (ny, nx)
 
