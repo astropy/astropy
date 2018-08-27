@@ -3,7 +3,6 @@
 import pytest
 
 import numpy as np
-from numpy.random import randn, normal
 from numpy.testing import assert_equal, assert_allclose
 
 try:
@@ -29,7 +28,7 @@ from ...utils.misc import NumpyRNGContext
 def test_median_absolute_deviation():
     with NumpyRNGContext(12345):
         # test that it runs
-        randvar = randn(10000)
+        randvar = np.random.randn(10000)
         mad = funcs.median_absolute_deviation(randvar)
 
         # test whether an array is returned if an axis is used
@@ -316,13 +315,13 @@ def test_bootstrap_multiple_outputs():
 
 def test_mad_std():
     with NumpyRNGContext(12345):
-        data = normal(5, 2, size=(100, 100))
+        data = np.random.normal(5, 2, size=(100, 100))
         assert_allclose(funcs.mad_std(data), 2.0, rtol=0.05)
 
 
 def test_mad_std_scalar_return():
     with NumpyRNGContext(12345):
-        data = normal(5, 2, size=(10, 10))
+        data = np.random.normal(5, 2, size=(10, 10))
         # make a masked array with no masked points
         data = np.ma.masked_where(np.isnan(data), data)
         rslt = funcs.mad_std(data)
@@ -345,7 +344,7 @@ def test_mad_std_scalar_return():
 
 def test_mad_std_warns():
     with NumpyRNGContext(12345):
-        data = normal(5, 2, size=(10, 10))
+        data = np.random.normal(5, 2, size=(10, 10))
         data[5, 5] = np.nan
 
         with catch_warnings() as warns:
@@ -357,7 +356,7 @@ def test_mad_std_withnan():
     with NumpyRNGContext(12345):
         data = np.empty([102, 102])
         data[:] = np.nan
-        data[1:-1, 1:-1] = normal(5, 2, size=(100, 100))
+        data[1:-1, 1:-1] = np.random.normal(5, 2, size=(100, 100))
         assert_allclose(funcs.mad_std(data, ignore_nan=True), 2.0, rtol=0.05)
 
     assert np.isnan(funcs.mad_std([1, 2, 3, 4, 5, np.nan]))
