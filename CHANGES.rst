@@ -269,6 +269,9 @@ astropy.modeling
   both redundant and inadvertently corrupted at masked points). Return a
   consistent type for the second value when ``niter=0``. [#7407]
 
+- Set the minimum value for the ``bolometric_flux`` parameter of the
+  ``BlackBody1D`` model to zero. [#7045]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -877,14 +880,6 @@ astropy.modeling
 
 - Support masked array values in ``LinearLSQFitter`` (instead of silently
   ignorning the mask). [#6927]
-- Set the minimum value for the ``bolometric_flux`` parameter of the
-  ``BlackBody1D`` model to zero. [#7045]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
