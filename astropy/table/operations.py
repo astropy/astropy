@@ -9,16 +9,15 @@ High-level table operations:
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from copy import deepcopy
-import warnings
 import collections
 import itertools
 from collections import OrderedDict, Counter
 
 import numpy as np
-from numpy import ma
 
 from ..utils import metadata
-from .column import Column
+from .table import Table, QTable, Row, Column
+from ..units import Quantity
 
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
@@ -38,18 +37,30 @@ def _get_list_of_tables(tables):
     Check that tables is a Table or sequence of Tables.  Returns the
     corresponding list of Tables.
     """
-    from .table import Table, Row
 
     # Make sure we have a list of things
     if not isinstance(tables, collections.Sequence):
         tables = [tables]
 
-    # Make sure each thing is a Table or Row
-    if any(not isinstance(x, (Table, Row)) for x in tables) or len(tables) == 0:
-        raise TypeError('`tables` arg must be a Table or sequence of Tables or Rows')
+    # Make sure there is something to stack
+    if len(tables) == 0:
+        raise ValueError('no values provided to stack.')
 
-    # Convert any Rows to Tables
-    tables = [(x if isinstance(x, Table) else Table(x)) for x in tables]
+    # Convert inputs (Table, Row, or anything column-like) to Tables.
+    # Special case that Quantity converts to a QTable.
+    for ii, val in enumerate(tables):
+        if isinstance(val, Table):
+            pass
+        elif isinstance(val, Row):
+            tables[ii] = Table(val)
+        elif isinstance(val, Quantity):
+            tables[ii] = QTable([val])
+        else:
+            try:
+                tables[ii] = Table([val])
+            except (ValueError, TypeError):
+                raise TypeError('cannot convert {} to table column.'
+                                .format(val))
 
     return tables
 
@@ -107,7 +118,6 @@ def join(left, right, keys=None, join_type='inner',
     joined_table : `~astropy.table.Table` object
         New table containing the result of the join operation.
     """
-    from .table import Table
 
     # Try converting inputs to Table as needed
     if not isinstance(left, Table):

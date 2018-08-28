@@ -13,6 +13,8 @@ from ... import units as u
 from ...utils import metadata
 from ...utils.metadata import MergeConflictError
 from ... import table
+from ...time import Time
+from ...coordinates import SkyCoord
 
 
 def sort_eq(list1, list2):
@@ -641,6 +643,18 @@ class TestVStack():
                                  '1.0 bar',
                                  '1.0 bar']
 
+    def test_stack_table_column(self, operation_table_type):
+        self._setup(operation_table_type)
+        t2 = self.t1.copy()
+        t2.meta.clear()
+        out = table.vstack([self.t1, t2['a']])
+        assert out.pformat() == [' a   b ',
+                                 '--- ---',
+                                 '0.0 foo',
+                                 '1.0 bar',
+                                 '0.0  --',
+                                 '1.0  --']
+
     def test_table_meta_merge(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.vstack([self.t1, self.t2, self.t4], join_type='inner')
@@ -675,7 +689,7 @@ class TestVStack():
 
     def test_bad_input_type(self, operation_table_type):
         self._setup(operation_table_type)
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             table.vstack([])
         with pytest.raises(TypeError):
             table.vstack(1)
@@ -937,6 +951,10 @@ class TestVStack():
             assert np.all(out['b'][len_col:] == col)
             assert np.all(out['a'].mask == [False] * len_col + [True] * len_col)
             assert np.all(out['b'].mask == [True] * len_col + [False] * len_col)
+            # check directly stacking mixin columns:
+            out2 = table.vstack([t, t2['b']])
+            assert np.all(out['a'] == out2['a'])
+            assert np.all(out['b'] == out2['b'])
         else:
             with pytest.raises(NotImplementedError) as err:
                 table.vstack([t, t2], join_type='outer')
@@ -995,6 +1013,17 @@ class TestHStack():
                                  '--- --- --- --- ---',
                                  '0.0 foo 3.0 sez   5']
 
+    def test_stack_columns(self, operation_table_type):
+        self._setup(operation_table_type)
+        out = table.hstack([self.t1, self.t2['c']])
+        assert type(out['a']) is type(self.t1['a'])
+        assert type(out['b']) is type(self.t1['b'])
+        assert type(out['c']) is type(self.t2['c'])
+        assert out.pformat() == [' a   b   c ',
+                                 '--- --- ---',
+                                 '0.0 foo   4',
+                                 '1.0 bar   5']
+
     def test_table_meta_merge(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.hstack([self.t1, self.t2, self.t4], join_type='inner')
@@ -1029,7 +1058,7 @@ class TestHStack():
 
     def test_bad_input_type(self, operation_table_type):
         self._setup(operation_table_type)
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             table.hstack([])
         with pytest.raises(TypeError):
             table.hstack(1)
@@ -1174,6 +1203,11 @@ class TestHStack():
             assert np.all(out['col0_1'] == col1)
             assert np.all(out['col0_2'][:len(col2)] == col2)
             assert np.all(out['col0_2'].mask == [False, False, True, True])
+
+            # check directly stacking mixin columns:
+            out2 = table.hstack([t1, t2['col0']], join_type='outer')
+            assert np.all(out['col0_1'] == out2['col0_1'])
+            assert np.all(out['col0_2'] == out2['col0_2'])
         else:
             with pytest.raises(NotImplementedError) as err:
                 table.hstack([t1, t2], join_type='outer')
@@ -1355,3 +1389,46 @@ def test_masking_required_exception():
     with pytest.raises(NotImplementedError) as err:
         table.join(t1, t2, join_type='outer')
     assert 'join requires masking' in str(err)
+
+
+def test_stack_columns():
+    c = table.Column([1, 2])
+    mc = table.MaskedColumn([1, 2])
+    q = [1, 2] * u.m
+    time = Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02'])
+    sc = SkyCoord([1, 2], [3, 4], unit='deg')
+    cq = table.Column([11, 22], unit=u.m)
+
+    t = table.hstack([c, q])
+    assert t.__class__ is table.QTable
+    assert t.masked is False
+    t = table.hstack([q, c])
+    assert t.__class__ is table.QTable
+    assert t.masked is False
+
+    t = table.hstack([mc, q])
+    assert t.__class__ is table.QTable
+    assert t.masked is True
+
+    t = table.hstack([c, mc])
+    assert t.__class__ is table.Table
+    assert t.masked is True
+
+    t = table.vstack([q, q])
+    assert t.__class__ is table.QTable
+
+    t = table.vstack([c, c])
+    assert t.__class__ is table.Table
+
+    t = table.hstack([c, time])
+    assert t.__class__ is table.Table
+    t = table.hstack([c, sc])
+    assert t.__class__ is table.Table
+    t = table.hstack([q, time, sc])
+    assert t.__class__ is table.QTable
+
+    with pytest.raises(ValueError):
+        table.vstack([c, q])
+
+    with pytest.raises(ValueError):
+        t = table.vstack([q, cq])
