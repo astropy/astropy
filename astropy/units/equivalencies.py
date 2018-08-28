@@ -541,6 +541,7 @@ def brightness_temperature(frequency, beam_area=None):
 
         return [(astrophys.Jy/si.sr, si.K, convert_JySr_to_K, convert_K_to_JySr)]
 
+
 def beam_angular_area(beam_area):
     """
     Convert between the ``beam`` unit, which is commonly used to express the area
@@ -557,6 +558,7 @@ def beam_angular_area(beam_area):
             (astrophys.beam**-1, Unit(beam_area)**-1),
             (astrophys.Jy/astrophys.beam, astrophys.Jy/Unit(beam_area)),
            ]
+
 
 def thermodynamic_temperature(frequency, T_cmb=None):
     r"""Defines the conversion between Jy/beam and "thermodynamic temperature",
@@ -606,7 +608,7 @@ def thermodynamic_temperature(frequency, T_cmb=None):
 
     def f(nu, T_cmb=T_cmb):
         x = _si.h * nu / _si.k_B / T_cmb
-        return x**2 * np.exp(x) / (np.exp(x) - 1)**2
+        return x**2 * np.exp(x) / np.expm1(x)**2
 
     def convert_Jy_to_K(x_jybm):
         factor = (f(nu) * 2 * _si.k_B * si.K * nu**2 / _si.c**2).to_value(astrophys.Jy)

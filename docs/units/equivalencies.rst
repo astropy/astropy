@@ -291,6 +291,18 @@ observations at high-energy, be it for solar or X-ray astronomy. Example::
     >>> t_k.to(u.eV, equivalencies=u.temperature_energy())  # doctest: +FLOAT_CMP
     <Quantity 86.17332384960955 eV>
 
+Thermodynamic Temperature Equivalency
+-------------------------------------
+
+This equivalency allows conversion between Jy/beam and "thermodynamic
+temperature", :math:`T_{CMB}`, in Kelvins. Example::
+
+    >>> import astropy.units as u
+    >>> nu = 143 * u.GHz
+    >>> t_k = 0.0026320518775281975 * u.K
+    >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu))  # doctest: +FLOAT_CMP
+    <Quantity 1. MJy / sr>
+
 
 Molar Mass AMU Equivalency
 --------------------------
