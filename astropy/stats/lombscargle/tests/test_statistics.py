@@ -18,8 +18,7 @@ METHOD_KWDS = dict(bootstrap={'n_bootstraps': 20, 'random_seed': 42})
 NORMALIZATIONS = ['standard', 'psd', 'log', 'model']
 
 
-@pytest.fixture
-def data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
+def make_data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
     """Generate some data for testing"""
     rng = np.random.RandomState(rseed)
     t = 5 * period * rng.rand(N)
@@ -110,7 +109,7 @@ def test_inverses(method, normalization, use_errs, N, T=5, fmax=5):
     if not HAS_SCIPY and method in ['baluev', 'davies']:
         pytest.skip("SciPy required")
 
-    t, y, dy = data(N, rseed=543)
+    t, y, dy = make_data(N, rseed=543)
     if not use_errs:
         dy = None
     method_kwds = METHOD_KWDS.get(method, None)
@@ -129,12 +128,12 @@ def test_inverses(method, normalization, use_errs, N, T=5, fmax=5):
 
 @pytest.mark.parametrize('method', sorted(METHODS))
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
-def test_false_alarm_smoketest(method, normalization, data):
+def test_false_alarm_smoketest(method, normalization):
     if not HAS_SCIPY and method in ['baluev', 'davies']:
         pytest.skip("SciPy required")
 
     kwds = METHOD_KWDS.get(method, None)
-    t, y, dy = data
+    t, y, dy = make_data()
     fmax = 5
 
     ls = LombScargle(t, y, dy, normalization=normalization)
@@ -153,7 +152,7 @@ def test_false_alarm_smoketest(method, normalization, data):
 @pytest.mark.parametrize('method', sorted(METHODS))
 @pytest.mark.parametrize('use_errs', [True, False])
 @pytest.mark.parametrize('normalization', sorted(set(NORMALIZATIONS) - {'psd'}))
-def test_false_alarm_equivalence(method, normalization, use_errs, data):
+def test_false_alarm_equivalence(method, normalization, use_errs):
     # Note: the PSD normalization is not equivalent to the others, in that it
     # depends on the absolute errors rather than relative errors. Because the
     # scaling contributes to the distribution, it cannot be converted directly
@@ -162,7 +161,7 @@ def test_false_alarm_equivalence(method, normalization, use_errs, data):
         pytest.skip("SciPy required")
 
     kwds = METHOD_KWDS.get(method, None)
-    t, y, dy = data
+    t, y, dy = make_data()
     if not use_errs:
         dy = None
     fmax = 5
