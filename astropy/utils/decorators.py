@@ -2,7 +2,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Sundry function and class decorators."""
 
-
 import functools
 import inspect
 import textwrap
@@ -299,8 +298,10 @@ def deprecated_renamed_argument(old_name, new_name, since,
         Default is ``False``.
 
     pending : bool or list/tuple thereof, optional
-        If ``True`` this will hide the deprecation warning and ignore the
-        corresponding ``relax`` parameter value.
+        If ``True``, this will show ``AstropyPendingDeprecationWarning``,
+        not ``AstropyDeprecationWarning``. In addition, it also
+        ignores the corresponding ``relax`` parameter value (no extra
+        warning or error).
         Default is ``False``.
 
     Raises
@@ -453,14 +454,18 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 if old_name[i] in kwargs:
                     value = kwargs.pop(old_name[i])
                     # Display the deprecation warning only when it's only
-                    # pending.
-                    if not pending[i]:
-                        warnings.warn(
-                            '"{0}" was deprecated in version {1} '
-                            'and will be removed in a future version. '
-                            'Use argument "{2}" instead.'
-                            ''.format(old_name[i], since[i], new_name[i]),
-                            AstropyDeprecationWarning, stacklevel=2)
+                    # not pending.
+                    if pending[i]:
+                        category = AstropyPendingDeprecationWarning
+                    else:
+                        category = AstropyDeprecationWarning
+
+                    warnings.warn(
+                        '"{0}" was deprecated in version {1} '
+                        'and will be removed in a future version. '
+                        'Use argument "{2}" instead.'
+                        ''.format(old_name[i], since[i], new_name[i]),
+                        category, stacklevel=2)
 
                     # Check if the newkeyword was given as well.
                     newarg_in_args = (position[i] is not None and
