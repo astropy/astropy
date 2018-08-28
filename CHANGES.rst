@@ -142,6 +142,9 @@ astropy.table
   functions. This applies to both the key columns and the other data
   columns. [#7712]
 
+- Added support for stacking ``Column``, mixin column (e.g. ``Quantity``,
+  ``Time``) or column-like objects. [#7674]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -290,9 +293,13 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
 - ``Table.read()`` on a FITS binary table file will convert any TDISPn header
   keywords to a Python formatting string when possible, and store it in the
   column ``format`` attribute. [#7226]
+
+- No values provided to stack will now raise ``ValueError`` rather than
+  ``TypeError``. [#7674]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -304,13 +311,14 @@ astropy.tests
 
 astropy.time
 ^^^^^^^^^^^^
+
 - Added the ability to use ``local`` as time scale in ``Time`` and
   ``TimeDelta``. [#6487]
 
 - Comparisons, addition, and subtraction of ``Time`` instances with non-time
-  instances will now return `NotImplemented` rather than raise the
+  instances will now return ``NotImplemented`` rather than raise the
   ``Time``-specific ``OperandTypeError``.  This will generally lead to a
-  regular `TypeError`.  As a result, ``OperandTypeError`` now only occurs if
+  regular ``TypeError``.  As a result, ``OperandTypeError`` now only occurs if
   the operation is between ``Time`` instances of incompatible type or scale.
   [#7584]
 
