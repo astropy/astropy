@@ -170,7 +170,7 @@ class BlackBody1D(Fittable1DModel):
     # bolometric flux is the integral of the model over the spectral axis. This
     # is more useful than simply having an amplitude parameter.
     temperature = Parameter(default=5000, min=0, unit=u.K)
-    bolometric_flux = Parameter(default=1, unit=u.erg / u.cm ** 2 / u.s)
+    bolometric_flux = Parameter(default=1, min=0, unit=u.erg / u.cm ** 2 / u.s)
 
     # We allow values without units to be passed when evaluating the model, and
     # in this case the input x values are assumed to be frequencies in Hz.
