@@ -123,7 +123,6 @@ except:
 # End compatibility imports...
 
 
-# In case it didn't successfully import before the ez_setup checks
 import pkg_resources
 
 from setuptools import Distribution

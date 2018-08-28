@@ -4,7 +4,6 @@ include README.rst
 include CHANGES.rst
 include pip-requirements*
 
-include ez_setup.py
 include ah_bootstrap.py
 include setup.cfg
 include astropy/tests/coveragerc
@@ -18,15 +17,12 @@ include astropy/astropy.cfg
 include astropy/extern/configobj/*.py
 recursive-include astropy/utils/compat *.py
 
-include astropy/utils/misc/data/.hidden_file.txt
-
 recursive-include docs *
 recursive-include examples *
 recursive-include licenses *
 recursive-include cextern *
 recursive-include scripts *
 recursive-include static *
-recursive-include astropy/sphinx/themes *
 
 prune docs/_build
 prune build
@@ -41,7 +37,6 @@ include astropy_helpers/CHANGES.rst
 include astropy_helpers/LICENSE.rst
 recursive-include astropy_helpers/licenses *
 
-include astropy_helpers/ez_setup.py
 include astropy_helpers/ah_bootstrap.py
 
 recursive-include astropy_helpers/astropy_helpers *.py *.pyx *.c *.h *.rst
