@@ -294,7 +294,8 @@ observations at high-energy, be it for solar or X-ray astronomy. Example::
 Thermodynamic Temperature Equivalency
 -------------------------------------
 
-This equivalency allows conversion between Jy/beam and "thermodynamic
+This :func:`~astropy.units.equivalencies.thermodynamic_temperature`
+equivalency allows conversion between Jy/beam and "thermodynamic
 temperature", :math:`T_{CMB}`, in Kelvins. Example::
 
     >>> import astropy.units as u

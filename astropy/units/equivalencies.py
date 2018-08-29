@@ -592,12 +592,11 @@ def thermodynamic_temperature(frequency, T_cmb=None):
     --------
     Planck HFI 143 GHz::
 
-        >>> import numpy as np
         >>> from astropy import units as u
-        >>> freq = 143*u.GHz
+        >>> freq = 143 * u.GHz
         >>> equiv = u.thermodynamic_temperature(freq)
-        >>> u.K.to(u.MJy/u.sr, equivalencies=equiv)  # doctest: +FLOAT_CMP
-        379.93172115555564
+        >>> (1. * u.mK).to(u.MJy / u.sr, equivalencies=equiv)  # doctest: +FLOAT_CMP
+        <Quantity 0.37993172 MJy / sr>
 
     """
     nu = frequency.to(si.GHz, spectral())
