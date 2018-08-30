@@ -3,6 +3,7 @@ Normalization class for Matplotlib that can be used to produce
 colorbars.
 """
 
+import inspect
 
 import numpy as np
 from numpy import ma
@@ -15,6 +16,7 @@ from .stretch import (LinearStretch, SqrtStretch, PowerStretch, LogStretch,
 try:
     import matplotlib  # pylint: disable=W0611
     from matplotlib.colors import Normalize
+    from matplotlib import pyplot as plt
 except ImportError:
     class Normalize:
         def __init__(self, *args, **kwargs):
@@ -22,7 +24,7 @@ except ImportError:
                               'class.')
 
 
-__all__ = ['ImageNormalize', 'simple_norm']
+__all__ = ['ImageNormalize', 'simple_norm', 'imshow_norm']
 
 __doctest_requires__ = {'*': ['matplotlib']}
 
@@ -226,3 +228,56 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
     vmin, vmax = interval.get_limits(data)
 
     return ImageNormalize(vmin=vmin, vmax=vmax, stretch=stretch, clip=clip)
+
+
+# used in imshow_norm
+_norm_sig = inspect.signature(ImageNormalize)
+
+
+def imshow_norm(data, ax=None, **kwargs):
+    """ A convenience function to call matplotlib's `matplotlib.pyplot.imshow`
+    function, using an `ImageNormalize` object as the normalization.
+
+    Parameters
+    ----------
+    data
+        The data to show. Can be whatever type `matplotlib.pyplot.imshow` and
+        `ImageNormalize` accept.
+    ax : None or `~matplotlib.axes._axes.Axes`
+        If None, use pyplot's imshow.  Otherwise, calls ``imshow`` method of the
+        supplied axes.
+
+    All other keyword arguments are parsed first by the `ImageNormalize`
+    initializer, then to ``imshow``.
+
+    Notes
+    -----
+    The ``data`` matplotlib keyword is not supported.
+    """
+    if 'X' in kwargs:
+        raise ValueError('Cannot give both ``X`` and ``data``')
+
+    imshow_kwargs = dict(kwargs)
+
+    norm_kwargs = {'data': data}
+    for pname in _norm_sig:
+        if pname in kwargs:
+            norm_kwargs[pname] = imshow_kwargs.pop(pname)
+
+    # now re-assign any "_mpl" kweywords to their equivalents
+    for pname in tuple(imshow_kwargs):
+        if pname.endswith('_mpl'):
+            if pname[:-4] in imshow_kwargs:
+                raise ValueError('Give both {} and {}, but the latter is not an'
+                                 ' ImageNormalize keyword.'.format(pname[:-4],
+                                                                   pname))
+            imshow_kwargs[pname[:-4]] = imshow_kwargs.pop(pname)
+
+    imshow_kwargs['norm'] = ImageNormalize(**norm_kwargs)
+
+    if ax is None:
+        imshow_result = plt.imshow(data, **imshow_kwargs)
+    else:
+        imshow_result = ax.imshow(data, **imshow_kwargs)
+
+    return imshow_result, imshow_kwargs['norm']
