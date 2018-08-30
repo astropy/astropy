@@ -83,6 +83,10 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Removed ``--astropy-config-dir`` and ``--astropy-cache-dir`` options from
+  testing. Please use caching functionality that is natively in ``pytest``.
+  [#7787]
+
 astropy.time
 ^^^^^^^^^^^^
 
