@@ -257,10 +257,15 @@ def imshow_norm(data, ax=None, **kwargs):
     if 'X' in kwargs:
         raise ValueError('Cannot give both ``X`` and ``data``')
 
+    if 'norm' in kwargs:
+        raise ValueError('There is not point in using imshow_norm if you give '
+                         's ``norm`` keyword - use imshow directly if you want '
+                         'that.')
+
     imshow_kwargs = dict(kwargs)
 
     norm_kwargs = {'data': data}
-    for pname in _norm_sig:
+    for pname in _norm_sig.parameters:
         if pname in kwargs:
             norm_kwargs[pname] = imshow_kwargs.pop(pname)
 
