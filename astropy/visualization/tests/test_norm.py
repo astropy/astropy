@@ -5,12 +5,13 @@ import numpy as np
 from numpy import ma
 from numpy.testing import assert_allclose
 
-from ..mpl_normalize import ImageNormalize, simple_norm
+from ..mpl_normalize import ImageNormalize, simple_norm, imshow_norm
 from ..interval import ManualInterval
 from ..stretch import SqrtStretch
 
 try:
     import matplotlib    # pylint: disable=W0611
+    from matplotlib import pyplot as plt
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False
@@ -170,3 +171,27 @@ class TestImageScaling:
         """Test invalid stretch keyword."""
         with pytest.raises(ValueError):
             simple_norm(DATA2, stretch='invalid')
+
+@pytest.mark.skipif('not HAS_MATPLOTLIB')
+def testy_imshow_norm():
+    image = np.random.randn(10, 10)
+
+    ax = plt.subplot()
+    imshow_norm(image, ax=ax)
+
+    with pytest.raises(ValueError):
+        # X and data are the same, can't give both
+        imshow_norm(image, X=image, ax=ax)
+
+    with pytest.raises(ValueError):
+        # illegal to manually pass in normalization since that defeats the point
+        imshow_norm(image, ax=ax, norm=ImageNormalize())
+
+    # vmin/vmax "shadow" the MPL versions, so we allow direct-setting
+    imshow_norm(image, ax=ax, vmin=0, vmax=1)
+    imshow_norm(image, ax=ax, vmin_mpl=0, vmax_mpl=1)
+
+    # make sure the pyplot version works
+    imres, norm = imshow_norm(image, ax=None)
+
+    assert isinstance(norm, ImageNormalize)
