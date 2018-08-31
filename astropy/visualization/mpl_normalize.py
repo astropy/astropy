@@ -243,7 +243,7 @@ def imshow_norm(data, ax=None, **kwargs):
     data
         The data to show. Can be whatever type `matplotlib.pyplot.imshow` and
         `ImageNormalize` accept.
-    ax : None or `~matplotlib.axes._axes.Axes`
+    ax : None or `~matplotlib.axes.Axes`
         If None, use pyplot's imshow.  Otherwise, calls ``imshow`` method of the
         supplied axes.
 
