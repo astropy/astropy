@@ -673,7 +673,9 @@ def test_write_quoted_empty_field(fast_writer):
 def test_write_overwrite_ascii(format, fast_writer, tmpdir):
     """Test overwrite argument for various ASCII writers"""
     filename = tmpdir.join("table-tmp.dat").strpath
-    open(filename, 'w').close()
+    with open(filename, 'w'):
+        # create empty file
+        pass
     t = table.Table([['Hello', ''], ['', '']], dtype=['S10', 'S10'])
 
     with pytest.raises(IOError) as err:
