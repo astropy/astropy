@@ -775,6 +775,10 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- Fixed bugs in biweight statistics functions where a constant data
+  array (or if using the axis keyword, constant along an axis) would
+  return NaN. [#7737]
+
 astropy.table
 ^^^^^^^^^^^^^
 
