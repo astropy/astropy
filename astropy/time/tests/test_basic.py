@@ -1525,12 +1525,12 @@ def test_strptime_fracsec_scalar():
 def test_strptime_fracsec_array():
     """Test of Time.strptime
     """
-    tstrings = [['1998-Jan-01 00:00:01.123', '1998-Jan-01 00:00:02.123'],
-                ['1998-Jan-01 00:00:03.123', '1998-Jan-01 00:00:04.123']]
+    tstrings = [['1998-Jan-01 00:00:01.123', '1998-Jan-01 00:00:02.000001'],
+                ['1998-Jan-01 00:00:03.000900', '1998-Jan-01 00:00:04.123456']]
     tstrings = np.array(tstrings)
 
-    time_object = Time([['1998-01-01 00:00:01.123', '1998-01-01 00:00:02.123'],
-                        ['1998-01-01 00:00:03.123', '1998-01-01 00:00:04.123']])
+    time_object = Time([['1998-01-01 00:00:01.123', '1998-01-01 00:00:02.000001'],
+                        ['1998-01-01 00:00:03.000900', '1998-01-01 00:00:04.123456']])
     t = Time.strptime(tstrings, '%Y-%b-%d %H:%M:%S.%f')
 
     assert np.all(t == time_object)
@@ -1557,9 +1557,10 @@ def test_strftime_scalar_fracsec_precision():
 
 
 def test_strftime_array_fracsec():
-    tstrings = ['2010-09-03 00:00:00.123', '2005-09-03 06:00:00.123',
-                '1995-12-31 23:59:60.123']
+    tstrings = ['2010-09-03 00:00:00.123000', '2005-09-03 06:00:00.000001',
+                '1995-12-31 23:59:60.000900']
     t = Time(tstrings)
+    t.precision = 6
 
     for format in t.FORMATS:
         t.format = format
