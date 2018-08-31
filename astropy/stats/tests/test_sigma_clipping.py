@@ -4,7 +4,6 @@
 import pytest
 import numpy as np
 
-from numpy.random import randn
 from numpy.testing import assert_equal, assert_allclose
 
 try:
@@ -24,7 +23,7 @@ def test_sigma_clip():
 
     with NumpyRNGContext(12345):
         # Amazing, I've got the same combination on my luggage!
-        randvar = randn(10000)
+        randvar = np.random.randn(10000)
 
         filtered_data = sigma_clip(randvar, sigma=1, iters=2)
 
@@ -70,7 +69,7 @@ def test_compare_to_scipy_sigmaclip():
 
     with NumpyRNGContext(12345):
 
-        randvar = randn(10000)
+        randvar = np.random.randn(10000)
 
         astropyres = sigma_clip(randvar, sigma=3, iters=None, cenfunc=np.mean)
         scipyres = stats.sigmaclip(randvar, 3, 3)[0]
@@ -88,7 +87,7 @@ def test_sigma_clip_scalar_mask():
 
 def test_sigma_clip_class():
     with NumpyRNGContext(12345):
-        data = randn(100)
+        data = np.random.randn(100)
         data[10] = 1.e5
         sobj = SigmaClip(sigma=1, iters=2)
         sfunc = sigma_clip(data, sigma=1, iters=2)
@@ -128,7 +127,7 @@ def test_sigma_clipped_stats():
 
 def test_sigma_clipped_stats_ddof():
     with NumpyRNGContext(12345):
-        data = randn(10000)
+        data = np.random.randn(10000)
         data[10] = 1.e5
         mean1, median1, stddev1 = sigma_clipped_stats(data)
         mean2, median2, stddev2 = sigma_clipped_stats(data, std_ddof=1)
