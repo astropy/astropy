@@ -315,6 +315,11 @@ astropy.tests
   ``from astropy.tests.helper import quantity_allclose`` would still work.
   [#7381]
 
+- ``warnings_to_ignore_by_pyver`` option in
+  ``enable_deprecations_as_exceptions()`` now takes ``None`` as key.
+  Any deprecation message that is mapped to ``None`` will be ignored
+  regardless of the Python version. [#7790]
+
 astropy.time
 ^^^^^^^^^^^^
 
