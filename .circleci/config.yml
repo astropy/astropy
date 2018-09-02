@@ -1,6 +1,26 @@
 version: 2
 
+apt-run: &apt-install
+  name: Install apt packages
+  command: |
+    sudo apt update
+    sudo apt install -y graphviz
+
+pip-run: &pip-install
+  name: Install Python dependencies
+  command: |
+    python3 -m venv venv
+    . venv/bin/activate
+    pip install -q -r pip-requirements-doc
+
 jobs:
+  egg-info-37:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - run: python setup.py egg_info
+
   32bit:
     docker:
       - image: quay.io/pypa/manylinux1_i686
@@ -12,6 +32,7 @@ jobs:
       - run:
           name: Run tests
           command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4
+
   image-tests-mpl202:
     docker:
       - image: astropy/image-tests-py35-mpl202:1.2
@@ -21,6 +42,7 @@ jobs:
           name: Run tests
           command: |
             python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
   image-tests-mpl212:
     docker:
       - image: astropy/image-tests-py35-mpl212:1.2
@@ -31,11 +53,39 @@ jobs:
           command: |
             python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
 
+  html-docs:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - run: *apt-install
+      - run: *pip-install
+      - run:
+          name: Build Docs
+          command: venv/bin/python setup.py build_docs -w
+          environment:
+            LC_CTYPE: C
+            LC_ALL: C
+            LANG: C
+
+      - store_artifacts:
+          path: docs/_build/html
+
+      - run:
+          name: "Built documentation is available at:"
+          command: DOCS_URL="${CIRCLE_BUILD_URL}/artifacts/${CIRCLE_NODE_INDEX}/${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}/docs/_build/html/index.html"; echo $DOCS_URL
+
 
 workflows:
   version: 2
-  build_and_test:
+  tests_and_docs:
     jobs:
+      - egg-info-37
+      - html-docs
       - 32bit
       - image-tests-mpl202
       - image-tests-mpl212
+
+notify:
+  webhooks:
+    - url: https://giles.cadair.com/circleci
