@@ -351,6 +351,9 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- In ``ImageNormalize``, the default for ``clip`` is set to ``True``.
+  [#7800]
+
 astropy.wcs
 ^^^^^^^^^^^
 
