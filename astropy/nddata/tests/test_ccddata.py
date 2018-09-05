@@ -883,14 +883,17 @@ def test_stddevuncertainty_compat_descriptor_no_weakref():
     assert uncert.parent_nddata is ccd
     uncert._parent_nddata = None
 
-def test_CCDataread_returns_image(ccd_data, tmpdir):
+
+# https://github.com/astropy/astropy/issues/7595
+def test_read_returns_image(tmpdir):
     # Test if CCData.read returns a image when reading a fits file containing
-    #a table and image, in that order.
-    tbl = Table([np.random.rand(10) for _ in range(20)])
-    img = np.random.rand(100, 100)
-    hdul = fits.HDUList(hdus=[fits.PrimaryHDU(), fits.TableHDU(tbl.as_array()), fits.ImageHDU(img)])
+    # a table and image, in that order.
+    tbl = Table(np.ones(10).reshape(5, 2))
+    img = np.ones((5, 5))
+    hdul = fits.HDUList(hdus=[fits.PrimaryHDU(), fits.TableHDU(tbl.as_array()),
+                              fits.ImageHDU(img)])
     filename = tmpdir.join('table_image.fits').strpath
     hdul.writeto(filename)
     ccd = CCDData.read(filename, unit='adu')
-    # Expecting to get (100, 100), the size of the image
-    assert ccd.data.shape == (100,100)
+    # Expecting to get (5, 5), the size of the image
+    assert ccd.data.shape == (5, 5)
