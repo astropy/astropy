@@ -199,6 +199,20 @@ class FastCsv(FastBasic):
         Override the default write method of `FastBasic` to
         output masked values as empty fields.
         """
+        # https://github.com/astropy/astropy/issues/7357
+        if 'comments' in table.meta:
+            errs = []
+
+            if isinstance(table.meta['comments'], str):
+                errs.append("'comments' must be a list of str.")
+
+            if self.comment != '#':
+                errs.append("Use comment='#' option to enable comments in "
+                            "metadata.")
+
+            if len(errs) > 0:
+                raise ValueError(' '.join(errs))
+
         self._write(table, output, {'fill_values': [(core.masked, '')]})
 
 

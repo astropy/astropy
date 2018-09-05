@@ -532,9 +532,28 @@ def test_write_comments(fast_writer):
 
     # setting comment=False should disable comment writing
     out = StringIO()
-    ascii.write(data, out, format='basic', comment=False, fast_writer=fast_writer)
+    ascii.write(data, out, format='basic', comment=False,
+                fast_writer=fast_writer)
     expected = ['a b c', '1 2 3']
     assert out.getvalue().splitlines() == expected
+
+    # CSV: https://github.com/astropy/astropy/issues/7357
+    with pytest.raises(ValueError) as exc:
+        out = StringIO()
+        ascii.write(data, out, format='csv')
+    assert "Use comment='#' option to enable comments in metadata." in str(exc)
+
+    out = StringIO()
+    ascii.write(data, out, format='csv', comment='#')
+    expected = ['#c1', '#c2', '#c3', 'a,b,c', '1,2,3']
+    assert out.getvalue().splitlines() == expected
+
+    tab = table.Table(data={'a': [1, 2]}, meta={'comments': 'spam'})
+    with pytest.raises(ValueError) as exc:
+        out = StringIO()
+        tab.write(out, format='ascii.csv')
+    assert ("'comments' must be a list of str. Use comment='#' option "
+            "to enable comments in metadata.") in str(exc)
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])

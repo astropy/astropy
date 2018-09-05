@@ -307,6 +307,9 @@ astropy.table
 - No values provided to stack will now raise ``ValueError`` rather than
   ``TypeError``. [#7674]
 
+- Better error message when writing out a table with comments to CSV format.
+  [#7801]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
