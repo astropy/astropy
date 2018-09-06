@@ -1322,6 +1322,10 @@ astropy.wcs
 - Instead of raising an error ``astropy.wcs`` now returns the input when
   the input has zero size.                                       [#7746]
 
+- Fix ``malloc(0)`` bug in ``pipeline_all_pixel2world()`` and
+  ``pipeline_pix2foc()``. They now raise an exception for input with
+  zero coordinates, i.e. shape = (0, n). [#7806]
+
 Other Changes and Additions
 ---------------------------
 
