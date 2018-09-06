@@ -26,7 +26,7 @@ postage stamp cutout image from a 2D array.  If an optional
 
 First, let's simulate a single source on a 2D data array. If you would like to
 simulate many sources, see :ref:`bounding-boxes`.
-.. Note: The pair convention is inconsistent. THe position argument is specified
+.. Note: The pair convention is inconsistent. The position argument is specified
 .. as (x,y), however the size argument is reverse (y,x)
 
     >>> import numpy as np
