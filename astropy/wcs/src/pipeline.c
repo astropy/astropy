@@ -99,6 +99,13 @@ pipeline_all_pixel2world(
   }
 
   if (has_wcs) {
+    if (ncoord < 1) {
+      status = wcserr_set(
+        PIP_ERRMSG(WCSERR_BAD_PIX),
+        "The number of coordinates must be > 0");
+      goto exit;
+    }
+
     buffer = mem = malloc(
         ncoord * nelem * sizeof(double) + /* imgcrd */
         ncoord * sizeof(double) +         /* phi */
@@ -189,6 +196,13 @@ int pipeline_pix2foc(
   }
 
   err = &(pipeline->err);
+
+  if (ncoord < 1) {
+      status = wcserr_set(
+        PIP_ERRMSG(WCSERR_BAD_PIX),
+        "The number of coordinates must be > 0");
+      goto exit;
+    }
 
   has_det2im = pipeline->det2im[0] != NULL || pipeline->det2im[1] != NULL;
   has_sip    = pipeline->sip != NULL;
