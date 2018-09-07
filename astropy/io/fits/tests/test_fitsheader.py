@@ -77,3 +77,60 @@ class TestFITSheader_script(FitsTestCase):
         assert out[1].endswith('|   0 |   NAXIS |     3 |')
         assert out[2].endswith('|   0 |   NAXIS |     0 |')
         assert out[3].endswith('|   0 |   NAXIS |     2 |')
+
+    def test_fitsort(self, capsys):
+        fitsheader.main(['-e', '0', '-f', '-k', 'EXPSTART', '-k', 'EXPTIME',
+                         self.data('test0.fits'), self.data('test1.fits')])
+        out, err = capsys.readouterr()
+        out = out.splitlines()
+        assert len(out) == 4
+        assert out[2].endswith('test0.fits 49491.65366175    0.23')
+        assert out[3].endswith('test1.fits 49492.65366175    0.22')
+
+        fitsheader.main(['-e', '0', '-f', '-k', 'EXPSTART', '-k', 'EXPTIME',
+                         self.data('test0.fits')])
+        out, err = capsys.readouterr()
+        out = out.splitlines()
+        assert len(out) == 3
+        assert out[2].endswith('test0.fits 49491.65366175    0.23')
+
+        fitsheader.main(['-f', '-k', 'NAXIS',
+                         self.data('tdim.fits'), self.data('test1.fits')])
+        out, err = capsys.readouterr()
+        out = out.splitlines()
+        assert len(out) == 4
+        assert out[0].endswith('0:NAXIS 1:NAXIS 2:NAXIS 3:NAXIS 4:NAXIS')
+        assert out[2].endswith('tdim.fits       0       2      --      --      --')
+        assert out[3].endswith('test1.fits       0       2       2       2       2')
+
+        # check that files without required keyword are present
+        fitsheader.main(['-f', '-k', 'DATE-OBS',
+                         self.data('table.fits'), self.data('test0.fits')])
+        out, err = capsys.readouterr()
+        out = out.splitlines()
+        assert len(out) == 4
+        assert out[2].endswith('table.fits       --')
+        assert out[3].endswith('test0.fits 19/05/94')
+
+        # check that COMMENT and HISTORY are excluded
+        fitsheader.main(['-e', '0', '-f', self.data('tb.fits')])
+        out, err = capsys.readouterr()
+        out = out.splitlines()
+        assert len(out) == 3
+        assert out[2].endswith('tb.fits   True     16     0   True '
+                               'STScI-STSDAS/TABLES  tb.fits       1')
+
+    def test_dotkeyword(self, capsys):
+        fitsheader.main(['-e', '0', '-k', 'ESO DET ID',
+                         self.data('fixed-1890.fits')])
+        out, err = capsys.readouterr()
+        out = out.splitlines()
+        assert len(out) == 2
+        assert out[1].strip().endswith("HIERARCH ESO DET ID = 'DV13' / Detector system Id")
+
+        fitsheader.main(['-e', '0', '-k', 'ESO.DET.ID',
+                         self.data('fixed-1890.fits')])
+        out, err = capsys.readouterr()
+        out = out.splitlines()
+        assert len(out) == 2
+        assert out[1].strip().endswith("HIERARCH ESO DET ID = 'DV13' / Detector system Id")
