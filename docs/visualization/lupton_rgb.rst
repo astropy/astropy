@@ -4,6 +4,24 @@
 Creating color RGB images
 *************************
 
+RGB images can be produced using matplotlib's ability to make three-color
+images.  In general, an RGB image is an MxNx3 array, where M is the
+y-dimension, N is the x-dimension, and the length-3 layer represents red,
+green, and blue, respectively.  A fourth layer representing the alpha (opacity)
+value can be specified.
+
+Matplotlib has several tools for manipulating these colors at
+https://matplotlib.org/api/colors_api.html.
+
+Astropy's visualization tools can be used to change the stretch and scaling of
+the individual layers of the RGB image.  Each layer must be on a scale of 0-1
+for floats (or 0-255 for integers); values outside that range will be clipped.
+
+
+**************************************************************
+Creating color RGB images using the Lupton et al (2004) scheme
+**************************************************************
+
 `Lupton et al. (2004)`_ describe an "optimal" algorithm for producing red-green-
 blue composite images from three separate high-dynamic range arrays. This method
 is implemented in `~astropy.visualization.make_lupton_rgb` as a convenience
