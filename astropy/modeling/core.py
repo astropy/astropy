@@ -2571,6 +2571,22 @@ class CompoundModel(Model):
         self._leaflist = leaflist
         self._tdict = tdict
 
+    def __getattr__(self, name):
+        """
+        If someone accesses an attribute not already defined, map the 
+        parameters, and then see if the requested attribute is one of
+        the parameters
+        """
+        # The following test is needed to avoid infinite recursion
+        # caused by deepcopy. There may be other such cases discovered.
+        if name == '__setstate__':
+            raise AttributeError
+        self.map_parameters()
+        if name in self._param_names:
+            return self.__dict__[name]
+        else:
+            raise AttributeError('Attribute "{}" not found'.format(name))
+
     def __getitem__(self, index):
         if self._leaflist is None:
             self._make_leaflist()
