@@ -27,6 +27,8 @@ postage stamp cutout image from a 2D array.  If an optional
 First, let's simulate a single source on a 2D data array. If you would like to
 simulate many sources, see :ref:`bounding-boxes`.
 
+Note: The pair convention is different for **size** and **position**! The position is specified as (x,y), but the size is specified as (y,x).
+
     >>> import numpy as np
     >>> from astropy.modeling.models import Gaussian2D
     >>> y, x = np.mgrid[0:500, 0:500]
