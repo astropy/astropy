@@ -13,10 +13,15 @@ using `astropy.coordinates`.
 
 Use broadcasting to transform many SkyCoords into frames with vector properties
  >>> from astropy.coordinates import SkyCoord, EarthLocation
+<<<<<<< HEAD
  >>> from astropy import coordinates as coord
  >>> from astropy.coordinates.tests.utils import randomly_sample_sphere
  >>> from astropy.time import Time
  >>> from astropy import units as u
+=======
+ >>> from astropy.coordinates.tests.utils import randomly_sample_sphere
+ >>> from astropy.time import Time
+>>>>>>> Added broadcasting example to performance section of Coord docs
  >>> import numpy as np
  >>> # 1000 random locations on the sky
  >>> ra, dec, _ = randomly_sample_sphere(1000)
@@ -24,7 +29,11 @@ Use broadcasting to transform many SkyCoords into frames with vector properties
  >>> # 300 times over the space of 10 hours
  >>> times = Time.now() + np.linspace(-5, 5, 300)*u.hour
  >>> # note the use of broadcasting so that 300 times broadcast against 1000 positions
+<<<<<<< HEAD
  >>> lapalma = EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
  >>> aa_frame = coord.AltAz(obstime=times[:, np.newaxis], location= lapalma)
+=======
+ >>> aa_frame = coord.AltAz(obstime=times[:, np.newaxis], location=EarthLocation.of_site('lapalma'))
+>>>>>>> Added broadcasting example to performance section of Coord docs
  >>> # calculate alt-az of each object at each time.
  >>> aa_coos = coos.transform_to(aa_frame)
