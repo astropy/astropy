@@ -30,6 +30,10 @@ Project Status
     :target: https://travis-ci.org/astropy/astropy
     :alt: Astropy's Travis CI Status
 
+.. image:: https://circleci.com/gh/astropy/astropy.svg?style=svg
+    :target: https://circleci.com/gh/astropy/astropy
+    :alt: Astropy's CircleCI Status
+
 .. image:: https://coveralls.io/repos/astropy/astropy/badge.svg
     :target: https://coveralls.io/r/astropy/astropy
     :alt: Astropy's Coveralls Status
