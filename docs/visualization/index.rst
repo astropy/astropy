@@ -22,7 +22,7 @@ Using `astropy.visualization`
    wcsaxes/index.rst
    normalization.rst
    histogram.rst
-   lupton_rgb.rst
+   rgb.rst
 
 .. _fits2bitmap:
 
