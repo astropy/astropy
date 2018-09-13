@@ -39,13 +39,16 @@ Opening a FITS file
 Once the `astropy.io.fits` package is loaded using the standard convention
 [#f1]_, we can open an existing FITS file::
 
-    >>> # Generally you would store the filename as string but in case you
-    >>> # have no suitable FITS files you can use the ones shipped with Astropy
-    >>> # like this:
     >>> from astropy.io import fits
     >>> fits_image_filename = fits.util.get_testdata_filepath('test0.fits')
 
     >>> hdul = fits.open(fits_image_filename)
+
+.. note::
+
+The ``astropy.io.fits.util.get_testdata_filepath`` function is only used to
+access data shipped with Astropy.Please only use ``astropy.io.fits.open`` along 
+with the path to the appropriate FITS data file which has to be taken from source.
 
 The :func:`open` function has several optional arguments which will be
 discussed in a later chapter. The default mode, as in the above example, is
@@ -403,6 +406,12 @@ attribute::
     >>> hdul = fits.open(fits_table_filename)
     >>> data = hdul[1].data # assuming the first extension is a table
 
+.. note::
+
+The ``astropy.io.fits.util.get_testdata_filepath`` function is only used to
+access data shipped with Astropy.Please only use ``astropy.io.fits.open`` along 
+with the path to the appropriate FITS data file which has to be taken from source.
+
 If you are familiar with numpy `~numpy.recarray` (record array) objects, you
 will find the table data is basically a record array with some extra
 properties. But familiarity with record arrays is not a prerequisite for this
@@ -746,6 +755,12 @@ and modifying a keyword value::
     >>> filter = hdr['filter']                       # get the value of the keyword "filter'
     >>> val = hdr[10]                                # get the 11th keyword's value
     >>> hdr['filter'] = 'FW555'                      # change the keyword value
+
+.. note::
+
+The ``astropy.io.fits.util.get_testdata_filepath`` function is only used to
+access data shipped with Astropy.Please only use ``astropy.io.fits.open`` along 
+with the path to the appropriate FITS data file which has to be taken from source.
 
 For the header keywords, the header is like a dictionary, as well as a list.
 The user can access the keywords either by name or by numeric index, as
