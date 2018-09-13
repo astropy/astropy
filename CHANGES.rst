@@ -357,6 +357,9 @@ astropy.visualization
 - In ``ImageNormalize``, the default for ``clip`` is set to ``True``.
   [#7800]
 
+- Changed ``AsymmetricPercentileInterval`` and ``MinMaxInterval`` to
+  ignore NaN values in arrays. [#7360]
+
 astropy.wcs
 ^^^^^^^^^^^
 
