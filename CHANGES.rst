@@ -80,6 +80,9 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- ``HDUList.__contains__()`` now works with HDU arguments. That is,
+  ``hdulist[0] in hdulist`` now works as expected. [#7282]
+
 - ``HDUList.pop()`` now accepts string and tuple extension name
   specifications. [#7236]
 
