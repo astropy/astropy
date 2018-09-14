@@ -2494,3 +2494,44 @@ class Sersic2D(Fittable2DModel):
                             ('r_eff', inputs_unit['x']),
                             ('theta', u.rad),
                             ('amplitude', outputs_unit['z'])])
+
+
+class Logarithmic1D(Fittable1DModel):
+    amplitude = Parameter()
+    x_0 = Parameter()
+
+    @staticmethod
+    def evaluate(x, amplitude, x_0):
+        return amplitude*np.log(x/x_0)
+
+    @staticmethod
+    def fit_deriv(x, amplitude, x_0):
+        d_amplitude = amplitude
+        return [d_amplitude]
+
+    @property
+    def inverse(self):
+        new_amplitude = self.x_0
+        new_x_0 = self.amplitude
+        return Exponential1D(amplitude=new_amplitude, x_0=new_x_0)
+
+
+class Exponential1D(Fittable1DModel):
+    amplitude = Parameter()
+    x_0 = Parameter()
+
+    @staticmethod
+    def evaluate(x, amplitude, x_0):
+        return amplitude*np.exp(x/x_0)
+
+    @staticmethod
+    def fit_deriv(x, amplitude, x_0):
+        d_amplitude = amplitude/x_0
+        d_x_0 = x_0
+        return [d_amplitude, d_x_0]
+
+    @property
+    def inverse(self):
+        new_amplitude = self.x_0
+        new_x_0 = self.amplitude
+        return Logarithmic1D(amplitude=new_amplitude, x_0=new_x_0)
