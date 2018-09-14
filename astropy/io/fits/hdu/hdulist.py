@@ -309,10 +309,12 @@ class HDUList(list, _Verify):
 
     def __contains__(self, item):
         """
-        Returns `True` if ``HDUList.index_of(item)`` or
-        ``HDUList.index(item)`` succeeds.
-        """
+        Returns `True` if ``item`` is an ``HDU`` _in_ ``self`` or a valid
+        extension specification (e.g., integer extension number, extension
+        name, or a tuple of extension name and an extension version)
+        of a ``HDU`` in ``self``.
 
+        """
         try:
             self._try_while_unread_hdus(self.index_of, item)
         except (KeyError, ValueError):
@@ -669,7 +671,7 @@ class HDUList(list, _Verify):
         ----------
         key : int, str, tuple of (string, int) or an HDU object
            The key identifying the HDU.  If ``key`` is a tuple, it is of the
-           form ``(key, ver)`` where ``ver`` is an ``EXTVER`` value that must
+           form ``(name, ver)`` where ``ver`` is an ``EXTVER`` value that must
            match the HDU being searched for.
 
            If the key is ambiguous (e.g. there are multiple 'SCI' extensions)
