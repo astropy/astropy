@@ -348,6 +348,8 @@ astropy.modeling
 
 - Added analytical King model (KingProjectedAnalytic1D) [#9084]
 
+- Added Exponential1D and Logarithmic1D models [#9351]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
