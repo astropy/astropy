@@ -17,11 +17,12 @@ from .utils import ellipse_extent
 
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
-           'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D', 'Gaussian2D', 'Linear1D',
-           'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor',
-           'Multiply', 'Planar2D', 'Scale', 'Sersic1D', 'Sersic2D', 'Shift',
-           'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D', 'Ring2D', 'Voigt1D', 'KingProjectedAnalytic1D']
-
+           'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D', 'Gaussian2D',
+           'Linear1D', 'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D',
+           'RedshiftScaleFactor', 'Multiply', 'Planar2D', 'Scale',
+           'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
+           'TrapezoidDisk2D', 'Ring2D', 'Voigt1D', 'KingProjectedAnalytic1D',
+           'Exponential1D', 'Logarithmic1D']
 
 TWOPI = 2 * np.pi
 FLOAT_EPSILON = float(np.finfo(np.float32).tiny)
@@ -2641,4 +2642,103 @@ class KingProjectedAnalytic1D(Fittable1DModel):
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return OrderedDict([('r_core', inputs_unit['x']),
                             ('r_tide', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
+
+
+class Logarithmic1D(Fittable1DModel):
+    """
+    One dimensional logarithmic model.
+
+    Parameters
+    ----------
+    amplitude : float, optional
+    tau : float, optional
+
+    See Also
+    --------
+    Exponential1D, Gaussian1D
+    """
+
+    amplitude = Parameter(default=1)
+    tau = Parameter(default=1)
+
+    @staticmethod
+    def evaluate(x, amplitude, tau):
+        return amplitude * np.log(x / tau)
+
+    @staticmethod
+    def fit_deriv(x, amplitude, tau):
+        d_amplitude = np.log(x / tau)
+        d_tau = np.zeros(x.shape) - (amplitude / tau)
+        return [d_amplitude, d_tau]
+
+    @property
+    def inverse(self):
+        new_amplitude = self.tau
+        new_tau = self.amplitude
+        return Exponential1D(amplitude=new_amplitude, tau=new_tau)
+
+    @tau.validator
+    def tau(self, val):
+        if val == 0:
+            raise ValueError("0 is not an allowed value for tau")
+
+    @property
+    def input_units(self):
+        if self.tau.unit is None:
+            return None
+        else:
+            return {'x': self.tau.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('tau', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
+
+
+class Exponential1D(Fittable1DModel):
+    """
+    One dimensional exponential model.
+
+    Parameters
+    ----------
+    amplitude : float, optional
+    tau : float, optional
+
+    See Also
+    --------
+    Logarithmic1D, Gaussian1D
+    """
+    amplitude = Parameter(default=1)
+    tau = Parameter(default=1)
+
+    @staticmethod
+    def evaluate(x, amplitude, tau):
+        return amplitude * np.exp(x / tau)
+
+    @staticmethod
+    def fit_deriv(x, amplitude, tau):
+        d_amplitude = np.exp(x / tau)
+        d_tau = -amplitude * (x / tau**2) * np.exp(x / tau)
+        return [d_amplitude, d_tau]
+
+    @property
+    def inverse(self):
+        new_amplitude = self.tau
+        new_tau = self.amplitude
+        return Logarithmic1D(amplitude=new_amplitude, tau=new_tau)
+
+    @tau.validator
+    def tau(self, val):
+        if val == 0:
+            raise ValueError("0 is not an allowed value for tau")
+
+    @property
+    def input_units(self):
+        if self.tau.unit is None:
+            return None
+        else:
+            return {'x': self.tau.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('tau', inputs_unit['x']),
                             ('amplitude', outputs_unit['y'])])
