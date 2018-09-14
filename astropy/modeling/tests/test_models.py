@@ -18,6 +18,7 @@ from ... import units as u
 from ...utils import minversion
 from ...tests.helper import assert_quantity_allclose
 from ...utils import NumpyRNGContext
+from ...modeling import Exponential1D, Logarithmic1D
 
 try:
     import scipy
@@ -658,3 +659,16 @@ def test_with_bounding_box():
     p = models.Polynomial1D(1, c0=12, c1=2.3)
     p.bounding_box = (0, 5)
     assert(p(1) == p(1, with_bounding_box=True))
+
+
+class ExponentialAndLogarithmicTester:
+    def setup_class(self):
+        self.x = np.linspace(0.1, 10., 200)
+
+    def test_Exponential1D(self):
+        model = Exponential1D()
+        assert np.allclose(self.x, model.inverse(model(self.x))) == True
+
+    def test_Logarithmic1D(self):
+        model = Logarithmic1D()
+        assert np.allclose(self.x, model.inverse(model(self.x))) == True

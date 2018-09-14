@@ -2497,6 +2497,19 @@ class Sersic2D(Fittable2DModel):
 
 
 class Logarithmic1D(Fittable1DModel):
+    """
+    One dimensional logarithmic model.
+
+    Parameters
+    ----------
+    amplitude : float, optional
+    x_0 : float, optional
+
+    See Also
+    --------
+    Exponential1D, Gaussian1D
+    """
+
     amplitude = Parameter()
     x_0 = Parameter()
 
@@ -2517,6 +2530,18 @@ class Logarithmic1D(Fittable1DModel):
 
 
 class Exponential1D(Fittable1DModel):
+    """
+    One dimensional exponential model.
+
+    Parameters
+    ----------
+    amplitude : float, optional
+    x_0 : float, optional
+
+    See Also
+    --------
+    Exponential1D, Gaussian1D
+    """
     amplitude = Parameter()
     x_0 = Parameter()
 
