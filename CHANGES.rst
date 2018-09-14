@@ -226,6 +226,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- The ``AltAz`` coordinate frame has been renamed to ``Horizontal``, to mitigate
+  confusion around the fact that the argument order is ``az, alt``. [#7708]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 

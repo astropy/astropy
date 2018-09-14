@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from warnings import warn
+
 import numpy as np
 
+from ...utils.exceptions import AstropyDeprecationWarning
 from ... import units as u
 from ...utils.decorators import format_doc
 from .. import representation as r
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
-from ..attributes import (Attribute, TimeAttribute,
-                          QuantityAttribute, EarthLocationAttribute)
+from ..attributes import (TimeAttribute, QuantityAttribute,
+                          EarthLocationAttribute)
 
-__all__ = ['AltAz']
+__all__ = ['Horizontal']
 
 
 _90DEG = 90*u.deg
@@ -65,14 +68,14 @@ doc_footer = """
     The refraction model is based on that implemented in ERFA, which is fast
     but becomes inaccurate for altitudes below about 5 degrees.  Near and below
     altitudes of 0, it can even give meaningless answers, and in this case
-    transforming to AltAz and back to another frame can give highly discrepent
-    results.  For much better numerical stability, leaving the ``pressure`` at
-    ``0`` (the default), disabling the refraction correction (yielding
-    "topocentric" horizontal coordinates).
+    transforming to Horizontal and back to another frame can give highly
+    discrepent results.  For much better numerical stability, leaving the
+    ``pressure`` at ``0`` (the default), disabling the refraction correction
+    (yielding "topocentric" horizontal coordinates).
     """
 
 @format_doc(base_doc, components=doc_components, footer=doc_footer)
-class AltAz(BaseCoordinateFrame):
+class Horizontal(BaseCoordinateFrame):
     """
     A coordinate or frame in the Altitude-Azimuth system (Horizontal
     coordinates).  Azimuth is oriented East of North (i.e., N=0, E=90 degrees).
@@ -81,7 +84,7 @@ class AltAz(BaseCoordinateFrame):
     frame attribute is non-zero.
 
     The frame attributes are listed under **Other Parameters**, which are
-    necessary for transforming from AltAz to some other system.
+    necessary for transforming from ``Horizontal`` to some other system.
     """
 
     frame_specific_representation_info = {
@@ -98,7 +101,8 @@ class AltAz(BaseCoordinateFrame):
     location = EarthLocationAttribute(default=None)
     pressure = QuantityAttribute(default=0, unit=u.hPa)
     temperature = QuantityAttribute(default=0, unit=u.deg_C)
-    relative_humidity = QuantityAttribute(default=0, unit=u.dimensionless_unscaled)
+    relative_humidity = QuantityAttribute(default=0,
+                                          unit=u.dimensionless_unscaled)
     obswl = QuantityAttribute(default=1*u.micron, unit=u.micron)
 
     def __init__(self, *args, **kwargs):
@@ -119,5 +123,12 @@ class AltAz(BaseCoordinateFrame):
         """
         return _90DEG.to(self.alt.unit) - self.alt
 
+
+class AltAz(Horizontal):
+
+    def __init__(self, *args, **kwargs):
+        warn("The AltAz class has been renamed Horizontal. Please change code "
+             "to use Horizontal instead.", AstropyDeprecationWarning)
+        super().__init__(*args, **kwargs)
 
 # self-transform defined in cirs_observed_transforms.py

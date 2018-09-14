@@ -5,7 +5,7 @@ import numpy as np
 from ... import units as u
 from .. import Longitude, Latitude, EarthLocation, SkyCoord
 # test on frame with most complicated frame attributes.
-from ..builtin_frames import ICRS, AltAz, GCRS
+from ..builtin_frames import ICRS, Horizontal, GCRS
 from ...time import Time
 
 
@@ -23,7 +23,7 @@ class TestManipulation():
         # With same-sized arrays, no attributes
         self.s0 = ICRS(lon[:, np.newaxis] * np.ones(lat.shape),
                        lat * np.ones(lon.shape)[:, np.newaxis])
-        # Make an AltAz frame since that has many types of attributes.
+        # Make an Horizontal frame since that has many types of attributes.
         # Match one axis with times.
         self.obstime = (Time('2012-01-01') +
                         np.arange(len(lon))[:, np.newaxis] * u.s)
@@ -34,11 +34,11 @@ class TestManipulation():
         # As well as an array.
         self.temperature = np.random.uniform(
             0., 20., size=(lon.size, lat.size)) * u.deg_C
-        self.s1 = AltAz(az=lon[:, np.newaxis], alt=lat,
-                        obstime=self.obstime,
-                        location=self.location,
-                        pressure=self.pressure,
-                        temperature=self.temperature)
+        self.s1 = Horizontal(az=lon[:, np.newaxis], alt=lat,
+                             obstime=self.obstime,
+                             location=self.location,
+                             pressure=self.pressure,
+                             temperature=self.temperature)
         # For some tests, also try a GCRS, since that has representation
         # attributes.  We match the second dimension (via the location)
         self.obsgeoloc, self.obsgeovel = self.location.get_gcrs_posvel(

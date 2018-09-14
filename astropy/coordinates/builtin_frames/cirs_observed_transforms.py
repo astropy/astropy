@@ -2,7 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Contains the transformation functions for getting to "observed" systems from CIRS.
-Currently that just means AltAz.
+Currently that just means Horizontal.
 """
 
 import numpy as np
@@ -15,12 +15,13 @@ from ..representation import (SphericalRepresentation,
 from ... import _erfa as erfa
 
 from .cirs import CIRS
-from .altaz import AltAz
+from .horizontal import Horizontal
 from .utils import get_polar_motion, get_dut1utc, get_jd12, PIOVER2
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, AltAz)
-def cirs_to_altaz(cirs_coo, altaz_frame):
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                 CIRS, Horizontal)
+def cirs_to_horizontal(cirs_coo, altaz_frame):
     if np.any(cirs_coo.obstime != altaz_frame.obstime):
         # the only frame attribute for the current CIRS is the obstime, but this
         # would need to be updated if a future change allowed specifying an
@@ -81,8 +82,9 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
     return altaz_frame.realize_frame(rep)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, AltAz, CIRS)
-def altaz_to_cirs(altaz_coo, cirs_frame):
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                 Horizontal, CIRS)
+def horizontal_to_cirs(altaz_coo, cirs_frame):
     usrepr = altaz_coo.represent_as(UnitSphericalRepresentation)
     az = usrepr.lon.to_value(u.radian)
     zen = PIOVER2 - usrepr.lat.to_value(u.radian)
@@ -124,8 +126,24 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     return cirs_at_aa_time.transform_to(cirs_frame)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, AltAz, AltAz)
-def altaz_to_altaz(from_coo, to_frame):
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                 Horizontal, Horizontal)
+def horizontal_to_horizontal(from_coo, to_frame):
     # for now we just implement this through CIRS to make sure we get everything
     # covered
     return from_coo.transform_to(CIRS(obstime=from_coo.obstime)).transform_to(to_frame)
+
+
+# TODO: remove these once AltAz is removed (see #7708)
+from .horizontal import AltAz
+t = FunctionTransformWithFiniteDifference(cirs_to_horizontal,
+                                          CIRS, AltAz)
+t.register(frame_transform_graph)
+
+t = FunctionTransformWithFiniteDifference(horizontal_to_cirs,
+                                          AltAz, CIRS)
+t.register(frame_transform_graph)
+
+t = FunctionTransformWithFiniteDifference(horizontal_to_horizontal,
+                                          AltAz, AltAz)
+t.register(frame_transform_graph)

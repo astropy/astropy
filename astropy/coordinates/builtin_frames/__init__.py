@@ -32,7 +32,7 @@ from .galactic import Galactic
 from .galactocentric import Galactocentric
 from .lsr import LSR, GalacticLSR
 from .supergalactic import Supergalactic
-from .altaz import AltAz
+from .horizontal import Horizontal, AltAz
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
@@ -55,7 +55,8 @@ from ..baseframe import frame_transform_graph
 # we define an __all__ because otherwise the transformation modules
 # get included
 __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
-           'Supergalactic', 'AltAz', 'GCRS', 'CIRS', 'ITRS', 'HCRS',
+           'Supergalactic', 'Horizontal', 'AltAz',
+           'GCRS', 'CIRS', 'ITRS', 'HCRS',
            'PrecessedGeocentric', 'GeocentricTrueEcliptic',
            'BarycentricTrueEcliptic', 'HeliocentricTrueEcliptic',
            'SkyOffsetFrame', 'GalacticLSR', 'LSR',

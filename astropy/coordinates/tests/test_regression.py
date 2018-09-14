@@ -13,7 +13,7 @@ import numpy as np
 
 
 from ... import units as u
-from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
+from .. import (Horizontal, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
                 GeocentricTrueEcliptic, Longitude, Latitude, GCRS, HCRS,
                 get_moon, FK4, FK4NoETerms, BaseCoordinateFrame,
                 QuantityAttribute, SphericalRepresentation,
@@ -66,7 +66,7 @@ def test_regression_3920():
     loc = EarthLocation.from_geodetic(0*u.deg, 0*u.deg, 0)
     time = Time('2010-1-1')
 
-    aa = AltAz(location=loc, obstime=time)
+    aa = Horizontal(location=loc, obstime=time)
     sc = SkyCoord(10*u.deg, 3*u.deg)
     assert sc.transform_to(aa).shape == tuple()
     # That part makes sense: the input is a scalar so the output is too
@@ -99,10 +99,10 @@ def test_regression_3938():
     # Feed list of targets into SkyCoord
     combined_coords = SkyCoord(targets)
 
-    # Set up AltAz frame
+    # Set up Horizontal frame
     time = Time('2012-01-01 00:00:00')
     location = EarthLocation('10d', '45d', 0)
-    aa = AltAz(location=location, obstime=time)
+    aa = Horizontal(location=location, obstime=time)
 
     combined_coords.transform_to(aa)
     # in 3938 the above yields ``UnitConversionError: '' (dimensionless) and 'pc' (length) are not convertible``
@@ -134,7 +134,7 @@ def test_regression_4033():
     de = SkyCoord(310.35797975*u.deg, 45.28033881*u.deg)
     de_wdist = SkyCoord(de, distance=802*u.pc)
 
-    aa = AltAz(location=EarthLocation(lat=45*u.deg, lon=0*u.deg), obstime='2010-1-1')
+    aa = Horizontal(location=EarthLocation(lat=45*u.deg, lon=0*u.deg), obstime='2010-1-1')
     deaa = de.transform_to(aa)
     albaa = alb.transform_to(aa)
     alb_wdistaa = alb_wdist.transform_to(aa)
@@ -311,7 +311,7 @@ def test_regression_5133():
     homes = [EarthLocation.from_geodetic(lon=-1 * u.deg, lat=52 * u.deg, height=h)
              for h in (0, 1000, 10000)*u.km]
 
-    altaz_frames = [AltAz(obstime=time, location=h) for h in homes]
+    altaz_frames = [Horizontal(obstime=time, location=h) for h in homes]
     altaz_coos = [itrs_coo.transform_to(f) for f in altaz_frames]
 
     # they should all be different
@@ -330,7 +330,7 @@ def test_itrs_vals_5133():
     coos = [EarthLocation.from_geodetic(lon, lat, height=alt).get_itrs(time)
             for lon, lat, alt in zip(lons, lats, alts)]
 
-    aaf = AltAz(obstime=time, location=el)
+    aaf = Horizontal(obstime=time, location=el)
     aacs = [coo.transform_to(aaf) for coo in coos]
 
     assert all([coo.isscalar for coo in aacs])
@@ -354,7 +354,7 @@ def test_regression_simple_5133():
     t = Time('J2010')
     obj = EarthLocation(-1*u.deg, 52*u.deg, height=[100., 0.]*u.km)
     home = EarthLocation(-1*u.deg, 52*u.deg, height=10.*u.km)
-    aa = obj.get_itrs(t).transform_to(AltAz(obstime=t, location=home))
+    aa = obj.get_itrs(t).transform_to(Horizontal(obstime=t, location=home))
 
     # az is more-or-less undefined for straight up or down
     assert_quantity_allclose(aa.alt, [90, -90]*u.deg, rtol=1e-5)

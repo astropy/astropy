@@ -10,7 +10,7 @@ from ...tests.helper import (catch_warnings, pytest,
                              assert_quantity_allclose as assert_allclose)
 from ...utils import OrderedDescriptorContainer
 from ...utils.compat import NUMPY_LT_1_14
-from ...utils.exceptions import AstropyWarning
+from ...utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from .. import representation as r
 from ..representation import REPRESENTATION_CLASSES
 from ...units import allclose
@@ -119,7 +119,7 @@ def test_create_data_frames():
 
 
 def test_create_orderered_data():
-    from ..builtin_frames import ICRS, Galactic, AltAz
+    from ..builtin_frames import ICRS, Galactic, Horizontal
 
     TOL = 1e-10*u.deg
 
@@ -131,7 +131,7 @@ def test_create_orderered_data():
     assert (g.l - 1*u.deg) < TOL
     assert (g.b - 2*u.deg) < TOL
 
-    a = AltAz(1*u.deg, 2*u.deg)
+    a = Horizontal(1*u.deg, 2*u.deg)
     assert (a.az - 1*u.deg) < TOL
     assert (a.alt - 2*u.deg) < TOL
 
@@ -161,16 +161,16 @@ def test_create_nodata_frames():
 
 
 def test_no_data_nonscalar_frames():
-    from ..builtin_frames import AltAz
+    from ..builtin_frames import Horizontal
     from astropy.time import Time
-    a1 = AltAz(obstime=Time('2012-01-01') + np.arange(10.) * u.day,
-               temperature=np.ones((3, 1)) * u.deg_C)
+    a1 = Horizontal(obstime=Time('2012-01-01') + np.arange(10.) * u.day,
+                    temperature=np.ones((3, 1)) * u.deg_C)
     assert a1.obstime.shape == (3, 10)
     assert a1.temperature.shape == (3, 10)
     assert a1.shape == (3, 10)
     with pytest.raises(ValueError) as exc:
-        AltAz(obstime=Time('2012-01-01') + np.arange(10.) * u.day,
-              temperature=np.ones((3,)) * u.deg_C)
+        Horizontal(obstime=Time('2012-01-01') + np.arange(10.) * u.day,
+                   temperature=np.ones((3,)) * u.deg_C)
     assert 'inconsistent shapes' in str(exc)
 
 
@@ -374,7 +374,7 @@ def test_realizing():
             excinfo.value.args[0])
 
 def test_replicating():
-    from ..builtin_frames import ICRS, AltAz
+    from ..builtin_frames import ICRS, Horizontal
     from ...time import Time
 
     i = ICRS(ra=[1]*u.deg, dec=[2]*u.deg)
@@ -389,7 +389,7 @@ def test_replicating():
     assert i.has_data
     assert not iclone.has_data
 
-    aa = AltAz(alt=1*u.deg, az=2*u.deg, obstime=Time('J2000'))
+    aa = Horizontal(alt=1*u.deg, az=2*u.deg, obstime=Time('J2000'))
     aaclone = aa.replicate_without_data(obstime=Time('J2001'))
     assert not aaclone.has_data
     assert aa.obstime != aaclone.obstime
@@ -556,19 +556,52 @@ def test_is_frame_attr_default():
     assert not c5.is_frame_attr_default('equinox')
 
 
-def test_altaz_attributes():
+def test_horizontal_attributes():
     from ...time import Time
-    from .. import EarthLocation, AltAz
+    from .. import EarthLocation, Horizontal
 
-    aa = AltAz(1*u.deg, 2*u.deg)
+    aa = Horizontal(1*u.deg, 2*u.deg)
+    assert aa.obstime is None
+    assert aa.location is None
+
+    aa2 = Horizontal(1*u.deg, 2*u.deg, obstime='J2000')
+    assert aa2.obstime == Time('J2000')
+
+    aa3 = Horizontal(1*u.deg, 2*u.deg,
+                     location=EarthLocation(0*u.deg, 0*u.deg, 0*u.m))
+    assert isinstance(aa3.location, EarthLocation)
+
+
+def test_altaz_attributes_and_deprecation():
+    """
+    TODO: Remove this when the deprecated AltAz class is removed.
+    """
+    from ...time import Time
+    from .. import EarthLocation, AltAz, ICRS
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        aa = AltAz(1*u.deg, 2*u.deg)
+    assert len(w) == 1
     assert aa.obstime is None
     assert aa.location is None
 
     aa2 = AltAz(1*u.deg, 2*u.deg, obstime='J2000')
     assert aa2.obstime == Time('J2000')
 
-    aa3 = AltAz(1*u.deg, 2*u.deg, location=EarthLocation(0*u.deg, 0*u.deg, 0*u.m))
+    aa3 = AltAz(1*u.deg, 2*u.deg,
+                location=EarthLocation(0*u.deg, 0*u.deg, 0*u.m))
     assert isinstance(aa3.location, EarthLocation)
+
+    # Make sure that transformations still work with the deprecated class:
+    aa4 = AltAz(1*u.deg, 2*u.deg,
+                location=EarthLocation(0*u.deg, 0*u.deg, 0*u.m),
+                obstime='J2000')
+    aa4.transform_to(ICRS)
+    aa4.transform_to(AltAz(location=EarthLocation(0*u.deg, 0*u.deg, 0*u.m),
+                           obstime='J2015'))
+
+    c = ICRS(ra=15*u.deg, dec=20*u.deg)
+    c.transform_to(aa4)
 
 
 def test_representation():
@@ -748,20 +781,20 @@ def test_quantity_attributes():
 
 
 def test_eloc_attributes():
-    from .. import AltAz, ITRS, GCRS, EarthLocation
+    from .. import Horizontal, ITRS, GCRS, EarthLocation
 
     el = EarthLocation(lon=12.3*u.deg, lat=45.6*u.deg, height=1*u.km)
     it = ITRS(r.SphericalRepresentation(lon=12.3*u.deg, lat=45.6*u.deg, distance=1*u.km))
     gc = GCRS(ra=12.3*u.deg, dec=45.6*u.deg, distance=6375*u.km)
 
-    el1 = AltAz(location=el).location
+    el1 = Horizontal(location=el).location
     assert isinstance(el1, EarthLocation)
     # these should match *exactly* because the EarthLocation
     assert el1.lat == el.lat
     assert el1.lon == el.lon
     assert el1.height == el.height
 
-    el2 = AltAz(location=it).location
+    el2 = Horizontal(location=it).location
     assert isinstance(el2, EarthLocation)
     # these should *not* match because giving something in Spherical ITRS is
     # *not* the same as giving it as an EarthLocation: EarthLocation is on an
@@ -773,7 +806,7 @@ def test_eloc_attributes():
     assert allclose(el2.lon, it.spherical.lon)
     assert el2.height < -6000*u.km
 
-    el3 = AltAz(location=gc).location
+    el3 = Horizontal(location=gc).location
     # GCRS inputs implicitly get transformed to ITRS and then onto
     # EarthLocation's elliptical geoid. So both lat and lon shouldn't match
     assert isinstance(el3, EarthLocation)
@@ -784,7 +817,7 @@ def test_eloc_attributes():
 
 def test_equivalent_frames():
     from .. import SkyCoord
-    from ..builtin_frames import ICRS, FK4, FK5, AltAz
+    from ..builtin_frames import ICRS, FK4, FK5, Horizontal
 
     i = ICRS()
     i2 = ICRS(1*u.deg, 2*u.deg)
@@ -806,8 +839,8 @@ def test_equivalent_frames():
     assert not f1.is_equivalent_frame(f3)
     assert not f3.is_equivalent_frame(f4)
 
-    aa1 = AltAz()
-    aa2 = AltAz(obstime='J2010')
+    aa1 = Horizontal()
+    aa2 = Horizontal(obstime='J2010')
 
     assert aa2.is_equivalent_frame(aa2)
     assert not aa1.is_equivalent_frame(i)

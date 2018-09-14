@@ -18,7 +18,7 @@ from ...tests.helper import (catch_warnings,
 from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation,
-                            UnitSphericalRepresentation, AltAz,
+                            UnitSphericalRepresentation, Horizontal,
                             BaseCoordinateFrame, Attribute,
                             frame_transform_graph, RepresentationMapping)
 from ...coordinates import Latitude, EarthLocation
@@ -508,8 +508,8 @@ def test_repr_altaz():
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
     loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
     time = Time('2005-03-21 00:00:00')
-    sc4 = sc2.transform_to(AltAz(location=loc, obstime=time))
-    assert repr(sc4).startswith("<SkyCoord (AltAz: obstime=2005-03-21 00:00:00.000, "
+    sc4 = sc2.transform_to(Horizontal(location=loc, obstime=time))
+    assert repr(sc4).startswith("<SkyCoord (Horizontal: obstime=2005-03-21 00:00:00.000, "
                          "location=(-2309223., -3695529., "
                                 "-4641767.) m, pressure=0.0 hPa, "
                          "temperature=0.0 deg_C, relative_humidity=0.0, "

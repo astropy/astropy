@@ -148,11 +148,11 @@ method, which accepts a frame name, frame class, or frame instance::
 
 This form of `~astropy.coordinates.SkyCoord.transform_to` also makes it
 straightforward to convert from celestial coordinates to
-`~astropy.coordinates.AltAz` coordinates, allowing the use of |skycoord|
+`~astropy.coordinates.Horizontal` coordinates, allowing the use of |skycoord|
 as a tool for planning observations.  For a more complete example of
 this, see :ref:`sphx_glr_generated_examples_coordinates_plot_obs-planning.py`.
 
-Some coordinate frames such as `~astropy.coordinates.AltAz` require Earth
+Some coordinate frames such as `~astropy.coordinates.Horizontal` require Earth
 rotation information (UT1-UTC offset and/or polar motion) when transforming
 to/from other frames.  These Earth rotation values are automatically downloaded
 from the International Earth Rotation and Reference Systems (IERS) service when
@@ -389,8 +389,8 @@ IPython session::
     In [2]: test_api_ape5??
 
 
-.. note that if this section gets too long, it should be moved to a separate 
-   doc page - see the top of performance.inc.rst for the instructions on how to do 
+.. note that if this section gets too long, it should be moved to a separate
+   doc page - see the top of performance.inc.rst for the instructions on how to do
    that
 .. include:: performance.inc.rst
 
