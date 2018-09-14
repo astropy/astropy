@@ -80,9 +80,6 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
-- ``HDUList.__contains__()`` now works with HDU arguments. That is,
-  ``hdulist[0] in hdulist`` now works as expected. [#7282]
-
 - ``HDUList.pop()`` now accepts string and tuple extension name
   specifications. [#7236]
 
@@ -99,8 +96,6 @@ astropy.io.fits
 
 - The ``fitsheader`` command line tool now supports a ``dfits+fitsort`` mode,
   and the dotted notation for keywords (e.g. ``ESO.INS.ID``). [#7240]
-- ``HDUList.__contains__()`` now works with HDU arguments. That is,
-  ``hdulist[0] in hdulist`` now works as expected. [#7282]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
@@ -2351,6 +2346,9 @@ astropy.io.ascii
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
+
+- ``HDUList.__contains__()`` now works with ``HDU`` arguments. That is,
+  ``hdulist[0] in hdulist`` now works as expected. [#7282]
 
 - ``comments`` meta key (which is ``io.ascii``'s table convention) is output
   to ``COMMENT`` instead of ``COMMENTS`` header. Similarly, ``COMMENT``
