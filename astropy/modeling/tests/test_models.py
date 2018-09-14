@@ -18,7 +18,7 @@ from ... import units as u
 from ...utils import minversion
 from ...tests.helper import assert_quantity_allclose
 from ...utils import NumpyRNGContext
-from ...modeling import Exponential1D, Logarithmic1D
+from ..models import Exponential1D, Logarithmic1D
 
 try:
     import scipy
