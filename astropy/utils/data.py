@@ -418,7 +418,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
 
         >>> from astropy.utils.data import get_pkg_data_fileobj
         >>> with get_pkg_data_fileobj('allsky/allsky_rosat.fits',
-        ...                           encoding='binary') as fobj:  # doctest: +REMOTE_DATA
+        ...                           encoding='binary') as fobj:  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         ...     fcontents = fobj.read()
         ...
         Downloading http://data.astropy.org/allsky/allsky_rosat.fits [Done]
@@ -426,7 +426,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
     This does the same thing but does *not* cache it locally::
 
         >>> with get_pkg_data_fileobj('allsky/allsky_rosat.fits',
-        ...                           encoding='binary', cache=False) as fobj:  # doctest: +REMOTE_DATA
+        ...                           encoding='binary', cache=False) as fobj:  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         ...     fcontents = fobj.read()
         ...
         Downloading http://data.astropy.org/allsky/allsky_rosat.fits [Done]
@@ -961,7 +961,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     show_progress : bool, optional
         Whether to display a progress bar during the download (default
-        is `True`)
+        is `True`). Regardless of this setting, the progress bar is only
+        displayed when outputting to a terminal.
 
     timeout : float, optional
         The timeout, in seconds.  Otherwise, use
@@ -1036,7 +1037,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                 if cache:
                     check_free_space_in_dir(dldir, size)
 
-            if show_progress:
+            if show_progress and sys.stdout.isatty():
                 progress_stream = sys.stdout
             else:
                 progress_stream = io.StringIO()

@@ -13,7 +13,6 @@ from .. import units as u
 from .. import constants as consts
 from ..units.quantity import QuantityInfoBase
 from ..utils.exceptions import AstropyUserWarning
-from ..utils.compat.numpycompat import NUMPY_LT_1_12
 from .angles import Longitude, Latitude
 from .representation import CartesianRepresentation, CartesianDifferential
 from .errors import UnknownSiteException
@@ -286,15 +285,13 @@ class EarthLocation(u.Quantity):
         # don't convert to m by default, so we can use the height unit below.
         if not isinstance(height, u.Quantity):
             height = u.Quantity(height, u.m, copy=False)
-        # convert to float in units required for erfa routine, and ensure
-        # all broadcast to same shape, and are at least 1-dimensional.
-        _lon, _lat, _height = np.broadcast_arrays(lon.to_value(u.radian),
-                                                  lat.to_value(u.radian),
-                                                  height.to_value(u.m))
         # get geocentric coordinates. Have to give one-dimensional array.
-        xyz = erfa.gd2gc(getattr(erfa, ellipsoid), _lon.ravel(),
-                                 _lat.ravel(), _height.ravel())
-        self = xyz.view(cls._location_dtype, cls).reshape(_lon.shape)
+        xyz = erfa.gd2gc(getattr(erfa, ellipsoid),
+                         lon.to_value(u.radian),
+                         lat.to_value(u.radian),
+                         height.to_value(u.m))
+        self = xyz.ravel().view(cls._location_dtype,
+                                cls).reshape(xyz.shape[:-1])
         self._unit = u.meter
         self._ellipsoid = ellipsoid
         return self.to(height.unit)
@@ -761,14 +758,6 @@ class EarthLocation(u.Quantity):
             equivalencies = self._equivalencies
         new_array = self.unit.to(unit, array_view, equivalencies=equivalencies)
         return new_array.view(self.dtype).reshape(self.shape)
-
-    if NUMPY_LT_1_12:
-        def __repr__(self):
-            # Use the numpy >=1.12 way to format structured arrays.
-            from .representation import _array2string
-            prefixstr = '<' + self.__class__.__name__ + ' '
-            arrstr = _array2string(self.view(np.ndarray), prefix=prefixstr)
-            return '{0}{1}{2:s}>'.format(prefixstr, arrstr, self._unitstr)
 
 
 # need to do this here at the bottom to avoid circular dependencies

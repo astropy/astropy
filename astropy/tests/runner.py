@@ -534,9 +534,9 @@ class TestRunner(TestRunnerBase):
     @keyword(0)
     def parallel(self, parallel, kwargs):
         """
-        parallel : int, optional
+        parallel : int or 'auto', optional
             When provided, run the tests in parallel on the specified
-            number of CPUs.  If parallel is negative, it will use the all
+            number of CPUs.  If parallel is ``'auto'``, it will use the all
             the cores on the machine.  Requires the ``pytest-xdist`` plugin.
         """
         if parallel != 0:
@@ -564,6 +564,9 @@ class TestRunner(TestRunnerBase):
                                    "docs path ({path}) does not exist.")
                 paths = self.packages_path(kwargs['package'], docs_path,
                                            warning=warning_message)
+            else:
+                paths = [docs_path, ]
+
             if len(paths) and not kwargs['test_path']:
                 paths.append('--doctest-rst')
 

@@ -29,6 +29,8 @@ __all__ = [
     'set_enabled_equivalencies', 'add_enabled_equivalencies',
     'dimensionless_unscaled', 'one']
 
+UNITY = 1.0
+
 
 def _flatten_units_collection(items):
     """
@@ -637,7 +639,8 @@ class UnitBase(metaclass=InheritDocstrings):
         return normalized
 
     def __pow__(self, p):
-        return CompositeUnit(1, [self], [p])
+        p = validate_power(p)
+        return CompositeUnit(1, [self], [p], _error_check=False)
 
     def __div__(self, m):
         if isinstance(m, (bytes, str)):
@@ -931,7 +934,7 @@ class UnitBase(metaclass=InheritDocstrings):
         raise UnitConversionError(
             "'{0!r}' is not a scaled version of '{1!r}'".format(self, other))
 
-    def to(self, other, value=1.0, equivalencies=[]):
+    def to(self, other, value=UNITY, equivalencies=[]):
         """
         Return the converted values in the specified unit.
 
@@ -962,7 +965,10 @@ class UnitBase(metaclass=InheritDocstrings):
         UnitsError
             If units are inconsistent
         """
-        return self._get_converter(other, equivalencies=equivalencies)(value)
+        if other is self and value is UNITY:
+            return UNITY
+        else:
+            return self._get_converter(other, equivalencies=equivalencies)(value)
 
     def in_units(self, other, value=1.0, equivalencies=[]):
         """
@@ -2036,7 +2042,7 @@ class CompositeUnit(UnitBase):
 
     def _expand_and_gather(self, decompose=False, bases=set()):
         def add_unit(unit, power, scale):
-            if unit not in bases:
+            if bases and unit not in bases:
                 for base in bases:
                     try:
                         scale *= unit._to(base) ** power
@@ -2054,9 +2060,9 @@ class CompositeUnit(UnitBase):
             return scale
 
         new_parts = {}
-        scale = self.scale
+        scale = self._scale
 
-        for b, p in zip(self.bases, self.powers):
+        for b, p in zip(self._bases, self._powers):
             if decompose and b not in bases:
                 b = b.decompose(bases=bases)
 
@@ -2072,7 +2078,7 @@ class CompositeUnit(UnitBase):
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], 'name', '')))
 
         self._bases = [x[0] for x in new_parts]
-        self._powers = [validate_power(x[1]) for x in new_parts]
+        self._powers = [x[1] for x in new_parts]
         self._scale = sanitize_scale(scale)
 
     def __copy__(self):

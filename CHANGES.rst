@@ -31,6 +31,10 @@ astropy.coordinates
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
+- Distance calculations with ``LambaCDM`` with no radiation (T_CMB0=0)
+  are now 20x faster by using elliptic integrals for non-flat cases
+  [#7155]
+
 - Distance calculations with ``FlatLambaCDM`` with no radiation (T_CMB0=0)
   are now 20x faster by using the hypergeometric function solution
   for this special case. [#7087]
@@ -56,6 +60,15 @@ astropy.io.ascii
   All guesses thus removed from ``filtered_guess_kwargs`` are now listed as
   "Disabled" at the beginning of the trace. [#5578]
 
+- Emit a warning when reading an ECSV file without specifying the ``format``
+  and without PyYAML installed.  Previously this silently fell through to
+  parsing as a basic format file and the file metadata was lost. [#7580]
+
+- Optionally allow writing masked columns to ECSV with the mask explicitly
+  specified as a separate column instead of marking masked elements with ""
+  (empty string).  This allows handling the case of a masked string column
+  with "" data rows.  [#7481]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -70,6 +83,20 @@ astropy.io.fits
 - ``HDUList.pop()`` now accepts string and tuple extension name
   specifications. [#7236]
 
+- Add an ``ignore_hdus`` keyword to ``FITSDiff`` to allow ignoring HDUs by
+  NAME when diffing two FITS files [#7538]
+
+- Optionally allow writing masked columns to FITS with the mask explicitly
+  specified as a separate column instead of using the FITS standard of
+  certain embedded null values (``NaN`` for float, ``TNULL`` for integers).
+  This can be used to work around limitations in the FITS standard. [#7481]
+
+- All time coordinates can now be written to and read from FITS binary tables,
+  including those with vectorized locations. [#7430]
+
+- The ``fitsheader`` command line tool now supports a ``dfits+fitsort`` mode,
+  and the dotted notation for keywords (e.g. ``ESO.INS.ID``). [#7240]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
@@ -79,7 +106,7 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Add a ``Multiply`` model which preseves unit through evaluate, unlike
+- Add a ``Multiply`` model which preserves unit through evaluate, unlike
   ``Scale`` which is dimensionless. [#7210]
 
 - Add a ``uses_quantity`` property to ``Model`` which allows introspection of if
@@ -94,14 +121,38 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- The ``SigmaClip`` class and ``sigma_clip`` and
+  ``sigma_clipped_stats`` functions are now significantly faster.
+  [#7478]
+
+- Add an ``astropy.stats.bls`` module with an implementation of the "box least
+  squares" periodogram that is commonly used for discovering transiting
+  exoplanets and eclipsing binaries. [#7391]
+
 astropy.table
 ^^^^^^^^^^^^^
 
 - Added support for full use of ``Time`` mixin column for join, hstack, and
   vstack table operations. [#6888]
 
+- Added a new table index engine, ``SCEngine``, based on the Sorted Containers
+  package. [#7574]
+
+- Add a new keyword argument ``serialize_method`` to ``Table.write`` to
+  control how ``Time`` and ``MaskedColumn`` columns are written. [#7481]
+
+- Allow mixin columns to be used in table ``group`` and ``unique``
+  functions. This applies to both the key columns and the other data
+  columns. [#7712]
+
+- Added support for stacking ``Column``, mixin column (e.g. ``Quantity``,
+  ``Time``) or column-like objects. [#7674]
+
 astropy.tests
 ^^^^^^^^^^^^^
+
+- Added an option ``--readonly`` to the test command to change the
+  permissions on the temporary installation location to read-only. [#7598]
 
 astropy.time
 ^^^^^^^^^^^^
@@ -115,14 +166,34 @@ astropy.time
 
 - Added `datetime.timedelta` format class for ``TimeDelta``. [#7441]
 
+- Added ``strftime`` and ``strptime`` methods to ``Time`` class.
+  These methods are similar to those in the Python standard library
+  `time` package and provide flexible input and output formatting. [#7323]
+
+
 astropy.units
 ^^^^^^^^^^^^^
+
+- Add complex numbers support for ``Quantity._repr_latex_``. [#7676]
+
+- Add ``thermodynamic_temperature`` equivalency to convert between
+  Jy/beam and "thermodynamic temperature" for cosmology. [#7054]
 
 astropy.utils
 ^^^^^^^^^^^^^
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
+
+- Add support for setting ``set_separator(None)`` in WCSAxes to use default
+  separators. [#7570]
+
+- Added two keyword argument options to ``CoordinateHelper.set_format_unit``: ``decimal`` can
+  be used to specify whether to use decimal formatting for the labels (by default this is
+  False for degrees and hours and True otherwise), and ``show_decimal_unit`` can be used to
+  determine whether the units should be shown for decimal labels. [#7318]
+
+- Added documentation for ``transform=`` and ``coord_meta=``. [#7698]
 
 astropy.wcs
 ^^^^^^^^^^^
@@ -149,6 +220,8 @@ astropy.constants
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
+
+ - ``kernel`` can now be a tuple. [#7561]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -202,6 +275,9 @@ astropy.modeling
   both redundant and inadvertently corrupted at masked points). Return a
   consistent type for the second value when ``niter=0``. [#7407]
 
+- Set the minimum value for the ``bolometric_flux`` parameter of the
+  ``BlackBody1D`` model to zero. [#7045]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -211,20 +287,28 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- String values can now be used for the ``cenfunc`` and ``stdfunc``
+  keywords in the ``SigmaClip`` class and ``sigma_clip`` and
+  ``sigma_clipped_stats`` functions. [#7478]
+
+- The ``SigmaClip`` class and ``sigma_clip`` and
+  ``sigma_clipped_stats`` functions now have a ``masked`` keyword,
+  which can be used to return either a masked array (default) or an
+  ndarray with the min/max values. [#7478]
+
+- The ``iters`` keyword has been renamed (and deprecated) to
+  ``maxiters`` in the ``SigmaClip`` class and ``sigma_clip`` and
+  ``sigma_clipped_stats`` functions. [#7478]
+
 astropy.table
 ^^^^^^^^^^^^^
+
 - ``Table.read()`` on a FITS binary table file will convert any TDISPn header
   keywords to a Python formatting string when possible, and store it in the
   column ``format`` attribute. [#7226]
 
-- The private ``_parent`` attribute in the ``info`` attribute of table
-  columns was changed from a direct reference to the parent column to a weak
-  reference.  This was in response to a memory leak caused by having a
-  circular reference cycle.  This change means that expressions like
-  ``col[3:5].info`` will now fail because at the point of the ``info``
-  property being evaluated the ``col[3:5]`` weak reference is dead.  Instead
-  force a reference with ``c = col[3:5]`` followed by
-  ``c.info.indices``. [#6277, #7448]
+- No values provided to stack will now raise ``ValueError`` rather than
+  ``TypeError``. [#7674]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -234,10 +318,23 @@ astropy.tests
   ``from astropy.tests.helper import quantity_allclose`` would still work.
   [#7381]
 
+- ``warnings_to_ignore_by_pyver`` option in
+  ``enable_deprecations_as_exceptions()`` now takes ``None`` as key.
+  Any deprecation message that is mapped to ``None`` will be ignored
+  regardless of the Python version. [#7790]
+
 astropy.time
 ^^^^^^^^^^^^
+
 - Added the ability to use ``local`` as time scale in ``Time`` and
   ``TimeDelta``. [#6487]
+
+- Comparisons, addition, and subtraction of ``Time`` instances with non-time
+  instances will now return ``NotImplemented`` rather than raise the
+  ``Time``-specific ``OperandTypeError``.  This will generally lead to a
+  regular ``TypeError``.  As a result, ``OperandTypeError`` now only occurs if
+  the operation is between ``Time`` instances of incompatible type or scale.
+  [#7584]
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -257,8 +354,44 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- In ``ImageNormalize``, the default for ``clip`` is set to ``True``.
+  [#7800]
+
+- Changed ``AsymmetricPercentileInterval`` and ``MinMaxInterval`` to
+  ignore NaN values in arrays. [#7360]
+
 astropy.wcs
 ^^^^^^^^^^^
+
+Performance Improvements
+------------------------
+
+- Reduced import time by more cautious use of the standard library. [#7647]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Sped up creating SkyCoord objects by a factor of ~2 in some cases. [#7615]
+
+- Sped up getting xyz vectors from ``CartesianRepresentation`` (which
+  is used a lot internally). [#7638]
+
+- Sped up transformations and some representation methods by replacing
+  python code with (compiled) ``erfa`` ufuncs. [#7639]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Sped up creating new composite units, and raising units to some power
+  [#7549]
+
+- Sped up Unit.to when target unit is the same as the original unit.
+  [#7643]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Significantly sped up drawing of contours in WCSAxes. [#7568]
 
 Bug Fixes
 ---------
@@ -287,8 +420,16 @@ astropy.io.ascii
 - Fixed a problem when ``guess=True`` that ``fast_reader`` options
   could be dropped after the first fast reader class was tried. [#5578]
 
+- Units in CDS-formatted tables are now parsed correctly by the units
+  module. [#7348]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
+
+- Fixed bug when writing a table with masked columns to HDF5. Previously
+  the mask was being silently dropped.  If the ``serialize_meta`` option is
+  enabled the data mask will now be written as an additional column and the
+  masked columns will round-trip correctly. [#7481]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -321,10 +462,6 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
-- Fix memory leak where updating a table column or deleting a table
-  object was not releasing the memory due to a reference cycle
-  in the column ``info`` attributes. [#6277, #7448]
-
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -336,6 +473,12 @@ astropy.units
 
 astropy.utils
 ^^^^^^^^^^^^^
+
+- Fixed a bug due to which ``report_diff_values()`` was reporting incorrect
+  number of differences when comparing two ``numpy.ndarray``. [#7470]
+
+- The download progress bar is now only displayed in terminals, to avoid
+  polluting piped output. [#7577]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -353,12 +496,18 @@ Other Changes and Additions
 - The documentation build now uses the Sphinx configuration from sphinx-astropy
   rather than from astropy-helpers. [#7139]
 
+- Versions of Numpy <1.13 are no longer supported. [#7058]
+
 - Running tests now suppresses the output of the installation stage by default,
   to allow easier viewing of the test results. To re-enable the output as
   before, use ``python setup.py test --verbose-install``. [#7512]
 
+- The ERFA functions are now wrapped in ufuncs instead of custom C code,
+  leading to some speed improvements, and setting the stage for allowing
+  overrides with ``__array_ufunc__``. [#7502]
 
-3.0.3 (unreleased)
+
+3.0.5 (unreleased)
 ==================
 
 Bug Fixes
@@ -376,6 +525,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Fixed bug in which consecutive ``StaticMatrixTransform``'s in a frame
+  transform path would be combined in the incorrect order. [#7707]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -387,12 +539,6 @@ astropy.io.ascii
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
-
-- Raise error when attempting to open gzipped FITS file in 'append' mode.
-  [#7473]
-
-- Fix a bug when writing to FITS a table that has a column description
-  with embedded blank lines. [#7482]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
@@ -421,8 +567,8 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
-- Enabling running tests for multiple packages when specified comma
-  separated. [#7463]
+- Fixing bug that doctests were not picked up from the narrative
+  documentation when tests were run for all modules. [#7767]
 
 astropy.time
 ^^^^^^^^^^^^
@@ -439,10 +585,93 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+Other Changes and Additions
+---------------------------
+
+
+3.0.4 (2018-08-02)
+==================
+
+API Changes
+-----------
+
+astropy.table
+^^^^^^^^^^^^^
+
+- The private ``_parent`` attribute in the ``info`` attribute of table
+  columns was changed from a direct reference to the parent column to a weak
+  reference.  This was in response to a memory leak caused by having a
+  circular reference cycle.  This change means that expressions like
+  ``col[3:5].info`` will now fail because at the point of the ``info``
+  property being evaluated the ``col[3:5]`` weak reference is dead.  Instead
+  force a reference with ``c = col[3:5]`` followed by
+  ``c.info.indices``. [#6277, #7448]
+
+
+Bug Fixes
+---------
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Fixed an bug when creating the ``WCS`` of a cutout (see ``nddata.Cutout2D``)
+  when input image's ``WCS`` contains ``SIP`` distortion corrections by
+  adjusting the ``crpix`` of the ``astropy.wcs.Sip`` (in addition to
+  adjusting the ``crpix`` of the ``astropy.wcs.WCS`` object). This bug
+  had the potential to produce large errors in ``WCS`` coordinate
+  transformations depending on the position of the cutout relative
+  to the input image's ``crpix``. [#7556, #7550]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fix memory leak where updating a table column or deleting a table
+  object was not releasing the memory due to a reference cycle
+  in the column ``info`` attributes. [#6277, #7448]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fixed an bug when creating the ``WCS`` slice (see ``WCS.slice()``)
+  when ``WCS`` contains ``SIP`` distortion corrections by
+  adjusting the ``WCS.sip.crpix`` in addition to adjusting
+  ``WCS.wcs.crpix``. This bug had the potential to produce large errors in
+  ``WCS`` coordinate transformations depending on the position of the slice
+  relative to ``WCS.wcs.crpix``. [#7556, #7550]
+
 
 Other Changes and Additions
 ---------------------------
 
+- Updated bundled wcslib to v 5.19.1 [#7688]
+
+
+3.0.3 (2018-06-01)
+==================
+
+Bug Fixes
+---------
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- Fix stripping correct (header) comment line from ``meta['comments']``
+  in the ``CommentedHeader`` reader for all ``header_start`` settings. [#7508]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Raise error when attempting to open gzipped FITS file in 'append' mode.
+  [#7473]
+
+- Fix a bug when writing to FITS a table that has a column description
+  with embedded blank lines. [#7482]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+- Enabling running tests for multiple packages when specified comma
+  separated. [#7463]
 
 
 3.0.2 (2018-04-23)
@@ -1001,7 +1230,9 @@ Other Changes and Additions
 - The bundled version of PLY was updated to 3.10. [#7174]
 
 
-2.0.7 (unreleased)
+
+
+2.0.9 (unreleased)
 ==================
 
 Bug Fixes
@@ -1028,9 +1259,6 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
-- Fix stripping correct (header) comment line from ``meta['comments']``
-  in the ``CommentedHeader`` reader for all ``header_start`` settings. [#7508]
-
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
@@ -1046,13 +1274,143 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Fixed ``Tabular`` models to not change the shape of data. [#7411]
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Fixed the bug in CCData.read when the HDU is not specified and the first one
+  is empty so the function searches for the first HDU with data which may not
+  have an image extension. [#7739]
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- Fixed bugs in biweight statistics functions where a constant data
+  array (or if using the axis keyword, constant along an axis) would
+  return NaN. [#7737]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fixed a bug in ``to_pandas()`` where integer type masked columns were always
+  getting converted to float. This could cause loss of precision. Now this only
+  occurs if there are actually masked data values, in which case ``pandas``
+  does require the values to be float so that ``NaN`` can be used to mark the
+  masked values. [#7741, #7747]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+- Change the name of the configuration variable controlling the location of the
+  Astropy cache in the Pytest plugin from ``cache_dir`` to
+  ``astropy_cache_dir``. The command line flag also changed to
+  ``--astropy-cache-dir``.  This prevents a conflict with the ``cache_dir``
+  variable provided by pytest itself. Also made similar change to
+  ``config_dir`` option as a precaution. [#7721]
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.vo
+^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Instead of raising an error ``astropy.wcs`` now returns the input when
+  the input has zero size.                                       [#7746]
+
+- Fix ``malloc(0)`` bug in ``pipeline_all_pixel2world()`` and
+  ``pipeline_pix2foc()``. They now raise an exception for input with
+  zero coordinates, i.e. shape = (0, n). [#7806]
+
+Other Changes and Additions
+---------------------------
+
+- Added a new ``astropy.__citation__`` attribute which gives a citation
+  for Astropy in bibtex format. Made sure that both this and
+  ``astropy.__bibtex__`` works outside the source environment, too. [#7718]
+
+
+
+2.0.8 (2018-08-02)
+==================
+
+Bug Fixes
+---------
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Correct data type conversion for non-float masked kernels. [#7542]
+
+- Fix non-float or masked, zero sum kernels when ``normalize_kernel=False``.
+  Non-floats would yeild a type error and masked kernels were not being filled.
+  [#7541]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Ensure that relative humidities can be given as Quantities, rather than take
+  any quantity and just strip its unit. [#7668]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
 
-astropy.samp
+- Fixed ``Cutout2D`` output WCS NAXIS values to reflect the cutout
+  image size. [#7552]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fixed a bug in ``add_columns`` method where ``rename_duplicate=True`` would
+  cause an error if there were no duplicates. [#7540]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+- Fixed bug in ``python setup.py test --coverage`` on Windows machines. [#7673]
+
+astropy.time
 ^^^^^^^^^^^^
+
+- Avoid rounding errors when converting ``Quantity`` to ``TimeDelta``. [#7625]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed a bug that caused the position of the tick values in decimal mode
+  to be incorrectly determined. [#7332]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fixed a bug that caused ``wcs_to_celestial_frame``, ``skycoord_to_pixel``, and
+  ``pixel_to_skycoord`` to raise an error if the axes of the celestial WCS were
+  swapped. [#7691]
+
+
+2.0.7 (2018-06-01)
+==================
+
+Bug Fixes
+---------
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fixed ``Tabular`` models to not change the shape of data. [#7411]
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -1072,40 +1430,29 @@ astropy.table
   by Numpy since version 1.14. Also fixed a problem when MaskedColumn was
   initialized with ``mask=np.ma.nomask``. [#7486]
 
-astropy.tests
-^^^^^^^^^^^^^
-
 astropy.time
 ^^^^^^^^^^^^
 
 - Fixed a bug in Time that raised an error when initializing a subclass of Time
   with a Time object. [#7453]
 
-astropy.units
-^^^^^^^^^^^^^
-
 astropy.utils
 ^^^^^^^^^^^^^
+
+- Fixed a bug that improperly handled unicode case of URL mirror in Python 2.
+  [#7493]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-- Fixed a bug that caused the position of the tick values in decimal mode
-  to be incorrectly determined. [#7332]
-
 - Fixed a bug that prevented legends from being added to plots done with
   units. [#7510]
-
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
 
 
 Other Changes and Additions
 ---------------------------
 
+- Bundled ``pytest-remotedata`` plugin is upgraded to 0.3. [#7493]
 
 
 2.0.6 (2018-04-23)
@@ -1722,6 +2069,10 @@ astropy.table
 - Added support for reading and writing a table with mixin columns like
   ``Time``, ``SkyCoord``, ``Latitude``, and ``EarthLocation`` via the
   ASCII ECSV format. [#6181]
+
+- Bug fix for ``MaskedColumn`` insert method, where ``fill_value`` attribute
+  was not being passed along to the copy of the ``MaskedColumn`` that was
+  returned. [#7585]
 
 astropy.tests
 ^^^^^^^^^^^^^

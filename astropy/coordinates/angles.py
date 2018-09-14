@@ -451,7 +451,7 @@ class Angle(u.SpecificTypeQuantity):
 def _no_angle_subclass(obj):
     """Return any Angle subclass objects as an Angle objects.
 
-    This is used to ensure that Latitute and Longitude change to Angle
+    This is used to ensure that Latitude and Longitude change to Angle
     objects when they are used in calculations (such as lon/2.)
     """
     if isinstance(obj, tuple):
@@ -539,10 +539,6 @@ class Latitude(Angle):
         super().__setitem__(item, value)
 
     # Any calculation should drop to Angle
-    def __array_wrap__(self, obj, context=None):
-        obj = super().__array_wrap__(obj, context=context)
-        return _no_angle_subclass(obj)
-
     def __array_ufunc__(self, *args, **kwargs):
         results = super().__array_ufunc__(*args, **kwargs)
         return _no_angle_subclass(results)
@@ -663,10 +659,6 @@ class Longitude(Angle):
                                    self._default_wrap_angle)
 
     # Any calculation should drop to Angle
-    def __array_wrap__(self, obj, context=None):
-        obj = super().__array_wrap__(obj, context=context)
-        return _no_angle_subclass(obj)
-
     def __array_ufunc__(self, *args, **kwargs):
         results = super().__array_ufunc__(*args, **kwargs)
         return _no_angle_subclass(results)

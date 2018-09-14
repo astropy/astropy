@@ -11,6 +11,7 @@ from .. import units as u
 from ..coordinates import SkyCoord
 from ..utils import lazyproperty
 from ..wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
+from ..wcs import Sip
 
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',
@@ -65,10 +66,10 @@ def overlap_slices(large_array_shape, small_array_shape, position,
 
     Parameters
     ----------
-    large_array_shape : tuple or int
+    large_array_shape : tuple of int or int
         The shape of the large array (for 1D arrays, this can be an
         `int`).
-    small_array_shape : tuple or int
+    small_array_shape : tuple of int or int
         The shape of the small array (for 1D arrays, this can be an
         `int`).  See the ``mode`` keyword for additional details.
     position : tuple of numbers or number
@@ -94,7 +95,7 @@ def overlap_slices(large_array_shape, small_array_shape, position,
         A tuple of slice objects for each axis of the large array, such
         that ``large_array[slices_large]`` extracts the region of the
         large array that overlaps with the small array.
-    slices_small : slice
+    slices_small : tuple of slices
         A tuple of slice objects for each axis of the small array, such
         that ``small_array[slices_small]`` extracts the region that is
         inside the large array.
@@ -732,6 +733,11 @@ class Cutout2D:
         if wcs is not None:
             self.wcs = deepcopy(wcs)
             self.wcs.wcs.crpix -= self._origin_original_true
+            self.wcs._naxis = [self.data.shape[1], self.data.shape[0]]
+            if wcs.sip is not None:
+                self.wcs.sip = Sip(wcs.sip.a, wcs.sip.b,
+                                   wcs.sip.ap, wcs.sip.bp,
+                                   wcs.sip.crpix - self._origin_original_true)
         else:
             self.wcs = None
 

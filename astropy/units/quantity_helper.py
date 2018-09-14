@@ -13,6 +13,7 @@ from fractions import Fraction
 import numpy as np
 from .core import (UnitsError, UnitConversionError, UnitTypeError,
                    dimensionless_unscaled, get_current_unit_registry)
+from .._erfa import ufunc as erfa_ufunc
 
 
 def _d(unit):
@@ -114,11 +115,6 @@ def helper_invariant(f, unit):
     return ([None], _d(unit))
 
 
-def helper_sqrt(f, unit):
-    return ([None], unit ** Fraction(1, 2) if unit is not None
-            else dimensionless_unscaled)
-
-
 def helper_square(f, unit):
     return ([None], unit ** 2 if unit is not None else dimensionless_unscaled)
 
@@ -127,8 +123,17 @@ def helper_reciprocal(f, unit):
     return ([None], unit ** -1 if unit is not None else dimensionless_unscaled)
 
 
+one_half = 0.5  # faster than Fraction(1, 2)
+one_third = Fraction(1, 3)
+
+
+def helper_sqrt(f, unit):
+    return ([None], unit ** one_half if unit is not None
+            else dimensionless_unscaled)
+
+
 def helper_cbrt(f, unit):
-    return ([None], (unit ** Fraction(1, 3) if unit is not None
+    return ([None], (unit ** one_third if unit is not None
                      else dimensionless_unscaled))
 
 
@@ -351,16 +356,18 @@ for ufunc in onearg_test_ufuncs:
 
 # ufuncs that return a value with the same unit as the input
 invariant_ufuncs = (np.absolute, np.fabs, np.conj, np.conjugate, np.negative,
-                    np.spacing, np.rint, np.floor, np.ceil, np.trunc)
+                    np.spacing, np.rint, np.floor, np.ceil, np.trunc,
+                    np.positive)
 for ufunc in invariant_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_invariant
-# positive was added in numpy 1.13
-if isinstance(getattr(np, 'positive', None), np.ufunc):
-    UFUNC_HELPERS[np.positive] = helper_invariant
 
 # ufuncs that require dimensionless input and and give dimensionless output
 dimensionless_to_dimensionless_ufuncs = (np.exp, np.expm1, np.exp2, np.log,
                                          np.log10, np.log2, np.log1p)
+# As found out in gh-7058, some numpy 1.13 conda installations also provide
+# np.erf, even though upstream doesn't have it.  We include it if present.
+if isinstance(getattr(np.core.umath, 'erf', None), np.ufunc):
+    dimensionless_to_dimensionless_ufuncs += (np.core.umath.erf,)
 for ufunc in dimensionless_to_dimensionless_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
 
@@ -433,15 +440,52 @@ UFUNC_HELPERS[np.power] = helper_power
 UFUNC_HELPERS[np.ldexp] = helper_ldexp
 UFUNC_HELPERS[np.copysign] = helper_copysign
 UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
-# heaviside only was added in numpy 1.13
-if isinstance(getattr(np, 'heaviside', None), np.ufunc):
-    UFUNC_HELPERS[np.heaviside] = helper_heaviside
-# float_power was added in numpy 1.12
-if isinstance(getattr(np, 'float_power', None), np.ufunc):
-    UFUNC_HELPERS[np.float_power] = helper_power
-# divmod only was added in numpy 1.13
-if isinstance(getattr(np, 'divmod', None), np.ufunc):
-    UFUNC_HELPERS[np.divmod] = helper_divmod
+UFUNC_HELPERS[np.heaviside] = helper_heaviside
+UFUNC_HELPERS[np.float_power] = helper_power
+UFUNC_HELPERS[np.divmod] = helper_divmod
+
+
+# ERFA UFUNCS
+def helper_s2c(f, unit1, unit2):
+    from .si import radian
+    try:
+        return [get_converter(unit1, radian),
+                get_converter(unit2, radian)], dimensionless_unscaled
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
+
+
+def helper_s2p(f, unit1, unit2, unit3):
+    from .si import radian
+    try:
+        return [get_converter(unit1, radian),
+                get_converter(unit2, radian), None], unit3
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
+
+
+def helper_c2s(f, unit1):
+    from .si import radian
+    return [None], (radian, radian)
+
+
+def helper_p2s(f, unit1):
+    from .si import radian
+    return [None], (radian, radian, unit1)
+
+
+UFUNC_HELPERS[erfa_ufunc.s2c] = helper_s2c
+UFUNC_HELPERS[erfa_ufunc.s2p] = helper_s2p
+UFUNC_HELPERS[erfa_ufunc.c2s] = helper_c2s
+UFUNC_HELPERS[erfa_ufunc.p2s] = helper_p2s
+UFUNC_HELPERS[erfa_ufunc.pm] = helper_invariant
+UFUNC_HELPERS[erfa_ufunc.pdp] = helper_multiplication
+UFUNC_HELPERS[erfa_ufunc.pxp] = helper_multiplication
+UFUNC_HELPERS[erfa_ufunc.rxp] = helper_multiplication
 
 
 # UFUNCS FROM SCIPY.SPECIAL

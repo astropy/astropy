@@ -17,6 +17,7 @@ from ...utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
                            get_pkg_data_contents)
 
 from ..ccddata import CCDData
+from astropy.table import Table
 
 # If additional pytest markers are defined the key in the dictionary below
 # should be the name of the marker.
@@ -142,6 +143,15 @@ def test_initialize_from_fits_with_ADU_in_header(tmpdir):
     ccd = CCDData.read(filename)
     # ccd should pick up the unit adu from the fits header...did it?
     assert ccd.unit is u.adu
+
+
+def test_initialize_from_fits_with_invalid_unit_in_header(tmpdir):
+    hdu = fits.PrimaryHDU(np.ones((2, 2)))
+    hdu.header['bunit'] = 'definetely-not-a-unit'
+    filename = tmpdir.join('afile.fits').strpath
+    hdu.writeto(filename)
+    with pytest.raises(ValueError):
+        CCDData.read(filename)
 
 
 def test_initialize_from_fits_with_data_in_different_extension(tmpdir):
@@ -872,3 +882,18 @@ def test_stddevuncertainty_compat_descriptor_no_weakref():
     uncert._parent_nddata = ccd
     assert uncert.parent_nddata is ccd
     uncert._parent_nddata = None
+
+
+# https://github.com/astropy/astropy/issues/7595
+def test_read_returns_image(tmpdir):
+    # Test if CCData.read returns a image when reading a fits file containing
+    # a table and image, in that order.
+    tbl = Table(np.ones(10).reshape(5, 2))
+    img = np.ones((5, 5))
+    hdul = fits.HDUList(hdus=[fits.PrimaryHDU(), fits.TableHDU(tbl.as_array()),
+                              fits.ImageHDU(img)])
+    filename = tmpdir.join('table_image.fits').strpath
+    hdul.writeto(filename)
+    ccd = CCDData.read(filename, unit='adu')
+    # Expecting to get (5, 5), the size of the image
+    assert ccd.data.shape == (5, 5)

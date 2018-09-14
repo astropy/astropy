@@ -22,7 +22,7 @@ Using `astropy.visualization`
    wcsaxes/index.rst
    normalization.rst
    histogram.rst
-   lupton_rgb.rst
+   rgb.rst
 
 .. _fits2bitmap:
 
@@ -34,6 +34,11 @@ images to bitmaps, including scaling and stretching of the image. To find out
 more about the available options and how to use it, type::
 
     $ fits2bitmap --help
+
+.. note that if this section gets too long, it should be moved to a separate 
+   doc page - see the top of performance.inc.rst for the instructions on how to do 
+   that
+.. include:: performance.inc.rst
 
 Reference/API
 =============

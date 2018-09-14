@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  WCSLIB 5.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.c,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
+  $Id: tab.c,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -419,6 +419,9 @@ int tabcmp(int dummy,
 
 {
   int m, M, N;
+
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
 
   if (tab1  == 0x0) return TABERR_NULL_POINTER;
   if (tab2  == 0x0) return TABERR_NULL_POINTER;

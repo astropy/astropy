@@ -34,7 +34,7 @@ from . import fastbasic
 from . import cparser
 from . import fixedwidth
 
-from ...table import Table, vstack
+from ...table import Table, vstack, MaskedColumn
 from ...utils.data import get_readable_fileobj
 from ...utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
@@ -566,8 +566,9 @@ def _guess(table, read_kwargs, format, fast_reader):
                    '** ERROR: Unable to guess table format with the guesses listed above. **',
                    '**                                                                    **',
                    '** To figure out why the table did not read, use guess=False and      **',
-                   '** appropriate arguments to read().  In particular specify the format **',
-                   '** and any known attributes like the delimiter.                       **',
+                   '** fast_reader=False, along with any appropriate arguments to read(). **',
+                   '** In particular specify the format and any known attributes like the **',
+                   '** delimiter.                                                         **',
                    '************************************************************************']
             lines.extend(msg)
             raise core.InconsistentTableError('\n'.join(lines))
@@ -608,8 +609,7 @@ def _get_guess_kwargs_list(read_kwargs):
 
     # Start with ECSV because an ECSV file will be read by Basic.  This format
     # has very specific header requirements and fails out quickly.
-    if HAS_YAML:
-        guess_kwargs_list.append(dict(Reader=ecsv.Ecsv))
+    guess_kwargs_list.append(dict(Reader=ecsv.Ecsv))
 
     # Now try readers that accept the user-supplied keyword arguments
     # (actually include all here - check for compatibility of arguments later).
@@ -872,8 +872,26 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
     if output is None:
         output = sys.stdout
 
-    table_cls = table.__class__ if isinstance(table, Table) else Table
-    table = table_cls(table, names=kwargs.get('names'))
+    # Ensure that `table` is a Table subclass.
+    names = kwargs.get('names')
+    if isinstance(table, Table):
+        # Note that making a copy of the table here is inefficient but
+        # without this copy a number of tests break (e.g. in test_fixedwidth).
+        # See #7605.
+        new_tbl = table.__class__(table, names=names)
+
+        # This makes a copy of the table columns.  This is subject to a
+        # corner-case problem if writing a table with masked columns to ECSV
+        # where serialize_method is set to 'data_mask'.  In this case that
+        # attribute gets dropped in the copy, so do the copy here.  This
+        # should be removed when `info` really contains all the attributes
+        # (#6720).
+        for new_col, col in zip(new_tbl.itercols(), table.itercols()):
+            if isinstance(col, MaskedColumn):
+                new_col.info.serialize_method = col.info.serialize_method
+        table = new_tbl
+    else:
+        table = Table(table, names=names)
 
     table0 = table[:0].copy()
     core._apply_include_exclude_names(table0, kwargs.get('names'),

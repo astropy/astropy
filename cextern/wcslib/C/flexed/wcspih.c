@@ -8,8 +8,8 @@
 
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
-#define YY_FLEX_MINOR_VERSION 6
-#define YY_FLEX_SUBMINOR_VERSION 0
+#define YY_FLEX_MINOR_VERSION 5
+#define YY_FLEX_SUBMINOR_VERSION 39
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -224,7 +224,7 @@ struct yy_buffer_state
 	/* Number of characters read into yy_ch_buf, not including EOB
 	 * characters.
 	 */
-	int yy_n_chars;
+	yy_size_t yy_n_chars;
 
 	/* Whether we "own" the buffer - i.e., we know we created it,
 	 * and can realloc() it to grow it, and should free() it to
@@ -335,7 +335,7 @@ void wcspihfree (void * ,yyscan_t yyscanner );
 
 /* Begin user sect3 */
 
-#define wcspihwrap(yyscanner) (/*CONSTCOND*/1)
+#define wcspihwrap(yyscanner) 1
 #define YY_SKIP_YYWRAP
 
 typedef char YY_CHAR;
@@ -16578,9 +16578,6 @@ static yyconst flex_int16_t yy_nxt[][128] =
 static yy_state_type yy_get_previous_state (yyscan_t yyscanner );
 static yy_state_type yy_try_NUL_trans (yy_state_type current_state  ,yyscan_t yyscanner);
 static int yy_get_next_buffer (yyscan_t yyscanner );
-#if defined(__GNUC__) && __GNUC__ >= 3
-__attribute__((__noreturn__))
-#endif
 static void yy_fatal_error (yyconst char msg[] ,yyscan_t yyscanner );
 
 /* Done after the current pattern has been matched and before the
@@ -16826,7 +16823,7 @@ static yyconst yy_state_type yy_NUL_trans[938] =
 #line 1 "wcspih.l"
 /*============================================================================
 
-  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  WCSLIB 5.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -16848,7 +16845,7 @@ static yyconst yy_state_type yy_NUL_trans[938] =
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.c,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
+  $Id: wcspih.c,v 5.19.1.1 2018/07/26 15:41:41 mcalabre Exp mcalabre $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -16994,7 +16991,7 @@ int wcspih_vsource(double *wptr, double vsource);
 jmp_buf wcspih_abort_jmp_env;
 #define exit(status) longjmp(wcspih_abort_jmp_env, status)
 
-#line 16998 "wcspih.c"
+#line 16995 "wcspih.c"
 
 #define INITIAL 0
 #define CCia 1
@@ -17048,7 +17045,7 @@ struct yyguts_t
     size_t yy_buffer_stack_max; /**< capacity of stack. */
     YY_BUFFER_STATE * yy_buffer_stack; /**< Stack as an array. */
     char yy_hold_char;
-    int yy_n_chars;
+    yy_size_t yy_n_chars;
     yy_size_t yyleng_r;
     char *yy_c_buf_p;
     int yy_init;
@@ -17090,11 +17087,11 @@ void wcspihset_extra (YY_EXTRA_TYPE user_defined ,yyscan_t yyscanner );
 
 FILE *wcspihget_in (yyscan_t yyscanner );
 
-void wcspihset_in  (FILE * _in_str ,yyscan_t yyscanner );
+void wcspihset_in  (FILE * in_str ,yyscan_t yyscanner );
 
 FILE *wcspihget_out (yyscan_t yyscanner );
 
-void wcspihset_out  (FILE * _out_str ,yyscan_t yyscanner );
+void wcspihset_out  (FILE * out_str ,yyscan_t yyscanner );
 
 yy_size_t wcspihget_leng (yyscan_t yyscanner );
 
@@ -17102,11 +17099,11 @@ char *wcspihget_text (yyscan_t yyscanner );
 
 int wcspihget_lineno (yyscan_t yyscanner );
 
-void wcspihset_lineno (int _line_number ,yyscan_t yyscanner );
+void wcspihset_lineno (int line_number ,yyscan_t yyscanner );
 
 int wcspihget_column  (yyscan_t yyscanner );
 
-void wcspihset_column (int _column_no ,yyscan_t yyscanner );
+void wcspihset_column (int column_no ,yyscan_t yyscanner );
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -17120,12 +17117,8 @@ extern int wcspihwrap (yyscan_t yyscanner );
 #endif
 #endif
 
-#ifndef YY_NO_UNPUT
-    
     static void yyunput (int c,char *buf_ptr  ,yyscan_t yyscanner);
     
-#endif
-
 #ifndef yytext_ptr
 static void yy_flex_strncpy (char *,yyconst char *,int ,yyscan_t yyscanner);
 #endif
@@ -17168,7 +17161,7 @@ static int input (yyscan_t yyscanner );
 #ifndef YY_INPUT
 #define YY_INPUT(buf,result,max_size) \
 	errno=0; \
-	while ( (result = read( fileno(yyin), (char *) buf, max_size )) < 0 ) \
+	while ( (result = read( fileno(yyin), (char *) buf, (yy_size_t) max_size )) < 0 ) \
 	{ \
 		if( errno != EINTR) \
 		{ \
@@ -17222,7 +17215,7 @@ extern int wcspihlex (yyscan_t yyscanner);
 
 /* Code executed at the end of each rule. */
 #ifndef YY_BREAK
-#define YY_BREAK /*LINTED*/break;
+#define YY_BREAK break;
 #endif
 
 #define YY_RULE_SETUP \
@@ -17235,9 +17228,9 @@ extern int wcspihlex (yyscan_t yyscanner);
  */
 YY_DECL
 {
-	yy_state_type yy_current_state;
-	char *yy_cp, *yy_bp;
-	int yy_act;
+	register yy_state_type yy_current_state;
+	register char *yy_cp, *yy_bp;
+	register int yy_act;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
 	if ( !yyg->yy_init )
@@ -17348,9 +17341,9 @@ YY_DECL
 	BEGIN(INITIAL);
 
 
-#line 17352 "wcspih.c"
+#line 17345 "wcspih.c"
 
-	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
+	while ( 1 )		/* loops until end-of-file is reached */
 		{
 		yy_cp = yyg->yy_c_buf_p;
 
@@ -19658,7 +19651,7 @@ YY_RULE_SETUP
 #line 1990 "wcspih.l"
 ECHO;
 	YY_BREAK
-#line 19662 "wcspih.c"
+#line 19655 "wcspih.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -19800,9 +19793,9 @@ ECHO;
 static int yy_get_next_buffer (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-	char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
-	char *source = yyg->yytext_ptr;
-	yy_size_t number_to_move, i;
+	register char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
+	register char *source = yyg->yytext_ptr;
+	register int number_to_move, i;
 	int ret_val;
 
 	if ( yyg->yy_c_buf_p > &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[yyg->yy_n_chars + 1] )
@@ -19831,7 +19824,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	/* Try to read more data. */
 
 	/* First move last chars to start of buffer. */
-	number_to_move = (yy_size_t) (yyg->yy_c_buf_p - yyg->yytext_ptr) - 1;
+	number_to_move = (int) (yyg->yy_c_buf_p - yyg->yytext_ptr) - 1;
 
 	for ( i = 0; i < number_to_move; ++i )
 		*(dest++) = *(source++);
@@ -19844,7 +19837,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 
 	else
 		{
-			yy_size_t num_to_read =
+			int num_to_read =
 			YY_CURRENT_BUFFER_LVALUE->yy_buf_size - number_to_move - 1;
 
 		while ( num_to_read <= 0 )
@@ -19913,9 +19906,9 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	else
 		ret_val = EOB_ACT_CONTINUE_SCAN;
 
-	if ((int) (yyg->yy_n_chars + number_to_move) > YY_CURRENT_BUFFER_LVALUE->yy_buf_size) {
+	if ((yy_size_t) (yyg->yy_n_chars + number_to_move) > YY_CURRENT_BUFFER_LVALUE->yy_buf_size) {
 		/* Extend the array by 50%, plus the number we really need. */
-		int new_size = yyg->yy_n_chars + number_to_move + (yyg->yy_n_chars >> 1);
+		yy_size_t new_size = yyg->yy_n_chars + number_to_move + (yyg->yy_n_chars >> 1);
 		YY_CURRENT_BUFFER_LVALUE->yy_ch_buf = (char *) wcspihrealloc((void *) YY_CURRENT_BUFFER_LVALUE->yy_ch_buf,new_size ,yyscanner );
 		if ( ! YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
 			YY_FATAL_ERROR( "out of dynamic memory in yy_get_next_buffer()" );
@@ -19934,8 +19927,8 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 
     static yy_state_type yy_get_previous_state (yyscan_t yyscanner)
 {
-	yy_state_type yy_current_state;
-	char *yy_cp;
+	register yy_state_type yy_current_state;
+	register char *yy_cp;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
 	yy_current_state = yyg->yy_start;
@@ -19966,9 +19959,9 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
  */
     static yy_state_type yy_try_NUL_trans  (yy_state_type yy_current_state , yyscan_t yyscanner)
 {
-	int yy_is_jam;
+	register int yy_is_jam;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner; /* This var may be unused depending upon options. */
-	char *yy_cp = yyg->yy_c_buf_p;
+	register char *yy_cp = yyg->yy_c_buf_p;
 
 	yy_current_state = yy_NUL_trans[yy_current_state];
 	yy_is_jam = (yy_current_state == 0);
@@ -19986,11 +19979,9 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	return yy_is_jam ? 0 : yy_current_state;
 }
 
-#ifndef YY_NO_UNPUT
-
-    static void yyunput (int c, char * yy_bp , yyscan_t yyscanner)
+    static void yyunput (int c, register char * yy_bp , yyscan_t yyscanner)
 {
-	char *yy_cp;
+	register char *yy_cp;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
     yy_cp = yyg->yy_c_buf_p;
@@ -20001,10 +19992,10 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
 		{ /* need to shift things up to make room */
 		/* +2 for EOB chars. */
-		yy_size_t number_to_move = yyg->yy_n_chars + 2;
-		char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
+		register yy_size_t number_to_move = yyg->yy_n_chars + 2;
+		register char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
 					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
-		char *source =
+		register char *source =
 				&YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[number_to_move];
 
 		while ( source > YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
@@ -20025,8 +20016,6 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	yyg->yy_hold_char = *yy_cp;
 	yyg->yy_c_buf_p = yy_cp;
 }
-
-#endif
 
 #ifndef YY_NO_INPUT
 #ifdef __cplusplus
@@ -20183,7 +20172,7 @@ static void wcspih_load_buffer_state  (yyscan_t yyscanner)
 	if ( ! b )
 		YY_FATAL_ERROR( "out of dynamic memory in wcspih_create_buffer()" );
 
-	b->yy_buf_size = (yy_size_t)size;
+	b->yy_buf_size = size;
 
 	/* yy_ch_buf has to be 2 characters longer than the size given because
 	 * we need to put in 2 end-of-buffer characters.
@@ -20344,7 +20333,7 @@ static void wcspihensure_buffer_stack (yyscan_t yyscanner)
 		 * scanner will even need a stack. We use 2 instead of 1 to avoid an
 		 * immediate realloc on the next call.
          */
-		num_to_alloc = 1; /* After all that talk, this was set to 1 anyways... */
+		num_to_alloc = 1;
 		yyg->yy_buffer_stack = (struct yy_buffer_state**)wcspihalloc
 								(num_to_alloc * sizeof(struct yy_buffer_state*)
 								, yyscanner);
@@ -20361,7 +20350,7 @@ static void wcspihensure_buffer_stack (yyscan_t yyscanner)
 	if (yyg->yy_buffer_stack_top >= (yyg->yy_buffer_stack_max) - 1){
 
 		/* Increase the buffer to prepare for a possible push. */
-		yy_size_t grow_size = 8 /* arbitrary grow size */;
+		int grow_size = 8 /* arbitrary grow size */;
 
 		num_to_alloc = yyg->yy_buffer_stack_max + grow_size;
 		yyg->yy_buffer_stack = (struct yy_buffer_state**)wcspihrealloc
@@ -20469,9 +20458,7 @@ YY_BUFFER_STATE wcspih_scan_bytes  (yyconst char * yybytes, yy_size_t  _yybytes_
 
 static void yy_fatal_error (yyconst char* msg , yyscan_t yyscanner)
 {
-	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-	(void)yyg;
-	(void) fprintf( stderr, "%s\n", msg );
+    	(void) fprintf( stderr, "%s\n", msg );
 	exit( YY_EXIT_FAILURE );
 }
 
@@ -20577,10 +20564,10 @@ void wcspihset_extra (YY_EXTRA_TYPE  user_defined , yyscan_t yyscanner)
 }
 
 /** Set the current line number.
- * @param _line_number line number
+ * @param line_number
  * @param yyscanner The scanner object.
  */
-void wcspihset_lineno (int  _line_number , yyscan_t yyscanner)
+void wcspihset_lineno (int  line_number , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
@@ -20588,14 +20575,14 @@ void wcspihset_lineno (int  _line_number , yyscan_t yyscanner)
         if (! YY_CURRENT_BUFFER )
            YY_FATAL_ERROR( "wcspihset_lineno called with no buffer" );
     
-    yylineno = _line_number;
+    yylineno = line_number;
 }
 
 /** Set the current column.
- * @param _column_no column number
+ * @param line_number
  * @param yyscanner The scanner object.
  */
-void wcspihset_column (int  _column_no , yyscan_t yyscanner)
+void wcspihset_column (int  column_no , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
@@ -20603,25 +20590,25 @@ void wcspihset_column (int  _column_no , yyscan_t yyscanner)
         if (! YY_CURRENT_BUFFER )
            YY_FATAL_ERROR( "wcspihset_column called with no buffer" );
     
-    yycolumn = _column_no;
+    yycolumn = column_no;
 }
 
 /** Set the input stream. This does not discard the current
  * input buffer.
- * @param _in_str A readable stream.
+ * @param in_str A readable stream.
  * @param yyscanner The scanner object.
  * @see wcspih_switch_to_buffer
  */
-void wcspihset_in (FILE *  _in_str , yyscan_t yyscanner)
+void wcspihset_in (FILE *  in_str , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-    yyin = _in_str ;
+    yyin = in_str ;
 }
 
-void wcspihset_out (FILE *  _out_str , yyscan_t yyscanner)
+void wcspihset_out (FILE *  out_str , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-    yyout = _out_str ;
+    yyout = out_str ;
 }
 
 int wcspihget_debug  (yyscan_t yyscanner)
@@ -20630,10 +20617,10 @@ int wcspihget_debug  (yyscan_t yyscanner)
     return yy_flex_debug;
 }
 
-void wcspihset_debug (int  _bdebug , yyscan_t yyscanner)
+void wcspihset_debug (int  bdebug , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-    yy_flex_debug = _bdebug ;
+    yy_flex_debug = bdebug ;
 }
 
 /* Accessor methods for yylval and yylloc */
@@ -20772,10 +20759,7 @@ int wcspihlex_destroy  (yyscan_t yyscanner)
 #ifndef yytext_ptr
 static void yy_flex_strncpy (char* s1, yyconst char * s2, int n , yyscan_t yyscanner)
 {
-	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-	(void)yyg;
-
-	int i;
+	register int i;
 	for ( i = 0; i < n; ++i )
 		s1[i] = s2[i];
 }
@@ -20784,7 +20768,7 @@ static void yy_flex_strncpy (char* s1, yyconst char * s2, int n , yyscan_t yysca
 #ifdef YY_NEED_STRLEN
 static int yy_flex_strlen (yyconst char * s , yyscan_t yyscanner)
 {
-	int n;
+	register int n;
 	for ( n = 0; s[n]; ++n )
 		;
 
@@ -20794,16 +20778,11 @@ static int yy_flex_strlen (yyconst char * s , yyscan_t yyscanner)
 
 void *wcspihalloc (yy_size_t  size , yyscan_t yyscanner)
 {
-	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-	(void)yyg;
 	return (void *) malloc( size );
 }
 
 void *wcspihrealloc  (void * ptr, yy_size_t  size , yyscan_t yyscanner)
 {
-	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-	(void)yyg;
-
 	/* The cast to (char *) in the following accommodates both
 	 * implementations that use char* generic pointers, and those
 	 * that use void* generic pointers.  It works with the latter
@@ -20816,14 +20795,12 @@ void *wcspihrealloc  (void * ptr, yy_size_t  size , yyscan_t yyscanner)
 
 void wcspihfree (void * ptr , yyscan_t yyscanner)
 {
-	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-	(void)yyg;
 	free( (char *) ptr );	/* see wcspihrealloc() for (char *) cast */
 }
 
 #define YYTABLES_NAME "yytables"
 
-#line 1990 "wcspih.l"
+#line 1989 "wcspih.l"
 
 
 
@@ -21071,7 +21048,7 @@ int wcspih_final(
   struct wcsprm **wcs)
 
 {
-  char   field[16], *wp, wpoly[12], wtype[8];
+  char   field[32], *wp, wpoly[12], wtype[8];
   int    i, ialt, idp, ipv, m, npv, n, nterms, omax, omin, status, wctrl[4];
   double A1, A2, A3, B1, B2, B3, CNPIX1, CNPIX2, *crval, Rx, Ry, S, wval,
          X0, Y0, Xc, Yc;

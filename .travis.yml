@@ -33,7 +33,7 @@ env:
         - NUMPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
-        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach asdf'
+        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach asdf bottleneck'
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
         - SETUP_CMD='test'
@@ -68,13 +68,6 @@ matrix:
     fast_finish: true
 
     include:
-
-        - stage: Initial tests
-          env: PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
-
-        - stage: Initial tests
-          env: PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
-
         # Try MacOS X. Use a slightly old numpy version to help test against
         # all supported numpy versions.
         - os: osx
@@ -83,24 +76,13 @@ matrix:
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='jplephem' EVENT_TYPE='cron'
 
-        # Check for sphinx doc build warnings - we do this first because it
-        # runs for a long time. The sphinx build also has some additional
-        # dependencies. Using a more stringent locale than UTF-8.
-        - os: linux
-          env: SETUP_CMD='build_docs -w'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='sphinx-astropy jplephem pillow'
-               LC_CTYPE=C LC_ALL=C LANG=C
-
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
         # versions of Python, we can vary Python and Numpy versions at the same
-        # time. Since we test the latest Numpy as part of the builds with all
-        # optional dependencies below, we can focus on older builds here.
-        # Numpy 1.11 is tested below, 1.12 in the Initial stage test.
+        # time.
         # Run this test using native pytest
         - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.13
                INSTALL_CMD='python setup.py build_ext --inplace'
                PIP_DEPENDENCIES='pytest-astropy'
                TEST_CMD='pytest --open-files --doctest-rst'
@@ -108,45 +90,34 @@ matrix:
             - $INSTALL_CMD
             - $TEST_CMD
 
-        # Now try with all optional dependencies.
+        # Now try with all optional dependencies. We also include the --readonly
+        # flag to make sure no files are being written to the temporary install
+        # location during testing.
         - os: linux
-          env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data=astropy'
+          env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data=astropy --readonly'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="jplephem"
                LC_CTYPE=C.ascii LC_ALL=C
-               NUMPY_VERSION=1.11
-               MATPLOTLIB_VERSION=1.5
 
         - os: linux
           stage: Initial tests
-          env: CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PYTEST_VERSION='>3.2'
+          env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                SETUP_CMD='test -a "--durations=50"'
           compiler: clang
 
-        # Pinning conda version temporarily to 4.3.21, as some anaconda
-        # packges build with 4.3.27 are faulty and we see this job failing,
-        # while locally there are no issues when the same version of
-        # packages are installed from pip.
-        # TODO: remove the pinning once the issue is solved upstream.
+        # Full tests with coverage checks.
         - os: linux
-          env: SETUP_CMD='test --coverage --remote-data=astropy'
+          env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="cpp-coveralls objgraph jplephem bintrees"
+               PIP_DEPENDENCIES="cpp-coveralls objgraph jplephem bintrees sortedcontainers"
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
-               MATPLOTLIB_VERSION=2.0 NUMPY_VERSION=1.13
+               MATPLOTLIB_VERSION=2.0
                EVENT_TYPE='push pull_request cron'
-               CONDA_VERSION=4.3.21
 
         # Try pre-release version of Numpy without optional dependencies
         - os: linux
           env: NUMPY_VERSION=prerelease
-               EVENT_TYPE='push pull_request cron'
-
-        # Try older numpy versions
-        - os: linux
-          env: NUMPY_VERSION=1.12
                EVENT_TYPE='push pull_request cron'
 
         # Do a PEP8/pyflakes test with flake8

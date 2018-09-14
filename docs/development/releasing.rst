@@ -198,15 +198,6 @@ packages that use the full bugfix/maintenance branch approach.)
       $ gpg --detach-sign -a dist/astropy-<version>.tar.gz
       $ twine upload dist/astropy-<version>*
 
-#. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
-   and ensure that only the most recent releases in each actively maintained
-   release line are *not* marked hidden.  For example, if v1.2.2 was
-   just released, v1.2.1 should be hidden.  This is so that users only find
-   the latest bugfix releases.
-
-   Do not enabled "Auto-hide old releases" as that may hide bugfix releases
-   from older release lines that we may still want to make available.
-
 #. Go back to release branch (e.g., ``1.2.x``) and edit the ``VERSION`` in
    ``setup.py`` to be the next version number, but with
    a ``.dev`` suffix at the end (e.g., ``1.2.3.dev``).  Then add and commit::
@@ -267,7 +258,7 @@ packages that use the full bugfix/maintenance branch approach.)
    performed and to include the new section of the changelog.  Often the easiest
    way to do this is to use ``git cherry-pick`` the changelog commit just before
    the release commit from above. If you aren't sure how to do this, you might
-   be better off just copying-and-pasting the relevant parts of the maintenance
+   be better off copying-and-pasting the relevant parts of the maintenance
    branch's ``CHANGES.rst`` into master.
 
 #. If there are any issues in the Github issue tracker that are labeled
@@ -441,7 +432,7 @@ Backporting fixes from master
 Most fixes are backported using the ``git cherry-pick`` command, which applies
 the diff from a single commit like a patch.  For the sake of example, say the
 current bug fix branch is 'v1.2.x', and that a bug was fixed in master in a
-commit ``abcd1234``.  In order to backport the fix, simply checkout the v1.2.x
+commit ``abcd1234``.  In order to backport the fix, checkout the v1.2.x
 branch (it's also good to make sure it's in sync with the
 `astropy core repository`_) and cherry-pick the appropriate commit::
 
@@ -480,7 +471,7 @@ not brought in as a pull request, read on.
     cherry-pick command and how it works with merge commits.
 
 If not cherry-picking a merge commit there are still other options for dealing
-with multiple commits.  The simplest, though potentially tedious, is to simply
+with multiple commits.  The simplest, though potentially tedious, is to
 run the cherry-pick command once for each commit in the correct order.
 However, as of Git 1.7.2 it is possible to merge a range of commits like so::
 
@@ -718,7 +709,7 @@ command, consult the documentation for your system on how to install it.
 
 For OSX, GPG can be installed from MacPorts using ``sudo port install gnupg``.
 
-To create a new public/private key pair, simply run::
+To create a new public/private key pair, run::
 
     $ gpg --gen-key
 

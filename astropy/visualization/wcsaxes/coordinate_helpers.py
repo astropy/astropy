@@ -250,17 +250,18 @@ class CoordinateHelper:
 
         Parameters
         ----------
-        separator : The separator between numbers in sexagesimal
-        representation. Can be either a string or a tuple.
+        separator : str or tuple or None
+            The separator between numbers in sexagesimal representation. Can be
+            either a string or a tuple (or `None` for default).
         """
         if not (self._formatter_locator.__class__ == AngleFormatterLocator):
             raise TypeError("Separator can only be specified for angle coordinates")
-        if isinstance(separator, str) or isinstance(separator, tuple):
+        if isinstance(separator, (str, tuple)) or separator is None:
             self._formatter_locator.sep = separator
         else:
-            raise TypeError("separator should be a string or a tuple")
+            raise TypeError("separator should be a string, a tuple, or None")
 
-    def set_format_unit(self, unit):
+    def set_format_unit(self, unit, decimal=None, show_decimal_unit=True):
         """
         Set the unit for the major tick labels.
 
@@ -268,8 +269,16 @@ class CoordinateHelper:
         ----------
         unit : class:`~astropy.units.Unit`
             The unit to which the tick labels should be converted to.
+        decimal : bool, optional
+            Whether to use decimal formatting. By default this is `False`
+            for degrees or hours (which therefore use sexagesimal formatting)
+            and `True` for all other units.
+        show_decimal_unit : bool, optional
+            Whether to include units when in decimal mode.
         """
         self._formatter_locator.format_unit = u.Unit(unit)
+        self._formatter_locator.decimal = decimal
+        self._formatter_locator.show_decimal_unit = show_decimal_unit
 
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
                   width=None, color=None, alpha=None, exclude_overlapping=False):

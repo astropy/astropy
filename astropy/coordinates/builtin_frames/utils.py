@@ -281,18 +281,16 @@ def prepare_earth_position_vel(time):
     # this goes here to avoid circular import errors
     from ..solar_system import (get_body_barycentric, get_body_barycentric_posvel)
     # get barycentric position and velocity of earth
-    earth_pv = get_body_barycentric_posvel('earth', time)
+    earth_p, earth_v = get_body_barycentric_posvel('earth', time)
 
     # get heliocentric position of earth, preparing it for passing to erfa.
     sun = get_body_barycentric('sun', time)
-    earth_heliocentric = (earth_pv[0] -
+    earth_heliocentric = (earth_p -
                           sun).get_xyz(xyz_axis=-1).to_value(u.au)
 
-    # Also prepare earth_pv for passing to erfa, which wants xyz in last
-    # dimension, and pos/vel in one-but-last.
-    # (Note could use np.stack once our minimum numpy version is >=1.10.)
-    earth_pv = np.concatenate((earth_pv[0].get_xyz(xyz_axis=-1).to(u.au)
-                               [..., np.newaxis, :].value,
-                               earth_pv[1].get_xyz(xyz_axis=-1).to(u.au/u.d)
-                               [..., np.newaxis, :].value), axis=-2)
+    # Also prepare earth_pv for passing to erfa, which wants it as
+    # a structured dtype.
+    earth_pv = erfa.pav2pv(
+        earth_p.get_xyz(xyz_axis=-1).to_value(u.au),
+        earth_v.get_xyz(xyz_axis=-1).to_value(u.au/u.d))
     return earth_pv, earth_heliocentric

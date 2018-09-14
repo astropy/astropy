@@ -10,8 +10,8 @@ from ....tests.helper import assert_quantity_allclose, catch_warnings
 from .. import iers
 from .... import units as u
 from ....table import QTable
-from ....time import Time
-
+from ....time import Time, TimeDelta
+from ....utils.exceptions import AstropyWarning
 
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', OSError)
 
@@ -34,14 +34,14 @@ class TestBasic():
         iers_tab = iers.IERS.open()
         assert iers.IERS.iers_table is not None
         assert isinstance(iers.IERS.iers_table, QTable)
-        assert iers_tab['UT1_UTC'].unit is u.second
-        assert iers_tab['PM_x'].unit is u.arcsecond
-        assert iers_tab['PM_y'].unit is u.arcsecond
+        assert (iers_tab['UT1_UTC'].unit / u.second).is_unity()
+        assert (iers_tab['PM_x'].unit / u.arcsecond).is_unity()
+        assert (iers_tab['PM_y'].unit / u.arcsecond).is_unity()
         jd1 = np.array([2456108.5, 2456108.5, 2456108.5, 2456109.5, 2456109.5])
         jd2 = np.array([0.49999421, 0.99997685, 0.99998843, 0., 0.5])
         ut1_utc = iers_tab.ut1_utc(jd1, jd2)
         assert isinstance(ut1_utc, u.Quantity)
-        assert ut1_utc.unit is u.second
+        assert (ut1_utc.unit / u.second).is_unity()
         # IERS files change at the 0.1 ms level; see gh-6981
         assert_quantity_allclose(ut1_utc, [-0.5868211, -0.5868184, -0.5868184,
                                            0.4131816, 0.41328895] * u.s,
@@ -88,7 +88,7 @@ class TestIERS_AExcerpt():
         # values do not get overridden by IERS B; see #4933.
         iers_tab = iers.IERS_A.open(IERS_A_EXCERPT)
 
-        assert iers_tab['UT1_UTC'].unit is u.second
+        assert (iers_tab['UT1_UTC'].unit / u.second).is_unity()
         assert 'P' in iers_tab['UT1Flag']
         assert 'I' in iers_tab['UT1Flag']
         assert 'B' in iers_tab['UT1Flag']
@@ -96,8 +96,8 @@ class TestIERS_AExcerpt():
                       (iers_tab['UT1Flag'] == 'P') |
                       (iers_tab['UT1Flag'] == 'B'))
 
-        assert iers_tab['dX_2000A'].unit is u.marcsec
-        assert iers_tab['dY_2000A'].unit is u.marcsec
+        assert (iers_tab['dX_2000A'].unit / u.marcsec).is_unity()
+        assert (iers_tab['dY_2000A'].unit / u.marcsec).is_unity()
         assert 'P' in iers_tab['NutFlag']
         assert 'I' in iers_tab['NutFlag']
         assert 'B' in iers_tab['NutFlag']
@@ -105,8 +105,8 @@ class TestIERS_AExcerpt():
                       (iers_tab['NutFlag'] == 'I') |
                       (iers_tab['NutFlag'] == 'B'))
 
-        assert iers_tab['PM_x'].unit is u.arcsecond
-        assert iers_tab['PM_y'].unit is u.arcsecond
+        assert (iers_tab['PM_x'].unit / u.arcsecond).is_unity()
+        assert (iers_tab['PM_y'].unit / u.arcsecond).is_unity()
         assert 'P' in iers_tab['PolPMFlag']
         assert 'I' in iers_tab['PolPMFlag']
         assert 'B' in iers_tab['PolPMFlag']
@@ -180,6 +180,55 @@ class TestIERS_A():
 
 class TestIERS_Auto():
 
+    def setup_class(self):
+        """Set up useful data for the tests.
+        """
+        self.N = 40
+        self.ame = 30.0
+        self.iers_a_file_1 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-02-30-test')
+        self.iers_a_file_2 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-04-30-test')
+        self.iers_a_url_1 = os.path.normpath('file://' + os.path.abspath(self.iers_a_file_1))
+        self.iers_a_url_2 = os.path.normpath('file://' + os.path.abspath(self.iers_a_file_2))
+        self.t = Time.now() + TimeDelta(10, format='jd') * np.arange(self.N)
+
+    def teardown_method(self, method):
+        """Run this after every test.
+        """
+        iers.IERS_Auto.close()
+
+    def test_interpolate_error_formatting(self):
+        """Regression test: make sure the error message in
+        IERS_Auto._check_interpolate_indices() is formatted correctly.
+        """
+        with iers.conf.set_temp('iers_auto_url', self.iers_a_url_1):
+            with iers.conf.set_temp('auto_max_age', self.ame):
+                with pytest.raises(ValueError) as err:
+                    iers_table = iers.IERS_Auto.open()
+                    delta = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
+        assert str(err.value) == iers.INTERPOLATE_ERROR.format(self.ame)
+
+    def test_auto_max_age_none(self):
+        """Make sure that iers.INTERPOLATE_ERROR's advice about setting
+        auto_max_age = None actually works.
+        """
+        with iers.conf.set_temp('iers_auto_url', self.iers_a_url_1):
+            with iers.conf.set_temp('auto_max_age', None):
+                iers_table = iers.IERS_Auto.open()
+                delta = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
+        assert isinstance(delta, np.ndarray)
+        assert delta.shape == (self.N,)
+        assert_quantity_allclose(delta, np.array([-0.2246227]*self.N)*u.s)
+
+    def test_auto_max_age_minimum(self):
+        """Check that the minimum auto_max_age is enforced.
+        """
+        with iers.conf.set_temp('iers_auto_url', self.iers_a_url_1):
+            with iers.conf.set_temp('auto_max_age', 5.0):
+                with pytest.raises(ValueError) as err:
+                    iers_table = iers.IERS_Auto.open()
+                    delta = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
+        assert str(err.value) == 'IERS auto_max_age configuration value must be larger than 10 days'
+
     @pytest.mark.remote_data
     def test_no_auto_download(self):
         with iers.conf.set_temp('auto_download', False):
@@ -188,12 +237,8 @@ class TestIERS_Auto():
 
     @pytest.mark.remote_data
     def test_simple(self):
-        iers_a_file_1 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-02-30-test')
-        iers_a_file_2 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-04-30-test')
-        iers_a_url_1 = os.path.normpath('file://' + os.path.abspath(iers_a_file_1))
-        iers_a_url_2 = os.path.normpath('file://' + os.path.abspath(iers_a_file_2))
 
-        with iers.conf.set_temp('iers_auto_url', iers_a_url_1):
+        with iers.conf.set_temp('iers_auto_url', self.iers_a_url_1):
 
             dat = iers.IERS_Auto.open()
             assert dat['MJD'][0] == 57359.0 * u.d
@@ -238,7 +283,7 @@ class TestIERS_Auto():
         # 60 days and see that things work.  dat._time_now is still the same value
         # as before, i.e. right around the start of predictive values for the new file.
         # (In other words this is like downloading the latest file online right now).
-        with iers.conf.set_temp('iers_auto_url', iers_a_url_2):
+        with iers.conf.set_temp('iers_auto_url', self.iers_a_url_2):
 
             # Look at times before and after the test file begins.  This forces a new download.
             assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1292905)

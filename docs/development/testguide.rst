@@ -237,13 +237,27 @@ commandline option.  For example, to use 4 processes::
 
     python setup.py test --parallel=4
 
-Pass a negative number to ``'--parallel'`` to create the same number of
-processes as cores on your machine.
+Pass ``--parallel=auto`` to create the same number of processes as cores
+on your machine.
 
 Similarly, this feature can be invoked from Python::
 
     >>> import astropy
     >>> astropy.test(parallel=4)
+
+Running tests to catch permissions errors
+-----------------------------------------
+
+It is possible to write code or tests that write into the source directory. This
+is not desirable because Python packages can be (and frequestly are) installed
+in locations where the user may not have write permissions.  To check for these
+cases, the test runner has an option to have the test-runner
+directory be set as read-only to ensure the tests are not writing to that
+location.  This mode can be triggered by running the tests like so::
+
+    python setup.py test --readonly
+
+
 
 Writing tests
 *************
@@ -409,14 +423,14 @@ a context manager within a test to temporarily set the cache to a custom
 location, or as a *decorator* that takes effect for an entire test function
 (not including setup or teardown, which would have to be decorated separately).
 
-Furthermore, it is possible to set an option ``cache_dir`` in the pytest
-config file which sets the cache location for the entire test run.  A
-``--cache-dir`` command-line option is also supported (which overrides all
-other settings).  Currently it is not directly supported by the
+Furthermore, it is possible to set an option ``astropy_cache_dir`` in the
+pytest config file which sets the cache location for the entire test run.  A
+``--astropy-cache-dir`` command-line option is also supported (which overrides
+all other settings).  Currently it is not directly supported by the
 ``./setup.py test`` command, so it is necessary to use it with the ``-a``
 argument like::
 
-    $ ./setup.py test -a "--cache-dir=/path/to/custom/cache/dir"
+    $ ./setup.py test -a "--astropy-cache-dir=/path/to/custom/cache/dir"
 
 
 Tests that create files

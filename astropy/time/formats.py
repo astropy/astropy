@@ -12,7 +12,7 @@ import numpy as np
 from ..utils.decorators import lazyproperty
 from .. import units as u
 from .. import _erfa as erfa
-from .utils import day_frac, two_sum
+from .utils import day_frac, quantity_day_frac, two_sum, two_product
 
 
 __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
@@ -182,11 +182,31 @@ class TimeFormat(metaclass=TimeFormatMeta):
                             .format(self.name))
 
         if getattr(val1, 'unit', None) is not None:
-            # Possibly scaled unit any quantity-likes should be converted to
-            _unit = u.CompositeUnit(getattr(self, 'unit', 1.), [u.day], [1])
-            val1 = u.Quantity(val1, copy=False).to_value(_unit)
+            # Convert any quantity-likes to days first, attempting to be
+            # careful with the conversion, so that, e.g., large numbers of
+            # seconds get converted without loosing precision because
+            # 1/86400 is not exactly representable as a float.
+            val1 = u.Quantity(val1, copy=False)
             if val2 is not None:
-                val2 = u.Quantity(val2, copy=False).to_value(_unit)
+                val2 = u.Quantity(val2, copy=False)
+
+            try:
+                val1, val2 = quantity_day_frac(val1, val2)
+            except u.UnitsError:
+                raise u.UnitConversionError(
+                    "only quantities with time units can be "
+                    "used to instantiate Time instances.")
+            # We now have days, but the format may expect another unit.
+            # On purpose, multiply with 1./day_unit because typically it is
+            # 1./erfa.DAYSEC, and inverting it recovers the integer.
+            # (This conversion will get undone in format's set_jds, hence
+            # there may be room for optimizing this.)
+            factor = 1. / getattr(self, 'unit', 1.)
+            if factor != 1.:
+                val1, carry = two_product(val1, factor)
+                carry += val2 * factor
+                val1, val2 = two_sum(val1, carry)
+
         elif getattr(val2, 'unit', None) is not None:
             raise TypeError('Cannot mix float and Quantity inputs')
 
@@ -640,10 +660,10 @@ class TimeDatetime(TimeUnique):
         scale = self.scale.upper().encode('ascii')
         iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 6,  # 6 for microsec
                                            self.jd1, self.jd2_filled)
-        ihrs = ihmsfs[..., 0]
-        imins = ihmsfs[..., 1]
-        isecs = ihmsfs[..., 2]
-        ifracs = ihmsfs[..., 3]
+        ihrs = ihmsfs['h']
+        imins = ihmsfs['m']
+        isecs = ihmsfs['s']
+        ifracs = ihmsfs['f']
         iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
                              flags=['refs_ok'],
                              op_dtypes=7*[iys.dtype] + [object])
@@ -811,10 +831,10 @@ class TimeString(TimeUnique):
             has_yday = False
             yday = None
 
-        ihrs = ihmsfs[..., 0]
-        imins = ihmsfs[..., 1]
-        isecs = ihmsfs[..., 2]
-        ifracs = ihmsfs[..., 3]
+        ihrs = ihmsfs['h']
+        imins = ihmsfs['m']
+        isecs = ihmsfs['s']
+        ifracs = ihmsfs['f']
         for iy, im, id, ihr, imin, isec, ifracsec in np.nditer(
                 [iys, ims, ids, ihrs, imins, isecs, ifracs]):
             if has_yday:

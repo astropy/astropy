@@ -25,7 +25,7 @@ from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
                      col_copy)
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
-from .info import TableInfo
+from .info import TableInfo, serialize_method_as
 from .index import Index, _IndexModeContext, get_index
 from . import conf
 
@@ -521,8 +521,8 @@ class Table:
             List of column names (or a single column name) to index
         engine : type or None
             Indexing engine class to use, from among SortedArray, BST,
-            FastBST, and FastRBT. If the supplied argument is None (by
-            default), use SortedArray.
+            FastBST, FastRBT, and SCEngine. If the supplied argument is None
+            (by default), use SortedArray.
         unique : bool
             Whether the values of the index must be unique. Default is False.
         '''
@@ -1700,15 +1700,17 @@ class Table:
             for col in cols:
                 i = 1
                 orig_name = col.info.name
-                while col.info.name in existing_names:
+                if col.info.name in existing_names:
                     # If the column belongs to another table then copy it
                     # before renaming
-                    if col.info.parent_table is not None:
-                        col = col_copy(col)
-                    new_name = '{0}_{1}'.format(orig_name, i)
-                    col.info.name = new_name
-                    i += 1
-                existing_names.add(new_name)
+                    while col.info.name in existing_names:
+                        # Iterate until a unique name is found
+                        if col.info.parent_table is not None:
+                            col = col_copy(col)
+                        new_name = '{0}_{1}'.format(orig_name, i)
+                        col.info.name = new_name
+                        i += 1
+                    existing_names.add(new_name)
 
         self._init_from_cols(newcols)
 
@@ -2525,9 +2527,30 @@ class Table:
           >>> dat = Table.read('table.dat', format='ascii')
           >>> events = Table.read('events.fits', format='fits')
 
-        The arguments and keywords (other than ``format``) provided to this function are
-        passed through to the underlying data reader (e.g. `~astropy.io.ascii.read`).
+        See http://docs.astropy.org/en/stable/io/unified.html for details.
+
+        Parameters
+        ----------
+        format : str
+            File format specifier.
+        *args : tuple, optional
+            Positional arguments passed through to data reader. If supplied the
+            first argument is the input filename.
+        **kwargs : dict, optional
+            Keyword arguments passed through to data reader.
+
+        Returns
+        -------
+        out : `Table`
+            Table corresponding to file contents
+
+        Notes
+        -----
         """
+        # The hanging Notes section just above is a section placeholder for
+        # import-time processing that collects available formats into an
+        # RST table and inserts at the end of the docstring.  DO NOT REMOVE.
+
         out = io_registry.read(cls, *args, **kwargs)
         # For some readers (e.g., ascii.ecsv), the returned `out` class is not
         # guaranteed to be the same as the desired output `cls`.  If so,
@@ -2543,8 +2566,7 @@ class Table:
         return out
 
     def write(self, *args, **kwargs):
-        """
-        Write this Table object out in the specified format.
+        """Write this Table object out in the specified format.
 
         This function provides the Table interface to the astropy unified I/O
         layer.  This allows easily writing a file in many supported data formats
@@ -2554,10 +2576,26 @@ class Table:
           >>> dat = Table([[1, 2], [3, 4]], names=('a', 'b'))
           >>> dat.write('table.dat', format='ascii')
 
-        The arguments and keywords (other than ``format``) provided to this function are
-        passed through to the underlying data reader (e.g. `~astropy.io.ascii.write`).
+        See http://docs.astropy.org/en/stable/io/unified.html for details.
+
+        Parameters
+        ----------
+        format : str
+            File format specifier.
+        serialize_method : str, dict, optional
+            Serialization method specifier for columns.
+        *args : tuple, optional
+            Positional arguments passed through to data writer. If supplied the
+            first argument is the output filename.
+        **kwargs : dict, optional
+            Keyword arguments passed through to data writer.
+
+        Notes
+        -----
         """
-        io_registry.write(self, *args, **kwargs)
+        serialize_method = kwargs.pop('serialize_method', None)
+        with serialize_method_as(self, serialize_method):
+            io_registry.write(self, *args, **kwargs)
 
     def copy(self, copy_data=True):
         '''
@@ -2654,9 +2692,6 @@ class Table:
         out : `Table`
             New table with groups set
         """
-        if self.has_mixin_columns:
-            raise NotImplementedError('group_by not available for tables with mixin columns')
-
         return groups.table_group_by(self, keys)
 
     def to_pandas(self):
@@ -2686,9 +2721,12 @@ class Table:
         out = OrderedDict()
 
         for name, column in self.columns.items():
-            if isinstance(column, MaskedColumn):
+            if isinstance(column, MaskedColumn) and np.any(column.mask):
                 if column.dtype.kind in ['i', 'u']:
                     out[name] = column.astype(float).filled(np.nan)
+                    warnings.warn(
+                        "converted column '{}' from integer to float".format(
+                            name), TableReplaceWarning, stacklevel=3)
                 elif column.dtype.kind in ['f', 'c']:
                     out[name] = column.filled(np.nan)
                 else:

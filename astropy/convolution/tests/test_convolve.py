@@ -2,6 +2,7 @@
 
 import pytest
 import numpy as np
+import numpy.ma as ma
 
 from ..convolve import convolve, convolve_fft
 
@@ -9,10 +10,8 @@ from numpy.testing import assert_array_almost_equal_nulp, assert_array_almost_eq
 
 import itertools
 
-VALID_DTYPES = []
-for dtype_array in ['>f4', '<f4', '>f8', '<f8']:
-    for dtype_kernel in ['>f4', '<f4', '>f8', '<f8']:
-        VALID_DTYPES.append((dtype_array, dtype_kernel))
+VALID_DTYPES = ('>f4', '<f4', '>f8', '<f8')
+VALID_DTYPE_MATRIX = list(itertools.product(VALID_DTYPES, VALID_DTYPES))
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 NANHANDLING_OPTIONS = ['interpolate', 'fill']
@@ -49,19 +48,87 @@ class TestConvolve1D:
         assert_array_almost_equal_nulp(z,
             np.array([0., 3.6, 5., 5.6, 5.6, 6.8, 0.]), 10)
 
-    def test_input_unmodified(self):
+    def test_tuple(self):
+        """
+        Test that convolve works correctly when inputs are tuples
+        """
+
+        x = (1, 4, 5, 6, 5, 7, 8)
+        y = (0.2, 0.6, 0.2)
+        z = convolve(x, y, boundary=None)
+        assert_array_almost_equal_nulp(z,
+            np.array([0., 3.6, 5., 5.6, 5.6, 6.8, 0.]), 10)
+
+    @pytest.mark.parametrize(('boundary', 'nan_treatment',
+                              'normalize_kernel', 'preserve_nan', 'dtype'),
+                             itertools.product(BOUNDARY_OPTIONS,
+                                               NANHANDLING_OPTIONS,
+                                               NORMALIZE_OPTIONS,
+                                               PRESERVE_NAN_OPTIONS,
+                                               VALID_DTYPES))
+    def test_input_unmodified(self, boundary, nan_treatment,
+                              normalize_kernel, preserve_nan, dtype):
         """
         Test that convolve works correctly when inputs are lists
         """
 
-        inlist = [1, 4, 5, 6, 5, 7, 8]
-        x = np.array(inlist)
-        y = [0.2, 0.6, 0.2]
-        z = convolve(x, y, boundary=None)
+        array = [1., 4., 5., 6., 5., 7., 8.]
+        kernel = [0.2, 0.6, 0.2]
+        x = np.array(array, dtype=dtype)
+        y = np.array(kernel, dtype=dtype)
 
-        assert np.all(np.array(inlist) == x)
+        # Make pseudoimmutable
+        x.flags.writeable = False
+        y.flags.writeable = False
 
-    @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
+        z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
+                          normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
+
+        assert np.all(np.array(array, dtype=dtype) == x)
+        assert np.all(np.array(kernel, dtype=dtype) == y)
+
+    @pytest.mark.parametrize(('boundary', 'nan_treatment',
+                              'normalize_kernel', 'preserve_nan', 'dtype'),
+                             itertools.product(BOUNDARY_OPTIONS,
+                                               NANHANDLING_OPTIONS,
+                                               NORMALIZE_OPTIONS,
+                                               PRESERVE_NAN_OPTIONS,
+                                               VALID_DTYPES))
+    def test_input_unmodified_with_nan(self, boundary, nan_treatment,
+                                       normalize_kernel, preserve_nan, dtype):
+        """
+        Test that convolve doesn't modify the input data
+        """
+
+        array = [1., 4., 5., np.nan, 5., 7., 8.]
+        kernel = [0.2, 0.6, 0.2]
+        x = np.array(array, dtype=dtype)
+        y = np.array(kernel, dtype=dtype)
+
+        # Make pseudoimmutable
+        x.flags.writeable = False
+        y.flags.writeable = False
+
+        # make copies for post call comparison
+        x_copy = x.copy()
+        y_copy = y.copy()
+
+        z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
+                     normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
+
+        # ( NaN == NaN ) = False
+        # Only compare non NaN values for canonical equivilance
+        # and then check NaN explicitly with np.isnan()
+        array_is_nan = np.isnan(array)
+        kernel_is_nan = np.isnan(kernel)
+        array_not_nan = ~array_is_nan
+        kernel_not_nan = ~kernel_is_nan
+        assert np.all(x_copy[array_not_nan] == x[array_not_nan])
+        assert np.all(y_copy[kernel_not_nan] == y[kernel_not_nan])
+        assert np.all(np.isnan(x[array_is_nan]))
+        assert np.all(np.isnan(y[kernel_is_nan]))
+
+    @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPE_MATRIX)
     def test_dtype(self, dtype_array, dtype_kernel):
         '''
         Test that 32- and 64-bit floats are correctly handled
@@ -213,6 +280,75 @@ class TestConvolve1D:
 
         assert_array_almost_equal_nulp(z, np.array(rslt, dtype='>f8'), 10)
 
+    @pytest.mark.parametrize(('boundary', 'normalize_kernel'),
+                             itertools.product(BOUNDARY_OPTIONS,
+                                               NORMALIZE_OPTIONS))
+    def test_zero_sum_kernel(self, boundary, normalize_kernel):
+        """
+        Test that convolve works correctly with zero sum kernels.
+        """
+
+        if normalize_kernel:
+            pytest.xfail("You can't normalize by a zero sum kernel")
+
+        x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        y = [-1, -1, -1, -1, 8, -1, -1, -1, -1]
+        assert(np.isclose(sum(y), 0, atol=1e-8))
+
+        z = convolve(x, y, boundary=boundary, normalize_kernel=normalize_kernel)
+
+        # boundary, normalize_kernel == False
+        rslt = {
+                (None): [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+                ('fill'): [-6.,  -3.,  -1.,   0.,   0.,  10.,  21.,  33.,  46.],
+                ('wrap'): [-36., -27., -18.,  -9.,   0.,   9.,  18.,  27.,  36.],
+                ('extend'): [-10.,  -6.,  -3.,  -1.,   0.,   1.,   3.,   6.,  10.]
+                }[boundary]
+
+        assert_array_almost_equal_nulp(z, np.array(rslt, dtype='>f8'), 10)
+
+    @pytest.mark.parametrize(('boundary', 'normalize_kernel'),
+                             itertools.product(BOUNDARY_OPTIONS,
+                                               NORMALIZE_OPTIONS))
+    def test_int_masked_kernel(self, boundary, normalize_kernel):
+        """
+        Test that convolve works correctly with integer masked kernels.
+        """
+
+        if normalize_kernel:
+            pytest.xfail("You can't normalize by a zero sum kernel")
+
+        x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        y = ma.array([-1, -1, -1, -1, 8, -1, -1, -1, -1], mask=[1, 0, 0, 0, 0, 0, 0, 0, 0], fill_value=0.)
+
+        z = convolve(x, y, boundary=boundary, normalize_kernel=normalize_kernel)
+
+        # boundary, normalize_kernel == False
+        rslt = {
+                (None): [0.,  0.,  0.,  0.,  9.,  0.,  0.,  0.,  0.],
+                ('fill'): [-1.,   3.,   6.,   8.,   9.,  10.,  21.,  33.,  46.],
+                ('wrap'): [-31., -21., -11.,  -1.,   9.,  10.,  20.,  30.,  40.],
+                ('extend'): [-5.,   0.,   4.,   7.,   9.,  10.,  12.,  15.,  19.]
+                }[boundary]
+
+        assert_array_almost_equal_nulp(z, np.array(rslt, dtype='>f8'), 10)
+
+    @pytest.mark.parametrize('preserve_nan', PRESERVE_NAN_OPTIONS)
+    def test_int_masked_array(self, preserve_nan):
+        """
+        Test that convolve works correctly with integer masked arrays.
+        """
+
+        x = ma.array([3, 5, 7, 11, 13], mask=[0, 0, 1, 0, 0], fill_value=0.)
+        y = np.array([1., 1., 1.], dtype='>f8')
+
+        z = convolve(x, y, preserve_nan=preserve_nan)
+
+        if preserve_nan:
+            assert np.isnan(z[2])
+            z[2] = 8
+
+        assert_array_almost_equal_nulp(z, (8/3., 4, 8, 12, 8), 10)
 
 class TestConvolve2D:
     def test_list(self):
@@ -228,7 +364,7 @@ class TestConvolve2D:
         z = convolve(x, x, boundary='fill', fill_value=1, normalize_kernel=False)
         assert_array_almost_equal_nulp(z, np.array(x, float)*9, 10)
 
-    @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
+    @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPE_MATRIX)
     def test_dtype(self, dtype_array, dtype_kernel):
         '''
         Test that 32- and 64-bit floats are correctly handled
@@ -478,7 +614,7 @@ class TestConvolve3D:
         z = convolve(x, x, boundary='fill', fill_value=1, normalize_kernel=False)
         assert_array_almost_equal_nulp(z / 27, x, 10)
 
-    @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
+    @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPE_MATRIX)
     def test_dtype(self, dtype_array, dtype_kernel):
         '''
         Test that 32- and 64-bit floats are correctly handled
@@ -700,8 +836,8 @@ class TestConvolve3D:
             raise ValueError("Invalid Boundary Option")
 
 
-@pytest.mark.parametrize(('convfunc', 'boundary'), BOUNDARIES_AND_CONVOLUTIONS)
-def test_asymmetric_kernel(boundary, convfunc):
+@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+def test_asymmetric_kernel(boundary):
     '''
     Regression test for #6264: make sure that asymmetric convolution
     functions go the right direction

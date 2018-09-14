@@ -9,7 +9,7 @@ from collections import OrderedDict
 
 import pytest
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 
 from ...io import fits
 from ...tests.helper import (assert_follows_unicode_guidelines,
@@ -572,6 +572,11 @@ class TestAddColumns(SetupData):
 
         # Check new column didn't change (since name conflict forced a copy)
         assert t['a_3'][0] == self.a[0]
+
+        # Check that rename_duplicate=True is ok if there are no duplicates
+        t.add_column(table_types.Column(name='q', data=[0, 1, 2]),
+                     rename_duplicate=True)
+        assert t.colnames == ['a', 'a_1', 'b', 'c', 'a_2', 'a_3', 'q']
 
     def test_add_duplicate_columns(self, table_types):
         self._setup(table_types)
@@ -1645,6 +1650,11 @@ class TestPandas:
         t['s'] = ['a', 'b', 'c']
         t['s'].mask = [False, True, False]
 
+        # https://github.com/astropy/astropy/issues/7741
+        t['Source'] = [2584290278794471936, 2584290038276303744,
+                       2584288728310999296]
+        t['Source'].mask = [False, False, False]
+
         d = t.to_pandas()
 
         t2 = table.Table.from_pandas(d)
@@ -1654,7 +1664,12 @@ class TestPandas:
             assert np.all(column.mask == t2[name].mask)
             # Masked integer type comes back as float.  Nothing we can do about this.
             if column.dtype.kind == 'i':
-                assert t2[name].dtype.kind == 'f'
+                if np.any(column.mask):
+                    assert t2[name].dtype.kind == 'f'
+                else:
+                    assert t2[name].dtype.kind == 'i'
+                assert_array_equal(column.data,
+                                   t2[name].data.astype(column.dtype))
             else:
                 if column.dtype.byteorder in ('=', '|'):
                     assert column.dtype == t2[name].dtype
