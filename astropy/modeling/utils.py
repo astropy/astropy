@@ -5,7 +5,8 @@ This module provides utility functions for the models package
 """
 
 
-from collections import deque, MutableMapping
+from collections import deque
+from collections.abc import MutableMapping
 from inspect import signature
 
 import numpy as np
