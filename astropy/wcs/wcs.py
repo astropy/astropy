@@ -3045,21 +3045,21 @@ reduce these to 2 dimensions using the naxis kwarg.
     def pixel_scale_matrix(self):
 
         try:
-            cdelt = np.matrix(np.diag(self.wcs.get_cdelt()))
-            pc = np.matrix(self.wcs.get_pc())
+            cdelt = np.diag(self.wcs.get_cdelt())
+            pc = self.wcs.get_pc()
         except InconsistentAxisTypesError:
             try:
                 # for non-celestial axes, get_cdelt doesn't work
-                cdelt = np.matrix(self.wcs.cd) * np.matrix(np.diag(self.wcs.cdelt))
+                cdelt = np.dot(self.wcs.cd, np.diag(self.wcs.cdelt))
             except AttributeError:
-                cdelt = np.matrix(np.diag(self.wcs.cdelt))
+                cdelt = np.diag(self.wcs.cdelt)
 
             try:
-                pc = np.matrix(self.wcs.pc)
+                pc = self.wcs.pc
             except AttributeError:
                 pc = 1
 
-        pccd = np.array(cdelt * pc)
+        pccd = np.array(np.dot(cdelt, pc))
 
         return pccd
 
