@@ -1904,8 +1904,8 @@ class Header:
             self[key] = value
 
 
-collections.MutableSequence.register(Header)
-collections.MutableMapping.register(Header)
+collections.abc.MutableSequence.register(Header)
+collections.abc.MutableMapping.register(Header)
 
 
 class _CardAccessor:
@@ -1976,8 +1976,8 @@ class _CardAccessor:
         return False
 
 
-collections.Mapping.register(_CardAccessor)
-collections.Sequence.register(_CardAccessor)
+collections.abc.Mapping.register(_CardAccessor)
+collections.abc.Sequence.register(_CardAccessor)
 
 
 class _HeaderComments(_CardAccessor):

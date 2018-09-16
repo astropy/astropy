@@ -7,8 +7,8 @@ from ..utils import wraps
 
 import warnings
 
-import collections
 from collections import OrderedDict
+from collections.abc import Mapping
 from copy import deepcopy
 
 import numpy as np
@@ -374,7 +374,7 @@ class MetaData:
     """
     A descriptor for classes that have a ``meta`` property.
 
-    This can be set to any valid `~collections.Mapping`.
+    This can be set to any valid `~collections.abc.Mapping`.
 
     Parameters
     ----------
@@ -407,7 +407,7 @@ class MetaData:
         if value is None:
             instance._meta = OrderedDict()
         else:
-            if isinstance(value, collections.Mapping):
+            if isinstance(value, Mapping):
                 if self.copy:
                     instance._meta = deepcopy(value)
                 else:

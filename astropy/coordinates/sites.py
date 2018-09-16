@@ -13,7 +13,7 @@ updating the ``location.json`` file.
 
 import json
 from difflib import get_close_matches
-from collections import Mapping
+from collections.abc import Mapping
 
 from ..utils.data import get_pkg_data_contents, get_file_contents
 from .earth import EarthLocation

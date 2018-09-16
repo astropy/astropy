@@ -16,10 +16,9 @@
 import os
 import re
 import sys
-import collections
+from collections.abc import Mapping
 
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF16_BE, BOM_UTF16_LE
-
 
 # imported lazily to avoid startup performance hit if it isn't used
 compiler = None
@@ -594,7 +593,7 @@ class Section(dict):
             if key not in self:
                 self.sections.append(key)
             dict.__setitem__(self, key, value)
-        elif isinstance(value, collections.Mapping) and not unrepr:
+        elif isinstance(value, Mapping) and not unrepr:
             # First create the new depth level,
             # then create the section
             if key not in self:
@@ -801,8 +800,8 @@ class Section(dict):
         ConfigObj({'section1': {'option1': 'False', 'subsection': {'more_options': 'False'}}})
         """
         for key, val in list(indict.items()):
-            if (key in self and isinstance(self[key], collections.Mapping) and
-                                isinstance(val, collections.Mapping)):
+            if (key in self and isinstance(self[key], Mapping) and
+                                isinstance(val, Mapping)):
                 self[key].merge(val)
             else:
                 self[key] = val
@@ -2434,7 +2433,7 @@ def flatten_errors(cfg, res, levels=None, results=None):
     for (key, val) in list(res.items()):
         if val == True:
             continue
-        if isinstance(cfg.get(key), collections.Mapping):
+        if isinstance(cfg.get(key), Mapping):
             # Go down one level
             levels.append(key)
             flatten_errors(cfg[key], val, levels, results)
