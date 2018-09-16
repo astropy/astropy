@@ -8,6 +8,7 @@ Redistribution license restrictions apply.
 from itertools import chain
 import collections
 from collections import OrderedDict, Counter
+from collections.abc import Sequence
 
 import numpy as np
 import numpy.ma as ma
@@ -146,7 +147,7 @@ def common_dtype(cols):
 
 def _check_for_sequence_of_structured_arrays(arrays):
     err = '`arrays` arg must be a sequence (e.g. list) of structured arrays'
-    if not isinstance(arrays, collections.Sequence):
+    if not isinstance(arrays, Sequence):
         raise TypeError(err)
     for array in arrays:
         # Must be structured array
