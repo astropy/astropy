@@ -12,6 +12,7 @@ from copy import deepcopy
 import collections
 import itertools
 from collections import OrderedDict, Counter
+from collections.abc import Mapping, Sequence
 
 import numpy as np
 
@@ -39,7 +40,7 @@ def _get_list_of_tables(tables):
     """
 
     # Make sure we have a list of things
-    if not isinstance(tables, collections.Sequence):
+    if not isinstance(tables, Sequence):
         tables = [tables]
 
     # Make sure there is something to stack
@@ -763,7 +764,7 @@ def _join(left, right, keys=None, join_type='inner',
                     .format(out_name, out[out_name].__class__.__name__))
 
     # If col_name_map supplied as a dict input, then update.
-    if isinstance(_col_name_map, collections.Mapping):
+    if isinstance(_col_name_map, Mapping):
         _col_name_map.update(col_name_map)
 
     return out
@@ -872,7 +873,7 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
             idx0 = idx1
 
     # If col_name_map supplied as a dict input, then update.
-    if isinstance(_col_name_map, collections.Mapping):
+    if isinstance(_col_name_map, Mapping):
         _col_name_map.update(col_name_map)
 
     return out
@@ -970,7 +971,7 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
                 out[out_name] = array[name][:n_rows]
 
     # If col_name_map supplied as a dict input, then update.
-    if isinstance(_col_name_map, collections.Mapping):
+    if isinstance(_col_name_map, Mapping):
         _col_name_map.update(col_name_map)
 
     return out
