@@ -1,9 +1,10 @@
+import abc
 import importlib
 from collections import defaultdict, OrderedDict
 
 import numpy as np
 
-__all__ = ['HighLevelWCS']
+__all__ = ['BaseHighLevelWCS', 'HighLevelWCSMixin']
 
 
 def rec_getattr(obj, att):
@@ -26,7 +27,7 @@ def deserialize_class(tpl, construct=True):
 
     args = [deserialize_class(arg) if isinstance(arg, tuple) else arg for arg in tpl[1]]
 
-    kwargs = dict((key, deserialize_class(val)) if isinstance(val, tuple) else (key, val) for (key ,val) in tpl[2].items())
+    kwargs = dict((key, deserialize_class(val)) if isinstance(val, tuple) else (key, val) for (key, val) in tpl[2].items())
 
     if construct:
         return klass(*args, **kwargs)
@@ -42,16 +43,77 @@ def default_order(components):
     return order
 
 
-class HighLevelWCS(object):
+class BaseHighLevelWCS(metaclass=abc.ABCMeta):
 
-    def __init__(self, wcs):
-        self._wcs = wcs
+    @property
+    @abc.abstractmethod
+    def low_level_wcs(self):
+        """
+        Returns a reference to the underlying low-level WCS object.
+        """
+        pass
 
-    def world_to_pixel(self, *world):
+    @abc.abstractmethod
+    def pixel_to_world(self, *pixel_arrays):
+        """
+        Convert pixel coordinates to world coordinates (represented by high-level
+        objects).
+
+        See `~BaseLowLevelWCS.pixel_to_world_values` for pixel indexing and
+        ordering conventions.
+        """
+        pass
+
+    @abc.abstractmethod
+    def array_index_to_world(self, *index_arrays):
+        """
+        Convert array indices to world coordinates (represented by Astropy
+        objects).
+
+        See `~BaseLowLevelWCS.array_index_to_world_values` for pixel indexing and
+        ordering conventions.
+        """
+        pass
+
+    @abc.abstractmethod
+    def world_to_pixel(self, *world_objects):
+        """
+        Convert world coordinates (represented by Astropy objects) to pixel
+        coordinates.
+
+        See `~BaseLowLevelWCS.world_to_pixel_values` for pixel indexing and
+        ordering conventions.
+        """
+
+    @abc.abstractmethod
+    def world_to_array_index(self, *world_objects):
+        """
+        Convert world coordinates (represented by Astropy objects) to array
+        indices.
+
+        See `~BaseLowLevelWCS.world_to_array_index_values` for pixel indexing
+        and ordering conventions. The indices should be returned as rounded
+        integers.
+        """
+        pass
+
+
+class HighLevelWCSMixin(BaseHighLevelWCS):
+    """
+    This is a mix-in class that automatically provides the high-level WCS API
+    for the low-level WCS object given by the `~HighLevelWCSMixin.low_level_wcs`
+    property.
+    """
+
+    @property
+    def low_level_wcs(self):
+        return self
+
+    def world_to_pixel(self, *world_objects):
 
         # Cache the classes and components since this may be expensive
-        serialized_classes = self._wcs.world_axis_object_classes
-        components = self._wcs.world_axis_object_components
+        serialized_classes = self.low_level_wcs.world_axis_object_classes
+        components = self.low_level_wcs.world_axis_object_components
 
         # Deserialize world_axis_object_classes using the default order
         classes = OrderedDict()
@@ -60,15 +122,15 @@ class HighLevelWCS(object):
                                              construct=False)
 
         # Check that the number of classes matches the number of inputs
-        if len(world) != len(classes):
+        if len(world_objects) != len(classes):
             raise ValueError("Number of world inputs ({0}) does not match "
-                             "expected ({1})".format(len(world), len(classes)))
+                             "expected ({1})".format(len(world_objects), len(classes)))
 
         # Determine whether the classes are uniquely matched, that is we check
         # whether there is only one of each class.
         world_by_key = {}
         unique_match = True
-        for w in world:
+        for w in world_objects:
             matches = []
             for key, (klass, _, _) in classes.items():
                 if isinstance(w, klass):
@@ -101,7 +163,7 @@ class HighLevelWCS(object):
 
             for ikey, key in enumerate(classes):
                 klass, args, kwargs = classes[key]
-                w = world[ikey]
+                w = world_objects[ikey]
                 if not isinstance(w, klass):
                     raise ValueError("Expected the following order of world "
                                      "arguments: {0}".format(', '.join([k.__name__ for (k, _, _) in classes.values()])))
@@ -120,18 +182,18 @@ class HighLevelWCS(object):
             world.append(rec_getattr(objects[key], attr))
 
         # Finally we convert to pixel coordinates
-        pixel = self._wcs.world_to_pixel_values(*world)
+        pixel = self.low_level_wcs.world_to_pixel_values(*world)
 
         return pixel
 
-    def pixel_to_world(self, *pixel):
+    def pixel_to_world(self, *pixel_arrays):
 
         # Compute the world coordinate values
-        world = self._wcs.pixel_to_world_values(*pixel)
+        world = self.low_level_wcs.pixel_to_world_values(*pixel_arrays)
 
         # Cache the classes and components since this may be expensive
-        components = self._wcs.world_axis_object_components
-        classes = self._wcs.world_axis_object_classes
+        components = self.low_level_wcs.world_axis_object_components
+        classes = self.low_level_wcs.world_axis_object_classes
 
         # Deserialize classes
         classes_new = {}
@@ -160,8 +222,8 @@ class HighLevelWCS(object):
         else:
             return result
 
-    def numpy_index_to_world(self, *indices):
-        return self.pixel_to_world(*indices[::-1])
+    def numpy_index_to_world(self, *index_arrays):
+        return self.pixel_to_world(*index_arrays[::-1])
 
-    def world_to_numpy_index(self, *world):
-        return np.round(self.world_to_pixel(*world)[::-1]).astype(int)
+    def world_to_numpy_index(self, *world_objects):
+        return np.round(self.world_to_pixel(*world_objects)[::-1]).astype(int)
