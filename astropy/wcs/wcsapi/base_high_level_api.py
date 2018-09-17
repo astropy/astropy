@@ -91,7 +91,7 @@ class HighLevelWCS(object):
 
                 # FIXME: For now SkyCoord won't auto-convert upon initialization
                 # https://github.com/astropy/astropy/issues/7689
-                from ..coordinates import SkyCoord
+                from ...coordinates import SkyCoord
                 if isinstance(world_by_key[key], SkyCoord):
                     objects[key] = world_by_key[key].transform_to(kwargs['frame'])
                 else:

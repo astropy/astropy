@@ -2,7 +2,7 @@ import numpy as np
 
 from .. import units as u
 
-from .base_low_level_api import BaseLowLevelWCS
+from .wcsapi.base_low_level_api import BaseLowLevelWCS
 
 __all__ = ['FITSLowLevelWCS']
 
