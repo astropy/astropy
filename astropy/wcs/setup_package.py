@@ -338,7 +338,8 @@ def get_package_data():
                                    'data/*.txt', 'data/*.fits.gz',
                                    'maps/*.hdr', 'spectra/*.hdr',
                                    'extension/*.c'],
-        str('astropy.wcs'): api_files + ['ucds.txt'],
+        str('astropy.wcs'): api_files,
+        str('astropy.wcs.wcsapi'): ['ucds.txt']
     }
 
 

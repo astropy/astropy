@@ -28,7 +28,6 @@ try:
     # Not guaranteed available at setup time
     from .wcs import *
     from . import utils
-    from .base_low_level_api import *
 except ImportError:
     if not _ASTROPY_SETUP_:
         raise
