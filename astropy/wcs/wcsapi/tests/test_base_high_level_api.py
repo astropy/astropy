@@ -1,13 +1,13 @@
 from numpy.testing import assert_equal, assert_allclose
 
-from ... import units as u
-from ...units import Quantity
-from ...coordinates import ICRS, Galactic, SkyCoord
-from ..fitswcs_low_level_api import FITSLowLevelWCS
-from ..high_level_api import HighLevelWCS
+from .... import units as u
+from ....units import Quantity
+from ....coordinates import ICRS, Galactic, SkyCoord
+from ...fitswcs_low_level_api import FITSLowLevelWCS
+from ..base_high_level_api import HighLevelWCS
 
-from .test_fitswcs_low_level_api import (WCS_SIMPLE_CELESTIAL,
-                                         WCS_SPECTRAL_CUBE)
+from ...tests.test_fitswcs_low_level_api import (WCS_SIMPLE_CELESTIAL,
+                                                 WCS_SPECTRAL_CUBE)
 
 
 def test_simple_celestial():
