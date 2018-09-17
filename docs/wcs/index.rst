@@ -109,15 +109,6 @@ the WCS cards in its primary header to transform.
 .. literalinclude:: examples/from_file.py
    :language: python
 
-Updating FITS file from cut out WCS coordinates information
----------------------------------------------------
-In this example, we trim one of the images from the tutorials folder using the cutout2D function. This includes the WCS
-from the new region. Finally, we replace the original image with the trimmed version.
-
-.. literalinclude:: examples/update_file.py
-   :language: python
-
-
 Building a WCS structure programmatically
 -----------------------------------------
 
