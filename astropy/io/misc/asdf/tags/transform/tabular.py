@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from asdf import yamlutil
 from numpy.testing import assert_array_equal
 
-from asdf import yamlutil
-
 from astropy import modeling
-from .basic import TransformType
 
+from .basic import TransformType
 
 __all__ = ['TabularType']
 

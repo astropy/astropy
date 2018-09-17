@@ -2,7 +2,6 @@
 
 import numpy as np
 
-
 __all__ = ['jackknife_resampling', 'jackknife_stats']
 __doctest_requires__ = {'jackknife_stats': ['scipy.special']}
 

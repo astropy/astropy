@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 from numpy import isscalar
-from astropy.units import Quantity
-
 from asdf.yamlutil import custom_tree_to_tagged_tree
 from asdf.tags.core import NDArrayType
 
-from ...types import AstropyAsdfType
+from astropy.units import Quantity
+
 from .unit import UnitType
+from ...types import AstropyAsdfType
 
 
 class QuantityType(AstropyAsdfType):

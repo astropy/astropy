@@ -3,18 +3,18 @@
 
 from collections import OrderedDict
 
-import pytest
 import numpy as np
+import pytest
 
-from ...tests.helper import catch_warnings
-from ...table import Table, QTable, TableMergeError
-from ...table.operations import _get_out_class
-from ... import units as u
-from ...utils import metadata
-from ...utils.metadata import MergeConflictError
 from ... import table
+from ... import units as u
 from ...time import Time
+from ...table import Table, QTable, TableMergeError
+from ...utils import metadata
 from ...coordinates import SkyCoord
+from ...tests.helper import catch_warnings
+from ...utils.metadata import MergeConflictError
+from ...table.operations import _get_out_class
 
 
 def sort_eq(list1, list2):

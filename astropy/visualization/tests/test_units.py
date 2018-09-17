@@ -6,6 +6,9 @@ import io
 
 import pytest
 
+from ... import units as u
+from ..units import quantity_support
+
 try:
     import matplotlib.pyplot as plt
 except ImportError:
@@ -13,8 +16,6 @@ except ImportError:
 else:
     HAS_PLT = True
 
-from ... import units as u
-from ..units import quantity_support
 
 
 @pytest.mark.skipif('not HAS_PLT')

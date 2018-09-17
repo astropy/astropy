@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import pytest
 import numpy as np
-
-from ....io import fits
-from ..compression import compress_hdu
+import pytest
 
 from . import FitsTestCase
-
+from ....io import fits
+from ..compression import compress_hdu
 
 MAX_INT = np.iinfo(np.intc).max
 MAX_LONG = np.iinfo(np.long).max

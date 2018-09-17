@@ -12,15 +12,14 @@ reference for that measurement and input the coordinates manually.
 import os
 import re
 import socket
-import urllib.request
-import urllib.parse
 import urllib.error
+import urllib.parse
+import urllib.request
 
-# Astropy
 from .. import units as u
-from .sky_coordinate import SkyCoord
 from ..utils import data
 from ..utils.state import ScienceState
+from .sky_coordinate import SkyCoord
 
 __all__ = ["get_icrs_coordinates"]
 

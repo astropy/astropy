@@ -2,7 +2,6 @@
 
 
 import numpy as np
-
 from matplotlib.text import Text
 
 from .frame import RectangularFrame

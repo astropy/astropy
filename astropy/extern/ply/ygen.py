@@ -7,8 +7,9 @@
 # for that method is then used to create the other methods.   See the comments in
 # yacc.py for further details.
 
-import os.path
 import shutil
+import os.path
+
 
 def get_source_range(lines, tag):
     srclines = enumerate(lines)
@@ -67,8 +68,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
-
-

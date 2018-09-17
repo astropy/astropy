@@ -7,14 +7,13 @@ from asdf import tagged
 from asdf.yamlutil import custom_tree_to_tagged_tree
 
 import astropy.coordinates
-from astropy.coordinates.baseframe import frame_transform_graph
-from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import Quantity
-from astropy.coordinates import ICRS, Longitude, Latitude, Angle
+from astropy.coordinates import ICRS, Angle, Latitude, Longitude
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.coordinates.baseframe import frame_transform_graph
 
-from ..unit.quantity import QuantityType
 from ...types import AstropyType
-
+from ..unit.quantity import QuantityType
 
 __all__ = ['CoordType']
 

@@ -3,19 +3,18 @@
 
 
 from copy import deepcopy
+
 import numpy as np
 
-from ... import units as u
-from ...tests.helper import (catch_warnings, pytest,
-                             assert_quantity_allclose as assert_allclose)
-from ...utils import OrderedDescriptorContainer
-from ...utils.compat import NUMPY_LT_1_14
-from ...utils.exceptions import AstropyWarning
 from .. import representation as r
-from ..representation import REPRESENTATION_CLASSES
+from ... import units as u
 from ...units import allclose
-
-
+from ...utils import OrderedDescriptorContainer
+from ...tests.helper import pytest, catch_warnings
+from ...tests.helper import assert_quantity_allclose as assert_allclose
+from ...utils.compat import NUMPY_LT_1_14
+from ..representation import REPRESENTATION_CLASSES
+from ...utils.exceptions import AstropyWarning
 from .test_representation import unitphysics  # this fixture is used below
 
 

@@ -1,11 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from .. import tree, converters, exceptions
 # LOCAL
 from ....tests.helper import catch_warnings
-
-from .. import converters
-from .. import exceptions
-from .. import tree
 
 
 def test_reraise():

@@ -10,32 +10,27 @@ classes.
 import abc
 import copy
 import inspect
-from collections import namedtuple, OrderedDict, defaultdict
 import warnings
+from collections import OrderedDict, namedtuple, defaultdict
 
 # Dependencies
 import numpy as np
 
-# Project
-from ..utils.compat.misc import override__dir__
-from ..utils.decorators import lazyproperty, format_doc
-from ..utils.exceptions import AstropyWarning
-from .. import units as u
-from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
-                     check_broadcast)
-from .transformations import TransformGraph
 from . import representation as r
+from .. import units as u
+from ..utils import ShapedLikeNDArray, OrderedDescriptorContainer, check_broadcast
 from .angles import Angle
-from .attributes import Attribute
-
 # Import old names for Attributes so we don't break backwards-compatibility
 # (some users rely on them being here, although that is not encouraged, as this
 # is not the public API location -- see attributes.py).
-from .attributes import (
-    TimeFrameAttribute, QuantityFrameAttribute,
-    EarthLocationAttribute, CoordinateAttribute,
-    CartesianRepresentationFrameAttribute)  # pylint: disable=W0611
-
+from .attributes import CartesianRepresentationFrameAttribute  # pylint: disable=W0611
+from .attributes import (Attribute, TimeFrameAttribute, CoordinateAttribute,
+                         EarthLocationAttribute, QuantityFrameAttribute)
+from .transformations import TransformGraph
+from ..utils.decorators import format_doc, lazyproperty
+from ..utils.exceptions import AstropyWarning
+# Project
+from ..utils.compat.misc import override__dir__
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph',
            'GenericFrame', 'RepresentationMapping']

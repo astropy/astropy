@@ -18,20 +18,18 @@ transformations that are typically how the algorithms are defined.
 import heapq
 import inspect
 import subprocess
-from warnings import warn
-
 from abc import ABCMeta, abstractmethod
-from collections import defaultdict, OrderedDict
-from contextlib import suppress
 from inspect import signature
+from warnings import warn
+from contextlib import suppress
+from collections import OrderedDict, defaultdict
 
 import numpy as np
 
 from .. import units as u
-from ..utils.exceptions import AstropyWarning
-
 from .representation import REPRESENTATION_CLASSES
 from .matrix_utilities import matrix_product
+from ..utils.exceptions import AstropyWarning
 
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
            'BaseAffineTransform', 'AffineTransform',

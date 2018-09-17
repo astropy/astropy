@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from os.path import abspath, dirname, join
+from os.path import join, abspath, dirname
 
-from .table import Table
-
-from ..io import registry as io_registry
 from .. import config as _config
 from .. import extern
+from ..io import registry as io_registry
+from .table import Table
 
 
 class Conf(_config.ConfigNamespace):

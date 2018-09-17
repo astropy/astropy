@@ -3,16 +3,13 @@ import tempfile
 
 import pytest
 
-from ...utils.data import get_pkg_data_filename
-
-from ..hub import SAMPHubServer
-from ..integrated_client import SAMPIntegratedClient
-from ..errors import SAMPProxyError
-
 # By default, tests should not use the internet.
 from .. import conf
-
-from .test_helpers import random_params, Receiver, assert_output, TEST_REPLY
+from ..hub import SAMPHubServer
+from ..errors import SAMPProxyError
+from ...utils.data import get_pkg_data_filename
+from .test_helpers import TEST_REPLY, Receiver, assert_output, random_params
+from ..integrated_client import SAMPIntegratedClient
 
 
 def setup_module(module):

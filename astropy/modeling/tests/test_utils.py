@@ -5,7 +5,8 @@ import operator
 
 import numpy as np
 
-from ..utils import ExpressionTree as ET, ellipse_extent
+from ..utils import ExpressionTree as ET
+from ..utils import ellipse_extent
 from ..models import Ellipse2D
 
 

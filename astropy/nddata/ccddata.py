@@ -3,14 +3,13 @@
 
 import numpy as np
 
-from .compat import NDDataArray
-from .nduncertainty import StdDevUncertainty, NDUncertainty
-from ..io import fits, registry
-from .. import units as u
 from .. import log
+from .. import units as u
+from ..io import fits, registry
 from ..wcs import WCS
+from .compat import NDDataArray
+from .nduncertainty import NDUncertainty, StdDevUncertainty
 from ..utils.decorators import sharedmethod
-
 
 __all__ = ['CCDData', 'fits_ccddata_reader', 'fits_ccddata_writer']
 

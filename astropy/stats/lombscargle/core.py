@@ -2,10 +2,10 @@
 
 import numpy as np
 
-from .implementations import lombscargle, available_methods
-from .implementations.mle import periodic_fit
 from . import _statistics
 from ... import units
+from .implementations import lombscargle, available_methods
+from .implementations.mle import periodic_fit
 
 
 def has_units(obj):

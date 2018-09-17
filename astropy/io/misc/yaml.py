@@ -68,14 +68,14 @@ Example
 
 
 import base64
+
 import numpy as np
 
-from ...time import Time, TimeDelta
 from ... import units as u
 from ... import coordinates as coords
-from ...utils import minversion
+from ...time import Time, TimeDelta
 from ...table import SerializedColumn
-
+from ...utils import minversion
 
 try:
     import yaml

@@ -2,15 +2,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import pytest
 import numpy as np
+import pytest
 
-from ... import units as u
-from ..builtin_frames import ICRS, Galactic, Galactocentric
 from .. import builtin_frames as bf
+from .. import representation as r
+from ... import units as u
 from ...units import allclose as quantity_allclose
 from ..errors import ConvertError
-from .. import representation as r
+from ..builtin_frames import ICRS, Galactic, Galactocentric
+
 
 def test_api():
     # transform observed Barycentric velocities to full-space Galactocentric

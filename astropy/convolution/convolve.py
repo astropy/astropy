@@ -2,20 +2,17 @@
 
 
 import warnings
-
-import numpy as np
 from functools import partial
 
-from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
-from ..utils.exceptions import AstropyUserWarning
+import numpy as np
+
+from .. import units as u
+from .core import MAX_NORMALIZATION, Kernel, Kernel1D, Kernel2D
+from ..nddata import support_nddata
+from ..modeling.core import BINARY_OPERATORS, _CompoundModelMeta, _make_arithmetic_operator
 from ..utils.console import human_file_size
 from ..utils.decorators import deprecated_renamed_argument
-from .. import units as u
-from ..nddata import support_nddata
-from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
-from ..modeling.core import _CompoundModelMeta
-
-
+from ..utils.exceptions import AstropyUserWarning
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined

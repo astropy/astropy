@@ -2,14 +2,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import pytest
 import numpy as np
+import pytest
 
 from ... import table
-from ...table import Table, QTable
-from ...table.table_helpers import simple_table
 from ... import units as u
+from ...table import Table, QTable
 from ...utils import console
+from ...table.table_helpers import simple_table
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
 SMALL_ARR = np.arange(18, dtype=np.int64).reshape(6, 3)

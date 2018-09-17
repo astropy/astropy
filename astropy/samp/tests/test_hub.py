@@ -2,9 +2,8 @@
 
 import time
 
-from ..hub import SAMPHubServer
-
 from .. import conf
+from ..hub import SAMPHubServer
 
 
 def setup_module(module):

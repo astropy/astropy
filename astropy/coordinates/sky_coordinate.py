@@ -7,24 +7,22 @@ from collections.abc import Sequence
 import numpy as np
 
 from .. import _erfa as erfa
-from ..utils.compat.misc import override__dir__
-from ..units import Unit, IrreducibleUnit
 from .. import units as u
-from ..constants import c as speed_of_light
-from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
-from ..utils.exceptions import AstropyDeprecationWarning
-from ..utils.data_info import MixinInfo
-from ..utils import ShapedLikeNDArray
 from ..time import Time
-
-from .distances import Distance
+from ..units import Unit, IrreducibleUnit
+from ..utils import ShapedLikeNDArray
 from .angles import Angle
-from .baseframe import (BaseCoordinateFrame, frame_transform_graph,
-                        GenericFrame, _get_repr_cls, _get_diff_cls,
-                        _normalize_representation_type)
+from .baseframe import (GenericFrame, BaseCoordinateFrame, _get_diff_cls, _get_repr_cls,
+                        frame_transform_graph, _normalize_representation_type)
+from .distances import Distance
+from ..constants import c as speed_of_light
+from ..wcs.utils import pixel_to_skycoord, skycoord_to_pixel
 from .builtin_frames import ICRS, SkyOffsetFrame
-from .representation import (BaseRepresentation, SphericalRepresentation,
-                             UnitSphericalRepresentation, SphericalDifferential)
+from .representation import (BaseRepresentation, SphericalDifferential,
+                             SphericalRepresentation, UnitSphericalRepresentation)
+from ..utils.data_info import MixinInfo
+from ..utils.exceptions import AstropyDeprecationWarning
+from ..utils.compat.misc import override__dir__
 
 __all__ = ['SkyCoord', 'SkyCoordInfo']
 

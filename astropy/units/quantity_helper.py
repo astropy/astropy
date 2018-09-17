@@ -11,7 +11,8 @@ units for a given ufunc, given input units.
 from fractions import Fraction
 
 import numpy as np
-from .core import (UnitsError, UnitConversionError, UnitTypeError,
+
+from .core import (UnitsError, UnitTypeError, UnitConversionError,
                    dimensionless_unscaled, get_current_unit_registry)
 from .._erfa import ufunc as erfa_ufunc
 

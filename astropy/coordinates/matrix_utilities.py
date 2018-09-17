@@ -5,6 +5,7 @@
 This module contains utililies used for constructing rotation matrices.
 """
 from functools import reduce
+
 import numpy as np
 
 from .. import units as u

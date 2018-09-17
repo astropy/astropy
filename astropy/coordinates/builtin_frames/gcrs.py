@@ -2,12 +2,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from ... import units as u
-from ...utils.decorators import format_doc
-from ..attributes import (TimeAttribute,
-                          CartesianRepresentationAttribute)
-from .utils import DEFAULT_OBSTIME, EQUINOX_J2000
-from ..baseframe import base_doc
+from .utils import EQUINOX_J2000, DEFAULT_OBSTIME
 from .baseradec import BaseRADecFrame, doc_components
+from ..baseframe import base_doc
+from ..attributes import TimeAttribute, CartesianRepresentationAttribute
+from ...utils.decorators import format_doc
 
 __all__ = ['GCRS', 'PrecessedGeocentric']
 

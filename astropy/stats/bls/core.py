@@ -5,11 +5,10 @@ __all__ = ["BoxLeastSquares", "BoxLeastSquaresResults"]
 
 import numpy as np
 
-from ...tests.helper import assert_quantity_allclose
-from ... import units
-from ..lombscargle.core import has_units, strip_units
-
 from . import methods
+from ... import units
+from ...tests.helper import assert_quantity_allclose
+from ..lombscargle.core import has_units, strip_units
 
 
 def validate_unit_consistency(reference_object, input_object):

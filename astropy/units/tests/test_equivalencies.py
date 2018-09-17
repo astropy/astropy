@@ -4,12 +4,13 @@
 
 # THIRD-PARTY
 import warnings
-import pytest
+
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-# LOCAL
 from ... import units as u
+# LOCAL
 from ... import constants
 from ...tests.helper import assert_quantity_allclose
 

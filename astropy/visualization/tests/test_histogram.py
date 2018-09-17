@@ -1,7 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+import numpy as np
+import pytest
 from numpy.testing import assert_allclose
+
+from .. import hist
+from ...stats import histogram
 
 try:
     import matplotlib.pyplot as plt
@@ -15,11 +20,7 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-import pytest
-import numpy as np
 
-from .. import hist
-from ...stats import histogram
 
 
 @pytest.mark.skipif('not HAS_PLT')

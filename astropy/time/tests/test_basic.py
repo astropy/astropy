@@ -2,20 +2,21 @@
 
 
 import copy
-import functools
 import datetime
+import functools
 from copy import deepcopy
 
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ...tests.helper import catch_warnings, pytest
-from ...utils import isiterable
-from .. import Time, ScaleValueError, STANDARD_TIME_SCALES, TimeString, TimezoneInfo
-from ...coordinates import EarthLocation
-from ... import units as u
+from .. import STANDARD_TIME_SCALES, Time, TimeString, TimezoneInfo, ScaleValueError
 from ... import _erfa as erfa
+from ... import units as u
 from ...table import Column
+from ...utils import isiterable
+from ...coordinates import EarthLocation
+from ...tests.helper import pytest, catch_warnings
+
 try:
     import pytz
     HAS_PYTZ = True

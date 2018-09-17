@@ -2,8 +2,8 @@
 import functools
 import itertools
 
-import pytest
 import numpy as np
+import pytest
 
 from .. import Time
 from ..core import SIDEREAL_TIME_MODELS

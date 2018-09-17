@@ -1,31 +1,28 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 
-import bz2
-import gzip
-import http.client
-import mmap
-import operator
-import pathlib
 import io
 import os
+import re
+import bz2
 import sys
+import gzip
+import mmap
+import pathlib
+import zipfile
+import operator
 import tempfile
 import warnings
-import zipfile
-import re
-
+import http.client
 from functools import reduce
 
 import numpy as np
 
-from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
-                   fileobj_closed, fileobj_mode, _array_from_file,
-                   _array_to_file, _write_string)
-from ...utils.data import download_file, _is_url
+from .util import (isfile, isreadable, iswritable, fileobj_mode, fileobj_name, fileobj_open,
+                   _write_string, _array_to_file, fileobj_closed, _array_from_file)
+from ...utils.data import _is_url, download_file
 from ...utils.decorators import classproperty, deprecated_renamed_argument
 from ...utils.exceptions import AstropyUserWarning
-
 
 # Maps astropy.io.fits-specific file mode names to the appropriate file
 # modes to use for the underlying raw files

@@ -1,14 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
+import itertools
+
 import numpy as np
+import pytest
 import numpy.ma as ma
+from numpy.testing import assert_array_almost_equal, assert_array_almost_equal_nulp
 
 from ..convolve import convolve, convolve_fft
-
-from numpy.testing import assert_array_almost_equal_nulp, assert_array_almost_equal
-
-import itertools
 
 VALID_DTYPES = ('>f4', '<f4', '>f8', '<f8')
 VALID_DTYPE_MATRIX = list(itertools.product(VALID_DTYPES, VALID_DTYPES))

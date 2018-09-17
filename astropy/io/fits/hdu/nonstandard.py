@@ -1,14 +1,13 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import gzip
 import io
+import gzip
 
-from ..file import _File
 from .base import NonstandardExtHDU
-from .hdulist import HDUList
-from ..header import Header, _pad_length
+from ..file import _File
 from ..util import fileobj_name
-
+from ..header import Header, _pad_length
+from .hdulist import HDUList
 from ....utils import lazyproperty
 
 

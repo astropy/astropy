@@ -11,14 +11,14 @@ interfaces.
 
 import numpy as np
 
-from .. import units as u
-from ..constants import c
 from .. import _erfa as erfa
+from .. import units as u
 from ..io import ascii
-from ..utils import isiterable, data
-from .sky_coordinate import SkyCoord
+from ..utils import data, isiterable
+from ..constants import c
 from .builtin_frames import GCRS, PrecessedGeocentric
-from .representation import SphericalRepresentation, CartesianRepresentation
+from .representation import CartesianRepresentation, SphericalRepresentation
+from .sky_coordinate import SkyCoord
 from .builtin_frames.utils import get_jd12
 
 __all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun',

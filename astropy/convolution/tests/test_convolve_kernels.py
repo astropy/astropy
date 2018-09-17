@@ -2,14 +2,12 @@
 
 import itertools
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_almost_equal
 
+from ..kernels import Box2DKernel, Moffat2DKernel, Tophat2DKernel, Gaussian2DKernel
 from ..convolve import convolve, convolve_fft
-from ..kernels import Gaussian2DKernel, Box2DKernel, Tophat2DKernel
-from ..kernels import Moffat2DKernel
-
 
 SHAPES_ODD = [[15, 15], [31, 31]]
 SHAPES_EVEN = [[8, 8], [16, 16], [32, 32]]

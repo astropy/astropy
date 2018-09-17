@@ -2,17 +2,15 @@
 
 import types
 
-import pytest
 import numpy as np
-from numpy.testing import assert_allclose
+import pytest
 from numpy.random import RandomState
+from numpy.testing import assert_allclose
 
+from .. import models, fitting
 from ..core import Fittable1DModel
-from ..parameters import Parameter
-from .. import models
-from .. import fitting
-
 from .utils import ignore_non_integer_warning
+from ..parameters import Parameter
 
 try:
     from scipy import optimize

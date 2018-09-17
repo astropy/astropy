@@ -6,8 +6,7 @@ from collections import namedtuple
 import pytest
 
 from .. import introspection
-from ..introspection import (find_current_module, find_mod_objs,
-                             isinstancemethod, minversion)
+from ..introspection import minversion, find_mod_objs, isinstancemethod, find_current_module
 
 
 def test_pkg_finder():

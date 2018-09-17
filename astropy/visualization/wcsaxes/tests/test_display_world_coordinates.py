@@ -1,14 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ..core import WCSAxes
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import KeyEvent
 
+from ..core import WCSAxes
 from ....wcs import WCS
-from ....coordinates import FK5
 from ....time import Time
-from ....tests.image_tests import ignore_matplotlibrc
-
 from .test_images import BaseImageTests
+from ....coordinates import FK5
+from ....tests.image_tests import ignore_matplotlibrc
 
 
 class TestDisplayWorldCoordinate(BaseImageTests):

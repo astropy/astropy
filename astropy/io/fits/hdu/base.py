@@ -2,26 +2,24 @@
 
 
 
-import datetime
 import os
 import sys
+import datetime
 import warnings
+from inspect import Parameter, signature
 from contextlib import suppress
-from inspect import signature, Parameter
 
 import numpy as np
 
 from .. import conf
 from ..file import _File
+from ..util import (first, _is_int, decode_ascii, _unsigned_zero, itersubclasses,
+                    _extract_number, _get_array_mmap, _free_space_check, _is_pseudo_unsigned)
 from ..header import Header, _pad_length
-from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
-                    itersubclasses, decode_ascii, _get_array_mmap, first,
-                    _free_space_check, _extract_number)
 from ..verify import _Verify, _ErrList
-
 from ....utils import lazyproperty
-from ....utils.exceptions import AstropyUserWarning
 from ....utils.decorators import deprecated_renamed_argument
+from ....utils.exceptions import AstropyUserWarning
 
 
 class _Delayed:

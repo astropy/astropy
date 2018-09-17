@@ -9,13 +9,10 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 # LOCAL
-from .. import converters
-from .. import exceptions
-from .. import tree
-
+from .. import tree, converters, exceptions
 from ..table import parse_single_table
-from ....tests.helper import raises, catch_warnings
 from ....utils.data import get_pkg_data_filename
+from ....tests.helper import raises, catch_warnings
 
 
 @raises(exceptions.E13)

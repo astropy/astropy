@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import six
-
 from asdf.asdftypes import CustomType, ExtensionTypeMeta
-
 
 __all__ = ['AstropyType', 'AstropyAsdfType']
 

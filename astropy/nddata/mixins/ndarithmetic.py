@@ -6,9 +6,9 @@ from copy import deepcopy
 
 import numpy as np
 
-from ..nduncertainty import NDUncertainty
 from ...units import dimensionless_unscaled
 from ...utils import format_doc, sharedmethod
+from ..nduncertainty import NDUncertainty
 
 __all__ = ['NDArithmeticMixin']
 

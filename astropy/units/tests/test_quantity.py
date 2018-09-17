@@ -9,17 +9,16 @@ import pickle
 import decimal
 from fractions import Fraction
 
-import pytest
 import numpy as np
-from numpy.testing import (assert_allclose, assert_array_equal,
-                           assert_array_almost_equal)
+import pytest
+from numpy.testing import assert_allclose, assert_array_equal, assert_array_almost_equal
 
-from ...tests.helper import catch_warnings, raises
-from ...utils import isiterable, minversion
-from ...utils.compat import NUMPY_LT_1_14
-from ...utils.exceptions import AstropyDeprecationWarning
 from ... import units as u
+from ...utils import isiterable, minversion
+from ...tests.helper import raises, catch_warnings
+from ...utils.compat import NUMPY_LT_1_14
 from ...units.quantity import _UNIT_NOT_INITIALISED
+from ...utils.exceptions import AstropyDeprecationWarning
 
 try:
     import matplotlib

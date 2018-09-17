@@ -31,10 +31,9 @@ _initialize_module()
 ###########################################################################
 # DOCSTRING
 
-# This generates a docstring for this module that describes all of the
-# standard units defined here.
-from .utils import (generate_unit_summary as _generate_unit_summary,
-                    generate_prefixonly_unit_summary as _generate_prefixonly_unit_summary)
+from .utils import generate_unit_summary as _generate_unit_summary
+from .utils import generate_prefixonly_unit_summary as _generate_prefixonly_unit_summary
+
 if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())
     __doc__ += _generate_prefixonly_unit_summary(globals())

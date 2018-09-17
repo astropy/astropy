@@ -3,14 +3,13 @@
 import sys
 import warnings
 
-import pytest
 import numpy as np
-
-from .test_table import comparerecords
-from ..hdu.base import _ValidHDU
-from ....io import fits
+import pytest
 
 from . import FitsTestCase
+from ....io import fits
+from ..hdu.base import _ValidHDU
+from .test_table import comparerecords
 
 
 class TestChecksumFunctions(FitsTestCase):

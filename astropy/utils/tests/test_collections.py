@@ -2,9 +2,8 @@
 
 import pytest
 
-from ...tests.helper import raises
-
 from .. import collections
+from ...tests.helper import raises
 
 
 @raises(TypeError)

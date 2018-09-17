@@ -3,12 +3,11 @@
 This module tests fitting and model evaluation with various inputs
 """
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from .. import models
-from .. import fitting
+from .. import models, fitting
 from ..core import Model, FittableModel, Fittable1DModel
 from ..parameters import Parameter
 

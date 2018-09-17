@@ -1,10 +1,12 @@
 
-import pytest
 import numpy as np
-
+import pytest
 from numpy.testing import assert_equal, assert_allclose
 
 from astropy import units as u
+
+from ..circstats import (vtest, _length, circvar, circmean, circmoment,
+                         vonmisesmle, circcorrcoef, rayleightest)
 
 try:
     import scipy.stats
@@ -13,8 +15,6 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
-from ..circstats import _length, circmean, circvar, circmoment, circcorrcoef
-from ..circstats import rayleightest, vtest, vonmisesmle
 
 
 def test__length():

@@ -4,10 +4,9 @@
 import copy
 import xmlrpc.client as xmlrpc
 
-from .errors import SAMPHubError
 from .utils import ServerProxyPool
+from .errors import SAMPHubError
 from .lockfile_helpers import get_main_running_hub
-
 
 __all__ = ['SAMPHubProxy']
 

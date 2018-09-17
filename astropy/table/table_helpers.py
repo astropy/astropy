@@ -6,8 +6,9 @@ tables for testing.
 """
 
 
-from itertools import cycle
 import string
+from itertools import cycle
+
 import numpy as np
 
 from .table import Table, Column

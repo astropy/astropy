@@ -3,13 +3,12 @@
 
 import os
 
-import pytest
 import numpy as np
-
-from ...utils.data import get_pkg_data_filenames, get_pkg_data_contents
-from ...utils.misc import NumpyRNGContext
+import pytest
 
 from ... import wcs
+from ...utils.data import get_pkg_data_contents, get_pkg_data_filenames
+from ...utils.misc import NumpyRNGContext
 
 # hdr_map_file_list = list(get_pkg_data_filenames("maps", pattern="*.hdr"))
 

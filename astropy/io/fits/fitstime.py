@@ -2,17 +2,16 @@
 
 import re
 import warnings
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict, defaultdict
 
 import numpy as np
 
-from . import Header, Card
-
+from . import Card, Header
 from ... import units as u
-from ...coordinates import EarthLocation
-from ...table import Column
 from ...time import Time, TimeDelta
+from ...table import Column
 from ...time.core import BARYCENTRIC_SCALES
+from ...coordinates import EarthLocation
 from ...time.formats import FITS_DEPRECATED_SCALES
 from ...utils.exceptions import AstropyUserWarning
 

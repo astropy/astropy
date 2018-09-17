@@ -5,19 +5,17 @@ Tests for model evaluation.
 Compare the results of some models with other programs.
 """
 
-import pytest
 import numpy as np
+import pytest
+from numpy.testing import assert_equal, assert_allclose
 
-from numpy.testing import assert_allclose, assert_equal
-
-from .example_models import models_1D, models_2D
-from .. import fitting, models
-from ..core import FittableModel
-from ..polynomial import PolynomialBase
+from .. import models, fitting
 from ... import units as u
-from ...utils import minversion
+from ..core import FittableModel
+from ...utils import NumpyRNGContext, minversion
+from ..polynomial import PolynomialBase
 from ...tests.helper import assert_quantity_allclose
-from ...utils import NumpyRNGContext
+from .example_models import models_1D, models_2D
 
 try:
     import scipy

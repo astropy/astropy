@@ -8,12 +8,12 @@ Regression tests for the units.format package
 import pytest
 from numpy.testing import assert_allclose
 
-from ...tests.helper import catch_warnings
-from ... import units as u
-from ...constants import si
 from .. import core
 from .. import format as u_format
+from ... import units as u
 from ..utils import is_effectively_unity
+from ...constants import si
+from ...tests.helper import catch_warnings
 
 
 @pytest.mark.parametrize('strings, unit', [

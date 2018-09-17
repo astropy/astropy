@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ..core import IrreducibleUnit, Unit
+from ..core import Unit, IrreducibleUnit
 
 
 class FunctionMixin:

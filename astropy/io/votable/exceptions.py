@@ -36,12 +36,10 @@ Exceptions
 # STDLIB
 import io
 import re
-
 from textwrap import dedent
 from warnings import warn
 
 from ...utils.exceptions import AstropyWarning
-
 
 __all__ = [
     'warn_or_raise', 'vo_raise', 'vo_reraise', 'vo_warn',

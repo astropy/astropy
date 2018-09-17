@@ -2,15 +2,14 @@
 
 
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
-from ..nduncertainty import (StdDevUncertainty, NDUncertainty,
-                             IncompatibleUncertaintiesException,
-                             UnknownUncertainty)
-from ..nddata import NDData
 from ... import units as u
+from ..nddata import NDData
+from ..nduncertainty import (NDUncertainty, StdDevUncertainty, UnknownUncertainty,
+                             IncompatibleUncertaintiesException)
 
 # Regarding setter tests:
 # No need to test setters since the uncertainty is considered immutable after

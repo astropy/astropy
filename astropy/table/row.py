@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import collections
 import operator
+import collections
 
 import numpy as np
 

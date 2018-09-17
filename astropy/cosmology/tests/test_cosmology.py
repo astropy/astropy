@@ -2,13 +2,13 @@
 
 from io import StringIO
 
-import pytest
 import numpy as np
+import pytest
 
 from .. import core, funcs
+from ... import units as u
 from ...units import allclose
 from ...utils.compat import NUMPY_LT_1_14
-from ... import units as u
 
 try:
     import scipy  # pylint: disable=W0611

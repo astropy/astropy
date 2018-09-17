@@ -7,8 +7,8 @@ test_sky_coord
 
 
 
-from ..angles import Angle
 from ... import units as u
+from ..angles import Angle
 
 
 def test_to_string_precision():

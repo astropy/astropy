@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ...utils.decorators import format_doc
-from ..attributes import TimeAttribute
 from .utils import DEFAULT_OBSTIME
-from ..baseframe import base_doc
 from .baseradec import BaseRADecFrame, doc_components
+from ..baseframe import base_doc
+from ..attributes import TimeAttribute
+from ...utils.decorators import format_doc
 
 __all__ = ['HCRS']
 

@@ -4,15 +4,15 @@
 # STDLIB
 import time
 import warnings
+from functools import wraps, partial
 from collections import Iterable, OrderedDict
-from functools import partial, wraps
 
 # THIRD-PARTY
 import numpy as np
 
 # LOCAL
-from .. import units as u
 from .. import log
+from .. import units as u
 from .. import modeling
 from .exceptions import AstropyUserWarning
 

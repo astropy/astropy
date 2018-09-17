@@ -1,21 +1,18 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import copy
+import weakref
 import operator
 import warnings
-import weakref
-
-from contextlib import suppress
 from functools import reduce
+from contextlib import suppress
 
 import numpy as np
-
 from numpy import char as chararray
 
-from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
-                     _AsciiColDefs, _FormatX, _FormatP, _VLF, _get_index,
-                     _wrapx, _unwrapx, _makep, Delayed)
 from .util import decode_ascii, encode_ascii, _rstrip_inplace
+from .column import (_VLF, ASCII2STR, ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ColDefs, Delayed,
+                     _makep, _wrapx, _FormatP, _FormatX, _unwrapx, _get_index, _AsciiColDefs)
 from ...utils import lazyproperty
 
 

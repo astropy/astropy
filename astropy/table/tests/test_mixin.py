@@ -18,18 +18,17 @@ import copy
 import pickle
 from io import StringIO
 
-import pytest
 import numpy as np
+import pytest
 
-from ...coordinates import EarthLocation
-from ...table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
-from ...table import serialize
-from ... import time
-from ... import coordinates
-from ... import units as u
-from ..column import BaseColumn
 from .. import table_helpers
+from ... import time
+from ... import units as u
+from ... import coordinates
+from ...table import Table, Column, QTable, NdarrayMixin, join, hstack, vstack, serialize
+from ..column import BaseColumn
 from .conftest import MIXIN_COLS
+from ...coordinates import EarthLocation
 
 
 def test_attributes(mixin_cols):

@@ -6,13 +6,13 @@
 Tests for the projected separation stuff
 """
 
-import pytest
 import numpy as np
+import pytest
 
-from ...tests.helper import assert_quantity_allclose as assert_allclose
-from ... import units as u
-from ..builtin_frames import ICRS, FK5, Galactic
 from .. import Angle, Distance
+from ... import units as u
+from ...tests.helper import assert_quantity_allclose as assert_allclose
+from ..builtin_frames import FK5, ICRS, Galactic
 
 # lon1, lat1, lon2, lat2 in degrees
 coords = [(1, 0, 0, 0),

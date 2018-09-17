@@ -8,24 +8,22 @@ place to live
 
 
 import io
-import pytest
+
 import numpy as np
+import pytest
 
-
+from .. import (FK4, CIRS, GCRS, HCRS, ICRS, ITRS, AltAz, Latitude, SkyCoord, Longitude,
+                FK4NoETerms, EarthLocation, QuantityAttribute, BaseCoordinateFrame,
+                GeocentricTrueEcliptic, CartesianRepresentation, SphericalRepresentation,
+                UnitSphericalRepresentation, get_sun, get_moon)
 from ... import units as u
-from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
-                GeocentricTrueEcliptic, Longitude, Latitude, GCRS, HCRS,
-                get_moon, FK4, FK4NoETerms, BaseCoordinateFrame,
-                QuantityAttribute, SphericalRepresentation,
-                UnitSphericalRepresentation, CartesianRepresentation)
-from ..sites import get_builtin_sites
 from ...time import Time
-from ...utils import iers
+from ..sites import get_builtin_sites
 from ...table import Table
-
-from ...tests.helper import assert_quantity_allclose, catch_warnings
-from .test_matching import HAS_SCIPY, OLDER_SCIPY
 from ...units import allclose as quantity_allclose
+from ...utils import iers
+from .test_matching import HAS_SCIPY, OLDER_SCIPY
+from ...tests.helper import catch_warnings, assert_quantity_allclose
 
 try:
     import yaml  # pylint: disable=W0611

@@ -1,10 +1,10 @@
-from os.path import abspath, dirname, join
 import textwrap
+from os.path import join, abspath, dirname
 
 import pytest
 
-from ..table import Table
 from ... import extern
+from ..table import Table
 from ...utils.xml.writer import HAS_BLEACH
 
 try:

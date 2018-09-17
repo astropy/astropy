@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from .. import histogram, scott_bin_width, freedman_bin_width, knuth_bin_width
+from .. import histogram, knuth_bin_width, scott_bin_width, freedman_bin_width
 
 try:
     import scipy  # pylint: disable=W0611

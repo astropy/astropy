@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ... import units as u
-from ...utils.decorators import format_doc
 from .. import representation as r
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
+from ... import units as u
 from .galactic import Galactic
+from ..baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
+from ...utils.decorators import format_doc
 
 __all__ = ['Supergalactic']
 

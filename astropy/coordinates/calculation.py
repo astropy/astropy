@@ -9,10 +9,9 @@ import warnings
 from datetime import datetime
 from urllib.request import urlopen
 
-# Third-party
-from .. import time as atime
-from ..utils.console import color_print, _color_text
 from . import get_sun
+from .. import time as atime
+from ..utils.console import _color_text, color_print
 
 __all__ = []
 

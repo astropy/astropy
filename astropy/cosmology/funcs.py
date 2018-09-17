@@ -4,6 +4,7 @@ Convenience functions for `astropy.cosmology`.
 """
 
 import warnings
+
 import numpy as np
 
 from .core import CosmologyError

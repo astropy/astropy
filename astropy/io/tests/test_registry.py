@@ -1,16 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
-from copy import copy
 from io import StringIO
+from copy import copy
 
-import pytest
 import numpy as np
+import pytest
 
-from ..registry import _readers, _writers, _identifiers
 from .. import registry as io_registry
-from ...table import Table
 from ... import units as u
+from ...table import Table
+from ..registry import _readers, _writers, _identifiers
 
 _READERS_ORIGINAL = copy(_readers)
 _WRITERS_ORIGINAL = copy(_writers)

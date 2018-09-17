@@ -2,18 +2,16 @@
 
 
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
+from ... import NDDataRef
+from .... import units as u
+from ....units import Quantity, UnitsError
+from ...nddata import NDData
 from ...nduncertainty import (StdDevUncertainty, UnknownUncertainty,
                               IncompatibleUncertaintiesException)
-from ... import NDDataRef
-from ...nddata import NDData
-
-from ....units import UnitsError, Quantity
-from .... import units as u
-
 
 # Alias NDDataAllMixins in case this will be renamed ... :-)
 NDDataArithmetic = NDDataRef

@@ -4,7 +4,7 @@ import io
 
 import pytest
 
-from ..xml import check, unescaper, writer
+from ..xml import check, writer, unescaper
 
 
 def test_writer():

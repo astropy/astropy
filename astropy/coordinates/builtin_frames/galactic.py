@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ... import units as u
-from ...utils.decorators import format_doc
-from ..angles import Angle
 from .. import representation as r
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
-
+from ... import units as u
+from .fk4 import FK4NoETerms
 # these are needed for defining the NGP
 from .fk5 import FK5
-from .fk4 import FK4NoETerms
+from ..angles import Angle
+from ..baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
+from ...utils.decorators import format_doc
 
 __all__ = ['Galactic']
 

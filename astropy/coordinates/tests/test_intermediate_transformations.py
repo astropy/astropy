@@ -3,24 +3,19 @@
 
 """
 
-import pytest
 import numpy as np
+import pytest
 
+from .. import (CIRS, GCRS, HCRS, ICRS, ITRS, AltAz, SkyCoord, EarthLocation, PrecessedGeocentric,
+                CartesianRepresentation, SphericalRepresentation, HeliocentricTrueEcliptic,
+                UnitSphericalRepresentation, get_sun, solar_system_ephemeris)
 from ... import units as u
-from ...tests.helper import (assert_quantity_allclose as assert_allclose)
-from ...time import Time
-from .. import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
-                PrecessedGeocentric, CartesianRepresentation, SkyCoord,
-                SphericalRepresentation, UnitSphericalRepresentation,
-                HCRS, HeliocentricTrueEcliptic)
-
-
-from ..._erfa import epv00
-
 from .utils import randomly_sample_sphere
-from ..builtin_frames.utils import get_jd12
-from .. import solar_system_ephemeris
+from ...time import Time
+from ..._erfa import epv00
 from ...units import allclose
+from ...tests.helper import assert_quantity_allclose as assert_allclose
+from ..builtin_frames.utils import get_jd12
 
 try:
     import jplephem  # pylint: disable=W0611

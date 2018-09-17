@@ -5,15 +5,15 @@
 import numpy as np
 import pytest
 
-from ... import units as u
-from .. import transformations as t
-from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, AltAz
 from .. import representation as r
-from ..baseframe import frame_transform_graph
-from ...tests.helper import (assert_quantity_allclose as assert_allclose,
-                             catch_warnings)
+from .. import transformations as t
+from ... import units as u
 from ...time import Time
 from ...units import allclose as quantity_allclose
+from ..baseframe import frame_transform_graph
+from ...tests.helper import catch_warnings
+from ...tests.helper import assert_quantity_allclose as assert_allclose
+from ..builtin_frames import FK4, FK5, ICRS, AltAz, Galactic, FK4NoETerms
 
 
 # Coordinates just for these tests.

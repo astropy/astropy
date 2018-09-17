@@ -1,13 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 from numpy import ma
 from numpy.testing import assert_allclose
 
-from ..mpl_normalize import ImageNormalize, simple_norm
-from ..interval import ManualInterval
 from ..stretch import SqrtStretch
+from ..interval import ManualInterval
+from ..mpl_normalize import ImageNormalize, simple_norm
 
 try:
     import matplotlib    # pylint: disable=W0611

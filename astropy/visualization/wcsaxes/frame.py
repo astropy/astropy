@@ -5,9 +5,7 @@ import abc
 from collections import OrderedDict
 
 import numpy as np
-
-
-from matplotlib.lines import Line2D, Path
+from matplotlib.lines import Path, Line2D
 from matplotlib.patches import PathPatch
 
 __all__ = ['Spine', 'BaseFrame', 'RectangularFrame', 'EllipticalFrame']

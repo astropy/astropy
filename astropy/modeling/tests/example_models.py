@@ -50,17 +50,15 @@ Explanation of keywords of the dictionaries:
 """
 
 
-from ..functional_models import (
-    Gaussian1D, Sine1D, Box1D, Linear1D, Lorentz1D,
-    MexicanHat1D, Trapezoid1D, Const1D, Moffat1D,
-    Gaussian2D, Const2D, Box2D, MexicanHat2D,
-    TrapezoidDisk2D, AiryDisk2D, Moffat2D, Disk2D,
-    Ring2D, Sersic1D, Sersic2D, Voigt1D, Planar2D)
-from ..polynomial import Polynomial1D, Polynomial2D
-from ..powerlaws import (
-    PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
-    LogParabola1D)
 import numpy as np
+
+from ..powerlaws import (PowerLaw1D, LogParabola1D, BrokenPowerLaw1D,
+                         SmoothlyBrokenPowerLaw1D, ExponentialCutoffPowerLaw1D)
+from ..polynomial import Polynomial1D, Polynomial2D
+from ..functional_models import (Box1D, Box2D, Disk2D, Ring2D, Sine1D, Const1D, Const2D,
+                                 Voigt1D, Linear1D, Moffat1D, Moffat2D, Planar2D, Sersic1D,
+                                 Sersic2D, Lorentz1D, AiryDisk2D, Gaussian1D, Gaussian2D,
+                                 Trapezoid1D, MexicanHat1D, MexicanHat2D, TrapezoidDisk2D)
 
 # 1D Models
 models_1D = {

@@ -1,8 +1,8 @@
 # The purpose of these tests are to ensure that calling quantities using
 # array methods returns quantities with the right units, or raises exceptions.
 
-import pytest
 import numpy as np
+import pytest
 
 from ... import units as u
 

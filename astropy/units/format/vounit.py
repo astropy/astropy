@@ -4,13 +4,13 @@ Handles the "VOUnit" unit format.
 """
 
 
+import re
 import copy
 import keyword
 import operator
-import re
 import warnings
 
-from . import core, generic, utils
+from . import core, utils, generic
 
 
 class VOUnit(generic.Generic):

@@ -31,11 +31,12 @@ Notes
 """
 
 from copy import deepcopy
+
 import numpy as np
 
-from .bst import MinValue, MaxValue
-from .sorted_array import SortedArray
+from .bst import MaxValue, MinValue
 from ..time import Time
+from .sorted_array import SortedArray
 
 
 class QueryError(ValueError):

@@ -2,13 +2,12 @@
 
 import pytest
 
-from ..hub_proxy import SAMPHubProxy
-from ..client import SAMPClient
-from ..integrated_client import SAMPIntegratedClient
-from ..hub import SAMPHubServer
-
 # By default, tests should not use the internet.
 from .. import conf
+from ..hub import SAMPHubServer
+from ..client import SAMPClient
+from ..hub_proxy import SAMPHubProxy
+from ..integrated_client import SAMPIntegratedClient
 
 
 def setup_module(module):

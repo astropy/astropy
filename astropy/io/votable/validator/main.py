@@ -7,11 +7,9 @@ and generates a report as a directory tree of HTML files.
 # STDLIB
 import os
 
+from . import html, result
 # LOCAL
 from ....utils.data import get_pkg_data_filename
-from . import html
-from . import result
-
 
 __all__ = ['make_validation_report']
 

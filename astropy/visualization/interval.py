@@ -7,11 +7,11 @@ various criteria.
 
 
 import abc
+
 import numpy as np
 
-from ..utils.misc import InheritDocstrings
 from .transform import BaseTransform
-
+from ..utils.misc import InheritDocstrings
 
 __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
            'AsymmetricPercentileInterval', 'PercentileInterval',

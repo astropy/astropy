@@ -4,20 +4,18 @@
 import copy
 import warnings
 import collections
+from io import BytesIO, StringIO
 
-from io import StringIO, BytesIO
-
-import pytest
 import numpy as np
-
-from ....io import fits
-from ....io.fits.verify import VerifyWarning
-from ....tests.helper import catch_warnings, ignore_warnings
+import pytest
 
 from . import FitsTestCase
+from ....io import fits
 from ..card import _pad
-from ..header import _pad_length
 from ..util import encode_ascii
+from ..header import _pad_length
+from ....tests.helper import catch_warnings, ignore_warnings
+from ....io.fits.verify import VerifyWarning
 
 
 def test_shallow_copy():

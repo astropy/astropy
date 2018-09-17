@@ -1,30 +1,28 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import ctypes
 import gc
-import itertools
-import math
 import re
+import math
 import time
+import ctypes
 import warnings
+import itertools
 from contextlib import suppress
 
 import numpy as np
 
-from .base import DELAYED, ExtensionHDU, BITPIX2DTYPE, DTYPE2BITPIX
+from .base import DELAYED, BITPIX2DTYPE, DTYPE2BITPIX, ExtensionHDU
+from ..card import Card
+from ..util import _is_int, _unsigned_zero, _get_array_mmap, _is_pseudo_unsigned
 from .image import ImageHDU
 from .table import BinTableHDU
-from ..card import Card
-from ..column import Column, ColDefs, TDEF_RE
+from ..column import TDEF_RE
 from ..column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
-from ..fitsrec import FITS_rec
+from ..column import Column, ColDefs
 from ..header import Header
-from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
-                    _get_array_mmap)
-
 from ....utils import lazyproperty
-from ....utils.exceptions import (AstropyPendingDeprecationWarning,
-                                  AstropyUserWarning)
+from ..fitsrec import FITS_rec
+from ....utils.exceptions import AstropyUserWarning, AstropyPendingDeprecationWarning
 
 try:
     from .. import compression

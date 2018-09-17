@@ -3,12 +3,12 @@
 import os
 import time
 
-import pytest
 import numpy as np
+import pytest
 
 from . import FitsTestCase
-from .test_table import comparerecords
 from ....io import fits
+from .test_table import comparerecords
 
 
 class TestGroupsFunctions(FitsTestCase):

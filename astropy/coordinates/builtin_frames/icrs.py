@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ...utils.decorators import format_doc
-from ..baseframe import base_doc
 from .baseradec import BaseRADecFrame, doc_components
+from ..baseframe import base_doc
+from ...utils.decorators import format_doc
 
 __all__ = ['ICRS']
 

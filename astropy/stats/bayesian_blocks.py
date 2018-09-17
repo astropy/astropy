@@ -39,10 +39,10 @@ References
 """
 
 import warnings
+from inspect import signature
 
 import numpy as np
 
-from inspect import signature
 from ..utils.exceptions import AstropyUserWarning
 
 # TODO: implement other fitness functions from appendix B of Scargle 2012

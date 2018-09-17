@@ -1,13 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
-import sys
 import re
+import sys
 
 import numpy as np
 
 from .. import log
-from ..utils.console import Getch, color_print, terminal_size, conf
+from ..utils.console import Getch, conf, color_print, terminal_size
 from ..utils.data_info import dtype_info_name
 
 __all__ = []

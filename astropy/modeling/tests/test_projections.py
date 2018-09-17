@@ -4,16 +4,15 @@
 
 import os
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_almost_equal
 
 from .. import projections
-from ..parameters import InputParameterError
-
+from ... import wcs
 from ... import units as u
 from ...io import fits
-from ... import wcs
+from ..parameters import InputParameterError
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import assert_quantity_allclose
 

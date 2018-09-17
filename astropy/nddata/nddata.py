@@ -2,13 +2,14 @@
 # This module implements the base NDData class.
 
 
-import numpy as np
 from copy import deepcopy
 
-from .nddata_base import NDDataBase
-from .nduncertainty import NDUncertainty, UnknownUncertainty
+import numpy as np
+
 from .. import log
 from ..units import Unit, Quantity
+from .nddata_base import NDDataBase
+from .nduncertainty import NDUncertainty, UnknownUncertainty
 from ..utils.metadata import MetaData
 
 __all__ = ['NDData']

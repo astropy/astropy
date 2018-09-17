@@ -2,20 +2,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import pytest
 import numpy as np
+import pytest
 from numpy import testing as npt
 
+from .. import SkyCoord, EarthLocation
+from ... import _erfa as erfa
 from ... import units as u
+from .utils import randomly_sample_sphere
 from ...time import Time
+from ...utils import iers
+from ...tests.helper import catch_warnings
 from ..builtin_frames import ICRS, AltAz
 from ..builtin_frames.utils import get_jd12
-from .. import EarthLocation
-from .. import SkyCoord
-from ...tests.helper import catch_warnings
-from ... import _erfa as erfa
-from ...utils import iers
-from .utils import randomly_sample_sphere
 
 
 # These fixtures are used in test_iau_fullstack

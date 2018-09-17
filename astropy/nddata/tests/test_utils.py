@@ -1,18 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from ...tests.helper import assert_quantity_allclose
-from ..utils import (extract_array, add_array, subpixel_indices,
-                     block_reduce, block_replicate,
-                     overlap_slices, NoOverlapError, PartialOverlapError,
-                     Cutout2D)
+from ... import units as u
 from ...wcs import WCS, Sip
+from ..utils import (Cutout2D, NoOverlapError, PartialOverlapError, add_array, block_reduce,
+                     extract_array, overlap_slices, block_replicate, subpixel_indices)
 from ...wcs.utils import proj_plane_pixel_area
 from ...coordinates import SkyCoord
-from ... import units as u
+from ...tests.helper import assert_quantity_allclose
 
 try:
     import skimage  # pylint: disable=W0611

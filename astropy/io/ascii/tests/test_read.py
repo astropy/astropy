@@ -3,29 +3,25 @@
 
 
 import re
-from io import BytesIO, open
-from collections import OrderedDict
 import locale
-import platform
-from io import StringIO
-
 import pathlib
-import pytest
-import numpy as np
+import platform
+from io import BytesIO, StringIO, open
+from collections import OrderedDict
 
+import numpy as np
+import pytest
+
+from .. import core
 from ... import ascii
-from ....table import Table
 from .... import table
+from ..ui import cparser, _probably_html, get_read_trace
+# setup/teardown function to have the tests run in the correct directory
+from .common import (raises, assert_true, assert_equal, setup_function,
+                     teardown_function, assert_almost_equal)
+from ....table import Table
 from ....units import Unit
 from ....table.table_helpers import simple_table
-
-from .common import (raises, assert_equal, assert_almost_equal,
-                     assert_true)
-from .. import core
-from ..ui import _probably_html, get_read_trace, cparser
-
-# setup/teardown function to have the tests run in the correct directory
-from .common import setup_function, teardown_function
 
 try:
     import bz2  # pylint: disable=W0611

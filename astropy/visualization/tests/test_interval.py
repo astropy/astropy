@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 
 from ...utils import NumpyRNGContext
-
-from ..interval import (ManualInterval, MinMaxInterval, PercentileInterval,
-                        AsymmetricPercentileInterval, ZScaleInterval)
+from ..interval import (ManualInterval, MinMaxInterval, ZScaleInterval,
+                        PercentileInterval, AsymmetricPercentileInterval)
 
 
 class TestInterval:

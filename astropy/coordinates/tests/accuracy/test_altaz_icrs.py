@@ -11,11 +11,10 @@ higher-precision checks on 64-bit machines.
 
 import pytest
 
+from ... import Angle, SkyCoord, EarthLocation
 from .... import units as u
 from ....time import Time
 from ...builtin_frames import AltAz
-from ... import EarthLocation
-from ... import Angle, SkyCoord
 
 
 def test_against_hor2eq():

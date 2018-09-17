@@ -2,22 +2,19 @@
 
 import os
 import functools
-
 from io import BytesIO
 from textwrap import dedent
 
-import pytest
 import numpy as np
+import pytest
 from numpy import ma
 
-from ....table import Table, MaskedColumn
 from ... import ascii
+from .common import assert_true, assert_equal, assert_almost_equal
+from ....table import Table, MaskedColumn
+from ..fastbasic import FastCsv, FastRdb, FastTab, FastBasic, FastNoHeader, FastCommentedHeader
 from ...ascii.core import ParameterError, FastOptionsError, InconsistentTableError
 from ...ascii.cparser import CParserError
-from ..fastbasic import (
-    FastBasic, FastCsv, FastTab, FastCommentedHeader, FastRdb, FastNoHeader)
-from .common import assert_equal, assert_almost_equal, assert_true
-
 
 StringIO = lambda x: BytesIO(x.encode('ascii'))
 TRAVIS = os.environ.get('TRAVIS', False)

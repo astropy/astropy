@@ -3,9 +3,9 @@
 import os
 from distutils.version import LooseVersion
 
-from ..mpl_normalize import simple_norm
 from ... import log
 from ...io.fits import getdata
+from ..mpl_normalize import simple_norm
 
 
 def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',

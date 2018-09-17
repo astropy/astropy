@@ -12,15 +12,13 @@ to be installed.
 
 from io import StringIO
 
-from .. import html
-from .. import core
-from ....table import Table
-
-import pytest
 import numpy as np
+import pytest
 
-from .common import setup_function, teardown_function
+from .. import core, html
 from ... import ascii
+from .common import setup_function, teardown_function
+from ....table import Table
 from ....utils.xml.writer import HAS_BLEACH
 
 # Check to see if the BeautifulSoup dependency is present.

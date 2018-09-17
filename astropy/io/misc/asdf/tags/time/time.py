@@ -2,17 +2,16 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from numpy.testing import assert_array_equal
-
 from asdf import yamlutil
+from numpy.testing import assert_array_equal
 from asdf.versioning import AsdfSpec
 
 from astropy import time
 from astropy import units as u
 from astropy.units import Quantity
 from astropy.coordinates import EarthLocation
-from ...types import AstropyAsdfType
 
+from ...types import AstropyAsdfType
 
 _guessable_formats = set(['iso', 'byear', 'jyear', 'yday'])
 

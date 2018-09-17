@@ -1,22 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
-
 import numpy as np
-from numpy.testing import assert_almost_equal
-from numpy.testing import assert_allclose
+import pytest
+from numpy.testing import assert_allclose, assert_almost_equal
 
-from ...utils.data import get_pkg_data_contents, get_pkg_data_filename
-from ...time import Time
 from ... import units as u
-
-from ..wcs import WCS, Sip, WCSSUB_LONGITUDE, WCSSUB_LATITUDE
-from ..utils import (proj_plane_pixel_scales, proj_plane_pixel_area,
-                     is_proj_plane_distorted,
-                     non_celestial_pixel_scales, wcs_to_celestial_frame,
-                     celestial_frame_to_wcs, skycoord_to_pixel,
-                     pixel_to_skycoord, custom_wcs_to_frame_mappings,
-                     custom_frame_to_wcs_mappings, add_stokes_axis_to_wcs)
+from ..wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE, Sip
+from ...time import Time
+from ..utils import (pixel_to_skycoord, skycoord_to_pixel, proj_plane_pixel_area,
+                     add_stokes_axis_to_wcs, celestial_frame_to_wcs, wcs_to_celestial_frame,
+                     is_proj_plane_distorted, proj_plane_pixel_scales, non_celestial_pixel_scales,
+                     custom_frame_to_wcs_mappings, custom_wcs_to_frame_mappings)
+from ...utils.data import get_pkg_data_contents, get_pkg_data_filename
 
 
 def test_wcs_dropping():

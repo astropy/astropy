@@ -1,15 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import functools
-import inspect
 import pickle
+import inspect
+import functools
 
 import pytest
 
-from ..decorators import (deprecated_attribute, deprecated, wraps,
-                          sharedmethod, classproperty,
-                          format_doc, deprecated_renamed_argument)
-from ..exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from ..decorators import (wraps, deprecated, format_doc, sharedmethod, classproperty,
+                          deprecated_attribute, deprecated_renamed_argument)
+from ..exceptions import AstropyUserWarning, AstropyDeprecationWarning
 from ...tests.helper import catch_warnings
 
 

@@ -1,16 +1,16 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import sys
+
 import numpy as np
 
 from .base import DTYPE2BITPIX
+from ..util import _is_int, _unsigned_zero, _is_pseudo_unsigned
 from .image import PrimaryHDU
 from .table import _TableLikeHDU
-from ..column import Column, ColDefs, FITS2NUMPY
-from ..fitsrec import FITS_rec, FITS_record
-from ..util import _is_int, _is_pseudo_unsigned, _unsigned_zero
-
+from ..column import FITS2NUMPY, Column, ColDefs
 from ....utils import lazyproperty
+from ..fitsrec import FITS_rec, FITS_record
 
 
 class Group(FITS_record):

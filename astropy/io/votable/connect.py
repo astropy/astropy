@@ -3,13 +3,13 @@
 
 import os
 
-
 from . import parse, from_table
-from .tree import VOTableFile, Table as VOTable
 from .. import registry as io_registry
+from .tree import Table as VOTable
+from .tree import VOTableFile
 from ...table import Table
-from ...table.column import BaseColumn
 from ...units import Quantity
+from ...table.column import BaseColumn
 
 
 def is_votable(origin, filepath, fileobj, *args, **kwargs):

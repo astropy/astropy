@@ -13,13 +13,11 @@ import warnings
 
 import numpy as np
 
+from . import format as unit_format
+from .utils import sanitize_scale, validate_power, resolve_fractions, is_effectively_unity
+from ..utils.misc import InheritDocstrings, isiterable
 from ..utils.decorators import lazyproperty
 from ..utils.exceptions import AstropyWarning
-from ..utils.misc import isiterable, InheritDocstrings
-from .utils import (is_effectively_unity, sanitize_scale, validate_power,
-                    resolve_fractions)
-from . import format as unit_format
-
 
 __all__ = [
     'UnitsError', 'UnitsWarning', 'UnitConversionError', 'UnitTypeError',

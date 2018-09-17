@@ -6,7 +6,6 @@ from io import StringIO
 import numpy as np
 
 from ... import ascii
-
 from .common import assert_equal
 
 

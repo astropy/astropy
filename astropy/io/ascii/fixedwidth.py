@@ -10,9 +10,8 @@ fixedwidth.py:
 
 
 
-from . import core
-from .core import InconsistentTableError, DefaultSplitter
-from . import basic
+from . import core, basic
+from .core import DefaultSplitter, InconsistentTableError
 
 
 class FixedWidthSplitter(core.BaseSplitter):

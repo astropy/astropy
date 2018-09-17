@@ -4,12 +4,13 @@
 
 import operator
 
-import pytest
 import numpy as np
+import pytest
 
-from ...tests.helper import assert_follows_unicode_guidelines, catch_warnings
 from ... import table
 from ... import units as u
+from ...tests.helper import catch_warnings, assert_follows_unicode_guidelines
+from ...utils.tests.test_metadata import MetaBaseTest
 
 
 class TestColumn():
@@ -438,7 +439,6 @@ class TestAttrEqual():
 # and any minimal set of args to pass.
 
 
-from ...utils.tests.test_metadata import MetaBaseTest
 
 
 class TestMetaColumn(MetaBaseTest):

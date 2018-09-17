@@ -1,28 +1,28 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 
-import bz2
-import gzip
-import itertools
 import os
-import shutil
+import bz2
 import sys
+import gzip
+import shutil
 import warnings
+import itertools
 
 import numpy as np
 
 from . import compressed
-from .base import _BaseHDU, _ValidHDU, _NonstandardHDU, ExtensionHDU
-from .groups import GroupsHDU
-from .image import PrimaryHDU, ImageHDU
+from .base import ExtensionHDU, _BaseHDU, _ValidHDU, _NonstandardHDU
 from ..file import _File
-from ..header import _pad_length
-from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
+from ..util import (_is_int, _tmp_name, ignore_sigint, fileobj_closed,
                     _get_array_mmap, _free_space_check)
-from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
+from .image import ImageHDU, PrimaryHDU
+from .groups import GroupsHDU
+from ..header import _pad_length
+from ..verify import VerifyError, VerifyWarning, _Verify, _ErrList
 from ....utils import indent
-from ....utils.exceptions import AstropyUserWarning
 from ....utils.decorators import deprecated_renamed_argument
+from ....utils.exceptions import AstropyUserWarning
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,

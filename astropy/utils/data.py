@@ -4,28 +4,27 @@
 caching data files.
 """
 
-import atexit
-import contextlib
-import fnmatch
-import hashlib
-import os
 import io
-import pathlib
-import shutil
-import socket
+import os
 import sys
 import time
-import urllib.request
+import atexit
+import shelve
+import shutil
+import socket
+import fnmatch
+import hashlib
+import pathlib
+import contextlib
 import urllib.error
 import urllib.parse
-import shelve
-
+import urllib.request
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
 
 from .. import config as _config
 from ..utils.exceptions import AstropyWarning
-from ..utils.introspection import find_current_module, resolve_name
+from ..utils.introspection import resolve_name, find_current_module
 
 __all__ = [
     'Conf', 'conf', 'get_readable_fileobj', 'get_file_contents',

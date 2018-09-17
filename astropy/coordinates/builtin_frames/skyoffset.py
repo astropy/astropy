@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ... import units as u
-from ...utils.compat import namedtuple_asdict
 from .. import representation as r
-from ..transformations import DynamicMatrixTransform, FunctionTransform
-from ..baseframe import (frame_transform_graph, RepresentationMapping,
-                         BaseCoordinateFrame)
-from ..attributes import CoordinateAttribute, QuantityAttribute
-from ..matrix_utilities import (rotation_matrix,
-                                matrix_product, matrix_transpose)
+from ... import units as u
+from ..baseframe import BaseCoordinateFrame, RepresentationMapping, frame_transform_graph
+from ..attributes import QuantityAttribute, CoordinateAttribute
+from ...utils.compat import namedtuple_asdict
+from ..transformations import FunctionTransform, DynamicMatrixTransform
+from ..matrix_utilities import matrix_product, rotation_matrix, matrix_transpose
 
 _skyoffset_cache = {}
 

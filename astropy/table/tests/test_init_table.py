@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from collections import OrderedDict, UserDict
+from collections import UserDict, OrderedDict
 from collections.abc import Mapping
 
-import pytest
 import numpy as np
+import pytest
 
 from ...table import Column, TableColumns
 

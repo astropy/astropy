@@ -10,12 +10,7 @@ property.
 """
 
 
-from . import core
-from . import si
-from . import astrophys
-from . import cgs
-from . import imperial
-
+from . import si, cgs, core, imperial, astrophys
 
 __all__ = ['def_physical_type', 'get_physical_type']
 

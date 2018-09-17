@@ -1,13 +1,12 @@
-from importlib import import_module
 import re
 from copy import deepcopy
+from importlib import import_module
 from collections import OrderedDict
 
-from ..utils.data_info import MixinInfo
-from .column import Column
 from .table import Table, QTable, has_info_class
+from .column import Column
 from ..units.quantity import QuantityInfo
-
+from ..utils.data_info import MixinInfo
 
 __construct_mixin_classes = ('astropy.time.core.Time',
                              'astropy.time.core.TimeDelta',

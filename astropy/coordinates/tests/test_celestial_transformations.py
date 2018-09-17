@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 
+from .. import SkyCoord, EarthLocation, CartesianRepresentation
 from ... import units as u
-from ..distances import Distance
-from ..builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
-                              Supergalactic, Galactocentric, HCRS, GCRS, LSR)
-from .. import SkyCoord
-from ...tests.helper import assert_quantity_allclose as assert_allclose
-from .. import EarthLocation, CartesianRepresentation
 from ...time import Time
 from ...units import allclose
+from ..distances import Distance
+from ...tests.helper import assert_quantity_allclose as assert_allclose
+from ..builtin_frames import (FK4, FK5, LSR, GCRS, HCRS, ICRS, Galactic,
+                              FK4NoETerms, Supergalactic, Galactocentric)
 
 # used below in the next parametrized test
 m31_sys = [ICRS, FK5, FK4, Galactic]

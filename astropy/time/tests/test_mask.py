@@ -1,12 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import functools
+
 import numpy as np
 
-from ...utils.compat import NUMPY_LT_1_14
-from ...tests.helper import pytest
 from .. import Time
 from ...table import Table
+from ...tests.helper import pytest
+from ...utils.compat import NUMPY_LT_1_14
 
 try:
     import h5py  # pylint: disable=W0611

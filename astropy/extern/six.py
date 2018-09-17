@@ -7,7 +7,6 @@ Handle loading six package from system or from the bundled copy
 import imp
 from distutils.version import StrictVersion
 
-
 _SIX_MIN_VERSION = StrictVersion('1.10.0')
 
 # Update this to prevent Astropy from using its bundled copy of six

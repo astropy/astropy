@@ -8,9 +8,9 @@ second edition, 1998, Willmann-Bell.
 import numpy as np
 from numpy.polynomial.polynomial import polyval
 
-from .. import units as u
-from .. import _erfa as erfa
 from . import ICRS, SkyCoord, GeocentricTrueEcliptic
+from .. import _erfa as erfa
+from .. import units as u
 from .builtin_frames.utils import get_jd12
 
 __all__ = ["calc_moon"]

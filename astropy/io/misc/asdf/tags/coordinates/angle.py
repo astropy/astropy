@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from asdf.yamlutil import custom_tree_to_tagged_tree
+
 from astropy.coordinates import Angle, Latitude, Longitude
 
 from ..unit.quantity import QuantityType
-
 
 __all__ = ['AngleType', 'LatitudeType', 'LongitudeType']
 

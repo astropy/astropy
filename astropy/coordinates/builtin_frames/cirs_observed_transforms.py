@@ -7,16 +7,14 @@ Currently that just means AltAz.
 
 import numpy as np
 
-from ... import units as u
-from ..baseframe import frame_transform_graph
-from ..transformations import FunctionTransformWithFiniteDifference
-from ..representation import (SphericalRepresentation,
-                              UnitSphericalRepresentation)
 from ... import _erfa as erfa
-
+from ... import units as u
 from .cirs import CIRS
 from .altaz import AltAz
-from .utils import get_polar_motion, get_dut1utc, get_jd12, PIOVER2
+from .utils import PIOVER2, get_jd12, get_dut1utc, get_polar_motion
+from ..baseframe import frame_transform_graph
+from ..representation import SphericalRepresentation, UnitSphericalRepresentation
+from ..transformations import FunctionTransformWithFiniteDifference
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, AltAz)

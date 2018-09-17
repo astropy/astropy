@@ -2,11 +2,11 @@
 
 import platform
 
-import pytest
 import numpy as np
+import pytest
 
-from ....io import fits
 from . import FitsTestCase
+from ....io import fits
 from ....tests.helper import ignore_warnings
 
 

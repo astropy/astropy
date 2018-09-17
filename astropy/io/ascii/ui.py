@@ -9,8 +9,8 @@ ui.py:
 """
 
 
-import re
 import os
+import re
 import sys
 import copy
 import time
@@ -20,21 +20,9 @@ from io import StringIO
 
 import numpy as np
 
-from . import core
-from . import basic
-from . import cds
-from . import daophot
-from . import ecsv
-from . import sextractor
-from . import ipac
-from . import latex
-from . import html
-from . import rst
-from . import fastbasic
-from . import cparser
-from . import fixedwidth
-
-from ...table import Table, vstack, MaskedColumn
+from . import (cds, rst, core, ecsv, html, ipac, basic, latex,
+               cparser, daophot, fastbasic, fixedwidth, sextractor)
+from ...table import Table, MaskedColumn, vstack
 from ...utils.data import get_readable_fileobj
 from ...utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 

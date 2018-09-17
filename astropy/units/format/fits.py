@@ -5,13 +5,13 @@ Handles the "FITS" unit format.
 """
 
 
-import numpy as np
-
 import copy
 import keyword
 import operator
 
-from . import core, generic, utils
+import numpy as np
+
+from . import core, utils, generic
 
 
 class Fits(generic.Generic):

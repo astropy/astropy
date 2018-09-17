@@ -2,8 +2,8 @@
 
 import pytest
 
-from ...tests.helper import pickle_protocol, check_pickling_recovery
 from ... import cosmology as cosm
+from ...tests.helper import pickle_protocol, check_pickling_recovery
 
 originals = [cosm.FLRW]
 xfails = [False]

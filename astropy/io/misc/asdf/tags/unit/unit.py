@@ -4,6 +4,7 @@
 import six
 
 from astropy.units import Unit, UnitBase
+
 from ...types import AstropyAsdfType
 
 

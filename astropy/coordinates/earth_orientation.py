@@ -11,10 +11,9 @@ is instead primarily for internal use in `coordinates`
 
 import numpy as np
 
-from ..time import Time
 from .. import units as u
-from .matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
-
+from ..time import Time
+from .matrix_utilities import matrix_product, rotation_matrix, matrix_transpose
 
 jd1950 = Time('B1950', scale='tai').jd
 jd2000 = Time('J2000', scale='utc').jd

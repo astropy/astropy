@@ -6,13 +6,13 @@
 This includes tests for the Distance class and related calculations
 """
 
-import pytest
 import numpy as np
+import pytest
 from numpy import testing as npt
 
+from .. import Distance, Latitude, Longitude, CartesianRepresentation
 from ... import units as u
 from ...units import allclose as quantity_allclose
-from .. import Longitude, Latitude, Distance, CartesianRepresentation
 from ..builtin_frames import ICRS, Galactic
 
 try:

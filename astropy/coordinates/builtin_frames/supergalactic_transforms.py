@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ..matrix_utilities import (rotation_matrix,
-                                matrix_product, matrix_transpose)
-from ..baseframe import frame_transform_graph
-from ..transformations import StaticMatrixTransform
-
 from .galactic import Galactic
+from ..baseframe import frame_transform_graph
 from .supergalactic import Supergalactic
+from ..transformations import StaticMatrixTransform
+from ..matrix_utilities import matrix_product, rotation_matrix, matrix_transpose
 
 
 @frame_transform_graph.transform(StaticMatrixTransform, Galactic, Supergalactic)

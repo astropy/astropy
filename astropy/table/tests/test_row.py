@@ -3,12 +3,12 @@
 
 import sys
 
-import pytest
 import numpy as np
+import pytest
 
 from ... import table
-from ...table import Row
 from ... import units as u
+from ...table import Row
 from .conftest import MaskedTable
 
 

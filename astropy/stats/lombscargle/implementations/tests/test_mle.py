@@ -1,8 +1,8 @@
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from ..mle import design_matrix, periodic_fit
+from ..mle import periodic_fit, design_matrix
 
 
 @pytest.fixture

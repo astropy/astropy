@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ...utils.decorators import format_doc
-from ..representation import CartesianRepresentation, CartesianDifferential
+from .utils import DEFAULT_OBSTIME
 from ..baseframe import BaseCoordinateFrame, base_doc
 from ..attributes import TimeAttribute
-from .utils import DEFAULT_OBSTIME
+from ..representation import CartesianDifferential, CartesianRepresentation
+from ...utils.decorators import format_doc
 
 __all__ = ['ITRS']
 

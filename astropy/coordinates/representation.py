@@ -6,24 +6,23 @@ coordinates.
 
 
 import abc
-import functools
-import operator
-from collections import OrderedDict
 import inspect
+import operator
 import warnings
+import functools
+from collections import OrderedDict
 
 import numpy as np
+
 import astropy.units as u
 
-from .angles import Angle, Longitude, Latitude
-from .distances import Distance
 from .._erfa import ufunc as erfa_ufunc
-from ..utils import ShapedLikeNDArray, classproperty
-
-from ..utils import deprecated_attribute
-from ..utils.exceptions import AstropyDeprecationWarning
+from ..utils import ShapedLikeNDArray, classproperty, deprecated_attribute
+from .angles import Angle, Latitude, Longitude
+from .distances import Distance
 from ..utils.misc import InheritDocstrings
 from ..utils.compat import NUMPY_LT_1_14
+from ..utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",

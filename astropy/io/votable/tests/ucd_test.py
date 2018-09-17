@@ -3,10 +3,9 @@
 
 
 
-from ....tests.helper import raises
-
 # LOCAL
 from .. import ucd
+from ....tests.helper import raises
 
 
 def test_none():

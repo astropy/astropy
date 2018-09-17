@@ -1,14 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_array_almost_equal_nulp
 
-from ..biweight import (biweight_location, biweight_scale,
-                        biweight_midvariance, biweight_midcovariance,
-                        biweight_midcorrelation)
-from ...tests.helper import catch_warnings
+from ..biweight import (biweight_scale, biweight_location, biweight_midvariance,
+                        biweight_midcovariance, biweight_midcorrelation)
 from ...utils.misc import NumpyRNGContext
+from ...tests.helper import catch_warnings
 
 
 def test_biweight_location():

@@ -3,8 +3,7 @@
 import numpy as np
 
 from .. import units as u
-
-from .wcs import WCS, WCSSUB_LONGITUDE, WCSSUB_LATITUDE
+from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
 
 __doctest_skip__ = ['wcs_to_celestial_frame', 'celestial_frame_to_wcs']
 

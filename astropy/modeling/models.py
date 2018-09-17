@@ -6,15 +6,14 @@ Creates a common namespace for all pre-defined models.
 
 
 from .core import custom_model  # pylint: disable=W0611
+from .tabular import *
 from .mappings import *
-from .projections import *
+from .blackbody import BlackBody1D
+from .powerlaws import *
 from .rotations import *
 from .polynomial import *
+from .projections import *
 from .functional_models import *
-from .powerlaws import *
-from .tabular import *
-from .blackbody import BlackBody1D
-
 
 """
 Attach a docstring explaining constraints to all models which support them.

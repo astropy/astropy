@@ -4,19 +4,18 @@
 
 import warnings
 from io import StringIO
-from collections import OrderedDict
 from copy import deepcopy
+from collections import OrderedDict
 
 import numpy as np
 import pytest
 
+from ... import time, table
 from ... import units as u
-from ... import time
 from ... import coordinates
-from ... import table
 from ..info import serialize_method_as
-from ...utils.data_info import data_info_factory, dtype_info_name
 from ..table_helpers import simple_table
+from ...utils.data_info import dtype_info_name, data_info_factory
 
 
 def test_table_info_attributes(table_types):

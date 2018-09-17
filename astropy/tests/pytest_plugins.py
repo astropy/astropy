@@ -9,11 +9,10 @@ TODO: This entire module should eventually be removed once backwards
 compatibility is no longer supported.
 """
 import warnings
-from ..utils.exceptions import AstropyDeprecationWarning
 
 from .helper import enable_deprecations_as_exceptions
-from .plugins.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS
-
+from .plugins.display import TESTED_VERSIONS, PYTEST_HEADER_MODULES
+from ..utils.exceptions import AstropyDeprecationWarning
 
 _warning_message = "The module `astropy.tests.pytest_plugins has been " \
     "deprecated. The variables `PYTEST_HEADER_MODULES` and `TESTED_VERSIONS`" \

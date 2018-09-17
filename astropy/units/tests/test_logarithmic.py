@@ -7,12 +7,13 @@
 import pickle
 import itertools
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
+from ... import units as u
+from ... import constants as c
 from ...tests.helper import assert_quantity_allclose
-from ... import units as u, constants as c
 
 lu_units = [u.dex, u.mag, u.decibel]
 

@@ -1,27 +1,25 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import gzip
-import bz2
 import io
-import mmap
 import os
+import bz2
+import gzip
+import mmap
 import pathlib
-import warnings
 import zipfile
+import warnings
 
-import pytest
 import numpy as np
+import pytest
 
 from . import FitsTestCase
-
-from ..convenience import _getext
-from ..diff import FITSDiff
-from ..file import _File, GZIP_MAGIC
-
 from ....io import fits
-from ....tests.helper import raises, catch_warnings, ignore_warnings
-from ....utils.data import conf, get_pkg_data_filename
+from ..diff import FITSDiff
+from ..file import GZIP_MAGIC, _File
 from ....utils import data
+from ..convenience import _getext
+from ....utils.data import conf, get_pkg_data_filename
+from ....tests.helper import raises, catch_warnings, ignore_warnings
 
 
 class TestCore(FitsTestCase):

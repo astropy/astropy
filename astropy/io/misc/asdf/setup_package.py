@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license
 import os
 
+
 def get_package_data():
     # Installs the schema files
     schemas = []

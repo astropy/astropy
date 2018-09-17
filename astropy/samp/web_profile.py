@@ -5,9 +5,7 @@ from urllib.parse import parse_qs
 from urllib.request import urlopen
 
 from ..utils.data import get_pkg_data_contents
-
-from .standard_profile import (SAMPSimpleXMLRPCRequestHandler,
-                               ThreadingXMLRPCServer)
+from .standard_profile import ThreadingXMLRPCServer, SAMPSimpleXMLRPCRequestHandler
 
 __all__ = []
 

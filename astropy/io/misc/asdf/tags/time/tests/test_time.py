@@ -4,16 +4,15 @@
 import datetime
 from collections import OrderedDict
 
-import pytest
-
 import numpy as np
+import pytest
+import asdf.schema as asdf_schema
+from asdf import AsdfFile, tagged, yamlutil
+from asdf.tests import helpers
 
 from astropy import time
 
 asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
-from asdf import AsdfFile, yamlutil, tagged
-from asdf.tests import helpers
-import asdf.schema as asdf_schema
 
 
 def _flatten_combiners(schema):

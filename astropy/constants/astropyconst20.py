@@ -4,8 +4,9 @@ Astronomical and physics constants for Astropy v2.0.  See :mod:`astropy.constant
 for a complete listing of constants defined in Astropy.
 """
 import inspect
+
 from . import utils as _utils
-from . import codata2014, iau2015
+from . import iau2015, codata2014
 
 _utils._set_c(codata2014, iau2015, inspect.getmodule(inspect.currentframe()))
 

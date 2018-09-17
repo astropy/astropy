@@ -5,8 +5,8 @@ The SCEngine class uses the ``sortedcontainers`` package to implement an
 Index engine for Tables.
 """
 
-from collections import OrderedDict
 from itertools import starmap
+from collections import OrderedDict
 
 try:
     from sortedcontainers import SortedList

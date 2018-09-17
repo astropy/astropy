@@ -40,15 +40,14 @@ Example uses of fitscheck:
 """
 
 
-import logging
-import optparse
 import os
 import sys
+import logging
+import optparse
 import textwrap
 
-from ....tests.helper import catch_warnings
 from ... import fits
-
+from ....tests.helper import catch_warnings
 
 log = logging.getLogger('fitscheck')
 

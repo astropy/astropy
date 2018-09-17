@@ -5,20 +5,15 @@ This file tests the behaviour of subclasses of Representation and Frames
 from copy import deepcopy
 from collections import OrderedDict
 
-from astropy.coordinates import Longitude, Latitude
-from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
-                                                SphericalRepresentation,
+import astropy.units as u
+import astropy.coordinates
+from astropy.coordinates import ICRS, Latitude, Longitude
+from astropy.coordinates.baseframe import RepresentationMapping, frame_transform_graph
+from astropy.coordinates.representation import (REPRESENTATION_CLASSES, SphericalRepresentation,
                                                 UnitSphericalRepresentation)
-from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransform
-from astropy.coordinates import ICRS
-from astropy.coordinates.baseframe import RepresentationMapping
 
 from .. import representation as r
-
-import astropy.units as u
-
-import astropy.coordinates
 
 # Classes setup, borrowed from SunPy.
 

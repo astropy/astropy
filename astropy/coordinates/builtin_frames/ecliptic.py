@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ... import units as u
-from ...utils.decorators import format_doc
 from .. import representation as r
+from ... import units as u
+from .utils import EQUINOX_J2000, DEFAULT_OBSTIME
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
 from ..attributes import TimeAttribute
-from .utils import EQUINOX_J2000, DEFAULT_OBSTIME
+from ...utils.decorators import format_doc
 
 __all__ = ['GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
            'HeliocentricTrueEcliptic', 'BaseEclipticFrame']

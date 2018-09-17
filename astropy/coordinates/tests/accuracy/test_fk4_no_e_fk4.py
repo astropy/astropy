@@ -3,15 +3,14 @@
 
 import numpy as np
 
-from .... import units as u
-from ...builtin_frames import FK4NoETerms, FK4
-from ....time import Time
-from ....table import Table
-from ...angle_utilities import angular_separation
-from ....utils.data import get_pkg_data_contents
-
 # the number of tests to run
 from . import N_ACCURACY_TESTS
+from .... import units as u
+from ....time import Time
+from ....table import Table
+from ....utils.data import get_pkg_data_contents
+from ...builtin_frames import FK4, FK4NoETerms
+from ...angle_utilities import angular_separation
 
 # It looks as though SLALIB, which AST relies on, assumes a simplified version
 # of the e-terms corretion, so we have to up the tolerance a bit to get things

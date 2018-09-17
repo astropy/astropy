@@ -12,14 +12,12 @@ should be used for access.
 
 import math
 import itertools
+from warnings import warn
 
 import numpy as np
 
-from warnings import warn
-
-from ..utils.decorators import deprecated_renamed_argument
 from ..utils import isiterable
-
+from ..utils.decorators import deprecated_renamed_argument
 
 __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
            'binom_conf_interval', 'binned_binom_proportion',

@@ -1,11 +1,11 @@
 
 import pytest
 
-from ...tests.helper import assert_quantity_allclose
-from ...units import allclose as quantity_allclose
+from .. import Latitude, Longitude, EarthLocation
 from ... import units as u
-from .. import Longitude, Latitude, EarthLocation
-from ..sites import get_builtin_sites, get_downloaded_sites, SiteRegistry
+from ..sites import SiteRegistry, get_builtin_sites, get_downloaded_sites
+from ...units import allclose as quantity_allclose
+from ...tests.helper import assert_quantity_allclose
 
 
 def test_builtin_sites():

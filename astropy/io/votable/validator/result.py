@@ -5,23 +5,21 @@ file.
 """
 
 
-# STDLIB
-from xml.parsers.expat import ExpatError
-import hashlib
 import os
+import pickle
 import shutil
 import socket
-import subprocess
+import hashlib
 import warnings
-import pickle
-import urllib.request
-import urllib.error
+import subprocess
 import http.client
+import urllib.error
+import urllib.request
+# STDLIB
+from xml.parsers.expat import ExpatError
 
 # VO
-from .. import table
-from .. import exceptions
-from .. import xmlutil
+from .. import table, xmlutil, exceptions
 
 
 class Result:

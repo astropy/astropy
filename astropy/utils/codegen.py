@@ -3,15 +3,14 @@
 """Utilities for generating new Python code at runtime."""
 
 
-import inspect
-import itertools
-import keyword
 import os
 import re
+import inspect
+import keyword
 import textwrap
+import itertools
 
 from .introspection import find_current_module
-
 
 __all__ = ['make_function_with_signature']
 

@@ -1,16 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 
-from .test_table import SetupData
-from ..bst import BST, FastRBT, FastBST
-from ..sorted_array import SortedArray
-from ..soco import SCEngine, HAS_SOCO
-from ..table import QTable, Row, Table
 from ... import units as u
+from ..bst import BST, FastBST, FastRBT
+from ..soco import HAS_SOCO, SCEngine
 from ...time import Time
+from ..table import Row, Table, QTable
 from ..column import BaseColumn
+from .test_table import SetupData
+from ..sorted_array import SortedArray
 
 try:
     import bintrees

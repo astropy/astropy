@@ -16,37 +16,31 @@ parameters in each model making up the set.
 
 import abc
 import copy
+import types
 import copyreg
 import inspect
-import functools
 import operator
-import types
 import warnings
-
-from collections import defaultdict, OrderedDict
-from contextlib import suppress
+import functools
 from inspect import signature
-from itertools import chain, islice
 from functools import partial
+from itertools import chain, islice
+from contextlib import suppress
+from collections import OrderedDict, defaultdict
 
 import numpy as np
 
-from ..utils import indent, metadata
+from .utils import (AliasDict, ExpressionTree, _BoundingBox, combine_labels,
+                    get_inputs_and_params, _combine_equivalency_dict, make_binary_operator_eval)
 from ..table import Table
 from ..units import Quantity, UnitsError, dimensionless_unscaled
+from ..utils import (InheritDocstrings, IncompatibleShapeError, OrderedDescriptorContainer, indent,
+                     metadata, isiterable, sharedmethod, check_broadcast, find_current_module)
+from .parameters import Parameter, InputParameterError, param_repr_oneline
 from ..units.utils import quantity_asanyarray
-from ..utils import (sharedmethod, find_current_module,
-                     InheritDocstrings, OrderedDescriptorContainer,
-                     check_broadcast, IncompatibleShapeError, isiterable)
+from ..nddata.utils import add_array, extract_array
 from ..utils.codegen import make_function_with_signature
 from ..utils.exceptions import AstropyDeprecationWarning
-from .utils import (combine_labels, make_binary_operator_eval,
-                    ExpressionTree, AliasDict, get_inputs_and_params,
-                    _BoundingBox, _combine_equivalency_dict)
-from ..nddata.utils import add_array, extract_array
-
-from .parameters import Parameter, InputParameterError, param_repr_oneline
-
 
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
            'custom_model', 'ModelDefinitionError']

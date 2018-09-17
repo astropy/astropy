@@ -5,15 +5,12 @@
 
 
 import doctest
-
 from textwrap import dedent
 
 import pytest
 
-# test helper.run_tests function
-from ... import test as run_tests
-
 from .. import helper
+from ... import test as run_tests
 
 
 # run_tests should raise ValueError when asked to run on a module it can't find

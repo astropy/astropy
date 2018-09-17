@@ -4,25 +4,24 @@ Module to test fitting routines
 """
 
 import os.path
+import warnings
+from unittest import mock
 
-import pytest
 import numpy as np
+import pytest
 from numpy import linalg
 from numpy.testing import assert_allclose, assert_almost_equal
-from unittest import mock
 
 from . import irafutil
 from .. import models
-from ..core import Fittable2DModel, Parameter
-from ..fitting import *
-from ...utils import NumpyRNGContext
-from ...utils.data import get_pkg_data_filename
+from ..core import Parameter, Fittable2DModel
 from .utils import ignore_non_integer_warning
 from ...stats import sigma_clip
-
-from ...utils.exceptions import AstropyUserWarning
+from ...utils import NumpyRNGContext
+from ..fitting import *
 from ..fitting import populate_entry_points
-import warnings
+from ...utils.data import get_pkg_data_filename
+from ...utils.exceptions import AstropyUserWarning
 
 try:
     from scipy import optimize

@@ -7,10 +7,10 @@ colorbars.
 import numpy as np
 from numpy import ma
 
-from .interval import (PercentileInterval, AsymmetricPercentileInterval,
-                       ManualInterval, MinMaxInterval, BaseInterval)
-from .stretch import (LinearStretch, SqrtStretch, PowerStretch, LogStretch,
-                      AsinhStretch, BaseStretch)
+from .stretch import (LogStretch, BaseStretch, SqrtStretch,
+                      AsinhStretch, PowerStretch, LinearStretch)
+from .interval import (BaseInterval, ManualInterval, MinMaxInterval,
+                       PercentileInterval, AsymmetricPercentileInterval)
 
 try:
     import matplotlib  # pylint: disable=W0611

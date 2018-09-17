@@ -2,14 +2,13 @@
 # This module contains tests of a class equivalent to pre-1.0 NDData.
 
 
-import pytest
 import numpy as np
+import pytest
 
-from ..nddata import NDData
-from ..compat import NDDataArray
-from ..nduncertainty import StdDevUncertainty
 from ... import units as u
-
+from ..compat import NDDataArray
+from ..nddata import NDData
+from ..nduncertainty import StdDevUncertainty
 
 NDDATA_ATTRIBUTES = ['mask', 'flags', 'uncertainty', 'unit', 'shape', 'size',
                      'dtype', 'ndim', 'wcs', 'convert_unit_to']

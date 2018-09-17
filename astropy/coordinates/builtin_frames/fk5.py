@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ...utils.decorators import format_doc
-from ..baseframe import frame_transform_graph, base_doc
+from .. import earth_orientation as earth
+from .utils import EQUINOX_J2000
+from .baseradec import BaseRADecFrame, doc_components
+from ..baseframe import base_doc, frame_transform_graph
 from ..attributes import TimeAttribute
 from ..transformations import DynamicMatrixTransform
-from .. import earth_orientation as earth
-
-from .baseradec import BaseRADecFrame, doc_components
-from .utils import EQUINOX_J2000
+from ...utils.decorators import format_doc
 
 __all__ = ['FK5']
 

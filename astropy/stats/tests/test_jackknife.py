@@ -1,9 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
-
+import pytest
 from numpy.testing import assert_equal, assert_allclose
+
+from ..jackknife import jackknife_stats, jackknife_resampling
 
 try:
     import scipy  # pylint: disable=W0611
@@ -12,7 +13,6 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
-from ..jackknife import jackknife_resampling, jackknife_stats
 
 
 def test_jackknife_resampling():

@@ -15,10 +15,10 @@ import json
 from difflib import get_close_matches
 from collections.abc import Mapping
 
-from ..utils.data import get_pkg_data_contents, get_file_contents
+from .. import units as u
 from .earth import EarthLocation
 from .errors import UnknownSiteException
-from .. import units as u
+from ..utils.data import get_file_contents, get_pkg_data_contents
 
 
 class SiteRegistry(Mapping):

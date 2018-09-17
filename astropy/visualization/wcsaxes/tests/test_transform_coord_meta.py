@@ -1,17 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import pytest
 import numpy as np
+import pytest
 import matplotlib.pyplot as plt
 
+from .. import WCSAxes
 from .... import units as u
 from ....wcs import WCS
-
-from .. import WCSAxes
-from .test_images import BaseImageTests
 from ..transforms import CurvedTransform
-
+from .test_images import BaseImageTests
 from ....tests.image_tests import IMAGE_REFERENCE_DIR
 
 # Create fake transforms that roughly mimic a polar projection

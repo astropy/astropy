@@ -4,11 +4,8 @@
 from numpy.testing import assert_almost_equal
 
 from .... import units as u
-
-from ..utils import (select_step_degree, select_step_hour, select_step_scalar,
-                     coord_type_from_ctype)
-from ....tests.helper import (assert_quantity_allclose as
-                              assert_almost_equal_quantity)
+from ..utils import select_step_hour, select_step_degree, select_step_scalar, coord_type_from_ctype
+from ....tests.helper import assert_quantity_allclose as assert_almost_equal_quantity
 
 
 def test_select_step_degree():

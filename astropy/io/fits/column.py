@@ -1,26 +1,23 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import copy
-import operator
 import re
 import sys
-import warnings
-import weakref
+import copy
 import numbers
-
+import weakref
+import operator
+import warnings
 from functools import reduce
-from collections import OrderedDict
 from contextlib import suppress
+from collections import OrderedDict
 
 import numpy as np
 from numpy import char as chararray
 
-from .card import Card, CARD_LENGTH
-from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
-                   NotifierMixin)
+from .card import CARD_LENGTH, Card
+from .util import NotifierMixin, cmp, _is_int, pairwise, encode_ascii, _convert_array
 from .verify import VerifyError, VerifyWarning
-
-from ...utils import lazyproperty, isiterable, indent
+from ...utils import indent, isiterable, lazyproperty
 from ...utils.exceptions import AstropyUserWarning
 
 __all__ = ['Column', 'ColDefs', 'Delayed']

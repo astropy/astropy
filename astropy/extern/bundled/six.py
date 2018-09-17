@@ -22,11 +22,11 @@
 
 from __future__ import absolute_import
 
-import functools
-import itertools
-import operator
 import sys
 import types
+import operator
+import functools
+import itertools
 
 __author__ = "Benjamin Peterson <benjamin@python.org>"
 __version__ = "1.10.0"

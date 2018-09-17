@@ -6,8 +6,7 @@ from matplotlib.patches import Polygon
 
 from ... import units as u
 from ...coordinates.representation import UnitSphericalRepresentation
-from ...coordinates.matrix_utilities import rotation_matrix, matrix_product
-
+from ...coordinates.matrix_utilities import matrix_product, rotation_matrix
 
 __all__ = ['SphericalCircle']
 

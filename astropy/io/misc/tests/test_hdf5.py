@@ -1,18 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import pytest
 import numpy as np
-
-from ....tests.helper import catch_warnings
-from ....table import Table, QTable, NdarrayMixin, Column
-from ....table.table_helpers import simple_table
+import pytest
 
 from .... import units as u
-
-from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
 from ....time import Time, TimeDelta
+from ....table import Table, Column, QTable, NdarrayMixin
+from ....coordinates import Angle, Latitude, SkyCoord, Longitude, EarthLocation
+from ....tests.helper import catch_warnings
 from ....units.quantity import QuantityInfo
+from ....table.table_helpers import simple_table
 
 try:
     import h5py

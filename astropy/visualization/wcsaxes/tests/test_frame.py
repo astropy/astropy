@@ -1,16 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 import matplotlib.pyplot as plt
 
-from ....wcs import WCS
-
 from .. import WCSAxes
+from ....wcs import WCS
 from ..frame import BaseFrame
-
-from ....tests.image_tests import IMAGE_REFERENCE_DIR
 from .test_images import BaseImageTests
+from ....tests.image_tests import IMAGE_REFERENCE_DIR
 
 
 class HexagonalFrame(BaseFrame):

@@ -1,35 +1,30 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from .index import TableIndices, TableLoc, TableILoc, TableLocIndices
-
 import re
 import sys
-from collections import OrderedDict
-from collections.abc import Mapping
 import warnings
 from copy import deepcopy
+from collections import OrderedDict
+from collections.abc import Mapping
 
 import numpy as np
 from numpy import ma
 
+from . import conf, groups
 from .. import log
 from ..io import registry as io_registry
+from .row import Row
+from .info import TableInfo, serialize_method_as
+from .index import (Index, TableLoc, TableILoc, TableIndices,
+                    TableLocIndices, get_index, _IndexModeContext)
 from ..units import Quantity, QuantityInfo
-from ..utils import isiterable, ShapedLikeNDArray
+from ..utils import ShapedLikeNDArray, isiterable
+from .column import Column, BaseColumn, FalseArray, MaskedColumn, col_copy, _auto_names
+from .pprint import TableFormatter
+from .np_utils import fix_column_name, recarray_fromrecords
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
-from ..utils.exceptions import AstropyDeprecationWarning, NoValue
-
-from . import groups
-from .pprint import TableFormatter
-from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
-                     col_copy)
-from .row import Row
-from .np_utils import fix_column_name, recarray_fromrecords
-from .info import TableInfo, serialize_method_as
-from .index import Index, _IndexModeContext, get_index
-from . import conf
-
+from ..utils.data_info import DataInfo, MixinInfo, BaseColumnInfo, ParentDtypeInfo
+from ..utils.exceptions import NoValue, AstropyDeprecationWarning
 
 __doctest_skip__ = ['Table.read', 'Table.write',
                     'Table.convert_bytestring_to_unicode',

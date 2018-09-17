@@ -5,14 +5,18 @@
 import textwrap
 from collections import OrderedDict
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
-from ..nddata import NDData
-from ..nduncertainty import NDUncertainty, StdDevUncertainty
 from ... import units as u
 from ...utils import NumpyRNGContext
+from ..nddata import NDData
+from ..nduncertainty import NDUncertainty, StdDevUncertainty
+# Check that the meta descriptor is working as expected. The MetaBaseTest class
+# takes care of defining all the tests, and we simply have to define the class
+# and any minimal set of args to pass.
+from ...utils.tests.test_metadata import MetaBaseTest
 
 
 class FakeUncertainty(NDUncertainty):
@@ -371,10 +375,6 @@ def test_param_unit():
     assert nd3.unit == u.km
 
 
-# Check that the meta descriptor is working as expected. The MetaBaseTest class
-# takes care of defining all the tests, and we simply have to define the class
-# and any minimal set of args to pass.
-from ...utils.tests.test_metadata import MetaBaseTest
 
 
 class TestMetaNDData(MetaBaseTest):

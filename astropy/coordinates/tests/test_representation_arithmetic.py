@@ -2,20 +2,19 @@
 
 import functools
 
-import pytest
 import numpy as np
+import pytest
 
+from .. import (Latitude, Longitude, RadialDifferential, RadialRepresentation,
+                CartesianDifferential, SphericalDifferential, CartesianRepresentation,
+                CylindricalDifferential, SphericalRepresentation, CylindricalRepresentation,
+                UnitSphericalDifferential, SphericalCosLatDifferential,
+                UnitSphericalRepresentation, PhysicsSphericalDifferential,
+                PhysicsSphericalRepresentation, UnitSphericalCosLatDifferential)
 from ... import units as u
-from .. import (PhysicsSphericalRepresentation, CartesianRepresentation,
-                CylindricalRepresentation, SphericalRepresentation,
-                UnitSphericalRepresentation, SphericalDifferential,
-                CartesianDifferential, UnitSphericalDifferential,
-                SphericalCosLatDifferential, UnitSphericalCosLatDifferential,
-                PhysicsSphericalDifferential, CylindricalDifferential,
-                RadialRepresentation, RadialDifferential, Longitude, Latitude)
+from ...tests.helper import assert_quantity_allclose
 from ..representation import DIFFERENTIAL_CLASSES
 from ..angle_utilities import angular_separation
-from ...tests.helper import assert_quantity_allclose
 
 
 def assert_representation_allclose(actual, desired, rtol=1.e-7, atol=None,

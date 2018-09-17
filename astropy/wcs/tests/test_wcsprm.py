@@ -3,20 +3,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import gc
-import locale
 import re
+import locale
 
+import numpy as np
 import pytest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-import numpy as np
 
-from ...tests.helper import raises, catch_warnings
-from ...io import fits
-from .. import wcs
-from .. import _wcs
-from ...utils.data import get_pkg_data_contents, get_pkg_data_fileobj, get_pkg_data_filename
+from .. import wcs, _wcs
 from ... import units as u
-
+from ...io import fits
+from ...utils.data import get_pkg_data_fileobj, get_pkg_data_contents, get_pkg_data_filename
+from ...tests.helper import raises, catch_warnings
 
 ######################################################################
 

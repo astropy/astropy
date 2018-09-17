@@ -8,19 +8,17 @@ define their own models.
 """
 
 
-import functools
-import numbers
 import types
+import numbers
 import operator
+import functools
 
 import numpy as np
 
 from .. import units as u
+from .utils import array_repr_oneline, get_inputs_and_params
 from ..units import Quantity, UnitsError
-from ..utils import isiterable, OrderedDescriptor
-from .utils import array_repr_oneline
-
-from .utils import get_inputs_and_params
+from ..utils import OrderedDescriptor, isiterable
 
 __all__ = ['Parameter', 'InputParameterError', 'ParameterError']
 

@@ -1,29 +1,24 @@
-import os
 import gc
+import os
 import pathlib
 import warnings
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from ..column import _parse_tdisp_format, _fortran_to_python_format, \
-    python_to_tdisp
-
 from .. import HDUList, PrimaryHDU, BinTableHDU
-
 from ... import fits
-
 from .... import units as u
-from ....table import Table, QTable, NdarrayMixin, Column
-from ....table.table_helpers import simple_table
-from ....tests.helper import catch_warnings
-from ....units.format.fits import UnitScaleError
-
-from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
 from ....time import Time, TimeDelta
+from ..column import python_to_tdisp, _parse_tdisp_format, _fortran_to_python_format
+from ....table import Table, Column, QTable, NdarrayMixin
 from ....units import allclose as quantity_allclose
+from ....coordinates import Angle, Latitude, SkyCoord, Longitude, EarthLocation
+from ....tests.helper import catch_warnings
 from ....units.quantity import QuantityInfo
+from ....units.format.fits import UnitScaleError
+from ....table.table_helpers import simple_table
 
 try:
     import yaml  # pylint: disable=W0611

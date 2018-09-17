@@ -4,7 +4,7 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 from ... import units as u
-from ..matrix_utilities import rotation_matrix, angle_axis
+from ..matrix_utilities import angle_axis, rotation_matrix
 
 
 def test_rotation_matrix():
