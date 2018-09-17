@@ -343,6 +343,20 @@ position, and ``wcs`` object from above to create a cutout with size
     cutout = Cutout2D(data, position, size, wcs=wcs)
     plt.imshow(cutout.data, origin='lower')
 
+
+Saving a 2D Cutout to a FITS file with an updated WCS
+=====================================================
+
+A `~astropy.nddata.utils.Cutout2D` object can be easily saved to a
+FITS file, including the updated WCS object for the cutout region.  In
+this example, we download an example FITS image and create a cutout
+image.  The resulting `~astropy.nddata.utils.Cutout2D` object is then
+saved to a new FITS file with the updated WCS for the cutout region.
+
+.. literalinclude:: examples/cutout2d_tofits.py
+   :language: python
+
+
 Reference/API
 =============
 
