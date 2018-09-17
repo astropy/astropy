@@ -233,7 +233,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         return np.ones((self.world_n_dim, self.pixel_n_dim), dtype=bool)
 
     @property
-    @abc.abstractmethod
     def serialized_classes(self):
         """
         Indicates whether Python objects are given in serialized form or as
