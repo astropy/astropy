@@ -66,7 +66,7 @@ class UfuncHelpers(dict):
             raise TypeError("Cannot use ufunc '{0}' with quantities"
                             .format(ufunc.__name__))
 
-        for module, module_info in self.modules.items():
+        for module, module_info in list(self.modules.items()):
             if ufunc.__name__ in module_info['names']:
                 # A ufunc with the same name is supported by this module.
                 # Of course, this doesn't necessarily mean it is the
