@@ -388,11 +388,13 @@ class TestHDUListFunctions(FitsTestCase):
         f = fits.open(self.data('test0.fits'))
         hdul = fits.HDUList()
         hdul.append(f[0].copy())
-        hdul.append(fits.ImageHDU(header=f[1].header))
+        hdu = fits.ImageHDU(header=f[1].header)
+        hdul.append(hdu)
 
         assert hdul[1].header['EXTNAME'] == 'SCI'
         assert hdul[1].header['EXTVER'] == 1
         assert hdul.index_of(('SCI', 1)) == 1
+        assert hdul.index_of(hdu) == len(hdul) - 1
 
     def test_update_filelike(self):
         """Test opening a file-like object in update mode and resizing the
@@ -826,8 +828,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         Regression test for https://github.com/astropy/astropy/issues/3060
         """
-
-        hdulist = fits.HDUList()
+        hdulist = fits.open(self.data('o4sp040b0_raw.fits'))
         hdulist.append(fits.ImageHDU(name='a'))
 
         assert 'a' in hdulist
@@ -838,6 +839,8 @@ class TestHDUListFunctions(FitsTestCase):
         assert ('a', 2) not in hdulist
         assert ('b', 1) not in hdulist
         assert ('b', 2) not in hdulist
+        assert hdulist[0] in hdulist
+        assert fits.ImageHDU() not in hdulist
 
     def test_overwrite_vs_clobber(self):
         hdulist = fits.HDUList([fits.PrimaryHDU()])
