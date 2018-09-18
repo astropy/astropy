@@ -17,11 +17,15 @@ Use broadcasting to transform many SkyCoords into frames with vector properties
  >>> from astropy import coordinates as coord
  >>> from astropy.coordinates.tests.utils import randomly_sample_sphere
  >>> from astropy.time import Time
+<<<<<<< HEAD
  >>> from astropy import units as u
 =======
  >>> from astropy.coordinates.tests.utils import randomly_sample_sphere
  >>> from astropy.time import Time
 >>>>>>> Added broadcasting example to performance section of Coord docs
+=======
+ >>> from astropy.units import u
+>>>>>>> Added units import line to fix pr errors
  >>> import numpy as np
  >>> # 1000 random locations on the sky
  >>> ra, dec, _ = randomly_sample_sphere(1000)
