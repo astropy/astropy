@@ -36,12 +36,16 @@ Reading and Updating Existing FITS Files
 Opening a FITS file
 ^^^^^^^^^^^^^^^^^^^
 
+.. note::
+
+    The ``astropy.io.fits.util.get_testdata_filepath()`` function,
+    used in the examples here, is for accessing data shipped with Astropy.
+    To work with your own data instead, please use ``astropy.io.fits.open()``,
+    which takes either relative or absolute path.
+
 Once the `astropy.io.fits` package is loaded using the standard convention
 [#f1]_, we can open an existing FITS file::
 
-    >>> # Generally you would store the filename as string but in case you
-    >>> # have no suitable FITS files you can use the ones shipped with Astropy
-    >>> # like this:
     >>> from astropy.io import fits
     >>> fits_image_filename = fits.util.get_testdata_filepath('test0.fits')
 
@@ -94,7 +98,7 @@ After exiting the ``with`` scope the file will be closed automatically. That's
 (generally) the preferred way to open a file in Python, because it will close
 the file even if an exception happens.
 
-If the file is opened with ``lazy_load_hdus=False``, all of the headers will 
+If the file is opened with ``lazy_load_hdus=False``, all of the headers will
 still be accessible after the HDUList is closed. The headers and data may or
 may not be  accessible depending on whether the data are touched and if they
 are memory-mapped, see later chapters for detail.
@@ -872,6 +876,7 @@ Other Information
     appendix/faq
     appendix/header_transition
     appendix/history
+
 
 Reference/API
 =============
