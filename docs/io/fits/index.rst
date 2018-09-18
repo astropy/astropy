@@ -36,12 +36,16 @@ Reading and Updating Existing FITS Files
 Opening a FITS file
 ^^^^^^^^^^^^^^^^^^^
 
+.. note::
+
+    The ``astropy.io.fits.util.get_testdata_filepath()`` function,
+    used in the examples here, is for accessing data shipped with Astropy.
+    To work with your own data instead, please use ``astropy.io.fits.open()``,
+    which takes either relative or absolute path.
+
 Once the `astropy.io.fits` package is loaded using the standard convention
 [#f1]_, we can open an existing FITS file::
 
-    >>> # Generally you would store the filename as string but in case you
-    >>> # have no suitable FITS files you can use the ones shipped with Astropy
-    >>> # like this:
     >>> from astropy.io import fits
     >>> fits_image_filename = fits.util.get_testdata_filepath('test0.fits')
 
