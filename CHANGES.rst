@@ -811,6 +811,9 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- ``UnrecognizedUnit`` instances can now be compared to any other object
+  without raising `TypeError`. [#7606]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
