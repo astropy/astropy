@@ -1576,7 +1576,7 @@ class ColDefs(NotifierMixin):
                 # filled with undefined values.
                 offsets.append(offsets[-1] + dt.itemsize)
 
-            if dim:
+            if dim and format_.format not in 'PQ':
                 if format_.format == 'A':
                     dt = np.dtype((dt.char + str(dim[-1]), dim[:-1]))
                 else:
