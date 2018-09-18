@@ -1262,6 +1262,9 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- ``HDUList.__contains__()`` now works with ``HDU`` arguments. That is,
+  ``hdulist[0] in hdulist`` now works as expected. [#7282]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
