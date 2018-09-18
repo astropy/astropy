@@ -193,6 +193,13 @@ def test_unknown_unit3():
     assert unit != unit3
     assert not unit.is_equivalent(unit3)
 
+    # Also test basic (in)equalities.
+    assert unit == "FOO"
+    assert unit != u.m
+    # next two from gh-7603.
+    assert unit != None  # noqa
+    assert unit not in (None, u.m)
+
     with pytest.raises(ValueError):
         unit._get_converter(unit3)
 
