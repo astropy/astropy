@@ -309,12 +309,15 @@ class HDUList(list, _Verify):
 
     def __contains__(self, item):
         """
-        Returns `True` if ``HDUList.index_of(item)`` succeeds.
-        """
+        Returns `True` if ``item`` is an ``HDU`` _in_ ``self`` or a valid
+        extension specification (e.g., integer extension number, extension
+        name, or a tuple of extension name and an extension version)
+        of a ``HDU`` in ``self``.
 
+        """
         try:
             self._try_while_unread_hdus(self.index_of, item)
-        except KeyError:
+        except (KeyError, ValueError):
             return False
 
         return True
@@ -666,9 +669,9 @@ class HDUList(list, _Verify):
 
         Parameters
         ----------
-        key : int, str or tuple of (string, int)
+        key : int, str, tuple of (string, int) or an HDU object
            The key identifying the HDU.  If ``key`` is a tuple, it is of the
-           form ``(key, ver)`` where ``ver`` is an ``EXTVER`` value that must
+           form ``(name, ver)`` where ``ver`` is an ``EXTVER`` value that must
            match the HDU being searched for.
 
            If the key is ambiguous (e.g. there are multiple 'SCI' extensions)
@@ -679,16 +682,32 @@ class HDUList(list, _Verify):
            but it's not impossible) the numeric index must be used to index
            the duplicate HDU.
 
+           When ``key`` is an HDU object, this function returns the
+           index of that HDU object in the ``HDUList``.
+
         Returns
         -------
         index : int
            The index of the HDU in the `HDUList`.
+
+        Raises
+        ------
+        ValueError
+           If ``key`` is an HDU object and it is not found in the ``HDUList``.
+
+        KeyError
+           If an HDU specified by the ``key`` that is an extension number,
+           extension name, or a tuple of extension name and version is not
+           found in the ``HDUList``.
+
         """
 
         if _is_int(key):
             return key
         elif isinstance(key, tuple):
             _key, _ver = key
+        elif isinstance(key, _BaseHDU):
+            return self.index(key)
         else:
             _key = key
             _ver = None
