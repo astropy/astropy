@@ -2,7 +2,7 @@
 
 import pytest
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 
 from ...tests.helper import assert_quantity_allclose
 from ..utils import (extract_array, add_array, subpixel_indices,
@@ -76,6 +76,46 @@ def test_slices_overlap_wrong_mode():
     with pytest.raises(ValueError) as e:
         overlap_slices((5,), (3,), (0,), mode='full')
     assert "Mode can be only" in str(e.value)
+
+
+def test_extract_array_even_shape_rounding():
+    """
+    Test overlap_slices (via extract_array) for rounding with an
+    even-shaped extraction.
+    """
+
+    data = np.arange(10)
+    shape = (2,)
+    positions = (1.49, 1.5, 1.501, 1.99, 2.0, 2.01, 2.49, 2.5, 2.501, 2.99,
+                 3.0, 3.01)
+    exp1 = (1, 2)
+    exp2 = (2, 3)
+    exp3 = (3, 4)
+    expected = [exp1, ] * 5 + [exp2, ] * 6 + [exp3, ]
+
+    for pos, exp in zip(positions, expected):
+        out = extract_array(data, shape, (pos, ), mode='partial')
+        assert_array_equal(out, exp)
+
+
+def test_extract_array_odd_shape_rounding():
+    """
+    Test overlap_slices (via extract_array) for rounding with an
+    even-shaped extraction.
+    """
+
+    data = np.arange(10)
+    shape = (3,)
+    positions = (1.49, 1.5, 1.501, 1.99, 2.0, 2.01, 2.49, 2.5, 2.501, 2.99,
+                 3.0, 3.01)
+    exp1 = (0, 1, 2)
+    exp2 = (1, 2, 3)
+    exp3 = (2, 3, 4)
+    expected = [exp1, ] * 2 + [exp2, ] * 6 + [exp3, ] * 4
+
+    for pos, exp in zip(positions, expected):
+        out = extract_array(data, shape, (pos, ), mode='partial')
+        assert_array_equal(out, exp)
 
 
 def test_extract_array_wrong_mode():
