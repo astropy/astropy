@@ -13,6 +13,7 @@ using `astropy.coordinates`.
 
 Use broadcasting to transform many SkyCoords into frames with vector properties
  >>> from astropy.coordinates import SkyCoord, EarthLocation
+ >>> from astropy import coordinates as coord
  >>> from astropy.coordinates.tests.utils import randomly_sample_sphere
  >>> from astropy.time import Time
  >>> from astropy import units as u
