@@ -247,7 +247,7 @@ use this option if you do not need sub-arcsecond accuracy for your coordinates::
 
     >>> SkyCoord.from_name("CRTS SSS100805 J194428-420209", parse=True)
     <SkyCoord (ICRS): (ra, dec) in deg
-        (296.1167, -42.03583)>
+        (296.11666667, -42.03583333)>
 
 
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
