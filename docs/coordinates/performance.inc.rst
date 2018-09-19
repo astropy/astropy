@@ -14,6 +14,9 @@ using `astropy.coordinates`.
 Use broadcasting to transform many SkyCoords into frames with vector properties
  >>> from astropy.coordinates import SkyCoord, EarthLocation
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> added import statement to correct coord error
  >>> from astropy import coordinates as coord
  >>> from astropy.coordinates.tests.utils import randomly_sample_sphere
  >>> from astropy.time import Time
