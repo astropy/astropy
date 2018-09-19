@@ -24,6 +24,7 @@ Use broadcasting to transform many SkyCoords into frames with vector properties
  >>> # 300 times over the space of 10 hours
  >>> times = Time.now() + np.linspace(-5, 5, 300)*u.hour
  >>> # note the use of broadcasting so that 300 times broadcast against 1000 positions
- >>> aa_frame = coord.AltAz(obstime=times[:, np.newaxis], location=EarthLocation.of_site('lapalma'))
+ >>> lapalma = EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
+ >>> aa_frame = coord.AltAz(obstime=times[:, np.newaxis], location= lapalma)
  >>> # calculate alt-az of each object at each time.
  >>> aa_coos = coos.transform_to(aa_frame)
