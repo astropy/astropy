@@ -9,7 +9,7 @@ pytz
 beautifulsoup4
 ipython
 mpmath
-matplotlib
+matplotlib<3
 scipy
 pillow
 jplephem
