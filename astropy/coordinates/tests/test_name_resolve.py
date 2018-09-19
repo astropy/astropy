@@ -147,7 +147,7 @@ def test_names_parse():
                   '2QZ J142438.9-022739',
                   'CXOU J141312.3-652013']
     for name in test_names:
-        get_icrs_coordinates(name, use_parser=True)
+        sc = get_icrs_coordinates(name, parse=True)
 
 
 @pytest.mark.remote_data

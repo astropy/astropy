@@ -1665,7 +1665,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     # Name resolve
     @classmethod
-    def from_name(cls, name, frame='icrs', use_parser=False):
+    def from_name(cls, name, frame='icrs', parse=False):
         """
         Given a name, query the CDS name resolver to attempt to retrieve
         coordinate information for that object. The search database, sesame
@@ -1680,7 +1680,7 @@ class SkyCoord(ShapedLikeNDArray):
             The name of the object to get coordinates for, e.g. ``'M42'``.
         frame : str or `BaseCoordinateFrame` class or instance
             The frame to transform the object to.
-        use_parser: bool
+        parse: bool
             Whether to attempt extracting the coordinates from the name by
             parsing with a regex. For objects catalog names that have
             J-coordinates embedded in their names eg:
@@ -1698,7 +1698,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         from .name_resolve import get_icrs_coordinates
 
-        icrs_coord = get_icrs_coordinates(name, use_parser)
+        icrs_coord = get_icrs_coordinates(name, parse)
         icrs_sky_coord = cls(icrs_coord)
         if frame in ('icrs', icrs_coord.__class__):
             return icrs_sky_coord

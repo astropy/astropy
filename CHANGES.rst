@@ -19,6 +19,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- The ``SkyCoord.from_name`` constructor now has the ability to create 
+  coordinate objects by parsing object catalogue names that have embedded 
+  J-coordinates.  [#7830]
+  
 - The new function ``make_transform_graph_docs`` can be used to create a
   docstring graph from a custom ``TransformGraph`` object. [#7135]
 
