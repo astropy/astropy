@@ -17,16 +17,12 @@ Use broadcasting to transform many SkyCoords into frames with vector properties
  >>> from astropy.time import Time
  >>> from astropy import units as u
  >>> import numpy as np
-
  >>> # 1000 random locations on the sky
  >>> ra, dec, _ = randomly_sample_sphere(1000)
  >>> coos = SkyCoord(ra, dec)
-
  >>> # 300 times over the space of 10 hours
  >>> times = Time.now() + np.linspace(-5, 5, 300)*u.hour
-
  >>> # note the use of broadcasting so that 300 times broadcast against 1000 positions
  >>> aa_frame = coord.AltAz(obstime=times[:, np.newaxis], location=EarthLocation.of_site('lapalma'))
-
  >>> # calculate alt-az of each object at each time.
  >>> aa_coos = coos.transform_to(aa_frame)
