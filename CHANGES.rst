@@ -28,6 +28,8 @@ astropy.coordinates
   more suitable for catalog matching, and results in 1000x speedup in some
   cases. [#7324]
 
+- ``representation`` can be compared to check equality. [#7837]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 

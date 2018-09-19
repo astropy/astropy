@@ -324,6 +324,17 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     def __rsub__(self, other):
         return self._combine_operation(operator.sub, other, reverse=True)
 
+    # Required to check equality between representation and differential
+    # classes
+    def __eq__(self, other):
+        if self.__class__ != other.__class__:
+            return False
+
+        for component in self.components:
+            if getattr(self, component) != getattr(other, component):
+                return False
+        return True
+
     # The following are used for repr and str
     @property
     def _values(self):
