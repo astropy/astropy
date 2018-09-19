@@ -236,6 +236,19 @@ for a particular named object::
     >>> SkyCoord.from_name("PSR J1012+5307")  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
         (153.1393271, 53.117343)>
+        
+In some cases, the coordinates are embedded in the catalogue name of the object.
+For such object names, `~astropy.coordinates.SkyCoord.from_name` is able 
+to parse the coordinates from the name if given the ``parse=True`` option.  
+For slow connections, this may be much faster than a sesame query for the same 
+object name. It's worth noting, however, that the coordinates extracted in this 
+way may differ from the database coordinates by a few deci-arcseconds, so only 
+use this option if you do not need sub-arcsecond accuracy for your coordinates::
+
+    >>> SkyCoord.from_name("CRTS SSS100805 J194428-420209", parse=True)
+    <SkyCoord (ICRS): (ra, dec) in deg
+        (296.1167, -42.03583)>
+
 
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
 a quick way to get an `~astropy.coordinates.EarthLocation`::
