@@ -9,17 +9,14 @@
 import abc
 
 import numpy as np
-
 from matplotlib.path import Path
 from matplotlib.transforms import Transform
 
 from ... import units as u
 from ...wcs import WCS
 from ...wcs.utils import wcs_to_celestial_frame
-from ...coordinates import (SkyCoord, frame_transform_graph,
-                            SphericalRepresentation,
-                            UnitSphericalRepresentation,
-                            BaseCoordinateFrame)
+from ...coordinates import (SkyCoord, BaseCoordinateFrame, SphericalRepresentation,
+                            UnitSphericalRepresentation, frame_transform_graph)
 
 
 class CurvedTransform(Transform, metaclass=abc.ABCMeta):

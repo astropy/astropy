@@ -5,8 +5,9 @@ See :mod:`astropy.constants` for a complete listing of constants
 defined in Astropy.
 """
 import inspect
+
 from . import utils as _utils
-from . import codata2010, iau2012
+from . import iau2012, codata2010
 
 _utils._set_c(codata2010, iau2012, inspect.getmodule(inspect.currentframe()))
 

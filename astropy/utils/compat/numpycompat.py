@@ -5,7 +5,6 @@ earlier versions of Numpy.
 """
 from ...utils import minversion
 
-
 __all__ = ['NUMPY_LT_1_14', 'NUMPY_LT_1_14_1', 'NUMPY_LT_1_14_2']
 
 # TODO: It might also be nice to have aliases to these named for specific

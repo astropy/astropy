@@ -3,19 +3,18 @@
 import os
 import warnings
 
-import pytest
 import numpy as np
+import pytest
 import matplotlib.pyplot as plt
 
 from .... import units as u
-from ....wcs import WCS
 from ....io import fits
+from ..core import WCSAxes
+from ....wcs import WCS
+from ..utils import get_coord_meta
 from ....coordinates import SkyCoord
 from ....tests.helper import catch_warnings
 from ....tests.image_tests import ignore_matplotlibrc
-
-from ..core import WCSAxes
-from ..utils import get_coord_meta
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 

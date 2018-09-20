@@ -8,15 +8,14 @@ Note: the skyoffset velocity tests are in a different file, in
 test_skyoffset_transformations.py
 """
 
+import numpy as np
 import pytest
 
-import numpy as np
-
+from .. import (ICRS, Galactic, SkyCoord, PrecessedGeocentric, CartesianDifferential,
+                SphericalDifferential, CartesianRepresentation,
+                SphericalRepresentation, SphericalCosLatDifferential)
 from ... import units as u
 from ...tests.helper import assert_quantity_allclose
-from .. import (SkyCoord, ICRS, SphericalRepresentation, SphericalDifferential,
-                SphericalCosLatDifferential, CartesianRepresentation,
-                CartesianDifferential, Galactic, PrecessedGeocentric)
 
 try:
     import scipy

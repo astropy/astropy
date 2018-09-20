@@ -4,12 +4,12 @@
 import warnings
 from collections import namedtuple
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from ... import units as u
 from .. import quantity_helper as qh
+from ... import units as u
 from ..._erfa import ufunc as erfa_ufunc
 from ...tests.helper import raises
 

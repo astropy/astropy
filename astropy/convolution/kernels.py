@@ -4,7 +4,7 @@ import math
 
 import numpy as np
 
-from .core import Kernel1D, Kernel2D, Kernel
+from .core import Kernel, Kernel1D, Kernel2D
 from .utils import KernelSizeError
 from ..modeling import models
 from ..modeling.core import Fittable1DModel, Fittable2DModel

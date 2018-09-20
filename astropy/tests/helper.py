@@ -9,7 +9,13 @@ import types
 import pickle
 import warnings
 import functools
+
 import pytest
+
+from ..units import allclose as quantity_allclose  # noqa
+# For backward-compatibility with affiliated packages
+from .runner import TestRunner  # pylint: disable=W0611
+from ..utils.exceptions import AstropyDeprecationWarning, AstropyPendingDeprecationWarning
 
 try:
     # Import pkg_resources to prevent it from issuing warnings upon being
@@ -19,13 +25,8 @@ try:
 except ImportError:
     pass
 
-from ..units import allclose as quantity_allclose  # noqa
-from ..utils.exceptions import (AstropyDeprecationWarning,
-                                AstropyPendingDeprecationWarning)
 
 
-# For backward-compatibility with affiliated packages
-from .runner import TestRunner  # pylint: disable=W0611
 
 __all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
            'treat_deprecations_as_exceptions', 'catch_warnings',

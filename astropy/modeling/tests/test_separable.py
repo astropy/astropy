@@ -3,15 +3,13 @@
 Test separability of models.
 
 """
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
 from .. import models
 from ..models import Mapping
-from .. separable import (_coord_matrix, is_separable, _cdot,
-                          _cstack, _arith_oper)
-
+from ..separable import _cdot, _cstack, _arith_oper, is_separable, _coord_matrix
 
 sh1 = models.Shift(1, name='shift1')
 sh2 = models.Shift(2, name='sh2')

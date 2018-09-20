@@ -2,16 +2,18 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+from asdf.tests.helpers import assert_roundtrip_tree
+
+import astropy.units as u
+from astropy.coordinates import Angle, Latitude, Longitude
+
+from ....extension import AstropyExtension
 
 asdf = pytest.importorskip('asdf')
 
-import astropy.units as u
 
-from asdf.tests.helpers import assert_roundtrip_tree
 
-from astropy.coordinates import Longitude, Latitude, Angle
 
-from ....extension import AstropyExtension
 
 
 def test_angle(tmpdir):

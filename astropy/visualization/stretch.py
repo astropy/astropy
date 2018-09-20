@@ -8,9 +8,8 @@ another set of [0:1] values with a transformation
 
 import numpy as np
 
-from ..utils.misc import InheritDocstrings
 from .transform import BaseTransform
-
+from ..utils.misc import InheritDocstrings
 
 __all__ = ["BaseStretch", "LinearStretch", "SqrtStretch", "PowerStretch",
            "PowerDistStretch", "SquaredStretch", "LogStretch", "AsinhStretch",

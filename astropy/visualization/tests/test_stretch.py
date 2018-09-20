@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 
-from ..stretch import (LinearStretch, SqrtStretch, PowerStretch,
-                       PowerDistStretch, SquaredStretch, LogStretch,
-                       AsinhStretch, SinhStretch, HistEqStretch,
-                       ContrastBiasStretch)
-
+from ..stretch import (LogStretch, SinhStretch, SqrtStretch, AsinhStretch,
+                       PowerStretch, HistEqStretch, LinearStretch,
+                       SquaredStretch, PowerDistStretch, ContrastBiasStretch)
 
 DATA = np.array([0.00, 0.25, 0.50, 0.75, 1.00])
 

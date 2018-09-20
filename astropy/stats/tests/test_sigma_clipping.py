@@ -1,10 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import pytest
 import numpy as np
-
+import pytest
 from numpy.testing import assert_equal, assert_allclose
+
+from ...utils.misc import NumpyRNGContext
+from ..sigma_clipping import SigmaClip, sigma_clip, sigma_clipped_stats
 
 try:
     from scipy import stats  # used in testing
@@ -13,8 +15,6 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
-from ..sigma_clipping import sigma_clip, SigmaClip, sigma_clipped_stats
-from ...utils.misc import NumpyRNGContext
 
 
 def test_sigma_clip():

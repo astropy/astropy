@@ -13,11 +13,9 @@ import textwrap
 import warnings
 
 # LOCAL
-from . import exceptions
-from . import tree
-from ...utils.xml import iterparser
+from . import tree, exceptions
 from ...utils import data
-
+from ...utils.xml import iterparser
 
 __all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate',
            'reset_vo_warnings']

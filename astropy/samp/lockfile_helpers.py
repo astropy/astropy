@@ -4,23 +4,19 @@
 # TODO: this file should be refactored to use a more thread-safe and
 # race-condition-safe lockfile mechanism.
 
-import datetime
 import os
-import socket
 import stat
+import socket
+import datetime
 import warnings
+import xmlrpc.client as xmlrpc
 from contextlib import suppress
 from urllib.parse import urlparse
-import xmlrpc.client as xmlrpc
-
-from ..config.paths import _find_home
-
 
 from .. import log
-
+from .errors import SAMPWarning, SAMPHubError
 from ..utils.data import get_readable_fileobj
-
-from .errors import SAMPHubError, SAMPWarning
+from ..config.paths import _find_home
 
 
 def read_lockfile(lockfilename):

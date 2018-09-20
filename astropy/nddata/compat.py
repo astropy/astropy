@@ -4,17 +4,14 @@
 
 import numpy as np
 
-from ..units import UnitsError, UnitConversionError, Unit
 from .. import log
-
+from ..units import Unit, UnitsError, UnitConversionError
 from .nddata import NDData
+from .mixins.ndio import NDIOMixin
 from .nduncertainty import NDUncertainty
-
+from .flag_collection import FlagCollection
 from .mixins.ndslicing import NDSlicingMixin
 from .mixins.ndarithmetic import NDArithmeticMixin
-from .mixins.ndio import NDIOMixin
-
-from .flag_collection import FlagCollection
 
 __all__ = ['NDDataArray']
 

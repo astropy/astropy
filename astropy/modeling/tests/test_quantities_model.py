@@ -1,12 +1,12 @@
 # Various tests of models not related to evaluation, fitting, or parameters
 import pytest
 
-from ...tests.helper import assert_quantity_allclose
-from ... import units as u
-
-from astropy.modeling.models import Mapping, Pix2Sky_TAN, Gaussian1D
 from astropy.modeling import models
 from astropy.modeling.core import _ModelMeta
+from astropy.modeling.models import Mapping, Gaussian1D, Pix2Sky_TAN
+
+from ... import units as u
+from ...tests.helper import assert_quantity_allclose
 
 
 def test_gaussian1d_bounding_box():

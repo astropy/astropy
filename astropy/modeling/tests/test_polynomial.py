@@ -3,23 +3,21 @@
 """Tests for polynomial models."""
 
 import os
-
 from itertools import product
 
-import pytest
 import numpy as np
-
+import pytest
 from numpy.testing import assert_allclose
 
 from .. import fitting
 from ... import wcs
 from ...io import fits
-from ..polynomial import (Chebyshev1D, Hermite1D, Legendre1D, Polynomial1D,
-                          Chebyshev2D, Hermite2D, Legendre2D, Polynomial2D, SIP,
-                          PolynomialBase, OrthoPolynomialBase)
-from ..functional_models import Linear1D
 from ..mappings import Identity
+from ..polynomial import (SIP, Hermite1D, Hermite2D, Legendre1D, Legendre2D,
+                          Chebyshev1D, Chebyshev2D, Polynomial1D,
+                          Polynomial2D, PolynomialBase, OrthoPolynomialBase)
 from ...utils.data import get_pkg_data_filename
+from ..functional_models import Linear1D
 
 try:
     from scipy import optimize  # pylint: disable=W0611

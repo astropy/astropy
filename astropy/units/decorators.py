@@ -4,11 +4,11 @@
 __all__ = ['quantity_input']
 
 import inspect
-from ..utils.decorators import wraps
-from ..utils.misc import isiterable
 
 from .core import Unit, UnitsError, add_enabled_equivalencies
 from .physical import _unit_physical_mapping
+from ..utils.misc import isiterable
+from ..utils.decorators import wraps
 
 
 def _get_allowed_units(targets):

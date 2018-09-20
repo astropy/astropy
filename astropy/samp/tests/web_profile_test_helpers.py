@@ -3,11 +3,11 @@ import threading
 import xmlrpc.client as xmlrpc
 
 from ..hub import WebProfileDialog
-from ..hub_proxy import SAMPHubProxy
-from ..client import SAMPClient
-from ..integrated_client import SAMPIntegratedClient
 from ..utils import ServerProxyPool
-from ..errors import SAMPClientError, SAMPHubError
+from ..client import SAMPClient
+from ..errors import SAMPHubError, SAMPClientError
+from ..hub_proxy import SAMPHubProxy
+from ..integrated_client import SAMPIntegratedClient
 
 
 class AlwaysApproveWebProfileDialog(WebProfileDialog):

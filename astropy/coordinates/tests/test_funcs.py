@@ -6,10 +6,9 @@ Tests for miscellaneous functionality in the `funcs` module
 """
 
 
-import pytest
 import numpy as np
+import pytest
 from numpy import testing as npt
-
 
 from ... import units as u
 from ...time import Time

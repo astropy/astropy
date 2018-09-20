@@ -1,17 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import importlib
 import sys
 import warnings
+import importlib
 
 import pytest
 
-from .helper import catch_warnings
 from .. import log
+from .helper import catch_warnings
 from ..logger import LoggingError, conf
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning
-
 
 # Save original values of hooks. These are not the system values, but the
 # already overwritten values since the logger already gets imported before

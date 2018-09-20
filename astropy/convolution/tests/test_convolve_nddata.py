@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 
-from ..convolve import convolve, convolve_fft
-from ..kernels import Gaussian2DKernel
 from ...nddata import NDData
+from ..kernels import Gaussian2DKernel
+from ..convolve import convolve, convolve_fft
 
 
 def test_basic_nddata():

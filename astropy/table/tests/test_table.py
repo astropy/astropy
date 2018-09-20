@@ -7,18 +7,17 @@ import copy
 from io import StringIO
 from collections import OrderedDict
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
-from ...io import fits
-from ...tests.helper import (assert_follows_unicode_guidelines,
-                             ignore_warnings, catch_warnings)
-from ...utils.data import get_pkg_data_filename
 from ... import table
 from ... import units as u
+from ...io import fits
 from .conftest import MaskedTable
-
+from ...utils.data import get_pkg_data_filename
+from ...tests.helper import catch_warnings, ignore_warnings, assert_follows_unicode_guidelines
+from ...utils.tests.test_metadata import MetaBaseTest
 
 try:
     with ignore_warnings(DeprecationWarning):
@@ -1445,7 +1444,6 @@ def test_equality_masked_bug():
 # takes care of defining all the tests, and we simply have to define the class
 # and any minimal set of args to pass.
 
-from ...utils.tests.test_metadata import MetaBaseTest
 
 
 class TestMetaTable(MetaBaseTest):

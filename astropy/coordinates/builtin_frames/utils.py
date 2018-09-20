@@ -9,12 +9,11 @@ import warnings
 
 import numpy as np
 
-from ... import units as u
 from ... import _erfa as erfa
+from ... import units as u
 from ...time import Time
 from ...utils import iers
 from ...utils.exceptions import AstropyWarning
-
 
 # The UTC time scale is not properly defined prior to 1960, so Time('B1950',
 # scale='utc') will emit a warning. Instead, we use Time('B1950', scale='tai')

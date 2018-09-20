@@ -1,16 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import contextlib
-import pathlib
 import re
 import sys
-
-from collections import OrderedDict
+import pathlib
+import contextlib
 from operator import itemgetter
+from collections import OrderedDict
 
 import numpy as np
-
 
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
            'identify_format', 'get_reader', 'get_writer', 'read', 'write',

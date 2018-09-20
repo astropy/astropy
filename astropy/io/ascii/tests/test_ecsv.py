@@ -7,24 +7,23 @@ reader/writer.
 Requires `pyyaml <http://pyyaml.org/>`_ to be installed.
 """
 import os
-import copy
 import sys
+import copy
 from io import StringIO
 
-import pytest
 import numpy as np
+import pytest
 
-from ....table import Table, Column, QTable, NdarrayMixin
-from ....table.table_helpers import simple_table
-from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
-from ....time import Time, TimeDelta
-from ....units import allclose as quantity_allclose
-from ....units import QuantityInfo
-from ....tests.helper import catch_warnings
-
-from ..ecsv import DELIMITERS
 from ... import ascii
 from .... import units as u
+from ..ecsv import DELIMITERS
+from ....time import Time, TimeDelta
+from ....table import Table, Column, QTable, NdarrayMixin
+from ....units import QuantityInfo
+from ....units import allclose as quantity_allclose
+from ....coordinates import Angle, Latitude, SkyCoord, Longitude, EarthLocation
+from ....tests.helper import catch_warnings
+from ....table.table_helpers import simple_table
 
 try:
     import yaml  # pylint: disable=W0611

@@ -1,15 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import operator
 import functools
 import itertools
-import numpy as np
-import operator
-
-import pytest
-
 from datetime import timedelta
 
-from .. import (Time, TimeDelta, OperandTypeError, ScaleValueError,
-                TIME_SCALES, STANDARD_TIME_SCALES, TIME_DELTA_SCALES)
+import numpy as np
+import pytest
+
+from .. import (TIME_SCALES, TIME_DELTA_SCALES, STANDARD_TIME_SCALES,
+                Time, TimeDelta, ScaleValueError, OperandTypeError)
 from ... import units as u
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)

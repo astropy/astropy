@@ -9,26 +9,24 @@ core.py:
 """
 
 
-import copy
-import csv
-import functools
-import itertools
-import operator
 import os
 import re
+import csv
+import copy
+import operator
 import warnings
-
-from collections import OrderedDict
-from contextlib import suppress
+import functools
+import itertools
 from io import StringIO
+from contextlib import suppress
+from collections import OrderedDict
 
 import numpy
 
-from ...utils.exceptions import AstropyWarning
-
+from . import connect
 from ...table import Table
 from ...utils.data import get_readable_fileobj
-from . import connect
+from ...utils.exceptions import AstropyWarning
 
 # Global dictionary mapping format arg to the corresponding Reader class
 FORMAT_CLASSES = {}

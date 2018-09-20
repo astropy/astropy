@@ -1,9 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ..errors import SAMPHubError, SAMPClientError, SAMPProxyError
-
 # By default, tests should not use the internet.
 from .. import conf
+from ..errors import SAMPHubError, SAMPProxyError, SAMPClientError
 
 
 def setup_module(module):

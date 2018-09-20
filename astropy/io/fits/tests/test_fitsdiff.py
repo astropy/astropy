@@ -1,17 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import numpy as np
-import pytest
 import os
 
+import numpy as np
+import pytest
+
 from . import FitsTestCase
-from ..convenience import writeto
+from .. import Header, HDUList, ImageHDU
 from ..hdu import PrimaryHDU, hdulist
-from .. import Header, ImageHDU, HDUList
 from ..scripts import fitsdiff
+from ....version import version
+from ..convenience import writeto
 from ....tests.helper import catch_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
-from ....version import version
 
 
 class TestFITSDiff_script(FitsTestCase):

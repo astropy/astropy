@@ -3,8 +3,8 @@
 
 from math import cos, sin
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
 import astropy.units as u

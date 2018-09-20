@@ -5,8 +5,8 @@
 """
 import numpy as np
 from numpy import finfo
-from ...units.utils import sanitize_scale
-from ...units.utils import quantity_asanyarray
+
+from ...units.utils import sanitize_scale, quantity_asanyarray
 from ...units.quantity import Quantity
 
 _float_finfo = finfo(float)

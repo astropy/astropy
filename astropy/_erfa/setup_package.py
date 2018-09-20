@@ -2,7 +2,6 @@
 
 import os
 import glob
-
 from distutils import log
 from distutils.extension import Extension
 

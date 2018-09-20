@@ -6,20 +6,15 @@ parallel.
 """
 
 import os
-import threading
 import tempfile
+import threading
 from urllib.request import Request, urlopen
 
+from .. import SAMPHubServer, SAMPIntegratedClient, conf
 from ...utils.data import get_readable_fileobj
-
-from .. import SAMPIntegratedClient, SAMPHubServer
-from .web_profile_test_helpers import (AlwaysApproveWebProfileDialog,
-                                       SAMPIntegratedWebClient)
 from ..web_profile import CROSS_DOMAIN, CLIENT_ACCESS_POLICY
-
-from .. import conf
-
 from .test_standard_profile import TestStandardProfile as BaseTestStandardProfile
+from .web_profile_test_helpers import SAMPIntegratedWebClient, AlwaysApproveWebProfileDialog
 
 
 def setup_module(module):

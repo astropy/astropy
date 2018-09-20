@@ -1,19 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """A set of standard astronomical equivalencies."""
 
-# THIRD-PARTY
-import numpy as np
 import warnings
 
-# LOCAL
-from ..constants import si as _si
-from . import si
-from . import cgs
-from . import astrophys
-from .function import units as function_units
-from . import dimensionless_unscaled
-from .core import UnitsError, Unit
+# THIRD-PARTY
+import numpy as np
 
+from . import si, cgs, astrophys, dimensionless_unscaled
+from .core import Unit, UnitsError
+from .function import units as function_units
+from ..constants import si as _si
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',

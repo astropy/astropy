@@ -4,15 +4,13 @@ Various XML-related utilities
 """
 
 
+from ...utils import data
 # ASTROPY
 from ...logger import log
-from ...utils import data
+# LOCAL
+from .exceptions import W02, W03, W04, W05, vo_warn, warn_or_raise
 from ...utils.xml import check as xml_check
 from ...utils.xml import validate
-
-# LOCAL
-from .exceptions import (warn_or_raise, vo_warn, W02, W03, W04, W05)
-
 
 __all__ = [
     'check_id', 'fix_id', 'check_token', 'check_mime_content_type',

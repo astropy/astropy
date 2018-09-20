@@ -5,19 +5,17 @@ import os
 import warnings
 from datetime import datetime
 
-import pytest
 import numpy as np
-from numpy.testing import (
-    assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp,
-    assert_array_equal)
+import pytest
+from numpy.testing import (assert_allclose, assert_array_equal,
+                           assert_array_almost_equal, assert_array_almost_equal_nulp)
 
-from ...tests.helper import raises, catch_warnings
-from ... import wcs
 from .. import _wcs
-from ...utils.data import (
-    get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
-from ...utils.misc import NumpyRNGContext
+from ... import wcs
 from ...io import fits
+from ...utils.data import get_pkg_data_contents, get_pkg_data_filename, get_pkg_data_filenames
+from ...utils.misc import NumpyRNGContext
+from ...tests.helper import raises, catch_warnings
 
 
 class TestMaps:

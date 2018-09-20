@@ -4,14 +4,12 @@ CONTACT = "Michael Droettboom"
 EMAIL = "mdroe@stsci.edu"
 
 import io
-from os.path import join
-import os.path
-import shutil
 import sys
-
+import shutil
+import os.path
+from os.path import join
 from distutils.core import Extension
 from distutils.dep_util import newer_group
-
 
 from astropy_helpers import setup_helpers
 from astropy_helpers.distutils_helpers import get_distutils_build_option

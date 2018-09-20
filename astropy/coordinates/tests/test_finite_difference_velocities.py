@@ -2,21 +2,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import pytest
 import numpy as np
-from ...units import allclose as quantity_allclose
+import pytest
 
+from .. import (TimeAttribute, CartesianDifferential, SphericalDifferential,
+                DynamicMatrixTransform, CartesianRepresentation, SphericalRepresentation,
+                FunctionTransformWithFiniteDifference, get_sun)
 from ... import units as u
 from ... import constants
 from ...time import Time
-from ..builtin_frames import ICRS, AltAz, LSR, GCRS, Galactic, FK5
-from ..baseframe import frame_transform_graph
 from ..sites import get_builtin_sites
-from .. import (TimeAttribute,
-                FunctionTransformWithFiniteDifference, get_sun,
-                CartesianRepresentation, SphericalRepresentation,
-                CartesianDifferential, SphericalDifferential,
-                DynamicMatrixTransform)
+from ...units import allclose as quantity_allclose
+from ..baseframe import frame_transform_graph
+from ..builtin_frames import FK5, LSR, GCRS, ICRS, AltAz, Galactic
 
 J2000 = Time('J2000')
 

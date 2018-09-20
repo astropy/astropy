@@ -5,9 +5,9 @@ Some code and inspiration taken from numpy.lib.recfunctions.join_by().
 Redistribution license restrictions apply.
 """
 
-from itertools import chain
 import collections
-from collections import OrderedDict, Counter
+from itertools import chain
+from collections import Counter, OrderedDict
 from collections.abc import Sequence
 
 import numpy as np

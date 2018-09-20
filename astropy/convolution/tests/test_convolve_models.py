@@ -1,13 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import math
+
 import numpy as np
 import pytest
+from numpy.testing import assert_allclose, assert_almost_equal
 
 from ..convolve import convolve, convolve_fft, convolve_models
 from ...modeling import models, fitting
 from ...utils.misc import NumpyRNGContext
-from numpy.testing import assert_allclose, assert_almost_equal
 
 try:
     import scipy

@@ -5,13 +5,12 @@ from io import StringIO
 
 import pytest
 
-from ..ui import read
-from ..ipac import Ipac, IpacFormatError, IpacFormatErrorDBMS
-from ....tests.helper import catch_warnings
 from ... import ascii
-from ....table import Table
+from ..ui import read
 from ..core import masked
-
+from ..ipac import Ipac, IpacFormatError, IpacFormatErrorDBMS
+from ....table import Table
+from ....tests.helper import catch_warnings
 
 DATA = '''
 |   a  |   b   |

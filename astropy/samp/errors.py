@@ -8,7 +8,6 @@ import xmlrpc.client as xmlrpc
 
 from ..utils.exceptions import AstropyUserWarning
 
-
 __all__ = ['SAMPWarning', 'SAMPHubError', 'SAMPClientError', 'SAMPProxyError']
 
 

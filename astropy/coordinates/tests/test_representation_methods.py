@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import pytest
 import numpy as np
+import pytest
 
+from .. import Latitude, Longitude, SphericalDifferential, SphericalRepresentation
 from ... import units as u
-from .. import (SphericalRepresentation, Longitude, Latitude,
-                SphericalDifferential)
 
 
 class TestManipulation():

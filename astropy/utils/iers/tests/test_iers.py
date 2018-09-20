@@ -3,14 +3,14 @@
 import os
 import urllib.request
 
-import pytest
 import numpy as np
+import pytest
 
-from ....tests.helper import assert_quantity_allclose, catch_warnings
 from .. import iers
 from .... import units as u
-from ....table import QTable
 from ....time import Time, TimeDelta
+from ....table import QTable
+from ....tests.helper import catch_warnings, assert_quantity_allclose
 from ....utils.exceptions import AstropyWarning
 
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', OSError)

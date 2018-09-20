@@ -10,14 +10,13 @@ must be installed to read HTML tables.
 
 
 import warnings
-import numpy
+from copy import deepcopy
 
+import numpy
 
 from . import core
 from ...table import Column
 from ...utils.xml import writer
-
-from copy import deepcopy
 
 
 class SoupString(str):

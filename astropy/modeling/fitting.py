@@ -26,16 +26,15 @@ import abc
 import inspect
 import operator
 import warnings
-
-from functools import reduce, wraps
+from functools import wraps, reduce
 
 import numpy as np
 
 from .utils import poly_map_domain, _combine_equivalency_dict
 from ..units import Quantity
+from .statistic import leastsquare
+from .optimizers import SLSQP, DEFAULT_ACC, DEFAULT_EPS, DEFAULT_MAXITER, Simplex
 from ..utils.exceptions import AstropyUserWarning
-from .optimizers import (SLSQP, Simplex)
-from .statistic import (leastsquare)
 
 # Check pkg_resources exists
 try:
@@ -55,7 +54,6 @@ STATISTICS = [leastsquare]
 # Optimizers implemented in `astropy.modeling.optimizers.py
 OPTIMIZERS = [Simplex, SLSQP]
 
-from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
 
 
 class ModelsError(Exception):

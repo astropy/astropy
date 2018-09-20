@@ -3,13 +3,13 @@
 
 import os
 
-import pytest
 import numpy as np
+import pytest
+from asdf.tests import helpers
 
 from astropy.io import fits
 
 asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
-from asdf.tests import helpers
 
 
 def test_complex_structure(tmpdir):

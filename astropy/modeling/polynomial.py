@@ -8,12 +8,12 @@ from collections import OrderedDict
 
 import numpy as np
 
-from .core import FittableModel, Model
-from .functional_models import Shift
-from .parameters import Parameter
-from .utils import poly_map_domain, comb
-from ..utils import indent, check_broadcast
+from .core import Model, FittableModel
+from .utils import comb, poly_map_domain
 from ..units import Quantity
+from ..utils import indent, check_broadcast
+from .parameters import Parameter
+from .functional_models import Shift
 
 __all__ = [
     'Chebyshev1D', 'Chebyshev2D', 'Hermite1D', 'Hermite2D',

@@ -34,11 +34,11 @@
 __version__    = '3.10'
 __tabversion__ = '3.10'
 
+import os
 import re
 import sys
-import types
 import copy
-import os
+import types
 import inspect
 
 # This tuple contains known string types
@@ -1097,4 +1097,3 @@ def TOKEN(r):
 
 # Alternative spelling of the TOKEN decorator
 Token = TOKEN
-

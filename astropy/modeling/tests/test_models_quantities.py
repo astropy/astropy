@@ -1,25 +1,18 @@
 from collections import OrderedDict
 
-import pytest
 import numpy as np
+import pytest
 
 from ... import units as u
-from ...tests.helper import assert_quantity_allclose
-
-from ..functional_models import (Gaussian1D,
-                                 Sersic1D, Sine1D, Linear1D,
-                                 Lorentz1D, Voigt1D, Const1D,
-                                 Box1D, Trapezoid1D, MexicanHat1D,
-                                 Moffat1D, Gaussian2D, Const2D, Ellipse2D,
-                                 Disk2D, Ring2D, Box2D, TrapezoidDisk2D,
-                                 MexicanHat2D, AiryDisk2D, Moffat2D, Sersic2D)
-
-from ..powerlaws import (PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D,
-                         ExponentialCutoffPowerLaw1D, LogParabola1D)
-
-from ..polynomial import Polynomial1D, Polynomial2D
-
 from ..fitting import LevMarLSQFitter
+from ..powerlaws import (PowerLaw1D, LogParabola1D, BrokenPowerLaw1D,
+                         SmoothlyBrokenPowerLaw1D, ExponentialCutoffPowerLaw1D)
+from ..polynomial import Polynomial1D, Polynomial2D
+from ...tests.helper import assert_quantity_allclose
+from ..functional_models import (Box1D, Box2D, Disk2D, Ring2D, Sine1D, Const1D, Const2D,
+                                 Voigt1D, Linear1D, Moffat1D, Moffat2D, Sersic1D, Sersic2D,
+                                 Ellipse2D, Lorentz1D, AiryDisk2D, Gaussian1D, Gaussian2D,
+                                 Trapezoid1D, MexicanHat1D, MexicanHat2D, TrapezoidDisk2D)
 
 try:
     from scipy import optimize

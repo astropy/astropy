@@ -1,13 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+import sys
 import copy
 import time
-import sys
 import argparse
 
 from .. import log, __version__
-
 from .hub import SAMPHubServer
 
 __all__ = ['main']

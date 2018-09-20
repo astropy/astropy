@@ -1,15 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+import warnings
 from copy import deepcopy
 from inspect import signature
 from itertools import islice
-import warnings
 
 from ..utils import wraps
-from ..utils.exceptions import AstropyUserWarning
-
 from .nddata import NDData
+from ..utils.exceptions import AstropyUserWarning
 
 __all__ = ['support_nddata']
 

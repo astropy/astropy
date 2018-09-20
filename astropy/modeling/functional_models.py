@@ -7,13 +7,12 @@ from collections import OrderedDict
 
 import numpy as np
 
-from .core import (Fittable1DModel, Fittable2DModel,
-                   ModelDefinitionError)
-from .parameters import Parameter, InputParameterError
-from .utils import ellipse_extent
-from ..stats.funcs import gaussian_sigma_to_fwhm
 from .. import units as u
+from .core import Fittable1DModel, Fittable2DModel, ModelDefinitionError
+from .utils import ellipse_extent
 from ..units import Quantity, UnitsError
+from .parameters import Parameter, InputParameterError
+from ..stats.funcs import gaussian_sigma_to_fwhm
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',

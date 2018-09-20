@@ -5,21 +5,17 @@ import warnings
 
 import numpy as np
 
+from .. import representation as r
 from ... import units as u
+from .icrs import ICRS
+from ..angles import Angle
+from ..errors import ConvertError
+from ..baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc, frame_transform_graph
+from ..attributes import Attribute, QuantityAttribute, CoordinateAttribute, DifferentialAttribute
+from ..transformations import AffineTransform
+from ..matrix_utilities import matrix_product, rotation_matrix, matrix_transpose
 from ...utils.decorators import format_doc
 from ...utils.exceptions import AstropyDeprecationWarning
-from ..angles import Angle
-from ..matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
-from .. import representation as r
-from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
-                         RepresentationMapping, base_doc)
-from ..attributes import (Attribute, CoordinateAttribute,
-                          QuantityAttribute,
-                          DifferentialAttribute)
-from ..transformations import AffineTransform
-from ..errors import ConvertError
-
-from .icrs import ICRS
 
 __all__ = ['Galactocentric']
 

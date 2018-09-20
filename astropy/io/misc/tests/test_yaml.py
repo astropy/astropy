@@ -8,13 +8,13 @@ Requires `pyyaml <http://pyyaml.org/>`_ to be installed.
 
 from io import StringIO
 
-import pytest
 import numpy as np
+import pytest
 
-from ....coordinates import SkyCoord, EarthLocation, Angle, Longitude, Latitude
 from .... import units as u
 from ....time import Time
 from ....table import QTable, SerializedColumn
+from ....coordinates import Angle, Latitude, SkyCoord, Longitude, EarthLocation
 
 try:
     from ..yaml import load, load_all, dump

@@ -8,20 +8,19 @@ High-level table operations:
 """
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from copy import deepcopy
-import collections
 import itertools
-from collections import OrderedDict, Counter
+import collections
+from copy import deepcopy
+from collections import Counter, OrderedDict
 from collections.abc import Mapping, Sequence
 
 import numpy as np
 
-from ..utils import metadata
-from .table import Table, QTable, Row, Column
-from ..units import Quantity
-
 from . import _np_utils
-from .np_utils import fix_column_name, TableMergeError
+from .table import Row, Table, Column, QTable
+from ..units import Quantity
+from ..utils import metadata
+from .np_utils import TableMergeError, fix_column_name
 
 __all__ = ['join', 'setdiff', 'hstack', 'vstack', 'unique']
 

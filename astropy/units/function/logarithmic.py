@@ -2,11 +2,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
 
-from .. import CompositeUnit, UnitsError, dimensionless_unscaled
 from . import magnitude_zero_points as mag0
-from .core import FunctionUnitBase, FunctionQuantity
-from .units import dex, dB, mag
-
+from .. import UnitsError, CompositeUnit, dimensionless_unscaled
+from .core import FunctionQuantity, FunctionUnitBase
+from .units import dB, dex, mag
 
 __all__ = ['LogUnit', 'MagUnit', 'DexUnit', 'DecibelUnit',
            'LogQuantity', 'Magnitude', 'Decibel', 'Dex',

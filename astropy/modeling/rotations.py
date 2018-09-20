@@ -23,12 +23,12 @@ import math
 
 import numpy as np
 
-from .core import Model
-from .parameters import Parameter
-from ..coordinates.matrix_utilities import rotation_matrix, matrix_product
 from .. import units as u
-from ..utils.decorators import deprecated
+from .core import Model
 from .utils import _to_radian, _to_orig_unit
+from .parameters import Parameter
+from ..utils.decorators import deprecated
+from ..coordinates.matrix_utilities import matrix_product, rotation_matrix
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
            'EulerAngleRotation']

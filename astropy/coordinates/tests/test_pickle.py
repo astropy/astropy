@@ -1,9 +1,10 @@
 import pickle
-import pytest
-import numpy as np
 
-from ...coordinates import Longitude
+import numpy as np
+import pytest
+
 from ... import coordinates as coord
+from ...coordinates import Longitude
 from ...tests.helper import pickle_protocol, check_pickling_recovery  # noqa
 
 # Can't test distances without scipy due to cosmology deps

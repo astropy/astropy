@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from numpy.testing import assert_array_equal
-
 from asdf import yamlutil
+from numpy.testing import assert_array_equal
 
 from astropy import table
 from astropy.io import fits
+
 from ...types import AstropyAsdfType
 
 

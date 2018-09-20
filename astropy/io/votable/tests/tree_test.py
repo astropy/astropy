@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # LOCAL
-from .. import exceptions
-from .. import tree
+from .. import tree, exceptions
 from ....tests.helper import raises
 
 

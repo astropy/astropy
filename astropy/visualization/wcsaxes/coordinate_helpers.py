@@ -7,19 +7,17 @@ axes, ticks, tick labels, and grid lines.
 """
 
 import numpy as np
-
-from matplotlib.ticker import Formatter
-from matplotlib.transforms import Affine2D, ScaledTranslation
-from matplotlib.patches import PathPatch
 from matplotlib import rcParams
+from matplotlib.ticker import Formatter
+from matplotlib.patches import PathPatch
+from matplotlib.transforms import Affine2D, ScaledTranslation
 
 from ... import units as u
-
-from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
-from .ticklabels import TickLabels
 from .axislabels import AxisLabels
 from .grid_paths import get_lon_lat_path, get_gridline_path
+from .ticklabels import TickLabels
+from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 
 __all__ = ['CoordinateHelper']
 

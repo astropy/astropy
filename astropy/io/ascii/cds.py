@@ -9,17 +9,14 @@ cds.py:
 """
 
 
+import os
+import re
 import fnmatch
 import itertools
-import re
-import os
 from contextlib import suppress
 
-from . import core
-from . import fixedwidth
-
+from . import core, fixedwidth
 from ...units import Unit
-
 
 __doctest_skip__ = ['*']
 

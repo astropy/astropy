@@ -1,24 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+import pickle
 import inspect
 from copy import deepcopy
 
-import pickle
-import pytest
 import numpy as np
-
+import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
-from ...utils import minversion
 from ..core import Model, ModelDefinitionError
+from ...utils import minversion
+from ..models import (Scale, Shift, Const1D, Mapping, Identity, Tabular1D, Gaussian1D,
+                      Gaussian2D, Legendre1D, Legendre2D, Rotation2D, Chebyshev1D,
+                      Chebyshev2D, Polynomial1D, Polynomial2D, AffineTransformation2D)
 from ..parameters import Parameter
-from ..models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
-                      Gaussian2D, Polynomial1D, Polynomial2D,
-                      Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D,
-                      AffineTransformation2D, Identity, Mapping,
-                      Tabular1D)
-
 
 try:
     import scipy

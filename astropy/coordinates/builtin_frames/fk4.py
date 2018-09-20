@@ -3,18 +3,16 @@
 
 import numpy as np
 
-from ... import units as u
-from ...utils.decorators import format_doc
-from ..baseframe import frame_transform_graph, base_doc
-from ..attributes import TimeAttribute
-from ..transformations import (FunctionTransformWithFiniteDifference,
-                               FunctionTransform, DynamicMatrixTransform)
-from ..representation import (CartesianRepresentation,
-                              UnitSphericalRepresentation)
 from .. import earth_orientation as earth
-
+from ... import units as u
 from .utils import EQUINOX_B1950
-from .baseradec import doc_components, BaseRADecFrame
+from .baseradec import BaseRADecFrame, doc_components
+from ..baseframe import base_doc, frame_transform_graph
+from ..attributes import TimeAttribute
+from ..representation import CartesianRepresentation, UnitSphericalRepresentation
+from ..transformations import (FunctionTransform, DynamicMatrixTransform,
+                               FunctionTransformWithFiniteDifference)
+from ...utils.decorators import format_doc
 
 __all__ = ['FK4', 'FK4NoETerms']
 

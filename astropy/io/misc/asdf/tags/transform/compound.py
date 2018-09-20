@@ -5,9 +5,9 @@ from asdf import tagged, yamlutil
 from asdf.tests.helpers import assert_tree_match
 
 from astropy import modeling
-from astropy.modeling.models import Identity, Mapping
-from .basic import TransformType, ConstantType
+from astropy.modeling.models import Mapping, Identity
 
+from .basic import ConstantType, TransformType
 
 __all__ = ['CompoundType', 'RemapAxesType']
 

@@ -10,24 +10,23 @@ but will deal with unit conversions internally.
 # Standard library
 import re
 import numbers
-from fractions import Fraction
 import warnings
+from fractions import Fraction
 
 import numpy as np
 
+from .. import config as _config
 # AstroPy
-from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
-                   UnitBase, UnitsError, UnitTypeError)
+from .core import (Unit, UnitBase, UnitsError, UnitTypeError,
+                   dimensionless_unscaled, get_current_unit_registry)
 from .utils import is_effectively_unity
+from ..utils.misc import InheritDocstrings, isiterable
 from .format.latex import Latex
 from ..utils.compat import NUMPY_LT_1_14
-from ..utils.compat.misc import override__dir__
-from ..utils.exceptions import AstropyDeprecationWarning
-from ..utils.misc import isiterable, InheritDocstrings
+from .quantity_helper import check_output, converters_and_unit, can_have_arbitrary_unit
 from ..utils.data_info import ParentDtypeInfo
-from .. import config as _config
-from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
-                              check_output)
+from ..utils.exceptions import AstropyDeprecationWarning
+from ..utils.compat.misc import override__dir__
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
            "QuantityInfoBase", "QuantityInfo", "allclose", "isclose"]

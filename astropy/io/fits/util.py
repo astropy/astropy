@@ -1,28 +1,26 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 
-import gzip
-import itertools
 import io
-import mmap
-import operator
 import os
-import platform
-import signal
 import sys
+import gzip
+import mmap
+import signal
+import weakref
+import operator
+import platform
 import tempfile
 import textwrap
-import threading
 import warnings
-import weakref
-from contextlib import contextmanager, suppress
-from ...utils import data
-
+import itertools
+import threading
+from contextlib import suppress, contextmanager
 from distutils.version import LooseVersion
 
 import numpy as np
 
-from ...utils import wraps
+from ...utils import data, wraps
 from ...utils.exceptions import AstropyUserWarning
 
 cmp = lambda a, b: (a > b) - (a < b)

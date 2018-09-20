@@ -15,13 +15,13 @@ integrates to one per default.
 Currently only symmetric 2D kernels are supported.
 """
 
-import warnings
 import copy
+import warnings
 
 import numpy as np
+
+from .utils import discretize_model, add_kernel_arrays_1D, add_kernel_arrays_2D
 from ..utils.exceptions import AstropyUserWarning
-from .utils import (discretize_model, add_kernel_arrays_1D,
-                    add_kernel_arrays_2D)
 
 MAX_NORMALIZATION = 100
 

@@ -8,7 +8,7 @@ called, as it would be unclear what, e.g., ``u.mmag(u.ct/u.s)`` would mean.
 """
 from ..core import _add_prefixes
 from .mixin import RegularFunctionUnit, IrreducibleFunctionUnit
-
+from ..utils import generate_unit_summary as _generate_unit_summary
 
 _ns = globals()
 
@@ -39,8 +39,5 @@ del IrreducibleFunctionUnit
 ###########################################################################
 # DOCSTRING
 
-# This generates a docstring for this module that describes all of the
-# standard units defined here.
-from ..utils import generate_unit_summary as _generate_unit_summary
 if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())

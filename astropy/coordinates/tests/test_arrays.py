@@ -3,17 +3,15 @@
 
 
 
-import pytest
 import numpy as np
+import pytest
 from numpy import testing as npt
 
+from .. import FK4, FK5, ICRS, Angle, Galactic, SkyCoord, CartesianRepresentation
 from ... import units as u
 from ...time import Time
 from ...tests.helper import assert_quantity_allclose as assert_allclose
-
-from .. import (Angle, ICRS, FK4, FK5, Galactic, SkyCoord,
-                CartesianRepresentation)
-from ..angle_utilities import dms_to_degrees, hms_to_hours
+from ..angle_utilities import hms_to_hours, dms_to_degrees
 
 
 def test_angle_arrays():

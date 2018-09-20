@@ -19,8 +19,9 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
 """
 
 
-from .core import UnitBase, def_unit
 from . import si
+from .core import UnitBase, def_unit
+from .utils import generate_unit_summary as _generate_unit_summary
 
 _ns = globals()
 
@@ -144,9 +145,6 @@ del def_unit
 ###########################################################################
 # DOCSTRING
 
-# This generates a docstring for this module that describes all of the
-# standard units defined here.
-from .utils import generate_unit_summary as _generate_unit_summary
 if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())
 

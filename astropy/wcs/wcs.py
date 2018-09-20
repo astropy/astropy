@@ -29,23 +29,26 @@ together in a pipeline:
 
 """
 
-# STDLIB
-import copy
 import io
-import itertools
 import os
 import re
+# STDLIB
+import copy
+import builtins
 import textwrap
 import warnings
-import builtins
+import itertools
 
 # THIRD-PARTY
 import numpy as np
 
+from . import _docutil as __
 # LOCAL
 from .. import log
 from ..io import fits
-from . import _docutil as __
+from ..utils.compat import possible_filename
+from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
+
 try:
     from . import _wcs
 except ImportError:
@@ -54,8 +57,6 @@ except ImportError:
     else:
         _wcs = None
 
-from ..utils.compat import possible_filename
-from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'DistortionLookupTable', 'Sip', 'Tabprm', 'Wcsprm',

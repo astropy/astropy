@@ -6,13 +6,12 @@ from copy import deepcopy
 
 import numpy as np
 
-from .decorators import support_nddata
 from .. import units as u
-from ..coordinates import SkyCoord
+from ..wcs import Sip
 from ..utils import lazyproperty
 from ..wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
-from ..wcs import Sip
-
+from .decorators import support_nddata
+from ..coordinates import SkyCoord
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',
            'overlap_slices', 'block_reduce', 'block_replicate',

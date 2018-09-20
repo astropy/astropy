@@ -5,12 +5,10 @@ import warnings
 
 import numpy as np
 
-from .util import _str_to_num, _is_int, translate, _words_group
-from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
-
 from . import conf
+from .util import _is_int, translate, _str_to_num, _words_group
+from .verify import VerifyError, VerifyWarning, _Verify, _ErrList
 from ...utils.exceptions import AstropyUserWarning
-
 
 __all__ = ['Card', 'Undefined']
 

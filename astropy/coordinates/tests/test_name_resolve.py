@@ -7,13 +7,13 @@ This module contains tests for the name resolve convenience module.
 import time
 import urllib.request
 
-import pytest
 import numpy as np
+import pytest
 
-from ..name_resolve import (get_icrs_coordinates, NameResolveError,
-                            sesame_database, _parse_response, sesame_url)
-from ..sky_coordinate import SkyCoord
 from ... import units as u
+from ..name_resolve import (NameResolveError, sesame_url, _parse_response,
+                            sesame_database, get_icrs_coordinates)
+from ..sky_coordinate import SkyCoord
 
 _cached_ngc3642 = dict()
 _cached_ngc3642["simbad"] = """# NGC 3642    #Q22523669

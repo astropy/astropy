@@ -4,9 +4,9 @@ Contains a class that makes it simple to stream out well-formed and
 nicely-indented XML.
 """
 
+import textwrap
 # STDLIB
 import contextlib
-import textwrap
 
 try:
     import bleach

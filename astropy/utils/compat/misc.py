@@ -8,9 +8,8 @@ be accessed from there.
 
 import sys
 import functools
-from contextlib import suppress
 from importlib import invalidate_caches
-
+from contextlib import suppress
 
 __all__ = ['invalidate_caches', 'override__dir__', 'suppress',
            'possible_filename', 'namedtuple_asdict']

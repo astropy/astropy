@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 
+import numpy as np
 import pytest
 
 from ....table import Table, Column
-
 from ....table.table_helpers import simple_table
-
-import numpy as np
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 

@@ -1,7 +1,6 @@
-from ..hub_proxy import SAMPHubProxy
-from ..hub import SAMPHubServer
-
 from .. import conf
+from ..hub import SAMPHubServer
+from ..hub_proxy import SAMPHubProxy
 
 
 def setup_module(module):

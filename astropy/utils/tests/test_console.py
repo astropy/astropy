@@ -7,7 +7,6 @@ import io
 import numpy as np
 import pytest
 
-
 from . import test_progress_bar_func
 from .. import console
 from ... import units as u

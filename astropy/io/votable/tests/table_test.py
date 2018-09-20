@@ -4,13 +4,13 @@ Test the conversion to/from astropy.table
 """
 import io
 import os
-
 import pathlib
+
 import numpy as np
 
-from ....utils.data import get_pkg_data_filename, get_pkg_data_fileobj
-from ..table import parse, writeto
 from .. import tree
+from ..table import parse, writeto
+from ....utils.data import get_pkg_data_fileobj, get_pkg_data_filename
 
 
 def test_table(tmpdir):

@@ -1,9 +1,9 @@
 
-import pytest
 import numpy as np
-from numpy.testing import assert_allclose, assert_equal
+import pytest
+from numpy.testing import assert_equal, assert_allclose
 
-from ..utils import extirpolate, bitceil, trig_sum
+from ..utils import bitceil, trig_sum, extirpolate
 
 
 @pytest.mark.parametrize('N', 2 ** np.arange(1, 12))

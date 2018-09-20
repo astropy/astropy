@@ -1,13 +1,12 @@
 
+import numpy as np
 import pytest
 
-import numpy as np
-
-from ...tests.helper import assert_quantity_allclose
+from .. import Angle, SkyCoord, EarthLocation
 from ... import units as u
 from ...time import Time
-from .. import EarthLocation, SkyCoord, Angle
 from ..sites import get_builtin_sites
+from ...tests.helper import assert_quantity_allclose
 
 
 @pytest.mark.parametrize('kind', ['heliocentric', 'barycentric'])

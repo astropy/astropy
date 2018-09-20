@@ -1,13 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from ...wcs import wcs
 from .. import models
 from ... import units as u
+from ...wcs import wcs
 from ...tests.helper import assert_quantity_allclose
 
 

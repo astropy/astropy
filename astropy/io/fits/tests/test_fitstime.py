@@ -1,19 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 
-import pytest
 import numpy as np
+import pytest
 
 from . import FitsTestCase
-
-from ..fitstime import GLOBAL_TIME_INFO, time_to_fits, is_time_column_keyword
-from ....coordinates import EarthLocation
 from ....io import fits
-from ....table import Table, QTable
 from ....time import Time, TimeDelta
+from ....table import Table, QTable
+from ..fitstime import GLOBAL_TIME_INFO, time_to_fits, is_time_column_keyword
 from ....time.core import BARYCENTRIC_SCALES
-from ....time.formats import FITS_DEPRECATED_SCALES
+from ....coordinates import EarthLocation
 from ....tests.helper import catch_warnings
+from ....time.formats import FITS_DEPRECATED_SCALES
 
 
 class TestFitsTime(FitsTestCase):

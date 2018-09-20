@@ -1,8 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from ... import ascii
-from .common import (assert_equal, assert_almost_equal, has_isnan,
-                     setup_function, teardown_function)
+from .common import has_isnan, assert_equal, setup_function, teardown_function, assert_almost_equal
 
 
 def read_table1(readme, data):

@@ -4,9 +4,9 @@ This module provides functions to help with testing against iraf tasks
 """
 
 
-from ...logger import log
 import numpy as np
 
+from ...logger import log
 
 iraf_models_map = {1.: 'Chebyshev',
                    2.: 'Legendre',

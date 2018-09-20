@@ -1,14 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
+from matplotlib import rc_context
 from numpy.testing import assert_almost_equal
 
-from matplotlib import rc_context
-
 from .... import units as u
-from ....tests.helper import assert_quantity_allclose
 from ....units import UnitsError
+from ....tests.helper import assert_quantity_allclose
 from ..formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 
 

@@ -4,15 +4,14 @@
 import os
 import warnings
 
-import pytest
 import numpy as np
-
-from ....io import fits
-from ....table import Table
-from .. import printdiff
-from ....tests.helper import catch_warnings
+import pytest
 
 from . import FitsTestCase
+from .. import printdiff
+from ....io import fits
+from ....table import Table
+from ....tests.helper import catch_warnings
 
 
 class TestConvenience(FitsTestCase):

@@ -2,21 +2,19 @@
 
 import itertools
 
-import pytest
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_allclose
-
-from ..convolve import convolve, convolve_fft
-from ..kernels import (
-    Gaussian1DKernel, Gaussian2DKernel, Box1DKernel, Box2DKernel,
-    Trapezoid1DKernel, TrapezoidDisk2DKernel, MexicanHat1DKernel,
-    Tophat2DKernel, MexicanHat2DKernel, AiryDisk2DKernel, Ring2DKernel,
-    CustomKernel, Model1DKernel, Model2DKernel, Kernel1D, Kernel2D)
+import pytest
+from numpy.testing import assert_allclose, assert_almost_equal
 
 from ..utils import KernelSizeError
+from ..kernels import (Kernel1D, Kernel2D, Box1DKernel, Box2DKernel, CustomKernel,
+                       Ring2DKernel, Model1DKernel, Model2DKernel, Tophat2DKernel,
+                       AiryDisk2DKernel, Gaussian1DKernel, Gaussian2DKernel, Trapezoid1DKernel,
+                       MexicanHat1DKernel, MexicanHat2DKernel, TrapezoidDisk2DKernel)
+from ..convolve import convolve, convolve_fft
+from ...tests.helper import catch_warnings
 from ...modeling.models import Box2D, Gaussian1D, Gaussian2D
 from ...utils.exceptions import AstropyDeprecationWarning
-from ...tests.helper import catch_warnings
 
 try:
     from scipy.ndimage import filters

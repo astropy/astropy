@@ -9,13 +9,11 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
-
-from ..core import Model
-from ..models import Gaussian1D, Shift, Scale, Pix2Sky_TAN
 from ... import units as u
+from ..core import Model
 from ...units import UnitsError
+from ..models import Scale, Shift, Gaussian1D, Pix2Sky_TAN
 from ...tests.helper import assert_quantity_allclose
-
 
 # We start off by taking some simple cases where the units are defined by
 # whatever the model is initialized with, and we check that the model evaluation

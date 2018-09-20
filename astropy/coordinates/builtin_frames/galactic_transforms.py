@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ..matrix_utilities import (rotation_matrix,
-                                matrix_product, matrix_transpose)
-from ..baseframe import frame_transform_graph
-from ..transformations import DynamicMatrixTransform
-
-from .fk5 import FK5
 from .fk4 import FK4NoETerms
+from .fk5 import FK5
 from .utils import EQUINOX_B1950, EQUINOX_J2000
 from .galactic import Galactic
+from ..baseframe import frame_transform_graph
+from ..transformations import DynamicMatrixTransform
+from ..matrix_utilities import matrix_product, rotation_matrix, matrix_transpose
 
 
 # Galactic to/from FK4/FK5 ----------------------->

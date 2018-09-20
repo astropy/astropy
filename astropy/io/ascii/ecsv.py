@@ -5,9 +5,9 @@ writing all the meta data associated with an astropy Table object.
 """
 
 import re
-from collections import OrderedDict
-import contextlib
 import warnings
+import contextlib
+from collections import OrderedDict
 
 from . import core, basic
 from ...table import meta, serialize

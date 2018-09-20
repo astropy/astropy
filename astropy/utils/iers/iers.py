@@ -11,19 +11,21 @@ celestial-to-terrestrial coordinate transformations
 
 from warnings import warn
 
+import numpy as np
+
+from ... import units as u
+from ... import utils
+from ... import config as _config
+from ...table import Table, QTable
+from ...utils.data import clear_download_cache, get_pkg_data_filename
+from ...utils.exceptions import AstropyWarning
+
 try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
 
-import numpy as np
 
-from ... import config as _config
-from ... import units as u
-from ...table import Table, QTable
-from ...utils.data import get_pkg_data_filename, clear_download_cache
-from ... import utils
-from ...utils.exceptions import AstropyWarning
 
 __all__ = ['Conf', 'conf',
            'IERS', 'IERS_B', 'IERS_A', 'IERS_Auto',

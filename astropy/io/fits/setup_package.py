@@ -1,9 +1,8 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import os
-
-from distutils.core import Extension
 from glob import glob
+from distutils.core import Extension
 
 from astropy_helpers import setup_helpers
 from astropy_helpers.distutils_helpers import get_distutils_build_option

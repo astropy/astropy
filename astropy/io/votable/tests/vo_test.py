@@ -7,24 +7,24 @@ This is a set of regression tests for vo.
 """
 
 
-# STDLIB
-import difflib
 import io
-import pathlib
 import sys
 import gzip
+# STDLIB
+import difflib
+import pathlib
 from unittest import mock
 
+import numpy as np
 # THIRD-PARTY
 import pytest
-import numpy as np
 from numpy.testing import assert_array_equal
 
-# LOCAL
-from ..table import parse, parse_single_table, validate
 from .. import tree
-from ..exceptions import VOTableSpecError, VOWarning
+# LOCAL
+from ..table import parse, validate, parse_single_table
 from ..xmlutil import validate_schema
+from ..exceptions import VOWarning, VOTableSpecError
 from ....utils.data import get_pkg_data_filename, get_pkg_data_filenames
 from ....tests.helper import raises, catch_warnings
 

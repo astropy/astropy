@@ -1,13 +1,22 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
-import weakref
 import re
-
+import weakref
+import warnings
 from copy import deepcopy
 
 import numpy as np
 from numpy import ma
+
+from . import groups, pprint
+from ..units import Unit, Quantity
+from .np_utils import fix_column_name
+from ..utils.misc import dtype_bytes_or_chars
+from ..utils.console import color_print
+# These "shims" provide __getitem__ implementations for Column and MaskedColumn
+from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
+from ..utils.metadata import MetaData
+from ..utils.data_info import BaseColumnInfo, dtype_info_name
 
 # Remove this when Numpy no longer emits this warning and that Numpy version
 # becomes the minimum required version for Astropy.
@@ -18,17 +27,7 @@ except ImportError:
     # For Numpy versions that do not raise this warning.
     MaskedArrayFutureWarning = None
 
-from ..units import Unit, Quantity
-from ..utils.console import color_print
-from ..utils.metadata import MetaData
-from ..utils.data_info import BaseColumnInfo, dtype_info_name
-from ..utils.misc import dtype_bytes_or_chars
-from . import groups
-from . import pprint
-from .np_utils import fix_column_name
 
-# These "shims" provide __getitem__ implementations for Column and MaskedColumn
-from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
 
 # Create a generic TableFormatter object for use by bare columns with no
 # parent table.

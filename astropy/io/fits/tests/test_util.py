@@ -2,12 +2,17 @@
 
 
 import os
-import signal
 import gzip
+import signal
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_equal
+
+from . import FitsTestCase
+from .. import util
+from ..util import ignore_sigint, _rstrip_inplace
+from ....tests.helper import catch_warnings
 
 try:
     from PIL import Image
@@ -15,11 +20,7 @@ try:
 except ImportError:
     HAS_PIL = False
 
-from ....tests.helper import catch_warnings
-from .. import util
-from ..util import ignore_sigint, _rstrip_inplace
 
-from . import FitsTestCase
 
 
 class TestUtils(FitsTestCase):

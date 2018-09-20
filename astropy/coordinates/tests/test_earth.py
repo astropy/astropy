@@ -5,15 +5,15 @@
 
 import pickle
 
-import pytest
 import numpy as np
+import pytest
 
-from ..earth import EarthLocation, ELLIPSOIDS
-from ..angles import Longitude, Latitude
-from ...units import allclose as quantity_allclose
 from ... import units as u
-from ...time import Time
 from ... import constants
+from ...time import Time
+from ..earth import ELLIPSOIDS, EarthLocation
+from ...units import allclose as quantity_allclose
+from ..angles import Latitude, Longitude
 from ..name_resolve import NameResolveError
 
 

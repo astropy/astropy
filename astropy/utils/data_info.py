@@ -23,13 +23,12 @@ import warnings
 from io import StringIO
 from copy import deepcopy
 from functools import partial
-from collections import OrderedDict
 from contextlib import contextmanager
+from collections import OrderedDict
 
 import numpy as np
 
 from . import metadata
-
 
 __all__ = ['data_info_factory', 'dtype_info_name', 'BaseColumnInfo',
            'DataInfo', 'MixinInfo', 'ParentDtypeInfo']

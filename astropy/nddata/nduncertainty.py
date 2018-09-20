@@ -1,10 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import numpy as np
+import weakref
 from abc import ABCMeta, abstractmethod
 from copy import deepcopy
-import weakref
+
+import numpy as np
 
 # from ..utils.compat import ignored
 from .. import log

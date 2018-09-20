@@ -4,20 +4,17 @@ from functools import partial
 from collections import defaultdict
 
 import numpy as np
-
-from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
-from matplotlib.transforms import Affine2D, Bbox, Transform
+from matplotlib.artist import Artist
+from matplotlib.transforms import Bbox, Affine2D, Transform
 
-from ...coordinates import SkyCoord, BaseCoordinateFrame
 from ...wcs import WCS
-from ...wcs.utils import wcs_to_celestial_frame
-
-from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
-                         CoordinateTransform)
-from .coordinates_map import CoordinatesMap
-from .utils import get_coord_meta, transform_contour_set_inplace
 from .frame import EllipticalFrame, RectangularFrame
+from .utils import get_coord_meta, transform_contour_set_inplace
+from .transforms import CoordinateTransform, WCSPixel2WorldTransform, WCSWorld2PixelTransform
+from ...wcs.utils import wcs_to_celestial_frame
+from ...coordinates import SkyCoord, BaseCoordinateFrame
+from .coordinates_map import CoordinatesMap
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
 

@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import fnmatch
-import time
 import re
+import time
+import fnmatch
 import datetime
 from collections import OrderedDict, defaultdict
 
 import numpy as np
 
-from ..utils.decorators import lazyproperty
-from .. import units as u
 from .. import _erfa as erfa
-from .utils import day_frac, quantity_day_frac, two_sum, two_product
-
+from .. import units as u
+from .core import TIME_SCALES, TIME_DELTA_SCALES, Time, ScaleValueError
+from .utils import two_sum, day_frac, two_product, quantity_day_frac
+from ..utils.decorators import lazyproperty
 
 __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeCxcSec', 'TimeGPS', 'TimeDecimalYear',
@@ -1243,6 +1243,3 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
             out[...] = datetime.timedelta(days=jd.item())
 
         return self.mask_if_needed(iterator.operands[-1])
-
-
-from .core import Time, TIME_SCALES, TIME_DELTA_SCALES, ScaleValueError

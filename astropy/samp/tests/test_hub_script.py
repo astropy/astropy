@@ -1,8 +1,7 @@
 import sys
 
-from ..hub_script import hub_script
-
 from .. import conf
+from ..hub_script import hub_script
 
 
 def setup_module(module):

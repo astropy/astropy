@@ -10,24 +10,24 @@ astronomy.
 
 import copy
 import operator
-from datetime import datetime, date, timedelta
 from time import strftime, strptime
+from datetime import date, datetime, timedelta
 
 import numpy as np
 
-from .. import units as u, constants as const
 from .. import _erfa as erfa
+from .. import units as u
+from .. import constants as const
+from .utils import day_frac
 from ..units import UnitConversionError
 from ..utils import ShapedLikeNDArray
-from ..utils.compat.misc import override__dir__
-from ..utils.data_info import MixinInfo, data_info_factory
-from .utils import day_frac
-from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
-                      TimeJD, TimeUnique, TimeAstropyTime, TimeDatetime)
 # Import TimeFromEpoch to avoid breaking code that followed the old example of
 # making a custom timescale in the documentation.
 from .formats import TimeFromEpoch  # pylint: disable=W0611
-
+from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS, TimeJD,
+                      TimeUnique, TimeDatetime, TimeAstropyTime)
+from ..utils.data_info import MixinInfo, data_info_factory
+from ..utils.compat.misc import override__dir__
 
 __all__ = ['Time', 'TimeDelta', 'TIME_SCALES', 'STANDARD_TIME_SCALES', 'TIME_DELTA_SCALES',
            'ScaleValueError', 'OperandTypeError', 'TimeInfo']

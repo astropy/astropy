@@ -11,13 +11,12 @@ import warnings
 
 import numpy as np
 
-from .slow_impl import lombscargle_slow
-from .fast_impl import lombscargle_fast
-from .scipy_impl import lombscargle_scipy
 from .chi2_impl import lombscargle_chi2
-from .fastchi2_impl import lombscargle_fastchi2
+from .fast_impl import lombscargle_fast
+from .slow_impl import lombscargle_slow
+from .scipy_impl import lombscargle_scipy
 from .cython_impl import lombscargle_cython
-
+from .fastchi2_impl import lombscargle_fastchi2
 
 METHODS = {'slow': lombscargle_slow,
            'fast': lombscargle_fast,

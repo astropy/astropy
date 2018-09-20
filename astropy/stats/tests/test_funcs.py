@@ -1,9 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
-
 import numpy as np
+import pytest
 from numpy.testing import assert_equal, assert_allclose
+
+from .. import funcs
+from ... import units as u
+from ...utils.misc import NumpyRNGContext
+from ...tests.helper import catch_warnings
 
 try:
     import scipy  # pylint: disable=W0611
@@ -19,10 +23,6 @@ except ImportError:
 else:
     HAS_MPMATH = True
 
-from .. import funcs
-from ... import units as u
-from ...tests.helper import catch_warnings
-from ...utils.misc import NumpyRNGContext
 
 
 def test_median_absolute_deviation():

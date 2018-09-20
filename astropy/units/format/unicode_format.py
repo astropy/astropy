@@ -6,7 +6,7 @@ Handles the "Unicode" unit format.
 """
 
 
-from . import console, utils
+from . import utils, console
 
 
 class Unicode(console.Console):

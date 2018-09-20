@@ -1,19 +1,18 @@
 
-import pytest
 import numpy as np
+import pytest
 
-from ...time import Time
 from ... import units as u
-from ...constants import c
-from ..builtin_frames import GCRS
+from ...time import Time
 from ..earth import EarthLocation
-from ..sky_coordinate import SkyCoord
-from ..solar_system import (get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
-                            _apparent_position_in_true_coordinates,
-                            get_body_barycentric, get_body_barycentric_posvel)
 from ..funcs import get_sun
-from ...tests.helper import assert_quantity_allclose
 from ...units import allclose as quantity_allclose
+from ...constants import c
+from ..solar_system import (BODY_NAME_TO_KERNEL_SPEC, get_body, get_moon, get_body_barycentric,
+                            get_body_barycentric_posvel, _apparent_position_in_true_coordinates)
+from ...tests.helper import assert_quantity_allclose
+from ..builtin_frames import GCRS
+from ..sky_coordinate import SkyCoord
 
 try:
     import jplephem  # pylint: disable=W0611

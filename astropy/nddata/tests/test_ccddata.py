@@ -6,18 +6,17 @@ import textwrap
 import numpy as np
 import pytest
 
-from ...io import fits
-from ..nduncertainty import StdDevUncertainty, MissingDataAssociationException
-from ... import units as u
-from ... import log
-from ...wcs import WCS, FITSFixedWarning
-from ...tests.helper import catch_warnings
-from ...utils import NumpyRNGContext
-from ...utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
-                           get_pkg_data_contents)
-
-from ..ccddata import CCDData
 from astropy.table import Table
+
+from ... import log
+from ... import units as u
+from ...io import fits
+from ...wcs import WCS, FITSFixedWarning
+from ...utils import NumpyRNGContext
+from ..ccddata import CCDData
+from ...utils.data import get_pkg_data_contents, get_pkg_data_filename, get_pkg_data_filenames
+from ...tests.helper import catch_warnings
+from ..nduncertainty import StdDevUncertainty, MissingDataAssociationException
 
 # If additional pytest markers are defined the key in the dictionary below
 # should be the name of the marker.

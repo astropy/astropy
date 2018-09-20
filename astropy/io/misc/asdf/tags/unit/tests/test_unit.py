@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import io
+
 import pytest
+from asdf.tests import helpers
 
 from astropy import units as u
 
 asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
-from asdf.tests import helpers
 
 
 # TODO: Implement defunit

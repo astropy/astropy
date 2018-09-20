@@ -2,11 +2,9 @@
 
 
 import numpy as np
-
 from matplotlib.transforms import Affine2D, IdentityTransform
 
 from ....wcs import WCS
-
 from ..transforms import WCSWorld2PixelTransform
 
 WCS2D = WCS(naxis=2)

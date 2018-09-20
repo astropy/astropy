@@ -3,18 +3,16 @@
 This module contains helper functions and classes for handling metadata.
 """
 
-from ..utils import wraps
-
 import warnings
-
+from copy import deepcopy
 from collections import OrderedDict
 from collections.abc import Mapping
-from copy import deepcopy
 
 import numpy as np
-from ..utils.exceptions import AstropyWarning
-from ..utils.misc import dtype_bytes_or_chars
 
+from ..utils import wraps
+from ..utils.misc import dtype_bytes_or_chars
+from ..utils.exceptions import AstropyWarning
 
 __all__ = ['MergeConflictError', 'MergeConflictWarning', 'MERGE_STRATEGIES',
            'common_dtype', 'MergePlus', 'MergeNpConcatenate', 'MergeStrategy',

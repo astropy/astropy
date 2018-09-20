@@ -3,7 +3,6 @@
 
 import numpy as np
 
-
 __doctest_skip__ = ['quantity_support']
 
 

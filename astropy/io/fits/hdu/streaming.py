@@ -1,16 +1,14 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import gzip
 import os
+import gzip
 
-from .base import _BaseHDU, BITPIX2DTYPE
-from .hdulist import HDUList
-from .image import PrimaryHDU
-
+from .base import BITPIX2DTYPE, _BaseHDU
 from ..file import _File
-from ..header import _pad_length
 from ..util import fileobj_name
-
+from .image import PrimaryHDU
+from ..header import _pad_length
+from .hdulist import HDUList
 
 
 class StreamingHDU:

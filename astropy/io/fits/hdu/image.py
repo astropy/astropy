@@ -5,11 +5,10 @@ import warnings
 
 import numpy as np
 
-from .base import DELAYED, _ValidHDU, ExtensionHDU, BITPIX2DTYPE, DTYPE2BITPIX
+from .base import DELAYED, BITPIX2DTYPE, DTYPE2BITPIX, ExtensionHDU, _ValidHDU
+from ..util import _is_int, _unsigned_zero, _is_pseudo_unsigned
 from ..header import Header
-from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 from ..verify import VerifyWarning
-
 from ....utils import isiterable, lazyproperty
 
 

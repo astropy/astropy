@@ -2,15 +2,15 @@
 
 import itertools
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
 from ..utils import discretize_model
-from ...modeling.functional_models import (
-    Gaussian1D, Box1D, MexicanHat1D, Gaussian2D, Box2D, MexicanHat2D)
-from ...modeling.tests.example_models import models_1D, models_2D
+from ...modeling.functional_models import (Box1D, Box2D, Gaussian1D, Gaussian2D,
+                                           MexicanHat1D, MexicanHat2D)
 from ...modeling.tests.test_models import create_model
+from ...modeling.tests.example_models import models_1D, models_2D
 
 try:
     import scipy  # pylint: disable=W0611

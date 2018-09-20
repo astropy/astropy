@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import hashlib
 import os
-import pathlib
 import sys
+import hashlib
+import pathlib
 import tempfile
-import urllib.request
 import urllib.error
+import urllib.request
 
 import pytest
 
-from ..data import (_get_download_cache_locs, CacheMissingWarning,
-                    get_pkg_data_filename, get_readable_fileobj)
-
+from ..data import (CacheMissingWarning, get_readable_fileobj,
+                    get_pkg_data_filename, _get_download_cache_locs)
 from ...tests.helper import raises, catch_warnings
 
 TESTURL = 'http://www.astropy.org'

@@ -21,8 +21,8 @@ import abc
 
 import numpy as np
 
-from .core import Model
 from .. import units as u
+from .core import Model
 from ..utils import minversion
 
 try:

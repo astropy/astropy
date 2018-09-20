@@ -2,13 +2,13 @@
 
 
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
 from ... import NDData, NDSlicingMixin
-from ...nduncertainty import NDUncertainty, StdDevUncertainty
 from .... import units as u
+from ...nduncertainty import NDUncertainty, StdDevUncertainty
 
 
 # Just add the Mixin to NDData

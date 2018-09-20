@@ -1,14 +1,12 @@
 import abc
-
 from collections import OrderedDict
 
-import pytest
 import numpy as np
+import pytest
 
-from ..metadata import MetaData, MergeConflictError, merge, enable_merge_strategies
-from ..metadata import common_dtype
-from ...utils import metadata
 from ...io import fits
+from ...utils import metadata
+from ..metadata import MetaData, MergeConflictError, merge, common_dtype, enable_merge_strategies
 
 
 class OrderedDictSubclass(OrderedDict):

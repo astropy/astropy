@@ -2,15 +2,14 @@
 """
 This module tests model set evaluation for some common use cases.
 """
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
+from ..core import Model
 from ..models import Polynomial1D, Polynomial2D
 from ..fitting import LinearLSQFitter
-from ..core import Model
 from ..parameters import Parameter
-
 
 x = np.arange(4)
 xx = np.array([x, x + 10])

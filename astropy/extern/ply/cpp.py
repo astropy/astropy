@@ -9,7 +9,11 @@
 # -----------------------------------------------------------------------------
 from __future__ import generators
 
+import re
 import sys
+import copy
+import time
+import os.path
 
 # Some Python 3 compatibility shims
 if sys.version_info.major < 3:
@@ -85,10 +89,6 @@ def t_error(t):
     t.lexer.skip(1)
     return t
 
-import re
-import copy
-import time
-import os.path
 
 # -----------------------------------------------------------------------------
 # trigraph()
@@ -905,14 +905,3 @@ if __name__ == '__main__':
         tok = p.token()
         if not tok: break
         print(p.source, tok)
-
-
-
-
-    
-
-
-
-
-
-

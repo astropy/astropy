@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
+from .. import BoxLeastSquares
 from .... import units
 from ....tests.helper import assert_quantity_allclose
-from .. import BoxLeastSquares
 from ...lombscargle.core import has_units
 
 

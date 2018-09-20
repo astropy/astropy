@@ -1,12 +1,13 @@
 
-import numpy as np
 import pickle
 
-from ...table import Table, Column, MaskedColumn, QTable
-from ...table.table_helpers import simple_table
-from ...units import Quantity, deg
+import numpy as np
+
 from ...time import Time
+from ...table import Table, Column, QTable, MaskedColumn
+from ...units import Quantity, deg
 from ...coordinates import SkyCoord
+from ...table.table_helpers import simple_table
 
 
 def test_pickle_column(protocol):

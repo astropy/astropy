@@ -1,7 +1,6 @@
-import textwrap
 import copy
+import textwrap
 from collections import OrderedDict
-
 
 __all__ = ['get_header_from_yaml', 'get_yaml_from_header', 'get_yaml_from_table']
 

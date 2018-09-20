@@ -1,23 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 
-import pytest
 import numpy as np
-
+import pytest
 import matplotlib.pyplot as plt
-from matplotlib.patches import Circle, Rectangle
 from matplotlib import rc_context
+from matplotlib.patches import Circle, Rectangle
 
+from . import datasets
+from .. import WCSAxes
 from .... import units as u
 from ....io import fits
 from ....wcs import WCS
-from ....coordinates import SkyCoord
-
-from ..patches import SphericalCircle
-from .. import WCSAxes
-from . import datasets
-from ....tests.image_tests import IMAGE_REFERENCE_DIR
 from ..frame import EllipticalFrame
+from ..patches import SphericalCircle
+from ....coordinates import SkyCoord
+from ....tests.image_tests import IMAGE_REFERENCE_DIR
 
 
 class BaseImageTests:

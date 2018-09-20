@@ -8,25 +8,23 @@ test_api_ape5.py
 
 import copy
 
-import pytest
 import numpy as np
+import pytest
 import numpy.testing as npt
 
 from ... import units as u
-from ...tests.helper import (catch_warnings,
-                             assert_quantity_allclose as assert_allclose)
-from ..representation import REPRESENTATION_CLASSES
-from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
-                            SphericalRepresentation, CartesianRepresentation,
-                            UnitSphericalRepresentation, AltAz,
-                            BaseCoordinateFrame, Attribute,
-                            frame_transform_graph, RepresentationMapping)
-from ...coordinates import Latitude, EarthLocation
 from ...time import Time
-from ...utils import minversion, isiterable
-from ...utils.compat import NUMPY_LT_1_14
-from ...utils.exceptions import AstropyDeprecationWarning
 from ...units import allclose as quantity_allclose
+from ...utils import isiterable, minversion
+from ...coordinates import (FK4, FK5, ICRS, AltAz, Angle, Galactic, Latitude, SkyCoord, Attribute,
+                            EarthLocation, BaseCoordinateFrame, RepresentationMapping,
+                            CartesianRepresentation, SphericalRepresentation,
+                            UnitSphericalRepresentation, frame_transform_graph)
+from ...tests.helper import catch_warnings
+from ...tests.helper import assert_quantity_allclose as assert_allclose
+from ...utils.compat import NUMPY_LT_1_14
+from ..representation import REPRESENTATION_CLASSES
+from ...utils.exceptions import AstropyDeprecationWarning
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg

@@ -5,10 +5,9 @@ Tests models.parameters
 
 import itertools
 
-import pytest
 import numpy as np
-from numpy.testing import (assert_allclose, assert_equal, assert_array_equal,
-                           assert_almost_equal)
+import pytest
+from numpy.testing import assert_equal, assert_allclose, assert_array_equal, assert_almost_equal
 
 from . import irafutil
 from .. import models, fitting

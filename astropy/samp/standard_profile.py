@@ -2,14 +2,14 @@
 
 
 import sys
-import traceback
 import warnings
+import traceback
 import socketserver
 import xmlrpc.client as xmlrpc
-from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
+from xmlrpc.server import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 
-from .constants import SAMP_ICON
 from .errors import SAMPWarning
+from .constants import SAMP_ICON
 
 __all__ = []
 

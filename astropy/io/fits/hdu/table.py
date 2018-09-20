@@ -1,35 +1,33 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 
-import contextlib
-import csv
-import operator
 import os
 import re
+import csv
 import sys
+import operator
 import textwrap
 import warnings
+import contextlib
 from contextlib import suppress
 
 import numpy as np
 from numpy import char as chararray
 
-from .base import DELAYED, _ValidHDU, ExtensionHDU
+from .base import DELAYED, ExtensionHDU, _ValidHDU
+from ..util import _is_int, _str_to_num
 # This module may have many dependencies on astropy.io.fits.column, but
 # astropy.io.fits.column has fewer dependencies overall, so it's easier to
 # keep table/column-related utilities in astropy.io.fits.column
-from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
-                      ATTRIBUTE_TO_KEYWORD, TDEF_RE, Column, ColDefs,
-                      _AsciiColDefs, _FormatP, _FormatQ, _makep,
-                      _parse_tformat, _scalar_to_format, _convert_format,
-                      _cmp_recformats)
-from ..fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
+from ..column import (TDEF_RE, FITS2NUMPY, KEYWORD_NAMES, ATTRIBUTE_TO_KEYWORD,
+                      KEYWORD_TO_ATTRIBUTE, Column, ColDefs, _makep, _FormatP,
+                      _FormatQ, _AsciiColDefs, _parse_tformat, _cmp_recformats,
+                      _convert_format, _scalar_to_format)
 from ..header import Header, _pad_length
-from ..util import _is_int, _str_to_num
-
 from ....utils import lazyproperty
-from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from ..fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
 from ....utils.decorators import deprecated_renamed_argument
+from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 
 class FITSTableDumpDialect(csv.excel):

@@ -7,18 +7,17 @@ anything in between (currently that means GCRS)
 
 import numpy as np
 
-from ... import units as u
-from ..baseframe import frame_transform_graph
-from ..transformations import FunctionTransformWithFiniteDifference, AffineTransform
-from ..representation import (SphericalRepresentation, CartesianRepresentation,
-                              UnitSphericalRepresentation)
 from ... import _erfa as erfa
-
-from .icrs import ICRS
-from .gcrs import GCRS
+from ... import units as u
 from .cirs import CIRS
+from .gcrs import GCRS
 from .hcrs import HCRS
-from .utils import get_jd12, aticq, atciqz, get_cip, prepare_earth_position_vel
+from .icrs import ICRS
+from .utils import aticq, atciqz, get_cip, get_jd12, prepare_earth_position_vel
+from ..baseframe import frame_transform_graph
+from ..representation import (CartesianRepresentation, SphericalRepresentation,
+                              UnitSphericalRepresentation)
+from ..transformations import AffineTransform, FunctionTransformWithFiniteDifference
 
 
 # First the ICRS/CIRS related transforms

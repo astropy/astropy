@@ -12,9 +12,9 @@
 # STDLIB
 import time
 
+import numpy as np
 # THIRD-PARTY
 import pytest
-import numpy as np
 
 # LOCAL
 from ..timer import RunTimePredictor

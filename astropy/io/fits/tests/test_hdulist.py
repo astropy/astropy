@@ -1,21 +1,20 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import glob
 import io
 import os
-import platform
 import sys
 import copy
+import glob
+import platform
 
-import pytest
 import numpy as np
-
-from ..verify import VerifyError
-from ....io import fits
-from ....tests.helper import raises, catch_warnings, ignore_warnings
-from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+import pytest
 
 from . import FitsTestCase
+from ....io import fits
+from ..verify import VerifyError
+from ....tests.helper import raises, catch_warnings, ignore_warnings
+from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 
 class TestHDUListFunctions(FitsTestCase):

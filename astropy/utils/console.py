@@ -4,16 +4,20 @@
 Utilities for console input and output.
 """
 
+import os
+import re
+import sys
+import math
+import time
 import codecs
 import locale
-import re
-import math
-import multiprocessing
-import os
 import struct
-import sys
 import threading
-import time
+import multiprocessing
+
+from .. import conf
+from .misc import isiterable
+from .decorators import classproperty
 
 try:
     import fcntl
@@ -23,10 +27,7 @@ try:
 except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
-from .. import conf
 
-from .misc import isiterable
-from .decorators import classproperty
 
 
 __all__ = [

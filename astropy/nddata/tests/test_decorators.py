@@ -2,15 +2,14 @@
 
 import inspect
 
-import pytest
 import numpy as np
+import pytest
 
-from ...tests.helper import catch_warnings
-from ...utils.exceptions import AstropyUserWarning
 from ... import units as u
-
 from ..nddata import NDData
 from ..decorators import support_nddata
+from ...tests.helper import catch_warnings
+from ...utils.exceptions import AstropyUserWarning
 
 
 class CCDData(NDData):

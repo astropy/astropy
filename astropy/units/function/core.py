@@ -6,8 +6,7 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from .. import (Unit, UnitBase, UnitsError, UnitTypeError,
-                dimensionless_unscaled, Quantity)
+from .. import Unit, Quantity, UnitBase, UnitsError, UnitTypeError, dimensionless_unscaled
 
 __all__ = ['FunctionUnitBase', 'FunctionQuantity']
 

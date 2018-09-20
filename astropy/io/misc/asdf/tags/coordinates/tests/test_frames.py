@@ -2,14 +2,16 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-
-asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
 from asdf.tests.helpers import assert_roundtrip_tree
 
 from astropy import units
-from astropy.coordinates import ICRS, FK5, Longitude, Latitude, Angle
+from astropy.coordinates import FK5, ICRS, Angle, Latitude, Longitude
 
 from ....extension import AstropyExtension
+
+asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
+
+
 
 
 def test_hcrs_basic(tmpdir):

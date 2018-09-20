@@ -4,30 +4,24 @@
 from copy import deepcopy
 from collections import OrderedDict
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
 from ... import units as u
-from ...tests.helper import (assert_quantity_allclose as
-                             assert_allclose_quantity, catch_warnings)
 from ...utils import isiterable
-from ...utils.compat import NUMPY_LT_1_14
-from ...utils.exceptions import AstropyDeprecationWarning
-from ..angles import Longitude, Latitude, Angle
+from ..angles import Angle, Latitude, Longitude
 from ..distances import Distance
-from ..representation import (REPRESENTATION_CLASSES,
-                              DIFFERENTIAL_CLASSES,
-                              BaseRepresentation,
-                              SphericalRepresentation,
-                              UnitSphericalRepresentation,
-                              SphericalCosLatDifferential,
-                              CartesianRepresentation,
-                              CylindricalRepresentation,
-                              PhysicsSphericalRepresentation,
-                              CartesianDifferential,
-                              SphericalDifferential,
+from ...tests.helper import catch_warnings
+from ...tests.helper import assert_quantity_allclose as assert_allclose_quantity
+from ...utils.compat import NUMPY_LT_1_14
+from ..representation import (DIFFERENTIAL_CLASSES, REPRESENTATION_CLASSES, BaseRepresentation,
+                              CartesianDifferential, SphericalDifferential,
+                              CartesianRepresentation, SphericalRepresentation,
+                              CylindricalRepresentation, SphericalCosLatDifferential,
+                              UnitSphericalRepresentation, PhysicsSphericalRepresentation,
                               _combine_xyz)
+from ...utils.exceptions import AstropyDeprecationWarning
 
 
 # Preserve the original REPRESENTATION_CLASSES dict so that importing

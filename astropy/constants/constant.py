@@ -1,15 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import functools
 import types
 import warnings
+import functools
+
 import numpy as np
 
-from ..units.core import Unit, UnitsError
-from ..units.quantity import Quantity
 from ..utils import lazyproperty
-from ..utils.exceptions import AstropyUserWarning
+from ..units.core import Unit, UnitsError
 from ..utils.misc import InheritDocstrings
+from ..units.quantity import Quantity
+from ..utils.exceptions import AstropyUserWarning
 
 __all__ = ['Constant', 'EMConstant']
 

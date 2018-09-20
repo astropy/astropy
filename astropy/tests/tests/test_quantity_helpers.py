@@ -1,6 +1,5 @@
 from ... import units as u
-
-from ..helper import assert_quantity_allclose, pytest
+from ..helper import pytest, assert_quantity_allclose
 
 
 def test_assert_quantity_allclose():

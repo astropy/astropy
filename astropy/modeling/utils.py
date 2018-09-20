@@ -5,17 +5,15 @@ This module provides utility functions for the models package
 """
 
 
+from inspect import signature
 from collections import deque
 from collections.abc import MutableMapping
-from inspect import signature
 
 import numpy as np
 
-
+from .. import units as u
 from ..utils import isiterable, check_broadcast
 from ..utils.compat import NUMPY_LT_1_14
-
-from .. import units as u
 
 __all__ = ['ExpressionTree', 'AliasDict', 'check_broadcast',
            'poly_map_domain', 'comb', 'ellipse_extent']

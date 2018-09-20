@@ -6,10 +6,11 @@ This package defines the SI units.  They are also available in the
 
 """
 
-from ..constants import si as _si
-from .core import UnitBase, Unit, def_unit
-
 import numpy as _numpy
+
+from .core import Unit, UnitBase, def_unit
+from .utils import generate_unit_summary as _generate_unit_summary
+from ..constants import si as _si
 
 _ns = globals()
 
@@ -234,8 +235,5 @@ del def_unit
 ###########################################################################
 # DOCSTRING
 
-# This generates a docstring for this module that describes all of the
-# standard units defined here.
-from .utils import generate_unit_summary as _generate_unit_summary
 if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())

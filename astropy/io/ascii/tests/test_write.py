@@ -6,18 +6,15 @@ import copy
 from io import StringIO
 from itertools import chain
 
-
-import pytest
 import numpy as np
+import pytest
 
 from ... import ascii
-from .... import table
-from ....table.table_helpers import simple_table
+from .... import table, units
+from .common import setup_function, teardown_function
 from ....tests.helper import catch_warnings
 from ....utils.exceptions import AstropyWarning, AstropyDeprecationWarning
-from .... import units
-
-from .common import setup_function, teardown_function
+from ....table.table_helpers import simple_table
 
 # Check to see if the BeautifulSoup dependency is present.
 try:

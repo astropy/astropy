@@ -55,26 +55,24 @@ explanation of all the different formats.
 """
 
 
-import operator
 import os
+import operator
 import warnings
 
 import numpy as np
 
-from .diff import FITSDiff, HDUDiff
+from .diff import HDUDiff, FITSDiff
 from .file import FILE_MODES, _File
-from .hdu.base import _BaseHDU, _ValidHDU
-from .hdu.hdulist import fitsopen, HDUList
-from .hdu.image import PrimaryHDU, ImageHDU
-from .hdu.table import BinTableHDU
+from .util import _is_int, fileobj_mode, fileobj_name, fileobj_closed
 from .header import Header
-from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
-from ...units import Unit
-from ...units.format.fits import UnitScaleError
-from ...units import Quantity
-from ...utils.exceptions import AstropyUserWarning
+from ...units import Unit, Quantity
+from .hdu.base import _BaseHDU, _ValidHDU
+from .hdu.image import ImageHDU, PrimaryHDU
+from .hdu.table import BinTableHDU
+from .hdu.hdulist import HDUList, fitsopen
 from ...utils.decorators import deprecated_renamed_argument
-
+from ...utils.exceptions import AstropyUserWarning
+from ...units.format.fits import UnitScaleError
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
            'append', 'update', 'info', 'tabledump', 'tableload',

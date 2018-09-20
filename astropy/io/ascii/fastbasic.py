@@ -4,9 +4,8 @@ import re
 import copy
 from collections import OrderedDict
 
-from . import core
+from . import core, cparser
 from ...table import Table
-from . import cparser
 from ...utils import set_locale
 
 

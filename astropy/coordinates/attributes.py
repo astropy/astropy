@@ -2,14 +2,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-# Dependencies
-import numpy as np
 import warnings
 
-# Project
+# Dependencies
+import numpy as np
+
 from .. import units as u
-from ..utils.exceptions import AstropyDeprecationWarning
+# do this here to prevent a series of complicated circular imports
+from .earth import EarthLocation
 from ..utils import OrderedDescriptor, ShapedLikeNDArray
+from .representation import BaseDifferential, CartesianRepresentation
+from ..utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['Attribute', 'TimeAttribute', 'QuantityAttribute',
            'EarthLocationAttribute', 'CoordinateAttribute',
@@ -523,8 +526,3 @@ class CartesianRepresentationFrameAttribute(CartesianRepresentationAttribute):
                       "to CartesianRepresentationAttribute.",
                       AstropyDeprecationWarning)
         super().__init__(*args, **kwargs)
-
-
-# do this here to prevent a series of complicated circular imports
-from .earth import EarthLocation
-from .representation import CartesianRepresentation, BaseDifferential

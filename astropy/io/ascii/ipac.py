@@ -10,16 +10,13 @@ ipac.py:
 
 
 import re
-from collections import defaultdict, OrderedDict
 from textwrap import wrap
 from warnings import warn
+from collections import OrderedDict, defaultdict
 
-
-from . import core
-from . import fixedwidth
-from . import basic
-from ...utils.exceptions import AstropyUserWarning
+from . import core, basic, fixedwidth
 from ...table.pprint import get_auto_format_func
+from ...utils.exceptions import AstropyUserWarning
 
 
 class IpacFormatErrorDBMS(Exception):

@@ -5,11 +5,12 @@ from unittest.mock import patch
 
 import pytest
 import matplotlib.pyplot as plt
-from astropy.wcs import WCS
-from astropy.io import fits
 
-from ..core import WCSAxes
+from astropy.io import fits
+from astropy.wcs import WCS
+
 from .... import units as u
+from ..core import WCSAxes
 from ....tests.image_tests import ignore_matplotlibrc
 
 ROOT = os.path.join(os.path.dirname(__file__))

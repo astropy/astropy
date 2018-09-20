@@ -6,15 +6,14 @@ Regression tests for the units package
 import pickle
 from fractions import Fraction
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from ...tests.helper import raises, catch_warnings
-
+from .. import utils
 from ... import units as u
 from ... import constants as c
-from .. import utils
+from ...tests.helper import raises, catch_warnings
 
 
 def test_getting_started():

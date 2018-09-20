@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 import numpy as np
-
 from asdf import yamlutil
 from asdf.tags.core.ndarray import NDArrayType
 
 from astropy import table
+
 from ...types import AstropyAsdfType
 
 

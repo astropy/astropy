@@ -1,13 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
-import numpy as np
 from inspect import signature
+
+import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
+from .. import models
 from ..core import Model, custom_model
 from ..parameters import Parameter
-from .. import models
 
 
 class NonFittableModel(Model):

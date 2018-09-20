@@ -12,7 +12,6 @@ import re
 import warnings
 
 import numpy as np
-
 from matplotlib import rcParams
 
 from ... import units as u

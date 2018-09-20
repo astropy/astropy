@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
-from ..fitting import LevMarLSQFitter
-from ..models import Shift, Rotation2D, Gaussian1D, Identity, Mapping
 from ...utils import NumpyRNGContext
+from ..models import Shift, Mapping, Identity, Gaussian1D, Rotation2D
+from ..fitting import LevMarLSQFitter
 
 try:
     from scipy import optimize  # pylint: disable=W0611

@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from ....io import fits
 from . import FitsTestCase
+from ....io import fits
 from ....tests.helper import catch_warnings
 
 

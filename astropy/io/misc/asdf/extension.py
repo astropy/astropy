@@ -3,29 +3,24 @@
 
 import os
 
-from asdf.extension import AsdfExtension, BuiltinExtension
-from asdf.resolver import Resolver, DEFAULT_URL_MAPPING
 from asdf.util import filepath_to_url
+from asdf.resolver import DEFAULT_URL_MAPPING, Resolver
+from asdf.extension import AsdfExtension, BuiltinExtension
 
-# Make sure that all tag implementations are imported by the time we create
-# the extension class so that _astropy_asdf_types is populated correctly. We
-# could do this using __init__ files, except it causes pytest import errors in
-# the case that asdf is not installed.
-from .tags.coordinates.angle import *
-from .tags.coordinates.representation import *
-from .tags.coordinates.frames import *
+from .types import _astropy_types, _astropy_asdf_types
 from .tags.fits.fits import *
-from .tags.table.table import *
 from .tags.time.time import *
+from .tags.unit.unit import *
+from .tags.table.table import *
+from .tags.unit.quantity import *
 from .tags.transform.basic import *
+from .tags.coordinates.angle import *
+from .tags.transform.tabular import *
+from .tags.coordinates.frames import *
 from .tags.transform.compound import *
 from .tags.transform.polynomial import *
 from .tags.transform.projections import *
-from .tags.transform.tabular import *
-from .tags.unit.quantity import *
-from .tags.unit.unit import *
-from .types import _astropy_types, _astropy_asdf_types
-
+from .tags.coordinates.representation import *
 
 __all__ = ['AstropyExtension', 'AstropyAsdfExtension']
 

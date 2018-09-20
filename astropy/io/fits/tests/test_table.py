@@ -1,14 +1,23 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import contextlib
-import copy
 import gc
-import pickle
 import re
+import copy
+import pickle
+import contextlib
 
-import pytest
 import numpy as np
+import pytest
 from numpy import char as chararray
+
+from . import FitsTestCase
+from ....io import fits
+from ..util import decode_ascii
+from ..column import NUMPY2FITS, Delayed
+from ..verify import VerifyError
+from ....tests.helper import catch_warnings, ignore_warnings
+from ....utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
+from ....utils.exceptions import AstropyDeprecationWarning
 
 try:
     import objgraph
@@ -16,15 +25,7 @@ try:
 except ImportError:
     HAVE_OBJGRAPH = False
 
-from ....io import fits
-from ....tests.helper import catch_warnings, ignore_warnings
-from ....utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
-from ....utils.exceptions import AstropyDeprecationWarning
 
-from ..column import Delayed, NUMPY2FITS
-from ..util import decode_ascii
-from ..verify import VerifyError
-from . import FitsTestCase
 
 
 def comparefloats(a, b):
