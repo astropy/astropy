@@ -2,9 +2,11 @@
 
 from functools import partial
 from collections import defaultdict
+from distutils.version import LooseVersion
 
 import numpy as np
 
+from matplotlib import __version__
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
@@ -20,6 +22,8 @@ from .utils import get_coord_meta, transform_contour_set_inplace
 from .frame import EllipticalFrame, RectangularFrame
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
+
+MATPLOTLIB_LT_30 = LooseVersion(__version__) < LooseVersion('3.0')
 
 VISUAL_PROPERTIES = ['facecolor', 'edgecolor', 'linewidth', 'alpha', 'linestyle']
 
@@ -451,11 +455,21 @@ class WCSAxes(Axes):
 
         self._drawn = True
 
-    def set_xlabel(self, label, labelpad=1, **kwargs):
-        self.coords[self._x_index].set_axislabel(label, minpad=labelpad, **kwargs)
+    if MATPLOTLIB_LT_30:
 
-    def set_ylabel(self, label, labelpad=1, **kwargs):
-        self.coords[self._y_index].set_axislabel(label, minpad=labelpad, **kwargs)
+        def set_xlabel(self, label, labelpad=1, **kwargs):
+            self.coords[self._x_index].set_axislabel(label, minpad=labelpad, **kwargs)
+
+        def set_ylabel(self, label, labelpad=1, **kwargs):
+            self.coords[self._y_index].set_axislabel(label, minpad=labelpad, **kwargs)
+
+    else:
+
+        def set_xlabel(self, xlabel, labelpad=1, **kwargs):
+            self.coords[self._x_index].set_axislabel(xlabel, minpad=labelpad, **kwargs)
+
+        def set_ylabel(self, ylabel, labelpad=1, **kwargs):
+            self.coords[self._y_index].set_axislabel(ylabel, minpad=labelpad, **kwargs)
 
     def get_xlabel(self):
         return self.coords[self._x_index].get_axislabel()
