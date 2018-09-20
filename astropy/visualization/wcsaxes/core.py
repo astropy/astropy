@@ -2,11 +2,9 @@
 
 from functools import partial
 from collections import defaultdict
-from distutils.version import LooseVersion
 
 import numpy as np
 
-from matplotlib import __version__
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
@@ -22,8 +20,6 @@ from .utils import get_coord_meta, transform_contour_set_inplace
 from .frame import EllipticalFrame, RectangularFrame
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
-
-MATPLOTLIB_LT_30 = LooseVersion(__version__) < LooseVersion('3.0')
 
 VISUAL_PROPERTIES = ['facecolor', 'edgecolor', 'linewidth', 'alpha', 'linestyle']
 
