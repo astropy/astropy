@@ -412,7 +412,10 @@ class CoordinateHelper:
             other text properties.
         """
         self.axislabels.set_text(text)
-        self.axislabels.set_minpad(minpad)
+        # NOTE: When using plt.xlabel/plt.ylabel, minpad can get set explicitly
+        # to None so we need to make sure that in that case we change to a
+        # default numerical value, which we do in the line below.
+        self.axislabels.set_minpad(minpad or 1)
         self.axislabels.set(**kwargs)
         if fontdict is not None:
             self.axislabels.update(fontdict)
