@@ -35,7 +35,7 @@ jobs:
 
   image-tests-mpl202:
     docker:
-      - image: astropy/image-tests-py35-mpl202:1.2
+      - image: astropy/image-tests-py35-mpl202:1.3
     steps:
       - checkout
       - run:
@@ -45,7 +45,27 @@ jobs:
 
   image-tests-mpl212:
     docker:
-      - image: astropy/image-tests-py35-mpl212:1.2
+      - image: astropy/image-tests-py35-mpl212:1.3
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: |
+            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
+  image-tests-mpl222:
+    docker:
+      - image: astropy/image-tests-py35-mpl222:1.3
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: |
+            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
+  image-tests-mpl300:
+    docker:
+      - image: astropy/image-tests-py35-mpl300:1.3
     steps:
       - checkout
       - run:
