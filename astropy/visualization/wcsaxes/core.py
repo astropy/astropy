@@ -455,21 +455,20 @@ class WCSAxes(Axes):
 
         self._drawn = True
 
-    if MATPLOTLIB_LT_30:
+    # The label=None, xlabel=None (and similarly for ylabel) is to ensure
+    # compatibility with Matplotlib 2.x (which has label) and 3.x (which has
+    # xlabel). While these are meant to be a single positional argument,
+    # Matplotlib internally sometimes specifies e.g. set_xlabel(xlabel=...).
 
-        def set_xlabel(self, label, labelpad=1, **kwargs):
-            self.coords[self._x_index].set_axislabel(label, minpad=labelpad, **kwargs)
+    def set_xlabel(self, label=None, xlabel=None, labelpad=1, **kwargs):
+        if label is None and xlabel is not None:
+            label = xlabel
+        self.coords[self._x_index].set_axislabel(label, minpad=labelpad, **kwargs)
 
-        def set_ylabel(self, label, labelpad=1, **kwargs):
-            self.coords[self._y_index].set_axislabel(label, minpad=labelpad, **kwargs)
-
-    else:
-
-        def set_xlabel(self, xlabel, labelpad=1, **kwargs):
-            self.coords[self._x_index].set_axislabel(xlabel, minpad=labelpad, **kwargs)
-
-        def set_ylabel(self, ylabel, labelpad=1, **kwargs):
-            self.coords[self._y_index].set_axislabel(ylabel, minpad=labelpad, **kwargs)
+    def set_ylabel(self, label=None, ylabel=None, labelpad=1, **kwargs):
+        if label is None and ylabel is not None:
+            label = ylabel
+        self.coords[self._y_index].set_axislabel(label, minpad=labelpad, **kwargs)
 
     def get_xlabel(self):
         return self.coords[self._x_index].get_axislabel()
