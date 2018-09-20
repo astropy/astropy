@@ -105,6 +105,8 @@ workflows:
       - 32bit
       - image-tests-mpl202
       - image-tests-mpl212
+      - image-tests-mpl222
+      - image-tests-mpl300
 
 notify:
   webhooks:
