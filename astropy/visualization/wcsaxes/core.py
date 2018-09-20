@@ -572,7 +572,7 @@ class WCSAxes(Axes):
                 else:
                     return pixel2world + CoordinateTransform(self.wcs, frame)
 
-    def get_tightbbox(self, renderer):
+    def get_tightbbox(self, renderer, **kwargs):
 
         if not self.get_visible():
             return
