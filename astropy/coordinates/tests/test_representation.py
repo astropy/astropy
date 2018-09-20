@@ -1499,7 +1499,7 @@ def test_unitphysics(unitphysics):
     assert_allclose_quantity(assph.distance, 1*u.dimensionless_unscaled)
 
 
-def test_equality_representation_differential():
+def test_equality_representation_differential_scalar():
     representation_1 = CartesianRepresentation(0*u.m, 1*u.m, 2*u.m)
     representation_2 = CartesianRepresentation(0*u.m, 1*u.m, 2*u.m)
     assert representation_1 == representation_2
@@ -1509,11 +1509,31 @@ def test_equality_representation_differential():
     assert differential_1 == differential_2
 
 
-def test_inequality_representation_differntial():
+def test_inequality_representation_differential_scalar():
     representation_1 = CartesianRepresentation(0*u.m, 1*u.m, 2*u.m)
     representation_2 = CartesianRepresentation(0*u.m, 1*u.m, 3*u.m)
     assert representation_1 != representation_2
 
     differential_1 = CartesianDifferential(0*u.m, 1*u.m, 2*u.m)
     differential_2 = CartesianDifferential(0*u.m, 1*u.m, 3*u.m)
+    assert differential_1 != differential_2
+
+
+def test_equality_representation_differential_non_scalar():
+    representation_1 = CartesianRepresentation([0, 1]*u.m, [2, 3]*u.m, [4, 5]*u.m)
+    representation_2 = CartesianRepresentation([0, 1]*u.m, [2, 3]*u.m, [4, 5]*u.m)
+    assert representation_1 == representation_2
+
+    differential_1 = CartesianDifferential([0, 1]*u.m, [2, 3]*u.m, [4, 5]*u.m)
+    differential_2 = CartesianDifferential([0, 1]*u.m, [2, 3]*u.m, [4, 5]*u.m)
+    assert differential_1 == differential_2
+
+
+def test_inequality_representation_differential_non_scalar():
+    representation_1 = CartesianRepresentation([0, 1]*u.m, [1, 1]*u.m, [2, 3]*u.m)
+    representation_2 = CartesianRepresentation([0, 1]*u.m, [1, 2]*u.m, [3, 3]*u.m)
+    assert representation_1 != representation_2
+
+    differential_1 = CartesianDifferential([0, 1]*u.m, [1, 1]*u.m, [2, 3]*u.m)
+    differential_2 = CartesianDifferential([0, 1]*u.m, [1, 2]*u.m, [3, 3]*u.m)
     assert differential_1 != differential_2
