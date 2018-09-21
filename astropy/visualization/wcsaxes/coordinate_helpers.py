@@ -394,7 +394,7 @@ class CoordinateHelper:
         """
         self.ticklabels.set_visible(visible)
 
-    def set_axislabel(self, text, minpad=1, fontdict=None, **kwargs):
+    def set_axislabel(self, text, minpad=1, **kwargs):
         """
         Set the text and optionally visual properties for the axis label.
 
@@ -404,19 +404,24 @@ class CoordinateHelper:
             The axis label text.
         minpad : float, optional
             The padding for the label in terms of axis label font size.
-        fontdict : dict, optional
-            Dictionary of settings to pass to the label
         kwargs
             Keywords are passed to :class:`matplotlib.text.Text`. These
             can include keywords to set the ``color``, ``size``, ``weight``, and
             other text properties.
         """
-        self.axislabels.set_text(text)
+
+        fontdict = kwargs.pop('fontdict', None)
+
         # NOTE: When using plt.xlabel/plt.ylabel, minpad can get set explicitly
         # to None so we need to make sure that in that case we change to a
-        # default numerical value, which we do in the line below.
-        self.axislabels.set_minpad(minpad or 1)
+        # default numerical value.
+        if minpad is None:
+            minpad = 1
+
+        self.axislabels.set_text(text)
+        self.axislabels.set_minpad(minpad)
         self.axislabels.set(**kwargs)
+
         if fontdict is not None:
             self.axislabels.update(fontdict)
 
