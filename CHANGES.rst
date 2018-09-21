@@ -1337,6 +1337,8 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Fix compatibility with Matplotlib 3.0. [#7839]
+
 astropy.vo
 ^^^^^^^^^^
 
