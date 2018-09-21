@@ -388,9 +388,21 @@ class CoordinateHelper:
             can include keywords to set the ``color``, ``size``, ``weight``, and
             other text properties.
         """
+
+        fontdict = kwargs.pop('fontdict', None)
+
+        # NOTE: When using plt.xlabel/plt.ylabel, minpad can get set explicitly
+        # to None so we need to make sure that in that case we change to a
+        # default numerical value.
+        if minpad is None:
+            minpad = 1
+
         self.axislabels.set_text(text)
         self.axislabels.set_minpad(minpad)
         self.axislabels.set(**kwargs)
+
+        if fontdict is not None:
+            self.axislabels.update(fontdict)
 
     def get_axislabel(self):
         """
