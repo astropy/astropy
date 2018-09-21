@@ -460,14 +460,14 @@ class WCSAxes(Axes):
         if xlabel is None:
             xlabel = kwargs.pop('label', None)
             if xlabel is None:
-                raise ValueError('xlabel should be set')
+                raise TypeError("set_xlabel() missing 1 required positional argument: 'xlabel'")
         self.coords[self._x_index].set_axislabel(xlabel, minpad=labelpad, **kwargs)
 
     def set_ylabel(self, ylabel=None, labelpad=1, **kwargs):
         if ylabel is None:
             ylabel = kwargs.pop('label', None)
             if ylabel is None:
-                raise ValueError('ylabel should be set')
+                raise TypeError("set_ylabel() missing 1 required positional argument: 'ylabel'")
         self.coords[self._y_index].set_axislabel(ylabel, minpad=labelpad, **kwargs)
 
     def get_xlabel(self):
