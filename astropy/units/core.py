@@ -716,6 +716,19 @@ class UnitBase(metaclass=InheritDocstrings):
         except TypeError:
             return NotImplemented
 
+    def __rlshift__(self, m):
+        try:
+            from .quantity import Quantity
+            return Quantity(m, self, copy=False, subok=True)
+        except Exception:
+            return NotImplemented
+
+    def __rrshift__(self, m):
+        warnings.warn(">> is not implemented. Did you mean to convert "
+                      "to a Quantity with unit {} using '<<'?".format(self),
+                      AstropyWarning)
+        return NotImplemented
+
     def __hash__(self):
         # This must match the hash used in CompositeUnit for a unit
         # with only one base and no scale or power.

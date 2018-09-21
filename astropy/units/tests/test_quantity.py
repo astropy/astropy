@@ -17,7 +17,7 @@ from numpy.testing import (assert_allclose, assert_array_equal,
 from ...tests.helper import catch_warnings, raises
 from ...utils import isiterable, minversion
 from ...utils.compat import NUMPY_LT_1_14
-from ...utils.exceptions import AstropyDeprecationWarning
+from ...utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 
@@ -259,6 +259,80 @@ class TestQuantityCreation:
         mylookalike.unit = 'nonsense'
         with pytest.raises(TypeError):
             u.Quantity(mylookalike)
+
+    def test_creation_via_view(self):
+        # This works but is no better than 1. * u.m
+        q1 = 1. << u.m
+        assert isinstance(q1, u.Quantity)
+        assert q1.unit == u.m
+        assert q1.value == 1.
+        # With an array, we get an actual view.
+        a2 = np.arange(10.)
+        q2 = a2 << u.m / u.s
+        assert isinstance(q2, u.Quantity)
+        assert q2.unit == u.m / u.s
+        assert np.all(q2.value == a2)
+        a2[9] = 0.
+        assert np.all(q2.value == a2)
+        # But with a unit change we get a copy.
+        q3 = q2 << u.mm / u.s
+        assert isinstance(q3, u.Quantity)
+        assert q3.unit == u.mm / u.s
+        assert np.all(q3.value == a2 * 1000.)
+        a2[8] = 0.
+        assert q3[8].value == 8000.
+        # Without a unit change, we do get a view.
+        q4 = q2 << q2.unit
+        a2[7] = 0.
+        assert np.all(q4.value == a2)
+        with pytest.raises(u.UnitsError):
+            q2 << u.s
+        # But one can do an in-place unit change.
+        a2_copy = a2.copy()
+        q2 <<= u.mm / u.s
+        assert q2.unit == u.mm / u.s
+        # Of course, this changes a2 as well.
+        assert np.all(q2.value == a2)
+        # Sanity check on the values.
+        assert np.all(q2.value == a2_copy * 1000.)
+        a2[8] = -1.
+        # Using quantities, one can also work with strings.
+        q5 = q2 << 'km/hr'
+        assert q5.unit == u.km / u.hr
+        assert np.all(q5 == q2)
+        # Finally, we can use scalar quantities as units.
+        not_quite_a_foot = 30. * u.cm
+        a6 = np.arange(5.)
+        q6 = a6 << not_quite_a_foot
+        assert q6.unit == u.Unit(not_quite_a_foot)
+        assert np.all(q6.to_value(u.cm) == 30. * a6)
+
+    def test_rshift_warns(self):
+        with pytest.raises(TypeError), \
+                catch_warnings() as warning_lines:
+            1 >> u.m
+        assert len(warning_lines) == 1
+        assert warning_lines[0].category == AstropyWarning
+        assert 'is not implemented' in str(warning_lines[0].message)
+        q = 1. * u.km
+        with pytest.raises(TypeError), \
+                catch_warnings() as warning_lines:
+            q >> u.m
+        assert len(warning_lines) == 1
+        assert warning_lines[0].category == AstropyWarning
+        assert 'is not implemented' in str(warning_lines[0].message)
+        with pytest.raises(TypeError), \
+                catch_warnings() as warning_lines:
+            q >>= u.m
+        assert len(warning_lines) == 1
+        assert warning_lines[0].category == AstropyWarning
+        assert 'is not implemented' in str(warning_lines[0].message)
+        with pytest.raises(TypeError), \
+                catch_warnings() as warning_lines:
+            1. >> q
+        assert len(warning_lines) == 1
+        assert warning_lines[0].category == AstropyWarning
+        assert 'is not implemented' in str(warning_lines[0].message)
 
 
 class TestQuantityOperations:
