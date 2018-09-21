@@ -125,6 +125,31 @@ Both will throw an exception (albeit not the expected UnitsError), if units do n
 
 See: https://github.com/astropy/astropy/issues/7582
 
+Quantities lose their units when broadcasted
+--------------------------------------------
+
+When broadcasting Quantities, it is necessary to pass ``subok=True`` to
+`~numpy.broadcast_to`, or else a bare `~numpy.ndarray` will be returned::
+
+   >>> q = u.Quantity(np.arange(10.), u.m)
+   >>> b = np.broadcast_to(q, (2, len(q)))
+   >>> b
+   array([[0., 1., 2., 3., 4., 5., 6., 7., 8., 9.],
+          [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.]])
+   >>> b2 = np.broadcast_to(q, (2, len(q)), subok=True)
+   <Quantity [[0., 1., 2., 3., 4., 5., 6., 7., 8., 9.],
+              [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.]] m>
+
+This is analogous to the case of passing a Quantity to `~numpy.array`::
+
+   >>> a = np.array(q)
+   >>> a
+   array([0., 1., 2., 3., 4., 5., 6., 7., 8., 9.])
+   >>> a2 = np.array(q, subok=True)
+   >>> a2
+   <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] m>
+
+See: https://github.com/astropy/astropy/issues/7832
 
 Quantities float comparison with np.isclose fails
 -------------------------------------------------
