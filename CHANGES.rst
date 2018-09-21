@@ -474,6 +474,12 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- To simplify fast creation of ``Quantity`` instances from arrays, one can now
+  write ``array << unit`` (equivalent to ``Quantity(array, unit, copy=False)``).
+  If ``array`` is already a ``Quantity``, this will convert the quantity to the
+  requested units; in-place conversion can be done with ``quantity <<= unit``.
+  [#7734]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
