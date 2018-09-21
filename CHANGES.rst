@@ -388,6 +388,9 @@ astropy.units
 - Sped up Unit.to when target unit is the same as the original unit.
   [#7643]
 
+- Lazy-load ``scipy.special`` to shorten ``astropy.units`` import time.
+  [#7636]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
