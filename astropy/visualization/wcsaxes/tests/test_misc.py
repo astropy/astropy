@@ -199,3 +199,14 @@ def test_slicing_warnings(tmpdir):
         print(warning)
 
     assert len(warning_lines) == 0
+
+
+def test_plt_xlabel_ylabel(tmpdir):
+
+    # Regression test for a bug that happened when using plt.xlabel
+    # and plt.ylabel with Matplotlib 3.0
+
+    plt.subplot(projection=WCS())
+    plt.xlabel('Galactic Longitude')
+    plt.ylabel('Galactic Latitude')
+    plt.savefig(tmpdir.join('test.png').strpath)

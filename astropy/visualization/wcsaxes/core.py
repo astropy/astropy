@@ -388,11 +388,24 @@ class WCSAxes(Axes):
 
         self._drawn = True
 
-    def set_xlabel(self, label, labelpad=1, **kwargs):
-        self.coords[self._x_index].set_axislabel(label, minpad=labelpad, **kwargs)
+    # MATPLOTLIB_LT_30: The ``kwargs.pop('label', None)`` is to ensure
+    # compatibility with Matplotlib 2.x (which has label) and 3.x (which has
+    # xlabel). While these are meant to be a single positional argument,
+    # Matplotlib internally sometimes specifies e.g. set_xlabel(xlabel=...).
 
-    def set_ylabel(self, label, labelpad=1, **kwargs):
-        self.coords[self._y_index].set_axislabel(label, minpad=labelpad, **kwargs)
+    def set_xlabel(self, xlabel=None, labelpad=1, **kwargs):
+        if xlabel is None:
+            xlabel = kwargs.pop('label', None)
+            if xlabel is None:
+                raise TypeError("set_xlabel() missing 1 required positional argument: 'xlabel'")
+        self.coords[self._x_index].set_axislabel(xlabel, minpad=labelpad, **kwargs)
+
+    def set_ylabel(self, ylabel=None, labelpad=1, **kwargs):
+        if ylabel is None:
+            ylabel = kwargs.pop('label', None)
+            if ylabel is None:
+                raise TypeError("set_ylabel() missing 1 required positional argument: 'ylabel'")
+        self.coords[self._y_index].set_axislabel(ylabel, minpad=labelpad, **kwargs)
 
     def get_xlabel(self):
         return self.coords[self._x_index].get_axislabel()
@@ -509,7 +522,11 @@ class WCSAxes(Axes):
                 else:
                     return pixel2world + CoordinateTransform(self.wcs, frame)
 
-    def get_tightbbox(self, renderer):
+    def get_tightbbox(self, renderer, *args, **kwargs):
+
+        # FIXME: we should determine what to do with the extra arguments here.
+        # Note that the expected signature of this method is different in
+        # Matplotlib 3.x compared to 2.x.
 
         if not self.get_visible():
             return
