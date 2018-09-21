@@ -583,6 +583,10 @@ class WCSAxes(Axes):
 
     def get_tightbbox(self, renderer, *args, **kwargs):
 
+        # FIXME: we should determine what to do with the extra arguments here.
+        # Note that the expected signature of this method is different in
+        # Matplotlib 3.x compared to 2.x.
+
         if not self.get_visible():
             return
 
