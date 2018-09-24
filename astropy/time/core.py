@@ -771,6 +771,8 @@ class Time(ShapedLikeNDArray):
 
     def _shaped_like_input(self, value):
         out = value
+        if value.dtype.kind == 'M':
+            return value[()]
         if not self._time.jd1.shape and not np.ma.is_masked(value):
             out = value.item()
         return out

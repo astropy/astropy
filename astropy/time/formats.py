@@ -23,7 +23,7 @@ __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeDeltaFormat', 'TimeDeltaSec', 'TimeDeltaJD',
            'TimeEpochDateString', 'TimeBesselianEpochString',
            'TimeJulianEpochString', 'TIME_FORMATS', 'TIME_DELTA_FORMATS',
-           'TimezoneInfo', 'TimeDeltaDatetime']
+           'TimezoneInfo', 'TimeDeltaDatetime', 'TimeDatetime64']
 
 __doctest_skip__ = ['TimePlotDate']
 
@@ -973,25 +973,26 @@ class TimeDatetime64(TimeISOT):
     name = 'datetime64'
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class`
-        if not all(isinstance(val, np.datetime64) for val in val1.flat):
+        if not val1.dtype.kind == 'M':
             raise TypeError('Input values for {0} class must be '
                             'datetime64 objects'.format(self.name))
         return val1, None
 
     def set_jds(self, val1, val2):
         if val1.dtype.name in ['datetime64[M]', 'datetime64[Y]']:
-            val1 = val1.astype('M8[D]')
+            val1 = val1.astype('datetime64[D]')
 
-        val1 = val1.astype('<U30')
+        val1 = val1.astype('S')
 
-        if '.' in val1.item(0):
-            self.precision = len(val1.item(0).split('.')[-1])
-
-        super(TimeDatetime64, self).set_jds(val1, val2)
+        super().set_jds(val1, val2)
 
     @property
     def value(self):
-        return super(TimeDatetime64, self).value.astype('<M8')
+        precision = self.precision
+        self.precision = 9
+        ret = super(TimeDatetime64, self).value
+        self.precision = precision
+        return ret.astype('datetime64')
 
 
 class TimeFITS(TimeString):
