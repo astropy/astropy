@@ -27,10 +27,14 @@ postage stamp cutout image from a 2D array.  If an optional
 First, let's simulate a single source on a 2D data array. If you would like to
 simulate many sources, see :ref:`bounding-boxes`.
 
+<<<<<<< HEAD
 Note: The pair convention is different for **size** and **position**!
 
  The position is specified as (x,y), but the size is specified as (y,x).
 
+=======
+Note: The pair convention is different for **size** and **position**! The position is specified as (x,y), but the size is specified as (y,x).
+>>>>>>> e9c300e7fd911a93b91960011824f8fbee192f34
 
     >>> import numpy as np
     >>> from astropy.modeling.models import Gaussian2D
@@ -345,6 +349,20 @@ position, and ``wcs`` object from above to create a cutout with size
     size = u.Quantity((1.5, 2.5), u.arcsec)
     cutout = Cutout2D(data, position, size, wcs=wcs)
     plt.imshow(cutout.data, origin='lower')
+
+
+Saving a 2D Cutout to a FITS file with an updated WCS
+=====================================================
+
+A `~astropy.nddata.utils.Cutout2D` object can be easily saved to a
+FITS file, including the updated WCS object for the cutout region.  In
+this example, we download an example FITS image and create a cutout
+image.  The resulting `~astropy.nddata.utils.Cutout2D` object is then
+saved to a new FITS file with the updated WCS for the cutout region.
+
+.. literalinclude:: examples/cutout2d_tofits.py
+   :language: python
+
 
 Reference/API
 =============

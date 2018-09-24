@@ -357,6 +357,9 @@ astropy.visualization
 - In ``ImageNormalize``, the default for ``clip`` is set to ``True``.
   [#7800]
 
+- Changed ``AsymmetricPercentileInterval`` and ``MinMaxInterval`` to
+  ignore NaN values in arrays. [#7360]
+
 astropy.wcs
 ^^^^^^^^^^^
 
@@ -384,6 +387,9 @@ astropy.units
 
 - Sped up Unit.to when target unit is the same as the original unit.
   [#7643]
+
+- Lazy-load ``scipy.special`` to shorten ``astropy.units`` import time.
+  [#7636]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -467,6 +473,12 @@ astropy.time
 
 astropy.units
 ^^^^^^^^^^^^^
+
+- To simplify fast creation of ``Quantity`` instances from arrays, one can now
+  write ``array << unit`` (equivalent to ``Quantity(array, unit, copy=False)``).
+  If ``array`` is already a ``Quantity``, this will convert the quantity to the
+  requested units; in-place conversion can be done with ``quantity <<= unit``.
+  [#7734]
 
 astropy.utils
 ^^^^^^^^^^^^^
@@ -1259,6 +1271,9 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- ``HDUList.__contains__()`` now works with ``HDU`` arguments. That is,
+  ``hdulist[0] in hdulist`` now works as expected. [#7282]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -1313,11 +1328,16 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- ``UnrecognizedUnit`` instances can now be compared to any other object
+  without raising `TypeError`. [#7606]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
+
+- Fix compatibility with Matplotlib 3.0. [#7839]
 
 astropy.vo
 ^^^^^^^^^^

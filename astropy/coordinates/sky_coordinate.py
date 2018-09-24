@@ -2,7 +2,7 @@
 import re
 import copy
 import warnings
-import collections
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -1798,7 +1798,7 @@ def _get_frame(args, kwargs):
         # to allow the first argument to set the class.  That's OK because
         # _parse_coordinate_arg goes and checks that the frames match between
         # the first and all the others
-        if (isinstance(arg, (collections.Sequence, np.ndarray)) and
+        if (isinstance(arg, (Sequence, np.ndarray)) and
              len(args) == 1 and len(arg) > 0):
             arg = arg[0]
 
@@ -1968,7 +1968,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
         # 2-d array of coordinate values.  Handle specially for efficiency.
         values = coords.transpose()  # Iterates over repr attrs
 
-    elif isinstance(coords, (collections.Sequence, np.ndarray)):
+    elif isinstance(coords, (Sequence, np.ndarray)):
         # Handles list-like input.
 
         vals = []
