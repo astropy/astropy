@@ -13,51 +13,20 @@ using `astropy.coordinates`.
 
 Use broadcasting to transform many SkyCoords into frames with vector properties
  >>> from astropy.coordinates import SkyCoord, EarthLocation
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> added import statement to correct coord error
- >>> from astropy import coordinates as coord
- >>> from astropy.coordinates.tests.utils import randomly_sample_sphere
- >>> from astropy.time import Time
-<<<<<<< HEAD
- >>> from astropy import units as u
-=======
- >>> from astropy.coordinates.tests.utils import randomly_sample_sphere
- >>> from astropy.time import Time
->>>>>>> Added broadcasting example to performance section of Coord docs
-=======
- >>> from astropy.units import u
->>>>>>> Added units import line to fix pr errors
-=======
  >>> from astropy import coordinates as coord
  >>> from astropy.coordinates.tests.utils import randomly_sample_sphere
  >>> from astropy.time import Time
  >>> from astropy import units as u
->>>>>>> 09e3056df8788a6aa1481ea584418149ad3e83e9
  >>> import numpy as np
+
  >>> # 1000 random locations on the sky
  >>> ra, dec, _ = randomly_sample_sphere(1000)
  >>> coos = SkyCoord(ra, dec)
+
  >>> # 300 times over the space of 10 hours
  >>> times = Time.now() + np.linspace(-5, 5, 300)*u.hour
+
  >>> # note the use of broadcasting so that 300 times broadcast against 1000 positions
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
  >>> lapalma = EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
  >>> aa_frame = coord.AltAz(obstime=times[:, np.newaxis], location= lapalma)
-=======
- >>> aa_frame = coord.AltAz(obstime=times[:, np.newaxis], location=EarthLocation.of_site('lapalma'))
->>>>>>> Added broadcasting example to performance section of Coord docs
-=======
- >>> lapalma = EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
- >>> aa_frame = coord.AltAz(obstime=times[:, np.newaxis], location= lapalma)
->>>>>>> added EarthLocation of site lapalma from geocentric
-=======
- >>> lapalma = EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
- >>> aa_frame = coord.AltAz(obstime=times[:, np.newaxis], location= lapalma)
->>>>>>> 09e3056df8788a6aa1481ea584418149ad3e83e9
- >>> # calculate alt-az of each object at each time.
  >>> aa_coos = coos.transform_to(aa_frame)
