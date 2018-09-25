@@ -39,12 +39,6 @@ def is_separable(transform):
         A boolean array with size ``transform.n_outputs`` where
         each element indicates whether the output is independent
         and the result of a separable transform.
-    separable_matrix : ndarray
-        A boolean correlation matrix of shape (n_outputs, n_inputs).
-        Indicates the dependence of outputs on inputs. For completely
-        independent outputs, the diagonal elements are True and
-        off-diagonal elements are False.
-
 
     Examples
     --------
@@ -85,7 +79,6 @@ def separability_matrix(transform):
         Indicates the dependence of outputs on inputs. For completely
         independent outputs, the diagonal elements are True and
         off-diagonal elements are False.
-
 
     Examples
     --------
