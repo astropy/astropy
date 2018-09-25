@@ -27,7 +27,14 @@ postage stamp cutout image from a 2D array.  If an optional
 First, let's simulate a single source on a 2D data array. If you would like to
 simulate many sources, see :ref:`bounding-boxes`.
 
+<<<<<<< HEAD
+Note: The pair convention is different for **size** and **position**!
+
+ The position is specified as (x,y), but the size is specified as (y,x).
+
+=======
 Note: The pair convention is different for **size** and **position**! The position is specified as (x,y), but the size is specified as (y,x).
+>>>>>>> e9c300e7fd911a93b91960011824f8fbee192f34
 
     >>> import numpy as np
     >>> from astropy.modeling.models import Gaussian2D
