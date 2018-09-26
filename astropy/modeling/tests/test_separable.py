@@ -10,7 +10,7 @@ from numpy.testing import assert_allclose
 from .. import models
 from ..models import Mapping
 from .. separable import (_coord_matrix, is_separable, _cdot,
-                          _cstack, _arith_oper)
+                          _cstack, _arith_oper, separability_matrix)
 
 
 sh1 = models.Shift(1, name='shift1')
@@ -28,22 +28,28 @@ p1 = models.Polynomial1D(1, name='p1')
 
 compound_models = {
     'cm1': (map3 & sh1 | rot & sh1 | sh1 & sh2 & sh1,
-            np.array([False, False, True])
+            (np.array([False, False, True]),
+             np.array([[True, False], [True, False], [False, True]]))
             ),
     'cm2': (sh1 & sh2 | rot | map1 | p2 & p22,
-            np.array([False, False])
+            (np.array([False, False]),
+             np.array([[True, True], [True, True]]))
             ),
     'cm3': (map2 | rot & scl1,
-            np.array([False, False, True])
+            (np.array([False, False, True]),
+            np.array([[True, False], [True, False], [False, True]]))
             ),
     'cm4': (sh1 & sh2 | map2 | rot & scl1,
-            np.array([False, False, True])
+            (np.array([False, False, True]),
+            np.array([[True, False], [True, False], [False, True]]))
             ),
     'cm5': (map3 | sh1 & sh2 | scl1 & scl2,
-            np.array([False, False])
+            (np.array([False, False]),
+            np.array([[True], [True]]))
             ),
     'cm7': (map2 | p2 & sh1,
-            np. array([False, True])
+            (np.array([False, True]),
+            np.array([[True, False], [False, True]]))
             )
 }
 
@@ -110,4 +116,5 @@ def test_arith_oper():
 
 @pytest.mark.parametrize(('compound_model', 'result'), compound_models.values())
 def test_separable(compound_model, result):
-    assert_allclose(is_separable(compound_model), result)
+    assert_allclose(is_separable(compound_model), result[0])
+    assert_allclose(separability_matrix(compound_model), result[1])

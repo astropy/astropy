@@ -112,6 +112,9 @@ astropy.modeling
 - Add a ``uses_quantity`` property to ``Model`` which allows introspection of if
   the ``Model`` can accept ``Quantity`` objects. [#7417]
 
+- Add a ``separability_matrix`` function which returns the correlation matrix
+  of inputs and outputs. [#7803]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -596,7 +599,6 @@ astropy.wcs
 
 Other Changes and Additions
 ---------------------------
-
 
 3.0.4 (2018-08-02)
 ==================
