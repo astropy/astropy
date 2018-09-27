@@ -971,6 +971,7 @@ class TimeYearDayTime(TimeISO):
 
 class TimeDatetime64(TimeISOT):
     name = 'datetime64'
+
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class`
         if not val1.dtype.kind == 'M':
@@ -990,7 +991,7 @@ class TimeDatetime64(TimeISOT):
     def value(self):
         precision = self.precision
         self.precision = 9
-        ret = super(TimeDatetime64, self).value
+        ret = super().value
         self.precision = precision
         return ret.astype('datetime64')
 
