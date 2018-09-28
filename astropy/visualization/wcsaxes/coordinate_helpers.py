@@ -819,7 +819,7 @@ class CoordinateHelper:
 
         from . import conf
         res = conf.contour_grid_samples
-        
+
         x, y = np.meshgrid(np.linspace(xmin, xmax, res),
                            np.linspace(ymin, ymax, res))
         pixel = np.array([x.ravel(), y.ravel()]).T
