@@ -34,28 +34,67 @@ WCS_SIMPLE_CELESTIAL = WCS(Header.fromstring(HEADER_SIMPLE_CELESTIAL, sep='\n'))
 
 def test_simple_celestial():
 
-    llwcs = WCS_SIMPLE_CELESTIAL
+    wcs = WCS_SIMPLE_CELESTIAL
 
-    assert llwcs.pixel_n_dim == 2
-    assert llwcs.world_n_dim == 2
-    assert llwcs.world_axis_physical_types == ['pos.eq.ra', 'pos.eq.dec']
-    assert llwcs.world_axis_units == ['deg', 'deg']
+    # Low-level API
 
-    assert_equal(llwcs.axis_correlation_matrix, True)
+    assert wcs.pixel_n_dim == 2
+    assert wcs.world_n_dim == 2
+    assert wcs.world_axis_physical_types == ['pos.eq.ra', 'pos.eq.dec']
+    assert wcs.world_axis_units == ['deg', 'deg']
 
-    assert llwcs.world_axis_object_components == [('celestial', 0, 'spherical.lon.degree'),
+    assert_equal(wcs.axis_correlation_matrix, True)
+
+    assert wcs.world_axis_object_components == [('celestial', 0, 'spherical.lon.degree'),
                                                   ('celestial', 1, 'spherical.lat.degree')]
 
-    assert llwcs.world_axis_object_classes['celestial'][0] is SkyCoord
-    assert llwcs.world_axis_object_classes['celestial'][1] == ()
-    assert isinstance(llwcs.world_axis_object_classes['celestial'][2]['frame'], ICRS)
-    assert llwcs.world_axis_object_classes['celestial'][2]['unit'], 'deg'
+    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
+    assert wcs.world_axis_object_classes['celestial'][1] == ()
+    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], ICRS)
+    assert wcs.world_axis_object_classes['celestial'][2]['unit'], 'deg'
 
-    assert_allclose(llwcs.pixel_to_world_values(29, 39), (10, 20))
-    assert_allclose(llwcs.array_index_to_world_values(39, 29), (10, 20))
+    assert_allclose(wcs.pixel_to_world_values(29, 39), (10, 20))
+    assert_allclose(wcs.array_index_to_world_values(39, 29), (10, 20))
 
-    assert_allclose(llwcs.world_to_pixel_values(10, 20), (29., 39.))
-    assert_equal(llwcs.world_to_array_index_values(10, 20), (39, 29))
+    assert_allclose(wcs.world_to_pixel_values(10, 20), (29., 39.))
+    assert_equal(wcs.world_to_array_index_values(10, 20), (39, 29))
+
+    # High-level API
+
+    coord = wcs.pixel_to_world(29, 39)
+    assert isinstance(coord, SkyCoord)
+    assert isinstance(coord.frame, ICRS)
+    assert coord.ra.deg == 10
+    assert coord.dec.deg == 20
+
+    coord = wcs.array_index_to_world(39, 29)
+    assert isinstance(coord, SkyCoord)
+    assert isinstance(coord.frame, ICRS)
+    assert coord.ra.deg == 10
+    assert coord.dec.deg == 20
+
+    coord = SkyCoord(10, 20, unit='deg', frame='icrs')
+
+    x, y = wcs.world_to_pixel(coord)
+    assert_allclose(x, 29.)
+    assert_allclose(y, 39.)
+
+    i, j = wcs.world_to_array_index(coord)
+    assert_equal(i, 39)
+    assert_equal(j, 29)
+
+    # Check that if the coordinates are passed in a different frame things still
+    # work properly
+
+    coord_galactic = coord.galactic
+
+    x, y = wcs.world_to_pixel(coord_galactic)
+    assert_allclose(x, 29.)
+    assert_allclose(y, 39.)
+
+    i, j = wcs.world_to_array_index(coord_galactic)
+    assert_equal(i, 39)
+    assert_equal(j, 29)
 
 
 ###############################################################################
@@ -88,33 +127,79 @@ def test_spectral_cube():
 
     # Spectral cube with a weird axis ordering
 
-    llwcs = WCS_SPECTRAL_CUBE
+    wcs = WCS_SPECTRAL_CUBE
 
-    assert llwcs.pixel_n_dim == 3
-    assert llwcs.world_n_dim == 3
-    assert llwcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
-    assert llwcs.world_axis_units == ['deg', 'Hz', 'deg']
+    # Low-level API
 
-    assert_equal(llwcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
+    assert wcs.pixel_n_dim == 3
+    assert wcs.world_n_dim == 3
+    assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
+    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
 
-    assert llwcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
+    assert_equal(wcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
+
+    assert wcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
                                                   ('freq', 0, 'value'),
                                                   ('celestial', 0, 'spherical.lon.degree')]
 
-    assert llwcs.world_axis_object_classes['celestial'][0] is SkyCoord
-    assert llwcs.world_axis_object_classes['celestial'][1] == ()
-    assert isinstance(llwcs.world_axis_object_classes['celestial'][2]['frame'], Galactic)
-    assert llwcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
+    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
+    assert wcs.world_axis_object_classes['celestial'][1] == ()
+    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], Galactic)
+    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
 
-    assert llwcs.world_axis_object_classes['freq'][0] is Quantity
-    assert llwcs.world_axis_object_classes['freq'][1] == ()
-    assert llwcs.world_axis_object_classes['freq'][2] == {'unit': 'Hz'}
+    assert wcs.world_axis_object_classes['freq'][0] is Quantity
+    assert wcs.world_axis_object_classes['freq'][1] == ()
+    assert wcs.world_axis_object_classes['freq'][2] == {'unit': 'Hz'}
 
-    assert_allclose(llwcs.pixel_to_world_values(29, 39, 44), (10, 20, 25))
-    assert_allclose(llwcs.array_index_to_world_values(44, 39, 29), (10, 20, 25))
+    assert_allclose(wcs.pixel_to_world_values(29, 39, 44), (10, 20, 25))
+    assert_allclose(wcs.array_index_to_world_values(44, 39, 29), (10, 20, 25))
 
-    assert_allclose(llwcs.world_to_pixel_values(10, 20, 25), (29., 39., 44.))
-    assert_equal(llwcs.world_to_array_index_values(10, 20, 25), (44, 39, 29))
+    assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (29., 39., 44.))
+    assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 29))
+
+    # High-level API
+
+
+    coord, spec = wcs.pixel_to_world(29, 39, 44)
+    assert isinstance(coord, SkyCoord)
+    assert isinstance(coord.frame, Galactic)
+    assert coord.l.deg == 25
+    assert coord.b.deg == 10
+    assert isinstance(spec, Quantity)
+    assert spec.to_value(u.Hz) == 20
+
+    coord, spec = wcs.array_index_to_world(44, 39, 29)
+    assert isinstance(coord, SkyCoord)
+    assert isinstance(coord.frame, Galactic)
+    assert coord.l.deg == 25
+    assert coord.b.deg == 10
+    assert isinstance(spec, Quantity)
+    assert spec.to_value(u.Hz) == 20
+
+    coord = SkyCoord(25, 10, unit='deg', frame='galactic')
+    spec = 20 * u.Hz
+
+    x, y, z = wcs.world_to_pixel(coord, spec)
+    assert_allclose(x, 29.)
+    assert_allclose(y, 39.)
+    assert_allclose(z, 44.)
+
+    # Order of world coordinates shouldn't matter
+    x, y, z = wcs.world_to_pixel(spec, coord)
+    assert_allclose(x, 29.)
+    assert_allclose(y, 39.)
+    assert_allclose(z, 44.)
+
+    i, j, k = wcs.world_to_array_index(coord, spec)
+    assert_equal(i, 44)
+    assert_equal(j, 39)
+    assert_equal(k, 29)
+
+    # Order of world coordinates shouldn't matter
+    i, j, k = wcs.world_to_array_index(spec, coord)
+    assert_equal(i, 44)
+    assert_equal(j, 39)
+    assert_equal(k, 29)
 
 
 HEADER_SPECTRAL_CUBE_NONALIGNED = HEADER_SPECTRAL_CUBE.strip() + '\n' + """
@@ -130,9 +215,9 @@ def test_spectral_cube_nonaligned():
     # Make sure that correlation matrix gets adjusted if there are non-identity
     # CD matrix terms.
 
-    llwcs = WCS_SPECTRAL_CUBE_NONALIGNED
+    wcs = WCS_SPECTRAL_CUBE_NONALIGNED
 
-    assert_equal(llwcs.axis_correlation_matrix, [[True, True, True], [False, True, True], [True, True, True]])
+    assert_equal(wcs.axis_correlation_matrix, [[True, True, True], [False, True, True], [True, True, True]])
 
 
 ###############################################################################
@@ -197,35 +282,35 @@ def test_time_cube():
 
     # Spectral cube with a weird axis ordering
 
-    llwcs = WCS_TIME_CUBE
+    wcs = WCS_TIME_CUBE
 
-    assert llwcs.pixel_n_dim == 3
-    assert llwcs.world_n_dim == 3
-    assert llwcs.world_axis_physical_types == ['pos.eq.dec', 'pos.eq.ra', 'time']
-    assert llwcs.world_axis_units == ['deg', 'deg', 's']
+    assert wcs.pixel_n_dim == 3
+    assert wcs.world_n_dim == 3
+    assert wcs.world_axis_physical_types == ['pos.eq.dec', 'pos.eq.ra', 'time']
+    assert wcs.world_axis_units == ['deg', 'deg', 's']
 
-    assert_equal(llwcs.axis_correlation_matrix, [[True, True, False], [True, True, False], [False, False, True]])
+    assert_equal(wcs.axis_correlation_matrix, [[True, True, False], [True, True, False], [False, False, True]])
 
-    assert llwcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
+    assert wcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
                                                   ('celestial', 0, 'spherical.lon.degree'),
                                                   ('utc', 0, 'value')]
 
-    assert llwcs.world_axis_object_classes['celestial'][0] is SkyCoord
-    assert llwcs.world_axis_object_classes['celestial'][1] == ()
-    assert isinstance(llwcs.world_axis_object_classes['celestial'][2]['frame'], ICRS)
-    assert llwcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
+    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
+    assert wcs.world_axis_object_classes['celestial'][1] == ()
+    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], ICRS)
+    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
 
-    assert llwcs.world_axis_object_classes['utc'][0] is Quantity
-    assert llwcs.world_axis_object_classes['utc'][1] == ()
-    assert llwcs.world_axis_object_classes['utc'][2] == {'unit': 's'}
+    assert wcs.world_axis_object_classes['utc'][0] is Quantity
+    assert wcs.world_axis_object_classes['utc'][1] == ()
+    assert wcs.world_axis_object_classes['utc'][2] == {'unit': 's'}
 
-    assert_allclose(llwcs.pixel_to_world_values(-449.2, 2955.6, 0),
+    assert_allclose(wcs.pixel_to_world_values(-449.2, 2955.6, 0),
                     (14.8289418840003, 2.01824372640628, 2375.341))
 
-    assert_allclose(llwcs.array_index_to_world_values(0, 2955.6, -449.2),
+    assert_allclose(wcs.array_index_to_world_values(0, 2955.6, -449.2),
                     (14.8289418840003, 2.01824372640628, 2375.341))
 
-    assert_allclose(llwcs.world_to_pixel_values(14.8289418840003, 2.01824372640628, 2375.341),
+    assert_allclose(wcs.world_to_pixel_values(14.8289418840003, 2.01824372640628, 2375.341),
                     (-449.2, 2955.6, 0))
-    assert_equal(llwcs.world_to_array_index_values(14.8289418840003, 2.01824372640628, 2375.341),
+    assert_equal(wcs.world_to_array_index_values(14.8289418840003, 2.01824372640628, 2375.341),
                  (0, 2956, -449))
