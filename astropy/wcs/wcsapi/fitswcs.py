@@ -63,8 +63,8 @@ CTYPE_TO_UCD1 = {
 
 class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     """
-    A wrapper around the :class:`astropy.wcs.WCS` class that provides the
-    low-level WCS API from APE 14.
+    A mix-in class that is intended to be inherited by the
+    :class:`~astropy.wcs.WCS` class and provides the low- and high-level WCS API
     """
 
     @property
