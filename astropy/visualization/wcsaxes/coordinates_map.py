@@ -131,7 +131,7 @@ class CoordinatesMap:
         for coord in self._coords:
             yield coord
 
-    def grid(self, draw_grid=True, grid_type='lines', **kwargs):
+    def grid(self, draw_grid=True, grid_type=None, **kwargs):
         """
         Plot gridlines for both coordinates.
 
@@ -149,7 +149,8 @@ class CoordinatesMap:
             positions in the image and then drawing contours
             (``'contours'``). The first is recommended for 2-d images, while
             for 3-d (or higher dimensional) cubes, the ``'contours'`` option
-            is recommended.
+            is recommended. By default, 'lines' is used if the transform has
+            an inverse, otherwise 'contours' is used.
         """
         for coord in self:
             coord.grid(draw_grid=draw_grid, grid_type=grid_type, **kwargs)

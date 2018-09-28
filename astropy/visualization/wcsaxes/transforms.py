@@ -49,11 +49,9 @@ class CurvedTransform(Transform, metaclass=abc.ABCMeta):
 
     transform_path_non_affine = transform_path
 
-    @abc.abstractmethod
     def transform(self, input):
         raise NotImplementedError("")
 
-    @abc.abstractmethod
     def inverted(self):
         raise NotImplementedError("")
 
