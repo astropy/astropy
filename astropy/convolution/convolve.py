@@ -131,7 +131,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         If the kernel sums to zero to within this precision, it cannot be
         normalized. Default is "1e-8".
     n_threads : int
-        The number of threads to use (default 0). `0` => use all. There is no
+        The number of threads to use (default 0). 0 => use all. There is no
         limit, be cautious if over commmiting resources.
         Note that an exception is raised for negative values. A warning is issued
         if n_threads>1 and astropy was NOT built with OpenMP support.
