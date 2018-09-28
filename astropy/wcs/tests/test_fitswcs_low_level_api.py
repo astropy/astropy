@@ -51,10 +51,10 @@ def test_simple_celestial():
     assert llwcs.world_axis_object_classes['celestial'][2]['unit'], 'deg'
 
     assert_allclose(llwcs.pixel_to_world_values(29, 39), (10, 20))
-    assert_allclose(llwcs.numpy_index_to_world_values(39, 29), (10, 20))
+    assert_allclose(llwcs.array_index_to_world_values(39, 29), (10, 20))
 
     assert_allclose(llwcs.world_to_pixel_values(10, 20), (29., 39.))
-    assert_equal(llwcs.world_to_numpy_index_values(10, 20), (39, 29))
+    assert_equal(llwcs.world_to_array_index_values(10, 20), (39, 29))
 
 
 ###############################################################################
@@ -110,10 +110,10 @@ def test_spectral_cube():
     assert llwcs.world_axis_object_classes['freq'][2] == {'unit': 'Hz'}
 
     assert_allclose(llwcs.pixel_to_world_values(29, 39, 44), (10, 20, 25))
-    assert_allclose(llwcs.numpy_index_to_world_values(44, 39, 29), (10, 20, 25))
+    assert_allclose(llwcs.array_index_to_world_values(44, 39, 29), (10, 20, 25))
 
     assert_allclose(llwcs.world_to_pixel_values(10, 20, 25), (29., 39., 44.))
-    assert_equal(llwcs.world_to_numpy_index_values(10, 20, 25), (44, 39, 29))
+    assert_equal(llwcs.world_to_array_index_values(10, 20, 25), (44, 39, 29))
 
 
 HEADER_SPECTRAL_CUBE_NONALIGNED = HEADER_SPECTRAL_CUBE.strip() + '\n' + """
@@ -221,10 +221,10 @@ def test_time_cube():
     assert_allclose(llwcs.pixel_to_world_values(-449.2, 2955.6, 0),
                     (14.8289418840003, 2.01824372640628, 2375.341))
 
-    assert_allclose(llwcs.numpy_index_to_world_values(0, 2955.6, -449.2),
+    assert_allclose(llwcs.array_index_to_world_values(0, 2955.6, -449.2),
                     (14.8289418840003, 2.01824372640628, 2375.341))
 
     assert_allclose(llwcs.world_to_pixel_values(14.8289418840003, 2.01824372640628, 2375.341),
                     (-449.2, 2955.6, 0))
-    assert_equal(llwcs.world_to_numpy_index_values(14.8289418840003, 2.01824372640628, 2375.341),
+    assert_equal(llwcs.world_to_array_index_values(14.8289418840003, 2.01824372640628, 2375.341),
                 (0, 2956, -449))

@@ -1,4 +1,4 @@
-from .base_high_level_api import HighLevelWCSMixin
+from .high_level_api import HighLevelWCSMixin
 
 __all__ = ['HighLevelWCSWrapper']
 
@@ -8,6 +8,7 @@ class HighLevelWCSWrapper(HighLevelWCSMixin):
     def __init__(self, low_level_wcs):
         self._low_level_wcs = low_level_wcs
 
+    @property
     def low_level_wcs(self):
         return self._low_level_wcs
 

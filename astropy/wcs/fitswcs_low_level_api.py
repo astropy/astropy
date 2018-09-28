@@ -2,7 +2,7 @@ import numpy as np
 
 from .. import units as u
 
-from .wcsapi.base_low_level_api import BaseLowLevelWCS
+from .wcsapi.low_level_api import BaseLowLevelWCS
 
 __all__ = ['FITSLowLevelWCS']
 
@@ -129,13 +129,13 @@ class FITSLowLevelWCS(BaseLowLevelWCS):
     def pixel_to_world_values(self, *pixel_arrays):
         return self._wcs.all_pix2world(*pixel_arrays, 0)
 
-    def numpy_index_to_world_values(self, *indices):
+    def array_index_to_world_values(self, *indices):
         return self._wcs.all_pix2world(*indices[::-1], 0)
 
     def world_to_pixel_values(self, *world_arrays):
         return self._wcs.all_world2pix(*world_arrays, 0)
 
-    def world_to_numpy_index_values(self, *world_arrays):
+    def world_to_array_index_values(self, *world_arrays):
         return np.round(self._wcs.all_world2pix(*world_arrays, 0)[::-1]).astype(int)
 
     @property
