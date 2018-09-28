@@ -339,6 +339,7 @@ def get_package_data():
                                    'maps/*.hdr', 'spectra/*.hdr',
                                    'extension/*.c'],
         str('astropy.wcs'): api_files,
+        str('astropy.wcs.wcsapi'): ['ucds.txt']
     }
 
 
