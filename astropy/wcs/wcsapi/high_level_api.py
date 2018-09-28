@@ -202,9 +202,11 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         classes = self.low_level_wcs.world_axis_object_classes
 
         # Deserialize classes
-        classes_new = {}
-        for key, value in classes.items():
-            classes_new[key] = deserialize_class(value, construct=False)
+        if self.low_level_wcs.serialized_classes:
+            classes_new = {}
+            for key, value in classes.items():
+                classes_new[key] = deserialize_class(value, construct=False)
+            classes = classes_new
 
         args = defaultdict(list)
         kwargs = defaultdict(dict)
@@ -220,7 +222,7 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         result = []
 
         for key in default_order(components):
-            klass, ar, kw = classes_new[key]
+            klass, ar, kw = classes[key]
             result.append(klass(*args[key], *ar, **kwargs[key], **kw))
 
         if len(result) == 1:
