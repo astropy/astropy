@@ -73,7 +73,9 @@ class WCSAxes(Axes):
         ``longitude``, ``latitude``, or ``scalar``, the ``wrap`` entries should
         give, for the longitude, the angle at which the coordinate wraps (and
         `None` otherwise), and the ``unit`` should give the unit of the
-        coordinates as :class:`~astropy.units.Unit` instances.
+        coordinates as :class:`~astropy.units.Unit` instances. This can
+        optionally also include a ``format_unit`` entry giving the units to use
+        for the tick labels (if not specified, this defaults to ``unit``).
     transData : `~matplotlib.transforms.Transform`, optional
         Can be used to override the default data -> pixel mapping.
     slices : tuple, optional
