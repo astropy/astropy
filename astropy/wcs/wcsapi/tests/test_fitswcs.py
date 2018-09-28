@@ -103,7 +103,7 @@ def test_simple_celestial():
     assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
     assert wcs.world_axis_object_classes['celestial'][1] == ()
     assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], ICRS)
-    assert wcs.world_axis_object_classes['celestial'][2]['unit'], 'deg'
+    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
 
     assert_allclose(wcs.pixel_to_world_values(29, 39), (10, 20))
     assert_allclose(wcs.array_index_to_world_values(39, 29), (10, 20))

@@ -1,8 +1,9 @@
 import abc
-import importlib
 from collections import defaultdict, OrderedDict
 
 import numpy as np
+
+from .utils import deserialize_class
 
 __all__ = ['BaseHighLevelWCS', 'HighLevelWCSMixin']
 
@@ -11,28 +12,6 @@ def rec_getattr(obj, att):
     for a in att.split('.'):
         obj = getattr(obj, a)
     return obj
-
-
-def deserialize_class(tpl, construct=True):
-
-    if not isinstance(tpl, tuple) or len(tpl) != 3:
-        raise ValueError("Expected a tuple of three values")
-
-    if isinstance(tpl[0], str):
-        module, klass = tpl[0].rsplit('.', 1)
-        module = importlib.import_module(module)
-        klass = getattr(module, klass)
-    else:
-        klass = tpl[0]
-
-    args = [deserialize_class(arg) if isinstance(arg, tuple) else arg for arg in tpl[1]]
-
-    kwargs = dict((key, deserialize_class(val)) if isinstance(val, tuple) else (key, val) for (key, val) in tpl[2].items())
-
-    if construct:
-        return klass(*args, **kwargs)
-    else:
-        return klass, args, kwargs
 
 
 def default_order(components):
@@ -124,8 +103,11 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         # Deserialize world_axis_object_classes using the default order
         classes = OrderedDict()
         for key in default_order(components):
-            classes[key] = deserialize_class(serialized_classes[key],
-                                             construct=False)
+            if self.low_level_wcs.serialized_classes:
+                classes[key] = deserialize_class(serialized_classes[key],
+                                                 construct=False)
+            else:
+                classes[key] = serialized_classes[key]
 
         # Check that the number of classes matches the number of inputs
         if len(world_objects) != len(classes):
