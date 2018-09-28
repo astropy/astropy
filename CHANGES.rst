@@ -212,6 +212,9 @@ astropy.wcs
   and the `WCSTools documentation <http://tdc-www.harvard.edu/software/wcstools/wcstools.multiwcs.html>`_.
   [#6990]
 
+- Added the abstract base class for the low-level WCS API described in APE 14
+  (https://doi.org/10.5281/zenodo.1188875). [#7325]
+
 API Changes
 -----------
 
