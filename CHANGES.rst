@@ -1341,6 +1341,10 @@ astropy.visualization
 
 - Fix compatibility with Matplotlib 3.0. [#7839]
 
+- Fix an issue that meant that transform objects passed to WCSAxes needed to
+  have a method called ``get_coord_slice`` in order for
+  ``grid_type='contours'`` to work. [#7846]
+
 astropy.vo
 ^^^^^^^^^^
 
