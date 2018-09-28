@@ -120,7 +120,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def world_axis_object_components(self):
         """
-        A list with `~BaseLowLevelWCS.n_dim_world` elements giving information
+        A list with `~BaseLowLevelWCS.world_n_dim` elements giving information
         on constructing high-level objects for the world coordinates.
 
         Each element of the list is a tuple with three items:
