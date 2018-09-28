@@ -73,9 +73,9 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def numpy_index_to_world_values(self, *index_arrays):
+    def array_index_to_world_values(self, *index_arrays):
         """
-        Convert Numpy array indices to world coordinates.
+        Convert array indices to world coordinates.
 
         This is the same as ``pixel_to_world_values`` except that the indices
         should be given in ``(i, j)`` order, where for an image ``i`` is the row
@@ -99,7 +99,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def world_to_numpy_index_values(self, *world_arrays):
+    def world_to_array_index_values(self, *world_arrays):
         """
         Convert world coordinates to array indices.
 
@@ -193,7 +193,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
     # they are not abstract.
 
     @property
-    def pixel_shape(self):
+    def array_shape(self):
         """
         The shape of the data that the WCS applies to as a tuple of
         length ``pixel_n_dim``.
@@ -201,8 +201,11 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         If the WCS is valid in the context of a dataset with a particular
         shape, then this property can be used to store the shape of the
         data. This can be used for example if implementing slicing of WCS
-        objects. This is an optional property, and it should return `None` if
-        the shape of the data the WCS applies to is not known or not relevant.
+        objects. This is an optional property, and it should return `None`
+        if a shape is not known or relevant.
+
+        The shape should be given in ``(row, column)`` order (the convention
+        for arrays in Python).
         """
         return None
 
@@ -212,10 +215,11 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         The bounds (in pixel coordinates) inside which the WCS is defined,
         as a list with ``pixel_n_dim`` ``(min, max)`` tuples.
 
-        WCS solutions are sometimes only guaranteed to be accurate within a
-        certain range of pixel values, for example when definining a WCS
-        that includes fitted distortions. This is an optional property, and
-        it should return `None` if a shape is not known or relevant.
+        The bounds should be given in ``[(xmin, xmax), (ymin, ymax)]``
+        order. WCS solutions are sometimes only guaranteed to be accurate
+        within a certain range of pixel values, for example when defining a
+        WCS that includes fitted distortions. This is an optional property,
+        and it should return `None` if a shape is not known or relevant.
         """
         return None
 
