@@ -44,6 +44,12 @@ def default_order(components):
 
 
 class BaseHighLevelWCS(metaclass=abc.ABCMeta):
+    """
+    Abstract base class for the high-level WCS interface.
+
+    This is described in `APE 14: A shared Python interface for World Coordinate
+    Systems <https://doi.org/10.5281/zenodo.1188875>`_.
+    """
 
     @property
     @abc.abstractmethod
@@ -100,8 +106,8 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
 
 class HighLevelWCSMixin(BaseHighLevelWCS):
     """
-    This is a mix-in class that automatically provides the high-level WCS API
-    for the low-level WCS object given by the `~HighLevelWCSMixin.low_level_wcs`
+    Mix-in class that automatically provides the high-level WCS API for the
+    low-level WCS object given by the `~HighLevelWCSMixin.low_level_wcs`
     property.
     """
 

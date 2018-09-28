@@ -4,6 +4,10 @@ __all__ = ['HighLevelWCSWrapper']
 
 
 class HighLevelWCSWrapper(HighLevelWCSMixin):
+    """
+    Wrapper class that can take any `BaseLowLevelWCS` object and expose the
+    high-level WCS API.
+    """
 
     def __init__(self, low_level_wcs):
         self._low_level_wcs = low_level_wcs
