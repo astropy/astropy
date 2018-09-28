@@ -4,7 +4,7 @@ from .... import units as u
 from ....units import Quantity
 from ....coordinates import ICRS, Galactic, SkyCoord
 from ...fitswcs_low_level_api import FITSLowLevelWCS
-from ..base_high_level_api import HighLevelWCS
+from ..high_level_wcs_wrapper import HighLevelWCSWrapper
 
 from ...tests.test_fitswcs_low_level_api import (WCS_SIMPLE_CELESTIAL,
                                                  WCS_SPECTRAL_CUBE)
@@ -13,7 +13,7 @@ from ...tests.test_fitswcs_low_level_api import (WCS_SIMPLE_CELESTIAL,
 def test_simple_celestial():
 
     llwcs = FITSLowLevelWCS(WCS_SIMPLE_CELESTIAL)
-    hlwcs = HighLevelWCS(llwcs)
+    hlwcs = HighLevelWCSWrapper(llwcs)
 
     coord = hlwcs.pixel_to_world(29, 39)
     assert isinstance(coord, SkyCoord)
@@ -21,7 +21,7 @@ def test_simple_celestial():
     assert coord.ra.deg == 10
     assert coord.dec.deg == 20
 
-    coord = hlwcs.numpy_index_to_world(39, 29)
+    coord = hlwcs.array_index_to_world(39, 29)
     assert isinstance(coord, SkyCoord)
     assert isinstance(coord.frame, ICRS)
     assert coord.ra.deg == 10
@@ -33,7 +33,7 @@ def test_simple_celestial():
     assert_allclose(x, 29.)
     assert_allclose(y, 39.)
 
-    i, j = hlwcs.world_to_numpy_index(coord)
+    i, j = hlwcs.world_to_array_index(coord)
     assert_equal(i, 39)
     assert_equal(j, 29)
 
@@ -46,7 +46,7 @@ def test_simple_celestial():
     assert_allclose(x, 29.)
     assert_allclose(y, 39.)
 
-    i, j = hlwcs.world_to_numpy_index(coord_galactic)
+    i, j = hlwcs.world_to_array_index(coord_galactic)
     assert_equal(i, 39)
     assert_equal(j, 29)
 
@@ -54,7 +54,7 @@ def test_simple_celestial():
 def test_spectral_cube():
 
     llwcs = FITSLowLevelWCS(WCS_SPECTRAL_CUBE)
-    hlwcs = HighLevelWCS(llwcs)
+    hlwcs = HighLevelWCSWrapper(llwcs)
 
     coord, spec = hlwcs.pixel_to_world(29, 39, 44)
     assert isinstance(coord, SkyCoord)
@@ -64,7 +64,7 @@ def test_spectral_cube():
     assert isinstance(spec, Quantity)
     assert spec.to_value(u.Hz) == 20
 
-    coord, spec = hlwcs.numpy_index_to_world(44, 39, 29)
+    coord, spec = hlwcs.array_index_to_world(44, 39, 29)
     assert isinstance(coord, SkyCoord)
     assert isinstance(coord.frame, Galactic)
     assert coord.l.deg == 25
@@ -86,13 +86,13 @@ def test_spectral_cube():
     assert_allclose(y, 39.)
     assert_allclose(z, 44.)
 
-    i, j, k = hlwcs.world_to_numpy_index(coord, spec)
+    i, j, k = hlwcs.world_to_array_index(coord, spec)
     assert_equal(i, 44)
     assert_equal(j, 39)
     assert_equal(k, 29)
 
     # Order of world coordinates shouldn't matter
-    i, j, k = hlwcs.world_to_numpy_index(spec, coord)
+    i, j, k = hlwcs.world_to_array_index(spec, coord)
     assert_equal(i, 44)
     assert_equal(j, 39)
     assert_equal(k, 29)
