@@ -1,6 +1,6 @@
 from pytest import raises
 
-from ..base_low_level_api import validate_physical_types
+from ..low_level_api import validate_physical_types
 
 
 def test_validate_physical_types():
