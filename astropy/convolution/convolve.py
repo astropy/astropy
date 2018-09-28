@@ -661,6 +661,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                               center + (arraydimsize + 1) // 2)]
         kernslices += [slice(center - kerndimsize // 2,
                              center + (kerndimsize + 1) // 2)]
+    arrayslices = tuple(arrayslices)
+    kernslices = tuple(kernslices)
 
     if not np.all(newshape == arrayshape):
         if np.isfinite(fill_value):
