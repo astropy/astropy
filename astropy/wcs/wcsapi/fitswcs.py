@@ -190,6 +190,8 @@ def _get_components_and_classes(wcs):
     for i in range(wcs.naxis):
         if components[i] is None:
             name = wcs.axis_type_names[i].lower()
+            if name == '':
+                name = 'world'
             while name in classes:
                 name += "_"
             classes[name] = (u.Quantity, (), {'unit': wcs.wcs.cunit[i]})
