@@ -57,6 +57,9 @@ except ImportError:
 from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 
+# Mix-in class that provides the APE 14 API
+from .wcsapi.fitswcs import FITSWCSAPIMixin
+
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'DistortionLookupTable', 'Sip', 'Tabprm', 'Wcsprm',
            'WCSBase', 'validate', 'WcsError', 'SingularMatrixError',
@@ -212,7 +215,7 @@ class FITSFixedWarning(AstropyWarning):
     pass
 
 
-class WCS(WCSBase):
+class WCS(FITSWCSAPIMixin, WCSBase):
     """WCS objects perform standard WCS transformations, and correct for
     `SIP`_ and `distortion paper`_ table-lookup transformations, based
     on the WCS keywords and supplementary data read from a FITS file.

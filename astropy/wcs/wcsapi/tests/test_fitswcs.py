@@ -1,13 +1,14 @@
-import os
+# Note that we test the main astropy.wcs.WCS class directly rather than testing
+# the mix-in class on its own (since it's not functional without being used as
+# a mix-in)
 
 from numpy.testing import assert_equal, assert_allclose
 
-from ... import units as u
-from ...units import Quantity
-from ...coordinates import ICRS, Galactic, SkyCoord
-from ...io.fits import Header
-from ..wcs import WCS
-from ..fitswcs_low_level_api import FITSLowLevelWCS
+from .... import units as u
+from ....units import Quantity
+from ....coordinates import ICRS, Galactic, SkyCoord
+from ....io.fits import Header
+from ...wcs import WCS
 
 ###############################################################################
 # The following example is a simple 2D image with celestial coordinates
@@ -33,7 +34,7 @@ WCS_SIMPLE_CELESTIAL = WCS(Header.fromstring(HEADER_SIMPLE_CELESTIAL, sep='\n'))
 
 def test_simple_celestial():
 
-    llwcs = FITSLowLevelWCS(WCS_SIMPLE_CELESTIAL)
+    llwcs = WCS_SIMPLE_CELESTIAL
 
     assert llwcs.pixel_n_dim == 2
     assert llwcs.world_n_dim == 2
@@ -87,7 +88,7 @@ def test_spectral_cube():
 
     # Spectral cube with a weird axis ordering
 
-    llwcs = FITSLowLevelWCS(WCS_SPECTRAL_CUBE)
+    llwcs = WCS_SPECTRAL_CUBE
 
     assert llwcs.pixel_n_dim == 3
     assert llwcs.world_n_dim == 3
@@ -129,7 +130,7 @@ def test_spectral_cube_nonaligned():
     # Make sure that correlation matrix gets adjusted if there are non-identity
     # CD matrix terms.
 
-    llwcs = FITSLowLevelWCS(WCS_SPECTRAL_CUBE_NONALIGNED)
+    llwcs = WCS_SPECTRAL_CUBE_NONALIGNED
 
     assert_equal(llwcs.axis_correlation_matrix, [[True, True, True], [False, True, True], [True, True, True]])
 
@@ -196,7 +197,7 @@ def test_time_cube():
 
     # Spectral cube with a weird axis ordering
 
-    llwcs = FITSLowLevelWCS(WCS_TIME_CUBE)
+    llwcs = WCS_TIME_CUBE
 
     assert llwcs.pixel_n_dim == 3
     assert llwcs.world_n_dim == 3
@@ -227,4 +228,4 @@ def test_time_cube():
     assert_allclose(llwcs.world_to_pixel_values(14.8289418840003, 2.01824372640628, 2375.341),
                     (-449.2, 2955.6, 0))
     assert_equal(llwcs.world_to_array_index_values(14.8289418840003, 2.01824372640628, 2375.341),
-                (0, 2956, -449))
+                 (0, 2956, -449))
