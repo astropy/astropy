@@ -5,10 +5,62 @@
 from numpy.testing import assert_equal, assert_allclose
 
 from .... import units as u
+from ....tests.helper import assert_quantity_allclose
 from ....units import Quantity
 from ....coordinates import ICRS, Galactic, SkyCoord
 from ....io.fits import Header
 from ...wcs import WCS
+
+###############################################################################
+# The following example is the simplest WCS with default values
+###############################################################################
+
+
+WCS_EMPTY = WCS(naxis=1)
+WCS_EMPTY.wcs.crpix = [1]
+
+
+def test_empty():
+
+    wcs = WCS_EMPTY
+
+    # Low-level API
+
+    assert wcs.pixel_n_dim == 1
+    assert wcs.world_n_dim == 1
+    assert wcs.world_axis_physical_types == [None]
+    assert wcs.world_axis_units == ['']
+
+    assert_equal(wcs.axis_correlation_matrix, True)
+
+    assert wcs.world_axis_object_components == [('world', 0, 'value')]
+
+    assert wcs.world_axis_object_classes['world'][0] is Quantity
+    assert wcs.world_axis_object_classes['world'][1] == ()
+    assert wcs.world_axis_object_classes['world'][2]['unit'] is u.one
+
+    # FIXME: we need to use a list in the following calls due to a bug:
+    # https://github.com/astropy/astropy/issues/7845
+
+    assert_allclose(wcs.pixel_to_world_values([29]), 29)
+    assert_allclose(wcs.array_index_to_world_values([29]), 29)
+
+    assert_allclose(wcs.world_to_pixel_values([29]), 29)
+    assert_equal(wcs.world_to_array_index_values([29]), 29)
+
+    # High-level API
+
+    coord = wcs.pixel_to_world([29])
+    assert_quantity_allclose(coord, 29 * u.one)
+
+    coord = [15] * u.one
+
+    x = wcs.world_to_pixel(coord)
+    assert_allclose(x, 15.)
+
+    i = wcs.world_to_array_index(coord)
+    assert_equal(i, 15)
+
 
 ###############################################################################
 # The following example is a simple 2D image with celestial coordinates
@@ -314,3 +366,15 @@ def test_time_cube():
                     (-449.2, 2955.6, 0))
     assert_equal(wcs.world_to_array_index_values(14.8289418840003, 2.01824372640628, 2375.341),
                  (0, 2956, -449))
+
+
+###############################################################################
+# Extra corner cases
+###############################################################################
+
+
+def test_unrecognized_unit():
+    # TODO: Determine whether the following behavior is desirable
+    wcs = WCS(naxis=1)
+    wcs.wcs.cunit = ['bananas // sekonds']
+    assert wcs.world_axis_units == ['bananas // sekonds']
