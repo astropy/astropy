@@ -725,6 +725,11 @@ astropy.tests
 - Added an option ``--readonly`` to the test command to change the
   permissions on the temporary installation location to read-only. [#7598]
 
+- Changed the way coverage is handled in the test runner, to be based on
+  pytest-cov. This enables support for calculating covergae under parallel
+  buils as well as specifying ``--cov-report`` to the test command to customise
+  the reporting of the coverage statistics.
+
 astropy.time
 ^^^^^^^^^^^^
 
