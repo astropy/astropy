@@ -315,7 +315,7 @@ pos.barycenter
 pos.bodyrc
 pos.bodyrc.alt
 pos.bodyrc.lat
-pos.bodyrc.long
+pos.bodyrc.lon
 pos.cartesian
 pos.cartesian.x
 pos.cartesian.y
