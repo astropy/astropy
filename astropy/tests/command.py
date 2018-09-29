@@ -321,13 +321,13 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         cmd_post = ('from astropy.tests.helper import _patch_coverage; '
                     'import os; '
                     'test_dir = os.path.abspath("."); '
-                    f'_patch_coverage(test_dir, "{cwd}"); ')
+                    '_patch_coverage(test_dir, "{cwd}"); '.format(cwd=cwd))
 
         # Make html report the default and make pytest-cov save it to the
         # source directory not the temporary directory.
         if self.cov_report and (isinstance(self.cov_report, bool) or "html" in self.cov_report):
             html_cov = os.path.join(os.path.abspath("."), "htmlcov")
-            self.cov_report = f'html:{html_cov}'
+            self.cov_report = 'html:{html_cov}'.format(html_cov=html_cov)
         else:
             self.cov_report = self.cov_report
 
