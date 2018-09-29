@@ -130,6 +130,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         self.pep8 = False
         self.pdb = False
         self.coverage = False
+        self.cov_report = True
         self.open_files = False
         self.parallel = 0
         self.docs_path = None
