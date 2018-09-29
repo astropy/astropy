@@ -1,11 +1,24 @@
+import imp
+
 import pytest
 
 # Renamed these imports so that them being in the namespace will not
 # cause pytest 3 to discover them as tests and then complain that
 # they have __init__ defined.
+import astropy.tests.runner
 from astropy.tests.runner import TestRunner as _TestRunner
 from astropy.tests.runner import TestRunnerBase as _TestRunnerBase
 from astropy.tests.runner import keyword
+
+
+def test_import_runner():
+    """
+    When running the tests with setup.py, the test runner class is imported by
+    setup.py before coverage is watching. To ensure that the coverage for
+    astropy/tests/runner.py is correctly measured we force the interpreter to
+    reload it here while coverage is watching.
+    """
+    imp.reload(astropy.tests.runner)
 
 
 def test_disable_kwarg():

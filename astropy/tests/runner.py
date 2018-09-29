@@ -317,15 +317,22 @@ class TestRunner(TestRunnerBase):
 
         return paths
 
-    # Increase priority so this warning is displayed first.
-    @keyword(priority=1000)
+    @keyword()
     def coverage(self, coverage, kwargs):
         if coverage:
-            warnings.warn(
-                "The coverage option is ignored on run_tests, since it "
-                "can not be made to work in that context.  Use "
-                "'python setup.py test --coverage' instead.",
-                AstropyWarning)
+            coveragerc = os.path.join(self.base_path, "tests", "coveragerc")
+            ret = []
+            for path in self.package_path:
+                ret += ["--cov", path, "--cov-config", coveragerc]
+            return ret
+
+        return []
+
+    @keyword()
+    def cov_report(self, cov_report, kwargs):
+        if kwargs['coverage'] and cov_report:
+            a = [cov_report] if isinstance(cov_report, str) else []
+            return ['--cov-report'] + a
 
         return []
 

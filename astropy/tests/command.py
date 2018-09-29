@@ -164,6 +164,8 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
                'package={1.package!r}, '
                'test_path={1.test_path!r}, '
                'args={1.args!r}, '
+               'coverage={1.coverage!r}, '
+               'cov_report={1.cov_report!r}, '
                'plugins={1.plugins!r}, '
                'verbose={1.verbose_results!r}, '
                'pastebin={1.pastebin!r}, '
@@ -311,46 +313,22 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
                 os.chmod(os.path.join(root, filename), basic_flags)
 
     def _generate_coverage_commands(self):
-        """
-        This method creates the post and pre commands if coverage is to be
-        generated
-        """
-        if self.parallel != 0:
-            raise ValueError(
-                "--coverage can not be used with --parallel")
+        cmd_pre = ''  # Commands to run before the test function
 
-        try:
-            import coverage  # pylint: disable=W0611
-        except ImportError:
-            raise ImportError(
-                "--coverage requires that the coverage package is "
-                "installed.")
+        # patch the .coverage file so the paths are correct to the directory
+        # setup.py was run in rather than the temporary directory.
+        cwd = os.path.abspath(".")
+        cmd_post = ('from astropy.tests.helper import _patch_coverage; '
+                    'import os; '
+                    'test_dir = os.path.abspath("."); '
+                    f'_patch_coverage(test_dir, "{cwd}"); ')
 
-        # Don't use get_pkg_data_filename here, because it
-        # requires importing astropy.config and thus screwing
-        # up coverage results for those packages.
-        coveragerc = os.path.join(
-            self.testing_path, self.package_name.replace('.', '/'),
-            'tests', 'coveragerc')
-
-        with open(coveragerc, 'r') as fd:
-            coveragerc_content = fd.read()
-
-        coveragerc_content = coveragerc_content.replace(
-            "{packagename}", self.package_name.replace('.', '/'))
-        tmp_coveragerc = os.path.join(self.tmp_dir, 'coveragerc')
-        with open(tmp_coveragerc, 'wb') as tmp:
-            tmp.write(coveragerc_content.encode('utf-8'))
-
-        cmd_pre = (
-            'import coverage; '
-            'cov = coverage.coverage(data_file=r"{0}", config_file=r"{1}"); '
-            'cov.start();'.format(
-                os.path.abspath(".coverage"), os.path.abspath(tmp_coveragerc)))
-        cmd_post = (
-            'cov.stop(); '
-            'from astropy.tests.helper import _save_coverage; '
-            '_save_coverage(cov, result, r"{0}", r"{1}");'.format(
-                os.path.abspath('.'), os.path.abspath(self.testing_path)))
+        # Make html report the default and make pytest-cov save it to the
+        # source directory not the temporary directory.
+        if self.cov_report and (isinstance(self.cov_report, bool) or "html" in self.cov_report):
+            html_cov = os.path.join(os.path.abspath("."), "htmlcov")
+            self.cov_report = f'html:{html_cov}'
+        else:
+            self.cov_report = self.cov_report
 
         return cmd_pre, cmd_post

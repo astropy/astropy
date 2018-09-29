@@ -476,3 +476,42 @@ def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=None,
     from astropy.units.quantity import _unquantify_allclose_arguments
     np.testing.assert_allclose(*_unquantify_allclose_arguments(
         actual, desired, rtol, atol), **kwargs)
+
+
+# Skip coverage on this because we test it every time the CI runs --coverage!
+def _patch_coverage(testdir, sourcedir):  # pragma: no cover
+    """
+    This function is used by the ``setup.py test`` command to change the
+    filepath of the source code from the temporary directory setup.py installs
+    the code into to the actual directory setup.py was executed in.
+    """
+    import coverage
+
+    coveragerc = os.path.join(os.path.dirname(__file__), "coveragerc")
+
+    # Load the .coverage file output by pytest-cov
+    covfile = os.path.join(testdir, ".coverage")
+    cov = coverage.Coverage(covfile, config_file=coveragerc)
+    cov.load()
+    cov.get_data()
+
+    # Change the filename for the datafile to the new directory
+    if hasattr(cov, "_data_files"):
+        dfs = cov._data_files
+    else:
+        dfs = cov.data_files
+
+    dfs.filename = os.path.join(sourcedir, ".coverage")
+
+    # Replace the testdir with source dir
+    # Lovingly borrowed from astropy (see licences directory)
+    lines = cov.data._lines
+    for key in list(lines.keys()):
+        new_path = os.path.relpath(
+            os.path.realpath(key),
+            os.path.realpath(testdir))
+        new_path = os.path.abspath(
+            os.path.join(sourcedir, new_path))
+        lines[new_path] = lines.pop(key)
+
+    cov.save()
