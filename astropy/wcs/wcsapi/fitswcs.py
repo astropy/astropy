@@ -107,9 +107,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         # If there are any distortions present, we assume that there may be
         # correlations between all axes. Maybe if some distortions only apply
         # to the image plane we can improve this?
-        for distortion_attribute in ('sip', 'det2im1', 'det2im2'):
-            if getattr(self, distortion_attribute):
-                return np.ones((self.n_world, self.n_pixel), dtype=bool)
+        if self.has_distortion:
+            return np.ones((self.world_n_dim, self.pixel_n_dim), dtype=bool)
 
         # Assuming linear world coordinates along each axis, the correlation
         # matrix would be given by whether or not the PC matrix is zero

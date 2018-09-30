@@ -9,6 +9,7 @@ from ....tests.helper import assert_quantity_allclose
 from ....units import Quantity
 from ....coordinates import ICRS, Galactic, SkyCoord
 from ....io.fits import Header
+from ....utils.data import get_pkg_data_filename
 from ...wcs import WCS
 
 ###############################################################################
@@ -378,3 +379,32 @@ def test_unrecognized_unit():
     wcs = WCS(naxis=1)
     wcs.wcs.cunit = ['bananas // sekonds']
     assert wcs.world_axis_units == ['bananas // sekonds']
+
+
+def test_distortion_correlations():
+
+    filename = get_pkg_data_filename('../../tests/data/sip.fits')
+    w = WCS(filename)
+    assert_equal(w.axis_correlation_matrix, True)
+
+    # Changing PC to an identity matrix doesn't change anything since
+    # distortions are still present.
+    w.wcs.pc = [[1, 0], [0, 1]]
+    assert_equal(w.axis_correlation_matrix, True)
+
+    # Nor does changing the name of the axes to make them non-celestial
+    w.wcs.ctype = ['X', 'Y']
+    assert_equal(w.axis_correlation_matrix, True)
+
+    # However once we turn off the distortions the matrix changes
+    w.sip = None
+    assert_equal(w.axis_correlation_matrix, [[True, False], [False, True]])
+
+    # If we go back to celestial coordinates then the matrix is all True again
+    w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    assert_equal(w.axis_correlation_matrix, True)
+
+    # Or if we change to X/Y but have a non-identity PC
+    w.wcs.pc = [[0.9, -0.1], [0.1, 0.9]]
+    w.wcs.ctype = ['X', 'Y']
+    assert_equal(w.axis_correlation_matrix, True)
