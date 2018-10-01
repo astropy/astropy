@@ -10,7 +10,7 @@ Support for units and quantities
 
 The `astropy.modeling` package includes partial support for the use of units and
 quantities in model parameters, models, and during fitting. At this time, most of
-the built-in models support units with a few exceptions. The models that do not
+the built-in models support units with a few exceptions. The models that do **NOT**
 support units are listed below:
 
 **Functional Models:** *Multiply, RedshiftScaleFactor, Planar2D, Delta1D, Delta2D*
