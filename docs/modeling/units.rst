@@ -9,10 +9,14 @@ Support for units and quantities
           tracker <https://github.com/astropy/astropy/issues>`_.
 
 The `astropy.modeling` package includes partial support for the use of units and
-quantities in model parameters, models, and during fitting. At this time, only
-some of the built-in models (such as
-:class:`~astropy.modeling.functional_models.Gaussian1D`) support units, but this
-will be extended in future to all models where this is appropriate.
+quantities in model parameters, models, and during fitting. At this time, most of
+the built-in models support units with a few exceptions. The models that do not
+support units are listed below:
+
+**Functional Models:** *Multiply, RedshiftScaleFactor, Planar2D, Delta1D, Delta2D*
+
+**Polynomial Models:** *Chebyshev1D, Chebyshev2D, Legendre2D, Legendre1D, Hermite1D,
+Hermite2D*
 
 Setting parameters to quantities
 ================================
