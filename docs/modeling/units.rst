@@ -9,10 +9,13 @@ Support for units and quantities
           tracker <https://github.com/astropy/astropy/issues>`_.
 
 The `astropy.modeling` package includes partial support for the use of units and
-quantities in model parameters, models, and during fitting. At this time, only
-some of the built-in models (such as
-:class:`~astropy.modeling.functional_models.Gaussian1D`) support units, but this
-will be extended in future to all models where this is appropriate.
+quantities in model parameters, models, and during fitting. At this time, following
+built-in 1-D & 2-D models (AiryDisk2D, Moffat1D, Moffat2D, Box1D, Box2D, Const1D,
+Const2D, Ellipse2D, Disk2D, Gaussian1D, Gaussian2D, Linear1D, Lorentz1D, MexicanHat1D, MexicanHat2D, 
+RedshiftScaleFactor, Scale, Sersic1D, Sersic2D, Shift, Sine1D, Trapezoid1D, TrapezoidDisk2D, Ring2D & Voigt1D)
+also Polynomial models (Chebyshev1D, Chebyshev2D, Hermite1D, Hermite2D, InverseSIP,Legendre1D, Legendre2D,
+Polynomial1D, Polynomial2D, SIP, OrthoPolynomialBase & PolynomialModel)
+support units, but this will be extended in future to all models where this is appropriate.
 
 Setting parameters to quantities
 ================================
