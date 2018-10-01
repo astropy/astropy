@@ -1730,6 +1730,14 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- ``HDUList.__contains__()`` now works with ``HDU`` arguments. That is,
+  ``hdulist[0] in hdulist`` now works as expected. [#7282]
+
+- ``HDUList`` s can now be written to streams in Python 3 [#7850]
+
+- ``fits.append`` now correctly handles file objects with valid modes other
+  than ``ostream``. [#7856]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
