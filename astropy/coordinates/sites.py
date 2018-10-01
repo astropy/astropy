@@ -101,7 +101,7 @@ class SiteRegistry(Mapping):
     def from_json(cls, jsondb):
         reg = cls()
         for site in jsondb:
-            site_info = jsondb[site]
+            site_info = jsondb[site].copy()
             location = EarthLocation.from_geodetic(site_info.pop('longitude') * u.Unit(site_info.pop('longitude_unit')),
                                                    site_info.pop('latitude') * u.Unit(site_info.pop('latitude_unit')),
                                                    site_info.pop('elevation') * u.Unit(site_info.pop('elevation_unit')))
