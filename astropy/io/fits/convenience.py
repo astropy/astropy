@@ -378,7 +378,7 @@ def delval(filename, keyword, *args, **kwargs):
 
 @deprecated_renamed_argument('clobber', 'overwrite', '2.0')
 def writeto(filename, data, header=None, output_verify='exception',
-            overwrite=False, checksum=False):
+            overwrite=False, checksum=False, mode='ostream'):
     """
     Create a new FITS file using the supplied data/header.
 
@@ -414,13 +414,20 @@ def writeto(filename, data, header=None, output_verify='exception',
     checksum : bool, optional
         If `True`, adds both ``DATASUM`` and ``CHECKSUM`` cards to the
         headers of all HDU's written to the file.
+
+    mode : str, optional
+        Open mode, 'ostream', 'update', or append. Default is 'ostream'.
+
+        If ``name`` is a file object that is already opened, ``mode`` must
+        match the mode the file was opened with, update (rb+), append (ab+),
+        or ostream (w).
     """
 
     hdu = _makehdu(data, header)
     if hdu.is_image and not isinstance(hdu, PrimaryHDU):
         hdu = PrimaryHDU(data, header=header)
     hdu.writeto(filename, overwrite=overwrite, output_verify=output_verify,
-                checksum=checksum)
+                checksum=checksum, mode=mode)
 
 
 def table_to_hdu(table, character_as_bytes=False):
@@ -611,6 +618,9 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
         # empty.  Use the writeto convenience function to write the
         # output to the empty object.
         #
+        mode, _ = _get_file_mode(filename, default='ostream')
+
+        kwargs['mode'] = mode
         writeto(filename, data, header, checksum=checksum, **kwargs)
     else:
         hdu = _makehdu(data, header)

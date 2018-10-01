@@ -868,7 +868,7 @@ class HDUList(list, _Verify):
 
     @deprecated_renamed_argument('clobber', 'overwrite', '2.0')
     def writeto(self, fileobj, output_verify='exception', overwrite=False,
-                checksum=False):
+                checksum=False, mode='ostream'):
         """
         Write the `HDUList` to a new file.
 
@@ -896,6 +896,8 @@ class HDUList(list, _Verify):
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
             to the headers of all HDU's written to the file.
+
+        mode : str
         """
 
         if (len(self) == 0):
@@ -912,11 +914,9 @@ class HDUList(list, _Verify):
         # of the caller)
         closed = isinstance(fileobj, str) or fileobj_closed(fileobj)
 
-        # writeto is only for writing a new file from scratch, so the most
-        # sensible mode to require is 'ostream'.  This can accept an open
-        # file object that's open to write only, or in append/update modes
-        # but only if the file doesn't exist.
-        fileobj = _File(fileobj, mode='ostream', overwrite=overwrite)
+        # This can accept an open file object that's open to write only, or in
+        # append/update modes but only if the file doesn't exist.
+        fileobj = _File(fileobj, mode=mode, overwrite=overwrite)
         hdulist = self.fromfile(fileobj)
         try:
             dirname = os.path.dirname(hdulist._file.name)
