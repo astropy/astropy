@@ -1048,4 +1048,3 @@ class TestHDUListFunctions(FitsTestCase):
         with open(self.temp('test.fits'), 'wb') as fout:
             p = subprocess.Popen(["cat"], stdin=subprocess.PIPE, stdout=fout)
             hdulist.writeto(p.stdin)
-
