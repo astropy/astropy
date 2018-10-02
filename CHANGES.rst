@@ -29,7 +29,7 @@ astropy.coordinates
   cases. [#7324]
 
 - Additional information about a site loaded from the Astropy sites registry is
-  now available in ``EarthLocation.info.meta``. [#7083]
+  now available in ``EarthLocation.info.meta``. [#7857]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
