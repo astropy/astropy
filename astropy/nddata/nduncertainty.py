@@ -149,7 +149,7 @@ class NDUncertainty(metaclass=ABCMeta):
         """
         This uncertainty as an `~astropy.units.Quantity` object.
         """
-        return Quantity(self.array, self.unit, copy=False)
+        return Quantity(self.array, self.unit, copy=False, dtype=self.array.dtype)
 
     @property
     def parent_nddata(self):
