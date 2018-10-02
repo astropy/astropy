@@ -652,7 +652,7 @@ class _BaseHDU(object):
     def _writeto(self, fileobj, inplace=False, copy=False):
         try:
             dirname = os.path.dirname(fileobj._file.name)
-        except AttributeError:
+        except (AttributeError, TypeError):
             dirname = None
 
         with _free_space_check(self, dirname):
