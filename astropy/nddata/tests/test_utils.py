@@ -97,6 +97,17 @@ def test_extract_array_even_shape_rounding():
         out = extract_array(data, shape, (pos, ), mode='partial')
         assert_array_equal(out, exp)
 
+    # test negative positions
+    positions = (-0.99, -0.51, -0.5, -0.49, -0.01, 0)
+    exp1 = (-99, 0)
+    exp2 = (0, 1)
+    expected = [exp1, ] * 6 + [exp2, ]
+
+    for pos, exp in zip(positions, expected):
+        out = extract_array(data, shape, (pos, ), mode='partial',
+                            fill_value=-99)
+        assert_array_equal(out, exp)
+
 
 def test_extract_array_odd_shape_rounding():
     """
@@ -115,6 +126,17 @@ def test_extract_array_odd_shape_rounding():
 
     for pos, exp in zip(positions, expected):
         out = extract_array(data, shape, (pos, ), mode='partial')
+        assert_array_equal(out, exp)
+
+    # test negative positions
+    positions = (-0.99, -0.51, -0.5, -0.49, -0.01, 0)
+    exp1 = (-99, -99, 0)
+    exp2 = (-99, 0, 1)
+    expected = [exp1, ] * 3 + [exp2, ] * 4
+
+    for pos, exp in zip(positions, expected):
+        out = extract_array(data, shape, (pos, ), mode='partial',
+                            fill_value=-99)
         assert_array_equal(out, exp)
 
 
