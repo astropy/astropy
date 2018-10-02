@@ -920,7 +920,7 @@ class HDUList(list, _Verify):
         hdulist = self.fromfile(fileobj)
         try:
             dirname = os.path.dirname(hdulist._file.name)
-        except AttributeError:
+        except (AttributeError, TypeError):
             dirname = None
 
         with _free_space_check(self, dirname=dirname):
