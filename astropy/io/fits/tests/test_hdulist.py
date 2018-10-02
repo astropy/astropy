@@ -5,6 +5,7 @@ import io
 import os
 import platform
 import sys
+import subprocess
 
 import pytest
 import numpy as np
@@ -985,3 +986,16 @@ class TestHDUListFunctions(FitsTestCase):
         assert len(hdul3) == 2
         assert hdul3[0].header == hdu2.header
         assert hdul3[1].header == hdu.header
+
+    def test_write_hdulist_to_stream(self):
+        """
+        Unit test for https://github.com/astropy/astropy/issues/7435
+        Ensure that an HDUList can be written to a stream in Python 2
+        """
+        data = np.array([[1,2,3],[4,5,6]])
+        hdu = fits.PrimaryHDU(data)
+        hdulist = fits.HDUList([hdu])
+
+        with open(self.temp('test.fits'), 'wb') as fout:
+            p = subprocess.Popen(["cat"], stdin=subprocess.PIPE, stdout=fout)
+            hdulist.writeto(p.stdin)
