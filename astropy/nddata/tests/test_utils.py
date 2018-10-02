@@ -206,7 +206,7 @@ def test_extract_array_return_pos():
                                            mode='partial', return_position=True)
         assert new_pos == (1, )
     # Now check an array with an even number
-    for i, expected in zip([1.49, 1.51, 3], [1.49, 0.51, 1]):
+    for i, expected in zip([1.49, 1.51, 3], [0.49, 0.51, 1]):
         extracted, new_pos = extract_array(large_test_array, (2,), (i,),
                                            mode='strict', return_position=True)
         assert new_pos == (expected, )
