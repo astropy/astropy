@@ -459,6 +459,9 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- Fixed rounding behavior in ``overlap_slices`` for even-sized small
+  arrays. [#7859]
+
 astropy.samp
 ^^^^^^^^^^^^
 
