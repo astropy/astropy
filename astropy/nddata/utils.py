@@ -38,20 +38,6 @@ def _round(a):
     return int(np.floor(a + 0.5))
 
 
-def _offset(a):
-    '''Offset by 0.5 for an even array.
-
-    For an array with an odd number of elements, the center is
-    symmetric, e.g. for 3 elements, it's center +/-1 elements, but for
-    four elements it's center -2 / +1
-    This function introduces that offset.
-    '''
-    if np.mod(a, 2) == 0:
-        return -0.5
-    else:
-        return 0.
-
-
 def overlap_slices(large_array_shape, small_array_shape, position,
                    mode='partial'):
     """
@@ -118,9 +104,9 @@ def overlap_slices(large_array_shape, small_array_shape, position,
         raise ValueError('"position" must have the same number of dimensions '
                          'as "small_array_shape".')
     # Get edge coordinates
-    edges_min = [_round(pos + 0.5 - small_shape / 2. + _offset(small_shape))
+    edges_min = [int(np.ceil(pos - (small_shape / 2.)))
                  for (pos, small_shape) in zip(position, small_array_shape)]
-    edges_max = [_round(pos + 0.5 + small_shape / 2. + _offset(small_shape))
+    edges_max = [int(np.ceil(pos + (small_shape / 2.)))
                  for (pos, small_shape) in zip(position, small_array_shape)]
 
     for e_max in edges_max:
