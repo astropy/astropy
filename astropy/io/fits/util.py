@@ -610,7 +610,7 @@ def _array_to_file(arr, outfile):
     `ndarray.tofile`.  Otherwise a slower Python implementation is used.
     """
 
-    if isfile(outfile):
+    if isfile(outfile) and not isinstance(outfile, io.BufferedIOBase):
         write = lambda a, f: a.tofile(f)
     else:
         write = _array_to_file_like
