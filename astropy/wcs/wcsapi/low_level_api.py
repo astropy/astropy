@@ -3,7 +3,7 @@ import abc
 
 import numpy as np
 
-__all__ = ['BaseLowLevelWCS']
+__all__ = ['BaseLowLevelWCS', 'validate_physical_types']
 
 
 class BaseLowLevelWCS(metaclass=abc.ABCMeta):
