@@ -111,6 +111,8 @@ astropy.wcs
   ``pipeline_pix2foc()``. They now raise an exception for input with
   zero coordinates, i.e. shape = (0, n). [#7806]
 
+ - Fixed an issue with scalar input when WCS.naxis is one. [#7858]
+
 Other Changes and Additions
 ---------------------------
 
