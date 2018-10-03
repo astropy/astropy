@@ -20,7 +20,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         """
         The number of axes in the pixel coordinate system.
         """
-        pass
 
     @property
     @abc.abstractmethod
@@ -28,7 +27,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         """
         The number of axes in the world coordinate system.
         """
-        pass
 
     @property
     @abc.abstractmethod
@@ -42,7 +40,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         arbitrary string.  Alternatively, if the physical type is
         unknown/undefined, an element can be `None`.
         """
-        pass
 
     @property
     @abc.abstractmethod
@@ -56,7 +53,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         specification document, units that do not follow this standard are still
         allowed, but just not recommended).
         """
-        pass
 
     @abc.abstractmethod
     def pixel_to_world_values(self, *pixel_arrays):
@@ -73,7 +69,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         an image, ``x`` is the horizontal coordinate and ``y`` is the vertical
         coordinate.
         """
-        pass
 
     @abc.abstractmethod
     def array_index_to_world_values(self, *index_arrays):
@@ -85,7 +80,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         ``i`` is the row and ``j`` is the column (i.e. the opposite order to
         `~BaseLowLevelWCS.pixel_to_world_values`).
         """
-        pass
 
     @abc.abstractmethod
     def world_to_pixel_values(self, *world_arrays):
@@ -101,7 +95,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         the ``(x, y)`` order, where for an image, ``x`` is the horizontal
         coordinate and ``y`` is the vertical coordinate.
         """
-        pass
 
     @abc.abstractmethod
     def world_to_array_index_values(self, *world_arrays):
@@ -114,7 +107,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         `~BaseLowLevelWCS.pixel_to_world_values`). The indices should be
         returned as rounded integers.
         """
-        pass
 
     @property
     @abc.abstractmethod
@@ -145,7 +137,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         `APE 14: A shared Python interface for World Coordinate Systems
         <https://doi.org/10.5281/zenodo.1188875>`_ for examples.
         """
-        pass
 
     @property
     @abc.abstractmethod
@@ -197,7 +188,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         `APE 14: A shared Python interface for World Coordinate Systems
         <https://doi.org/10.5281/zenodo.1188875>`_ for examples .
         """
-        pass
 
     # The following three properties have default fallback implementations, so
     # they are not abstract.

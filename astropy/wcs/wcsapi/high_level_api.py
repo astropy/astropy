@@ -36,7 +36,6 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         """
         Returns a reference to the underlying low-level WCS object.
         """
-        pass
 
     @abc.abstractmethod
     def pixel_to_world(self, *pixel_arrays):
@@ -47,7 +46,6 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         See `~BaseLowLevelWCS.pixel_to_world_values` for pixel indexing and
         ordering conventions.
         """
-        pass
 
     @abc.abstractmethod
     def array_index_to_world(self, *index_arrays):
@@ -58,7 +56,6 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         See `~BaseLowLevelWCS.array_index_to_world_values` for pixel indexing and
         ordering conventions.
         """
-        pass
 
     @abc.abstractmethod
     def world_to_pixel(self, *world_objects):
@@ -80,7 +77,6 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         and ordering conventions. The indices should be returned as rounded
         integers.
         """
-        pass
 
 
 class HighLevelWCSMixin(BaseHighLevelWCS):
@@ -161,9 +157,12 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
 
                 # FIXME: For now SkyCoord won't auto-convert upon initialization
                 # https://github.com/astropy/astropy/issues/7689
-                from ..coordinates import SkyCoord
+                from ...coordinates import SkyCoord
                 if isinstance(w, SkyCoord):
-                    objects[key] = w.transform_to(kwargs['frame'])
+                    if 'frame' in kwargs:
+                        objects[key] = w.transform_to(kwargs['frame'])
+                    else:
+                        objects[key] = w
                 else:
                     objects[key] = klass(w, *args, **kwargs)
 
@@ -198,7 +197,7 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
 
         for i, (key, attr, _) in enumerate(components):
             if isinstance(attr, str):
-                kwargs[attr] = world[i]
+                kwargs[key][attr] = world[i]
             else:
                 while attr > len(args[key]) - 1:
                     args[key].append(None)
