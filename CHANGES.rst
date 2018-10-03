@@ -182,6 +182,8 @@ astropy.units
 - Add ``thermodynamic_temperature`` equivalency to convert between
   Jy/beam and "thermodynamic temperature" for cosmology. [#7054]
 
+- Add millibar unit. [#7863]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
