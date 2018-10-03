@@ -43,7 +43,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         Convert pixel coordinates to world coordinates (represented by high-level
         objects).
 
-        See `~BaseLowLevelWCS.pixel_to_world_values` for pixel indexing and
+        See `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_to_world_values` for pixel indexing and
         ordering conventions.
         """
 
@@ -53,7 +53,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         Convert array indices to world coordinates (represented by Astropy
         objects).
 
-        See `~BaseLowLevelWCS.array_index_to_world_values` for pixel indexing and
+        See `~astropy.wcs.wcsapi.BaseLowLevelWCS.array_index_to_world_values` for pixel indexing and
         ordering conventions.
         """
 
@@ -63,7 +63,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         Convert world coordinates (represented by Astropy objects) to pixel
         coordinates.
 
-        See `~BaseLowLevelWCS.world_to_pixel_values` for pixel indexing and
+        See `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_to_pixel_values` for pixel indexing and
         ordering conventions.
         """
 
@@ -73,7 +73,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         Convert world coordinates (represented by Astropy objects) to array
         indices.
 
-        See `~BaseLowLevelWCS.world_to_array_index_values` for pixel indexing
+        See `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_to_array_index_values` for pixel indexing
         and ordering conventions. The indices should be returned as rounded
         integers.
         """
