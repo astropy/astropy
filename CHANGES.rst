@@ -118,6 +118,9 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- ``NDUncertainty`` objects now have a ``quantity`` attribute for simple
+  conversion to quantities. [#7704]
+
 astropy.samp
 ^^^^^^^^^^^^
 
