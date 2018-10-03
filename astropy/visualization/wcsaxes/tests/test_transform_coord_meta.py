@@ -19,6 +19,8 @@ from ....tests.image_tests import IMAGE_REFERENCE_DIR
 
 class DistanceToLonLat(CurvedTransform):
 
+    has_inverse = True
+
     def __init__(self, R=6e3):
         super().__init__()
         self.R = R

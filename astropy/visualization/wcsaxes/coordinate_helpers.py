@@ -119,7 +119,7 @@ class CoordinateHelper:
                                   'alpha': rcParams.get('grid.alpha', 1.0),
                                   'transform': self.parent_axes.transData}
 
-    def grid(self, draw_grid=True, grid_type='lines', **kwargs):
+    def grid(self, draw_grid=True, grid_type=None, **kwargs):
         """
         Plot grid lines for this coordinate.
 
@@ -137,8 +137,16 @@ class CoordinateHelper:
             positions in the image and then drawing contours
             (``'contours'``). The first is recommended for 2-d images, while
             for 3-d (or higher dimensional) cubes, the ``'contours'`` option
-            is recommended.
+            is recommended. By default, 'lines' is used if the transform has
+            an inverse, otherwise 'contours' is used.
         """
+
+        if grid_type == 'lines' and not self.transform.has_inverse:
+            raise ValueError('The specified transform has no inverse, so the '
+                             'grid cannot be drawn using grid_type=\'lines\'')
+
+        if grid_type is None:
+            grid_type = 'lines' if self.transform.has_inverse else 'contours'
 
         if grid_type in ('lines', 'contours'):
             self._grid_type = grid_type
