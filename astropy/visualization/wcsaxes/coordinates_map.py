@@ -34,7 +34,9 @@ class CoordinatesMap:
         ``longitude``, ``latitude``, or ``scalar``, the ``wrap`` entries should
         give, for the longitude, the angle at which the coordinate wraps (and
         `None` otherwise), and the ``unit`` should give the unit of the
-        coordinates as :class:`~astropy.units.Unit` instances.
+        coordinates as :class:`~astropy.units.Unit` instances.  This can
+        optionally also include a ``format_unit`` entry giving the units to use
+        for the tick labels (if not specified, this defaults to ``unit``).
     slice : tuple, optional
         For WCS transformations with more than two dimensions, we need to
         choose which dimensions are being shown in the 2D image. The slice
@@ -101,7 +103,10 @@ class CoordinatesMap:
                     coord_wrap = coord_meta['wrap'][coord_index]
                     coord_unit = coord_meta['unit'][coord_index]
                     name = coord_meta['name'][coord_index]
-                    format_unit = None
+                    if 'format_unit' in coord_meta:
+                        format_unit = coord_meta['format_unit'][coord_index]
+                    else:
+                        format_unit = None
                 except IndexError:
                     raise ValueError("coord_meta items should have a length of {0}".format(len(wcs.wcs.naxis)))
 
