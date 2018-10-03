@@ -761,13 +761,18 @@ class CoordinateHelper(object):
         xmin, xmax = self.parent_axes.get_xlim()
         ymin, ymax = self.parent_axes.get_ylim()
 
-        x, y, field = self.transform.get_coord_slices(xmin, xmax, ymin, ymax, 200, 200)
+        from . import conf
+        res = conf.contour_grid_samples
+
+        x, y = np.meshgrid(np.linspace(xmin, xmax, res),
+                           np.linspace(ymin, ymax, res))
+        pixel = np.array([x.ravel(), y.ravel()]).T
+        world = self.transform.transform(pixel)
+        field = world[:, self.coord_index].reshape(res, res).T
 
         coord_range = self.parent_map.get_coord_range()
 
         tick_world_coordinates, spacing = self.locator(*coord_range[self.coord_index])
-
-        field = field[self.coord_index]
 
         # tick_world_coordinates is a Quantities array and we only needs its values
         tick_world_coordinates_values = tick_world_coordinates.value
