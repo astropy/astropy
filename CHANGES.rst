@@ -366,6 +366,9 @@ astropy.visualization
 - Changed ``AsymmetricPercentileInterval`` and ``MinMaxInterval`` to
   ignore NaN values in arrays. [#7360]
 
+- Automatically default to using ``grid_type='contours'`` in WCSAxes when using
+  a custom ``Transform`` object if the transform has no inverse. [#7847]
+
 astropy.wcs
 ^^^^^^^^^^^
 
