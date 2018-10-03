@@ -198,6 +198,9 @@ astropy.visualization
 
 - Added documentation for ``transform=`` and ``coord_meta=``. [#7698]
 
+- Allow ``coord_meta=`` in WCSAxes to optionally include ``format_unit=``.
+  [#7848]
+
 astropy.wcs
 ^^^^^^^^^^^
 
