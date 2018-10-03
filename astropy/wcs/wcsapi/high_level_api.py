@@ -143,7 +143,10 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
                 # https://github.com/astropy/astropy/issues/7689
                 from ...coordinates import SkyCoord
                 if isinstance(world_by_key[key], SkyCoord):
-                    objects[key] = world_by_key[key].transform_to(kwargs['frame'])
+                    if 'frame' in kwargs:
+                        objects[key] = world_by_key[key].transform_to(kwargs['frame'])
+                    else:
+                        objects[key] = world_by_key[key]
                 else:
                     objects[key] = klass(world_by_key[key], *args, **kwargs)
 
