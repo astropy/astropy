@@ -49,11 +49,9 @@ class CurvedTransform(Transform, metaclass=abc.ABCMeta):
 
     transform_path_non_affine = transform_path
 
-    @abc.abstractmethod
     def transform(self, input):
         raise NotImplementedError("")
 
-    @abc.abstractmethod
     def inverted(self):
         raise NotImplementedError("")
 
@@ -141,17 +139,6 @@ class WCSPixel2WorldTransform(CurvedTransform):
     @property
     def output_dims(self):
         return self.wcs.wcs.naxis
-
-    def get_coord_slices(self, xmin, xmax, ymin, ymax, nx, ny):
-        """
-        Get a coordinate slice
-        """
-        x = np.linspace(xmin, xmax, nx)
-        y = np.linspace(ymin, ymax, ny)
-        Y, X = np.meshgrid(y, x)
-        pixel = np.array([X.ravel(), Y.ravel()]).transpose()
-        world = self.transform(pixel)
-        return X, Y, [world[:, i].reshape(nx, ny).transpose() for i in range(self.wcs.wcs.naxis)]
 
     def transform(self, pixel):
         """

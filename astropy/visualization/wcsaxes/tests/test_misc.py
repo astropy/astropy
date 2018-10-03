@@ -16,6 +16,7 @@ from ....tests.image_tests import ignore_matplotlibrc
 
 from ..core import WCSAxes
 from ..utils import get_coord_meta
+from ..transforms import CurvedTransform
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
@@ -208,3 +209,30 @@ def test_plt_xlabel_ylabel(tmpdir):
     plt.xlabel('Galactic Longitude')
     plt.ylabel('Galactic Latitude')
     plt.savefig(tmpdir.join('test.png').strpath)
+
+
+def test_grid_type_contours_transform(tmpdir):
+
+    # Regression test for a bug that caused grid_type='contours' to not work
+    # with custom transforms
+
+    class CustomTransform(CurvedTransform):
+
+        # We deliberately don't define the inverse, and has_inverse should
+        # default to False.
+
+        def transform(self, values):
+            return values * 1.3
+
+    transform = CustomTransform()
+    coord_meta = {'type': ('scalar', 'scalar'),
+                  'unit': (u.m, u.s),
+                  'wrap': (None, None),
+                  'name': ('x', 'y')}
+
+    fig = plt.figure()
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8],
+                 transform=transform, coord_meta=coord_meta)
+    fig.add_axes(ax)
+    ax.grid(grid_type='contours')
+    fig.savefig(tmpdir.join('test.png').strpath)
