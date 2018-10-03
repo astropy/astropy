@@ -1256,7 +1256,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 raise TypeError(
                     "When providing two arguments, they must be "
                     "(coords[N][{0}], origin)".format(self.naxis))
-            if self.naxis == 1 and len(xy.shape) == 1:
+            if xy.shape == () or len(xy.shape) == 1:
                 return _return_list_of_arrays([xy], origin)
             return _return_single_array(xy, origin)
 
