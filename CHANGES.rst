@@ -1346,6 +1346,9 @@ astropy.visualization
 
 - Fix compatibility with Matplotlib 3.0. [#7839]
 
+- Fix an issue that caused a crash when using WCSAxes with a custom Transform
+  object and when using ``grid_type='contours'`` to plot a grid. [#7846]
+
 astropy.vo
 ^^^^^^^^^^
 
