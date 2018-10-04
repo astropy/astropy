@@ -40,21 +40,18 @@ def test_empty():
     assert wcs.world_axis_object_classes['world'][1] == ()
     assert wcs.world_axis_object_classes['world'][2]['unit'] is u.one
 
-    # FIXME: we need to use a list in the following calls due to a bug:
-    # https://github.com/astropy/astropy/issues/7845
+    assert_allclose(wcs.pixel_to_world_values(29), 29)
+    assert_allclose(wcs.array_index_to_world_values(29), 29)
 
-    assert_allclose(wcs.pixel_to_world_values([29]), 29)
-    assert_allclose(wcs.array_index_to_world_values([29]), 29)
-
-    assert_allclose(wcs.world_to_pixel_values([29]), 29)
-    assert_equal(wcs.world_to_array_index_values([29]), 29)
+    assert_allclose(wcs.world_to_pixel_values(29), 29)
+    assert_equal(wcs.world_to_array_index_values(29), 29)
 
     # High-level API
 
-    coord = wcs.pixel_to_world([29])
+    coord = wcs.pixel_to_world(29)
     assert_quantity_allclose(coord, 29 * u.one)
 
-    coord = [15] * u.one
+    coord = 15 * u.one
 
     x = wcs.world_to_pixel(coord)
     assert_allclose(x, 15.)

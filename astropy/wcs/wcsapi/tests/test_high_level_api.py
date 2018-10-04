@@ -65,7 +65,7 @@ def test_simple_duplicate():
     # class for two of the coordinates.
 
     wcs = SimpleDuplicateWCS()
-    q1, q2 = wcs.pixel_to_world([1], [2])
+    q1, q2 = wcs.pixel_to_world(1, 2)
 
     assert isinstance(q1, Quantity)
     assert isinstance(q2, Quantity)
@@ -120,7 +120,7 @@ def test_skycoord_duplicate():
     # class, and specifically a SkyCoord for two of the coordinates.
 
     wcs = SkyCoordDuplicateWCS()
-    c1, c2 = wcs.pixel_to_world([1], [2], [3], [4])
+    c1, c2 = wcs.pixel_to_world(1, 2, 3, 4)
 
     assert isinstance(c1, SkyCoord)
     assert isinstance(c2, SkyCoord)
@@ -171,7 +171,7 @@ class SerializedWCS(DoubleLowLevelWCS, HighLevelWCSMixin):
 def test_serialized_classes():
 
     wcs = SerializedWCS()
-    q = wcs.pixel_to_world([1])
+    q = wcs.pixel_to_world(1)
 
     assert isinstance(q, Quantity)
 
