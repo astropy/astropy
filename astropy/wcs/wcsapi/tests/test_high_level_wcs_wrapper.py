@@ -53,10 +53,10 @@ def test_wrapper():
 
     wrapper = HighLevelWCSWrapper(wcs)
 
-    coord = wrapper.pixel_to_world([1], [2])
+    coord = wrapper.pixel_to_world(1, 2)
 
     assert isinstance(coord, SkyCoord)
-    assert coord.shape == (1,)
+    assert coord.isscalar
 
     x, y = wrapper.world_to_pixel(coord)
 
