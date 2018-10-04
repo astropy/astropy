@@ -577,62 +577,42 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
 
     return coords
 
-def _linear_transformation_fit(params, ra, dec, x, y, w_obj, proj):
-	"""
-	Objective function for fitting linear terms
-	"""	   
+def _linear_transformation_fit(params, lon, lat, x, y, w_obj, proj = 'TAN'):	
+
+	""" Objective function for fitting linear terms."""   
+	
 	pc = params[0:4]
 	crpix = params[4:6]
 	
 	w_obj.wcs.pc = ((pc[0],pc[1]),(pc[2],pc[3]))
 	w_obj.wcs.crpix = crpix
-	lon, lat = w_obj.wcs_pix2world(x,y,1)
-	resids = np.concatenate((ra-lon, dec-lat)) 
+	lon2, lat2 = w_obj.wcs_pix2world(x,y,1)
+	resids = np.concatenate((lon-lon2, lat-lat2)) 
+	
 	return resids
-	
 
-def _sip_fit(params, u, v, x, y, coeff_names):
-	"""
-	Objective function for fitting SIP coefficients
-	"""
-
-	crpix = params[0:2]
-	cdx = params[2:6].reshape((2,2))
-	a_params = params[6:6+len(coeff_names)]
-	b_params = params[6+len(coeff_names):]
-		
-	a_coeff = {}
-	b_coeff = {}
-	for i in range(len(coeff_names)):
-		a_coeff['A_' + coeff_names[i]] = a_params[i]
-		b_coeff['B_' + coeff_names[i]] = b_params[i]
-		
-	sip = SIP(crpix=crpix, a_order=4, b_order=4, a_coeff=a_coeff, b_coeff=b_coeff)
-	
-	fuv, guv = sip(u,v)
-	xo, yo = np.dot(cdx, np.array([u+fuv-crpix[0], v+guv-crpix[1]]))
-	resids = np.concatenate((x-xo, y-yo)) 
-	return resids	
-
-def _new_sip_fit(params, lon, lat, u, v, w_obj, coeff_names):	
+def _sip_fit(params, lon, lat, u, v, w_obj, a_order, b_order, a_coeff_names, 
+			 b_coeff_names):	
+			 
+		""" Objective function for fitting SIP."""   
 		from ..modeling.models import SIP #here instead of top to avoid circular import
 		crpix = params[0:2]
 		cdx = params[2:6].reshape((2,2))
-		a_params, b_params = params[6:6+len(coeff_names)],params[6+len(coeff_names):]
+		a_params, b_params = params[6:6+len(a_coeff_names)],params[6+len(a_coeff_names):]
 		w_obj.wcs.pc = cdx
 		w_obj.wcs.crpix = crpix
 		x,y = w_obj.wcs_world2pix(lon,lat,1) #'intermediate world coordinates', x & y 
 		x,y = np.dot(w_obj.wcs.pc,(x - w_obj.wcs.crpix[0],y - w_obj.wcs.crpix[1]))
-		
-		a_params, b_params = params[6:6+len(coeff_names)], params[6+len(coeff_names):]
-		a_coeff, b_coeff = {}, {}
-
-		for i in range(len(coeff_names)):
-			a_coeff['A_' + coeff_names[i]] = a_params[i]
-			b_coeff['B_' + coeff_names[i]] = b_params[i]
-			
-		sip = SIP(crpix=crpix, a_order=4, b_order=4, a_coeff=a_coeff, b_coeff=b_coeff)
 	
+		a_params, b_params = params[6:6+len(a_coeff_names)], params[6+len(a_coeff_names):]
+		a_coeff, b_coeff = {}, {}
+		for i in range(len(a_coeff_names)):
+			a_coeff['A_' + a_coeff_names[i]] = a_params[i]
+		for i in range(len(b_coeff_names)):
+			b_coeff['B_' + b_coeff_names[i]] = b_params[i]
+			
+		sip = SIP(crpix=crpix, a_order=a_order, b_order=b_order, a_coeff=a_coeff, \
+				  b_coeff=b_coeff)
 		fuv, guv = sip(u,v)
 		xo, yo = np.dot(cdx, np.array([u+fuv-crpix[0], v+guv-crpix[1]]))
 		resids = np.concatenate((x-xo, y-yo))
@@ -669,11 +649,10 @@ def pixel_sky_to_wcs(xp, yp, coords, projection='TAN', proj_point=None,
 		X and Y pixel coordinates, respectivley. 
 	coords : `~astropy.coordinates.SkyCoord`
 		Skycoord object.
-	inwcs : `~astropy.wcs.WCS`
-		Optional input WCS object. Populated keyword values will be used. For any 
-		overlap between keyword arguments passed to the function and values in 'inwcs', 
-		the keyword argument will be used and replace the value in 'inwcs'.
-	projection : str
+	inwcs : None or `~astropy.wcs.WCS`
+		Optional input WCS object. Populated keyword values will be used. Keyword 
+		arguments passed to the function will override any in 'inwcs' if both are present.
+	projection : None or str
 		Three-letter projection code. Defaults to TAN.
 	proj_point: None, str, or tuple of int or float
 		Celestial coordinates of projection point (lat, lon). If None, the geometric
@@ -681,8 +660,9 @@ def pixel_sky_to_wcs(xp, yp, coords, projection='TAN', proj_point=None,
 	mode : 'all' or 'wcs'
 		Whether to do the transformation including distortions (``'all'``) or
 		only including only the core WCS transformation (``'wcs'``).
-	order : int
-		Order for SIP polynomial to be fit. 
+	order : None, int, or tuple of ints
+		A order, B order, respectivley, for SIP polynomial to be fit, or single integer
+		for both. Must be provided if mode is 'sip'. 
 
 	Returns
 	-------
@@ -703,14 +683,12 @@ def pixel_sky_to_wcs(xp, yp, coords, projection='TAN', proj_point=None,
 	"""
 	from scipy.optimize import least_squares
 	from .wcs import Sip
+	import copy
 	
 	lon, lat = coords.data.lon.deg, coords.data.lat.deg
-
 	if mode not in ("wcs", "sip"): raise ValueError("mode must be 'wcs' or 'sip'")
-	if mode == 'sip':
-		if (order is None) or (type(order) != int):
-			raise ValueError("Must provide integer order for SIP if mode = 'sip'")
-
+	if inwcs is not None: 
+		inwcs = copy.deepcopy(inwcs)
 	if projection is None:
 		if (inwcs is None) or ('' in inwcs.wcs.ctype):
 			raise ValueError("Must provide projection type or input WCS with CTYPE.")
@@ -720,8 +698,8 @@ def pixel_sky_to_wcs(xp, yp, coords, projection='TAN', proj_point=None,
 
 	close = lambda l, p: p[np.where(np.abs(l) == min(np.abs(l)))[0][0]] 
 	if str(proj_point) == "center":
-		wcs.wcs.crval = ((max(lon) + min(lon))/2.,(max(lat) + min(lat))/2.)
-		wcs.wcs.crpix = ((max(xp) + min(xp))/ 2., (max(yp) + min(yp))/2.) #initial guess
+		wcs.wcs.crval = ((max(lon)+min(lon))/2.,(max(lat)+min(lat))/2.)
+		wcs.wcs.crpix = ((max(xp)+min(xp))/2., (max(yp)+min(yp))/2.) #initial guess
 	elif (proj_point is None) and (inwcs is None):
 		raise ValueError("Must give proj_point as argument or as CRVAL in input wcs.")
 	elif proj_point is not None: #convert units + rough initial guess for crpix for fitter
@@ -739,10 +717,8 @@ def pixel_sky_to_wcs(xp, yp, coords, projection='TAN', proj_point=None,
 			if wcs.wcs.crpix[0] == wcs.wcs.crpix[1] == 0: #assume 0 wasn't intentional 
 				wcs.wcs.crpix = (close(lon-wcs.wcs.crval[0],xp), \
 								 close(lon-wcs.wcs.crval[0],yp))
-		if inwcs.wcs.has_pc():
-			wcs.wcs.pc = inwcs.wcs.pc
-		if inwcs.wcs.has_cd():
-			wcs.wcs.pc = inwcs.wcs.cd
+		if inwcs.wcs.has_pc(): wcs.wcs.pc = inwcs.wcs.pc
+		if inwcs.wcs.has_cd(): wcs.wcs.pc = inwcs.wcs.cd
 		wcs_dict = dict(wcs.to_header(relax=False))
 		in_wcs_dict = dict(inwcs.to_header(relax=False)) 
 		wcs = WCS({**in_wcs_dict,**wcs_dict})
@@ -750,36 +726,41 @@ def pixel_sky_to_wcs(xp, yp, coords, projection='TAN', proj_point=None,
 	p0 = np.array((wcs.wcs.pc[0][0], wcs.wcs.pc[0][1], wcs.wcs.pc[1][0], 
 				   wcs.wcs.pc[1][1], wcs.wcs.crpix[0], wcs.wcs.crpix[1]))
 	fit = least_squares(_linear_transformation_fit, p0, 
-						args = (lon, lat, xp, yp, wcs, projection))
+						args=(lon, lat, xp, yp, wcs, projection))
 	wcs.wcs.crpix = np.array(fit.x[4:6])		
 	wcs.wcs.pc = np.array(fit.x[0:4].reshape((2,2)))
 	
 	if mode == "sip": 
 		wcs.wcs.ctype = [x + '-SIP' for x in wcs.wcs.ctype]
-
-		#x,y = wcs.wcs_world2pix(lon,lat,1) #'intermediate world coordinates', x & y 
-		#x,y = np.dot(wcs.wcs.pc,(x - wcs.wcs.crpix[0],y - wcs.wcs.crpix[1]))
-		
-		coef_names = ['{0}_{1}'.format(i,j) for i in range(order+1) \
-						for j in range(order+1) if (i+j) < 5 and (i+j) > 1]
-	
-		p0 = np.concatenate((np.array(wcs.wcs.crpix), wcs.wcs.pc.flatten(),\
-							 np.zeros(len(coef_names)*2)))
-		#fit = least_squares(_sip_fit, p0, args = (xp, yp, x, y, coef_names))
-		fit = least_squares(_new_sip_fit, p0, args = (lon, lat, xp, yp, wcs, coef_names))
+		if type(order) == int:
+			a_order = b_order = order 
+		elif (len(order) == 2):
+			a_order, b_order = order
+		else:
+			raise ValueError("Must provide integer or tuple (a_order, b_order) for SIP.")
+			
+		a_coef_names = ['{0}_{1}'.format(i,j) for i in range(a_order+1) \
+						for j in range(a_order+1) if (i+j) < (a_order+1) and (i+j) > 1]
+		b_coef_names = ['{0}_{1}'.format(i,j) for i in range(b_order+1) \
+						for j in range(b_order+1) if (i+j) < (b_order + 1) and (i+j) > 1]
+						
+		p0 = np.concatenate((np.array(wcs.wcs.crpix), wcs.wcs.pc.flatten(), \
+							 np.zeros(len(a_coef_names)+len(b_coef_names))))
+		fit = least_squares(_sip_fit, p0, args = (lon, lat, xp, yp, wcs, a_order, b_order,
+												  a_coef_names, b_coef_names))
 		wcs.wcs.pc = fit.x[2:6].reshape((2,2))
 		wcs.wcs.crpix = fit.x[0:2]
-
-		coef_fit = (list(fit.x[6:6+len(coef_names)]),list(fit.x[6+len(coef_names):]))
-		a_vals, b_vals = np.zeros((order+1,order+1)), np.zeros((order+1,order+1))
-		for coef_name in coef_names:
+		coef_fit = (list(fit.x[6:6+len(a_coef_names)]),list(fit.x[6+len(b_coef_names):]))
+		a_vals, b_vals = np.zeros((a_order+1,a_order+1)), np.zeros((b_order+1,b_order+1))
+		for coef_name in a_coef_names:
 			a_vals[int(coef_name[0])][int(coef_name[2])] = coef_fit[0].pop(0)
+		for coef_name in b_coef_names:
 			b_vals[int(coef_name[0])][int(coef_name[2])] = coef_fit[1].pop(0)
-
 		wcs.sip = Sip(a_vals, b_vals, a_vals * -1., b_vals * -1., wcs.wcs.crpix)
 		
-		if (inwcs is not None):
-			if inwcs.wcs.has_cd():
-				wcs.wcs.cd = wcs.wcs.pc
-				wcs.wcs.__delattr__('pc')
+	if (inwcs is not None):
+		if inwcs.wcs.has_cd():
+			wcs.wcs.cd = wcs.wcs.pc
+			wcs.wcs.__delattr__('pc')
+			
 	return wcs
