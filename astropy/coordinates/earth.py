@@ -305,6 +305,9 @@ class EarthLocation(u.Quantity):
         information, not a fully-featured exhaustive registry of observatories
         and all their properties.
 
+        Additional information about the site is stored in the ``.info.meta``
+        dictionary of sites obtained using this method (see the examples below).
+
         .. note::
             When this function is called, it will attempt to download site
             information from the astropy data server. If you would like a site
@@ -327,6 +330,16 @@ class EarthLocation(u.Quantity):
         -------
         site : This class (a `~astropy.coordinates.EarthLocation` or subclass)
             The location of the observatory.
+
+        Examples
+        --------
+
+        >>> from astropy.coordinates import EarthLocation
+        >>> keck = EarthLocation.of_site('Keck Observatory')  # doctest: +REMOTE_DATA
+        >>> keck.geodetic  # doctest: +REMOTE_DATA +FLOAT_CMP
+        GeodeticLocation(lon=<Longitude -155.47833333 deg>, lat=<Latitude 19.82833333 deg>, height=<Quantity 4160. m>)
+        >>> keck.info.meta  # doctest: +REMOTE_DATA
+        {'source': 'IRAF Observatory Database', 'timezone': 'US/Aleutian'}
 
         See Also
         --------
