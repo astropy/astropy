@@ -28,6 +28,9 @@ astropy.coordinates
   more suitable for catalog matching, and results in 1000x speedup in some
   cases. [#7324]
 
+- Additional information about a site loaded from the Astropy sites registry is
+  now available in ``EarthLocation.info.meta``. [#7857]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
