@@ -6,7 +6,7 @@ import pytest
 from numpy.testing import assert_equal
 
 from ... import units as u
-from ...table import Table, QTable, Column
+from ...table import Table, QTable, Column, hstack, vstack
 from ...time import Time, TimeDelta
 from ..timeseries import SampledTimeSeries, BinnedTimeSeries
 
@@ -115,6 +115,54 @@ def test_binned_uneven_non_contiguous_full():
     assert_equal(ts.end_time.isot, ['2016-03-22T12:30:32.000', '2016-03-22T12:30:35.000', '2016-03-22T12:30:41.000'])
 
 
+# Tests that apply to both
+
+class CommonTimeSeriesTests:
+
+    @pytest.mark.xfail
+    def test_stacking(self):
+        ts = vstack([self.series, self.series])
+        assert isinstance(ts, self.series.__class__)
+
+    @pytest.mark.xfail
+    def test_row_slicing(self):
+        ts = self.series[:2]
+        assert isinstance(ts, self.series.__class__)
+
+    def test_row_indexing(self):
+        self.series[0][self.time_attr] == Time('2015-01-21T12:30:32')
+        self.series[self.time_attr][0] == Time('2015-01-21T12:30:32')
+
+    @pytest.mark.xfail
+    def test_column_slicing(self):
+        ts = self.series[self.time_attr, 'a']
+        assert isinstance(ts, self.series.__class__)
+
+    def test_column_indexing(self):
+        assert_equal(self.series['a'], [1, 2, 11])
+
+    @pytest.mark.xfail
+    def test_column_slicing_notime(self):
+        tab = self.series['a', 'b']
+        assert not isinstance(tab, self.series.__class__)
+        assert isinstance(tab, QTable)
+
+    def test_add_column(self):
+        self.series['d'] = [1, 2, 3]
+
+
+class TestSampledTimeSeries(CommonTimeSeriesTests):
+    def setup_method(self, method):
+        self.series = SampledTimeSeries(time=INPUT_TIME, data=PLAIN_TABLE)
+        self.time_attr = 'time'
+
+
+class TestBinnedTimeSeries(CommonTimeSeriesTests):
+    def setup_method(self, method):
+        self.series = BinnedTimeSeries(start_time=INPUT_TIME, bin_size=3 * u.s, data=PLAIN_TABLE)
+        self.time_attr = 'start_time'
+
+
 # Other tests that need to be tidied up/fixed
 
 
@@ -129,71 +177,6 @@ def test_sampled_initialization_with_timeseries():
 
 
 # TODO remove redundancy for input table initialization, or just simply structure better
-
-
-def test_sampled_adding_more_columns():
-    ts = SampledTimeSeries(time=INPUT_TIME, data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
-    ts['c'] = Column([5, 4, 3])
-
-    ts.add_column(Column([6, 5, 4], name='d'))
-
-
-def test_sampled_access_column():
-    ts = SampledTimeSeries(time=INPUT_TIME, data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
-
-    # TODO update this to TimeSeriesColumn if we end up adding extra features to them
-    assert isinstance(ts['a'], Column)
-    # assert all(ts['a'].time == INPUT_TIME)  # not sure whether we need this
-
-    assert ts['a'].name == 'a'
-
-
-def test_sampled_access_time():
-    ts = SampledTimeSeries(time=INPUT_TIME, data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
-
-    assert all(ts['time'] == INPUT_TIME)
-
-
-@pytest.mark.xfail
-def test_sampled_access_row():
-    ts = SampledTimeSeries(time=INPUT_TIME, data=[[10, 20, 3], [4, 5, 6]], names=['a', 'b'])
-    assert isinstance(ts[0], TimeSeriesRow)
-    # TODO more content checking
-
-
-@pytest.mark.xfail
-def test_sampled_access_col_value():
-    ts = SampledTimeSeries(time=INPUT_TIME, data=[[10, 20, 3], [4, 5, 6]], names=['a', 'b'])
-    # TODO: we need to get the sorting by time to get this right
-    assert ts['a'][0] == 20
-
-
-@pytest.mark.xfail
-def test_sampled_access_time_value():
-    ts = SampledTimeSeries(time=INPUT_TIME, data=[[10, 20, 3], [4, 5, 6]], names=['a', 'b'])
-
-    # assert ts['a'].time[0] == ts['time'][0]  # not sure whether we need this
-
-    # TODO: we need to get the sorting by time to get this right
-    assert ts['time'][0] == Time('2015-01-21T12:30:32')
-
-
-def test_sampled_normal_columns():
-    ts = SampledTimeSeries(time=INPUT_TIME, data=PLAIN_TABLE)
-    assert all(ts.columns['a'] == PLAIN_TABLE['a'])
-    assert all(ts['a'][()] == PLAIN_TABLE['a'])
-
-
-@pytest.mark.xfail
-def test_sampled_operations():
-    ts = SampledTimeSeries(time=INPUT_TIME, data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
-    new_column = Column([5, 4, 3], name='c')
-
-    tstack = hstack([ts, new_column])
-
-    assert isinstance(tstack, TimeSeries)
-
-    # TODO: do join and vstack, too (but need to decide desired Row behaviour first
 
 
 @pytest.mark.xfail
@@ -223,22 +206,3 @@ def test_sampled_adding_index_column():
     ts.add_index('time')
 
     # TODO: add asserts
-
-
-@pytest.mark.xfail
-def test_sampled_access_multiple_columns():
-    ts = SampledTimeSeries(time=INPUT_TIME, data=[[1, 20, 3], [4, 5, 6], [4, 3, 2]], names=['a', 'b', 'c'])
-    t_out = QTable(data=[[1, 20, 3], [4, 5, 6]], names=['a', 'b'])
-    ts_out = SampledTimeSeries(time=INPUT_TIME, data=[[4, 5, 6], ], names=['b', ])
-
-    # TODO: For this we need to be able to do TimeSeries([TimeSeries, TimeSeries, Time])
-    # type initialization, or override TimeSeries.__getitem__
-
-    t = ts['a', 'b']
-    assert not isinstance(t, TimeSeries)
-    assert isinstance(t, QTable)
-    assert all(t == t_out)
-
-    t = ts['time', 'b']
-    assert isinstance(t, TimeSeries)
-    assert all(t == ts_out)
