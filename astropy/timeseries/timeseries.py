@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from ..table import QTable, Column, Row, MaskedColumn, TableColumns
+from ..table import QTable
 from ..time import Time, TimeDelta
 from .. import units as u
 from ..units import Quantity
@@ -17,35 +17,66 @@ class TimeSeries(QTable):
 
 class SampledTimeSeries(TimeSeries):
 
-    def __init__(self, data=None, time=None, start_time=None, end_time=None, time_delta=None, **kwargs):
+    def __init__(self, data=None, time=None, time_delta=None, **kwargs):
         """
         """
 
         super().__init__(data=data, **kwargs)
 
+        # First if time has been given in the table data, we should extract it
+        # and treat it as if it had been passed as a keyword argument.
 
+        if 'time' in self.colnames:
+            if time is None:
+                time = self.columns['time']
+                self.remove_column('time')
+            else:
+                raise TypeError("'time' has been given both in the table and as a keyword argument")
 
         if time is None:
+            raise TypeError("'time' has not been specified")
 
-            if 'time' not in self.colnames:
-                raise ValueError("Expected a 'time' column in the time series")
+        if not isinstance(time, Time):
+            time = Time(time)
+
+        if time_delta is not None and not isinstance(time_delta, (Quantity, TimeDelta)):
+            raise TypeError("'time_delta' should be a Quantity or a TimeDelta")
+
+        if isinstance(time_delta, TimeDelta):
+            time_delta = time_delta.sec * u.s
+
+        if time.isscalar:
+
+            # We interpret this as meaning that time is that of the first
+            # sample and that the interval is given by time_delta.
+
+            if time_delta is None:
+                raise TypeError("'time' is scalar, so 'bin_size' is required")
+
+            if time_delta.isscalar:
+                time_delta = np.repeat(time_delta, len(self))
+
+            time_delta = np.cumsum(time_delta)
+            time_delta = np.roll(time_delta, 1)
+            time_delta[0] = 0. * u.s
+
+            time = time + time_delta
 
         else:
 
-            if 'time' in self.colnames:
-                raise ValueError("'time' has been given both in the table and "
-                                 "as a keyword argument.")
+            if len(self.colnames) > 0 and len(time) != len(self):
+                raise ValueError("Length of 'time' ({0}) should match "
+                                 "table length ({1})".format(len(time), len(self)))
 
-            if time.info.name is None:
-                time.info.name = 'time'
+            if time_delta is not None:
+                raise TypeError("'time_delta' should not be specified since "
+                                "'time' is an array")
 
-            self.columns['time'] = time
+        self.add_column(time, index=0, name='time')
 
-        if not isinstance(self['time'], (Time, TimeDelta)):
-            raise ValueError("The 'time' column should be a Time or TimeDelta object")
-
-        # TODO: design decision: is 'time' always the first column?
-        self.time = self.columns['time']
+    @property
+    def time(self):
+        return self['time']
 
 
 class BinnedTimeSeries(TimeSeries):
@@ -84,8 +115,11 @@ class BinnedTimeSeries(TimeSeries):
         if end_time is not None and not isinstance(end_time, Time):
             end_time = Time(end_time)
 
-        if bin_size is not None and not isinstance(bin_size, Quantity):
-            raise TypeError("'bin_size' should be a Quantity")
+        if bin_size is not None and not isinstance(bin_size, (Quantity, TimeDelta)):
+            raise TypeError("'bin_size' should be a Quantity or a TimeDelta")
+
+        if isinstance(bin_size, TimeDelta):
+            bin_size = bin_size.sec * u.s
 
         if start_time.isscalar:
 
