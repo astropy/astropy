@@ -1,41 +1,43 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 from datetime import datetime
 
+import pytest
+from numpy.testing import assert_equal
+
+from ... import units as u
 from ...table import Table, QTable, Column
-from ..timeseries import TimeSeries, TimeSeriesColumn, TimeSeriesRow
 from ...time import Time, TimeDelta
+from ..timeseries import TimeSeries, BinnedTimeSeries
 
 
 INPUT_TIME = Time(['2016-03-22T12:30:31', '2015-01-21T12:30:32', '2016-03-22T12:30:40'])
-INPUT_DATA = Table([[1, 2, 11], [3, 4, 1], [1, 1, 1]], names=['a', 'b', 'c'])
+PLAIN_TABLE = Table([[1, 2, 11], [3, 4, 1], [1, 1, 1]], names=['a', 'b', 'c'])
 
+
+# Tests of SampledTimeSeries class
 
 def test_empty_initialization():
-    ts = TimeSeries()
-    assert ts.time is None
-
-    assert isinstance(ts, TimeSeries)
-    assert isinstance(ts, QTable)
+    with pytest.raises(ValueError) as exc:
+        TimeSeries()
+    assert exc.value.args[0] == "Expected a 'time' column in the time series"
 
 
 def test_initialize_only_time():
     ts = TimeSeries(time=INPUT_TIME)
+    assert ts['time'] is ts.time
+    assert ts['time'] is INPUT_TIME
 
-    assert isinstance(ts, TimeSeries)
-    assert isinstance(ts, QTable)
 
-
-def test_initialization():
+def test_initialization_with_data():
     ts = TimeSeries(time=INPUT_TIME, data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
+    assert ts['time'] is ts.time
+    assert ts['time'] is INPUT_TIME
 
-    assert isinstance(ts, TimeSeries)
-    assert isinstance(ts, QTable)
 
-    assert all(ts.time == INPUT_TIME)
-
-    ts = TimeSeries(time=INPUT_TIME, data=INPUT_DATA)
+def test_initialization_with_table():
+    ts = TimeSeries(time=INPUT_TIME, data=PLAIN_TABLE)
+    assert ts.colnames == ['time', 'a', 'b', 'c']
 
 
 def test_initialization_with_deltatime():
@@ -49,7 +51,7 @@ def test_initialization_with_deltatime():
 
 
 def test_initialization_with_time_in_data():
-    data = INPUT_DATA.copy()
+    data = PLAIN_TABLE.copy()
     data['time'] = INPUT_TIME
 
     ts = TimeSeries(data=data)
@@ -72,7 +74,7 @@ def test_initialization_with_time_in_data():
 
 @pytest.mark.xfail
 def test_initialization_with_timeseries():
-    ts = TimeSeries(data=INPUT_DATA, time=INPUT_TIME)
+    ts = TimeSeries(data=PLAIN_TABLE, time=INPUT_TIME)
     table = Table([[1, 2, 11], [3, 4, 1], [1, 1, 1]], names=['a2', 'b2', 'c2'])
 
     # TODO: decide which initializations to allow
@@ -109,7 +111,6 @@ def test_access_time():
 @pytest.mark.xfail
 def test_access_row():
     ts = TimeSeries(time=INPUT_TIME, data=[[10, 20, 3], [4, 5, 6]], names=['a', 'b'])
-
     assert isinstance(ts[0], TimeSeriesRow)
     # TODO more content checking
 
@@ -132,11 +133,9 @@ def test_access_time_value():
 
 
 def test_normal_Columns():
-    ts = TimeSeries(time=INPUT_TIME, data=INPUT_DATA)
-
-    assert all(ts.columns['a'] == INPUT_DATA['a'])
-
-    assert all(ts['a'][()] == INPUT_DATA['a'])
+    ts = TimeSeries(time=INPUT_TIME, data=PLAIN_TABLE)
+    assert all(ts.columns['a'] == PLAIN_TABLE['a'])
+    assert all(ts['a'][()] == PLAIN_TABLE['a'])
 
 
 @pytest.mark.xfail
@@ -174,7 +173,7 @@ def test_adding_index_column():
     # TODO: decide which sorting we would like to allow, if it's only by time,
     # the indices should already been set 'time'
 
-    ts = TimeSeries(time=INPUT_TIME, data=INPUT_DATA)
+    ts = TimeSeries(time=INPUT_TIME, data=PLAIN_TABLE)
     ts.add_index('a')
     ts.add_index('time')
 
@@ -198,3 +197,40 @@ def test_access_multiple_columns():
     t = ts['time', 'b']
     assert isinstance(t, TimeSeries)
     assert all(t == ts_out)
+
+
+# Tests of BinnedTimeSeries class
+
+
+def test_binned_even_contiguous():
+    # Initialize a ``BinnedTimeSeries`` with even contiguous bins by specifying the bin width:
+    ts = BinnedTimeSeries(start_time='2016-03-22T12:30:31', bin_size=3 * u.s, data=[[1, 4, 3]])
+    assert_equal(ts.start_time.isot, ['2016-03-22T12:30:31.000', '2016-03-22T12:30:34.000', '2016-03-22T12:30:37.000'])
+    assert_equal(ts.end_time.isot, ['2016-03-22T12:30:34.000', '2016-03-22T12:30:37.000', '2016-03-22T12:30:40.000'])
+
+
+def test_binned_uneven_contiguous():
+    # Initialize a ``BinnedTimeSeries`` with uneven contiguous bins by giving an end time:
+    ts = BinnedTimeSeries(start_time=['2016-03-22T12:30:31', '2016-03-22T12:30:32', '2016-03-22T12:30:40'],
+                          end_time='2016-03-22T12:30:55',
+                          data=[[1, 4, 3]])
+    assert_equal(ts.start_time.isot, ['2016-03-22T12:30:31.000', '2016-03-22T12:30:32.000', '2016-03-22T12:30:40.000'])
+    assert_equal(ts.end_time.isot, ['2016-03-22T12:30:32.000', '2016-03-22T12:30:40.000', '2016-03-22T12:30:55.000'])
+
+
+def test_binned_uneven_non_contiguous():
+    # Initialize a ``BinnedTimeSeries`` with uneven non-contiguous bins with lists of start times, bin sizes and data:
+    ts = BinnedTimeSeries(start_time=['2016-03-22T12:30:31', '2016-03-22T12:30:38', '2016-03-22T12:34:40'],
+                          bin_size=[5, 100, 2]*u.s,
+                          data=[[1, 4, 3]])
+    assert_equal(ts.start_time.isot, ['2016-03-22T12:30:31.000', '2016-03-22T12:30:38.000', '2016-03-22T12:34:40.000'])
+    assert_equal(ts.end_time.isot, ['2016-03-22T12:30:36.000', '2016-03-22T12:32:18.000', '2016-03-22T12:34:42.000'])
+
+
+def test_binned_uneven_non_contiguous_full():
+    # Initialize a ``BinnedTimeSeries`` with uneven non-contiguous bins by specifying the start and end times for the bins:
+    ts = BinnedTimeSeries(start_time=['2016-03-22T12:30:31', '2016-03-22T12:30:33', '2016-03-22T12:30:40'],
+                          end_time=['2016-03-22T12:30:32', '2016-03-22T12:30:35', '2016-03-22T12:30:41'],
+                          data=[[1, 4, 3]])
+    assert_equal(ts.start_time.isot, ['2016-03-22T12:30:31.000', '2016-03-22T12:30:33.000', '2016-03-22T12:30:40.000'])
+    assert_equal(ts.end_time.isot, ['2016-03-22T12:30:32.000', '2016-03-22T12:30:35.000', '2016-03-22T12:30:41.000'])
