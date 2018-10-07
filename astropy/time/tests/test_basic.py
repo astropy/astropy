@@ -532,6 +532,27 @@ class TestBasic():
         with pytest.raises(ValueError):
             t6 = Time(t1, scale='local')
 
+    def test_empty_time(self):
+        Time([], format='decimalyear')
+        Time([], format='cxcsec')
+        Time([], format='unix')
+        Time([], format='gps')
+        Time([], format='byear', scale='tai')
+        Time([], format='jyear', scale='tai')
+        Time([], format='byear_str', scale='tai')
+        Time([], format='jyear_str', scale='tai')
+        Time([], format='iso', scale='tai')
+        Time([], format='iso', scale='utc')
+        Time([], format='isot', scale='tai')
+        Time([], format='isot', scale='utc')
+        Time([], format='fits')
+        Time([], format='fits', scale='tdb')
+        Time([], format='fits')
+        Time([], format='jd', scale='tai')
+        Time([], format='mjd', scale='tai')
+        Time([], format='yday', scale='tai')
+        Time([], format='yday', scale='utc')
+
 
 class TestVal2():
     """Tests related to val2"""

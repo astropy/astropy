@@ -269,6 +269,9 @@ class TimeFormat(metaclass=TimeFormatMeta):
     def value(self):
         raise NotImplementedError
 
+    def _check_val_empty(self, val):
+        return isinstance(val, np.ndarray) and not np.all(val.shape)
+
 
 class TimeJD(TimeFormat):
     """
@@ -613,6 +616,10 @@ class TimeDatetime(TimeUnique):
     def set_jds(self, val1, val2):
         """Convert datetime object contained in val1 to jd1, jd2"""
         # Iterate through the datetime objects, getting year, month, etc.
+        if self._check_val_empty(val1):
+            self.jd1 = self.jd2 = np.array([])
+            return
+
         iterator = np.nditer([val1, None, None, None, None, None, None],
                              flags=['refs_ok'],
                              op_dtypes=[object] + 5*[np.intc] + [np.double])
@@ -664,6 +671,11 @@ class TimeDatetime(TimeUnique):
         imins = ihmsfs['m']
         isecs = ihmsfs['s']
         ifracs = ihmsfs['f']
+
+        shapes = list(map(np.shape, [iys, ims, ids, ihrs, imins, isecs, ifracs]))
+        if not np.all(shapes):
+            return np.array([])
+
         iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
                              flags=['refs_ok'],
                              op_dtypes=7*[iys.dtype] + [object])
@@ -747,7 +759,7 @@ class TimeString(TimeUnique):
 
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for these classes
-        if val1.dtype.kind not in ('S', 'U'):
+        if val1.dtype.kind not in ('S', 'U', 'f'):
             raise TypeError('Input values for {0} class must be strings'
                             .format(self.name))
         return val1, None
@@ -796,6 +808,11 @@ class TimeString(TimeUnique):
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
         # Select subformats based on current self.in_subfmt
+        if self._check_val_empty(val1):
+            self.jd1 = self.jd2 = np.array([])
+            return
+
+
         subfmts = self._select_subfmts(self.in_subfmt)
         # Be liberal in what we accept: convert bytes to ascii.
         # Here .item() is needed for arrays with entries of unequal length,
@@ -835,6 +852,11 @@ class TimeString(TimeUnique):
         imins = ihmsfs['m']
         isecs = ihmsfs['s']
         ifracs = ihmsfs['f']
+
+        shapes = list(map(np.shape, [iys, ims, ids, ihrs, imins, isecs, ifracs]))
+        if not np.all(shapes):
+            return np.array([])
+
         for iy, im, id, ihr, imin, isec, ifracsec in np.nditer(
                 [iys, ims, ids, ihrs, imins, isecs, ifracs]):
             if has_yday:
@@ -1069,6 +1091,8 @@ class TimeFITS(TimeString):
             # If we have times before year 0 or after year 9999, we can
             # output only in a "long" format, using signed 5-digit years.
             jd = self.jd1 + self.jd2
+            if not np.all(jd.shape):
+                return super().value
             if jd.min() < 1721425.5 or jd.max() >= 5373484.5:
                 self.out_subfmt = 'long' + self.out_subfmt
         return super().value
@@ -1122,6 +1146,12 @@ class TimeEpochDateString(TimeString):
     """
 
     def set_jds(self, val1, val2):
+
+        if self._check_val_empty(val1):
+            self.jd1 = self.jd2 = np.array([])
+            return
+
+
         epoch_prefix = self.epoch_prefix
         # Be liberal in what we accept: convert bytes to ascii.
         to_string = (str if val1.dtype.kind == 'U' else
