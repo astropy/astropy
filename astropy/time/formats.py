@@ -619,7 +619,7 @@ class TimeDatetime(TimeUnique):
         """Convert datetime object contained in val1 to jd1, jd2"""
         # Iterate through the datetime objects, getting year, month, etc.
         iterator = np.nditer([val1, None, None, None, None, None, None],
-                             flags=['refs_ok'],
+                             flags=['refs_ok', 'zerosize_ok'],
                              op_dtypes=[object] + 5*[np.intc] + [np.double])
         for val, iy, im, id, ihr, imin, dsec in iterator:
             dt = val.item()
@@ -670,7 +670,7 @@ class TimeDatetime(TimeUnique):
         isecs = ihmsfs['s']
         ifracs = ihmsfs['f']
         iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
-                             flags=['refs_ok'],
+                             flags=['refs_ok', 'zerosize_ok'],
                              op_dtypes=7*[iys.dtype] + [object])
 
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
@@ -808,6 +808,7 @@ class TimeString(TimeUnique):
         to_string = (str if val1.dtype.kind == 'U' else
                      lambda x: str(x.item(), encoding='ascii'))
         iterator = np.nditer([val1, None, None, None, None, None, None],
+                             flags=['zerosize_ok'],
                              op_dtypes=[val1.dtype] + 5*[np.intc] + [np.double])
         for val, iy, im, id, ihr, imin, dsec in iterator:
             val = to_string(val)
@@ -841,7 +842,8 @@ class TimeString(TimeUnique):
         isecs = ihmsfs['s']
         ifracs = ihmsfs['f']
         for iy, im, id, ihr, imin, isec, ifracsec in np.nditer(
-                [iys, ims, ids, ihrs, imins, isecs, ifracs]):
+                [iys, ims, ids, ihrs, imins, isecs, ifracs],
+                flags=['zerosize_ok']):
             if has_yday:
                 yday = datetime.datetime(iy, im, id).timetuple().tm_yday
 
@@ -1158,7 +1160,8 @@ class TimeEpochDateString(TimeString):
         # Be liberal in what we accept: convert bytes to ascii.
         to_string = (str if val1.dtype.kind == 'U' else
                      lambda x: str(x.item(), encoding='ascii'))
-        iterator = np.nditer([val1, None], op_dtypes=[val1.dtype, np.double])
+        iterator = np.nditer([val1, None], op_dtypes=[val1.dtype, np.double],
+                             flags=['zerosize_ok'])
         for val, years in iterator:
             try:
                 time_str = to_string(val)
@@ -1256,7 +1259,7 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
         iterator = np.nditer([val1, None],
-                             flags=['refs_ok'],
+                             flags=['refs_ok', 'zerosize_ok'],
                              op_dtypes=[object] + [np.double])
 
         for val, sec in iterator:
@@ -1268,7 +1271,7 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
     @property
     def value(self):
         iterator = np.nditer([self.jd1 + self.jd2, None],
-                             flags=['refs_ok'],
+                             flags=['refs_ok', 'zerosize_ok'],
                              op_dtypes=[self.jd1.dtype] + [object])
 
         for jd, out in iterator:
