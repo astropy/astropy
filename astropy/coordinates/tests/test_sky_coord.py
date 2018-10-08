@@ -93,7 +93,7 @@ def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
     attrs1 = dict((k, v) for k, v in attrs1.items() if v is not None)
 
     # Go out and back
-    sc = SkyCoord(frame0, RA, DEC, **attrs0)
+    sc = SkyCoord(RA, DEC, frame=frame0, **attrs0)
 
     # Keep only frame attributes for frame1
     attrs1 = dict((attr, val) for attr, val in attrs1.items()
