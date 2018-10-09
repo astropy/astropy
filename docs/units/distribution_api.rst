@@ -14,17 +14,21 @@ Or equivalently:
 >>> distr = u.Distribution(pq.T)
 
 
-You can ask it about itself and it acts like an array including the dimension,
-but can be "quantityified" as needed with standard statistics
+You can ask it about itself in various ways that act reasonable to look like either an array or a
 
+>>> distr.distribution
+<Quantity [[  1.,   0.,   1., ...,   0.,   0.,   0.],
+           [  4.,   3.,   5., ...,   6.,   6.,   3.],
+           [ 33.,  31.,  32., ...,  27.,  17.,  27.],
+           [352., 436., 396., ..., 400., 413., 376.]] kpc>
+>>> distr.distribution.shape
+(4, 1000)
 >>> distr.shape
-(1000, 4)
+(4,)
 >>> distr.size
-4000
+4
 >>> distr.n_samples
 1000
->>> distr.distr_shape
-(4,)
 >>> distr.pdf_mean
 <Quantity [   1.029,   4.985,  30.132, 400.463] kpc>
 >>> distr.pdf_std
@@ -58,7 +62,7 @@ The distribution should interact correctly with non-Distribution quantities:
 
 It should *also* combine reasonably with othe distributions:
 
->>> another_distr = u.Distribution(np.random.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500], u.pc)
+>>> another_distr = u.Distribution((np.random.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T, unit=u.pc)
 >>> combined_distr = distr + another_distr
 >>> combined_distr.pdf_median
 <Quantity [   2.9548952 ,   4.99999855,  29.93483557, 400.50685423] kpc>
@@ -80,7 +84,7 @@ make sense:
 
 Can specify how many samples are desired:
 
->>> u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100).shape
-(100, 4)
->>> u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=20000).shape
-(20000, 4)
+>>> u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100).distribution.shape
+(4, 100)
+>>> u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=20000).distribution.shape
+(4, 20000)
