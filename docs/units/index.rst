@@ -159,6 +159,7 @@ Using `astropy.units`
    format
    equivalencies
    conversion
+   distributions
 
 See Also
 ========

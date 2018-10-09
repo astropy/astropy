@@ -1,3 +1,10 @@
+.. |quantity| replace:: :class:`~astropy.units.Quantity`
+
+.. _unit_distributions:
+
+Distributions
+*************
+
 >>> import numpy as np
 >>> from astropy import units as u
 >>> np.random.seed(12345)  # ensures "random" numbers match examples
