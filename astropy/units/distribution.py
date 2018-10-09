@@ -68,6 +68,8 @@ class Distribution:
             new_name = distr_cls.__name__ + cls.__name__
             new_cls = type(new_name, (cls, distr_cls),
                            {'_distr_cls': distr_cls})
+        if not distr.flags.c_contiguous:
+            distr = distr.copy('C')
         self = distr.view(dtype=new_dtype, type=new_cls)
         # Get rid of trailing dimension of 1.
         self.shape = distr.shape[:-1]
