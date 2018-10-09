@@ -29,15 +29,6 @@ class PartialOverlapError(ValueError):
     pass
 
 
-def _round(a):
-    '''Always round up.
-
-    ``np.round`` cannot be used here, because it rounds .5 to the nearest
-    even number.
-    '''
-    return int(np.floor(a + 0.5))
-
-
 def overlap_slices(large_array_shape, small_array_shape, position,
                    mode='partial'):
     """
@@ -280,7 +271,8 @@ def add_array(array_large, array_small, position):
     if all(large_shape > small_shape for (large_shape, small_shape)
            in zip(array_large.shape, array_small.shape)):
         large_slices, small_slices = overlap_slices(array_large.shape,
-                                                    array_small.shape, position)
+                                                    array_small.shape,
+                                                    position)
         array_large[large_slices] += array_small[small_slices]
         return array_large
     else:
@@ -850,14 +842,25 @@ class Cutout2D:
         """
         return (self.slices_cutout[1].start, self.slices_cutout[0].start)
 
+    @staticmethod
+    def _round(a):
+        """
+        Round the input to the nearest integer.
+
+        If two integers are equally close, the value is rounded up.
+        Note that in this case `np.round` rounds to the nearest even
+        number.
+        """
+        return int(np.floor(a + 0.5))
+
     @lazyproperty
     def position_original(self):
         """
         The ``(x, y)`` position index (rounded to the nearest pixel) in
         the original array.
         """
-        return (_round(self.input_position_original[0]),
-                _round(self.input_position_original[1]))
+        return (self._round(self.input_position_original[0]),
+                self._round(self.input_position_original[1]))
 
     @lazyproperty
     def position_cutout(self):
@@ -865,8 +868,8 @@ class Cutout2D:
         The ``(x, y)`` position index (rounded to the nearest pixel) in
         the cutout array.
         """
-        return (_round(self.input_position_cutout[0]),
-                _round(self.input_position_cutout[1]))
+        return (self._round(self.input_position_cutout[0]),
+                self._round(self.input_position_cutout[1]))
 
     @lazyproperty
     def center_original(self):
