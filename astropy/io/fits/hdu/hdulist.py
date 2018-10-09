@@ -15,10 +15,10 @@ from . import compressed
 from .base import _BaseHDU, _ValidHDU, _NonstandardHDU, ExtensionHDU
 from .groups import GroupsHDU
 from .image import PrimaryHDU, ImageHDU
-from ..file import _File
+from ..file import _File, FILE_MODES
 from ..header import _pad_length
 from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
-                    _get_array_mmap, _free_space_check)
+                    _get_array_mmap, _free_space_check, fileobj_mode, isfile)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....utils import indent
 from ....utils.exceptions import AstropyUserWarning
@@ -868,7 +868,7 @@ class HDUList(list, _Verify):
 
     @deprecated_renamed_argument('clobber', 'overwrite', '2.0')
     def writeto(self, fileobj, output_verify='exception', overwrite=False,
-                checksum=False, mode='ostream'):
+                checksum=False):
         """
         Write the `HDUList` to a new file.
 
@@ -896,8 +896,6 @@ class HDUList(list, _Verify):
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
             to the headers of all HDU's written to the file.
-
-        mode : str
         """
 
         if (len(self) == 0):
@@ -913,6 +911,8 @@ class HDUList(list, _Verify):
         # case we should not close it after writing (that should be the job
         # of the caller)
         closed = isinstance(fileobj, str) or fileobj_closed(fileobj)
+
+        mode = FILE_MODES[fileobj_mode(fileobj)] if isfile(fileobj) else 'ostream'
 
         # This can accept an open file object that's open to write only, or in
         # append/update modes but only if the file doesn't exist.

@@ -334,7 +334,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
 
     @deprecated_renamed_argument('clobber', 'overwrite', '2.0')
     def writeto(self, name, output_verify='exception', overwrite=False,
-                checksum=False, mode='ostream'):
+                checksum=False):
         """
         Write the HDU to a new file. This is a convenience method to
         provide a user easier output interface if only one HDU needs
@@ -364,20 +364,13 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
             to the header of the HDU when written to the file.
-
-        mode : str, optional
-            Open mode, 'ostream', 'update', or append. Default is 'ostream'.
-
-            If ``name`` is a file object that is already opened, ``mode`` must
-            match the mode the file was opened with, update (rb+), append (ab+),
-            or ostream (w).
         """
 
         from .hdulist import HDUList
 
         hdulist = HDUList([self])
         hdulist.writeto(name, output_verify, overwrite=overwrite,
-                        checksum=checksum, mode=mode)
+                        checksum=checksum)
 
     @classmethod
     def _readfrom_internal(cls, data, header=None, checksum=False,
@@ -1532,7 +1525,7 @@ class ExtensionHDU(_ValidHDU):
 
     @deprecated_renamed_argument('clobber', 'overwrite', '2.0')
     def writeto(self, name, output_verify='exception', overwrite=False,
-                checksum=False, mode='ostream'):
+                checksum=False):
         """
         Works similarly to the normal writeto(), but prepends a default
         `PrimaryHDU` are required by extension HDUs (which cannot stand on
@@ -1547,7 +1540,7 @@ class ExtensionHDU(_ValidHDU):
 
         hdulist = HDUList([PrimaryHDU(), self])
         hdulist.writeto(name, output_verify, overwrite=overwrite,
-                        checksum=checksum, mode=mode)
+                        checksum=checksum)
 
     def _verify(self, option='warn'):
 
