@@ -27,9 +27,9 @@ class Distribution:
     ----------
     distr : array-like
         The distribution, with sampling along the *leading* axis.
-    distr_center : None or array-like
+    distr_center : `None` or array-like
         The "center" of this distribution.  It must have the same shape as
-        ``distr``, aside from the (initial) sample dimension. If None, the
+        ``distr``, aside from the (initial) sample dimension. If `None`, the
         *median* of ``distr``  along the sampling axis will be used.
     unit : astropy unit
         A unit of the same sort that `~astropy.units.Quantity` accepts.
@@ -235,16 +235,16 @@ class Distribution:
     def hist(self, maxtoshow=10, **kwargs):
         """
         Use `astropy.visualization.hist` (which uses matplotlib's ``hist``
-        function) to visualize this distribution.  For N-D distributions, the array
-        is flattened following standard numpy rules, and the distributions are shown
-        as separate histograms for each element.
+        function) to visualize this distribution.  For N-D distributions, the
+        array is flattened following standard numpy rules, and the distributions
+        are shown as separate histograms for each element.
 
         Parameters
         ----------
-        maxtoshow : int or None
-            The maximum number of distribution elements to show.  If None, there
-            will be no limit, but this may overwhelm matplotlib if the distribution
-            is large.
+        maxtoshow : int or `None`
+            The maximum number of distribution elements to show.  If `None`,
+            there will be no limit, but this may overwhelm matplotlib if the
+            distribution is large.
         Additional keywords are passed into `astropy.visualization.hist`
         """
         # NOTE: not adjusted to new structure!!
@@ -277,16 +277,16 @@ class NormalDistribution(Distribution):
     ----------
     center : `Quantity`
         The center of this `NormalDistribution`
-    std : `Quantity` or None
+    std : `Quantity` or `None`
         The standard deviation/σ of this distribution. Shape must match and unit
-        must be compatible with ``center``, or be None (if ``var`` or ``ivar``
+        must be compatible with ``center``, or be `None` (if ``var`` or ``ivar``
         are set).
-    var : `Quantity` or None
+    var : `Quantity` or `None`
         The variance of this distribution. Shape must match and unit must be
-        compatible with ``center``, or be None (if ``std`` or ``ivar`` are set).
-    var : `Quantity` or None
-        The inversev ariance of this distribution. Shape must match and unit
-        must be compatible with ``center``, or be None (if ``std`` or ``var``
+        compatible with ``center``, or be `None` (if ``std`` or ``ivar`` are set).
+    ivar : `Quantity` or `None`
+        The inverse variance of this distribution. Shape must match and unit
+        must be compatible with ``center``, or be `None` (if ``std`` or ``var``
         are set).
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
