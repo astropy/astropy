@@ -222,6 +222,12 @@ astropy.uncertainty
 
 - This sub-package was added as a "preview" (i.e. API unstable), containing
   the ``Distribution`` class and associated convenience functions. [#6945]
+- Remove timescale from string version of FITS format time string.
+  The timescale is not part of the FITS standard and should not be included.
+  This change may cause some compatibility issues for code that relies on
+  round-tripping a FITS format string with a timescale. Strings generated
+  from previous versions of this package are still understood but a
+  DeprecationWarning will be issued. [#7870]
 
 astropy.units
 ^^^^^^^^^^^^^
