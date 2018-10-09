@@ -23,6 +23,11 @@ def test_numpy_init():
     parr = np.random.poisson(rates, (4, 1000))
     u.Distribution(parr, unit=u.kpc)
 
+def test_numpy_init_T():
+    rates = np.array([1, 5, 30, 400])
+    parr = np.random.poisson(rates, (1000, 4))
+    u.Distribution(parr.T, unit=u.kpc)
+
 
 def test_quantity_init():
     # Test that we can initialize directly from a Quantity

@@ -6,12 +6,12 @@ Create a quantity from a pre-existing sampled distribution.  The MC direction
 is the *first* dimension.
 
 >>> parr = np.random.poisson([1, 5, 30, 400],(1000, 4))
->>> distr = u.Distribution(parr, u.kpc)
+>>> distr = u.Distribution(parr.T, u.kpc)
 
 Or equivalently:
 
 >>> pq = np.random.poisson([1, 5, 30, 400],(1000, 4))*u.kpc
->>> distr = u.Distribution(pq)
+>>> distr = u.Distribution(pq.T)
 
 
 You can ask it about itself and it acts like an array including the dimension,
