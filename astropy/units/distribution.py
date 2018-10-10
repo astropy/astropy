@@ -10,7 +10,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from . import Quantity
+from . import Quantity, UnitsError
 from .. import visualization
 
 __all__ = ['Distribution', 'NormalDistribution', 'PoissonDistribution',
@@ -317,7 +317,7 @@ class NormalDistribution(Distribution):
             std = np.asanyarray(std)
 
         randshape = np.broadcast(std, center).shape + (n_samples,)
-        distr = np.random.randn(*randshape) * std[..., np.newaxis] + center[..., np.newaxis]
+        distr = center[..., np.newaxis] + np.random.randn(*randshape) * std[..., np.newaxis]
         self = super(NormalDistribution, cls).__new__(cls, distr, **kwargs)
         self.distr_std = std
         return self
@@ -334,14 +334,20 @@ class PoissonDistribution(Distribution):
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
 
-    Remaining keywords are passed into the `Quantity` constructor
+    Remaining keywords are passed into the `Distribution` constructor
     """
     def __new__(cls, poissonval, n_samples=1000, **kwargs):
-        randshape = poissonval.shape + (n_samples,)
-        distr = np.random.poisson(poissonval.value[..., np.newaxis], randshape)
+        if hasattr(poissonval, 'unit') and 'unit' not in kwargs:
+            kwargs['unit'] = poissonval.unit
+
+        if hasattr(poissonval, 'value'):
+            poissonarr = np.asanyarray(poissonval.value)
+        else:
+            poissonarr = np.asanyarray(poissonval)
+        randshape = poissonarr.shape + (n_samples,)
+        distr = np.random.poisson(poissonarr[..., np.newaxis], randshape)
 
         self = super(PoissonDistribution, cls).__new__(cls, distr,
-                                                       unit=poissonval.unit,
                                                        **kwargs)
         self.distr_std = poissonval**0.5
         return self
@@ -361,20 +367,34 @@ class UniformDistribution(Distribution):
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
 
-    Remaining keywords are passed into the `Quantity` constructor.
+    Remaining keywords are passed into the `Distribution` constructor.
     """
     def __new__(cls, lower, upper, n_samples=1000, **kwargs):
-        if not hasattr(lower, 'unit'):
-            raise TypeError('Inputs must be Quantity')
-        if lower.unit != upper.unit:
-            upper = upper.to(lower.unit)
+        lhasu = hasattr(lower, 'unit')
+        uhasu = hasattr(upper, 'unit')
+        if lhasu and uhasu:
+            if 'unit' in kwargs:
+                upper = upper.to(kwargs['unit'])
+                lower = upper.to(kwargs['unit'])
+            else:
+                if lower.unit != upper.unit:
+                    upper = upper.to(lower.unit)
+                kwargs['unit'] = lower.unit
+            lowerarr = np.asanyarray(lower.value)
+            upperarr = np.asanyarray(upper.value)
+        elif not lhasu and not uhasu:
+            lowerarr = np.asanyarray(lower)
+            upperarr = np.asanyarray(upper)
+        else:
+            raise UnitsError('lower and upper must have consistent units for UniformDistribution constructor')
+        if lowerarr.shape != upperarr.shape:
+            raise ValueError('lower and upper must have consistent shapes in UniformDistribution constructor')
 
-        newshape = lower.shape + (n_samples,)
-        distr = np.random.uniform(lower[..., np.newaxis],
-                                  upper[..., np.newaxis], newshape)
+        newshape = lowerarr.shape + (n_samples,)
+        distr = np.random.uniform(lowerarr[..., np.newaxis],
+                                  upperarr[..., np.newaxis], newshape)
 
         self = super(UniformDistribution, cls).__new__(cls, distr,
-                                                       unit=lower.unit,
                                                        **kwargs)
         return self
 
