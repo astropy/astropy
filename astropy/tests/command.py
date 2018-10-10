@@ -329,7 +329,5 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         if self.cov_report and (isinstance(self.cov_report, bool) or "html" in self.cov_report):
             html_cov = os.path.join(os.path.abspath("."), "htmlcov")
             self.cov_report = 'html:{html_cov}'.format(html_cov=html_cov)
-        else:
-            self.cov_report = self.cov_report
 
         return cmd_pre, cmd_post
