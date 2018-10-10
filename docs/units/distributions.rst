@@ -8,16 +8,18 @@ Distributions
 
 In addition to |quantity|, astropy provides a |distribution| object to represent
 statistical distributions in a form that acts as a drop-in replacement for
-|quantity| or regulay Numpy arrays. Most usefully, this provides a form of
-uncertainty  propogation (at the cost of additional computation), but can also
-more generally represent sampled distributions for e.g., Monte Carlo techniques.
+|quantity| or regulay Numpy arrays. USed in this manner, |distribution| provides
+uncertainty propogation at the cost of additional computation.  It can also
+more generally represent sampled distributions for e.g., Monte Carlo calculation
+techniques.
 
-The core object for this feature is the |distribution|.  While some specific
-distributions (e.g., `~astropy.units.NormalDistribution`) have analytic forms,
-in general distributions are Monte Carlo sampled.  While this means each
-distribution may take many times more memory, it allows arbitrarily complex
-operations to be performed on distributions while maintaining their correlation
-structure.
+The core object for this feature is the |distribution|.  Currently, all
+such distributions are Monte Carlo sampled.  While this means each distribution
+may take more memory, it allows arbitrarily complex operations to be performed
+on distributions while maintaining their correlation structure. Some specific
+well-behaved distributions (e.g., `~astropy.units.NormalDistribution`) have
+analytic forms which may eventually enable a more compact/efficient
+representation, but this is not currently implemented.
 
 
 Creating distributions
