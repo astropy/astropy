@@ -11,7 +11,7 @@ astronomy and astrophysics with Python.
 
 Releases are `registered on PyPI <http://pypi.python.org/pypi/astropy>`_,
 and development is occurring at the
-`project's github page <http://github.com/astropy/astropy>`_.
+`project's github page <http://github.com/astropy/astropy>`_.//commend added
 
 For installation instructions, see the `online documentation <http://docs.astropy.org/>`_
 or  ``docs/install.rst`` in this source distribution.
@@ -67,3 +67,4 @@ License
 -------
 Astropy is licensed under a 3-clause BSD style license - see the
 ``LICENSE.rst`` file.
+//comment added
