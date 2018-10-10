@@ -156,6 +156,6 @@ script:
 after_success:
     - if [[ $SETUP_CMD == *--coverage* ]]; then
         if [ "$TRAVIS_REPO_SLUG" = "astropy/astropy" -o "$TRAVIS_PULL_REQUEST_SLUG" = "astropy/astropy" ]; then
-          codecov
+          codecov;
         fi;
       fi
