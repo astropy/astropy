@@ -252,10 +252,23 @@ def test_reprs():
     assert r'n_{\rm samp}=10' in distr._repr_latex_()
 
 
-def test_wrong_kw_fails():
+@pytest.mark.parametrize("klass, kws", [
+    (u.NormalDistribution, {'center': 0, 'std': 2}),
+    (u.UniformDistribution, {'lower': 0, 'upper': 2}),
+    (u.PoissonDistribution, {'poissonval': 2}),
+    (u.NormalDistribution, {'center': 0*u.count, 'std': 2*u.count}),
+    (u.UniformDistribution, {'lower': 0*u.count, 'upper': 2*u.count}),
+    (u.PoissonDistribution, {'poissonval': 2*u.count})
+])
+def test_wrong_kw_fails(klass, kws):
     with pytest.raises(Exception):
-        u.NormalDistribution(center=0, std=2, n_sample=100)
-    u.NormalDistribution(center=0, std=2, n_samples=100)
+        kw_temp = kws.copy()
+        kw_temp['n_sample'] = 100  # note the missing "s"
+        assert klass(**kw_temp).n_samples == 100
+    kw_temp = kws.copy()
+    kw_temp['n_samples'] = 100
+    assert klass(**kw_temp).n_samples == 100
+
 
 def test_index_assignment():
     arr = np.random.randn(2, 1000)
