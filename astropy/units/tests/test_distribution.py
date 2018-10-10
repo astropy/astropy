@@ -250,3 +250,19 @@ def test_reprs():
     assert 'n_samples=10' in str(distr)
 
     assert r'n_{\rm samp}=10' in distr._repr_latex_()
+
+
+def test_wrong_kw_fails():
+    with pytest.raises(Exception):
+        u.NormalDistribution(center=0, std=2, n_sample=100)
+    u.NormalDistribution(center=0, std=2, n_samples=100)
+
+def test_index_assignment():
+    arr = np.random.randn(2, 1000)
+    d1q, d2q = u.Distribution(arr*u.kpc)
+    assert isinstance(d1q, u.Distribution)
+    assert isinstance(d2q, u.Distribution)
+
+    d1a, d2a = u.Distribution(arr)
+    assert isinstance(d1a, u.Distribution)
+    assert isinstance(d2a, u.Distribution)
