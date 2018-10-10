@@ -1,53 +1,112 @@
 .. |quantity| replace:: :class:`~astropy.units.Quantity`
+.. |distribution| replace:: :class:`~astropy.units.Distribution`
 
 .. _unit_distributions:
 
 Distributions
 *************
 
->>> import numpy as np
->>> from astropy import units as u
->>> np.random.seed(12345)  # ensures "random" numbers match examples
+In addition to |quantity|, astropy provides a |distribution| object to represent
+statistical distributions in a form that acts as a drop-in replacement for
+|quantity| or regulay Numpy arrays. Most usefully, this provides a form of
+uncertainty  propogation (at the cost of additional computation), but can also
+more generally represent sampled distributions for e.g., Monte Carlo techniques.
 
-Create a quantity from a pre-existing sampled distribution.  The MC direction
-is the *first* dimension.
-
->>> parr = np.random.poisson([1, 5, 30, 400],(1000, 4))
->>> distr = u.Distribution(parr.T, u.kpc)
-
-Or equivalently:
-
->>> pq = np.random.poisson([1, 5, 30, 400],(1000, 4))*u.kpc
->>> distr = u.Distribution(pq.T)
+The core object for this feature is the |distribution|.  While some specific
+distributions (e.g., `~astropy.units.NormalDistribution`) have analytic forms,
+in general distributions are Monte Carlo sampled.  While this means each
+distribution may take many times more memory, it allows arbitrarily complex
+operations to be performed on distributions while maintaining their correlation
+structure.
 
 
-You can ask it about itself in various ways that act reasonable to look like either an array or a
+Creating distributions
+======================
 
->>> distr.distribution
-<Quantity [[  1.,   0.,   1., ...,   0.,   0.,   0.],
-           [  4.,   3.,   5., ...,   6.,   6.,   3.],
-           [ 33.,  31.,  32., ...,  27.,  17.,  27.],
-           [352., 436., 396., ..., 400., 413., 376.]] kpc>
->>> distr.distribution.shape
-(4, 1000)
->>> distr.shape
-(4,)
->>> distr.size
-4
->>> distr.n_samples
-1000
->>> distr.pdf_mean
-<Quantity [   1.029,   4.985,  30.132, 400.463] kpc>
->>> distr.pdf_std
-<Quantity [  1.01200741,  2.14866819,  5.42093866, 20.24402705] kpc>
->>> distr.pdf_var
-<Quantity [   1.024159,   4.616775,  29.386576, 409.820631] kpc2>
->>> distr.pdf_median
-<Quantity [   1.,   5.,  30., 400.] kpc>
->>> distr.pdf_mad  # Median absolute deviation
-<Quantity [  1.,  1.,  4., 13.] kpc>
->>> distr.pdf_smad  # Median absolute deviation, rescaled to match std for normal
-<Quantity [  1.48260222,  1.48260222,  5.93040887, 19.27382884] kpc>
+The most conceptually straightforward way to create a distribution is to use an
+array or quantity that carries the samples in the *last* dimension:
+
+  >>> import numpy as np
+  >>> from astropy import units as u
+  >>> np.random.seed(12345)  # ensures "random" numbers match examples below
+
+  >>> u.Distribution(np.random.poisson(12, (1000)) # doctest: +ELLIPSES
+  ndarrayDistribution(([ ..., 12, ...],),
+                      dtype=[('samples', '<i8', (1000,))] with n_samples=1000)
+  >>> pq = np.random.poisson([1, 5, 30, 400],
+                             (1000, 4)).T * u.kpc # note the transpose, required to get the sampling on the *last* axis
+  >>> distr = u.Distribution(pq)
+  >>> distr # doctest: +ELLIPSES
+  <QuantityDistribution [([...],),
+                         ([...],),
+                         ([...],),
+                         ([...],)] kpc with n_samples=1000>
+
+For commonly-used distributions, helper classes exist  to make creating them
+easier. Below demonstrates several equivalent ways to create a normal/Gaussian
+distribution:
+
+  >>> centerq = [1, 5, 30, 400]*u.kpc
+  >>> n_distr = u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc)
+  >>> n_distr = u.NormalDistribution(centerq, var=[0.04, 2.25, 16, 1]*u.kpc**2)
+  >>> n_distr = u.NormalDistribution(centerq, ivar=[25, 0.44444444, 0.625, 1]*u.kpc**-2)
+  >>> n_distr.distribution.shape
+  (4, 1000)
+  >>> u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100).distribution.shape
+  (4, 100)
+  >>> u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=20000).distribution.shape
+  (4, 20000)
+
+
+Additionally, Poisson and uniform |distribution| classes exist:
+
+  >>> p_dist = u.PoissonDistribution(centerq)
+  >>> uwidth = [10, 20, 10, 55]*u.pc
+  >>> u_dist = u.UniformDistribution(lower=centerq-uwidth/2,  upper=centerq+uwidth/2)
+
+Users are free to create their own distribution classes following similar
+patterns.
+
+
+Using Distributions
+===================
+
+This object now acts much like a |quantity| for all but the non-sampled
+dimension, but with additional statistical operations that work on the sampled
+distributions:
+
+  >>> distr.shape
+  (4,)
+  >>> distr.size
+  4
+  >>> distr.unit
+  Unit("kpc")
+  >>> distr.n_samples
+  1000
+  >>> distr.pdf_mean # doctest: +FLOAT_CMP
+  <Quantity [   1.029,   4.985,  30.132, 400.463] kpc>
+  >>> distr.pdf_std # doctest: +FLOAT_CMP
+  <Quantity [  1.01200741,  2.14866819,  5.42093866, 20.24402705] kpc>
+  >>> distr.pdf_var # doctest: +FLOAT_CMP
+  <Quantity [   1.024159,   4.616775,  29.386576, 409.820631] kpc2>
+  >>> distr.pdf_median
+  <Quantity [   1.,   5.,  30., 400.] kpc>
+  >>> distr.pdf_mad  # Median absolute deviation # doctest: +FLOAT_CMP
+  <Quantity [  1.,  1.,  4., 13.] kpc>
+  >>> distr.pdf_smad  # Median absolute deviation, rescaled to match std for normal # doctest: +FLOAT_CMP
+  <Quantity [  1.48260222,  1.48260222,  5.93040887, 19.27382884] kpc>
+
+
+If need be, the underlying array can then be accessed from the ``distribution``
+attribute:
+
+  >>> distr.distribution
+  <Quantity [[  1.,   0.,   1., ...,   0.,   0.,   0.],
+             [  4.,   3.,   5., ...,   6.,   6.,   3.],
+             [ 33.,  31.,  32., ...,  27.,  17.,  27.],
+             [352., 436., 396., ..., 400., 413., 376.]] kpc>
+  >>> distr.distribution.shape
+  (4, 1000)
 
 
 Can also ask for more complex statistical summaries:
@@ -58,16 +117,18 @@ Can also ask for more complex statistical summaries:
            [   2.,   8.,  37., 426.]] kpc>
 
 
-The distribution should interact correctly with non-Distribution quantities:
+A |quantity| distribution interact naturally with non-|distribution| quantities,
+essentially assuming the |quantity| is a dirac delta distribution:
 
->>> distrplus = distr + [2000,0,0,500]*u.pc
->>> distrplus.pdf_median
-<Quantity [   3. ,   5. ,  30. , 400.5] kpc>
->>> distrplus.pdf_var
-<Quantity [   1.024159,   4.616775,  29.386576, 409.820631] kpc2>
+  >>> distrplus = distr + [2000,0,0,500]*u.pc
+  >>> distrplus.pdf_median
+  <Quantity [   3. ,   5. ,  30. , 400.5] kpc>
+  >>> distrplus.pdf_var
+  <Quantity [   1.024159,   4.616775,  29.386576, 409.820631] kpc2>
 
 
-It should *also* combine reasonably with othe distributions:
+It also operates as expected with other distributions  (But see below for a
+discussion of covariances):
 
 >>> another_distr = u.Distribution((np.random.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T, unit=u.pc)
 >>> combined_distr = distr + another_distr
@@ -77,21 +138,103 @@ It should *also* combine reasonably with othe distributions:
 <Quantity [   2.17250083,   4.6167747 ,  37.46238268, 409.82738255] kpc2>
 
 
-For commonly-used distributions, provide helpers to make creating them easier.
-Note that all of the normal ones are equivalent, but note that the units must
-make sense:
+Covariance in distributions
+===========================
 
->>> centerq = [1, 5, 30, 400]*u.kpc
->>> n_distr = u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc)
->>> n_distr = u.NormalDistribution(centerq, var=[0.04, 2.25, 16, 1]*u.kpc**2)
->>> n_distr = u.NormalDistribution(centerq, ivar=[25, 0.44444444, 0.625, 1]*u.kpc**-2)
->>> p_dist = u.PoissonDistribution(centerq)
->>> uwidth = [10, 20, 10, 55]*u.pc
->>> u_dist = u.UniformDistribution(lower=centerq-uwidth/2,  upper=centerq+uwidth/2)
+One of the main applications for distributions is unceratinty propogation, which
+critically requires proper treatment of covariance. This comes naturally in the
+Monte Carlo sampling approach used by the |distribution| class, as long as
+proper care is taken with sampling error.
 
-Can specify how many samples are desired:
+To start with a simple example, two un-correlated distributions should produce
+an un-correlated joint distribution plot:
 
->>> u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100).distribution.shape
-(4, 100)
->>> u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=20000).distribution.shape
-(4, 20000)
+.. plot::
+  :context:
+  :include-source:
+  :align: center
+
+  >>> from matplotlib import pyplot as plt # doctest: +SKIP
+  >>> n1 = u.NormalDistribution(center=0., std=1, n_samples=10000)
+  >>> n2 = u.NormalDistribution(center=0., std=2, n_samples=10000)
+  >>> plt.scatter(n1.distribution, n2.distribution, s=2, lw=0, alpha=.5) # doctest: +SKIP
+  >>> plt.xlim(-4, 4) # doctest: +SKIP
+  >>> plt.ylim(-4, 4) # doctest: +SKIP
+
+Indeed, the distributions are independent.  If we instead construct a covariant
+pair of gaussians, it is immediately apparent:
+
+.. plot::
+  :context:
+  :include-source:
+  :align: center
+
+  >>> ncov = np.random.multivariate_normal([0, 0], [[1, .5], [.5, 2]], size=10000)
+  >>> n1 = u.Distribution(ncov[:, 0])
+  >>> n2 = u.Distribution(ncov[:, 1])
+  >>> plt.scatter(n1.distribution, n2.distribution, s=2, lw=0, alpha=.5) # doctest: +SKIP
+  >>> plt.xlim(-4, 4) # doctest: +SKIP
+  >>> plt.ylim(-4, 4) # doctest: +SKIP
+
+
+Most importantly, the proper correlated structure is preserved or generated as
+expected by appropriate arithmetic operations. For example, ratios of
+uncorrelated normal distribution gain covariances if the axes are not
+independent, as in this simulation of iron, hydrogen, and oxygen abundances in
+a hypothetical collection of stars:
+
+.. plot::
+  :context:
+  :include-source:
+  :align: center
+
+  >>> fe_abund = u.NormalDistribution(center=-2, std=.25, n_samples=10000)
+  >>> o_abund = u.NormalDistribution(center=-6., std=.5, n_samples=10000)
+  >>> h_abund = u.NormalDistribution(center=-0.7, std=.1, n_samples=10000)
+  >>> feh = fe_abund - h_abund
+  >>> ofe = o_abund - fe_abund
+  >>> plt.scatter(ofe.distribution, feh.distribution, s=2, lw=0, alpha=.5) # doctest: +SKIP
+  >>> plt.xlabel('[Fe/H]') # doctest: +SKIP
+  >>> plt.ylabel('[O/Fe]') # doctest: +SKIP
+
+This demonstrates that the correlations naturally arise from the variables, but
+there is no need to explicitly account for it: the sampling process naturally
+recovers correlations that are present.
+
+An important note of warning, however, is that the covariance is only preserved
+if the sampling axes are exactly matched sample-by-sample.  If they are not, all
+covariance information is (silently) lost:
+
+.. plot::
+  :context:
+  :include-source:
+  :align: center
+
+  >>> n2_wrong = u.Distribution(ncov[::-1, 1])  #reverse the sampling axis order
+  >>> plt.scatter(n1.distribution, n2_wrong.distribution, s=2, lw=0, alpha=.5) # doctest: +SKIP
+  >>> plt.xlim(-4, 4) # doctest: +SKIP
+  >>> plt.ylim(-4, 4) # doctest: +SKIP
+
+
+Moreover, an insufficiently-sampled distribution may give poor estimates or
+hide correlations.  The example below is the same as the covariant gaussian
+example above, but with 100x fewer samples:
+
+
+.. plot::
+  :context:
+  :include-source:
+  :align: center
+
+  >>> ncov = np.random.multivariate_normal([0, 0], [[1, .5], [.5, 2]], size=100)
+  >>> n1 = u.Distribution(ncov[:, 0])
+  >>> n2 = u.Distribution(ncov[:, 1])
+  >>> plt.scatter(n1.distribution, n2.distribution, s=5, lw=0) # doctest: +SKIP
+  >>> plt.xlim(-4, 4) # doctest: +SKIP
+  >>> plt.ylim(-4, 4) # doctest: +SKIP
+
+In general this is an intrinsic trade-off using sampled distributions: a smaller
+number of samples is computationally more efficient, but leads to larger
+uncertainties in any of  the relevant quantities.  These tend to be of order
+:math:`\sqrt(n_samples)` in any derived quantity, but that depends on the
+complexity of the distribution in question.  You have been warned!
