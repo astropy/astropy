@@ -270,12 +270,27 @@ def test_wrong_kw_fails(klass, kws):
     assert klass(**kw_temp).n_samples == 100
 
 
-def test_index_assignment():
+def test_index_assignment_quantity():
     arr = np.random.randn(2, 1000)
-    d1q, d2q = u.Distribution(arr*u.kpc)
+    distr = u.Distribution(arr*u.kpc)
+    d1q, d2q = distr
     assert isinstance(d1q, u.Distribution)
     assert isinstance(d2q, u.Distribution)
 
-    d1a, d2a = u.Distribution(arr)
+    ndistr = u.NormalDistribution(center=[1, 2]*u.kpc, std=[3, 4]*u.kpc)
+    n1, n2 = ndistr
+    assert isinstance(n1, u.NormalDistribution)
+    assert isinstance(n2, u.NormalDistribution)
+
+
+def test_index_assignment_array():
+    arr = np.random.randn(2, 1000)
+    distr = u.Distribution(arr)
+    d1a, d2a = distr
     assert isinstance(d1a, u.Distribution)
     assert isinstance(d2a, u.Distribution)
+
+    ndistr = u.NormalDistribution(center=[1, 2], std=[3, 4])
+    n1, n2 = ndistr
+    assert isinstance(n1, u.NormalDistribution)
+    assert isinstance(n2, u.NormalDistribution)
