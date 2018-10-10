@@ -144,10 +144,13 @@ To start with a simple example, two un-correlated distributions should produce
 an un-correlated joint distribution plot:
 
 .. plot::
-  :context:
+  :context: close-figs
   :include-source:
   :align: center
 
+  >>> import numpy as np
+  >>> np.random.seed(12345)  # produce repeatable plots
+  >>> from astropy import units as u
   >>> from matplotlib import pyplot as plt # doctest: +SKIP
   >>> n1 = u.NormalDistribution(center=0., std=1, n_samples=10000)
   >>> n2 = u.NormalDistribution(center=0., std=2, n_samples=10000)
@@ -159,7 +162,7 @@ Indeed, the distributions are independent.  If we instead construct a covariant
 pair of gaussians, it is immediately apparent:
 
 .. plot::
-  :context:
+  :context: close-figs
   :include-source:
   :align: center
 
@@ -178,7 +181,7 @@ independent, as in this simulation of iron, hydrogen, and oxygen abundances in
 a hypothetical collection of stars:
 
 .. plot::
-  :context:
+  :context: close-figs
   :include-source:
   :align: center
 
@@ -200,7 +203,7 @@ if the sampling axes are exactly matched sample-by-sample.  If they are not, all
 covariance information is (silently) lost:
 
 .. plot::
-  :context:
+  :context: close-figs
   :include-source:
   :align: center
 
@@ -212,23 +215,29 @@ covariance information is (silently) lost:
 
 Moreover, an insufficiently-sampled distribution may give poor estimates or
 hide correlations.  The example below is the same as the covariant gaussian
-example above, but with 100x fewer samples:
+example above, but with 200x fewer samples:
 
 
 .. plot::
-  :context:
+  :context: close-figs
   :include-source:
   :align: center
 
-  >>> ncov = np.random.multivariate_normal([0, 0], [[1, .5], [.5, 2]], size=100)
+  >>> ncov = np.random.multivariate_normal([0, 0], [[1, .5], [.5, 2]], size=50)
   >>> n1 = u.Distribution(ncov[:, 0])
   >>> n2 = u.Distribution(ncov[:, 1])
   >>> plt.scatter(n1.distribution, n2.distribution, s=5, lw=0) # doctest: +SKIP
   >>> plt.xlim(-4, 4) # doctest: +SKIP
   >>> plt.ylim(-4, 4) # doctest: +SKIP
+  >>> np.cov(n1.distribution, n2.distribution) # doctest: +FLOAT_CMP
+  array([[1.04667972, 0.19391617],
+         [0.19391617, 1.50899902]])
 
+
+The covaraiance structure is much less apparent by eye, and this is reflected
+in significant discrepencies between the input and output covariance matrix.
 In general this is an intrinsic trade-off using sampled distributions: a smaller
 number of samples is computationally more efficient, but leads to larger
 uncertainties in any of  the relevant quantities.  These tend to be of order
-:math:`\sqrt(n_samples)` in any derived quantity, but that depends on the
+:math:`\sqrt{n_{\rm samples}}` in any derived quantity, but that depends on the
 complexity of the distribution in question.  You have been warned!
