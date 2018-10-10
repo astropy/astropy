@@ -46,7 +46,12 @@ class Distribution:
     """
 
     def __new__(cls, distr, distr_center=None, unit=None):
-
+        if isinstance(distr, Distribution):
+            if distr_center is None:
+                distr_center = distr.distr_center
+            distr = distr.distribution
+        else:
+            distr = np.asanyarray(distr, order='C')
         if distr.shape == ():
             raise TypeError('Attempted to initialize a Distribution with a scalar')
 
@@ -68,8 +73,6 @@ class Distribution:
             new_name = distr_cls.__name__ + cls.__name__
             new_cls = type(new_name, (cls, distr_cls),
                            {'_distr_cls': distr_cls})
-        if not distr.flags.c_contiguous:
-            distr = distr.copy('C')
         self = distr.view(dtype=new_dtype, type=new_cls)
         # Get rid of trailing dimension of 1.
         self.shape = distr.shape[:-1]
@@ -85,7 +88,7 @@ class Distribution:
         if item == 'samples':
             return super(Distribution, result).view(self._distr_cls)
         else:
-            return result
+            return Distribution.__new__(self.__class__, result['samples'])
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         converted = []
@@ -293,27 +296,29 @@ class NormalDistribution(Distribution):
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
 
-    Remaining keywords are passed into the `Quantity` constructor
+    Remaining keywords are passed into the `Distribution` constructor
     """
     def __new__(cls, center, std=None, var=None, ivar=None, n_samples=1000, **kwargs):
+        center = np.asanyarray(center)
         if var is not None:
             if std is None:
-                std = var**0.5
+                std = np.asanyarray(var)**0.5
             else:
                 raise ValueError('NormalDistribution cannot take both std and var')
         if ivar is not None:
             if std is None:
-                std = ivar**-0.5
+                std = np.asanyarray(ivar)**-0.5
             else:
                 raise ValueError('NormalDistribution cannot take both ivar and '
                                  'and std or var')
         if std is None:
             raise ValueError('NormalDistribution requires one of std, var, or ivar')
+        else:
+            std = np.asanyarray(std)
 
         randshape = np.broadcast(std, center).shape + (n_samples,)
-        distr = np.random.randn(*randshape)
+        distr = np.random.randn(*randshape) * std[..., np.newaxis] + center[..., np.newaxis]
         self = super(NormalDistribution, cls).__new__(cls, distr, **kwargs)
-        self = center + self * std
         self.distr_std = std
         return self
 
