@@ -30,19 +30,17 @@ array or quantity that carries the samples in the *last* dimension:
 
   >>> import numpy as np
   >>> from astropy import units as u
-  >>> np.random.seed(12345)  # ensures "random" numbers match examples below
+  >>> np.random.seed(123456)  # ensures "random" numbers match examples below
 
-  >>> u.Distribution(np.random.poisson(12, (1000)) # doctest: +ELLIPSES
-  ndarrayDistribution(([ ..., 12, ...],),
-                      dtype=[('samples', '<i8', (1000,))] with n_samples=1000)
-  >>> pq = np.random.poisson([1, 5, 30, 400],
-                             (1000, 4)).T * u.kpc # note the transpose, required to get the sampling on the *last* axis
+  >>> u.Distribution(np.random.poisson(12, (1000))) # doctest: +ELLIPSIS
+  ndarrayDistribution([..., 12,...]) with n_samples=1000
+  >>> pq = np.random.poisson([1, 5, 30, 400], (1000, 4)).T * u.kpc # note the transpose, required to get the sampling on the *last* axis
   >>> distr = u.Distribution(pq)
-  >>> distr # doctest: +ELLIPSES
-  <QuantityDistribution [([...],),
-                         ([...],),
-                         ([...],),
-                         ([...],)] kpc with n_samples=1000>
+  >>> distr # doctest: +ELLIPSIS
+  <QuantityDistribution [[...],
+             [...],
+             [...],
+             [...]] kpc with n_samples=1000>
 
 For commonly-used distributions, helper classes exist  to make creating them
 easier. Below demonstrates several equivalent ways to create a normal/Gaussian
@@ -86,38 +84,32 @@ distributions:
   >>> distr.n_samples
   1000
   >>> distr.pdf_mean # doctest: +FLOAT_CMP
-  <Quantity [   1.029,   4.985,  30.132, 400.463] kpc>
+  <Quantity [  0.998,   5.017,  30.085, 400.345] kpc>
   >>> distr.pdf_std # doctest: +FLOAT_CMP
-  <Quantity [  1.01200741,  2.14866819,  5.42093866, 20.24402705] kpc>
+  <Quantity [ 0.97262326,  2.32222114,  5.47629208, 20.6328373 ] kpc>
   >>> distr.pdf_var # doctest: +FLOAT_CMP
-  <Quantity [   1.024159,   4.616775,  29.386576, 409.820631] kpc2>
+  <Quantity [  0.945996,   5.392711,  29.989775, 425.713975] kpc2>
   >>> distr.pdf_median
   <Quantity [   1.,   5.,  30., 400.] kpc>
   >>> distr.pdf_mad  # Median absolute deviation # doctest: +FLOAT_CMP
-  <Quantity [  1.,  1.,  4., 13.] kpc>
+  <Quantity [ 1.,  2.,  4., 14.] kpc>
   >>> distr.pdf_smad  # Median absolute deviation, rescaled to match std for normal # doctest: +FLOAT_CMP
-  <Quantity [  1.48260222,  1.48260222,  5.93040887, 19.27382884] kpc>
-
+  <Quantity [ 1.48260222,  2.96520444,  5.93040887, 20.75643106] kpc>
+  >>> distr.percentiles([10, 50, 90])
+  <Quantity [[  0. ,   2. ,  23. , 374. ],
+             [  1. ,   5. ,  30. , 400. ],
+             [  2. ,   8. ,  37.1, 427. ]] kpc>
 
 If need be, the underlying array can then be accessed from the ``distribution``
 attribute:
 
   >>> distr.distribution
-  <Quantity [[  1.,   0.,   1., ...,   0.,   0.,   0.],
-             [  4.,   3.,   5., ...,   6.,   6.,   3.],
-             [ 33.,  31.,  32., ...,  27.,  17.,  27.],
-             [352., 436., 396., ..., 400., 413., 376.]] kpc>
+  <Quantity [[  0.,   0.,   1., ...,   1.,   0.,   1.],
+             [  7.,   3.,   4., ...,   3.,   2.,   5.],
+             [ 27.,  32.,  35., ...,  37.,  21.,  40.],
+             [421., 373., 389., ..., 405., 391., 369.]] kpc>
   >>> distr.distribution.shape
   (4, 1000)
-
-
-Can also ask for more complex statistical summaries:
-
->>> distr.percentiles([10, 50, 90])
-<Quantity [[   0.,   2.,  23., 375.],
-           [   1.,   5.,  30., 400.],
-           [   2.,   8.,  37., 426.]] kpc>
-
 
 A |quantity| distribution interact naturally with non-|distribution| quantities,
 essentially assuming the |quantity| is a dirac delta distribution:
@@ -126,18 +118,18 @@ essentially assuming the |quantity| is a dirac delta distribution:
   >>> distrplus.pdf_median
   <Quantity [   3. ,   5. ,  30. , 400.5] kpc>
   >>> distrplus.pdf_var
-  <Quantity [   1.024159,   4.616775,  29.386576, 409.820631] kpc2>
+  <Quantity [  0.945996,   5.392711,  29.989775, 425.713975] kpc2>
 
 
 It also operates as expected with other distributions  (But see below for a
 discussion of covariances):
 
->>> another_distr = u.Distribution((np.random.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T, unit=u.pc)
->>> combined_distr = distr + another_distr
->>> combined_distr.pdf_median
-<Quantity [   2.9548952 ,   4.99999855,  29.93483557, 400.50685423] kpc>
->>> combined_distr.pdf_var
-<Quantity [   2.17250083,   4.6167747 ,  37.46238268, 409.82738255] kpc2>
+  >>> another_distr = u.Distribution((np.random.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T, unit=u.pc)
+  >>> combined_distr = distr + another_distr
+  >>> combined_distr.pdf_median
+  <Quantity [  2.90856297,   4.99999764,  30.09385367, 400.50056651] kpc>
+  >>> combined_distr.pdf_var
+  <Quantity [  2.0051053 ,   5.39271159,  38.24442151, 425.70428603] kpc2>
 
 
 Covariance in distributions
