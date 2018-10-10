@@ -728,7 +728,7 @@ astropy.tests
 - Changed the way coverage is handled in the test runner, to be based on
   pytest-cov. This enables support for calculating covergae under parallel
   buils as well as specifying ``--cov-report`` to the test command to customise
-  the reporting of the coverage statistics.
+  the reporting of the coverage statistics. [#7851]
 
 astropy.time
 ^^^^^^^^^^^^
