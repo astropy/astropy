@@ -504,7 +504,6 @@ def _patch_coverage(testdir, sourcedir):  # pragma: no cover
     dfs.filename = os.path.join(sourcedir, ".coverage")
 
     # Replace the testdir with source dir
-    # Lovingly borrowed from astropy (see licences directory)
     lines = cov.data._lines
     for key in list(lines.keys()):
         new_path = os.path.relpath(
