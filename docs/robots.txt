@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /*/stable/
+Allow: /en/stable/   # Fallback for bots that don't understand wildcards
+Disallow: /
