@@ -45,7 +45,7 @@ class Distribution:
     available so that subclasses can change it.
     """
 
-    def __new__(cls, distr, distr_center=None, unit=None, *args, **kwargs):
+    def __new__(cls, distr, distr_center=None, unit=None):
 
         if distr.shape == ():
             raise TypeError('Attempted to initialize a Distribution with a scalar')
