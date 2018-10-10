@@ -145,17 +145,26 @@ class Distribution:
         return Distribution(result)
 
     def __repr__(self):
-        superrepr = super().__repr__()
-        toadd = ' with n_samples={}'.format(self.n_samples)
-        return superrepr[:-1] + toadd + superrepr[-1]
+        reprarr = repr(self.distribution)
+        if reprarr.endswith('>'):
+            firstspace = reprarr.find(' ')
+            reprarr = reprarr[firstspace+1:-1]  # :-1] removes the ending '>'
+            return '<{} {} with n_samples={}>'.format(self.__class__.__name__,
+                                                      reprarr, self.n_samples)
+        else: #numpy array-like
+            firstparen = reprarr.find('(')
+            reprarr = reprarr[firstparen:]
+            return '{}{} with n_samples={}'.format(self.__class__.__name__,
+                                                    reprarr, self.n_samples)
+            return reprarr
 
     def __str__(self):
-        superstr = super().__str__()
+        distrstr = str(self.distribution)
         toadd = ' with n_samples={}'.format(self.n_samples)
-        return superstr + toadd
+        return distrstr + toadd
 
     def _repr_latex_(self):
-        superlatex = super()._repr_latex_()
+        superlatex = self.distribution._repr_latex_()
         toadd = r', \; n_{{\rm samp}}={}'.format(self.n_samples)
         return superlatex[:-1] + toadd + superlatex[-1]
 
