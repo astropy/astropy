@@ -3288,7 +3288,7 @@ def _prepare_outputs_single_model(model, outputs, format_info):
         if broadcast_shape is not None:
             if not broadcast_shape:
                 # Shape is (), i.e. a scalar should be returned
-                outputs[idx] = np.asscalar(output)
+                outputs[idx] = output.item()
             else:
                 outputs[idx] = output.reshape(broadcast_shape)
 
