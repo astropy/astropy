@@ -118,6 +118,8 @@ astropy.modeling
 - Add a ``separability_matrix`` function which returns the correlation matrix
   of inputs and outputs. [#7803]
 
+- Convert np.asscalar(a) to a.item() [#7880]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
