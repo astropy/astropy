@@ -73,6 +73,21 @@ jobs:
           command: |
             python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
 
+  image-tests-mpldev:
+    docker:
+      - image: astropy/image-tests-py35-base:1.0
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies, including developer version of Matplotlib
+          command: |
+            pip3 install pytest pytest-mpl pytest-astropy numpy scipy
+            pip3 install git+https://github.com/matplotlib/matplotlib.git
+      - run:
+          name: Run tests
+          command: |
+            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
   html-docs:
     docker:
       - image: circleci/python:3.6
@@ -107,6 +122,7 @@ workflows:
       - image-tests-mpl212
       - image-tests-mpl222
       - image-tests-mpl300
+      - image-tests-mpldev
 
 notify:
   webhooks:
