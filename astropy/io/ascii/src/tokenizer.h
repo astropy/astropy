@@ -63,7 +63,7 @@ typedef struct
     char expchar;          // exponential character in scientific notation
     char **output_cols;    // array of output strings for each column
     char **col_ptrs;       // array of pointers to current output position for each col
-    int *output_len;       // length of each output column string
+    size_t *output_len;    // length of each output column string
     int num_cols;          // number of table columns
     int num_rows;          // number of table rows
     int fill_extra_cols;   // represents whether or not to fill rows with too few values
