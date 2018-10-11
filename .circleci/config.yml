@@ -81,6 +81,7 @@ jobs:
       - run:
           name: Install dependencies, including developer version of Matplotlib
           command: |
+            apt-get install -y libfreetype6-dev libpng12-dev pkg-config
             pip3 install pytest pytest-mpl pytest-astropy numpy scipy
             pip3 install git+https://github.com/matplotlib/matplotlib.git
       - run:
