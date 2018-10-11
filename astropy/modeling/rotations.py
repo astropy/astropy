@@ -48,7 +48,7 @@ class _EulerRotation(object):
         for angle, axis in zip([phi, theta, psi], axes_order):
             if isinstance(angle, u.Quantity):
                 angle = angle.value
-            angle = np.asscalar(angle)
+            angle = angle.item()
             matrices.append(rotation_matrix(angle, axis, unit=u.rad))
         result = matrix_product(*matrices[::-1])
         return result
