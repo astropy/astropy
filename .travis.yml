@@ -111,7 +111,7 @@ matrix:
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="codecov objgraph jplephem bintrees sortedcontainers"
                LC_CTYPE=C.ascii LC_ALL=C
-               CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
+               CFLAGS='--coverage -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.0
                EVENT_TYPE='push pull_request cron'
 
@@ -155,7 +155,5 @@ script:
 
 after_success:
     - if [[ $SETUP_CMD == *--coverage* ]]; then
-        if [ "$TRAVIS_REPO_SLUG" = "astropy/astropy" -o "$TRAVIS_PULL_REQUEST_SLUG" = "astropy/astropy" ]; then
-          codecov;
-        fi;
+        codecov --gcov-glob "*cextern*";
       fi
