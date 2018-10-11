@@ -368,6 +368,9 @@ astropy.utils
 - ``diff_values()``, ``report_diff_values()``, and ``where_not_allclose()``
   utility functions are moved from ``astropy.io.fits.diff``. [#7444]
 
+- ``invalidate_caches()`` has been removed from the
+  ``astropy.utils.compat`` namespace, use it directly from ``importlib``. [#7872]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
