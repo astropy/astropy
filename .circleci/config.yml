@@ -40,8 +40,7 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: |
-            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
 
   image-tests-mpl212:
     docker:
@@ -50,8 +49,7 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: |
-            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
 
   image-tests-mpl222:
     docker:
@@ -60,8 +58,7 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: |
-            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
 
   image-tests-mpl300:
     docker:
@@ -69,9 +66,26 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Temporarily downgrade pytest
+          command: pip3 install "pytest<3.7"
+      - run:
           name: Run tests
-          command: |
-            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
+  image-tests-mpldev:
+    docker:
+      - image: astropy/image-tests-py35-base:1.0
+    steps:
+      - checkout
+      - run:
+          name: Install apt dependencies
+          command: apt-get install -y libfreetype6-dev libpng12-dev pkg-config
+      - run:
+          name: Install Python dependencies, including developer version of Matplotlib
+          command: pip3 install "pytest<3.7" pytest-mpl pytest-astropy numpy scipy git+https://github.com/matplotlib/matplotlib.git
+      - run:
+          name: Run tests
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
 
   html-docs:
     docker:
@@ -107,6 +121,7 @@ workflows:
       - image-tests-mpl212
       - image-tests-mpl222
       - image-tests-mpl300
+      - image-tests-mpldev
 
 notify:
   webhooks:
