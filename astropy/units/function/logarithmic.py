@@ -2,8 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
 
-from .. import CompositeUnit, UnitsError, dimensionless_unscaled
-from . import photometric
+from .. import CompositeUnit, UnitsError, dimensionless_unscaled, photometric
 from .core import FunctionUnitBase, FunctionQuantity
 from .units import dex, dB, mag
 
@@ -117,11 +116,6 @@ class MagUnit(LogUnit):
         By default, this is ``mag``, but this allows one to use an equivalent
         unit such as ``2 mag``.
     """
-    def __init__(self, *args, **kwargs):
-        # Ensure we recognize magnitude zero points here.
-        with photometric.enable():
-            super().__init__(*args, **kwargs)
-
     @property
     def _default_function_unit(self):
         return mag
