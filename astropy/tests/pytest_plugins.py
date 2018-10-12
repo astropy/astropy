@@ -8,6 +8,7 @@ configure them within setup.cfg).
 TODO: This entire module should eventually be removed once backwards
 compatibility is no longer supported.
 """
+import builtins
 import warnings
 from ..utils.exceptions import AstropyDeprecationWarning
 
@@ -17,8 +18,9 @@ from .plugins.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS
 # This makes sure that this module is not collected when running the test
 # suite. This is necessary in order to get the test suite to run without errors
 # using pytest>=3.7
-import pytest
-pytest.skip()
+if getattr(builtins, '_pytest_running', False):
+    import pytest
+    pytest.skip()
 
 _warning_message = "The module `astropy.tests.pytest_plugins has been " \
     "deprecated. The variables `PYTEST_HEADER_MODULES` and `TESTED_VERSIONS`" \
