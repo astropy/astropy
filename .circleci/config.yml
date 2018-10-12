@@ -56,6 +56,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Temporarily downgrade pytest
+          command: pip3 install "pytest<3.7"
+      - run:
           name: Run tests
           command: |
             python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
