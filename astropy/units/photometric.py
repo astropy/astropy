@@ -31,12 +31,12 @@ def_unit(['maggy', 'mgy'],
          namespace=_ns, prefixes=False,
          doc="Maggies - a linear flux unit that is the flux for a mag=0 object."
              "To tie this onto a specific calibrated unit system, the zero_point " "equivalency should be used.")
-def_unit(['nanomaggy', 'nmgy'], 1e-9 * maggie,
+def_unit(['nanomaggy', 'nmgy'], 1e-9 * maggy,
          namespace=_ns, prefixes=False,
-         doc="Nanomaggie, i.e. ABmag=22.5")
+         doc="Nanomaggy, i.e. ABmag=22.5")
 
 
-def zero_point(flux0=3631*u.Jy):
+def zero_point(flux0=1.0*ABflux):
     """
     An equivalency for converting linear flux units ("maggys") defined relative
     to a standard source into a standardized system.
@@ -48,9 +48,9 @@ def zero_point(flux0=3631*u.Jy):
         corresponds to a perfect AB-like magnitude system.
     """
 
-    return return [(maggie, flux0.unit,
-                    lambda mgy: flux0.value*mgy,
-                    lambda flx: flux0.value/flx)]
+    return  [(maggy, flux0.unit,
+              lambda mgy: flux0.value*mgy,
+              lambda flx: flux0.value/flx)]
 
 
 ###########################################################################
@@ -65,6 +65,6 @@ del cgs, si, astrophys
 
 # This generates a docstring for this module that describes all of the
 # standard units defined here.
-from ..utils import generate_unit_summary as _generate_unit_summary
+from .utils import generate_unit_summary as _generate_unit_summary
 if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())
