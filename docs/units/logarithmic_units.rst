@@ -117,7 +117,7 @@ Here, ``ST`` is a short-hand for the ST zero-point flux::
     >>> (0. * u.STmag).to(u.erg/u.s/u.cm**2/u.AA)  # doctest: +FLOAT_CMP
     <Quantity 3.63078055e-09 erg / (Angstrom cm2 s)>
     >>> (-21.1 * u.STmag).to(u.erg/u.s/u.cm**2/u.AA)  # doctest: +FLOAT_CMP
-    <Quantity 1. erg / (Angstrom cm2 s)>
+    <Quantity 1.00006044 erg / (Angstrom cm2 s)>
 
 .. note:: at present, only magnitudes defined in terms of luminosity or flux
 	  are implemented, since those that do not depend on the filter the
