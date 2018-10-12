@@ -98,6 +98,8 @@ matrix:
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="jplephem"
                LC_CTYPE=C.ascii LC_ALL=C
+               PYTEST_VERSION=3.7
+
 
         - os: linux
           stage: Initial tests
@@ -119,6 +121,7 @@ matrix:
         - os: linux
           env: NUMPY_VERSION=prerelease
                EVENT_TYPE='push pull_request cron'
+               PYTEST_VERSION=3.8
 
         # Do a PEP8/pyflakes test with flake8
         - os: linux
