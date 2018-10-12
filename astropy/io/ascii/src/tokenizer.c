@@ -324,7 +324,7 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
     // Allocate memory for structures used during tokenization
     self->output_cols = (char **) malloc(self->num_cols * sizeof(char *));
     self->col_ptrs = (char **) malloc(self->num_cols * sizeof(char *));
-    self->output_len = (int *) malloc(self->num_cols * sizeof(int));
+    self->output_len = (size_t *) malloc(self->num_cols * sizeof(size_t));
 
     for (i = 0; i < self->num_cols; ++i)
     {

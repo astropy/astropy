@@ -25,6 +25,8 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Fix reading of big files with the fast reader. [#7885]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 

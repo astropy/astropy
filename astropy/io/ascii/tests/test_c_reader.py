@@ -958,6 +958,37 @@ def test_read_big_table(tmpdir):
     assert len(t) == NB_ROWS
 
 
+@pytest.mark.skipif(not os.getenv('TEST_READ_HUGE_FILE'),
+                    reason='Environment variable TEST_READ_HUGE_FILE must be '
+                    'defined to run this test')
+def test_read_big_table2(tmpdir):
+    """Test reading of a file with a huge column.
+    """
+    # (2**32 // 2) : max value for int
+    # // 10 : we use a value for rows that have 10 chars (1e9)
+    # + 5 : add a few lines so the length cannot be stored by an int
+    NB_ROWS = (2**32 // 2) // 10 + 5
+    filename = str(tmpdir.join("big_table.csv"))
+
+    print("Creating a {} rows table.".format(NB_ROWS))
+    data = np.full(2**32 // 2 // 10 + 5, int(1e9), dtype=np.int32)
+    t = Table(data=[data], names=['a'], copy=False)
+
+    print("Saving the table to {}".format(filename))
+    t.write(filename, format='ascii.csv', overwrite=True)
+    t = None
+
+    print("Counting the number of lines in the csv, it should be {}"
+          " + 1 (header).".format(NB_ROWS))
+    assert sum(1 for line in open(filename)) == NB_ROWS + 1
+
+    print("Reading the file with astropy.")
+    t = Table.read(filename, format='ascii.csv', fast_reader=True)
+    assert len(t) == NB_ROWS
+
+
+# Test these both with guessing turned on and off
+@pytest.mark.parametrize("guess", [True, False])
 # fast_reader configurations: False| 'use_fast_converter'=False|True
 @pytest.mark.parametrize('reader', [0, 1, 2])
 # catch Windows environment since we cannot use _read() with custom fast_reader
