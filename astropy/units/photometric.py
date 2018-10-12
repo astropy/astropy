@@ -2,12 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This package defines magnitude zero points.  By default, they are used to
-define corresponding magnitudes, but not enabled as regular physical units.
-To enable them, do::
-
-    >>> from astropy.units import magnitude_zero_points
-    >>> magnitude_zero_points.enable()  # doctest: +SKIP
+This module defines magnitude zero points and related photometric quantities.
 """
 
 
@@ -25,12 +20,38 @@ def_unit(['Bol', 'L_bol'], _si.L_bol0, namespace=_ns, prefixes=False,
 def_unit(['bol', 'f_bol'], _si.L_bol0 / (4 * _numpy.pi * (10.*astrophys.pc)**2),
          namespace=_ns, prefixes=False, doc="Irradiance corresponding to "
          "appparent bolometric magnitude zero")
-def_unit(['ABflux'], 3631e-23* cgs.erg * cgs.cm**-2 / si.Hz,
+def_unit(['ABflux'], 3631e-23 * cgs.erg * cgs.cm**-2 / si.Hz,
          namespace=_ns, prefixes=False,
          doc="AB magnitude zero flux density.")
 def_unit(['STflux'], 3631e-12 * cgs.erg * cgs.cm**-2 / si.AA,
          namespace=_ns, prefixes=False,
          doc="ST magnitude zero flux density.")
+
+def_unit(['maggy', 'mgy'],
+         namespace=_ns, prefixes=False,
+         doc="Maggies - a linear flux unit that is the flux for a mag=0 object."
+             "To tie this onto a specific calibrated unit system, the zero_point " "equivalency should be used.")
+def_unit(['nanomaggy', 'nmgy'], 1e-9 * maggie,
+         namespace=_ns, prefixes=False,
+         doc="Nanomaggie, i.e. ABmag=22.5")
+
+
+def zero_point(flux0=3631*u.Jy):
+    """
+    An equivalency for converting linear flux units ("maggys") defined relative
+    to a standard source into a standardized system.
+
+    Parameters
+    ----------
+    flux0 : u.Quantity
+        The flux of a magnitude-0 object in the "maggy" system. Default
+        corresponds to a perfect AB-like magnitude system.
+    """
+
+    return return [(maggie, flux0.unit,
+                    lambda mgy: flux0.value*mgy,
+                    lambda flx: flux0.value/flx)]
+
 
 ###########################################################################
 # CLEANUP
