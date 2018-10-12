@@ -77,18 +77,20 @@ class TestLogUnitCreation:
 
 
 def test_predefined_magnitudes():
+    # these magnitudes are only approximations to the true definition
     assert_quantity_allclose((-21.1*u.STmag).physical,
-                             1.*u.erg/u.cm**2/u.s/u.AA)
+                             1.*u.erg/u.cm**2/u.s/u.AA, rtol=.1)
     assert_quantity_allclose((-48.6*u.ABmag).physical,
-                             1.*u.erg/u.cm**2/u.s/u.Hz)
+                             1.*u.erg/u.cm**2/u.s/u.Hz, rtol=.1)
+
     assert_quantity_allclose((0*u.M_bol).physical, c.L_bol0)
     assert_quantity_allclose((0*u.m_bol).physical,
                              c.L_bol0/(4.*np.pi*(10.*c.pc)**2))
 
 
 def test_predefined_reinitialisation():
-    assert u.mag('ST') == u.STmag
-    assert u.mag('AB') == u.ABmag
+    assert u.mag('STflux') == u.STmag
+    assert u.mag('ABflux') == u.ABmag
     assert u.mag('Bol') == u.M_bol
     assert u.mag('bol') == u.m_bol
 

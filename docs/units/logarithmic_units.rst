@@ -106,11 +106,11 @@ the first star has a known ST magnitude, so we can calculate zero points::
 
     >>> b_ref, v_ref = 17.2 * u.STmag, 17.0 * u.STmag
     >>> b_ref, v_ref  # doctest: +FLOAT_CMP
-    (<Magnitude 17.2 mag(ST)>, <Magnitude 17. mag(ST)>)
+    (<Magnitude 17.2 mag(STflux)>, <Magnitude 17. mag(STflux)>)
     >>> zp_b, zp_v = b_ref - b_i0[0], v_ref - v_i0[0]
     >>> zp_b, zp_v  # doctest: +FLOAT_CMP
-    (<Magnitude 18.56250876 mag(s ST / ct)>,
-     <Magnitude 18.67485561 mag(s ST / ct)>)
+    (<Magnitude 18.56250876 mag(s STflux / ct)>,
+     <Magnitude 18.67485561 mag(s STflux / ct)>)
 
 Here, ``ST`` is a short-hand for the ST zero-point flux::
 
@@ -128,14 +128,14 @@ Now applying the calibration, we find (note the proper change in units)::
 
     >>> B, V = b_i0 + zp_b, v_i0 + zp_v
     >>> B, V  # doctest: +FLOAT_CMP
-    (<Magnitude [17.2       , 20.89280314, 22.95257499] mag(ST)>,
-     <Magnitude [17.        , 21.1195437 , 22.51029996] mag(ST)>)
+    (<Magnitude [17.2       , 20.89280314, 22.95257499] mag(STflux)>,
+     <Magnitude [17.        , 21.1195437 , 22.51029996] mag(STflux)>)
 
 We could convert these magnitudes to another system, e.g., ABMag, using
 appropriate equivalency::
 
     >>> V.to(u.ABmag, u.spectral_density(5500.*u.AA))  # doctest: +FLOAT_CMP
-    <Magnitude [16.99023831, 21.10978201, 22.50053827] mag(AB)>
+    <Magnitude [16.99023831, 21.10978201, 22.50053827] mag(ABflux)>
 
 Suppose we also knew the intrinsic color of the first star, then we can
 calculate the reddening::
@@ -163,7 +163,7 @@ distance modulus::
     >>> M_bol = 5.46 * u.M_bol
     >>> DM = V[0] - A_V + BC_V - M_bol
     >>> BC_V, M_bol, DM  # doctest: +FLOAT_CMP
-    (<Magnitude -0.3 mag(bol / ST)>,
+    (<Magnitude -0.3 mag(bol / STflux)>,
      <Magnitude 5.46 mag(Bol)>,
      <Magnitude 10. mag(bol / Bol)>)
 
