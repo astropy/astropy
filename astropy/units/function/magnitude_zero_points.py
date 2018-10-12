@@ -1,53 +1,16 @@
-# -*- coding: utf-8 -*-
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """
-This package defines magnitude zero points.  By default, they are used to
-define corresponding magnitudes, but not enabled as regular physical units.
-To enable them, do::
-
-    >>> from astropy.units import magnitude_zero_points
-    >>> magnitude_zero_points.enable()  # doctest: +SKIP
+This module has been deprecated and moved to astropy.units.photometric.  The
+names remain here for backwards compatibility.
 """
+from warnings import warn
 
-
-import numpy as _numpy
-from ..core import UnitBase, def_unit
-
-from ...constants import si as _si
-from .. import cgs, si, astrophys
-
+from ..core import def_unit
+from ..photometric import ABflux, STflux
 
 _ns = globals()
 
-def_unit(['Bol', 'L_bol'], _si.L_bol0, namespace=_ns, prefixes=False,
-         doc="Luminosity corresponding to absolute bolometric magnitude zero")
-def_unit(['bol', 'f_bol'], _si.L_bol0 / (4 * _numpy.pi * (10.*astrophys.pc)**2),
-         namespace=_ns, prefixes=False, doc="Irradiance corresponding to "
-         "appparent bolometric magnitude zero")
-def_unit(['AB'], 3631e-23* cgs.erg * cgs.cm**-2 / si.Hz,
-         namespace=_ns, prefixes=False,
-         doc="AB magnitude zero flux density.")
-def_unit(['ST'], 3631e-12 * cgs.erg * cgs.cm**-2 / si.AA,
-         namespace=_ns, prefixes=False,
-         doc="ST magnitude zero flux density.")
-
-###########################################################################
-# CLEANUP
-
-del UnitBase
-del def_unit
-del si
-del astrophys
-
-###########################################################################
-# DOCSTRING
-
-# This generates a docstring for this module that describes all of the
-# standard units defined here.
-from ..utils import generate_unit_summary as _generate_unit_summary
-if __doc__ is not None:
-    __doc__ += _generate_unit_summary(globals())
+def_unit(['AB'], ABflux, namespace=_ns)
+def_unit(['ST'], STflux, namespace=_ns)
 
 
 def enable():
@@ -59,6 +22,10 @@ def enable():
     This may be used with the ``with`` statement to enable these
     units only temporarily.
     """
+    warn('The magnitude_zero_points module has been deprecated, and moved to '
+         'astropy.units.photometric (with more appropriate default names). '
+         'the magnitude_zero_points are retained as aliases to the new units.')
+
     # Local import to avoid cyclical import
     from ..core import add_enabled_units
     # Local import to avoid polluting namespace
