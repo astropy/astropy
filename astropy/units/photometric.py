@@ -20,23 +20,24 @@ def_unit(['Bol', 'L_bol'], _si.L_bol0, namespace=_ns, prefixes=False,
 def_unit(['bol', 'f_bol'], _si.L_bol0 / (4 * _numpy.pi * (10.*astrophys.pc)**2),
          namespace=_ns, prefixes=False, doc="Irradiance corresponding to "
          "appparent bolometric magnitude zero")
-def_unit(['ABflux'], 3631e-23 * cgs.erg * cgs.cm**-2 / si.Hz,
+def_unit(['ABflux'], 3631e-23 * cgs.erg * cgs.cm**-2 / si.s / si.Hz,
          namespace=_ns, prefixes=False,
          doc="AB magnitude zero flux density.")
-def_unit(['STflux'], 3631e-12 * cgs.erg * cgs.cm**-2 / si.AA,
+def_unit(['STflux'], 3631e-12 * cgs.erg * cgs.cm**-2 / si.s / si.AA,
          namespace=_ns, prefixes=False,
          doc="ST magnitude zero flux density.")
 
 def_unit(['maggy', 'mgy'],
          namespace=_ns, prefixes=False,
          doc="Maggies - a linear flux unit that is the flux for a mag=0 object."
-             "To tie this onto a specific calibrated unit system, the zero_point " "equivalency should be used.")
+             "To tie this onto a specific calibrated unit system, the "
+             "phot_zero_point equivalency should be used.")
 def_unit(['nanomaggy', 'nmgy'], 1e-9 * maggy,
          namespace=_ns, prefixes=False,
          doc="Nanomaggy, i.e. ABmag=22.5")
 
 
-def zero_point(flux0=1.0*ABflux):
+def phot_zero_point(flux0=1.0*ABflux):
     """
     An equivalency for converting linear flux units ("maggys") defined relative
     to a standard source into a standardized system.
@@ -47,10 +48,13 @@ def zero_point(flux0=1.0*ABflux):
         The flux of a magnitude-0 object in the "maggy" system. Default
         corresponds to a perfect AB-like magnitude system.
     """
+    from .quantity import Quantity
 
-    return  [(maggy, flux0.unit,
-              lambda mgy: flux0.value*mgy,
-              lambda flx: flux0.value/flx)]
+    qflux0 = Quantity(flux0, copy=False)
+
+    return [(maggy, qflux0.unit,
+             lambda mgy: qflux0.value*mgy,
+             lambda flx: flx/qflux0.value)]
 
 
 ###########################################################################
