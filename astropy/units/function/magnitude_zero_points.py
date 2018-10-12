@@ -15,7 +15,7 @@ import numpy as _numpy
 from ..core import UnitBase, def_unit
 
 from ...constants import si as _si
-from .. import si, astrophys
+from .. import cgs, si, astrophys
 
 
 _ns = globals()
@@ -25,10 +25,10 @@ def_unit(['Bol', 'L_bol'], _si.L_bol0, namespace=_ns, prefixes=False,
 def_unit(['bol', 'f_bol'], _si.L_bol0 / (4 * _numpy.pi * (10.*astrophys.pc)**2),
          namespace=_ns, prefixes=False, doc="Irradiance corresponding to "
          "appparent bolometric magnitude zero")
-def_unit(['AB'], 10.**(-0.4*48.6) * 1.e-3 * si.W / si.m**2 / si.Hz,
+def_unit(['AB'], 3631e-23* cgs.erg * cgs.cm**-2 / si.Hz,
          namespace=_ns, prefixes=False,
          doc="AB magnitude zero flux density.")
-def_unit(['ST'], 10.**(-0.4*21.1) * 1.e-3 * si.W / si.m**2 / si.AA,
+def_unit(['ST'], 3631e-12 * cgs.erg * cgs.cm**-2 / si.AA,
          namespace=_ns, prefixes=False,
          doc="ST magnitude zero flux density.")
 
