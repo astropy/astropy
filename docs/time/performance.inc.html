@@ -371,7 +371,7 @@ from === to ***, the filename extension needs to be changed from .inc.rst to
 <p>Here we provide some tips and tricks for how to optimize performance of code
 using <cite>astropy.time</cite>.</p>
 <p>Listed below are two approaches to calculating light travel times for tens of
-thousands of sources in a degree patch of the sky</p>
+thousands of sources in a degree patch of the sky.</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; import numpy as np
 &gt;&gt;&gt; import astropy.coordinates as coord
@@ -384,11 +384,15 @@ thousands of sources in a degree patch of the sky</p>
 </pre>
 <pre class="doctest-block">
 &gt;&gt;&gt; coos = coord.SkyCoord(ra, dec, unit=u.deg)
-&gt;&gt;&gt; observatory = coord.EarthLocation.of_site('lapalma')
+</pre>
+<blockquote>
+Lapalma</blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; observatory = coord.EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
 </pre>
 <p><em>The first approach and its time to completion below:</em></p>
 <pre class="doctest-block">
-&gt;&gt;&gt; time.light_travel_time(coos, location=observatory)
+&gt;&gt;&gt; Time.light_travel_time(skycoord=coos, location=observatory)
 </pre>
 <blockquote>
 <p><strong>CPU times:</strong> user 56 ms, sys: 3.21 ms, total: 59.2 ms</p>
@@ -396,11 +400,14 @@ thousands of sources in a degree patch of the sky</p>
 </blockquote>
 <p><em>The second approach and its time to completion below:</em></p>
 <pre class="doctest-block">
-&gt;&gt;&gt; ltts = [time.light_travel_time(coo, location=coos.location) for coo in coos]
+&gt;&gt;&gt; ltts = [Time.light_travel_time(coo, location=coos.location) for coo in coos]
 </pre>
 <blockquote>
 <strong>CPU times:</strong> user 16min 45s, sys: 5.08 s, total: 16min 50s
 <strong>Wall time:</strong> 16min 58s</blockquote>
+<p>As you can see, the user time is significantly longer. This is because iteration
+is being used.</p>
+<p><strong>AVOID ITERATION FOR LIGHT TRAVEL TIME FOR MANY OBJECTS</strong></p>
 <p><em>For user cases where there are thousands of times for each source, broadcasting can be used:</em></p>
 <pre class="doctest-block">
 &gt;&gt;&gt; times = Time.now() + np.linspace(0, 3, 1000)*u.day

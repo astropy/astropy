@@ -30,7 +30,7 @@ thousands of sources in a degree patch of the sky.
 
 *The first approach and its time to completion below:*
 
->>> Time.light_travel_time(coos, location=observatory)
+>>> Time.light_travel_time(self, skycoord=coos, location=observatory)
 
    **CPU times:** user 56 ms, sys: 3.21 ms, total: 59.2 ms
 
