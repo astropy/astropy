@@ -987,8 +987,6 @@ def test_read_big_table2(tmpdir):
     assert len(t) == NB_ROWS
 
 
-# Test these both with guessing turned on and off
-@pytest.mark.parametrize("guess", [True, False])
 # fast_reader configurations: False| 'use_fast_converter'=False|True
 @pytest.mark.parametrize('reader', [0, 1, 2])
 # catch Windows environment since we cannot use _read() with custom fast_reader
