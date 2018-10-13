@@ -26,7 +26,7 @@ thousands of sources in a degree patch of the sky.
 
    Lapalma
 
->>> observatory = EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
+>>> observatory = coord.EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
 
 *The first approach and its time to completion below:*
 
