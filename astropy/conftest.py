@@ -4,6 +4,7 @@ This file contains pytest configuration settings that are astropy-specific
 (i.e.  those that would not necessarily be shared by affiliated packages
 making use of astropy's test runner).
 """
+import builtins
 from importlib.util import find_spec
 
 from astropy.tests.plugins.display import PYTEST_HEADER_MODULES
@@ -36,6 +37,7 @@ matplotlibrc_cache = {}
 
 
 def pytest_configure(config):
+    builtins._pytest_running = True
     # do not assign to matplotlibrc_cache in function scope
     if HAS_MATPLOTLIB:
         matplotlibrc_cache.update(matplotlib.rcParams)
@@ -43,6 +45,7 @@ def pytest_configure(config):
 
 
 def pytest_unconfigure(config):
+    builtins._pytest_running = False
     # do not assign to matplotlibrc_cache in function scope
     if HAS_MATPLOTLIB:
         matplotlib.rcParams.update(matplotlibrc_cache)
