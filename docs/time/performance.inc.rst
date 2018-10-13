@@ -23,7 +23,10 @@ thousands of sources in a degree patch of the sky.
 >>> dec = np.random.normal(0.0, 1.0, 50000)
 
 >>> coos = coord.SkyCoord(ra, dec, unit=u.deg)
->>> observatory = coord.EarthLocation.of_site('lapalma')
+
+   Lapalma
+
+>>> observatory = EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
 
 *The first approach and its time to completion below:*
 
