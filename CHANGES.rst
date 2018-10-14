@@ -539,7 +539,8 @@ Other Changes and Additions
   overrides with ``__array_ufunc__``. [#7502]
 
 
-3.0.5 (unreleased)
+
+3.0.6 (unreleased)
 ==================
 
 Bug Fixes
@@ -556,9 +557,6 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
-
-- Fixed bug in which consecutive ``StaticMatrixTransform``'s in a frame
-  transform path would be combined in the incorrect order. [#7707]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -599,9 +597,6 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
-- Fixing bug that doctests were not picked up from the narrative
-  documentation when tests were run for all modules. [#7767]
-
 astropy.time
 ^^^^^^^^^^^^
 
@@ -617,8 +612,32 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+
 Other Changes and Additions
 ---------------------------
+
+
+
+
+3.0.5 (2018-10-14)
+==================
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed bug in which consecutive ``StaticMatrixTransform``'s in a frame
+  transform path would be combined in the incorrect order. [#7707]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+- Fixing bug that doctests were not picked up from the narrative
+  documentation when tests were run for all modules. [#7767]
+
+
 
 3.0.4 (2018-08-02)
 ==================
@@ -1263,8 +1282,8 @@ Other Changes and Additions
 
 
 
-2.0.9 (unreleased)
-==================
+2.0.10 (unreleased)
+===================
 
 Bug Fixes
 ---------
@@ -1290,15 +1309,8 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
-- Fix reading of big files with the fast reader. [#7885]
-
 astropy.io.fits
 ^^^^^^^^^^^^^^^
-
-- ``HDUList.__contains__()`` now works with ``HDU`` arguments. That is,
-  ``hdulist[0] in hdulist`` now works as expected. [#7282]
-
-- ``HDUList`` s can now be written to streams in Python 3 [#7850]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
@@ -1315,12 +1327,64 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.vo
+^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+Other Changes and Additions
+---------------------------
+
+
+
+2.0.9 (2018-10-14)
+==================
+
+Bug Fixes
+---------
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- Fix reading of big files with the fast reader. [#7885]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- ``HDUList.__contains__()`` now works with ``HDU`` arguments. That is,
+  ``hdulist[0] in hdulist`` now works as expected. [#7282]
+
+- ``HDUList`` s can now be written to streams in Python 3 [#7850]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
 - Fixed the bug in CCData.read when the HDU is not specified and the first one
   is empty so the function searches for the first HDU with data which may not
   have an image extension. [#7739]
-
-astropy.samp
-^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -1348,17 +1412,11 @@ astropy.tests
   variable provided by pytest itself. Also made similar change to
   ``config_dir`` option as a precaution. [#7721]
 
-astropy.time
-^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
 - ``UnrecognizedUnit`` instances can now be compared to any other object
   without raising `TypeError`. [#7606]
-
-astropy.utils
-^^^^^^^^^^^^^
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -1367,9 +1425,6 @@ astropy.visualization
 
 - Fix an issue that caused a crash when using WCSAxes with a custom Transform
   object and when using ``grid_type='contours'`` to plot a grid. [#7846]
-
-astropy.vo
-^^^^^^^^^^
 
 astropy.wcs
 ^^^^^^^^^^^
