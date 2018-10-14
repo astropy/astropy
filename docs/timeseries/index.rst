@@ -493,13 +493,51 @@ Time series objects can be sliced by row index, using the same syntax as for
     2016-03-22T12:30:31.000     1    40
     2016-03-22T12:30:34.000     4    41
 
-However, time series objects also support the ability to access rows and subset
-of rows using the :attr:`~astropy.timeseries.TimeSeries.loc` and
-:attr:`~astropy.timeseries.TimeSeries.iloc` attributes described in
-:ref:`table-indexing`.
+Time series objects are also automatically indexed using the functionality
+described in :ref:`table-indexing`. This provides the ability to access rows and
+subset of rows using the :attr:`~astropy.timeseries.TimeSeries.loc` and
+:attr:`~astropy.timeseries.TimeSeries.iloc` attributes.
 
+The :attr:`~astropy.timeseries.TimeSeries.loc` attribute can be used to slice
+the time series by time. For example, the following can be used to extract all
+entries for a given timestamp::
 
-it is also possible to extract a subset of the time series using
+    >>> from astropy.time import Time
+    >>> ts.loc[Time('2016-03-22T12:30:31')]
+    <Row index=0>
+              time           flux  temp
+             object         int64 int64
+    ----------------------- ----- -----
+    2016-03-22T12:30:31.000     1    40
+
+or within a time range::
+
+    >>> ts.loc[Time('2016-03-22T12:30:31'):Time('2016-03-22T12:30:40')]
+    <SampledTimeSeries length=4>
+              time           flux  temp
+             object         int64 int64
+    ----------------------- ----- -----
+    2016-03-22T12:30:31.000     1    40
+    2016-03-22T12:30:34.000     4    41
+    2016-03-22T12:30:37.000     5    39
+    2016-03-22T12:30:40.000     3    24
+
+.. TODO: make it so that Time() is not required above
+
+Note that the result will always be sorted by time. Similarly, the
+:attr:`~astropy.timeseries.TimeSeries.iloc` attribute can be used to fetch
+rows from the time series *sorted by time*, so for example the two first
+entries (by time) can be accessed with::
+
+    >>> ts.iloc[0:2]
+    <SampledTimeSeries length=2>
+              time           flux  temp
+             object         int64 int64
+    ----------------------- ----- -----
+    2016-03-22T12:30:31.000     1    40
+    2016-03-22T12:30:34.000     4    41
+
+.. TODO: determine whether for binned time series we want to have a double index
 
 When to use sampled vs. binned time series
 ------------------------------------------
