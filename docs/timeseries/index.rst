@@ -21,7 +21,7 @@ Many different areas of astrophysics have to deal with 1D time series data,
 either sampling a continuous variable at fixed times or counting some events
 binned into time windows. The `astropy.timeseries` package therefore provides
 classes to represent and manipulate time series, including the following
-functionality::
+functionality:
 
 * Extending time series with extra rows
 * Concatenating multiple time series objects
@@ -53,7 +53,7 @@ Initializing a sampled time series
 The first type of time series that we will look at here is |SampledTimeSeries|,
 which can be used for a time series which samples a continuous variable at
 discrete and instantaneous times. Initializing a |SampledTimeSeries| can be done
-in the same ways as initializing a |Table| object (see :ref:`astropy-table`),
+in the same ways as initializing a |Table| object (see :ref:`Data Tables <astropy-table>`),
 but additional arguments related to the times should be specified.
 
 Evenly sampled time series
@@ -70,8 +70,8 @@ time series::
     ...                         n_samples=10)
 
 The ``time`` keyword argument can be set to anything that can be passed to the
-|Time| class (see also :ref:`astropy-time`). Note that the ``n_samples``
-argument is only needed if you are not also passing in data during
+|Time| class (see also :ref:`Time and Dates <astropy-time>`). Note that the
+``n_samples`` argument is only needed if you are not also passing in data during
 initialization (see `Passing data during initialization`_).
 
 Arbitrarily sampled time series
@@ -83,6 +83,14 @@ pass multiple times to the ``time`` argument::
     >>> ts2 = SampledTimeSeries(time=['2016-03-22T12:30:31',
     ...                               '2016-03-22T12:30:38',
     ...                               '2016-03-22T12:34:40'])
+    >>> ts2
+    <SampledTimeSeries length=3>
+              time
+             object
+    -----------------------
+    2016-03-22T12:30:31.000
+    2016-03-22T12:30:38.000
+    2016-03-22T12:34:40.000
 
 You can also specify a vector |Time| object directly.
 
@@ -94,8 +102,8 @@ corresponds to measurements taken over a range in time - for example a light
 curve constructed by binning X-ray photon events. This class supports equal-size
 or uneven bins, and contiguous and non-contiguous bins. As for
 |SampledTimeSeries|, initializing a |BinnedTimeSeries| can be done in the same
-ways as initializing a |Table| object (see :ref:`astropy-table`), but additional
-arguments related to the times should be specified.
+ways as initializing a |Table| object (see :ref:`Data Tables <astropy-table>`), but additional
+arguments related to the times should be specified as described below.
 
 Equal-sized contiguous bins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -351,13 +359,12 @@ and ``scale`` attributes::
 Combining time series
 ---------------------
 
-Similarly to the :mod:`astropy.table` module, the :mod:`astropy.timeseries`
-module provides :func:`~astropy.timeseries.vstack`, and
-:func:`~astropy.timeseries.hstack` functions to stack time series in different
-ways.
+The  :func:`~astropy.table.vstack`, and :func:`~astropy.table.hstack` functions
+from the :mod:`astropy.table` module can be used to stack time series in
+different ways.
 
 Time series can be stacked 'vertically' or row-wise using the
-:func:`~astropy.timeseries.vstack` function (although note that sampled time
+:func:`~astropy.table.vstack` function (although note that sampled time
 series cannot be combined with binned time series and vice-versa)::
 
     >>> from astropy.table import vstack
@@ -385,9 +392,9 @@ series cannot be combined with binned time series and vice-versa)::
     2016-03-22T12:50:40.000     2.0
     2016-03-22T12:50:43.000     3.0
 
-Time series can also be combined 'horizontally' or column-wise with other
-tables, though these should not be time series (as having multiple time columns
-would be confusing)::
+Time series can also be combined 'horizontally' or column-wise with other tables
+using the :func:`~astropy.table.hstack` function, though these should not be
+time series (as having multiple time columns would be confusing)::
 
     >>> from astropy.table import Table, hstack
     >>> data = Table(data={'temperature': [40, 41, 40, 39, 30]})
@@ -408,7 +415,7 @@ Sorting time series
 -------------------
 
 Sorting time series in-place can be done using the
-:meth:`~astropy.timeseries.TimeSeries.sort` method, as for |Table|::
+:meth:`~astropy.table.Table.sort` method, as for |Table|::
 
     >>> ts9 = SampledTimeSeries(time='2016-03-22T12:30:31',
     ...                         time_delta=3 * u.s,
@@ -496,3 +503,8 @@ it is also possible to extract a subset of the time series using
 
 When to use sampled vs. binned time series
 ------------------------------------------
+
+Reference/API
+=============
+
+.. automodapi:: astropy.timeseries
