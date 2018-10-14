@@ -1,0 +1,19 @@
+{# This extension of the 'layout.html' is useful if the docs
+   are built and hosted on readthedocs.org
+
+   The readthedocs app passes additional variables to the template context.
+
+   The variable 'version_slug' passed by the RTD app  is a string computed
+   from the version control tags. It can be 'latest', 'stable' or the
+   version number as a string.
+
+   Check out '/readthedocs/builds/version_slug.py' in 'github.com/rtfd/readthedocs.org'
+#}
+
+{% extends "!layout.html" %}
+{%- block extrahead %} 
+  {% if version_slug != "stable" or version_slug != "latest"  %}
+  <meta name="robots" content="noindex, nofollow">
+  {% endif %}
+  {{ super()  }}
+{% endblock %}
