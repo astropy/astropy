@@ -86,6 +86,7 @@ class SampledTimeSeries(TimeSeries):
                                 "'time' is an array")
 
         self.add_column(time, index=0, name='time')
+        self.add_index('time')
 
     @property
     def time(self):
@@ -191,6 +192,8 @@ class BinnedTimeSeries(TimeSeries):
 
         self.add_column(start_time, index=0, name='start_time')
         self.add_column(end_time, index=1, name='end_time')
+        self.add_index('start_time')
+        self.add_index('end_time')
 
     @property
     def start_time(self):
