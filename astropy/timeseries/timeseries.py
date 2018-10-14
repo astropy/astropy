@@ -1,8 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from copy import deepcopy
+
 import numpy as np
 
-from ..table import QTable
+from ..table import groups, QTable
 from ..time import Time, TimeDelta
 from .. import units as u
 from ..units import Quantity
@@ -17,14 +19,25 @@ class TimeSeries(QTable):
 
 class SampledTimeSeries(TimeSeries):
 
-    def __init__(self, data=None, time=None, time_delta=None, **kwargs):
+    def __init__(self, data=None, time=None, time_delta=None, n_samples=None, **kwargs):
         """
         """
 
         super().__init__(data=data, **kwargs)
 
+        # FIXME: this is because for some operations, an empty time series needs
+        # to be created, then columns added one by one. We should check that
+        # when columns are added manually, time is added first and is of the
+        # right type.
+        if data is None and time is None and time_delta is None:
+            return
+
         # First if time has been given in the table data, we should extract it
         # and treat it as if it had been passed as a keyword argument.
+
+        if data is not None:
+            # TODO: raise error if also passed explicily and inconsistent
+            n_samples = len(self)
 
         if 'time' in self.colnames:
             if time is None:
@@ -54,7 +67,7 @@ class SampledTimeSeries(TimeSeries):
                 raise TypeError("'time' is scalar, so 'bin_size' is required")
 
             if time_delta.isscalar:
-                time_delta = np.repeat(time_delta, len(self))
+                time_delta = np.repeat(time_delta, n_samples)
 
             time_delta = np.cumsum(time_delta)
             time_delta = np.roll(time_delta, 1)
@@ -66,7 +79,7 @@ class SampledTimeSeries(TimeSeries):
 
             if len(self.colnames) > 0 and len(time) != len(self):
                 raise ValueError("Length of 'time' ({0}) should match "
-                                 "table length ({1})".format(len(time), len(self)))
+                                 "table length ({1})".format(len(time), n_samples))
 
             if time_delta is not None:
                 raise TypeError("'time_delta' should not be specified since "
@@ -78,10 +91,21 @@ class SampledTimeSeries(TimeSeries):
     def time(self):
         return self['time']
 
+    def __getitem__(self, item):
+        if self._is_list_or_tuple_of_str(item):
+            if 'time' not in item:
+                out = QTable([self[x] for x in item],
+                             meta=deepcopy(self.meta),
+                             copy_indices=self._copy_indices)
+                out._groups = groups.TableGroups(out, indices=self.groups._indices,
+                                                 keys=self.groups._keys)
+                return out
+        return super().__getitem__(item)
+
 
 class BinnedTimeSeries(TimeSeries):
 
-    def __init__(self, data=None, start_time=None, end_time=None, bin_size=None, **kwargs):
+    def __init__(self, data=None, start_time=None, end_time=None, bin_size=None, n_bins=None, **kwargs):
 
         super().__init__(data=data, **kwargs)
 
@@ -131,7 +155,12 @@ class BinnedTimeSeries(TimeSeries):
                 raise TypeError("'start_time' is scalar, so 'bin_size' is required")
 
             if bin_size.isscalar:
-                bin_size = np.repeat(bin_size, len(self))
+
+                if data is not None:
+                    # TODO: raise error if also passed explicily and inconsistent
+                    n_bins = len(self)
+
+                bin_size = np.repeat(bin_size, n_bins)
 
             time_delta = np.cumsum(bin_size)
             end_time = start_time + time_delta
@@ -145,7 +174,7 @@ class BinnedTimeSeries(TimeSeries):
 
         else:
 
-            if len(start_time) != len(self):
+            if len(self.colnames) > 0 and len(start_time) != len(self):
                 raise ValueError("Length of 'start_time' ({0}) should match "
                                  "table length ({1})".format(len(start_time), len(self)))
 
