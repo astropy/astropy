@@ -1,26 +1,8 @@
-2.0.9 (unreleased)
+2.0.9 (2018-10-14)
 ==================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -35,27 +17,12 @@ astropy.io.fits
 
 - ``HDUList`` s can now be written to streams in Python 3 [#7850]
 
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
 astropy.nddata
 ^^^^^^^^^^^^^^
 
 - Fixed the bug in CCData.read when the HDU is not specified and the first one
   is empty so the function searches for the first HDU with data which may not
   have an image extension. [#7739]
-
-astropy.samp
-^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -83,17 +50,11 @@ astropy.tests
   variable provided by pytest itself. Also made similar change to
   ``config_dir`` option as a precaution. [#7721]
 
-astropy.time
-^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
 - ``UnrecognizedUnit`` instances can now be compared to any other object
   without raising `TypeError`. [#7606]
-
-astropy.utils
-^^^^^^^^^^^^^
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -102,9 +63,6 @@ astropy.visualization
 
 - Fix an issue that caused a crash when using WCSAxes with a custom Transform
   object and when using ``grid_type='contours'`` to plot a grid. [#7846]
-
-astropy.vo
-^^^^^^^^^^
 
 astropy.wcs
 ^^^^^^^^^^^
