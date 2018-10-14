@@ -7,3 +7,4 @@ data sets.
 """
 
 from .timeseries import *
+from . import io

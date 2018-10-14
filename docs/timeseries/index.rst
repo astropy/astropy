@@ -313,15 +313,22 @@ Accessing times
 
 The ``time`` column (for |SampledTimeSeries|) and the ``start_time``
 and ``end_time`` columns (for |BinnedTimeSeries|) can be accessed using the regular
-column access notation, as shown in |Accessing data|. Since these columns are
-|Time| arrays, it is possible to use the usual attributes on |Time| to convert
-the time to different formats or scales::
+column access notation, as shown in |Accessing data|, but they can also be accessed
+with convenience attributes ``time``, ``start_time``, and ``end_time``::
 
-    >>> ts['time'].mjd
+    >>> ts.time
+    <Time object: scale='utc' format='isot' value=['2016-03-22T12:30:31.000' '2016-03-22T12:30:34.000'
+     '2016-03-22T12:30:37.000' '2016-03-22T12:30:40.000'
+     '2016-03-22T12:30:43.000']>
+
+Since these columns/attributes are |Time| arrays, it is possible to use the
+usual attributes on |Time| to convert the time to different formats or scales::
+
+    >>> ts.time.mjd
     array([57469.52119213, 57469.52122685, 57469.52126157, 57469.5212963 ,
            57469.52133102])
 
-    >>> ts['time'].tai
+    >>> ts.time.tai
     <Time object: scale='tai' format='isot' value=['2016-03-22T12:31:07.000' '2016-03-22T12:31:10.000'
      '2016-03-22T12:31:13.000' '2016-03-22T12:31:16.000'
      '2016-03-22T12:31:19.000']>
@@ -333,7 +340,7 @@ Since the various time columns are |Time| objects, the default format and scale
 to use for the display of the time series can be changed using the ``format``
 and ``scale`` attributes::
 
-    >>> ts['time'].format = 'isot'
+    >>> ts.time.format = 'isot'
     >>> ts
     <SampledTimeSeries length=5>
               time           flux
@@ -344,7 +351,7 @@ and ``scale`` attributes::
     2016-03-22T12:30:37.000     5
     2016-03-22T12:30:40.000     3
     2016-03-22T12:30:43.000     2
-    >>> ts['time'].format = 'unix'
+    >>> ts.time.format = 'unix'
     >>> ts
     <SampledTimeSeries length=5>
            time         flux
@@ -447,10 +454,10 @@ Extracting a subset of columns
 
 Let's consider a case where a time series has two data columns::
 
-    >>> ts = SampledTimeSeries(time='2016-03-22T12:30:31',
-    ...                        time_delta=3 * u.s,
-    ...                        data={'flux': [1, 4, 5, 3, 2],
-    ...                              'temp': [40, 41, 39, 24, 20]})
+   >>> ts = SampledTimeSeries(time='2016-03-22T12:30:31',
+   ...                        time_delta=3 * u.s,
+   ...                        data={'flux': [1, 4, 5, 3, 2],
+   ...                              'temp': [40, 41, 39, 24, 20]})
 
 We can create a new time series with just the flux column by doing::
 
@@ -541,6 +548,29 @@ entries (by time) can be accessed with::
 
 When to use sampled vs. binned time series
 ------------------------------------------
+
+Reading/writing time series
+---------------------------
+
+Since |SampledTimeSeries| and |BinnedTimeSeries| are sub-classes of |QTable|,
+they have :meth:`~astropy.table.Table.read` and
+:meth:`~astropy.table.Table.write` methods that can be used to read time series
+from files. At the moment only a few formats are defined in astropy itself, but
+it is easy for other packages and users to define their own readers/writers
+with the :ref:`table_io`. Here is an example of using Kepler FITS time series:
+
+.. plot::
+   :include-source:
+
+   import matplotlib.pyplot as plt
+   from astropy.timeseries import SampledTimeSeries
+
+   url = 'http://exoplanetarchive.ipac.caltech.edu/data/ETSS//Kepler/005/755/19/kplr010666592-2009131110544_slc.fits'
+   ts = SampledTimeSeries.read(url, format='kepler.fits')
+
+   plt.plot(ts.time.jd, ts['sap_flux'])
+   plt.xlabel('Barycentric Julian Date')
+   plt.ylabel('SAP Flux (e-/s)')
 
 Reference/API
 =============
