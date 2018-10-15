@@ -236,7 +236,7 @@ class NDUncertainty(metaclass=ABCMeta):
         and return the correct unit for the uncertainty given the uncertainty
         type.
         """
-        raise None
+        return None
 
     def __repr__(self):
         prefix = self.__class__.__name__ + '('
@@ -396,6 +396,12 @@ class UnknownUncertainty(NDUncertainty):
                            uncertainty type.
         """
         return 'unknown'
+
+    def _data_unit_to_uncertainty_unit(self, value):
+        """
+        No way to convert if uncertainty is unknown.
+        """
+        return None
 
     def _convert_uncertainty(self, other_uncert):
         """Raise an Exception because unknown uncertainty types cannot

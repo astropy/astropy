@@ -10,28 +10,11 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from ..nddata import NDData
-from ..nduncertainty import NDUncertainty, StdDevUncertainty
+from ..nduncertainty import StdDevUncertainty
 from ... import units as u
 from ...utils import NumpyRNGContext
 
-
-class FakeUncertainty(NDUncertainty):
-
-    @property
-    def uncertainty_type(self):
-        return 'fake'
-
-    def _propagate_add(self, data, final_data):
-        pass
-
-    def _propagate_subtract(self, data, final_data):
-        pass
-
-    def _propagate_multiply(self, data, final_data):
-        pass
-
-    def _propagate_divide(self, data, final_data):
-        pass
+from .test_nduncertainty import FakeUncertainty
 
 
 class FakeNumpyArray:
