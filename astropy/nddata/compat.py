@@ -113,15 +113,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         if value is not None:
             if isinstance(value, NDUncertainty):
                 class_name = self.__class__.__name__
-                if self.unit and value._unit:
-                    try:
-                        scaling = (1 * value._unit).to(self.unit)
-                    except UnitsError:
-                        raise UnitConversionError(
-                            'Cannot convert unit of uncertainty to unit of '
-                            '{0} object.'.format(class_name))
-                    value.array = value.array * scaling
-                elif not self.unit and value._unit:
+                if not self.unit and value._unit:
                     # Raise an error if uncertainty has unit and data does not
                     raise ValueError("Cannot assign an uncertainty with unit "
                                      "to {0} without "
