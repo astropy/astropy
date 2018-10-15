@@ -229,12 +229,14 @@ class NDUncertainty(metaclass=ABCMeta):
                                               "data".format(self.unit,
                                                             parent_unit))
 
+    @abstractmethod
     def _data_unit_to_uncertainty_unit(self, value):
         """
-        Utility method for converting a value in units of the uncertainty
-        to the same unit as the data.
+        Subclasses must override this property. It should take in a data unit
+        and return the correct unit for the uncertainty given the uncertainty
+        type.
         """
-        raise NotImplementedError("Subclasses need to implement this dang method")
+        raise None
 
     def __repr__(self):
         prefix = self.__class__.__name__ + '('
