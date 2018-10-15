@@ -116,19 +116,20 @@ to specify a start time as well as a bin size::
     ...                        bin_size=3 * u.s, n_bins=10)
     >>> ts3
     <BinnedTimeSeries length=10>
-           start_time               end_time
-             object                  object
-    ----------------------- -----------------------
-    2016-03-22T12:30:31.000 2016-03-22T12:30:34.000
-    2016-03-22T12:30:34.000 2016-03-22T12:30:37.000
-    2016-03-22T12:30:37.000 2016-03-22T12:30:40.000
-    2016-03-22T12:30:40.000 2016-03-22T12:30:43.000
-    2016-03-22T12:30:43.000 2016-03-22T12:30:46.000
-    2016-03-22T12:30:46.000 2016-03-22T12:30:49.000
-    2016-03-22T12:30:49.000 2016-03-22T12:30:52.000
-    2016-03-22T12:30:52.000 2016-03-22T12:30:55.000
-    2016-03-22T12:30:55.000 2016-03-22T12:30:58.000
-    2016-03-22T12:30:58.000 2016-03-22T12:31:01.000
+        start_time       bin_size
+                            s
+          object         float64
+    ----------------------- --------
+    2016-03-22T12:30:31.000      3.0
+    2016-03-22T12:30:34.000      3.0
+    2016-03-22T12:30:37.000      3.0
+    2016-03-22T12:30:40.000      3.0
+    2016-03-22T12:30:43.000      3.0
+    2016-03-22T12:30:46.000      3.0
+    2016-03-22T12:30:49.000      3.0
+    2016-03-22T12:30:52.000      3.0
+    2016-03-22T12:30:55.000      3.0
+    2016-03-22T12:30:58.000      3.0
 
 Note that the ``n_bins`` argument is only needed if you are not also passing in
 data during initialization (see `Passing data during initialization`_).
@@ -144,13 +145,14 @@ required)::
     ...                        bin_size=[3, 3, 2, 3] * u.s)
     >>> ts4
     <BinnedTimeSeries length=4>
-           start_time               end_time
-             object                  object
-    ----------------------- -----------------------
-    2016-03-22T12:30:31.000 2016-03-22T12:30:34.000
-    2016-03-22T12:30:34.000 2016-03-22T12:30:37.000
-    2016-03-22T12:30:37.000 2016-03-22T12:30:39.000
-    2016-03-22T12:30:39.000 2016-03-22T12:30:42.000
+        start_time       bin_size
+                            s
+          object         float64
+    ----------------------- --------
+    2016-03-22T12:30:31.000      3.0
+    2016-03-22T12:30:34.000      3.0
+    2016-03-22T12:30:37.000      2.0
+    2016-03-22T12:30:39.000      3.0
 
 Alternatively, you can create the same time series by giving an array of start
 times as well as a single end time::
@@ -161,15 +163,17 @@ times as well as a single end time::
     ...                                    '2016-03-22T12:30:37',
     ...                                    '2016-03-22T12:30:39'],
     ...                        end_time='2016-03-22T12:30:42')
-    >>> ts5
+    >>> ts5  # doctest: +FLOAT_CMP
     <BinnedTimeSeries length=4>
-           start_time               end_time
-             object                  object
-    ----------------------- -----------------------
-    2016-03-22T12:30:31.000 2016-03-22T12:30:34.000
-    2016-03-22T12:30:34.000 2016-03-22T12:30:37.000
-    2016-03-22T12:30:37.000 2016-03-22T12:30:39.000
-    2016-03-22T12:30:39.000 2016-03-22T12:30:42.000
+        start_time            bin_size
+                                 s
+          object              float64
+    ----------------------- -----------------
+    2016-03-22T12:30:31.000               3.0
+    2016-03-22T12:30:34.000               3.0
+    2016-03-22T12:30:37.000               2.0
+    2016-03-22T12:30:39.000               3.0
+
 
 Uneven non-contiguous bins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -183,12 +187,14 @@ specify an array of start times and bin widths::
     ...                        bin_size=[5, 100, 2]*u.s)
     >>> ts6
     <BinnedTimeSeries length=3>
-           start_time               end_time
-             object                  object
-    ----------------------- -----------------------
-    2016-03-22T12:30:31.000 2016-03-22T12:30:36.000
-    2016-03-22T12:30:38.000 2016-03-22T12:32:18.000
-    2016-03-22T12:34:40.000 2016-03-22T12:34:42.000
+        start_time       bin_size
+                            s
+          object         float64
+    ----------------------- --------
+    2016-03-22T12:30:31.000      5.0
+    2016-03-22T12:30:38.000    100.0
+    2016-03-22T12:34:40.000      2.0
+
 
 Or in the most general case, you can also specify multiple times for
 ``start_time`` and ``end_time``::
@@ -199,14 +205,15 @@ Or in the most general case, you can also specify multiple times for
     ...                        end_time=['2016-03-22T12:30:32',
     ...                                  '2016-03-22T12:30:35',
     ...                                  '2016-03-22T12:30:41'])
-    >>> ts7
+    >>> ts7  # doctest: +FLOAT_CMP
     <BinnedTimeSeries length=3>
-           start_time               end_time
-             object                  object
-    ----------------------- -----------------------
-    2016-03-22T12:30:31.000 2016-03-22T12:30:32.000
-    2016-03-22T12:30:33.000 2016-03-22T12:30:35.000
-    2016-03-22T12:30:40.000 2016-03-22T12:30:41.000
+           start_time            bin_size
+                                    s
+             object              float64
+    ----------------------- ------------------
+    2016-03-22T12:30:31.000                1.0
+    2016-03-22T12:30:33.000                2.0
+    2016-03-22T12:30:40.000                1.0
 
 You can also specify vector |Time| objects directly.
 
@@ -254,16 +261,16 @@ It is also possible to pass the data during the initialization, as for
     ...                                    '2016-03-22T12:30:39'],
     ...                        end_time='2016-03-22T12:30:42',
     ...                        data={'flux': [1., 4., 5., 6.] * u.mJy})
-    >>> ts8
+    >>> ts8  # doctest: +FLOAT_CMP
     <BinnedTimeSeries length=4>
-           start_time               end_time          flux
-                                                      mJy
-             object                  object         float64
-    ----------------------- ----------------------- -------
-    2016-03-22T12:30:31.000 2016-03-22T12:30:34.000     1.0
-    2016-03-22T12:30:34.000 2016-03-22T12:30:37.000     4.0
-    2016-03-22T12:30:37.000 2016-03-22T12:30:39.000     5.0
-    2016-03-22T12:30:39.000 2016-03-22T12:30:42.000     6.0
+           start_time            bin_size       flux
+                                    s           mJy
+             object              float64      float64
+    ----------------------- ----------------- -------
+    2016-03-22T12:30:31.000               3.0     1.0
+    2016-03-22T12:30:34.000               3.0     4.0
+    2016-03-22T12:30:37.000               2.0     5.0
+    2016-03-22T12:30:39.000               3.0     6.0
 
 Adding rows
 ^^^^^^^^^^^
@@ -595,7 +602,7 @@ mission into 20 minute bins using a median function:
     ts_binned = ts.downsample(bin_size=20 * u.min, func=np.nanmedian)
 
     plt.plot(ts.time.jd, ts['sap_flux'], 'k.')
-    plt.plot(ts_binned.start_time.jd, ts_binned['sap_flux'], 'r-')
+    plt.plot(ts_binned.start_time.jd, ts_binned['sap_flux'], 'r-', drawstyle='steps-pre')
     plt.xlabel('Barycentric Julian Date')
     plt.ylabel('SAP Flux (e-/s)')
 

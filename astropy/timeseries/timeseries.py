@@ -215,12 +215,12 @@ class BinnedTimeSeries(TimeSeries):
             else:
                 raise TypeError("'start_time' has been given both in the table and as a keyword argument")
 
-        if 'end_time' in self.colnames:
-            if end_time is None:
-                end_time = self.columns['end_time']
-                self.remove_column('end_time')
+        if 'bin_size' in self.colnames:
+            if bin_size is None:
+                bin_size = self.columns['end_time']
+                self.remove_column('bin_size')
             else:
-                raise TypeError("'end_time' has been given both in the table and as a keyword argument")
+                raise TypeError("'bin_size' has been given both in the table and as a keyword argument")
 
         if start_time is None:
             raise TypeError("'start_time' has not been specified")
@@ -273,21 +273,20 @@ class BinnedTimeSeries(TimeSeries):
                 raise ValueError("Length of 'start_time' ({0}) should match "
                                  "table length ({1})".format(len(start_time), len(self)))
 
-            if bin_size is not None:
-                end_time = start_time + bin_size
             if end_time is not None:
                 if end_time.isscalar:
                     times = start_time.copy()
                     times[:-1] = times[1:]
                     times[-1] = end_time
                     end_time = times
-            else:
+                bin_size = (end_time - start_time).sec * u.s
+            elif bin_size is None:
                 raise TypeError("Either 'bin_size' or 'end_time' should be specified")
 
         self.add_column(start_time, index=0, name='start_time')
-        self.add_column(end_time, index=1, name='end_time')
         self.add_index('start_time')
-        self.add_index('end_time')
+
+        self.add_column(bin_size, index=1, name='bin_size')
 
     @property
     def start_time(self):
@@ -295,4 +294,8 @@ class BinnedTimeSeries(TimeSeries):
 
     @property
     def end_time(self):
-        return self['end_time']
+        return self['start_time'] + self['bin_size']
+
+    @property
+    def centre_time(self):
+        return self['start_time'] + self['bin_size'] * 0.5
