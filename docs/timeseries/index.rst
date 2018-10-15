@@ -462,10 +462,11 @@ Extracting a subset of columns
 
 Let's consider a case where a time series has two data columns::
 
+   >>> from collections import OrderedDict
    >>> ts = SampledTimeSeries(time='2016-03-22T12:30:31',
    ...                        time_delta=3 * u.s,
-   ...                        data={'flux': [1., 4., 5., 3., 2.],
-   ...                              'temp': [40., 41., 39., 24., 20.]})
+   ...                        data=OrderedDict(flux=[1., 4., 5., 3., 2.],
+   ...                                         temp=[40., 41., 39., 24., 20.]))
 
 We can create a new time series with just the flux column by doing::
 
