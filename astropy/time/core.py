@@ -817,6 +817,58 @@ class Time(ShapedLikeNDArray):
     def mask(self):
         return self._time.mask
 
+    def insert(self, obj, values, axis=0):
+        """
+        Insert values before the given indices in the column and return
+        a new `~astropy.time.Time` or  `~astropy.time.TimeDelta` object.
+
+        The API signature matches the `np.insert` API, but is more limited.
+        The specification of insert index ``obj`` must be a single integer,
+        and the ``axis`` must be ``0`` for simple row insertion before the
+        index.
+
+        Parameters
+        ----------
+        obj : int
+            Integer index before which ``values`` is inserted.
+        values : array_like
+            Value(s) to insert.  If the type of ``values`` is different
+            from that of quantity, ``values`` is converted to the matching type.
+        axis : int, optional
+            Axis along which to insert ``values``.  If ``axis`` is None then
+            the column array is flattened before insertion.  Default is 0,
+            which will insert a row.
+
+        Returns
+        -------
+        out : `~astropy.time.Time` subclass
+            New time object with inserted value(s)
+        """
+        if not isinstance(obj, (int, np.integer)):
+            raise TypeError('obj arg must be an integer')
+        idx0 = obj  # Rename for readability
+
+        if axis != 0:
+            raise ValueError('axis must be 0')
+
+        try:
+            n_values = len(values)
+        except TypeError:
+            values = [values]
+            n_values = 1
+
+        out = self.__class__.info.new_like([self], len(self) + n_values, name=self.info.name)
+
+        out._time.jd1[:idx0] = self._time.jd1[:idx0]
+        out._time.jd2[:idx0] = self._time.jd2[:idx0]
+
+        out[idx0:idx0 + n_values] = values
+
+        out._time.jd1[idx0 + n_values:] = self._time.jd1[idx0:]
+        out._time.jd2[idx0 + n_values:] = self._time.jd2[idx0:]
+
+        return out
+
     def _make_value_equivalent(self, item, value):
         """Coerce setitem value into an equivalent Time object"""
 
