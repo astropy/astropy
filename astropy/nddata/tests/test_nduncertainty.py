@@ -55,10 +55,18 @@ class FakeUncertainty(NDUncertainty):
     def _propagate_divide(self, data, final_data):
         pass
 
+
 # Test the fake (added also StdDevUncertainty which should behave identical)
 
 # the list of classes used for parametrization in tests below
-uncertainty_types_to_be_tested = [FakeUncertainty, StdDevUncertainty, UnknownUncertainty]
+uncertainty_types_to_be_tested = [
+    FakeUncertainty,
+    StdDevUncertainty,
+    VarianceUncertainty,
+    InverseVariance,
+    UnknownUncertainty
+]
+
 
 @pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
 def test_init_fake_with_list(UncertClass):
@@ -244,6 +252,7 @@ def test_for_stolen_uncertainty():
     ndd2 = NDData(2, uncertainty=ndd1.uncertainty)
     # uncertainty.parent_nddata.data should be the original data!
     assert ndd1.uncertainty.parent_nddata.data == ndd1.data
+    assert ndd2.uncertainty.parent_nddata.data == ndd2.data
 
 
 @pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
@@ -255,7 +264,6 @@ def test_quantity(UncertClass):
     fake_uncert_nounit = UncertClass([1, 2, 3])
     assert isinstance(fake_uncert_nounit.quantity, u.Quantity)
     assert fake_uncert_nounit.quantity.unit.is_equivalent(u.dimensionless_unscaled)
-    assert ndd2.uncertainty.parent_nddata.data == ndd2.data
 
 
 @pytest.mark.parametrize(('UncertClass'),
