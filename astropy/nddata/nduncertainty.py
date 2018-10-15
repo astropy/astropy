@@ -11,7 +11,7 @@ import weakref
 
 # from ..utils.compat import ignored
 from .. import log
-from ..units import Unit, Quantity
+from ..units import Unit, Quantity, UnitConversionError
 
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',
@@ -144,13 +144,26 @@ class NDUncertainty(metaclass=ABCMeta):
 
     @unit.setter
     def unit(self, value):
-        """Each subclass should interpret how it transform parent's unit into the correct Uncertainty Unit
-        (i.e. StdDev should have the same, Variance should have its square, ...)
         """
-        if isinstance(value, NDDataBase):
-            raise NotImplementedError("How to interpret the parent's unit into NDUncertainty class "
-                                      "needs to be specified on each subclass")
-        self._unit = value
+        If the unit is not set, the square of the unit of the
+        parent will be returned.
+        """
+        if value is not None:
+            # Check the hidden attribute below, not the property. The property
+            # raises an exception if there is no parent_nddata.
+            if self._parent_nddata is not None:
+                parent_unit = self.parent_nddata.unit
+                try:
+                    self._data_unit_to_uncertainty_unit(parent_unit).to(value)
+                except UnitConversionError:
+                    raise UnitConversionError("Unit {} is incompatible "
+                                              "with unit {} of parent "
+                                              "nddata".format(value,
+                                                              parent_unit))
+
+            self._unit = Unit(value)
+        else:
+            self._unit = value
 
     @property
     def quantity(self):
@@ -190,14 +203,38 @@ class NDUncertainty(metaclass=ABCMeta):
             # instance of NDData. Direct references should NOT be used:
             # https://github.com/astropy/astropy/pull/4799#discussion_r61236832
             value = weakref.ref(value)
+        # Set _parent_nddata here and access below with the property because value
+        # is a weakref
         self._parent_nddata = value
         # set uncertainty unit to that of the parent if it was not already set, unless initializing
         # with empty parent (Value=None)
-        if value is not None and self.unit is None:
-            if self.parent_nddata.unit is None:
-                self.unit = None
+        if value is not None:
+            parent_unit = self.parent_nddata.unit
+            if self.unit is None:
+                if parent_unit is None:
+                    self.unit = None
+                else:
+                    # Set the uncertainty's unit to the appropriate value
+                    self.unit = self._data_unit_to_uncertainty_unit(parent_unit)
             else:
-                self.unit = self.parent_nddata
+                # Check that units of uncertainty are compatible with those of
+                # the parent. If they are, no need to change units of the
+                # uncertainty or the data. If they are not, let the user know.
+                unit_from_data = self._data_unit_to_uncertainty_unit(parent_unit)
+                try:
+                    unit_from_data.to(self.unit)
+                except UnitConversionError:
+                    raise UnitConversionError("Unit {} of uncertainty "
+                                              "incompatible with unit {} of "
+                                              "data".format(self.unit,
+                                                            parent_unit))
+
+    def _data_unit_to_uncertainty_unit(self, value):
+        """
+        Utility method for converting a value in units of the uncertainty
+        to the same unit as the data.
+        """
+        raise NotImplementedError("Subclasses need to implement this dang method")
 
     def __repr__(self):
         prefix = self.__class__.__name__ + '('
@@ -627,19 +664,6 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
         The unit will not be displayed.
     """
 
-    @NDUncertainty.unit.setter
-    def unit(self, value):
-        """
-        If the unit is not set, the unit of the
-        parent will be returned.
-        """
-        if isinstance(value, NDDataBase):
-            self._unit = value.unit
-        elif value is not None:
-            self._unit = Unit(value)
-        else:
-            self._unit = value
-
     @property
     def supports_correlated(self):
         """`True` : `StdDevUncertainty` allows to propagate correlated \
@@ -687,6 +711,9 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
                                                   divide=True,
                                                   to_variance=np.square,
                                                   from_variance=np.sqrt)
+
+    def _data_unit_to_uncertainty_unit(self, value):
+        return value
 
 
 class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
@@ -753,19 +780,6 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
         """
         return True
 
-    @NDUncertainty.unit.setter
-    def unit(self, value):
-        """
-        If the unit is not set, the square of the unit of the
-        parent will be returned.
-        """
-        if isinstance(value, NDDataBase):
-            self._unit = value.unit**2
-        elif value is not None:
-            self._unit = Unit(value)
-        else:
-            self._unit = value
-
     def _propagate_add(self, other_uncert, result_data, correlation):
         return super()._propagate_add_sub(other_uncert, result_data,
                                           correlation, subtract=False)
@@ -783,6 +797,9 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
         return super()._propagate_multiply_divide(other_uncert,
                                                   result_data, correlation,
                                                   divide=True)
+
+    def _data_unit_to_uncertainty_unit(self, value):
+        return value ** 2
 
 
 def _inverse(x):
@@ -855,19 +872,6 @@ class InverseVariance(_VariancePropagationMixin, NDUncertainty):
         """
         return True
 
-    @NDUncertainty.unit.setter
-    def unit(self, value):
-        """
-        If the unit is not set, the square of the inverse of the unit of the
-        parent will be returned.
-        """
-        if isinstance(value, NDDataBase):
-            self._unit = 1.0 / value.unit ** 2
-        elif value is not None:
-            self._unit = Unit(value)
-        else:
-            self._unit = value
-
     def _propagate_add(self, other_uncert, result_data, correlation):
         return super()._propagate_add_sub(other_uncert, result_data,
                                           correlation, subtract=False,
@@ -893,3 +897,5 @@ class InverseVariance(_VariancePropagationMixin, NDUncertainty):
                                                   divide=True,
                                                   to_variance=_inverse,
                                                   from_variance=_inverse)
+    def _data_unit_to_uncertainty_unit(self, value):
+        return 1 / value ** 2
