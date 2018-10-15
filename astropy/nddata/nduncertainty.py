@@ -424,7 +424,11 @@ class _VariancePropagationMixin:
         else:
             correlation_sign = 1
 
+        try:
         result_unit_sq = result_data.unit ** 2
+        except AttributeError:
+            result_unit_sq = None
+
         if other_uncert.array is not None:
             # Formula: sigma**2 = dB
             if (other_uncert.unit is not None and
