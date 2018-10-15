@@ -284,14 +284,14 @@ As for |Table|, columns can be accessed by name::
 
     >>> ts = SampledTimeSeries(time='2016-03-22T12:30:31',
     ...                        time_delta=3 * u.s,
-    ...                        data={'flux': [1, 4, 5, 3, 2]})
+    ...                        data={'flux': [1., 4., 5., 3., 2.]})
     >>> ts['flux']
-    <Column name='flux' dtype='int64' length=5>
-    1
-    4
-    5
-    3
-    2
+    <Column name='flux' dtype='float64' length=5>
+    1.0
+    4.0
+    5.0
+    3.0
+    2.0
     >>> ts['time']
     <Time object: scale='utc' format='isot' value=['2016-03-22T12:30:31.000' '2016-03-22T12:30:34.000'
      '2016-03-22T12:30:37.000' '2016-03-22T12:30:40.000'
@@ -301,10 +301,10 @@ and rows can be accessed by index::
 
     >>> ts[0]
     <Row index=0>
-              time           flux
-             object         int64
-    ----------------------- -----
-    2016-03-22T12:30:31.000     1
+              time            flux
+             object         float64
+    ----------------------- -------
+    2016-03-22T12:30:31.000     1.0
 
 Accessing individual values can then be done either by accessing a column then a
 row, or vice-versa::
@@ -351,25 +351,25 @@ and ``scale`` attributes::
     >>> ts.time.format = 'isot'
     >>> ts
     <SampledTimeSeries length=5>
-              time           flux
-             object         int64
-    ----------------------- -----
-    2016-03-22T12:30:31.000     1
-    2016-03-22T12:30:34.000     4
-    2016-03-22T12:30:37.000     5
-    2016-03-22T12:30:40.000     3
-    2016-03-22T12:30:43.000     2
+              time            flux
+             object         float64
+    ----------------------- -------
+    2016-03-22T12:30:31.000     1.0
+    2016-03-22T12:30:34.000     4.0
+    2016-03-22T12:30:37.000     5.0
+    2016-03-22T12:30:40.000     3.0
+    2016-03-22T12:30:43.000     2.0
     >>> ts.time.format = 'unix'
     >>> ts
     <SampledTimeSeries length=5>
-           time         flux
-          object       int64
-    ------------------ -----
-          1458649831.0     1
-          1458649834.0     4
-    1458649837.0000002     5
-    1458649840.0000002     3
-          1458649843.0     2
+           time          flux
+          object       float64
+    ------------------ -------
+          1458649831.0     1.0
+          1458649834.0     4.0
+    1458649837.0000002     5.0
+    1458649840.0000002     3.0
+          1458649843.0     2.0
 
 Combining time series
 ---------------------
@@ -412,19 +412,19 @@ using the :func:`~astropy.table.hstack` function, though these should not be
 time series (as having multiple time columns would be confusing)::
 
     >>> from astropy.table import Table, hstack
-    >>> data = Table(data={'temperature': [40, 41, 40, 39, 30]})
+    >>> data = Table(data={'temperature': [40., 41., 40., 39., 30.] * u.K})
     >>> ts_a_data = hstack([ts_a, data])
     >>> ts_a_data
     <SampledTimeSeries length=5>
               time            flux  temperature
-                              mJy
-             object         float64    int64
+                              mJy          K
+             object         float64    float64
     ----------------------- ------- -----------
-    2016-03-22T12:30:31.000     1.0          40
-    2016-03-22T12:30:34.000     4.0          41
-    2016-03-22T12:30:37.000     5.0          40
-    2016-03-22T12:30:40.000     3.0          39
-    2016-03-22T12:30:43.000     2.0          30
+    2016-03-22T12:30:31.000     1.0        40.0
+    2016-03-22T12:30:34.000     4.0        41.0
+    2016-03-22T12:30:37.000     5.0        40.0
+    2016-03-22T12:30:40.000     3.0        39.0
+    2016-03-22T12:30:43.000     2.0        30.0
 
 Sorting time series
 -------------------
@@ -434,28 +434,28 @@ Sorting time series in-place can be done using the
 
     >>> ts9 = SampledTimeSeries(time='2016-03-22T12:30:31',
     ...                         time_delta=3 * u.s,
-    ...                         data={'flux': [1, 4, 5, 3, 2]})
+    ...                         data={'flux': [1., 4., 5., 3., 2.]})
     >>> ts9
     <SampledTimeSeries length=5>
-              time           flux
-             object         int64
-    ----------------------- -----
-    2016-03-22T12:30:31.000     1
-    2016-03-22T12:30:34.000     4
-    2016-03-22T12:30:37.000     5
-    2016-03-22T12:30:40.000     3
-    2016-03-22T12:30:43.000     2
+              time            flux
+             object         float64
+    ----------------------- -------
+    2016-03-22T12:30:31.000     1.0
+    2016-03-22T12:30:34.000     4.0
+    2016-03-22T12:30:37.000     5.0
+    2016-03-22T12:30:40.000     3.0
+    2016-03-22T12:30:43.000     2.0
     >>> ts9.sort('flux')
     >>> ts9
     <SampledTimeSeries length=5>
-              time           flux
-             object         int64
-    ----------------------- -----
-    2016-03-22T12:30:31.000     1
-    2016-03-22T12:30:43.000     2
-    2016-03-22T12:30:40.000     3
-    2016-03-22T12:30:34.000     4
-    2016-03-22T12:30:37.000     5
+              time            flux
+             object         float64
+    ----------------------- -------
+    2016-03-22T12:30:31.000     1.0
+    2016-03-22T12:30:43.000     2.0
+    2016-03-22T12:30:40.000     3.0
+    2016-03-22T12:30:34.000     4.0
+    2016-03-22T12:30:37.000     5.0
 
 Extracting a subset of columns
 ------------------------------
@@ -464,35 +464,35 @@ Let's consider a case where a time series has two data columns::
 
    >>> ts = SampledTimeSeries(time='2016-03-22T12:30:31',
    ...                        time_delta=3 * u.s,
-   ...                        data={'flux': [1, 4, 5, 3, 2],
-   ...                              'temp': [40, 41, 39, 24, 20]})
+   ...                        data={'flux': [1., 4., 5., 3., 2.],
+   ...                              'temp': [40., 41., 39., 24., 20.]})
 
 We can create a new time series with just the flux column by doing::
 
     >>> ts['time', 'flux']
     <SampledTimeSeries length=5>
-              time           flux
-             object         int64
-    ----------------------- -----
-    2016-03-22T12:30:31.000     1
-    2016-03-22T12:30:34.000     4
-    2016-03-22T12:30:37.000     5
-    2016-03-22T12:30:40.000     3
-    2016-03-22T12:30:43.000     2
+              time            flux
+             object         float64
+    ----------------------- -------
+    2016-03-22T12:30:31.000     1.0
+    2016-03-22T12:30:34.000     4.0
+    2016-03-22T12:30:37.000     5.0
+    2016-03-22T12:30:40.000     3.0
+    2016-03-22T12:30:43.000     2.0
 
 And we can also create a plain |QTable| by extracting just the ``flux`` and
 ``temp`` columns::
 
     >>> ts['flux', 'temp']
     <QTable length=5>
-     flux  temp
-    int64 int64
-    ----- -----
-        1    40
-        4    41
-        5    39
-        3    24
-        2    20
+      flux    temp
+    float64 float64
+    ------- -------
+        1.0    40.0
+        4.0    41.0
+        5.0    39.0
+        3.0    24.0
+        2.0    20.0
 
 Extracting a subset of rows
 ---------------------------
@@ -502,11 +502,11 @@ Time series objects can be sliced by row index, using the same syntax as for
 
     >>> ts[0:2]
     <SampledTimeSeries length=2>
-              time           flux  temp
-             object         int64 int64
-    ----------------------- ----- -----
-    2016-03-22T12:30:31.000     1    40
-    2016-03-22T12:30:34.000     4    41
+              time            flux    temp
+             object         float64 float64
+    ----------------------- ------- -------
+    2016-03-22T12:30:31.000     1.0    40.0
+    2016-03-22T12:30:34.000     4.0    41.0
 
 Time series objects are also automatically indexed using the functionality
 described in :ref:`table-indexing`. This provides the ability to access rows and
@@ -518,24 +518,24 @@ the time series by time. For example, the following can be used to extract all
 entries for a given timestamp::
 
     >>> from astropy.time import Time
-    >>> ts.loc[Time('2016-03-22T12:30:31')]
+    >>> ts.loc[Time('2016-03-22T12:30:31.000')] # doctest: +SKIP
     <Row index=0>
-              time           flux  temp
-             object         int64 int64
-    ----------------------- ----- -----
-    2016-03-22T12:30:31.000     1    40
+              time            flux    temp
+             object         float64 float64
+    ----------------------- ------- -------
+    2016-03-22T12:30:31.000     1.0    40.0
 
 or within a time range::
 
     >>> ts.loc[Time('2016-03-22T12:30:31'):Time('2016-03-22T12:30:40')]
     <SampledTimeSeries length=4>
-              time           flux  temp
-             object         int64 int64
-    ----------------------- ----- -----
-    2016-03-22T12:30:31.000     1    40
-    2016-03-22T12:30:34.000     4    41
-    2016-03-22T12:30:37.000     5    39
-    2016-03-22T12:30:40.000     3    24
+              time            flux    temp
+             object         float64 float64
+    ----------------------- ------- -------
+    2016-03-22T12:30:31.000     1.0    40.0
+    2016-03-22T12:30:34.000     4.0    41.0
+    2016-03-22T12:30:37.000     5.0    39.0
+    2016-03-22T12:30:40.000     3.0    24.0
 
 .. TODO: make it so that Time() is not required above
 
@@ -546,16 +546,11 @@ entries (by time) can be accessed with::
 
     >>> ts.iloc[0:2]
     <SampledTimeSeries length=2>
-              time           flux  temp
-             object         int64 int64
-    ----------------------- ----- -----
-    2016-03-22T12:30:31.000     1    40
-    2016-03-22T12:30:34.000     4    41
-
-.. TODO: determine whether for binned time series we want to have a double index
-
-When to use sampled vs. binned time series
-------------------------------------------
+              time            flux    temp
+             object         float64 float64
+    ----------------------- ------- -------
+    2016-03-22T12:30:31.000     1.0    40.0
+    2016-03-22T12:30:34.000     4.0    41.0
 
 Reading/writing time series
 ---------------------------
