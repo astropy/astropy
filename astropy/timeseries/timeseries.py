@@ -23,10 +23,25 @@ def reduceat(array, indices, function):
 
 
 class TimeSeries(QTable):
-    pass
+
+    _required_columns = []
+
+    def add_columns(self, cols, indexes=None, names=None, **kwargs):
+        if names is None:
+            new_names = [col.info.name for col in cols]
+        else:
+            new_names = names
+        for colname in self._required_columns:
+            if colname not in self.colnames and colname not in new_names:
+                raise ValueError("{0} requires a column called '{1}' to be set "
+                                 "before data can be added".format(self.__class__.__name__, colname))
+        self._required_columns = []
+        return super().add_columns(cols, indexes=indexes, names=names, **kwargs)
 
 
 class SampledTimeSeries(TimeSeries):
+
+    _require_time_column = False
 
     def __init__(self, data=None, time=None, time_delta=None, n_samples=None, **kwargs):
         """
@@ -39,6 +54,7 @@ class SampledTimeSeries(TimeSeries):
         # when columns are added manually, time is added first and is of the
         # right type.
         if data is None and time is None and time_delta is None:
+            self._required_columns = ['time']
             return
 
         # First if time has been given in the table data, we should extract it
@@ -200,9 +216,19 @@ class SampledTimeSeries(TimeSeries):
 
 class BinnedTimeSeries(TimeSeries):
 
+    _require_time_column = False
+
     def __init__(self, data=None, start_time=None, end_time=None, bin_size=None, n_bins=None, **kwargs):
 
         super().__init__(data=data, **kwargs)
+
+        # FIXME: this is because for some operations, an empty time series needs
+        # to be created, then columns added one by one. We should check that
+        # when columns are added manually, time is added first and is of the
+        # right type.
+        if data is None and start_time is None and end_time is None and bin_size is None and n_bins is None:
+            self._required_columns = ['start_time', 'bin_size']
+            return
 
         # First if start_time and end_time have been given in the table data, we
         # should extract them and treat them as if they had been passed as
@@ -226,7 +252,7 @@ class BinnedTimeSeries(TimeSeries):
             raise TypeError("'start_time' has not been specified")
 
         if end_time is None and bin_size is None:
-            raise TypeError("Cannot specify both 'end_time' and 'bin_size'")
+            raise TypeError("Either 'bin_size' or 'end_time' should be specified")
 
         if not isinstance(start_time, Time):
             start_time = Time(start_time)
@@ -286,6 +312,9 @@ class BinnedTimeSeries(TimeSeries):
         self.add_column(start_time, index=0, name='start_time')
         self.add_index('start_time')
 
+        if bin_size.isscalar:
+            bin_size = np.repeat(bin_size, len(self))
+
         self.add_column(bin_size, index=1, name='bin_size')
 
     @property
@@ -299,3 +328,14 @@ class BinnedTimeSeries(TimeSeries):
     @property
     def centre_time(self):
         return self['start_time'] + self['bin_size'] * 0.5
+
+    def __getitem__(self, item):
+        if self._is_list_or_tuple_of_str(item):
+            if 'start_time' not in item:
+                out = QTable([self[x] for x in item],
+                             meta=deepcopy(self.meta),
+                             copy_indices=self._copy_indices)
+                out._groups = groups.TableGroups(out, indices=self.groups._indices,
+                                                 keys=self.groups._keys)
+                return out
+        return super().__getitem__(item)

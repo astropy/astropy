@@ -18,9 +18,16 @@ PLAIN_TABLE = Table([[1, 2, 11], [3, 4, 1], [1, 1, 1]], names=['a', 'b', 'c'])
 # Tests of SampledTimeSeries class
 
 def test_sampled_empty_initialization():
-    with pytest.raises(TypeError) as exc:
-        SampledTimeSeries()
-    assert exc.value.args[0] == "'time' has not been specified"
+    ts = SampledTimeSeries()
+    ts['time'] = Time([1, 2, 3], format='mjd')
+
+
+def test_sampled_empty_initialization_invalid():
+    # Make sure things crash when the first column added is not a time column
+    ts = SampledTimeSeries()
+    with pytest.raises(ValueError) as exc:
+        ts['flux'] = [1, 2, 3]
+    assert exc.value.args[0] == "SampledTimeSeries requires a column called 'time' to be set before data can be added"
 
 
 def test_sampled_initialize_only_time():
@@ -119,12 +126,10 @@ def test_binned_uneven_non_contiguous_full():
 
 class CommonTimeSeriesTests:
 
-    @pytest.mark.xfail
     def test_stacking(self):
         ts = vstack([self.series, self.series])
         assert isinstance(ts, self.series.__class__)
 
-    @pytest.mark.xfail
     def test_row_slicing(self):
         ts = self.series[:2]
         assert isinstance(ts, self.series.__class__)
@@ -133,7 +138,6 @@ class CommonTimeSeriesTests:
         self.series[0][self.time_attr] == Time('2015-01-21T12:30:32')
         self.series[self.time_attr][0] == Time('2015-01-21T12:30:32')
 
-    @pytest.mark.xfail
     def test_column_slicing(self):
         ts = self.series[self.time_attr, 'a']
         assert isinstance(ts, self.series.__class__)
@@ -141,7 +145,6 @@ class CommonTimeSeriesTests:
     def test_column_indexing(self):
         assert_equal(self.series['a'], [1, 2, 11])
 
-    @pytest.mark.xfail
     def test_column_slicing_notime(self):
         tab = self.series['a', 'b']
         assert not isinstance(tab, self.series.__class__)
