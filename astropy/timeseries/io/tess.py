@@ -4,11 +4,10 @@ import numpy as np
 from ...io import registry, fits
 from ...table import Table
 from ...time import Time, TimeDelta
-from ... import units as u
 
 from ..sampled import SampledTimeSeries
 
-__all__ = ['kepler_fits_reader']
+__all__ = ['tess_fits_reader']
 
 
 def tess_fits_reader(filename):
@@ -19,12 +18,15 @@ def tess_fits_reader(filename):
     # Get lightcurve HDU and check version
     hdu = hdulist['LIGHTCURVE']
     if hdu.header['EXTVER'] > 1:
-        raise NotImplementedError("Support for TESS v{0} files not yet implemented".format(hdu.header['EXTVER']))
+        raise NotImplementedError("Support for TESS v{0} files not yet "
+                                  "implemented".format(hdu.header['EXTVER']))
 
     # Get reference date for times and check time scale
     if hdu.header['TIMESYS'] != 'TDB':
-        raise NotImplementedError("Support for {0} time scale not yet implemented in TESS reader".format(hdu.header['TIMESYS']))
-    reference_date = Time(hdu.header['BJDREFI'], hdu.header['BJDREFF'], scale='tdb', format='jd')
+        raise NotImplementedError("Support for {0} time scale not yet "
+                                  "implemented in TESS reader".format(hdu.header['TIMESYS']))
+    reference_date = Time(hdu.header['BJDREFI'], hdu.header['BJDREFF'],
+                          scale='tdb', format='jd')
 
     # Parse table with regular FITS reader
     tab = Table.read(hdu, format='fits')

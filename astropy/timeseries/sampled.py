@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 from copy import deepcopy
 
 import numpy as np
@@ -22,7 +24,6 @@ def reduceat(array, indices, function):
     result = [function(array[indices[i]:indices[i+1]]) for i in range(len(indices) - 1)]
     result.append(function(array[indices[-1]:]))
     return np.array(result)
-
 
 
 class SampledTimeSeries(TimeSeries):
@@ -144,7 +145,8 @@ class SampledTimeSeries(TimeSeries):
         bins = start_time + relative_bins_sec * u.s
 
         # Find the subset of the table that is inside the bins
-        keep = (relative_time_sec >= relative_bins_sec[0]) & (relative_time_sec < relative_bins_sec[-1])
+        keep = ((relative_time_sec >= relative_bins_sec[0]) &
+                (relative_time_sec < relative_bins_sec[-1]))
         subset = sorted[keep]
 
         # Figure out which bin each row falls in - the -1 is because items
@@ -179,7 +181,8 @@ class SampledTimeSeries(TimeSeries):
             data.mask = 1
 
             if isinstance(values, u.Quantity):
-                data[unique_indices] = u.Quantity(reduceat(values.value, groups, func), values.unit, copy=False)
+                data[unique_indices] = u.Quantity(reduceat(values.value, groups, func),
+                                                  values.unit, copy=False)
             else:
                 data[unique_indices] = reduceat(values, groups, func)
 

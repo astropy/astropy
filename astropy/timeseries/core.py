@@ -35,6 +35,7 @@ class TimeSeries(QTable):
                 for colname in self._required_columns:
                     if colname not in existing_and_new:
                         raise ValueError("{0} requires a column called '{1}' to be set "
-                                         "before data can be added".format(self.__class__.__name__, colname))
+                                         "before data can be added"
+                                         .format(self.__class__.__name__, colname))
 
         return super().add_columns(cols, indexes=indexes, names=names, **kwargs)
