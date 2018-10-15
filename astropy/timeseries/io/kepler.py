@@ -1,8 +1,8 @@
-from ..io import registry
-from ..table import Table
-from ..time import Time
+from ...io import registry
+from ...table import Table
+from ...time import Time
 
-from .sampled import SampledTimeSeries
+from ..sampled import SampledTimeSeries
 
 __all__ = ['kepler_fits_reader']
 
