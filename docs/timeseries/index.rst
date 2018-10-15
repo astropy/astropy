@@ -572,6 +572,36 @@ with the :ref:`table_io`. Here is an example of using Kepler FITS time series:
    plt.xlabel('Barycentric Julian Date')
    plt.ylabel('SAP Flux (e-/s)')
 
+Resampling
+----------
+
+The |SampledTimeSeries| class has a
+:meth:`~astropy.timeseries.SampledTimeSeries.downsample` method that can be used
+to bin values from the time series into bins of equal time, using a custom
+function (mean, median, etc.). This operation returns a |BinnedTimeSeries|.
+The following example shows how to use this to bin a light curve from the Kepler
+mission into 20 minute bins using a median function:
+
+.. plot::
+   :include-source:
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy import units as u
+    from astropy.timeseries import SampledTimeSeries
+
+    url = 'http://exoplanetarchive.ipac.caltech.edu/data/ETSS//Kepler/005/755/19/kplr010666592-2009131110544_slc.fits'
+    ts = SampledTimeSeries.read(url, format='kepler.fits')
+    ts_binned = ts.downsample(bin_size=20 * u.min, func=np.nanmedian)
+
+    plt.plot(ts.time.jd, ts['sap_flux'], 'k.')
+    plt.plot(ts_binned.start_time.jd, ts_binned['sap_flux'], 'r-')
+    plt.xlabel('Barycentric Julian Date')
+    plt.ylabel('SAP Flux (e-/s)')
+
+
+
+
 Reference/API
 =============
 
