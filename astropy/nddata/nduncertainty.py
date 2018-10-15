@@ -425,7 +425,7 @@ class _VariancePropagationMixin:
             correlation_sign = 1
 
         try:
-        result_unit_sq = result_data.unit ** 2
+            result_unit_sq = result_data.unit ** 2
         except AttributeError:
             result_unit_sq = None
 
@@ -635,6 +635,8 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
         """
         if isinstance(value, NDDataBase):
             self._unit = value.unit
+        elif value is not None:
+            self._unit = Unit(value)
         else:
             self._unit = value
 
@@ -759,6 +761,8 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
         """
         if isinstance(value, NDDataBase):
             self._unit = value.unit**2
+        elif value is not None:
+            self._unit = Unit(value)
         else:
             self._unit = value
 
@@ -858,8 +862,9 @@ class InverseVariance(_VariancePropagationMixin, NDUncertainty):
         parent will be returned.
         """
         if isinstance(value, NDDataBase):
-            # warning("using square of the parent")
             self._unit = 1.0 / value.unit ** 2
+        elif value is not None:
+            self._unit = Unit(value)
         else:
             self._unit = value
 

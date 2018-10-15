@@ -253,3 +253,12 @@ def test_quantity(UncertClass):
     fake_uncert_nounit = UncertClass([1, 2, 3])
     assert isinstance(fake_uncert_nounit.quantity, u.Quantity)
     assert fake_uncert_nounit.quantity.unit.is_equivalent(u.dimensionless_unscaled)
+    assert ndd2.uncertainty.parent_nddata.data == ndd2.data
+
+
+@pytest.mark.parametrize(('UncertClass'), [VarianceUncertainty, StdDevUncertainty,
+                                           InverseVariance])
+def test_setting_uncertainty_unit_results_in_unit_object(UncertClass):
+    v = UncertClass([1, 1])
+    v.unit = 'electron'
+    assert isinstance(v.unit, u.UnitBase)
