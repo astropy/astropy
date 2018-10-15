@@ -43,6 +43,9 @@ class FakeUncertainty(NDUncertainty):
     def uncertainty_type(self):
         return 'fake'
 
+    def _data_unit_to_uncertainty_unit(self, value):
+        return None
+
     def _propagate_add(self, data, final_data):
         pass
 

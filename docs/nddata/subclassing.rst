@@ -467,6 +467,9 @@ systematic uncertainties::
     ...     def uncertainty_type(self):
     ...         return 'systematic'
     ...
+    ...     def _data_unit_to_uncertainty_unit(self, value):
+    ...         return None
+    ...
     ...     def _propagate_add(self, other_uncert, *args, **kwargs):
     ...         return None
     ...
