@@ -259,9 +259,15 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             col_format = col.info.format
 
             if col_dtype.kind in ['i', 'u']:
-                dtypelist.append('long')
+                if col_dtype.itemsize <= 2:
+                    dtypelist.append('int')
+                else:
+                    dtypelist.append('long')
             elif col_dtype.kind == 'f':
-                dtypelist.append('double')
+                if col_dtype.itemsize <= 4:
+                    dtypelist.append('float')
+                else:
+                    dtypelist.append('double')
             else:
                 dtypelist.append('char')
 
