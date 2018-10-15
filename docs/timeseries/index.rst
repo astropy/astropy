@@ -319,9 +319,10 @@ Accessing times
 ---------------
 
 The ``time`` column (for |SampledTimeSeries|) and the ``start_time``
-and ``end_time`` columns (for |BinnedTimeSeries|) can be accessed using the regular
-column access notation, as shown in |Accessing data|, but they can also be accessed
-with convenience attributes ``time``, ``start_time``, and ``end_time``::
+and ``end_time`` columns (for |BinnedTimeSeries|) can be accessed using the
+regular column access notation, as shown in `Accessing data`_, but they can also
+be accessed with convenience attributes ``time``, ``start_time``, and
+``end_time``::
 
     >>> ts.time
     <Time object: scale='utc' format='isot' value=['2016-03-22T12:30:31.000' '2016-03-22T12:30:34.000'
@@ -571,9 +572,10 @@ with the :ref:`table_io`. Here is an example of using Kepler FITS time series:
 
    import matplotlib.pyplot as plt
    from astropy.timeseries import SampledTimeSeries
+   from astropy.utils.data import get_pkg_data_filename
 
-   url = 'http://exoplanetarchive.ipac.caltech.edu/data/ETSS//Kepler/005/755/19/kplr010666592-2009131110544_slc.fits'
-   ts = SampledTimeSeries.read(url, format='kepler.fits')
+   example_data = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
+   ts = SampledTimeSeries.read(example_data, format='kepler.fits')
 
    plt.plot(ts.time.jd, ts['sap_flux'])
    plt.xlabel('Barycentric Julian Date')
@@ -596,9 +598,10 @@ mission into 20 minute bins using a median function:
     import matplotlib.pyplot as plt
     from astropy import units as u
     from astropy.timeseries import SampledTimeSeries
+    from astropy.utils.data import get_pkg_data_filename
 
-    url = 'http://exoplanetarchive.ipac.caltech.edu/data/ETSS//Kepler/005/755/19/kplr010666592-2009131110544_slc.fits'
-    ts = SampledTimeSeries.read(url, format='kepler.fits')
+    example_data = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
+    ts = SampledTimeSeries.read(example_data, format='kepler.fits')
     ts_binned = ts.downsample(bin_size=20 * u.min, func=np.nanmedian)
 
     plt.plot(ts.time.jd, ts['sap_flux'], 'k.')
