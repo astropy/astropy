@@ -2,7 +2,7 @@ from ..io import registry
 from ..table import Table
 from ..time import Time
 
-from .timeseries import SampledTimeSeries
+from .sampled import SampledTimeSeries
 
 
 def kepler_fits_reader(filename):

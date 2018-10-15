@@ -6,5 +6,7 @@ data sets.
 
 """
 
-from .timeseries import *
+from .core import *
+from .sampled import *
+from .binned import *
 from . import io
