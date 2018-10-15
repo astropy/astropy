@@ -4,6 +4,8 @@ from ..time import Time
 
 from .sampled import SampledTimeSeries
 
+__all__ = ['kepler_fits_reader']
+
 
 def kepler_fits_reader(filename):
 

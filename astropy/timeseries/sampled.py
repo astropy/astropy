@@ -10,6 +10,7 @@ from .. import units as u
 from ..units import Quantity
 
 from .core import TimeSeries
+from .binned import BinnedTimeSeries
 
 __all__ = ['SampledTimeSeries']
 
@@ -105,7 +106,7 @@ class SampledTimeSeries(TimeSeries):
     def downsample(self, bin_size, func=None, start_time=None, n_bins=None, ):
         """
         Downsample the time series by binning values into bins with a fixed
-        size, and return a `BinnedTimeSeries`
+        size, and return a :class:`~astropy.timeseries.BinnedTimeSeries`
 
         Parameters
         ----------

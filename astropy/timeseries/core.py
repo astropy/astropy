@@ -2,6 +2,8 @@
 
 from ..table import QTable
 
+__all__ = ['TimeSeries']
+
 
 class TimeSeries(QTable):
 
