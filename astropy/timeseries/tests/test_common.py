@@ -11,7 +11,6 @@ INPUT_TIME = Time(['2016-03-22T12:30:31', '2015-01-21T12:30:32', '2016-03-22T12:
 PLAIN_TABLE = Table([[1, 2, 11], [3, 4, 1], [1, 1, 1]], names=['a', 'b', 'c'])
 
 
-
 class CommonTimeSeriesTests:
 
     def test_stacking(self):

@@ -18,7 +18,8 @@ class BinnedTimeSeries(TimeSeries):
 
     _require_time_column = False
 
-    def __init__(self, data=None, start_time=None, end_time=None, bin_size=None, n_bins=None, **kwargs):
+    def __init__(self, data=None, start_time=None, end_time=None,
+                 bin_size=None, n_bins=None, **kwargs):
 
         super().__init__(data=data, **kwargs)
 
@@ -26,7 +27,8 @@ class BinnedTimeSeries(TimeSeries):
         # to be created, then columns added one by one. We should check that
         # when columns are added manually, time is added first and is of the
         # right type.
-        if data is None and start_time is None and end_time is None and bin_size is None and n_bins is None:
+        if (data is None and start_time is None and end_time is None and
+                bin_size is None and n_bins is None):
             self._required_columns = ['start_time', 'bin_size']
             return
 
@@ -39,14 +41,16 @@ class BinnedTimeSeries(TimeSeries):
                 start_time = self.columns['start_time']
                 self.remove_column('start_time')
             else:
-                raise TypeError("'start_time' has been given both in the table and as a keyword argument")
+                raise TypeError("'start_time' has been given both in the table "
+                                "and as a keyword argument")
 
         if 'bin_size' in self.colnames:
             if bin_size is None:
                 bin_size = self.columns['bin_size']
                 self.remove_column('bin_size')
             else:
-                raise TypeError("'bin_size' has been given both in the table and as a keyword argument")
+                raise TypeError("'bin_size' has been given both in the table "
+                                "and as a keyword argument")
 
         if start_time is None:
             raise TypeError("'start_time' has not been specified")
