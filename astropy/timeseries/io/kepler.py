@@ -12,8 +12,13 @@ def kepler_fits_reader(filename):
     # Parse Kepler FITS file with regular FITS reader
     tab = Table.read(filename, format='fits')
 
-    # Rename columns to lowercase
     for colname in tab.colnames:
+
+        # Fix units
+        if tab[colname].unit == 'e-/s':
+            tab[colname].unit = 'electron/s'
+
+        # Rename columns to lowercase
         tab.rename_column(colname, colname.lower())
 
     # Compute Time object

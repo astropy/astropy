@@ -191,6 +191,37 @@ class SampledTimeSeries(TimeSeries):
 
         return binned
 
+    def fold(self, period=None, midpoint_epoch=None):
+        """
+        Return a new SampledTimeSeries folded with a period and midpoint epoch.
+
+        Parameters
+        ----------
+        period : `~astropy.units.Quantity`
+            The period to use for folding
+        midpoint_epoch : `~astropy.time.Time`
+            The time to use as the midpoint epoch, at which the relative
+            time offset will be 0. Defaults to the first time in the time
+            series.
+        """
+
+        folded = self.copy()
+        folded.remove_column('time')
+
+        if midpoint_epoch is None:
+            midpoint_epoch = self.time[0]
+        else:
+            midpoint_epoch = Time(midpoint_epoch)
+
+        period_sec = period.to_value(u.s)
+        relative_time_sec = ((self.time - midpoint_epoch).sec + period_sec / 2) % period_sec - period_sec / 2
+
+        folded_time = TimeDelta(relative_time_sec * u.s)
+
+        folded.add_column(folded_time, name='time', index=0)
+
+        return folded
+
     def __getitem__(self, item):
         if self._is_list_or_tuple_of_str(item):
             if 'time' not in item:
