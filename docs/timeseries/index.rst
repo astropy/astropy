@@ -607,9 +607,8 @@ mission into 20 minute bins using a median function:
     plt.ylabel('SAP Flux (e-/s)')
 
 
-
-
 Reference/API
 =============
 
 .. automodapi:: astropy.timeseries
+   :inherited-members:
