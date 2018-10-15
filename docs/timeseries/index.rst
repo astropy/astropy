@@ -564,15 +564,16 @@ with the :ref:`table_io`. Here is an example of using Kepler FITS time series:
 
 .. plot::
    :include-source:
+   :context:
 
    import matplotlib.pyplot as plt
    from astropy.timeseries import SampledTimeSeries
    from astropy.utils.data import get_pkg_data_filename
 
    example_data = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
-   ts = SampledTimeSeries.read(example_data, format='kepler.fits')
+   kepler = SampledTimeSeries.read(example_data, format='kepler.fits')
 
-   plt.plot(ts.time.jd, ts['sap_flux'])
+   plt.plot(kepler.time.jd, kepler['sap_flux'])
    plt.xlabel('Barycentric Julian Date')
    plt.ylabel('SAP Flux (e-/s)')
 
@@ -587,22 +588,97 @@ The following example shows how to use this to bin a light curve from the Kepler
 mission into 20 minute bins using a median function:
 
 .. plot::
+   :context: reset
+   :nofigs:
+
+   import matplotlib.pyplot as plt
+   from astropy.timeseries import SampledTimeSeries
+   from astropy.utils.data import get_pkg_data_filename
+
+   example_data = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
+   kepler = SampledTimeSeries.read(example_data, format='kepler.fits')
+
+.. plot::
    :include-source:
+   :context:
 
     import numpy as np
-    import matplotlib.pyplot as plt
     from astropy import units as u
-    from astropy.timeseries import SampledTimeSeries
-    from astropy.utils.data import get_pkg_data_filename
 
-    example_data = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
-    ts = SampledTimeSeries.read(example_data, format='kepler.fits')
-    ts_binned = ts.downsample(bin_size=20 * u.min, func=np.nanmedian)
+    kepler_binned = kepler.downsample(bin_size=20 * u.min, func=np.nanmedian)
 
-    plt.plot(ts.time.jd, ts['sap_flux'], 'k.')
-    plt.plot(ts_binned.start_time.jd, ts_binned['sap_flux'], 'r-', drawstyle='steps-pre')
+    plt.plot(kepler.time.jd, kepler['sap_flux'], 'k.')
+    plt.plot(kepler_binned.start_time.jd, kepler_binned['sap_flux'], 'r-', drawstyle='steps-pre')
     plt.xlabel('Barycentric Julian Date')
     plt.ylabel('SAP Flux (e-/s)')
+
+Folding
+-------
+
+The |SampledTimeSeries| class has a
+:meth:`~astropy.timeseries.SampledTimeSeries.fold` method that can be used to
+return a new time series with a relative and folded time axis. This method
+takes the period as a :class:`~astropy.units.Quantity`, and optionally takes
+an epoch as a :class:`~astropy.time.Time`, which defines a zero time offset:
+
+.. plot::
+   :context: reset
+   :nofigs:
+
+   import numpy as np
+   from astropy import units as u
+   import matplotlib.pyplot as plt
+   from astropy.timeseries import SampledTimeSeries
+   from astropy.utils.data import get_pkg_data_filename
+
+   example_data = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
+   kepler = SampledTimeSeries.read(example_data, format='kepler.fits')
+
+.. plot::
+   :include-source:
+   :context:
+
+    kepler_folded = kepler.fold(period=2.2 * u.day, midpoint_epoch='2009-05-02T20:53:40')
+
+    plt.plot(kepler_folded.time.jd, kepler_folded['sap_flux'], 'k.', markersize=1)
+    plt.xlabel('Time from midpoint epoch (days)')
+    plt.ylabel('SAP Flux (e-/s)')
+
+Arithmetic
+----------
+
+Since time series objects are sub-classes of |QTable|, they naturally support
+arithmetic on any of the data columns. As an example, we can take the folded
+Kepler time series we have seen in the examples above, and normalize it to the
+sigma-clipped median value.
+
+.. plot::
+   :context: reset
+   :nofigs:
+
+   import numpy as np
+   from astropy import units as u
+   import matplotlib.pyplot as plt
+   from astropy.timeseries import SampledTimeSeries
+   from astropy.utils.data import get_pkg_data_filename
+
+   example_data = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
+   kepler = SampledTimeSeries.read(example_data, format='kepler.fits')
+   kepler_folded = kepler.fold(period=2.2 * u.day, midpoint_epoch='2009-05-02T20:53:40')
+
+.. plot::
+   :include-source:
+   :context:
+
+    from astropy.stats import sigma_clipped_stats
+
+    mean, median, stddev = sigma_clipped_stats(kepler_folded['sap_flux'])
+
+    kepler_folded['sap_flux_norm'] = kepler_folded['sap_flux'] / median
+
+    plt.plot(kepler_folded.time.jd, kepler_folded['sap_flux_norm'], 'k.', markersize=1)
+    plt.xlabel('Time from midpoint epoch (days)')
+    plt.ylabel('Normalized flux')
 
 
 Reference/API
