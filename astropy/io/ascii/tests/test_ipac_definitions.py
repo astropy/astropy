@@ -9,7 +9,7 @@ from ..ui import read
 from ..ipac import Ipac, IpacFormatError, IpacFormatErrorDBMS
 from ....tests.helper import catch_warnings
 from ... import ascii
-from ....table import Table
+from ....table import Table, Column
 from ..core import masked
 
 
@@ -146,5 +146,20 @@ def test_include_exclude_names():
 |    |
 |null|
     2
+"""
+    assert out.getvalue().strip().splitlines() == expected_out.splitlines()
+
+
+def test_short_dtypes():
+    table = Table([Column([1.0], dtype='f4'), Column([2], dtype='i2')],
+                  names=('float_col', 'int_col'))
+    out = StringIO()
+    ascii.write(table, out, Writer=Ipac)
+    expected_out = """\
+|float_col|int_col|
+|    float|    int|
+|         |       |
+|     null|   null|
+       1.0       2
 """
     assert out.getvalue().strip().splitlines() == expected_out.splitlines()
