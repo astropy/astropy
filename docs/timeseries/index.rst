@@ -332,7 +332,7 @@ be accessed with convenience attributes ``time``, ``start_time``, and
 Since these columns/attributes are |Time| arrays, it is possible to use the
 usual attributes on |Time| to convert the time to different formats or scales::
 
-    >>> ts.time.mjd
+    >>> ts.time.mjd  # doctest: +FLOAT_CMP
     array([57469.52119213, 57469.52122685, 57469.52126157, 57469.5212963 ,
            57469.52133102])
 
