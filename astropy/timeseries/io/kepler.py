@@ -29,6 +29,7 @@ def kepler_fits_reader(filename):
 
     # Create time series
     ts = SampledTimeSeries(time=time, data=tab)
+    ts.time.format = 'isot'
 
     return ts
 
