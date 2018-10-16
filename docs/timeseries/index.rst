@@ -8,9 +8,6 @@ Time series (`astropy.timeseries`)
 .. |Table| replace:: :class:`~astropy.table.Table`
 .. |QTable| replace:: :class:`~astropy.table.QTable`
 .. |Quantity| replace:: :class:`~astropy.units.Quantity`
-.. |Longitude| replace:: :class:`~astropy.coordinates.Longitude`
-.. |EarthLocation| replace:: :class:`~astropy.coordinates.EarthLocation`
-.. |SkyCoord| replace:: :class:`~astropy.coordinates.SkyCoord`
 .. |SampledTimeSeries| replace:: :class:`~astropy.timeseries.SampledTimeSeries`
 .. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
 
@@ -175,7 +172,7 @@ Let's take a look at the folded time series:
    plt.xlabel('Time (days)')
    plt.ylabel('SAP Flux (e-/s)')
 
-Using the :ref:`astropy-stats` module, we can normalize the flux by sigma-clipping
+Using the :ref:`stats` module, we can normalize the flux by sigma-clipping
 the data to determine the baseline flux:
 
 .. plot::
@@ -258,7 +255,7 @@ Accessing data and manipulating time series
 
    data_access.rst
    times.rst
-   analyzing.rst
+   analysis.rst
 
 Comparison to other packages
 ----------------------------

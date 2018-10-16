@@ -3,6 +3,10 @@
 Manipulation and analysis of time series
 ****************************************
 
+.. |Table| replace:: :class:`~astropy.table.Table`
+.. |SampledTimeSeries| replace:: :class:`~astropy.timeseries.SampledTimeSeries`
+.. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
+
 Combining time series
 =====================
 
@@ -169,7 +173,7 @@ an epoch as a :class:`~astropy.time.Time`, which defines a zero time offset:
 Arithmetic
 ----------
 
-Since time series objects are sub-classes of |QTable|, they naturally support
+Since time series objects are sub-classes of |Table|, they naturally support
 arithmetic on any of the data columns. As an example, we can take the folded
 Kepler time series we have seen in the examples above, and normalize it to the
 sigma-clipped median value.
