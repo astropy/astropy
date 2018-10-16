@@ -96,7 +96,7 @@ Sorting time series in-place can be done using the
     2016-03-22T12:30:37.000     5.0
 
 Resampling
-----------
+==========
 
 The |SampledTimeSeries| class has a
 :meth:`~astropy.timeseries.SampledTimeSeries.downsample` method that can be used
@@ -140,7 +140,7 @@ We can take a look at the results:
     plt.ylabel('SAP Flux (e-/s)')
 
 Folding
--------
+=======
 
 The |SampledTimeSeries| class has a
 :meth:`~astropy.timeseries.SampledTimeSeries.fold` method that can be used to
@@ -172,7 +172,7 @@ an epoch as a :class:`~astropy.time.Time`, which defines a zero time offset:
     plt.ylabel('SAP Flux (e-/s)')
 
 Arithmetic
-----------
+==========
 
 Since time series objects are sub-classes of |Table|, they naturally support
 arithmetic on any of the data columns. As an example, we can take the folded

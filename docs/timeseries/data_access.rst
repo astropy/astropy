@@ -9,8 +9,6 @@ Accessing data in time series
 .. |SampledTimeSeries| replace:: :class:`~astropy.timeseries.SampledTimeSeries`
 .. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
 
-For the examples in this page, we will
-
 Accessing data
 ==============
 
