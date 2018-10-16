@@ -134,7 +134,7 @@ We can take a look at the results:
    :context:
 
     import matplotlib.pyplot as plt
-    plt.plot(kepler.time.jd, kepler['sap_flux'], 'k.')
+    plt.plot(kepler.time.jd, kepler['sap_flux'], 'k.', markersize=1)
     plt.plot(kepler_binned.start_time.jd, kepler_binned['sap_flux'], 'r-', drawstyle='steps-pre')
     plt.xlabel('Barycentric Julian Date')
     plt.ylabel('SAP Flux (e-/s)')

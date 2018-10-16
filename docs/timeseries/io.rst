@@ -49,7 +49,7 @@ Let's check that the time series has been read in correctly:
 
    import matplotlib.pyplot as plt
 
-   plt.plot(kepler.time.jd, kepler['sap_flux'])
+   plt.plot(kepler.time.jd, kepler['sap_flux'], 'k.', markersize=1)
    plt.xlabel('Barycentric Julian Date')
    plt.ylabel('SAP Flux (e-/s)')
 
