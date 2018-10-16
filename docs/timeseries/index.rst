@@ -44,8 +44,7 @@ We can then use the |SampledTimeSeries| class to read in this file::
     >>> from astropy.timeseries import SampledTimeSeries
     >>> ts = SampledTimeSeries.read(filename, format='kepler.fits')
 
-Time series are specialized kinds of astropy |Table| objects, and in fact if we
-look at the ``ts``, it will look like a normal table::
+Time series are specialized kinds of astropy |Table| objects::
 
     >>> ts
     <SampledTimeSeries length=14280>
@@ -56,26 +55,13 @@ look at the ``ts``, it will look like a normal table::
     2009-05-02T00:41:40.338  6.630610e-04 ...  1.5822421e-03 -1.4463664e-03
     2009-05-02T00:42:39.187  6.630857e-04 ...  1.5743829e-03 -1.4540013e-03
     2009-05-02T00:43:38.045  6.631103e-04 ...  1.5665225e-03 -1.4616371e-03
-    2009-05-02T00:44:36.894  6.631350e-04 ...  1.5586632e-03 -1.4692718e-03
-    2009-05-02T00:45:35.752  6.631597e-04 ...  1.5508028e-03 -1.4769078e-03
-    2009-05-02T00:46:34.601  6.631844e-04 ...  1.5429436e-03 -1.4845425e-03
-    2009-05-02T00:47:33.451  6.632091e-04 ...  1.5350844e-03 -1.4921773e-03
-    2009-05-02T00:48:32.291  6.632337e-04 ...  1.5272264e-03 -1.4998110e-03
-    2009-05-02T00:49:31.149  6.632584e-04 ...  1.5193661e-03 -1.5074468e-03
                   ...           ... ...            ...            ...
-    2009-05-11T17:58:22.526  1.014493e-03 ...  3.6121816e-03  3.1950327e-03
-    2009-05-11T17:59:21.376  1.014518e-03 ...  3.6102540e-03  3.1872767e-03
-    2009-05-11T18:00:20.225  1.014542e-03 ...  3.6083264e-03  3.1795206e-03
-    2009-05-11T18:01:19.065  1.014567e-03 ...  3.6063993e-03  3.1717657e-03
-    2009-05-11T18:02:17.923  1.014591e-03 ...  3.6044715e-03  3.1640085e-03
-    2009-05-11T18:03:16.772  1.014615e-03 ...  3.6025438e-03  3.1562524e-03
-    2009-05-11T18:04:15.630  1.014640e-03 ...  3.6006160e-03  3.1484952e-03
     2009-05-11T18:05:14.479  1.014664e-03 ...  3.5986886e-03  3.1407392e-03
     2009-05-11T18:06:13.328  1.014689e-03 ...  3.5967610e-03  3.1329831e-03
     2009-05-11T18:07:12.186  1.014713e-03 ...  3.5948332e-03  3.1252259e-03
 
-As for |Table|, the various columns and rows can be accessed and sliced using
-index notation::
+In the same way as for |Table|, the various columns and rows can be accessed and
+sliced using index notation::
 
     >>> ts['sap_flux']
     <Quantity [1027045.06, 1027184.44, 1027076.25, ..., 1025451.56, 1025468.5 ,
@@ -90,26 +76,13 @@ index notation::
     2009-05-02T00:41:40.338  1.0270451e+06
     2009-05-02T00:42:39.187  1.0271844e+06
     2009-05-02T00:43:38.045  1.0270762e+06
-    2009-05-02T00:44:36.894  1.0271414e+06
-    2009-05-02T00:45:35.752  1.0271569e+06
-    2009-05-02T00:46:34.601  1.0272296e+06
-    2009-05-02T00:47:33.451  1.0273199e+06
-    2009-05-02T00:48:32.291  1.0271497e+06
-    2009-05-02T00:49:31.149  1.0271755e+06
                         ...            ...
-    2009-05-11T17:58:22.526  1.0234769e+06
-    2009-05-11T17:59:21.376  1.0234574e+06
-    2009-05-11T18:00:20.225  1.0238128e+06
-    2009-05-11T18:01:19.065  1.0243234e+06
-    2009-05-11T18:02:17.923  1.0244257e+06
-    2009-05-11T18:03:16.772  1.0248654e+06
-    2009-05-11T18:04:15.630  1.0250156e+06
     2009-05-11T18:05:14.479  1.0254516e+06
     2009-05-11T18:06:13.328  1.0254685e+06
     2009-05-11T18:07:12.186  1.0259309e+06
 
-    >>> ts[0:10]
-    <SampledTimeSeries length=10>
+    >>> ts[0:4]
+    <SampledTimeSeries length=4>
               time             timecorr   ...   pos_corr1      pos_corr2
                                   d       ...     pixels         pixels
              object            float32    ...    float32        float32
@@ -118,22 +91,10 @@ index notation::
     2009-05-02T00:42:39.187  6.630857e-04 ...  1.5743829e-03 -1.4540013e-03
     2009-05-02T00:43:38.045  6.631103e-04 ...  1.5665225e-03 -1.4616371e-03
     2009-05-02T00:44:36.894  6.631350e-04 ...  1.5586632e-03 -1.4692718e-03
-    2009-05-02T00:45:35.752  6.631597e-04 ...  1.5508028e-03 -1.4769078e-03
-    2009-05-02T00:46:34.601  6.631844e-04 ...  1.5429436e-03 -1.4845425e-03
-    2009-05-02T00:47:33.451  6.632091e-04 ...  1.5350844e-03 -1.4921773e-03
-    2009-05-02T00:48:32.291  6.632337e-04 ...  1.5272264e-03 -1.4998110e-03
-    2009-05-02T00:49:31.149  6.632584e-04 ...  1.5193661e-03 -1.5074468e-03
-    2009-05-02T00:50:29.998  6.632830e-04 ...  1.5115069e-03 -1.5150816e-03
 
-All |SampledTimeSeries| objects have a ``time`` column, which is always the
-first column::
-
-    >>> ts['time']
-    <Time object: scale='tcb' format='isot' value=['2009-05-02T00:41:40.338' '2009-05-02T00:42:39.187'
-     '2009-05-02T00:43:38.045' ... '2009-05-11T18:05:14.479'
-     '2009-05-11T18:06:13.328' '2009-05-11T18:07:12.186']>
-
-This column can also be accessed using the ``.time`` attribute::
+As seen in the example above, |SampledTimeSeries| objects have a ``time``
+column, which is always the first column. This column can also be accessed using
+the ``.time`` attribute::
 
     >>> ts.time
     <Time object: scale='tcb' format='isot' value=['2009-05-02T00:41:40.338' '2009-05-02T00:42:39.187'
@@ -146,6 +107,7 @@ supports the ability to convert to different time scales and formats::
     >>> ts.time.mjd
     array([54953.0289391 , 54953.02962023, 54953.03030145, ...,
            54962.7536398 , 54962.75432093, 54962.75500215])
+
     >>> ts.time.unix
     array([1.24122482e+09, 1.24122488e+09, 1.24122494e+09, ...,
            1.24206503e+09, 1.24206509e+09, 1.24206515e+09])
@@ -165,10 +127,10 @@ Let's use what we've seen so far to make a plot
    :include-source:
    :context:
 
-   >>> import matplotlib.pyplot as plt
-   >>> plt.plot(ts.time.jd, ts['sap_flux'])  # doctest: +SKIP
-   >>> plt.xlabel('Barycentric Julian Date')  # doctest: +SKIP
-   >>> plt.ylabel('SAP Flux (e-/s)')  # doctest: +SKIP
+   import matplotlib.pyplot as plt
+   plt.plot(ts.time.jd, ts['sap_flux'])
+   plt.xlabel('Barycentric Julian Date')
+   plt.ylabel('SAP Flux (e-/s)')
 
 It looks like there are a few transits! Let's use the :ref:`stats-bls`
 functionality to estimate the period, using a box with a duration of 0.2 days:
@@ -187,78 +149,90 @@ functionality to estimate the period, using a box with a duration of 0.2 days:
    >>> period
    <Quantity 2.21584977 d>
 
-.. plot::
-   :context:
-   :nofigs:
-
-   >>> plt.clf()
-
-We can also take a look at the periodogram:
-
-.. plot::
-   :context:
-   :include-source:
-
-   >>> plt.plot(periodogram.period, periodogram.power)  # doctest: +SKIP
-   >>> plt.xlabel('Period (days)')  # doctest: +SKIP
-   >>> plt.ylabel('Power')  # doctest: +SKIP
-
 We can now fold the time series using the period we've found above using the
 :meth:`~astropy.timeseries.SampledTimeSeries.fold` method:
 
 .. plot::
    :context:
+   :include-source:
    :nofigs:
 
-   >>> plt.clf()
+   >>> ts_folded = ts.fold(period=period)
+
+Let's take a look at the folded time series:
+
+.. plot::
+   :context:
+   :nofigs:
+
+   plt.clf()
 
 .. plot::
    :context:
    :include-source:
 
-   >>> ts_folded = ts.fold(period=period)
-   >>> plt.plot(ts_folded.time.jd, ts_folded['sap_flux'], '.', markersize=1)  # doctest: +SKIP
-   >>> plt.xlabel('Time (days)')  # doctest: +SKIP
-   >>> plt.ylabel('SAP Flux (e-/s)')  # doctest: +SKIP
+   plt.plot(ts_folded.time.jd, ts_folded['sap_flux'], '.', markersize=1)
+   plt.xlabel('Time (days)')
+   plt.ylabel('SAP Flux (e-/s)')
 
 Using the :ref:`astropy-stats` module, we can normalize the flux by sigma-clipping
 the data to determine the baseline flux:
 
 .. plot::
    :context:
-   :nofigs:
-
-   >>> plt.clf()
-
-.. plot::
-   :context:
    :include-source:
+   :nofigs:
 
    >>> from astropy.stats import sigma_clipped_stats
    >>> mean, median, stddev = sigma_clipped_stats(ts_folded['sap_flux'])
    >>> ts_folded['sap_flux_norm'] = ts_folded['sap_flux'] / median
-   >>> plt.plot(ts_folded.time.jd, ts_folded['sap_flux_norm'], '.', markersize=1)  # doctest: +SKIP
-   >>> plt.xlabel('Time (days)')  # doctest: +SKIP
-   >>> plt.ylabel('Normalized flux')  # doctest: +SKIP
 
-And we can downsample the time series by binning the points into bins of equal
-time - this returns a |BinnedTimeSeries|:
+and we can downsample the time series by binning the points into bins of equal
+time - this returns a |BinnedTimeSeries|::
+
+    >>> ts_binned = ts_folded.downsample(0.03 * u.day)
+    >>> ts_binned
+    <BinnedTimeSeries length=74>
+         start_time          bin_size      ...   pos_corr2    sap_flux_norm
+                                s          ...
+           object            float64       ...    float32        float32
+    ------------------- ------------------ ... -------------- -------------
+    -1.1078869937573868 2591.9999999999905 ...  -0.0006971634     0.9999969
+     -1.077886993757387             2592.0 ...  -0.0008989384     1.0000147
+     -1.047886993757387 2592.0000000000095 ... -0.00090802036     1.0000037
+                    ...                ... ...            ...           ...
+     1.0221130062426131             2592.0 ...  0.00043443326     0.9999498
+     1.0521130062426132             2592.0 ...  -0.0003497292    0.99997586
+     1.0821130062426132             2592.0 ... -0.00063672155     1.0000035
 
 .. plot::
    :context:
    :nofigs:
 
-   >>> plt.clf()
+   ts_binned = ts_folded.downsample(0.03 * u.day)
+   ts_binned
+
+Let's take a look at the final result:
+
+.. plot::
+   :context:
+   :nofigs:
+
+   plt.clf()
 
 .. plot::
    :context:
    :include-source:
 
-   >>> ts_binned = ts_folded.downsample(0.03 * u.day)
-   >>> plt.plot(ts_folded.time.jd, ts_folded['sap_flux_norm'], '.', markersize=1)  # doctest: +SKIP
-   >>> plt.plot(ts_binned.start_time.jd, ts_binned['sap_flux_norm'], drawstyle='steps-post')  # doctest: +SKIP
-   >>> plt.xlabel('Time (days)')  # doctest: +SKIP
-   >>> plt.ylabel('Normalized flux')  # doctest: +SKIP
+   plt.plot(ts_folded.time.jd, ts_folded['sap_flux_norm'], '.', markersize=1)
+   plt.plot(ts_binned.start_time.jd, ts_binned['sap_flux_norm'], drawstyle='steps-post')
+   plt.xlabel('Time (days)')
+   plt.ylabel('Normalized flux')
+
+It looks like there might be a hint of a secondary transit!
+
+To learn more about the capabilities in the `astropy.timeseries` module, you can
+find links to the full documentation in the next section.
 
 .. _using-timeseries:
 
