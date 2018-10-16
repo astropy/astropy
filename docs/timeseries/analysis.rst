@@ -106,9 +106,9 @@ The following example shows how to use this to bin a light curve from the Kepler
 mission into 20 minute bins using a median function. First, we read in the
 data using:
 
-  .. plot::
-     :context: reset
-     :nofigs:
+.. plot::
+   :context: reset
+   :nofigs:
 
     from astropy.timeseries import SampledTimeSeries
     from astropy.utils.data import get_pkg_data_filename
