@@ -125,7 +125,7 @@ Let's use what we've seen so far to make a plot
    :context:
 
    import matplotlib.pyplot as plt
-   plt.plot(ts.time.jd, ts['sap_flux'])
+   plt.plot(ts.time.jd, ts['sap_flux'], 'k.', markersize=1)
    plt.xlabel('Barycentric Julian Date')
    plt.ylabel('SAP Flux (e-/s)')
 
@@ -154,7 +154,7 @@ We can now fold the time series using the period we've found above using the
    :include-source:
    :nofigs:
 
-   >>> ts_folded = ts.fold(period=period)
+   >>> ts_folded = ts.fold(period=period, midpoint_epoch='2009-05-02T07:41:40')
 
 Let's take a look at the folded time series:
 
@@ -168,7 +168,7 @@ Let's take a look at the folded time series:
    :context:
    :include-source:
 
-   plt.plot(ts_folded.time.jd, ts_folded['sap_flux'], '.', markersize=1)
+   plt.plot(ts_folded.time.jd, ts_folded['sap_flux'], 'k.', markersize=1)
    plt.xlabel('Time (days)')
    plt.ylabel('SAP Flux (e-/s)')
 
@@ -221,8 +221,8 @@ Let's take a look at the final result:
    :context:
    :include-source:
 
-   plt.plot(ts_folded.time.jd, ts_folded['sap_flux_norm'], '.', markersize=1)
-   plt.plot(ts_binned.start_time.jd, ts_binned['sap_flux_norm'], drawstyle='steps-post')
+   plt.plot(ts_folded.time.jd, ts_folded['sap_flux_norm'], 'k.', markersize=1)
+   plt.plot(ts_binned.start_time.jd, ts_binned['sap_flux_norm'], 'r-', drawstyle='steps-post')
    plt.xlabel('Time (days)')
    plt.ylabel('Normalized flux')
 
