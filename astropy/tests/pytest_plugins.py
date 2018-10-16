@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 import __future__
 
 from ..extern import six
+from ..extern.six.moves import builtins
 
 import ast
 import datetime
@@ -44,6 +45,12 @@ for plugin in ['pytest_doctestplus', 'pytest_openfiles', 'pytest_remotedata']:
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
+
+# This makes sure that this module is not collected when running the test
+# suite. This is necessary in order to get the test suite to run without errors
+# using pytest>=3.7
+if getattr(builtins, '_pytest_running', False):
+    pytest.skip()
 
 
 def pytest_addoption(parser):
