@@ -140,6 +140,9 @@ class SampledTimeSeries(TimeSeries):
         if n_bins is None:
             n_bins = int(np.ceil(relative_time_sec[-1] / bin_size_sec))
 
+        if func is None:
+            func = np.nanmedian
+
         # Determine the bins
         relative_bins_sec = np.cumsum(np.hstack([0, np.repeat(bin_size_sec, n_bins)]))
         bins = start_time + relative_bins_sec * u.s
@@ -232,3 +235,9 @@ class SampledTimeSeries(TimeSeries):
                                                  keys=self.groups._keys)
                 return out
         return super().__getitem__(item)
+
+    def add_columns(self, *args, **kwargs):
+        result = super().add_columns(*args, **kwargs)
+        if len(self.indices) == 0 and 'time' in self.colnames:
+            self.add_index('time')
+        return result

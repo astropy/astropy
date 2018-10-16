@@ -20,668 +20,288 @@ Introduction
 Many different areas of astrophysics have to deal with 1D time series data,
 either sampling a continuous variable at fixed times or counting some events
 binned into time windows. The `astropy.timeseries` package therefore provides
-classes to represent and manipulate time series, including the following
-functionality:
-
-* Extending time series with extra rows
-* Concatenating multiple time series objects
-* Sorting
-* Slicing / selecting time ranges (indexing)
-* Re-binning and re-sampling time series
-* Interpolating to different time stamps
-* Masking
-* Support for subtraction and addition (e.g. background)
-
-While this functionality is also found in non-domain specific packages such as
-`pandas <https://pandas.pydata.org/>`_, the time series classes here also
-provide some functionality which is more specific to Astronomy:
-
-* Converting between time systems
-* Astropy unit support
-* Support for variable width time bins.
+classes to represent and manipulate time series
 
 The time series classes presented below are |QTable| objects that have special
-columns to represent times using the |Time| class. Therefore, most of the
+columns to represent times using the |Time| class. Therefore, much of the
 functionality described in :ref:`astropy-table` applies here.
 
 Getting Started
 ===============
 
-Initializing a sampled time series
-----------------------------------
+In this section, we take a quick look at how to read in a time series, access
+the data, and carry out some basic analysis. For more details about creating and
+using time series, see the full documentation in :ref:`using-timeseries`.
 
-The first type of time series that we will look at here is |SampledTimeSeries|,
-which can be used for a time series which samples a continuous variable at
-discrete and instantaneous times. Initializing a |SampledTimeSeries| can be done
-in the same ways as initializing a |Table| object (see :ref:`Data Tables <astropy-table>`),
-but additional arguments related to the times should be specified.
+To start off, we retrieve a FITS file containing a Kepler light curve for a
+source::
 
-Evenly sampled time series
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+    >>> from astropy.utils.data import get_pkg_data_filename
+    >>> filename = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
 
-The easiest way to construct an evenly sampled time series is to specify the
-start time, the time interval, and the number of samples, for evenly sampled
-time series::
+We can then use the |SampledTimeSeries| class to read in this file::
 
-    >>> from astropy import units as u
     >>> from astropy.timeseries import SampledTimeSeries
-    >>> ts1 = SampledTimeSeries(time='2016-03-22T12:30:31',
-    ...                         time_delta=3 * u.s,
-    ...                         n_samples=10)
+    >>> ts = SampledTimeSeries.read(filename, format='kepler.fits')
 
-The ``time`` keyword argument can be set to anything that can be passed to the
-|Time| class (see also :ref:`Time and Dates <astropy-time>`). Note that the
-``n_samples`` argument is only needed if you are not also passing in data during
-initialization (see `Passing data during initialization`_).
+Time series are specialized kinds of astropy |Table| objects, and in fact if we
+look at the ``ts``, it will look like a normal table::
 
-Arbitrarily sampled time series
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    >>> ts
+    <SampledTimeSeries length=14280>
+        time             timecorr   ...   pos_corr1      pos_corr2
+                            d       ...     pixels         pixels
+       object            float32    ...    float32        float32
+    ----------------------- ------------- ... -------------- --------------
+    2009-05-02T00:41:40.338  6.630610e-04 ...  1.5822421e-03 -1.4463664e-03
+    2009-05-02T00:42:39.187  6.630857e-04 ...  1.5743829e-03 -1.4540013e-03
+    2009-05-02T00:43:38.045  6.631103e-04 ...  1.5665225e-03 -1.4616371e-03
+    2009-05-02T00:44:36.894  6.631350e-04 ...  1.5586632e-03 -1.4692718e-03
+    2009-05-02T00:45:35.752  6.631597e-04 ...  1.5508028e-03 -1.4769078e-03
+    2009-05-02T00:46:34.601  6.631844e-04 ...  1.5429436e-03 -1.4845425e-03
+    2009-05-02T00:47:33.451  6.632091e-04 ...  1.5350844e-03 -1.4921773e-03
+    2009-05-02T00:48:32.291  6.632337e-04 ...  1.5272264e-03 -1.4998110e-03
+    2009-05-02T00:49:31.149  6.632584e-04 ...  1.5193661e-03 -1.5074468e-03
+                  ...           ... ...            ...            ...
+    2009-05-11T17:58:22.526  1.014493e-03 ...  3.6121816e-03  3.1950327e-03
+    2009-05-11T17:59:21.376  1.014518e-03 ...  3.6102540e-03  3.1872767e-03
+    2009-05-11T18:00:20.225  1.014542e-03 ...  3.6083264e-03  3.1795206e-03
+    2009-05-11T18:01:19.065  1.014567e-03 ...  3.6063993e-03  3.1717657e-03
+    2009-05-11T18:02:17.923  1.014591e-03 ...  3.6044715e-03  3.1640085e-03
+    2009-05-11T18:03:16.772  1.014615e-03 ...  3.6025438e-03  3.1562524e-03
+    2009-05-11T18:04:15.630  1.014640e-03 ...  3.6006160e-03  3.1484952e-03
+    2009-05-11T18:05:14.479  1.014664e-03 ...  3.5986886e-03  3.1407392e-03
+    2009-05-11T18:06:13.328  1.014689e-03 ...  3.5967610e-03  3.1329831e-03
+    2009-05-11T18:07:12.186  1.014713e-03 ...  3.5948332e-03  3.1252259e-03
 
-To construct a sampled time series with samples at arbitrary times, you can
-pass multiple times to the ``time`` argument::
+As for |Table|, the various columns and rows can be accessed and sliced using
+index notation::
 
-    >>> ts2 = SampledTimeSeries(time=['2016-03-22T12:30:31',
-    ...                               '2016-03-22T12:30:38',
-    ...                               '2016-03-22T12:34:40'])
-    >>> ts2
-    <SampledTimeSeries length=3>
-              time
-             object
-    -----------------------
-    2016-03-22T12:30:31.000
-    2016-03-22T12:30:38.000
-    2016-03-22T12:34:40.000
+    >>> ts['sap_flux']
+    <Quantity [1027045.06, 1027184.44, 1027076.25, ..., 1025451.56, 1025468.5 ,
+               1025930.9 ] electron / s>
 
-You can also specify a vector |Time| object directly.
+    >>> ts['time', 'sap_flux']
+    <SampledTimeSeries length=14280>
+              time             sap_flux
+                             electron / s
+             object            float32
+    ----------------------- --------------
+    2009-05-02T00:41:40.338  1.0270451e+06
+    2009-05-02T00:42:39.187  1.0271844e+06
+    2009-05-02T00:43:38.045  1.0270762e+06
+    2009-05-02T00:44:36.894  1.0271414e+06
+    2009-05-02T00:45:35.752  1.0271569e+06
+    2009-05-02T00:46:34.601  1.0272296e+06
+    2009-05-02T00:47:33.451  1.0273199e+06
+    2009-05-02T00:48:32.291  1.0271497e+06
+    2009-05-02T00:49:31.149  1.0271755e+06
+                        ...            ...
+    2009-05-11T17:58:22.526  1.0234769e+06
+    2009-05-11T17:59:21.376  1.0234574e+06
+    2009-05-11T18:00:20.225  1.0238128e+06
+    2009-05-11T18:01:19.065  1.0243234e+06
+    2009-05-11T18:02:17.923  1.0244257e+06
+    2009-05-11T18:03:16.772  1.0248654e+06
+    2009-05-11T18:04:15.630  1.0250156e+06
+    2009-05-11T18:05:14.479  1.0254516e+06
+    2009-05-11T18:06:13.328  1.0254685e+06
+    2009-05-11T18:07:12.186  1.0259309e+06
 
-Initializing a binned time series
----------------------------------
-
-The |BinnedTimeSeries| can be used to represent time series where each entry
-corresponds to measurements taken over a range in time - for example a light
-curve constructed by binning X-ray photon events. This class supports equal-size
-or uneven bins, and contiguous and non-contiguous bins. As for
-|SampledTimeSeries|, initializing a |BinnedTimeSeries| can be done in the same
-ways as initializing a |Table| object (see :ref:`Data Tables <astropy-table>`), but additional
-arguments related to the times should be specified as described below.
-
-Equal-sized contiguous bins
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-To create a binned time series with equal-size contiguous bins, it is sufficient
-to specify a start time as well as a bin size::
-
-    >>> from astropy.timeseries import BinnedTimeSeries
-    >>> ts3 = BinnedTimeSeries(start_time='2016-03-22T12:30:31',
-    ...                        bin_size=3 * u.s, n_bins=10)
-    >>> ts3
-    <BinnedTimeSeries length=10>
-        start_time       bin_size
-                            s
-          object         float64
-    ----------------------- --------
-    2016-03-22T12:30:31.000      3.0
-    2016-03-22T12:30:34.000      3.0
-    2016-03-22T12:30:37.000      3.0
-    2016-03-22T12:30:40.000      3.0
-    2016-03-22T12:30:43.000      3.0
-    2016-03-22T12:30:46.000      3.0
-    2016-03-22T12:30:49.000      3.0
-    2016-03-22T12:30:52.000      3.0
-    2016-03-22T12:30:55.000      3.0
-    2016-03-22T12:30:58.000      3.0
-
-Note that the ``n_bins`` argument is only needed if you are not also passing in
-data during initialization (see `Passing data during initialization`_).
-
-Uneven contiguous bins
-^^^^^^^^^^^^^^^^^^^^^^
-
-Creating a binned time series with uneven contiguous bins, the bin size can be
-changed to give multiple values (note that in this case ``n_bins`` is not
-required)::
-
-    >>> ts4 = BinnedTimeSeries(start_time='2016-03-22T12:30:31',
-    ...                        bin_size=[3, 3, 2, 3] * u.s)
-    >>> ts4
-    <BinnedTimeSeries length=4>
-        start_time       bin_size
-                            s
-          object         float64
-    ----------------------- --------
-    2016-03-22T12:30:31.000      3.0
-    2016-03-22T12:30:34.000      3.0
-    2016-03-22T12:30:37.000      2.0
-    2016-03-22T12:30:39.000      3.0
-
-Alternatively, you can create the same time series by giving an array of start
-times as well as a single end time::
-
-
-    >>> ts5 = BinnedTimeSeries(start_time=['2016-03-22T12:30:31',
-    ...                                    '2016-03-22T12:30:34',
-    ...                                    '2016-03-22T12:30:37',
-    ...                                    '2016-03-22T12:30:39'],
-    ...                        end_time='2016-03-22T12:30:42')
-    >>> ts5  # doctest: +FLOAT_CMP
-    <BinnedTimeSeries length=4>
-        start_time            bin_size
-                                 s
-          object              float64
-    ----------------------- -----------------
-    2016-03-22T12:30:31.000               3.0
-    2016-03-22T12:30:34.000               3.0
-    2016-03-22T12:30:37.000               2.0
-    2016-03-22T12:30:39.000               3.0
-
-
-Uneven non-contiguous bins
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-To create a binned time series with non-contiguous bins, you can either
-specify an array of start times and bin widths::
-
-    >>> ts6 = BinnedTimeSeries(start_time=['2016-03-22T12:30:31',
-    ...                                    '2016-03-22T12:30:38',
-    ...                                    '2016-03-22T12:34:40'],
-    ...                        bin_size=[5, 100, 2]*u.s)
-    >>> ts6
-    <BinnedTimeSeries length=3>
-        start_time       bin_size
-                            s
-          object         float64
-    ----------------------- --------
-    2016-03-22T12:30:31.000      5.0
-    2016-03-22T12:30:38.000    100.0
-    2016-03-22T12:34:40.000      2.0
-
-
-Or in the most general case, you can also specify multiple times for
-``start_time`` and ``end_time``::
-
-    >>> ts7 = BinnedTimeSeries(start_time=['2016-03-22T12:30:31',
-    ...                                    '2016-03-22T12:30:33',
-    ...                                    '2016-03-22T12:30:40'],
-    ...                        end_time=['2016-03-22T12:30:32',
-    ...                                  '2016-03-22T12:30:35',
-    ...                                  '2016-03-22T12:30:41'])
-    >>> ts7  # doctest: +FLOAT_CMP
-    <BinnedTimeSeries length=3>
-           start_time            bin_size
-                                    s
-             object              float64
-    ----------------------- ------------------
-    2016-03-22T12:30:31.000                1.0
-    2016-03-22T12:30:33.000                2.0
-    2016-03-22T12:30:40.000                1.0
-
-You can also specify vector |Time| objects directly.
-
-Adding data to the time series
-------------------------------
-
-The above examples show how to initialize time series objects, but these don't
-include any data aside from the times. There are different ways of adding data,
-as for the |Table| class.
-
-Adding data after initalization
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Once the time series is initialized, you can add columns/fields to it as you
-would for a |Table| object::
-
-    >>> from astropy import units as u
-    >>> ts1['flux'] = [1., 4., 5., 6., 4., 5., 4., 3., 2., 3.] * u.mJy
-    >>> ts1
+    >>> ts[0:10]
     <SampledTimeSeries length=10>
-              time            flux
-                              mJy
-             object         float64
-    ----------------------- -------
-    2016-03-22T12:30:31.000     1.0
-    2016-03-22T12:30:34.000     4.0
-    2016-03-22T12:30:37.000     5.0
-    2016-03-22T12:30:40.000     6.0
-    2016-03-22T12:30:43.000     4.0
-    2016-03-22T12:30:46.000     5.0
-    2016-03-22T12:30:49.000     4.0
-    2016-03-22T12:30:52.000     3.0
-    2016-03-22T12:30:55.000     2.0
-    2016-03-22T12:30:58.000     3.0
+              time             timecorr   ...   pos_corr1      pos_corr2
+                                  d       ...     pixels         pixels
+             object            float32    ...    float32        float32
+    ----------------------- ------------- ... -------------- --------------
+    2009-05-02T00:41:40.338  6.630610e-04 ...  1.5822421e-03 -1.4463664e-03
+    2009-05-02T00:42:39.187  6.630857e-04 ...  1.5743829e-03 -1.4540013e-03
+    2009-05-02T00:43:38.045  6.631103e-04 ...  1.5665225e-03 -1.4616371e-03
+    2009-05-02T00:44:36.894  6.631350e-04 ...  1.5586632e-03 -1.4692718e-03
+    2009-05-02T00:45:35.752  6.631597e-04 ...  1.5508028e-03 -1.4769078e-03
+    2009-05-02T00:46:34.601  6.631844e-04 ...  1.5429436e-03 -1.4845425e-03
+    2009-05-02T00:47:33.451  6.632091e-04 ...  1.5350844e-03 -1.4921773e-03
+    2009-05-02T00:48:32.291  6.632337e-04 ...  1.5272264e-03 -1.4998110e-03
+    2009-05-02T00:49:31.149  6.632584e-04 ...  1.5193661e-03 -1.5074468e-03
+    2009-05-02T00:50:29.998  6.632830e-04 ...  1.5115069e-03 -1.5150816e-03
 
-Passing data during initialization
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+All |SampledTimeSeries| objects have a ``time`` column, which is always the
+first column::
 
-It is also possible to pass the data during the initialization, as for
-|Table|, e.g.::
-
-    >>> ts8 = BinnedTimeSeries(start_time=['2016-03-22T12:30:31',
-    ...                                    '2016-03-22T12:30:34',
-    ...                                    '2016-03-22T12:30:37',
-    ...                                    '2016-03-22T12:30:39'],
-    ...                        end_time='2016-03-22T12:30:42',
-    ...                        data={'flux': [1., 4., 5., 6.] * u.mJy})
-    >>> ts8  # doctest: +FLOAT_CMP
-    <BinnedTimeSeries length=4>
-           start_time            bin_size       flux
-                                    s           mJy
-             object              float64      float64
-    ----------------------- ----------------- -------
-    2016-03-22T12:30:31.000               3.0     1.0
-    2016-03-22T12:30:34.000               3.0     4.0
-    2016-03-22T12:30:37.000               2.0     5.0
-    2016-03-22T12:30:39.000               3.0     6.0
-
-Adding rows
-^^^^^^^^^^^
-
-.. warning:: Doesn't work yet, see https://github.com/astropy/astropy/issues/7894
-
-Accessing data
---------------
-
-As for |Table|, columns can be accessed by name::
-
-    >>> ts = SampledTimeSeries(time='2016-03-22T12:30:31',
-    ...                        time_delta=3 * u.s,
-    ...                        data={'flux': [1., 4., 5., 3., 2.]})
-    >>> ts['flux']
-    <Column name='flux' dtype='float64' length=5>
-    1.0
-    4.0
-    5.0
-    3.0
-    2.0
     >>> ts['time']
-    <Time object: scale='utc' format='isot' value=['2016-03-22T12:30:31.000' '2016-03-22T12:30:34.000'
-     '2016-03-22T12:30:37.000' '2016-03-22T12:30:40.000'
-     '2016-03-22T12:30:43.000']>
+    <Time object: scale='tcb' format='isot' value=['2009-05-02T00:41:40.338' '2009-05-02T00:42:39.187'
+     '2009-05-02T00:43:38.045' ... '2009-05-11T18:05:14.479'
+     '2009-05-11T18:06:13.328' '2009-05-11T18:07:12.186']>
 
-and rows can be accessed by index::
-
-    >>> ts[0]
-    <Row index=0>
-              time            flux
-             object         float64
-    ----------------------- -------
-    2016-03-22T12:30:31.000     1.0
-
-Accessing individual values can then be done either by accessing a column then a
-row, or vice-versa::
-
-    >>> ts[0]['time']
-    <Time object: scale='utc' format='isot' value=2016-03-22T12:30:31.000>
-
-    >>> ts['time'][0]
-    <Time object: scale='utc' format='isot' value=2016-03-22T12:30:31.000>
-
-Accessing times
----------------
-
-The ``time`` column (for |SampledTimeSeries|) and the ``start_time``
-and ``end_time`` columns (for |BinnedTimeSeries|) can be accessed using the
-regular column access notation, as shown in `Accessing data`_, but they can also
-be accessed with convenience attributes ``time``, ``start_time``, and
-``end_time``::
+This column can also be accessed using the ``.time`` attribute::
 
     >>> ts.time
-    <Time object: scale='utc' format='isot' value=['2016-03-22T12:30:31.000' '2016-03-22T12:30:34.000'
-     '2016-03-22T12:30:37.000' '2016-03-22T12:30:40.000'
-     '2016-03-22T12:30:43.000']>
+    <Time object: scale='tcb' format='isot' value=['2009-05-02T00:41:40.338' '2009-05-02T00:42:39.187'
+     '2009-05-02T00:43:38.045' ... '2009-05-11T18:05:14.479'
+     '2009-05-11T18:06:13.328' '2009-05-11T18:07:12.186']>
 
-Since these columns/attributes are |Time| arrays, it is possible to use the
-usual attributes on |Time| to convert the time to different formats or scales::
+and is always a |Time| object (see :ref:`astropy-time`), which therefore
+supports the ability to convert to different time scales and formats::
 
-    >>> ts.time.mjd  # doctest: +FLOAT_CMP
-    array([57469.52119213, 57469.52122685, 57469.52126157, 57469.5212963 ,
-           57469.52133102])
+    >>> ts.time.mjd
+    array([54953.0289391 , 54953.02962023, 54953.03030145, ...,
+           54962.7536398 , 54962.75432093, 54962.75500215])
+    >>> ts.time.unix
+    array([1.24122482e+09, 1.24122488e+09, 1.24122494e+09, ...,
+           1.24206503e+09, 1.24206509e+09, 1.24206515e+09])
 
-    >>> ts.time.tai
-    <Time object: scale='tai' format='isot' value=['2016-03-22T12:31:07.000' '2016-03-22T12:31:10.000'
-     '2016-03-22T12:31:13.000' '2016-03-22T12:31:16.000'
-     '2016-03-22T12:31:19.000']>
-
-Formatting times
-----------------
-
-Since the various time columns are |Time| objects, the default format and scale
-to use for the display of the time series can be changed using the ``format``
-and ``scale`` attributes::
-
-    >>> ts.time.format = 'isot'
-    >>> ts
-    <SampledTimeSeries length=5>
-              time            flux
-             object         float64
-    ----------------------- -------
-    2016-03-22T12:30:31.000     1.0
-    2016-03-22T12:30:34.000     4.0
-    2016-03-22T12:30:37.000     5.0
-    2016-03-22T12:30:40.000     3.0
-    2016-03-22T12:30:43.000     2.0
-    >>> ts.time.format = 'unix'
-    >>> ts
-    <SampledTimeSeries length=5>
-           time          flux
-          object       float64
-    ------------------ -------
-          1458649831.0     1.0
-          1458649834.0     4.0
-    1458649837.0000002     5.0
-    1458649840.0000002     3.0
-          1458649843.0     2.0
-
-Combining time series
----------------------
-
-The  :func:`~astropy.table.vstack`, and :func:`~astropy.table.hstack` functions
-from the :mod:`astropy.table` module can be used to stack time series in
-different ways.
-
-Time series can be stacked 'vertically' or row-wise using the
-:func:`~astropy.table.vstack` function (although note that sampled time
-series cannot be combined with binned time series and vice-versa)::
-
-    >>> from astropy.table import vstack
-    >>> ts_a = SampledTimeSeries(time='2016-03-22T12:30:31',
-    ...                          time_delta=3 * u.s,
-    ...                          data={'flux': [1, 4, 5, 3, 2] * u.mJy})
-    >>> ts_b = SampledTimeSeries(time='2016-03-22T12:50:31',
-    ...                          time_delta=3 * u.s,
-    ...                          data={'flux': [4, 3, 1, 2, 3] * u.mJy})
-    >>> ts_ab = vstack([ts_a, ts_b])
-    >>> ts_ab
-    <SampledTimeSeries length=10>
-              time            flux
-                              mJy
-             object         float64
-    ----------------------- -------
-    2016-03-22T12:30:31.000     1.0
-    2016-03-22T12:30:34.000     4.0
-    2016-03-22T12:30:37.000     5.0
-    2016-03-22T12:30:40.000     3.0
-    2016-03-22T12:30:43.000     2.0
-    2016-03-22T12:50:31.000     4.0
-    2016-03-22T12:50:34.000     3.0
-    2016-03-22T12:50:37.000     1.0
-    2016-03-22T12:50:40.000     2.0
-    2016-03-22T12:50:43.000     3.0
-
-Time series can also be combined 'horizontally' or column-wise with other tables
-using the :func:`~astropy.table.hstack` function, though these should not be
-time series (as having multiple time columns would be confusing)::
-
-    >>> from astropy.table import Table, hstack
-    >>> data = Table(data={'temperature': [40., 41., 40., 39., 30.] * u.K})
-    >>> ts_a_data = hstack([ts_a, data])
-    >>> ts_a_data
-    <SampledTimeSeries length=5>
-              time            flux  temperature
-                              mJy          K
-             object         float64    float64
-    ----------------------- ------- -----------
-    2016-03-22T12:30:31.000     1.0        40.0
-    2016-03-22T12:30:34.000     4.0        41.0
-    2016-03-22T12:30:37.000     5.0        40.0
-    2016-03-22T12:30:40.000     3.0        39.0
-    2016-03-22T12:30:43.000     2.0        30.0
-
-Sorting time series
--------------------
-
-Sorting time series in-place can be done using the
-:meth:`~astropy.table.Table.sort` method, as for |Table|::
-
-    >>> ts9 = SampledTimeSeries(time='2016-03-22T12:30:31',
-    ...                         time_delta=3 * u.s,
-    ...                         data={'flux': [1., 4., 5., 3., 2.]})
-    >>> ts9
-    <SampledTimeSeries length=5>
-              time            flux
-             object         float64
-    ----------------------- -------
-    2016-03-22T12:30:31.000     1.0
-    2016-03-22T12:30:34.000     4.0
-    2016-03-22T12:30:37.000     5.0
-    2016-03-22T12:30:40.000     3.0
-    2016-03-22T12:30:43.000     2.0
-    >>> ts9.sort('flux')
-    >>> ts9
-    <SampledTimeSeries length=5>
-              time            flux
-             object         float64
-    ----------------------- -------
-    2016-03-22T12:30:31.000     1.0
-    2016-03-22T12:30:43.000     2.0
-    2016-03-22T12:30:40.000     3.0
-    2016-03-22T12:30:34.000     4.0
-    2016-03-22T12:30:37.000     5.0
-
-Extracting a subset of columns
-------------------------------
-
-Let's consider a case where a time series has two data columns::
-
-   >>> from collections import OrderedDict
-   >>> ts = SampledTimeSeries(time='2016-03-22T12:30:31',
-   ...                        time_delta=3 * u.s,
-   ...                        data={'flux': [1., 4., 5., 3., 2.],
-   ...                              'temp': [40., 41., 39., 24., 20.]},
-   ...                        names=('flux', 'temp'))
-
-We can create a new time series with just the flux column by doing::
-
-    >>> ts['time', 'flux']
-    <SampledTimeSeries length=5>
-              time            flux
-             object         float64
-    ----------------------- -------
-    2016-03-22T12:30:31.000     1.0
-    2016-03-22T12:30:34.000     4.0
-    2016-03-22T12:30:37.000     5.0
-    2016-03-22T12:30:40.000     3.0
-    2016-03-22T12:30:43.000     2.0
-
-And we can also create a plain |QTable| by extracting just the ``flux`` and
-``temp`` columns::
-
-    >>> ts['flux', 'temp']
-    <QTable length=5>
-      flux    temp
-    float64 float64
-    ------- -------
-        1.0    40.0
-        4.0    41.0
-        5.0    39.0
-        3.0    24.0
-        2.0    20.0
-
-Extracting a subset of rows
----------------------------
-
-Time series objects can be sliced by row index, using the same syntax as for
-|Time|, e.g.::
-
-    >>> ts[0:2]
-    <SampledTimeSeries length=2>
-              time            flux    temp
-             object         float64 float64
-    ----------------------- ------- -------
-    2016-03-22T12:30:31.000     1.0    40.0
-    2016-03-22T12:30:34.000     4.0    41.0
-
-Time series objects are also automatically indexed using the functionality
-described in :ref:`table-indexing`. This provides the ability to access rows and
-subset of rows using the :attr:`~astropy.timeseries.TimeSeries.loc` and
-:attr:`~astropy.timeseries.TimeSeries.iloc` attributes.
-
-The :attr:`~astropy.timeseries.TimeSeries.loc` attribute can be used to slice
-the time series by time. For example, the following can be used to extract all
-entries for a given timestamp::
-
-    >>> from astropy.time import Time
-    >>> ts.loc[Time('2016-03-22T12:30:31.000')] # doctest: +SKIP
-    <Row index=0>
-              time            flux    temp
-             object         float64 float64
-    ----------------------- ------- -------
-    2016-03-22T12:30:31.000     1.0    40.0
-
-or within a time range::
-
-    >>> ts.loc[Time('2016-03-22T12:30:31'):Time('2016-03-22T12:30:40')]
-    <SampledTimeSeries length=4>
-              time            flux    temp
-             object         float64 float64
-    ----------------------- ------- -------
-    2016-03-22T12:30:31.000     1.0    40.0
-    2016-03-22T12:30:34.000     4.0    41.0
-    2016-03-22T12:30:37.000     5.0    39.0
-    2016-03-22T12:30:40.000     3.0    24.0
-
-.. TODO: make it so that Time() is not required above
-
-Note that the result will always be sorted by time. Similarly, the
-:attr:`~astropy.timeseries.TimeSeries.iloc` attribute can be used to fetch
-rows from the time series *sorted by time*, so for example the two first
-entries (by time) can be accessed with::
-
-    >>> ts.iloc[0:2]
-    <SampledTimeSeries length=2>
-              time            flux    temp
-             object         float64 float64
-    ----------------------- ------- -------
-    2016-03-22T12:30:31.000     1.0    40.0
-    2016-03-22T12:30:34.000     4.0    41.0
-
-Reading/writing time series
----------------------------
-
-Since |SampledTimeSeries| and |BinnedTimeSeries| are sub-classes of |QTable|,
-they have :meth:`~astropy.table.Table.read` and
-:meth:`~astropy.table.Table.write` methods that can be used to read time series
-from files. At the moment only a few formats are defined in astropy itself, but
-it is easy for other packages and users to define their own readers/writers
-with the :ref:`table_io`. Here is an example of using Kepler FITS time series:
-
-.. plot::
-   :include-source:
-   :context:
-
-   import matplotlib.pyplot as plt
-   from astropy.timeseries import SampledTimeSeries
-   from astropy.utils.data import get_pkg_data_filename
-
-   example_data = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
-   kepler = SampledTimeSeries.read(example_data, format='kepler.fits')
-
-   plt.plot(kepler.time.jd, kepler['sap_flux'])
-   plt.xlabel('Barycentric Julian Date')
-   plt.ylabel('SAP Flux (e-/s)')
-
-Resampling
-----------
-
-The |SampledTimeSeries| class has a
-:meth:`~astropy.timeseries.SampledTimeSeries.downsample` method that can be used
-to bin values from the time series into bins of equal time, using a custom
-function (mean, median, etc.). This operation returns a |BinnedTimeSeries|.
-The following example shows how to use this to bin a light curve from the Kepler
-mission into 20 minute bins using a median function:
+Let's use what we've seen so far to make a plot
 
 .. plot::
    :context: reset
    :nofigs:
 
-   import matplotlib.pyplot as plt
-   from astropy.timeseries import SampledTimeSeries
-   from astropy.utils.data import get_pkg_data_filename
-
-   example_data = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
-   kepler = SampledTimeSeries.read(example_data, format='kepler.fits')
+    from astropy.utils.data import get_pkg_data_filename
+    filename = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
+    from astropy.timeseries import SampledTimeSeries
+    ts = SampledTimeSeries.read(filename, format='kepler.fits')
 
 .. plot::
    :include-source:
    :context:
 
-    import numpy as np
-    from astropy import units as u
+   >>> import matplotlib.pyplot as plt
+   >>> plt.plot(ts.time.jd, ts['sap_flux'])  # doctest: +SKIP
+   >>> plt.xlabel('Barycentric Julian Date')  # doctest: +SKIP
+   >>> plt.ylabel('SAP Flux (e-/s)')  # doctest: +SKIP
 
-    kepler_binned = kepler.downsample(bin_size=20 * u.min, func=np.nanmedian)
-
-    plt.plot(kepler.time.jd, kepler['sap_flux'], 'k.')
-    plt.plot(kepler_binned.start_time.jd, kepler_binned['sap_flux'], 'r-', drawstyle='steps-pre')
-    plt.xlabel('Barycentric Julian Date')
-    plt.ylabel('SAP Flux (e-/s)')
-
-Folding
--------
-
-The |SampledTimeSeries| class has a
-:meth:`~astropy.timeseries.SampledTimeSeries.fold` method that can be used to
-return a new time series with a relative and folded time axis. This method
-takes the period as a :class:`~astropy.units.Quantity`, and optionally takes
-an epoch as a :class:`~astropy.time.Time`, which defines a zero time offset:
+It looks like there are a few transits! Let's use the :ref:`stats-bls`
+functionality to estimate the period, using a box with a duration of 0.2 days:
 
 .. plot::
-   :context: reset
+   :context:
+   :include-source:
    :nofigs:
 
-   import numpy as np
-   from astropy import units as u
-   import matplotlib.pyplot as plt
-   from astropy.timeseries import SampledTimeSeries
-   from astropy.utils.data import get_pkg_data_filename
-
-   example_data = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
-   kepler = SampledTimeSeries.read(example_data, format='kepler.fits')
+   >>> import numpy as np
+   >>> from astropy import units as u
+   >>> from astropy.stats import BoxLeastSquares
+   >>> keep = ~np.isnan(ts['sap_flux'])
+   >>> periodogram = BoxLeastSquares(ts.time.jd[keep] * u.day, ts['sap_flux'][keep]).autopower(0.2 * u.day)
+   >>> period = periodogram.period[np.argmax(periodogram.power)]
+   >>> period
+   <Quantity 2.21584977 d>
 
 .. plot::
-   :include-source:
    :context:
-
-    kepler_folded = kepler.fold(period=2.2 * u.day, midpoint_epoch='2009-05-02T20:53:40')
-
-    plt.plot(kepler_folded.time.jd, kepler_folded['sap_flux'], 'k.', markersize=1)
-    plt.xlabel('Time from midpoint epoch (days)')
-    plt.ylabel('SAP Flux (e-/s)')
-
-Arithmetic
-----------
-
-Since time series objects are sub-classes of |QTable|, they naturally support
-arithmetic on any of the data columns. As an example, we can take the folded
-Kepler time series we have seen in the examples above, and normalize it to the
-sigma-clipped median value.
-
-.. plot::
-   :context: reset
    :nofigs:
 
-   import numpy as np
-   from astropy import units as u
-   import matplotlib.pyplot as plt
-   from astropy.timeseries import SampledTimeSeries
-   from astropy.utils.data import get_pkg_data_filename
+   >>> plt.clf()
 
-   example_data = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
-   kepler = SampledTimeSeries.read(example_data, format='kepler.fits')
-   kepler_folded = kepler.fold(period=2.2 * u.day, midpoint_epoch='2009-05-02T20:53:40')
+We can also take a look at the periodogram:
 
 .. plot::
-   :include-source:
    :context:
+   :include-source:
 
-    from astropy.stats import sigma_clipped_stats
+   >>> plt.plot(periodogram.period, periodogram.power)  # doctest: +SKIP
+   >>> plt.xlabel('Period (days)')  # doctest: +SKIP
+   >>> plt.ylabel('Power')  # doctest: +SKIP
 
-    mean, median, stddev = sigma_clipped_stats(kepler_folded['sap_flux'])
+We can now fold the time series using the period we've found above using the
+:meth:`~astropy.timeseries.SampledTimeSeries.fold` method:
 
-    kepler_folded['sap_flux_norm'] = kepler_folded['sap_flux'] / median
+.. plot::
+   :context:
+   :nofigs:
 
-    plt.plot(kepler_folded.time.jd, kepler_folded['sap_flux_norm'], 'k.', markersize=1)
-    plt.xlabel('Time from midpoint epoch (days)')
-    plt.ylabel('Normalized flux')
+   >>> plt.clf()
 
+.. plot::
+   :context:
+   :include-source:
+
+   >>> ts_folded = ts.fold(period=period)
+   >>> plt.plot(ts_folded.time.jd, ts_folded['sap_flux'], '.', markersize=1)  # doctest: +SKIP
+   >>> plt.xlabel('Time (days)')  # doctest: +SKIP
+   >>> plt.ylabel('SAP Flux (e-/s)')  # doctest: +SKIP
+
+Using the :ref:`astropy-stats` module, we can normalize the flux by sigma-clipping
+the data to determine the baseline flux:
+
+.. plot::
+   :context:
+   :nofigs:
+
+   >>> plt.clf()
+
+.. plot::
+   :context:
+   :include-source:
+
+   >>> from astropy.stats import sigma_clipped_stats
+   >>> mean, median, stddev = sigma_clipped_stats(ts_folded['sap_flux'])
+   >>> ts_folded['sap_flux_norm'] = ts_folded['sap_flux'] / median
+   >>> plt.plot(ts_folded.time.jd, ts_folded['sap_flux_norm'], '.', markersize=1)  # doctest: +SKIP
+   >>> plt.xlabel('Time (days)')  # doctest: +SKIP
+   >>> plt.ylabel('Normalized flux')  # doctest: +SKIP
+
+And we can downsample the time series by binning the points into bins of equal
+time - this returns a |BinnedTimeSeries|:
+
+.. plot::
+   :context:
+   :nofigs:
+
+   >>> plt.clf()
+
+.. plot::
+   :context:
+   :include-source:
+
+   >>> ts_binned = ts_folded.downsample(0.03 * u.day)
+   >>> plt.plot(ts_folded.time.jd, ts_folded['sap_flux_norm'], '.', markersize=1)  # doctest: +SKIP
+   >>> plt.plot(ts_binned.start_time.jd, ts_binned['sap_flux_norm'], drawstyle='steps-post')  # doctest: +SKIP
+   >>> plt.xlabel('Time (days)')  # doctest: +SKIP
+   >>> plt.ylabel('Normalized flux')  # doctest: +SKIP
+
+.. _using-timeseries:
+
+Using ``timeseries``
+====================
+
+The details of using `astropy.timeseries` are provided in the following sections:
+
+Initializing and reading in time series
+---------------------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   initializing.rst
+   io.rst
+
+Accessing data and manipulating time series
+-------------------------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   data_access.rst
+   times.rst
+   analyzing.rst
+
+Comparison to other packages
+----------------------------
+
+The `astropy.timeseries` package is not the only package to provide
+functionality related to time series. For example, another notable package is
+`pandas <https://pandas.pydata.org/>`_, which provides a :class:`pandas.Series`
+class. The main benefits of `astropy.timeseries` in the context of astronomical
+research are the following:
+
+* The time column is a |Time| object that supports very high precision
+  representation of times, and makes it easy to convert between different
+  time scales and formats (e.g. ISO 8601 timestamps, Julian Dates, and so on).
+* The data columns can include |Quantity| objects with units
+* The |BinnedTimeSeries| class includes variable width time bins
+* There are built-in readers for common time series file formats, as well as
+  the ability to define custom readers/writers.
 
 Reference/API
 =============
