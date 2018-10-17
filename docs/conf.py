@@ -173,6 +173,10 @@ html_title = '{0} v{1}'.format(project, release)
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + 'doc'
 
+# A dictionary of values to pass into the template engine’s context for all pages.
+html_context = {
+    'to_be_indexed': ['stable', 'latest']
+}
 
 # -- Options for LaTeX output --------------------------------------------------
 
@@ -252,8 +256,3 @@ except ImportError:
                  'to this.')
 
 linkcheck_anchors = False
-
-# Add any extra paths that contain custom files (such as robots.txt or
-# .htaccess) here, relative to this directory. These files are copied
-# directly to the root of the documentation.
-html_extra_path = ['robots.txt']
