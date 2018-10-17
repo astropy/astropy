@@ -18,7 +18,7 @@ forks of the [astropy repository](https://github.com/astropy/astropy). If you're
 new to this style of development, you'll want to read over our
 [development workflow](http://docs.astropy.org/en/latest/development/workflow/development_workflow.html).
 
-You may also/instead be interested in contributing to to an
+You may also/instead be interested in contributing to an
 [astropy affiliated package](http://www.astropy.org/affiliated/).
 Affiliated packages are astronomy-related software packages that are not a part
 of the astropy core package, but build on it for more specialized applications
