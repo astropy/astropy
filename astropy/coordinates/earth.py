@@ -371,8 +371,11 @@ class EarthLocation(u.Quantity):
         the OpenStreetMap Nominatim tool [1]_ (default) or the Google geocoding
         API [2]_, which requires a specified API key.
 
-        This is intended as a quick convenience function to get fast access to
-        locations. In the background, this just issues a web query to either of
+        This is intended as a quick convenience function to get easy access to
+        locations. If you need to specify a precise location, you should use the
+        initializer directly and pass in a longitude, latitude, and elevation.
+
+        In the background, this just issues a web query to either of
         the APIs noted above. This is not meant to be abused! Both
         OpenStreetMap and Google use IP-based query limiting and will ban your
         IP if you send more than a few thousand queries per hour [2]_.
