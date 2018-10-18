@@ -305,7 +305,7 @@ def concatenate_representations(reps):
     # concatenate all of the positional data:
     rep_type = type(reps[0])
     if any(type(r) != rep_type for r in reps):
-        raise ValueError('Input representations must all have the same type.')
+        raise TypeError('Input representations must all have the same type.')
 
     # Construct the new representation with the concatenated data from the
     # representations passed in
@@ -320,8 +320,8 @@ def concatenate_representations(reps):
         if any('s' not in r.differentials or
                 type(r.differentials['s']) != dif_type
                for r in reps):
-            raise ValueError('Input representations must all have the same '
-                             'differential type.')
+            raise TypeError('Input representations must all have the same '
+                            'differential type.')
 
         values = _concatenate_components([r.differentials['s'] for r in reps],
                                          dif_type.attr_classes.keys())
