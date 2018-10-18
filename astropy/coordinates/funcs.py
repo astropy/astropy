@@ -358,4 +358,16 @@ def concatenate(coords):
     """
     if getattr(coords, 'isscalar', False) or not isiterable(coords):
         raise TypeError('The argument to concatenate must be iterable')
-    return SkyCoord(coords)
+
+    scs = [SkyCoord(coord) for coord in coords]
+
+    # Check that all frames are equivalent
+    for sc in scs[1:]:
+        if not sc.is_equivalent_frame(scs[0]):
+            raise ValueError("All inputs must have equivalent frames: "
+                             "{0} != {1}".format(sc, scs[0]))
+
+    # TODO: this can be changed to SkyCoord.from_representation() for a speed
+    # boost when we switch to using classmethods
+    return SkyCoord(concatenate_representations([c.data for c in coords]),
+                    frame=scs[0].frame)
