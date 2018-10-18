@@ -33,24 +33,6 @@ def test_sun():
     assert np.all(np.abs(gcrs2.dec - [23.5, 0, -23.5]*u.deg) < 1*u.deg)
 
 
-def test_concatenate():
-    from .. import FK5, SkyCoord
-    from ..funcs import concatenate
-
-    fk5 = FK5(1*u.deg, 2*u.deg)
-    sc = SkyCoord(3*u.deg, 4*u.deg, frame='fk5')
-
-    res = concatenate([fk5, sc])
-    np.testing.assert_allclose(res.ra, [1, 3]*u.deg)
-    np.testing.assert_allclose(res.dec, [2, 4]*u.deg)
-
-    with pytest.raises(TypeError):
-        concatenate(fk5)
-
-    with pytest.raises(TypeError):
-        concatenate(1*u.deg)
-
-
 def test_constellations():
     from .. import ICRS, FK5, SkyCoord
     from ..funcs import get_constellation
@@ -76,3 +58,72 @@ def test_constellations():
     boores = get_constellation(bootest)
     assert boores == u'Boötes'
     assert isinstance(boores, str) or getattr(boores, 'shape', None) == tuple()
+
+
+def test_concatenate():
+    from .. import FK5, SkyCoord
+    from ..funcs import concatenate
+
+    fk5 = FK5(1*u.deg, 2*u.deg)
+    sc = SkyCoord(3*u.deg, 4*u.deg, frame='fk5')
+
+    res = concatenate([fk5, sc])
+    np.testing.assert_allclose(res.ra, [1, 3]*u.deg)
+    np.testing.assert_allclose(res.dec, [2, 4]*u.deg)
+
+    with pytest.raises(TypeError):
+        concatenate(fk5)
+
+    with pytest.raises(TypeError):
+        concatenate(1*u.deg)
+
+
+def test_concatenate_representations():
+    from ..funcs import concatenate_representations
+    from .. import representation as r
+
+    reps = [r.CartesianRepresentation([1, 2, 3.]*u.kpc),
+            r.SphericalRepresentation(lon=1*u.deg, lat=2.*u.deg,
+                                      distance=10*u.pc),
+            r.UnitSphericalRepresentation(lon=1*u.deg, lat=2.*u.deg),
+            r.CartesianRepresentation(np.random.random((3, 100)) * u.kpc),
+            r.CartesianRepresentation(np.random.random((3, 16, 8)) * u.kpc)]
+
+    reps.append(reps[0].with_differentials(
+        r.CartesianDifferential([1, 2, 3.] * u.km/u.s)))
+    reps.append(reps[1].with_differentials(
+        r.SphericalCosLatDifferential(1*u.mas/u.yr, 2*u.mas/u.yr, 3*u.km/u.s)))
+    reps.append(reps[2].with_differentials(
+        r.SphericalCosLatDifferential(1*u.mas/u.yr, 2*u.mas/u.yr, 3*u.km/u.s)))
+    reps.append(reps[2].with_differentials(
+        r.UnitSphericalCosLatDifferential(1*u.mas/u.yr, 2*u.mas/u.yr)))
+    reps.append(reps[2].with_differentials(
+        {'s': r.RadialDifferential(1*u.km/u.s)}))
+    reps.append(reps[3].with_differentials(
+        r.CartesianDifferential(*np.random.random((3, 100)) * u.km/u.s)))
+    reps.append(reps[4].with_differentials(
+        r.CartesianDifferential(*np.random.random((3, 16, 8)) * u.km/u.s)))
+
+    # Test that combining all of the above with itself succeeds
+    for rep in reps:
+        if not rep.shape:
+            expected_shape = (2, )
+        else:
+            expected_shape = (2 * rep.shape[0], ) + rep.shape[1:]
+
+        tmp = concatenate_representations((rep, rep))
+        assert tmp.shape == expected_shape
+
+        if 's' in rep.differentials:
+            assert tmp.differentials['s'].shape == expected_shape
+
+    # Test that combining pairs fails
+    with pytest.raises(TypeError):
+        concatenate_representations((reps[0], reps[1]))
+
+    with pytest.raises(ValueError):
+        concatenate_representations((reps[0], reps[5]))
+
+    # Check that passing in a single object fails
+    with pytest.raises(TypeError):
+        concatenate_representations(reps[0])
