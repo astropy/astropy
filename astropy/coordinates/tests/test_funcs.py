@@ -86,8 +86,8 @@ def test_concatenate_representations():
             r.SphericalRepresentation(lon=1*u.deg, lat=2.*u.deg,
                                       distance=10*u.pc),
             r.UnitSphericalRepresentation(lon=1*u.deg, lat=2.*u.deg),
-            r.CartesianRepresentation(np.random.random((3, 100)) * u.kpc),
-            r.CartesianRepresentation(np.random.random((3, 16, 8)) * u.kpc)]
+            r.CartesianRepresentation(np.ones((3, 100)) * u.kpc),
+            r.CartesianRepresentation(np.ones((3, 16, 8)) * u.kpc)]
 
     reps.append(reps[0].with_differentials(
         r.CartesianDifferential([1, 2, 3.] * u.km/u.s)))
@@ -100,9 +100,9 @@ def test_concatenate_representations():
     reps.append(reps[2].with_differentials(
         {'s': r.RadialDifferential(1*u.km/u.s)}))
     reps.append(reps[3].with_differentials(
-        r.CartesianDifferential(*np.random.random((3, 100)) * u.km/u.s)))
+        r.CartesianDifferential(*np.ones((3, 100)) * u.km/u.s)))
     reps.append(reps[4].with_differentials(
-        r.CartesianDifferential(*np.random.random((3, 16, 8)) * u.km/u.s)))
+        r.CartesianDifferential(*np.ones((3, 16, 8)) * u.km/u.s)))
 
     # Test that combining all of the above with itself succeeds
     for rep in reps:
