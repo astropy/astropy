@@ -50,12 +50,7 @@ def _check_ellipsoid(ellipsoid=None, default='WGS84'):
     return ellipsoid
 
 
-def _get_json_result(url, err_str, use_google=False):
-
-    if use_google:
-        service_name = 'Google geocoding'
-    else:
-        service_name = 'OpenStreetMap Nominatim'
+def _get_json_result(url, err_str, use_google):
 
     # need to do this here to prevent a series of complicated circular imports
     from .name_resolve import NameResolveError
@@ -78,14 +73,18 @@ def _get_json_result(url, err_str, use_google=False):
         # working request
         raise NameResolveError(err_str.format(msg="connection timed out"))
 
-    results = resp_data.get('results', [])
+    if use_google:
+        results = resp_data.get('results', [])
+        
+        if resp_data.get('status', None) != 'OK':
+            raise NameResolveError(err_str.format(msg="unknown failure with "
+                                                  "Google API"))
+
+    else: # OpenStreetMap returns a list
+        results = resp_data
 
     if not results:
         raise NameResolveError(err_str.format(msg="no results returned"))
-
-    if resp_data.get('status', None) != 'OK':
-        raise NameResolveError(err_str.format(msg="unknown failure with {0} API"
-                                              .format(service_name)))
 
     return results
 
@@ -445,8 +444,8 @@ class EarthLocation(u.Quantity):
 
         else:
             loc = geo_result[0]
-            lat = loc['lat']
-            lon = loc['lon']
+            lat = float(loc['lat']) # strings are returned by OpenStreetMap
+            lon = float(loc['lon'])
 
         if get_height:
             pars = {'locations': '{lat:.8f},{lng:.8f}'.format(lat=lat, lng=lon),
@@ -457,7 +456,8 @@ class EarthLocation(u.Quantity):
 
             err_str = ("Unable to retrieve elevation for address '{address}'; "
                        "{{msg}}".format(address=address))
-            ele_result = _get_json_result(ele_url, err_str=err_str)
+            ele_result = _get_json_result(ele_url, err_str=err_str,
+                                          use_google=use_google)
             height = ele_result[0]['elevation']*u.meter
 
         else:
