@@ -285,16 +285,29 @@ def test_repr_latex():
 
 
 @pytest.mark.remote_data
-def test_of_address():
+# TODO: this parametrize should include a second option with a valid Google API
+# key. For example, we should make an API key for Astropy, and add it to Travis
+# as an environment variable (for security).
+@pytest.mark.parametrize('google_api_key', [None])
+def test_of_address(google_api_key):
+    NYC_lon = -74.0 * u.deg
+    NYC_lat = 40.7 * u.deg
+    # ~10 km tolerance to address difference between OpenStreetMap and Google
+    # for "New York, NY". This doesn't matter in practice because this test is
+    # only used to verify that the query succeeded, not that the returned
+    # position is precise.
+    NYC_tol = 0.1 * u.deg
+
     # just a location
     try:
         loc = EarthLocation.of_address("New York, NY")
     except NameResolveError as e:
-        # Google map API limit might surface even here in Travis CI.
-        pytest.xfail(str(e))
+        # API limit might surface even here in Travis CI.
+        if 'unknown failure with' not in str(e):
+            pytest.xfail(str(e))
     else:
-        assert quantity_allclose(loc.lat, 40.7128*u.degree)
-        assert quantity_allclose(loc.lon, -74.0059*u.degree)
+        assert quantity_allclose(loc.lat, NYC_lat, atol=NYC_tol)
+        assert quantity_allclose(loc.lon, NYC_lon, atol=NYC_tol)
         assert np.allclose(loc.height.value, 0.)
 
     # Put this one here as buffer to get around Google map API limit per sec.
@@ -302,18 +315,19 @@ def test_of_address():
     with pytest.raises(NameResolveError):
         EarthLocation.of_address("lkjasdflkja")
 
-    # a location and height
-    try:
-        loc = EarthLocation.of_address("New York, NY", get_height=True)
-    except NameResolveError as e:
-        # Buffer above sometimes insufficient to get around API limit but
-        # we also do not want to drag things out with time.sleep(0.195),
-        # where 0.195 was empirically determined on some physical machine.
-        pytest.xfail(str(e))
-    else:
-        assert quantity_allclose(loc.lat, 40.7128*u.degree)
-        assert quantity_allclose(loc.lon, -74.0059*u.degree)
-        assert quantity_allclose(loc.height, 10.438659669*u.meter, atol=1.*u.cm)
+    if google_api_key is not None:
+        # a location and height
+        try:
+            loc = EarthLocation.of_address("New York, NY", get_height=True)
+        except NameResolveError as e:
+            # Buffer above sometimes insufficient to get around API limit but
+            # we also do not want to drag things out with time.sleep(0.195),
+            # where 0.195 was empirically determined on some physical machine.
+            pytest.xfail(str(e))
+        else:
+            assert quantity_allclose(loc.lat, NYC_lat, atol=NYC_tol)
+            assert quantity_allclose(loc.lon, NYC_lon, atol=NYC_tol)
+            assert quantity_allclose(loc.height, 10.438*u.meter, atol=1.*u.cm)
 
 
 def test_geodetic_tuple():

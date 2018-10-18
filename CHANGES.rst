@@ -434,6 +434,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- ``EarthLocation.of_address`` now uses the OpenStreetMap geocoding API by
+  default to retrieve coordinates, with the Google API (which now requires an
+  API key) as an option. [#7918]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
