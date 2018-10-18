@@ -75,7 +75,7 @@ def _get_json_result(url, err_str, use_google):
 
     if use_google:
         results = resp_data.get('results', [])
-        
+
         if resp_data.get('status', None) != 'OK':
             raise NameResolveError(err_str.format(msg="unknown failure with "
                                                   "Google API"))
@@ -394,6 +394,8 @@ class EarthLocation(u.Quantity):
             the Google maps elevation API to retrieve the height of the input
             address [3]_.
         google_api_key : str (optional)
+            A Google API key with the Geocoding API and (optionally) the
+            elevation API enabled. See [4]_ for more information.
 
 
         Returns
@@ -406,6 +408,7 @@ class EarthLocation(u.Quantity):
         .. [1] https://nominatim.openstreetmap.org/
         .. [2] https://developers.google.com/maps/documentation/geocoding/start
         .. [3] https://developers.google.com/maps/documentation/elevation/
+        .. [4] https://developers.google.com/maps/documentation/geocoding/get-api-key
 
         """
 
