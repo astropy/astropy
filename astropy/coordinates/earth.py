@@ -50,7 +50,13 @@ def _check_ellipsoid(ellipsoid=None, default='WGS84'):
     return ellipsoid
 
 
-def _get_json_result(url, err_str):
+def _get_json_result(url, err_str, use_google=False):
+
+    if use_google:
+        service_name = 'Google geocoding'
+    else:
+        service_name = 'OpenStreetMap Nominatim'
+
     # need to do this here to prevent a series of complicated circular imports
     from .name_resolve import NameResolveError
     try:
@@ -78,7 +84,8 @@ def _get_json_result(url, err_str):
         raise NameResolveError(err_str.format(msg="no results returned"))
 
     if resp_data.get('status', None) != 'OK':
-        raise NameResolveError(err_str.format(msg="unknown failure with Google maps API"))
+        raise NameResolveError(err_str.format(msg="unknown failure with {0} API"
+                                              .format(service_name)))
 
     return results
 
@@ -359,31 +366,36 @@ class EarthLocation(u.Quantity):
             return newel
 
     @classmethod
-    def of_address(cls, address, get_height=False):
+    def of_address(cls, address, get_height=False, google_api_key=None):
         """
-        Return an object of this class for a given address by querying the Google
-        maps geocoding API.
+        Return an object of this class for a given address by querying either
+        the OpenStreetMap Nominatim tool [1]_ (default) or the Google geocoding
+        API [2]_, which requires a specified API key.
 
         This is intended as a quick convenience function to get fast access to
-        locations. In the background, this just issues a query to the Google maps
-        geocoding API. It is not meant to be abused! Google uses IP-based query
-        limiting and will ban your IP if you send more than a few thousand queries
-        per hour [1]_.
+        locations. In the background, this just issues a web query to either of
+        the APIs noted above. This is not meant to be abused! Both
+        OpenStreetMap and Google use IP-based query limiting and will ban your
+        IP if you send more than a few thousand queries per hour [2]_.
 
         .. warning::
             If the query returns more than one location (e.g., searching on
-            ``address='springfield'``), this function will use the **first** returned
-            location.
+            ``address='springfield'``), this function will use the **first**
+            returned location.
 
         Parameters
         ----------
         address : str
-            The address to get the location for. As per the Google maps API, this
-            can be a fully specified street address (e.g., 123 Main St., New York,
-            NY) or a city name (e.g., Danbury, CT), or etc.
+            The address to get the location for. As per the Google maps API,
+            this can be a fully specified street address (e.g., 123 Main St.,
+            New York, NY) or a city name (e.g., Danbury, CT), or etc.
         get_height : bool (optional)
-            Use the retrieved location to perform a second query to the Google maps
-            elevation API to retrieve the height of the input address [2]_.
+            This only works when using the Google API! See the ``google_api_key``
+            block below. Use the retrieved location to perform a second query to
+            the Google maps elevation API to retrieve the height of the input
+            address [3]_.
+        google_api_key : str (optional)
+
 
         Returns
         -------
@@ -392,37 +404,66 @@ class EarthLocation(u.Quantity):
 
         References
         ----------
-        .. [1] https://developers.google.com/maps/documentation/geocoding/intro
-        .. [2] https://developers.google.com/maps/documentation/elevation/intro
+        .. [1] https://nominatim.openstreetmap.org/
+        .. [2] https://developers.google.com/maps/documentation/geocoding/start
+        .. [3] https://developers.google.com/maps/documentation/elevation/
 
         """
 
-        pars = urllib.parse.urlencode({'address': address})
-        geo_url = "https://maps.googleapis.com/maps/api/geocode/json?{0}".format(pars)
+        use_google = google_api_key is not None
+
+        # Fail fast if invalid options are passed:
+        if not use_google and get_height:
+            raise ValueError('Currently, `get_height` only works when using '
+                             'the Google geocoding API, which requires passing '
+                             'a Google API key with `google_api_key`. See: '
+                             'https://developers.google.com/maps/documentation/geocoding/get-api-key '
+                             'for information on obtaining an API key.')
+
+        if use_google: # Google
+            pars = urllib.parse.urlencode({'address': address,
+                                           'key': google_api_key})
+            geo_url = ("https://maps.googleapis.com/maps/api/geocode/json?{0}"
+                       .format(pars))
+
+        else: # OpenStreetMap
+            pars = urllib.parse.urlencode({'q': address,
+                                           'format': 'json'})
+            geo_url = ("https://nominatim.openstreetmap.org/search?{0}"
+                       .format(pars))
 
         # get longitude and latitude location
-        err_str = ("Unable to retrieve coordinates for address '{address}'; {{msg}}"
-                   .format(address=address))
-        geo_result = _get_json_result(geo_url, err_str=err_str)
-        loc = geo_result[0]['geometry']['location']
+        err_str = ("Unable to retrieve coordinates for address '{address}'; "
+                   "{{msg}}".format(address=address))
+        geo_result = _get_json_result(geo_url, err_str=err_str,
+                                      use_google=use_google)
+
+        if use_google:
+            loc = geo_result[0]['geometry']['location']
+            lat = loc['lat']
+            lon = loc['lng']
+
+        else:
+            loc = geo_result[0]
+            lat = loc['lat']
+            lon = loc['lon']
 
         if get_height:
-            pars = {'locations': '{lat:.8f},{lng:.8f}'.format(lat=loc['lat'],
-                                                              lng=loc['lng'])}
+            pars = {'locations': '{lat:.8f},{lng:.8f}'.format(lat=lat, lng=lon),
+                    'key': google_api_key}
             pars = urllib.parse.urlencode(pars)
-            ele_url = "https://maps.googleapis.com/maps/api/elevation/json?{0}".format(pars)
+            ele_url = ("https://maps.googleapis.com/maps/api/elevation/json?{0}"
+                       .format(pars))
 
-            err_str = ("Unable to retrieve elevation for address '{address}'; {{msg}}"
-                       .format(address=address))
+            err_str = ("Unable to retrieve elevation for address '{address}'; "
+                       "{{msg}}".format(address=address))
             ele_result = _get_json_result(ele_url, err_str=err_str)
             height = ele_result[0]['elevation']*u.meter
 
         else:
             height = 0.
 
-        return cls.from_geodetic(lon=loc['lng']*u.degree,
-                                 lat=loc['lat']*u.degree,
-                                 height=height)
+        return cls.from_geodetic(lon=lon*u.deg, lat=lat*u.deg, height=height)
 
     @classmethod
     def get_site_names(cls):
