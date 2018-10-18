@@ -117,6 +117,19 @@ def test_concatenate_representations():
         if 's' in rep.differentials:
             assert tmp.differentials['s'].shape == expected_shape
 
+    # Try combining 4, just for something different
+    for rep in reps:
+        if not rep.shape:
+            expected_shape = (4, )
+        else:
+            expected_shape = (4 * rep.shape[0], ) + rep.shape[1:]
+
+        tmp = concatenate_representations((rep, rep, rep, rep))
+        assert tmp.shape == expected_shape
+
+        if 's' in rep.differentials:
+            assert tmp.differentials['s'].shape == expected_shape
+
     # Test that combining pairs fails
     with pytest.raises(TypeError):
         concatenate_representations((reps[0], reps[1]))
