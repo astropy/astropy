@@ -313,14 +313,18 @@ def concatenate_representations(reps):
                                      rep_type.attr_classes.keys())
     new_rep = rep_type(*values)
 
-    has_diff = 's' in reps[0].differentials
+    has_diff = any('s' in rep.differentials for rep in reps)
+    if has_diff and any('s' not in rep.differentials for rep in reps):
+        raise ValueError('Input representations must either all contain '
+                         'differentials, or not contain differentials.')
+
     if has_diff:
         dif_type = type(reps[0].differentials['s'])
 
         if any('s' not in r.differentials or
                 type(r.differentials['s']) != dif_type
                for r in reps):
-            raise TypeError('Input representations must all have the same '
+            raise TypeError('All input representations must have the same '
                             'differential type.')
 
         values = _concatenate_components([r.differentials['s'] for r in reps],
