@@ -303,7 +303,6 @@ def test_of_address(google_api_key):
         if 'unknown failure with' not in str(e):
             pytest.xfail(str(e))
     else:
-        # Tolerance below is a MAGIC NUMBER
         assert quantity_allclose(loc.lat, NYC_lat, atol=NYC_tol)
         assert quantity_allclose(loc.lon, NYC_lon, atol=NYC_tol)
         assert np.allclose(loc.height.value, 0.)
