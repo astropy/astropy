@@ -14,7 +14,7 @@
 
 #include "convolve.h"
 
-// Distutils on Windows will automatically exports ``PyInit_lib_convolve``,
+// Distutils on Windows automatically exports ``PyInit_lib_convolve``,
 // create dummy to prevent linker complaining about missing symbol.
 #if defined(_MSC_VER)
 void PyInit_lib_convolve(void)

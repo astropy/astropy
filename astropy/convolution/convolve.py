@@ -2,11 +2,11 @@
 
 import warnings
 
-import ctypes
 import os
 import sys
-import faulthandler
 import glob
+import ctypes
+import faulthandler
 import numpy as np
 from numpy.ctypeslib import ndpointer
 from functools import partial
@@ -179,15 +179,9 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # Convert kernel to ndarray if not already
 
     # Alias array
-    if isinstance(passed_array, Kernel):
-        array_internal = passed_array.array
-    else:
-        array_internal = passed_array
+    array_internal = passed_array.array if isinstance(passed_array, Kernel) else passed_array
     # Alias kernel
-    if isinstance(passed_kernel, Kernel):
-        kernel_internal = passed_kernel.array
-    else:
-        kernel_internal = passed_kernel
+    kernel_internal = passed_kernel.array if isinstance(passed_kernel, Kernel) else passed_kernel
 
     # Make sure kernel has all odd axes
     if has_even_axis(kernel_internal):
@@ -232,8 +226,6 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # This must occur before the main alias/copy of ``passed_kernel`` to
     # ``kernel_internal`` as it is used for filling masked kernels.
     if isinstance(passed_array, Kernel) and isinstance(passed_kernel, Kernel):
-        #if ( (isinstance(passed_array, Kernel1D) and isinstance(passed_kernel, Kernel1D))
-        #     or (isinstance(passed_array, Kernel2D) and isinstance(passed_kernel, Kernel2D)) ):
         warnings.warn("Both array and kernel are Kernel instances, hardwiring the following parameters: "
                               "boundary='fill', fill_value=0, normalize_Kernel=True, "
                               "nan_treatment='interpolate'",
@@ -242,8 +234,6 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         fill_value = 0
         normalize_kernel = True
         nan_treatment='interpolate'
-        #else: # handeled later when checking dimensioality
-         #   raise Exception("Can't convolve 1D and 2D kernel.") # what about 3D? Change message.
 
     # Copy or alias kernel to kernel_internal
     # Due to NaN interpolation and kernel normalization, a copy must always be made.
@@ -387,11 +377,6 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
     if preserve_nan:
         result[initially_nan] = np.nan
-
-    # In the case that array_internal is an alias rather than a copy
-    # of the input array, the original NaN values must be placed back
-    #if nan_treatment == 'fill':
-    #    array_internal[initially_nan] = np.nan
 
     # Convert result to original data type
     if isinstance(passed_array, Kernel):
