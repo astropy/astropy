@@ -11,6 +11,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 #include "convolve.h"
 
@@ -157,7 +158,7 @@ FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
     assert(g);
 #endif
 
-    const unsigned _wkx = _nkx / 2;
+    const size_t _wkx = _nkx / 2;
 #ifdef NDEBUG
     if (!(_nx > 2*_wkx))
         return;
@@ -179,15 +180,15 @@ FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
     const bool nan_interpolate = _nan_interpolate;
 
     // Thread locals
-    const unsigned wkx = _wkx;
-    const unsigned nkx_minus_1 = nkx-1;
-    unsigned wkx_minus_i;
-    unsigned ker_i;
+    const size_t wkx = _wkx;
+    const size_t nkx_minus_1 = nkx-1;
+    size_t wkx_minus_i;
+    size_t ker_i;
     const omp_iter_var nx_minus_wkx = nx - wkx;
-    unsigned i_minus_wkx;
-    const unsigned wkx_plus_1 = wkx + 1;
+    size_t i_minus_wkx;
+    const size_t wkx_plus_1 = wkx + 1;
     omp_iter_var i_plus_wkx_plus_1;
-    unsigned nkx_minus_1_minus_wkx_plus_i;
+    size_t nkx_minus_1_minus_wkx_plus_i;
 
     DTYPE top, bot=0., ker, val;
 
@@ -254,8 +255,8 @@ FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
     assert(g);
 #endif
 
-    const unsigned _wkx = _nkx / 2;
-    const unsigned _wky = _nky / 2;
+    const size_t _wkx = _nkx / 2;
+    const size_t _wky = _nky / 2;
 #ifdef NDEBUG
     if (!(_nx > 2*_wkx) || !(_ny > 2*_wky))
         return;
@@ -278,18 +279,18 @@ FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
     const bool nan_interpolate = _nan_interpolate;
 
     // Thread locals
-    const unsigned wkx = _wkx;
-    const unsigned wky = _wky;
-    const unsigned nkx_minus_1 = nkx-1, nky_minus_1 = nky-1;
-    unsigned wkx_minus_i, wky_minus_j;
-    unsigned ker_i, ker_j;
+    const size_t wkx = _wkx;
+    const size_t wky = _wky;
+    const size_t nkx_minus_1 = nkx-1, nky_minus_1 = nky-1;
+    size_t wkx_minus_i, wky_minus_j;
+    size_t ker_i, ker_j;
     const omp_iter_var nx_minus_wkx = nx - wkx;
     const omp_iter_var ny_minus_wky = ny - wky;
-    unsigned i_minus_wkx, j_minus_wky;
-    const unsigned wkx_plus_1 = wkx + 1;
-    const unsigned wky_plus_1 = wky + 1;
+    size_t i_minus_wkx, j_minus_wky;
+    const size_t wkx_plus_1 = wkx + 1;
+    const size_t wky_plus_1 = wky + 1;
     omp_iter_var i_plus_wkx_plus_1, j_plus_wky_plus_1;
-    unsigned nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j;
+    size_t nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j;
 
     DTYPE top, bot=0., ker, val;
 
@@ -369,9 +370,9 @@ FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
     assert(g);
 #endif
 
-    const unsigned _wkx = _nkx / 2;
-    const unsigned _wky = _nky / 2;
-    const unsigned _wkz = _nkz / 2;
+    const size_t _wkx = _nkx / 2;
+    const size_t _wky = _nky / 2;
+    const size_t _wkz = _nkz / 2;
 #ifdef NDEBUG
     if (!(_nx > 2*_wkx) || !(_ny > 2*_wky) || !(_nz > 2*_wkz))
         return;
@@ -395,21 +396,21 @@ FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
     const bool nan_interpolate = _nan_interpolate;
 
     // Thread locals
-    const unsigned wkx = _wkx;
-    const unsigned wky = _wky;
-    const unsigned wkz = _wkz;
-    const unsigned nkx_minus_1 = nkx-1, nky_minus_1 = nky-1, nkz_minus_1 = nkz-1;
-    unsigned wkx_minus_i, wky_minus_j, wkz_minus_k;
-    unsigned ker_i, ker_j, ker_k;
-    const unsigned nx_minus_wkx = nx - wkx;
+    const size_t wkx = _wkx;
+    const size_t wky = _wky;
+    const size_t wkz = _wkz;
+    const size_t nkx_minus_1 = nkx-1, nky_minus_1 = nky-1, nkz_minus_1 = nkz-1;
+    size_t wkx_minus_i, wky_minus_j, wkz_minus_k;
+    size_t ker_i, ker_j, ker_k;
+    const size_t nx_minus_wkx = nx - wkx;
     const omp_iter_var ny_minus_wky = ny - wky;
     const omp_iter_var nz_minus_wkz = nz - wkz;
-    unsigned i_minus_wkx, j_minus_wky, k_minus_wkz;
-    const unsigned wkx_plus_1 = wkx + 1;
-    const unsigned wky_plus_1 = wky + 1;
-    const unsigned wkz_plus_1 = wkz + 1;
+    size_t i_minus_wkx, j_minus_wky, k_minus_wkz;
+    const size_t wkx_plus_1 = wkx + 1;
+    const size_t wky_plus_1 = wky + 1;
+    const size_t wkz_plus_1 = wkz + 1;
     omp_iter_var i_plus_wkx_plus_1, j_plus_wky_plus_1, k_plus_wkz_plus_1;
-    unsigned nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j, nkz_minus_1_minus_wkz_plus_k;
+    size_t nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j, nkz_minus_1_minus_wkz_plus_k;
 
     DTYPE top, bot=0., ker, val;
 
