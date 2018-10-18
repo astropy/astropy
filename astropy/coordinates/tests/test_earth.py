@@ -293,6 +293,9 @@ def test_of_address(google_api_key):
     NYC_lon = -74.0 * u.deg
     NYC_lat = 40.7 * u.deg
     # ~10 km tolerance to address difference between OpenStreetMap and Google
+    # for "New York, NY". This doesn't matter in practice because this test is
+    # only used to verify that the query succeeded, not that the returned
+    # position is precise.
     NYC_tol = 0.1 * u.deg
 
     # just a location
