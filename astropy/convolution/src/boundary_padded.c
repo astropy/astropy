@@ -11,6 +11,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 #include "convolve.h"
 
@@ -233,15 +234,15 @@ FORCE_INLINE void convolve1d_padded_boundary(DTYPE * const result,
     const bool nan_interpolate = _nan_interpolate;
 
     // Thread locals
-    const unsigned wkx = nkx / 2;
-    const unsigned nkx_minus_1 = nkx-1;
+    const size_t wkx = nkx / 2;
+    const size_t nkx_minus_1 = nkx-1;
     int wkx_minus_i;
-    unsigned ker_i;
-    unsigned i_minus_wkx;
-    const unsigned wkx_plus_1 = wkx + 1;
+    size_t ker_i;
+    size_t i_minus_wkx;
+    const size_t wkx_plus_1 = wkx + 1;
     omp_iter_var i_plus_wkx_plus_1;
     int nkx_minus_1_minus_wkx_plus_i;
-    unsigned i_unpadded;
+    size_t i_unpadded;
 
     DTYPE top, bot=0., ker, val;
 
@@ -330,18 +331,18 @@ FORCE_INLINE void convolve2d_padded_boundary(DTYPE * const result,
     const bool nan_interpolate = _nan_interpolate;
 
     // Thread locals
-    const unsigned wkx = nkx / 2;
-    const unsigned wky = nky / 2;
-    const unsigned ny_padded = ny + 2*wky;
-    const unsigned nkx_minus_1 = nkx-1, nky_minus_1 = nky-1;
+    const size_t wkx = nkx / 2;
+    const size_t wky = nky / 2;
+    const size_t ny_padded = ny + 2*wky;
+    const size_t nkx_minus_1 = nkx-1, nky_minus_1 = nky-1;
     int wkx_minus_i, wky_minus_j;
-    unsigned ker_i, ker_j;
+    size_t ker_i, ker_j;
     int i_minus_wkx, j_minus_wky;
-    const unsigned wkx_plus_1 = wkx + 1;
-    const unsigned wky_plus_1 = wky + 1;
+    const size_t wkx_plus_1 = wkx + 1;
+    const size_t wky_plus_1 = wky + 1;
     omp_iter_var i_plus_wkx_plus_1, j_plus_wky_plus_1;
     int nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j;
-    unsigned i_unpadded, j_unpadded;
+    size_t i_unpadded, j_unpadded;
     DTYPE top, bot=0., ker, val;
 
     {omp_iter_var i;
@@ -441,21 +442,21 @@ FORCE_INLINE void convolve3d_padded_boundary(DTYPE * const result,
     const bool nan_interpolate = _nan_interpolate;
 
     // Thread locals
-    const unsigned wkx = nkx / 2;
-    const unsigned wky = nky / 2;
-    const unsigned wkz = nkz / 2;
-    const unsigned ny_padded = ny + 2*wky;
-    const unsigned nz_padded = nz + 2*wkz;
-    const unsigned nkx_minus_1 = nkx-1, nky_minus_1 = nky-1, nkz_minus_1 = nkz-1;
+    const size_t wkx = nkx / 2;
+    const size_t wky = nky / 2;
+    const size_t wkz = nkz / 2;
+    const size_t ny_padded = ny + 2*wky;
+    const size_t nz_padded = nz + 2*wkz;
+    const size_t nkx_minus_1 = nkx-1, nky_minus_1 = nky-1, nkz_minus_1 = nkz-1;
     int wkx_minus_i, wky_minus_j, wkz_minus_k;
-    unsigned ker_i, ker_j, ker_k;
+    size_t ker_i, ker_j, ker_k;
     int i_minus_wkx, j_minus_wky, k_minus_wkz;
-    const unsigned wkx_plus_1 = wkx + 1;
-    const unsigned wky_plus_1 = wky + 1;
-    const unsigned wkz_plus_1 = wkz + 1;
+    const size_t wkx_plus_1 = wkx + 1;
+    const size_t wky_plus_1 = wky + 1;
+    const size_t wkz_plus_1 = wkz + 1;
     omp_iter_var i_plus_wkx_plus_1, j_plus_wky_plus_1, k_plus_wkz_plus_1;
     int nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j, nkz_minus_1_minus_wkz_plus_k;
-    unsigned i_unpadded, j_unpadded, k_unpadded;
+    size_t i_unpadded, j_unpadded, k_unpadded;
 
     DTYPE top, bot=0., ker;
     DTYPE val;

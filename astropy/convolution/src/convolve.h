@@ -1,6 +1,8 @@
 #ifndef CONVOLVE_INCLUDE
 #define CONVOLVE_INCLUDE
 
+#include <stddef.h>
+
 #if defined(_MSC_VER)
 
 #define FORCE_INLINE  __forceinline
@@ -18,7 +20,7 @@
 #if defined(_MSC_VER)
 typedef signed omp_iter_var;
 #else
-typedef unsigned omp_iter_var;
+typedef size_t omp_iter_var;
 #endif
 
 // MSVC exports
