@@ -5,7 +5,6 @@ __all__ = ["BoxLeastSquares", "BoxLeastSquaresResults"]
 
 import numpy as np
 
-from ...tests.helper import assert_quantity_allclose
 from ... import units
 from ..lombscargle.core import has_units, strip_units
 
@@ -758,6 +757,8 @@ class BoxLeastSquaresResults(dict):
             The other results object to compare.
 
         """
+        from ...tests.helper import assert_quantity_allclose
+
         for k, v in self.items():
             if k not in other:
                 raise AssertionError("missing key '{0}'".format(k))
