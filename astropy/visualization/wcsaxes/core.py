@@ -177,7 +177,10 @@ class WCSAxes(Axes):
         All arguments are passed to :meth:`~matplotlib.axes.Axes.imshow`.
         """
 
-        origin = kwargs.get('origin', 'lower')
+        origin = kwargs.pop('origin', 'lower')
+        # plt.imshow passes origin as None, which we should default to lower.
+        if origin is None:
+            origin = "lower"
 
         if origin == 'upper':
             raise ValueError("Cannot use images with origin='upper' in WCSAxes.")
@@ -194,9 +197,9 @@ class WCSAxes(Axes):
         else:
             if isinstance(X, Image) or hasattr(X, 'getpixel'):
                 X = X.transpose(FLIP_TOP_BOTTOM)
-                kwargs['origin'] = 'lower'
+                origin = 'lower'
 
-        return super().imshow(X, *args, **kwargs)
+        return super().imshow(X, *args, origin=origin, **kwargs)
 
     def contour(self, *args, **kwargs):
         """
