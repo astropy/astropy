@@ -100,6 +100,11 @@ astropy.io.fits
 - The ``fitsheader`` command line tool now supports a ``dfits+fitsort`` mode,
   and the dotted notation for keywords (e.g. ``ESO.INS.ID``). [#7240]
 
+- Fall back to reading arrays using mode='denywrite' if mode='readonly' fails
+  when using memory-mapping. This solves cases on some platforms when the
+  available address space was less than the file size (even when using memory
+  mapping). [#7926]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
