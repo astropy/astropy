@@ -1045,6 +1045,8 @@ class TestFileFunctions(FitsTestCase):
             hdulist[1].data[:] = 1
         assert exc.value.args[0] == 'assignment destination is read-only'
 
+        hdulist.close()
+
     def test_mmap_closing(self):
         """
         Tests that the mmap reference is closed/removed when there aren't any
