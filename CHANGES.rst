@@ -402,6 +402,9 @@ astropy.coordinates
 - Sped up transformations and some representation methods by replacing
   python code with (compiled) ``erfa`` ufuncs. [#7639]
 
+- Sped up adding differential (velocity) data to representations by a factor of
+  ~20, which improves the speed of frame and SkyCoord initialization. [#7924]
+
 astropy.units
 ^^^^^^^^^^^^^
 
