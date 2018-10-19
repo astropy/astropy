@@ -942,7 +942,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         """
         return self._replicate(None, copy=copy, **kwargs)
 
-    def realize_frame(self, representation_type):
+    def realize_frame(self, representation):
         """
         Generates a new frame *with new data* from another frame (which may or
         may not have data). Roughly speaking, the converse of
@@ -950,7 +950,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         Parameters
         ----------
-        representation_type : `BaseRepresentation`
+        representation : `BaseRepresentation`
             The representation to use as the data for the new frame.
 
         Returns
@@ -959,7 +959,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             A new object with the same frame attributes as this one, but
             with the ``representation`` as the data.
         """
-        return self._replicate(representation_type)
+        return self._replicate(representation)
 
     def represent_as(self, base, s='base', in_frame_units=False):
         """
