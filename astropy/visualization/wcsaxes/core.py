@@ -175,9 +175,12 @@ class WCSAxes(Axes):
         All arguments are passed to :meth:`~matplotlib.axes.Axes.imshow`.
         """
 
-        origin = kwargs.get('origin', 'lower')
+        origin = kwargs.pop('origin', 'lower')
 
-        if origin == 'upper':
+        # plt.imshow passes origin as None, which we should default to lower.
+        if origin is None:
+            origin = 'lower'
+        elif origin == 'upper':
             raise ValueError("Cannot use images with origin='upper' in WCSAxes.")
 
         # To check whether the image is a PIL image we can check if the data
@@ -192,9 +195,8 @@ class WCSAxes(Axes):
         else:
             if isinstance(X, Image) or hasattr(X, 'getpixel'):
                 X = X.transpose(FLIP_TOP_BOTTOM)
-                kwargs['origin'] = 'lower'
 
-        return super(WCSAxes, self).imshow(X, *args, **kwargs)
+        return super(WCSAxes, self).imshow(X, *args, origin=origin, **kwargs)
 
     def plot_coord(self, *args, **kwargs):
         """

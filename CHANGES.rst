@@ -66,6 +66,11 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug that caused origin to be incorrect if not specified. [#7927]
+
+- Fixed a bug that caused an error when plotting grids multiple times
+  with grid_type='contours'. [#7927]
+
 astropy.vo
 ^^^^^^^^^^
 

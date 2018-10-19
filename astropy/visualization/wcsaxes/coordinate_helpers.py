@@ -754,7 +754,7 @@ class CoordinateHelper(object):
 
     def _update_grid_contour(self):
 
-        if hasattr(self, '_grid'):
+        if hasattr(self, '_grid') and self._grid:
             for line in self._grid.collections:
                 line.remove()
 
