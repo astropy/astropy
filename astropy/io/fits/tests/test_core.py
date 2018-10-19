@@ -4,10 +4,12 @@ import gzip
 import bz2
 import io
 import mmap
+import errno
 import os
 import pathlib
 import warnings
 import zipfile
+from unittest.mock import patch
 
 import pytest
 import numpy as np
@@ -1014,6 +1016,34 @@ class TestFileFunctions(FitsTestCase):
         finally:
             mmap.mmap = old_mmap
             _File.__dict__['_mmap_available']._cache.clear()
+
+    def test_mmap_allocate_error(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/1380
+
+        Temporarily patches mmap.mmap to raise an OSError if mode is ACCESS_COPY.
+        """
+
+        mmap_original = mmap.mmap
+
+        # We patch mmap here to raise an error if access=mmap.ACCESS_COPY, which
+        # emulates an issue that an OSError is raised if the available address
+        # space is less than the size of the file even if memory mapping is used.
+        def mmap_patched(*args, **kwargs):
+            if kwargs.get('access') == mmap.ACCESS_COPY:
+                exc = OSError()
+                exc.errno = errno.ENOMEM
+                raise exc
+            else:
+                return mmap_original(*args, **kwargs)
+
+        with patch.object(mmap, 'mmap', new=mmap_patched):
+            hdulist = fits.open(self.data('test0.fits'), memmap=True)
+            hdulist[1].data
+
+        with raises(ValueError) as exc:
+            hdulist[1].data[:] = 1
+        assert exc.value.args[0] == 'assignment destination is read-only'
 
     def test_mmap_closing(self):
         """
