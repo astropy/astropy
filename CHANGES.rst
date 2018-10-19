@@ -31,6 +31,9 @@ astropy.coordinates
 - Additional information about a site loaded from the Astropy sites registry is
   now available in ``EarthLocation.info.meta``. [#7857]
 
+- Added a ``concatenate_representations`` function to combine coordinate
+  representation data and any associated differentials. [#7922]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -242,6 +245,9 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
+
+- Fixed ``astropy.coordinates.concatenate`` to also concatenate velocity (i.e.
+  differential) data along with positional data. [#7922]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
