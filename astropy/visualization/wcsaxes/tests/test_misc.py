@@ -236,3 +236,45 @@ def test_grid_type_contours_transform(tmpdir):
     fig.add_axes(ax)
     ax.grid(grid_type='contours')
     fig.savefig(tmpdir.join('test.png').strpath)
+
+
+def test_plt_imshow_origin():
+
+    # Regression test for a bug that caused origin to be set to upper when
+    # plt.imshow was called.
+
+    ax = plt.subplot(projection=WCS())
+    plt.imshow(np.ones((2, 2)))
+    assert ax.get_xlim() == (-0.5, 1.5)
+    assert ax.get_ylim() == (-0.5, 1.5)
+
+
+def test_ax_imshow_origin():
+
+    # Regression test for a bug that caused origin to be set to upper when
+    # ax.imshow was called with no origin
+
+    ax = plt.subplot(projection=WCS())
+    ax.imshow(np.ones((2, 2)))
+    assert ax.get_xlim() == (-0.5, 1.5)
+    assert ax.get_ylim() == (-0.5, 1.5)
+
+
+def test_grid_contour_large_spacing(tmpdir):
+
+    # Regression test for a bug that caused a crash when grid was called and
+    # didn't produce grid lines (due e.g. to too large spacing) and was then
+    # called again.
+
+    filename = tmpdir.join('test.png').strpath
+
+    ax = plt.subplot(projection=WCS())
+    ax.set_xlim(-0.5, 1.5)
+    ax.set_ylim(-0.5, 1.5)
+    ax.coords[0].set_ticks(values=[] * u.one)
+
+    ax.coords[0].grid(grid_type='contours')
+    plt.savefig(filename)
+
+    ax.coords[0].grid(grid_type='contours')
+    plt.savefig(filename)
