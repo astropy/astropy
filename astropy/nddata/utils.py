@@ -848,8 +848,8 @@ class Cutout2D:
         Round the input to the nearest integer.
 
         If two integers are equally close, the value is rounded up.
-        Note that in this case `np.round` rounds to the nearest even
-        number.
+        Note that this is different from `np.round`, which rounds to the
+        nearest even number.
         """
         return int(np.floor(a + 0.5))
 

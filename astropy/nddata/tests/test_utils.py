@@ -86,14 +86,12 @@ def test_extract_array_even_shape_rounding():
 
     data = np.arange(10)
     shape = (2,)
-    positions = (1.49, 1.5, 1.501, 1.99, 2.0, 2.01, 2.49, 2.5, 2.501, 2.99,
-                 3.0, 3.01)
-    exp1 = (1, 2)
-    exp2 = (2, 3)
-    exp3 = (3, 4)
-    expected = [exp1, ] * 5 + [exp2, ] * 6 + [exp3, ]
+    positions_expected = [(1.49, (1, 2)), (1.5, (1, 2)), (1.501, (1, 2)),
+                          (1.99, (1, 2)), (2.0, (1, 2)), (2.01, (2, 3)),
+                          (2.49, (2, 3)), (2.5, (2, 3)), (2.501, (2, 3)),
+                          (2.99, (2, 3)), (3.0, (2, 3)), (3.01, (3, 4))]
 
-    for pos, exp in zip(positions, expected):
+    for pos, exp in positions_expected:
         out = extract_array(data, shape, (pos, ), mode='partial')
         assert_array_equal(out, exp)
 
@@ -117,14 +115,14 @@ def test_extract_array_odd_shape_rounding():
 
     data = np.arange(10)
     shape = (3,)
-    positions = (1.49, 1.5, 1.501, 1.99, 2.0, 2.01, 2.49, 2.5, 2.501, 2.99,
-                 3.0, 3.01)
-    exp1 = (0, 1, 2)
-    exp2 = (1, 2, 3)
-    exp3 = (2, 3, 4)
-    expected = [exp1, ] * 2 + [exp2, ] * 6 + [exp3, ] * 4
+    positions_expected = [(1.49, (0, 1, 2)), (1.5, (0, 1, 2)),
+                          (1.501, (1, 2, 3)), (1.99, (1, 2, 3)),
+                          (2.0, (1, 2, 3)), (2.01, (1, 2, 3)),
+                          (2.49, (1, 2, 3)), (2.5, (1, 2, 3)),
+                          (2.501, (2, 3, 4)), (2.99, (2, 3, 4)),
+                          (3.0, (2, 3, 4)), (3.01, (2, 3, 4))]
 
-    for pos, exp in zip(positions, expected):
+    for pos, exp in positions_expected:
         out = extract_array(data, shape, (pos, ), mode='partial')
         assert_array_equal(out, exp)
 
