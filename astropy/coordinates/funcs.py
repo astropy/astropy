@@ -23,7 +23,7 @@ from .representation import SphericalRepresentation, CartesianRepresentation
 from .builtin_frames.utils import get_jd12
 
 __all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun',
-           'concatenate', 'get_constellation']
+           'get_constellation', 'concatenate_representations', 'concatenate']
 
 
 def cartesian_to_spherical(x, y, z):
