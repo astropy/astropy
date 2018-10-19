@@ -2,6 +2,8 @@
 # the mix-in class on its own (since it's not functional without being used as
 # a mix-in)
 
+import warnings
+
 from numpy.testing import assert_equal, assert_allclose
 
 from .... import units as u
@@ -209,7 +211,6 @@ def test_spectral_cube():
 
     # High-level API
 
-
     coord, spec = wcs.pixel_to_world(29, 39, 44)
     assert isinstance(coord, SkyCoord)
     assert isinstance(coord.frame, Galactic)
@@ -365,6 +366,19 @@ def test_time_cube():
     assert_equal(wcs.world_to_array_index_values(14.8289418840003, 2.01824372640628, 2375.341),
                  (0, 2956, -449))
 
+    # High-level API
+
+    # Make sure that we get a FutureWarning about the time column
+    with warnings.catch_warnings(record=True) as warning_lines:
+        warnings.resetwarnings()
+        coord, time = wcs.pixel_to_world(29, 39, 44)
+
+    assert len(warning_lines) == 1
+    assert warning_lines[0].category is FutureWarning
+    assert str(warning_lines[0].message).startswith('In future, times will be represented by the Time class')
+
+    assert isinstance(coord, SkyCoord)
+    assert isinstance(time, Quantity)
 
 ###############################################################################
 # Extra corner cases
