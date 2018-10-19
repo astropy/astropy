@@ -217,8 +217,8 @@ Similar broadcasting happens if you transform to another frame.  E.g.::
     >>> coo = ICRS(ra=180.*u.deg, dec=51.477811*u.deg)
     >>> lf = AltAz(location=EarthLocation.of_site('greenwich'),
     ...            obstime=['2012-03-21T00:00:00', '2012-06-21T00:00:00'])
-    >>> lcoo = coo.transform_to(lf)  # this can load finals2000A.all # doctest: +IGNORE_OUTPUT
-    >>> lcoo  # doctest: +FLOAT_CMP
+    >>> lcoo = coo.transform_to(lf)  # this can load finals2000A.all # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> lcoo  # doctest: +REMOTE_DATA +FLOAT_CMP
     <AltAz Coordinate (obstime=['2012-03-21T00:00:00.000' '2012-06-21T00:00:00.000'], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0.0, obswl=1.0 micron): (az, alt) in deg
         [( 94.71264944, 89.21424252), (307.69488825, 37.98077771)]>
 
@@ -238,7 +238,7 @@ set of coordinates, you'd need to make sure that the shapes allowed this::
     >>> lf2 = lf[:, np.newaxis]
     >>> lf2.shape
     (2, 1)
-    >>> coo2.transform_to(lf2)  # doctest: +FLOAT_CMP
+    >>> coo2.transform_to(lf2)  # doctest:  +REMOTE_DATA +FLOAT_CMP
     <AltAz Coordinate (obstime=[['2012-03-21T00:00:00.000' '2012-03-21T00:00:00.000'
       '2012-03-21T00:00:00.000']
      ['2012-06-21T00:00:00.000' '2012-06-21T00:00:00.000'
@@ -353,7 +353,7 @@ Customizing Display of Attributes
 While the default `repr` for coordinate frames is suitable for most cases, you may want
 to customize how frame attributes are displayed in certain cases.  To do this you can
 define a method named ``_astropy_repr_in_frame``. This method should be defined on the
-the object that's set to the frame attribute itself, **not** the 
+the object that's set to the frame attribute itself, **not** the
 `~astropy.coordinates.Attribute` descriptor.
 
 For example, you could have an object ``Spam`` which you have as an attribute of your frame::

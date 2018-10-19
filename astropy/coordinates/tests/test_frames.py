@@ -747,6 +747,7 @@ def test_quantity_attributes():
         GCRS(obsgeoloc=[1, 3]*u.km)  # incorrect shape
 
 
+@pytest.mark.remote_data
 def test_eloc_attributes():
     from astropy.coordinates import AltAz, ITRS, GCRS, EarthLocation
 
