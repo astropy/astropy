@@ -2,6 +2,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import sys
+import numpy
+import io
+import os
 
 # This is the same check as astropy/__init__.py but this one has to
 # happen before importing ah_bootstrap
