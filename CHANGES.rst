@@ -603,6 +603,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Changed the name of the single argument to ``Frame.realize_frame()`` from the
+  (incorrect) ``representation_type`` back to its pre-3.0 name
+  ``representation``. [#7923]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
