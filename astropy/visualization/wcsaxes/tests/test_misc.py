@@ -236,3 +236,25 @@ def test_grid_type_contours_transform(tmpdir):
     fig.add_axes(ax)
     ax.grid(grid_type='contours')
     fig.savefig(tmpdir.join('test.png').strpath)
+
+
+def test_plt_imshow_origin():
+
+    # Regression test for a bug that caused origin to be set to upper when
+    # plt.imshow was called.
+
+    ax = plt.subplot(projection=WCS())
+    plt.imshow(np.ones((2, 2)))
+    assert ax.get_xlim() == (-0.5, 1.5)
+    assert ax.get_ylim() == (-0.5, 1.5)
+
+
+def test_ax_imshow_origin():
+
+    # Regression test for a bug that caused origin to be set to upper when
+    # plt.imshow was called.
+
+    ax = plt.subplot(projection=WCS())
+    ax.imshow(np.ones((2, 2)))
+    assert ax.get_xlim() == (-0.5, 1.5)
+    assert ax.get_ylim() == (-0.5, 1.5)
