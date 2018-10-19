@@ -2441,8 +2441,13 @@ class CompoundModel(Model):
             self._inverse = inverse
             self._has_inverse = True
         self.name = name
-        self.fittable = False
-        self.linear = False
+        self._fittable = None
+        self.fit_deriv = None
+        self.col_fit_deriv = None
+        if op in ('|', '+', '-'):
+            self.linear = left.linear and right.linear
+        else:
+            self.linear = False
         self.eqcons = False
         self.ineqcons = False
 
@@ -2785,7 +2790,14 @@ class CompoundModel(Model):
     def inverse(self, value):
         self._inverse = value
 
-
+    @property
+    def fittable(self):
+        if self._fittable is None:
+            if self._leaflist is None:
+                self.map_parameters()
+            self._fittable = all(m.fittable for m in self._leaflist)
+        return self._fittable
+   
     @property
     def parameters(self):
         """
