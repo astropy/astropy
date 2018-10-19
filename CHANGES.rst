@@ -246,8 +246,8 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
-- Fixed ``astropy.coordinates.concatenate`` to also concatenate velocity (i.e.
-  differential) data along with positional data. [#7922]
+- Fixed ``astropy.coordinates.concatenate`` to include velocity data in the
+  concatenation. [#7922]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
