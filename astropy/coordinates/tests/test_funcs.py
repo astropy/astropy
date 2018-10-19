@@ -61,9 +61,10 @@ def test_constellations():
 
 
 def test_concatenate():
-    from .. import FK5, SkyCoord
+    from .. import FK5, SkyCoord, ICRS
     from ..funcs import concatenate
 
+    # Just positions
     fk5 = FK5(1*u.deg, 2*u.deg)
     sc = SkyCoord(3*u.deg, 4*u.deg, frame='fk5')
 
@@ -76,6 +77,23 @@ def test_concatenate():
 
     with pytest.raises(TypeError):
         concatenate(1*u.deg)
+
+    # positions and velocities
+    fr = ICRS(ra=10*u.deg, dec=11.*u.deg,
+              pm_ra_cosdec=12*u.mas/u.yr,
+              pm_dec=13*u.mas/u.yr)
+    sc = SkyCoord(ra=20*u.deg, dec=21.*u.deg,
+                  pm_ra_cosdec=22*u.mas/u.yr,
+                  pm_dec=23*u.mas/u.yr)
+
+    res = concatenate([fr, sc])
+
+    with pytest.raises(ValueError):
+        concatenate([fr, fk5])
+
+    fr2 = ICRS(ra=10*u.deg, dec=11.*u.deg)
+    with pytest.raises(ValueError):
+        concatenate([fr, fr2])
 
 
 def test_concatenate_representations():
