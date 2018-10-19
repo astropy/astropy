@@ -359,7 +359,7 @@ def concatenate(coords):
     if getattr(coords, 'isscalar', False) or not isiterable(coords):
         raise TypeError('The argument to concatenate must be iterable')
 
-    scs = [SkyCoord(coord) for coord in coords]
+    scs = [SkyCoord(coord, copy=False) for coord in coords]
 
     # Check that all frames are equivalent
     for sc in scs[1:]:
