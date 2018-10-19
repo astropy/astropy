@@ -1029,6 +1029,7 @@ class TestFileFunctions(FitsTestCase):
         # We patch mmap here to raise an error if access=mmap.ACCESS_COPY, which
         # emulates an issue that an OSError is raised if the available address
         # space is less than the size of the file even if memory mapping is used.
+
         def mmap_patched(*args, **kwargs):
             if kwargs.get('access') == mmap.ACCESS_COPY:
                 exc = OSError()
@@ -1037,15 +1038,11 @@ class TestFileFunctions(FitsTestCase):
             else:
                 return mmap_original(*args, **kwargs)
 
-        with patch.object(mmap, 'mmap', new=mmap_patched):
-            hdulist = fits.open(self.data('test0.fits'), memmap=True)
-            hdulist[1].data
-
-        with raises(ValueError) as exc:
-            hdulist[1].data[:] = 1
-        assert exc.value.args[0] == 'assignment destination is read-only'
-
-        hdulist.close()
+        with fits.open(self.data('test0.fits'), memmap=True) as hdulist:
+            with patch.object(mmap, 'mmap', side_effect=mmap_patched) as p:
+                data = hdulist[1].data
+                p.reset_mock()
+            assert not data.flags.writeable
 
     def test_mmap_closing(self):
         """
