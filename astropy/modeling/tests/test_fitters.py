@@ -194,7 +194,7 @@ class TestLinearLSQFitter:
             y = init_model_comp(x, model_set_axis=False)
             fitter = LinearLSQFitter()
             fitted_model = fitter(init_model_comp, x, y)
-        assert "Model must be simple, not compound" in str(excinfo.value)
+        assert "Model must be a subclass of FittableModel" in str(excinfo.value)
 
     def test_chebyshev1D(self):
         """Tests fitting a 1D Chebyshev polynomial to some real world data."""

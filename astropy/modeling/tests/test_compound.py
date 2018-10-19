@@ -4,6 +4,9 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import inspect
+import pytest
+import pickle
+
 from copy import deepcopy
 
 import numpy as np
@@ -493,18 +496,18 @@ def test_pickle_compound():
     assert np.all(m(0) == m2(0))
 
 
-# def test_name():
-#     offx = Shift(1)
-#     scl = Scale(2)
-#     m = offx | scl
-#     scl.name = "scale"
-#     assert m.submodel_names == ('None_0', 'None_1')
-#     assert m.name is None
-#     m.name = "M"
-#     assert m.name == "M"
-#     m1 = m.rename("M1")
-#     assert m.name == "M"
-#     assert m1.name == "M1"
+def test_name():
+    offx = Shift(1)
+    scl = Scale(2)
+    m = offx | scl
+    scl.name = "scale"
+    assert m.submodel_names == ('None_0', 'scale')
+    assert m.name is None
+    m.name = "M"
+    assert m.name == "M"
+    m1 = m.rename("M1")
+    assert m.name == "M1"
+    assert m1.name == "M1"
 
 
 def test_update_parameters():
@@ -520,21 +523,21 @@ def test_update_parameters():
     m.factor_1 = 100
     assert(m(1) == 4300)
     m2 = m | offx
-    assert(m2(1) == 242)
+    assert(m2(1) == 4342)
 
 
-def test_name():
-    offx = Shift(1)
-    scl = Scale(2)
-    m = offx | scl
-    scl.name = "scale"
-    assert m._submodel_names == ('None_0', 'None_1')
-    assert m.name is None
-    m.name = "M"
-    assert m.name == "M"
-    m1 = m.rename("M1")
-    assert m.name == "M"
-    assert m1.name == "M1"
+# def test_name():
+#     offx = Shift(1)
+#     scl = Scale(2)
+#     m = offx | scl
+#     scl.name = "scale"
+#     assert m._submodel_names == ('None_0', 'None_1')
+#     assert m.name is None
+#     m.name = "M"
+#     assert m.name == "M"
+#     m1 = m.rename("M1")
+#     assert m.name == "M"
+#     assert m1.name == "M1"
 
 
 @pytest.mark.skipif("not HAS_SCIPY_14")
