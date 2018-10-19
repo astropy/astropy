@@ -266,7 +266,7 @@ def test_grid_contour_large_spacing(tmpdir):
     # didn't produce grid lines (due e.g. to too large spacing) and was then
     # called again.
 
-    filename = tmpdir.join('test.png')
+    filename = tmpdir.join('test.png').strpath
 
     ax = plt.subplot(projection=WCS())
     ax.set_xlim(-0.5, 1.5)
