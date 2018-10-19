@@ -2045,7 +2045,7 @@ class Model(metaclass=_ModelMeta):
         entirely in the near future.
         """
 
-        param_metrics = self._param_metrics
+        #param_metrics = self._param_metrics
         values = []
         shapes = []
         for name in self.param_names:
@@ -2056,7 +2056,7 @@ class Model(metaclass=_ModelMeta):
             else:
                 value = param.value
 
-            broadcast_shape = param_metrics[name].get('broadcast_shape')
+            broadcast_shape = self._param_metrics[name].get('broadcast_shape')
             if broadcast_shape is not None:
                 value = value.reshape(broadcast_shape)
 
@@ -2771,8 +2771,8 @@ class CompoundModel(Model):
         # the assumption here is reliable:
         if self.param_names is None:
             raise RuntimeError("Compound model parameter interface is not "
-                               "supported\n"
-                               "until the .map_parameters() method is called.")
+                              "supported\n"
+                              "until the .map_parameters() method is called.")
 
         self._parameters_to_array()
         start = self._param_metrics[self.param_names[0]]['slice'].start
