@@ -178,11 +178,11 @@ class WCSAxes(Axes):
         """
 
         origin = kwargs.pop('origin', 'lower')
+
         # plt.imshow passes origin as None, which we should default to lower.
         if origin is None:
-            origin = "lower"
-
-        if origin == 'upper':
+            origin = 'lower'
+        elif origin == 'upper':
             raise ValueError("Cannot use images with origin='upper' in WCSAxes.")
 
         # To check whether the image is a PIL image we can check if the data
@@ -197,7 +197,6 @@ class WCSAxes(Axes):
         else:
             if isinstance(X, Image) or hasattr(X, 'getpixel'):
                 X = X.transpose(FLIP_TOP_BOTTOM)
-                origin = 'lower'
 
         return super().imshow(X, *args, origin=origin, **kwargs)
 
