@@ -3,6 +3,8 @@
 # isolated in this mix-in class to avoid making the main wcs.py file too
 # long.
 
+import warnings
+
 import numpy as np
 
 from ... import units as u
@@ -190,6 +192,10 @@ def _get_components_and_classes(wcs):
 
     # Fallback: for any remaining components that haven't been identified, just
     # return Quantity as the class to use
+
+    if 'time' in wcs.world_axis_physical_types:
+        warnings.warn('In future, times will be represented by the Time class '
+                      'instead of Quantity', FutureWarning)
 
     for i in range(wcs.naxis):
         if components[i] is None:
