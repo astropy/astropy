@@ -2463,7 +2463,15 @@ class CompoundModel(Model):
         if self._leaflist is None:
             self._make_leaflist()
         names = [item.name for item in self._leaflist]
-        nonecount = 1
+        nonecount = 0
+        newnames = []
+        for item in names:
+            if item is None:
+                newnames.append('None_{}'.format(nonecount))
+                nonecount += 1
+            else:
+                newnames.append(item)
+        return tuple(newnames)
 
 
     def both_inverses_exist(self):
