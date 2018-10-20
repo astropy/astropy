@@ -11,7 +11,6 @@ from .core import (Fittable1DModel, Fittable2DModel,
                    ModelDefinitionError)
 from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
-from ..stats.funcs import gaussian_sigma_to_fwhm
 from .. import units as u
 from ..units import Quantity, UnitsError
 
@@ -24,6 +23,11 @@ __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
 
 TWOPI = 2 * np.pi
 FLOAT_EPSILON = float(np.finfo(np.float32).tiny)
+
+# Note that we define this here rather than using the value defined in
+# astropy.stats to avoid importing astropy.stats every time astropy.modeling
+# is loaded.
+GAUSSIAN_SIGMA_TO_FWHM = 2.0 * np.sqrt(2.0 * np.log(2.0))
 
 
 class Gaussian1D(Fittable1DModel):
@@ -150,7 +154,7 @@ class Gaussian1D(Fittable1DModel):
     @property
     def fwhm(self):
         """Gaussian full width at half maximum."""
-        return self.stddev * gaussian_sigma_to_fwhm
+        return self.stddev * GAUSSIAN_SIGMA_TO_FWHM
 
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
@@ -314,12 +318,12 @@ class Gaussian2D(Fittable2DModel):
     @property
     def x_fwhm(self):
         """Gaussian full width at half maximum in X."""
-        return self.x_stddev * gaussian_sigma_to_fwhm
+        return self.x_stddev * GAUSSIAN_SIGMA_TO_FWHM
 
     @property
     def y_fwhm(self):
         """Gaussian full width at half maximum in Y."""
-        return self.y_stddev * gaussian_sigma_to_fwhm
+        return self.y_stddev * GAUSSIAN_SIGMA_TO_FWHM
 
     def bounding_box(self, factor=5.5):
         """
