@@ -211,7 +211,7 @@ Note that you can't change the type of cosmology with this operation
   (0.7134130719051658, 0.6858130719051657)
 
 Finding the Redshift at a Given Value of a Cosmological Quantity
-----------------------------------------------------------------
+-----------------------------------------------------------------
 
 If you know a cosmological quantity and you want to know the
 redshift which it corresponds to, you can use ``z_at_value``:
