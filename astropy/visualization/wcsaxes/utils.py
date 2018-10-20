@@ -178,7 +178,7 @@ def transform_contour_set_inplace(cset, transform):
     # Stack all the segments into a single (n, 2) array
     vertices = [path.vertices for paths in all_paths for path in paths]
     if len(vertices) > 0:
-        vertices = np.vstack(vertices)
+        vertices = np.concatenate(vertices)
     else:
         return
 
