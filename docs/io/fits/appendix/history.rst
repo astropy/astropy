@@ -1022,7 +1022,7 @@ Bug Fixes
   This allowed for the implementation of ``HDUList.fromstring`` described
   above. (#90)
 
-- Fixed a rare corner case where, in some use cases, (mildly, recavorable)
+- Fixed a rare corner case where, in some use cases, (mildly, recoverable)
   malformatted float values in headers were not properly returned as floats.
   (#137)
 
