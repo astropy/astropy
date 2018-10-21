@@ -1215,7 +1215,7 @@ class Header:
 
         update : bool, optional
             If `True`, update the current header with the values and comments
-            from duplicate keywords in the input header.  This supercedes the
+            from duplicate keywords in the input header.  This supersedes the
             ``unique`` argument.  Commentary keywords are treated the same as
             if ``unique=True``.
 

@@ -1151,7 +1151,7 @@ class BinTableHDU(_TableBaseHDU):
         header : Header object
             When the cdfile and hfile are missing, use this Header object in
             the creation of the new table and HDU.  Otherwise this Header
-            supercedes the keywords from hfile, which is only used to update
+            supersedes the keywords from hfile, which is only used to update
             values not present in this Header, unless ``replace=True`` in which
             this Header's values are completely replaced with the values from
             hfile.

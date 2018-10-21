@@ -1,5 +1,5 @@
 """
-This file tests the behaviour of subclasses of Representation and Frames
+This file tests the behavior of subclasses of Representation and Frames
 """
 
 from copy import deepcopy

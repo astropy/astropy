@@ -207,7 +207,7 @@ def_unit(['cd', 'candela'], namespace=_ns, prefixes=True,
 def_unit(['lm', 'lumen'], cd * sr, namespace=_ns, prefixes=True,
          doc="lumen: luminous flux")
 def_unit(['lx', 'lux'], lm * m ** -2, namespace=_ns, prefixes=True,
-         doc="lux: luminous emittence")
+         doc="lux: luminous emittance")
 
 ###########################################################################
 # RADIOACTIVITY

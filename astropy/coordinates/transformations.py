@@ -848,7 +848,7 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
         difference.  Both the to and the from frame will be checked for this
         attribute, but only one needs to have it. If None, no velocity
         component induced from the frame itself will be included - only the
-        re-orientation of any exsiting differential.
+        re-orientation of any existing differential.
     finite_difference_dt : `~astropy.units.Quantity` or callable
         If a quantity, this is the size of the differential used to do the
         finite difference.  If a callable, should accept

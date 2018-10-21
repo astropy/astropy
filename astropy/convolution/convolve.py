@@ -184,7 +184,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             array_internal = np.array(array, dtype=float, copy=False, order='C', subok=True)
     except (TypeError, ValueError) as e:
         raise TypeError('array should be a Numpy array or something '
-                        'convertable into a float array', e)
+                        'convertible into a float array', e)
     array_dtype = getattr(array, 'dtype', array_internal.dtype)
 
 
@@ -208,7 +208,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             kernel_internal = np.array(kernel_internal, dtype=float, copy=True, order='C', subok=False)
         except (TypeError, ValueError) as e:
             raise TypeError('kernel should be a Numpy array or something '
-                            'convertable into a float array', e)
+                            'convertible into a float array', e)
 
 
     # Check that the number of dimensions is compatible

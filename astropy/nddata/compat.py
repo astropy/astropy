@@ -58,7 +58,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         WCS-object containing the world coordinate system for the data.
 
         .. warning::
-            This is not yet defind because the discussion of how best to
+            This is not yet defined because the discussion of how best to
             represent this class's WCS system generically is still under
             consideration. For now just leave it as None
 
