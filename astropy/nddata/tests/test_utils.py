@@ -9,7 +9,7 @@ from ...tests.helper import assert_quantity_allclose
 from ..utils import (extract_array, add_array, subpixel_indices,
                      block_reduce, block_replicate,
                      overlap_slices, NoOverlapError, PartialOverlapError,
-                     Cutout2D, cutout_tool)
+                     Cutout2D, make_cutouts, cutouts_from_fits)
 from ...wcs import WCS, Sip
 from ...wcs.utils import proj_plane_pixel_area
 from ...coordinates import SkyCoord
@@ -17,6 +17,7 @@ from ... import units as u
 from ...io import fits
 from ...io.fits.tests import FitsTestCase
 from ...table import Table
+from ..nddata import NDData
 
 try:
     import skimage  # pylint: disable=W0611
@@ -506,7 +507,7 @@ class TestCutout2D:
         )
 
 
-class TestCutoutTool(FitsTestCase):
+class TestCutoutTools(FitsTestCase):
     def setup(self):
         self.temp_dir = tempfile.mkdtemp(prefix='fits-test-')
         fits.conf.enable_record_valued_keyword_cards = True
@@ -534,7 +535,31 @@ class TestCutoutTool(FitsTestCase):
         # Construct Image and return:
         return fits.PrimaryHDU(data, h)
 
-    def test_cutout_tool_inputs(self):
+    def test_make_cutouts_inputs(self):
+        # Construct image:
+        image_hdu = self.construct_test_image()
+
+        # Construct catalog
+        ra = [0, 1] * u.deg
+        dec = [45, 46] * u.deg
+        ids = ["Target_1", "Target_2"]
+        cutout_width = cutout_height = [4.0, 4.0] * u.pix
+
+        catalog = Table(
+            data=[ids, ra, dec, cutout_width, cutout_height],
+            names=['id', 'ra', 'dec', 'cutout_width', 'cutout_height'])
+
+        # From NumPy Array and WCS:
+        array = image_hdu.data
+        w = WCS(image_hdu.header)
+        assert None not in make_cutouts(array, catalog, wcs=w)
+
+        # From NDData Array Only:
+        w = WCS(image_hdu.header)
+        array = NDData(data=image_hdu.data, wcs=w)
+        assert None not in make_cutouts(array, catalog)
+
+    def test_cutouts_from_fits_inputs(self):
         # Construct image:
         image_hdu = self.construct_test_image()
 
@@ -551,31 +576,26 @@ class TestCutoutTool(FitsTestCase):
         # Test with no rotation
 
         # - From memory:
-        assert None not in cutout_tool(image_hdu, catalog)
+        assert None not in cutouts_from_fits(image_hdu, catalog)
 
         # - From fits file:
         fits_file = self.temp("input_image.fits")
         image_hdu.writeto(fits_file)
-        assert None not in cutout_tool(fits_file, catalog)
+        assert None not in cutouts_from_fits(fits_file, catalog)
 
         # - From HDUList:
         hdu_list = fits.HDUList(image_hdu)
-        assert None not in cutout_tool(hdu_list, catalog)
-
-        # - From Array and WCS:
-        array = image_hdu.data
-        w = WCS(image_hdu.header)
-        assert None not in cutout_tool(array, catalog, wcs=w)
+        assert None not in cutouts_from_fits(hdu_list, catalog)
 
         # - From ECSV file
         ecsv_file = self.temp("input_catalog.ecsv")
         catalog.write(ecsv_file, format="ascii.ecsv")
-        assert None not in cutout_tool(image_hdu, ecsv_file)
+        assert None not in cutouts_from_fits(image_hdu, ecsv_file)
 
         # Test with rotation column:
         pa = [90, 45] * u.deg
         catalog.add_column(pa, name="cutout_pa")
-        assert None not in cutout_tool(image_hdu, catalog)
+        assert None not in cutouts_from_fits(image_hdu, catalog)
 
     def test_cutout_tool_correctness(self):
         # Construct image:
@@ -585,13 +605,16 @@ class TestCutoutTool(FitsTestCase):
         ra = [0] * u.deg  # Center pixel
         dec = [45] * u.deg  # Center pixel
         ids = ["target_1"]
+
         # Cutout should be 3 by 3:
         cutout_width = cutout_height = [3.0] * u.pix
+
         catalog = Table(
             data=[ids, ra, dec, cutout_width, cutout_height],
             names=['id', 'ra', 'dec', 'cutout_width', 'cutout_height'])
 
-        cutout = cutout_tool(image_hdu, catalog, to_fits=True)[0]
+        # Call cutout tool and extract the first cutout:
+        cutout = cutouts_from_fits(image_hdu, catalog)[0]
 
         # check if values are correct:
         w_orig = WCS(image_hdu.header)
@@ -605,11 +628,13 @@ class TestCutoutTool(FitsTestCase):
                 assert_almost_equal(image_hdu.data[x_orig][y_orig], cutout.data[x_new][y_new])
                 assert_almost_equal(coords_orig.ra.value, coords_new.ra.value)
                 assert_almost_equal(coords_orig.dec.value, coords_new.dec.value)
+
         # Test for rotation:
         pa = [180] * u.deg
         catalog.add_column(pa, name="cutout_pa")
 
-        cutout = cutout_tool(image_hdu, catalog, to_fits=True)[0]
+        # Call cutout tool:
+        cutout = cutouts_from_fits(image_hdu, catalog)[0]
 
         # check if values are correct:
         w_orig = WCS(image_hdu.header)
