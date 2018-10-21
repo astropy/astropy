@@ -5,7 +5,6 @@ __all__ = ["BoxLeastSquares", "BoxLeastSquaresResults"]
 
 import numpy as np
 
-from ...tests.helper import assert_quantity_allclose
 from ... import units
 from ..lombscargle.core import has_units, strip_units
 
@@ -745,26 +744,3 @@ class BoxLeastSquaresResults(dict):
 
     def __dir__(self):
         return list(self.keys())
-
-    def assert_allclose(self, other, **kwargs):
-        """Assert that another BoxLeastSquaresResults object is consistent
-
-        This method loops over all attributes and compares the values using
-        :func:`~astropy.tests.helper.assert_quantity_allclose` function.
-
-        Parameters
-        ----------
-        other : BoxLeastSquaresResults
-            The other results object to compare.
-
-        """
-        for k, v in self.items():
-            if k not in other:
-                raise AssertionError("missing key '{0}'".format(k))
-            if k == "objective":
-                assert v == other[k], (
-                    "Mismatched objectives. Expected '{0}', got '{1}'"
-                    .format(v, other[k])
-                )
-                continue
-            assert_quantity_allclose(v, other[k], **kwargs)

@@ -11,6 +11,31 @@ from .. import BoxLeastSquares
 from ...lombscargle.core import has_units
 
 
+def assert_allclose_blsresults(blsresult, other, **kwargs):
+    """Assert that another BoxLeastSquaresResults object is consistent
+
+    This method loops over all attributes and compares the values using
+    :func:`~astropy.tests.helper.assert_quantity_allclose` function.
+
+    Parameters
+    ----------
+    other : BoxLeastSquaresResults
+        The other results object to compare.
+
+    """
+    for k, v in blsresult.items():
+        if k not in other:
+            raise AssertionError("missing key '{0}'".format(k))
+        if k == "objective":
+            assert v == other[k], (
+                "Mismatched objectives. Expected '{0}', got '{1}'"
+                .format(v, other[k])
+            )
+            continue
+        assert_quantity_allclose(v, other[k], **kwargs)
+
+
+
 @pytest.fixture
 def data():
     rand = np.random.RandomState(123)
@@ -72,8 +97,10 @@ def test_fast_method(data, objective, offset):
                                  np.log(params["period"]) + 1, 10))
     durations = params["duration"]
     results = model.power(periods, durations, objective=objective)
-    results.assert_allclose(model.power(periods, durations,
-                                        method="slow", objective=objective))
+
+    assert_allclose_blsresults(results, model.power(periods, durations,
+                                                    method="slow",
+                                                    objective=objective))
 
 
 def test_input_units(data):
@@ -187,7 +214,8 @@ def test_autopower(data):
     period = model.autoperiod(duration)
     results1 = model.power(period, duration)
     results2 = model.autopower(duration)
-    results1.assert_allclose(results2)
+
+    assert_allclose_blsresults(results1, results2)
 
 
 @pytest.mark.parametrize("with_units", [True, False])
