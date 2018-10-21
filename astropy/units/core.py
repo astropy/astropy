@@ -1688,7 +1688,7 @@ class IrreducibleUnit(NamedUnit):
 class UnrecognizedUnit(IrreducibleUnit):
     """
     A unit that did not parse correctly.  This allows for
-    roundtripping it as a string, but no unit operations actually work
+    round-tripping it as a string, but no unit operations actually work
     on it.
 
     Parameters
