@@ -126,13 +126,13 @@ class NDArithmeticMixin:
     :meth:`NDArithmeticMixin.add`. ``None`` means that the result will have no
     uncertainty, ``False`` means it takes the uncertainty of the first operand
     (if this does not exist from the second operand) as the result's
-    uncertainty. This behaviour is also explained in the docstring for the
+    uncertainty. This behavior is also explained in the docstring for the
     different arithmetic operations.
 
     Decomposing the units is not attempted, mainly due to the internal mechanics
     of `~astropy.units.Quantity`, so the resulting data might have units like
     ``km/m`` if you divided for example 100km by 5m. So this Mixin has adopted
-    this behaviour.
+    this behavior.
 
     Examples
     --------

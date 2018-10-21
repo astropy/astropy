@@ -351,7 +351,7 @@ class Ipac(basic.Basic):
       date Wed Sp 20 09:48:36 1995
       key_continue IPAC keywords can continue across lines
 
-    Note that there are different conventions for characters occuring below the
+    Note that there are different conventions for characters occurring below the
     position of the ``|`` symbol in IPAC tables. By default, any character
     below a ``|`` will be ignored (since this is the current standard),
     but if you need to read files that assume characters below the ``|``

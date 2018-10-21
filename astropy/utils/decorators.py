@@ -342,7 +342,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
         >>> test(sig=2)
         2
 
-    To deprecate an argument catched inside the ``**kwargs`` the
+    To deprecate an argument caught inside the ``**kwargs`` the
     ``arg_in_kwargs`` has to be set::
 
         >>> @deprecated_renamed_argument('sig', 'sigma', '1.0',
@@ -432,7 +432,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
                                     '{1!r}.'.format(new_name[i], param.kind))
 
             # In case the argument is not found in the list of arguments
-            # the only remaining possibility is that it should be catched
+            # the only remaining possibility is that it should be caught
             # by some kind of **kwargs argument.
             # This case has to be explicitly specified, otherwise throw
             # an exception!
@@ -506,7 +506,7 @@ class classproperty(property):
     .. note::
 
         classproperty only works for *read-only* properties.  It does not
-        currently allow writeable/deleteable properties, due to subtleties of how
+        currently allow writeable/deletable properties, due to subtleties of how
         Python descriptors work.  In order to implement such properties on a class
         a metaclass for that class must be implemented.
 

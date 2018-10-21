@@ -193,7 +193,7 @@ class ConfigItem(metaclass=InheritDocstrings):
         element (e.g. 'astropy' if this is 'astropy.config.configuration')
         will be used to determine the name of the configuration file, while
         the remaining items determine the section. If None, the package will be
-        inferred from the package within whiich this object's initializer is
+        inferred from the package within which this object's initializer is
         called.
 
     aliases : str, or list of str, optional

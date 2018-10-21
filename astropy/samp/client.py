@@ -380,7 +380,7 @@ class SAMPClient:
         Parameters
         ----------
         mtype : str
-            MType to be catched.
+            MType to be caught.
 
         function : callable
             Application function to be used when ``mtype`` is received.

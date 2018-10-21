@@ -138,7 +138,7 @@ class RipleysKEstimator:
 
     def poisson(self, radii):
         """
-        Evaluates the Ripley K function for the homongeneous Poisson process,
+        Evaluates the Ripley K function for the homogeneous Poisson process,
         also known as Complete State of Randomness (CSR).
 
         Parameters
@@ -199,7 +199,7 @@ class RipleysKEstimator:
                 description of this method can be found on ref [4].
             * 'ohser'
                 this method uses the isotropized set covariance function of
-                the window of study as a weigth to correct for
+                the window of study as a weight to correct for
                 edge-effects. A detailed description of this method can be
                 found on ref [4].
             * 'var-width'

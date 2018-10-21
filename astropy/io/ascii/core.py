@@ -401,7 +401,7 @@ class DefaultSplitter(BaseSplitter):
     escapechar = None
     """ one-character stringto quote fields containing special characters """
     quoting = csv.QUOTE_MINIMAL
-    """ control when quotes are recognised by the reader """
+    """ control when quotes are recognized by the reader """
     skipinitialspace = True
     """ ignore whitespace immediately following the delimiter """
     csv_writer = None
