@@ -318,7 +318,7 @@ Dw.dEe         Floating-point, exponential notation, double precision
 ============   ================================================================
 
 Where w is the width in characters of displayed values, m is the minimum number
-of digits dsiplayed, d is the number of digits to the right of decimal, and e
+of digits displayed, d is the number of digits to the right of decimal, and e
 is number of digits in the exponent.  The .m and Ee fields are optional.
 
 The A (character), L (logical), F (floating point), and G (general) display
@@ -477,7 +477,7 @@ By default, a `~astropy.time.Time` mixin column within a `~astropy.table.Table`
 or `~astropy.table.QTable` will be written to FITS in full precision. This will be
 done using the FITS time standard by setting the necessary FITS header keywords.
 
-The default behaviour for reading a FITS table into an `~astropy.table.Table`
+The default behavior for reading a FITS table into an `~astropy.table.Table`
 has historically been to convert all FITS columns to `~astropy.table.Column`
 objects, which have closely matching properties. For some columns, however,
 closer native astropy representations are possible, and one can indicate these

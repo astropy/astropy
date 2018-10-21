@@ -378,7 +378,7 @@ the presence of masked values, because the matrix equation has to be solved for
 each model separately, on their respective co-ordinate grids. This is still an
 order of magnitude faster than fitting separate model instances, however.
 Supplying a `numpy.ma.MaskedArray` without any bad (``True``) mask values
-produces the normal, faster behaviour.
+produces the normal, faster behavior.
 
 .. _modeling-using:
 

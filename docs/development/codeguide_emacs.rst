@@ -26,7 +26,7 @@ No tabs
 =======
 
 This setting will cause indentation to use spaces rather than tabs for all
-files.  For python files, indendation of 4 spaces will be used if the tab key
+files.  For python files, indentation of 4 spaces will be used if the tab key
 is pressed.
 
 .. code-block:: scheme

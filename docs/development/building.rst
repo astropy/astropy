@@ -109,7 +109,7 @@ in their own ``setup.py``.
 PLY Parsing/Lexing tables
 =========================
 
-For certain string-prasing tasks, Astropy uses the
+For certain string-parsing tasks, Astropy uses the
 `PLY <http://www.dabeaz.com/ply/>`_ tool.  PLY generates tables that speed up
 the parsing process, which are checked into source code so they don't have to
 be regenerated.  These tables can be recognized by having either ``lextab`` or

@@ -249,7 +249,7 @@ Running tests to catch permissions errors
 -----------------------------------------
 
 It is possible to write code or tests that write into the source directory. This
-is not desirable because Python packages can be (and frequestly are) installed
+is not desirable because Python packages can be (and frequently are) installed
 in locations where the user may not have write permissions.  To check for these
 cases, the test runner has an option to have the test-runner
 directory be set as read-only to ensure the tests are not writing to that
@@ -505,12 +505,12 @@ functions. In the following ::
             self.NUM = 42
 
         def test_1(self):
-            """Test behaviour for a specific input value."""
+            """Test behavior for a specific input value."""
             added = add_nums(11, self.NUM)
             assert added == 53
 
         def test_2(self):
-            """Test behaviour for another input value."""
+            """Test behavior for another input value."""
             added = add_nums(13, self.NUM)
             assert added == 55
 
@@ -538,12 +538,12 @@ before and after *each* test. For this, use the ``setup_method`` and
             self.NUM = 42
 
         def test_1(self):
-        """Test behaviour for a specific input value."""
+        """Test behavior for a specific input value."""
             added = add_nums(11, self.NUM)
             assert added == 53
 
         def test_2(self):
-        """Test behaviour for another input value."""
+        """Test behavior for another input value."""
             added = add_nums(13, self.NUM)
             assert added == 55
 
