@@ -727,8 +727,10 @@ def test_histogram_intervals_known(ii, rr):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-@pytest.mark.parametrize('N,m,p', [(100, 10000, 0.01),
-                                   (300, 10000, 0.001),
+@pytest.mark.parametrize('N,m,p', [pytest.param(100, 10000, 0.01,
+                                                marks=pytest.mark.skip('Test too slow')),
+                                   pytest.param(300, 10000, 0.001,
+                                                marks=pytest.mark.skip('Test too slow')),
                                    (10, 10000, 0.001),
                                    ])
 def test_uniform_binomial(N, m, p):
