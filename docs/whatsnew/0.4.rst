@@ -165,7 +165,7 @@ We have now extracted our set-up and documentation utilities into a separate
 package, `astropy-helpers <https://github.com/astropy/astropy-helpers>`_. In
 practice, this does not change anything from a user point of view, but it is
 a big internal change that will allow any other packages to benefit from the
-set-up utilies developed for the core package without having to first install
+set-up utilities developed for the core package without having to first install
 astropy.
 
 Configuration

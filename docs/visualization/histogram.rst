@@ -100,7 +100,7 @@ The following figure shows the results of these two rules on the above dataset:
 
 
 As we can see, both of these rules of thumb choose an intermediate number of
-bins which provide a good tradeoff between data representation and noise
+bins which provide a good trade-off between data representation and noise
 suppression.
 
 Bayesian Models

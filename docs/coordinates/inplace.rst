@@ -8,7 +8,7 @@ to change the data in a frame as it creates a new frame with that data.
 Creating a new frame can be relatively slow, however, particularly for scalar
 coordinates. Hence some situations may require that data by changed in-place in
 an already existing frame object. This modification can be done by
-modifiying the values of the representation data as follows::
+modifying the values of the representation data as follows::
 
     >>> import astropy.units as u
     >>> from astropy.coordinates import SkyCoord
@@ -34,7 +34,7 @@ the ``.data`` attribute directly and not the aliases for components on the frame
 
     >>> c.ra[()] = 20 * u.deg
 
-This is because a different representation object is used when acessing the
+This is because a different representation object is used when accessing the
 aliased component names. If you wish to inspect the mapping between frame
 attributes i.e. ``.ra`` and representation attributes i.e. ``.lon`` you can look
 at the following dictionary.::

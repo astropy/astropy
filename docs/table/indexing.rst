@@ -213,7 +213,7 @@ or table is copied::
 Updating row using indices
 ==========================
 
-Row updation can be accomplished by assigning the table property: `~astropy.table.Table.loc` a complete row or a list of rows::
+Row updates can be accomplished by assigning the table property: `~astropy.table.Table.loc` a complete row or a list of rows::
 
    >>> t = Table([('w', 'x', 'y', 'z'), (10, 1, 9, 9)], names=('a', 'b'), dtype=['str', 'i8'])
    >>> t.add_index('a')

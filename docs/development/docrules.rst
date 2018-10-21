@@ -318,7 +318,7 @@ The sections of the docstring are:
 
      .. [1] O. McNoleg, "The integration of GIS, remote sensing,
         expert systems and adaptive co-kriging for environmental habitat
-        modelling of the Highland Haggis using object-oriented, fuzzy-logic
+        modeling of the Highland Haggis using object-oriented, fuzzy-logic
         and neural-network techniques," Computers & Geosciences, vol. 22,
         pp. 585-588, 1996.
 
@@ -326,7 +326,7 @@ The sections of the docstring are:
 
    .. [1] O. McNoleg, "The integration of GIS, remote sensing,
       expert systems and adaptive co-kriging for environmental habitat
-      modelling of the Highland Haggis using object-oriented, fuzzy-logic
+      modeling of the Highland Haggis using object-oriented, fuzzy-logic
       and neural-network techniques," Computers & Geosciences, vol. 22,
       pp. 585-588, 1996.
 
