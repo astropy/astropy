@@ -254,4 +254,3 @@ def test_Voigt1D():
     fitter = fitting.LevMarLSQFitter()
     voi_fit = fitter(voi_init, xarr, yarr)
     assert_allclose(voi_fit.param_sets, voi.param_sets)
-
