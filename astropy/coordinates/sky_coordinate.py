@@ -230,17 +230,26 @@ class SkyCoord(ShapedLikeNDArray):
         # this in the initialization path
         if (len(args) == 1 and len(kwargs) == 0 and
                 isinstance(args[0], (BaseCoordinateFrame, SkyCoord))):
-            frame = args[0]
-            if isinstance(frame, SkyCoord):
-                frame = frame.frame
 
-            if not frame.has_data:
-                raise ValueError('TODO')
+            coords = args[0]
+            if isinstance(coords, SkyCoord):
+                self._extra_frameattr_names = coords._extra_frameattr_names
+
+                # Copy over any extra frame attributes
+                for attr_name in self._extra_frameattr_names:
+                    # Setting it will also validate it.
+                    setattr(self, attr_name, getattr(coords, attr_name))
+
+                coords = coords.frame
+
+            if not coords.has_data:
+                raise ValueError('Cannot initialize from a coordinate frame '
+                                 'instance without coordinate data')
 
             if copy:
-                self._sky_coord_frame = frame.copy()
+                self._sky_coord_frame = coords.copy()
             else:
-                self._sky_coord_frame = frame
+                self._sky_coord_frame = coords
 
         else:
             # Parse the args and kwargs to assemble a sanitized and validated
@@ -374,10 +383,8 @@ class SkyCoord(ShapedLikeNDArray):
         valid_kwargs = {}
 
         # Put the SkyCoord attributes like frame, equinox, obstime, location
-        # into valid_kwargs dict.  `Frame` could come from args or kwargs, so
-        # set valid_kwargs['frame'] accordingly.  The others must be specified
-        # by keyword args or else get a None default.  Pop them off of kwargs
-        # in the process.
+        # into valid_kwargs dict. The others must be specified by keyword args
+        # or else get a None default.  Pop them off of kwargs in the process.
         frame = valid_kwargs['frame'] = _get_frame(args, kwargs)
 
         # TODO: possibly remove the below.  The representation/differential
@@ -1740,7 +1747,8 @@ def _get_frame_class(frame):
     if isinstance(frame, str):
         frame_names = frame_transform_graph.get_names()
         if frame not in frame_names:
-            raise ValueError('Coordinate frame {0} not in allowed values {1}'
+            raise ValueError('Coordinate frame name "{0}" is not a known '
+                             'coordinate frame ({1})'
                              .format(frame, sorted(frame_names)))
         frame_cls = frame_transform_graph.lookup_name(frame)
 
@@ -1764,19 +1772,8 @@ def _get_frame(args, kwargs):
     class like ICRS, but not an instance ICRS() since the latter could have
     non-default representation attributes which would require a three-way merge.
     """
+
     frame = kwargs.pop('frame', None)
-
-    if frame is None and len(args) > 1:
-
-        # We do not allow frames to be passed as positional arguments if data
-        # is passed separately from frame.
-
-        for arg in args:
-
-            if isinstance(arg, (SkyCoord, BaseCoordinateFrame)):
-                raise ValueError("{0} instance cannot be passed as a positional "
-                                 "argument for the frame, pass it using the "
-                                 "frame= keyword instead.".format(arg.__class__.__name__))
 
     # If the frame is an instance or SkyCoord, we split up the attributes and
     # make it into a class.
@@ -1801,24 +1798,10 @@ def _get_frame(args, kwargs):
         # Frame was provided as kwarg so validate and coerce into corresponding frame.
         frame_cls = _get_frame_class(frame)
         frame_specified_explicitly = True
+
     else:
-        # Look for the frame in args
-        for arg in args:
-            try:
-                frame_cls = _get_frame_class(arg)
-                frame_specified_explicitly = True
-            except ValueError:
-                pass
-            else:
-                args.remove(arg)
-                warnings.warn("Passing a frame as a positional argument is now "
-                              "deprecated, use the frame= keyword argument "
-                              "instead.", AstropyDeprecationWarning)
-                break
-        else:
-            # Not in args nor kwargs - default to icrs
-            frame_cls = ICRS
-            frame_specified_explicitly = False
+        frame_cls = ICRS
+        frame_specified_explicitly = False
 
     # Check that the new frame doesn't conflict with existing coordinate frame
     # if a coordinate is supplied in the args list.  If the frame still had not
