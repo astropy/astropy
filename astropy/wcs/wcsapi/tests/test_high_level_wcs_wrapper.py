@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
@@ -71,3 +72,18 @@ def test_wrapper():
     assert wrapper.array_shape is None
     assert wrapper.pixel_bounds is None
     assert wrapper.axis_correlation_matrix is None
+
+
+def test_wrapper_invalid():
+
+    class InvalidCustomLowLevelWCS(CustomLowLevelWCS):
+        @property
+        def world_axis_object_classes(self):
+            return {}
+
+    wcs = InvalidCustomLowLevelWCS()
+
+    wrapper = HighLevelWCSWrapper(wcs)
+
+    with pytest.raises(KeyError):
+        wrapper.pixel_to_world(1, 2)
