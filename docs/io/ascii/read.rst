@@ -643,7 +643,7 @@ these sub-tables and then stack them at the end.
 .. Note:: **Performance**
 
   Specifying the ``format`` explicitly and using ``guess=False`` is a good idea
-  for large tables.  This prevent unecessary guessing in the typical case
+  for large tables.  This prevent unnecessary guessing in the typical case
   where the format is already known.
 
   The ``chunk_size`` should generally be set to the largest value that is 
