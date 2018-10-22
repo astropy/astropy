@@ -4,12 +4,13 @@
 
 import warnings
 
+import numpy as np
 from numpy.testing import assert_equal, assert_allclose
 
 from .... import units as u
 from ....tests.helper import assert_quantity_allclose
 from ....units import Quantity
-from ....coordinates import ICRS, Galactic, SkyCoord
+from ....coordinates import ICRS, FK5, Galactic, SkyCoord
 from ....io.fits import Header
 from ....utils.data import get_pkg_data_filename
 from ...wcs import WCS
@@ -456,3 +457,32 @@ def test_custom_ctype_to_ucd_mappings():
     with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
         with custom_ctype_to_ucd_mapping({'SPAM': 'notfood'}):
             assert wcs.world_axis_physical_types == ['notfood']
+
+
+def test_caching_components_and_classes():
+
+    # Make sure that when we change the WCS object, the classes and components
+    # are updated (we use a cache internally, so we need to make sure the cache
+    # is invalidated if needed)
+
+    wcs = WCS_SIMPLE_CELESTIAL
+
+    assert wcs.world_axis_object_components == [('celestial', 0, 'spherical.lon.degree'),
+                                                ('celestial', 1, 'spherical.lat.degree')]
+
+    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
+    assert wcs.world_axis_object_classes['celestial'][1] == ()
+    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], ICRS)
+    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
+
+    wcs.wcs.radesys = 'FK5'
+
+    frame = wcs.world_axis_object_classes['celestial'][2]['frame']
+    assert isinstance(frame, FK5)
+    assert frame.equinox.jyear == 2000.
+
+    wcs.wcs.equinox = 2010
+
+    frame = wcs.world_axis_object_classes['celestial'][2]['frame']
+    assert isinstance(frame, FK5)
+    assert frame.equinox.jyear == 2010.

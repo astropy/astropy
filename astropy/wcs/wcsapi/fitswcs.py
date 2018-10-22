@@ -198,66 +198,85 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
     @property
     def world_axis_object_components(self):
-        return _get_components_and_classes(self)[0]
+        return self._get_components_and_classes()[0]
 
     @property
     def world_axis_object_classes(self):
-        return _get_components_and_classes(self)[1]
+        return self._get_components_and_classes()[1]
 
     @property
     def serialized_classes(self):
         return False
 
+    def _get_components_and_classes(self):
 
-def _get_components_and_classes(wcs):
-    """
-    Given a :class:`~astropy.wcs.WCS` object, return the components and classes
-    needed for ``world_axis_object_components`` and ``world_axis_object_classes``.
-    """
+        # The aim of this function is to return whatever is needed for
+        # world_axis_object_components and world_axis_object_classes. It's easier
+        # to figure it out in one go and then return the values and let the
+        # properties return part of it.
 
-    # The aim of this function is to return whatever is needed for
-    # world_axis_object_components and world_axis_object_classes. It's easier
-    # to figure it out in one go and then return the values and let the
-    # properties return part of it.
+        # Since this method might get called quite a few times, we need to cache
+        # it. We start off by defining a hash based on the attributes of the
+        # WCS that matter here (we can't just use the WCS object as a hash since
+        # it is mutable)
+        wcs_hash = (self.naxis,
+                    list(self.wcs.ctype),
+                    list(self.wcs.cunit),
+                    self.wcs.radesys,
+                    self.wcs.equinox,
+                    self.wcs.dateobs,
+                    self.wcs.lng,
+                    self.wcs.lat)
 
-    # Avoid circular imports by importing here
-    from ..utils import wcs_to_celestial_frame
-    from ...coordinates import SkyCoord
+        # If the cache is present, we need to check that the 'hash' matches.
+        if getattr(self, '_components_and_classes_cache', None) is not None:
+            cache = self._components_and_classes_cache
+            if cache[0] == wcs_hash:
+                return cache[1]
+            else:
+                self._components_and_classes_cache = None
 
-    components = [None] * wcs.naxis
-    classes = {}
+        # Avoid circular imports by importing here
+        from ..utils import wcs_to_celestial_frame
+        from ...coordinates import SkyCoord
 
-    # Let's start off by checking whether the WCS has a pair of celestial
-    # components
+        components = [None] * self.naxis
+        classes = {}
 
-    if wcs.has_celestial:
+        # Let's start off by checking whether the WCS has a pair of celestial
+        # components
 
-        frame = wcs_to_celestial_frame(wcs)
+        if self.has_celestial:
 
-        kwargs = {}
-        kwargs['frame'] = frame
-        kwargs['unit'] = u.deg
+            frame = wcs_to_celestial_frame(self)
 
-        classes['celestial'] = (SkyCoord, (), kwargs)
+            kwargs = {}
+            kwargs['frame'] = frame
+            kwargs['unit'] = u.deg
 
-        components[wcs.wcs.lng] = ('celestial', 0, 'spherical.lon.degree')
-        components[wcs.wcs.lat] = ('celestial', 1, 'spherical.lat.degree')
+            classes['celestial'] = (SkyCoord, (), kwargs)
 
-    # Fallback: for any remaining components that haven't been identified, just
-    # return Quantity as the class to use
+            components[self.wcs.lng] = ('celestial', 0, 'spherical.lon.degree')
+            components[self.wcs.lat] = ('celestial', 1, 'spherical.lat.degree')
 
-    if 'time' in wcs.world_axis_physical_types:
-        warnings.warn('In future, times will be represented by the Time class '
-                      'instead of Quantity', FutureWarning)
+        # Fallback: for any remaining components that haven't been identified, just
+        # return Quantity as the class to use
 
-    for i in range(wcs.naxis):
-        if components[i] is None:
-            name = wcs.axis_type_names[i].lower()
-            if name == '':
-                name = 'world'
-            while name in classes:
-                name += "_"
-            classes[name] = (u.Quantity, (), {'unit': wcs.wcs.cunit[i]})
-            components[i] = (name, 0, 'value')
+        if 'time' in self.world_axis_physical_types:
+            warnings.warn('In future, times will be represented by the Time class '
+                          'instead of Quantity', FutureWarning)
 
-    return components, classes
+        for i in range(self.naxis):
+            if components[i] is None:
+                name = self.axis_type_names[i].lower()
+                if name == '':
+                    name = 'world'
+                while name in classes:
+                    name += "_"
+                classes[name] = (u.Quantity, (), {'unit': self.wcs.cunit[i]})
+                components[i] = (name, 0, 'value')
+
+        # Keep a cached version of result
+        self._components_and_classes_cache = wcs_hash, (components, classes)
+
+        return components, classes
