@@ -12,7 +12,7 @@ from ... import units as u
 from .low_level_api import BaseLowLevelWCS
 from .high_level_api import HighLevelWCSMixin
 
-__all__ = ['FITSWCSAPIMixin']
+__all__ = ['custom_ctype_to_ucd_mapping', 'FITSWCSAPIMixin']
 
 # Mapping from CTYPE axis name to UCD1
 
@@ -62,6 +62,50 @@ CTYPE_TO_UCD1 = {
 
 }
 
+# Keep a list of additional custom mappings that have been registered. This
+# is kept as a list in case nested context managers are used
+CTYPE_TO_UCD1_CUSTOM = []
+
+
+class custom_ctype_to_ucd_mapping:
+    """
+    A context manager that makes it possible to temporarily add new CTYPE to
+    UCD1+ mapping used by :attr:`FITSWCSAPIMixin.world_axis_physical_types`.
+
+    Parameters
+    ----------
+    mapping : dict
+        A dictionary mapping a CTYPE value to a UCD1+ value
+
+    Examples
+    --------
+
+    Consider a WCS with the following CTYPE::
+
+        >>> from astropy.wcs import WCS
+        >>> wcs = WCS(naxis=1)
+        >>> wcs.wcs.ctype = ['SPAM']
+
+    By default, :attr:`FITSWCSAPIMixin.world_axis_physical_types` returns `None`,
+    but this can be overriden::
+
+        >>> wcs.world_axis_physical_types
+        [None]
+        >>> with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
+        ...     wcs.world_axis_physical_types
+        ['food.spam']
+    """
+
+    def __init__(self, mapping):
+        CTYPE_TO_UCD1_CUSTOM.insert(0, mapping)
+        self.mapping = mapping
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, tb):
+        CTYPE_TO_UCD1_CUSTOM.remove(self.mapping)
+
 
 class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     """
@@ -84,7 +128,12 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             if axis_type.startswith('UT('):
                 types.append('time')
             else:
-                types.append(CTYPE_TO_UCD1.get(axis_type, None))
+                for custom_mapping in CTYPE_TO_UCD1_CUSTOM:
+                    if axis_type in custom_mapping:
+                        types.append(custom_mapping[axis_type])
+                        break
+                else:
+                    types.append(CTYPE_TO_UCD1.get(axis_type, None))
         return types
 
     @property

@@ -13,6 +13,7 @@ from ....coordinates import ICRS, Galactic, SkyCoord
 from ....io.fits import Header
 from ....utils.data import get_pkg_data_filename
 from ...wcs import WCS
+from ..fitswcs import custom_ctype_to_ucd_mapping
 
 ###############################################################################
 # The following example is the simplest WCS with default values
@@ -419,3 +420,39 @@ def test_distortion_correlations():
     w.wcs.pc = [[0.9, -0.1], [0.1, 0.9]]
     w.wcs.ctype = ['X', 'Y']
     assert_equal(w.axis_correlation_matrix, True)
+
+
+def test_custom_ctype_to_ucd_mappings():
+
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ['SPAM']
+
+    assert wcs.world_axis_physical_types == [None]
+
+    # Check simple behavior
+
+    with custom_ctype_to_ucd_mapping({'APPLE': 'food.fruit'}):
+        assert wcs.world_axis_physical_types == [None]
+
+    with custom_ctype_to_ucd_mapping({'APPLE': 'food.fruit', 'SPAM': 'food.spam'}):
+        assert wcs.world_axis_physical_types == ['food.spam']
+
+    # Check nesting
+
+    with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
+        with custom_ctype_to_ucd_mapping({'APPLE': 'food.fruit'}):
+            assert wcs.world_axis_physical_types == ['food.spam']
+
+    with custom_ctype_to_ucd_mapping({'APPLE': 'food.fruit'}):
+        with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
+            assert wcs.world_axis_physical_types == ['food.spam']
+
+    # Check priority in nesting
+
+    with custom_ctype_to_ucd_mapping({'SPAM': 'notfood'}):
+        with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
+            assert wcs.world_axis_physical_types == ['food.spam']
+
+    with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
+        with custom_ctype_to_ucd_mapping({'SPAM': 'notfood'}):
+            assert wcs.world_axis_physical_types == ['notfood']
