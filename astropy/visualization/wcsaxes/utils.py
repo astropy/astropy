@@ -176,7 +176,11 @@ def transform_contour_set_inplace(cset, transform):
     pos_level = np.cumsum(pos_level)[:-1]
 
     # Stack all the segments into a single (n, 2) array
-    vertices = np.vstack(path.vertices for paths in all_paths for path in paths)
+    vertices = [path.vertices for paths in all_paths for path in paths]
+    if len(vertices) > 0:
+        vertices = np.concatenate(vertices)
+    else:
+        return
 
     # Transform all coordinates in one go
     vertices = transform.transform(vertices)
