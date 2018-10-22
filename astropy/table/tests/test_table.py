@@ -1372,7 +1372,8 @@ def test_equality_masked():
     assert np.all(t == t)
 
     # Assert no rows are different
-    assert not np.any(t != t)
+    t_filled = t.filled()
+    assert not np.any(t_filled != t_filled)
 
     # Check equality result for a given row
     assert np.all((t == t[3]) == np.array([0, 0, 0, 1, 0, 0, 0, 0], dtype=bool))

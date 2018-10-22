@@ -88,6 +88,8 @@ def _table_group_by(table, keys):
 
     # Finally do the actual sort of table_keys values
     table_keys = table_keys[idx_sort]
+    if hasattr(table_keys, 'filled'):
+        table_keys = table_keys.filled()
 
     # Get all keys
     diffs = np.concatenate(([True], table_keys[1:] != table_keys[:-1], [True]))
