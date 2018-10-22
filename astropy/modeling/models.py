@@ -6,6 +6,7 @@ Creates a common namespace for all pre-defined models.
 
 
 from .core import custom_model  # pylint: disable=W0611
+from .core import set_inputs
 from .mappings import *
 from .projections import *
 from .rotations import *
