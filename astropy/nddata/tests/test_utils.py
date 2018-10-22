@@ -2,7 +2,7 @@
 
 import pytest
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 
 from ...tests.helper import assert_quantity_allclose
 from ..utils import (extract_array, add_array, subpixel_indices,
@@ -78,6 +78,66 @@ def test_slices_overlap_wrong_mode():
     assert "Mode can be only" in str(e.value)
 
 
+def test_extract_array_even_shape_rounding():
+    """
+    Test overlap_slices (via extract_array) for rounding with an
+    even-shaped extraction.
+    """
+
+    data = np.arange(10)
+    shape = (2,)
+    positions_expected = [(1.49, (1, 2)), (1.5, (1, 2)), (1.501, (1, 2)),
+                          (1.99, (1, 2)), (2.0, (1, 2)), (2.01, (2, 3)),
+                          (2.49, (2, 3)), (2.5, (2, 3)), (2.501, (2, 3)),
+                          (2.99, (2, 3)), (3.0, (2, 3)), (3.01, (3, 4))]
+
+    for pos, exp in positions_expected:
+        out = extract_array(data, shape, (pos, ), mode='partial')
+        assert_array_equal(out, exp)
+
+    # test negative positions
+    positions = (-0.99, -0.51, -0.5, -0.49, -0.01, 0)
+    exp1 = (-99, 0)
+    exp2 = (0, 1)
+    expected = [exp1, ] * 6 + [exp2, ]
+
+    for pos, exp in zip(positions, expected):
+        out = extract_array(data, shape, (pos, ), mode='partial',
+                            fill_value=-99)
+        assert_array_equal(out, exp)
+
+
+def test_extract_array_odd_shape_rounding():
+    """
+    Test overlap_slices (via extract_array) for rounding with an
+    even-shaped extraction.
+    """
+
+    data = np.arange(10)
+    shape = (3,)
+    positions_expected = [(1.49, (0, 1, 2)), (1.5, (0, 1, 2)),
+                          (1.501, (1, 2, 3)), (1.99, (1, 2, 3)),
+                          (2.0, (1, 2, 3)), (2.01, (1, 2, 3)),
+                          (2.49, (1, 2, 3)), (2.5, (1, 2, 3)),
+                          (2.501, (2, 3, 4)), (2.99, (2, 3, 4)),
+                          (3.0, (2, 3, 4)), (3.01, (2, 3, 4))]
+
+    for pos, exp in positions_expected:
+        out = extract_array(data, shape, (pos, ), mode='partial')
+        assert_array_equal(out, exp)
+
+    # test negative positions
+    positions = (-0.99, -0.51, -0.5, -0.49, -0.01, 0)
+    exp1 = (-99, -99, 0)
+    exp2 = (-99, 0, 1)
+    expected = [exp1, ] * 3 + [exp2, ] * 4
+
+    for pos, exp in zip(positions, expected):
+        out = extract_array(data, shape, (pos, ), mode='partial',
+                            fill_value=-99)
+        assert_array_equal(out, exp)
+
+
 def test_extract_array_wrong_mode():
     '''Call extract_array with non-existing mode.'''
     with pytest.raises(ValueError) as e:
@@ -90,10 +150,13 @@ def test_extract_array_1d_even():
 
     All dimensions are treated the same, so we can test in 1 dim.
     '''
-    assert np.all(extract_array(np.arange(4), (2, ), (0, ), fill_value=-99) == np.array([-99, 0]))
+    assert np.all(extract_array(np.arange(4), (2, ), (0, ),
+                                fill_value=-99) == np.array([-99, 0]))
     for i in [1, 2, 3]:
-        assert np.all(extract_array(np.arange(4), (2, ), (i, )) == np.array([i - 1, i]))
-    assert np.all(extract_array(np.arange(4.), (2, ), (4, ), fill_value=np.inf) == np.array([3, np.inf]))
+        assert np.all(extract_array(np.arange(4), (2, ), (i, )) ==
+                      np.array([i - 1, i]))
+    assert np.all(extract_array(np.arange(4.), (2, ), (4, ),
+                                fill_value=np.inf) == np.array([3, np.inf]))
 
 
 def test_extract_array_1d_odd():
@@ -105,11 +168,15 @@ def test_extract_array_1d_odd():
     Additional tests (e.g. dtype of return array) are done for the last
     case only.
     '''
-    assert np.all(extract_array(np.arange(4), (3,), (-1, ), fill_value=-99) == np.array([-99, -99, 0]))
-    assert np.all(extract_array(np.arange(4), (3,), (0, ), fill_value=-99) == np.array([-99, 0, 1]))
+    assert np.all(extract_array(np.arange(4), (3,), (-1, ),
+                                fill_value=-99) == np.array([-99, -99, 0]))
+    assert np.all(extract_array(np.arange(4), (3,), (0, ),
+                                fill_value=-99) == np.array([-99, 0, 1]))
     for i in [1, 2]:
-        assert np.all(extract_array(np.arange(4), (3,), (i, )) == np.array([i-1, i, i+1]))
-    assert np.all(extract_array(np.arange(4), (3,), (3, ), fill_value=-99) == np.array([2, 3, -99]))
+        assert np.all(extract_array(np.arange(4), (3,), (i, )) ==
+                      np.array([i-1, i, i+1]))
+    assert np.all(extract_array(np.arange(4), (3,), (3, ),
+                                fill_value=-99) == np.array([2, 3, -99]))
     arrayin = np.arange(4.)
     extracted = extract_array(arrayin, (3,), (4, ))
     assert extracted[0] == 3
@@ -119,14 +186,17 @@ def test_extract_array_1d_odd():
 
 def test_extract_array_1d():
     """In 1d, shape can be int instead of tuple"""
-    assert np.all(extract_array(np.arange(4), 3, (-1, ), fill_value=-99) == np.array([-99, -99, 0]))
-    assert np.all(extract_array(np.arange(4), 3, -1, fill_value=-99) == np.array([-99, -99, 0]))
+    assert np.all(extract_array(np.arange(4), 3, (-1, ),
+                                fill_value=-99) == np.array([-99, -99, 0]))
+    assert np.all(extract_array(np.arange(4), 3, -1,
+                                fill_value=-99) == np.array([-99, -99, 0]))
 
 
 def test_extract_Array_float():
     """integer is at bin center"""
     for a in np.arange(2.51, 3.49, 0.1):
-        assert np.all(extract_array(np.arange(5), 3, a) == np.array([2, 3, 4]))
+        assert np.all(extract_array(np.arange(5), 3, a) ==
+                      np.array([2, 3, 4]))
 
 
 def test_extract_array_1d_trim():
@@ -134,10 +204,13 @@ def test_extract_array_1d_trim():
 
     All dimensions are treated the same, so we can test in 1 dim.
     '''
-    assert np.all(extract_array(np.arange(4), (2, ), (0, ), mode='trim') == np.array([0]))
+    assert np.all(extract_array(np.arange(4), (2, ), (0, ),
+                                mode='trim') == np.array([0]))
     for i in [1, 2, 3]:
-        assert np.all(extract_array(np.arange(4), (2, ), (i, ), mode='trim') == np.array([i - 1, i]))
-    assert np.all(extract_array(np.arange(4.), (2, ), (4, ), mode='trim') == np.array([3]))
+        assert np.all(extract_array(np.arange(4), (2, ), (i, ),
+                                    mode='trim') == np.array([i - 1, i]))
+    assert np.all(extract_array(np.arange(4.), (2, ), (4, ),
+                                mode='trim') == np.array([3]))
 
 
 @pytest.mark.parametrize('mode', ['partial', 'trim', 'strict'])
@@ -150,7 +223,8 @@ def test_extract_array_easy(mode):
     large_test_array = np.zeros((11, 11))
     small_test_array = np.ones((5, 5))
     large_test_array[3:8, 3:8] = small_test_array
-    extracted_array = extract_array(large_test_array, (5, 5), (5, 5), mode=mode)
+    extracted_array = extract_array(large_test_array, (5, 5), (5, 5),
+                                    mode=mode)
     assert np.all(extracted_array == small_test_array)
 
 
@@ -163,10 +237,11 @@ def test_extract_array_return_pos():
     large_test_array = np.arange(5)
     for i in np.arange(-1, 6):
         extracted, new_pos = extract_array(large_test_array, 3, i,
-                                           mode='partial', return_position=True)
+                                           mode='partial',
+                                           return_position=True)
         assert new_pos == (1, )
     # Now check an array with an even number
-    for i, expected in zip([1.49, 1.51, 3], [1.49, 0.51, 1]):
+    for i, expected in zip([1.49, 1.51, 3], [0.49, 0.51, 1]):
         extracted, new_pos = extract_array(large_test_array, (2,), (i,),
                                            mode='strict', return_position=True)
         assert new_pos == (expected, )
@@ -347,7 +422,7 @@ class TestCutout2D:
              [0, 2.44084308e-05, 2.81394789e-11, 5.17856895e-13, 0.0],
              [-2.41334657e-07, 1.29289255e-10, 2.35753629e-14, 0.0, 0.0],
              [-2.37162007e-10, 5.43714947e-13, 0.0, 0.0, 0.0],
-             [ -2.81029767e-13, 0.0, 0.0, 0.0, 0.0]]
+             [-2.81029767e-13, 0.0, 0.0, 0.0, 0.0]]
         )
         b = np.array(
             [[0, 0, 2.99270374e-05, -2.38136074e-10, 7.23205168e-13],
