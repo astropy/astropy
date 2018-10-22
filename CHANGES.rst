@@ -148,7 +148,7 @@ astropy.nddata
   conversion to quantities. [#7704]
 
 - Add a ``bitmask`` module that provides functions for manipulating bitmasks
-  and data quality (DQ) arrays. [#7943]
+  and data quality (DQ) arrays. [#7944]
 
 astropy.samp
 ^^^^^^^^^^^^
