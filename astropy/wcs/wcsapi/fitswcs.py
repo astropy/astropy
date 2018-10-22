@@ -210,6 +210,10 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
 
 def _get_components_and_classes(wcs):
+    """
+    Given a :class:`~astropy.wcs.WCS` object, return the components and classes
+    needed for ``world_axis_object_components`` and ``world_axis_object_classes``.
+    """
 
     # The aim of this function is to return whatever is needed for
     # world_axis_object_components and world_axis_object_classes. It's easier
