@@ -12,8 +12,8 @@ from ..utils.console import human_file_size
 from ..utils.decorators import deprecated_renamed_argument
 from .. import units as u
 from ..nddata import support_nddata
-from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
-from ..modeling.core import _CompoundModelMeta
+from ..modeling.core import SPECIAL_OPERATORS
+from ..modeling.core import CompoundModel
 
 
 
@@ -823,10 +823,10 @@ def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
     """
 
     if mode == 'convolve_fft':
-        BINARY_OPERATORS['convolve_fft'] = _make_arithmetic_operator(partial(convolve_fft, **kwargs))
+        SPECIAL_OPERATORS['convolve_fft'] = partial(convolve_fft, **kwargs)
     elif mode == 'convolve':
-        BINARY_OPERATORS['convolve'] = _make_arithmetic_operator(partial(convolve, **kwargs))
+        SPECIAL_OPERATORS['convolve'] = partial(convolve, **kwargs)
     else:
         raise ValueError('Mode {} is not supported.'.format(mode))
 
-    return _CompoundModelMeta._from_operator(mode, model, kernel)
+    return CompoundModel(mode, model, kernel)
