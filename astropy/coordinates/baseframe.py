@@ -280,6 +280,11 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
         if 'name' not in members:
             members['name'] = name.lower()
 
+         # A cache that *must be unique to each frame class* - it is
+         # insufficient to share them with superclasses, hence the need to put
+         # them in the meta
+        members['_frame_class_cache'] = {}
+
         return super().__new__(mcls, name, bases, members)
 
     @staticmethod
@@ -770,7 +775,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         # without units, which are deprecated and will be removed.  This can be
         # moved into the representation_info property at that time.
 
-        if not hasattr(cls, '_cached_representation_info'):
+        if '_representation_info' not in cls._frame_class_cache:
             repr_attrs = {}
             for repr_diff_cls in (list(r.REPRESENTATION_CLASSES.values()) +
                                   list(r.DIFFERENTIAL_CLASSES.values())):
@@ -807,8 +812,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 repr_attrs[repr_diff_cls]['names'] = tuple(nms)
                 repr_attrs[repr_diff_cls]['units'] = tuple(uns)
 
-            cls._cached_representation_info = repr_attrs
-        return cls._cached_representation_info
+            cls._frame_class_cache['_representation_info'] = repr_attrs
+        return cls._frame_class_cache['_representation_info']
 
     @lazyproperty
     def representation_info(self):
