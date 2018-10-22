@@ -121,15 +121,15 @@ class Parameter(OrderedDescriptor):
     the fact that it inherits from OrderedDescriptor, it no longer is a
     descriptor.
 
-    This class represents a model's parameter (in a somewhat broad sense). It 
+    This class represents a model's parameter (in a somewhat broad sense). It
     serves a number of purposes:
 
-    1) A type to be recognized by models and treated specially at class 
+    1) A type to be recognized by models and treated specially at class
     initialization (i.e., if it is found that there is a class definition
     of a Parameter, the model initializer makes a copy at the instance level).
 
-    2) Managing the handling of allowable parameter values and once defined, 
-    ensuring updates are consistent with the Parameter definition. This 
+    2) Managing the handling of allowable parameter values and once defined,
+    ensuring updates are consistent with the Parameter definition. This
     includes the optional use of units and quantities as well as tranforming
     values to an internally consistent representation (e.g., from degrees to
     radians through the use of getters and setters).
@@ -138,7 +138,7 @@ class Parameter(OrderedDescriptor):
     the parameter may be varied in fitting, or whether there are constraints
     that must be satisfied.
 
-    Parameters now do store values locally (as instead previously in the 
+    Parameters now do store values locally (as instead previously in the
     associated model)
 
     See :ref:`modeling-parameters` for more details.
