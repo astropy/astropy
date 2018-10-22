@@ -218,46 +218,63 @@ class SkyCoord(ShapedLikeNDArray):
 
     def __init__(self, *args, copy=True, **kwargs):
 
-        # Parse the args and kwargs to assemble a sanitized and validated
-        # kwargs dict for initializing attributes for this object and for
-        # creating the internal self._sky_coord_frame object
-        args = list(args)  # Make it mutable
-        kwargs = self._parse_inputs(args, kwargs)
-
-        frame = kwargs['frame']
-        frame_attr_names = frame.get_frame_attr_names()
-
         # these are frame attributes set on this SkyCoord but *not* a part of
         # the frame object this SkyCoord contains
         self._extra_frameattr_names = set()
 
-        for attr in kwargs:
-            if (attr not in frame_attr_names and
-                attr in frame_transform_graph.frame_attributes):
-                # Setting it will also validate it.
-                setattr(self, attr, kwargs[attr])
+        # If all that is passed in is a frame instance that already has data,
+        # we should bypass all of the parsing and logic below. This is here
+        # to make this the fastest way to create a SkyCoord instance. Many of
+        # the classmethods implemented for performance enhancements will use
+        # this in the initialization path
+        if (len(args) == 1 and len(kwargs) == 0 and
+                isinstance(args[0], (BaseCoordinateFrame, SkyCoord))):
+            frame = args[0]
+            if isinstance(frame, SkyCoord):
+                frame = frame.frame
 
-        coord_kwargs = {}
+            if not frame.has_data:
+                raise ValueError('TODO')
 
-        component_names = frame.representation_component_names
-        component_names.update(frame.get_representation_component_names('s'))
+            if copy:
+                self._sky_coord_frame = frame.copy()
+            else:
+                self._sky_coord_frame = frame
 
-        # TODO: deprecate representation, remove this in future
-        _normalize_representation_type(kwargs)
-        if 'representation_type' in kwargs:
-            coord_kwargs['representation_type'] = _get_repr_cls(
-                kwargs['representation_type'])
+        else:
+            # Parse the args and kwargs to assemble a sanitized and validated
+            # kwargs dict for initializing attributes for this object and for
+            # creating the internal self._sky_coord_frame object
+            args = list(args)  # Make it mutable
+            kwargs = self._parse_inputs(args, kwargs)
 
-        if 'differential_type' in kwargs:
-            coord_kwargs['differential_type'] = _get_diff_cls(kwargs['differential_type'])
+            frame = kwargs['frame']
+            frame_attr_names = frame.get_frame_attr_names()
 
-        for attr, value in kwargs.items():
-            if value is not None and (attr in component_names
-                                      or attr in frame_attr_names):
-                coord_kwargs[attr] = value
+            for attr in kwargs:
+                if (attr not in frame_attr_names and
+                        attr in frame_transform_graph.frame_attributes):
+                    # Setting it will also validate it.
+                    setattr(self, attr, kwargs[attr])
 
-        # Finally make the internal coordinate object.
-        self._sky_coord_frame = frame.__class__(copy=copy, **coord_kwargs)
+            coord_kwargs = {}
+
+            component_names = frame.representation_component_names
+            component_names.update(frame.get_representation_component_names('s'))
+
+            # TODO: deprecate representation, remove this in future
+            _normalize_representation_type(kwargs)
+            if 'representation_type' in kwargs:
+                coord_kwargs['representation_type'] = _get_repr_cls(
+                    kwargs['representation_type'])
+
+            if 'differential_type' in kwargs:
+                coord_kwargs['differential_type'] = _get_diff_cls(kwargs['differential_type'])
+
+            for attr, value in kwargs.items():
+                if value is not None and (attr in component_names
+                                          or attr in frame_attr_names):
+                    coord_kwargs[attr] = value
 
         if not self._sky_coord_frame.has_data:
             raise ValueError('Cannot create a SkyCoord without data')
