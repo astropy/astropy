@@ -233,7 +233,7 @@ image, with the center of the cutout at ``position``::
 
     >>> from astropy.nddata import Cutout2D
     >>> position = (149.7, 100.1)
-    >>> size = (80, 100)     # pixels
+    >>> size = (81, 101)     # pixels
     >>> cutout = Cutout2D(ccd, position, size)
     >>> plt.imshow(cutout.data, origin='lower') # doctest: +SKIP
 
@@ -259,7 +259,7 @@ image, with the center of the cutout at ``position``::
                   meta={'object': 'fake galaxy', 'filter': 'R'},
                   unit='adu')
     position = (149.7, 100.1)
-    size = (80, 100)     # pixels
+    size = (81, 101)     # pixels
     cutout = Cutout2D(ccd, position, size)
     plt.imshow(cutout.data, origin='lower')
 
@@ -289,7 +289,7 @@ This cutout can also plot itself on the original image::
                   meta={'object': 'fake galaxy', 'filter': 'R'},
                   unit='adu')
     position = (149.7, 100.1)
-    size = (80, 100)     # pixels
+    size = (81, 101)     # pixels
     cutout = Cutout2D(ccd, position, size)
     plt.imshow(ccd, origin='lower')
     cutout.plot_on_original(color='white')
@@ -427,8 +427,8 @@ Using ``nddata``
    mixins/index.rst
    subclassing.rst
 
-.. note that if this section gets too long, it should be moved to a separate 
-   doc page - see the top of performance.inc.rst for the instructions on how to do 
+.. note that if this section gets too long, it should be moved to a separate
+   doc page - see the top of performance.inc.rst for the instructions on how to do
    that
 .. include:: performance.inc.rst
 
