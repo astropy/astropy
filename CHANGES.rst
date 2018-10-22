@@ -595,6 +595,12 @@ Other Changes and Additions
   leading to some speed improvements, and setting the stage for allowing
   overrides with ``__array_ufunc__``. [#7502]
 
+- Building with OpenMP support is disabled by default. To build the package with
+  OpenMP support (currently only used in ``convolution.convolve``) create and
+  set the environment variable ``ASTROPY_SETUP_WITH_OPENMP=1``.
+  E.g. ``ASTROPY_SETUP_WITH_OPENMP=1 pip install astropy --no-cache-dir`` or
+  ``ASTROPY_SETUP_WITH_OPENMP=1 ./setup.py build``. [#7293]
+
 
 
 3.0.6 (unreleased)
