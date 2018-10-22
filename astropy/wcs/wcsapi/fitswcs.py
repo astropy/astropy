@@ -40,7 +40,7 @@ CTYPE_TO_UCD1 = {
     'ZOPT': 'src.redshift',  # Redshift
     'AWAV': 'em.wl',  # Air wavelength
     'VELO': 'spect.dopplerVeloc',  # Apparent radial velocity
-    'BETA': None,  # Beta factor (v/c)
+    'BETA': 'custom:spect.doplerVeloc.beta',  # Beta factor (v/c)
 
     # Time coordinates (https://www.aanda.org/articles/aa/pdf/2015/02/aa24653-14.pdf)
     'TIME': 'time',
