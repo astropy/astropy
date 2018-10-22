@@ -3,6 +3,7 @@ import re
 import copy
 import warnings
 from collections.abc import Sequence
+import inspect
 
 import numpy as np
 
@@ -252,14 +253,17 @@ class SkyCoord(ShapedLikeNDArray):
                 self._sky_coord_frame = coords
 
         else:
+            # Get the frame instance without coordinate data but with all frame
+            # attributes set - these could either have been passed in with the
+            # frame as an instance, or passed in as kwargs here
+            frame = _get_frame(args, kwargs)
+            frame_attr_names = frame.get_frame_attr_names()
+
             # Parse the args and kwargs to assemble a sanitized and validated
             # kwargs dict for initializing attributes for this object and for
             # creating the internal self._sky_coord_frame object
             args = list(args)  # Make it mutable
-            kwargs = self._parse_inputs(args, kwargs)
-
-            frame = kwargs['frame']
-            frame_attr_names = frame.get_frame_attr_names()
+            kwargs = self._parse_inputs(frame, args, kwargs)
 
             for attr in kwargs:
                 if (attr not in frame_attr_names and
@@ -375,17 +379,12 @@ class SkyCoord(ShapedLikeNDArray):
 
         return new
 
-    def _parse_inputs(self, args, kwargs):
+    def _parse_inputs(self, frame, args, kwargs):
         """
         Assemble a validated and sanitized keyword args dict for instantiating a
         SkyCoord and coordinate object from the provided `args`, and `kwargs`.
         """
         valid_kwargs = {}
-
-        # Put the SkyCoord attributes like frame, equinox, obstime, location
-        # into valid_kwargs dict. The others must be specified by keyword args
-        # or else get a None default.  Pop them off of kwargs in the process.
-        frame = valid_kwargs['frame'] = _get_frame(args, kwargs)
 
         # TODO: possibly remove the below.  The representation/differential
         # information should *already* be stored in the frame object, as it is
@@ -1742,7 +1741,6 @@ def _get_frame_class(frame):
     Get a frame class from the input `frame`, which could be a frame name
     string, or frame class.
     """
-    import inspect
 
     if isinstance(frame, str):
         frame_names = frame_transform_graph.get_names()
@@ -1774,6 +1772,15 @@ def _get_frame(args, kwargs):
     """
 
     frame = kwargs.pop('frame', None)
+
+    # Short-circuit:
+    # If a frame instance or class is passed in, and no other arguments or
+    # kwargs (i.e. frame attributes) are specified, just use that frame:
+    if (frame is not None and len(args) == 0 and len(kwargs) == 0):
+        if isinstance(frame, BaseCoordinateFrame):
+            return frame
+        elif inspect.isclass(frame) and issubclass(frame, BaseCoordinateFrame):
+            return frame()
 
     # If the frame is an instance or SkyCoord, we split up the attributes and
     # make it into a class.
