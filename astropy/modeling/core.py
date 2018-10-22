@@ -2291,6 +2291,11 @@ BINARY_OPERATORS = {
     '&': _join_operator
 }
 
+SPECIAL_OPERATORS = {}
+
+def _add_special_operator(sop_name, sop):
+    SPECIAL_OPERATORS[sop_name] = sop
+
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
@@ -2353,7 +2358,7 @@ class CompoundModel(Model):
                 'Both operands must have equal values for n_models')
         else:
             self._n_models = len(left)
-        if op in ['+', '-', '*', '/', '**']:
+        if op in ['+', '-', '*', '/', '**'] or op in SPECIAL_OPERATORS:
             if (left.n_inputs != right.n_inputs) or \
                (left.n_outputs != right.n_outputs):
                 raise ModelDefinitionError(
@@ -2527,6 +2532,8 @@ class CompoundModel(Model):
                     return self.right(*leftval, **kw)
                 else:
                     return self.right(leftval, **kw)
+            elif op in SPECIAL_OPERATORS:
+                return binary_operation(SPECIAL_OPERATORS[op], leftval, rightval)
         # elif op == '%':
         #     subs = self.right
         #     newargs = list(args)
