@@ -462,7 +462,8 @@ class IERS_A(IERS):
         #              Bull. A polar motion values
         # UT1Flag_A    IERS (I) or Prediction (P) flag for
         #              Bull. A UT1-UTC values
-        is_predictive = (table['UT1Flag_A'] == 'P') | (table['PolPMFlag_A'] == 'P')
+        is_predictive = ((table['UT1Flag_A'].filled() == 'P') |
+                         (table['PolPMFlag_A'].filled() == 'P'))
         table.meta['predictive_index'] = np.min(np.flatnonzero(is_predictive))
         table.meta['predictive_mjd'] = table['MJD'][table.meta['predictive_index']]
 

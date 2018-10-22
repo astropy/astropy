@@ -1361,6 +1361,8 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Fixed ``IERS_Auto.open`` compatibility with Numpy 1.15.3. [#7946]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
