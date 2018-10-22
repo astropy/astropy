@@ -147,6 +147,9 @@ astropy.nddata
 - ``NDUncertainty`` objects now have a ``quantity`` attribute for simple
   conversion to quantities. [#7704]
 
+- Add a ``bitmask`` module that provides functions for manipulating bitmasks
+  and data quality (DQ) arrays. [#7943]
+
 astropy.samp
 ^^^^^^^^^^^^
 
