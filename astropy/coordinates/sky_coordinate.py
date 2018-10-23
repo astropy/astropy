@@ -283,7 +283,8 @@ class SkyCoord(ShapedLikeNDArray):
                     kwargs['representation_type'])
 
             if 'differential_type' in kwargs:
-                coord_kwargs['differential_type'] = _get_diff_cls(kwargs['differential_type'])
+                coord_kwargs['differential_type'] = _get_diff_cls(
+                    kwargs['differential_type'])
 
             for attr, value in kwargs.items():
                 if value is not None and (attr in component_names
