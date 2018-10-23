@@ -28,13 +28,10 @@ def_unit(['STflux', 'ST'], 10.**(21.1/-2.5) * cgs.erg * cgs.cm**-2 / si.s / si.A
          doc="ST magnitude zero flux density.")
 
 def_unit(['maggy', 'mgy'],
-         namespace=_ns, prefixes=False,
+         namespace=_ns, prefixes=[(['n'], ['nano'], 1e-9)],
          doc="Maggies - a linear flux unit that is the flux for a mag=0 object."
              "To tie this onto a specific calibrated unit system, the "
              "phot_zero_point equivalency should be used.")
-def_unit(['nanomaggy', 'nmgy'], 1e-9 * maggy,
-         namespace=_ns, prefixes=False,
-         doc="Nanomaggy, i.e. ABmag=22.5")
 
 
 def phot_zero_point(flux0=1.0*ABflux):
