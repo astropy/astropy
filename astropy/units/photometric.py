@@ -7,7 +7,7 @@ This module defines magnitude zero points and related photometric quantities.
 
 
 import numpy as _numpy
-from .core import UnitBase, def_unit
+from .core import UnitBase, def_unit, Unit
 
 from ..constants import si as _si
 from . import cgs, si, astrophys
@@ -27,14 +27,14 @@ def_unit(['STflux', 'ST'], 10.**(21.1/-2.5) * cgs.erg * cgs.cm**-2 / si.s / si.A
          namespace=_ns, prefixes=False,
          doc="ST magnitude zero flux density.")
 
-def_unit(['maggy', 'mgy'],
+def_unit(['mgy', 'maggy'],
          namespace=_ns, prefixes=[(['n'], ['nano'], 1e-9)],
          doc="Maggies - a linear flux unit that is the flux for a mag=0 object."
              "To tie this onto a specific calibrated unit system, the "
              "phot_zero_point equivalency should be used.")
 
 
-def phot_zero_point(flux0=1.0*ABflux):
+def zero_point_flux(flux0):
     """
     An equivalency for converting linear flux units ("maggys") defined relative
     to a standard source into a standardized system.
@@ -42,16 +42,10 @@ def phot_zero_point(flux0=1.0*ABflux):
     Parameters
     ----------
     flux0 : u.Quantity
-        The flux of a magnitude-0 object in the "maggy" system. Default
-        corresponds to a perfect AB-like magnitude system.
+        The flux of a magnitude-0 object in the "maggy" system.
     """
-    from .quantity import Quantity
-
-    qflux0 = Quantity(flux0, copy=False)
-
-    return [(maggy, qflux0.unit,
-             lambda mgy: qflux0.value*mgy,
-             lambda flx: flx/qflux0.value)]
+    flux_unit0 = Unit(flux0)
+    return [(maggy, flux_unit0)]
 
 
 ###########################################################################
