@@ -240,9 +240,9 @@ def imshow_norm(data, ax=None, **kwargs):
 
     Parameters
     ----------
-    data
-        The data to show. Can be whatever type `matplotlib.pyplot.imshow` and
-        `ImageNormalize` accept.
+    data : 2D or 3D array-like - see `~matplotlib.pyplot.imshow`
+        The data to show. Can be whatever `~matplotlib.pyplot.imshow` and
+        `ImageNormalize` both accept.
     ax : None or `~matplotlib.axes.Axes`
         If None, use pyplot's imshow.  Otherwise, calls ``imshow`` method of the
         supplied axes.
@@ -252,15 +252,15 @@ def imshow_norm(data, ax=None, **kwargs):
 
     Notes
     -----
-    The ``data`` matplotlib keyword is not supported.
+    The ``norm`` matplotlib keyword is not supported.
     """
     if 'X' in kwargs:
         raise ValueError('Cannot give both ``X`` and ``data``')
 
     if 'norm' in kwargs:
-        raise ValueError('There is not point in using imshow_norm if you give '
-                         's ``norm`` keyword - use imshow directly if you want '
-                         'that.')
+        raise ValueError('There is no point in using imshow_norm if you give '
+                         'the ``norm`` keyword - use imshow directly if you '
+                         'want that.')
 
     imshow_kwargs = dict(kwargs)
 
@@ -269,11 +269,11 @@ def imshow_norm(data, ax=None, **kwargs):
         if pname in kwargs:
             norm_kwargs[pname] = imshow_kwargs.pop(pname)
 
-    # now re-assign any "_mpl" kweywords to their equivalents
+    # now re-assign any "_mpl" keywords to their equivalents
     for pname in tuple(imshow_kwargs):
         if pname.endswith('_mpl'):
             if pname[:-4] in imshow_kwargs:
-                raise ValueError('Give both {} and {}, but the latter is not an'
+                raise ValueError('Gave both {} and {}, but the latter is not an'
                                  ' ImageNormalize keyword.'.format(pname[:-4],
                                                                    pname))
             imshow_kwargs[pname[:-4]] = imshow_kwargs.pop(pname)
