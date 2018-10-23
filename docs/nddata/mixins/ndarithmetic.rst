@@ -153,7 +153,7 @@ resulting mask will be. There are several options.
       >>> ndd3.add(ndd2, handle_mask="first_found").mask
       False
 
-- a function (or an arbitary callable) that takes at least two arguments.
+- a function (or an arbitrary callable) that takes at least two arguments.
   For example `numpy.logical_or` is the default::
 
       >>> ndd1 = NDDataRef(1, mask=np.array([True, False, True, False]))

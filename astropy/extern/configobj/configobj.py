@@ -848,7 +848,7 @@ class Section(dict):
         unless ``raise_errors=False``, in which case set the return value to
         ``False``.
 
-        Any unrecognised keyword arguments you pass to walk, will be pased on
+        Any unrecognized keyword arguments you pass to walk, will be pased on
         to the function you pass in.
 
         Note: if ``call_on_sections`` is ``True`` then - on encountering a
@@ -1208,7 +1208,7 @@ class ConfigObj(Section):
             # TODO: check the values too.
             for entry in options:
                 if entry not in OPTION_DEFAULTS:
-                    raise TypeError('Unrecognised option "%s".' % entry)
+                    raise TypeError('Unrecognized option "%s".' % entry)
             for entry, value in list(OPTION_DEFAULTS.items()):
                 if entry not in options:
                     options[entry] = value

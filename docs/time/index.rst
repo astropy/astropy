@@ -650,7 +650,7 @@ along with the ``delta_tdb_tt`` and/or ``delta_ut1_utc`` transformation
 offsets, if they have been set.
 
 If it is required that the |Time| object be immutable then set the
-``writeable`` attribute to `False`.  In this case attemping to set a value will
+``writeable`` attribute to `False`.  In this case attempting to set a value will
 raise a ``ValueError: Time object is read-only``.  See the section on
 `Caching`_ for an example.
 
@@ -720,7 +720,7 @@ well.  However, this is not always the case, and in particular the `ERFA
 
 In cases where ``numpy.nan`` is not acceptable, format class methods should use the
 ``jd2_filled`` property instead of ``jd2``.  This replaces ``numpy.nan`` with
-``0.0``.  Since ``jd2`` is always in the range -1 to +1, substituing ``0.0``
+``0.0``.  Since ``jd2`` is always in the range -1 to +1, substituting ``0.0``
 will allow functions to return "reasonable" values which will then be masked in
 any subsequent outputs.  See the ``value`` property of the
 `~astropy.time.TimeDecimalYear` format for any example.

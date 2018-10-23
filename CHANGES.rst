@@ -1365,6 +1365,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Fixed the spelling of the 'luminous emittance/illuminance' physical
+  property. [#7942]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -1605,7 +1608,7 @@ astropy.units
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-- Explicilty default to origin='lower' in WCSAxes. [#7331]
+- Explicitly default to origin='lower' in WCSAxes. [#7331]
 
 - Lists of units are now converted in the Matplotlib unit converter. This means
   that for Matplotlib versions later than 2.2, more plotting functions now work
@@ -2379,7 +2382,7 @@ astropy.table
 - Removed the deprecated functions ``join``, ``hstack``, ``vstack`` and
   ``get_groups`` from np_utils. [#5729]
 
-- Added ``name`` paramater to method ``astropy.table.Table.add_column`` and
+- Added ``name`` parameter to method ``astropy.table.Table.add_column`` and
   ``names`` parameter to method ``astropy.table.Table.add_columns``, to
   provide the flexibility to add unnamed columns, mixin objects and also to
   specify explicit names. Default names will be used if not
@@ -4241,7 +4244,7 @@ astropy.stats
 ^^^^^^^^^^^^^
 
 - Added ``sigma_lower`` and ``sigma_upper`` keywords to
-  ``sigma_clip`` to allow for unsymmetric clipping. [#3595]
+  ``sigma_clip`` to allow for non-symmetric clipping. [#3595]
 
 - Added ``cenfunc``, ``stdfunc``, and ``axis`` keywords to
   ``sigma_clipped_stats``. [#3792]

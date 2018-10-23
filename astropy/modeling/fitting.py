@@ -627,7 +627,7 @@ class FittingWithOutlierRemoval:
         """
 
         # For single models, the data get filtered here at each iteration and
-        # then passed to the fitter, which is the historical behaviour and
+        # then passed to the fitter, which is the historical behavior and
         # works even for fitters that don't understand masked arrays. For model
         # sets, the fitter must be able to filter masked data internally,
         # because fitters require a single set of x/y co-ordinates whereas the

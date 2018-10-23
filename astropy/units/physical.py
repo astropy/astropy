@@ -115,7 +115,7 @@ for unit, name in [
     (si.H, 'inductance'),
     (si.cd, 'luminous intensity'),
     (si.lm, 'luminous flux'),
-    (si.lx, 'luminous emittence/illuminance'),
+    (si.lx, 'luminous emittance/illuminance'),
     (si.W / si.sr, 'radiant intensity'),
     (si.cd / si.m ** 2, 'luminance'),
     (astrophys.Jy, 'spectral flux density'),

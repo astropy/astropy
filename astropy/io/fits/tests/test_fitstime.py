@@ -175,7 +175,7 @@ class TestFitsTime(FitsTestCase):
         t.meta['DATE'] = '1999-01-01T00:00:00'
         t.meta['MJD-OBS'] = 56670
 
-        # Test for default write behaviour (full precision) and read it
+        # Test for default write behavior (full precision) and read it
         # back using native astropy objects; thus, ensure its round-trip
         t.write(self.temp('time.fits'), format='fits', overwrite=True)
         tm = table_types.read(self.temp('time.fits'), format='fits',

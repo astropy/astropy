@@ -34,7 +34,7 @@ coefficients from the header. They can be removed temporarily from a WCS object 
 
 In addition, if SIP is the only distortion in the header, the two methods,
 `~astropy.wcs.wcs.WCS.wcs_pix2world` and `~astropy.wcs.wcs.WCS.wcs_world2pix`,
-may be used to transform from pixels to world coordinate system while ommiting distortions.
+may be used to transform from pixels to world coordinate system while omitting distortions.
 
 Another consequence of the inconsistent header is that if
 `~astropy.wcs.wcs.WCS.to_header()` is called with ``relax=True`` it will return a header
