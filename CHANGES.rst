@@ -438,6 +438,34 @@ Performance Improvements
 
 - Reduced import time by more cautious use of the standard library. [#7647]
 
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Major performance overhaul to ``convolve()``. [#7293]
+
+- ``convolve()``: Boundaries ``fill``, ``extend``, and ``wrap`` now use a single
+  implementation that pads the image with the correct boundary values before convolving.
+  The runtimes of these three were significantly skewed. They now have
+  equivalent runtimes that are also faster than before due to performant contiguous
+  memory access. However, this does increase the memory foortprint as an entire
+  new image array is required plus that needed for the padded region.[#7293]
+
+- ``convolve()``: Core computation ported from Cython to C. Several optimization
+  techniques have been implemented to achieve performace gains, e.g. compiler
+  hoisting, and vectorization, etc. Compiler optimization level ``-O2`` required for
+  hoisting and ``-O3`` for vectorization. [#7293]
+
+- ``convolve()``: Core computation now threaded using OpenMP. However, the root
+  setup disables this by default. To build the package with OpenMP support
+  instantiate the environment variable ``ASTROPY_SETUP_WITH_OPENMP=1``.
+  E.g. ``ASTROPY_SETUP_WITH_OPENMP=1 pip install astropy --no-cache-dir`` or
+  ``ASTROPY_SETUP_WITH_OPENMP=1 ./setup.py build``. [#7293]
+
+- ``convolve()``: ``nan_treatment=‘interpolate’`` was slow to compute irrespective of
+  whether any NaN values exist within the array. The input array is now
+  checked for NaN values and interpolation is disabled if non are found. This is a
+  significant performance boost for arrays without NaN values. [#7293]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
