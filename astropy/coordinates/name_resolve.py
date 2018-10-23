@@ -86,7 +86,7 @@ def _parse_response(resp_data):
         return ra, dec
 
 
-def get_icrs_coordinates(name):
+def get_icrs_coordinates(name, parse=False):
     """
     Retrieve an ICRS object by using an online name resolving service to
     retrieve coordinates for the specified name. By default, this will
@@ -105,6 +105,15 @@ def get_icrs_coordinates(name):
     ----------
     name : str
         The name of the object to get coordinates for, e.g. ``'M42'``.
+    parse: bool
+        Whether to attempt extracting the coordinates from the name by
+        parsing with a regex. For objects catalog names that have
+        J-coordinates embedded in their names eg:
+        'CRTS SSS100805 J194428-420209', this may be much faster than a
+        sesame query for the same object name. The coordinates extracted
+        in this way may differ from the database coordinates by a few
+        deci-arcseconds, so only use this option if you do not need
+        sub-arcsecond accuracy for coordinates.
 
     Returns
     -------
@@ -112,6 +121,17 @@ def get_icrs_coordinates(name):
         The object's coordinates in the ICRS frame.
 
     """
+
+    # if requested, first try extract coordinates embedded in the object name.
+    # Do this first since it may be much faster than doing the sesame query
+    if parse:
+        from . import jparser
+        if jparser.search(name):
+            return jparser.to_skycoord(name)
+        else:
+            # if the parser failed, fall back to sesame query.
+            pass
+            # maybe emit a warning instead of silently falling back to sesame?
 
     database = sesame_database.get()
     # The web API just takes the first letter of the database name
