@@ -314,10 +314,10 @@ mag._function_unit_class = MagUnit
 
 
 STmag = MagUnit(photometric.STflux)
-STmag.__doc__ = "ST magnitude: STmag=0 3631 x 10^-12 erg/s/cm2/A"
+STmag.__doc__ = "ST magnitude: STmag=-21.1 corresponds to 1 erg/s/cm2/A"
 
 ABmag = MagUnit(photometric.ABflux)
-ABmag.__doc__ = "AB magnitude: ABmag=0 3631 Jy"
+ABmag.__doc__ = "AB magnitude: ABmag=-48.6 corresponds to 1 erg/s/cm2/Hz"
 
 M_bol = MagUnit(photometric.Bol)
 M_bol.__doc__ = ("Absolute bolometric magnitude: M_bol=0 corresponds to "

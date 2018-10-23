@@ -79,9 +79,9 @@ class TestLogUnitCreation:
 def test_predefined_magnitudes():
     # these magnitudes are only approximations to the true definition
     assert_quantity_allclose((-21.1*u.STmag).physical,
-                             1.*u.erg/u.cm**2/u.s/u.AA, rtol=.1)
+                             1.*u.erg/u.cm**2/u.s/u.AA)
     assert_quantity_allclose((-48.6*u.ABmag).physical,
-                             1.*u.erg/u.cm**2/u.s/u.Hz, rtol=.1)
+                             1.*u.erg/u.cm**2/u.s/u.Hz)
 
     assert_quantity_allclose((0*u.M_bol).physical, c.L_bol0)
     assert_quantity_allclose((0*u.m_bol).physical,
@@ -93,6 +93,10 @@ def test_predefined_reinitialisation():
     assert u.mag('ABflux') == u.ABmag
     assert u.mag('Bol') == u.M_bol
     assert u.mag('bol') == u.m_bol
+
+    # required for backwards-compatibility, at least unless deprecated
+    assert u.mag('ST') == u.STmag
+    assert u.mag('AB') == u.ABmag
 
 
 def test_predefined_string_roundtrip():

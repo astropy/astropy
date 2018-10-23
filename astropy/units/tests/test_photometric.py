@@ -13,7 +13,7 @@ def test_maggies():
 
 
 def test_maggies_zpts():
-    assert_quantity_allclose((1*nmgy).to(ABflux, phot_zero_point()), 3631e-9*Jy)
+    assert_quantity_allclose((1*nmgy).to(ABflux, phot_zero_point()), 3631e-9*Jy, rtol=1e-3)
 
     ST_base_unit = erg * cm**-2 / s / AA
 
