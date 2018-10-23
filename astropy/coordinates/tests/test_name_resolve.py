@@ -136,6 +136,20 @@ def test_names():
     np.testing.assert_almost_equal(icrs.dec.degree, icrs_true.dec.degree, 1)
 
 
+def test_names_parse():
+    # a few test cases for parsing embedded coordinates from object name
+    test_names = ['CRTS SSS100805 J194428-420209',
+                  'MASTER OT J061451.7-272535.5',
+                  '2MASS J06495091-0737408',
+                  '1RXS J042555.8-194534',
+                  'SDSS J132411.57+032050.5',
+                  'DENIS-P J203137.5-000511',
+                  '2QZ J142438.9-022739',
+                  'CXOU J141312.3-652013']
+    for name in test_names:
+        sc = get_icrs_coordinates(name, parse=True)
+
+
 @pytest.mark.remote_data
 @pytest.mark.parametrize(("name", "db_dict"), [('NGC 3642', _cached_ngc3642),
                                                ('castor', _cached_castor)])
