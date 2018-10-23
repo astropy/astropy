@@ -347,6 +347,20 @@ and you want to know how big your pixels need to be to cover half an arcsecond::
     >>> (0.5*u.arcsec).to(u.micron, tel_platescale)  # doctest: +FLOAT_CMP
     <Quantity 18.9077335632719 micron>
 
+Photometric Zero Point Equivalencies
+------------------------------------
+
+This equivalency provides an easy way to move between photometric systems (i.e.,
+those defined relative to a particular zero-point flux) and absolute fluxes.
+This is most useful in conjuction with support for :ref:`logarithmic_units`.
+For example, suppose you are observing a target with a filter with a reported
+standard zero point of 3631.1 Jy::
+
+    >>> target_flux = 1.2 * u.nanomaggy
+    >>> zero_point_star_equiv = u.zero_point_flux(3631.1 * u.Jy)
+    >>> u.Magnitude(target_flux.to(u.AB, zero_point_star_equiv))  # doctest: +FLOAT_CMP
+    <Magnitude 22.30195136 mag(ABflux)>
+
 Writing new equivalencies
 =========================
 
