@@ -233,6 +233,14 @@ astropy.wcs
 - Added the abstract base class for the low-level WCS API described in APE 14
   (https://doi.org/10.5281/zenodo.1188875). [#7325]
 
+- Added the abstract base class for the high-level WCS API described in APE 14
+  (https://doi.org/10.5281/zenodo.1188875). [#7325]
+
+- Added the high-level wrapper class for low-level WCS objects as described in
+  APE 14 (https://doi.org/10.5281/zenodo.1188875). [#7326]
+
+- Added a new property ``WCS.has_distortion``. [#7326]
+
 API Changes
 -----------
 

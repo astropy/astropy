@@ -3,7 +3,7 @@ import abc
 
 import numpy as np
 
-__all__ = ['BaseLowLevelWCS']
+__all__ = ['BaseLowLevelWCS', 'validate_physical_types']
 
 
 class BaseLowLevelWCS(metaclass=abc.ABCMeta):
@@ -20,7 +20,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         """
         The number of axes in the pixel coordinate system.
         """
-        pass
 
     @property
     @abc.abstractmethod
@@ -28,7 +27,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         """
         The number of axes in the world coordinate system.
         """
-        pass
 
     @property
     @abc.abstractmethod
@@ -42,7 +40,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         arbitrary string.  Alternatively, if the physical type is
         unknown/undefined, an element can be `None`.
         """
-        pass
 
     @property
     @abc.abstractmethod
@@ -56,96 +53,90 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         specification document, units that do not follow this standard are still
         allowed, but just not recommended).
         """
-        pass
 
     @abc.abstractmethod
     def pixel_to_world_values(self, *pixel_arrays):
         """
         Convert pixel coordinates to world coordinates.
 
-        This method takes `~BaseLowLevelWCS.pixel_n_dim` scalars or arrays as
+        This method takes `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim` scalars or arrays as
         input, and pixel coordinates should be zero-based. Returns
-        `~BaseLowLevelWCS.world_n_dim` scalars or arrays in units given by
-        `~BaseLowLevelWCS.world_axis_units`. Note that pixel coordinates are
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim` scalars or arrays in units given by
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_units`. Note that pixel coordinates are
         assumed to be 0 at the center of the first pixel in each dimension. If a
         pixel is in a region where the WCS is not defined, NaN can be returned.
         The coordinates should be specified in the ``(x, y)`` order, where for
         an image, ``x`` is the horizontal coordinate and ``y`` is the vertical
         coordinate.
         """
-        pass
 
     @abc.abstractmethod
     def array_index_to_world_values(self, *index_arrays):
         """
         Convert array indices to world coordinates.
 
-        This is the same as `~BaseLowLevelWCS.pixel_to_world_values` except that
+        This is the same as `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_to_world_values` except that
         the indices should be given in ``(i, j)`` order, where for an image
         ``i`` is the row and ``j`` is the column (i.e. the opposite order to
-        `~BaseLowLevelWCS.pixel_to_world_values`).
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_to_world_values`).
         """
-        pass
 
     @abc.abstractmethod
     def world_to_pixel_values(self, *world_arrays):
         """
         Convert world coordinates to pixel coordinates.
 
-        This method takes `~BaseLowLevelWCS.world_n_dim` scalars or arrays as
-        input in units given by `~BaseLowLevelWCS.world_axis_units`. Returns
-        `~BaseLowLevelWCS.pixel_n_dim` scalars or arrays. Note that pixel
+        This method takes `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim` scalars or arrays as
+        input in units given by `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_units`. Returns
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim` scalars or arrays. Note that pixel
         coordinates are assumed to be 0 at the center of the first pixel in each
         dimension. If a world coordinate does not have a matching pixel
         coordinate, NaN can be returned.  The coordinates should be returned in
         the ``(x, y)`` order, where for an image, ``x`` is the horizontal
         coordinate and ``y`` is the vertical coordinate.
         """
-        pass
 
     @abc.abstractmethod
     def world_to_array_index_values(self, *world_arrays):
         """
         Convert world coordinates to array indices.
 
-        This is the same as `~BaseLowLevelWCS.world_to_pixel_values` except that
+        This is the same as `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_to_pixel_values` except that
         the indices should be returned in ``(i, j)`` order, where for an image
         ``i`` is the row and ``j`` is the column (i.e. the opposite order to
-        `~BaseLowLevelWCS.pixel_to_world_values`). The indices should be
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_to_world_values`). The indices should be
         returned as rounded integers.
         """
-        pass
 
     @property
     @abc.abstractmethod
     def world_axis_object_components(self):
         """
-        A list with `~BaseLowLevelWCS.world_n_dim` elements giving information
+        A list with `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim` elements giving information
         on constructing high-level objects for the world coordinates.
 
         Each element of the list is a tuple with three items:
 
         * The first is a name for the world object this world array
           corresponds to, which *must* match the string names used in
-          `~BaseLowLevelWCS.world_axis_object_classes`. Note that names might
+          `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_object_classes`. Note that names might
           appear twice because two world arrays might correspond to a single
           world object (e.g. a celestial coordinate might have both “ra” and
           “dec” arrays, which correspond to a single sky coordinate object).
 
         * The second element is either a string keyword argument name or a
           positional index for the corresponding class from
-          `~BaseLowLevelWCS.world_axis_object_classes`.
+          `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_object_classes`.
 
         * The third argument is a string giving the name of the property
           to access on the corresponding class from
-          `~BaseLowLevelWCS.world_axis_object_classes` in order to get numerical
+          `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_object_classes` in order to get numerical
           values.
 
         See the document
         `APE 14: A shared Python interface for World Coordinate Systems
         <https://doi.org/10.5281/zenodo.1188875>`_ for examples.
         """
-        pass
 
     @property
     @abc.abstractmethod
@@ -155,7 +146,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         the world coordinates.
 
         Each key of the dictionary is a string key from
-        `~BaseLowLevelWCS.world_axis_object_components`, and each value is a
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_object_components`, and each value is a
         tuple with three elements:
 
         * The first element of the tuple must be a class or a string specifying
@@ -164,7 +155,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
         * The second element, should be a tuple specifying the positional
           arguments required to initialize the class. If
-          `~BaseLowLevelWCS.world_axis_object_components` specifies that the
+          `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_object_components` specifies that the
           world coordinates should be passed as a positional argument, this this
           tuple should include `None` placeholders for the world coordinates.
 
@@ -191,13 +182,12 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         for optimal performance. Implementations should either always or never
         use serialized classes to represent Python objects, and should indicate
         which of these they follow using the
-        `~BaseLowLevelWCS.serialized_classes` attribute.
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.serialized_classes` attribute.
 
         See the document
         `APE 14: A shared Python interface for World Coordinate Systems
         <https://doi.org/10.5281/zenodo.1188875>`_ for examples .
         """
-        pass
 
     # The following three properties have default fallback implementations, so
     # they are not abstract.
@@ -206,7 +196,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
     def array_shape(self):
         """
         The shape of the data that the WCS applies to as a tuple of
-        length `~BaseLowLevelWCS.pixel_n_dim`.
+        length `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim`.
 
         If the WCS is valid in the context of a dataset with a particular
         shape, then this property can be used to store the shape of the
@@ -223,7 +213,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
     def pixel_bounds(self):
         """
         The bounds (in pixel coordinates) inside which the WCS is defined,
-        as a list with `~BaseLowLevelWCS.pixel_n_dim` ``(min, max)`` tuples.
+        as a list with `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim` ``(min, max)`` tuples.
 
         The bounds should be given in ``[(xmin, xmax), (ymin, ymax)]``
         order. WCS solutions are sometimes only guaranteed to be accurate
@@ -236,8 +226,8 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
     @property
     def axis_correlation_matrix(self):
         """
-        Returns an (`~BaseLowLevelWCS.world_n_dim`,
-        `~BaseLowLevelWCS.pixel_n_dim`) matrix that indicates using booleans
+        Returns an (`~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim`,
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim`) matrix that indicates using booleans
         whether a given world coordinate depends on a given pixel coordinate.
 
         This defaults to a matrix where all elements are `True` in the absence of
