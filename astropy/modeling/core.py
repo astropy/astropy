@@ -52,6 +52,8 @@ from collections import deque
 from ..utils import indent
 from .utils import combine_labels, _BoundingBox
 
+__all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
+           'CompoundModel', 'custom_model', 'ModelDefinitionError']
 
 def _model_oper(oper, **kwargs):
     """
