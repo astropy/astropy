@@ -1353,6 +1353,8 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fixed masked table comparisons with Numpy 1.15.3. [#7953]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -1367,6 +1369,8 @@ astropy.utils
 
 - Fixed the spelling of the 'luminous emittance/illuminance' physical
   property. [#7942]
+
+- Fixed ``IERS_Auto.open`` with Numpy 1.15.3. [#7946]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
