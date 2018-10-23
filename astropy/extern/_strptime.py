@@ -10,6 +10,14 @@ FUNCTIONS:
     strptime -- Calculates the time struct represented by the passed-in string
 
 """
+# -----------------------------------------------------------------------------
+# _strptime.py
+#
+# Licensed under PYTHON SOFTWARE FOUNDATION LICENSE
+# See licenses/PYTHON.rst
+#
+# Copied from https://github.com/python/cpython/blob/3.5/Lib/_strptime.py
+# -----------------------------------------------------------------------------
 import time
 import locale
 import calendar
