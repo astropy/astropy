@@ -172,8 +172,9 @@ class TestImageScaling:
         with pytest.raises(ValueError):
             simple_norm(DATA2, stretch='invalid')
 
+
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
-def testy_imshow_norm():
+def test_imshow_norm():
     image = np.random.randn(10, 10)
 
     ax = plt.subplot()
