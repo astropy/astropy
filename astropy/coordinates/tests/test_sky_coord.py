@@ -306,11 +306,6 @@ def test_coord_init_representation():
     assert allclose(sc_cart.z, 3.0)
 
 
-FRAME_DEPRECATION_WARNING = ("Passing a frame as a positional argument is now "
-                             "deprecated, use the frame= keyword argument "
-                             "instead.")
-
-
 def test_frame_init():
     """
     Different ways of providing the frame.
