@@ -394,12 +394,12 @@ def test_attr_conflicts():
     # Not OK if SkyCoord attrs don't match
     with pytest.raises(ValueError) as err:
         SkyCoord(sc, equinox='J1999', obstime='J2002')
-    assert "Coordinate attribute 'obstime'=" in str(err)
+    assert "Frame attribute 'obstime' has conflicting" in str(err)
 
     # Not OK because sc.frame has different attrs
     with pytest.raises(ValueError) as err:
         SkyCoord(sc.frame, equinox='J1999', obstime='J2002')
-    assert "Coordinate attribute 'obstime'=" in str(err)
+    assert "Frame attribute 'obstime' has conflicting" in str(err)
 
 
 def test_frame_attr_getattr():
@@ -996,11 +996,9 @@ def test_init_with_frame_instance_keyword():
     assert c3.equinox == Time('J2010')
 
     # Check duplicate arguments
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError) as err:
         c = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox='J2010'), equinox='J2001')
-    assert exc.value.args[0] == ("cannot specify frame attribute "
-                                 "'equinox' directly in SkyCoord "
-                                 "since a frame instance was passed in")
+    assert "Cannot specify frame attribute 'equinox'" in str(err)
 
 
 def test_guess_from_table():
