@@ -126,7 +126,7 @@ Times and coordinates can now be reshaped like arrays
 
 The shapes of :class:`~astropy.time.Time` and
 :class:`~astropy.coordinates.SkyCoord` instances (as well as underlying frames
-and realisations) can now be manipulated just like those of arrays, using
+and realizations) can now be manipulated just like those of arrays, using
 methods with the same name.  For more details, see
 :ref:`astropy-time-shape-methods` and
 :ref:`astropy-coordinates-array-operations`.

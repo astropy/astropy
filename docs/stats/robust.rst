@@ -122,7 +122,7 @@ statistics to provide improved outlier rejection as well.
 Median Absolute Deviation
 =========================
 
-The median abosolute deviation (MAD) is a measure of the spread of a
+The median absolute deviation (MAD) is a measure of the spread of a
 distribution and is defined as ``median(abs(a - median(a)))``.  The
 MAD can be calculated using
 `~astropy.stats.median_absolute_deviation`.   For a normal

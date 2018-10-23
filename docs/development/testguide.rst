@@ -302,6 +302,7 @@ Similarly, this feature can be invoked from Python::
     >>> import astropy
     >>> astropy.test(parallel=4)
 
+
 Writing tests
 *************
 
@@ -545,12 +546,12 @@ functions. In the following ::
             self.NUM = 42
 
         def test_1(self):
-            """Test behaviour for a specific input value."""
+            """Test behavior for a specific input value."""
             added = add_nums(11, self.NUM)
             assert added == 53
 
         def test_2(self):
-            """Test behaviour for another input value."""
+            """Test behavior for another input value."""
             added = add_nums(13, self.NUM)
             assert added == 55
 
@@ -578,12 +579,12 @@ before and after *each* test. For this, use the ``setup_method`` and
             self.NUM = 42
 
         def test_1(self):
-        """Test behaviour for a specific input value."""
+        """Test behavior for a specific input value."""
             added = add_nums(11, self.NUM)
             assert added == 53
 
         def test_2(self):
-        """Test behaviour for another input value."""
+        """Test behavior for another input value."""
             added = add_nums(13, self.NUM)
             assert added == 55
 

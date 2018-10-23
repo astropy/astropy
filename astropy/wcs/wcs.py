@@ -2975,7 +2975,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             try:
                 # range requires integers but the other attributes can also
-                # handle arbitary values, so this needs to be in a try/except.
+                # handle arbitrary values, so this needs to be in a try/except.
                 nitems = len(builtins.range(self._naxis[wcs_index])[iview])
             except TypeError as exc:
                 if 'indices must be integers' not in str(exc):

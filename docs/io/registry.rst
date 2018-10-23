@@ -100,7 +100,7 @@ above, we can write a custom writer::
    def my_table_writer(table, filename, clobber=False):
        ...  # Write the table out to a file
 
-Writer functons should take a dataset object (either an instance of the
+Writer functions should take a dataset object (either an instance of the
 :class:`~astropy.table.Table` or :class:`~astropy.nddata.NDData`
 classes or sub-classes), and any number of subsequent positional and keyword
 arguments - although as for the reader, the ``format`` keyword argument cannot

@@ -373,8 +373,6 @@ packages:
 
     - (optional) `sphinx-gallery <http://sphinx-gallery.readthedocs.io/>`_
 
-.. note::
-
     If sphinx-gallery is not installed, you will see many Sphinx warnings
     building the documentation, e.g.::
 

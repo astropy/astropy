@@ -99,7 +99,7 @@ def test_predefined_reinitialisation():
 
 
 def test_predefined_string_roundtrip():
-    """Ensure roundtripping; see #5015"""
+    """Ensure round-tripping; see #5015"""
     with u.magnitude_zero_points.enable():
         assert u.Unit(u.STmag.to_string()) == u.STmag
         assert u.Unit(u.ABmag.to_string()) == u.ABmag

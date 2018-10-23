@@ -535,7 +535,7 @@ class MexicanHat1DKernel(Kernel1D):
     1D Mexican hat filter kernel.
 
     The Mexican Hat, or inverted Gaussian-Laplace filter, is a
-    bandpass filter. It smoothes the data and removes slowly varying
+    bandpass filter. It smooths the data and removes slowly varying
     or constant structures (e.g. Background). It is useful for peak or
     multi-scale detection.
 
@@ -605,7 +605,7 @@ class MexicanHat2DKernel(Kernel2D):
     2D Mexican hat filter kernel.
 
     The Mexican Hat, or inverted Gaussian-Laplace filter, is a
-    bandpass filter. It smoothes the data and removes slowly varying
+    bandpass filter. It smooths the data and removes slowly varying
     or constant structures (e.g. Background). It is useful for peak or
     multi-scale detection.
 

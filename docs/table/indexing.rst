@@ -72,14 +72,14 @@ column values (*including* the bounds), or a list or ndarray of column values::
        2     1
    >>> t.loc[[1, 4]]
    <Table length=2>
-     a     b  
+     a     b
    int64 int64
    ----- -----
        1    10
        4     9
    >>> t.loc[1:3]
    <Table length=3>
-     a     b  
+     a     b
    int64 int64
    ----- -----
        1    10
@@ -87,7 +87,7 @@ column values (*including* the bounds), or a list or ndarray of column values::
        3     9
    >>> t.loc[:]
    <Table length=4>
-     a     b  
+     a     b
    int64 int64
    ----- -----
        1    10
@@ -103,7 +103,7 @@ retrieval data::
    >>> t.add_index('b')
    >>> t.loc['b', 8:10]
    <Table length=3>
-     a     b  
+     a     b
    int64 int64
    ----- -----
        3     9
@@ -122,7 +122,7 @@ rather than column values. For example::
        1    10
    >>> t.iloc['b', 1:] # all but smallest value of 'b'
    <Table length=3>
-     a     b  
+     a     b
    int64 int64
    ----- -----
        3     9

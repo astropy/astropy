@@ -526,7 +526,7 @@ Bug Fixes
   writing files greater than 2^32 bytes in size. (spacetelescope/PyFITS#28)
 
 - Fixed a long-standing issue where writing binary tables did not correctly
-  write the TFORMn keywords for variable-length array columns (they ommitted
+  write the TFORMn keywords for variable-length array columns (they omitted
   the max array length parameter of the format).  This was thought fixed in
   v3.1.2, but it was only fixed there for compressed image HDUs and not for
   binary tables in general.
@@ -547,7 +547,7 @@ Bug Fixes
   writing files greater than 2^32 bytes in size. (Backported from 3.1.3)
 
 - Fixed a long-standing issue where writing binary tables did not correctly
-  write the TFORMn keywords for variable-length array columns (they ommitted
+  write the TFORMn keywords for variable-length array columns (they omitted
   the max array length parameter of the format).  This was thought fixed in
   v3.1.2, but it was only fixed there for compressed image HDUs and not for
   binary tables in general. (Backported from 3.1.3)
@@ -664,7 +664,7 @@ Bug Fixes
 
 - Fixed an (apparently long-standing) issue where writing compressed images did
   not correctly write the TFORMn keywords for variable-length array columns
-  (they ommitted the max array length parameter of the format). Backported from
+  (they omitted the max array length parameter of the format). Backported from
   3.1.2. (#199)
 
 - Slightly refactored how tables containing variable-length array columns are
@@ -1022,7 +1022,7 @@ Bug Fixes
   This allowed for the implementation of ``HDUList.fromstring`` described
   above. (#90)
 
-- Fixed a rare corner case where, in some use cases, (mildly, recoverably)
+- Fixed a rare corner case where, in some use cases, (mildly, recoverable)
   malformatted float values in headers were not properly returned as floats.
   (#137)
 
@@ -1101,7 +1101,7 @@ Bug Fixes
   could, in some circumstances, cause headers (and the rest of the file after
   that point) to be misread. (#142)
 
-- Fixed support for scaled image data and psuedo-unsigned ints in image data
+- Fixed support for scaled image data and pseudo-unsigned ints in image data
   sections (``hdu.section``).  Previously this was not supported at all.  At
   some point support was supposedly added, but it was buggy and incomplete.
   Now the feature seems to work much better. (#143)
@@ -1141,7 +1141,7 @@ Changes in Behavior
   extended multi-row _Group objects. This is analogous to how PyFITS 3.0 fixed
   FITS_rec slicing, and should have been fixed for GroupData at the same time.
   The old behavior caused bugs where functions internal to Numpy expected that
-  slicing an ndarray would return a new ndarray.  As this is a rare usecase
+  slicing an ndarray would return a new ndarray.  As this is a rare use case
   with a rare feature most users are unlikely to be affected by this change.
 
 - The previously internal _Group object for representing individual group
@@ -1377,7 +1377,7 @@ Bug Fixes
   original file permissions (#79)
 
 - Fixed the handling of TDIMn keywords; 3.0 added support for them, but got
-  the axis order backards (they were treated as though they were row-major)
+  the axis order backwards (they were treated as though they were row-major)
   (#82)
 
 - Fixed a crash when a FITS file containing scaled data is opened and
@@ -2946,7 +2946,7 @@ Some minor changes:
 
 Changes since v0.9.0:
 
-- Lazy instanciation of full Headers/Cards for all HDU's when the file is
+- Lazy instantiation of full Headers/Cards for all HDU's when the file is
   opened.  At the open, only extracts vital info (e.g. NAXIS's) from the
   header parts.  This change will speed up the performance if the user only
   needs to access one extension in a multi-extension FITS file.

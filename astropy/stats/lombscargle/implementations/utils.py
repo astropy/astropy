@@ -135,7 +135,7 @@ def trig_sum(t, h, df, N, f0=0, freq_factor=1,
     oversampling : int (default = 5)
         oversampling freq_factor for the approximation; roughly the number of
         time samples across the highest-frequency sinusoid. This parameter
-        contains the tradeoff between accuracy and speed. Not referenced
+        contains the trade-off between accuracy and speed. Not referenced
         if use_fft is False.
     Mfft : int
         The number of adjacent points to use in the FFT approximation.

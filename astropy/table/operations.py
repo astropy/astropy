@@ -591,7 +591,7 @@ def _join(left, right, keys=None, join_type='inner',
     diffs = np.concatenate(([True], out_keys[1:] != out_keys[:-1], [True]))
     idxs = np.flatnonzero(diffs)
 
-    # Main inner loop in Cython to compute the cartesion product
+    # Main inner loop in Cython to compute the cartesian product
     # indices for the given join type
     int_join_type = {'inner': 0, 'outer': 1, 'left': 2, 'right': 3}[join_type]
     masked, n_out, left_out, left_mask, right_out, right_mask = \

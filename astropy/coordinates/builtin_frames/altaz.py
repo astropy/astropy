@@ -91,7 +91,7 @@ class AltAz(BaseCoordinateFrame):
     The refraction model is based on that implemented in ERFA, which is fast
     but becomes inaccurate for altitudes below about 5 degrees.  Near and below
     altitudes of 0, it can even give meaningless answers, and in this case
-    transforming to AltAz and back to another frame can give highly discrepent
+    transforming to AltAz and back to another frame can give highly discrepant
     results.  For much better numerical stability, leaving the ``pressure`` at
     ``0`` (the default), disabling the refraction correction (yielding
     "topocentric" horizontal coordinates).

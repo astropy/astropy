@@ -584,6 +584,7 @@ There are four basic operations available with |Time| objects:
 - Calculate the `sidereal time`_ corresponding to the time value(s).
 - Do time arithmetic involving |Time| and/or |TimeDelta| objects.
 
+
 Get representation
 ^^^^^^^^^^^^^^^^^^^
 

@@ -1141,7 +1141,7 @@ def test_fortran_invalid_exp(parallel):
         pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
 
     fields = ['1.0001+1', '.42d1', '2.3+10', '0.5', '3+1001', '3000.',
-               '2', '4.56e-2.3', '8000', '4.2-122']
+              '2', '4.56e-2.3', '8000', '4.2-122']
     values = ['1.0001+1', 4.2, '2.3+10', 0.5, '3+1001', 3.e3,
                2, '4.56e-2.3', 8000, 4.2e-122]
 

@@ -757,7 +757,7 @@ generate our random data.
     >>> from astropy.coordinates import SkyCoord
     >>> import numpy as np
 
-We now generate random data for visualisation. For RA this is done in the range
+We now generate random data for visualization. For RA this is done in the range
 of 0 and 360 degrees (``ra_random``), for DEC between -90 and +90 degrees
 (``dec_random``). Finally, we multiply these values by degrees to get an
 `~astropy.units.Quantity` with units of degrees.
@@ -811,7 +811,7 @@ its usual position to avoid overlap with the axis labels.
     import matplotlib.pyplot as plt
     import numpy as np
 
-    # We now generate random data for visualisation. For RA this is done in the range
+    # We now generate random data for visualization. For RA this is done in the range
     # of 0 and 360 degrees (``ra_random``), for DEC between -90 and +90 degrees
     # (``dec_random``). Finally, we multiply these values by degrees to get an
     # `~astropy.units.Quantity` with units of degrees.
@@ -857,7 +857,7 @@ As in the last example, we first import the required packages.
     >>> from astropy.coordinates import SkyCoord
     >>> import numpy as np
 
-We now generate random data for visualisation using
+We now generate random data for visualization using
 `numpy.random.multivariate_normal`.
 
     >>> disk = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,0.5]), size=5000)
@@ -905,7 +905,7 @@ We use the same plotting setup as in the last example:
     import matplotlib.pyplot as plt
     import numpy as np
 
-    # We now generate random data for visualisation with
+    # We now generate random data for visualization with
     # np.random.multivariate_normal.
     disk = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,0.5]), size=5000)
     bulge = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,1]), size=500)

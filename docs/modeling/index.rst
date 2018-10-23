@@ -349,6 +349,7 @@ function in which the resulting mean (variance) is the sum of the means
     plt.plot(x, g2(x), 'k-')
     plt.plot(x, g3(x), 'k-')
 
+
 .. _modeling-using:
 
 Using `astropy.modeling`

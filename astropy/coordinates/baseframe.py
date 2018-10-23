@@ -649,7 +649,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         Return a replica of the frame, optionally with new frame attributes.
 
         The replica is a new frame object that has the same data as this frame
-        object and with frame attributes overriden if they are provided as extra
+        object and with frame attributes overridden if they are provided as extra
         keyword arguments to this method. If ``copy`` is set to `True` then a
         copy of the internal arrays will be made.  Otherwise the replica will
         use a reference to the original arrays when possible to save memory. The
@@ -678,7 +678,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         Return a replica without data, optionally with new frame attributes.
 
         The replica is a new frame object without data but with the same frame
-        attributes as this object, except where overriden by extra keyword
+        attributes as this object, except where overridden by extra keyword
         arguments to this method.  The ``copy`` keyword determines if the frame
         attributes are truly copied vs being references (which saves memory for
         cases where frame attributes are large).
@@ -1272,7 +1272,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
             If the ``other`` coordinate object is in a different frame, it is
             first transformed to the frame of this object. This can lead to
-            unintutive behavior if not accounted for. Particularly of note is
+            unintuitive behavior if not accounted for. Particularly of note is
             that ``self.separation(other)`` and ``other.separation(self)`` may
             not give the same answer in this case.
 

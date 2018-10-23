@@ -1385,7 +1385,7 @@ class Model(object):
 
         Model sub-classes can also use function annotations in evaluate to
         indicate valid input units, in which case this property should
-        not be overriden since it will return the input units based on the
+        not be overridden since it will return the input units based on the
         annotations.
         """
         if hasattr(self, '_input_units'):
@@ -1413,7 +1413,7 @@ class Model(object):
 
         Model sub-classes can also use function annotations in evaluate to
         indicate valid output units, in which case this property should not be
-        overriden since it will return the return units based on the
+        overridden since it will return the return units based on the
         annotations.
         """
         if hasattr(self, '_return_units'):

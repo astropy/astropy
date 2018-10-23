@@ -10,7 +10,7 @@ Introduction
 `astropy.visualization` provides functionality that can be helpful when
 visualizing data. This includes a framework for plotting Astronomical images
 with coordinates with Matplotlib (previously the standalone **wcsaxes**
-package), functionality related to image normaliation (including both scaling
+package), functionality related to image normalization (including both scaling
 and stretching), smart histogram plotting, RGB color image creation from
 separate images, and custom plotting styles for Matplotlib.
 
@@ -97,6 +97,7 @@ images to bitmaps, including scaling and stretching of the image. To find out
 more about the available options and how to use it, type::
 
     $ fits2bitmap --help
+
 
 Reference/API
 =============

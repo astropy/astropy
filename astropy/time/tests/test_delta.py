@@ -249,7 +249,7 @@ class TestTimeDelta():
 
 class TestTimeDeltaScales():
     """Test scale conversion for Time Delta.
-    Go through @taldcroft's list of expected behaviour from #1932"""
+    Go through @taldcroft's list of expected behavior from #1932"""
 
     def setup(self):
         # pick a date that includes a leap second for better testing

@@ -64,7 +64,7 @@ def delay_doc_updates(cls):
 
     Notes
     -----
-    Registering mutliple readers and writers can cause significant overhead
+    Registering multiple readers and writers can cause significant overhead
     because the documentation of the corresponding ``read`` and ``write``
     methods are build every time.
 
