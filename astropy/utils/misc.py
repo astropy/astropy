@@ -830,7 +830,13 @@ class OrderedDescriptorContainer(type):
 
 
 def get_parameters(members):
+    """
+    Looks for ordered descriptors in a class definition and
+    copies such definitions in two new class attributes,
+    one being a dictionary of these objects keyed by their
+    attribute names, and the other a simple list of those names.
 
+    """
     pdict = OrderedDict()
     for name, obj in members.items():
         if (not isinstance(obj, OrderedDescriptor)):
@@ -838,8 +844,7 @@ def get_parameters(members):
         if obj._name_attribute_ is not None:
             setattr(obj, '_name', name)
         pdict[name] = obj
-    #for name in pdict.keys():
-    #    del members[name]
+    
     members['_parameter_vals_'] = pdict
     members['_parameters_'] = pdict.keys()
 
