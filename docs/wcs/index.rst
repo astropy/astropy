@@ -279,6 +279,7 @@ Reference/API
 =============
 
 .. automodapi:: astropy.wcs
+   :inherited-members:
 
 .. automodapi:: astropy.wcs.utils
 

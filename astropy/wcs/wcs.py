@@ -57,6 +57,9 @@ except ImportError:
 from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 
+# Mix-in class that provides the APE 14 API
+from .wcsapi.fitswcs import FITSWCSAPIMixin
+
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'DistortionLookupTable', 'Sip', 'Tabprm', 'Wcsprm',
            'WCSBase', 'validate', 'WcsError', 'SingularMatrixError',
@@ -212,7 +215,7 @@ class FITSFixedWarning(AstropyWarning):
     pass
 
 
-class WCS(WCSBase):
+class WCS(FITSWCSAPIMixin, WCSBase):
     """WCS objects perform standard WCS transformations, and correct for
     `SIP`_ and `distortion paper`_ table-lookup transformations, based
     on the WCS keywords and supplementary data read from a FITS file.
@@ -1635,9 +1638,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         # (when any of the non-CD-matrix-based corrections are
         # present). If not required return the initial
         # approximation (pix0).
-        if self.sip is None and \
-           self.cpdis1 is None and self.cpdis2 is None and \
-           self.det2im1 is None and self.det2im2 is None:
+        if not self.has_distortion:
             # No non-WCS corrections detected so
             # simply return initial approximation:
             return pix0
@@ -3040,6 +3041,15 @@ reduce these to 2 dimensions using the naxis kwarg.
             return self.celestial.naxis == 2
         except InconsistentAxisTypesError:
             return False
+
+    @property
+    def has_distortion(self):
+        """
+        Returns `True` if any distortion terms are present.
+        """
+        return (self.sip is not None or
+                self.cpdis1 is not None or self.cpdis2 is not None or
+                self.det2im1 is not None and self.det2im2 is not None)
 
     @property
     def pixel_scale_matrix(self):

@@ -28,3 +28,5 @@ Reference/API
 =============
 
 .. automodapi:: astropy.wcs.wcsapi
+
+.. automodapi:: astropy.wcs.wcsapi.fitswcs
