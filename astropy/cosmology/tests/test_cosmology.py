@@ -1568,7 +1568,7 @@ def test_z_at_value():
     assert allclose(z_at_value(cosmo.distmod, 46 * u.mag),
                     1.9913891680278133, rtol=1e-6)
 
-    # test behaviour when the solution is outside z limits (should
+    # test behavior when the solution is outside z limits (should
     # raise a CosmologyError)
     with pytest.raises(core.CosmologyError):
         z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmax=0.5)

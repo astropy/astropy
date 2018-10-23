@@ -380,7 +380,7 @@ Masked columns
 --------------
 
 By default, the ECSV format uses an empty (zero-length) string in the output
-table to represent masked or misssing data in `~astropy.table.MaskedColumn`
+table to represent masked or missing data in `~astropy.table.MaskedColumn`
 columns.  In certain cases this may not be sufficient:
 
 - String column that contains empty (zero-length) string(s) as valid data.

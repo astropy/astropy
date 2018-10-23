@@ -1226,7 +1226,7 @@ class Pix2Sky_ConicPerspective(Pix2SkyProjection, Conic):
 
     See `Conic` for a description of the entire equation.
 
-    The projection formulæ are:
+    The projection formulae are:
 
     .. math::
         C &= \sin \theta_a \\
@@ -1265,7 +1265,7 @@ class Sky2Pix_ConicPerspective(Sky2PixProjection, Conic):
 
     See `Conic` for a description of the entire equation.
 
-    The projection formulæ are:
+    The projection formulae are:
 
     .. math::
         C &= \sin \theta_a \\
@@ -1305,7 +1305,7 @@ class Pix2Sky_ConicEqualArea(Pix2SkyProjection, Conic):
 
     See `Conic` for a description of the entire equation.
 
-    The projection formulæ are:
+    The projection formulae are:
 
     .. math::
         C &= \gamma / 2 \\
@@ -1349,7 +1349,7 @@ class Sky2Pix_ConicEqualArea(Sky2PixProjection, Conic):
 
     See `Conic` for a description of the entire equation.
 
-    The projection formulæ are:
+    The projection formulae are:
 
     .. math::
         C &= \gamma / 2 \\
@@ -1394,7 +1394,7 @@ class Pix2Sky_ConicEquidistant(Pix2SkyProjection, Conic):
 
     See `Conic` for a description of the entire equation.
 
-    The projection formulæ are:
+    The projection formulae are:
 
     .. math::
 
@@ -1434,7 +1434,7 @@ class Sky2Pix_ConicEquidistant(Sky2PixProjection, Conic):
 
     See `Conic` for a description of the entire equation.
 
-    The projection formulæ are:
+    The projection formulae are:
 
     .. math::
 
@@ -1475,7 +1475,7 @@ class Pix2Sky_ConicOrthomorphic(Pix2SkyProjection, Conic):
 
     See `Conic` for a description of the entire equation.
 
-    The projection formulæ are:
+    The projection formulae are:
 
     .. math::
 
@@ -1524,7 +1524,7 @@ class Sky2Pix_ConicOrthomorphic(Sky2PixProjection, Conic):
 
     See `Conic` for a description of the entire equation.
 
-    The projection formulæ are:
+    The projection formulae are:
 
     .. math::
 

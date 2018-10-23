@@ -500,7 +500,7 @@ class TestIndex(SetupData):
         for i, p in zip(t2, [1, 4, 2]):  # same order as input list
             assert list(t[p-1]) == i
 
-    def test_invalid_updation(self, main_col, table_types, engine):
+    def test_invalid_updates(self, main_col, table_types, engine):
         # using .loc and .loc_indices with a value not present should raise an exception
         self._setup(main_col, table_types)
         t = Table([[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]], names=('a', 'b', 'c'), meta={'name': 'first table'})

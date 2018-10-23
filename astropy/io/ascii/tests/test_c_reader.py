@@ -1208,7 +1208,7 @@ def test_fortran_invalid_exp(parallel, guess):
 
         read_values = [col[0] for col in t5.itercols()]
         if os.name == 'nt':
-            # Apparently C strtod() on (some?) MSVC recognises 'd' exponents!
+            # Apparently C strtod() on (some?) MSVC recognizes 'd' exponents!
             assert read_values == vals_v or read_values == vals_e
         else:
             assert read_values == vals_e

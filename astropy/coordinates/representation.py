@@ -2474,7 +2474,7 @@ class SphericalDifferential(BaseSphericalDifferential):
 
 
 class BaseSphericalCosLatDifferential(BaseDifferential):
-    """Differtials from points on a spherical base representation.
+    """Differentials from points on a spherical base representation.
 
     With cos(lat) assumed to be included in the longitude differential.
     """

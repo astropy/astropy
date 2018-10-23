@@ -128,7 +128,7 @@ The flag bits are:
 
 - ``WCSHDR_VSOURCE``: Accept ``VSOURCEa`` or ``VSOUna``.  This appeared
   in early drafts of WCS Paper III and was subsequently dropped in
-  favour of ``ZSOURCEa`` and ``ZSOUna``.  The constructor accepts
+  favor of ``ZSOURCEa`` and ``ZSOUna``.  The constructor accepts
   ``VSOURCEa`` only if ``WCSHDR_AUXIMG`` is also enabled.
 
 - ``WCSHDR_DOBSn``: Allow ``DOBSn``, the column-specific analogue of

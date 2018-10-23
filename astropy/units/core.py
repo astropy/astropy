@@ -1416,7 +1416,7 @@ class UnitBase(metaclass=InheritDocstrings):
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to also list.  See
             :ref:`unit_equivalencies`.
-            Any list given, including an empty one, supercedes global defaults
+            Any list given, including an empty one, supersedes global defaults
             that may be in effect (as set by `set_enabled_equivalencies`)
 
         units : set of units to search in, optional
@@ -1688,7 +1688,7 @@ class IrreducibleUnit(NamedUnit):
 class UnrecognizedUnit(IrreducibleUnit):
     """
     A unit that did not parse correctly.  This allows for
-    roundtripping it as a string, but no unit operations actually work
+    round-tripping it as a string, but no unit operations actually work
     on it.
 
     Parameters

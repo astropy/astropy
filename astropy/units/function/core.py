@@ -508,7 +508,7 @@ class FunctionQuantity(Quantity):
         """
         return self._new_view(unit=self.unit.function_unit)
 
-    # ↓↓↓ methods overridden to change the behaviour
+    # ↓↓↓ methods overridden to change the behavior
     @property
     def si(self):
         """Return a copy with the physical unit in SI units."""
@@ -526,7 +526,7 @@ class FunctionQuantity(Quantity):
         """
         return self.__class__(self.physical.decompose(bases))
 
-    # ↓↓↓ methods overridden to add additional behaviour
+    # ↓↓↓ methods overridden to add additional behavior
     def __quantity_subclass__(self, unit):
         if isinstance(unit, FunctionUnitBase):
             return self.__class__, True
@@ -547,7 +547,7 @@ class FunctionQuantity(Quantity):
 
         self._unit = unit
 
-    # ↓↓↓ methods overridden to change behaviour
+    # ↓↓↓ methods overridden to change behavior
     def __mul__(self, other):
         if self.unit.physical_unit == dimensionless_unscaled:
             return self._function_view * other
