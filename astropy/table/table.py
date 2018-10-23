@@ -17,6 +17,7 @@ from ..units import Quantity, QuantityInfo
 from ..utils import isiterable, ShapedLikeNDArray
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
+from ..utils.masked import masked_arrays_equal
 from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
 from ..utils.exceptions import AstropyDeprecationWarning, NoValue
 
@@ -2642,7 +2643,8 @@ class Table:
 
         if self.masked:
             if isinstance(other, np.ma.MaskedArray):
-                result = self.as_array() == other
+                # We use a special function that deals correctly with the mask
+                result = masked_arrays_equal(self.as_array(), other)
             else:
                 # If mask is True, then by definition the row doesn't match
                 # because the other array is not masked.
