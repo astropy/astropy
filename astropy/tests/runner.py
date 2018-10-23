@@ -323,7 +323,9 @@ class TestRunner(TestRunnerBase):
             coveragerc = os.path.join(self.base_path, "tests", "coveragerc")
             ret = []
             for path in self.package_path:
-                ret += ["--cov", path, "--cov-config", coveragerc]
+                ret += ["--cov", path]
+            ret += ["--cov-config", coveragerc]
+            print(ret)
             return ret
 
         return []
