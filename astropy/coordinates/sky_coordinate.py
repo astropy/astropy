@@ -138,7 +138,7 @@ class SkyCoord(ShapedLikeNDArray):
       >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
       >>> c = SkyCoord(coords, frame=FK4, unit=(u.deg, u.hourangle), obstime="J1992.21")
 
-      >>> c = SkyCoord("1h12m43.2s +1d12m43s", Galactic)  # Units from string
+      >>> c = SkyCoord("1h12m43.2s +1d12m43s", frame=Galactic)  # Units from string
       >>> c = SkyCoord(frame="galactic", l="1h12m43.2s", b="+1d12m43s")
 
       >>> ra = Longitude([1, 2, 3], unit=u.deg)  # Could also use Angle
@@ -1538,10 +1538,9 @@ class SkyCoord(ShapedLikeNDArray):
         newsc : same as this class
             The new `SkyCoord` (or subclass) object.
         """
-        inital_frame = coord_kwargs.get('frame')
         _frame_cls, _frame_kwargs = _get_frame_without_data([], coord_kwargs)
         frame = _frame_cls(**_frame_kwargs)
-        coord_kwargs['frame'] = inital_frame
+        coord_kwargs['frame'] = coord_kwargs.get('frame', frame)
 
         comp_kwargs = {}
         for comp_name in frame.representation_component_names:
