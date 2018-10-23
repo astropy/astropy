@@ -55,28 +55,6 @@ class PolynomialBase(FittableModel):
 
         return self._param_names
 
-    # def __getattr__(self, attr):
-    #     if self._param_names and attr in self._param_names:
-    #         return Parameter(attr, default=0.0, model=self)
-
-    #     raise AttributeError(attr)
-
-    # def __setattr__(self, attr, value):
-    #     # TODO: Support a means of specifying default values for coefficients
-    #     # Check for self._ndim first--if it hasn't been defined then the
-    #     # instance hasn't been initialized yet and self.param_names probably
-    #     # won't work.
-    #     # This has to vaguely duplicate the functionality of
-    #     # Parameter.__set__.
-    #     # TODO: I wonder if there might be a way around that though...
-    #     if attr[0] != '_' and self._param_names and attr in self._param_names:
-    #         param = Parameter(attr, default=0.0, model=self)
-    #         # This is a little hackish, but we can actually reuse the
-    #         # Parameter.__set__ method here
-    #         param.__set__(self, value)
-    #     else:
-    #         super().__setattr__(attr, value)
-
 
 class PolynomialModel(PolynomialBase):
     """
