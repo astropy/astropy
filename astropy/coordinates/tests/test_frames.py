@@ -1027,3 +1027,17 @@ def test_non_spherical_representation_unit_creation(unitphysics):
 
     picu = PhysicsICRS(phi=1*u.deg, theta=25*u.deg)
     assert isinstance(picu.data, unitphysics)
+
+
+def test_attribute_repr():
+    from ..attributes import Attribute
+    from ..baseframe import BaseCoordinateFrame
+
+    class Spam:
+        def _repr_in_frame_repr(self):
+            return "TEST REPR"
+
+    class TestFrame(BaseCoordinateFrame):
+        attrtest = Attribute(default=Spam())
+
+    assert "TEST REPR" in repr(TestFrame())
