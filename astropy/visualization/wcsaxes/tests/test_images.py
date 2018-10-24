@@ -387,21 +387,43 @@ class TestBasic(BaseImageTests):
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    tolerance=0, style={})
     def test_rcparams(self):
-        # Test default style (matplotlib.rcParams) for ticks and gridlines
+
+        # Test custom rcParams
+
         with rc_context({
+
+                'axes.labelcolor': 'purple',
+                'axes.labelsize': 14,
+                'axes.labelweight': 'bold',
+
+                'axes.linewidth': 3,
+                'axes.facecolor': '0.5',
+                'axes.edgecolor': 'green',
+
                 'xtick.color': 'red',
+                'xtick.labelsize': 8,
+                'xtick.direction': 'in',
+
+                'xtick.minor.visible': True,
+                'xtick.minor.size': 5,
+
                 'xtick.major.size': 20,
-                'xtick.major.width': 2,
+                'xtick.major.width': 3,
+                'xtick.major.pad': 10,
+
                 'grid.color': 'blue',
                 'grid.linestyle': ':',
                 'grid.linewidth': 1,
                 'grid.alpha': 0.5}):
+
             fig = plt.figure(figsize=(6, 6))
-            ax = WCSAxes(fig, [0.1, 0.1, 0.7, 0.7], wcs=None)
+            ax = WCSAxes(fig, [0.15, 0.1, 0.7, 0.7], wcs=None)
             fig.add_axes(ax)
             ax.set_xlim(-0.5, 2)
             ax.set_ylim(-0.5, 2)
             ax.grid()
+            ax.set_xlabel('X label')
+            ax.set_ylabel('Y label')
             ax.coords[0].set_ticks(exclude_overlapping=True)
             ax.coords[1].set_ticks(exclude_overlapping=True)
             return fig
