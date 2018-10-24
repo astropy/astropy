@@ -7,8 +7,9 @@ import locale
 import re
 
 import pytest
-from numpy.testing import assert_array_equal, assert_array_almost_equal
 import numpy as np
+from numpy.testing import (assert_array_equal, assert_array_almost_equal,
+                           assert_allclose)
 
 from astropy.tests.helper import raises, catch_warnings
 from astropy.io import fits
@@ -398,7 +399,8 @@ def test_fix():
         'datfix': 'No change',
         'spcfix': 'No change',
         'unitfix': 'No change',
-        'celfix': 'No change'}
+        'celfix': 'No change',
+        'obsfix': 'No change',}
     version = wcs._wcs.__version__
     if version[0] <= "5":
         del fix_ref['obsfix']
@@ -595,8 +597,8 @@ def test_naxis_set():
 def test_obsgeo():
     w = _wcs.Wcsprm()
     assert np.all(np.isnan(w.obsgeo))
-    w.obsgeo = [1, 2, 3]
-    assert_array_equal(w.obsgeo, [1, 2, 3])
+    w.obsgeo = [1, 2, 3, 4, 5, 6]
+    assert_array_equal(w.obsgeo, [1, 2, 3, 4, 5, 6])
     del w.obsgeo
     assert np.all(np.isnan(w.obsgeo))
 
@@ -1081,3 +1083,43 @@ def test_invalid_args():
 
     with pytest.raises(KeyError):
         w = _wcs.Wcsprm(header, key='A')
+
+
+# Test keywords in the Time standard
+
+char_keys = ['timesys', 'trefpos', 'trefdir', 'plephem', 'timeunit',
+             'dateref', 'dateobs', 'datebeg', 'dateavg', 'dateend']
+
+@pytest.mark.parametrize('key', char_keys)
+def test_timesys(key):
+    w = _wcs.Wcsprm()
+    # Test that this works as an iterator
+    assert getattr(w, key) == ''
+    with pytest.raises(TypeError):
+        setattr(w, key, 42)
+
+
+num_keys = ['mjdref', 'mjdobs', 'mjdbeg', 'mjdend', 'jepoch',
+            'bepoch', 'tstart', 'tstop', 'xposure', 'timsyer',
+            'timrder', 'timedel', 'timepixr', 'timeoffs', 'telapse']
+
+
+@pytest.mark.parametrize('key', num_keys)
+def test_timesys(key):
+    w = _wcs.Wcsprm()
+    # Test that this works as an iterator
+    assert_allclose(getattr(w, key), np.nan)
+    with pytest.raises(TypeError):
+        setattr(w, key, "foo")
+
+array_keys = ['czphs', 'cperi']
+
+@pytest.mark.parametrize('key', array_keys)
+def test_timesys(key):
+    w = _wcs.Wcsprm()
+    # Test that this works as an iterator
+    assert_allclose(getattr(w, key), np.nan)
+    with pytest.raises(ValueError):
+        setattr(w, key, ["foo", "bar"])
+    with pytest.raises(ValueError):
+        setattr(w, key, "foo")

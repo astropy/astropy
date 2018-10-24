@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.19 - an implementation of the FITS WCS standard.
+  WCSLIB 6.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.h,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
+  $Id: dis.h,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.19 - C routines that implement the FITS World Coordinate System
+* WCSLIB 6.2 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -275,9 +275,10 @@
 * are maintained by these routines, somewhat like a C++ class but with no
 * encapsulation.
 *
-* disndp(), dpfill(), disini(), disinit(), discpy(), and disfree() are
-* provided to manage the disprm struct, and another, disprt(), prints its
-* contents.
+* dpfill(), dpkeyi(), and dpkeyd() are provided to manage the dpkey struct.
+*
+* disndp(), disini(), disinit(), discpy(), and disfree() are provided to
+* manage the disprm struct, and another, disprt(), prints its contents.
 *
 * disperr() prints the error message(s) (if any) stored in a disprm struct.
 *
@@ -368,6 +369,31 @@
 * Function return value:
 *             int       Status return value:
 *                         0: Success.
+*
+*
+* dpkeyi() - Get the data value in a dpkey struct as int
+* ------------------------------------------------------
+* dpkeyi() returns the data value in a dpkey struct as an integer value.
+*
+* Given and returned:
+*   dp        const struct dpkey *
+*                       Parsed contents of a DPja or DQia keyrecord.
+*
+* Function return value:
+*             int       The record's value as int.
+*
+*
+* dpkeyd() - Get the data value in a dpkey struct as double
+* ---------------------------------------------------------
+* dpkeyd() returns the data value in a dpkey struct as a floating point
+* value.
+*
+* Given and returned:
+*   dp        const struct dpkey *
+*                       Parsed contents of a DPja or DQia keyrecord.
+*
+* Function return value:
+*             double    The record's value as double.
 *
 *
 * disini() - Default constructor for the disprm struct
@@ -1020,6 +1046,10 @@ int disndp(int n);
 
 int dpfill(struct dpkey *dp, const char *keyword, const char *field, int j,
            int type, int i, double f);
+
+int    dpkeyi(const struct dpkey *dp);
+
+double dpkeyd(const struct dpkey *dp);
 
 int disini(int alloc, int naxis, struct disprm *dis);
 

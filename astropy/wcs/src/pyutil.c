@@ -174,7 +174,7 @@ wcsprm_fix_values(
   value_fixer(&x->lonpole, 1);
   value_fixer(&x->mjdavg, 1);
   value_fixer(&x->mjdobs, 1);
-  value_fixer(x->obsgeo, 3);
+  value_fixer(x->obsgeo, 6);
   value_fixer(&x->cel.phi0, 1);
   value_fixer(&x->restfrq, 1);
   value_fixer(&x->restwav, 1);
@@ -182,6 +182,22 @@ wcsprm_fix_values(
   value_fixer(&x->velangl, 1);
   value_fixer(&x->velosys, 1);
   value_fixer(&x->zsource, 1);
+  value_fixer(x->czphs, naxis);
+  value_fixer(x->cperi, naxis);
+  value_fixer(x->mjdref, 2);
+  value_fixer(&x->mjdbeg, 1);
+  value_fixer(&x->mjdend, 1);
+  value_fixer(&x->jepoch, 1);
+  value_fixer(&x->bepoch, 1);
+  value_fixer(&x->tstart, 1);
+  value_fixer(&x->tstop, 1);
+  value_fixer(&x->xposure, 1);
+  value_fixer(&x->timsyer, 1);
+  value_fixer(&x->timrder, 1);
+  value_fixer(&x->timedel, 1);
+  value_fixer(&x->timepixr, 1);
+  value_fixer(&x->timeoffs, 1);
+  value_fixer(&x->telapse, 1);
 }
 
 void
@@ -337,7 +353,7 @@ wcshdr_err_to_python_exc(int status) {
   Property helpers
  ***************************************************************************/
 
-#define SHAPE_STR_LEN 128
+#define SHAPE_STR_LEN 2048
 
 /* Helper function to display the desired shape of an array as a
    string, eg. 2x2 */

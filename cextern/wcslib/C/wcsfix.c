@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.19 - an implementation of the FITS WCS standard.
+  WCSLIB 6.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.c,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
+  $Id: wcsfix.c,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -32,6 +32,7 @@
 
 #include "wcserr.h"
 #include "wcsmath.h"
+#include "wcstrig.h"
 #include "wcsutil.h"
 #include "lin.h"
 #include "sph.h"
@@ -102,6 +103,10 @@ int wcsfix(int ctrl, const int naxis[], struct wcsprm *wcs, int stat[])
     status = 1;
   }
 
+  if ((stat[OBSFIX] = obsfix(0, wcs)) > 0) {
+    status = 1;
+  }
+
   if ((stat[UNITFIX] = unitfix(ctrl, wcs)) > 0) {
     status = 1;
   }
@@ -152,6 +157,9 @@ int wcsfixi(int ctrl, const int naxis[], struct wcsprm *wcs, int stat[],
       break;
     case DATFIX:
       stat[ifix] = datfix(wcs);
+      break;
+    case OBSFIX:
+      stat[ifix] = obsfix(0, wcs);
       break;
     case UNITFIX:
       stat[ifix] = unitfix(ctrl, wcs);
@@ -257,6 +265,7 @@ static int parse_date(const char *buf, int *hour, int *minute, double *sec)
   return 0;
 }
 
+
 static void write_date(char *buf, int hour, int minute, double sec)
 
 {
@@ -266,199 +275,511 @@ static void write_date(char *buf, int hour, int minute, double sec)
   sprintf(buf, "T%.2d:%.2d:%s", hour, minute, ctmp);
 }
 
+
+static char *newline(char **cp)
+
+{
+  int k;
+
+  if ((k = strlen(*cp))) {
+    *cp += k;
+    strcat(*cp, ".\n");
+    *cp += 2;
+  }
+
+  return *cp;
+}
+
+
 int datfix(struct wcsprm *wcs)
 
 {
   static const char *function = "datfix";
 
-  char orig_dateobs[72];
-  char *dateobs;
-  int  day, dd, hour = 0, jd, minute = 0, month, msec, n4, year;
-  double mjdobs, sec = 0.0, t;
+  /* MJD of J2000.0 and B1900.0. */
+  const double mjd2000 = 51544.5;
+  const double mjd1900 = 15019.81352;
+
+  /* Days per Julian year and per tropical year. */
+  const double djy = 365.25;
+  const double dty = 365.242198781;
+
+  const char *dateid;
+  char *cp, *date, infomsg[512], orig_date[72];
+  int  day, dd, hour = 0, i, jd, minute = 0, month, msec, n4, status, year;
+  double bepoch, jepoch, mjd, sec = 0.0, t, *wcsmjd;
   struct wcserr **err;
 
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
   err = &(wcs->err);
 
-  dateobs = wcs->dateobs;
-  strncpy(orig_dateobs, dateobs, 72);
-  if (dateobs[0] == '\0') {
-    if (undefined(wcs->mjdobs)) {
-     /* No date information was provided. */
-      return FIXERR_NO_CHANGE;
+  cp = infomsg;
+  *cp = '\0';
+  status = FIXERR_NO_CHANGE;
 
-    } else {
-      /* Calendar date from MJD. */
-      jd = 2400001 + (int)wcs->mjdobs;
-
-      n4 =  4*(jd + ((2*((4*jd - 17918)/146097)*3)/4 + 1)/2 - 37);
-      dd = 10*(((n4-237)%1461)/4) + 5;
-
-      year  = n4/1461 - 4712;
-      month = (2 + dd/306)%12 + 1;
-      day   = (dd%306)/10 + 1;
-      sprintf(dateobs, "%.4d-%.2d-%.2d", year, month, day);
-
-      /* Write time part only if non-zero. */
-      if ((t = wcs->mjdobs - (int)wcs->mjdobs) > 0.0) {
-        t *= 24.0;
-        hour = (int)t;
-        t = 60.0 * (t - hour);
-        minute = (int)t;
-        sec    = 60.0 * (t - minute);
-
-        /* Round to 1ms. */
-        dd = 60000*(60*hour + minute) + (int)(1000*(sec+0.0005));
-        hour = dd / 3600000;
-        dd -= 3600000 * hour;
-        minute = dd / 60000;
-        msec = dd - 60000 * minute;
-        sprintf(dateobs+10, "T%.2d:%.2d:%.2d", hour, minute, msec/1000);
-
-        /* Write fractions of a second only if non-zero. */
-        if (msec%1000) {
-          sprintf(dateobs+19, ".%.3d", msec%1000);
-        }
-      }
+  for (i = 0; i < 4; i++) {
+    if (i == 0) {
+      dateid = "OBS";
+      date   = wcs->dateobs;
+      wcsmjd = &(wcs->mjdobs);
+    } else if (i == 1) {
+      dateid = "BEG";
+      date   = wcs->datebeg;
+      wcsmjd = &(wcs->mjdbeg);
+    } else if (i == 2) {
+      dateid = "AVG";
+      date   = wcs->dateavg;
+      wcsmjd = &(wcs->mjdavg);
+    } else if (i == 3) {
+      dateid = "END";
+      date   = wcs->dateend;
+      wcsmjd = &(wcs->mjdend);
     }
 
-  } else {
-    if (strlen(dateobs) < 8) {
-      /* Can't be a valid date. */
-      return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
-        "Invalid parameter value: date string too short '%s'", dateobs);
-    }
+    strncpy(orig_date, date, 72);
+    mjd = *wcsmjd;
 
-    /* Identify the date format. */
-    if (dateobs[4] == '-' && dateobs[7] == '-') {
-      /* Standard year-2000 form: CCYY-MM-DD[Thh:mm:ss[.sss...]] */
-      if (sscanf(dateobs, "%4d-%2d-%2d", &year, &month, &day) < 3) {
-        return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
-          "Invalid parameter value: invalid date '%s'", dateobs);
-      }
+    if (date[0] == '\0') {
 
-      if (dateobs[10] == 'T') {
-        if (parse_date(dateobs+11, &hour, &minute, &sec)) {
-          return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
-            "Invalid parameter value: invalid time '%s'", dateobs+11);
-        }
-      } else if (dateobs[10] == ' ') {
-        hour = 0;
-        minute = 0;
-        sec = 0.0;
-        if (parse_date(dateobs+11, &hour, &minute, &sec)) {
-          write_date(dateobs+10, hour, minute, sec);
-        } else {
-          dateobs[10] = 'T';
+      if (i == 0 && undefined(mjd)) {
+        /* See if we have jepoch or bepoch. */
+        if (!undefined(wcs->jepoch)) {
+          mjd = mjd2000 + (wcs->jepoch - 2000.0)*djy;
+          *wcsmjd = mjd;
+          sprintf(newline(&cp), "Set MJD-OBS to %.6f from JEPOCH", mjd);
+
+        } else if (!undefined(wcs->bepoch)) {
+          mjd = mjd1900 + (wcs->bepoch - 1900.0)*dty;
+          *wcsmjd = mjd;
+          sprintf(newline(&cp), "Set MJD-OBS to %.6f from BEPOCH", mjd);
         }
       }
 
-    } else if (dateobs[4] == '/' && dateobs[7] == '/') {
-      /* Also allow CCYY/MM/DD[Thh:mm:ss[.sss...]] */
-      if (sscanf(dateobs, "%4d/%2d/%2d", &year, &month, &day) < 3) {
-        return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
-          "Invalid parameter value: invalid date '%s'", dateobs);
-      }
-
-      if (dateobs[10] == 'T') {
-        if (parse_date(dateobs+11, &hour, &minute, &sec)) {
-          return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
-            "Invalid parameter value: invalid time '%s'", dateobs+11);
-        }
-      } else if (dateobs[10] == ' ') {
-        hour = 0;
-        minute = 0;
-        sec = 0.0;
-        if (parse_date(dateobs+11, &hour, &minute, &sec)) {
-          write_date(dateobs+10, hour, minute, sec);
-        } else {
-          dateobs[10] = 'T';
-        }
-      }
-
-      /* Looks ok, fix it up. */
-      dateobs[4]  = '-';
-      dateobs[7]  = '-';
-
-    } else {
-      if (dateobs[2] == '/' && dateobs[5] == '/') {
-        /* Old format date: DD/MM/YY, also allowing DD/MM/CCYY. */
-        if (sscanf(dateobs, "%2d/%2d/%4d", &day, &month, &year) < 3) {
-          return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
-            "Invalid parameter value: invalid date '%s'", dateobs);
-        }
-
-      } else if (dateobs[2] == '-' && dateobs[5] == '-') {
-        /* Also recognize DD-MM-YY and DD-MM-CCYY */
-        if (sscanf(dateobs, "%2d-%2d-%4d", &day, &month, &year) < 3) {
-          return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
-            "Invalid parameter value: invalid date '%s'", dateobs);
-        }
+      if (undefined(mjd)) {
+        /* No date information was provided. */
 
       } else {
-        /* Not a valid date format. */
-        return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
-          "Invalid parameter value: invalid date '%s'", dateobs);
+        /* Calendar date from MJD. */
+        jd = 2400001 + (int)mjd;
+
+        n4 =  4*(jd + ((2*((4*jd - 17918)/146097)*3)/4 + 1)/2 - 37);
+        dd = 10*(((n4-237)%1461)/4) + 5;
+
+        year  = n4/1461 - 4712;
+        month = (2 + dd/306)%12 + 1;
+        day   = (dd%306)/10 + 1;
+        sprintf(date, "%.4d-%.2d-%.2d", year, month, day);
+
+        /* Write time part only if non-zero. */
+        if ((t = mjd - (int)mjd) > 0.0) {
+          t *= 24.0;
+          hour = (int)t;
+          t = 60.0 * (t - hour);
+          minute = (int)t;
+          sec    = 60.0 * (t - minute);
+
+          /* Round to 1ms. */
+          dd = 60000*(60*hour + minute) + (int)(1000*(sec+0.0005));
+          hour = dd / 3600000;
+          dd -= 3600000 * hour;
+          minute = dd / 60000;
+          msec = dd - 60000 * minute;
+          sprintf(date+10, "T%.2d:%.2d:%.2d", hour, minute, msec/1000);
+
+          /* Write fractions of a second only if non-zero. */
+          if (msec%1000) {
+            sprintf(date+19, ".%.3d", msec%1000);
+          }
+        }
       }
 
-      if (year < 100) year += 1900;
-
-      /* Doesn't have a time. */
-      sprintf(dateobs, "%.4d-%.2d-%.2d", year, month, day);
-    }
-
-    /* Compute MJD. */
-    mjdobs = (double)((1461*(year - (12-month)/10 + 4712))/4
-             + (306*((month+9)%12) + 5)/10
-             - (3*((year - (12-month)/10 + 4900)/100))/4
-             + day - 2399904)
-             + (hour + (minute + sec/60.0)/60.0)/24.0;
-
-    if (undefined(wcs->mjdobs)) {
-      wcs->mjdobs = mjdobs;
     } else {
-      /* Check for consistency. */
-      if (fabs(mjdobs - wcs->mjdobs) > 0.5) {
-        return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
-          "Invalid parameter value: inconsistent date '%s'", dateobs);
+      if (strlen(date) < 8) {
+        /* Can't be a valid date. */
+        status = FIXERR_BAD_PARAM;
+        sprintf(newline(&cp), "Invalid DATE-%s format '%s' is too short",
+          dateid, date);
+        continue;
       }
+
+      /* Identify the date format. */
+      if (date[4] == '-' && date[7] == '-') {
+        /* Standard year-2000 form: CCYY-MM-DD[Thh:mm:ss[.sss...]] */
+        if (sscanf(date, "%4d-%2d-%2d", &year, &month, &day) < 3) {
+          status = FIXERR_BAD_PARAM;
+          sprintf(newline(&cp), "Invalid DATE-%s format '%s'", dateid, date);
+          continue;
+        }
+
+        if (date[10] == 'T') {
+          if (parse_date(date+11, &hour, &minute, &sec)) {
+            status = FIXERR_BAD_PARAM;
+            sprintf(newline(&cp), "Invalid time in DATE-%s '%s'", dateid,
+              date+11);
+            continue;
+          }
+        } else if (date[10] == ' ') {
+          hour = 0;
+          minute = 0;
+          sec = 0.0;
+          if (parse_date(date+11, &hour, &minute, &sec)) {
+            write_date(date+10, hour, minute, sec);
+          } else {
+            date[10] = 'T';
+          }
+        }
+
+      } else if (date[4] == '/' && date[7] == '/') {
+        /* Also allow CCYY/MM/DD[Thh:mm:ss[.sss...]] */
+        if (sscanf(date, "%4d/%2d/%2d", &year, &month, &day) < 3) {
+          status = FIXERR_BAD_PARAM;
+          sprintf(newline(&cp), "Invalid DATE-%s format '%s'", dateid, date);
+          continue;
+        }
+
+        if (date[10] == 'T') {
+          if (parse_date(date+11, &hour, &minute, &sec)) {
+            status = FIXERR_BAD_PARAM;
+            sprintf(newline(&cp), "Invalid time in DATE-%s '%s'", dateid,
+              date+11);
+            continue;
+          }
+        } else if (date[10] == ' ') {
+          hour = 0;
+          minute = 0;
+          sec = 0.0;
+          if (parse_date(date+11, &hour, &minute, &sec)) {
+            write_date(date+10, hour, minute, sec);
+          } else {
+            date[10] = 'T';
+          }
+        }
+
+        /* Looks ok, fix it up. */
+        date[4]  = '-';
+        date[7]  = '-';
+
+      } else {
+        if (i == 0 && date[2] == '/' && date[5] == '/') {
+          /* Old format DATE-OBS date: DD/MM/YY, also allowing DD/MM/CCYY. */
+          if (sscanf(date, "%2d/%2d/%4d", &day, &month, &year) < 3) {
+            status = FIXERR_BAD_PARAM;
+            sprintf(newline(&cp), "Invalid DATE-%s format '%s'", dateid,
+              date);
+            continue;
+          }
+
+        } else if (i == 0 && date[2] == '-' && date[5] == '-') {
+          /* Also recognize DD-MM-YY and DD-MM-CCYY */
+          if (sscanf(date, "%2d-%2d-%4d", &day, &month, &year) < 3) {
+            status = FIXERR_BAD_PARAM;
+            sprintf(newline(&cp), "Invalid DATE-%s format '%s'", dateid,
+              date);
+            continue;
+          }
+
+        } else {
+          /* Not a valid date format. */
+          status = FIXERR_BAD_PARAM;
+          sprintf(newline(&cp), "Invalid DATE-%s format '%s'", dateid, date);
+          continue;
+        }
+
+        if (year < 100) year += 1900;
+
+        /* Doesn't have a time. */
+        sprintf(date, "%.4d-%.2d-%.2d", year, month, day);
+      }
+
+      /* Compute MJD. */
+      mjd = (double)((1461*(year - (12-month)/10 + 4712))/4
+            + (306*((month+9)%12) + 5)/10
+            - (3*((year - (12-month)/10 + 4900)/100))/4
+            + day - 2399904)
+            + (hour + (minute + sec/60.0)/60.0)/24.0;
+
+      if (undefined(*wcsmjd)) {
+        *wcsmjd = mjd;
+        sprintf(newline(&cp), "Set MJD-%s to %.6f from DATE-%s", dateid, mjd,
+          dateid);
+
+      } else {
+        /* Check for consistency. */
+        if (fabs(mjd - *wcsmjd) > 0.001) {
+          status = FIXERR_BAD_PARAM;
+          sprintf(newline(&cp),
+            "Invalid parameter values: MJD-%s and DATE-%s are inconsistent",
+            dateid, dateid);
+        }
+      }
+
+      if (i == 0) {
+        if (!undefined(wcs->jepoch)) {
+          /* Check consistency of JEPOCH. */
+          jepoch = 2000.0 + (mjd - mjd2000) / djy;
+
+          if (fabs(jepoch - wcs->jepoch) > 0.000002) {
+            /* Informational only, no error. */
+            sprintf(newline(&cp), "JEPOCH is inconsistent with DATE-OBS");
+          }
+        }
+
+        if (!undefined(wcs->bepoch)) {
+          /* Check consistency of BEPOCH. */
+          bepoch = 1900.0 + (mjd - mjd1900) / dty;
+
+          if (fabs(bepoch - wcs->bepoch) > 0.000002) {
+            /* Informational only, no error. */
+            sprintf(newline(&cp), "BEPOCH is inconsistent with DATE-OBS");
+          }
+        }
+      }
+    }
+
+    if (strncmp(orig_date, date, 72)) {
+      if (orig_date[0] == '\0') {
+        sprintf(newline(&cp), "Set DATE-%s to '%s' from MJD-%s", dateid, date,
+          dateid);
+      } else {
+        sprintf(newline(&cp), "Changed DATE-%s from '%s' to '%s'", dateid,
+          orig_date, date);
+      }
+
+      if (status == FIXERR_NO_CHANGE) status = 0;
     }
   }
 
-  if (strncmp(orig_dateobs, dateobs, 72)) {
-    wcserr_set(WCSERR_SET(FIXERR_DATE_FIX),
-      "Changed '%s' to '%s'", orig_dateobs, dateobs);
-
-    return 0;
+  if (*infomsg) {
+    wcserr_set(WCSERR_SET(FIXERR_DATE_FIX), infomsg);
   }
 
-  return FIXERR_NO_CHANGE;
+  return status;
 }
+
+/*--------------------------------------------------------------------------*/
+
+int obsfix(int ctrl, struct wcsprm *wcs)
+
+{
+  static const char *function = "obsfix";
+
+  /* IAU(1976) ellipsoid (as prescribed by WCS Paper VII). */
+  const double a = 6378140.0, f = 1.0 / 298.2577;
+  const double e2 = (2.0 - f)*f;
+
+  char   *cp, infomsg[256];
+  int    havelbh = 7, havexyz = 7, i, k, status;
+  double coslat, coslng, d, hgt, lat, lng, n, r2, rho, sinlat, sinlng, x, y,
+         z, zeta;
+  struct wcserr **err;
+
+  if (wcs == 0x0) return FIXERR_NULL_POINTER;
+  err = &(wcs->err);
+
+  /* Set masks for checking partially-defined coordinate triplets. */
+  havexyz -= 1*undefined(wcs->obsgeo[0]);
+  havexyz -= 2*undefined(wcs->obsgeo[1]);
+  havexyz -= 4*undefined(wcs->obsgeo[2]);
+  havelbh -= 1*undefined(wcs->obsgeo[3]);
+  havelbh -= 2*undefined(wcs->obsgeo[4]);
+  havelbh -= 4*undefined(wcs->obsgeo[5]);
+
+  if (ctrl == 2) {
+    /* Make no changes. */
+    if (0 < havexyz && havexyz < 7) {
+      return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
+        "Partially undefined Cartesian coordinate triplet");
+    }
+
+    if (0 < havelbh && havelbh < 7) {
+      return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
+        "Partially undefined Geodetic coordinate triplet");
+    }
+
+    if (havexyz == 0 || havelbh == 0) {
+      return FIXERR_NO_CHANGE;
+    }
+  }
+
+  if (havexyz == 0 && havelbh == 0) {
+    return FIXERR_NO_CHANGE;
+  }
+
+
+  infomsg[0] = '\0';
+  status = FIXERR_NO_CHANGE;
+
+  if (havelbh == 7) {
+    /* Compute (x,y,z) from (lng,lat,hgt). */
+    sincosd(wcs->obsgeo[3], &sinlng, &coslng);
+    sincosd(wcs->obsgeo[4], &sinlat, &coslat);
+    n = a / sqrt(1.0 - e2*sinlat*sinlat);
+    rho = n + wcs->obsgeo[5];
+
+    x = rho*coslng*coslat;
+    y = rho*sinlng*coslat;
+    z = (rho - n*e2)*sinlat;
+
+    if (havexyz < 7) {
+      /* One or more of the Cartesian elements was undefined. */
+      status = 0;
+      cp = infomsg;
+
+      if (ctrl == 1 || !(havexyz & 1)) {
+        wcs->obsgeo[0] = x;
+        sprintf(cp, "%s OBSGEO-X to %12.3f from OBSGEO-[LBH]",
+          (havexyz & 1) ? "Reset" : "Set", x);
+      }
+
+      if (ctrl == 1 || !(havexyz & 2)) {
+        wcs->obsgeo[1] = y;
+
+        if ((k = strlen(cp))) {
+          strcat(cp+k, ".\n");
+          cp += k + 2;
+        }
+
+        sprintf(cp, "%s OBSGEO-Y to %12.3f from OBSGEO-[LBH]",
+          (havexyz & 2) ? "Reset" : "Set", y);
+      }
+
+      if (ctrl == 1 || !(havexyz & 4)) {
+        wcs->obsgeo[2] = z;
+        if ((k = strlen(cp))) {
+          strcat(cp+k, ".\n");
+          cp += k + 2;
+        }
+
+        sprintf(cp, "%s OBSGEO-Z to %12.3f from OBSGEO-[LBH]",
+          (havexyz & 4) ? "Reset" : "Set", z);
+      }
+
+      wcserr_set(WCSERR_SET(FIXERR_OBSGEO_FIX), infomsg);
+
+      if (havexyz == 0) {
+        /* Skip the consistency check. */
+        return status;
+      }
+    }
+
+  } else if (havexyz == 7) {
+    /* Compute (lng,lat,hgt) from (x,y,z). */
+    x = wcs->obsgeo[0];
+    y = wcs->obsgeo[1];
+    z = wcs->obsgeo[2];
+    r2 = x*x + y*y;
+
+    /* Iterate over the value of zeta. */
+    zeta = z;
+    for (i = 0; i < 4; i++) {
+      rho = sqrt(r2 + zeta*zeta);
+      sinlat = zeta / rho;
+      n = a / sqrt(1.0 - e2*sinlat*sinlat);
+
+      zeta = z / (1.0 - n*e2/rho);
+    }
+
+    lng = atan2d(y, x);
+    lat = asind(sinlat);
+    hgt = rho - n;
+
+    if (havelbh < 7) {
+      /* One or more of the Geodetic elements was undefined. */
+      status = 0;
+      cp = infomsg;
+
+      if (ctrl == 1 || !(havelbh & 1)) {
+        wcs->obsgeo[3] = lng;
+        sprintf(cp, "%s OBSGEO-L to %12.6f from OBSGEO-[XYZ]",
+          (havelbh & 1) ? "Reset" : "Set", lng);
+      }
+
+      if (ctrl == 1 || !(havelbh & 2)) {
+        wcs->obsgeo[4] = lat;
+        if ((k = strlen(cp))) {
+          strcat(cp+k, ".\n");
+          cp += k + 2;
+        }
+
+        sprintf(cp, "%s OBSGEO-B to %12.6f from OBSGEO-[XYZ]",
+          (havelbh & 2) ? "Reset" : "Set", lat);
+      }
+
+      if (ctrl == 1 || !(havelbh & 4)) {
+        wcs->obsgeo[5] = hgt;
+        if ((k = strlen(cp))) {
+          strcat(cp+k, ".\n");
+          cp += k + 2;
+        }
+
+        sprintf(cp, "%s OBSGEO-H to %12.3f from OBSGEO-[XYZ]",
+          (havelbh & 4) ? "Reset" : "Set", hgt);
+      }
+
+      wcserr_set(WCSERR_SET(FIXERR_OBSGEO_FIX), infomsg);
+
+      if (havelbh == 0) {
+        /* Skip the consistency check. */
+        return status;
+      }
+    }
+
+    /* Compute (x,y,z) from (lng,lat,hgt) for consistency checking. */
+    sincosd(wcs->obsgeo[3], &sinlng, &coslng);
+    sincosd(wcs->obsgeo[4], &sinlat, &coslat);
+    n = a / sqrt(1.0 - e2*sinlat*sinlat);
+    rho = n + wcs->obsgeo[5];
+
+    x = rho*coslng*coslat;
+    y = rho*sinlng*coslat;
+    z = (rho - n*e2)*sinlat;
+  }
+
+
+  /* Check consistency. */
+  r2 = 0.0;
+  d = wcs->obsgeo[0] - x;
+  r2 += d*d;
+  d = wcs->obsgeo[1] - y;
+  r2 += d*d;
+  d = wcs->obsgeo[2] - z;
+  r2 += d*d;
+
+  if (1.0 < r2) {
+    d = sqrt(r2);
+    return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
+      "Observatory coordinates inconsistent by %.1f metres", d);
+  }
+
+  return status;
+}
+
 
 /*--------------------------------------------------------------------------*/
 
 int unitfix(int ctrl, struct wcsprm *wcs)
 
 {
-  int  i, k, result, status = FIXERR_NO_CHANGE;
-  char orig_unit[80], msg[WCSERR_MSG_LENGTH], msgtmp[WCSERR_MSG_LENGTH];
   const char *function = "unitfix";
+
+  int  i, msglen, result, status = FIXERR_NO_CHANGE;
+  char orig_unit[72], msg[512], msgtmp[72];
   struct wcserr **err;
 
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
   err = &(wcs->err);
 
-  strncpy(msg, "Changed units: ", WCSERR_MSG_LENGTH);
+  strncpy(msg, "Changed units:", 512);
 
   for (i = 0; i < wcs->naxis; i++) {
-    strncpy(orig_unit, wcs->cunit[i], 80);
+    strncpy(orig_unit, wcs->cunit[i], 72);
     result = wcsutrne(ctrl, wcs->cunit[i], &(wcs->err));
     if (result == 0 || result == 12) {
-      k = strlen(msg);
-      if (k < WCSERR_MSG_LENGTH-1) {
-        wcsutil_null_fill(80, orig_unit);
-        sprintf(msgtmp, "'%s' -> '%s', ", orig_unit, wcs->cunit[i]);
-        strncpy(msg+k, msgtmp, WCSERR_MSG_LENGTH-1-k);
+      msglen = strlen(msg);
+      if (msglen < 511) {
+        wcsutil_null_fill(72, orig_unit);
+        sprintf(msgtmp, "\n  '%s' -> '%s',", orig_unit, wcs->cunit[i]);
+        strncpy(msg+msglen, msgtmp, 511-msglen);
         status = FIXERR_UNITS_ALIAS;
       }
     }
@@ -466,8 +787,8 @@ int unitfix(int ctrl, struct wcsprm *wcs)
 
   if (status == FIXERR_UNITS_ALIAS) {
     /* Chop off the trailing ", ". */
-    k = strlen(msg) - 2;
-    msg[k] = '\0';
+    msglen = strlen(msg) - 2;
+    msg[msglen] = '\0';
     wcserr_set(WCSERR_SET(FIXERR_UNITS_ALIAS), msg);
 
     status = 0;

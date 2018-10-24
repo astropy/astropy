@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 5.19
+# GNU makefile for building WCSLIB 6.2
 #
 # Summary of the main targets
 # ---------------------------
@@ -32,9 +32,10 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 5.19.1.1 2018/07/26 15:41:42 mcalabre Exp mcalabre $
+# $Id: GNUmakefile,v 6.2 2018/10/20 10:03:14 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
+SUBDIR := .
 include makedefs
 
 ifeq "$(CHECK)" "nopgplot"
@@ -56,7 +57,7 @@ check tests :: show
 	-@ $(TIMER)
 	 @ for DIR in $(SUBDIRS) ; do \
 	     echo '' ; \
-	     $(MAKE) -i -C $$DIR cleaner ; \
+	     $(MAKE) -i -C $$DIR cleaner build ; \
 	   done
 	-@ echo ''
 	 @ for DIR in $(TSTDIRS) ; do \
