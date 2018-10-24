@@ -22,7 +22,128 @@ in Python. This API is described in the Astropy Proposal for Enhancements (APE) 
 
 The core astropy package provides base classes that define the low- and high-
 level APIs described in APE 14 in the :mod:`astropy.wcs.wcsapi` module, and
-these are listed below.
+these are listed in the `Reference/API`_ section below.
+
+Pixel conventions
+=================
+
+This API assumes that integer pixel values fall at the center of pixels (as
+assumed in the FITS-WCS standard, see Section 2.1.4 of `Greisen et al., 2002,
+A&A 446, 747 <https://doi.org/10.1051/0004-6361:20053818>`_), while at the same
+time matching the Python 0-index philosophy.  That is, the first pixel is
+considered pixel ``0``, but pixel coordinates ``(0, 0)`` are the *center* of
+that pixel.  Hence the first pixel spans pixel values ``-0.5`` to ``0.5``.
+
+The order of the pixel coordinates (``(x, y)`` vs ``(row, column)``) depends on
+the method or property used, and this can normally be determined from the
+property or method name. Properties and methods containing ``pixel`` assume
+``(x, y)`` ordering, while properties and methods containing ``array`` assume
+``(row, column)`` ordering.
+
+Basic usage
+===========
+
+Let's take a look at the shared Python interface for WCS by using a spectral
+cube (two celestial axes and one spectral axis)::
+
+    >>> from astropy.wcs import WCS
+    >>> from astropy.utils.data import get_pkg_data_filename
+    >>> filename = get_pkg_data_filename('l1448/l1448_13co.fits')
+    >>> wcs = WCS(filename)
+    >>> wcs
+    WCS Keywords
+    Number of WCS axes: 3
+    CTYPE : 'RA---SFL'  'DEC--SFL'  'VOPT'
+    CRVAL : 57.6599999999  0.0  -9959.44378305
+    CRPIX : -799.0  -4741.913  -187.0
+    PC1_1 PC1_2 PC1_3  : 1.0  0.0  0.0
+    PC2_1 PC2_2 PC2_3  : 0.0  1.0  0.0
+    PC3_1 PC3_2 PC3_3  : 0.0  0.0  1.0
+    CDELT : -0.006388889  0.006388889  66.42361
+    NAXIS : 105  105  53
+
+We can check how many pixel and world axes are in the transformation as well
+as the shape of the data the WCS applies to::
+
+    >>> wcs.pixel_n_dim
+    3
+    >>> wcs.world_n_dim
+    3
+    >>> wcs.array_shape
+    [105, 105, 53]
+
+Let's now check what the physical type of each axis is::
+
+    >>> wcs.world_axis_physical_types
+    ['pos.eq.ra', 'pos.eq.dec', 'spect.dopplerVeloc.opt']
+
+This is indeed a spectral cube, with RA/Dec and a velocity axis.
+
+The main part of the new interface defines standard methods for transforming
+coordinates. The most convenience way is to use the high-level methods
+:meth:`~astropy.wcs.fitswcs.BaseHighLevelWCS.pixel_to_world` and
+:meth:`~astropy.wcs.fitswcs.BaseHighLevelWCS.world_to_pixel`, which can
+transform directly to astropy objects::
+
+    >>> celestial, spectral = wcs.pixel_to_world([1, 2], [4, 3], [2, 3])
+    >>> celestial
+    <SkyCoord (FK4: equinox=B1950.000, obstime=B1950.000): (ra, dec) in deg
+        [(51.73115731, 30.32750025), (51.72414268, 30.32111136)]>
+    >>> spectral
+    <Quantity [2661.04211695, 2727.46572695] m / s>
+
+Similarly, we can transform astropy objects back::
+
+    >>> from astropy.coordinates import SkyCoord
+    >>> from astropy import units as u
+    >>> coord = SkyCoord('03h27m36.4901s +30d45m22.2012s')
+    >>> pixels = wcs.world_to_pixel(coord, 3000 * u.m / u.s)
+    >>> pixels
+    [array(79.61020554), array(43.98304923), array(7.10297292)]
+
+If you are looking to index the original data using these pixel coordinates,
+be sure to instead use
+:meth:`~astropy.wcs.fitswcs.BaseHighLevelWCS.world_to_array_index` which returns
+the coordinates in the correct order to index Numpy arrays, and also rounds to
+the nearest integer values::
+
+    >>> index = wcs.world_to_array_index(coord, 3000 * u.m / u.s)
+    >>> index
+    (7, 44, 80)
+    >>> from astropy.io import fits
+    >>> data = fits.getdata(filename)
+    >>> data[index]  # doctest +FLOAT_CMP
+    0.38972738
+
+If you are interested in converting to/from world values as simple Python scalars
+or Numpy arrays without using high-level astropy objects, there are methods
+such as :meth:`~astropy.wcs.fitswcs.BaseLowLevelWCS.pixel_to_world_values` to
+do this - see `Reference/API`_ for more details.
+
+Extending the physical types in FITS-WCS
+========================================
+
+As shown above, the :attr:`~astropy.wcs.WCS.world_axis_physical_types` property
+returns the list of physical types for each axis. For FITS-WCS, this is
+determined from the CTYPE values in the header. In cases where the physical
+type is not known, `None` is returned. However, it is possible to override the
+physical types returned by using the
+:class:`~astropy.wcs.wcsapi.fitswcs.custom_ctype_to_ucd_mapping` context
+manager. Consider a WCS with the following CTYPE::
+
+    >>> from astropy.wcs import WCS
+    >>> wcs = WCS(naxis=1)
+    >>> wcs.wcs.ctype = ['SPAM']
+    >>> wcs.world_axis_physical_types
+    [None]
+
+We can specify that for this CTYPE, the physical type should be
+``'food.spam'``::
+
+    >>> from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
+    >>> with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
+    ...     wcs.world_axis_physical_types
+    ['food.spam']
 
 Reference/API
 =============
