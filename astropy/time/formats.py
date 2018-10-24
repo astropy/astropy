@@ -23,7 +23,7 @@ __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeDeltaFormat', 'TimeDeltaSec', 'TimeDeltaJD',
            'TimeEpochDateString', 'TimeBesselianEpochString',
            'TimeJulianEpochString', 'TIME_FORMATS', 'TIME_DELTA_FORMATS',
-           'TimezoneInfo', 'TimeDeltaDatetime']
+           'TimezoneInfo', 'TimeDeltaDatetime', 'TimeDatetime64']
 
 __doctest_skip__ = ['TimePlotDate']
 
@@ -967,6 +967,33 @@ class TimeYearDayTime(TimeISO):
                ('date',
                 '%Y:%j',
                 '{year:d}:{yday:03d}'))
+
+
+class TimeDatetime64(TimeISOT):
+    name = 'datetime64'
+
+    def _check_val_type(self, val1, val2):
+        # Note: don't care about val2 for this class`
+        if not val1.dtype.kind == 'M':
+            raise TypeError('Input values for {0} class must be '
+                            'datetime64 objects'.format(self.name))
+        return val1, None
+
+    def set_jds(self, val1, val2):
+        if val1.dtype.name in ['datetime64[M]', 'datetime64[Y]']:
+            val1 = val1.astype('datetime64[D]')
+
+        val1 = val1.astype('S')
+
+        super().set_jds(val1, val2)
+
+    @property
+    def value(self):
+        precision = self.precision
+        self.precision = 9
+        ret = super().value
+        self.precision = precision
+        return ret.astype('datetime64')
 
 
 class TimeFITS(TimeString):

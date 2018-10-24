@@ -186,6 +186,8 @@ astropy.time
   These methods are similar to those in the Python standard library
   `time` package and provide flexible input and output formatting. [#7323]
 
+- Added ``datetime64`` format to the ``Time`` class to support working with
+  ``numpy.datetime64`` dtype arrays. [#7361]
 
 astropy.units
 ^^^^^^^^^^^^^
