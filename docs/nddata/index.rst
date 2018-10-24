@@ -424,6 +424,7 @@ Using ``nddata``
    utils.rst
    decorator.rst
    nddata.rst
+   bitmask.rst
    mixins/index.rst
    subclassing.rst
 

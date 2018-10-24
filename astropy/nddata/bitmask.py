@@ -6,7 +6,6 @@ A module that provides functions for manipulating bitmasks and data quality
 
 import sys
 import warnings
-import six
 import numpy as np
 
 
@@ -63,7 +62,7 @@ def interpret_bit_flags(bit_flags, flip_bits=None):
         for input of `str` type, prepend '~' to the input string. '~' must
         be prepended to the *entire string* and not to each bit flag! For
         input that is already a bitmask or a Python list of bit flags, set
-        `flip_bits` for `True` in order to flip the bits of the returned
+        ``flip_bits`` for `True` in order to flip the bits of the returned
         bitmask.
 
     Parameters
@@ -71,24 +70,24 @@ def interpret_bit_flags(bit_flags, flip_bits=None):
     bit_flags : int, str, list, None
         An integer bitmask or flag, `None`, a string of comma- or
         '+'-separated list of integer bit flags, or a Python list of integer
-        bit flags. If `bit_flags` is a `str` and if it is prepended with '~',
+        bit flags. If ``bit_flags`` is a `str` and if it is prepended with '~',
         then the output bitmask will have its bits flipped (compared to simple
-        sum of input flags). For input `bit_flags` that is already a bitmask
+        sum of input flags). For input ``bit_flags`` that is already a bitmask
         or a Python list of bit flags, bit-flipping can be controlled through
-        `flip_bits` parameter.
+        ``flip_bits`` parameter.
 
     flip_bits : bool, None
         Indicates whether or not to flip the bits of the returned bitmask
         obtained from input bit flags. This parameter must be set to `None`
-        when input `bit_flags` is either `None` or a Python list of flags.
+        when input ``bit_flags`` is either `None` or a Python list of flags.
 
     Returns
     -------
     bitmask : int or None
-        Returns and integer bit mask formed from the input bit value
-        or `None` if input `bit_flags` parameter is `None` or an empty string.
-        If input string value was prepended with '~' (or `flip_bits` was
-        set to `True`), then returned value will have its bits flipped
+        Returns and integer bit mask formed from the input bit value or `None`
+        if input ``bit_flags`` parameter is `None` or an empty string.
+        If input string value was prepended with '~' (or ``flip_bits`` was set
+        to `True`), then returned value will have its bits flipped
         (inverse mask).
 
     Examples
@@ -123,7 +122,7 @@ def interpret_bit_flags(bit_flags, flip_bits=None):
             )
         return None
 
-    elif isinstance(bit_flags, six.string_types):
+    elif isinstance(bit_flags, str):
         if has_flip_bits:
             raise TypeError(
                 "Keyword argument 'flip_bits' is not permitted for "
@@ -207,10 +206,10 @@ def interpret_bit_flags(bit_flags, flip_bits=None):
 
 
 def bitfield_to_boolean_mask(bitfield, ignore_flags=0, flip_bits=None,
-                             good_mask_value=True, dtype=np.bool_):
+                             good_mask_value=False, dtype=np.bool_):
     """
     bitfield_to_boolean_mask(bitfield, ignore_flags=None, flip_bits=None, \
-good_mask_value=True, dtype=numpy.bool\_)
+good_mask_value=False, dtype=numpy.bool_)
     Converts an array of bit fields to a boolean (or integer) mask array
     according to a bitmask constructed from the supplied bit flags (see
     ``ignore_flags`` parameter).
@@ -252,7 +251,7 @@ good_mask_value=True, dtype=numpy.bool\_)
             non-zero elements in the input ``bitfield`` array are to be
             interpreted as "bad".
 
-        | When ``ignore_flags`` argument is an Python list of integer bit
+        | When ``ignore_flags`` argument is a Python list of integer bit
           flags, these flags are added together to create an integer bitmask.
           Each item in the list must be a flag, i.e., an integer that is an
           integer power of 2. In order to flip the bits of the resultant
@@ -318,22 +317,23 @@ good_mask_value=True, dtype=numpy.bool\_)
             `None` or a string list of flags, ``flip_bits`` **MUST** be set
             to `None`.
 
-    good_mask_value : int, bool (Default = True)
+    good_mask_value : int, bool (Default = False)
         This parameter is used to derive the values that will be assigned to
         the elements in the output boolean mask array that correspond to the
         "good" bit fields (that are 0 after zeroing bits specified by
         ``ignore_flags``) in the input ``bitfield`` array. When
-        ``good_mask_value`` is non-zero or `True` then values in the output
-        boolean mask array corresponding to "good" bit fields in ``bitfield``
-        will be `True` (if ``dtype`` is `numpy.bool_`) or 1 (if ``dtype`` is
-        of numerical type) and values of corresponding to "bad" flags will be
-        `False` (or 0). When ``good_mask_value`` is zero or `False` then the
-        values in the output boolean mask array corresponding to "good" bit
-        fields in ``bitfield`` will be `False` (if ``dtype`` is `numpy.bool_`)
-        or 0 (if ``dtype`` is of numerical type) and values of corresponding
-        to "bad" flags will be `True` (or 1).
+        ``good_mask_value`` is non-zero or ``numpy.True_`` then values in the
+        output boolean mask array corresponding to "good" bit fields in
+        ``bitfield`` will be ``numpy.True_`` (if ``dtype`` is ``numpy.bool_``)
+        or 1 (if ``dtype`` is of numerical type) and values of corresponding
+        to "bad" flags will be ``numpy.False_`` (or 0). When
+        ``good_mask_value`` is zero or ``numpy.False_`` then the values
+        in the output boolean mask array corresponding to "good" bit fields
+        in ``bitfield`` will be ``numpy.False_`` (if ``dtype`` is
+        ``numpy.bool_``) or 0 (if ``dtype`` is of numerical type) and values
+        of corresponding to "bad" flags will be ``numpy.True_`` (or 1).
 
-    dtype : data-type (Default = numpy.bool\_)
+    dtype : data-type (Default = ``numpy.bool_``)
         The desired data-type for the output binary mask array.
 
     Returns
@@ -341,9 +341,9 @@ good_mask_value=True, dtype=numpy.bool\_)
     mask : numpy.ndarray
         Returns an array of the same dimensionality as the input ``bitfield``
         array whose elements can have two possible values,
-        e.g., `True` or `False` (or 1 or 0 for integer ``dtype``) according to
-        values of to the input ``bitfield`` elements, ``ignore_flags``
-        parameter, and the ``good_mask_value`` parameter.
+        e.g., ``numpy.True_`` or ``numpy.False_`` (or 1 or 0 for integer ``dtype``)
+        according to values of to the input ``bitfield`` elements,
+        ``ignore_flags`` parameter, and the ``good_mask_value`` parameter.
 
     Examples
     --------
