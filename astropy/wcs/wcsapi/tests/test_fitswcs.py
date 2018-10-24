@@ -152,6 +152,18 @@ def test_simple_celestial():
     assert_equal(i, 39)
     assert_equal(j, 29)
 
+    # Check that we can actually index the array
+
+    data = np.arange(3600).reshape((60, 60))
+
+    coord = SkyCoord(10, 20, unit='deg', frame='icrs')
+    index = wcs.world_to_array_index(coord)
+    assert_equal(data[index], 2369)
+
+    coord = SkyCoord([10, 12], [20, 22], unit='deg', frame='icrs')
+    index = wcs.world_to_array_index(coord)
+    assert_equal(data[index], [2369, 3550])
+
 
 ###############################################################################
 # The following example is a spectral cube with axes in an unusual order
