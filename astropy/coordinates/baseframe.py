@@ -774,6 +774,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         # This exists as a class method only to support handling frame inputs
         # without units, which are deprecated and will be removed.  This can be
         # moved into the representation_info property at that time.
+        # note that if so moved, the cache should be acceessed as
+        # self.__class__._frame_class_cache
 
         if cls._frame_class_cache.get('last_reprdiff_hash', None) != r.get_reprdiff_cls_hash():
             repr_attrs = {}
