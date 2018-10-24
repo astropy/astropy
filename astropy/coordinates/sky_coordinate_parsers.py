@@ -39,51 +39,60 @@ def _get_frame_class(frame):
         frame_cls = frame
 
     else:
-        raise ValueError('Coordinate frame must be a frame name or frame class')
+        raise ValueError("Coordinate frame must be a frame name or frame "
+                         "class, not a '{0}'".format(frame.__class__.__name__))
 
     return frame_cls
 
 
+_conflict_err_msg = ("Coordinate attribute '{0}'={1!r} conflicts with keyword "
+                     "argument '{0}'={2!r}. This usually means an attribute "
+                     "was set on one of the input objects and also in the "
+                     "keyword arguments to {3}")
+
+
 def _get_frame_without_data(args, kwargs):
     """
-    Determine the coordinate frame from input SkyCoord args and kwargs.  This
-    modifies args and/or kwargs in-place to remove the item that provided
-    `frame`.  It also infers the frame if an input coordinate was provided and
-    checks for conflicts.
+    Determines the coordinate frame from input SkyCoord args and kwargs.
 
-    # TODO:
-    This allows for frame to be specified as a string like 'icrs' or a frame
-    class like ICRS, but not an instance ICRS() since the latter could have
-    non-default representation attributes which would require a three-way merge.
+    This function extracts (removes) all frame attributes from the kwargs and
+    determines the frame class either using the kwargs, or using the first
+    element in the args (if a single frame object is passed in, for example).
+    This function allows a frame to be specified as a string like 'icrs' or a
+    frame class like ICRS, or an instance ICRS(), as long as the instance frame
+    attributes don't conflict with kwargs passed in (which could require a
+    three-way merge with the coordinate data possibly specified via the args).
     """
     from .sky_coordinate import SkyCoord
 
+    # We eventually (hopefully) fill and return these by extracting the frame
+    # and frame attributes from the input:
+    frame_cls = None
+    frame_cls_kwargs = {}
+
+    # The first place to check: the frame could be specified explicitly
     frame = kwargs.pop('frame', None)
 
-    # Short-circuit:
-    # If a frame instance or class is passed in, and no other arguments or
-    # kwargs (i.e. frame attributes) are specified, just use that frame:
-    if (frame is not None and len(args) == 0 and len(kwargs) == 0):
-        if isinstance(frame, BaseCoordinateFrame):
-            return frame
-        elif inspect.isclass(frame) and issubclass(frame, BaseCoordinateFrame):
-            return frame()
-
-    frame_cls = None
-
-    # Now we check whether the frame has been specified explicitly:
     if frame is not None:
+        # Here the frame was explicitly passed in as a keyword argument.
+
         # If the frame is an instance or SkyCoord, we extract the attributes
         # and split the instance into the frame class and an attributes dict
+
         if isinstance(frame, SkyCoord):
-            # Copy any extra attributes if they are not explicitly given.
+            # If the frame was passed as a SkyCoord, we also want to preserve
+            # any extra attributes (e.g., obstime) if they are not already
+            # specified in the kwargs. We preserve these extra attributes by
+            # adding them to the kwargs dict:
             for attr in frame._extra_frameattr_names:
                 if (attr in kwargs and
                         np.any(getattr(frame, attr) != kwargs[attr])):
-                    raise ValueError("Coordinate attribute '{0}'={1!r} conflicts with "
-                                     "keyword argument '{0}'={2!r}"
+                    # This SkyCoord attribute passed in with the frame= object
+                    # conflicts with an attribute passed in directly to the
+                    # SkyCoord initializer as a kwarg:
+                    raise ValueError(_conflict_err_msg
                                      .format(attr, getattr(frame, attr),
-                                             kwargs[attr]))
+                                             kwargs[attr], 'SkyCoord'))
                 else:
                     kwargs[attr] = getattr(frame, attr)
             frame = frame.frame
@@ -106,7 +115,8 @@ def _get_frame_without_data(args, kwargs):
 
             frame_cls = frame.__class__
 
-            # Make sure we propagate representation/differential _type choices:
+            # Make sure we propagate representation/differential _type choices,
+            # unless these are specified directly in the kwargs:
             kwargs.setdefault('representation_type', frame.representation_type)
             kwargs.setdefault('differential_type', frame.differential_type)
 
@@ -171,9 +181,9 @@ def _get_frame_without_data(args, kwargs):
 
     # By now, frame_cls should be set - if it's not, something went wrong
     if not issubclass(frame_cls, BaseCoordinateFrame):
-        raise ValueError('TODO') # TODO: how did we get here?
-
-    frame_cls_kwargs = {}
+        # We should hopefully never get here...
+        raise ValueError('Frame class has unexpected type: {0}'
+                         .format(frame_cls.__name__))
 
     for attr in frame_cls.frame_attributes:
         if attr in kwargs:
@@ -195,12 +205,16 @@ def _get_frame_without_data(args, kwargs):
 
 def _parse_coordinate_data(frame, args, kwargs):
     """
-    Assemble a validated and sanitized keyword args dict for instantiating a
-    SkyCoord and coordinate object from the provided `args`, and `kwargs`.
+    Extract coordinate data from the args and kwargs passed to SkyCoord.
+
+    By this point, we assume that all of the frame attributes have been
+    extracted from kwargs (see _get_frame_without_data()), so all that are left
+    are (1) extra SkyCoord attributes, and (2) the coordinate data, specified in
+    any of the valid ways.
     """
     valid_skycoord_kwargs = {}
     valid_components = {}
-    info = None # TODO: return all 3
+    info = None
 
     # Look through the remaining kwargs to see if any are valid attribute names
     # by asking the frame transform graph:
@@ -209,13 +223,15 @@ def _parse_coordinate_data(frame, args, kwargs):
         if attr in frame_transform_graph.frame_attributes:
             valid_skycoord_kwargs[attr] = kwargs.pop(attr)
 
-    # TODO: at this point, anything left should be data!
+    # By this point in parsing the arguments, anything left in the args and
+    # kwargs should be data. Either as individual components, or a list of
+    # objects, or a representation, etc.
 
-    # Get units
+    # Get units of components
     units = _get_representation_component_units(args, kwargs)
 
     # Grab any frame-specific attr names like `ra` or `l` or `distance` from
-    # kwargs and migrate to valid_kwargs.
+    # kwargs and move them to valid_components.
     valid_components.update(_get_representation_attrs(frame, units, kwargs))
 
     # Error if anything is still left in kwargs
@@ -251,10 +267,10 @@ def _parse_coordinate_data(frame, args, kwargs):
     # or SkyCoord object)
     if args:
         if len(args) == 1:
-            # One arg which must be a coordinate.  In this case
-            # coord_kwargs will contain keys like 'ra', 'dec', 'distance'
-            # along with any frame attributes like equinox or obstime which
-            # were explicitly specified in the coordinate object (i.e. non-default).
+            # One arg which must be a coordinate.  In this case coord_kwargs
+            # will contain keys like 'ra', 'dec', 'distance' along with any
+            # frame attributes like equinox or obstime which were explicitly
+            # specified in the coordinate object (i.e. non-default).
             _skycoord_kwargs, _components = _parse_coordinate_arg(
                 args[0], frame, units, kwargs)
 
@@ -278,23 +294,27 @@ def _parse_coordinate_data(frame, args, kwargs):
             raise ValueError('Must supply no more than three positional arguments, got {}'
                              .format(len(args)))
 
-        # Copy the coord_kwargs into the final valid_kwargs dict.  For each
-        # of the coord_kwargs ensure that there is no conflict with a value
-        # specified by the user in the original kwargs.
+        # The next two loops copy the component and skycoord attribute data into
+        # their final, respective "valid_" dictionaries. For each, we check that
+        # there are no relevant conflicts with values specified by the user
+        # through other means:
+
+        # First validate the component data
         for attr, coord_value in _components.items():
             if attr in valid_components:
-                raise ValueError("Coordinate attribute '{0}'={1!r} conflicts with "
-                                 "keyword argument '{0}'={2!r}"
-                                 .format(attr, coord_value, valid_components[attr]))
+                raise ValueError(_conflict_err_msg
+                                 .format(attr, coord_value,
+                                         valid_components[attr], 'SkyCoord'))
             valid_components[attr] = coord_value
 
-        # TODO: explain me
+        # Now validate the custom SkyCoord attributes
         for attr, value in _skycoord_kwargs.items():
             if (attr in valid_skycoord_kwargs and
                     np.any(valid_skycoord_kwargs[attr] != value)):
-                raise ValueError("Coordinate attribute '{0}'={1!r} conflicts with "
-                                 "keyword argument '{0}'={2!r}"
-                                 .format(attr, value, valid_skycoord_kwargs[attr]))
+                raise ValueError(_conflict_err_msg
+                                 .format(attr, value,
+                                         valid_skycoord_kwargs[attr],
+                                         'SkyCoord'))
             valid_skycoord_kwargs[attr] = value
 
     return valid_skycoord_kwargs, valid_components, info
