@@ -35,12 +35,10 @@ class Ticks(Line2D):
         if ticksize is None:
             ticksize = rcParams['xtick.major.size']
         self.set_ticksize(ticksize)
-        self.set_tick_out(rcParams.get('xtick.direction', 'in') == 'out')
+        self.set_tick_out(rcParams['xtick.direction'] == 'out')
         self.clear()
         line2d_kwargs = {'color': rcParams['xtick.color'],
-                         # For the linewidth we need to set a default since old versions of
-                         # matplotlib don't have this.
-                         'linewidth': rcParams.get('xtick.major.width', 1)}
+                         'linewidth': rcParams['xtick.major.width']}
         line2d_kwargs.update(kwargs)
         Line2D.__init__(self, [0.], [0.], **line2d_kwargs)
         self.set_visible_axes('all')
@@ -69,6 +67,13 @@ class Ticks(Line2D):
         set length of the ticks in points.
         """
         self._ticksize = ticksize
+
+    @property
+    def out_size(self):
+        if self._tick_out:
+            return self._ticksize
+        else:
+            return 0.
 
     def get_ticksize(self):
         """

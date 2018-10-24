@@ -5,6 +5,7 @@ from collections import defaultdict
 
 import numpy as np
 
+from matplotlib import rcParams
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
@@ -391,6 +392,9 @@ class WCSAxes(Axes):
                     self.coords[coord_index].set_axislabel_position('')
                     self.coords[coord_index].set_ticklabel_position('')
                     self.coords[coord_index].set_ticks_position('')
+
+        if rcParams['axes.grid']:
+            self.grid()
 
     def draw_wcsaxes(self, renderer):
 
