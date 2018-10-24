@@ -34,6 +34,10 @@ astropy.coordinates
 - Added a ``concatenate_representations`` function to combine coordinate
   representation data and any associated differentials. [#7922]
 
+- Some rarely-changed attributes of frame classes are now cached, resulting in
+  speedups (of order 50% in some cases) when creating new scalar frame or
+  ``SkyCoord`` objects. [#7949]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
