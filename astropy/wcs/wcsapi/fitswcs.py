@@ -195,10 +195,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     def world_to_array_index_values(self, *world_arrays):
         pixel_arrays = self.all_world2pix(*world_arrays, 0)[::-1]
         array_indices = tuple(np.asarray(np.floor(pixel + 0.5), dtype=np.int) for pixel in pixel_arrays)
-        if len(array_indices) == 1:
-            return array_indices[0]
-        else:
-            return array_indices
+        return array_indices
 
     @property
     def world_axis_object_components(self):
