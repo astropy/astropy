@@ -18,7 +18,7 @@ from astropy_helpers import setup_helpers
 from astropy_helpers.distutils_helpers import get_distutils_build_option
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
-WCSVERSION = "5.19.1"
+WCSVERSION = "6.2.0"
 
 
 def b(s):

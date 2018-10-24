@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.19 - an implementation of the FITS WCS standard.
+  WCSLIB 6.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
+  $Id: wcspih.l,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -102,7 +102,7 @@ INLINE " "*(\/.*)?
 /* Exclusive start states. */
 %x CCia CCi_ja CCCCCia CCi_ma CCCCCCCa CCCCCCCC
 %x CROTAi PROJPn SIP2 SIP3 DSSAMDXY PLTDECSN
-%x VALUE INTEGER_VAL FLOAT_VAL STRING_VAL
+%x VALUE INTEGER_VAL FLOAT_VAL FLOAT2_VAL STRING_VAL
 %x RECORD_VAL RECFIELD RECCOLON RECVALUE RECEND
 %x COMMENT
 %x DISCARD ERROR FLUSH
@@ -124,8 +124,9 @@ INLINE " "*(\/.*)?
 
 #define INTEGER 0
 #define FLOAT   1
-#define STRING  2
-#define RECORD  3
+#define FLOAT2  2
+#define STRING  3
+#define RECORD  4
 
 #define PRIOR   1
 #define SEQUENT 2
@@ -182,18 +183,25 @@ int wcspih(
 	}
 
 /* These global variables are required by YY_INPUT. */
-char *wcspih_hdr;
-int  wcspih_nkeyrec;
+static char *wcspih_hdr;
+static int  wcspih_nkeyrec;
 
-int wcspih_final(int ndp[], int ndq[], int distran, double dsstmp[],
-        char *wat[], int *nwcs, struct wcsprm **wcs);
-int wcspih_inits(int naxis, int alts[], int dpq[], int npv[], int nps[],
-        int ndp[], int ndq[], int distran, int *nwcs, struct wcsprm **wcs);
-void wcspih_naxes(int naxis, int i, int j, char a, int distype, int alts[],
-        int dpq[], int *npptr);
+/* Internal helper functions. */
+static int wcspih_final(int ndp[], int ndq[], int distran, double dsstmp[],
+             char *wat[], int *nwcs, struct wcsprm **wcs);
+static int wcspih_inits(int naxis, int alts[], int dpq[], int npv[],
+             int nps[], int ndp[], int ndq[], int distran, int *nwcs,
+	     struct wcsprm **wcs);
+static void wcspih_naxes(int naxis, int i, int j, char a, int distype,
+             int alts[], int dpq[], int *npptr);
 
-int wcspih_epoch(double *wptr, double epoch);
-int wcspih_vsource(double *wptr, double vsource);
+static int wcspih_jdref(double *wptr,   const double *jdref);
+static int wcspih_jdrefi(double *wptr,  const double *jdrefi);
+static int wcspih_jdreff(double *wptr,  const double *jdreff);
+static int wcspih_epoch(double *wptr,   const double *epoch);
+static int wcspih_vsource(double *wptr, const double *vsource);
+
+static int wcspih_timepixr(double timepixr);
 
 /* Used in preempting the call to exit() by yy_fatal_error(). */
 jmp_buf wcspih_abort_jmp_env;
@@ -212,11 +220,12 @@ jmp_buf wcspih_abort_jmp_env;
 	     ialt, inttmp, ipass, ipx, ix, jx, naxis, ndp[27], ndq[27],
 	     nother, *npptr, nps[27], npass, npv[27], nvalid, rectype,
 	     sipflag, status, valtype, voff, watflag, watn;
-	double dbltmp, dsstmp[20];
+	double dbltmp, dbl2tmp[2], dsstmp[20];
 	void *vptr, *wptr;
 	struct disprm *disp, distem;
 	struct wcsprm *wcsp, wcstem;
-	int (*special)(double *, double);
+	int (*chekval)(double);
+	int (*special)(double *, const double *);
 	
 	naxis = 0;
 	for (ialt = 0; ialt < 27; ialt++) {
@@ -258,6 +267,7 @@ jmp_buf wcspih_abort_jmp_env;
 	/* For keywords that require special handling. */
 	altlin  = 0;
 	npptr   = 0x0;
+	chekval = 0x0;
 	special = 0x0;
 	distran = 0;
 	sipflag = 0;
@@ -459,6 +469,31 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(CCi_ma);
 	}
 
+^VELREF{ALT}" " {
+	  sscanf(yytext, "VELREF%c", &a);
+	
+	  if (relax & WCSHDR_strict) {
+	    errmsg = "the VELREF keyword is deprecated, use SPECSYSa";
+	    BEGIN(ERROR);
+	
+	  } else if (a == ' ' || relax & WCSHDR_VELREFa) {
+	    valtype = INTEGER;
+	    vptr    = &(wcstem.velref);
+	
+	    unput(a);
+	
+	    keyname = "VELREF";
+	    BEGIN(CCCCCCCa);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "VELREF keyword may not have an alternate version code";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
 ^CNAME	{
 	  valtype = STRING;
 	  vptr    = &(wcstem.cname);
@@ -483,12 +518,136 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(CCCCCia);
 	}
 
-^DATE-AVG {
-	  valtype = STRING;
-	  vptr    = wcstem.dateavg;
-	  if (ctrl < -10) keep = keyrec;
+^CZPHS	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.czphs);
 	
-	  keyname = "DATE-AVG";
+	  keyname = "CZPHSia";
+	  BEGIN(CCCCCia);
+	}
+
+^CPERI	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.cperi);
+	
+	  keyname = "CPERIia";
+	  BEGIN(CCCCCia);
+	}
+
+^WCSNAME {
+	  valtype = STRING;
+	  vptr    = wcstem.wcsname;
+	
+	  keyname = "WCSNAMEa";
+	  BEGIN(CCCCCCCa);
+	}
+
+^TIMESYS" " {
+	  valtype = STRING;
+	  vptr    = wcstem.timesys;
+	
+	  keyname = "TIMESYS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TREFPOS" " {
+	  valtype = STRING;
+	  vptr    = wcstem.trefpos;
+	
+	  keyname = "TREFPOS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TREFDIR" " {
+	  valtype = STRING;
+	  vptr    = wcstem.trefdir;
+	
+	  keyname = "TREFDIR";
+	  BEGIN(CCCCCCCC);
+	}
+
+^PLEPHEM" " {
+	  valtype = STRING;
+	  vptr    = wcstem.plephem;
+	
+	  keyname = "PLEPHEM";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TIMEUNIT {
+	  valtype = STRING;
+	  vptr    = wcstem.timeunit;
+	
+	  keyname = "TIMEUNIT";
+	  BEGIN(CCCCCCCC);
+	}
+
+^DATEREF" " {
+	  valtype = STRING;
+	  vptr    = wcstem.dateref;
+	
+	  keyname = "DATEREF";
+	  BEGIN(CCCCCCCC);
+	}
+
+^MJDREF"  " {
+	  valtype = FLOAT2;
+	  vptr    = wcstem.mjdref;
+	
+	  keyname = "MJDREF";
+	  BEGIN(CCCCCCCC);
+	}
+
+^MJDREFI" " {
+	  /* Actually integer, but treated as float. */
+	  valtype = FLOAT;
+	  vptr    = wcstem.mjdref;
+	
+	  keyname = "MJDREFI";
+	  BEGIN(CCCCCCCC);
+	}
+
+^MJDREFF" " {
+	  valtype = FLOAT;
+	  vptr    = wcstem.mjdref + 1;
+	
+	  keyname = "MJDREFF";
+	  BEGIN(CCCCCCCC);
+	}
+
+^JDREF"   " {
+	  valtype = FLOAT2;
+	  vptr    = wcstem.mjdref;
+	  special = wcspih_jdref;
+	
+	  keyname = "JDREF";
+	  BEGIN(CCCCCCCC);
+	}
+
+^JDREFI"  " {
+	  /* Actually integer, but treated as float. */
+	  valtype = FLOAT;
+	  vptr    = wcstem.mjdref;
+	  special = wcspih_jdrefi;
+	
+	  keyname = "JDREFI";
+	  BEGIN(CCCCCCCC);
+	}
+
+^JDREFF"  " {
+	  valtype = FLOAT;
+	  vptr    = wcstem.mjdref;
+	  special = wcspih_jdreff;
+	
+	  keyname = "JDREFF";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TIMEOFFS {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.timeoffs);
+	
+	  keyname = "TIMEOFFS";
 	  BEGIN(CCCCCCCC);
 	}
 
@@ -499,6 +658,249 @@ jmp_buf wcspih_abort_jmp_env;
 	
 	  keyname = "DATE-OBS";
 	  BEGIN(CCCCCCCC);
+	}
+
+^DATE-BEG {
+	  valtype = STRING;
+	  vptr    = wcstem.datebeg;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "DATE-BEG";
+	  BEGIN(CCCCCCCC);
+	}
+
+^DATE-AVG {
+	  valtype = STRING;
+	  vptr    = wcstem.dateavg;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "DATE-AVG";
+	  BEGIN(CCCCCCCC);
+	}
+
+^DATE-END {
+	  valtype = STRING;
+	  vptr    = wcstem.dateend;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "DATE-END";
+	  BEGIN(CCCCCCCC);
+	}
+
+^MJD-OBS" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.mjdobs);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "MJD-OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^MJD-BEG" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.mjdbeg);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "MJD-BEG";
+	  BEGIN(CCCCCCCC);
+	}
+
+^MJD-AVG" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.mjdavg);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "MJD-AVG";
+	  BEGIN(CCCCCCCC);
+	}
+
+^MJD-END" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.mjdend);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "MJD-END";
+	  BEGIN(CCCCCCCC);
+	}
+
+^JEPOCH"  " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.jepoch);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "JEPOCH";
+	  BEGIN(CCCCCCCC);
+	}
+
+^BEPOCH"  " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.bepoch);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "BEPOCH";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TSTART"  " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.tstart);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "TSTART";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TSTOP"   " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.tstop);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "TSTOP";
+	  BEGIN(CCCCCCCC);
+	}
+
+^XPOSURE" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.xposure);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "XPOSURE";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TELAPSE" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.telapse);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "TELAPSE";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TIMSYER" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.timsyer);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "TIMSYER";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TIMRDER" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.timrder);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "TIMRDER";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TIMEDEL" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.timedel);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "TIMEDEL";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TIMEPIXR {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.timepixr);
+	  chekval = wcspih_timepixr;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "TIMEPIXR";
+	  BEGIN(CCCCCCCC);
+	}
+
+^OBSGEO-X {
+	  valtype = FLOAT;
+	  vptr    = wcstem.obsgeo;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "OBSGEO-X";
+	  BEGIN(CCCCCCCC);
+	}
+
+^OBSGEO-Y {
+	  valtype = FLOAT;
+	  vptr    = wcstem.obsgeo + 1;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "OBSGEO-Y";
+	  BEGIN(CCCCCCCC);
+	}
+
+^OBSGEO-Z {
+	  valtype = FLOAT;
+	  vptr    = wcstem.obsgeo + 2;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "OBSGEO-Z";
+	  BEGIN(CCCCCCCC);
+	}
+
+^OBSGEO-L {
+	  valtype = FLOAT;
+	  vptr    = wcstem.obsgeo + 3;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "OBSGEO-L";
+	  BEGIN(CCCCCCCC);
+	}
+
+^OBSGEO-B {
+	  valtype = FLOAT;
+	  vptr    = wcstem.obsgeo + 4;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "OBSGEO-B";
+	  BEGIN(CCCCCCCC);
+	}
+
+^OBSGEO-H {
+	  valtype = FLOAT;
+	  vptr    = wcstem.obsgeo + 5;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "OBSGEO-H";
+	  BEGIN(CCCCCCCC);
+	}
+
+^OBSORBIT {
+	  valtype = STRING;
+	  vptr    = wcstem.obsorbit;
+	
+	  keyname = "OBSORBIT";
+	  BEGIN(CCCCCCCC);
+	}
+
+^RADESYS {
+	  valtype = STRING;
+	  vptr    = wcstem.radesys;
+	
+	  keyname = "RADESYSa";
+	  BEGIN(CCCCCCCa);
+	}
+
+^RADECSYS {
+	  if (relax & WCSHDR_RADECSYS) {
+	    valtype = STRING;
+	    vptr    = wcstem.radesys;
+	
+	    unput(' ');
+	
+	    keyname = "RADECSYS";
+	    BEGIN(CCCCCCCa);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the RADECSYS keyword is deprecated, use RADESYSa";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
 	}
 
 ^EPOCH{ALT}"  " {
@@ -535,83 +937,6 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(CCCCCCCa);
 	}
 
-^MJD-AVG" " {
-	  valtype = FLOAT;
-	  vptr    = &(wcstem.mjdavg);
-	
-	  if (ctrl < -10) keep = keyrec;
-	
-	  keyname = "MJD-AVG";
-	  BEGIN(CCCCCCCC);
-	}
-
-^MJD-OBS" " {
-	  valtype = FLOAT;
-	  vptr    = &(wcstem.mjdobs);
-	
-	  if (ctrl < -10) keep = keyrec;
-	
-	  keyname = "MJD-OBS";
-	  BEGIN(CCCCCCCC);
-	}
-
-^OBSGEO-X {
-	  valtype = FLOAT;
-	  vptr    = wcstem.obsgeo;
-	
-	  if (ctrl < -10) keep = keyrec;
-	
-	  keyname = "OBSGEO-X";
-	  BEGIN(CCCCCCCC);
-	}
-
-^OBSGEO-Y {
-	  valtype = FLOAT;
-	  vptr    = wcstem.obsgeo + 1;
-	
-	  if (ctrl < -10) keep = keyrec;
-	
-	  keyname = "OBSGEO-Y";
-	  BEGIN(CCCCCCCC);
-	}
-
-^OBSGEO-Z {
-	  valtype = FLOAT;
-	  vptr    = wcstem.obsgeo + 2;
-	
-	  if (ctrl < -10) keep = keyrec;
-	
-	  keyname = "OBSGEO-Z";
-	  BEGIN(CCCCCCCC);
-	}
-
-^RADESYS {
-	  valtype = STRING;
-	  vptr    = wcstem.radesys;
-	
-	  keyname = "RADESYSa";
-	  BEGIN(CCCCCCCa);
-	}
-
-^RADECSYS {
-	  if (relax & WCSHDR_RADECSYS) {
-	    valtype = STRING;
-	    vptr    = wcstem.radesys;
-	
-	    unput(' ');
-	
-	    keyname = "RADECSYS";
-	    BEGIN(CCCCCCCa);
-	
-	  } else if (relax & WCSHDR_reject) {
-	    errmsg = "the RADECSYS keyword is deprecated, use RADESYSa";
-	    BEGIN(ERROR);
-	
-	  } else {
-	    BEGIN(DISCARD);
-	  }
-	}
-
 ^SPECSYS {
 	  valtype = STRING;
 	  vptr    = wcstem.specsys;
@@ -628,53 +953,12 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(CCCCCCCa);
 	}
 
-^SSYSSRC {
-	  valtype = STRING;
-	  vptr    = wcstem.ssyssrc;
-	
-	  keyname = "SSYSSRCa";
-	  BEGIN(CCCCCCCa);
-	}
-
-^VELANGL {
-	  valtype = FLOAT;
-	  vptr    = &(wcstem.velangl);
-	
-	  keyname = "VELANGLa";
-	  BEGIN(CCCCCCCa);
-	}
-
 ^VELOSYS {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.velosys);
 	
 	  keyname = "VELOSYSa";
 	  BEGIN(CCCCCCCa);
-	}
-
-^VELREF{ALT}" " {
-	  sscanf(yytext, "VELREF%c", &a);
-	
-	  if (relax & WCSHDR_strict) {
-	    errmsg = "the VELREF keyword is deprecated, use SPECSYSa";
-	    BEGIN(ERROR);
-	
-	  } else if (a == ' ' || relax & WCSHDR_VELREFa) {
-	    valtype = INTEGER;
-	    vptr    = &(wcstem.velref);
-	
-	    unput(a);
-	
-	    keyname = "VELREF";
-	    BEGIN(CCCCCCCa);
-	
-	  } else if (relax & WCSHDR_reject) {
-	    errmsg = "VELREF keyword may not have an alternate version code";
-	    BEGIN(ERROR);
-	
-	  } else {
-	    BEGIN(DISCARD);
-	  }
 	}
 
 ^VSOURCE{ALT} {
@@ -697,19 +981,27 @@ jmp_buf wcspih_abort_jmp_env;
 	  }
 	}
 
-^WCSNAME {
-	  valtype = STRING;
-	  vptr    = wcstem.wcsname;
-	
-	  keyname = "WCSNAMEa";
-	  BEGIN(CCCCCCCa);
-	}
-
 ^ZSOURCE {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.zsource);
 	
 	  keyname = "ZSOURCEa";
+	  BEGIN(CCCCCCCa);
+	}
+
+^SSYSSRC {
+	  valtype = STRING;
+	  vptr    = wcstem.ssyssrc;
+	
+	  keyname = "SSYSSRCa";
+	  BEGIN(CCCCCCCa);
+	}
+
+^VELANGL {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.velangl);
+	
+	  keyname = "VELANGLa";
 	  BEGIN(CCCCCCCa);
 	}
 
@@ -1515,6 +1807,8 @@ jmp_buf wcspih_abort_jmp_env;
 	      BEGIN(INTEGER_VAL);
 	    } else if (valtype == FLOAT) {
 	      BEGIN(FLOAT_VAL);
+	    } else if (valtype == FLOAT2) {
+	      BEGIN(FLOAT2_VAL);
 	    } else if (valtype == STRING) {
 	      BEGIN(STRING_VAL);
 	    } else if (valtype == RECORD) {
@@ -1557,12 +1851,34 @@ jmp_buf wcspih_abort_jmp_env;
 	  } else {
 	    /* Read the keyvalue. */
 	    wcsutil_str2double(yytext, &dbltmp);
+
+	    if (chekval && chekval(dbltmp)) {
+	      errmsg = "invalid keyvalue";
+	      BEGIN(ERROR);
+	    } else {
+	      BEGIN(COMMENT);
+	    }
+	  }
+	}
+
+<FLOAT_VAL>. {
+	  errmsg = "a floating-point value was expected";
+	  BEGIN(ERROR);
+	}
+
+<FLOAT2_VAL>{FLOAT} {
+	  if (ipass == 1) {
+	    BEGIN(COMMENT);
+	
+	  } else {
+	    /* Read the keyvalue as integer and fractional parts. */
+	    wcsutil_str2double2(yytext, dbl2tmp);
 	
 	    BEGIN(COMMENT);
 	  }
 	}
 
-<FLOAT_VAL>. {
+<FLOAT2_VAL>. {
 	  errmsg = "a floating-point value was expected";
 	  BEGIN(ERROR);
 	}
@@ -1762,7 +2078,7 @@ jmp_buf wcspih_abort_jmp_env;
 	            }
 	
 	            if (special) {
-	              special(wptr, dbltmp);
+	              special(wptr, &dbltmp);
 	            } else {
 	              *((double *)wptr) = dbltmp;
 	            }
@@ -1771,6 +2087,15 @@ jmp_buf wcspih_abort_jmp_env;
 	            if (altlin) {
 	              wcsp->altlin |= altlin;
 	              altlin = 0;
+	            }
+	
+	          } else if (valtype == FLOAT2) {
+	            /* Split MJDREF and JDREF into integer and fraction.*/
+	            if (special) {
+	              special(wptr, dbl2tmp);
+	            } else {
+	              *((double *)wptr) = dbl2tmp[0];
+	              *((double *)wptr + 1) = dbl2tmp[1];
 	            }
 	
 	          } else if (valtype == STRING) {
@@ -1908,6 +2233,7 @@ jmp_buf wcspih_abort_jmp_env;
 	
 	  altlin  = 0;
 	  npptr   = 0x0;
+	  chekval = 0x0;
 	  special = 0x0;
 	  sipflag = 0;
 	  dssflag = 0;
@@ -1957,6 +2283,7 @@ jmp_buf wcspih_abort_jmp_env;
 	
 	    altlin  = 0;
 	    npptr   = 0x0;
+	    chekval = 0x0;
 	    special = 0x0;
 	    sipflag = 0;
 	    dssflag = 0;
@@ -2184,15 +2511,60 @@ int wcspih_inits(
 
 
 /*----------------------------------------------------------------------------
+* Interpret the JDREF, JDREFI, and JDREFF keywords.
+*---------------------------------------------------------------------------*/
+
+int wcspih_jdref(double *mjdref, const double *jdref)
+
+{
+  /* Set MJDREF from JDREF. */
+  if (undefined(mjdref[0] && undefined(mjdref[1]))) {
+    mjdref[0] = jdref[0] - 2400000.0;
+    mjdref[1] = jdref[1] - 0.5;
+
+    if (mjdref[1] < 0.0) {
+      mjdref[0] -= 1.0;
+      mjdref[1] += 1.0;
+    }
+  }
+
+  return 0;
+}
+
+int wcspih_jdrefi(double *mjdref, const double *jdrefi)
+
+{
+  /* Set the integer part of MJDREF from JDREFI. */
+  if (undefined(mjdref[0])) {
+    mjdref[0] = *jdrefi - 2400000.5;
+  }
+
+  return 0;
+}
+
+
+int wcspih_jdreff(double *mjdref, const double *jdreff)
+
+{
+  /* Set the fractional part of MJDREF from JDREFF. */
+  if (undefined(mjdref[1])) {
+    mjdref[1] = *jdreff;
+  }
+
+  return 0;
+}
+
+
+/*----------------------------------------------------------------------------
 * Interpret EPOCHa keywords.
 *---------------------------------------------------------------------------*/
 
-int wcspih_epoch(double *equinox, double epoch)
+int wcspih_epoch(double *equinox, const double *epoch)
 
 {
   /* If EQUINOXa is currently undefined then set it from EPOCHa. */
   if (undefined(*equinox)) {
-    *equinox = epoch;
+    *equinox = *epoch;
   }
 
   return 0;
@@ -2203,7 +2575,7 @@ int wcspih_epoch(double *equinox, double epoch)
 * Interpret VSOURCEa keywords.
 *---------------------------------------------------------------------------*/
 
-int wcspih_vsource(double *zsource, double vsource)
+int wcspih_vsource(double *zsource, const double *vsource)
 
 {
   double beta, c = 299792458.0;
@@ -2211,11 +2583,22 @@ int wcspih_vsource(double *zsource, double vsource)
   /* If ZSOURCEa is currently undefined then set it from VSOURCEa. */
   if (undefined(*zsource)) {
     /* Convert relativistic Doppler velocity to redshift. */
-    beta = vsource/c;
+    beta = *vsource/c;
     *zsource = (1.0 + beta)/sqrt(1.0 - beta*beta) - 1.0;
   }
 
   return 0;
+}
+
+
+/*----------------------------------------------------------------------------
+* Check validity of a TIMEPIXR keyvalue.
+*---------------------------------------------------------------------------*/
+
+int wcspih_timepixr(double timepixr)
+
+{
+  return (timepixr < 0.0 || 1.0 < timepixr);
 }
 
 

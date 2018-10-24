@@ -1208,3 +1208,53 @@ def test_cunit():
     # Comparison is not implemented TypeError will raise
     with pytest.raises(TypeError):
         w1.wcs.cunit < w2.wcs.cunit
+
+
+class TestWcsWithTime:
+    def setup(self):
+        fname = get_pkg_data_filename(
+            'data/header_with_time.fits')
+        self.header = fits.Header.fromfile(fname)
+        self.w = wcs.WCS(self.header, key='A')
+
+    def test_keywods2wcsprm(self):
+        """ Make sure Wcsprm is populated correctly from the header."""
+
+        ctype = [self.header[val] for val in self.header["CTYPE*"]]
+        crval = [self.header[val] for val in self.header["CRVAL*"]]
+        crpix = [self.header[val] for val in self.header["CRPIX*"]]
+        cdelt = [self.header[val] for val in self.header["CDELT*"]]
+        cunit = [self.header[val] for val in self.header["CUNIT*"]]
+        assert list(self.w.wcs.ctype) == ctype
+        assert list(self.w.wcs.axis_types) == [2200, 2201, 3300, 0]
+        assert_allclose(self.w.wcs.crval, crval)
+        assert_allclose(self.w.wcs.crpix, crpix)
+        assert_allclose(self.w.wcs.cdelt, cdelt)
+        assert list(self.w.wcs.cunit) == cunit
+
+        naxis = self.w.naxis
+        assert naxis == 4
+        pc = np.zeros((naxis, naxis), dtype=np.float64)
+        for i in range(1, 5):
+            for j in range(1, 5):
+                if i == j:
+                    pc[i-1, j-1] = self.header.get('PC{}_{}A'.format(i, j), 1)
+                else:
+                    pc[i-1, j-1] = self.header.get('PC{}_{}A'.format(i, j), 0)
+        assert_allclose(self.w.wcs.pc, pc)
+
+        char_keys = ['timesys', 'trefpos', 'trefdir', 'plephem', 'timeunit',
+                     'dateref', 'dateobs', 'datebeg', 'dateavg', 'dateend']
+        for key in char_keys:
+            assert getattr(self.w.wcs, key) == self.header.get(key, "")
+
+        num_keys = ['mjdref', 'mjdobs', 'mjdbeg', 'mjdend',
+                    'jepoch', 'bepoch', 'tstart', 'tstop', 'xposure',
+                    'timsyer', 'timrder', 'timedel', 'timepixr',
+                    'timeoffs', 'telapse', 'czphs', 'cperi']
+
+        for key in num_keys:
+            assert_allclose(getattr(self.w.wcs, key), self.header.get(key, np.nan))
+
+    def test_transforms(self):
+        assert_allclose(self.w.all_pix2world(*self.w.wcs.crpix, 1), self.w.wcs.crval)

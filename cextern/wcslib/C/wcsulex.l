@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.19 - an implementation of the FITS WCS standard.
+  WCSLIB 6.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsulex.l,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
+  $Id: wcsulex.l,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
 *=============================================================================
 *
 * wcsulex.l is a Flex description file containing the definition of a
@@ -71,7 +71,7 @@ ADD_SUP	  a|yr|pc|bit|[bB]yte
 ADD_SUB	  mag
 
 /* Additional recognized units for which NO metric prefixes are allowed. */
-GENERAL	  deg|arcmin|arcsec|mas|d|h|min|erg|Ry|u|D
+GENERAL	  deg|arcmin|arcsec|mas|turn|min|h|d|cy|erg|Ry|u|D
 ASTRO	  [Aa]ngstrom|AU|lyr|beam|solRad|solMass|solLum|Sun
 DEVICE	  adu|bin|chan|count|ct|photon|ph|pixel|pix|voxel
 ADD_NONE  {GENERAL}|{ASTRO}|{DEVICE}
@@ -435,7 +435,7 @@ sqrt" "*"(" {
 	}
 
 <UNITS>a|yr {
-	  /* Year (annum). */
+	  /* Julian year (annum). */
 	  factor *= 31557600.0;
 	  types[WCSUNITS_TIME] += 1.0;
 	  BEGIN(EXPON);
@@ -528,6 +528,13 @@ sqrt" "*"(" {
 <UNITS>count|ct {
 	  /* Count. */
 	  types[WCSUNITS_COUNT] += 1.0;
+	  BEGIN(EXPON);
+	}
+
+<UNITS>cy {
+	  /* Julian century. */
+	  factor *= 3155760000.0;
+	  types[WCSUNITS_TIME] += 1.0;
 	  BEGIN(EXPON);
 	}
 
@@ -817,6 +824,13 @@ sqrt" "*"(" {
 	  types[WCSUNITS_MASS]   += 1.0;
 	  types[WCSUNITS_TIME]   += 1.0;
 	  types[WCSUNITS_CHARGE] -= 1.0;
+	  BEGIN(EXPON);
+	}
+
+<UNITS>turn {
+	  /* Turn. */
+	  factor *= 360.0;
+	  types[WCSUNITS_PLANE_ANGLE] += 1.0;
 	  BEGIN(EXPON);
 	}
 
