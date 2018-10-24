@@ -353,12 +353,12 @@ good_mask_value=False, dtype=numpy.bool_)
         ...                      [10, 4, 0, 0, 0, 16, 6, 0]])
         >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=0,
         ...                                  dtype=int)
-        array([[1, 1, 0, 0, 1, 0, 0, 1],
-               [0, 0, 1, 1, 1, 0, 0, 1]])
+        array([[0, 0, 1, 1, 0, 1, 1, 0],
+               [1, 1, 0, 0, 0, 1, 1, 0]])
         >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=0,
         ...                                  dtype=bool)
-        array([[ True,  True, False, False,  True, False, False,  True],
-               [False, False,  True,  True,  True, False, False,  True]]...)
+        array([[False, False,  True,  True, False,  True,  True, False],
+               [ True,  True, False, False, False,  True,  True, False]])
         >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=6,
         ...                                  good_mask_value=0, dtype=int)
         array([[0, 0, 1, 0, 0, 1, 1, 0],
