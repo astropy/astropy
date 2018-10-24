@@ -37,6 +37,10 @@ astropy.coordinates
 
 - Added a ``concatenate_representations`` function to combine coordinate
   representation data and any associated differentials. [#7922]
+- ``BaseCoordinateFrame`` will now check for a method named
+  ``_astropy_repr_in_frame`` when constructing the string forms of attributes.
+  Allowing any class to control how ``BaseCoordinateFrame`` represents it when
+  it is an attribute of a frame. [#7745]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
