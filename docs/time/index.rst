@@ -157,9 +157,9 @@ that derives from the base :class:`~astropy.time.TimeFormat` class.
 This class structure can be easily adapted and extended by users for
 specialized time formats not supplied in `astropy.time`.
 
-===========  =================================================  ==============================
+===========  =================================================  =====================================
 Format            Class                                         Example argument
-===========  =================================================  ==============================
+===========  =================================================  =====================================
 byear        :class:`~astropy.time.TimeBesselianEpoch`          1950.0
 byear_str    :class:`~astropy.time.TimeBesselianEpochString`    'B1950.0'
 cxcsec       :class:`~astropy.time.TimeCxcSec`                  63072064.184
@@ -176,7 +176,8 @@ mjd          :class:`~astropy.time.TimeMJD`                     51544.0
 plot_date    :class:`~astropy.time.TimePlotDate`                730120.0003703703
 unix         :class:`~astropy.time.TimeUnix`                    946684800.0
 yday         :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:00.000
-===========  =================================================  ==============================
+datetime64   :class:`~astropy.time.TimeDatetime64`              np.datetime64('2000-01-01T01:01:01')
+===========  =================================================  =====================================
 
 .. note:: The :class:`~astropy.time.TimeFITS` format implements most
    of the FITS standard [#]_, including support for the ``LOCAL`` timescale.
@@ -1302,8 +1303,8 @@ that can be parsed with Python standard library `time.strptime`
   >>> t
   <Time object: scale='utc' format='isot' value=2015-06-30T23:59:60.000>
 
-.. note that if this section gets too long, it should be moved to a separate 
-   doc page - see the top of performance.inc.rst for the instructions on how to do 
+.. note that if this section gets too long, it should be moved to a separate
+   doc page - see the top of performance.inc.rst for the instructions on how to do
    that
 .. include:: performance.inc.rst
 
