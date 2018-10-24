@@ -87,7 +87,7 @@ transform directly to astropy objects::
 
     >>> celestial, spectral = wcs.pixel_to_world([1, 2], [4, 3], [2, 3])
     >>> celestial
-    <SkyCoord (FK4: equinox=B1950.000, obstime=B1950.000): (ra, dec) in deg
+    <SkyCoord (ICRS): (ra, dec) in deg
         [(51.73115731, 30.32750025), (51.72414268, 30.32111136)]>
     >>> spectral
     <Quantity [2661.04211695, 2727.46572695] m / s>
@@ -96,10 +96,10 @@ Similarly, we can transform astropy objects back::
 
     >>> from astropy.coordinates import SkyCoord
     >>> from astropy import units as u
-    >>> coord = SkyCoord('03h27m36.4901s +30d45m22.2012s')
+    >>> coord = SkyCoord('03h26m36.4901s +30d45m22.2012s')
     >>> pixels = wcs.world_to_pixel(coord, 3000 * u.m / u.s)
     >>> pixels
-    [array(79.61020554), array(43.98304923), array(7.10297292)]
+    [array(8.11341207), array(71.0956641), array(7.10297292)]
 
 If you are looking to index the original data using these pixel coordinates,
 be sure to instead use
@@ -109,11 +109,11 @@ the nearest integer values::
 
     >>> index = wcs.world_to_array_index(coord, 3000 * u.m / u.s)
     >>> index
-    (7, 44, 80)
+    (7, 71, 8)
     >>> from astropy.io import fits
     >>> data = fits.getdata(filename)
     >>> data[index]  # doctest +FLOAT_CMP
-    0.38972738
+    0.22262384
 
 If you are interested in converting to/from world values as simple Python scalars
 or Numpy arrays without using high-level astropy objects, there are methods
