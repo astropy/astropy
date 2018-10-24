@@ -11,7 +11,8 @@ Performance Tips
 Here we provide some tips and tricks for how to optimize performance of code
 using `astropy.coordinates`.
 
-Use broadcasting to transform many SkyCoords into frames with vector properties
+Use broadcasting to transform |skycoord| objects into frames with vector properties.  For example:
+
  >>> from astropy.coordinates import SkyCoord, EarthLocation
  >>> from astropy import coordinates as coord
  >>> from astropy.coordinates.tests.utils import randomly_sample_sphere
