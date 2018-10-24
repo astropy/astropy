@@ -316,6 +316,9 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- Add two new uncertainty classes, ``astropy.nddata.VarianceUncertainty`` and
+  ``astropy.nddata.InverseVariance``. [#6971]
+
 astropy.samp
 ^^^^^^^^^^^^
 
