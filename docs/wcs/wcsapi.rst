@@ -81,8 +81,8 @@ This is indeed a spectral cube, with RA/Dec and a velocity axis.
 
 The main part of the new interface defines standard methods for transforming
 coordinates. The most convenience way is to use the high-level methods
-:meth:`~astropy.wcs.fitswcs.BaseHighLevelWCS.pixel_to_world` and
-:meth:`~astropy.wcs.fitswcs.BaseHighLevelWCS.world_to_pixel`, which can
+:meth:`~astropy.wcs.wcsapi.BaseHighLevelWCS.pixel_to_world` and
+:meth:`~astropy.wcs.wcsapi.BaseHighLevelWCS.world_to_pixel`, which can
 transform directly to astropy objects::
 
     >>> celestial, spectral = wcs.pixel_to_world([1, 2], [4, 3], [2, 3])  # doctest: +REMOTE_DATA
@@ -103,7 +103,7 @@ Similarly, we can transform astropy objects back::
 
 If you are looking to index the original data using these pixel coordinates,
 be sure to instead use
-:meth:`~astropy.wcs.fitswcs.BaseHighLevelWCS.world_to_array_index` which returns
+:meth:`~astropy.wcs.wcsapi.BaseHighLevelWCS.world_to_array_index` which returns
 the coordinates in the correct order to index Numpy arrays, and also rounds to
 the nearest integer values::
 
@@ -117,7 +117,7 @@ the nearest integer values::
 
 If you are interested in converting to/from world values as simple Python scalars
 or Numpy arrays without using high-level astropy objects, there are methods
-such as :meth:`~astropy.wcs.fitswcs.BaseLowLevelWCS.pixel_to_world_values` to
+such as :meth:`~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_to_world_values` to
 do this - see `Reference/API`_ for more details.
 
 Extending the physical types in FITS-WCS
