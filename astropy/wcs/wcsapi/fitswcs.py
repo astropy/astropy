@@ -122,6 +122,10 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         return len(self.wcs.ctype)
 
     @property
+    def array_shape(self):
+        return self._naxis
+
+    @property
     def world_axis_physical_types(self):
         types = []
         for axis_type in self.axis_type_names:
