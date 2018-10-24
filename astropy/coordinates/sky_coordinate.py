@@ -251,11 +251,13 @@ class SkyCoord(ShapedLikeNDArray):
             # kwargs dict for initializing attributes for this object and for
             # creating the internal self._sky_coord_frame object
             args = list(args)  # Make it mutable
-            # kwargs = self._parse_inputs(frame, args, kwargs)
             skycoord_kwargs, components, info = _parse_coordinate_data(
-                frame_cls(**frame_kwargs), args, kwargs) # TODO: temp hack
+                frame_cls(**frame_kwargs), args, kwargs)
 
-            # TODO: any remaining kwargs...
+            # In the above two parsing functions, these kwargs were identified
+            # as valid frame attributes for *some* frame, but not the frame that
+            # this SkyCoord will have. We keep these attributes as special
+            # skycoord frame attributes:
             for attr in skycoord_kwargs:
                 # Setting it will also validate it.
                 setattr(self, attr, skycoord_kwargs[attr])
