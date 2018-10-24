@@ -38,7 +38,6 @@ class TestFrame(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='custom_frame.png',
                                    tolerance=0, style={})
     def test_custom_frame(self):
 
@@ -80,7 +79,6 @@ class TestFrame(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='update_clip_path_rectangular.png',
                                    tolerance=0, style={})
     def test_update_clip_path_rectangular(self, tmpdir):
 
@@ -104,7 +102,6 @@ class TestFrame(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='update_clip_path_nonrectangular.png',
                                    tolerance=0, style={})
     def test_update_clip_path_nonrectangular(self, tmpdir):
 
@@ -129,7 +126,6 @@ class TestFrame(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='update_clip_path_change_wcs.png',
                                    tolerance=0, style={})
     def test_update_clip_path_change_wcs(self, tmpdir):
 
