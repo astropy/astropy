@@ -19,10 +19,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
-- The ``SkyCoord.from_name`` constructor now has the ability to create 
-  coordinate objects by parsing object catalogue names that have embedded 
+- The ``SkyCoord.from_name`` constructor now has the ability to create
+  coordinate objects by parsing object catalogue names that have embedded
   J-coordinates.  [#7830]
-  
+
 - The new function ``make_transform_graph_docs`` can be used to create a
   docstring graph from a custom ``TransformGraph`` object. [#7135]
 
@@ -224,6 +224,11 @@ astropy.visualization
 
 - Allow ``coord_meta=`` in WCSAxes to optionally include ``format_unit=``.
   [#7848]
+
+- WCSAxes now recognizes more rcParams related to the grid, ticks, and labels, and
+  should work with most built-in Matplotlib styles. [#7961]
+
+- Improved rendering of WCSAxes with outward-facing ticks. [#7961]
 
 astropy.wcs
 ^^^^^^^^^^^

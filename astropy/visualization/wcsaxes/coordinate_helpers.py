@@ -87,7 +87,7 @@ class CoordinateHelper:
         self.ticklabels = TickLabels(self.frame,
                                      transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
-        self.ticks.display_minor_ticks(False)
+        self.ticks.display_minor_ticks(rcParams['xtick.minor.visible'])
         self.minor_frequency = 5
 
         # Initialize axis labels
@@ -116,7 +116,7 @@ class CoordinateHelper:
                                   'edgecolor': rcParams['grid.color'],
                                   'linestyle': lines_to_patches_linestyle[rcParams['grid.linestyle']],
                                   'linewidth': rcParams['grid.linewidth'],
-                                  'alpha': rcParams.get('grid.alpha', 1.0),
+                                  'alpha': rcParams['grid.alpha'],
                                   'transform': self.parent_axes.transData}
 
     def grid(self, draw_grid=True, grid_type=None, **kwargs):
@@ -521,7 +521,8 @@ class CoordinateHelper:
 
         self.ticks.draw(renderer, ticks_locs)
         self.ticklabels.draw(renderer, bboxes=bboxes,
-                             ticklabels_bbox=ticklabels_bbox)
+                             ticklabels_bbox=ticklabels_bbox,
+                             tick_out_size=self.ticks.out_size)
 
         renderer.close_group('ticks')
 
