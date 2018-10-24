@@ -70,7 +70,7 @@ as the shape of the data the WCS applies to::
     >>> wcs.world_n_dim
     3
     >>> wcs.array_shape
-    [105, 105, 53]
+    [53, 105, 105]
 
 Let's now check what the physical type of each axis is::
 
