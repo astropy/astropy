@@ -223,6 +223,7 @@ class SkyCoord(ShapedLikeNDArray):
             coords = args[0]
             if isinstance(coords, SkyCoord):
                 self._extra_frameattr_names = coords._extra_frameattr_names
+                self.info = coords.info
 
                 # Copy over any extra frame attributes
                 for attr_name in self._extra_frameattr_names:
