@@ -28,6 +28,7 @@ class Ticks(Line2D):
     * `xtick.direction`
     * `xtick.major.size`
     * `xtick.major.width`
+    * `xtick.minor.size`
     * `xtick.color`
     """
 
@@ -35,12 +36,11 @@ class Ticks(Line2D):
         if ticksize is None:
             ticksize = rcParams['xtick.major.size']
         self.set_ticksize(ticksize)
-        self.set_tick_out(rcParams.get('xtick.direction', 'in') == 'out')
+        self.set_minor_ticksize(rcParams['xtick.minor.size'])
+        self.set_tick_out(rcParams['xtick.direction'] == 'out')
         self.clear()
         line2d_kwargs = {'color': rcParams['xtick.color'],
-                         # For the linewidth we need to set a default since old versions of
-                         # matplotlib don't have this.
-                         'linewidth': rcParams.get('xtick.major.width', 1)}
+                         'linewidth': rcParams['xtick.major.width']}
         line2d_kwargs.update(kwargs)
         Line2D.__init__(self, [0.], [0.], **line2d_kwargs)
         self.set_visible_axes('all')
@@ -75,6 +75,25 @@ class Ticks(Line2D):
         Return length of the ticks in points.
         """
         return self._ticksize
+
+    def set_minor_ticksize(self, ticksize):
+        """
+        set length of the minor ticks in points.
+        """
+        self._minor_ticksize = ticksize
+
+    def get_minor_ticksize(self):
+        """
+        Return length of the minor ticks in points.
+        """
+        return self._minor_ticksize
+
+    @property
+    def out_size(self):
+        if self._tick_out:
+            return self._ticksize
+        else:
+            return 0.
 
     def set_visible_axes(self, visible_axes):
         self._visible_axes = visible_axes
@@ -139,7 +158,7 @@ class Ticks(Line2D):
         offset = renderer.points_to_pixels(self.get_ticksize())
         self._draw_ticks(renderer, self.pixel, self.angle, offset, ticks_locs)
         if self._display_minor_ticks:
-            offset = offset * 0.5  # for minor ticksize
+            offset = renderer.points_to_pixels(self.get_minor_ticksize())
             self._draw_ticks(renderer, self.minor_pixel, self.minor_angle, offset, ticks_locs)
 
     def _draw_ticks(self, renderer, pixel_array, angle_array, offset, ticks_locs):
