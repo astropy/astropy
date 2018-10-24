@@ -48,9 +48,9 @@ cube (two celestial axes and one spectral axis)::
 
     >>> from astropy.wcs import WCS
     >>> from astropy.utils.data import get_pkg_data_filename
-    >>> filename = get_pkg_data_filename('l1448/l1448_13co.fits')
-    >>> wcs = WCS(filename)
-    >>> wcs
+    >>> filename = get_pkg_data_filename('l1448/l1448_13co.fits')  # doctest: +REMOTE_DATA
+    >>> wcs = WCS(filename)  # doctest: +REMOTE_DATA
+    >>> wcs  # doctest: +REMOTE_DATA
     WCS Keywords
     Number of WCS axes: 3
     CTYPE : 'RA---SFL'  'DEC--SFL'  'VOPT'
@@ -65,16 +65,16 @@ cube (two celestial axes and one spectral axis)::
 We can check how many pixel and world axes are in the transformation as well
 as the shape of the data the WCS applies to::
 
-    >>> wcs.pixel_n_dim
+    >>> wcs.pixel_n_dim  # doctest: +REMOTE_DATA
     3
-    >>> wcs.world_n_dim
+    >>> wcs.world_n_dim  # doctest: +REMOTE_DATA
     3
-    >>> wcs.array_shape
+    >>> wcs.array_shape  # doctest: +REMOTE_DATA
     [53, 105, 105]
 
 Let's now check what the physical type of each axis is::
 
-    >>> wcs.world_axis_physical_types
+    >>> wcs.world_axis_physical_types  # doctest: +REMOTE_DATA
     ['pos.eq.ra', 'pos.eq.dec', 'spect.dopplerVeloc.opt']
 
 This is indeed a spectral cube, with RA/Dec and a velocity axis.
@@ -85,11 +85,11 @@ coordinates. The most convenience way is to use the high-level methods
 :meth:`~astropy.wcs.fitswcs.BaseHighLevelWCS.world_to_pixel`, which can
 transform directly to astropy objects::
 
-    >>> celestial, spectral = wcs.pixel_to_world([1, 2], [4, 3], [2, 3])
-    >>> celestial
+    >>> celestial, spectral = wcs.pixel_to_world([1, 2], [4, 3], [2, 3])  # doctest: +REMOTE_DATA
+    >>> celestial  # doctest: +REMOTE_DATA
     <SkyCoord (ICRS): (ra, dec) in deg
         [(51.73115731, 30.32750025), (51.72414268, 30.32111136)]>
-    >>> spectral
+    >>> spectral  # doctest: +REMOTE_DATA
     <Quantity [2661.04211695, 2727.46572695] m / s>
 
 Similarly, we can transform astropy objects back::
@@ -97,8 +97,8 @@ Similarly, we can transform astropy objects back::
     >>> from astropy.coordinates import SkyCoord
     >>> from astropy import units as u
     >>> coord = SkyCoord('03h26m36.4901s +30d45m22.2012s')
-    >>> pixels = wcs.world_to_pixel(coord, 3000 * u.m / u.s)
-    >>> pixels
+    >>> pixels = wcs.world_to_pixel(coord, 3000 * u.m / u.s)  # doctest: +REMOTE_DATA
+    >>> pixels  # doctest: +REMOTE_DATA
     [array(8.11341207), array(71.0956641), array(7.10297292)]
 
 If you are looking to index the original data using these pixel coordinates,
@@ -107,12 +107,12 @@ be sure to instead use
 the coordinates in the correct order to index Numpy arrays, and also rounds to
 the nearest integer values::
 
-    >>> index = wcs.world_to_array_index(coord, 3000 * u.m / u.s)
-    >>> index
+    >>> index = wcs.world_to_array_index(coord, 3000 * u.m / u.s)  # doctest: +REMOTE_DATA
+    >>> index  # doctest: +REMOTE_DATA
     (7, 71, 8)
     >>> from astropy.io import fits
-    >>> data = fits.getdata(filename)
-    >>> data[index]  # doctest +FLOAT_CMP
+    >>> data = fits.getdata(filename)  # doctest: +REMOTE_DATA
+    >>> data[index]  # doctest: +REMOTE_DATA +FLOAT_CMP
     0.22262384
 
 If you are interested in converting to/from world values as simple Python scalars
