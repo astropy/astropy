@@ -275,6 +275,9 @@ astropy.coordinates
 - Fixed ``astropy.coordinates.concatenate`` to include velocity data in the
   concatenation. [#7922]
 
+- Changed the name of the single argument to ``Frame.realize_frame()`` from the
+  (incorrect) ``representation_type`` to ``data``. [#7923]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -602,10 +605,6 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
-
-- Changed the name of the single argument to ``Frame.realize_frame()`` from the
-  (incorrect) ``representation_type`` back to its pre-3.0 name
-  ``representation``. [#7923]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
