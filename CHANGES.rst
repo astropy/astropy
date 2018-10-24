@@ -216,6 +216,9 @@ astropy.visualization
 - Allow ``coord_meta=`` in WCSAxes to optionally include ``format_unit=``.
   [#7848]
 
+- WCSAxes now recognizes more rcParams related to the grid, ticks, and labels, and
+  should work with most built-in Matplotlib styles.
+
 astropy.wcs
 ^^^^^^^^^^^
 
