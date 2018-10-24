@@ -234,7 +234,7 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
 _norm_sig = inspect.signature(ImageNormalize)
 
 
-def imshow_norm(data, ax=None, **kwargs):
+def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
     """ A convenience function to call matplotlib's `matplotlib.pyplot.imshow`
     function, using an `ImageNormalize` object as the normalization.
 
@@ -246,9 +246,15 @@ def imshow_norm(data, ax=None, **kwargs):
     ax : None or `~matplotlib.axes.Axes`
         If None, use pyplot's imshow.  Otherwise, calls ``imshow`` method of the
         supplied axes.
+    imshow_only_kwargs : dict
+        Arguments to be passed directly to `~matplotlib.pyplot.imshow` without
+        first trying `ImageNormalize`.  This is only for keywords that have the
+        same name in both `ImageNormalize` and `~matplotlib.pyplot.imshow` - if
+        you want to set the `~matplotlib.pyplot.imshow` keywords only, supply
+        them in this dictionary.
 
     All other keyword arguments are parsed first by the `ImageNormalize`
-    initializer, then to ``imshow``.
+    initializer, then to`~matplotlib.pyplot.imshow`.
 
     Notes
     -----
@@ -269,14 +275,13 @@ def imshow_norm(data, ax=None, **kwargs):
         if pname in kwargs:
             norm_kwargs[pname] = imshow_kwargs.pop(pname)
 
-    # now re-assign any "_mpl" keywords to their equivalents
-    for pname in tuple(imshow_kwargs):
-        if pname.endswith('_mpl'):
-            if pname[:-4] in imshow_kwargs:
-                raise ValueError('Gave both {} and {}, but the latter is not an'
-                                 ' ImageNormalize keyword.'.format(pname[:-4],
-                                                                   pname))
-            imshow_kwargs[pname[:-4]] = imshow_kwargs.pop(pname)
+    for k, v in imshow_only_kwargs.items():
+        if k not in _norm_sig.parameters:
+            raise ValueError('Provided a keyword to imshow_only_kwargs ({}) '
+                             'that is not a keyword for ImageNormalize. This is'
+                             ' not supported, you should pass the keyword'
+                             'directly into imshow_norm instead'.format(k))
+        imshow_kwargs[k] = v
 
     imshow_kwargs['norm'] = ImageNormalize(**norm_kwargs)
 
