@@ -28,6 +28,7 @@ from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
 # making a custom timescale in the documentation.
 from .formats import TimeFromEpoch  # pylint: disable=W0611
 
+from ..extern import _strptime
 
 __all__ = ['Time', 'TimeDelta', 'TIME_SCALES', 'STANDARD_TIME_SCALES', 'TIME_DELTA_SCALES',
            'ScaleValueError', 'OperandTypeError', 'TimeInfo']
@@ -518,8 +519,10 @@ class Time(ShapedLikeNDArray):
                              op_dtypes=[time_array.dtype, 'U30'])
 
         for time, formatted in iterator:
-            time_tuple = strptime(to_string(time), format_string)
-            formatted[...] = '{:04}-{}-{}T{}:{}:{}'.format(*time_tuple)
+            tt, fraction = _strptime._strptime(to_string(time), format_string)
+            time_tuple = tt[:6] + (fraction,)
+            formatted[...] = '{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:06}'\
+                .format(*time_tuple)
 
         format = kwargs.pop('format', None)
         out = cls(*iterator.operands[1:], format='isot', **kwargs)
@@ -608,7 +611,11 @@ class Time(ShapedLikeNDArray):
             datetime_tuple = (sk['year'], sk['mon'], sk['day'],
                               sk['hour'], sk['min'], sk['sec'],
                               date_tuple[6], date_tuple[7], -1)
-            formatted_strings.append(strftime(format_spec, datetime_tuple))
+            fmtd_str = format_spec
+            if '%f' in fmtd_str:
+                fmtd_str = fmtd_str.replace('%f', '{frac:0{precision}}'.format(frac=sk['fracsec'], precision=self.precision))
+            fmtd_str = strftime(fmtd_str, datetime_tuple)
+            formatted_strings.append(fmtd_str)
 
         if self.isscalar:
             return formatted_strings[0]
