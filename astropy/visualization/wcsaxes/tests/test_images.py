@@ -59,7 +59,7 @@ class TestBasic(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   tolerance=1.5)
+                                   tolerance=1.5, style={})
     @pytest.mark.parametrize('axisbelow', [True, False, 'line'])
     def test_axisbelow(self, axisbelow):
         # Test that tick marks, labels, and gridlines are drawn with the
