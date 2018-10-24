@@ -775,7 +775,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         # without units, which are deprecated and will be removed.  This can be
         # moved into the representation_info property at that time.
 
-        if '_representation_info' not in cls._frame_class_cache:
+        if cls._frame_class_cache.get('last_reprdiff_hash', None) != r.get_reprdiff_cls_hash():
             repr_attrs = {}
             for repr_diff_cls in (list(r.REPRESENTATION_CLASSES.values()) +
                                   list(r.DIFFERENTIAL_CLASSES.values())):
@@ -812,8 +812,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 repr_attrs[repr_diff_cls]['names'] = tuple(nms)
                 repr_attrs[repr_diff_cls]['units'] = tuple(uns)
 
-            cls._frame_class_cache['_representation_info'] = repr_attrs
-        return cls._frame_class_cache['_representation_info']
+            cls._frame_class_cache['representation_info'] = repr_attrs
+            cls._frame_class_cache['last_reprdiff_hash'] = r.get_reprdiff_cls_hash()
+        return cls._frame_class_cache['representation_info']
 
     @lazyproperty
     def representation_info(self):
