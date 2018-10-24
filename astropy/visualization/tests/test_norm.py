@@ -188,9 +188,12 @@ def test_imshow_norm():
         # illegal to manually pass in normalization since that defeats the point
         imshow_norm(image, ax=ax, norm=ImageNormalize())
 
-    # vmin/vmax "shadow" the MPL versions, so we allow direct-setting
     imshow_norm(image, ax=ax, vmin=0, vmax=1)
-    imshow_norm(image, ax=ax, vmin_mpl=0, vmax_mpl=1)
+    # vmin/vmax "shadow" the MPL versions, so imshow_only_kwargs allows direct-setting
+    imshow_norm(image, ax=ax, imshow_only_kwargs=dict(vmin=0, vmax=1))
+    # but it should fail for an argument that is not in ImageNormalize
+    with pytest.raises(ValueError):
+        imshow_norm(image, ax=ax, imshow_only_kwargs=dict(cmap='jet'))
 
     # make sure the pyplot version works
     imres, norm = imshow_norm(image, ax=None)
