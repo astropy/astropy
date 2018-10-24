@@ -139,18 +139,18 @@ class TickLabels(Text):
                     if np.abs(self.angle[axis][i]) < 45.:
                         ha = 'right'
                         va = 'bottom'
-                        dx = - pad
-                        dy = - text_size * 0.5
+                        dx = -pad
+                        dy = -text_size * 0.5
                     elif np.abs(self.angle[axis][i] - 90.) < 45:
                         ha = 'center'
                         va = 'bottom'
                         dx = 0
-                        dy = - text_size - pad
+                        dy = -text_size - pad
                     elif np.abs(self.angle[axis][i] - 180.) < 45:
                         ha = 'left'
                         va = 'bottom'
                         dx = pad
-                        dy = - text_size * 0.5
+                        dy = -text_size * 0.5
                     else:
                         ha = 'center'
                         va = 'bottom'
