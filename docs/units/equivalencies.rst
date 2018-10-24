@@ -357,7 +357,7 @@ elements::
 
 ``from_unit`` and ``to_unit`` are the equivalent units.  ``forward`` and
 ``backward`` are functions that convert values between those units. ``forward``
-and ``backward`` are optional, and if ommited such an equivalency simply
+and ``backward`` are optional, and if omitted such an equivalency simply
 declares that the two units should be taken as equivalent.
 
 For example, until 1964 the metric liter was defined as the volume of
