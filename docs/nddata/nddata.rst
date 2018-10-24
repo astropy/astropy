@@ -186,7 +186,8 @@ property is found it will be wrapped inside a
 
 The ``uncertainty_type`` should follow the `~astropy.nddata.StdDevUncertainty`
 convention that it returns a short string like ``"std"`` for an uncertainty
-given in standard deviation.
+given in standard deviation. Other examples are
+`~astropy.nddata.VarianceUncertainty` and `~astropy.nddata.InverseVariance`.
 
 Like the other properties the ``uncertainty`` can be set during
 initialization::

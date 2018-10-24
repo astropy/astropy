@@ -1,15 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-
 import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from ..nduncertainty import (StdDevUncertainty, NDUncertainty,
+from ..nduncertainty import (StdDevUncertainty,
+                             VarianceUncertainty,
+                             InverseVariance,
+                             NDUncertainty,
                              IncompatibleUncertaintiesException,
                              UnknownUncertainty)
 from ..nddata import NDData
+from ..compat import NDDataArray
+from ..ccddata import CCDData
 from ... import units as u
 
 # Regarding setter tests:
@@ -40,6 +43,9 @@ class FakeUncertainty(NDUncertainty):
     def uncertainty_type(self):
         return 'fake'
 
+    def _data_unit_to_uncertainty_unit(self, value):
+        return None
+
     def _propagate_add(self, data, final_data):
         pass
 
@@ -52,10 +58,18 @@ class FakeUncertainty(NDUncertainty):
     def _propagate_divide(self, data, final_data):
         pass
 
+
 # Test the fake (added also StdDevUncertainty which should behave identical)
 
 # the list of classes used for parametrization in tests below
-uncertainty_types_to_be_tested = [FakeUncertainty, StdDevUncertainty, UnknownUncertainty]
+uncertainty_types_to_be_tested = [
+    FakeUncertainty,
+    StdDevUncertainty,
+    VarianceUncertainty,
+    InverseVariance,
+    UnknownUncertainty
+]
+
 
 @pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
 def test_init_fake_with_list(UncertClass):
@@ -168,6 +182,10 @@ def test_uncertainty_type():
     assert fake_uncert.uncertainty_type == 'fake'
     std_uncert = StdDevUncertainty([10, 2])
     assert std_uncert.uncertainty_type == 'std'
+    var_uncert = VarianceUncertainty([10, 2])
+    assert var_uncert.uncertainty_type == 'var'
+    ivar_uncert = InverseVariance([10, 2])
+    assert ivar_uncert.uncertainty_type == 'ivar'
 
 
 def test_uncertainty_correlated():
@@ -237,6 +255,7 @@ def test_for_stolen_uncertainty():
     ndd2 = NDData(2, uncertainty=ndd1.uncertainty)
     # uncertainty.parent_nddata.data should be the original data!
     assert ndd1.uncertainty.parent_nddata.data == ndd1.data
+    assert ndd2.uncertainty.parent_nddata.data == ndd2.data
 
 
 @pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
@@ -248,3 +267,78 @@ def test_quantity(UncertClass):
     fake_uncert_nounit = UncertClass([1, 2, 3])
     assert isinstance(fake_uncert_nounit.quantity, u.Quantity)
     assert fake_uncert_nounit.quantity.unit.is_equivalent(u.dimensionless_unscaled)
+
+
+@pytest.mark.parametrize(('UncertClass'),
+                         [VarianceUncertainty,
+                          StdDevUncertainty,
+                          InverseVariance])
+def test_setting_uncertainty_unit_results_in_unit_object(UncertClass):
+    v = UncertClass([1, 1])
+    v.unit = 'electron'
+    assert isinstance(v.unit, u.UnitBase)
+
+
+@pytest.mark.parametrize('NDClass', [NDData, NDDataArray, CCDData])
+@pytest.mark.parametrize(('UncertClass'),
+                         [VarianceUncertainty,
+                          StdDevUncertainty,
+                          InverseVariance])
+def test_changing_unit_to_value_inconsistent_with_parent_fails(NDClass,
+                                                               UncertClass):
+    ndd1 = NDClass(1, unit='adu')
+    v = UncertClass(1)
+    # Sets the uncertainty unit to whatever makes sense with this data.
+    ndd1.uncertainty = v
+
+    with pytest.raises(u.UnitConversionError):
+        # Nothing special about 15 except no one would ever use that unit
+        v.unit = ndd1.unit ** 15
+
+
+@pytest.mark.parametrize('NDClass', [NDData, NDDataArray, CCDData])
+@pytest.mark.parametrize(('UncertClass, expected_unit'),
+                         [(VarianceUncertainty, u.adu ** 2),
+                          (StdDevUncertainty, u.adu),
+                          (InverseVariance, 1 / u.adu ** 2)])
+def test_assigning_uncertainty_to_parent_gives_correct_unit(NDClass,
+                                                            UncertClass,
+                                                            expected_unit):
+    # Does assigning a unitless uncertainty to an NDData result in the
+    # expected unit?
+    ndd = NDClass([1, 1], unit=u.adu)
+    v = UncertClass([1, 1])
+    ndd.uncertainty = v
+    assert v.unit == expected_unit
+
+
+@pytest.mark.parametrize('NDClass', [NDData, NDDataArray, CCDData])
+@pytest.mark.parametrize(('UncertClass, expected_unit'),
+                         [(VarianceUncertainty, u.adu ** 2),
+                          (StdDevUncertainty, u.adu),
+                          (InverseVariance, 1 / u.adu ** 2)])
+def test_assigning_uncertainty_with_unit_to_parent_with_unit(NDClass,
+                                                             UncertClass,
+                                                             expected_unit):
+    # Does assigning an uncertainty with an appropriate unit to an NDData
+    # with a unit work?
+    ndd = NDClass([1, 1], unit=u.adu)
+    v = UncertClass([1, 1], unit=expected_unit)
+    ndd.uncertainty = v
+    assert v.unit == expected_unit
+
+
+@pytest.mark.parametrize('NDClass', [NDData, NDDataArray, CCDData])
+@pytest.mark.parametrize(('UncertClass'),
+                         [(VarianceUncertainty),
+                          (StdDevUncertainty),
+                          (InverseVariance)])
+def test_assigning_uncertainty_with_bad_unit_to_parent_fails(NDClass,
+                                                             UncertClass):
+    # Does assigning an uncertainty with a non-matching unit to an NDData
+    # with a unit work?
+    ndd = NDClass([1, 1], unit=u.adu)
+    # Set the unit to something inconsistent with ndd's unit
+    v = UncertClass([1, 1], unit=u.second)
+    with pytest.raises(u.UnitConversionError):
+        ndd.uncertainty = v
