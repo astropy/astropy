@@ -213,7 +213,7 @@ astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
 astropy.visualization.wcsaxes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Add support for setting ``set_separator(None)`` to use default
   separators. [#7570]
