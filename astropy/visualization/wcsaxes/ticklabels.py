@@ -21,7 +21,7 @@ class TickLabels(Text):
         super().__init__(*args, **kwargs)
         self.set_clip_on(True)
         self.set_visible_axes('all')
-        self.pad = rcParams['xtick.major.pad']
+        self.set_pad(rcParams['xtick.major.pad'])
         self._exclude_overlapping = False
 
         # Check rcParams
@@ -94,6 +94,12 @@ class TickLabels(Text):
                     if starts_dollar:
                         self.text[axis][i] = '$' + self.text[axis][i]
 
+    def set_pad(self, value):
+        self._pad = value
+
+    def get_pad(self):
+        return self._pad
+
     def set_visible_axes(self, visible_axes):
         self._visible_axes = visible_axes
 
@@ -129,7 +135,7 @@ class TickLabels(Text):
 
                 x, y = self.pixel[axis][i]
 
-                pad = renderer.points_to_pixels(self.pad + tick_out_size)
+                pad = renderer.points_to_pixels(self.get_pad() + tick_out_size)
 
                 if isinstance(self._frame, RectangularFrame):
 
