@@ -24,6 +24,12 @@ The core astropy package provides base classes that define the low- and high-
 level APIs described in APE 14 in the :mod:`astropy.wcs.wcsapi` module, and
 these are listed in the `Reference/API`_ section below.
 
+Overview
+========
+While the full  details and motivation for the API are detailed in APE 14, 
+this documentation summarizes the elements that are implemented directly in the `astropy` core package.  The high-level interface is likely of most interest to the average user.  In particular, the most important methods are the `world_to_pixel` and `pixel_to_world` methods. These provide the essential elements of WCS: mapping to and from world coordinates. The remainder generally provide information about the *kind* of world coordinates or similar information about the structure of the WCS.
+
+In a bit more detail, the key classes implemented here are a high-level that provides the main user interface (`~astropy.wcs.wcsapi.BaseHighLevelWCS` and subclasses), and a lower-level interface (`~astropy.wcs.wcsapi.BaseLowLevelWCS` and subclasses).  These can be distinct objects *or* the same one.  For FITS-WCS, the `~astropy.wcs.WCS` object meant for FITS-WCS follows both interfaces, allowing immediate use of this API with files that already contain FITS-WCS.  More concrete examples are outlined below.
 Pixel conventions and definitions
 =================
 
