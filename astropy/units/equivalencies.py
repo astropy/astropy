@@ -20,7 +20,7 @@ __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'brightness_temperature', 'thermodynamic_temperature',
            'beam_angular_area', 'dimensionless_angles', 'logarithmic',
            'temperature', 'temperature_energy', 'molar_mass_amu',
-           'pixel_scale', 'plate_scale', 'littleh']
+           'pixel_scale', 'plate_scale', 'littleh_as']
 
 
 def dimensionless_angles():
@@ -689,7 +689,7 @@ def plate_scale(platescale):
     return [(si.m, si.radian, lambda d: d*platescale_val, lambda rad: rad/platescale_val)]
 
 
-def littleh(cosmologyorH0=None):
+def littleh_as(cosmologyorH0=None):
     """
     Convert between quantities with little-h and the equivalent physical units.
 
@@ -713,6 +713,6 @@ def littleh(cosmologyorH0=None):
 
     H0 = cosmologyorH0.H0 if hasattr(cosmologyorH0, 'H0') else cosmologyorH0
 
-    h100_val_unit = Unit(H0.to(si.km/si.s/astrophys.Mpc).value/100 * astrophys.h100)
+    h100_val_unit = Unit(H0.to(si.km/si.s/astrophys.Mpc).value/100 * astrophys.littleh)
 
     return [(h100_val_unit, None)]
