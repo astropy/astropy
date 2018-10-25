@@ -175,7 +175,13 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
         if cls.__name__ != "CompoundModel":
             cls._create_inverse_property(members)
         cls._create_bounding_box_property(members)
-        cls._handle_special_methods(members)
+        pdict = OrderedDict()
+        for base in bases:
+            for tbase in base.__mro__:
+                if issubclass(tbase, Model):
+                    for parname, val in cls._parameter_vals_.items():
+                        pdict[parname] = val
+        cls._handle_special_methods(members, pdict)
         if not inspect.isabstract(cls) and not name.startswith('_'):
             cls.registry.add(cls)
 
@@ -385,7 +391,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
         return type('_{0}BoundingBox'.format(cls.name), (_BoundingBox,),
                     {'__call__': __call__})
 
-    def _handle_special_methods(cls, members):
+    def _handle_special_methods(cls, members, pdict):
 
         # Handle init creation from inputs
         def update_wrapper(wrapper, cls):
@@ -437,17 +443,18 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
         if ('__init__' not in members and not inspect.isabstract(cls) and
                 cls._parameters_):
+            # Build list of all parameters including inherited ones
 
             # If *all* the parameters have default values we can make them
             # keyword arguments; otherwise they must all be positional
             # arguments
             if all(p.default is not None
-                   for p in cls._parameter_vals_.values()):
+                   for p in pdict.values()):
                 args = ('self',)
                 kwargs = []
-                for param_name in cls.param_names:
-                    default = cls._parameter_vals_[param_name].default
-                    unit = cls._parameter_vals_[param_name].unit
+                for param_name, param_val in pdict.items():
+                    default = param_val.default
+                    unit = param_val.unit
                     # If the unit was specified in the parameter but the
                     # default is not a Quantity, attach the unit to the
                     # default.
@@ -455,7 +462,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
                         default = Quantity(default, unit, copy=False)
                     kwargs.append((param_name, default))
             else:
-                args = ('self',) + cls.param_names
+                args = ('self',) + tuple(pdict.keys())
                 kwargs = {}
 
             def __init__(self, *params, **kwargs):
