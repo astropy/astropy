@@ -82,7 +82,7 @@ simple image with two celestial axes (Right Ascension and Declination)::
     >>> from astropy.utils.data import get_pkg_data_filename
     >>> from astropy.io import fits
     >>> filename = get_pkg_data_filename('galactic_center/gc_2mass_k.fits')  # doctest: +REMOTE_DATA
-    >>> hdu = fits.open(filename)[0]
+    >>> hdu = fits.open(filename)[0]  # doctest: +REMOTE_DATA
     >>> wcs = WCS(hdu.header)  # doctest: +REMOTE_DATA
     >>> wcs  # doctest: +REMOTE_DATA
     WCS Keywords
@@ -165,7 +165,8 @@ Let's now take a look at a WCS for a spectral cube (two celestial axes and one
 spectral axis)::
 
     >>> filename = get_pkg_data_filename('l1448/l1448_13co.fits')  # doctest: +REMOTE_DATA
-    >>> wcs = WCS(filename)  # doctest: +REMOTE_DATA
+    >>> hdu = fits.open(filename)[0]  # doctest: +REMOTE_DATA
+    >>> wcs = WCS(hdu.header)  # doctest: +REMOTE_DATA
     >>> wcs  # doctest: +REMOTE_DATA
     WCS Keywords
     Number of WCS axes: 3
@@ -215,8 +216,7 @@ And as before we can index array values using::
     >>> index = wcs.world_to_array_index(coord, 3000 * u.m / u.s)  # doctest: +REMOTE_DATA
     >>> index  # doctest: +REMOTE_DATA
     (7, 71, 8)
-    >>> data = fits.getdata(filename)  # doctest: +REMOTE_DATA
-    >>> data[index]  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> hdu.data[index]  # doctest: +REMOTE_DATA +FLOAT_CMP
     0.22262384
 
 If you are interested in converting to/from world values as simple Python scalars
