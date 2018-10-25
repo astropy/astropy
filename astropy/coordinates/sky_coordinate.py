@@ -216,7 +216,7 @@ class SkyCoord(ShapedLikeNDArray):
         # we should bypass all of the parsing and logic below. This is here
         # to make this the fastest way to create a SkyCoord instance. Many of
         # the classmethods implemented for performance enhancements will use
-        # this in the initialization path
+        # this as the initialization path
         if (len(args) == 1 and len(kwargs) == 0 and
                 isinstance(args[0], (BaseCoordinateFrame, SkyCoord))):
 
