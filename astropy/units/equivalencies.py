@@ -13,7 +13,6 @@ from . import astrophys
 from .function import units as function_units
 from . import dimensionless_unscaled
 from .core import UnitsError, Unit
-from .. import cosmology
 
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
@@ -707,6 +706,7 @@ def littleh(cosmologyorH0=None):
     For an illuminating discussion on why you may or may not want to use
     little-h at all, see https://arxiv.org/pdf/1308.4150.pdf
     """
+    from .. import cosmology
 
     if cosmologyorH0 is None:
         cosmologyorH0 = cosmology.default_cosmology.get()
