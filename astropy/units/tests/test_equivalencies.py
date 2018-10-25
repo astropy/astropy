@@ -10,7 +10,7 @@ from numpy.testing import assert_allclose
 
 # LOCAL
 from ... import units as u
-from ... import constants
+from ... import constants, cosmology
 from ...tests.helper import assert_quantity_allclose
 
 
@@ -752,3 +752,21 @@ def test_plate_scale():
 
     assert_quantity_allclose(asec.to(u.mm, u.plate_scale(platescale)), mm)
     assert_quantity_allclose(asec.to(u.mm, u.plate_scale(platescale2)), mm)
+
+
+def test_littleh():
+    H0_70 = 70*u.km/u.s/u.Mpc
+    h100dist = 100 * u.Mpc/u.h100
+    h70dist = 100 * u.Mpc/u.h70
+
+    assert_quantity_allclose(h100dist.to(u.Mpc, u.littleh(H0_70)), 70*u.Mpc)
+    assert_quantity_allclose(h70dist.to(u.Mpc, u.littleh(H0_70)), 100*u.Mpc)
+
+    # make sure the give-explicit-comsology works
+    assert_quantity_allclose(h100dist.to(u.Mpc, u.littleh(cosmology.WMAP9)),
+                             cosmology.WMAP9.H0.value*u.Mpc)
+
+    # and also the default cosmology
+    H0_default_cosmo = cosmology.default_cosmology.get().H0
+    assert_quantity_allclose(h100dist.to(u.Mpc, u.littleh()),
+                             H0_default_cosmo.value*u.Mpc)
