@@ -108,8 +108,16 @@ Note that the array shape should match that of the data::
     (720, 721)
 
 As mentioned in `Pixel conventions and definitions`_, what would normally be
-considered the 'y-axis' of the image (when looking at it visually) is the
-first dimension, while the 'x-axis' of the image is the second dimension.
+considered the 'y-axis' of the image (when looking at it visually) is the first
+dimension, while the 'x-axis' of the image is the second dimension. Thus
+:attr:`~astropy.wcs.WCS.array_shape` returns the shape in the *opposite* order
+to the NAXIS keywords in the FITS header (in the case of FITS-WCS). If you are
+interested in the data shape in the reverse order (which would match the NAXIS
+order in the case of FITS-WCS), then you can use
+:attr:`~astropy.wcs.WCS.pixel_shape`::
+
+    >>> wcs.pixel_shape  # doctest: +REMOTE_DATA
+    (721, 720)
 
 Let's now check what the physical type of each axis is::
 

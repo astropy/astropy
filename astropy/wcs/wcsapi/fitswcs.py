@@ -129,6 +129,13 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             return tuple(self._naxis[::-1])
 
     @property
+    def pixel_shape(self):
+        if self._naxis == [0, 0]:
+            return None
+        else:
+            return tuple(self._naxis)
+
+    @property
     def world_axis_physical_types(self):
         types = []
         for axis_type in self.axis_type_names:
