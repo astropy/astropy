@@ -8,7 +8,8 @@ from collections import OrderedDict
 from astropy.coordinates import Longitude, Latitude
 from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
                                                 SphericalRepresentation,
-                                                UnitSphericalRepresentation)
+                                                UnitSphericalRepresentation,
+                                                _invalidate_reprdiff_cls_hash)
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransform
 from astropy.coordinates import ICRS
@@ -33,6 +34,7 @@ def setup_function(func):
 def teardown_function(func):
     REPRESENTATION_CLASSES.clear()
     REPRESENTATION_CLASSES.update(func.REPRESENTATION_CLASSES_ORIG)
+    _invalidate_reprdiff_cls_hash()
 
 
 def test_unit_representation_subclass():
