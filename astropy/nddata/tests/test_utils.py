@@ -3,11 +3,7 @@
 import pytest
 import tempfile
 import numpy as np
-<<<<<<< HEAD
-from numpy.testing import assert_allclose, assert_almost_equal
-=======
-from numpy.testing import assert_allclose, assert_array_equal
->>>>>>> 332df9b49bac99fce6bda54f775876d9bc2b22b4
+from numpy.testing import assert_allclose, assert_array_equal, assert_almost_equal
 
 from ...tests.helper import assert_quantity_allclose
 from ..utils import (extract_array, add_array, subpixel_indices,
