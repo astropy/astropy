@@ -140,6 +140,7 @@ astropy.modeling
   of inputs and outputs. [#7803]
 
 - Fixed compatibility of ``JointFitter`` with the latest version of Numpy. [#7984]
+- Add ``prior`` and ``posterior`` constraints to modeling parameters. [#7558]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
