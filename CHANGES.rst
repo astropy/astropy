@@ -283,6 +283,9 @@ astropy.wcs
 
 - Added a new property ``WCS.has_distortion``. [#7326]
 
+- Deprecated ``_naxis1`` and ``_naxis2`` in favor of ``pixel_shape``. [#7973]
+
+
 API Changes
 -----------
 
