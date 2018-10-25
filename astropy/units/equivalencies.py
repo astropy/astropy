@@ -698,7 +698,7 @@ def littleh_as(cosmologyorH0=None):
     cosmologyorH0 : None, `~astropy.cosmology.FLRW`, or `~astropy.units.Quantity`
         The source of the value of the Hubble constant to assume. If a cosmology
         object is given, it will be taken from the ``H0`` attribute, or if a
-        quantity, will assume the quantity *is* ``H0``.  If None (default), use
+        quantity, will assume the quantity *is* ``H0``.  If `None` (default), use
         the default cosmology from `astropy.cosmology`.
 
     References
