@@ -539,13 +539,10 @@ class Parameter(OrderedDescriptor):
     @prior.setter
     def prior(self, val):
         if self._model is not None:
-            #if not isinstance(value, bool):
-            #    raise TypeError("check for type")
             self._model._constraints['prior'][self._name] = val
         else:
             raise AttributeError("can't set attribute 'prior' on Parameter "
                                  "definition")
-        
 
     @property
     def posterior(self):
@@ -554,18 +551,15 @@ class Parameter(OrderedDescriptor):
             return posterior.get(self._name, self._posterior)
         else:
             return self._posterior
-      
 
     @posterior.setter
     def posterior(self, val):
         if self._model is not None:
-            #if not isinstance(value, bool):
-            #    raise TypeError("check for type")
             self._model._constraints['posterior'][self._name] = val
         else:
             raise AttributeError("can't set attribute 'posterior' on Parameter "
                                  "definition")
-        
+
     @property
     def fixed(self):
         """
