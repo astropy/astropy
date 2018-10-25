@@ -713,6 +713,6 @@ def littleh_as(cosmologyorH0=None):
 
     H0 = cosmologyorH0.H0 if hasattr(cosmologyorH0, 'H0') else cosmologyorH0
 
-    h100_val_unit = Unit(H0.to(si.km/si.s/astrophys.Mpc).value/100 * astrophys.littleh)
+    h100_val_unit = Unit(H0.to((si.km/si.s)/astrophys.Mpc).value/100 * astrophys.littleh)
 
     return [(h100_val_unit, None)]
