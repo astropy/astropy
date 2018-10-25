@@ -133,34 +133,36 @@ def test_parameter_operators():
 
 # Test inherited models
 
-# class M1(Model):
-#     m1a = Parameter(default=1.)
-#     m1b = Parameter(default=5.)
+class M1(Model):
+    m1a = Parameter(default=1.)
+    m1b = Parameter(default=5.)
+    def evaluate():
+        pass
 
-# class M2(M1):
-#     m2c = Parameter(default=11.)
+class M2(M1):
+    m2c = Parameter(default=11.)
 
-# class M3(M2):
-#     m3d = Parameter(default=20.)
+class M3(M2):
+    m3d = Parameter(default=20.)
 
-# def test_parameter_inheritance():
-#     mod = M3()
-#     assert mod.m1a == 1.
-#     assert mod.m1b == 5.
-#     assert mod.m2c == 11.
-#     assert mod.m3d == 20.
-#     for key in ['m1a', 'm1b', 'm2c', 'm3d']:
-#         assert key in mod.__dict__
-#     assert mod.param_names  == ('m1a', 'm1b', 'm2c', 'm3d')
+def test_parameter_inheritance():
+    mod = M3()
+    assert mod.m1a == 1.
+    assert mod.m1b == 5.
+    assert mod.m2c == 11.
+    assert mod.m3d == 20.
+    for key in ['m1a', 'm1b', 'm2c', 'm3d']:
+        assert key in mod.__dict__
+    assert mod.param_names  == ('m1a', 'm1b', 'm2c', 'm3d')
 
-# def test_param_metric():
-#     mod = M3()
-#     assert mod._param_metrics['m1a']['slice'] == slice(0, 1)
-#     assert mod._param_metrics['m1b']['slice'] == slice(1, 2)
-#     assert mod._param_metrics['m2c']['slice'] == slice(2, 3)
-#     assert mod._param_metrics['m3d']['slice'] == slice(3, 4)
-#     mod._parameters_to_array()
-#     assert (mod._parameters == np.array([1., 5., 11., 20], dtype=np.float64)).all()
+def test_param_metric():
+    mod = M3()
+    assert mod._param_metrics['m1a']['slice'] == slice(0, 1)
+    assert mod._param_metrics['m1b']['slice'] == slice(1, 2)
+    assert mod._param_metrics['m2c']['slice'] == slice(2, 3)
+    assert mod._param_metrics['m3d']['slice'] == slice(3, 4)
+    mod._parameters_to_array()
+    assert (mod._parameters == np.array([1., 5., 11., 20], dtype=np.float64)).all()
     
 # class TestParameters:
 
@@ -337,50 +339,50 @@ def test_parameter_operators():
 #             sh1.offset = [3, 3]
 
 
-# class TestMultipleParameterSets:
+class TestMultipleParameterSets:
 
-#     def setup_class(self):
-#         self.x1 = np.arange(1, 10, .1)
-#         self.y, self.x = np.mgrid[:10, :7]
-#         self.x11 = np.array([self.x1, self.x1]).T
-#         self.gmodel = models.Gaussian1D([12, 10], [3.5, 5.2], stddev=[.4, .7],
-#                                         n_models=2)
+    def setup_class(self):
+        self.x1 = np.arange(1, 10, .1)
+        self.y, self.x = np.mgrid[:10, :7]
+        self.x11 = np.array([self.x1, self.x1]).T
+        self.gmodel = models.Gaussian1D([12, 10], [3.5, 5.2], stddev=[.4, .7],
+                                        n_models=2)
 
-#     def test_change_par(self):
-#         """
-#         Test that a change to one parameter as a set propagates to param_sets.
-#         """
-#         self.gmodel.amplitude = [1, 10]
-#         utils.assert_almost_equal(
-#             self.gmodel.param_sets,
-#             np.array([[1.,
-#                        10],
-#                       [3.5,
-#                        5.2],
-#                       [0.4,
-#                        0.7]]))
-#         np.all(self.gmodel.parameters == [1.0, 10.0, 3.5, 5.2, 0.4, 0.7])
+    def test_change_par(self):
+        """
+        Test that a change to one parameter as a set propagates to param_sets.
+        """
+        self.gmodel.amplitude = [1, 10]
+        utils.assert_almost_equal(
+            self.gmodel.param_sets,
+            np.array([[1.,
+                       10],
+                      [3.5,
+                       5.2],
+                      [0.4,
+                       0.7]]))
+        np.all(self.gmodel.parameters == [1.0, 10.0, 3.5, 5.2, 0.4, 0.7])
 
-#     def test_change_par2(self):
-#         """
-#         Test that a change to one single parameter in a set propagates to
-#         param_sets.
-#         """
-#         self.gmodel.amplitude[0] = 11
-#         utils.assert_almost_equal(
-#             self.gmodel.param_sets,
-#             np.array([[11.,
-#                        10],
-#                       [3.5,
-#                        5.2],
-#                       [0.4,
-#                        0.7]]))
-#         np.all(self.gmodel.parameters == [11.0, 10.0, 3.5, 5.2, 0.4, 0.7])
+    def test_change_par2(self):
+        """
+        Test that a change to one single parameter in a set propagates to
+        param_sets.
+        """
+        self.gmodel.amplitude[0] = 11
+        utils.assert_almost_equal(
+            self.gmodel.param_sets,
+            np.array([[11.,
+                       10],
+                      [3.5,
+                       5.2],
+                      [0.4,
+                       0.7]]))
+        np.all(self.gmodel.parameters == [11.0, 10.0, 3.5, 5.2, 0.4, 0.7])
 
-#     def test_change_parameters(self):
-#         self.gmodel.parameters = [13, 10, 9, 5.2, 0.4, 0.7]
-#         utils.assert_almost_equal(self.gmodel.amplitude.value, [13., 10.])
-#         utils.assert_almost_equal(self.gmodel.mean.value, [9., 5.2])
+    def test_change_parameters(self):
+        self.gmodel.parameters = [13, 10, 9, 5.2, 0.4, 0.7]
+        utils.assert_almost_equal(self.gmodel.amplitude.value, [13., 10.])
+        utils.assert_almost_equal(self.gmodel.mean.value, [9., 5.2])
 
 
 class TestParameterInitialization:
