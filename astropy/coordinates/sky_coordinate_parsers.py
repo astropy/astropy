@@ -19,7 +19,7 @@ from .representation import (BaseRepresentation, SphericalRepresentation,
 """
 This module contains utility functions to make the SkyCoord initializer more modular
 and maintainable. No functionality here should be in the public API, but rather used as
-part of creating SkyCoord objects. 
+part of creating SkyCoord objects.
 """
 
 PLUS_MINUS_RE = re.compile(r'(\+|\-)')
