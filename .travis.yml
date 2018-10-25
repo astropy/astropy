@@ -73,7 +73,7 @@ matrix:
         - os: osx
           stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
-               CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang llvm-openmp"
+               CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang"
                PIP_DEPENDENCIES='jplephem'
                CCOMPILER=clang
                EVENT_TYPE='cron'

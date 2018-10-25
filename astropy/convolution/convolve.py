@@ -19,7 +19,6 @@ from ..nddata import support_nddata
 from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
-from ..utils.openmp import handle_n_threads_usage
 
 # Turn the faulthandler ON to help catch any signals, e.g. segfaults
 # or asserts. This doesn't, currently, work with Jupyter Notebook.
@@ -71,7 +70,7 @@ BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 @support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,
              nan_treatment='interpolate', normalize_kernel=True, mask=None,
-             preserve_nan=False, normalization_zero_tol=1e-8, n_threads=0):
+             preserve_nan=False, normalization_zero_tol=1e-8):
     '''
     Convolve an array with a kernel.
 
@@ -130,12 +129,6 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         The absolute tolerance on whether the kernel is different than zero.
         If the kernel sums to zero to within this precision, it cannot be
         normalized. Default is "1e-8".
-    n_threads : int
-        The number of threads to use (default 0). 0 => use all. There is no
-        limit, be cautious if over commmiting resources.
-        Note that an exception is raised for negative values. A warning is issued
-        if n_threads>1 and astropy was NOT built with OpenMP support.
-        With DASK, it is more performant to set ``n_threads=1``.
 
     Returns
     -------
@@ -159,7 +152,9 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     if nan_treatment not in ('interpolate', 'fill'):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
 
-    n_threads = handle_n_threads_usage(n_threads)
+    # OpenMP support is disabled at the C src code level, changing this will have
+    # no effect.
+    n_threads = 1
 
     # Keep refs to originals
     passed_kernel = kernel

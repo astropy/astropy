@@ -15,7 +15,6 @@ astropy.convolution
 
 - ``convolve`` now accepts any array-like input, not just ``numpy.ndarray`` or
   lists. [#7303]
-- Thread with OpenMP support [#7293]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -270,11 +269,6 @@ astropy.convolution
 
 - ``kernel`` can now be a tuple. [#7561]
 
-- Add ``n_threads`` parameter to control number of threads used in C computation.
-  An exception is raised for negative values.
-  A warning is issued if ``n_threads`` > total number of CPUs reported by the OS.
-  A warning is raised if ``n_threads`` > 1 and Astropy was NOT built with OpenMP support. [#7293]
-
 - Not technically an API changes, however, the doc string indicated that ``boundary=None``
   was the default when actually it is ``boundary='fill'``. The doc string has been corrected,
   however, someone may interpret this as an API change not realising that nothing has actually
@@ -455,12 +449,6 @@ astropy.convolution
   hoisting, and vectorization, etc. Compiler optimization level ``-O2`` required for
   hoisting and ``-O3`` for vectorization. [#7293]
 
-- ``convolve()``: Core computation now threaded using OpenMP. However, the root
-  setup disables this by default. To build the package with OpenMP support
-  instantiate the environment variable ``ASTROPY_SETUP_WITH_OPENMP=1``.
-  E.g. ``ASTROPY_SETUP_WITH_OPENMP=1 pip install astropy --no-cache-dir`` or
-  ``ASTROPY_SETUP_WITH_OPENMP=1 ./setup.py build``. [#7293]
-
 - ``convolve()``: ``nan_treatment=‘interpolate’`` was slow to compute irrespective of
   whether any NaN values exist within the array. The input array is now
   checked for NaN values and interpolation is disabled if non are found. This is a
@@ -622,12 +610,6 @@ Other Changes and Additions
 - The ERFA functions are now wrapped in ufuncs instead of custom C code,
   leading to some speed improvements, and setting the stage for allowing
   overrides with ``__array_ufunc__``. [#7502]
-
-- Building with OpenMP support is disabled by default. To build the package with
-  OpenMP support (currently only used in ``convolution.convolve``) create and
-  set the environment variable ``ASTROPY_SETUP_WITH_OPENMP=1``.
-  E.g. ``ASTROPY_SETUP_WITH_OPENMP=1 pip install astropy --no-cache-dir`` or
-  ``ASTROPY_SETUP_WITH_OPENMP=1 ./setup.py build``. [#7293]
 
 
 
