@@ -1,6 +1,12 @@
 # coding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+"""
+Tests for the photometric module.  Note that this is shorter than
+might be expected because a lot of the relevant tests that deal
+with magnidues are in `test_logarithmic.py`
+"""
+
 from ...tests.helper import assert_quantity_allclose
 
 from .. import Magnitude, mgy, nmgy, ABflux, STflux, zero_point_flux, Jy
