@@ -1290,7 +1290,7 @@ def kuiper_false_positive_probability(D, N):
         r = np.sqrt(k**2 - (N * D - 2.) / 2.)
         a, b = -k + r, -k - r
         return 1. - factorial(N - 1) * (b**(N - 1.) * (1. - a) -
-                                        a**(N - 1.) * (1. - b)) / float(N)**(N - 2) * (b - a)
+                                        a**(N - 1.) * (1. - b)) / float(N)**(N - 2) / (b - a)
     elif (D > 0.5 and N % 2 == 0) or (D > (N - 1.) / (2. * N) and N % 2 == 1):
         def T(t):
             y = D + t / float(N)
@@ -1322,7 +1322,7 @@ def kuiper_false_positive_probability(D, N):
             if np.abs(S2 - so) / (np.abs(S2) + np.abs(so)
                                   ) < term_eps or np.abs(S1 - so) < abs_eps:
                 break
-        return S1 - 8 * D / (3. * np.sqrt(N)) * S2
+        return S1 - 8 * D / 3. * S2
 
 
 def kuiper(data, cdf=lambda x: x, args=()):
