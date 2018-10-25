@@ -359,7 +359,7 @@ standard zero point of 3631.1 Jy::
     >>> target_flux = 1.2 * u.nanomaggy
     >>> zero_point_star_equiv = u.zero_point_flux(3631.1 * u.Jy)
     >>> u.Magnitude(target_flux.to(u.AB, zero_point_star_equiv))  # doctest: +FLOAT_CMP
-    <Magnitude 22.30195136 mag(ABflux)>
+    <Magnitude 22.30195136 mag(AB)>
 
 Writing new equivalencies
 =========================

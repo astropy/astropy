@@ -20,10 +20,10 @@ def_unit(['Bol', 'L_bol'], _si.L_bol0, namespace=_ns, prefixes=False,
 def_unit(['bol', 'f_bol'], _si.L_bol0 / (4 * _numpy.pi * (10.*astrophys.pc)**2),
          namespace=_ns, prefixes=False, doc="Irradiance corresponding to "
          "appparent bolometric magnitude zero")
-def_unit(['ABflux', 'AB'], 10.**(48.6/-2.5) * cgs.erg * cgs.cm**-2 / si.s / si.Hz,
+def_unit(['AB', 'ABflux'], 10.**(48.6/-2.5) * cgs.erg * cgs.cm**-2 / si.s / si.Hz,
          namespace=_ns, prefixes=False,
          doc="AB magnitude zero flux density.")
-def_unit(['STflux', 'ST'], 10.**(21.1/-2.5) * cgs.erg * cgs.cm**-2 / si.s / si.AA,
+def_unit(['ST', 'STflux'], 10.**(21.1/-2.5) * cgs.erg * cgs.cm**-2 / si.s / si.AA,
          namespace=_ns, prefixes=False,
          doc="ST magnitude zero flux density.")
 
