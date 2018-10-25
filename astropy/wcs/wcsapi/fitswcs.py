@@ -126,7 +126,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         if self._naxis == [0, 0]:
             return None
         else:
-            return self._naxis[::-1]
+            return tuple(self._naxis[::-1])
 
     @property
     def world_axis_physical_types(self):
