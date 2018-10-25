@@ -72,6 +72,10 @@ __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
 
 __doctest_skip__ = ['WCS.all_world2pix']
 
+naxis_deprecated_message = """
+Private attributes "_naxis1" and "naxis2" have been deprecated since v3.1.
+Instead use the "pixel_shape" property which returns a list of NAXISj keyword values.
+"""
 
 if _wcs is not None:
     _parsed_version = _wcs.__version__.split('.')
@@ -698,8 +702,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 try:
                     # classes that inherit from WCS and define naxis1/2
                     # do not require a header parameter
-                    naxis1 = self._naxis1
-                    naxis2 = self._naxis2
+                    naxis1, naxis2 = self.pixel_shape
                 except AttributeError:
                     warnings.warn("Need a valid header in order to calculate footprint\n", AstropyUserWarning)
                     return None
@@ -2674,18 +2677,22 @@ reduce these to 2 dimensions using the naxis kwarg.
 
     @property
     def _naxis1(self):
+        warnings.warn(naxis_deprecated_message, AstropyDeprecationWarning)
         return self._naxis[0]
 
     @_naxis1.setter
     def _naxis1(self, value):
+        warnings.warn(naxis_deprecated_message, AstropyDeprecationWarning)
         self._naxis[0] = value
 
     @property
     def _naxis2(self):
+        warnings.warn(naxis_deprecated_message, AstropyDeprecationWarning)
         return self._naxis[1]
 
     @_naxis2.setter
     def _naxis2(self, value):
+        warnings.warn(naxis_deprecated_message, AstropyDeprecationWarning)
         self._naxis[1] = value
 
     def _get_naxis(self, header=None):
