@@ -348,7 +348,7 @@ user-created frames.
 
 
 Customising Display of Attributes
-#################################
+---------------------------------
 
 If you want objects displayed as attributes of the frame to customise their
 display you can define a method named ``_astropy_repr_in_frame``. This method
