@@ -689,13 +689,13 @@ def plate_scale(platescale):
     return [(si.m, si.radian, lambda d: d*platescale_val, lambda rad: rad/platescale_val)]
 
 
-def littleh_as(cosmologyorH0=None):
+def littleh_as(cosmology_or_H0=None):
     """
     Convert between quantities with little-h and the equivalent physical units.
 
     Parameters
     ----------
-    cosmologyorH0 : None, `~astropy.cosmology.FLRW`, or `~astropy.units.Quantity`
+    cosmology_or_H0 : None, `~astropy.cosmology.FLRW`, or `~astropy.units.Quantity`
         The source of the value of the Hubble constant to assume. If a cosmology
         object is given, it will be taken from the ``H0`` attribute, or if a
         quantity, will assume the quantity *is* ``H0``.  If `None` (default), use
@@ -708,10 +708,10 @@ def littleh_as(cosmologyorH0=None):
     """
     from .. import cosmology
 
-    if cosmologyorH0 is None:
-        cosmologyorH0 = cosmology.default_cosmology.get()
+    if cosmology_or_H0 is None:
+        cosmology_or_H0 = cosmology.default_cosmology.get()
 
-    H0 = cosmologyorH0.H0 if hasattr(cosmologyorH0, 'H0') else cosmologyorH0
+    H0 = cosmology_or_H0.H0 if hasattr(cosmology_or_H0, 'H0') else cosmology_or_H0
 
     h100_val_unit = Unit(H0.to((si.km/si.s)/astrophys.Mpc).value/100 * astrophys.littleh)
 
