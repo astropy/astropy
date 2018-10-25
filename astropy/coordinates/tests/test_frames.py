@@ -1034,7 +1034,7 @@ def test_attribute_repr():
     from ..baseframe import BaseCoordinateFrame
 
     class Spam:
-        def _repr_in_frame_repr(self):
+        def _astropy_repr_in_frame(self):
             return "TEST REPR"
 
     class TestFrame(BaseCoordinateFrame):
