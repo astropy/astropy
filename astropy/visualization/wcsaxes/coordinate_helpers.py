@@ -381,8 +381,8 @@ class CoordinateHelper:
         """
         self.ticks.set_visible(visible)
 
-    def set_ticklabel(self, color=None, size=None, exclude_overlapping=None,
-                      **kwargs):
+    def set_ticklabel(self, color=None, size=None, pad=None,
+                      exclude_overlapping=None, **kwargs):
         """
         Set the visual properties for the tick labels.
 
@@ -392,6 +392,8 @@ class CoordinateHelper:
             The size of the ticks labels in points
         color : str or tuple, optional
             A valid Matplotlib color for the tick labels
+        pad : float, optional
+            Distance in points between tick and label.
         exclude_overlapping : bool, optional
             Whether to exclude tick labels that overlap over each other.
         kwargs
@@ -403,6 +405,8 @@ class CoordinateHelper:
             self.ticklabels.set_size(size)
         if color is not None:
             self.ticklabels.set_color(color)
+        if pad is not None:
+            self.ticklabels.set_pad(pad)
         if exclude_overlapping is not None:
             self.ticklabels.set_exclude_overlapping(exclude_overlapping)
         self.ticklabels.set(**kwargs)
@@ -987,7 +991,8 @@ class CoordinateHelper:
 
         # Set the tick label arguments.
         self.set_ticklabel(color=kwargs.get('labelcolor'),
-                           size=kwargs.get('labelsize'))
+                           size=kwargs.get('labelsize'),
+                           pad=kwargs.get('pad'))
 
         # Set the tick label position
         position = None
@@ -998,11 +1003,6 @@ class CoordinateHelper:
                 position += arg[0]
         if position is not None:
             self.set_ticklabel_position(position)
-
-        # Set the tick label padding
-        # FIXME: should have getter/setter as for other properties
-        if 'pad' in kwargs:
-            self.ticklabels.pad = kwargs['pad']
 
         # And the grid settings
         if 'grid_color' in kwargs:
