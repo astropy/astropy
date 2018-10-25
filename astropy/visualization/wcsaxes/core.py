@@ -641,6 +641,56 @@ class WCSAxes(Axes):
         else:
             raise ValueError('axis should be one of x/y/both')
 
+    def tick_params(self, axis='both', **kwargs):
+        """
+        Method to set the tick and tick label parameters in the same way as the
+        :meth:`~matplotlib.axes.Axes.tick_params` method in Matplotlib.
+
+        This is provided for convenience, but the recommended API is to use
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticks`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticklabel`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticks_position`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticklabel_position`,
+        and :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.grid`.
+
+        Parameters
+        ----------
+        axis : int or str, optional
+            Which axis to apply the parameters to. This defaults to 'both'
+            but this can also be set to an `int` or `str` that refers to the
+            axis to apply it to, following the valid values that can index
+            ``ax.coords``. Note that ``'x'`` and ``'y``' are also accepted in
+            the case of rectangular axes.
+        """
+
+        if not hasattr(self, 'coords'):
+            # Axes haven't been fully initialized yet, so just ignore, as
+            # Axes.__init__ calls this method
+            return
+
+        if axis == 'both':
+
+            for pos in ('bottom', 'left', 'top', 'right'):
+                if pos in kwargs:
+                    raise ValueError("Cannot specify {0}= when axis='both'".format(pos))
+                if 'label' + pos in kwargs:
+                    raise ValueError("Cannot specify label{0}= when axis='both'".format(pos))
+
+            for coord in self.coords:
+                coord.tick_params(**kwargs)
+
+        elif axis in self.coords:
+
+            self.coords[axis].tick_params(**kwargs)
+
+        elif axis in ('x', 'y'):
+
+            if self.frame_class is RectangularFrame:
+                for coord_index in range(len(self.slices)):
+                    if self.slices[coord_index] == axis:
+                        self.coords[coord_index].tick_params(**kwargs)
+
+
 # In the following, we put the generated subplot class in a temporary class and
 # we then inherit it - if we don't do this, the generated class appears to
 # belong in matplotlib, not in WCSAxes, from the API's point of view.
