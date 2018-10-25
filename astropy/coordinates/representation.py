@@ -55,6 +55,8 @@ def get_reprdiff_cls_hash():
         _REPRDIFF_HASH = (hash(tuple(REPRESENTATION_CLASSES.items())) +
                           hash(tuple(DIFFERENTIAL_CLASSES.items())) )
     return _REPRDIFF_HASH
+
+
 def _invalidate_reprdiff_cls_hash():
     global _REPRDIFF_HASH
     _REPRDIFF_HASH = None
