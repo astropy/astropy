@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 This module has been deprecated and moved to astropy.units.photometric.  The
 names remain here for backwards compatibility.
