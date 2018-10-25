@@ -6,6 +6,8 @@ This file defines the classes used to represent a 'coordinate', which includes
 axes, ticks, tick labels, and grid lines.
 """
 
+import warnings
+
 import numpy as np
 
 from matplotlib.ticker import Formatter
@@ -14,6 +16,7 @@ from matplotlib.patches import PathPatch
 from matplotlib import rcParams
 
 from ... import units as u
+from ...utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
@@ -22,6 +25,19 @@ from .axislabels import AxisLabels
 from .grid_paths import get_lon_lat_path, get_gridline_path
 
 __all__ = ['CoordinateHelper']
+
+
+# Matplotlib's gridlines use Line2D, but ours use PathPatch.
+# Patches take a slightly different format of linestyle argument.
+LINES_TO_PATCHES_LINESTYLE = {'-': 'solid',
+                              '--': 'dashed',
+                              '-.': 'dashdot',
+                              ':': 'dotted',
+                              'none': 'none',
+                              'None': 'none',
+                              ' ': 'none',
+                              '': 'none'}
+
 
 
 def wrap_angle_at(values, coord_wrap):
@@ -100,21 +116,10 @@ class CoordinateHelper:
 
         # Initialize grid style. Take defaults from matplotlib.rcParams.
         # Based on matplotlib.axis.YTick._get_gridline.
-        #
-        # Matplotlib's gridlines use Line2D, but ours use PathPatch.
-        # Patches take a slightly different format of linestyle argument.
-        lines_to_patches_linestyle = {'-': 'solid',
-                                      '--': 'dashed',
-                                      '-.': 'dashdot',
-                                      ':': 'dotted',
-                                      'none': 'none',
-                                      'None': 'none',
-                                      ' ': 'none',
-                                      '': 'none'}
         self.grid_lines_kwargs = {'visible': False,
                                   'facecolor': 'none',
                                   'edgecolor': rcParams['grid.color'],
-                                  'linestyle': lines_to_patches_linestyle[rcParams['grid.linestyle']],
+                                  'linestyle': LINES_TO_PATCHES_LINESTYLE[rcParams['grid.linestyle']],
                                   'linewidth': rcParams['grid.linewidth'],
                                   'alpha': rcParams['grid.alpha'],
                                   'transform': self.parent_axes.transData}
@@ -289,7 +294,8 @@ class CoordinateHelper:
         self._formatter_locator.show_decimal_unit = show_decimal_unit
 
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
-                  width=None, color=None, alpha=None, exclude_overlapping=False):
+                  width=None, color=None, alpha=None, direction=None,
+                  exclude_overlapping=None):
         """
         Set the location and properties of the ticks.
 
@@ -306,10 +312,12 @@ class CoordinateHelper:
             The approximate number of ticks shown.
         size : float, optional
             The length of the ticks in points
-        color : str or tuple
+        color : str or tuple, optional
             A valid Matplotlib color for the ticks
-        exclude_overlapping : bool, optional
-            Whether to exclude tick labels that overlap over each other.
+        alpha : float, optional
+            The alpha value (transparency) for the ticks.
+        direction : {'in','out'}, optional
+            Whether the ticks should point inwards or outwards.
         """
 
         if sum([values is None, spacing is None, number is None]) < 2:
@@ -335,7 +343,17 @@ class CoordinateHelper:
         if alpha is not None:
             self.ticks.set_alpha(alpha)
 
-        self.ticklabels.set_exclude_overlapping(exclude_overlapping)
+        if direction is not None:
+            if direction in ('in', 'out'):
+                self.ticks.set_tick_out(direction == 'out')
+            else:
+                raise ValueError("direction should be 'in' or 'out'")
+
+        if exclude_overlapping is not None:
+            warnings.warn("exclude_overlapping= should be passed to "
+                          "set_ticklabel instead of set_ticks",
+                          AstropyDeprecationWarning)
+            self.ticklabels.set_exclude_overlapping(exclude_overlapping)
 
     def set_ticks_position(self, position):
         """
@@ -363,17 +381,32 @@ class CoordinateHelper:
         """
         self.ticks.set_visible(visible)
 
-    def set_ticklabel(self, **kwargs):
+    def set_ticklabel(self, color=None, size=None, pad=None,
+                      exclude_overlapping=None, **kwargs):
         """
         Set the visual properties for the tick labels.
 
         Parameters
         ----------
+        size : float, optional
+            The size of the ticks labels in points
+        color : str or tuple, optional
+            A valid Matplotlib color for the tick labels
+        pad : float, optional
+            Distance in points between tick and label.
+        exclude_overlapping : bool, optional
+            Whether to exclude tick labels that overlap over each other.
         kwargs
-            Keyword arguments are passed to :class:`matplotlib.text.Text`. These
-            can include keywords to set the ``color``, ``size``, ``weight``, and
-            other text properties.
+            Other keyword arguments are passed to :class:`matplotlib.text.Text`.
         """
+        if size is not None:
+            self.ticklabels.set_size(size)
+        if color is not None:
+            self.ticklabels.set_color(color)
+        if pad is not None:
+            self.ticklabels.set_pad(pad)
+        if exclude_overlapping is not None:
+            self.ticklabels.set_exclude_overlapping(exclude_overlapping)
         self.ticklabels.set(**kwargs)
 
     def set_ticklabel_position(self, position):
@@ -861,3 +894,123 @@ class CoordinateHelper:
             self._grid = self.parent_axes.contour(x, y, field.transpose(), levels=np.sort(tick_world_coordinates_values))
         else:
             self._grid = None
+
+    def tick_params(self, which='both', **kwargs):
+        """
+        Method to set the tick and tick label parameters in the same way as the
+        :meth:`~matplotlib.axes.Axes.tick_params` method in Matplotlib.
+
+        This is provided for convenience, but the recommended API is to use
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticks`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticklabel`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticks_position`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticklabel_position`,
+        and :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.grid`.
+
+        Parameters
+        ----------
+        which : {'both', 'major', 'minor'}, optional
+            Which ticks to apply the settings to. By default, setting are
+            applied to both major and minor ticks. Note that if ``'minor'`` is
+            specified, only the length of the ticks can be set currently.
+        direction : {'in', 'out'}, optional
+            Puts ticks inside the axes, or outside the axes.
+        length : float, optional
+            Tick length in points.
+        width : float, optional
+            Tick width in points.
+        color : color, optional
+            Tick color (accepts any valid Matplotlib color)
+        pad : float, optional
+            Distance in points between tick and label.
+        labelsize : float or str, optional
+            Tick label font size in points or as a string (e.g., 'large').
+        labelcolor : color, optional
+            Tick label color (accepts any valid Matplotlib color)
+        colors : color, optional
+            Changes the tick color and the label color to the same value
+             (accepts any valid Matplotlib color).
+        bottom, top, left, right : bool, optional
+            Where to draw the ticks. Note that this will not work correctly if
+            the frame is not rectangular.
+        labelbottom, labeltop, labelleft, labelright : bool, optional
+            Where to draw the tick labels. Note that this will not work
+            correctly if the frame is not rectangular.
+        grid_color : color, optional
+            The color of the grid lines (accepts any valid Matplotlib color).
+        grid_alpha : float, optional
+            Transparency of grid lines: 0 (transparent) to 1 (opaque).
+        grid_linewidth : float, optional
+            Width of grid lines in points.
+        grid_linestyle : string, optional
+            The style of the grid lines (accepts any valid Matplotlib line
+            style).
+        """
+
+        # First do some sanity checking on the keyword arguments
+
+        # colors= is a fallback default for color and labelcolor
+        if 'colors' in kwargs:
+            if 'color' not in kwargs:
+                kwargs['color'] = kwargs['colors']
+            if 'labelcolor' not in kwargs:
+                kwargs['labelcolor'] = kwargs['colors']
+
+        # The only property that can be set *specifically* for minor ticks is
+        # the length. In future we could consider having a separate Ticks instance
+        # for minor ticks so that e.g. the color can be set separately.
+        if which == 'minor':
+            if len(set(kwargs) - {'length'}) > 0:
+                raise ValueError("When setting which='minor', the only "
+                                 "property that can be set at the moment is "
+                                 "'length' (the minor tick length)")
+            else:
+                if 'length' in kwargs:
+                    self.ticks.set_minor_ticksize(kwargs['length'])
+            return
+
+        # At this point, we can now ignore the 'which' argument.
+
+        # Set the tick arguments
+        self.set_ticks(size=kwargs.get('length'),
+                       width=kwargs.get('width'),
+                       color=kwargs.get('color'),
+                       direction=kwargs.get('direction'))
+
+        # Set the tick position
+        position = None
+        for arg in ('bottom', 'left', 'top', 'right'):
+            if arg in kwargs and position is None:
+                position = ''
+            if kwargs.get(arg):
+                position += arg[0]
+        if position is not None:
+            self.set_ticks_position(position)
+
+        # Set the tick label arguments.
+        self.set_ticklabel(color=kwargs.get('labelcolor'),
+                           size=kwargs.get('labelsize'),
+                           pad=kwargs.get('pad'))
+
+        # Set the tick label position
+        position = None
+        for arg in ('bottom', 'left', 'top', 'right'):
+            if 'label' + arg in kwargs and position is None:
+                position = ''
+            if kwargs.get('label' + arg):
+                position += arg[0]
+        if position is not None:
+            self.set_ticklabel_position(position)
+
+        # And the grid settings
+        if 'grid_color' in kwargs:
+            self.grid_lines_kwargs['edgecolor'] = kwargs['grid_color']
+        if 'grid_alpha' in kwargs:
+            self.grid_lines_kwargs['alpha'] = kwargs['grid_alpha']
+        if 'grid_linewidth' in kwargs:
+            self.grid_lines_kwargs['linewidth'] = kwargs['grid_linewidth']
+        if 'grid_linestyle' in kwargs:
+            if kwargs['grid_linestyle'] in LINES_TO_PATCHES_LINESTYLE:
+                self.grid_lines_kwargs['linestyle'] = LINES_TO_PATCHES_LINESTYLE[kwargs['grid_linestyle']]
+            else:
+                self.grid_lines_kwargs['linestyle'] = kwargs['grid_linestyle']
