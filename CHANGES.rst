@@ -212,23 +212,42 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-- Add support for setting ``set_separator(None)`` in WCSAxes to use default
+astropy.visualization.wcsaxes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Add support for setting ``set_separator(None)`` to use default
   separators. [#7570]
 
-- Added two keyword argument options to ``CoordinateHelper.set_format_unit``: ``decimal`` can
-  be used to specify whether to use decimal formatting for the labels (by default this is
-  False for degrees and hours and True otherwise), and ``show_decimal_unit`` can be used to
-  determine whether the units should be shown for decimal labels. [#7318]
+- Added two keyword argument options to ``CoordinateHelper.set_format_unit``:
+  ``decimal`` can be used to specify whether to use decimal formatting for the
+  labels (by default this is False for degrees and hours and True otherwise),
+  and ``show_decimal_unit`` can be used to determine whether the units should be
+  shown for decimal labels. [#7318]
 
 - Added documentation for ``transform=`` and ``coord_meta=``. [#7698]
 
-- Allow ``coord_meta=`` in WCSAxes to optionally include ``format_unit=``.
-  [#7848]
+- Allow ``coord_meta=`` to optionally include ``format_unit=``. [#7848]
 
-- WCSAxes now recognizes more rcParams related to the grid, ticks, and labels, and
+- Add support for more rcParams related to the grid, ticks, and labels, and
   should work with most built-in Matplotlib styles. [#7961]
 
-- Improved rendering of WCSAxes with outward-facing ticks. [#7961]
+- Improved rendering of outward-facing ticks. [#7961]
+
+- Add support for ``tick_params`` (which is a standard Matplotlib
+  function/method) on both the ``WCSAxes`` class and the individual
+  ``CoordinateHelper`` classes. Note that this is provided for compatibility
+  with Matplotlib syntax users may be familiar with, but it is not the
+  preferred way to change settings. Instead, methods such as ``set_ticks``
+  should be preferred. [#7969]
+
+- Moved the argument ``exclude_overlapping`` from ``set_ticks`` to
+  ``set_ticklabel``. [#7969]
+
+- Added a ``pad=`` argument to ``set_ticklabel`` to provide a way to control
+  the padding between ticks and tick labels. [#7969]
+
+- Added support for setting the tick direction in ``set_ticks`` using the
+  ``direction=`` keyword argument. [#7969]
 
 astropy.wcs
 ^^^^^^^^^^^
