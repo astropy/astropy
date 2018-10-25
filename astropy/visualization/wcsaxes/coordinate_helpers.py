@@ -398,8 +398,6 @@ class CoordinateHelper:
             Whether to exclude tick labels that overlap over each other.
         kwargs
             Other keyword arguments are passed to :class:`matplotlib.text.Text`.
-            These can include keywords to set the ``color``, ``size``,
-            ``weight``, and other text properties.
         """
         if size is not None:
             self.ticklabels.set_size(size)
@@ -911,7 +909,7 @@ class CoordinateHelper:
 
         Parameters
         ----------
-        which : {'major', 'minor', 'both'}, optional
+        which : {'both', 'major', 'minor'}, optional
             Which ticks to apply the settings to. By default, setting are
             applied to both major and minor ticks. Note that if ``'minor'`` is
             specified, only the length of the ticks can be set currently.
@@ -919,7 +917,7 @@ class CoordinateHelper:
             Puts ticks inside the axes, or outside the axes.
         length : float, optional
             Tick length in points.
-        width : float
+        width : float, optional
             Tick width in points.
         color : color, optional
             Tick color (accepts any valid Matplotlib color)
@@ -962,7 +960,7 @@ class CoordinateHelper:
         # the length. In future we could consider having a separate Ticks instance
         # for minor ticks so that e.g. the color can be set separately.
         if which == 'minor':
-            if set(kwargs) - {'length'}:
+            if len(set(kwargs) - {'length'}) > 0:
                 raise ValueError("When setting which='minor', the only "
                                  "property that can be set at the moment is "
                                  "'length' (the minor tick length)")
