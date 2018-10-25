@@ -277,6 +277,10 @@ def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
 
     for k, v in imshow_only_kwargs.items():
         if k not in _norm_sig.parameters:
+            # the below is not strictly "has to be true", but is here so that
+            # users don't start using both imshow_only_kwargs *and* keyword
+            # arguments to this function, as that makes for more confusing
+            # user code
             raise ValueError('Provided a keyword to imshow_only_kwargs ({}) '
                              'that is not a keyword for ImageNormalize. This is'
                              ' not supported, you should pass the keyword'
