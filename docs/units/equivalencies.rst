@@ -291,6 +291,19 @@ observations at high-energy, be it for solar or X-ray astronomy. Example::
     >>> t_k.to(u.eV, equivalencies=u.temperature_energy())  # doctest: +FLOAT_CMP
     <Quantity 86.17332384960955 eV>
 
+Thermodynamic Temperature Equivalency
+-------------------------------------
+
+This :func:`~astropy.units.equivalencies.thermodynamic_temperature`
+equivalency allows conversion between Jy/beam and "thermodynamic
+temperature", :math:`T_{CMB}`, in Kelvins. Example::
+
+    >>> import astropy.units as u
+    >>> nu = 143 * u.GHz
+    >>> t_k = 0.0026320518775281975 * u.K
+    >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu))  # doctest: +FLOAT_CMP
+    <Quantity 1. MJy / sr>
+
 
 Molar Mass AMU Equivalency
 --------------------------
@@ -343,7 +356,9 @@ elements::
   (from_unit, to_unit, forward, backward)
 
 ``from_unit`` and ``to_unit`` are the equivalent units.  ``forward`` and
-``backward`` are functions that convert values between those units.
+``backward`` are functions that convert values between those units. ``forward``
+and ``backward`` are optional, and if omitted such an equivalency simply
+declares that the two units should be taken as equivalent.
 
 For example, until 1964 the metric liter was defined as the volume of
 1kg of water at 4°C at 760mm mercury pressure.  Volumes and masses are

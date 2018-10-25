@@ -168,7 +168,7 @@ Transforming frames with velocities
 ===================================
 
 Transforming coordinate frame instances that contain velocity data to a
-different frame (which may involve both position and velocity trasnfromations)
+different frame (which may involve both position and velocity transformations)
 is done  exactly the same way transforming position-only frame instances::
 
     >>> from astropy.coordinates import Galactic
@@ -196,7 +196,7 @@ Affine Transformations
 
 Frame transformations that involve a rotation and/or an origin shift and/or
 a velocity offset are implemented as affine transformations using the
-`~astropy.coordinates.BaseAffineTransform` subclassese:
+`~astropy.coordinates.BaseAffineTransform` subclasses:
 `~astropy.coordinates.StaticMatrixTransform`,
 `~astropy.coordinates.DynamicMatrixTransform`, and
 `~astropy.coordinates.AffineTransform`.

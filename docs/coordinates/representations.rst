@@ -241,7 +241,7 @@ To see how this works, consider the following::
 Note how the conversion to cartesian can only done using a ``base``, since
 otherwise the code cannot know what direction an increase in longitude
 corresponds to.  For ``lon=0``, this is in the ``y`` direction.  Now, to get
-the coordinates at two laters times::
+the coordinates at two later times::
 
   >>> sph_coo + sph_derivative * [1., 3600*180/np.pi] * u.yr  # doctest: +FLOAT_CMP
   <SphericalRepresentation (lon, lat, distance) in (rad, rad, kpc)
@@ -538,7 +538,7 @@ methods should be defined (please see, e.g.,
   the appropriate physical scale factor for a unit change in that direction.
 
 And furthermore you should define a ``Differential`` class based on
-`~astropy.coordinates.BaseDifferential`. This class can be extremly simple,
+`~astropy.coordinates.BaseDifferential`. This class can be extremely simple,
 and only needs to define:
 
 * ``base_representation`` attribute:

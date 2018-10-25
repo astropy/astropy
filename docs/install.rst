@@ -374,7 +374,7 @@ dependencies, including:
 * `Sphinx <http://sphinx.pocoo.org>`_ - the main package we use to build
   the documentation.
 * `astropy-sphinx-theme <https://github.com/astropy/astropy-sphinx-theme>`_ -
-  the default 'bootstrap' theme use by Astropy and a number of affilited
+  the default 'bootstrap' theme use by Astropy and a number of affiliated
   packages.
 * `sphinx-automodapi <http://sphinx-automodapi.readthedocs.io>`_ - an extension
   that makes it easy to automatically generate API documentation.

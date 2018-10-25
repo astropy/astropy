@@ -57,6 +57,9 @@ except ImportError:
 from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 
+# Mix-in class that provides the APE 14 API
+from .wcsapi.fitswcs import FITSWCSAPIMixin
+
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'DistortionLookupTable', 'Sip', 'Tabprm', 'Wcsprm',
            'WCSBase', 'validate', 'WcsError', 'SingularMatrixError',
@@ -212,7 +215,7 @@ class FITSFixedWarning(AstropyWarning):
     pass
 
 
-class WCS(WCSBase):
+class WCS(FITSWCSAPIMixin, WCSBase):
     """WCS objects perform standard WCS transformations, and correct for
     `SIP`_ and `distortion paper`_ table-lookup transformations, based
     on the WCS keywords and supplementary data read from a FITS file.
@@ -1212,6 +1215,9 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
 
         def _return_list_of_arrays(axes, origin):
+            if any([x.size == 0 for x in axes]):
+                return axes
+
             try:
                 axes = np.broadcast_arrays(*axes)
             except ValueError:
@@ -1235,6 +1241,8 @@ reduce these to 2 dimensions using the naxis kwarg.
                 raise ValueError(
                     "When providing two arguments, the array must be "
                     "of shape (N, {0})".format(self.naxis))
+            if 0 in xy.shape:
+                return xy
             if ra_dec_order and sky == 'input':
                 xy = self._denormalize_sky(xy)
             result = func(xy, origin)
@@ -1251,7 +1259,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 raise TypeError(
                     "When providing two arguments, they must be "
                     "(coords[N][{0}], origin)".format(self.naxis))
-            if self.naxis == 1 and len(xy.shape) == 1:
+            if xy.shape == () or len(xy.shape) == 1:
                 return _return_list_of_arrays([xy], origin)
             return _return_single_array(xy, origin)
 
@@ -1630,9 +1638,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         # (when any of the non-CD-matrix-based corrections are
         # present). If not required return the initial
         # approximation (pix0).
-        if self.sip is None and \
-           self.cpdis1 is None and self.cpdis2 is None and \
-           self.det2im1 is None and self.det2im2 is None:
+        if not self.has_distortion:
             # No non-WCS corrections detected so
             # simply return initial approximation:
             return pix0
@@ -2971,7 +2977,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             try:
                 # range requires integers but the other attributes can also
-                # handle arbitary values, so this needs to be in a try/except.
+                # handle arbitrary values, so this needs to be in a try/except.
                 nitems = len(builtins.range(self._naxis[wcs_index])[iview])
             except TypeError as exc:
                 if 'indices must be integers' not in str(exc):
@@ -3037,24 +3043,33 @@ reduce these to 2 dimensions using the naxis kwarg.
             return False
 
     @property
+    def has_distortion(self):
+        """
+        Returns `True` if any distortion terms are present.
+        """
+        return (self.sip is not None or
+                self.cpdis1 is not None or self.cpdis2 is not None or
+                self.det2im1 is not None and self.det2im2 is not None)
+
+    @property
     def pixel_scale_matrix(self):
 
         try:
-            cdelt = np.matrix(np.diag(self.wcs.get_cdelt()))
-            pc = np.matrix(self.wcs.get_pc())
+            cdelt = np.diag(self.wcs.get_cdelt())
+            pc = self.wcs.get_pc()
         except InconsistentAxisTypesError:
             try:
                 # for non-celestial axes, get_cdelt doesn't work
-                cdelt = np.matrix(self.wcs.cd) * np.matrix(np.diag(self.wcs.cdelt))
+                cdelt = np.dot(self.wcs.cd, np.diag(self.wcs.cdelt))
             except AttributeError:
-                cdelt = np.matrix(np.diag(self.wcs.cdelt))
+                cdelt = np.diag(self.wcs.cdelt)
 
             try:
-                pc = np.matrix(self.wcs.pc)
+                pc = self.wcs.pc
             except AttributeError:
                 pc = 1
 
-        pccd = np.array(cdelt * pc)
+        pccd = np.array(np.dot(cdelt, pc))
 
         return pccd
 

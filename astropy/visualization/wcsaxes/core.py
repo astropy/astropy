@@ -5,6 +5,7 @@ from collections import defaultdict
 
 import numpy as np
 
+from matplotlib import rcParams
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
@@ -73,7 +74,9 @@ class WCSAxes(Axes):
         ``longitude``, ``latitude``, or ``scalar``, the ``wrap`` entries should
         give, for the longitude, the angle at which the coordinate wraps (and
         `None` otherwise), and the ``unit`` should give the unit of the
-        coordinates as :class:`~astropy.units.Unit` instances.
+        coordinates as :class:`~astropy.units.Unit` instances. This can
+        optionally also include a ``format_unit`` entry giving the units to use
+        for the tick labels (if not specified, this defaults to ``unit``).
     transData : `~matplotlib.transforms.Transform`, optional
         Can be used to override the default data -> pixel mapping.
     slices : tuple, optional
@@ -175,9 +178,12 @@ class WCSAxes(Axes):
         All arguments are passed to :meth:`~matplotlib.axes.Axes.imshow`.
         """
 
-        origin = kwargs.get('origin', 'lower')
+        origin = kwargs.pop('origin', 'lower')
 
-        if origin == 'upper':
+        # plt.imshow passes origin as None, which we should default to lower.
+        if origin is None:
+            origin = 'lower'
+        elif origin == 'upper':
             raise ValueError("Cannot use images with origin='upper' in WCSAxes.")
 
         # To check whether the image is a PIL image we can check if the data
@@ -192,9 +198,8 @@ class WCSAxes(Axes):
         else:
             if isinstance(X, Image) or hasattr(X, 'getpixel'):
                 X = X.transpose(FLIP_TOP_BOTTOM)
-                kwargs['origin'] = 'lower'
 
-        return super().imshow(X, *args, **kwargs)
+        return super().imshow(X, *args, origin=origin, **kwargs)
 
     def contour(self, *args, **kwargs):
         """
@@ -388,6 +393,9 @@ class WCSAxes(Axes):
                     self.coords[coord_index].set_ticklabel_position('')
                     self.coords[coord_index].set_ticks_position('')
 
+        if rcParams['axes.grid']:
+            self.grid()
+
     def draw_wcsaxes(self, renderer):
 
         # Here need to find out range of all coordinates, and update range for
@@ -451,11 +459,24 @@ class WCSAxes(Axes):
 
         self._drawn = True
 
-    def set_xlabel(self, label, labelpad=1, **kwargs):
-        self.coords[self._x_index].set_axislabel(label, minpad=labelpad, **kwargs)
+    # MATPLOTLIB_LT_30: The ``kwargs.pop('label', None)`` is to ensure
+    # compatibility with Matplotlib 2.x (which has label) and 3.x (which has
+    # xlabel). While these are meant to be a single positional argument,
+    # Matplotlib internally sometimes specifies e.g. set_xlabel(xlabel=...).
 
-    def set_ylabel(self, label, labelpad=1, **kwargs):
-        self.coords[self._y_index].set_axislabel(label, minpad=labelpad, **kwargs)
+    def set_xlabel(self, xlabel=None, labelpad=1, **kwargs):
+        if xlabel is None:
+            xlabel = kwargs.pop('label', None)
+            if xlabel is None:
+                raise TypeError("set_xlabel() missing 1 required positional argument: 'xlabel'")
+        self.coords[self._x_index].set_axislabel(xlabel, minpad=labelpad, **kwargs)
+
+    def set_ylabel(self, ylabel=None, labelpad=1, **kwargs):
+        if ylabel is None:
+            ylabel = kwargs.pop('label', None)
+            if ylabel is None:
+                raise TypeError("set_ylabel() missing 1 required positional argument: 'ylabel'")
+        self.coords[self._y_index].set_axislabel(ylabel, minpad=labelpad, **kwargs)
 
     def get_xlabel(self):
         return self.coords[self._x_index].get_axislabel()
@@ -572,7 +593,11 @@ class WCSAxes(Axes):
                 else:
                     return pixel2world + CoordinateTransform(self.wcs, frame)
 
-    def get_tightbbox(self, renderer):
+    def get_tightbbox(self, renderer, *args, **kwargs):
+
+        # FIXME: we should determine what to do with the extra arguments here.
+        # Note that the expected signature of this method is different in
+        # Matplotlib 3.x compared to 2.x.
 
         if not self.get_visible():
             return

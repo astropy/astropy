@@ -6,6 +6,7 @@ import os
 import platform
 import sys
 import copy
+import subprocess
 
 import pytest
 import numpy as np
@@ -423,11 +424,13 @@ class TestHDUListFunctions(FitsTestCase):
         f = fits.open(self.data('test0.fits'))
         hdul = fits.HDUList()
         hdul.append(f[0].copy())
-        hdul.append(fits.ImageHDU(header=f[1].header))
+        hdu = fits.ImageHDU(header=f[1].header)
+        hdul.append(hdu)
 
         assert hdul[1].header['EXTNAME'] == 'SCI'
         assert hdul[1].header['EXTVER'] == 1
         assert hdul.index_of(('SCI', 1)) == 1
+        assert hdul.index_of(hdu) == len(hdul) - 1
 
     def test_update_filelike(self):
         """Test opening a file-like object in update mode and resizing the
@@ -861,8 +864,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         Regression test for https://github.com/astropy/astropy/issues/3060
         """
-
-        hdulist = fits.HDUList()
+        hdulist = fits.open(self.data('o4sp040b0_raw.fits'))
         hdulist.append(fits.ImageHDU(name='a'))
 
         assert 'a' in hdulist
@@ -873,6 +875,8 @@ class TestHDUListFunctions(FitsTestCase):
         assert ('a', 2) not in hdulist
         assert ('b', 1) not in hdulist
         assert ('b', 2) not in hdulist
+        assert hdulist[0] in hdulist
+        assert fits.ImageHDU() not in hdulist
 
     def test_overwrite_vs_clobber(self):
         hdulist = fits.HDUList([fits.PrimaryHDU()])
@@ -1031,3 +1035,16 @@ class TestHDUListFunctions(FitsTestCase):
         hdu_popped = hdul.pop('SCI')
         assert len(hdul) == 5
         assert hdu_popped is hdu1
+
+    def test_write_hdulist_to_stream(self):
+        """
+        Unit test for https://github.com/astropy/astropy/issues/7435
+        Ensure that an HDUList can be written to a stream in Python 2
+        """
+        data = np.array([[1,2,3],[4,5,6]])
+        hdu = fits.PrimaryHDU(data)
+        hdulist = fits.HDUList([hdu])
+
+        with open(self.temp('test.fits'), 'wb') as fout:
+            p = subprocess.Popen(["cat"], stdin=subprocess.PIPE, stdout=fout)
+            hdulist.writeto(p.stdin)

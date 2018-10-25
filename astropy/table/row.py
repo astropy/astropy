@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import collections
 import operator
 
@@ -179,4 +178,4 @@ class Row:
         return str(self).encode('utf-8')
 
 
-collections.Sequence.register(Row)
+collections.abc.Sequence.register(Row)

@@ -249,7 +249,7 @@ Running tests to catch permissions errors
 -----------------------------------------
 
 It is possible to write code or tests that write into the source directory. This
-is not desirable because Python packages can be (and frequestly are) installed
+is not desirable because Python packages can be (and frequently are) installed
 in locations where the user may not have write permissions.  To check for these
 cases, the test runner has an option to have the test-runner
 directory be set as read-only to ensure the tests are not writing to that
@@ -423,14 +423,14 @@ a context manager within a test to temporarily set the cache to a custom
 location, or as a *decorator* that takes effect for an entire test function
 (not including setup or teardown, which would have to be decorated separately).
 
-Furthermore, it is possible to set an option ``cache_dir`` in the pytest
-config file which sets the cache location for the entire test run.  A
-``--cache-dir`` command-line option is also supported (which overrides all
-other settings).  Currently it is not directly supported by the
+Furthermore, it is possible to set an option ``astropy_cache_dir`` in the
+pytest config file which sets the cache location for the entire test run.  A
+``--astropy-cache-dir`` command-line option is also supported (which overrides
+all other settings).  Currently it is not directly supported by the
 ``./setup.py test`` command, so it is necessary to use it with the ``-a``
 argument like::
 
-    $ ./setup.py test -a "--cache-dir=/path/to/custom/cache/dir"
+    $ ./setup.py test -a "--astropy-cache-dir=/path/to/custom/cache/dir"
 
 
 Tests that create files
@@ -505,12 +505,12 @@ functions. In the following ::
             self.NUM = 42
 
         def test_1(self):
-            """Test behaviour for a specific input value."""
+            """Test behavior for a specific input value."""
             added = add_nums(11, self.NUM)
             assert added == 53
 
         def test_2(self):
-            """Test behaviour for another input value."""
+            """Test behavior for another input value."""
             added = add_nums(13, self.NUM)
             assert added == 55
 
@@ -538,12 +538,12 @@ before and after *each* test. For this, use the ``setup_method`` and
             self.NUM = 42
 
         def test_1(self):
-        """Test behaviour for a specific input value."""
+        """Test behavior for a specific input value."""
             added = add_nums(11, self.NUM)
             assert added == 53
 
         def test_2(self):
-        """Test behaviour for another input value."""
+        """Test behavior for another input value."""
             added = add_nums(13, self.NUM)
             assert added == 55
 
@@ -721,7 +721,7 @@ installed Docker, to run the Astropy tests with the image comparison inside a
 Docker container, make sure you are inside the Astropy repository (or the
 repository of the package you are testing) then do::
 
-    docker run -it -v ${PWD}:/repo astropy/image-tests-py35-mpl153:1.0 /bin/bash
+    docker run -it -v ${PWD}:/repo astropy/image-tests-py35-mpl300:1.3 /bin/bash
 
 This will start up a bash prompt in the Docker container, and you should see
 something like::
@@ -765,7 +765,7 @@ Generating reference images
 Once you have a test for which you want to (re-)generate reference images,
 start up one of the Docker containers using e.g.::
 
-  docker run -it -v ${PWD}:/repo astropy/image-tests-py35-mpl153:1.0 /bin/bash
+  docker run -it -v ${PWD}:/repo astropy/image-tests-py35-mpl300:1.3 /bin/bash
 
 then run the tests inside ``/repo`` with the ``--mpl-generate-path`` argument, e.g::
 

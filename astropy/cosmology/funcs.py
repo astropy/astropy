@@ -21,7 +21,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
     methods (for example Planck13.distmod) is equal to a known value.
 
     .. warning::
-      Make sure you understand the behaviour of the function that you
+      Make sure you understand the behavior of the function that you
       are trying to invert! Depending on the cosmology, there may not
       be a unique solution. For example, in the standard Lambda CDM
       cosmology, there are two redshifts which give an angular

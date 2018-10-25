@@ -1089,7 +1089,39 @@ def test_keyedsip():
     del header[str("CRPIX1")]
     del header[str("CRPIX2")]
 
-    w=wcs.WCS(header=header,key="A")
+    w = wcs.WCS(header=header, key="A")
     assert isinstance( w.sip, wcs.Sip )
     assert w.sip.crpix[0] == 2048
     assert w.sip.crpix[1] == 1026
+
+
+def test_zero_size_input():
+    with fits.open(get_pkg_data_filename('data/sip.fits')) as f:
+        w = wcs.WCS(f[0].header)
+
+    inp = np.zeros((0, 2))
+    assert_array_equal(inp, w.all_pix2world(inp, 0))
+    assert_array_equal(inp, w.all_world2pix(inp, 0))
+
+    inp = [], [1]
+    result = w.all_pix2world([], [1], 0)
+    assert_array_equal(inp[0], result[0])
+    assert_array_equal(inp[1], result[1])
+
+    result = w.all_world2pix([], [1], 0)
+    assert_array_equal(inp[0], result[0])
+    assert_array_equal(inp[1], result[1])
+
+
+def test_scalar_inputs():
+    """
+    Issue #7845
+    """
+    wcsobj = wcs.WCS(naxis=1)
+    result = wcsobj.all_pix2world(2, 1)
+    assert_array_equal(result, [np.array(2.)])
+    assert result[0].shape == ()
+
+    result = wcsobj.all_pix2world([2], 1)
+    assert_array_equal(result, [np.array([2.])])
+    assert result[0].shape == (1,)

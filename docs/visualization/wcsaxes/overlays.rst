@@ -74,7 +74,7 @@ The `~astropy.visualization.wcsaxes.WCSAxes` class includes a :meth:`~astropy.vi
 method that can be used to get the appropriate transformation object to convert
 from various world coordinate systems to the final pixel coordinate system
 required by Matplotlib. The :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` method can
-take a number of different inputs, which are desribed in this and subsequent
+take a number of different inputs, which are described in this and subsequent
 sections. The two simplest inputs to this method are ``'world'`` and
 ``'pixel'``.
 
@@ -169,7 +169,7 @@ in FK5 equatorial coordinates:
                   transform=ax.get_transform('fk5'))
     ax.add_patch(r)
 
-In this case, the rectangle will be plotted at FK5 J2000 coordinates (266deg, -28.9deg). However, it is **very important** to note that while the height will indeed be 0.15 degrees, the width will not strictly represent 0.3 degrees on the sky, but an interval of 0.3 degrees in longitude (which, dependending on the latitude, will represent a different angle on the sky). In other words, if the width and height are set to the same value, the resulting polygon will not be a square, and the same applies to the `~matplotlib.patches.Circle` patch, which will not actually produce a circle:
+In this case, the rectangle will be plotted at FK5 J2000 coordinates (266deg, -28.9deg). However, it is **very important** to note that while the height will indeed be 0.15 degrees, the width will not strictly represent 0.3 degrees on the sky, but an interval of 0.3 degrees in longitude (which, depending on the latitude, will represent a different angle on the sky). In other words, if the width and height are set to the same value, the resulting polygon will not be a square, and the same applies to the `~matplotlib.patches.Circle` patch, which will not actually produce a circle:
 
 .. plot::
    :context:

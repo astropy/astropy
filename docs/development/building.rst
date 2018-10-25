@@ -4,10 +4,7 @@ Building Astropy and its Subpackages
 
 The build process currently uses the `setuptools
 <https://setuptools.readthedocs.io>`_ package to build and install the
-astropy core (and any affiliated packages that use the template).  The user
-doesn't necessarily need to have `setuptools`_ installed, as it will
-automatically bootstrap itself using the ``ez_setup.py`` file in the source
-distribution if it isn't installed for the user.
+astropy core (and any affiliated packages that use the template).
 
 
 Astropy-helpers
@@ -112,7 +109,7 @@ in their own ``setup.py``.
 PLY Parsing/Lexing tables
 =========================
 
-For certain string-prasing tasks, Astropy uses the
+For certain string-parsing tasks, Astropy uses the
 `PLY <http://www.dabeaz.com/ply/>`_ tool.  PLY generates tables that speed up
 the parsing process, which are checked into source code so they don't have to
 be regenerated.  These tables can be recognized by having either ``lextab`` or

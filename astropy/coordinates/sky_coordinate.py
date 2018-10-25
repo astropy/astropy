@@ -2,7 +2,7 @@
 import re
 import copy
 import warnings
-import collections
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -897,7 +897,7 @@ class SkyCoord(ShapedLikeNDArray):
 
             If the ``other`` coordinate object is in a different frame, it is
             first transformed to the frame of this object. This can lead to
-            unintutive behavior if not accounted for. Particularly of note is
+            unintuitive behavior if not accounted for. Particularly of note is
             that ``self.separation(other)`` and ``other.separation(self)`` may
             not give the same answer in this case.
 
@@ -1665,7 +1665,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     # Name resolve
     @classmethod
-    def from_name(cls, name, frame='icrs'):
+    def from_name(cls, name, frame='icrs', parse=False):
         """
         Given a name, query the CDS name resolver to attempt to retrieve
         coordinate information for that object. The search database, sesame
@@ -1680,6 +1680,15 @@ class SkyCoord(ShapedLikeNDArray):
             The name of the object to get coordinates for, e.g. ``'M42'``.
         frame : str or `BaseCoordinateFrame` class or instance
             The frame to transform the object to.
+        parse: bool
+            Whether to attempt extracting the coordinates from the name by
+            parsing with a regex. For objects catalog names that have
+            J-coordinates embedded in their names eg:
+            'CRTS SSS100805 J194428-420209', this may be much faster than a
+            sesame query for the same object name. The coordinates extracted
+            in this way may differ from the database coordinates by a few
+            deci-arcseconds, so only use this option if you do not need
+            sub-arcsecond accuracy for coordinates.
 
         Returns
         -------
@@ -1689,7 +1698,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         from .name_resolve import get_icrs_coordinates
 
-        icrs_coord = get_icrs_coordinates(name)
+        icrs_coord = get_icrs_coordinates(name, parse)
         icrs_sky_coord = cls(icrs_coord)
         if frame in ('icrs', icrs_coord.__class__):
             return icrs_sky_coord
@@ -1798,7 +1807,7 @@ def _get_frame(args, kwargs):
         # to allow the first argument to set the class.  That's OK because
         # _parse_coordinate_arg goes and checks that the frames match between
         # the first and all the others
-        if (isinstance(arg, (collections.Sequence, np.ndarray)) and
+        if (isinstance(arg, (Sequence, np.ndarray)) and
              len(args) == 1 and len(arg) > 0):
             arg = arg[0]
 
@@ -1968,7 +1977,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
         # 2-d array of coordinate values.  Handle specially for efficiency.
         values = coords.transpose()  # Iterates over repr attrs
 
-    elif isinstance(coords, (collections.Sequence, np.ndarray)):
+    elif isinstance(coords, (Sequence, np.ndarray)):
         # Handles list-like input.
 
         vals = []

@@ -34,5 +34,8 @@ class Conf(_config.ConfigNamespace):
     grid_samples = _config.ConfigItem(1000,
         'How many points to sample along grid lines.')
 
+    contour_grid_samples = _config.ConfigItem(200,
+        'The grid size to use when drawing a grid using contours')
+
 
 conf = Conf()

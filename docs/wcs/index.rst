@@ -1,3 +1,4 @@
+
 .. _astropy-wcs:
 
 ***************************************
@@ -262,9 +263,10 @@ Other information
 
    relax
    history
+   wcsapi
 
-.. note that if this section gets too long, it should be moved to a separate 
-   doc page - see the top of performance.inc.rst for the instructions on how to do 
+.. note that if this section gets too long, it should be moved to a separate
+   doc page - see the top of performance.inc.rst for the instructions on how to do
    that
 .. include:: performance.inc.rst
 
@@ -277,6 +279,7 @@ Reference/API
 =============
 
 .. automodapi:: astropy.wcs
+   :inherited-members:
 
 .. automodapi:: astropy.wcs.utils
 

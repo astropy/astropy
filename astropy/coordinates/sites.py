@@ -13,7 +13,7 @@ updating the ``location.json`` file.
 
 import json
 from difflib import get_close_matches
-from collections import Mapping
+from collections.abc import Mapping
 
 from ..utils.data import get_pkg_data_contents, get_file_contents
 from .earth import EarthLocation
@@ -101,13 +101,16 @@ class SiteRegistry(Mapping):
     def from_json(cls, jsondb):
         reg = cls()
         for site in jsondb:
-            site_info = jsondb[site]
-            location = EarthLocation.from_geodetic(site_info['longitude'] * u.Unit(site_info['longitude_unit']),
-                                                   site_info['latitude'] * u.Unit(site_info['latitude_unit']),
-                                                   site_info['elevation'] * u.Unit(site_info['elevation_unit']))
-            location.info.name = site_info['name']
+            site_info = jsondb[site].copy()
+            location = EarthLocation.from_geodetic(site_info.pop('longitude') * u.Unit(site_info.pop('longitude_unit')),
+                                                   site_info.pop('latitude') * u.Unit(site_info.pop('latitude_unit')),
+                                                   site_info.pop('elevation') * u.Unit(site_info.pop('elevation_unit')))
+            location.info.name = site_info.pop('name')
+            aliases = site_info.pop('aliases')
+            location.info.meta = site_info  # whatever is left
 
-            reg.add_site([site] + site_info['aliases'], location)
+            reg.add_site([site] + aliases, location)
+
         reg._loaded_jsondb = jsondb
         return reg
 

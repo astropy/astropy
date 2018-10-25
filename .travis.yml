@@ -68,31 +68,13 @@ matrix:
     fast_finish: true
 
     include:
-
-        - stage: Initial tests
-          env: PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
-
-        - stage: Initial tests
-          env: PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
-
-        - stage: Initial tests
-          env: PYTHON_VERSION=3.7 SETUP_CMD='egg_info'
-
-        # Try MacOS X.
+        # Try MacOS X. Use a slightly old numpy version to help test against
+        # all supported numpy versions.
         - os: osx
           stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='jplephem' EVENT_TYPE='cron'
-
-        # Check for sphinx doc build warnings - we do this first because it
-        # runs for a long time. The sphinx build also has some additional
-        # dependencies. Using a more stringent locale than UTF-8.
-        - os: linux
-          env: SETUP_CMD='build_docs -w'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='sphinx-astropy jplephem pillow'
-               LC_CTYPE=C LC_ALL=C LANG=C
 
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
@@ -116,20 +98,23 @@ matrix:
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="jplephem"
                LC_CTYPE=C.ascii LC_ALL=C
+               PYTEST_VERSION=3.7
+
 
         - os: linux
           stage: Initial tests
           env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                SETUP_CMD='test -a "--durations=50"'
+               PYTEST_VERSION=3.8
           compiler: clang
 
         # Full tests with coverage checks.
         - os: linux
           env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="cpp-coveralls objgraph jplephem bintrees sortedcontainers"
+               PIP_DEPENDENCIES="codecov objgraph jplephem bintrees sortedcontainers"
                LC_CTYPE=C.ascii LC_ALL=C
-               CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
+               CFLAGS='--coverage -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.0
                EVENT_TYPE='push pull_request cron'
 
@@ -150,6 +135,7 @@ matrix:
         - os: linux
           env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               MATPLOTLIB_VERSION=dev
 
         # We check numpy-dev also in a job that only runs from cron, so that
         # we can spot issues sooner. We do not use remote data here, since
@@ -163,6 +149,7 @@ matrix:
       - os: linux
         env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
              CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+             MATPLOTLIB_VERSION=dev
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
@@ -173,8 +160,5 @@ script:
 
 after_success:
     - if [[ $SETUP_CMD == *--coverage* ]]; then
-        if [ "$TRAVIS_REPO_SLUG" = "astropy/astropy" -o "$TRAVIS_PULL_REQUEST_SLUG" = "astropy/astropy" ]; then
-          cpp-coveralls -E ".*convolution.*" -E ".*_erfa.*" -E ".*\.l" -E ".*\.y" -E ".*flexed.*" -E ".*cextern.*" -E ".*_np_utils.*" -E ".*cparser.*" -E ".*cython_impl.*" --dump c-coveralls.json;
-          coveralls --merge=c-coveralls.json --rcfile='astropy/tests/coveragerc';
-        fi;
+        codecov --gcov-glob "*cextern*";
       fi

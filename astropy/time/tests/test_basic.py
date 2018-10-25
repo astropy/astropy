@@ -355,6 +355,9 @@ class TestBasic():
         dt = datetime.datetime(2000, 1, 2, 3, 4, 5, 123456)
         Time(dt, format='datetime', scale='tai')
         Time([dt, dt], format='datetime', scale='tai')
+        dt64 = np.datetime64('2012-06-18T02:00:05.453000000', format='datetime64')
+        Time(dt64, format='datetime64', scale='tai')
+        Time([dt64, dt64], format='datetime64', scale='tai')
 
     def test_local_format_transforms(self):
         """
@@ -415,6 +418,40 @@ class TestBasic():
         assert np.all(t3[1].value == dt3[1])
         assert np.all(t3[:, 2] == Time(dt3[:, 2]))
         assert Time(t3[2, 0]) == t3[2, 0]
+
+    def test_datetime64(self):
+        dt64 = np.datetime64('2000-01-02T03:04:05.123456789')
+        dt64_2 = np.datetime64('2000-01-02')
+        t = Time(dt64, scale='utc', precision=9, format='datetime64')
+        assert t.iso == '2000-01-02 03:04:05.123456789'
+        assert t.datetime64 == dt64
+        assert t.value == dt64
+        t2 = Time(t.iso, scale='utc')
+        assert t2.datetime64 == dt64
+
+        t = Time(dt64_2, scale='utc', precision=3, format='datetime64')
+        assert t.iso == '2000-01-02 00:00:00.000'
+        assert t.datetime64 == dt64_2
+        assert t.value == dt64_2
+        t2 = Time(t.iso, scale='utc')
+        assert t2.datetime64 == dt64_2
+
+        t = Time([dt64, dt64_2], scale='utc', format='datetime64')
+        assert np.all(t.value == [dt64, dt64_2])
+
+        t = Time('2000-01-01 01:01:01.123456789', scale='tai')
+        assert t.datetime64 == np.datetime64('2000-01-01T01:01:01.123456789')
+
+        # broadcasting
+        dt3 = (dt64 + (dt64_2-dt64)*np.arange(12)).reshape(4, 3)
+        t3 = Time(dt3, scale='utc', format='datetime64')
+        assert t3.shape == (4, 3)
+        assert t3[2, 1].value == dt3[2, 1]
+        assert t3[2, 1] == Time(dt3[2, 1], format='datetime64')
+        assert np.all(t3.value == dt3)
+        assert np.all(t3[1].value == dt3[1])
+        assert np.all(t3[:, 2] == Time(dt3[:, 2], format='datetime64'))
+        assert Time(t3[2, 0], format='datetime64') == t3[2, 0]
 
     def test_epoch_transform(self):
         """Besselian and julian epoch transforms"""
@@ -1475,3 +1512,56 @@ def test_strptime_3_digit_year():
     time_obj2 = Time.strptime('0995-Dec-31 00:00:00', '%Y-%b-%d %H:%M:%S')
 
     assert time_obj1 == time_obj2
+
+
+def test_strptime_fracsec_scalar():
+    time_string = '2007-May-04 21:08:12.123'
+    time_object = Time('2007-05-04 21:08:12.123')
+    t = Time.strptime(time_string, '%Y-%b-%d %H:%M:%S.%f')
+
+    assert t == time_object
+
+
+def test_strptime_fracsec_array():
+    """Test of Time.strptime
+    """
+    tstrings = [['1998-Jan-01 00:00:01.123', '1998-Jan-01 00:00:02.000001'],
+                ['1998-Jan-01 00:00:03.000900', '1998-Jan-01 00:00:04.123456']]
+    tstrings = np.array(tstrings)
+
+    time_object = Time([['1998-01-01 00:00:01.123', '1998-01-01 00:00:02.000001'],
+                        ['1998-01-01 00:00:03.000900', '1998-01-01 00:00:04.123456']])
+    t = Time.strptime(tstrings, '%Y-%b-%d %H:%M:%S.%f')
+
+    assert np.all(t == time_object)
+    assert t.shape == tstrings.shape
+
+
+def test_strftime_scalar_fracsec():
+    """Test of Time.strftime
+    """
+    time_string = '2010-09-03 06:00:00.123'
+    t = Time(time_string)
+
+    for format in t.FORMATS:
+        t.format = format
+        assert t.strftime('%Y-%m-%d %H:%M:%S.%f') == time_string
+
+
+def test_strftime_scalar_fracsec_precision():
+    time_string = '2010-09-03 06:00:00.123123123'
+    t = Time(time_string)
+    assert t.strftime('%Y-%m-%d %H:%M:%S.%f') == '2010-09-03 06:00:00.123'
+    t.precision = 9
+    assert t.strftime('%Y-%m-%d %H:%M:%S.%f') == '2010-09-03 06:00:00.123123123'
+
+
+def test_strftime_array_fracsec():
+    tstrings = ['2010-09-03 00:00:00.123000', '2005-09-03 06:00:00.000001',
+                '1995-12-31 23:59:60.000900']
+    t = Time(tstrings)
+    t.precision = 6
+
+    for format in t.FORMATS:
+        t.format = format
+        assert t.strftime('%Y-%m-%d %H:%M:%S.%f').tolist() == tstrings

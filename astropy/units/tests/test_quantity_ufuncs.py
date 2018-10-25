@@ -52,10 +52,13 @@ def test_testwarn(tw):
         tw.f(*tw.q_in)
 
 
-class TestUfuncCoverage:
-    """Test that we cover all ufunc's"""
-
+class TestUfuncHelpers:
+    # Note that this test should work even if scipy is present, since
+    # the scipy.special ufuncs are only loaded on demand.
+    # The test passes independently of whether erfa is already loaded
+    # (which will be the case for a full test, since coordinates uses it).
     def test_coverage(self):
+        """Test that we cover all ufunc's"""
 
         all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
                              if isinstance(ufunc, np.ufunc)])
@@ -64,19 +67,26 @@ class TestUfuncCoverage:
                         set(qh.UFUNC_HELPERS.keys()))
         # Check that every numpy ufunc is covered.
         assert all_np_ufuncs - all_q_ufuncs == set()
-        # Check that all ufuncs we cover come from numpy, erfa, and scipy.
-        # (Since coverage for scipy and erfa is incomplete, we do not check
+        # Check that all ufuncs we cover come from numpy or erfa.
+        # (Since coverage for erfa is incomplete, we do not check
         # this the other way).
         all_erfa_ufuncs = set([ufunc for ufunc in erfa_ufunc.__dict__.values()
                                if isinstance(ufunc, np.ufunc)])
-        if HAS_SCIPY:
-            import scipy.special as sps
-            all_sps_ufuncs = set([ufunc for ufunc in sps.__dict__.values()
-                                  if isinstance(ufunc, np.ufunc)])
-        else:
-            all_sps_ufuncs = set()
-        assert (all_q_ufuncs - all_np_ufuncs -
-                all_sps_ufuncs - all_erfa_ufuncs == set())
+        assert (all_q_ufuncs - all_np_ufuncs - all_erfa_ufuncs == set())
+
+    def test_scipy_registered(self):
+        # Should be registered as existing even if scipy is not available.
+        assert 'scipy.special' in qh.UFUNC_HELPERS.modules
+
+    def test_removal_addition(self):
+        assert np.add in qh.UFUNC_HELPERS
+        assert np.add not in qh.UNSUPPORTED_UFUNCS
+        qh.UFUNC_HELPERS[np.add] = None
+        assert np.add not in qh.UFUNC_HELPERS
+        assert np.add in qh.UNSUPPORTED_UFUNCS
+        qh.UFUNC_HELPERS[np.add] = qh.UFUNC_HELPERS[np.subtract]
+        assert np.add in qh.UFUNC_HELPERS
+        assert np.add not in qh.UNSUPPORTED_UFUNCS
 
 
 class TestQuantityTrigonometricFuncs:
@@ -1043,6 +1053,12 @@ class TestUfuncOuter:
 
 if HAS_SCIPY:
     from scipy import special as sps
+
+    def test_scipy_registration():
+        """Check that scipy gets loaded upon first use."""
+        assert sps.erf not in qh.UFUNC_HELPERS
+        sps.erf(1. * u.percent)
+        assert sps.erf in qh.UFUNC_HELPERS
 
     class TestScipySpecialUfuncs:
 

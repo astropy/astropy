@@ -39,6 +39,8 @@ sdist
 develop-eggs
 .installed.cfg
 distribute-*.tar.gz
+.venv
+venv
 
 # Other
 .cache
@@ -61,6 +63,7 @@ htmlcov
 
 # Pytest
 v
+.pytest_cache
 
 # VSCode
 .vscode

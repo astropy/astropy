@@ -175,7 +175,7 @@ Arithmetic on an existing property
 Customizing how an existing property is handled during arithmetic is possible
 with some arguments to the function calls like
 :meth:`~astropy.nddata.NDArithmeticMixin.add` but it's possible to hardcode
-behaviour too. The actual operation on the attribute (except for ``unit``) is
+behavior too. The actual operation on the attribute (except for ``unit``) is
 done in a method ``_arithmetic_*`` where ``*`` is the name of the property.
 
 For example to customize how the ``meta`` will be affected during arithmetics::
@@ -466,6 +466,9 @@ systematic uncertainties::
     ...     @property
     ...     def uncertainty_type(self):
     ...         return 'systematic'
+    ...
+    ...     def _data_unit_to_uncertainty_unit(self, value):
+    ...         return None
     ...
     ...     def _propagate_add(self, other_uncert, *args, **kwargs):
     ...         return None

@@ -1412,7 +1412,7 @@ class Model(metaclass=_ModelMeta):
 
         Model sub-classes can also use function annotations in evaluate to
         indicate valid input units, in which case this property should
-        not be overriden since it will return the input units based on the
+        not be overridden since it will return the input units based on the
         annotations.
         """
         if hasattr(self, '_input_units'):
@@ -1436,7 +1436,7 @@ class Model(metaclass=_ModelMeta):
 
         Model sub-classes can also use function annotations in evaluate to
         indicate valid output units, in which case this property should not be
-        overriden since it will return the return units based on the
+        overridden since it will return the return units based on the
         annotations.
         """
         if hasattr(self, '_return_units'):
@@ -3288,7 +3288,7 @@ def _prepare_outputs_single_model(model, outputs, format_info):
         if broadcast_shape is not None:
             if not broadcast_shape:
                 # Shape is (), i.e. a scalar should be returned
-                outputs[idx] = np.asscalar(output)
+                outputs[idx] = output.item()
             else:
                 outputs[idx] = output.reshape(broadcast_shape)
 

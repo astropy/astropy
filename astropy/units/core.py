@@ -716,6 +716,19 @@ class UnitBase(metaclass=InheritDocstrings):
         except TypeError:
             return NotImplemented
 
+    def __rlshift__(self, m):
+        try:
+            from .quantity import Quantity
+            return Quantity(m, self, copy=False, subok=True)
+        except Exception:
+            return NotImplemented
+
+    def __rrshift__(self, m):
+        warnings.warn(">> is not implemented. Did you mean to convert "
+                      "to a Quantity with unit {} using '<<'?".format(self),
+                      AstropyWarning)
+        return NotImplemented
+
     def __hash__(self):
         # This must match the hash used in CompositeUnit for a unit
         # with only one base and no scale or power.
@@ -728,7 +741,7 @@ class UnitBase(metaclass=InheritDocstrings):
         try:
             other = Unit(other, parse_strict='silent')
         except (ValueError, UnitsError, TypeError):
-            return False
+            return NotImplemented
 
         # Other is Unit-like, but the test below requires it is a UnitBase
         # instance; if it is not, give up (so that other can try).
@@ -1403,7 +1416,7 @@ class UnitBase(metaclass=InheritDocstrings):
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to also list.  See
             :ref:`unit_equivalencies`.
-            Any list given, including an empty one, supercedes global defaults
+            Any list given, including an empty one, supersedes global defaults
             that may be in effect (as set by `set_enabled_equivalencies`)
 
         units : set of units to search in, optional
@@ -1675,7 +1688,7 @@ class IrreducibleUnit(NamedUnit):
 class UnrecognizedUnit(IrreducibleUnit):
     """
     A unit that did not parse correctly.  This allows for
-    roundtripping it as a string, but no unit operations actually work
+    round-tripping it as a string, but no unit operations actually work
     on it.
 
     Parameters
@@ -1710,8 +1723,12 @@ class UnrecognizedUnit(IrreducibleUnit):
         _unrecognized_operator
 
     def __eq__(self, other):
-        other = Unit(other, parse_strict='silent')
-        return isinstance(other, UnrecognizedUnit) and self.name == other.name
+        try:
+            other = Unit(other, parse_strict='silent')
+        except (ValueError, UnitsError, TypeError):
+            return NotImplemented
+
+        return isinstance(other, type(self)) and self.name == other.name
 
     def __ne__(self, other):
         return not (self == other)

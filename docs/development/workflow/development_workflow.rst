@@ -451,7 +451,7 @@ the main Astropy *master* repository.
 The decisions of when to request a *squash* or *rebase* are left to
 individual maintainers.  These may be requested to reduce the number of
 visible commits saved in the repository history, or because of code changes
-in Astropy in the meantime.  A rebase may be necessary to allow the Continious
+in Astropy in the meantime.  A rebase may be necessary to allow the Continuous
 Integration tests to run.  Both involve rewriting the `git`_ history, meaning
 that commit hashes will change, which is why you should do it only if asked.
 

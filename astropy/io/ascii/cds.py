@@ -18,6 +18,8 @@ from contextlib import suppress
 from . import core
 from . import fixedwidth
 
+from ...units import Unit
+
 
 __doctest_skip__ = ['*']
 
@@ -114,9 +116,11 @@ class CdsHeader(core.BaseHeader):
                 col.start = int(re.sub(r'[-\s]', '',
                                        match.group('start') or match.group('end'))) - 1
                 col.end = int(match.group('end'))
-                col.unit = match.group('units')
-                if col.unit == '---':
+                unit = match.group('units')
+                if unit == '---':
                     col.unit = None  # "---" is the marker for no unit in CDS table
+                else:
+                    col.unit = Unit(unit, format='cds', parse_strict='warn')
                 col.description = (match.group('descr') or '').strip()
                 col.raw_type = match.group('format')
                 col.type = self.get_col_type(col)

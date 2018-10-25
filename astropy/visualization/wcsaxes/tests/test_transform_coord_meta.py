@@ -19,6 +19,8 @@ from ....tests.image_tests import IMAGE_REFERENCE_DIR
 
 class DistanceToLonLat(CurvedTransform):
 
+    has_inverse = True
+
     def __init__(self, R=6e3):
         super().__init__()
         self.R = R
@@ -58,7 +60,6 @@ class TestTransformCoordMeta(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='coords_overlay.png',
                                    tolerance=0, style={})
     def test_coords_overlay(self):
 
@@ -108,7 +109,6 @@ class TestTransformCoordMeta(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='coords_overlay_auto_coord_meta.png',
                                    tolerance=0, style={})
     def test_coords_overlay_auto_coord_meta(self):
 
@@ -133,7 +133,6 @@ class TestTransformCoordMeta(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='direct_init.png',
                                    tolerance=0, style={})
     def test_direct_init(self):
 

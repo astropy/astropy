@@ -237,8 +237,22 @@ for a particular named object::
     <SkyCoord (ICRS): (ra, dec) in deg
         (153.1393271, 53.117343)>
 
+In some cases, the coordinates are embedded in the catalogue name of the object.
+For such object names, `~astropy.coordinates.SkyCoord.from_name` is able
+to parse the coordinates from the name if given the ``parse=True`` option.
+For slow connections, this may be much faster than a sesame query for the same
+object name. It's worth noting, however, that the coordinates extracted in this
+way may differ from the database coordinates by a few deci-arcseconds, so only
+use this option if you do not need sub-arcsecond accuracy for your coordinates::
+
+    >>> SkyCoord.from_name("CRTS SSS100805 J194428-420209", parse=True)  # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): (ra, dec) in deg
+        (296.11666667, -42.03583333)>
+
+
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
-a quick way to get an `~astropy.coordinates.EarthLocation`::
+a quick way to get an `~astropy.coordinates.EarthLocation` - the
+`~astropy.coordinates.EarthLocation.of_site` method::
 
     >>> from astropy.coordinates import EarthLocation
     >>> EarthLocation.of_site('Apache Point Observatory')  # doctest: +REMOTE_DATA +FLOAT_CMP
@@ -389,8 +403,8 @@ IPython session::
     In [2]: test_api_ape5??
 
 
-.. note that if this section gets too long, it should be moved to a separate 
-   doc page - see the top of performance.inc.rst for the instructions on how to do 
+.. note that if this section gets too long, it should be moved to a separate
+   doc page - see the top of performance.inc.rst for the instructions on how to do
    that
 .. include:: performance.inc.rst
 

@@ -18,6 +18,18 @@ except ImportError:
     HAS_SCIPY = False
 
 
+def test_sigma_constant():
+    """
+    Test that the GAUSSIAN_SIGMA_TO_FWHM constant matches the
+    gaussian_sigma_to_fwhm constant in astropy.stats. We define
+    it manually in astropy.modeling to avoid importing from
+    astropy.stats.
+    """
+    from ...stats.funcs import gaussian_sigma_to_fwhm
+    from ..functional_models import GAUSSIAN_SIGMA_TO_FWHM
+    assert gaussian_sigma_to_fwhm == GAUSSIAN_SIGMA_TO_FWHM
+
+
 def test_Trapezoid1D():
     """Regression test for https://github.com/astropy/astropy/issues/1721"""
 

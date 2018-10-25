@@ -87,7 +87,7 @@ class CoordinateHelper:
         self.ticklabels = TickLabels(self.frame,
                                      transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
-        self.ticks.display_minor_ticks(False)
+        self.ticks.display_minor_ticks(rcParams['xtick.minor.visible'])
         self.minor_frequency = 5
 
         # Initialize axis labels
@@ -116,10 +116,10 @@ class CoordinateHelper:
                                   'edgecolor': rcParams['grid.color'],
                                   'linestyle': lines_to_patches_linestyle[rcParams['grid.linestyle']],
                                   'linewidth': rcParams['grid.linewidth'],
-                                  'alpha': rcParams.get('grid.alpha', 1.0),
+                                  'alpha': rcParams['grid.alpha'],
                                   'transform': self.parent_axes.transData}
 
-    def grid(self, draw_grid=True, grid_type='lines', **kwargs):
+    def grid(self, draw_grid=True, grid_type=None, **kwargs):
         """
         Plot grid lines for this coordinate.
 
@@ -137,8 +137,16 @@ class CoordinateHelper:
             positions in the image and then drawing contours
             (``'contours'``). The first is recommended for 2-d images, while
             for 3-d (or higher dimensional) cubes, the ``'contours'`` option
-            is recommended.
+            is recommended. By default, 'lines' is used if the transform has
+            an inverse, otherwise 'contours' is used.
         """
+
+        if grid_type == 'lines' and not self.transform.has_inverse:
+            raise ValueError('The specified transform has no inverse, so the '
+                             'grid cannot be drawn using grid_type=\'lines\'')
+
+        if grid_type is None:
+            grid_type = 'lines' if self.transform.has_inverse else 'contours'
 
         if grid_type in ('lines', 'contours'):
             self._grid_type = grid_type
@@ -409,9 +417,21 @@ class CoordinateHelper:
             can include keywords to set the ``color``, ``size``, ``weight``, and
             other text properties.
         """
+
+        fontdict = kwargs.pop('fontdict', None)
+
+        # NOTE: When using plt.xlabel/plt.ylabel, minpad can get set explicitly
+        # to None so we need to make sure that in that case we change to a
+        # default numerical value.
+        if minpad is None:
+            minpad = 1
+
         self.axislabels.set_text(text)
         self.axislabels.set_minpad(minpad)
         self.axislabels.set(**kwargs)
+
+        if fontdict is not None:
+            self.axislabels.update(fontdict)
 
     def get_axislabel(self):
         """
@@ -501,7 +521,8 @@ class CoordinateHelper:
 
         self.ticks.draw(renderer, ticks_locs)
         self.ticklabels.draw(renderer, bboxes=bboxes,
-                             ticklabels_bbox=ticklabels_bbox)
+                             ticklabels_bbox=ticklabels_bbox,
+                             tick_out_size=self.ticks.out_size)
 
         renderer.close_group('ticks')
 
@@ -798,20 +819,25 @@ class CoordinateHelper:
 
     def _update_grid_contour(self):
 
-        if hasattr(self, '_grid'):
+        if hasattr(self, '_grid') and self._grid:
             for line in self._grid.collections:
                 line.remove()
 
         xmin, xmax = self.parent_axes.get_xlim()
         ymin, ymax = self.parent_axes.get_ylim()
 
-        x, y, field = self.transform.get_coord_slices(xmin, xmax, ymin, ymax, 200, 200)
+        from . import conf
+        res = conf.contour_grid_samples
+
+        x, y = np.meshgrid(np.linspace(xmin, xmax, res),
+                           np.linspace(ymin, ymax, res))
+        pixel = np.array([x.ravel(), y.ravel()]).T
+        world = self.transform.transform(pixel)
+        field = world[:, self.coord_index].reshape(res, res).T
 
         coord_range = self.parent_map.get_coord_range()
 
         tick_world_coordinates, spacing = self.locator(*coord_range[self.coord_index])
-
-        field = field[self.coord_index]
 
         # tick_world_coordinates is a Quantities array and we only needs its values
         tick_world_coordinates_values = tick_world_coordinates.value

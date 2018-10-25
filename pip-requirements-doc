@@ -13,5 +13,8 @@ matplotlib
 scipy
 pillow
 jplephem
+sphinx<1.7
 sphinx-astropy
 sphinx-gallery
+pyyaml
+scikit-image

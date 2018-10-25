@@ -28,6 +28,7 @@ from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
 # making a custom timescale in the documentation.
 from .formats import TimeFromEpoch  # pylint: disable=W0611
 
+from ..extern import _strptime
 
 __all__ = ['Time', 'TimeDelta', 'TIME_SCALES', 'STANDARD_TIME_SCALES', 'TIME_DELTA_SCALES',
            'ScaleValueError', 'OperandTypeError', 'TimeInfo']
@@ -260,8 +261,8 @@ class Time(ShapedLikeNDArray):
 
       >>> list(Time.FORMATS)
       ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date',
-       'datetime', 'iso', 'isot', 'yday', 'fits', 'byear', 'jyear', 'byear_str',
-       'jyear_str']
+       'datetime', 'iso', 'isot', 'yday', 'datetime64', 'fits', 'byear',
+       'jyear', 'byear_str', 'jyear_str']
 
     Parameters
     ----------
@@ -518,8 +519,10 @@ class Time(ShapedLikeNDArray):
                              op_dtypes=[time_array.dtype, 'U30'])
 
         for time, formatted in iterator:
-            time_tuple = strptime(to_string(time), format_string)
-            formatted[...] = '{:04}-{}-{}T{}:{}:{}'.format(*time_tuple)
+            tt, fraction = _strptime._strptime(to_string(time), format_string)
+            time_tuple = tt[:6] + (fraction,)
+            formatted[...] = '{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:06}'\
+                .format(*time_tuple)
 
         format = kwargs.pop('format', None)
         out = cls(*iterator.operands[1:], format='isot', **kwargs)
@@ -549,8 +552,8 @@ class Time(ShapedLikeNDArray):
 
           >>> list(Time.FORMATS)
           ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date',
-           'datetime', 'iso', 'isot', 'yday', 'fits', 'byear', 'jyear', 'byear_str',
-           'jyear_str']
+           'datetime', 'iso', 'isot', 'yday', 'datetime64', 'fits', 'byear',
+           'jyear', 'byear_str', 'jyear_str']
         """
         return self._format
 
@@ -608,7 +611,11 @@ class Time(ShapedLikeNDArray):
             datetime_tuple = (sk['year'], sk['mon'], sk['day'],
                               sk['hour'], sk['min'], sk['sec'],
                               date_tuple[6], date_tuple[7], -1)
-            formatted_strings.append(strftime(format_spec, datetime_tuple))
+            fmtd_str = format_spec
+            if '%f' in fmtd_str:
+                fmtd_str = fmtd_str.replace('%f', '{frac:0{precision}}'.format(frac=sk['fracsec'], precision=self.precision))
+            fmtd_str = strftime(fmtd_str, datetime_tuple)
+            formatted_strings.append(fmtd_str)
 
         if self.isscalar:
             return formatted_strings[0]
@@ -771,6 +778,8 @@ class Time(ShapedLikeNDArray):
 
     def _shaped_like_input(self, value):
         out = value
+        if value.dtype.kind == 'M':
+            return value[()]
         if not self._time.jd1.shape and not np.ma.is_masked(value):
             out = value.item()
         return out
@@ -1817,15 +1826,12 @@ class TimeDelta(Time):
     info = TimeDeltaInfo()
 
     def __init__(self, val, val2=None, format=None, scale=None, copy=False):
-        if isinstance(val, timedelta) and not format:
-            format = 'datetime'
-
         if isinstance(val, TimeDelta):
             if scale is not None:
                 self._set_scale(scale)
         else:
             if format is None:
-                format = 'jd'
+                format = 'datetime' if isinstance(val, timedelta) else 'jd'
 
             self._init_from_vals(val, val2, format, scale, copy)
 
@@ -2048,7 +2054,7 @@ def _make_array(val, copy=False):
     # Allow only float64, string or object arrays as input
     # (object is for datetime, maybe add more specific test later?)
     # This also ensures the right byteorder for float64 (closes #2942).
-    if not (val.dtype == np.float64 or val.dtype.kind in 'OSUa'):
+    if not (val.dtype == np.float64 or val.dtype.kind in 'OSUMa'):
         val = np.asanyarray(val, dtype=np.float64)
 
     return val
