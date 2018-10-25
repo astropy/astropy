@@ -511,6 +511,8 @@ reduce these to 2 dimensions using the naxis kwarg.
         for fd in close_fds:
             fd.close()
 
+        self._pixel_bounds = None
+
     def __copy__(self):
         new_copy = self.__class__()
         WCSBase.__init__(new_copy, self.sip,

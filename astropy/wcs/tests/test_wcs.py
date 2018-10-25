@@ -1042,13 +1042,18 @@ def test_naxis():
     w.wcs.cdelt = [0.1, 0.1]
     w.wcs.crpix = [1, 1]
     w._naxis = [1000, 500]
+    assert w.pixel_shape == (1000, 500)
+    assert w.array_shape == (500, 1000)
 
-    assert w._naxis1 == 1000
-    assert w._naxis2 == 500
-
-    w._naxis1 = 99
-    w._naxis2 = 59
+    w.pixel_shape = (99, 59)
     assert w._naxis == [99, 59]
+
+    w.array_shape = (45, 23)
+    assert w._naxis == [23, 45]
+    assert w.pixel_shape == (23, 45)
+
+    w.pixel_shape = None
+    assert w.pixel_bounds is None
 
 
 def test_sip_with_altkey():
