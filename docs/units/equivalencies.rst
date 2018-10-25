@@ -361,6 +361,40 @@ standard zero point of 3631.1 Jy::
     >>> u.Magnitude(target_flux.to(u.AB, zero_point_star_equiv))  # doctest: +FLOAT_CMP
     <Magnitude 22.30195136 mag(AB)>
 
+Reduced hubble constant/"little-h" Equivalencies
+------------------------------------------------
+
+The dimensionless version of the hubble constant - often known as "little h" -
+is a frequently-used quantity in extragalactic astrophysics.  It is also widely
+known as the bane of beginners' existence in such fields (See e.g., the title of
+`this paper <https://doi.org/10.1017/pasa.2013.31>`__, which also provides
+valuable advice on the use of little h).  Astropy provides an equivalency that
+helps keep this straight in at least some of these cases, by providing a way to
+convert to/from physical to "little h" units.  As an example::
+
+    >>> import astropy.units as u
+    >>> distance = 100 * (u.Mpc/u.h100)
+    >>> H0 = 70 * u.km/u.s / u.Mpc
+    >>> distance.to(u.Mpc, u.littleh(H0))  # doctest: +FLOAT_CMP
+    <Quantity 70.0 Mpc>
+
+Note the unit name ``h100`` - while this unit is usually expressed in the
+literature as just ``h``, here it is ``h100`` both to contrast with ``h70``
+(also occasionally used in the literature), and to not cause confusion with
+"hours".
+
+This equivalency also works with `astropy.cosmology` objects.  In fact, if no
+argument is given, it assumes the current default cosmology:
+
+    >>> import astropy.units as u
+    >>> from astropy import cosmology
+    >>> distance = 100 * (u.Mpc/u.h100)
+    >>> distance.to(u.Mpc, u.littleh(cosmology.WMAP9))  # doctest: +FLOAT_CMP
+    <Quantity 69.32 Mpc>
+    >>> distance.to(u.Mpc, u.littleh())  # doctest: +FLOAT_CMP
+    <Quantity 69.32 Mpc>
+
+
 Writing new equivalencies
 =========================
 
