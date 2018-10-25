@@ -80,7 +80,7 @@ Let's now check what the physical type of each axis is::
 This is indeed a spectral cube, with RA/Dec and a velocity axis.
 
 The main part of the new interface defines standard methods for transforming
-coordinates. The most convenience way is to use the high-level methods
+coordinates. The most convenient way is to use the high-level methods
 :meth:`~astropy.wcs.wcsapi.BaseHighLevelWCS.pixel_to_world` and
 :meth:`~astropy.wcs.wcsapi.BaseHighLevelWCS.world_to_pixel`, which can
 transform directly to astropy objects::
