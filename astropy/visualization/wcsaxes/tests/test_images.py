@@ -670,3 +670,63 @@ class TestBasic(BaseImageTests):
         ax.set_ylim(-0.5, 0.5)
         ax.coords[0].set_ticks(spacing=0.2 * 15 * u.arcsec)
         return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
+    def test_tick_params(self):
+
+        # This is a test to make sure that tick_params works correctly. We try
+        # and test as much as possible with a single reference image.
+
+        wcs = WCS()
+        wcs.wcs.ctype = ['lon', 'lat']
+
+        fig = plt.figure(figsize=(6, 6))
+
+        # The first subplot tests:
+        # - that plt.tick_params works
+        # - that by default both axes are changed
+        # - changing the tick direction and appearance, the label appearance and padding
+        ax = fig.add_subplot(2, 2, 1, projection=wcs)
+        plt.tick_params(direction='in', length=20, width=5, pad=6, labelsize=6,
+                        color='red', labelcolor='blue')
+
+        # The second subplot tests:
+        # - that specifying grid parameters doesn't actually cause the grid to
+        #   be shown (as expected)
+        # - that axis= can be given integer coordinates or their string name
+        # - that the tick positioning works (bottom/left/top/right)
+        # Make sure that we can pass things that can index coords
+        ax = fig.add_subplot(2, 2, 2, projection=wcs)
+        plt.tick_params(axis=0, direction='in', length=20, width=5, pad=4, labelsize=6,
+                        color='red', labelcolor='blue', bottom=True, grid_color='purple')
+        plt.tick_params(axis='lat', direction='out', labelsize=8,
+                        color='blue', labelcolor='purple', left=True, right=True,
+                        grid_color='red')
+
+        # The third subplot tests:
+        # - that ax.tick_params works
+        # - that the grid has the correct settings once shown explicitly
+        # - that we can use axis='x' and axis='y'
+        ax = fig.add_subplot(2, 2, 3, projection=wcs)
+        ax.tick_params(axis='x', direction='in', length=20, width=5, pad=20, labelsize=6,
+                       color='red', labelcolor='blue', bottom=True,
+                       grid_color='purple')
+        ax.tick_params(axis='y', direction='out', labelsize=8,
+                       color='blue', labelcolor='purple', left=True, right=True,
+                       grid_color='red')
+        plt.grid()
+
+        # The final subplot tests:
+        # - that we can use tick_params on a specific coordinate
+        # - that the label positioning can be customized
+        # - that the colors argument works
+        # - that which='minor' works
+        ax = fig.add_subplot(2, 2, 4, projection=wcs)
+        ax.coords[0].tick_params(length=4, pad=2, colors='orange', labelbottom=True,
+                                 labeltop=True, labelsize=10)
+        ax.coords[1].display_minor_ticks(True)
+        ax.coords[1].tick_params(which='minor', length=6)
+
+        return fig
