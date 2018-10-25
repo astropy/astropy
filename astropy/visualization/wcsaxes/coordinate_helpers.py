@@ -289,7 +289,8 @@ class CoordinateHelper:
         self._formatter_locator.show_decimal_unit = show_decimal_unit
 
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
-                  width=None, color=None, alpha=None, exclude_overlapping=False):
+                  width=None, color=None, alpha=None, direction=None,
+                  exclude_overlapping=False):
         """
         Set the location and properties of the ticks.
 
@@ -306,8 +307,12 @@ class CoordinateHelper:
             The approximate number of ticks shown.
         size : float, optional
             The length of the ticks in points
-        color : str or tuple
+        color : str or tuple, optional
             A valid Matplotlib color for the ticks
+        alpha : float, optional
+            The alpha value (transparency) for the ticks.
+        direction : {'in','out'}, optional
+            Whether the ticks should point inwards or outwards.
         exclude_overlapping : bool, optional
             Whether to exclude tick labels that overlap over each other.
         """
@@ -334,6 +339,12 @@ class CoordinateHelper:
 
         if alpha is not None:
             self.ticks.set_alpha(alpha)
+
+        if direction is not None:
+            if direction in ('in', 'out'):
+                self.ticks.set_tick_out(direction == 'out')
+            else:
+                raise ValueError("direction should be 'in' or 'out'")
 
         self.ticklabels.set_exclude_overlapping(exclude_overlapping)
 
