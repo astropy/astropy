@@ -16,7 +16,7 @@ from matplotlib.patches import PathPatch
 from matplotlib import rcParams
 
 from ... import units as u
-from ...utils.exceptions import AstropyDeprecationWarning
+from ...utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
@@ -25,6 +25,19 @@ from .axislabels import AxisLabels
 from .grid_paths import get_lon_lat_path, get_gridline_path
 
 __all__ = ['CoordinateHelper']
+
+
+# Matplotlib's gridlines use Line2D, but ours use PathPatch.
+# Patches take a slightly different format of linestyle argument.
+LINES_TO_PATCHES_LINESTYLE = {'-': 'solid',
+                              '--': 'dashed',
+                              '-.': 'dashdot',
+                              ':': 'dotted',
+                              'none': 'none',
+                              'None': 'none',
+                              ' ': 'none',
+                              '': 'none'}
+
 
 
 def wrap_angle_at(values, coord_wrap):
@@ -103,21 +116,10 @@ class CoordinateHelper:
 
         # Initialize grid style. Take defaults from matplotlib.rcParams.
         # Based on matplotlib.axis.YTick._get_gridline.
-        #
-        # Matplotlib's gridlines use Line2D, but ours use PathPatch.
-        # Patches take a slightly different format of linestyle argument.
-        lines_to_patches_linestyle = {'-': 'solid',
-                                      '--': 'dashed',
-                                      '-.': 'dashdot',
-                                      ':': 'dotted',
-                                      'none': 'none',
-                                      'None': 'none',
-                                      ' ': 'none',
-                                      '': 'none'}
         self.grid_lines_kwargs = {'visible': False,
                                   'facecolor': 'none',
                                   'edgecolor': rcParams['grid.color'],
-                                  'linestyle': lines_to_patches_linestyle[rcParams['grid.linestyle']],
+                                  'linestyle': LINES_TO_PATCHES_LINESTYLE[rcParams['grid.linestyle']],
                                   'linewidth': rcParams['grid.linewidth'],
                                   'alpha': rcParams['grid.alpha'],
                                   'transform': self.parent_axes.transData}
@@ -881,3 +883,88 @@ class CoordinateHelper:
             self._grid = self.parent_axes.contour(x, y, field.transpose(), levels=np.sort(tick_world_coordinates_values))
         else:
             self._grid = None
+
+    def tick_params(self, which='both', **kwargs):
+        """
+        Method to set the tick and tick label parameters in the same way as the
+        :meth:`~matplotlib.axes.Axes.tick_params` method in Matplotlib.
+
+        This is provided for convenience, but the recommended API is to use
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticks`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticklabel`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticks_position`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticklabel_position`,
+        and :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.grid`.
+        """
+
+        # First do some sanity checking on the keyword arguments
+
+        # colors= is a fallback default for color and labelcolor
+        if 'colors' in kwargs:
+            if 'color' not in kwargs:
+                kwargs['color'] = kwargs['colors']
+            if 'labelcolor' not in kwargs:
+                kwargs['labelcolor'] = kwargs['colors']
+
+        # The only property that can be set *specifically* for minor ticks is
+        # the length. In future we could consider having a separate Ticks instance
+        # for minor ticks so that e.g. the color can be set separately.
+        if which == 'minor':
+            if set(kwargs) - {'length'}:
+                raise ValueError("When setting which='minor', the only "
+                                 "property that can be set at the moment is "
+                                 "'length' (the minor tick length)")
+            else:
+                if 'length' in kwargs:
+                    self.ticks.set_minor_ticksize(kwargs['length'])
+            return
+
+        # At this point, we can now ignore the 'which' argument.
+
+        # Set the tick arguments
+        self.set_ticks(size=kwargs.get('length'),
+                       width=kwargs.get('width'),
+                       color=kwargs.get('color'),
+                       direction=kwargs.get('direction'))
+
+        # Set the tick position
+        position = None
+        for arg in ('bottom', 'left', 'top', 'right'):
+            if arg in kwargs and position is None:
+                position = ''
+            if kwargs.get(arg):
+                position += arg[0]
+        if position is not None:
+            self.set_ticks_position(position)
+
+        # Set the tick label arguments
+        self.set_ticklabel(color=kwargs.get('labelcolor'),
+                           size=kwargs.get('labelsize'))
+
+        # Set the tick label position
+        position = None
+        for arg in ('bottom', 'left', 'top', 'right'):
+            if 'label' + arg in kwargs and position is None:
+                position = ''
+            if kwargs.get('label' + arg):
+                position += arg[0]
+        if position is not None:
+            self.set_ticklabel_position(position)
+
+        # Set the tick label padding
+        # FIXME: should have getter/setter as for other properties
+        if 'pad' in kwargs:
+            self.ticklabels.pad = kwargs['pad']
+
+        # And the grid settings
+        if 'grid_color' in kwargs:
+            self.grid_lines_kwargs['edgecolor'] = kwargs['grid_color']
+        if 'grid_alpha' in kwargs:
+            self.grid_lines_kwargs['alpha'] = kwargs['grid_alpha']
+        if 'grid_linewidth' in kwargs:
+            self.grid_lines_kwargs['linewidth'] = kwargs['grid_linewidth']
+        if 'grid_linestyle' in kwargs:
+            if kwargs['grid_linestyle'] in LINES_TO_PATCHES_LINESTYLE:
+                self.grid_lines_kwargs['linestyle'] = LINES_TO_PATCHES_LINESTYLE[kwargs['grid_linestyle']]
+            else:
+                self.grid_lines_kwargs['linestyle'] = kwargs['grid_linestyle']
