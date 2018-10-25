@@ -234,10 +234,11 @@ class TestBasic(BaseImageTests):
 
         ax.coords[2].set_axislabel('Velocity m/s')
 
-        ax.coords[1].set_ticks(spacing=0.2 * u.deg, width=1,
-                               exclude_overlapping=True)
-        ax.coords[2].set_ticks(spacing=400 * u.m / u.s, width=1,
-                               exclude_overlapping=True)
+        ax.coords[1].set_ticks(spacing=0.2 * u.deg, width=1)
+        ax.coords[2].set_ticks(spacing=400 * u.m / u.s, width=1)
+
+        ax.coords[1].set_ticklabel(exclude_overlapping=True)
+        ax.coords[2].set_ticklabel(exclude_overlapping=True)
 
         ax.coords[1].grid(grid_type='contours', color='red', linestyle='solid')
         ax.coords[2].grid(grid_type='contours', color='red', linestyle='solid')
@@ -329,8 +330,10 @@ class TestBasic(BaseImageTests):
         ax.coords[2].set_major_formatter('x.xx')
         ax.coords[2].set_format_unit(u.km / u.s)
         ax.coords[2].set_axislabel('Velocity km/s')
-        ax.coords[1].set_ticks(width=1, exclude_overlapping=True)
-        ax.coords[2].set_ticks(width=1, exclude_overlapping=True)
+        ax.coords[1].set_ticks(width=1)
+        ax.coords[2].set_ticks(width=1)
+        ax.coords[1].set_ticklabel(exclude_overlapping=True)
+        ax.coords[2].set_ticklabel(exclude_overlapping=True)
 
         return fig
 
@@ -345,8 +348,8 @@ class TestBasic(BaseImageTests):
                           slices=(50, 'y', 'x'), aspect='equal')
         ax.set_xlim(-0.5, 52.5)
         ax.set_ylim(-0.5, 106.5)
-        ax.coords[2].set_ticks(exclude_overlapping=True)
-        ax.coords[1].set_ticks(exclude_overlapping=True)
+        ax.coords[2].set_ticklabel(exclude_overlapping=True)
+        ax.coords[1].set_ticklabel(exclude_overlapping=True)
         ax.coords[2].display_minor_ticks(True)
         ax.coords[1].display_minor_ticks(True)
         ax.coords[2].set_minor_frequency(3)
@@ -424,8 +427,8 @@ class TestBasic(BaseImageTests):
             ax.grid()
             ax.set_xlabel('X label')
             ax.set_ylabel('Y label')
-            ax.coords[0].set_ticks(exclude_overlapping=True)
-            ax.coords[1].set_ticks(exclude_overlapping=True)
+            ax.coords[0].set_ticklabel(exclude_overlapping=True)
+            ax.coords[1].set_ticklabel(exclude_overlapping=True)
             return fig
 
     @pytest.mark.remote_data(source='astropy')
@@ -498,8 +501,8 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_coord_type('scalar')
         ax.coords[0].set_major_formatter('x.xxx')
         ax.coords[1].set_major_formatter('x.xxx')
-        ax.coords[0].set_ticks(exclude_overlapping=True)
-        ax.coords[1].set_ticks(exclude_overlapping=True)
+        ax.coords[0].set_ticklabel(exclude_overlapping=True)
+        ax.coords[1].set_ticklabel(exclude_overlapping=True)
         return fig
 
     @pytest.mark.remote_data(source='astropy')

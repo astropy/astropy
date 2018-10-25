@@ -16,7 +16,7 @@ from matplotlib.patches import PathPatch
 from matplotlib import rcParams
 
 from ... import units as u
-from ...exceptions import AstropyDeprecationWarning
+from ...utils.exceptions import AstropyDeprecationWarning
 
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
