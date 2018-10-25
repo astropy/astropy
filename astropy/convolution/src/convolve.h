@@ -3,6 +3,9 @@
 
 #include <stddef.h>
 
+// Forcibly disable OpenMP support at the src level
+#undef _OPENMP
+
 #if defined(_MSC_VER)
 
 #define FORCE_INLINE  __forceinline

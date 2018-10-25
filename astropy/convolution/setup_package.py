@@ -3,7 +3,6 @@
 import os
 import sys
 from distutils.extension import Extension
-from astropy_helpers.openmp_helpers import add_openmp_flags_if_available
 
 C_CONVOLVE_PKGDIR = os.path.relpath(os.path.dirname(__file__))
 
@@ -22,7 +21,5 @@ def get_extensions():
                  extra_compile_args=extra_compile_args,
                  include_dirs=["numpy"],
                  language='c')
-
-    add_openmp_flags_if_available(lib_convolve_ext)
 
     return [lib_convolve_ext]

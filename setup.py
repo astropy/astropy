@@ -22,7 +22,6 @@ from astropy_helpers.setup_helpers import (
 from astropy_helpers.distutils_helpers import is_distutils_display_option
 from astropy_helpers.git_helpers import get_git_devstr
 from astropy_helpers.version_helpers import generate_version_py
-from astropy_helpers.openmp_helpers import generate_openmp_enabled_py
 
 import astropy
 
@@ -45,11 +44,6 @@ cmdclassd = register_commands(NAME, VERSION, RELEASE)
 # Freeze build information in version.py
 generate_version_py(NAME, VERSION, RELEASE, get_debug_option(NAME),
                     uses_git=not RELEASE)
-
-# Generate function to check OpenMP support at runtime
-# The current default is to NOT build with OpenMP support, i.e. ``disable_openmp = True``
-disable_openmp = os.environ.get('ASTROPY_SETUP_WITH_OPENMP', '0') == '0'
-generate_openmp_enabled_py(NAME, disable_openmp=disable_openmp)
 
 # Get configuration information from all of the various subpackages.
 # See the docstring for setup_helpers.update_package_files for more
