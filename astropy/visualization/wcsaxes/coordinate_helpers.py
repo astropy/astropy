@@ -6,6 +6,8 @@ This file defines the classes used to represent a 'coordinate', which includes
 axes, ticks, tick labels, and grid lines.
 """
 
+import warnings
+
 import numpy as np
 
 from matplotlib.ticker import Formatter
@@ -14,6 +16,7 @@ from matplotlib.patches import PathPatch
 from matplotlib import rcParams
 
 from ... import units as u
+from ...exceptions import AstropyDeprecationWarning
 
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
@@ -290,7 +293,7 @@ class CoordinateHelper:
 
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
                   width=None, color=None, alpha=None, direction=None,
-                  exclude_overlapping=False):
+                  exclude_overlapping=None):
         """
         Set the location and properties of the ticks.
 
@@ -313,8 +316,6 @@ class CoordinateHelper:
             The alpha value (transparency) for the ticks.
         direction : {'in','out'}, optional
             Whether the ticks should point inwards or outwards.
-        exclude_overlapping : bool, optional
-            Whether to exclude tick labels that overlap over each other.
         """
 
         if sum([values is None, spacing is None, number is None]) < 2:
@@ -346,7 +347,11 @@ class CoordinateHelper:
             else:
                 raise ValueError("direction should be 'in' or 'out'")
 
-        self.ticklabels.set_exclude_overlapping(exclude_overlapping)
+        if exclude_overlapping is not None:
+            warnings.warn("exclude_overlapping= should be passed to "
+                          "set_ticklabel instead of set_ticks",
+                          AstropyDeprecationWarning)
+            self.ticklabels.set_exclude_overlapping(exclude_overlapping)
 
     def set_ticks_position(self, position):
         """
@@ -374,17 +379,21 @@ class CoordinateHelper:
         """
         self.ticks.set_visible(visible)
 
-    def set_ticklabel(self, **kwargs):
+    def set_ticklabel(self, exclude_overlapping=None, **kwargs):
         """
         Set the visual properties for the tick labels.
 
         Parameters
         ----------
+        exclude_overlapping : bool, optional
+            Whether to exclude tick labels that overlap over each other.
         kwargs
-            Keyword arguments are passed to :class:`matplotlib.text.Text`. These
-            can include keywords to set the ``color``, ``size``, ``weight``, and
-            other text properties.
+            Other keyword arguments are passed to :class:`matplotlib.text.Text`.
+            These can include keywords to set the ``color``, ``size``,
+            ``weight``, and other text properties.
         """
+        if exclude_overlapping is not None:
+            self.ticklabels.set_exclude_overlapping(exclude_overlapping)
         self.ticklabels.set(**kwargs)
 
     def set_ticklabel_position(self, position):
