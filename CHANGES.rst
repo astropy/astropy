@@ -109,7 +109,7 @@ astropy.nddata
 ^^^^^^^^^^^^^^
 - Add ``cutout_tool`` function to ``astropy.nddata.utils``. The Cutout Tool uses a catalog
   of targets to make cutouts from a 2D image. The tool can also apply rotation to cutouts via
-  the astropy affiliated package ``reproject`` [#TBD]
+  the astropy affiliated package ``reproject`` [#7940]
 
 astropy.samp
 ^^^^^^^^^^^^

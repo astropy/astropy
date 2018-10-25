@@ -929,11 +929,33 @@ class Cutout2D:
 
 def make_cutouts(data, catalog, wcs=None, origin=0, verbose=True):
     """Make cutouts of catalog targets from a 2D image array.
+    Expects input image WCS to be in the TAN projection.
+
+    Parameters
+    ----------
+    data : 2D `~numpy.ndarray` or `~astropy.nddata.NDData`
+        The 2D cutout array.
+    catalog : `~astropy.table.table.Table`
+        Catalog table defining the sources to cut out. Must contain
+        unit information as the cutout tool does not assume default units.
+    wcs : `~astropy.wcs.wcs.WCS`
+        WCS if the input image is `~numpy.ndarray`.
+    origin : int
+        Whether SkyCoord.from_pixel should use 0 or 1-based pixel coordinates.
+    verbose : bool
+        Print extra info. Default is `True`.
+
+    Returns
+    -------
+    cutouts : list
+        A list of NDData. If cutout failed for a target,
+       `None` will be added as a place holder. Output WCS
+       will in be in Tan projection.
 
     Notes
     -----
-    The input Catalog must have the following columns, which must have
-    `~astropy.unit.Unit`s where applicable:
+    The input Catalog must have the following columns, which MUST have
+    units information where applicable:
 
         * ``'id'`` - ID string; no unit necessary.
         * ``'coords'`` - SkyCoord (Overrides ra, dec, x and y columns).
@@ -960,31 +982,21 @@ def make_cutouts(data, catalog, wcs=None, origin=0, verbose=True):
         * ``OBJ_DEC`` - DEC of the cutout object in degrees.
         * ``OBJ_ROT`` - Rotation of cutout object in degrees.
 
-    Parameters
-    ----------
-    data : 2D `~numpy.ndarray` or `~astropy.nddata.NDData`
-        The 2D cutout array.
-    catalog : `~astropy.table.table.Table`
-        Catalog table defining the sources to cut out. Must contain
-        unit information as the cutouttool does not assume default units.
-    wcs : `~astropy.wcs.wcs.WCS`
-        WCS if the input image is `~numpy.ndarray`.
-    origin : int
-        Whether SkyCoord.from_pixel should use 0 or 1-basedpixel coordinates.
-    verbose : bool
-        Print extra info. Default is `True`.
-
-    Returns
-    -------
-    cutouts : list
-        A list of NDData. If cutout failed for a target,
-       `None` will be added as a place holder.
     """
+    # Do not rotate if column is missing.
+    if 'cutout_pa' in catalog.colnames:
+        if catalog['cutout_pa'].unit is None:
+            raise u.UnitsError("Units not specified for cutout_pa.")
+        apply_rotation = True
+    else:
+        apply_rotation = False
+
     # Optional dependencies...
-    try:
-        from reproject.interpolation.high_level import reproject_interp
-    except ImportError as e:
-        raise ImportError("Optional requirement not met: " + e.msg)
+    if apply_rotation:
+        try:
+            from reproject.interpolation.high_level import reproject_interp
+        except ImportError as e:
+            raise ImportError("Optional requirement not met: " + e.msg)
 
     # Search for wcs:
     if isinstance(data, NDData):
@@ -997,6 +1009,9 @@ def make_cutouts(data, catalog, wcs=None, origin=0, verbose=True):
     elif wcs is None:
         raise Exception("WCS information was not provided.")
 
+    if w.wcs.ctype[0] != 'RA---TAN' or  w.wcs.ctype[1] != 'DEC--TAN':
+        raise Exception("Expected  WCS to be in the TAN projection.")
+
     # Calculate the pixel scale of input image:
     pixel_scales = proj_plane_pixel_scales(wcs)
     pixel_scale_width = pixel_scales[0] * u.Unit(wcs.wcs.cunit[0]) / u.pix
@@ -1004,7 +1019,9 @@ def make_cutouts(data, catalog, wcs=None, origin=0, verbose=True):
 
     # Check if `SkyCoord`s are available:
     if 'coords' in catalog.colnames:
-        coords = SkyCoord(catalog['coords'])
+        coords = catalog['coords']
+        if not isinstance(coords, SkyCoord):
+            raise TypeError('The coords column is not a SkyCoord')
     elif 'ra' in catalog.colnames and 'dec' in catalog.colnames:
         if 'x' in catalog.colnames and 'y' in catalog.colnames:
             raise Exception("Ambiguous catalog: Both (ra, dec) and pixel positions provided.")
@@ -1019,6 +1036,8 @@ def make_cutouts(data, catalog, wcs=None, origin=0, verbose=True):
             coords = SkyCoord.guess_from_table(catalog)
         except Exception as e:
             raise e
+
+    coords = coords.transform_to(wcs_to_celestial_frame(wcs))
 
     # Figure out cutout size:
     if 'cutout_width' in catalog.colnames:
@@ -1040,14 +1059,6 @@ def make_cutouts(data, catalog, wcs=None, origin=0, verbose=True):
             height = (catalog['cutout_height'] / pixel_scale_height).decompose().value  # pix
     else:
         raise Exception("cutout_height column not found in catalog.")
-
-    # Do not rotate if column is missing.
-    if 'cutout_pa' in catalog.colnames:
-        if catalog['cutout_pa'].unit is None:
-            raise u.UnitsError("Units not specified for cutout_pa.")
-        apply_rotation = True
-    else:
-        apply_rotation = False
 
     cutcls = partial(Cutout2D, data.data, wcs=wcs, mode='partial')
     cutouts = []
@@ -1125,11 +1136,41 @@ def cutouts_from_fits(image, catalog, image_ext=0, origin=0,
     """Wrapper for the make_cutouts function. This function will take in a single
     fits image and return an array containing a list of cutouts as fits hdus. It
     will also save the cutouts to file if requested.
+    Expects input image WCS to be in the TAN projection.
+
+    Parameters
+    ----------
+    image : filename or `HDUList` or `PrimaryHDU` or `ImageHDU` or `CompImageHDU`
+        Image to cut from. If string is provided, it is assumed to be a
+        fits file path.
+    catalog : str or `~astropy.table.table.Table`
+        Catalog table defining the sources to cut out. Must contain
+        unit information as the cutout tool does not assume default units.
+        Must be an astropy Table or a file name to an ECSV file containing sources.
+    image_ext : int, optional
+        If image is in an HDUList or read from file, use this image extension index
+        to extract header and data from the primary image. Default is 0.
+    origin : int
+        Whether SkyCoord.from_pixel should use 0 or 1-based pixel coordinates.
+    output_dir : str
+        Path to directory to save the cutouts in. If provided, each cutout will be
+        saved to a separate file. The directory is created if it does not exist.
+    overwrite: bool, optional
+        Overwrite existing files. Default is `False`.
+    verbose : bool, optional
+        Print extra info. Default is `True`.
+
+    Returns
+    -------
+    cutouts : list
+        A list of NDData or fits PrimaryHDU. If cutout failed for a target,
+       `None` will be added as a place holder. Output WCS
+       will in be in Tan projection.
 
     Notes
     -----
-    The input Catalog must have the following columns, which must have
-    `~astropy.unit.Unit`s where applicable:
+    The input Catalog must have the following columns, which MUST have
+    units information where applicable:
 
         * ``'id'`` - ID string; no unit necessary.
         * ``'coords'`` - SkyCoord (Overrides ra, dec, x and y columns).
@@ -1184,34 +1225,6 @@ def cutouts_from_fits(image, catalog, image_ext=0, origin=0,
         # If the above catalog table is saved in an ECSV file with the proper units information:
         >>> catalog.write('catalog.ecsv', format='ascii.ecsv')
         >>> cutouts = cutouts_from_fits('h_udf_wfc_b_drz_img.fits', 'catalog.ecsv')
-
-    Parameters
-    ----------
-    image : filename or `HDUList` or `PrimaryHDU` or `ImageHDU` or `CompImageHDU`
-        Image to cut from. If string is provided, it is assumed to be a
-        fits file path.
-    catalog : str or `~astropy.table.table.Table`
-        Catalog table defining the sources to cut out. Must contain
-        unit information as the cutouttool does not assume default units.
-        Must be an astropy Table or a file name to an ECSV file containing sources.
-    image_ext : int, optional
-        If image is in an HDUList or read from file, use this image extension index
-        to extract header and data from the primary image. Default is 0.
-    origin : int
-        Whether SkyCoord.from_pixel should use 0 or 1-basedpixel coordinates.
-    output_dir : str
-        Path to directory to save the cutouts in. If provided, each cutout will be
-        saved to a separate file. The directory is created if it does not exist.
-    overwrite: bool, optional
-        Overwrite existing files. Default is `False`.
-    verbose : bool, optional
-        Print extra info. Default is `True`.
-
-    Returns
-    -------
-    cutouts : list
-        A list of NDData or fits PrimaryHDU. If cutout failed for a target,
-       `None` will be added as a place holder.
     """
 
     save_to_file = output_dir is not None
