@@ -756,17 +756,15 @@ def test_plate_scale():
 
 def test_littleh():
     H0_70 = 70*u.km/u.s/u.Mpc
-    h100dist = 100 * u.Mpc/u.h100
-    h70dist = 100 * u.Mpc/u.h70
+    h100dist = 100 * u.Mpc/u.littleh
 
-    assert_quantity_allclose(h100dist.to(u.Mpc, u.littleh(H0_70)), 70*u.Mpc)
-    assert_quantity_allclose(h70dist.to(u.Mpc, u.littleh(H0_70)), 100*u.Mpc)
+    assert_quantity_allclose(h100dist.to(u.Mpc, u.littleh_as(H0_70)), 70*u.Mpc)
 
     # make sure the give-explicit-comsology works
-    assert_quantity_allclose(h100dist.to(u.Mpc, u.littleh(cosmology.WMAP9)),
+    assert_quantity_allclose(h100dist.to(u.Mpc, u.littleh_as(cosmology.WMAP9)),
                              cosmology.WMAP9.H0.value*u.Mpc)
 
     # and also the default cosmology
     H0_default_cosmo = cosmology.default_cosmology.get().H0
-    assert_quantity_allclose(h100dist.to(u.Mpc, u.littleh()),
+    assert_quantity_allclose(h100dist.to(u.Mpc, u.littleh_as()),
                              H0_default_cosmo.value*u.Mpc)
