@@ -29,7 +29,7 @@ Overview
 
 While the full  details and motivation for the API are detailed in APE 14,  this
 documentation summarizes the elements that are implemented directly in the
-`astropy` core package.  The high-level interface is likely of most interest to
+astropy core package.  The high-level interface is likely of most interest to
 the average user.  In particular, the most important methods are the
 :meth:`~astropy.wcs.wcsapi.BaseHighLevelWCS.pixel_to_world` and
 :meth:`~astropy.wcs.wcsapi.BaseHighLevelWCS.world_to_pixel` methods. These
