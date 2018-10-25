@@ -734,6 +734,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Added ``prior`` and ``posterior`` constraints to modeling parameters. [#7558]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
