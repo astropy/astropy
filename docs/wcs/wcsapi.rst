@@ -24,7 +24,7 @@ The core astropy package provides base classes that define the low- and high-
 level APIs described in APE 14 in the :mod:`astropy.wcs.wcsapi` module, and
 these are listed in the `Reference/API`_ section below.
 
-Pixel conventions
+Pixel conventions and definitions
 =================
 
 This API assumes that integer pixel values fall at the center of pixels (as
