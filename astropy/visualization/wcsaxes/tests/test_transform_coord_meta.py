@@ -93,14 +93,14 @@ class TestTransformCoordMeta(BaseImageTests):
         overlay['lon'].grid(color='red', linestyle='solid', alpha=0.3)
         overlay['lat'].grid(color='blue', linestyle='solid', alpha=0.3)
 
-        overlay['lon'].set_ticklabel(size=7)
-        overlay['lat'].set_ticklabel(size=7)
+        overlay['lon'].set_ticklabel(size=7, exclude_overlapping=True)
+        overlay['lat'].set_ticklabel(size=7, exclude_overlapping=True)
 
         overlay['lon'].set_ticklabel_position('brtl')
         overlay['lat'].set_ticklabel_position('brtl')
 
-        overlay['lon'].set_ticks(spacing=10. * u.deg, exclude_overlapping=True)
-        overlay['lat'].set_ticks(spacing=10. * u.deg, exclude_overlapping=True)
+        overlay['lon'].set_ticks(spacing=10. * u.deg)
+        overlay['lat'].set_ticks(spacing=10. * u.deg)
 
         ax.set_xlim(-0.5, 1215.5)
         ax.set_ylim(-0.5, 1791.5)
@@ -151,14 +151,14 @@ class TestTransformCoordMeta(BaseImageTests):
         ax.coords['lon'].grid(color='red', linestyle='solid', alpha=0.3)
         ax.coords['lat'].grid(color='blue', linestyle='solid', alpha=0.3)
 
-        ax.coords['lon'].set_ticklabel(size=7)
-        ax.coords['lat'].set_ticklabel(size=7)
+        ax.coords['lon'].set_ticklabel(size=7, exclude_overlapping=True)
+        ax.coords['lat'].set_ticklabel(size=7, exclude_overlapping=True)
 
         ax.coords['lon'].set_ticklabel_position('brtl')
         ax.coords['lat'].set_ticklabel_position('brtl')
 
-        ax.coords['lon'].set_ticks(spacing=10. * u.deg, exclude_overlapping=True)
-        ax.coords['lat'].set_ticks(spacing=10. * u.deg, exclude_overlapping=True)
+        ax.coords['lon'].set_ticks(spacing=10. * u.deg)
+        ax.coords['lat'].set_ticks(spacing=10. * u.deg)
 
         ax.set_xlim(-400., 500.)
         ax.set_ylim(-300., 400.)

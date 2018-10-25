@@ -75,7 +75,7 @@ We then add the axes to the image and plot it using the method
    :include-source:
    :align: center
 
-    ax.coords[2].set_ticks(exclude_overlapping=True)
+    ax.coords[2].set_ticklabel(exclude_overlapping=True)
     ax.imshow(image_data[:, :, 50].transpose())
 
 Here, ``image_data`` is an :class:`~numpy.ndarray` object. In Numpy, the order

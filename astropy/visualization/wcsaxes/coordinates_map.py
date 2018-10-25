@@ -129,6 +129,12 @@ class CoordinatesMap:
         else:
             return self._coords[item]
 
+    def __contains__(self, item):
+        if isinstance(item, str):
+            return item.lower() in self._aliases
+        else:
+            return 0 <= item < len(self._coords)
+
     def set_visible(self, visibility):
         raise NotImplementedError()
 
