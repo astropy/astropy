@@ -361,10 +361,10 @@ standard zero point of 3631.1 Jy::
     >>> u.Magnitude(target_flux.to(u.AB, zero_point_star_equiv))  # doctest: +FLOAT_CMP
     <Magnitude 22.30195136 mag(AB)>
 
-Reduced hubble constant/"little-h" Equivalencies
+Reduced Hubble constant/"little-h" equivalencies
 ------------------------------------------------
 
-The dimensionless version of the hubble constant - often known as "little h" -
+The dimensionless version of the Hubble constant - often known as "little h" -
 is a frequently-used quantity in extragalactic astrophysics.  It is also widely
 known as the bane of beginners' existence in such fields (See e.g., the title of
 `this paper <https://doi.org/10.1017/pasa.2013.31>`__, which also provides
