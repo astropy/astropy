@@ -128,12 +128,49 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         else:
             return tuple(self._naxis[::-1])
 
+    @array_shape.setter
+    def array_shape(self, value):
+        if value is None:
+            self._naxis = [0, 0]
+        else:
+            if len(value) != self.naxis:
+                raise ValueError("The number of data axes, "
+                                 "{}, does not equal the "
+                                 "shape {}.".format(self.naxis, len(value)))
+            self._naxis = list(value)[::-1]
+
     @property
     def pixel_shape(self):
         if self._naxis == [0, 0]:
             return None
         else:
             return tuple(self._naxis)
+
+    @pixel_shape.setter
+    def pixel_shape(self, value):
+        if value is None:
+            self._naxis = [0, 0]
+        else:
+            if len(value) != self.naxis:
+                raise ValueError("The number of data axes, "
+                                 "{}, does not equal the "
+                                 "shape {}.".format(self.naxis, len(value)))
+            self._naxis = list(value)
+
+    @property
+    def pixel_bounds(self):
+        return self._pixel_bounds
+
+    @pixel_bounds.setter
+    def pixel_bounds(self, value):
+        if value is None:
+            self._pixel_bounds = value
+        else:
+            if len(value) != self.naxis:
+                raise ValueError("The number of data axes, "
+                                 "{}, does not equal the number of "
+                                 "pixel bounds {}.".format(self.naxis, len(value)))
+            self._pixel_bounds = list(value)
 
     @property
     def world_axis_physical_types(self):
