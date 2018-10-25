@@ -195,8 +195,25 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
     @property
     def array_shape(self):
         """
-        The shape of the data that the WCS applies to as a tuple of
-        length `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim`.
+        The shape of the data that the WCS applies to as a tuple of length
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim` in ``(row, column)``
+        order (the convention for arrays in Python).
+
+        If the WCS is valid in the context of a dataset with a particular
+        shape, then this property can be used to store the shape of the
+        data. This can be used for example if implementing slicing of WCS
+        objects. This is an optional property, and it should return `None`
+        if a shape is not known or relevant.
+        """
+        return None
+
+    @property
+    def pixel_shape(self):
+        """
+        The shape of the data that the WCS applies to as a tuple of length
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim` in ``(x, y)``
+        order (where for an image, ``x`` is the horizontal coordinate and ``y``
+        is the vertical coordinate).
 
         If the WCS is valid in the context of a dataset with a particular
         shape, then this property can be used to store the shape of the
@@ -204,8 +221,9 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         objects. This is an optional property, and it should return `None`
         if a shape is not known or relevant.
 
-        The shape should be given in ``(row, column)`` order (the convention
-        for arrays in Python).
+        If you are interested in getting a shape that is comparable to that of
+        a Numpy array, you should use
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.array_shape` instead.
         """
         return None
 

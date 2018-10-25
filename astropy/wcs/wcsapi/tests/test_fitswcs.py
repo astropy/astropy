@@ -34,6 +34,7 @@ def test_empty():
     assert wcs.pixel_n_dim == 1
     assert wcs.world_n_dim == 1
     assert wcs.array_shape is None
+    assert wcs.pixel_shape is None
     assert wcs.world_axis_physical_types == [None]
     assert wcs.world_axis_units == ['']
 
@@ -96,6 +97,7 @@ def test_simple_celestial():
     assert wcs.pixel_n_dim == 2
     assert wcs.world_n_dim == 2
     assert wcs.array_shape is None
+    assert wcs.pixel_shape is None
     assert wcs.world_axis_physical_types == ['pos.eq.ra', 'pos.eq.dec']
     assert wcs.world_axis_units == ['deg', 'deg']
 
@@ -202,6 +204,7 @@ def test_spectral_cube():
     assert wcs.pixel_n_dim == 3
     assert wcs.world_n_dim == 3
     assert wcs.array_shape is None
+    assert wcs.pixel_shape is None
     assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
     assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
 
@@ -355,6 +358,7 @@ def test_time_cube():
     assert wcs.pixel_n_dim == 3
     assert wcs.world_n_dim == 3
     assert wcs.array_shape == [11, 2048, 2048]
+    assert wcs.pixel_shape == [2048, 2048, 11]
     assert wcs.world_axis_physical_types == ['pos.eq.dec', 'pos.eq.ra', 'time']
     assert wcs.world_axis_units == ['deg', 'deg', 's']
 
