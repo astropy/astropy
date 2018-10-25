@@ -13,6 +13,7 @@ from . import astrophys
 from .function import units as function_units
 from . import dimensionless_unscaled
 from .core import UnitsError, Unit
+from .. import cosmology
 
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
@@ -20,7 +21,7 @@ __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'brightness_temperature', 'thermodynamic_temperature',
            'beam_angular_area', 'dimensionless_angles', 'logarithmic',
            'temperature', 'temperature_energy', 'molar_mass_amu',
-           'pixel_scale', 'plate_scale']
+           'pixel_scale', 'plate_scale', 'littleh']
 
 
 def dimensionless_angles():
@@ -687,3 +688,31 @@ def plate_scale(platescale):
                          "distance/angle")
 
     return [(si.m, si.radian, lambda d: d*platescale_val, lambda rad: rad/platescale_val)]
+
+
+def littleh(cosmologyorH0=None):
+    """
+    Convert between quantities with little-h and the equivalent physical units.
+
+    Parameters
+    ----------
+    cosmologyorH0 : None, `~astropy.cosmology.FLRW`, or `~astropy.units.Quantity`
+        The source of the value of the Hubble constant to assume. If a cosmology
+        object is given, it will be taken from the ``H0`` attribute, or if a
+        quantity, will assume the quantity *is* ``H0``.  If None (default), use
+        the default cosmology from `astropy.cosmology`.
+
+    References
+    ----------
+    For an illuminating discussion on why you may or may not want to use
+    little-h at all, see https://arxiv.org/pdf/1308.4150.pdf
+    """
+
+    if cosmologyorH0 is None:
+        cosmologyorH0 = cosmology.default_cosmology.get()
+
+    H0 = cosmologyorH0.H0 if hasattr(cosmologyorH0, 'H0') else cosmologyorH0
+
+    h100_val_unit = Unit(H0.to(si.km/si.s/astrophys.Mpc).value/100 * astrophys.h100)
+
+    return [(h100_val_unit, None)]
