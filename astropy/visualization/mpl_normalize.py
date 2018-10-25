@@ -3,6 +3,7 @@ Normalization class for Matplotlib that can be used to produce
 colorbars.
 """
 
+import inspect
 
 import numpy as np
 from numpy import ma
@@ -15,6 +16,7 @@ from .stretch import (LinearStretch, SqrtStretch, PowerStretch, LogStretch,
 try:
     import matplotlib  # pylint: disable=W0611
     from matplotlib.colors import Normalize
+    from matplotlib import pyplot as plt
 except ImportError:
     class Normalize:
         def __init__(self, *args, **kwargs):
@@ -22,7 +24,7 @@ except ImportError:
                               'class.')
 
 
-__all__ = ['ImageNormalize', 'simple_norm']
+__all__ = ['ImageNormalize', 'simple_norm', 'imshow_norm']
 
 __doctest_requires__ = {'*': ['matplotlib']}
 
@@ -226,3 +228,70 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
     vmin, vmax = interval.get_limits(data)
 
     return ImageNormalize(vmin=vmin, vmax=vmax, stretch=stretch, clip=clip)
+
+
+# used in imshow_norm
+_norm_sig = inspect.signature(ImageNormalize)
+
+
+def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
+    """ A convenience function to call matplotlib's `matplotlib.pyplot.imshow`
+    function, using an `ImageNormalize` object as the normalization.
+
+    Parameters
+    ----------
+    data : 2D or 3D array-like - see `~matplotlib.pyplot.imshow`
+        The data to show. Can be whatever `~matplotlib.pyplot.imshow` and
+        `ImageNormalize` both accept.
+    ax : None or `~matplotlib.axes.Axes`
+        If None, use pyplot's imshow.  Otherwise, calls ``imshow`` method of the
+        supplied axes.
+    imshow_only_kwargs : dict
+        Arguments to be passed directly to `~matplotlib.pyplot.imshow` without
+        first trying `ImageNormalize`.  This is only for keywords that have the
+        same name in both `ImageNormalize` and `~matplotlib.pyplot.imshow` - if
+        you want to set the `~matplotlib.pyplot.imshow` keywords only, supply
+        them in this dictionary.
+
+    All other keyword arguments are parsed first by the `ImageNormalize`
+    initializer, then to`~matplotlib.pyplot.imshow`.
+
+    Notes
+    -----
+    The ``norm`` matplotlib keyword is not supported.
+    """
+    if 'X' in kwargs:
+        raise ValueError('Cannot give both ``X`` and ``data``')
+
+    if 'norm' in kwargs:
+        raise ValueError('There is no point in using imshow_norm if you give '
+                         'the ``norm`` keyword - use imshow directly if you '
+                         'want that.')
+
+    imshow_kwargs = dict(kwargs)
+
+    norm_kwargs = {'data': data}
+    for pname in _norm_sig.parameters:
+        if pname in kwargs:
+            norm_kwargs[pname] = imshow_kwargs.pop(pname)
+
+    for k, v in imshow_only_kwargs.items():
+        if k not in _norm_sig.parameters:
+            # the below is not strictly "has to be true", but is here so that
+            # users don't start using both imshow_only_kwargs *and* keyword
+            # arguments to this function, as that makes for more confusing
+            # user code
+            raise ValueError('Provided a keyword to imshow_only_kwargs ({}) '
+                             'that is not a keyword for ImageNormalize. This is'
+                             ' not supported, you should pass the keyword'
+                             'directly into imshow_norm instead'.format(k))
+        imshow_kwargs[k] = v
+
+    imshow_kwargs['norm'] = ImageNormalize(**norm_kwargs)
+
+    if ax is None:
+        imshow_result = plt.imshow(data, **imshow_kwargs)
+    else:
+        imshow_result = ax.imshow(data, **imshow_kwargs)
+
+    return imshow_result, imshow_kwargs['norm']

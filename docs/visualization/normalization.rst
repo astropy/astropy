@@ -173,10 +173,32 @@ the data and the interval and stretch objects:
 
 As shown above, the colorbar ticks are automatically adjusted.
 
-Also note that while the input image to
-:class:`~astropy.visualization.mpl_normalize.ImageNormalize` is
-typically the one to be displayed, a completely different image can be
-used to establish the normalization (e.g. if one wants to display
+The input image to :class:`~astropy.visualization.mpl_normalize.ImageNormalize`
+is typically the one to be displayed, so there is a convenience function
+:func:`~astropy.visualization.mpl_normalize.imshow_norm` to ease this use case:
+
+
+.. plot::
+    :include-source:
+    :align: center
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from astropy.visualization import imshow_norm, MinMaxInterval, SqrtStretch
+
+    # Generate a test image
+    image = np.arange(65536).reshape((256, 256))
+
+    # Display the exact same thing as the above plot
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    im, norm = imshow_norm(image, ax, origin='lower',
+                           interval=MinMaxInterval(), stretch=SqrtStretch())
+    fig.colorbar(im)
+
+While this is the simplest case, it is also possible for a completely different
+image to be used to establish the normalization (e.g. if one wants to display
 several images with exactly the same normalization and stretch).
 
 The inputs to the
