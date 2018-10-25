@@ -661,6 +661,44 @@ class WCSAxes(Axes):
             axis to apply it to, following the valid values that can index
             ``ax.coords``. Note that ``'x'`` and ``'y``' are also accepted in
             the case of rectangular axes.
+        which : {'major', 'minor', 'both'}, optional
+            Which ticks to apply the settings to. By default, setting are
+            applied to both major and minor ticks. Note that if ``'minor'`` is
+            specified, only the length of the ticks can be set currently.
+        direction : {'in', 'out'}
+            Puts ticks inside the axes, or outside the axes.
+        length : float
+            Tick length in points.
+        width : float
+            Tick width in points.
+        color : color
+            Tick color (accepts any valid Matplotlib color)
+        pad : float
+            Distance in points between tick and label.
+        labelsize : float or str
+            Tick label font size in points or as a string (e.g., 'large').
+        labelcolor : color
+            Tick label color (accepts any valid Matplotlib color)
+        colors : color
+            Changes the tick color and the label color to the same value
+             (accepts any valid Matplotlib color).
+        bottom, top, left, right : bool
+            Where to draw the ticks. Note that this can only be given if a
+            specific coordinate is specified via the ``axis`` argument, and it
+            will not work correctly if the frame is not rectangular.
+        labelbottom, labeltop, labelleft, labelright : bool
+            Where to draw the tick labels. Note that this can only be given if a
+            specific coordinate is specified via the ``axis`` argument, and it
+            will not work correctly if the frame is not rectangular.
+        grid_color : color
+            The color of the grid lines (accepts any valid Matplotlib color).
+        grid_alpha : float
+            Transparency of grid lines: 0 (transparent) to 1 (opaque).
+        grid_linewidth : float
+            Width of grid lines in points.
+        grid_linestyle : string
+            The style of the grid lines (accepts any valid Matplotlib line
+            style).
         """
 
         if not hasattr(self, 'coords'):
