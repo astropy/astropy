@@ -8,6 +8,7 @@ import numpy as np
 
 from .. import _erfa as erfa
 from ..utils.compat.misc import override__dir__
+from ..utils.misc import isiterable
 from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..constants import c as speed_of_light
@@ -276,8 +277,11 @@ class SkyCoord(ShapedLikeNDArray):
                                           or attr in frame_attr_names):
                     coord_kwargs[attr] = value
 
-        if not self._sky_coord_frame.has_data:
-            raise ValueError('Cannot create a SkyCoord without data')
+            # Finally make the internal coordinate object.
+            self._sky_coord_frame = frame.__class__(copy=copy, **coord_kwargs)
+
+            if not self._sky_coord_frame.has_data:
+                raise ValueError('Cannot create a SkyCoord without data')
 
     @property
     def frame(self):
