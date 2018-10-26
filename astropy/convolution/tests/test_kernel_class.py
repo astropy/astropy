@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import itertools
+import warnings
 
 import pytest
 import numpy as np
@@ -15,7 +16,7 @@ from ..kernels import (
 
 from ..utils import KernelSizeError
 from ...modeling.models import Box2D, Gaussian1D, Gaussian2D
-from ...utils.exceptions import AstropyDeprecationWarning
+from ...utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from ...tests.helper import catch_warnings
 
 try:
@@ -316,8 +317,12 @@ class TestKernels:
         sums to zero.
         """
         array = [-2, -1, 0, 1, 2]
-        custom = CustomKernel(array)
-        custom.normalize()
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', AstropyUserWarning)
+            custom = CustomKernel(array)
+            custom.normalize()
+
         assert custom.truncation == 0.
         assert custom._kernel_sum == 0.
 
@@ -327,8 +332,12 @@ class TestKernels:
         sums to zero.
         """
         array = [[0, -1, 0], [-1, 4, -1], [0, -1, 0]]
-        custom = CustomKernel(array)
-        custom.normalize()
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', AstropyUserWarning)
+            custom = CustomKernel(array)
+            custom.normalize()
+
         assert custom.truncation == 0.
         assert custom._kernel_sum == 0.
 
