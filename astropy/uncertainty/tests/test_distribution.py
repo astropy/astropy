@@ -206,14 +206,14 @@ def test_helper_poisson_samples():
 
 
 def test_helper_uniform_samples():
-    udist = ds.uniform([1, 2]*u.kpc, [3, 4]*u.kpc)
+    udist = ds.uniform(lower=[1, 2]*u.kpc, upper=[3, 4]*u.kpc)
     assert udist.shape == (2, )
     assert udist.distribution.shape == (2, 1000)
     assert np.all(np.min(udist.distribution, axis=-1) > [1, 2]*u.kpc)
     assert np.all(np.max(udist.distribution, axis=-1) < [3, 4]*u.kpc)
 
     # try the alternative creator
-    udist = ds.uniform_center_width([1, 3, 2] * u.pc, [5, 4, 3] * u.pc)
+    udist = ds.uniform(center=[1, 3, 2] * u.pc, width=[5, 4, 3] * u.pc)
     assert udist.shape == (3, )
     assert udist.distribution.shape == (3, 1000)
     assert np.all(np.min(udist.distribution, axis=-1) > [-1.5, 1, 0.5]*u.pc)
@@ -250,7 +250,7 @@ def test_reprs():
     assert r'n_{\rm samp}=10' in distr._repr_latex_()
 
 
-@pytest.mark.parametrize("klass, kws", [
+@pytest.mark.parametrize("func, kws", [
     (ds.normal, {'center': 0, 'std': 2}),
     (ds.uniform, {'lower': 0, 'upper': 2}),
     (ds.poisson, {'center': 2}),
@@ -258,14 +258,14 @@ def test_reprs():
     (ds.uniform, {'lower': 0*u.count, 'upper': 2*u.count}),
     (ds.poisson, {'center': 2*u.count})
 ])
-def test_wrong_kw_fails(klass, kws):
+def test_wrong_kw_fails(func, kws):
     with pytest.raises(Exception):
         kw_temp = kws.copy()
         kw_temp['n_sample'] = 100  # note the missing "s"
-        assert klass(**kw_temp).n_samples == 100
+        assert func(**kw_temp).n_samples == 100
     kw_temp = kws.copy()
     kw_temp['n_samples'] = 100
-    assert klass(**kw_temp).n_samples == 100
+    assert func(**kw_temp).n_samples == 100
 
 
 def test_index_assignment_quantity():

@@ -10,7 +10,7 @@ import numpy as np
 from ..units import UnitsError
 from .core import Distribution
 
-__all__ = ['normal', 'poisson', 'uniform', 'uniform_center_width']
+__all__ = ['normal', 'poisson', 'uniform']
 
 
 def normal(center, *, std=None, var=None, ivar=None, n_samples=1000,
@@ -106,7 +106,7 @@ def poisson(center, n_samples=1000, cls=Distribution, **kwargs):
     return cls(samples, **kwargs)
 
 
-def uniform(lower, upper, n_samples=1000, cls=Distribution, **kwargs):
+def uniform(*, lower, upper, center, width, n_samples=1000, cls=Distribution, **kwargs):
     """
     Create a Uniform distriution from the lower and upper bounds.
 
@@ -118,6 +118,12 @@ def uniform(lower, upper, n_samples=1000, cls=Distribution, **kwargs):
     upper : `~astropy.units.Quantity`
         The upper edge of this distribution. Must match shape and if a
         `~astropy.units.Quantity` must have compatible units with ``lower``.
+    center : array-like
+        The center value of the distribution. Cannot be provided at the same
+        time as ``lower``/``upper``.
+    width : array-like
+        The width of the distribution.  Must have the same shape and compatible
+        units with ``center`` (if any).
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
     cls : class
@@ -131,37 +137,22 @@ def uniform(lower, upper, n_samples=1000, cls=Distribution, **kwargs):
     distr : ``cls``, usually `Distribution`
         The sampled uniform distribution.
     """
-    lower = np.asanyarray(lower)
-    upper = np.asanyarray(upper)
-    if lower.shape != upper.shape:
-        raise ValueError('lower and upper must have consistent shapes in '
-                         'uniform.')
+    if center is None and width is None:
+        lower = np.asanyarray(lower)
+        upper = np.asanyarray(upper)
+        if lower.shape != upper.shape:
+            raise ValueError('lower and upper must have consistent shapes')
+    elif upper is None and lower is None:
+        center = np.asanyarray(center)
+        width = np.asanyarray(width)
+        lower = center - width/2
+        upper = center + width/2
+    else:
+        raise ValueError('either upper/lower or center/width must be given '
+                         'to uniform - other combinations are not valid')
 
     newshape = lower.shape + (n_samples,)
     width = (upper - lower)[:, np.newaxis]
     samples = lower[:, np.newaxis] + width * np.random.uniform(size=newshape)
 
     return cls(samples, **kwargs)
-
-
-def uniform_center_width(center, width, **kwargs):
-    """
-    Create a uniform distribution from the center and width.
-
-    Parameters
-    ----------
-    center : array-like
-        The center value of the distribution.
-    width : array-like
-        The width of the distribution.  Must have the same shape and compatible
-        units with ``center`` (if any).
-
-    Remaining keywords are passed into the `uniform` function.
-
-    Returns
-    -------
-    distr : ``cls``, usually `Distribution`
-        The sampled uniform distribution.
-    """
-    whalf = width/2
-    return uniform(center - whalf, center + whalf, **kwargs)
