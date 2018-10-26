@@ -893,16 +893,6 @@ class Time(ShapedLikeNDArray):
         out : `~astropy.time.Time` subclass
             New time object with inserted value(s)
 
-        Examples
-        --------
-        Some ways this is used internally::
-
-            copy : ``_apply('copy')``
-            replicate : ``_apply('replicate')``
-            reshape : ``_apply('reshape', new_shape)``
-            index or slice : ``_apply('__getitem__', item)``
-            broadcast : ``_apply(np.broadcast, shape=new_shape)``
-
         """
         # Validate inputs: obj arg is integer, axis=0, self is not a scalar, and
         # input index is in bounds.
