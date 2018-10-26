@@ -1043,11 +1043,13 @@ def test_subclass_representation():
                                    **kwargs)
             return self
 
-    class SphericalWrap180Representation(SphericalRepresentation):
-        attr_classes = OrderedDict([('lon', Longitude180),
-                                    ('lat', Latitude),
-                                    ('distance', u.Quantity)])
-        recommended_units = {'lon': u.deg, 'lat': u.deg}
+    with pytest.warns(AstropyDeprecationWarning,
+                      match="'recommended_units' attribute is deprecated"):
+        class SphericalWrap180Representation(SphericalRepresentation):
+            attr_classes = OrderedDict([('lon', Longitude180),
+                                        ('lat', Latitude),
+                                        ('distance', u.Quantity)])
+            recommended_units = {'lon': u.deg, 'lat': u.deg}
 
     class ICRSWrap180(ICRS):
         frame_specific_representation_info = ICRS._frame_specific_representation_info.copy()
