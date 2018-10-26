@@ -289,6 +289,7 @@ def test_repr_latex():
 
 
 @remote_data
+@pytest.mark.xfail
 def test_of_address():
     # just a location
     try:

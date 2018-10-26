@@ -387,6 +387,11 @@ class EarthLocation(u.Quantity):
         .. [2] https://developers.google.com/maps/documentation/elevation/intro
 
         """
+        # https://github.com/astropy/astropy/issues/7960
+        raise ValueError(
+            "Google has disabled usage of this API without API key. "
+            "To use this feature, please upgrade to Astropy 3.1 or "
+            "obtain lon/lat manually for passing into SkyCoord constructor")
 
         pars = urllib.parse.urlencode({'address': address})
         geo_url = "https://maps.googleapis.com/maps/api/geocode/json?{0}".format(pars)
