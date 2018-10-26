@@ -122,6 +122,57 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         return len(self.wcs.ctype)
 
     @property
+    def array_shape(self):
+        if self._naxis == [0, 0]:
+            return None
+        else:
+            return tuple(self._naxis[::-1])
+
+    @array_shape.setter
+    def array_shape(self, value):
+        if value is None:
+            self._naxis = [0, 0]
+        else:
+            if len(value) != self.naxis:
+                raise ValueError("The number of data axes, "
+                                 "{}, does not equal the "
+                                 "shape {}.".format(self.naxis, len(value)))
+            self._naxis = list(value)[::-1]
+
+    @property
+    def pixel_shape(self):
+        if self._naxis == [0, 0]:
+            return None
+        else:
+            return tuple(self._naxis)
+
+    @pixel_shape.setter
+    def pixel_shape(self, value):
+        if value is None:
+            self._naxis = [0, 0]
+        else:
+            if len(value) != self.naxis:
+                raise ValueError("The number of data axes, "
+                                 "{}, does not equal the "
+                                 "shape {}.".format(self.naxis, len(value)))
+            self._naxis = list(value)
+
+    @property
+    def pixel_bounds(self):
+        return self._pixel_bounds
+
+    @pixel_bounds.setter
+    def pixel_bounds(self, value):
+        if value is None:
+            self._pixel_bounds = value
+        else:
+            if len(value) != self.naxis:
+                raise ValueError("The number of data axes, "
+                                 "{}, does not equal the number of "
+                                 "pixel bounds {}.".format(self.naxis, len(value)))
+            self._pixel_bounds = list(value)
+
+    @property
     def world_axis_physical_types(self):
         types = []
         for axis_type in self.axis_type_names:
@@ -191,10 +242,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     def world_to_array_index_values(self, *world_arrays):
         pixel_arrays = self.all_world2pix(*world_arrays, 0)[::-1]
         array_indices = tuple(np.asarray(np.floor(pixel + 0.5), dtype=np.int) for pixel in pixel_arrays)
-        if len(array_indices) == 1:
-            return array_indices[0]
-        else:
-            return array_indices
+        return array_indices
 
     @property
     def world_axis_object_components(self):
