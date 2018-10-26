@@ -43,6 +43,9 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fixed compatibility of ``JointFitter`` with the latest version of Numpy.
+  [#7984]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
