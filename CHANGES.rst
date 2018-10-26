@@ -183,6 +183,9 @@ astropy.table
 - Added support for stacking ``Column``, mixin column (e.g. ``Quantity``,
   ``Time``) or column-like objects. [#7674]
 
+- Added support for inserting a row into a Table that has ``Time`` or
+  ``TimeDelta`` column(s). [#7897]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -217,6 +220,8 @@ astropy.uncertainty
 
 - This sub-package was added as a "preview" (i.e. API unstable), containing
   the ``Distribution`` class and associated convenience functions. [#6945]
+- Added an ``insert`` method to allow inserting one or more values into a
+  ``Time`` or ``TimeDelta`` object. [#7897]
 
 astropy.units
 ^^^^^^^^^^^^^
