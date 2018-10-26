@@ -56,7 +56,7 @@ else:
 def test_transform_to():
     for frame in (FK5, FK5(equinox=Time('J1975.0')),
                   FK4, FK4(equinox=Time('J1975.0')),
-                  SkyCoord(RA, DEC, 'fk4', equinox='J1980')):
+                  SkyCoord(RA, DEC, frame='fk4', equinox='J1980')):
         c_frame = C_ICRS.transform_to(frame)
         s_icrs = SkyCoord(RA, DEC, frame='icrs')
         s_frame = s_icrs.transform_to(frame)
@@ -289,26 +289,21 @@ def test_coord_init_representation():
     Spherical or Cartesian represenation input coordinates.
     """
     coord = SphericalRepresentation(lon=8 * u.deg, lat=5 * u.deg, distance=1 * u.kpc)
-    sc = SkyCoord(coord, 'icrs')
+    sc = SkyCoord(coord, frame='icrs')
     assert allclose(sc.ra, coord.lon)
     assert allclose(sc.dec, coord.lat)
     assert allclose(sc.distance, coord.distance)
 
     with pytest.raises(ValueError) as err:
-        SkyCoord(coord, 'icrs', ra='1d')
+        SkyCoord(coord, frame='icrs', ra='1d')
     assert "conflicts with keyword argument 'ra'" in str(err)
 
     coord = CartesianRepresentation(1 * u.one, 2 * u.one, 3 * u.one)
-    sc = SkyCoord(coord, 'icrs')
+    sc = SkyCoord(coord, frame='icrs')
     sc_cart = sc.represent_as(CartesianRepresentation)
     assert allclose(sc_cart.x, 1.0)
     assert allclose(sc_cart.y, 2.0)
     assert allclose(sc_cart.z, 3.0)
-
-
-FRAME_DEPRECATION_WARNING = ("Passing a frame as a positional argument is now "
-                             "deprecated, use the frame= keyword argument "
-                             "instead.")
 
 
 def test_frame_init():
@@ -321,30 +316,6 @@ def test_frame_init():
 
     sc = SkyCoord(RA, DEC, frame=ICRS)
     assert sc.frame.name == 'icrs'
-
-    with catch_warnings(AstropyDeprecationWarning) as w:
-        sc = SkyCoord(RA, DEC, 'icrs')
-    assert sc.frame.name == 'icrs'
-    assert len(w) == 1
-    assert str(w[0].message) == FRAME_DEPRECATION_WARNING
-
-    with catch_warnings(AstropyDeprecationWarning) as w:
-        sc = SkyCoord(RA, DEC, ICRS)
-    assert sc.frame.name == 'icrs'
-    assert len(w) == 1
-    assert str(w[0].message) == FRAME_DEPRECATION_WARNING
-
-    with catch_warnings(AstropyDeprecationWarning) as w:
-        sc = SkyCoord('icrs', RA, DEC)
-    assert sc.frame.name == 'icrs'
-    assert len(w) == 1
-    assert str(w[0].message) == FRAME_DEPRECATION_WARNING
-
-    with catch_warnings(AstropyDeprecationWarning) as w:
-        sc = SkyCoord(ICRS, RA, DEC)
-    assert sc.frame.name == 'icrs'
-    assert len(w) == 1
-    assert str(w[0].message) == FRAME_DEPRECATION_WARNING
 
     sc = SkyCoord(sc)
     assert sc.frame.name == 'icrs'
@@ -423,12 +394,12 @@ def test_attr_conflicts():
     # Not OK if SkyCoord attrs don't match
     with pytest.raises(ValueError) as err:
         SkyCoord(sc, equinox='J1999', obstime='J2002')
-    assert "Coordinate attribute 'obstime'=" in str(err)
+    assert "Frame attribute 'obstime' has conflicting" in str(err)
 
     # Not OK because sc.frame has different attrs
     with pytest.raises(ValueError) as err:
         SkyCoord(sc.frame, equinox='J1999', obstime='J2002')
-    assert "Coordinate attribute 'obstime'=" in str(err)
+    assert "Frame attribute 'obstime' has conflicting" in str(err)
 
 
 def test_frame_attr_getattr():
@@ -707,25 +678,27 @@ def test_skycoord_three_components(repr_name, unit1, unit2, unit3, cls2, attr1, 
     Tests positional inputs using components (COMP1, COMP2, COMP3)
     and various representations.  Use weird units and Galactic frame.
     """
-    sc = SkyCoord(Galactic, c1, c2, c3, unit=(unit1, unit2, unit3),
-                  representation=representation)
+    sc = SkyCoord(c1, c2, c3, unit=(unit1, unit2, unit3),
+                  representation=representation,
+                  frame=Galactic)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
                                (attr1, attr2, attr3))
 
     sc = SkyCoord(1000*c1*u.Unit(unit1/1000), cls2(c2, unit=unit2),
-                  1000*c3*u.Unit(unit3/1000), Galactic,
+                  1000*c3*u.Unit(unit3/1000), frame=Galactic,
                   unit=(unit1, unit2, unit3), representation=representation)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
                                (attr1, attr2, attr3))
 
     kwargs = {attr3: c3}
-    sc = SkyCoord(Galactic, c1, c2, unit=(unit1, unit2, unit3),
+    sc = SkyCoord(c1, c2, unit=(unit1, unit2, unit3),
+                  frame=Galactic,
                   representation=representation, **kwargs)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
                                (attr1, attr2, attr3))
 
     kwargs = {attr1: c1, attr2: c2, attr3: c3}
-    sc = SkyCoord(Galactic, unit=(unit1, unit2, unit3),
+    sc = SkyCoord(frame=Galactic, unit=(unit1, unit2, unit3),
                   representation=representation, **kwargs)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
                                (attr1, attr2, attr3))
@@ -740,19 +713,19 @@ def test_skycoord_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
     Tests positional inputs using components (COMP1, COMP2) for spherical
     representations.  Use weird units and Galactic frame.
     """
-    sc = SkyCoord(Galactic, c1, c2, unit=(unit1, unit2),
+    sc = SkyCoord(c1, c2, unit=(unit1, unit2), frame=Galactic,
                   representation=representation)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2),
                                (attr1, attr2))
 
     sc = SkyCoord(1000*c1*u.Unit(unit1/1000), cls2(c2, unit=unit2),
-                  Galactic,
+                  frame=Galactic,
                   unit=(unit1, unit2, unit3), representation=representation)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2),
                                (attr1, attr2))
 
     kwargs = {attr1: c1, attr2: c2}
-    sc = SkyCoord(Galactic, unit=(unit1, unit2),
+    sc = SkyCoord(frame=Galactic, unit=(unit1, unit2),
                   representation=representation, **kwargs)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2),
                                (attr1, attr2))
@@ -1023,38 +996,9 @@ def test_init_with_frame_instance_keyword():
     assert c3.equinox == Time('J2010')
 
     # Check duplicate arguments
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError) as err:
         c = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox='J2010'), equinox='J2001')
-    assert exc.value.args[0] == ("cannot specify frame attribute "
-                                 "'equinox' directly in SkyCoord "
-                                 "since a frame instance was passed in")
-
-
-def test_init_with_frame_instance_positional():
-
-    # Frame instance
-    with pytest.raises(ValueError) as exc:
-        c1 = SkyCoord(3 * u.deg, 4 * u.deg, FK5(equinox='J2010'))
-    assert exc.value.args[0] == ("FK5 instance cannot be passed as a "
-                                 "positional argument for the frame, "
-                                 "pass it using the frame= keyword "
-                                 "instead.")
-
-    # Positional frame instance with data raises exception
-    with pytest.raises(ValueError) as exc:
-        SkyCoord(3 * u.deg, 4 * u.deg, FK5(1. * u.deg, 2 * u.deg, equinox='J2010'))
-    assert exc.value.args[0] == ("FK5 instance cannot be passed as a "
-                                 "positional argument for the frame, "
-                                 "pass it using the frame= keyword "
-                                 "instead.")
-
-    # Positional SkyCoord instance (for frame) raises exception
-    with pytest.raises(ValueError) as exc:
-        SkyCoord(3 * u.deg, 4 * u.deg, SkyCoord(1. * u.deg, 2 * u.deg, equinox='J2010'))
-    assert exc.value.args[0] == ("SkyCoord instance cannot be passed as a "
-                                 "positional argument for the frame, "
-                                 "pass it using the frame= keyword "
-                                 "instead.")
+    assert "Cannot specify frame attribute 'equinox'" in str(err)
 
 
 def test_guess_from_table():
