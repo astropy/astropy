@@ -10,6 +10,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from ...tests.helper import catch_warnings, pytest
+from ...utils.exceptions import AstropyDeprecationWarning
 from ...utils import isiterable
 from .. import Time, ScaleValueError, STANDARD_TIME_SCALES, TimeString, TimezoneInfo
 from ...coordinates import EarthLocation
@@ -695,6 +696,15 @@ class TestSubFormat():
         # Check that bad scale is caught when format is auto-determined
         with pytest.raises(ScaleValueError):
             Time('2000:001:00:00:00', scale='bad scale')
+
+    def test_fits_scale(self):
+        """Test that the previous FITS-string formatting can still be handled
+        but with a DeprecationWarning."""
+        for inputs in (("2000-01-02(TAI)", "tai"),
+                       ("1999-01-01T00:00:00.123(ET(NIST))", "tt")):
+            with catch_warnings(AstropyDeprecationWarning):
+                t = Time(inputs[0])
+            assert t.scale == inputs[1]
 
     def test_scale_default(self):
         """Test behavior when no scale is provided"""

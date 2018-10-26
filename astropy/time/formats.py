@@ -5,11 +5,13 @@ import fnmatch
 import time
 import re
 import datetime
+import warnings
 from collections import OrderedDict, defaultdict
 
 import numpy as np
 
 from ..utils.decorators import lazyproperty
+from ..utils.exceptions import AstropyDeprecationWarning
 from .. import units as u
 from .. import _erfa as erfa
 from .utils import day_frac, quantity_day_frac, two_sum, two_product
@@ -1033,9 +1035,18 @@ class TimeFITS(TimeString):
         ('longdate',
          r'(?P<year>[+-]\d{5})-(?P<mon>\d\d)-(?P<mday>\d\d)',
          '{year:+06d}-{mon:02d}-{day:02d}'))
+    # Add the regex that parses the scale and possible realization.
+    # Support for this is deprecated.  Read old style but no longer write
+    # in this style.
+    subfmts = tuple(
+        (subfmt[0],
+         subfmt[1] + r'(\((?P<scale>\w+)(\((?P<realization>\w+)\))?\))?',
+         subfmt[2]) for subfmt in subfmts)
+    _fits_scale = None
+    _fits_realization = None
 
     def parse_string(self, timestr, subfmts):
-        """Read time"""
+        """Read time and deprecated scale if present"""
         # Try parsing with any of the allowed sub-formats.
         for _, regex, _ in subfmts:
             tm = re.match(regex, timestr)
@@ -1045,6 +1056,33 @@ class TimeFITS(TimeString):
             raise ValueError('Time {0} does not match {1} format'
                              .format(timestr, self.name))
         tm = tm.groupdict()
+        # Scale and realization are deprecated and strings in this form
+        # are no longer created.  We issue a warning but still use the value.
+        if tm['scale'] is not None:
+            warnings.warn("FITS time strings should no longer have embedded time scale.",
+                          AstropyDeprecationWarning)
+            # If a scale was given, translate from a possible deprecated
+            # timescale identifier to the scale used by Time.
+            fits_scale = tm['scale'].upper()
+            scale = FITS_DEPRECATED_SCALES.get(fits_scale, fits_scale.lower())
+            if scale not in TIME_SCALES:
+                raise ValueError("Scale {0!r} is not in the allowed scales {1}"
+                                 .format(scale, sorted(TIME_SCALES)))
+            # If no scale was given in the initialiser, set the scale to
+            # that given in the string.  Also store a possible realization,
+            # so we can round-trip (as long as no scale changes are made).
+            fits_realization = (tm['realization'].upper()
+                                if tm['realization'] else None)
+            if self._fits_scale is None:
+                self._fits_scale = fits_scale
+                self._fits_realization = fits_realization
+                if self._scale is None:
+                    self._scale = scale
+            if (scale != self.scale or fits_scale != self._fits_scale or
+                    fits_realization != self._fits_realization):
+                raise ValueError("Input strings for {0} class must all "
+                                 "have consistent time scales."
+                                 .format(self.name))
         return [int(tm['year']), int(tm['mon']), int(tm['mday']),
                 int(tm.get('hour', 0)), int(tm.get('min', 0)),
                 float(tm.get('sec', 0.))]
