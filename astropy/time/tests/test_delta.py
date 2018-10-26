@@ -504,6 +504,26 @@ def test_timedelta_setitem():
     assert 'cannot convert value to a compatible TimeDelta' in str(err)
 
 
+def test_timedelta_setitem_sec():
+    t = TimeDelta([1, 2, 3], format='sec')
+
+    t[0] = 0.5
+    assert allclose_jd(t.value, [0.5, 2, 3])
+
+    t[1:] = 4.5
+    assert allclose_jd(t.value, [0.5, 4.5, 4.5])
+
+    t[:] = 1 * u.day
+    assert allclose_jd(t.value, [86400, 86400, 86400])
+
+    t[1] = TimeDelta(2, format='jd')
+    assert allclose_jd(t.value, [86400, 86400 * 2, 86400])
+
+    with pytest.raises(ValueError) as err:
+        t[1] = 1 * u.m
+    assert 'cannot convert value to a compatible TimeDelta' in str(err)
+
+
 def test_timedelta_mask():
     t = TimeDelta([1, 2] * u.d, format='jd')
     t[1] = np.ma.masked

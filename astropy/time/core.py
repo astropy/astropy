@@ -2025,13 +2025,10 @@ class TimeDelta(Time):
         """Coerce setitem value into an equivalent TimeDelta object"""
         if not isinstance(value, TimeDelta):
             try:
-                value = self.__class__(value, scale=self.scale)
-            except Exception:
-                try:
-                    value = self.__class__(value, scale=self.scale, format=self.format)
-                except Exception as err:
-                    raise ValueError('cannot convert value to a compatible TimeDelta '
-                                     'object: {}'.format(err))
+                value = self.__class__(value, scale=self.scale, format=self.format)
+            except Exception as err:
+                raise ValueError('cannot convert value to a compatible TimeDelta '
+                                 'object: {}'.format(err))
         return value
 
 
