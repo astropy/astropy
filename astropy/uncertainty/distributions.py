@@ -14,7 +14,7 @@ from .core import Distribution
 __all__ = ['normal', 'poisson', 'uniform']
 
 
-def normal(center, *, std=None, var=None, ivar=None, n_samples=1000,
+def normal(center, *, std=None, var=None, ivar=None, n_samples,
            cls=Distribution, **kwargs):
     """
     Create a Gaussian/normal distribution.
@@ -71,7 +71,7 @@ def normal(center, *, std=None, var=None, ivar=None, n_samples=1000,
 
 COUNT_UNITS = (u.count, u.electron, u.dimensionless_unscaled, u.adu)
 
-def poisson(center, n_samples=1000, cls=Distribution, **kwargs):
+def poisson(center, n_samples, cls=Distribution, **kwargs):
     """
     Create a Poisson distribution.
 
@@ -113,7 +113,7 @@ def poisson(center, n_samples=1000, cls=Distribution, **kwargs):
     return cls(samples, **kwargs)
 
 
-def uniform(*, lower=None, upper=None, center=None, width=None, n_samples=1000,
+def uniform(*, lower=None, upper=None, center=None, width=None, n_samples,
             cls=Distribution, **kwargs):
     """
     Create a Uniform distriution from the lower and upper bounds.

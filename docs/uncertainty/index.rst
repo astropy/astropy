@@ -50,8 +50,8 @@ with some initial imports/setup::
 
 Now we create two |distribution| objects to represent our distributions::
 
-  >>> a = unc.normal(1*u.kpc, std=30*u.pc)
-  >>> b = unc.normal(2*u.kpc, std=40*u.pc)
+  >>> a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=1000)
+  >>> b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=1000)
 
 For normal distributions, the centers should add as expected, and the standard
 deviations add in quadrature.  We can check these results (to the limits of our
@@ -70,8 +70,8 @@ the simple Gaussian case, for more complex distributions or airthmetic
 operations where error analysis becomes untenable, |distribution| still powers
 through:
 
-  >>> d = unc.poisson(3*u.kpc)
-  >>> e = unc.uniform(center=3*u.kpc, width=800*u.pc)
+  >>> d = unc.poisson(3*u.kpc, n_samples=1000)
+  >>> e = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=1000)
   >>> f = (c * d * e) ** (1/3)
   >>> f.pdf_mean # doctest: +FLOAT_CMP
   <Quantity 2.83327524 kpc>
@@ -88,11 +88,11 @@ through:
   from astropy import uncertainty as unc
   import matplotlib as plt
   np.random.seed(12345)
-  a = unc.normal(1*u.kpc, std=30*u.pc)
-  b = unc.normal(2*u.kpc, std=40*u.pc)
+  a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=1000)
+  b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=1000)
   c = a + b
   d = unc.poisson(3*u.kpc)
-  e = unc.uniform(center=3*u.kpc, width=800*u.pc)
+  e = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=1000)
   f = (c * d * e) ** (1/3)
   plt.hist(f.distribution, bins=50)
 
@@ -135,9 +135,9 @@ easier. Below demonstrates several equivalent ways to create a normal/Gaussian
 distribution:
 
   >>> centerq = [1, 5, 30, 400]*u.kpc
-  >>> n_distr = unc.normal(centerq, std=[0.2, 1.5, 4, 1]*u.kpc)
-  >>> n_distr = unc.normal(centerq, var=[0.04, 2.25, 16, 1]*u.kpc**2)
-  >>> n_distr = unc.normal(centerq, ivar=[25, 0.44444444, 0.625, 1]*u.kpc**-2)
+  >>> n_distr = unc.normal(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=1000)
+  >>> n_distr = unc.normal(centerq, var=[0.04, 2.25, 16, 1]*u.kpc**2, n_samples=1000)
+  >>> n_distr = unc.normal(centerq, ivar=[25, 0.44444444, 0.625, 1]*u.kpc**-2, n_samples=1000)
   >>> n_distr.distribution.shape
   (4, 1000)
   >>> unc.normal(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100).distribution.shape
@@ -148,13 +148,13 @@ distribution:
 
 Additionally, Poisson and uniform |distribution| creation functions exist:
 
-  >>> unc.poisson(centerq) # doctest: +FLOAT_CMP
+  >>> unc.poisson(centerq, n_samples=1000) # doctest: +FLOAT_CMP
   <QuantityDistribution [[  2.,   2.,   2., ...,   1.,   1.,   3.],
                [  7.,   3.,   2., ...,   1.,   3.,   5.],
                [ 32.,  27.,  30., ...,  31.,  39.,  29.],
                [425., 387., 379., ..., 404., 384., 377.]] kpc with n_samples=1000>
   >>> uwidth = [10, 20, 10, 55]*u.pc
-  >>> unc.uniform(center=centerq, width=uwidth) # doctest: +FLOAT_CMP
+  >>> unc.uniform(center=centerq, width=uwidth, n_samples=1000) # doctest: +FLOAT_CMP
   <QuantityDistribution [[  1.00264599,   1.00203114,   1.00228494, ...,   1.00280875,
                   1.00077583,   1.00213164],
                [  5.00861993,   4.99102886,   5.00254059, ...,   4.99831796,
@@ -163,7 +163,7 @@ Additionally, Poisson and uniform |distribution| creation functions exist:
                  30.0014714 ,  29.99719035],
                [400.01991204, 399.98233216, 399.98231204, ..., 399.99071525,
                 400.01797099, 400.01086062]] kpc with n_samples=1000>
-  >>> unc.uniform(lower=centerq-uwidth/2,  upper=centerq+uwidth/2)  # doctest: +FLOAT_CMP
+  >>> unc.uniform(lower=centerq-uwidth/2,  upper=centerq+uwidth/2, n_samples=1000)  # doctest: +FLOAT_CMP
   <QuantityDistribution [[  0.99578122,   1.00056763,   0.99984519, ...,   0.99531055,
                   1.00396487,   1.00018797],
                [  5.0076216 ,   5.00672847,   5.00009831, ...,   5.00216818,
