@@ -1,12 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import itertools
+import warnings
 
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_almost_equal_nulp
 
 from ..convolve import convolve_fft
+from ...utils.exceptions import AstropyUserWarning
 
 
 VALID_DTYPES = []
@@ -66,9 +68,11 @@ class TestConvolve1D:
 
         y = np.array([1.], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary,
-                         nan_treatment=nan_treatment,
-                         normalize_kernel=normalize_kernel)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', AstropyUserWarning)
+            z = convolve_fft(x, y, boundary=boundary,
+                             nan_treatment=nan_treatment,
+                             normalize_kernel=normalize_kernel)
 
         assert_floatclose(z, x)
 
@@ -83,9 +87,11 @@ class TestConvolve1D:
 
         y = np.array([0., 1., 0.], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary,
-                         nan_treatment=nan_treatment,
-                         normalize_kernel=normalize_kernel)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', AstropyUserWarning)
+            z = convolve_fft(x, y, boundary=boundary,
+                             nan_treatment=nan_treatment,
+                             normalize_kernel=normalize_kernel)
 
         assert_floatclose(z, x)
 
@@ -100,9 +106,11 @@ class TestConvolve1D:
 
         y = np.array([1., 1., 1.], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary,
-                         nan_treatment=nan_treatment,
-                         normalize_kernel=normalize_kernel)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', AstropyUserWarning)
+            z = convolve_fft(x, y, boundary=boundary,
+                             nan_treatment=nan_treatment,
+                             normalize_kernel=normalize_kernel)
 
         answer_key = (boundary, nan_treatment, normalize_kernel)
 
@@ -139,9 +147,11 @@ class TestConvolve1D:
 
         y = np.array([0.5, 0.5, 0.5], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary,
-                         nan_treatment=nan_treatment,
-                         normalize_kernel=normalize_kernel)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', AstropyUserWarning)
+            z = convolve_fft(x, y, boundary=boundary,
+                             nan_treatment=nan_treatment,
+                             normalize_kernel=normalize_kernel)
 
         answer_dict = {
             'sum': np.array([0.5, 2.0, 1.5], dtype='float64'),
@@ -180,10 +190,13 @@ class TestConvolve1D:
 
         y = np.array([0., 1., 0.], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary,
-                         nan_treatment=nan_treatment,
-                         normalize_kernel=normalize_kernel,
-                         preserve_nan=preserve_nan)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', (AstropyUserWarning,
+                                             RuntimeWarning))
+            z = convolve_fft(x, y, boundary=boundary,
+                             nan_treatment=nan_treatment,
+                             normalize_kernel=normalize_kernel,
+                             preserve_nan=preserve_nan)
 
         if preserve_nan:
             assert np.isnan(z[1])
@@ -216,10 +229,13 @@ class TestConvolve1D:
 
         y = np.array([1.], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary,
-                         nan_treatment=nan_treatment,
-                         normalize_kernel=normalize_kernel,
-                         preserve_nan=preserve_nan)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', (AstropyUserWarning,
+                                             RuntimeWarning))
+            z = convolve_fft(x, y, boundary=boundary,
+                             nan_treatment=nan_treatment,
+                             normalize_kernel=normalize_kernel,
+                             preserve_nan=preserve_nan)
 
         if preserve_nan:
             assert np.isnan(z[1])
@@ -241,10 +257,12 @@ class TestConvolve1D:
 
         y = np.array([1., 1., 1.], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary,
-                         nan_treatment=nan_treatment,
-                         normalize_kernel=normalize_kernel,
-                         preserve_nan=preserve_nan)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', AstropyUserWarning)
+            z = convolve_fft(x, y, boundary=boundary,
+                             nan_treatment=nan_treatment,
+                             normalize_kernel=normalize_kernel,
+                             preserve_nan=preserve_nan)
 
         if preserve_nan:
             assert np.isnan(z[1])
@@ -292,7 +310,12 @@ class TestConvolve1D:
         array = np.array([1., np.nan, 3.], dtype='float64')
         kernel = np.array([1, 1, 1])
         masked_array = np.ma.masked_array(array, mask=[0, 1, 0])
-        result = convolve_fft(masked_array, kernel, boundary='fill', fill_value=np.nan)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', RuntimeWarning)
+            result = convolve_fft(masked_array, kernel, boundary='fill',
+                                  fill_value=np.nan)
+
         assert_floatclose(result, [1, 2, 3])
 
     def test_masked_array(self):
@@ -304,14 +327,24 @@ class TestConvolve1D:
         array = np.array([1., np.nan, 3.], dtype='float64')
         kernel = np.array([1, 1, 1])
         masked_array = np.ma.masked_array(array, mask=[0, 1, 0])
-        result = convolve_fft(masked_array, kernel, boundary='fill', fill_value=np.nan)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', RuntimeWarning)
+            result = convolve_fft(masked_array, kernel, boundary='fill',
+                                  fill_value=np.nan)
+
         assert_floatclose(result, [1, 2, 3])
 
         # Test masked kernel
         array = np.array([1., np.nan, 3.], dtype='float64')
         kernel = np.array([1, 1, 1])
         masked_array = np.ma.masked_array(array, mask=[0, 1, 0])
-        result = convolve_fft(masked_array, kernel, boundary='fill', fill_value=np.nan)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', RuntimeWarning)
+            result = convolve_fft(masked_array, kernel, boundary='fill',
+                                  fill_value=np.nan)
+
         assert_floatclose(result, [1, 2, 3])
 
     def test_normalize_function(self):
@@ -369,9 +402,11 @@ class TestConvolve2D:
 
         y = np.array([[1.]], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary,
-                         nan_treatment=nan_treatment,
-                         normalize_kernel=normalize_kernel)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', AstropyUserWarning)
+            z = convolve_fft(x, y, boundary=boundary,
+                             nan_treatment=nan_treatment,
+                             normalize_kernel=normalize_kernel)
 
         assert_floatclose(z, x)
 
@@ -390,9 +425,12 @@ class TestConvolve2D:
                       [0., 1., 0.],
                       [0., 0., 0.]], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary,
-                         nan_treatment=nan_treatment,
-                         normalize_kernel=normalize_kernel)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', (AstropyUserWarning,
+                                             RuntimeWarning))
+            z = convolve_fft(x, y, boundary=boundary,
+                             nan_treatment=nan_treatment,
+                             normalize_kernel=normalize_kernel)
 
         assert_floatclose(z, x)
 
@@ -411,10 +449,13 @@ class TestConvolve2D:
                       [1., 1., 1.],
                       [1., 1., 1.]], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary,
-                         nan_treatment=nan_treatment,
-                         fill_value=np.nan if normalize_kernel else 0,
-                         normalize_kernel=normalize_kernel)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', (AstropyUserWarning,
+                                             RuntimeWarning))
+            z = convolve_fft(x, y, boundary=boundary,
+                             nan_treatment=nan_treatment,
+                             fill_value=np.nan if normalize_kernel else 0,
+                             normalize_kernel=normalize_kernel)
 
         w = np.array([[4., 6., 4.],
                       [6., 9., 6.],
@@ -462,10 +503,13 @@ class TestConvolve2D:
                       [0., 1., 0.],
                       [0., 0., 0.]], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary,
-                         nan_treatment=nan_treatment,
-                         normalize_kernel=normalize_kernel,
-                         preserve_nan=preserve_nan)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', (AstropyUserWarning,
+                                             RuntimeWarning))
+            z = convolve_fft(x, y, boundary=boundary,
+                             nan_treatment=nan_treatment,
+                             normalize_kernel=normalize_kernel,
+                             preserve_nan=preserve_nan)
 
         if preserve_nan:
             assert np.isnan(z[1, 1])
@@ -503,11 +547,14 @@ class TestConvolve2D:
         #                          )
         #     return
 
-        z = convolve_fft(x, y, boundary=boundary,
-                         nan_treatment=nan_treatment,
-                         fill_value=np.nan if normalize_kernel else 0,
-                         normalize_kernel=normalize_kernel,
-                         preserve_nan=preserve_nan)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', (AstropyUserWarning,
+                                             RuntimeWarning))
+            z = convolve_fft(x, y, boundary=boundary,
+                             nan_treatment=nan_treatment,
+                             fill_value=np.nan if normalize_kernel else 0,
+                             normalize_kernel=normalize_kernel,
+                             preserve_nan=preserve_nan)
 
         if preserve_nan:
             assert np.isnan(z[1, 1])
@@ -582,8 +629,10 @@ class TestConvolve2D:
                       [-1., 0., -1.],
                       [1., -1., 1.]], dtype='float')
 
-        z = convolve_fft(x, y, boundary=boundary, nan_treatment='fill',
-                         normalize_kernel=False)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', AstropyUserWarning)
+            z = convolve_fft(x, y, boundary=boundary, nan_treatment='fill',
+                             normalize_kernel=False)
 
         if boundary in (None, 'fill'):
             assert_floatclose(z, np.array([[1., -5., 2.],
@@ -596,6 +645,7 @@ class TestConvolve2D:
         else:
             raise ValueError("Invalid boundary specification")
 
+
 @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
 def test_asymmetric_kernel(boundary):
     '''
@@ -607,7 +657,9 @@ def test_asymmetric_kernel(boundary):
 
     y = np.array([1, 2, 3], dtype='>f8')
 
-    z = convolve_fft(x, y, boundary=boundary, normalize_kernel=False)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', AstropyUserWarning)
+        z = convolve_fft(x, y, boundary=boundary, normalize_kernel=False)
 
     if boundary in (None, 'fill'):
         assert_array_almost_equal_nulp(z, np.array([6., 10., 2.], dtype='float'), 10)
