@@ -1287,15 +1287,18 @@ def kuiper_false_positive_probability(D, N):
         return 1. - factorial(N) * (D - 1. / N)**(N - 1)
     elif D < 3. / N:
         k = -(N * D - 1.) / 2.
-        r = np.sqrt(k**2 - (N * D - 2.) / 2.)
+        r = np.sqrt(k**2 - (N * D - 2.)**2 / 2.)
         a, b = -k + r, -k - r
         return 1. - factorial(N - 1) * (b**(N - 1.) * (1. - a) -
                                         a**(N - 1.) * (1. - b)) / float(N)**(N - 2) / (b - a)
     elif (D > 0.5 and N % 2 == 0) or (D > (N - 1.) / (2. * N) and N % 2 == 1):
+        # NOTE: eq 7 of Paltani 2004 appears to contain a typo with respect
+        # to the same equation in Stephens 1965. The latter is closer to
+        # Monte Carlo simulations, and is the version implemented here
         def T(t):
             y = D + t / float(N)
             return y**(t - 3) * (y**3 * N - y**2 * t * (3. - 2. /
-                                                        N) / N - t * (t - 1) * (t - 2) / float(N)**2)
+                                                        N) + y * t * (t - 1) * (3. - 2. / N) / N - t * (t - 1) * (t - 2) / float(N)**2)
         s = 0.
         # NOTE: the upper limit of this sum is taken from Stephens 1965
         for t in range(int(np.floor(N * (1 - D))) + 1):
