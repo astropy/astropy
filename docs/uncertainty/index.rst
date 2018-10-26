@@ -40,7 +40,8 @@ Getting Started
 
 To demonstrate a simple use case for distributions, consider the problem of
 uncertainty propogation of normal distributions.  Assume there are two
-measurements you wish to add.  We start with some initial imports/setup::
+measurements you wish to add, each with normal uncertainties.  We start
+with some initial imports/setup::
 
   >>> import numpy as np
   >>> from astropy import units as u
