@@ -106,9 +106,13 @@ def poisson(center, n_samples=1000, cls=Distribution, **kwargs):
     return cls(samples, **kwargs)
 
 
-def uniform(*, lower, upper, center, width, n_samples=1000, cls=Distribution, **kwargs):
+def uniform(*, lower=None, upper=None, center=None, width=None, n_samples=1000,
+            cls=Distribution, **kwargs):
     """
     Create a Uniform distriution from the lower and upper bounds.
+
+    Note that this function requires keywords to be explicit, and requires
+    either ``lower``/``upper`` or ``center``/``width``.
 
     Parameters
     ----------
@@ -152,7 +156,11 @@ def uniform(*, lower, upper, center, width, n_samples=1000, cls=Distribution, **
                          'to uniform - other combinations are not valid')
 
     newshape = lower.shape + (n_samples,)
-    width = (upper - lower)[:, np.newaxis]
-    samples = lower[:, np.newaxis] + width * np.random.uniform(size=newshape)
+    if lower.shape == tuple() and upper.shape == tuple():
+        width = upper - lower  # scalar
+    else:
+        width = (upper - lower)[:, np.newaxis]
+        lower = lower[:, np.newaxis]
+    samples = lower + width * np.random.uniform(size=newshape)
 
     return cls(samples, **kwargs)

@@ -191,18 +191,18 @@ def test_helper_normal_samples():
 
 
 def test_helper_poisson_samples():
-    centerqadu = [1, 5, 30, 400] * u.count
+    centerqcounts = [1, 5, 30, 400] * u.count
 
     with NumpyRNGContext(12345):
-        p_dist = ds.poisson(centerqadu, n_samples=100)
+        p_dist = ds.poisson(centerqcounts, n_samples=100)
         assert p_dist.shape == (4,)
         assert p_dist.distribution.shape == (4, 100)
-        assert p_dist.unit == u.adu
+        assert p_dist.unit == u.count
         p_min = np.min(p_dist)
         assert isinstance(p_min, Distribution)
         assert p_min.shape == ()
         assert np.all(p_min >= 0)
-        assert np.all(np.abs(p_dist.pdf_mean - centerqadu) < centerqadu)
+        assert np.all(np.abs(p_dist.pdf_mean - centerqcounts) < centerqcounts)
 
 
 def test_helper_uniform_samples():
