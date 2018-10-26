@@ -844,12 +844,9 @@ def get_parameters(members):
         if obj._name_attribute_ is not None:
             setattr(obj, '_name', name)
         pdict[name] = obj
-    
+
     members['_parameter_vals_'] = pdict
     members['_parameters_'] = pdict.keys()
-
-
-
 
 LOCALE_LOCK = threading.Lock()
 
