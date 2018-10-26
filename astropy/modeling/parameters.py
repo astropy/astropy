@@ -19,6 +19,8 @@ from astropy import units as u
 from astropy.units import Quantity, UnitsError
 from astropy.utils import isiterable, OrderedDescriptor
 from .utils import array_repr_oneline
+from .utils import get_inputs_and_params
+
 
 __all__ = ['Parameter', 'InputParameterError', 'ParameterError']
 
@@ -205,8 +207,10 @@ class Parameter(OrderedDescriptor):
                  max=None, bounds=None):
         super().__init__()
 
-        self._setter = setter
-        self._getter = getter
+        self._model = None
+        self._model_required = False
+        self._setter = self._create_value_wrapper(setter, None)
+        self._getter = self._create_value_wrapper(getter, None)
         self._name = name
         self.__doc__ = self._description = description.strip()
 
@@ -222,10 +226,11 @@ class Parameter(OrderedDescriptor):
         self._default = default
         self._unit = unit
         self._internal_unit = None
-        if self._default is not None:
-            self.value = self._default
-        else:
-            self._value = None
+        if not self._model_required:
+            if self._default is not None:
+                self.value = self._default
+            else:
+                self._value = None
 
         # NOTE: These are *default* constraints--on model instances constraints
         # are taken from the model if set, otherwise the defaults set here are
@@ -242,7 +247,6 @@ class Parameter(OrderedDescriptor):
         self._tied = tied
         self._bounds = bounds
         self._order = None
-        self._model = None
 
         self._validator = None
 
@@ -646,6 +650,21 @@ class Parameter(OrderedDescriptor):
 
         return self.__class__(**kwargs)
 
+    @property
+    def model(self):
+        return self._model
+
+    @model.setter
+    def model(self, value):
+        self._model = value
+        self._setter = self._create_value_wrapper(self._setter, value)
+        self._getter = self._create_value_wrapper(self._getter, value)
+        if self._model_required:
+            if self._default is not None:
+                self.value = self._default
+            else:
+                self._value = None
+
 
     @property
     def _raw_value(self):
@@ -663,6 +682,41 @@ class Parameter(OrderedDescriptor):
             return self._internal_value
         else:
             return self.value
+
+    def _create_value_wrapper(self, wrapper, model):
+        """Wraps a getter/setter function to support optionally passing in
+        a reference to the model object as the second argument.
+        If a model is tied to this parameter and its getter/setter supports
+        a second argument then this creates a partial function using the model
+        instance as the second argument.
+        """
+
+        if isinstance(wrapper, np.ufunc):
+            if wrapper.nin != 1:
+                raise TypeError("A numpy.ufunc used for Parameter "
+                                "getter/setter may only take one input "
+                                "argument")
+        elif wrapper is None:
+            # Just allow non-wrappers to fall through silently, for convenience
+            return None
+        else:
+            inputs, params = get_inputs_and_params(wrapper)
+            nargs = len(inputs)
+
+            if nargs == 1:
+                pass
+            elif nargs == 2:
+                self._model_required = True
+                if model is not None:
+                    # Don't make a partial function unless we're tied to a
+                    # specific model instance
+                    model_arg = inputs[1].name
+                    wrapper = functools.partial(wrapper, **{model_arg: model})
+            else:
+                raise TypeError("Parameter getter/setter must be a function "
+                                "of either one or two arguments")
+
+        return wrapper
 
     def __array__(self, dtype=None):
         # Make np.asarray(self) work a little more straightforwardly
