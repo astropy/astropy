@@ -3,6 +3,7 @@
 
 import numpy as np
 
+from matplotlib import rcParams
 from matplotlib.text import Text
 
 from .frame import RectangularFrame
@@ -20,8 +21,16 @@ class TickLabels(Text):
         super().__init__(*args, **kwargs)
         self.set_clip_on(True)
         self.set_visible_axes('all')
-        self.pad = 0.3
+        self.set_pad(rcParams['xtick.major.pad'])
         self._exclude_overlapping = False
+
+        # Check rcParams
+
+        if 'color' not in kwargs:
+            self.set_color(rcParams['xtick.color'])
+
+        if 'size' not in kwargs:
+            self.set_size(rcParams['xtick.labelsize'])
 
     def clear(self):
         self.world = {}
@@ -85,6 +94,12 @@ class TickLabels(Text):
                     if starts_dollar:
                         self.text[axis][i] = '$' + self.text[axis][i]
 
+    def set_pad(self, value):
+        self._pad = value
+
+    def get_pad(self):
+        return self._pad
+
     def set_visible_axes(self, visible_axes):
         self._visible_axes = visible_axes
 
@@ -97,7 +112,7 @@ class TickLabels(Text):
     def set_exclude_overlapping(self, exclude_overlapping):
         self._exclude_overlapping = exclude_overlapping
 
-    def draw(self, renderer, bboxes, ticklabels_bbox):
+    def draw(self, renderer, bboxes, ticklabels_bbox, tick_out_size):
 
         if not self.get_visible():
             return
@@ -120,6 +135,8 @@ class TickLabels(Text):
 
                 x, y = self.pixel[axis][i]
 
+                pad = renderer.points_to_pixels(self.get_pad() + tick_out_size)
+
                 if isinstance(self._frame, RectangularFrame):
 
                     # This is just to preserve the current results, but can be
@@ -128,23 +145,23 @@ class TickLabels(Text):
                     if np.abs(self.angle[axis][i]) < 45.:
                         ha = 'right'
                         va = 'bottom'
-                        dx = - text_size * 0.5
-                        dy = - text_size * 0.5
+                        dx = -pad
+                        dy = -text_size * 0.5
                     elif np.abs(self.angle[axis][i] - 90.) < 45:
                         ha = 'center'
                         va = 'bottom'
                         dx = 0
-                        dy = - text_size * 1.5
+                        dy = -text_size - pad
                     elif np.abs(self.angle[axis][i] - 180.) < 45:
                         ha = 'left'
                         va = 'bottom'
-                        dx = text_size * 0.5
-                        dy = - text_size * 0.5
+                        dx = pad
+                        dy = -text_size * 0.5
                     else:
                         ha = 'center'
                         va = 'bottom'
                         dx = 0
-                        dy = text_size * 0.2
+                        dy = pad
 
                     self.set_position((x + dx, y + dy))
                     self.set_ha(ha)
@@ -194,8 +211,8 @@ class TickLabels(Text):
                     ddx = dx / dist
                     ddy = dy / dist
 
-                    dx += ddx * text_size * self.pad
-                    dy += ddy * text_size * self.pad
+                    dx += ddx * pad
+                    dy += ddy * pad
 
                     self.set_position((x - dx, y - dy))
                     self.set_ha('center')

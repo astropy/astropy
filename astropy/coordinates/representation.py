@@ -42,6 +42,26 @@ __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
 REPRESENTATION_CLASSES = {}
 DIFFERENTIAL_CLASSES = {}
 
+# a hash for the content of the above two dicts, cached for speed.
+_REPRDIFF_HASH = None
+def get_reprdiff_cls_hash():
+    """
+    Returns a hash value that should be invariable if the
+    `REPRESENTATION_CLASSES` and `DIFFERENTIAL_CLASSES` dictionaries have not
+    changed.
+    """
+    global _REPRDIFF_HASH
+    if _REPRDIFF_HASH is None:
+        _REPRDIFF_HASH = (hash(tuple(REPRESENTATION_CLASSES.items())) +
+                          hash(tuple(DIFFERENTIAL_CLASSES.items())) )
+    return _REPRDIFF_HASH
+
+
+def _invalidate_reprdiff_cls_hash():
+    global _REPRDIFF_HASH
+    _REPRDIFF_HASH = None
+
+
 
 # recommended_units deprecation message; if the attribute is removed later,
 # also remove its use in BaseFrame._get_representation_info.
@@ -420,6 +440,7 @@ class MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
                              .format(repr_name))
 
         REPRESENTATION_CLASSES[repr_name] = cls
+        _invalidate_reprdiff_cls_hash()
 
         # define getters for any component that does not yet have one.
         for component in cls.attr_classes:
@@ -1944,6 +1965,7 @@ class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
                              .format(repr_name))
 
         DIFFERENTIAL_CLASSES[repr_name] = cls
+        _invalidate_reprdiff_cls_hash()
 
         # If not defined explicitly, create properties for the components.
         for component in cls.attr_classes:

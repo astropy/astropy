@@ -204,9 +204,15 @@ In the case of angular axes, specifying the spacing as an Astropy
 :class:`~astropy.units.quantity.Quantity` avoids roundoff errors. The
 :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks` method can also
 be used to set the appearance (color and size) of the ticks, using the
-``color=`` and ``size=`` options. There is also the option
-``exclude_overlapping=True`` to prevent overlapping tick labels from being
-displayed.
+``color=`` and ``size=`` options.
+
+The :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel` method can be used
+to change settings for the tick labels, such as color, font, size, and so on::
+
+    lon.set_ticklabel(color='red', size=12)
+
+In addition, this method has an option ``exclude_overlapping=True`` to prevent
+overlapping tick labels from being displayed.
 
 We can apply this to the previous example:
 
@@ -216,8 +222,10 @@ We can apply this to the previous example:
    :align: center
 
     from astropy import units as u
-    lon.set_ticks(spacing=10 * u.arcmin, color='white', exclude_overlapping=True)
-    lat.set_ticks(spacing=10 * u.arcmin, color='white', exclude_overlapping=True)
+    lon.set_ticks(spacing=10 * u.arcmin, color='white')
+    lat.set_ticks(spacing=10 * u.arcmin, color='white')
+    lon.set_ticklabel(exclude_overlapping=True)
+    lat.set_ticklabel(exclude_overlapping=True)
 
 Minor ticks
 ***********
