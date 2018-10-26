@@ -237,13 +237,15 @@ class Distribution:
             the distribution is large.
         Additional keywords are passed into `astropy.visualization.hist`
         """
-        # FIXME: not adjusted to new structure!!
         labelset = 'label' in kwargs
-        scalar_distr = len(self.shape) == 1
+        scalar_distr = self.shape == tuple()
+
+        distr = self.distribution
         if scalar_distr:
-            reshaped = [self]
+            reshaped = [distr]
         else:
-            reshaped = self.reshape(self.n_samples, self.size//self.n_samples).T
+            rolled = np.rollaxis(distr, -1)
+            reshaped = rolled.ravel().reshape(rolled.shape[0], rolled.size//rolled.shape[0])
 
         hists = []
         for i, dat in enumerate(reshaped):
