@@ -4,10 +4,11 @@
 """
 Built-in distribution-creation functions.
 """
+from warnings import warn
 
 import numpy as np
 
-from ..units import UnitsError
+from .. import units as u
 from .core import Distribution
 
 __all__ = ['normal', 'poisson', 'uniform']
@@ -68,6 +69,8 @@ def normal(center, *, std=None, var=None, ivar=None, n_samples=1000,
     return cls(samples, **kwargs)
 
 
+COUNT_UNITS = (u.count, u.electron, u.dimensionless_unscaled, u.adu)
+
 def poisson(center, n_samples=1000, cls=Distribution, **kwargs):
     """
     Create a Poisson distribution.
@@ -100,6 +103,10 @@ def poisson(center, n_samples=1000, cls=Distribution, **kwargs):
 
     samples = np.random.poisson(poissonarr[..., np.newaxis], randshape)
     if has_unit:
+        if center.unit not in COUNT_UNITS:
+            warn('Unit {} was provided to poisson, which is not one of {}, '
+                 'and therefore suspect as a "counting" unit.  Ensure you mean '
+                 'to use Poisson statistics.'.format(center.unit, COUNT_UNITS))
         # re-attach the unit
         samples = samples * center.unit
 
