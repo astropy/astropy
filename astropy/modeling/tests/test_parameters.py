@@ -163,7 +163,7 @@ def test_param_metric():
     assert mod._param_metrics['m3d']['slice'] == slice(3, 4)
     mod._parameters_to_array()
     assert (mod._parameters == np.array([1., 5., 11., 20], dtype=np.float64)).all()
-    
+
 class TestParameters:
 
     def setup_class(self):
