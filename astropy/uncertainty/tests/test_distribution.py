@@ -264,10 +264,10 @@ def test_reprs():
 @pytest.mark.parametrize("klass, kws", [
     (ds.normal, {'center': 0, 'std': 2}),
     (ds.uniform, {'lower': 0, 'upper': 2}),
-    (ds.poisson, {'poissonval': 2}),
+    (ds.poisson, {'center': 2}),
     (ds.normal, {'center': 0*u.count, 'std': 2*u.count}),
     (ds.uniform, {'lower': 0*u.count, 'upper': 2*u.count}),
-    (ds.poisson, {'poissonval': 2*u.count})
+    (ds.poisson, {'center': 2*u.count})
 ])
 def test_wrong_kw_fails(klass, kws):
     with pytest.raises(Exception):
