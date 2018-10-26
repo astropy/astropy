@@ -18,15 +18,16 @@ else:
 
 
 def test_numpy_init():
-    # Test that we can initialize directly from a Numpy array if we provide a unit
+    # Test that we can initialize directly from a Numpy array
     rates = np.array([1, 5, 30, 400])[:, np.newaxis]
     parr = np.random.poisson(rates, (4, 1000))
-    u.Distribution(parr, unit=u.kpc)
+    u.Distribution(parr)
+
 
 def test_numpy_init_T():
     rates = np.array([1, 5, 30, 400])
     parr = np.random.poisson(rates, (1000, 4))
-    u.Distribution(parr.T, unit=u.kpc)
+    u.Distribution(parr.T)
 
 
 def test_quantity_init():
@@ -34,6 +35,12 @@ def test_quantity_init():
     pq = np.random.poisson(np.array([1, 5, 30, 400])[:, np.newaxis],
                            (4, 1000)) * u.kpc
     u.Distribution(pq)
+
+
+def test_quantity_init_T():
+    # Test that we can initialize directly from a Quantity
+    pq = np.random.poisson(np.array([1, 5, 30, 400]), (1000, 4)) * u.kpc
+    u.Distribution(pq.T)
 
 
 def test_init_scalar():
@@ -133,7 +140,7 @@ class TestDistributionStatistics():
 
     def test_percentile(self):
         expected = np.percentile(self.data, [10, 50, 90], axis=-1) * self.distr.unit
-        percs = self.distr.percentiles([10, 50, 90])
+        percs = self.distr.pdf_percentiles([10, 50, 90])
         assert_quantity_allclose(percs, expected)
         assert percs.shape == (3, 4)
 
@@ -154,7 +161,7 @@ class TestDistributionStatistics():
                         * np.array([1000, .01, 80, 10])[:, np.newaxis]
                         + np.array([2000, 0, 0, 500])[:, np.newaxis])
         # another_data is in pc, but main distr is in kpc
-        another_distr = u.Distribution(another_data, unit=u.pc)
+        another_distr = u.Distribution(another_data * u.pc)
         combined_distr = self.distr + another_distr
 
         expected = np.median(self.data + another_data/1000,
@@ -244,7 +251,7 @@ def test_arithmetic_exact():
 
 def test_reprs():
     darr = np.arange(30).reshape(3, 10)
-    distr = u.Distribution(darr, unit=u.kpc)
+    distr = u.Distribution(darr * u.kpc)
 
     assert 'n_samples=10' in repr(distr)
     assert 'n_samples=10' in str(distr)

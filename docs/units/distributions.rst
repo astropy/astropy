@@ -95,7 +95,7 @@ distributions:
   <Quantity [ 1.,  2.,  4., 14.] kpc>
   >>> distr.pdf_smad  # Median absolute deviation, rescaled to match std for normal # doctest: +FLOAT_CMP
   <Quantity [ 1.48260222,  2.96520444,  5.93040887, 20.75643106] kpc>
-  >>> distr.percentiles([10, 50, 90])
+  >>> distr.pdf_percentiles([10, 50, 90])
   <Quantity [[  0. ,   2. ,  23. , 374. ],
              [  1. ,   5. ,  30. , 400. ],
              [  2. ,   8. ,  37.1, 427. ]] kpc>
@@ -124,7 +124,7 @@ essentially assuming the |quantity| is a dirac delta distribution:
 It also operates as expected with other distributions  (But see below for a
 discussion of covariances):
 
-  >>> another_distr = u.Distribution((np.random.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T, unit=u.pc)
+  >>> another_distr = u.Distribution((np.random.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T * u.pc)
   >>> combined_distr = distr + another_distr
   >>> combined_distr.pdf_median
   <Quantity [  2.90856297,   4.99999764,  30.09385367, 400.50056651] kpc>
