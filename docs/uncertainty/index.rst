@@ -33,7 +33,7 @@ well-behaved distributions (e.g., the Normal distribution) have
 analytic forms which may eventually enable a more compact/efficient
 representation.  In the future these may provide a coherent uncertainty
 propogation mechanism to work with `~astropy.nddata.NDData`  However, this is
-not currently implemented. 
+not currently implemented.
 
 Getting Started
 ===============
@@ -71,7 +71,7 @@ operations where error analysis becomes untenable, |distribution| still powers
 through:
 
   >>> d = unc.poisson(3*u.kpc)
-  >>> e = unc.uniform_center_width(3*u.kpc, 800*u.pc)
+  >>> e = unc.uniform(center=3*u.kpc, width=800*u.pc)
   >>> f = (c * d * e) ** (1/3)
   >>> f.pdf_mean # doctest: +FLOAT_CMP
   <Quantity 2.83327524 kpc>
@@ -90,7 +90,7 @@ through:
   b = unc.normal(2*u.kpc, std=40*u.pc)
   c = a + b
   d = unc.poisson(3*u.kpc)
-  e = unc.uniform_center_width(3*u.kpc, 800*u.pc)
+  e = unc.uniform(center=3*u.kpc, width=800*u.pc)
   f = (c * d * e) ** (1/3)
   f.hist(bins=50)
 
@@ -152,7 +152,7 @@ Additionally, Poisson and uniform |distribution| creation functions exist:
                [ 32.,  27.,  30., ...,  31.,  39.,  29.],
                [425., 387., 379., ..., 404., 384., 377.]] kpc with n_samples=1000>
   >>> uwidth = [10, 20, 10, 55]*u.pc
-  >>> unc.uniform_center_width(centerq, uwidth) # doctest: +FLOAT_CMP
+  >>> unc.uniform(center=centerq, width=uwidth) # doctest: +FLOAT_CMP
   <QuantityDistribution [[  1.00264599,   1.00203114,   1.00228494, ...,   1.00280875,
                   1.00077583,   1.00213164],
                [  5.00861993,   4.99102886,   5.00254059, ...,   4.99831796,
