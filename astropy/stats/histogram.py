@@ -13,6 +13,52 @@ __all__ = ['histogram', 'scott_bin_width', 'freedman_bin_width',
            'knuth_bin_width']
 
 
+def _calculate_bin_edges(a, bins=10, range=None, weights=None):
+    # if range is specified, we need to truncate the data for
+    # the bin-finding routines
+    if range is not None:
+        a = a[(a >= range[0]) & (a <= range[1])]
+
+    # if bins is a string, first compute bin edges with the desired heuristic
+    if isinstance(bins, str):
+        a = np.asarray(a).ravel()
+
+        # TODO: if weights is specified, we need to modify things.
+        #       e.g. we could use point measures fitness for Bayesian blocks
+        if weights is not None:
+            raise NotImplementedError("weights are not yet supported "
+                                      "for the enhanced histogram")
+
+        if bins == 'blocks':
+            bins = bayesian_blocks(a)
+        elif bins == 'knuth':
+            da, bins = knuth_bin_width(a, True)
+        elif bins == 'scott':
+            da, bins = scott_bin_width(a, True)
+        elif bins == 'freedman':
+            da, bins = freedman_bin_width(a, True)
+        else:
+            raise ValueError("unrecognized bin code: '{}'".format(bins))
+    elif np.ndim(bins) == 0:
+        # Number of bins was given
+        try:
+            # This works for numpy 1.15 or later
+            bins = np.histogram_bin_edges(a, bins,
+                                          range=range,
+                                          weights=weights)
+        except AttributeError:
+            # In this case only (integer number of bins, older version of
+            # numpy) then calculate like the bin edges manually.
+            if range is not None:
+                lower, upper = range
+            else:
+                lower = a.min()
+                upper = a.max()
+            bins = np.linspace(lower, upper, bins + 1, endpoint=True)
+
+    return bins
+
+
 def histogram(a, bins=10, range=None, weights=None, **kwargs):
     """Enhanced histogram function, providing adaptive binnings
 
@@ -58,32 +104,8 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     --------
     numpy.histogram
     """
-    # if bins is a string, first compute bin edges with the desired heuristic
-    if isinstance(bins, str):
-        a = np.asarray(a).ravel()
 
-        # TODO: if weights is specified, we need to modify things.
-        #       e.g. we could use point measures fitness for Bayesian blocks
-        if weights is not None:
-            raise NotImplementedError("weights are not yet supported "
-                                      "for the enhanced histogram")
-
-        # if range is specified, we need to truncate the data for
-        # the bin-finding routines
-        if range is not None:
-            a = a[(a >= range[0]) & (a <= range[1])]
-
-        if bins == 'blocks':
-            bins = bayesian_blocks(a)
-        elif bins == 'knuth':
-            da, bins = knuth_bin_width(a, True)
-        elif bins == 'scott':
-            da, bins = scott_bin_width(a, True)
-        elif bins == 'freedman':
-            da, bins = freedman_bin_width(a, True)
-        else:
-            raise ValueError("unrecognized bin code: '{}'".format(bins))
-
+    bins = _calculate_bin_edges(a, bins=bins, range=range, weights=weights)
     # Now we call numpy's histogram with the resulting bin edges
     return np.histogram(a, bins=bins, range=range, weights=weights, **kwargs)
 
