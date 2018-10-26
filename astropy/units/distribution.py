@@ -324,12 +324,20 @@ class PoissonDistribution(Distribution):
     Remaining keywords are passed into the `Distribution` constructor
     """
     def __new__(cls, poissonval, n_samples=1000, **kwargs):
-        if hasattr(poissonval, 'value'):
-            poissonarr = np.asanyarray(poissonval.value) * poissonval.unit
+
+        # we convert to arrays because np.random.poisson has trouble with quantities
+        has_unit = False
+        if hasattr(poissonval, 'unit'):
+            has_unit = True
+            poissonarr = np.asanyarray(poissonval.value)
         else:
             poissonarr = np.asanyarray(poissonval)
         randshape = poissonarr.shape + (n_samples,)
+
         distr = np.random.poisson(poissonarr[..., np.newaxis], randshape)
+        if has_unit:
+            # re-attach the unit
+            distr = distr * poissonval.unit
 
         self = super(PoissonDistribution, cls).__new__(cls, distr,
                                                        **kwargs)
@@ -343,11 +351,12 @@ class UniformDistribution(Distribution):
 
     Parameters
     ----------
-    lower : `Quantity`
-        The lower edge of this distribution.
+    lower : array-like
+        The lower edge of this distribution. If a `~astropy.units.Quantity`, the
+        distribution will have the same units as ``lower``.
     upper : `Quantity`
-        The upper edge of this distribution. Must match shape and be
-        compatible units with ``lower``.
+        The upper edge of this distribution. Must match shape and if a
+        `~astropy.units.Quantity` must have compatible units with ``lower``.
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
 
@@ -356,27 +365,30 @@ class UniformDistribution(Distribution):
     def __new__(cls, lower, upper, n_samples=1000, **kwargs):
         lhasu = hasattr(lower, 'unit')
         uhasu = hasattr(upper, 'unit')
+        unit = None
         if lhasu and uhasu:
-            if 'unit' in kwargs:
-                upper = upper.to(kwargs['unit'])
-                lower = upper.to(kwargs['unit'])
-            else:
-                if lower.unit != upper.unit:
-                    upper = upper.to(lower.unit)
-                kwargs['unit'] = lower.unit
+            if lower.unit != upper.unit:
+                upper = upper.to(lower.unit)
+            unit = lower.unit
+
             lowerarr = np.asanyarray(lower.value)
             upperarr = np.asanyarray(upper.value)
         elif not lhasu and not uhasu:
             lowerarr = np.asanyarray(lower)
             upperarr = np.asanyarray(upper)
         else:
-            raise UnitsError('lower and upper must have consistent units for UniformDistribution constructor')
+            raise UnitsError('lower and upper must have consistent (or no) '
+                             'units in UniformDistribution constructor.')
+
         if lowerarr.shape != upperarr.shape:
-            raise ValueError('lower and upper must have consistent shapes in UniformDistribution constructor')
+            raise ValueError('lower and upper must have consistent shapes in '
+                             'UniformDistribution constructor')
 
         newshape = lowerarr.shape + (n_samples,)
         distr = np.random.uniform(lowerarr[..., np.newaxis],
                                   upperarr[..., np.newaxis], newshape)
+        if unit is not None:
+            distr = distr * unit
 
         self = super(UniformDistribution, cls).__new__(cls, distr,
                                                        **kwargs)
