@@ -227,6 +227,12 @@ def test_parallax():
     b = u.au.to(u.arcminute, a, u.parallax())
     assert_allclose(b, 1)
 
+    val = (-1 * u.mas).to(u.pc, u.parallax())
+    assert np.isnan(val.value)
+
+    val = (-1 * u.mas).to_value(u.pc, u.parallax())
+    assert np.isnan(val)
+
 
 def test_parallax2():
     a = u.arcsecond.to(u.pc, [0.1, 2.5], u.parallax())
