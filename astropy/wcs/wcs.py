@@ -703,7 +703,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                     # classes that inherit from WCS and define naxis1/2
                     # do not require a header parameter
                     naxis1, naxis2 = self.pixel_shape
-                except AttributeError:
+                except (AttributeError, TypeError):
                     warnings.warn("Need a valid header in order to calculate footprint\n", AstropyUserWarning)
                     return None
             else:
@@ -2672,8 +2672,10 @@ reduce these to 2 dimensions using the naxis kwarg.
             f.write(comments)
             f.write('{}\n'.format(coordsys))
             f.write('polygon(')
-            self.calc_footprint().tofile(f, sep=',')
-            f.write(') # color={0}, width={1:d} \n'.format(color, width))
+            ftpr = self.calc_footprint()
+            if ftpr is not None:
+                ftpr.tofile(f, sep=',')
+                f.write(') # color={0}, width={1:d} \n'.format(color, width))
 
     @property
     def _naxis1(self):
