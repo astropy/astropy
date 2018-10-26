@@ -11,7 +11,7 @@ from ..nduncertainty import (StdDevUncertainty,
                              InverseVariance,
                              NDUncertainty,
                              IncompatibleUncertaintiesException,
-                             MissingDataAssociationException)
+                             MissingDataAssociationException,
                              UnknownUncertainty)
 from ..nddata import NDData
 from ..compat import NDDataArray
