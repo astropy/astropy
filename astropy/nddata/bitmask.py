@@ -300,7 +300,7 @@ good_mask_value=False, dtype=numpy.bool_)
         bit flags passed through ``ignore_flags`` (only when bit flags are
         passed as Python lists of integer bit flags). Occasionally, it may be
         useful to *consider only specific bit flags* in the ``bitfield``
-        array when creating a boolean mask as opposited to *ignoring* specific
+        array when creating a boolean mask as opposed to *ignoring* specific
         bit flags as ``ignore_flags`` behaves by default. This can be achieved
         by inverting/flipping the bits of the bit mask created from
         ``ignore_flags`` flags which effectively changes the meaning of the
