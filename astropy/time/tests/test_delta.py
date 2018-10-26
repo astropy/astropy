@@ -564,3 +564,11 @@ def test_timedelta_to_datetime():
           [timedelta(days=3), timedelta(days=4)]]
 
     assert np.all(td2.to_datetime() == td)
+
+
+def test_insert_timedelta():
+    tm = TimeDelta([1, 2], format='sec')
+
+    # Insert a scalar using an auto-parsed string
+    tm2 = tm.insert(1, TimeDelta([10, 20], format='sec'))
+    assert np.all(tm2 == TimeDelta([1, 10, 20, 2], format='sec'))
