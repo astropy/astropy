@@ -560,8 +560,7 @@ class TestCutout2D:
         xsize = 2
         ysize = 3
         c = Cutout2D(self.data, self.position, (ysize, xsize), wcs=self.wcs)
-        assert c.wcs._naxis[0] == xsize
-        assert c.wcs._naxis[1] == ysize
+        assert c.wcs.array_shape == (ysize, xsize)
 
     def test_crpix_maps_to_crval(self):
         w = Cutout2D(self.data, (0, 0), (3, 3), wcs=self.sipwcs,
