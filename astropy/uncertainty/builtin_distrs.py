@@ -73,13 +73,13 @@ def normal(center, std=None, var=None, ivar=None, n_samples=1000,
     return distr
 
 
-def poisson(poissonval, n_samples=1000, dcls=Distribution, **kwargs):
+def poisson(center, n_samples=1000, dcls=Distribution, **kwargs):
     """
     Create a Poisson distribution.
 
     Parameters
     ----------
-    poissonval : `Quantity`
+    center : `Quantity`
         The center value of this distribution (i.e., λ).
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
@@ -96,20 +96,20 @@ def poisson(poissonval, n_samples=1000, dcls=Distribution, **kwargs):
     """
     # we convert to arrays because np.random.poisson has trouble with quantities
     has_unit = False
-    if hasattr(poissonval, 'unit'):
+    if hasattr(center, 'unit'):
         has_unit = True
-        poissonarr = np.asanyarray(poissonval.value)
+        poissonarr = np.asanyarray(center.value)
     else:
-        poissonarr = np.asanyarray(poissonval)
+        poissonarr = np.asanyarray(center)
     randshape = poissonarr.shape + (n_samples,)
 
     samples = np.random.poisson(poissonarr[..., np.newaxis], randshape)
     if has_unit:
         # re-attach the unit
-        samples = samples * poissonval.unit
+        samples = samples * center.unit
 
     distr = dcls(samples, **kwargs)
-    distr.distr_std = poissonval**0.5
+    distr.distr_std = center**0.5
     return distr
 
 
