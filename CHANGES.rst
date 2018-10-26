@@ -134,6 +134,8 @@ astropy.modeling
 - Add a ``separability_matrix`` function which returns the correlation matrix
   of inputs and outputs. [#7803]
 
+- Fixed a bug in ``JointFitter``. [#7984]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
