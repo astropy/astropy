@@ -21,7 +21,7 @@ class Distribution:
 
     This object will take its exact type from whatever the ``samples`` argument
     is. In general this is expected to be an `~astropy.units.Quantity` or
-    `numpy.ndarray`, although anything compatible with `nump.asanyarray` is
+    `numpy.ndarray`, although anything compatible with `numpy.asanyarray` is
     possible.
 
     Parameters

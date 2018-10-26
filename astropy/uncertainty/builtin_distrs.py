@@ -23,16 +23,16 @@ def normal(center, std=None, var=None, ivar=None, n_samples=1000,
 
     Parameters
     ----------
-    center : `Quantity`
+    center : `~astropy.units.Quantity`
         The center of this distribution
-    std : `Quantity` or `None`
+    std : `~astropy.units.Quantity` or `None`
         The standard deviation/σ of this distribution. Shape must match and unit
         must be compatible with ``center``, or be `None` (if ``var`` or ``ivar``
         are set).
-    var : `Quantity` or `None`
+    var : `~astropy.units.Quantity` or `None`
         The variance of this distribution. Shape must match and unit must be
         compatible with ``center``, or be `None` (if ``std`` or ``ivar`` are set).
-    ivar : `Quantity` or `None`
+    ivar : `~astropy.units.Quantity` or `None`
         The inverse variance of this distribution. Shape must match and unit
         must be compatible with ``center``, or be `None` (if ``std`` or ``var``
         are set).
@@ -79,7 +79,7 @@ def poisson(center, n_samples=1000, dcls=Distribution, **kwargs):
 
     Parameters
     ----------
-    center : `Quantity`
+    center : `~astropy.units.Quantity`
         The center value of this distribution (i.e., λ).
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
@@ -122,7 +122,7 @@ def uniform(lower, upper, n_samples=1000, dcls=Distribution, **kwargs):
     lower : array-like
         The lower edge of this distribution. If a `~astropy.units.Quantity`, the
         distribution will have the same units as ``lower``.
-    upper : `Quantity`
+    upper : `~astropy.units.Quantity`
         The upper edge of this distribution. Must match shape and if a
         `~astropy.units.Quantity` must have compatible units with ``lower``.
     n_samples : int

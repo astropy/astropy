@@ -33,7 +33,7 @@ analytic forms which may eventually enable a more compact/efficient
 representation, but this is not currently implemented.
 
 Getting Started
----------------
+===============
 
 To demonstrate a simple use case for distributions, consider the problem of
 uncertainty propogation of normal distributions.  Assume there are two
@@ -75,7 +75,7 @@ through:
   <Quantity 0.79948566 kpc>
   >>> f.hist(bins=50) # doctest: +SKIP
 
-..plot::
+.. plot::
   :align: center
 
   import numpy as np
