@@ -1132,7 +1132,7 @@ class JointFitter(metaclass=_FitterMeta):
         fparams = []
         fparams.extend(self.initvals)
         for model in self.models:
-            params = [p.flatten() for p in model.parameters]
+            params = model.parameters.tolist()
             joint_params = self.jointparams[model]
             param_metrics = model._param_metrics
             for param_name in joint_params:
