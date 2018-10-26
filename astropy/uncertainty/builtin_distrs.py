@@ -13,18 +13,18 @@ import numpy as np
 from ..units import UnitsError
 from .core import Distribution
 
-__all__ = ['NormalDistribution', 'PoissonDistribution',
-           'UniformDistribution']
+__all__ = ['normal', 'poisson', 'uniform', 'uniform_center_width']
 
 
-class NormalDistribution(Distribution):
+def normal(center, std=None, var=None, ivar=None, n_samples=1000,
+           dcls=Distribution, **kwargs):
     """
-    A Gaussian/normal Distribution
+    Create a Gaussian/normal distribution.
 
     Parameters
     ----------
     center : `Quantity`
-        The center of this `NormalDistribution`
+        The center of this distribution
     std : `Quantity` or `None`
         The standard deviation/σ of this distribution. Shape must match and unit
         must be compatible with ``center``, or be `None` (if ``var`` or ``ivar``
@@ -38,72 +38,84 @@ class NormalDistribution(Distribution):
         are set).
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
+    dcls : class
+        The class to use to create this distribution.  Typically a
+        `Distribution` subclass.
 
-    Remaining keywords are passed into the `Distribution` constructor
+    Remaining keywords are passed into the constructor of the ``dcls``
+
+    Returns
+    -------
+    distr : ``dcls``, usually `Distribution`
+        The sampled Gaussian distribution.
     """
-    def __new__(cls, center, std=None, var=None, ivar=None, n_samples=1000, **kwargs):
-        center = np.asanyarray(center)
-        if var is not None:
-            if std is None:
-                std = np.asanyarray(var)**0.5
-            else:
-                raise ValueError('NormalDistribution cannot take both std and var')
-        if ivar is not None:
-            if std is None:
-                std = np.asanyarray(ivar)**-0.5
-            else:
-                raise ValueError('NormalDistribution cannot take both ivar and '
-                                 'and std or var')
+    center = np.asanyarray(center)
+    if var is not None:
         if std is None:
-            raise ValueError('NormalDistribution requires one of std, var, or ivar')
+            std = np.asanyarray(var)**0.5
         else:
-            std = np.asanyarray(std)
+            raise ValueError('normal cannot take both std and var')
+    if ivar is not None:
+        if std is None:
+            std = np.asanyarray(ivar)**-0.5
+        else:
+            raise ValueError('normal cannot take both ivar and '
+                             'and std or var')
+    if std is None:
+        raise ValueError('normal requires one of std, var, or ivar')
+    else:
+        std = np.asanyarray(std)
 
-        randshape = np.broadcast(std, center).shape + (n_samples,)
-        distr = center[..., np.newaxis] + np.random.randn(*randshape) * std[..., np.newaxis]
-        self = super(NormalDistribution, cls).__new__(cls, distr, **kwargs)
-        self.distr_std = std
-        return self
+    randshape = np.broadcast(std, center).shape + (n_samples,)
+    samples = center[..., np.newaxis] + np.random.randn(*randshape) * std[..., np.newaxis]
+    distr = dcls(samples, **kwargs)
+    distr.distr_std = std
+    return distr
 
 
-class PoissonDistribution(Distribution):
+def poisson(poissonval, n_samples=1000, dcls=Distribution, **kwargs):
     """
-    A Poisson Distribution
+    Create a Poisson distribution.
 
     Parameters
     ----------
     poissonval : `Quantity`
-        The center value of this `PoissonDistribution` (i.e., λ).
+        The center value of this distribution (i.e., λ).
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
+    dcls : class
+        The class to use to create this distribution.  Typically a
+        `Distribution` subclass.
 
-    Remaining keywords are passed into the `Distribution` constructor
+    Remaining keywords are passed into the constructor of the ``dcls``
+
+    Returns
+    -------
+    distr : ``dcls``, usually `Distribution`
+        The sampled poisson distribution.
     """
-    def __new__(cls, poissonval, n_samples=1000, **kwargs):
+    # we convert to arrays because np.random.poisson has trouble with quantities
+    has_unit = False
+    if hasattr(poissonval, 'unit'):
+        has_unit = True
+        poissonarr = np.asanyarray(poissonval.value)
+    else:
+        poissonarr = np.asanyarray(poissonval)
+    randshape = poissonarr.shape + (n_samples,)
 
-        # we convert to arrays because np.random.poisson has trouble with quantities
-        has_unit = False
-        if hasattr(poissonval, 'unit'):
-            has_unit = True
-            poissonarr = np.asanyarray(poissonval.value)
-        else:
-            poissonarr = np.asanyarray(poissonval)
-        randshape = poissonarr.shape + (n_samples,)
+    samples = np.random.poisson(poissonarr[..., np.newaxis], randshape)
+    if has_unit:
+        # re-attach the unit
+        samples = samples * poissonval.unit
 
-        distr = np.random.poisson(poissonarr[..., np.newaxis], randshape)
-        if has_unit:
-            # re-attach the unit
-            distr = distr * poissonval.unit
-
-        self = super(PoissonDistribution, cls).__new__(cls, distr,
-                                                       **kwargs)
-        self.distr_std = poissonval**0.5
-        return self
+    distr = dcls(samples, **kwargs)
+    distr.distr_std = poissonval**0.5
+    return distr
 
 
-class UniformDistribution(Distribution):
+def uniform(lower, upper, n_samples=1000, dcls=Distribution, **kwargs):
     """
-    A Uniform Distribution.
+    Create a Uniform Distribution.
 
     Parameters
     ----------
@@ -115,56 +127,66 @@ class UniformDistribution(Distribution):
         `~astropy.units.Quantity` must have compatible units with ``lower``.
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
+    dcls : class
+        The class to use to create this distribution.  Typically a
+        `Distribution` subclass.
 
-    Remaining keywords are passed into the `Distribution` constructor.
+    Remaining keywords are passed into the constructor of the ``dcls``
+
+    Returns
+    -------
+    distr : ``dcls``, usually `Distribution`
+        The sampled uniform distribution.
     """
-    def __new__(cls, lower, upper, n_samples=1000, **kwargs):
-        lhasu = hasattr(lower, 'unit')
-        uhasu = hasattr(upper, 'unit')
-        unit = None
-        if lhasu and uhasu:
-            if lower.unit != upper.unit:
-                upper = upper.to(lower.unit)
-            unit = lower.unit
+    lhasu = hasattr(lower, 'unit')
+    uhasu = hasattr(upper, 'unit')
+    unit = None
+    if lhasu and uhasu:
+        if lower.unit != upper.unit:
+            upper = upper.to(lower.unit)
+        unit = lower.unit
 
-            lowerarr = np.asanyarray(lower.value)
-            upperarr = np.asanyarray(upper.value)
-        elif not lhasu and not uhasu:
-            lowerarr = np.asanyarray(lower)
-            upperarr = np.asanyarray(upper)
-        else:
-            raise UnitsError('lower and upper must have consistent (or no) '
-                             'units in UniformDistribution constructor.')
+        lowerarr = np.asanyarray(lower.value)
+        upperarr = np.asanyarray(upper.value)
+    elif not lhasu and not uhasu:
+        lowerarr = np.asanyarray(lower)
+        upperarr = np.asanyarray(upper)
+    else:
+        raise UnitsError('lower and upper must have consistent (or no) '
+                         'units in uniform.')
 
-        if lowerarr.shape != upperarr.shape:
-            raise ValueError('lower and upper must have consistent shapes in '
-                             'UniformDistribution constructor')
+    if lowerarr.shape != upperarr.shape:
+        raise ValueError('lower and upper must have consistent shapes in '
+                         'uniform.')
 
-        newshape = lowerarr.shape + (n_samples,)
-        distr = np.random.uniform(lowerarr[..., np.newaxis],
-                                  upperarr[..., np.newaxis], newshape)
-        if unit is not None:
-            distr = distr * unit
+    newshape = lowerarr.shape + (n_samples,)
+    samples = np.random.uniform(lowerarr[..., np.newaxis],
+                                upperarr[..., np.newaxis], newshape)
+    if unit is not None:
+        samples = samples * unit
 
-        self = super(UniformDistribution, cls).__new__(cls, distr,
-                                                       **kwargs)
-        return self
+    return dcls(samples, **kwargs)
 
-    @classmethod
-    def from_center_width(cls, center, width, **kwargs):
-        """
-        Create a `UniformDistribution` from lower/upper bounds (instead of center
-        and width as the regular constructor uses).
 
-        Parameters
-        ----------
-        center
-            The center value of this `UniformDistribution`.
-        width
-            The width of this `UniformDistribution`.  Must have the same shape and
-            compatible units with ``center``.
+def uniform_center_width(center, width, **kwargs):
+    """
+    Create a uniform distribution from lower/upper bounds (instead of center
+    and width as the regular constructor uses).
 
-        Remaining keywords are passed into the `UniformDistribution` constructor.
-        """
-        whalf = width/2
-        return UniformDistribution(center - whalf, center + whalf, **kwargs)
+    Parameters
+    ----------
+    center : array-like
+        The center value of the distribution.
+    width : array-like
+        The width of the distribution.  Must have the same shape and compatible
+        units with ``center`` (if any).
+
+    Remaining keywords are passed into the `uniform` function.
+
+    Returns
+    -------
+    distr : ``dcls``, usually `Distribution`
+        The sampled uniform distribution.
+    """
+    whalf = width/2
+    return uniform(center - whalf, center + whalf, **kwargs)
