@@ -72,7 +72,7 @@ __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
 
 __doctest_skip__ = ['WCS.all_world2pix']
 
-naxis_deprecated_message = """
+NAXIS_DEPRECATE_MESSAGE = """
 Private attributes "_naxis1" and "naxis2" have been deprecated since v3.1.
 Instead use the "pixel_shape" property which returns a list of NAXISj keyword values.
 """
@@ -2679,22 +2679,22 @@ reduce these to 2 dimensions using the naxis kwarg.
 
     @property
     def _naxis1(self):
-        warnings.warn(naxis_deprecated_message, AstropyDeprecationWarning)
+        warnings.warn(NAXIS_DEPRECATE_MESSAGE, AstropyDeprecationWarning)
         return self._naxis[0]
 
     @_naxis1.setter
     def _naxis1(self, value):
-        warnings.warn(naxis_deprecated_message, AstropyDeprecationWarning)
+        warnings.warn(NAXIS_DEPRECATE_MESSAGE, AstropyDeprecationWarning)
         self._naxis[0] = value
 
     @property
     def _naxis2(self):
-        warnings.warn(naxis_deprecated_message, AstropyDeprecationWarning)
+        warnings.warn(NAXIS_DEPRECATE_MESSAGE, AstropyDeprecationWarning)
         return self._naxis[1]
 
     @_naxis2.setter
     def _naxis2(self, value):
-        warnings.warn(naxis_deprecated_message, AstropyDeprecationWarning)
+        warnings.warn(NAXIS_DEPRECATE_MESSAGE, AstropyDeprecationWarning)
         self._naxis[1] = value
 
     def _get_naxis(self, header=None):
