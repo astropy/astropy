@@ -178,13 +178,13 @@ def test_helper_normal_samples():
     centerq = [1, 5, 30, 400] * u.kpc
 
     with NumpyRNGContext(12345):
-        n_dist = ds.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100)
+        n_dist = ds.normal(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100)
         assert n_dist.distribution.shape == (4, 100)
         assert n_dist.shape == (4, )
         assert n_dist.unit == u.kpc
         assert np.all(n_dist.pdf_std > 100*u.pc)
 
-        n_dist2 = ds.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.pc, n_samples=20000)
+        n_dist2 = ds.normal(centerq, std=[0.2, 1.5, 4, 1]*u.pc, n_samples=20000)
         assert n_dist2.distribution.shape == (4, 20000)
         assert n_dist2.shape == (4, )
         assert n_dist2.unit == u.kpc
@@ -195,7 +195,7 @@ def test_helper_poisson_samples():
     centerqadu = [1, 5, 30, 400] * u.adu
 
     with NumpyRNGContext(12345):
-        p_dist = ds.PoissonDistribution(centerqadu, n_samples=100)
+        p_dist = ds.poisson(centerqadu, n_samples=100)
         assert p_dist.shape == (4,)
         assert p_dist.distribution.shape == (4, 100)
         assert p_dist.unit == u.adu
@@ -207,14 +207,14 @@ def test_helper_poisson_samples():
 
 
 def test_helper_uniform_samples():
-    udist = ds.UniformDistribution([1, 2]*u.kpc, [3, 4]*u.kpc)
+    udist = ds.uniform([1, 2]*u.kpc, [3, 4]*u.kpc)
     assert udist.shape == (2, )
     assert udist.distribution.shape == (2, 1000)
     assert np.all(np.min(udist.distribution, axis=-1) > [1, 2]*u.kpc)
     assert np.all(np.max(udist.distribution, axis=-1) < [3, 4]*u.kpc)
 
     # try the alternative creator
-    udist = ds.UniformDistribution.from_center_width([1, 3, 2] * u.pc, [5, 4, 3] * u.pc)
+    udist = ds.uniform_center_width([1, 3, 2] * u.pc, [5, 4, 3] * u.pc)
     assert udist.shape == (3, )
     assert udist.distribution.shape == (3, 1000)
     assert np.all(np.min(udist.distribution, axis=-1) > [-1.5, 1, 0.5]*u.pc)
@@ -224,9 +224,9 @@ def test_helper_uniform_samples():
 def test_helper_normal_exact():
     pytest.skip('distribution stretch goal not yet implemented')
     centerq = [1, 5, 30, 400] * u.kpc
-    ds.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc)
-    ds.NormalDistribution(centerq, var=[0.04, 2.25, 16, 1]*u.kpc**2)
-    ds.NormalDistribution(centerq, ivar=[25, 0.44444444, 0.625, 1]*u.kpc**-2)
+    ds.normal(centerq, std=[0.2, 1.5, 4, 1]*u.kpc)
+    ds.normal(centerq, var=[0.04, 2.25, 16, 1]*u.kpc**2)
+    ds.normal(centerq, ivar=[25, 0.44444444, 0.625, 1]*u.kpc**-2)
 
 
 def test_helper_poisson_exact():
@@ -235,20 +235,20 @@ def test_helper_poisson_exact():
     # Should we not restrict to dimensionless? Have updated the test to reflect
     # that here.
     centerq = [1, 5, 30, 400] * u.one
-    ds.PoissonDistribution(centerq)
+    ds.poisson(centerq)
 
     with pytest.raises(u.UnitsError) as exc:
         centerq = [1, 5, 30, 400] * u.kpc
-        ds.PoissonDistribution(centerq)
+        ds.poisson(centerq)
     assert exc.value.args[0] == ("Poisson distribution can only be computed "
                                  "for dimensionless quantities")
 
 
 def test_arithmetic_exact():
     pytest.skip('distribution stretch goal not yet implemented')
-    dist = (ds.NormalDistribution(3 * u.kpc)
-            * ds.PoissonDistribution(5 * u.one)
-            + ds.UniformDistribution(3 * u.pc, 5 * u.pc))
+    dist = (ds.normal(3 * u.kpc)
+            * ds.poisson(5 * u.one)
+            + ds.uniform(3 * u.pc, 5 * u.pc))
 
 
 def test_reprs():
@@ -262,12 +262,12 @@ def test_reprs():
 
 
 @pytest.mark.parametrize("klass, kws", [
-    (ds.NormalDistribution, {'center': 0, 'std': 2}),
-    (ds.UniformDistribution, {'lower': 0, 'upper': 2}),
-    (ds.PoissonDistribution, {'poissonval': 2}),
-    (ds.NormalDistribution, {'center': 0*u.count, 'std': 2*u.count}),
-    (ds.UniformDistribution, {'lower': 0*u.count, 'upper': 2*u.count}),
-    (ds.PoissonDistribution, {'poissonval': 2*u.count})
+    (ds.normal, {'center': 0, 'std': 2}),
+    (ds.uniform, {'lower': 0, 'upper': 2}),
+    (ds.poisson, {'poissonval': 2}),
+    (ds.normal, {'center': 0*u.count, 'std': 2*u.count}),
+    (ds.uniform, {'lower': 0*u.count, 'upper': 2*u.count}),
+    (ds.poisson, {'poissonval': 2*u.count})
 ])
 def test_wrong_kw_fails(klass, kws):
     with pytest.raises(Exception):
@@ -286,10 +286,10 @@ def test_index_assignment_quantity():
     assert isinstance(d1q, Distribution)
     assert isinstance(d2q, Distribution)
 
-    ndistr = ds.NormalDistribution(center=[1, 2]*u.kpc, std=[3, 4]*u.kpc)
+    ndistr = ds.normal(center=[1, 2]*u.kpc, std=[3, 4]*u.kpc)
     n1, n2 = ndistr
-    assert isinstance(n1, ds.NormalDistribution)
-    assert isinstance(n2, ds.NormalDistribution)
+    assert isinstance(n1, ds.Distribution)
+    assert isinstance(n2, ds.Distribution)
 
 
 def test_index_assignment_array():
@@ -299,7 +299,7 @@ def test_index_assignment_array():
     assert isinstance(d1a, Distribution)
     assert isinstance(d2a, Distribution)
 
-    ndistr = ds.NormalDistribution(center=[1, 2], std=[3, 4])
+    ndistr = ds.normal(center=[1, 2], std=[3, 4])
     n1, n2 = ndistr
-    assert isinstance(n1, ds.NormalDistribution)
-    assert isinstance(n2, ds.NormalDistribution)
+    assert isinstance(n1, ds.Distribution)
+    assert isinstance(n2, ds.Distribution)
