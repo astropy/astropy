@@ -276,6 +276,17 @@ The current planned and existing sub-packages are:
         </tr>
         <tr>
             <td>
+                astropy.uncertainty
+            </td>
+            <td align='center'>
+                <span class="dev"></span>
+            </td>
+            <td>
+                New in v3.1, in heavy development.
+            </td>
+        </tr>
+        <tr>
+            <td>
                 astropy.visualization
             </td>
             <td align='center'>

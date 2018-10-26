@@ -1,10 +1,18 @@
 .. |quantity| replace:: :class:`~astropy.units.Quantity`
 .. |distribution| replace:: :class:`~astropy.uncertainty.Distribution`
 
-.. _unit_distributions:
+.. _uncertainty:
 
-Distributions
-*************
+Uncertainties and Distributions
+*******************************
+
+.. warning::
+
+    `astropy.uncertainty` is currently a work-in-progress, and thus it is quite
+    possible there will be API changes in later versions of Astropy. If you have
+    specific ideas for how it might be improved, please  let us know on the
+    `astropy-dev mailing list`_ or at http://feedback.astropy.org .
+
 
 In addition to |quantity|, astropy provides a |distribution| object to represent
 statistical distributions in a form that acts as a drop-in replacement for
