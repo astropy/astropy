@@ -21,9 +21,9 @@ def setter1(val):
     return val
 
 
-# def setter2(val, model):
-#     model.do_something(val)
-#     return val * model.p
+def setter2(val, model):
+    model.do_something(val)
+    return val * model.p
 
 
 class SetterModel(FittableModel):
@@ -32,7 +32,7 @@ class SetterModel(FittableModel):
     outputs = ('z',)
 
     xc = Parameter(default=1, setter=setter1)
-    #yc = Parameter(default=1, setter=setter2)
+    yc = Parameter(default=1, setter=setter2)
 
     def evaluate(self, x, y, xc, yc):
         return ((x - xc)**2 + (y - yc)**2)
@@ -43,8 +43,7 @@ class SetterModel(FittableModel):
     def __init__(self, xc, yc, p):
         self.p = p  # p is a value intended to be used by the setter
         super().__init__()
-        self.xc = xc
-        self.yc = yc
+
 
     def evaluate(self, x, y, xc, yc):
         return ((x - xc)**2 + (y - yc)**2)
@@ -634,12 +633,11 @@ def test_non_broadcasting_parameters():
             TestModel(*args)
 
 
-# def test_setter():
-#     pars = np.random.rand(20).reshape((10, 2))
+def test_setter():
+    pars = np.random.rand(20).reshape((10, 2))
 
-#     model = SetterModel(-1, 3, np.pi)
+    model = SetterModel(xc=-1, yc=3, p=np.pi)
 
-#     for x, y in pars:
-#         model.x = x
-#         model.y = y
-#         utils.assert_almost_equal(model(x, y), (x + 1)**2 + (y - np.pi * 3)**2)
+    for x, y in pars:
+        print(x, y)
+        utils.assert_almost_equal(model(x, y), (x + 1)**2 + (y - np.pi * 3)**2)

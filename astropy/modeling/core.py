@@ -731,13 +731,14 @@ class Model(metaclass=_ModelMeta):
         if meta is not None:
             self.meta = meta
         self._name = name
+        print('xxxx', args, kwargs)
         # add parameters to instance level by walking MRO list
         mro = self.__class__.__mro__
         for cls in mro:
             if issubclass(cls, Model):
                 for parname, val in cls._parameter_vals_.items():
                     newpar = copy.deepcopy(val)
-                    newpar._model = self
+                    newpar.model = self
                     self.__dict__[parname] = newpar
                     #newpar._validator = val._validator
         self._initialize_constraints(kwargs)
@@ -831,7 +832,7 @@ class Model(metaclass=_ModelMeta):
             if vshape == ():
                 vshape = (1,)
             esize = self._param_metrics[attr]['size']
-            if (np.size(value) != esize or 
+            if (np.size(value) != esize or
                 strip_ones(vshape) != strip_ones(eshape)):
                 raise InputParameterError(
                     "Value for parameter {0} does not match shape or size\n"
@@ -1798,7 +1799,7 @@ class Model(metaclass=_ModelMeta):
         FittableModels the _param_name attributes actually just reference
         slices of this array.
         """
-
+        print(args, kwargs)
         n_models = kwargs.pop('n_models', None)
 
         if not (n_models is None or
@@ -1939,6 +1940,7 @@ class Model(metaclass=_ModelMeta):
 
     def _initialize_parameter_value(self, param_name, value):
         """Mostly deals with consistency checks and determining unit issues."""
+        print(param_name, value)
         if isinstance(value, Parameter):
             self.__dict__[param_name] = value
             return
