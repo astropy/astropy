@@ -104,7 +104,8 @@ def test_units():
     """ Test if the right units are being returned"""
 
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0)
-    assert cosmo.comoving_distance(1.0).unit == u.Mpc
+    with pytest.warns(RuntimeWarning, match='numpy.dtype size changed'):
+        assert cosmo.comoving_distance(1.0).unit == u.Mpc
     assert cosmo._comoving_distance_z1z2(1.0, 2.0).unit == u.Mpc
     assert cosmo.comoving_transverse_distance(1.0).unit == u.Mpc
     assert cosmo._comoving_transverse_distance_z1z2(1.0, 2.0).unit == u.Mpc
@@ -1571,9 +1572,12 @@ def test_z_at_value():
     # test behavior when the solution is outside z limits (should
     # raise a CosmologyError)
     with pytest.raises(core.CosmologyError):
-        z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmax=0.5)
+        with pytest.warns(UserWarning, match='fval is not bracketed'):
+            z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmax=0.5)
+
     with pytest.raises(core.CosmologyError):
-        z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmin=4.)
+        with pytest.warns(UserWarning, match='fval is not bracketed'):
+            z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmin=4.)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
