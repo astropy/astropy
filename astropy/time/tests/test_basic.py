@@ -1565,3 +1565,57 @@ def test_strftime_array_fracsec():
     for format in t.FORMATS:
         t.format = format
         assert t.strftime('%Y-%m-%d %H:%M:%S.%f').tolist() == tstrings
+
+
+def test_insert_time():
+    tm = Time([1, 2], format='unix')
+
+    # Insert a scalar using an auto-parsed string
+    tm2 = tm.insert(1, '1970-01-01 00:01:00')
+    assert np.all(tm2 == Time([1, 60, 2], format='unix'))
+
+    # Insert scalar using a Time value
+    tm2 = tm.insert(1, Time('1970-01-01 00:01:00'))
+    assert np.all(tm2 == Time([1, 60, 2], format='unix'))
+
+    # Insert length=1 array with a Time value
+    tm2 = tm.insert(1, [Time('1970-01-01 00:01:00')])
+    assert np.all(tm2 == Time([1, 60, 2], format='unix'))
+
+    # Insert length=2 list with float values matching unix format.
+    # Also actually provide axis=0 unlike all other tests.
+    tm2 = tm.insert(1, [10, 20], axis=0)
+    assert np.all(tm2 == Time([1, 10, 20, 2], format='unix'))
+
+    # Insert length=2 np.array with float values matching unix format
+    tm2 = tm.insert(1, np.array([10, 20]))
+    assert np.all(tm2 == Time([1, 10, 20, 2], format='unix'))
+
+    # Insert length=2 np.array with float values at the end
+    tm2 = tm.insert(2, np.array([10, 20]))
+    assert np.all(tm2 == Time([1, 2, 10, 20], format='unix'))
+
+    # Insert length=2 np.array with float values at the beginning
+    # with a negative index
+    tm2 = tm.insert(-2, np.array([10, 20]))
+    assert np.all(tm2 == Time([10, 20, 1, 2], format='unix'))
+
+
+def test_insert_exceptions():
+    tm = Time(1, format='unix')
+    with pytest.raises(TypeError) as err:
+        tm.insert(0, 50)
+    assert 'cannot insert into scalar' in str(err)
+
+    tm = Time([1, 2], format='unix')
+    with pytest.raises(ValueError) as err:
+        tm.insert(0, 50, axis=1)
+    assert 'axis must be 0' in str(err)
+
+    with pytest.raises(TypeError) as err:
+        tm.insert(slice(None), 50)
+    assert 'obj arg must be an integer' in str(err)
+
+    with pytest.raises(IndexError) as err:
+        tm.insert(-100, 50)
+    assert 'index -100 is out of bounds for axis 0 with size 2' in str(err)
