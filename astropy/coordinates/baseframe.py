@@ -952,24 +952,24 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         """
         return self._replicate(None, copy=copy, **kwargs)
 
-    def realize_frame(self, representation_type):
+    def realize_frame(self, data):
         """
-        Generates a new frame *with new data* from another frame (which may or
+        Generates a new frame with new data from another frame (which may or
         may not have data). Roughly speaking, the converse of
         `replicate_without_data`.
 
         Parameters
         ----------
-        representation_type : `BaseRepresentation`
+        data : `BaseRepresentation`
             The representation to use as the data for the new frame.
 
         Returns
         -------
         frameobj : same as this frame
             A new object with the same frame attributes as this one, but
-            with the ``representation`` as the data.
+            with the ``data`` as the coordinate data.
         """
-        return self._replicate(representation_type)
+        return self._replicate(data)
 
     def represent_as(self, base, s='base', in_frame_units=False):
         """
