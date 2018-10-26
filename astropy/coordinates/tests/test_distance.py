@@ -243,6 +243,7 @@ def test_parallax():
         Distance(parallax=[10, 1, -1] * u.mas, allow_negative=True)
     assert len(w) > 0
 
+
 def test_distance_in_coordinates():
     """
     test that distances can be created from quantities and that cartesian
