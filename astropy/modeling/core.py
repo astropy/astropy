@@ -823,6 +823,18 @@ class Model(metaclass=_ModelMeta):
             value = _tofloat(value)
             if param._validator is not None:
                 param._validator(self, value)
+            # check consistency with previous shape and size
+            eshape = self._param_metrics[attr]['shape']
+            if eshape == ():
+                eshape = (1,)
+            vshape = np.array(value).shape
+            if vshape == ():
+                vshape = (1,)
+            esize = self._param_metrics[attr]['size']
+            if np.size(value) != esize or vshape != eshape:
+                raise InputParameterError(
+                    "Value for parameter {0} does not match shape or size\n"
+                    "expected by model ({1}, {2}) vs ({3}, {4})")
             if param.unit is None:
                 if isinstance(value, Quantity):
                     param._unit = value.unit
@@ -1981,6 +1993,7 @@ class Model(metaclass=_ModelMeta):
             param_slice = slice(total_size, total_size + param_size)
             param_metrics[name]['slice'] = param_slice
             param_metrics[name]['shape'] = param_shape
+            param_metrics[name]['size'] = param_size
             total_size += param_size
         self._parameters = np.empty(total_size, dtype=np.float64)
 

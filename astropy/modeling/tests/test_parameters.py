@@ -325,12 +325,6 @@ class TestParameters:
         assert np.all(sc1.factor == [3, 3])
         utils.assert_array_equal(sc1.factor.value, [3, 3])
 
-    def test_parameters_wrong_shape(self):
-        sh1 = models.Shift(2)
-        with pytest.raises(InputParameterError):
-            sh1.offset = [3, 3]
-
-
 class TestMultipleParameterSets:
 
     def setup_class(self):
