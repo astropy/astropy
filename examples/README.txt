@@ -3,8 +3,7 @@
 Example gallery
 ===============
 
-This gallery of examples shows a variety of relatively small snippets or
-examples of tasks that can be done with the Astropy core package.
+This gallery serves to show what can be done with the Astropy core package. This is an exhibit of examples showing a variety of relatively small snippets and examples of things the Astropy core package can do. 
 Contributions from the community are encouraged!
 
 Longer-form tutorials (or tutorials for
