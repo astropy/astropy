@@ -14,6 +14,8 @@ from ... import units as u
 from ...units import allclose as quantity_allclose
 from .. import Longitude, Latitude, Distance, CartesianRepresentation
 from ..builtin_frames import ICRS, Galactic
+from ...tests.helper import catch_warnings
+from ...utils.exceptions import AstropyWarning
 
 try:
     import scipy  # pylint: disable=W0611
@@ -225,6 +227,21 @@ def test_parallax():
     d = Distance(parallax=plx)
     assert quantity_allclose(d.pc, [1000., 100., 10.])
     assert quantity_allclose(plx, d.parallax)
+
+    # check behavior for negative parallax
+    with pytest.raises(ValueError):
+        Distance(parallax=-1 * u.mas)
+
+    with pytest.raises(ValueError):
+        Distance(parallax=[10, 1, -1] * u.mas)
+
+    with catch_warnings(AstropyWarning) as w:
+        Distance(parallax=-1 * u.mas, allow_negative=True)
+    assert len(w) > 0
+
+    with catch_warnings(AstropyWarning) as w:
+        Distance(parallax=[10, 1, -1] * u.mas, allow_negative=True)
+    assert len(w) > 0
 
 def test_distance_in_coordinates():
     """
