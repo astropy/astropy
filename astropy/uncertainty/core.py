@@ -9,6 +9,7 @@ import numpy as np
 
 from .. import units as u
 from .. import visualization
+from .. import stats
 
 __all__ = ['Distribution']
 
@@ -16,6 +17,7 @@ __all__ = ['Distribution']
 # we set this by hand because the symbolic expression (below) requires scipy
 # SMAD_SCALE_FACTOR = 1 / scipy.stats.norm.ppf(0.75)
 SMAD_SCALE_FACTOR = 1.48260221850560203193936104071326553821563720703125
+
 
 class Distribution:
     """
@@ -264,3 +266,39 @@ class Distribution:
                 kwargs['label'] = 'Distr ' + idxstr
             hists.append(visualization.hist(dat, **kwargs))
         return hists
+
+
+    def pdf_histogram(self, **kwargs):
+        """
+        Compute histogram over the samples in the distribution.
+
+        Parameters
+        ----------
+        All keyword arguments are passed into `astropy.stats.histogram`. Note
+        That some of these options may not be valid for some multidimensional
+        distributions.
+
+        Returns
+        -------
+        hist : array
+            The values of the histogram. Trailing dimension is the histogram
+            dimension.
+        bin_edges : array of dtype float
+            Return the bin edges ``(length(hist)+1)``. Trailing dimension is the
+            bin histogram dimension.
+        """
+        distr = self.distribution
+        raveled_distr = distr.reshape(distr.size//distr.shape[-1], distr.shape[-1])
+
+        nhists = []
+        bin_edges = []
+        for d in raveled_distr:
+            nhist, bin_edge = stats.histogram(d, **kwargs)
+            nhists.append(nhist)
+            bin_edges.append(bin_edge)
+
+        nhists = np.array(nhists)
+        nh_shape = self.shape + (nhists.size//self.size,)
+        bin_edges = np.array(bin_edges)
+        be_shape = self.shape + (bin_edges.size//self.size,)
+        return nhists.reshape(nh_shape), bin_edges.reshape(be_shape)

@@ -292,3 +292,12 @@ def test_index_assignment_array():
     n1, n2 = ndistr
     assert isinstance(n1, ds.Distribution)
     assert isinstance(n2, ds.Distribution)
+
+
+def test_histogram():
+    arr = np.random.randn(2, 3, 1000)
+    distr = Distribution(arr)
+
+    hist, bins = distr.pdf_histogram(bins=10)
+    assert hist.shape == (2, 3, 10)
+    assert bins.shape == (2, 3, 11)
