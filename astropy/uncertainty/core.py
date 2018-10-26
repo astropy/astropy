@@ -228,46 +228,6 @@ class Distribution:
         else:
             return percs
 
-    def hist(self, maxtoshow=10, **kwargs):
-        """
-        A convenience method using `astropy.visualization.hist` (which uses
-        matplotlib's ``hist`` function) to visualize this distribution.  For N-D
-        distributions, the array is flattened following standard numpy rules,
-        and the distributions are shown as separate histograms for each element.
-
-        Parameters
-        ----------
-        maxtoshow : int or `None`
-            The maximum number of non-sampled distribution elements to show.
-            I.e., the dimensions reflected in this object's ``shape``.  If
-            `None`, there will be no limit, but this may overwhelm matplotlib if
-            the distribution is large.
-        Additional keywords are passed into `astropy.visualization.hist`
-        """
-        labelset = 'label' in kwargs
-        scalar_distr = self.shape == tuple()
-
-        distr = self.distribution
-        if scalar_distr:
-            reshaped = [distr]
-        else:
-            rolled = np.rollaxis(distr, -1)
-            reshaped = rolled.ravel().reshape(rolled.shape[0], rolled.size//rolled.shape[0])
-
-        hists = []
-        for i, dat in enumerate(reshaped):
-            if i >= maxtoshow:
-                break
-            if (not scalar_distr) and (not labelset):
-                if len(self.shape) == 2:
-                    idxstr = str(i)
-                else:
-                    idxstr = str(np.unravel_index(i, self.shape[1:]))
-                kwargs['label'] = 'Distr ' + idxstr
-            hists.append(visualization.hist(dat, **kwargs))
-        return hists
-
-
     def pdf_histogram(self, **kwargs):
         """
         Compute histogram over the samples in the distribution.
