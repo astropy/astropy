@@ -5,6 +5,8 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 
 from ... import units as u
+from ..core import Distribution
+from .. import builtin_distrs as ds
 from ...utils import NumpyRNGContext
 from ...tests.helper import assert_quantity_allclose, pytest
 
@@ -21,33 +23,33 @@ def test_numpy_init():
     # Test that we can initialize directly from a Numpy array
     rates = np.array([1, 5, 30, 400])[:, np.newaxis]
     parr = np.random.poisson(rates, (4, 1000))
-    u.Distribution(parr)
+    Distribution(parr)
 
 
 def test_numpy_init_T():
     rates = np.array([1, 5, 30, 400])
     parr = np.random.poisson(rates, (1000, 4))
-    u.Distribution(parr.T)
+    Distribution(parr.T)
 
 
 def test_quantity_init():
     # Test that we can initialize directly from a Quantity
     pq = np.random.poisson(np.array([1, 5, 30, 400])[:, np.newaxis],
                            (4, 1000)) * u.kpc
-    u.Distribution(pq)
+    Distribution(pq)
 
 
 def test_quantity_init_T():
     # Test that we can initialize directly from a Quantity
     pq = np.random.poisson(np.array([1, 5, 30, 400]), (1000, 4)) * u.kpc
-    u.Distribution(pq.T)
+    Distribution(pq.T)
 
 
 def test_init_scalar():
     parr = np.random.poisson(np.array([1, 5, 30, 400])[:, np.newaxis],
                              (4, 1000))
     with pytest.raises(TypeError) as exc:
-        u.Distribution(parr.ravel()[0])
+        Distribution(parr.ravel()[0])
     assert exc.value.args[0] == "Attempted to initialize a Distribution with a scalar"
 
 
@@ -58,10 +60,10 @@ class TestDistributionStatistics():
                                          np.array([3, 2, 4, 5])[:, np.newaxis],
                                          (4, 10000))
 
-        self.distr = u.Distribution(self.data * u.kpc)
+        self.distr = Distribution(self.data * u.kpc)
 
     def test_shape(self):
-        # u.Distribution shape
+        # Distribution shape
         assert self.distr.shape == (4, )
         assert self.distr.distribution.shape == (4, 10000)
 
@@ -86,7 +88,7 @@ class TestDistributionStatistics():
 
         # make sure the right type comes out - should be a Quantity because it's
         # now a summary statistic
-        assert not isinstance(self.distr.pdf_mean, u.Distribution)
+        assert not isinstance(self.distr.pdf_mean, Distribution)
         assert isinstance(self.distr.pdf_mean, u.Quantity)
 
     def test_pdf_std(self):
@@ -97,7 +99,7 @@ class TestDistributionStatistics():
 
         # make sure the right type comes out - should be a Quantity because it's
         # now a summary statistic
-        assert not isinstance(self.distr.pdf_std, u.Distribution)
+        assert not isinstance(self.distr.pdf_std, Distribution)
         assert isinstance(self.distr.pdf_std, u.Quantity)
 
     def test_pdf_var(self):
@@ -108,7 +110,7 @@ class TestDistributionStatistics():
 
         # make sure the right type comes out - should be a Quantity because it's
         # now a summary statistic
-        assert not isinstance(self.distr.pdf_var, u.Distribution)
+        assert not isinstance(self.distr.pdf_var, Distribution)
         assert isinstance(self.distr.pdf_var, u.Quantity)
 
     def test_pdf_median(self):
@@ -119,7 +121,7 @@ class TestDistributionStatistics():
 
         # make sure the right type comes out - should be a Quantity because it's
         # now a summary statistic
-        assert not isinstance(self.distr.pdf_median, u.Distribution)
+        assert not isinstance(self.distr.pdf_median, Distribution)
         assert isinstance(self.distr.pdf_median, u.Quantity)
 
     @pytest.mark.skipif(not HAS_SCIPY, reason='no scipy')
@@ -133,9 +135,9 @@ class TestDistributionStatistics():
 
         # make sure the right type comes out - should be a Quantity because it's
         # now a summary statistic
-        assert not isinstance(self.distr.pdf_mad, u.Distribution)
+        assert not isinstance(self.distr.pdf_mad, Distribution)
         assert isinstance(self.distr.pdf_mad, u.Quantity)
-        assert not isinstance(self.distr.pdf_smad, u.Distribution)
+        assert not isinstance(self.distr.pdf_smad, Distribution)
         assert isinstance(self.distr.pdf_smad, u.Quantity)
 
     def test_percentile(self):
@@ -146,7 +148,7 @@ class TestDistributionStatistics():
 
         # make sure the right type comes out - should be a Quantity because it's
         # now a summary statistic
-        assert not isinstance(percs, u.Distribution)
+        assert not isinstance(percs, Distribution)
         assert isinstance(percs, u.Quantity)
 
     def test_add_quantity(self):
@@ -161,7 +163,7 @@ class TestDistributionStatistics():
                         * np.array([1000, .01, 80, 10])[:, np.newaxis]
                         + np.array([2000, 0, 0, 500])[:, np.newaxis])
         # another_data is in pc, but main distr is in kpc
-        another_distr = u.Distribution(another_data * u.pc)
+        another_distr = Distribution(another_data * u.pc)
         combined_distr = self.distr + another_distr
 
         expected = np.median(self.data + another_data/1000,
@@ -176,13 +178,13 @@ def test_helper_normal_samples():
     centerq = [1, 5, 30, 400] * u.kpc
 
     with NumpyRNGContext(12345):
-        n_dist = u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100)
+        n_dist = ds.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100)
         assert n_dist.distribution.shape == (4, 100)
         assert n_dist.shape == (4, )
         assert n_dist.unit == u.kpc
         assert np.all(n_dist.pdf_std > 100*u.pc)
 
-        n_dist2 = u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.pc, n_samples=20000)
+        n_dist2 = ds.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.pc, n_samples=20000)
         assert n_dist2.distribution.shape == (4, 20000)
         assert n_dist2.shape == (4, )
         assert n_dist2.unit == u.kpc
@@ -193,26 +195,26 @@ def test_helper_poisson_samples():
     centerqadu = [1, 5, 30, 400] * u.adu
 
     with NumpyRNGContext(12345):
-        p_dist = u.PoissonDistribution(centerqadu, n_samples=100)
+        p_dist = ds.PoissonDistribution(centerqadu, n_samples=100)
         assert p_dist.shape == (4,)
         assert p_dist.distribution.shape == (4, 100)
         assert p_dist.unit == u.adu
         p_min = np.min(p_dist)
-        assert isinstance(p_min, u.Distribution)
+        assert isinstance(p_min, Distribution)
         assert p_min.shape == ()
         assert np.all(p_min >= 0)
         assert np.all(np.abs(p_dist.pdf_mean - centerqadu) < centerqadu)
 
 
 def test_helper_uniform_samples():
-    udist = u.UniformDistribution([1, 2]*u.kpc, [3, 4]*u.kpc)
+    udist = ds.UniformDistribution([1, 2]*u.kpc, [3, 4]*u.kpc)
     assert udist.shape == (2, )
     assert udist.distribution.shape == (2, 1000)
     assert np.all(np.min(udist.distribution, axis=-1) > [1, 2]*u.kpc)
     assert np.all(np.max(udist.distribution, axis=-1) < [3, 4]*u.kpc)
 
     # try the alternative creator
-    udist = u.UniformDistribution.from_center_width([1, 3, 2] * u.pc, [5, 4, 3] * u.pc)
+    udist = ds.UniformDistribution.from_center_width([1, 3, 2] * u.pc, [5, 4, 3] * u.pc)
     assert udist.shape == (3, )
     assert udist.distribution.shape == (3, 1000)
     assert np.all(np.min(udist.distribution, axis=-1) > [-1.5, 1, 0.5]*u.pc)
@@ -222,36 +224,36 @@ def test_helper_uniform_samples():
 def test_helper_normal_exact():
     pytest.skip('distribution stretch goal not yet implemented')
     centerq = [1, 5, 30, 400] * u.kpc
-    u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc)
-    u.NormalDistribution(centerq, var=[0.04, 2.25, 16, 1]*u.kpc**2)
-    u.NormalDistribution(centerq, ivar=[25, 0.44444444, 0.625, 1]*u.kpc**-2)
+    ds.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc)
+    ds.NormalDistribution(centerq, var=[0.04, 2.25, 16, 1]*u.kpc**2)
+    ds.NormalDistribution(centerq, ivar=[25, 0.44444444, 0.625, 1]*u.kpc**-2)
 
 
 def test_helper_poisson_exact():
     pytest.skip('distribution stretch goal not yet implemented')
-    # TODO: what does Poisson u.Distribution mean for a quantity in e.g. kpc?
+    # TODO: what does Poisson Distribution mean for a quantity in e.g. kpc?
     # Should we not restrict to dimensionless? Have updated the test to reflect
     # that here.
     centerq = [1, 5, 30, 400] * u.one
-    u.PoissonDistribution(centerq)
+    ds.PoissonDistribution(centerq)
 
     with pytest.raises(u.UnitsError) as exc:
         centerq = [1, 5, 30, 400] * u.kpc
-        u.PoissonDistribution(centerq)
+        ds.PoissonDistribution(centerq)
     assert exc.value.args[0] == ("Poisson distribution can only be computed "
                                  "for dimensionless quantities")
 
 
 def test_arithmetic_exact():
     pytest.skip('distribution stretch goal not yet implemented')
-    dist = (u.NormalDistribution(3 * u.kpc)
-            * u.PoissonDistribution(5 * u.one)
-            + u.UniformDistribution(3 * u.pc, 5 * u.pc))
+    dist = (ds.NormalDistribution(3 * u.kpc)
+            * ds.PoissonDistribution(5 * u.one)
+            + ds.UniformDistribution(3 * u.pc, 5 * u.pc))
 
 
 def test_reprs():
     darr = np.arange(30).reshape(3, 10)
-    distr = u.Distribution(darr * u.kpc)
+    distr = Distribution(darr * u.kpc)
 
     assert 'n_samples=10' in repr(distr)
     assert 'n_samples=10' in str(distr)
@@ -260,12 +262,12 @@ def test_reprs():
 
 
 @pytest.mark.parametrize("klass, kws", [
-    (u.NormalDistribution, {'center': 0, 'std': 2}),
-    (u.UniformDistribution, {'lower': 0, 'upper': 2}),
-    (u.PoissonDistribution, {'poissonval': 2}),
-    (u.NormalDistribution, {'center': 0*u.count, 'std': 2*u.count}),
-    (u.UniformDistribution, {'lower': 0*u.count, 'upper': 2*u.count}),
-    (u.PoissonDistribution, {'poissonval': 2*u.count})
+    (ds.NormalDistribution, {'center': 0, 'std': 2}),
+    (ds.UniformDistribution, {'lower': 0, 'upper': 2}),
+    (ds.PoissonDistribution, {'poissonval': 2}),
+    (ds.NormalDistribution, {'center': 0*u.count, 'std': 2*u.count}),
+    (ds.UniformDistribution, {'lower': 0*u.count, 'upper': 2*u.count}),
+    (ds.PoissonDistribution, {'poissonval': 2*u.count})
 ])
 def test_wrong_kw_fails(klass, kws):
     with pytest.raises(Exception):
@@ -279,25 +281,25 @@ def test_wrong_kw_fails(klass, kws):
 
 def test_index_assignment_quantity():
     arr = np.random.randn(2, 1000)
-    distr = u.Distribution(arr*u.kpc)
+    distr = Distribution(arr*u.kpc)
     d1q, d2q = distr
-    assert isinstance(d1q, u.Distribution)
-    assert isinstance(d2q, u.Distribution)
+    assert isinstance(d1q, Distribution)
+    assert isinstance(d2q, Distribution)
 
-    ndistr = u.NormalDistribution(center=[1, 2]*u.kpc, std=[3, 4]*u.kpc)
+    ndistr = ds.NormalDistribution(center=[1, 2]*u.kpc, std=[3, 4]*u.kpc)
     n1, n2 = ndistr
-    assert isinstance(n1, u.NormalDistribution)
-    assert isinstance(n2, u.NormalDistribution)
+    assert isinstance(n1, ds.NormalDistribution)
+    assert isinstance(n2, ds.NormalDistribution)
 
 
 def test_index_assignment_array():
     arr = np.random.randn(2, 1000)
-    distr = u.Distribution(arr)
+    distr = Distribution(arr)
     d1a, d2a = distr
-    assert isinstance(d1a, u.Distribution)
-    assert isinstance(d2a, u.Distribution)
+    assert isinstance(d1a, Distribution)
+    assert isinstance(d2a, Distribution)
 
-    ndistr = u.NormalDistribution(center=[1, 2], std=[3, 4])
+    ndistr = ds.NormalDistribution(center=[1, 2], std=[3, 4])
     n1, n2 = ndistr
-    assert isinstance(n1, u.NormalDistribution)
-    assert isinstance(n2, u.NormalDistribution)
+    assert isinstance(n1, ds.NormalDistribution)
+    assert isinstance(n2, ds.NormalDistribution)
