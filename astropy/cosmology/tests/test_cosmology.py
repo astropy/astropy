@@ -104,8 +104,7 @@ def test_units():
     """ Test if the right units are being returned"""
 
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0)
-    with pytest.warns(RuntimeWarning, match='numpy.dtype size changed'):
-        assert cosmo.comoving_distance(1.0).unit == u.Mpc
+    assert cosmo.comoving_distance(1.0).unit == u.Mpc
     assert cosmo._comoving_distance_z1z2(1.0, 2.0).unit == u.Mpc
     assert cosmo.comoving_transverse_distance(1.0).unit == u.Mpc
     assert cosmo._comoving_transverse_distance_z1z2(1.0, 2.0).unit == u.Mpc
