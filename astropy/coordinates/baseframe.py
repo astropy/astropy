@@ -944,7 +944,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
     def realize_frame(self, data):
         """
-        Generates a new frame *with new data from another frame (which may or
+        Generates a new frame with new data from another frame (which may or
         may not have data). Roughly speaking, the converse of
         `replicate_without_data`.
 
