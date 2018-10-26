@@ -487,7 +487,7 @@ def test_insert_row(mixin_cols):
     """
     t = QTable(mixin_cols)
     t['m'].info.description = 'd'
-    if isinstance(t['m'], (u.Quantity, Column)):
+    if isinstance(t['m'], (u.Quantity, Column, time.Time)):
         t.insert_row(1, t[-1])
         assert t[1] == t[-1]
         assert t['m'].info.description == 'd'
