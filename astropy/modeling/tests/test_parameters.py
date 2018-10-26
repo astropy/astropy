@@ -43,6 +43,8 @@ class SetterModel(FittableModel):
     def __init__(self, xc, yc, p):
         self.p = p  # p is a value intended to be used by the setter
         super().__init__()
+        self.xc = xc
+        self.yc = yc
 
 
     def evaluate(self, x, y, xc, yc):
@@ -268,7 +270,6 @@ class TestParameters:
         """
 
         new_model = self.linear_fitter(self.model, self.x, self.y)
-        print(self.y, self.x)
         utils.assert_allclose(new_model.parameters,
                               np.array(
                                   [4826.1066602783685, 952.8943813407858,
@@ -639,5 +640,4 @@ def test_setter():
     model = SetterModel(xc=-1, yc=3, p=np.pi)
 
     for x, y in pars:
-        print(x, y)
         utils.assert_almost_equal(model(x, y), (x + 1)**2 + (y - np.pi * 3)**2)
