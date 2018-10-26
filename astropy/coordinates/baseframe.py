@@ -1349,8 +1349,21 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         """
         Returns a string representation of the frame's attributes, if any.
         """
-        return ', '.join([attrnm + '=' + str(getattr(self, attrnm))
-                          for attrnm in self.get_frame_attr_names()])
+        attr_strs = []
+        for attribute_name in self.get_frame_attr_names():
+            attr = getattr(self, attribute_name)
+            # Check to see if this object has a way of representing itself
+            # specific to being an attribute of a frame. (Note, this is not the
+            # Attribute class, it's the actual object).
+            if hasattr(attr, "_astropy_repr_in_frame"):
+                attrstr = attr._astropy_repr_in_frame()
+            else:
+                attrstr = str(attr)
+            attr_strs.append("{attribute_name}={attrstr}".format(
+                attribute_name=attribute_name,
+                attrstr=attrstr))
+
+        return ', '.join(attr_strs)
 
     def _apply(self, method, *args, **kwargs):
         """Create a new instance, applying a method to the underlying data.

@@ -347,6 +347,32 @@ user-created frames.
     for a more annotated example of defining a new coordinate frame.
 
 
+Customizing Display of Attributes
+---------------------------------
+
+While the default `repr` for coordinate frames is suitable for most cases, you may want
+to customize how frame attributes are displayed in certain cases.  To do this you can
+define a method named ``_astropy_repr_in_frame``. This method should be defined on the
+the object that's set to the frame attribute itself, **not** the 
+`~astropy.coordinates.Attribute` descriptor.
+
+For example, you could have an object ``Spam`` which you have as an attribute of your frame::
+
+  >>> class Spam:
+  ...     def _astropy_repr_in_frame(self):
+  ...         return "<A can of Spam>"
+
+If your frame has this class as an attribute::
+
+  >>> class Egg(BaseCoordinateFrame):
+  ...     can = Attribute(default=Spam())
+
+When it is displayed by the frame it will use the result of ``_astropy_repr_in_frame``::
+
+  >>> Egg()
+  <Egg Frame (can=<A can of Spam>)>
+
+
 Defining Transformations
 ========================
 
