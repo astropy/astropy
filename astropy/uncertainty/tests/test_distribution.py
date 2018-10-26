@@ -35,13 +35,13 @@ def test_numpy_init_T():
 def test_quantity_init():
     # Test that we can initialize directly from a Quantity
     pq = np.random.poisson(np.array([1, 5, 30, 400])[:, np.newaxis],
-                           (4, 1000)) * u.kpc
+                           (4, 1000)) * u.ct
     Distribution(pq)
 
 
 def test_quantity_init_T():
     # Test that we can initialize directly from a Quantity
-    pq = np.random.poisson(np.array([1, 5, 30, 400]), (1000, 4)) * u.kpc
+    pq = np.random.poisson(np.array([1, 5, 30, 400]), (1000, 4)) * u.ct
     Distribution(pq.T)
 
 
@@ -206,14 +206,14 @@ def test_helper_poisson_samples():
 
 
 def test_helper_uniform_samples():
-    udist = ds.uniform(lower=[1, 2]*u.kpc, upper=[3, 4]*u.kpc)
+    udist = ds.uniform(lower=[1, 2]*u.kpc, upper=[3, 4]*u.kpc, n_samples=1000)
     assert udist.shape == (2, )
     assert udist.distribution.shape == (2, 1000)
     assert np.all(np.min(udist.distribution, axis=-1) > [1, 2]*u.kpc)
     assert np.all(np.max(udist.distribution, axis=-1) < [3, 4]*u.kpc)
 
     # try the alternative creator
-    udist = ds.uniform(center=[1, 3, 2] * u.pc, width=[5, 4, 3] * u.pc)
+    udist = ds.uniform(center=[1, 3, 2] * u.pc, width=[5, 4, 3] * u.pc, n_samples=1000)
     assert udist.shape == (3, )
     assert udist.distribution.shape == (3, 1000)
     assert np.all(np.min(udist.distribution, axis=-1) > [-1.5, 1, 0.5]*u.pc)
@@ -231,11 +231,11 @@ def test_helper_normal_exact():
 def test_helper_poisson_exact():
     pytest.skip('distribution stretch goal not yet implemented')
     centerq = [1, 5, 30, 400] * u.one
-    ds.poisson(centerq)
+    ds.poisson(centerq, n_samples=1000)
 
     with pytest.raises(u.UnitsError) as exc:
         centerq = [1, 5, 30, 400] * u.kpc
-        ds.poisson(centerq)
+        ds.poisson(centerq, n_samples=1000)
     assert exc.value.args[0] == ("Poisson distribution can only be computed "
                                  "for dimensionless quantities")
 
@@ -275,7 +275,7 @@ def test_index_assignment_quantity():
     assert isinstance(d1q, Distribution)
     assert isinstance(d2q, Distribution)
 
-    ndistr = ds.normal(center=[1, 2]*u.kpc, std=[3, 4]*u.kpc)
+    ndistr = ds.normal(center=[1, 2]*u.kpc, std=[3, 4]*u.kpc, n_samples=1000)
     n1, n2 = ndistr
     assert isinstance(n1, ds.Distribution)
     assert isinstance(n2, ds.Distribution)
@@ -288,7 +288,7 @@ def test_index_assignment_array():
     assert isinstance(d1a, Distribution)
     assert isinstance(d2a, Distribution)
 
-    ndistr = ds.normal(center=[1, 2], std=[3, 4])
+    ndistr = ds.normal(center=[1, 2], std=[3, 4], n_samples=1000)
     n1, n2 = ndistr
     assert isinstance(n1, ds.Distribution)
     assert isinstance(n2, ds.Distribution)
