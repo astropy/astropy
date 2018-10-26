@@ -347,13 +347,14 @@ user-created frames.
     for a more annotated example of defining a new coordinate frame.
 
 
-Customising Display of Attributes
+Customizing Display of Attributes
 ---------------------------------
 
-If you want objects displayed as attributes of the frame to customise their
-display you can define a method named ``_astropy_repr_in_frame``. This method
-should be defined on the actual object that is the attribute **not** the
-`~astropy.coordinates.Attribute` descriptor itself.
+While the default `repr` for coordinate frames is suitable for most cases, you may want
+to customize how frame attributes are displayed in certain cases.  To do this you can
+define a method named ``_astropy_repr_in_frame``. This method should be defined on the
+the object that's set to the frame attribute itself, **not** the 
+`~astropy.coordinates.Attribute` descriptor.
 
 For example, you could have an object ``Spam`` which you have as an attribute of your frame::
 
