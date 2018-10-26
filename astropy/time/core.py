@@ -245,6 +245,52 @@ class TimeDeltaInfo(TimeInfo):
     def _construct_from_dict(self, map):
         return self._construct_from_dict_base(map)
 
+    def new_like(self, cols, length, metadata_conflicts='warn', name=None):
+        """
+        Return a new TimeDelta instance which is consistent with the input Time objects
+        ``cols`` and has ``length`` rows.
+
+        This is intended for creating an empty Time instance whose elements can
+        be set in-place for table operations like join or vstack.  It checks
+        that the input locations and attributes are consistent.  This is used
+        when a Time object is used as a mixin column in an astropy Table.
+
+        Parameters
+        ----------
+        cols : list
+            List of input columns (Time objects)
+        length : int
+            Length of the output column object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts
+        name : str
+            Output column name
+
+        Returns
+        -------
+        col : Time (or subclass)
+            Empty instance of this class consistent with ``cols``
+
+        """
+        # Get merged info attributes like shape, dtype, format, description, etc.
+        attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
+                                           ('meta', 'description'))
+        attrs.pop('dtype')  # Not relevant for Time
+        col0 = cols[0]
+
+        # Make a new Time object with the desired shape and attributes
+        shape = (length,) + attrs.pop('shape')
+        jd1 = np.zeros(shape, dtype='f8')
+        jd2 = np.zeros(shape, dtype='f8')
+        out = self._parent_cls(jd1, jd2, format='jd', scale=col0.scale)
+        out.format = col0.format
+
+        # Set remaining info attributes
+        for attr, value in attrs.items():
+            setattr(out.info, attr, value)
+
+        return out
+
 
 class Time(ShapedLikeNDArray):
     """
@@ -822,6 +868,10 @@ class Time(ShapedLikeNDArray):
         Insert values before the given indices in the column and return
         a new `~astropy.time.Time` or  `~astropy.time.TimeDelta` object.
 
+        The values to be inserted must conform to the rules for in-place setting
+        of ``Time`` objects (see ``Get and set values`` in the ``Time``
+        documentation).
+
         The API signature matches the `np.insert` API, but is more limited.
         The specification of insert index ``obj`` must be a single integer,
         and the ``axis`` must be ``0`` for simple row insertion before the
@@ -835,15 +885,27 @@ class Time(ShapedLikeNDArray):
             Value(s) to insert.  If the type of ``values`` is different
             from that of quantity, ``values`` is converted to the matching type.
         axis : int, optional
-            Axis along which to insert ``values``.  If ``axis`` is None then
-            the column array is flattened before insertion.  Default is 0,
-            which will insert a row.
+            Axis along which to insert ``values``.  Default is 0, which is the
+            only allowed value and will insert a row.
 
         Returns
         -------
         out : `~astropy.time.Time` subclass
             New time object with inserted value(s)
+
+        Examples
+        --------
+        Some ways this is used internally::
+
+            copy : ``_apply('copy')``
+            replicate : ``_apply('replicate')``
+            reshape : ``_apply('reshape', new_shape)``
+            index or slice : ``_apply('__getitem__', item)``
+            broadcast : ``_apply(np.broadcast, shape=new_shape)``
+
         """
+        # Validate inputs: obj arg is integer, axis=0, self is not a scalar, and
+        # input index is in bounds.
         if not isinstance(obj, (int, np.integer)):
             raise TypeError('obj arg must be an integer')
         idx0 = obj  # Rename for readability
@@ -851,17 +913,32 @@ class Time(ShapedLikeNDArray):
         if axis != 0:
             raise ValueError('axis must be 0')
 
-        try:
-            n_values = len(values)
-        except TypeError:
-            values = [values]
-            n_values = 1
+        if not self.shape:
+            raise TypeError('cannot insert into scalar {} object'
+                            .format(self.__class__.__name__))
 
+        if abs(idx0) > len(self):
+            raise IndexError('index {} is out of bounds for axis 0 with size {}'
+                             .format(idx0, len(self)))
+
+        # Turn negative index into positive
+        if idx0 < 0:
+            idx0 = len(self) + idx0
+
+        # For non-Time object, use numpy to help figure out the length.  (Note annoying
+        # case of a string input that has a length which is not the length we want).
+        if not isinstance(values, Time):
+            values = np.asarray(values)
+        n_values = len(values) if values.shape else 1
+
+        # Finally make the new object with the correct length and set values for the
+        # three sections, before insert, the insert, and after the insert.
         out = self.__class__.info.new_like([self], len(self) + n_values, name=self.info.name)
 
         out._time.jd1[:idx0] = self._time.jd1[:idx0]
         out._time.jd2[:idx0] = self._time.jd2[:idx0]
 
+        # This uses the Time setting machinery to coerce and validate as necessary.
         out[idx0:idx0 + n_values] = values
 
         out._time.jd1[idx0 + n_values:] = self._time.jd1[idx0:]
