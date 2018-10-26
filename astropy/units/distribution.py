@@ -10,7 +10,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from . import Quantity, UnitsError
+from . import UnitsError
 from .. import visualization
 
 __all__ = ['Distribution', 'NormalDistribution', 'PoissonDistribution',
@@ -19,50 +19,28 @@ __all__ = ['Distribution', 'NormalDistribution', 'PoissonDistribution',
 
 class Distribution:
     """
-    A unitful value with associated uncertainty distribution.  While subclasses
-    may have exact analytic forms, this class uses samples to represent the
-    distribution.
+    A scalar value or array values with associated uncertainty distribution.
+
+    This object will take its exact type from whatever the ``samples`` argument
+    is. In general this is expected to be an `~astropy.units.Quantity` or
+    `numpy.ndarray`, although anything compatible with `nump.asanyarray` is
+    possible.
 
     Parameters
     ----------
     samples : array-like
-        The distribution, with sampling along the *leading* axis.
-    distr_center : `None` or array-like
-        The "center" of this distribution.  It must have the same shape as
-        ``distr``, aside from the (initial) sample dimension. If `None`, the
-        *median* of ``distr``  along the sampling axis will be used.
-    unit : `~astropy.units.Unit`
-        A unit of the same sort that `~astropy.units.Quantity` accepts.
-
-    Additional argumnets are passed into the `~astropy.units.Quantity`
-    constructor.
-
-    Notes
-    -----
-    This class has an attribute ``stat_view`` which can be set to an
-    `numpy.ndarray` subclass to determine what the summary statistics are
-    converted to.  By default this is `~astropy.units.Quantity`, but it is
-    available so that subclasses can change it.
+        The distribution, with sampling along the *leading* axis. If 1D, the
+        sole dimension is used as the sampling axis (i.e., it is a scalar
+        distribution).
     """
 
-    def __new__(cls, samples, distr_center=None, unit=None):
+    def __new__(cls, samples):
         if isinstance(samples, Distribution):
-            if distr_center is None:
-                distr_center = samples.distr_center
             samples = samples.distribution
         else:
             samples = np.asanyarray(samples, order='C')
         if samples.shape == ():
             raise TypeError('Attempted to initialize a Distribution with a scalar')
-
-        # Not clear whether one wants the distr_center argument still.
-        # Would need __array_finalize__ to preserve it through slicing, etc.
-        if distr_center is None:
-            distr_center = np.median(samples, axis=-1)
-
-        if unit is not None:
-            # Not clear why the unit argument is needed.
-            samples = Quantity(samples, unit, copy=False, subok=True)
 
         new_dtype = np.dtype({'names': ['samples'],
                               'formats': [(samples.dtype, (samples.shape[-1],))]})
@@ -76,7 +54,6 @@ class Distribution:
         self = samples.view(dtype=new_dtype, type=new_cls)
         # Get rid of trailing dimension of 1.
         self.shape = samples.shape[:-1]
-        self.center = distr_center
         return self
 
     @property
@@ -151,7 +128,7 @@ class Distribution:
             reprarr = reprarr[firstspace+1:-1]  # :-1] removes the ending '>'
             return '<{} {} with n_samples={}>'.format(self.__class__.__name__,
                                                       reprarr, self.n_samples)
-        else: #numpy array-like
+        else: # numpy array-like
             firstparen = reprarr.find('(')
             reprarr = reprarr[firstparen:]
             return '{}{} with n_samples={}'.format(self.__class__.__name__,
@@ -347,11 +324,8 @@ class PoissonDistribution(Distribution):
     Remaining keywords are passed into the `Distribution` constructor
     """
     def __new__(cls, poissonval, n_samples=1000, **kwargs):
-        if hasattr(poissonval, 'unit') and 'unit' not in kwargs:
-            kwargs['unit'] = poissonval.unit
-
         if hasattr(poissonval, 'value'):
-            poissonarr = np.asanyarray(poissonval.value)
+            poissonarr = np.asanyarray(poissonval.value) * poissonval.unit
         else:
             poissonarr = np.asanyarray(poissonval)
         randshape = poissonarr.shape + (n_samples,)
@@ -409,7 +383,7 @@ class UniformDistribution(Distribution):
         return self
 
     @classmethod
-    def from_center_width(cls, center, width, unit=None, **kwargs):
+    def from_center_width(cls, center, width, **kwargs):
         """
         Create a `UniformDistribution` from lower/upper bounds (instead of center
         and width as the regular constructor uses).
