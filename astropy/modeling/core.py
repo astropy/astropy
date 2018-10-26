@@ -831,10 +831,12 @@ class Model(metaclass=_ModelMeta):
             if vshape == ():
                 vshape = (1,)
             esize = self._param_metrics[attr]['size']
-            if np.size(value) != esize or vshape != eshape:
+            if (np.size(value) != esize or 
+                strip_ones(vshape) != strip_ones(eshape)):
                 raise InputParameterError(
                     "Value for parameter {0} does not match shape or size\n"
-                    "expected by model ({1}, {2}) vs ({3}, {4})")
+                    "expected by model ({1}, {2}) vs ({3}, {4})".format(
+                        attr, vshape, np.size(value), eshape, esize))
             if param.unit is None:
                 if isinstance(value, Quantity):
                     param._unit = value.unit
@@ -2322,7 +2324,7 @@ def _add_special_operator(sop_name, sop):
 
 """
 This module provides an alternate implementation of compound models that
-is lighter weight than the default implementation. 
+is lighter weight than the default implementation.
 
 Using this alternate version of compound models requires calling a function
 in core to make this one the default. If this is used, *is is higly recommended
@@ -2943,6 +2945,7 @@ class CompoundModel(Model):
             param_metrics[name] = {}
             param_metrics[name]['slice'] = param_slice
             param_metrics[name]['shape'] = param_shape
+            param_metrics[name]['size'] = param_size
             total_size += param_size
         self._parameters = np.empty(total_size, dtype=np.float64)
 
@@ -3905,6 +3908,8 @@ def generic_call(self, *inputs, **kwargs):
     else:
         return outputs
 
+def strip_ones(intup):
+    return tuple(item for item in intup if item !=1)
 
 def ismodel(obj):
     """
