@@ -204,6 +204,7 @@ astropy.time
 
 - Added ``datetime64`` format to the ``Time`` class to support working with
   ``numpy.datetime64`` dtype arrays. [#7361]
+
 - Add fractional second support for ``strftime`` and ``strptime`` methods
   of ``Time`` class. [#7705]
 
@@ -611,6 +612,10 @@ astropy.tests
 
 astropy.time
 ^^^^^^^^^^^^
+
+- Fix a bug when setting a ``TimeDelta`` array item with plain float value(s).
+  This was always interpreted as a JD (day) value regardless of the
+  ``TimeDelta`` format. [#7990]
 
 astropy.units
 ^^^^^^^^^^^^^
