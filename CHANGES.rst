@@ -468,6 +468,9 @@ astropy.coordinates
 - Sped up adding differential (velocity) data to representations by a factor of
   ~20, which improves the speed of frame and SkyCoord initialization. [#7924]
 
+- Refactored ``SkyCoord`` initializer to improve performance and code clarity.
+  [#7958]
+
 astropy.units
 ^^^^^^^^^^^^^
 
