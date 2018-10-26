@@ -274,6 +274,7 @@ astropy.wcs
 
 - Added the abstract base class for the low-level WCS API described in APE 14
   (https://doi.org/10.5281/zenodo.1188875). [#7325]
+- Add ``WCS.contains()`` function to check if the WCS footprint contains a given sky coordinate. [#7273]
 
 - Added the abstract base class for the high-level WCS API described in APE 14
   (https://doi.org/10.5281/zenodo.1188875). [#7325]
