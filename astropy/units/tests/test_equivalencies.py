@@ -758,13 +758,9 @@ def test_littleh():
     H0_70 = 70*u.km/u.s/u.Mpc
     h100dist = 100 * u.Mpc/u.littleh
 
-    assert_quantity_allclose(h100dist.to(u.Mpc, u.littleh_as(H0_70)), 70*u.Mpc)
+    assert_quantity_allclose(h100dist.to(u.Mpc, u.with_H0(H0_70)), 70*u.Mpc)
 
-    # make sure the give-explicit-comsology works
-    assert_quantity_allclose(h100dist.to(u.Mpc, u.littleh_as(cosmology.WMAP9)),
-                             cosmology.WMAP9.H0.value*u.Mpc)
-
-    # and also the default cosmology
+    # make sure using the default cosmology works
     H0_default_cosmo = cosmology.default_cosmology.get().H0
-    assert_quantity_allclose(h100dist.to(u.Mpc, u.littleh_as()),
+    assert_quantity_allclose(h100dist.to(u.Mpc, u.with_H0()),
                              H0_default_cosmo.value*u.Mpc)

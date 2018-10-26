@@ -20,7 +20,7 @@ __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'brightness_temperature', 'thermodynamic_temperature',
            'beam_angular_area', 'dimensionless_angles', 'logarithmic',
            'temperature', 'temperature_energy', 'molar_mass_amu',
-           'pixel_scale', 'plate_scale', 'littleh_as']
+           'pixel_scale', 'plate_scale', 'with_H0']
 
 
 def dimensionless_angles():
@@ -689,17 +689,16 @@ def plate_scale(platescale):
     return [(si.m, si.radian, lambda d: d*platescale_val, lambda rad: rad/platescale_val)]
 
 
-def littleh_as(cosmology_or_H0=None):
+def with_H0(H0=None):
     """
     Convert between quantities with little-h and the equivalent physical units.
 
     Parameters
     ----------
-    cosmology_or_H0 : None, `~astropy.cosmology.FLRW`, or `~astropy.units.Quantity`
-        The source of the value of the Hubble constant to assume. If a cosmology
-        object is given, it will be taken from the ``H0`` attribute, or if a
-        quantity, will assume the quantity *is* ``H0``.  If `None` (default), use
-        the default cosmology from `astropy.cosmology`.
+    cosmology_or_H0 : None or  `~astropy.units.Quantity`
+        The source of the value of the Hubble constant to assume. If a quantity,
+        will assume the quantity *is* ``H0``.  If `None` (default), use the
+        ``H0`` attribute from the default `astropy.cosmology` cosmology.
 
     References
     ----------
@@ -708,10 +707,8 @@ def littleh_as(cosmology_or_H0=None):
     """
     from .. import cosmology
 
-    if cosmology_or_H0 is None:
-        cosmology_or_H0 = cosmology.default_cosmology.get()
-
-    H0 = cosmology_or_H0.H0 if hasattr(cosmology_or_H0, 'H0') else cosmology_or_H0
+    if H0 is None:
+        H0 = cosmology.default_cosmology.get().H0
 
     h100_val_unit = Unit(H0.to((si.km/si.s)/astrophys.Mpc).value/100 * astrophys.littleh)
 
