@@ -558,6 +558,8 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- Fix errors in ``kuiper_false_positive_probability``. [#7975]
+
 astropy.table
 ^^^^^^^^^^^^^
 
