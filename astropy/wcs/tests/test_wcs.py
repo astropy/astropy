@@ -17,6 +17,7 @@ from .. import _wcs
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from ...utils.misc import NumpyRNGContext
+from ...utils.exceptions import AstropyUserWarning
 from ...io import fits
 
 
@@ -593,11 +594,12 @@ def test_footprint_to_file(tmpdir):
     From github issue #1912
     """
     # Arbitrary keywords from real data
-    w = wcs.WCS({'CTYPE1': 'RA---ZPN', 'CRUNIT1': 'deg',
-                 'CRPIX1': -3.3495999e+02, 'CRVAL1': 3.185790700000e+02,
-                 'CTYPE2': 'DEC--ZPN', 'CRUNIT2': 'deg',
-                 'CRPIX2': 3.0453999e+03, 'CRVAL2': 4.388538000000e+01,
-                 'PV2_1': 1., 'PV2_3': 220.})
+    hdr = {'CTYPE1': 'RA---ZPN', 'CRUNIT1': 'deg',
+           'CRPIX1': -3.3495999e+02, 'CRVAL1': 3.185790700000e+02,
+           'CTYPE2': 'DEC--ZPN', 'CRUNIT2': 'deg',
+           'CRPIX2': 3.0453999e+03, 'CRVAL2': 4.388538000000e+01,
+           'PV2_1': 1., 'PV2_3': 220., 'NAXIS1': 2048, 'NAXIS2': 1024}
+    w = wcs.WCS(hdr)
 
     testfile = str(tmpdir.join('test.txt'))
     w.footprint_to_file(testfile)
@@ -620,6 +622,12 @@ def test_footprint_to_file(tmpdir):
 
     with pytest.raises(ValueError):
         w.footprint_to_file(testfile, coordsys='FOO')
+
+    del hdr['NAXIS1']
+    del hdr['NAXIS2']
+    w = wcs.WCS(hdr)
+    with pytest.warns(AstropyUserWarning):
+        w.footprint_to_file(testfile)
 
 
 def test_validate_faulty_wcs():
