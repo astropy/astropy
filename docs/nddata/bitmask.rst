@@ -57,7 +57,7 @@ performs the following operation:
 
 ``(1)    boolean_mask = (bitfield & ~bit_mask) != 0``
 
-(here ``&`` is bitwise ``AND`` and ``~`` is the bitwise ``NOT`` operations).
+(here ``&`` is bitwise ``and`` and ``~`` is the bitwise ``not`` operations).
 In the previous formula, ``bit_mask`` is a bit mask created from individual
 bit flags that need to be ignored in the bit field.
 
@@ -101,20 +101,24 @@ in `Table 1 <table1_>`_. In this case ``ignore_flags`` can be set either to:
 For example,
 
     >>> from astropy.nddata import bitmask
+    >>> import numpy as np
+    >>> try: # OPTIONAL (used to preserve numpy 1.13 array formatting)
+    ...     np.set_printoptions(legacy='1.13')
+    ... except TypeError:
+    ...     pass
     >>> bitmask.bitfield_to_boolean_mask(217, ignore_flags=80)
-    array(True)
+    array(True, dtype=bool)
     >>> bitmask.bitfield_to_boolean_mask(217, ignore_flags='16,64')
-    array(True)
+    array(True, dtype=bool)
     >>> bitmask.bitfield_to_boolean_mask(217, ignore_flags=[16, 64])
-    array(True)
+    array(True, dtype=bool)
     >>> bitmask.bitfield_to_boolean_mask(9, ignore_flags=[1, 8, 64])
-    array(False)
+    array(False, dtype=bool)
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags='1,8,64')
-    array([False,  True, False,  True])
+    array([False,  True, False,  True], dtype=bool)
 
 It is also possible to specify the type of the output mask:
 
-    >>> import numpy as np
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags='1,8,64', dtype=np.uint8)
     array([0, 1, 0, 1], dtype=uint8)
 
@@ -142,14 +146,14 @@ This effectively modifies `equation (1) <main_eq_>`_ to:
 So, instead of
 
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags=[1, 8, 64])
-    array([False,  True, False,  True])
+    array([False,  True, False,  True], dtype=bool)
 
 one can obtain the same result as
 
     >>> bitmask.bitfield_to_boolean_mask(
     ...     [9, 10, 73, 217], ignore_flags=[2, 4, 16, 32, 128], flip_bits=True
     ... )
-    array([False,  True, False,  True])
+    array([False,  True, False,  True], dtype=bool)
 
 Note however, when ``ignore_flags`` is a comma-separated list of bit flag
 values, ``flip_bits`` cannot be set to neither `True` or `False`. Instead,
@@ -157,13 +161,13 @@ to flip bits of the bit mask formed from a string list of comma-separated
 bit flag values, one can prepend a single ``~`` to the list:
 
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags='~2+4+16+32+128')
-    array([False,  True, False,  True])
+    array([False,  True, False,  True], dtype=bool)
 
 
 Inverting Boolean Mask
 ----------------------
 
-Other times, it may be more convenient to obtain an opposite mask in which
+Other times, it may be more convenient to obtain an inverted mask in which
 flagged data are converted to `False` instead of `True`:
 
 .. _modif_eq3:
@@ -175,4 +179,4 @@ its default value (`False`) to `True`. For example,
 
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags=[1, 8, 64],
     ...                                  good_mask_value=True)
-    array([ True, False,  True, False])
+    array([ True, False,  True, False], dtype=bool)
