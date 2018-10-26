@@ -1512,3 +1512,56 @@ def test_strptime_3_digit_year():
     time_obj2 = Time.strptime('0995-Dec-31 00:00:00', '%Y-%b-%d %H:%M:%S')
 
     assert time_obj1 == time_obj2
+
+
+def test_strptime_fracsec_scalar():
+    time_string = '2007-May-04 21:08:12.123'
+    time_object = Time('2007-05-04 21:08:12.123')
+    t = Time.strptime(time_string, '%Y-%b-%d %H:%M:%S.%f')
+
+    assert t == time_object
+
+
+def test_strptime_fracsec_array():
+    """Test of Time.strptime
+    """
+    tstrings = [['1998-Jan-01 00:00:01.123', '1998-Jan-01 00:00:02.000001'],
+                ['1998-Jan-01 00:00:03.000900', '1998-Jan-01 00:00:04.123456']]
+    tstrings = np.array(tstrings)
+
+    time_object = Time([['1998-01-01 00:00:01.123', '1998-01-01 00:00:02.000001'],
+                        ['1998-01-01 00:00:03.000900', '1998-01-01 00:00:04.123456']])
+    t = Time.strptime(tstrings, '%Y-%b-%d %H:%M:%S.%f')
+
+    assert np.all(t == time_object)
+    assert t.shape == tstrings.shape
+
+
+def test_strftime_scalar_fracsec():
+    """Test of Time.strftime
+    """
+    time_string = '2010-09-03 06:00:00.123'
+    t = Time(time_string)
+
+    for format in t.FORMATS:
+        t.format = format
+        assert t.strftime('%Y-%m-%d %H:%M:%S.%f') == time_string
+
+
+def test_strftime_scalar_fracsec_precision():
+    time_string = '2010-09-03 06:00:00.123123123'
+    t = Time(time_string)
+    assert t.strftime('%Y-%m-%d %H:%M:%S.%f') == '2010-09-03 06:00:00.123'
+    t.precision = 9
+    assert t.strftime('%Y-%m-%d %H:%M:%S.%f') == '2010-09-03 06:00:00.123123123'
+
+
+def test_strftime_array_fracsec():
+    tstrings = ['2010-09-03 00:00:00.123000', '2005-09-03 06:00:00.000001',
+                '1995-12-31 23:59:60.000900']
+    t = Time(tstrings)
+    t.precision = 6
+
+    for format in t.FORMATS:
+        t.format = format
+        assert t.strftime('%Y-%m-%d %H:%M:%S.%f').tolist() == tstrings

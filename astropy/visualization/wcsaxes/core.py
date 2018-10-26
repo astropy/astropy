@@ -5,6 +5,7 @@ from collections import defaultdict
 
 import numpy as np
 
+from matplotlib import rcParams
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
@@ -392,6 +393,9 @@ class WCSAxes(Axes):
                     self.coords[coord_index].set_ticklabel_position('')
                     self.coords[coord_index].set_ticks_position('')
 
+        if rcParams['axes.grid']:
+            self.grid()
+
     def draw_wcsaxes(self, renderer):
 
         # Here need to find out range of all coordinates, and update range for
@@ -636,6 +640,94 @@ class WCSAxes(Axes):
             self.coords[1].grid(draw_grid=b, **kwargs)
         else:
             raise ValueError('axis should be one of x/y/both')
+
+    def tick_params(self, axis='both', **kwargs):
+        """
+        Method to set the tick and tick label parameters in the same way as the
+        :meth:`~matplotlib.axes.Axes.tick_params` method in Matplotlib.
+
+        This is provided for convenience, but the recommended API is to use
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticks`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticklabel`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticks_position`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticklabel_position`,
+        and :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.grid`.
+
+        Parameters
+        ----------
+        axis : int or str, optional
+            Which axis to apply the parameters to. This defaults to 'both'
+            but this can also be set to an `int` or `str` that refers to the
+            axis to apply it to, following the valid values that can index
+            ``ax.coords``. Note that ``'x'`` and ``'y``' are also accepted in
+            the case of rectangular axes.
+        which : {'both', 'major', 'minor'}, optional
+            Which ticks to apply the settings to. By default, setting are
+            applied to both major and minor ticks. Note that if ``'minor'`` is
+            specified, only the length of the ticks can be set currently.
+        direction : {'in', 'out'}, optional
+            Puts ticks inside the axes, or outside the axes.
+        length : float, optional
+            Tick length in points.
+        width : float, optional
+            Tick width in points.
+        color : color, optional
+            Tick color (accepts any valid Matplotlib color)
+        pad : float, optional
+            Distance in points between tick and label.
+        labelsize : float or str, optional
+            Tick label font size in points or as a string (e.g., 'large').
+        labelcolor : color, optional
+            Tick label color (accepts any valid Matplotlib color)
+        colors : color, optional
+            Changes the tick color and the label color to the same value
+             (accepts any valid Matplotlib color).
+        bottom, top, left, right : bool, optional
+            Where to draw the ticks. Note that this can only be given if a
+            specific coordinate is specified via the ``axis`` argument, and it
+            will not work correctly if the frame is not rectangular.
+        labelbottom, labeltop, labelleft, labelright : bool, optional
+            Where to draw the tick labels. Note that this can only be given if a
+            specific coordinate is specified via the ``axis`` argument, and it
+            will not work correctly if the frame is not rectangular.
+        grid_color : color, optional
+            The color of the grid lines (accepts any valid Matplotlib color).
+        grid_alpha : float, optional
+            Transparency of grid lines: 0 (transparent) to 1 (opaque).
+        grid_linewidth : float, optional
+            Width of grid lines in points.
+        grid_linestyle : string, optional
+            The style of the grid lines (accepts any valid Matplotlib line
+            style).
+        """
+
+        if not hasattr(self, 'coords'):
+            # Axes haven't been fully initialized yet, so just ignore, as
+            # Axes.__init__ calls this method
+            return
+
+        if axis == 'both':
+
+            for pos in ('bottom', 'left', 'top', 'right'):
+                if pos in kwargs:
+                    raise ValueError("Cannot specify {0}= when axis='both'".format(pos))
+                if 'label' + pos in kwargs:
+                    raise ValueError("Cannot specify label{0}= when axis='both'".format(pos))
+
+            for coord in self.coords:
+                coord.tick_params(**kwargs)
+
+        elif axis in self.coords:
+
+            self.coords[axis].tick_params(**kwargs)
+
+        elif axis in ('x', 'y'):
+
+            if self.frame_class is RectangularFrame:
+                for coord_index in range(len(self.slices)):
+                    if self.slices[coord_index] == axis:
+                        self.coords[coord_index].tick_params(**kwargs)
+
 
 # In the following, we put the generated subplot class in a temporary class and
 # we then inherit it - if we don't do this, the generated class appears to

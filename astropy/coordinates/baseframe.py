@@ -280,6 +280,11 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
         if 'name' not in members:
             members['name'] = name.lower()
 
+         # A cache that *must be unique to each frame class* - it is
+         # insufficient to share them with superclasses, hence the need to put
+         # them in the meta
+        members['_frame_class_cache'] = {}
+
         return super().__new__(mcls, name, bases, members)
 
     @staticmethod
@@ -769,44 +774,49 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         # This exists as a class method only to support handling frame inputs
         # without units, which are deprecated and will be removed.  This can be
         # moved into the representation_info property at that time.
+        # note that if so moved, the cache should be acceessed as
+        # self.__class__._frame_class_cache
 
-        repr_attrs = {}
-        for repr_diff_cls in (list(r.REPRESENTATION_CLASSES.values()) +
-                              list(r.DIFFERENTIAL_CLASSES.values())):
-            repr_attrs[repr_diff_cls] = {'names': [], 'units': []}
-            for c, c_cls in repr_diff_cls.attr_classes.items():
-                repr_attrs[repr_diff_cls]['names'].append(c)
-                # TODO: when "recommended_units" is removed, just directly use
-                # the default part here.
-                rec_unit = repr_diff_cls._recommended_units.get(
-                    c, u.deg if issubclass(c_cls, Angle) else None)
-                repr_attrs[repr_diff_cls]['units'].append(rec_unit)
+        if cls._frame_class_cache.get('last_reprdiff_hash', None) != r.get_reprdiff_cls_hash():
+            repr_attrs = {}
+            for repr_diff_cls in (list(r.REPRESENTATION_CLASSES.values()) +
+                                  list(r.DIFFERENTIAL_CLASSES.values())):
+                repr_attrs[repr_diff_cls] = {'names': [], 'units': []}
+                for c, c_cls in repr_diff_cls.attr_classes.items():
+                    repr_attrs[repr_diff_cls]['names'].append(c)
+                    # TODO: when "recommended_units" is removed, just directly use
+                    # the default part here.
+                    rec_unit = repr_diff_cls._recommended_units.get(
+                        c, u.deg if issubclass(c_cls, Angle) else None)
+                    repr_attrs[repr_diff_cls]['units'].append(rec_unit)
 
-        for repr_diff_cls, mappings in cls._frame_specific_representation_info.items():
+            for repr_diff_cls, mappings in cls._frame_specific_representation_info.items():
 
-            # take the 'names' and 'units' tuples from repr_attrs,
-            # and then use the RepresentationMapping objects
-            # to update as needed for this frame.
-            nms = repr_attrs[repr_diff_cls]['names']
-            uns = repr_attrs[repr_diff_cls]['units']
-            comptomap = dict([(m.reprname, m) for m in mappings])
-            for i, c in enumerate(repr_diff_cls.attr_classes.keys()):
-                if c in comptomap:
-                    mapp = comptomap[c]
-                    nms[i] = mapp.framename
+                # take the 'names' and 'units' tuples from repr_attrs,
+                # and then use the RepresentationMapping objects
+                # to update as needed for this frame.
+                nms = repr_attrs[repr_diff_cls]['names']
+                uns = repr_attrs[repr_diff_cls]['units']
+                comptomap = dict([(m.reprname, m) for m in mappings])
+                for i, c in enumerate(repr_diff_cls.attr_classes.keys()):
+                    if c in comptomap:
+                        mapp = comptomap[c]
+                        nms[i] = mapp.framename
 
-                    # need the isinstance because otherwise if it's a unit it
-                    # will try to compare to the unit string representation
-                    if not (isinstance(mapp.defaultunit, str) and
-                            mapp.defaultunit == 'recommended'):
-                        uns[i] = mapp.defaultunit
-                        # else we just leave it as recommended_units says above
+                        # need the isinstance because otherwise if it's a unit it
+                        # will try to compare to the unit string representation
+                        if not (isinstance(mapp.defaultunit, str) and
+                                mapp.defaultunit == 'recommended'):
+                            uns[i] = mapp.defaultunit
+                            # else we just leave it as recommended_units says above
 
-            # Convert to tuples so that this can't mess with frame internals
-            repr_attrs[repr_diff_cls]['names'] = tuple(nms)
-            repr_attrs[repr_diff_cls]['units'] = tuple(uns)
+                # Convert to tuples so that this can't mess with frame internals
+                repr_attrs[repr_diff_cls]['names'] = tuple(nms)
+                repr_attrs[repr_diff_cls]['units'] = tuple(uns)
 
-        return repr_attrs
+            cls._frame_class_cache['representation_info'] = repr_attrs
+            cls._frame_class_cache['last_reprdiff_hash'] = r.get_reprdiff_cls_hash()
+        return cls._frame_class_cache['representation_info']
 
     @lazyproperty
     def representation_info(self):

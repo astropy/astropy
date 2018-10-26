@@ -5,12 +5,13 @@ import numpy as np
 from numpy import ma
 from numpy.testing import assert_allclose
 
-from ..mpl_normalize import ImageNormalize, simple_norm
+from ..mpl_normalize import ImageNormalize, simple_norm, imshow_norm
 from ..interval import ManualInterval
 from ..stretch import SqrtStretch
 
 try:
     import matplotlib    # pylint: disable=W0611
+    from matplotlib import pyplot as plt
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False
@@ -170,3 +171,31 @@ class TestImageScaling:
         """Test invalid stretch keyword."""
         with pytest.raises(ValueError):
             simple_norm(DATA2, stretch='invalid')
+
+
+@pytest.mark.skipif('not HAS_MATPLOTLIB')
+def test_imshow_norm():
+    image = np.random.randn(10, 10)
+
+    ax = plt.subplot()
+    imshow_norm(image, ax=ax)
+
+    with pytest.raises(ValueError):
+        # X and data are the same, can't give both
+        imshow_norm(image, X=image, ax=ax)
+
+    with pytest.raises(ValueError):
+        # illegal to manually pass in normalization since that defeats the point
+        imshow_norm(image, ax=ax, norm=ImageNormalize())
+
+    imshow_norm(image, ax=ax, vmin=0, vmax=1)
+    # vmin/vmax "shadow" the MPL versions, so imshow_only_kwargs allows direct-setting
+    imshow_norm(image, ax=ax, imshow_only_kwargs=dict(vmin=0, vmax=1))
+    # but it should fail for an argument that is not in ImageNormalize
+    with pytest.raises(ValueError):
+        imshow_norm(image, ax=ax, imshow_only_kwargs=dict(cmap='jet'))
+
+    # make sure the pyplot version works
+    imres, norm = imshow_norm(image, ax=None)
+
+    assert isinstance(norm, ImageNormalize)
