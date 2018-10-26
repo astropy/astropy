@@ -440,7 +440,6 @@ Reference/API
     :no-inheritance-diagram:
 
 .. automodapi:: astropy.nddata.bitmask
-    :members:
     :no-inheritance-diagram:
 
 .. automodapi:: astropy.nddata.utils
