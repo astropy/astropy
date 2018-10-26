@@ -425,6 +425,7 @@
 .. .. plot::
 ..     :include-source:
 
+
 ..     import numpy as np
 ..     import matplotlib.pyplot as plt
 ..     from astropy.modeling.models import RedshiftScaleFactor, Gaussian1D

@@ -111,6 +111,8 @@ astropy.modeling
 
 - Major rework of modeling internals. See release notes for details. Eliminates 
   support for compound classes (but not compound instances!)
+
+- Added a set_inputs operator that acts like functools.partial  
   
 - Add a ``Multiply`` model which preserves unit through evaluate, unlike
   ``Scale`` which is dimensionless. [#7210]
