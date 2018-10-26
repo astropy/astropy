@@ -200,6 +200,13 @@ astropy.time
 - Add fractional second support for ``strftime`` and ``strptime`` methods
   of ``Time`` class. [#7705]
 
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+- This sub-package was added as a "preview" (i.e. API unstable), containing
+  the ``Distribution`` class and associated convenience functions. [#6945]
+
 astropy.units
 ^^^^^^^^^^^^^
 
