@@ -731,7 +731,6 @@ class Model(metaclass=_ModelMeta):
         if meta is not None:
             self.meta = meta
         self._name = name
-        print('xxxx', args, kwargs)
         # add parameters to instance level by walking MRO list
         mro = self.__class__.__mro__
         for cls in mro:
@@ -1799,7 +1798,6 @@ class Model(metaclass=_ModelMeta):
         FittableModels the _param_name attributes actually just reference
         slices of this array.
         """
-        print(args, kwargs)
         n_models = kwargs.pop('n_models', None)
 
         if not (n_models is None or
@@ -1940,7 +1938,6 @@ class Model(metaclass=_ModelMeta):
 
     def _initialize_parameter_value(self, param_name, value):
         """Mostly deals with consistency checks and determining unit issues."""
-        print(param_name, value)
         if isinstance(value, Parameter):
             self.__dict__[param_name] = value
             return
