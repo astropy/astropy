@@ -25,13 +25,13 @@ class Distribution:
 
     Parameters
     ----------
-    distr : array-like
+    samples : array-like
         The distribution, with sampling along the *leading* axis.
     distr_center : `None` or array-like
         The "center" of this distribution.  It must have the same shape as
         ``distr``, aside from the (initial) sample dimension. If `None`, the
         *median* of ``distr``  along the sampling axis will be used.
-    unit : astropy unit
+    unit : `~astropy.units.Unit`
         A unit of the same sort that `~astropy.units.Quantity` accepts.
 
     Additional argumnets are passed into the `~astropy.units.Quantity`
@@ -45,37 +45,37 @@ class Distribution:
     available so that subclasses can change it.
     """
 
-    def __new__(cls, distr, distr_center=None, unit=None):
-        if isinstance(distr, Distribution):
+    def __new__(cls, samples, distr_center=None, unit=None):
+        if isinstance(samples, Distribution):
             if distr_center is None:
-                distr_center = distr.distr_center
-            distr = distr.distribution
+                distr_center = samples.distr_center
+            samples = samples.distribution
         else:
-            distr = np.asanyarray(distr, order='C')
-        if distr.shape == ():
+            samples = np.asanyarray(samples, order='C')
+        if samples.shape == ():
             raise TypeError('Attempted to initialize a Distribution with a scalar')
 
         # Not clear whether one wants the distr_center argument still.
         # Would need __array_finalize__ to preserve it through slicing, etc.
         if distr_center is None:
-            distr_center = np.median(distr, axis=-1)
+            distr_center = np.median(samples, axis=-1)
 
-        # Not clear why the unit argument is needed.
         if unit is not None:
-            distr = Quantity(distr, unit, copy=False, subok=True)
+            # Not clear why the unit argument is needed.
+            samples = Quantity(samples, unit, copy=False, subok=True)
 
         new_dtype = np.dtype({'names': ['samples'],
-                              'formats': [(distr.dtype, (distr.shape[-1],))]})
-        distr_cls = type(distr)
-        if not issubclass(distr_cls, Distribution):
+                              'formats': [(samples.dtype, (samples.shape[-1],))]})
+        samples_cls = type(samples)
+        if not issubclass(samples_cls, Distribution):
             # Probably should have a dict on the class with these, so
             # we don't create new classes needlessly.
-            new_name = distr_cls.__name__ + cls.__name__
-            new_cls = type(new_name, (cls, distr_cls),
-                           {'_distr_cls': distr_cls})
-        self = distr.view(dtype=new_dtype, type=new_cls)
+            new_name = samples_cls.__name__ + cls.__name__
+            new_cls = type(new_name, (cls, samples_cls),
+                           {'_samples_cls': samples_cls})
+        self = samples.view(dtype=new_dtype, type=new_cls)
         # Get rid of trailing dimension of 1.
-        self.shape = distr.shape[:-1]
+        self.shape = samples.shape[:-1]
         self.center = distr_center
         return self
 
@@ -86,7 +86,7 @@ class Distribution:
     def __getitem__(self, item):
         result = super().__getitem__(item)
         if item == 'samples':
-            return super(Distribution, result).view(self._distr_cls)
+            return super(Distribution, result).view(self._samples_cls)
         else:
             return Distribution.__new__(self.__class__, result['samples'])
 
@@ -171,7 +171,7 @@ class Distribution:
     @property
     def n_samples(self):
         """
-        The number of samples of this distribution.  A single int.
+        The number of samples of this distribution.  A single `int`.
         """
         return self.dtype['samples'].shape[0]
 
@@ -222,7 +222,7 @@ class Distribution:
         """
         return self.pdf_mad * self._smad_scale_factor
 
-    def percentiles(self, perc, **kwargs):
+    def pdf_percentiles(self, perc, **kwargs):
         """
         Compute percentiles of this Distribution.
 
@@ -235,7 +235,7 @@ class Distribution:
 
         Returns
         -------
-        percs : Quantity
+        percs : `~astropy.units.Quantity`
             The ``fracs`` percentiles of this distribution.
         """
         perc = np.percentile(self.distribution, perc, axis=-1)
@@ -256,12 +256,13 @@ class Distribution:
         Parameters
         ----------
         maxtoshow : int or `None`
-            The maximum number of distribution elements to show.  If `None`,
-            there will be no limit, but this may overwhelm matplotlib if the
-            distribution is large.
+            The maximum number of non-sampled distribution elements to show.
+            I.e., the dimensions reflected in this object's ``shape``.  If
+            `None`, there will be no limit, but this may overwhelm matplotlib if
+            the distribution is large.
         Additional keywords are passed into `astropy.visualization.hist`
         """
-        # NOTE: not adjusted to new structure!!
+        # FIXME: not adjusted to new structure!!
         labelset = 'label' in kwargs
         scalar_distr = len(self.shape) == 1
         if scalar_distr:
@@ -408,20 +409,20 @@ class UniformDistribution(Distribution):
         return self
 
     @classmethod
-    def from_center_width(cls, centerq, width, unit=None, **kwargs):
+    def from_center_width(cls, center, width, unit=None, **kwargs):
         """
         Create a `UniformDistribution` from lower/upper bounds (instead of center
         and width as the regular constructor uses).
 
         Parameters
         ----------
-        centerq : `Quantity`
+        center
             The center value of this `UniformDistribution`.
-        width : `Quantity`
+        width
             The width of this `UniformDistribution`.  Must have the same shape and
-            compatible units with ``centerq``.
+            compatible units with ``center``.
 
         Remaining keywords are passed into the `UniformDistribution` constructor.
         """
         whalf = width/2
-        return UniformDistribution(centerq - whalf, centerq + whalf, **kwargs)
+        return UniformDistribution(center - whalf, center + whalf, **kwargs)

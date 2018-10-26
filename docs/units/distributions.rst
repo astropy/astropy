@@ -8,7 +8,7 @@ Distributions
 
 In addition to |quantity|, astropy provides a |distribution| object to represent
 statistical distributions in a form that acts as a drop-in replacement for
-|quantity| or regulay Numpy arrays. USed in this manner, |distribution| provides
+|quantity| or regulay Numpy arrays. Used in this manner, |distribution| provides
 uncertainty propogation at the cost of additional computation.  It can also
 more generally represent sampled distributions for e.g., Monte Carlo calculation
 techniques.
