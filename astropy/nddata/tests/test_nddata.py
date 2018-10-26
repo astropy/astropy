@@ -356,7 +356,9 @@ def test_param_unit():
 
 
 def test_pickle_nddata_with_uncertainty():
-    ndd = NDData(np.ones(3), uncertainty=StdDevUncertainty(np.ones(5), unit=u.m))
+    ndd = NDData(np.ones(3),
+                 uncertainty=StdDevUncertainty(np.ones(5), unit=u.m),
+                 unit=u.m)
     ndd_dumped = pickle.dumps(ndd)
     ndd_restored = pickle.loads(ndd_dumped)
     assert type(ndd_restored.uncertainty) is StdDevUncertainty
@@ -365,7 +367,9 @@ def test_pickle_nddata_with_uncertainty():
 
 
 def test_pickle_uncertainty_only():
-    ndd = NDData(np.ones(3), uncertainty=StdDevUncertainty(np.ones(5), unit=u.m))
+    ndd = NDData(np.ones(3),
+                 uncertainty=StdDevUncertainty(np.ones(5), unit=u.m),
+                 unit=u.m)
     uncertainty_dumped = pickle.dumps(ndd.uncertainty)
     uncertainty_restored = pickle.loads(uncertainty_dumped)
     np.testing.assert_array_equal(ndd.uncertainty.array,
@@ -378,7 +382,7 @@ def test_pickle_uncertainty_only():
 
 
 def test_pickle_nddata_without_uncertainty():
-    ndd = NDData(np.ones(3))
+    ndd = NDData(np.ones(3), unit=u.m)
     dumped = pickle.dumps(ndd)
     ndd_restored = pickle.loads(dumped)
     np.testing.assert_array_equal(ndd.data, ndd_restored.data)
