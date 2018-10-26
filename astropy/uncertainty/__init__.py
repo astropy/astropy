@@ -4,9 +4,9 @@
 """
 This sub-package contains classes and functions for creating distributions that
 work similar to `~astropy.units.Quantity` or array objects, but can propogate
-uncertinties.
+uncertainties.
 """
 
 
 from .core import *
-from .builtin_distrs import *
+from .distributions import *

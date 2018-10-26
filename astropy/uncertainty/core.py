@@ -5,15 +5,17 @@
 Distribution class and associated machinery.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import numpy as np
 
+from .. import units as u
 from .. import visualization
 
 __all__ = ['Distribution']
 
+
+# we set this by hand because the symbolic expression (below) requires scipy
+# SMAD_SCALE_FACTOR = 1 / scipy.stats.norm.ppf(0.75)
+SMAD_SCALE_FACTOR = 1.48260221850560203193936104071326553821563720703125
 
 class Distribution:
     """
@@ -31,6 +33,7 @@ class Distribution:
         sole dimension is used as the sampling axis (i.e., it is a scalar
         distribution).
     """
+    _generated_subclasses = {}
 
     def __new__(cls, samples):
         if isinstance(samples, Distribution):
@@ -44,11 +47,13 @@ class Distribution:
                               'formats': [(samples.dtype, (samples.shape[-1],))]})
         samples_cls = type(samples)
         if not issubclass(samples_cls, Distribution):
-            # Probably should have a dict on the class with these, so
-            # we don't create new classes needlessly.
             new_name = samples_cls.__name__ + cls.__name__
-            new_cls = type(new_name, (cls, samples_cls),
-                           {'_samples_cls': samples_cls})
+            if new_name in cls._generated_subclasses:
+                new_cls = cls._generated_subclasses[new_name]
+            else:
+                new_cls = type(new_name, (cls, samples_cls),
+                               {'_samples_cls': samples_cls})
+                cls._generated_subclasses[new_name] = new_cls
         self = samples.view(dtype=new_dtype, type=new_cls)
         # Get rid of trailing dimension of 1.
         self.shape = samples.shape[:-1]
@@ -185,48 +190,48 @@ class Distribution:
         """
         return np.abs(self - self.pdf_median).pdf_median
 
-    # we set this by hand because the symbolic expression (below) requires scipy
-    # _smad_scale_factor = 1 / scipy.stats.norm.ppf(0.75)
-    _smad_scale_factor = 1.48260221850560203193936104071326553821563720703125
-
     @property
     def pdf_smad(self):
         """
         The median absolute deviation of this distribution rescaled to match the
         standard deviation for a normal distribution.
         """
-        return self.pdf_mad * self._smad_scale_factor
+        return self.pdf_mad * SMAD_SCALE_FACTOR
 
-    def pdf_percentiles(self, perc, **kwargs):
+    def pdf_percentiles(self, percentile, **kwargs):
         """
         Compute percentiles of this Distribution.
 
         Parameters
         ----------
-        perc : float or array of floats
+        percentile : float or array of floats or `~astropy.units.Quantity`
             The desired  precentiles of the distribution (i.e., on [0,100]).
-        kwargs
-            Additional keywords are passed into `numpy.percentile`.
+            `~astropy.units.Quantity` will be converted to percent, meaning
+            that a `u.dimensionless_unscaled` `~astropy.units.Quantity`  will
+            be interpreted as a quantile.
+
+        Additional keywords are passed into `numpy.percentile`.
 
         Returns
         -------
-        percs : `~astropy.units.Quantity`
+        percentiles : `~astropy.units.Quantity`
             The ``fracs`` percentiles of this distribution.
         """
-        perc = np.percentile(self.distribution, perc, axis=-1)
+        percentile = u.Quantity(percentile, u.percent).value
+        percs = np.percentile(self.distribution, percentile, axis=-1, **kwargs)
         # numpy.percentile strips units for unclear reasons, so we have to make
         # a new object with units
         if hasattr(self.distribution, '_new_view'):
-            return self.distribution._new_view(perc)
+            return self.distribution._new_view(percs)
         else:
-            return perc
+            return percs
 
     def hist(self, maxtoshow=10, **kwargs):
         """
-        Use `astropy.visualization.hist` (which uses matplotlib's ``hist``
-        function) to visualize this distribution.  For N-D distributions, the
-        array is flattened following standard numpy rules, and the distributions
-        are shown as separate histograms for each element.
+        A convenience method using `astropy.visualization.hist` (which uses
+        matplotlib's ``hist`` function) to visualize this distribution.  For N-D
+        distributions, the array is flattened following standard numpy rules,
+        and the distributions are shown as separate histograms for each element.
 
         Parameters
         ----------

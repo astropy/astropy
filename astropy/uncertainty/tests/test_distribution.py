@@ -6,7 +6,7 @@ import numpy as np
 
 from ... import units as u
 from ..core import Distribution
-from .. import builtin_distrs as ds
+from .. import distributions as ds
 from ...utils import NumpyRNGContext
 from ...tests.helper import assert_quantity_allclose, pytest
 
@@ -77,7 +77,6 @@ class TestDistributionStatistics():
         assert self.distr.n_samples == 10000
 
     def test_n_distr(self):
-        # Shape of the PDF (note, this is actually the number of values regardless of samples, needs a better name?)
         assert self.distr.shape == (4,)
 
     def test_pdf_mean(self):
@@ -192,7 +191,7 @@ def test_helper_normal_samples():
 
 
 def test_helper_poisson_samples():
-    centerqadu = [1, 5, 30, 400] * u.adu
+    centerqadu = [1, 5, 30, 400] * u.count
 
     with NumpyRNGContext(12345):
         p_dist = ds.poisson(centerqadu, n_samples=100)
@@ -231,9 +230,6 @@ def test_helper_normal_exact():
 
 def test_helper_poisson_exact():
     pytest.skip('distribution stretch goal not yet implemented')
-    # TODO: what does Poisson Distribution mean for a quantity in e.g. kpc?
-    # Should we not restrict to dimensionless? Have updated the test to reflect
-    # that here.
     centerq = [1, 5, 30, 400] * u.one
     ds.poisson(centerq)
 
@@ -242,13 +238,6 @@ def test_helper_poisson_exact():
         ds.poisson(centerq)
     assert exc.value.args[0] == ("Poisson distribution can only be computed "
                                  "for dimensionless quantities")
-
-
-def test_arithmetic_exact():
-    pytest.skip('distribution stretch goal not yet implemented')
-    dist = (ds.normal(3 * u.kpc)
-            * ds.poisson(5 * u.one)
-            + ds.uniform(3 * u.pc, 5 * u.pc))
 
 
 def test_reprs():
