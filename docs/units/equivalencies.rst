@@ -375,22 +375,20 @@ convert to/from physical to "little h" units.  As an example::
     >>> import astropy.units as u
     >>> distance = 100 * (u.Mpc/u.littleh)
     >>> H0 = 70 * u.km/u.s / u.Mpc
-    >>> distance.to(u.Mpc, u.littleh_as(H0))  # doctest: +FLOAT_CMP
+    >>> distance.to(u.Mpc, u.with_H0(H0))  # doctest: +FLOAT_CMP
     <Quantity 70.0 Mpc>
 
 Note the unit name ``littleh`` - while this unit is usually expressed in the
 literature as just ``h``, here it is ``littleh`` to not cause confusion with
 "hours".
 
-This equivalency also works with `astropy.cosmology` objects.  In fact, if no
-argument is given, it assumes the current default cosmology:
+If no argument is given (or the argument is `None`), this equivalency assumes
+gets ``H0`` from the current default cosmology:
 
     >>> import astropy.units as u
     >>> from astropy import cosmology
     >>> distance = 100 * (u.Mpc/u.littleh)
-    >>> distance.to(u.Mpc, u.littleh_as(cosmology.WMAP9))  # doctest: +FLOAT_CMP
-    <Quantity 69.32 Mpc>
-    >>> distance.to(u.Mpc, u.littleh_as())  # doctest: +FLOAT_CMP
+    >>> distance.to(u.Mpc, u.with_H0())  # doctest: +FLOAT_CMP
     <Quantity 69.32 Mpc>
 
 
