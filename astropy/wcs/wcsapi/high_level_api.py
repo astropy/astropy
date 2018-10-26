@@ -218,4 +218,4 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         return self.pixel_to_world(*index_arrays[::-1])
 
     def world_to_array_index(self, *world_objects):
-        return np.round(self.world_to_pixel(*world_objects)[::-1]).astype(int)
+        return tuple(np.round(self.world_to_pixel(*world_objects)[::-1]).astype(int).tolist())

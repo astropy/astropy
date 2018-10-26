@@ -33,6 +33,8 @@ def test_empty():
 
     assert wcs.pixel_n_dim == 1
     assert wcs.world_n_dim == 1
+    assert wcs.array_shape is None
+    assert wcs.pixel_shape is None
     assert wcs.world_axis_physical_types == [None]
     assert wcs.world_axis_units == ['']
 
@@ -48,7 +50,7 @@ def test_empty():
     assert_allclose(wcs.array_index_to_world_values(29), 29)
 
     assert_allclose(wcs.world_to_pixel_values(29), 29)
-    assert_equal(wcs.world_to_array_index_values(29), 29)
+    assert_equal(wcs.world_to_array_index_values(29), (29,))
 
     # High-level API
 
@@ -61,7 +63,7 @@ def test_empty():
     assert_allclose(x, 15.)
 
     i = wcs.world_to_array_index(coord)
-    assert_equal(i, 15)
+    assert_equal(i, (15,))
 
 
 ###############################################################################
@@ -94,6 +96,8 @@ def test_simple_celestial():
 
     assert wcs.pixel_n_dim == 2
     assert wcs.world_n_dim == 2
+    assert wcs.array_shape is None
+    assert wcs.pixel_shape is None
     assert wcs.world_axis_physical_types == ['pos.eq.ra', 'pos.eq.dec']
     assert wcs.world_axis_units == ['deg', 'deg']
 
@@ -150,6 +154,18 @@ def test_simple_celestial():
     assert_equal(i, 39)
     assert_equal(j, 29)
 
+    # Check that we can actually index the array
+
+    data = np.arange(3600).reshape((60, 60))
+
+    coord = SkyCoord(10, 20, unit='deg', frame='icrs')
+    index = wcs.world_to_array_index(coord)
+    assert_equal(data[index], 2369)
+
+    coord = SkyCoord([10, 12], [20, 22], unit='deg', frame='icrs')
+    index = wcs.world_to_array_index(coord)
+    assert_equal(data[index], [2369, 3550])
+
 
 ###############################################################################
 # The following example is a spectral cube with axes in an unusual order
@@ -187,6 +203,8 @@ def test_spectral_cube():
 
     assert wcs.pixel_n_dim == 3
     assert wcs.world_n_dim == 3
+    assert wcs.array_shape is None
+    assert wcs.pixel_shape is None
     assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
     assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
 
@@ -339,6 +357,8 @@ def test_time_cube():
 
     assert wcs.pixel_n_dim == 3
     assert wcs.world_n_dim == 3
+    assert wcs.array_shape == (11, 2048, 2048)
+    assert wcs.pixel_shape == (2048, 2048, 11)
     assert wcs.world_axis_physical_types == ['pos.eq.dec', 'pos.eq.ra', 'time']
     assert wcs.world_axis_units == ['deg', 'deg', 's']
 
