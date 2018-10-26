@@ -1,5 +1,6 @@
 .. |quantity| replace:: :class:`~astropy.units.Quantity`
 .. |distribution| replace:: :class:`~astropy.uncertainty.Distribution`
+.. |ndarray| replace:: :class:`numpy.ndarray`
 
 .. _astropy-uncertainty:
 
@@ -17,9 +18,9 @@ Uncertainties and Distributions (`astropy.uncertainty`)
 Introduction
 ============
 
-In addition to |quantity|, astropy provides a |distribution| object to represent
+Astropy provides a |distribution| object to represent
 statistical distributions in a form that acts as a drop-in replacement for
-|quantity| or regulay Numpy arrays. Used in this manner, |distribution| provides
+|quantity| or a regular |ndarray|. Used in this manner, |distribution| provides
 uncertainty propogation at the cost of additional computation.  It can also
 more generally represent sampled distributions for e.g., Monte Carlo calculation
 techniques.
@@ -30,7 +31,9 @@ may take more memory, it allows arbitrarily complex operations to be performed
 on distributions while maintaining their correlation structure. Some specific
 well-behaved distributions (e.g., the Normal distribution) have
 analytic forms which may eventually enable a more compact/efficient
-representation, but this is not currently implemented.
+representation.  In the future these may provide a coherent uncertainty
+propogation mechanism to work with `~astropy.nddata.NDData`  However, this is
+not currently implemented. 
 
 Getting Started
 ===============
@@ -174,9 +177,9 @@ patterns.
 Using Distributions
 -------------------
 
-This object now acts much like a |quantity| for all but the non-sampled
-dimension, but with additional statistical operations that work on the sampled
-distributions:
+This object now acts much like a |quantity| or |ndarray| for all but the
+non-sampled dimension, but with additional statistical operations that work on
+the sampled distributions:
 
   >>> distr.shape
   (4,)
@@ -202,6 +205,10 @@ distributions:
   <Quantity [[  0. ,   2. ,  23. , 374. ],
              [  1. ,   5. ,  30. , 400. ],
              [  2. ,   8. ,  37.1, 427. ]] kpc>
+  >>> distr.pdf_percentiles([.1, .5, .9]*u.dimensionless_unscaled)
+  <Quantity [[  0. ,   2. ,  23. , 374. ],
+            [  1. ,   5. ,  30. , 400. ],
+            [  2. ,   8. ,  37.1, 427. ]] kpc>
 
 If need be, the underlying array can then be accessed from the ``distribution``
 attribute:

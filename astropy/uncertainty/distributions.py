@@ -5,9 +5,6 @@
 Built-in distribution-creation functions.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import numpy as np
 
 from ..units import UnitsError
@@ -16,8 +13,8 @@ from .core import Distribution
 __all__ = ['normal', 'poisson', 'uniform', 'uniform_center_width']
 
 
-def normal(center, std=None, var=None, ivar=None, n_samples=1000,
-           dcls=Distribution, **kwargs):
+def normal(center, *, std=None, var=None, ivar=None, n_samples=1000,
+           cls=Distribution, **kwargs):
     """
     Create a Gaussian/normal distribution.
 
@@ -38,15 +35,15 @@ def normal(center, std=None, var=None, ivar=None, n_samples=1000,
         are set).
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
-    dcls : class
+    cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
 
-    Remaining keywords are passed into the constructor of the ``dcls``
+    Remaining keywords are passed into the constructor of the ``cls``
 
     Returns
     -------
-    distr : ``dcls``, usually `Distribution`
+    distr : ``cls``, usually `Distribution`
         The sampled Gaussian distribution.
     """
     center = np.asanyarray(center)
@@ -68,12 +65,10 @@ def normal(center, std=None, var=None, ivar=None, n_samples=1000,
 
     randshape = np.broadcast(std, center).shape + (n_samples,)
     samples = center[..., np.newaxis] + np.random.randn(*randshape) * std[..., np.newaxis]
-    distr = dcls(samples, **kwargs)
-    distr.distr_std = std
-    return distr
+    return cls(samples, **kwargs)
 
 
-def poisson(center, n_samples=1000, dcls=Distribution, **kwargs):
+def poisson(center, n_samples=1000, cls=Distribution, **kwargs):
     """
     Create a Poisson distribution.
 
@@ -83,15 +78,15 @@ def poisson(center, n_samples=1000, dcls=Distribution, **kwargs):
         The center value of this distribution (i.e., λ).
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
-    dcls : class
+    cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
 
-    Remaining keywords are passed into the constructor of the ``dcls``
+    Remaining keywords are passed into the constructor of the ``cls``
 
     Returns
     -------
-    distr : ``dcls``, usually `Distribution`
+    distr : ``cls``, usually `Distribution`
         The sampled poisson distribution.
     """
     # we convert to arrays because np.random.poisson has trouble with quantities
@@ -108,14 +103,12 @@ def poisson(center, n_samples=1000, dcls=Distribution, **kwargs):
         # re-attach the unit
         samples = samples * center.unit
 
-    distr = dcls(samples, **kwargs)
-    distr.distr_std = center**0.5
-    return distr
+    return cls(samples, **kwargs)
 
 
-def uniform(lower, upper, n_samples=1000, dcls=Distribution, **kwargs):
+def uniform(lower, upper, n_samples=1000, cls=Distribution, **kwargs):
     """
-    Create a Uniform Distribution.
+    Create a Uniform distriution from the lower and upper bounds.
 
     Parameters
     ----------
@@ -127,51 +120,33 @@ def uniform(lower, upper, n_samples=1000, dcls=Distribution, **kwargs):
         `~astropy.units.Quantity` must have compatible units with ``lower``.
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
-    dcls : class
+    cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
 
-    Remaining keywords are passed into the constructor of the ``dcls``
+    Remaining keywords are passed into the constructor of the ``cls``
 
     Returns
     -------
-    distr : ``dcls``, usually `Distribution`
+    distr : ``cls``, usually `Distribution`
         The sampled uniform distribution.
     """
-    lhasu = hasattr(lower, 'unit')
-    uhasu = hasattr(upper, 'unit')
-    unit = None
-    if lhasu and uhasu:
-        if lower.unit != upper.unit:
-            upper = upper.to(lower.unit)
-        unit = lower.unit
-
-        lowerarr = np.asanyarray(lower.value)
-        upperarr = np.asanyarray(upper.value)
-    elif not lhasu and not uhasu:
-        lowerarr = np.asanyarray(lower)
-        upperarr = np.asanyarray(upper)
-    else:
-        raise UnitsError('lower and upper must have consistent (or no) '
-                         'units in uniform.')
-
-    if lowerarr.shape != upperarr.shape:
+    lower = np.asanyarray(lower)
+    upper = np.asanyarray(upper)
+    if lower.shape != upper.shape:
         raise ValueError('lower and upper must have consistent shapes in '
                          'uniform.')
 
-    newshape = lowerarr.shape + (n_samples,)
-    samples = np.random.uniform(lowerarr[..., np.newaxis],
-                                upperarr[..., np.newaxis], newshape)
-    if unit is not None:
-        samples = samples * unit
+    newshape = lower.shape + (n_samples,)
+    width = (upper - lower)[:, np.newaxis]
+    samples = lower[:, np.newaxis] + width * np.random.uniform(size=newshape)
 
-    return dcls(samples, **kwargs)
+    return cls(samples, **kwargs)
 
 
 def uniform_center_width(center, width, **kwargs):
     """
-    Create a uniform distribution from lower/upper bounds (instead of center
-    and width as the regular constructor uses).
+    Create a uniform distribution from the center and width.
 
     Parameters
     ----------
@@ -185,7 +160,7 @@ def uniform_center_width(center, width, **kwargs):
 
     Returns
     -------
-    distr : ``dcls``, usually `Distribution`
+    distr : ``cls``, usually `Distribution`
         The sampled uniform distribution.
     """
     whalf = width/2
