@@ -77,7 +77,8 @@ through:
   <Quantity 2.83327524 kpc>
   >>> f.pdf_std # doctest: +FLOAT_CMP
   <Quantity 0.79948566 kpc>
-  >>> f.hist(bins=50) # doctest: +SKIP
+  >>> import matplotlib as plt
+  >>> plt.hist(f.distribution, bins=50) # doctest: +SKIP
 
 .. plot::
   :align: center
@@ -85,6 +86,7 @@ through:
   import numpy as np
   from astropy import units as u
   from astropy import uncertainty as unc
+  import matplotlib as plt
   np.random.seed(12345)
   a = unc.normal(1*u.kpc, std=30*u.pc)
   b = unc.normal(2*u.kpc, std=40*u.pc)
@@ -92,7 +94,7 @@ through:
   d = unc.poisson(3*u.kpc)
   e = unc.uniform(center=3*u.kpc, width=800*u.pc)
   f = (c * d * e) ** (1/3)
-  f.hist(bins=50)
+  plt.hist(f.distribution, bins=50)
 
 
 
