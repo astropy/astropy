@@ -347,8 +347,8 @@ and you want to know how big your pixels need to be to cover half an arcsecond::
     >>> (0.5*u.arcsec).to(u.micron, tel_platescale)  # doctest: +FLOAT_CMP
     <Quantity 18.9077335632719 micron>
 
-Photometric Zero Point Equivalencies
-------------------------------------
+Photometric Zero Point Equivalency
+----------------------------------
 
 This equivalency provides an easy way to move between photometric systems (i.e.,
 those defined relative to a particular zero-point flux) and absolute fluxes.
@@ -361,8 +361,8 @@ standard zero point of 3631.1 Jy::
     >>> u.Magnitude(target_flux.to(u.AB, zero_point_star_equiv))  # doctest: +FLOAT_CMP
     <Magnitude 22.30195136 mag(AB)>
 
-Reduced Hubble constant/"little-h" equivalencies
-------------------------------------------------
+Reduced Hubble constant/"little-h" Equivalency
+----------------------------------------------
 
 The dimensionless version of the Hubble constant - often known as "little h" -
 is a frequently-used quantity in extragalactic astrophysics.  It is also widely
