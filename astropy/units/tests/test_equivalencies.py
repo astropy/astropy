@@ -764,3 +764,14 @@ def test_littleh():
     H0_default_cosmo = cosmology.default_cosmology.get().H0
     assert_quantity_allclose(h100dist.to(u.Mpc, u.with_H0()),
                              H0_default_cosmo.value*u.Mpc)
+
+    # Now try a luminosity scaling
+    h1lum = 1 * u.Lsun * u.littleh**-2
+    assert_quantity_allclose(h1lum.to(u.Lsun, u.with_H0(H0_70)), .49*u.Lsun)
+
+    # And the trickiest one: magnitudes.  Using H0=10 here for the round numbers
+    H0_10 = 10*u.km/u.s/u.Mpc
+    # assume the "true" magnitude M = 12.
+    # Then M - 5*log_10(h)  = M + 5 = 17
+    withlittlehmag = 17 * (u.mag + u.MagUnit(u.littleh**2))
+    assert_quantity_allclose(withlittlehmag.to(u.mag, u.with_H0(H0_10)), 12*u.mag)
