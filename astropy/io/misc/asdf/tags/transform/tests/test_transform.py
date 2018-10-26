@@ -4,7 +4,7 @@
 import pytest
 import numpy as np
 
-asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
+#asdf = pytest.importorskip('asdf', minversion='1.3.0')
 from asdf import util
 from asdf.tests import helpers
 
