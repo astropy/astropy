@@ -197,13 +197,37 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     else:
         fileobj = name_or_obj
 
-    # Check if the file object supports random access, and if not,
-    # then wrap it in a BytesIO buffer.  It would be nicer to use a
-    # BufferedReader to avoid reading loading the whole file first,
-    # but that is not compatible with streams or urllib2.urlopen
-    # objects on Python 2.x.
+    # Check if the file object supports random access, and if not, then wrap it
+    # in a BufferedReader.
     if not hasattr(fileobj, 'seek'):
-        fileobj = io.BytesIO(fileobj.read())
+        class RawStream(io.RawIOBase):
+            """A raw stream that can be wrapped in a `BufferedReader` to provide random access.
+
+            The file-like object to be wrapped is only required to have a
+            `read` method.
+
+            """
+
+            def __init__(self, fileobj):
+                self.fileobj = fileobj
+
+            def readable(self):
+                return True
+
+            def seekable(self):
+                return True
+
+            def readinto(self, b):
+                result = self.fileobj.read(len(b))
+                if result is None:
+                    return None
+
+                nbytes = len(result)
+                b[:nbytes] = result
+                return nbytes
+
+        stream = RawStream(fileobj)
+        fileobj = io.BufferedReader(stream)
 
     # Now read enough bytes to look at signature
     signature = fileobj.read(4)
