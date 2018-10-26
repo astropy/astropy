@@ -194,6 +194,23 @@ class TestSphericalRepresentation:
             len(s)
         assert not isiterable(s)
 
+    def test_nan_distance(self):
+        """ This is a regression test: calling represent_as() and passing in the
+            same class as the object shouldn't round-trip through cartesian.
+        """
+
+        sph = SphericalRepresentation(1*u.deg, 2*u.deg, np.nan*u.kpc)
+        new_sph = sph.represent_as(SphericalRepresentation)
+        assert_allclose_quantity(new_sph.lon, sph.lon)
+        assert_allclose_quantity(new_sph.lat, sph.lat)
+
+        dif = SphericalCosLatDifferential(1*u.mas/u.yr, 2*u.mas/u.yr,
+                                          3*u.km/u.s)
+        sph = sph.with_differentials(dif)
+        new_sph = sph.represent_as(SphericalRepresentation)
+        assert_allclose_quantity(new_sph.lon, sph.lon)
+        assert_allclose_quantity(new_sph.lat, sph.lat)
+
 
 class TestUnitSphericalRepresentation:
 

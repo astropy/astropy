@@ -685,8 +685,11 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
                                  "must be a class, not a string. For "
                                  "strings, use frame objects")
 
-            # The default is to convert via cartesian coordinates
-            new_rep = other_class.from_cartesian(self.to_cartesian())
+            if other_class is not self.__class__:
+                # The default is to convert via cartesian coordinates
+                new_rep = other_class.from_cartesian(self.to_cartesian())
+            else:
+                new_rep = self
 
             new_rep._differentials = self._re_represent_differentials(
                 new_rep, differential_class)
