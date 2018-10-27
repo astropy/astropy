@@ -148,30 +148,22 @@ distribution:
 
 Additionally, Poisson and uniform |distribution| creation functions exist:
 
-  >>> unc.poisson(center*u.count, n_samples=1000) # doctest: +FLOAT_CMP
-  <QuantityDistribution [[  2.,   2.,   2., ...,   1.,   1.,   3.],
-               [  7.,   3.,   2., ...,   1.,   3.,   5.],
-               [ 32.,  27.,  30., ...,  31.,  39.,  29.],
-               [425., 387., 379., ..., 404., 384., 377.]] ct with n_samples=1000>
+  >>> unc.poisson(center*u.count, n_samples=1000) # doctest: +ELLIPSIS
+  <QuantityDistribution [[...],
+               [...],
+               [...],
+               [...]] ct with n_samples=1000>
   >>> uwidth = [10, 20, 10, 55]*u.pc
-  >>> unc.uniform(center=center*u.kpc, width=uwidth, n_samples=1000) # doctest: +FLOAT_CMP
-  <QuantityDistribution [[  1.00264599,   1.00203114,   1.00228494, ...,   1.00280875,
-                  1.00077583,   1.00213164],
-               [  5.00861993,   4.99102886,   5.00254059, ...,   4.99831796,
-                  5.00073192,   4.99709326],
-               [ 29.99540657,  29.99856712,  30.00200227, ...,  29.99766923,
-                 30.0014714 ,  29.99719035],
-               [400.01991204, 399.98233216, 399.98231204, ..., 399.99071525,
-                400.01797099, 400.01086062]] kpc with n_samples=1000>
-  >>> unc.uniform(lower=center*u.kpc - uwidth/2,  upper=center*u.kpc + uwidth/2, n_samples=1000)  # doctest: +FLOAT_CMP
-  <QuantityDistribution [[  0.99578122,   1.00056763,   0.99984519, ...,   0.99531055,
-                  1.00396487,   1.00018797],
-               [  5.0076216 ,   5.00672847,   5.00009831, ...,   5.00216818,
-                  4.99087752,   5.00813196],
-               [ 30.0031185 ,  29.99844025,  29.99764698, ...,  29.99581011,
-                 30.00328488,  29.99903985],
-               [399.97772381, 400.00168039, 399.98895828, ..., 399.97706371,
-                400.00833078, 399.99777102]] kpc with n_samples=1000>
+  >>> unc.uniform(center=center*u.kpc, width=uwidth, n_samples=1000) # doctest: +ELLIPSIS
+  <QuantityDistribution [[...],
+               [...],
+               [...],
+               [...]] kpc with n_samples=1000>
+  >>> unc.uniform(lower=center*u.kpc - uwidth/2,  upper=center*u.kpc + uwidth/2, n_samples=1000)  # doctest: +ELLIPSIS
+  <QuantityDistribution [[...],
+               [...],
+               [...],
+               [...]] kpc with n_samples=1000>
 
 Users are free to create their own distribution classes following similar
 patterns.
@@ -216,11 +208,11 @@ the sampled distributions:
 If need be, the underlying array can then be accessed from the ``distribution``
 attribute:
 
-  >>> distr.distribution
-  <Quantity [[  0.,   0.,   1., ...,   1.,   0.,   1.],
-             [  7.,   3.,   4., ...,   3.,   2.,   5.],
-             [ 27.,  32.,  35., ...,  37.,  21.,  40.],
-             [421., 373., 389., ..., 405., 391., 369.]] ct>
+  >>> distr.distribution  # doctest: +ELLIPSIS
+  <Quantity [[...1...],
+             [...5...],
+             [...27...],
+             [...405...]] ct>
   >>> distr.distribution.shape
   (4, 1000)
 
