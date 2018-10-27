@@ -71,6 +71,7 @@ packages that use the full bugfix/maintenance branch approach.)
    compliant::
 
       $ python setup.py test --remote-data=any
+      $ TEST_READ_HUGE_FILE=1 pytest -sv astropy/io/ascii/tests/test_c_reader.py -k big_table
       $ python setup.py check --restructuredtext
 
 #. Ensure you have a GPG key pair available for when git needs to sign the
