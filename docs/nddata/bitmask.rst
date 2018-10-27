@@ -102,20 +102,16 @@ For example,
 
     >>> from astropy.nddata import bitmask
     >>> import numpy as np
-    >>> try: # OPTIONAL (used to preserve numpy 1.13 array formatting)
-    ...     np.set_printoptions(legacy='1.13')
-    ... except TypeError:
-    ...     pass
     >>> bitmask.bitfield_to_boolean_mask(217, ignore_flags=80)
-    array(True, dtype=bool)
+    array(True...)
     >>> bitmask.bitfield_to_boolean_mask(217, ignore_flags='16,64')
-    array(True, dtype=bool)
+    array(True...)
     >>> bitmask.bitfield_to_boolean_mask(217, ignore_flags=[16, 64])
-    array(True, dtype=bool)
+    array(True...)
     >>> bitmask.bitfield_to_boolean_mask(9, ignore_flags=[1, 8, 64])
-    array(False, dtype=bool)
+    array(False...)
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags='1,8,64')
-    array([False,  True, False,  True], dtype=bool)
+    array([False,  True, False,  True]...)
 
 It is also possible to specify the type of the output mask:
 
@@ -146,14 +142,14 @@ This effectively modifies `equation (1) <main_eq_>`_ to:
 So, instead of
 
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags=[1, 8, 64])
-    array([False,  True, False,  True], dtype=bool)
+    array([False,  True, False,  True]...)
 
 one can obtain the same result as
 
     >>> bitmask.bitfield_to_boolean_mask(
     ...     [9, 10, 73, 217], ignore_flags=[2, 4, 16, 32, 128], flip_bits=True
     ... )
-    array([False,  True, False,  True], dtype=bool)
+    array([False,  True, False,  True]...)
 
 Note however, when ``ignore_flags`` is a comma-separated list of bit flag
 values, ``flip_bits`` cannot be set to neither `True` or `False`. Instead,
@@ -161,7 +157,7 @@ to flip bits of the bit mask formed from a string list of comma-separated
 bit flag values, one can prepend a single ``~`` to the list:
 
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags='~2+4+16+32+128')
-    array([False,  True, False,  True], dtype=bool)
+    array([False,  True, False,  True]...)
 
 
 Inverting Boolean Mask
@@ -179,4 +175,4 @@ its default value (`False`) to `True`. For example,
 
     >>> bitmask.bitfield_to_boolean_mask([9, 10, 73, 217], ignore_flags=[1, 8, 64],
     ...                                  good_mask_value=True)
-    array([ True, False,  True, False], dtype=bool)
+    array([ True, False,  True, False]...)
