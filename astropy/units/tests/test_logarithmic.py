@@ -77,7 +77,6 @@ class TestLogUnitCreation:
 
 
 def test_predefined_magnitudes():
-    # these magnitudes are only approximations to the true definition
     assert_quantity_allclose((-21.1*u.STmag).physical,
                              1.*u.erg/u.cm**2/u.s/u.AA)
     assert_quantity_allclose((-48.6*u.ABmag).physical,

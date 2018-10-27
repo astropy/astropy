@@ -31,7 +31,7 @@ def_unit(['mgy', 'maggy'],
          namespace=_ns, prefixes=[(['n'], ['nano'], 1e-9)],
          doc="Maggies - a linear flux unit that is the flux for a mag=0 object."
              "To tie this onto a specific calibrated unit system, the "
-             "phot_zero_point equivalency should be used.")
+             "zero_point_flux equivalency should be used.")
 
 
 def zero_point_flux(flux0):

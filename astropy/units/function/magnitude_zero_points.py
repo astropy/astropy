@@ -7,13 +7,9 @@ names remain here for backwards compatibility.
 """
 from warnings import warn
 
-from ..core import def_unit
-from ..photometric import ABflux, STflux
+from ..photometric import AB, ST
 
 _ns = globals()
-
-def_unit(['AB'], ABflux, namespace=_ns)
-def_unit(['ST'], STflux, namespace=_ns)
 
 
 def enable():
@@ -26,11 +22,5 @@ def enable():
     units only temporarily.
     """
     warn('The magnitude_zero_points module has been deprecated, and moved to '
-         'astropy.units.photometric (with more appropriate default names). '
-         'the magnitude_zero_points are retained as aliases to the new units.')
-
-    # Local import to avoid cyclical import
-    from ..core import add_enabled_units
-    # Local import to avoid polluting namespace
-    import inspect
-    return add_enabled_units(inspect.getmodule(enable))
+         'astropy.units.photometric and are enabled by default. '
+         'magnitude_zero_points is retained as aliases to the new units.')
