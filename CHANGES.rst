@@ -16,6 +16,8 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Disable ``of_address`` usage due to Google API now requiring API key. [#7993]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
