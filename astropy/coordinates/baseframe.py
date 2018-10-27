@@ -827,15 +827,21 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         return self._get_representation_info()
 
     def get_representation_component_names(self, which='base'):
-        out = OrderedDict()
-        repr_or_diff_cls = self.get_representation_cls(which)
-        if repr_or_diff_cls is None:
-            return out
-        data_names = repr_or_diff_cls.attr_classes.keys()
-        repr_names = self.representation_info[repr_or_diff_cls]['names']
-        for repr_name, data_name in zip(repr_names, data_names):
-            out[repr_name] = data_name
-        return out
+        cls = self.__class__
+        if cls._frame_class_cache.get('representation_component_names_hash', None) != r.get_reprdiff_cls_hash():
+            cls._frame_class_cache['representation_component_names'] = {}
+            cls._frame_class_cache['representation_component_names_hash'] = r.get_reprdiff_cls_hash()
+        if which not in cls._frame_class_cache['representation_component_names']:
+            out = OrderedDict()
+            repr_or_diff_cls = self.get_representation_cls(which)
+            if repr_or_diff_cls is None:
+                return out
+            data_names = repr_or_diff_cls.attr_classes.keys()
+            repr_names = self.representation_info[repr_or_diff_cls]['names']
+            for repr_name, data_name in zip(repr_names, data_names):
+                out[repr_name] = data_name
+            cls._frame_class_cache['representation_component_names'][which] = out
+        return cls._frame_class_cache['representation_component_names'][which]
 
     def get_representation_component_units(self, which='base'):
         out = OrderedDict()
