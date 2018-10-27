@@ -152,20 +152,20 @@ class Distance(u.SpecificTypeQuantity):
                 # but a copy is already made, so no longer necessary
                 copy = False
 
-                if np.any(parallax < 0) and not allow_negative:
-                    raise ValueError('Negative parallaxes are not interpretable'
-                                     ' as distances. If you want to have these '
-                                     'values turned into NaN values, use the '
-                                     '`allow_negative=True` argument.')
-
-                elif np.any(parallax < 0) and allow_negative:
-                    warnings.warn("Negative parallaxes are converted to NaN "
-                                  "distances even when `allow_negative=True`, "
-                                  "because negative parallaxes cannot be "
-                                  "transformed into distances. See discussion "
-                                  "in this paper: "
-                                  "https://arxiv.org/abs/1507.02105",
-                                  AstropyWarning)
+                if np.any(parallax < 0):
+                    if allow_negative:
+                        warnings.warn(
+                            "Negative parallaxes are converted to NaN "
+                            "distances even when `allow_negative=True`, "
+                            "because negative parallaxes cannot be transformed "
+                            "into distances. See discussion in this paper: "
+                            "https://arxiv.org/abs/1507.02105", AstropyWarning)
+                    else:
+                        raise ValueError("Negative parallaxes are not "
+                                         "interpretable as distances. If you "
+                                         "want to have these values turned "
+                                         "into NaN values, use the "
+                                         "`allow_negative=True` argument.")
 
             elif value is None:
                 raise ValueError('None of `value`, `z`, `distmod`, or '
