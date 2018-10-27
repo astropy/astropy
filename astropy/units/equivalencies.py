@@ -695,8 +695,8 @@ def with_H0(H0=None):
 
     Parameters
     ----------
-    cosmology_or_H0 : None or  `~astropy.units.Quantity`
-        The source of the value of the Hubble constant to assume. If a quantity,
+    H0 : `None` or `~astropy.units.Quantity`
+        The value of the Hubble constant to assume. If a `~astropy.units.Quantity`,
         will assume the quantity *is* ``H0``.  If `None` (default), use the
         ``H0`` attribute from the default `astropy.cosmology` cosmology.
 
