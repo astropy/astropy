@@ -214,14 +214,14 @@ astropy.time
 - Add fractional second support for ``strftime`` and ``strptime`` methods
   of ``Time`` class. [#7705]
 
+- Added an ``insert`` method to allow inserting one or more values into a
+  ``Time`` or ``TimeDelta`` object. [#7897]
 
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
 
 - This sub-package was added as a "preview" (i.e. API unstable), containing
   the ``Distribution`` class and associated convenience functions. [#6945]
-- Added an ``insert`` method to allow inserting one or more values into a
-  ``Time`` or ``TimeDelta`` object. [#7897]
 
 astropy.units
 ^^^^^^^^^^^^^
