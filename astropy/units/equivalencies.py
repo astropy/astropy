@@ -591,8 +591,9 @@ def thermodynamic_temperature(frequency, T_cmb=None):
     frequency : `~astropy.units.Quantity` with spectral units
         The observed `spectral` equivalent `~astropy.units.Unit` (e.g.,
         frequency or wavelength)
-    T_cmb :  `~astropy.units.Quantity` with temperature units (default Planck15 value)
-        The CMB temperature at z=0
+    T_cmb :  `~astropy.units.Quantity` with temperature units or None
+        The CMB temperature at z=0.  If `None`, the default cosmology will be
+        used to get this temperature.
 
     Notes
     -----
@@ -609,8 +610,9 @@ def thermodynamic_temperature(frequency, T_cmb=None):
     Planck HFI 143 GHz::
 
         >>> from astropy import units as u
+        >>> from astropy.cosmology import Planck15
         >>> freq = 143 * u.GHz
-        >>> equiv = u.thermodynamic_temperature(freq)
+        >>> equiv = u.thermodynamic_temperature(freq, Planck15.Tcmb0)
         >>> (1. * u.mK).to(u.MJy / u.sr, equivalencies=equiv)  # doctest: +FLOAT_CMP
         <Quantity 0.37993172 MJy / sr>
 
@@ -618,8 +620,8 @@ def thermodynamic_temperature(frequency, T_cmb=None):
     nu = frequency.to(si.GHz, spectral())
 
     if T_cmb is None:
-        from ..cosmology import Planck15
-        T_cmb = Planck15.Tcmb0
+        from ..cosmology import default_cosmology
+        T_cmb = default_cosmology.get().Tcmb0
 
     def f(nu, T_cmb=T_cmb):
         x = _si.h * nu / _si.k_B / T_cmb
