@@ -1676,6 +1676,11 @@ class SphericalRepresentation(BaseRepresentation):
         """
         return np.abs(self.distance)
 
+    def __neg__(self):
+        self._raise_if_has_differentials('negation')
+        return self.__class__(self.lon + 180. * u.deg, -self.lat, self.distance,
+                              copy=False)
+
 
 class PhysicsSphericalRepresentation(BaseRepresentation):
     """

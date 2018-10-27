@@ -15,7 +15,7 @@ from .. import (PhysicsSphericalRepresentation, CartesianRepresentation,
                 RadialRepresentation, RadialDifferential, Longitude, Latitude)
 from ..representation import DIFFERENTIAL_CLASSES
 from ..angle_utilities import angular_separation
-from ...tests.helper import assert_quantity_allclose
+from ...tests.helper import assert_quantity_allclose, quantity_allclose
 
 
 def assert_representation_allclose(actual, desired, rtol=1.e-7, atol=None,
@@ -120,9 +120,10 @@ class TestArithmetic():
         assert np.all(representation_equal(s3, s2))
         s4 = -self.spherical
         assert isinstance(s4, SphericalRepresentation)
-        assert np.all(s4.lon == self.spherical.lon)
-        assert np.all(s4.lat == self.spherical.lat)
-        assert np.all(s4.distance == -self.spherical.distance)
+        assert quantity_allclose(s4.to_cartesian().xyz,
+                                 -self.spherical.to_cartesian().xyz,
+                                 atol=1e-15*self.spherical.distance.unit)
+        assert np.all(s4.distance == self.spherical.distance)
         s5 = +self.spherical
         assert s5 is not self.spherical
         assert np.all(representation_equal(s5, self.spherical))
