@@ -10,6 +10,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from ...tests.helper import catch_warnings, pytest
+from ...utils.exceptions import AstropyDeprecationWarning
 from ...utils import isiterable
 from .. import Time, ScaleValueError, STANDARD_TIME_SCALES, TimeString, TimezoneInfo
 from ...coordinates import EarthLocation
@@ -208,7 +209,7 @@ class TestBasic():
         assert allclose_jd(t.jd, 2455197.5)
         assert t.iso == '2010-01-01 00:00:00.000'
         assert t.tt.iso == '2010-01-01 00:01:06.184'
-        assert t.tai.fits == '2010-01-01T00:00:34.000(TAI)'
+        assert t.tai.fits == '2010-01-01T00:00:34.000'
         assert allclose_jd(t.utc.jd, 2455197.5)
         assert allclose_jd(t.ut1.jd, 2455197.500003867)
         assert t.tcg.isot == '2010-01-01T00:01:06.910'
@@ -347,7 +348,6 @@ class TestBasic():
         Time('2000-01-01T12:23:34.0Z', format='isot', scale='utc')
         Time('2000-01-01T12:23:34.0', format='fits')
         Time('2000-01-01T12:23:34.0', format='fits', scale='tdb')
-        Time('2000-01-01T12:23:34.0(TDB)', format='fits')
         Time(2400000.5, 51544.0333981, format='jd', scale='tai')
         Time(0.0, 51544.0333981, format='mjd', scale='tai')
         Time('2000:001:12:23:34.0', format='yday', scale='tai')
@@ -372,7 +372,7 @@ class TestBasic():
         assert t.datetime == datetime.datetime(2006, 1, 15, 21, 24, 37, 500000)
         assert t.isot == '2006-01-15T21:24:37.500'
         assert t.yday == '2006:015:21:24:37.500'
-        assert t.fits == '2006-01-15T21:24:37.500(LOCAL)'
+        assert t.fits == '2006-01-15T21:24:37.500'
         assert_allclose(t.byear, 2006.04217888831, atol=0.001/3600./24./365., rtol=0.)
         assert_allclose(t.jyear, 2006.0407723496082, atol=0.001/3600./24./365., rtol=0.)
         assert t.byear_str == 'B2006.042'
@@ -645,26 +645,26 @@ class TestSubFormat():
         # Heterogeneous input formats with in_subfmt='*' (default)
         times = ['2000-01-01', '2000-01-01T01:01:01', '2000-01-01T01:01:01.123']
         t = Time(times, format='fits', scale='tai')
-        assert np.all(t.fits == np.array(['2000-01-01T00:00:00.000(TAI)',
-                                          '2000-01-01T01:01:01.000(TAI)',
-                                          '2000-01-01T01:01:01.123(TAI)']))
+        assert np.all(t.fits == np.array(['2000-01-01T00:00:00.000',
+                                          '2000-01-01T01:01:01.000',
+                                          '2000-01-01T01:01:01.123']))
         # Explicit long format for output, default scale is UTC.
         t2 = Time(times, format='fits', out_subfmt='long*')
-        assert np.all(t2.fits == np.array(['+02000-01-01T00:00:00.000(UTC)',
-                                           '+02000-01-01T01:01:01.000(UTC)',
-                                           '+02000-01-01T01:01:01.123(UTC)']))
+        assert np.all(t2.fits == np.array(['+02000-01-01T00:00:00.000',
+                                           '+02000-01-01T01:01:01.000',
+                                           '+02000-01-01T01:01:01.123']))
         # Implicit long format for output, because of negative year.
         times[2] = '-00594-01-01'
         t3 = Time(times, format='fits', scale='tai')
-        assert np.all(t3.fits == np.array(['+02000-01-01T00:00:00.000(TAI)',
-                                           '+02000-01-01T01:01:01.000(TAI)',
-                                           '-00594-01-01T00:00:00.000(TAI)']))
+        assert np.all(t3.fits == np.array(['+02000-01-01T00:00:00.000',
+                                           '+02000-01-01T01:01:01.000',
+                                           '-00594-01-01T00:00:00.000']))
         # Implicit long format for output, because of large positive year.
         times[2] = '+10594-01-01'
         t4 = Time(times, format='fits', scale='tai')
-        assert np.all(t4.fits == np.array(['+02000-01-01T00:00:00.000(TAI)',
-                                           '+02000-01-01T01:01:01.000(TAI)',
-                                           '+10594-01-01T00:00:00.000(TAI)']))
+        assert np.all(t4.fits == np.array(['+02000-01-01T00:00:00.000',
+                                           '+02000-01-01T01:01:01.000',
+                                           '+10594-01-01T00:00:00.000']))
 
     def test_yday_format(self):
         """Year:Day_of_year format"""
@@ -698,34 +698,40 @@ class TestSubFormat():
             Time('2000:001:00:00:00', scale='bad scale')
 
     def test_fits_scale(self):
-        """Test that scale gets interpreted correctly for FITS strings."""
-        t = Time('2000-01-02(TAI)')
-        assert t.scale == 'tai'
-        # Test deprecated scale.
-        t = Time('2000-01-02(IAT)')
-        assert t.scale == 'tai'
-        # Test with scale and FITS string scale
-        t = Time('2045-11-08T00:00:00.000(UTC)', scale='utc')
-        assert t.scale == 'utc'
-        # Test with local time scale and FITS string scale
-        t = Time('2045-11-08T00:00:00.000(LOCAL)')
-        assert t.scale == 'local'
-        # Check that inconsistent scales lead to errors.
-        with pytest.raises(ValueError):
-            Time('2000-01-02(TAI)', scale='utc')
-        with pytest.raises(ValueError):
-            Time(['2000-01-02(TAI)', '2001-02-03(UTC)'])
-        # Check that inconsistent FITS string scales lead to errors.
-        with pytest.raises(ValueError):
-            Time(['2000-01-02(TAI)', '2001-02-03(IAT)'])
-        # Check that inconsistent realizations lead to errors.
-        with pytest.raises(ValueError):
-            Time(['2000-01-02(ET(NIST))', '2001-02-03(ET)'])
+        """Test that the previous FITS-string formatting can still be handled
+        but with a DeprecationWarning."""
+        for inputs in (("2000-01-02(TAI)", "tai"),
+                       ("1999-01-01T00:00:00.123(ET(NIST))", "tt"),
+                       ("2014-12-12T01:00:44.1(UTC)", "utc")):
+            with catch_warnings(AstropyDeprecationWarning):
+                t = Time(inputs[0])
+            assert t.scale == inputs[1]
 
-    def test_fits_scale_representation(self):
-        t = Time('1960-01-02T03:04:05.678(ET(NIST))')
-        assert t.scale == 'tt'
-        assert t.value == '1960-01-02T03:04:05.678(ET(NIST))'
+            # Create Time using normal ISOT syntax and compare with FITS
+            t2 = Time(inputs[0][:inputs[0].index("(")], format="isot",
+                      scale=inputs[1])
+            assert t == t2
+
+        # Explicit check that conversions still work despite warning
+        with catch_warnings(AstropyDeprecationWarning):
+            t = Time('1999-01-01T00:00:00.123456789(UTC)')
+        t = t.tai
+        assert t.isot == '1999-01-01T00:00:32.123'
+
+        with catch_warnings(AstropyDeprecationWarning):
+            t = Time('1999-01-01T00:00:32.123456789(TAI)')
+        t = t.utc
+        assert t.isot == '1999-01-01T00:00:00.123'
+
+        # Check scale consistency
+        with catch_warnings(AstropyDeprecationWarning):
+            t = Time('1999-01-01T00:00:32.123456789(TAI)', scale="tai")
+        assert t.scale == "tai"
+        with catch_warnings(AstropyDeprecationWarning):
+            t = Time('1999-01-01T00:00:32.123456789(ET)', scale="tt")
+        assert t.scale == "tt"
+        with pytest.raises(ValueError):
+            t = Time('1999-01-01T00:00:32.123456789(TAI)', scale="utc")
 
     def test_scale_default(self):
         """Test behavior when no scale is provided"""
@@ -929,20 +935,20 @@ def test_decimalyear():
 
 def test_fits_year0():
     t = Time(1721425.5, format='jd')
-    assert t.fits == '0001-01-01T00:00:00.000(UTC)'
+    assert t.fits == '0001-01-01T00:00:00.000'
     t = Time(1721425.5 - 366., format='jd')
-    assert t.fits == '+00000-01-01T00:00:00.000(UTC)'
+    assert t.fits == '+00000-01-01T00:00:00.000'
     t = Time(1721425.5 - 366. - 365., format='jd')
-    assert t.fits == '-00001-01-01T00:00:00.000(UTC)'
+    assert t.fits == '-00001-01-01T00:00:00.000'
 
 
 def test_fits_year10000():
     t = Time(5373484.5, format='jd', scale='tai')
-    assert t.fits == '+10000-01-01T00:00:00.000(TAI)'
+    assert t.fits == '+10000-01-01T00:00:00.000'
     t = Time(5373484.5 - 365., format='jd', scale='tai')
-    assert t.fits == '9999-01-01T00:00:00.000(TAI)'
+    assert t.fits == '9999-01-01T00:00:00.000'
     t = Time(5373484.5, -1./24./3600., format='jd', scale='tai')
-    assert t.fits == '9999-12-31T23:59:59.000(TAI)'
+    assert t.fits == '9999-12-31T23:59:59.000'
 
 
 def test_dir():
@@ -1078,7 +1084,7 @@ def test_set_format_does_not_share_subfmt():
 
     t.format = 'fits'
     assert t.out_subfmt == '*'
-    assert t.value == '2000-02-03T00:00:00.000(UTC)'  # date_hms
+    assert t.value == '2000-02-03T00:00:00.000'  # date_hms
 
 
 def test_replicate_value_error():
