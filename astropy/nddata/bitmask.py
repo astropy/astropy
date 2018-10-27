@@ -349,10 +349,6 @@ good_mask_value=False, dtype=numpy.bool_)
     --------
         >>> from astropy.nddata import bitmask
         >>> import numpy as np
-        >>> try: # OPTIONAL (used to preserve numpy 1.13 array formatting)
-        ...     np.set_printoptions(legacy='1.13')
-        ... except TypeError:
-        ...     pass
         >>> dqbits = np.asarray([[0, 0, 1, 2, 0, 8, 12, 0],
         ...                      [10, 4, 0, 0, 0, 16, 6, 0]])
         >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=0,
@@ -362,7 +358,7 @@ good_mask_value=False, dtype=numpy.bool_)
         >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=0,
         ...                                  dtype=bool)
         array([[False, False,  True,  True, False,  True,  True, False],
-               [ True,  True, False, False, False,  True,  True, False]], dtype=bool)
+               [ True,  True, False, False, False,  True,  True, False]]...)
         >>> bitmask.bitfield_to_boolean_mask(dqbits, ignore_flags=6,
         ...                                  good_mask_value=0, dtype=int)
         array([[0, 0, 1, 0, 0, 1, 1, 0],
