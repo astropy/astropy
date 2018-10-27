@@ -7,8 +7,8 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ..column import _parse_tdisp_format, _fortran_to_python_format, \
-    python_to_tdisp
+from ..column import (_parse_tdisp_format, _fortran_to_python_format,
+                      python_to_tdisp)
 
 from .. import HDUList, PrimaryHDU, BinTableHDU
 
@@ -19,10 +19,10 @@ from ....table import Table, QTable, NdarrayMixin, Column
 from ....table.table_helpers import simple_table
 from ....tests.helper import catch_warnings
 from ....units.format.fits import UnitScaleError
+from ....utils.exceptions import AstropyUserWarning
 
 from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
 from ....time import Time, TimeDelta
-from ....units import allclose as quantity_allclose
 from ....units.quantity import QuantityInfo
 
 try:
@@ -422,7 +422,9 @@ def test_convert_comment_convention(tmpdir):
     Regression test for https://github.com/astropy/astropy/issues/6079
     """
     filename = os.path.join(DATA, 'stddata.fits')
-    t = Table.read(filename)
+    with pytest.warns(AstropyUserWarning, catch='hdu= was not specified but '
+                      'multiple tables are present'):
+        t = Table.read(filename)
 
     assert t.meta['comments'] == [
         '',
@@ -580,8 +582,8 @@ def test_fits_mixins_as_one(table_cls, tmpdir):
     assert t.colnames == t2.colnames
 
     # Read directly via fits and confirm column names
-    hdus = fits.open(filename)
-    assert hdus[1].columns.names == serialized_names
+    with fits.open(filename) as hdus:
+        assert hdus[1].columns.names == serialized_names
 
 
 @pytest.mark.skipif('not HAS_YAML')

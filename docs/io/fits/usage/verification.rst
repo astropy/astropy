@@ -224,7 +224,10 @@ Fixable Cards:
 6. unparsable values will be "fixed" as a string::
 
     >>> c = fits.Card.fromstring('FIX6    = 2 10 ')
-    >>> c.verify('fix+warn')
+    >>> import warnings
+    >>> with warnings.catch_warnings():  # Ignore warning for doctest
+    ...     warnings.simplefilter('ignore', fits.verify.VerifyWarning)
+    ...     c.verify('fix+warn')
     >>> print(c)
     FIX6    = '2 10    '
 
@@ -352,4 +355,3 @@ Here are some examples:
      >>> # the file existingfile.fits with only the appended HDU
      >>> # containing both CHECKSUM and DATASUM cards.
      >>> fits.append('existingfile.fits', data, checksum=True)
-

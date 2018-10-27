@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import os
 
 import pytest
 import numpy as np
@@ -14,6 +13,7 @@ from ....time import Time, TimeDelta
 from ....time.core import BARYCENTRIC_SCALES
 from ....time.formats import FITS_DEPRECATED_SCALES
 from ....tests.helper import catch_warnings
+from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 
 class TestFitsTime(FitsTestCase):
@@ -46,12 +46,16 @@ class TestFitsTime(FitsTestCase):
         t['a'].location = EarthLocation([1., 2.], [2., 3.], [3., 4.],
                                         unit='Mm')
 
-        table, hdr = time_to_fits(t)
+        with pytest.warns(AstropyUserWarning, match='Time Column "b" has no '
+                          'specified location, but global Time Position is present'):
+            table, hdr = time_to_fits(t)
         assert (table['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')).all()
         assert (table['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')).all()
         assert (table['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')).all()
 
-        t.write(self.temp('time.fits'), format='fits', overwrite=True)
+        with pytest.warns(AstropyUserWarning, match='Time Column "b" has no '
+                          'specified location, but global Time Position is present'):
+            t.write(self.temp('time.fits'), format='fits', overwrite=True)
         tm = table_types.read(self.temp('time.fits'), format='fits',
                               astropy_native=True)
 
@@ -142,7 +146,9 @@ class TestFitsTime(FitsTestCase):
                          'OBSGEO-Y' : t['a'].location.y.value,
                          'OBSGEO-Z' : t['a'].location.z.value}
 
-        table, hdr = time_to_fits(t)
+        with pytest.warns(AstropyUserWarning, match='Time Column "b" has no '
+                          'specified location, but global Time Position is present'):
+            table, hdr = time_to_fits(t)
 
         # Check the global time keywords in hdr
         for key, value in GLOBAL_TIME_INFO.items():
@@ -269,7 +275,9 @@ class TestFitsTime(FitsTestCase):
            to be time.
         """
         filename = self.data('chandra_time.fits')
-        tm = table_types.read(filename, astropy_native=True)
+        with pytest.warns(AstropyUserWarning, match='Time column "time" reference '
+                          'position will be ignored'):
+            tm = table_types.read(filename, astropy_native=True)
 
         # Test case 1
         assert isinstance(tm['time'], Time)
@@ -323,7 +331,9 @@ class TestFitsTime(FitsTestCase):
                  ('OBSGEO-Z', 4077985)]
 
         # Explicitly create a FITS Binary Table
-        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        with pytest.warns(AstropyDeprecationWarning, match='should be set via '
+                          'the Column objects: TCTYPn, TRPOSn'):
+            bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
         tm = table_types.read(self.temp('time.fits'), astropy_native=True)
@@ -337,7 +347,9 @@ class TestFitsTime(FitsTestCase):
         cards = [('OBSGEO-L', 0), ('OBSGEO-B', 0), ('OBSGEO-H', 0)]
 
         # Explicitly create a FITS Binary Table
-        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        with pytest.warns(AstropyDeprecationWarning, match='should be set via '
+                          'the Column objects: TCTYPn, TRPOSn'):
+            bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
         tm = table_types.read(self.temp('time.fits'), astropy_native=True)
@@ -361,7 +373,9 @@ class TestFitsTime(FitsTestCase):
 
         cards = [('OBSGEO-L', 0), ('OBSGEO-B', 0), ('OBSGEO-H', 0)]
 
-        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        with pytest.warns(AstropyDeprecationWarning, match='should be set via '
+                          'the Column objects: TCTYPn, TCUNIn, TRPOSn'):
+            bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
         with catch_warnings() as w:
