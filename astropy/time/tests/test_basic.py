@@ -701,10 +701,28 @@ class TestSubFormat():
         """Test that the previous FITS-string formatting can still be handled
         but with a DeprecationWarning."""
         for inputs in (("2000-01-02(TAI)", "tai"),
-                       ("1999-01-01T00:00:00.123(ET(NIST))", "tt")):
+                       ("1999-01-01T00:00:00.123(ET(NIST))", "tt"),
+                       ("2014-12-12T01:00:44.1(UTC)", "utc")):
             with catch_warnings(AstropyDeprecationWarning):
                 t = Time(inputs[0])
             assert t.scale == inputs[1]
+
+            # Create Time using normal ISOT syntax and compare with FITS
+            t2 = Time(inputs[0][:inputs[0].index("(")], format="isot",
+                      scale=inputs[1])
+            assert t == t2
+
+        # Explicit check that conversions still work despite warning
+        with catch_warnings(AstropyDeprecationWarning):
+            t = Time('1999-01-01T00:00:00.123456789(UTC)')
+        t = t.tai
+        assert t.isot == '1999-01-01T00:00:32.123'
+
+        with catch_warnings(AstropyDeprecationWarning):
+            t = Time('1999-01-01T00:00:32.123456789(TAI)')
+        t = t.utc
+        assert t.isot == '1999-01-01T00:00:00.123'
+
 
     def test_scale_default(self):
         """Test behavior when no scale is provided"""
