@@ -69,7 +69,7 @@ def normal(center, *, std=None, var=None, ivar=None, n_samples,
     return cls(samples, **kwargs)
 
 
-COUNT_UNITS = (u.count, u.electron, u.dimensionless_unscaled)
+COUNT_UNITS = (u.count, u.electron, u.dimensionless_unscaled, u.chan, u.bin, u.vox, u.bit, u.byte)
 
 def poisson(center, n_samples, cls=Distribution, **kwargs):
     """
