@@ -20,7 +20,7 @@ __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'brightness_temperature', 'thermodynamic_temperature',
            'beam_angular_area', 'dimensionless_angles', 'logarithmic',
            'temperature', 'temperature_energy', 'molar_mass_amu',
-           'pixel_scale', 'plate_scale']
+           'pixel_scale', 'plate_scale', 'with_H0']
 
 
 def dimensionless_angles():
@@ -687,3 +687,29 @@ def plate_scale(platescale):
                          "distance/angle")
 
     return [(si.m, si.radian, lambda d: d*platescale_val, lambda rad: rad/platescale_val)]
+
+
+def with_H0(H0=None):
+    """
+    Convert between quantities with little-h and the equivalent physical units.
+
+    Parameters
+    ----------
+    H0 : `None` or `~astropy.units.Quantity`
+        The value of the Hubble constant to assume. If a `~astropy.units.Quantity`,
+        will assume the quantity *is* ``H0``.  If `None` (default), use the
+        ``H0`` attribute from the default `astropy.cosmology` cosmology.
+
+    References
+    ----------
+    For an illuminating discussion on why you may or may not want to use
+    little-h at all, see https://arxiv.org/pdf/1308.4150.pdf
+    """
+
+    if H0 is None:
+        from .. import cosmology
+        H0 = cosmology.default_cosmology.get().H0
+
+    h100_val_unit = Unit(H0.to((si.km/si.s)/astrophys.Mpc).value/100 * astrophys.littleh)
+
+    return [(h100_val_unit, None)]

@@ -234,6 +234,8 @@ astropy.units
 - ``AB`` and ``ST`` are now enabled by default, and have alternate names
   ``ABflux`` and ``STflux`` [#7891]
 
+- Added ``littleh`` unit and associated ``with_H0`` equivalency. [#7970]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
