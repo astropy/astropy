@@ -222,7 +222,7 @@ essentially assuming the |quantity| is a Dirac delta distribution::
   >>> distrplus = distr_in_kpc + [2000,0,0,500]*u.pc
   >>> distrplus.pdf_median
   <Quantity [   3. ,   5. ,  30. , 400.5] kpc>
-  >>> distrplus.pdf_var
+  >>> distrplus.pdf_var # doctest: +FLOAT_CMP
   <Quantity [  0.945996,   5.392711,  29.989775, 425.713975] kpc2>
 
 It also operates as expected with other distributions  (But see below for a
@@ -230,9 +230,9 @@ discussion of covariances)::
 
   >>> another_distr = unc.Distribution((np.random.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T * u.pc)
   >>> combined_distr = distr_in_kpc + another_distr
-  >>> combined_distr.pdf_median
+  >>> combined_distr.pdf_median # doctest: +FLOAT_CMP
   <Quantity [  3.01847755,   4.99999576,  29.60559788, 400.49176321] kpc>
-  >>> combined_distr.pdf_var
+  >>> combined_distr.pdf_var # doctest: +FLOAT_CMP
   <Quantity [  1.8427705 ,   5.39271147,  39.5343726 , 425.71324244] kpc2>
 
 
