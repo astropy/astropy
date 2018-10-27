@@ -66,17 +66,17 @@ Monte Carlo sampling) trivially with |distribution| arithmetic and attributes::
   <Quantity 51.4783738 pc>
 
 Indeed these are close to the expectations. While this may seem unnecessary for
-the simple Gaussian case, for more complex distributions or airthmetic
+the simple Gaussian case, for more complex distributions or arithmetic
 operations where error analysis becomes untenable, |distribution| still powers
 through:
 
-  >>> d = unc.poisson(3*u.kpc, n_samples=1000)
-  >>> e = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=1000)
+  >>> d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=1000)
+  >>> e = unc.Distribution(np.random.weibull(1.1, 1000)*3*u.kpc)
   >>> f = (c * d * e) ** (1/3)
   >>> f.pdf_mean # doctest: +FLOAT_CMP
-  <Quantity 2.83327524 kpc>
+  <Quantity 2.69312676 kpc>
   >>> f.pdf_std # doctest: +FLOAT_CMP
-  <Quantity 0.79948566 kpc>
+  <Quantity 0.90559786 kpc>
   >>> from matplotlib import pyplot as plt # doctest: +SKIP
   >>> from astropy.visualization import quantity_support # doctest: +SKIP
   >>> with quantity_support():
@@ -93,8 +93,8 @@ through:
   a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=1000)
   b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=1000)
   c = a + b
-  d = unc.poisson(3*u.kpc, n_samples=1000)
-  e = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=1000)
+  d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=1000)
+  e = unc.Distribution(np.random.weibull(1.1, 1000)*3*u.kpc)
   f = (c * d * e) ** (1/3)
   with quantity_support():
       plt.hist(f.distribution, bins=50)
@@ -116,15 +116,13 @@ that carries the samples in the *last* dimension:
 
   >>> unc.Distribution(np.random.poisson(12, (1000)))  # doctest: +ELLIPSIS
   ndarrayDistribution([..., 12,...]) with n_samples=1000
-  >>> pq = np.random.poisson([1, 5, 30, 400], (1000, 4)).T * u.kpc # note the transpose, required to get the sampling on the *last* axis
+  >>> pq = np.random.poisson([1, 5, 30, 400], (1000, 4)).T * u.ct # note the transpose, required to get the sampling on the *last* axis
   >>> distr = unc.Distribution(pq)
   >>> distr # doctest: +ELLIPSIS
   <QuantityDistribution [[...],
              [...],
              [...],
-             [...]] kpc with n_samples=1000>
-  >>> distr.unit
-  Unit("kpc")
+             [...]] ct with n_samples=1000>
 
 Note the distinction for these two distributions: the first is built from an
 array and therfore does not have |quantity| attributes like ``unit``, while the
@@ -136,27 +134,27 @@ For commonly-used distributions, helper functions exist to make creating them
 easier. Below demonstrates several equivalent ways to create a normal/Gaussian
 distribution:
 
-  >>> centerq = [1, 5, 30, 400]*u.kpc
-  >>> n_distr = unc.normal(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=1000)
-  >>> n_distr = unc.normal(centerq, var=[0.04, 2.25, 16, 1]*u.kpc**2, n_samples=1000)
-  >>> n_distr = unc.normal(centerq, ivar=[25, 0.44444444, 0.625, 1]*u.kpc**-2, n_samples=1000)
+  >>> center = [1, 5, 30, 400]
+  >>> n_distr = unc.normal(center*u.kpc, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=1000)
+  >>> n_distr = unc.normal(center*u.kpc, var=[0.04, 2.25, 16, 1]*u.kpc**2, n_samples=1000)
+  >>> n_distr = unc.normal(center*u.kpc, ivar=[25, 0.44444444, 0.625, 1]*u.kpc**-2, n_samples=1000)
   >>> n_distr.distribution.shape
   (4, 1000)
-  >>> unc.normal(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100).distribution.shape
+  >>> unc.normal(center*u.kpc, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100).distribution.shape
   (4, 100)
-  >>> unc.normal(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=20000).distribution.shape
+  >>> unc.normal(center*u.kpc, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=20000).distribution.shape
   (4, 20000)
 
 
 Additionally, Poisson and uniform |distribution| creation functions exist:
 
-  >>> unc.poisson(centerq, n_samples=1000) # doctest: +FLOAT_CMP
+  >>> unc.poisson(center*u.count, n_samples=1000) # doctest: +FLOAT_CMP
   <QuantityDistribution [[  2.,   2.,   2., ...,   1.,   1.,   3.],
                [  7.,   3.,   2., ...,   1.,   3.,   5.],
                [ 32.,  27.,  30., ...,  31.,  39.,  29.],
-               [425., 387., 379., ..., 404., 384., 377.]] kpc with n_samples=1000>
+               [425., 387., 379., ..., 404., 384., 377.]] ct with n_samples=1000>
   >>> uwidth = [10, 20, 10, 55]*u.pc
-  >>> unc.uniform(center=centerq, width=uwidth, n_samples=1000) # doctest: +FLOAT_CMP
+  >>> unc.uniform(center=center*u.kpc, width=uwidth, n_samples=1000) # doctest: +FLOAT_CMP
   <QuantityDistribution [[  1.00264599,   1.00203114,   1.00228494, ...,   1.00280875,
                   1.00077583,   1.00213164],
                [  5.00861993,   4.99102886,   5.00254059, ...,   4.99831796,
@@ -165,7 +163,7 @@ Additionally, Poisson and uniform |distribution| creation functions exist:
                  30.0014714 ,  29.99719035],
                [400.01991204, 399.98233216, 399.98231204, ..., 399.99071525,
                 400.01797099, 400.01086062]] kpc with n_samples=1000>
-  >>> unc.uniform(lower=centerq-uwidth/2,  upper=centerq+uwidth/2, n_samples=1000)  # doctest: +FLOAT_CMP
+  >>> unc.uniform(lower=center*u.kpc - uwidth/2,  upper=center*u.kpc + uwidth/2, n_samples=1000)  # doctest: +FLOAT_CMP
   <QuantityDistribution [[  0.99578122,   1.00056763,   0.99984519, ...,   0.99531055,
                   1.00396487,   1.00018797],
                [  5.0076216 ,   5.00672847,   5.00009831, ...,   5.00216818,
@@ -191,29 +189,29 @@ the sampled distributions:
   >>> distr.size
   4
   >>> distr.unit
-  Unit("kpc")
+  Unit("ct")
   >>> distr.n_samples
   1000
   >>> distr.pdf_mean # doctest: +FLOAT_CMP
-  <Quantity [  0.998,   5.017,  30.085, 400.345] kpc>
+  <Quantity [  0.998,   5.017,  30.085, 400.345] ct>
   >>> distr.pdf_std # doctest: +FLOAT_CMP
-  <Quantity [ 0.97262326,  2.32222114,  5.47629208, 20.6328373 ] kpc>
+  <Quantity [ 0.97262326,  2.32222114,  5.47629208, 20.6328373 ] ct>
   >>> distr.pdf_var # doctest: +FLOAT_CMP
-  <Quantity [  0.945996,   5.392711,  29.989775, 425.713975] kpc2>
+  <Quantity [  0.945996,   5.392711,  29.989775, 425.713975] ct2>
   >>> distr.pdf_median
-  <Quantity [   1.,   5.,  30., 400.] kpc>
+  <Quantity [   1.,   5.,  30., 400.] ct>
   >>> distr.pdf_mad  # Median absolute deviation # doctest: +FLOAT_CMP
-  <Quantity [ 1.,  2.,  4., 14.] kpc>
+  <Quantity [ 1.,  2.,  4., 14.] ct>
   >>> distr.pdf_smad  # Median absolute deviation, rescaled to match std for normal # doctest: +FLOAT_CMP
-  <Quantity [ 1.48260222,  2.96520444,  5.93040887, 20.75643106] kpc>
+  <Quantity [ 1.48260222,  2.96520444,  5.93040887, 20.75643106] ct>
   >>> distr.pdf_percentiles([10, 50, 90])
   <Quantity [[  0. ,   2. ,  23. , 374. ],
              [  1. ,   5. ,  30. , 400. ],
-             [  2. ,   8. ,  37.1, 427. ]] kpc>
+             [  2. ,   8. ,  37.1, 427. ]] ct>
   >>> distr.pdf_percentiles([.1, .5, .9]*u.dimensionless_unscaled)
   <Quantity [[  0. ,   2. ,  23. , 374. ],
             [  1. ,   5. ,  30. , 400. ],
-            [  2. ,   8. ,  37.1, 427. ]] kpc>
+            [  2. ,   8. ,  37.1, 427. ]] ct>
 
 If need be, the underlying array can then be accessed from the ``distribution``
 attribute:
@@ -222,25 +220,25 @@ attribute:
   <Quantity [[  0.,   0.,   1., ...,   1.,   0.,   1.],
              [  7.,   3.,   4., ...,   3.,   2.,   5.],
              [ 27.,  32.,  35., ...,  37.,  21.,  40.],
-             [421., 373., 389., ..., 405., 391., 369.]] kpc>
+             [421., 373., 389., ..., 405., 391., 369.]] ct>
   >>> distr.distribution.shape
   (4, 1000)
 
 A |quantity| distribution interact naturally with non-|distribution| quantities,
 essentially assuming the |quantity| is a dirac delta distribution:
 
-  >>> distrplus = distr + [2000,0,0,500]*u.pc
+  >>> distr_in_kpc = distr * u.kpc/u.count  # for the sake of round numbers in examples
+  >>> distrplus = distr_in_kpc + [2000,0,0,500]*u.pc
   >>> distrplus.pdf_median
   <Quantity [   3. ,   5. ,  30. , 400.5] kpc>
   >>> distrplus.pdf_var
   <Quantity [  0.945996,   5.392711,  29.989775, 425.713975] kpc2>
 
-
 It also operates as expected with other distributions  (But see below for a
 discussion of covariances):
 
   >>> another_distr = unc.Distribution((np.random.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T * u.pc)
-  >>> combined_distr = distr + another_distr
+  >>> combined_distr = distr_in_kpc + another_distr
   >>> combined_distr.pdf_median
   <Quantity [  3.01847755,   4.99999576,  29.60559788, 400.49176321] kpc>
   >>> combined_distr.pdf_var
