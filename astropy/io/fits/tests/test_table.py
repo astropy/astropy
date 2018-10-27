@@ -19,7 +19,7 @@ except ImportError:
 from ....io import fits
 from ....tests.helper import catch_warnings, ignore_warnings
 from ....utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
-from ....utils.exceptions import AstropyDeprecationWarning
+from ....utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from ..column import Delayed, NUMPY2FITS
 from ..util import decode_ascii
@@ -2534,7 +2534,9 @@ class TestTableFunctions(FitsTestCase):
             cdfile = self.temp('coldefs.txt')
             hfile = self.temp('header.txt')
             tbhdu.dump(datafile, cdfile, hfile)
-            tbhdu.dump(datafile, cdfile, hfile, overwrite=True)
+            with pytest.warns(AstropyUserWarning,
+                              match='Overwriting existing file'):
+                tbhdu.dump(datafile, cdfile, hfile, overwrite=True)
             with catch_warnings(AstropyDeprecationWarning) as warning_lines:
                 tbhdu.dump(datafile, cdfile, hfile, clobber=True)
                 assert warning_lines[0].category == AstropyDeprecationWarning
@@ -2960,7 +2962,9 @@ class TestColumnFunctions(FitsTestCase):
             # Doesn't pickle zero-width (_phanotm) column 'ORBPARM'
             zwc_pd = pickle.dumps(zwc[2].data)
             zwc_pl = pickle.loads(zwc_pd)
-            assert comparerecords(zwc_pl, zwc[2].data)
+            with pytest.warns(UserWarning, match='Field 2 has a repeat count '
+                              'of 0 in its format code'):
+                assert comparerecords(zwc_pl, zwc[2].data)
 
     def test_column_lookup_by_name(self):
         """Tests that a `ColDefs` can be indexed by column name."""

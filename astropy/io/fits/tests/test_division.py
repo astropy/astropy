@@ -11,9 +11,9 @@ class TestDivisionFunctions(FitsTestCase):
     """Test code units that rely on correct integer division."""
 
     def test_rec_from_string(self):
-        t1 = fits.open(self.data('tb.fits'))
-        s = t1[1].data.tostring()
-        a1 = np.rec.array(
+        with fits.open(self.data('tb.fits')) as t1:
+            s = t1[1].data.tostring()
+        np.rec.array(
             s,
             dtype=np.dtype([('c1', '>i4'), ('c2', '|S3'),
                             ('c3', '>f4'), ('c4', '|i1')]),
@@ -26,8 +26,8 @@ class TestDivisionFunctions(FitsTestCase):
         assert len(w) == 0
 
     def test_valid_hdu_size(self):
-        t1 = fits.open(self.data('tb.fits'))
-        assert type(t1[1].size) is type(1)  # nopep8
+        with fits.open(self.data('tb.fits')) as t1:
+            assert type(t1[1].size) is type(1)  # noqa
 
     def test_hdu_get_size(self):
         with catch_warnings() as w:

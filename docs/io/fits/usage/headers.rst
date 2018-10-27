@@ -99,6 +99,7 @@ You can also add a new value *and* comment by assigning them as a tuple::
     * The :meth:`Header.insert` method will always insert a new keyword exactly
       where you ask for it:
 
+        >>> del hdr['DARKCORR']  # Delete previous insertion for doctest
         >>> hdr.insert(20, ('DARKCORR', 'OMIT', 'Dark Image Subtraction'))
 
       This inserts the DARKCORR keyword before the 20th keyword in the header
@@ -265,7 +266,10 @@ Astropy will be discussed in a later chapter.
 
     >>> c1 = fits.Card.fromstring('ABC = 3.456D023')
     >>> c2 = fits.Card.fromstring("P.I. ='Hubble'")
-    >>> print(c1); print(c2)
+    >>> import warnings
+    >>> with warnings.catch_warnings():  # Ignore warnings for doctest
+    ...     warnings.simplefilter('ignore')
+    ...     print(c1); print(c2)
     ABC     =            3.456D023
     P.I. ='Hubble'
     >>> c2.verify()  # doctest: +SKIP
@@ -338,8 +342,11 @@ other: ``hdr['abcdefghi']``, without prepending 'HIERARCH' to the keyword.
 
 Examples follow::
 
-    >>> # this will print a Warning because a HIERARCH card is implicitly created
-    >>> c = fits.Card('abcdefghi', 10)
+    >>> # this will result in a Warning because a HIERARCH card is implicitly created
+    >>> import warnings
+    >>> with warnings.catch_warnings():  # Ignore warning for doctest
+    ...     warnings.simplefilter('ignore', fits.verify.VerifyWarning)
+    ...     c = fits.Card('abcdefghi', 10)
     >>> print(c)
     HIERARCH abcdefghi = 10
     >>> c = fits.Card('hierarch abcdefghi', 10)
