@@ -50,8 +50,8 @@ with some initial imports/setup::
 
 Now we create two |distribution| objects to represent our distributions::
 
-  >>> a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=1000)
-  >>> b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=1000)
+  >>> a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=10000)
+  >>> b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=10000)
 
 For normal distributions, the centers should add as expected, and the standard
 deviations add in quadrature.  We can check these results (to the limits of our
@@ -59,24 +59,24 @@ Monte Carlo sampling) trivially with |distribution| arithmetic and attributes::
 
   >>> c = a + b
   >>> c # doctest: +ELLIPSIS
-  <QuantityDistribution [..., 3.06148029,...] kpc with n_samples=1000>
+  <QuantityDistribution [...] kpc with n_samples=10000>
   >>> c.pdf_mean # doctest: +FLOAT_CMP
-  <Quantity 3.0005627 kpc>
+  <Quantity 2.99970555 kpc>
   >>> c.pdf_std.to(u.pc) # doctest: +FLOAT_CMP
-  <Quantity 51.4783738 pc>
+  <Quantity 50.07120457 pc>
 
 Indeed these are close to the expectations. While this may seem unnecessary for
 the simple Gaussian case, for more complex distributions or arithmetic
 operations where error analysis becomes untenable, |distribution| still powers
 through::
 
-  >>> d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=1000)
-  >>> e = unc.Distribution(np.random.weibull(1.1, 1000)*3*u.kpc)
+  >>> d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=10000)
+  >>> e = unc.Distribution(((np.random.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
   >>> f = (c * d * e) ** (1/3)
   >>> f.pdf_mean # doctest: +FLOAT_CMP
-  <Quantity 2.69312676 kpc>
+  <Quantity 2.99786227 kpc>
   >>> f.pdf_std # doctest: +FLOAT_CMP
-  <Quantity 0.90559786 kpc>
+  <Quantity 0.08330476 kpc>
   >>> from matplotlib import pyplot as plt # doctest: +SKIP
   >>> from astropy.visualization import quantity_support # doctest: +SKIP
   >>> with quantity_support():
@@ -90,11 +90,11 @@ through::
   from astropy.visualization import quantity_support
   from matplotlib import pyplot as plt
   np.random.seed(12345)
-  a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=1000)
-  b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=1000)
+  a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=10000)
+  b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=10000)
   c = a + b
-  d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=1000)
-  e = unc.Distribution(np.random.weibull(1.1, 1000)*3*u.kpc)
+  d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=10000)
+  e = unc.Distribution(((np.random.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
   f = (c * d * e) ** (1/3)
   with quantity_support():
       plt.hist(f.distribution, bins=50)
@@ -114,7 +114,7 @@ that carries the samples in the *last* dimension::
   >>> from astropy import uncertainty as unc
   >>> np.random.seed(123456)  # ensures "random" numbers match examples below
   >>> unc.Distribution(np.random.poisson(12, (1000)))  # doctest: +ELLIPSIS
-  ndarrayDistribution([..., 12,...]) with n_samples=1000
+  NdarrayDistribution([..., 12,...]) with n_samples=1000
   >>> pq = np.random.poisson([1, 5, 30, 400], (1000, 4)).T * u.ct # note the transpose, required to get the sampling on the *last* axis
   >>> distr = unc.Distribution(pq)
   >>> distr # doctest: +ELLIPSIS
@@ -126,7 +126,7 @@ that carries the samples in the *last* dimension::
 Note the distinction for these two distributions: the first is built from an
 array and therefore does not have |quantity| attributes like ``unit``, while the
 latter does.  This is reflected in how they interact with other objects - for
-example the ``ndarrayDistribution`` will not combine with unitful |quantity|
+example the ``NdarrayDistribution`` will not combine with unitful |quantity|
 objects.
 
 For commonly-used distributions, helper functions exist to make creating them
@@ -222,7 +222,7 @@ essentially assuming the |quantity| is a Dirac delta distribution::
   >>> distrplus = distr_in_kpc + [2000,0,0,500]*u.pc
   >>> distrplus.pdf_median
   <Quantity [   3. ,   5. ,  30. , 400.5] kpc>
-  >>> distrplus.pdf_var
+  >>> distrplus.pdf_var # doctest: +FLOAT_CMP
   <Quantity [  0.945996,   5.392711,  29.989775, 425.713975] kpc2>
 
 It also operates as expected with other distributions  (But see below for a
@@ -230,14 +230,14 @@ discussion of covariances)::
 
   >>> another_distr = unc.Distribution((np.random.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T * u.pc)
   >>> combined_distr = distr_in_kpc + another_distr
-  >>> combined_distr.pdf_median
+  >>> combined_distr.pdf_median # doctest: +FLOAT_CMP
   <Quantity [  3.01847755,   4.99999576,  29.60559788, 400.49176321] kpc>
-  >>> combined_distr.pdf_var
+  >>> combined_distr.pdf_var # doctest: +FLOAT_CMP
   <Quantity [  1.8427705 ,   5.39271147,  39.5343726 , 425.71324244] kpc2>
 
 
-Covariance in distributions
----------------------------
+Covariance in distributions and Discrete Sampling Effects
+---------------------------------------------------------
 
 One of the main applications for distributions is unceratinty propagation, which
 critically requires proper treatment of covariance. This comes naturally in the
