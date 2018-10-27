@@ -218,6 +218,12 @@ astropy.units
 
 - Add millibar unit. [#7863]
 
+- Add maggy and nanomaggy unit, as well as associated ``zero_point_flux``
+  equivalency. [#7891]
+
+- ``AB`` and ``ST`` are now enabled by default, and have alternate names
+  ``ABflux`` and ``STflux`` [#7891]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
