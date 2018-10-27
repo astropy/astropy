@@ -84,7 +84,8 @@ class TestAngleFormatterLocator:
         values, spacing = fl.locator(34.3, 36.1)
         assert_almost_equal(values.to_value(u.degree), [34.5, 35., 35.5, 36.])
 
-        fl.format = 'dd'
+        with pytest.warns(UserWarning, match='Spacing is too small'):
+            fl.format = 'dd'
         values, spacing = fl.locator(34.3, 36.1)
         assert_almost_equal(values.to_value(u.degree), [35., 36.])
 
@@ -192,7 +193,8 @@ class TestAngleFormatterLocator:
     def test_incorrect_spacing(self):
         fl = AngleFormatterLocator()
         fl.spacing = 0.032 * u.deg
-        fl.format = 'dd:mm:ss'
+        with pytest.warns(UserWarning, match='Spacing is not a multiple of base spacing'):
+            fl.format = 'dd:mm:ss'
         assert_almost_equal(fl.spacing.to_value(u.arcsec), 115.)
 
     def test_decimal_values(self):
@@ -354,7 +356,8 @@ class TestScalarFormatterLocator:
         values, spacing = fl.locator(34.3, 36.1)
         assert_almost_equal(values.value, [34.5, 35., 35.5, 36.])
 
-        fl.format = 'x'
+        with pytest.warns(UserWarning, match='Spacing is too small'):
+            fl.format = 'x'
         values, spacing = fl.locator(34.3, 36.1)
         assert_almost_equal(values.value, [35., 36.])
 
@@ -420,7 +423,8 @@ class TestScalarFormatterLocator:
     def test_incorrect_spacing(self):
         fl = ScalarFormatterLocator(unit=u.m)
         fl.spacing = 0.032 * u.m
-        fl.format = 'x.xx'
+        with pytest.warns(UserWarning, match='Spacing is not a multiple of base spacing'):
+            fl.format = 'x.xx'
         assert_almost_equal(fl.spacing.to_value(u.m), 0.03)
 
     def test_values_unit(self):
