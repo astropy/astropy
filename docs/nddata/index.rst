@@ -424,6 +424,7 @@ Using ``nddata``
    utils.rst
    decorator.rst
    nddata.rst
+   bitmask.rst
    mixins/index.rst
    subclassing.rst
 
@@ -436,6 +437,9 @@ Reference/API
 =============
 
 .. automodapi:: astropy.nddata
+    :no-inheritance-diagram:
+
+.. automodapi:: astropy.nddata.bitmask
     :no-inheritance-diagram:
 
 .. automodapi:: astropy.nddata.utils
