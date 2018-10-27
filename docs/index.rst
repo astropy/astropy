@@ -73,6 +73,7 @@ Data structures and transformations
    coordinates/index
    wcs/index
    modeling/index
+   uncertainty/index
 
 Files, I/O, and Communication
 -----------------------------
