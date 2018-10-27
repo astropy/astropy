@@ -301,3 +301,18 @@ def test_histogram():
     hist, bins = distr.pdf_histogram(bins=10)
     assert hist.shape == (2, 3, 10)
     assert bins.shape == (2, 3, 11)
+
+
+def test_array_repr_latex():
+    # as of this writing ndarray does not have a _repr_latex_, and this test
+    # ensure distributions account for that. However, if in the future ndarray
+    # gets a _repr_latex_, we can skip this.
+
+
+    arr = np.random.randn(4, 1000)
+
+    if hasattr(arr, '_repr_latex_'):
+        pytest.skip('in this version of numpy, ndarray has a _repr_latex_')
+
+    distr = Distribution(arr)
+    assert distr._repr_latex_() is None

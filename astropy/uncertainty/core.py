@@ -146,9 +146,12 @@ class Distribution:
         return distrstr + toadd
 
     def _repr_latex_(self):
-        superlatex = self.distribution._repr_latex_()
-        toadd = r', \; n_{{\rm samp}}={}'.format(self.n_samples)
-        return superlatex[:-1] + toadd + superlatex[-1]
+        if hasattr(self.distribution, '_repr_latex_'):
+            superlatex = self.distribution._repr_latex_()
+            toadd = r', \; n_{{\rm samp}}={}'.format(self.n_samples)
+            return superlatex[:-1] + toadd + superlatex[-1]
+        else:
+            return None
 
     @property
     def n_samples(self):
