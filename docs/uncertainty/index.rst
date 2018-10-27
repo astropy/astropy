@@ -21,7 +21,7 @@ Introduction
 Astropy provides a |distribution| object to represent
 statistical distributions in a form that acts as a drop-in replacement for
 |quantity| or a regular |ndarray|. Used in this manner, |distribution| provides
-uncertainty propogation at the cost of additional computation.  It can also
+uncertainty propagation at the cost of additional computation.  It can also
 more generally represent sampled distributions for e.g., Monte Carlo calculation
 techniques.
 
@@ -32,14 +32,14 @@ on distributions while maintaining their correlation structure. Some specific
 well-behaved distributions (e.g., the Normal distribution) have
 analytic forms which may eventually enable a more compact/efficient
 representation.  In the future these may provide a coherent uncertainty
-propogation mechanism to work with `~astropy.nddata.NDData`  However, this is
+propagation mechanism to work with `~astropy.nddata.NDData`  However, this is
 not currently implemented.
 
 Getting Started
 ===============
 
 To demonstrate a simple use case for distributions, consider the problem of
-uncertainty propogation of normal distributions.  Assume there are two
+uncertainty propagation of normal distributions.  Assume there are two
 measurements you wish to add, each with normal uncertainties.  We start
 with some initial imports/setup::
 
@@ -113,7 +113,6 @@ that carries the samples in the *last* dimension:
   >>> from astropy import units as u
   >>> from astropy import uncertainty as unc
   >>> np.random.seed(123456)  # ensures "random" numbers match examples below
-
   >>> unc.Distribution(np.random.poisson(12, (1000)))  # doctest: +ELLIPSIS
   ndarrayDistribution([..., 12,...]) with n_samples=1000
   >>> pq = np.random.poisson([1, 5, 30, 400], (1000, 4)).T * u.ct # note the transpose, required to get the sampling on the *last* axis
@@ -125,7 +124,7 @@ that carries the samples in the *last* dimension:
              [...]] ct with n_samples=1000>
 
 Note the distinction for these two distributions: the first is built from an
-array and therfore does not have |quantity| attributes like ``unit``, while the
+array and therefore does not have |quantity| attributes like ``unit``, while the
 latter does.  This is reflected in how they interact with other objects - for
 example the ``ndarrayDistribution`` will not combine with unitful |quantity|
 objects.
@@ -217,7 +216,7 @@ attribute:
   (4, 1000)
 
 A |quantity| distribution interact naturally with non-|distribution| quantities,
-essentially assuming the |quantity| is a dirac delta distribution:
+essentially assuming the |quantity| is a Dirac delta distribution:
 
   >>> distr_in_kpc = distr * u.kpc/u.count  # for the sake of round numbers in examples
   >>> distrplus = distr_in_kpc + [2000,0,0,500]*u.pc
@@ -240,7 +239,7 @@ discussion of covariances):
 Covariance in distributions
 ---------------------------
 
-One of the main applications for distributions is unceratinty propogation, which
+One of the main applications for distributions is unceratinty propagation, which
 critically requires proper treatment of covariance. This comes naturally in the
 Monte Carlo sampling approach used by the |distribution| class, as long as
 proper care is taken with sampling error.
@@ -335,8 +334,8 @@ example above, but with 200x fewer samples:
          [0.19391617, 1.50899902]])
 
 
-The covaraiance structure is much less apparent by eye, and this is reflected
-in significant discrepencies between the input and output covariance matrix.
+The covariance structure is much less apparent by eye, and this is reflected
+in significant discrepancies between the input and output covariance matrix.
 In general this is an intrinsic trade-off using sampled distributions: a smaller
 number of samples is computationally more efficient, but leads to larger
 uncertainties in any of  the relevant quantities.  These tend to be of order
