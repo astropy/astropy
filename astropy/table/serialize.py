@@ -143,6 +143,18 @@ def represent_mixins_as_columns(tbl, exclude_classes=()):
     Note that if the table does not include any mixin columns then the original
     table is returned with no update to ``meta``.
 
+    Parameters
+    ----------
+    tbl : `~astropy.table.Table` or subclass
+        Table to represent mixins as Columns
+    exclude_classes : tuple of classes
+        Exclude any mixin columns which are instannces of any classes in the tuple
+
+    Returns
+    -------
+    tbl : `~astropy.table.Table`
+        New Table with updated columns, or else the original input ``tbl``
+
     Examples
     --------
     >>> from astropy.table import Table, represent_mixins_as_columns
@@ -162,17 +174,6 @@ def represent_mixins_as_columns(tbl, exclude_classes=()):
         1.0     3.0      2451180.0          -0.25   100.0
         2.0     4.0      2451545.0            0.0   200.0
 
-    Parameters
-    ----------
-    tbl : `~astropy.table.Table` or subclass
-        Table to represent mixins as Columns
-    exclude_classes : tuple of classes
-        Exclude any mixin columns which are subclasses of tuple elements
-
-    Returns
-    -------
-    tbl : `~astropy.table.Table`
-        Table with updated columns, or else the original input ``tbl``
     """
     # Dict of metadata for serializing each column, keyed by column name.
     # Gets filled in place by _represent_mixin_as_column().
