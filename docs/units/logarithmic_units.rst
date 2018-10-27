@@ -69,8 +69,8 @@ to convert the |quantity| to base S.I. or c.g.s units::
     >>> logg.si  # doctest: +FLOAT_CMP
     <Dex 3. dex(m / s2)>
 
-Arithmetic
-==========
+Arithmetic and Photometric Applications
+=======================================
 
 Addition and subtraction work as expected for logarithmic quantities,
 multiplying and dividing the physical units as appropriate.  It may be best

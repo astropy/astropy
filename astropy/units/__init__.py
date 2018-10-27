@@ -17,10 +17,12 @@ from .decorators import *
 from . import si
 from . import cgs
 from . import astrophys
+from . import photometric
 from .function import units as function_units
 
 from .si import *
 from .astrophys import *
+from .photometric import *
 from .cgs import *
 from .physical import *
 from .function.units import *
@@ -36,4 +38,4 @@ del bases
 # Enable the set of default units.  This notably does *not* include
 # Imperial units.
 
-set_enabled_units([si, cgs, astrophys, function_units])
+set_enabled_units([si, cgs, astrophys, function_units, photometric])
