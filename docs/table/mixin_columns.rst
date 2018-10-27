@@ -171,14 +171,12 @@ the table.  However, there are limitations in the current implementation.
 
 Adding or inserting a row works as expected only for mixin classes that are
 mutable (data can changed internally) and that have an ``insert()`` method.
-|Quantity| supports ``insert()`` but |Time| and |SkyCoord| do not.  If we try to
-insert a row into the previously defined table an exception occurs::
+|Quantity| and |Time| support ``insert()`` but for example |SkyCoord| does not.
+If one tried to insert a row into a table with a |SkyCoord| column then
+an exception like the following would occur::
 
-  >>> qt.add_row((1, '2001-02-03T00:01:02', 5 * u.m / u.s))
-  Traceback (most recent call last):
-    ...
-  ValueError: Unable to insert row because of exception in column 'time':
-  'Time' object has no attribute 'insert'
+  ValueError: Unable to insert row because of exception in column 'skycoord':
+  'SkyCoord' object has no attribute 'insert'
 
 **Initializing from a list of rows or a list of dicts**
 
