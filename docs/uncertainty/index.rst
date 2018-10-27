@@ -77,16 +77,18 @@ through:
   <Quantity 2.83327524 kpc>
   >>> f.pdf_std # doctest: +FLOAT_CMP
   <Quantity 0.79948566 kpc>
-  >>> import matplotlib as plt # doctest: +SKIP
-  >>> plt.hist(f.distribution, bins=50) # doctest: +SKIP
+  >>> from matplotlib import pyplot as plt # doctest: +SKIP
+  >>> from astropy.visualization import quantity_support # doctest: +SKIP
+  >>> with quantity_support():
+  ...     plt.hist(f.distribution, bins=50) # doctest: +SKIP
 
 .. plot::
-  :align: center
 
   import numpy as np
   from astropy import units as u
   from astropy import uncertainty as unc
-  import matplotlib as plt
+  from astropy.visualization import quantity_support
+  from matplotlib import pyplot as plt
   np.random.seed(12345)
   a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=1000)
   b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=1000)
@@ -94,8 +96,8 @@ through:
   d = unc.poisson(3*u.kpc, n_samples=1000)
   e = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=1000)
   f = (c * d * e) ** (1/3)
-  plt.hist(f.distribution, bins=50)
-
+  with quantity_support():
+      plt.hist(f.distribution, bins=50)
 
 
 Using `astropy.uncertainty`
@@ -259,7 +261,6 @@ an un-correlated joint distribution plot:
 .. plot::
   :context: close-figs
   :include-source:
-  :align: center
 
   >>> import numpy as np
   >>> np.random.seed(12345)  # produce repeatable plots
@@ -278,7 +279,6 @@ pair of gaussians, it is immediately apparent:
 .. plot::
   :context: close-figs
   :include-source:
-  :align: center
 
   >>> ncov = np.random.multivariate_normal([0, 0], [[1, .5], [.5, 2]], size=10000)
   >>> n1 = unc.Distribution(ncov[:, 0])
@@ -297,7 +297,6 @@ a hypothetical collection of stars:
 .. plot::
   :context: close-figs
   :include-source:
-  :align: center
 
   >>> fe_abund = unc.normal(center=-2, std=.25, n_samples=10000)
   >>> o_abund = unc.normal(center=-6., std=.5, n_samples=10000)
@@ -319,7 +318,6 @@ covariance information is (silently) lost:
 .. plot::
   :context: close-figs
   :include-source:
-  :align: center
 
   >>> n2_wrong = unc.Distribution(ncov[::-1, 1])  #reverse the sampling axis order
   >>> plt.scatter(n1.distribution, n2_wrong.distribution, s=2, lw=0, alpha=.5) # doctest: +SKIP
@@ -335,7 +333,6 @@ example above, but with 200x fewer samples:
 .. plot::
   :context: close-figs
   :include-source:
-  :align: center
 
   >>> ncov = np.random.multivariate_normal([0, 0], [[1, .5], [.5, 2]], size=50)
   >>> n1 = unc.Distribution(ncov[:, 0])
