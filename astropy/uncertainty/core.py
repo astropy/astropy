@@ -49,7 +49,9 @@ class Distribution:
                               'formats': [(samples.dtype, (samples.shape[-1],))]})
         samples_cls = type(samples)
         if not issubclass(samples_cls, Distribution):
-            new_name = samples_cls.__name__ + cls.__name__
+            # Make sure first letter is uppercase, but note that we can't use
+            # str.capitalize since that converts the rest of the name to lowercase.
+            new_name = samples_cls.__name__[0].upper() + samples_cls.__name__[1:] + cls.__name__
             if new_name in cls._generated_subclasses:
                 new_cls = cls._generated_subclasses[new_name]
             else:

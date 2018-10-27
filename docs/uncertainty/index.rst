@@ -114,7 +114,7 @@ that carries the samples in the *last* dimension::
   >>> from astropy import uncertainty as unc
   >>> np.random.seed(123456)  # ensures "random" numbers match examples below
   >>> unc.Distribution(np.random.poisson(12, (1000)))  # doctest: +ELLIPSIS
-  ndarrayDistribution([..., 12,...]) with n_samples=1000
+  NdarrayDistribution([..., 12,...]) with n_samples=1000
   >>> pq = np.random.poisson([1, 5, 30, 400], (1000, 4)).T * u.ct # note the transpose, required to get the sampling on the *last* axis
   >>> distr = unc.Distribution(pq)
   >>> distr # doctest: +ELLIPSIS
@@ -126,7 +126,7 @@ that carries the samples in the *last* dimension::
 Note the distinction for these two distributions: the first is built from an
 array and therefore does not have |quantity| attributes like ``unit``, while the
 latter does.  This is reflected in how they interact with other objects - for
-example the ``ndarrayDistribution`` will not combine with unitful |quantity|
+example the ``NdarrayDistribution`` will not combine with unitful |quantity|
 objects.
 
 For commonly-used distributions, helper functions exist to make creating them
