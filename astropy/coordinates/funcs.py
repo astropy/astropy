@@ -8,6 +8,7 @@ framework, but it is useful for some users who are used to more functional
 interfaces.
 """
 
+import warnings
 from collections.abc import Sequence
 
 import numpy as np
@@ -225,7 +226,13 @@ def get_constellation(coord, short_name=False, constellation_list='iau'):
 
     # if it is geocentric, we reproduce the frame but with the 1875 equinox,
     # which is where the constellations are defined
-    constel_coord = coord.transform_to(PrecessedGeocentric(equinox='B1875'))
+    # this yields a "dubious year" warning because ERFA considers the year 1875
+    # "dubious", probably because UTC isn't well-defined then and precession
+    # models aren't precisely calibrated back to then.  But it's plenty
+    # sufficient for constellations
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', erfa.ErfaWarning)
+        constel_coord = coord.transform_to(PrecessedGeocentric(equinox='B1875'))
     if isscalar:
         rah = constel_coord.ra.ravel().hour
         decd = constel_coord.dec.ravel().deg
