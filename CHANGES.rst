@@ -315,9 +315,13 @@ astropy.coordinates
 
 - Changed the name of the single argument to ``Frame.realize_frame()`` from the
   (incorrect) ``representation_type`` to ``data``. [#7923]
+
 - Negative parallaxes passed to ``Distance()`` now raise an error by default
   (``allow_negative=False``), or are converted to NaN values with a warning
   (``allow_negative=True``). [#7988]
+
+- Negating a ``SphericalRepresentation`` object now changes the angular
+  coordinates (by rotating 180º) instead of negating the distance. [#7988]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
