@@ -73,8 +73,8 @@ The default representation can be changed by setting the `format` attribute::
 
   >>> t.format = 'fits'
   >>> t
-  <Time object: scale='utc' format='fits' value=['1999-01-01T00:00:00.123(UTC)'
-                                                 '2010-01-01T00:00:00.000(UTC)']>
+  <Time object: scale='utc' format='fits' value=['1999-01-01T00:00:00.123'
+                                                 '2010-01-01T00:00:00.000']>
   >>> t.format = 'isot'
 
 We can also convert to a different time scale, for instance from UTC to
@@ -93,7 +93,7 @@ course, from the numbers or strings one could not tell; one format in which
 this information is kept is the ``fits`` format::
 
   >>> print(t2.fits)
-  ['1999-01-01T00:01:04.307(TT)' '2010-01-01T00:01:06.184(TT)']
+  ['1999-01-01T00:01:04.307' '2010-01-01T00:01:06.184']
 
 One can set the time values in-place using the usual numpy array setting
 item syntax::
@@ -165,7 +165,7 @@ byear_str    :class:`~astropy.time.TimeBesselianEpochString`    'B1950.0'
 cxcsec       :class:`~astropy.time.TimeCxcSec`                  63072064.184
 datetime     :class:`~astropy.time.TimeDatetime`                datetime(2000, 1, 2, 12, 0, 0)
 decimalyear  :class:`~astropy.time.TimeDecimalYear`             2000.45
-fits         :class:`~astropy.time.TimeFITS`                    '2000-01-01T00:00:00.000(TAI)'
+fits         :class:`~astropy.time.TimeFITS`                    '2000-01-01T00:00:00.000'
 gps          :class:`~astropy.time.TimeGPS`                     630720013.0
 iso          :class:`~astropy.time.TimeISO`                     '2000-01-01 00:00:00.000'
 isot         :class:`~astropy.time.TimeISOT`                    '2000-01-01T00:00:00.000'
@@ -203,13 +203,13 @@ preserved::
 
   >>> t = Time('2000-01-02', format='fits', out_subfmt='longdate')
   >>> t.value
-  '+02000-01-02(UTC)'
+  '+02000-01-02'
   >>> t.format = 'iso'
   >>> t.out_subfmt
   u'*'
   >>> t.format = 'fits'
   >>> t.value
-  '2000-01-02T00:00:00.000(UTC)'
+  '2000-01-02T00:00:00.000'
 
 
 Subformat
@@ -234,9 +234,9 @@ Format    Subformat    Input / output
 ``iso``   date_hms     2001-01-02 03:04:05.678
 ``iso``   date_hm      2001-01-02 03:04
 ``iso``   date         2001-01-02
-``fits``  date_hms     2001-01-02T03:04:05.678(UTC)
-``fits``  longdate_hms +02001-01-02T03:04:05.678(UTC)
-``fits``  longdate     +02001-01-02(UTC)
+``fits``  date_hms     2001-01-02T03:04:05.678
+``fits``  longdate_hms +02001-01-02T03:04:05.678
+``fits``  longdate     +02001-01-02
 ``yday``  date_hms     2001:032:03:04:05.678
 ``yday``  date_hm      2001:032:03:04
 ``yday``  date         2001:032
