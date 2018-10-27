@@ -74,9 +74,9 @@ through::
   >>> e = unc.Distribution(((np.random.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
   >>> f = (c * d * e) ** (1/3)
   >>> f.pdf_mean # doctest: +FLOAT_CMP
-  <Quantity 2.68750345 kpc>
+  <Quantity 2.99786227 kpc>
   >>> f.pdf_std # doctest: +FLOAT_CMP
-  <Quantity 0.91024998 kpc>
+  <Quantity 0.08330476 kpc>
   >>> from matplotlib import pyplot as plt # doctest: +SKIP
   >>> from astropy.visualization import quantity_support # doctest: +SKIP
   >>> with quantity_support():
