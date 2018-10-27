@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import itertools
-import warnings
 
 import pytest
 import numpy as np
@@ -17,7 +16,6 @@ from ..kernels import (
 from ..utils import KernelSizeError
 from ...modeling.models import Box2D, Gaussian1D, Gaussian2D
 from ...utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
-from ...tests.helper import catch_warnings
 
 try:
     from scipy.ndimage import filters
@@ -31,7 +29,8 @@ MODES = ['center', 'linear_interp', 'oversample', 'integrate']
 KERNEL_TYPES = [Gaussian1DKernel, Gaussian2DKernel,
                 Box1DKernel, Box2DKernel,
                 Trapezoid1DKernel, TrapezoidDisk2DKernel,
-                MexicanHat1DKernel, Tophat2DKernel, AiryDisk2DKernel, Ring2DKernel]
+                MexicanHat1DKernel, Tophat2DKernel, AiryDisk2DKernel,
+                Ring2DKernel]
 
 
 NUMS = [1, 1., np.float32(1.), np.float64(1.)]
@@ -179,7 +178,10 @@ class TestKernels:
         gauss_2 = Gaussian1DKernel(4)
         test_gauss_3 = Gaussian1DKernel(5)
 
-        gauss_3 = convolve(gauss_1, gauss_2)
+        with pytest.warns(AstropyUserWarning, match='Both array and kernel '
+                          'are Kernel instances'):
+            gauss_3 = convolve(gauss_1, gauss_2)
+
         assert np.all(np.abs((gauss_3 - test_gauss_3).array) < 0.01)
 
     def test_convolve_2D_kernels(self):
@@ -190,7 +192,10 @@ class TestKernels:
         gauss_2 = Gaussian2DKernel(4)
         test_gauss_3 = Gaussian2DKernel(5)
 
-        gauss_3 = convolve(gauss_1, gauss_2)
+        with pytest.warns(AstropyUserWarning, match='Both array and kernel '
+                          'are Kernel instances'):
+            gauss_3 = convolve(gauss_1, gauss_2)
+
         assert np.all(np.abs((gauss_3 - test_gauss_3).array) < 0.01)
 
     @pytest.mark.parametrize(('number'), NUMS)
@@ -318,9 +323,10 @@ class TestKernels:
         """
         array = [-2, -1, 0, 1, 2]
 
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', AstropyUserWarning)
-            custom = CustomKernel(array)
+        custom = CustomKernel(array)
+
+        with pytest.warns(AstropyUserWarning, match='kernel cannot be '
+                          'normalized because it sums to zero'):
             custom.normalize()
 
         assert custom.truncation == 0.
@@ -333,9 +339,10 @@ class TestKernels:
         """
         array = [[0, -1, 0], [-1, 4, -1], [0, -1, 0]]
 
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', AstropyUserWarning)
-            custom = CustomKernel(array)
+        custom = CustomKernel(array)
+
+        with pytest.warns(AstropyUserWarning, match='kernel cannot be '
+                          'normalized because it sums to zero'):
             custom.normalize()
 
         assert custom.truncation == 0.
@@ -380,8 +387,8 @@ class TestKernels:
                [1 / 9., 1 + 1 / 9., 1 / 9.],
                [1 / 9., 1 / 9., 1 / 9.]]
         ref_1 = [[1 / 9., 1 / 9., 1 / 9.],
-               [1 / 9., 1 / 9., 1 / 9.],
-               [1 / 9., 1 / 9., 1 / 9.]]
+                 [1 / 9., 1 / 9., 1 / 9.],
+                 [1 / 9., 1 / 9., 1 / 9.]]
         assert_almost_equal(box_2.array, [[1]], decimal=12)
         assert_almost_equal(box_1.array, ref_1, decimal=12)
         assert_almost_equal(box_sum_1.array, ref, decimal=12)
@@ -403,7 +410,7 @@ class TestKernels:
 
     # https://github.com/astropy/astropy/issues/3605
     def test_Gaussian2DKernel_rotated(self):
-        with catch_warnings(AstropyDeprecationWarning) as w:
+        with pytest.warns(AstropyDeprecationWarning) as w:
             Gaussian2DKernel(stddev=10)
         assert len(w) == 1
 
