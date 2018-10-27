@@ -71,7 +71,7 @@ operations where error analysis becomes untenable, |distribution| still powers
 through::
 
   >>> d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=10000)
-  >>> e = unc.Distribution(np.random.weibull(1.1, 10000)*3*u.kpc)
+  >>> e = unc.Distribution(((np.random.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
   >>> f = (c * d * e) ** (1/3)
   >>> f.pdf_mean # doctest: +FLOAT_CMP
   <Quantity 2.68750345 kpc>
@@ -94,7 +94,7 @@ through::
   b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=10000)
   c = a + b
   d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=10000)
-  e = unc.Distribution(np.random.weibull(1.1, 10000)*3*u.kpc)
+  e = unc.Distribution(((np.random.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
   f = (c * d * e) ** (1/3)
   with quantity_support():
       plt.hist(f.distribution, bins=50)
