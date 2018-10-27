@@ -39,9 +39,12 @@ def test_constellations(recwarn):
     from ..funcs import get_constellation
 
     inuma = ICRS(9*u.hour, 65*u.deg)
+
+    n_prewarn = len(recwarn)
     res = get_constellation(inuma)
-    assert recwarn.pop(ErfaWarning)
     res_short = get_constellation(inuma, short_name=True)
+    assert len(recwarn) == n_prewarn  # neither version should not make warnings
+
     assert res == 'Ursa Major'
     assert res_short == 'UMa'
     assert isinstance(res, str) or getattr(res, 'shape', None) == tuple()
