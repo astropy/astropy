@@ -389,7 +389,7 @@ class EarthLocation(u.Quantity):
         """
         # https://github.com/astropy/astropy/issues/7960
         raise ValueError(
-            "Google has disabled usage of this API without API key. "
+            "Google has disabled usage of the interface necessary for of_address to work without an API key. "
             "To use this feature, please upgrade to Astropy 3.1 or "
             "obtain lon/lat manually for passing into SkyCoord constructor")
 
