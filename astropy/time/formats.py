@@ -1036,8 +1036,6 @@ class TimeFITS(TimeString):
         (subfmt[0],
          subfmt[1] + r'(\((?P<scale>\w+)(\((?P<realization>\w+)\))?\))?',
          subfmt[2]) for subfmt in subfmts)
-    _fits_scale = None
-    _fits_realization = None
 
     def parse_string(self, timestr, subfmts):
         """Read time and deprecated scale if present"""
@@ -1063,17 +1061,12 @@ class TimeFITS(TimeString):
                 raise ValueError("Scale {0!r} is not in the allowed scales {1}"
                                  .format(scale, sorted(TIME_SCALES)))
             # If no scale was given in the initialiser, set the scale to
-            # that given in the string.  Also store a possible realization,
-            # so we can round-trip (as long as no scale changes are made).
-            fits_realization = (tm['realization'].upper()
-                                if tm['realization'] else None)
-            if self._fits_scale is None:
-                self._fits_scale = fits_scale
-                self._fits_realization = fits_realization
-                if self._scale is None:
-                    self._scale = scale
-            if (scale != self.scale or fits_scale != self._fits_scale or
-                    fits_realization != self._fits_realization):
+            # that given in the string.  Realization is ignored
+            # and is only supported to allow old-style strings to be
+            # parsed.
+            if self._scale is None:
+                self._scale = scale
+            if scale != self.scale:
                 raise ValueError("Input strings for {0} class must all "
                                  "have consistent time scales."
                                  .format(self.name))
