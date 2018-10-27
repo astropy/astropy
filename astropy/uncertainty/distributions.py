@@ -69,7 +69,7 @@ def normal(center, *, std=None, var=None, ivar=None, n_samples,
     return cls(samples, **kwargs)
 
 
-COUNT_UNITS = (u.count, u.electron, u.dimensionless_unscaled, u.adu)
+COUNT_UNITS = (u.count, u.electron, u.dimensionless_unscaled)
 
 def poisson(center, n_samples, cls=Distribution, **kwargs):
     """
@@ -103,10 +103,15 @@ def poisson(center, n_samples, cls=Distribution, **kwargs):
 
     samples = np.random.poisson(poissonarr[..., np.newaxis], randshape)
     if has_unit:
-        if center.unit not in COUNT_UNITS:
+        if center.unit == u.adu:
+            warn('ADUs were provided to poisson.  ADUs are not strictly count'
+                 'units because they need the gain to be applied. It is '
+                 'recommended you apply the gain to convert to e.g. electrons.')
+        elif center.unit not in COUNT_UNITS:
             warn('Unit {} was provided to poisson, which is not one of {}, '
                  'and therefore suspect as a "counting" unit.  Ensure you mean '
                  'to use Poisson statistics.'.format(center.unit, COUNT_UNITS))
+
         # re-attach the unit
         samples = samples * center.unit
 
