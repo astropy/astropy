@@ -77,7 +77,7 @@ through:
   <Quantity 2.83327524 kpc>
   >>> f.pdf_std # doctest: +FLOAT_CMP
   <Quantity 0.79948566 kpc>
-  >>> import matplotlib as plt
+  >>> import matplotlib as plt # doctest: +SKIP
   >>> plt.hist(f.distribution, bins=50) # doctest: +SKIP
 
 .. plot::
@@ -91,7 +91,7 @@ through:
   a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=1000)
   b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=1000)
   c = a + b
-  d = unc.poisson(3*u.kpc)
+  d = unc.poisson(3*u.kpc, n_samples=1000)
   e = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=1000)
   f = (c * d * e) ** (1/3)
   plt.hist(f.distribution, bins=50)
