@@ -1,8 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 from ... import ascii
-from .common import (assert_equal, assert_almost_equal, has_isnan,
-                     setup_function, teardown_function)
+from .common import assert_equal, assert_almost_equal, has_isnan
+
+# setup/teardown function to have the tests run in the correct directory
+from .common import setup_function, teardown_function  # noqa
 
 
 def read_table1(readme, data):
@@ -141,11 +145,14 @@ def test_header_from_readme():
     if has_isnan:
         from .common import isnan
         for i, val in enumerate(table.field('Q')):
-            if isnan(val):
-                # text value for a missing value in that table
-                assert Q[i] == -9.999
-            else:
-                assert val == Q[i]
+            with warnings.catch_warnings():
+                # converting a masked element to nan -- only sometimes
+                warnings.simplefilter('ignore', UserWarning)
+                if isnan(val):
+                    # text value for a missing value in that table
+                    assert Q[i] == -9.999
+                else:
+                    assert val == Q[i]
 
 
 def test_cds_units():

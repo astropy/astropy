@@ -19,9 +19,13 @@ from ....table import Table
 import pytest
 import numpy as np
 
-from .common import setup_function, teardown_function
+# setup/teardown function to have the tests run in the correct directory
+from .common import setup_function, teardown_function  # noqa
+
+# for skipif
+from ....utils.xml.writer import HAS_BLEACH  # noqa
+
 from ... import ascii
-from ....utils.xml.writer import HAS_BLEACH
 
 # Check to see if the BeautifulSoup dependency is present.
 try:
@@ -38,7 +42,8 @@ def test_soupstring():
     Test to make sure the class SoupString behaves properly.
     """
 
-    soup = BeautifulSoup('<html><head></head><body><p>foo</p></body></html>')
+    soup = BeautifulSoup('<html><head></head><body><p>foo</p></body></html>',
+                         "html5lib")
     soup_str = html.SoupString(soup)
     assert isinstance(soup_str, str)
     assert isinstance(soup_str, html.SoupString)
@@ -70,12 +75,12 @@ def test_identify_table():
     """
 
     # Should return False on non-<table> tags and None
-    soup = BeautifulSoup('<html><body></body></html>')
+    soup = BeautifulSoup('<html><body></body></html>', "html5lib")
     assert html.identify_table(soup, {}, 0) is False
     assert html.identify_table(None, {}, 0) is False
 
     soup = BeautifulSoup('<table id="foo"><tr><th>A</th></tr><tr>'
-                         '<td>B</td></tr></table>').table
+                         '<td>B</td></tr></table>', "html5lib").table
     assert html.identify_table(soup, {}, 2) is False
     assert html.identify_table(soup, {}, 1) is True  # Default index of 1
 
@@ -262,8 +267,8 @@ def test_htmlsplitter():
 
     splitter = html.HTMLSplitter()
 
-    lines = [html.SoupString(BeautifulSoup('<table><tr><th>Col 1</th><th>Col 2</th></tr></table>').tr),
-            html.SoupString(BeautifulSoup('<table><tr><td>Data 1</td><td>Data 2</td></tr></table>').tr)]
+    lines = [html.SoupString(BeautifulSoup('<table><tr><th>Col 1</th><th>Col 2</th></tr></table>', "html5lib").tr),
+            html.SoupString(BeautifulSoup('<table><tr><td>Data 1</td><td>Data 2</td></tr></table>', "html5lib").tr)]
     expected_data = [['Col 1', 'Col 2'], ['Data 1', 'Data 2']]
     assert list(splitter(lines)) == expected_data
 
@@ -306,8 +311,8 @@ def test_htmlheader_start():
            '<tr><th>C1</th><th>C2</th><th>C3</th></tr>'
 
     # start_line should return None if no valid header is found
-    lines = [html.SoupString(BeautifulSoup('<table><tr><td>Data</td></tr></table>').tr),
-             html.SoupString(BeautifulSoup('<p>Text</p>').p)]
+    lines = [html.SoupString(BeautifulSoup('<table><tr><td>Data</td></tr></table>', "html5lib").tr),
+             html.SoupString(BeautifulSoup('<p>Text</p>', "html5lib").p)]
     assert header.start_line(lines) is None
 
     # Should raise an error if a non-SoupString is present
@@ -354,8 +359,8 @@ def test_htmldata():
            '<tr><td>9</td><td>i</td><td>-125.0</td></tr>'
 
     # start_line should raise an error if no table data exists
-    lines = [html.SoupString(BeautifulSoup('<div></div>').div),
-             html.SoupString(BeautifulSoup('<p>Text</p>').p)]
+    lines = [html.SoupString(BeautifulSoup('<div></div>', "html5lib").div),
+             html.SoupString(BeautifulSoup('<p>Text</p>', "html5lib").p)]
     with pytest.raises(core.InconsistentTableError):
         data.start_line(lines)
 

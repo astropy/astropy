@@ -2,6 +2,7 @@
 
 import os
 import functools
+import warnings
 
 from io import BytesIO
 from textwrap import dedent
@@ -11,13 +12,12 @@ import numpy as np
 from numpy import ma
 
 from ....table import Table, MaskedColumn
+from ....utils.exceptions import AstropyWarning
 from ... import ascii
 from ...ascii.core import ParameterError, FastOptionsError, InconsistentTableError
-from ...ascii.cparser import CParserError
 from ..fastbasic import (
     FastBasic, FastCsv, FastTab, FastCommentedHeader, FastRdb, FastNoHeader)
 from .common import assert_equal, assert_almost_equal, assert_true
-
 
 StringIO = lambda x: BytesIO(x.encode('ascii'))
 TRAVIS = os.environ.get('TRAVIS', False)
@@ -1023,8 +1023,11 @@ def test_data_out_of_range(parallel, fast_reader, guess):
 
     fields = ['10.1E+199', '3.14e+313', '2048e+306', '0.6E-325', '-2.e345']
     values = np.array([1.01e200, np.inf, np.inf, 0.0, -np.inf])
-    t = ascii.read(StringIO(' '.join(fields)), format='no_header',
-                   guess=guess, fast_reader=fast_reader)
+    with warnings.catch_warnings():
+        # OverflowError converting to FloatType -- not always
+        warnings.simplefilter('ignore', AstropyWarning)
+        t = ascii.read(StringIO(' '.join(fields)), format='no_header',
+                       guess=guess, fast_reader=fast_reader)
     read_values = np.array([col[0] for col in t.itercols()])
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
 
@@ -1032,8 +1035,11 @@ def test_data_out_of_range(parallel, fast_reader, guess):
     fields = ['.0101E202', '0.000000314E+314', '1777E+305', '-1799E+305',
               '0.2e-323', '5200e-327', ' 0.0000000000000000000001024E+330']
     values = np.array([1.01e200, 3.14e307, 1.777e308, -np.inf, 0.0, 4.94e-324, 1.024e308])
-    t = ascii.read(StringIO(' '.join(fields)), format='no_header',
-                   guess=guess, fast_reader=fast_reader)
+    with warnings.catch_warnings():
+        # OverflowError converting to FloatType -- not always
+        warnings.simplefilter('ignore', AstropyWarning)
+        t = ascii.read(StringIO(' '.join(fields)), format='no_header',
+                       guess=guess, fast_reader=fast_reader)
     read_values = np.array([col[0] for col in t.itercols()])
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
 
@@ -1045,8 +1051,11 @@ def test_data_out_of_range(parallel, fast_reader, guess):
 
     fields = ['.0101D202', '0.000000314d+314', '1777+305', '-1799E+305',
               '0.2e-323', '2500-327', ' 0.0000000000000000000001024Q+330']
-    t = ascii.read(StringIO(' '.join(fields)), format='no_header',
-                   guess=guess, fast_reader=fast_reader)
+    with warnings.catch_warnings():
+        # OverflowError converting to FloatType -- not always
+        warnings.simplefilter('ignore', AstropyWarning)
+        t = ascii.read(StringIO(' '.join(fields)), format='no_header',
+                       guess=guess, fast_reader=fast_reader)
     read_values = np.array([col[0] for col in t.itercols()])
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
 
@@ -1056,7 +1065,6 @@ def test_data_out_of_range(parallel, fast_reader, guess):
 @pytest.mark.parametrize("parallel", [
     pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
     False])
-
 def test_int_out_of_range(parallel, guess):
     """
     Integer numbers outside int range shall be returned as string columns
@@ -1068,15 +1076,21 @@ def test_int_out_of_range(parallel, guess):
 
     text = 'P M S\n {:d} {:d} {:s}'.format(imax, imin, huge)
     expected = Table([[imax], [imin], [huge]], names=('P', 'M', 'S'))
-    table = ascii.read(text, format='basic', guess=guess,
-                       fast_reader={'parallel': parallel})
+    with warnings.catch_warnings():
+        # OverflowError converting to IntType -- not always
+        warnings.simplefilter('ignore', AstropyWarning)
+        table = ascii.read(text, format='basic', guess=guess,
+                           fast_reader={'parallel': parallel})
     assert_table_equal(table, expected)
 
     # check with leading zeroes to make sure strtol does not read them as octal
     text = 'P M S\n000{:d} -0{:d} 00{:s}'.format(imax, -imin, huge)
     expected = Table([[imax], [imin], ['00'+huge]], names=('P', 'M', 'S'))
-    table = ascii.read(text, format='basic', guess=guess,
-                       fast_reader={'parallel': parallel})
+    with warnings.catch_warnings():
+        # OverflowError converting to IntType -- not always
+        warnings.simplefilter('ignore', AstropyWarning)
+        table = ascii.read(text, format='basic', guess=guess,
+                           fast_reader={'parallel': parallel})
     assert_table_equal(table, expected)
 
     # Mixed columns should be returned as float, but if the out-of-range integer
@@ -1086,10 +1100,15 @@ def test_int_out_of_range(parallel, guess):
     expected = Table([[12.3, 10.*imax], [10.*imax, 4.56e8]],
                      names=('A', 'B'))
 
-    table = ascii.read(text, format='basic', guess=guess,
-                       fast_reader={'parallel': parallel})
+    with pytest.warns(AstropyWarning,
+                      match='OverflowError converting to IntType'):
+        table = ascii.read(text, format='basic', guess=guess,
+                           fast_reader={'parallel': parallel})
     assert_table_equal(table, expected)
-    table = ascii.read(text, format='basic', guess=guess, fast_reader=False)
+    with pytest.warns(AstropyWarning,
+                      match='OverflowError converting to IntType'):
+        table = ascii.read(text, format='basic', guess=guess,
+                           fast_reader=False)
     assert_table_equal(table, expected)
 
 
