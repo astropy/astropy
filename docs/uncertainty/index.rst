@@ -68,7 +68,7 @@ Monte Carlo sampling) trivially with |distribution| arithmetic and attributes::
 Indeed these are close to the expectations. While this may seem unnecessary for
 the simple Gaussian case, for more complex distributions or arithmetic
 operations where error analysis becomes untenable, |distribution| still powers
-through:
+through::
 
   >>> d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=1000)
   >>> e = unc.Distribution(np.random.weibull(1.1, 1000)*3*u.kpc)
@@ -107,7 +107,7 @@ Creating distributions
 ----------------------
 
 The most direct way to create a distribution is to use an array or quantity
-that carries the samples in the *last* dimension:
+that carries the samples in the *last* dimension::
 
   >>> import numpy as np
   >>> from astropy import units as u
@@ -131,7 +131,7 @@ objects.
 
 For commonly-used distributions, helper functions exist to make creating them
 easier. Below demonstrates several equivalent ways to create a normal/Gaussian
-distribution:
+distribution::
 
   >>> center = [1, 5, 30, 400]
   >>> n_distr = unc.normal(center*u.kpc, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=1000)
@@ -145,7 +145,7 @@ distribution:
   (4, 20000)
 
 
-Additionally, Poisson and uniform |distribution| creation functions exist:
+Additionally, Poisson and uniform |distribution| creation functions exist::
 
   >>> unc.poisson(center*u.count, n_samples=1000) # doctest: +ELLIPSIS
   <QuantityDistribution [[...],
@@ -173,7 +173,7 @@ Using Distributions
 
 This object now acts much like a |quantity| or |ndarray| for all but the
 non-sampled dimension, but with additional statistical operations that work on
-the sampled distributions:
+the sampled distributions::
 
   >>> distr.shape
   (4,)
@@ -205,7 +205,7 @@ the sampled distributions:
             [  2. ,   8. ,  37.1, 427. ]] ct>
 
 If need be, the underlying array can then be accessed from the ``distribution``
-attribute:
+attribute::
 
   >>> distr.distribution  # doctest: +ELLIPSIS
   <Quantity [[...1...],
@@ -216,7 +216,7 @@ attribute:
   (4, 1000)
 
 A |quantity| distribution interact naturally with non-|distribution| quantities,
-essentially assuming the |quantity| is a Dirac delta distribution:
+essentially assuming the |quantity| is a Dirac delta distribution::
 
   >>> distr_in_kpc = distr * u.kpc/u.count  # for the sake of round numbers in examples
   >>> distrplus = distr_in_kpc + [2000,0,0,500]*u.pc
@@ -226,7 +226,7 @@ essentially assuming the |quantity| is a Dirac delta distribution:
   <Quantity [  0.945996,   5.392711,  29.989775, 425.713975] kpc2>
 
 It also operates as expected with other distributions  (But see below for a
-discussion of covariances):
+discussion of covariances)::
 
   >>> another_distr = unc.Distribution((np.random.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T * u.pc)
   >>> combined_distr = distr_in_kpc + another_distr
