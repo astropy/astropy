@@ -723,6 +723,15 @@ class TestSubFormat():
         t = t.utc
         assert t.isot == '1999-01-01T00:00:00.123'
 
+        # Check scale consistency
+        with catch_warnings(AstropyDeprecationWarning):
+            t = Time('1999-01-01T00:00:32.123456789(TAI)', scale="tai")
+        assert t.scale == "tai"
+        with catch_warnings(AstropyDeprecationWarning):
+            t = Time('1999-01-01T00:00:32.123456789(ET)', scale="tt")
+        assert t.scale == "tt"
+        with pytest.raises(ValueError):
+            t = Time('1999-01-01T00:00:32.123456789(TAI)', scale="utc")
 
     def test_scale_default(self):
         """Test behavior when no scale is provided"""
