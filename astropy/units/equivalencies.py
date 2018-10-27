@@ -705,9 +705,9 @@ def with_H0(H0=None):
     For an illuminating discussion on why you may or may not want to use
     little-h at all, see https://arxiv.org/pdf/1308.4150.pdf
     """
-    from .. import cosmology
 
     if H0 is None:
+        from .. import cosmology
         H0 = cosmology.default_cosmology.get().H0
 
     h100_val_unit = Unit(H0.to((si.km/si.s)/astrophys.Mpc).value/100 * astrophys.littleh)
