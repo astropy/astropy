@@ -236,8 +236,8 @@ discussion of covariances)::
   <Quantity [  1.8427705 ,   5.39271147,  39.5343726 , 425.71324244] kpc2>
 
 
-Covariance in distributions
----------------------------
+Covariance in distributions and Discrete Sampling Effects
+---------------------------------------------------------
 
 One of the main applications for distributions is unceratinty propagation, which
 critically requires proper treatment of covariance. This comes naturally in the
