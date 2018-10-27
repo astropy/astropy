@@ -872,7 +872,7 @@ class Time(ShapedLikeNDArray):
         of ``Time`` objects (see ``Get and set values`` in the ``Time``
         documentation).
 
-        The API signature matches the `np.insert` API, but is more limited.
+        The API signature matches the ``np.insert`` API, but is more limited.
         The specification of insert index ``obj`` must be a single integer,
         and the ``axis`` must be ``0`` for simple row insertion before the
         index.
@@ -896,9 +896,10 @@ class Time(ShapedLikeNDArray):
         """
         # Validate inputs: obj arg is integer, axis=0, self is not a scalar, and
         # input index is in bounds.
-        if not isinstance(obj, (int, np.integer)):
+        try:
+            idx0 = operator.index(obj)
+        except TypeError:
             raise TypeError('obj arg must be an integer')
-        idx0 = obj  # Rename for readability
 
         if axis != 0:
             raise ValueError('axis must be 0')
