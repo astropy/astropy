@@ -59,12 +59,16 @@ def test_faux_lsr(dt, symmetric):
     assert quantity_allclose(totchange, np.sum(lsrc.v_bary.d_xyz**2)**0.5)
 
     ic2 = ICRS(ra=120.3*u.deg, dec=45.6*u.deg, distance=7.8*u.au,
-              pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=10*u.marcsec/u.yr,
-              radial_velocity=1000*u.km/u.s)
+               pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=10*u.marcsec/u.yr,
+               radial_velocity=1000*u.km/u.s)
     lsrc2 = ic2.transform_to(LSR2())
+    ic2_roundtrip = lsrc2.transform_to(ICRS)
 
     tot = np.sum(lsrc2.cartesian.differentials['s'].d_xyz**2)**0.5
     assert np.abs(tot.to('km/s') - 1000*u.km/u.s) < 20*u.km/u.s
+
+    assert quantity_allclose(ic2.cartesian.xyz,
+                             ic2_roundtrip.cartesian.xyz)
 
 
 def test_faux_fk5_galactic():
