@@ -804,7 +804,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         return fftmult
 
     if interpolate_nan:
-        rifft = (ifftn(fftmult)) / bigimwt
+        with np.errstate(divide='ignore'):
+            # divide by zeros are expected here; if the weight is zero, we want
+            # the output to be nan or inf
+            rifft = (ifftn(fftmult)) / bigimwt
         if not np.isscalar(bigimwt):
             if min_wt > 0.:
                 rifft[bigimwt < min_wt] = np.nan
