@@ -569,37 +569,32 @@ def test_read_h5py_objects(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY')
-def test_write_to_hdf5(tmpdir):
+def test_read_write_unicode_to_hdf5(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
 
     t = Table()
     t['p'] = ['a', 'b', 'c']
-    t['q'] = [ 1, 2, 3 ]
+    t['q'] = [1, 2, 3]
     t['r'] = [b'a', b'b', b'c']
     t['s'] = ["\u2119", "\u01b4", "\u2602"]
     t.write(test_file, path='the_table', overwrite=True)
+
     t1 = Table.read(test_file, path='the_table', character_as_bytes=False)
-    assert np.all(t1['p'] == ['a', 'b', 'c'])
-    assert np.all(t1['q'] == [1, 2, 3])
-    assert np.all(t1['r'] == ['a', 'b', 'c'])
-    assert np.all(t1['s'] == ["\u2119", "\u01b4", "\u2602"])
+    for col, col1 in zip(t.itercols(), t1.itercols()):
+        assert np.all(col == col1)
     assert np.all(t1['p'].info.dtype.kind == "U")
     assert np.all(t1['q'].info.dtype.kind == "i")
     assert np.all(t1['r'].info.dtype.kind == "U")
     assert np.all(t1['s'].info.dtype.kind == "U")
 
-    f = h5py.File(test_file)
-    t2 = Table.read(f, path='the_table')
-    assert np.all(t2['p'] == ['a', 'b', 'c'])
-    assert np.all(t2['q'] == [1, 2, 3])
-    assert np.all(t2['r'] == [b'a', b'b', b'c'])
-    assert np.all(t2['s'] == ["\u2119", "\u01b4", "\u2602"])
-
-    t3 = Table.read(test_file, path='the_table', character_as_bytes=True)
-    assert np.all(t3['p'].info.dtype.kind == "S")
-    assert np.all(t3['q'].info.dtype.kind == "i")
-    assert np.all(t3['r'].info.dtype.kind == "S")
-    assert np.all(t3['s'].info.dtype.kind == "S")
+    # Test default (character_as_bytes=True)
+    t2 = Table.read(test_file, path='the_table')
+    for col, col1 in zip(t.itercols(), t2.itercols()):
+        assert np.all(col == col1)
+    assert np.all(t2['p'].info.dtype.kind == "S")
+    assert np.all(t2['q'].info.dtype.kind == "i")
+    assert np.all(t2['r'].info.dtype.kind == "S")
+    assert np.all(t2['s'].info.dtype.kind == "S")
 
 
 def assert_objects_equal(obj1, obj2, attrs, compare_class=True):

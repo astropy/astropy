@@ -181,7 +181,10 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
     else:
         # Read the meta-data from the file
         table.meta.update(input.attrs)
-    table = convert_dtype(table, character_as_bytes)
+
+    if not character_as_bytes:
+        table.convert_bytestring_to_unicode()
+
     return table
 
 
@@ -215,45 +218,6 @@ def _encode_mixins(tbl):
         encode_tbl = serialize._represent_mixins_as_columns(tbl)
 
     return encode_tbl
-
-
-def convert_dtype(table, character_as_bytes, copy=False):
-    """
-    Converts bytestring columns (dtype.kind='S') to unicode (dtype.kind='U') and
-    unicode columns (dtype.kind='U') to bytestring (dtype.kind='S').
-
-    Parameters:
-    -----------
-    table: `~astropy.table.Table`
-        Data table in which changes are to be made.
-    character_as_bytes: boolean
-        `True` if columns are to be converted to bytestrings from unicode.
-        `False` if columns are to be converted to unicode from bytestrings.
-    copy: boolean
-        `True` if changes are to be made in a new table which is copied from original table.
-
-    Returns:
-    --------
-    table: `~astropy.table.Table`
-        Data table with desired changes.
-    """
-    if character_as_bytes:
-        colnames = [name for name in table.colnames if table[name].info.dtype.kind == 'U']
-        if colnames and copy:
-            table = table.copy(copy_data=False)
-        try:
-            table.convert_unicode_to_bytestring()
-        except (UnicodeEncodeError, AttributeError):
-            for column_name in colnames:
-                table.replace_column(column_name, np.char.encode(table[column_name], "utf-8"))
-    else:
-        try:
-            table.convert_bytestring_to_unicode()
-        except (UnicodeDecodeError, AttributeError):
-            colnames = [name for name in table.colnames if table[name].info.dtype.kind == 'S']
-            for column_name in colnames:
-                table.replace_column(column_name, np.char.decode(table[column_name], "utf-8"))
-    return table
 
 
 def write_table_hdf5(table, output, path=None, compression=False,
@@ -348,12 +312,16 @@ def write_table_hdf5(table, output, path=None, compression=False,
         else:
             raise OSError("Table {0} already exists".format(path))
 
-    # Table with numpy unicode strings can't be written in hdf5 so
-    # to write such a table a copy of table is made containing columns as
-    # bytestrings.Now this copy of the table can be written in hdf5.
-    table = convert_dtype(table, character_as_bytes=True, copy=True)
     # Encode any mixin columns as plain columns + appropriate metadata
     table = _encode_mixins(table)
+
+    # Table with numpy unicode strings can't be written in HDF5 so
+    # to write such a table a copy of table is made containing columns as
+    # bytestrings.  Now this copy of the table can be written in HDF5.
+    if any(col.info.dtype.kind == 'U' for col in table.itercols()):
+        table = table.copy(copy_data=False)
+        table.convert_unicode_to_bytestring()
+
     # Warn if information will be lost when serialize_meta=False.  This is
     # hardcoded to the set difference between column info attributes and what
     # HDF5 can store natively (name, dtype) with no meta.
