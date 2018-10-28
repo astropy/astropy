@@ -81,6 +81,16 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
                 upper = a.max()
             bins = np.linspace(lower, upper, bins + 1, endpoint=True)
 
+    if range:
+        # Check that the upper and lower edges are what was requested.
+        # The current implementation of the bin width estimators does not
+        # guarantee this, it only ensures that data outside the range is
+        # excluded from calculation of the bin widths.
+        if bins[0] != range[0]:
+            bins[0] = range[0]
+        if bins[-1] != range[1]:
+            bins[-1] = range[1]
+
     return bins
 
 
