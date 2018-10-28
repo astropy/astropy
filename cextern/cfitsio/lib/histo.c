@@ -387,7 +387,7 @@ int ffbinr(char **ptr,
         /* Check for case where col name string is empty but '='
            is still there (indicating a following specification string).
            Musn't enter this block as token would not have been allocated. */
-        if (slen != 0 || (**ptr != '='))
+        if (token)
         {
            if (strlen(token) > FLEN_VALUE-1)
            {
@@ -404,13 +404,13 @@ int ffbinr(char **ptr,
                strcpy(colname, token);
            free(token);
            token=0;
-           while (**ptr == ' ')  /* skip over blanks */
-                (*ptr)++;
-
-           if (**ptr != '=')
-               return(*status);  /* reached the end */
-
         }
+        while (**ptr == ' ')  /* skip over blanks */
+             (*ptr)++;
+
+        if (**ptr != '=')
+            return(*status);  /* reached the end */
+            
         (*ptr)++;   /* skip over the = sign */
 
         while (**ptr == ' ')  /* skip over blanks */
@@ -425,22 +425,25 @@ int ffbinr(char **ptr,
     if (**ptr != ':')
     {
         /* This is the first token, and since it is not followed by 
-         a ':' this must be the binsize token. Or it could be empty
-         in which case none of the following operations will do anything */
-        if (!isanumber)
+         a ':' this must be the binsize token. Or it could be empty. */
+        if (token)
         {
-            if (strlen(token) > FLEN_VALUE-1)
-            {
-               ffpmsg("binname too long (ffbinr)");
-               free(token);
-               return(*status=PARSE_SYNTAX_ERR);
-            }
-            strcpy(binname, token);
+           if (!isanumber)
+           {
+               if (strlen(token) > FLEN_VALUE-1)
+               {
+                  ffpmsg("binname too long (ffbinr)");
+                  free(token);
+                  return(*status=PARSE_SYNTAX_ERR);
+               }
+               strcpy(binname, token);
+           }
+           else
+               *binsizein =  strtod(token, NULL);
+
+           free(token);
         }
-        else
-            *binsizein =  strtod(token, NULL);
-        
-        free(token);
+           
         return(*status);  /* reached the end */
     }
     else
@@ -1493,9 +1496,9 @@ int fits_calc_binning(
     int i, naxis1 = 4;
     if (naxis < naxis1) naxis1 = naxis;
     for (i=0; i<naxis1; i++) {
-      amind[i] = (float) amin[i];
-      amaxd[i] = (float) amax[i];
-      binsized[i] = (float) binsize[i];
+      amin[i] = (float) amind[i];
+      amax[i] = (float) amaxd[i];
+      binsize[i] = (float) binsized[i];
     }
   }
 
@@ -1946,13 +1949,13 @@ int fits_rebin_wcs(
 {
   double amind[4], binsized[4];
 
-  /* Copy double precision values into single precision */
+  /* Copy single precision values into double precision */
   if (*status == 0) {
     int i, naxis1 = 4;
     if (naxis < naxis1) naxis1 = naxis;
     for (i=0; i<naxis1; i++) {
-      amind[i] = (float) amin[i];
-      binsized[i] = (float) binsize[i];
+      amind[i] = (double) amin[i];
+      binsized[i] = (double) binsize[i];
     }
 
     fits_rebin_wcsd(fptr, naxis, amind, binsized, status);
@@ -2092,17 +2095,17 @@ int fits_make_hist(fitsfile *fptr, /* IO - pointer to table with X and Y cols; *
 {		  
   double amind[4], amaxd[4], binsized[4], weightd;
 
-  /* Copy double precision values into single precision */
+  /* Copy single precision values into double precision */
   if (*status == 0) {
     int i, naxis1 = 4;
     if (naxis < naxis1) naxis1 = naxis;
     for (i=0; i<naxis1; i++) {
-      amind[i] = (float) amin[i];
-      amaxd[i] = (float) amax[i];
-      binsized[i] = (float) binsize[i];
+      amind[i] = (double) amin[i];
+      amaxd[i] = (double) amax[i];
+      binsized[i] = (double) binsize[i];
     }
 
-    weightd = (float) weight;
+    weightd = (double) weight;
 
     fits_make_histd(fptr, histptr, bitpix, naxis, naxes, colnum,
 		    amind, amaxd, binsized, weight, wtcolnum, recip,

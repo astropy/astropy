@@ -448,7 +448,7 @@ int ffpclj( fitsfile *fptr,  /* I - FITS file pointer                       */
 
             case (TLONGLONG):
 
-                fflongfi8(&array[next], ntodo, scale, zero,
+                ffi4fi8(&array[next], ntodo, scale, zero,
                         (LONGLONG *) buffer, status);
                 ffpi8b(fptr, ntodo, incre, (long *) buffer, status);
                 break;
@@ -852,7 +852,7 @@ int ffi4fi4(long *input,       /* I - array of values to be converted  */
     return(*status);
 }
 /*--------------------------------------------------------------------------*/
-int fflongfi8(long *input,       /* I - array of values to be converted  */
+int ffi4fi8(long *input,       /* I - array of values to be converted  */
             long ntodo,        /* I - number of elements in the array  */
             double scale,      /* I - FITS TSCALn or BSCALE value      */
             double zero,       /* I - FITS TZEROn or BZERO  value      */
@@ -866,7 +866,22 @@ int fflongfi8(long *input,       /* I - array of values to be converted  */
     long ii;
     double dvalue;
 
-    if (scale == 1. && zero == 0.)
+    if (scale == 1. && zero ==  9223372036854775808.)
+    {       
+        /* Writing to unsigned long long column. Input values must not be negative */
+        /* Instead of subtracting 9223372036854775808, it is more efficient */
+        /* and more precise to just flip the sign bit with the XOR operator */
+
+        for (ii = 0; ii < ntodo; ii++) {
+           if (input[ii] < 0) {
+              *status = OVERFLOW_ERR;
+              output[ii] = LONGLONG_MIN;
+           } else {
+              output[ii] =  ((LONGLONG) input[ii]) ^ 0x8000000000000000;
+           }
+        }
+    }
+    else if (scale == 1. && zero == 0.)
     {       
         for (ii = 0; ii < ntodo; ii++)
                 output[ii] = input[ii];
@@ -1030,7 +1045,7 @@ int ffpprjj(fitsfile *fptr,  /* I - FITS file pointer                       */
     {
         /* this is a compressed image in a binary table */
 
-        ffpmsg("writing to compressed image is not supported");
+        ffpmsg("writing TLONGLONG to compressed image is not supported");
 
         return(*status = DATA_COMPRESSION_ERR);
     }
@@ -1069,7 +1084,7 @@ int ffppnjj(fitsfile *fptr,  /* I - FITS file pointer                       */
     {
         /* this is a compressed image in a binary table */
 
-        ffpmsg("writing to compressed image is not supported");
+        ffpmsg("writing TLONGLONG to compressed image is not supported");
 
         return(*status = DATA_COMPRESSION_ERR);
     }
@@ -1129,7 +1144,7 @@ int ffp3djj(fitsfile *fptr,  /* I - FITS file pointer                     */
     {
         /* this is a compressed image in a binary table */
 
-        ffpmsg("writing to compressed image is not supported");
+        ffpmsg("writing TLONGLONG to compressed image is not supported");
 
         return(*status = DATA_COMPRESSION_ERR);
     }
@@ -1199,8 +1214,7 @@ int ffpssjj(fitsfile *fptr,  /* I - FITS file pointer                       */
     {
         /* this is a compressed image in a binary table */
 
-        ffpmsg("writing to compressed image is not supported");
-
+        ffpmsg("writing TLONGLONG to compressed image is not supported");
 
         return(*status = DATA_COMPRESSION_ERR);
     }
@@ -1542,8 +1556,8 @@ int ffpcnjj(fitsfile *fptr,  /* I - FITS file pointer                       */
             LONGLONG  firstrow,  /* I - first row to write (1 = 1st row)        */
             LONGLONG  firstelem, /* I - first vector element to write (1 = 1st) */
             LONGLONG  nelem,     /* I - number of values to write               */
-            LONGLONG *array, /* I - array of values to write                */
-            LONGLONG nulvalue, /* I - value used to flag undefined pixels   */
+            LONGLONG *array,     /* I - array of values to write                */
+            LONGLONG nulvalue,   /* I - value used to flag undefined pixels   */
             int  *status)    /* IO - error status                           */
 /*
   Write an array of elements to the specified column of a table.  Any input
@@ -1865,7 +1879,22 @@ int ffi8fi8(LONGLONG *input,   /* I - array of values to be converted  */
     long ii;
     double dvalue;
 
-    if (scale == 1. && zero == 0.)
+    if (scale == 1. && zero ==  9223372036854775808.)
+    {       
+        /* Writing to unsigned long long column. Input values must not be negative */
+        /* Instead of subtracting 9223372036854775808, it is more efficient */
+        /* and more precise to just flip the sign bit with the XOR operator */
+
+        for (ii = 0; ii < ntodo; ii++) {
+           if (input[ii] < 0) {
+              *status = OVERFLOW_ERR;
+              output[ii] = LONGLONG_MIN;
+           } else {
+              output[ii] =  (input[ii]) ^ 0x8000000000000000;
+           }
+        }
+    }
+    else if (scale == 1. && zero == 0.)
     {       
         for (ii = 0; ii < ntodo; ii++)
                 output[ii] = input[ii];

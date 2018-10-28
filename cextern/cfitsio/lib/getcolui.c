@@ -1295,10 +1295,31 @@ int fffi8u2(LONGLONG *input,      /* I - array of values to be converted     */
 {
     long ii;
     double dvalue;
+    ULONGLONG ulltemp;
 
     if (nullcheck == 0)     /* no null checking required */
     {
-        if (scale == 1. && zero == 0.)      /* no scaling */
+        if (scale == 1. && zero ==  9223372036854775808.)
+        {       
+            /* The column we read contains unsigned long long values. */
+            /* Instead of adding 9223372036854775808, it is more efficient */
+            /* and more precise to just flip the sign bit with the XOR operator */
+
+            for (ii = 0; ii < ntodo; ii++) {
+ 
+                ulltemp = (ULONGLONG) (((LONGLONG) input[ii]) ^ 0x8000000000000000);
+
+                if (ulltemp > USHRT_MAX)
+                {
+                    *status = OVERFLOW_ERR;
+                    output[ii] = USHRT_MAX;
+                }
+                else
+                    output[ii] = (unsigned short) ulltemp;
+
+            }
+        }
+        else if (scale == 1. && zero == 0.)      /* no scaling */
         {       
             for (ii = 0; ii < ntodo; ii++)
             {
@@ -1339,7 +1360,39 @@ int fffi8u2(LONGLONG *input,      /* I - array of values to be converted     */
     }
     else        /* must check for null values */
     {
-        if (scale == 1. && zero == 0.)  /* no scaling */
+        if (scale == 1. && zero ==  9223372036854775808.)
+        {       
+            /* The column we read contains unsigned long long values. */
+            /* Instead of adding 9223372036854775808, it is more efficient */
+            /* and more precise to just flip the sign bit with the XOR operator */
+
+            for (ii = 0; ii < ntodo; ii++) {
+ 
+                if (input[ii] == tnull)
+                {
+                    *anynull = 1;
+                    if (nullcheck == 1)
+                        output[ii] = nullval;
+                    else
+                        nullarray[ii] = 1;
+                }
+                else
+                {
+                    ulltemp = (ULONGLONG) (((LONGLONG) input[ii]) ^ 0x8000000000000000);
+
+                    if (ulltemp > USHRT_MAX)
+                    {
+                        *status = OVERFLOW_ERR;
+                        output[ii] = USHRT_MAX;
+                    }
+                    else
+		    {
+                        output[ii] = (unsigned short) ulltemp;
+		    }
+                }
+            }
+        }
+        else if (scale == 1. && zero == 0.)  /* no scaling */
         {       
             for (ii = 0; ii < ntodo; ii++)
             {
