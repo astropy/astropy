@@ -685,8 +685,11 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
                                  "must be a class, not a string. For "
                                  "strings, use frame objects")
 
-            # The default is to convert via cartesian coordinates
-            new_rep = other_class.from_cartesian(self.to_cartesian())
+            if other_class is not self.__class__:
+                # The default is to convert via cartesian coordinates
+                new_rep = other_class.from_cartesian(self.to_cartesian())
+            else:
+                new_rep = self
 
             new_rep._differentials = self._re_represent_differentials(
                 new_rep, differential_class)
@@ -1563,7 +1566,16 @@ class SphericalRepresentation(BaseRepresentation):
         super().__init__(lon, lat, distance, copy=copy,
                          differentials=differentials)
         if self._distance.unit.physical_type == 'length':
-            self._distance = self._distance.view(Distance)
+            try:
+                self._distance = Distance(self._distance, copy=False)
+            except ValueError as e:
+                if e.args[0].startswith('Distance must be >= 0'):
+                    raise ValueError("Distance must be >= 0. To allow negative "
+                                     "distance values, you must explicitly pass"
+                                     " in a `Distance` object with the the "
+                                     "argument 'allow_negative=True'.")
+                else:
+                    raise
 
     @property
     def _compatible_differentials(self):
@@ -1666,6 +1678,11 @@ class SphericalRepresentation(BaseRepresentation):
             Vector norm, with the same shape as the representation.
         """
         return np.abs(self.distance)
+
+    def __neg__(self):
+        self._raise_if_has_differentials('negation')
+        return self.__class__(self.lon + 180. * u.deg, -self.lat, self.distance,
+                              copy=False)
 
 
 class PhysicsSphericalRepresentation(BaseRepresentation):
