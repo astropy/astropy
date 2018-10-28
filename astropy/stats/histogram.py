@@ -10,7 +10,7 @@ import numpy as np
 from . import bayesian_blocks
 
 __all__ = ['histogram', 'scott_bin_width', 'freedman_bin_width',
-           'knuth_bin_width']
+           'knuth_bin_width', 'calculate_bin_edges']
 
 
 def calculate_bin_edges(a, bins=10, range=None, weights=None):
@@ -133,7 +133,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     numpy.histogram
     """
 
-    bins = _calculate_bin_edges(a, bins=bins, range=range, weights=weights)
+    bins = calculate_bin_edges(a, bins=bins, range=range, weights=weights)
     # Now we call numpy's histogram with the resulting bin edges
     return np.histogram(a, bins=bins, range=range, weights=weights, **kwargs)
 
