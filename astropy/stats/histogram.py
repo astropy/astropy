@@ -13,7 +13,32 @@ __all__ = ['histogram', 'scott_bin_width', 'freedman_bin_width',
            'knuth_bin_width']
 
 
-def _calculate_bin_edges(a, bins=10, range=None, weights=None):
+def calculate_bin_edges(a, bins=10, range=None, weights=None):
+    """
+    Calculate histogram bin edges like `numpy.histogram_bin_edges`.
+
+    Parameters
+    ----------
+
+    a : array_like
+        Input data. The bin edges are calculated over the flattened array.
+
+    bins : int or list or str (optional)
+        If ``bins`` is an int, it is the number of bins. If it is a list
+        it is taken to be the bin edges. If it is a string, it must be one
+        of  'blocks', 'knuth', 'scott' or 'freedman'. See
+        `~astropy.stats.histogram` for a description of each method.
+
+    range : tuple or None (optional)
+        the minimum and maximum range for the histogram.  If not specified,
+        it will be (x.min(), x.max())
+
+    weights : array_like, optional
+        An array the same shape as ``a``. If given, the histogram accumulates
+        the value of the weight corresponding to ``a`` instead of returning the
+        count of values. This argument does not affect determination of bin
+        edges.
+    """
     # if range is specified, we need to truncate the data for
     # the bin-finding routines
     if range is not None:
@@ -88,7 +113,10 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
         it will be (x.min(), x.max())
 
     weights : array_like, optional
-        Not Implemented
+        An array the same shape as ``a``. If given, the histogram accumulates
+        the value of the weight corresponding to ``a`` instead of returning the
+        count of values. This argument does not affect determination of bin
+        edges.
 
     other keyword arguments are described in numpy.histogram().
 
