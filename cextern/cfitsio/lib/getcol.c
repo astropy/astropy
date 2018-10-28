@@ -202,6 +202,15 @@ int ffgpxvll( fitsfile *fptr, /* I - FITS file pointer                       */
         ffgclj(fptr, 2, 1, firstelem, nelem, 1, 1, *(long *) nulval,
                (long *) array, &cdummy, anynul, status);
     }
+    else if (datatype == TULONGLONG)
+    {
+      if (nulval == 0)
+        ffgclujj(fptr, 2, 1, firstelem, nelem, 1, 1, 0,
+               (ULONGLONG *) array, &cdummy, anynul, status);
+      else
+        ffgclujj(fptr, 2, 1, firstelem, nelem, 1, 1, *(ULONGLONG *) nulval,
+               (ULONGLONG *) array, &cdummy, anynul, status);
+    }
     else if (datatype == TLONGLONG)
     {
       if (nulval == 0)
@@ -363,6 +372,11 @@ int ffgpxfll( fitsfile *fptr, /* I - FITS file pointer                       */
         ffgclj(fptr, 2, 1, firstelem, nelem, 1, 2, 0,
                (long *) array, nullarray, anynul, status);
     }
+    else if (datatype == TULONGLONG)
+    {
+        ffgclujj(fptr, 2, 1, firstelem, nelem, 1, 2, 0,
+               (ULONGLONG *) array, nullarray, anynul, status);
+    }
     else if (datatype == TLONGLONG)
     {
         ffgcljj(fptr, 2, 1, firstelem, nelem, 1, 2, 0,
@@ -503,6 +517,15 @@ int ffgsv(  fitsfile *fptr,   /* I - FITS file pointer                       */
         ffgsvj(fptr, 1, naxis, naxes, blc, trc, inc, *(long *) nulval,
                (long *) array, anynul, status);
     }
+    else if (datatype == TULONGLONG)
+    {
+      if (nulval == 0)
+        ffgsvujj(fptr, 1, naxis, naxes, blc, trc, inc, 0,
+               (ULONGLONG *) array, anynul, status);
+      else
+        ffgsvujj(fptr, 1, naxis, naxes, blc, trc, inc, *(ULONGLONG *) nulval,
+               (ULONGLONG *) array, anynul, status);
+    }
     else if (datatype == TLONGLONG)
     {
       if (nulval == 0)
@@ -637,6 +660,15 @@ int ffgpv(  fitsfile *fptr,   /* I - FITS file pointer                       */
         ffgpvj(fptr, 1, firstelem, nelem, *(long *) nulval,
                (long *) array, anynul, status);
     }
+    else if (datatype == TULONGLONG)
+    {
+      if (nulval == 0)
+        ffgpvujj(fptr, 1, firstelem, nelem, 0,
+               (ULONGLONG *) array, anynul, status);
+      else
+        ffgpvujj(fptr, 1, firstelem, nelem, *(ULONGLONG *) nulval,
+               (ULONGLONG *) array, anynul, status);
+    }
     else if (datatype == TLONGLONG)
     {
       if (nulval == 0)
@@ -739,6 +771,11 @@ int ffgpf(  fitsfile *fptr,   /* I - FITS file pointer                       */
     {
         ffgpfj(fptr, 1, firstelem, nelem,
                (long *) array, nullarray, anynul, status);
+    }
+    else if (datatype == TULONGLONG)
+    {
+        ffgpfujj(fptr, 1, firstelem, nelem,
+               (ULONGLONG *) array, nullarray, anynul, status);
     }
     else if (datatype == TLONGLONG)
     {
@@ -864,6 +901,15 @@ int ffgcv(  fitsfile *fptr,   /* I - FITS file pointer                       */
       else
         ffgclj(fptr, colnum, firstrow, firstelem, nelem, 1, 1, *(long *)
               nulval, (long *) array, cdummy, anynul, status);
+    }
+    else if (datatype == TULONGLONG)
+    {
+      if (nulval == 0)
+        ffgclujj(fptr, colnum, firstrow, firstelem, nelem, 1, 1, 0,
+              (ULONGLONG *) array, cdummy, anynul, status);
+      else
+        ffgclujj(fptr, colnum, firstrow, firstelem, nelem, 1, 1, *(ULONGLONG *)
+              nulval, (ULONGLONG *) array, cdummy, anynul, status);
     }
     else if (datatype == TLONGLONG)
     {
@@ -1008,6 +1054,11 @@ int ffgcf(  fitsfile *fptr,   /* I - FITS file pointer                       */
     {
         ffgclj(fptr, colnum, firstrow, firstelem, nelem, 1, 2, (long )
               nulval, (long *) array, nullarray, anynul, status);
+    }
+    else if (datatype == TULONGLONG)
+    {
+        ffgclujj(fptr, colnum, firstrow, firstelem, nelem, 1, 2, (ULONGLONG )
+              nulval, (ULONGLONG *) array, nullarray, anynul, status);
     }
     else if (datatype == TLONGLONG)
     {

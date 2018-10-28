@@ -882,7 +882,20 @@ int ffi1fi8(unsigned char *input, /* I - array of values to be converted  */
     long ii;
     double dvalue;
 
-    if (scale == 1. && zero == 0.)
+    if (scale == 1. && zero ==  9223372036854775808.)
+    {       
+        /* Writing to unsigned long long column. */
+        /* Instead of subtracting 9223372036854775808, it is more efficient */
+        /* and more precise to just flip the sign bit with the XOR operator */
+
+        /* no need to check range limits because all unsigned char values */
+	/* are valid ULONGLONG values. */
+
+        for (ii = 0; ii < ntodo; ii++) {
+             output[ii] =  ((LONGLONG) input[ii]) ^ 0x8000000000000000;
+        }
+    }
+    else if (scale == 1. && zero == 0.)
     {       
         for (ii = 0; ii < ntodo; ii++)
                 output[ii] = input[ii];

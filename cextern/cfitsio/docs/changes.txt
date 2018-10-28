@@ -1,5 +1,20 @@
                    Log of Changes Made to CFITSIO
 
+Version 3.45 - May 2018
+                   
+  - New support for reading and writing unsigned long long datatypes.
+    This includes 'implicit datatype conversion' between the unsigned long
+    long datatype and all the other datatypes.
+    
+  - Increased the hardcoded NMAXFILES setting for maximum number of
+    open files from 1000 to 10000.
+                   
+  - Bug fix to fits_calc_binning wrapper function, which wasn't filling
+    in the returned float variables.
+    
+  - Fixed a parsing bug for image subsection and column binning range
+    specifiers that was introduced in v3.44.
+
 Version 3.44 - April 2018
 
   - This release primarily patches security vulnerabilities.  We

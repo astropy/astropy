@@ -713,6 +713,9 @@ Other Changes and Additions
   leading to some speed improvements, and setting the stage for allowing
   overrides with ``__array_ufunc__``. [#7502]
 
+- Updated the bundled CFITSIO library to 3.450. See
+  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#8014]
+
 
 
 3.0.6 (unreleased)

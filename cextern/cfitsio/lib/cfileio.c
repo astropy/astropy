@@ -2135,22 +2135,27 @@ int ffedit_columns(
             */
             if (*cptr2  == '(')
             {
-                fits_get_token2(&cptr2, ")", &tstbuff, NULL, status);
-                if (*status || (strlen(tstbuff) + strlen(colname) + 1) >
-                     FLEN_VALUE-1)
+                if (fits_get_token2(&cptr2, ")", &tstbuff, NULL, status)==0)
                 {
-                   ffpmsg("error: column name is too long (ffedit_columns):");
-                   if( file_expr ) free( file_expr );
-		   if (clause) free(clause);
-                   free(tstbuff);
-                   if (*status==0)
-                      *status=URL_PARSE_ERROR;
-		   return (*status);
+                   strcat(colname,")");
                 }
-                strcat(colname, tstbuff);
-                strcat(colname, ")");
-                free(tstbuff);
-                tstbuff=0;
+                else
+                {
+                   if ((strlen(tstbuff) + strlen(colname) + 1) >
+                        FLEN_VALUE-1)
+                   {
+                      ffpmsg("error: column name is too long (ffedit_columns):");
+                      if( file_expr ) free( file_expr );
+		      if (clause) free(clause);
+                      free(tstbuff);
+                      *status=URL_PARSE_ERROR;
+		      return (*status);
+                   }
+                   strcat(colname, tstbuff);
+                   strcat(colname, ")");
+                   free(tstbuff);
+                   tstbuff=0;
+                }
                 cptr2++;
             }
 
@@ -2234,21 +2239,25 @@ int ffedit_columns(
                 while (*cptr2 == ' ')
                       cptr2++;       /* skip white space */
 
-                fits_get_token2(&cptr2, " ", &tstbuff, NULL, status);
-                if (*status || strlen(tstbuff) > FLEN_VALUE-1)
+                if (fits_get_token2(&cptr2, " ", &tstbuff, NULL, status)==0)
                 {
-                   ffpmsg("error: column name syntax is too long (ffedit_columns):");
-                   if( file_expr ) free( file_expr );
-		   if (clause) free(clause);
-                   free(tstbuff);
-                   if (*status==0)
-                      *status=URL_PARSE_ERROR;
-		   return (*status);
+                   oldname[0]=0;
                 }
-                strcpy(oldname, tstbuff);
-                free(tstbuff);
-                tstbuff=0;
-
+                else
+                {
+                   if (strlen(tstbuff) > FLEN_VALUE-1)
+                   {
+                      ffpmsg("error: column name syntax is too long (ffedit_columns):");
+                      if( file_expr ) free( file_expr );
+		      if (clause) free(clause);
+                      free(tstbuff);
+                      *status=URL_PARSE_ERROR;
+		      return (*status);
+                   }
+                   strcpy(oldname, tstbuff);
+                   free(tstbuff);
+                   tstbuff=0;
+                }
                 /* get column number of the existing column */
                 if (ffgcno(*fptr, CASEINSEN, oldname, &colnum, status) <= 0)
                 {
@@ -2302,40 +2311,49 @@ int ffedit_columns(
                 colformat[0] = '\0';
                 cptr3 = colname;
 
-                fits_get_token2(&cptr3, "(", &tstbuff, NULL, status);
-                if (*status || strlen(tstbuff) > FLEN_VALUE-1)
+                if (fits_get_token2(&cptr3, "(", &tstbuff, NULL, status)==0)
                 {
-                      ffpmsg("column expression is too long (ffedit_columns)");
-                      if( colindex ) free( colindex );
-                      if( file_expr ) free( file_expr );
-		      if (clause) free(clause);
-                      free(tstbuff);
-                      if (*status==0)
-                         *status=URL_PARSE_ERROR;
-                      return(*status);
+                   oldname[0]=0;
                 }
-                strcpy(oldname, tstbuff);
-                free(tstbuff);
-                tstbuff=0;
-
-                if (cptr3[0] == '(' )
+                else
                 {
-                   cptr3++;  /* skip the '(' */
-                   fits_get_token2(&cptr3, ")", &tstbuff, NULL, status);
-                   if (*status || strlen(tstbuff) > FLEN_VALUE-1)
+                   if (strlen(tstbuff) > FLEN_VALUE-1)
                    {
                          ffpmsg("column expression is too long (ffedit_columns)");
                          if( colindex ) free( colindex );
                          if( file_expr ) free( file_expr );
 		         if (clause) free(clause);
                          free(tstbuff);
-                         if (*status==0)
-                            *status=URL_PARSE_ERROR;
+                         *status=URL_PARSE_ERROR;
                          return(*status);
                    }
-                   strcpy(colformat, tstbuff);
+                   strcpy(oldname, tstbuff);
                    free(tstbuff);
                    tstbuff=0;
+                }
+                if (cptr3[0] == '(' )
+                {
+                   cptr3++;  /* skip the '(' */
+                   if (fits_get_token2(&cptr3, ")", &tstbuff, NULL, status)==0)
+                   {
+                      colformat[0]=0;
+                   }
+                   else
+                   {
+                      if (strlen(tstbuff) > FLEN_VALUE-1)
+                      {
+                            ffpmsg("column expression is too long (ffedit_columns)");
+                            if( colindex ) free( colindex );
+                            if( file_expr ) free( file_expr );
+		            if (clause) free(clause);
+                            free(tstbuff);
+                            *status=URL_PARSE_ERROR;
+                            return(*status);
+                      }
+                      strcpy(colformat, tstbuff);
+                      free(tstbuff);
+                      tstbuff=0;
+                   }
                 }
 
                 /* calculate values for the column or keyword */
@@ -3386,20 +3404,24 @@ int fits_get_section_range(char **ptr,
         return(*status);
 
     slen = fits_get_token2(ptr, " ,:", &tstbuff, &isanumber, status); /* get 1st token */
-    if (*status || strlen(tstbuff) > FLEN_VALUE-1)
+    if (slen==0)
     {
-       ffpmsg("Error: image section string too long (fits_get_section_range)");
-       free(tstbuff);
-       if (*status==0)
-          *status = URL_PARSE_ERROR;
-       return(*status);
+       /* support [:2,:2] type syntax, where the leading * is implied */
+       strcpy(token,"*");
     }
-    strcpy(token, tstbuff);
-    free(tstbuff);
-    tstbuff=0;
-    
-    /* support [:2,:2] type syntax, where the leading * is implied */
-    if (slen==0) strcpy(token,"*");
+    else
+    {
+       if (strlen(tstbuff) > FLEN_VALUE-1)
+       {
+          ffpmsg("Error: image section string too long (fits_get_section_range)");
+          free(tstbuff);
+          *status = URL_PARSE_ERROR;
+          return(*status);
+       }
+       strcpy(token, tstbuff);
+       free(tstbuff);
+       tstbuff=0;
+    }
 
     if (*token == '*')  /* wild card means to use the whole range */
     {
@@ -3421,19 +3443,22 @@ int fits_get_section_range(char **ptr,
 
       (*ptr)++;  /* skip the colon between the min and max values */
       slen = fits_get_token2(ptr, " ,:", &tstbuff, &isanumber, status); /* get token */
-      if (*status || strlen(tstbuff) > FLEN_VALUE-1)
+      if (slen == 0 || !isanumber)
+      {
+        if (tstbuff)
+           free(tstbuff);
+        return(*status = URL_PARSE_ERROR);  
+      } 
+      if (strlen(tstbuff) > FLEN_VALUE-1)
       {
          ffpmsg("Error: image section string too long (fits_get_section_range)");
          free(tstbuff);
-         if (*status==0)
-            *status = URL_PARSE_ERROR;
+         *status = URL_PARSE_ERROR;
          return(*status);
       }
       strcpy(token, tstbuff);
       free(tstbuff);
       tstbuff=0;
-      if (slen == 0 || !isanumber)
-        return(*status = URL_PARSE_ERROR);   
 
       /* the token contains the max value */
       *secmax = atol(token);
@@ -3443,20 +3468,23 @@ int fits_get_section_range(char **ptr,
     {
         (*ptr)++;  /* skip the colon between the max and incre values */
         slen = fits_get_token2(ptr, " ,", &tstbuff, &isanumber, status); /* get token */
-        if (*status || strlen(tstbuff) > FLEN_VALUE-1)
+        if (slen == 0 || !isanumber)
+        {
+            if (tstbuff)
+               free(tstbuff);
+            return(*status = URL_PARSE_ERROR); 
+        }  
+        if (strlen(tstbuff) > FLEN_VALUE-1)
         {
            ffpmsg("Error: image section string too long (fits_get_section_range)");
            free(tstbuff);
-           if (*status==0)
-              *status = URL_PARSE_ERROR;
+           *status = URL_PARSE_ERROR;
            return(*status);
         }
         strcpy(token, tstbuff);
         free(tstbuff);
         tstbuff=0;
 
-        if (slen == 0 || !isanumber)
-            return(*status = URL_PARSE_ERROR);   
 
         *incre = atol(token);
     }
@@ -7553,7 +7581,7 @@ int pixel_filter_helper(
 }
 
 /*-------------------------------------------------------------------*/
-int ffihtps()
+int ffihtps(void)
 {
    /* Wrapper function for global initialization of curl library.
       This is NOT THREAD-SAFE */
@@ -7567,7 +7595,7 @@ int ffihtps()
 }
 
 /*-------------------------------------------------------------------*/
-int ffchtps()
+int ffchtps(void)
 {
    /* Wrapper function for global cleanup of curl library.
       This is NOT THREAD-SAFE */

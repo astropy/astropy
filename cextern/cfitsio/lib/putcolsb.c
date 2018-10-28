@@ -838,7 +838,22 @@ int ffs1fi8(signed char *input,   /* I - array of values to be converted  */
     long ii;
     double dvalue;
 
-    if (scale == 1. && zero == 0.)
+    if (scale == 1. && zero ==  9223372036854775808.)
+    {       
+        /* Writing to unsigned long long column. Input values must not be negative */
+        /* Instead of subtracting 9223372036854775808, it is more efficient */
+        /* and more precise to just flip the sign bit with the XOR operator */
+
+        for (ii = 0; ii < ntodo; ii++) {
+           if (input[ii] < 0) {
+              *status = OVERFLOW_ERR;
+              output[ii] = LONGLONG_MIN;
+           } else {
+              output[ii] =  ((LONGLONG) input[ii]) ^ 0x8000000000000000;
+           }
+        }
+    }
+    else if (scale == 1. && zero == 0.)
     {       
         for (ii = 0; ii < ntodo; ii++)
                 output[ii] = input[ii];
