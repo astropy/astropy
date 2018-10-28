@@ -1514,3 +1514,13 @@ def test_unitphysics(unitphysics):
     assert assph.lon == obj.phi
     assert assph.lat == 80*u.deg
     assert_allclose_quantity(assph.distance, 1*u.dimensionless_unscaled)
+
+
+def test_distance_warning(recwarn):
+    SphericalRepresentation(1*u.deg, 2*u.deg, 1*u.kpc)
+    with pytest.raises(ValueError) as excinfo:
+        SphericalRepresentation(1*u.deg, 2*u.deg, -1*u.kpc)
+    assert 'Distance must be >= 0' in str(excinfo.value)
+    # second check is because the "originating" ValueError says the above,
+    # while the representation one includes the below
+    assert 'you must explicitly pass' in str(excinfo.value)
