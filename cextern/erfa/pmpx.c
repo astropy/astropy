@@ -46,7 +46,7 @@ void eraPmpx(double rc, double dc, double pr, double pd,
 **     eraPdp       scalar product of two p-vectors
 **     eraPn        decompose p-vector into modulus and direction
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -92,7 +92,7 @@ void eraPmpx(double rc, double dc, double pr, double pd,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

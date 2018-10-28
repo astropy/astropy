@@ -1,8 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
-from ....tests.helper import pytest
+
+import pytest
 
 from ....table import Table, Column
+
+from ....table.table_helpers import simple_table
+
+import numpy as np
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -17,11 +22,17 @@ try:
 except ImportError:
     HAS_BEAUTIFUL_SOUP = False
 
+try:
+    import yaml
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
+
 if HAS_BEAUTIFUL_SOUP:
     files.append('t/html.html')
 
-@pytest.mark.parametrize('filename', files)
 
+@pytest.mark.parametrize('filename', files)
 def test_read_generic(filename):
     Table.read(os.path.join(ROOT, filename), format='ascii')
 
@@ -137,3 +148,11 @@ def test_write_csv(tmpdir):
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
     path = str(tmpdir.join("data.csv"))
     t.write(path)
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_auto_identify_ecsv(tmpdir):
+    tbl = simple_table()
+    tmpfile =  str(tmpdir.join('/tmpFile.ecsv'))
+    tbl.write(tmpfile)
+    tbl2 = Table.read(tmpfile)
+    assert np.all(tbl == tbl2)

@@ -1,9 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import numpy as np
-from ..extern.six.moves import range
 
 
 __all__ = ['jackknife_resampling', 'jackknife_stats']
@@ -41,13 +38,12 @@ def jackknife_resampling(data):
         Resampling Plans". Technical Report No. 63, Division of Biostatistics,
         Stanford University, December, 1980.
 
-    .. [3] Cowles, Kate. "Computing in Statistics: The Jackknife, Lecture 11".
-        <http://homepage.stat.uiowa.edu/~kcowles/s166_2009/lect11.pdf>.
-        September, 2009.
+    .. [3] Jackknife resampling <https://en.wikipedia.org/wiki/Jackknife_resampling>
     """
 
     n = data.shape[0]
-    assert n > 0, "data must contain at least one measurement"
+    if n <= 0:
+        raise ValueError("data must contain at least one measurement.")
 
     resamples = np.empty([n, n-1])
 
@@ -60,7 +56,7 @@ def jackknife_resampling(data):
 def jackknife_stats(data, statistic, conf_lvl=0.95):
     """ Performs jackknife estimation on the basis of jackknife resamples.
 
-    This function requires `SciPy <http://www.scipy.org>`_ to be installed.
+    This function requires `SciPy <https://www.scipy.org/>`_ to be installed.
 
     Parameters
     ----------
@@ -152,7 +148,8 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
 
     # make sure original data is proper
     n = data.shape[0]
-    assert n > 0, "data must contain at least one measurement"
+    if n <= 0:
+        raise ValueError("data must contain at least one measurement.")
 
     resamples = jackknife_resampling(data)
 
@@ -171,8 +168,9 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
     estimate = stat_data - bias
 
     # jackknife confidence interval
-    assert (conf_lvl > 0 and conf_lvl < 1), ("confidence level must be in "
-                                             "(0, 1).")
+    if not (0 < conf_lvl < 1):
+        raise ValueError("confidence level must be in (0, 1).")
+
     z_score = np.sqrt(2.0)*erfinv(conf_lvl)
     conf_interval = estimate + z_score*np.array((-std_err, std_err))
 

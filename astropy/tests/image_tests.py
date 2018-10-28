@@ -1,12 +1,20 @@
-from distutils.version import LooseVersion
-
 import matplotlib
+from matplotlib import pyplot as plt
 
-MPL_VERSION = LooseVersion(matplotlib.__version__)
+from ..utils.decorators import wraps
 
-ROOT = "http://data.astropy.org/testing/astropy/2016-05-04T10:26:13.545916"
+MPL_VERSION = matplotlib.__version__
 
-if MPL_VERSION >= LooseVersion('1.5.0'):
-    IMAGE_REFERENCE_DIR = ROOT + '/1.5.x/'
-else:
-    IMAGE_REFERENCE_DIR = ROOT + '/1.4.x/'
+ROOT = "http://{server}/testing/astropy/2018-10-24T12:38:34.134556/{mpl_version}/"
+IMAGE_REFERENCE_DIR = (ROOT.format(server='data.astropy.org', mpl_version=MPL_VERSION[:3] + '.x') + ',' +
+                       ROOT.format(server='www.astropy.org/astropy-data', mpl_version=MPL_VERSION[:3] + '.x'))
+
+
+def ignore_matplotlibrc(func):
+    # This is a decorator for tests that use matplotlib but not pytest-mpl
+    # (which already handles rcParams)
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        with plt.style.context({}, after_reset=True):
+            return func(*args, **kwargs)
+    return wrapper

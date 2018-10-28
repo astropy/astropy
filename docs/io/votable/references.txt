@@ -4,7 +4,7 @@
 .. _DESCRIPTION: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC19
 .. _FIELD: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC24
 .. _FIELDref: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC31
-.. _FITS: http://fits.gsfc.nasa.gov/fits_documentation.html
+.. _FITS: https://fits.gsfc.nasa.gov/fits_documentation.html
 .. _GROUP: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC31
 .. _ID: http://www.w3.org/TR/REC-xml/#id
 .. _INFO: http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC19

@@ -1,0 +1,35 @@
+%YAML 1.1
+---
+$schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
+id: "http://astropy.org/schemas/astropy/coordinates/angle-1.0.0"
+tag: "tag:astropy.org:astropy/coordinates/angle-1.0.0"
+
+title: |
+  Represents an Angle.
+
+description:
+  This object represents a subtype of Quantity which has units equivalent to
+  radians or degrees.
+
+examples:
+  -
+    - An Angle object in Degrees
+    - |
+        !<tag:astropy.org:astropy/coordinates/angle-1.0.0>
+          unit: !unit/unit-1.0.0 deg
+          value: 10.0
+
+type: object
+properties:
+  value:
+    description: |
+      A vector of one or more values
+    anyOf:
+      - type: number
+      - $ref: "tag:stsci.edu:asdf/core/ndarray-1.0.0"
+  unit:
+    description: |
+      The unit corresponding to the values
+    $ref: "tag:stsci.edu:asdf/unit/unit-1.0.0"
+required: [value, unit]
+...

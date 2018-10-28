@@ -1,13 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import itertools
 
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
-
-from ...tests.helper import pytest
 
 from ..utils import discretize_model
 from ...modeling.functional_models import (
@@ -87,6 +84,7 @@ def test_gaussian_eval_2D(mode):
     disc_values = discretize_model(model, (-2, 3), (-2, 3), mode=mode)
     assert_allclose(values, disc_values, atol=1e-2)
 
+
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_gaussian_eval_2D_integrate_mode():
     """
@@ -126,6 +124,7 @@ def test_subpixel_gauss_2D():
     values = discretize_model(gauss_2D, (-1, 2), (-1, 2), mode='integrate', factor=100)
     assert_allclose(values.sum(), 2 * np.pi * 0.01, atol=0.00001)
 
+
 def test_discretize_callable_1d():
     """
     Test discretize when a 1d function is passed.
@@ -134,6 +133,7 @@ def test_discretize_callable_1d():
         return x ** 2
     y = discretize_model(f, (-5, 6))
     assert_allclose(y, np.arange(-5, 6) ** 2)
+
 
 def test_discretize_callable_2d():
     """
@@ -146,6 +146,7 @@ def test_discretize_callable_2d():
     desired = x ** 2 + y ** 2
     assert_allclose(actual, desired)
 
+
 def test_type_exception():
     """
     Test type exception.
@@ -153,6 +154,7 @@ def test_type_exception():
     with pytest.raises(TypeError) as exc:
         discretize_model(float(0), (-10, 11))
     assert exc.value.args[0] == 'Model must be callable.'
+
 
 def test_dim_exception_1d():
     """
@@ -164,6 +166,7 @@ def test_dim_exception_1d():
         discretize_model(f, (-10, 11), (-10, 11))
     assert exc.value.args[0] == "y range specified, but model is only 1-d."
 
+
 def test_dim_exception_2d():
     """
     Test dimension exception 2d.
@@ -174,6 +177,7 @@ def test_dim_exception_2d():
         discretize_model(f, (-10, 11))
     assert exc.value.args[0] == "y range not specified, but model is 2-d"
 
+
 def test_float_x_range_exception():
     def f(x, y):
         return x ** 2 + y ** 2
@@ -181,6 +185,7 @@ def test_float_x_range_exception():
         discretize_model(f, (-10.002, 11.23))
     assert exc.value.args[0] == ("The difference between the upper an lower"
                                  " limit of 'x_range' must be a whole number.")
+
 
 def test_float_y_range_exception():
     def f(x, y):

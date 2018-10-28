@@ -12,7 +12,7 @@
 #
 # Reminder: add '-d' to FLFLAGS for debugging.
 #
-# $Id: flavours,v 5.14 2016/02/07 10:49:33 mcalabre Exp $
+# $Id: flavours,v 5.19.1.1 2018/07/26 15:41:42 mcalabre Exp mcalabre $
 #-----------------------------------------------------------------------------
 
 # The list of FLAVOURs can be set on the command line.
@@ -51,19 +51,36 @@ ifeq "$(FLAVOUR)" "Linux"
   F := $(FLAVOUR)
   export CC       := gcc -std=c89 -pedantic
   export CPPFLAGS := $(FEATURES)
-  export CFLAGS   := -g -O0 -Wall -Wpadded -Wno-long-long -fsanitize=address
+  export CFLAGS   := -g -O0 -Wall -Wextra -Wpadded -Wno-long-long
   export F77      := gfortran
   export FFLAGS   := -g -O0 -fimplicit-none -Wall -I.
-  export LDFLAGS  := -lasan
-         VALGRIND := valgrind -v --leak-check=yes --track-origins=yes
+  export ARFLAGS  := U
+  export LDFLAGS  :=
+         VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
+         VALGRIND += --track-origins=yes
+endif
+
+ifeq "$(FLAVOUR)" "Linux8"
+  F := $(FLAVOUR)
+  export CC       := gcc-8.1.0 -std=c89 -pedantic
+  export CPPFLAGS := $(FEATURES) -D_FORTIFY_SOURCE=2
+  export CFLAGS   := -g -O2 -Wall -Wextra -Wpadded -Wno-long-long
+  export F77      := gfortran-8.1.0
+  export FFLAGS   := -g -O2 -fimplicit-none -Wall -I.
+  export ARFLAGS  := U
+  export LDFLAGS  :=
+  export LD_RUN_PATH := /usr/local/lib64
+         VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
+         VALGRIND += --track-origins=yes
 endif
 
 ifeq "$(FLAVOUR)" "Linuxp"
   F := $(FLAVOUR)
   export CC       := gcc -std=c89 -pedantic
   export CPPFLAGS := $(FEATURES)
-  export CFLAGS   := -pg -g -O -Wall -Wpadded -Wno-long-long
+  export CFLAGS   := -pg -g -O -Wall -Wextra -Wpadded -Wno-long-long
   export FFLAGS   := -pg -a -g -O -fimplicit-none -Wall -I.
+  export ARFLAGS  := U
   export LDFLAGS  := -pg -g $(filter -L%, $(LDFLAGS))
   override EXTRA_CLEAN := gmon.out bb.out
 endif

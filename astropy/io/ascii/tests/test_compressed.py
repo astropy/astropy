@@ -1,9 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 import sys
+
+import pytest
 import numpy as np
 
-from ....tests.helper import pytest
 from .. import read
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -17,10 +18,7 @@ else:
     HAS_BZ2 = True
 
 try:
-    if sys.version_info >= (3,3,0):
-        import lzma
-    else:
-        from backports import lzma  # pylint: disable=W0611
+    import lzma
 except ImportError:
     HAS_XZ = False
 else:

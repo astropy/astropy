@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.14 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2016, Mark Calabretta
+  WCSLIB 5.19 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.c,v 5.14 2016/02/07 10:49:31 mcalabre Exp $
+  $Id: wcsfix.c,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -250,7 +250,7 @@ static int parse_date(const char *buf, int *hour, int *minute, double *sec)
   char ctmp[72];
 
   if (sscanf(buf, "%2d:%2d:%s", hour, minute, ctmp) < 3 ||
-      wcsutil_str2double(ctmp, "%lf", sec)) {
+      wcsutil_str2double(ctmp, sec)) {
     return 1;
   }
 
@@ -512,11 +512,13 @@ int spcfix(struct wcsprm *wcs)
         if (status == 0) {
           /* ...and specsys was also. */
           wcserr_set(WCSERR_SET(FIXERR_SPC_UPDATE),
-            "Changed CTYPE%d from '%s' to '%s', and SPECSYS to '%s'",
-            i+1, wcs->ctype[i], ctype, wcs->specsys);
+            "Changed CTYPE%d from '%s' to '%s', and SPECSYS to '%s' "
+            "(VELREF=%d)", i+1, wcs->ctype[i], ctype, wcs->specsys,
+            wcs->velref);
         } else {
           wcserr_set(WCSERR_SET(FIXERR_SPC_UPDATE),
-            "Changed CTYPE%d from '%s' to '%s'", i+1, wcs->ctype[i], ctype);
+            "Changed CTYPE%d from '%s' to '%s' (VELREF=%d)", i+1,
+            wcs->ctype[i], ctype, wcs->velref);
           status = 0;
         }
 

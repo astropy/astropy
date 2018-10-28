@@ -16,15 +16,6 @@
 #include <numpy/arrayobject.h>
 #include <numpy/npy_math.h>
 
-#if PY_MAJOR_VERSION >= 3
-#define PY3K 1
-#else
-#define PY3K 0
-#ifndef Py_TYPE
-  #define Py_TYPE(ob) (((PyObject*)(ob))->ob_type)
-#endif
-#endif
-
 PyObject*
 PyArrayProxy_New(
     PyObject* self,
@@ -189,12 +180,7 @@ static INLINE PyObject*
 get_string(
     /*@unused@*/ const char* propname,
     const char* value) {
-
-  #if PY3K
   return PyUnicode_FromString(value);
-  #else
-  return PyBytes_FromString(value);
-  #endif
 }
 
 int
@@ -223,11 +209,7 @@ get_int(
     /*@unused@*/ const char* propname,
     long value) {
 
-  #if PY3K
   return PyLong_FromLong(value);
-  #else
-  return PyInt_FromLong(value);
-  #endif
 }
 
 int

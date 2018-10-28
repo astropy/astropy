@@ -1,22 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ...extern import six
 
 import pkgutil
 import os
 import types
-
-
-# Compatibility subpackages that should only be used on Python 2
-_py2_packages = set([
-    'astropy.extern.configobj_py2',
-])
-
-# Same but for Python 3
-_py3_packages = set([
-    'astropy.extern.configobj_py3',
-])
 
 
 def test_imports():
@@ -29,7 +15,7 @@ def test_imports():
 
     pkgornm = find_current_module(1).__name__.split('.')[0]
 
-    if isinstance(pkgornm, six.string_types):
+    if isinstance(pkgornm, str):
         package = pkgutil.get_loader(pkgornm).load_module(pkgornm)
     elif (isinstance(pkgornm, types.ModuleType) and
             '__init__' in pkgornm.__file__):
@@ -46,17 +32,11 @@ def test_imports():
         raise AttributeError('package to generate config items for does not '
                              'have __file__ or __path__')
 
-    if six.PY2:
-        excludes = _py3_packages
-    else:
-        excludes = _py2_packages
-
     prefix = package.__name__ + '.'
 
     def onerror(name):
-        if not any(name.startswith(excl) for excl in excludes):
-            # A legitimate error occurred in a module that wasn't excluded
-            raise
+        # A legitimate error occurred in a module that wasn't excluded
+        raise
 
     for imper, nm, ispkg in pkgutil.walk_packages(pkgpath, prefix,
                                                   onerror=onerror):

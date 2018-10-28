@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
-from ..representation import CartesianRepresentation
-from ..baseframe import BaseCoordinateFrame, TimeFrameAttribute
+from ...utils.decorators import format_doc
+from ..representation import CartesianRepresentation, CartesianDifferential
+from ..baseframe import BaseCoordinateFrame, base_doc
+from ..attributes import TimeAttribute
 from .utils import DEFAULT_OBSTIME
 
+__all__ = ['ITRS']
 
+
+@format_doc(base_doc, components="", footer="")
 class ITRS(BaseCoordinateFrame):
     """
     A coordinate or frame in the International Terrestrial Reference System
@@ -18,8 +21,9 @@ class ITRS(BaseCoordinateFrame):
     """
 
     default_representation = CartesianRepresentation
+    default_differential = CartesianDifferential
 
-    obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
     @property
     def earth_location(self):

@@ -17,11 +17,12 @@ classes to define custom YAML tags for the following astropy classes:
 - `astropy.coordinates.Angle`
 - `astropy.coordinates.Latitude`
 - `astropy.coordinates.Longitude`
+- `astropy.coordinates.EarthLocation`
+- `astropy.table.SerializedColumn`
 
 .. Note ::
 
-   This module requires PyYaml version 3.12 or later, which in turn requires
-   Python 2.7 or Python 3.4 or later.
+   This module requires PyYaml version 3.12 or later.
 
 Example
 =======
@@ -40,8 +41,8 @@ Example
   !astropy.time.Time
   format: mjd
   in_subfmt: '*'
-  jd1: 4857389.5
-  jd2: 0.0
+  jd1: 4857390.0
+  jd2: -0.5
   location: !astropy.coordinates.earth.EarthLocation
     ellipsoid: WGS84
     x: !astropy.units.Quantity
@@ -61,11 +62,10 @@ Example
   >>> ty
   <Time object: scale='utc' format='mjd' value=2457389.0>
 
-  >>> ty.location
-  <EarthLocation ( 1000.,  2000.,  3000.) km>
+  >>> ty.location  # doctest: +FLOAT_CMP
+  <EarthLocation (1000., 2000., 3000.) km>
 """
 
-from __future__ import absolute_import, division
 
 import base64
 import numpy as np
@@ -74,7 +74,7 @@ from ...time import Time, TimeDelta
 from ... import units as u
 from ... import coordinates as coords
 from ...utils import minversion
-from ...extern import six
+from ...table import SerializedColumn
 
 
 try:
@@ -88,6 +88,7 @@ YAML_LT_3_12 = not minversion(yaml, '3.12')
 
 __all__ = ['AstropyLoader', 'AstropyDumper', 'load', 'load_all', 'dump']
 
+
 def _unit_representer(dumper, obj):
     out = {'unit': str(obj.to_string())}
     return dumper.represent_mapping('!astropy.units.Unit', out)
@@ -96,6 +97,16 @@ def _unit_representer(dumper, obj):
 def _unit_constructor(loader, node):
     map = loader.construct_mapping(node)
     return u.Unit(map['unit'])
+
+
+def _serialized_column_representer(dumper, obj):
+    out = dumper.represent_mapping('!astropy.table.SerializedColumn', obj)
+    return out
+
+
+def _serialized_column_constructor(loader, node):
+    map = loader.construct_mapping(node)
+    return SerializedColumn(map)
 
 
 def _time_representer(dumper, obj):
@@ -166,10 +177,29 @@ def _skycoord_representer(dumper, obj):
                                    map)
     return out
 
+
 def _skycoord_constructor(loader, node):
     map = loader.construct_mapping(node)
     out = coords.SkyCoord.info._construct_from_dict(map)
     return out
+
+
+# Straight from yaml's Representer
+def _complex_representer(self, data):
+    if data.imag == 0.0:
+        data = u'%r' % data.real
+    elif data.real == 0.0:
+        data = u'%rj' % data.imag
+    elif data.imag > 0:
+        data = u'%r+%rj' % (data.real, data.imag)
+    else:
+        data = u'%r%rj' % (data.real, data.imag)
+    return self.represent_scalar(u'tag:yaml.org,2002:python/complex', data)
+
+
+def _complex_constructor(loader, node):
+    map = loader.construct_scalar(node)
+    return complex(map)
 
 
 class AstropyLoader(yaml.SafeLoader):
@@ -183,11 +213,13 @@ class AstropyLoader(yaml.SafeLoader):
     <http://pyyaml.org/wiki/PyYAMLDocumentation>`_ for details of the
     class signature.
     """
+
     def _construct_python_tuple(self, node):
         return tuple(self.construct_sequence(node))
 
     def _construct_python_unicode(self, node):
         return self.construct_scalar(node)
+
 
 class AstropyDumper(yaml.SafeDumper):
     """
@@ -200,6 +232,7 @@ class AstropyDumper(yaml.SafeDumper):
     `PyYaml documentation <http://pyyaml.org/wiki/PyYAMLDocumentation>`_
     for details of the class signature.
     """
+
     def _represent_tuple(self, data):
         return self.represent_sequence('tag:yaml.org,2002:python/tuple', data)
 
@@ -211,8 +244,9 @@ class AstropyDumper(yaml.SafeDumper):
                 return True
             if isinstance(data, tuple) and data == ():
                 return True
-            if isinstance(data, six.string_types + (bool, int, float)):
+            if isinstance(data, (str, bool, int, float)):
                 return True
+
 
 AstropyDumper.add_representer(u.IrreducibleUnit, _unit_representer)
 AstropyDumper.add_representer(u.CompositeUnit, _unit_representer)
@@ -222,7 +256,25 @@ AstropyDumper.add_representer(np.ndarray, _ndarray_representer)
 AstropyDumper.add_representer(Time, _time_representer)
 AstropyDumper.add_representer(TimeDelta, _timedelta_representer)
 AstropyDumper.add_representer(coords.SkyCoord, _skycoord_representer)
+AstropyDumper.add_representer(SerializedColumn, _serialized_column_representer)
 
+# Numpy dtypes
+AstropyDumper.add_representer(np.bool_,
+                              yaml.representer.SafeRepresenter.represent_bool)
+for np_type in [np.int_, np.intc, np.intp, np.int8, np.int16, np.int32,
+                np.int64, np.uint8, np.uint16, np.uint32, np.uint64]:
+    AstropyDumper.add_representer(np_type,
+                                 yaml.representer.SafeRepresenter.represent_int)
+for np_type in [np.float_, np.float16, np.float32, np.float64,
+                np.longdouble]:
+    AstropyDumper.add_representer(np_type,
+                                 yaml.representer.SafeRepresenter.represent_float)
+for np_type in [np.complex_, complex, np.complex64, np.complex128]:
+    AstropyDumper.add_representer(np_type,
+                                 _complex_representer)
+
+AstropyLoader.add_constructor(u'tag:yaml.org,2002:python/complex',
+                              _complex_constructor)
 AstropyLoader.add_constructor('tag:yaml.org,2002:python/tuple',
                               AstropyLoader._construct_python_tuple)
 AstropyLoader.add_constructor('tag:yaml.org,2002:python/unicode',
@@ -233,6 +285,8 @@ AstropyLoader.add_constructor('!astropy.time.Time', _time_constructor)
 AstropyLoader.add_constructor('!astropy.time.TimeDelta', _timedelta_constructor)
 AstropyLoader.add_constructor('!astropy.coordinates.sky_coordinate.SkyCoord',
                               _skycoord_constructor)
+AstropyLoader.add_constructor('!astropy.table.SerializedColumn',
+                              _serialized_column_constructor)
 
 for cls, tag in ((u.Quantity, '!astropy.units.Quantity'),
                  (coords.Angle, '!astropy.coordinates.Angle'),

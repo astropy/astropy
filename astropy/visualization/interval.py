@@ -5,12 +5,10 @@ Classes that deal with computing intervals from arrays of values based on
 various criteria.
 """
 
-from __future__ import division, print_function
 
 import abc
 import numpy as np
 
-from ..extern import six
 from ..utils.misc import InheritDocstrings
 from .transform import BaseTransform
 
@@ -20,8 +18,7 @@ __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
            'ZScaleInterval']
 
 
-@six.add_metaclass(InheritDocstrings)
-class BaseInterval(BaseTransform):
+class BaseInterval(BaseTransform, metaclass=InheritDocstrings):
     """
     Base class for the interval classes, which, when called with an
     array of values, return an interval computed following different
@@ -93,10 +90,10 @@ class ManualInterval(BaseInterval):
     ----------
     vmin : float, optional
         The minimum value in the scaling.  Defaults to the image
-        minimum.
+        minimum (ignoring NaNs)
     vmax : float, optional
         The maximum value in the scaling.  Defaults to the image
-        maximum.
+        maximum (ignoring NaNs)
     """
 
     def __init__(self, vmin=None, vmax=None):
@@ -104,8 +101,8 @@ class ManualInterval(BaseInterval):
         self.vmax = vmax
 
     def get_limits(self, values):
-        vmin = self.vmin or np.min(values)
-        vmax = self.vmax or np.max(values)
+        vmin = np.nanmin(values) if self.vmin is None else self.vmin
+        vmax = np.nanmax(values) if self.vmax is None else self.vmax
         return vmin, vmax
 
 
@@ -115,7 +112,7 @@ class MinMaxInterval(BaseInterval):
     """
 
     def get_limits(self, values):
-        return np.min(values), np.max(values)
+        return np.nanmin(values), np.nanmax(values)
 
 
 class AsymmetricPercentileInterval(BaseInterval):
@@ -153,8 +150,9 @@ class AsymmetricPercentileInterval(BaseInterval):
         values = values[np.isfinite(values)]
 
         # Determine values at percentiles
-        vmin, vmax = np.percentile(values, (self.lower_percentile,
-                                            self.upper_percentile))
+        vmin, vmax = np.nanpercentile(values,
+                                      (self.lower_percentile,
+                                       self.upper_percentile))
 
         return vmin, vmax
 
@@ -177,9 +175,8 @@ class PercentileInterval(AsymmetricPercentileInterval):
     def __init__(self, percentile, n_samples=None):
         lower_percentile = (100 - percentile) * 0.5
         upper_percentile = 100 - lower_percentile
-        super(PercentileInterval, self).__init__(lower_percentile,
-                                                 upper_percentile,
-                                                 n_samples=n_samples)
+        super().__init__(
+            lower_percentile, upper_percentile, n_samples=n_samples)
 
 
 class ZScaleInterval(BaseInterval):
@@ -252,7 +249,7 @@ class ZScaleInterval(BaseInterval):
         ngrow = max(1, int(npix * 0.01))
         kernel = np.ones(ngrow, dtype=bool)
 
-        for niter in six.moves.range(self.max_iterations):
+        for niter in range(self.max_iterations):
             if ngoodpix >= last_ngoodpix or ngoodpix < minpix:
                 break
 

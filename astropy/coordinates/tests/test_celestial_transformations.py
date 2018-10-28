@@ -1,22 +1,18 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
+import pytest
 import numpy as np
 
 from ... import units as u
 from ..distances import Distance
 from ..builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
-                              Supergalactic, Galactocentric, HCRS, GCRS)
+                              Supergalactic, Galactocentric, HCRS, GCRS, LSR)
 from .. import SkyCoord
-from ...tests.helper import (pytest, quantity_allclose as allclose,
-                             assert_quantity_allclose as assert_allclose)
+from ...tests.helper import assert_quantity_allclose as assert_allclose
 from .. import EarthLocation, CartesianRepresentation
 from ...time import Time
-
-from ...extern.six.moves import range
+from ...units import allclose
 
 # used below in the next parametrized test
 m31_sys = [ICRS, FK5, FK4, Galactic]
@@ -186,6 +182,7 @@ class TestHCRS():
     `tarr` as defined below, the ICRS Solar positions were predicted using, e.g.
     coord.ICRS(coord.get_body_barycentric(tarr, 'sun')).
     """
+
     def setup(self):
         self.t1 = Time("2013-02-02T23:00")
         self.t2 = Time("2013-08-02T23:00")
@@ -234,6 +231,7 @@ class TestHelioBaryCentric():
 
     Uses the WHT observing site (information grabbed from data/sites.json).
     """
+
     def setup(self):
         wht = EarthLocation(342.12*u.deg, 28.758333333333333*u.deg, 2327*u.m)
         self.obstime = Time("2013-02-02T23:00")
@@ -261,3 +259,32 @@ class TestHelioBaryCentric():
         bary_slalib = [-0.6869012079, 0.6472893646, 0.2805661191] * u.au
         assert np.sqrt(((bary.cartesian.xyz -
                          bary_slalib)**2).sum()) < 14. * u.km
+
+
+def test_lsr_sanity():
+
+    # random numbers, but zero velocity in ICRS frame
+    icrs = ICRS(ra=15.1241*u.deg, dec=17.5143*u.deg, distance=150.12*u.pc,
+                pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
+                radial_velocity=0*u.km/u.s)
+    lsr = icrs.transform_to(LSR)
+
+    lsr_diff = lsr.data.differentials['s']
+    cart_lsr_vel = lsr_diff.represent_as(CartesianRepresentation, base=lsr.data)
+    lsr_vel = ICRS(cart_lsr_vel)
+    gal_lsr = lsr_vel.transform_to(Galactic).cartesian.xyz
+    assert allclose(gal_lsr.to(u.km/u.s, u.dimensionless_angles()),
+                    lsr.v_bary.d_xyz)
+
+    # moving with LSR velocity
+    lsr = LSR(ra=15.1241*u.deg, dec=17.5143*u.deg, distance=150.12*u.pc,
+              pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
+              radial_velocity=0*u.km/u.s)
+    icrs = lsr.transform_to(ICRS)
+
+    icrs_diff = icrs.data.differentials['s']
+    cart_vel = icrs_diff.represent_as(CartesianRepresentation, base=icrs.data)
+    vel = ICRS(cart_vel)
+    gal_icrs = vel.transform_to(Galactic).cartesian.xyz
+    assert allclose(gal_icrs.to(u.km/u.s, u.dimensionless_angles()),
+                    -lsr.v_bary.d_xyz)

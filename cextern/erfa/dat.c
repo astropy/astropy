@@ -77,9 +77,9 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
 **     so early that JD could not be computed.
 **
 **  2) If the specified date is for a day which ends with a leap second,
-**     the UTC-TAI value returned is for the period leading up to the
+**     the TAI-UTC value returned is for the period leading up to the
 **     leap second.  If the date is for a day which begins as a leap
-**     second ends, the UTC-TAI returned is for the period following the
+**     second ends, the TAI-UTC returned is for the period following the
 **     leap second.
 **
 **  3) The day number must be in the normal calendar range, for example
@@ -115,7 +115,7 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
 **  Called:
 **     eraCal2jd    Gregorian calendar to JD
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -245,7 +245,7 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

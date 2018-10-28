@@ -2,11 +2,7 @@
 """
 Handles the "VOUnit" unit format.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ...extern import six
-from ...extern.six.moves import zip
 
 import copy
 import keyword
@@ -32,6 +28,7 @@ class VOUnit(generic.Generic):
     @staticmethod
     def _generate_unit_names():
         from ... import units as u
+        from ...units import required_by_vounit as uvo
 
         names = {}
         deprecated_names = set()
@@ -71,7 +68,8 @@ class VOUnit(generic.Generic):
                         continue
                     if keyword.iskeyword(key):
                         continue
-                    names[key] = getattr(u, key)
+
+                    names[key] = getattr(u if hasattr(u, key) else uvo, key)
                     if base in deprecated_units:
                         deprecated_names.add(key)
 
@@ -139,7 +137,7 @@ class VOUnit(generic.Generic):
 
         name = unit.get_format_name('vounit')
 
-        if unit in six.itervalues(cls._custom_units):
+        if unit in cls._custom_units.values():
             return name
 
         if name not in cls._units:

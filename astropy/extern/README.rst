@@ -110,7 +110,7 @@ to that used by ``six`` for the other modules.
 
 .. _ConfigObj: https://github.com/DiffSK/configobj
 .. _PLY: http://www.dabeaz.com/ply/
-.. _pytest: http://pytest.org/latest/
+.. _pytest: https://pytest.org/en/latest/
 .. _Six: http://pypi.python.org/pypi/six/
 .. _jQuery: http://jquery.com/
 .. _DataTables: http://www.datatables.net/

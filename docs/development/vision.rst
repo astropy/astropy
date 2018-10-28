@@ -2,9 +2,9 @@
 
 .. _vision:
 
-============================================
+********************************************
 Vision for a Common Astronomy Python Package
-============================================
+********************************************
 
 The following document summarizes a vision for a common Astronomy Python
 package, and how we can best all work together to achieve this. In the
@@ -25,7 +25,7 @@ tasks, and thus reduce the number of dependencies, reduce duplication of
 functionality, and increase consistency of their interfaces.
 
 Procedure
----------
+=========
 
 With the help of the community, the coordination committee will start by
 identifying a few of key areas where initial development/consolidation will be
@@ -57,7 +57,7 @@ for inclusion in the core will need to follow the layout of a ‘template’
 package that will be provided before development starts.
 
 Dependencies
-------------
+============
 
 Affiliated packages should be able to be imported with only the following
 dependencies:
@@ -93,7 +93,7 @@ If the community reaches agrees on a single toolkit that could be used, then
 this toolkit will be allowed (but will only be imported as needed).
 
 Keeping track of affiliated packages
-------------------------------------
+====================================
 
 Affiliated packages will be listed in a central location (in addition to PyPI)
 that will allow an easy installation of all the affiliated packages, for
@@ -102,7 +102,7 @@ affiliated packages. The core package will also include mechanisms to
 facilitate this installation process.
 
 Existing Packages
------------------
+=================
 
 Developers who already have existing packages will be encouraged to continue
 supporting them for the benefit of users until the core library is considered

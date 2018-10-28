@@ -1,10 +1,12 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ...tests.helper import pytest, assert_quantity_allclose, remote_data, quantity_allclose
+import pytest
+
+from ...tests.helper import assert_quantity_allclose
+from ...units import allclose as quantity_allclose
 from ... import units as u
 from .. import Longitude, Latitude, EarthLocation
 from ..sites import get_builtin_sites, get_downloaded_sites, SiteRegistry
+
 
 def test_builtin_sites():
     reg = get_builtin_sites()
@@ -25,8 +27,9 @@ def test_builtin_sites():
         reg['nonexistent site']
     assert exc.value.args[0] == "Site 'nonexistent site' not in database. Use the 'names' attribute to see available sites."
 
-@remote_data(source='astropy')
-def test_online_stes():
+
+@pytest.mark.remote_data(source='astropy')
+def test_online_sites():
     reg = get_downloaded_sites()
 
     keck = reg['keck']
@@ -50,7 +53,7 @@ def test_online_stes():
     assert exc.value.args[0] == "Site 'kec' not in database. Use the 'names' attribute to see available sites. Did you mean one of: 'keck'?'"
 
 
-@remote_data(source='astropy')
+@pytest.mark.remote_data(source='astropy')
 # this will *try* the online so we have to make it remote_data, even though it
 # could fall back on the non-remote version
 def test_EarthLocation_basic():
@@ -70,6 +73,7 @@ def test_EarthLocation_basic():
         EarthLocation.of_site('nonexistent site')
     assert exc.value.args[0] == "Site 'nonexistent site' not in database. Use EarthLocation.get_site_names to see available sites."
 
+
 def test_EarthLocation_state_offline():
     EarthLocation._site_registry = None
     EarthLocation._get_site_registry(force_builtin=True)
@@ -82,7 +86,7 @@ def test_EarthLocation_state_offline():
     assert oldreg is not newreg
 
 
-@remote_data(source='astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_EarthLocation_state_online():
     EarthLocation._site_registry = None
     EarthLocation._get_site_registry(force_download=True)
@@ -101,7 +105,7 @@ def test_registry():
     assert len(reg.names) == 0
 
     names = ['sitea', 'site A']
-    loc = EarthLocation.from_geodetic(lat=1*u.deg, lon=2*u.deg,height=3*u.km)
+    loc = EarthLocation.from_geodetic(lat=1*u.deg, lon=2*u.deg, height=3*u.km)
     reg.add_site(names, loc)
 
     assert len(reg.names) == 2
@@ -111,6 +115,7 @@ def test_registry():
 
     loc2 = reg['sIte a']
     assert loc2 is loc
+
 
 def test_non_EarthLocation():
     """
@@ -128,6 +133,7 @@ def test_non_EarthLocation():
     el2 = EarthLocation2.of_site('greenwich')
     assert type(el2) is EarthLocation2
     assert el2.info.name == 'Royal Observatory Greenwich'
+
 
 def check_builtin_matches_remote(download_url=True):
     """
@@ -161,3 +167,11 @@ def check_builtin_matches_remote(download_url=True):
             if not matches[name] and in_dl[name]:
                 print('    ', name, 'builtin:', builtin_registry[name], 'download:', dl_registry[name])
         assert False, "Builtin and download registry aren't consistent - failures printed to stdout"
+
+
+def test_meta_present():
+    reg = get_builtin_sites()
+
+    greenwich = reg['greenwich']
+    assert greenwich.info.meta['source'] == ('Ordnance Survey via '
+           'http://gpsinformation.net/main/greenwich.htm and UNESCO')

@@ -122,14 +122,14 @@ void eraApcs(double date1, double date2, double pv[2][3],
 **     eraPn        decompose p-vector into modulus and direction
 **     eraIr        initialize r-matrix to identity
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
 /* au/d to m/s */
    const double AUDMS = ERFA_DAU/ERFA_DAYSEC;
 
-/* Light time for 1 AU (day) */
+/* Light time for 1 au (day) */
    const double CR = ERFA_AULT/ERFA_DAYSEC;
 
    int i;
@@ -172,7 +172,7 @@ void eraApcs(double date1, double date2, double pv[2][3],
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

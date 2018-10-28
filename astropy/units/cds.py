@@ -23,8 +23,6 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
     >>> cds.enable()  # doctest: +SKIP
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 _ns = globals()
 
@@ -55,8 +53,8 @@ def _initialize_module():
         (['lyr'], u.lyr, "Light year"),
         (['alpha'], _si.alpha, "Fine structure constant"),
         ((['AA', 'Å'], ['Angstrom', 'Angstroem']), u.AA, "Angstrom"),
-        (['arcm', 'arcmin'], u.arcminute, "minute of arc"),
-        (['arcs', 'arcsec'], u.arcsecond, "second of arc"),
+        (['arcmin', 'arcm'], u.arcminute, "minute of arc"),
+        (['arcsec', 'arcs'], u.arcsecond, "second of arc"),
         (['atm'], _si.atm, "atmosphere"),
         (['AU', 'au'], u.au, "astronomical unit"),
         (['bar'], u.bar, "bar"),
@@ -157,7 +155,6 @@ def _initialize_module():
     # it as its own new disconnected unit.
     core.def_unit(['Crab'], prefixes=prefixes, namespace=_ns,
                   doc="Crab (X-ray) flux")
-
 
 
 _initialize_module()

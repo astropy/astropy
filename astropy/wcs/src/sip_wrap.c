@@ -474,12 +474,7 @@ static PyMethodDef PySip_methods[] = {
 };
 
 PyTypeObject PySipType = {
-  #if PY3K
   PyVarObject_HEAD_INIT(NULL, 0)
-  #else
-  PyObject_HEAD_INIT(NULL)
-  0,                            /*ob_size*/
-  #endif
   "astropy.wcs.Sip",            /*tp_name*/
   sizeof(PySip),                /*tp_basicsize*/
   0,                            /*tp_itemsize*/

@@ -49,8 +49,6 @@ Explanation of keywords of the dictionaries:
     values for the fit (optional)
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from ..functional_models import (
     Gaussian1D, Sine1D, Box1D, Linear1D, Lorentz1D,
@@ -64,7 +62,7 @@ from ..powerlaws import (
     LogParabola1D)
 import numpy as np
 
-#1D Models
+# 1D Models
 models_1D = {
     Gaussian1D: {
         'parameters': [1, 0, 1],
@@ -160,8 +158,8 @@ models_1D = {
     },
 
     SmoothlyBrokenPowerLaw1D: {
-        'parameters': [1, 0, -2, 2, 0.5],
-        'constraints': {'fixed': {'log_break': True, 'delta': True}},
+        'parameters': [1, 1, -2, 2, 0.5],
+        'constraints': {'fixed': {'x_break': True, 'delta': True}},
         'x_values': [0.01, 1, 100],
         'y_values': [3.99920012e-04, 1.0, 3.99920012e-04],
         'x_lim': [0.01, 100],
@@ -201,7 +199,7 @@ models_1D = {
         'y_values': [2.78629391e+02, 5.69791430e+01, 3.38788244e+00,
                      2.23941982e-02],
         'requires_scipy': True,
-        'x_lim': [0,10],
+        'x_lim': [0, 10],
         'log_fit': True
     },
 

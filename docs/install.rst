@@ -7,45 +7,60 @@ Requirements
 
 Astropy has the following strict requirements:
 
-- `Python <http://www.python.org/>`_ 2.7, 3.3, 3.4, 3.5 or 3.6
-
-  - Prior to Astropy v1.0, Python 3.1 and 3.2 were also supported
-
-  - Prior to Astropy v1.2, Python 2.6 was supported
+- `Python <https://www.python.org/>`_ 3.5 or 3.6
 
 - `Numpy`_ |minimum_numpy_version| or later
 
+- `pytest`_ 3.1 or later
+
 Astropy also depends on other packages for optional features:
 
-- `h5py <http://h5py.org/>`_: To read/write
+- `scipy`_: To power a variety of features in several modules.
+
+- `h5py <http://www.h5py.org/>`_: To read/write
   :class:`~astropy.table.Table` objects from/to HDF5 files.
 
-- `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_: To read
+- `BeautifulSoup <https://www.crummy.com/software/BeautifulSoup/>`_: To read
   :class:`~astropy.table.table.Table` objects from HTML files.
+
+- `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
+  disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
 
 - `PyYAML <http://pyyaml.org>`_: To read/write
   :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table format.
 
-- `scipy`_: To power a variety of features (currently
-  mainly cosmology-related functionality).
-
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
-
-- `matplotlib <http://matplotlib.org/>`_: To provide plotting functionality that `astropy.visualization` enhances.
-
-- `pytz <http://pythonhosted.org/pytz/>`_: To specify and convert between timezones.
-
-- `scikit-image <http://scikit-image.org/>`_: To downsample a data array in `astropy.nddata.utils`.
 
 - `pandas <http://pandas.pydata.org/>`_: To read/write
   :class:`~astropy.table.Table` objects from/to pandas DataFrame objects.
 
+- `bintrees <https://pypi.python.org/pypi/bintrees>`_ for faster ``FastRBT`` and
+  ``FastBST`` indexing engines with ``Table``, although these will still be
+  slower in most cases than the default indexing engine.
+
+- `sortedcontainers <https://pypi.org/project/sortedcontainers/>`_ for faster
+  ``SCEngine`` indexing engine with ``Table``, although this may still be
+  slower in some cases than the default indexing engine.
+
+- `pytz <http://pythonhosted.org/pytz/>`_: To specify and convert between timezones.
+
+- `jplephem <https://pypi.org/project/jplephem/>`_: To retrieve JPL
+  ephemeris of Solar System objects.
+
+- `matplotlib <http://matplotlib.org/>`_ 1.5 or later: To provide plotting
+  functionality that `astropy.visualization` enhances.
+
+- `scikit-image <http://scikit-image.org/>`_: To downsample a data array in `astropy.nddata.utils`.
+
+- `setuptools <https://setuptools.readthedocs.io>`_: Used for discovery of
+  entry points which are used to insert fitters into `astropy.modeling.fitting`.
+
+- `mpmath <http://mpmath.org/>`_: Used for the 'kraft-burrows-nousek'
+  interval in `~astropy.stats.poisson_conf_interval`.
+
 - `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
 
-- `setuptools <https://pythonhosted.org/setuptools/>`_: Used for discovery of entry points which are used to insert fitters into modeling.fitting
 
-- `mock <https://github.com/testing-cabal/mock>`_ (python <= 3.2) or `unittest.mock <https://docs.python.org/dev/library/unittest.mock.html>`_ (python > 3.3):
-  Used for testing the entry point discovery functionality in `astropy.modeling.fitting`
 
 However, note that these only need to be installed if those particular features
 are needed. Astropy will import even if these dependencies are not installed.
@@ -56,11 +71,11 @@ Installing Astropy
 ==================
 
 Using pip
--------------
+---------
 
-To install Astropy with `pip <http://www.pip-installer.org/en/latest/>`_, simply run::
+To install Astropy with `pip <https://pip.pypa.io>`__, simply run::
 
-    pip install --no-deps astropy
+    pip install astropy --no-deps
 
 .. warning::
 
@@ -85,7 +100,7 @@ To install Astropy with `pip <http://www.pip-installer.org/en/latest/>`_, simply
     installation.  In this case you may consider using the ``--user`` option
     to install the package into your home directory.  You can read more
     about how to do this in the `pip documentation
-    <http://www.pip-installer.org/en/1.2.1/other-tools.html#using-pip-with-the-user-scheme>`_.
+    <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_.
 
     Alternatively, if you intend to do development on other software that uses
     Astropy, such as an affiliated package, consider installing Astropy into a
@@ -97,11 +112,11 @@ To install Astropy with `pip <http://www.pip-installer.org/en/latest/>`_, simply
 
 .. _anaconda_install:
 
-Anaconda python distribution
-----------------------------
+Using conda
+-----------
 
-Astropy is installed by default with Anaconda. To update to the latest version
-run::
+Astropy is installed by default with the `Anaconda Distribution
+<https://www.anaconda.com/download/>`_. To update to the latest version run::
 
     conda update astropy
 
@@ -113,18 +128,10 @@ run::
 
 .. note::
 
-    Attempting to use ``pip`` to upgrade your installation of Astropy may result
+    Attempting to use `pip <https://pip.pypa.io>`__ to upgrade your installation of Astropy may result
     in a corrupted installation.
 
-
-Binary installers
------------------
-
-Binary installers are available on Windows for Python 2.7, and >= 3.3
-at `PyPI <https://pypi.python.org/pypi/astropy>`_.
-
 .. _testing_installed_astropy:
-
 
 Testing an installed Astropy
 ----------------------------
@@ -136,7 +143,7 @@ correctly is to use the :ref:`astropy.test()` function::
     astropy.test()
 
 The tests should run and print out any failures, which you can report at
-the `Astropy issue tracker <http://github.com/astropy/astropy/issues>`_.
+the `Astropy issue tracker <https://github.com/astropy/astropy/issues>`_.
 
 .. note::
 
@@ -148,9 +155,8 @@ the `Astropy issue tracker <http://github.com/astropy/astropy/issues>`_.
 .. note::
 
     Running the tests this way is currently disabled in the IPython REPL due
-    to conflicts with some common display settings in IPython.  Please run the
+    to conflicts with some common display settings in IPython. Please run the
     Astropy tests under the standard Python command-line interpreter.
-
 
 
 Building from source
@@ -164,16 +170,16 @@ Numpy in order to build Astropy.
 
 You will also need `Cython <http://cython.org/>`_ (v0.21 or later) and
 `jinja2 <http://jinja.pocoo.org/docs/dev/>`_ (v2.7 or later) installed
-to build from source, unless you are installing a numbered release. (The
-releases packages have the necessary C files packaged with them, and hence do
-not require Cython.)
+to build from source, unless you are installing a release. (The released
+packages have the necessary C files packaged with them, and hence do not require
+Cython.)
 
 Prerequisites for Linux
 -----------------------
 
-On Linux, using the package manager for your distribution will usually be
-the easiest route. In order to build from source, you'll need the python development package
-for your distro.
+On Linux, using the package manager for your distribution will usually be the
+easiest route. In order to build from source, you'll need the python development
+package for your Linux distribution.
 
 For Debian/Ubuntu::
 
@@ -186,38 +192,18 @@ For Fedora/RHEL::
 Prerequisites for Mac OS X
 --------------------------
 
-On MacOS X you will need the XCode command line tools which can be installed using
-
-For installing XCode command line tools::
+On MacOS X you will need the XCode command line tools which can be installed
+using::
 
     xcode-select --install
 
-and follow the onscreen instructions to install the command line tools required.
-
-You'll also need the python development package for Mac OS X to proceed in building
-astropy from source.
-
-To install the python development package for Mac OS X, from a package manager
-like brew, macports or fink.
-
+Follow the onscreen instructions to install the command line tools required.
+Note that you do **not** need to install the full XCode distribution (assuming
+you are using MacOS X 10.9 or later).
 
 The `instructions for building Numpy from source
-<http://docs.scipy.org/doc/numpy/user/install.html>`_ are also a good
+<https://docs.scipy.org/doc/numpy/user/building.html>`_ are a good
 resource for setting up your environment to build Python packages.
-
-.. note::
-
-    If you are using MacOS X, you will need to the XCode command line tools.
-    One way to get them is to install `XCode
-    <https://developer.apple.com/xcode/>`_. If you are using OS X 10.7 (Lion)
-    or later, you must also explicitly install the command line tools. You can
-    do this by opening the XCode application, going to **Preferences**, then
-    **Downloads**, and then under **Components**, click on the Install button
-    to the right of **Command Line Tools**.  Alternatively, on 10.7 (Lion) or
-    later, you do not need to install XCode, you can download just the command
-    line tools from https://developer.apple.com/downloads/index.action
-    (requires an Apple developer account).
-
 
 Obtaining the source packages
 -----------------------------
@@ -234,7 +220,7 @@ Development repository
 The latest development version of Astropy can be cloned from github
 using this command::
 
-   git clone git://github.com/astropy/astropy.git
+   git clone --recursive git://github.com/astropy/astropy.git
 
 .. note::
 
@@ -245,12 +231,11 @@ using this command::
 Building and Installing
 -----------------------
 
-Astropy uses the Python `distutils framework
+Astropy uses the Python built-in `distutils framework
 <http://docs.python.org/install/index.html>`_ for building and
-installing and requires the
-`distribute <http://pypi.python.org/pypi/distribute>`_ extension--the later is
-automatically downloaded when running ``python setup.py`` if it is not already
-provided by your system.
+installing and requires the `setuptools`_ package -- the later is automatically
+downloaded when running ``python setup.py`` if it is not already provided by
+your system.
 
 If Numpy is not already installed in your Python environment, the
 astropy setup process will try to download and install it before
@@ -313,7 +298,7 @@ The C libraries currently bundled with Astropy include:
 - `wcslib <http://www.atnf.csiro.au/people/mcalabre/WCS/>`_ see
   ``cextern/wcslib/README`` for the bundled version.
 
-- `cfitsio <http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ see
+- `cfitsio <https://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ see
   ``cextern/cfitsio/changes.txt`` for the bundled version.
 
 - `erfa <https://github.com/liberfa>`_ see ``cextern/erfa/README.rst`` for the
@@ -323,64 +308,13 @@ The C libraries currently bundled with Astropy include:
   bundled version.
 
 
-The required version of setuptools is not available
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If upon running the ``setup.py`` script you get a message like
-
-    The required version of setuptools (>=0.9.8) is not available,
-    and can't be installed while this script is running. Please
-    install a more recent version first, using
-    'easy_install -U setuptools'.
-
-    (Currently using setuptools 0.6c11 (/path/to/setuptools-0.6c11-py2.7.egg))
-
-this is because you have a very outdated version of the `setuptools
-<https://pythonhosted.org/setuptools/>`_ package which is used to install
-Python packages.  Normally Astropy will bootstrap newer version of
-setuptools via the network, but setuptools suggests that you first
-*uninstall* the old version (the ``easy_install -U setuptools`` command).
-
-However, in the likely case that your version of setuptools was installed by an
-OS system package (on Linux check your package manager like apt or yum for a
-package called ``python-setuptools``), trying to uninstall with
-``easy_install`` and without using ``sudo`` may not work, or may leave your
-system package in an inconsistent state.
-
-As the best course of action at this point depends largely on the individual
-system and how it is configured, if you are not sure yourself what do please
-ask on the `Astropy mailing list`_.
-
-
-The Windows installer can't find Python in the registry
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-This is a common issue with Windows installers for Python packages that do not
-support the new User Access Control (UAC) framework added in Windows Vista and
-later.  In particular, when a Python is installed "for all users" (as opposed
-to for a single user) it adds entries for that Python installation under the
-``HKEY_LOCAL_MACHINE`` (HKLM) hierarchy and *not* under the
-``HKEY_CURRENT_USER`` (HKCU) hierarchy.  However, depending on your UAC
-settings, if the Astropy installer is not executed with elevated privileges it
-will not be able to check in HKLM for the required information about your
-Python installation.
-
-In short: If you encounter this problem it's because you need the appropriate
-entries in the Windows registry for Python. You can download `this script`__
-and execute it with the same Python as the one you want to install Astropy
-into.  For example to add the missing registry entries to your Python 2.7::
-
-    C:\>C:\Python27\python.exe C:\Path\To\Downloads\win_register_python.py
-
-__ https://gist.github.com/embray/6042780#file-win_register_python-py
-
 Installing Astropy into CASA
 ----------------------------
 
 If you want to be able to use Astropy inside `CASA
 <https://casa.nrao.edu/>`_, the easiest way is to do so from inside CASA.
 
-First, we need to make sure `pip <https://pypi.python.org/pypi/pip>`__ is
+First, we need to make sure `pip <https://pip.pypa.io>`__ is
 installed. Start up CASA as normal, and type::
 
     CASA <2>: from setuptools.command import easy_install
@@ -419,45 +353,44 @@ Building documentation
     the latest (and archive) versions of astropy's documentation should
     be available at `docs.astropy.org <http://docs.astropy.org>`_ .
 
+Dependencies
+^^^^^^^^^^^^
+
 Building the documentation requires the Astropy source code and some additional
-packages:
+packages. The easiest way to install all the required dependencies is to install
+the `sphinx-astropy <https://github.com/astropy/sphinx-astropy>`_ package,
+either with pip::
 
-    - `Sphinx <http://sphinx.pocoo.org>`_ (and its dependencies) 1.0 or later
+    pip install sphinx-astropy
 
-    - `Graphviz <http://www.graphviz.org>`_
+or with conda::
 
-    - `Astropy-helpers <https://github.com/astropy/astropy-helpers>`_ (Astropy
-      and most affiliated packages include this as a submodule in the source
-      repository, so it does not need to be installed separately.)
+    conda install -c astropy sphinx-astropy
 
-    - `Pillow <http://python-pillow.org/>`_
+In addition to providing configuration common to packages in the Astropy
+ecosystem, this package also serves as a way to automatically get the main
+dependencies, including:
 
-    - (optional) `sphinx-gallery <http://sphinx-gallery.readthedocs.io/>`_
+* `Sphinx <http://sphinx.pocoo.org>`_ - the main package we use to build
+  the documentation.
+* `astropy-sphinx-theme <https://github.com/astropy/astropy-sphinx-theme>`_ -
+  the default 'bootstrap' theme use by Astropy and a number of affiliated
+  packages.
+* `sphinx-automodapi <http://sphinx-automodapi.readthedocs.io>`_ - an extension
+  that makes it easy to automatically generate API documentation.
+* `sphinx-gallery <https://sphinx-gallery.readthedocs.io/en/latest/>`_ - an
+  extension to generate example galleries
+* `numpydoc <https://numpydoc.readthedocs.io>`_ - an extension to parse
+  docstrings in NumpyDoc format
 
-.. note::
+In addition, if you want inheritance graphs to be generated, you will need to
+make sure that `Graphviz <http://www.graphviz.org>`_ is installed. If you
+install sphinx-astropy with conda, graphviz will automatically get installed,
+but if you use pip, you will need to install Graphviz separately as it isn't
+a Python package.
 
-    Sphinx also requires a reasonably modern LaTeX installation to render
-    equations.  Per the `Sphinx documentation
-    <http://sphinx-doc.org/builders.html?highlight=latex#sphinx.builders.latex.LaTeXBuilder>`_,
-    for the TexLive distribution the following packages are required to be
-    installed:
-
-    * latex-recommended
-    * latex-extra
-    * fonts-recommended
-
-    For other LaTeX distributions your mileage may vary. To build the PDF
-    documentation using LaTeX, the ``fonts-extra`` TexLive package or the
-    ``inconsolata`` CTAN package are also required.
-
-.. note::
-
-    If sphinx-gallery is not installed, you will see many Sphinx warnings
-    building the documentation, e.g.::
-
-        .../docs/coordinates/frames.rst:278: WARNING: undefined label:
-            sphx_glr_generated_examples_coordinates_plot_sgr-coordinate-frame.py
-            (if the link has no caption the label must precede a section header)
+Building
+^^^^^^^^
 
 There are two ways to build the Astropy documentation. The most straightforward
 way is to execute the command (from the astropy source directory)::
@@ -483,16 +416,48 @@ Alternatively, you can do::
 And the documentation will be generated in the same location, but using the
 *installed* version of Astropy.
 
+Reporting issues/requesting features
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As mentioned above, building the documentation depends on a number of sphinx
+extensions and other packages. Since it isn't necessarily straightforward to
+know which package is causing issues or would need to have a new feature
+implemented, you can simply open an issue in the `core astropy package issue
+tracker <https://github.com/astropy/astropy/issues>`_. However, if you wish you
+can also open issues in the repositories for some of the dependencies:
+
+* For requests/issues related to the appearance of the docs (e.g. related to
+  the CSS), you can open an issue in the `astropy-sphinx-theme issue tracker
+  <https://github.com/astropy/astropy-sphinx-theme/issues>`_.
+
+* For requests/issues related to the auto-generated API docs which appear to
+  be general issues rather than an issue with a specific docstring, you can use
+  the `sphinx-automodapi issue tracker
+  <https://github.com/astropy/sphinx-automodapi/issues>`_.
+
+* For issues related to the default configuration (e.g which extensions are
+  enabled by default), you can use the `sphinx-astropy issue tracker
+  <https://github.com/astropy/sphinx-astropy/issues>`_.
+
 .. _sourcebuildtest:
 
 Testing a source code build of Astropy
 --------------------------------------
+
+Before running tests, it is necessary to make sure that Astropy's test
+dependencies are installed. This can be done with the following command::
+
+    pip install pytest-astropy
+
+More information on what the ``pytest-astropy`` package provides can be found
+in :ref:`testing-dependencies`.
 
 The easiest way to test that your Astropy built correctly (without
 installing astropy) is to run this from the root of the source tree::
 
     python setup.py test
 
-There are also alternative methods of :ref:`running-tests`.
+There are also alternative methods of :ref:`running-tests`. Note that you will
+need `pytest <http://pytest.org>`_ to be installed for this to work.
 
 .. include:: development/workflow/known_projects.inc

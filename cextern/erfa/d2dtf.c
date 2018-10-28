@@ -71,7 +71,7 @@ int eraD2dtf(const char *scale, int ndp, double d1, double d2,
 **     eraD2tf      decompose days to hms
 **     eraDat       delta(AT) = TAI-UTC
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -184,7 +184,7 @@ int eraD2dtf(const char *scale, int ndp, double d1, double d2,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

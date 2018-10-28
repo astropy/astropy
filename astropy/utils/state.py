@@ -4,11 +4,10 @@ A simple class to manage a piece of global science state.  See
 """
 
 
-
 __all__ = ['ScienceState']
 
 
-class ScienceState(object):
+class ScienceState:
     """
     Science state subclasses are used to manage global items that can
     affect science results.  Subclasses will generally override
@@ -45,7 +44,7 @@ class ScienceState(object):
         """
         Set the current science state value.
         """
-        class _Context(object):
+        class _Context:
             def __init__(self, parent, value):
                 self._value = value
                 self._parent = parent

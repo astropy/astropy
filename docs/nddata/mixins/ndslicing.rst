@@ -1,15 +1,15 @@
 .. _nddata_slicing:
 
 Slicing and Indexing NDData
-===========================
+***************************
 
 Introduction
-------------
+============
 
 This page only deals with peculiarities applying to
 `~astropy.nddata.NDData`-like classes. For a tutorial about slicing/indexing see the
-`python documentation <https://docs.python.org/tutorial/introduction.html#lists>`_
-and `numpy documentation <http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_.
+`python documentation <https://docs.python.org/3/tutorial/introduction.html#lists>`_
+and `numpy documentation <https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_.
 
 .. warning::
     `~astropy.nddata.NDData` and `~astropy.nddata.NDDataRef` enforce almost no
@@ -20,7 +20,7 @@ and `numpy documentation <http://docs.scipy.org/doc/numpy/reference/arrays.index
 
 
 Slicing NDDataRef
------------------
+=================
 
 Unlike `~astropy.nddata.NDData` the class `~astropy.nddata.NDDataRef`
 implements slicing or indexing. The result will be wrapped inside the same
@@ -55,7 +55,7 @@ except you indexed only one element (for example ``ndd_sliced = ndd[1]``). Then
 the element is a scalar and changes will not propagate to the original.
 
 Slicing NDDataRef including attributes
---------------------------------------
+======================================
 
 In case a ``wcs``, ``mask`` or ``uncertainty`` is present this attribute will
 be sliced too::
@@ -72,13 +72,13 @@ be sliced too::
     array([2, 3])
 
     >>> ndd_sliced.mask
-    array([False,  True], dtype=bool)
+    array([False,  True]...)
 
-    >>> ndd_sliced.uncertainty
-    StdDevUncertainty([ 1.41421356,  1.73205081])
+    >>> ndd_sliced.uncertainty  # doctest: +FLOAT_CMP
+    StdDevUncertainty([1.41421356, 1.73205081])
 
-    >>> ndd_sliced.wcs
-    array([ 1.,  1.])
+    >>> ndd_sliced.wcs  # doctest: +FLOAT_CMP
+    array([1., 1.])
 
 but ``unit`` and ``meta`` will be unaffected.
 
@@ -99,7 +99,7 @@ printed and the property will be kept as is::
     False
 
 Example: Remove masked data
----------------------------
+===========================
 
 .. warning::
     If you are using a `~astropy.wcs.WCS` object as ``wcs`` this will **NOT**
@@ -119,10 +119,10 @@ So we are able to get all valid data points by slicing with the mask::
     NDDataRef([1, 3, 7, 8])
 
     >>> ndd_sliced.mask
-    array([False, False, False, False], dtype=bool)
+    array([False, False, False, False]...)
 
-    >>> ndd_sliced.uncertainty
-    StdDevUncertainty([ 1.        ,  1.73205081,  2.64575131,  2.82842712])
+    >>> ndd_sliced.uncertainty  # doctest: +FLOAT_CMP
+    StdDevUncertainty([1.        , 1.73205081, 2.64575131, 2.82842712])
 
 or all invalid points::
 
@@ -131,10 +131,10 @@ or all invalid points::
     NDDataRef([2, 4, 5, 6, 9])
 
     >>> ndd_sliced.mask
-    array([ True,  True,  True,  True,  True], dtype=bool)
+    array([ True,  True,  True,  True,  True]...)
 
-    >>> ndd_sliced.uncertainty
-    StdDevUncertainty([ 1.41421356,  2.        ,  2.23606798,  2.44948974,  3.        ])
+    >>> ndd_sliced.uncertainty  # doctest: +FLOAT_CMP
+    StdDevUncertainty([1.41421356, 2.        , 2.23606798, 2.44948974, 3.        ])
 
 .. note::
     The result of this kind of indexing (boolean indexing) will always be

@@ -5,11 +5,6 @@ This file contains a contains the high-level functions to read a
 VOTable file.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-from ...extern import six
-
 # STDLIB
 import io
 import os
@@ -111,7 +106,9 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
     from . import conf
 
     invalid = invalid.lower()
-    assert invalid in ('exception', 'mask')
+    if invalid not in ('exception', 'mask'):
+        raise ValueError("accepted values of ``invalid`` are: "
+                         "``'exception'`` or ``'mask'``.")
 
     if pedantic is None:
         pedantic = conf.pedantic
@@ -120,22 +117,22 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         datatype_mapping = {}
 
     config = {
-        'columns'          : columns,
-        'invalid'          : invalid,
-        'pedantic'         : pedantic,
-        'chunk_size'       : chunk_size,
-        'table_number'     : table_number,
-        'filename'         : filename,
-        'unit_format'      : unit_format,
-        'datatype_mapping' : datatype_mapping
+        'columns': columns,
+        'invalid': invalid,
+        'pedantic': pedantic,
+        'chunk_size': chunk_size,
+        'table_number': table_number,
+        'filename': filename,
+        'unit_format': unit_format,
+        'datatype_mapping': datatype_mapping
     }
 
-    if filename is None and isinstance(source, six.string_types):
+    if filename is None and isinstance(source, str):
         config['filename'] = source
 
     with iterparser.get_xml_iterator(
-        source,
-        _debug_python_based_parser=_debug_python_based_parser) as iterator:
+            source,
+            _debug_python_based_parser=_debug_python_based_parser) as iterator:
         return tree.VOTableFile(
             config=config, pos=(1, 1)).parse(iterator, config)
 
@@ -240,7 +237,7 @@ def validate(source, output=None, xmllint=False, filename=None):
     content_buffer.seek(0)
 
     if filename is None:
-        if isinstance(source, six.string_types):
+        if isinstance(source, str):
             filename = source
         elif hasattr(source, 'name'):
             filename = source.name
@@ -295,19 +292,19 @@ def validate(source, output=None, xmllint=False, filename=None):
 
     success = 0
     if xmllint and os.path.exists(filename):
-        from ...utils.xml import validate
+        from . import xmlutil
 
         if votable is None:
             version = "1.1"
         else:
             version = votable.version
-        success, stdout, stderr = validate.validate_schema(
+        success, stdout, stderr = xmlutil.validate_schema(
             filename, version)
 
         if success != 0:
             output.write(
                 'xmllint schema violations:\n\n')
-            output.write(stderr)
+            output.write(stderr.decode('utf-8'))
         else:
             output.write('xmllint passed\n')
 
@@ -353,12 +350,12 @@ def is_votable(source):
     """
     try:
         with iterparser.get_xml_iterator(source) as iterator:
-            for start, tag, data, pos in iterator:
+            for start, tag, d, pos in iterator:
                 if tag != 'xml':
                     return False
                 break
 
-            for start, tag, data, pos in iterator:
+            for start, tag, d, pos in iterator:
                 if tag != 'VOTABLE':
                     return False
                 break
@@ -378,12 +375,12 @@ def reset_vo_warnings():
     """
     from . import converters, xmlutil
 
-    #-----------------------------------------------------------#
-    # This is a special variable used by the Python warnings    #
-    # infrastructure to keep track of warnings that have        #
-    # already been seen.  Since we want to get every single     #
-    # warning out of this, we have to delete all of them first. #
-    #-----------------------------------------------------------#
+    # -----------------------------------------------------------#
+    #  This is a special variable used by the Python warnings    #
+    #  infrastructure to keep track of warnings that have        #
+    #  already been seen.  Since we want to get every single     #
+    #  warning out of this, we have to delete all of them first. #
+    # -----------------------------------------------------------#
     for module in (converters, exceptions, tree, xmlutil):
         if hasattr(module, '__warningregistry__'):
             del module.__warningregistry__

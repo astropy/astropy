@@ -1,4 +1,4 @@
-.. doctest-skip-all
+
 .. _astropy-wcs:
 
 ***************************************
@@ -89,12 +89,13 @@ The basic workflow is as follows:
            coordinates to image coordinates.  Commonly used for narrow
            column correction.
 
-For example, to convert pixel coordinates to world coordinates::
+For example, to convert pixel coordinates from a two dimensional image to world coordinates::
 
     >>> from astropy.wcs import WCS
     >>> w = WCS('image.fits')
     >>> lon, lat = w.all_pix2world(30, 40, 0)
     >>> print(lon, lat)
+    31.0 41.0
 
 
 Using `astropy.wcs`
@@ -262,7 +263,12 @@ Other information
 
    relax
    history
+   wcsapi
 
+.. note that if this section gets too long, it should be moved to a separate
+   doc page - see the top of performance.inc.rst for the instructions on how to do
+   that
+.. include:: performance.inc.rst
 
 See Also
 ========
@@ -273,6 +279,7 @@ Reference/API
 =============
 
 .. automodapi:: astropy.wcs
+   :inherited-members:
 
 .. automodapi:: astropy.wcs.utils
 

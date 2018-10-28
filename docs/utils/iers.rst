@@ -72,7 +72,7 @@ of the automatic IERS downloading:
     Enable auto-downloading of the latest IERS data.  If set to ``False`` then
     the local IERS-B file will be used by default (even if the full IERS file
     with predictions was already downloaded and cached).  This replicates the
-    behavior prior to astropy 1.2.  (default= ``True``)
+    behavior prior to astropy 1.2.  (default=True)
 
   auto_max_age:
     Maximum age of predictive data before auto-downloading (days).  See
@@ -149,8 +149,8 @@ part of astropy and can be used for transformations.  For example::
   >>> from astropy.utils import iers
   >>> t = Time('2010:001')
   >>> iers_b = iers.IERS_B.open()
-  >>> iers_b.ut1_utc(t)
-  <Quantity 0.1140749 s>
+  >>> iers_b.ut1_utc(t)  # doctest: +FLOAT_CMP
+  <Quantity 0.1140827 s>
   >>> t.delta_ut1_utc = iers_b.ut1_utc(t)
   >>> t.ut1.iso
   '2010-01-01 00:00:00.114'
@@ -208,5 +208,3 @@ UT1Flag, PM_x, PM_y, PolPMFlag::
   57877.0 -0.6573705        P 0.010328 0.451777         P
   57878.0 -0.6587712        P 0.011924 0.453209         P
   57879.0  -0.660187        P 0.013544 0.454617         P
-
-

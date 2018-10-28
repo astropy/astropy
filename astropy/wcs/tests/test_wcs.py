@@ -1,32 +1,28 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from ...extern import six
-
 import io
 import os
 import warnings
 from datetime import datetime
 
+import pytest
 import numpy as np
 from numpy.testing import (
     assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp,
     assert_array_equal)
 
-from ...tests.helper import raises, catch_warnings, pytest
+from ...tests.helper import raises, catch_warnings
 from ... import wcs
 from .. import _wcs
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from ...utils.misc import NumpyRNGContext
+from ...utils.exceptions import AstropyUserWarning
 from ...io import fits
-from ...extern.six.moves import range
+from ...coordinates import SkyCoord
 
 
-class TestMaps(object):
+class TestMaps:
     def setup(self):
         # get the list of the hdr files that we want to test
         self._file_list = list(get_pkg_data_filenames("maps", pattern="*.hdr"))
@@ -59,7 +55,7 @@ class TestMaps(object):
             assert_array_almost_equal(pix, [[97, 97]], decimal=0)
 
 
-class TestSpectra(object):
+class TestSpectra:
     def setup(self):
         self._file_list = list(get_pkg_data_filenames("spectra",
                                                       pattern="*.hdr"))
@@ -319,16 +315,18 @@ def test_warning_about_defunct_keywords():
         assert 'PCi_ja' in str(item.message)
 
 
-@raises(wcs.FITSFixedWarning)
 def test_warning_about_defunct_keywords_exception():
     def run():
         header = get_pkg_data_contents(
             'data/defunct_keywords.hdr', encoding='binary')
         w = wcs.WCS(header)
 
-    with catch_warnings(wcs.FITSFixedWarning) as w:
+    with pytest.raises(wcs.FITSFixedWarning):
         warnings.simplefilter("error", wcs.FITSFixedWarning)
         run()
+
+    # Restore warnings filter to previous state
+    warnings.simplefilter("default")
 
 
 def test_to_header_string():
@@ -411,7 +409,46 @@ def test_validate_with_2_wcses():
     # From Issue #2053
     results = wcs.validate(get_pkg_data_filename("data/2wcses.hdr"))
 
-    assert "WCS key 'A':" in six.text_type(results)
+    assert "WCS key 'A':" in str(results)
+
+
+def test_crpix_maps_to_crval():
+    twcs = wcs.WCS(naxis=2)
+    twcs.wcs.crval = [251.29, 57.58]
+    twcs.wcs.cdelt = [1, 1]
+    twcs.wcs.crpix = [507, 507]
+    twcs.wcs.pc = np.array([[7.7e-6, 3.3e-5], [3.7e-5, -6.8e-6]])
+    twcs._naxis = [1014, 1014]
+    twcs.wcs.ctype = ['RA---TAN-SIP', 'DEC--TAN-SIP']
+    a = np.array(
+        [[0, 0, 5.33092692e-08, 3.73753773e-11, -2.02111473e-13],
+         [0, 2.44084308e-05, 2.81394789e-11, 5.17856895e-13, 0.0],
+         [-2.41334657e-07, 1.29289255e-10, 2.35753629e-14, 0.0, 0.0],
+         [-2.37162007e-10, 5.43714947e-13, 0.0, 0.0, 0.0],
+         [ -2.81029767e-13, 0.0, 0.0, 0.0, 0.0]]
+    )
+    b = np.array(
+        [[0, 0, 2.99270374e-05, -2.38136074e-10, 7.23205168e-13],
+         [0, -1.71073858e-07, 6.31243431e-11, -5.16744347e-14, 0.0],
+         [6.95458963e-06, -3.08278961e-10, -1.75800917e-13, 0.0, 0.0],
+         [3.51974159e-11, 5.60993016e-14, 0.0, 0.0, 0.0],
+         [-5.92438525e-13, 0.0, 0.0, 0.0, 0.0]]
+    )
+    twcs.sip = wcs.Sip(a, b, None, None, twcs.wcs.crpix)
+    twcs.wcs.set()
+    pscale = np.sqrt(wcs.utils.proj_plane_pixel_area(twcs))
+
+    # test that CRPIX maps to CRVAL:
+    assert_allclose(
+        twcs.wcs_pix2world(*twcs.wcs.crpix, 1), twcs.wcs.crval,
+        rtol=0.0, atol=1e-6 * pscale
+    )
+
+    # test that CRPIX maps to CRVAL:
+    assert_allclose(
+        twcs.all_pix2world(*twcs.wcs.crpix, 1), twcs.wcs.crval,
+        rtol=0.0, atol=1e-6 * pscale
+    )
 
 
 def test_all_world2pix(fname=None, ext=0,
@@ -426,7 +463,7 @@ def test_all_world2pix(fname=None, ext=0,
         fname = get_pkg_data_filename('data/j94f05bgq_flt.fits')
         ext = ('SCI', 1)
     if not os.path.isfile(fname):
-        raise IOError("Input file '{:s}' to 'test_all_world2pix' not found."
+        raise OSError("Input file '{:s}' to 'test_all_world2pix' not found."
                       .format(fname))
     h = fits.open(fname)
     w = wcs.WCS(h[ext].header, h)
@@ -439,8 +476,8 @@ def test_all_world2pix(fname=None, ext=0,
     # Assume that CRPIX is at the center of the image and that the image has
     # a power-of-2 number of pixels along each axis. Only use the central
     # 1/64 for this testing purpose:
-    naxesi_l = list((7. / 16 * crpix).astype(np.int))
-    naxesi_u = list((9. / 16 * crpix).astype(np.int))
+    naxesi_l = list((7. / 16 * crpix).astype(int))
+    naxesi_u = list((9. / 16 * crpix).astype(int))
 
     # Generate integer indices of pixels (image grid):
     img_pix = np.dstack([i.flatten() for i in
@@ -558,11 +595,12 @@ def test_footprint_to_file(tmpdir):
     From github issue #1912
     """
     # Arbitrary keywords from real data
-    w = wcs.WCS({'CTYPE1': 'RA---ZPN', 'CRUNIT1': 'deg',
-                 'CRPIX1': -3.3495999e+02, 'CRVAL1': 3.185790700000e+02,
-                 'CTYPE2': 'DEC--ZPN', 'CRUNIT2': 'deg',
-                 'CRPIX2': 3.0453999e+03, 'CRVAL2': 4.388538000000e+01,
-                 'PV2_1': 1., 'PV2_3': 220.})
+    hdr = {'CTYPE1': 'RA---ZPN', 'CRUNIT1': 'deg',
+           'CRPIX1': -3.3495999e+02, 'CRVAL1': 3.185790700000e+02,
+           'CTYPE2': 'DEC--ZPN', 'CRUNIT2': 'deg',
+           'CRPIX2': 3.0453999e+03, 'CRVAL2': 4.388538000000e+01,
+           'PV2_1': 1., 'PV2_3': 220., 'NAXIS1': 2048, 'NAXIS2': 1024}
+    w = wcs.WCS(hdr)
 
     testfile = str(tmpdir.join('test.txt'))
     w.footprint_to_file(testfile)
@@ -585,6 +623,12 @@ def test_footprint_to_file(tmpdir):
 
     with pytest.raises(ValueError):
         w.footprint_to_file(testfile, coordsys='FOO')
+
+    del hdr['NAXIS1']
+    del hdr['NAXIS2']
+    w = wcs.WCS(hdr)
+    with pytest.warns(AstropyUserWarning):
+        w.footprint_to_file(testfile)
 
 
 def test_validate_faulty_wcs():
@@ -700,7 +744,7 @@ def test_printwcs():
 
 
 def test_invalid_spherical():
-    header = six.text_type("""
+    header = """
 SIMPLE  =                    T / conforms to FITS standard
 BITPIX  =                    8 / array data type
 WCSAXES =                    2 / no comment
@@ -721,7 +765,7 @@ CD2_1   =     0.00250608809647 / no comment
 CD2_2   =    -0.00912247310646 / no comment
 IMAGEW  =                 4256 / Image width,  in pixels.
 IMAGEH  =                 2832 / Image height, in pixels.
-""")
+    """
 
     f = io.StringIO(header)
     header = fits.Header.fromtextfile(f)
@@ -977,7 +1021,7 @@ def test_inconsistent_sip():
     assert('A_0_2' in newhdr)
     # Test that SIP coefficients are also written out.
     assert wnew.sip is not None
-    ########## broken header ###########
+    # ######### broken header ###########
     # Test that "-SIP" is added to CTYPE if relax=True and
     # "-SIP" was not in the original header but SIP coefficients
     # are present.
@@ -991,12 +1035,12 @@ def test_inconsistent_sip():
 def test_bounds_check():
     """Test for #4957"""
     w = wcs.WCS(naxis=2)
-    w.wcs.ctype = ["RA---CAR","DEC--CAR"]
-    w.wcs.cdelt = [10,10]
-    w.wcs.crval = [-90,90]
-    w.wcs.crpix = [1,1]
+    w.wcs.ctype = ["RA---CAR", "DEC--CAR"]
+    w.wcs.cdelt = [10, 10]
+    w.wcs.crval = [-90, 90]
+    w.wcs.crpix = [1, 1]
     w.wcs.bounds_check(False, False)
-    ra, dec = w.wcs_pix2world(300,0,0)
+    ra, dec = w.wcs_pix2world(300, 0, 0)
     assert_allclose(ra, -180)
     assert_allclose(dec, -30)
 
@@ -1007,13 +1051,18 @@ def test_naxis():
     w.wcs.cdelt = [0.1, 0.1]
     w.wcs.crpix = [1, 1]
     w._naxis = [1000, 500]
+    assert w.pixel_shape == (1000, 500)
+    assert w.array_shape == (500, 1000)
 
-    assert w._naxis1 == 1000
-    assert w._naxis2 == 500
-
-    w._naxis1 = 99
-    w._naxis2 = 59
+    w.pixel_shape = (99, 59)
     assert w._naxis == [99, 59]
+
+    w.array_shape = (45, 23)
+    assert w._naxis == [23, 45]
+    assert w.pixel_shape == (23, 45)
+
+    w.pixel_shape = None
+    assert w.pixel_bounds is None
 
 
 def test_sip_with_altkey():
@@ -1044,3 +1093,91 @@ def test_to_fits_1():
     assert isinstance(wfits, fits.HDUList)
     assert isinstance(wfits[0], fits.PrimaryHDU)
     assert isinstance(wfits[1], fits.ImageHDU)
+
+def test_keyedsip():
+    """
+    Test sip reading with extra key.
+    """
+    hdr_name = get_pkg_data_filename('data/sip-broken.hdr')
+    header = fits.Header.fromfile(hdr_name)
+    del header[str("CRPIX1")]
+    del header[str("CRPIX2")]
+
+    w = wcs.WCS(header=header, key="A")
+    assert isinstance( w.sip, wcs.Sip )
+    assert w.sip.crpix[0] == 2048
+    assert w.sip.crpix[1] == 1026
+
+def test_zero_size_input():
+    with fits.open(get_pkg_data_filename('data/sip.fits')) as f:
+        w = wcs.WCS(f[0].header)
+
+    inp = np.zeros((0, 2))
+    assert_array_equal(inp, w.all_pix2world(inp, 0))
+    assert_array_equal(inp, w.all_world2pix(inp, 0))
+
+    inp = [], [1]
+    result = w.all_pix2world([], [1], 0)
+    assert_array_equal(inp[0], result[0])
+    assert_array_equal(inp[1], result[1])
+
+    result = w.all_world2pix([], [1], 0)
+    assert_array_equal(inp[0], result[0])
+    assert_array_equal(inp[1], result[1])
+
+
+def test_scalar_inputs():
+    """
+    Issue #7845
+    """
+    wcsobj = wcs.WCS(naxis=1)
+    result = wcsobj.all_pix2world(2, 1)
+    assert_array_equal(result, [np.array(2.)])
+    assert result[0].shape == ()
+
+    result = wcsobj.all_pix2world([2], 1)
+    assert_array_equal(result, [np.array([2.])])
+    assert result[0].shape == (1,)
+
+def test_footprint_contains():
+    """
+    Test WCS.footprint_contains(skycoord)
+    """
+
+    header = """
+WCSAXES =                    2 / Number of coordinate axes
+CRPIX1  =               1045.0 / Pixel coordinate of reference point
+CRPIX2  =               1001.0 / Pixel coordinate of reference point
+PC1_1   =    -0.00556448550786 / Coordinate transformation matrix element
+PC1_2   =   -0.001042120133257 / Coordinate transformation matrix element
+PC2_1   =    0.001181477028705 / Coordinate transformation matrix element
+PC2_2   =   -0.005590809742987 / Coordinate transformation matrix element
+CDELT1  =                  1.0 / [deg] Coordinate increment at reference point
+CDELT2  =                  1.0 / [deg] Coordinate increment at reference point
+CUNIT1  = 'deg'                / Units of coordinate increment and value
+CUNIT2  = 'deg'                / Units of coordinate increment and value
+CTYPE1  = 'RA---TAN'           / TAN (gnomonic) projection + SIP distortions
+CTYPE2  = 'DEC--TAN'           / TAN (gnomonic) projection + SIP distortions
+CRVAL1  =      250.34971683647 / [deg] Coordinate value at reference point
+CRVAL2  =      2.2808772582495 / [deg] Coordinate value at reference point
+LONPOLE =                180.0 / [deg] Native longitude of celestial pole
+LATPOLE =      2.2808772582495 / [deg] Native latitude of celestial pole
+RADESYS = 'ICRS'               / Equatorial coordinate system
+MJD-OBS =      58612.339199259 / [d] MJD of observation matching DATE-OBS
+DATE-OBS= '2019-05-09T08:08:26.816Z' / ISO-8601 observation date matching MJD-OB
+NAXIS   =                    2 / NAXIS
+NAXIS1  =                 2136 / length of first array dimension
+NAXIS2  =                 2078 / length of second array dimension
+    """
+
+    header = fits.Header.fromstring(header.strip(),'\n')
+    test_wcs = wcs.WCS(header)
+
+    hasCoord = test_wcs.footprint_contains(SkyCoord(254,2,unit='deg'))
+    assert hasCoord == True
+
+    hasCoord = test_wcs.footprint_contains(SkyCoord(240,2,unit='deg'))
+    assert hasCoord == False
+
+    hasCoord = test_wcs.footprint_contains(SkyCoord(24,2,unit='deg'))
+    assert hasCoord == False

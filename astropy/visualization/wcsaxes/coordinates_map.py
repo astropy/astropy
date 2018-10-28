@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
-from ...extern import six
 
 from .coordinate_helpers import CoordinateHelper
 from .transforms import WCSPixel2WorldTransform
@@ -11,7 +9,7 @@ from .frame import RectangularFrame
 from .coordinate_range import find_coordinate_range
 
 
-class CoordinatesMap(object):
+class CoordinatesMap:
     """
     A container for coordinate helpers that represents a coordinate system.
 
@@ -36,7 +34,9 @@ class CoordinatesMap(object):
         ``longitude``, ``latitude``, or ``scalar``, the ``wrap`` entries should
         give, for the longitude, the angle at which the coordinate wraps (and
         `None` otherwise), and the ``unit`` should give the unit of the
-        coordinates as :class:`~astropy.units.Unit` instances.
+        coordinates as :class:`~astropy.units.Unit` instances.  This can
+        optionally also include a ``format_unit`` entry giving the units to use
+        for the tick labels (if not specified, this defaults to ``unit``).
     slice : tuple, optional
         For WCS transformations with more than two dimensions, we need to
         choose which dimensions are being shown in the 2D image. The slice
@@ -94,8 +94,8 @@ class CoordinatesMap(object):
 
             # Extract coordinate metadata from WCS object or transform
             if wcs is not None:
-                coord_type, coord_wrap = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
                 coord_unit = wcs.wcs.cunit[coord_index]
+                coord_type, format_unit, coord_wrap = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
                 name = wcs.wcs.ctype[coord_index][:4].replace('-', '')
             else:
                 try:
@@ -103,6 +103,10 @@ class CoordinatesMap(object):
                     coord_wrap = coord_meta['wrap'][coord_index]
                     coord_unit = coord_meta['unit'][coord_index]
                     name = coord_meta['name'][coord_index]
+                    if 'format_unit' in coord_meta:
+                        format_unit = coord_meta['format_unit'][coord_index]
+                    else:
+                        format_unit = None
                 except IndexError:
                     raise ValueError("coord_meta items should have a length of {0}".format(len(wcs.wcs.naxis)))
 
@@ -113,16 +117,23 @@ class CoordinatesMap(object):
                                                  coord_type=coord_type,
                                                  coord_wrap=coord_wrap,
                                                  coord_unit=coord_unit,
+                                                 format_unit=format_unit,
                                                  frame=self.frame))
 
             # Set up aliases for coordinates
             self._aliases[name.lower()] = coord_index
 
     def __getitem__(self, item):
-        if isinstance(item, six.string_types):
+        if isinstance(item, str):
             return self._coords[self._aliases[item.lower()]]
         else:
             return self._coords[item]
+
+    def __contains__(self, item):
+        if isinstance(item, str):
+            return item.lower() in self._aliases
+        else:
+            return 0 <= item < len(self._coords)
 
     def set_visible(self, visibility):
         raise NotImplementedError()
@@ -131,7 +142,7 @@ class CoordinatesMap(object):
         for coord in self._coords:
             yield coord
 
-    def grid(self, draw_grid=True, grid_type='lines', **kwargs):
+    def grid(self, draw_grid=True, grid_type=None, **kwargs):
         """
         Plot gridlines for both coordinates.
 
@@ -149,7 +160,8 @@ class CoordinatesMap(object):
             positions in the image and then drawing contours
             (``'contours'``). The first is recommended for 2-d images, while
             for 3-d (or higher dimensional) cubes, the ``'contours'`` option
-            is recommended.
+            is recommended. By default, 'lines' is used if the transform has
+            an inverse, otherwise 'contours' is used.
         """
         for coord in self:
             coord.grid(draw_grid=draw_grid, grid_type=grid_type, **kwargs)

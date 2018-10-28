@@ -7,16 +7,16 @@ Note that this is intended to be a convenience, and is very simple. If you
 need precise coordinates for an object you should find the appropriate
 reference for that measurement and input the coordinates manually.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 # Standard library
 import os
 import re
 import socket
+import urllib.request
+import urllib.parse
+import urllib.error
 
 # Astropy
-from ..extern.six.moves import urllib
 from .. import units as u
 from .sky_coordinate import SkyCoord
 from ..utils import data
@@ -86,7 +86,7 @@ def _parse_response(resp_data):
         return ra, dec
 
 
-def get_icrs_coordinates(name):
+def get_icrs_coordinates(name, parse=False):
     """
     Retrieve an ICRS object by using an online name resolving service to
     retrieve coordinates for the specified name. By default, this will
@@ -105,6 +105,15 @@ def get_icrs_coordinates(name):
     ----------
     name : str
         The name of the object to get coordinates for, e.g. ``'M42'``.
+    parse: bool
+        Whether to attempt extracting the coordinates from the name by
+        parsing with a regex. For objects catalog names that have
+        J-coordinates embedded in their names eg:
+        'CRTS SSS100805 J194428-420209', this may be much faster than a
+        sesame query for the same object name. The coordinates extracted
+        in this way may differ from the database coordinates by a few
+        deci-arcseconds, so only use this option if you do not need
+        sub-arcsecond accuracy for coordinates.
 
     Returns
     -------
@@ -112,6 +121,17 @@ def get_icrs_coordinates(name):
         The object's coordinates in the ICRS frame.
 
     """
+
+    # if requested, first try extract coordinates embedded in the object name.
+    # Do this first since it may be much faster than doing the sesame query
+    if parse:
+        from . import jparser
+        if jparser.search(name):
+            return jparser.to_skycoord(name)
+        else:
+            # if the parser failed, fall back to sesame query.
+            pass
+            # maybe emit a warning instead of silently falling back to sesame?
 
     database = sesame_database.get()
     # The web API just takes the first letter of the database name
@@ -132,6 +152,7 @@ def get_icrs_coordinates(name):
             fmt_url = fmt_url.format(name=urllib.parse.quote(name), db=db)
             urls.append(fmt_url)
 
+    exceptions = []
     for url in urls:
         try:
             # Retrieve ascii name resolve data from CDS
@@ -139,27 +160,24 @@ def get_icrs_coordinates(name):
             resp_data = resp.read()
             break
         except urllib.error.URLError as e:
-            # This catches a timeout error, see:
-            #   http://stackoverflow.com/questions/2712524/handling-urllib2s-timeout-python
-            if isinstance(e.reason, socket.timeout):
-                # If it was a timeout, try with the next URL
-                continue
-            else:
-                raise NameResolveError(
-                    "Unable to retrieve coordinates for name '{0}'; "
-                    "connection timed out".format(name))
-        except socket.timeout:
+            exceptions.append(e)
+            continue
+        except socket.timeout as e:
             # There are some cases where urllib2 does not catch socket.timeout
             # especially while receiving response data on an already previously
             # working request
-            raise NameResolveError(
-                "Unable to retrieve coordinates for name '{0}'; connection "
-                "timed out".format(name))
+            e.reason = "Request took longer than the allowed {:.1f} " \
+                       "seconds".format(data.conf.remote_timeout)
+            exceptions.append(e)
+            continue
 
-    # All Sesame URL's timed out...
+    # All Sesame URL's failed...
     else:
-        raise NameResolveError("All Sesame queries timed out. Unable to "
-                               "retrieve coordinates.")
+        messages = ["{url}: {e.reason}".format(url=url, e=e)
+                    for url, e in zip(urls, exceptions)]
+        raise NameResolveError("All Sesame queries failed. Unable to "
+                               "retrieve coordinates. See errors per URL "
+                               "below: \n {}".format("\n".join(messages)))
 
     ra, dec = _parse_response(resp_data)
 

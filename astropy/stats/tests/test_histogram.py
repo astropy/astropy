@@ -1,12 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ...tests.helper import pytest
 from .. import histogram, scott_bin_width, freedman_bin_width, knuth_bin_width
 
 try:
@@ -22,10 +19,10 @@ def test_scott_bin_width(N=10000, rseed=0):
     X = rng.randn(N)
 
     delta = scott_bin_width(X)
-    assert_allclose(delta,  3.5 * np.std(X) / N ** (1 / 3))
+    assert_allclose(delta, 3.5 * np.std(X) / N ** (1 / 3))
 
     delta, bins = scott_bin_width(X, return_bins=True)
-    assert_allclose(delta,  3.5 * np.std(X) / N ** (1 / 3))
+    assert_allclose(delta, 3.5 * np.std(X) / N ** (1 / 3))
 
     with pytest.raises(ValueError):
         scott_bin_width(rng.rand(2, 10))
@@ -45,6 +42,18 @@ def test_freedman_bin_width(N=10000, rseed=0):
 
     with pytest.raises(ValueError):
         freedman_bin_width(rng.rand(2, 10))
+
+    # data with too small IQR
+    test_x = [1, 2, 3] + [4] * 100 + [5, 6, 7]
+    with pytest.raises(ValueError) as e:
+        freedman_bin_width(test_x, return_bins=True)
+        assert 'Please use another bin method' in str(e)
+
+    # data with small IQR but not too small
+    test_x = np.asarray([1, 2, 3] * 100 + [4] + [5, 6, 7], dtype=np.float32)
+    test_x *= 1.5e-6
+    delta, bins = freedman_bin_width(test_x, return_bins=True)
+    assert_allclose(delta, 8.923325554510689e-07)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -126,7 +135,7 @@ def test_histogram_output():
 
     counts, bins = histogram(X, bins='blocks')
     assert_allclose(counts, [10, 61, 29])
-    assert_allclose(bins, [-2.55298982, -1.24381059,  0.46422235,  2.26975462])
+    assert_allclose(bins, [-2.55298982, -1.24381059, 0.46422235, 2.26975462])
 
 
 def test_histogram_badargs(N=1000, rseed=0):

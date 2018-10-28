@@ -1,23 +1,18 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-
-from __future__ import division, with_statement
-
 import copy
 import warnings
 import collections
 
 from io import StringIO, BytesIO
 
+import pytest
 import numpy as np
 
-from ....extern import six
-from ....extern.six import u, iterkeys, itervalues, iteritems
-from ....extern.six.moves import zip, range
 from ....io import fits
 from ....io.fits.verify import VerifyWarning
-from ....tests.helper import pytest, catch_warnings, ignore_warnings
+from ....tests.helper import catch_warnings, ignore_warnings
 
 from . import FitsTestCase
 from ..card import _pad
@@ -322,7 +317,7 @@ class TestHeaderFunctions(FitsTestCase):
     def test_equal_only_up_to_column_10(self, capsys):
         # the test of "=" location is only up to column 10
 
-        # This test used to check if PyFITS rewrote this card to a new format,
+        # This test used to check if Astropy rewrote this card to a new format,
         # something like "HISTO   = '=   (1, 2)".  But since ticket #109 if the
         # format is completely wrong we don't make any assumptions and the card
         # should be left alone
@@ -380,7 +375,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         h2 = fits.Header()
         with catch_warnings() as w:
-            h2['TEST'] = u('abcdefg') * 30
+            h2['TEST'] = 'abcdefg' * 30
             assert len(w) == 0
 
         assert str(h1) == str(h2)
@@ -566,8 +561,7 @@ class TestHeaderFunctions(FitsTestCase):
         normally invalid keyword characters are not considered invalid.
         """
 
-        c = fits.Card('HIERARCH WeirdCard.~!@#_^$%&', 'The value',
-                        'a comment')
+        c = fits.Card('HIERARCH WeirdCard.~!@#_^$%&', 'The value', 'a comment')
         # This should not raise any exceptions
         c.verify('exception')
         assert c.keyword == 'WeirdCard.~!@#_^$%&'
@@ -624,7 +618,7 @@ class TestHeaderFunctions(FitsTestCase):
         del header['abcdefghij']
         header.insert(2, ('abcdefghij', 10))
         del header[2]
-        assert list(header.keys())[2]=='abcdefg'.upper()
+        assert list(header.keys())[2] == 'abcdefg'.upper()
 
     def test_hierarch_create_and_update(self):
         """
@@ -958,16 +952,16 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_header_items(self):
         header = fits.Header([('A', 'B'), ('C', 'D')])
-        assert list(header.items()) == list(iteritems(header))
+        assert list(header.items()) == [('A', 'B'), ('C', 'D')]
 
     def test_header_iterkeys(self):
         header = fits.Header([('A', 'B'), ('C', 'D')])
-        for a, b in zip(iterkeys(header), header):
+        for a, b in zip(header.keys(), header):
             assert a == b
 
     def test_header_itervalues(self):
         header = fits.Header([('A', 'B'), ('C', 'D')])
-        for a, b in zip(itervalues(header), ['B', 'D']):
+        for a, b in zip(header.values(), ['B', 'D']):
             assert a == b
 
     def test_header_keys(self):
@@ -1516,7 +1510,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         with ignore_warnings():
             hdu.writeto(self.temp('test.fits'), output_verify='ignore',
-                        clobber=True)
+                        overwrite=True)
         hdul2 = fits.open(self.temp('test.fits'))
         assert len(hdul2) == 2
         assert 'MYKEY' in hdul2[1].header
@@ -1653,6 +1647,33 @@ class TestHeaderFunctions(FitsTestCase):
             assert str(w[0].message).startswith(
                 "Missing padding to end of the FITS block")
 
+    def test_invalid_characters(self):
+        """
+        Test header with invalid characters
+        """
+
+        # Generate invalid file with non-ASCII character
+        h = fits.Header()
+        h['FOO'] = 'BAR'
+        h['COMMENT'] = 'hello'
+        hdul = fits.PrimaryHDU(header=h, data=np.arange(5))
+        hdul.writeto(self.temp('test.fits'))
+
+        with open(self.temp('test.fits'), 'rb') as f:
+            out = f.read()
+        out = out.replace(b'hello', u'héllo'.encode('latin1'))
+        out = out.replace(b'BAR', u'BÀR'.encode('latin1'))
+        with open(self.temp('test2.fits'), 'wb') as f2:
+            f2.write(out)
+
+        with catch_warnings() as w:
+            h = fits.getheader(self.temp('test2.fits'))
+            assert h['FOO'] == 'B?R'
+            assert h['COMMENT'] == 'h?llo'
+            assert len(w) == 1
+            assert str(w[0].message).startswith(
+                "non-ASCII characters are present in the FITS file")
+
     def test_unnecessary_move(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/125
@@ -1746,7 +1767,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         # The example for this test requires creating a FITS file containing a
         # slightly misformatted float value.  I can't actually even find a way
-        # to do that directly through PyFITS--it won't let me.
+        # to do that directly through Astropy--it won't let me.
         hdu = fits.PrimaryHDU()
         hdu.header['TEST'] = 5.0022221e-07
         hdu.writeto(self.temp('test.fits'))
@@ -1775,7 +1796,7 @@ class TestHeaderFunctions(FitsTestCase):
         float values like 0.001 the leading zero was unnecessarily being
         stripped off when rewriting the header.  Though leading zeros should be
         removed from integer values to prevent misinterpretation as octal by
-        python (for now PyFITS will still maintain the leading zeros if now
+        python (for now Astropy will still maintain the leading zeros if now
         changes are made to the value, but will drop them if changes are made).
         """
 
@@ -1887,7 +1908,7 @@ class TestHeaderFunctions(FitsTestCase):
         by several blank cards.
         """
 
-        data = np.arange(100).reshape((10, 10))
+        data = np.arange(100).reshape(10, 10)
         hdu = fits.PrimaryHDU(data=data)
         hdu.header['TESTKW'] = ('Test val', 'This is the END')
         # Add a couple blanks after the END string
@@ -1930,37 +1951,26 @@ class TestHeaderFunctions(FitsTestCase):
         Also tests unicode for keywords and comments.
         """
 
-        erikku = u('\u30a8\u30ea\u30c3\u30af')
+        erikku = '\u30a8\u30ea\u30c3\u30af'
 
         def assign(keyword, val):
             h[keyword] = val
 
         h = fits.Header()
-        h[u('FOO')] = 'BAR'
+        h['FOO'] = 'BAR'
         assert 'FOO' in h
         assert h['FOO'] == 'BAR'
-        assert h[u('FOO')] == 'BAR'
         assert repr(h) == _pad("FOO     = 'BAR     '")
         pytest.raises(ValueError, assign, erikku, 'BAR')
 
-        h['FOO'] = u('BAZ')
-        assert h[u('FOO')] == 'BAZ'
-        assert h[u('FOO')] == u('BAZ')
+        h['FOO'] = 'BAZ'
+        assert h['FOO'] == 'BAZ'
         assert repr(h) == _pad("FOO     = 'BAZ     '")
         pytest.raises(ValueError, assign, 'FOO', erikku)
 
-        h['FOO'] = ('BAR', u('BAZ'))
+        h['FOO'] = ('BAR', 'BAZ')
         assert h['FOO'] == 'BAR'
-        assert h['FOO'] == u('BAR')
         assert h.comments['FOO'] == 'BAZ'
-        assert h.comments['FOO'] == u('BAZ')
-        assert repr(h) == _pad("FOO     = 'BAR     '           / BAZ")
-
-        h['FOO'] = (u('BAR'), u('BAZ'))
-        assert h['FOO'] == 'BAR'
-        assert h['FOO'] == u('BAR')
-        assert h.comments['FOO'] == 'BAZ'
-        assert h.comments['FOO'] == u('BAZ')
         assert repr(h) == _pad("FOO     = 'BAR     '           / BAZ")
 
         pytest.raises(ValueError, assign, 'FOO', ('BAR', erikku))
@@ -1972,22 +1982,16 @@ class TestHeaderFunctions(FitsTestCase):
         First regression test for
         https://github.com/spacetelescope/PyFITS/issues/37
 
-        Although test_assign_unicode ensures that Python 2 `unicode` objects
-        and Python 3 `str` objects containing non-ASCII characters cannot be
-        assigned to headers, there is a bug that allows Python 2 `str` objects
-        of arbitrary encoding containing non-ASCII characters to be passed
-        through.
+        Although test_assign_unicode ensures that `str` objects containing
+        non-ASCII characters cannot be assigned to headers.
 
-        On Python 3 it should not be possible to assign bytes to a header at
-        all.
+        It should not be possible to assign bytes to a header at all.
         """
 
         h = fits.Header()
-        if six.PY2:
-            pytest.raises(ValueError, h.set, 'TEST', str('ñ'))
-        else:
-            pytest.raises(ValueError, h.set, 'TEST',
-                          bytes('Hello', encoding='ascii'))
+
+        pytest.raises(ValueError, h.set, 'TEST',
+                      bytes('Hello', encoding='ascii'))
 
     def test_header_strip_whitespace(self):
         """
@@ -2275,7 +2279,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
     """
 
     def setup(self):
-        super(TestRecordValuedKeywordCards, self).setup()
+        super().setup()
         self._test_header = fits.Header()
         self._test_header.set('DP1', 'NAXIS: 2')
         self._test_header.set('DP1', 'AXIS.1: 1')

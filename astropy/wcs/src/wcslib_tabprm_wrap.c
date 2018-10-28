@@ -171,11 +171,7 @@ PyTabprm___str__(
 
   tabprt(self->x);
 
-  #if PY3K
   return PyUnicode_FromString(wcsprintf_buf());
-  #else
-  return PyString_FromString(wcsprintf_buf());
-  #endif
 }
 
 /***************************************************************************
@@ -417,12 +413,7 @@ static PyMethodDef PyTabprm_methods[] = {
 };
 
 PyTypeObject PyTabprmType = {
-  #if PY3K
   PyVarObject_HEAD_INIT(NULL, 0)
-  #else
-  PyObject_HEAD_INIT(NULL)
-  0,                            /*ob_size*/
-  #endif
   "astropy.wcs.Tabprm",         /*tp_name*/
   sizeof(PyTabprm),             /*tp_basicsize*/
   0,                            /*tp_itemsize*/

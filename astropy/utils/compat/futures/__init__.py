@@ -1,21 +1,7 @@
-# Copyright 2009 Brian Quinlan. All Rights Reserved.
-# Licensed to PSF under a Contributor Agreement.
+from concurrent.futures import *
 
-"""Execute computations asynchronously using threads or processes."""
+import warnings
+from ...exceptions import AstropyDeprecationWarning
 
-__author__ = 'Brian Quinlan (brian@sweetapp.com)'
-
-try:
-    from concurrent.futures import *
-except ImportError:
-    from ._base import (FIRST_COMPLETED,
-                        FIRST_EXCEPTION,
-                        ALL_COMPLETED,
-                        CancelledError,
-                        TimeoutError,
-                        Future,
-                        Executor,
-                        wait,
-                        as_completed)
-    from .process import ProcessPoolExecutor
-    from .thread import ThreadPoolExecutor
+warnings.warn("astropy.utils.compat.futures is now deprecated - "
+              "use concurrent.futures instead", AstropyDeprecationWarning)

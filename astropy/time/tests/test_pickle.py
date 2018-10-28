@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pickle
 import numpy as np
 
 from .. import Time
-from ...extern.six.moves import range, cPickle as pickle
 
 
 class TestPickle():

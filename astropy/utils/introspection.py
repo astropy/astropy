@@ -3,15 +3,11 @@
 """Functions related to Python runtime introspection."""
 
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-
 import inspect
+import re
 import types
-
-from ..extern import six
-from ..extern.six.moves import range, zip
+import importlib
+from distutils.version import LooseVersion
 
 
 __all__ = ['resolve_name', 'minversion', 'find_current_module',
@@ -60,13 +56,12 @@ def resolve_name(name, *additional_parts):
     if additional_parts:
         name = name + '.' + additional_parts
 
-    # Note: On python 2 these must be str objects and not unicode
-    parts = [str(part) for part in name.split('.')]
+    parts = name.split('.')
 
     if len(parts) == 1:
         # No dots in the name--just a straight up module import
         cursor = 1
-        fromlist=[]
+        fromlist = []
     else:
         cursor = len(parts) - 1
         fromlist = [parts[-1]]
@@ -99,10 +94,6 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     Returns `True` if the specified Python module satisfies a minimum version
     requirement, and `False` if not.
 
-    By default this uses `pkg_resources.parse_version` to do the version
-    comparison if available.  Otherwise it falls back on
-    `distutils.version.LooseVersion`.
-
     Parameters
     ----------
 
@@ -131,10 +122,9 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     >>> minversion(astropy, '0.4.4')
     True
     """
-
     if isinstance(module, types.ModuleType):
         module_name = module.__name__
-    elif isinstance(module, six.string_types):
+    elif isinstance(module, str):
         module_name = module
         try:
             module = resolve_name(module_name)
@@ -150,15 +140,18 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     else:
         have_version = resolve_name(module.__name__, version_path)
 
-    try:
-        from pkg_resources import parse_version
-    except ImportError:
-        from distutils.version import LooseVersion as parse_version
+    # LooseVersion raises a TypeError when strings like dev, rc1 are part
+    # of the version number. Match the dotted numbers only. Regex taken
+    # from PEP440, https://www.python.org/dev/peps/pep-0440/, Appendix B
+    expr = '^([1-9]\\d*!)?(0|[1-9]\\d*)(\\.(0|[1-9]\\d*))*'
+    m = re.match(expr, version)
+    if m:
+        version = m.group(0)
 
     if inclusive:
-        return parse_version(have_version) >= parse_version(version)
+        return LooseVersion(have_version) >= LooseVersion(version)
     else:
-        return parse_version(have_version) > parse_version(version)
+        return LooseVersion(have_version) > LooseVersion(version)
 
 
 def find_current_module(depth=1, finddiff=False):
@@ -254,8 +247,8 @@ def find_current_module(depth=1, finddiff=False):
             for fd in finddiff:
                 if inspect.ismodule(fd):
                     diffmods.append(fd)
-                elif isinstance(fd, six.string_types):
-                    diffmods.append(__import__(fd))
+                elif isinstance(fd, str):
+                    diffmods.append(importlib.import_module(fd))
                 elif fd is True:
                     diffmods.append(currmod)
                 else:
@@ -358,16 +351,15 @@ def isinstancemethod(cls, obj):
 
     Examples
     --------
-    >>> from astropy.extern import six
     >>> class MetaClass(type):
     ...     def a_classmethod(cls): pass
     ...
-    >>> @six.add_metaclass(MetaClass)
-    ... class MyClass(object):
-    ...     __metaclass__ = MetaClass
+    >>> class MyClass(metaclass=MetaClass):
     ...     def an_instancemethod(self): pass
+    ...
     ...     @classmethod
     ...     def another_classmethod(cls): pass
+    ...
     ...     @staticmethod
     ...     def a_staticmethod(): pass
     ...
@@ -384,23 +376,19 @@ def isinstancemethod(cls, obj):
     return _isinstancemethod(cls, obj)
 
 
-if not six.PY2:
-    def _isinstancemethod(cls, obj):
-        if not isinstance(obj, types.FunctionType):
-            return False
+def _isinstancemethod(cls, obj):
+    if not isinstance(obj, types.FunctionType):
+        return False
 
-        # Unfortunately it seems the easiest way to get to the original
-        # staticmethod object is to look in the class's __dict__, though we
-        # also need to look up the MRO in case the method is not in the given
-        # class's dict
-        name = obj.__name__
-        for basecls in cls.mro():  # This includes cls
-            if name in basecls.__dict__:
-                return not isinstance(basecls.__dict__[name], staticmethod)
+    # Unfortunately it seems the easiest way to get to the original
+    # staticmethod object is to look in the class's __dict__, though we
+    # also need to look up the MRO in case the method is not in the given
+    # class's dict
+    name = obj.__name__
+    for basecls in cls.mro():  # This includes cls
+        if name in basecls.__dict__:
+            return not isinstance(basecls.__dict__[name], staticmethod)
 
-        # This shouldn't happen, though this is the most sensible response if
-        # it does.
-        raise AttributeError(name)
-else:
-    def _isinstancemethod(cls, obj):
-        return isinstance(obj, types.MethodType) and obj.im_class is cls
+    # This shouldn't happen, though this is the most sensible response if
+    # it does.
+    raise AttributeError(name)

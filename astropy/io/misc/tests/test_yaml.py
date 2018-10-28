@@ -5,15 +5,16 @@ This module tests some of the methods related to YAML serialization.
 
 Requires `pyyaml <http://pyyaml.org/>`_ to be installed.
 """
+
+from io import StringIO
+
+import pytest
 import numpy as np
 
 from ....coordinates import SkyCoord, EarthLocation, Angle, Longitude, Latitude
 from .... import units as u
 from ....time import Time
-from ....table import QTable
-from ....extern.six.moves import StringIO
-
-from ....tests.helper import pytest
+from ....table import QTable, SerializedColumn
 
 try:
     from ..yaml import load, load_all, dump
@@ -22,6 +23,17 @@ except ImportError:
     HAS_YAML = False
 
 pytestmark = pytest.mark.skipif('not HAS_YAML')
+
+
+@pytest.mark.parametrize('c', [True, np.uint8(8), np.int16(4),
+                               np.int32(1), np.int64(3), np.int64(2**63 - 1),
+                               2.0, np.float64(),
+                               3+4j, np.complex_(3 + 4j),
+                               np.complex64(3 + 4j),
+                               np.complex128(1. - 2**-52 + 1j * (1. - 2**-52))])
+def test_numpy_types(c):
+    cy = load(dump(c))
+    assert c == cy
 
 
 @pytest.mark.parametrize('c', [u.m, u.m / u.s, u.hPa, u.dimensionless_unscaled])
@@ -78,7 +90,7 @@ def compare_coord(c, cy):
 @pytest.mark.parametrize('frame', ['fk4', 'altaz'])
 def test_skycoord(frame):
 
-    c = SkyCoord([[1,2],[3,4]], [[5,6], [7,8]],
+    c = SkyCoord([[1, 2], [3, 4]], [[5, 6], [7, 8]],
                  unit='deg', frame=frame,
                  obstime=Time('2016-01-02'),
                  location=EarthLocation(1000, 2000, 3000, unit=u.km))
@@ -87,7 +99,7 @@ def test_skycoord(frame):
 
 
 def _get_time():
-    t = Time([[1],[2]], format='cxcsec',
+    t = Time([[1], [2]], format='cxcsec',
              location=EarthLocation(1000, 2000, 3000, unit=u.km))
     t.format = 'iso'
     t.precision = 5
@@ -122,10 +134,17 @@ def test_timedelta():
         assert np.all(getattr(dt, attr) == getattr(dty, attr))
 
 
+def test_serialized_column():
+    sc = SerializedColumn({'name': 'hello', 'other': 1, 'other2': 2.0})
+    scy = load(dump(sc))
+
+    assert sc == scy
+
+
 def test_load_all():
     t = _get_time()
     unit = u.m / u.s
-    c = SkyCoord([[1,2],[3,4]], [[5,6], [7,8]],
+    c = SkyCoord([[1, 2], [3, 4]], [[5, 6], [7, 8]],
                  unit='deg', frame='fk4',
                  obstime=Time('2016-01-02'),
                  location=EarthLocation(1000, 2000, 3000, unit=u.km))
@@ -149,7 +168,7 @@ def test_ecsv_astropy_objects_in_meta():
     """
     t = QTable([[1, 2] * u.m, [4, 5]], names=['a', 'b'])
     tm = _get_time()
-    c = SkyCoord([[1,2],[3,4]], [[5,6], [7,8]],
+    c = SkyCoord([[1, 2], [3, 4]], [[5, 6], [7, 8]],
                  unit='deg', frame='fk4',
                  obstime=Time('2016-01-02'),
                  location=EarthLocation(1000, 2000, 3000, unit=u.km))

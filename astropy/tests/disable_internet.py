@@ -1,153 +1,33 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+This is retained only for backwards compatibility. Affiliated packages
+should no longer import ``disable_internet`` from ``astropy.tests``. It is
+now available from ``pytest_remotedata``. However, this is not the
+recommended mechanism for controlling access to remote data in tests.
+Instead, packages should make use of decorators provided by the
+pytest_remotedata plugin: - ``@pytest.mark.remote_data`` for tests that
+require remote data access - ``@pytest.mark.internet_off`` for tests that
+should only run when remote data access is disabled.  Remote data access for
+the test suite is controlled by the ``--remote-data`` command line flag. This
+is either passed to ``pytest`` directly or to the ``setup.py test`` command.
 
-import contextlib
-import socket
-
-from ..extern.six.moves import urllib
-
-# save original socket method for restoration
-# These are global so that re-calling the turn_off_internet function doesn't
-# overwrite them again
-socket_original = socket.socket
-socket_create_connection = socket.create_connection
-socket_bind = socket.socket.bind
-socket_connect = socket.socket.connect
-
-
-INTERNET_OFF = False
-
-# urllib2 uses a global variable to cache its default "opener" for opening
-# connections for various protocols; we store it off here so we can restore to
-# the default after re-enabling internet use
-_orig_opener = None
+TODO: This module should eventually be removed once backwards compatibility
+is no longer supported.
+"""
+from warnings import warn
+from ..utils.exceptions import AstropyDeprecationWarning
 
 
-# ::1 is apparently another valid name for localhost?
-# it is returned by getaddrinfo when that function is given localhost
-
-def check_internet_off(original_function, allow_astropy_data=False):
-    """
-    Wraps ``original_function``, which in most cases is assumed
-    to be a `socket.socket` method, to raise an `IOError` for any operations
-    on non-local AF_INET sockets.
-    """
-
-    def new_function(*args, **kwargs):
-        if isinstance(args[0], socket.socket):
-            if not args[0].family in (socket.AF_INET, socket.AF_INET6):
-                # Should be fine in all but some very obscure cases
-                # More to the point, we don't want to affect AF_UNIX
-                # sockets.
-                return original_function(*args, **kwargs)
-            host = args[1][0]
-            addr_arg = 1
-            valid_hosts = ('localhost', '127.0.0.1', '::1')
-        else:
-            # The only other function this is used to wrap currently is
-            # socket.create_connection, which should be passed a 2-tuple, but
-            # we'll check just in case
-            if not (isinstance(args[0], tuple) and len(args[0]) == 2):
-                return original_function(*args, **kwargs)
-
-            host = args[0][0]
-            addr_arg = 0
-            valid_hosts = ('localhost', '127.0.0.1')
-
-        if allow_astropy_data:
-            for valid_host in ('data.astropy.org', 'astropy.stsci.edu'):
-                valid_host_ip = socket.gethostbyname(valid_host)
-                valid_hosts += (valid_host, valid_host_ip)
-
-        hostname = socket.gethostname()
-        fqdn = socket.getfqdn()
-
-        if host in (hostname, fqdn):
-            host = 'localhost'
-            new_addr = (host, args[addr_arg][1])
-            args = args[:addr_arg] + (new_addr,) + args[addr_arg + 1:]
-
-        if any(h in host for h in valid_hosts):
-            return original_function(*args, **kwargs)
-        else:
-            raise IOError("An attempt was made to connect to the internet "
-                          "by a test that was not marked `remote_data`. The "
-                          "requested host was: {0}".format(host))
-    return new_function
+warn("The ``disable_internet`` module is no longer provided by astropy. It "
+     "is now available as ``pytest_remotedata.disable_internet``. However, "
+     "developers are encouraged to avoid using this module directly. See "
+     "<https://docs.astropy.org/en/latest/whatsnew/3.0.html#pytest-plugins> "
+     "for more information.", AstropyDeprecationWarning)
 
 
-def turn_off_internet(verbose=False, allow_astropy_data=False):
-    """
-    Disable internet access via python by preventing connections from being
-    created using the socket module.  Presumably this could be worked around by
-    using some other means of accessing the internet, but all default python
-    modules (urllib, requests, etc.) use socket [citation needed].
-    """
-
-    global INTERNET_OFF
-    global _orig_opener
-
-    if INTERNET_OFF:
-        return
-
-    INTERNET_OFF = True
-
-    __tracebackhide__ = True
-    if verbose:
-        print("Internet access disabled")
-
-    # Update urllib2 to force it not to use any proxies
-    # Must use {} here (the default of None will kick off an automatic search
-    # for proxies)
-    _orig_opener = urllib.request.build_opener()
-    no_proxy_handler = urllib.request.ProxyHandler({})
-    opener = urllib.request.build_opener(no_proxy_handler)
-    urllib.request.install_opener(opener)
-
-    socket.create_connection = check_internet_off(socket_create_connection, allow_astropy_data=allow_astropy_data)
-    socket.socket.bind = check_internet_off(socket_bind, allow_astropy_data=allow_astropy_data)
-    socket.socket.connect = check_internet_off(socket_connect, allow_astropy_data=allow_astropy_data)
-
-    return socket
-
-
-def turn_on_internet(verbose=False):
-    """
-    Restore internet access.  Not used, but kept in case it is needed.
-    """
-
-    global INTERNET_OFF
-    global _orig_opener
-
-    if not INTERNET_OFF:
-        return
-
-    INTERNET_OFF = False
-
-    if verbose:
-        print("Internet access enabled")
-
-    urllib.request.install_opener(_orig_opener)
-
-    socket.create_connection = socket_create_connection
-    socket.socket.bind = socket_bind
-    socket.socket.connect = socket_connect
-    return socket
-
-
-@contextlib.contextmanager
-def no_internet(verbose=False):
-    """Context manager to temporarily disable internet access (if not already
-    disabled).  If it was already disabled before entering the context manager
-    (i.e. `turn_off_internet` was called previously) then this is a no-op and
-    leaves internet access disabled until a manual call to `turn_on_internet`.
-    """
-
-    already_disabled = INTERNET_OFF
-
-    turn_off_internet(verbose=verbose)
-    try:
-        yield
-    finally:
-        if not already_disabled:
-            turn_on_internet(verbose=verbose)
+try:
+    # This should only be necessary during testing, in which case the test
+    # package must be installed anyway.
+    from pytest_remotedata.disable_internet import *
+except ImportError:
+    pass

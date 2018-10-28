@@ -1,5 +1,3 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 """
 The modules in the accuracy testing subpackage are primarily intended for

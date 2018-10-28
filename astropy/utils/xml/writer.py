@@ -3,9 +3,6 @@
 Contains a class that makes it simple to stream out well-formed and
 nicely-indented XML.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ...extern import six
 
 # STDLIB
 import contextlib
@@ -28,7 +25,6 @@ except ImportError:
         s = s.replace("<", "&lt;")
         s = s.replace(">", "&gt;")
         return s
-
 
     def xml_escape(s):
         """
@@ -140,7 +136,7 @@ class XMLWriter:
         if attrib or extra:
             attrib = attrib.copy()
             attrib.update(extra)
-            attrib = list(six.iteritems(attrib))
+            attrib = list(attrib.items())
             attrib.sort()
             for k, v in attrib:
                 if v is not None:
@@ -264,11 +260,14 @@ class XMLWriter:
             If omitted, the current element is closed.
         """
         if tag:
-            assert self._tags, "unbalanced end({})".format(tag)
-            assert tag == self._tags[-1],\
-                   "expected end({}), got {}".format(self._tags[-1], tag)
+            if not self._tags:
+                raise ValueError("unbalanced end({})".format(tag))
+            if tag != self._tags[-1]:
+                raise ValueError("expected end({}), got {}".format(
+                        self._tags[-1], tag))
         else:
-            assert self._tags, "unbalanced end()"
+            if not self._tags:
+                raise ValueError("unbalanced end()")
         tag = self._tags.pop()
         if self._data:
             self._flush(indent, wrap)
@@ -345,5 +344,5 @@ class XMLWriter:
         d = {}
         for attr in attrs:
             if getattr(obj, attr) is not None:
-                d[attr.replace('_', '-')] = six.text_type(getattr(obj, attr))
+                d[attr.replace('_', '-')] = str(getattr(obj, attr))
         return d

@@ -3,8 +3,6 @@
 """
 Utilities for console input and output.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import codecs
 import locale
@@ -25,8 +23,6 @@ try:
 except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
-from ..extern import six
-from ..extern.six.moves import range
 from .. import conf
 
 from .misc import isiterable
@@ -41,7 +37,7 @@ __all__ = [
 _DEFAULT_ENCODING = 'utf-8'
 
 
-class _IPython(object):
+class _IPython:
     """Singleton class given access to IPython streams, etc."""
 
     @classproperty
@@ -166,7 +162,7 @@ def isatty(file):
         # pyreadline.Console objects if pyreadline is available; this should
         # be considered a TTY.
         try:
-            from pyreadyline.console import Console as PyreadlineConsole
+            from pyreadline.console import Console as PyreadlineConsole
         except ImportError:
             return False
 
@@ -325,7 +321,7 @@ def _write_with_fallback(s, write, fileobj):
     return write
 
 
-def color_print(*args, **kwargs):
+def color_print(*args, end='\n', **kwargs):
     """
     Prints colors and styles to the terminal uses ANSI escape
     sequences.
@@ -358,8 +354,6 @@ def color_print(*args, **kwargs):
 
     file = kwargs.get('file', _get_stdout())
 
-    end = kwargs.get('end', '\n')
-
     write = file.write
     if isatty(file) and conf.use_color:
         for i in range(0, len(args), 2):
@@ -375,8 +369,6 @@ def color_print(*args, **kwargs):
             # Some file objects support writing unicode sensibly on some Python
             # versions; if this fails try creating a writer using the locale's
             # preferred encoding. If that fails too give up.
-            if six.PY2 and isinstance(msg, bytes):
-                msg = _decode_preferred_encoding(msg)
 
             write = _write_with_fallback(msg, write, file)
 
@@ -384,11 +376,6 @@ def color_print(*args, **kwargs):
     else:
         for i in range(0, len(args), 2):
             msg = args[i]
-            if six.PY2 and isinstance(msg, bytes):
-                # Support decoding bytes to unicode on Python 2; use the
-                # preferred encoding for the locale (which is *sometimes*
-                # sensible)
-                msg = _decode_preferred_encoding(msg)
             write(msg)
         write(end)
 
@@ -475,7 +462,7 @@ def human_file_size(size):
         # Import units only if necessary because the import takes a
         # significant time [#4649]
         from .. import units as u
-        size = size.to(u.byte).value
+        size = u.Quantity(size, u.byte).value
 
     suffixes = ' kMGTPEZY'
     if size == 0:
@@ -498,7 +485,20 @@ def human_file_size(size):
     return "{0:>3s}{1}".format(str_value, suffix)
 
 
-class ProgressBar(six.Iterator):
+class _mapfunc(object):
+    """
+    A function wrapper to support ProgressBar.map().
+    """
+
+    def __init__(self, func):
+        self._func = func
+
+    def __call__(self, i_arg):
+        i, arg = i_arg
+        return i, self._func(arg)
+
+
+class ProgressBar:
     """
     A class to display a progress bar in the terminal.
 
@@ -513,6 +513,7 @@ class ProgressBar(six.Iterator):
         for item in ProgressBar(items):
             item.process()
     """
+
     def __init__(self, total_or_items, ipython_widget=False, file=None):
         """
         Parameters
@@ -557,7 +558,6 @@ class ProgressBar(six.Iterator):
         self._human_total = human_file_size(self._total)
         self._ipython_widget = ipython_widget
 
-
         self._signal_set = False
         if not ipython_widget:
             self._should_handle_resize = (
@@ -597,7 +597,6 @@ class ProgressBar(six.Iterator):
         else:
             self.update()
             return rv
-
 
     def update(self, value=None):
         """
@@ -686,17 +685,18 @@ class ProgressBar(six.Iterator):
         # Calculate percent completion, and update progress bar
         frac = (value/self._total)
         self._widget.value = frac * 100
-        self._widget.description =' ({:>6.2%})'.format(frac)
-
+        self._widget.description = ' ({:>6.2%})'.format(frac)
 
     def _silent_update(self, value=None):
         pass
 
     @classmethod
-    def map(cls, function, items, multiprocess=False, file=None, step=100):
+    def map(cls, function, items, multiprocess=False, file=None, step=100,
+            ipython_widget=False):
         """
         Does a `map` operation while displaying a progress bar with
-        percentage complete.
+        percentage complete. The map operation may run on arbitrary order
+        on the items, but the results are returned in sequential order.
 
         ::
 
@@ -718,6 +718,70 @@ class ProgressBar(six.Iterator):
             If `True`, use the `multiprocessing` module to distribute each
             task to a different processor core.
 
+        ipython_widget : bool, optional
+            If `True`, the progress bar will display as an IPython
+            notebook widget.
+
+        file : writeable file-like object, optional
+            The file to write the progress bar to.  Defaults to
+            `sys.stdout`.  If ``file`` is not a tty (as determined by
+            calling its `isatty` member, if any), the scrollbar will
+            be completely silent.
+
+        step : int, optional
+            Update the progress bar at least every *step* steps (default: 100).
+            If ``multiprocess`` is `True`, this will affect the size
+            of the chunks of ``items`` that are submitted as separate tasks
+            to the process pool.  A large step size may make the job
+            complete faster if ``items`` is very long.
+        """
+
+        if multiprocess:
+            function = _mapfunc(function)
+            items = list(enumerate(items))
+
+        results = cls.map_unordered(function, items, multiprocess=multiprocess,
+                                    file=file, step=step,
+                                    ipython_widget=ipython_widget)
+
+        if multiprocess:
+            _, results = zip(*sorted(results))
+            results = list(results)
+
+        return results
+
+    @classmethod
+    def map_unordered(cls, function, items, multiprocess=False, file=None,
+                      step=100, ipython_widget=False):
+        """
+        Does a `map` operation while displaying a progress bar with
+        percentage complete. The map operation may run on arbitrary order
+        on the items, and the results may be returned in arbitrary order.
+
+        ::
+
+            def work(i):
+                print(i)
+
+            ProgressBar.map(work, range(50))
+
+        Parameters
+        ----------
+        function : function
+            Function to call for each step
+
+        items : sequence
+            Sequence where each element is a tuple of arguments to pass to
+            *function*.
+
+        multiprocess : bool, optional
+            If `True`, use the `multiprocessing` module to distribute each
+            task to a different processor core.
+
+        ipython_widget : bool, optional
+            If `True`, the progress bar will display as an IPython
+            notebook widget.
+
         file : writeable file-like object, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If ``file`` is not a tty (as determined by
@@ -737,9 +801,12 @@ class ProgressBar(six.Iterator):
         if file is None:
             file = _get_stdout()
 
-        with cls(len(items), file=file) as bar:
-            default_step = max(int(float(len(items)) / bar._bar_length), 1)
-            chunksize = min(default_step, step)
+        with cls(len(items), ipython_widget=ipython_widget, file=file) as bar:
+            if bar._ipython_widget:
+                chunksize = step
+            else:
+                default_step = max(int(float(len(items)) / bar._bar_length), 1)
+                chunksize = min(default_step, step)
             if not multiprocess:
                 for i, item in enumerate(items):
                     results.append(function(item))
@@ -757,7 +824,7 @@ class ProgressBar(six.Iterator):
         return results
 
 
-class Spinner(object):
+class Spinner:
     """
     A class to display a spinner in the terminal.
 
@@ -873,7 +940,7 @@ class Spinner(object):
             yield
 
 
-class ProgressBarOrSpinner(object):
+class ProgressBarOrSpinner:
     """
     A class that displays either a `ProgressBar` or `Spinner`
     depending on whether the total size of the operation is
@@ -997,7 +1064,8 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
     write = file.write
 
     if col is not None:
-        assert col < len(line)
+        if col >= len(line):
+            raise ValueError('col must be less the the line lenght.')
         ntabs = line[:col].count('\t')
         col += ntabs * (tabwidth - 1)
 
@@ -1031,13 +1099,14 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
 # http://code.activestate.com/recipes/134892-getch-like-unbuffered-character-reading-from-stdin/
 #
 
-class Getch(object):
+class Getch:
     """Get a single character from standard input without screen echo.
 
     Returns
     -------
     char : str (one character)
     """
+
     def __init__(self):
         try:
             self.impl = _GetchWindows()
@@ -1051,7 +1120,7 @@ class Getch(object):
         return self.impl()
 
 
-class _GetchUnix(object):
+class _GetchUnix:
     def __init__(self):
         import tty  # pylint: disable=W0611
         import sys  # pylint: disable=W0611
@@ -1074,7 +1143,7 @@ class _GetchUnix(object):
         return ch
 
 
-class _GetchWindows(object):
+class _GetchWindows:
     def __init__(self):
         import msvcrt  # pylint: disable=W0611
 
@@ -1083,13 +1152,14 @@ class _GetchWindows(object):
         return msvcrt.getch()
 
 
-class _GetchMacCarbon(object):
+class _GetchMacCarbon:
     """
     A function which returns the current ASCII key that is down;
     if no ASCII key is down, the null string is returned.  The
     page http://www.mactech.com/macintosh-c/chap02-1.html was
     very helpful in figuring out how to do this.
     """
+
     def __init__(self):
         import Carbon
         Carbon.Evt  # see if it has this (in Unix, it doesn't)

@@ -5,26 +5,19 @@ Tests for model evaluation.
 Compare the results of some models with other programs.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-
+import pytest
 import numpy as np
 
-from numpy.testing import utils
+from numpy.testing import assert_allclose, assert_equal
 
 from .example_models import models_1D, models_2D
 from .. import fitting, models
 from ..core import FittableModel
 from ..polynomial import PolynomialBase
-from ...tests.helper import pytest
+from ... import units as u
 from ...utils import minversion
-from ...extern.six.moves import zip
+from ...tests.helper import assert_quantity_allclose
+from ...utils import NumpyRNGContext
 
 try:
     import scipy
@@ -131,7 +124,7 @@ def test_custom_model_bounding_box():
     assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * 1e-7
 
 
-class Fittable2DModelTester(object):
+class Fittable2DModelTester:
     """
     Test class for all two dimensional parametric models.
 
@@ -243,8 +236,8 @@ class Fittable2DModelTester(object):
                              if not fixed])
         fitted = np.array([param.value for param in params
                            if not param.fixed])
-        utils.assert_allclose(fitted, expected,
-                              atol=self.fit_error)
+        assert_allclose(fitted, expected,
+                        atol=self.fit_error)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_deriv_2D(self, model_class, test_parameters):
@@ -300,12 +293,12 @@ class Fittable2DModelTester(object):
         fitter_no_deriv = fitting.LevMarLSQFitter()
         new_model_no_deriv = fitter_no_deriv(model_no_deriv, xv, yv, data,
                                              estimate_jacobian=True)
-        utils.assert_allclose(new_model_with_deriv.parameters,
-                              new_model_no_deriv.parameters,
-                              rtol=0.1)
+        assert_allclose(new_model_with_deriv.parameters,
+                        new_model_no_deriv.parameters,
+                        rtol=0.1)
 
 
-class Fittable1DModelTester(object):
+class Fittable1DModelTester:
     """
     Test class for all one dimensional parametric models.
 
@@ -343,7 +336,7 @@ class Fittable1DModelTester(object):
         model = create_model(model_class, test_parameters)
         x = test_parameters['x_values']
         y = test_parameters['y_values']
-        utils.assert_allclose(model(x), y, atol=self.eval_error)
+        assert_allclose(model(x), y, atol=self.eval_error)
 
     def test_bounding_box1D(self, model_class, test_parameters):
         """Test bounding box evaluation"""
@@ -417,7 +410,7 @@ class Fittable1DModelTester(object):
                              if not fixed])
         fitted = np.array([param.value for param in params
                            if not param.fixed])
-        utils.assert_allclose(fitted, expected, atol=self.fit_error)
+        assert_allclose(fitted, expected, atol=self.fit_error)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_deriv_1D(self, model_class, test_parameters):
@@ -455,8 +448,8 @@ class Fittable1DModelTester(object):
         fitter_no_deriv = fitting.LevMarLSQFitter()
         new_model_no_deriv = fitter_no_deriv(model_no_deriv, x, data,
                                              estimate_jacobian=True)
-        utils.assert_allclose(new_model_with_deriv.parameters,
-                              new_model_no_deriv.parameters, atol=0.15)
+        assert_allclose(new_model_with_deriv.parameters,
+                        new_model_no_deriv.parameters, atol=0.15)
 
 
 def create_model(model_class, test_parameters, use_constraints=True,
@@ -475,12 +468,14 @@ def create_model(model_class, test_parameters, use_constraints=True,
         return model_class(*test_parameters[parameter_key], **constraints)
 
 
-@pytest.mark.parametrize(('model_class', 'test_parameters'), models_1D.items())
+@pytest.mark.parametrize(('model_class', 'test_parameters'),
+                         sorted(models_1D.items(), key=lambda x: str(x[0])))
 class TestFittable1DModels(Fittable1DModelTester):
     pass
 
 
-@pytest.mark.parametrize(('model_class', 'test_parameters'), models_2D.items())
+@pytest.mark.parametrize(('model_class', 'test_parameters'),
+                         sorted(models_2D.items(), key=lambda x: str(x[0])))
 class TestFittable2DModels(Fittable2DModelTester):
     pass
 
@@ -489,26 +484,26 @@ def test_ShiftModel():
     # Shift by a scalar
     m = models.Shift(42)
     assert m(0) == 42
-    utils.assert_equal(m([1, 2]), [43, 44])
+    assert_equal(m([1, 2]), [43, 44])
 
     # Shift by a list
     m = models.Shift([42, 43], n_models=2)
-    utils.assert_equal(m(0), [42, 43])
-    utils.assert_equal(m([1, 2], model_set_axis=False),
-                       [[43, 44], [44, 45]])
+    assert_equal(m(0), [42, 43])
+    assert_equal(m([1, 2], model_set_axis=False),
+                 [[43, 44], [44, 45]])
 
 
 def test_ScaleModel():
     # Scale by a scalar
     m = models.Scale(42)
     assert m(0) == 0
-    utils.assert_equal(m([1, 2]), [42, 84])
+    assert_equal(m([1, 2]), [42, 84])
 
     # Scale by a list
     m = models.Scale([42, 43], n_models=2)
-    utils.assert_equal(m(0), [0, 0])
-    utils.assert_equal(m([1, 2], model_set_axis=False),
-                       [[42, 84], [43, 86]])
+    assert_equal(m(0), [0, 0])
+    assert_equal(m([1, 2], model_set_axis=False),
+                 [[42, 84], [43, 86]])
 
 
 def test_voigt_model():
@@ -524,8 +519,8 @@ def test_voigt_model():
 
 
 def test_model_instance_repr():
-    m = models.Gaussian1D(1, 2, 3)
-    assert repr(m) == '<Gaussian1D(amplitude=1.0, mean=2.0, stddev=3.0)>'
+    m = models.Gaussian1D(1.5, 2.5, 3.5)
+    assert repr(m) == '<Gaussian1D(amplitude=1.5, mean=2.5, stddev=3.5)>'
 
 
 @pytest.mark.skipif("not HAS_SCIPY_14")
@@ -538,18 +533,34 @@ def test_tabular_interp_1d():
     LookupTable = models.tabular_model(1)
     model = LookupTable(points=points, lookup_table=values)
     xnew = [0., .7, 1.4, 2.1, 3.9]
-    utils.assert_allclose(model(xnew), [1., 7.3, 6.8, 6.3, 1.8])
+    ans1 = [1., 7.3, 6.8, 6.3, 1.8]
+    assert_allclose(model(xnew), ans1)
     # Test evaluate without passing `points`.
     model = LookupTable(lookup_table=values)
-    utils.assert_allclose(model(xnew), [1., 7.3, 6.8, 6.3, 1.8])
+    assert_allclose(model(xnew), ans1)
     # Test bounds error.
+    xextrap = [0., .7, 1.4, 2.1, 3.9, 4.1]
     with pytest.raises(ValueError):
-        model([0., .7, 1.4, 2.1, 3.9, 4.1])
+        model(xextrap)
     # test extrapolation and fill value
     model = LookupTable(lookup_table=values, bounds_error=False,
                         fill_value=None)
-    utils.assert_allclose(model([0., .7, 1.4, 2.1, 3.9, 4.1]),
-                          [1., 7.3, 6.8, 6.3, 1.8, -7.8])
+    assert_allclose(model(xextrap),
+                    [1., 7.3, 6.8, 6.3, 1.8, -7.8])
+
+    # Test unit support
+    xnew = xnew * u.nm
+    ans1 = ans1 * u.nJy
+    model = LookupTable(points=points*u.nm, lookup_table=values*u.nJy)
+    assert_quantity_allclose(model(xnew), ans1)
+    assert_quantity_allclose(model(xnew.to(u.nm)), ans1)
+    assert model.bounding_box == (0 * u.nm, 4 * u.nm)
+
+    # Test fill value unit conversion and unitless input on table with unit
+    model = LookupTable([1, 2, 3], [10, 20, 30] * u.nJy, bounds_error=False,
+                        fill_value=1e-33*(u.W / (u.m * u.m * u.Hz)))
+    assert_quantity_allclose(model(np.arange(5)),
+                             [100, 10, 20, 30, 100] * u.nJy)
 
 
 @pytest.mark.skipif("not HAS_SCIPY_14")
@@ -561,7 +572,8 @@ def test_tabular_interp_2d():
        [-0.04879338, -0.02539565, -0.00440462, 0.01795145, 0.02122417],
        [-0.03637372, -0.01630025, -0.00157902, 0.01649774, 0.01952131]])
 
-    points = (np.arange(0, 5), np.arange(0, 5))
+    points = np.arange(0, 5)
+    points = (points, points)
 
     xnew = np.array([0., .7, 1.4, 2.1, 3.9])
     LookupTable = models.tabular_model(2)
@@ -569,17 +581,41 @@ def test_tabular_interp_2d():
     znew = model(xnew, xnew)
     result = np.array(
         [-0.04614432, -0.03450009, -0.02241028, -0.0069727, 0.01938675])
-    utils.assert_allclose(znew, result, atol=10**-7)
+    assert_allclose(znew, result, atol=1e-7)
 
     # test 2D arrays as input
     a = np.arange(12).reshape((3, 4))
     y, x = np.mgrid[:3, :4]
     t = models.Tabular2D(lookup_table=a)
-    result = t(y, x)
-    utils.assert_allclose(a, result)
+    r = t(y, x)
+    assert_allclose(a, r)
 
     with pytest.raises(ValueError):
         model = LookupTable(points=([1.2, 2.3], [1.2, 6.7], [3, 4]))
+    with pytest.raises(ValueError):
+        model = LookupTable(lookup_table=[1, 2, 3])
+    with pytest.raises(NotImplementedError):
+        model = LookupTable(n_models=2)
+    with pytest.raises(ValueError):
+        model = LookupTable(([1, 2], [3, 4]), [5, 6])
+    with pytest.raises(ValueError):
+        model = LookupTable(([1, 2] * u.m, [3, 4]), [[5, 6], [7, 8]])
+    with pytest.raises(ValueError):
+        model = LookupTable(points, table, bounds_error=False,
+                            fill_value=1*u.Jy)
+
+    # Test unit support
+    points = points[0] * u.nm
+    points = (points, points)
+    xnew = xnew * u.nm
+    model = LookupTable(points, table * u.nJy)
+    result = result * u.nJy
+    assert_quantity_allclose(model(xnew, xnew), result, atol=1e-7*u.nJy)
+    xnew = xnew.to(u.m)
+    assert_quantity_allclose(model(xnew, xnew), result, atol=1e-7*u.nJy)
+    bbox = (0 * u.nm, 4 * u.nm)
+    bbox = (bbox, bbox)
+    assert model.bounding_box == bbox
 
 
 @pytest.mark.skipif("not HAS_SCIPY_14")
@@ -589,4 +625,36 @@ def test_tabular_nd():
     tab = models.tabular_model(3)
     t = tab(lookup_table=a)
     result = t(x, y, z)
-    utils.assert_allclose(a, result)
+    assert_allclose(a, result)
+
+    with pytest.raises(ValueError):
+        models.tabular_model(0)
+
+
+def test_with_bounding_box():
+    """
+    Test the option to evaluate a model respecting
+    its bunding_box.
+    """
+    p = models.Polynomial2D(2) & models.Polynomial2D(2)
+    m = models.Mapping((0, 1, 0, 1)) | p
+    with NumpyRNGContext(1234567):
+        m.parameters = np.random.rand(12)
+
+    m.bounding_box = ((3, 9), (1, 8))
+    x, y = np.mgrid[:10, :10]
+    a, b = m(x, y)
+    aw, bw = m(x, y, with_bounding_box=True)
+    ind = (~np.isnan(aw)).nonzero()
+    assert_allclose(a[ind], aw[ind])
+    assert_allclose(b[ind], bw[ind])
+
+    aw, bw = m(x, y, with_bounding_box=True, fill_value=1000)
+    ind = (aw != 1000).nonzero()
+    assert_allclose(a[ind], aw[ind])
+    assert_allclose(b[ind], bw[ind])
+
+    # test the order of bbox is not reversed for 1D models
+    p = models.Polynomial1D(1, c0=12, c1=2.3)
+    p.bounding_box = (0, 5)
+    assert(p(1) == p(1, with_bounding_box=True))

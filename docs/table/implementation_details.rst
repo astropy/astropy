@@ -4,7 +4,7 @@
 .. _table_implementation_details:
 
 Table implementation details
------------------------------
+*****************************
 
 This page provides a brief overview of the |Table| class implementation, in
 particular highlighting the internal data storage architecture.  This is aimed

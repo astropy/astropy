@@ -1,0 +1,56 @@
+%YAML 1.1
+---
+$schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
+id: "http://astropy.org/schemas/astropy/coordinates/frames/galactocentric-1.0.0"
+tag: "tag:astropy.org:astropy/coordinates/frames/galactocentric-1.0.0"
+
+title: |
+  Represents an galactocentric coordinate object from astropy
+
+examples:
+  -
+    - A Galactocentric frame without data
+    - |
+        !<tag:astropy.org:astropy/coordinates/frames/galactocentric-1.0.0>
+          frame_attributes:
+            galcen_coord: !<tag:astropy.org:astropy/coordinates/frames/icrs-1.1.0>
+              data: !<tag:astropy.org:astropy/coordinates/representation-1.0.0>
+                components:
+                  lat: !<tag:astropy.org:astropy/coordinates/latitude-1.0.0> {unit: !unit/unit-1.0.0 deg,
+                    value: -28.936175}
+                  lon: !<tag:astropy.org:astropy/coordinates/longitude-1.0.0>
+                    unit: !unit/unit-1.0.0 deg
+                    value: 266.4051
+                    wrap_angle: !<tag:astropy.org:astropy/coordinates/angle-1.0.0> {unit: !unit/unit-1.0.0 deg,
+                      value: 360.0}
+                type: UnitSphericalRepresentation
+              frame_attributes: {}
+            galcen_distance: !unit/quantity-1.1.0 {unit: !unit/unit-1.0.0 kpc, value: 8.3}
+            galcen_v_sun: !<tag:astropy.org:astropy/coordinates/representation-1.0.0>
+              components:
+                d_x: !unit/quantity-1.1.0 {unit: !unit/unit-1.0.0 km s-1, value: 11.1}
+                d_y: !unit/quantity-1.1.0 {unit: !unit/unit-1.0.0 km s-1, value: 232.24}
+                d_z: !unit/quantity-1.1.0 {unit: !unit/unit-1.0.0 km s-1, value: 7.25}
+              type: CartesianDifferential
+            roll: !unit/quantity-1.1.0 {unit: !unit/unit-1.0.0 deg, value: 0.0}
+            z_sun: !unit/quantity-1.1.0 {unit: !unit/unit-1.0.0 pc, value: 27.0}
+
+allOf:
+  - $ref: baseframe-1.0.0
+  - properties:
+      frame_attributes:
+        type: object
+        properties:
+          galacen_coord:
+            $ref: "icrs-1.1.0"
+          galcen_distance:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          galcen_v_sun:
+            $ref: "../representation-1.0.0"
+          z_sun:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          roll:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+        required: [galcen_coord, galcen_distance, galcen_v_sun, z_sun, roll]
+...

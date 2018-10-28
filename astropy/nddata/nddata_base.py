@@ -1,18 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module implements the base NDDataBase class.
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from abc import ABCMeta, abstractproperty, abstractmethod
+from abc import ABCMeta, abstractmethod
 
-from ..extern import six
 
 __all__ = ['NDDataBase']
 
 
-@six.add_metaclass(ABCMeta)
-class NDDataBase(object):
+class NDDataBase(metaclass=ABCMeta):
     """Base metaclass that defines the interface for N-dimensional datasets
     with associated meta information used in ``astropy``.
 
@@ -25,13 +21,15 @@ class NDDataBase(object):
     def __init__(self):
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def data(self):
         """The stored dataset.
         """
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def mask(self):
         """Mask for the dataset.
 
@@ -40,19 +38,22 @@ class NDDataBase(object):
         """
         return None
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def unit(self):
         """Unit for the dataset.
         """
         return None
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def wcs(self):
         """World coordinate system (WCS) for the dataset.
         """
         return None
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def meta(self):
         """Additional meta information about the dataset.
 
@@ -60,7 +61,8 @@ class NDDataBase(object):
         """
         return None
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def uncertainty(self):
         """Uncertainty in the dataset.
 

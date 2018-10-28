@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.14 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2016, Mark Calabretta
+  WCSLIB 5.19 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.c,v 5.14 2016/02/07 10:49:31 mcalabre Exp $
+  $Id: wcsutil.c,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -223,12 +223,13 @@ void wcsutil_setBit(int nelem, const int *sel, int bits, int *array)
 
 /*--------------------------------------------------------------------------*/
 
-char *wcsutil_fptr2str(int (*func)(void), char hext[19])
+char *wcsutil_fptr2str(void (*func)(void), char hext[19])
 
 {
   unsigned char *p = (unsigned char *)(&func);
   char *t = hext;
-  int i, *(ip[2]), j[2], le = 1, gotone = 0;
+  unsigned int i;
+  int *(ip[2]), j[2], le = 1, gotone = 0;
 
   /* Test for little-endian addresses. */
   ip[0] = j;
@@ -351,7 +352,7 @@ static const char *wcsutil_dot_to_locale(const char *inbuf, char *outbuf)
 }
 
 
-int wcsutil_str2double(const char *buf, const char *format, double *value)
+int wcsutil_str2double(const char *buf, double *value)
 
 {
   char ctmp[72];

@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import division, print_function
 
 
 __all__ = ['BaseTransform', 'CompositeTransform']
 
 
-class BaseTransform(object):
+class BaseTransform:
     """
     A transformation object.
 
@@ -30,7 +29,7 @@ class CompositeTransform(BaseTransform):
     """
 
     def __init__(self, transform_1, transform_2):
-        super(CompositeTransform, self).__init__()
+        super().__init__()
         self.transform_1 = transform_1
         self.transform_2 = transform_2
 

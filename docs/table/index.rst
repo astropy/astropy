@@ -29,8 +29,12 @@ notable capabilities of this package are:
 * Hooks for :ref:`subclassing_table` and its component classes.
 
 Currently `astropy.table` is used when reading an ASCII table using
-`astropy.io.ascii`.  Future releases of AstroPy are expected to use
+`astropy.io.ascii`.  Future releases of Astropy are expected to use
 the |Table| class for other subpackages such as `astropy.io.votable` and `astropy.io.fits` .
+
+.. Warning:: Astropy 2.0 introduces an API change that affects comparison of
+   bytestring column elements in Python 3.  See
+   :ref:`bytestring-columns-python-3` for details.
 
 Getting Started
 ===============
@@ -98,10 +102,10 @@ A column with a unit works with and can be easily converted to an
 `~astropy.units.Quantity` object (but see :ref:`quantity_and_qtable` for
 a way to natively use `~astropy.units.Quantity` objects in tables)::
 
-  >>> t['b'].quantity
-  <Quantity [ 2. , 5. , 8.2] s>
+  >>> t['b'].quantity  # doctest: +FLOAT_CMP
+  <Quantity [2. , 5. , 8.2] s>
   >>> t['b'].to('min')  # doctest: +FLOAT_CMP
-  <Quantity [ 0.03333333, 0.08333333, 0.13666667] min>
+  <Quantity [0.03333333, 0.08333333, 0.13666667] min>
 
 From within the IPython notebook, the table is displayed as a formatted HTML
 table (details of how it appears can be changed by altering the
@@ -261,9 +265,11 @@ and the native object type (see :ref:`mixin_columns`).  For example::
   2000:002:00:00:00.000 10.0,-45.0
   2002:345:00:00:00.000  20.0,40.0
 
-The `~astropy.table.QTable` class is a variant of `~astropy.table.Table` that
-allows including a native `~astropy.units.Quantity` in a table instead of
-converting to a `~astropy.table.Column` object (see :ref:`quantity_and_qtable`
+The `~astropy.table.QTable` class is a variant of `~astropy.table.Table` in
+which `~astropy.units.Quantity` are used natively, instead of being
+converted to `~astropy.table.Column`. This means their units get taken into
+account in numerical operations, etc. In this class `~astropy.table.Column`
+is still used for all unit-less arrays (see :ref:`quantity_and_qtable`
 for details)::
 
   >>> from astropy.table import QTable
@@ -271,16 +277,36 @@ for details)::
   >>> t = QTable()
   >>> t['dist'] = [1, 2] * u.m
   >>> t['velocity'] = [3, 4] * u.m / u.s
+  >>> t['flag'] = [True, False]
   >>> t
   <QTable length=2>
-    dist  velocity
+    dist  velocity  flag
      m     m / s
-  float64 float64
-  ------- --------
-      1.0      3.0
-      2.0      4.0
+  float64 float64   bool
+  ------- -------- -----
+      1.0      3.0  True
+      2.0      4.0 False
+  >>> t.info()
+  <QTable length=2>
+    name    dtype   unit  class
+  -------- ------- ----- --------
+      dist float64     m Quantity
+  velocity float64 m / s Quantity
+      flag    bool         Column
 
+.. Note::
 
+   The **only** difference between `~astropy.table.QTable` and
+   `~astropy.table.Table` is the behavior when adding a column that has a
+   specified unit.  With `~astropy.table.QTable` such a column is always
+   converted to a `~astropy.units.Quantity` object before being added to the
+   table.  Likewise if a unit is specified for an existing unit-less
+   `~astropy.table.Column` in a `~astropy.table.QTable`, then the column is
+   converted to `~astropy.units.Quantity`.
+
+   The converse is that if one adds a `~astropy.units.Quantity` column to an
+   ordinary `~astropy.table.Table` then it gets converted to an ordinary
+   `~astropy.table.Column` with the corresponding ``unit`` attribute.
 
 .. _using_astropy_table:
 
@@ -361,6 +387,11 @@ Implementation
    :maxdepth: 2
 
    implementation_details.rst
+
+.. note that if this section gets too long, it should be moved to a separate 
+   doc page - see the top of performance.inc.rst for the instructions on how to do 
+   that
+.. include:: performance.inc.rst
 
 Reference/API
 =============

@@ -8,7 +8,7 @@
 **
 **  Prototype function declarations for ERFA library.
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 
@@ -450,13 +450,16 @@ void eraSxpv(double s, double pv[2][3], double spv[2][3]);
 }
 #endif
 
+
+#include "erfaextra.h"
+
 #endif
 
 
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

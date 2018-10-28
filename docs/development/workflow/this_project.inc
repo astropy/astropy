@@ -1,2 +1,2 @@
-.. _`Astropy GitHub`: http://github.com/astropy/astropy
+.. _`Astropy GitHub`: https://github.com/astropy/astropy
 

@@ -1,13 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
+import pickle
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from ...extern.six.moves import cPickle
 from ...utils.data import get_pkg_data_contents, get_pkg_data_fileobj
 from ...utils.misc import NumpyRNGContext
 from ...io import fits
@@ -16,8 +15,8 @@ from ... import wcs
 
 def test_basic():
     wcs1 = wcs.WCS()
-    s = cPickle.dumps(wcs1)
-    wcs2 = cPickle.loads(s)
+    s = pickle.dumps(wcs1)
+    wcs2 = pickle.loads(s)
 
 
 def test_dist():
@@ -26,8 +25,8 @@ def test_dist():
         hdulist = fits.open(test_file)
         wcs1 = wcs.WCS(hdulist[0].header, hdulist)
         assert wcs1.det2im2 is not None
-        s = cPickle.dumps(wcs1)
-        wcs2 = cPickle.loads(s)
+        s = pickle.dumps(wcs1)
+        wcs2 = pickle.loads(s)
 
         with NumpyRNGContext(123456789):
             x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
@@ -43,8 +42,8 @@ def test_sip():
         hdulist = fits.open(test_file, ignore_missing_end=True)
         wcs1 = wcs.WCS(hdulist[0].header)
         assert wcs1.sip is not None
-        s = cPickle.dumps(wcs1)
-        wcs2 = cPickle.loads(s)
+        s = pickle.dumps(wcs1)
+        wcs2 = pickle.loads(s)
 
         with NumpyRNGContext(123456789):
             x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
@@ -60,8 +59,8 @@ def test_sip2():
         hdulist = fits.open(test_file, ignore_missing_end=True)
         wcs1 = wcs.WCS(hdulist[0].header)
         assert wcs1.sip is not None
-        s = cPickle.dumps(wcs1)
-        wcs2 = cPickle.loads(s)
+        s = pickle.dumps(wcs1)
+        wcs2 = pickle.loads(s)
 
         with NumpyRNGContext(123456789):
             x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
@@ -76,8 +75,8 @@ def test_wcs():
         os.path.join("data", "outside_sky.hdr"), encoding='binary')
 
     wcs1 = wcs.WCS(header)
-    s = cPickle.dumps(wcs1)
-    wcs2 = cPickle.loads(s)
+    s = pickle.dumps(wcs1)
+    wcs2 = pickle.loads(s)
 
     with NumpyRNGContext(123456789):
         x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
@@ -94,8 +93,8 @@ class Sub(wcs.WCS):
 
 def test_subclass():
     wcs = Sub()
-    s = cPickle.dumps(wcs)
-    wcs2 = cPickle.loads(s)
+    s = pickle.dumps(wcs)
+    wcs2 = pickle.loads(s)
 
     assert isinstance(wcs2, Sub)
     assert wcs.foo == 42

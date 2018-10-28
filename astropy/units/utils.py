@@ -7,8 +7,6 @@ None of the functions in the module are meant for use outside of the
 package.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numbers
 import io
@@ -18,7 +16,6 @@ from fractions import Fraction
 import numpy as np
 from numpy import finfo
 
-from ..extern import six
 
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast
@@ -51,7 +48,7 @@ def _iter_unit_summary(namespace):
     # prefixes
     units = []
     has_prefixes = set()
-    for key, val in six.iteritems(namespace):
+    for key, val in namespace.items():
         # Skip non-unit items
         if not isinstance(val, core.UnitBase):
             continue
@@ -78,7 +75,7 @@ def _iter_unit_summary(namespace):
                 unit._represents.to_string('latex')[1:-1])
         aliases = ', '.join('``{0}``'.format(x) for x in unit.aliases)
 
-        yield (unit, doc, represents, aliases, unit.name in has_prefixes)
+        yield (unit, doc, represents, aliases, 'Yes' if unit.name in has_prefixes else 'No')
 
 
 def generate_unit_summary(namespace):
@@ -118,7 +115,46 @@ def generate_unit_summary(namespace):
      - {1}
      - {2}
      - {3}
-     - {4!s:.1}
+     - {4}
+""".format(*unit_summary))
+
+    return docstring.getvalue()
+
+
+def generate_prefixonly_unit_summary(namespace):
+    """
+    Generates table entries for units in a namespace that are just prefixes
+    without the base unit.  Note that this is intended to be used *after*
+    `generate_unit_summary` and therefore does not include the table header.
+
+    Parameters
+    ----------
+    namespace : dict
+        A namespace containing units that are prefixes but do *not* have the
+        base unit in their namespace.
+
+    Returns
+    -------
+    docstring : str
+        A docstring containing a summary table of the units.
+    """
+    from . import PrefixUnit
+
+    faux_namespace = {}
+    for nm, unit in namespace.items():
+        if isinstance(unit, PrefixUnit):
+            base_unit = unit.represents.bases[0]
+            faux_namespace[base_unit.name] = base_unit
+
+    docstring = io.StringIO()
+
+    for unit_summary in _iter_unit_summary(faux_namespace):
+        docstring.write("""
+   * - Prefixes for ``{0}``
+     - {1} prefixes
+     - {2}
+     - {3}
+     - Only
 """.format(*unit_summary))
 
     return docstring.getvalue()
@@ -166,15 +202,8 @@ def validate_power(p, support_tuples=False):
     p : float, int, Rational, Fraction
         Power to be converted
     """
-    if isinstance(p, (numbers.Rational, Fraction)):
-        denom = p.denominator
-        if denom == 1:
-            p = int(p.numerator)
-        # This is bit-twiddling hack to see if the integer is a
-        # power of two
-        elif (denom & (denom - 1)) == 0:
-            p = float(p)
-    else:
+    denom = getattr(p, 'denominator', None)
+    if denom is None:
         try:
             p = float(p)
         except Exception:
@@ -203,6 +232,13 @@ def validate_power(p, support_tuples=False):
                     p = Fraction(int(round(scaled)), i)
                     break
 
+    elif denom == 1:
+        p = int(p.numerator)
+
+    elif (denom & (denom - 1)) == 0:
+        # Above is a bit-twiddling hack to see if denom is a power of two.
+        p = float(p)
+
     return p
 
 
@@ -219,3 +255,11 @@ def resolve_fractions(a, b):
     elif not a_is_fraction and b_is_fraction:
         a = Fraction(a)
     return a, b
+
+
+def quantity_asanyarray(a, dtype=None):
+    from .quantity import Quantity
+    if not isinstance(a, np.ndarray) and not np.isscalar(a) and any(isinstance(x, Quantity) for x in a):
+        return Quantity(a, dtype=dtype)
+    else:
+        return np.asanyarray(a, dtype=dtype)

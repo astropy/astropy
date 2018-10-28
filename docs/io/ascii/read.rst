@@ -3,7 +3,7 @@
 .. _astropy.io.ascii_read:
 
 Reading tables
---------------
+**************
 
 The majority of commonly encountered ASCII tables can be easily read with the |read|
 function::
@@ -23,6 +23,7 @@ format, for example::
    >>> data = astropy.io.ascii.read('t/nls1_stackinfo.dbout', data_start=2, delimiter='|')  # doctest: +SKIP
    >>> data = astropy.io.ascii.read('t/simple.txt', quotechar="'")  # doctest: +SKIP
    >>> data = astropy.io.ascii.read('t/simple4.txt', format='no_header', delimiter='|')  # doctest: +SKIP
+   >>> data = astropy.io.ascii.read('t/tab_and_space.txt', delimiter=r'\s')  # doctest: +SKIP
 
 The |read| function accepts a number of parameters that specify the detailed
 table format.  Different formats can define different defaults, so the
@@ -32,7 +33,7 @@ the :class:`~astropy.io.ascii.Basic` format reader and other similar character-s
 .. _io_ascii_read_parameters:
 
 Parameters for ``read()``
-^^^^^^^^^^^^^^^^^^^^^^^^^
+=========================
 
 **table** : input table
   There are four ways to specify the table to be read:
@@ -85,6 +86,11 @@ Parameters for ``read()``
 **data_end** : line index for the end of data
   This includes only significant non-comment line and can be negative to count
   from end.  See `Specifying header and data location`_ for more details.
+
+**encoding**: encoding to read the file (default=`None`)
+  When `None` use `locale.getpreferredencoding` as an encoding.  This matches
+  the default behavior of the built-in `open` when no ``mode`` argument is
+  provided.
 
 **converters** : dict of data type converters
   See the `Converters`_ section for more information.
@@ -139,7 +145,7 @@ Parameters for ``read()``
   built-in :ref:`extension_reader_classes`.
 
 Specifying header and data location
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===================================
 
 The three parameters ``header_start``, ``data_start`` and ``data_end`` make it
 possible to read a table file that has extraneous non-table data included.
@@ -188,7 +194,7 @@ work in this case.
 .. _replace_bad_or_missing_values:
 
 Bad or missing values
-^^^^^^^^^^^^^^^^^^^^^
+=====================
 
 ASCII data tables can contain bad or missing values.  A common case is when a table
 contains blank entries with no available data, for example::
@@ -243,7 +249,7 @@ When reading a table the second element of a ``<missing_spec>`` should always
 be the string ``'0'``,
 otherwise you may get unexpected behavior [#f1]_.  By default the
 ``<missing_spec>`` is applied to all columns unless column name strings are
-supplied.  An alterate way to limit the columns is via the
+supplied.  An alternate way to limit the columns is via the
 ``fill_include_names`` and ``fill_exclude_names`` keyword arguments in |read|.
 
 In the example below we read back the weather table after filling the missing
@@ -284,8 +290,10 @@ values in with typical placeholders::
          used ``'nan'`` for the ``<match_string>`` value then integer columns
          would wind up as float.
 
+.. _guess_formats:
+
 Guess table format
-^^^^^^^^^^^^^^^^^^
+==================
 
 If the ``guess`` parameter in |read| is set to True (which is the default) then
 |read| will try to guess the table format by cycling through a number of
@@ -306,12 +314,12 @@ auto-assign column names because of the restriction on column names that
 look like a number.
 
 Guess order
-"""""""""""
+-----------
 The order of guessing is shown by this Python code, where ``Reader`` is the
 class which actually implements reading the different file formats::
 
-  for Reader in (Ecsv, FixedWidthTwoLine, FastBasic, Basic,
-                 Rdb, FastTab, Tab, Cds, Daophot, SExtractor,
+  for Reader in (Ecsv, FixedWidthTwoLine, Rst, FastBasic, Basic,
+                 FastRdb, Rdb, FastTab, Tab, Cds, Daophot, SExtractor,
                  Ipac, Latex, AASTex):
       read(Reader=Reader)
 
@@ -332,16 +340,19 @@ without checking the column requirements.  In this way a table with only one
 column or column names that look like a number can still be successfully read.
 
 The guessing process respects any values of the Reader, delimiter, and
-quotechar parameters that were supplied to the read() function.  Any guesses
-that would conflict are skipped.  For example the call::
+quotechar parameters as well as options for the fast reader that were
+supplied to the read() function.  Any guesses that would conflict are
+skipped.  For example the call::
 
  >>> data = ascii.read(table, Reader=ascii.NoHeader, quotechar="'")
 
 would only try the four delimiter possibilities, skipping all the conflicting
-Reader and quotechar combinations.
+Reader and quotechar combinations.  Similarly with any setting of
+``fast_reader`` that requires use of the fast engine, only the fast
+variants in the Reader list above will be tried.
 
 Disabling
-"""""""""
+---------
 
 Guessing can be disabled in two ways::
 
@@ -352,7 +363,7 @@ Guessing can be disabled in two ways::
   data = astropy.io.ascii.read(table)               # guessing disabled
 
 Debugging
-"""""""""
+---------
 
 In order to get more insight into the guessing process and possibly debug if
 something isn't working as expected, use the
@@ -360,7 +371,7 @@ something isn't working as expected, use the
 attempted read formats for the last call to `~astropy.io.ascii.read()`.
 
 Comments and metadata
-^^^^^^^^^^^^^^^^^^^^^
+=====================
 
 Any comment lines detected during reading are inserted into the output table
 via the ``comments`` key in the table's ``.meta`` dictionary. For example::
@@ -390,7 +401,7 @@ comments. Here is one example, where comments are of the form "# KEY = VALUE"::
 
 
 Converters
-^^^^^^^^^^
+==========
 
 :mod:`astropy.io.ascii` converts the raw string values from the table into
 numeric data types by using converter functions such as the Python ``int`` and
@@ -407,7 +418,7 @@ These take advantage of the :func:`~astropy.io.ascii.convert_numpy`
 function which returns a 2-element tuple ``(converter_func, converter_type)``
 as described in the previous section.  The type provided to
 :func:`~astropy.io.ascii.convert_numpy` must be a valid `numpy type
-<http://docs.scipy.org/doc/numpy/user/basics.types.html>`_, for example
+<https://docs.scipy.org/doc/numpy/user/basics.types.html>`_, for example
 ``numpy.int``, ``numpy.uint``, ``numpy.int8``, ``numpy.int64``,
 ``numpy.float``, ``numpy.float64``, ``numpy.str``.
 
@@ -423,7 +434,7 @@ The default converters for each column can be overridden with the
 .. _fortran_style_exponents:
 
 Fortran-style exponents
-^^^^^^^^^^^^^^^^^^^^^^^
+=======================
 
 The :ref:`fast converter <fast_conversion_opts>` available with the C
 input parser provides an ``exponent_style`` option to define a custom
@@ -431,7 +442,7 @@ character instead of the standard ``'e'`` for exponential formats in
 the input file, to read for example Fortran-style double precision
 numbers like ``'1.495978707D+13'``:
 
-  >>> ascii.read('double.dat', format='basic', guess=False, 
+  >>> ascii.read('double.dat', format='basic', guess=False,
   ...            fast_reader={'exponent_style': 'D'})  # doctest: +SKIP
 
 The special setting ``'fortran'`` is provided to allow for the
@@ -443,7 +454,7 @@ case-insensitive; any value other than the default ``'E'`` implies the
 automatic setting of ``'use_fast_converter': True``.
 
 Advanced customization
-^^^^^^^^^^^^^^^^^^^^^^
+======================
 
 Here we provide a few examples that demonstrate how to extend the base
 functionality to handle special cases.  To go beyond these simple examples the
@@ -563,3 +574,78 @@ in a function::
    # Create an RDB reader and override the splitter.process_val function
    rdb_reader = astropy.io.ascii.get_reader(Reader=astropy.io.ascii.Rdb)
    rdb_reader.data.splitter.process_val = process_val
+
+.. _chunk_reading:
+
+Reading large tables in chunks
+==============================
+
+The default process for reading ASCII tables is not memory efficient and may
+temporarily require much more memory than the size of the file (up to a factor
+of 5 to 10).  In cases where the temporary memory requirement exceeds available
+memory this can cause significant slowdown when disk cache gets used.
+
+In this situation there is a way to read the table in smaller chunks which are
+limited in size.  There are two possible ways to do this:
+
+- Read the table in chunks and aggregate the final table along the way.  This
+  uses only somewhat more memory than the final table requires.
+- Use a Python generator function to return a `~astropy.table.Table` object for
+  each chunk of the input table.  This allows for scanning through arbitrarily
+  large tables since it never returns the final aggregate table.
+
+The chunk reading functionality is most useful for very large tables, so this is
+available only for the :ref:`fast_ascii_io` readers.  The following formats are
+supported: ``tab``, ``csv``, ``no_header``, ``rdb``, and ``basic``.  The
+``commented_header`` format is not directly supported, but as a workaround one
+can read using the ``no_header`` format and explicitly supply the column names
+using the ``names`` argument.
+
+In order to read a table in chunks one must provide the ``fast_reader`` keyword
+argument with a ``dict`` that includes the ``chunk_size`` key with the value
+being the approximate size (in bytes) of each chunk of the input table to read.
+In addition, if one provides a ``chunk_generator`` key which is set to
+``True``, then instead of returning a single table for the whole input it
+returns an iterator that provides a table for each chunk of the input.
+
+**Example**: Reading an entire table while limiting peak memory usage.
+::
+
+  # Read a large CSV table in 100 Mb chunks.
+
+  tbl = ascii.read('large_table.csv', format='csv', guess=False,
+                   fast_reader={'chunk_size': 100 * 1000000})
+
+**Example**: Reading the table in chunks with an iterator.
+
+Here we iterate over a CSV table and select all rows where the ``Vmag`` column is
+less than 8.0 (e.g. all stars in table brighter than 8.0 mag).  We collect all
+these sub-tables and then stack them at the end.
+::
+
+  from astropy.table import vstack
+
+  # tbls is an iterator over the chunks (no actual reading done yet)
+  tbls = ascii.read('large_table.csv', format='csv', guess=False,
+                    fast_reader={'chunk_size': 100 * 1000000,
+                                 'chunk_generator': True})
+
+  out_tbls = []
+
+  # At this point the file is actually read in chunks.
+  for tbl in tbls:
+      bright = tbl['Vmag'] < 8.0
+      if np.count_nonzero(bright):
+          out_tbls.append(tbl[bright])
+
+  out_tbl = vstack(out_tbls)
+
+.. Note:: **Performance**
+
+  Specifying the ``format`` explicitly and using ``guess=False`` is a good idea
+  for large tables.  This prevent unnecessary guessing in the typical case
+  where the format is already known.
+
+  The ``chunk_size`` should generally be set to the largest value that is 
+  reasonable given available system memory.  There is overhead associated
+  with processing each chunk, so the fewer chunks the better.

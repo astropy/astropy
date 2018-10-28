@@ -1,20 +1,41 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ...tests.helper import pytest
+
+import pytest
 import numpy as np
+
 from .test_table import SetupData
-from ..bst import BST, FastRBT
+from ..bst import BST, FastRBT, FastBST
 from ..sorted_array import SortedArray
-from ..table import QTable, Row
+from ..soco import SCEngine, HAS_SOCO
+from ..table import QTable, Row, Table
 from ... import units as u
 from ...time import Time
 from ..column import BaseColumn
-from ...extern.six.moves import range
 
-@pytest.fixture(params=[BST, FastRBT, SortedArray])
+try:
+    import bintrees
+except ImportError:
+    HAS_BINTREES = False
+else:
+    HAS_BINTREES = True
+
+
+if HAS_BINTREES:
+    available_engines = [BST, FastBST, FastRBT, SortedArray]
+else:
+    available_engines = [BST, SortedArray]
+
+if HAS_SOCO:
+    available_engines.append(SCEngine)
+
+
+@pytest.fixture(params=available_engines)
 def engine(request):
     return request.param
 
+
 _col = [1, 2, 3, 4, 5]
+
 
 @pytest.fixture(params=[
     _col,
@@ -24,21 +45,23 @@ _col = [1, 2, 3, 4, 5]
 def main_col(request):
     return request.param
 
+
 def assert_col_equal(col, array):
     if isinstance(col, Time):
         assert np.all(col == Time(array, format='jyear'))
     else:
         assert np.all(col == col.__class__(array))
 
+
 @pytest.mark.usefixtures('table_types')
 class TestIndex(SetupData):
     def _setup(self, main_col, table_types):
-        super(TestIndex, self)._setup(table_types)
+        super()._setup(table_types)
         self.main_col = main_col
         if isinstance(main_col, u.Quantity):
             self._table_type = QTable
         if not isinstance(main_col, list):
-            self._column_type = lambda x: x # don't change mixin type
+            self._column_type = lambda x: x  # don't change mixin type
         self.mutable = isinstance(main_col, (list, u.Quantity))
 
     def make_col(self, name, lst):
@@ -143,7 +166,7 @@ class TestIndex(SetupData):
         t.add_index('a', engine=engine)
 
         # get slice
-        t2 = t[1:3] # table slice
+        t2 = t[1:3]  # table slice
         assert_col_equal(t2['a'], [2, 3])
         assert np.all(t2.indices[0].sorted_data() == [0, 1])
 
@@ -254,10 +277,9 @@ class TestIndex(SetupData):
         assert_col_equal(t4['a'], [14, 8, 2])
         assert np.all(t4.indices[0].sorted_data() == [2, 1, 0])
 
-
     def test_sort(self, main_col, table_types, engine):
         self._setup(main_col, table_types)
-        t = self.t[::-1] # reverse table
+        t = self.t[::-1]  # reverse table
         assert_col_equal(t['a'], [5, 4, 3, 2, 1])
         t.add_index('a', engine=engine)
         assert np.all(t.indices[0].sorted_data() == [4, 3, 2, 1, 0])
@@ -309,7 +331,7 @@ class TestIndex(SetupData):
             assert len(t[[1, 3]].indices) == 0
             assert len(t[::-1].indices) == 0
             assert len(self._table_type(t).indices) == 0
-            assert len(t2.copy().indices) == 1 # mode should only affect t
+            assert len(t2.copy().indices) == 1  # mode should only affect t
 
         # make sure non-copy mode is exited correctly
         assert len(t[[1, 3]].indices) == 1
@@ -375,39 +397,57 @@ class TestIndex(SetupData):
         t.add_index('a', engine=engine)
         t.add_index('b', engine=engine)
 
-        t2 = t.loc[self.make_val(3)] # single label, with primary key 'a'
+        t2 = t.loc[self.make_val(3)]  # single label, with primary key 'a'
         assert_col_equal(t2['a'], [3])
         assert isinstance(t2, Row)
 
         # list search
         t2 = t.loc[[self.make_val(1), self.make_val(4), self.make_val(2)]]
-        assert_col_equal(t2['a'], [1, 4, 2]) # same order as input list
+        assert_col_equal(t2['a'], [1, 4, 2])  # same order as input list
         if not isinstance(main_col, Time):
             # ndarray search
             t2 = t.loc[np.array([1, 4, 2])]
             assert_col_equal(t2['a'], [1, 4, 2])
         assert_col_equal(t2['a'], [1, 4, 2])
-        t2 = t.loc[self.make_val(3): self.make_val(5)] # range search
+        t2 = t.loc[self.make_val(3): self.make_val(5)]  # range search
         assert_col_equal(t2['a'], [3, 4, 5])
         t2 = t.loc['b', 5.0:7.0]
         assert_col_equal(t2['b'], [5.1, 6.2, 7.0])
         # search by sorted index
-        t2 = t.iloc[0:2] # two smallest rows by column 'a'
+        t2 = t.iloc[0:2]  # two smallest rows by column 'a'
         assert_col_equal(t2['a'], [1, 2])
-        t2 = t.iloc['b', 2:] # exclude two smallest rows in column 'b'
+        t2 = t.iloc['b', 2:]  # exclude two smallest rows in column 'b'
         assert_col_equal(t2['b'], [5.1, 6.2, 7.0])
 
         for t2 in (t.loc[:], t.iloc[:]):
             assert_col_equal(t2['a'], [1, 2, 3, 4, 5])
 
+    def test_table_loc_indices(self, main_col, table_types, engine):
+        self._setup(main_col, table_types)
+        t = self.t
+
+        t.add_index('a', engine=engine)
+        t.add_index('b', engine=engine)
+
+        t2 = t.loc_indices[self.make_val(3)]  # single label, with primary key 'a'
+        assert t2 == 2
+
+        # list search
+        t2 = t.loc_indices[[self.make_val(1), self.make_val(4), self.make_val(2)]]
+        for i, p in zip(t2,[1,4,2]):  # same order as input list
+            assert i == p-1
+
     def test_invalid_search(self, main_col, table_types, engine):
-        # using .loc with a value not present should raise an exception
+        # using .loc and .loc_indices with a value not present should raise an exception
         self._setup(main_col, table_types)
         t = self.t
 
         t.add_index('a')
         with pytest.raises(KeyError):
             t.loc[self.make_val(6)]
+        with pytest.raises(KeyError):
+            t.loc_indices[self.make_val(6)]
+
 
     def test_copy_index_references(self, main_col, table_types, engine):
         # check against a bug in which indices were given an incorrect
@@ -442,3 +482,35 @@ class TestIndex(SetupData):
             for index, indexp in zip(t.indices, tp.indices):
                 assert np.all(index.data.data == indexp.data.data)
                 assert index.data.data.colnames == indexp.data.data.colnames
+
+    def test_updating_row_byindex(self, main_col, table_types, engine):
+        self._setup(main_col, table_types)
+        t = Table([['a', 'b', 'c', 'd'], [2, 3, 4, 5], [3, 4, 5, 6]], names=('a', 'b', 'c'), meta={'name': 'first table'})
+
+        t.add_index('a', engine=engine)
+        t.add_index('b', engine=engine)
+
+        t.loc['c'] = ['g', 40, 50] # single label, with primary key 'a'
+        t2 = t[2]
+        assert list(t2) == ['g', 40, 50]
+
+        # list search
+        t.loc[['a', 'd', 'b']] = [['a', 20, 30], ['d', 50, 60], ['b', 30, 40]]
+        t2 = [['a', 20, 30], ['d', 50, 60], ['b', 30, 40]]
+        for i, p in zip(t2, [1, 4, 2]):  # same order as input list
+            assert list(t[p-1]) == i
+
+    def test_invalid_updates(self, main_col, table_types, engine):
+        # using .loc and .loc_indices with a value not present should raise an exception
+        self._setup(main_col, table_types)
+        t = Table([[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]], names=('a', 'b', 'c'), meta={'name': 'first table'})
+
+        t.add_index('a')
+        with pytest.raises(ValueError):
+            t.loc[3] = [[1,2,3]]
+        with pytest.raises(ValueError):
+            t.loc[[1, 4, 2]] = [[1, 2, 3], [4, 5, 6]]
+        with pytest.raises(ValueError):
+            t.loc[[1, 4, 2]] = [[1, 2, 3], [4, 5, 6], [2, 3]]
+        with pytest.raises(ValueError):
+            t.loc[[1, 4, 2]] = [[1, 2, 3], [4, 5], [2, 3]]

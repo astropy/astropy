@@ -3,7 +3,7 @@
 .. _pandas:
 
 Interfacing with the pandas package
-===================================
+***********************************
 
 The `pandas <http://pandas.pydata.org/>`__ package is a package for high
 performance data analysis of table-like structures that is complementary to the
@@ -61,4 +61,4 @@ The conversions to/from pandas are subject to the following caveats:
 * Tables with mixin columns can currently not be converted, but this may be
   implemented in the future.
 
-.. _DataFrame: http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.html
+.. _DataFrame: http://pandas-docs.github.io/pandas-docs-travis/

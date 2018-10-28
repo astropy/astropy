@@ -100,7 +100,7 @@ Two of the most common deprecation warnings related to Headers are for:
   is necessary, use :attr:`Header.cards`, which returns an iterator over the
   cards.  More on that below.
 
-.. _PEP 8: http://www.python.org/dev/peps/pep-0008/
+.. _PEP 8: https://www.python.org/dev/peps/pep-0008/
 
 New Header Design
 =================
@@ -317,7 +317,7 @@ surprises.  There are differences, however:
   returns a new header containing only the NAXIS and NAXISn cards from the
   original header.
 
-.. _duck typing: http://en.wikipedia.org/wiki/Duck_typing
+.. _duck typing: https://en.wikipedia.org/wiki/Duck_typing
 
 
 Transition Tips

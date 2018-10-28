@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import gc
 import locale
 import re
 
+import pytest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import numpy as np
 
-from ...tests.helper import pytest, raises, catch_warnings
+from ...tests.helper import raises, catch_warnings
 from ...io import fits
 from .. import wcs
 from .. import _wcs
@@ -50,7 +50,7 @@ def test_axis_types():
 def test_cd():
     w = _wcs.Wcsprm()
     w.cd = [[1, 0], [0, 1]]
-    assert w.cd.dtype == np.float
+    assert w.cd.dtype == float
     assert w.has_cd() is True
     assert_array_equal(w.cd, [[1, 0], [0, 1]])
     del w.cd
@@ -167,7 +167,7 @@ def test_colnum_invalid():
 
 def test_crder():
     w = _wcs.Wcsprm()
-    assert w.crder.dtype == np.float
+    assert w.crder.dtype == float
     assert np.all(np.isnan(w.crder))
     w.crder[0] = 0
     assert np.isnan(w.crder[1])
@@ -178,7 +178,7 @@ def test_crder():
 def test_crota():
     w = _wcs.Wcsprm()
     w.crota = [1, 0]
-    assert w.crota.dtype == np.float
+    assert w.crota.dtype == float
     assert w.has_crota() is True
     assert_array_equal(w.crota, [1, 0])
     del w.crota
@@ -204,7 +204,7 @@ def test_crota_missing2():
 
 def test_crpix():
     w = _wcs.Wcsprm()
-    assert w.crpix.dtype == np.float
+    assert w.crpix.dtype == float
     assert_array_equal(w.crpix, [0, 0])
     w.crpix = [42, 54]
     assert_array_equal(w.crpix, [42, 54])
@@ -217,7 +217,7 @@ def test_crpix():
 
 def test_crval():
     w = _wcs.Wcsprm()
-    assert w.crval.dtype == np.float
+    assert w.crval.dtype == float
     assert_array_equal(w.crval, [0, 0])
     w.crval = [42, 54]
     assert_array_equal(w.crval, [42, 54])
@@ -227,7 +227,7 @@ def test_crval():
 
 def test_csyer():
     w = _wcs.Wcsprm()
-    assert w.csyer.dtype == np.float
+    assert w.csyer.dtype == float
     assert np.all(np.isnan(w.csyer))
     w.csyer[0] = 0
     assert np.isnan(w.csyer[1])
@@ -707,7 +707,7 @@ def test_specsys():
 
 
 def test_sptr():
-    #TODO: Write me
+    # TODO: Write me
     pass
 
 
@@ -752,6 +752,7 @@ def test_velangl():
     assert w.velangl == 42.0
     del w.velangl
     assert np.isnan(w.velangl)
+
 
 def test_velosys():
     w = _wcs.Wcsprm()
@@ -820,9 +821,7 @@ def test_locale():
     orig_locale = locale.getlocale(locale.LC_NUMERIC)[0]
 
     try:
-        # str('fr_FR') because otherwise it will be a unicode string, which
-        # breaks setlocale on Python 2
-        locale.setlocale(locale.LC_NUMERIC, str('fr_FR'))
+        locale.setlocale(locale.LC_NUMERIC, 'fr_FR')
     except locale.Error:
         pytest.xfail(
             "Can't set to 'fr_FR' locale, perhaps because it is not installed "
@@ -1005,13 +1004,13 @@ def test_iteration():
          [0.00664326, -0.5],
          [-0.58995335, -0.25],
          [0.00664326, -0.25],
-         [-0.58995335,  0.],
-         [0.00664326,  0.],
-         [-0.58995335,  0.25],
-         [0.00664326,  0.25],
-         [-0.58995335,  0.5],
-         [0.00664326,  0.5]],
-        np.float
+         [-0.58995335, 0.],
+         [0.00664326, 0.],
+         [-0.58995335, 0.25],
+         [0.00664326, 0.25],
+         [-0.58995335, 0.5],
+         [0.00664326, 0.5]],
+        float
     )
 
     w = wcs.WCS()
@@ -1031,7 +1030,7 @@ def test_iteration():
          [7.49105110e+01, 1.12348499e+02],
          [1.64400000e+02, 1.49848498e+02],
          [7.49105110e+01, 1.49848498e+02]],
-        np.float)
+        float)
 
     assert_array_almost_equal(x, expected)
 

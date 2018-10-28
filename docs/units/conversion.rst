@@ -1,5 +1,5 @@
 Low-level unit conversion
-=========================
+*************************
 
 Conversion of quantities from one unit to another is handled using the
 `Quantity.to <astropy.units.quantity.Quantity.to>` method.  This page
@@ -9,7 +9,7 @@ are rarely required in user code.
 There are two ways of handling conversions between units.
 
 Direct Conversion
------------------
+=================
 
 In this case, given a source and destination unit, the value(s) in the
 new units is(are) returned.
@@ -26,7 +26,7 @@ Arrays are permitted as arguments.
   array([  3600.,   7200.,  18000.,  36360.])
 
 Incompatible Conversions
-------------------------
+========================
 
 If you attempt to convert to a incompatible unit, an exception will result:
 

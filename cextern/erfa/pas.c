@@ -26,7 +26,7 @@ double eraPas(double al, double ap, double bl, double bp)
 **
 **  2) Zero is returned if the two points are coincident.
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -44,7 +44,7 @@ double eraPas(double al, double ap, double bl, double bp)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

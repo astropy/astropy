@@ -8,8 +8,8 @@ framework, but it is useful for some users who are used to more functional
 interfaces.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+import warnings
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -24,7 +24,7 @@ from .representation import SphericalRepresentation, CartesianRepresentation
 from .builtin_frames.utils import get_jd12
 
 __all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun',
-           'concatenate', 'get_constellation']
+           'get_constellation', 'concatenate_representations', 'concatenate']
 
 
 def cartesian_to_spherical(x, y, z):
@@ -153,11 +153,11 @@ def get_sun(time):
 
     # We have to manually do aberration because we're outputting directly into
     # GCRS
-    earth_p = earth_pv_helio[..., 0, :]
-    earth_v = earth_pv_bary[..., 1, :]
+    earth_p = earth_pv_helio['p']
+    earth_v = earth_pv_bary['v']
 
     # convert barycentric velocity to units of c, but keep as array for passing in to erfa
-    earth_v /= c.to(u.au/u.d).value
+    earth_v /= c.to_value(u.au/u.d)
 
     dsun = np.sqrt(np.sum(earth_p**2, axis=-1))
     invlorentz = (1-np.sum(earth_v**2, axis=-1))**0.5
@@ -170,41 +170,17 @@ def get_sun(time):
     return SkyCoord(cartrep, frame=GCRS(obstime=time))
 
 
-def concatenate(coords):
-    """
-    Combine multiple coordinate objects into a single
-    `~astropy.coordinates.SkyCoord`.
-
-    "Coordinate objects" here mean frame objects with data,
-    `~astropy.coordinates.SkyCoord`, or representation objects.  Currently,
-    they must all be in the same frame, but in a future version this may be
-    relaxed to allow inhomogenous sequences of objects.
-
-    Parameters
-    ----------
-    coords : sequence of coordinate objects
-        The objects to concatenate
-
-    Returns
-    -------
-    cskycoord : SkyCoord
-        A single sky coordinate with its data set to the concatenation of all
-        the elements in ``coords``
-    """
-    if getattr(coords, 'isscalar', False) or not isiterable(coords):
-        raise TypeError('The argument to concatenate must be iterable')
-    return SkyCoord(coords)
-
-
 # global dictionary that caches repeatedly-needed info for get_constellation
 _constellation_data = {}
+
+
 def get_constellation(coord, short_name=False, constellation_list='iau'):
     """
     Determines the constellation(s) a given coordinate object contains.
 
     Parameters
     ----------
-    coords : coordinate object
+    coord : coordinate object
         The object to determine the constellation of.
     short_name : bool
         If True, the returned names are the IAU-sanctioned abbreviated
@@ -250,7 +226,13 @@ def get_constellation(coord, short_name=False, constellation_list='iau'):
 
     # if it is geocentric, we reproduce the frame but with the 1875 equinox,
     # which is where the constellations are defined
-    constel_coord = coord.transform_to(PrecessedGeocentric(equinox='B1875'))
+    # this yields a "dubious year" warning because ERFA considers the year 1875
+    # "dubious", probably because UTC isn't well-defined then and precession
+    # models aren't precisely calibrated back to then.  But it's plenty
+    # sufficient for constellations
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', erfa.ErfaWarning)
+        constel_coord = coord.transform_to(PrecessedGeocentric(equinox='B1875'))
     if isscalar:
         rah = constel_coord.ra.ravel().hour
         decd = constel_coord.dec.ravel().deg
@@ -279,3 +261,120 @@ def get_constellation(coord, short_name=False, constellation_list='iau'):
         return names[0]
     else:
         return names
+
+
+def _concatenate_components(reps_difs, names):
+    """ Helper function for the concatenate function below. Gets and
+    concatenates all of the individual components for an iterable of
+    representations or differentials.
+    """
+    values = []
+    for name in names:
+        data_vals = []
+        for x in reps_difs:
+            data_val = getattr(x, name)
+            data_vals.append(data_val.reshape(1, ) if x.isscalar else data_val)
+        concat_vals = np.concatenate(data_vals)
+
+        # Hack because np.concatenate doesn't fully work with Quantity
+        if isinstance(concat_vals, u.Quantity):
+            concat_vals._unit = data_val.unit
+
+        values.append(concat_vals)
+
+    return values
+
+def concatenate_representations(reps):
+    """
+    Combine multiple representation objects into a single instance by
+    concatenating the data in each component.
+
+    Currently, all of the input representations have to be the same type. This
+    properly handles differential or velocity data, but all input objects must
+    have the same differential object type as well.
+
+    Parameters
+    ----------
+    reps : sequence of representation objects
+        The objects to concatenate
+
+    Returns
+    -------
+    rep : `~astropy.coordinates.BaseRepresentation` subclass
+        A single representation object with its data set to the concatenation of
+        all the elements of the input sequence of representations.
+    """
+    if not isinstance(reps, (Sequence, np.ndarray)):
+        raise TypeError('Input must be a list or iterable of representation '
+                        'objects.')
+
+    # First, validate that the represenations are the same, and
+    # concatenate all of the positional data:
+    rep_type = type(reps[0])
+    if any(type(r) != rep_type for r in reps):
+        raise TypeError('Input representations must all have the same type.')
+
+    # Construct the new representation with the concatenated data from the
+    # representations passed in
+    values = _concatenate_components(reps,
+                                     rep_type.attr_classes.keys())
+    new_rep = rep_type(*values)
+
+    has_diff = any('s' in rep.differentials for rep in reps)
+    if has_diff and any('s' not in rep.differentials for rep in reps):
+        raise ValueError('Input representations must either all contain '
+                         'differentials, or not contain differentials.')
+
+    if has_diff:
+        dif_type = type(reps[0].differentials['s'])
+
+        if any('s' not in r.differentials or
+                type(r.differentials['s']) != dif_type
+               for r in reps):
+            raise TypeError('All input representations must have the same '
+                            'differential type.')
+
+        values = _concatenate_components([r.differentials['s'] for r in reps],
+                                         dif_type.attr_classes.keys())
+        new_dif = dif_type(*values)
+        new_rep = new_rep.with_differentials({'s': new_dif})
+
+    return new_rep
+
+
+def concatenate(coords):
+    """
+    Combine multiple coordinate objects into a single
+    `~astropy.coordinates.SkyCoord`.
+
+    "Coordinate objects" here mean frame objects with data,
+    `~astropy.coordinates.SkyCoord`, or representation objects.  Currently,
+    they must all be in the same frame, but in a future version this may be
+    relaxed to allow inhomogenous sequences of objects.
+
+    Parameters
+    ----------
+    coords : sequence of coordinate objects
+        The objects to concatenate
+
+    Returns
+    -------
+    cskycoord : SkyCoord
+        A single sky coordinate with its data set to the concatenation of all
+        the elements in ``coords``
+    """
+    if getattr(coords, 'isscalar', False) or not isiterable(coords):
+        raise TypeError('The argument to concatenate must be iterable')
+
+    scs = [SkyCoord(coord, copy=False) for coord in coords]
+
+    # Check that all frames are equivalent
+    for sc in scs[1:]:
+        if not sc.is_equivalent_frame(scs[0]):
+            raise ValueError("All inputs must have equivalent frames: "
+                             "{0} != {1}".format(sc, scs[0]))
+
+    # TODO: this can be changed to SkyCoord.from_representation() for a speed
+    # boost when we switch to using classmethods
+    return SkyCoord(concatenate_representations([c.data for c in coords]),
+                    frame=scs[0].frame)

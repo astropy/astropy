@@ -1,17 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 import os
 import copy
+from io import StringIO
 from itertools import chain
 
+
+import pytest
 import numpy as np
-from ....extern.six.moves import cStringIO as StringIO
+
 from ... import ascii
 from .... import table
 from ....table.table_helpers import simple_table
-from ....tests.helper import pytest, catch_warnings
+from ....tests.helper import catch_warnings
 from ....utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from .... import units
 
@@ -172,6 +174,16 @@ tablefoot
 \\end{tabletype}
 """
          ),
+    dict(kwargs=dict(Writer=ascii.Latex, latexdict={'tabletype': None}),
+         out="""\
+\\begin{tabular}{ccccccccccc}
+ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
+ & pixels & pixels & magnitudes & magnitudes & counts &  &  &  &  & perrors \\\\
+14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
+18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
+\\end{tabular}
+"""
+         ),
     dict(kwargs=dict(Writer=ascii.HTML, htmldict={'css': 'table,th,td{border:1px solid black;'}),
          out="""\
 <html>
@@ -314,32 +326,32 @@ a b c
 1 w 3
 """
          ),
-    dict(kwargs=dict(fill_values = ('1', 'w'),
-                     fill_include_names = ['b']),
+    dict(kwargs=dict(fill_values=('1', 'w'),
+                     fill_include_names=['b']),
          out="""\
 a b c
 1 2 3
 1 w 3
 """
          ),
-    dict(kwargs=dict(fill_values = ('1', 'w'),
-                     fill_exclude_names = ['a']),
+    dict(kwargs=dict(fill_values=('1', 'w'),
+                     fill_exclude_names=['a']),
          out="""\
 a b c
 1 2 3
 1 w 3
 """
          ),
-    dict(kwargs=dict(fill_values = ('1', 'w'),
-                     fill_include_names = ['a'],
-                     fill_exclude_names = ['a', 'b']),
+    dict(kwargs=dict(fill_values=('1', 'w'),
+                     fill_include_names=['a'],
+                     fill_exclude_names=['a', 'b']),
          out="""\
 a b c
 1 2 3
 1 1 3
 """
          ),
-    dict(kwargs=dict(fill_values = [('1', 'w')],
+    dict(kwargs=dict(fill_values=[('1', 'w')],
                      formats={'a': '%4.2f'}),
          out="""\
 a b c
@@ -386,7 +398,7 @@ def check_write_table(test_def, table, fast_writer):
     out = StringIO()
     try:
         ascii.write(table, out, fast_writer=fast_writer, **test_def['kwargs'])
-    except ValueError as e: # if format doesn't have a fast writer, ignore
+    except ValueError as e:  # if format doesn't have a fast writer, ignore
         if 'not in the list of formats with fast writers' not in str(e):
             raise e
         return
@@ -407,8 +419,8 @@ def check_write_table_via_table(test_def, table, fast_writer):
         format = 'ascii'
 
     try:
-        table.write(out, format=format,  fast_writer=fast_writer, **test_def['kwargs'])
-    except ValueError as e: # if format doesn't have a fast writer, ignore
+        table.write(out, format=format, fast_writer=fast_writer, **test_def['kwargs'])
+    except ValueError as e:  # if format doesn't have a fast writer, ignore
         if 'not in the list of formats with fast writers' not in str(e):
             raise e
         return
@@ -458,6 +470,7 @@ def test_write_no_data_ipac(fast_writer):
         check_write_table(test_def, data, fast_writer)
         check_write_table_via_table(test_def, data, fast_writer)
 
+
 def test_write_invalid_toplevel_meta_ipac():
     """Write an IPAC table that contains no data but has invalid (incorrectly
     specified) metadata stored in the top-level metadata and therefore should
@@ -471,6 +484,7 @@ def test_write_invalid_toplevel_meta_ipac():
         data.write(out, format='ascii.ipac')
     assert len(ASwarn) == 1
     assert "were not written" in str(ASwarn[0].message)
+
 
 def test_write_invalid_keyword_meta_ipac():
     """Write an IPAC table that contains no data but has invalid (incorrectly
@@ -486,6 +500,7 @@ def test_write_invalid_keyword_meta_ipac():
         data.write(out, format='ascii.ipac')
     assert len(ASwarn) == 1
     assert "has been skipped" in str(ASwarn[0].message)
+
 
 def test_write_valid_meta_ipac():
     """Write an IPAC table that contains no data and has *correctly* specified
@@ -521,6 +536,7 @@ def test_write_comments(fast_writer):
     expected = ['a b c', '1 2 3']
     assert out.getvalue().splitlines() == expected
 
+
 @pytest.mark.parametrize("fast_writer", [True, False])
 @pytest.mark.parametrize("fmt", ['%0.1f', '.1f', '0.1f', '{0:0.1f}'])
 def test_write_format(fast_writer, fmt):
@@ -531,6 +547,7 @@ def test_write_format(fast_writer, fmt):
     data['a'].format = fmt
     ascii.write(data, out, format='basic', fast_writer=fast_writer)
     assert out.getvalue().splitlines() == expected
+
 
 @pytest.mark.parametrize("fast_writer", [True, False])
 def test_strip_names(fast_writer):
@@ -547,10 +564,10 @@ def test_latex_units():
     back on the **unit** attribute of **Column** if the supplied
     **latexdict** does not specify units.
     """
-    t = table.Table([table.Column(name='date', data=['a','b']),
-               table.Column(name='NUV exp.time', data=[1,2])])
+    t = table.Table([table.Column(name='date', data=['a', 'b']),
+               table.Column(name='NUV exp.time', data=[1, 2])])
     latexdict = copy.deepcopy(ascii.latexdicts['AA'])
-    latexdict['units'] = {'NUV exp.time':'s'}
+    latexdict['units'] = {'NUV exp.time': 's'}
     out = StringIO()
     expected = '''\
 \\begin{table}{cc}
@@ -601,17 +618,17 @@ def test_byte_string_output(fast_writer):
 
 
 @pytest.mark.parametrize('names, include_names, exclude_names, formats, issues_warning', [
-    (['x', 'y'], ['x', 'y'], ['x'], {'x':'%d', 'y':'%f'}, True),
-    (['x', 'y'], ['x', 'y'], ['y'], {'x':'%d'}, False),
-    (['x', 'y'], ['x', 'y'], [], {'p':'%d', 'q':'%f'}, True),
-    (['x', 'y'], ['x', 'y'], [], {'z':'%f'}, True),
-    (['x', 'y'], ['x', 'y'], [], {'x':'%d'}, False),
-    (['x', 'y'], ['x', 'y'], [], {'p':'%d', 'y':'%f'}, True),
+    (['x', 'y'], ['x', 'y'], ['x'], {'x': '%d', 'y': '%f'}, True),
+    (['x', 'y'], ['x', 'y'], ['y'], {'x': '%d'}, False),
+    (['x', 'y'], ['x', 'y'], [], {'p': '%d', 'q': '%f'}, True),
+    (['x', 'y'], ['x', 'y'], [], {'z': '%f'}, True),
+    (['x', 'y'], ['x', 'y'], [], {'x': '%d'}, False),
+    (['x', 'y'], ['x', 'y'], [], {'p': '%d', 'y': '%f'}, True),
     (['x', 'y'], ['x', 'y'], [], {}, False)
 ])
 def test_names_with_formats(names, include_names, exclude_names, formats, issues_warning):
     """Test for #4508."""
-    t = table.Table([[1,2,3],[4.1,5.2,6.3]])
+    t = table.Table([[1, 2, 3], [4.1, 5.2, 6.3]])
     with catch_warnings(AstropyWarning) as ASwarn:
         out = StringIO()
         ascii.write(t, out, names=names, include_names=include_names,
@@ -620,17 +637,17 @@ def test_names_with_formats(names, include_names, exclude_names, formats, issues
 
 
 @pytest.mark.parametrize('formats, issues_warning', [
-    ({'p':'%d', 'y':'%f'}, True),
-    ({'x':'%d', 'y':'%f'}, True),
-    ({'z':'%f'}, True),
+    ({'p': '%d', 'y': '%f'}, True),
+    ({'x': '%d', 'y': '%f'}, True),
+    ({'z': '%f'}, True),
     ({}, False)
 ])
 def test_columns_names_with_formats(formats, issues_warning):
     """Test the fix for #4508."""
-    t = table.Table([[1,2,3],[4.1,5.2,6.3]])
+    t = table.Table([[1, 2, 3], [4.1, 5.2, 6.3]])
     with catch_warnings(AstropyWarning) as ASwarn:
         out = StringIO()
-        ascii.write(t, out,formats=formats)
+        ascii.write(t, out, formats=formats)
     assert (issues_warning == (len(ASwarn) == 1))
 
 
@@ -649,16 +666,19 @@ def test_write_quoted_empty_field(fast_writer):
     ascii.write(t, out, fast_writer=fast_writer, delimiter=',')
     assert out.getvalue().splitlines() == ['col0,col1', 'Hello,', ',']
 
+
 @pytest.mark.parametrize("format", ['ascii', 'csv', 'html', 'latex',
                                     'ascii.fixed_width', 'html'])
 @pytest.mark.parametrize("fast_writer", [True, False])
 def test_write_overwrite_ascii(format, fast_writer, tmpdir):
     """Test overwrite argument for various ASCII writers"""
     filename = tmpdir.join("table-tmp.dat").strpath
-    open(filename, 'w').close()
+    with open(filename, 'w'):
+        # create empty file
+        pass
     t = table.Table([['Hello', ''], ['', '']], dtype=['S10', 'S10'])
 
-    with pytest.raises(IOError) as err:
+    with pytest.raises(OSError) as err:
         t.write(filename, overwrite=False, format=format,
                 fast_writer=fast_writer)
     assert str(err.value).endswith('already exists')
@@ -685,6 +705,8 @@ def test_write_overwrite_ascii(format, fast_writer, tmpdir):
 
 fmt_name_classes = list(chain(ascii.core.FAST_CLASSES.items(),
                               ascii.core.FORMAT_CLASSES.items()))
+
+
 @pytest.mark.parametrize("fmt_name_class", fmt_name_classes)
 def test_roundtrip_masked(fmt_name_class):
     """

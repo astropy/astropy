@@ -8,9 +8,9 @@ machines and we want the tests to pass there.
 TODO: check if these tests pass on 32-bit machines and implement
 higher-precision checks on 64-bit machines.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ....tests.helper import pytest, catch_warnings
+
+import pytest
+
 from .... import units as u
 from ....time import Time
 from ...builtin_frames import AltAz

@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 
+import pytest
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -9,7 +10,6 @@ from matplotlib import rc_context
 
 from .... import units as u
 from ....io import fits
-from ....tests.helper import pytest, remote_data
 from ....wcs import WCS
 from ....coordinates import SkyCoord
 
@@ -17,9 +17,10 @@ from ..patches import SphericalCircle
 from .. import WCSAxes
 from . import datasets
 from ....tests.image_tests import IMAGE_REFERENCE_DIR
+from ..frame import EllipticalFrame
 
 
-class BaseImageTests(object):
+class BaseImageTests:
 
     @classmethod
     def setup_class(cls):
@@ -44,10 +45,9 @@ class BaseImageTests(object):
 
 class TestBasic(BaseImageTests):
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='image_plot.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_image_plot(self):
         # Test for plotting image and also setting values of ticks
         fig = plt.figure(figsize=(6, 6))
@@ -57,10 +57,36 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_ticks([-0.30, 0., 0.20] * u.degree, size=5, width=1)
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='contour_overlay.png',
-                                   tolerance=1.5)
+                                   tolerance=1.5, style={})
+    @pytest.mark.parametrize('axisbelow', [True, False, 'line'])
+    def test_axisbelow(self, axisbelow):
+        # Test that tick marks, labels, and gridlines are drawn with the
+        # correct zorder controlled by the axisbelow property.
+        fig = plt.figure(figsize=(6, 6))
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=WCS(self.msx_header), aspect='equal')
+        ax.set_axisbelow(axisbelow)
+        ax.set_xlim(-0.5, 148.5)
+        ax.set_ylim(-0.5, 148.5)
+        ax.coords[0].set_ticks([-0.30, 0., 0.20] * u.degree, size=5, width=1)
+        ax.grid()
+
+        # Add an image (default zorder=0).
+        ax.imshow(np.zeros((64, 64)))
+
+        # Add a patch (default zorder=1).
+        r = Rectangle((30., 50.), 60., 50., facecolor='green', edgecolor='red')
+        ax.add_patch(r)
+
+        # Add a line (default zorder=2).
+        ax.plot([32, 128], [32, 128], linewidth=10)
+
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
     def test_contour_overlay(self):
         # Test for overlaying contours on images
         hdu_msx = datasets.fetch_msx_hdu()
@@ -81,12 +107,48 @@ class TestBasic(BaseImageTests):
         ax.set_xlim(0., 720.)
         ax.set_ylim(0., 720.)
 
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
+
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='overlay_features_image.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
+    def test_contourf_overlay(self):
+        # Test for overlaying contours on images
+        hdu_msx = datasets.fetch_msx_hdu()
+        wcs_msx = WCS(self.msx_header)
+
+        fig = plt.figure(figsize=(6, 6))
+        ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],
+                          projection=WCS(self.twoMASS_k_header),
+                          aspect='equal')
+        ax.set_xlim(-0.5, 720.5)
+        ax.set_ylim(-0.5, 720.5)
+
+        # Overplot contour
+        ax.contourf(hdu_msx.data, transform=ax.get_transform(wcs_msx),
+                    levels=[2.5e-5, 5e-5, 1.e-4])
+        ax.coords[0].set_ticks(size=5, width=1)
+        ax.coords[1].set_ticks(size=5, width=1)
+        ax.set_xlim(0., 720.)
+        ax.set_ylim(0., 720.)
+
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
+
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
     def test_overlay_features_image(self):
 
         # Test for overlaying grid, changing format of ticks, setting spacing
@@ -122,10 +184,9 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='curvlinear_grid_patches_image.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_curvilinear_grid_patches_image(self):
 
         # Overlay curvilinear grid and patches on image
@@ -156,10 +217,9 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='cube_slice_image.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_cube_slice_image(self):
 
         # Test for cube slicing
@@ -174,20 +234,20 @@ class TestBasic(BaseImageTests):
 
         ax.coords[2].set_axislabel('Velocity m/s')
 
-        ax.coords[1].set_ticks(spacing=0.2 * u.deg, width=1,
-                               exclude_overlapping=True)
-        ax.coords[2].set_ticks(spacing=400 * u.m / u.s, width=1,
-                               exclude_overlapping=True)
+        ax.coords[1].set_ticks(spacing=0.2 * u.deg, width=1)
+        ax.coords[2].set_ticks(spacing=400 * u.m / u.s, width=1)
+
+        ax.coords[1].set_ticklabel(exclude_overlapping=True)
+        ax.coords[2].set_ticklabel(exclude_overlapping=True)
 
         ax.coords[1].grid(grid_type='contours', color='red', linestyle='solid')
         ax.coords[2].grid(grid_type='contours', color='red', linestyle='solid')
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='cube_slice_image_lonlat.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_cube_slice_image_lonlat(self):
 
         # Test for cube slicing. Here we test with longitude and latitude since
@@ -204,10 +264,17 @@ class TestBasic(BaseImageTests):
         ax.coords[0].grid(grid_type='contours', color='blue', linestyle='solid')
         ax.coords[1].grid(grid_type='contours', color='red', linestyle='solid')
 
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
+
         return fig
 
-    @remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR, tolerance=1.5)
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
     def test_plot_coord(self):
         fig = plt.figure(figsize=(6, 6))
         ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],
@@ -219,10 +286,17 @@ class TestBasic(BaseImageTests):
         c = SkyCoord(266 * u.deg, -29 * u.deg)
         ax.plot_coord(c, 'o')
 
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
+
         return fig
 
-    @remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR, tolerance=1.5)
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
     def test_plot_line(self):
         fig = plt.figure(figsize=(6, 6))
         ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],
@@ -234,12 +308,17 @@ class TestBasic(BaseImageTests):
         c = SkyCoord([266, 266.8] * u.deg, [-29, -28.9] * u.deg)
         ax.plot_coord(c)
 
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
+
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='changed_axis_units.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_changed_axis_units(self):
         # Test to see if changing the units of axis works
         fig = plt.figure()
@@ -251,15 +330,16 @@ class TestBasic(BaseImageTests):
         ax.coords[2].set_major_formatter('x.xx')
         ax.coords[2].set_format_unit(u.km / u.s)
         ax.coords[2].set_axislabel('Velocity km/s')
-        ax.coords[1].set_ticks(width=1, exclude_overlapping=True)
-        ax.coords[2].set_ticks(width=1, exclude_overlapping=True)
+        ax.coords[1].set_ticks(width=1)
+        ax.coords[2].set_ticks(width=1)
+        ax.coords[1].set_ticklabel(exclude_overlapping=True)
+        ax.coords[2].set_ticklabel(exclude_overlapping=True)
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='minor_ticks_image.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_minor_ticks(self):
         # Test for drawing minor ticks
         fig = plt.figure()
@@ -268,8 +348,8 @@ class TestBasic(BaseImageTests):
                           slices=(50, 'y', 'x'), aspect='equal')
         ax.set_xlim(-0.5, 52.5)
         ax.set_ylim(-0.5, 106.5)
-        ax.coords[2].set_ticks(exclude_overlapping=True)
-        ax.coords[1].set_ticks(exclude_overlapping=True)
+        ax.coords[2].set_ticklabel(exclude_overlapping=True)
+        ax.coords[1].set_ticklabel(exclude_overlapping=True)
         ax.coords[2].display_minor_ticks(True)
         ax.coords[1].display_minor_ticks(True)
         ax.coords[2].set_minor_frequency(3)
@@ -277,10 +357,9 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='ticks_labels.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_ticks_labels(self):
         fig = plt.figure(figsize=(6, 6))
         ax = WCSAxes(fig, [0.1, 0.1, 0.7, 0.7], wcs=None)
@@ -307,34 +386,54 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='rcparams.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_rcparams(self):
-        # Test default style (matplotlib.rcParams) for ticks and gridlines
+
+        # Test custom rcParams
+
         with rc_context({
+
+                'axes.labelcolor': 'purple',
+                'axes.labelsize': 14,
+                'axes.labelweight': 'bold',
+
+                'axes.linewidth': 3,
+                'axes.facecolor': '0.5',
+                'axes.edgecolor': 'green',
+
                 'xtick.color': 'red',
+                'xtick.labelsize': 8,
+                'xtick.direction': 'in',
+
+                'xtick.minor.visible': True,
+                'xtick.minor.size': 5,
+
                 'xtick.major.size': 20,
-                'xtick.major.width': 2,
+                'xtick.major.width': 3,
+                'xtick.major.pad': 10,
+
                 'grid.color': 'blue',
                 'grid.linestyle': ':',
                 'grid.linewidth': 1,
                 'grid.alpha': 0.5}):
+
             fig = plt.figure(figsize=(6, 6))
-            ax = WCSAxes(fig, [0.1, 0.1, 0.7, 0.7], wcs=None)
+            ax = WCSAxes(fig, [0.15, 0.1, 0.7, 0.7], wcs=None)
             fig.add_axes(ax)
             ax.set_xlim(-0.5, 2)
             ax.set_ylim(-0.5, 2)
             ax.grid()
-            ax.coords[0].set_ticks(exclude_overlapping=True)
-            ax.coords[1].set_ticks(exclude_overlapping=True)
+            ax.set_xlabel('X label')
+            ax.set_ylabel('Y label')
+            ax.coords[0].set_ticklabel(exclude_overlapping=True)
+            ax.coords[1].set_ticklabel(exclude_overlapping=True)
             return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='tick_angles.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_tick_angles(self):
         # Test that tick marks point in the correct direction, even when the
         # axes limits extend only over a few FITS pixels. Addresses #45, #46.
@@ -352,12 +451,16 @@ class TestBasic(BaseImageTests):
         ax.grid(color='gray', alpha=0.5, linestyle='solid')
         ax.coords['ra'].set_ticks(color='red', size=20)
         ax.coords['dec'].set_ticks(color='red', size=20)
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='tick_angles_non_square_axes.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_tick_angles_non_square_axes(self):
         # Test that tick marks point in the correct direction, even when the
         # axes limits extend only over a few FITS pixels, and the axes are
@@ -376,12 +479,16 @@ class TestBasic(BaseImageTests):
         ax.grid(color='gray', alpha=0.5, linestyle='solid')
         ax.coords['ra'].set_ticks(color='red', size=20)
         ax.coords['dec'].set_ticks(color='red', size=20)
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='set_coord_type.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_set_coord_type(self):
         # Test for setting coord_type
         fig = plt.figure(figsize=(3, 3))
@@ -394,14 +501,13 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_coord_type('scalar')
         ax.coords[0].set_major_formatter('x.xxx')
         ax.coords[1].set_major_formatter('x.xxx')
-        ax.coords[0].set_ticks(exclude_overlapping=True)
-        ax.coords[1].set_ticks(exclude_overlapping=True)
+        ax.coords[0].set_ticklabel(exclude_overlapping=True)
+        ax.coords[1].set_ticklabel(exclude_overlapping=True)
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='test_ticks_regression_1.png',
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_ticks_regression(self):
         # Regression test for a bug that caused ticks aligned exactly with a
         # sampled frame point to not appear. This also checks that tick labels
@@ -423,11 +529,10 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_ticklabel_position('all')
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   filename='test_axislabels_regression.png',
                                    savefig_kwargs={'bbox_inches': 'tight'},
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_axislabels_regression(self):
         # Regression test for a bug that meant that if tick labels were made
         # invisible with ``set_visible(False)``, they were still added to the
@@ -438,13 +543,14 @@ class TestBasic(BaseImageTests):
         ax = fig.add_axes([0.25, 0.25, 0.5, 0.5], projection=wcs, aspect='auto')
         ax.coords[0].set_axislabel("Label 1")
         ax.coords[1].set_axislabel("Label 2")
+        ax.coords[1].set_axislabel_visibility_rule('always')
         ax.coords[1].ticklabels.set_visible(False)
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    savefig_kwargs={'bbox_inches': 'tight'},
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_noncelestial_angular(self, tmpdir):
         # Regression test for a bug that meant that when passing a WCS that had
         # angular axes and using set_coord_type to set the coordinates to
@@ -468,20 +574,22 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_major_formatter('s.s')
         ax.coords[1].set_major_formatter('s.s')
 
+        ax.coords[0].set_format_unit(u.arcsec, show_decimal_unit=False)
+        ax.coords[1].set_format_unit(u.arcsec, show_decimal_unit=False)
+
         ax.grid(color='white', ls='solid')
 
         # Force drawing (needed for format_coord)
         fig.savefig(tmpdir.join('nothing').strpath)
 
-        # TODO: the formatted string should show units
-        assert ax.format_coord(512, 512) == "513.0 513.0 (world)"
+        assert ax.format_coord(512, 512) == '513.0 513.0 (world)'
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    savefig_kwargs={'bbox_inches': 'tight'},
-                                   tolerance=1.5)
+                                   tolerance=0, style={})
     def test_patches_distortion(self, tmpdir):
 
         # Check how patches get distorted (and make sure that scatter markers
@@ -520,5 +628,105 @@ class TestBasic(BaseImageTests):
 
         ax.coords[0].set_ticklabel_visible(False)
         ax.coords[1].set_ticklabel_visible(False)
+
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
+    def test_elliptical_frame(self):
+
+        # Regression test for a bug (astropy/astropy#6063) that caused labels to
+        # be incorrectly simplified.
+
+        wcs = WCS(self.msx_header)
+        fig = plt.figure(figsize=(5, 3))
+        ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, frame_class=EllipticalFrame)
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
+    def test_hms_labels(self):
+        # This tests the apparance of the hms superscripts in tick labels
+        fig = plt.figure(figsize=(3, 3))
+        ax = fig.add_axes([0.3, 0.2, 0.65, 0.6],
+                          projection=WCS(self.twoMASS_k_header),
+                          aspect='equal')
+        ax.set_xlim(-0.5, 0.5)
+        ax.set_ylim(-0.5, 0.5)
+        ax.coords[0].set_ticks(spacing=0.2 * 15 * u.arcsec)
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={'text.usetex': True})
+    def test_latex_labels(self):
+        fig = plt.figure(figsize=(3, 3))
+        ax = fig.add_axes([0.3, 0.2, 0.65, 0.6],
+                          projection=WCS(self.twoMASS_k_header),
+                          aspect='equal')
+        ax.set_xlim(-0.5, 0.5)
+        ax.set_ylim(-0.5, 0.5)
+        ax.coords[0].set_ticks(spacing=0.2 * 15 * u.arcsec)
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
+    def test_tick_params(self):
+
+        # This is a test to make sure that tick_params works correctly. We try
+        # and test as much as possible with a single reference image.
+
+        wcs = WCS()
+        wcs.wcs.ctype = ['lon', 'lat']
+
+        fig = plt.figure(figsize=(6, 6))
+
+        # The first subplot tests:
+        # - that plt.tick_params works
+        # - that by default both axes are changed
+        # - changing the tick direction and appearance, the label appearance and padding
+        ax = fig.add_subplot(2, 2, 1, projection=wcs)
+        plt.tick_params(direction='in', length=20, width=5, pad=6, labelsize=6,
+                        color='red', labelcolor='blue')
+
+        # The second subplot tests:
+        # - that specifying grid parameters doesn't actually cause the grid to
+        #   be shown (as expected)
+        # - that axis= can be given integer coordinates or their string name
+        # - that the tick positioning works (bottom/left/top/right)
+        # Make sure that we can pass things that can index coords
+        ax = fig.add_subplot(2, 2, 2, projection=wcs)
+        plt.tick_params(axis=0, direction='in', length=20, width=5, pad=4, labelsize=6,
+                        color='red', labelcolor='blue', bottom=True, grid_color='purple')
+        plt.tick_params(axis='lat', direction='out', labelsize=8,
+                        color='blue', labelcolor='purple', left=True, right=True,
+                        grid_color='red')
+
+        # The third subplot tests:
+        # - that ax.tick_params works
+        # - that the grid has the correct settings once shown explicitly
+        # - that we can use axis='x' and axis='y'
+        ax = fig.add_subplot(2, 2, 3, projection=wcs)
+        ax.tick_params(axis='x', direction='in', length=20, width=5, pad=20, labelsize=6,
+                       color='red', labelcolor='blue', bottom=True,
+                       grid_color='purple')
+        ax.tick_params(axis='y', direction='out', labelsize=8,
+                       color='blue', labelcolor='purple', left=True, right=True,
+                       grid_color='red')
+        plt.grid()
+
+        # The final subplot tests:
+        # - that we can use tick_params on a specific coordinate
+        # - that the label positioning can be customized
+        # - that the colors argument works
+        # - that which='minor' works
+        ax = fig.add_subplot(2, 2, 4, projection=wcs)
+        ax.coords[0].tick_params(length=4, pad=2, colors='orange', labelbottom=True,
+                                 labeltop=True, labelsize=10)
+        ax.coords[1].display_minor_ticks(True)
+        ax.coords[1].tick_params(which='minor', length=6)
 
         return fig
