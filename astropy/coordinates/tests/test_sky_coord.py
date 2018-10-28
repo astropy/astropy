@@ -632,10 +632,13 @@ def test_directional_offset_by():
                     SkyCoord(np.linspace(0, 359, npoints), np.linspace(-90, 90, npoints),
                              unit=u.deg, frame='galactic')]:
             # Find the displacement from sc1 to sc2,
-            posang,sep = sc1.directional_offsets_to(sc2)
+            posang = sc1.position_angle(sc2)
+            sep = sc1.separation(sc2)
+
             # then do the offset from sc1 and verify that you are at sc2
             sc2a = sc1.directional_offset_by(position_angle=posang, separation=sep)
             assert np.max(np.abs(sc2.separation(sc2a).arcsec)) < 1e-3
+
     # Specific test cases
     # Go over the North pole a little way, and
     # over the South pole a long way, to get to same spot
@@ -647,6 +650,7 @@ def test_directional_offset_by():
         # and that >360deg is supported
         sc2 = sc1.directional_offset_by(posang, 2*sep)
         assert allclose([sc2.ra.degree, sc2.dec.degree], [180, 87])
+
     # Verify that a separation of 180 deg in any direction gets to the antipode
     # and 360 deg returns to start
     sc1 = SkyCoord(10*u.deg, 47*u.deg)
@@ -655,6 +659,7 @@ def test_directional_offset_by():
         assert allclose([sc2.ra.degree, sc2.dec.degree], [190, -47])
         sc2 = sc1.directional_offset_by(posang, 360*u.deg)
         assert allclose([sc2.ra.degree, sc2.dec.degree], [10, 47])
+
     # Verify that a 90 degree posang, which means East
     # corresponds to an increase in RA, by ~separation/cos(dec) and
     # a slight convergence to equator
@@ -662,6 +667,7 @@ def test_directional_offset_by():
     sc2 = sc1.directional_offset_by(90*u.deg, 1.0*u.deg)
     assert 11.9 < sc2.ra.degree < 12.0
     assert 59.9 < sc2.dec.degree < 60.0
+
 
 def test_table_to_coord():
     """
