@@ -81,19 +81,23 @@ def test_knuth_histogram(N=1000, rseed=0):
     assert (len(counts) == len(bins) - 1)
 
 
-def test_histogram(N=1000, rseed=0):
-    rng = np.random.RandomState(rseed)
-    x = rng.randn(N)
-
-    for bins in [30, np.linspace(-5, 5, 31),
-                 'scott', 'freedman', 'blocks']:
-        counts, bins = histogram(x, bins)
-        assert (counts.sum() == len(x))
-        assert (len(counts) == len(bins) - 1)
+_bin_types_to_test = [30, 'scott', 'freedman', 'blocks', 'knuth']
 
 
 @pytest.mark.parametrize('bin_type',
-                         ['scott', 'freedman', 'blocks', 'knuth', 10])
+                         _bin_types_to_test + [np.linspace(-5, 5, 31)])
+def test_histogram(bin_type, N=1000, rseed=0):
+    rng = np.random.RandomState(rseed)
+    x = rng.randn(N)
+
+    counts, bins = histogram(x, bin_type)
+    assert (counts.sum() == len(x))
+    assert (len(counts) == len(bins) - 1)
+
+
+# Don't include a list of bins as a bin_type here because the effect
+# of range is different in that case
+@pytest.mark.parametrize('bin_type', _bin_types_to_test)
 def test_histogram_range(bin_type, N=1000, rseed=0):
     # Regression test for #8010
     rng = np.random.RandomState(rseed)
@@ -103,6 +107,18 @@ def test_histogram_range(bin_type, N=1000, rseed=0):
     bins = calculate_bin_edges(x, bin_type, range=range)
     assert bins.max() == range[1]
     assert bins.min() == range[0]
+
+
+def test_histogram_range_with_bins_list(N=1000, rseed=0):
+    # The expected result when the input bins is a list is
+    # the same list on output.
+    rng = np.random.RandomState(rseed)
+    x = rng.randn(N)
+    range = (0.1, 0.8)
+
+    input_bins = np.linspace(-5, 5, 31)
+    bins = calculate_bin_edges(x, input_bins, range=range)
+    assert all(bins == input_bins)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

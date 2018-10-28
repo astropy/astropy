@@ -30,8 +30,9 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
         `~astropy.stats.histogram` for a description of each method.
 
     range : tuple or None (optional)
-        the minimum and maximum range for the histogram.  If not specified,
-        it will be (x.min(), x.max())
+        The minimum and maximum range for the histogram.  If not specified,
+        it will be (x.min(), x.max()). However, if bins is a list it is
+        returned unmodified regardless of the range argument.
 
     weights : array_like, optional
         An array the same shape as ``a``. If given, the histogram accumulates
@@ -64,6 +65,17 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
             da, bins = freedman_bin_width(a, True)
         else:
             raise ValueError("unrecognized bin code: '{}'".format(bins))
+
+        if range:
+            # Check that the upper and lower edges are what was requested.
+            # The current implementation of the bin width estimators does not
+            # guarantee this, it only ensures that data outside the range is
+            # excluded from calculation of the bin widths.
+            if bins[0] != range[0]:
+                bins[0] = range[0]
+            if bins[-1] != range[1]:
+                bins[-1] = range[1]
+
     elif np.ndim(bins) == 0:
         # Number of bins was given
         try:
@@ -80,16 +92,6 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
                 lower = a.min()
                 upper = a.max()
             bins = np.linspace(lower, upper, bins + 1, endpoint=True)
-
-    if range:
-        # Check that the upper and lower edges are what was requested.
-        # The current implementation of the bin width estimators does not
-        # guarantee this, it only ensures that data outside the range is
-        # excluded from calculation of the bin widths.
-        if bins[0] != range[0]:
-            bins[0] = range[0]
-        if bins[-1] != range[1]:
-            bins[-1] = range[1]
 
     return bins
 
