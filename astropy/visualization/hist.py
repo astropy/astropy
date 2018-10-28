@@ -3,7 +3,7 @@
 
 import numpy as np
 from inspect import signature
-from ..stats.histogram import _calculate_bin_edges
+from ..stats.histogram import calculate_bin_edges
 
 __all__ = ['hist']
 
@@ -59,7 +59,7 @@ def hist(x, bins=10, ax=None, max_bins=1e5, **kwargs):
     # the actual histogram.
     range = kwargs.get('range', None)
     weights = kwargs.get('weights', None)
-    bins = _calculate_bin_edges(x, bins, range=range, weights=weights)
+    bins = calculate_bin_edges(x, bins, range=range, weights=weights)
 
     if len(bins) > max_bins:
         raise ValueError('Histogram has too many bins: '
