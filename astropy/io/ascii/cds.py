@@ -8,18 +8,17 @@ cds.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import fnmatch
 import itertools
 import re
 import os
+from contextlib import suppress
 
 from . import core
 from . import fixedwidth
 
-from ...utils.compat import suppress
-from ...extern.six.moves import range
+from ...units import Unit
 
 
 __doctest_skip__ = ['*']
@@ -40,7 +39,6 @@ class CdsHeader(core.BaseHeader):
             raise ValueError('Unrecognized CDS format "{}" for column "{}"'.format(
                 col.raw_type, col.name))
         return match.group(1)
-
 
     def get_cols(self, lines):
         """
@@ -95,8 +93,8 @@ class CdsHeader(core.BaseHeader):
         for i_col_def, line in enumerate(lines):
             if re.match(r'Byte-by-byte Description', line, re.IGNORECASE):
                 found_line = True
-            elif found_line: # First line after list of file descriptions
-                i_col_def -= 1 # Set i_col_def to last description line
+            elif found_line:  # First line after list of file descriptions
+                i_col_def -= 1  # Set i_col_def to last description line
                 break
 
         re_col_def = re.compile(r"""\s*
@@ -118,9 +116,11 @@ class CdsHeader(core.BaseHeader):
                 col.start = int(re.sub(r'[-\s]', '',
                                        match.group('start') or match.group('end'))) - 1
                 col.end = int(match.group('end'))
-                col.unit = match.group('units')
-                if col.unit == '---':
+                unit = match.group('units')
+                if unit == '---':
                     col.unit = None  # "---" is the marker for no unit in CDS table
+                else:
+                    col.unit = Unit(unit, format='cds', parse_strict='warn')
                 col.description = (match.group('descr') or '').strip()
                 col.raw_type = match.group('format')
                 col.type = self.get_col_type(col)
@@ -128,7 +128,7 @@ class CdsHeader(core.BaseHeader):
                 match = re.match(
                     r'\? (?P<equal> =)? (?P<nullval> \S*) (\s+ (?P<descriptiontext> \S.*))?', col.description, re.VERBOSE)
                 if match:
-                    col.description=(match.group('descriptiontext') or '').strip()
+                    col.description = (match.group('descriptiontext') or '').strip()
                     if issubclass(col.type, core.FloatType):
                         fillval = 'nan'
                     else:
@@ -287,7 +287,7 @@ class Cds(core.BaseReader):
     header_class = CdsHeader
 
     def __init__(self, readme=None):
-        super(Cds, self).__init__()
+        super().__init__()
         self.header.readme = readme
 
     def write(self, table=None):
@@ -317,7 +317,7 @@ class Cds(core.BaseReader):
             for data_start in range(len(lines)):
                 self.data.start_line = data_start
                 with suppress(Exception):
-                    table = super(Cds, self).read(lines)
+                    table = super().read(lines)
                     return table
         else:
-            return super(Cds, self).read(table)
+            return super().read(table)

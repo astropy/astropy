@@ -4,9 +4,6 @@
 Handles the "FITS" unit format.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ...extern.six.moves import zip
 
 import numpy as np
 
@@ -22,7 +19,7 @@ class Fits(generic.Generic):
     The FITS standard unit format.
 
     This supports the format defined in the Units section of the `FITS
-    Standard <http://fits.gsfc.nasa.gov/fits_standard.html>`_.
+    Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`_.
     """
 
     name = 'fits'
@@ -33,13 +30,21 @@ class Fits(generic.Generic):
         names = {}
         deprecated_names = set()
 
+        # Note about deprecated units: before v2.0, several units were treated
+        # as deprecated (G, barn, erg, Angstrom, angstrom). However, in the
+        # FITS 3.0 standard, these units are explicitly listed in the allowed
+        # units, but deprecated in the IAU Style Manual (McNally 1988). So
+        # after discussion (https://github.com/astropy/astropy/issues/2933),
+        # these units have been removed from the lists of deprecated units and
+        # bases.
+
         bases = [
             'm', 'g', 's', 'rad', 'sr', 'K', 'A', 'mol', 'cd',
             'Hz', 'J', 'W', 'V', 'N', 'Pa', 'C', 'Ohm', 'S',
             'F', 'Wb', 'T', 'H', 'lm', 'lx', 'a', 'yr', 'eV',
-            'pc', 'Jy', 'mag', 'R', 'bit', 'byte'
+            'pc', 'Jy', 'mag', 'R', 'bit', 'byte', 'G', 'barn'
         ]
-        deprecated_bases = ['G', 'barn']
+        deprecated_bases = []
         prefixes = [
             'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', 'c', 'd',
             '', 'da', 'h', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
@@ -63,9 +68,9 @@ class Fits(generic.Generic):
             'deg', 'arcmin', 'arcsec', 'mas', 'min', 'h', 'd', 'Ry',
             'solMass', 'u', 'solLum', 'solRad', 'AU', 'lyr', 'count',
             'ct', 'photon', 'ph', 'pixel', 'pix', 'D', 'Sun', 'chan',
-            'bin', 'voxel', 'adu', 'beam'
+            'bin', 'voxel', 'adu', 'beam', 'erg', 'Angstrom', 'angstrom'
         ]
-        deprecated_units = ['erg', 'Angstrom', 'angstrom']
+        deprecated_units = []
 
         for unit in simple_units + deprecated_units:
             names[unit] = getattr(u, unit)
@@ -145,7 +150,7 @@ class Fits(generic.Generic):
 
     @classmethod
     def parse(cls, s, debug=False):
-        result = super(Fits, cls).parse(s, debug)
+        result = super().parse(s, debug)
         if hasattr(result, 'function_unit'):
             raise ValueError("Function units are not yet supported for "
                              "FITS units.")

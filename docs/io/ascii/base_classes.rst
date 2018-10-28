@@ -3,7 +3,7 @@
 .. _base_class_elements:
 
 Base class elements
-----------------------------
+****************************
 
 The key elements in :mod:`astropy.io.ascii` are:
 

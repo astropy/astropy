@@ -1,24 +1,22 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ..extern import six
-from ..extern.six.moves import zip
 
 import platform
 import warnings
 
 import numpy as np
-from .index import get_index
+from .index import get_index_by_names
 
 from ..utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['TableGroups', 'ColumnGroups']
 
+
 def table_group_by(table, keys):
     # index copies are unnecessary and slow down _table_group_by
     with table.index_mode('discard_on_copy'):
         return _table_group_by(table, keys)
+
 
 def _table_group_by(table, keys):
     """
@@ -36,8 +34,10 @@ def _table_group_by(table, keys):
     grouped_table : Table object with groups attr set accordingly
     """
     from .table import Table
+    from .serialize import _represent_mixins_as_columns
+
     # Pre-convert string to tuple of strings, or Table to the underlying structured array
-    if isinstance(keys, six.string_types):
+    if isinstance(keys, str):
         keys = (keys,)
 
     if isinstance(keys, (list, tuple)):
@@ -47,25 +47,33 @@ def _table_group_by(table, keys):
             if table.masked and np.any(table[name].mask):
                 raise ValueError('Missing values in key column {0!r} are not allowed'.format(name))
 
-        keys = tuple(keys)
-        table_keys = table[keys]
-        grouped_by_table_cols = True  # Grouping keys are columns from the table being grouped
+        # Make a column slice of the table without copying
+        table_keys = table.__class__([table[key] for key in keys], copy=False)
+
+        # If available get a pre-existing index for these columns
+        table_index = get_index_by_names(table, keys)
+        grouped_by_table_cols = True
 
     elif isinstance(keys, (np.ndarray, Table)):
         table_keys = keys
         if len(table_keys) != len(table):
             raise ValueError('Input keys array length {0} does not match table length {1}'
                              .format(len(table_keys), len(table)))
-        grouped_by_table_cols = False  # Grouping key(s) are external
+        table_index = None
+        grouped_by_table_cols = False
 
     else:
-        raise TypeError('Keys input must be string, list, tuple or numpy array, but got {0}'
+        raise TypeError('Keys input must be string, list, tuple, Table or numpy array, but got {0}'
                         .format(type(keys)))
 
+    # If there is not already an available index and table_keys is a Table then ensure
+    # that all cols (including mixins) are in a form that can sorted with the code below.
+    if not table_index and isinstance(table_keys, Table):
+        table_keys = _represent_mixins_as_columns(table_keys)
+
+    # Get the argsort index `idx_sort`, accounting for particulars
     try:
         # take advantage of index internal sort if possible
-        table_index = get_index(table, table_keys) if \
-                      isinstance(table_keys, Table) else None
         if table_index is not None:
             idx_sort = table_index.sorted_data()
         else:
@@ -77,6 +85,8 @@ def _table_group_by(table, keys):
         # sort by default, nor does Windows, while Linux does (or appears to).
         idx_sort = table_keys.argsort()
         stable_sort = platform.system() not in ('Darwin', 'Windows')
+
+    # Finally do the actual sort of table_keys values
     table_keys = table_keys[idx_sort]
 
     # Get all keys
@@ -116,8 +126,10 @@ def column_group_by(column, keys):
     grouped_column : Column object with groups attr set accordingly
     """
     from .table import Table
+    from .serialize import _represent_mixins_as_columns
 
     if isinstance(keys, Table):
+        keys = _represent_mixins_as_columns(keys)
         keys = keys.as_array()
 
     if not isinstance(keys, np.ndarray):
@@ -128,17 +140,7 @@ def column_group_by(column, keys):
         raise ValueError('Input keys array length {0} does not match column length {1}'
                          .format(len(keys), len(column)))
 
-    # take advantage of table or column indices, if possible
-    index = None
-    if isinstance(keys, Table):
-        index = get_index(keys)
-    elif hasattr(keys, 'indices') and keys.indices:
-        index = keys.indices[0]
-
-    if index is not None:
-        idx_sort = index.sorted_data()
-    else:
-        idx_sort = keys.argsort()
+    idx_sort = keys.argsort()
     keys = keys[idx_sort]
 
     # Get all keys
@@ -153,7 +155,7 @@ def column_group_by(column, keys):
     return out
 
 
-class BaseGroups(object):
+class BaseGroups:
     """
     A class to represent groups within a table of heterogeneous data.
 
@@ -193,7 +195,7 @@ class BaseGroups(object):
             except Exception:
                 raise TypeError('Index item for groups attribute must be a slice, '
                                 'numpy mask or int array')
-            mask = np.zeros(len(parent), dtype=np.bool)
+            mask = np.zeros(len(parent), dtype=bool)
             # Is there a way to vectorize this in numpy?
             for i0, i1 in zip(i0s, i1s):
                 mask[i0:i1] = True
@@ -295,7 +297,7 @@ class ColumnGroups(BaseGroups):
         out : Column
             New column with the aggregated rows.
         """
-        mask = np.empty(len(self), dtype=np.bool)
+        mask = np.empty(len(self), dtype=bool)
         for i, group_column in enumerate(self):
             mask[i] = func(group_column)
 
@@ -347,7 +349,7 @@ class TableGroups(BaseGroups):
         out_cols = []
         parent_table = self.parent_table
 
-        for col in six.itervalues(parent_table.columns):
+        for col in parent_table.columns.values():
             # For key columns just pick off first in each group since they are identical
             if col.info.name in self.key_colnames:
                 new_col = col.take(i0s)
@@ -355,7 +357,7 @@ class TableGroups(BaseGroups):
                 try:
                     new_col = col.groups.aggregate(func)
                 except TypeError as err:
-                    warnings.warn(six.text_type(err), AstropyUserWarning)
+                    warnings.warn(str(err), AstropyUserWarning)
                     continue
 
             out_cols.append(new_col)
@@ -392,7 +394,7 @@ class TableGroups(BaseGroups):
         out : Table
             New table with the aggregated rows.
         """
-        mask = np.empty(len(self), dtype=np.bool)
+        mask = np.empty(len(self), dtype=bool)
         key_colnames = self.key_colnames
         for i, group_table in enumerate(self):
             mask[i] = func(group_table, key_colnames)

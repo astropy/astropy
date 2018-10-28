@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import absolute_import, division, unicode_literals
 
 import numpy as np
+from inspect import signature
 from ..stats import histogram
-from ..utils.compat.funcsigs import signature
 
 __all__ = ['hist']
 

@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
@@ -92,7 +91,7 @@ def get_gridline_path(world, pixel):
 
     Parameters
     ----------
-    lon_lat : `~numpy.ndarray`
+    world : `~numpy.ndarray`
         The longitude and latitude values along the curve, given as a (n,2)
         array.
     pixel : `~numpy.ndarray`

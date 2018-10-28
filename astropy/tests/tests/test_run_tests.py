@@ -2,21 +2,18 @@
 
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
-from __future__ import (absolute_import, division, print_function,
-                         unicode_literals)
 
 import doctest
 
 from textwrap import dedent
 
+import pytest
+
 # test helper.run_tests function
 from ... import test as run_tests
-from ... extern import six
 
 from .. import helper
-from ..helper import pytest
 
 
 # run_tests should raise ValueError when asked to run on a module it can't find
@@ -38,7 +35,7 @@ def test_pastebin_keyword():
 
 
 def test_unicode_literal_conversion():
-    assert isinstance('ångström', six.text_type)
+    assert isinstance('ångström', str)
 
 
 def test_doctest_float_replacement(tmpdir):

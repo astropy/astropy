@@ -2,9 +2,13 @@
 
 # The following few lines skip this module when running tests if matplotlib is
 # not available (and will have no impact otherwise)
-from ...tests.helper import pytest
-pytest.importorskip("matplotlib")
-del pytest
+
+try:
+    import pytest
+    pytest.importorskip("matplotlib")
+    del pytest
+except ImportError:
+    pass
 
 from .core import *
 from .coordinate_helpers import CoordinateHelper
@@ -29,5 +33,9 @@ class Conf(_config.ConfigNamespace):
 
     grid_samples = _config.ConfigItem(1000,
         'How many points to sample along grid lines.')
+
+    contour_grid_samples = _config.ConfigItem(200,
+        'The grid size to use when drawing a grid using contours')
+
 
 conf = Conf()

@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # It gets to be really tedious to type long docstrings in ANSI C
 # syntax (since multi-line string literals are not valid).

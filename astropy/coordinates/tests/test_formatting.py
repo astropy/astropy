@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 
-# TEST_UNICODE_LITERALS
 """
 Tests the Angle string formatting capabilities.  SkyCoord formatting is in
 test_sky_coord
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ...extern import six
 
 from ..angles import Angle
 from ... import units as u
@@ -32,6 +28,11 @@ def test_to_string_precision():
     assert angle2.to_string(precision=1, unit=u.hour) == '-1h14m04.4s'
     assert angle2.to_string(precision=0, unit=u.hour) == '-1h14m04s'
 
+    # Regression test for #7141
+    angle3 = Angle(-0.5, unit=u.degree)
+    assert angle3.to_string(precision=0, fields=3) == '-0d30m00s'
+    assert angle3.to_string(precision=0, fields=2) == '-0d30m'
+    assert angle3.to_string(precision=0, fields=1) == '-1d'
 
 def test_to_string_decimal():
 
@@ -107,7 +108,7 @@ def test_sexagesimal_rounding_up():
 
 def test_to_string_scalar():
     a = Angle(1.113355, unit=u.deg)
-    assert isinstance(a.to_string(), six.text_type)
+    assert isinstance(a.to_string(), str)
 
 
 def test_to_string_radian_with_precision():

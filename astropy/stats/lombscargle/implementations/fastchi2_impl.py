@@ -1,9 +1,7 @@
-from __future__ import print_function, division
 
 import numpy as np
 
 from .utils import trig_sum
-from ....extern.six.moves import range, zip
 
 
 def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',

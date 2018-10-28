@@ -1,20 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-import io
-from ....tests.helper import pytest
-
+import pytest
 import numpy as np
 
 from ..column import Column
 from ..diff import (FITSDiff, HeaderDiff, ImageDataDiff, TableDataDiff,
-                    HDUDiff, report_diff_values)
+                    HDUDiff)
 from ..hdu import HDUList, PrimaryHDU, ImageHDU
 from ..hdu.table import BinTableHDU
 from ..header import Header
 
 from ....tests.helper import catch_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
-from ....extern.six.moves import range
 from ....io import fits
 
 from . import FitsTestCase
@@ -107,7 +103,6 @@ class TestDiff(FitsTestCase):
         report = diff.report()
         assert ("Inconsistent duplicates of keyword 'A'     :\n"
                 "  Occurs 3 time(s) in a, 1 times in (b)") in report
-
 
     def test_floating_point_rtol(self):
         ha = Header([('A', 1), ('B', 2.00001), ('C', 3.000001)])
@@ -227,6 +222,48 @@ class TestDiff(FitsTestCase):
         # ignored:
         assert not HeaderDiff(hb, hc, ignore_blank_cards=False).identical
 
+    def test_ignore_hdus(self):
+        a = np.arange(100).reshape(10, 10)
+        b = a.copy()
+        ha = Header([('A', 1), ('B', 2), ('C', 3)])
+        xa = np.array([(1.0, 1), (3.0, 4)], dtype=[('x', float), ('y', int)])
+        xb = np.array([(1.0, 2), (3.0, 5)], dtype=[('x', float), ('y', int)])
+        phdu = PrimaryHDU(header=ha)
+        ihdua = ImageHDU(data=a, name='SCI')
+        ihdub = ImageHDU(data=b, name='SCI')
+        bhdu1 = BinTableHDU(data=xa, name='ASDF')
+        bhdu2 = BinTableHDU(data=xb, name='ASDF')
+        hdula = HDUList([phdu, ihdua, bhdu1])
+        hdulb = HDUList([phdu, ihdub, bhdu2])
+
+        # ASDF extension should be different
+        diff = FITSDiff(hdula, hdulb)
+        assert not diff.identical
+        assert diff.diff_hdus[0][0] == 2
+
+        # ASDF extension should be ignored
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=['ASDF'])
+        assert diff.identical, diff.report()
+
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=['ASD*'])
+        assert diff.identical, diff.report()
+
+        # SCI extension should be different
+        hdulb['SCI'].data += 1
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=['ASDF'])
+        assert not diff.identical
+
+        # SCI and ASDF extensions should be ignored
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=['SCI', 'ASDF'])
+        assert diff.identical, diff.report()
+
+        # All EXTVER of SCI should be ignored
+        ihduc = ImageHDU(data=a, name='SCI', ver=2)
+        hdulb.append(ihduc)
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=['SCI', 'ASDF'])
+        assert not any(diff.diff_hdus), diff.report()
+        assert any(diff.diff_hdu_count), diff.report()
+
     def test_ignore_keyword_values(self):
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
         hb = ha.copy()
@@ -268,8 +305,8 @@ class TestDiff(FitsTestCase):
         assert diff.diff_keyword_comments == {'C': [('C', 'E')]}
 
     def test_trivial_identical_images(self):
-        ia = np.arange(100).reshape((10, 10))
-        ib = np.arange(100).reshape((10, 10))
+        ia = np.arange(100).reshape(10, 10)
+        ib = np.arange(100).reshape(10, 10)
         diff = ImageDataDiff(ia, ib)
         assert diff.identical
         assert diff.diff_total == 0
@@ -315,7 +352,7 @@ class TestDiff(FitsTestCase):
         looking for (or ignoring) header differences.
         """
 
-        data = np.arange(100.0).reshape((10, 10))
+        data = np.arange(100.0).reshape(10, 10)
         hdu = fits.CompImageHDU(data=data)
         hdu.writeto(self.temp('test.fits'))
         hdula = fits.open(self.temp('test.fits'))
@@ -324,7 +361,7 @@ class TestDiff(FitsTestCase):
         assert diff.identical
 
     def test_different_dimensions(self):
-        ia = np.arange(100).reshape((10, 10))
+        ia = np.arange(100).reshape(10, 10)
         ib = np.arange(100) - 1
 
         # Although ib could be reshaped into the same dimensions, for now the
@@ -341,8 +378,8 @@ class TestDiff(FitsTestCase):
         assert 'No further data comparison performed.'
 
     def test_different_pixels(self):
-        ia = np.arange(100).reshape((10, 10))
-        ib = np.arange(100).reshape((10, 10))
+        ia = np.arange(100).reshape(10, 10)
+        ib = np.arange(100).reshape(10, 10)
         ib[0, 0] = 10
         ib[5, 5] = 20
         diff = ImageDataDiff(ia, ib)
@@ -373,8 +410,7 @@ class TestDiff(FitsTestCase):
         diff = TableDataDiff(ta.data, tb.data)
         assert diff.identical
         assert len(diff.common_columns) == 10
-        assert (diff.common_column_names ==
-                set(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']))
+        assert diff.common_column_names == set('abcdefghij')
         assert diff.diff_ratio == 0
         assert diff.diff_total == 0
 
@@ -413,7 +449,7 @@ class TestDiff(FitsTestCase):
 
         # The only common column should be c1
         assert len(diff.common_columns) == 1
-        assert diff.common_column_names == set(['a'])
+        assert diff.common_column_names == {'a'}
         assert diff.diff_ratio == 0
         assert diff.diff_total == 0
 
@@ -429,7 +465,7 @@ class TestDiff(FitsTestCase):
 
         assert not diff.identical
         assert len(diff.common_columns) == 1
-        assert diff.common_column_names == set(['a'])
+        assert diff.common_column_names == {'a'}
         assert diff.diff_column_names == (['B'], ['C'])
         assert diff.diff_ratio == 0
         assert diff.diff_total == 0
@@ -456,7 +492,7 @@ class TestDiff(FitsTestCase):
         assert not diff.identical
         assert diff.diff_column_count == (1, 3)
         assert len(diff.common_columns) == 1
-        assert diff.common_column_names == set(['b'])
+        assert diff.common_column_names == {'b'}
         assert diff.diff_column_names == ([], ['A', 'C'])
         assert diff.diff_ratio == 0
         assert diff.diff_total == 0
@@ -560,7 +596,7 @@ class TestDiff(FitsTestCase):
         assert ('Column A data differs in row 0:\n'
                 '    a> True\n'
                 '    b> False') in report
-        assert ('...and at 13 more indices.\n'
+        assert ('...and at 1 more indices.\n'
                 ' Column D data differs in row 0:') in report
         assert ('13 different table data element(s) found (65.00% different)'
                 in report)
@@ -569,7 +605,7 @@ class TestDiff(FitsTestCase):
     def test_identical_files_basic(self):
         """Test identicality of two simple, extensionless files."""
 
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         hdu = PrimaryHDU(data=a)
         hdu.writeto(self.temp('testa.fits'))
         hdu.writeto(self.temp('testb.fits'))
@@ -595,7 +631,7 @@ class TestDiff(FitsTestCase):
         count.
         """
 
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         phdu = PrimaryHDU(data=a)
         ehdu = ImageHDU(data=a)
         hdula = HDUList([phdu, ehdu])
@@ -618,7 +654,7 @@ class TestDiff(FitsTestCase):
         Test files that have some identical HDUs but one different HDU.
         """
 
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         phdu = PrimaryHDU(data=a)
         ehdu = ImageHDU(data=a)
         ehdu2 = ImageHDU(data=(a + 1))
@@ -695,7 +731,9 @@ class TestDiff(FitsTestCase):
         assert 'a: 1\n    b: 2' in report
 
     def test_diff_nans(self):
-        """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/204"""
+        """
+        Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/204
+        """
 
         # First test some arrays that should be equivalent....
         arr = np.empty((10, 10), dtype=np.float64)
@@ -731,39 +769,6 @@ class TestDiff(FitsTestCase):
         assert np.isnan(diff.diff_values[1][1][0])
         assert diff.diff_values[1][1][1] == 2.0
 
-    def test_diff_types(self):
-        """
-        Regression test for https://github.com/astropy/astropy/issues/4122
-        """
-
-        f = io.StringIO()
-
-        a = 1.0
-        b = '1.0'
-
-        report_diff_values(f, a, b)
-        out = f.getvalue()
-
-        assert out.lstrip('u') == "  (float) a> 1.0\n    (str) b> '1.0'\n           ? +   +\n"
-
-    def test_float_comparison(self):
-        """
-        Regression test for https://github.com/spacetelescope/PyFITS/issues/21
-        """
-
-        f = io.StringIO()
-
-        a = np.float32(0.029751372)
-        b = np.float32(0.029751368)
-
-        report_diff_values(f, a, b)
-        out = f.getvalue()
-
-        # This test doesn't care about what the exact output is, just that it
-        # did show a difference in their text representations
-        assert 'a>' in out
-        assert 'b>' in out
-
     def test_file_output_from_path_string(self):
         outpath = self.temp('diff_output.txt')
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
@@ -782,7 +787,7 @@ class TestDiff(FitsTestCase):
         diffobj = HeaderDiff(ha, hb)
         diffobj.report(fileobj=outpath)
 
-        with pytest.raises(IOError):
+        with pytest.raises(OSError):
             diffobj.report(fileobj=outpath)
 
     def test_file_output_overwrite_success(self):
@@ -794,8 +799,8 @@ class TestDiff(FitsTestCase):
         diffobj.report(fileobj=outpath)
         report_as_string = diffobj.report()
         diffobj.report(fileobj=outpath, overwrite=True)
-        assert open(outpath).read() == report_as_string, ("overwritten output "
-            "file is not identical to report string")
+        assert open(outpath).read() == report_as_string, (
+            "overwritten output file is not identical to report string")
 
     def test_file_output_overwrite_vs_clobber(self):
         """Verify uses of clobber and overwrite."""
@@ -806,11 +811,9 @@ class TestDiff(FitsTestCase):
         hb['C'] = 4
         diffobj = HeaderDiff(ha, hb)
         diffobj.report(fileobj=outpath)
-        report_as_string = diffobj.report()
         with catch_warnings(AstropyDeprecationWarning) as warning_lines:
             diffobj.report(fileobj=outpath, clobber=True)
-            assert len(warning_lines) == 0
-            # assert warning_lines[0].category == AstropyDeprecationWarning
-            # assert (str(warning_lines[0].message) == '"clobber" was '
-            #         'deprecated in version 1.3 and will be removed in a '
-            #         'future version. Use argument "overwrite" instead.')
+            assert warning_lines[0].category == AstropyDeprecationWarning
+            assert (str(warning_lines[0].message) == '"clobber" was '
+                    'deprecated in version 2.0 and will be removed in a '
+                    'future version. Use argument "overwrite" instead.')

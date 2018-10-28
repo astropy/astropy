@@ -1,3 +1,164 @@
+WCSLIB version 5.19.1 (2018/07/28)
+----------------------------------
+
+* Installation
+
+  - Updated ./config/config.{guess,sub} to the latest versions from the
+    GIT repository, timestamped 2018-07-18 and 2018-07-25, respectively.
+    The previous pair were dated 2012-02-10 and 2012-04-18.
+
+
+WCSLIB version 5.19 (2018/07/27)
+--------------------------------
+
+* C library
+
+  - In wcssub(), fixed a bug in handling distortion functions on axes
+    with changed axis number in the subimage (i.e. via deletion or
+    addition of an axis).
+
+  - In various routines within dis.c, wcs.c, wcshdr.c, and wcspih.l,
+    increased the size of various sprintf() output buffers to avert
+    -Wformat-overflow warnings from gcc 8.1.0 (with -DFORTIFY_SOURCE=2).
+    Reported by Simon Conseil.
+
+    Also fixed other warnings in these routines from gcc 8.1.0
+    relating to -Wcast-function-type, -Wmaybe-uninitialized, and
+    -Wunused-parameter.
+
+  - In wcsutrn.l (the units alias translator used by wcsfix), recognise
+    'Deg', 'Degree', and 'Degrees' as aliases for 'deg'.  Rogue header
+    reported by Jim Lewis.
+
+  - Added a note to the prologue of spx.h explaining WCSLIB's use of
+    Cox's air-to-vacuum transformation equation rather than the IUGG
+    relation cited in WCS Paper III.  Noted by Benjamin Alan Weaver.
+
+  - In the test suite, avert nuisance compiler warnings in tdis1.
+    Made tsphdpa more robust in handling user coordinate input.
+
+* PGSBOX
+
+  - In pgwcsl_(), avert nuisance warnings from gcc 8.1.0 relating to
+    unused parameters (-Wunused-parameter).  Also averted nuisance
+    compiler warnings in cpgtest.
+
+* Utilities
+
+  - wcsware was not reading the -TAB table from the FITS file for
+    alternate descriptions, bug reported by Chiara Marmo.  Nor was
+    wcsfix() ever invoked for them.
+
+    Made it more robust in handling user input of coordinates for the
+    -x and -w options.
+
+  - Fixed compiler warnings from gcc 8.1.0 in HPXcvt
+    (-Wmaybe-uninitialized), and wcsgrid (-Wformat-overflow).
+
+* Installation
+
+  - Amended configure.ac to allow cross-compilation, and also updated
+    the auxiliary configure scripts in the config/ directory.  Patch
+    supplied by Mosè Giordano.
+
+
+WCSLIB version 5.18 (2018/01/10)
+--------------------------------
+
+* C library
+
+  - New routines introduced to preclude altering the global variables
+    NPVMAX, NPSMAX, and NDPMAX, which determine how much memory to
+    allocate for storing PVi_ma, PSi_ma, DPja, and DQia keyvalues:
+    wcsinit(), lininit(), lindist(), and disinit().  These are now used
+    by various WCSLIB routines, such as the header parsers, which
+    previously temporarily altered the global variables, thus posing a
+    thread hazard.  Testing and feedback on thread-safety issues, with
+    patches, from Rodrigo Tobar Carrizo.
+
+  - The Flex scanners, fitshdr(), wcsbth(), wcspih(), wcsulexe(), and
+    wcsutrne(), have been rewritten as thin wrappers (with the same API)
+    over scanners that were modified (with changed API) as required to
+    use Flex's "reentrant" option.  Consequently, they are now reentrant
+    and should be thread-safe.  That also passes through to the
+    deprecated wrappers, wcsulex() and wcsutrn().
+
+  - Fixed memory leaks in lindist() and lincpy() uncovered by valgrind.
+
+  - Test programs tfitshdr, tpih1, tpih2, and ttab3 are now careful to
+    free all allocated memory before exit to defeat spurious reports of
+    memory leaks by valgrind.
+
+* Fortran wrappers
+
+  - New wrappers for wcsinit(), lininit(), lindist(), and disinit().
+
+* Installation
+
+  - configure now recognises the value of ARFLAGS obtained from the
+    environment.
+
+* User manual
+
+  - Updates and amendments in line with the above changes.
+
+  - Documentation generation moved to doxygen 1.8.14 (was 1.8.13).
+
+
+WCSLIB version 5.17 (2017/09/18)
+--------------------------------
+
+* C library
+
+  - Fixed a memory leak in wcspih().  Reported by Pim Schellart.
+
+  - Fixed compiler warnings about comparison between signed and unsigned
+    integers in tab.c (Pey-Lian Lim).  Also fixed warnings in other
+    functions about unused parameters.
+
+* Fortran wrappers
+
+  - Fixed compiler warnings about comparison between signed and unsigned
+    integers in several routines.
+
+* PGSBOX
+
+  - Fixed a compiler warning about comparison between signed and
+    unsigned ints.
+
+* Installation
+
+  - Removed setgid permission on installation directories (for Fedora
+    Linux, reported by Sergio Pascual).
+
+* User manual
+
+  - Minor updates and amendments.
+
+  - Documentation generation moved to doxygen 1.8.13 (was 1.8.10).
+
+
+WCSLIB version 5.16 (2017/01/15)
+--------------------------------
+
+* C library
+
+  - Bug fix in spcfix() for the previous change.  Reported separately by
+    Julian Taylor & Peter Williams.
+
+
+WCSLIB version 5.15 (2016/04/05)
+--------------------------------
+
+* C library
+
+  - Bug fix in wcsulex.l for the previous change.  Reported, and fix
+    supplied by Tammo Jan Dijkema.
+
+  - In spcfix(), report the value of VELREF if ctype is translated from
+    the AIPS convention.
+
+
 WCSLIB version 5.14 (2016/02/07)
 --------------------------------
 
@@ -2553,4 +2714,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 5.14 2016/02/07 10:49:33 mcalabre Exp $
+$Id: CHANGES,v 5.19.1.2 2018/07/28 12:54:15 mcalabre Exp mcalabre $

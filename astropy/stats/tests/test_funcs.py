@@ -1,13 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+import pytest
 
 import numpy as np
-
-from numpy.random import randn, normal
-from numpy.testing import assert_equal
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_equal, assert_allclose
 
 try:
     import scipy  # pylint: disable=W0611
@@ -23,28 +19,16 @@ except ImportError:
 else:
     HAS_MPMATH = True
 
-from ...tests.helper import pytest
-from ...extern.six.moves import range
-
 from .. import funcs
-
-# These are not part of __all__ because they are just the lower level versions
-# of poisson_upper_limit
-# from ..funcs import scipy_poisson_upper_limit, mpmath_poisson_upper_limit
-
-from ...utils.compat import NUMPY_LT_1_10, NUMPY_LT_1_9  # pylint: disable=W0611
-from ...utils.misc import NumpyRNGContext
 from ... import units as u
+from ...tests.helper import catch_warnings
+from ...utils.misc import NumpyRNGContext
 
 
 def test_median_absolute_deviation():
-    # need to seed the numpy RNG to make sure we don't get some amazingly
-    # flukey random number that breaks one of the tests
-
     with NumpyRNGContext(12345):
-
         # test that it runs
-        randvar = randn(10000)
+        randvar = np.random.randn(10000)
         mad = funcs.median_absolute_deviation(randvar)
 
         # test whether an array is returned if an axis is used
@@ -56,23 +40,23 @@ def test_median_absolute_deviation():
         assert len(mad) == 1000
         assert mad.size < randvar.size
         # Test some actual values in a 3 dimensional array
-        x = np.arange(3*4*5)
-        a = np.array([sum(x[:i+1]) for i in range(len(x))]).reshape(3, 4, 5)
+        x = np.arange(3 * 4 * 5)
+        a = np.array([sum(x[:i + 1]) for i in range(len(x))]).reshape(3, 4, 5)
         mad = funcs.median_absolute_deviation(a)
         assert mad == 389.5
         mad = funcs.median_absolute_deviation(a, axis=0)
-        assert_allclose(mad, [[210.,  230.,  250.,  270.,  290.],
-                              [310.,  330.,  350.,  370.,  390.],
-                              [410.,  430.,  450.,  470.,  490.],
-                              [510.,  530.,  550.,  570.,  590.]])
+        assert_allclose(mad, [[210., 230., 250., 270., 290.],
+                              [310., 330., 350., 370., 390.],
+                              [410., 430., 450., 470., 490.],
+                              [510., 530., 550., 570., 590.]])
         mad = funcs.median_absolute_deviation(a, axis=1)
-        assert_allclose(mad, [[27.5,   32.5,   37.5,   42.5,   47.5],
-                              [127.5,  132.5,  137.5,  142.5,  147.5],
-                              [227.5,  232.5,  237.5,  242.5,  247.5]])
+        assert_allclose(mad, [[27.5, 32.5, 37.5, 42.5, 47.5],
+                              [127.5, 132.5, 137.5, 142.5, 147.5],
+                              [227.5, 232.5, 237.5, 242.5, 247.5]])
         mad = funcs.median_absolute_deviation(a, axis=2)
-        assert_allclose(mad, [[3.,   8.,  13.,  18.],
-                              [23.,  28.,  33.,  38.],
-                              [43.,  48.,  53.,  58.]])
+        assert_allclose(mad, [[3., 8., 13., 18.],
+                              [23., 28., 33., 38.],
+                              [43., 48., 53., 58.]])
 
 
 def test_median_absolute_deviation_masked():
@@ -90,7 +74,7 @@ def test_median_absolute_deviation_masked():
     # Just cross check if that's identical to the function on the unmasked
     # values only
     assert funcs.median_absolute_deviation(array) == (
-            funcs.median_absolute_deviation(array[~array.mask]))
+        funcs.median_absolute_deviation(array[~array.mask]))
 
     # Multidimensional masked array
     array = np.ma.array([[1, 4], [2, 2]], mask=[[1, 0], [0, 0]])
@@ -106,25 +90,22 @@ def test_median_absolute_deviation_masked():
         funcs.median_absolute_deviation(array, axis=1).data, [0, 0])
 
 
-@pytest.mark.skipif('NUMPY_LT_1_10')
 def test_median_absolute_deviation_nans():
     array = np.array([[1, 4, 3, np.nan],
                       [2, 5, np.nan, 4]])
     assert_equal(funcs.median_absolute_deviation(array, func=np.nanmedian,
-                                                 axis=1),
-                 [1, 1])
+                                                 axis=1), [1, 1])
 
     array = np.ma.masked_invalid(array)
     assert funcs.median_absolute_deviation(array) == 1
 
 
-@pytest.mark.skipif('NUMPY_LT_1_9')
 def test_median_absolute_deviation_multidim_axis():
     array = np.ones((5, 4, 3)) * np.arange(5)[:, np.newaxis, np.newaxis]
     assert_equal(funcs.median_absolute_deviation(array, axis=(1, 2)),
                  np.zeros(5))
-    assert_equal(funcs.median_absolute_deviation(array, axis=np.array([1, 2])),
-                 np.zeros(5))
+    assert_equal(funcs.median_absolute_deviation(
+        array, axis=np.array([1, 2])), np.zeros(5))
 
 
 def test_median_absolute_deviation_quantity():
@@ -134,172 +115,11 @@ def test_median_absolute_deviation_quantity():
     # quantity
     a = np.array([1, 16, 5]) * u.m
     mad = funcs.median_absolute_deviation(a)
-    # Check for the correct unit and that the result is identical to the result
-    # without units.
+    # Check for the correct unit and that the result is identical to the
+    # result without units.
     assert mad.unit == a.unit
     assert mad.value == funcs.median_absolute_deviation(a.value)
 
-
-def test_biweight_location():
-    # need to seed the numpy RNG to make sure we don't get some
-    # amazingly flukey random number that breaks one of the tests
-
-    with NumpyRNGContext(12345):
-
-        # test that it runs
-        randvar = randn(10000)
-        cbl = funcs.biweight_location(randvar)
-
-        assert abs(cbl-0) < 1e-2
-
-
-def test_biweight_location_small():
-
-    cbl = funcs.biweight_location([1, 3, 5, 500, 2])
-    assert abs(cbl-2.745) < 1e-3
-
-
-def test_biweight_location_axis():
-    """Test a 2D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        ny = 100
-        nx = 200
-        data = normal(5, 2, (ny, nx))
-
-        bw = funcs.biweight_location(data, axis=0)
-        bwi = []
-        for i in range(nx):
-            bwi.append(funcs.biweight_location(data[:, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
-
-        bw = funcs.biweight_location(data, axis=1)
-        bwi = []
-        for i in range(ny):
-            bwi.append(funcs.biweight_location(data[i, :]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
-
-
-def test_biweight_location_axis_3d():
-    """Test a 3D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        nz = 3
-        ny = 4
-        nx = 5
-        data = normal(5, 2, (nz, ny, nx))
-        bw = funcs.biweight_location(data, axis=0)
-        assert bw.shape == (ny, nx)
-
-        y = 0
-        bwi = []
-        for i in range(nx):
-            bwi.append(funcs.biweight_location(data[:, y, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw[y], bwi)
-
-
-def test_biweight_midvariance():
-    # need to seed the numpy RNG to make sure we don't get some
-    # amazingly flukey random number that breaks one of the tests
-
-    with NumpyRNGContext(12345):
-
-        # test that it runs
-        randvar = randn(10000)
-        scl = funcs.biweight_midvariance(randvar)
-
-        assert abs(scl-1) < 1e-2
-
-
-def test_biweight_midvariance_small():
-    scl = funcs.biweight_midvariance([1, 3, 5, 500, 2])
-    assert abs(scl-1.529) < 1e-3
-
-
-def test_biweight_midvariance_5127():
-    # test a regression introduced in #5127
-    rand = np.random.RandomState(12345)
-    data = rand.normal(loc=0., scale=20., size=(100, 100))
-    scl = funcs.biweight_midvariance(data)
-    assert_allclose(scl, 20.171003621738148)    # test against previous code
-
-
-def test_biweight_midvariance_axis():
-    """Test a 2D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        ny = 100
-        nx = 200
-        data = normal(5, 2, (ny, nx))
-
-        bw = funcs.biweight_midvariance(data, axis=0)
-        bwi = []
-        for i in range(nx):
-            bwi.append(funcs.biweight_midvariance(data[:, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
-
-        bw = funcs.biweight_midvariance(data, axis=1)
-        bwi = []
-        for i in range(ny):
-            bwi.append(funcs.biweight_midvariance(data[i, :]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
-
-
-def test_biweight_midvariance_axis_3d():
-    """Test a 3D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        nz = 3
-        ny = 4
-        nx = 5
-        data = normal(5, 2, (nz, ny, nx))
-        bw = funcs.biweight_midvariance(data, axis=0)
-        assert bw.shape == (ny, nx)
-
-        y = 0
-        bwi = []
-        for i in range(nx):
-            bwi.append(funcs.biweight_midvariance(data[:, y, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw[y], bwi)
-
-def test_biweight_midcovariance():
-    """test biweight_midcovariance method"""
-    # Test 1
-    rng = np.random.RandomState(1)
-    d = np.array([rng.normal(0, 2, 100) for i in range(5)])
-    cov = funcs.biweight_midcovariance(d)
-    std = np.around(np.sqrt(cov.diagonal()), 1)
-    assert_allclose(std, [ 1.8,  1.9,  2. ,  2.1,  2.1])
-    # Test 2
-    rng = np.random.RandomState(1)
-    d = np.array([rng.normal(0, 2, 10) for i in range(5)])
-    cov = funcs.biweight_midcovariance(d)
-    std = np.around(np.sqrt(cov.diagonal()), 1)
-    assert_allclose(std, [ 2.6,  2.1,  1.6,  1.5,  1.9])
-
-def test_midcov_midvar():
-    """
-    test biweight_midcovariance and biweight_midvariance
-    are compatible
-    """
-    rng = np.random.RandomState(1)
-    d = np.array([rng.normal(0, 2, 100) for i in range(3)])
-    cov = funcs.biweight_midcovariance(d)
-    cov_std = np.around(np.sqrt(cov.diagonal()), 1)
-    std = np.around(list(map(funcs.biweight_midvariance, d)), 1)
-    assert_allclose(cov_std, std)
-
-def test_midcovariance_shape():
-    """
-    test that midcovariance raises error when feed 3D array
-    """
-    rng = np.random.RandomState(1)
-    d = rng.normal(0,1,27).reshape(3,3,3)
-    with pytest.raises(ValueError) as e:
-        funcs.biweight_midcovariance(d)
-    assert 'a.ndim should equal 2' in str(e.value)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_binom_conf_interval():
@@ -386,7 +206,7 @@ def test_binned_binom_proportion():
     # Check that it works.
     nbins = 20
     x = np.linspace(0., 10., 100)  # Guarantee an `x` in every bin.
-    success = np.ones(len(x), dtype=np.bool)
+    success = np.ones(len(x), dtype=bool)
     bin_ctr, bin_hw, p, perr = funcs.binned_binom_proportion(x, success,
                                                              bins=nbins)
 
@@ -495,8 +315,53 @@ def test_bootstrap_multiple_outputs():
 
 def test_mad_std():
     with NumpyRNGContext(12345):
-        data = normal(5, 2, size=(100, 100))
+        data = np.random.normal(5, 2, size=(100, 100))
         assert_allclose(funcs.mad_std(data), 2.0, rtol=0.05)
+
+
+def test_mad_std_scalar_return():
+    with NumpyRNGContext(12345):
+        data = np.random.normal(5, 2, size=(10, 10))
+        # make a masked array with no masked points
+        data = np.ma.masked_where(np.isnan(data), data)
+        rslt = funcs.mad_std(data)
+        # want a scalar result, NOT a masked array
+        assert np.isscalar(rslt)
+
+        data[5, 5] = np.nan
+        rslt = funcs.mad_std(data, ignore_nan=True)
+        assert np.isscalar(rslt)
+        with catch_warnings():
+            rslt = funcs.mad_std(data)
+            assert np.isscalar(rslt)
+            try:
+                assert not np.isnan(rslt)
+            # This might not be an issue anymore when only numpy>=1.13 is
+            # supported. NUMPY_LT_1_13 xref #7267
+            except AssertionError:
+                pytest.xfail('See #5232')
+
+
+def test_mad_std_warns():
+    with NumpyRNGContext(12345):
+        data = np.random.normal(5, 2, size=(10, 10))
+        data[5, 5] = np.nan
+
+        with catch_warnings() as warns:
+            rslt = funcs.mad_std(data, ignore_nan=False)
+            assert np.isnan(rslt)
+
+
+def test_mad_std_withnan():
+    with NumpyRNGContext(12345):
+        data = np.empty([102, 102])
+        data[:] = np.nan
+        data[1:-1, 1:-1] = np.random.normal(5, 2, size=(100, 100))
+        assert_allclose(funcs.mad_std(data, ignore_nan=True), 2.0, rtol=0.05)
+
+    assert np.isnan(funcs.mad_std([1, 2, 3, 4, 5, np.nan]))
+    assert_allclose(funcs.mad_std([1, 2, 3, 4, 5, np.nan], ignore_nan=True),
+                    1.482602218505602)
 
 
 def test_mad_std_with_axis():
@@ -508,6 +373,31 @@ def test_mad_std_with_axis():
     result_axis1 = np.array([1.48260222, 1.48260222])
     assert_allclose(funcs.mad_std(data, axis=0), result_axis0)
     assert_allclose(funcs.mad_std(data, axis=1), result_axis1)
+
+
+def test_mad_std_with_axis_and_nan():
+    data = np.array([[1, 2, 3, 4, np.nan],
+                     [4, 3, 2, 1, np.nan]])
+    # results follow data symmetry
+    result_axis0 = np.array([2.22390333, 0.74130111, 0.74130111,
+                             2.22390333, np.nan])
+    result_axis1 = np.array([1.48260222, 1.48260222])
+
+    assert_allclose(funcs.mad_std(data, axis=0, ignore_nan=True), result_axis0)
+    assert_allclose(funcs.mad_std(data, axis=1, ignore_nan=True), result_axis1)
+
+
+def test_mad_std_with_axis_and_nan_array_type():
+    # mad_std should return a masked array if given one, and not otherwise
+    data = np.array([[1, 2, 3, 4, np.nan],
+                     [4, 3, 2, 1, np.nan]])
+
+    result = funcs.mad_std(data, axis=0, ignore_nan=True)
+    assert not np.ma.isMaskedArray(result)
+
+    data = np.ma.masked_where(np.isnan(data), data)
+    result = funcs.mad_std(data, axis=0, ignore_nan=True)
+    assert np.ma.isMaskedArray(result)
 
 
 def test_gaussian_fwhm_to_sigma():
@@ -740,3 +630,121 @@ def test_poisson_limit_nodependencies():
     with pytest.raises(ImportError):
         funcs.poisson_conf_interval(20., interval='kraft-burrows-nousek',
                                     background=10., conflevel=.95)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N', [10, 100, 1000, 10000])
+def test_uniform(N):
+    with NumpyRNGContext(12345):
+        assert funcs.kuiper(np.random.random(N))[1] > 0.01
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N,M', [(100, 100),
+                                 (20, 100),
+                                 (100, 20),
+                                 (10, 20),
+                                 (5, 5),
+                                 (1000, 100)])
+def test_kuiper_two_uniform(N, M):
+    with NumpyRNGContext(12345):
+        assert funcs.kuiper_two(np.random.random(N),
+                                np.random.random(M))[1] > 0.01
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N,M', [(100, 100),
+                                 (20, 100),
+                                 (100, 20),
+                                 (10, 20),
+                                 (5, 5),
+                                 (1000, 100)])
+def test_kuiper_two_nonuniform(N, M):
+    with NumpyRNGContext(12345):
+        assert funcs.kuiper_two(np.random.random(N)**2,
+                                np.random.random(M)**2)[1] > 0.01
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_detect_kuiper_two_different():
+    with NumpyRNGContext(12345):
+        D, f = funcs.kuiper_two(np.random.random(500) * 0.5,
+                                np.random.random(500))
+        assert f < 0.01
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N,M', [(100, 100),
+                                 (20, 100),
+                                 (100, 20),
+                                 (10, 20),
+                                 (5, 5),
+                                 (1000, 100)])
+def test_fpp_kuiper_two(N, M):
+    with NumpyRNGContext(12345):
+        R = 100
+        fpp = 0.05
+        fps = 0
+        for i in range(R):
+            D, f = funcs.kuiper_two(np.random.random(N), np.random.random(M))
+            if f < fpp:
+                fps += 1
+        assert scipy.stats.binom(R, fpp).sf(fps - 1) > 0.005
+        assert scipy.stats.binom(R, fpp).cdf(fps - 1) > 0.005
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_histogram():
+    with NumpyRNGContext(1234):
+        a, b = 0.3, 3.14
+        s = np.random.uniform(a, b, 10000) % 1
+
+        b, w = funcs.fold_intervals([(a, b, 1. / (b - a))])
+
+        h = funcs.histogram_intervals(16, b, w)
+        nn, bb = np.histogram(s, bins=len(h), range=(0, 1))
+
+        uu = np.sqrt(nn)
+        nn, uu = len(h) * nn / h / len(s), len(h) * uu / h / len(s)
+
+        c2 = np.sum(((nn - 1) / uu)**2)
+
+        assert scipy.stats.chi2(len(h)).cdf(c2) > 0.01
+        assert scipy.stats.chi2(len(h)).sf(c2) > 0.01
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize("ii,rr", [
+    ((4, (0, 1), (1,)), (1, 1, 1, 1)),
+    ((2, (0, 1), (1,)), (1, 1)),
+    ((4, (0, 0.5, 1), (1, 1)), (1, 1, 1, 1)),
+    ((4, (0, 0.5, 1), (1, 2)), (1, 1, 2, 2)),
+    ((3, (0, 0.5, 1), (1, 2)), (1, 1.5, 2)),
+])
+def test_histogram_intervals_known(ii, rr):
+    with NumpyRNGContext(1234):
+        assert_allclose(funcs.histogram_intervals(*ii), rr)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N,m,p', [pytest.param(100, 10000, 0.01,
+                                                marks=pytest.mark.skip('Test too slow')),
+                                   pytest.param(300, 10000, 0.001,
+                                                marks=pytest.mark.skip('Test too slow')),
+                                   (10, 10000, 0.001),
+                                   ])
+def test_uniform_binomial(N, m, p):
+    """Check that the false positive probability is right
+
+    In particular, run m trials with N uniformly-distributed photons
+    and check that the number of false positives is consistent with
+    a binomial distribution. The more trials, the tighter the bounds
+    but the longer the runtime.
+
+    """
+    with NumpyRNGContext(1234):
+        fpps = [funcs.kuiper(np.random.random(N))[1]
+                for i in range(m)]
+        assert (scipy.stats.binom(n=m, p=p).ppf(0.01) <
+                len([fpp for fpp in fpps if fpp < p]) <
+                scipy.stats.binom(n=m, p=p).ppf(0.99))

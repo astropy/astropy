@@ -1,15 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
 from ... import units as u
-from ...extern import six
 from ...coordinates import BaseCoordinateFrame
 
-# Modified from axis_artist, supports astropy.units
-
+__all__ = ['select_step_degree', 'select_step_hour', 'select_step_scalar',
+           'coord_type_from_ctype', 'transform_contour_set_inplace']
 
 def select_step_degree(dv):
 
@@ -45,7 +43,7 @@ def select_step_degree(dv):
 
     else:
 
-        return select_step_scalar(dv.to(u.arcsec).value) * u.arcsec
+        return select_step_scalar(dv.to_value(u.arcsec)) * u.arcsec
 
 
 def select_step_hour(dv):
@@ -80,7 +78,7 @@ def select_step_hour(dv):
 
     else:
 
-        return select_step_scalar(dv.to(15. * u.arcsec).value) * (15. * u.arcsec)
+        return select_step_scalar(dv.to_value(15. * u.arcsec)) * (15. * u.arcsec)
 
 
 def select_step_scalar(dv):
@@ -106,7 +104,7 @@ def get_coord_meta(frame):
 
     from astropy.coordinates import frame_transform_graph
 
-    if isinstance(frame, six.string_types):
+    if isinstance(frame, str):
         initial_frame = frame
         frame = frame_transform_graph.lookup_name(frame)
         if frame is None:
@@ -126,11 +124,72 @@ def coord_type_from_ctype(ctype):
     Determine whether a particular WCS ctype corresponds to an angle or scalar
     coordinate.
     """
-    if ctype[:4] in ['RA--'] or ctype[1:4] == 'LON':
-        return 'longitude', None
-    elif ctype[:4] in ['HPLN']:
-        return 'longitude', 180.
-    elif ctype[:4] in ['DEC-', 'HPLT'] or ctype[1:4] == 'LAT':
-        return 'latitude', None
+    if ctype[:4] == 'RA--':
+        return 'longitude', u.hourangle, None
+    elif ctype[:4] == 'HPLN':
+        return 'longitude', u.arcsec, 180.
+    elif ctype[:4] == 'HPLT':
+        return 'latitude', u.arcsec, None
+    elif ctype[:4] == 'HGLN':
+        return 'longitude', None, 180.
+    elif ctype[1:4] == 'LON' or ctype[2:4] == 'LN':
+        return 'longitude', None, None
+    elif ctype[:4] == 'DEC-' or ctype[1:4] == 'LAT' or ctype[2:4] == 'LT':
+        return 'latitude', None, None
     else:
-        return 'scalar', None
+        return 'scalar', None, None
+
+
+def transform_contour_set_inplace(cset, transform):
+    """
+    Transform a contour set in-place using a specified
+    :class:`matplotlib.transform.Transform`
+
+    Using transforms with the native Matplotlib contour/contourf can be slow if
+    the transforms have a non-negligible overhead (which is the case for
+    WCS/SkyCoord transforms) since the transform is called for each individual
+    contour line. It is more efficient to stack all the contour lines together
+    temporarily and transform them in one go.
+    """
+
+    # The contours are represented as paths grouped into levels. Each can have
+    # one or more paths. The approach we take here is to stack the vertices of
+    # all paths and transform them in one go. The pos_level list helps us keep
+    # track of where the set of segments for each overall contour level ends.
+    # The pos_segments list helps us keep track of where each segmnt ends for
+    # each contour level.
+    all_paths = []
+    pos_level = []
+    pos_segments = []
+
+    for collection in cset.collections:
+        paths = collection.get_paths()
+        all_paths.append(paths)
+        # The last item in pos isn't needed for np.split and in fact causes
+        # issues if we keep it because it will cause an extra empty array to be
+        # returned.
+        pos = np.cumsum([len(x) for x in paths])
+        pos_segments.append(pos[:-1])
+        pos_level.append(pos[-1])
+
+    # As above the last item isn't needed
+    pos_level = np.cumsum(pos_level)[:-1]
+
+    # Stack all the segments into a single (n, 2) array
+    vertices = [path.vertices for paths in all_paths for path in paths]
+    if len(vertices) > 0:
+        vertices = np.concatenate(vertices)
+    else:
+        return
+
+    # Transform all coordinates in one go
+    vertices = transform.transform(vertices)
+
+    # Split up into levels again
+    vertices = np.split(vertices, pos_level)
+
+    # Now re-populate the segments in the line collections
+    for ilevel, vert in enumerate(vertices):
+        vert = np.split(vert, pos_segments[ilevel])
+        for iseg, ivert in enumerate(vert):
+            all_paths[ilevel][iseg].vertices = ivert

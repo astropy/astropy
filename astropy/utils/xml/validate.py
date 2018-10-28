@@ -6,8 +6,6 @@ makes a subprocess call to xmllint.  This could use a Python-based
 library at some point in the future, if something appropriate could be
 found.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 import os

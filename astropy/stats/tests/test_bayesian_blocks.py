@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
-from ...tests.helper import pytest
+
 from .. import bayesian_blocks, RegularEvents
 
 
@@ -110,7 +110,7 @@ def test_errors():
 
     # sigma must be broadcastable with x
     with pytest.raises(ValueError):
-        bayesian_blocks(t, fitness='measures',  x=t, sigma=t[:-1])
+        bayesian_blocks(t, fitness='measures', x=t, sigma=t[:-1])
 
 
 def test_fitness_function_results():

@@ -1,0 +1,42 @@
+%YAML 1.1
+---
+$schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
+id: "http://astropy.org/schemas/astropy/coordinates/longitude-1.0.0"
+tag: "tag:astropy.org:astropy/coordinates/longitude-1.0.0"
+
+title: |
+  Represents longitude-like angles.
+
+description:
+    Longitude-like angle(s) which are wrapped within a contiguous 360 degree range.
+
+examples:
+  -
+    - A Longitude object in Degrees
+    - |
+        !<tag:astropy.org:astropy/coordinates/longitude-1.0.0>
+          unit: !unit/unit-1.0.0 deg
+          value: 10.0
+          wrap_angle: !<tag:astropy.org:astropy/coordinates/angle-1.0.0>
+            unit: !unit/unit-1.0.0 deg
+            value: 180.0
+
+type: object
+properties:
+  value:
+    description: |
+      A vector of one or more values
+    anyOf:
+      - type: number
+      - $ref: "tag:stsci.edu:asdf/core/ndarray-1.0.0"
+  unit:
+    description: |
+      The unit corresponding to the values
+    $ref: "tag:stsci.edu:asdf/unit/unit-1.0.0"
+  wrap_angle:
+    description: |
+      Angle at which to wrap back to ``wrap_angle - 360 deg``.
+    $ref: "angle-1.0.0"
+
+required: [value, unit, wrap_angle]
+...

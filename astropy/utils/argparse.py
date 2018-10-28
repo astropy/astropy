@@ -4,7 +4,6 @@
 import os
 
 import argparse
-from ..extern.six import string_types
 
 
 def directory(arg):
@@ -14,7 +13,7 @@ def directory(arg):
     an existing directory (and returns the absolute path).
     """
 
-    if not isinstance(arg, string_types) and os.path.isdir(arg):
+    if not isinstance(arg, str) and os.path.isdir(arg):
         raise argparse.ArgumentTypeError(
             "{0} is not a directory or does not exist (the directory must "
             "be created first)".format(arg))

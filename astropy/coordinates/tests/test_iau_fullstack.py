@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
+import pytest
 import numpy as np
 from numpy import testing as npt
 
@@ -13,38 +12,43 @@ from ..builtin_frames import ICRS, AltAz
 from ..builtin_frames.utils import get_jd12
 from .. import EarthLocation
 from .. import SkyCoord
-from ...tests.helper import pytest, catch_warnings
+from ...tests.helper import catch_warnings
 from ... import _erfa as erfa
 from ...utils import iers
 from .utils import randomly_sample_sphere
 
 
 # These fixtures are used in test_iau_fullstack
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def fullstack_icrs():
     ra, dec, _ = randomly_sample_sphere(1000)
     return ICRS(ra=ra, dec=dec)
 
-@pytest.fixture(scope="module")
+
+@pytest.fixture(scope="function")
 def fullstack_fiducial_altaz(fullstack_icrs):
     altazframe = AltAz(location=EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m),
                        obstime=Time('J2000'))
     return fullstack_icrs.transform_to(altazframe)
 
-@pytest.fixture(scope="module", params=['J2000.1', 'J2010'])
+
+@pytest.fixture(scope="function", params=['J2000.1', 'J2010'])
 def fullstack_times(request):
     return Time(request.param)
 
-@pytest.fixture(scope="module", params=[(0, 0, 0), (23, 0, 0), (-70, 0, 0), (0, 100, 0), (23, 0, 3000)])
+
+@pytest.fixture(scope="function", params=[(0, 0, 0), (23, 0, 0), (-70, 0, 0), (0, 100, 0), (23, 0, 3000)])
 def fullstack_locations(request):
     return EarthLocation(lat=request.param[0]*u.deg, lon=request.param[0]*u.deg,
                          height=request.param[0]*u.m)
 
-@pytest.fixture(scope="module", params=[(0*u.bar, 0*u.deg_C, 0, 1*u.micron),
-                                        (1*u.bar, 0*u.deg_C, 0, 1*u.micron),
-                                        (1*u.bar, 10*u.deg_C, 0, 1*u.micron),
-                                        (1*u.bar, 0*u.deg_C, .5, 1*u.micron),
-                                        (1*u.bar, 0*u.deg_C, 0, 21*u.cm)])
+
+@pytest.fixture(scope="function",
+                params=[(0*u.bar, 0*u.deg_C, 0, 1*u.micron),
+                        (1*u.bar, 0*u.deg_C, 0*u.one, 1*u.micron),
+                        (1*u.bar, 10*u.deg_C, 0, 1*u.micron),
+                        (1*u.bar, 0*u.deg_C, 50*u.percent, 1*u.micron),
+                        (1*u.bar, 0*u.deg_C, 0, 21*u.cm)])
 def fullstack_obsconditions(request):
     return request.param
 
@@ -65,7 +69,7 @@ def _erfa_check(ira, idec, astrom):
     return dct
 
 
-def test_iau_fullstack(fullstack_icrs,  fullstack_fiducial_altaz,
+def test_iau_fullstack(fullstack_icrs, fullstack_fiducial_altaz,
                        fullstack_times, fullstack_locations,
                        fullstack_obsconditions):
     """
@@ -108,19 +112,22 @@ def test_iau_fullstack(fullstack_icrs,  fullstack_fiducial_altaz,
     assert np.all(addecs < tol), 'largest Dec change is {0} mas, > {1}'.format(np.max(addecs.arcsec*1000), tol)
 
     # check that we're consistent with the ERFA alt/az result
-    xp, yp = u.Quantity(iers.IERS_Auto.open().pm_xy(fullstack_times)).to(u.radian).value
-    lon = fullstack_locations.geodetic[0].to(u.radian).value
-    lat = fullstack_locations.geodetic[1].to(u.radian).value
-    height = fullstack_locations.geodetic[2].to(u.m).value
+    xp, yp = u.Quantity(iers.IERS_Auto.open().pm_xy(fullstack_times)).to_value(u.radian)
+    lon = fullstack_locations.geodetic[0].to_value(u.radian)
+    lat = fullstack_locations.geodetic[1].to_value(u.radian)
+    height = fullstack_locations.geodetic[2].to_value(u.m)
     jd1, jd2 = get_jd12(fullstack_times, 'utc')
+    pressure = fullstack_obsconditions[0].to_value(u.hPa)
+    temperature = fullstack_obsconditions[1].to_value(u.deg_C)
+    # Relative humidity can be a quantity or a number.
+    relative_humidity = u.Quantity(fullstack_obsconditions[2], u.one).value
+    obswl = fullstack_obsconditions[3].to_value(u.micron)
     astrom, eo = erfa.apco13(jd1, jd2,
                              fullstack_times.delta_ut1_utc,
                              lon, lat, height,
                              xp, yp,
-                             fullstack_obsconditions[0].to(u.hPa).value,
-                             fullstack_obsconditions[1].to(u.deg_C).value,
-                             fullstack_obsconditions[2],
-                             fullstack_obsconditions[3].to(u.micron).value)
+                             pressure, temperature, relative_humidity,
+                             obswl)
     erfadct = _erfa_check(fullstack_icrs.ra.rad, fullstack_icrs.dec.rad, astrom)
     npt.assert_allclose(erfadct['alt'], aacoo.alt.radian, atol=1e-7)
     npt.assert_allclose(erfadct['az'], aacoo.az.radian, atol=1e-7)

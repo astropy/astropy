@@ -41,7 +41,7 @@ void eraBi00(double *dpsibi, double *depsbi, double *dra)
 **     2002.  The MHB2000 code itself was obtained on 9th September 2002
 **     from ftp://maia.usno.navy.mil/conv2000/chapter5/IAU2000A.
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -64,7 +64,7 @@ void eraBi00(double *dpsibi, double *depsbi, double *dra)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

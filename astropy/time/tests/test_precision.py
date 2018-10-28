@@ -1,8 +1,8 @@
 import functools
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest
 from .. import Time, TimeDelta
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)

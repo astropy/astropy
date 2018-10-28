@@ -6,11 +6,6 @@ Methods for selecting the bin width of histograms
 Ported from the astroML project: http://astroML.org/
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-from ..extern import six
-
 import numpy as np
 from . import bayesian_blocks
 
@@ -54,7 +49,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     Returns
     -------
     hist : array
-        The values of the histogram. See ``normed`` and ``weights`` for a
+        The values of the histogram. See ``density`` and ``weights`` for a
         description of the possible semantics.
     bin_edges : array of dtype float
         Return the bin edges ``(length(hist)+1)``.
@@ -64,7 +59,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     numpy.histogram
     """
     # if bins is a string, first compute bin edges with the desired heuristic
-    if isinstance(bins, six.string_types):
+    if isinstance(bins, str):
         a = np.asarray(a).ravel()
 
         # TODO: if weights is specified, we need to modify things.
@@ -212,7 +207,17 @@ def freedman_bin_width(data, return_bins=False):
     if return_bins:
         dmin, dmax = data.min(), data.max()
         Nbins = max(1, np.ceil((dmax - dmin) / dx))
-        bins = dmin + dx * np.arange(Nbins + 1)
+        try:
+            bins = dmin + dx * np.arange(Nbins + 1)
+        except ValueError as e:
+            if 'Maximum allowed size exceeded' in str(e):
+                raise ValueError(
+                    'The inter-quartile range of the data is too small: '
+                    'failed to construct histogram with {} bins. '
+                    'Please use another bin method, such as '
+                    'bins="scott"'.format(Nbins + 1))
+            else:  # Something else  # pragma: no cover
+                raise
         return dx, bins
     else:
         return dx
@@ -281,7 +286,7 @@ def knuth_bin_width(data, return_bins=False, quiet=True):
         return dx
 
 
-class _KnuthF(object):
+class _KnuthF:
     r"""Class which implements the function minimized by knuth_bin_width
 
     Parameters

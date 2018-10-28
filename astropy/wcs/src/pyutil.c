@@ -226,37 +226,7 @@ PyObject** wcs_errexc[14];
 static PyObject*
 _new_exception_with_doc(char *name, char *doc, PyObject *base)
 {
-#if ((PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION >= 7) || \
-     (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 2))
   return PyErr_NewExceptionWithDoc(name, doc, base, NULL);
-#else
-  /* Python 2.6 and 3.1 don't have PyErr_NewExceptionWithDoc */
-  PyObject *dict;
-  PyObject *docobj;
-  int result;
-
-  dict = PyDict_New();
-  if (dict == NULL) {
-    return NULL;
-  }
-
-  if (doc != NULL) {
-    docobj = PyUnicode_FromString(doc);
-    if (docobj == NULL) {
-      Py_DECREF(dict);
-      return NULL;
-    }
-
-    result = PyDict_SetItemString(dict, "__doc__", docobj);
-    Py_DECREF(docobj);
-    if (result < 0) {
-      Py_DECREF(dict);
-      return NULL;
-    }
-
-    return PyErr_NewException(name, base, dict);
-  }
-#endif
 }
 
 #define DEFINE_EXCEPTION(exc) \
@@ -480,11 +450,7 @@ set_int(
     return -1;
   }
 
-  #if PY3K
   value_int = PyLong_AsLong(value);
-  #else
-  value_int = PyInt_AsLong(value);
-  #endif
   if (value_int == -1 && PyErr_Occurred()) {
     return -1;
   }

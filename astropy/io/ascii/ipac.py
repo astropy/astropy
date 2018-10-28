@@ -8,21 +8,18 @@ ipac.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import re
 from collections import defaultdict, OrderedDict
 from textwrap import wrap
 from warnings import warn
 
-from ...extern import six
-from ...extern.six.moves import zip
 
 from . import core
 from . import fixedwidth
 from . import basic
 from ...utils.exceptions import AstropyUserWarning
-from ...table.pprint import _format_funcs, get_auto_format_func
+from ...table.pprint import get_auto_format_func
 
 
 class IpacFormatErrorDBMS(Exception):
@@ -80,7 +77,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                      ('real', core.FloatType),
                      ('char', core.StrType),
                      ('date', core.StrType))
-    definition='ignore'
+    definition = 'ignore'
     start_line = None
 
     def process_lines(self, lines):
@@ -140,9 +137,9 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 # IPAC allows for continuation keywords, e.g.
                 # \SQL     = 'WHERE '
                 # \SQL     = 'SELECT (25 column names follow in next row.)'
-                if name in keywords and isinstance(val, six.string_types):
+                if name in keywords and isinstance(val, str):
                     prev_val = keywords[name]['value']
-                    if isinstance(prev_val, six.string_types):
+                    if isinstance(prev_val, str):
                         val = prev_val + val
 
                 keywords[name] = {'value': val}
@@ -217,8 +214,6 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         self.names = [x.name for x in cols]
         self.cols = cols
 
-
-
     def str_vals(self):
 
         if self.DBMS:
@@ -277,9 +272,8 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             # This may be incompatible with mixin columns
             null = col.fill_values[core.masked]
             try:
-                format_key = (col_format, col.info.name)
-                auto_format_func = get_auto_format_func(id(col))
-                format_func = _format_funcs.get(format_key, auto_format_func)
+                auto_format_func = get_auto_format_func(col)
+                format_func = col.info._format_funcs.get(col_format, auto_format_func)
                 nullist.append((format_func(col_format, null)).strip())
             except Exception:
                 # It is possible that null and the column values have different
@@ -357,7 +351,7 @@ class Ipac(basic.Basic):
       date Wed Sp 20 09:48:36 1995
       key_continue IPAC keywords can continue across lines
 
-    Note that there are different conventions for characters occuring below the
+    Note that there are different conventions for characters occurring below the
     position of the ``|`` symbol in IPAC tables. By default, any character
     below a ``|`` will be ignored (since this is the current standard),
     but if you need to read files that assume characters below the ``|``
@@ -429,7 +423,7 @@ class Ipac(basic.Basic):
     header_class = IpacHeader
 
     def __init__(self, definition='ignore', DBMS=False):
-        super(Ipac, self).__init__()
+        super().__init__()
         # Usually the header is not defined in __init__, but here it need a keyword
         if definition in ['ignore', 'left', 'right']:
             self.header.ipac_definition = definition
@@ -459,13 +453,13 @@ class Ipac(basic.Basic):
         self.data.fill_values.append((core.masked, 'null'))
 
         # Check column names before altering
-        self.header.cols = list(six.itervalues(table.columns))
+        self.header.cols = list(table.columns.values())
         self.header.check_column_names(self.names, self.strict_names, self.guessing)
 
         core._apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
 
         # Now use altered columns
-        new_cols = list(six.itervalues(table.columns))
+        new_cols = list(table.columns.values())
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = new_cols
         self.data.cols = new_cols
@@ -492,7 +486,7 @@ class Ipac(basic.Basic):
                          "IPAC metadata must be in the form {{'keywords':"
                          "{{'keyword': {{'value': value}} }}".format(keyword),
                          AstropyUserWarning)
-        ignored_keys = [key for key in table.meta if key not in ('keywords','comments')]
+        ignored_keys = [key for key in table.meta if key not in ('keywords', 'comments')]
         if any(ignored_keys):
             warn("Table metadata keyword(s) {0} were not written.  "
                  "IPAC metadata must be in the form {{'keywords':"

@@ -3,14 +3,12 @@
 """
 This module contains functions for matching coordinate catalogs.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
-from ..extern import six
 from .representation import UnitSphericalRepresentation
 from .. import units as u
+from . import Angle
 
 __all__ = ['match_coordinates_3d', 'match_coordinates_sky', 'search_around_3d',
            'search_around_sky']
@@ -59,7 +57,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='k
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ to be installed
+    This function requires `SciPy <https://www.scipy.org/>`_ to be installed
     or it will fail.
     """
     if catalogcoord.isscalar or len(catalogcoord) < 1:
@@ -131,7 +129,7 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ to be installed
+    This function requires `SciPy <https://www.scipy.org/>`_ to be installed
     or it will fail.
     """
     if catalogcoord.isscalar or len(catalogcoord) < 1:
@@ -161,7 +159,7 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
         sep3d = catalogcoord[idx].separation_3d(newmatch)
 
     # update the kdtree on the actual passed-in coordinate
-    if isinstance(storekdtree, six.string_types):
+    if isinstance(storekdtree, str):
         catalogcoord.cache[storekdtree] = newcat_u.cache[storekdtree]
     elif storekdtree is True:
         # the old backwards-compatible name
@@ -211,7 +209,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ (>=0.12.0)
+    This function requires `SciPy <https://www.scipy.org/>`_ (>=0.12.0)
     to be installed or it will fail.
 
     If you are using this function to search in a catalog for matches around
@@ -237,8 +235,8 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
 
     if len(coords1) == 0 or len(coords2) == 0:
         # Empty array input: return empty match
-        return (np.array([], dtype=np.int), np.array([], dtype=np.int),
-                u.Quantity([], u.deg),
+        return (np.array([], dtype=int), np.array([], dtype=int),
+                Angle([], u.deg),
                 u.Quantity([], coords1.distance.unit))
 
     kdt2 = _get_cartesian_kdtree(coords2, storekdtree)
@@ -252,7 +250,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
     kdt1 = _get_cartesian_kdtree(coords1, storekdtree, forceunit=cunit)
 
     # this is the *cartesian* 3D distance that corresponds to the given angle
-    d = distlimit.to(cunit).value
+    d = distlimit.to_value(cunit)
 
     idxs1 = []
     idxs2 = []
@@ -260,11 +258,11 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
         for match in matches:
             idxs1.append(i)
             idxs2.append(match)
-    idxs1 = np.array(idxs1, dtype=np.int)
-    idxs2 = np.array(idxs2, dtype=np.int)
+    idxs1 = np.array(idxs1, dtype=int)
+    idxs2 = np.array(idxs2, dtype=int)
 
     if idxs1.size == 0:
-        d2ds = u.Quantity([], u.deg)
+        d2ds = Angle([], u.deg)
         d3ds = u.Quantity([], coords1.distance.unit)
     else:
         d2ds = coords1[idxs1].separation(coords2[idxs2])
@@ -317,7 +315,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ (>=0.12.0)
+    This function requires `SciPy <https://www.scipy.org/>`_ (>=0.12.0)
     to be installed or it will fail.
 
     In the current implementation, the return values are always sorted in the
@@ -325,8 +323,6 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
     considered an implementation detail, though, so it could change in a future
     release.
     """
-    from . import Angle
-
     if not seplimit.isscalar:
         raise ValueError('seplimit must be a scalar in search_around_sky')
 
@@ -343,8 +339,8 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
             distunit = u.dimensionless_unscaled
         else:
             distunit = coords1.distance.unit
-        return (np.array([], dtype=np.int), np.array([], dtype=np.int),
-                u.Quantity([], u.deg),
+        return (np.array([], dtype=int), np.array([], dtype=int),
+                Angle([], u.deg),
                 u.Quantity([], distunit))
 
     # we convert coord1 to match coord2's frame.  We do it this way
@@ -380,15 +376,15 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
         for match in matches:
             idxs1.append(i)
             idxs2.append(match)
-    idxs1 = np.array(idxs1, dtype=np.int)
-    idxs2 = np.array(idxs2, dtype=np.int)
+    idxs1 = np.array(idxs1, dtype=int)
+    idxs2 = np.array(idxs2, dtype=int)
 
     if idxs1.size == 0:
         if coords2.distance.unit == u.dimensionless_unscaled:
             distunit = u.dimensionless_unscaled
         else:
             distunit = coords1.distance.unit
-        d2ds = u.Quantity([], u.deg)
+        d2ds = Angle([], u.deg)
         d3ds = u.Quantity([], distunit)
     else:
         d2ds = coords1[idxs1].separation(coords2[idxs2])
@@ -441,7 +437,7 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='kdtree', forceunit=None):
         attrname_or_kdt = 'kdtree'
 
     # figure out where any cached KDTree might be
-    if isinstance(attrname_or_kdt, six.string_types):
+    if isinstance(attrname_or_kdt, str):
         kdt = coord.cache.get(attrname_or_kdt, None)
         if kdt is not None and not isinstance(kdt, KDTree):
             raise TypeError('The `attrname_or_kdt` "{0}" is not a scipy KD tree!'.format(attrname_or_kdt))
@@ -461,7 +457,15 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='kdtree', forceunit=None):
         else:
             cartxyz = coord.cartesian.xyz.to(forceunit)
         flatxyz = cartxyz.reshape((3, np.prod(cartxyz.shape) // 3))
-        kdt = KDTree(flatxyz.value.T)
+        try:
+            # Set compact_nodes=False, balanced_tree=False to use
+            # "sliding midpoint" rule, which is much faster than standard for
+            # many common use cases
+            kdt = KDTree(flatxyz.value.T, compact_nodes=False, balanced_tree=False)
+        except TypeError:
+            # Python implementation does not take compact_nodes and balanced_tree
+            # as arguments.  However, it uses sliding midpoint rule by default
+            kdt = KDTree(flatxyz.value.T)
 
     if attrname_or_kdt:
         # cache the kdtree in `coord`

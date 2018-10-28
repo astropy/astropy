@@ -1,18 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-This module contains dictionaries that can be used to set a matplotlib
-plotting style.  It is mostly here to allow a consistent plotting style
-in tutorials, but can be used to prepare any matplotlib figure.
-"""
+
+# This module contains dictionaries that can be used to set a matplotlib
+# plotting style. It is no longer documented/recommended as of Astropy v3.0
+# but is kept here for backward-compatibility.
 
 from ..utils import minversion
+
 # This returns False if matplotlib cannot be imported
 MATPLOTLIB_GE_1_5 = minversion('matplotlib', '1.5')
 
-
-__all__ = ['astropy_mpl_style_1', 'astropy_mpl_style',
-           'astropy_mpl_docs_style']
-
+__all__ = ['astropy_mpl_style_1', 'astropy_mpl_style']
 
 # Version 1 astropy plotting style for matplotlib
 astropy_mpl_style_1 = {
@@ -87,27 +84,3 @@ else:
 
 astropy_mpl_style = astropy_mpl_style_1
 """The most recent version of the astropy plotting style."""
-
-astropy_mpl_docs_style = astropy_mpl_style_1.copy()
-"""The plotting style used in the astropy documentation."""
-
-color_cycle_docs = [
-    '#E24A33',   # orange
-    '#348ABD',   # blue
-    '#467821',   # green
-    '#A60628',   # red
-    '#7A68A6',   # purple
-    '#CF4457',   # pink
-    '#188487'    # turquoise
-]
-
-if MATPLOTLIB_GE_1_5:
-    astropy_mpl_docs_style['axes.prop_cycle'] = cycler('color',
-                                                       color_cycle_docs)
-else:
-    astropy_mpl_docs_style['axes.color_cycle'] = color_cycle_docs
-
-astropy_mpl_docs_style['axes.grid'] = False
-astropy_mpl_docs_style['figure.figsize'] = (6, 6)
-astropy_mpl_docs_style['savefig.facecolor'] = 'none'
-astropy_mpl_docs_style['savefig.bbox'] = 'tight'

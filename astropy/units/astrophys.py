@@ -6,8 +6,6 @@ This package defines the astrophysics-specific units.  They are also
 available in the `astropy.units` namespace.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from . import si
 from ..constants import si as _si
@@ -32,14 +30,14 @@ def_unit(['pc', 'parsec'], _si.pc, namespace=_ns, prefixes=True,
          doc="parsec: approximately 3.26 light-years.")
 
 def_unit(['solRad', 'R_sun', 'Rsun'], _si.R_sun, namespace=_ns,
-         doc="Solar radius", prefixes=True,
+         doc="Solar radius", prefixes=False,
          format={'latex': r'R_{\odot}', 'unicode': 'R⊙'})
-def_unit(['jupiterRad', 'R_jup', 'Rjup','R_jupiter', 'Rjupiter'],
-         _si.R_jup, namespace=_ns, prefixes=True, doc="Jupiter radius",
+def_unit(['jupiterRad', 'R_jup', 'Rjup', 'R_jupiter', 'Rjupiter'],
+         _si.R_jup, namespace=_ns, prefixes=False, doc="Jupiter radius",
          # LaTeX jupiter symbol requires wasysym
          format={'latex': r'R_{\rm J}', 'unicode': 'R♃'})
 def_unit(['earthRad', 'R_earth', 'Rearth'], _si.R_earth, namespace=_ns,
-         prefixes=True, doc="Earth radius",
+         prefixes=False, doc="Earth radius",
          # LaTeX earth symbol requires wasysym
          format={'latex': r'R_{\oplus}', 'unicode': 'R⊕'})
 
@@ -65,14 +63,14 @@ def_unit(['cycle', 'cy'], 2.0 * _numpy.pi * si.rad,
 # MASS
 
 def_unit(['solMass', 'M_sun', 'Msun'], _si.M_sun, namespace=_ns,
-         prefixes=True, doc="Solar mass",
+         prefixes=False, doc="Solar mass",
          format={'latex': r'M_{\odot}', 'unicode': 'M⊙'})
-def_unit(['jupiterMass', 'M_jup', 'Mjup','M_jupiter', 'Mjupiter'],
-         _si.M_jup, namespace=_ns, prefixes=True, doc="Jupiter mass",
+def_unit(['jupiterMass', 'M_jup', 'Mjup', 'M_jupiter', 'Mjupiter'],
+         _si.M_jup, namespace=_ns, prefixes=False, doc="Jupiter mass",
          # LaTeX jupiter symbol requires wasysym
          format={'latex': r'M_{\rm J}', 'unicode': 'M♃'})
 def_unit(['earthMass', 'M_earth', 'Mearth'], _si.M_earth, namespace=_ns,
-         prefixes=True, doc="Earth mass",
+         prefixes=False, doc="Earth mass",
          # LaTeX earth symbol requires wasysym
          format={'latex': r'M_{\oplus}', 'unicode': 'M⊕'})
 def_unit(['M_p'], _si.m_p, namespace=_ns, doc="Proton mass",
@@ -103,7 +101,7 @@ def_unit(['Ry', 'rydberg'],
 # ILLUMINATION
 
 def_unit(['solLum', 'L_sun', 'Lsun'], _si.L_sun, namespace=_ns,
-         prefixes=True, doc="Solar luminance",
+         prefixes=False, doc="Solar luminance",
          format={'latex': r'L_{\odot}', 'unicode': 'L⊙'})
 
 
@@ -162,6 +160,14 @@ def_unit(['adu'], namespace=_ns, prefixes=True)
 def_unit(['beam'], namespace=_ns, prefixes=True)
 def_unit(['electron'], doc="Number of electrons", namespace=_ns,
          format={'latex': r'e^{-}', 'unicode': 'e⁻'})
+# This is not formally a unit, but is used in that way in many contexts, and
+# an appropriate equivalency is only possible if it's treated as a unit (see
+# https://arxiv.org/pdf/1308.4150.pdf for more)
+# Also note that h or h100 or h_100 would be a better name, but they either
+# conflict or have numbers in them, which is apparently disallowed
+def_unit(['littleh'], namespace=_ns, prefixes=False,
+         doc="Reduced/\"dimensionless\" Hubble constant",
+         format={'latex': r'h_{100}'})
 
 
 ###########################################################################

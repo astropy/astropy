@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module contains a class equivalent to pre-1.0 NDData.
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
@@ -60,7 +58,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         WCS-object containing the world coordinate system for the data.
 
         .. warning::
-            This is not yet defind because the discussion of how best to
+            This is not yet defined because the discussion of how best to
             represent this class's WCS system generically is still under
             consideration. For now just leave it as None
 
@@ -81,12 +79,10 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         shape) onto ``data``.
     """
 
-    def __init__(self, data, *args, **kwd):
-        # Remove the flag argument from input.
-        flags = kwd.pop('flags', None)
+    def __init__(self, data, *args, flags=None, **kwargs):
 
         # Initialize with the parent...
-        super(NDDataArray, self).__init__(data, *args, **kwd)
+        super().__init__(data, *args, **kwargs)
 
         # ...then reset uncertainty to force it to go through the
         # setter logic below. In base NDData all that is done is to
@@ -117,15 +113,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         if value is not None:
             if isinstance(value, NDUncertainty):
                 class_name = self.__class__.__name__
-                if self.unit and value._unit:
-                    try:
-                        scaling = (1 * value._unit).to(self.unit)
-                    except UnitsError:
-                        raise UnitConversionError(
-                            'Cannot convert unit of uncertainty to unit of '
-                            '{0} object.'.format(class_name))
-                    value.array *= scaling
-                elif not self.unit and value._unit:
+                if not self.unit and value._unit:
                     # Raise an error if uncertainty has unit and data does not
                     raise ValueError("Cannot assign an uncertainty with unit "
                                      "to {0} without "

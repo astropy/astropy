@@ -1,6 +1,6 @@
-==================================
+**********************************
 Ticks, tick labels, and grid lines
-==================================
+**********************************
 
 For the example in the following page we start from the example introduced in
 :ref:`initialization`.
@@ -26,7 +26,7 @@ For the example in the following page we start from the example introduced in
 .. _coordinateobjects:
 
 Coordinate objects
-==================
+******************
 
 While for many images, the coordinate axes are aligned with the pixel axes,
 this is not always the case, especially if there is any rotation in the world
@@ -75,7 +75,7 @@ to control the appearance of the ticks, tick labels, grid lines, and axis
 labels associated with that coordinate.
 
 Axis labels
-===========
+***********
 
 Axis labels can be added using the
 :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_axislabel` method:
@@ -117,7 +117,7 @@ allowed.
 .. _tick_label_format:
 
 Tick label format
-=================
+*****************
 
 The format of the tick labels can be specified with a string describing the
 format:
@@ -164,7 +164,7 @@ The syntax for the format string is the following:
 All the ``h...``, ``d...``, ``m...``, and ``s...`` formats can be used for
 angular coordinate axes, while the ``x...`` format or valid Python formats
 (see `String Formatting Operations
-<https://docs.python.org/2/library/stdtypes.html#string-formatting>`_) should
+<https://docs.python.org/3/library/stdtypes.html#string-formatting>`_) should
 be used for non-angular coordinate axes.
 
 The separators for angular coordinate tick labels can also be set by
@@ -180,7 +180,7 @@ specifying a string or a tuple.
 
 
 Tick/label spacing and properties
-=================================
+*********************************
 
 The spacing of ticks/tick labels should have a sensible default, but you may
 want to be able to manually specify the spacing. This can be done using the
@@ -204,9 +204,15 @@ In the case of angular axes, specifying the spacing as an Astropy
 :class:`~astropy.units.quantity.Quantity` avoids roundoff errors. The
 :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks` method can also
 be used to set the appearance (color and size) of the ticks, using the
-``color=`` and ``size=`` options. There is also the option
-``exclude_overlapping=True`` to prevent overlapping tick labels from being
-displayed.
+``color=`` and ``size=`` options.
+
+The :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel` method can be used
+to change settings for the tick labels, such as color, font, size, and so on::
+
+    lon.set_ticklabel(color='red', size=12)
+
+In addition, this method has an option ``exclude_overlapping=True`` to prevent
+overlapping tick labels from being displayed.
 
 We can apply this to the previous example:
 
@@ -216,11 +222,13 @@ We can apply this to the previous example:
    :align: center
 
     from astropy import units as u
-    lon.set_ticks(spacing=10 * u.arcmin, color='white', exclude_overlapping=True)
-    lat.set_ticks(spacing=10 * u.arcmin, color='white', exclude_overlapping=True)
+    lon.set_ticks(spacing=10 * u.arcmin, color='white')
+    lat.set_ticks(spacing=10 * u.arcmin, color='white')
+    lon.set_ticklabel(exclude_overlapping=True)
+    lat.set_ticklabel(exclude_overlapping=True)
 
 Minor ticks
-===========
+***********
 
 WCSAxes does not display minor ticks by default but these can be shown by
 using the
@@ -238,7 +246,7 @@ specified.
     lat.set_minor_frequency(10)
 
 Tick, tick label, and axis label position
-=========================================
+*****************************************
 
 By default, the tick and axis labels for the first coordinate are shown on the
 x-axis, and the tick and axis labels for the second coordinate are shown on
@@ -283,7 +291,7 @@ vertical axis (which is usually the minor axis of the ellipse).
 
 
 Hiding ticks and tick labels
-============================
+****************************
 
 Sometimes it's desirable to hide ticks and tick labels. A common scenario
 is where WCSAxes is being used in a grid of subplots and the tick labels
@@ -320,7 +328,7 @@ And we can restore the ticks and tick labels again using:
 
 
 Coordinate grid
-===============
+***************
 
 Since the properties of a coordinate grid are linked to the properties of the
 ticks and labels, grid lines 'belong' to the coordinate objects described

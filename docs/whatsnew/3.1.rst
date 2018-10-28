@@ -1,0 +1,37 @@
+.. doctest-skip-all
+
+.. _whatsnew-3.1:
+
+**************************
+What's New in Astropy 3.1?
+**************************
+
+Overview
+========
+
+Astropy 3.1 is a major release that ...  since
+the 3.0.x series of releases.
+
+In particular, this release includes:
+
+*
+
+In addition to these major changes, Astropy 3.1 includes a large number of
+smaller improvements and bug fixes, which are described in the
+:ref:`changelog`. By the numbers:
+
+* xxx issues have been closed since v3.0
+* xxx pull requests have been merged since v3.0
+* xxx distinct people have contributed code
+
+
+
+Full change log
+===============
+
+To see a detailed list of all changes in version v3.1, including changes in
+API, please see the :ref:`changelog`.
+
+
+Renamed/removed functionality
+=============================

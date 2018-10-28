@@ -1,12 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 # LOCAL
 from ....utils.xml.iterparser import _fast_iterparse
-from ....extern import six
 
 # SYSTEM
+import io
 import zlib
 
 # The C-based XML parser for VOTables previously used fixed-sized
@@ -69,10 +67,10 @@ VOTABLE_XML = HEADER + 125*ROW + FOOTER
 
 # UngzipFileWrapper() wraps an existing file-like Object,
 # decompressing the content and returning the plaintext.
-# This therefore emulates the behaviour of the Python 'requests'
+# This therefore emulates the behavior of the Python 'requests'
 # library when transparently decompressing Gzip HTTP responses.
 #
-# The critical behaviour is that---because of the
+# The critical behavior is that---because of the
 # decompression---read() can return considerably more
 # bytes than were requested!  (But, read() can also return less).
 #
@@ -80,7 +78,7 @@ VOTABLE_XML = HEADER + 125*ROW + FOOTER
 # http://stackoverflow.com/questions/4013843/how-to-wrap-file-object-read-and-write-operation-which-are-readonly
 
 
-class UngzipFileWrapper(object):
+class UngzipFileWrapper:
     def __init__(self, fd, **kwargs):
         self._file = fd
         self._z = zlib.decompressobj(16 + zlib.MAX_WBITS)
@@ -112,7 +110,7 @@ class UngzipFileWrapper(object):
 
 def test_iterparser_over_read_simple():
     # Take the plaintext of 512 tags, and compression it with a
-    # Gzip-style header (+16), to most closely emulate the behaviour
+    # Gzip-style header (+16), to most closely emulate the behavior
     # of most HTTP servers.
     zlib_GZIP_STYLE_HEADER = 16
     compo = zlib.compressobj(zlib.Z_BEST_COMPRESSION,
@@ -122,7 +120,7 @@ def test_iterparser_over_read_simple():
     # Bytes vs. String  .encode()/.decode() for compatibility with Python 3.5.
     s = compo.compress(VOTABLE_XML.encode())
     s = s + compo.flush()
-    fd = six.BytesIO(s)
+    fd = io.BytesIO(s)
     fd.seek(0)
 
     # Finally setup the test of the C-based '_fast_iterparse()' iterator

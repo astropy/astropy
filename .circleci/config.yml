@@ -1,0 +1,128 @@
+version: 2
+
+apt-run: &apt-install
+  name: Install apt packages
+  command: |
+    sudo apt update
+    sudo apt install -y graphviz
+
+pip-run: &pip-install
+  name: Install Python dependencies
+  command: |
+    python3 -m venv venv
+    . venv/bin/activate
+    pip install -q -r pip-requirements-doc
+
+jobs:
+  egg-info-37:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - run: python setup.py egg_info
+
+  32bit:
+    docker:
+      - image: quay.io/pypa/manylinux1_i686
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: /opt/python/cp36-cp36m/bin/pip install "numpy<1.15.3" scipy "pytest<3.7" pytest-astropy pytest-xdist Cython jinja2
+      - run:
+          name: Run tests
+          command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4 -V -a "--durations=50"
+
+  image-tests-mpl202:
+    docker:
+      - image: astropy/image-tests-py35-mpl202:1.3
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
+  image-tests-mpl212:
+    docker:
+      - image: astropy/image-tests-py35-mpl212:1.3
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
+  image-tests-mpl222:
+    docker:
+      - image: astropy/image-tests-py35-mpl222:1.3
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
+  image-tests-mpl300:
+    docker:
+      - image: astropy/image-tests-py35-mpl300:1.3
+    steps:
+      - checkout
+      - run:
+          name: Temporarily downgrade pytest
+          command: pip3 install "pytest<3.7"
+      - run:
+          name: Run tests
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
+  image-tests-mpldev:
+    docker:
+      - image: astropy/image-tests-py35-base:1.0
+    steps:
+      - checkout
+      - run:
+          name: Install apt dependencies
+          command: apt-get install -y libfreetype6-dev libpng12-dev pkg-config
+      - run:
+          name: Install Python dependencies, including developer version of Matplotlib
+          command: pip3 install "pytest<3.7" pytest-mpl pytest-astropy numpy scipy git+https://github.com/matplotlib/matplotlib.git
+      - run:
+          name: Run tests
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
+  html-docs:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - run: *apt-install
+      - run: *pip-install
+      - run:
+          name: Build Docs
+          command: venv/bin/python setup.py build_docs -w
+          environment:
+            LC_CTYPE: C
+            LC_ALL: C
+            LANG: C
+
+      - store_artifacts:
+          path: docs/_build/html
+
+      - run:
+          name: "Built documentation is available at:"
+          command: DOCS_URL="${CIRCLE_BUILD_URL}/artifacts/${CIRCLE_NODE_INDEX}/${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}/docs/_build/html/index.html"; echo $DOCS_URL
+
+
+workflows:
+  version: 2
+  tests_and_docs:
+    jobs:
+      - egg-info-37
+      - html-docs
+      - 32bit
+      - image-tests-mpl202
+      - image-tests-mpl212
+      - image-tests-mpl222
+      - image-tests-mpl300
+      - image-tests-mpldev
+
+notify:
+  webhooks:
+    - url: https://giles.cadair.com/circleci

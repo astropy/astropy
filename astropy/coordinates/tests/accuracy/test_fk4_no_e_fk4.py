@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 import numpy as np
@@ -11,15 +9,15 @@ from ....time import Time
 from ....table import Table
 from ...angle_utilities import angular_separation
 from ....utils.data import get_pkg_data_contents
-from ....extern.six.moves import range
 
-#the number of tests to run
+# the number of tests to run
 from . import N_ACCURACY_TESTS
 
 # It looks as though SLALIB, which AST relies on, assumes a simplified version
 # of the e-terms corretion, so we have to up the tolerance a bit to get things
 # to agree.
 TOLERANCE = 1.e-5  # arcseconds
+
 
 def test_fk4_no_e_fk4():
     lines = get_pkg_data_contents('fk4_no_e_fk4.csv').split('\n')

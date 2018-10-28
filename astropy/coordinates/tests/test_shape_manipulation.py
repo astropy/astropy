@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 import numpy as np
 
 from ... import units as u
@@ -8,7 +7,6 @@ from .. import Longitude, Latitude, EarthLocation, SkyCoord
 # test on frame with most complicated frame attributes.
 from ..builtin_frames import ICRS, AltAz, GCRS
 from ...time import Time
-from ...utils.compat.numpycompat import NUMPY_LT_1_9
 
 
 class TestManipulation():
@@ -156,8 +154,7 @@ class TestManipulation():
         s0_diagonal = self.s0.diagonal()
         assert s0_diagonal.shape == (6,)
         assert np.all(s0_diagonal.data.lat == self.s0.data.lat.diagonal())
-        if not NUMPY_LT_1_9:
-            assert np.may_share_memory(s0_diagonal.data.lat, self.s0.data.lat)
+        assert np.may_share_memory(s0_diagonal.data.lat, self.s0.data.lat)
 
     def test_swapaxes(self):
         s1_swapaxes = self.s1.swapaxes(0, 1)

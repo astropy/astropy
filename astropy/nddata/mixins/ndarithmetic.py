@@ -1,18 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module implements the Arithmetic mixin to the NDData class.
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from copy import deepcopy
 
 import numpy as np
-import warnings
 
 from ..nduncertainty import NDUncertainty
 from ...units import dimensionless_unscaled
 from ...utils import format_doc, sharedmethod
-from ...utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['NDArithmeticMixin']
 
@@ -102,7 +98,7 @@ _arit_doc = """
     """
 
 
-class NDArithmeticMixin(object):
+class NDArithmeticMixin:
     """
     Mixin class to add arithmetic to an NDData object.
 
@@ -130,15 +126,13 @@ class NDArithmeticMixin(object):
     :meth:`NDArithmeticMixin.add`. ``None`` means that the result will have no
     uncertainty, ``False`` means it takes the uncertainty of the first operand
     (if this does not exist from the second operand) as the result's
-    uncertainty. This behaviour is also explained in the docstring for the
+    uncertainty. This behavior is also explained in the docstring for the
     different arithmetic operations.
 
-    Notes
-    -----
-    1. It is not tried to decompose the units, mainly due to the internal
-       mechanics of `~astropy.units.Quantity`, so the resulting data might have
-       units like ``km/m`` if you divided for example 100km by 5m. So this
-       Mixin has adopted this behaviour.
+    Decomposing the units is not attempted, mainly due to the internal mechanics
+    of `~astropy.units.Quantity`, so the resulting data might have units like
+    ``km/m`` if you divided for example 100km by 5m. So this Mixin has adopted
+    this behavior.
 
     Examples
     --------
@@ -156,9 +150,9 @@ class NDArithmeticMixin(object):
 
     Using it with two operand on an instance::
 
-        >>> ndd = NDDataWithMath(5)
+        >>> ndd = NDDataWithMath(-4)
         >>> ndd.divide(1, ndd)
-        NDDataWithMath(0.2)
+        NDDataWithMath(-0.25)
 
     Using it as classmethod requires two operands::
 
@@ -578,27 +572,6 @@ class NDArithmeticMixin(object):
             is the NDData-subclass that is used as wrapper for the result.
         """
         # DO NOT OVERRIDE THIS METHOD IN SUBCLASSES.
-
-        # TODO: Remove this in astropy 1.3 or 1.4:
-
-        # Before 1.2 propagate_uncertainties could be given as positional
-        # keyword, this is now deprecated:
-        if (isinstance(operand2, bool) and
-                'propagate_uncertainties' not in kwargs):
-            # No explicit propagate_uncertainties was given but the second
-            # operand was given as boolean. I'll assume that most don't want
-            # to do arithmetics with a boolean operand, print a deprecation
-            # warning. If someone really wanted to do arithmetics with a
-            # boolean he should have set propagate_uncertainties. :-/
-            warnings.warn('propagate_uncertainties should be given as keyword '
-                          'parameter, i.e. "propagate_uncertainties={0}".'
-                          ''.format(operand2), AstropyDeprecationWarning)
-            # Set the kwarg and reset operand2.
-            kwargs['propagate_uncertainties'] = operand2
-            operand2 = None
-
-        # TODO: The following parts must remain here if the above part is
-        # removed.
 
         if isinstance(self_or_cls, NDArithmeticMixin):
             # True means it was called on the instance, so self_or_cls is

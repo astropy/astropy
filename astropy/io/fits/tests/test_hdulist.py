@@ -5,15 +5,16 @@ import io
 import os
 import platform
 import sys
+import copy
+import subprocess
 
+import pytest
 import numpy as np
 
 from ..verify import VerifyError
-from ....extern.six.moves import range
 from ....io import fits
-from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
+from ....tests.helper import raises, catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
-from ....utils.compat import NUMPY_LT_1_12
 
 from . import FitsTestCase
 
@@ -76,7 +77,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.HDUList()
         hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
         hdul.append(hdu)
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', '')]
         assert hdul.info(output=False) == info
 
         hdul.writeto(self.temp('test-append.fits'))
@@ -89,7 +90,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.HDUList()
         hdu = fits.ImageHDU(np.arange(100, dtype=np.int32))
         hdul.append(hdu)
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (100,), 'int32', '')]
         assert hdul.info(output=False) == info
 
         hdul.writeto(self.temp('test-append.fits'))
@@ -102,8 +103,8 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.HDUList()
         hdul1 = fits.open(self.data('tb.fits'))
         hdul.append(hdul1[1])
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (), '', ''),
-                (1, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
+                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
         assert hdul.info(output=False) == info
 
@@ -118,7 +119,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.GroupsHDU()
         hdul.append(hdu)
 
-        info = [(0, 'PRIMARY', 'GroupsHDU', 8, (), '',
+        info = [(0, 'PRIMARY', 1, 'GroupsHDU', 8, (), '',
                  '1 Groups  0 Parameters')]
 
         assert hdul.info(output=False) == info
@@ -134,8 +135,8 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
         hdul.append(hdu)
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 7, (11, 10, 7), 'int32', ''),
-                (1, '', 'ImageHDU', 6, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 7, (11, 10, 7), 'int32', ''),
+                (1, '', 1, 'ImageHDU', 6, (100,), 'int32', '')]
 
         assert hdul.info(output=False) == info
 
@@ -149,9 +150,9 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.open(self.data('tb.fits'))
         hdul.append(hdul[1])
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 11, (), '', ''),
-                (1, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
-                (2, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 11, (), '', ''),
+                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
+                (2, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
         assert hdul.info(output=False) == info
 
@@ -175,7 +176,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
         hdul.insert(0, hdu)
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', '')]
 
         assert hdul.info(output=False) == info
 
@@ -190,7 +191,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.ImageHDU(np.arange(100, dtype=np.int32))
         hdul.insert(0, hdu)
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (100,), 'int32', '')]
 
         assert hdul.info(output=False) == info
 
@@ -205,8 +206,8 @@ class TestHDUListFunctions(FitsTestCase):
         hdul1 = fits.open(self.data('tb.fits'))
         hdul.insert(0, hdul1[1])
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (), '', ''),
-                (1, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
+                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
         assert hdul.info(output=False) == info
 
@@ -221,7 +222,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.GroupsHDU()
         hdul.insert(0, hdu)
 
-        info = [(0, 'PRIMARY', 'GroupsHDU', 8, (), '',
+        info = [(0, 'PRIMARY', 1, 'GroupsHDU', 8, (), '',
                  '1 Groups  0 Parameters')]
 
         assert hdul.info(output=False) == info
@@ -237,8 +238,8 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
         hdul.insert(1, hdu)
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 7, (11, 10, 7), 'int32', ''),
-                (1, '', 'ImageHDU', 6, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 7, (11, 10, 7), 'int32', ''),
+                (1, '', 1, 'ImageHDU', 6, (100,), 'int32', '')]
 
         assert hdul.info(output=False) == info
 
@@ -252,9 +253,9 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.open(self.data('tb.fits'))
         hdul.insert(1, hdul[1])
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 11, (), '', ''),
-                (1, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
-                (2, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 11, (), '', ''),
+                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
+                (2, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
         assert hdul.info(output=False) == info
 
@@ -273,9 +274,9 @@ class TestHDUListFunctions(FitsTestCase):
         with pytest.raises(ValueError):
             hdul.insert(1, hdu)
 
-        info = [(0, 'PRIMARY', 'GroupsHDU', 8, (), '',
+        info = [(0, 'PRIMARY', 1, 'GroupsHDU', 8, (), '',
                  '1 Groups  0 Parameters'),
-                (1, '', 'ImageHDU', 6, (100,), 'int32', '')]
+                (1, '', 1, 'ImageHDU', 6, (100,), 'int32', '')]
 
         hdul.insert(0, hdu)
 
@@ -302,10 +303,10 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.open(self.data('tb.fits'))
         hdul.insert(0, hdul[1])
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (), '', ''),
-                (1, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
-                (2, '', 'ImageHDU', 12, (), '', ''),
-                (3, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
+                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
+                (2, '', 1, 'ImageHDU', 12, (), '', ''),
+                (3, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
         assert hdul.info(output=False) == info
 
@@ -323,9 +324,9 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.ImageHDU(np.arange(100, dtype=np.int32))
         hdul.insert(0, hdu)
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', ''),
-                (1, '', 'ImageHDU', 12, (), '', ''),
-                (2, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', ''),
+                (1, '', 1, 'ImageHDU', 12, (), '', ''),
+                (2, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
         assert hdul.info(output=False) == info
 
@@ -353,7 +354,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdul.writeto(tmpfile)
         tmpfile.close()
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', '')]
 
         assert fits.info(self.temp('tmpfile.fits'), output=False) == info
 
@@ -366,15 +367,52 @@ class TestHDUListFunctions(FitsTestCase):
         tmpfile.close()
         hdul.close()
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', '')]
         assert fits.info(self.temp('tmpfile.fits'), output=False) == info
 
     def test_file_like_3(self):
         tmpfile = open(self.temp('tmpfile.fits'), 'wb')
         fits.writeto(tmpfile, np.arange(100, dtype=np.int32))
         tmpfile.close()
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', '')]
         assert fits.info(self.temp('tmpfile.fits'), output=False) == info
+
+    def test_shallow_copy(self):
+        """
+        Tests that `HDUList.__copy__()` and `HDUList.copy()` return a
+        shallow copy (regression test for #7211).
+        """
+
+        n = np.arange(10.0)
+        primary_hdu = fits.PrimaryHDU(n)
+        hdu = fits.ImageHDU(n)
+        hdul = fits.HDUList([primary_hdu, hdu])
+
+        for hdulcopy in (hdul.copy(), copy.copy(hdul)):
+            assert isinstance(hdulcopy, fits.HDUList)
+            assert hdulcopy is not hdul
+            assert hdulcopy[0] is hdul[0]
+            assert hdulcopy[1] is hdul[1]
+
+    def test_deep_copy(self):
+        """
+        Tests that `HDUList.__deepcopy__()` returns a deep copy.
+        """
+
+        n = np.arange(10.0)
+        primary_hdu = fits.PrimaryHDU(n)
+        hdu = fits.ImageHDU(n)
+        hdul = fits.HDUList([primary_hdu, hdu])
+
+        hdulcopy = copy.deepcopy(hdul)
+
+        assert isinstance(hdulcopy, fits.HDUList)
+        assert hdulcopy is not hdul
+
+        for index in range(len(hdul)):
+            assert hdulcopy[index] is not hdul[index]
+            assert hdulcopy[index].header == hdul[index].header
+            np.testing.assert_array_equal(hdulcopy[index].data, hdul[index].data)
 
     def test_new_hdu_extname(self):
         """
@@ -386,11 +424,13 @@ class TestHDUListFunctions(FitsTestCase):
         f = fits.open(self.data('test0.fits'))
         hdul = fits.HDUList()
         hdul.append(f[0].copy())
-        hdul.append(fits.ImageHDU(header=f[1].header))
+        hdu = fits.ImageHDU(header=f[1].header)
+        hdul.append(hdu)
 
         assert hdul[1].header['EXTNAME'] == 'SCI'
         assert hdul[1].header['EXTVER'] == 1
         assert hdul.index_of(('SCI', 1)) == 1
+        assert hdul.index_of(hdu) == len(hdul) - 1
 
     def test_update_filelike(self):
         """Test opening a file-like object in update mode and resizing the
@@ -434,6 +474,52 @@ class TestHDUListFunctions(FitsTestCase):
 
         assert 'EXTEND' in hdul[0].header
         assert hdul[0].header['EXTEND'] is True
+
+    def test_fix_malformed_naxisj(self):
+        """
+        Tests that malformed NAXISj values are fixed sensibly.
+        """
+
+        hdu = fits.open(self.data('arange.fits'))
+
+        # Malform NAXISj header data
+        hdu[0].header['NAXIS1'] = 11.0
+        hdu[0].header['NAXIS2'] = '10.0'
+        hdu[0].header['NAXIS3'] = '7'
+
+        # Axes cache needs to be malformed as well
+        hdu[0]._axes = [11.0, '10.0', '7']
+
+        # Perform verification including the fix
+        hdu.verify('silentfix')
+
+        # Check that malformed data was converted
+        assert hdu[0].header['NAXIS1'] == 11
+        assert hdu[0].header['NAXIS2'] == 10
+        assert hdu[0].header['NAXIS3'] == 7
+
+    def test_fix_wellformed_naxisj(self):
+        """
+        Tests that wellformed NAXISj values are not modified.
+        """
+
+        hdu = fits.open(self.data('arange.fits'))
+
+        # Fake new NAXISj header data
+        hdu[0].header['NAXIS1'] = 768
+        hdu[0].header['NAXIS2'] = 64
+        hdu[0].header['NAXIS3'] = 8
+
+        # Axes cache needs to be faked as well
+        hdu[0]._axes = [768, 64, 8]
+
+        # Perform verification including the fix
+        hdu.verify('silentfix')
+
+        # Check that malformed data was converted
+        assert hdu[0].header['NAXIS1'] == 768
+        assert hdu[0].header['NAXIS2'] == 64
+        assert hdu[0].header['NAXIS3'] == 8
 
     def test_new_hdulist_extend_keyword(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/114
@@ -486,7 +572,7 @@ class TestHDUListFunctions(FitsTestCase):
         Open files with nulls for header block padding instead of spaces.
         """
 
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         hdu = fits.PrimaryHDU(data=a)
         hdu.writeto(self.temp('temp.fits'))
 
@@ -530,8 +616,7 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits')) as hdul:
             assert (hdul[0].data == data).all()
 
-
-    @pytest.mark.xfail(platform.system() == 'Windows' and not NUMPY_LT_1_12,
+    @pytest.mark.xfail(platform.system() == 'Windows',
                        reason='https://github.com/astropy/astropy/issues/5797')
     def test_update_resized_header(self):
         """
@@ -611,7 +696,7 @@ class TestHDUListFunctions(FitsTestCase):
         entire multi-extension FITS file at once.
         """
 
-        # Tests HDUList.fromstring for all of PyFITS' built in test files
+        # Tests HDUList.fromstring for all of Astropy's built in test files
         def test_fromstring(filename):
             with fits.open(filename) as hdul:
                 orig_info = hdul.info(output=False)
@@ -647,8 +732,13 @@ class TestHDUListFunctions(FitsTestCase):
         for filename in glob.glob(os.path.join(self.data_dir, '*.fits')):
             if sys.platform == 'win32' and filename == 'zerowidth.fits':
                 # Running this test on this file causes a crash in some
-                # versions of Numpy on Windows.  See PyFITS ticket
+                # versions of Numpy on Windows.  See ticket:
                 # https://aeon.stsci.edu/ssb/trac/pyfits/ticket/174
+                continue
+            elif filename.endswith('variable_length_table.fits'):
+                # Comparing variable length arrays is non-trivial and thus
+                # skipped at this point.
+                # TODO: That's probably possible, so one could make it work.
                 continue
             test_fromstring(filename)
 
@@ -726,7 +816,6 @@ class TestHDUListFunctions(FitsTestCase):
             # Finally, without mmaping B
             test(True, False)
 
-
     def test_replace_mmap_data_2(self):
         """Regression test for
         https://github.com/spacetelescope/PyFITS/issues/25
@@ -775,8 +864,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         Regression test for https://github.com/astropy/astropy/issues/3060
         """
-
-        hdulist = fits.HDUList()
+        hdulist = fits.open(self.data('o4sp040b0_raw.fits'))
         hdulist.append(fits.ImageHDU(name='a'))
 
         assert 'a' in hdulist
@@ -787,6 +875,8 @@ class TestHDUListFunctions(FitsTestCase):
         assert ('a', 2) not in hdulist
         assert ('b', 1) not in hdulist
         assert ('b', 2) not in hdulist
+        assert hdulist[0] in hdulist
+        assert fits.ImageHDU() not in hdulist
 
     def test_overwrite_vs_clobber(self):
         hdulist = fits.HDUList([fits.PrimaryHDU()])
@@ -794,11 +884,10 @@ class TestHDUListFunctions(FitsTestCase):
         hdulist.writeto(self.temp('test_overwrite.fits'), overwrite=True)
         with catch_warnings(AstropyDeprecationWarning) as warning_lines:
             hdulist.writeto(self.temp('test_overwrite.fits'), clobber=True)
-            assert len(warning_lines) == 0
-            # assert warning_lines[0].category == AstropyDeprecationWarning
-            # assert (str(warning_lines[0].message) == '"clobber" was '
-            #         'deprecated in version 1.3 and will be removed in a '
-            #         'future version. Use argument "overwrite" instead.')
+            assert warning_lines[0].category == AstropyDeprecationWarning
+            assert (str(warning_lines[0].message) == '"clobber" was '
+                    'deprecated in version 2.0 and will be removed in a '
+                    'future version. Use argument "overwrite" instead.')
 
     def test_invalid_hdu_key_in_contains(self):
         """
@@ -864,6 +953,98 @@ class TestHDUListFunctions(FitsTestCase):
         with codecs.open(filename, mode='w', encoding='utf=8') as f:
             f.write(u'Ce\xe7i ne marche pas')
 
-        # This should raise an IOError because there is no end card.
-        with pytest.raises(IOError):
+        # This should raise an OSError because there is no end card.
+        with pytest.raises(OSError):
             fits.open(filename)
+
+    def test_no_resource_warning_raised_on_non_fits_file(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/6168
+
+        The ResourceWarning shows up when (in python 3+) you try to
+        open a non-FITS file when using a filename.
+        """
+
+        # To avoid creating the file multiple times the tests are
+        # all included in one test file. See the discussion to the
+        # PR at https://github.com/astropy/astropy/issues/6168
+        #
+        filename = self.temp('not-fits.fits')
+        with open(filename, mode='w') as f:
+            f.write('# header line\n')
+            f.write('0.1 0.2\n')
+
+        # Opening the file should raise an OSError however the file
+        # is opened (there are two distinct code paths, depending on
+        # whether ignore_missing_end is True or False).
+        #
+        # Explicit tests are added to make sure the file handle is not
+        # closed when passed in to fits.open. In this case the ResourceWarning
+        # was not raised, but a check is still included.
+        #
+        with catch_warnings(ResourceWarning) as ws:
+
+            # Make sure that files opened by the user are not closed
+            with open(filename, mode='rb') as f:
+                with pytest.raises(OSError):
+                    fits.open(f, ignore_missing_end=False)
+
+                assert not f.closed
+
+            with open(filename, mode='rb') as f:
+                with pytest.raises(OSError):
+                    fits.open(f, ignore_missing_end=True)
+
+                assert not f.closed
+
+            with pytest.raises(OSError):
+                fits.open(filename, ignore_missing_end=False)
+
+            with pytest.raises(OSError):
+                fits.open(filename, ignore_missing_end=True)
+
+        assert len(ws) == 0
+
+    def test_pop_with_lazy_load(self):
+        filename = self.data('checksum.fits')
+        hdul = fits.open(filename)
+        # Try popping the hdulist before doing anything else. This makes sure
+        # that https://github.com/astropy/astropy/issues/7185 is fixed.
+        hdu = hdul.pop()
+        assert len(hdul) == 1
+
+        # Read the file again and try popping from the beginning
+        hdul2 = fits.open(filename)
+        hdu2 = hdul2.pop(0)
+        assert len(hdul2) == 1
+
+        # Just a sanity check
+        hdul3 = fits.open(filename)
+        assert len(hdul3) == 2
+        assert hdul3[0].header == hdu2.header
+        assert hdul3[1].header == hdu.header
+
+    def test_pop_extname(self):
+        hdul = fits.open(self.data('o4sp040b0_raw.fits'))
+        assert len(hdul) == 7
+        hdu1 = hdul[1]
+        hdu4 = hdul[4]
+        hdu_popped = hdul.pop(('SCI', 2))
+        assert len(hdul) == 6
+        assert hdu_popped is hdu4
+        hdu_popped = hdul.pop('SCI')
+        assert len(hdul) == 5
+        assert hdu_popped is hdu1
+
+    def test_write_hdulist_to_stream(self):
+        """
+        Unit test for https://github.com/astropy/astropy/issues/7435
+        Ensure that an HDUList can be written to a stream in Python 2
+        """
+        data = np.array([[1,2,3],[4,5,6]])
+        hdu = fits.PrimaryHDU(data)
+        hdulist = fits.HDUList([hdu])
+
+        with open(self.temp('test.fits'), 'wb') as fout:
+            p = subprocess.Popen(["cat"], stdin=subprocess.PIPE, stdout=fout)
+            hdulist.writeto(p.stdin)

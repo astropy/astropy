@@ -19,11 +19,11 @@ from copy import deepcopy
 from collections import OrderedDict
 import pickle
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest
 from ... import table
-from ...table import table_helpers, Table
+from ...table import table_helpers, Table, QTable
 from ... import time
 from ... import units as u
 from ... import coordinates
@@ -72,6 +72,8 @@ class MyTable(table.Table):
 
 # Fixture to run all the Column tests for both an unmasked (ndarray)
 # and masked (MaskedArray) column.
+
+
 @pytest.fixture(params=['unmasked', 'masked', 'subclass'])
 def table_types(request):
     class TableTypes:
@@ -98,11 +100,11 @@ def table_data(request):
             self.Column = table.MaskedColumn if request.param else table.Column
             self.COLS = [
                 self.Column(name='a', data=[1, 2, 3], description='da',
-                            format='fa', meta={'ma': 1}, unit='ua'),
+                            format='%i', meta={'ma': 1}, unit='ua'),
                 self.Column(name='b', data=[4, 5, 6], description='db',
-                            format='fb', meta={'mb': 1}, unit='ub'),
+                            format='%d', meta={'mb': 1}, unit='ub'),
                 self.Column(name='c', data=[7, 8, 9], description='dc',
-                            format='fc', meta={'mc': 1}, unit='ub')]
+                            format='%f', meta={'mc': 1}, unit='ub')]
             self.DATA = self.Table(self.COLS)
     return TableData(request)
 
@@ -139,6 +141,9 @@ def table_type(request):
 # Stuff for testing mixin columns
 
 MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
+              'longitude': coordinates.Longitude([0., 1., 5., 6.]*u.deg,
+                                                  wrap_angle=180.*u.deg),
+              'latitude': coordinates.Latitude([5., 6., 10., 11.]*u.deg),
               'time': time.Time([2000, 2001, 2002, 2003], format='jyear'),
               'skycoord': coordinates.SkyCoord(ra=[0, 1, 2, 3] * u.deg,
                                                dec=[0, 1, 2, 3] * u.deg),
@@ -146,6 +151,10 @@ MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
               'ndarray': np.array([(7, 'a'), (8, 'b'), (9, 'c'), (9, 'c')],
                            dtype='<i4,|S1').view(table.NdarrayMixin),
               }
+MIXIN_COLS['earthlocation'] = coordinates.EarthLocation(
+    lon=MIXIN_COLS['longitude'], lat=MIXIN_COLS['latitude'],
+    height=MIXIN_COLS['quantity'])
+
 
 @pytest.fixture(params=sorted(MIXIN_COLS))
 def mixin_cols(request):
@@ -162,6 +171,7 @@ def mixin_cols(request):
     cols['m'] = mixin_cols[request.param]
 
     return cols
+
 
 @pytest.fixture(params=[False, True])
 def T1(request):
@@ -181,3 +191,8 @@ def T1(request):
     if request.param:
         T.add_index('a')
     return T
+
+
+@pytest.fixture(params=[Table, QTable])
+def operation_table_type(request):
+    return request.param

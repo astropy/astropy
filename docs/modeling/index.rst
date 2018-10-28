@@ -69,8 +69,8 @@ Model parameters can be accessed as attributes::
     Parameter('amplitude', value=1.2)
     >>> g.mean
     Parameter('mean', value=0.9)
-    >>> g.stddev
-    Parameter('stddev', value=0.5)
+    >>> g.stddev  # doctest: +FLOAT_CMP
+    Parameter('stddev', value=0.5, bounds=(1.1754943508222875e-38, None))
 
 and can also be updated via those attributes::
 
@@ -82,9 +82,9 @@ Models can be evaluated by calling them as functions::
 
     >>> g(0.1)
     0.22242984036255528
-    >>> g(np.linspace(0.5, 1.5, 7))
-    array([ 0.58091923,  0.71746405,  0.7929204 ,  0.78415894,  0.69394278,
-            0.54952605,  0.3894018 ])
+    >>> g(np.linspace(0.5, 1.5, 7))  # doctest: +FLOAT_CMP
+    array([0.58091923, 0.71746405, 0.7929204 , 0.78415894, 0.69394278,
+           0.54952605, 0.3894018 ])
 
 As the above example demonstrates, in general most models evaluate array-like
 inputs according to the standard `Numpy broadcasting rules`_ for arrays.
@@ -115,8 +115,10 @@ and `~astropy.modeling.functional_models.Trapezoid1D` models and the
     y = 3 * np.exp(-0.5 * (x - 1.3)**2 / 0.8**2)
     y += np.random.normal(0., 0.2, x.shape)
 
-    # Fit the data using a box model
-    t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5)
+    # Fit the data using a box model.
+    # Bounds are not really needed but included here to demonstrate usage.
+    t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5,
+                                bounds={"x_0": (-5., 5.)})
     fit_t = fitting.LevMarLSQFitter()
     t = fit_t(t_init, x, y)
 
@@ -236,14 +238,14 @@ Single models have a length of 1, and are not considered a model set as such.
 When evaluating a model set, by default the input must be the same length as
 the number of models, with one input per model::
 
-    >>> g([0, 0.1])
-    array([ 1.        ,  1.76499381])
+    >>> g([0, 0.1])  # doctest: +FLOAT_CMP
+    array([1.        , 1.76499381])
 
 The result is an array with one result per model in the set.  It is also
 possible to broadcast a single value to all models in the set::
 
-    >>> g(0)
-    array([ 1.,  2.])
+    >>> g(0)  # doctest: +FLOAT_CMP
+    array([1., 2.])
 
 Model sets are used primarily for fitting, allowing a large number of models of
 the same type to be fitted simultaneously (and independently from each other)
@@ -288,7 +290,8 @@ without specifying any parameter values up front.  This more advanced usage is
 explained in more detail in the :ref:`compound model documentation
 <compound-model-classes>`.
 
-These new compound models can also be fitted to data, like most other models:
+These new compound models can also be fitted to data, like most other models
+(though this currently requires one of the non-linear fitters):
 
 .. plot::
     :include-source:
@@ -322,6 +325,61 @@ are some complexities involved in correctly matching up the inputs and outputs
 of all models used to build a compound model.  You can learn more details in
 the :doc:`compound-models` documentation.
 
+Astropy models also support convolution through the function
+`~astropy.convolution.convolve_models`, which returns a compound model.
+
+For instance, the convolution of two Gaussian functions is also a Gaussian
+function in which the resulting mean (variance) is the sum of the means
+(variances) of each Gaussian.
+
+.. plot::
+    :include-source:
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy.modeling import models
+    from astropy.convolution import convolve_models
+
+    g1 = models.Gaussian1D(1, -1, 1)
+    g2 = models.Gaussian1D(1, 1, 1)
+    g3 = convolve_models(g1, g2)
+
+    x = np.linspace(-3, 3, 50)
+    plt.plot(x, g1(x), 'k-')
+    plt.plot(x, g2(x), 'k-')
+    plt.plot(x, g3(x), 'k-')
+
+.. _modeling-getting-started-masked-data:
+
+Fitting masked data
+-------------------
+
+.. versionadded:: 2.0.4
+
+When `astropy.modeling.fitting.LinearLSQFitter` is provided with the dependent
+co-ordinate values as a `numpy.ma.MaskedArray`, it ignores any masked values
+when performing the fit::
+
+    >>> p_init = models.Polynomial1D(degree=1)
+    >>> x = np.arange(10)
+    >>> y = np.ma.masked_array(2*x+1, mask=np.zeros_like(x))
+    >>> y[7] = 100.       # simulate spurious value
+    >>> y.mask[7] = True
+    >>> fitter = fitting.LinearLSQFitter()
+    >>> p = fitter(p_init, x, y)
+    >>> print('Fit intercept={:.3f}, slope={:.3f}'.format(p.c0.value, p.c1.value))  # doctest: +FLOAT_CMP
+    Fit intercept=1.000, slope=2.000
+
+At present, the non-linear fitters do not distinguish between good and bad
+values in this way.
+
+Note that model set fitting is currently about an order of magnitude slower in
+the presence of masked values, because the matrix equation has to be solved for
+each model separately, on their respective co-ordinate grids. This is still an
+order of magnitude faster than fitting separate model instances, however.
+Supplying a `numpy.ma.MaskedArray` without any bad (``True``) mask values
+produces the normal, faster behavior.
+
 .. _modeling-using:
 
 Using `astropy.modeling`
@@ -337,7 +395,12 @@ Using `astropy.modeling`
    new
    bounding-boxes
    algorithms
+   units
 
+.. note that if this section gets too long, it should be moved to a separate 
+   doc page - see the top of performance.inc.rst for the instructions on how to do 
+   that
+.. include:: performance.inc.rst
 
 Reference/API
 =============
@@ -345,6 +408,7 @@ Reference/API
 .. automodapi:: astropy.modeling
 .. automodapi:: astropy.modeling.functional_models
 .. automodapi:: astropy.modeling.powerlaws
+.. automodapi:: astropy.modeling.blackbody
 .. automodapi:: astropy.modeling.polynomial
 .. automodapi:: astropy.modeling.projections
 .. automodapi:: astropy.modeling.rotations
@@ -355,3 +419,4 @@ Reference/API
 .. automodapi:: astropy.modeling.fitting
 .. automodapi:: astropy.modeling.optimizers
 .. automodapi:: astropy.modeling.statistic
+.. automodapi:: astropy.modeling.separable
