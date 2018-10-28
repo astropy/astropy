@@ -1568,11 +1568,14 @@ class SphericalRepresentation(BaseRepresentation):
         if self._distance.unit.physical_type == 'length':
             try:
                 self._distance = Distance(self._distance, copy=False)
-            except ValueError:
-                raise ValueError("Distance must be >= 0. To allow negative "
-                                 "distance values, you must explicitly pass "
-                                 "in a `Distance` object with the the argument "
-                                 "'allow_negative=True'.")
+            except ValueError as e:
+                if e.args[0].startswith('Distance must be >= 0'):
+                    raise ValueError("Distance must be >= 0. To allow negative "
+                                     "distance values, you must explicitly pass"
+                                     " in a `Distance` object with the the "
+                                     "argument 'allow_negative=True'.")
+                else:
+                    raise
 
     @property
     def _compatible_differentials(self):
