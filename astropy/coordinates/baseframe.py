@@ -860,7 +860,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 if repr_unit:
                     out[repr_name] = repr_unit
                 cls._frame_class_cache['representation_component_units'][which] = out
-            return cls._frame_class_cache['representation_component_units'][which]
+        return cls._frame_class_cache['representation_component_units'][which]
 
     representation_component_names = property(get_representation_component_names)
 
