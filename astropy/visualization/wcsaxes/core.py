@@ -222,7 +222,7 @@ class WCSAxes(Axes):
 
         transform = kwargs.pop('transform', None)
 
-        cset = super(WCSAxes, self).contour(*args, **kwargs)
+        cset = super().contour(*args, **kwargs)
 
         if transform is not None:
             # The transform passed to self.contour will normally include
@@ -248,7 +248,7 @@ class WCSAxes(Axes):
 
         transform = kwargs.pop('transform', None)
 
-        cset = super(WCSAxes, self).contourf(*args, **kwargs)
+        cset = super().contourf(*args, **kwargs)
 
         if transform is not None:
             # The transform passed to self.contour will normally include

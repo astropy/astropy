@@ -719,7 +719,7 @@ class BoxLeastSquaresResults(dict):
 
     """
     def __init__(self, *args):
-        super(BoxLeastSquaresResults, self).__init__(zip(
+        super().__init__(zip(
             ("objective", "period", "power", "depth", "depth_err",
              "duration", "transit_time", "depth_snr", "log_likelihood"),
             args
