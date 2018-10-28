@@ -1487,29 +1487,61 @@ def test_unicode_policy():
     assert_follows_unicode_guidelines(t)
 
 
-def test_unicode_bytestring_conversion(table_types):
-    t = table_types.Table([['abc'], ['def'], [1]], dtype=('S', 'U', 'i'))
+@pytest.mark.parametrize('uni', ['питона', 'ascii'])
+def test_unicode_bytestring_conversion(table_types, uni):
+    """
+    Test converting columns to all unicode or all bytestring.  Thi
+    makes two columns, one which is unicode (str in Py3) and one which
+    is bytes (UTF-8 encoded).  There are two code paths in the conversions,
+    a faster one where the data are actually ASCII and a slower one where
+    UTF-8 conversion is required.  This tests both via the ``uni`` param.
+    """
+    byt = uni.encode('utf-8')
+    t = table_types.Table([[byt], [uni], [1]], dtype=('S', 'U', 'i'))
     assert t['col0'].dtype.kind == 'S'
     assert t['col1'].dtype.kind == 'U'
     assert t['col2'].dtype.kind == 'i'
+    t['col0'].description = 'col0'
+    t['col1'].description = 'col1'
+    t['col0'].meta['val'] = 'val0'
+    t['col1'].meta['val'] = 'val1'
 
+    # Unicode to bytestring
     t1 = t.copy()
     t1.convert_unicode_to_bytestring()
     assert t1['col0'].dtype.kind == 'S'
     assert t1['col1'].dtype.kind == 'S'
     assert t1['col2'].dtype.kind == 'i'
-    assert t1['col0'][0] == 'abc'
-    assert t1['col1'][0] == 'def'
-    assert t1['col2'][0] == 1
 
+    # Meta made it through
+    assert t1['col0'].description == 'col0'
+    assert t1['col1'].description == 'col1'
+    assert t1['col0'].meta['val'] == 'val0'
+    assert t1['col1'].meta['val'] == 'val1'
+
+    # Need to de-fang the automatic unicode sandwiching of Table
+    assert np.array(t1['col0'])[0] == byt
+    assert np.array(t1['col1'])[0] == byt
+    assert np.array(t1['col2'])[0] == 1
+
+    # Bytestring to unicode
     t1 = t.copy()
     t1.convert_bytestring_to_unicode()
     assert t1['col0'].dtype.kind == 'U'
     assert t1['col1'].dtype.kind == 'U'
     assert t1['col2'].dtype.kind == 'i'
-    assert t1['col0'][0] == str('abc')
-    assert t1['col1'][0] == str('def')
-    assert t1['col2'][0] == 1
+
+    # Meta made it through
+    assert t1['col0'].description == 'col0'
+    assert t1['col1'].description == 'col1'
+    assert t1['col0'].meta['val'] == 'val0'
+    assert t1['col1'].meta['val'] == 'val1'
+
+    # No need to de-fang the automatic unicode sandwiching of Table here, but
+    # do just for consistency to prove things are working.
+    assert np.array(t1['col0'])[0] == uni
+    assert np.array(t1['col1'])[0] == uni
+    assert np.array(t1['col2'])[0] == 1
 
 
 def test_table_deletion():
