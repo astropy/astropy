@@ -99,7 +99,7 @@ astropy.io.misc
 - Added a new ``character_as_bytes`` keyword to the HDF5 Table reading
   function to control whether byte string columns in the HDF5 file
   are left as bytes or converted to unicode.  The default is to read
-  as bytes (``character_as_bytes=True``). [#7024]
+  as bytes (``character_as_bytes=True``). [#7024, #8017]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -596,7 +596,7 @@ astropy.io.misc
 
 - Fixed a bug where writing to HDF5 failed for for tables with columns of
   unicode strings.  Now those columns are first encoded to UTF-8 and
-  written as byte strings. [#7024]
+  written as byte strings. [#7024, #8017]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
