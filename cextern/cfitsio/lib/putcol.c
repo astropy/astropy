@@ -79,6 +79,10 @@ int ffppx(  fitsfile *fptr,  /* I - FITS file pointer                       */
     {
       ffpprj(fptr, group, firstelem, nelem, (long *) array, status);
     }
+    else if (datatype == TULONGLONG)
+    {
+      ffpprujj(fptr, group, firstelem, nelem, (ULONGLONG *) array, status);
+    }
     else if (datatype == TLONGLONG)
     {
       ffpprjj(fptr, group, firstelem, nelem, (LONGLONG *) array, status);
@@ -164,6 +168,10 @@ int ffppxll(  fitsfile *fptr,  /* I - FITS file pointer                       */
     else if (datatype == TLONG)
     {
       ffpprj(fptr, group, firstelem, nelem, (long *) array, status);
+    }
+    else if (datatype == TULONGLONG)
+    {
+      ffpprujj(fptr, group, firstelem, nelem, (ULONGLONG *) array, status);
     }
     else if (datatype == TLONGLONG)
     {
@@ -264,6 +272,11 @@ int ffppxn(  fitsfile *fptr,  /* I - FITS file pointer                       */
     {
       ffppnj(fptr, group, firstelem, nelem, (long *) array,
              *(long *) nulval, status);
+    }
+    else if (datatype == TULONGLONG)
+    {
+      ffppnujj(fptr, group, firstelem, nelem, (ULONGLONG *) array,
+             *(ULONGLONG *) nulval, status);
     }
     else if (datatype == TLONGLONG)
     {
@@ -368,6 +381,11 @@ int ffppxnll(  fitsfile *fptr,  /* I - FITS file pointer                       *
       ffppnj(fptr, group, firstelem, nelem, (long *) array,
              *(long *) nulval, status);
     }
+    else if (datatype == TULONGLONG)
+    {
+      ffppnujj(fptr, group, firstelem, nelem, (ULONGLONG *) array,
+             *(ULONGLONG *) nulval, status);
+    }
     else if (datatype == TLONGLONG)
     {
       ffppnjj(fptr, group, firstelem, nelem, (LONGLONG *) array,
@@ -440,6 +458,10 @@ int ffppr(  fitsfile *fptr,  /* I - FITS file pointer                       */
     else if (datatype == TLONG)
     {
       ffpprj(fptr, group, firstelem, nelem, (long *) array, status);
+    }
+    else if (datatype == TULONGLONG)
+    {
+      ffpprujj(fptr, group, firstelem, nelem, (ULONGLONG *) array, status);
     }
     else if (datatype == TLONGLONG)
     {
@@ -524,6 +546,11 @@ int ffppn(  fitsfile *fptr,  /* I - FITS file pointer                       */
     {
       ffppnj(fptr, group, firstelem, nelem, (long *) array,
              *(long *) nulval, status);
+    }
+    else if (datatype == TULONGLONG)
+    {
+      ffppnujj(fptr, group, firstelem, nelem, (ULONGLONG *) array,
+             *(ULONGLONG *) nulval, status);
     }
     else if (datatype == TLONGLONG)
     {
@@ -612,11 +639,17 @@ int ffpss(  fitsfile *fptr,   /* I - FITS file pointer                       */
         ffpssj(fptr, 1, naxis, naxes, blc, trc,
                (long *) array, status);
     }
+    else if (datatype == TULONGLONG)
+    {
+        ffpssujj(fptr, 1, naxis, naxes, blc, trc,
+               (ULONGLONG *) array, status);
+    }
     else if (datatype == TLONGLONG)
     {
         ffpssjj(fptr, 1, naxis, naxes, blc, trc,
                (LONGLONG *) array, status);
-    }    else if (datatype == TFLOAT)
+    }    
+    else if (datatype == TFLOAT)
     {
         ffpsse(fptr, 1, naxis, naxes, blc, trc,
                (float *) array, status);
@@ -694,6 +727,11 @@ int ffpcl(  fitsfile *fptr,  /* I - FITS file pointer                       */
     else if (datatype == TLONG)
     {
       ffpclj(fptr, colnum, firstrow, firstelem, nelem, (long *) array,
+             status);
+    }
+    else if (datatype == TULONGLONG)
+    {
+      ffpclujj(fptr, colnum, firstrow, firstelem, nelem, (ULONGLONG *) array,
              status);
     }
     else if (datatype == TLONGLONG)
@@ -803,6 +841,11 @@ int ffpcn(  fitsfile *fptr,  /* I - FITS file pointer                       */
     {
       ffpcnj(fptr, colnum, firstrow, firstelem, nelem, (long *) array,
              *(long *) nulval, status);
+    }
+    else if (datatype == TULONGLONG)
+    {
+      ffpcnujj(fptr, colnum, firstrow, firstelem, nelem, (ULONGLONG *) array,
+             *(ULONGLONG *) nulval, status);
     }
     else if (datatype == TLONGLONG)
     {

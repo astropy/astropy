@@ -73,11 +73,12 @@ float ffvers(float *version)  /* IO - version number */
   return the current version number of the FITSIO software
 */
 {
-      *version = (float) 3.44;
+      *version = (float) 3.45;
 
-/*       Apr 2018
+/*       May 2018
 
    Previous releases:
+      *version = 3.44       Apr 2018
       *version = 3.43       Mar 2018
       *version = 3.42       Mar 2017
       *version = 3.41       Nov 2016
@@ -2844,7 +2845,7 @@ int ffbnfm(char *tform,     /* I - format code from the TFORMn keyword */
     else
         variable = 0;
 
-    if (form[0] == 'U')  /* internal code to signify unsigned integer */
+    if (form[0] == 'U')  /* internal code to signify unsigned short integer */
     { 
         datacode = TUSHORT;
         width = 2;
@@ -2858,6 +2859,11 @@ int ffbnfm(char *tform,     /* I - format code from the TFORMn keyword */
     {
         datacode = TULONG;
         width = 4;
+    }
+    else if (form[0] == 'W') /* internal code to signify unsigned long long integer */
+    {
+        datacode = TULONGLONG;
+        width = 8;
     }
     else if (form[0] == 'J')
     {
@@ -3054,6 +3060,11 @@ int ffbnfmll(char *tform,     /* I - format code from the TFORMn keyword */
     {
         datacode = TULONG;
         width = 4;
+    }
+    else if (form[0] == 'W') /* internal code to signify unsigned long long integer */
+    {
+        datacode = TULONGLONG;
+        width = 8;
     }
     else if (form[0] == 'J')
     {
@@ -3783,9 +3794,8 @@ int ffeqtyll( fitsfile *fptr,  /* I - FITS file pointer                       */
         break;
         
       case TLONGLONG:
-        /*  simply reuse the TLONG values */
-        min_val = -2147483648.0;
-        max_val =  2147483647.0;
+        min_val = -9.2233720368547755808E18;
+        max_val =  9.2233720368547755807E18;
         break;
 	
       default:  /* don't have to deal with other data types */
@@ -3804,6 +3814,7 @@ int ffeqtyll( fitsfile *fptr,  /* I - FITS file pointer                       */
     lngscale   = (long) tscale;
 
     if ((tzero != 2147483648.) && /* special value that exceeds integer range */
+        (tzero != 9223372036854775808.) &&  /* indicates unsigned long long */
        (lngzero != tzero || lngscale != tscale)) { /* not integers? */
        /* floating point scaled values; just decide on required precision */
        if (tcode == TBYTE || tcode == TSHORT)
@@ -3831,7 +3842,13 @@ int ffeqtyll( fitsfile *fptr,  /* I - FITS file pointer                       */
     } else if ((min_val >= 0.0) && (max_val < 4294967296.0)) {
         effcode = TULONG;
 
-    } else {  /* exceeds the range of a 32-bit integer */
+    } else if ((min_val >= -9.2233720368547755808E18) && (max_val <= 9.2233720368547755807E18)) {
+        effcode = TLONGLONG;
+
+    } else if ((min_val >= 0.0) && (max_val <= 1.8446744073709551616E19)) {
+        effcode = TULONGLONG;
+
+    } else {  /* exceeds the range of a 64-bit integer */
         effcode = TDOUBLE;
     }   
 
@@ -8829,7 +8846,7 @@ int ffinttyp(char *cval,  /* I - formatted string representation of the integer 
         *dtype = TINT;
     } else if (len > 10 && len < 19) {
         *dtype = TLONGLONG;
-    } else if (len > 19) {
+    } else if (len > 20) {
 	*status = BAD_INTKEY;
     } else {
     
@@ -8862,7 +8879,13 @@ int ffinttyp(char *cval,  /* I - formatted string representation of the integer 
 	    if (strcmp(p,"9223372036854775807") <= 0 ) {
 	        *dtype = TLONGLONG;
 	    } else {
-		*status = BAD_INTKEY;
+		*dtype = TULONGLONG;
+	    }
+	} else if (len == 20) {
+	    if (strcmp(p,"18446744073709551615") <= 0 ) {
+	        *dtype = TULONGLONG;
+	    } else {
+	        *status = BAD_INTKEY;
 	    }
 	}
 
@@ -8946,6 +8969,35 @@ int ffc2xx(const char *cval,   /* I - formatted string representation of the val
 
     if (*dtype == 'I')
         ffc2jj(cval, ival, status);
+    else if (*dtype == 'F')
+        ffc2dd(cval, dval, status);
+    else if (*dtype == 'L')
+        ffc2ll(cval, lval, status);
+    else 
+        ffc2s(cval, sval, status);   /* C and X formats */
+        
+    return(*status);
+}
+/*--------------------------------------------------------------------------*/
+int ffc2uxx(const char *cval,   /* I - formatted string representation of the value */
+          char *dtype,         /* O - datatype code: C, L, F, I or X  */
+
+    /* Only one of the following will be defined, depending on datatype */
+          ULONGLONG *ival, /* O - integer value       */
+          int *lval,     /* O - logical value       */
+          char *sval,    /* O - string value        */
+          double *dval,  /* O - double value        */
+
+          int *status)   /* IO - error status */
+/*
+  high level routine to convert formatted character string to its
+  intrinsic data type
+*/
+{
+    ffdtyp(cval, dtype, status);     /* determine the datatype */
+
+    if (*dtype == 'I')
+        ffc2ujj(cval, ival, status);
     else if (*dtype == 'F')
         ffc2dd(cval, dval, status);
     else if (*dtype == 'L')
@@ -9063,6 +9115,67 @@ int ffc2j(const char *cval,     /* I - string representation of the value */
     else if (dtype == 'L')
     {
             *ival = (LONGLONG) lval;
+    }
+
+    if (*status > 0)
+    {
+            *ival = 0;
+            strcpy(msg,"Error in ffc2j evaluating string as a long integer: ");
+            strncat(msg,cval,30);
+            ffpmsg(msg);
+            return(*status);
+    }
+
+
+    return(*status);
+}
+/*--------------------------------------------------------------------------*/
+int ffc2uj(const char *cval,     /* I - string representation of the value */
+          ULONGLONG *ival,       /* O - numerical value of the input string */
+          int *status)          /* IO - error status */
+/*
+  convert formatted string to a ULONGLONG integer value, doing implicit
+  datatype conversion if necessary.
+*/
+{
+    char dtype, sval[81], msg[81];
+    int lval;
+    double dval;
+    
+    if (*status > 0)           /* inherit input status value if > 0 */
+        return(*status);
+
+    if (cval[0] == '\0')
+        return(*status = VALUE_UNDEFINED);  /* null value string */
+        
+    /* convert the keyword to its native datatype */
+    ffc2uxx(cval, &dtype, ival, &lval, sval, &dval, status);
+
+    if (dtype == 'X' )
+    {
+            *status = BAD_INTKEY;
+    }
+    else if (dtype == 'C')
+    {
+            /* try reading the string as a number */
+            if (ffc2dd(sval, &dval, status) <= 0)
+            {
+              if (dval > (double)  DULONGLONG_MAX || dval < -0.49)
+                *status = NUM_OVERFLOW;
+              else
+                *ival = (ULONGLONG) dval;
+            }
+    }
+    else if (dtype == 'F')
+    {
+            if (dval > (double) DULONGLONG_MAX || dval < -0.49)
+                *status = NUM_OVERFLOW;
+            else
+                *ival = (ULONGLONG) dval;
+    }
+    else if (dtype == 'L')
+    {
+            *ival = (ULONGLONG) lval;
     }
 
     if (*status > 0)
@@ -9295,6 +9408,58 @@ int ffc2jj(const char *cval,  /* I - string representation of the value */
     {
         strcpy(msg,"Range Error in ffc2jj converting string to longlong int: ");
         strncat(msg,cval,23);
+        ffpmsg(msg);
+
+        *status = NUM_OVERFLOW;
+        errno = 0;
+    }
+
+    return(*status);
+}
+/*--------------------------------------------------------------------------*/
+int ffc2ujj(const char *cval,  /* I - string representation of the value */
+          ULONGLONG *ival,     /* O - numerical value of the input string */
+          int *status)        /* IO - error status */
+/*
+  convert null-terminated formatted string to an unsigned long long integer value
+*/
+{
+    char *loc, msg[81];
+
+    if (*status > 0)           /* inherit input status value if > 0 */
+        return(*status);
+
+    errno = 0;
+    *ival = 0;
+
+#if defined(_MSC_VER)
+
+    /* Microsoft Visual C++ 6.0 does not have the strtoll function */
+/*  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  */
+/* !!!!!  This needs to be modified to use the unsigned long long version of _atoi64 */
+/*  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  */
+
+    *ival =  _atoi64(cval);
+    loc = (char *) cval;
+    while (*loc == ' ') loc++;     /* skip spaces */
+    if    (*loc == '-') loc++;     /* skip minus sign */
+    if    (*loc == '+') loc++;     /* skip plus sign */
+    while (isdigit(*loc)) loc++;   /* skip digits */
+
+#elif (USE_LL_SUFFIX == 1)
+    *ival = strtoull(cval, &loc, 10);  /* read the string as an integer */
+#else
+    *ival = strtoul(cval, &loc, 10);  /* read the string as an integer */
+#endif
+
+    /* check for read error, or junk following the integer */
+    if (*loc != '\0' && *loc != ' ' ) 
+        *status = BAD_C2I;
+
+    if (errno == ERANGE)
+    {
+        strcpy(msg,"Range Error in ffc2ujj converting string to unsigned longlong int: ");
+        strncat(msg,cval,25);
         ffpmsg(msg);
 
         *status = NUM_OVERFLOW;

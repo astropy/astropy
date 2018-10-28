@@ -84,6 +84,7 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
     float *earray;
     double *darray, tscale = 1.0;
     LONGLONG *llarray;
+    ULONGLONG *ullarray;
 
     if (*status > 0 || nelem == 0)  /* inherit input status value if > 0 */
         return(*status);
@@ -335,6 +336,64 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
 
       free(flgarray);
       free(llarray);  /* free the memory */
+
+    }
+    else if (tcode == TLONGLONG && equivtype == TULONGLONG)
+    {
+      /* allocate memory for the array of ULONGLONG values */
+      ullarray = (ULONGLONG *) calloc((size_t) nelem, sizeof(ULONGLONG) );
+      flgarray = (char *) calloc((size_t) nelem, sizeof(char) );
+      dwidth = 20;  /* max width of displayed unsigned long long integer value */
+
+      if (ffgcfujj(fptr, colnum, firstrow, firstelem, nelem,
+            ullarray, flgarray, anynul, status) > 0)
+      {
+         free(flgarray);
+         free(ullarray);
+         return(*status);
+      }
+
+      /* write the formated string for each value */
+      if (nulval) {
+          strncpy(tmpnull, nulval, 79);
+          tmpnull[79]='\0'; /* In case len(nulval) >= 79 */
+          nulwidth = strlen(tmpnull);
+      } else {
+          strcpy(tmpnull, " ");
+          nulwidth = 1;
+      }
+
+      for (ii = 0; ii < nelem; ii++)
+      {
+           if ( flgarray[ii] )
+           {
+              *array[ii] = '\0';
+              if (dwidth < nulwidth)
+                  strncat(array[ii], tmpnull, dwidth);
+              else
+                  sprintf(array[ii],"%*s",dwidth,tmpnull);
+		  
+              if (nultyp == 2)
+	          nularray[ii] = 1;
+           }
+           else
+           {	   
+
+#if defined(_MSC_VER)
+    /* Microsoft Visual C++ 6.0 uses '%I64d' syntax  for 8-byte integers */
+        snprintf(tmpstr, 400, "%20I64u", ullarray[ii]); 
+#elif (USE_LL_SUFFIX == 1)
+        snprintf(tmpstr, 400, "%20llu", ullarray[ii]);
+#else
+        snprintf(tmpstr, 400, "%20lu", ullarray[ii]);
+#endif
+              *array[ii] = '\0';
+              strncat(array[ii], tmpstr, 20);
+           }
+      }
+
+      free(flgarray);
+      free(ullarray);  /* free the memory */
 
     }
     else
