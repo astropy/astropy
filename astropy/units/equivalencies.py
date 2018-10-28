@@ -7,6 +7,7 @@ import warnings
 
 # LOCAL
 from ..constants import si as _si
+from ..utils.misc import isiterable
 from . import si
 from . import cgs
 from . import astrophys
@@ -46,8 +47,23 @@ def parallax():
     Returns a list of equivalence pairs that handle the conversion
     between parallax angle and distance.
     """
+
+    def parallax_converter(x):
+        x = np.asanyarray(x)
+        d = 1 / x
+
+        if isiterable(d):
+            d[d < 0] = np.nan
+            return d
+
+        else:
+            if d < 0:
+                return np.array(np.nan)
+            else:
+                return d
+
     return [
-        (si.arcsecond, astrophys.parsec, lambda x: 1. / x)
+        (si.arcsecond, astrophys.parsec, parallax_converter)
     ]
 
 

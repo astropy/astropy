@@ -194,6 +194,23 @@ class TestSphericalRepresentation:
             len(s)
         assert not isiterable(s)
 
+    def test_nan_distance(self):
+        """ This is a regression test: calling represent_as() and passing in the
+            same class as the object shouldn't round-trip through cartesian.
+        """
+
+        sph = SphericalRepresentation(1*u.deg, 2*u.deg, np.nan*u.kpc)
+        new_sph = sph.represent_as(SphericalRepresentation)
+        assert_allclose_quantity(new_sph.lon, sph.lon)
+        assert_allclose_quantity(new_sph.lat, sph.lat)
+
+        dif = SphericalCosLatDifferential(1*u.mas/u.yr, 2*u.mas/u.yr,
+                                          3*u.km/u.s)
+        sph = sph.with_differentials(dif)
+        new_sph = sph.represent_as(SphericalRepresentation)
+        assert_allclose_quantity(new_sph.lon, sph.lon)
+        assert_allclose_quantity(new_sph.lat, sph.lat)
+
 
 class TestUnitSphericalRepresentation:
 
@@ -1497,3 +1514,13 @@ def test_unitphysics(unitphysics):
     assert assph.lon == obj.phi
     assert assph.lat == 80*u.deg
     assert_allclose_quantity(assph.distance, 1*u.dimensionless_unscaled)
+
+
+def test_distance_warning(recwarn):
+    SphericalRepresentation(1*u.deg, 2*u.deg, 1*u.kpc)
+    with pytest.raises(ValueError) as excinfo:
+        SphericalRepresentation(1*u.deg, 2*u.deg, -1*u.kpc)
+    assert 'Distance must be >= 0' in str(excinfo.value)
+    # second check is because the "originating" ValueError says the above,
+    # while the representation one includes the below
+    assert 'you must explicitly pass' in str(excinfo.value)

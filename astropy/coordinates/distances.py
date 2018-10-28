@@ -5,9 +5,12 @@ This module contains the classes and utility functions for distance and
 cartesian coordinates.
 """
 
+import warnings
+
 import numpy as np
 
 from .. import units as u
+from ..utils.exceptions import AstropyWarning
 from .angles import Angle
 
 __all__ = ['Distance']
@@ -142,12 +145,30 @@ class Distance(u.SpecificTypeQuantity):
                 copy = False
 
             elif parallax is not None:
-                value = parallax.to(u.pc, equivalencies=u.parallax()).value
+                value = parallax.to_value(u.pc, equivalencies=u.parallax())
                 unit = u.pc
 
                 # Continue on to take account of unit and other arguments
                 # but a copy is already made, so no longer necessary
                 copy = False
+
+                if np.any(parallax < 0):
+                    if allow_negative:
+                        warnings.warn(
+                            "Negative parallaxes are converted to NaN "
+                            "distances even when `allow_negative=True`, "
+                            "because negative parallaxes cannot be transformed "
+                            "into distances. See discussion in this paper: "
+                            "https://arxiv.org/abs/1507.02105", AstropyWarning)
+                    else:
+                        raise ValueError("Some parallaxes are negative, which "
+                                         "are notinterpretable as distances. "
+                                         "See the discussion in this paper: "
+                                         "https://arxiv.org/abs/1507.02105 . "
+                                         "If you want parallaxes to pass "
+                                         "through, with negative parallaxes "
+                                         "instead becoming NaN, use the "
+                                         "`allow_negative=True` argument.")
 
             elif value is None:
                 raise ValueError('None of `value`, `z`, `distmod`, or '

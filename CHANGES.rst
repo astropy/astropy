@@ -353,6 +353,13 @@ astropy.coordinates
 - Changed the name of the single argument to ``Frame.realize_frame()`` from the
   (incorrect) ``representation_type`` to ``data``. [#7923]
 
+- Negative parallaxes passed to ``Distance()`` now raise an error by default
+  (``allow_negative=False``), or are converted to NaN values with a warning
+  (``allow_negative=True``). [#7988]
+
+- Negating a ``SphericalRepresentation`` object now changes the angular
+  coordinates (by rotating 180º) instead of negating the distance. [#7988]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -473,6 +480,9 @@ astropy.units
   ``units``, the default for ``include_prefix_units`` is set to
   `True`, so that no units get ignored. [#6957]
 
+- Negative parallaxes are now converted to NaN values when using the
+  ``parallax`` equivalency. [#7988]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -578,6 +588,12 @@ astropy.coordinates
 - ``EarthLocation.of_address`` now uses the OpenStreetMap geocoding API by
   default to retrieve coordinates, with the Google API (which now requires an
   API key) as an option. [#7918]
+
+- Fixed a bug that caused frame objects with NaN distances to have NaN sky
+  positions, even if valid sky coordinates were specified. [#7988]
+
+- Fixed ``represent_as()`` to not round-trip through cartesian if the same
+  representation class as the instance is passed in. [#7988]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
