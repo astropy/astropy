@@ -81,7 +81,10 @@ def test_knuth_histogram(N=1000, rseed=0):
     assert (len(counts) == len(bins) - 1)
 
 
-_bin_types_to_test = [30, 'scott', 'freedman', 'blocks', 'knuth']
+_bin_types_to_test = [30, 'scott', 'freedman', 'blocks']
+
+if HAS_SCIPY:
+    _bin_types_to_test += ['knuth']
 
 
 @pytest.mark.parametrize('bin_type',
