@@ -615,6 +615,60 @@ def test_sep_pa_equivalence():
     assert_allclose(sep3d_forward, sep3d_backward)
 
 
+def test_directional_offset_by():
+    # Round-trip tests: where is sc2 from sc1?
+    # Use those offsets from sc1 and verify you get to sc2.
+    npoints = 7 # How many points when doing vectors of SkyCoords
+    for sc1 in [SkyCoord(0*u.deg,-90*u.deg),    # South pole
+                SkyCoord(0 * u.deg, 90 * u.deg), # North pole
+                SkyCoord(1*u.deg,2*u.deg),
+                SkyCoord(np.linspace(0,359,npoints),np.linspace(-90, 90,npoints),
+                         unit=u.deg, frame='fk4'),
+                SkyCoord(np.linspace(359,0,npoints),np.linspace(-90, 90,npoints),
+                         unit=u.deg, frame='icrs'),
+                SkyCoord(np.linspace(-3,3,npoints),np.linspace(-90, 90,npoints),
+                         unit=(u.rad, u.deg), frame='barycentrictrueecliptic')]:
+        for sc2 in [SkyCoord(5*u.deg,10*u.deg),
+                    SkyCoord(np.linspace(0, 359, npoints), np.linspace(-90, 90, npoints),
+                             unit=u.deg, frame='galactic')]:
+            # Find the displacement from sc1 to sc2,
+            posang = sc1.position_angle(sc2)
+            sep = sc1.separation(sc2)
+
+            # then do the offset from sc1 and verify that you are at sc2
+            sc2a = sc1.directional_offset_by(position_angle=posang, separation=sep)
+            assert np.max(np.abs(sc2.separation(sc2a).arcsec)) < 1e-3
+
+    # Specific test cases
+    # Go over the North pole a little way, and
+    # over the South pole a long way, to get to same spot
+    sc1 = SkyCoord(0*u.deg, 89*u.deg)
+    for posang,sep in [(0*u.deg, 2*u.deg), (180*u.deg, 358*u.deg)]:
+        sc2 = sc1.directional_offset_by(posang, sep)
+        assert allclose([sc2.ra.degree, sc2.dec.degree], [180, 89])
+        # Go twice as far to ensure that dec is actually changing
+        # and that >360deg is supported
+        sc2 = sc1.directional_offset_by(posang, 2*sep)
+        assert allclose([sc2.ra.degree, sc2.dec.degree], [180, 87])
+
+    # Verify that a separation of 180 deg in any direction gets to the antipode
+    # and 360 deg returns to start
+    sc1 = SkyCoord(10*u.deg, 47*u.deg)
+    for posang in np.linspace(0, 377, npoints):
+        sc2 = sc1.directional_offset_by(posang, 180*u.deg)
+        assert allclose([sc2.ra.degree, sc2.dec.degree], [190, -47])
+        sc2 = sc1.directional_offset_by(posang, 360*u.deg)
+        assert allclose([sc2.ra.degree, sc2.dec.degree], [10, 47])
+
+    # Verify that a 90 degree posang, which means East
+    # corresponds to an increase in RA, by ~separation/cos(dec) and
+    # a slight convergence to equator
+    sc1 = SkyCoord(10*u.deg, 60*u.deg)
+    sc2 = sc1.directional_offset_by(90*u.deg, 1.0*u.deg)
+    assert 11.9 < sc2.ra.degree < 12.0
+    assert 59.9 < sc2.dec.degree < 60.0
+
+
 def test_table_to_coord():
     """
     Checks "end-to-end" use of `Table` with `SkyCoord` - the `Quantity`

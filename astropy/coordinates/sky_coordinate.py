@@ -16,7 +16,7 @@ from ..time import Time
 from .distances import Distance
 from .angles import Angle
 from .baseframe import (BaseCoordinateFrame, frame_transform_graph,
-                        GenericFrame)
+                        GenericFrame, _get_repr_cls)
 from .builtin_frames import ICRS, SkyOffsetFrame
 from .representation import (SphericalRepresentation,
                              UnitSphericalRepresentation, SphericalDifferential)
@@ -892,7 +892,7 @@ class SkyCoord(ShapedLikeNDArray):
         Parameters
         ----------
         tocoord : `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate to offset to.
+            The coordinate to find the offset to.
 
         Returns
         -------
@@ -919,7 +919,8 @@ class SkyCoord(ShapedLikeNDArray):
 
         See Also
         --------
-        separation : for the *total* angular offset (not broken out into components)
+        separation : for the *total* angular offset (not broken out into components).
+        position_angle : for the direction of the offset.
 
         """
         if not self.is_equivalent_frame(tocoord):
@@ -931,6 +932,53 @@ class SkyCoord(ShapedLikeNDArray):
         dlon = acoord.spherical.lon.view(Angle)
         dlat = acoord.spherical.lat.view(Angle)
         return dlon, dlat
+
+    def directional_offset_by(self, position_angle, separation):
+        """
+        Computes coordinates at the given offset from this coordinate.
+
+        Parameters
+        ----------
+        position_angle : `~astropy.coordinates.Angle`
+            position_angle of offset
+        separation : `~astropy.coordinates.Angle`
+            offset angular separation
+
+        Returns
+        -------
+        newpoints : `~astropy.coordinates.SkyCoord`
+            The coordinates for the location that corresponds to offsetting by
+            the given `position_angle` and `separation`.
+
+        Notes
+        -----
+        Returned SkyCoord frame retains only the frame attributes that are for
+        the resulting frame type.  (e.g. if the input frame is
+        `~astropy.coordinates.ICRS`, an ``equinox`` value will be retained, but
+        an ``obstime`` will not.)
+
+        For a more complete set of transform offsets, use `~astropy.wcs.WCS`.
+        `~astropy.coordinates.SkyCoord.skyoffset_frame()` can also be used to
+        create a spherical frame with (lat=0, lon=0) at a reference point,
+        approximating an xy cartesian system for small offsets. This method
+        is distinct in that it is accurate on the sphere.
+
+        See Also
+        --------
+        position_angle : inverse operation for the ``position_angle`` component
+        separation : inverse operation for the ``separation`` component
+
+        """
+        from . import angle_utilities
+
+        slat = self.represent_as(UnitSphericalRepresentation).lat
+        slon = self.represent_as(UnitSphericalRepresentation).lon
+
+        newlon, newlat = angle_utilities.offset_by(
+            lon=slon, lat=slat,
+            posang=position_angle, distance=separation)
+
+        return SkyCoord(newlon, newlat, frame=self.frame)
 
     def match_to_catalog_sky(self, catalogcoord, nthneighbor=1):
         """
