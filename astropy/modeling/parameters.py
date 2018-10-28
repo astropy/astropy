@@ -198,11 +198,13 @@ class Parameter(OrderedDescriptor):
         as class attributes
     """
 
-    constraints = ('fixed', 'tied', 'bounds')
+    constraints = ('fixed', 'tied', 'bounds', 'prior', 'posterior')
     """
     Types of constraints a parameter can have.  Excludes 'min' and 'max'
     which are just aliases for the first and second elements of the 'bounds'
-    constraint (which is represented as a 2-tuple).
+    constraint (which is represented as a 2-tuple). 'prior' and 'posterior'
+    are available for use by user fitters but are not used by any built-in
+    fitters as of this writing.
     """
 
     # Settings for OrderedDescriptor
@@ -211,7 +213,7 @@ class Parameter(OrderedDescriptor):
 
     def __init__(self, name='', description='', default=None, unit=None,
                  getter=None, setter=None, fixed=False, tied=False, min=None,
-                 max=None, bounds=None, model=None):
+                 max=None, bounds=None, prior=None, posterior=None, model=None):
         super().__init__()
 
         self._name = name
@@ -244,7 +246,8 @@ class Parameter(OrderedDescriptor):
         self._fixed = fixed
         self._tied = tied
         self._bounds = bounds
-
+        self._posterior = posterior
+        self._prior = prior
         self._order = None
         self._model = None
 
@@ -528,6 +531,38 @@ class Parameter(OrderedDescriptor):
         return np.size(self.value)
 
     @property
+    def prior(self):
+        if self._model is not None:
+            prior = self._model._constraints['prior']
+            return prior.get(self._name, self._prior)
+        else:
+            return self._prior
+
+    @prior.setter
+    def prior(self, val):
+        if self._model is not None:
+            self._model._constraints['prior'][self._name] = val
+        else:
+            raise AttributeError("can't set attribute 'prior' on Parameter "
+                                 "definition")
+
+    @property
+    def posterior(self):
+        if self._model is not None:
+            posterior = self._model._constraints['posterior']
+            return posterior.get(self._name, self._posterior)
+        else:
+            return self._posterior
+
+    @posterior.setter
+    def posterior(self, val):
+        if self._model is not None:
+            self._model._constraints['posterior'][self._name] = val
+        else:
+            raise AttributeError("can't set attribute 'posterior' on Parameter "
+                                 "definition")
+
+    @property
     def fixed(self):
         """
         Boolean indicating if the parameter is kept fixed during fitting.
@@ -716,7 +751,7 @@ class Parameter(OrderedDescriptor):
 
     def copy(self, name=None, description=None, default=None, unit=None,
              getter=None, setter=None, fixed=False, tied=False, min=None,
-             max=None, bounds=None):
+             max=None, bounds=None, prior=None, posterior=None):
         """
         Make a copy of this `Parameter`, overriding any of its core attributes
         in the process (or an exact copy).
