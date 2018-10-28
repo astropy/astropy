@@ -202,7 +202,9 @@ class Parameter(OrderedDescriptor):
     """
     Types of constraints a parameter can have.  Excludes 'min' and 'max'
     which are just aliases for the first and second elements of the 'bounds'
-    constraint (which is represented as a 2-tuple).
+    constraint (which is represented as a 2-tuple). 'prior' and 'posterior'
+    are available for use by user fitters but are not used by any built-in
+    fitters as of this writing.
     """
 
     # Settings for OrderedDescriptor
@@ -211,7 +213,7 @@ class Parameter(OrderedDescriptor):
 
     def __init__(self, name='', description='', default=None, unit=None,
                  getter=None, setter=None, fixed=False, tied=False, min=None,
-                 max=None, bounds=None, prior = None, posterior=None, model=None):
+                 max=None, bounds=None, prior=None, posterior=None, model=None):
         super().__init__()
 
         self._name = name
