@@ -4,7 +4,8 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from .. import histogram, scott_bin_width, freedman_bin_width, knuth_bin_width
+from .. import (histogram, calculate_bin_edges,
+                scott_bin_width, freedman_bin_width, knuth_bin_width)
 
 try:
     import scipy  # pylint: disable=W0611
@@ -99,7 +100,7 @@ def test_histogram_range(bin_type, N=1000, rseed=0):
     x = rng.randn(N)
     range = (0.1, 0.8)
 
-    counts, bins = histogram(x, bin_type, range=range)
+    bins = calculate_bin_edges(x, bin_type, range=range)
     assert bins.max() == range[1]
     assert bins.min() == range[0]
 
