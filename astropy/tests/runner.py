@@ -131,7 +131,7 @@ class TestRunnerBase:
 
         cls.run_tests.__doc__ = cls.RUN_TESTS_DOCSTRING.format(keywords=doc_keywords)
 
-        return super(TestRunnerBase, cls).__new__(cls)
+        return super().__new__(cls)
 
     def _generate_args(self, **kwargs):
         # Update default values with passed kwargs
@@ -601,4 +601,4 @@ class TestRunner(TestRunnerBase):
         # own.
         from ..table import Table  # pylint: disable=W0611
 
-        return super(TestRunner, self).run_tests(**kwargs)
+        return super().run_tests(**kwargs)

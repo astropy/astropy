@@ -549,7 +549,7 @@ class HDUList(list, _Verify):
         # Make sure that HDUs are loaded before attempting to pop
         self.readall()
         list_index = self.index_of(index)
-        return super(HDUList, self).pop(list_index)
+        return super().pop(list_index)
 
     def insert(self, index, hdu):
         """
