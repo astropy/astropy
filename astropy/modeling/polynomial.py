@@ -378,8 +378,7 @@ class Chebyshev1D(PolynomialModel):
         return np.rollaxis(v, 0, v.ndim)
 
     def prepare_inputs(self, x, **kwargs):
-        inputs, format_info = \
-                super(PolynomialModel, self).prepare_inputs(x, **kwargs)
+        inputs, format_info = super().prepare_inputs(x, **kwargs)
 
         x = inputs[0]
 
@@ -485,8 +484,7 @@ class Hermite1D(PolynomialModel):
         return np.rollaxis(v, 0, v.ndim)
 
     def prepare_inputs(self, x, **kwargs):
-        inputs, format_info = \
-                super(PolynomialModel, self).prepare_inputs(x, **kwargs)
+        inputs, format_info = super().prepare_inputs(x, **kwargs)
 
         x = inputs[0]
 
@@ -690,8 +688,7 @@ class Legendre1D(PolynomialModel):
             name=name, meta=meta, **params)
 
     def prepare_inputs(self, x, **kwargs):
-        inputs, format_info = \
-                super(PolynomialModel, self).prepare_inputs(x, **kwargs)
+        inputs, format_info = super().prepare_inputs(x, **kwargs)
 
         x = inputs[0]
 

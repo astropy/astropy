@@ -19,7 +19,7 @@ class AstropyTypeMeta(ExtensionTypeMeta):
     be stored automatically by astropy extensions for ASDF.
     """
     def __new__(mcls, name, bases, attrs):
-        cls = super(AstropyTypeMeta, mcls).__new__(mcls, name, bases, attrs)
+        cls = super().__new__(mcls, name, bases, attrs)
         # Classes using this metaclass are automatically added to the list of
         # astropy extensions
         if cls.organization == 'astropy.org' and cls.standard == 'astropy':

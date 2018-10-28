@@ -25,14 +25,14 @@ from ...table.pprint import get_auto_format_func
 class IpacFormatErrorDBMS(Exception):
     def __str__(self):
         return '{0}\nSee {1}'.format(
-            super(Exception, self).__str__(),
+            super().__str__(),
             'http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html')
 
 
 class IpacFormatError(Exception):
     def __str__(self):
         return '{0}\nSee {1}'.format(
-            super(Exception, self).__str__(),
+            super().__str__(),
             'http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html')
 
 
