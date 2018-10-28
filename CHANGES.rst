@@ -47,7 +47,7 @@ astropy.coordinates
   speedups (up to 50% in some cases) when creating new scalar frame or
   ``SkyCoord`` objects. [#7949]
 
-- Added a ``directional_offset_by`` method to ``SkyCoord` that computes a new
+- Added a ``directional_offset_by`` method to ``SkyCoord`` that computes a new
   coordinate given a coordinate, position angle, and angular separation [#5727]
 
 astropy.cosmology
