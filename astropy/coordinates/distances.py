@@ -161,10 +161,13 @@ class Distance(u.SpecificTypeQuantity):
                             "into distances. See discussion in this paper: "
                             "https://arxiv.org/abs/1507.02105", AstropyWarning)
                     else:
-                        raise ValueError("Negative parallaxes are not "
-                                         "interpretable as distances. If you "
-                                         "want to have these values turned "
-                                         "into NaN values, use the "
+                        raise ValueError("Some parallaxes are negative, which "
+                                         "are notinterpretable as distances. "
+                                         "See the discussion in this paper: "
+                                         "https://arxiv.org/abs/1507.02105 . "
+                                         "If you want parallaxes to pass "
+                                         "through, with negative parallaxes "
+                                         "instead becoming NaN, use the "
                                          "`allow_negative=True` argument.")
 
             elif value is None:
