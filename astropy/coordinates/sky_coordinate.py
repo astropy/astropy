@@ -949,7 +949,7 @@ class SkyCoord(ShapedLikeNDArray):
             The (positive) position angle of the vector pointing from ``self``
             to ``tocoord``.
         separation : `~astropy.coordinates.Angle`
-            The distance between ``self`` and ``tocoord``.
+            The angular separation between ``self`` and ``tocoord``.
 
         If either ``self`` or ``tocoord`` contain arrays, these will be a
         arrays following the appropriate `numpy` broadcasting rules.
@@ -961,6 +961,7 @@ class SkyCoord(ShapedLikeNDArray):
         directional_offset_by : use offset to go from a coordinate to a new coordinate.
 
         """
+        from . import angle_utilities
 
         if self.is_equivalent_frame(tocoord):
             other_in_self_frame = tocoord
@@ -1005,6 +1006,8 @@ class SkyCoord(ShapedLikeNDArray):
         system for small offsets.
 
         """
+        from . import angle_utilities
+
         slat = self.represent_as(UnitSphericalRepresentation).lat
         slon = self.represent_as(UnitSphericalRepresentation).lon
 
