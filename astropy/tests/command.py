@@ -57,7 +57,7 @@ class FixRemoteDataOption(type):
         else:
             sys.argv[idx] = '-R=any'
 
-        return super(FixRemoteDataOption, cls).__init__(name, bases, dct)
+        return super().__init__(name, bases, dct)
 
 
 class AstropyTest(Command, metaclass=FixRemoteDataOption):

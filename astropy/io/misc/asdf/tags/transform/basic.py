@@ -146,7 +146,7 @@ class DomainType(AstropyAsdfType):
 class GenericModel(mappings.Mapping):
     def __init__(self, n_inputs, n_outputs):
         mapping = tuple(range(n_inputs))
-        super(GenericModel, self).__init__(mapping)
+        super().__init__(mapping)
         self._outputs = tuple('x' + str(idx) for idx in range(self.n_outputs + 1))
 
 

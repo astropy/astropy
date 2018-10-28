@@ -445,7 +445,7 @@ class AASTex(Latex):
     data_class = AASTexData
 
     def __init__(self, **kwargs):
-        super(AASTex, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         # check if tabletype was explicitly set by the user
         if not (('latexdict' in kwargs) and ('tabletype' in kwargs['latexdict'])):
             self.latex['tabletype'] = 'deluxetable'

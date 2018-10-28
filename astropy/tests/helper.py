@@ -300,11 +300,11 @@ class catch_warnings(warnings.catch_warnings):
     """
 
     def __init__(self, *classes):
-        super(catch_warnings, self).__init__(record=True)
+        super().__init__(record=True)
         self.classes = classes
 
     def __enter__(self):
-        warning_list = super(catch_warnings, self).__enter__()
+        warning_list = super().__enter__()
         treat_deprecations_as_exceptions()
         if len(self.classes) == 0:
             warnings.simplefilter('always')
@@ -328,7 +328,7 @@ class ignore_warnings(catch_warnings):
     """
 
     def __init__(self, category=None):
-        super(ignore_warnings, self).__init__()
+        super().__init__()
 
         if isinstance(category, type) and issubclass(category, Warning):
             self.category = [category]
@@ -347,7 +347,7 @@ class ignore_warnings(catch_warnings):
         return wrapper
 
     def __enter__(self):
-        retval = super(ignore_warnings, self).__enter__()
+        retval = super().__enter__()
         if self.category is not None:
             for category in self.category:
                 warnings.simplefilter('ignore', category)
