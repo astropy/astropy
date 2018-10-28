@@ -931,7 +931,27 @@ int ffr4fi8(float *input,      /* I - array of values to be converted  */
     long ii;
     double dvalue;
 
-    if (scale == 1. && zero == 0.)
+    if (scale == 1. && zero ==  9223372036854775808.)
+    {       
+        /* Writing to unsigned long long column. Input values must not be negative */
+        /* Instead of subtracting 9223372036854775808, it is more efficient */
+        /* and more precise to just flip the sign bit with the XOR operator */
+
+        for (ii = 0; ii < ntodo; ii++) {
+            if (input[ii] < -0.49) {
+              *status = OVERFLOW_ERR;
+              output[ii] = LONGLONG_MIN;
+            }
+	    else if (input[ii] > 2.* DLONGLONG_MAX)
+            {
+                *status = OVERFLOW_ERR;
+                output[ii] = LONGLONG_MAX;
+            } else {
+              output[ii] =  ((LONGLONG) input[ii]) ^ 0x8000000000000000;
+            }
+        }
+    }
+    else if (scale == 1. && zero == 0.)
     {       
         for (ii = 0; ii < ntodo; ii++)
         {
@@ -960,7 +980,7 @@ int ffr4fi8(float *input,      /* I - array of values to be converted  */
                 *status = OVERFLOW_ERR;
                 output[ii] = LONGLONG_MIN;
             }
-            else if (dvalue > DINT_MAX)
+            else if (dvalue > DLONGLONG_MAX)
             {
                 *status = OVERFLOW_ERR;
                 output[ii] = LONGLONG_MAX;
