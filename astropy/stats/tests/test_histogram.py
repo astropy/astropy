@@ -91,13 +91,17 @@ def test_histogram(N=1000, rseed=0):
         assert (len(counts) == len(bins) - 1)
 
 
-def test_histogram_range(N=1000, rseed=0):
+@pytest.mark.parametrize('bin_type',
+                         ['scott', 'freedman', 'blocks', 'knuth', 10])
+def test_histogram_range(bin_type, N=1000, rseed=0):
+    # Regression test for #8010
     rng = np.random.RandomState(rseed)
     x = rng.randn(N)
     range = (0.1, 0.8)
 
-    for bins in ['scott', 'freedman', 'blocks']:
-        counts, bins = histogram(x, bins, range=range)
+    counts, bins = histogram(x, bin_type, range=range)
+    assert bins.max() == range[1]
+    assert bins.min() == range[0]
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
