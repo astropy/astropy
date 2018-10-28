@@ -112,7 +112,7 @@ Fitting examples
 
 .. plot::
     :include-source:
-  
+
     import numpy as np
     from astropy.stats import sigma_clip
     from astropy.modeling import models, fitting
@@ -212,6 +212,11 @@ bounds internally.
     ['fixed', 'tied', 'bounds']
     >>> fitting.SLSQPLSQFitter.supported_constraints
     ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']
+
+Note that there are two "constraints" (``prior`` and ``posterior``) that are
+not currently used by any of the built-in fitters.  They are provided to allow
+possible user code that might implement Bayesian fitters (e.g.,
+https://gist.github.com/rkiman/5c5e6f80b455851084d112af2f8ed04f).
 
 Plugin Fitters
 ==============
