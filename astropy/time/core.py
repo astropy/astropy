@@ -470,7 +470,7 @@ class Time(ShapedLikeNDArray):
         guess available formats and stop when one matches.
         """
 
-        if format is None and val.dtype.kind in ('S', 'U', 'O'):
+        if format is None and val.dtype.kind in ('S', 'U', 'O', 'M'):
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeUnique)]
             err_msg = ('any of the formats where the format keyword is '
