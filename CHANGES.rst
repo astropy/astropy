@@ -485,13 +485,11 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-astropy.visualization.wcsaxes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Add support for setting ``set_separator(None)`` to use default
-
 - Added ``imshow_norm`` function, which combines imshow and creation of a
   ``ImageNormalize`` object. [#7785]
+
+astropy.visualization.wcsaxes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Add support for setting ``set_separator(None)`` in WCSAxes to use default
   separators. [#7570]
