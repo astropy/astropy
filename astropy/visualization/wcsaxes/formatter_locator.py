@@ -56,7 +56,7 @@ class BaseFormatterLocator:
 
     def __init__(self, values=None, number=None, spacing=None, format=None):
 
-        if (values, number, spacing).count(None) < 2:
+        if len([x for x in (values, number, spacing) if x is None]) < 2:
             raise ValueError("At most one of values/number/spacing can be specifed")
 
         if values is not None:
