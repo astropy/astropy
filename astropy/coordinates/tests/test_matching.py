@@ -331,3 +331,15 @@ def test_match_catalog_nan():
     with pytest.raises(ValueError) as excinfo:
         sc_with_nans.match_to_catalog_3d(cat)
     assert 'Matching coordinates cannot contain' in str(excinfo.value)
+
+
+@pytest.mark.skipif(str('not HAS_SCIPY'))
+@pytest.mark.skipif(str('OLDER_SCIPY'))
+def test_match_catalog_nounit():
+    from .. import ICRS, CartesianRepresentation
+    from ..matching import match_coordinates_sky
+
+    i1 = ICRS([[1], [2], [3]], representation_type=CartesianRepresentation)
+    i2 = ICRS([[1], [2], [4, 5]], representation_type=CartesianRepresentation)
+    i, sep, sep3d = match_coordinates_sky(i1, i2)
+    assert_allclose(sep3d, [1]*u.dimensionless_unscaled)
