@@ -58,6 +58,21 @@ Improvements to Table
 .. https://github.com/astropy/astropy/pull/7481
 .. https://github.com/astropy/astropy/pull/7574
 
+.. Time in Table:
+.. https://github.com/astropy/astropy/pull/6888
+.. https://github.com/astropy/astropy/pull/7897
+.. https://github.com/astropy/astropy/pull/6028
+
+
+.. _whatsnew-3.1-time:
+
+Improvements to Time
+====================
+
+.. https://github.com/astropy/astropy/pull/7870
+.. https://github.com/astropy/astropy/pull/7705
+.. https://github.com/astropy/astropy/pull/7361
+.. https://github.com/astropy/astropy/pull/7323
 
 .. _whatsnew-3.1-nddata:
 
