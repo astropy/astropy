@@ -58,7 +58,7 @@ def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
         return isinstance(args[0], (h5py.File, h5py.Group, h5py.Dataset))
 
 
-def read_table_hdf5(input, path=None):
+def read_table_hdf5(input, path=None, character_as_bytes=True):
     """
     Read a Table object from an HDF5 file
 
@@ -75,6 +75,9 @@ def read_table_hdf5(input, path=None):
     path : str
         The path from which to read the table inside the HDF5 file.
         This should be relative to the input file or group.
+    character_as_bytes: boolean
+        If `True` then Table columns are left as bytes.
+        If `False` then Table columns are converted to unicode.
     """
 
     try:
@@ -136,7 +139,7 @@ def read_table_hdf5(input, path=None):
         f = h5py.File(input, 'r')
 
         try:
-            return read_table_hdf5(f, path=path)
+            return read_table_hdf5(f, path=path, character_as_bytes=character_as_bytes)
         finally:
             f.close()
 
@@ -178,6 +181,9 @@ def read_table_hdf5(input, path=None):
     else:
         # Read the meta-data from the file
         table.meta.update(input.attrs)
+
+    if not character_as_bytes:
+        table.convert_bytestring_to_unicode()
 
     return table
 
@@ -245,8 +251,8 @@ def write_table_hdf5(table, output, path=None, compression=False,
         If ``append=True`` and ``overwrite=True`` then only the dataset will be
         replaced; the file/group will not be overwritten.
     """
-    from ...table import meta
 
+    from ...table import meta
     try:
         import h5py
     except ImportError:
@@ -308,6 +314,13 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
     # Encode any mixin columns as plain columns + appropriate metadata
     table = _encode_mixins(table)
+
+    # Table with numpy unicode strings can't be written in HDF5 so
+    # to write such a table a copy of table is made containing columns as
+    # bytestrings.  Now this copy of the table can be written in HDF5.
+    if any(col.info.dtype.kind == 'U' for col in table.itercols()):
+        table = table.copy(copy_data=False)
+        table.convert_unicode_to_bytestring()
 
     # Warn if information will be lost when serialize_meta=False.  This is
     # hardcoded to the set difference between column info attributes and what

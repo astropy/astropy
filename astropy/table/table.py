@@ -1998,7 +1998,7 @@ class Table:
         for name in names:
             self.columns.pop(name)
 
-    def _convert_string_dtype(self, in_kind, out_kind):
+    def _convert_string_dtype(self, in_kind, out_kind, encode_decode_func):
         """
         Convert string-like columns to/from bytestring and unicode (internal only).
 
@@ -2010,52 +2010,45 @@ class Table:
             Output dtype.kind
         """
 
-        # If there are no `in_kind` columns then do nothing
-        cols = self.columns.values()
-        if not any(col.dtype.kind == in_kind for col in cols):
-            return
-
-        newcols = []
-        for col in cols:
+        for col in self.itercols():
             if col.dtype.kind == in_kind:
-                newdtype = re.sub(in_kind, out_kind, col.dtype.str)
-                newcol = col.__class__(col, dtype=newdtype)
-            else:
-                newcol = col
-            newcols.append(newcol)
+                try:
+                    # This requires ASCII and is faster by a factor of up to ~8, so
+                    # try that first.
+                    newcol = col.__class__(col, dtype=out_kind)
+                except (UnicodeEncodeError, UnicodeDecodeError):
+                    newcol = col.__class__(encode_decode_func(col, 'utf-8'))
 
-        self._init_from_cols(newcols)
+                    # Quasi-manually copy info attributes.  Unfortunately
+                    # DataInfo.__set__ does not do the right thing in this case
+                    # so newcol.info = col.info does not get the old info attributes.
+                    for attr in col.info.attr_names - col.info._attrs_no_copy - set(['dtype']):
+                        value = deepcopy(getattr(col.info, attr))
+                        setattr(newcol.info, attr, value)
 
-    def convert_bytestring_to_unicode(self, python3_only=NoValue):
+                self[col.name] = newcol
+
+    def convert_bytestring_to_unicode(self):
         """
-        Convert bytestring columns (dtype.kind='S') to unicode (dtype.kind='U') assuming
-        ASCII encoding.
+        Convert bytestring columns (dtype.kind='S') to unicode (dtype.kind='U')
+        using UTF-8 encoding.
 
         Internally this changes string columns to represent each character
         in the string with a 4-byte UCS-4 equivalent, so it is inefficient
         for memory but allows scripts to manipulate string arrays with
         natural syntax.
         """
-        if python3_only is not NoValue:
-            warnings.warn('The "python3_only" keyword is now deprecated.',
-                          AstropyDeprecationWarning)
+        self._convert_string_dtype('S', 'U', np.char.decode)
 
-        self._convert_string_dtype('S', 'U')
-
-    def convert_unicode_to_bytestring(self, python3_only=NoValue):
+    def convert_unicode_to_bytestring(self):
         """
-        Convert ASCII-only unicode columns (dtype.kind='U') to bytestring (dtype.kind='S').
+        Convert unicode columns (dtype.kind='U') to bytestring (dtype.kind='S')
+        using UTF-8 encoding.
 
         When exporting a unicode string array to a file, it may be desirable
-        to encode unicode columns as bytestrings.  This routine takes
-        advantage of numpy automated conversion which works for strings that
-        are pure ASCII.
+        to encode unicode columns as bytestrings.
         """
-        if python3_only is not NoValue:
-            warnings.warn('The "python3_only" keyword is now deprecated.',
-                          AstropyDeprecationWarning)
-
-        self._convert_string_dtype('U', 'S')
+        self._convert_string_dtype('U', 'S', np.char.encode)
 
     def keep_columns(self, names):
         '''
