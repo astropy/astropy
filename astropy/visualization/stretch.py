@@ -112,7 +112,8 @@ class SqrtStretch(BaseStretch):
 
     def __call__(self, values, clip=True, out=None):
         values = _prepare(values, clip=clip, out=out)
-        np.sqrt(values, out=values)
+        with np.errstate(invalid='ignore'):
+            np.sqrt(values, out=values)
         return values
 
     @property

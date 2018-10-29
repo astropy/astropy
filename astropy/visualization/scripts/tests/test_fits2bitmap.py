@@ -18,32 +18,31 @@ except ImportError:
 class TestFits2Bitmap(object):
     def setup_class(self):
         self.filename = 'test.fits'
+        self.array = np.arange(16384).reshape((128, 128))
 
     def test_function(self, tmpdir):
         filename = tmpdir.join(self.filename).strpath
-        fits.writeto(filename, np.ones((128, 128)))
+        fits.writeto(filename, self.array)
         fits2bitmap(filename)
 
     def test_script(self, tmpdir):
         filename = tmpdir.join(self.filename).strpath
-        fits.writeto(filename, np.ones((128, 128)))
+        fits.writeto(filename, self.array)
         main([filename, '-e', '0'])
 
     def test_exten_num(self, tmpdir):
         filename = tmpdir.join(self.filename).strpath
-        data = np.ones((100, 100))
         hdu1 = fits.PrimaryHDU()
-        hdu2 = fits.ImageHDU(data)
+        hdu2 = fits.ImageHDU(self.array)
         hdulist = fits.HDUList([hdu1, hdu2])
         hdulist.writeto(filename)
         main([filename, '-e', '1'])
 
     def test_exten_name(self, tmpdir):
         filename = tmpdir.join(self.filename).strpath
-        data = np.ones((100, 100))
         hdu1 = fits.PrimaryHDU()
         extname = 'SCI'
-        hdu2 = fits.ImageHDU(data)
+        hdu2 = fits.ImageHDU(self.array)
         hdu2.header['EXTNAME'] = extname
         hdulist = fits.HDUList([hdu1, hdu2])
         hdulist.writeto(filename)
@@ -52,7 +51,7 @@ class TestFits2Bitmap(object):
     @pytest.mark.parametrize('file_exten', ['.gz', '.bz2'])
     def test_compressed_fits(self, tmpdir, file_exten):
         filename = tmpdir.join('test.fits' + file_exten).strpath
-        fits.writeto(filename, np.ones((128, 128)))
+        fits.writeto(filename, self.array)
         main([filename, '-e', '0'])
 
     def test_orientation(self, tmpdir):
