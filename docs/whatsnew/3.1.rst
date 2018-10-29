@@ -147,7 +147,64 @@ Improvements to astropy.visualization
 Improvements in WCSAxes
 -----------------------
 
-.. https://github.com/astropy/astropy/pull/7961
+The WCSAxes framework for making plots of astronomical images with Matplotlib
+has been improved in this release - in particular, `Matplotlib styles
+<https://matplotlib.org/users/style_sheets.html>`_ (e.g.
+``plt.style.use('ggplot')``) and
+`rcParams <https://matplotlib.org/users/customizing.html>`_ should now be
+correctly taken into account, and the default spacing of tick labels from the
+ticks should now be improved. The following shows an example of using the
+default, the ``ggplot``, and the ``seaborn`` styles:
+
+.. plot::
+   :context: reset
+   :align: center
+
+    import matplotlib.pyplot as plt
+
+    from astropy.wcs import WCS
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
+
+    plt.figure(figsize=(9, 4.5))
+
+    for istyle, style in enumerate([{}, 'ggplot', 'seaborn']):
+
+        plt.style.use(style)
+
+        ax = plt.subplot(1, 3, istyle + 1, projection=wcs)
+        ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
+
+        if style == {}:
+            ax.set_title('Default', size=11)
+        else:
+            ax.set_title("plt.style.use('{0}')".format(style), size=11)
+
+        ax.set_xlabel('Galactic Longitude')
+
+        if istyle  == 0:
+            ax.coords[1].set_axislabel('Galactic Latitude')
+        elif istyle == 1:
+            ax.coords[1].set_ticklabel_visible(False)
+        else:
+            ax.coords[1].set_axislabel('Galactic Latitude')
+            ax.coords[1].set_ticklabel_position('r')
+            ax.coords[1].set_axislabel_position('r')
+
+By default, Right Ascension coordinates will now default to being formatted in
+hours rather than in degrees. Finally, there have been a number of
+improvements to the API, including for example the ability to use the Matplotlib
+`tick_params <https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.tick_params.html>`_
+method, the ability to more easily set the
+tick labels to be decimal using the ``decimal=True`` option to
+:meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_format_unit`, and
+the ability to control whether the ticks should be facing inwards or outwards using
+the ``direction='in'/'out'`` argument to :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticks`.
 
 
 .. _whatsnew-3.1-imshow-norm:
