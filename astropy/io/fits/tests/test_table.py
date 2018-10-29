@@ -2534,9 +2534,7 @@ class TestTableFunctions(FitsTestCase):
             cdfile = self.temp('coldefs.txt')
             hfile = self.temp('header.txt')
             tbhdu.dump(datafile, cdfile, hfile)
-            with pytest.warns(AstropyUserWarning,
-                              match='Overwriting existing file'):
-                tbhdu.dump(datafile, cdfile, hfile, overwrite=True)
+            tbhdu.dump(datafile, cdfile, hfile, overwrite=True)
             with catch_warnings(AstropyDeprecationWarning) as warning_lines:
                 tbhdu.dump(datafile, cdfile, hfile, clobber=True)
                 assert warning_lines[0].category == AstropyDeprecationWarning
