@@ -25,7 +25,14 @@ smaller improvements and bug fixes, which are described in the
 * xxx distinct people have contributed code
 
 
-.. _whatsnew-3.0-uncertainty:
+.. _whatsnew-3.1-tips:
+
+Performance tips
+================
+
+.. Mention that these exist
+
+.. _whatsnew-3.1-uncertainty:
 
 New sub-package for uncertainties and distributions
 ===================================================
