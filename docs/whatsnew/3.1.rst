@@ -220,9 +220,33 @@ New convenience function for imshow with ImageNormalize
 Common API for World Coordinate Systems
 =======================================
 
-.. https://github.com/astropy/astropy/pull/7325
-.. https://github.com/astropy/astropy/pull/7326
+We have designed a new general programmatic interface for objects that represent
+world coordinate system (WCS) transformations, and astropy's own
+:class:`~astropy.wcs.WCS` now implements this interface. One of the highlights
+of this interface is the ability to transform to/from astropy objects such as
+:class:`~astropy.coordinates.SkyCoord` or :class:`~astropy.units.Quantity`
+objects::
 
+    >>> from astropy.wcs import WCS
+    >>> from astropy.coordinates import SkyCoord
+    >>> from astropy.utils.data import get_pkg_data_filename
+    >>> from astropy.io import fits
+    >>> filename = get_pkg_data_filename('galactic_center/gc_2mass_k.fits')  # doctest: +REMOTE_DATA
+    >>> wcs = WCS(filename)  # doctest: +REMOTE_DATA
+    >>> wcs.pixel_to_world([1, 2], [4, 3])  # doctest: +REMOTE_DATA +FLOAT_CMP
+    <SkyCoord (FK5: equinox=2000.0): (ra, dec) in deg
+        [(266.97242993, -29.42584415), (266.97084321, -29.42723968)]>
+    >>> wcs.world_to_pixel(SkyCoord('00h00m00s +00d00m00s', frame='galactic'))  # doctest: +REMOTE_DATA
+    [array(356.85179997), array(357.45340331)]
+
+You can find out more about using this new API in :ref:`wcsapi`.
+
+For anyone interested in implementing this interface in other WCS classes, we
+recommend reading the  Astropy Proposal for Enhancement 14: `A shared Python
+interface for World Coordinate Systems (APE 14)
+<https://doi.org/10.5281/zenodo.1188875>`_, and we have provided base classes
+defining the API, as well as wrapper classes to help automatically implement the
+high-level class.
 
 .. _whatsnew-3.1-prior-modeling:
 
