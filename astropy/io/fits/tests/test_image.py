@@ -813,14 +813,17 @@ class TestImageFunctions(FitsTestCase):
 
         # Let's just add a value to the data that should be converted to NaN
         # when it is read back in:
+        filename = self.temp('test.fits')
         hdu.data[0] = 9999
         hdu.header['BLANK'] = 9999
-        hdu.writeto(self.temp('test.fits'))
+        hdu.writeto(filename)
 
-        with fits.open(self.temp('test.fits')) as hdul:
+        with fits.open(filename) as hdul:
             data = hdul[0].data
             assert np.isnan(data[0])
-            hdul.writeto(self.temp('test2.fits'))
+            with pytest.warns(fits.verify.VerifyWarning,
+                              match="Invalid 'BLANK' keyword in header"):
+                hdul.writeto(self.temp('test2.fits'))
 
         # Now reopen the newly written file.  It should not have a 'BLANK'
         # keyword
@@ -832,12 +835,12 @@ class TestImageFunctions(FitsTestCase):
                 assert np.isnan(data[0])
 
         # Finally, test that scale_back keeps the BLANKs correctly
-        with fits.open(self.temp('test.fits'), scale_back=True,
+        with fits.open(filename, scale_back=True,
                        mode='update') as hdul3:
             data = hdul3[0].data
             assert np.isnan(data[0])
 
-        with fits.open(self.temp('test.fits'),
+        with fits.open(filename,
                        do_not_scale_image_data=True) as hdul4:
             assert hdul4[0].header['BLANK'] == 9999
             assert hdul4[0].header['BSCALE'] == 1.23
@@ -1022,7 +1025,9 @@ class TestImageFunctions(FitsTestCase):
         data = np.arange(100, dtype=np.float64)
         hdu = fits.PrimaryHDU(data)
         hdu.header['BLANK'] = 'nan'
-        hdu.writeto(self.temp('test.fits'))
+        with pytest.warns(fits.verify.VerifyWarning, match="Invalid value for "
+                          "'BLANK' keyword in header: 'nan'"):
+            hdu.writeto(self.temp('test.fits'))
 
         with catch_warnings() as w:
             with fits.open(self.temp('test.fits')) as hdul:

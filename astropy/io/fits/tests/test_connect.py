@@ -14,6 +14,7 @@ from ....extern.six.moves import range, zip
 from ....table import Table, QTable
 from ....tests.helper import catch_warnings
 from ....units.format.fits import UnitScaleError
+from ....utils.exceptions import AstropyUserWarning
 
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -336,7 +337,9 @@ def test_convert_comment_convention(tmpdir):
     Regression test for https://github.com/astropy/astropy/issues/6079
     """
     filename = os.path.join(DATA, 'stddata.fits')
-    t = Table.read(filename)
+    with pytest.warns(AstropyUserWarning, catch='hdu= was not specified but '
+                      'multiple tables are present'):
+        t = Table.read(filename)
 
     assert t.meta['comments'] == [
         '',

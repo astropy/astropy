@@ -771,7 +771,8 @@ class TestDiff(FitsTestCase):
         diffobj = HeaderDiff(ha, hb)
         diffobj.report(fileobj=outpath)
         report_as_string = diffobj.report()
-        assert open(outpath).read() == report_as_string
+        with open(outpath) as fout:
+            assert fout.read() == report_as_string
 
     def test_file_output_overwrite_safety(self):
         outpath = self.temp('diff_output.txt')
@@ -793,8 +794,9 @@ class TestDiff(FitsTestCase):
         diffobj.report(fileobj=outpath)
         report_as_string = diffobj.report()
         diffobj.report(fileobj=outpath, overwrite=True)
-        assert open(outpath).read() == report_as_string, ("overwritten output "
-            "file is not identical to report string")
+        with open(outpath) as fout:
+            assert fout.read() == report_as_string, (
+                "overwritten output file is not identical to report string")
 
     def test_file_output_overwrite_vs_clobber(self):
         """Verify uses of clobber and overwrite."""

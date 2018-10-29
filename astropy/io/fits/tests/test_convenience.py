@@ -47,6 +47,8 @@ class TestConvenience(FitsTestCase):
         header = fits.getheader(f)
         assert not f.closed
 
+        f.close()  # Close it now
+
     def test_table_to_hdu(self):
         table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
                       names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])

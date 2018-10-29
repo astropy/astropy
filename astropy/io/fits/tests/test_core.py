@@ -28,6 +28,7 @@ from ....extern.six.moves import range, zip
 from ....io import fits
 from ....tests.helper import raises, catch_warnings, ignore_warnings
 from ....utils.data import get_pkg_data_filename
+from ....utils.exceptions import AstropyUserWarning
 from ....utils import data
 
 
@@ -40,22 +41,18 @@ else:
 
 
 class TestCore(FitsTestCase):
-    def test_with_statement(self):
-        with fits.open(self.data('ascii.fits')) as f:
-            pass
 
     @raises(IOError)
     def test_missing_file(self):
         fits.open(self.temp('does-not-exist.fits'))
 
     def test_naxisj_check(self):
-        hdulist = fits.open(self.data('o4sp040b0_raw.fits'))
+        with fits.open(self.data('o4sp040b0_raw.fits')) as hdulist:
+            hdulist[1].header['NAXIS3'] = 500
 
-        hdulist[1].header['NAXIS3'] = 500
-
-        assert 'NAXIS3' in hdulist[1].header
-        hdulist.verify('silentfix')
-        assert 'NAXIS3' not in hdulist[1].header
+            assert 'NAXIS3' in hdulist[1].header
+            hdulist.verify('silentfix')
+            assert 'NAXIS3' not in hdulist[1].header
 
     def test_byteswap(self):
         p = fits.PrimaryHDU()
@@ -84,14 +81,12 @@ class TestCore(FitsTestCase):
         Testing when fits file is passed as pathlib.Path object #4412.
         """
         fpath = pathlib.Path(get_pkg_data_filename('data/tdim.fits'))
-        hdulist = fits.open(fpath)
+        with fits.open(fpath) as hdulist:
+            assert hdulist[0].filebytes() == 2880
+            assert hdulist[1].filebytes() == 5760
 
-        assert hdulist[0].filebytes() == 2880
-        assert hdulist[1].filebytes() == 5760
-
-        hdulist2 = fits.open(self.data('tdim.fits'))
-
-        assert FITSDiff(hdulist2, hdulist).identical is True
+            with fits.open(self.data('tdim.fits')) as hdulist2:
+                assert FITSDiff(hdulist2, hdulist).identical is True
 
     def test_add_del_columns(self):
         p = fits.ColDefs([])
@@ -164,12 +159,12 @@ class TestCore(FitsTestCase):
         assert header.cards[0].comment == comment
 
     def test_uint(self):
-        hdulist_f = fits.open(self.data('o4sp040b0_raw.fits'), uint=False)
-        hdulist_i = fits.open(self.data('o4sp040b0_raw.fits'), uint=True)
-
-        assert hdulist_f[1].data.dtype == np.float32
-        assert hdulist_i[1].data.dtype == np.uint16
-        assert np.all(hdulist_f[1].data == hdulist_i[1].data)
+        filename = self.data('o4sp040b0_raw.fits')
+        with fits.open(filename, uint=False) as hdulist_f:
+            with fits.open(filename, uint=True) as hdulist_i:
+                assert hdulist_f[1].data.dtype == np.float32
+                assert hdulist_i[1].data.dtype == np.uint16
+                assert np.all(hdulist_f[1].data == hdulist_i[1].data)
 
     def test_fix_missing_card_append(self):
         hdu = fits.ImageHDU()
@@ -317,47 +312,49 @@ class TestCore(FitsTestCase):
         Test the various different ways of specifying an extension header in
         the convenience functions.
         """
-
-        hl, ext = _getext(self.data('test0.fits'), 'readonly', 1)
+        filename = self.data('test0.fits')
+        hl, ext = _getext(filename, 'readonly', 1)
         assert ext == 1
-        pytest.raises(ValueError, _getext, self.data('test0.fits'), 'readonly',
+        pytest.raises(ValueError, _getext, filename, 'readonly',
                       1, 2)
-        pytest.raises(ValueError, _getext, self.data('test0.fits'), 'readonly',
+        pytest.raises(ValueError, _getext, filename, 'readonly',
                       (1, 2))
-        pytest.raises(ValueError, _getext, self.data('test0.fits'), 'readonly',
+        pytest.raises(ValueError, _getext, filename, 'readonly',
                       'sci', 'sci')
-        pytest.raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
+        pytest.raises(TypeError, _getext, filename, 'readonly',
                       1, 2, 3)
-        hl, ext = _getext(self.data('test0.fits'), 'readonly', ext=1)
+        hl, ext = _getext(filename, 'readonly', ext=1)
         assert ext == 1
-        hl, ext = _getext(self.data('test0.fits'), 'readonly', ext=('sci', 2))
+        hl, ext = _getext(filename, 'readonly', ext=('sci', 2))
         assert ext == ('sci', 2)
-        pytest.raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
+        pytest.raises(TypeError, _getext, filename, 'readonly',
                       1, ext=('sci', 2), extver=3)
-        pytest.raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
+        pytest.raises(TypeError, _getext, filename, 'readonly',
                       ext=('sci', 2), extver=3)
 
-        hl, ext = _getext(self.data('test0.fits'), 'readonly', 'sci')
+        hl, ext = _getext(filename, 'readonly', 'sci')
         assert ext == ('sci', 1)
-        hl, ext = _getext(self.data('test0.fits'), 'readonly', 'sci', 1)
+        hl, ext = _getext(filename, 'readonly', 'sci', 1)
         assert ext == ('sci', 1)
-        hl, ext = _getext(self.data('test0.fits'), 'readonly', ('sci', 1))
+        hl, ext = _getext(filename, 'readonly', ('sci', 1))
         assert ext == ('sci', 1)
-        hl, ext = _getext(self.data('test0.fits'), 'readonly', 'sci',
+        hl, ext = _getext(filename, 'readonly', 'sci',
                           extver=1, do_not_scale_image_data=True)
         assert ext == ('sci', 1)
-        pytest.raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
+        pytest.raises(TypeError, _getext, filename, 'readonly',
                       'sci', ext=1)
-        pytest.raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
+        pytest.raises(TypeError, _getext, filename, 'readonly',
                       'sci', 1, extver=2)
 
-        hl, ext = _getext(self.data('test0.fits'), 'readonly', extname='sci')
+        hl, ext = _getext(filename, 'readonly', extname='sci')
         assert ext == ('sci', 1)
-        hl, ext = _getext(self.data('test0.fits'), 'readonly', extname='sci',
+        hl, ext = _getext(filename, 'readonly', extname='sci',
                           extver=1)
         assert ext == ('sci', 1)
-        pytest.raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
+        pytest.raises(TypeError, _getext, filename, 'readonly',
                       extver=1)
+
+        hl.close()  # Close file handler
 
     def test_extension_name_case_sensitive(self):
         """
@@ -385,11 +382,14 @@ class TestCore(FitsTestCase):
         Tests creating a fully-formed HDU object from a string containing the
         bytes of the HDU.
         """
+        infile = self.data('test0.fits')
+        outfile = self.temp('test.fits')
 
-        dat = open(self.data('test0.fits'), 'rb').read()
+        with open(infile, 'rb') as fin:
+            dat = fin.read()
 
         offset = 0
-        with fits.open(self.data('test0.fits')) as hdul:
+        with fits.open(infile) as hdul:
             hdulen = hdul[0]._data_offset + hdul[0]._data_size
             hdu = fits.PrimaryHDU.fromstring(dat[:hdulen])
             assert isinstance(hdu, fits.PrimaryHDU)
@@ -397,14 +397,14 @@ class TestCore(FitsTestCase):
             assert hdu.data is None
 
         hdu.header['TEST'] = 'TEST'
-        hdu.writeto(self.temp('test.fits'))
-        with fits.open(self.temp('test.fits')) as hdul:
+        hdu.writeto(outfile)
+        with fits.open(outfile) as hdul:
             assert isinstance(hdu, fits.PrimaryHDU)
             assert hdul[0].header[:-1] == hdu.header[:-1]
             assert hdul[0].header['TEST'] == 'TEST'
             assert hdu.data is None
 
-        with fits.open(self.data('test0.fits'))as hdul:
+        with fits.open(infile)as hdul:
             for ext_hdu in hdul[1:]:
                 offset += hdulen
                 hdulen = len(str(ext_hdu.header)) + ext_hdu._data_size
@@ -540,14 +540,13 @@ class TestConvenienceFunctions(FitsTestCase):
         Simple test for writing a trivial header and some data to a file
         with the `writeto()` convenience function.
         """
-
+        filename = self.temp('array.fits')
         data = np.zeros((100, 100))
         header = fits.Header()
-        fits.writeto(self.temp('array.fits'), data, header=header,
-                     overwrite=True)
-        hdul = fits.open(self.temp('array.fits'))
-        assert len(hdul) == 1
-        assert (data == hdul[0].data).all()
+        fits.writeto(filename, data, header=header, overwrite=True)
+        with fits.open(filename) as hdul:
+            assert len(hdul) == 1
+            assert (data == hdul[0].data).all()
 
     def test_writeto_2(self):
         """
@@ -555,17 +554,17 @@ class TestConvenienceFunctions(FitsTestCase):
 
         Test of `writeto()` with a trivial header containing a single keyword.
         """
-
+        filename = self.temp('array.fits')
         data = np.zeros((100, 100))
         header = fits.Header()
         header.set('CRPIX1', 1.)
-        fits.writeto(self.temp('array.fits'), data, header=header,
+        fits.writeto(filename, data, header=header,
                      overwrite=True, output_verify='silentfix')
-        hdul = fits.open(self.temp('array.fits'))
-        assert len(hdul) == 1
-        assert (data == hdul[0].data).all()
-        assert 'CRPIX1' in hdul[0].header
-        assert hdul[0].header['CRPIX1'] == 1.0
+        with fits.open(filename) as hdul:
+            assert len(hdul) == 1
+            assert (data == hdul[0].data).all()
+            assert 'CRPIX1' in hdul[0].header
+            assert hdul[0].header['CRPIX1'] == 1.0
 
 
 class TestFileFunctions(FitsTestCase):
@@ -722,7 +721,8 @@ class TestFileFunctions(FitsTestCase):
 
         f = open(self.data('test0.fits'), 'rb')
         f.close()
-        assert len(fits.open(f)) == 5
+        with fits.open(f) as f2:
+            assert len(f2) == 5
 
     def test_read_open_gzip_file(self):
         """Read from an open gzip file object."""
@@ -1115,6 +1115,7 @@ class TestStreamingFunctions(FitsTestCase):
         shdu = self._make_streaming_hdu(self.temp('new.fits'))
         assert isinstance(shdu.size, int)
         assert shdu.size == 100
+        shdu.close()
 
     @raises(ValueError)
     def test_streaming_hdu_file_wrong_mode(self):
@@ -1136,9 +1137,9 @@ class TestStreamingFunctions(FitsTestCase):
             shdu.write(arr)
             assert shdu.writecomplete
             assert shdu.size == 100
-        hdul = fits.open(self.temp('new.fits'))
-        assert len(hdul) == 1
-        assert (hdul[0].data == arr).all()
+        with fits.open(self.temp('new.fits')) as hdul:
+            assert len(hdul) == 1
+            assert (hdul[0].data == arr).all()
 
     def test_streaming_hdu_write_file_like(self):
         """Test streaming an HDU to an open file-like object."""
@@ -1171,13 +1172,18 @@ class TestStreamingFunctions(FitsTestCase):
         ihdu = fits.ImageHDU()
         ihdu.header['EXTNAME'] = 12345678
         hdul = fits.HDUList([phdu, ihdu])
+        filename = self.temp('temp.fits')
 
-        pytest.raises(fits.VerifyError, hdul.writeto, self.temp('temp.fits'),
+        pytest.raises(fits.VerifyError, hdul.writeto, filename,
                       output_verify='exception')
-        hdul.writeto(self.temp('temp.fits'), output_verify='fix')
-        with fits.open(self.temp('temp.fits')):
+        with pytest.warns(fits.verify.VerifyWarning,
+                          match='Verification reported errors'):
+            hdul.writeto(filename, output_verify='fix')
+        with fits.open(filename):
             assert hdul[1].name == '12345678'
             assert hdul[1].header['EXTNAME'] == '12345678'
+
+        hdul.close()
 
     def _make_streaming_hdu(self, fileobj):
         hd = fits.Header()
@@ -1201,5 +1207,5 @@ class TestStreamingFunctions(FitsTestCase):
 
         # However, it should not fail if do_not_scale_image_data was used:
         # See https://github.com/astropy/astropy/issues/3766
-        hdul = fits.open(pth, memmap=True, do_not_scale_image_data=True)
-        hdul[0].data  # Just make sure it doesn't crash
+        with fits.open(pth, memmap=True, do_not_scale_image_data=True) as hdul:
+            hdul[0].data  # Just make sure it doesn't crash

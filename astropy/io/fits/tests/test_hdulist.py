@@ -920,7 +920,9 @@ class TestHDUListFunctions(FitsTestCase):
 
         # This should raise an IOError because there is no end card.
         with pytest.raises(IOError):
-            fits.open(filename)
+            with pytest.warns(AstropyUserWarning, match='non-ASCII characters '
+                              'are present in the FITS file header'):
+                fits.open(filename)
 
     @pytest.mark.skipif(six.PY2,
                         reason='ResourceWarning is not created in Python 2')
