@@ -1625,3 +1625,11 @@ def test_insert_exceptions():
     with pytest.raises(IndexError) as err:
         tm.insert(-100, 50)
     assert 'index -100 is out of bounds for axis 0 with size 2' in str(err)
+
+
+def test_datetime64_no_format():
+    dt64 = np.datetime64('2000-01-02T03:04:05.123456789')
+    t = Time(dt64, scale='utc', precision=9)
+    assert t.iso == '2000-01-02 03:04:05.123456789'
+    assert t.datetime64 == dt64
+    assert t.value == dt64
