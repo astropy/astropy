@@ -25,6 +25,133 @@ smaller improvements and bug fixes, which are described in the
 * xxx distinct people have contributed code
 
 
+.. _whatsnew-3.0-uncertainty:
+
+New sub-package for uncertainties and distributions
+===================================================
+
+.. https://github.com/astropy/astropy/pull/6945
+
+
+.. _whatsnew-3.1-transit-periodogram:
+
+New transit periodogram
+=======================
+
+.. https://github.com/astropy/astropy/pull/7391
+
+
+.. _whatsnew-3.1-coordinates:
+
+Improvements to astropy.coordinates
+===================================
+
+.. https://github.com/astropy/astropy/pull/7830
+.. https://github.com/astropy/astropy/pull/7924
+
+
+.. _whatsnew-3.1-table:
+
+Improvements to Table
+=====================
+
+.. https://github.com/astropy/astropy/pull/7481
+.. https://github.com/astropy/astropy/pull/7574
+
+
+.. _whatsnew-3.1-nddata:
+
+New features in NDData
+======================
+
+.. https://github.com/astropy/astropy/pull/6971
+.. https://github.com/astropy/astropy/pull/7944
+
+
+.. _whatsnew-3.1-units:
+
+Improvements and new features in astropy.units
+==============================================
+
+
+.. _whatsnew-3.1-nocopy-unit:
+
+New operator for quantities
+---------------------------
+
+.. https://github.com/astropy/astropy/pull/7734
+
+
+.. _whatsnew-3.1-mag-zero-pt:
+
+Magnitude zero points
+---------------------
+
+.. https://github.com/astropy/astropy/pull/7891
+
+
+.. _whatsnew-3.1-tcmb:
+
+Thermodynamic equilibrium equivalency
+-------------------------------------
+
+.. https://github.com/astropy/astropy/pull/7054
+
+
+.. _whatsnew-3.1-littleh:
+
+Little-h equivalency
+--------------------
+
+.. https://github.com/astropy/astropy/pull/7970
+
+
+.. _whatsnew-3.1-cosmology:
+
+Faster cosmological calculations
+================================
+
+.. https://github.com/astropy/astropy/pull/7117
+
+
+.. _whatsnew-3.1-visualization:
+
+Improvements to astropy.visualization
+=====================================
+
+
+.. _whatsnew-3.1-wcsaxes:
+
+Improvements in WCSAxes
+-----------------------
+
+.. https://github.com/astropy/astropy/pull/7961
+
+
+.. _whatsnew-3.1-imshow-norm:
+
+New convenience function for imshow with ImageNormalize
+-------------------------------------------------------
+
+.. https://github.com/astropy/astropy/pull/7785
+
+
+.. _whatsnew-3.1-ape14:
+
+Common API for World Coordinate Systems
+=======================================
+
+.. https://github.com/astropy/astropy/pull/7325
+.. https://github.com/astropy/astropy/pull/7326
+
+
+.. _whatsnew-3.1-prior-modeling:
+
+Prior/posterior constraints in modeling
+=======================================
+
+.. https://github.com/astropy/astropy/pull/7558
+
 
 Full change log
 ===============
