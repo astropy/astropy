@@ -71,13 +71,14 @@ def _get_diff_cls(value):
 
     if value in r.DIFFERENTIAL_CLASSES:
         value = r.DIFFERENTIAL_CLASSES[value]
-    elif (not isinstance(value, type) or
-          not issubclass(value, r.BaseDifferential)):
+    elif value is not None and (not isinstance(value, type) or
+                                not issubclass(value, r.BaseDifferential)):
         raise ValueError(
             'Differential is {0!r} but must be a BaseDifferential class '
             'or one of the string aliases {1}'.format(
                 value, list(r.DIFFERENTIAL_CLASSES)))
     return value
+
 
 def _get_repr_classes(base, **differentials):
     """Get valid representation and differential classes.
