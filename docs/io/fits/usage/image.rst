@@ -155,13 +155,10 @@ data with the `~ImageHDU.scale` method. Here are a few examples::
 
     >>> # scale the data to Int16 with user specified bscale/bzero
     >>> hdu.scale('int16', bzero=32768)
-    >>> import warnings
-    >>> with warnings.catch_warnings():  # Ignore warning for doctest
-    ...     warnings.simplefilter('ignore', RuntimeWarning)
-    ...     # scale the data to Int32 with the min/max of the data range
-    ...     hdu.scale('int32', 'minmax')
-    ...     # scale the data, using the original BSCALE/BZERO
-    ...     hdu.scale('int32', 'old')
+    >>> # scale the data to Int32 with the min/max of the data range
+    >>> hdu.scale('int32', 'minmax')
+    >>> # scale the data, using the original BSCALE/BZERO
+    >>> hdu.scale('int32', 'old')
     >>> hdul.close()
 
 The first example above shows how to store an unsigned short integer array.
