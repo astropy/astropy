@@ -6,7 +6,7 @@ import os
 import sys
 import glob
 import ctypes
-import faulthandler
+
 import numpy as np
 from numpy.ctypeslib import ndpointer
 from functools import partial
@@ -19,10 +19,6 @@ from ..nddata import support_nddata
 from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
-
-# Turn the faulthandler ON to help catch any signals, e.g. segfaults
-# or asserts. This doesn't, currently, work with Jupyter Notebook.
-faulthandler.enable()
 
 # Find and load C convolution library
 lib_path = glob.glob(os.path.join(os.path.dirname(__file__), 'lib_convolve*'))[0]
