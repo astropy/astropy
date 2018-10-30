@@ -74,6 +74,11 @@ entry_points['asdf_extensions'] = [
 ]
 
 min_numpy_version = 'numpy>=' + astropy.__minimum_numpy_version__
+
+# TODO: Remove this pinning when Numpy 1.15.4 is out.
+# https://github.com/astropy/astropy/issues/8039
+min_numpy_version += ',<1.15.3'
+
 setup_requires = [min_numpy_version]
 
 # Make sure to have the packages needed for building astropy, but do not require them
