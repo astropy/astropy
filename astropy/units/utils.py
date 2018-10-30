@@ -174,18 +174,24 @@ def sanitize_scale(scale):
     if is_effectively_unity(scale):
         return 1.0
 
-    if np.iscomplex(scale):  # scale is complex
-        if scale == 0.0:
-            return 0.0
+    # Maximum speed for regular case where scale is a float.
+    if scale.__class__ is float:
+        return scale
 
+    # All classes that scale can be (int, float, complex, Fraction)
+    # have an "imag" attribute.
+    if scale.imag:
         if abs(scale.real) > abs(scale.imag):
             if is_effectively_unity(scale.imag/scale.real + 1):
-                scale = scale.real
-        else:
-            if is_effectively_unity(scale.real/scale.imag + 1):
-                scale = complex(0., scale.imag)
+                return scale.real
 
-    return scale
+        elif is_effectively_unity(scale.real/scale.imag + 1):
+            return complex(0., scale.imag)
+
+        return scale
+
+    else:
+        return scale.real
 
 
 def validate_power(p, support_tuples=False):
@@ -248,8 +254,12 @@ def resolve_fractions(a, b):
     This ensures that any operation involving a Fraction will use
     rational arithmetic and preserve precision.
     """
-    a_is_fraction = isinstance(a, Fraction)
-    b_is_fraction = isinstance(b, Fraction)
+    # We short-circuit on the most common cases of int and float, since
+    # isinstance(a, Fraction) is very slow for any non-Fraction instances.
+    a_is_fraction = (a.__class__ is not int and a.__class__ is not float and
+                     isinstance(a, Fraction))
+    b_is_fraction = (b.__class__ is not int and b.__class__ is not float and
+                     isinstance(b, Fraction))
     if a_is_fraction and not b_is_fraction:
         b = Fraction(b)
     elif not a_is_fraction and b_is_fraction:
