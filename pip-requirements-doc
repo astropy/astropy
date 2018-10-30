@@ -1,7 +1,7 @@
 -r pip-requirements
-cython
+Cython>=0.21
+jinja2>=2.7
 pyyaml
-jinja2
 h5py
 scikit-image
 pandas
