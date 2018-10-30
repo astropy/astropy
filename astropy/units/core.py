@@ -498,6 +498,8 @@ class UnitBase(metaclass=InheritDocstrings):
     # arrays to avoid element-wise multiplication.
     __array_priority__ = 1000
 
+    _hash = None
+
     def __deepcopy__(self, memo):
         # This may look odd, but the units conversion will be very
         # broken after deep-copying if we don't guarantee that a given
@@ -730,9 +732,12 @@ class UnitBase(metaclass=InheritDocstrings):
         return NotImplemented
 
     def __hash__(self):
-        # This must match the hash used in CompositeUnit for a unit
-        # with only one base and no scale or power.
-        return hash((str(self.scale), self.name, str('1')))
+        if self._hash is None:
+            parts = ([str(self.scale)] +
+                     [x.name for x in self.bases] +
+                     [str(x) for x in self.powers])
+            self._hash = hash(tuple(parts))
+        return self._hash
 
     def __eq__(self, other):
         if self is other:
@@ -1772,11 +1777,11 @@ class _UnitMetaClass(InheritDocstrings):
             if is_effectively_unity(represents.value):
                 represents = represents.unit
             else:
-                # cannot use _error_check=False: scale may be effectively unity
                 represents = CompositeUnit(represents.value *
                                            represents.unit.scale,
                                            bases=represents.unit.bases,
-                                           powers=represents.unit.powers)
+                                           powers=represents.unit.powers,
+                                           _error_check=False)
 
         if isinstance(s, Quantity):
             if is_effectively_unity(s.value):
@@ -1784,7 +1789,8 @@ class _UnitMetaClass(InheritDocstrings):
             else:
                 s = CompositeUnit(s.value * s.unit.scale,
                                   bases=s.unit.bases,
-                                  powers=s.unit.powers)
+                                  powers=s.unit.powers,
+                                  _error_check=False)
 
         # now decide what we really need to do; define derived Unit?
         if isinstance(represents, UnitBase):
@@ -1833,7 +1839,7 @@ class _UnitMetaClass(InheritDocstrings):
                 return UnrecognizedUnit(s)
 
         elif isinstance(s, (int, float, np.floating, np.integer)):
-            return CompositeUnit(s, [], [])
+            return CompositeUnit(s, [], [], _error_check=False)
 
         elif s is None:
             raise TypeError("None is not a valid Unit")
@@ -1947,7 +1953,9 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         return self._represents.is_unity()
 
     def __hash__(self):
-        return hash(self.name) + hash(self._represents)
+        if self._hash is None:
+            self._hash = hash((self.name, self._represents))
+        return self._hash
 
     @classmethod
     def _from_physical_type_id(cls, physical_type_id):
@@ -1958,7 +1966,8 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         if len(physical_type_id) == 1 and powers[0] == 1:
             unit = bases[0]
         else:
-            unit = CompositeUnit(1, bases, powers)
+            unit = CompositeUnit(1, bases, powers,
+                                 _error_check=False)
 
         return unit
 
@@ -1994,6 +2003,7 @@ class CompositeUnit(UnitBase):
         A sequence of powers (in parallel with ``bases``) for each
         of the base units.
     """
+    _decomposed_cache = None
 
     def __init__(self, scale, bases, powers, decompose=False,
                  decompose_bases=set(), _error_check=True):
@@ -2004,19 +2014,37 @@ class CompositeUnit(UnitBase):
         # kwarg `_error_check` is False, the error checking is turned
         # off.
         if _error_check:
-            scale = sanitize_scale(scale)
             for base in bases:
                 if not isinstance(base, UnitBase):
                     raise TypeError(
                         "bases must be sequence of UnitBase instances")
             powers = [validate_power(p) for p in powers]
 
-        self._scale = scale
-        self._bases = bases
-        self._powers = powers
-        self._decomposed_cache = None
-        self._expand_and_gather(decompose=decompose, bases=decompose_bases)
-        self._hash = None
+        if not decompose and len(bases) == 1:
+            # Short-cut; with one unit there's nothing to expand and gather.
+            unit = bases[0]
+            power = powers[0]
+            if power == 1:
+                scale *= unit.scale
+                self._bases = unit.bases
+                self._powers = unit.powers
+            elif power == 0:
+                self._bases = []
+                self._powers = []
+            else:
+                scale *= unit.scale ** power
+                self._bases = unit.bases
+                self._powers = [operator.mul(*resolve_fractions(p, power))
+                                for p in unit.powers]
+            self._scale = sanitize_scale(scale)
+        else:
+            # Regular case: use inputs as preliminary scale, bases, and powers,
+            # then "expand and gather" identical bases, sanitize the scale, &c.
+            self._scale = scale
+            self._bases = bases
+            self._powers = powers
+            self._expand_and_gather(decompose=decompose,
+                                    bases=decompose_bases)
 
     def __repr__(self):
         if len(self._bases):
@@ -2027,14 +2055,6 @@ class CompositeUnit(UnitBase):
                     self._scale)
             else:
                 return 'Unit(dimensionless)'
-
-    def __hash__(self):
-        if self._hash is None:
-            parts = ([str(self._scale)] +
-                     [x.name for x in self._bases] +
-                     [str(x) for x in self._powers])
-            self._hash = hash(tuple(parts))
-        return self._hash
 
     @property
     def scale(self):
