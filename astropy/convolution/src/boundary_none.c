@@ -1,145 +1,56 @@
-// Licensed under a 3-clause BSD style license - see LICENSE.rst
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
-/*------------------------------WARNING!------------------------------
- * The C functions below are NOT designed to be called externally to
- * the Python function astropy/astropy/convolution/convolve.py.
- * They do NOT include any of the required correct usage checking.
- *------------------------------WARNING!------------------------------
- */
-
-#include <assert.h>
-#include <math.h>
 #include <stdbool.h>
-#include <stdlib.h>
-#include <stddef.h>
+#include <Python.h>
+#include <numpy/arrayobject.h>
+#include <numpy/npy_math.h>
 
 #include "convolve.h"
 
-// Distutils on Windows automatically exports ``PyInit_lib_convolve``,
-// create dummy to prevent linker complaining about missing symbol.
 #if defined(_MSC_VER)
-void PyInit_lib_convolve(void)
-{
-    return;
-}
-#endif
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#define FORCE_INLINE  __forceinline
+#define NEVER_INLINE  __declspec(noinline)
 
-
-void convolveNd_boundary_none_c(DTYPE * const result,
-        const DTYPE * const f,
-        const unsigned n_dim,
-        const size_t * const image_shape,
-        const DTYPE * const g,
-        const size_t * const kernel_shape,
-        const bool nan_interpolate,
-        const unsigned n_threads)
-{
-#ifdef NDEBUG
-    if (!result || !f || !g || !image_shape || !kernel_shape)
-        return;
+// Other compilers (including GCC & Clang)
 #else
-    assert(result);
-    assert(f);
-    assert(g);
-    assert(image_shape);
-    assert(kernel_shape);
+
+#define FORCE_INLINE inline __attribute__((always_inline))
+#define NEVER_INLINE __attribute__((noinline))
+
 #endif
 
-    if (n_dim == 1)
-        convolve1d_boundary_none_c(result, f,
-                image_shape[0],
-                g, kernel_shape[0],
-                nan_interpolate, n_threads);
-    else if (n_dim == 2)
-        convolve2d_boundary_none_c(result, f,
-                image_shape[0], image_shape[1],
-                g, kernel_shape[0], kernel_shape[1],
-                nan_interpolate, n_threads);
-    else if (n_dim == 3)
-        convolve3d_boundary_none_c(result, f,
-                        image_shape[0], image_shape[1], image_shape[2],
-                        g, kernel_shape[0], kernel_shape[1], kernel_shape[2],
-                        nan_interpolate, n_threads);
-    else
-        assert(0); // Unimplemented: n_dim > 3
-}
+/* Define docstrings */
+static char module_docstring[] = "Convolution with no boundary";
+static char function_docstring[] = "Convolution with no boundary";
 
-/*-------------------------PERFORMANCE NOTES--------------------------------
- * The function wrappers below are designed to take advantage of the following:
- * The preprocessor will inline convolve<N>d_boundary_none(), effectively
- * expanding the two logical branches, replacing nan_interpolate
- * for their literal equivalents. The corresponding conditionals
- * within these functions will then be optimized away, this
- * being the goal - removing the unnecessary conditionals from
- * the loops without duplicating code.
- *--------------------------------------------------------------------------
- */
+/* Declare the C functions here. */
+static PyObject *convolve_boundary_none(PyObject *self, PyObject *args);
 
-void convolve1d_boundary_none_c(DTYPE * const result,
-        const DTYPE * const f, const size_t nx,
-        const DTYPE * const g, const size_t nkx,
-        const bool nan_interpolate,
-        const unsigned n_threads)
+/* Define the methods that will be available on the module. */
+static PyMethodDef module_methods[] = {
+    {"convolve_boundary_none", convolve_boundary_none, METH_VARARGS, function_docstring},
+    {NULL, NULL, 0, NULL}
+};
+
+/* This is the function that is called on import. */
+
+#define MOD_ERROR_VAL NULL
+#define MOD_SUCCESS_VAL(val) val
+#define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
+#define MOD_DEF(ob, name, doc, methods) \
+        static struct PyModuleDef moduledef = { \
+          PyModuleDef_HEAD_INIT, name, doc, -1, methods, }; \
+        ob = PyModule_Create(&moduledef);
+
+MOD_INIT(lib_convolve_none)
 {
-#ifdef NDEBUG
-    if (!result || !f || !g)
-        return;
-#else
-    assert(result);
-    assert(f);
-    assert(g);
-#endif
-
-    if (nan_interpolate)
-        convolve1d_boundary_none(result, f, nx, g, nkx, true, n_threads);
-    else
-        convolve1d_boundary_none(result, f, nx, g, nkx, false, n_threads);
-}
-
-void convolve2d_boundary_none_c(DTYPE * const result,
-        const DTYPE * const f, const size_t nx, const size_t ny,
-        const DTYPE * const g, const size_t nkx, const size_t nky,
-        const bool nan_interpolate,
-        const unsigned n_threads)
-{
-#ifdef NDEBUG
-    if (!result || !f || !g)
-        return;
-#else
-    assert(result);
-    assert(f);
-    assert(g);
-#endif
-
-    if (nan_interpolate)
-        convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, true, n_threads);
-    else
-        convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, false, n_threads);
-}
-
-void convolve3d_boundary_none_c(DTYPE * const result,
-        const DTYPE * const f, const size_t nx, const size_t ny, const size_t nz,
-        const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
-        const bool nan_interpolate,
-        const unsigned n_threads)
-{
-#ifdef NDEBUG
-    if (!result || !f || !g)
-        return;
-#else
-    assert(result);
-    assert(f);
-    assert(g);
-#endif
-
-    if (nan_interpolate)
-        convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, true, n_threads);
-    else
-        convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, false, n_threads);
+    PyObject *m;
+    MOD_DEF(m, "lib_convolve_none", module_docstring, module_methods);
+    if (m == NULL)
+        return MOD_ERROR_VAL;
+    import_array();
+    return MOD_SUCCESS_VAL(m);
 }
 
 // 1D
@@ -487,4 +398,93 @@ FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
 #ifdef _OPENMP
     }//end parallel scope
 #endif
+}
+
+
+static PyObject *convolve_boundary_none(PyObject *self, PyObject *args) {
+
+  int ndim;
+  PyObject *result_obj, *array_obj, *kernel_obj;
+  bool nan_interpolate, n_threads;
+  PyArrayObject *result_arr, *array_arr, *kernel_arr;
+  int nx, ny, nz, nkx, nky, nkz;
+  DTYPE *result, *array, *kernel;
+
+  /* Parse the input tuple */
+  if (!PyArg_ParseTuple(args, "OOOii", &result_obj, &array_obj, &kernel_obj, &nan_interpolate, &n_threads)) {
+    PyErr_SetString(PyExc_TypeError, "Error parsing input");
+    return NULL;
+  }
+
+  result_arr = (PyArrayObject *)PyArray_FROM_OTF(result_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+
+  if (result_arr == NULL) {
+    PyErr_SetString(PyExc_TypeError, "Couldn't parse the input arrays.");
+    Py_XDECREF(result_arr);
+    return NULL;
+  }
+
+  array_arr = (PyArrayObject *)PyArray_FROM_OTF(array_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+
+  if (array_arr == NULL) {
+    PyErr_SetString(PyExc_TypeError, "Couldn't parse the input arrays.");
+    Py_DECREF(result_arr);
+    Py_XDECREF(array_arr);
+    return NULL;
+  }
+
+  kernel_arr = (PyArrayObject *)PyArray_FROM_OTF(kernel_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+
+  if (result_arr == NULL) {
+    PyErr_SetString(PyExc_TypeError, "Couldn't parse the input arrays.");
+    Py_DECREF(result_arr);
+    Py_DECREF(array_arr);
+    Py_XDECREF(kernel_arr);
+    return NULL;
+  }
+
+  result = (DTYPE*)PyArray_DATA(result_arr);
+  array = (DTYPE*)PyArray_DATA(array_arr);
+  kernel = (DTYPE*)PyArray_DATA(kernel_arr);
+
+  /* How many data points are there? */
+  ndim = PyArray_NDIM(array_arr);
+
+  nx = PyArray_DIM(array_arr, 0);
+  nkx = PyArray_DIM(kernel_arr, 0);
+
+  if (ndim > 1) {
+    ny = PyArray_DIM(array_arr, 1);
+    nky = PyArray_DIM(kernel_arr, 1);
+  }
+
+  if (ndim > 2) {
+    nz = PyArray_DIM(array_arr, 2);
+    nkz = PyArray_DIM(kernel_arr, 2);
+  }
+
+  if (ndim == 1) {
+
+    if (nan_interpolate)
+        convolve1d_boundary_none(result, array, nx, kernel, nkx, true, n_threads);
+    else
+        convolve1d_boundary_none(result, array, nx, kernel, nkx, false, n_threads);
+
+  } else if(ndim == 2) {
+
+    if (nan_interpolate)
+        convolve2d_boundary_none(result, array, nx, ny, kernel, nkx, nky, true, n_threads);
+    else
+        convolve2d_boundary_none(result, array, nx, ny, kernel, nkx, nky, false, n_threads);
+
+  } else if(ndim == 3) {
+
+    if (nan_interpolate)
+        convolve3d_boundary_none(result, array, nx, ny, nz, kernel, nkx, nky, nkz, true, n_threads);
+    else
+        convolve3d_boundary_none(result, array, nx, ny, nz, kernel, nkx, nky, nkz, false, n_threads);
+
+  }
+
+  return result_obj;
 }

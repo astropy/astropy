@@ -5,10 +5,8 @@ import warnings
 import os
 import sys
 import glob
-import ctypes
 
 import numpy as np
-from numpy.ctypeslib import ndpointer
 from functools import partial
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
@@ -20,44 +18,8 @@ from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 
-# Find and load C convolution library
-lib_paths = glob.glob(os.path.join(os.path.dirname(__file__), 'lib_convolve*'))
-if len(lib_paths) > 0:
-    if sys.platform.startswith('win'):
-        lib_convolve = ctypes.windll.LoadLibrary(lib_paths[0])
-    else:
-        lib_convolve = ctypes.cdll.LoadLibrary(lib_paths[0])
-else:
-    raise Exception("Compiled convolution code is missing, try re-building astropy")
-del lib_paths
-
-# The GIL is automatically released by default when calling functions imported
-# from libaries loaded by ctypes.cdll.LoadLibrary(<path>)
-
-# Declare prototypes
-# Boundary None
-_convolveNd_boundary_none_c = lib_convolve.convolveNd_boundary_none_c
-_convolveNd_boundary_none_c.restype = None
-_convolveNd_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
-            ctypes.c_uint, # N dim
-            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for return & input
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # kernel array
-            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for kernel
-            ctypes.c_bool, # nan_interpolate
-            ctypes.c_uint] # n_threads
-
-# Padded boundaries ['fill', 'extend', 'wrap']
-_convolveNd_padded_boundary_c = lib_convolve.convolveNd_padded_boundary_c
-_convolveNd_padded_boundary_c.restype = None
-_convolveNd_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
-            ctypes.c_uint, # N dim
-            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for return & input
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # kernel array
-            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for kernel
-            ctypes.c_bool, # nan_interpolate
-            ctypes.c_uint] # n_threads
+from .lib_convolve_none import convolve_boundary_none
+from .lib_convolve_padded import convolve_padded_boundary
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -341,23 +303,13 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             padded_array = np.pad(array_internal, pad_width=np_pad_width,
                                   mode=np_pad_mode)
 
-        _convolveNd_padded_boundary_c(result, padded_array,
-                  array_internal.ndim,
-                  np.array(array_shape, dtype=ctypes.c_size_t, order='C'),
-                  kernel_internal,
-                  np.array(kernel_shape, dtype=ctypes.c_size_t, order='C'),
-                  nan_interpolate,
-                  n_threads
-                  )
+        convolve_padded_boundary(result, padded_array, kernel_internal,
+                                 nan_interpolate, n_threads)
+
     else:
-        _convolveNd_boundary_none_c(result, array_internal,
-                  array_internal.ndim,
-                  np.array(array_shape, dtype=ctypes.c_size_t, order='C'),
-                  kernel_internal,
-                  np.array(kernel_shape, dtype=ctypes.c_size_t, order='C'),
-                  nan_interpolate,
-                  n_threads
-                  )
+
+        convolve_boundary_none(result, array_internal, kernel_internal,
+                               nan_interpolate, n_threads)
 
     # So far, normalization has only occured for nan_treatment == 'interpolate'
     # because this had to happen within the C extension so as to ignore
