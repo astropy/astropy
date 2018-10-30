@@ -93,6 +93,7 @@ matrix:
                INSTALL_CMD='python setup.py build_ext --inplace'
                PIP_DEPENDENCIES='pytest-astropy'
                TEST_CMD='pytest --open-files --doctest-rst'
+               PYTEST_VERSION=3.7
           script:
             - $INSTALL_CMD
             - $TEST_CMD
@@ -105,7 +106,7 @@ matrix:
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="jplephem"
                LC_CTYPE=C.ascii LC_ALL=C
-
+               PYTEST_VERSION=3.7
 
         - os: linux
           stage: Initial tests
