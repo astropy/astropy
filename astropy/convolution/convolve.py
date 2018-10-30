@@ -21,12 +21,15 @@ from ..modeling.core import _CompoundModelMeta
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 
 # Find and load C convolution library
-lib_path = glob.glob(os.path.join(os.path.dirname(__file__), 'lib_convolve*'))[0]
-if sys.platform.startswith('win'):
-    libConvolve = ctypes.windll.LoadLibrary(lib_path)
+lib_paths = glob.glob(os.path.join(os.path.dirname(__file__), 'lib_convolve*'))
+if len(lib_paths) > 0:
+    lib_path = lib_paths[0]
+    if sys.platform.startswith('win'):
+        libConvolve = ctypes.windll.LoadLibrary(lib_path)
+    else:
+        libConvolve = ctypes.cdll.LoadLibrary(lib_path)
 else:
-    libConvolve = ctypes.cdll.LoadLibrary(lib_path)
-
+    raise Exception("Compiled convolution code is missing, try re-building astropy")
 
 # The GIL is automatically released by default when calling functions imported
 # from libaries loaded by ctypes.cdll.LoadLibrary(<path>)
