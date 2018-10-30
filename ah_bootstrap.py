@@ -35,7 +35,6 @@ the bootstrap script when ``auto_use = True``.
 See https://github.com/astropy/astropy-helpers for more details, and for the
 latest version of this module.
 """
-
 import contextlib
 import errno
 import io
@@ -144,7 +143,6 @@ CFG_OPTIONS = [
     ('auto_upgrade', bool)
 ]
 
-
 class _Bootstrapper(object):
     """
     Bootstrapper implementation.  See ``use_astropy_helpers`` for parameter
@@ -203,7 +201,6 @@ class _Bootstrapper(object):
 
         auto_use = config.pop('auto_use', False)
         bootstrapper = cls(**config)
-
         if auto_use:
             # Run the bootstrapper, otherwise the setup.py is using the old
             # use_astropy_helpers() interface, in which case it will run the
@@ -442,7 +439,6 @@ class _Bootstrapper(object):
 
         Must return True if the import succeeded, and False otherwise.
         """
-
         # Return True on success, False on failure but download is allowed, and
         # otherwise raise SystemExit
         path = os.path.abspath(self.path)
