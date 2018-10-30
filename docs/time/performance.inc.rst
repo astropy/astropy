@@ -17,6 +17,7 @@ Light Travel Times
 Listed below are two approaches to calculating light travel times for tens of
 thousands of sources in a degree patch of the sky. The first approach calculates
 the travel times without iteration while the second calculates using iteration.
+The second approach using iteration should be avoided as it is slow.
 
 
 >>> import numpy as np
@@ -27,11 +28,17 @@ the travel times without iteration while the second calculates using iteration.
 >>> ra = np.random.normal(0.0, 1.0, 50000)
 >>> dec = np.random.normal(0.0, 1.0, 50000)
 >>> coos = coord.SkyCoord(ra, dec, unit=u.deg)
->>> observatory = coord.EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m') #Lapalma Observatory
+
+The observatory obtained below is the Lapalma Observatory.
+If you have an internet connection, **coord.EarthLocation.of_site('lapalma')** can also be used.
+
+>>> observatory = coord.EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
 
 Approach Not Using Iteration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
->>> Time.light_travel_time(coos, location=observatory)
+This approach takes advantage of the vectorized operations in numpy.
+
+   >>> Time.light_travel_time(skycoord=coos, location=observatory )
 
    **CPU times:** user 56 ms, sys: 3.21 ms, total: 59.2 ms
 
@@ -39,13 +46,15 @@ Approach Not Using Iteration
 
 Approach Using Iteration
 ^^^^^^^^^^^^^^^^^^^^^^^^
->>> ltts = [Time.light_travel_time(coo, location=coos.location) for coo in coos]
+Iterating over a SkyCoord object is not fast, the user time is significantly longer.
+
+   >>> ltts = [Time.light_travel_time(coo, location=coos.location) for coo in coos]
 
    **CPU times:** user 16min 45s, sys: 5.08 s, total: 16min 50s
 
    **Wall time:** 16min 58s
 
-As you can see, the user time is significantly longer.
+
 
 Avoid Iteration For Light Travel Time for Many Objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -53,9 +62,18 @@ Avoid Iteration For Light Travel Time for Many Objects
 For user cases where there are thousands of times for each source, broadcasting
 can be used:
 
+Broadcasting is a feature of numpy that allows a smaller array to "broadcast"
+across the larger array. If you would like to know more about broadcasting go here_.
+
+
 >>> times = Time.now() + np.linspace(0, 3, 1000)*u.day
->>> ltts = times.light_travel_time(coos[:, np.newaxis], location=observatory)
+>>> coos2 = coos[:,np.newaxis]
+    %coos.shape(50000,)
+    %coos2.shape (50000, 1)
+>>> ltts = times.light_travel_time(coos2, location=observatory)
 
    **CPU times:** user 13.8 s, sys: 13 s, total: 26.8 s
 
    **Wall time:** 27.9 s
+
+.. _here: https://docs.scipy.org/doc/numpy-1.15.0/user/basics.broadcasting.html
