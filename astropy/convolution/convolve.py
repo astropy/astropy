@@ -23,20 +23,20 @@ from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 # Find and load C convolution library
 lib_paths = glob.glob(os.path.join(os.path.dirname(__file__), 'lib_convolve*'))
 if len(lib_paths) > 0:
-    lib_path = lib_paths[0]
     if sys.platform.startswith('win'):
-        libConvolve = ctypes.windll.LoadLibrary(lib_path)
+        lib_convolve = ctypes.windll.LoadLibrary(lib_paths[0])
     else:
-        libConvolve = ctypes.cdll.LoadLibrary(lib_path)
+        lib_convolve = ctypes.cdll.LoadLibrary(lib_paths[0])
 else:
     raise Exception("Compiled convolution code is missing, try re-building astropy")
+del lib_paths
 
 # The GIL is automatically released by default when calling functions imported
 # from libaries loaded by ctypes.cdll.LoadLibrary(<path>)
 
 # Declare prototypes
 # Boundary None
-_convolveNd_boundary_none_c = libConvolve.convolveNd_boundary_none_c
+_convolveNd_boundary_none_c = lib_convolve.convolveNd_boundary_none_c
 _convolveNd_boundary_none_c.restype = None
 _convolveNd_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
@@ -48,7 +48,7 @@ _convolveNd_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CON
             ctypes.c_uint] # n_threads
 
 # Padded boundaries ['fill', 'extend', 'wrap']
-_convolveNd_padded_boundary_c = libConvolve.convolveNd_padded_boundary_c
+_convolveNd_padded_boundary_c = lib_convolve.convolveNd_padded_boundary_c
 _convolveNd_padded_boundary_c.restype = None
 _convolveNd_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
