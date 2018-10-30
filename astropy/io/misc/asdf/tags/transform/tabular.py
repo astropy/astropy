@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from numpy.testing import assert_array_equal
+import astropy.units as u
 
 from asdf import yamlutil
 
@@ -56,12 +56,16 @@ class TabularType(TransformType):
         node["method"] = str(model.method)
         node["bounds_error"] = model.bounds_error
         node["name"] = model.name
-        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        # Do this little dance, so that TransformType does not save the
+        # bounding box
+        node = yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        node["bounding_box"] = None
+        return node
 
     @classmethod
     def assert_equal(cls, a, b):
-        assert_array_equal(a.lookup_table, b.lookup_table)
-        assert_array_equal(a.points, b.points)
+        assert u.allclose(a.lookup_table, b.lookup_table)
+        assert u.allclose(a.points, b.points)
         assert (a.method == b.method)
         if a.fill_value is None:
             assert b.fill_value is None

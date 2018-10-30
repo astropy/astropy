@@ -60,18 +60,19 @@ class TransformType(AstropyAsdfType):
         if model.name is not None:
             node['name'] = model.name
 
-        try:
-            bb = model.bounding_box
-        except NotImplementedError:
-            bb = None
+        if 'bounding_box' not in node:
+            try:
+                bb = model.bounding_box
+            except NotImplementedError:
+                bb = None
 
-        if bb is not None:
-            if model.n_inputs == 1:
-                bb = list(bb)
-            else:
-                bb = [list(item) for item in model.bounding_box]
-            node['bounding_box'] = bb
-
+            if bb is not None:
+                if model.n_inputs == 1:
+                    bb = list(bb)
+                else:
+                    bb = [list(item) for item in model.bounding_box]
+                node['bounding_box'] = bb
+        return node
 
     @classmethod
     def to_tree_transform(cls, model, ctx):
@@ -80,7 +81,8 @@ class TransformType(AstropyAsdfType):
     @classmethod
     def to_tree(cls, model, ctx):
         node = cls.to_tree_transform(model, ctx)
-        cls._to_tree_base_transform_members(model, node, ctx)
+        node = cls._to_tree_base_transform_members(model, node, ctx)
+        yamlutil.custom_tree_to_tagged_tree(node, ctx)
         return node
 
     @classmethod
