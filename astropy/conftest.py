@@ -17,7 +17,7 @@ except ImportError:
 else:
     HAS_MATPLOTLIB = True
 
-if find_spec('asdf') is not None:
+if (find_spec('asdf') is not None):
     from asdf import __version__ as asdf_version
     if asdf_version >= '2.0.0':
         pytest_plugins = ['asdf.tests.schema_tester']
