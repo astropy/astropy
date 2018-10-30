@@ -31,6 +31,7 @@ env:
         # Set defaults to avoid repeating in most cases
         - PYTHON_VERSION=3.6
         - NUMPY_VERSION=stable
+        - PYTEST_VERSION=3.9
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach asdf bottleneck'
@@ -104,14 +105,12 @@ matrix:
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="jplephem"
                LC_CTYPE=C.ascii LC_ALL=C
-               PYTEST_VERSION=3.7
 
 
         - os: linux
           stage: Initial tests
           env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                SETUP_CMD='test -a "--durations=50"'
-               PYTEST_VERSION=3.8
           compiler: clang
 
         # Full tests with coverage checks.
