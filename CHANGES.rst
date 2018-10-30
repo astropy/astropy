@@ -789,7 +789,7 @@ astropy.units
 ^^^^^^^^^^^^^
 
 - Sped up creating new composite units, and raising units to some power
-  [#7549]
+  [#7549, #7649]
 
 - Sped up Unit.to when target unit is the same as the original unit.
   [#7643]
