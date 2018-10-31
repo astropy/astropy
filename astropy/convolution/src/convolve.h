@@ -43,9 +43,7 @@ void PyInit__convolve(void);
 #define DTYPE npy_float64
 
 
-//---------------BOUNDARY PADDED DECLERATIONS-----------------
-
-LIB_CONVOLVE_EXPORT void convolveNd_padded_boundary_c(DTYPE * const result,
+LIB_CONVOLVE_EXPORT void convolveNd_c(DTYPE * const result,
         const DTYPE * const f,
         const unsigned n_dim,
         const size_t * const image_shape,
@@ -56,68 +54,13 @@ LIB_CONVOLVE_EXPORT void convolveNd_padded_boundary_c(DTYPE * const result,
         const unsigned n_threads);
 
 // 1D
-void convolve1d_padded_boundary_c(DTYPE * const result,
+void convolve1d_c(DTYPE * const result,
         const DTYPE * const f, const size_t nx,
         const DTYPE * const g, const size_t nkx,
         const bool nan_interpolate,
         const bool padded,
         const unsigned n_threads);
-FORCE_INLINE void convolve1d_padded_boundary(DTYPE * const result,
-        const DTYPE * const f, const size_t nx,
-        const DTYPE * const g, const size_t nkx,
-        const bool nan_interpolate,
-        const bool padded,
-        const unsigned n_threads);
-
-// 2D
-void convolve2d_padded_boundary_c(DTYPE * const result,
-        const DTYPE * const f, const size_t nx, const size_t ny,
-        const DTYPE * const g, const size_t nkx, const size_t nky,
-        const bool nan_interpolate,
-        const bool padded,
-        const unsigned n_threads);
-FORCE_INLINE void convolve2d_padded_boundary(DTYPE * const result,
-        const DTYPE * const f, const size_t nx, const size_t ny,
-        const DTYPE * const g, const size_t nkx, const size_t nky,
-        const bool nan_interpolate,
-        const bool padded,
-        const unsigned n_threads);
-
-// 3D
-void convolve3d_padded_boundary_c(DTYPE * const result,
-        const DTYPE * const f, const size_t nx, const size_t ny, const size_t nz,
-        const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
-        const bool nan_interpolate,
-        const bool padded,
-        const unsigned n_threads);
-FORCE_INLINE void convolve3d_padded_boundary(DTYPE * const result,
-        const DTYPE * const f, const size_t nx, const size_t ny, const size_t nz,
-        const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
-        const bool nan_interpolate,
-        const bool padded,
-        const unsigned n_threads);
-
-
-//---------------BOUNDARY NONE DECLERATIONS-----------------
-
-LIB_CONVOLVE_EXPORT void convolveNd_boundary_none_c(DTYPE * const result,
-        const DTYPE * const f,
-        const unsigned n_dim,
-        const size_t * const image_shape,
-        const DTYPE * const g,
-        const size_t * const kernel_shape,
-        const bool nan_interpolate,
-        const bool padded,
-        const unsigned n_threads);
-
-// 1D
-void convolve1d_boundary_none_c(DTYPE * const result,
-        const DTYPE * const f, const size_t nx,
-        const DTYPE * const g, const size_t nkx,
-        const bool nan_interpolate,
-        const bool padded,
-        const unsigned n_threads);
-FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
+FORCE_INLINE void convolve1d(DTYPE * const result,
         const DTYPE * const f, const size_t nx,
         const DTYPE * const g, const size_t nkx,
         const bool nan_interpolate,
@@ -125,13 +68,13 @@ FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
         const unsigned n_threads);
 
 // 2D
-void convolve2d_boundary_none_c(DTYPE * const result,
+void convolve2d_c(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny,
         const DTYPE * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate,
         const bool padded,
         const unsigned n_threads);
-FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
+FORCE_INLINE void convolve2d(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny,
         const DTYPE * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate,
@@ -139,13 +82,13 @@ FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
         const unsigned n_threads);
 
 // 3D
-void convolve3d_boundary_none_c(DTYPE * const result,
+void convolve3d_c(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny, const size_t nz,
         const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate,
         const bool padded,
         const unsigned n_threads);
-FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
+FORCE_INLINE void convolve3d(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny, const size_t nz,
         const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate,
