@@ -916,11 +916,12 @@ def test_invalid_array_convolve():
         convolve('glork', kernel)
 
 
-def test_non_square_kernel_asymmetric():
+@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+def test_non_square_kernel_asymmetric(boundary):
     # Regression test for a bug that occurred when using non-square kernels in
     # 2D when using boundary=None
     kernel = np.array([[1, 2, 3, 2, 1], [0, 1, 2, 1, 0], [0, 0, 0, 0, 0]])
     image = np.zeros((13, 13))
     image[6, 6] = 1
-    result = convolve(image, kernel, normalize_kernel=False)
+    result = convolve(image, kernel, normalize_kernel=False, boundary=boundary)
     assert_allclose(result[5:8, 4:9], kernel)
