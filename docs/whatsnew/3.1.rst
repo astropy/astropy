@@ -133,7 +133,14 @@ Little-h equivalency
 Faster cosmological calculations
 ================================
 
-.. https://github.com/astropy/astropy/pull/7117
+Significant speedups (up to 100x) for distance and age calculations
+for FlatLambdaCDM cosmologies with no radiation or neutrinos, including
+de Sitter and Einstein-de Sitter cosmologies.  For example::
+
+    >> import astropy.units as u
+    >> from astropy.cosmology import FlatLambdaCDM
+    >> FlatLambdaCDM(H0=60 * u.km / u.sec / u.Mpc, Om0=0.3, Tcmb0=0)
+    >> cosmology.age([1.0, 2.0, 3.0])
 
 
 .. _whatsnew-3.1-visualization:
