@@ -7,7 +7,7 @@ from distutils.extension import Extension
 C_CONVOLVE_PKGDIR = os.path.relpath(os.path.dirname(__file__))
 
 SRC_FILES = [os.path.join(C_CONVOLVE_PKGDIR, filename)
-              for filename in ['src/boundary_none.c']]
+              for filename in ['src/convolve.c']]
 
 extra_compile_args=['-UNDEBUG']
 if not sys.platform.startswith('win'):
@@ -16,9 +16,9 @@ if not sys.platform.startswith('win'):
 def get_extensions():
     # Add '-Rpass-missed=.*' to ``extra_compile_args`` when compiling with clang
     # to report missed optimizations
-    lib_convolve_ext = Extension(name='astropy.convolution.lib_convolve', sources=SRC_FILES,
-                 extra_compile_args=extra_compile_args,
-                 include_dirs=["numpy"],
-                 language='c')
+    _convolve_ext = Extension(name='astropy.convolution._convolve', sources=SRC_FILES,
+                              extra_compile_args=extra_compile_args,
+                              include_dirs=["numpy"],
+                              language='c')
 
-    return [lib_convolve_ext]
+    return [_convolve_ext]
