@@ -480,7 +480,7 @@ class _BoundingBox(tuple):
             try:
                 valid_shape = np.shape(bounding_box) in ((2,), (1, 2))
             except TypeError:
-                # np.shape does not work with Quantities
+                # np.shape does not work with lists of Quantities
                 valid_shape = np.shape([b.to_value() for b in bounding_box]) in ((2,), (1, 2))
             except ValueError:
                 raise ValueError(MESSAGE)
@@ -499,12 +499,11 @@ class _BoundingBox(tuple):
             "evaluate the model.".format(model.name, nd)
 
             try:
-                valid_shape = np.shape(bounding_box) == (nd, 2)
+                valid_shape = all([len(i) == 2 for i in bounding_box])
             except TypeError:
-                # np.shape does not work with Quantities
-                valid_shape = np.shape([b.to_value() for b in bounding_box]) == (nd, 2)
-            except ValueError:
-                raise ValueError(MESSAGE)
+                valid_shape = False
+            if len(bounding_box) != nd:
+                valid_shape = False
 
             if not isiterable(bounding_box) or not valid_shape:
                     raise ValueError(MESSAGE)
