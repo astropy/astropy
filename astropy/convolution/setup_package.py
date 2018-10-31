@@ -7,8 +7,7 @@ from distutils.extension import Extension
 C_CONVOLVE_PKGDIR = os.path.relpath(os.path.dirname(__file__))
 
 SRC_FILES = [os.path.join(C_CONVOLVE_PKGDIR, filename)
-              for filename in ['src/boundary_none.c',
-                               'src/boundary_padded.c']]
+              for filename in ['src/boundary_none.c']]
 
 extra_compile_args=['-UNDEBUG']
 if not sys.platform.startswith('win'):
