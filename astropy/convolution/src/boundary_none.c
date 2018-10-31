@@ -36,6 +36,7 @@ void convolveNd_boundary_none_c(DTYPE * const result,
         const DTYPE * const g,
         const size_t * const kernel_shape,
         const bool nan_interpolate,
+        const bool padded,
         const unsigned n_threads)
 {
 #ifdef NDEBUG
@@ -53,17 +54,17 @@ void convolveNd_boundary_none_c(DTYPE * const result,
         convolve1d_boundary_none_c(result, f,
                 image_shape[0],
                 g, kernel_shape[0],
-                nan_interpolate, n_threads);
+                nan_interpolate, padded, n_threads);
     else if (n_dim == 2)
         convolve2d_boundary_none_c(result, f,
                 image_shape[0], image_shape[1],
                 g, kernel_shape[0], kernel_shape[1],
-                nan_interpolate, n_threads);
+                nan_interpolate, padded, n_threads);
     else if (n_dim == 3)
         convolve3d_boundary_none_c(result, f,
                         image_shape[0], image_shape[1], image_shape[2],
                         g, kernel_shape[0], kernel_shape[1], kernel_shape[2],
-                        nan_interpolate, n_threads);
+                        nan_interpolate, padded, n_threads);
     else
         assert(0); // Unimplemented: n_dim > 3
 }
@@ -82,7 +83,7 @@ void convolveNd_boundary_none_c(DTYPE * const result,
 void convolve1d_boundary_none_c(DTYPE * const result,
         const DTYPE * const f, const size_t nx,
         const DTYPE * const g, const size_t nkx,
-        const bool nan_interpolate,
+        const bool nan_interpolate, const bool padded,
         const unsigned n_threads)
 {
 #ifdef NDEBUG
@@ -94,16 +95,23 @@ void convolve1d_boundary_none_c(DTYPE * const result,
     assert(g);
 #endif
 
-    if (nan_interpolate)
-        convolve1d_boundary_none(result, f, nx, g, nkx, true, n_threads);
-    else
-        convolve1d_boundary_none(result, f, nx, g, nkx, false, n_threads);
+    if (nan_interpolate) {
+      if (padded)
+        convolve1d_boundary_none(result, f, nx, g, nkx, true, true, n_threads);
+      else
+        convolve1d_boundary_none(result, f, nx, g, nkx, true, false, n_threads);
+    } else {
+      if (padded)
+        convolve1d_boundary_none(result, f, nx, g, nkx, false, true, n_threads);
+      else
+        convolve1d_boundary_none(result, f, nx, g, nkx, false, false, n_threads);
+    }
 }
 
 void convolve2d_boundary_none_c(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny,
         const DTYPE * const g, const size_t nkx, const size_t nky,
-        const bool nan_interpolate,
+        const bool nan_interpolate, const bool padded,
         const unsigned n_threads)
 {
 #ifdef NDEBUG
@@ -115,16 +123,23 @@ void convolve2d_boundary_none_c(DTYPE * const result,
     assert(g);
 #endif
 
-    if (nan_interpolate)
-        convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, true, n_threads);
-    else
-        convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, false, n_threads);
+    if (nan_interpolate) {
+      if (padded)
+        convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, true, true, n_threads);
+      else
+        convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, true, false, n_threads);
+    } else {
+      if (padded)
+        convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, false, true, n_threads);
+      else
+        convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, false, false, n_threads);
+    }
 }
 
 void convolve3d_boundary_none_c(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny, const size_t nz,
         const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
-        const bool nan_interpolate,
+        const bool nan_interpolate, const bool padded,
         const unsigned n_threads)
 {
 #ifdef NDEBUG
@@ -136,17 +151,24 @@ void convolve3d_boundary_none_c(DTYPE * const result,
     assert(g);
 #endif
 
-    if (nan_interpolate)
-        convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, true, n_threads);
-    else
-        convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, false, n_threads);
+    if (nan_interpolate) {
+      if (padded)
+        convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, true, true, n_threads);
+      else
+        convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, true, false, n_threads);
+    } else {
+      if (padded)
+        convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, false, true, n_threads);
+      else
+        convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, false, false, n_threads);
+    }
 }
 
 // 1D
 FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
         const DTYPE * const f, const size_t _nx,
         const DTYPE * const g, const size_t _nkx,
-        const bool _nan_interpolate,
+        const bool _nan_interpolate, const bool _padded,
         const unsigned n_threads)
 {
 #ifdef NDEBUG
@@ -159,6 +181,7 @@ FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
 #endif
 
     const size_t _wkx = _nkx / 2;
+
 #ifdef NDEBUG
     if (!(_nx > 2*_wkx))
         return;
@@ -178,6 +201,7 @@ FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
     const size_t nx = _nx;
     const size_t nkx = _nkx;
     const bool nan_interpolate = _nan_interpolate;
+    const bool padded = _padded;
 
     // Thread locals
     const size_t wkx = _wkx;
@@ -189,6 +213,7 @@ FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
     const size_t wkx_plus_1 = wkx + 1;
     omp_iter_var i_plus_wkx_plus_1;
     size_t nkx_minus_1_minus_wkx_plus_i;
+    size_t result_index;
 
     DTYPE top, bot=0., ker, val;
 
@@ -224,15 +249,21 @@ FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
                 top += val * ker;
         }}
 
+        if (padded) {
+          result_index = i_minus_wkx;
+        } else {
+          result_index = i;
+        }
+
         if (nan_interpolate) // compile time constant
         {
             if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
-                result[i]  = f[i] ;
+                result[result_index]  = f[i];
             else
-                result[i]  = top / bot;
+                result[result_index]  = top / bot;
         }
         else
-            result[i] = top;
+            result[result_index] = top;
     }}
 #ifdef _OPENMP
     }//end parallel scope
@@ -243,7 +274,7 @@ FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
 FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
         const DTYPE * const f, const size_t _nx, const size_t _ny,
         const DTYPE * const g, const size_t _nkx, const size_t _nky,
-        const bool _nan_interpolate,
+        const bool _nan_interpolate, const bool _padded,
         const unsigned n_threads)
 {
 #ifdef NDEBUG
@@ -277,6 +308,7 @@ FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
     const size_t nx = _nx, ny = _ny;
     const size_t nkx = _nkx, nky = _nky;
     const bool nan_interpolate = _nan_interpolate;
+    const bool padded = _padded;
 
     // Thread locals
     const size_t wkx = _wkx;
@@ -286,11 +318,13 @@ FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
     size_t ker_i, ker_j;
     const omp_iter_var nx_minus_wkx = nx - wkx;
     const omp_iter_var ny_minus_wky = ny - wky;
+    const size_t ny_minus_2wky = ny - 2 * wky;
     size_t i_minus_wkx, j_minus_wky;
     const size_t wkx_plus_1 = wkx + 1;
     const size_t wky_plus_1 = wky + 1;
     omp_iter_var i_plus_wkx_plus_1, j_plus_wky_plus_1;
     size_t nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j;
+    size_t result_index;
 
     DTYPE top, bot=0., ker, val;
 
@@ -338,15 +372,22 @@ FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
                         top += val * ker;
                 }}
             }}
+
+            if (padded) {
+              result_index = i_minus_wkx * ny_minus_2wky + j_minus_wky;
+            } else {
+              result_index = i*ny + j;
+            }
+
             if (nan_interpolate) // compile time constant
             {
                 if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
-                    result[i*ny + j]  = f[i*ny + j] ;
+                    result[result_index]  = f[i*ny + j] ;
                 else
-                    result[i*ny + j]  = top / bot;
+                    result[result_index]  = top / bot;
             }
             else
-                result[i*ny + j] = top;
+                result[result_index] = top;
         }}
     }}
 #ifdef _OPENMP
@@ -358,7 +399,7 @@ FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
 FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
         const DTYPE * const f, const size_t _nx, const size_t _ny, const size_t _nz,
         const DTYPE * const g, const size_t _nkx, const size_t _nky, const size_t _nkz,
-        const bool _nan_interpolate,
+        const bool _nan_interpolate, const bool _padded,
         const unsigned n_threads)
 {
 #ifdef NDEBUG
@@ -394,6 +435,7 @@ FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
     const size_t nx = _nx, ny = _ny, nz = _nz;
     const size_t nkx = _nkx, nky = _nky, nkz = _nkz;
     const bool nan_interpolate = _nan_interpolate;
+    const bool padded = _padded;
 
     // Thread locals
     const size_t wkx = _wkx;
@@ -405,12 +447,16 @@ FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
     const size_t nx_minus_wkx = nx - wkx;
     const omp_iter_var ny_minus_wky = ny - wky;
     const omp_iter_var nz_minus_wkz = nz - wkz;
+    const size_t ny_minus_2wky = ny - 2 * wky;
+    const size_t nz_minus_2wkz = nz - 2 * wkz;
+
     size_t i_minus_wkx, j_minus_wky, k_minus_wkz;
     const size_t wkx_plus_1 = wkx + 1;
     const size_t wky_plus_1 = wky + 1;
     const size_t wkz_plus_1 = wkz + 1;
     omp_iter_var i_plus_wkx_plus_1, j_plus_wky_plus_1, k_plus_wkz_plus_1;
     size_t nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j, nkz_minus_1_minus_wkz_plus_k;
+    size_t result_index;
 
     DTYPE top, bot=0., ker, val;
 
@@ -428,7 +474,7 @@ FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
         {omp_iter_var j;
         for (j = wky; j < ny_minus_wky; ++j)
         {
-            wky_minus_j = wkx - j; // wky - j
+            wky_minus_j = wky - j; // wky - j
             j_minus_wky = j - wky; // j - wky
             j_plus_wky_plus_1 = j + wky_plus_1; // j + wky + 1
             nky_minus_1_minus_wky_plus_j = nky_minus_1 - wky_minus_j; // nky - 1 - (wky - i)
@@ -472,15 +518,22 @@ FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
                         }}
                     }}
                 }}
+
+                if (padded) {
+                    result_index = (i_minus_wkx*ny_minus_2wky + j_minus_wky)*nz_minus_2wkz + k_minus_wkz;
+                } else {
+                    result_index = (i*ny + j)*nz + k;
+                }
+
                 if (nan_interpolate) // compile time constant
                 {
                     if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
-                        result[(i*ny + j)*nz + k]  = f[(i*ny + j)*nz + k] ;
+                        result[result_index]  = f[(i*ny + j)*nz + k] ;
                     else
-                        result[(i*ny + j)*nz + k]  = top / bot;
+                        result[result_index]  = top / bot;
                 }
                 else
-                    result[(i*ny + j)*nz + k] = top;
+                    result[result_index] = top;
             }}
         }}
     }}
