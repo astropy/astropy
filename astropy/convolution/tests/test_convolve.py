@@ -6,7 +6,9 @@ import numpy.ma as ma
 
 from ..convolve import convolve, convolve_fft
 
-from numpy.testing import assert_array_almost_equal_nulp, assert_array_almost_equal
+from numpy.testing import (assert_array_almost_equal_nulp,
+                           assert_array_almost_equal,
+                           assert_allclose)
 
 import itertools
 
@@ -894,6 +896,7 @@ def test_astropy_convolution_against_scipy():
     assert_array_almost_equal(fftconvolve(y, x, 'same'),
                               convolve_fft(y, x, normalize_kernel=False))
 
+
 @pytest.mark.skipif('not HAS_PANDAS')
 def test_regression_6099():
     wave = np.array((np.linspace(5000, 5100, 10)))
@@ -905,8 +908,19 @@ def test_regression_6099():
 
     assert_array_almost_equal(nonseries_result, series_result)
 
+
 def test_invalid_array_convolve():
     kernel = np.ones(3)/3.
 
     with pytest.raises(TypeError):
         convolve('glork', kernel)
+
+
+def test_non_square_kernel_asymmetric():
+    # Regression test for a bug that occurred when using non-square kernels in
+    # 2D when using boundary=None
+    kernel = np.array([[1, 2, 3, 2, 1], [0, 1, 2, 1, 0], [0, 0, 0, 0, 0]])
+    image = np.zeros((13, 13))
+    image[6, 6] = 1
+    result = convolve(image, kernel, normalize_kernel=False)
+    assert_allclose(result[5:8, 4:9], kernel)
