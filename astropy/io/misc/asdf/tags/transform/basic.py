@@ -28,8 +28,8 @@ class TransformType(AstropyAsdfType):
         # TODO: Remove domain in a later version.
         if 'domain' in node:
             model.bounding_box = cls._domain_to_bounding_box(node['domain'])
-        elif 'bounding_box' in node:
-            model.bounding_box = node['bounding_box']
+        if 'bounding_box' in node:
+            model.bounding_box = yamlutil.tagged_tree_to_custom_tree(node['bounding_box'], ctx)
 
         return model
 
@@ -70,7 +70,7 @@ class TransformType(AstropyAsdfType):
                 bb = list(bb)
             else:
                 bb = [list(item) for item in model.bounding_box]
-            node['bounding_box'] = bb
+            node['bounding_box'] = yamlutil.custom_tree_to_tagged_tree(bb, ctx)
 
 
     @classmethod
