@@ -36,7 +36,7 @@ typedef size_t omp_iter_var;
 // Distutils on Windows will automatically exports ``PyInit_lib_convolve``,
 // create dummy to prevent linker complaining about missing symbol.
 #if defined(_MSC_VER)
-void PyInit_lib_convolve(void);
+void PyInit__convolve(void);
 #endif
 
 #include "numpy/ndarrayobject.h"

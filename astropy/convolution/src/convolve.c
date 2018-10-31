@@ -29,7 +29,7 @@ void PyInit_lib_convolve(void)
 #endif
 
 
-void convolveNd_boundary_none_c(DTYPE * const result,
+void convolveNd_c(DTYPE * const result,
         const DTYPE * const f,
         const unsigned n_dim,
         const size_t * const image_shape,
@@ -51,17 +51,17 @@ void convolveNd_boundary_none_c(DTYPE * const result,
 #endif
 
     if (n_dim == 1)
-        convolve1d_boundary_none_c(result, f,
+        convolve1d_c(result, f,
                 image_shape[0],
                 g, kernel_shape[0],
                 nan_interpolate, padded, n_threads);
     else if (n_dim == 2)
-        convolve2d_boundary_none_c(result, f,
+        convolve2d_c(result, f,
                 image_shape[0], image_shape[1],
                 g, kernel_shape[0], kernel_shape[1],
                 nan_interpolate, padded, n_threads);
     else if (n_dim == 3)
-        convolve3d_boundary_none_c(result, f,
+        convolve3d_c(result, f,
                         image_shape[0], image_shape[1], image_shape[2],
                         g, kernel_shape[0], kernel_shape[1], kernel_shape[2],
                         nan_interpolate, padded, n_threads);
@@ -71,7 +71,7 @@ void convolveNd_boundary_none_c(DTYPE * const result,
 
 /*-------------------------PERFORMANCE NOTES--------------------------------
  * The function wrappers below are designed to take advantage of the following:
- * The preprocessor will inline convolve<N>d_boundary_none(), effectively
+ * The preprocessor will inline convolve<N>d(), effectively
  * expanding the two logical branches, replacing nan_interpolate
  * for their literal equivalents. The corresponding conditionals
  * within these functions will then be optimized away, this
@@ -80,7 +80,7 @@ void convolveNd_boundary_none_c(DTYPE * const result,
  *--------------------------------------------------------------------------
  */
 
-void convolve1d_boundary_none_c(DTYPE * const result,
+void convolve1d_c(DTYPE * const result,
         const DTYPE * const f, const size_t nx,
         const DTYPE * const g, const size_t nkx,
         const bool nan_interpolate, const bool padded,
@@ -97,18 +97,18 @@ void convolve1d_boundary_none_c(DTYPE * const result,
 
     if (nan_interpolate) {
       if (padded)
-        convolve1d_boundary_none(result, f, nx, g, nkx, true, true, n_threads);
+        convolve1d(result, f, nx, g, nkx, true, true, n_threads);
       else
-        convolve1d_boundary_none(result, f, nx, g, nkx, true, false, n_threads);
+        convolve1d(result, f, nx, g, nkx, true, false, n_threads);
     } else {
       if (padded)
-        convolve1d_boundary_none(result, f, nx, g, nkx, false, true, n_threads);
+        convolve1d(result, f, nx, g, nkx, false, true, n_threads);
       else
-        convolve1d_boundary_none(result, f, nx, g, nkx, false, false, n_threads);
+        convolve1d(result, f, nx, g, nkx, false, false, n_threads);
     }
 }
 
-void convolve2d_boundary_none_c(DTYPE * const result,
+void convolve2d_c(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny,
         const DTYPE * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate, const bool padded,
@@ -125,18 +125,18 @@ void convolve2d_boundary_none_c(DTYPE * const result,
 
     if (nan_interpolate) {
       if (padded)
-        convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, true, true, n_threads);
+        convolve2d(result, f, nx, ny, g, nkx, nky, true, true, n_threads);
       else
-        convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, true, false, n_threads);
+        convolve2d(result, f, nx, ny, g, nkx, nky, true, false, n_threads);
     } else {
       if (padded)
-        convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, false, true, n_threads);
+        convolve2d(result, f, nx, ny, g, nkx, nky, false, true, n_threads);
       else
-        convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, false, false, n_threads);
+        convolve2d(result, f, nx, ny, g, nkx, nky, false, false, n_threads);
     }
 }
 
-void convolve3d_boundary_none_c(DTYPE * const result,
+void convolve3d_c(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny, const size_t nz,
         const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate, const bool padded,
@@ -153,19 +153,19 @@ void convolve3d_boundary_none_c(DTYPE * const result,
 
     if (nan_interpolate) {
       if (padded)
-        convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, true, true, n_threads);
+        convolve3d(result, f, nx, ny, nz, g, nkx, nky, nkz, true, true, n_threads);
       else
-        convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, true, false, n_threads);
+        convolve3d(result, f, nx, ny, nz, g, nkx, nky, nkz, true, false, n_threads);
     } else {
       if (padded)
-        convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, false, true, n_threads);
+        convolve3d(result, f, nx, ny, nz, g, nkx, nky, nkz, false, true, n_threads);
       else
-        convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, false, false, n_threads);
+        convolve3d(result, f, nx, ny, nz, g, nkx, nky, nkz, false, false, n_threads);
     }
 }
 
 // 1D
-FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
+FORCE_INLINE void convolve1d(DTYPE * const result,
         const DTYPE * const f, const size_t _nx,
         const DTYPE * const g, const size_t _nkx,
         const bool _nan_interpolate, const bool _padded,
@@ -271,7 +271,7 @@ FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
 }
 
 // 2D
-FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
+FORCE_INLINE void convolve2d(DTYPE * const result,
         const DTYPE * const f, const size_t _nx, const size_t _ny,
         const DTYPE * const g, const size_t _nkx, const size_t _nky,
         const bool _nan_interpolate, const bool _padded,
@@ -396,7 +396,7 @@ FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
 }
 
 // 3D
-FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
+FORCE_INLINE void convolve3d(DTYPE * const result,
         const DTYPE * const f, const size_t _nx, const size_t _ny, const size_t _nz,
         const DTYPE * const g, const size_t _nkx, const size_t _nky, const size_t _nkz,
         const bool _nan_interpolate, const bool _padded,

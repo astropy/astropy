@@ -33,9 +33,9 @@ except Exception:
 
 # Declare prototypes
 # Boundary None
-_convolveNd_boundary_none_c = lib_convolve.convolveNd_boundary_none_c
-_convolveNd_boundary_none_c.restype = None
-_convolveNd_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
+_convolveNd_c = lib_convolve.convolveNd_c
+_convolveNd_c.restype = None
+_convolveNd_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
             ctypes.c_uint, # N dim
             ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for return & input
@@ -327,7 +327,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             padded_array = np.pad(array_internal, pad_width=np_pad_width,
                                   mode=np_pad_mode)
 
-        _convolveNd_boundary_none_c(result, padded_array,
+        _convolveNd_c(result, padded_array,
                   padded_array.ndim,
                   np.array(padded_array.shape, dtype=ctypes.c_size_t, order='C'),
                   kernel_internal,
@@ -336,7 +336,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                   n_threads
                   )
     else:
-        _convolveNd_boundary_none_c(result, array_internal,
+        _convolveNd_c(result, array_internal,
                   array_internal.ndim,
                   np.array(array_shape, dtype=ctypes.c_size_t, order='C'),
                   kernel_internal,
