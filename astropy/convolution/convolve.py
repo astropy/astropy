@@ -6,10 +6,11 @@ import os
 import sys
 import glob
 import ctypes
-import faulthandler
-import numpy as np
-from numpy.ctypeslib import ndpointer
 from functools import partial
+
+import numpy as np
+from numpy.ctypeslib import ndpointer, load_library
+
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.console import human_file_size
@@ -20,24 +21,19 @@ from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 
-# Turn the faulthandler ON to help catch any signals, e.g. segfaults
-# or asserts. This doesn't, currently, work with Jupyter Notebook.
-faulthandler.enable()
+LIBRARY_PATH = os.path.dirname(__file__)
 
-# Find and load C convolution library
-lib_path = glob.glob(os.path.join(os.path.dirname(__file__), 'lib_convolve*'))[0]
-if sys.platform.startswith('win'):
-    libConvolve = ctypes.windll.LoadLibrary(lib_path)
-else:
-    libConvolve = ctypes.cdll.LoadLibrary(lib_path)
-
+try:
+    lib_convolve = load_library("lib_convolve", LIBRARY_PATH)
+except Exception:
+    raise Exception("Convolution C extension is missing. Try re-building astropy.")
 
 # The GIL is automatically released by default when calling functions imported
 # from libaries loaded by ctypes.cdll.LoadLibrary(<path>)
 
 # Declare prototypes
 # Boundary None
-_convolveNd_boundary_none_c = libConvolve.convolveNd_boundary_none_c
+_convolveNd_boundary_none_c = lib_convolve.convolveNd_boundary_none_c
 _convolveNd_boundary_none_c.restype = None
 _convolveNd_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
@@ -49,7 +45,7 @@ _convolveNd_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CON
             ctypes.c_uint] # n_threads
 
 # Padded boundaries ['fill', 'extend', 'wrap']
-_convolveNd_padded_boundary_c = libConvolve.convolveNd_padded_boundary_c
+_convolveNd_padded_boundary_c = lib_convolve.convolveNd_padded_boundary_c
 _convolveNd_padded_boundary_c.restype = None
 _convolveNd_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
