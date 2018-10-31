@@ -24,7 +24,7 @@ from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 LIBRARY_PATH = os.path.dirname(__file__)
 
 try:
-    lib_convolve = load_library("lib_convolve", LIBRARY_PATH)
+    _convolve = load_library("_convolve", LIBRARY_PATH)
 except Exception:
     raise Exception("Convolution C extension is missing. Try re-building astropy.")
 
@@ -33,7 +33,7 @@ except Exception:
 
 # Declare prototypes
 # Boundary None
-_convolveNd_c = lib_convolve.convolveNd_c
+_convolveNd_c = _convolve.convolveNd_c
 _convolveNd_c.restype = None
 _convolveNd_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
