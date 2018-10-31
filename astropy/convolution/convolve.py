@@ -6,10 +6,11 @@ import os
 import sys
 import glob
 import ctypes
+from functools import partial
 
 import numpy as np
-from numpy.ctypeslib import ndpointer
-from functools import partial
+from numpy.ctypeslib import ndpointer, load_library
+
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.console import human_file_size
@@ -20,16 +21,12 @@ from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 
-# Find and load C convolution library
-lib_paths = glob.glob(os.path.join(os.path.dirname(__file__), 'lib_convolve*'))
-if len(lib_paths) > 0:
-    if sys.platform.startswith('win'):
-        lib_convolve = ctypes.windll.LoadLibrary(lib_paths[0])
-    else:
-        lib_convolve = ctypes.cdll.LoadLibrary(lib_paths[0])
-else:
-    raise Exception("Compiled convolution code is missing, try re-building astropy")
-del lib_paths
+LIBRARY_PATH = os.path.dirname(__file__)
+
+try:
+    lib_convolve = load_library("lib_convolve", LIBRARY_PATH)
+except Exception:
+    raise Exception("Convolution C extension is missing. Try re-building astropy.")
 
 # The GIL is automatically released by default when calling functions imported
 # from libaries loaded by ctypes.cdll.LoadLibrary(<path>)
