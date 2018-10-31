@@ -28,7 +28,7 @@ from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
 
 from ....utils import lazyproperty
-from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from ....utils.exceptions import AstropyDeprecationWarning
 from ....utils.decorators import deprecated_renamed_argument
 
 
@@ -1087,9 +1087,6 @@ class BinTableHDU(_TableBaseHDU):
             if isinstance(f, str):
                 if os.path.exists(f) and os.path.getsize(f) != 0:
                     if overwrite:
-                        warnings.warn(
-                            "Overwriting existing file '{}'.".format(f),
-                            AstropyUserWarning)
                         os.remove(f)
                     else:
                         exist.append(f)
