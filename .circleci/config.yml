@@ -82,7 +82,7 @@ jobs:
           command: apt-get install -y libfreetype6-dev libpng12-dev pkg-config
       - run:
           name: Install Python dependencies, including developer version of Matplotlib
-          command: pip3 install "pytest<3.7" pytest-mpl pytest-astropy numpy scipy git+https://github.com/matplotlib/matplotlib.git
+          command: pip3 install "pytest<3.7" pytest-mpl pytest-astropy "numpy<1.15.3" scipy git+https://github.com/matplotlib/matplotlib.git
       - run:
           name: Run tests
           command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"

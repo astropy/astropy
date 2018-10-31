@@ -308,7 +308,7 @@ FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
         {omp_iter_var j;
         for (j = wky; j < ny_minus_wky; ++j)
         {
-            wky_minus_j = wkx - j; // wky - j
+            wky_minus_j = wky - j; // wky - j
             j_minus_wky = j - wky; // j - wky
             j_plus_wky_plus_1 = j + wky_plus_1; // j + wky + 1
             nky_minus_1_minus_wky_plus_j = nky_minus_1 - wky_minus_j; // nky - 1 - (wky - i)
