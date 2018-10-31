@@ -480,7 +480,7 @@ class _BoundingBox(tuple):
             try:
                 valid_shape = np.shape(bounding_box) in ((2,), (1, 2))
             except TypeError:
-                # np.shape does not work with Quantities                                                                                              
+                # np.shape does not work with Quantities
                 valid_shape = np.shape([b.to_value() for b in bounding_box]) in ((2,), (1, 2))
             except ValueError:
                 raise ValueError(MESSAGE)
@@ -497,11 +497,11 @@ class _BoundingBox(tuple):
             "{1} (the number of model inputs) consisting of pairs of "
             "lower and upper bounds for those inputs on which to "
             "evaluate the model.".format(model.name, nd)
-            
+
             try:
                 valid_shape = np.shape(bounding_box) == (nd, 2)
             except TypeError:
-                # np.shape does not work with Quantities                                                                                              
+                # np.shape does not work with Quantities
                 valid_shape = np.shape([b.to_value() for b in bounding_box]) == (nd, 2)
             except ValueError:
                 raise ValueError(MESSAGE)
