@@ -944,8 +944,6 @@ Other Changes and Additions
 
 - Updated the bundled CFITSIO library to 3.450. See
   ``cextern/cfitsio/docs/changes.txt`` for additional information. [#8014]
-- The ``thermodynamic_temperature`` equivalency now uses the default cosmology
-  when no ``T_cmb`` is given instead of being fixed to Planck15. [#8005]
 
 
 
