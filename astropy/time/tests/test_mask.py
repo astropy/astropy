@@ -82,7 +82,11 @@ def test_str():
                     '             mask=[False,  True],',
                     "       fill_value='N/A',",
                     "            dtype='<U23')"]
-    assert repr(t.iso).splitlines() == expected
+
+    # Note that we need to take care to allow for big-endian platforms,
+    # for which the dtype will be >U23 instead of <U23, which we do with
+    # the call to replace().
+    assert repr(t.iso).replace('>U23', '<U23').splitlines() == expected
 
     # Assign value to unmask
     t[1] = '2000:111'
