@@ -1,0 +1,3 @@
+[submodule "docs/archive"]
+	path = docs/archive
+	url = git://github.com/astropy/archived-documentation.git
