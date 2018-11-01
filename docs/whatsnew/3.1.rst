@@ -53,6 +53,38 @@ New transit periodogram
 Improvements to astropy.coordinates
 ===================================
 
+Performance improvements throughout the subpackage.  Highlights include
+typically 2-3x faster creation of scalar `~astropy.coordinates.SkyCoord` and
+frame classes objects, or up to 20x in certain cases.  These translate to
+nearly all convenience methods and operations on coordinates as well. Coordinate
+matching  can be 1000x faster in certain cases.
+
+An `~astropy.coordinates.SkyCoord.directional_offset_by` method has been added
+that will yield a new `~astropy.coordinates.SkyCoord` given a "from" coordinate
+and an offset::
+
+  >>> from astropy import units as u
+  >>> from astropy.coordinates import SkyCoord
+  >>> c1 = SkyCoord(1*u.deg, 1*u.deg, frame='icrs')
+  >>> c1.directional_offset_by(45 * u.deg, 1.414 * u.deg)  # doctest: +FLOAT_CMP
+  <SkyCoord (ICRS): (ra, dec) in deg
+    (2.0004075, 1.99964588)>
+
+The `~astropy.coordinates.SkyCoord.from_name` method of
+`~astropy.coordinates.SkyCoord` now parses  "J-coordinate" names (e.g.
+"SDSS J153243.67-004342.5") into their actual coordinate locations.  For
+example::
+
+  >>> from astropy.coordinates import SkyCoord
+  >>> SkyCoord.from_name('2MASS J06495091-0737408', parse=True)  # doctest: +FLOAT_CMP
+  <SkyCoord (ICRS): (ra, dec) in deg
+    (102.462125, -7.628)>
+
+Additionally, the `~astropy.coordinates.EarthLocation.of_address` convenience
+method now gets coordinates from OpenStreetMap. Google Maps is still supported
+but only if you provide your own API key (due to Google new requiring a key) -
+see `~astropy.coordinates.EarthLocation.of_address` for more details.
+
 .. https://github.com/astropy/astropy/pull/7830
 .. https://github.com/astropy/astropy/pull/7924
 
@@ -265,12 +297,12 @@ Prior/posterior constraints in modeling
 Improvements to astropy.io.fits
 ===============================
 
-The ``fitsheader`` command line tool now supports a `dfits+fitsort 
+The ``fitsheader`` command line tool now supports a `dfits+fitsort
 <https://www.eso.org/sci/software/eclipse/eug/eug/node8.html>`_ mode,
 and the dotted notation for keywords (e.g. ``ESO.INS.ID``)::
 
    $ fitsheader --fitsort astropy/io/fits/tests/data/test* -k DATE-OBS -k ORIGIN
-                  filename               DATE-OBS                 ORIGIN                
+                  filename               DATE-OBS                 ORIGIN
    ------------------------------------- -------- --------------------------------------
    astropy/io/fits/tests/data/test0.fits 19/05/94 NOAO-IRAF FITS Image Kernel Aug 1 1997
    astropy/io/fits/tests/data/test1.fits 19/05/94 NOAO-IRAF FITS Image Kernel Aug 1 1997
