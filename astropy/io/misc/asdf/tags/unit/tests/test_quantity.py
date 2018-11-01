@@ -12,13 +12,13 @@ from asdf.tests import helpers
 
 def roundtrip_quantity(yaml, quantity):
     buff = helpers.yaml_to_asdf(yaml)
-    with asdf.AsdfFile.open(buff) as ff:
+    with asdf.open(buff) as ff:
         assert (ff.tree['quantity'] == quantity).all()
         buff2 = io.BytesIO()
         ff.write_to(buff2)
 
     buff2.seek(0)
-    with asdf.AsdfFile.open(buff2) as ff:
+    with asdf.open(buff2) as ff:
         assert (ff.tree['quantity'] == quantity).all()
 
 def test_value_scalar(tmpdir):
