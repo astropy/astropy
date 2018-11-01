@@ -14,6 +14,7 @@ visit http://docs.astropy.org.
 v0.2.x
 ------
 
+* `v0.2 <v0.2/index.html>`_
 * `v0.2.1 <v0.2.1/index.html>`_
 * `v0.2.2 <v0.2.2/index.html>`_
 * `v0.2.3 <v0.2.3/index.html>`_
