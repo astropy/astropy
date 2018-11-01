@@ -1,5 +1,5 @@
 -r pip-requirements-doc
-bintrees
+sortedcontainers
 bleach
 
 # below here are used only for tests
