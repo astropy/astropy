@@ -36,7 +36,8 @@ __all__ = ['data_info_factory', 'dtype_info_name', 'BaseColumnInfo',
 
 # Tuple of filterwarnings kwargs to ignore when calling info
 IGNORE_WARNINGS = (dict(category=RuntimeWarning, message='All-NaN|'
-                        'Mean of empty slice|Degrees of freedom <= 0'),)
+                        'Mean of empty slice|Degrees of freedom <= 0|'
+                        'invalid value encountered in sqrt'),)
 
 STRING_TYPE_NAMES = {(False, 'S'): 'str',  # not PY3
                      (False, 'U'): 'unicode',
