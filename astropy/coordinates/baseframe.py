@@ -777,6 +777,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         # note that if so moved, the cache should be acceessed as
         # self.__class__._frame_class_cache
 
+        # Check that the cache hasn't been invalidated by a new
+        # representation/differential class getting added. If it's good, then
+        # only re-generate the representation info if it's not already cached
         if cls._frame_class_cache.get('last_reprdiff_hash', None) != r.get_reprdiff_cls_hash():
             repr_attrs = {}
             for repr_diff_cls in (list(r.REPRESENTATION_CLASSES.values()) +
