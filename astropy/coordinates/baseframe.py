@@ -829,10 +829,17 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     def get_representation_component_names(self, which='base'):
         repr_or_diff_cls = self.get_representation_cls(which)
 
+        # Caching happens on the class object, *not* on a per-instance basis
         cls = self.__class__
+
+        # first check that the cache hasn't been invalidated by a new
+        # representation/differential class getting added
         if cls._frame_class_cache.get('representation_component_names_hash', None) != r.get_reprdiff_cls_hash():
             cls._frame_class_cache['representation_component_names'] = {}
             cls._frame_class_cache['representation_component_names_hash'] = r.get_reprdiff_cls_hash()
+
+        # now check if the representation/differential class we need here
+        # already has its component names cached. Only generate them if not
         if repr_or_diff_cls not in cls._frame_class_cache['representation_component_names']:
             out = OrderedDict()
             if repr_or_diff_cls is None:
@@ -847,10 +854,17 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     def get_representation_component_units(self, which='base'):
         repr_or_diff_cls = self.get_representation_cls(which)
 
+        # Caching happens on the class object, *not* on a per-instance basis
         cls = self.__class__
+
+        # first check that the cache hasn't been invalidated by a new
+        # representation/differential class getting added
         if cls._frame_class_cache.get('representation_component_units_hash', None) != r.get_reprdiff_cls_hash():
             cls._frame_class_cache['representation_component_units'] = {}
             cls._frame_class_cache['representation_component_units_hash'] = r.get_reprdiff_cls_hash()
+
+        # now check if the representation/differential class we need here
+        # already has its component units cached. Only generate them if not
         if repr_or_diff_cls not in cls._frame_class_cache['representation_component_units']:
             out = OrderedDict()
             if repr_or_diff_cls is None:
