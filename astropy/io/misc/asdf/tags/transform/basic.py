@@ -9,7 +9,7 @@ from astropy.modeling import functional_models
 from ...types import AstropyAsdfType
 
 
-__all__ = ['TransformType', 'IdentityType', 'ConstantType', 'DomainType']
+__all__ = ['TransformType', 'IdentityType', 'ConstantType']
 
 
 class TransformType(AstropyAsdfType):
@@ -25,20 +25,10 @@ class TransformType(AstropyAsdfType):
         if 'name' in node:
             model = model.rename(node['name'])
 
-        # TODO: Remove domain in a later version.
-        if 'domain' in node:
-            model.bounding_box = cls._domain_to_bounding_box(node['domain'])
         if 'bounding_box' in node:
             model.bounding_box = yamlutil.tagged_tree_to_custom_tree(node['bounding_box'], ctx)
 
         return model
-
-    @classmethod
-    def _domain_to_bounding_box(cls, domain):
-        bb = tuple([(item['lower'], item['upper']) for item in domain])
-        if len(bb) == 1:
-            bb = bb[0]
-        return bb
 
     @classmethod
     def from_tree_transform(cls, node, ctx):
@@ -127,20 +117,6 @@ class ConstantType(TransformType):
         return {
             'value': data.amplitude.value
         }
-
-
-class DomainType(AstropyAsdfType):
-    # TODO: Is this used anywhere? Can it be removed?
-    name = "transform/domain"
-    version = '1.0.0'
-
-    @classmethod
-    def from_tree(cls, node, ctx):
-        return node
-
-    @classmethod
-    def to_tree(cls, data, ctx):
-        return data
 
 
 class GenericModel(mappings.Mapping):
