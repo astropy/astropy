@@ -1,11 +1,29 @@
 // Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-/*------------------------------WARNING!------------------------------
+/*----------------------------- WARNING! -----------------------------
  * The C functions below are NOT designed to be called externally to
  * the Python function astropy/astropy/convolution/convolve.py.
  * They do NOT include any of the required correct usage checking.
- *------------------------------WARNING!------------------------------
+ *
+ *------------------------------- NOTES ------------------------------
+ *
+ * The simplest implementation of convolution does not deal with any boundary
+ * treatment, and pixels within half a kernel width of the edge of the image are
+ * set to zero. In cases where a boundary mode is set, we pad the input array in
+ * the Python code. In the 1D case, this means that the input array to the C
+ * code has a size nx + nkx where nx is the original array size and nkx is the
+ * size of the kernel. If we also padded the results array, then we could use
+ * the exact same C code for the convolution, provided that the results array
+ * was 'unpadded' in the Python code after the C code.
+ *
+ * However, to avoid needlessly padding the results array, we instead adjust the
+ * index when accessing the results array - for example in the 1D case we shift
+ * the index in the results array compared to the input array by half the kernel
+ * size. This is done via the 'result_index' variable, and this behavior is
+ * triggered by the 'padded' setting.
+ *
  */
+
 
 #include <assert.h>
 #include <math.h>
@@ -244,7 +262,7 @@ FORCE_INLINE void convolve1d(DTYPE * const result,
                 top += val * ker;
         }}
 
-        if (padded) {
+        if (padded) { // compile time constant
           result_index = i_minus_wkx;
         } else {
           result_index = i;
@@ -362,7 +380,7 @@ FORCE_INLINE void convolve2d(DTYPE * const result,
                 }}
             }}
 
-            if (padded) {
+            if (padded) { // compile time constant
               result_index = i_minus_wkx * ny_minus_2wky + j_minus_wky;
             } else {
               result_index = i*ny + j;
@@ -500,7 +518,7 @@ FORCE_INLINE void convolve3d(DTYPE * const result,
                     }}
                 }}
 
-                if (padded) {
+                if (padded) { // compile time constant
                     result_index = (i_minus_wkx*ny_minus_2wky + j_minus_wky)*nz_minus_2wkz + k_minus_wkz;
                 } else {
                     result_index = (i*ny + j)*nz + k;
