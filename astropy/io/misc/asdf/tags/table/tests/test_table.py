@@ -115,7 +115,7 @@ table: !core/table
     buff = helpers.yaml_to_asdf(yaml)
 
     with pytest.raises(ValueError):
-        with asdf.AsdfFile.open(buff) as ff:
+        with asdf.open(buff) as ff:
             pass
 
 
