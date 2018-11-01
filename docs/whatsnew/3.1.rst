@@ -9,8 +9,8 @@ What's New in Astropy 3.1?
 Overview
 ========
 
-Astropy 3.1 is a major release that ...  since
-the 3.0.x series of releases.
+Astropy 3.1 is a major release with a focus on perfrmance enhancements, but also
+adds significant new functionality since the 3.0.x series of releases.
 
 In particular, this release includes:
 
@@ -85,8 +85,6 @@ method now gets coordinates from OpenStreetMap. Google Maps is still supported
 but only if you provide your own API key (due to Google new requiring a key) -
 see `~astropy.coordinates.EarthLocation.of_address` for more details.
 
-.. https://github.com/astropy/astropy/pull/7830
-.. https://github.com/astropy/astropy/pull/7924
 
 
 .. _whatsnew-3.1-table:
