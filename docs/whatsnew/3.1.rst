@@ -42,10 +42,44 @@ New sub-package for uncertainties and distributions
 
 .. _whatsnew-3.1-transit-periodogram:
 
-New transit periodogram
-=======================
+New box least squares periodogram
+=================================
 
 .. https://github.com/astropy/astropy/pull/7391
+
+AstroPy now has an implementation of the box least squares (BLS) periodogram
+that is commonly used to detect transiting exoplanets and eclipsing binary star
+systems. The interface has been designed to match the `~astropy.stats.LombScargle`
+periodogram, and it can be used with a time series dataset ``time``, ``flux``,
+and ``flux_err`` as follows::
+
+  >>> from astropy import units as u
+  >>> from astropy.stats import BoxLeastSquares
+  >>> model = BoxLeastSquares(time * u.day, flux, flux_err=0.01)
+  >>> duration = 0.2 * u.day
+  >>> periodogram = model.autopower(duration)
+
+The resulting periodogram will look something like the following when the time
+series includes a transiting planet:
+
+.. plot::
+   :context: reset
+   :align: center
+   
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy.stats import BoxLeastSquares
+
+    np.random.seed(42)
+    t = np.random.uniform(0, 20, 2000)
+    y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*np.random.randn(len(t))
+    model = BoxLeastSquares(t, y, dy=0.01)
+    periodogram = model.autopower(0.2)
+
+    plt.figure(figsize=(8, 4))
+    plt.plot(periodogram.period, periodogram.power, "k")
+    plt.xlabel("period [day]")
+    plt.ylabel("power")
 
 
 .. _whatsnew-3.1-coordinates:
