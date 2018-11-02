@@ -1,1 +1,5 @@
+python:
+  setup_py_install: false
+  pip_install: false
+
 formats: []
