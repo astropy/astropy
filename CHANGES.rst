@@ -671,6 +671,9 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Fixing bug that prevented to run the doctests on only a single rst documentation
+  file rather than all of them. [#8055]
+
 astropy.time
 ^^^^^^^^^^^^
 
