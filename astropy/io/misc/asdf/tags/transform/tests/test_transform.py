@@ -139,3 +139,20 @@ def test_linear1d_quantity(tmpdir):
     model = astmodels.Linear1D(1*u.nm, 1*(u.nm/u.pixel))
     tree = {'model': model}
     helpers.assert_roundtrip_tree(tree, tmpdir)
+
+
+def test_tabular_model_units(tmpdir):
+    points = np.arange(0, 5) * u.pix
+    values = [1., 10, 2, 45, -3] * u.nm
+    model = astmodels.Tabular1D(points=points, lookup_table=values)
+    tree = {'model': model}
+    helpers.assert_roundtrip_tree(tree, tmpdir)
+    table = np.array([[3.,  0.,  0.],
+                      [0.,  2.,  0.],
+                      [0.,  0.,  0.]]) * u.nm
+    points = ([1, 2, 3], [1, 2, 3]) * u.pix
+    model2 = astmodels.Tabular2D(points, lookup_table=table,
+                                 bounds_error=False, fill_value=None,
+                                 method='nearest')
+    tree = {'model': model2}
+    helpers.assert_roundtrip_tree(tree, tmpdir)
