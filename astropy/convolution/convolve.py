@@ -24,7 +24,7 @@ from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 LIBRARY_PATH = os.path.dirname(__file__)
 
 try:
-    lib_convolve = load_library("lib_convolve", LIBRARY_PATH)
+    _convolve = load_library("_convolve", LIBRARY_PATH)
 except Exception:
     raise Exception("Convolution C extension is missing. Try re-building astropy.")
 
@@ -33,27 +33,16 @@ except Exception:
 
 # Declare prototypes
 # Boundary None
-_convolveNd_boundary_none_c = lib_convolve.convolveNd_boundary_none_c
-_convolveNd_boundary_none_c.restype = None
-_convolveNd_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
+_convolveNd_c = _convolve.convolveNd_c
+_convolveNd_c.restype = None
+_convolveNd_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
             ctypes.c_uint, # N dim
             ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for return & input
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # kernel array
             ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for kernel
             ctypes.c_bool, # nan_interpolate
-            ctypes.c_uint] # n_threads
-
-# Padded boundaries ['fill', 'extend', 'wrap']
-_convolveNd_padded_boundary_c = lib_convolve.convolveNd_padded_boundary_c
-_convolveNd_padded_boundary_c.restype = None
-_convolveNd_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
-            ctypes.c_uint, # N dim
-            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for return & input
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # kernel array
-            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for kernel
-            ctypes.c_bool, # nan_interpolate
+            ctypes.c_bool, # padded
             ctypes.c_uint] # n_threads
 
 # Disabling all doctests in this module until a better way of handling warnings
@@ -338,21 +327,21 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             padded_array = np.pad(array_internal, pad_width=np_pad_width,
                                   mode=np_pad_mode)
 
-        _convolveNd_padded_boundary_c(result, padded_array,
-                  array_internal.ndim,
-                  np.array(array_shape, dtype=ctypes.c_size_t, order='C'),
+        _convolveNd_c(result, padded_array,
+                  padded_array.ndim,
+                  np.array(padded_array.shape, dtype=ctypes.c_size_t, order='C'),
                   kernel_internal,
                   np.array(kernel_shape, dtype=ctypes.c_size_t, order='C'),
-                  nan_interpolate,
+                  nan_interpolate, True,
                   n_threads
                   )
     else:
-        _convolveNd_boundary_none_c(result, array_internal,
+        _convolveNd_c(result, array_internal,
                   array_internal.ndim,
                   np.array(array_shape, dtype=ctypes.c_size_t, order='C'),
                   kernel_internal,
                   np.array(kernel_shape, dtype=ctypes.c_size_t, order='C'),
-                  nan_interpolate,
+                  nan_interpolate, False,
                   n_threads
                   )
 
