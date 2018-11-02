@@ -2,16 +2,20 @@
 Installation
 ************
 
+.. _astropy-main-req:
+
 Requirements
 ============
 
 Astropy has the following strict requirements:
 
-- `Python <https://www.python.org/>`_ 3.5 or 3.6
+- `Python <https://www.python.org/>`_ 3.5 or later
 
-- `Numpy`_ |minimum_numpy_version| or later
+- `Numpy`_ |minimum_numpy_version| or later (but not 1.15.3)
 
 - `pytest`_ 3.1 or later
+
+.. note:: Also see ``pip-requirements``.
 
 Astropy also depends on other packages for optional features:
 
@@ -64,6 +68,7 @@ Astropy also depends on other packages for optional features:
   serialization of various Astropy classes into a portable, hierarchical,
   human-readable representation.
 
+.. note:: Also see ``pip-requirements-dev``.
 
 However, note that these only need to be installed if those particular features
 are needed. Astropy will import even if these dependencies are not installed.
@@ -314,6 +319,9 @@ The C libraries currently bundled with Astropy include:
 Installing Astropy into CASA
 ----------------------------
 
+.. note:: The instructions for CASA here are not guaranteed to work.
+          Please see https://github.com/astropy/astropy/issues/7818
+
 If you want to be able to use Astropy inside `CASA
 <https://casa.nrao.edu/>`_, the easiest way is to do so from inside CASA.
 
@@ -360,7 +368,8 @@ Dependencies
 ^^^^^^^^^^^^
 
 Building the documentation requires the Astropy source code and some additional
-packages. The easiest way to install all the required dependencies is to install
+packages, including those in :ref:`astropy-main-req`. The easiest way to
+install the extra dependencies for documentation is to install
 the `sphinx-astropy <https://github.com/astropy/sphinx-astropy>`_ package,
 either with pip::
 
@@ -391,6 +400,8 @@ make sure that `Graphviz <http://www.graphviz.org>`_ is installed. If you
 install sphinx-astropy with conda, graphviz will automatically get installed,
 but if you use pip, you will need to install Graphviz separately as it isn't
 a Python package.
+
+.. note:: Also see ``pip-requirements-doc``.
 
 Building
 ^^^^^^^^
