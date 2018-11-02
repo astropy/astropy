@@ -327,6 +327,8 @@ FORCE_INLINE void convolve2d(DTYPE * const result,
     const omp_iter_var ny_minus_wky = ny - wky;
     const size_t ny_minus_2wky = ny - 2 * wky;
     size_t i_minus_wkx, j_minus_wky;
+    size_t result_cursor;
+    size_t f_cursor, g_cursor;
     size_t result_index;
 
     DTYPE top, bot=0., ker, val;
@@ -338,6 +340,7 @@ FORCE_INLINE void convolve2d(DTYPE * const result,
     for (i = wkx; i < nx_minus_wkx; ++i)
     {
         i_minus_wkx = i - wkx;
+        result_cursor = i*ny;
 
         {omp_iter_var j;
         for (j = wky; j < ny_minus_wky; ++j)
@@ -350,11 +353,14 @@ FORCE_INLINE void convolve2d(DTYPE * const result,
             {omp_iter_var ii;
             for (ii = 0; ii < nkx; ++ii)
             {
+                f_cursor = (i_minus_wkx + ii)*ny + j_minus_wky;
+                g_cursor = (nkx_minus_1 - ii)*nky + nky_minus_1;
+
                 {omp_iter_var jj;
                 for (jj = 0; jj < nky; ++jj)
                 {
-                    val = f[(i_minus_wkx+ii)*ny + (j_minus_wky+jj)];
-                    ker = g[(nkx_minus_1 - ii)*nky + (nky_minus_1 - jj)];
+                    val = f[f_cursor + jj];
+                    ker = g[g_cursor - jj];
                     if (nan_interpolate) // compile time constant
                     {
                         if (!isnan(val))
@@ -371,13 +377,13 @@ FORCE_INLINE void convolve2d(DTYPE * const result,
             if (padded) { // compile time constant
               result_index = i_minus_wkx * ny_minus_2wky + j_minus_wky;
             } else {
-              result_index = i*ny + j;
+              result_index = result_cursor + j;
             }
 
             if (nan_interpolate) // compile time constant
             {
                 if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
-                    result[result_index]  = f[i*ny + j] ;
+                    result[result_index]  = f[result_cursor + j] ;
                 else
                     result[result_index]  = top / bot;
             }
@@ -442,8 +448,10 @@ FORCE_INLINE void convolve3d(DTYPE * const result,
     const omp_iter_var nz_minus_wkz = nz - wkz;
     const size_t ny_minus_2wky = ny - 2 * wky;
     const size_t nz_minus_2wkz = nz - 2 * wkz;
-
     size_t i_minus_wkx, j_minus_wky, k_minus_wkz;
+    size_t f_ii_cursor, g_ii_cursor;
+    size_t f_cursor, g_cursor;
+    size_t array_cursor, array_i_cursor;
     size_t result_index;
 
     DTYPE top, bot=0., ker, val;
@@ -455,11 +463,13 @@ FORCE_INLINE void convolve3d(DTYPE * const result,
     for (i = wkx; i < nx_minus_wkx; ++i)
     {
         i_minus_wkx = i - wkx;
+        array_i_cursor = i*ny;
 
         {omp_iter_var j;
         for (j = wky; j < ny_minus_wky; ++j)
         {
             j_minus_wky = j - wky;
+            array_cursor = (array_i_cursor + j)*nz;
 
             {omp_iter_var k;
             for (k = wkz; k < nz_minus_wkz; ++k)
@@ -472,14 +482,19 @@ FORCE_INLINE void convolve3d(DTYPE * const result,
                 {omp_iter_var ii;
                 for (ii = 0; ii < nkx; ++ii)
                 {
+                    f_ii_cursor = ((i_minus_wkx + ii)*ny + j_minus_wky)*nz + k_minus_wkz;
+                    g_ii_cursor = ((nkx_minus_1 - ii)*nky + nky_minus_1)*nkz + nkz_minus_1;
+
                     {omp_iter_var jj;
                     for (jj = 0; jj < nky; ++jj)
                     {
+                        f_cursor = f_ii_cursor + jj*nz;
+                        g_cursor = g_ii_cursor - jj*nkz;
                         {omp_iter_var kk;
                         for (kk = 0; kk < nkz; ++kk)
                         {
-                            val = f[((i_minus_wkx + ii)*ny + (j_minus_wky + jj))*nz + (k_minus_wkz + kk)];
-                            ker = g[((nkx_minus_1 - ii)*nky + (nky_minus_1 - jj))*nkz + (nkz_minus_1 - kk)];
+                            val = f[f_cursor + kk];
+                            ker = g[g_cursor - kk];
                             if (nan_interpolate) // compile time constant
                             {
                                 if (!isnan(val))
@@ -497,13 +512,13 @@ FORCE_INLINE void convolve3d(DTYPE * const result,
                 if (padded) { // compile time constant
                     result_index = (i_minus_wkx*ny_minus_2wky + j_minus_wky)*nz_minus_2wkz + k_minus_wkz;
                 } else {
-                    result_index = (i*ny + j)*nz + k;
+                    result_index = array_cursor + k;
                 }
 
                 if (nan_interpolate) // compile time constant
                 {
                     if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
-                        result[result_index]  = f[(i*ny + j)*nz + k] ;
+                        result[result_index]  = f[array_cursor+ k] ;
                     else
                         result[result_index]  = top / bot;
                 }
