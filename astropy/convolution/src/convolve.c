@@ -236,7 +236,7 @@ FORCE_INLINE void convolve1d(DTYPE * const result,
 #endif
     for (i = wkx; i < nx_minus_wkx; ++i)
     {
-        i_minus_wkx = i - wkx; //i - wkx
+        i_minus_wkx = i - wkx;
 
         top = 0.;
         if (nan_interpolate) // compile time constant
@@ -337,12 +337,12 @@ FORCE_INLINE void convolve2d(DTYPE * const result,
 #endif
     for (i = wkx; i < nx_minus_wkx; ++i)
     {
-        i_minus_wkx = i - wkx; //i - wkx
+        i_minus_wkx = i - wkx;
 
         {omp_iter_var j;
         for (j = wky; j < ny_minus_wky; ++j)
         {
-            j_minus_wky = j - wky; // j - wky
+            j_minus_wky = j - wky;
 
             top = 0.;
             if (nan_interpolate) // compile time constant
@@ -454,17 +454,17 @@ FORCE_INLINE void convolve3d(DTYPE * const result,
 #endif
     for (i = wkx; i < nx_minus_wkx; ++i)
     {
-        i_minus_wkx = i - wkx; //i - wkx
+        i_minus_wkx = i - wkx;
 
         {omp_iter_var j;
         for (j = wky; j < ny_minus_wky; ++j)
         {
-            j_minus_wky = j - wky; // j - wky
+            j_minus_wky = j - wky;
 
             {omp_iter_var k;
             for (k = wkz; k < nz_minus_wkz; ++k)
             {
-                k_minus_wkz = k - wkz; // k - wkz
+                k_minus_wkz = k - wkz;
 
                 top = 0.;
                 if (nan_interpolate) // compile time constant
