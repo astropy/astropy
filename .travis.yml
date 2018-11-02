@@ -33,7 +33,7 @@ env:
         - NUMPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
-        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach asdf bottleneck'
+        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
         - SETUP_CMD='test'
@@ -78,7 +78,7 @@ matrix:
           stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang"
-               PIP_DEPENDENCIES='jplephem'
+               PIP_DEPENDENCIES='jplephem asdf==2.1.0'
                CCOMPILER=clang
                EVENT_TYPE='cron'
 
@@ -102,7 +102,7 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data=astropy --readonly'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="jplephem"
+               PIP_DEPENDENCIES="jplephem asdf==2.1.0"
                LC_CTYPE=C.ascii LC_ALL=C
                PYTEST_VERSION=3.7
 
@@ -110,6 +110,7 @@ matrix:
         - os: linux
           stage: Initial tests
           env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               PIP_DEPENDENCIES="asdf==2.1.0"
                SETUP_CMD='test -a "--durations=50"'
                PYTEST_VERSION=3.8
           compiler: clang
@@ -118,7 +119,7 @@ matrix:
         - os: linux
           env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="codecov objgraph jplephem bintrees sortedcontainers"
+               PIP_DEPENDENCIES="codecov objgraph jplephem bintrees sortedcontainers asdf==2.1.0"
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='--coverage -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.0
@@ -141,6 +142,7 @@ matrix:
         - os: linux
           env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               PIP_DEPENDENCIES="asdf==2.1.0"
                MATPLOTLIB_VERSION=dev
 
         # We check numpy-dev also in a job that only runs from cron, so that
@@ -150,11 +152,13 @@ matrix:
           stage: Cron tests
           env: NUMPY_VERSION=dev EVENT_TYPE='cron'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               PIP_DEPENDENCIES="asdf==2.1.0"
 
     allow_failures:
       - os: linux
         env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
              CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+             PIP_DEPENDENCIES="asdf==2.1.0"
              MATPLOTLIB_VERSION=dev
 
 before_install:
