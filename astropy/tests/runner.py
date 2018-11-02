@@ -564,7 +564,7 @@ class TestRunner(TestRunnerBase):
                                    "docs path ({path}) does not exist.")
                 paths = self.packages_path(kwargs['package'], docs_path,
                                            warning=warning_message)
-            else:
+            elif not kwargs['test_path']:
                 paths = [docs_path, ]
 
             if len(paths) and not kwargs['test_path']:
