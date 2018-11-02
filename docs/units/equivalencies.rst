@@ -300,7 +300,7 @@ temperature", :math:`T_{CMB}`, in Kelvins. Example::
 
     >>> import astropy.units as u
     >>> nu = 143 * u.GHz
-    >>> t_k = 0.0026320518775281975 * u.K
+    >>> t_k = 0.00263251540546396 * u.K
     >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu))  # doctest: +FLOAT_CMP
     <Quantity 1. MJy / sr>
 
