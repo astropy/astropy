@@ -1265,12 +1265,21 @@ def kuiper_false_positive_probability(D, N):
     fpp : float
         The probability of a score this large arising from the null hypothesis.
 
+    Notes
+    -----
+    Eq 7 of Paltani 2004 appears to incorrectly quote the original formula
+    (Stephens 1965). This function implements the original formula, as it
+    produces a result closer to Monte Carlo simulations.
+
     References
     ----------
 
     .. [1] Paltani, S., "Searching for periods in X-ray observations using
            Kuiper's test. Application to the ROSAT PSPC archive",
            Astronomy and Astrophysics, v.240, p.789-790, 2004.
+
+    .. [2] Stephens, M. A., "The goodness-of-fit statistic VN: distribution
+           and significance points", Biometrika, v.52, p.309, 1965.
 
     """
     try:
@@ -1292,9 +1301,6 @@ def kuiper_false_positive_probability(D, N):
         return 1. - factorial(N - 1) * (b**(N - 1.) * (1. - a) -
                                         a**(N - 1.) * (1. - b)) / float(N)**(N - 2) / (b - a)
     elif (D > 0.5 and N % 2 == 0) or (D > (N - 1.) / (2. * N) and N % 2 == 1):
-        # NOTE: eq 7 of Paltani 2004 appears to contain a typo with respect
-        # to the same equation in Stephens 1965. The latter is closer to
-        # Monte Carlo simulations, and is the version implemented here
         def T(t):
             y = D + t / float(N)
             return y**(t - 3) * (y**3 * N - y**2 * t * (3. - 2. /
