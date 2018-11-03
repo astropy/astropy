@@ -54,7 +54,7 @@ def expand_archive(app, exc):
 
     logger.info(bold('adding {0} tag to pages...').format(META_NOINDEX))
 
-    for filename in glob.glob(os.path.join(app.builder.outdir, '**', '*.html'), recursive=True):
+    for filename in glob.glob(os.path.join(app.builder.outdir, 'v*', '**', '*.html'), recursive=True):
 
         with open(filename, 'r') as f:
             content = f.read()
@@ -89,7 +89,7 @@ def expand_archive(app, exc):
 
     logger.info(bold('updating CSS files...'))
 
-    for filename in glob.glob(os.path.join(app.builder.outdir, '**',
+    for filename in glob.glob(os.path.join(app.builder.outdir, 'v*', '**',
                                            'bootstrap-astropy.css'), recursive=True):
 
         with open(filename, 'r') as f:
