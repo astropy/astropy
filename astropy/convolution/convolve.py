@@ -26,7 +26,7 @@ LIBRARY_PATH = os.path.dirname(__file__)
 try:
     _convolve = load_library("_convolve", LIBRARY_PATH)
 except Exception:
-    raise Exception("Convolution C extension is missing. Try re-building astropy.")
+    raise ImportError("Convolution C extension is missing. Try re-building astropy.")
 
 # The GIL is automatically released by default when calling functions imported
 # from libaries loaded by ctypes.cdll.LoadLibrary(<path>)
