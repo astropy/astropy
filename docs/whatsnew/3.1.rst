@@ -47,7 +47,7 @@ New box least squares periodogram
 
 .. https://github.com/astropy/astropy/pull/7391
 
-AstroPy now has an implementation of the box least squares (BLS) periodogram
+Astropy now has an implementation of the box least squares (BLS) periodogram
 that is commonly used to detect transiting exoplanets and eclipsing binary star
 systems. The interface has been designed to match the `~astropy.stats.LombScargle`
 periodogram, and it can be used with a time series dataset ``time``, ``flux``,
@@ -126,24 +126,53 @@ see `~astropy.coordinates.EarthLocation.of_address` for more details.
 Improvements to Table
 =====================
 
-.. https://github.com/astropy/astropy/pull/7481
-.. https://github.com/astropy/astropy/pull/7574
+The `~astropy.table.Table` class now supports fine-grained control of the way to
+write out (serialize) the columns in a Table to FITS, HDF5, ECSV, or YAML.  In
+particular one can specify on a per-class or per-column basis how to write
+`~astropy.time.Time` and masked columns.  For details see `Table serialization
+methods
+<http://docs.astropy.org/en/stable/io/unified.html?highlight=serialize_method#table-serialization-methods>`_.
 
-.. Time in Table:
-.. https://github.com/astropy/astropy/pull/6888
-.. https://github.com/astropy/astropy/pull/7897
-.. https://github.com/astropy/astropy/pull/6028
+A new table index engine ``SCEngine`` was added which uses the `Sorted
+Containers <https://pypi.org/project/sortedcontainers/>` package.  This provides
+the capability for efficiently maintaining an indexed Table when the table is
+being modified (for instance adding new rows).  It replaces the deprecated
+``FastRBT`` engine as the preferred engine in this case.
 
+Support for use of `~astropy.time.Time` and `~astropy.time.TimeDelta` columns
+within a Table was improved signficantly:
+
+- Allow full use in join, hstack, and vstack table operations.
+- Allow inserting a Table row including times.
+- Allow array-valued `~astropy.time.Time` and `~astropy.time.TimeDelta` object
+  to be modified in place.
 
 .. _whatsnew-3.1-time:
 
 Improvements to Time
 ====================
 
-.. https://github.com/astropy/astropy/pull/7870
-.. https://github.com/astropy/astropy/pull/7705
-.. https://github.com/astropy/astropy/pull/7361
-.. https://github.com/astropy/astropy/pull/7323
+Array-valued `~astropy.time.Time` and `~astropy.time.TimeDelta` objects are now
+"mutable" and one can set items or slices like normal arrays.  In general the
+the right-side set value will be converted as needed to match attributes like
+time scale of the object.  For details see `Get and set values
+<https://astropy.readthedocs.io/en/stable/time/index.html#get-and-set-values>`_.
+
+New `~astropy.time.Time.strftime` and `~astropy.time.Time.strptime` methods were
+added to the `~astropy.time.Time` class.  These methods are similar to those in
+the Python standard library `time` package and provide flexible input and output
+formatting.  However, the astropy versions also include fractional second
+support.
+
+A new ``datetime64`` format was added to the `~astropy.time.Time` class to
+support working with ``numpy.datetime64`` dtype arrays.
+
+A potentially important API change to note is removing timescale from the string
+version of FITS format time string.  The timescale is not part of the FITS
+standard and should not be included.  This change may cause some compatibility
+issues for code that relies on round-tripping a FITS format string with a
+timescale. Strings generated from previous versions of this package are still
+understood but a ``DeprecationWarning`` will be issued.
 
 .. _whatsnew-3.1-nddata:
 
