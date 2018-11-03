@@ -732,6 +732,7 @@ def test_histogram_intervals_known(ii, rr):
                                    pytest.param(300, 10000, 0.001,
                                                 marks=pytest.mark.skip('Test too slow')),
                                    (10, 10000, 0.001),
+                                   (3, 10000, 0.001),
                                    ])
 def test_uniform_binomial(N, m, p):
     """Check that the false positive probability is right
@@ -743,8 +744,10 @@ def test_uniform_binomial(N, m, p):
 
     """
     with NumpyRNGContext(1234):
-        fpps = [funcs.kuiper(np.random.random(N))[1]
-                for i in range(m)]
-        assert (scipy.stats.binom(n=m, p=p).ppf(0.01) <
-                len([fpp for fpp in fpps if fpp < p]) <
-                scipy.stats.binom(n=m, p=p).ppf(0.99))
+        fpps = np.array([funcs.kuiper(np.random.random(N))[1]
+                         for i in range(m)])
+        assert (fpps >= 0).all()
+        assert (fpps <= 1).all()
+        low = scipy.stats.binom(n=m, p=p).ppf(0.01)
+        high = scipy.stats.binom(n=m, p=p).ppf(0.99)
+        assert (low < sum(fpps < p) < high)
