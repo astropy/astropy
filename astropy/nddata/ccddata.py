@@ -71,9 +71,12 @@ class CCDData(NDDataArray):
         make a copy of the ``data`` before passing it in if that's the desired
         behavior.
 
-    uncertainty : `~astropy.nddata.StdDevUncertainty`, `numpy.ndarray` or \
+    uncertainty : `~astropy.nddata.StdDevUncertainty`, \
+            `~astropy.nddata.VarianceUncertainty`, \
+            `~astropy.nddata.InverseVariance`, `numpy.ndarray` or \
             None, optional
-        Uncertainties on the data.
+        Uncertainties on the data. If the uncertainty is a `numpy.ndarray`, it
+        it assumed to be, and stored as, a `~astropy.nddata.StdDevUncertainty`.
         Default is ``None``.
 
     mask : `numpy.ndarray` or None, optional

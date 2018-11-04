@@ -119,8 +119,8 @@ It is also possible to specify the type of the output mask:
     array([0, 1, 0, 1], dtype=uint8)
 
 
-Tweaking Main Formula
-=====================
+Modifying the Formula for Creating Boolean Masks
+================================================
 
 `~astropy.nddata.bitmask.bitfield_to_boolean_mask` provides several parameters
 that can be used to modify the formula used to create boolean masks.
