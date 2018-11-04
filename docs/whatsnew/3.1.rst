@@ -65,7 +65,7 @@ series includes a transiting planet:
 .. plot::
    :context: reset
    :align: center
-   
+
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy.stats import BoxLeastSquares
@@ -180,8 +180,25 @@ New features in NDData
 ======================
 
 .. https://github.com/astropy/astropy/pull/6971
+
+New uncertainty types
+---------------------
+
+Two new uncertainty types, `~astropy.nddata.VarianceUncertainty` and
+`~astropy.nddata.InverseVariance`, have been added for use with the gridded
+data types in ``NDData``. As with `~astropy.nddata.StdDevUncertainty`, these
+uncertainties are propagated when used with `~astropy.nddata.CCDData`.
+
+
 .. https://github.com/astropy/astropy/pull/7944
 
+Support for working with bit planes and converting them to binary masks
+-----------------------------------------------------------------------
+
+A new function for converting bit planes to binary masks,
+`~astropy.nddata.bitfiel_to_boolean_mask`, supports a very flexible way to
+specify which planes to include in calculating masks. See
+:ref:`bitmask_details` for details and several examples.
 
 .. _whatsnew-3.1-units:
 
