@@ -1730,6 +1730,9 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- ``fits.append`` now correctly handles file objects with valid modes other
+  than ``ostream``. [#7856]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
