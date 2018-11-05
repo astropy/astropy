@@ -75,7 +75,7 @@ __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
 __doctest_skip__ = ['WCS.all_world2pix']
 
 NAXIS_DEPRECATE_MESSAGE = """
-Private attributes "_naxis1" and "naxis2" have been deprecated since v3.1.
+Private attributes "_naxis1" and "_naxis2" have been deprecated since v3.1.
 Instead use the "pixel_shape" property which returns a list of NAXISj keyword values.
 """
 
