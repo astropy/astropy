@@ -26,7 +26,7 @@ LIBRARY_PATH = os.path.dirname(__file__)
 try:
     _convolve = load_library("_convolve", LIBRARY_PATH)
 except Exception:
-    raise Exception("Convolution C extension is missing. Try re-building astropy.")
+    raise ImportError("Convolution C extension is missing. Try re-building astropy.")
 
 # The GIL is automatically released by default when calling functions imported
 # from libaries loaded by ctypes.cdll.LoadLibrary(<path>)
@@ -38,11 +38,14 @@ _convolveNd_c.restype = None
 _convolveNd_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
             ctypes.c_uint, # N dim
-            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for return & input
+            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for input and result unless
+                                                              # embed_result_within_padded_region is False,
+                                                              # in which case the result array is assumed to be
+                                                              # input.shape - 2*(kernel.shape//2). Note: integer division.
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # kernel array
             ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for kernel
             ctypes.c_bool, # nan_interpolate
-            ctypes.c_bool, # padded
+            ctypes.c_bool, # embed_result_within_padded_region
             ctypes.c_uint] # n_threads
 
 # Disabling all doctests in this module until a better way of handling warnings
@@ -297,19 +300,22 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # here and pass through instead.
     result = np.zeros(array_internal.shape, dtype=float, order='C')
 
+    embed_result_within_padded_region = True
+    array_to_convolve = array_internal
     if boundary in ('fill', 'extend', 'wrap'):
+        embed_result_within_padded_region = False
         if boundary == 'fill':
             # This method is faster than using numpy.pad(..., mode='constant')
-            padded_array = np.full(array_shape + 2*pad_width, fill_value=fill_value, dtype=float, order='C')
+            array_to_convolve = np.full(array_shape + 2*pad_width, fill_value=fill_value, dtype=float, order='C')
             # Use bounds [pad_width[0]:array_shape[0]+pad_width[0]] instead of [pad_width[0]:-pad_width[0]]
             # to account for when the kernel has size of 1 making pad_width = 0.
             if array_internal.ndim == 1:
-                padded_array[pad_width[0]:array_shape[0]+pad_width[0]] = array_internal
+                array_to_convolve[pad_width[0]:array_shape[0]+pad_width[0]] = array_internal
             elif array_internal.ndim == 2:
-                padded_array[pad_width[0]:array_shape[0]+pad_width[0],
+                array_to_convolve[pad_width[0]:array_shape[0]+pad_width[0],
                              pad_width[1]:array_shape[1]+pad_width[1]] = array_internal
             elif array_internal.ndim == 3:
-                padded_array[pad_width[0]:array_shape[0]+pad_width[0],
+                array_to_convolve[pad_width[0]:array_shape[0]+pad_width[0],
                              pad_width[1]:array_shape[1]+pad_width[1],
                              pad_width[2]:array_shape[2]+pad_width[2]] = array_internal
         else:
@@ -324,24 +330,15 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             elif array_internal.ndim == 3:
                 np_pad_width = ( (pad_width[0],), (pad_width[1],), (pad_width[2],) )
 
-            padded_array = np.pad(array_internal, pad_width=np_pad_width,
+            array_to_convolve = np.pad(array_internal, pad_width=np_pad_width,
                                   mode=np_pad_mode)
 
-        _convolveNd_c(result, padded_array,
-                  padded_array.ndim,
-                  np.array(padded_array.shape, dtype=ctypes.c_size_t, order='C'),
+    _convolveNd_c(result, array_to_convolve,
+                  array_to_convolve.ndim,
+                  np.array(array_to_convolve.shape, dtype=ctypes.c_size_t, order='C'),
                   kernel_internal,
                   np.array(kernel_shape, dtype=ctypes.c_size_t, order='C'),
-                  nan_interpolate, True,
-                  n_threads
-                  )
-    else:
-        _convolveNd_c(result, array_internal,
-                  array_internal.ndim,
-                  np.array(array_shape, dtype=ctypes.c_size_t, order='C'),
-                  kernel_internal,
-                  np.array(kernel_shape, dtype=ctypes.c_size_t, order='C'),
-                  nan_interpolate, False,
+                  nan_interpolate, embed_result_within_padded_region,
                   n_threads
                   )
 
