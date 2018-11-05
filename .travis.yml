@@ -31,7 +31,7 @@ env:
         # Set defaults to avoid repeating in most cases
         - PYTHON_VERSION=3.6
         - NUMPY_VERSION=stable
-        - PYTEST_VERSION=3.9
+        - PYTEST_VERSION=3.10
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach asdf bottleneck'
