@@ -39,13 +39,13 @@ _convolveNd_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRI
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
             ctypes.c_uint, # N dim
             ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for input and result unless
-                                                              # assume_results_array_padded_by_half_kernel_size is True,
+                                                              # embed_result_within_padded_region is False,
                                                               # in which case the result array is assumed to be
-                                                              # input.shape + 2*(kernel.shape//2). Note: integer division.
+                                                              # input.shape - 2*(kernel.shape//2). Note: integer division.
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # kernel array
             ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for kernel
             ctypes.c_bool, # nan_interpolate
-            ctypes.c_bool, # assume_results_array_padded_by_half_kernel_size
+            ctypes.c_bool, # embed_result_within_padded_region
             ctypes.c_uint] # n_threads
 
 # Disabling all doctests in this module until a better way of handling warnings
@@ -300,10 +300,10 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # here and pass through instead.
     result = np.zeros(array_internal.shape, dtype=float, order='C')
 
-    results_array_padded_by_half_kernel_size = True
+    embed_result_within_padded_region = True
     array_to_convolve = array_internal
     if boundary in ('fill', 'extend', 'wrap'):
-        results_array_padded_by_half_kernel_size = False
+        embed_result_within_padded_region = False
         if boundary == 'fill':
             # This method is faster than using numpy.pad(..., mode='constant')
             array_to_convolve = np.full(array_shape + 2*pad_width, fill_value=fill_value, dtype=float, order='C')
@@ -338,7 +338,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                   np.array(array_to_convolve.shape, dtype=ctypes.c_size_t, order='C'),
                   kernel_internal,
                   np.array(kernel_shape, dtype=ctypes.c_size_t, order='C'),
-                  nan_interpolate, results_array_padded_by_half_kernel_size,
+                  nan_interpolate, embed_result_within_padded_region,
                   n_threads
                   )
 
