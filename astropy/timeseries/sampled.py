@@ -6,7 +6,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from ..table import groups, QTable
+from ..table import groups, QTable, Table
 from ..time import Time, TimeDelta
 from .. import units as u
 from ..units import Quantity
@@ -241,3 +241,43 @@ class SampledTimeSeries(TimeSeries):
         if len(self.indices) == 0 and 'time' in self.colnames:
             self.add_index('time')
         return result
+
+    @classmethod
+    def from_pandas(self, df):
+        """
+        Convert a :class:`~pandas.DataFrame` to a
+        :class:`astropy.timeseries.SampledTimeSeries`.
+        """
+
+        from pandas import DataFrame, DatetimeIndex
+
+        if not isinstance(df, DataFrame):
+            raise TypeError("Input should be a pandas dataframe")
+
+        if not isinstance(df.index, DatetimeIndex):
+            raise TypeError("DataFrame does not have a DatetimeIndex")
+
+        # TODO: determine how user can specify time scale
+        time = Time(df.index)
+
+        # Create table without the time column
+        table = Table.from_pandas(df)
+
+        return SampledTimeSeries(time=time, data=table)
+
+    def to_pandas(self):
+        """
+        Convert this time series to a :class:`~pandas.DataFrame` with a
+        :class:`~pandas.DatetimeIndex` index.
+        """
+
+        # Extract table without time column
+        table = self[[x for x in self.colnames if x != 'time']]
+
+        # First make a normal pandas dataframe
+        df = table.to_pandas()
+
+        # Set index
+        df.set_index(self.time.datetime64, inplace=True)
+
+        return df
