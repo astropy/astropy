@@ -53,7 +53,25 @@ pass multiple times to the ``time`` argument::
     2016-03-22T12:30:38.000
     2016-03-22T12:34:40.000
 
-You can also specify a vector |Time| object directly.
+You can also specify a vector |Time| object directly as the ``time=`` argument,
+or a vector |TimeDelta| argument or a quantity array to the ``time_delta=``
+argument.::
+
+  >>> SampledTimeSeries(time="2011-01-01T00:00:00", time_delta=np.random.random((10,))*u.s)
+  <SampledTimeSeries length=10>
+            time
+          object
+  -----------------------
+  2011-01-01T00:00:00.000
+  2011-01-01T00:00:00.591
+  2011-01-01T00:00:01.030
+  2011-01-01T00:00:01.584
+  2011-01-01T00:00:01.939
+  2011-01-01T00:00:02.065
+  2011-01-01T00:00:02.195
+  2011-01-01T00:00:03.027
+  2011-01-01T00:00:03.234
+  2011-01-01T00:00:03.512
 
 Initializing a binned time series
 =================================
