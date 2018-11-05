@@ -2754,3 +2754,10 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         mytable = formatter.parse(extensions=['AIPS FQ'],
                                   keywords=['DOES_NOT_EXIST'])
         assert mytable is None
+
+    @pytest.mark.parametrize('mode', ['wb', 'wb+', 'ab', 'ab+'])
+    def test_hdu_writeto_mode(self, mode):
+
+        with open(self.temp('mode.fits'), mode=mode) as ff:
+            hdu = fits.ImageHDU(data=np.ones(5))
+            hdu.writeto(ff)
