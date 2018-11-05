@@ -15,10 +15,10 @@ from . import compressed
 from .base import _BaseHDU, _ValidHDU, _NonstandardHDU, ExtensionHDU
 from .groups import GroupsHDU
 from .image import PrimaryHDU, ImageHDU
-from ..file import _File
+from ..file import _File, FILE_MODES
 from ..header import _pad_length
 from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
-                    _get_array_mmap, _free_space_check)
+                    _get_array_mmap, _free_space_check, fileobj_mode, isfile)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....utils import indent
 from ....utils.exceptions import AstropyUserWarning
@@ -912,11 +912,11 @@ class HDUList(list, _Verify):
         # of the caller)
         closed = isinstance(fileobj, str) or fileobj_closed(fileobj)
 
-        # writeto is only for writing a new file from scratch, so the most
-        # sensible mode to require is 'ostream'.  This can accept an open
-        # file object that's open to write only, or in append/update modes
-        # but only if the file doesn't exist.
-        fileobj = _File(fileobj, mode='ostream', overwrite=overwrite)
+        mode = FILE_MODES[fileobj_mode(fileobj)] if isfile(fileobj) else 'ostream'
+
+        # This can accept an open file object that's open to write only, or in
+        # append/update modes but only if the file doesn't exist.
+        fileobj = _File(fileobj, mode=mode, overwrite=overwrite)
         hdulist = self.fromfile(fileobj)
         try:
             dirname = os.path.dirname(hdulist._file.name)
