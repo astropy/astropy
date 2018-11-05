@@ -262,7 +262,7 @@ Comparison to other packages
 
 The `astropy.timeseries` package is not the only package to provide
 functionality related to time series. For example, another notable package is
-`pandas <https://pandas.pydata.org/>`_, which provides a :class:`pandas.Series`
+`pandas <https://pandas.pydata.org/>`_, which provides a :class:`pandas.DataFrame`
 class. The main benefits of `astropy.timeseries` in the context of astronomical
 research are the following:
 
