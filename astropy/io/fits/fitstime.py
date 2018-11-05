@@ -504,6 +504,12 @@ def time_to_fits(table):
     # Shallow copy of the input table
     newtable = table.copy(copy_data=False)
 
+    # Remove any existing indices since these can cause issues when trying to
+    # replace columns, and the indices are no longer useful here.
+    for index in newtable.indices:
+        for column in index.columns:
+            newtable.remove_indices(column.info.name)
+
     # Global time coordinate frame keywords
     hdr = Header([Card(keyword=key, value=val[0], comment=val[1])
                   for key, val in GLOBAL_TIME_INFO.items()])
