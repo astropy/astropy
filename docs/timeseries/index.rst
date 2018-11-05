@@ -34,7 +34,7 @@ To start off, we retrieve a FITS file containing a Kepler light curve for a
 source::
 
     >>> from astropy.utils.data import get_pkg_data_filename
-    >>> filename = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
+    >>> filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
 
 We can then use the |SampledTimeSeries| class to read in this file::
 
@@ -116,7 +116,7 @@ Let's use what we've seen so far to make a plot
    :nofigs:
 
     from astropy.utils.data import get_pkg_data_filename
-    filename = get_pkg_data_filename('kepler/kplr010666592-2009131110544_slc.fits')
+    filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
     from astropy.timeseries import SampledTimeSeries
     ts = SampledTimeSeries.read(filename, format='kepler.fits')
 
