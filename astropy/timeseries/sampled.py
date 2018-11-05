@@ -275,7 +275,7 @@ class SampledTimeSeries(TimeSeries):
         table = self[[x for x in self.colnames if x != 'time']]
 
         # First make a normal pandas dataframe
-        df = table.to_pandas()
+        df = Table(table).to_pandas()
 
         # Set index
         df.set_index(self.time.datetime64, inplace=True)
