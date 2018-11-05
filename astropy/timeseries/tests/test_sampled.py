@@ -3,12 +3,20 @@
 from datetime import datetime
 
 import pytest
+
+import numpy as np
 from numpy.testing import assert_equal
 
 from ...table import Table
 from ...time import Time, TimeDelta
 from ..sampled import SampledTimeSeries
 
+try:
+    import pandas  # pylint: disable=W0611
+except ImportError:
+    HAS_PANDAS = False
+else:
+    HAS_PANDAS = True
 
 INPUT_TIME = Time(['2016-03-22T12:30:31',
                    '2015-01-21T12:30:32',
@@ -81,3 +89,17 @@ def test_initialization_with_time_in_data():
         # 'time' is a protected name, don't allow ambiguous cases
         SampledTimeSeries(time=INPUT_TIME, data=[[10, 2, 3], INPUT_TIME], names=['a', 'time'])
     assert exc.value.args[0] == "'time' has been given both in the table and as a keyword argument"
+
+
+@pytest.mark.skipif('not HAS_PANDAS')
+def test_pandas():
+
+    df1 = pandas.DataFrame()
+    df1['a'] = [1, 2, 3]
+    df1.set_index(pandas.DatetimeIndex(INPUT_TIME.datetime64), inplace=True)
+
+    ts = SampledTimeSeries.from_pandas(df1)
+    assert_equal(ts.time.isot, INPUT_TIME.isot)
+
+    df2 = ts.to_pandas()
+    assert_equal(df2.index, INPUT_TIME.datetime64)
