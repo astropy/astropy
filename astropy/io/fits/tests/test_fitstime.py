@@ -273,6 +273,26 @@ class TestFitsTime(FitsTestCase):
         assert tm['a'].location.z.value == t['a'].location.z.to_value(unit='m')
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
+    def test_fits_to_time_index(self, table_types):
+        """
+        Ensure that fits_to_time works correctly if the time column is also
+        an index.
+        """
+        t = table_types()
+        t['a'] = Time(self.time, format='isot', scale='utc')
+
+        # Make it so that the time column is also an index
+        t.add_index('a')
+
+        # Test for default write behavior (full precision) and read it
+        # back using native astropy objects; thus, ensure its round-trip
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits',
+                              astropy_native=True)
+
+        assert isinstance(tm['a'], Time)
+
+    @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_io_time_read_fits(self, table_types):
         """
         Test that FITS table with time columns (standard compliant)
