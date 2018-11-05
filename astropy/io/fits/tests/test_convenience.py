@@ -162,3 +162,10 @@ class TestConvenience(FitsTestCase):
         # test with datafile
         fits.tabledump(temp_filename, datafile=self.temp('test_tb.txt'))
         assert os.path.isfile(self.temp('test_tb.txt'))
+
+    @pytest.mark.parametrize('mode', ['wb', 'wb+', 'ab', 'ab+'])
+    def test_append_filehandle(self, tmpdir, mode):
+
+        append_file = tmpdir.join('append.fits')
+        with append_file.open(mode) as handle:
+            fits.append(filename=handle, data=np.ones((4, 4)))
