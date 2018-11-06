@@ -1,9 +1,10 @@
 import pytest
 from numpy.testing import assert_equal
 
-from ... import units as u
-from ...table import Table
-from ...time import Time
+from astropy import units as u
+from astropy.table import Table
+from astropy.time import Time
+
 from ..binned import BinnedTimeSeries
 
 

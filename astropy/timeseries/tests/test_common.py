@@ -1,8 +1,9 @@
 from numpy.testing import assert_equal
 
-from ... import units as u
-from ...table import Table, QTable, vstack
-from ...time import Time
+from astropy import units as u
+from astropy.table import Table, QTable, vstack
+from astropy.time import Time
+
 from ..sampled import SampledTimeSeries
 from ..binned import BinnedTimeSeries
 

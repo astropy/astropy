@@ -1,9 +1,9 @@
 import warnings
 import numpy as np
 
-from ...io import registry, fits
-from ...table import Table
-from ...time import Time, TimeDelta
+from astropy.io import registry, fits
+from astropy.table import Table
+from astropy.time import Time, TimeDelta
 
 from ..sampled import SampledTimeSeries
 

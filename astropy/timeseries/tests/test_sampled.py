@@ -7,8 +7,9 @@ import pytest
 import numpy as np
 from numpy.testing import assert_equal
 
-from ...table import Table
-from ...time import Time, TimeDelta
+from astropy.table import Table
+from astropy.time import Time, TimeDelta
+
 from ..sampled import SampledTimeSeries
 
 try:
