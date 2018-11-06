@@ -714,9 +714,10 @@ class ProgressBar:
             Sequence where each element is a tuple of arguments to pass to
             *function*.
 
-        multiprocess : bool, optional
-            If `True`, use the `multiprocessing` module to distribute each
-            task to a different processor core.
+        multiprocess : bool, int, optional
+            If `True`, use the `multiprocessing` module to distribute each task
+            to a different processor core. If a number greater than 1, then use
+            that number of cores.
 
         ipython_widget : bool, optional
             If `True`, the progress bar will display as an IPython
@@ -774,9 +775,10 @@ class ProgressBar:
             Sequence where each element is a tuple of arguments to pass to
             *function*.
 
-        multiprocess : bool, optional
-            If `True`, use the `multiprocessing` module to distribute each
-            task to a different processor core.
+        multiprocess : bool, int, optional
+            If `True`, use the `multiprocessing` module to distribute each task
+            to a different processor core. If a number greater than 1, then use
+            that number of cores.
 
         ipython_widget : bool, optional
             If `True`, the progress bar will display as an IPython
@@ -813,7 +815,8 @@ class ProgressBar:
                     if (i % chunksize) == 0:
                         bar.update(i)
             else:
-                p = multiprocessing.Pool()
+                p = multiprocessing.Pool(
+                    processes=(multiprocess if multiprocess > 1 else None))
                 for i, result in enumerate(
                     p.imap_unordered(function, items, chunksize=chunksize)):
                     bar.update(i)
