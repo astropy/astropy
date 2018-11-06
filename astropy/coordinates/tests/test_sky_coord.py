@@ -1531,3 +1531,28 @@ NAXIS2  =                 2078 / length of second array dimension
     dec = np.array([2, 12.1])
     coords = SkyCoord(ra, dec, unit='deg')
     assert np.all(test_wcs.footprint_contains(coords) == np.array([True, False]))
+
+
+def test_none_differential_type():
+    """
+    This is a regression test for #8021
+    """
+    from .. import get_body_barycentric, BaseCoordinateFrame
+
+    class MockHeliographicStonyhurst(BaseCoordinateFrame):
+        default_representation = SphericalRepresentation
+
+        frame_specific_representation_info = {
+            SphericalRepresentation: [RepresentationMapping(reprname='lon',
+                                                            framename='lon',
+                                                            defaultunit=u.deg),
+                                      RepresentationMapping(reprname='lat',
+                                                            framename='lat',
+                                                            defaultunit=u.deg),
+                                      RepresentationMapping(reprname='distance',
+                                                            framename='radius',
+                                                            defaultunit=None)]]
+        }
+
+    fr = MockHeliographicStonyhurst(lon=1*u.deg, lat=2*u.deg, radius=10*u.au)
+    SkyCoord(0*u.deg, fr.lat, fr.radius, frame=fr) # this was the failure
