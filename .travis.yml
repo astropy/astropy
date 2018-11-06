@@ -106,7 +106,7 @@ matrix:
         # location during testing. We also use this build to make sure that the
         # dependencies get correctly installed with pip.
         - os: linux
-          env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data=astropy --readonly'
+          env: SETUP_CMD='test --remote-data=astropy --readonly'
                LC_CTYPE=C.ascii LC_ALL=C
                PYTEST_VERSION=3.7
                PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
@@ -145,7 +145,7 @@ matrix:
         # unstable, we combine them into a single unstable build that we can
         # mark as an allowed failure below.
         - os: linux
-          env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
+          env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES=$ASDF_PIP_DEP
                MATPLOTLIB_VERSION=dev

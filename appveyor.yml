@@ -14,7 +14,7 @@ environment:
         PIP_DEPENDENCIES: "objgraph"
 
     matrix:
-        - PYTHON_VERSION: "3.6"
+        - PYTHON_VERSION: "3.7"
           NUMPY_VERSION: "stable"
 
 matrix:
