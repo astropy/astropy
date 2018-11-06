@@ -1265,12 +1265,21 @@ def kuiper_false_positive_probability(D, N):
     fpp : float
         The probability of a score this large arising from the null hypothesis.
 
+    Notes
+    -----
+    Eq 7 of Paltani 2004 appears to incorrectly quote the original formula
+    (Stephens 1965). This function implements the original formula, as it
+    produces a result closer to Monte Carlo simulations.
+
     References
     ----------
 
     .. [1] Paltani, S., "Searching for periods in X-ray observations using
            Kuiper's test. Application to the ROSAT PSPC archive",
            Astronomy and Astrophysics, v.240, p.789-790, 2004.
+
+    .. [2] Stephens, M. A., "The goodness-of-fit statistic VN: distribution
+           and significance points", Biometrika, v.52, p.309, 1965.
 
     """
     try:
@@ -1287,15 +1296,15 @@ def kuiper_false_positive_probability(D, N):
         return 1. - factorial(N) * (D - 1. / N)**(N - 1)
     elif D < 3. / N:
         k = -(N * D - 1.) / 2.
-        r = np.sqrt(k**2 - (N * D - 2.) / 2.)
+        r = np.sqrt(k**2 - (N * D - 2.)**2 / 2.)
         a, b = -k + r, -k - r
         return 1. - factorial(N - 1) * (b**(N - 1.) * (1. - a) -
-                                        a**(N - 1.) * (1. - b)) / float(N)**(N - 2) * (b - a)
+                                        a**(N - 1.) * (1. - b)) / float(N)**(N - 2) / (b - a)
     elif (D > 0.5 and N % 2 == 0) or (D > (N - 1.) / (2. * N) and N % 2 == 1):
         def T(t):
             y = D + t / float(N)
             return y**(t - 3) * (y**3 * N - y**2 * t * (3. - 2. /
-                                                        N) / N - t * (t - 1) * (t - 2) / float(N)**2)
+                                                        N) + y * t * (t - 1) * (3. - 2. / N) / N - t * (t - 1) * (t - 2) / float(N)**2)
         s = 0.
         # NOTE: the upper limit of this sum is taken from Stephens 1965
         for t in range(int(np.floor(N * (1 - D))) + 1):
@@ -1322,7 +1331,7 @@ def kuiper_false_positive_probability(D, N):
             if np.abs(S2 - so) / (np.abs(S2) + np.abs(so)
                                   ) < term_eps or np.abs(S1 - so) < abs_eps:
                 break
-        return S1 - 8 * D / (3. * np.sqrt(N)) * S2
+        return S1 - 8 * D / 3. * S2
 
 
 def kuiper(data, cdf=lambda x: x, args=()):
