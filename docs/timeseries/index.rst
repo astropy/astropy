@@ -129,8 +129,9 @@ Let's use what we've seen so far to make a plot
    plt.xlabel('Barycentric Julian Date')
    plt.ylabel('SAP Flux (e-/s)')
 
-It looks like there are a few transits! Let's use the :ref:`stats-bls`
-functionality to estimate the period, using a box with a duration of 0.2 days:
+It looks like there are a few transits! Let's use
+:class:`~astropy.stats.BoxLeastSquares` to estimate the period, using a box with
+a duration of 0.2 days:
 
 .. plot::
    :context:

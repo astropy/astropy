@@ -6,7 +6,10 @@ data sets.
 
 """
 
-from .core import *  # noqa
-from .sampled import *  # noqa
-from .binned import *  # noqa
-from . import io  # noqa
+from ._astropy_init import *
+
+if not _ASTROPY_SETUP_:
+    from .core import *  # noqa
+    from .sampled import *  # noqa
+    from .binned import *  # noqa
+    from . import io  # noqa

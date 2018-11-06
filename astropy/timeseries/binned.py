@@ -4,10 +4,10 @@ from copy import deepcopy
 
 import numpy as np
 
-from ..table import groups, QTable
-from ..time import Time, TimeDelta
-from .. import units as u
-from ..units import Quantity
+from astropy.table import groups, QTable
+from astropy.time import Time, TimeDelta
+from astropy import units as u
+from astropy.units import Quantity
 
 from .core import TimeSeries
 

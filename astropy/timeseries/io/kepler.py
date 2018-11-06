@@ -1,6 +1,6 @@
-from ...io import registry
-from ...table import Table
-from ...time import Time
+from astropy.io import registry
+from astropy.table import Table
+from astropy.time import Time
 
 from ..sampled import SampledTimeSeries
 

@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ..table import QTable
+from astropy.table import QTable
 
 __all__ = ['TimeSeries']
 
