@@ -31,6 +31,7 @@ env:
         # Set defaults to avoid repeating in most cases
         - PYTHON_VERSION=3.6
         - NUMPY_VERSION=stable
+        - PYTEST_VERSION=3.10
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
@@ -92,6 +93,7 @@ matrix:
                INSTALL_CMD='python setup.py build_ext --inplace'
                PIP_DEPENDENCIES='pytest-astropy'
                TEST_CMD='pytest --open-files --doctest-rst'
+               PYTEST_VERSION=3.7
           script:
             - $INSTALL_CMD
             - $TEST_CMD
@@ -106,13 +108,11 @@ matrix:
                LC_CTYPE=C.ascii LC_ALL=C
                PYTEST_VERSION=3.7
 
-
         - os: linux
           stage: Initial tests
           env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="asdf==2.1.0"
                SETUP_CMD='test -a "--durations=50"'
-               PYTEST_VERSION=3.8
           compiler: clang
 
         # Full tests with coverage checks.
