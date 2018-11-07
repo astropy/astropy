@@ -151,7 +151,7 @@ matrix:
         # we can spot issues sooner. We do not use remote data here, since
         # that gives too many false positives due to URL timeouts.
         - os: linux
-          env: NUMPY_VERSION=dev
+          env: NUMPY_VERSION=dev MATPLOTLIB_VERSION=dev
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                EVENT_TYPE='cron'
 
