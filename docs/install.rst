@@ -11,7 +11,7 @@ Astropy has the following strict requirements:
 
 - `Python <https://www.python.org/>`_ 3.5 or later
 
-- `Numpy`_ |minimum_numpy_version| or later (but not 1.15.3)
+- `Numpy`_ |minimum_numpy_version| or later
 
 - `pytest`_ 3.1 or later
 
