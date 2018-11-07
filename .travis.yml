@@ -150,7 +150,7 @@ matrix:
         # that gives too many false positives due to URL timeouts.
         - os: linux
           stage: Cron tests
-          env: NUMPY_VERSION=dev EVENT_TYPE='cron'
+          env: NUMPY_VERSION=dev MATPLOTLIB_VERSION=dev EVENT_TYPE='cron'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES="asdf==2.1.0"
 
