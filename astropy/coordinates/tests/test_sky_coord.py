@@ -1537,7 +1537,7 @@ def test_none_differential_type():
     """
     This is a regression test for #8021
     """
-    from .. import get_body_barycentric, BaseCoordinateFrame
+    from .. import BaseCoordinateFrame
 
     class MockHeliographicStonyhurst(BaseCoordinateFrame):
         default_representation = SphericalRepresentation
