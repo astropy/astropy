@@ -1551,7 +1551,7 @@ def test_none_differential_type():
                                                             defaultunit=u.deg),
                                       RepresentationMapping(reprname='distance',
                                                             framename='radius',
-                                                            defaultunit=None)]]
+                                                            defaultunit=None)]
         }
 
     fr = MockHeliographicStonyhurst(lon=1*u.deg, lat=2*u.deg, radius=10*u.au)
