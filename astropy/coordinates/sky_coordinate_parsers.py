@@ -204,9 +204,10 @@ def _get_frame_without_data(args, kwargs):
         frame_cls_kwargs['representation_type'] = _get_repr_cls(
             kwargs.pop('representation_type'))
 
-    if 'differential_type' in kwargs:
+    differential_type = kwargs.pop('differential_type', None)
+    if differential_type is not None:
         frame_cls_kwargs['differential_type'] = _get_diff_cls(
-            kwargs.pop('differential_type'))
+            differential_type)
 
     return frame_cls, frame_cls_kwargs
 
