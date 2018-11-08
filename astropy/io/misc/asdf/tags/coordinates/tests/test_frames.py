@@ -18,7 +18,7 @@ def test_hcrs_basic(tmpdir):
 
     tree = {'coord': ICRS(ra=ra, dec=dec)}
 
-    assert_roundtrip_tree(tree, tmpdir, extensions=AstropyExtension())
+    assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_icrs_basic(tmpdir):
@@ -28,13 +28,13 @@ def test_icrs_basic(tmpdir):
 
     tree = {'coord': ICRS(ra=ra, dec=dec)}
 
-    assert_roundtrip_tree(tree, tmpdir, extensions=AstropyExtension())
+    assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_icrs_nodata(tmpdir):
     tree = {'coord': ICRS()}
 
-    assert_roundtrip_tree(tree, tmpdir, extensions=AstropyExtension())
+    assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_icrs_compound(tmpdir):
@@ -43,11 +43,11 @@ def test_icrs_compound(tmpdir):
 
     tree = {'coord': icrs}
 
-    assert_roundtrip_tree(tree, tmpdir, extensions=AstropyExtension())
+    assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_fk5_time(tmpdir):
 
     tree = {'coord': FK5(equinox="2011-01-01T00:00:00")}
 
-    assert_roundtrip_tree(tree, tmpdir, extensions=AstropyExtension())
+    assert_roundtrip_tree(tree, tmpdir)
