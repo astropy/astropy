@@ -74,9 +74,9 @@ dataset ``time``, ``flux``, and ``flux_err`` as follows::
 
   >>> from astropy import units as u
   >>> from astropy.stats import BoxLeastSquares
-  >>> model = BoxLeastSquares(time * u.day, flux, flux_err=0.01)
+  >>> model = BoxLeastSquares(time * u.day, flux, flux_err=0.01)  # doctest: +SKIP
   >>> duration = 0.2 * u.day
-  >>> periodogram = model.autopower(duration)
+  >>> periodogram = model.autopower(duration)  # doctest: +SKIP
 
 The resulting periodogram will look something like the following when the time
 series includes a transiting planet:
