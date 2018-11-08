@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 .. _whatsnew-3.1:
 
 **************************
@@ -14,7 +12,24 @@ adds significant new functionality since the 3.0.x series of releases.
 
 In particular, this release includes:
 
-*
+* :ref:`whatsnew-3.1-tips`
+* :ref:`whatsnew-3.1-uncertainty`
+* :ref:`whatsnew-3.1-transit-periodogram`
+* :ref:`whatsnew-3.1-coordinates`
+* :ref:`whatsnew-3.1-table`
+* :ref:`whatsnew-3.1-time`
+* :ref:`whatsnew-3.1-nddata`
+* :ref:`whatsnew-3.1-units`
+* :ref:`whatsnew-3.1-nocopy-unit`
+* :ref:`whatsnew-3.1-mag-zero-pt`
+* :ref:`whatsnew-3.1-tcmb`
+* :ref:`whatsnew-3.1-littleh`
+* :ref:`whatsnew-3.1-cosmology`
+* :ref:`whatsnew-3.1-visualization`
+* :ref:`whatsnew-3.1-wcsaxes`
+* :ref:`whatsnew-3.1-imshow-norm`
+* :ref:`whatsnew-3.1-ape14`
+* :ref:`whatsnew-3.1-prior-modeling`
 
 In addition to these major changes, Astropy 3.1 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -24,13 +39,17 @@ smaller improvements and bug fixes, which are described in the
 * xxx pull requests have been merged since v3.0
 * xxx distinct people have contributed code
 
-
 .. _whatsnew-3.1-tips:
 
 Performance tips
 ================
 
-.. Mention that these exist
+We now include a standard section called **Performance tips** in the
+documentation for  each sub-package (when appropriate) which help you get the
+best performance out of a given sub-package. For example, if you want to
+improve the performance of your code when using :class:`~astropy.units.Unit`
+and :class:`~astropy.units.Quantity`, you can read up about it in the
+:ref:`Performance tips for astropy.units <astropy-units-performance>`.
 
 .. _whatsnew-3.1-uncertainty:
 
@@ -49,9 +68,9 @@ New box least squares periodogram
 
 Astropy now has an implementation of the box least squares (BLS) periodogram
 that is commonly used to detect transiting exoplanets and eclipsing binary star
-systems. The interface has been designed to match the `~astropy.stats.LombScargle`
-periodogram, and it can be used with a time series dataset ``time``, ``flux``,
-and ``flux_err`` as follows::
+systems. The interface has been designed to match the
+`~astropy.stats.LombScargle` periodogram, and it can be used with a time series
+dataset ``time``, ``flux``, and ``flux_err`` as follows::
 
   >>> from astropy import units as u
   >>> from astropy.stats import BoxLeastSquares
@@ -87,13 +106,13 @@ series includes a transiting planet:
 Improvements to astropy.coordinates
 ===================================
 
-Performance improvements throughout the subpackage.  Highlights include
+We have improved the performance throughout this sub-package. Highlights include
 typically 2-3x faster creation of scalar `~astropy.coordinates.SkyCoord` and
-frame classes objects, or up to 20x in certain cases.  These translate to
-nearly all convenience methods and operations on coordinates as well. Coordinate
-matching  can be 1000x faster in certain cases.
+frame classes objects, or up to 20x faster in certain cases. These performance
+improvements translate to nearly all convenience methods and operations on
+coordinates as well. Coordinate matching can be 1000x faster in certain cases.
 
-An `~astropy.coordinates.SkyCoord.directional_offset_by` method has been added
+A `~astropy.coordinates.SkyCoord.directional_offset_by` method has been added
 that will yield a new `~astropy.coordinates.SkyCoord` given a "from" coordinate
 and an offset::
 
@@ -120,7 +139,6 @@ but only if you provide your own API key (due to Google new requiring a key) -
 see `~astropy.coordinates.EarthLocation.of_address` for more details.
 
 
-
 .. _whatsnew-3.1-table:
 
 Improvements to Table
@@ -135,14 +153,14 @@ methods
 
 A new table index engine ``SCEngine`` was added which uses the `Sorted
 Containers <https://pypi.org/project/sortedcontainers/>` package.  This provides
-the capability for efficiently maintaining an indexed Table when the table is
+the capability for efficiently maintaining an indexed table when the table is
 being modified (for instance adding new rows).  It replaces the deprecated
 ``FastRBT`` engine as the preferred engine in this case.
 
 Support for use of `~astropy.time.Time` and `~astropy.time.TimeDelta` columns
-within a Table was improved signficantly:
+within a Table was improved significantly:
 
-- Allow full use in join, hstack, and vstack table operations.
+- The join, hstack, and vstack table operations now work when a `~astropy.time.Time` column is present
 - Allow inserting a Table row including times.
 - Allow array-valued `~astropy.time.Time` and `~astropy.time.TimeDelta` object
   to be modified in place.
@@ -168,18 +186,20 @@ A new ``datetime64`` format was added to the `~astropy.time.Time` class to
 support working with ``numpy.datetime64`` dtype arrays.
 
 A potentially important API change to note is removing timescale from the string
-version of FITS format time string.  The timescale is not part of the FITS
-standard and should not be included.  This change may cause some compatibility
-issues for code that relies on round-tripping a FITS format string with a
-timescale. Strings generated from previous versions of this package are still
-understood but a ``DeprecationWarning`` will be issued.
+version of FITS format time string. Previous versions of astropy incorrectly
+included the time scale as part of the string (e.g.
+``2010-01-01T00:00:34.000(TAI)``). However, the timescale is not part of the
+FITS standard and should not be included, so we have fixed this. For now we will
+continue to parse strings in this format, but this behavior is deprecated and
+should no longer be relied on. New FITS strings produced by the
+`~astropy.time.Time` object will no longer include the scale, in line with the
+standard.
+
 
 .. _whatsnew-3.1-nddata:
 
 New features in NDData
 ======================
-
-.. https://github.com/astropy/astropy/pull/6971
 
 New uncertainty types
 ---------------------
@@ -188,9 +208,6 @@ Two new uncertainty types, `~astropy.nddata.VarianceUncertainty` and
 `~astropy.nddata.InverseVariance`, have been added for use with the gridded
 data types in ``NDData``. As with `~astropy.nddata.StdDevUncertainty`, these
 uncertainties are propagated when used with `~astropy.nddata.CCDData`.
-
-
-.. https://github.com/astropy/astropy/pull/7944
 
 Support for working with bit planes and converting them to binary masks
 -----------------------------------------------------------------------
@@ -205,13 +222,28 @@ specify which planes to include in calculating masks. See
 Improvements and new features in astropy.units
 ==============================================
 
-
 .. _whatsnew-3.1-nocopy-unit:
 
 New operator for quantities
 ---------------------------
 
-.. https://github.com/astropy/astropy/pull/7734
+The easiest way to create a `~astropy.units.Quantity` until now has been to
+multiply scalars or arrays by units, for example::
+
+    >>> import numpy as np
+    >>> from astropy import units as u
+    >>> array = np.arange(1000000)
+    >>> quantity = array * u.m / u.s
+
+However, this can be inefficient, because the array is copied, and in addition
+to using up more memory, this makes things slow. We have now introduced a new
+operator that creates a `~astropy.units.Quantity` without copying the data::
+
+    >>> quantity = array << u.m / u.s
+
+Depending on the size of the array, this can be several times faster than  using
+the ``*`` operator. Note that this means that the quantity and the array now
+share the same memory (so modifying the array will modify the quantity).
 
 
 .. _whatsnew-3.1-mag-zero-pt:
@@ -224,11 +256,20 @@ Magnitude zero points
 
 .. _whatsnew-3.1-tcmb:
 
-Thermodynamic equilibrium equivalency
+Thermodynamic temperature equivalency
 -------------------------------------
 
-.. https://github.com/astropy/astropy/pull/7054
+The new :func:`~astropy.units.equivalencies.thermodynamic_temperature` cosmology
+equivalency allows conversion between Jy/beam and "thermodynamic temperature",
+:math:`T_{CMB}`, in Kelvins. For example::
 
+    >>> import astropy.units as u
+    >>> nu = 143 * u.GHz
+    >>> t_k = 0.0026320518775281975 * u.K
+    >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu))  # doctest: +FLOAT_CMP
+    <Quantity 1. MJy / sr>
+
+See :ref:`tcmb-equivalency` for more details.
 
 .. _whatsnew-3.1-littleh:
 
@@ -243,21 +284,22 @@ Little-h equivalency
 Faster cosmological calculations
 ================================
 
-Significant speedups (up to 100x) for distance and age calculations
-for FlatLambdaCDM cosmologies with no radiation or neutrinos, including
-de Sitter and Einstein-de Sitter cosmologies.  For example::
+There are now significant speedups (up to 100x) for distance and age
+calculations for FlatLambdaCDM cosmologies with no radiation or neutrinos,
+including de Sitter and Einstein-de Sitter cosmologies. For example,
+calculations such as::
 
     >> import astropy.units as u
     >> from astropy.cosmology import FlatLambdaCDM
     >> FlatLambdaCDM(H0=60 * u.km / u.sec / u.Mpc, Om0=0.3, Tcmb0=0)
     >> cosmology.age([1.0, 2.0, 3.0])
 
+will now be significantly faster.
 
 .. _whatsnew-3.1-visualization:
 
 Improvements to astropy.visualization
 =====================================
-
 
 .. _whatsnew-3.1-wcsaxes:
 
