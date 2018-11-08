@@ -838,6 +838,9 @@ PyWcsprm_fix(
   const struct message_map_entry message_map[NWCSFIX] = {
     {"cdfix", CDFIX},
     {"datfix", DATFIX},
+#if (NWCSFIX > 6)
+    {"obsfix", OBSFIX},
+#endif
     {"unitfix", UNITFIX},
     {"celfix", CELFIX},
     {"spcfix", SPCFIX},
