@@ -291,7 +291,7 @@ observations at high-energy, be it for solar or X-ray astronomy. Example::
     >>> t_k.to(u.eV, equivalencies=u.temperature_energy())  # doctest: +FLOAT_CMP
     <Quantity 86.17332384960955 eV>
 
-.. _tcmb-equivalency
+.. _tcmb-equivalency:
 
 Thermodynamic Temperature Equivalency
 -------------------------------------

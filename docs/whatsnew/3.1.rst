@@ -152,7 +152,7 @@ methods
 <http://docs.astropy.org/en/stable/io/unified.html?highlight=serialize_method#table-serialization-methods>`_.
 
 A new table index engine ``SCEngine`` was added which uses the `Sorted
-Containers <https://pypi.org/project/sortedcontainers/>` package.  This provides
+Containers <https://pypi.org/project/sortedcontainers/>`_ package.  This provides
 the capability for efficiently maintaining an indexed table when the table is
 being modified (for instance adding new rows).  It replaces the deprecated
 ``FastRBT`` engine as the preferred engine in this case.
@@ -213,7 +213,7 @@ Support for working with bit planes and converting them to binary masks
 -----------------------------------------------------------------------
 
 A new function for converting bit planes to binary masks,
-`~astropy.nddata.bitfiel_to_boolean_mask`, supports a very flexible way to
+`~astropy.nddata.bitfield_to_boolean_mask`, supports a very flexible way to
 specify which planes to include in calculating masks. See
 :ref:`bitmask_details` for details and several examples.
 
