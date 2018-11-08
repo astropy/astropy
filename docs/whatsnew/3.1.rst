@@ -26,10 +26,7 @@ In particular, this release includes:
 * :ref:`whatsnew-3.1-littleh`
 * :ref:`whatsnew-3.1-cosmology`
 * :ref:`whatsnew-3.1-visualization`
-* :ref:`whatsnew-3.1-wcsaxes`
-* :ref:`whatsnew-3.1-imshow-norm`
 * :ref:`whatsnew-3.1-ape14`
-* :ref:`whatsnew-3.1-prior-modeling`
 
 In addition to these major changes, Astropy 3.1 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -406,13 +403,6 @@ interface for World Coordinate Systems (APE 14)
 <https://doi.org/10.5281/zenodo.1188875>`_, and we have provided base classes
 defining the API, as well as wrapper classes to help automatically implement the
 high-level class.
-
-.. _whatsnew-3.1-prior-modeling:
-
-Prior/posterior constraints in modeling
-=======================================
-
-.. https://github.com/astropy/astropy/pull/7558
 
 Improvements to astropy.io.fits
 ===============================
