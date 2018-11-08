@@ -578,6 +578,9 @@ astropy.convolution
   however, someone may interpret this as an API change not realising that nothing has actually
   changed. [#7293]
 
+- ``interpolate_replace_nans()`` can no longer accept the keyword argument
+  ``preserve_nan``. It is explicitly set to ``False``. [#8088]
+
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^

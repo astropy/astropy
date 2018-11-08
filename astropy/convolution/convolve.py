@@ -849,7 +849,7 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
     newarray = array.copy()
 
     convolved = convolve(array, kernel, nan_treatment='interpolate',
-                         normalize_kernel=True, **kwargs)
+                         normalize_kernel=True, preserve_nan=False, **kwargs)
 
     isnan = np.isnan(array)
     newarray[isnan] = convolved[isnan]
