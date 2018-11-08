@@ -306,6 +306,22 @@ See :ref:`tcmb-equivalency` for more details.
 Little-h equivalency
 --------------------
 
+The new :func:`~astropy.units.equivalencies.with_H0` equivalency allows
+conversion between physical units and so called "little-h" units, a frequent
+source of confusion for novice (and not-so-novice...) extragalactic astronomers
+and cosmologists.  To see it in action::
+
+  >>> import astropy.units as u
+  >>> from astropy.cosmology import WMAP9
+  >>> distance = 100 * (u.Mpc/u.littleh)
+  >>> distance
+  <Quantity 100. Mpc / littleh>
+  >>> distance.to(u.Mpc, u.with_H0(WMAP9.H0))  # doctest: +FLOAT_CMP
+  <Quantity 69.32 Mpc>
+
+See :ref:`H0-equivalency` for more details.
+
+
 .. https://github.com/astropy/astropy/pull/7970
 
 
