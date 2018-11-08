@@ -310,9 +310,9 @@ By default, this will use the :math:`T_{CMB}` value for the 'default cosmology'
 in astropy, but it is possible to specify a custom :math:`T_{CMB}` value for a
 specific cosmology as the second argument to the equivalency::
 
-    >>> from astropy.cosmology import WMAP7
-    >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu, T_cmb=WMAP7.Tcmb0))
-    <Quantity 0.99982392 MJy / sr>
+    >>> from astropy.cosmology import Planck13
+    >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu, T_cmb=Planck13.Tcmb0))  # doctest: +FLOAT_CMP
+    <Quantity 1.00017611 MJy / sr>
 
 Molar Mass AMU Equivalency
 --------------------------
