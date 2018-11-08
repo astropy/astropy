@@ -1025,7 +1025,7 @@ class Table(object):
 
         columns = display_table.columns.values()
         sortable_columns = [i for i, col in enumerate(columns)
-                            if col.dtype.kind in 'iufc']
+                            if col.info.dtype.kind in 'iufc']
         html += jsv.ipynb(tableid, css=css, sort_columns=sortable_columns)
         return HTML(html)
 
