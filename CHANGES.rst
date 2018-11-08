@@ -236,6 +236,9 @@ astropy.convolution
 - ``convolve`` now accepts any array-like input, not just ``numpy.ndarray`` or
   lists. [#7303]
 
+- ``convolve`` Now raises AstropyUserWarning if nan_treatment='interpolate' and
+  preserve_nan=False and NaN values are present post convolution. [#8088]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
