@@ -291,6 +291,8 @@ observations at high-energy, be it for solar or X-ray astronomy. Example::
     >>> t_k.to(u.eV, equivalencies=u.temperature_energy())  # doctest: +FLOAT_CMP
     <Quantity 86.17332384960955 eV>
 
+.. _tcmb-equivalency
+
 Thermodynamic Temperature Equivalency
 -------------------------------------
 
@@ -304,6 +306,13 @@ temperature", :math:`T_{CMB}`, in Kelvins. Example::
     >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu))  # doctest: +FLOAT_CMP
     <Quantity 1. MJy / sr>
 
+By default, this will use the :math:`T_{CMB}` value for the 'default cosmology'
+in astropy, but it is possible to specify a custom :math:`T_{CMB}` value for a
+specific cosmology as the second argument to the equivalency::
+
+    >>> from astropy.cosmology import WMAP7
+    >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu, T_cmb=WMAP7.Tcmb0))
+    <Quantity 0.99982392 MJy / sr>
 
 Molar Mass AMU Equivalency
 --------------------------
