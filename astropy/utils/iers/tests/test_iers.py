@@ -3,7 +3,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import os
-
+import warnings
 import pytest
 import numpy as np
 
@@ -14,6 +14,7 @@ from ....table import QTable
 from ....time import Time, TimeDelta
 from ....extern.six.moves import urllib
 from ....utils.exceptions import AstropyWarning
+
 
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', IOError)
 
@@ -181,7 +182,12 @@ class TestIERS_Auto():
             with iers.conf.set_temp('auto_max_age', self.ame):
                 with pytest.raises(ValueError) as err:
                     iers_table = iers.IERS_Auto.open()
-                    delta = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
+                    with warnings.catch_warnings():
+                        # Ignoring this if it comes up -- IERS_Auto predictive
+                        # values are older than 30.0 days but downloading the
+                        # latest table did not find newer values
+                        warnings.simplefilter('ignore', iers.IERSStaleWarning)
+                        iers_table.ut1_utc(self.t.jd1, self.t.jd2)
         assert str(err.value) == iers.INTERPOLATE_ERROR.format(self.ame)
 
     def test_auto_max_age_none(self):

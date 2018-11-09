@@ -20,6 +20,7 @@ import pytest
 import numpy as np
 
 # LOCAL
+from ..exceptions import AstropyUserWarning
 from ..timer import RunTimePredictor
 from ...modeling.fitting import ModelsError
 
@@ -51,7 +52,9 @@ def test_timer():
 
     # --- These must run next to set up data points. ---
 
-    p.time_func([2.02, 2.04, 2.1, 'a', 2.3])
+    with pytest.warns(AstropyUserWarning, match="ufunc 'multiply' did not "
+                      "contain a loop with signature matching types"):
+        p.time_func([2.02, 2.04, 2.1, 'a', 2.3])
     p.time_func(2.2)  # Test OrderedDict
 
     assert p._funcname == 'func_to_time'
