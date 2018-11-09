@@ -1298,40 +1298,27 @@ def kuiper_false_positive_probability(D, N):
         k = -(N * D - 1.) / 2.
         r = np.sqrt(k**2 - (N * D - 2.)**2 / 2.)
         a, b = -k + r, -k - r
-        return 1. - factorial(N - 1) * (b**(N - 1.) * (1. - a) -
-                                        a**(N - 1.) * (1. - b)) / float(N)**(N - 2) / (b - a)
+        return 1 - (factorial(N - 1) * (b**(N - 1) * (1 - a) - a**(N - 1) * (1 - b))
+                    / N**(N - 2) / (b - a))
     elif (D > 0.5 and N % 2 == 0) or (D > (N - 1.) / (2. * N) and N % 2 == 1):
-        def T(t):
-            y = D + t / float(N)
-            return y**(t - 3) * (y**3 * N - y**2 * t * (3. - 2. /
-                                                        N) + y * t * (t - 1) * (3. - 2. / N) / N - t * (t - 1) * (t - 2) / float(N)**2)
-        s = 0.
         # NOTE: the upper limit of this sum is taken from Stephens 1965
-        for t in range(int(np.floor(N * (1 - D))) + 1):
-            term = T(t) * comb(N, t) * (1 - D - t / float(N))**(N - t - 1)
-            s += term
-        return s
+        t = np.arange(np.floor(N * (1 - D)) + 1)
+        y = D + t / N
+        Tt = y**(t - 3) * (y**3 * N
+                           - y**2 * t * (3 - 2 / N)
+                           + y * t * (t - 1) * (3 - 2 / N) / N
+                           - t * (t - 1) * (t - 2) / N**2)
+        term = Tt * comb(N, t) * (1 - D - t / N)**(N - t - 1)
+        return term.sum()
     else:
         z = D * np.sqrt(N)
-        S1 = 0.
-        term_eps = 1e-12
-        abs_eps = 1e-100
-        for m in itertools.count(1):
-            T1 = 2. * (4. * m**2 * z**2 - 1.) * np.exp(-2. * m**2 * z**2)
-            so = S1
-            S1 += T1
-            if np.abs(S1 - so) / (np.abs(S1) + np.abs(so)
-                                  ) < term_eps or np.abs(S1 - so) < abs_eps:
-                break
-        S2 = 0.
-        for m in itertools.count(1):
-            T2 = m**2 * (4. * m**2 * z**2 - 3.) * np.exp(-2 * m**2 * z**2)
-            so = S2
-            S2 += T2
-            if np.abs(S2 - so) / (np.abs(S2) + np.abs(so)
-                                  ) < term_eps or np.abs(S1 - so) < abs_eps:
-                break
-        return S1 - 8 * D / 3. * S2
+        # When m*z>18.82 (sqrt(-log(finfo(double))/2)), exp(-2m**2z**2)
+        # underflows.  Cutting off just before avoids triggering a (pointless)
+        # underflow warning if `under="warn"`.
+        ms = np.arange(1, 18.82 / z)
+        S1 = (2 * (4 * ms**2 * z**2 - 1) * np.exp(-2 * ms**2 * z**2)).sum()
+        S2 = (ms**2 * (4 * ms**2 * z**2 - 3) * np.exp(-2 * ms**2 * z**2)).sum()
+        return S1 - 8 * D / 3 * S2
 
 
 def kuiper(data, cdf=lambda x: x, args=()):
