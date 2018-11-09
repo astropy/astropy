@@ -21,7 +21,6 @@ In particular, this release includes:
 * :ref:`whatsnew-3.1-nddata`
 * :ref:`whatsnew-3.1-units`
 * :ref:`whatsnew-3.1-nocopy-unit`
-* :ref:`whatsnew-3.1-mag-zero-pt`
 * :ref:`whatsnew-3.1-tcmb`
 * :ref:`whatsnew-3.1-littleh`
 * :ref:`whatsnew-3.1-cosmology`
@@ -274,14 +273,6 @@ operator that creates a `~astropy.units.Quantity` without copying the data::
 Depending on the size of the array, this can be several times faster than  using
 the ``*`` operator. Note that this means that the quantity and the array now
 share the same memory (so modifying the array will modify the quantity).
-
-
-.. _whatsnew-3.1-mag-zero-pt:
-
-Magnitude zero points
----------------------
-
-.. https://github.com/astropy/astropy/pull/7891
 
 
 .. _whatsnew-3.1-tcmb:
