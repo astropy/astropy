@@ -335,6 +335,7 @@ astropy.wcs
 
 - Deprecated ``_naxis1`` and ``_naxis2`` in favor of ``pixel_shape``. [#7973]
 
+- Added compatibility to wcslib version 6 [#8093]
 
 API Changes
 -----------
