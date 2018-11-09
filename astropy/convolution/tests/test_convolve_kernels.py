@@ -12,12 +12,13 @@ from ..kernels import Moffat2DKernel
 
 
 SHAPES_ODD = [[15, 15], [31, 31]]
-SHAPES_EVEN = [[8, 8], [16, 16], [32, 32]]
+SHAPES_EVEN = [[8, 8], [16, 16], [32, 32]]  # FIXME: not used ?!
+NOSHAPE = [[None, None]]
 WIDTHS = [2, 3, 4, 5]
 
 KERNELS = []
 
-for shape in SHAPES_ODD:
+for shape in SHAPES_ODD + NOSHAPE:
     for width in WIDTHS:
 
         KERNELS.append(Gaussian2DKernel(width,
