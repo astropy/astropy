@@ -9,4 +9,8 @@
 .. ================
 ..
 .. Here we provide some tips and tricks for how to optimize performance of code
-.. using `astropy.modeling`.
+using `astropy.modeling`.
+
+Initializing a compound model with many constituent models can be time consuming. If your code uses the same compound model repeatedly consider initializing it once and reusing the model.
+
+Consider the performance tips that apply to quantities when initializing and evaluating models with quantities.
