@@ -5,8 +5,16 @@
 
 .. _astropy-nddata-performance:
 
-.. Performance Tips
-.. ================
-..
-.. Here we provide some tips and tricks for how to optimize performance of code
-.. using `astropy.nddata`.
+Performance Tips
+================
+
++ Using the uncertainty class `~astropy.nddata.VarianceUncertainty` will
+  be somewhat more efficient than the other two uncertainty classes,
+  `~astropy.nddata.InverseVariance` and `~astropy.nddata.StdDevUncertainty`.
+  The latter two are converted to variance for the purposes of error
+  propagation and then converted from variance back to the original
+  uncertainty type. The performance difference should be small.
++ When possible, mask values by setting them to ``np.nan`` and use the
+  Numpy functions and methods that automatically exclude ``np.nan``,
+  like ``np.nanmedian`` and ``np.nanstd``. That will typically be much
+  faster than using `numpy.ma.MaskedArray`.
