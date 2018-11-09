@@ -11,6 +11,7 @@ Performance Tips
 Constructing |Table| objects row-by-row using
 :meth:`~astropy.table.Table.add_row` can be very slow::
 
+    >>> from astropy.table import Table
     >>> t = Table(names=['a', 'b'])
     >>> for i in range(100):
     ...    t.add_row((1, 2))
