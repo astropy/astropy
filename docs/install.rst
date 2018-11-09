@@ -70,6 +70,7 @@ Astropy also depends on other packages for optional features:
 
 - `bottleneck <https://pypi.org/project/Bottleneck/>`_: Improves the performance
   of sigma-clipping and other functionality that may required computing statistics
+  on arrays with NaN values.
 
 .. note:: Also see ``pip-requirements-dev``.
 
