@@ -856,7 +856,7 @@ astropy.io.misc
   unicode strings.  Now those columns are first encoded to UTF-8 and
   written as byte strings. [#7024, #8017]
 
-- Fixed a bug with serializing the bounding_box of models initialized 
+- Fixed a bug with serializing the bounding_box of models initialized
   with ``Quantities`` . [#8052]
 
 astropy.io.fits
@@ -878,7 +878,7 @@ astropy.modeling
 - Fix behaviour of certain models with units, by making certain unit-related
   attributes readonly. [#7210]
 
-- Fixed an issue with validating a ``bounding_box`` whose items are 
+- Fixed an issue with validating a ``bounding_box`` whose items are
   ``Quantities``. [#8052]
 
 astropy.nddata
@@ -1714,6 +1714,9 @@ astropy.constants
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
+
+- Fix Moffat2DKernel's FWHM computation, which has an influence on the default
+  size of the kernel when no size is given. [#8105]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
