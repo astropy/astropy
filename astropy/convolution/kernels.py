@@ -801,10 +801,9 @@ class Moffat2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, gamma, alpha, **kwargs):
-        self._model = models.Moffat2D((gamma - 1.0) / (np.pi * alpha * alpha),
+        self._model = models.Moffat2D((alpha - 1.0) / (np.pi * gamma * gamma),
                                       0, 0, gamma, alpha)
-        fwhm = 2.0 * alpha * (2.0 ** (1.0 / gamma) - 1.0) ** 0.5
-        self._default_size = _round_up_to_odd_integer(4.0 * fwhm)
+        self._default_size = _round_up_to_odd_integer(4.0 * self._model.fwhm)
         super().__init__(**kwargs)
         self.normalize()
         self._truncation = None
