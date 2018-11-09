@@ -38,11 +38,11 @@ smaller improvements and bug fixes, which are described in the
 
 .. _whatsnew-3.1-tips:
 
-Performance tips
+Performance Tips
 ================
 
 We now include a standard section called **Performance tips** in the
-documentation for  each sub-package (when appropriate) which help you get the
+documentation for each sub-package (when appropriate) which helps you get the
 best performance out of a given sub-package. For example, if you want to
 improve the performance of your code when using :class:`~astropy.units.Unit`
 and :class:`~astropy.units.Quantity`, you can read up about it in the
@@ -50,7 +50,7 @@ and :class:`~astropy.units.Quantity`, you can read up about it in the
 
 .. _whatsnew-3.1-uncertainty:
 
-New sub-package for uncertainties and distributions
+New Sub-package for Uncertainties and Distributions
 ===================================================
 
 Astropy 3.1 includes a new experimentation sub-package: :ref:`astropy-uncertainty`.
@@ -93,7 +93,7 @@ the future if user feedback calls for it.
 
 .. _whatsnew-3.1-transit-periodogram:
 
-New box least squares periodogram
+New Box Least Squares Periodogram
 =================================
 
 Astropy now has an implementation of the box least squares (BLS) periodogram
@@ -125,10 +125,14 @@ series includes a transiting planet:
     model = BoxLeastSquares(t, y, dy=0.01)
     periodogram = model.autopower(0.2)
 
-    plt.figure(figsize=(8, 4))
-    plt.plot(periodogram.period, periodogram.power, "k")
-    plt.xlabel("period [day]")
-    plt.ylabel("power")
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 8))
+    ax1.scatter(t, y, c="k", s=1)
+    ax1.set_xlabel("time [day]")
+    ax1.set_xlabel("flux [arbitrary]")
+
+    ax2.plot(periodogram.period, periodogram.power, "k")
+    ax2.set_xlabel("period [day]")
+    ax2.set_ylabel("power")
 
 
 .. _whatsnew-3.1-coordinates:
@@ -228,8 +232,8 @@ standard.
 
 .. _whatsnew-3.1-nddata:
 
-New features in NDData
-======================
+Improvements and New features in NDData
+=======================================
 
 New uncertainty types
 ---------------------
@@ -249,7 +253,7 @@ specify which planes to include in calculating masks. See
 
 .. _whatsnew-3.1-units:
 
-Improvements and new features for Units and Quantities
+Improvements and New Features for Units and Quantities
 ======================================================
 
 .. _whatsnew-3.1-nocopy-unit:
@@ -316,7 +320,7 @@ See :ref:`H0-equivalency` for more details.
 
 .. _whatsnew-3.1-cosmology:
 
-Faster cosmological calculations
+Faster Cosmological Calculations
 ================================
 
 There are now significant speedups (up to 100x) for distance and age
@@ -333,8 +337,8 @@ will now be significantly faster.
 
 .. _whatsnew-3.1-visualization:
 
-Improvements to astropy.visualization
-=====================================
+Improvements and New Features in astropy.visualization
+======================================================
 
 .. _whatsnew-3.1-wcsaxes:
 
@@ -471,8 +475,8 @@ high-level class.
 
 .. _whatsnew-3.1-fits:
 
-Improvements to astropy.io.fits
-===============================
+Improvements and New Features in astropy.io.fits
+================================================
 
 The ``fitsheader`` command line tool now supports a `dfits+fitsort
 <https://www.eso.org/sci/software/eclipse/eug/eug/node8.html>`_ mode,
