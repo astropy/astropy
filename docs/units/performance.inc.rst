@@ -43,7 +43,7 @@ make use of the ``<<`` operator to attach the unit to the array::
     In [6]: %timeit array << u.m / u.s / u.kg / u.sr
     47.1 µs ± 5.77 µs per loop (mean ± std. dev. of 7 runs, 10000 loops each)
 
-Note that these are now **micro**seconds, so this is 2000x faster than the
+Note that these are now **microseconds**, so this is 2000x faster than the
 original case with no brackets. Note that brackets are not needed when using
 ``<<`` since ``*`` and ``/`` have a higher precedence, so the unit will be
 evaluated first. When using ``<<``, be aware that because the data is not being
