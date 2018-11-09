@@ -69,17 +69,21 @@ uncertainty in the geometric mean of three numbers that have unifo
 
 .. plot::
   :include-source:
+  :align: center
 
   import numpy as np
   from astropy import units as u
   from astropy import uncertainty as unc
   from astropy.visualization import quantity_support
   from matplotlib import pyplot as plt
+
   np.random.seed(12345)
+
   a = unc.normal(1.5*u.kpc, std=50*u.pc, n_samples=10000)
   b = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=10000)
   c = unc.Distribution(((np.random.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
   d = (a * b * c) ** (1/3)
+
   with quantity_support():
       plt.hist(d.distribution, bins=50)
       plt.title(r'$\mu={0.value:.2f}$ {0.unit}, $\sigma={1.value:.2f}$ {1.unit}'.format(d.pdf_mean, d.pdf_std))
@@ -417,7 +421,32 @@ the ``direction='in'/'out'`` argument to :meth:`~astropy.visualization.wcsaxes.C
 New convenience function for imshow with ImageNormalize
 -------------------------------------------------------
 
-.. https://github.com/astropy/astropy/pull/7785
+A new `~astropy.visualization.imshow_norm` function has been created to simplify
+the display of images using matplotlib with astronomy-appropriate stretches.
+Specifically, it allows plotting an image using matplotlib's imshow, using the
+`~astropy.visualization` stretch and interval classes, but all in a single
+compact function call:
+
+.. plot::
+    :include-source:
+    :align: center
+
+    import matplotlib.pyplot as plt
+    from astropy.utils.data import get_pkg_data_filename
+    from astropy.io import fits
+    from astropy.visualization import imshow_norm, PercentileInterval, SqrtStretch
+
+    # Get an example dataset
+    img_fn = get_pkg_data_filename('visualization/reprojected_sdss_r.fits.bz2')
+    image = fits.getdata(img_fn, 0)
+
+    # plot the central 99th percentile with a sqrt stretch in one call
+    imshow_norm(image, origin='lower',
+                interval=PercentileInterval(99), stretch=SqrtStretch())
+    plt.colorbar(orientation='horizontal')
+
+See the :ref:`astropy-visualization-stretchnorm` section for more details on
+this and related features.
 
 
 .. _whatsnew-3.1-ape14:
