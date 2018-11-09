@@ -391,25 +391,36 @@ def test_equinox():
 
 def test_fix():
     w = _wcs.Wcsprm()
-    assert w.fix() == {
+    fix_ref = {
         'cdfix': 'No change',
         'cylfix': 'No change',
+        'obsfix': 'No change',
         'datfix': 'No change',
         'spcfix': 'No change',
         'unitfix': 'No change',
         'celfix': 'No change'}
+    version = wcs._wcs.__version__
+    if version[0] <= "5":
+        del fix_ref['obsfix']
+    assert w.fix() == fix_ref
 
 
 def test_fix2():
     w = _wcs.Wcsprm()
     w.dateobs = '31/12/99'
-    assert w.fix() == {
+    fix_ref = {
         'cdfix': 'No change',
         'cylfix': 'No change',
-        'datfix': "Changed '31/12/99' to '1999-12-31'",
+        'obsfix': 'No change',
+        'datfix': "Set MJD-OBS to 51543.000000 from DATE-OBS.\nChanged DATE-OBS from '31/12/99' to '1999-12-31'",
         'spcfix': 'No change',
         'unitfix': 'No change',
         'celfix': 'No change'}
+    version = wcs._wcs.__version__
+    if version[0] <= "5":
+        del fix_ref['obsfix']
+        fix_ref['datfix'] = "Changed '31/12/99' to '1999-12-31'"
+    assert w.fix() == fix_ref
     assert w.dateobs == '1999-12-31'
     assert w.mjdobs == 51543.0
 
@@ -417,13 +428,19 @@ def test_fix2():
 def test_fix3():
     w = _wcs.Wcsprm()
     w.dateobs = '31/12/F9'
-    assert w.fix() == {
+    fix_ref = {
         'cdfix': 'No change',
         'cylfix': 'No change',
-        'datfix': "Invalid parameter value: invalid date '31/12/F9'",
+        'obsfix': 'No change',
+        'datfix': "Invalid DATE-OBS format '31/12/F9'",
         'spcfix': 'No change',
         'unitfix': 'No change',
         'celfix': 'No change'}
+    version = wcs._wcs.__version__
+    if version[0] <= "5":
+        del fix_ref['obsfix']
+        fix_ref['datfix'] = "Invalid parameter value: invalid date '31/12/F9'"
+    assert w.fix() == fix_ref
     assert w.dateobs == '31/12/F9'
     assert np.isnan(w.mjdobs)
 
