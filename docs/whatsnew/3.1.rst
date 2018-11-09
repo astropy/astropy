@@ -136,7 +136,7 @@ series includes a transiting planet:
 Improvements to astropy.coordinates
 ===================================
 
-We have improved the performance throughout this sub-package. Highlights include
+Performance has been improved throughout this sub-package. Highlights include
 typically 2-3x faster creation of scalar `~astropy.coordinates.SkyCoord` and
 frame classes objects, or up to 20x faster in certain cases. These performance
 improvements translate to nearly all convenience methods and operations on
@@ -219,8 +219,8 @@ A potentially important API change to note is removing timescale from the string
 version of FITS format time string. Previous versions of astropy incorrectly
 included the time scale as part of the string (e.g.
 ``2010-01-01T00:00:34.000(TAI)``). However, the timescale is not part of the
-FITS standard and should not be included, so we have fixed this. For now we will
-continue to parse strings in this format, but this behavior is deprecated and
+FITS standard and should not be included, so this has been fixed. For now
+strings in this format will be parsed, but this behavior is deprecated and
 should no longer be relied on. New FITS strings produced by the
 `~astropy.time.Time` object will no longer include the scale, in line with the
 standard.
