@@ -614,6 +614,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     # NaN and inf catching
     nanmaskarray = np.isnan(array) | np.isinf(array)
     array[nanmaskarray] = 0
+    interpolate_nan = (nan_treatment == 'interpolate') and nanmaskarray.any()
     nanmaskkernel = np.isnan(kernel) | np.isinf(kernel)
     kernel[nanmaskkernel] = 0
 
@@ -751,7 +752,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     kernfft = fftn(np.fft.ifftshift(bigkernel))
     fftmult = arrayfft * kernfft
 
-    interpolate_nan = (nan_treatment == 'interpolate')
     if interpolate_nan:
         if not np.isfinite(fill_value):
             bigimwt = np.zeros(newshape, dtype=complex_dtype)

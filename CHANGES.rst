@@ -763,10 +763,11 @@ astropy.convolution
   hoisting, and vectorization, etc. Compiler optimization level ``-O2`` required for
   hoisting and ``-O3`` for vectorization. [#7293]
 
-- ``convolve()``: ``nan_treatment=‘interpolate’`` was slow to compute irrespective of
-  whether any NaN values exist within the array. The input array is now
-  checked for NaN values and interpolation is disabled if non are found. This is a
-  significant performance boost for arrays without NaN values. [#7293]
+- ``convolve()`` and ``convolve_fft()``: ``nan_treatment=‘interpolate’`` was
+  slow to compute irrespective of whether any NaN values exist within the array.
+  The input array is now checked for NaN values and interpolation is disabled
+  if non are found. This is a significant performance boost for arrays without
+  NaN values. [#7293] [#8101]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
