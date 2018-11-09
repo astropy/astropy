@@ -7,7 +7,7 @@ What's New in Astropy 3.1?
 Overview
 ========
 
-Astropy 3.1 is a major release with a focus on perfrmance enhancements, but also
+Astropy 3.1 is a major release with a focus on performance enhancements, but also
 adds significant new functionality since the 3.0.x series of releases.
 
 In particular, this release includes:
@@ -19,13 +19,14 @@ In particular, this release includes:
 * :ref:`whatsnew-3.1-table`
 * :ref:`whatsnew-3.1-time`
 * :ref:`whatsnew-3.1-nddata`
-* :ref:`whatsnew-3.1-units`
 * :ref:`whatsnew-3.1-nocopy-unit`
 * :ref:`whatsnew-3.1-tcmb`
 * :ref:`whatsnew-3.1-littleh`
 * :ref:`whatsnew-3.1-cosmology`
-* :ref:`whatsnew-3.1-visualization`
+* :ref:`whatsnew-3.1-wcsaxes`
+* :ref:`whatsnew-3.1-imshow-norm`
 * :ref:`whatsnew-3.1-ape14`
+* :ref:`whatsnew-3.1-fits`
 
 In addition to these major changes, Astropy 3.1 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -53,16 +54,16 @@ New sub-package for uncertainties and distributions
 ===================================================
 
 Astropy 3.1 includes a new experimentation sub-package: :ref:`astropy-uncertainty`.
-Currently this sub-package provides uncertainty propogation and classes for
+Currently this sub-package provides uncertainty propagation and classes for
 representing distributions using  a Monte Carlo sampling technique, which is
 useful for some cases but certainly not all.  The longer-term
-plan is to integrate other uncertainty propogation techniques to address typical
+plan is to integrate other uncertainty propagation techniques to address typical
 astronomy uses cases, including integrating with the already-existing
 uncertainty classes that are focused on representing uncertainties in
 `astropy.nddata`.
 
-To demonstrate this new functionality, the example below shows propogation of
-uncertainty in the geometric mean of three numbers that have unifo
+To demonstrate this new functionality, the example below shows propagation of
+uncertainty in the geometric mean of three numbers that have units:
 
 .. plot::
   :include-source:
@@ -132,8 +133,8 @@ series includes a transiting planet:
 
 .. _whatsnew-3.1-coordinates:
 
-Improvements to astropy.coordinates
-===================================
+Improvements to Coordinates
+===========================
 
 Performance has been improved throughout this sub-package. Highlights include
 typically 2-3x faster creation of scalar `~astropy.coordinates.SkyCoord` and
@@ -248,8 +249,8 @@ specify which planes to include in calculating masks. See
 
 .. _whatsnew-3.1-units:
 
-Improvements and new features in astropy.units
-==============================================
+Improvements and new features for Units and Quantities
+======================================================
 
 .. _whatsnew-3.1-nocopy-unit:
 
@@ -305,7 +306,7 @@ and cosmologists.  To see it in action::
   >>> import astropy.units as u
   >>> from astropy.cosmology import WMAP9
   >>> distance = 100 * (u.Mpc/u.littleh)
-  >>> distance
+  >>> distance  # doctest: +FLOAT_CMP
   <Quantity 100. Mpc / littleh>
   >>> distance.to(u.Mpc, u.with_H0(WMAP9.H0))  # doctest: +FLOAT_CMP
   <Quantity 69.32 Mpc>
@@ -399,6 +400,8 @@ tick labels to be decimal using the ``decimal=True`` option to
 the ability to control whether the ticks should be facing inwards or outwards using
 the ``direction='in'/'out'`` argument to :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticks`.
 
+In addition to these improvements, drawing of contours has now been made significantly faster,
+by factors of 10-100x depending on the specific contours shown.
 
 .. _whatsnew-3.1-imshow-norm:
 
@@ -454,7 +457,7 @@ objects::
     >>> wcs.pixel_to_world([1, 2], [4, 3])  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SkyCoord (FK5: equinox=2000.0): (ra, dec) in deg
         [(266.97242993, -29.42584415), (266.97084321, -29.42723968)]>
-    >>> wcs.world_to_pixel(SkyCoord('00h00m00s +00d00m00s', frame='galactic'))  # doctest: +REMOTE_DATA
+    >>> wcs.world_to_pixel(SkyCoord('00h00m00s +00d00m00s', frame='galactic'))  # doctest: +REMOTE_DATA +FLOAT_CMP
     [array(356.85179997), array(357.45340331)]
 
 You can find out more about using this new API in :ref:`wcsapi`.
@@ -465,6 +468,8 @@ interface for World Coordinate Systems (APE 14)
 <https://doi.org/10.5281/zenodo.1188875>`_, and we have provided base classes
 defining the API, as well as wrapper classes to help automatically implement the
 high-level class.
+
+.. _whatsnew-3.1-fits:
 
 Improvements to astropy.io.fits
 ===============================

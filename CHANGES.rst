@@ -388,10 +388,6 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
-- The ``SigmaClip`` class and ``sigma_clip`` and
-  ``sigma_clipped_stats`` functions are now significantly faster.
-  [#7478]
-
 - Add an ``astropy.stats.bls`` module with an implementation of the "box least
   squares" periodogram that is commonly used for discovering transiting
   exoplanets and eclipsing binaries. [#7391]
@@ -620,6 +616,7 @@ astropy.io.misc
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
+
 - The ``fits.table_to_hdu()`` function will translate any column ``format``
   attributes to a TDISPn format string, if possible, and store it as a TDISPn
   keyword in the ``HDU`` header. [#7226]
@@ -786,6 +783,13 @@ astropy.coordinates
 
 - Sped up initialization of ``Longitude`` by ~40%. [#7616]
 
+astropy.stats
+^^^^^^^^^^^^^
+
+- The ``SigmaClip`` class and ``sigma_clip`` and
+  ``sigma_clipped_stats`` functions are now significantly faster.
+  [#7478]
+
 astropy.units
 ^^^^^^^^^^^^^
 
@@ -855,7 +859,7 @@ astropy.io.misc
   unicode strings.  Now those columns are first encoded to UTF-8 and
   written as byte strings. [#7024, #8017]
 
-- Fixed a bug with serializing the bounding_box of models initialized 
+- Fixed a bug with serializing the bounding_box of models initialized
   with ``Quantities`` . [#8052]
 
 astropy.io.fits
@@ -877,7 +881,7 @@ astropy.modeling
 - Fix behaviour of certain models with units, by making certain unit-related
   attributes readonly. [#7210]
 
-- Fixed an issue with validating a ``bounding_box`` whose items are 
+- Fixed an issue with validating a ``bounding_box`` whose items are
   ``Quantities``. [#8052]
 
 astropy.nddata
