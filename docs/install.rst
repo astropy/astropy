@@ -68,6 +68,9 @@ Astropy also depends on other packages for optional features:
   serialization of various Astropy classes into a portable, hierarchical,
   human-readable representation.
 
+- `bottleneck <https://pypi.org/project/Bottleneck/>`_: Improves the performance
+  of sigma-clipping and other functionality that may required computing statistics
+
 .. note:: Also see ``pip-requirements-dev``.
 
 However, note that these only need to be installed if those particular features
