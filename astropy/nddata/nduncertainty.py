@@ -271,9 +271,13 @@ class NDUncertainty(metaclass=ABCMeta):
     def __setstate__(self, state):
         if len(state) != 3:
             raise TypeError('The state should contain 3 items.')
-        self.array = state[0]
+        self._array = state[0]
         self._unit = state[1]
-        self.parent_nddata = state[2]
+
+        parent = state[2]
+        if parent is not None:
+            parent = weakref.ref(parent)
+        self._parent_nddata = parent
 
     def __getitem__(self, item):
         """Normal slicing on the array, keep the unit and return a reference.
