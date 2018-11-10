@@ -671,6 +671,9 @@ astropy.nddata
 - Fixed rounding behavior in ``overlap_slices`` for even-sized small
   arrays. [#7859]
 
+- Added support for pickling ``NDData`` instances that have an uncertainty.
+  [#7383]
+
 astropy.samp
 ^^^^^^^^^^^^
 
