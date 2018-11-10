@@ -358,6 +358,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fix ``Moffat1D`` and ``Moffat2D`` derivatives. [#8094]
+
 - Add a ``Multiply`` model which preserves unit through evaluate, unlike
   ``Scale`` which is dimensionless. [#7210]
 
