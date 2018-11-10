@@ -634,7 +634,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     else:
         kernel_scale = kernel.sum()
         if np.abs(kernel_scale) < normalization_zero_tol:
-            if nan_treatment == 'interpolate':
+            if interpolate_nan:
                 raise ValueError('Cannot interpolate NaNs with an unnormalizable kernel')
             else:
                 # the kernel's sum is near-zero, so it can't be scaled
