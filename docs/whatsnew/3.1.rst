@@ -96,9 +96,9 @@ the future if user feedback calls for it.
 New Box Least Squares Periodogram
 =================================
 
-Astropy now has an implementation of the box least squares (BLS) periodogram
-that is commonly used to detect transiting exoplanets and eclipsing binary star
-systems. The interface has been designed to match the
+Astropy now has an implementation of the :ref:`stats-bls`
+that is commonly used to detect transiting exoplanets and eclipsing
+binary star systems. The interface has been designed to match the
 `~astropy.stats.LombScargle` periodogram, and it can be used with a time series
 dataset ``time``, ``flux``, and ``flux_err`` as follows::
 
@@ -133,6 +133,8 @@ series includes a transiting planet:
     ax2.plot(periodogram.period, periodogram.power, "k")
     ax2.set_xlabel("period [day]")
     ax2.set_ylabel("power")
+
+
 
 
 .. _whatsnew-3.1-coordinates:
