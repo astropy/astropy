@@ -1,3 +1,6 @@
+
+.. _astropy-visualization-stretchnorm:
+
 **********************************
 Image stretching and normalization
 **********************************
@@ -28,7 +31,6 @@ percentiles).
 Identifying lower and upper limits, as well as re-normalizing, is
 described in the `Intervals and Normalization`_ section, while
 stretching is described in the `Stretching`_ section.
-
 
 Intervals and Normalization
 ===========================

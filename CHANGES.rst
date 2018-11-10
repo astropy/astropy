@@ -168,10 +168,6 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
-- The ``SigmaClip`` class and ``sigma_clip`` and
-  ``sigma_clipped_stats`` functions are now significantly faster.
-  [#7478]
-
 - Add an ``astropy.stats.bls`` module with an implementation of the "box least
   squares" periodogram that is commonly used for discovering transiting
   exoplanets and eclipsing binaries. [#7391]
@@ -229,17 +225,18 @@ astropy.time
 - Added an ``insert`` method to allow inserting one or more values into a
   ``Time`` or ``TimeDelta`` object. [#7897]
 
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-- This sub-package was added as a "preview" (i.e. API unstable), containing
-  the ``Distribution`` class and associated convenience functions. [#6945]
 - Remove timescale from string version of FITS format time string.
   The timescale is not part of the FITS standard and should not be included.
   This change may cause some compatibility issues for code that relies on
   round-tripping a FITS format string with a timescale. Strings generated
   from previous versions of this package are still understood but a
   DeprecationWarning will be issued. [#7870]
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+- This sub-package was added as a "preview" (i.e. API unstable), containing
+  the ``Distribution`` class and associated convenience functions. [#6945]
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -265,13 +262,11 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-astropy.visualization.wcsaxes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Add support for setting ``set_separator(None)`` to use default
-
 - Added ``imshow_norm`` function, which combines imshow and creation of a
   ``ImageNormalize`` object. [#7785]
+
+astropy.visualization.wcsaxes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Add support for setting ``set_separator(None)`` in WCSAxes to use default
   separators. [#7570]
@@ -402,6 +397,7 @@ astropy.io.misc
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
+
 - The ``fits.table_to_hdu()`` function will translate any column ``format``
   attributes to a TDISPn format string, if possible, and store it as a TDISPn
   keyword in the ``HDU`` header. [#7226]
@@ -567,6 +563,13 @@ astropy.coordinates
   [#7958]
 
 - Sped up initialization of ``Longitude`` by ~40%. [#7616]
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- The ``SigmaClip`` class and ``sigma_clip`` and
+  ``sigma_clipped_stats`` functions are now significantly faster.
+  [#7478]
 
 astropy.units
 ^^^^^^^^^^^^^

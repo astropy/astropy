@@ -33,7 +33,9 @@ well-behaved distributions (e.g., the Normal distribution) have
 analytic forms which may eventually enable a more compact/efficient
 representation.  In the future these may provide a coherent uncertainty
 propagation mechanism to work with `~astropy.nddata.NDData`  However, this is
-not currently implemented.
+not currently implemented. Hence, details of storing uncertainties for
+`~astropy.nddata.NDData` objects can be found in the :ref:`astropy_nddata`
+section.
 
 Getting Started
 ===============
