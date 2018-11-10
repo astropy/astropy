@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-
+import pickle
 import textwrap
 from collections import OrderedDict
 
@@ -353,6 +353,39 @@ def test_param_unit():
     # (another NDData as data)
     nd3 = NDData(nd, unit='km')
     assert nd3.unit == u.km
+
+
+def test_pickle_nddata_with_uncertainty():
+    ndd = NDData(np.ones(3),
+                 uncertainty=StdDevUncertainty(np.ones(5), unit=u.m),
+                 unit=u.m)
+    ndd_dumped = pickle.dumps(ndd)
+    ndd_restored = pickle.loads(ndd_dumped)
+    assert type(ndd_restored.uncertainty) is StdDevUncertainty
+    assert ndd_restored.uncertainty.parent_nddata is ndd_restored
+    assert ndd_restored.uncertainty.unit == u.m
+
+
+def test_pickle_uncertainty_only():
+    ndd = NDData(np.ones(3),
+                 uncertainty=StdDevUncertainty(np.ones(5), unit=u.m),
+                 unit=u.m)
+    uncertainty_dumped = pickle.dumps(ndd.uncertainty)
+    uncertainty_restored = pickle.loads(uncertainty_dumped)
+    np.testing.assert_array_equal(ndd.uncertainty.array,
+                                  uncertainty_restored.array)
+    assert ndd.uncertainty.unit == uncertainty_restored.unit
+    # Even though it has a parent there is no one that references the parent
+    # after unpickling so the weakref "dies" immediately after unpickling
+    # finishes.
+    assert uncertainty_restored.parent_nddata is None
+
+
+def test_pickle_nddata_without_uncertainty():
+    ndd = NDData(np.ones(3), unit=u.m)
+    dumped = pickle.dumps(ndd)
+    ndd_restored = pickle.loads(dumped)
+    np.testing.assert_array_equal(ndd.data, ndd_restored.data)
 
 
 # Check that the meta descriptor is working as expected. The MetaBaseTest class
