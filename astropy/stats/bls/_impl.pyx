@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+#cython: language_level=3
 
 import numpy as np
 cimport numpy as np
