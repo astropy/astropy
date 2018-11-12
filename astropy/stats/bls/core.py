@@ -54,14 +54,14 @@ class BoxLeastSquares(object):
     >>> model = BoxLeastSquares(t, y)
     >>> results = model.autopower(0.16)
     >>> results.period[np.argmax(results.power)]  # doctest: +FLOAT_CMP
-    2.005441310651872
+    1.9923406038842544
 
     Compute the periodogram on a user-specified period grid:
 
     >>> periods = np.linspace(1.9, 2.1, 5)
     >>> results = model.power(periods, 0.16)
     >>> results.power  # doctest: +FLOAT_CMP
-    array([0.01479464, 0.03804835, 0.09640946, 0.05199547, 0.01970484])
+    array([0.01421067, 0.02842475, 0.10867671, 0.05117755, 0.01783253])
 
     If the inputs are AstroPy Quantities with units, the units will be
     validated and the outputs will also be Quantities with appropriate units:
