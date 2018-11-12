@@ -4,8 +4,6 @@ This file tests the behavior of subclasses of Representation and Frames
 from copy import deepcopy
 from collections import OrderedDict
 
-import pytest
-
 from astropy.coordinates import Longitude, Latitude
 from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
                                                 SphericalRepresentation,
@@ -15,7 +13,6 @@ from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransform
 from astropy.coordinates import ICRS
 from astropy.coordinates.baseframe import RepresentationMapping
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 import astropy.units as u
 
@@ -45,20 +42,16 @@ def test_unit_representation_subclass():
                                    **kwargs)
             return self
 
-    with pytest.warns(AstropyDeprecationWarning,
-                      match="The 'recommended_units' attribute is deprecated"):
-        class UnitSphericalWrap180Representation(UnitSphericalRepresentation):
-            attr_classes = OrderedDict([('lon', Longitude180),
-                                        ('lat', Latitude)])
-            recommended_units = {'lon': u.deg, 'lat': u.deg}
+    class UnitSphericalWrap180Representation(UnitSphericalRepresentation):
+        attr_classes = OrderedDict([('lon', Longitude180),
+                                    ('lat', Latitude)])
 
-        class SphericalWrap180Representation(SphericalRepresentation):
-            attr_classes = OrderedDict([('lon', Longitude180),
-                                        ('lat', Latitude),
-                                        ('distance', u.Quantity)])
-            recommended_units = {'lon': u.deg, 'lat': u.deg}
+    class SphericalWrap180Representation(SphericalRepresentation):
+        attr_classes = OrderedDict([('lon', Longitude180),
+                                    ('lat', Latitude),
+                                    ('distance', u.Quantity)])
 
-            _unit_representation = UnitSphericalWrap180Representation
+        _unit_representation = UnitSphericalWrap180Representation
 
     class MyFrame(ICRS):
         default_representation = SphericalWrap180Representation
