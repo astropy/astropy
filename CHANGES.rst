@@ -213,9 +213,12 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-- Nothing changed yet.
+astropy.stats
+^^^^^^^^^^^^^
 
-
+- A Cython implementation for `astropy.stats.kuiper_two` and a vectorized
+  implementation for `astropy.stats.kuiper_false_positive_probability` have
+  been added, speeding up both functions.  [#8104]
 
 
 3.1 (unreleased)

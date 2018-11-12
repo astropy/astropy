@@ -19,6 +19,7 @@ from warnings import warn
 
 from ..utils.decorators import deprecated_renamed_argument
 from ..utils import isiterable
+from . import _stats
 
 
 __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
@@ -1417,18 +1418,19 @@ def kuiper_two(data1, data2):
         The fpp is quite approximate, especially for small samples.
 
     """
-    data1, data2 = np.sort(data1), np.sort(data2)
-
-    if len(data2) < len(data1):
-        data1, data2 = data2, data1
-
-    # this could be more efficient
-    cdfv1 = np.searchsorted(data2, data1) / float(len(data2))
-    # this could be more efficient
-    cdfv2 = np.searchsorted(data1, data2) / float(len(data1))
-    D = (np.amax(cdfv1 - np.arange(len(data1)) / float(len(data1))) +
-         np.amax(cdfv2 - np.arange(len(data2)) / float(len(data2))))
-
+    data1 = np.sort(data1)
+    data2 = np.sort(data2)
+    n1, = data1.shape
+    n2, = data2.shape
+    common_type = np.find_common_type([], [data1.dtype, data2.dtype])
+    if not (np.issubdtype(common_type, np.number)
+            and not np.issubdtype(common_type, np.complexfloating)):
+        raise ValueError('kuiper_two only accepts real inputs')
+    # nans, if any, are at the end after sorting.
+    if np.isnan(data1[-1]) or np.isnan(data2[-1]):
+        raise ValueError('kuiper_two only accepts non-nan inputs')
+    D = _stats.ks_2samp(np.asarray(data1, common_type),
+                        np.asarray(data2, common_type))
     Ne = len(data1) * len(data2) / float(len(data1) + len(data2))
     return D, kuiper_false_positive_probability(D, Ne)
 
