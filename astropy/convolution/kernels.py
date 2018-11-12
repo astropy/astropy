@@ -801,8 +801,10 @@ class Moffat2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, gamma, alpha, **kwargs):
-        self._model = models.Moffat2D((alpha - 1.0) / (np.pi * gamma * gamma),
-                                      0, 0, gamma, alpha)
+        # Compute amplitude, from
+        # https://en.wikipedia.org/wiki/Moffat_distribution
+        amplitude = (alpha - 1.0) / (np.pi * gamma * gamma)
+        self._model = models.Moffat2D(amplitude, 0, 0, gamma, alpha)
         self._default_size = _round_up_to_odd_integer(4.0 * self._model.fwhm)
         super().__init__(**kwargs)
         self.normalize()
