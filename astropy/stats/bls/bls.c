@@ -36,6 +36,11 @@ void compute_objective(
     }
 }
 
+inline double wrap_into (double x, double period)
+{
+    return x - period * floor(x / period);
+}
+
 int run_bls (
     // Inputs
     int N,                   // Length of the time array
@@ -105,10 +110,12 @@ int run_bls (
     }
 
     // Pre-accumulate some factors.
+    double min_t = INFINITY;
     double sum_y = 0.0, sum_ivar = 0.0;
     int i;
     #pragma omp parallel for reduction(+:sum_y), reduction(+:sum_ivar)
     for (i = 0; i < N; ++i) {
+        min_t = fmin(min_t, t[i]);
         sum_y += y[i] * ivar[i];
         sum_ivar += ivar[i];
     }
@@ -138,7 +145,7 @@ int run_bls (
             mean_ivar[n] = 0.0;
         }
         for (n = 0; n < N; ++n) {
-            int ind = (int)(fabs(fmod(t[n], period)) / bin_duration) + 1;
+            int ind = (int)(wrap_into(t[n] - min_t, period) / bin_duration) + 1;
             mean_y[ind] += y[n] * ivar[n];
             mean_ivar[ind] += ivar[n];
         }
@@ -203,7 +210,7 @@ int run_bls (
                     best_depth_snr[p] = depth_snr;
                     best_log_like[p]  = log_like;
                     best_duration[p]  = dur * bin_duration;
-                    best_phase[p]     = fmod(n*bin_duration + 0.5*best_duration[p], period);
+                    best_phase[p]     = fmod(n*bin_duration + 0.5*best_duration[p] + min_t, period);
                 }
             }
         }
