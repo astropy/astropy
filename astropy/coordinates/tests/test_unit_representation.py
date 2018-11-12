@@ -1,7 +1,6 @@
 """
 This file tests the behavior of subclasses of Representation and Frames
 """
-
 from copy import deepcopy
 from collections import OrderedDict
 
@@ -14,8 +13,6 @@ from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransform
 from astropy.coordinates import ICRS
 from astropy.coordinates.baseframe import RepresentationMapping
-
-from .. import representation as r
 
 import astropy.units as u
 
@@ -48,13 +45,11 @@ def test_unit_representation_subclass():
     class UnitSphericalWrap180Representation(UnitSphericalRepresentation):
         attr_classes = OrderedDict([('lon', Longitude180),
                                     ('lat', Latitude)])
-        recommended_units = {'lon': u.deg, 'lat': u.deg}
 
     class SphericalWrap180Representation(SphericalRepresentation):
         attr_classes = OrderedDict([('lon', Longitude180),
                                     ('lat', Latitude),
                                     ('distance', u.Quantity)])
-        recommended_units = {'lon': u.deg, 'lat': u.deg}
 
         _unit_representation = UnitSphericalWrap180Representation
 
