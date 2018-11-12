@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-
 """
 This includes tests for the Distance class and related calculations
 """
@@ -129,10 +127,10 @@ def test_distances_scipy():
     npt.assert_allclose(d6.value, 3.5417046898762366e+22)
 
     with pytest.raises(ValueError):
-        d7 = Distance(cosmology=WMAP5, unit=u.km)
+        Distance(cosmology=WMAP5, unit=u.km)
 
     with pytest.raises(ValueError):
-        d8 = Distance()
+        Distance()
 
 
 def test_distance_change():

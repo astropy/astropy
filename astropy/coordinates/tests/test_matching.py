@@ -131,7 +131,8 @@ def test_python_kdtree(monkeypatch):
     ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree, distance=[1, 2, 3, 4]*u.kpc)
 
     monkeypatch.delattr("scipy.spatial.cKDTree")
-    matching.match_coordinates_sky(cmatch, ccatalog)
+    with pytest.warns(UserWarning, match='C-based KD tree not found'):
+        matching.match_coordinates_sky(cmatch, ccatalog)
 
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
