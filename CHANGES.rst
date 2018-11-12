@@ -1717,6 +1717,9 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
+- Fix Moffat2DKernel's FWHM computation, which has an influence on the default
+  size of the kernel when no size is given. [#8105]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
