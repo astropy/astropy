@@ -99,6 +99,7 @@ def _bls_slow_one(t, y, ivar, duration, oversample, use_likelihood, period):
     """A private function to compute the brute force periodogram result"""
     best = (-np.inf, None)
     hp = 0.5*period
+    min_t = np.min(t)
     for dur in duration:
 
         # Compute the phase grid (this is set by the duration and oversample).
@@ -107,7 +108,7 @@ def _bls_slow_one(t, y, ivar, duration, oversample, use_likelihood, period):
 
         for t0 in phase:
             # Figure out which data points are in and out of transit.
-            m_in = np.abs((t-t0+hp) % period - hp) < 0.5*dur
+            m_in = np.abs((t-min_t-t0+hp) % period - hp) < 0.5*dur
             m_out = ~m_in
 
             # Compute the estimates of the in and out-of-transit flux.
@@ -135,7 +136,8 @@ def _bls_slow_one(t, y, ivar, duration, oversample, use_likelihood, period):
             if depth > 0 and objective > best[0]:
                 best = (
                     objective,
-                    (objective, depth, depth_err, dur, t0, snr, loglike)
+                    (objective, depth, depth_err, dur, (t0+min_t) % period,
+                     snr, loglike)
                 )
 
     return best[1]
