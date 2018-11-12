@@ -1,5 +1,5 @@
+#cython: language_level=3, boundscheck=False
 """ Cython inverse efuncs for cosmology integrals"""
-#cython boundcheck=False
 
 cimport cython
 from libc.math cimport exp, pow
