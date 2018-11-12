@@ -1,3 +1,4 @@
+#cython: language_level=3
 """
 Cython utilities for numpy structured arrays.
 

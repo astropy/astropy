@@ -1,3 +1,4 @@
+#cython: language_level=3
 """
 This module provides mixin bases classes for the Column and MaskedColumn
 classes to provide those classes with their custom __getitem__ implementations.
@@ -20,7 +21,6 @@ applies the subclass to those arrays, so they are returned as Column instances
 behavior in the case where the element returned from a single row of the
 Column is itself an array.
 """
-
 
 import sys
 import numpy as np
