@@ -346,11 +346,4 @@ def test_negative_times(data):
     # Shift the transit times back into the unshifted coordinates
     results2.transit_time = (results2.transit_time + mu) % results2.period
 
-    # Make sure that the period and phase for the top 50 peaks match
-    inds = np.argsort(results1.power)[-50:]
-    mean_duration = 0.5 * (results1.duration[inds] + results2.duration[inds])
-    delta = np.abs(results1.transit_time[inds] - results2.transit_time[inds])
-    assert np.all(delta / mean_duration < 0.5)
-
-    delta = np.abs(results1.period[inds] - results2.period[inds])
-    assert np.all(delta / mean_duration < 0.5)
+    assert_allclose_blsresults(results1, results2)
