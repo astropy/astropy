@@ -5,6 +5,8 @@ import numpy as np
 import numpy.ma as ma
 
 from ..convolve import convolve, convolve_fft
+from ..kernels import Gaussian2DKernel
+from ...utils.exceptions import AstropyUserWarning
 
 from numpy.testing import (assert_array_almost_equal_nulp,
                            assert_array_almost_equal,
@@ -925,3 +927,32 @@ def test_non_square_kernel_asymmetric(boundary):
     image[6, 6] = 1
     result = convolve(image, kernel, normalize_kernel=False, boundary=boundary)
     assert_allclose(result[5:8, 4:9], kernel)
+
+
+@pytest.mark.parametrize(('boundary', 'normalize_kernel'),
+                         itertools.product(BOUNDARY_OPTIONS,
+                                           NORMALIZE_OPTIONS))
+def test_uninterpolated_nan_regions(boundary, normalize_kernel):
+    #8086
+    # Test NaN interpolation of contiguous NaN regions with kernels of size
+    # identical and greater than that of the region of NaN values.
+
+    # Test case: kernel.shape == NaN_region.shape
+    kernel = Gaussian2DKernel(1, 5, 5)
+    nan_centroid = np.full(kernel.shape, np.nan)
+    image = np.pad(nan_centroid, pad_width=kernel.shape[0]*2, mode='constant',
+                   constant_values=1)
+    try:
+        result = convolve(image, kernel, boundary=boundary, nan_treatment='interpolate',
+                          normalize_kernel=normalize_kernel)
+    except AstropyUserWarning:
+        pass
+    assert(np.isnan(result.sum()))
+
+    # Test case: kernel.shape > NaN_region.shape
+    nan_centroid = np.full((kernel.shape[0]-1, kernel.shape[1]-1), np.nan) # 1 smaller than kerenel
+    image = np.pad(nan_centroid, pad_width=kernel.shape[0]*2, mode='constant',
+                   constant_values=1)
+    result = convolve(image, kernel, boundary=boundary, nan_treatment='interpolate',
+                      normalize_kernel=normalize_kernel)
+    assert(~np.isnan(result.sum())) # Note: negation
