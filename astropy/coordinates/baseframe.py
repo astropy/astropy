@@ -125,7 +125,7 @@ def _representation_deprecation():
     Raises a deprecation warning for the "representation" keyword
     """
     warnings.warn('The `representation` keyword/property name is deprecated in '
-                  'favor of `representation_type`', AstropyWarning)
+                  'favor of `representation_type`', AstropyDeprecationWarning)
 
 def _normalize_representation_type(kwargs):
     """ This is added for backwards compatibility: if the user specifies the
