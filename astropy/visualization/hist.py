@@ -3,12 +3,12 @@
 
 import numpy as np
 from inspect import signature
-from ..stats import histogram
+from ..stats.histogram import calculate_bin_edges
 
 __all__ = ['hist']
 
 
-def hist(x, bins=10, ax=None, **kwargs):
+def hist(x, bins=10, ax=None, max_bins=1e5, **kwargs):
     """Enhanced histogram function
 
     This is a histogram function that enables the use of more sophisticated
@@ -38,6 +38,12 @@ def hist(x, bins=10, ax=None, **kwargs):
         specify the Axes on which to draw the histogram.  If not specified,
         then the current active axes will be used.
 
+    max_bins : int (optional)
+        Maximum number of bins allowed. With more than a few thousand bins
+        the performance of matplotlib will not be great. If the number of
+        bins is large *and* the number of input data points is large then
+        the it will take a very long time to compute the histogram.
+
     **kwargs :
         other keyword arguments are described in ``plt.hist()``.
 
@@ -49,10 +55,17 @@ def hist(x, bins=10, ax=None, **kwargs):
     --------
     astropy.stats.histogram
     """
-    # arguments of np.histogram should be passed to astropy.stats.histogram
-    arglist = list(signature(np.histogram).parameters.keys())[1:]
-    np_hist_kwds = dict((key, kwargs[key]) for key in arglist if key in kwargs)
-    hist, bins = histogram(x, bins, **np_hist_kwds)
+    # Note that we only calculate the bin edges...matplotlib will calculate
+    # the actual histogram.
+    range = kwargs.get('range', None)
+    weights = kwargs.get('weights', None)
+    bins = calculate_bin_edges(x, bins, range=range, weights=weights)
+
+    if len(bins) > max_bins:
+        raise ValueError('Histogram has too many bins: '
+                         '{nbin}. Use max_bins to increase the number '
+                         'of allowed bins or range to restrict '
+                         'the histogram range.'.format(nbin=len(bins)))
 
     if ax is None:
         # optional dependency; only import if strictly needed.
