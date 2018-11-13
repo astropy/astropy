@@ -343,10 +343,13 @@ class TestConvolve1D:
         if nan_treatment == 'interpolate':
             answer_key += '_interpnan'
 
-        posns = np.where(np.isfinite(z))
+        posns = np.isfinite(z)
 
         answer = answer_dict[answer_key][posns]
-        if nan_treatment == 'fill':
+
+        # check that fill is set and that the 1'th position that was originally
+        # NaN is included in the check
+        if (nan_treatment == 'fill') and posns[1]:
             # we fill the center with zero (the default fill value)
             answer[1] = 0
 
