@@ -1184,7 +1184,7 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
             return NULL;
         }
 
-        input_len = PyUnicode_GetSize(input_coerce);
+        input_len = PyUnicode_GetLength(input_coerce);
 
         for (i = 0; i < input_len; ++i) {
             for (esc = escapes; ; esc += 2) {
