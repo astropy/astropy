@@ -21,7 +21,7 @@ case, the array is copied four successive times::
 
 There are several ways to speed this up. First, when you are using composite
 units, you should make sure that the entire unit gets evaluated first, then
-attached to the array. You can do this by using brackets as for any other
+attached to the array. You can do this by using parentheses as for any other
 operation::
 
     In [3]: %timeit array * (u.m / u.s / u.kg / u.sr)
