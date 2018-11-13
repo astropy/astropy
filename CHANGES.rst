@@ -1800,6 +1800,10 @@ astropy.visualization
 - Fixed a bug that caused an error when plotting grids multiple times
   with grid_type='contours'. [#7927]
 
+- Put an upper limit on the number of bins in ``hist`` and ``histogram`` and
+  factor out calculation of bin edges into public function
+  ``calculate_bin_edges``. [#7991]
+
 astropy.vo
 ^^^^^^^^^^
 
