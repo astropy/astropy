@@ -120,6 +120,13 @@ def _get_repr_classes(base, **differentials):
     return repr_classes
 
 
+def _representation_deprecation():
+    """
+    Raises a deprecation warning for the "representation" keyword
+    """
+    warnings.warn('The `representation` keyword/property name is deprecated in '
+                  'favor of `representation_type`', AstropyWarning)
+
 def _normalize_representation_type(kwargs):
     """ This is added for backwards compatibility: if the user specifies the
     old-style argument ``representation``, add it back in to the kwargs dict
@@ -131,6 +138,7 @@ def _normalize_representation_type(kwargs):
                              "were passed to a frame initializer. Please use "
                              "only `representation_type` (`representation` is "
                              "now pending deprecation).")
+        _representation_deprecation()
         kwargs['representation_type'] = kwargs.pop('representation')
 
 
@@ -763,10 +771,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     # TODO: deprecate these?
     @property
     def representation(self):
+        _representation_deprecation()
         return self.representation_type
 
     @representation.setter
     def representation(self, value):
+        _representation_deprecation()
         self.representation_type = value
 
     @classmethod
