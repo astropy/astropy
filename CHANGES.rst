@@ -239,6 +239,9 @@ astropy.convolution
 - ``convolve`` now accepts any array-like input, not just ``numpy.ndarray`` or
   lists. [#7303]
 
+- ``convolve`` Now raises AstropyUserWarning if nan_treatment='interpolate' and
+  preserve_nan=False and NaN values are present post convolution. [#8088]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
@@ -573,6 +576,9 @@ astropy.convolution
   was the default when actually it is ``boundary='fill'``. The doc string has been corrected,
   however, someone may interpret this as an API change not realising that nothing has actually
   changed. [#7293]
+
+- ``interpolate_replace_nans()`` can no longer accept the keyword argument
+  ``preserve_nan``. It is explicitly set to ``False``. [#8088]
 
 
 astropy.coordinates

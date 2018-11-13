@@ -352,6 +352,12 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         if nan_interpolate:
             result *= kernel_sum
 
+    if nan_interpolate and not preserve_nan and np.isnan(result.sum()):
+        warnings.warn("nan_treatment='interpolate', however, NaN values detected "
+                     "post convolution. A contiguous region of NaN values, larger "
+                     "than the kernel size, are present in the input array. "
+                     "Increase the kernel size to avoid this.", AstropyUserWarning)
+
     if preserve_nan:
         result[initially_nan] = np.nan
 
@@ -843,7 +849,7 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
     newarray = array.copy()
 
     convolved = convolve(array, kernel, nan_treatment='interpolate',
-                         normalize_kernel=True, **kwargs)
+                         normalize_kernel=True, preserve_nan=False, **kwargs)
 
     isnan = np.isnan(array)
     newarray[isnan] = convolved[isnan]
