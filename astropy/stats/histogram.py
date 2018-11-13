@@ -38,7 +38,7 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
         An array the same shape as ``a``. If given, the histogram accumulates
         the value of the weight corresponding to ``a`` instead of returning the
         count of values. This argument does not affect determination of bin
-        edges.
+        edges, though they may be used in the future as new methods are added.
     """
     # if range is specified, we need to truncate the data for
     # the bin-finding routines
