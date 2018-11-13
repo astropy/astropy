@@ -31,7 +31,7 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
 
     range : tuple or None (optional)
         The minimum and maximum range for the histogram.  If not specified,
-        it will be (x.min(), x.max()). However, if bins is a list it is
+        it will be (a.min(), a.max()). However, if bins is a list it is
         returned unmodified regardless of the range argument.
 
     weights : array_like, optional
