@@ -346,15 +346,36 @@ class TestConvolve1D:
 
         assert_floatclose(z[posns], answer_dict[answer_key][posns])
 
-    def test_nan_fill(self):
+    def test_nan_interpolate(self):
 
         # Test masked array
         array = np.array([1., np.nan, 3.], dtype='float64')
         kernel = np.array([1, 1, 1])
         masked_array = np.ma.masked_array(array, mask=[0, 1, 0])
-        result = convolve_fft(masked_array, kernel, boundary='fill',
-                              fill_value=np.nan)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', RuntimeWarning)
+            result = convolve_fft(masked_array, kernel, boundary='fill',
+                                  nan_treatment='interpolate',
+                                  fill_value=np.nan)
+
         assert_floatclose(result, [1, 2, 3])
+
+    def test_nan_fill(self):
+        # regression for #8121
+
+        # Test masked array
+        array = np.array([1., np.nan, 3.], dtype='float64')
+        kernel = np.array([1, 1, 1])
+        masked_array = np.ma.masked_array(array, mask=[0, 1, 0])
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', RuntimeWarning)
+            result = convolve_fft(masked_array, kernel, boundary='fill',
+                                  nan_treatment='fill',
+                                  fill_value=0)
+
+        assert_floatclose(result, [1/3., 0, 1.])
 
     def test_masked_array(self):
         """
