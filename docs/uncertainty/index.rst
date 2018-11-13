@@ -344,6 +344,10 @@ uncertainties in any of  the relevant quantities.  These tend to be of order
 :math:`\sqrt{n_{\rm samples}}` in any derived quantity, but that depends on the
 complexity of the distribution in question.  You have been warned!
 
+.. note that if this section gets too long, it should be moved to a separate
+   doc page - see the top of performance.inc.rst for the instructions on how to do
+   that
+.. include:: performance.inc.rst
 
 Reference/API
 =============

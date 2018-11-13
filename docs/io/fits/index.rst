@@ -40,7 +40,7 @@ Opening a FITS file
 
     The ``astropy.io.fits.util.get_testdata_filepath()`` function,
     used in the examples here, is for accessing data shipped with Astropy.
-    To work with your own data instead, please use ``astropy.io.fits.open()``,
+    To work with your own data instead, please use :func:`astropy.io.fits.open`,
     which takes either relative or absolute path.
 
 Once the `astropy.io.fits` package is loaded using the standard convention

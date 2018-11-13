@@ -266,7 +266,7 @@ For arbitrary Earth addresses (e.g., not observatory sites), use the
 to this function uses Google maps to retrieve the latitude and longitude and can
 also (optionally) query Google maps to get the height of the location. As with
 Google maps, this works with fully specified addresses, location names, city
-names, and etc.::
+names, and etc.:
 
 .. doctest-skip::
 
