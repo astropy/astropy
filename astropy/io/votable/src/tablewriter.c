@@ -271,7 +271,7 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
                     goto exit;
                 }
 
-                str_len = PyUnicode_GetSize(str_val);
+                str_len = PyUnicode_GetLength(str_val);
                 if (str_len) {
                     if (_write_cstring(&buf, &buf_size, &x, "  <TD>", 6) ||
                         _write_string(&buf, &buf_size, &x, str_tmp, str_len) ||
