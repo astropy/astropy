@@ -8,5 +8,7 @@
 Performance Tips
 ================
 
-Here we provide some tips and tricks for how to optimize performance of code
-using `astropy.convolution`.
+The :func:`~astropy.convolution.convolve` function is best suited to small
+kernels, and can become very slow for larger kernels. In this case, consider
+using :func:`~astropy.convolution.convolve_fft` (though note that this function
+uses more memory).
