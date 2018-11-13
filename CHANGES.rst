@@ -968,6 +968,10 @@ Other Changes and Additions
 - Updated the bundled CFITSIO library to 3.450. See
   ``cextern/cfitsio/docs/changes.txt`` for additional information. [#8014]
 
+- The ``representation`` keywords in coordinate frames are now deprecated in
+  favor of the ``representation_type`` keywords (which are less
+  ambiguous). [#8119]
+
 
 
 3.0.6 (unreleased)
