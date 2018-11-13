@@ -2,6 +2,7 @@
 
 import itertools
 
+import warnings
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_almost_equal_nulp
@@ -344,7 +345,12 @@ class TestConvolve1D:
 
         posns = np.where(np.isfinite(z))
 
-        assert_floatclose(z[posns], answer_dict[answer_key][posns])
+        answer = answer_dict[answer_key][posns]
+        if nan_treatment == 'fill':
+            # we fill the center with zero (the default fill value)
+            answer[1] = 0
+
+        assert_floatclose(z[posns], answer)
 
     def test_nan_interpolate(self):
 
@@ -367,14 +373,15 @@ class TestConvolve1D:
         # Test masked array
         array = np.array([1., np.nan, 3.], dtype='float64')
         kernel = np.array([1, 1, 1])
-        masked_array = np.ma.masked_array(array, mask=[0, 1, 0])
 
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', RuntimeWarning)
-            result = convolve_fft(masked_array, kernel, boundary='fill',
+            result = convolve_fft(array, kernel, boundary='fill',
                                   nan_treatment='fill',
                                   fill_value=0)
 
+        # note that, because fill_value also affects boundary='fill', the edge
+        # pixels are treated as zero rather than being ignored.
         assert_floatclose(result, [1/3., 0, 1.])
 
     def test_masked_array(self):
