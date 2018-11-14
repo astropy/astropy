@@ -279,7 +279,7 @@ astropy.coordinates
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 - The default cosmology has been changed from ``WMAP9`` to ``Planck15``
-  [#8003]
+  [#8123]
 
 - Distance calculations with ``LambaCDM`` with no radiation (T_CMB0=0)
   are now 20x faster by using elliptic integrals for non-flat cases
