@@ -779,15 +779,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     else:
         rifft = ifftn(fftmult)
 
-    if preserve_nan:
-        if nan_treatment == 'fill':
-            warnings.warn("preserve_nan was set, which overrides the "
-                          "interpolate_nan='fill' setting.",
-                          AstropyUserWarning)
-        rifft[arrayslices][nanmaskarray] = np.nan
-    elif nan_treatment == 'fill':
-        rifft[arrayslices][nanmaskarray] = fill_value
-
+    rifft[arrayslices][nanmaskarray] = np.nan
 
     if crop:
         result = rifft[arrayslices].real
