@@ -100,8 +100,8 @@ some attribute cannot be sliced)::
     NDDataRef(-1.5)
 
 
-StdDevUncertainty
------------------
+Working with two-dimensional data like images
+---------------------------------------------
 
 Though the `~astropy.nddata` package supports any kind of gridded data, this
 introduction will focus on the use of `~astropy.nddata` for two-dimensional
@@ -189,11 +189,20 @@ Image arithmetic, including uncertainty
 ---------------------------------------
 
 Methods are provided for basic arithmetic operations between images, including
-propagation of uncertainties. Support for uncertainties is currently limited
-to standard deviation. The example below creates an uncertainty that is simply
-Poisson error; note that the masked version of the square root is used::
+propagation of uncertainties. Three uncertainty types are supported: variance
+(`~astropy.nddata.VarianceUncertainty`), standard deviation
+(`~astropy.nddata.StdDevUncertainty`) and inverse variance
+(`~astropy.nddata.InverseVariance`). The example below creates an uncertainty
+that is simply Poisson error, stored as a variance::
 
-    >>> ccd.uncertainty = np.ma.sqrt(np.ma.abs(ccd.data))
+    >>> from astropy.nddata import VarianceUncertainty
+    >>> poisson_noise = np.ma.sqrt(np.ma.abs(ccd.data))
+    >>> ccd.uncertainty = VarianceUncertainty(poisson_noise ** 2)
+
+As a convenience, the uncertainty can also be set with a numpy array. In that
+case, the uncertainty is assumed to be the standard deviation::
+
+    >>> ccd.uncertainty = poisson_noise
     INFO: array provided for uncertainty; assuming it is a StdDevUncertainty. [astropy.nddata.ccddata]
 
 If we make a copy of the image and add that to the original, the uncertainty
@@ -422,9 +431,9 @@ Using ``nddata``
 
    ccddata.rst
    utils.rst
+   bitmask.rst
    decorator.rst
    nddata.rst
-   bitmask.rst
    mixins/index.rst
    subclassing.rst
 
