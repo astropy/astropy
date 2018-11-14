@@ -34,16 +34,16 @@ To start off, we retrieve a FITS file containing a Kepler light curve for a
 source::
 
     >>> from astropy.utils.data import get_pkg_data_filename
-    >>> filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
+    >>> filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')  # doctest: +REMOTE_DATA
 
 We can then use the |SampledTimeSeries| class to read in this file::
 
     >>> from astropy.timeseries import SampledTimeSeries
-    >>> ts = SampledTimeSeries.read(filename, format='kepler.fits')
+    >>> ts = SampledTimeSeries.read(filename, format='kepler.fits')  # doctest: +REMOTE_DATA
 
 Time series are specialized kinds of astropy |Table| objects::
 
-    >>> ts
+    >>> ts  # doctest: +REMOTE_DATA
     <SampledTimeSeries length=14280>
         time             timecorr   ...   pos_corr1      pos_corr2
                             d       ...     pixels         pixels
@@ -60,11 +60,11 @@ Time series are specialized kinds of astropy |Table| objects::
 In the same way as for |Table|, the various columns and rows can be accessed and
 sliced using index notation::
 
-    >>> ts['sap_flux']
+    >>> ts['sap_flux']  # doctest: +REMOTE_DATA
     <Quantity [1027045.06, 1027184.44, 1027076.25, ..., 1025451.56, 1025468.5 ,
                1025930.9 ] electron / s>
 
-    >>> ts['time', 'sap_flux']
+    >>> ts['time', 'sap_flux']  # doctest: +REMOTE_DATA
     <SampledTimeSeries length=14280>
               time             sap_flux
                              electron / s
@@ -78,7 +78,7 @@ sliced using index notation::
     2009-05-11T18:06:13.328  1.0254685e+06
     2009-05-11T18:07:12.186  1.0259309e+06
 
-    >>> ts[0:4]
+    >>> ts[0:4]  # doctest: +REMOTE_DATA
     <SampledTimeSeries length=4>
               time             timecorr   ...   pos_corr1      pos_corr2
                                   d       ...     pixels         pixels
@@ -93,7 +93,7 @@ As seen in the example above, |SampledTimeSeries| objects have a ``time``
 column, which is always the first column. This column can also be accessed using
 the ``.time`` attribute::
 
-    >>> ts.time
+    >>> ts.time  # doctest: +REMOTE_DATA
     <Time object: scale='tcb' format='isot' value=['2009-05-02T00:41:40.338' '2009-05-02T00:42:39.187'
      '2009-05-02T00:43:38.045' ... '2009-05-11T18:05:14.479'
      '2009-05-11T18:06:13.328' '2009-05-11T18:07:12.186']>
@@ -101,11 +101,11 @@ the ``.time`` attribute::
 and is always a |Time| object (see :ref:`astropy-time`), which therefore
 supports the ability to convert to different time scales and formats::
 
-    >>> ts.time.mjd
+    >>> ts.time.mjd  # doctest: +REMOTE_DATA
     array([54953.0289391 , 54953.02962023, 54953.03030145, ...,
            54962.7536398 , 54962.75432093, 54962.75500215])
 
-    >>> ts.time.unix
+    >>> ts.time.unix  # doctest: +REMOTE_DATA
     array([1.24122482e+09, 1.24122488e+09, 1.24122494e+09, ...,
            1.24206503e+09, 1.24206509e+09, 1.24206515e+09])
 
@@ -131,31 +131,39 @@ Let's use what we've seen so far to make a plot
 
 It looks like there are a few transits! Let's use
 :class:`~astropy.stats.BoxLeastSquares` to estimate the period, using a box with
-a duration of 0.2 days:
+a duration of 0.2 days::
+
+    >>> import numpy as np
+    >>> from astropy import units as u
+    >>> from astropy.stats import BoxLeastSquares
+    >>> keep = ~np.isnan(ts['sap_flux'])  # doctest: +REMOTE_DATA
+    >>> periodogram = BoxLeastSquares(ts.time.jd[keep] * u.day,
+    ...                               ts['sap_flux'][keep]).autopower(0.2 * u.day)  # doctest: +REMOTE_DATA
+    >>> period = periodogram.period[np.argmax(periodogram.power)]  # doctest: +REMOTE_DATA
+    >>> period  # doctest: +REMOTE_DATA
+    <Quantity 2.20551724 d>
 
 .. plot::
    :context:
-   :include-source:
    :nofigs:
 
-   >>> import numpy as np
-   >>> from astropy import units as u
-   >>> from astropy.stats import BoxLeastSquares
-   >>> keep = ~np.isnan(ts['sap_flux'])
-   >>> periodogram = BoxLeastSquares(ts.time.jd[keep] * u.day, ts['sap_flux'][keep]).autopower(0.2 * u.day)
-   >>> period = periodogram.period[np.argmax(periodogram.power)]
-   >>> period
-   <Quantity 2.21584977 d>
+   import numpy as np
+   from astropy import units as u
+   from astropy.stats import BoxLeastSquares
+   keep = ~np.isnan(ts['sap_flux'])
+   periodogram = BoxLeastSquares(ts.time.jd[keep] * u.day, ts['sap_flux'][keep]).autopower(0.2 * u.day)
+   period = periodogram.period[np.argmax(periodogram.power)]
 
 We can now fold the time series using the period we've found above using the
-:meth:`~astropy.timeseries.SampledTimeSeries.fold` method:
+:meth:`~astropy.timeseries.SampledTimeSeries.fold` method::
+
+    >>> ts_folded = ts.fold(period=period, midpoint_epoch='2009-05-02T07:41:40')  # doctest: +REMOTE_DATA
 
 .. plot::
    :context:
-   :include-source:
    :nofigs:
 
-   >>> ts_folded = ts.fold(period=period, midpoint_epoch='2009-05-02T07:41:40')
+   ts_folded = ts.fold(period=period, midpoint_epoch='2009-05-02T07:41:40')
 
 Let's take a look at the folded time series:
 
@@ -174,41 +182,56 @@ Let's take a look at the folded time series:
    plt.ylabel('SAP Flux (e-/s)')
 
 Using the :ref:`stats` module, we can normalize the flux by sigma-clipping
-the data to determine the baseline flux:
+the data to determine the baseline flux::
+
+    >>> from astropy.stats import sigma_clipped_stats
+    >>> mean, median, stddev = sigma_clipped_stats(ts_folded['sap_flux'])  # doctest: +REMOTE_DATA
+    >>> ts_folded['sap_flux_norm'] = ts_folded['sap_flux'] / median  # doctest: +REMOTE_DATA
 
 .. plot::
    :context:
-   :include-source:
    :nofigs:
 
-   >>> from astropy.stats import sigma_clipped_stats
-   >>> mean, median, stddev = sigma_clipped_stats(ts_folded['sap_flux'])
-   >>> ts_folded['sap_flux_norm'] = ts_folded['sap_flux'] / median
+   from astropy.stats import sigma_clipped_stats
+   mean, median, stddev = sigma_clipped_stats(ts_folded['sap_flux'])
+   ts_folded['sap_flux_norm'] = ts_folded['sap_flux'] / median
 
 and we can downsample the time series by binning the points into bins of equal
 time - this returns a |BinnedTimeSeries|::
 
-    >>> ts_binned = ts_folded.downsample(0.03 * u.day)
-    >>> ts_binned
+    >>> ts_binned = ts_folded.downsample(0.03 * u.day)  # doctest: +REMOTE_DATA
+    >>> ts_binned  # doctest: +FLOAT_CMP +REMOTE_DATA
     <BinnedTimeSeries length=74>
          start_time          bin_size      ...   pos_corr2    sap_flux_norm
                                 s          ...
            object            float64       ...    float32        float32
     ------------------- ------------------ ... -------------- -------------
-    -1.1078869937573868 2591.9999999999905 ...  -0.0006971634     0.9999969
-     -1.077886993757387             2592.0 ...  -0.0008989384     1.0000147
-     -1.047886993757387 2592.0000000000095 ... -0.00090802036     1.0000037
+    -1.1024637743446593             2592.0 ...  -0.0007693809     1.0000684
+    -1.0724637743446592 2591.9999999999905 ...  0.00038625093     1.0000265
+    -1.0424637743446594 2592.0000000000095 ...  0.00031359284     1.0000247
+    -1.0124637743446594             2592.0 ...  0.00017846933     1.0000288
+    -0.9824637743446593             2592.0 ...  -6.542908e-05    0.99999636
+    -0.9524637743446593             2592.0 ... -2.9231509e-05     1.0000253
+    -0.9224637743446593             2592.0 ...   9.763808e-05     1.0000322
+    -0.8924637743446593             2592.0 ...  0.00012931376     1.0000411
+    -0.8624637743446593 2592.0000000000023 ...  -0.0011244675     1.0000389
                     ...                ... ...            ...           ...
-     1.0221130062426131             2592.0 ...  0.00043443326     0.9999498
-     1.0521130062426132             2592.0 ...  -0.0003497292    0.99997586
-     1.0821130062426132             2592.0 ... -0.00063672155     1.0000035
+     0.8175362256553407 2591.9999999999977 ...  -0.0006246633     1.0000035
+     0.8475362256553407 2592.0000000000014 ...  -0.0006362205     1.0000261
+     0.8775362256553407  2592.000000000019 ... -0.00089895696     1.0000074
+      0.907536225655341 2591.9999999999814 ...  -0.0008507269     1.0000023
+     0.9375362256553407   2592.00000000002 ...  -0.0009239185     1.0000565
+     0.9675362256553409  2591.999999999981 ... -0.00020750743     1.0000125
+     0.9975362256553407 2592.0000000000095 ... -0.00055085105     1.0000396
+     1.0275362256553409 2591.9999999999905 ...  -0.0005766208     1.0000231
+     1.0575362256553407             2592.0 ... -0.00023155387     1.0000265
+     1.0875362256553407             2592.0 ...  1.5008554e-06    0.99995804
 
 .. plot::
    :context:
    :nofigs:
 
    ts_binned = ts_folded.downsample(0.03 * u.day)
-   ts_binned
 
 Let's take a look at the final result:
 
