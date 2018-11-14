@@ -69,7 +69,7 @@ This can be done by using the |TimeDelta| class instead of the |Time| class,
 for example by subtracting a reference time from an existing time object::
 
     >>> ts_rel = SampledTimeSeries(time=ts.time - ts.time[0])
-    >>> ts_rel
+    >>> ts_rel  # doctest: +FLOAT_CMP
     <SampledTimeSeries length=5>
              time
             object

@@ -4,6 +4,7 @@ Creating sampled and binned time series
 ***************************************
 
 .. |Time| replace:: :class:`~astropy.time.Time`
+.. |TimeDelta| replace:: :class:`~astropy.time.TimeDelta`
 .. |Table| replace:: :class:`~astropy.table.Table`
 .. |SampledTimeSeries| replace:: :class:`~astropy.timeseries.SampledTimeSeries`
 .. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
@@ -57,21 +58,16 @@ You can also specify a vector |Time| object directly as the ``time=`` argument,
 or a vector |TimeDelta| argument or a quantity array to the ``time_delta=``
 argument.::
 
-  >>> SampledTimeSeries(time="2011-01-01T00:00:00", time_delta=np.random.random((10,))*u.s)
-  <SampledTimeSeries length=10>
-            time
-          object
-  -----------------------
-  2011-01-01T00:00:00.000
-  2011-01-01T00:00:00.591
-  2011-01-01T00:00:01.030
-  2011-01-01T00:00:01.584
-  2011-01-01T00:00:01.939
-  2011-01-01T00:00:02.065
-  2011-01-01T00:00:02.195
-  2011-01-01T00:00:03.027
-  2011-01-01T00:00:03.234
-  2011-01-01T00:00:03.512
+    >>> SampledTimeSeries(time="2011-01-01T00:00:00", time_delta=[0.1, 0.2, 0.1, 0.3, 0.2]*u.s)
+    <SampledTimeSeries length=5>
+              time
+            object
+    -----------------------
+    2011-01-01T00:00:00.000
+    2011-01-01T00:00:00.100
+    2011-01-01T00:00:00.300
+    2011-01-01T00:00:00.400
+    2011-01-01T00:00:00.700
 
 Initializing a binned time series
 =================================
