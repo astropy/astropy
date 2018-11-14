@@ -376,11 +376,9 @@ class TestConvolve1D:
         array = np.array([1., np.nan, 3.], dtype='float64')
         kernel = np.array([1, 1, 1])
 
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', RuntimeWarning)
-            result = convolve_fft(array, kernel, boundary='fill',
-                                  nan_treatment='fill',
-                                  fill_value=0)
+        result = convolve_fft(array, kernel, boundary='fill',
+                              nan_treatment='fill',
+                              fill_value=0)
 
         # note that, because fill_value also affects boundary='fill', the edge
         # pixels are treated as zero rather than being ignored.
@@ -393,11 +391,9 @@ class TestConvolve1D:
         array = np.array([1., np.nan, 3.], dtype='float64')
         kernel = np.array([1, 1, 1])
 
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', RuntimeWarning)
-            result = convolve_fft(array, kernel, boundary='fill',
-                                  nan_treatment='fill',
-                                  fill_value=1)
+        result = convolve_fft(array, kernel, boundary='fill',
+                              nan_treatment='fill',
+                              fill_value=1)
 
         # note that, because fill_value also affects boundary='fill', the edge
         # pixels are treated as fill_value=1 rather than being ignored.
