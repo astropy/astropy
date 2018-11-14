@@ -116,10 +116,12 @@ A mask is a boolean array the same size as the data in which a value of
 included in arithmetic operations or aggregation.
 
 Flags are one or more additional arrays (of any type) whose shape matches the
-shape of the data. For more details on setting flags see
-`~astropy.nddata.NDData`.
+shape of the data. On particularly useful type of flag is a bit planes; for
+more details about bit planes and the functions astropy provides for
+converting them to binary masks, see :ref:`bitmask_details` For more details
+on setting flags see `~astropy.nddata.NDData`.
 
-WCS
+wcs
 +++
 
 The  ``wcs`` attribute of `~astropy.nddata.CCDData` object can be set two ways.
@@ -153,8 +155,12 @@ or by providing a `~numpy.ndarray` with the same shape as the data:
     INFO: array provided for uncertainty; assuming it is a StdDevUncertainty. [...]
 
 In this case the uncertainty is assumed to be
-`~astropy.nddata.StdDevUncertainty`. Using `~astropy.nddata.StdDevUncertainty`
-is required to enable error propagation in `~astropy.nddata.CCDData`
+`~astropy.nddata.StdDevUncertainty`.
+
+Two other uncertainty classes are available for which error propagation is
+also supported, `~astropy.nddata.VarianceUncertainty` and
+`~astropy.nddata.InverseVariance`. Using one of these three uncertainties is
+required to enable error propagation in `~astropy.nddata.CCDData`.
 
 If you want access to the underlying uncertainty use its ``.array`` attribute:
 
