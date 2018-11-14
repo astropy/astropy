@@ -350,8 +350,9 @@ class TestConvolve1D:
         # check that fill is set and that the 1'th position that was originally
         # NaN is included in the check
         if (nan_treatment == 'fill') and posns[1]:
-            # we fill the center with zero (the default fill value)
-            answer[1] = 0
+            # we fill the center with the sum of the input array divided by
+            # three, since we've now pre-filled the center value with zero
+            answer[1] = 4 / (3. if normalize_kernel else 1.)
 
         assert_floatclose(z[posns], answer)
 
