@@ -363,11 +363,9 @@ class TestConvolve1D:
         kernel = np.array([1, 1, 1])
         masked_array = np.ma.masked_array(array, mask=[0, 1, 0])
 
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', RuntimeWarning)
-            result = convolve_fft(masked_array, kernel, boundary='fill',
-                                  nan_treatment='interpolate',
-                                  fill_value=np.nan)
+        result = convolve_fft(masked_array, kernel, boundary='fill',
+                              nan_treatment='interpolate',
+                              fill_value=np.nan)
 
         assert_floatclose(result, [1, 2, 3])
 
