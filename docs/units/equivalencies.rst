@@ -302,7 +302,7 @@ temperature", :math:`T_{CMB}`, in Kelvins. Example::
 
     >>> import astropy.units as u
     >>> nu = 143 * u.GHz
-    >>> t_k = 0.00263251540546396 * u.K
+    >>> t_k = 0.002632051878 * u.K
     >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu))  # doctest: +FLOAT_CMP
     <Quantity 1. MJy / sr>
 
@@ -310,9 +310,9 @@ By default, this will use the :math:`T_{CMB}` value for the 'default cosmology'
 in astropy, but it is possible to specify a custom :math:`T_{CMB}` value for a
 specific cosmology as the second argument to the equivalency::
 
-    >>> from astropy.cosmology import Planck13
-    >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu, T_cmb=Planck13.Tcmb0))  # doctest: +FLOAT_CMP
-    <Quantity 1.00017611 MJy / sr>
+    >>> from astropy.cosmology import WMAP9
+    >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu, T_cmb=WMAP9.Tcmb0))  # doctest: +FLOAT_CMP
+    <Quantity 0.99982392 MJy / sr>
 
 Molar Mass AMU Equivalency
 --------------------------
@@ -401,7 +401,7 @@ the ``H0`` from the current default cosmology:
 
     >>> distance = 100 * (u.Mpc/u.littleh)
     >>> distance.to(u.Mpc, u.with_H0())  # doctest: +FLOAT_CMP
-    <Quantity 69.32 Mpc>
+    <Quantity 67.74 Mpc>
 
 This equivalency also allows the common magnitude formulation of little h
 scaling:
