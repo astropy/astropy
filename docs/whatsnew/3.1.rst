@@ -22,7 +22,8 @@ In particular, this release includes:
 * :ref:`whatsnew-3.1-nocopy-unit`
 * :ref:`whatsnew-3.1-tcmb`
 * :ref:`whatsnew-3.1-littleh`
-* :ref:`whatsnew-3.1-cosmology`
+* :ref:`whatsnew-3.1-default-cosmology`
+* :ref:`whatsnew-3.1-faster-cosmology`
 * :ref:`whatsnew-3.1-wcsaxes`
 * :ref:`whatsnew-3.1-imshow-norm`
 * :ref:`whatsnew-3.1-fits`
@@ -322,8 +323,26 @@ See :ref:`H0-equivalency` for more details.
 
 .. _whatsnew-3.1-cosmology:
 
+Improvements for Cosmology
+==========================
+
+.. _whatsnew-3.1-default-cosmology:
+
+Change in default cosmology
+---------------------------
+
+The default cosmology returned by the ``astropy.cosmology.default_cosmology``
+configuration item has been changed from the WMAP 9 year results to the Planck
+2015 results - as a result, you may see small changes in results of calculations
+where the cosmology was not explicitly specified. The default cosmology
+infrastructure is only provided for convenience and should be expected to
+change over time - as a result, for reproducibility it is always best to use
+an explicit cosmology rather than rely on the default.
+
+.. _whatsnew-3.1-faster-cosmology:
+
 Faster Cosmological Calculations
-================================
+--------------------------------
 
 There are now significant speedups (up to 100x) for distance and age
 calculations for FlatLambdaCDM cosmologies with no radiation or neutrinos,
