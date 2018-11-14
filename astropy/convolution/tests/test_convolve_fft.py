@@ -386,7 +386,7 @@ class TestConvolve1D:
 
         # note that, because fill_value also affects boundary='fill', the edge
         # pixels are treated as zero rather than being ignored.
-        assert_floatclose(result, [1/3., 0, 1.])
+        assert_floatclose(result, [1/3., 4/3., 1.])
 
     def test_nan_fill_two(self):
         # regression for #8121
@@ -665,13 +665,15 @@ class TestConvolve2D:
                               r"convolve boundary='fill'"):
                 z = convolve_fft(x, y, boundary=boundary,
                                  nan_treatment=nan_treatment,
-                                 fill_value=np.nan if normalize_kernel else 0,
+                                 # you cannot fill w/nan, you can only interpolate over it
+                                 fill_value=np.nan if normalize_kernel and nan_treatment=='interpolate' else 0,
                                  normalize_kernel=normalize_kernel,
                                  preserve_nan=preserve_nan)
         else:
             z = convolve_fft(x, y, boundary=boundary,
                              nan_treatment=nan_treatment,
-                             fill_value=np.nan if normalize_kernel else 0,
+                             # you cannot fill w/nan, you can only interpolate over it
+                             fill_value=np.nan if normalize_kernel and nan_treatment=='interpolate' else 0,
                              normalize_kernel=normalize_kernel,
                              preserve_nan=preserve_nan)
 
