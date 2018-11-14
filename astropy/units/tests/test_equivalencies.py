@@ -582,17 +582,6 @@ def test_beam():
 
 def test_thermodynamic_temperature():
     nu = 143 * u.GHz
-    tb = 0.00263251540546396 * u.K
-    np.testing.assert_almost_equal(
-        tb.value, (1 * u.MJy/u.sr).to_value(
-            u.K, equivalencies=u.thermodynamic_temperature(nu, T_cmb=2.725)))
-    np.testing.assert_almost_equal(
-        1.0, tb.to_value(
-            u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu)))
-
-
-def test_thermodynamic_temperature_w_tcmb():
-    nu = 143 * u.GHz
     tb = 0.0026320518775281975 * u.K
     np.testing.assert_almost_equal(
         tb.value, (1 * u.MJy/u.sr).to_value(
