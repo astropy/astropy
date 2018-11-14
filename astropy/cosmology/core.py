@@ -3337,7 +3337,7 @@ class default_cosmology(ScienceState):
         >>> with default_cosmology.set('WMAP7'):
         ...     # WMAP7 cosmology in effect
     """
-    _value = 'WMAP9'
+    _value = 'Planck15'
 
     @staticmethod
     def get_cosmology_from_string(arg):
