@@ -98,7 +98,7 @@ Sorting time series in-place can be done using the
 Resampling
 ==========
 
-We provide a :func:`~astropy.timeseries.downsample.simple_downsample` function
+We provide a :func:`~astropy.timeseries.simple_downsample` function
 that can be used to bin values from a time series into bins of equal time, using
 a custom function (mean, median, etc.). This operation returns a
 |BinnedTimeSeries|. Note that this is a simple function in the sense that it
@@ -129,7 +129,7 @@ downsample using:
 
     import numpy as np
     from astropy import units as u
-    from astropy.timeseries.downsample import simple_downsample
+    from astropy.timeseries import simple_downsample
     kepler_binned = simple_downsample(kepler, bin_size=20 * u.min, func=np.nanmedian)
 
 We can take a look at the results:

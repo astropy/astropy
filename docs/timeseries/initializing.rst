@@ -1,6 +1,6 @@
 .. _timeseries-initializing:
 
-Creating sampled and binned time series
+Creating time series
 ***************************************
 
 .. |Time| replace:: :class:`~astropy.time.Time`
@@ -9,8 +9,8 @@ Creating sampled and binned time series
 .. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
 .. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
 
-Initializing a sampled time series
-==================================
+Initializing a simple time series
+=================================
 
 The first type of time series that we will look at here is |TimeSeries|,
 which can be used for a time series which samples a continuous variable at
