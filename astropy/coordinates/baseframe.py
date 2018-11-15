@@ -417,7 +417,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         # This is here for backwards compatibility. It should be possible
         # to use either the kwarg representation_type, or representation.
-        # TODO: In future versions, we will raise a deprecation warning here:
         if representation_type is not None:
             kwargs['representation_type'] = representation_type
         _normalize_representation_type(kwargs)
