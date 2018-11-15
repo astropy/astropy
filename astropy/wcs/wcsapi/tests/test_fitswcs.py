@@ -391,13 +391,18 @@ def test_time_cube():
     # High-level API
 
     # Make sure that we get a FutureWarning about the time column
-    with warnings.catch_warnings(record=True) as warning_lines:
+    with warnings.catch_warnings(record=True) as warning_entries:
         warnings.resetwarnings()
         coord, time = wcs.pixel_to_world(29, 39, 44)
 
-    assert len(warning_lines) == 1
-    assert warning_lines[0].category is FutureWarning
-    assert str(warning_lines[0].message).startswith('In future, times will be represented by the Time class')
+    # Check that there's at least one warning of the right category/message
+    assert len(warning_entries) > 0
+    found_warning = False
+    for w in warning_entries:
+        msg = 'In future, times will be represented by the Time class'
+        if w.category is FutureWarning and str(w.message).startswith(msg):
+            found_warning = True
+    assert found_warning
 
     assert isinstance(coord, SkyCoord)
     assert isinstance(time, Quantity)
