@@ -19,7 +19,7 @@ import numpy as np
 # Project
 from ..utils.compat.misc import override__dir__
 from ..utils.decorators import lazyproperty, format_doc
-from ..utils.exceptions import AstropyWarning
+from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from .. import units as u
 from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
                      check_broadcast)
