@@ -6,6 +6,7 @@ Creating time series
 .. |Time| replace:: :class:`~astropy.time.Time`
 .. |TimeDelta| replace:: :class:`~astropy.time.TimeDelta`
 .. |Table| replace:: :class:`~astropy.table.Table`
+.. |QTable| replace:: :class:`~astropy.table.Table`
 .. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
 .. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
 
@@ -255,7 +256,7 @@ Adding rows
 -----------
 
 Adding rows to |TimeSeries| or |BinnedTimeSeries| can be done using the
-:meth:`~astropy.table.QTable.add_row` method, as for |Table| and |QTable|. This
+:meth:`~astropy.table.Table.add_row` method, as for |Table| and |QTable|. This
 method takes a dictionary where the keys are column names::
 
     >>> ts8.add_row({'start_time': '2016-03-22T12:30:44.000',
