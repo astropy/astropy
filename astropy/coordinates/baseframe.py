@@ -19,7 +19,7 @@ import numpy as np
 # Project
 from ..utils.compat.misc import override__dir__
 from ..utils.decorators import lazyproperty, format_doc
-from ..utils.exceptions import AstropyWarning
+from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from .. import units as u
 from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
                      check_broadcast)
@@ -120,6 +120,13 @@ def _get_repr_classes(base, **differentials):
     return repr_classes
 
 
+def _representation_deprecation():
+    """
+    Raises a deprecation warning for the "representation" keyword
+    """
+    warnings.warn('The `representation` keyword/property name is deprecated in '
+                  'favor of `representation_type`', AstropyDeprecationWarning)
+
 def _normalize_representation_type(kwargs):
     """ This is added for backwards compatibility: if the user specifies the
     old-style argument ``representation``, add it back in to the kwargs dict
@@ -131,6 +138,7 @@ def _normalize_representation_type(kwargs):
                              "were passed to a frame initializer. Please use "
                              "only `representation_type` (`representation` is "
                              "now pending deprecation).")
+        _representation_deprecation()
         kwargs['representation_type'] = kwargs.pop('representation')
 
 
@@ -409,7 +417,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         # This is here for backwards compatibility. It should be possible
         # to use either the kwarg representation_type, or representation.
-        # TODO: In future versions, we will raise a deprecation warning here:
         if representation_type is not None:
             kwargs['representation_type'] = representation_type
         _normalize_representation_type(kwargs)
@@ -763,10 +770,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     # TODO: deprecate these?
     @property
     def representation(self):
+        _representation_deprecation()
         return self.representation_type
 
     @representation.setter
     def representation(self, value):
+        _representation_deprecation()
         self.representation_type = value
 
     @classmethod
