@@ -7,6 +7,8 @@ from astropy.utils.exceptions import AstropyUserWarning
 from .sampled import TimeSeries
 from .binned import BinnedTimeSeries
 
+__all__ = ['simple_downsample']
+
 
 def reduceat(array, indices, function):
     """

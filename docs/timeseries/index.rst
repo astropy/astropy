@@ -19,9 +19,9 @@ either sampling a continuous variable at fixed times or counting some events
 binned into time windows. The `astropy.timeseries` package therefore provides
 classes to represent and manipulate time series
 
-The time series classes presented below are |QTable| objects that have special
-columns to represent times using the |Time| class. Therefore, much of the
-functionality described in :ref:`astropy-table` applies here.
+The time series classes presented below are |QTable| sub-classes that have
+special columns to represent times using the |Time| class. Therefore, much of
+the functionality described in :ref:`astropy-table` applies here.
 
 Getting Started
 ===============
@@ -29,6 +29,12 @@ Getting Started
 In this section, we take a quick look at how to read in a time series, access
 the data, and carry out some basic analysis. For more details about creating and
 using time series, see the full documentation in :ref:`using-timeseries`.
+
+The simplest time series class is |TimeSeries| - it represents a time series as
+a collection of values at specific points in time. If you are interested in
+representing time series as measurements in discrete time bins, you will likely
+be interested in the |BinnedTimeSeries| sub-class which we show in
+:ref:`using-timeseries`).
 
 To start off, we retrieve a FITS file containing a Kepler light curve for a
 source::
@@ -41,7 +47,7 @@ We can then use the |TimeSeries| class to read in this file::
     >>> from astropy.timeseries import TimeSeries
     >>> ts = TimeSeries.read(filename, format='kepler.fits')  # doctest: +REMOTE_DATA
 
-Time series are specialized kinds of astropy |Table| objects::
+Time series are specialized kinds of |Table| objects::
 
     >>> ts  # doctest: +REMOTE_DATA
     <TimeSeries length=14280>
@@ -98,8 +104,8 @@ the ``.time`` attribute::
      '2009-05-02T00:43:38.045' ... '2009-05-11T18:05:14.479'
      '2009-05-11T18:06:13.328' '2009-05-11T18:07:12.186']>
 
-and is always a |Time| object (see :ref:`astropy-time`), which therefore
-supports the ability to convert to different time scales and formats::
+and is always a |Time| object (see :ref:`Times and Dates <astropy-time>`), which
+therefore supports the ability to convert to different time scales and formats::
 
     >>> ts.time.mjd  # doctest: +REMOTE_DATA
     array([54953.0289391 , 54953.02962023, 54953.03030145, ...,
@@ -199,7 +205,7 @@ the data to determine the baseline flux::
 and we can downsample the time series by binning the points into bins of equal
 time - this returns a |BinnedTimeSeries|::
 
-    >>> from astropy.timeseries.downsample import simple_downsample
+    >>> from astropy.timeseries import simple_downsample
     >>> ts_binned = simple_downsample(ts_folded, 0.03 * u.day)  # doctest: +REMOTE_DATA
     >>> ts_binned  # doctest: +FLOAT_CMP +REMOTE_DATA
     <BinnedTimeSeries length=74>
@@ -232,7 +238,8 @@ time - this returns a |BinnedTimeSeries|::
    :context:
    :nofigs:
 
-   ts_binned = ts_folded.downsample(0.03 * u.day)
+   from astropy.timeseries import simple_downsample
+   ts_binned = simple_downsample(ts_folded, 0.03 * u.day)
 
 Let's take a look at the final result:
 
