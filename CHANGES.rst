@@ -1,237 +1,9 @@
-3.2 (unreleased)
-================
+
+3.1rc1 (2018-11-15)
+===================
 
 New Features
 ------------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-API Changes
------------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Bug Fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-Other Changes and Additions
----------------------------
-
-astropy.stats
-^^^^^^^^^^^^^
-
-- A Cython implementation for `astropy.stats.kuiper_two` and a vectorized
-  implementation for `astropy.stats.kuiper_false_positive_probability` have
-  been added, speeding up both functions.  [#8104]
-
-
-3.1 (unreleased)
-================
-
-New Features
-------------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
@@ -247,7 +19,7 @@ astropy.coordinates
 
 - The ``SkyCoord.from_name`` constructor now has the ability to create
   coordinate objects by parsing object catalogue names that have embedded
-  J-coordinates.  [#7830]
+  J-coordinates. [#7830]
 
 - The new function ``make_transform_graph_docs`` can be used to create a
   docstring graph from a custom ``TransformGraph`` object. [#7135]
@@ -271,19 +43,17 @@ astropy.coordinates
 
 - Some rarely-changed attributes of frame classes are now cached, resulting in
   speedups (up to 50% in some cases) when creating new scalar frame or
-  ``SkyCoord`` objects. [#7949]
+  ``SkyCoord`` objects. [#7949, #5952]
 
 - Added a ``directional_offset_by`` method to ``SkyCoord`` that computes a new
   coordinate given a coordinate, position angle, and angular separation [#5727]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
-- The default cosmology has been changed from ``WMAP9`` to ``Planck15``
-  [#8123]
+- The default cosmology has been changed from ``WMAP9`` to ``Planck15``. [#8123]
 
 - Distance calculations with ``LambaCDM`` with no radiation (T_CMB0=0)
-  are now 20x faster by using elliptic integrals for non-flat cases
-  [#7155]
+  are now 20x faster by using elliptic integrals for non-flat cases. [#7155]
 
 - Distance calculations with ``FlatLambaCDM`` with no radiation (T_CMB0=0)
   are now 20x faster by using the hypergeometric function solution
@@ -293,14 +63,11 @@ astropy.cosmology
   are now 1000x faster by using analytic solutions instead of integrating.
   [#7117]
 
-astropy.extern
-^^^^^^^^^^^^^^
-
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
 - Latex reader now ignores ``\toprule``, ``\midrule``, and ``\bottomrule``
-  commands [#7349]
+  commands. [#7349]
 
 - Added the RST (Restructured-text) table format and the fast version of the
   RDB reader to the set of formats that are guessed by default. [#5578]
@@ -357,12 +124,6 @@ astropy.io.fits
   available address space was less than the file size (even when using memory
   mapping). [#7926]
 
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
@@ -389,9 +150,6 @@ astropy.nddata
 
 - Add a ``bitmask`` module that provides functions for manipulating bitmasks
   and data quality (DQ) arrays. [#7944]
-
-astropy.samp
-^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -480,12 +238,9 @@ astropy.units
   equivalency. [#7891]
 
 - ``AB`` and ``ST`` are now enabled by default, and have alternate names
-  ``ABflux`` and ``STflux`` [#7891]
+  ``ABflux`` and ``STflux``. [#7891]
 
 - Added ``littleh`` unit and associated ``with_H0`` equivalency. [#7970]
-
-astropy.utils
-^^^^^^^^^^^^^
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -546,6 +301,7 @@ astropy.wcs
 
 - Added the abstract base class for the low-level WCS API described in APE 14
   (https://doi.org/10.5281/zenodo.1188875). [#7325]
+
 - Add ``WCS.contains()`` function to check if the WCS footprint contains a given sky coordinate. [#7273]
 
 - Added the abstract base class for the high-level WCS API described in APE 14
@@ -558,30 +314,24 @@ astropy.wcs
 
 - Deprecated ``_naxis1`` and ``_naxis2`` in favor of ``pixel_shape``. [#7973]
 
-- Added compatibility to wcslib version 6 [#8093]
+- Added compatibility to wcslib version 6. [#8093]
+
 
 API Changes
 -----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
 - ``kernel`` can now be a tuple. [#7561]
 
-- Not technically an API changes, however, the doc string indicated that ``boundary=None``
-  was the default when actually it is ``boundary='fill'``. The doc string has been corrected,
-  however, someone may interpret this as an API change not realising that nothing has actually
+- Not technically an API changes, however, the docstring indicated that ``boundary=None``
+  was the default when actually it is ``boundary='fill'``. The docstring has been corrected,
+  however, someone may interpret this as an API change not realizing that nothing has actually
   changed. [#7293]
 
 - ``interpolate_replace_nans()`` can no longer accept the keyword argument
   ``preserve_nan``. It is explicitly set to ``False``. [#8088]
-
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -598,12 +348,6 @@ astropy.coordinates
 
 - Negating a ``SphericalRepresentation`` object now changes the angular
   coordinates (by rotating 180º) instead of negating the distance. [#7988]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -623,21 +367,12 @@ astropy.io.ascii
   ``InconsistentTableError`` inherits from ``ValueError`` so no user code
   changes are required. [#7425]
 
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - The ``fits.table_to_hdu()`` function will translate any column ``format``
   attributes to a TDISPn format string, if possible, and store it as a TDISPn
   keyword in the ``HDU`` header. [#7226]
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
@@ -657,9 +392,6 @@ astropy.nddata
 
 - Add two new uncertainty classes, ``astropy.nddata.VarianceUncertainty`` and
   ``astropy.nddata.InverseVariance``. [#6971]
-
-astropy.samp
-^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -737,8 +469,7 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-- In ``ImageNormalize``, the default for ``clip`` is set to ``True``.
-  [#7800]
+- In ``ImageNormalize``, the default for ``clip`` is set to ``True``. [#7800]
 
 - Changed ``AsymmetricPercentileInterval`` and ``MinMaxInterval`` to
   ignore NaN values in arrays. [#7360]
@@ -746,8 +477,6 @@ astropy.visualization
 - Automatically default to using ``grid_type='contours'`` in WCSAxes when using
   a custom ``Transform`` object if the transform has no inverse. [#7847]
 
-astropy.wcs
-^^^^^^^^^^^
 
 Performance Improvements
 ------------------------
@@ -763,11 +492,11 @@ astropy.convolution
   implementation that pads the image with the correct boundary values before convolving.
   The runtimes of these three were significantly skewed. They now have
   equivalent runtimes that are also faster than before due to performant contiguous
-  memory access. However, this does increase the memory foortprint as an entire
+  memory access. However, this does increase the memory footprint as an entire
   new image array is required plus that needed for the padded region.[#7293]
 
 - ``convolve()``: Core computation ported from Cython to C. Several optimization
-  techniques have been implemented to achieve performace gains, e.g. compiler
+  techniques have been implemented to achieve performance gains, e.g. compiler
   hoisting, and vectorization, etc. Compiler optimization level ``-O2`` required for
   hoisting and ``-O3`` for vectorization. [#7293]
 
@@ -799,8 +528,11 @@ astropy.stats
 ^^^^^^^^^^^^^
 
 - The ``SigmaClip`` class and ``sigma_clip`` and
-  ``sigma_clipped_stats`` functions are now significantly faster.
-  [#7478]
+  ``sigma_clipped_stats`` functions are now significantly faster. [#7478]
+
+- A Cython implementation for `astropy.stats.kuiper_two` and a vectorized
+  implementation for `astropy.stats.kuiper_false_positive_probability` have
+  been added, speeding up both functions.  [#8104]
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -811,25 +543,16 @@ astropy.units
 - Sped up Unit.to when target unit is the same as the original unit.
   [#7643]
 
-- Lazy-load ``scipy.special`` to shorten ``astropy.units`` import time.
-  [#7636]
+- Lazy-load ``scipy.special`` to shorten ``astropy.units`` import time. [#7636]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
 - Significantly sped up drawing of contours in WCSAxes. [#7568]
 
+
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -843,12 +566,6 @@ astropy.coordinates
 
 - Fixed ``represent_as()`` to not round-trip through cartesian if the same
   representation class as the instance is passed in. [#7988]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -881,12 +598,6 @@ astropy.io.fits
 
 - Override ``HDUList.copy()`` to return a shallow HDUList instance. [#7218]
 
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
@@ -905,16 +616,10 @@ astropy.nddata
 - Added support for pickling ``NDData`` instances that have an uncertainty.
   [#7383]
 
-astropy.samp
-^^^^^^^^^^^^
-
 astropy.stats
 ^^^^^^^^^^^^^
 
 - Fix errors in ``kuiper_false_positive_probability``. [#7975]
-
-astropy.table
-^^^^^^^^^^^^^
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -954,8 +659,6 @@ astropy.visualization
   ``set_format_unit`` method on ``CoordinateHelper`` now works correctly
   with angle coordinates. [#7215]
 
-astropy.wcs
-^^^^^^^^^^^
 
 Other Changes and Additions
 ---------------------------
@@ -979,85 +682,6 @@ Other Changes and Additions
 - The ``representation`` keywords in coordinate frames are now deprecated in
   favor of the ``representation_type`` keywords (which are less
   ambiguously named). [#8119]
-
-
-
-3.0.6 (unreleased)
-==================
-
-Bug Fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Other Changes and Additions
----------------------------
-
 
 
 
@@ -6641,7 +6265,7 @@ astropy.utils
 
 - Updated ``astropy/utils/console.py`` ProgressBar() module to
   display output to IPython notebook with the addition of an
-  ``interactive`` kwarg. [#2658] [#2789]
+  ``interactive`` kwarg. [#2658, #2789]
 
 astropy.wcs
 ^^^^^^^^^^^
@@ -10150,7 +9774,7 @@ astropy.wcs
 
 - Fixed how ``setup.py`` uses ``distribute_setup.py`` to prevent possible
   ``VersionConflict`` errors when an older version of distribute is already
-  installed on the user's system. [#616][#640]
+  installed on the user's system. [#616, #640]
 
 - Changed use of ``log.warn`` in the logging module to ``log.warning`` since
   the former is deprecated. [#624]
