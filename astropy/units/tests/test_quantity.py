@@ -1072,22 +1072,22 @@ class TestMaskedQuantityDisplay(object):
 
     def test_scalar_quantity_repr(self):
         assert (repr(self.scalarintq) ==
-                "masked_Quantity(data = 1.0 m,\n"
-                "                mask = False,\n"
-                "          fill_value = 1e+20)\n")
+                "masked_Quantity(data=1. m,\n"
+                "                mask=False,\n"
+                "          fill_value=1e+20)")
         assert (repr(self.scalarfloatq) ==
-                "masked_Quantity(data = 1.3 m,\n"
-                "                mask = False,\n"
-                "          fill_value = 1e+20)\n")
+                "masked_Quantity(data=1.3 m,\n"
+                "                mask=False,\n"
+                "          fill_value=1e+20)")
 
     def test_array_quantity_str(self):
         assert str(self.arrq) == "[1.0 -- 8.9] m"
 
     def test_array_quantity_repr(self):
         assert (repr(self.arrq) ==
-                "masked_Quantity(data = [1.0 -- 8.9] m,\n"
-                "                mask = [False  True False],\n"
-                "          fill_value = 1e+20)\n")
+                "masked_Quantity(data=[1.0, --, 8.9] m,\n"
+                "                mask=[False,  True, False],\n"
+                "          fill_value=1e+20)")
 
 
 def test_decompose():

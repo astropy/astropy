@@ -35,7 +35,7 @@ __all__ = ["Quantity", "SpecificTypeQuantity",
 
 
 # We don't want to run doctests in the docstrings we inherit from Numpy
-__doctest_skip__ = ['Quantity.*', '_QuantityData.*', 'MaskedQuantity.*']
+__doctest_skip__ = ['Quantity.*', 'MaskedQuantity.*']
 
 _UNIT_NOT_INITIALISED = "(Unit not initialised)"
 _UFUNCS_FILTER_WARNINGS = {np.arcsin, np.arccos, np.arccosh, np.arctanh}
@@ -896,10 +896,10 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             except UnitConversionError:
                 return NotImplemented
 
-            self.view(np.ndarray)[...] = value
+            self._array_base[...] = value
 
         else:
-            self.view(np.ndarray)[...] *= factor
+            self._array_base[...] *= factor
 
         self._set_unit(other)
         return self
@@ -1651,6 +1651,111 @@ class SpecificTypeQuantity(Quantity):
         super()._set_unit(unit)
 
 
+class MaskedQuantity(Quantity, np.ma.MaskedArray):
+
+    __array_priority__ = 10010
+
+    _array_class = np.ma.MaskedArray
+
+    _mask = np.ma.nomask
+
+    _hardmask = False
+
+    def __new__(cls, value, unit=None, mask=None, fill_value=None,
+                dtype=None, equivalencies=[],
+                copy=True):
+
+        self = super().__new__(cls, value, unit, dtype=dtype, copy=copy)
+
+        if mask is None:
+            self.mask = getattr(value, 'mask', np.ma.nomask)
+        else:
+            self.mask = mask
+
+        if fill_value is None:
+            self._fill_value = getattr(value, 'fill_value', None)
+        else:
+            self._fill_value = fill_value
+
+        self._baseclass = Quantity
+
+        return self
+
+    def __repr__(self):
+        base = repr(self._array_base)
+        i = base.rindex(',', 0, base.index('mask='))
+        base = base[:i] + self._unitstr + base[i:]
+        name = 'masked_{}'.format(self._baseclass.__name__)
+        if base.startswith('masked_array(data'):
+            # May need to adjust indentation
+            if len(name) > 12:
+                out = '\n'.join(' ' * (len(name) - 12) + l if l else ''
+                                for l in base.splitlines())
+            elif len(name) < 12:
+                out = '\n'.join(l[12 - len(name):] if l else ''
+                                for l in base.splitlines())
+            return name + out[len(name):]
+        else:
+            return name + base[12:]
+
+    @property
+    def _array_base(self):
+        output = self.view(self._array_class)
+        output._baseclass = np.ndarray
+        return output
+
+    def __array_finalize__(self, obj):
+        super().__array_finalize__(obj)
+        if isinstance(obj, Quantity):
+            self._baseclass = Quantity
+
+    def __quantity_subclass__(self, unit):
+        return MaskedQuantity, True
+
+    def __eq__(self, other):
+        result = super().__eq__(other)
+        if isinstance(result, MaskedQuantity):
+            return result._array_base
+        else:
+            return result
+
+    def __ne__(self, other):
+        result = super().__ne__(other)
+        if isinstance(result, MaskedQuantity):
+            return result._array_base
+        else:
+            return result
+
+    def __pow__(self, other):
+        # np.ma.core.power does np.where that removes unit.
+        result = super(MaskedQuantity, self).__pow__(other)
+        result_unit = self.unit ** other
+        return self._new_view(result, result_unit)
+    # may need some
+
+    # TODO improve hack -> needs to rewrite DomainSafeDivide
+    # rather than bypass it for divisions.
+    def __truediv__(self, other):
+        if isinstance(other, (UnitBase, str)):
+            return super().__truediv__(other)
+
+        return np.divide(self, other)
+
+    def __rtruediv__(self, other):
+        return np.divide(other, self)
+
+    # Need to add these to override MaskedArray versions, which call
+    # ufunc's using self._data (which destroys unit); mul/div done in Quantity
+    def __iadd__(self, other):
+        return np.add(self, other, self)
+
+    def __isub__(self, other):
+        return np.sub(self, other, self)
+
+    def __ipow__(self, other):
+        return np.power(self, other, self)
+
+
 def isclose(a, b, rtol=1.e-5, atol=None, **kwargs):
     """
     Notes
@@ -1707,147 +1812,3 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         raise UnitsError("`rtol` should be dimensionless")
 
     return actual.value, desired.value, rtol.value, atol.value
-
-
-class _QuantityData(Quantity):
-    # on purpose, break ndarray view -> always stay a Quantity
-    def view(self, dtype=None, type=None):
-        if type is None:
-            return super(_QuantityData,
-                         self).view(Quantity if dtype is np.ndarray else dtype)
-        return super(_QuantityData,
-                     self).view(dtype, Quantity if type is np.ndarray else type)
-
-    @property
-    def _array_base(self):
-        return super().view(self._array_class)
-
-    def __repr__(self):
-        return 'Quantity('+str(self)+')'
-
-
-class MaskedQuantity(Quantity, np.ma.MaskedArray):
-
-    __array_priority__ = 10010
-
-    _array_class = np.ma.MaskedArray
-
-    _mask = np.ma.nomask
-
-    _hardmask = False
-
-    def __new__(cls, value, unit=None, mask=None, fill_value=None,
-                dtype=None, equivalencies=[],
-                copy=True):
-
-        self = super(MaskedQuantity, cls).__new__(
-            cls, value, unit, dtype=dtype, copy=copy)
-
-        if mask is None:
-            self.mask = getattr(value, 'mask', np.ma.nomask)
-        else:
-            self.mask = mask
-
-        if fill_value is None:
-            self._fill_value = getattr(value, 'fill_value', None)
-        else:
-            self._fill_value = fill_value
-
-        self._baseclass = Quantity
-
-        return self
-
-    # def __repr__(self):
-    #     prefixstr = '<' + self.__class__.__name__ + ' '
-    #     arrstr = self.value.__str__()
-    #     if self.unit is None:
-    #         unitstr = _UNIT_NOT_INITIALISED
-    #     else:
-    #         unitstr = self.unit.to_string()
-
-    #     return prefixstr + arrstr + ' ' + unitstr + '>'
-
-    def __repr__(self):
-        return self._array_class.__repr__(self)
-
-    @property
-    def _array_base(self):
-        output = self.view(self._array_class)
-        output._baseclass = np.ndarray
-        return output
-
-    def __array_prepare__(self, obj, context=None):
-        # print("array prepare", obj, context)
-        return super(MaskedQuantity, self).__array_prepare__(obj, context)
-
-    def __array_wrap__(self, obj, context=None):
-        # print("MQ array wrap", obj, context)
-        if context is not None:
-            obj = Quantity.__array_wrap__(self, obj, context)
-            obj = np.ma.MaskedArray.__array_wrap__(self, obj, context)
-            if obj._unit is None:
-                return obj._array_base
-
-        return obj
-
-    def __array_finalize__(self, obj):
-        # print("array finalize", obj.__repr__())
-        super(MaskedQuantity, self).__array_finalize__(obj)
-        #np.ma.MaskedArray.__array_finalize__(self, obj)
-        if isinstance(obj, Quantity):
-            self._baseclass = Quantity
-
-    def __quantity_subclass__(self, unit):
-        return MaskedQuantity, True
-
-    @property
-    def _data(self):
-        # help break getdata(subok=False)
-        return self.view(_QuantityData)
-
-    def __eq__(self, other):
-        result = super(MaskedQuantity, self).__eq__(other)
-        if isinstance(result, MaskedQuantity):
-            return result.view(np.ma.MaskedArray)
-        else:
-            return result
-
-    def __ne__(self, other):
-        result = super(MaskedQuantity, self).__ne__(other)
-        if isinstance(result, MaskedQuantity):
-            return result.view(np.ma.MaskedArray)
-        else:
-            return result
-
-    def __pow__(self, other):
-        # np.ma.core.power does np.where that removes unit.
-        result = super(MaskedQuantity, self).__pow__(other)
-        result_unit = self.unit ** other
-        return self._new_view(result, result_unit)
-    # may need some
-
-    # TODO improve hack -> needs to rewrite DomainSafeDivide
-    def __truediv__(self, other):
-        if isinstance(other, (bytes, str)):
-            other = Unit(other)
-
-        return self * (1./other)
-
-    # TODO improve hack -> needs to rewrite DomainSafeDivide
-    def __rtruediv__(self, other):
-        return other * (1./self.value) / self.unit
-
-    # Need to add these to override MaskedArray versions, which call
-    # ufunc's using self._data (which destroys unit); mul/div done in Quantity
-    def __iadd__(self, other):
-        return np.add(self, other, self)
-
-    def __isub__(self, other):
-        return np.sub(self, other, self)
-
-    def __ipow__(self, other):
-        return np.power(self, other, self)
-
-    # known: MaskedArray * unit fails
-    # this happens because MaskedArray does not return NotImplemented
-    # (and ignores the NotImplemented returned by the basic function)
