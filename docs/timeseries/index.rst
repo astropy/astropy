@@ -199,7 +199,8 @@ the data to determine the baseline flux::
 and we can downsample the time series by binning the points into bins of equal
 time - this returns a |BinnedTimeSeries|::
 
-    >>> ts_binned = ts_folded.downsample(0.03 * u.day)  # doctest: +REMOTE_DATA
+    >>> from astropy.timeseries.downsample import simple_downsample
+    >>> ts_binned = simple_downsample(ts_folded, 0.03 * u.day)  # doctest: +REMOTE_DATA
     >>> ts_binned  # doctest: +FLOAT_CMP +REMOTE_DATA
     <BinnedTimeSeries length=74>
          start_time          bin_size      ...   pos_corr2    sap_flux_norm
