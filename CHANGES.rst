@@ -970,7 +970,7 @@ Other Changes and Additions
 
 - The ``representation`` keywords in coordinate frames are now deprecated in
   favor of the ``representation_type`` keywords (which are less
-  ambiguous). [#8119]
+  ambiguously named). [#8119]
 
 
 
