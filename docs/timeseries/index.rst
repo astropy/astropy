@@ -288,6 +288,7 @@ Accessing data and manipulating time series
    data_access.rst
    times.rst
    analysis.rst
+   masking.rst
 
 Comparison to other packages
 ----------------------------
