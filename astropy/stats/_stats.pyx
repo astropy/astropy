@@ -1,3 +1,4 @@
+#cython: language_level=3
 from libc cimport math
 cimport cython
 cimport numpy as np
