@@ -98,13 +98,17 @@ Sorting time series in-place can be done using the
 Resampling
 ==========
 
-The |SampledTimeSeries| class has a
-:meth:`~astropy.timeseries.SampledTimeSeries.downsample` method that can be used
-to bin values from the time series into bins of equal time, using a custom
-function (mean, median, etc.). This operation returns a |BinnedTimeSeries|.
+We provide a :func:`~astropy.timeseries.downsample.simple_downsample` function
+that can be used to bin values from a time series into bins of equal time, using
+a custom function (mean, median, etc.). This operation returns a
+|BinnedTimeSeries|. Note that this is a simple function in the sense that it
+does not for example know how to treat columns with uncertainties differently
+from other values, and it will blindly apply the custom function specified to
+all columns.
+
 The following example shows how to use this to bin a light curve from the Kepler
-mission into 20 minute bins using a median function. First, we read in the
-data using:
+mission into 20 minute bins using a median function. First, we read in the data
+using:
 
 .. plot::
    :context: reset
@@ -125,7 +129,8 @@ downsample using:
 
     import numpy as np
     from astropy import units as u
-    kepler_binned = kepler.downsample(bin_size=20 * u.min, func=np.nanmedian)
+    from astropy.timeseries.downsample import simple_downsample
+    kepler_binned = simple_downsample(kepler, bin_size=20 * u.min, func=np.nanmedian)
 
 We can take a look at the results:
 

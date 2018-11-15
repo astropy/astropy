@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
-
 from copy import deepcopy
 
 import numpy as np
@@ -12,18 +10,8 @@ from astropy import units as u
 from astropy.units import Quantity
 
 from .core import TimeSeries
-from .binned import BinnedTimeSeries
 
 __all__ = ['SampledTimeSeries']
-
-
-def reduceat(array, indices, function):
-    """
-    Manual reduceat functionality for cases where Numpy functions don't have a reduceat
-    """
-    result = [function(array[indices[i]:indices[i+1]]) for i in range(len(indices) - 1)]
-    result.append(function(array[indices[-1]:]))
-    return np.array(result)
 
 
 class SampledTimeSeries(TimeSeries):
@@ -103,96 +91,6 @@ class SampledTimeSeries(TimeSeries):
     @property
     def time(self):
         return self['time']
-
-    def downsample(self, bin_size, func=None, start_time=None, n_bins=None, ):
-        """
-        Downsample the time series by binning values into bins with a fixed
-        size, and return a :class:`~astropy.timeseries.BinnedTimeSeries`
-
-        Parameters
-        ----------
-        bin_size : `~astropy.units.Quantity`
-            The time interval for the binned time series
-        func : callable, optional
-            The function to use for combining points in the same bin. Defaults
-            to np.nanmean.
-        start_time : `~astropy.time.Time`, optional
-            The start time for the binned time series. Defaults to the first
-            time in the sampled time series.
-        n_bins : int, optional
-            The number of bins to use. Defaults to the number needed to fit all
-            the original points.
-        """
-
-        bin_size_sec = bin_size.to_value(u.s)
-
-        # Use the table sorted by time
-        sorted = self.iloc[:]
-
-        # Determine start time if needed
-        if start_time is None:
-            start_time = sorted.time[0]
-
-        # Find the relative time since the start time, in seconds
-        relative_time_sec = (sorted.time - start_time).sec
-
-        # Determine the number of bins if needed
-        if n_bins is None:
-            n_bins = int(np.ceil(relative_time_sec[-1] / bin_size_sec))
-
-        if func is None:
-            func = np.nanmedian
-
-        # Determine the bins
-        relative_bins_sec = np.cumsum(np.hstack([0, np.repeat(bin_size_sec, n_bins)]))
-        bins = start_time + relative_bins_sec * u.s
-
-        # Find the subset of the table that is inside the bins
-        keep = ((relative_time_sec >= relative_bins_sec[0]) &
-                (relative_time_sec < relative_bins_sec[-1]))
-        subset = sorted[keep]
-
-        # Figure out which bin each row falls in - the -1 is because items
-        # falling in the first bins will have index 1 but we want that to be 0
-        indices = np.searchsorted(relative_bins_sec, relative_time_sec[keep]) - 1
-
-        # Create new binned time series
-        binned = BinnedTimeSeries(start_time=bins[:-1], end_time=bins[-1])
-
-        # Determine rows where values are defined
-        groups = np.hstack([0, np.nonzero(np.diff(indices))[0] + 1])
-
-        # Find unique indices to determine which rows in the final time series
-        # will not be empty.
-        unique_indices = np.unique(indices)
-
-        # Add back columns
-
-        for colname in subset.colnames:
-
-            if colname == 'time':
-                continue
-
-            values = subset[colname]
-
-            # FIXME: figure out how to avoid the following, if possible
-            if not isinstance(values, (np.ndarray, u.Quantity)):
-                warnings.warn("Skipping column {0} since it has a mix-in type")
-                continue
-
-            data = np.ma.zeros(n_bins, dtype=values.dtype)
-            data.mask = 1
-
-            if isinstance(values, u.Quantity):
-                data[unique_indices] = u.Quantity(reduceat(values.value, groups, func),
-                                                  values.unit, copy=False)
-            else:
-                data[unique_indices] = reduceat(values, groups, func)
-
-            data.mask[unique_indices] = 0
-            binned[colname] = data
-
-        return binned
 
     def fold(self, period=None, midpoint_epoch=None):
         """
