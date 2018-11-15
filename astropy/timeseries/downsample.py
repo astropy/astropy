@@ -4,7 +4,7 @@ import numpy as np
 from astropy import units as u
 from astropy.utils.exceptions import AstropyUserWarning
 
-from .sampled import SampledTimeSeries
+from .sampled import TimeSeries
 from .binned import BinnedTimeSeries
 
 
@@ -24,7 +24,7 @@ def simple_downsample(time_series, bin_size, func=None, start_time=None, n_bins=
 
     Parameters
     ----------
-    time_series : :class:`~astropy.timeseries.SampledTimeSeries`
+    time_series : :class:`~astropy.timeseries.TimeSeries`
         The time series to downsample.
     bin_size : `~astropy.units.Quantity`
         The time interval for the binned time series
@@ -44,8 +44,8 @@ def simple_downsample(time_series, bin_size, func=None, start_time=None, n_bins=
         The downsampled time series.
     """
 
-    if not isinstance(time_series, SampledTimeSeries):
-        raise TypeError("time_series should be a SampledTimeSeries")
+    if not isinstance(time_series, TimeSeries):
+        raise TypeError("time_series should be a TimeSeries")
 
     bin_size_sec = bin_size.to_value(u.s)
 

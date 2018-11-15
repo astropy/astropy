@@ -6,7 +6,7 @@ Accessing data in time series
 .. |Time| replace:: :class:`~astropy.time.Time`
 .. |Table| replace:: :class:`~astropy.table.Table`
 .. |QTable| replace:: :class:`~astropy.table.QTable`
-.. |SampledTimeSeries| replace:: :class:`~astropy.timeseries.SampledTimeSeries`
+.. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
 .. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
 
 Accessing data
@@ -17,8 +17,8 @@ with two data columns - ``flux`` and ``temp``::
 
     >>> from collections import OrderedDict
     >>> from astropy import units as u
-    >>> from astropy.timeseries import SampledTimeSeries
-    >>> ts = SampledTimeSeries(time='2016-03-22T12:30:31',
+    >>> from astropy.timeseries import TimeSeries
+    >>> ts = TimeSeries(time='2016-03-22T12:30:31',
     ...                        time_delta=3 * u.s,
     ...                        data={'flux': [1., 4., 5., 3., 2.],
     ...                              'temp': [40., 41., 39., 24., 20.]},
@@ -59,7 +59,7 @@ row, or vice-versa::
 Accessing times
 ===============
 
-The ``time`` column (for |SampledTimeSeries|) and the ``start_time`` column (for
+The ``time`` column (for |TimeSeries|) and the ``start_time`` column (for
 |BinnedTimeSeries|) can be accessed using the regular column access notation, as
 shown in `Accessing data`_, but they can also be accessed more conveniently
 using attribute notation::
@@ -77,7 +77,7 @@ Extracting a subset of columns
 We can create a new time series with just the ``flux`` column by doing::
 
    >>> ts['time', 'flux']
-   <SampledTimeSeries length=5>
+   <TimeSeries length=5>
              time            flux
             object         float64
    ----------------------- -------
@@ -108,7 +108,7 @@ Time series objects can be sliced by rows, using the same syntax as for |Time|,
 e.g.::
 
    >>> ts[0:2]
-   <SampledTimeSeries length=2>
+   <TimeSeries length=2>
              time            flux    temp
             object         float64 float64
    ----------------------- ------- -------
@@ -135,7 +135,7 @@ entries for a given timestamp::
 or within a time range::
 
    >>> ts.loc[Time('2016-03-22T12:30:31'):Time('2016-03-22T12:30:40')]
-   <SampledTimeSeries length=4>
+   <TimeSeries length=4>
              time            flux    temp
             object         float64 float64
    ----------------------- ------- -------
@@ -152,7 +152,7 @@ rows from the time series *sorted by time*, so for example the two first
 entries (by time) can be accessed with::
 
    >>> ts.iloc[0:2]
-   <SampledTimeSeries length=2>
+   <TimeSeries length=2>
              time            flux    temp
             object         float64 float64
    ----------------------- ------- -------

@@ -5,7 +5,7 @@ from astropy.io import registry, fits
 from astropy.table import Table
 from astropy.time import Time, TimeDelta
 
-from ..sampled import SampledTimeSeries
+from ..sampled import TimeSeries
 
 __all__ = ['tess_fits_reader']
 
@@ -53,9 +53,9 @@ def tess_fits_reader(filename):
     tab.remove_column('time')
 
     # Create time series
-    ts = SampledTimeSeries(time=time, data=tab)
+    ts = TimeSeries(time=time, data=tab)
 
     return ts
 
 
-registry.register_reader('tess.fits', SampledTimeSeries, tess_fits_reader)
+registry.register_reader('tess.fits', TimeSeries, tess_fits_reader)

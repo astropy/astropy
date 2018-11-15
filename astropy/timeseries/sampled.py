@@ -11,10 +11,10 @@ from astropy.units import Quantity
 
 from .core import TimeSeries
 
-__all__ = ['SampledTimeSeries']
+__all__ = ['TimeSeries']
 
 
-class SampledTimeSeries(TimeSeries):
+class TimeSeries(TimeSeries):
 
     _require_time_column = False
 
@@ -94,7 +94,7 @@ class SampledTimeSeries(TimeSeries):
 
     def fold(self, period=None, midpoint_epoch=None):
         """
-        Return a new SampledTimeSeries folded with a period and midpoint epoch.
+        Return a new TimeSeries folded with a period and midpoint epoch.
 
         Parameters
         ----------
@@ -144,7 +144,7 @@ class SampledTimeSeries(TimeSeries):
     def from_pandas(self, df):
         """
         Convert a :class:`~pandas.DataFrame` to a
-        :class:`astropy.timeseries.SampledTimeSeries`.
+        :class:`astropy.timeseries.TimeSeries`.
         """
 
         from pandas import DataFrame, DatetimeIndex
@@ -161,7 +161,7 @@ class SampledTimeSeries(TimeSeries):
         # Create table without the time column
         table = Table.from_pandas(df)
 
-        return SampledTimeSeries(time=time, data=table)
+        return TimeSeries(time=time, data=table)
 
     def to_pandas(self):
         """
