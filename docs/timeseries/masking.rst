@@ -37,7 +37,7 @@ As you can see, some of the values are negative. We can mask these using::
 We can also access the mask values::
 
     >>> ts['flux'].mask
-    array([False,  True, False,  True, False])
+    array([False,  True, False,  True, False]...)
 
 Masks are column-based, so masking a single cell does not mask the whole row.
 Having masked cells then allows functions that normally understand masked values
