@@ -64,7 +64,7 @@ class TimeSeries(BaseTimeSeries):
             # sample and that the interval is given by time_delta.
 
             if time_delta is None:
-                raise TypeError("'time' is scalar, so 'bin_size' is required")
+                raise TypeError("'time' is scalar, so 'time_delta' is required")
 
             if time_delta.isscalar:
                 time_delta = np.repeat(time_delta, n_samples)
@@ -79,7 +79,7 @@ class TimeSeries(BaseTimeSeries):
 
             if len(self.colnames) > 0 and len(time) != len(self):
                 raise ValueError("Length of 'time' ({0}) should match "
-                                 "table length ({1})".format(len(time), n_samples))
+                                 "data length ({1})".format(len(time), n_samples))
 
             if time_delta is not None:
                 raise TypeError("'time_delta' should not be specified since "
@@ -150,7 +150,7 @@ class TimeSeries(BaseTimeSeries):
         from pandas import DataFrame, DatetimeIndex
 
         if not isinstance(df, DataFrame):
-            raise TypeError("Input should be a pandas dataframe")
+            raise TypeError("Input should be a pandas DataFrame")
 
         if not isinstance(df.index, DatetimeIndex):
             raise TypeError("DataFrame does not have a DatetimeIndex")
