@@ -4,11 +4,11 @@ from datetime import datetime
 
 import pytest
 
-import numpy as np
-from numpy.testing import assert_equal
+from numpy.testing import assert_equal, assert_allclose
 
 from astropy.table import Table
 from astropy.time import Time, TimeDelta
+from astropy import units as u
 
 from ..sampled import TimeSeries
 
@@ -53,18 +53,39 @@ def test_initialization_with_data():
     assert_equal(ts['b'], [4, 5, 6])
 
 
+def test_initialize_only_data():
+    with pytest.raises(TypeError) as exc:
+        TimeSeries(data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
+    assert exc.value.args[0] == "'time' has not been specified"
+
+
 def test_initialization_with_table():
     ts = TimeSeries(time=INPUT_TIME, data=PLAIN_TABLE)
     assert ts.colnames == ['time', 'a', 'b', 'c']
 
 
-def test_initialization_with_deltatime():
+def test_initialization_with_time_delta():
     ts = TimeSeries(time=datetime(2018, 7, 1, 10, 10, 10),
-                           time_delta=TimeDelta(3, format='sec'),
-                           data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
+                    time_delta=TimeDelta(3, format='sec'),
+                    data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
     assert_equal(ts.time.isot, ['2018-07-01T10:10:10.000',
                                 '2018-07-01T10:10:13.000',
                                 '2018-07-01T10:10:16.000'])
+
+
+def test_initialization_missing_time_delta():
+    with pytest.raises(TypeError) as exc:
+        TimeSeries(time=datetime(2018, 7, 1, 10, 10, 10),
+                   data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
+    assert exc.value.args[0] == "'time' is scalar, so 'time_delta' is required"
+
+
+def test_initialization_invalid_time_delta():
+    with pytest.raises(TypeError) as exc:
+        TimeSeries(time=datetime(2018, 7, 1, 10, 10, 10),
+                   time_delta=[1, 4, 3],
+                   data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
+    assert exc.value.args[0] == "'time_delta' should be a Quantity or a TimeDelta"
 
 
 def test_initialization_with_time_in_data():
@@ -92,6 +113,37 @@ def test_initialization_with_time_in_data():
     assert exc.value.args[0] == "'time' has been given both in the table and as a keyword argument"
 
 
+def test_initialization_length_mismatch():
+    with pytest.raises(ValueError) as exc:
+        TimeSeries(time=INPUT_TIME, data=[[10, 2], [4, 5]], names=['a', 'b'])
+    assert exc.value.args[0] == "Length of 'time' (3) should match data length (2)"
+
+
+def test_initialization_invalid_both_time_and_time_delta():
+    with pytest.raises(TypeError) as exc:
+        TimeSeries(time=INPUT_TIME, time_delta=TimeDelta(3, format='sec'))
+    assert exc.value.args[0] == ("'time_delta' should not be specified since "
+                                 "'time' is an array")
+
+
+def test_fold():
+
+    times = Time([1, 2, 3, 8, 9, 12], format='unix')
+
+    ts = TimeSeries(time=times)
+    ts['flux'] = [1, 4, 4, 3, 2, 3]
+
+    # Try without midpoint epoch, as it should default to the first time
+    tsf = ts.fold(period=3 * u.s)
+    assert isinstance(tsf.time, TimeDelta)
+    assert_allclose(tsf.time.sec, [0, 1, -1, 1, -1, -1], rtol=1e-6)
+
+    # Try with midpoint epoch
+    tsf = ts.fold(period=4 * u.s, midpoint_epoch=Time(2.5, format='unix'))
+    assert isinstance(tsf.time, TimeDelta)
+    assert_allclose(tsf.time.sec, [-1.5, -0.5, 0.5, 1.5, -1.5, 1.5], rtol=1e-6)
+
+
 @pytest.mark.skipif('not HAS_PANDAS')
 def test_pandas():
 
@@ -104,3 +156,14 @@ def test_pandas():
 
     df2 = ts.to_pandas()
     assert_equal(df2.index, INPUT_TIME.datetime64)
+
+    with pytest.raises(TypeError) as exc:
+        TimeSeries.from_pandas(None)
+    assert exc.value.args[0] == 'Input should be a pandas DataFrame'
+
+    df3 = pandas.DataFrame()
+    df3['a'] = [1, 2, 3]
+
+    with pytest.raises(TypeError) as exc:
+        TimeSeries.from_pandas(df3)
+    assert exc.value.args[0] == 'DataFrame does not have a DatetimeIndex'
