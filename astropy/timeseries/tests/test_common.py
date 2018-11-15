@@ -4,7 +4,7 @@ from astropy import units as u
 from astropy.table import Table, QTable, vstack
 from astropy.time import Time
 
-from ..sampled import SampledTimeSeries
+from ..sampled import TimeSeries
 from ..binned import BinnedTimeSeries
 
 
@@ -38,15 +38,15 @@ class CommonTimeSeriesTests:
         self.series['d'] = [1, 2, 3]
 
 
-class TestSampledTimeSeries(CommonTimeSeriesTests):
+class TestTimeSeries(CommonTimeSeriesTests):
 
     def setup_method(self, method):
-        self.series = SampledTimeSeries(time=INPUT_TIME, data=PLAIN_TABLE)
+        self.series = TimeSeries(time=INPUT_TIME, data=PLAIN_TABLE)
         self.time_attr = 'time'
 
     def test_column_slicing(self):
         ts = self.series['time', 'a']
-        assert isinstance(ts, SampledTimeSeries)
+        assert isinstance(ts, TimeSeries)
 
 
 class TestBinnedTimeSeries(CommonTimeSeriesTests):

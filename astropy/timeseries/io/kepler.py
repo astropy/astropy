@@ -2,7 +2,7 @@ from astropy.io import registry
 from astropy.table import Table
 from astropy.time import Time
 
-from ..sampled import SampledTimeSeries
+from ..sampled import TimeSeries
 
 __all__ = ['kepler_fits_reader']
 
@@ -28,10 +28,10 @@ def kepler_fits_reader(filename):
     tab.remove_column('time')
 
     # Create time series
-    ts = SampledTimeSeries(time=time, data=tab)
+    ts = TimeSeries(time=time, data=tab)
     ts.time.format = 'isot'
 
     return ts
 
 
-registry.register_reader('kepler.fits', SampledTimeSeries, kepler_fits_reader)
+registry.register_reader('kepler.fits', TimeSeries, kepler_fits_reader)

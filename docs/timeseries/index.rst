@@ -8,7 +8,7 @@ Time series (`astropy.timeseries`)
 .. |Table| replace:: :class:`~astropy.table.Table`
 .. |QTable| replace:: :class:`~astropy.table.QTable`
 .. |Quantity| replace:: :class:`~astropy.units.Quantity`
-.. |SampledTimeSeries| replace:: :class:`~astropy.timeseries.SampledTimeSeries`
+.. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
 .. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
 
 Introduction
@@ -36,15 +36,15 @@ source::
     >>> from astropy.utils.data import get_pkg_data_filename
     >>> filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')  # doctest: +REMOTE_DATA
 
-We can then use the |SampledTimeSeries| class to read in this file::
+We can then use the |TimeSeries| class to read in this file::
 
-    >>> from astropy.timeseries import SampledTimeSeries
-    >>> ts = SampledTimeSeries.read(filename, format='kepler.fits')  # doctest: +REMOTE_DATA
+    >>> from astropy.timeseries import TimeSeries
+    >>> ts = TimeSeries.read(filename, format='kepler.fits')  # doctest: +REMOTE_DATA
 
 Time series are specialized kinds of astropy |Table| objects::
 
     >>> ts  # doctest: +REMOTE_DATA
-    <SampledTimeSeries length=14280>
+    <TimeSeries length=14280>
         time             timecorr   ...   pos_corr1      pos_corr2
                             d       ...     pixels         pixels
        object            float32    ...    float32        float32
@@ -65,7 +65,7 @@ sliced using index notation::
                1025930.9 ] electron / s>
 
     >>> ts['time', 'sap_flux']  # doctest: +REMOTE_DATA
-    <SampledTimeSeries length=14280>
+    <TimeSeries length=14280>
               time             sap_flux
                              electron / s
              object            float32
@@ -79,7 +79,7 @@ sliced using index notation::
     2009-05-11T18:07:12.186  1.0259309e+06
 
     >>> ts[0:4]  # doctest: +REMOTE_DATA
-    <SampledTimeSeries length=4>
+    <TimeSeries length=4>
               time             timecorr   ...   pos_corr1      pos_corr2
                                   d       ...     pixels         pixels
              object            float32    ...    float32        float32
@@ -89,7 +89,7 @@ sliced using index notation::
     2009-05-02T00:43:38.045  6.631103e-04 ...  1.5665225e-03 -1.4616371e-03
     2009-05-02T00:44:36.894  6.631350e-04 ...  1.5586632e-03 -1.4692718e-03
 
-As seen in the example above, |SampledTimeSeries| objects have a ``time``
+As seen in the example above, |TimeSeries| objects have a ``time``
 column, which is always the first column. This column can also be accessed using
 the ``.time`` attribute::
 
@@ -117,8 +117,8 @@ Let's use what we've seen so far to make a plot
 
     from astropy.utils.data import get_pkg_data_filename
     filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
-    from astropy.timeseries import SampledTimeSeries
-    ts = SampledTimeSeries.read(filename, format='kepler.fits')
+    from astropy.timeseries import TimeSeries
+    ts = TimeSeries.read(filename, format='kepler.fits')
 
 .. plot::
    :include-source:
@@ -155,7 +155,7 @@ a duration of 0.2 days::
    period = periodogram.period[np.argmax(periodogram.power)]
 
 We can now fold the time series using the period we've found above using the
-:meth:`~astropy.timeseries.SampledTimeSeries.fold` method::
+:meth:`~astropy.timeseries.TimeSeries.fold` method::
 
     >>> ts_folded = ts.fold(period=period, midpoint_epoch='2009-05-02T07:41:40')  # doctest: +REMOTE_DATA
 
