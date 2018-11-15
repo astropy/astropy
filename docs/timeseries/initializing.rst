@@ -29,7 +29,17 @@ time series::
     >>> from astropy.timeseries import TimeSeries
     >>> ts1 = TimeSeries(time='2016-03-22T12:30:31',
     ...                         time_delta=3 * u.s,
-    ...                         n_samples=10)
+    ...                         n_samples=5)
+    >>> ts1
+    <TimeSeries length=5>
+              time
+             object
+    -----------------------
+    2016-03-22T12:30:31.000
+    2016-03-22T12:30:34.000
+    2016-03-22T12:30:37.000
+    2016-03-22T12:30:40.000
+    2016-03-22T12:30:43.000
 
 The ``time`` keyword argument can be set to anything that can be passed to the
 |Time| class (see also :ref:`Time and Dates <astropy-time>`). Note that the
@@ -205,9 +215,9 @@ Once the time series is initialized, you can add columns/fields to it as you
 would for a |Table| object::
 
     >>> from astropy import units as u
-    >>> ts1['flux'] = [1., 4., 5., 6., 4., 5., 4., 3., 2., 3.] * u.mJy
+    >>> ts1['flux'] = [1., 4., 5., 6., 4.] * u.mJy
     >>> ts1
-    <TimeSeries length=10>
+    <TimeSeries length=5>
               time            flux
                               mJy
              object         float64
@@ -217,11 +227,6 @@ would for a |Table| object::
     2016-03-22T12:30:37.000     5.0
     2016-03-22T12:30:40.000     6.0
     2016-03-22T12:30:43.000     4.0
-    2016-03-22T12:30:46.000     5.0
-    2016-03-22T12:30:49.000     4.0
-    2016-03-22T12:30:52.000     3.0
-    2016-03-22T12:30:55.000     2.0
-    2016-03-22T12:30:58.000     3.0
 
 Passing data during initialization
 ----------------------------------
@@ -249,4 +254,24 @@ It is also possible to pass the data during the initialization, as for
 Adding rows
 -----------
 
-.. warning:: Doesn't work yet, see https://github.com/astropy/astropy/issues/7894
+Adding rows to |TimeSeries| or |BinnedTimeSeries| can be done using the
+:meth:`~astropy.table.QTable.add_row` method, as for |Table| and |QTable|. This
+method takes a dictionary where the keys are column names::
+
+    >>> ts8.add_row({'start_time': '2016-03-22T12:30:44.000',
+    ...              'bin_size': 2 * u.s,
+    ...              'flux': 3 * u.mJy})
+    >>> ts8  # doctest: +FLOAT_CMP
+    <BinnedTimeSeries length=5>
+           start_time            bin_size       flux
+                                    s           mJy
+             object              float64      float64
+    ----------------------- ----------------- -------
+    2016-03-22T12:30:31.000               3.0     1.0
+    2016-03-22T12:30:34.000               3.0     4.0
+    2016-03-22T12:30:37.000               2.0     5.0
+    2016-03-22T12:30:39.000               3.0     6.0
+    2016-03-22T12:30:44.000               2.0     3.0
+
+If you want to be able to miss out values when adding rows, you should make
+sure that masking is enabled - see :ref:`timeseries-masking` for more details.
