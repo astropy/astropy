@@ -1828,7 +1828,7 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
 
     # TODO improve hack -> needs to rewrite DomainSafeDivide
     def __truediv__(self, other):
-        if isinstance(other, six.string_types):
+        if isinstance(other, (bytes, str)):
             other = Unit(other)
 
         return self * (1./other)
