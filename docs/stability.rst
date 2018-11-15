@@ -257,10 +257,10 @@ The current planned and existing sub-packages are:
                 astropy.units
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td>
-                New in v0.2. Current functionality stable with intent to maintain backwards compatibility. Significant new functionality, in particular to allow dealing with uncertainties, is likely to be added in future versions.
+                Incremental improvements since v0.4. Functionality mature and unlikely to change. Efforts focused on performance and increased interoperability with Numpy functions.
             </td>
         </tr>
         <tr>
