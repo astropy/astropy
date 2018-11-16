@@ -554,6 +554,21 @@ astropy.visualization
 Bug Fixes
 ---------
 
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed bug in ``convolve_fft`` where masked input was copied with
+  ``numpy.asarray`` instead of ``numpy.asanyarray``.
+  ``numpy.asarray`` removes the mask subclass causing
+  ``numpy.ma.ismasked(input)`` to fail, causing ``convolve_fft``
+  to ignore all masked input. [#8137]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
