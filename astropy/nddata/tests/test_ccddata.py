@@ -811,8 +811,9 @@ def test_write_read_multiextensionfits_mask_default(ccd_data, tmpdir):
     np.testing.assert_array_equal(ccd_data.mask, ccd_after.mask)
 
 
-@pytest.mark.parametrize('uncertainty_type',
-                         [StdDevUncertainty, VarianceUncertainty, InverseVariance])
+@pytest.mark.parametrize(
+    'uncertainty_type',
+    [StdDevUncertainty, VarianceUncertainty, InverseVariance])
 def test_write_read_multiextensionfits_uncertainty_default(
         ccd_data, tmpdir, uncertainty_type):
     # Test that if a uncertainty is present it is saved and loaded by default.
@@ -820,6 +821,22 @@ def test_write_read_multiextensionfits_uncertainty_default(
     filename = tmpdir.join('afile.fits').strpath
     ccd_data.write(filename)
     ccd_after = CCDData.read(filename)
+    assert ccd_after.uncertainty is not None
+    assert type(ccd_after.uncertainty) is uncertainty_type
+    np.testing.assert_array_equal(ccd_data.uncertainty.array,
+                                  ccd_after.uncertainty.array)
+
+
+@pytest.mark.parametrize(
+    'uncertainty_type',
+    [StdDevUncertainty, VarianceUncertainty, InverseVariance])
+def test_write_read_multiextensionfits_uncertainty_different_uncertainty_key(
+        ccd_data, tmpdir, uncertainty_type):
+    # Test that if a uncertainty is present it is saved and loaded by default.
+    ccd_data.uncertainty = uncertainty_type(ccd_data.data * 10)
+    filename = tmpdir.join('afile.fits').strpath
+    ccd_data.write(filename, key_uncertainty_type='Blah')
+    ccd_after = CCDData.read(filename, key_uncertainty_type='Blah')
     assert ccd_after.uncertainty is not None
     assert type(ccd_after.uncertainty) is uncertainty_type
     np.testing.assert_array_equal(ccd_data.uncertainty.array,

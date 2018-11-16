@@ -241,7 +241,7 @@ class CCDData(NDDataArray):
             self._uncertainty = value
 
     def to_hdu(self, hdu_mask='MASK', hdu_uncertainty='UNCERT',
-               hdu_flags=None, wcs_relax=True, key_uncertainty_type="UTYPE"):
+               hdu_flags=None, wcs_relax=True, key_uncertainty_type='UTYPE'):
         """Creates an HDUList object from a CCDData object.
 
         Parameters
@@ -265,6 +265,8 @@ class CCDData(NDDataArray):
             The header key name for the class name of the uncertainty (if any)
             that is used to store the uncertainty type in the uncertainty hdu.
             Default is ``UTYPE``.
+
+            .. versionadded:: 3.1
 
         Raises
         -------
@@ -457,7 +459,7 @@ def _generate_wcs_and_update_header(hdr):
 
 def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
                         hdu_mask='MASK', hdu_flags=None,
-                        key_uncertainty_type="UTYPE", **kwd):
+                        key_uncertainty_type='UTYPE', **kwd):
     """
     Generate a CCDData object from a FITS file.
 
@@ -496,6 +498,8 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
         The header key name where the class name of the uncertainty  is stored
         in the hdu of the uncertainty (if any).
         Default is ``UTYPE``.
+
+        .. versionadded:: 3.1
 
     kwd :
         Any additional keyword parameters are passed through to the FITS reader
@@ -591,8 +595,9 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
     return ccd_data
 
 
-def fits_ccddata_writer(ccd_data, filename, hdu_mask='MASK',
-                        hdu_uncertainty='UNCERT', hdu_flags=None, **kwd):
+def fits_ccddata_writer(
+        ccd_data, filename, hdu_mask='MASK', hdu_uncertainty='UNCERT',
+        hdu_flags=None, key_uncertainty_type='UTYPE', **kwd):
     """
     Write CCDData object to FITS file.
 
@@ -609,6 +614,13 @@ def fits_ccddata_writer(ccd_data, filename, hdu_mask='MASK',
         Default is ``'MASK'`` for mask, ``'UNCERT'`` for uncertainty and
         ``None`` for flags.
 
+    key_uncertainty_type : str, optional
+        The header key name for the class name of the uncertainty (if any)
+        that is used to store the uncertainty type in the uncertainty hdu.
+        Default is ``UTYPE``.
+
+        .. versionadded:: 3.1
+
     kwd :
         All additional keywords are passed to :py:mod:`astropy.io.fits`
 
@@ -624,8 +636,9 @@ def fits_ccddata_writer(ccd_data, filename, hdu_mask='MASK',
     NotImplementedError
         Saving flags is not supported.
     """
-    hdu = ccd_data.to_hdu(hdu_mask=hdu_mask, hdu_uncertainty=hdu_uncertainty,
-                          hdu_flags=hdu_flags)
+    hdu = ccd_data.to_hdu(
+        hdu_mask=hdu_mask, hdu_uncertainty=hdu_uncertainty,
+        key_uncertainty_type=key_uncertainty_type, hdu_flags=hdu_flags)
     hdu.writeto(filename, **kwd)
 
 
