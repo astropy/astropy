@@ -468,15 +468,19 @@ def test_arithmetic_overload_ccddata_operand(ccd_data):
     assert len(result.meta) == 0
     np.testing.assert_array_equal(result.data,
                                   2 * ccd_data.data)
-    np.testing.assert_array_equal(result.uncertainty.array,
-                                  np.sqrt(2) * ccd_data.uncertainty.array)
+    np.testing.assert_array_almost_equal_nulp(
+        result.uncertainty.array,
+        np.sqrt(2) * ccd_data.uncertainty.array
+    )
 
     result = ccd_data.subtract(operand)
     assert len(result.meta) == 0
     np.testing.assert_array_equal(result.data,
                                   0 * ccd_data.data)
-    np.testing.assert_array_equal(result.uncertainty.array,
-                                  np.sqrt(2) * ccd_data.uncertainty.array)
+    np.testing.assert_array_almost_equal_nulp(
+        result.uncertainty.array,
+        np.sqrt(2) * ccd_data.uncertainty.array
+    )
 
     result = ccd_data.multiply(operand)
     assert len(result.meta) == 0
