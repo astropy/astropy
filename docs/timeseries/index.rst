@@ -209,7 +209,7 @@ time - this returns a |BinnedTimeSeries|::
     >>> ts_binned = simple_downsample(ts_folded, 0.03 * u.day)  # doctest: +REMOTE_DATA
     >>> ts_binned  # doctest: +FLOAT_CMP +REMOTE_DATA
     <BinnedTimeSeries length=74>
-         start_time          bin_size      ...   pos_corr2    sap_flux_norm
+      time_bin_start      time_bin_size    ...   pos_corr2    sap_flux_norm
                                 s          ...
            object            float64       ...    float32        float32
     ------------------- ------------------ ... -------------- -------------
@@ -254,7 +254,7 @@ Let's take a look at the final result:
    :include-source:
 
    plt.plot(ts_folded.time.jd, ts_folded['sap_flux_norm'], 'k.', markersize=1)
-   plt.plot(ts_binned.start_time.jd, ts_binned['sap_flux_norm'], 'r-', drawstyle='steps-post')
+   plt.plot(ts_binned.time_bin_start.jd, ts_binned['sap_flux_norm'], 'r-', drawstyle='steps-post')
    plt.xlabel('Time (days)')
    plt.ylabel('Normalized flux')
 

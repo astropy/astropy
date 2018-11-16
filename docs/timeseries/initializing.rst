@@ -98,24 +98,24 @@ To create a binned time series with equal-size contiguous bins, it is sufficient
 to specify a start time as well as a bin size::
 
     >>> from astropy.timeseries import BinnedTimeSeries
-    >>> ts3 = BinnedTimeSeries(start_time='2016-03-22T12:30:31',
-    ...                        bin_size=3 * u.s, n_bins=10)
+    >>> ts3 = BinnedTimeSeries(time_bin_start='2016-03-22T12:30:31',
+    ...                        time_bin_size=3 * u.s, n_bins=10)
     >>> ts3
     <BinnedTimeSeries length=10>
-        start_time       bin_size
-                            s
-          object         float64
-    ----------------------- --------
-    2016-03-22T12:30:31.000      3.0
-    2016-03-22T12:30:34.000      3.0
-    2016-03-22T12:30:37.000      3.0
-    2016-03-22T12:30:40.000      3.0
-    2016-03-22T12:30:43.000      3.0
-    2016-03-22T12:30:46.000      3.0
-    2016-03-22T12:30:49.000      3.0
-    2016-03-22T12:30:52.000      3.0
-    2016-03-22T12:30:55.000      3.0
-    2016-03-22T12:30:58.000      3.0
+        time_bin_start     time_bin_size
+                                 s
+            object            float64
+    ----------------------- -------------
+    2016-03-22T12:30:31.000           3.0
+    2016-03-22T12:30:34.000           3.0
+    2016-03-22T12:30:37.000           3.0
+    2016-03-22T12:30:40.000           3.0
+    2016-03-22T12:30:43.000           3.0
+    2016-03-22T12:30:46.000           3.0
+    2016-03-22T12:30:49.000           3.0
+    2016-03-22T12:30:52.000           3.0
+    2016-03-22T12:30:55.000           3.0
+    2016-03-22T12:30:58.000           3.0
 
 Note that the ``n_bins`` argument is only needed if you are not also passing in
 data during initialization (see `Passing data during initialization`_).
@@ -127,31 +127,31 @@ Creating a binned time series with uneven contiguous bins, the bin size can be
 changed to give multiple values (note that in this case ``n_bins`` is not
 required)::
 
-    >>> ts4 = BinnedTimeSeries(start_time='2016-03-22T12:30:31',
-    ...                        bin_size=[3, 3, 2, 3] * u.s)
+    >>> ts4 = BinnedTimeSeries(time_bin_start='2016-03-22T12:30:31',
+    ...                        time_bin_size=[3, 3, 2, 3] * u.s)
     >>> ts4
     <BinnedTimeSeries length=4>
-        start_time       bin_size
-                            s
-          object         float64
-    ----------------------- --------
-    2016-03-22T12:30:31.000      3.0
-    2016-03-22T12:30:34.000      3.0
-    2016-03-22T12:30:37.000      2.0
-    2016-03-22T12:30:39.000      3.0
+         time_bin_start     time_bin_size
+                                  s
+             object            float64
+    ----------------------- -------------
+    2016-03-22T12:30:31.000           3.0
+    2016-03-22T12:30:34.000           3.0
+    2016-03-22T12:30:37.000           2.0
+    2016-03-22T12:30:39.000           3.0
 
 Alternatively, you can create the same time series by giving an array of start
 times as well as a single end time::
 
 
-    >>> ts5 = BinnedTimeSeries(start_time=['2016-03-22T12:30:31',
+    >>> ts5 = BinnedTimeSeries(time_bin_start=['2016-03-22T12:30:31',
     ...                                    '2016-03-22T12:30:34',
     ...                                    '2016-03-22T12:30:37',
     ...                                    '2016-03-22T12:30:39'],
-    ...                        end_time='2016-03-22T12:30:42')
+    ...                        time_bin_end='2016-03-22T12:30:42')
     >>> ts5  # doctest: +FLOAT_CMP
     <BinnedTimeSeries length=4>
-        start_time            bin_size
+        time_bin_start            time_bin_size
                                  s
           object              float64
     ----------------------- -----------------
@@ -166,33 +166,32 @@ Uneven non-contiguous bins
 To create a binned time series with non-contiguous bins, you can either
 specify an array of start times and bin widths::
 
-    >>> ts6 = BinnedTimeSeries(start_time=['2016-03-22T12:30:31',
+    >>> ts6 = BinnedTimeSeries(time_bin_start=['2016-03-22T12:30:31',
     ...                                    '2016-03-22T12:30:38',
     ...                                    '2016-03-22T12:34:40'],
-    ...                        bin_size=[5, 100, 2]*u.s)
+    ...                        time_bin_size=[5, 100, 2]*u.s)
     >>> ts6
     <BinnedTimeSeries length=3>
-        start_time       bin_size
-                            s
-          object         float64
-    ----------------------- --------
-    2016-03-22T12:30:31.000      5.0
-    2016-03-22T12:30:38.000    100.0
-    2016-03-22T12:34:40.000      2.0
-
+         time_bin_start     time_bin_size
+                                  s
+             object            float64
+    ----------------------- -------------
+    2016-03-22T12:30:31.000           5.0
+    2016-03-22T12:30:38.000         100.0
+    2016-03-22T12:34:40.000           2.0
 
 Or in the most general case, you can also specify multiple times for
-``start_time`` and ``end_time``::
+``time_bin_start`` and ``time_bin_end``::
 
-    >>> ts7 = BinnedTimeSeries(start_time=['2016-03-22T12:30:31',
+    >>> ts7 = BinnedTimeSeries(time_bin_start=['2016-03-22T12:30:31',
     ...                                    '2016-03-22T12:30:33',
     ...                                    '2016-03-22T12:30:40'],
-    ...                        end_time=['2016-03-22T12:30:32',
+    ...                        time_bin_end=['2016-03-22T12:30:32',
     ...                                  '2016-03-22T12:30:35',
     ...                                  '2016-03-22T12:30:41'])
     >>> ts7  # doctest: +FLOAT_CMP
     <BinnedTimeSeries length=3>
-           start_time            bin_size
+        time_bin_start        time_bin_size
                                     s
              object              float64
     ----------------------- ------------------
@@ -235,15 +234,15 @@ Passing data during initialization
 It is also possible to pass the data during the initialization, as for
 |Table|, e.g.::
 
-    >>> ts8 = BinnedTimeSeries(start_time=['2016-03-22T12:30:31',
+    >>> ts8 = BinnedTimeSeries(time_bin_start=['2016-03-22T12:30:31',
     ...                                    '2016-03-22T12:30:34',
     ...                                    '2016-03-22T12:30:37',
     ...                                    '2016-03-22T12:30:39'],
-    ...                        end_time='2016-03-22T12:30:42',
+    ...                        time_bin_end='2016-03-22T12:30:42',
     ...                        data={'flux': [1., 4., 5., 6.] * u.mJy})
     >>> ts8  # doctest: +FLOAT_CMP
     <BinnedTimeSeries length=4>
-           start_time            bin_size       flux
+           time_bin_start            time_bin_size       flux
                                     s           mJy
              object              float64      float64
     ----------------------- ----------------- -------
@@ -259,12 +258,12 @@ Adding rows to |TimeSeries| or |BinnedTimeSeries| can be done using the
 :meth:`~astropy.table.Table.add_row` method, as for |Table| and |QTable|. This
 method takes a dictionary where the keys are column names::
 
-    >>> ts8.add_row({'start_time': '2016-03-22T12:30:44.000',
-    ...              'bin_size': 2 * u.s,
+    >>> ts8.add_row({'time_bin_start': '2016-03-22T12:30:44.000',
+    ...              'time_bin_size': 2 * u.s,
     ...              'flux': 3 * u.mJy})
     >>> ts8  # doctest: +FLOAT_CMP
     <BinnedTimeSeries length=5>
-           start_time            bin_size       flux
+        time_bin_start       time_bin_size      flux
                                     s           mJy
              object              float64      float64
     ----------------------- ----------------- -------

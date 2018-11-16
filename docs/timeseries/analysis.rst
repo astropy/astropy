@@ -130,7 +130,7 @@ downsample using:
     import numpy as np
     from astropy import units as u
     from astropy.timeseries import simple_downsample
-    kepler_binned = simple_downsample(kepler, bin_size=20 * u.min, func=np.nanmedian)
+    kepler_binned = simple_downsample(kepler, time_bin_size=20 * u.min, func=np.nanmedian)
 
 We can take a look at the results:
 
@@ -140,7 +140,7 @@ We can take a look at the results:
 
     import matplotlib.pyplot as plt
     plt.plot(kepler.time.jd, kepler['sap_flux'], 'k.', markersize=1)
-    plt.plot(kepler_binned.start_time.jd, kepler_binned['sap_flux'], 'r-', drawstyle='steps-pre')
+    plt.plot(kepler_binned.time_bin_start.jd, kepler_binned['sap_flux'], 'r-', drawstyle='steps-pre')
     plt.xlabel('Barycentric Julian Date')
     plt.ylabel('SAP Flux (e-/s)')
 
