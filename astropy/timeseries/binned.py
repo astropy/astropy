@@ -18,8 +18,8 @@ class BinnedTimeSeries(BaseTimeSeries):
 
     _require_time_column = False
 
-    def __init__(self, data=None, start_time=None, end_time=None,
-                 bin_size=None, n_bins=None, **kwargs):
+    def __init__(self, data=None, time_bin_start=None, time_bin_end=None,
+                 time_bin_size=None, n_bins=None, **kwargs):
 
         super().__init__(data=data, **kwargs)
 
@@ -27,115 +27,119 @@ class BinnedTimeSeries(BaseTimeSeries):
         # to be created, then columns added one by one. We should check that
         # when columns are added manually, time is added first and is of the
         # right type.
-        if (data is None and start_time is None and end_time is None and
-                bin_size is None and n_bins is None):
-            self._required_columns = ['start_time', 'bin_size']
+        if (data is None and time_bin_start is None and time_bin_end is None and
+                time_bin_size is None and n_bins is None):
+            self._required_columns = ['time_bin_start', 'time_bin_size']
             return
 
-        # First if start_time and end_time have been given in the table data, we
+        # First if time_bin_start and time_bin_end have been given in the table data, we
         # should extract them and treat them as if they had been passed as
         # keyword arguments.
 
-        if 'start_time' in self.colnames:
-            if start_time is None:
-                start_time = self.columns['start_time']
-                self.remove_column('start_time')
+        if 'time_bin_start' in self.colnames:
+            if time_bin_start is None:
+                time_bin_start = self.columns['time_bin_start']
+                self.remove_column('time_bin_start')
             else:
-                raise TypeError("'start_time' has been given both in the table "
+                raise TypeError("'time_bin_start' has been given both in the table "
                                 "and as a keyword argument")
 
-        if 'bin_size' in self.colnames:
-            if bin_size is None:
-                bin_size = self.columns['bin_size']
-                self.remove_column('bin_size')
+        if 'time_bin_size' in self.colnames:
+            if time_bin_size is None:
+                time_bin_size = self.columns['time_bin_size']
+                self.remove_column('time_bin_size')
             else:
-                raise TypeError("'bin_size' has been given both in the table "
+                raise TypeError("'time_bin_size' has been given both in the table "
                                 "and as a keyword argument")
 
-        if start_time is None:
-            raise TypeError("'start_time' has not been specified")
+        if time_bin_start is None:
+            raise TypeError("'time_bin_start' has not been specified")
 
-        if end_time is None and bin_size is None:
-            raise TypeError("Either 'bin_size' or 'end_time' should be specified")
+        if time_bin_end is None and time_bin_size is None:
+            raise TypeError("Either 'time_bin_size' or 'time_bin_end' should be specified")
 
-        if not isinstance(start_time, Time):
-            start_time = Time(start_time)
+        if not isinstance(time_bin_start, Time):
+            time_bin_start = Time(time_bin_start)
 
-        if end_time is not None and not isinstance(end_time, Time):
-            end_time = Time(end_time)
+        if time_bin_end is not None and not isinstance(time_bin_end, Time):
+            time_bin_end = Time(time_bin_end)
 
-        if bin_size is not None and not isinstance(bin_size, (Quantity, TimeDelta)):
-            raise TypeError("'bin_size' should be a Quantity or a TimeDelta")
+        if time_bin_size is not None and not isinstance(time_bin_size, (Quantity, TimeDelta)):
+            raise TypeError("'time_bin_size' should be a Quantity or a TimeDelta")
 
-        if isinstance(bin_size, TimeDelta):
-            bin_size = bin_size.sec * u.s
+        if isinstance(time_bin_size, TimeDelta):
+            time_bin_size = time_bin_size.sec * u.s
 
-        if start_time.isscalar:
+        if time_bin_start.isscalar:
 
             # We interpret this as meaning that this is the start of the
             # first bin and that the bins are contiguous. In this case,
-            # we require bin_size to be specified.
+            # we require time_bin_size to be specified.
 
-            if bin_size is None:
-                raise TypeError("'start_time' is scalar, so 'bin_size' is required")
+            if time_bin_size is None:
+                raise TypeError("'time_bin_start' is scalar, so 'time_bin_size' is required")
 
-            if bin_size.isscalar:
+            if time_bin_size.isscalar:
 
                 if data is not None:
                     # TODO: raise error if also passed explicily and inconsistent
                     n_bins = len(self)
 
-                bin_size = np.repeat(bin_size, n_bins)
+                time_bin_size = np.repeat(time_bin_size, n_bins)
 
-            time_delta = np.cumsum(bin_size)
-            end_time = start_time + time_delta
+            time_delta = np.cumsum(time_bin_size)
+            time_bin_end = time_bin_start + time_delta
 
             # Now shift the array so that the first entry is 0
             time_delta = np.roll(time_delta, 1)
             time_delta[0] = 0. * u.s
 
-            # Make start_time into an array
-            start_time = start_time + time_delta
+            # Make time_bin_start into an array
+            time_bin_start = time_bin_start + time_delta
 
         else:
 
-            if len(self.colnames) > 0 and len(start_time) != len(self):
-                raise ValueError("Length of 'start_time' ({0}) should match "
-                                 "table length ({1})".format(len(start_time), len(self)))
+            if len(self.colnames) > 0 and len(time_bin_start) != len(self):
+                raise ValueError("Length of 'time_bin_start' ({0}) should match "
+                                 "table length ({1})".format(len(time_bin_start), len(self)))
 
-            if end_time is not None:
-                if end_time.isscalar:
-                    times = start_time.copy()
+            if time_bin_end is not None:
+                if time_bin_end.isscalar:
+                    times = time_bin_start.copy()
                     times[:-1] = times[1:]
-                    times[-1] = end_time
-                    end_time = times
-                bin_size = (end_time - start_time).sec * u.s
-            elif bin_size is None:
-                raise TypeError("Either 'bin_size' or 'end_time' should be specified")
+                    times[-1] = time_bin_end
+                    time_bin_end = times
+                time_bin_size = (time_bin_end - time_bin_start).sec * u.s
+            elif time_bin_size is None:
+                raise TypeError("Either 'time_bin_size' or 'time_bin_end' should be specified")
 
-        self.add_column(start_time, index=0, name='start_time')
-        self.add_index('start_time')
+        self.add_column(time_bin_start, index=0, name='time_bin_start')
+        self.add_index('time_bin_start')
 
-        if bin_size.isscalar:
-            bin_size = np.repeat(bin_size, len(self))
+        if time_bin_size.isscalar:
+            time_bin_size = np.repeat(time_bin_size, len(self))
 
-        self.add_column(bin_size, index=1, name='bin_size')
-
-    @property
-    def start_time(self):
-        return self['start_time']
+        self.add_column(time_bin_size, index=1, name='time_bin_size')
 
     @property
-    def end_time(self):
-        return self['start_time'] + self['bin_size']
+    def time_bin_start(self):
+        return self['time_bin_start']
 
     @property
-    def centre_time(self):
-        return self['start_time'] + self['bin_size'] * 0.5
+    def time_bin_center(self):
+        return self['time_bin_start'] + self['time_bin_size'] * 0.5
+
+    @property
+    def time_bin_end(self):
+        return self['time_bin_start'] + self['time_bin_size']
+
+    @property
+    def time_bin_size(self):
+        return self['time_bin_size']
 
     def __getitem__(self, item):
         if self._is_list_or_tuple_of_str(item):
-            if 'start_time' not in item or 'bin_size' not in item:
+            if 'time_bin_start' not in item or 'time_bin_size' not in item:
                 out = QTable([self[x] for x in item],
                              meta=deepcopy(self.meta),
                              copy_indices=self._copy_indices)
