@@ -14,8 +14,8 @@ usual attributes on |Time| to convert the time to different formats or scales.
 For example, to get the times as modified Julian Dates from a simple time series::
 
     >>> from astropy import units as u
-    >>> from astropy.timeseries import SampledTimeSeries
-    >>> ts = SampledTimeSeries(time='2016-03-22T12:30:31', time_delta=3 * u.s,
+    >>> from astropy.timeseries import TimeSeries
+    >>> ts = TimeSeries(time='2016-03-22T12:30:31', time_delta=3 * u.s,
     ...                        data={'flux': [1., 3., 4., 2., 4.]})
     >>> ts.time.mjd  # doctest: +FLOAT_CMP
     array([57469.52119213, 57469.52122685, 57469.52126157, 57469.5212963 ,
@@ -40,7 +40,7 @@ and ``scale`` attributes::
 
     >>> ts.time.format = 'isot'
     >>> ts
-    <SampledTimeSeries length=5>
+    <TimeSeries length=5>
               time            flux
              object         float64
     ----------------------- -------
@@ -51,7 +51,7 @@ and ``scale`` attributes::
     2016-03-22T12:30:43.000     4.0
     >>> ts.time.format = 'unix'
     >>> ts  # doctest: +FLOAT_CMP
-    <SampledTimeSeries length=5>
+    <TimeSeries length=5>
            time          flux
           object       float64
     ------------------ -------
@@ -68,9 +68,9 @@ In some cases, it can be useful to use relative rather than absolute times.
 This can be done by using the |TimeDelta| class instead of the |Time| class,
 for example by subtracting a reference time from an existing time object::
 
-    >>> ts_rel = SampledTimeSeries(time=ts.time - ts.time[0])
+    >>> ts_rel = TimeSeries(time=ts.time - ts.time[0])
     >>> ts_rel  # doctest: +FLOAT_CMP
-    <SampledTimeSeries length=5>
+    <TimeSeries length=5>
              time
             object
     ----------------------

@@ -4,12 +4,12 @@ from astropy import units as u
 from astropy.table import Table, QTable, vstack
 from astropy.time import Time
 
-from ..sampled import SampledTimeSeries
+from ..sampled import TimeSeries
 from ..binned import BinnedTimeSeries
 
 
 INPUT_TIME = Time(['2016-03-22T12:30:31', '2015-01-21T12:30:32', '2016-03-22T12:30:40'])
-PLAIN_TABLE = Table([[1, 2, 11], [3, 4, 1], [1, 1, 1]], names=['a', 'b', 'c'])
+PLAIN_TABLE = Table([[1., 2., 11.], [3, 4, 1], ['x', 'y', 'z']], names=['a', 'b', 'c'])
 
 
 class CommonTimeSeriesTests:
@@ -37,19 +37,26 @@ class CommonTimeSeriesTests:
     def test_add_column(self):
         self.series['d'] = [1, 2, 3]
 
+    def test_add_row(self):
+        self.series.add_row(self._row)
 
-class TestSampledTimeSeries(CommonTimeSeriesTests):
+
+class TestTimeSeries(CommonTimeSeriesTests):
+
+    _row = {'time': '2016-03-22T12:30:40', 'a': 1., 'b': 2, 'c': 'a'}
 
     def setup_method(self, method):
-        self.series = SampledTimeSeries(time=INPUT_TIME, data=PLAIN_TABLE)
+        self.series = TimeSeries(time=INPUT_TIME, data=PLAIN_TABLE)
         self.time_attr = 'time'
 
     def test_column_slicing(self):
         ts = self.series['time', 'a']
-        assert isinstance(ts, SampledTimeSeries)
+        assert isinstance(ts, TimeSeries)
 
 
 class TestBinnedTimeSeries(CommonTimeSeriesTests):
+
+    _row = {'start_time': '2016-03-22T12:30:40', 'bin_size': 2 * u.s, 'a': 1., 'b': 2, 'c': 'a'}
 
     def setup_method(self, method):
         self.series = BinnedTimeSeries(start_time=INPUT_TIME, bin_size=3 * u.s, data=PLAIN_TABLE)

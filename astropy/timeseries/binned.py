@@ -9,12 +9,12 @@ from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.units import Quantity
 
-from .core import TimeSeries
+from .core import BaseTimeSeries
 
 __all__ = ['BinnedTimeSeries']
 
 
-class BinnedTimeSeries(TimeSeries):
+class BinnedTimeSeries(BaseTimeSeries):
 
     _require_time_column = False
 

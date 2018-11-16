@@ -4,7 +4,7 @@ Manipulation and analysis of time series
 ****************************************
 
 .. |Table| replace:: :class:`~astropy.table.Table`
-.. |SampledTimeSeries| replace:: :class:`~astropy.timeseries.SampledTimeSeries`
+.. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
 .. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
 
 Combining time series
@@ -20,16 +20,16 @@ series cannot be combined with binned time series and vice-versa)::
 
     >>> from astropy.table import vstack
     >>> from astropy import units as u
-    >>> from astropy.timeseries import SampledTimeSeries
-    >>> ts_a = SampledTimeSeries(time='2016-03-22T12:30:31',
+    >>> from astropy.timeseries import TimeSeries
+    >>> ts_a = TimeSeries(time='2016-03-22T12:30:31',
     ...                          time_delta=3 * u.s,
     ...                          data={'flux': [1, 4, 5, 3, 2] * u.mJy})
-    >>> ts_b = SampledTimeSeries(time='2016-03-22T12:50:31',
+    >>> ts_b = TimeSeries(time='2016-03-22T12:50:31',
     ...                          time_delta=3 * u.s,
     ...                          data={'flux': [4, 3, 1, 2, 3] * u.mJy})
     >>> ts_ab = vstack([ts_a, ts_b])
     >>> ts_ab
-    <SampledTimeSeries length=10>
+    <TimeSeries length=10>
               time            flux
                               mJy
              object         float64
@@ -53,7 +53,7 @@ time series (as having multiple time columns would be confusing)::
     >>> data = Table(data={'temperature': [40., 41., 40., 39., 30.] * u.K})
     >>> ts_a_data = hstack([ts_a, data])
     >>> ts_a_data
-    <SampledTimeSeries length=5>
+    <TimeSeries length=5>
               time            flux  temperature
                               mJy          K
              object         float64    float64
@@ -70,11 +70,11 @@ Sorting time series
 Sorting time series in-place can be done using the
 :meth:`~astropy.table.Table.sort` method, as for |Table|::
 
-    >>> ts = SampledTimeSeries(time='2016-03-22T12:30:31',
+    >>> ts = TimeSeries(time='2016-03-22T12:30:31',
     ...                        time_delta=3 * u.s,
     ...                        data={'flux': [1., 4., 5., 3., 2.]})
     >>> ts
-    <SampledTimeSeries length=5>
+    <TimeSeries length=5>
               time            flux
              object         float64
     ----------------------- -------
@@ -85,7 +85,7 @@ Sorting time series in-place can be done using the
     2016-03-22T12:30:43.000     2.0
     >>> ts.sort('flux')
     >>> ts
-    <SampledTimeSeries length=5>
+    <TimeSeries length=5>
               time            flux
              object         float64
     ----------------------- -------
@@ -98,22 +98,26 @@ Sorting time series in-place can be done using the
 Resampling
 ==========
 
-The |SampledTimeSeries| class has a
-:meth:`~astropy.timeseries.SampledTimeSeries.downsample` method that can be used
-to bin values from the time series into bins of equal time, using a custom
-function (mean, median, etc.). This operation returns a |BinnedTimeSeries|.
+We provide a :func:`~astropy.timeseries.simple_downsample` function
+that can be used to bin values from a time series into bins of equal time, using
+a custom function (mean, median, etc.). This operation returns a
+|BinnedTimeSeries|. Note that this is a simple function in the sense that it
+does not for example know how to treat columns with uncertainties differently
+from other values, and it will blindly apply the custom function specified to
+all columns.
+
 The following example shows how to use this to bin a light curve from the Kepler
-mission into 20 minute bins using a median function. First, we read in the
-data using:
+mission into 20 minute bins using a median function. First, we read in the data
+using:
 
 .. plot::
    :context: reset
    :nofigs:
 
-    from astropy.timeseries import SampledTimeSeries
+    from astropy.timeseries import TimeSeries
     from astropy.utils.data import get_pkg_data_filename
     example_data = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
-    kepler = SampledTimeSeries.read(example_data, format='kepler.fits')
+    kepler = TimeSeries.read(example_data, format='kepler.fits')
 
 (see :ref:`timeseries-io` for more details about reading in data). We can then
 downsample using:
@@ -125,7 +129,8 @@ downsample using:
 
     import numpy as np
     from astropy import units as u
-    kepler_binned = kepler.downsample(bin_size=20 * u.min, func=np.nanmedian)
+    from astropy.timeseries import simple_downsample
+    kepler_binned = simple_downsample(kepler, bin_size=20 * u.min, func=np.nanmedian)
 
 We can take a look at the results:
 
@@ -142,8 +147,8 @@ We can take a look at the results:
 Folding
 =======
 
-The |SampledTimeSeries| class has a
-:meth:`~astropy.timeseries.SampledTimeSeries.fold` method that can be used to
+The |TimeSeries| class has a
+:meth:`~astropy.timeseries.TimeSeries.fold` method that can be used to
 return a new time series with a relative and folded time axis. This method
 takes the period as a :class:`~astropy.units.Quantity`, and optionally takes
 an epoch as a :class:`~astropy.time.Time`, which defines a zero time offset:
@@ -155,11 +160,11 @@ an epoch as a :class:`~astropy.time.Time`, which defines a zero time offset:
    import numpy as np
    from astropy import units as u
    import matplotlib.pyplot as plt
-   from astropy.timeseries import SampledTimeSeries
+   from astropy.timeseries import TimeSeries
    from astropy.utils.data import get_pkg_data_filename
 
    example_data = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
-   kepler = SampledTimeSeries.read(example_data, format='kepler.fits')
+   kepler = TimeSeries.read(example_data, format='kepler.fits')
 
 .. plot::
    :include-source:
@@ -186,11 +191,11 @@ sigma-clipped median value.
    import numpy as np
    from astropy import units as u
    import matplotlib.pyplot as plt
-   from astropy.timeseries import SampledTimeSeries
+   from astropy.timeseries import TimeSeries
    from astropy.utils.data import get_pkg_data_filename
 
    example_data = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
-   kepler = SampledTimeSeries.read(example_data, format='kepler.fits')
+   kepler = TimeSeries.read(example_data, format='kepler.fits')
    kepler_folded = kepler.fold(period=2.2 * u.day, midpoint_epoch='2009-05-02T20:53:40')
 
 .. plot::
