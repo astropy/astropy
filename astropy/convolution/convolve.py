@@ -54,6 +54,43 @@ __doctest_skip__ = ['*']
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
+def _copy_input_if_needed(input, dtype=float, order='C', nan_treatment=None, mask=None, fill_value=None):
+    # Alias input
+    input = input.array if isinstance(input, Kernel) else input
+    output = input
+    # Copy input
+    try:
+        # Anything that's masked must be turned into NaNs for the interpolation.
+        # This requires copying. A copy is also needed for nan_treatment == 'fill'
+        # A copy prevents possible function side-effects of the input array.
+        if nan_treatment == 'fill' or np.ma.is_masked(input) or mask is not None:
+            if np.ma.is_masked(input):
+                # ``np.ma.maskedarray.filled()`` returns a copy, however there is no way to specify the return type
+                # or order etc.
+                # In addition ``np.nan`` is a ``float`` and there is no conversion to an ``int`` type.
+                # Therefore, a pre-fill copy is needed for non ``float`` masked arrays.
+                # ``subok=True`` is needed to retain ``np.ma.maskedarray.filled()``.
+                # ``copy=False`` allows the fill to act as the copy if type and order are already correct.
+                output = np.array(input, dtype=dtype, copy=False, order=order, subok=True)
+                output = output.filled(fill_value)
+            else:
+                # Since we're making a copy, we might as well use `subok=False` to save,
+                # what is probably, a negligible amount of memory.
+                output = np.array(input, dtype=dtype, copy=True, order=order, subok=False)
+
+            if mask is not None:
+                # mask != 0 yields a bool mask for all ints/floats/bool
+                output[mask != 0] = fill_value
+        else:
+            # The call below is synonymous with np.asanyarray(array, ftype=float, order='C')
+            # The advantage of `subok=True` is that it won't copy when array is an ndarray subclass. If it
+            # is and `subok=False` (default), then it will copy even if `copy=False`. This uses less memory
+            # when ndarray subclasses are passed in.
+            output = np.array(input, dtype=dtype, copy=False, order=order, subok=True)
+    except (TypeError, ValueError) as e:
+        raise TypeError('input should be a Numpy array or something '
+                        'convertible into a float array', e)
+    return output
 
 @support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,
@@ -161,48 +198,19 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # have exactly the desired type, we just alias to array_internal
     # Convert kernel to ndarray if not already
 
-    # Alias array
-    array_internal = passed_array.array if isinstance(passed_array, Kernel) else passed_array
-    # Alias kernel
-    kernel_internal = passed_kernel.array if isinstance(passed_kernel, Kernel) else passed_kernel
+    # Copy or alias array to array_internal
+    array_internal = _copy_input_if_needed(passed_array, dtype=float, order='C',
+                                      nan_treatment=nan_treatment, mask=mask,
+                                      fill_value=np.nan)
+    array_dtype = getattr(passed_array, 'dtype', array_internal.dtype)
+    # Copy or alias kernel to kernel_internal
+    kernel_internal = _copy_input_if_needed(passed_kernel, dtype=float, order='C',
+                                        nan_treatment=None, mask=None,
+                                        fill_value=fill_value)
 
     # Make sure kernel has all odd axes
     if has_even_axis(kernel_internal):
         raise_even_kernel_exception()
-
-    # Copy array to array_internal
-    try:
-        # Anything that's masked must be turned into NaNs for the interpolation.
-        # This requires copying. A copy is also needed for nan_treatment == 'fill'
-        # A copy prevents possible function side-effects of the input array.
-        if nan_treatment == 'fill' or np.ma.is_masked(array_internal) or mask is not None:
-            if np.ma.is_masked(array_internal):
-                # ``np.ma.maskedarray.filled()`` returns a copy, however there is no way to specify the return type
-                # or order etc.
-                # In addition ``np.nan`` is a ``float`` and there is no conversion to an ``int`` type.
-                # Therefore, a pre-fill copy is needed for non ``float`` masked arrays.
-                # ``subok=True`` is needed to retain ``np.ma.maskedarray.filled()``.
-                # ``copy=False`` allows the fill to act as the copy if type and order are already correct.
-                array_internal = np.array(array_internal, dtype=float, copy=False, order='C', subok=True)
-                array_internal = array_internal.filled(np.nan)
-            else:
-                # Since we're making a copy, we might as well use `subok=False` to save,
-                # what is probably, a negligible amount of memory.
-                array_internal = np.array(array_internal, dtype=float, copy=True, order='C', subok=False)
-
-            if mask is not None:
-                # mask != 0 yields a bool mask for all ints/floats/bool
-                array_internal[mask != 0] = np.nan
-        else:
-            # The call below is synonymous with np.asanyarray(array, ftype=float, order='C')
-            # The advantage of `subok=True` is that it won't copy when array is an ndarray subclass. If it
-            # is and `subok=False` (default), then it will copy even if `copy=False`. This uses less memory
-            # when ndarray subclasses are passed in.
-            array_internal = np.array(array_internal, dtype=float, copy=False, order='C', subok=True)
-    except (TypeError, ValueError) as e:
-        raise TypeError('array should be a Numpy array or something '
-                        'convertible into a float array', e)
-    array_dtype = getattr(passed_array, 'dtype', array_internal.dtype)
 
     # If both image array and kernel are Kernel instances
     # constrain convolution method
@@ -217,26 +225,6 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         fill_value = 0
         normalize_kernel = True
         nan_treatment='interpolate'
-
-    # Copy or alias kernel to kernel_internal
-    # Due to NaN interpolation and kernel normalization, a copy must always be made.
-    # 1st alias and then copy after depending on whether kernel is masked (so as not to copy twice).
-    if np.ma.is_masked(kernel_internal):
-        # *kernel* doesn't support NaN interpolation, so instead we just fill it.
-        # ``np.ma.maskedarray.filled()`` returns a copy, however there is no way to specify the return type
-        # or order etc.
-        # In addition ``fill_value`` could be an ``np.nan`` which is a ``float`` and there is no conversion to an ``int`` type.
-        # Therefore, a pre-fill copy is needed for non ``float`` masked arrays.
-        # ``subok=True`` is needed to retain ``np.ma.maskedarray.filled()``.
-        # ``copy=False`` allows the fill to act as the copy if type and order are already correct.
-        kernel_internal = np.array(kernel_internal, dtype=float, copy=False, order='C', subok=True)
-        kernel_internal = kernel_internal.filled(fill_value)
-    else:
-        try:
-            kernel_internal = np.array(kernel_internal, dtype=float, copy=True, order='C', subok=False)
-        except (TypeError, ValueError) as e:
-            raise TypeError('kernel should be a Numpy array or something '
-                            'convertible into a float array', e)
 
     #-----------------------------------------------------------------------
     # From this point onwards refer only to ``array_internal`` and
@@ -583,8 +571,12 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     # Convert array dtype to complex
     # and ensure that list inputs become arrays
-    array = np.asanyarray(array, dtype=complex)
-    kernel = np.asanyarray(kernel, dtype=complex)
+    array = _copy_input_if_needed(array, dtype=complex, order='C',
+                             nan_treatment=nan_treatment, mask=mask,
+                             fill_value=np.nan)
+    kernel = _copy_input_if_needed(kernel, dtype=complex, order='C',
+                                  nan_treatment=None, mask=None,
+                                  fill_value=0)
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
@@ -600,22 +592,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         raise ValueError("Size Error: Arrays will be {}.  Use "
                          "allow_huge=True to override this exception."
                          .format(human_file_size(array_size_B.to_value(u.byte))))
-
-    # mask catching - masks must be turned into NaNs for use later in the image
-    if np.ma.is_masked(array):
-        mamask = array.mask
-        array = np.array(array)
-        array[mamask] = np.nan
-    elif mask is not None:
-        # copying here because we have to mask it below.  But no need to copy
-        # if mask is None because we won't modify it.
-        array = np.array(array)
-    if mask is not None:
-        # mask != 0 yields a bool mask for all ints/floats/bool
-        array[mask != 0] = np.nan
-    # the *kernel* doesn't support NaN interpolation, so instead we just fill it
-    if np.ma.is_masked(kernel):
-        kernel = kernel.filled(0)
 
     # NaN and inf catching
     nanmaskarray = np.isnan(array) | np.isinf(array)
@@ -779,12 +755,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     if np.isnan(fftmult).any():
         # this check should be unnecessary; call it an insanity check
         raise ValueError("Encountered NaNs in convolve.  This is disallowed.")
-
-    # restore NaNs in original image (they were modified inplace earlier)
-    # We don't have to worry about masked arrays - if input was masked, it was
-    # copied
-    array[nanmaskarray] = np.nan
-    kernel[nanmaskkernel] = np.nan
 
     fftmult *= kernel_scale
 
