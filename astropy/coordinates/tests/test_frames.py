@@ -989,7 +989,7 @@ def test_representation_arg_backwards_compatibility():
     with pytest.raises(ValueError):
         ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
              representation_type='cartesian',
-             representation_type='cartesian')
+             representation='cartesian')
 
 
 def test_missing_component_error_names():
