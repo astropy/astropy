@@ -148,7 +148,7 @@ def test_cirs_to_altaz():
     ra, dec, dist = randomly_sample_sphere(200)
     cirs = CIRS(ra=ra, dec=dec, obstime='J2000')
     crepr = SphericalRepresentation(lon=ra, lat=dec, distance=dist)
-    cirscart = CIRS(crepr, obstime=cirs.obstime, representation=CartesianRepresentation)
+    cirscart = CIRS(crepr, obstime=cirs.obstime, representation_type=CartesianRepresentation)
 
     loc = EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m)
     altazframe = AltAz(location=loc, obstime=Time('J2005'))
