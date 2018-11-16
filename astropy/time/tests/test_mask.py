@@ -168,7 +168,8 @@ def test_serialize_fits_masked(tmpdir):
     assert np.all(t2['col0'].value == t['col0'].value)
 
 
-@pytest.mark.skipif('not HAS_H5PY')
+@pytest.mark.skipif(not HAS_YAML or not HAS_H5PY,
+                    reason='Need both h5py and yaml')
 def test_serialize_hdf5_masked(tmpdir):
     tm = Time([1, 2, 3], format='cxcsec')
     tm[1] = np.ma.masked

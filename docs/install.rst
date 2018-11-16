@@ -31,7 +31,8 @@ Astropy also depends on other packages for optional features:
   disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
 
 - `PyYAML <http://pyyaml.org>`_: To read/write
-  :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table format.
+  :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table
+  format and to serialize mixins for various formats.
 
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
 
