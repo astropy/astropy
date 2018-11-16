@@ -831,10 +831,10 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
-- Fixed bug in ``convolve_fft`` that caused masked input to be copied by
+- Fixed bug in ``convolve_fft`` where masked input was copied with
   ``numpy.asarray`` instead of ``numpy.asanyarray``.
-  ``numpy.asarray`` removed the masked subclass causing the
-  ``numpy.ma.ismasked(input)`` to fail and cause ``convolve_fft``
+  ``numpy.asarray`` removes the mask subclass causing
+  ``numpy.ma.ismasked(input)`` to fail, causing ``convolve_fft``
   to ignore all masked input. [#8137]
 
 astropy.coordinates
