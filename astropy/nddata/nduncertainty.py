@@ -133,20 +133,14 @@ class NDUncertainty(metaclass=ABCMeta):
     @property
     def unit(self):
         """`~astropy.units.Unit` : The unit of the uncertainty, if any.
-
-        Even though it is not enforced the unit should be convertible to the
-        ``parent_nddata`` unit. Otherwise uncertainty propagation might give
-        wrong results.
-
-        If the unit is not set the unit of the parent will be returned.
         """
         return self._unit
 
     @unit.setter
     def unit(self, value):
         """
-        If the unit is not set, the square of the unit of the
-        parent will be returned.
+        The unit should be set to a value consistent with the parent NDData
+        unit and the uncertainty type.
         """
         if value is not None:
             # Check the hidden attribute below, not the property. The property
@@ -154,6 +148,7 @@ class NDUncertainty(metaclass=ABCMeta):
             if self._parent_nddata is not None:
                 parent_unit = self.parent_nddata.unit
                 try:
+                    # Check for consistency with the unit of the parent_nddata
                     self._data_unit_to_uncertainty_unit(parent_unit).to(value)
                 except UnitConversionError:
                     raise UnitConversionError("Unit {} is incompatible "
