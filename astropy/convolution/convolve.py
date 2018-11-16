@@ -583,8 +583,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     # Convert array dtype to complex
     # and ensure that list inputs become arrays
-    array = np.asarray(array, dtype=complex)
-    kernel = np.asarray(kernel, dtype=complex)
+    array = np.asanyarray(array, dtype=complex)
+    kernel = np.asanyarray(kernel, dtype=complex)
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
