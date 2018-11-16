@@ -96,7 +96,7 @@ For |BinnedTimeSeries|, we provide three attributes: |time_bin_start|,
 
 In addition, the |time_bin_size| attribute can be used to access the bin sizes::
 
-    >>> bts.time_bin_size
+    >>> bts.time_bin_size  # doctest: +SKIP
     <Quantity [3., 3., 3., 3., 3.] s>
 
 Note that only |time_bin_start| and |time_bin_size| are available as actual
