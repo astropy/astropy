@@ -8,6 +8,11 @@ Accessing data in time series
 .. |QTable| replace:: :class:`~astropy.table.QTable`
 .. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
 .. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
+.. |time_attr| replace:: :attr:`~astropy.timeseries.TimeSeries.time`
+.. |time_bin_start| replace:: :attr:`~astropy.timeseries.BinnedTimeSeries.time_bin_start`
+.. |time_bin_center| replace:: :attr:`~astropy.timeseries.BinnedTimeSeries.time_bin_center`
+.. |time_bin_end| replace:: :attr:`~astropy.timeseries.BinnedTimeSeries.time_bin_end`
+.. |time_bin_size| replace:: :attr:`~astropy.timeseries.BinnedTimeSeries.time_bin_size`
 
 Accessing data
 ==============
@@ -56,20 +61,49 @@ row, or vice-versa::
     >>> ts['temp'][2]
     39.0
 
+.. _timeseries-accessing-times:
+
 Accessing times
 ===============
 
-The ``time`` column (for |TimeSeries|) and the ``start_time`` column (for
-|BinnedTimeSeries|) can be accessed using the regular column access notation, as
-shown in `Accessing data`_, but they can also be accessed more conveniently
-using attribute notation::
+For |TimeSeries|, the ``time`` column can be accessed using the regular column
+access notation, as shown in `Accessing data`_, but they can also be accessed
+more conveniently using the |time_attr| attribute::
 
     >>> ts.time
     <Time object: scale='utc' format='isot' value=['2016-03-22T12:30:31.000' '2016-03-22T12:30:34.000'
      '2016-03-22T12:30:37.000' '2016-03-22T12:30:40.000'
      '2016-03-22T12:30:43.000']>
 
-.. TODO: describe attributes on BinnedTimeSeries
+For |BinnedTimeSeries|, we provide three attributes: |time_bin_start|,
+|time_bin_center|, and |time_bin_end|::
+
+    >>> from astropy.timeseries import BinnedTimeSeries
+    >>> bts = BinnedTimeSeries(time_bin_start='2016-03-22T12:30:31',
+    ...                        time_bin_size=3 * u.s, n_bins=5)
+    >>> bts.time_bin_start
+    <Time object: scale='utc' format='isot' value=['2016-03-22T12:30:31.000' '2016-03-22T12:30:34.000'
+     '2016-03-22T12:30:37.000' '2016-03-22T12:30:40.000'
+     '2016-03-22T12:30:43.000']>
+    >>> bts.time_bin_center
+    <Time object: scale='utc' format='isot' value=['2016-03-22T12:30:32.500' '2016-03-22T12:30:35.500'
+     '2016-03-22T12:30:38.500' '2016-03-22T12:30:41.500'
+     '2016-03-22T12:30:44.500']>
+    >>> bts.time_bin_end
+    <Time object: scale='utc' format='isot' value=['2016-03-22T12:30:34.000' '2016-03-22T12:30:37.000'
+     '2016-03-22T12:30:40.000' '2016-03-22T12:30:43.000'
+     '2016-03-22T12:30:46.000']>
+
+In addition, the |time_bin_size| attribute can be used to access the bin sizes::
+
+    >>> bts.time_bin_size  # doctest: +SKIP
+    <Quantity [3., 3., 3., 3., 3.] s>
+
+Note that only |time_bin_start| and |time_bin_size| are available as actual
+columns, and |time_bin_center| and |time_bin_end| are computed on-the-fly.
+
+See :ref:`timeseries-times` for more information about changing between
+different representations of time.
 
 Extracting a subset of columns
 ==============================

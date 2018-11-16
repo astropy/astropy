@@ -56,12 +56,15 @@ class TestTimeSeries(CommonTimeSeriesTests):
 
 class TestBinnedTimeSeries(CommonTimeSeriesTests):
 
-    _row = {'start_time': '2016-03-22T12:30:40', 'bin_size': 2 * u.s, 'a': 1., 'b': 2, 'c': 'a'}
+    _row = {'time_bin_start': '2016-03-22T12:30:40',
+            'time_bin_size': 2 * u.s, 'a': 1., 'b': 2, 'c': 'a'}
 
     def setup_method(self, method):
-        self.series = BinnedTimeSeries(start_time=INPUT_TIME, bin_size=3 * u.s, data=PLAIN_TABLE)
-        self.time_attr = 'start_time'
+        self.series = BinnedTimeSeries(time_bin_start=INPUT_TIME,
+                                       time_bin_size=3 * u.s,
+                                       data=PLAIN_TABLE)
+        self.time_attr = 'time_bin_start'
 
     def test_column_slicing(self):
-        ts = self.series['start_time', 'bin_size', 'a']
+        ts = self.series['time_bin_start', 'time_bin_size', 'a']
         assert isinstance(ts, BinnedTimeSeries)
