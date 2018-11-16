@@ -823,7 +823,7 @@ def test_representation_subclass():
     # Normally when instantiating a frame without a distance the frame will try
     # and use UnitSphericalRepresentation internally instead of
     # SphericalRepresentation.
-    frame = FK5(representation=r.SphericalRepresentation, ra=32 * u.deg, dec=20 * u.deg)
+    frame = FK5(representation_type=r.SphericalRepresentation, ra=32 * u.deg, dec=20 * u.deg)
     assert type(frame._data) == r.UnitSphericalRepresentation
     assert frame.representation == r.SphericalRepresentation
 
@@ -832,7 +832,7 @@ def test_representation_subclass():
     class NewSphericalRepresentation(r.SphericalRepresentation):
         attr_classes = r.SphericalRepresentation.attr_classes
 
-    frame = FK5(representation=NewSphericalRepresentation, lon=32 * u.deg, lat=20 * u.deg)
+    frame = FK5(representation_type=NewSphericalRepresentation, lon=32 * u.deg, lat=20 * u.deg)
     assert type(frame._data) == r.UnitSphericalRepresentation
     assert frame.representation == NewSphericalRepresentation
 
@@ -853,7 +853,7 @@ def test_representation_subclass():
             return "<NewUnitSphericalRepresentation: spam spam spam>"
 
     frame = FK5(NewUnitSphericalRepresentation(lon=32 * u.deg, lat=20 * u.deg),
-                representation=NewSphericalRepresentation)
+                representation_type=NewSphericalRepresentation)
 
     assert repr(frame) == "<FK5 Coordinate (equinox=J2000.000):  spam spam spam>"
 
@@ -971,10 +971,10 @@ def test_representation_arg_backwards_compatibility():
               representation_type=r.CartesianRepresentation)
 
     c2 = ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
-              representation=r.CartesianRepresentation)
+              representation_type=r.CartesianRepresentation)
 
     c3 = ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
-              representation='cartesian')
+              representation_type='cartesian')
 
     assert c1.x == c2.x
     assert c1.y == c2.y
@@ -988,7 +988,7 @@ def test_representation_arg_backwards_compatibility():
 
     with pytest.raises(ValueError):
         ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
-             representation='cartesian',
+             representation_type='cartesian',
              representation_type='cartesian')
 
 

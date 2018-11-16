@@ -391,8 +391,8 @@ def test_regression_6236():
             _rep_kwarg = kwargs.get('representation', None)
             super().__init__(*args, **kwargs)
             if not _rep_kwarg:
-                self.representation = self.default_representation
-                self._data = self.data.represent_as(self.representation)
+                self.representation_type = self.default_representation
+                self._data = self.data.represent_as(self.representation_type)
 
     rep1 = UnitSphericalRepresentation([0., 1]*u.deg, [2., 3.]*u.deg)
     rep2 = SphericalRepresentation([10., 11]*u.deg, [12., 13.]*u.deg,
@@ -408,7 +408,7 @@ def test_regression_6236():
     assert mf2.representation is CartesianRepresentation
     assert mf2.my_attr == mf1.my_attr
     # It should be independent of whether I set the reprensentation explicitly
-    mf3 = MyFrame(rep1, my_attr=1.*u.km, representation='unitspherical')
+    mf3 = MyFrame(rep1, my_attr=1.*u.km, representation_type='unitspherical')
     mf4 = mf3.realize_frame(rep2)
     assert mf3.data is rep1
     assert mf4.data is rep2
@@ -428,7 +428,7 @@ def test_regression_6236():
     assert msf2.my_attr == msf1.my_attr
     # And finally a test where the input is not transformed.
     msf3 = MySpecialFrame(rep1, my_attr=1.*u.km,
-                          representation='unitspherical')
+                          representation_type='unitspherical')
     msf4 = msf3.realize_frame(rep2)
     assert msf3.data is rep1
     assert msf4.data is not rep2
@@ -518,7 +518,7 @@ def test_gcrs_itrs_cartesian_repr():
     # issue 6436: transformation failed if coordinate representation was
     # Cartesian
     gcrs = GCRS(CartesianRepresentation((859.07256, -4137.20368,  5295.56871),
-                                        unit='km'), representation='cartesian')
+                                        unit='km'), representation_type='cartesian')
     gcrs.transform_to(ITRS)
 
 
