@@ -596,7 +596,7 @@ def test_skycoord_representation():
     values are output and in changing the frame representation.
     """
     # With no unit we get "None" in the unit row
-    c = coordinates.SkyCoord([0], [1], [0], representation='cartesian')
+    c = coordinates.SkyCoord([0], [1], [0], representation_type='cartesian')
     t = Table([c])
     assert t.pformat() == ['     col0     ',
                            'None,None,None',
@@ -604,7 +604,7 @@ def test_skycoord_representation():
                            '   0.0,1.0,0.0']
 
     # Test that info works with a dynamically changed representation
-    c = coordinates.SkyCoord([0], [1], [0], unit='m', representation='cartesian')
+    c = coordinates.SkyCoord([0], [1], [0], unit='m', representation_type='cartesian')
     t = Table([c])
     assert t.pformat() == ['    col0   ',
                            '   m,m,m   ',
