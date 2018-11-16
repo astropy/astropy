@@ -5,6 +5,12 @@ Converting between different time representations
 
 .. |Time| replace:: :class:`~astropy.time.Time`
 .. |TimeDelta| replace:: :class:`~astropy.time.TimeDelta`
+.. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
+.. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
+
+In :ref:`timeseries-accessing-times`, we saw how to access the time
+columns/attributes of the |TimeSeries| and |BinnedTimeSeries| classes. Here we
+look in more detail at how to manipulate the resulting times.
 
 Converting times
 ================

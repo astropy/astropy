@@ -123,18 +123,30 @@ class BinnedTimeSeries(BaseTimeSeries):
 
     @property
     def time_bin_start(self):
+        """
+        The start times of all the time bins.
+        """
         return self['time_bin_start']
 
     @property
     def time_bin_center(self):
+        """
+        The center times of all the time bins.
+        """
         return self['time_bin_start'] + self['time_bin_size'] * 0.5
 
     @property
     def time_bin_end(self):
+        """
+        The end times of all the time bins.
+        """
         return self['time_bin_start'] + self['time_bin_size']
 
     @property
     def time_bin_size(self):
+        """
+        The sizes of all the time bins.
+        """
         return self['time_bin_size']
 
     def __getitem__(self, item):

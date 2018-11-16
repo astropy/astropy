@@ -90,6 +90,9 @@ class TimeSeries(BaseTimeSeries):
 
     @property
     def time(self):
+        """
+        The time values.
+        """
         return self['time']
 
     def fold(self, period=None, midpoint_epoch=None):
