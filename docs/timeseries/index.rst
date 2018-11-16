@@ -289,23 +289,7 @@ Accessing data and manipulating time series
    times.rst
    analysis.rst
    masking.rst
-
-Comparison to other packages
-----------------------------
-
-The `astropy.timeseries` package is not the only package to provide
-functionality related to time series. For example, another notable package is
-`pandas <https://pandas.pydata.org/>`_, which provides a :class:`pandas.DataFrame`
-class. The main benefits of `astropy.timeseries` in the context of astronomical
-research are the following:
-
-* The time column is a |Time| object that supports very high precision
-  representation of times, and makes it easy to convert between different
-  time scales and formats (e.g. ISO 8601 timestamps, Julian Dates, and so on).
-* The data columns can include |Quantity| objects with units
-* The |BinnedTimeSeries| class includes variable width time bins
-* There are built-in readers for common time series file formats, as well as
-  the ability to define custom readers/writers.
+   pandas.rst
 
 Reference/API
 =============
