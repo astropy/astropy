@@ -6,7 +6,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_almost_equal_nulp
 
-from ..convolve import convolve_fft
+from ..convolve import convolve_fft, convolve
 from ...utils.exceptions import AstropyUserWarning
 
 
@@ -362,20 +362,30 @@ class TestConvolve1D:
         """
 
         # Test masked array
-        array = np.array([1., np.nan, 3.], dtype='float64')
+        array = np.array([1., 2., 3.], dtype='float64')
         kernel = np.array([1, 1, 1])
         masked_array = np.ma.masked_array(array, mask=[0, 1, 0])
         result = convolve_fft(masked_array, kernel, boundary='fill',
-                              fill_value=np.nan)
-        assert_floatclose(result, [1, 2, 3])
+                              fill_value=0.)
+        assert_floatclose(result, [1./2, 2, 3./2])
+
+        # Now test against convolve()
+        convolve_result = convolve(masked_array, kernel, boundary='fill',
+                              fill_value=0.)
+        assert_floatclose(convolve_result, result)
 
         # Test masked kernel
-        array = np.array([1., np.nan, 3.], dtype='float64')
+        array = np.array([1., 2., 3.], dtype='float64')
         kernel = np.array([1, 1, 1])
-        masked_array = np.ma.masked_array(array, mask=[0, 1, 0])
-        result = convolve_fft(masked_array, kernel, boundary='fill',
-                              fill_value=np.nan)
-        assert_floatclose(result, [1, 2, 3])
+        masked_kernel = np.ma.masked_array(kernel, mask=[0, 1, 0])
+        result = convolve_fft(array, masked_kernel, boundary='fill',
+                              fill_value=0.)
+        assert_floatclose(result, [1, 2, 1])
+
+        # Now test against convolve()
+        convolve_result = convolve(array, masked_kernel, boundary='fill',
+                              fill_value=0.)
+        assert_floatclose(convolve_result, result)
 
     def test_normalize_function(self):
         """
