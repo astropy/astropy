@@ -8,7 +8,7 @@ Time series (`astropy.timeseries`)
 .. |Table| replace:: :class:`~astropy.table.Table`
 .. |QTable| replace:: :class:`~astropy.table.QTable`
 .. |Quantity| replace:: :class:`~astropy.units.Quantity`
-.. |SampledTimeSeries| replace:: :class:`~astropy.timeseries.SampledTimeSeries`
+.. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
 .. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
 
 Introduction
@@ -19,9 +19,9 @@ either sampling a continuous variable at fixed times or counting some events
 binned into time windows. The `astropy.timeseries` package therefore provides
 classes to represent and manipulate time series
 
-The time series classes presented below are |QTable| objects that have special
-columns to represent times using the |Time| class. Therefore, much of the
-functionality described in :ref:`astropy-table` applies here.
+The time series classes presented below are |QTable| sub-classes that have
+special columns to represent times using the |Time| class. Therefore, much of
+the functionality described in :ref:`astropy-table` applies here.
 
 Getting Started
 ===============
@@ -30,21 +30,27 @@ In this section, we take a quick look at how to read in a time series, access
 the data, and carry out some basic analysis. For more details about creating and
 using time series, see the full documentation in :ref:`using-timeseries`.
 
+The simplest time series class is |TimeSeries| - it represents a time series as
+a collection of values at specific points in time. If you are interested in
+representing time series as measurements in discrete time bins, you will likely
+be interested in the |BinnedTimeSeries| sub-class which we show in
+:ref:`using-timeseries`).
+
 To start off, we retrieve a FITS file containing a Kepler light curve for a
 source::
 
     >>> from astropy.utils.data import get_pkg_data_filename
     >>> filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')  # doctest: +REMOTE_DATA
 
-We can then use the |SampledTimeSeries| class to read in this file::
+We can then use the |TimeSeries| class to read in this file::
 
-    >>> from astropy.timeseries import SampledTimeSeries
-    >>> ts = SampledTimeSeries.read(filename, format='kepler.fits')  # doctest: +REMOTE_DATA
+    >>> from astropy.timeseries import TimeSeries
+    >>> ts = TimeSeries.read(filename, format='kepler.fits')  # doctest: +REMOTE_DATA
 
-Time series are specialized kinds of astropy |Table| objects::
+Time series are specialized kinds of |Table| objects::
 
     >>> ts  # doctest: +REMOTE_DATA
-    <SampledTimeSeries length=14280>
+    <TimeSeries length=14280>
         time             timecorr   ...   pos_corr1      pos_corr2
                             d       ...     pixels         pixels
        object            float32    ...    float32        float32
@@ -65,7 +71,7 @@ sliced using index notation::
                1025930.9 ] electron / s>
 
     >>> ts['time', 'sap_flux']  # doctest: +REMOTE_DATA
-    <SampledTimeSeries length=14280>
+    <TimeSeries length=14280>
               time             sap_flux
                              electron / s
              object            float32
@@ -79,7 +85,7 @@ sliced using index notation::
     2009-05-11T18:07:12.186  1.0259309e+06
 
     >>> ts[0:4]  # doctest: +REMOTE_DATA
-    <SampledTimeSeries length=4>
+    <TimeSeries length=4>
               time             timecorr   ...   pos_corr1      pos_corr2
                                   d       ...     pixels         pixels
              object            float32    ...    float32        float32
@@ -89,7 +95,7 @@ sliced using index notation::
     2009-05-02T00:43:38.045  6.631103e-04 ...  1.5665225e-03 -1.4616371e-03
     2009-05-02T00:44:36.894  6.631350e-04 ...  1.5586632e-03 -1.4692718e-03
 
-As seen in the example above, |SampledTimeSeries| objects have a ``time``
+As seen in the example above, |TimeSeries| objects have a ``time``
 column, which is always the first column. This column can also be accessed using
 the ``.time`` attribute::
 
@@ -98,8 +104,8 @@ the ``.time`` attribute::
      '2009-05-02T00:43:38.045' ... '2009-05-11T18:05:14.479'
      '2009-05-11T18:06:13.328' '2009-05-11T18:07:12.186']>
 
-and is always a |Time| object (see :ref:`astropy-time`), which therefore
-supports the ability to convert to different time scales and formats::
+and is always a |Time| object (see :ref:`Times and Dates <astropy-time>`), which
+therefore supports the ability to convert to different time scales and formats::
 
     >>> ts.time.mjd  # doctest: +REMOTE_DATA
     array([54953.0289391 , 54953.02962023, 54953.03030145, ...,
@@ -117,8 +123,8 @@ Let's use what we've seen so far to make a plot
 
     from astropy.utils.data import get_pkg_data_filename
     filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
-    from astropy.timeseries import SampledTimeSeries
-    ts = SampledTimeSeries.read(filename, format='kepler.fits')
+    from astropy.timeseries import TimeSeries
+    ts = TimeSeries.read(filename, format='kepler.fits')
 
 .. plot::
    :include-source:
@@ -155,7 +161,7 @@ a duration of 0.2 days::
    period = periodogram.period[np.argmax(periodogram.power)]
 
 We can now fold the time series using the period we've found above using the
-:meth:`~astropy.timeseries.SampledTimeSeries.fold` method::
+:meth:`~astropy.timeseries.TimeSeries.fold` method::
 
     >>> ts_folded = ts.fold(period=period, midpoint_epoch='2009-05-02T07:41:40')  # doctest: +REMOTE_DATA
 
@@ -199,7 +205,8 @@ the data to determine the baseline flux::
 and we can downsample the time series by binning the points into bins of equal
 time - this returns a |BinnedTimeSeries|::
 
-    >>> ts_binned = ts_folded.downsample(0.03 * u.day)  # doctest: +REMOTE_DATA
+    >>> from astropy.timeseries import simple_downsample
+    >>> ts_binned = simple_downsample(ts_folded, 0.03 * u.day)  # doctest: +REMOTE_DATA
     >>> ts_binned  # doctest: +FLOAT_CMP +REMOTE_DATA
     <BinnedTimeSeries length=74>
          start_time          bin_size      ...   pos_corr2    sap_flux_norm
@@ -231,7 +238,8 @@ time - this returns a |BinnedTimeSeries|::
    :context:
    :nofigs:
 
-   ts_binned = ts_folded.downsample(0.03 * u.day)
+   from astropy.timeseries import simple_downsample
+   ts_binned = simple_downsample(ts_folded, 0.03 * u.day)
 
 Let's take a look at the final result:
 
@@ -280,6 +288,7 @@ Accessing data and manipulating time series
    data_access.rst
    times.rst
    analysis.rst
+   masking.rst
 
 Comparison to other packages
 ----------------------------

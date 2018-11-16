@@ -13,3 +13,4 @@ if not _ASTROPY_SETUP_:
     from .sampled import *  # noqa
     from .binned import *  # noqa
     from . import io  # noqa
+    from .downsample import *  # noqa

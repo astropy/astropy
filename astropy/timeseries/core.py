@@ -2,10 +2,10 @@
 
 from astropy.table import QTable
 
-__all__ = ['TimeSeries']
+__all__ = ['BaseTimeSeries']
 
 
-class TimeSeries(QTable):
+class BaseTimeSeries(QTable):
 
     _required_columns = None
 
