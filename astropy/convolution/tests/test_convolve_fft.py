@@ -746,12 +746,12 @@ def test_asymmetric_kernel(boundary):
         assert_array_almost_equal_nulp(z, np.array([9., 10., 5.], dtype='float'), 10)
 
 @pytest.mark.parametrize(('boundary', 'nan_treatment',
-                              'normalize_kernel', 'preserve_nan', 'dtype'),
-                             itertools.product(BOUNDARY_OPTIONS,
-                                               NANTREATMENT_OPTIONS,
-                                               NORMALIZE_OPTIONS,
-                                               PRESERVE_NAN_OPTIONS,
-                                               VALID_DTYPES))
+                          'normalize_kernel', 'preserve_nan', 'dtype'),
+                         itertools.product(BOUNDARY_OPTIONS,
+                                           NANTREATMENT_OPTIONS,
+                                           NORMALIZE_OPTIONS,
+                                           PRESERVE_NAN_OPTIONS,
+                                           VALID_DTYPES))
 def test_input_unmodified(boundary, nan_treatment,
                           normalize_kernel, preserve_nan, dtype):
     """
@@ -768,7 +768,7 @@ def test_input_unmodified(boundary, nan_treatment,
     y.flags.writeable = False
 
     z = convolve_fft(x, y, boundary=boundary, nan_treatment=nan_treatment,
-                      normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
+                     normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
 
     assert np.all(np.array(array, dtype=dtype) == x)
     assert np.all(np.array(kernel, dtype=dtype) == y)
@@ -803,7 +803,7 @@ def test_input_unmodified_with_nan(boundary, nan_treatment,
                  normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
 
     # ( NaN == NaN ) = False
-    # Only compare non NaN values for canonical equivilance
+    # Only compare non NaN values for canonical equivalence
     # and then check NaN explicitly with np.isnan()
     array_is_nan = np.isnan(array)
     kernel_is_nan = np.isnan(kernel)
