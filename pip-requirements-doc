@@ -7,7 +7,6 @@ scikit-image
 pandas
 pytz
 beautifulsoup4
-ipython
 mpmath
 matplotlib
 scipy
