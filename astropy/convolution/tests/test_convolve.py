@@ -121,7 +121,7 @@ class TestConvolve1D:
                      normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
 
         # ( NaN == NaN ) = False
-        # Only compare non NaN values for canonical equivilance
+        # Only compare non NaN values for canonical equivalance
         # and then check NaN explicitly with np.isnan()
         array_is_nan = np.isnan(array)
         kernel_is_nan = np.isnan(kernel)
