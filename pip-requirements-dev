@@ -8,3 +8,4 @@ coverage
 skyfield
 pytest-xdist
 pytest-mpl
+objgraph
