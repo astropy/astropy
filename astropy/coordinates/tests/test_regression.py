@@ -404,16 +404,16 @@ def test_regression_6236():
     # realize_frame should do the same. Just in case, check attrs are passed.
     assert mf1.data is rep1
     assert mf2.data is rep2
-    assert mf1.representation is CartesianRepresentation
-    assert mf2.representation is CartesianRepresentation
+    assert mf1.representation_type is CartesianRepresentation
+    assert mf2.representation_type is CartesianRepresentation
     assert mf2.my_attr == mf1.my_attr
     # It should be independent of whether I set the reprensentation explicitly
     mf3 = MyFrame(rep1, my_attr=1.*u.km, representation_type='unitspherical')
     mf4 = mf3.realize_frame(rep2)
     assert mf3.data is rep1
     assert mf4.data is rep2
-    assert mf3.representation is UnitSphericalRepresentation
-    assert mf4.representation is CartesianRepresentation
+    assert mf3.representation_type is UnitSphericalRepresentation
+    assert mf4.representation_type is CartesianRepresentation
     assert mf4.my_attr == mf3.my_attr
     # This should be enough to help sunpy, but just to be sure, a test
     # even closer to what is done there, i.e., transform the representation.
@@ -423,8 +423,8 @@ def test_regression_6236():
     assert msf2.data is not rep2
     assert type(msf1.data) is CartesianRepresentation
     assert type(msf2.data) is CartesianRepresentation
-    assert msf1.representation is CartesianRepresentation
-    assert msf2.representation is CartesianRepresentation
+    assert msf1.representation_type is CartesianRepresentation
+    assert msf2.representation_type is CartesianRepresentation
     assert msf2.my_attr == msf1.my_attr
     # And finally a test where the input is not transformed.
     msf3 = MySpecialFrame(rep1, my_attr=1.*u.km,
@@ -432,8 +432,8 @@ def test_regression_6236():
     msf4 = msf3.realize_frame(rep2)
     assert msf3.data is rep1
     assert msf4.data is not rep2
-    assert msf3.representation is UnitSphericalRepresentation
-    assert msf4.representation is CartesianRepresentation
+    assert msf3.representation_type is UnitSphericalRepresentation
+    assert msf4.representation_type is CartesianRepresentation
     assert msf4.my_attr == msf3.my_attr
 
 

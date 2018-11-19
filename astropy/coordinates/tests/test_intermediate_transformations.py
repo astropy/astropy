@@ -181,7 +181,7 @@ def test_gcrs_itrs():
 
     # also try with the cartesian representation
     gcrsc = gcrs.realize_frame(gcrs.data)
-    gcrsc.representation = CartesianRepresentation
+    gcrsc.representation_type = CartesianRepresentation
     gcrsc2 = gcrsc.transform_to(ITRS).transform_to(gcrsc)
     assert_allclose(gcrsc.spherical.lon.deg, gcrsc2.ra.deg)
     assert_allclose(gcrsc.spherical.lat, gcrsc2.dec)

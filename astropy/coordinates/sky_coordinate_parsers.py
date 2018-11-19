@@ -422,7 +422,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
 
         if coords.data.differentials and 's' in coords.data.differentials:
             orig_vel = coords.data.differentials['s']
-            vel = coords.data.represent_as(frame.representation, frame.get_representation_cls('s')).differentials['s']
+            vel = coords.data.represent_as(frame.representation_type, frame.get_representation_cls('s')).differentials['s']
             for frname, reprname in frame.get_representation_component_names('s').items():
                 if (reprname == 'd_distance' and not hasattr(orig_vel, reprname) and
                     'unit' in orig_vel.get_name()):
