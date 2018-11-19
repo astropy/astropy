@@ -1023,7 +1023,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         <CartesianRepresentation (x, y, z) [dimensionless]
                 (1., 0., 0.)>
 
-        >>> coord.representation = CartesianRepresentation
+        >>> coord.representation_type = CartesianRepresentation
         >>> coord  # doctest: +FLOAT_CMP
         <SkyCoord (ICRS): (x, y, z) [dimensionless]
             (1., 0., 0.)>
