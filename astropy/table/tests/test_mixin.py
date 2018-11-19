@@ -611,13 +611,13 @@ def test_skycoord_representation():
                            '-----------',
                            '0.0,1.0,0.0']
 
-    t['col0'].representation = 'unitspherical'
+    t['col0'].representation_type = 'unitspherical'
     assert t.pformat() == ['  col0  ',
                            'deg,deg ',
                            '--------',
                            '90.0,0.0']
 
-    t['col0'].representation = 'cylindrical'
+    t['col0'].representation_type = 'cylindrical'
     assert t.pformat() == ['    col0    ',
                            '  m,deg,m   ',
                            '------------',

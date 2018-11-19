@@ -24,7 +24,7 @@ def sort_eq(list1, list2):
 def skycoord_equal(sc1, sc2):
     if not sc1.is_equivalent_frame(sc2):
         return False
-    if sc1.representation is not sc2.representation:  # Will be representation_type..
+    if sc1.representation_type is not sc2.representation_type:
         return False
     if sc1.shape != sc2.shape:
         return False  # Maybe raise ValueError corresponding to future numpy behavior
