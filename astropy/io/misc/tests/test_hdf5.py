@@ -631,7 +631,7 @@ el2 = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
 sc = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4',
               obstime='J1990.5')
 scc = sc.copy()
-scc.representation = 'cartesian'
+scc.representation_type = 'cartesian'
 tm = Time([2450814.5, 2450815.5], format='jd', scale='tai', location=el)
 
 
@@ -655,9 +655,9 @@ compare_attrs = {
     'c2': ['data'],
     'tm': time_attrs,
     'dt': ['shape', 'value', 'format', 'scale'],
-    'sc': ['ra', 'dec', 'representation', 'frame.name'],
-    'scc': ['x', 'y', 'z', 'representation', 'frame.name'],
-    'scd': ['ra', 'dec', 'distance', 'representation', 'frame.name'],
+    'sc': ['ra', 'dec', 'representation_type', 'frame.name'],
+    'scc': ['x', 'y', 'z', 'representation_type', 'frame.name'],
+    'scd': ['ra', 'dec', 'distance', 'representation_type', 'frame.name'],
     'q': ['value', 'unit'],
     'lon': ['value', 'unit', 'wrap_angle'],
     'lat': ['value', 'unit'],
