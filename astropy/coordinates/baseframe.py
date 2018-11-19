@@ -767,7 +767,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     def differential_type(self, value):
         self.set_representation_cls(s=value)
 
-    # TODO: deprecate these?
     @property
     def representation(self):
         _representation_deprecation()
