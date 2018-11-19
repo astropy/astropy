@@ -368,7 +368,7 @@ def test_realizing():
 
     # Check that a nicer error message is returned:
     with pytest.raises(TypeError) as excinfo:
-        f.realize_frame(f.representation)
+        f.realize_frame(f.representation_type)
 
     assert ('Class passed as data instead of a representation' in
             excinfo.value.args[0])
@@ -586,9 +586,9 @@ def test_representation():
     icrs_spher = icrs.spherical
 
     # Testing when `_representation` set to `CartesianRepresentation`.
-    icrs.representation = r.CartesianRepresentation
+    icrs.representation_type = r.CartesianRepresentation
 
-    assert icrs.representation == r.CartesianRepresentation
+    assert icrs.representation_type == r.CartesianRepresentation
     assert icrs_cart.x == icrs.x
     assert icrs_cart.y == icrs.y
     assert icrs_cart.z == icrs.z
@@ -601,15 +601,15 @@ def test_representation():
         assert 'object has no attribute' in str(err)
 
     # Testing when `_representation` set to `CylindricalRepresentation`.
-    icrs.representation = r.CylindricalRepresentation
+    icrs.representation_type = r.CylindricalRepresentation
 
-    assert icrs.representation == r.CylindricalRepresentation
+    assert icrs.representation_type == r.CylindricalRepresentation
     assert icrs.data == data
 
     # Testing setter input using text argument for spherical.
-    icrs.representation = 'spherical'
+    icrs.representation_type = 'spherical'
 
-    assert icrs.representation is r.SphericalRepresentation
+    assert icrs.representation_type is r.SphericalRepresentation
     assert icrs_spher.lat == icrs.dec
     assert icrs_spher.lon == icrs.ra
     assert icrs_spher.distance == icrs.distance
@@ -622,17 +622,17 @@ def test_representation():
         assert 'object has no attribute' in str(err)
 
     # Testing setter input using text argument for cylindrical.
-    icrs.representation = 'cylindrical'
+    icrs.representation_type = 'cylindrical'
 
-    assert icrs.representation is r.CylindricalRepresentation
+    assert icrs.representation_type is r.CylindricalRepresentation
     assert icrs.data == data
 
     with pytest.raises(ValueError) as err:
-        icrs.representation = 'WRONG'
+        icrs.representation_type = 'WRONG'
     assert 'but must be a BaseRepresentation class' in str(err)
 
     with pytest.raises(ValueError) as err:
-        icrs.representation = ICRS
+        icrs.representation_type = ICRS
     assert 'but must be a BaseRepresentation class' in str(err)
 
 
@@ -825,7 +825,7 @@ def test_representation_subclass():
     # SphericalRepresentation.
     frame = FK5(representation_type=r.SphericalRepresentation, ra=32 * u.deg, dec=20 * u.deg)
     assert type(frame._data) == r.UnitSphericalRepresentation
-    assert frame.representation == r.SphericalRepresentation
+    assert frame.representation_type == r.SphericalRepresentation
 
     # If using a SphericalRepresentation class this used to not work, so we
     # test here that this is now fixed.
@@ -834,7 +834,7 @@ def test_representation_subclass():
 
     frame = FK5(representation_type=NewSphericalRepresentation, lon=32 * u.deg, lat=20 * u.deg)
     assert type(frame._data) == r.UnitSphericalRepresentation
-    assert frame.representation == NewSphericalRepresentation
+    assert frame.representation_type == NewSphericalRepresentation
 
     # A similar issue then happened in __repr__ with subclasses of
     # SphericalRepresentation.
@@ -865,8 +865,8 @@ def test_getitem_representation():
     """
     from ..builtin_frames import ICRS
     c = ICRS([1, 1] * u.deg, [2, 2] * u.deg)
-    c.representation = 'cartesian'
-    assert c[0].representation is r.CartesianRepresentation
+    c.representation_type = 'cartesian'
+    assert c[0].representation_type is r.CartesianRepresentation
 
 
 def test_component_error_useful():
@@ -984,7 +984,7 @@ def test_representation_arg_backwards_compatibility():
     assert c1.y == c3.y
     assert c1.z == c3.z
 
-    assert c1.representation == c1.representation_type
+    assert c1.representation_type == c1.representation_type
 
     with pytest.raises(ValueError):
         ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,

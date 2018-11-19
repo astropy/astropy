@@ -986,7 +986,7 @@ def test_deepcopy():
     assert c5.frame.name == c4.frame.name
     assert c5.obstime == c4.obstime
     assert c5.equinox == c4.equinox
-    assert c5.representation == c4.representation
+    assert c5.representation_type == c4.representation_type
 
 
 def test_no_copy():
@@ -1240,8 +1240,8 @@ def test_getitem_representation():
     from data representation.
     """
     sc = SkyCoord([1, 1] * u.deg, [2, 2] * u.deg)
-    sc.representation = 'cartesian'
-    assert sc[0].representation is CartesianRepresentation
+    sc.representation_type = 'cartesian'
+    assert sc[0].representation_type is CartesianRepresentation
 
 
 def test_spherical_offsets():

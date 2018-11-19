@@ -200,7 +200,7 @@ def test_frame_api():
     assert_allclose(icrs.dec, 5*u.deg)
     assert_allclose(fk5.ra, 8*u.hourangle)
 
-    assert icrs.representation == SphericalRepresentation
+    assert icrs.representation_type == SphericalRepresentation
 
     # low-level classes can also be initialized with names valid for that representation
     # and frame:
