@@ -83,7 +83,7 @@ Astropy also depends on other packages for optional features:
 - `pytest-mpl <https://github.com/matplotlib/pytest-mpl>`_: Used for testing
   with Matplotlib figures.
 
-- `IPython <https://ipython.org/>`_: Used for testing notebook interface of
+- `IPython <https://ipython.org/>`__: Used for testing notebook interface of
   `~astropy.table.Table`.
 
 - `coverage <https://coverage.readthedocs.io/>`_: Used for code coverage
