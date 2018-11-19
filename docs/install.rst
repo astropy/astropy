@@ -35,6 +35,7 @@ Astropy also depends on other packages for optional features:
   format and to serialize mixins for various formats.
 
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
+  This is a command line tool installed outside of Python.
 
 - `pandas <http://pandas.pydata.org/>`_: To read/write
   :class:`~astropy.table.Table` objects from/to pandas DataFrame objects.
@@ -72,6 +73,24 @@ Astropy also depends on other packages for optional features:
 - `bottleneck <https://pypi.org/project/Bottleneck/>`_: Improves the performance
   of sigma-clipping and other functionality that may required computing statistics
   on arrays with NaN values.
+
+- `pytest-astropy <https://github.com/astropy/pytest-astropy>`_: See
+  :ref:`sourcebuildtest`.
+
+- `pytest-xdist <https://docs.pytest.org/en/3.0.0/xdist.html>`_: Used for
+  distributed testing.
+
+- `pytest-mpl <https://github.com/matplotlib/pytest-mpl>`_: Used for testing
+  with Matplotlib figures.
+
+- `IPython <https://ipython.org/>`__: Used for testing notebook interface of
+  `~astropy.table.Table`.
+
+- `coverage <https://coverage.readthedocs.io/>`_: Used for code coverage
+  measurements.
+
+- `skyfield <https://rhodesmill.org/skyfield/>`_: Used for testing Solar System
+  coordinates.
 
 .. note:: Also see ``pip-requirements-dev``.
 
@@ -399,6 +418,7 @@ dependencies, including:
   extension to generate example galleries
 * `numpydoc <https://numpydoc.readthedocs.io>`_ - an extension to parse
   docstrings in NumpyDoc format
+* `pillow <https://pillow.readthedocs.io>`_ - used in one of the examples
 
 In addition, if you want inheritance graphs to be generated, you will need to
 make sure that `Graphviz <http://www.graphviz.org>`_ is installed. If you
