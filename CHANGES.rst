@@ -1431,11 +1431,12 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
-astropy.utils
-^^^^^^^^^^^^^
-
 - Fixed the spelling of the 'luminous emittance/illuminance' physical
   property. [#7942]
+
+
+astropy.utils
+^^^^^^^^^^^^^
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
