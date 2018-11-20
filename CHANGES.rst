@@ -837,6 +837,10 @@ astropy.convolution
   ``numpy.ma.ismasked(input)`` to fail, causing ``convolve_fft``
   to ignore all masked input. [#8137]
 
+- Remove function side-effects of input data from ``convolve_fft``.
+  It was possible for input data to remain modified if particular exceptions
+  were raised. [#8152]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
