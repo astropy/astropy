@@ -34,11 +34,11 @@ DEFAULT_DATA_SCALE = 1.0
 
 
 def value_from_markers(key, request):
-    try:
-        val = request.keywords[key].args[0]
-    except KeyError:
-        val = DEFAULTS[key]
-    return val
+    m = request.node.get_closest_marker(key)
+    if m is not None:
+        return m.args[0]
+    else:
+        return DEFAULTS[key]
 
 
 @pytest.fixture
