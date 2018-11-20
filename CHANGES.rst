@@ -1805,6 +1805,8 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Ignore URL mirror caching when there is no internet. [#8163]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 

@@ -12,7 +12,7 @@ import urllib.error
 import pytest
 
 from ..data import (_get_download_cache_locs, CacheMissingWarning,
-                    get_pkg_data_filename, get_readable_fileobj)
+                    get_pkg_data_filename, get_readable_fileobj, conf)
 
 from ...tests.helper import raises, catch_warnings
 
@@ -45,7 +45,7 @@ def test_download_nocache():
 
 @pytest.mark.remote_data(source='astropy')
 def test_download_parallel():
-    from ..data import conf, download_files_in_parallel
+    from ..data import download_files_in_parallel
 
     main_url = conf.dataurl
     mirror_url = conf.dataurl_mirror
@@ -64,28 +64,42 @@ def test_download_mirror_cache():
     from ..data import _find_pkg_data_path, download_file, get_cached_urls
 
     main_url = pathlib.Path(
-        _find_pkg_data_path(os.path.join('data', 'dataurl'))).as_uri()
+        _find_pkg_data_path(os.path.join('data', 'dataurl'))).as_uri() + '/'
     mirror_url = pathlib.Path(
-        _find_pkg_data_path(os.path.join('data', 'dataurl_mirror'))).as_uri()
+        _find_pkg_data_path(os.path.join('data', 'dataurl_mirror'))).as_uri() + '/'  # noqa
 
-    main_file = main_url + '/index.html'
-    mirror_file = mirror_url + '/index.html'
+    main_file = main_url + 'index.html'
+    mirror_file = mirror_url + 'index.html'
 
-    # "Download" files by rerouting URLs to local URIs.
-    download_file(main_file, cache=True)
-    download_file(mirror_file, cache=True)
+    # Temporarily change data.conf.
+    # This also test https://github.com/astropy/astropy/pull/8163 because
+    # urlopen() on a local dir URI also gives URLError.
+    with conf.set_temp('dataurl', main_url):
+        with conf.set_temp('dataurl_mirror', mirror_url):
 
-    # Now test that download_file looks in mirror's cache before download.
-    # https://github.com/astropy/astropy/issues/6982
-    dldir, urlmapfn = _get_download_cache_locs()
-    with shelve.open(urlmapfn) as url2hash:
-        del url2hash[main_file]
-    # Comparing hash should be good enough?
-    # This test also tests for "assert TESTURL in get_cached_urls()".
-    c_urls = get_cached_urls()
-    assert ((download_file(main_file, cache=True) ==
-             download_file(mirror_file, cache=True)) and
-            (mirror_file in c_urls) and (main_file not in c_urls))
+            # "Download" files by rerouting URLs to local URIs.
+            download_file(main_file, cache=True)
+            download_file(mirror_file, cache=True)
+
+            # Now test that download_file looks in mirror's cache before
+            # download.
+            # https://github.com/astropy/astropy/issues/6982
+            dldir, urlmapfn = _get_download_cache_locs()
+            with shelve.open(urlmapfn) as url2hash:
+                del url2hash[main_file]
+
+            # Comparing hash makes sure they download the same file
+            # but does not guarantee they were downloaded from the same URL.
+            assert (download_file(main_file, cache=True) ==
+                    download_file(mirror_file, cache=True))
+
+            # This has to be called after the last download to obtain
+            # an accurate view of cached URLs.
+            # This is to ensure that main_file was not re-downloaded
+            # unnecessarily.
+            # This test also tests for "assert TESTURL in get_cached_urls()".
+            c_urls = get_cached_urls()
+            assert (mirror_file in c_urls) and (main_file not in c_urls)
 
 
 @pytest.mark.remote_data(source='astropy')
@@ -308,7 +322,7 @@ def test_data_noastropy_fallback(monkeypatch):
     lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
 
     # better yet, set the configuration to make sure the temp files are deleted
-    data.conf.delete_temporary_downloads_at_exit = True
+    conf.delete_temporary_downloads_at_exit = True
 
     # make sure the config and cache directories are not searched
     monkeypatch.setenv(str('XDG_CONFIG_HOME'), 'foo')
