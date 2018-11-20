@@ -1005,7 +1005,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
             with urllib.request.urlopen(conf.dataurl, timeout=timeout) as remote:
                 _dataurls_to_alias[conf.dataurl] = [conf.dataurl, remote.geturl()]
         except urllib.error.URLError:  # Host unreachable
-            pass
+            _dataurls_to_alias[conf.dataurl] = [conf.dataurl]
     try:
         if cache:
             # We don't need to acquire the lock here, since we are only reading
