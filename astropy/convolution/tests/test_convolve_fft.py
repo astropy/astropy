@@ -10,13 +10,13 @@ from ..convolve import convolve_fft, convolve
 from ...utils.exceptions import AstropyUserWarning
 
 
-VALID_DTYPES = []
-for dtype_array in ['>f4', '<f4', '>f8', '<f8']:
-    for dtype_kernel in ['>f4', '<f4', '>f8', '<f8']:
-        VALID_DTYPES.append((dtype_array, dtype_kernel))
+VALID_DTYPES = ('>f4', '<f4', '>f8', '<f8')
+VALID_DTYPE_MATRIX = list(itertools.product(VALID_DTYPES, VALID_DTYPES))
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap']
 NANTREATMENT_OPTIONS = ('interpolate', 'fill')
+NORMALIZE_OPTIONS = [True, False]
+PRESERVE_NAN_OPTIONS = [True, False]
 
 """
 What does convolution mean?  We use the 'same size' assumption here (i.e.,
@@ -744,3 +744,72 @@ def test_asymmetric_kernel(boundary):
         assert_array_almost_equal_nulp(z, np.array([6., 10., 2.], dtype='float'), 10)
     elif boundary == 'wrap':
         assert_array_almost_equal_nulp(z, np.array([9., 10., 5.], dtype='float'), 10)
+
+@pytest.mark.parametrize(('boundary', 'nan_treatment',
+                          'normalize_kernel', 'preserve_nan', 'dtype'),
+                         itertools.product(BOUNDARY_OPTIONS,
+                                           NANTREATMENT_OPTIONS,
+                                           NORMALIZE_OPTIONS,
+                                           PRESERVE_NAN_OPTIONS,
+                                           VALID_DTYPES))
+def test_input_unmodified(boundary, nan_treatment,
+                          normalize_kernel, preserve_nan, dtype):
+    """
+    Test that convolve_fft works correctly when inputs are lists
+    """
+
+    array = [1., 4., 5., 6., 5., 7., 8.]
+    kernel = [0.2, 0.6, 0.2]
+    x = np.array(array, dtype=dtype)
+    y = np.array(kernel, dtype=dtype)
+
+    # Make pseudoimmutable
+    x.flags.writeable = False
+    y.flags.writeable = False
+
+    z = convolve_fft(x, y, boundary=boundary, nan_treatment=nan_treatment,
+                     normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
+
+    assert np.all(np.array(array, dtype=dtype) == x)
+    assert np.all(np.array(kernel, dtype=dtype) == y)
+
+@pytest.mark.parametrize(('boundary', 'nan_treatment',
+                          'normalize_kernel', 'preserve_nan', 'dtype'),
+                         itertools.product(BOUNDARY_OPTIONS,
+                                           NANTREATMENT_OPTIONS,
+                                           NORMALIZE_OPTIONS,
+                                           PRESERVE_NAN_OPTIONS,
+                                           VALID_DTYPES))
+def test_input_unmodified_with_nan(boundary, nan_treatment,
+                                   normalize_kernel, preserve_nan, dtype):
+    """
+    Test that convolve_fft doesn't modify the input data
+    """
+
+    array = [1., 4., 5., np.nan, 5., 7., 8.]
+    kernel = [0.2, 0.6, 0.2]
+    x = np.array(array, dtype=dtype)
+    y = np.array(kernel, dtype=dtype)
+
+    # Make pseudoimmutable
+    x.flags.writeable = False
+    y.flags.writeable = False
+
+    # make copies for post call comparison
+    x_copy = x.copy()
+    y_copy = y.copy()
+
+    z = convolve_fft(x, y, boundary=boundary, nan_treatment=nan_treatment,
+                 normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
+
+    # ( NaN == NaN ) = False
+    # Only compare non NaN values for canonical equivalence
+    # and then check NaN explicitly with np.isnan()
+    array_is_nan = np.isnan(array)
+    kernel_is_nan = np.isnan(kernel)
+    array_not_nan = ~array_is_nan
+    kernel_not_nan = ~kernel_is_nan
+    assert np.all(x_copy[array_not_nan] == x[array_not_nan])
+    assert np.all(y_copy[kernel_not_nan] == y[kernel_not_nan])
+    assert np.all(np.isnan(x[array_is_nan]))
+    assert np.all(np.isnan(y[kernel_is_nan]))
