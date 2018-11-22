@@ -272,6 +272,7 @@ class TestRunnerBase:
         if hasattr(test, '__wrapped__'):
             del test.__wrapped__
 
+        test.__test__ = False
         return test
 
 
