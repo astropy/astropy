@@ -1881,7 +1881,7 @@ astropy.wcs
   ``pipeline_pix2foc()``. They now raise an exception for input with
   zero coordinates, i.e. shape = (0, n). [#7806]
 
- - Fixed an issue with scalar input when WCS.naxis is one. [#7858]
+- Fixed an issue with scalar input when WCS.naxis is one. [#7858]
 
 Other Changes and Additions
 ---------------------------
@@ -4673,7 +4673,7 @@ astropy.stats
   includes several additional options for automatic determination of optimal
   histogram bins. Associated helper routines include ``bayesian_blocks``,
   ``friedman_bin_width``, ``scott_bin_width``, and ``knuth_bin_width``.
-  This functionality was ported from the astroML_ library. [#3756]
+  This functionality was ported from the astroML library. [#3756]
 
 - Added the ``bayesian_blocks`` routine, which implements a dynamic algorithm
   for locating change-points in various time series. [#3756]
@@ -4838,7 +4838,7 @@ astropy.visualization
 
 - Added the ``hist`` function, which is similar to ``plt.hist`` but
   includes several additional options for automatic determination of optimal
-  histogram bins. This functionality was ported from the astroML_ library.
+  histogram bins. This functionality was ported from the astroML library.
   [#3756]
 
 astropy.wcs
@@ -4877,8 +4877,6 @@ astropy.wcs
 - The ``astropy.tests.helper`` module is now part of the public API (and has a
   documentation page).  This module was in previous releases of astropy,
   but was not considered part of the public API until now. [#3890]
-
-.. _astroML: http://astroML.org
 
 - There is a new function ``astropy.online_help`` to search the
   astropy documentation and display the result in a web
