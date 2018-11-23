@@ -4,7 +4,8 @@
 import numpy as np
 
 from .compat import NDDataArray
-from .nduncertainty import StdDevUncertainty, NDUncertainty
+from .nduncertainty import (
+    StdDevUncertainty, NDUncertainty, VarianceUncertainty, InverseVariance)
 from ..io import fits, registry
 from .. import units as u
 from .. import log
@@ -14,6 +15,9 @@ from ..utils.decorators import sharedmethod
 
 __all__ = ['CCDData', 'fits_ccddata_reader', 'fits_ccddata_writer']
 
+_known_uncertainties = (StdDevUncertainty, VarianceUncertainty, InverseVariance)
+_unc_name_to_cls = {cls.__name__: cls for cls in _known_uncertainties}
+_unc_cls_to_name = {cls: cls.__name__ for cls in _known_uncertainties}
 
 # Global value which can turn on/off the unit requirements when creating a
 # CCDData. Should be used with care because several functions actually break
@@ -54,6 +58,17 @@ def _arithmetic(op):
                          "".format(func.__name__))
         return sharedmethod(inner)
     return decorator
+
+
+def _uncertainty_unit_equivalent_to_parent(uncertainty_type, unit, parent_unit):
+    if uncertainty_type is StdDevUncertainty:
+        return unit == parent_unit
+    elif uncertainty_type is VarianceUncertainty:
+        return unit == (parent_unit ** 2)
+    elif uncertainty_type is InverseVariance:
+        return unit == (1 / (parent_unit ** 2))
+    raise ValueError("unsupported uncertainty type: {}"
+                     .format(uncertainty_type))
 
 
 class CCDData(NDDataArray):
@@ -226,7 +241,7 @@ class CCDData(NDDataArray):
             self._uncertainty = value
 
     def to_hdu(self, hdu_mask='MASK', hdu_uncertainty='UNCERT',
-               hdu_flags=None, wcs_relax=True):
+               hdu_flags=None, wcs_relax=True, key_uncertainty_type='UTYPE'):
         """Creates an HDUList object from a CCDData object.
 
         Parameters
@@ -246,12 +261,18 @@ class CCDData(NDDataArray):
             ``relax=True`` for the ``-SIP`` part of the ``CTYPE`` to be
             preserved.
 
+        key_uncertainty_type : str, optional
+            The header key name for the class name of the uncertainty (if any)
+            that is used to store the uncertainty type in the uncertainty hdu.
+            Default is ``UTYPE``.
+
+            .. versionadded:: 3.1
+
         Raises
         -------
         ValueError
             - If ``self.mask`` is set but not a `numpy.ndarray`.
-            - If ``self.uncertainty`` is set but not a
-              `~astropy.nddata.StdDevUncertainty`.
+            - If ``self.uncertainty`` is set but not a astropy uncertainty type.
             - If ``self.uncertainty`` is set but has another unit then
               ``self.data``.
 
@@ -309,20 +330,29 @@ class CCDData(NDDataArray):
             # We need to save some kind of information which uncertainty was
             # used so that loading the HDUList can infer the uncertainty type.
             # No idea how this can be done so only allow StdDevUncertainty.
-            if self.uncertainty.__class__.__name__ != 'StdDevUncertainty':
-                raise ValueError('only StdDevUncertainty can be saved.')
+            uncertainty_cls = self.uncertainty.__class__
+            if uncertainty_cls not in _known_uncertainties:
+                raise ValueError('only uncertainties of type {} can be saved.'
+                                 .format(_known_uncertainties))
+            uncertainty_name = _unc_cls_to_name[uncertainty_cls]
+
+            hdr_uncertainty = fits.Header()
+            hdr_uncertainty[key_uncertainty_type] = uncertainty_name
 
             # Assuming uncertainty is an StdDevUncertainty save just the array
             # this might be problematic if the Uncertainty has a unit differing
             # from the data so abort for different units. This is important for
             # astropy > 1.2
             if (hasattr(self.uncertainty, 'unit') and
-                    self.uncertainty.unit is not None and
-                    self.uncertainty.unit != self.unit):
-                raise ValueError('saving uncertainties with a unit differing'
-                                 'from the data unit is not supported.')
+                    self.uncertainty.unit is not None):
+                if not _uncertainty_unit_equivalent_to_parent(
+                        uncertainty_cls, self.uncertainty.unit, self.unit):
+                    raise ValueError(
+                        'saving uncertainties with a unit that is not '
+                        'equivalent to the unit from the data unit is not '
+                        'supported.')
 
-            hduUncert = fits.ImageHDU(self.uncertainty.array,
+            hduUncert = fits.ImageHDU(self.uncertainty.array, hdr_uncertainty,
                                       name=hdu_uncertainty)
             hdus.append(hduUncert)
 
@@ -428,7 +458,8 @@ def _generate_wcs_and_update_header(hdr):
 
 
 def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
-                        hdu_mask='MASK', hdu_flags=None, **kwd):
+                        hdu_mask='MASK', hdu_flags=None,
+                        key_uncertainty_type='UTYPE', **kwd):
     """
     Generate a CCDData object from a FITS file.
 
@@ -463,6 +494,13 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
         Currently not implemented.
         Default is ``None``.
 
+    key_uncertainty_type : str, optional
+        The header key name where the class name of the uncertainty  is stored
+        in the hdu of the uncertainty (if any).
+        Default is ``UTYPE``.
+
+        .. versionadded:: 3.1
+
     kwd :
         Any additional keyword parameters are passed through to the FITS reader
         in :mod:`astropy.io.fits`; see Notes for additional discussion.
@@ -485,7 +523,13 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
         hdr = hdus[hdu].header
 
         if hdu_uncertainty is not None and hdu_uncertainty in hdus:
-            uncertainty = StdDevUncertainty(hdus[hdu_uncertainty].data)
+            unc_hdu = hdus[hdu_uncertainty]
+            stored_unc_name = unc_hdu.header[key_uncertainty_type]
+            # For compatibility reasons the default is standard deviation
+            # uncertainty because files could have been created before the
+            # uncertainty type was stored in the header.
+            unc_type = _unc_name_to_cls.get(stored_unc_name, StdDevUncertainty)
+            uncertainty = unc_type(unc_hdu.data)
         else:
             uncertainty = None
 
@@ -551,8 +595,9 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
     return ccd_data
 
 
-def fits_ccddata_writer(ccd_data, filename, hdu_mask='MASK',
-                        hdu_uncertainty='UNCERT', hdu_flags=None, **kwd):
+def fits_ccddata_writer(
+        ccd_data, filename, hdu_mask='MASK', hdu_uncertainty='UNCERT',
+        hdu_flags=None, key_uncertainty_type='UTYPE', **kwd):
     """
     Write CCDData object to FITS file.
 
@@ -569,6 +614,13 @@ def fits_ccddata_writer(ccd_data, filename, hdu_mask='MASK',
         Default is ``'MASK'`` for mask, ``'UNCERT'`` for uncertainty and
         ``None`` for flags.
 
+    key_uncertainty_type : str, optional
+        The header key name for the class name of the uncertainty (if any)
+        that is used to store the uncertainty type in the uncertainty hdu.
+        Default is ``UTYPE``.
+
+        .. versionadded:: 3.1
+
     kwd :
         All additional keywords are passed to :py:mod:`astropy.io.fits`
 
@@ -584,8 +636,9 @@ def fits_ccddata_writer(ccd_data, filename, hdu_mask='MASK',
     NotImplementedError
         Saving flags is not supported.
     """
-    hdu = ccd_data.to_hdu(hdu_mask=hdu_mask, hdu_uncertainty=hdu_uncertainty,
-                          hdu_flags=hdu_flags)
+    hdu = ccd_data.to_hdu(
+        hdu_mask=hdu_mask, hdu_uncertainty=hdu_uncertainty,
+        key_uncertainty_type=key_uncertainty_type, hdu_flags=hdu_flags)
     hdu.writeto(filename, **kwd)
 
 
