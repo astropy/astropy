@@ -1804,6 +1804,8 @@ Other Changes and Additions
 - Fixing ``astropy.__citation__`` to provide the full bibtex entry of the 2018
   paper. [#8110]
 
+- Pytest 4.0 is not supported by the 2.0.x LTS releases. [#8173]
+
 
 2.0.9 (2018-10-14)
 ==================

@@ -17,7 +17,7 @@ Astropy has the following strict requirements:
 
 - `Numpy`_ |minimum_numpy_version| or later
 
-- `pytest`_ 2.8 or later
+- `pytest`_ 2.8 or later but earlier than 4.0.
 
 Astropy also depends on other packages for optional features:
 
