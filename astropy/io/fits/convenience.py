@@ -510,6 +510,8 @@ def table_to_hdu(table, character_as_bytes=False):
 
         unit = table[col.name].unit
         if unit is not None:
+            # Local imports to avoid importing units when it is not required,
+            # e.g. for command-line scripts
             from ...units import Unit
             from ...units.format.fits import UnitScaleError
             try:
