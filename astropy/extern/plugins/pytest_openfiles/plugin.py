@@ -24,6 +24,11 @@ def pytest_addoption(parser):
                   "may be specified by their base name (ignoring their full "
                   "path) or by absolute path", type="args", default=())
 
+def pytest_configure(config):
+
+    config.getini('markers').append(
+        'openfiles_ignore: Indicate that open files should be ignored for this test')
+
 # Open file detection.
 #
 # This works by calling out to psutil to get the list of open files
@@ -53,7 +58,7 @@ def _get_open_file_list():
 def pytest_runtest_setup(item):
     # Store a list of the currently opened files so we can compare
     # against them when the test is done.
-    if item.config.getvalue('open_files'):
+    if item.config.getvalue('open_files') and not item.get_marker('openfiles_ignore'):
         item.open_files = _get_open_file_list()
 
 
@@ -61,8 +66,7 @@ def pytest_runtest_teardown(item, nextitem):
     # a "skipped" test will not have been called with
     # pytest_runtest_setup, so therefore won't have an
     # "open_files" member
-    if (not item.config.getvalue('open_files') or
-            not hasattr(item, 'open_files')):
+    if (not item.config.getvalue('open_files') or not hasattr(item, 'open_files')):
         return
 
     start_open_files = item.open_files
