@@ -1806,6 +1806,8 @@ Other Changes and Additions
 
 - Pytest 4.0 is not supported by the 2.0.x LTS releases. [#8173]
 
+- - Updating bundled ``pytest-doctestplus`` to v0.2.0. [#8175]
+
 
 2.0.9 (2018-10-14)
 ==================

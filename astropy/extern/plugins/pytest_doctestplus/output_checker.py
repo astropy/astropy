@@ -19,8 +19,8 @@ if not NUMPY_LT_1_10:
     _ALLCLOSE_KWARGS['equal_nan'] = True
 
 # Much of this code, particularly the parts of floating point handling, is
-# borrowed from the SymPy project with permission.  See licenses/SYMPY.rst
-# for the full SymPy license.
+# borrowed from the SymPy project with permission.  See
+# licenses/SYMPY_LICENSE.rst for the full SymPy license.
 
 FIX = doctest.register_optionflag('FIX')
 FLOAT_CMP = doctest.register_optionflag('FLOAT_CMP')
@@ -134,7 +134,8 @@ class OutputChecker(doctest.OutputChecker):
                 if NUMPY_LT_1_10 and np.isnan(ngf) and np.isnan(nwf):
                     continue
 
-                if not np.allclose(ngf, nwf, **_ALLCLOSE_KWARGS):
+                if not np.allclose(ngf, nwf, rtol=self.rtol,
+                                   atol=self.atol, **_ALLCLOSE_KWARGS):
                     return False
 
             # replace all floats in the "got" string by those from "wanted".
