@@ -214,7 +214,7 @@ def test_differential_type_arg():
     # specify both
     icrs = ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
                 v_x=1*u.km/u.s, v_y=2*u.km/u.s, v_z=3*u.km/u.s,
-                representation=r.CartesianRepresentation,
+                representation_type=r.CartesianRepresentation,
                 differential_type=r.CartesianDifferential)
     assert icrs.x == 1*u.pc
     assert icrs.y == 2*u.pc
