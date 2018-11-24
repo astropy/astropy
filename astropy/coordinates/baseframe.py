@@ -767,7 +767,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     def differential_type(self, value):
         self.set_representation_cls(s=value)
 
-    # TODO: deprecate these?
+    # TODO: remove these in a future version
     @property
     def representation(self):
         _representation_deprecation()
@@ -1024,7 +1024,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         <CartesianRepresentation (x, y, z) [dimensionless]
                 (1., 0., 0.)>
 
-        >>> coord.representation = CartesianRepresentation
+        >>> coord.representation_type = CartesianRepresentation
         >>> coord  # doctest: +FLOAT_CMP
         <SkyCoord (ICRS): (x, y, z) [dimensionless]
             (1., 0., 0.)>
@@ -1303,12 +1303,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         if not self.has_data:
             return ''
 
-        if self.representation:
-            if (hasattr(self.representation, '_unit_representation') and
-                    isinstance(self.data, self.representation._unit_representation)):
+        if self.representation_type:
+            if (hasattr(self.representation_type, '_unit_representation') and
+                    isinstance(self.data, self.representation_type._unit_representation)):
                 rep_cls = self.data.__class__
             else:
-                rep_cls = self.representation
+                rep_cls = self.representation_type
 
             if 's' in self.data.differentials:
                 dif_cls = self.get_representation_cls('s')

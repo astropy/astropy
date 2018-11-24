@@ -388,11 +388,11 @@ def test_regression_6236():
 
     class MySpecialFrame(MyFrame):
         def __init__(self, *args, **kwargs):
-            _rep_kwarg = kwargs.get('representation', None)
+            _rep_kwarg = kwargs.get('representation_type', None)
             super().__init__(*args, **kwargs)
             if not _rep_kwarg:
-                self.representation = self.default_representation
-                self._data = self.data.represent_as(self.representation)
+                self.representation_type = self.default_representation
+                self._data = self.data.represent_as(self.representation_type)
 
     rep1 = UnitSphericalRepresentation([0., 1]*u.deg, [2., 3.]*u.deg)
     rep2 = SphericalRepresentation([10., 11]*u.deg, [12., 13.]*u.deg,
@@ -404,16 +404,16 @@ def test_regression_6236():
     # realize_frame should do the same. Just in case, check attrs are passed.
     assert mf1.data is rep1
     assert mf2.data is rep2
-    assert mf1.representation is CartesianRepresentation
-    assert mf2.representation is CartesianRepresentation
+    assert mf1.representation_type is CartesianRepresentation
+    assert mf2.representation_type is CartesianRepresentation
     assert mf2.my_attr == mf1.my_attr
     # It should be independent of whether I set the reprensentation explicitly
-    mf3 = MyFrame(rep1, my_attr=1.*u.km, representation='unitspherical')
+    mf3 = MyFrame(rep1, my_attr=1.*u.km, representation_type='unitspherical')
     mf4 = mf3.realize_frame(rep2)
     assert mf3.data is rep1
     assert mf4.data is rep2
-    assert mf3.representation is UnitSphericalRepresentation
-    assert mf4.representation is CartesianRepresentation
+    assert mf3.representation_type is UnitSphericalRepresentation
+    assert mf4.representation_type is CartesianRepresentation
     assert mf4.my_attr == mf3.my_attr
     # This should be enough to help sunpy, but just to be sure, a test
     # even closer to what is done there, i.e., transform the representation.
@@ -423,17 +423,17 @@ def test_regression_6236():
     assert msf2.data is not rep2
     assert type(msf1.data) is CartesianRepresentation
     assert type(msf2.data) is CartesianRepresentation
-    assert msf1.representation is CartesianRepresentation
-    assert msf2.representation is CartesianRepresentation
+    assert msf1.representation_type is CartesianRepresentation
+    assert msf2.representation_type is CartesianRepresentation
     assert msf2.my_attr == msf1.my_attr
     # And finally a test where the input is not transformed.
     msf3 = MySpecialFrame(rep1, my_attr=1.*u.km,
-                          representation='unitspherical')
+                          representation_type='unitspherical')
     msf4 = msf3.realize_frame(rep2)
     assert msf3.data is rep1
     assert msf4.data is not rep2
-    assert msf3.representation is UnitSphericalRepresentation
-    assert msf4.representation is CartesianRepresentation
+    assert msf3.representation_type is UnitSphericalRepresentation
+    assert msf4.representation_type is CartesianRepresentation
     assert msf4.my_attr == msf3.my_attr
 
 
@@ -518,7 +518,7 @@ def test_gcrs_itrs_cartesian_repr():
     # issue 6436: transformation failed if coordinate representation was
     # Cartesian
     gcrs = GCRS(CartesianRepresentation((859.07256, -4137.20368,  5295.56871),
-                                        unit='km'), representation='cartesian')
+                                        unit='km'), representation_type='cartesian')
     gcrs.transform_to(ITRS)
 
 

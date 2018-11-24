@@ -90,7 +90,7 @@ def test_skyoffset_functional_dec():
                       np.sin(dec_rad) * np.cos(input_ra_rad) * np.cos(input_dec_rad))
         expected = SkyCoord(x=expected_x,
                             y=expected_y,
-                            z=expected_z, unit='kpc', representation='cartesian')
+                            z=expected_z, unit='kpc', representation_type='cartesian')
         expected_xyz = expected.cartesian.xyz
 
         # actual transformation to the frame
@@ -136,7 +136,7 @@ def test_skyoffset_functional_ra_dec():
                           np.sin(dec_rad) * np.sin(ra_rad) * np.sin(input_ra_rad) * np.cos(input_dec_rad))
             expected = SkyCoord(x=expected_x,
                                 y=expected_y,
-                                z=expected_z, unit='kpc', representation='cartesian')
+                                z=expected_z, unit='kpc', representation_type='cartesian')
             expected_xyz = expected.cartesian.xyz
 
             # actual transformation to the frame

@@ -735,27 +735,27 @@ def test_skycoord_three_components(repr_name, unit1, unit2, unit3, cls2, attr1, 
     and various representations.  Use weird units and Galactic frame.
     """
     sc = SkyCoord(c1, c2, c3, unit=(unit1, unit2, unit3),
-                  representation=representation,
+                  representation_type=representation,
                   frame=Galactic)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
                                (attr1, attr2, attr3))
 
     sc = SkyCoord(1000*c1*u.Unit(unit1/1000), cls2(c2, unit=unit2),
                   1000*c3*u.Unit(unit3/1000), frame=Galactic,
-                  unit=(unit1, unit2, unit3), representation=representation)
+                  unit=(unit1, unit2, unit3), representation_type=representation)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
                                (attr1, attr2, attr3))
 
     kwargs = {attr3: c3}
     sc = SkyCoord(c1, c2, unit=(unit1, unit2, unit3),
                   frame=Galactic,
-                  representation=representation, **kwargs)
+                  representation_type=representation, **kwargs)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
                                (attr1, attr2, attr3))
 
     kwargs = {attr1: c1, attr2: c2, attr3: c3}
     sc = SkyCoord(frame=Galactic, unit=(unit1, unit2, unit3),
-                  representation=representation, **kwargs)
+                  representation_type=representation, **kwargs)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
                                (attr1, attr2, attr3))
 
@@ -770,19 +770,19 @@ def test_skycoord_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
     representations.  Use weird units and Galactic frame.
     """
     sc = SkyCoord(c1, c2, unit=(unit1, unit2), frame=Galactic,
-                  representation=representation)
+                  representation_type=representation)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2),
                                (attr1, attr2))
 
     sc = SkyCoord(1000*c1*u.Unit(unit1/1000), cls2(c2, unit=unit2),
                   frame=Galactic,
-                  unit=(unit1, unit2, unit3), representation=representation)
+                  unit=(unit1, unit2, unit3), representation_type=representation)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2),
                                (attr1, attr2))
 
     kwargs = {attr1: c1, attr2: c2}
     sc = SkyCoord(frame=Galactic, unit=(unit1, unit2),
-                  representation=representation, **kwargs)
+                  representation_type=representation, **kwargs)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2),
                                (attr1, attr2))
 
@@ -796,18 +796,18 @@ def test_galactic_three_components(repr_name, unit1, unit2, unit3, cls2, attr1, 
     and various representations.  Use weird units and Galactic frame.
     """
     sc = Galactic(1000*c1*u.Unit(unit1/1000), cls2(c2, unit=unit2),
-                  1000*c3*u.Unit(unit3/1000), representation=representation)
+                  1000*c3*u.Unit(unit3/1000), representation_type=representation)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
                                (attr1, attr2, attr3))
 
     kwargs = {attr3: c3*unit3}
     sc = Galactic(c1*unit1, c2*unit2,
-                  representation=representation, **kwargs)
+                  representation_type=representation, **kwargs)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
                                (attr1, attr2, attr3))
 
     kwargs = {attr1: c1*unit1, attr2: c2*unit2, attr3: c3*unit3}
-    sc = Galactic(representation=representation, **kwargs)
+    sc = Galactic(representation_type=representation, **kwargs)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
                                (attr1, attr2, attr3))
 
@@ -822,14 +822,14 @@ def test_galactic_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
     representations.  Use weird units and Galactic frame.
     """
 
-    sc = Galactic(1000*c1*u.Unit(unit1/1000), cls2(c2, unit=unit2), representation=representation)
+    sc = Galactic(1000*c1*u.Unit(unit1/1000), cls2(c2, unit=unit2), representation_type=representation)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2), (attr1, attr2))
 
-    sc = Galactic(c1*unit1, c2*unit2, representation=representation)
+    sc = Galactic(c1*unit1, c2*unit2, representation_type=representation)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2), (attr1, attr2))
 
     kwargs = {attr1: c1*unit1, attr2: c2*unit2}
-    sc = Galactic(representation=representation, **kwargs)
+    sc = Galactic(representation_type=representation, **kwargs)
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2), (attr1, attr2))
 
 
@@ -837,50 +837,50 @@ def test_galactic_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
                          [x for x in base_unit_attr_sets if x[0] != 'unitspherical'])
 def test_skycoord_coordinate_input(repr_name, unit1, unit2, unit3, cls2, attr1, attr2, attr3):
     c1, c2, c3 = 1, 2, 3
-    sc = SkyCoord([(c1, c2, c3)], unit=(unit1, unit2, unit3), representation=repr_name,
+    sc = SkyCoord([(c1, c2, c3)], unit=(unit1, unit2, unit3), representation_type=repr_name,
                   frame='galactic')
     assert_quantities_allclose(sc, ([c1]*unit1, [c2]*unit2, [c3]*unit3), (attr1, attr2, attr3))
 
     c1, c2, c3 = 1*unit1, 2*unit2, 3*unit3
-    sc = SkyCoord([(c1, c2, c3)], representation=repr_name, frame='galactic')
+    sc = SkyCoord([(c1, c2, c3)], representation_type=repr_name, frame='galactic')
     assert_quantities_allclose(sc, ([1]*unit1, [2]*unit2, [3]*unit3), (attr1, attr2, attr3))
 
 
 def test_skycoord_string_coordinate_input():
-    sc = SkyCoord('01 02 03 +02 03 04', unit='deg', representation='unitspherical')
+    sc = SkyCoord('01 02 03 +02 03 04', unit='deg', representation_type='unitspherical')
     assert_quantities_allclose(sc, (Angle('01:02:03', unit='deg'),
                                     Angle('02:03:04', unit='deg')),
                                ('ra', 'dec'))
-    sc = SkyCoord(['01 02 03 +02 03 04'], unit='deg', representation='unitspherical')
+    sc = SkyCoord(['01 02 03 +02 03 04'], unit='deg', representation_type='unitspherical')
     assert_quantities_allclose(sc, (Angle(['01:02:03'], unit='deg'),
                                     Angle(['02:03:04'], unit='deg')),
                                ('ra', 'dec'))
 
 
 def test_units():
-    sc = SkyCoord(1, 2, 3, unit='m', representation='cartesian')  # All get meters
+    sc = SkyCoord(1, 2, 3, unit='m', representation_type='cartesian')  # All get meters
     assert sc.x.unit is u.m
     assert sc.y.unit is u.m
     assert sc.z.unit is u.m
 
-    sc = SkyCoord(1, 2*u.km, 3, unit='m', representation='cartesian')  # All get u.m
+    sc = SkyCoord(1, 2*u.km, 3, unit='m', representation_type='cartesian')  # All get u.m
     assert sc.x.unit is u.m
     assert sc.y.unit is u.m
     assert sc.z.unit is u.m
 
-    sc = SkyCoord(1, 2, 3, unit=u.m, representation='cartesian')  # All get u.m
+    sc = SkyCoord(1, 2, 3, unit=u.m, representation_type='cartesian')  # All get u.m
     assert sc.x.unit is u.m
     assert sc.y.unit is u.m
     assert sc.z.unit is u.m
 
-    sc = SkyCoord(1, 2, 3, unit='m, km, pc', representation='cartesian')
+    sc = SkyCoord(1, 2, 3, unit='m, km, pc', representation_type='cartesian')
     assert_quantities_allclose(sc, (1*u.m, 2*u.km, 3*u.pc), ('x', 'y', 'z'))
 
     with pytest.raises(u.UnitsError) as err:
-        SkyCoord(1, 2, 3, unit=(u.m, u.m), representation='cartesian')
+        SkyCoord(1, 2, 3, unit=(u.m, u.m), representation_type='cartesian')
     assert 'should have matching physical types' in str(err)
 
-    SkyCoord(1, 2, 3, unit=(u.m, u.km, u.pc), representation='cartesian')
+    SkyCoord(1, 2, 3, unit=(u.m, u.km, u.pc), representation_type='cartesian')
     assert_quantities_allclose(sc, (1*u.m, 2*u.km, 3*u.pc), ('x', 'y', 'z'))
 
 
@@ -888,7 +888,7 @@ def test_units():
 def test_units_known_fail():
     # should fail but doesn't => corner case oddity
     with pytest.raises(u.UnitsError):
-        SkyCoord(1, 2, 3, unit=u.deg, representation='spherical')
+        SkyCoord(1, 2, 3, unit=u.deg, representation_type='spherical')
 
 
 def test_nodata_failure():
@@ -979,14 +979,14 @@ def test_deepcopy():
     c2 = copy.copy(c1)
     c3 = copy.deepcopy(c1)
 
-    c4 = SkyCoord([1, 2] * u.m, [2, 3] * u.m, [3, 4] * u.m, representation='cartesian', frame='fk5',
+    c4 = SkyCoord([1, 2] * u.m, [2, 3] * u.m, [3, 4] * u.m, representation_type='cartesian', frame='fk5',
                   obstime='J1999.9', equinox='J1988.8')
     c5 = copy.deepcopy(c4)
     assert np.all(c5.x == c4.x)  # and y and z
     assert c5.frame.name == c4.frame.name
     assert c5.obstime == c4.obstime
     assert c5.equinox == c4.equinox
-    assert c5.representation == c4.representation
+    assert c5.representation_type == c4.representation_type
 
 
 def test_no_copy():
@@ -1107,7 +1107,7 @@ def test_guess_from_table():
     tabcart = Table([x, y, z], names=('x', 'y', 'z'))
     tabgal = Table([b, l], names=('b', 'l'))
 
-    sc_cart = SkyCoord.guess_from_table(tabcart, representation='cartesian')
+    sc_cart = SkyCoord.guess_from_table(tabcart, representation_type='cartesian')
     npt.assert_array_equal(sc_cart.x, x)
     npt.assert_array_equal(sc_cart.y, y)
     npt.assert_array_equal(sc_cart.z, z)
@@ -1240,8 +1240,8 @@ def test_getitem_representation():
     from data representation.
     """
     sc = SkyCoord([1, 1] * u.deg, [2, 2] * u.deg)
-    sc.representation = 'cartesian'
-    assert sc[0].representation is CartesianRepresentation
+    sc.representation_type = 'cartesian'
+    assert sc[0].representation_type is CartesianRepresentation
 
 
 def test_spherical_offsets():

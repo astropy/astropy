@@ -296,7 +296,7 @@ def _parse_coordinate_data(frame, args, kwargs):
 
             for arg, frame_attr_name, repr_attr_name, unit in zip(args, frame_attr_names,
                                                                   repr_attr_names, units):
-                attr_class = frame.representation.attr_classes[repr_attr_name]
+                attr_class = frame.representation_type.attr_classes[repr_attr_name]
                 _components[frame_attr_name] = attr_class(arg, unit=unit)
 
         else:
@@ -383,7 +383,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
 
     frame_attr_names = list(frame.representation_component_names.keys())
     repr_attr_names = list(frame.representation_component_names.values())
-    repr_attr_classes = list(frame.representation.attr_classes.values())
+    repr_attr_classes = list(frame.representation_type.attr_classes.values())
     n_attr_names = len(repr_attr_names)
 
     # Turn a single string into a list of strings for convenience
@@ -422,7 +422,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
 
         if coords.data.differentials and 's' in coords.data.differentials:
             orig_vel = coords.data.differentials['s']
-            vel = coords.data.represent_as(frame.representation, frame.get_representation_cls('s')).differentials['s']
+            vel = coords.data.represent_as(frame.representation_type, frame.get_representation_cls('s')).differentials['s']
             for frname, reprname in frame.get_representation_component_names('s').items():
                 if (reprname == 'd_distance' and not hasattr(orig_vel, reprname) and
                     'unit' in orig_vel.get_name()):
@@ -453,7 +453,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                 repr_attr_classes.append(data.differentials['s'].attr_classes[reprname])
 
         else:
-            data = coords.represent_as(frame.representation)
+            data = coords.represent_as(frame.representation_type)
             values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
 
     elif (isinstance(coords, np.ndarray) and coords.dtype.kind in 'if'
