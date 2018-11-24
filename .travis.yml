@@ -34,6 +34,7 @@ env:
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
         - SETUP_CMD='test'
+        - PYTEST_VERSION="<3.10"
 
         # PEP8 errors/warnings:
         # E101 - mix of tabs and spaces
