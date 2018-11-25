@@ -316,7 +316,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
 
     warning_type : warning
         Warning to be issued.
-        Default is `~astropy.utils.AstropyDeprecationWarning`.
+        Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
 
     Raises
     ------
