@@ -1834,6 +1834,10 @@ Other Changes and Additions
 - Fixing ``astropy.__citation__`` to provide the full bibtex entry of the 2018
   paper. [#8110]
 
+- Adding ``warning_type`` keyword argumentum to the deprecated decorators to
+  allow issuing custom warning types instead of the default
+  ``AstropyDeprecationWarning``. [#8178]
+
 
 2.0.9 (2018-10-14)
 ==================
