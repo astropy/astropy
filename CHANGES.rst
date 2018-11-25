@@ -1766,6 +1766,9 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Any imports form ``pytest_plugins`` should be explicit to be compatible
+  with pytest 3.7+. [#8179]
+
 astropy.time
 ^^^^^^^^^^^^
 
