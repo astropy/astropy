@@ -6,7 +6,8 @@ making use of astropy's test runner).
 """
 from .extern.six.moves import builtins
 
-from .tests.pytest_plugins import *
+from .tests.pytest_plugins import (enable_deprecations_as_exceptions,
+                                   PYTEST_HEADER_MODULES)
 
 try:
     import matplotlib
