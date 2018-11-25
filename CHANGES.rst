@@ -112,6 +112,8 @@ astropy.modeling
 - Major rework of modeling internals. See release notes for details. Eliminates 
   support for compound classes (but not compound instances!)
   
+- Fix ``Moffat1D`` and ``Moffat2D`` derivatives. [#8094]
+
 - Add a ``Multiply`` model which preserves unit through evaluate, unlike
   ``Scale`` which is dimensionless. [#7210]
 
