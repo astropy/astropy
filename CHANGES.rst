@@ -1796,6 +1796,9 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Explicitely adding public objects to ``pytest_plugins`` to avoid
+  complications when using pytest version 3.7+. [#8180]
+
 astropy.time
 ^^^^^^^^^^^^
 
