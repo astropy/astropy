@@ -67,7 +67,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         The type of this object, if the automatically determined one
         needs to be overridden.
 
-    warning_tyoe : warning
+    warning_type : warning
         Warning to be issued.
         Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
     """

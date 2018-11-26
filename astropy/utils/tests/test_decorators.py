@@ -123,7 +123,7 @@ def test_deprecated_attribute():
         xfoo = dummy.foo
 
     with catch_warnings(AstropyDeprecationWarning) as wbar:
-        xbar = dummy.bar
+        dummy.bar
 
     assert len(wfoo) == 1
     assert str(wfoo[0].message) == ("The foo attribute is deprecated and may "
