@@ -5,6 +5,7 @@ make use of online data.
 """
 import pytest
 from .disable_internet import turn_off_internet, turn_on_internet
+from distutils.version import StrictVersion
 
 
 def pytest_addoption(parser):
@@ -61,8 +62,12 @@ def pytest_unconfigure():
 
 def pytest_runtest_setup(item):
 
-    remote_data = item.get_marker('remote_data')
-    internet_off = item.get_marker('internet_off')
+    if StrictVersion(pytest.__version__) < StrictVersion("3.6"):
+        remote_data = item.get_marker('remote_data')
+        internet_off = item.get_marker('internet_off')
+    else:
+        remote_data = item.get_closest_marker('remote_data')
+        internet_off = item.get_closest_marker('internet_off')
 
     remote_data_config = item.config.getvalue("remote_data")
 

@@ -1806,6 +1806,10 @@ Other Changes and Additions
 
 - Pytest 4.0 is not supported by the 2.0.x LTS releases. [#8173]
 
+- Updating bundled ``pytest-remotedata`` to v0.3.1. [#8174]
+
+- Updating bundled ``pytest-doctestplus`` to v0.2.0. [#8175]
+
 - Updating bundled ``pytest-openfiles`` to v0.3.0. [#8176]
 
 
