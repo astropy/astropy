@@ -3,7 +3,7 @@
 
 import six
 
-from asdf.asdftypes import CustomType, ExtensionTypeMeta
+from asdf.types import CustomType, ExtensionTypeMeta
 
 
 __all__ = ['AstropyType', 'AstropyAsdfType']
