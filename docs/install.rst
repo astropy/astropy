@@ -343,9 +343,6 @@ The C libraries currently bundled with Astropy include:
 Installing Astropy into CASA
 ----------------------------
 
-.. note:: The instructions for CASA here are not guaranteed to work.
-          Please see https://github.com/astropy/astropy/issues/7818
-
 If you want to be able to use Astropy inside `CASA
 <https://casa.nrao.edu/>`_, the easiest way is to do so from inside CASA.
 
@@ -358,9 +355,9 @@ installed. Start up CASA as normal, and type::
 
 Now, quit CASA and re-open it, then type the following to install Astropy::
 
-    CASA <2>: import pip
+    CASA <2>: import subprocess, sys
 
-    CASA <3>: pip.main(['install', 'astropy', '--user'])
+    CASA <3>: subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'astropy'])
 
 Then close CASA again and open it, and you should be able to import Astropy::
 
@@ -368,13 +365,14 @@ Then close CASA again and open it, and you should be able to import Astropy::
 
 Any astropy affiliated package can be installed the same way (e.g. the
 `spectral-cube <http://spectral-cube.readthedocs.io/en/latest/>`_ or other
-packages that may be useful for radioastronomy).
+packages that may be useful for radio astronomy).
 
-.. note:: The above instructions have been tested and are known to work on
-          MacOS X with CASA 4.3.1 and Linux with CASA 4.3.1, 4.4.0, 4.5.3, and
-          pre-releases of CASA 4.7. However, due to missing header files in
-          CASA, they are known to **not** work on Linux with CASA 4.2.1 and
-          CASA 4.6.0.
+.. note:: The above instructions have not been tested on all systems.
+   We know of a few examples that do work, but that is not a guarantee
+   that this will work on all systems.  If you install astropy and begin to
+   encounter issues with CASA, please look at the `known CASA issues
+   <https://github.com/astropy/astropy/issues?q=+label%3ACASA-Installation+>`_
+   and, if you don't encounter your issue there, post a new one.
 
 .. _builddocs:
 
