@@ -120,7 +120,7 @@ def test_deprecated_attribute():
     dummy = DummyClass()
 
     with catch_warnings(AstropyDeprecationWarning) as wfoo:
-        xfoo = dummy.foo
+        dummy.foo
 
     with catch_warnings(AstropyDeprecationWarning) as wbar:
         dummy.bar
