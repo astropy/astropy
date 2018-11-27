@@ -1766,6 +1766,9 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Explicitly disallow incompatible versions of ``pytest`` when using the test
+  runner. [#8188]
+
 astropy.time
 ^^^^^^^^^^^^
 
