@@ -347,3 +347,23 @@ processing and you just want docstrings to work, this may be
 acceptable.
 
 The IPython issue: https://github.com/ipython/ipython/pull/2738
+
+Compatibility issues with pytest 3.7 and later
+----------------------------------------------
+
+Due to a bug in `pytest <http://www.pytest.org>`_ related to test collection,
+the tests for the core astropy package for version 2.0.x (LTS), and for packages
+using the core package's test infrastructure and being tested against 2.0.x
+(LTS) will not be executed correctly with pytest 3.7, 3.8, or 3.9, and therefore
+pytest 3.6 or earlier, or pytest 4.0 or later should be used. The symptom of
+this bug is that no tests or only tests in rst files are collected. Note that
+this is not a problem in version 3.0.x and above for the core package.
+
+However, there is also an unrelated issue with pytest 4.0 and later which can
+also cause issues when collecting tests - in this case, the symptom is that the
+test collection hangs and/or appears to run the tests recursively. If you are
+maintaining a package that was created using the astropy package template, then
+this can be fixed by updating to the latest version of the ``_astropy_init.py``
+file. The root cause of this issue is that pytest now tries to pick up the
+top-level ``test()`` function as a test, so we need to make sure that we set a
+``test.__test__`` attribute on the function to ``False``.
