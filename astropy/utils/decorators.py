@@ -61,7 +61,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
     pending : bool, optional
         If True, uses a AstropyPendingDeprecationWarning instead of a
-        AstropyDeprecationWarning.
+        ``warning_type``.
 
     obj_type : str, optional
         The type of this object, if the automatically determined one
@@ -100,7 +100,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             func = func.__func__
         return func
 
-    def deprecate_function(func, message, warning_type):
+    def deprecate_function(func, message, warning_type=warning_type):
         """
         Returns a wrapped function that displays ``warning_type``
         when it is called.
@@ -135,7 +135,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
         return func_wrapper(deprecated_func)
 
-    def deprecate_class(cls, message, warning_type):
+    def deprecate_class(cls, message, warning_type=warning_type):
         """
         Update the docstring and wrap the ``__init__`` in-place (or ``__new__``
         if the class or any of the bases overrides ``__new__``) so it will give
