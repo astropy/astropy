@@ -357,7 +357,7 @@ using the core package's test infrastructure and being tested against 2.0.x
 (LTS) will not be executed correctly with pytest 3.7, 3.8, or 3.9. The symptom
 of this bug is that no tests or only tests in RST files are collected. In
 addition, astropy 2.0.x (LTS) is not compatible with pytest 4.0 and above
-as in this case deprecation warnings from pytest can cause tests to fail.
+as in this case deprecation errors from pytest can cause tests to fail.
 Therefore, when testing against astropy v2.0.x (LTS), pytest 3.6 or earlier
 versions should be used. These issues do not occur in version 3.0.x and above of
 the core package.
