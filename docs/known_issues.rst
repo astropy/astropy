@@ -356,7 +356,7 @@ the tests for the core astropy package for version 2.0.x (LTS), and for packages
 using the core package's test infrastructure and being tested against 2.0.x
 (LTS) will not be executed correctly with pytest 3.7, 3.8, or 3.9, and therefore
 pytest 3.6 or earlier, or pytest 4.0 or later should be used. The symptom of
-this bug is that no tests or only tests in rst files are collected. Note that
+this bug is that no tests or only tests in RST files are collected. Note that
 this is not a problem in version 3.0.x and above for the core package.
 
 However, there is also an unrelated issue with pytest 4.0 and later which can
