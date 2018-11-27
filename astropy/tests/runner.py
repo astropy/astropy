@@ -183,14 +183,17 @@ class TestRunnerBase(object):
 
         # Don't import pytest until it's actually needed to run the tests
         import pytest
-        if pytest.__version__ > '3.7' and pytest.__version__ < '4':
+        from distutils.version import LooseVersion
+
+        pytest_version = LooseVersion(pytest.__version__)
+        if pytest_version >= '3.7':
             from astropy.version import version as astropy_version
             # These versions of pytest are known to be problematic and are not
             # supported by Astropy LTS.
             pytest.exit(
                 'This version of Astropy ({}) is incompatible with this version of '
-                'pytest ({}). Use pytest<3.7 or pytest>=4.'.format(
-                    astropy_version, pytest.__version__)
+                'pytest ({}). Use pytest<3.7.'.format(
+                    astropy_version, pytest_version)
             )
 
         # Raise error for undefined kwargs
