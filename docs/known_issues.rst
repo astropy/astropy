@@ -354,13 +354,17 @@ Compatibility issues with pytest 3.7 and later
 Due to a bug in `pytest <http://www.pytest.org>`_ related to test collection,
 the tests for the core astropy package for version 2.0.x (LTS), and for packages
 using the core package's test infrastructure and being tested against 2.0.x
-(LTS) will not be executed correctly with pytest 3.7, 3.8, or 3.9, and therefore
-pytest 3.6 or earlier, or pytest 4.0 or later should be used. The symptom of
-this bug is that no tests or only tests in RST files are collected. Note that
-this is not a problem in version 3.0.x and above for the core package.
+(LTS) will not be executed correctly with pytest 3.7, 3.8, or 3.9. The symptom
+of this bug is that no tests or only tests in RST files are collected. In
+addition, astropy 2.0.x (LTS) is not compatible with pytest 4.0 and above
+as in this case deprecation warnings from pytest can cause tests to fail.
+Therefore, when testing against astropy v2.0.x (LTS), pytest 3.6 or earlier
+versions should be used. These issues do not occur in version 3.0.x and above of
+the core package.
 
-However, there is also an unrelated issue with pytest 4.0 and later which can
-also cause issues when collecting tests - in this case, the symptom is that the
+There is also an unrelated issue that also affects more recent versions of
+astropy when testing with pytest 4.0 and later, which can
+cause issues when collecting tests - in this case, the symptom is that the
 test collection hangs and/or appears to run the tests recursively. If you are
 maintaining a package that was created using the astropy
 `package template <http://github.com/astropy/package-template>`_, then
