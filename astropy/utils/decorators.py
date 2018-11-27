@@ -25,7 +25,7 @@ _NotFound = object()
 
 
 def deprecated(since, message='', name='', alternative='', pending=False,
-               obj_type=None):
+               obj_type=None, warning_type=AstropyDeprecationWarning):
     """
     Used to mark a function or class as deprecated.
 
@@ -63,11 +63,15 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
     pending : bool, optional
         If True, uses a AstropyPendingDeprecationWarning instead of a
-        AstropyDeprecationWarning.
+        ``warning_type``.
 
     obj_type : str, optional
         The type of this object, if the automatically determined one
         needs to be overridden.
+
+    warning_type : warning
+        Warning to be issued.
+        Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
     """
 
     method_types = (classmethod, staticmethod, types.MethodType)
@@ -98,10 +102,10 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             func = func.__func__
         return func
 
-    def deprecate_function(func, message):
+    def deprecate_function(func, message, warning_type=warning_type):
         """
-        Returns a wrapped function that displays an
-        ``AstropyDeprecationWarning`` when it is called.
+        Returns a wrapped function that displays ``warning_type``
+        when it is called.
         """
 
         if isinstance(func, method_types):
@@ -115,7 +119,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             if pending:
                 category = AstropyPendingDeprecationWarning
             else:
-                category = AstropyDeprecationWarning
+                category = warning_type
 
             warnings.warn(message, category, stacklevel=2)
 
@@ -133,7 +137,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
         return func_wrapper(deprecated_func)
 
-    def deprecate_class(cls, message):
+    def deprecate_class(cls, message, warning_type=warning_type):
         """
         Returns a wrapper class with the docstrings updated and an
         __init__ function that will raise an
@@ -160,13 +164,14 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         members.update({
             '__doc__': deprecate_doc(cls.__doc__, message),
             '__init__': deprecate_function(get_function(cls.__init__),
-                                           message),
+                                           message, warning_type),
         })
 
         return type(cls)(cls.__name__, cls.__bases__, members)
 
+
     def deprecate(obj, message=message, name=name, alternative=alternative,
-                  pending=pending):
+                  pending=pending, warning_type=warning_type):
         if obj_type is None:
             if isinstance(obj, type):
                 obj_type_name = 'class'
@@ -201,9 +206,9 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             altmessage)
 
         if isinstance(obj, type):
-            return deprecate_class(obj, message)
+            return deprecate_class(obj, message, warning_type)
         else:
-            return deprecate_function(obj, message)
+            return deprecate_function(obj, message, warning_type)
 
     if type(message) is type(deprecate):
         return deprecate(message)
@@ -212,7 +217,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
 
 def deprecated_attribute(name, since, message=None, alternative=None,
-                         pending=False):
+                         pending=False, warning_type=AstropyDeprecationWarning):
     """
     Used to mark a public attribute as deprecated.  This creates a
     property that will warn when the given attribute name is accessed.
@@ -242,8 +247,12 @@ def deprecated_attribute(name, since, message=None, alternative=None,
         user about this alternative if provided.
 
     pending : bool, optional
-        If True, uses a AstropyPendingDeprecationWarning instead of a
-        AstropyDeprecationWarning.
+        If True, uses a AstropyPendingDeprecationWarning instead of
+        ``warning_type``.
+
+    warning_type : warning
+        Warning to be issued.
+        Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
 
     Examples
     --------
@@ -259,15 +268,15 @@ def deprecated_attribute(name, since, message=None, alternative=None,
     """
     private_name = '_' + name
 
-    @deprecated(since, name=name, obj_type='attribute')
+    @deprecated(since, name=name, obj_type='attribute', warning_type=warning_type)
     def get(self):
         return getattr(self, private_name)
 
-    @deprecated(since, name=name, obj_type='attribute')
+    @deprecated(since, name=name, obj_type='attribute', warning_type=warning_type)
     def set(self, val):
         setattr(self, private_name, val)
 
-    @deprecated(since, name=name, obj_type='attribute')
+    @deprecated(since, name=name, obj_type='attribute', warning_type=warning_type)
     def delete(self):
         delattr(self, private_name)
 
@@ -276,7 +285,8 @@ def deprecated_attribute(name, since, message=None, alternative=None,
 
 def deprecated_renamed_argument(old_name, new_name, since,
                                 arg_in_kwargs=False, relax=False,
-                                pending=False):
+                                pending=False,
+                                warning_type=AstropyDeprecationWarning):
     """Deprecate a _renamed_ function argument.
 
     The decorator assumes that the argument with the ``old_name`` was removed
@@ -314,6 +324,10 @@ def deprecated_renamed_argument(old_name, new_name, since,
         If ``True`` this will hide the deprecation warning and ignore the
         corresponding ``relax`` parameter value.
         Default is ``False``.
+
+    warning_type : warning
+        Warning to be issued.
+        Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
 
     Raises
     ------
@@ -480,7 +494,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
                             'and will be removed in a future version. '
                             'Use argument "{2}" instead.'
                             ''.format(old_name[i], since[i], new_name[i]),
-                            AstropyDeprecationWarning, stacklevel=2)
+                            warning_type, stacklevel=2)
 
                     # Check if the newkeyword was given as well.
                     newarg_in_args = (position[i] is not None and

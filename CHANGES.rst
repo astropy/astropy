@@ -1810,6 +1810,9 @@ Other Changes and Additions
 
 - Updating bundled ``pytest-doctestplus`` to v0.2.0. [#8175]
 - Updating bundled ``pytest-openfiles`` to v0.3.0. [#8176]
+- Adding ``warning_type`` keyword argument to the "deprecated" decorators to
+  allow issuing custom warning types instead of the default
+  ``AstropyDeprecationWarning``. [#8178]
 
 
 2.0.9 (2018-10-14)

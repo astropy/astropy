@@ -16,6 +16,13 @@ from ...extern import six
 from ...tests.helper import catch_warnings
 
 
+class NewDeprecationWarning(AstropyDeprecationWarning):
+    """
+    New Warning subclass to be used to test the deprecated decorator's
+    ``warning_type`` parameter.
+    """
+
+
 def test_wraps():
     """
     Tests the compatibility replacement for functools.wraps which supports
@@ -109,20 +116,34 @@ def test_deprecated_attribute():
     class DummyClass:
         def __init__(self):
             self._foo = 42
+            self._bar = 4242
 
         def set_private(self):
             self._foo = 100
+            self._bar = 1000
 
         foo = deprecated_attribute('foo', '0.2')
 
+        bar = deprecated_attribute('bar', '0.2',
+                                   warning_type=NewDeprecationWarning)
+
     dummy = DummyClass()
 
-    with catch_warnings(AstropyDeprecationWarning) as w:
-        x = dummy.foo
+    with catch_warnings(AstropyDeprecationWarning) as wfoo:
+        dummy.foo
 
-    assert len(w) == 1
-    assert str(w[0].message) == ("The foo attribute is deprecated and may be "
-                                 "removed in a future version.")
+    with catch_warnings(AstropyDeprecationWarning) as wbar:
+        dummy.bar
+
+    assert len(wfoo) == 1
+    assert str(wfoo[0].message) == ("The foo attribute is deprecated and may "
+                                    "be removed in a future version.")
+    assert wfoo[0].category == AstropyDeprecationWarning
+
+    assert len(wbar) == 1
+    assert str(wbar[0].message) == ("The bar attribute is deprecated and may "
+                                    "be removed in a future version.")
+    assert wbar[0].category == NewDeprecationWarning
 
     with catch_warnings() as w:
         dummy.set_private()
@@ -155,6 +176,14 @@ class TB(object):
     pass
 
 
+@deprecated('100.0', warning_type=NewDeprecationWarning)
+class TC:
+    """
+    This class has the custom warning.
+    """
+    pass
+
+
 def test_deprecated_class():
     orig_A = TA.__bases__[0]
 
@@ -179,10 +208,16 @@ def test_deprecated_class():
     # Make sure the object is picklable
     pickle.dumps(TA)
 
+    with catch_warnings(NewDeprecationWarning) as w:
+        TC()
+
+    assert len(w) == 1
+    assert w[0].category == NewDeprecationWarning
+
 
 def test_deprecated_class_with_super():
     """
-    Regression test for an issue where classes that used `super()` in their
+    Regression test for an issue where classes that used ``super()`` in their
     ``__init__`` did not actually call the correct class's ``__init__`` in the
     MRO.
     """
@@ -273,11 +308,16 @@ def test_deprecated_argument():
         def test3(self, overwrite):
             return overwrite
 
+        @deprecated_renamed_argument('clobber', 'overwrite', '1.3',
+                                     warning_type=NewDeprecationWarning)
+        def test4(self, overwrite):
+            return overwrite
+
     @deprecated_renamed_argument('clobber', 'overwrite', '1.3', relax=False)
     def test1(overwrite):
         return overwrite
 
-    for method in [Test().test1, Test().test2, Test().test3, test1]:
+    for method in [Test().test1, Test().test2, Test().test3, Test().test4, test1]:
         # As positional argument only
         assert method(1) == 1
 
@@ -290,6 +330,9 @@ def test_deprecated_argument():
             assert len(w) == 1
             assert '1.3' in str(w[0].message)
             assert 'test_decorators.py' in str(w[0].filename)
+
+            if method.__name__ == 'test4':
+                w[0].category == NewDeprecationWarning
 
         # Using both. Both keyword
         with pytest.raises(TypeError):
