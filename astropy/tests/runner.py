@@ -11,8 +11,8 @@ import tempfile
 import warnings
 from collections import OrderedDict
 
-from ..config.paths import set_temp_config, set_temp_cache
 from ..extern import six
+from ..config.paths import set_temp_config, set_temp_cache
 from ..utils import wraps, find_current_module
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
@@ -183,6 +183,18 @@ class TestRunnerBase(object):
 
         # Don't import pytest until it's actually needed to run the tests
         import pytest
+        from distutils.version import LooseVersion
+
+        pytest_version = LooseVersion(pytest.__version__)
+        if pytest_version >= LooseVersion('3.7'):
+            from astropy.version import version as astropy_version
+            # These versions of pytest are known to be problematic and are not
+            # supported by Astropy LTS.
+            pytest.exit(
+                'This version of Astropy ({}) is incompatible with this version of '
+                'pytest ({}). Use pytest<3.7.'.format(
+                    astropy_version, pytest_version)
+            )
 
         # Raise error for undefined kwargs
         allowed_kwargs = set(self.keywords.keys())
