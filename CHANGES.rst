@@ -1,5 +1,4 @@
-
-3.1rc1 (2018-11-15)
+3.1rc2 (2018-11-27)
 ===================
 
 New Features
@@ -126,8 +125,6 @@ astropy.io.fits
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
-
-- Fix ``Moffat1D`` and ``Moffat2D`` derivatives. [#8094]
 
 - Add a ``Multiply`` model which preserves unit through evaluate, unlike
   ``Scale`` which is dimensionless. [#7210]
@@ -556,12 +553,6 @@ astropy.visualization
 Bug Fixes
 ---------
 
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
@@ -627,6 +618,8 @@ astropy.modeling
 
 - Fixed an issue with validating a ``bounding_box`` whose items are
   ``Quantities``. [#8052]
+
+- Fix ``Moffat1D`` and ``Moffat2D`` derivatives. [#8108]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
