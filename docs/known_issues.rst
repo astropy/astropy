@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 ************
 Known Issues
 ************
@@ -42,38 +40,38 @@ E.g.::
     >>> np.dot(q,q)
     285.0
     >>> np.hstack((q,q))
-    <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
-                5., 6., 7., 8., 9.] (Unit not initialised)>
+    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
+               6., 7., 8., 9.] (Unit not initialised)>
 
 ::
 
     >>> ratio = (3600 * u.s) / (1 * u.h)
     >>> ratio
-    <Quantity 3600.0 s / h>
+    <Quantity 3600. s / h>
     >>> np.array(ratio)
-    array(3600.0)
+    array(3600.)
     >>> np.array([ratio])
-    array([ 1.])
+    array([1.])
 
 Also in-place operations where the output is a normal `~numpy.ndarray`
 will drop the unit silently (at least in numpy <= 1.9)::
 
     >>> a = np.arange(10.)
-    >>> a *= 1. * u.kg
+    >>> a *= 1. * u.kg #doctest: +SKIP
     >>> a
-    array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.])
+    array([0., 1., 2., 3., 4., 5., 6., 7., 8., 9.])
 
 Work-arounds are available for some cases.  For the above::
 
     >>> q.dot(q)
-    <Quantity 285.0 m2>
+    <Quantity 285. m2>
 
     >>> np.array(ratio.to(u.dimensionless_unscaled))
-    array(1.0)
+    array(1.)
 
     >>> u.Quantity([q, q]).flatten()
-    <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
-                5., 6., 7., 8., 9.] m>
+    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
+               6., 7., 8., 9.] m>
 
 An incomplete list of specific functions which are known to exhibit this behavior follows.
 
@@ -107,20 +105,22 @@ Either set single array entries or use lists of Quantities::
     >>> a = np.ones(4)
     >>> a[2] = 1*u.cm/u.m
     >>> a
-    array([1., 1., 0.01, 1.])
+    array([1.  , 1.  , 0.01, 1.  ])
 
 ::
 
     >>> a = np.ones(4)
     >>> a[2:3] = [1*u.cm/u.m]
     >>> a
-    array([1., 1., 0.01, 1.])
+    array([1.  , 1.  , 0.01, 1.  ])
 
 Both will throw an exception (albeit not the expected UnitsError), if units do not cancel, e.g.::
 
     >>> a = np.ones(4)
     >>> a[2] = 1*u.cm
-    ValueError: setting an array element with a sequence.
+    Traceback (most recent call last):
+        ...
+    TypeError: only dimensionless scalar quantities can be converted to Python scalars
 
 
 See: https://github.com/astropy/astropy/issues/7582
@@ -137,6 +137,7 @@ When broadcasting Quantities, it is necessary to pass ``subok=True`` to
    array([[0., 1., 2., 3., 4., 5., 6., 7., 8., 9.],
           [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.]])
    >>> b2 = np.broadcast_to(q, (2, len(q)), subok=True)
+   >>> b2
    <Quantity [[0., 1., 2., 3., 4., 5., 6., 7., 8., 9.],
               [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.]] m>
 
@@ -165,15 +166,15 @@ This will result in the following traceback when using this with Quantities::
 
     >>> from astropy import units as u, constants as const
     >>> import numpy as np
-    >>> np.isclose(500* u.km/u.s, 300 * u.km / u.s)
-    UnitsError: Can only apply 'add' function to dimensionless quantities when
-    other argument is not a quantity (unless the latter is all zero/infinity/nan)
+    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s)
+    Traceback (most recent call last):
+        ...
+    astropy.units.core.UnitsError: Can only apply 'add' function to dimensionless quantities when other argument is not a quantity (unless the latter is all zero/infinity/nan)
 
 An easy solution is::
 
-    >>> np.isclose(500* u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s)
-    array([False], dtype=bool)
-
+    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s)
+    False
 
 Quantities in np.linspace failure on numpy 1.10
 -----------------------------------------------
@@ -280,9 +281,10 @@ In some cases, have users have upgraded Astropy from an older version to v1.0
 or greater they have run into the following crash when trying to create a
 `~astropy.time.Time` object::
 
-    >>> datetime = Time('2012-03-01T13:08:00', scale='utc')
+    >>> from astropy.time import Time
+    >>> datetime = Time('2012-03-01T13:08:00', scale='utc') # doctest: +SKIP
     Traceback (most recent call last):
-    ...
+        ...
     ValueError: Input values did not match any of the formats where
     the format keyword is optional [u'astropy_time', u'datetime',
     u'jyear_str', u'iso', u'isot', u'yday', u'byear_str']
