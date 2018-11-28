@@ -37,7 +37,7 @@ E.g.::
     >>> import astropy.units as u
     >>> import numpy as np
     >>> q = u.Quantity(np.arange(10.), u.m)
-    >>> np.dot(q,q)
+    >>> np.dot(q,q) # doctest: +FLOAT_CMP
     285.0
     >>> np.hstack((q,q))
     <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
@@ -52,14 +52,6 @@ E.g.::
     array(3600.)
     >>> np.array([ratio])
     array([1.])
-
-Also in-place operations where the output is a normal `~numpy.ndarray`
-will drop the unit silently (at least in numpy <= 1.9)::
-
-    >>> a = np.arange(10.)
-    >>> a *= 1. * u.kg # doctest: +SKIP
-    >>> a
-    array([0., 1., 2., 3., 4., 5., 6., 7., 8., 9.])
 
 Work-arounds are available for some cases.  For the above::
 
@@ -114,12 +106,12 @@ Either set single array entries or use lists of Quantities::
     >>> a
     array([1.  , 1.  , 0.01, 1.  ])
 
-Both will throw an exception (albeit not the expected UnitsError), if units do not cancel, e.g.::
+Both will throw an exception if units do not cancel, e.g.::
 
     >>> a = np.ones(4)
     >>> a[2] = 1*u.cm
     Traceback (most recent call last):
-        ...
+    ...
     TypeError: only dimensionless scalar quantities can be converted to Python scalars
 
 
@@ -168,8 +160,9 @@ This will result in the following traceback when using this with Quantities::
     >>> import numpy as np
     >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s)
     Traceback (most recent call last):
-        ...
-    astropy.units.core.UnitsError: Can only apply 'add' function to dimensionless quantities when other argument is not a quantity (unless the latter is all zero/infinity/nan)
+    ...
+    astropy.units.core.UnitsError: Can only apply 'add' function to dimensionless quantities when other argument is not
+    a quantity (unless the latter is all zero/infinity/nan)
 
 An easy solution is::
 
@@ -231,7 +224,7 @@ Locale errors in MacOS X and Linux
 
 On MacOS X, you may see the following error when running ``setup.py``::
 
-      ...
+    ...
     ValueError: unknown locale: UTF-8
 
 This is due to the ``LC_CTYPE`` environment variable being incorrectly set to
@@ -240,7 +233,7 @@ This is due to the ``LC_CTYPE`` environment variable being incorrectly set to
 On MacOS X or Linux (or other platforms) you may also encounter the following
 error::
 
-      ...
+    ...
       stderr = stderr.decode(stdio_encoding)
     TypeError: decode() argument 1 must be str, not None
 
@@ -284,7 +277,7 @@ or greater they have run into the following crash when trying to create a
     >>> from astropy.time import Time
     >>> datetime = Time('2012-03-01T13:08:00', scale='utc') # doctest: +SKIP
     Traceback (most recent call last):
-        ...
+    ...
     ValueError: Input values did not match any of the formats where
     the format keyword is optional [u'astropy_time', u'datetime',
     u'jyear_str', u'iso', u'isot', u'yday', u'byear_str']
