@@ -34,7 +34,7 @@ env:
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
         - SETUP_CMD='test'
-        - PYTEST_VERSION="<3.10"
+        - PYTEST_VERSION="<3.7"
 
         # PEP8 errors/warnings:
         # E101 - mix of tabs and spaces
@@ -91,16 +91,13 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.11
                SETUP_CMD='test --open-files'
-               PYTEST_VERSION=3.7
         - os: linux
           env: PYTHON_VERSION=3.7 NUMPY_VERSION=1.14
                SETUP_CMD='test --open-files'
-               PYTEST_VERSION=3.8
         - os: linux
           env: NUMPY_VERSION=1.12
                SETUP_CMD='test --open-files -a "--durations=50"'
                PYTEST_VERSION='>3.2'
-               PYTEST_VERSION=3.8
 
         # Now try with all optional dependencies the latest 3.x and on 2.7.
         # (with latest numpy). We also test the two latest matplotlib versions
