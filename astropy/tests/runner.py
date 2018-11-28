@@ -186,7 +186,7 @@ class TestRunnerBase(object):
         from distutils.version import LooseVersion
 
         pytest_version = LooseVersion(pytest.__version__)
-        if pytest_version >= '3.7':
+        if pytest_version >= LooseVersion('3.7'):
             from astropy.version import version as astropy_version
             # These versions of pytest are known to be problematic and are not
             # supported by Astropy LTS.
