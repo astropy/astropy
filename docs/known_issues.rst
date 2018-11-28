@@ -57,7 +57,7 @@ Also in-place operations where the output is a normal `~numpy.ndarray`
 will drop the unit silently (at least in numpy <= 1.9)::
 
     >>> a = np.arange(10.)
-    >>> a *= 1. * u.kg #doctest: +SKIP
+    >>> a *= 1. * u.kg # doctest: +SKIP
     >>> a
     array([0., 1., 2., 3., 4., 5., 6., 7., 8., 9.])
 
