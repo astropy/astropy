@@ -137,7 +137,7 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
 
                 # FIXME: For now SkyCoord won't auto-convert upon initialization
                 # https://github.com/astropy/astropy/issues/7689
-                from ...coordinates import SkyCoord
+                from astropy.coordinates import SkyCoord
                 if isinstance(world_by_key[key], SkyCoord):
                     if 'frame' in kwargs:
                         objects[key] = world_by_key[key].transform_to(kwargs['frame'])
@@ -157,7 +157,7 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
 
                 # FIXME: For now SkyCoord won't auto-convert upon initialization
                 # https://github.com/astropy/astropy/issues/7689
-                from ...coordinates import SkyCoord
+                from astropy.coordinates import SkyCoord
                 if isinstance(w, SkyCoord):
                     if 'frame' in kwargs:
                         objects[key] = w.transform_to(kwargs['frame'])

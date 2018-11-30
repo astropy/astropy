@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from . import FitsTestCase
-from ..scripts import fitsinfo
+from astropy.io.fits.scripts import fitsinfo
 
 
 class TestFitsinfo(FitsTestCase):

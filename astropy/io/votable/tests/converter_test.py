@@ -9,13 +9,13 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 # LOCAL
-from .. import converters
-from .. import exceptions
-from .. import tree
+from astropy.io.votable import converters
+from astropy.io.votable import exceptions
+from astropy.io.votable import tree
 
-from ..table import parse_single_table
-from ....tests.helper import raises, catch_warnings
-from ....utils.data import get_pkg_data_filename
+from astropy.io.votable.table import parse_single_table
+from astropy.tests.helper import raises, catch_warnings
+from astropy.utils.data import get_pkg_data_filename
 
 
 @raises(exceptions.E13)

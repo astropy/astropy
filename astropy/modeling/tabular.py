@@ -22,8 +22,8 @@ import abc
 import numpy as np
 
 from .core import Model
-from .. import units as u
-from ..utils import minversion
+from astropy import units as u
+from astropy.utils import minversion
 
 try:
     import scipy

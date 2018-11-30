@@ -7,11 +7,11 @@ from copy import deepcopy
 import numpy as np
 
 from .decorators import support_nddata
-from .. import units as u
-from ..coordinates import SkyCoord
-from ..utils import lazyproperty
-from ..wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
-from ..wcs import Sip
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+from astropy.utils import lazyproperty
+from astropy.wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
+from astropy.wcs import Sip
 
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',

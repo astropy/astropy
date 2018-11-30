@@ -12,7 +12,7 @@ import numpy as np
 
 # NOTE: Do not import anything from astropy.table here.
 # https://github.com/astropy/astropy/issues/6604
-from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 META_KEY = '__table_column_meta__'
@@ -147,7 +147,7 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
     # convert to a Table.
 
     # Create a Table object
-    from ...table import Table, meta, serialize
+    from astropy.table import Table, meta, serialize
 
     table = Table(np.array(input))
 
@@ -192,10 +192,10 @@ def _encode_mixins(tbl):
     """Encode a Table ``tbl`` that may have mixin columns to a Table with only
     astropy Columns + appropriate meta-data to allow subsequent decoding.
     """
-    from ...table import serialize
-    from ...table.table import has_info_class
-    from ... import units as u
-    from ...utils.data_info import MixinInfo, serialize_context_as
+    from astropy.table import serialize
+    from astropy.table.table import has_info_class
+    from astropy import units as u
+    from astropy.utils.data_info import MixinInfo, serialize_context_as
 
     # If PyYAML is not available then check to see if there are any mixin cols
     # that *require* YAML serialization.  HDF5 already has support for
@@ -252,7 +252,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
         replaced; the file/group will not be overwritten.
     """
 
-    from ...table import meta
+    from astropy.table import meta
     try:
         import h5py
     except ImportError:
@@ -381,8 +381,8 @@ def register_hdf5():
     """
     Register HDF5 with Unified I/O.
     """
-    from .. import registry as io_registry
-    from ...table import Table
+    from astropy.io import registry as io_registry
+    from astropy.table import Table
 
     io_registry.register_reader('hdf5', Table, read_table_hdf5)
     io_registry.register_writer('hdf5', Table, write_table_hdf5)

@@ -7,11 +7,11 @@ from itertools import product
 
 import pytest
 
-from ...tests.helper import assert_quantity_allclose as assert_allclose
-from ...time import Time
-from ... import _erfa as erfa
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.time import Time
+from astropy import _erfa as erfa
 from .utils import randomly_sample_sphere
-from ..builtin_frames.utils import get_jd12, atciqz, aticq
+from astropy.coordinates.builtin_frames.utils import get_jd12, atciqz, aticq
 
 times = [Time("2014-06-25T00:00"), Time(["2014-06-25T00:00", "2014-09-24"])]
 ra, dec, _ = randomly_sample_sphere(2)

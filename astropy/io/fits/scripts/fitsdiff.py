@@ -7,9 +7,9 @@ import sys
 import textwrap
 import warnings
 
-from ... import fits
-from ..util import fill
-from ....utils.exceptions import AstropyDeprecationWarning
+from astropy.io import fits
+from astropy.io.fits.util import fill
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 log = logging.getLogger('fitsdiff')

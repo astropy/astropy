@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from .. import (histogram, calculate_bin_edges,
+from astropy.stats import (histogram, calculate_bin_edges,
                 scott_bin_width, freedman_bin_width, knuth_bin_width)
 
 try:

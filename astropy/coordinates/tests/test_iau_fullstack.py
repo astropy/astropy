@@ -6,15 +6,15 @@ import pytest
 import numpy as np
 from numpy import testing as npt
 
-from ... import units as u
-from ...time import Time
-from ..builtin_frames import ICRS, AltAz
-from ..builtin_frames.utils import get_jd12
-from .. import EarthLocation
-from .. import SkyCoord
-from ...tests.helper import catch_warnings
-from ... import _erfa as erfa
-from ...utils import iers
+from astropy import units as u
+from astropy.time import Time
+from astropy.coordinates.builtin_frames import ICRS, AltAz
+from astropy.coordinates.builtin_frames.utils import get_jd12
+from astropy.coordinates import EarthLocation
+from astropy.coordinates import SkyCoord
+from astropy.tests.helper import catch_warnings
+from astropy import _erfa as erfa
+from astropy.utils import iers
 from .utils import randomly_sample_sphere
 
 
@@ -151,11 +151,11 @@ def test_future_altaz():
     warning is raised when attempting to get to AltAz in the future (beyond
     IERS tables)
     """
-    from ...utils.exceptions import AstropyWarning
+    from astropy.utils.exceptions import AstropyWarning
 
     # this is an ugly hack to get the warning to show up even if it has already
     # appeared
-    from ..builtin_frames import utils
+    from astropy.coordinates.builtin_frames import utils
     if hasattr(utils, '__warningregistry__'):
         utils.__warningregistry__.clear()
 

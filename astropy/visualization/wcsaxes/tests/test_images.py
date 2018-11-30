@@ -8,16 +8,16 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Rectangle
 from matplotlib import rc_context
 
-from .... import units as u
-from ....io import fits
-from ....wcs import WCS
-from ....coordinates import SkyCoord
+from astropy import units as u
+from astropy.io import fits
+from astropy.wcs import WCS
+from astropy.coordinates import SkyCoord
 
-from ..patches import SphericalCircle
-from .. import WCSAxes
+from astropy.visualization.wcsaxes.patches import SphericalCircle
+from astropy.visualization.wcsaxes import WCSAxes
 from . import datasets
-from ....tests.image_tests import IMAGE_REFERENCE_DIR
-from ..frame import EllipticalFrame
+from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
+from astropy.visualization.wcsaxes.frame import EllipticalFrame
 
 
 class BaseImageTests:

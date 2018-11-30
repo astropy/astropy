@@ -3,11 +3,11 @@ import pytest
 
 import numpy as np
 
-from ...tests.helper import assert_quantity_allclose
-from ... import units as u
-from ...time import Time
-from .. import EarthLocation, SkyCoord, Angle
-from ..sites import get_builtin_sites
+from astropy.tests.helper import assert_quantity_allclose
+from astropy import units as u
+from astropy.time import Time
+from astropy.coordinates import EarthLocation, SkyCoord, Angle
+from astropy.coordinates.sites import get_builtin_sites
 
 
 @pytest.mark.parametrize('kind', ['heliocentric', 'barycentric'])
@@ -248,7 +248,7 @@ def _get_barycorr_bvcs(coos, loc, injupyter=False):
     the tests.
     """
     import barycorr
-    from ...utils.console import ProgressBar
+    from astropy.utils.console import ProgressBar
 
     bvcs = []
     for ra, dec in ProgressBar(list(zip(coos.ra.deg, coos.dec.deg)),

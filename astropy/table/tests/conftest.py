@@ -22,12 +22,12 @@ import pickle
 import pytest
 import numpy as np
 
-from ... import table
-from ...table import table_helpers, Table, QTable
-from ... import time
-from ... import units as u
-from ... import coordinates
-from .. import pprint
+from astropy import table
+from astropy.table import table_helpers, Table, QTable
+from astropy import time
+from astropy import units as u
+from astropy import coordinates
+from astropy.table import pprint
 
 
 @pytest.fixture(params=[table.Column, table.MaskedColumn])

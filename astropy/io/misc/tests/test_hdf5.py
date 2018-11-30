@@ -4,15 +4,15 @@
 import pytest
 import numpy as np
 
-from ....tests.helper import catch_warnings
-from ....table import Table, QTable, NdarrayMixin, Column
-from ....table.table_helpers import simple_table
+from astropy.tests.helper import catch_warnings
+from astropy.table import Table, QTable, NdarrayMixin, Column
+from astropy.table.table_helpers import simple_table
 
-from .... import units as u
+from astropy import units as u
 
-from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
-from ....time import Time, TimeDelta
-from ....units.quantity import QuantityInfo
+from astropy.coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
+from astropy.time import Time, TimeDelta
+from astropy.units.quantity import QuantityInfo
 
 try:
     import h5py

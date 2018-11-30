@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ...utils.decorators import format_doc
-from ..baseframe import base_doc
+from astropy.utils.decorators import format_doc
+from astropy.coordinates.baseframe import base_doc
 from .baseradec import BaseRADecFrame, doc_components
 
 __all__ = ['ICRS']

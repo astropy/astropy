@@ -4,15 +4,15 @@
 import pytest
 import numpy as np
 
-from ... import units as u
-from ..distances import Distance
-from ..builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
+from astropy import units as u
+from astropy.coordinates.distances import Distance
+from astropy.coordinates.builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
                               Supergalactic, Galactocentric, HCRS, GCRS, LSR)
-from .. import SkyCoord
-from ...tests.helper import assert_quantity_allclose as assert_allclose
-from .. import EarthLocation, CartesianRepresentation
-from ...time import Time
-from ...units import allclose
+from astropy.coordinates import SkyCoord
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.coordinates import EarthLocation, CartesianRepresentation
+from astropy.time import Time
+from astropy.units import allclose
 
 # used below in the next parametrized test
 m31_sys = [ICRS, FK5, FK4, Galactic]

@@ -11,10 +11,10 @@ import urllib.error
 
 import pytest
 
-from ..data import (_get_download_cache_locs, CacheMissingWarning,
-                    get_pkg_data_filename, get_readable_fileobj, conf)
+from astropy.utils.data import (_get_download_cache_locs, CacheMissingWarning,
+                                get_pkg_data_filename, get_readable_fileobj, conf)
 
-from ...tests.helper import raises, catch_warnings
+from astropy.tests.helper import raises, catch_warnings
 
 TESTURL = 'http://www.astropy.org'
 
@@ -37,7 +37,7 @@ else:
 
 @pytest.mark.remote_data(source='astropy')
 def test_download_nocache():
-    from ..data import download_file
+    from astropy.utils.data import download_file
 
     fnout = download_file(TESTURL)
     assert os.path.isfile(fnout)
@@ -45,7 +45,7 @@ def test_download_nocache():
 
 @pytest.mark.remote_data(source='astropy')
 def test_download_parallel():
-    from ..data import download_files_in_parallel
+    from astropy.utils.data import download_files_in_parallel
 
     main_url = conf.dataurl
     mirror_url = conf.dataurl_mirror
@@ -61,7 +61,7 @@ def test_download_parallel():
 def test_download_mirror_cache():
     import pathlib
     import shelve
-    from ..data import _find_pkg_data_path, download_file, get_cached_urls
+    from astropy.utils.data import _find_pkg_data_path, download_file, get_cached_urls
 
     main_url = pathlib.Path(
         _find_pkg_data_path(os.path.join('data', 'dataurl'))).as_uri() + '/'
@@ -104,7 +104,7 @@ def test_download_mirror_cache():
 
 @pytest.mark.remote_data(source='astropy')
 def test_download_noprogress():
-    from ..data import download_file
+    from astropy.utils.data import download_file
 
     fnout = download_file(TESTURL, show_progress=False)
     assert os.path.isfile(fnout)
@@ -113,7 +113,7 @@ def test_download_noprogress():
 @pytest.mark.remote_data(source='astropy')
 def test_download_cache():
 
-    from ..data import download_file, clear_download_cache
+    from astropy.utils.data import download_file, clear_download_cache
 
     download_dir = _get_download_cache_locs()[0]
 
@@ -152,7 +152,7 @@ def test_url_nocache():
 @pytest.mark.remote_data(source='astropy')
 def test_find_by_hash():
 
-    from ..data import clear_download_cache
+    from astropy.utils.data import clear_download_cache
 
     with get_readable_fileobj(TESTURL, encoding="binary", cache=True) as page:
         hash = hashlib.md5(page.read())
@@ -180,7 +180,7 @@ def test_find_invalid():
 @pytest.mark.parametrize(('filename'), ['local.dat', 'local.dat.gz',
                                         'local.dat.bz2', 'local.dat.xz'])
 def test_local_data_obj(filename):
-    from ..data import get_pkg_data_fileobj
+    from astropy.utils.data import get_pkg_data_fileobj
 
     if (not HAS_BZ2 and 'bz2' in filename) or (not HAS_XZ and 'xz' in filename):
         with pytest.raises(ValueError) as e:
@@ -281,7 +281,7 @@ def test_local_data_nonlocalfail():
 
 
 def test_compute_hash(tmpdir):
-    from ..data import compute_hash
+    from astropy.utils.data import compute_hash
 
     rands = b'1234567890abcdefghijklmnopqrstuvwxyz'
 
@@ -298,7 +298,7 @@ def test_compute_hash(tmpdir):
 
 
 def test_get_pkg_data_contents():
-    from ..data import get_pkg_data_fileobj, get_pkg_data_contents
+    from astropy.utils.data import get_pkg_data_fileobj, get_pkg_data_contents
 
     with get_pkg_data_fileobj('data/local.dat') as f:
         contents1 = f.read()
@@ -315,8 +315,8 @@ def test_data_noastropy_fallback(monkeypatch):
     be located is correct
     """
 
-    from .. import data
-    from ...config import paths
+    from astropy.utils import data
+    from astropy.config import paths
 
     # needed for testing the *real* lock at the end
     lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
@@ -396,7 +396,7 @@ def test_data_noastropy_fallback(monkeypatch):
     pytest.param('unicode.txt.bz2', marks=pytest.mark.xfail(not HAS_BZ2, reason='no bz2 support')),
     pytest.param('unicode.txt.xz', marks=pytest.mark.xfail(not HAS_XZ, reason='no lzma support'))])
 def test_read_unicode(filename):
-    from ..data import get_pkg_data_contents
+    from astropy.utils.data import get_pkg_data_contents
 
     contents = get_pkg_data_contents(os.path.join('data', filename), encoding='utf-8')
     assert isinstance(contents, str)
@@ -447,7 +447,7 @@ def test_invalid_location_download():
     checks that download_file gives a URLError and not an AttributeError,
     as its code pathway involves some fiddling with the exception.
     """
-    from ..data import download_file
+    from astropy.utils.data import download_file
 
     with pytest.raises(urllib.error.URLError):
         download_file('http://www.astropy.org/nonexistentfile')
@@ -457,7 +457,7 @@ def test_invalid_location_download_noconnect():
     """
     checks that download_file gives an OSError if the socket is blocked
     """
-    from ..data import download_file
+    from astropy.utils.data import download_file
 
     # This should invoke socket's monkeypatched failure
     with pytest.raises(OSError):
@@ -466,7 +466,7 @@ def test_invalid_location_download_noconnect():
 
 @pytest.mark.remote_data(source='astropy')
 def test_is_url_in_cache():
-    from ..data import download_file, is_url_in_cache
+    from astropy.utils.data import download_file, is_url_in_cache
 
     assert not is_url_in_cache('http://astropy.org/nonexistentfile')
 

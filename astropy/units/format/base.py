@@ -2,7 +2,7 @@
 
 import os
 
-from ...utils.misc import InheritDocstrings
+from astropy.utils.misc import InheritDocstrings
 
 
 class _FormatterMeta(InheritDocstrings):

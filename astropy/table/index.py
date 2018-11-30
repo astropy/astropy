@@ -35,7 +35,7 @@ import numpy as np
 
 from .bst import MinValue, MaxValue
 from .sorted_array import SortedArray
-from ..time import Time
+from astropy.time import Time
 
 
 class QueryError(ValueError):

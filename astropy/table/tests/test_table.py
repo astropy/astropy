@@ -11,12 +11,12 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
-from ...io import fits
-from ...tests.helper import (assert_follows_unicode_guidelines,
+from astropy.io import fits
+from astropy.tests.helper import (assert_follows_unicode_guidelines,
                              ignore_warnings, catch_warnings)
-from ...utils.data import get_pkg_data_filename
-from ... import table
-from ... import units as u
+from astropy.utils.data import get_pkg_data_filename
+from astropy import table
+from astropy import units as u
 from .conftest import MaskedTable
 
 
@@ -1445,7 +1445,7 @@ def test_equality_masked_bug():
 # takes care of defining all the tests, and we simply have to define the class
 # and any minimal set of args to pass.
 
-from ...utils.tests.test_metadata import MetaBaseTest
+from astropy.utils.tests.test_metadata import MetaBaseTest
 
 
 class TestMetaTable(MetaBaseTest):
@@ -1657,7 +1657,7 @@ class TestPandas:
 
     def test_mixin(self):
 
-        from ...coordinates import SkyCoord
+        from astropy.coordinates import SkyCoord
 
         t = table.Table()
         t['c'] = SkyCoord([1, 2, 3], [4, 5, 6], unit='deg')

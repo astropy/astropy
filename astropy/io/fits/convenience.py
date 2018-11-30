@@ -69,8 +69,8 @@ from .hdu.image import PrimaryHDU, ImageHDU
 from .hdu.table import BinTableHDU
 from .header import Header
 from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
-from ...utils.exceptions import AstropyUserWarning
-from ...utils.decorators import deprecated_renamed_argument
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.decorators import deprecated_renamed_argument
 
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
@@ -450,9 +450,9 @@ def table_to_hdu(table, character_as_bytes=False):
     if table.has_mixin_columns:
         # Import is done here, in order to avoid it at build time as erfa is not
         # yet available then.
-        from ...table.column import BaseColumn
-        from ...time import Time
-        from ...units import Quantity
+        from astropy.table.column import BaseColumn
+        from astropy.time import Time
+        from astropy.units import Quantity
         from .fitstime import time_to_fits
 
         # Only those columns which are instances of BaseColumn, Quantity or Time can
@@ -512,8 +512,8 @@ def table_to_hdu(table, character_as_bytes=False):
         if unit is not None:
             # Local imports to avoid importing units when it is not required,
             # e.g. for command-line scripts
-            from ...units import Unit
-            from ...units.format.fits import UnitScaleError
+            from astropy.units import Unit
+            from astropy.units.format.fits import UnitScaleError
             try:
                 col.unit = unit.to_string(format='fits')
             except UnitScaleError:

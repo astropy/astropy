@@ -10,13 +10,13 @@ from copy import deepcopy
 import numpy as np
 import pytest
 
-from ... import units as u
-from ... import time
-from ... import coordinates
-from ... import table
-from ..info import serialize_method_as
-from ...utils.data_info import data_info_factory, dtype_info_name
-from ..table_helpers import simple_table
+from astropy import units as u
+from astropy import time
+from astropy import coordinates
+from astropy import table
+from astropy.table.info import serialize_method_as
+from astropy.utils.data_info import data_info_factory, dtype_info_name
+from astropy.table.table_helpers import simple_table
 
 
 def test_table_info_attributes(table_types):

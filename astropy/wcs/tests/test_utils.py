@@ -6,12 +6,12 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 from numpy.testing import assert_allclose
 
-from ...utils.data import get_pkg_data_contents, get_pkg_data_filename
-from ...time import Time
-from ... import units as u
+from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
+from astropy.time import Time
+from astropy import units as u
 
-from ..wcs import WCS, Sip, WCSSUB_LONGITUDE, WCSSUB_LATITUDE
-from ..utils import (proj_plane_pixel_scales, proj_plane_pixel_area,
+from astropy.wcs.wcs import WCS, Sip, WCSSUB_LONGITUDE, WCSSUB_LATITUDE
+from astropy.wcs.utils import (proj_plane_pixel_scales, proj_plane_pixel_area,
                      is_proj_plane_distorted,
                      non_celestial_pixel_scales, wcs_to_celestial_frame,
                      celestial_frame_to_wcs, skycoord_to_pixel,
@@ -235,7 +235,7 @@ def test_celestial():
 def test_wcs_to_celestial_frame():
 
     # Import astropy.coordinates here to avoid circular imports
-    from ...coordinates.builtin_frames import ICRS, ITRS, FK5, FK4, Galactic
+    from astropy.coordinates.builtin_frames import ICRS, ITRS, FK5, FK4, Galactic
 
     mywcs = WCS(naxis=2)
     mywcs.wcs.set()
@@ -343,7 +343,7 @@ def test_wcs_to_celestial_frame_extend():
 def test_celestial_frame_to_wcs():
 
     # Import astropy.coordinates here to avoid circular imports
-    from ...coordinates import ICRS, ITRS, FK5, FK4, FK4NoETerms, Galactic, BaseCoordinateFrame
+    from astropy.coordinates import ICRS, ITRS, FK5, FK4, FK4NoETerms, Galactic, BaseCoordinateFrame
 
     class FakeFrame(BaseCoordinateFrame):
         pass
@@ -550,7 +550,7 @@ def test_noncelestial_scale(cdelt, pc, cd):
 def test_skycoord_to_pixel(mode):
 
     # Import astropy.coordinates here to avoid circular imports
-    from ...coordinates import SkyCoord
+    from astropy.coordinates import SkyCoord
 
     header = get_pkg_data_contents('maps/1904-66_TAN.hdr', encoding='binary')
     wcs = WCS(header)
@@ -584,7 +584,7 @@ def test_skycoord_to_pixel_swapped():
     # WCS.
 
     # Import astropy.coordinates here to avoid circular imports
-    from ...coordinates import SkyCoord
+    from astropy.coordinates import SkyCoord
 
     header = get_pkg_data_contents('maps/1904-66_TAN.hdr', encoding='binary')
     wcs = WCS(header)
@@ -628,7 +628,7 @@ def test_is_proj_plane_distorted():
 def test_skycoord_to_pixel_distortions(mode):
 
     # Import astropy.coordinates here to avoid circular imports
-    from ...coordinates import SkyCoord
+    from astropy.coordinates import SkyCoord
 
     header = get_pkg_data_filename('data/sip.fits')
     wcs = WCS(header)

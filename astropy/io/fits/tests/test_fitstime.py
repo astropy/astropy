@@ -5,15 +5,15 @@ import numpy as np
 
 from . import FitsTestCase
 
-from ..fitstime import GLOBAL_TIME_INFO, time_to_fits, is_time_column_keyword
-from ....coordinates import EarthLocation
-from ....io import fits
-from ....table import Table, QTable
-from ....time import Time, TimeDelta
-from ....time.core import BARYCENTRIC_SCALES
-from ....time.formats import FITS_DEPRECATED_SCALES
-from ....tests.helper import catch_warnings
-from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from astropy.io.fits.fitstime import GLOBAL_TIME_INFO, time_to_fits, is_time_column_keyword
+from astropy.coordinates import EarthLocation
+from astropy.io import fits
+from astropy.table import Table, QTable
+from astropy.time import Time, TimeDelta
+from astropy.time.core import BARYCENTRIC_SCALES
+from astropy.time.formats import FITS_DEPRECATED_SCALES
+from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 
 class TestFitsTime(FitsTestCase):

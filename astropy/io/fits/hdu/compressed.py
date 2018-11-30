@@ -14,20 +14,20 @@ import numpy as np
 from .base import DELAYED, ExtensionHDU, BITPIX2DTYPE, DTYPE2BITPIX
 from .image import ImageHDU
 from .table import BinTableHDU
-from ..card import Card
-from ..column import Column, ColDefs, TDEF_RE
-from ..column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
-from ..fitsrec import FITS_rec
-from ..header import Header
-from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
+from astropy.io.fits.card import Card
+from astropy.io.fits.column import Column, ColDefs, TDEF_RE
+from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
+from astropy.io.fits.fitsrec import FITS_rec
+from astropy.io.fits.header import Header
+from astropy.io.fits.util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
                     _get_array_mmap)
 
-from ....utils import lazyproperty
-from ....utils.exceptions import (AstropyPendingDeprecationWarning,
+from astropy.utils import lazyproperty
+from astropy.utils.exceptions import (AstropyPendingDeprecationWarning,
                                   AstropyUserWarning)
 
 try:
-    from .. import compression
+    from astropy.io.fits import compression
     COMPRESSION_SUPPORTED = COMPRESSION_ENABLED = True
 except ImportError:
     COMPRESSION_SUPPORTED = COMPRESSION_ENABLED = False

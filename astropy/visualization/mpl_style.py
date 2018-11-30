@@ -4,7 +4,7 @@
 # plotting style. It is no longer documented/recommended as of Astropy v3.0
 # but is kept here for backward-compatibility.
 
-from ..utils import minversion
+from astropy.utils import minversion
 
 # This returns False if matplotlib cannot be imported
 MATPLOTLIB_GE_1_5 = minversion('matplotlib', '1.5')

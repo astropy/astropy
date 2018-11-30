@@ -5,9 +5,9 @@ import numpy as np
 from numpy import ma
 from numpy.testing import assert_allclose
 
-from ..mpl_normalize import ImageNormalize, simple_norm, imshow_norm
-from ..interval import ManualInterval
-from ..stretch import SqrtStretch
+from astropy.visualization.mpl_normalize import ImageNormalize, simple_norm, imshow_norm
+from astropy.visualization.interval import ManualInterval
+from astropy.visualization.stretch import SqrtStretch
 
 try:
     import matplotlib    # pylint: disable=W0611

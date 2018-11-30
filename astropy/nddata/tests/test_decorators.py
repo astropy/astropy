@@ -5,12 +5,12 @@ import inspect
 import pytest
 import numpy as np
 
-from ...tests.helper import catch_warnings
-from ...utils.exceptions import AstropyUserWarning
-from ... import units as u
+from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy import units as u
 
-from ..nddata import NDData
-from ..decorators import support_nddata
+from astropy.nddata.nddata import NDData
+from astropy.nddata.decorators import support_nddata
 
 
 class CCDData(NDData):

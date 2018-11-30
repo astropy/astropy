@@ -52,7 +52,7 @@ class OGIP(generic.Generic):
     @staticmethod
     def _generate_unit_names():
 
-        from ... import units as u
+        from astropy import units as u
         names = {}
         deprecated_names = set()
 
@@ -111,7 +111,7 @@ class OGIP(generic.Generic):
 
     @classmethod
     def _make_lexer(cls):
-        from ...extern.ply import lex
+        from astropy.extern.ply import lex
 
         tokens = cls._tokens
 
@@ -186,7 +186,7 @@ class OGIP(generic.Generic):
         <https://bitbucket.org/nxg/unity/>`_.
         """
 
-        from ...extern.ply import yacc
+        from astropy.extern.ply import yacc
 
         tokens = cls._tokens
 
@@ -279,7 +279,7 @@ class OGIP(generic.Generic):
                 p[0] = p[1]
             # Can't use np.log10 here, because p[0] may be a Python long.
             if math.log10(p[0]) % 1.0 != 0.0:
-                from ..core import UnitsWarning
+                from astropy.units.core import UnitsWarning
                 warnings.warn(
                     "'{0}' scale should be a power of 10 in "
                     "OGIP format".format(p[0]), UnitsWarning)

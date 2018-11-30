@@ -3,8 +3,8 @@
 
 import numpy as np
 
-from ... import units as u
-from ...coordinates import BaseCoordinateFrame
+from astropy import units as u
+from astropy.coordinates import BaseCoordinateFrame
 
 __all__ = ['select_step_degree', 'select_step_hour', 'select_step_scalar',
            'coord_type_from_ctype', 'transform_contour_set_inplace']

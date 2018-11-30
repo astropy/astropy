@@ -9,7 +9,7 @@ from asdf.tests.helpers import assert_roundtrip_tree
 from astropy import units
 from astropy.coordinates import ICRS, FK5, Longitude, Latitude, Angle
 
-from ....extension import AstropyExtension
+from astropy.io.misc.asdf.extension import AstropyExtension
 
 
 def test_hcrs_basic(tmpdir):

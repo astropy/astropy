@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from .. import (Unit, UnitBase, UnitsError, UnitTypeError,
+from astropy.units import (Unit, UnitBase, UnitsError, UnitTypeError,
                 dimensionless_unscaled, Quantity)
 
 __all__ = ['FunctionUnitBase', 'FunctionQuantity']

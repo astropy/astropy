@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from .. import units as u
+from astropy import units as u
 
 from .wcs import WCS, WCSSUB_LONGITUDE, WCSSUB_LATITUDE, WCSSUB_CELESTIAL
 
@@ -45,10 +45,10 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
 def _wcs_to_celestial_frame_builtin(wcs):
 
     # Import astropy.coordinates here to avoid circular imports
-    from ..coordinates import FK4, FK4NoETerms, FK5, ICRS, ITRS, Galactic
+    from astropy.coordinates import FK4, FK4NoETerms, FK5, ICRS, ITRS, Galactic
 
     # Import astropy.time here otherwise setup.py fails before extensions are compiled
-    from ..time import Time
+    from astropy.time import Time
 
     # Keep only the celestial part of the axes
     wcs = wcs.sub([WCSSUB_LONGITUDE, WCSSUB_LATITUDE])
@@ -103,7 +103,7 @@ def _wcs_to_celestial_frame_builtin(wcs):
 def _celestial_frame_to_wcs_builtin(frame, projection='TAN'):
 
     # Import astropy.coordinates here to avoid circular imports
-    from ..coordinates import BaseRADecFrame, FK4, FK4NoETerms, FK5, ICRS, ITRS, Galactic
+    from astropy.coordinates import BaseRADecFrame, FK4, FK4NoETerms, FK5, ICRS, ITRS, Galactic
 
     # Create a 2-dimensional WCS
     wcs = WCS(naxis=2)
@@ -594,7 +594,7 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
     """
 
     # Import astropy.coordinates here to avoid circular imports
-    from ..coordinates import SkyCoord, UnitSphericalRepresentation
+    from astropy.coordinates import SkyCoord, UnitSphericalRepresentation
 
     # we have to do this instead of actually setting the default to SkyCoord
     # because importing SkyCoord at the module-level leads to circular

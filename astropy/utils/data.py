@@ -23,9 +23,9 @@ import shelve
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
 
-from .. import config as _config
-from ..utils.exceptions import AstropyWarning
-from ..utils.introspection import find_current_module, resolve_name
+from astropy import config as _config
+from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.introspection import find_current_module, resolve_name
 
 __all__ = [
     'Conf', 'conf', 'get_readable_fileobj', 'get_file_contents',
@@ -934,7 +934,7 @@ def check_free_space_in_dir(path, size):
     -------
     OSError : There is not enough room on the filesystem
     """
-    from ..utils.console import human_file_size
+    from astropy.utils.console import human_file_size
 
     space = get_free_space_in_dir(path)
     if space < size:
@@ -979,7 +979,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
         Whenever there's a problem getting the remote file.
     """
 
-    from ..utils.console import ProgressBarOrSpinner
+    from astropy.utils.console import ProgressBarOrSpinner
 
     if timeout is None:
         timeout = conf.remote_timeout
@@ -1283,7 +1283,7 @@ def _get_download_cache_locs():
     shelveloc : str
         The path to the shelve object that stores the cache info.
     """
-    from ..config.paths import get_cache_dir
+    from astropy.config.paths import get_cache_dir
 
     # datadir includes both the download files and the shelveloc.  This structure
     # is required since we cannot know a priori the actual file name corresponding

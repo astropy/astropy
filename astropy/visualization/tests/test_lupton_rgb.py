@@ -13,8 +13,8 @@ import pytest
 import numpy as np
 from numpy.testing import assert_equal
 
-from ...convolution import convolve, Gaussian2DKernel
-from .. import lupton_rgb
+from astropy.convolution import convolve, Gaussian2DKernel
+from astropy.visualization import lupton_rgb
 
 try:
     import matplotlib  # noqa

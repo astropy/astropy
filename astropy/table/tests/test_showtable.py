@@ -1,8 +1,8 @@
 import os
 import re
 
-from ..scripts import showtable
-from ...utils.compat import NUMPY_LT_1_14
+from astropy.table.scripts import showtable
+from astropy.utils.compat import NUMPY_LT_1_14
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 ASCII_ROOT = os.path.join(ROOT, '..', '..', 'io', 'ascii', 'tests')

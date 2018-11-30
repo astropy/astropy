@@ -1,7 +1,7 @@
 import matplotlib
 from matplotlib import pyplot as plt
 
-from ..utils.decorators import wraps
+from astropy.utils.decorators import wraps
 
 MPL_VERSION = matplotlib.__version__
 

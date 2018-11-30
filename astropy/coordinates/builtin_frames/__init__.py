@@ -50,7 +50,7 @@ from . import cirs_observed_transforms
 from . import intermediate_rotation_transforms
 from . import ecliptic_transforms
 
-from ..baseframe import frame_transform_graph
+from astropy.coordinates.baseframe import frame_transform_graph
 
 # we define an __all__ because otherwise the transformation modules
 # get included
@@ -110,7 +110,7 @@ def make_transform_graph_docs(transform_graph):
     docstr = dedent(docstr) + '        ' + graphstr.replace('\n', '\n        ')
 
     # colors are in dictionary at the bottom of transformations.py
-    from ..transformations import trans_to_color
+    from astropy.coordinates.transformations import trans_to_color
     html_list_items = []
     for cls, color in trans_to_color.items():
         block = u"""

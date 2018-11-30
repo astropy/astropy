@@ -15,9 +15,9 @@ import operator
 
 import numpy as np
 
-from .. import units as u
-from ..units import Quantity, UnitsError
-from ..utils import isiterable, OrderedDescriptor
+from astropy import units as u
+from astropy.units import Quantity, UnitsError
+from astropy.utils import isiterable, OrderedDescriptor
 from .utils import array_repr_oneline
 
 from .utils import get_inputs_and_params

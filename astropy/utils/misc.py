@@ -205,7 +205,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         obj = obj.__name__
 
     if version is None:
-        from .. import version
+        from astropy import version
 
         if version.release:
             version = 'v' + version.version
@@ -379,7 +379,7 @@ class JsonCustomEncoder(json.JSONEncoder):
     """
 
     def default(self, obj):
-        from .. import units as u
+        from astropy import units as u
         import numpy as np
         if isinstance(obj, u.Quantity):
             return dict(value=obj.value, unit=obj.unit.to_string())

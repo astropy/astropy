@@ -21,7 +21,7 @@ import numpy as np
 from .core import Model
 from .parameters import Parameter, InputParameterError
 
-from .. import units as u
+from astropy import units as u
 
 from . import _projections
 from .utils import _to_radian, _to_orig_unit

@@ -7,10 +7,10 @@ import numpy as np
 from numpy.testing import assert_allclose
 from numpy.random import RandomState
 
-from ..core import Fittable1DModel
-from ..parameters import Parameter
-from .. import models
-from .. import fitting
+from astropy.modeling.core import Fittable1DModel
+from astropy.modeling.parameters import Parameter
+from astropy.modeling import models
+from astropy.modeling import fitting
 
 from .utils import ignore_non_integer_warning
 
@@ -489,7 +489,7 @@ def test_2d_model():
     z = gauss2d(x, y)
     w = np.ones(x.size)
     w.shape = x.shape
-    from ...utils import NumpyRNGContext
+    from astropy.utils import NumpyRNGContext
 
     with NumpyRNGContext(1234567890):
 

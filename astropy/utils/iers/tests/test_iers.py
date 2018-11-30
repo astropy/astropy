@@ -7,11 +7,11 @@ import warnings
 import pytest
 import numpy as np
 
-from ....tests.helper import assert_quantity_allclose, catch_warnings
-from .. import iers
-from .... import units as u
-from ....table import QTable
-from ....time import Time, TimeDelta
+from astropy.tests.helper import assert_quantity_allclose, catch_warnings
+from astropy.utils.iers import iers
+from astropy import units as u
+from astropy.table import QTable
+from astropy.time import Time, TimeDelta
 
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', OSError)
 

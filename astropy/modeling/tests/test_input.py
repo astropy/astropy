@@ -7,10 +7,10 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from .. import models
-from .. import fitting
-from ..core import Model, FittableModel, Fittable1DModel
-from ..parameters import Parameter
+from astropy.modeling import models
+from astropy.modeling import fitting
+from astropy.modeling.core import Model, FittableModel, Fittable1DModel
+from astropy.modeling.parameters import Parameter
 
 try:
     from scipy import optimize  # pylint: disable=W0611

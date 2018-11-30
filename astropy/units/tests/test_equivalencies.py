@@ -9,9 +9,9 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 # LOCAL
-from ... import units as u
-from ... import constants, cosmology
-from ...tests.helper import assert_quantity_allclose
+from astropy import units as u
+from astropy import constants, cosmology
+from astropy.tests.helper import assert_quantity_allclose
 
 
 def test_dimensionless_angles():
@@ -461,7 +461,7 @@ def test_spectraldensity5():
 
 
 def test_equivalent_units():
-    from .. import imperial
+    from astropy.units import imperial
     with u.add_enabled_units(imperial):
         units = u.g.find_equivalent_units()
         units_set = set(units)
@@ -483,7 +483,7 @@ def test_equivalent_units2():
          u.jupiterRad])
     assert units == match
 
-    from .. import imperial
+    from astropy.units import imperial
     with u.add_enabled_units(imperial):
         units = set(u.Hz.find_equivalent_units(u.spectral()))
         match = set(
@@ -671,7 +671,7 @@ def test_equivalency_context_manager():
 
 
 def test_temperature():
-    from ..imperial import deg_F
+    from astropy.units.imperial import deg_F
     t_k = 0 * u.K
     assert_allclose(t_k.to_value(u.deg_C, u.temperature()), -273.15)
     assert_allclose(t_k.to_value(deg_F, u.temperature()), -459.67)

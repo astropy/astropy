@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 import numpy as np
 
-from ..utils.misc import isiterable
+from astropy.utils.misc import isiterable
 
 __all__ = ['FlagCollection']
 

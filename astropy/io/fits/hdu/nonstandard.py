@@ -3,13 +3,13 @@
 import gzip
 import io
 
-from ..file import _File
+from astropy.io.fits.file import _File
 from .base import NonstandardExtHDU
 from .hdulist import HDUList
-from ..header import Header, _pad_length
-from ..util import fileobj_name
+from astropy.io.fits.header import Header, _pad_length
+from astropy.io.fits.util import fileobj_name
 
-from ....utils import lazyproperty
+from astropy.utils import lazyproperty
 
 
 class FitsHDU(NonstandardExtHDU):

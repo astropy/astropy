@@ -8,7 +8,7 @@ This file contains routines to verify the correctness of UCD strings.
 import re
 
 # LOCAL
-from ...utils import data
+from astropy.utils import data
 
 __all__ = ['parse_ucd', 'check_ucd']
 

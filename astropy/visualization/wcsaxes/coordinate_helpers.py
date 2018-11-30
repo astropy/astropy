@@ -15,8 +15,8 @@ from matplotlib.transforms import Affine2D, ScaledTranslation
 from matplotlib.patches import PathPatch
 from matplotlib import rcParams
 
-from ... import units as u
-from ...utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy import units as u
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks

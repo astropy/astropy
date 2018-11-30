@@ -14,12 +14,12 @@ import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_almost_equal)
 
-from ...tests.helper import catch_warnings, raises
-from ...utils import isiterable, minversion
-from ...utils.compat import NUMPY_LT_1_14
-from ...utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from ... import units as u
-from ...units.quantity import _UNIT_NOT_INITIALISED
+from astropy.tests.helper import catch_warnings, raises
+from astropy.utils import isiterable, minversion
+from astropy.utils.compat import NUMPY_LT_1_14
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy import units as u
+from astropy.units.quantity import _UNIT_NOT_INITIALISED
 
 try:
     import matplotlib
@@ -540,7 +540,7 @@ class TestQuantityOperations:
 
     def test_complicated_operation(self):
         """ Perform a more complicated test """
-        from .. import imperial
+        from astropy.units import imperial
 
         # Multiple units
         distance = u.Quantity(15., u.meter)
@@ -896,7 +896,7 @@ class TestQuantityDisplay:
         assert repr(bad_quantity).endswith(_UNIT_NOT_INITIALISED + '>')
 
     def test_repr_latex(self):
-        from ...units.quantity import conf
+        from astropy.units.quantity import conf
 
         q2scalar = u.Quantity(1.5e14, 'm/s')
         assert self.scalarintq._repr_latex_() == r'$1 \; \mathrm{m}$'
@@ -1366,7 +1366,7 @@ def test_quantity_from_table():
 
 def test_assign_slice_with_quantity_like():
     # Regression tests for gh-5961
-    from ... table import Table, Column
+    from astropy.table import Table, Column
     # first check directly that we can use a Column to assign to a slice.
     c = Column(np.arange(10.), unit=u.mm)
     q = u.Quantity(c)

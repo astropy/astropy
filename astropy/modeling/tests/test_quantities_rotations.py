@@ -5,10 +5,10 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ...wcs import wcs
-from .. import models
-from ... import units as u
-from ...tests.helper import assert_quantity_allclose
+from astropy.wcs import wcs
+from astropy.modeling import models
+from astropy import units as u
+from astropy.tests.helper import assert_quantity_allclose
 
 
 @pytest.mark.parametrize(('inp'), [(0, 0), (4000, -20.56), (-2001.5, 45.9),

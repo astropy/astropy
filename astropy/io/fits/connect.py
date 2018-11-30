@@ -6,13 +6,13 @@ import re
 import warnings
 from collections import OrderedDict
 
-from .. import registry as io_registry
-from ... import units as u
-from ...table import Table, serialize, meta, Column, MaskedColumn
-from ...table.table import has_info_class
-from ...time import Time
-from ...utils.exceptions import AstropyUserWarning
-from ...utils.data_info import MixinInfo, serialize_context_as
+from astropy.io import registry as io_registry
+from astropy import units as u
+from astropy.table import Table, serialize, meta, Column, MaskedColumn
+from astropy.table.table import has_info_class
+from astropy.time import Time
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.data_info import MixinInfo, serialize_context_as
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .column import KEYWORD_NAMES, ASCII_DEFAULT_WIDTHS, _fortran_to_python_format
 from .convenience import table_to_hdu

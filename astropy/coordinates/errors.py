@@ -4,7 +4,7 @@
 ''' This module defines custom errors and exceptions used in astropy.coordinates.
 '''
 
-from ..utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyWarning
 
 __all__ = ['RangeError', 'BoundsError', 'IllegalHourError',
            'IllegalMinuteError', 'IllegalSecondError', 'ConvertError',

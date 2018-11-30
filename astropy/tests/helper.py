@@ -19,8 +19,8 @@ try:
 except ImportError:
     pass
 
-from ..units import allclose as quantity_allclose  # noqa
-from ..utils.exceptions import (AstropyDeprecationWarning,
+from astropy.units import allclose as quantity_allclose  # noqa
+from astropy.utils.exceptions import (AstropyDeprecationWarning,
                                 AstropyPendingDeprecationWarning)
 
 
@@ -53,7 +53,7 @@ def _save_coverage(cov, result, rootdir, testing_path):
     This method is called after the tests have been run in coverage mode
     to cleanup and then save the coverage data and report.
     """
-    from ..utils.console import color_print
+    from astropy.utils.console import color_print
 
     if result != 0:
         return
@@ -373,7 +373,7 @@ def assert_follows_unicode_guidelines(
         ensure that ``__bytes__(x)`` roundtrip.
         If not provided, no roundtrip testing will be performed.
     """
-    from .. import conf
+    from astropy import conf
 
     with conf.set_temp('unicode_output', False):
         bytes_x = bytes(x)
@@ -473,6 +473,6 @@ def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=None,
     :func:`numpy.testing.assert_allclose`.
     """
     import numpy as np
-    from ..units.quantity import _unquantify_allclose_arguments
+    from astropy.units.quantity import _unquantify_allclose_arguments
     np.testing.assert_allclose(*_unquantify_allclose_arguments(
         actual, desired, rtol, atol), **kwargs)

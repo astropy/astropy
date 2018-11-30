@@ -19,7 +19,7 @@ import warnings
 import copy
 
 import numpy as np
-from ..utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning
 from .utils import (discretize_model, add_kernel_arrays_1D,
                     add_kernel_arrays_2D)
 

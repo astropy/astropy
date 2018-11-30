@@ -8,13 +8,13 @@ import pickle
 import pytest
 import numpy as np
 
-from ..earth import EarthLocation, ELLIPSOIDS
-from ..angles import Longitude, Latitude
-from ...units import allclose as quantity_allclose
-from ... import units as u
-from ...time import Time
-from ... import constants
-from ..name_resolve import NameResolveError
+from astropy.coordinates.earth import EarthLocation, ELLIPSOIDS
+from astropy.coordinates.angles import Longitude, Latitude
+from astropy.units import allclose as quantity_allclose
+from astropy import units as u
+from astropy.time import Time
+from astropy import constants
+from astropy.coordinates.name_resolve import NameResolveError
 
 
 def allclose_m14(a, b, rtol=1.e-14, atol=None):

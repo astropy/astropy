@@ -11,10 +11,10 @@ from numpy.testing import (assert_allclose, assert_equal, assert_array_equal,
                            assert_almost_equal)
 
 from . import irafutil
-from .. import models, fitting
-from ..core import Model, FittableModel
-from ..parameters import Parameter, InputParameterError
-from ...utils.data import get_pkg_data_filename
+from astropy.modeling import models, fitting
+from astropy.modeling.core import Model, FittableModel
+from astropy.modeling.parameters import Parameter, InputParameterError
+from astropy.utils.data import get_pkg_data_filename
 
 
 def setter1(val):

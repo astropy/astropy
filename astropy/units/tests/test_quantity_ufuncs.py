@@ -8,10 +8,10 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ... import units as u
-from .. import quantity_helper as qh
-from ..._erfa import ufunc as erfa_ufunc
-from ...tests.helper import raises
+from astropy import units as u
+from astropy.units import quantity_helper as qh
+from astropy._erfa import ufunc as erfa_ufunc
+from astropy.tests.helper import raises
 
 try:
     import scipy  # pylint: disable=W0611

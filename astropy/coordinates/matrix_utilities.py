@@ -7,7 +7,7 @@ This module contains utililies used for constructing rotation matrices.
 from functools import reduce
 import numpy as np
 
-from .. import units as u
+from astropy import units as u
 from .angles import Angle
 
 

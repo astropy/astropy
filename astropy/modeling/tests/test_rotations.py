@@ -10,8 +10,8 @@ from numpy.testing import assert_allclose
 import astropy.units as u
 from astropy.tests.helper import assert_quantity_allclose
 
-from .. import models
-from ...wcs import wcs
+from astropy.modeling import models
+from astropy.wcs import wcs
 
 
 @pytest.mark.parametrize(('inp'), [(0, 0), (4000, -20.56), (-2001.5, 45.9),

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ...utils.decorators import format_doc
-from ..attributes import TimeAttribute
+from astropy.utils.decorators import format_doc
+from astropy.coordinates.attributes import TimeAttribute
 from .utils import DEFAULT_OBSTIME
-from ..baseframe import base_doc
+from astropy.coordinates.baseframe import base_doc
 from .baseradec import BaseRADecFrame, doc_components
 
 __all__ = ['HCRS']

@@ -6,9 +6,9 @@ import re
 
 import numpy as np
 
-from .. import log
-from ..utils.console import Getch, color_print, terminal_size, conf
-from ..utils.data_info import dtype_info_name
+from astropy import log
+from astropy.utils.console import Getch, color_print, terminal_size, conf
+from astropy.utils.data_info import dtype_info_name
 
 __all__ = []
 
@@ -247,7 +247,7 @@ class TableFormatter:
             col_width = max(len(x) for x in col_strs)
 
         if html:
-            from ..utils.xml.writer import xml_escape
+            from astropy.utils.xml.writer import xml_escape
             n_header = outs['n_header']
             for i, col_str in enumerate(col_strs):
                 # _pformat_col output has a header line '----' which is not needed here
@@ -568,7 +568,7 @@ class TableFormatter:
         # row-oriented list.
         rows = []
         if html:
-            from ..utils.xml.writer import xml_escape
+            from astropy.utils.xml.writer import xml_escape
 
             if tableid is None:
                 tableid = 'table{id}'.format(id=id(table))

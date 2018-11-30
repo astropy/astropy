@@ -11,16 +11,16 @@ import numpy as np
 from numpy import testing as npt
 
 
-from ... import units as u
-from ...time import Time
-from ..._erfa import ErfaWarning
+from astropy import units as u
+from astropy.time import Time
+from astropy._erfa import ErfaWarning
 
 
 def test_sun():
     """
     Test that `get_sun` works and it behaves roughly as it should (in GCRS)
     """
-    from ..funcs import get_sun
+    from astropy.coordinates.funcs import get_sun
 
     northern_summer_solstice = Time('2010-6-21')
     northern_winter_solstice = Time('2010-12-21')
@@ -35,8 +35,8 @@ def test_sun():
 
 
 def test_constellations(recwarn):
-    from .. import ICRS, FK5, SkyCoord
-    from ..funcs import get_constellation
+    from astropy.coordinates import ICRS, FK5, SkyCoord
+    from astropy.coordinates.funcs import get_constellation
 
     inuma = ICRS(9*u.hour, 65*u.deg)
 
@@ -66,8 +66,8 @@ def test_constellations(recwarn):
 
 
 def test_concatenate():
-    from .. import FK5, SkyCoord, ICRS
-    from ..funcs import concatenate
+    from astropy.coordinates import FK5, SkyCoord, ICRS
+    from astropy.coordinates.funcs import concatenate
 
     # Just positions
     fk5 = FK5(1*u.deg, 2*u.deg)
@@ -102,8 +102,8 @@ def test_concatenate():
 
 
 def test_concatenate_representations():
-    from ..funcs import concatenate_representations
-    from .. import representation as r
+    from astropy.coordinates.funcs import concatenate_representations
+    from astropy.coordinates import representation as r
 
     reps = [r.CartesianRepresentation([1, 2, 3.]*u.kpc),
             r.SphericalRepresentation(lon=1*u.deg, lat=2.*u.deg,

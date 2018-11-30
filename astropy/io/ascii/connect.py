@@ -5,8 +5,8 @@
 import re
 import functools
 
-from .. import registry as io_registry
-from ...table import Table
+from astropy.io import registry as io_registry
+from astropy.table import Table
 
 __all__ = []
 

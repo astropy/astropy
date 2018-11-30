@@ -3,9 +3,9 @@
 import pytest
 import numpy as np
 
-from ..convolve import convolve, convolve_fft
-from ..kernels import Gaussian2DKernel
-from ...nddata import NDData
+from astropy.convolution.convolve import convolve, convolve_fft
+from astropy.convolution.kernels import Gaussian2DKernel
+from astropy.nddata import NDData
 
 
 def test_basic_nddata():

@@ -4,12 +4,12 @@
 import pytest
 import numpy as np
 
-from ... import units as u
-from ..distances import Distance
-from ..builtin_frames import ICRS, FK5, Galactic, AltAz, SkyOffsetFrame
-from .. import SkyCoord, EarthLocation
-from ...time import Time
-from ...tests.helper import assert_quantity_allclose as assert_allclose
+from astropy import units as u
+from astropy.coordinates.distances import Distance
+from astropy.coordinates.builtin_frames import ICRS, FK5, Galactic, AltAz, SkyOffsetFrame
+from astropy.coordinates import SkyCoord, EarthLocation
+from astropy.time import Time
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 
 
 @pytest.mark.parametrize("inradec,expectedlatlon, tolsep", [

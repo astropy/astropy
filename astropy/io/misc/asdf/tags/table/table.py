@@ -6,7 +6,7 @@ from asdf import yamlutil
 from asdf.tags.core.ndarray import NDArrayType
 
 from astropy import table
-from ...types import AstropyAsdfType
+from astropy.io.misc.asdf.types import AstropyAsdfType
 
 
 class TableType(AstropyAsdfType):

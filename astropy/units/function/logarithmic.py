@@ -2,7 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
 
-from .. import CompositeUnit, UnitsError, dimensionless_unscaled, photometric
+from astropy.units import CompositeUnit, UnitsError, dimensionless_unscaled, photometric
 from .core import FunctionUnitBase, FunctionQuantity
 from .units import dex, dB, mag
 

@@ -17,10 +17,10 @@ import urllib.parse
 import urllib.error
 
 # Astropy
-from .. import units as u
+from astropy import units as u
 from .sky_coordinate import SkyCoord
-from ..utils import data
-from ..utils.state import ScienceState
+from astropy.utils import data
+from astropy.utils.state import ScienceState
 
 __all__ = ["get_icrs_coordinates"]
 
