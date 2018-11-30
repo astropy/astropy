@@ -85,7 +85,12 @@ if not os.path.exists(os.path.join(os.path.dirname(__file__), 'PKG-INFO')):
 install_requires = [min_numpy_version]
 
 extras_require = {
-    'test': ['pytest-astropy']
+    'test': ['pytest-astropy', 'pytest-xdist', 'pytest-mpl',
+             'objgraph', 'IPython', 'coverage', 'skyfield'],
+    'all': ['scipy', 'h5py', 'beautifulsoup4', 'bleach', 'PyYAML',
+            'pandas', 'bintrees', 'sortedcontainers',
+            'pytz', 'jplephem', 'matplotlib>=2.0', 'scikit-image', 'mpmath',
+            'asdf>=2.3', 'bottleneck']
 }
 
 # Avoid installing setup_requires dependencies if the user just
@@ -97,7 +102,7 @@ if is_distutils_display_option():
 setup(name=NAME,
       version=VERSION,
       description='Community-developed python astronomy tools',
-      requires=['numpy'],  # scipy not required, but strongly recommended
+      requires=['numpy'],
       setup_requires=setup_requires,
       install_requires=install_requires,
       extras_require=extras_require,

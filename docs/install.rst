@@ -53,7 +53,7 @@ Astropy also depends on other packages for optional features:
 - `jplephem <https://pypi.org/project/jplephem/>`_: To retrieve JPL
   ephemeris of Solar System objects.
 
-- `matplotlib <http://matplotlib.org/>`_ 1.5 or later: To provide plotting
+- `matplotlib <http://matplotlib.org/>`_ 2.0 or later: To provide plotting
   functionality that `astropy.visualization` enhances.
 
 - `scikit-image <http://scikit-image.org/>`_: To downsample a data array in `astropy.nddata.utils`.
@@ -64,8 +64,6 @@ Astropy also depends on other packages for optional features:
 - `mpmath <http://mpmath.org/>`_: Used for the 'kraft-burrows-nousek'
   interval in `~astropy.stats.poisson_conf_interval`.
 
-- `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
-
 - `asdf <https://github.com/spacetelescope/asdf>`_ 2.0 or later: Enables the
   serialization of various Astropy classes into a portable, hierarchical,
   human-readable representation.
@@ -74,14 +72,18 @@ Astropy also depends on other packages for optional features:
   of sigma-clipping and other functionality that may required computing statistics
   on arrays with NaN values.
 
+And the following packages can optionally be used when testing:
+
 - `pytest-astropy <https://github.com/astropy/pytest-astropy>`_: See
-  :ref:`sourcebuildtest`.
+  :ref:`sourcebuildtest`
 
 - `pytest-xdist <https://docs.pytest.org/en/3.0.0/xdist.html>`_: Used for
   distributed testing.
 
 - `pytest-mpl <https://github.com/matplotlib/pytest-mpl>`_: Used for testing
   with Matplotlib figures.
+
+- `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
 
 - `IPython <https://ipython.org/>`__: Used for testing notebook interface of
   `~astropy.table.Table`.
