@@ -98,10 +98,12 @@ def pytest_report_header(config):
     try:
         astropy_helpers_version = TESTED_VERSIONS['astropy_helpers']
     except KeyError:
-        from ...version import astropy_helpers_version
-    except ImportError:
-        pass
-    else:
+        try:
+            from ...version import astropy_helpers_version
+        except ImportError:
+            astropy_helpers_version = None
+
+    if astropy_helpers_version:
         s += "astropy_helpers: {0}\n".format(astropy_helpers_version)
 
     special_opts = ["remote_data", "pep8"]
