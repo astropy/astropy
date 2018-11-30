@@ -37,9 +37,9 @@ E.g.::
     >>> import astropy.units as u
     >>> import numpy as np
     >>> q = u.Quantity(np.arange(10.), u.m)
-    >>> np.dot(q,q) # doctest: +FLOAT_CMP
+    >>> np.dot(q,q)
     285.0
-    >>> np.hstack((q,q))
+    >>> np.hstack((q,q)) # doctest: +FLOAT_CMP
     <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
                6., 7., 8., 9.] (Unit not initialised)>
 
@@ -48,9 +48,9 @@ E.g.::
     >>> ratio = (3600 * u.s) / (1 * u.h)
     >>> ratio
     <Quantity 3600. s / h>
-    >>> np.array(ratio)
+    >>> np.array(ratio) # doctest: +FLOAT_CMP
     array(3600.)
-    >>> np.array([ratio])
+    >>> np.array([ratio]) # doctest: +FLOAT_CMP
     array([1.])
 
 Work-arounds are available for some cases.  For the above::
@@ -58,10 +58,10 @@ Work-arounds are available for some cases.  For the above::
     >>> q.dot(q)
     <Quantity 285. m2>
 
-    >>> np.array(ratio.to(u.dimensionless_unscaled))
+    >>> np.array(ratio.to(u.dimensionless_unscaled)) # doctest: +FLOAT_CMP
     array(1.)
 
-    >>> u.Quantity([q, q]).flatten()
+    >>> u.Quantity([q, q]).flatten() # doctest: +FLOAT_CMP
     <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
                6., 7., 8., 9.] m>
 
@@ -82,28 +82,28 @@ Care has to be taken when setting array slices using Quantities::
 
     >>> a = np.ones(4)
     >>> a[2:3] = 2*u.kg
-    >>> a
+    >>> a # doctest: +FLOAT_CMP
     array([1., 1., 2., 1.])
 
 ::
 
     >>> a = np.ones(4)
     >>> a[2:3] = 1*u.cm/u.m
-    >>> a
+    >>> a # doctest: +FLOAT_CMP
     array([1., 1., 1., 1.])
 
 Either set single array entries or use lists of Quantities::
 
     >>> a = np.ones(4)
     >>> a[2] = 1*u.cm/u.m
-    >>> a
+    >>> a # doctest: +FLOAT_CMP
     array([1.  , 1.  , 0.01, 1.  ])
 
 ::
 
     >>> a = np.ones(4)
     >>> a[2:3] = [1*u.cm/u.m]
-    >>> a
+    >>> a # doctest: +FLOAT_CMP
     array([1.  , 1.  , 0.01, 1.  ])
 
 Both will throw an exception if units do not cancel, e.g.::
@@ -125,21 +125,21 @@ When broadcasting Quantities, it is necessary to pass ``subok=True`` to
 
    >>> q = u.Quantity(np.arange(10.), u.m)
    >>> b = np.broadcast_to(q, (2, len(q)))
-   >>> b
+   >>> b # doctest: +FLOAT_CMP
    array([[0., 1., 2., 3., 4., 5., 6., 7., 8., 9.],
           [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.]])
    >>> b2 = np.broadcast_to(q, (2, len(q)), subok=True)
-   >>> b2
+   >>> b2 # doctest: +FLOAT_CMP
    <Quantity [[0., 1., 2., 3., 4., 5., 6., 7., 8., 9.],
               [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.]] m>
 
 This is analogous to the case of passing a Quantity to `~numpy.array`::
 
    >>> a = np.array(q)
-   >>> a
+   >>> a # doctest: +FLOAT_CMP
    array([0., 1., 2., 3., 4., 5., 6., 7., 8., 9.])
    >>> a2 = np.array(q, subok=True)
-   >>> a2
+   >>> a2 # doctest: +FLOAT_CMP
    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] m>
 
 See: https://github.com/astropy/astropy/issues/7832
