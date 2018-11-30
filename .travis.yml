@@ -39,6 +39,8 @@ env:
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
         - SETUP_CMD='test'
+        - INSTALL_WITH_PIP=False
+        - EXTRAS_INSTALL=""
 
         # PEP8 errors/warnings:
         # E101 - mix of tabs and spaces
@@ -101,13 +103,15 @@ matrix:
 
         # Now try with all optional dependencies. We also include the --readonly
         # flag to make sure no files are being written to the temporary install
-        # location during testing.
+        # location during testing. We also use this build to make sure that the
+        # dependencies get correctly installed with pip.
         - os: linux
           env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data=astropy --readonly'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="jplephem $ASDF_PIP_DEP"
                LC_CTYPE=C.ascii LC_ALL=C
                PYTEST_VERSION=3.7
+               PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
+               INSTALL_WITH_PIP=True
+               EXTRAS_INSTALL="test,all"
 
         - os: linux
           stage: Initial tests
@@ -176,6 +180,13 @@ before_install:
 install:
     - git clone git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda.sh
+    - if [[ $INSTALL_WITH_PIP == True ]]; then
+        if [ -z $EXTRAS_INSTALL ]; then
+          pip install -e .;
+        else
+          pip install -e .[$EXTRAS_INSTALL];
+        fi
+      fi
 
 script:
     - $MAIN_CMD $SETUP_CMD
