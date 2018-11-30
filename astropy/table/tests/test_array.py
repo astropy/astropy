@@ -3,8 +3,8 @@
 import pytest
 import numpy as np
 
-from ..sorted_array import SortedArray
-from ..table import Table
+from astropy.table.sorted_array import SortedArray
+from astropy.table.table import Table
 
 
 @pytest.fixture

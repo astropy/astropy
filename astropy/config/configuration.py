@@ -16,11 +16,11 @@ from os import path
 import re
 from warnings import warn
 
-from ..extern.configobj import configobj, validate
-from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
-from ..utils import find_current_module
-from ..utils.introspection import resolve_name
-from ..utils.misc import InheritDocstrings
+from astropy.extern.configobj import configobj, validate
+from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from astropy.utils import find_current_module
+from astropy.utils.introspection import resolve_name
+from astropy.utils.misc import InheritDocstrings
 from .paths import get_config_dir
 
 
@@ -219,7 +219,7 @@ class ConfigItem(metaclass=InheritDocstrings):
 
     def __init__(self, defaultvalue='', description=None, cfgtype=None,
                  module=None, aliases=None):
-        from ..utils import isiterable
+        from astropy.utils import isiterable
 
         if module is None:
             module = find_current_module(2)

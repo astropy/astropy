@@ -12,20 +12,20 @@ import pytest
 import numpy as np
 
 
-from ... import units as u
-from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
+from astropy import units as u
+from astropy.coordinates import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
                 GeocentricTrueEcliptic, Longitude, Latitude, GCRS, HCRS,
                 get_moon, FK4, FK4NoETerms, BaseCoordinateFrame,
                 QuantityAttribute, SphericalRepresentation,
                 UnitSphericalRepresentation, CartesianRepresentation)
-from ..sites import get_builtin_sites
-from ...time import Time
-from ...utils import iers
-from ...table import Table
+from astropy.coordinates.sites import get_builtin_sites
+from astropy.time import Time
+from astropy.utils import iers
+from astropy.table import Table
 
-from ...tests.helper import assert_quantity_allclose, catch_warnings
+from astropy.tests.helper import assert_quantity_allclose, catch_warnings
 from .test_matching import HAS_SCIPY, OLDER_SCIPY
-from ...units import allclose as quantity_allclose
+from astropy.units import allclose as quantity_allclose
 
 try:
     import yaml  # pylint: disable=W0611
@@ -159,7 +159,7 @@ def test_regression_4082():
     """
     Issue: https://github.com/astropy/astropy/issues/4082
     """
-    from .. import search_around_sky, search_around_3d
+    from astropy.coordinates import search_around_sky, search_around_3d
     cat = SkyCoord([10.076, 10.00455], [18.54746, 18.54896], unit='deg')
     search_around_sky(cat[0:1], cat, seplimit=u.arcsec * 60, storekdtree=False)
     # in the issue, this raises a TypeError
@@ -183,7 +183,7 @@ def test_regression_4210():
 
     # and for good measure, check the other ecliptic systems are all the same
     # names for their attributes
-    from ..builtin_frames import ecliptic
+    from astropy.coordinates.builtin_frames import ecliptic
     for frame_name in ecliptic.__all__:
         eclcls = getattr(ecliptic, frame_name)
         eclobj = eclcls(1*u.deg, 2*u.deg, 3*u.AU)
@@ -201,11 +201,11 @@ def test_regression_futuretimes_4302():
 
     Relevant comment: https://github.com/astropy/astropy/pull/4302#discussion_r44836531
     """
-    from ...utils.exceptions import AstropyWarning
+    from astropy.utils.exceptions import AstropyWarning
 
     # this is an ugly hack to get the warning to show up even if it has already
     # appeared
-    from ..builtin_frames import utils
+    from astropy.coordinates.builtin_frames import utils
     if hasattr(utils, '__warningregistry__'):
         utils.__warningregistry__.clear()
 
@@ -480,9 +480,9 @@ def test_regression_6300():
     """Check that importing old frame attribute names from astropy.coordinates
     still works. See comments at end of #6300
     """
-    from ...utils.exceptions import AstropyDeprecationWarning
-    from .. import CartesianRepresentation
-    from .. import (TimeFrameAttribute, QuantityFrameAttribute,
+    from astropy.utils.exceptions import AstropyDeprecationWarning
+    from astropy.coordinates import CartesianRepresentation
+    from astropy.coordinates import (TimeFrameAttribute, QuantityFrameAttribute,
                     CartesianRepresentationFrameAttribute)
 
     with catch_warnings() as found_warnings:

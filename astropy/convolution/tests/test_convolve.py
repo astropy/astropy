@@ -4,9 +4,9 @@ import pytest
 import numpy as np
 import numpy.ma as ma
 
-from ..convolve import convolve, convolve_fft
-from ..kernels import Gaussian2DKernel
-from ...utils.exceptions import AstropyUserWarning
+from astropy.convolution.convolve import convolve, convolve_fft
+from astropy.convolution.kernels import Gaussian2DKernel
+from astropy.utils.exceptions import AstropyUserWarning
 
 from numpy.testing import (assert_array_almost_equal_nulp,
                            assert_array_almost_equal,

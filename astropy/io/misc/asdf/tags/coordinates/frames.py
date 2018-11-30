@@ -12,8 +12,8 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import Quantity
 from astropy.coordinates import ICRS, Longitude, Latitude, Angle
 
-from ..unit.quantity import QuantityType
-from ...types import AstropyType
+from astropy.io.misc.asdf.tags.unit.quantity import QuantityType
+from astropy.io.misc.asdf.types import AstropyType
 
 
 __all__ = ['CoordType']

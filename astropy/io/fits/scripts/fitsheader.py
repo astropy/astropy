@@ -62,8 +62,8 @@ import argparse
 
 import numpy as np
 
-from ... import fits
-from .... import log
+from astropy.io import fits
+from astropy import log
 
 
 class ExtensionNotFoundException(Exception):
@@ -243,7 +243,7 @@ class TableHeaderFormatter(HeaderFormatter):
                 pass
 
         if tablerows:
-            from .... import table
+            from astropy import table
             return table.Table(tablerows)
         return None
 
@@ -294,7 +294,7 @@ def print_headers_as_table(args):
     elif len(tables) == 1:
         resulting_table = tables[0]
     else:
-        from .... import table
+        from astropy import table
         resulting_table = table.vstack(tables)
     # Print the string representation of the concatenated table
     resulting_table.write(sys.stdout, format=args.table)
@@ -310,7 +310,7 @@ def print_headers_as_comparison(args):
     args : argparse.Namespace
         Arguments passed from the command-line as defined below.
     """
-    from .... import table
+    from astropy import table
     tables = []
     # Create a Table object for each file
     for filename in args.filename:  # Support wildcards

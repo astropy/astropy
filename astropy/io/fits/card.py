@@ -9,7 +9,7 @@ from .util import _str_to_num, _is_int, translate, _words_group
 from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 from . import conf
-from ...utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['Card', 'Undefined']

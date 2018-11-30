@@ -9,10 +9,10 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
-from .. import LombScargle
-from .._statistics import (cdf_single, pdf_single, fap_single, inv_fap_single,
+from astropy.stats.lombscargle import LombScargle
+from astropy.stats.lombscargle._statistics import (cdf_single, pdf_single, fap_single, inv_fap_single,
                            METHODS)
-from ..utils import convert_normalization, compute_chi2_ref
+from astropy.stats.lombscargle.utils import convert_normalization, compute_chi2_ref
 
 METHOD_KWDS = dict(bootstrap={'n_bootstraps': 20, 'random_seed': 42})
 NORMALIZATIONS = ['standard', 'psd', 'log', 'model']

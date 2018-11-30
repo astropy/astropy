@@ -3,8 +3,8 @@
 import pytest
 import numpy as np
 
-from ....io import fits
-from ..compression import compress_hdu
+from astropy.io import fits
+from astropy.io.fits.compression import compress_hdu
 
 from . import FitsTestCase
 

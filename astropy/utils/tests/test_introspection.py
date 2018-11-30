@@ -5,8 +5,8 @@ from collections import namedtuple
 
 import pytest
 
-from .. import introspection
-from ..introspection import (find_current_module, find_mod_objs,
+from astropy.utils import introspection
+from astropy.utils.introspection import (find_current_module, find_mod_objs,
                              isinstancemethod, minversion)
 
 

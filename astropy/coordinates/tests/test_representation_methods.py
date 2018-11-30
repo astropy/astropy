@@ -4,8 +4,8 @@
 import pytest
 import numpy as np
 
-from ... import units as u
-from .. import (SphericalRepresentation, Longitude, Latitude,
+from astropy import units as u
+from astropy.coordinates import (SphericalRepresentation, Longitude, Latitude,
                 SphericalDifferential)
 
 

@@ -3,7 +3,7 @@
 import pytest
 import numpy as np
 
-from ..stretch import (LinearStretch, SqrtStretch, PowerStretch,
+from astropy.visualization.stretch import (LinearStretch, SqrtStretch, PowerStretch,
                        PowerDistStretch, SquaredStretch, LogStretch,
                        AsinhStretch, SinhStretch, HistEqStretch,
                        ContrastBiasStretch)

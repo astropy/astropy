@@ -8,7 +8,7 @@ available in the `astropy.units` namespace.
 
 
 from . import si
-from ..constants import si as _si
+from astropy.constants import si as _si
 from .core import (UnitBase, def_unit, si_prefixes, binary_prefixes,
                    set_enabled_units)
 

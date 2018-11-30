@@ -10,12 +10,12 @@ from itertools import chain
 import pytest
 import numpy as np
 
-from ... import ascii
-from .... import table
-from ....table.table_helpers import simple_table
-from ....tests.helper import catch_warnings
-from ....utils.exceptions import AstropyWarning, AstropyDeprecationWarning
-from .... import units
+from astropy.io import ascii
+from astropy import table
+from astropy.table.table_helpers import simple_table
+from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from astropy import units
 
 from .common import setup_function, teardown_function
 

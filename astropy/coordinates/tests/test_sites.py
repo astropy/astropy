@@ -1,11 +1,11 @@
 
 import pytest
 
-from ...tests.helper import assert_quantity_allclose
-from ...units import allclose as quantity_allclose
-from ... import units as u
-from .. import Longitude, Latitude, EarthLocation
-from ..sites import get_builtin_sites, get_downloaded_sites, SiteRegistry
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.units import allclose as quantity_allclose
+from astropy import units as u
+from astropy.coordinates import Longitude, Latitude, EarthLocation
+from astropy.coordinates.sites import get_builtin_sites, get_downloaded_sites, SiteRegistry
 
 
 def test_builtin_sites():

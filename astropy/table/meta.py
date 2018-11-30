@@ -234,7 +234,7 @@ def get_yaml_from_header(header):
         raise ImportError('`import yaml` failed, PyYAML package is '
                           'required for serializing mixin columns')
 
-    from ..io.misc.yaml import AstropyDumper
+    from astropy.io.misc.yaml import AstropyDumper
 
     class TableDumper(AstropyDumper):
         """
@@ -323,7 +323,7 @@ def get_header_from_yaml(lines):
         raise ImportError('`import yaml` failed, PyYAML package '
                           'is required for serializing mixin columns')
 
-    from ..io.misc.yaml import AstropyLoader
+    from astropy.io.misc.yaml import AstropyLoader
 
     class TableLoader(AstropyLoader):
         """

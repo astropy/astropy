@@ -4,7 +4,7 @@ This module provides functions to help with testing against iraf tasks
 """
 
 
-from ...logger import log
+from astropy.logger import log
 import numpy as np
 
 

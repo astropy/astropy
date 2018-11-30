@@ -9,18 +9,18 @@ import urllib.error
 import urllib.parse
 
 import numpy as np
-from .. import units as u
-from .. import constants as consts
-from ..units.quantity import QuantityInfoBase
-from ..utils.exceptions import AstropyUserWarning
+from astropy import units as u
+from astropy import constants as consts
+from astropy.units.quantity import QuantityInfoBase
+from astropy.utils.exceptions import AstropyUserWarning
 from .angles import Longitude, Latitude
 from .representation import CartesianRepresentation, CartesianDifferential
 from .errors import UnknownSiteException
-from ..utils import data, deprecated
+from astropy.utils import data, deprecated
 
 try:
     # Not guaranteed available at setup time.
-    from .. import _erfa as erfa
+    from astropy import _erfa as erfa
 except ImportError:
     if not _ASTROPY_SETUP_:
         raise

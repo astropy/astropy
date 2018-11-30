@@ -10,9 +10,9 @@ from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
-from ...coordinates import SkyCoord, BaseCoordinateFrame
-from ...wcs import WCS
-from ...wcs.utils import wcs_to_celestial_frame
+from astropy.coordinates import SkyCoord, BaseCoordinateFrame
+from astropy.wcs import WCS
+from astropy.wcs.utils import wcs_to_celestial_frame
 
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)

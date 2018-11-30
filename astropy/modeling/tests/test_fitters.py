@@ -12,16 +12,16 @@ from numpy.testing import assert_allclose, assert_almost_equal
 from unittest import mock
 
 from . import irafutil
-from .. import models
-from ..core import Fittable2DModel, Parameter
-from ..fitting import *
-from ...utils import NumpyRNGContext
-from ...utils.data import get_pkg_data_filename
+from astropy.modeling import models
+from astropy.modeling.core import Fittable2DModel, Parameter
+from astropy.modeling.fitting import *
+from astropy.utils import NumpyRNGContext
+from astropy.utils.data import get_pkg_data_filename
 from .utils import ignore_non_integer_warning
-from ...stats import sigma_clip
+from astropy.stats import sigma_clip
 
-from ...utils.exceptions import AstropyUserWarning
-from ..fitting import populate_entry_points
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.modeling.fitting import populate_entry_points
 import warnings
 
 try:

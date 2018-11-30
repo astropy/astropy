@@ -11,8 +11,8 @@ from .core import (Fittable1DModel, Fittable2DModel,
                    ModelDefinitionError)
 from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
-from .. import units as u
-from ..units import Quantity, UnitsError
+from astropy import units as u
+from astropy.units import Quantity, UnitsError
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',

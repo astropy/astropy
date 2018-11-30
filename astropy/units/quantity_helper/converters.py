@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from ..core import (UnitsError, UnitConversionError, UnitTypeError,
+from astropy.units.core import (UnitsError, UnitConversionError, UnitTypeError,
                     dimensionless_unscaled)
 
 __all__ = ['can_have_arbitrary_unit', 'converters_and_unit',

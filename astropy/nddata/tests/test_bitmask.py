@@ -8,7 +8,7 @@ import warnings
 import numpy as np
 import pytest
 
-from .. import bitmask
+from astropy.nddata import bitmask
 
 
 MAX_INT_TYPE = np.maximum_sctype(np.int)

@@ -70,11 +70,11 @@ Example
 import base64
 import numpy as np
 
-from ...time import Time, TimeDelta
-from ... import units as u
-from ... import coordinates as coords
-from ...utils import minversion
-from ...table import SerializedColumn
+from astropy.time import Time, TimeDelta
+from astropy import units as u
+from astropy import coordinates as coords
+from astropy.utils import minversion
+from astropy.table import SerializedColumn
 
 
 try:

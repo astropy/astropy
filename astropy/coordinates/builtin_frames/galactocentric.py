@@ -5,19 +5,19 @@ import warnings
 
 import numpy as np
 
-from ... import units as u
-from ...utils.decorators import format_doc
-from ...utils.exceptions import AstropyDeprecationWarning
-from ..angles import Angle
-from ..matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
-from .. import representation as r
-from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
+from astropy import units as u
+from astropy.utils.decorators import format_doc
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.coordinates.angles import Angle
+from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
+from astropy.coordinates import representation as r
+from astropy.coordinates.baseframe import (BaseCoordinateFrame, frame_transform_graph,
                          RepresentationMapping, base_doc)
-from ..attributes import (Attribute, CoordinateAttribute,
+from astropy.coordinates.attributes import (Attribute, CoordinateAttribute,
                           QuantityAttribute,
                           DifferentialAttribute)
-from ..transformations import AffineTransform
-from ..errors import ConvertError
+from astropy.coordinates.transformations import AffineTransform
+from astropy.coordinates.errors import ConvertError
 
 from .icrs import ICRS
 

@@ -13,8 +13,8 @@ except ImportError:
 else:
     HAS_PLT = True
 
-from ... import units as u
-from ..units import quantity_support
+from astropy import units as u
+from astropy.visualization.units import quantity_support
 
 
 @pytest.mark.skipif('not HAS_PLT')

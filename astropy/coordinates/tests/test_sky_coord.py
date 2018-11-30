@@ -12,23 +12,23 @@ import pytest
 import numpy as np
 import numpy.testing as npt
 
-from ... import units as u
-from ...tests.helper import (catch_warnings,
+from astropy import units as u
+from astropy.tests.helper import (catch_warnings,
                              assert_quantity_allclose as assert_allclose)
-from ..representation import REPRESENTATION_CLASSES
-from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
+from astropy.coordinates.representation import REPRESENTATION_CLASSES
+from astropy.coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation,
                             UnitSphericalRepresentation, AltAz,
                             BaseCoordinateFrame, Attribute,
                             frame_transform_graph, RepresentationMapping)
-from ...coordinates import Latitude, EarthLocation
-from ...time import Time
-from ...utils import minversion, isiterable
-from ...utils.compat import NUMPY_LT_1_14
-from ...utils.exceptions import AstropyDeprecationWarning
-from ...units import allclose as quantity_allclose
-from ...io import fits
-from ...wcs import WCS
+from astropy.coordinates import Latitude, EarthLocation
+from astropy.time import Time
+from astropy.utils import minversion, isiterable
+from astropy.utils.compat import NUMPY_LT_1_14
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.units import allclose as quantity_allclose
+from astropy.io import fits
+from astropy.wcs import WCS
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
@@ -583,7 +583,7 @@ def test_position_angle():
 
 def test_position_angle_directly():
     """Regression check for #3800: position_angle should accept floats."""
-    from ..angle_utilities import position_angle
+    from astropy.coordinates.angle_utilities import position_angle
     result = position_angle(10., 20., 10., 20.)
     assert result.unit is u.radian
     assert result.value == 0.
@@ -677,7 +677,7 @@ def test_table_to_coord():
 
     (Regression test for #1762 )
     """
-    from ...table import Table, Column
+    from astropy.table import Table, Column
 
     t = Table()
     t.add_column(Column(data=[1, 2, 3], name='ra', unit=u.deg))
@@ -900,9 +900,9 @@ def test_nodata_failure():
                                           ('all', 0),
                                           ('all', 1)])
 def test_wcs_methods(mode, origin):
-    from ...wcs import WCS
-    from ...utils.data import get_pkg_data_contents
-    from ...wcs.utils import pixel_to_skycoord
+    from astropy.wcs import WCS
+    from astropy.utils.data import get_pkg_data_contents
+    from astropy.wcs.utils import pixel_to_skycoord
 
     header = get_pkg_data_contents('../../wcs/tests/maps/1904-66_TAN.hdr', encoding='binary')
     wcs = WCS(header)
@@ -1017,7 +1017,7 @@ def test_search_around():
     Here we don't actually test the values are right, just that the methods of
     SkyCoord work.  The accuracy tests are in ``test_matching.py``
     """
-    from ...utils import NumpyRNGContext
+    from astropy.utils import NumpyRNGContext
 
     with NumpyRNGContext(987654321):
         sc1 = SkyCoord(np.random.rand(20) * 360.*u.degree,
@@ -1058,8 +1058,8 @@ def test_init_with_frame_instance_keyword():
 
 
 def test_guess_from_table():
-    from ...table import Table, Column
-    from ...utils import NumpyRNGContext
+    from astropy.table import Table, Column
+    from astropy.utils import NumpyRNGContext
 
     tab = Table()
     with NumpyRNGContext(987654321):
@@ -1324,7 +1324,7 @@ def test_frame_attr_changes():
 
 
 def test_cache_clear_sc():
-    from .. import SkyCoord
+    from astropy.coordinates import SkyCoord
 
     i = SkyCoord(1*u.deg, 2*u.deg)
 
@@ -1537,7 +1537,7 @@ def test_none_differential_type():
     """
     This is a regression test for #8021
     """
-    from .. import BaseCoordinateFrame
+    from astropy.coordinates import BaseCoordinateFrame
 
     class MockHeliographicStonyhurst(BaseCoordinateFrame):
         default_representation = SphericalRepresentation

@@ -18,18 +18,18 @@ from .base import DELAYED, _ValidHDU, ExtensionHDU
 # This module may have many dependencies on astropy.io.fits.column, but
 # astropy.io.fits.column has fewer dependencies overall, so it's easier to
 # keep table/column-related utilities in astropy.io.fits.column
-from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
+from astropy.io.fits.column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
                       ATTRIBUTE_TO_KEYWORD, TDEF_RE, Column, ColDefs,
                       _AsciiColDefs, _FormatP, _FormatQ, _makep,
                       _parse_tformat, _scalar_to_format, _convert_format,
                       _cmp_recformats)
-from ..fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
-from ..header import Header, _pad_length
-from ..util import _is_int, _str_to_num
+from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
+from astropy.io.fits.header import Header, _pad_length
+from astropy.io.fits.util import _is_int, _str_to_num
 
-from ....utils import lazyproperty
-from ....utils.exceptions import AstropyDeprecationWarning
-from ....utils.decorators import deprecated_renamed_argument
+from astropy.utils import lazyproperty
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.decorators import deprecated_renamed_argument
 
 
 class FITSTableDumpDialect(csv.excel):
@@ -843,9 +843,9 @@ class BinTableHDU(_TableBaseHDU):
 
     def __init__(self, data=None, header=None, name=None, uint=False, ver=None,
                  character_as_bytes=False):
-        from ....table import Table
+        from astropy.table import Table
         if isinstance(data, Table):
-            from ..convenience import table_to_hdu
+            from astropy.io.fits.convenience import table_to_hdu
             hdu = table_to_hdu(data)
             if header is not None:
                 hdu.header.update(header)

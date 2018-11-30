@@ -5,7 +5,7 @@
 import pytest
 import numpy as np
 
-from .. import FlagCollection
+from astropy.nddata import FlagCollection
 
 
 def test_init():

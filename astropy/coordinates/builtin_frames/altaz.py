@@ -3,11 +3,11 @@
 
 import numpy as np
 
-from ... import units as u
-from ...utils.decorators import format_doc
-from .. import representation as r
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
-from ..attributes import (Attribute, TimeAttribute,
+from astropy import units as u
+from astropy.utils.decorators import format_doc
+from astropy.coordinates import representation as r
+from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
+from astropy.coordinates.attributes import (Attribute, TimeAttribute,
                           QuantityAttribute, EarthLocationAttribute)
 
 __all__ = ['AltAz']

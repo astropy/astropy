@@ -6,7 +6,7 @@ part of a larger framework or standard.
 
 import warnings
 
-from ...utils.exceptions import AstropyDeprecationWarning, NoValue
+from astropy.utils.exceptions import AstropyDeprecationWarning, NoValue
 
 __all__ = ['fnpickle', 'fnunpickle']
 

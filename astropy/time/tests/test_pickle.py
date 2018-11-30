@@ -3,7 +3,7 @@
 import pickle
 import numpy as np
 
-from .. import Time
+from astropy.time import Time
 
 
 class TestPickle():

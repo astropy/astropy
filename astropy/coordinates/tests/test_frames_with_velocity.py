@@ -5,12 +5,12 @@
 import pytest
 import numpy as np
 
-from ... import units as u
-from ..builtin_frames import ICRS, Galactic, Galactocentric
-from .. import builtin_frames as bf
-from ...units import allclose as quantity_allclose
-from ..errors import ConvertError
-from .. import representation as r
+from astropy import units as u
+from astropy.coordinates.builtin_frames import ICRS, Galactic, Galactocentric
+from astropy.coordinates import builtin_frames as bf
+from astropy.units import allclose as quantity_allclose
+from astropy.coordinates.errors import ConvertError
+from astropy.coordinates import representation as r
 
 def test_api():
     # transform observed Barycentric velocities to full-space Galactocentric
@@ -188,7 +188,7 @@ def test_differential_type_arg():
     Test passing in an explicit differential class to the initializer or
     changing the differential class via set_representation_cls
     """
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     icrs = ICRS(ra=1*u.deg, dec=60*u.deg,
                 pm_ra=10*u.mas/u.yr, pm_dec=-11*u.mas/u.yr,

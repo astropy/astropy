@@ -2,11 +2,11 @@
 
 import numpy as np
 
-from ... import units as u
-from .. import Longitude, Latitude, EarthLocation, SkyCoord
+from astropy import units as u
+from astropy.coordinates import Longitude, Latitude, EarthLocation, SkyCoord
 # test on frame with most complicated frame attributes.
-from ..builtin_frames import ICRS, AltAz, GCRS
-from ...time import Time
+from astropy.coordinates.builtin_frames import ICRS, AltAz, GCRS
+from astropy.time import Time
 
 
 class TestManipulation():

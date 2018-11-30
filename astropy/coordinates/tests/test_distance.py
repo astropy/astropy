@@ -8,12 +8,12 @@ import pytest
 import numpy as np
 from numpy import testing as npt
 
-from ... import units as u
-from ...units import allclose as quantity_allclose
-from .. import Longitude, Latitude, Distance, CartesianRepresentation
-from ..builtin_frames import ICRS, Galactic
-from ...tests.helper import catch_warnings
-from ...utils.exceptions import AstropyWarning
+from astropy import units as u
+from astropy.units import allclose as quantity_allclose
+from astropy.coordinates import Longitude, Latitude, Distance, CartesianRepresentation
+from astropy.coordinates.builtin_frames import ICRS, Galactic
+from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyWarning
 
 try:
     import scipy  # pylint: disable=W0611
@@ -114,7 +114,7 @@ def test_distances_scipy():
     The distance-related tests that require scipy due to the cosmology
     module needing scipy integration routines
     """
-    from ...cosmology import WMAP5
+    from astropy.cosmology import WMAP5
 
     # try different ways to initialize a Distance
     d4 = Distance(z=0.23)  # uses default cosmology - as of writing, WMAP7

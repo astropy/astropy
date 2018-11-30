@@ -5,12 +5,12 @@ from io import StringIO
 
 import pytest
 
-from ..ui import read
-from ..ipac import Ipac, IpacFormatError, IpacFormatErrorDBMS
-from ....tests.helper import catch_warnings
-from ... import ascii
-from ....table import Table, Column
-from ..core import masked
+from astropy.io.ascii.ui import read
+from astropy.io.ascii.ipac import Ipac, IpacFormatError, IpacFormatErrorDBMS
+from astropy.tests.helper import catch_warnings
+from astropy.io import ascii
+from astropy.table import Table, Column
+from astropy.io.ascii.core import masked
 
 
 DATA = '''

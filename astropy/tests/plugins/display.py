@@ -13,8 +13,8 @@ import locale
 import math
 from collections import OrderedDict
 
-from ..helper import ignore_warnings
-from ...utils.introspection import resolve_name
+from astropy.tests.helper import ignore_warnings
+from astropy.utils.introspection import resolve_name
 
 
 PYTEST_HEADER_MODULES = OrderedDict([('Numpy', 'numpy'),
@@ -24,7 +24,7 @@ PYTEST_HEADER_MODULES = OrderedDict([('Numpy', 'numpy'),
                                      ('Pandas', 'pandas')])
 
 # This always returns with Astropy's version
-from ... import __version__
+from astropy import __version__
 TESTED_VERSIONS = OrderedDict([('Astropy', __version__)])
 
 
@@ -99,7 +99,7 @@ def pytest_report_header(config):
         astropy_helpers_version = TESTED_VERSIONS['astropy_helpers']
     else:
         try:
-            from ...version import astropy_helpers_version
+            from astropy.version import astropy_helpers_version
         except ImportError:
             astropy_helpers_version = None
 

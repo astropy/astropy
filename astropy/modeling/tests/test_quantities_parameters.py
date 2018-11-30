@@ -8,14 +8,14 @@ Tests that relate to using quantities/units on parameters of models.
 import numpy as np
 import pytest
 
-from ..core import Model, Fittable1DModel, InputParameterError
-from ..parameters import Parameter, ParameterDefinitionError
-from ..models import (Gaussian1D, Pix2Sky_TAN, RotateNative2Celestial,
+from astropy.modeling.core import Model, Fittable1DModel, InputParameterError
+from astropy.modeling.parameters import Parameter, ParameterDefinitionError
+from astropy.modeling.models import (Gaussian1D, Pix2Sky_TAN, RotateNative2Celestial,
                       Rotation2D)
-from ... import units as u
-from ...units import UnitsError
-from ...tests.helper import assert_quantity_allclose
-from ... import coordinates as coord
+from astropy import units as u
+from astropy.units import UnitsError
+from astropy.tests.helper import assert_quantity_allclose
+from astropy import coordinates as coord
 
 
 class BaseTestModel(Fittable1DModel):

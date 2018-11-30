@@ -18,8 +18,8 @@ except ImportError:
 import pytest
 import numpy as np
 
-from .. import hist
-from ...stats import histogram
+from astropy.visualization import hist
+from astropy.stats import histogram
 
 
 @pytest.mark.skipif('not HAS_PLT')

@@ -96,9 +96,9 @@ import numpy as np
 
 from .core import Fittable1DModel
 from .parameters import Parameter
-from .. import constants as const
-from .. import units as u
-from ..utils.exceptions import AstropyUserWarning
+from astropy import constants as const
+from astropy import units as u
+from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ['BlackBody1D', 'blackbody_nu', 'blackbody_lambda']
 

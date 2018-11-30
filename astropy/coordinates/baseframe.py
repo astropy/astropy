@@ -17,11 +17,11 @@ import warnings
 import numpy as np
 
 # Project
-from ..utils.compat.misc import override__dir__
-from ..utils.decorators import lazyproperty, format_doc
-from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
-from .. import units as u
-from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
+from astropy.utils.compat.misc import override__dir__
+from astropy.utils.decorators import lazyproperty, format_doc
+from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from astropy import units as u
+from astropy.utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
                      check_broadcast)
 from .transformations import TransformGraph
 from . import representation as r

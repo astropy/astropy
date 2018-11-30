@@ -23,7 +23,7 @@ try:
 except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
-from .. import conf
+from astropy import conf
 
 from .misc import isiterable
 from .decorators import classproperty
@@ -461,7 +461,7 @@ def human_file_size(size):
     if hasattr(size, 'unit'):
         # Import units only if necessary because the import takes a
         # significant time [#4649]
-        from .. import units as u
+        from astropy import units as u
         size = u.Quantity(size, u.byte).value
 
     suffixes = ' kMGTPEZY'

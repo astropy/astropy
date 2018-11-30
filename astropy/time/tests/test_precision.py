@@ -3,7 +3,7 @@ import functools
 import pytest
 import numpy as np
 
-from .. import Time, TimeDelta
+from astropy.time import Time, TimeDelta
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,

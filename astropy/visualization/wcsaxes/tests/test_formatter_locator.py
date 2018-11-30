@@ -6,10 +6,10 @@ from numpy.testing import assert_almost_equal
 
 from matplotlib import rc_context
 
-from .... import units as u
-from ....tests.helper import assert_quantity_allclose
-from ....units import UnitsError
-from ..formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
+from astropy import units as u
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.units import UnitsError
+from astropy.visualization.wcsaxes.formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 
 
 class TestAngleFormatterLocator:

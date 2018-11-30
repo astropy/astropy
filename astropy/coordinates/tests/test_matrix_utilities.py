@@ -3,8 +3,8 @@
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
-from ... import units as u
-from ..matrix_utilities import rotation_matrix, angle_axis
+from astropy import units as u
+from astropy.coordinates.matrix_utilities import rotation_matrix, angle_axis
 
 
 def test_rotation_matrix():

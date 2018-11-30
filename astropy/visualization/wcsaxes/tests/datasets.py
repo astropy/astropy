@@ -2,8 +2,8 @@
 """Downloads the FITS files that are used in image testing and for building documentation.
 """
 
-from ....utils.data import get_pkg_data_filename
-from ....io import fits
+from astropy.utils.data import get_pkg_data_filename
+from astropy.io import fits
 
 __all__ = ['fetch_msx_hdu',
            'fetch_rosat_hdu',

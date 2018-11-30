@@ -18,7 +18,7 @@ from contextlib import suppress
 from . import core
 from . import fixedwidth
 
-from ...units import Unit
+from astropy.units import Unit
 
 
 __doctest_skip__ = ['*']

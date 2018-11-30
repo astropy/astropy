@@ -10,12 +10,12 @@ import pytest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import numpy as np
 
-from ...tests.helper import raises, catch_warnings
-from ...io import fits
-from .. import wcs
-from .. import _wcs
-from ...utils.data import get_pkg_data_contents, get_pkg_data_fileobj, get_pkg_data_filename
-from ... import units as u
+from astropy.tests.helper import raises, catch_warnings
+from astropy.io import fits
+from astropy.wcs import wcs
+from astropy.wcs import _wcs
+from astropy.utils.data import get_pkg_data_contents, get_pkg_data_fileobj, get_pkg_data_filename
+from astropy import units as u
 
 
 ######################################################################
@@ -826,7 +826,7 @@ def test_detailed_err():
 
 
 def test_header_parse():
-    from ...io import fits
+    from astropy.io import fits
     with get_pkg_data_fileobj(
             'data/header_newlines.fits', encoding='binary') as test_file:
         hdulist = fits.open(test_file)

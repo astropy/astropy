@@ -7,16 +7,16 @@ import pytest
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .... import units as u
-from ....wcs import WCS
-from ....io import fits
-from ....coordinates import SkyCoord
-from ....tests.helper import catch_warnings
-from ....tests.image_tests import ignore_matplotlibrc
+from astropy import units as u
+from astropy.wcs import WCS
+from astropy.io import fits
+from astropy.coordinates import SkyCoord
+from astropy.tests.helper import catch_warnings
+from astropy.tests.image_tests import ignore_matplotlibrc
 
-from ..core import WCSAxes
-from ..utils import get_coord_meta
-from ..transforms import CurvedTransform
+from astropy.visualization.wcsaxes.core import WCSAxes
+from astropy.visualization.wcsaxes.utils import get_coord_meta
+from astropy.visualization.wcsaxes.transforms import CurvedTransform
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 

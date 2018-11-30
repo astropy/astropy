@@ -11,8 +11,8 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ...tests.helper import assert_quantity_allclose
-from ... import units as u, constants as c
+from astropy.tests.helper import assert_quantity_allclose
+from astropy import units as u, constants as c
 
 lu_units = [u.dex, u.mag, u.decibel]
 

@@ -4,7 +4,7 @@
 import pytest
 import numpy as np
 
-from ... import units as u
+from astropy import units as u
 
 
 class TestQuantityArrayCopy:

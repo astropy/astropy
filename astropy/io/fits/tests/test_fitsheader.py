@@ -3,7 +3,7 @@
 import pytest
 
 from . import FitsTestCase
-from ..scripts import fitsheader
+from astropy.io.fits.scripts import fitsheader
 
 
 class TestFITSheader_script(FitsTestCase):

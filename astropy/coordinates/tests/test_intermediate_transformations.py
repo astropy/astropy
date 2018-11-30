@@ -6,21 +6,21 @@
 import pytest
 import numpy as np
 
-from ... import units as u
-from ...tests.helper import (assert_quantity_allclose as assert_allclose)
-from ...time import Time
-from .. import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
+from astropy import units as u
+from astropy.tests.helper import (assert_quantity_allclose as assert_allclose)
+from astropy.time import Time
+from astropy.coordinates import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
                 PrecessedGeocentric, CartesianRepresentation, SkyCoord,
                 SphericalRepresentation, UnitSphericalRepresentation,
                 HCRS, HeliocentricTrueEcliptic)
 
 
-from ..._erfa import epv00
+from astropy._erfa import epv00
 
 from .utils import randomly_sample_sphere
-from ..builtin_frames.utils import get_jd12
-from .. import solar_system_ephemeris
-from ...units import allclose
+from astropy.coordinates.builtin_frames.utils import get_jd12
+from astropy.coordinates import solar_system_ephemeris
+from astropy.units import allclose
 
 try:
     import jplephem  # pylint: disable=W0611
@@ -143,7 +143,7 @@ def test_cirs_to_altaz():
     Check the basic CIRS<->AltAz transforms.  More thorough checks implicitly
     happen in `test_iau_fullstack`
     """
-    from .. import EarthLocation
+    from astropy.coordinates import EarthLocation
 
     ra, dec, dist = randomly_sample_sphere(200)
     cirs = CIRS(ra=ra, dec=dec, obstime='J2000')
@@ -236,7 +236,7 @@ def test_gcrs_altaz():
     """
     Check GCRS<->AltAz transforms for round-tripping.  Has multiple paths
     """
-    from .. import EarthLocation
+    from astropy.coordinates import EarthLocation
 
     ra, dec, _ = randomly_sample_sphere(1)
     gcrs = GCRS(ra=ra[0], dec=dec[0], obstime='J2000')

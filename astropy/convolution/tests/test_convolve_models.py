@@ -4,9 +4,9 @@ import math
 import numpy as np
 import pytest
 
-from ..convolve import convolve, convolve_fft, convolve_models
-from ...modeling import models, fitting
-from ...utils.misc import NumpyRNGContext
+from astropy.convolution.convolve import convolve, convolve_fft, convolve_models
+from astropy.modeling import models, fitting
+from astropy.utils.misc import NumpyRNGContext
 from numpy.testing import assert_allclose, assert_almost_equal
 
 try:

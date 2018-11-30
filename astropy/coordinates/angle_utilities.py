@@ -25,8 +25,8 @@ import numpy as np
 from .errors import (IllegalHourWarning, IllegalHourError,
                      IllegalMinuteWarning, IllegalMinuteError,
                      IllegalSecondWarning, IllegalSecondError)
-from ..utils import format_exception
-from .. import units as u
+from astropy.utils import format_exception
+from astropy import units as u
 
 
 TAB_HEADER = """# -*- coding: utf-8 -*-
@@ -81,7 +81,7 @@ class _AngleParser:
 
     @classmethod
     def _make_parser(cls):
-        from ..extern.ply import lex, yacc
+        from astropy.extern.ply import lex, yacc
 
         # List of token names.
         tokens = (

@@ -13,12 +13,12 @@ from contextlib import suppress
 from urllib.parse import urlparse
 import xmlrpc.client as xmlrpc
 
-from ..config.paths import _find_home
+from astropy.config.paths import _find_home
 
 
-from .. import log
+from astropy import log
 
-from ..utils.data import get_readable_fileobj
+from astropy.utils.data import get_readable_fileobj
 
 from .errors import SAMPHubError, SAMPWarning
 

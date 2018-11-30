@@ -1,8 +1,8 @@
 # Various tests of models not related to evaluation, fitting, or parameters
 import pytest
 
-from ...tests.helper import assert_quantity_allclose
-from ... import units as u
+from astropy.tests.helper import assert_quantity_allclose
+from astropy import units as u
 
 from astropy.modeling.models import Mapping, Pix2Sky_TAN, Gaussian1D
 from astropy.modeling import models

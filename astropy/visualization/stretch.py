@@ -8,7 +8,7 @@ another set of [0:1] values with a transformation
 
 import numpy as np
 
-from ..utils.misc import InheritDocstrings
+from astropy.utils.misc import InheritDocstrings
 from .transform import BaseTransform
 
 

@@ -12,7 +12,7 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
-from ..jackknife import jackknife_resampling, jackknife_stats
+from astropy.stats.jackknife import jackknife_resampling, jackknife_stats
 
 
 def test_jackknife_resampling():

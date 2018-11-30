@@ -32,7 +32,7 @@ def quantity_support(format='latex_inline'):
         provided, defaults to ``latex_inline``.
 
     """
-    from .. import units as u
+    from astropy import units as u
 
     from matplotlib import units
     from matplotlib import ticker

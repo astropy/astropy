@@ -13,10 +13,10 @@ import numpy as np
 from matplotlib.path import Path
 from matplotlib.transforms import Transform
 
-from ... import units as u
-from ...wcs import WCS
-from ...wcs.utils import wcs_to_celestial_frame
-from ...coordinates import (SkyCoord, frame_transform_graph,
+from astropy import units as u
+from astropy.wcs import WCS
+from astropy.wcs.utils import wcs_to_celestial_frame
+from astropy.coordinates import (SkyCoord, frame_transform_graph,
                             SphericalRepresentation,
                             UnitSphericalRepresentation,
                             BaseCoordinateFrame)

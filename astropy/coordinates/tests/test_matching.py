@@ -5,12 +5,12 @@ import pytest
 import numpy as np
 from numpy import testing as npt
 
-from ...tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 
-from ... import units as u
-from ...utils import minversion
+from astropy import units as u
+from astropy.utils import minversion
 
-from .. import matching
+from astropy.coordinates import matching
 
 """
 These are the tests for coordinate matching.
@@ -32,8 +32,8 @@ else:
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_function():
-    from .. import ICRS
-    from ..matching import match_coordinates_3d
+    from astropy.coordinates import ICRS
+    from astropy.coordinates.matching import match_coordinates_3d
     # this only uses match_coordinates_3d because that's the actual implementation
 
     cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree)
@@ -52,8 +52,8 @@ def test_matching_function():
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_function_3d_and_sky():
-    from .. import ICRS
-    from ..matching import match_coordinates_3d, match_coordinates_sky
+    from astropy.coordinates import ICRS
+    from astropy.coordinates.matching import match_coordinates_3d, match_coordinates_sky
 
     cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 5] * u.kpc)
     ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree, distance=[1, 1, 1, 5] * u.kpc)
@@ -80,7 +80,7 @@ def test_matching_function_3d_and_sky():
                          ])
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
-    from .. import ICRS
+    from astropy.coordinates import ICRS
 
     def make_scs():
         cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 2]*u.kpc)
@@ -125,7 +125,7 @@ def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_python_kdtree(monkeypatch):
-    from .. import ICRS
+    from astropy.coordinates import ICRS
 
     cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 2]*u.kpc)
     ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree, distance=[1, 2, 3, 4]*u.kpc)
@@ -137,9 +137,9 @@ def test_python_kdtree(monkeypatch):
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_method():
-    from .. import ICRS, SkyCoord
-    from ...utils import NumpyRNGContext
-    from ..matching import match_coordinates_3d, match_coordinates_sky
+    from astropy.coordinates import ICRS, SkyCoord
+    from astropy.utils import NumpyRNGContext
+    from astropy.coordinates.matching import match_coordinates_3d, match_coordinates_sky
 
     with NumpyRNGContext(987654321):
         cmatch = ICRS(np.random.rand(20) * 360.*u.degree,
@@ -168,8 +168,8 @@ def test_matching_method():
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 @pytest.mark.skipif(str('OLDER_SCIPY'))
 def test_search_around():
-    from .. import ICRS, SkyCoord
-    from ..matching import search_around_sky, search_around_3d
+    from astropy.coordinates import ICRS, SkyCoord
+    from astropy.coordinates.matching import search_around_sky, search_around_3d
 
     coo1 = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 5] * u.kpc)
     coo2 = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree, distance=[1, 1, 1, 5] * u.kpc)

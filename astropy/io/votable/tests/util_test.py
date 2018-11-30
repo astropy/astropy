@@ -5,8 +5,8 @@ A set of tests for the util.py module
 
 
 # LOCAL
-from .. import util
-from ....tests.helper import raises
+from astropy.io.votable import util
+from astropy.tests.helper import raises
 
 
 def test_range_list():

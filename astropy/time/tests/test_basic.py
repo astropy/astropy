@@ -9,14 +9,14 @@ from copy import deepcopy
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ...tests.helper import catch_warnings, pytest
-from ...utils.exceptions import AstropyDeprecationWarning
-from ...utils import isiterable
-from .. import Time, ScaleValueError, STANDARD_TIME_SCALES, TimeString, TimezoneInfo
-from ...coordinates import EarthLocation
-from ... import units as u
-from ... import _erfa as erfa
-from ...table import Column
+from astropy.tests.helper import catch_warnings, pytest
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils import isiterable
+from astropy.time import Time, ScaleValueError, STANDARD_TIME_SCALES, TimeString, TimezoneInfo
+from astropy.coordinates import EarthLocation
+from astropy import units as u
+from astropy import _erfa as erfa
+from astropy.table import Column
 try:
     import pytz
     HAS_PYTZ = True

@@ -17,13 +17,13 @@ import astropy.units as u
 
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
-from .._erfa import ufunc as erfa_ufunc
-from ..utils import ShapedLikeNDArray, classproperty
+from astropy._erfa import ufunc as erfa_ufunc
+from astropy.utils import ShapedLikeNDArray, classproperty
 
-from ..utils import deprecated_attribute
-from ..utils.exceptions import AstropyDeprecationWarning
-from ..utils.misc import InheritDocstrings
-from ..utils.compat import NUMPY_LT_1_14
+from astropy.utils import deprecated_attribute
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.misc import InheritDocstrings
+from astropy.utils.compat import NUMPY_LT_1_14
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",

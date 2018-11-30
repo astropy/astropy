@@ -4,15 +4,15 @@
 
 import pytest
 import numpy as np
-from ...units import allclose as quantity_allclose
+from astropy.units import allclose as quantity_allclose
 
-from ... import units as u
-from ... import constants
-from ...time import Time
-from ..builtin_frames import ICRS, AltAz, LSR, GCRS, Galactic, FK5
-from ..baseframe import frame_transform_graph
-from ..sites import get_builtin_sites
-from .. import (TimeAttribute,
+from astropy import units as u
+from astropy import constants
+from astropy.time import Time
+from astropy.coordinates.builtin_frames import ICRS, AltAz, LSR, GCRS, Galactic, FK5
+from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.sites import get_builtin_sites
+from astropy.coordinates import (TimeAttribute,
                 FunctionTransformWithFiniteDifference, get_sun,
                 CartesianRepresentation, SphericalRepresentation,
                 CartesianDifferential, SphericalDifferential,
@@ -73,7 +73,7 @@ def test_faux_lsr(dt, symmetric):
 
 def test_faux_fk5_galactic():
 
-    from ..builtin_frames.galactic_transforms import fk5_to_gal, _gal_to_fk5
+    from astropy.coordinates.builtin_frames.galactic_transforms import fk5_to_gal, _gal_to_fk5
 
     class Galactic2(Galactic):
         pass

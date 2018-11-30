@@ -8,7 +8,7 @@ import locale
 import pytest
 import numpy as np
 
-from .. import data, misc
+from astropy.utils import data, misc
 
 
 def test_isiterable():
@@ -50,7 +50,7 @@ def test_skip_hidden():
 
 
 def test_JsonCustomEncoder():
-    from ... import units as u
+    from astropy import units as u
     assert json.dumps(np.arange(3), cls=misc.JsonCustomEncoder) == '[0, 1, 2]'
     assert json.dumps(1+2j, cls=misc.JsonCustomEncoder) == '[1.0, 2.0]'
     assert json.dumps(set([1, 2, 1]), cls=misc.JsonCustomEncoder) == '[1, 2]'

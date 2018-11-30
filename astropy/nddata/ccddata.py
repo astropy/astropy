@@ -6,11 +6,11 @@ import numpy as np
 from .compat import NDDataArray
 from .nduncertainty import (
     StdDevUncertainty, NDUncertainty, VarianceUncertainty, InverseVariance)
-from ..io import fits, registry
-from .. import units as u
-from .. import log
-from ..wcs import WCS
-from ..utils.decorators import sharedmethod
+from astropy.io import fits, registry
+from astropy import units as u
+from astropy import log
+from astropy.wcs import WCS
+from astropy.utils.decorators import sharedmethod
 
 
 __all__ = ['CCDData', 'fits_ccddata_reader', 'fits_ccddata_writer']

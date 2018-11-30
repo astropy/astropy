@@ -18,12 +18,12 @@ except ImportError:
 
 import numpy as np
 
-from ... import config as _config
-from ... import units as u
-from ...table import Table, QTable
-from ...utils.data import get_pkg_data_filename, clear_download_cache
-from ... import utils
-from ...utils.exceptions import AstropyWarning
+from astropy import config as _config
+from astropy import units as u
+from astropy.table import Table, QTable
+from astropy.utils.data import get_pkg_data_filename, clear_download_cache
+from astropy import utils
+from astropy.utils.exceptions import AstropyWarning
 
 __all__ = ['Conf', 'conf',
            'IERS', 'IERS_B', 'IERS_A', 'IERS_Auto',

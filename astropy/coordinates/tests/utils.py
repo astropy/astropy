@@ -4,8 +4,8 @@
 
 import numpy as np
 
-from ... import units as u
-from ...utils import NumpyRNGContext
+from astropy import units as u
+from astropy.utils import NumpyRNGContext
 
 
 def randomly_sample_sphere(ntosample, randomseed=12345):

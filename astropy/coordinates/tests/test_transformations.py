@@ -5,15 +5,15 @@
 import numpy as np
 import pytest
 
-from ... import units as u
-from .. import transformations as t
-from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, AltAz
-from .. import representation as r
-from ..baseframe import frame_transform_graph
-from ...tests.helper import (assert_quantity_allclose as assert_allclose,
+from astropy import units as u
+from astropy.coordinates import transformations as t
+from astropy.coordinates.builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, AltAz
+from astropy.coordinates import representation as r
+from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.tests.helper import (assert_quantity_allclose as assert_allclose,
                              catch_warnings)
-from ...time import Time
-from ...units import allclose as quantity_allclose
+from astropy.time import Time
+from astropy.units import allclose as quantity_allclose
 
 
 # Coordinates just for these tests.
@@ -138,8 +138,8 @@ def test_sphere_cart():
     """
     Tests the spherical <-> cartesian transform functions
     """
-    from ...utils import NumpyRNGContext
-    from .. import spherical_to_cartesian, cartesian_to_spherical
+    from astropy.utils import NumpyRNGContext
+    from astropy.coordinates import spherical_to_cartesian, cartesian_to_spherical
 
     x, y, z = spherical_to_cartesian(1, 0, 0)
     assert_allclose(x, 1)
@@ -392,7 +392,7 @@ def test_unit_spherical_with_differentials(rep):
 
 def test_vel_transformation_obstime_err():
     # TODO: replace after a final decision on PR #6280
-    from ..sites import get_builtin_sites
+    from astropy.coordinates.sites import get_builtin_sites
 
     diff = r.CartesianDifferential([.1, .2, .3]*u.km/u.s)
     rep = r.CartesianRepresentation([1, 2, 3]*u.au, differentials=diff)
@@ -438,8 +438,8 @@ def test_frame_override_component_with_attribute():
     It was previously possible to define a frame with an attribute with the
     same name as a component. We don't want to allow this!
     """
-    from ..baseframe import BaseCoordinateFrame
-    from ..attributes import Attribute
+    from astropy.coordinates.baseframe import BaseCoordinateFrame
+    from astropy.coordinates.attributes import Attribute
 
     class BorkedFrame(BaseCoordinateFrame):
         ra = Attribute(default=150)
@@ -464,8 +464,8 @@ def test_static_matrix_combine_paths():
 
     This is somewhat of a regression test for #7706
     """
-    from ..baseframe import BaseCoordinateFrame
-    from ..matrix_utilities import rotation_matrix
+    from astropy.coordinates.baseframe import BaseCoordinateFrame
+    from astropy.coordinates.matrix_utilities import rotation_matrix
 
     class AFrame(BaseCoordinateFrame):
         default_representation = r.SphericalRepresentation

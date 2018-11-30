@@ -4,7 +4,7 @@ import sys
 
 import numpy as np
 
-from ....io import fits
+from astropy.io import fits
 from . import FitsTestCase
 
 

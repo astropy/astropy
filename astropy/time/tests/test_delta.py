@@ -8,9 +8,9 @@ import pytest
 
 from datetime import timedelta
 
-from .. import (Time, TimeDelta, OperandTypeError, ScaleValueError,
+from astropy.time import (Time, TimeDelta, OperandTypeError, ScaleValueError,
                 TIME_SCALES, STANDARD_TIME_SCALES, TIME_DELTA_SCALES)
-from ... import units as u
+from astropy import units as u
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,

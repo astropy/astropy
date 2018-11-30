@@ -18,7 +18,7 @@ from contextlib import contextmanager
 
 # Hack to make circular imports with units work
 try:
-    from .. import units
+    from astropy import units
     del units
 except ImportError:
     pass

@@ -43,8 +43,8 @@ import builtins
 import numpy as np
 
 # LOCAL
-from .. import log
-from ..io import fits
+from astropy import log
+from astropy.io import fits
 from . import _docutil as __
 try:
     from . import _wcs
@@ -54,8 +54,8 @@ except ImportError:
     else:
         _wcs = None
 
-from ..utils.compat import possible_filename
-from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
+from astropy.utils.compat import possible_filename
+from astropy.utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 
 
 # Mix-in class that provides the APE 14 API
@@ -3104,7 +3104,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         and this will generate a plot with the correct WCS coordinates on the
         axes.
         """
-        from ..visualization.wcsaxes import WCSAxes
+        from astropy.visualization.wcsaxes import WCSAxes
         return WCSAxes, {'wcs': self}
 
     def footprint_contains(self, coord, **kwargs):

@@ -2,7 +2,7 @@
 
 import pytest
 
-from ..bst import BST
+from astropy.table.bst import BST
 
 
 def get_tree(TreeType):

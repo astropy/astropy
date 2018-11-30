@@ -32,8 +32,8 @@ from functools import reduce, wraps
 import numpy as np
 
 from .utils import poly_map_domain, _combine_equivalency_dict
-from ..units import Quantity
-from ..utils.exceptions import AstropyUserWarning
+from astropy.units import Quantity
+from astropy.utils.exceptions import AstropyUserWarning
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
 

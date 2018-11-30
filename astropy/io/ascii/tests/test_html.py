@@ -12,16 +12,16 @@ to be installed.
 
 from io import StringIO
 
-from .. import html
-from .. import core
-from ....table import Table
+from astropy.io.ascii import html
+from astropy.io.ascii import core
+from astropy.table import Table
 
 import pytest
 import numpy as np
 
 from .common import setup_function, teardown_function
-from ... import ascii
-from ....utils.xml.writer import HAS_BLEACH
+from astropy.io import ascii
+from astropy.utils.xml.writer import HAS_BLEACH
 
 # Check to see if the BeautifulSoup dependency is present.
 try:

@@ -5,9 +5,9 @@ import platform
 import pytest
 import numpy as np
 
-from ....io import fits
+from astropy.io import fits
 from . import FitsTestCase
-from ....tests.helper import ignore_warnings
+from astropy.tests.helper import ignore_warnings
 
 
 class TestUintFunctions(FitsTestCase):

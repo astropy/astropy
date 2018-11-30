@@ -95,7 +95,7 @@ def get_formats(data_class=None, readwrite=None):
     format_table : Table
         Table of available I/O formats.
     """
-    from ..table import Table
+    from astropy.table import Table
 
     format_classes = sorted(set(_readers) | set(_writers), key=itemgetter(0))
     rows = []
@@ -492,7 +492,7 @@ def read(cls, *args, format=None, **kwargs):
 
             if len(args):
                 if isinstance(args[0], PATH_TYPES):
-                    from ..utils.data import get_readable_fileobj
+                    from astropy.utils.data import get_readable_fileobj
                     # path might be a pathlib.Path object
                     if isinstance(args[0], pathlib.Path):
                         args = (str(args[0]),) + args[1:]

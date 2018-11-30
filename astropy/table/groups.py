@@ -6,7 +6,7 @@ import warnings
 import numpy as np
 from .index import get_index_by_names
 
-from ..utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['TableGroups', 'ColumnGroups']

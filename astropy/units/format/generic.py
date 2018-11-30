@@ -20,8 +20,8 @@ import warnings
 
 from . import core, utils
 from .base import Base
-from ...utils import classproperty
-from ...utils.misc import did_you_mean
+from astropy.utils import classproperty
+from astropy.utils.misc import did_you_mean
 
 
 def _to_string(cls, unit):
@@ -104,7 +104,7 @@ class Generic(Base):
 
     @classmethod
     def _make_lexer(cls):
-        from ...extern.ply import lex
+        from astropy.extern.ply import lex
 
         tokens = cls._tokens
 
@@ -184,7 +184,7 @@ class Generic(Base):
         formats, the only difference being the set of available unit
         strings.
         """
-        from ...extern.ply import yacc
+        from astropy.extern.ply import yacc
 
         tokens = cls._tokens
 
@@ -201,7 +201,7 @@ class Generic(Base):
                  | factor product inverse_unit
                  | factor
             '''
-            from ..core import Unit
+            from astropy.units.core import Unit
             if len(p) == 2:
                 p[0] = Unit(p[1])
             elif len(p) == 3:
@@ -214,7 +214,7 @@ class Generic(Base):
             division_product_of_units : division_product_of_units division product_of_units
                                       | product_of_units
             '''
-            from ..core import Unit
+            from astropy.units.core import Unit
             if len(p) == 4:
                 p[0] = Unit(p[1] / p[3])
             else:

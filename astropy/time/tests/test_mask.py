@@ -3,10 +3,10 @@
 import functools
 import numpy as np
 
-from ...utils.compat import NUMPY_LT_1_14
-from ...tests.helper import pytest
-from .. import Time
-from ...table import Table
+from astropy.utils.compat import NUMPY_LT_1_14
+from astropy.tests.helper import pytest
+from astropy.time import Time
+from astropy.table import Table
 
 try:
     import h5py  # pylint: disable=W0611

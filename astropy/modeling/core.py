@@ -31,19 +31,19 @@ from functools import partial
 
 import numpy as np
 
-from ..utils import indent, metadata
-from ..table import Table
-from ..units import Quantity, UnitsError, dimensionless_unscaled
-from ..units.utils import quantity_asanyarray
-from ..utils import (sharedmethod, find_current_module,
+from astropy.utils import indent, metadata
+from astropy.table import Table
+from astropy.units import Quantity, UnitsError, dimensionless_unscaled
+from astropy.units.utils import quantity_asanyarray
+from astropy.utils import (sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer,
                      check_broadcast, IncompatibleShapeError, isiterable)
-from ..utils.codegen import make_function_with_signature
-from ..utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.codegen import make_function_with_signature
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from .utils import (combine_labels, make_binary_operator_eval,
                     ExpressionTree, AliasDict, get_inputs_and_params,
                     _BoundingBox, _combine_equivalency_dict)
-from ..nddata.utils import add_array, extract_array
+from astropy.nddata.utils import add_array, extract_array
 
 from .parameters import Parameter, InputParameterError, param_repr_oneline
 

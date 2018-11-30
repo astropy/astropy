@@ -12,7 +12,7 @@ standard, see the NASA/Science Office of Standards and Technology
 publication, NOST 100-2.0.
 """
 
-from ... import config as _config
+from astropy import config as _config
 
 # Set module-global boolean variables
 # TODO: Make it possible to set these variables via environment variables

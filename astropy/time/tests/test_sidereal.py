@@ -5,8 +5,8 @@ import itertools
 import pytest
 import numpy as np
 
-from .. import Time
-from ..core import SIDEREAL_TIME_MODELS
+from astropy.time import Time
+from astropy.time.core import SIDEREAL_TIME_MODELS
 
 allclose_hours = functools.partial(np.allclose, rtol=1e-15, atol=3e-8)
 # 0.1 ms atol; IERS-B files change at that level.

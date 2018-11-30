@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 from astropy.wcs import WCS
 from astropy.io import fits
 
-from ..core import WCSAxes
-from .... import units as u
-from ....tests.image_tests import ignore_matplotlibrc
+from astropy.visualization.wcsaxes.core import WCSAxes
+from astropy import units as u
+from astropy.tests.image_tests import ignore_matplotlibrc
 
 ROOT = os.path.join(os.path.dirname(__file__))
 MSX_HEADER = fits.Header.fromtextfile(os.path.join(ROOT, 'data', 'msx_header'))

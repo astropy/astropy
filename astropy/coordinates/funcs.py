@@ -13,11 +13,11 @@ from collections.abc import Sequence
 
 import numpy as np
 
-from .. import units as u
-from ..constants import c
-from .. import _erfa as erfa
-from ..io import ascii
-from ..utils import isiterable, data
+from astropy import units as u
+from astropy.constants import c
+from astropy import _erfa as erfa
+from astropy.io import ascii
+from astropy.utils import isiterable, data
 from .sky_coordinate import SkyCoord
 from .builtin_frames import GCRS, PrecessedGeocentric
 from .representation import SphericalRepresentation, CartesianRepresentation

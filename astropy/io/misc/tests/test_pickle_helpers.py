@@ -2,9 +2,9 @@
 
 import pytest
 
-from .. import fnpickle, fnunpickle
-from ....tests.helper import catch_warnings
-from ....utils.exceptions import AstropyDeprecationWarning
+from astropy.io.misc import fnpickle, fnunpickle
+from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_fnpickling_simple(tmpdir):

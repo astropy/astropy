@@ -10,11 +10,11 @@ import pytest
 from numpy.testing import assert_allclose
 
 
-from ..core import Model
-from ..models import Gaussian1D, Shift, Scale, Pix2Sky_TAN
-from ... import units as u
-from ...units import UnitsError
-from ...tests.helper import assert_quantity_allclose
+from astropy.modeling.core import Model
+from astropy.modeling.models import Gaussian1D, Shift, Scale, Pix2Sky_TAN
+from astropy import units as u
+from astropy.units import UnitsError
+from astropy.tests.helper import assert_quantity_allclose
 
 
 # We start off by taking some simple cases where the units are defined by

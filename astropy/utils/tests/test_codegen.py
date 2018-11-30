@@ -5,7 +5,7 @@ import traceback
 
 import pytest
 
-from ..codegen import make_function_with_signature
+from astropy.utils.codegen import make_function_with_signature
 
 
 def test_make_function_with_signature_lineno():

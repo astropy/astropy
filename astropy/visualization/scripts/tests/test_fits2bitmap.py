@@ -3,13 +3,13 @@
 import pytest
 import numpy as np
 
-from ....io import fits
+from astropy.io import fits
 
 try:
     import matplotlib  # pylint: disable=W0611
     import matplotlib.image as mpimg
     HAS_MATPLOTLIB = True
-    from ..fits2bitmap import fits2bitmap, main
+    from astropy.visualization.scripts.fits2bitmap import fits2bitmap, main
 except ImportError:
     HAS_MATPLOTLIB = False
 
