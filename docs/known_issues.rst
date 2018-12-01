@@ -37,7 +37,7 @@ E.g.::
     >>> import astropy.units as u
     >>> import numpy as np
     >>> q = u.Quantity(np.arange(10.), u.m)
-    >>> np.dot(q,q)
+    >>> np.dot(q,q) # doctest: +FLOAT_CMP
     285.0
     >>> np.hstack((q,q)) # doctest: +FLOAT_CMP
     <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
@@ -46,7 +46,7 @@ E.g.::
 ::
 
     >>> ratio = (3600 * u.s) / (1 * u.h)
-    >>> ratio
+    >>> ratio # doctest: +FLOAT_CMP
     <Quantity 3600. s / h>
     >>> np.array(ratio) # doctest: +FLOAT_CMP
     array(3600.)
@@ -55,7 +55,7 @@ E.g.::
 
 Work-arounds are available for some cases.  For the above::
 
-    >>> q.dot(q)
+    >>> q.dot(q) # doctest: +FLOAT_CMP
     <Quantity 285. m2>
 
     >>> np.array(ratio.to(u.dimensionless_unscaled)) # doctest: +FLOAT_CMP
