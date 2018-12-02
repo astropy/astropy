@@ -40,8 +40,8 @@ module, as well as the standard Astropy docstring format.
 
 * Any external package dependencies aside from NumPy_, SciPy_, or Matplotlib_
   must be explicitly mentioned in the documentation. They should also be
-  recorded in the ``pip-requirements-doc`` file in the root of the astropy
-  repository.
+  recorded in the ``setup.py`` file in the root of the astropy
+  repository, optionally using an ``extras_require`` entry.
 
 * Configuration options using the :mod:`astropy.config` mechanisms must be
   explicitly mentioned in the documentation.
