@@ -90,7 +90,11 @@ extras_require = {
     'all': ['scipy', 'h5py', 'beautifulsoup4', 'bleach', 'PyYAML',
             'pandas', 'bintrees', 'sortedcontainers',
             'pytz', 'jplephem', 'matplotlib>=2.0', 'scikit-image', 'mpmath',
-            'asdf>=2.3', 'bottleneck']
+            'asdf>=2.3', 'bottleneck', 'ipython'],
+    'docs': ['scipy', 'h5py', 'beautifulsoup4', 'bleach', 'PyYAML',
+             'pandas', 'bintrees', 'sortedcontainers',
+             'pytz', 'jplephem', 'matplotlib>=2.0', 'scikit-image', 'mpmath',
+             'asdf>=2.3', 'bottleneck', 'ipython', 'sphinx-astropy']
 }
 
 # Avoid installing setup_requires dependencies if the user just
