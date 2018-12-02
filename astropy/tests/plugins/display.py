@@ -40,7 +40,7 @@ def pytest_report_header(config):
     # TESTED_VERSIONS can contain the affiliated package version, too
     if len(TESTED_VERSIONS) > 1:
         for pkg, version in TESTED_VERSIONS.items():
-            if pkg != 'Astropy':
+            if pkg not in ['Astropy', 'astropy_helpers']:
                 s = "\nRunning tests with {0} version {1}.\n".format(
                     pkg, version)
     else:
@@ -96,10 +96,14 @@ def pytest_report_header(config):
 
     # Helpers version
     try:
-        from ...version import astropy_helpers_version
-    except ImportError:
-        pass
-    else:
+        astropy_helpers_version = TESTED_VERSIONS['astropy_helpers']
+    except KeyError:
+        try:
+            from ...version import astropy_helpers_version
+        except ImportError:
+            astropy_helpers_version = None
+
+    if astropy_helpers_version:
         s += "astropy_helpers: {0}\n".format(astropy_helpers_version)
 
     special_opts = ["remote_data", "pep8"]
