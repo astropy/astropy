@@ -15,8 +15,6 @@ Astropy has the following strict requirements:
 
 - `pytest`_ 3.1 or later
 
-.. note:: Also see ``pip-requirements``.
-
 Astropy also depends on other packages for optional features:
 
 - `scipy`_: To power a variety of features in several modules.
@@ -93,8 +91,6 @@ And the following packages can optionally be used when testing:
 
 - `skyfield <https://rhodesmill.org/skyfield/>`_: Used for testing Solar System
   coordinates.
-
-.. note:: Also see ``pip-requirements-dev``.
 
 However, note that these only need to be installed if those particular features
 are needed. Astropy will import even if these dependencies are not installed.
@@ -425,8 +421,6 @@ make sure that `Graphviz <http://www.graphviz.org>`_ is installed. If you
 install sphinx-astropy with conda, graphviz will automatically get installed,
 but if you use pip, you will need to install Graphviz separately as it isn't
 a Python package.
-
-.. note:: Also see ``pip-requirements-doc``.
 
 Building
 ^^^^^^^^

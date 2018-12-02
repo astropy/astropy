@@ -57,7 +57,8 @@ packages that use the full bugfix/maintenance branch approach.)
       $ conda create -n astropy_release_build_v<version> astropy
       $ source activate astropy_release_build_v<version>
       $ conda uninstall astropy  # still keeps the dependencies
-      $ pip install -r pip-requirements-dev  # any that might be left over
+      $ pip install -e .[docs,test]  # any that might be left over
+      $ pip uninstall astropy
 
 #. Before doing a release of Astropy, you may need to do a release of
    astropy-helpers.  This is not always necessary, as there are not always any

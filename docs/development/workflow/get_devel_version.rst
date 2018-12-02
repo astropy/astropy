@@ -231,8 +231,7 @@ ahead to the more sophisticated method look at :ref:`virtual_envs`).
 
 In the directory where your copy of `Astropy`_ is type::
 
-    pip install -r pip-requirements-dev
-    python setup.py develop
+    pip install -e .[all,test]
 
 Several pages of output will follow the first time you do this; this wouldn't
 be a bad time to get a fresh cup of coffee. At the end of it you should see
