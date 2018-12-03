@@ -601,6 +601,9 @@ astropy.coordinates
 - Negating a ``SphericalRepresentation`` object now changes the angular
   coordinates (by rotating 180º) instead of negating the distance. [#7988]
 
+- Creation of new frames now generally creates copies of frame attributes,
+  rather than inconsistently either copying or making references. [#8204]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
