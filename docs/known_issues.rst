@@ -166,7 +166,7 @@ This will result in the following traceback when using this with Quantities::
 
 An easy solution is::
 
-    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s)
+    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s) # doctest: +SKIP
     False
 
 Quantities in np.linspace failure on numpy 1.10
