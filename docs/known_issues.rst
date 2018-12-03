@@ -109,7 +109,7 @@ Either set single array entries or use lists of Quantities::
 Both will throw an exception if units do not cancel, e.g.::
 
     >>> a = np.ones(4)
-    >>> a[2] = 1*u.cm
+    >>> a[2] = 1*u.cm # doctest: +SKIP
     Traceback (most recent call last):
     ...
     TypeError: only dimensionless scalar quantities can be converted to Python scalars
