@@ -1524,3 +1524,53 @@ def test_distance_warning(recwarn):
     # second check is because the "originating" ValueError says the above,
     # while the representation one includes the below
     assert 'you must explicitly pass' in str(excinfo.value)
+
+
+def test_basic_equality():
+    r1 = CartesianRepresentation(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc)
+    r2 = CartesianRepresentation(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc)
+
+    assert r1 == r2
+
+    r3 = CartesianRepresentation(x=1*u.kpc, y=2*u.kpc, z=3.1*u.kpc)
+
+    assert r1 != r3
+    assert r2 != r3
+
+
+def test_non_matching_reprtype_equality():
+    cr = CartesianRepresentation(1*u.kpc, 0*u.kpc, 0*u.kpc)
+    sr = SphericalRepresentation(0*u.rad, 0*u.rad, 1*u.kpc)
+    assert cr == sr
+
+    sr2 = SphericalRepresentation(0.001*u.rad, 0*u.rad, 1*u.kpc)
+
+    assert sr != sr2
+    assert cr != sr2
+
+
+def test_differential_equality():
+    diff = CartesianDifferential(d_x=1*u.km/u.s,
+                                 d_y=2*u.km/u.s,
+                                 d_z=3*u.km/u.s)
+
+    crd = CartesianRepresentation(x=1*u.kpc, y=0*u.kpc, z=0*u.kpc,
+                                  differentials=diff)
+    srd = crd.represent_as(SphericalRepresentation, SphericalDifferential)
+    # we don't try to auto=convert differentials
+    assert crd != srd
+
+    #but they should do the right thing if matched
+    srd_to_crd = srd.represent_as(CartesianRepresentation, CartesianDifferential)
+    assert crd == srd_to_crd
+
+    crnod = CartesianRepresentation(x=1*u.kpc, y=0*u.kpc, z=0*u.kpc)
+    assert crnod != crd
+
+    diff2 = CartesianDifferential(d_x=1*u.km/u.s,
+                                  d_y=2*u.km/u.s,
+                                  d_z=4*u.km/u.s)
+    crd2 = CartesianRepresentation(x=1*u.kpc, y=0*u.kpc, z=0*u.kpc,
+                                   differentials=diff2)
+
+    assert crd != crd2
