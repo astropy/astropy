@@ -179,6 +179,8 @@ To see how the operations work, consider the following examples::
   >>> car_array.mean(axis=0)  # doctest: +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in m
       [(2. ,  2.,  0. ), (2.5,  1.,  6. ), (1.5, -2., -4.5)]>
+  >>> car_array == car_array + CartesianRepresentation([0, 0, 0]*u.m)
+  True
 
   >>> unit_x = UnitSphericalRepresentation(0.*u.deg, 0.*u.deg)
   >>> unit_y = UnitSphericalRepresentation(90.*u.deg, 0.*u.deg)
@@ -470,6 +472,12 @@ and use this ``Differential``-free object for any arithmetic operation::
   <CartesianRepresentation (x, y, z) in AU
       [( 0.,  60., 120.), (15.,  75., 135.), (30.,  90., 150.),
        (45., 105., 165.)]>
+
+.. note::
+
+  Currently representations with differentials only are considered equal if they
+  are the same type of representation (in addition to having all the same)
+  values in the differentials.
 
 .. _astropy-coordinates-create-repr:
 
