@@ -1844,8 +1844,17 @@ class _UnitMetaClass(InheritDocstrings):
         elif s is None:
             raise TypeError("None is not a valid Unit")
 
-        else:
-            raise TypeError("{0} can not be converted to a Unit".format(s))
+        elif 'unit' in s.__class__.__name__.lower():
+            try:
+                # Some unity thing. Try conversion via string.
+                string = str(s)
+                # But already ensure we don't do dimensionless
+                string = string.replace('dimensionless', '')
+                return Unit(string, parse_strict=parse_strict)
+            except Exception:
+                pass
+
+        raise TypeError("{0} can not be converted to a Unit".format(s))
 
 
 class Unit(NamedUnit, metaclass=_UnitMetaClass):
