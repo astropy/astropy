@@ -171,7 +171,6 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         for component, attr in zip(components, attrs):
             setattr(self, '_' + component, attr)
 
-
     def __eq__(self, other):
         if not isinstance(other, BaseRepresentationOrDifferential):
             return False
@@ -182,11 +181,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                     return False
             return True
         else:
-            # Note that, critically, this drops the differentials if either are
-            # representations with differentials, which means we don't get stuck
-            # in a heinous loop
             return self.to_cartesian() == other.to_cartesian()
-
 
 
     @classmethod
@@ -511,22 +506,35 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
         self._differentials = self._validate_differentials(differentials)
 
     def __eq__(self, other):
-        if super().__eq__(other):
-            if self._differentials is None:
+        self_wodiff = self.without_differentials()
+        other_wodiff = other.without_differentials() if hasattr(other, 'without_differentials') else other
+
+        # use the explicit-class form of super here because we need the __eq__
+        # from BaseRepresentationOrDifferential to not have inf recursion.
+        if super(BaseRepresentation, self_wodiff).__eq__(other_wodiff):
+            self_has_diffs = bool(self._differentials)
+            other_has_diffs = bool(getattr(other, '_differentials', None))
+            if self_has_diffs and other_has_diffs:
+                if not isinstance(other, self.__class__):
+                    # we don't try to auto-convert differentials.  Too much can
+                    # go wrong.
+                    return False
+                else:
+                    # go through all the differentials, make sure they all match
+                    otherkeys = list(other._differentials.keys())
+                    for k in self._differentials.keys():
+                        if self._differentials[k] != other._differentials.get(k, None):
+                            return False
+                        else:
+                            otherkeys.remove(k)
+                    # this final equality ensures that there are not some dangling
+                    # differentials in other that are not in self
+                    return len(otherkeys) == 0
+            elif not self_has_diffs and not other_has_diffs:
                 return True
-            elif getattr(other, '_differentials', None) is None:
-                return False
             else:
-                # go through all the differentials, make sure they all match
-                otherkeys = list(other._differentials.keys())
-                for k in self._differentials.keys():
-                    if self._differentials[k] != other._differentials.get(k, None):
-                        return False
-                    else:
-                        otherkeys.pop(k)
-                # this final equality ensures that there are not some dangling
-                # differentials in other that are not in self
-                return len(otherkeys) == 0
+                # either self_has_diffs and not other_has_diffs or vice versa
+                return False
 
         return False
 
