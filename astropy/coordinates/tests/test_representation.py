@@ -1574,3 +1574,16 @@ def test_differential_equality():
                                    differentials=diff2)
 
     assert crd != crd2
+
+
+def test_equality_array():
+    r1 = CartesianRepresentation(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc)
+    dr = CartesianRepresentation(x=[1, 0]*u.kpc,
+                                 y=[1, 0]*u.kpc,
+                                 z=[1, 0]*u.kpc)
+    r2 = CartesianRepresentation(x=[2, 1]*u.kpc,
+                                 y=[3, 2]*u.kpc,
+                                 z=[4, 3]*u.kpc)
+
+    assert r1 + dr == r2
+    assert r1 + dr != r2 + dr

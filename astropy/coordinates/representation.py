@@ -177,7 +177,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
         if isinstance(other, self.__class__):
             for comp in self.components:
-                if getattr(self, comp) != getattr(other, comp):
+                if np.any(getattr(self, comp) != getattr(other, comp)):
                     return False
             return True
         else:
