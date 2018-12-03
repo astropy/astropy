@@ -95,9 +95,9 @@ def pytest_report_header(config):
             s += "{0}: {1}\n".format(module_display, version)
 
     # Helpers version
-    try:
+    if 'astropy_helpers' in TESTED_VERSIONS:
         astropy_helpers_version = TESTED_VERSIONS['astropy_helpers']
-    except KeyError:
+    else:
         try:
             from ...version import astropy_helpers_version
         except ImportError:
