@@ -343,6 +343,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             # If the value has a `unit` attribute and if not None
             # (for Columns with uninitialized unit), treat it like a quantity.
             value_unit = getattr(value, 'unit', None)
+            # Also check "units", to capture quantities from the unyt package
+            if value_unit is None:
+                value_unit = getattr(value, 'units', None)
             if value_unit is None:
                 # Default to dimensionless for no (initialized) unit attribute.
                 if unit is None:
