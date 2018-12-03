@@ -582,6 +582,8 @@ astropy.coordinates
 - Added a ``directional_offset_by`` method to ``SkyCoord`` that computes a new
   coordinate given a coordinate, position angle, and angular separation [#5727]
 
+- Representations now have equality comparison. [#8205]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 - The default cosmology has been changed from ``WMAP9`` to ``Planck15``. [#8123]
