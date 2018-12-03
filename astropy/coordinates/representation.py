@@ -171,6 +171,24 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         for component, attr in zip(components, attrs):
             setattr(self, '_' + component, attr)
 
+
+    def __eq__(self, other):
+        if not isinstance(other, BaseRepresentationOrDifferential):
+            return False
+
+        if isinstance(other, self.__class__):
+            for comp in self.components:
+                if getattr(self, comp) != getattr(other, comp):
+                    return False
+            return True
+        else:
+            # Note that, critically, this drops the differentials if either are
+            # representations with differentials, which means we don't get stuck
+            # in a heinous loop
+            return self.to_cartesian() == other.to_cartesian()
+
+
+
     @classmethod
     def get_name(cls):
         """Name of the representation or differential.
@@ -491,6 +509,26 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
         # Handle any differentials passed in.
         super().__init__(*args, **kwargs)
         self._differentials = self._validate_differentials(differentials)
+
+    def __eq__(self, other):
+        if super().__eq__(other):
+            if self._differentials is None:
+                return True
+            elif getattr(other, '_differentials', None) is None:
+                return False
+            else:
+                # go through all the differentials, make sure they all match
+                otherkeys = list(other._differentials.keys())
+                for k in self._differentials.keys():
+                    if self._differentials[k] != other._differentials.get(k, None):
+                        return False
+                    else:
+                        otherkeys.pop(k)
+                # this final equality ensures that there are not some dangling
+                # differentials in other that are not in self
+                return len(otherkeys) == 0
+
+        return False
 
     def _validate_differentials(self, differentials):
         """
