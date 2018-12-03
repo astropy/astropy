@@ -1885,6 +1885,16 @@ class _UnitMetaClass(type):
         elif s is None:
             raise TypeError("None is not a valid Unit")
 
+        elif 'unit' in s.__class__.__name__.lower():
+            try:
+                # Some unity thing. Try conversion via string.
+                string = str(s)
+                # But ensure we don't do dimensionless (unyt) or none (amuse).
+                string = string.replace('dimensionless', '').replace('none', '')
+                return Unit(string, parse_strict=parse_strict)
+            except Exception:
+                pass
+
         else:
             raise TypeError(f"{s} can not be converted to a Unit")
 
