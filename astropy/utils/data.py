@@ -1001,9 +1001,11 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
     # Check if URL is Astropy data server, which has alias, and cache it.
     if (url_key.startswith(conf.dataurl) and
             conf.dataurl not in _dataurls_to_alias):
-        with urllib.request.urlopen(conf.dataurl, timeout=timeout) as remote:
-            _dataurls_to_alias[conf.dataurl] = [conf.dataurl, remote.geturl()]
-
+        try:
+            with urllib.request.urlopen(conf.dataurl, timeout=timeout) as remote:
+                _dataurls_to_alias[conf.dataurl] = [conf.dataurl, remote.geturl()]
+        except urllib.error.URLError:  # Host unreachable
+            _dataurls_to_alias[conf.dataurl] = [conf.dataurl]
     try:
         if cache:
             # We don't need to acquire the lock here, since we are only reading
