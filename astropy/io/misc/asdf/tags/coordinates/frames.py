@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+
 import os
 import glob
 
@@ -7,14 +8,12 @@ from asdf import tagged
 from asdf.yamlutil import custom_tree_to_tagged_tree
 
 import astropy.coordinates
+from astropy.coordinates import ICRS, Angle, Latitude, Longitude
 from astropy.coordinates.baseframe import frame_transform_graph
-from astropy.tests.helper import assert_quantity_allclose
-from astropy.units import Quantity
-from astropy.coordinates import ICRS, Longitude, Latitude, Angle
-
 from astropy.io.misc.asdf.tags.unit.quantity import QuantityType
 from astropy.io.misc.asdf.types import AstropyType
-
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.units import Quantity
 
 __all__ = ['CoordType']
 

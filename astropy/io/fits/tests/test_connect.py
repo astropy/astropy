@@ -1,29 +1,26 @@
-import os
+
 import gc
+import os
 import pathlib
 import warnings
 
-import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.io.fits.column import (_parse_tdisp_format, _fortran_to_python_format,
-                      python_to_tdisp)
-
-from astropy.io.fits import HDUList, PrimaryHDU, BinTableHDU
-
-from astropy.io import fits
+import pytest
 
 from astropy import units as u
-from astropy.table import Table, QTable, NdarrayMixin, Column
+from astropy.coordinates import Angle, EarthLocation, Latitude, Longitude, SkyCoord
+from astropy.io import fits
+from astropy.io.fits import BinTableHDU, HDUList, PrimaryHDU
+from astropy.io.fits.column import _fortran_to_python_format, _parse_tdisp_format, python_to_tdisp
+from astropy.table import Column, NdarrayMixin, QTable, Table
 from astropy.table.table_helpers import simple_table
 from astropy.tests.helper import catch_warnings
-from astropy.units.format.fits import UnitScaleError
-from astropy.utils.exceptions import AstropyUserWarning
-
-from astropy.coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
 from astropy.time import Time, TimeDelta
+from astropy.units.format.fits import UnitScaleError
 from astropy.units.quantity import QuantityInfo
+from astropy.utils.exceptions import AstropyUserWarning
 
 try:
     import yaml  # pylint: disable=W0611

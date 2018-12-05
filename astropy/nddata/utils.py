@@ -2,17 +2,18 @@
 """
 This module includes helper functions for array operations.
 """
+
 from copy import deepcopy
 
 import numpy as np
 
-from .decorators import support_nddata
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.utils import lazyproperty
-from astropy.wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
 from astropy.wcs import Sip
+from astropy.wcs.utils import proj_plane_pixel_scales, skycoord_to_pixel
 
+from .decorators import support_nddata
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',
            'overlap_slices', 'block_reduce', 'block_replicate',

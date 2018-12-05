@@ -5,12 +5,13 @@
 import io
 
 import numpy as np
+
 import pytest
 
+from astropy import units as u
+from astropy.utils import console
 
 from . import test_progress_bar_func
-from astropy.utils import console
-from astropy import units as u
 
 
 class FakeTTY(io.StringIO):

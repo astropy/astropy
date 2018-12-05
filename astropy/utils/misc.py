@@ -4,24 +4,23 @@
 A "grab bag" of relatively small general-purpose utilities that don't have
 a clear module/package to live in.
 """
+
+import os
+import re
 import abc
-import contextlib
+import sys
+import json
+import locale
+import signal
 import difflib
 import inspect
-import json
-import os
-import signal
-import sys
-import traceback
-import unicodedata
-import locale
 import threading
-import re
-
+import traceback
+import contextlib
+import unicodedata
 from itertools import zip_longest
 from contextlib import contextmanager
-from collections import defaultdict, OrderedDict
-
+from collections import OrderedDict, defaultdict
 
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'find_api_page', 'is_path_hidden', 'walk_skip_hidden',

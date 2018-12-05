@@ -21,21 +21,20 @@ function.  `~astropy.modeling.fitting.LevMarLSQFitter` uses
 implementation.
 """
 
-
 import abc
 import inspect
 import operator
 import warnings
-
-from functools import reduce, wraps
+from functools import wraps, reduce
 
 import numpy as np
 
-from .utils import poly_map_domain, _combine_equivalency_dict
 from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
-from .optimizers import (SLSQP, Simplex)
-from .statistic import (leastsquare)
+
+from .optimizers import DEFAULT_ACC, DEFAULT_EPS, DEFAULT_MAXITER, SLSQP, Simplex
+from .statistic import leastsquare
+from .utils import _combine_equivalency_dict, poly_map_domain
 
 # Check pkg_resources exists
 try:
@@ -55,7 +54,7 @@ STATISTICS = [leastsquare]
 # Optimizers implemented in `astropy.modeling.optimizers.py
 OPTIMIZERS = [Simplex, SLSQP]
 
-from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
+
 
 
 class ModelsError(Exception):
@@ -111,7 +110,6 @@ def fitter_unit_support(func):
 
                 # We now combine any instance-level input equivalencies with user
                 # specified ones at call-time.
-
 
                 input_units_equivalencies = _combine_equivalency_dict(
                     model.inputs, equivalencies, model.input_units_equivalencies)

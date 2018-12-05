@@ -55,23 +55,23 @@ explanation of all the different formats.
 """
 
 
-import operator
 import os
+import operator
 import warnings
 
 import numpy as np
 
+from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.exceptions import AstropyUserWarning
+
 from .diff import FITSDiff, HDUDiff
 from .file import FILE_MODES, _File
 from .hdu.base import _BaseHDU, _ValidHDU
-from .hdu.hdulist import fitsopen, HDUList
-from .hdu.image import PrimaryHDU, ImageHDU
+from .hdu.hdulist import HDUList, fitsopen
+from .hdu.image import ImageHDU, PrimaryHDU
 from .hdu.table import BinTableHDU
 from .header import Header
-from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
-from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.decorators import deprecated_renamed_argument
-
+from .util import _is_int, fileobj_closed, fileobj_mode, fileobj_name
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
            'append', 'update', 'info', 'tabledump', 'tableload',

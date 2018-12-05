@@ -3,29 +3,27 @@
 
 
 import re
-from io import BytesIO, open
-from collections import OrderedDict
 import locale
-import platform
-from io import StringIO
-
 import pathlib
-import pytest
+import platform
+from io import BytesIO, StringIO, open
+from collections import OrderedDict
+
 import numpy as np
 
-from astropy.io import ascii
-from astropy.table import Table
-from astropy import table
-from astropy.units import Unit
-from astropy.table.table_helpers import simple_table
+import pytest
 
-from .common import (raises, assert_equal, assert_almost_equal,
-                     assert_true)
+from astropy import table
+from astropy.io import ascii
 from astropy.io.ascii import core
-from astropy.io.ascii.ui import _probably_html, get_read_trace, cparser
+from astropy.io.ascii.ui import _probably_html, cparser, get_read_trace
+from astropy.table import Table
+from astropy.table.table_helpers import simple_table
+from astropy.units import Unit
 
 # setup/teardown function to have the tests run in the correct directory
-from .common import setup_function, teardown_function
+from .common import (assert_almost_equal, assert_equal, assert_true,
+                     raises, setup_function, teardown_function)
 
 try:
     import bz2  # pylint: disable=W0611

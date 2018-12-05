@@ -1,11 +1,11 @@
+
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.units import Quantity
 from astropy.coordinates import SkyCoord
-
-from astropy.wcs.wcsapi.low_level_api import BaseLowLevelWCS
+from astropy.units import Quantity
 from astropy.wcs.wcsapi.high_level_api import HighLevelWCSMixin
+from astropy.wcs.wcsapi.low_level_api import BaseLowLevelWCS
 
 
 class DoubleLowLevelWCS(BaseLowLevelWCS):
@@ -74,7 +74,6 @@ def test_simple_duplicate():
 
     assert_allclose(x, 1)
     assert_allclose(y, 2)
-
 
 
 class SkyCoordDuplicateWCS(DoubleLowLevelWCS, HighLevelWCSMixin):

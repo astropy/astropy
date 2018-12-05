@@ -2,12 +2,12 @@
 
 
 import numpy as np
+
 from matplotlib.patches import Polygon
 
 from astropy import units as u
+from astropy.coordinates.matrix_utilities import matrix_product, rotation_matrix
 from astropy.coordinates.representation import UnitSphericalRepresentation
-from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product
-
 
 __all__ = ['SphericalCircle']
 

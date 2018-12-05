@@ -10,10 +10,11 @@ from collections import namedtuple
 
 import numpy as np
 
-from . import angle_utilities as util
 from astropy import units as u
 from astropy.utils import isiterable
 from astropy.utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
+
+from . import angle_utilities as util
 
 __all__ = ['Angle', 'Latitude', 'Longitude']
 

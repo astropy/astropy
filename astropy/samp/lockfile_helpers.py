@@ -1,23 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 # TODO: this file should be refactored to use a more thread-safe and
 # race-condition-safe lockfile mechanism.
 
-import datetime
 import os
-import socket
 import stat
+import socket
+import datetime
 import warnings
+import xmlrpc.client as xmlrpc
 from contextlib import suppress
 from urllib.parse import urlparse
-import xmlrpc.client as xmlrpc
-
-from astropy.config.paths import _find_home
-
 
 from astropy import log
-
+from astropy.config.paths import _find_home
 from astropy.utils.data import get_readable_fileobj
 
 from .errors import SAMPHubError, SAMPWarning

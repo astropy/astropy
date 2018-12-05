@@ -6,28 +6,28 @@ Tests for the SkyCoord class.  Note that there are also SkyCoord tests in
 test_api_ape5.py
 """
 
+
 import copy
 
-import pytest
 import numpy as np
 import numpy.testing as npt
 
+import pytest
+
 from astropy import units as u
-from astropy.tests.helper import (catch_warnings,
-                             assert_quantity_allclose as assert_allclose)
+from astropy.coordinates import (FK4, FK5, ICRS, AltAz, Angle, Attribute, BaseCoordinateFrame,
+                                 CartesianRepresentation, EarthLocation, Galactic, Latitude,
+                                 RepresentationMapping, SkyCoord, SphericalRepresentation,
+                                 UnitSphericalRepresentation, frame_transform_graph)
 from astropy.coordinates.representation import REPRESENTATION_CLASSES
-from astropy.coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
-                            SphericalRepresentation, CartesianRepresentation,
-                            UnitSphericalRepresentation, AltAz,
-                            BaseCoordinateFrame, Attribute,
-                            frame_transform_graph, RepresentationMapping)
-from astropy.coordinates import Latitude, EarthLocation
+from astropy.io import fits
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.tests.helper import catch_warnings
 from astropy.time import Time
-from astropy.utils import minversion, isiterable
+from astropy.units import allclose as quantity_allclose
+from astropy.utils import isiterable, minversion
 from astropy.utils.compat import NUMPY_LT_1_14
 from astropy.utils.exceptions import AstropyDeprecationWarning
-from astropy.units import allclose as quantity_allclose
-from astropy.io import fits
 from astropy.wcs import WCS
 
 RA = 1.0 * u.deg

@@ -4,22 +4,23 @@
     Test the Quantity class and related.
 """
 
+
 import copy
 import pickle
 import decimal
 from fractions import Fraction
 
-import pytest
 import numpy as np
-from numpy.testing import (assert_allclose, assert_array_equal,
-                           assert_array_almost_equal)
+from numpy.testing import assert_allclose, assert_array_almost_equal, assert_array_equal
 
+import pytest
+
+from astropy import units as u
 from astropy.tests.helper import catch_warnings, raises
+from astropy.units.quantity import _UNIT_NOT_INITIALISED
 from astropy.utils import isiterable, minversion
 from astropy.utils.compat import NUMPY_LT_1_14
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from astropy import units as u
-from astropy.units.quantity import _UNIT_NOT_INITIALISED
 
 try:
     import matplotlib

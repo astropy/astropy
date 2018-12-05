@@ -1,19 +1,19 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import collections
-import copy
-import itertools
-import re
-import warnings
 
-from .card import Card, _pad, KEYWORD_LENGTH
-from .file import _File
-from .util import encode_ascii, decode_ascii, fileobj_closed, fileobj_is_binary
+import re
+import copy
+import warnings
+import itertools
+import collections
 
 from astropy.utils import isiterable
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.exceptions import AstropyUserWarning
 
+from .card import KEYWORD_LENGTH, Card, _pad
+from .file import _File
+from .util import decode_ascii, encode_ascii, fileobj_closed, fileobj_is_binary
 
 BLOCK_SIZE = 2880  # the FITS block size
 

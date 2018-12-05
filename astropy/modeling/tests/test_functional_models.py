@@ -1,13 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
-from astropy.modeling import models, InputParameterError
+import pytest
+
 from astropy.coordinates import Angle
-from astropy.modeling import fitting
+from astropy.modeling import InputParameterError, fitting, models
 from astropy.tests.helper import catch_warnings
 from astropy.utils.exceptions import AstropyDeprecationWarning
 

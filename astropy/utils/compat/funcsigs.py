@@ -1,9 +1,11 @@
-from inspect import signature, Parameter, Signature, BoundArguments
+
+import warnings
+from inspect import Parameter, Signature, BoundArguments, signature
+
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['BoundArguments', 'Parameter', 'Signature', 'signature']
 
-import warnings
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 warnings.warn("astropy.utils.compat.funcsigs is now deprecated - "
               "use inspect instead", AstropyDeprecationWarning)

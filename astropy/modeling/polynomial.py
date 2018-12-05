@@ -8,12 +8,13 @@ from collections import OrderedDict
 
 import numpy as np
 
+from astropy.units import Quantity
+from astropy.utils import check_broadcast, indent
+
 from .core import FittableModel, Model
 from .functional_models import Shift
 from .parameters import Parameter
-from .utils import poly_map_domain, comb
-from astropy.utils import indent, check_broadcast
-from astropy.units import Quantity
+from .utils import comb, poly_map_domain
 
 __all__ = [
     'Chebyshev1D', 'Chebyshev2D', 'Hermite1D', 'Hermite2D',
@@ -1281,7 +1282,6 @@ class _SIP1D(PolynomialBase):
     inputs = ('u', 'v')
     outputs = ('w',)
     _separable = False
-
 
     def __init__(self, order, coeff_prefix, n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):

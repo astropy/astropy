@@ -42,9 +42,11 @@ Example usage of ``showtable``:
 
 """
 
+
 import argparse
 import textwrap
 import warnings
+
 from astropy import log
 from astropy.table import Table
 from astropy.utils.exceptions import AstropyUserWarning

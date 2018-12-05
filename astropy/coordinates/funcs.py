@@ -13,15 +13,16 @@ from collections.abc import Sequence
 
 import numpy as np
 
+from astropy import _erfa as erfa
 from astropy import units as u
 from astropy.constants import c
-from astropy import _erfa as erfa
 from astropy.io import ascii
-from astropy.utils import isiterable, data
-from .sky_coordinate import SkyCoord
+from astropy.utils import data, isiterable
+
 from .builtin_frames import GCRS, PrecessedGeocentric
-from .representation import SphericalRepresentation, CartesianRepresentation
 from .builtin_frames.utils import get_jd12
+from .representation import CartesianRepresentation, SphericalRepresentation
+from .sky_coordinate import SkyCoord
 
 __all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun',
            'get_constellation', 'concatenate_representations', 'concatenate']

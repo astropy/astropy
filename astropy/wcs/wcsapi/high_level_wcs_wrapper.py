@@ -1,6 +1,6 @@
-from .high_level_api import HighLevelWCSMixin
 
 from . import BaseLowLevelWCS
+from .high_level_api import HighLevelWCSMixin
 
 __all__ = ['HighLevelWCSWrapper']
 

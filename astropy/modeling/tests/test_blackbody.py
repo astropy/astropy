@@ -1,15 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Tests for blackbody model and functions."""
 
-import pytest
+
 import numpy as np
 
-from astropy.modeling.blackbody import BlackBody1D, blackbody_nu, blackbody_lambda, FNU
-from astropy.modeling.fitting import LevMarLSQFitter
+import pytest
 
-from astropy.tests.helper import assert_quantity_allclose, catch_warnings
 from astropy import constants as const
 from astropy import units as u
+from astropy.modeling.blackbody import FNU, BlackBody1D, blackbody_lambda, blackbody_nu
+from astropy.modeling.fitting import LevMarLSQFitter
+from astropy.tests.helper import assert_quantity_allclose, catch_warnings
 from astropy.utils.exceptions import AstropyUserWarning
 
 try:

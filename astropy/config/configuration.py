@@ -9,20 +9,20 @@ configuration files for Astropy and affiliated packages.
     found at http://www.voidspace.org.uk/python/configobj.html.
 """
 
-from contextlib import contextmanager
-import hashlib
 import io
-from os import path
 import re
+import hashlib
+from os import path
 from warnings import warn
+from contextlib import contextmanager
 
 from astropy.extern.configobj import configobj, validate
-from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy.utils import find_current_module
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.introspection import resolve_name
 from astropy.utils.misc import InheritDocstrings
-from .paths import get_config_dir
 
+from .paths import get_config_dir
 
 __all__ = ['InvalidConfigurationItemWarning',
            'ConfigurationMissingWarning', 'get_config',

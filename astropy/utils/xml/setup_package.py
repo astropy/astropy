@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from distutils.core import Extension
-from os.path import join
+
 import sys
+from os.path import join
+from distutils.core import Extension
 
 from astropy_helpers import setup_helpers
 

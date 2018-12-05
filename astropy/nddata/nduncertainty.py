@@ -1,17 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-from .nddata_base import NDDataBase
-
-import numpy as np
+import weakref
 from abc import ABCMeta, abstractmethod
 from copy import deepcopy
-import weakref
 
+import numpy as np
 
-# from astropy.utils.compat import ignored
 from astropy import log
-from astropy.units import Unit, Quantity, UnitConversionError
+from astropy.units import Quantity, Unit, UnitConversionError
+
+from .nddata_base import NDDataBase
 
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',

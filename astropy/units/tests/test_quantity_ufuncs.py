@@ -1,17 +1,19 @@
 # The purpose of these tests are to ensure that calling ufuncs with quantities
 # returns quantities with the right units, or raises exceptions.
 
+
 import warnings
 from collections import namedtuple
 
-import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
+import pytest
+
 from astropy import units as u
-from astropy.units import quantity_helper as qh
 from astropy._erfa import ufunc as erfa_ufunc
 from astropy.tests.helper import raises
+from astropy.units import quantity_helper as qh
 
 try:
     import scipy  # pylint: disable=W0611

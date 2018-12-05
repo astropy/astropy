@@ -1,13 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-from numpy import isscalar
-from astropy.units import Quantity
 
-from asdf.yamlutil import custom_tree_to_tagged_tree
+from numpy import isscalar
+
 from asdf.tags.core import NDArrayType
+from asdf.yamlutil import custom_tree_to_tagged_tree
 
 from astropy.io.misc.asdf.types import AstropyAsdfType
+from astropy.units import Quantity
+
 from .unit import UnitType
 
 

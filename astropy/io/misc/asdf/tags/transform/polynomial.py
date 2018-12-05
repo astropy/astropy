@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+
 import numpy as np
 from numpy.testing import assert_array_equal
 
@@ -8,8 +9,9 @@ from asdf import yamlutil
 
 import astropy.units as u
 from astropy import modeling
-from .basic import TransformType
+
 from . import _parameter_to_value
+from .basic import TransformType
 
 __all__ = ['ShiftType', 'ScaleType', 'PolynomialType', 'Linear1DType']
 

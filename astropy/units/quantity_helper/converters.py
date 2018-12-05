@@ -2,10 +2,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Converters for Quantity."""
 
+
 import numpy as np
 
-from astropy.units.core import (UnitsError, UnitConversionError, UnitTypeError,
-                    dimensionless_unscaled)
+from astropy.units.core import (UnitConversionError, UnitsError,
+                                UnitTypeError, dimensionless_unscaled)
 
 __all__ = ['can_have_arbitrary_unit', 'converters_and_unit',
            'check_output', 'UFUNC_HELPERS', 'UNSUPPORTED_UFUNCS']

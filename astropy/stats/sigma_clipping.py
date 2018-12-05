@@ -8,7 +8,6 @@ from astropy.utils import isiterable
 from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyUserWarning
 
-
 try:
     import bottleneck  # pylint: disable=W0611
     HAS_BOTTLENECK = True

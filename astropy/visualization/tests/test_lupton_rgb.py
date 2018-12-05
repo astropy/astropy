@@ -5,15 +5,16 @@ Tests for RGB Images
 """
 
 
-import sys
 import os
+import sys
 import tempfile
 
-import pytest
 import numpy as np
 from numpy.testing import assert_equal
 
-from astropy.convolution import convolve, Gaussian2DKernel
+import pytest
+
+from astropy.convolution import Gaussian2DKernel, convolve
 from astropy.visualization import lupton_rgb
 
 try:

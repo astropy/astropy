@@ -6,7 +6,6 @@ from collections import OrderedDict
 
 import numpy as np
 
-
 from matplotlib import rcParams
 from matplotlib.lines import Line2D, Path
 from matplotlib.patches import PathPatch

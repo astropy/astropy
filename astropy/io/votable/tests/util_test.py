@@ -3,8 +3,6 @@
 A set of tests for the util.py module
 """
 
-
-# LOCAL
 from astropy.io.votable import util
 from astropy.tests.helper import raises
 

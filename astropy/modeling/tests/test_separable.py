@@ -3,15 +3,16 @@
 Test separability of models.
 
 """
-import pytest
+
 import numpy as np
 from numpy.testing import assert_allclose
 
+import pytest
+
 from astropy.modeling import models
 from astropy.modeling.models import Mapping
-from astropy.modeling.separable import (_coord_matrix, is_separable, _cdot,
-                                        _cstack, _arith_oper, separability_matrix)
-
+from astropy.modeling.separable import (_arith_oper, _cdot, _coord_matrix, _cstack,
+                                        is_separable, separability_matrix)
 
 sh1 = models.Shift(1, name='shift1')
 sh2 = models.Shift(2, name='sh2')

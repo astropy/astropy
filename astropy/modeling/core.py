@@ -13,40 +13,35 @@ of the same type of model, but with potentially different values of the
 parameters in each model making up the set.
 """
 
-
 import abc
 import copy
+import types
 import copyreg
 import inspect
-import functools
 import operator
-import types
 import warnings
-
-from collections import defaultdict, OrderedDict
-from contextlib import suppress
+import functools
 from inspect import signature
-from itertools import chain, islice
 from functools import partial
+from itertools import chain, islice
+from contextlib import suppress
+from collections import OrderedDict, defaultdict
 
 import numpy as np
 
-from astropy.utils import indent, metadata
+from astropy.nddata.utils import add_array, extract_array
 from astropy.table import Table
 from astropy.units import Quantity, UnitsError, dimensionless_unscaled
 from astropy.units.utils import quantity_asanyarray
-from astropy.utils import (sharedmethod, find_current_module,
-                     InheritDocstrings, OrderedDescriptorContainer,
-                     check_broadcast, IncompatibleShapeError, isiterable)
+from astropy.utils import (IncompatibleShapeError, InheritDocstrings,
+                           OrderedDescriptorContainer, check_broadcast,
+                           find_current_module, indent, isiterable, metadata, sharedmethod)
 from astropy.utils.codegen import make_function_with_signature
 from astropy.utils.exceptions import AstropyDeprecationWarning
-from .utils import (combine_labels, make_binary_operator_eval,
-                    ExpressionTree, AliasDict, get_inputs_and_params,
-                    _BoundingBox, _combine_equivalency_dict)
-from astropy.nddata.utils import add_array, extract_array
 
-from .parameters import Parameter, InputParameterError, param_repr_oneline
-
+from .parameters import InputParameterError, Parameter, param_repr_oneline
+from .utils import (AliasDict, ExpressionTree, _BoundingBox, _combine_equivalency_dict,
+                    combine_labels, get_inputs_and_params, make_binary_operator_eval)
 
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
            'custom_model', 'ModelDefinitionError']

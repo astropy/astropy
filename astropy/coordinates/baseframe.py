@@ -5,37 +5,31 @@ Framework and base classes for coordinate frames/"low-level" coordinate
 classes.
 """
 
-
-# Standard library
 import abc
 import copy
 import inspect
-from collections import namedtuple, OrderedDict, defaultdict
 import warnings
+from collections import OrderedDict, namedtuple, defaultdict
 
-# Dependencies
 import numpy as np
 
-# Project
-from astropy.utils.compat.misc import override__dir__
-from astropy.utils.decorators import lazyproperty, format_doc
-from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy import units as u
-from astropy.utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
-                     check_broadcast)
-from .transformations import TransformGraph
+from astropy.utils import OrderedDescriptorContainer, ShapedLikeNDArray, check_broadcast
+from astropy.utils.compat.misc import override__dir__
+from astropy.utils.decorators import format_doc, lazyproperty
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+
 from . import representation as r
 from .angles import Angle
 from .attributes import Attribute
+from .transformations import TransformGraph
 
 # Import old names for Attributes so we don't break backwards-compatibility
 # (some users rely on them being here, although that is not encouraged, as this
 # is not the public API location -- see attributes.py).
-from .attributes import (
-    TimeFrameAttribute, QuantityFrameAttribute,
-    EarthLocationAttribute, CoordinateAttribute,
-    CartesianRepresentationFrameAttribute)  # pylint: disable=W0611
-
+from .attributes import (CartesianRepresentationFrameAttribute,  # isort:skip; noqa
+                         CoordinateAttribute, EarthLocationAttribute,
+                         QuantityFrameAttribute, TimeFrameAttribute)
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph',
            'GenericFrame', 'RepresentationMapping']

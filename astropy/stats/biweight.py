@@ -4,12 +4,11 @@ This module contains functions for computing robust statistics using
 Tukey's biweight function.
 """
 
-
 import numpy as np
 
-from .funcs import median_absolute_deviation
 from astropy.utils.decorators import deprecated_renamed_argument
 
+from .funcs import median_absolute_deviation
 
 __all__ = ['biweight_location', 'biweight_scale', 'biweight_midvariance',
            'biweight_midcovariance', 'biweight_midcorrelation']

@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import pytest
 
-from . import FitsTestCase
 from astropy.io.fits.scripts import fitsheader
+
+from . import FitsTestCase
 
 
 class TestFITSheader_script(FitsTestCase):

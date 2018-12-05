@@ -4,12 +4,14 @@
 
 import operator
 
-import pytest
 import numpy as np
 
-from astropy.tests.helper import assert_follows_unicode_guidelines, catch_warnings
+import pytest
+
 from astropy import table
 from astropy import units as u
+from astropy.tests.helper import assert_follows_unicode_guidelines, catch_warnings
+from astropy.utils.tests.test_metadata import MetaBaseTest
 
 
 class TestColumn():
@@ -436,9 +438,6 @@ class TestAttrEqual():
 # Check that the meta descriptor is working as expected. The MetaBaseTest class
 # takes care of defining all the tests, and we simply have to define the class
 # and any minimal set of args to pass.
-
-
-from astropy.utils.tests.test_metadata import MetaBaseTest
 
 
 class TestMetaColumn(MetaBaseTest):

@@ -1,24 +1,25 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+
 import copy
 import warnings
 import collections
+from io import BytesIO, StringIO
 
-from io import StringIO, BytesIO
-
-import pytest
 import numpy as np
 
+import pytest
+
 from astropy.io import fits
+from astropy.io.fits.card import _pad
+from astropy.io.fits.header import _pad_length
+from astropy.io.fits.util import encode_ascii
 from astropy.io.fits.verify import VerifyWarning
 from astropy.tests.helper import catch_warnings, ignore_warnings
 from astropy.utils.exceptions import AstropyUserWarning
 
 from . import FitsTestCase
-from astropy.io.fits.card import _pad
-from astropy.io.fits.header import _pad_length
-from astropy.io.fits.util import encode_ascii
 
 
 def test_shallow_copy():

@@ -3,16 +3,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-
 import doctest
-
 from textwrap import dedent
 
 import pytest
 
-# test helper.run_tests function
 from astropy import test as run_tests
-
 from astropy.tests import helper
 
 

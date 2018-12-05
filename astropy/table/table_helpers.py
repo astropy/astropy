@@ -5,13 +5,14 @@ Helper functions for table development, mostly creating useful
 tables for testing.
 """
 
-
-from itertools import cycle
 import string
+from itertools import cycle
+
 import numpy as np
 
-from .table import Table, Column
 from astropy.utils.data_info import ParentDtypeInfo
+
+from .table import Column, Table
 
 
 class TimingTables:

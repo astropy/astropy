@@ -6,16 +6,15 @@ import copy
 from io import StringIO
 from itertools import chain
 
-
-import pytest
 import numpy as np
 
+import pytest
+
+from astropy import table, units
 from astropy.io import ascii
-from astropy import table
 from astropy.table.table_helpers import simple_table
 from astropy.tests.helper import catch_warnings
-from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
-from astropy import units
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .common import setup_function, teardown_function
 

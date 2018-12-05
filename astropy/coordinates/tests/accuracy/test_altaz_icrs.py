@@ -9,13 +9,13 @@ TODO: check if these tests pass on 32-bit machines and implement
 higher-precision checks on 64-bit machines.
 """
 
+
 import pytest
 
 from astropy import units as u
-from astropy.time import Time
+from astropy.coordinates import Angle, EarthLocation, SkyCoord
 from astropy.coordinates.builtin_frames import AltAz
-from astropy.coordinates import EarthLocation
-from astropy.coordinates import Angle, SkyCoord
+from astropy.time import Time
 
 
 def test_against_hor2eq():

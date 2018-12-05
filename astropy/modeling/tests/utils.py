@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 
-import contextlib
 import warnings
+import contextlib
+
 from astropy.tests.helper import catch_warnings
 
 

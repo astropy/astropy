@@ -5,19 +5,20 @@ Tests for model evaluation.
 Compare the results of some models with other programs.
 """
 
-import pytest
-import numpy as np
 
+import numpy as np
 from numpy.testing import assert_allclose, assert_equal
 
-from .example_models import models_1D, models_2D
+import pytest
+
+from astropy import units as u
 from astropy.modeling import fitting, models
 from astropy.modeling.core import FittableModel
 from astropy.modeling.polynomial import PolynomialBase
-from astropy import units as u
-from astropy.utils import minversion
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils import NumpyRNGContext
+from astropy.utils import NumpyRNGContext, minversion
+
+from .example_models import models_1D, models_2D
 
 try:
     import scipy

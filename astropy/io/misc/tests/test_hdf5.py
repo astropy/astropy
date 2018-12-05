@@ -1,16 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import pytest
 import numpy as np
 
-from astropy.tests.helper import catch_warnings
-from astropy.table import Table, QTable, NdarrayMixin, Column
-from astropy.table.table_helpers import simple_table
+import pytest
 
 from astropy import units as u
-
-from astropy.coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
+from astropy.coordinates import Angle, EarthLocation, Latitude, Longitude, SkyCoord
+from astropy.table import Column, NdarrayMixin, QTable, Table
+from astropy.table.table_helpers import simple_table
+from astropy.tests.helper import catch_warnings
 from astropy.time import Time, TimeDelta
 from astropy.units.quantity import QuantityInfo
 

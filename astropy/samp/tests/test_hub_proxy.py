@@ -1,7 +1,7 @@
-from astropy.samp.hub_proxy import SAMPHubProxy
-from astropy.samp.hub import SAMPHubServer
 
 from astropy.samp import conf
+from astropy.samp.hub import SAMPHubServer
+from astropy.samp.hub_proxy import SAMPHubProxy
 
 
 def setup_module(module):

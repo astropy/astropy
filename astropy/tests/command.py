@@ -3,13 +3,12 @@ Implements the wrapper for the Astropy test runner in the form of the
 ``./setup.py test`` distutils command.
 """
 
-
 import os
+import sys
 import stat
 import shutil
-import subprocess
-import sys
 import tempfile
+import subprocess
 from distutils import log
 from contextlib import contextmanager
 

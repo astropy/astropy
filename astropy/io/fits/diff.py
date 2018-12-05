@@ -5,31 +5,31 @@ FITS files, individual HDUs, FITS headers, or just FITS data.
 
 Used to implement the fitsdiff program.
 """
-import fnmatch
-import glob
+
 import io
-import operator
+import glob
+import fnmatch
 import os.path
+import operator
 import textwrap
 import warnings
-
-from collections import defaultdict
 from inspect import signature
 from itertools import islice
+from collections import defaultdict
 
 import numpy as np
 
 from astropy import __version__
-
-from .card import Card, BLANK_CARD
-from .header import Header
 from astropy.utils.decorators import deprecated_renamed_argument
-# HDUList is used in one of the doctests
-from .hdu.hdulist import fitsopen, HDUList  # pylint: disable=W0611
-from .hdu.table import _TableLikeHDU
+from astropy.utils.diff import (diff_values, fixed_width_indent,
+                                report_diff_values, where_not_allclose)
 from astropy.utils.exceptions import AstropyDeprecationWarning
-from astropy.utils.diff import (report_diff_values, fixed_width_indent,
-                           where_not_allclose, diff_values)
+
+from .card import BLANK_CARD, Card
+# HDUList is used in one of the doctests
+from .hdu.hdulist import HDUList, fitsopen  # pylint: disable=W0611
+from .hdu.table import _TableLikeHDU
+from .header import Header
 
 __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',
            'TableDataDiff']

@@ -50,17 +50,16 @@ Explanation of keywords of the dictionaries:
 """
 
 
-from astropy.modeling.functional_models import (
-    Gaussian1D, Sine1D, Box1D, Linear1D, Lorentz1D,
-    MexicanHat1D, Trapezoid1D, Const1D, Moffat1D,
-    Gaussian2D, Const2D, Box2D, MexicanHat2D,
-    TrapezoidDisk2D, AiryDisk2D, Moffat2D, Disk2D,
-    Ring2D, Sersic1D, Sersic2D, Voigt1D, Planar2D)
-from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
-from astropy.modeling.powerlaws import (
-    PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
-    LogParabola1D)
 import numpy as np
+
+from astropy.modeling.functional_models import (AiryDisk2D, Box1D, Box2D, Const1D, Const2D, Disk2D,
+                                                Gaussian1D, Gaussian2D, Linear1D, Lorentz1D,
+                                                MexicanHat1D, MexicanHat2D, Moffat1D, Moffat2D,
+                                                Planar2D, Ring2D, Sersic1D, Sersic2D, Sine1D,
+                                                Trapezoid1D, TrapezoidDisk2D, Voigt1D)
+from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
+from astropy.modeling.powerlaws import (BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
+                                        LogParabola1D, PowerLaw1D, SmoothlyBrokenPowerLaw1D)
 
 # 1D Models
 models_1D = {

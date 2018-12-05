@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import functools
 import itertools
 
-import pytest
 import numpy as np
+
+import pytest
 
 from astropy.time import Time
 from astropy.time.core import SIDEREAL_TIME_MODELS

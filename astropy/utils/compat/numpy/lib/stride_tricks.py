@@ -7,12 +7,12 @@ An explanation of strides can be found in the "ndarray.rst" file in the
 NumPy reference guide.
 """
 
+
 import warnings
 
 import numpy as np
-from numpy.lib.stride_tricks import (
-    broadcast_arrays as np_broadcast_arrays,
-    broadcast_to as np_broadcast_to)
+from numpy.lib.stride_tricks import broadcast_arrays as np_broadcast_arrays
+from numpy.lib.stride_tricks import broadcast_to as np_broadcast_to
 
 from astropy.utils.exceptions import AstropyDeprecationWarning
 

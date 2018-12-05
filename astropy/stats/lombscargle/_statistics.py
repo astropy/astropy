@@ -6,6 +6,7 @@ This is an internal module; users should access this functionality via the
 ``astropy.stats.LombScargle`` API.
 """
 
+
 from functools import wraps
 
 import numpy as np

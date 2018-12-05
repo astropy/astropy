@@ -1,10 +1,10 @@
+
 from asdf.yamlutil import custom_tree_to_tagged_tree
 
 import astropy.coordinates.representation
 from astropy.coordinates.representation import BaseRepresentationOrDifferential
-from astropy.tests.helper import assert_quantity_allclose
-
 from astropy.io.misc.asdf.types import AstropyType
+from astropy.tests.helper import assert_quantity_allclose
 
 
 class RepresentationType(AstropyType):

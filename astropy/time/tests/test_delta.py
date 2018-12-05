@@ -1,16 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+import operator
 import functools
 import itertools
+from datetime import timedelta
+
 import numpy as np
-import operator
 
 import pytest
 
-from datetime import timedelta
-
-from astropy.time import (Time, TimeDelta, OperandTypeError, ScaleValueError,
-                TIME_SCALES, STANDARD_TIME_SCALES, TIME_DELTA_SCALES)
 from astropy import units as u
+from astropy.time import (STANDARD_TIME_SCALES, TIME_DELTA_SCALES, TIME_SCALES,
+                          OperandTypeError, ScaleValueError, Time, TimeDelta)
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,

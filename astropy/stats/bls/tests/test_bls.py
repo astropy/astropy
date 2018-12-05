@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
+
 import numpy as np
 from numpy.testing import assert_allclose
 
+import pytest
+
 from astropy import units
-from astropy.tests.helper import assert_quantity_allclose
 from astropy.stats.bls import BoxLeastSquares
 from astropy.stats.lombscargle.core import has_units
+from astropy.tests.helper import assert_quantity_allclose
 
 
 def assert_allclose_blsresults(blsresult, other, **kwargs):

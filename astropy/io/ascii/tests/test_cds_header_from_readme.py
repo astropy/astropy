@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 from astropy.io import ascii
-from .common import (assert_equal, assert_almost_equal, has_isnan,
-                     setup_function, teardown_function)
+
+from .common import assert_almost_equal, assert_equal, has_isnan, setup_function, teardown_function
 
 
 def read_table1(readme, data):

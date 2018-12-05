@@ -1,12 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import functools
+
 import numpy as np
 
-from astropy.utils.compat import NUMPY_LT_1_14
+from astropy.table import Table
 from astropy.tests.helper import pytest
 from astropy.time import Time
-from astropy.table import Table
+from astropy.utils.compat import NUMPY_LT_1_14
 
 try:
     import h5py  # pylint: disable=W0611

@@ -1,14 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 from io import StringIO
 
-import pytest
 import numpy as np
 
+import pytest
+
+from astropy import units as u
 from astropy.cosmology import core, funcs
 from astropy.units import allclose
 from astropy.utils.compat import NUMPY_LT_1_14
-from astropy import units as u
 
 try:
     import scipy  # pylint: disable=W0611

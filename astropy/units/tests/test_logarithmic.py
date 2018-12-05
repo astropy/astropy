@@ -4,15 +4,18 @@
     Test the Logarithmic Units and Quantities
 """
 
+
 import pickle
 import itertools
 
-import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
+import pytest
+
+from astropy import constants as c
+from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
-from astropy import units as u, constants as c
 
 lu_units = [u.dex, u.mag, u.decibel]
 

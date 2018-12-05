@@ -5,10 +5,11 @@
 """Regression tests for deprecated units or those that are "soft" deprecated
 because they are required for VOUnit support but are not in common use."""
 
+
 import pytest
 
-from astropy.units import deprecated, required_by_vounit
 from astropy import units as u
+from astropy.units import deprecated, required_by_vounit
 
 
 def test_emu():

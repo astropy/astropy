@@ -1,14 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+
 from numpy.testing import assert_array_equal
 
 from asdf import yamlutil
 
 from astropy import modeling
-from .basic import TransformType
-from . import _parameter_to_value
 
+from . import _parameter_to_value
+from .basic import TransformType
 
 __all__ = ['AffineType', 'Rotate2DType', 'Rotate3DType']
 
@@ -93,7 +94,6 @@ class Rotate3DType(TransformType):
                                                          node["theta"],
                                                          node["psi"],
                                                          axes_order=node["direction"])
-
 
     @classmethod
     def to_tree_transform(cls, model, ctx):

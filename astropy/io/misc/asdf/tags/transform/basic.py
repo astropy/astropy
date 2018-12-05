@@ -1,13 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+
 from asdf import tagged, yamlutil
 
-from astropy.modeling import mappings
-from astropy.utils import minversion
-from astropy.modeling import functional_models
 from astropy.io.misc.asdf.types import AstropyAsdfType
-
+from astropy.modeling import functional_models, mappings
+from astropy.utils import minversion
 
 __all__ = ['TransformType', 'IdentityType', 'ConstantType']
 
@@ -61,7 +60,6 @@ class TransformType(AstropyAsdfType):
             else:
                 bb = [list(item) for item in model.bounding_box]
             node['bounding_box'] = yamlutil.custom_tree_to_tagged_tree(bb, ctx)
-
 
     @classmethod
     def to_tree_transform(cls, model, ctx):

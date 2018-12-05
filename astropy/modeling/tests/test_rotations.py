@@ -3,14 +3,14 @@
 
 from math import cos, sin
 
-import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-import astropy.units as u
-from astropy.tests.helper import assert_quantity_allclose
+import pytest
 
+import astropy.units as u
 from astropy.modeling import models
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.wcs import wcs
 
 

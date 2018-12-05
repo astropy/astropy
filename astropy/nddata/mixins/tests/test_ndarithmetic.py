@@ -1,21 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+import numpy as np
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 import pytest
-import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from astropy.nddata.nduncertainty import (StdDevUncertainty, VarianceUncertainty,
-                              InverseVariance,
-                              UnknownUncertainty,
-                              IncompatibleUncertaintiesException)
+from astropy import units as u
 from astropy.nddata import NDDataRef
 from astropy.nddata.nddata import NDData
-
-from astropy.units import UnitsError, Quantity
-from astropy import units as u
-
+from astropy.nddata.nduncertainty import (IncompatibleUncertaintiesException, InverseVariance,
+                                          StdDevUncertainty, UnknownUncertainty,
+                                          VarianceUncertainty)
+from astropy.units import Quantity, UnitsError
 
 # Alias NDDataAllMixins in case this will be renamed ... :-)
 NDDataArithmetic = NDDataRef

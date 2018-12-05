@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-# Standard library
 import re
 import textwrap
 import warnings
 from datetime import datetime
 from urllib.request import urlopen
 
-# Third-party
 from astropy import time as atime
-from astropy.utils.console import color_print, _color_text
+from astropy.utils.console import _color_text, color_print
+
 from . import get_sun
 
 __all__ = []

@@ -4,11 +4,12 @@ used by the accuracy tests.  Running this as a comand-line script will
 generate them all.
 """
 
+
 import os
 
 import numpy as np
 
-from astropy.table import Table, Column
+from astropy.table import Column, Table
 
 
 def ref_fk4_no_e_fk4(fnout='fk4_no_e_fk4.csv'):

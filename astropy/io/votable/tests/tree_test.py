@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # LOCAL
-from astropy.io.votable import exceptions
-from astropy.io.votable import tree
+
+from astropy.io.votable import exceptions, tree
 from astropy.tests.helper import raises
 
 

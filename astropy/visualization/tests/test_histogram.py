@@ -1,7 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+
+import numpy as np
 from numpy.testing import assert_allclose
+
+import pytest
 
 try:
     import matplotlib.pyplot as plt
@@ -15,8 +19,6 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-import pytest
-import numpy as np
 
 from astropy.visualization import hist
 from astropy.stats import histogram

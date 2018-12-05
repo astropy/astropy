@@ -9,16 +9,15 @@ Before integration into Astropy it was known as
 (INAF - Istituto Nazionale di Astrofisica).
 """
 
+from astropy import config as _config
+
+from .client import *
 from .constants import *
 from .errors import *
-from .utils import *
 from .hub import *
-from .client import *
-from .integrated_client import *
 from .hub_proxy import *
-
-
-from astropy import config as _config
+from .integrated_client import *
+from .utils import *
 
 
 class Conf(_config.ConfigNamespace):

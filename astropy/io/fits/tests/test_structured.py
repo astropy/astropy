@@ -1,10 +1,12 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+
 import sys
 
 import numpy as np
 
 from astropy.io import fits
+
 from . import FitsTestCase
 
 

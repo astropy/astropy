@@ -13,19 +13,16 @@ References
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 """
 
-
 import abc
 
 import numpy as np
 
-from .core import Model
-from .parameters import Parameter, InputParameterError
-
 from astropy import units as u
 
 from . import _projections
-from .utils import _to_radian, _to_orig_unit
-
+from .core import Model
+from .parameters import InputParameterError, Parameter
+from .utils import _to_orig_unit, _to_radian
 
 projcodes = [
     'AZP', 'SZP', 'TAN', 'STG', 'SIN', 'ARC', 'ZEA', 'AIR', 'CYP',

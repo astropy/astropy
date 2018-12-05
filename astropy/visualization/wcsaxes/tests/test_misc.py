@@ -1,22 +1,23 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import os
 import warnings
 
-import pytest
 import numpy as np
+
 import matplotlib.pyplot as plt
+import pytest
 
 from astropy import units as u
-from astropy.wcs import WCS
-from astropy.io import fits
 from astropy.coordinates import SkyCoord
+from astropy.io import fits
 from astropy.tests.helper import catch_warnings
 from astropy.tests.image_tests import ignore_matplotlibrc
-
 from astropy.visualization.wcsaxes.core import WCSAxes
-from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
+from astropy.visualization.wcsaxes.utils import get_coord_meta
+from astropy.wcs import WCS
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 

@@ -2,18 +2,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Sundry function and class decorators."""
 
-
-import functools
+import types
 import inspect
 import textwrap
-import types
 import warnings
+import functools
 from inspect import signature
 
 from .codegen import make_function_with_signature
-from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
-                         AstropyPendingDeprecationWarning)
-
+from .exceptions import (AstropyDeprecationWarning,
+                         AstropyPendingDeprecationWarning, AstropyUserWarning)
 
 __all__ = ['classproperty', 'deprecated', 'deprecated_attribute',
            'deprecated_renamed_argument', 'format_doc',

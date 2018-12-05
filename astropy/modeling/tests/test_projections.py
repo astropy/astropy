@@ -2,20 +2,21 @@
 
 """Test sky projections defined in WCS Paper II"""
 
+
 import os
 
-import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_almost_equal
 
-from astropy.modeling import projections
-from astropy.modeling.parameters import InputParameterError
+import pytest
 
 from astropy import units as u
-from astropy.io import fits
 from astropy import wcs
-from astropy.utils.data import get_pkg_data_filename
+from astropy.io import fits
+from astropy.modeling import projections
+from astropy.modeling.parameters import InputParameterError
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils.data import get_pkg_data_filename
 
 
 def test_Projection_properties():

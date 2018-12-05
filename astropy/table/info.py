@@ -2,12 +2,14 @@
 Table property for providing information about table.
 """
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import sys
+
 import os
-from contextlib import contextmanager
+import sys
 from inspect import isclass
+from contextlib import contextmanager
 
 import numpy as np
+
 from astropy.utils.data_info import DataInfo
 
 __all__ = ['table_info', 'TableInfo', 'serialize_method_as']

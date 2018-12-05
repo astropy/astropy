@@ -3,13 +3,14 @@
 This module tests fitting and model evaluation with various inputs
 """
 
-import pytest
+
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.modeling import models
-from astropy.modeling import fitting
-from astropy.modeling.core import Model, FittableModel, Fittable1DModel
+import pytest
+
+from astropy.modeling import fitting, models
+from astropy.modeling.core import Fittable1DModel, FittableModel, Model
 from astropy.modeling.parameters import Parameter
 
 try:

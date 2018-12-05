@@ -1,11 +1,13 @@
 """Main Lomb-Scargle Implementation"""
 
+
 import numpy as np
 
-from .implementations import lombscargle, available_methods
-from .implementations.mle import periodic_fit
-from . import _statistics
 from astropy import units
+
+from . import _statistics
+from .implementations import available_methods, lombscargle
+from .implementations.mle import periodic_fit
 
 
 def has_units(obj):

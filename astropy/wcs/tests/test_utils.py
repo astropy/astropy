@@ -1,22 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 
 import numpy as np
-from numpy.testing import assert_almost_equal
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_almost_equal
 
-from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
-from astropy.time import Time
+import pytest
+
 from astropy import units as u
-
-from astropy.wcs.wcs import WCS, Sip, WCSSUB_LONGITUDE, WCSSUB_LATITUDE
-from astropy.wcs.utils import (proj_plane_pixel_scales, proj_plane_pixel_area,
-                     is_proj_plane_distorted,
-                     non_celestial_pixel_scales, wcs_to_celestial_frame,
-                     celestial_frame_to_wcs, skycoord_to_pixel,
-                     pixel_to_skycoord, custom_wcs_to_frame_mappings,
-                     custom_frame_to_wcs_mappings, add_stokes_axis_to_wcs)
+from astropy.time import Time
+from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
+from astropy.wcs.utils import (add_stokes_axis_to_wcs, celestial_frame_to_wcs,
+                               custom_frame_to_wcs_mappings, custom_wcs_to_frame_mappings,
+                               is_proj_plane_distorted, non_celestial_pixel_scales,
+                               pixel_to_skycoord, proj_plane_pixel_area, proj_plane_pixel_scales,
+                               skycoord_to_pixel, wcs_to_celestial_frame)
+from astropy.wcs.wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE, Sip
 
 
 def test_wcs_dropping():

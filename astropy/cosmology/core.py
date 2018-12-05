@@ -1,21 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import sys
-from math import acos, sin, cos, sqrt, pi, exp, log, floor
 from abc import ABCMeta, abstractmethod
+from math import pi, cos, exp, log, sin, acos, sqrt, floor
 from inspect import signature
 
 import numpy as np
-
-from . import scalar_inv_efuncs
 
 from astropy import constants as const
 from astropy import units as u
 from astropy.utils import isiterable
 from astropy.utils.state import ScienceState
 
-from . import parameters
+from . import parameters, scalar_inv_efuncs
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
 # and modified by Neil Crighton (neilcrighton@gmail.com) and Roban

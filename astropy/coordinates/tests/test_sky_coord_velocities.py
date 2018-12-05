@@ -8,15 +8,16 @@ Note: the skyoffset velocity tests are in a different file, in
 test_skyoffset_transformations.py
 """
 
-import pytest
 
 import numpy as np
 
+import pytest
+
 from astropy import units as u
+from astropy.coordinates import (ICRS, CartesianDifferential, CartesianRepresentation, Galactic,
+                                 PrecessedGeocentric, SkyCoord, SphericalCosLatDifferential,
+                                 SphericalDifferential, SphericalRepresentation)
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.coordinates import (SkyCoord, ICRS, SphericalRepresentation, SphericalDifferential,
-                SphericalCosLatDifferential, CartesianRepresentation,
-                CartesianDifferential, Galactic, PrecessedGeocentric)
 
 try:
     import scipy

@@ -1,9 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 
 import numpy as np
-from numpy.testing import assert_equal, assert_allclose
+from numpy.testing import assert_allclose, assert_equal
+
+import pytest
 
 try:
     import scipy  # pylint: disable=W0611
@@ -19,8 +20,8 @@ except ImportError:
 else:
     HAS_MPMATH = True
 
-from astropy.stats import funcs
 from astropy import units as u
+from astropy.stats import funcs
 from astropy.tests.helper import catch_warnings
 from astropy.utils.misc import NumpyRNGContext
 

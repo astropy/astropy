@@ -1,25 +1,21 @@
+
 from collections import OrderedDict
 
-import pytest
 import numpy as np
 
+import pytest
+
 from astropy import units as u
-from astropy.tests.helper import assert_quantity_allclose
-
-from astropy.modeling.functional_models import (Gaussian1D,
-                                 Sersic1D, Sine1D, Linear1D,
-                                 Lorentz1D, Voigt1D, Const1D,
-                                 Box1D, Trapezoid1D, MexicanHat1D,
-                                 Moffat1D, Gaussian2D, Const2D, Ellipse2D,
-                                 Disk2D, Ring2D, Box2D, TrapezoidDisk2D,
-                                 MexicanHat2D, AiryDisk2D, Moffat2D, Sersic2D)
-
-from astropy.modeling.powerlaws import (PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D,
-                         ExponentialCutoffPowerLaw1D, LogParabola1D)
-
-from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
-
 from astropy.modeling.fitting import LevMarLSQFitter
+from astropy.modeling.functional_models import (AiryDisk2D, Box1D, Box2D, Const1D, Const2D, Disk2D,
+                                                Ellipse2D, Gaussian1D, Gaussian2D, Linear1D,
+                                                Lorentz1D, MexicanHat1D, MexicanHat2D, Moffat1D,
+                                                Moffat2D, Ring2D, Sersic1D, Sersic2D, Sine1D,
+                                                Trapezoid1D, TrapezoidDisk2D, Voigt1D)
+from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
+from astropy.modeling.powerlaws import (BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
+                                        LogParabola1D, PowerLaw1D, SmoothlyBrokenPowerLaw1D)
+from astropy.tests.helper import assert_quantity_allclose
 
 try:
     from scipy import optimize

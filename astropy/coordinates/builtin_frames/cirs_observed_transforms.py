@@ -5,18 +5,18 @@ Contains the transformation functions for getting to "observed" systems from CIR
 Currently that just means AltAz.
 """
 
+
 import numpy as np
 
+from astropy import _erfa as erfa
 from astropy import units as u
 from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.representation import SphericalRepresentation, UnitSphericalRepresentation
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
-from astropy.coordinates.representation import (SphericalRepresentation,
-                              UnitSphericalRepresentation)
-from astropy import _erfa as erfa
 
-from .cirs import CIRS
 from .altaz import AltAz
-from .utils import get_polar_motion, get_dut1utc, get_jd12, PIOVER2
+from .cirs import CIRS
+from .utils import PIOVER2, get_dut1utc, get_jd12, get_polar_motion
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, AltAz)

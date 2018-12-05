@@ -2,12 +2,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Function Units and Quantities."""
 
+
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from astropy.units import (Unit, UnitBase, UnitsError, UnitTypeError,
-                dimensionless_unscaled, Quantity)
+from astropy.units import (Quantity, Unit, UnitBase, UnitsError,
+                           UnitTypeError, dimensionless_unscaled)
 
 __all__ = ['FunctionUnitBase', 'FunctionQuantity']
 

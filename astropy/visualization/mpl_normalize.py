@@ -8,10 +8,10 @@ import inspect
 import numpy as np
 from numpy import ma
 
-from .interval import (PercentileInterval, AsymmetricPercentileInterval,
-                       ManualInterval, MinMaxInterval, BaseInterval)
-from .stretch import (LinearStretch, SqrtStretch, PowerStretch, LogStretch,
-                      AsinhStretch, BaseStretch)
+from .interval import (AsymmetricPercentileInterval, BaseInterval,
+                       ManualInterval, MinMaxInterval, PercentileInterval)
+from .stretch import (AsinhStretch, BaseStretch, LinearStretch,
+                      LogStretch, PowerStretch, SqrtStretch)
 
 try:
     import matplotlib  # pylint: disable=W0611

@@ -1,24 +1,25 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 
-import math
 import os
-import platform
 import re
+import math
 import time
+import platform
 import warnings
 
-import pytest
 import numpy as np
 from numpy.testing import assert_equal
 
+import pytest
+
 from astropy.io import fits
+from astropy.io.fits.hdu.compressed import DITHER_SEED_CHECKSUM, SUBTRACTIVE_DITHER_1
+from astropy.tests.helper import catch_warnings, ignore_warnings, raises
 from astropy.utils.exceptions import AstropyPendingDeprecationWarning
-from astropy.tests.helper import raises, catch_warnings, ignore_warnings
-from astropy.io.fits.hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
-from .test_table import comparerecords
 
 from . import FitsTestCase
+from .test_table import comparerecords
 
 try:
     import scipy  # pylint: disable=W0611

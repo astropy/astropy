@@ -7,15 +7,13 @@ None of the functions in the module are meant for use outside of the
 package.
 """
 
-
-import numbers
 import io
 import re
+import numbers
 from fractions import Fraction
 
 import numpy as np
 from numpy import finfo
-
 
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast

@@ -3,18 +3,19 @@
 
 from collections import OrderedDict
 
-import pytest
 import numpy as np
 
-from astropy.tests.helper import catch_warnings
-from astropy.table import Table, QTable, TableMergeError
-from astropy.table.operations import _get_out_class
+import pytest
+
+from astropy import table
 from astropy import units as u
+from astropy.coordinates import SkyCoord
+from astropy.table import QTable, Table, TableMergeError
+from astropy.table.operations import _get_out_class
+from astropy.tests.helper import catch_warnings
+from astropy.time import Time
 from astropy.utils import metadata
 from astropy.utils.metadata import MergeConflictError
-from astropy import table
-from astropy.time import Time
-from astropy.coordinates import SkyCoord
 
 
 def sort_eq(list1, list2):

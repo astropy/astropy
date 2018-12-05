@@ -10,12 +10,13 @@ try:
 except ImportError:
     pass
 
-from .core import *
-from .coordinate_helpers import CoordinateHelper
-from .coordinates_map import CoordinatesMap
-from .patches import *
 
 from astropy import config as _config
+
+from .coordinate_helpers import CoordinateHelper
+from .coordinates_map import CoordinatesMap
+from .core import *
+from .patches import *
 
 
 class Conf(_config.ConfigNamespace):

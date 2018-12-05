@@ -8,6 +8,7 @@
 # vice versa. For example, a format of dd:mm cannot work with a tick spacing
 # that is not a multiple of one arcminute.
 
+
 import re
 import warnings
 
@@ -16,8 +17,8 @@ import numpy as np
 from matplotlib import rcParams
 
 from astropy import units as u
-from astropy.units import UnitsError
 from astropy.coordinates import Angle
+from astropy.units import UnitsError
 
 DMS_RE = re.compile('^dd(:mm(:ss(.(s)+)?)?)?$')
 HMS_RE = re.compile('^hh(:mm(:ss(.(s)+)?)?)?$')

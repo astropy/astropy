@@ -4,10 +4,10 @@
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates.builtin_frames import FK4NoETerms, FK4
-from astropy.time import Time
-from astropy.table import Table
 from astropy.coordinates.angle_utilities import angular_separation
+from astropy.coordinates.builtin_frames import FK4, FK4NoETerms
+from astropy.table import Table
+from astropy.time import Time
 from astropy.utils.data import get_pkg_data_contents
 
 # the number of tests to run

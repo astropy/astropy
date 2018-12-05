@@ -3,13 +3,14 @@
 
 import os
 
-
-from . import parse, from_table
-from .tree import VOTableFile, Table as VOTable
 from astropy.io import registry as io_registry
 from astropy.table import Table
 from astropy.table.column import BaseColumn
 from astropy.units import Quantity
+
+from . import from_table, parse
+from .tree import Table as VOTable
+from .tree import VOTableFile
 
 
 def is_votable(origin, filepath, fileobj, *args, **kwargs):

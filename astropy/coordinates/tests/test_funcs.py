@@ -6,14 +6,14 @@ Tests for miscellaneous functionality in the `funcs` module
 """
 
 
-import pytest
 import numpy as np
 from numpy import testing as npt
 
+import pytest
 
 from astropy import units as u
-from astropy.time import Time
 from astropy._erfa import ErfaWarning
+from astropy.time import Time
 
 
 def test_sun():

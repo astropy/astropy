@@ -1,25 +1,23 @@
-
 import re
 import copy
 
 import numpy as np
 
 from astropy import _erfa as erfa
-from astropy.utils.compat.misc import override__dir__
 from astropy import units as u
 from astropy.constants import c as speed_of_light
-from astropy.wcs.utils import skycoord_to_pixel, pixel_to_skycoord
-from astropy.utils.data_info import MixinInfo
-from astropy.utils import ShapedLikeNDArray
 from astropy.time import Time
+from astropy.utils import ShapedLikeNDArray
+from astropy.utils.compat.misc import override__dir__
+from astropy.utils.data_info import MixinInfo
+from astropy.wcs.utils import pixel_to_skycoord, skycoord_to_pixel
 
-from .distances import Distance
 from .angles import Angle
-from .baseframe import (BaseCoordinateFrame, frame_transform_graph,
-                        GenericFrame, _get_repr_cls)
+from .baseframe import BaseCoordinateFrame, GenericFrame, _get_repr_cls, frame_transform_graph
 from .builtin_frames import ICRS, SkyOffsetFrame
-from .representation import (SphericalRepresentation,
-                             UnitSphericalRepresentation, SphericalDifferential)
+from .distances import Distance
+from .representation import (SphericalDifferential, SphericalRepresentation,
+                             UnitSphericalRepresentation)
 from .sky_coordinate_parsers import (_get_frame_class, _get_frame_without_data,
                                      _parse_coordinate_data)
 
@@ -1393,7 +1391,6 @@ class SkyCoord(ShapedLikeNDArray):
         """
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
 
-
     def contained_by(self, wcs, image=None, **kwargs):
         """
         Determines if the SkyCoord is contained in the given wcs footprint.
@@ -1430,7 +1427,6 @@ class SkyCoord(ShapedLikeNDArray):
                 return False
 
         return (x < xmax) & (x > 0) & (y < ymax) & (y > 0)
-
 
     def radial_velocity_correction(self, kind='barycentric', obstime=None,
                                    location=None):

@@ -1,10 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+
 import six
 
-from astropy.units import Unit, UnitBase
 from astropy.io.misc.asdf.types import AstropyAsdfType
+from astropy.units import Unit, UnitBase
 
 
 class UnitType(AstropyAsdfType):

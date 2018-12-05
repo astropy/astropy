@@ -4,15 +4,17 @@ Define the Enhanced Character-Separated-Values (ECSV) which allows for reading a
 writing all the meta data associated with an astropy Table object.
 """
 
-import re
-from collections import OrderedDict
-import contextlib
-import warnings
 
-from . import core, basic
+import re
+import warnings
+import contextlib
+from collections import OrderedDict
+
 from astropy.table import meta, serialize
 from astropy.utils.data_info import serialize_context_as
 from astropy.utils.exceptions import AstropyWarning
+
+from . import basic, core
 
 __doctest_requires__ = {'Ecsv': ['yaml']}
 

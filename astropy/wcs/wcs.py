@@ -29,23 +29,24 @@ together in a pipeline:
 
 """
 
-# STDLIB
-import copy
 import io
-import itertools
 import os
 import re
+import copy
+import builtins
 import textwrap
 import warnings
-import builtins
+import itertools
 
-# THIRD-PARTY
 import numpy as np
 
-# LOCAL
 from astropy import log
 from astropy.io import fits
+from astropy.utils.compat import possible_filename
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning, AstropyWarning
+
 from . import _docutil as __
+
 try:
     from . import _wcs
 except ImportError:
@@ -54,12 +55,8 @@ except ImportError:
     else:
         _wcs = None
 
-from astropy.utils.compat import possible_filename
-from astropy.utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
-
-
 # Mix-in class that provides the APE 14 API
-from .wcsapi.fitswcs import FITSWCSAPIMixin
+from .wcsapi.fitswcs import FITSWCSAPIMixin  # isort:skip
 
 
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',

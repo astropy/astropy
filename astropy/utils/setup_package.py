@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from os.path import join, dirname, relpath
 from distutils.core import Extension
-from os.path import dirname, join, relpath
 
 ASTROPY_UTILS_ROOT = dirname(__file__)
 

@@ -3,9 +3,11 @@
 
 """Test behavior related to masked tables"""
 
-import pytest
+
 import numpy as np
 import numpy.ma as ma
+
+import pytest
 
 from astropy.table import Column, MaskedColumn, Table
 

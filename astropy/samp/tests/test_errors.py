@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from astropy.samp.errors import SAMPHubError, SAMPClientError, SAMPProxyError
+
+from astropy.samp import conf
+from astropy.samp.errors import SAMPClientError, SAMPHubError, SAMPProxyError
 
 # By default, tests should not use the internet.
-from astropy.samp import conf
-
 
 def setup_module(module):
     conf.use_internet = False

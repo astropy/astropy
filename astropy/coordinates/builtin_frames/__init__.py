@@ -16,6 +16,7 @@ namespace, so there's no need to access the sub-modules directly.
 
 To implement a new frame in Astropy, a developer should add the frame as a new
 module in this package.  Any "self" transformations (i.e., those that transform
+
 from one frame to another frame of the same class) should be included in that
 module.  Transformation functions connecting the new frame to other frames
 should be in a separate module, which should be imported in this package's
@@ -24,33 +25,34 @@ imported.  Placing the trasnformation functions in separate modules avoids
 circular dependencies, because they need references to the frame classes.
 """
 
+from astropy.coordinates.baseframe import frame_transform_graph
+
+from .altaz import AltAz
 from .baseradec import BaseRADecFrame
-from .icrs import ICRS
-from .fk5 import FK5
+from .cirs import CIRS
+from .ecliptic import (BarycentricTrueEcliptic, BaseEclipticFrame,
+                       GeocentricTrueEcliptic, HeliocentricTrueEcliptic)
 from .fk4 import FK4, FK4NoETerms
+from .fk5 import FK5
 from .galactic import Galactic
 from .galactocentric import Galactocentric
-from .lsr import LSR, GalacticLSR
-from .supergalactic import Supergalactic
-from .altaz import AltAz
 from .gcrs import GCRS, PrecessedGeocentric
-from .cirs import CIRS
-from .itrs import ITRS
 from .hcrs import HCRS
-from .ecliptic import (GeocentricTrueEcliptic, BarycentricTrueEcliptic,
-                       HeliocentricTrueEcliptic, BaseEclipticFrame)
+from .icrs import ICRS
+from .itrs import ITRS
+from .lsr import LSR, GalacticLSR
 from .skyoffset import SkyOffsetFrame
+from .supergalactic import Supergalactic
+
 # need to import transformations so that they get registered in the graph
-from . import icrs_fk5_transforms
+from . import cirs_observed_transforms
+from . import ecliptic_transforms
 from . import fk4_fk5_transforms
 from . import galactic_transforms
-from . import supergalactic_transforms
 from . import icrs_cirs_transforms
-from . import cirs_observed_transforms
+from . import icrs_fk5_transforms
 from . import intermediate_rotation_transforms
-from . import ecliptic_transforms
-
-from astropy.coordinates.baseframe import frame_transform_graph
+from . import supergalactic_transforms
 
 # we define an __all__ because otherwise the transformation modules
 # get included

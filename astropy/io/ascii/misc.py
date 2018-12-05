@@ -7,10 +7,9 @@ misc.py:
 """
 
 
-import collections.abc
-import itertools
 import operator
-
+import itertools
+import collections.abc
 
 
 def first_true_index(iterable, pred=None, default=None):

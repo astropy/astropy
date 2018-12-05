@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
+import sys
 import copy
 import time
-import sys
 import argparse
 
-from astropy import log, __version__
+from astropy import __version__, log
 
 from .hub import SAMPHubServer
 

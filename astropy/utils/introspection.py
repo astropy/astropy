@@ -2,13 +2,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Functions related to Python runtime introspection."""
 
-
-import inspect
 import re
 import types
+import inspect
 import importlib
 from distutils.version import LooseVersion
-
 
 __all__ = ['resolve_name', 'minversion', 'find_current_module',
            'isinstancemethod']

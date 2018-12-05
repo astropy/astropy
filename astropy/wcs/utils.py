@@ -4,7 +4,7 @@ import numpy as np
 
 from astropy import units as u
 
-from .wcs import WCS, WCSSUB_LONGITUDE, WCSSUB_LATITUDE, WCSSUB_CELESTIAL
+from .wcs import WCS, WCSSUB_CELESTIAL, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
 
 __doctest_skip__ = ['wcs_to_celestial_frame', 'celestial_frame_to_wcs']
 

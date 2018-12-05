@@ -5,8 +5,9 @@ nicely-indented XML.
 """
 
 # STDLIB
-import contextlib
+
 import textwrap
+import contextlib
 
 try:
     import bleach

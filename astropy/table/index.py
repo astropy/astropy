@@ -31,11 +31,13 @@ Notes
 """
 
 from copy import deepcopy
+
 import numpy as np
 
-from .bst import MinValue, MaxValue
-from .sorted_array import SortedArray
 from astropy.time import Time
+
+from .bst import MaxValue, MinValue
+from .sorted_array import SortedArray
 
 
 class QueryError(ValueError):

@@ -1,30 +1,31 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import gzip
-import bz2
+
 import io
+import os
+import bz2
+import gzip
 import mmap
 import errno
-import os
 import pathlib
-import warnings
 import zipfile
+import warnings
 from unittest.mock import patch
 
-import pytest
 import numpy as np
 
-from . import FitsTestCase
-
-from astropy.io.fits.convenience import _getext
-from astropy.io.fits.diff import FITSDiff
-from astropy.io.fits.file import _File, GZIP_MAGIC
+import pytest
 
 from astropy.io import fits
-from astropy.tests.helper import raises, catch_warnings, ignore_warnings
+from astropy.io.fits.convenience import _getext
+from astropy.io.fits.diff import FITSDiff
+from astropy.io.fits.file import GZIP_MAGIC, _File
+from astropy.tests.helper import catch_warnings, ignore_warnings, raises
+from astropy.utils import data
 from astropy.utils.data import conf, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils import data
+
+from . import FitsTestCase
 
 
 class TestCore(FitsTestCase):

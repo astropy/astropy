@@ -5,14 +5,13 @@ Various utilities and cookbook-like things.
 
 
 # STDLIB
-import codecs
-import contextlib
+
 import io
 import re
 import gzip
-
+import codecs
+import contextlib
 from distutils import version
-
 
 __all__ = [
     'convert_to_writable_filelike',

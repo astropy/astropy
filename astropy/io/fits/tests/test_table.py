@@ -1,14 +1,26 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import contextlib
-import copy
-import gc
-import pickle
-import re
 
-import pytest
+import gc
+import re
+import copy
+import pickle
+import contextlib
+
 import numpy as np
 from numpy import char as chararray
+
+import pytest
+
+from astropy.io import fits
+from astropy.io.fits.column import NUMPY2FITS, Delayed
+from astropy.io.fits.util import decode_ascii
+from astropy.io.fits.verify import VerifyError
+from astropy.tests.helper import catch_warnings, ignore_warnings
+from astropy.utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+
+from . import FitsTestCase
 
 try:
     import objgraph
@@ -16,15 +28,8 @@ try:
 except ImportError:
     HAVE_OBJGRAPH = False
 
-from astropy.io import fits
-from astropy.tests.helper import catch_warnings, ignore_warnings
-from astropy.utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-from astropy.io.fits.column import Delayed, NUMPY2FITS
-from astropy.io.fits.util import decode_ascii
-from astropy.io.fits.verify import VerifyError
-from . import FitsTestCase
+
 
 
 def comparefloats(a, b):
@@ -3147,7 +3152,6 @@ def test_regression_scalar_indexing():
     x1b = x[(1,)]
     # FITS_record does not define __eq__; so test elements.
     assert all(a == b for a, b in zip(x1a, x1b))
-
 
 
 def test_new_column_attributes_preserved(tmpdir):

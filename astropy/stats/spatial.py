@@ -3,9 +3,9 @@
 This module implements functions and classes for spatial statistics.
 """
 
+import math
 
 import numpy as np
-import math
 
 
 class RipleysKEstimator:

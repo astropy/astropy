@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from inspect import signature
 
 import numpy as np
-from inspect import signature
+
 from astropy.stats.histogram import calculate_bin_edges
 
 __all__ = ['hist']

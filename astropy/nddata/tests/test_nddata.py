@@ -5,13 +5,14 @@ import pickle
 import textwrap
 from collections import OrderedDict
 
-import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
+import pytest
+
+from astropy import units as u
 from astropy.nddata.nddata import NDData
 from astropy.nddata.nduncertainty import StdDevUncertainty
-from astropy import units as u
 from astropy.utils import NumpyRNGContext
 
 from .test_nduncertainty import FakeUncertainty
@@ -391,7 +392,7 @@ def test_pickle_nddata_without_uncertainty():
 # Check that the meta descriptor is working as expected. The MetaBaseTest class
 # takes care of defining all the tests, and we simply have to define the class
 # and any minimal set of args to pass.
-from astropy.utils.tests.test_metadata import MetaBaseTest
+from astropy.utils.tests.test_metadata import MetaBaseTest  # isort:skip
 
 
 class TestMetaNDData(MetaBaseTest):

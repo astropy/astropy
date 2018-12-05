@@ -1,16 +1,18 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+
 import sys
 import warnings
 
-import pytest
 import numpy as np
 
-from .test_table import comparerecords
-from astropy.io.fits.hdu.base import _ValidHDU
+import pytest
+
 from astropy.io import fits
+from astropy.io.fits.hdu.base import _ValidHDU
 
 from . import FitsTestCase
+from .test_table import comparerecords
 
 
 class TestChecksumFunctions(FitsTestCase):

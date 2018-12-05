@@ -1,15 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+
 import os
 
-import pytest
 import numpy as np
 
-from astropy.io import fits
-
-asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
+import pytest
+asdf = pytest.importorskip('asdf')  # isort:skip
 from asdf.tests import helpers
+
+from astropy.io import fits
 
 
 def test_complex_structure(tmpdir):

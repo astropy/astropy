@@ -1,5 +1,5 @@
-import numpy as np
 
+import numpy as np
 
 NORMALIZATIONS = ['standard', 'psd', 'model', 'log']
 

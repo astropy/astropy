@@ -1,17 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
-import urllib.request
-import warnings
 
-import pytest
+import os
+import warnings
+import urllib.request
+
 import numpy as np
 
-from astropy.tests.helper import assert_quantity_allclose, catch_warnings
-from astropy.utils.iers import iers
+import pytest
+
 from astropy import units as u
 from astropy.table import QTable
+from astropy.tests.helper import assert_quantity_allclose, catch_warnings
 from astropy.time import Time, TimeDelta
+from astropy.utils.iers import iers
 
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', OSError)
 

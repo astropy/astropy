@@ -2,14 +2,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Test initalization and other aspects of Angle and subclasses"""
 
-import pytest
+
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
-from astropy.coordinates.angles import Longitude, Latitude, Angle
+import pytest
+
 from astropy import units as u
-from astropy.coordinates.errors import (IllegalSecondError, IllegalMinuteError, IllegalHourError,
-                      IllegalSecondWarning, IllegalMinuteWarning)
+from astropy.coordinates.angles import Angle, Latitude, Longitude
+from astropy.coordinates.errors import (IllegalHourError, IllegalMinuteError, IllegalMinuteWarning,
+                                        IllegalSecondError, IllegalSecondWarning)
 
 
 def test_create_angles():

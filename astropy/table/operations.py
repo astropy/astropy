@@ -8,20 +8,20 @@ High-level table operations:
 """
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from copy import deepcopy
-import collections
 import itertools
-from collections import OrderedDict, Counter
+import collections
+from copy import deepcopy
+from collections import Counter, OrderedDict
 from collections.abc import Mapping, Sequence
 
 import numpy as np
 
-from astropy.utils import metadata
-from .table import Table, QTable, Row, Column
 from astropy.units import Quantity
+from astropy.utils import metadata
 
 from . import _np_utils
-from .np_utils import fix_column_name, TableMergeError
+from .np_utils import TableMergeError, fix_column_name
+from .table import Column, QTable, Row, Table
 
 __all__ = ['join', 'setdiff', 'hstack', 'vstack', 'unique']
 

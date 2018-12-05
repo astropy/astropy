@@ -1,13 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import math
+
 import numpy as np
+from numpy.testing import assert_allclose, assert_almost_equal
+
 import pytest
 
 from astropy.convolution.convolve import convolve, convolve_fft, convolve_models
-from astropy.modeling import models, fitting
+from astropy.modeling import fitting, models
 from astropy.utils.misc import NumpyRNGContext
-from numpy.testing import assert_allclose, assert_almost_equal
 
 try:
     import scipy

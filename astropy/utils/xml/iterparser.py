@@ -3,14 +3,11 @@
 This module includes a fast iterator-based XML parser.
 """
 
-# STDLIB
-import contextlib
 import io
 import sys
+import contextlib
 
-# ASTROPY
 from astropy.utils import data
-
 
 __all__ = ['get_xml_iterator', 'get_xml_encoding', 'xml_readlines']
 

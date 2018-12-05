@@ -4,18 +4,15 @@
 This module provides utility functions for the models package
 """
 
-
+from inspect import signature
 from collections import deque
 from collections.abc import MutableMapping
-from inspect import signature
 
 import numpy as np
 
-
-from astropy.utils import isiterable, check_broadcast
-from astropy.utils.compat import NUMPY_LT_1_14
-
 from astropy import units as u
+from astropy.utils import check_broadcast, isiterable
+from astropy.utils.compat import NUMPY_LT_1_14
 
 __all__ = ['ExpressionTree', 'AliasDict', 'check_broadcast',
            'poly_map_domain', 'comb', 'ellipse_extent']

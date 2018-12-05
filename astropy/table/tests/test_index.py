@@ -1,16 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
+
 import numpy as np
 
-from .test_table import SetupData
-from astropy.table.bst import BST, FastRBT, FastBST
-from astropy.table.sorted_array import SortedArray
-from astropy.table.soco import SCEngine, HAS_SOCO
-from astropy.table.table import QTable, Row, Table
+import pytest
+
 from astropy import units as u
-from astropy.time import Time
+from astropy.table.bst import BST, FastBST, FastRBT
 from astropy.table.column import BaseColumn
+from astropy.table.soco import HAS_SOCO, SCEngine
+from astropy.table.sorted_array import SortedArray
+from astropy.table.table import QTable, Row, Table
+from astropy.time import Time
+
+from .test_table import SetupData
 
 try:
     import bintrees
@@ -447,7 +450,6 @@ class TestIndex(SetupData):
             t.loc[self.make_val(6)]
         with pytest.raises(KeyError):
             t.loc_indices[self.make_val(6)]
-
 
     def test_copy_index_references(self, main_col, table_types, engine):
         # check against a bug in which indices were given an incorrect

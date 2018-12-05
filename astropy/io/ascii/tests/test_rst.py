@@ -1,12 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 from io import StringIO
 
 from astropy.io import ascii
-from .common import (assert_equal, assert_almost_equal)
+
+from .common import assert_almost_equal, assert_equal
 
 
 def assert_equal_splitlines(arg1, arg2):
+
     assert_equal(arg1.splitlines(), arg2.splitlines())
 
 

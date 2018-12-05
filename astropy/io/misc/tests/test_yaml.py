@@ -6,15 +6,17 @@ This module tests some of the methods related to YAML serialization.
 Requires `pyyaml <http://pyyaml.org/>`_ to be installed.
 """
 
+
 from io import StringIO
 
-import pytest
 import numpy as np
 
-from astropy.coordinates import SkyCoord, EarthLocation, Angle, Longitude, Latitude
+import pytest
+
 from astropy import units as u
-from astropy.time import Time
+from astropy.coordinates import Angle, EarthLocation, Latitude, Longitude, SkyCoord
 from astropy.table import QTable, SerializedColumn
+from astropy.time import Time
 
 try:
     from astropy.io.misc.yaml import load, load_all, dump

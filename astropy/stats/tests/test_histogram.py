@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
+
+
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.stats import (histogram, calculate_bin_edges,
-                scott_bin_width, freedman_bin_width, knuth_bin_width)
+import pytest
 
 try:
     import scipy  # pylint: disable=W0611
@@ -13,6 +13,9 @@ except ImportError:
     HAS_SCIPY = False
 else:
     HAS_SCIPY = True
+
+from astropy.stats import (histogram, calculate_bin_edges,
+                scott_bin_width, freedman_bin_width, knuth_bin_width)
 
 
 def test_scott_bin_width(N=10000, rseed=0):

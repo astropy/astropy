@@ -2,9 +2,9 @@
 
 from .hist import *
 from .interval import *
+from .lupton_rgb import *
 from .mpl_normalize import *
 from .mpl_style import *
 from .stretch import *
 from .transform import *
 from .units import *
-from .lupton_rgb import *

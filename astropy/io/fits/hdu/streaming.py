@@ -1,16 +1,16 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import gzip
-import os
 
-from .base import _BaseHDU, BITPIX2DTYPE
-from .hdulist import HDUList
-from .image import PrimaryHDU
+import os
+import gzip
 
 from astropy.io.fits.file import _File
 from astropy.io.fits.header import _pad_length
 from astropy.io.fits.util import fileobj_name
 
+from .base import BITPIX2DTYPE, _BaseHDU
+from .hdulist import HDUList
+from .image import PrimaryHDU
 
 
 class StreamingHDU:

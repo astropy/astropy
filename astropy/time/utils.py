@@ -8,6 +8,7 @@ Geometry 18(3):305-363 -- http://www.cs.berkeley.edu/~jrs/papers/robustr.pdf
 """
 
 import numpy as np
+
 from astropy import units as u
 
 

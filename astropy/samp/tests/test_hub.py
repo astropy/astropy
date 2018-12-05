@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import time
 
-from astropy.samp.hub import SAMPHubServer
-
 from astropy.samp import conf
+from astropy.samp.hub import SAMPHubServer
 
 
 def setup_module(module):

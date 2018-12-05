@@ -1,13 +1,16 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+
 import platform
 
-import pytest
 import numpy as np
 
+import pytest
+
 from astropy.io import fits
-from . import FitsTestCase
 from astropy.tests.helper import ignore_warnings
+
+from . import FitsTestCase
 
 
 class TestUintFunctions(FitsTestCase):

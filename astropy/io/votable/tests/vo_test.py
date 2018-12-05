@@ -1,32 +1,28 @@
 # -*- coding: utf-8 -*-
 
-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This is a set of regression tests for vo.
 """
 
-
-# STDLIB
-import difflib
 import io
-import pathlib
 import sys
 import gzip
+import difflib
+import pathlib
 from unittest import mock
 
-# THIRD-PARTY
-import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-# LOCAL
-from astropy.io.votable.table import parse, parse_single_table, validate
+import pytest
+
 from astropy.io.votable import tree
 from astropy.io.votable.exceptions import VOTableSpecError, VOWarning
+from astropy.io.votable.table import parse, parse_single_table, validate
 from astropy.io.votable.xmlutil import validate_schema
+from astropy.tests.helper import catch_warnings, raises
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_filenames
-from astropy.tests.helper import raises, catch_warnings
 
 # Determine the kind of float formatting in this build of Python
 if hasattr(sys, 'float_repr_style'):

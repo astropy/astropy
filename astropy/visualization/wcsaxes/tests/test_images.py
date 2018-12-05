@@ -1,23 +1,24 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import os
 
-import pytest
 import numpy as np
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import Circle, Rectangle
+import pytest
 from matplotlib import rc_context
+from matplotlib.patches import Circle, Rectangle
 
 from astropy import units as u
-from astropy.io import fits
-from astropy.wcs import WCS
 from astropy.coordinates import SkyCoord
-
-from astropy.visualization.wcsaxes.patches import SphericalCircle
-from astropy.visualization.wcsaxes import WCSAxes
-from . import datasets
+from astropy.io import fits
 from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
+from astropy.visualization.wcsaxes import WCSAxes
 from astropy.visualization.wcsaxes.frame import EllipticalFrame
+from astropy.visualization.wcsaxes.patches import SphericalCircle
+from astropy.wcs import WCS
+
+from . import datasets
 
 
 class BaseImageTests:

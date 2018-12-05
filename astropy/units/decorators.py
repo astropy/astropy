@@ -4,6 +4,7 @@
 __all__ = ['quantity_input']
 
 import inspect
+
 from astropy.utils.decorators import wraps
 from astropy.utils.misc import isiterable
 

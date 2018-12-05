@@ -1,20 +1,20 @@
 """Implements the Astropy TestRunner which is a thin wrapper around py.test."""
 
-import inspect
 import os
-import glob
-import copy
-import shlex
 import sys
+import copy
+import glob
+import shlex
+import inspect
 import tempfile
 import warnings
 import importlib
 from collections import OrderedDict
 from importlib.util import find_spec
 
-from astropy.config.paths import set_temp_config, set_temp_cache
-from astropy.utils import wraps, find_current_module
-from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from astropy.config.paths import set_temp_cache, set_temp_config
+from astropy.utils import find_current_module, wraps
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 __all__ = ['TestRunner', 'TestRunnerBase', 'keyword']
 

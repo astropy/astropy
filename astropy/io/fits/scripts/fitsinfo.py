@@ -23,7 +23,9 @@ Example usage of ``fitsinfo``:
     $ fitsinfo *.fits
 """
 
+
 import argparse
+
 import astropy.io.fits as fits
 from astropy import log
 

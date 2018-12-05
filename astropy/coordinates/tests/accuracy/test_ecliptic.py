@@ -3,13 +3,15 @@
 Accuracy tests for Ecliptic coordinate systems.
 """
 
+
 import numpy as np
 
-from astropy.units import allclose as quantity_allclose
 from astropy import units as u
+from astropy.constants import R_earth, R_sun
 from astropy.coordinates import SkyCoord
-from astropy.coordinates.builtin_frames import FK5, ICRS, GCRS, GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
-from astropy.constants import R_sun, R_earth
+from astropy.coordinates.builtin_frames import (FK5, GCRS, ICRS, BarycentricTrueEcliptic,
+                                                GeocentricTrueEcliptic, HeliocentricTrueEcliptic)
+from astropy.units import allclose as quantity_allclose
 
 
 def test_against_pytpm_doc_example():

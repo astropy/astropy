@@ -84,7 +84,6 @@ Planck13 = dict(
                " Table 5 (Planck + WP + highL + BAO)")
 )
 
-
 WMAP9 = dict(
     Oc0=0.2402,
     Ob0=0.04628,

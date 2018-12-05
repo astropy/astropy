@@ -1,11 +1,12 @@
-import pytest
+
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy import units
-from astropy.tests.helper import assert_quantity_allclose
-from astropy.stats.lombscargle import LombScargle
+import pytest
 
+from astropy import units
+from astropy.stats.lombscargle import LombScargle
+from astropy.tests.helper import assert_quantity_allclose
 
 ALL_METHODS = LombScargle.available_methods
 ALL_METHODS_NO_AUTO = [method for method in ALL_METHODS if method != 'auto']

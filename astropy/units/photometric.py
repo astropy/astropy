@@ -5,13 +5,12 @@
 This module defines magnitude zero points and related photometric quantities.
 """
 
-
 import numpy as _numpy
-from .core import UnitBase, def_unit, Unit
 
 from astropy.constants import si as _si
-from . import cgs, si, astrophys
 
+from . import astrophys, cgs, si
+from .core import Unit, UnitBase, def_unit
 
 _ns = globals()
 
@@ -60,6 +59,6 @@ del cgs, si, astrophys
 
 # This generates a docstring for this module that describes all of the
 # standard units defined here.
-from .utils import generate_unit_summary as _generate_unit_summary
+from .utils import generate_unit_summary as _generate_unit_summary  # isort:skip
 if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())

@@ -1,16 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import types
 
-import pytest
 import numpy as np
-from numpy.testing import assert_allclose
 from numpy.random import RandomState
+from numpy.testing import assert_allclose
 
+import pytest
+
+from astropy.modeling import fitting, models
 from astropy.modeling.core import Fittable1DModel
 from astropy.modeling.parameters import Parameter
-from astropy.modeling import models
-from astropy.modeling import fitting
 
 from .utils import ignore_non_integer_warning
 

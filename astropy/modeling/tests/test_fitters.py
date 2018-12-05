@@ -3,26 +3,28 @@
 Module to test fitting routines
 """
 
-import os.path
 
-import pytest
+import os.path
+import warnings
+from unittest import mock
+
 import numpy as np
 from numpy import linalg
 from numpy.testing import assert_allclose, assert_almost_equal
-from unittest import mock
 
-from . import irafutil
+import pytest
+
 from astropy.modeling import models
 from astropy.modeling.core import Fittable2DModel, Parameter
 from astropy.modeling.fitting import *
+from astropy.modeling.fitting import populate_entry_points
+from astropy.stats import sigma_clip
 from astropy.utils import NumpyRNGContext
 from astropy.utils.data import get_pkg_data_filename
-from .utils import ignore_non_integer_warning
-from astropy.stats import sigma_clip
-
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.modeling.fitting import populate_entry_points
-import warnings
+
+from . import irafutil
+from .utils import ignore_non_integer_warning
 
 try:
     from scipy import optimize

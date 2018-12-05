@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from .index import TableIndices, TableLoc, TableILoc, TableLocIndices
 
 import re
 import sys
-from collections import OrderedDict
-from collections.abc import Mapping
 import warnings
 from copy import deepcopy
+from collections import OrderedDict
+from collections.abc import Mapping
 
 import numpy as np
 from numpy import ma
@@ -14,22 +13,20 @@ from numpy import ma
 from astropy import log
 from astropy.io import registry as io_registry
 from astropy.units import Quantity, QuantityInfo
-from astropy.utils import isiterable, ShapedLikeNDArray
+from astropy.utils import ShapedLikeNDArray, isiterable
 from astropy.utils.console import color_print
-from astropy.utils.metadata import MetaData
-from astropy.utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
+from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo, ParentDtypeInfo
 from astropy.utils.exceptions import AstropyDeprecationWarning, NoValue
+from astropy.utils.metadata import MetaData
 
-from . import groups
-from .pprint import TableFormatter
-from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
-                     col_copy)
-from .row import Row
-from .np_utils import fix_column_name, recarray_fromrecords
+from . import conf, groups
+from .column import BaseColumn, Column, FalseArray, MaskedColumn, _auto_names, col_copy
+from .index import (Index, TableILoc, TableIndices, TableLoc,
+                    TableLocIndices, _IndexModeContext, get_index)
 from .info import TableInfo, serialize_method_as
-from .index import Index, _IndexModeContext, get_index
-from . import conf
-
+from .np_utils import fix_column_name, recarray_fromrecords
+from .pprint import TableFormatter
+from .row import Row
 
 __doctest_skip__ = ['Table.read', 'Table.write',
                     'Table.convert_bytestring_to_unicode',

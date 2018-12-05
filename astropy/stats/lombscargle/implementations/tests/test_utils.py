@@ -1,9 +1,11 @@
 
-import pytest
+
 import numpy as np
 from numpy.testing import assert_allclose, assert_equal
 
-from astropy.stats.lombscargle.implementations.utils import extirpolate, bitceil, trig_sum
+import pytest
+
+from astropy.stats.lombscargle.implementations.utils import bitceil, extirpolate, trig_sum
 
 
 @pytest.mark.parametrize('N', 2 ** np.arange(1, 12))

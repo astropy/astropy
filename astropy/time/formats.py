@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import fnmatch
-import time
 import re
+import time
+import fnmatch
 import datetime
 import warnings
 from collections import OrderedDict, defaultdict
 
 import numpy as np
 
+from astropy import _erfa as erfa
+from astropy import units as u
 from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning
-from astropy import units as u
-from astropy import _erfa as erfa
-from .utils import day_frac, quantity_day_frac, two_sum, two_product
 
+from .utils import day_frac, quantity_day_frac, two_product, two_sum
 
 __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeCxcSec', 'TimeGPS', 'TimeDecimalYear',
@@ -1256,5 +1256,5 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
 
         return self.mask_if_needed(iterator.operands[-1])
 
-
-from .core import Time, TIME_SCALES, TIME_DELTA_SCALES, ScaleValueError
+# This import needs to be at the end to prevent circular imports
+from .core import TIME_DELTA_SCALES, TIME_SCALES, ScaleValueError, Time  # isort:skip

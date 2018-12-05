@@ -1,9 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import re
 import warnings
 import weakref
-import re
-
 from copy import deepcopy
 
 import numpy as np
@@ -18,17 +17,17 @@ except ImportError:
     # For Numpy versions that do not raise this warning.
     MaskedArrayFutureWarning = None
 
-from astropy.units import Unit, Quantity
+from astropy.units import Quantity, Unit
 from astropy.utils.console import color_print
-from astropy.utils.metadata import MetaData
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
+from astropy.utils.metadata import MetaData
 from astropy.utils.misc import dtype_bytes_or_chars
-from . import groups
-from . import pprint
-from .np_utils import fix_column_name
 
+from . import groups, pprint
 # These "shims" provide __getitem__ implementations for Column and MaskedColumn
 from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
+from .np_utils import fix_column_name
+
 
 # Create a generic TableFormatter object for use by bare columns with no
 # parent table.

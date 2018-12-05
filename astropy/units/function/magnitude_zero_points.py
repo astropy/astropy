@@ -5,6 +5,7 @@
 This module has been deprecated and moved to astropy.units.photometric.  The
 names remain here for backwards compatibility.
 """
+
 from warnings import warn
 
 from astropy.units.photometric import AB, ST

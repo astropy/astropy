@@ -1,25 +1,25 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import io
 import os
 import warnings
 from datetime import datetime
 
-import pytest
 import numpy as np
-from numpy.testing import (
-    assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp,
-    assert_array_equal)
+from numpy.testing import (assert_allclose, assert_array_almost_equal,
+                           assert_array_almost_equal_nulp, assert_array_equal)
 
-from astropy.tests.helper import raises, catch_warnings
+import pytest
+
 from astropy import wcs
-from astropy.wcs import _wcs
-from astropy.utils.data import (
-    get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
-from astropy.utils.misc import NumpyRNGContext
-from astropy.utils.exceptions import AstropyUserWarning
-from astropy.io import fits
 from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.tests.helper import catch_warnings, raises
+from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename, get_pkg_data_filenames
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.misc import NumpyRNGContext
+from astropy.wcs import _wcs
 
 
 class TestMaps:

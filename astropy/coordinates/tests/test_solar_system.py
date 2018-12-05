@@ -1,18 +1,21 @@
 
-import pytest
+
 import numpy as np
 
-from astropy.time import Time
+import pytest
+
 from astropy import units as u
 from astropy.constants import c
 from astropy.coordinates.builtin_frames import GCRS
 from astropy.coordinates.earth import EarthLocation
-from astropy.coordinates.sky_coordinate import SkyCoord
-from astropy.coordinates.solar_system import (get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
-                            _apparent_position_in_true_coordinates,
-                            get_body_barycentric, get_body_barycentric_posvel)
 from astropy.coordinates.funcs import get_sun
+from astropy.coordinates.sky_coordinate import SkyCoord
+from astropy.coordinates.solar_system import (BODY_NAME_TO_KERNEL_SPEC,
+                                              _apparent_position_in_true_coordinates, get_body,
+                                              get_body_barycentric, get_body_barycentric_posvel,
+                                              get_moon)
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 
 try:

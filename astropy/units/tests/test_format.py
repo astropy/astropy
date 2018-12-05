@@ -5,12 +5,14 @@
 Regression tests for the units.format package
 """
 
-import pytest
+
 from numpy.testing import assert_allclose
 
-from astropy.tests.helper import catch_warnings
+import pytest
+
 from astropy import units as u
 from astropy.constants import si
+from astropy.tests.helper import catch_warnings
 from astropy.units import core
 from astropy.units import format as u_format
 from astropy.units.utils import is_effectively_unity

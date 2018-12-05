@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
+
 import numpy as np
 from numpy import testing as npt
 
-from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+import pytest
 
 from astropy import units as u
-from astropy.utils import minversion
-
 from astropy.coordinates import matching
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.utils import minversion
 
 """
 These are the tests for coordinate matching.

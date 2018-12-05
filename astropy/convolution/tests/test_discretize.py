@@ -1,14 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import itertools
 
-import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
+import pytest
+
 from astropy.convolution.utils import discretize_model
-from astropy.modeling.functional_models import (
-    Gaussian1D, Box1D, MexicanHat1D, Gaussian2D, Box2D, MexicanHat2D)
+from astropy.modeling.functional_models import (Box1D, Box2D, Gaussian1D, Gaussian2D,
+                                                MexicanHat1D, MexicanHat2D)
 from astropy.modeling.tests.example_models import models_1D, models_2D
 from astropy.modeling.tests.test_models import create_model
 

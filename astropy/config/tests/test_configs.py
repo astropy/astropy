@@ -8,11 +8,9 @@ import subprocess
 
 import pytest
 
+from astropy.config import configuration, paths
 from astropy.tests.helper import catch_warnings
-
 from astropy.utils.data import get_pkg_data_filename
-from astropy.config import configuration
-from astropy.config import paths
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 

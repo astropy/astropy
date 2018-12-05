@@ -14,14 +14,16 @@
 Handles a "generic" string format for units
 """
 
+
 import os
 import re
 import warnings
 
-from . import core, utils
-from .base import Base
 from astropy.utils import classproperty
 from astropy.utils.misc import did_you_mean
+
+from . import core, utils
+from .base import Base
 
 
 def _to_string(cls, unit):

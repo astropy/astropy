@@ -1,9 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import pytest
 
-from astropy.tests.helper import pickle_protocol, check_pickling_recovery
 from astropy import cosmology as cosm
+from astropy.tests.helper import check_pickling_recovery, pickle_protocol
 
 originals = [cosm.FLRW]
 xfails = [False]

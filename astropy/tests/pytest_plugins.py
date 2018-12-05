@@ -8,8 +8,10 @@ configure them within setup.cfg).
 TODO: This entire module should eventually be removed once backwards
 compatibility is no longer supported.
 """
+
 import builtins
 import warnings
+
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .helper import enable_deprecations_as_exceptions

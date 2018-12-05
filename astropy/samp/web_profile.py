@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 from urllib.parse import parse_qs
 from urllib.request import urlopen
 
 from astropy.utils.data import get_pkg_data_contents
 
-from .standard_profile import (SAMPSimpleXMLRPCRequestHandler,
-                               ThreadingXMLRPCServer)
+from .standard_profile import SAMPSimpleXMLRPCRequestHandler, ThreadingXMLRPCServer
 
 __all__ = []
 

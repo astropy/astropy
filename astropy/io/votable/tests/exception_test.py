@@ -1,11 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # LOCAL
-from astropy.tests.helper import catch_warnings
 
-from astropy.io.votable import converters
-from astropy.io.votable import exceptions
-from astropy.io.votable import tree
+from astropy.io.votable import converters, exceptions, tree
+from astropy.tests.helper import catch_warnings
 
 
 def test_reraise():

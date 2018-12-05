@@ -3,12 +3,14 @@
 This module provides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the `pytest` testing framework.
 """
+
 import os
 import sys
 import types
 import pickle
 import warnings
 import functools
+
 import pytest
 
 try:
@@ -20,12 +22,11 @@ except ImportError:
     pass
 
 from astropy.units import allclose as quantity_allclose  # noqa
-from astropy.utils.exceptions import (AstropyDeprecationWarning,
-                                AstropyPendingDeprecationWarning)
-
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyPendingDeprecationWarning
 
 # For backward-compatibility with affiliated packages
 from .runner import TestRunner  # pylint: disable=W0611
+
 
 __all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
            'treat_deprecations_as_exceptions', 'catch_warnings',

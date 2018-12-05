@@ -2,15 +2,16 @@
 """
 This module tests model set evaluation for some common use cases.
 """
-import pytest
+
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.modeling.models import Polynomial1D, Polynomial2D
-from astropy.modeling.fitting import LinearLSQFitter
-from astropy.modeling.core import Model
-from astropy.modeling.parameters import Parameter
+import pytest
 
+from astropy.modeling.core import Model
+from astropy.modeling.fitting import LinearLSQFitter
+from astropy.modeling.models import Polynomial1D, Polynomial2D
+from astropy.modeling.parameters import Parameter
 
 x = np.arange(4)
 xx = np.array([x, x + 10])
@@ -181,8 +182,6 @@ def test_shapes():
     t = TParModel([a1, a2], [e1, e2], n_models=2, model_set_axis=-1)
     assert t.coeff.shape == (2, 2)
     assert t.e.shape == (2,)
-
-
 
     t = TParModel([[a1, a2]], [[e1, e2]], n_models=2, model_set_axis=1)
     assert t.coeff.shape == (2, 2)

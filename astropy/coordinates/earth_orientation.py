@@ -8,13 +8,12 @@ This module is (currently) not intended to be part of the public API, but
 is instead primarily for internal use in `coordinates`
 """
 
-
 import numpy as np
 
-from astropy.time import Time
 from astropy import units as u
-from .matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
+from astropy.time import Time
 
+from .matrix_utilities import matrix_product, matrix_transpose, rotation_matrix
 
 jd1950 = Time('B1950', scale='tai').jd
 jd2000 = Time('J2000', scale='utc').jd

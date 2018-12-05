@@ -4,12 +4,14 @@ A module containing unit tests for the `bitmask` modue.
 Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
+
 import warnings
+
 import numpy as np
+
 import pytest
 
 from astropy.nddata import bitmask
-
 
 MAX_INT_TYPE = np.maximum_sctype(np.int)
 MAX_UINT_TYPE = np.maximum_sctype(np.uint)

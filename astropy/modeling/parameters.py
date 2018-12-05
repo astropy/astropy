@@ -7,20 +7,18 @@ It is unlikely users will need to work with these classes directly, unless they
 define their own models.
 """
 
-
-import functools
-import numbers
 import types
+import numbers
 import operator
+import functools
 
 import numpy as np
 
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
-from astropy.utils import isiterable, OrderedDescriptor
-from .utils import array_repr_oneline
+from astropy.utils import OrderedDescriptor, isiterable
 
-from .utils import get_inputs_and_params
+from .utils import array_repr_oneline, get_inputs_and_params
 
 __all__ = ['Parameter', 'InputParameterError', 'ParameterError']
 

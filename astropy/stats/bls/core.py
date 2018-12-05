@@ -3,6 +3,7 @@
 
 __all__ = ["BoxLeastSquares", "BoxLeastSquaresResults"]
 
+
 import numpy as np
 
 from astropy import units

@@ -21,9 +21,10 @@ import abc
 
 import numpy as np
 
-from .core import Model
 from astropy import units as u
 from astropy.utils import minversion
+
+from .core import Model
 
 try:
     import scipy

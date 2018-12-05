@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 from functools import partial
 from collections import defaultdict
 
@@ -10,15 +11,14 @@ from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
-from astropy.coordinates import SkyCoord, BaseCoordinateFrame
+from astropy.coordinates import BaseCoordinateFrame, SkyCoord
 from astropy.wcs import WCS
 from astropy.wcs.utils import wcs_to_celestial_frame
 
-from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
-                         CoordinateTransform)
 from .coordinates_map import CoordinatesMap
-from .utils import get_coord_meta, transform_contour_set_inplace
 from .frame import EllipticalFrame, RectangularFrame
+from .transforms import CoordinateTransform, WCSPixel2WorldTransform, WCSWorld2PixelTransform
+from .utils import get_coord_meta, transform_contour_set_inplace
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
 

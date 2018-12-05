@@ -13,7 +13,6 @@ in the celestial system (``CRVAL`` keywords in FITS), and the longitude of the c
 pole in the native system (``lon_pole``). The Euler angles are ``lon+90``, ``90-lat``
 and ``-(lon_pole-90)``.
 
-
 References
 ----------
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
@@ -23,12 +22,13 @@ import math
 
 import numpy as np
 
+from astropy import units as u
+from astropy.coordinates.matrix_utilities import matrix_product, rotation_matrix
+from astropy.utils.decorators import deprecated
+
 from .core import Model
 from .parameters import Parameter
-from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product
-from astropy import units as u
-from astropy.utils.decorators import deprecated
-from .utils import _to_radian, _to_orig_unit
+from .utils import _to_orig_unit, _to_radian
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
            'EulerAngleRotation']

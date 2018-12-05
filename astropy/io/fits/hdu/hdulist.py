@@ -1,28 +1,29 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 
-import bz2
-import gzip
-import itertools
 import os
-import shutil
+import bz2
 import sys
+import gzip
+import shutil
 import warnings
+import itertools
 
 import numpy as np
 
-from . import compressed
-from .base import _BaseHDU, _ValidHDU, _NonstandardHDU, ExtensionHDU
-from .groups import GroupsHDU
-from .image import PrimaryHDU, ImageHDU
-from astropy.io.fits.file import _File, FILE_MODES
+from astropy.io.fits.file import FILE_MODES, _File
 from astropy.io.fits.header import _pad_length
-from astropy.io.fits.util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
-                    _get_array_mmap, _free_space_check, fileobj_mode, isfile)
-from astropy.io.fits.verify import _Verify, _ErrList, VerifyError, VerifyWarning
+from astropy.io.fits.util import (_free_space_check, _get_array_mmap, _is_int, _tmp_name,
+                                  fileobj_closed, fileobj_mode, ignore_sigint, isfile)
+from astropy.io.fits.verify import VerifyError, VerifyWarning, _ErrList, _Verify
 from astropy.utils import indent
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.exceptions import AstropyUserWarning
+
+from . import compressed
+from .base import ExtensionHDU, _BaseHDU, _NonstandardHDU, _ValidHDU
+from .groups import GroupsHDU
+from .image import ImageHDU, PrimaryHDU
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,

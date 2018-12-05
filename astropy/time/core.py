@@ -7,28 +7,28 @@ UT1) and time representations (e.g. JD, MJD, ISO 8601) that are used in
 astronomy.
 """
 
-
 import copy
 import operator
-from datetime import datetime, date, timedelta
 from time import strftime, strptime
+from datetime import date, datetime, timedelta
 
 import numpy as np
 
-from astropy import units as u, constants as const
 from astropy import _erfa as erfa
+from astropy import constants as const
+from astropy import units as u
+from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat.misc import override__dir__
 from astropy.utils.data_info import MixinInfo, data_info_factory
-from .utils import day_frac
-from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
-                      TimeJD, TimeUnique, TimeAstropyTime, TimeDatetime)
+
 # Import TimeFromEpoch to avoid breaking code that followed the old example of
 # making a custom timescale in the documentation.
 from .formats import TimeFromEpoch  # pylint: disable=W0611
-
-from astropy.extern import _strptime
+from .formats import (TIME_DELTA_FORMATS, TIME_FORMATS, TimeAstropyTime,
+                      TimeDatetime, TimeJD, TimeUnique)
+from .utils import day_frac
 
 __all__ = ['Time', 'TimeDelta', 'TIME_SCALES', 'STANDARD_TIME_SCALES', 'TIME_DELTA_SCALES',
            'ScaleValueError', 'OperandTypeError', 'TimeInfo']

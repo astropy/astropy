@@ -3,8 +3,8 @@
 This is a collection of monkey patches and workarounds for bugs in
 earlier versions of Numpy.
 """
-from astropy.utils import minversion
 
+from astropy.utils import minversion
 
 __all__ = ['NUMPY_LT_1_14', 'NUMPY_LT_1_14_1', 'NUMPY_LT_1_14_2']
 

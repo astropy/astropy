@@ -5,10 +5,10 @@ A module that provides functions for manipulating bit masks and data quality
 """
 
 import sys
-import warnings
 import numbers
-import numpy as np
+import warnings
 
+import numpy as np
 
 __all__ = ['bitfield_to_boolean_mask', 'interpret_bit_flags']
 

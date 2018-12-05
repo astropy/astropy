@@ -8,7 +8,6 @@ import numpy as np
 
 from .constant import Constant, EMConstant
 
-
 # PHYSICAL CONSTANTS
 
 class CODATA2010(Constant):

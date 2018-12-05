@@ -2,12 +2,19 @@
 
 
 import os
-import signal
 import gzip
+import signal
 
-import pytest
 import numpy as np
 from numpy.testing import assert_equal
+
+import pytest
+
+from astropy.io.fits import util
+from astropy.io.fits.util import _rstrip_inplace, ignore_sigint
+from astropy.tests.helper import catch_warnings
+
+from . import FitsTestCase
 
 try:
     from PIL import Image
@@ -15,11 +22,7 @@ try:
 except ImportError:
     HAS_PIL = False
 
-from astropy.tests.helper import catch_warnings
-from astropy.io.fits import util
-from astropy.io.fits.util import ignore_sigint, _rstrip_inplace
 
-from . import FitsTestCase
 
 
 class TestUtils(FitsTestCase):

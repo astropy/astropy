@@ -1,19 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+
 import datetime
 from collections import OrderedDict
 
-import pytest
-
 import numpy as np
 
-from astropy import time
-
-asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
-from asdf import AsdfFile, yamlutil, tagged
-from asdf.tests import helpers
+import pytest
+asdf = pytest.importorskip('asdf')  # isort:skip
+from asdf import AsdfFile, tagged, yamlutil
 import asdf.schema as asdf_schema
+from asdf.tests import helpers
+
+from astropy import time
 
 
 def _flatten_combiners(schema):

@@ -3,20 +3,19 @@
 This plugin provides customization of configuration and cache directories used
 by pytest.
 """
-import datetime
-import locale
+
 import os
 import sys
+import locale
+import datetime
+import importlib.machinery as importlib_machinery
 from collections import OrderedDict
 
 import pytest
 
-from astropy.config.paths import set_temp_config, set_temp_cache
-from astropy.utils.argparse import writeable_directory
+from astropy.config.paths import set_temp_cache, set_temp_config
 from astropy.tests.helper import treat_deprecations_as_exceptions
-
-import importlib.machinery as importlib_machinery
-
+from astropy.utils.argparse import writeable_directory
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.

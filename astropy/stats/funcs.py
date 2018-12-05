@@ -9,18 +9,16 @@ This module should generally not be used directly.  Everything in
 should be used for access.
 """
 
-
 import math
 import itertools
+from warnings import warn
 
 import numpy as np
 
-from warnings import warn
-
-from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils import isiterable
-from . import _stats
+from astropy.utils.decorators import deprecated_renamed_argument
 
+from . import _stats
 
 __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
            'binom_conf_interval', 'binned_binom_proportion',

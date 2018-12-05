@@ -14,24 +14,22 @@ celestial/spatial coordinate frames, generally focused around matrix-style
 transformations that are typically how the algorithms are defined.
 """
 
-
 import heapq
 import inspect
 import subprocess
-from warnings import warn
-
 from abc import ABCMeta, abstractmethod
-from collections import defaultdict, OrderedDict
-from contextlib import suppress
 from inspect import signature
+from warnings import warn
+from contextlib import suppress
+from collections import OrderedDict, defaultdict
 
 import numpy as np
 
 from astropy import units as u
 from astropy.utils.exceptions import AstropyWarning
 
-from .representation import REPRESENTATION_CLASSES
 from .matrix_utilities import matrix_product
+from .representation import REPRESENTATION_CLASSES
 
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
            'BaseAffineTransform', 'AffineTransform',

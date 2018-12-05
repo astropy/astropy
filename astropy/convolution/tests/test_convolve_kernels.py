@@ -1,15 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import itertools
 
-import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from astropy.convolution.convolve import convolve, convolve_fft
-from astropy.convolution.kernels import Gaussian2DKernel, Box2DKernel, Tophat2DKernel
-from astropy.convolution.kernels import Moffat2DKernel
+import pytest
 
+from astropy.convolution.convolve import convolve, convolve_fft
+from astropy.convolution.kernels import (Box2DKernel, Gaussian2DKernel,
+                                         Moffat2DKernel, Tophat2DKernel)
 
 SHAPES_ODD = [[15, 15], [31, 31]]
 SHAPES_EVEN = [[8, 8], [16, 16], [32, 32]]  # FIXME: not used ?!

@@ -1,10 +1,11 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+
 import os
-import shutil
 import stat
-import tempfile
 import time
+import shutil
+import tempfile
 
 from astropy.io import fits
 

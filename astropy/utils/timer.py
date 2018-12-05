@@ -1,19 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """General purpose timer related functions."""
 
-# STDLIB
 import time
 import warnings
+from functools import wraps, partial
 from collections import Iterable, OrderedDict
-from functools import partial, wraps
 
-# THIRD-PARTY
 import numpy as np
 
-# LOCAL
+from astropy import log, modeling
 from astropy import units as u
-from astropy import log
-from astropy import modeling
+
 from .exceptions import AstropyUserWarning
 
 __all__ = ['timefunc', 'RunTimePredictor']

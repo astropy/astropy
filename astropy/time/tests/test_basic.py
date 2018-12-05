@@ -2,21 +2,22 @@
 
 
 import copy
-import functools
 import datetime
+import functools
 from copy import deepcopy
 
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.tests.helper import catch_warnings, pytest
-from astropy.utils.exceptions import AstropyDeprecationWarning
-from astropy.utils import isiterable
-from astropy.time import Time, ScaleValueError, STANDARD_TIME_SCALES, TimeString, TimezoneInfo
-from astropy.coordinates import EarthLocation
-from astropy import units as u
 from astropy import _erfa as erfa
+from astropy import units as u
+from astropy.coordinates import EarthLocation
 from astropy.table import Column
+from astropy.tests.helper import catch_warnings, pytest
+from astropy.time import STANDARD_TIME_SCALES, ScaleValueError, Time, TimeString, TimezoneInfo
+from astropy.utils import isiterable
+from astropy.utils.exceptions import AstropyDeprecationWarning
+
 try:
     import pytz
     HAS_PYTZ = True

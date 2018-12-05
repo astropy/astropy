@@ -4,10 +4,10 @@ import platform
 import warnings
 
 import numpy as np
-from .index import get_index_by_names
 
 from astropy.utils.exceptions import AstropyUserWarning
 
+from .index import get_index_by_names
 
 __all__ = ['TableGroups', 'ColumnGroups']
 

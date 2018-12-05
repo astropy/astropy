@@ -3,15 +3,17 @@
 
 """Test replacements for ERFA functions atciqz and aticq."""
 
+
 from itertools import product
 
 import pytest
 
+from astropy import _erfa as erfa
+from astropy.coordinates.builtin_frames.utils import atciqz, aticq, get_jd12
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
-from astropy import _erfa as erfa
+
 from .utils import randomly_sample_sphere
-from astropy.coordinates.builtin_frames.utils import get_jd12, atciqz, aticq
 
 times = [Time("2014-06-25T00:00"), Time(["2014-06-25T00:00", "2014-09-24"])]
 ra, dec, _ = randomly_sample_sphere(2)

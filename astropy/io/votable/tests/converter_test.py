@@ -1,20 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-
 import io
 
-# THIRD-PARTY
 import numpy as np
 from numpy.testing import assert_array_equal
 
-# LOCAL
-from astropy.io.votable import converters
-from astropy.io.votable import exceptions
-from astropy.io.votable import tree
-
+from astropy.io.votable import converters, exceptions, tree
 from astropy.io.votable.table import parse_single_table
-from astropy.tests.helper import raises, catch_warnings
+from astropy.tests.helper import catch_warnings, raises
 from astropy.utils.data import get_pkg_data_filename
 
 

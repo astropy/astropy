@@ -4,24 +4,19 @@ Contains a class to handle a validation result for a single VOTable
 file.
 """
 
-
-# STDLIB
-from xml.parsers.expat import ExpatError
-import hashlib
 import os
+import pickle
 import shutil
 import socket
-import subprocess
+import hashlib
 import warnings
-import pickle
-import urllib.request
-import urllib.error
+import subprocess
 import http.client
+import urllib.error
+import urllib.request
+from xml.parsers.expat import ExpatError
 
-# VO
-from astropy.io.votable import table
-from astropy.io.votable import exceptions
-from astropy.io.votable import xmlutil
+from astropy.io.votable import exceptions, table, xmlutil
 
 
 class Result:

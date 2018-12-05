@@ -6,16 +6,16 @@ This package defines the astrophysics-specific units.  They are also
 available in the `astropy.units` namespace.
 """
 
+import numpy as _numpy
+
+from astropy.constants import si as _si
 
 from . import si
-from astropy.constants import si as _si
-from .core import (UnitBase, def_unit, si_prefixes, binary_prefixes,
-                   set_enabled_units)
+from .core import UnitBase, binary_prefixes, def_unit, set_enabled_units, si_prefixes
 
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])
 
-import numpy as _numpy
 
 _ns = globals()
 
@@ -183,6 +183,6 @@ del si
 
 # This generates a docstring for this module that describes all of the
 # standard units defined here.
-from .utils import generate_unit_summary as _generate_unit_summary
+from .utils import generate_unit_summary as _generate_unit_summary  # isort:skip
 if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())

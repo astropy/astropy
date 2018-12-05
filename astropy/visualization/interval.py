@@ -5,13 +5,13 @@ Classes that deal with computing intervals from arrays of values based on
 various criteria.
 """
 
-
 import abc
+
 import numpy as np
 
 from astropy.utils.misc import InheritDocstrings
-from .transform import BaseTransform
 
+from .transform import BaseTransform
 
 __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
            'AsymmetricPercentileInterval', 'PercentileInterval',

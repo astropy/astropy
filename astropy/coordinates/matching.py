@@ -6,9 +6,10 @@ This module contains functions for matching coordinate catalogs.
 
 import numpy as np
 
-from .representation import UnitSphericalRepresentation
 from astropy import units as u
+
 from . import Angle
+from .representation import UnitSphericalRepresentation
 
 __all__ = ['match_coordinates_3d', 'match_coordinates_sky', 'search_around_3d',
            'search_around_sky']

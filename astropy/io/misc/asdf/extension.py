@@ -1,10 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+
 import os
 
 from asdf.extension import AsdfExtension, BuiltinExtension
-from asdf.resolver import Resolver, DEFAULT_URL_MAPPING
+from asdf.resolver import DEFAULT_URL_MAPPING, Resolver
 from asdf.util import filepath_to_url
 
 # Make sure that all tag implementations are imported by the time we create
@@ -12,8 +13,8 @@ from asdf.util import filepath_to_url
 # could do this using __init__ files, except it causes pytest import errors in
 # the case that asdf is not installed.
 from .tags.coordinates.angle import *
-from .tags.coordinates.representation import *
 from .tags.coordinates.frames import *
+from .tags.coordinates.representation import *
 from .tags.fits.fits import *
 from .tags.table.table import *
 from .tags.time.time import *
@@ -24,8 +25,7 @@ from .tags.transform.projections import *
 from .tags.transform.tabular import *
 from .tags.unit.quantity import *
 from .tags.unit.unit import *
-from .types import _astropy_types, _astropy_asdf_types
-
+from .types import _astropy_asdf_types, _astropy_types
 
 __all__ = ['AstropyExtension', 'AstropyAsdfExtension']
 

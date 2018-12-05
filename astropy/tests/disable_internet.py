@@ -14,9 +14,10 @@ is either passed to ``pytest`` directly or to the ``setup.py test`` command.
 TODO: This module should eventually be removed once backwards compatibility
 is no longer supported.
 """
-from warnings import warn
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
+from warnings import warn
+
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 warn("The ``disable_internet`` module is no longer provided by astropy. It "
      "is now available as ``pytest_remotedata.disable_internet``. However, "

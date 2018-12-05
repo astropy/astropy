@@ -3,18 +3,20 @@
 Tests models.parameters
 """
 
+
 import itertools
 
-import pytest
 import numpy as np
-from numpy.testing import (assert_allclose, assert_equal, assert_array_equal,
-                           assert_almost_equal)
+from numpy.testing import assert_allclose, assert_almost_equal, assert_array_equal, assert_equal
+
+import pytest
+
+from astropy.modeling import fitting, models
+from astropy.modeling.core import FittableModel, Model
+from astropy.modeling.parameters import InputParameterError, Parameter
+from astropy.utils.data import get_pkg_data_filename
 
 from . import irafutil
-from astropy.modeling import models, fitting
-from astropy.modeling.core import Model, FittableModel
-from astropy.modeling.parameters import Parameter, InputParameterError
-from astropy.utils.data import get_pkg_data_filename
 
 
 def setter1(val):

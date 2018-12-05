@@ -1,13 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+
 from asdf import tagged, yamlutil
 from asdf.tests.helpers import assert_tree_match
 
 from astropy import modeling
 from astropy.modeling.models import Identity, Mapping
-from .basic import TransformType, ConstantType
 
+from .basic import ConstantType, TransformType
 
 __all__ = ['CompoundType', 'RemapAxesType']
 

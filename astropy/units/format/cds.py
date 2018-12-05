@@ -16,17 +16,16 @@ Handles the CDS string format for units
 """
 
 
-import operator
 import os
 import re
+import operator
 
-
-from .base import Base
-from . import core, utils
 from astropy.units.utils import is_effectively_unity
 from astropy.utils import classproperty
 from astropy.utils.misc import did_you_mean
 
+from . import core, utils
+from .base import Base
 
 # TODO: Support logarithmic units using bracketed syntax
 

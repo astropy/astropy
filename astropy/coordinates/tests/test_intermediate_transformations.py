@@ -3,24 +3,23 @@
 
 """
 
-import pytest
+
 import numpy as np
 
+import pytest
+
 from astropy import units as u
-from astropy.tests.helper import (assert_quantity_allclose as assert_allclose)
-from astropy.time import Time
-from astropy.coordinates import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
-                PrecessedGeocentric, CartesianRepresentation, SkyCoord,
-                SphericalRepresentation, UnitSphericalRepresentation,
-                HCRS, HeliocentricTrueEcliptic)
-
-
 from astropy._erfa import epv00
+from astropy.coordinates import (CIRS, GCRS, HCRS, ICRS, ITRS, AltAz, CartesianRepresentation,
+                                 EarthLocation, HeliocentricTrueEcliptic, PrecessedGeocentric,
+                                 SkyCoord, SphericalRepresentation, UnitSphericalRepresentation,
+                                 get_sun, solar_system_ephemeris)
+from astropy.coordinates.builtin_frames.utils import get_jd12
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.time import Time
+from astropy.units import allclose
 
 from .utils import randomly_sample_sphere
-from astropy.coordinates.builtin_frames.utils import get_jd12
-from astropy.coordinates import solar_system_ephemeris
-from astropy.units import allclose
 
 try:
     import jplephem  # pylint: disable=W0611

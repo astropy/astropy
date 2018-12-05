@@ -1,20 +1,23 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import functools
 
-import pytest
 import numpy as np
 
+import pytest
+
 from astropy import units as u
-from astropy.coordinates import (PhysicsSphericalRepresentation, CartesianRepresentation,
-                CylindricalRepresentation, SphericalRepresentation,
-                UnitSphericalRepresentation, SphericalDifferential,
-                CartesianDifferential, UnitSphericalDifferential,
-                SphericalCosLatDifferential, UnitSphericalCosLatDifferential,
-                PhysicsSphericalDifferential, CylindricalDifferential,
-                RadialRepresentation, RadialDifferential, Longitude, Latitude)
-from astropy.coordinates.representation import DIFFERENTIAL_CLASSES
+from astropy.coordinates import (CartesianDifferential, CartesianRepresentation,
+                                 CylindricalDifferential, CylindricalRepresentation,
+                                 Latitude, Longitude, PhysicsSphericalDifferential,
+                                 PhysicsSphericalRepresentation, RadialDifferential,
+                                 RadialRepresentation, SphericalCosLatDifferential,
+                                 SphericalDifferential, SphericalRepresentation,
+                                 UnitSphericalCosLatDifferential, UnitSphericalDifferential,
+                                 UnitSphericalRepresentation)
 from astropy.coordinates.angle_utilities import angular_separation
+from astropy.coordinates.representation import DIFFERENTIAL_CLASSES
 from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 
 

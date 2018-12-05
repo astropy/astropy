@@ -1,15 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module implements the base NDData class.
 
+from copy import deepcopy
 
 import numpy as np
-from copy import deepcopy
+
+from astropy import log
+from astropy.units import Quantity, Unit
+from astropy.utils.metadata import MetaData
 
 from .nddata_base import NDDataBase
 from .nduncertainty import NDUncertainty, UnknownUncertainty
-from astropy import log
-from astropy.units import Unit, Quantity
-from astropy.utils.metadata import MetaData
 
 __all__ = ['NDData']
 

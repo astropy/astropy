@@ -14,21 +14,22 @@ try:
 except ImportError:
     HAS_YAML = False
 
+
 import copy
 import pickle
 from io import StringIO
 
-import pytest
 import numpy as np
 
-from astropy.coordinates import EarthLocation
-from astropy.table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
-from astropy.table import serialize
-from astropy import time
-from astropy import coordinates
+import pytest
+
+from astropy import coordinates, time
 from astropy import units as u
+from astropy.coordinates import EarthLocation
+from astropy.table import (Column, NdarrayMixin, QTable, Table, hstack,
+                           join, serialize, table_helpers, vstack)
 from astropy.table.column import BaseColumn
-from astropy.table import table_helpers
+
 from .conftest import MIXIN_COLS
 
 

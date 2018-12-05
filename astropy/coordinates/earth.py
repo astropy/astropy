@@ -1,22 +1,24 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from warnings import warn
-import collections
-import socket
 import json
-import urllib.request
+import socket
+import collections
 import urllib.error
 import urllib.parse
+import urllib.request
+from warnings import warn
 
 import numpy as np
-from astropy import units as u
+
 from astropy import constants as consts
+from astropy import units as u
 from astropy.units.quantity import QuantityInfoBase
-from astropy.utils.exceptions import AstropyUserWarning
-from .angles import Longitude, Latitude
-from .representation import CartesianRepresentation, CartesianDifferential
-from .errors import UnknownSiteException
 from astropy.utils import data, deprecated
+from astropy.utils.exceptions import AstropyUserWarning
+
+from .angles import Latitude, Longitude
+from .errors import UnknownSiteException
+from .representation import CartesianDifferential, CartesianRepresentation
 
 try:
     # Not guaranteed available at setup time.
@@ -819,6 +821,5 @@ class EarthLocation(u.Quantity):
         new_array = self.unit.to(unit, array_view, equivalencies=equivalencies)
         return new_array.view(self.dtype).reshape(self.shape)
 
-
 # need to do this here at the bottom to avoid circular dependencies
-from .sites import get_builtin_sites, get_downloaded_sites
+from .sites import get_builtin_sites, get_downloaded_sites  # isort:skip

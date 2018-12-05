@@ -4,12 +4,13 @@
 import os
 import warnings
 
-import pytest
 import numpy as np
 
+import pytest
+
 from astropy.io import fits
-from astropy.table import Table
 from astropy.io.fits import printdiff
+from astropy.table import Table
 from astropy.tests.helper import catch_warnings
 
 from . import FitsTestCase

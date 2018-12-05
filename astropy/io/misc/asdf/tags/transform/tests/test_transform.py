@@ -1,15 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-import pytest
+
 import numpy as np
 
-asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
+import pytest
+asdf = pytest.importorskip('asdf')  # isort:skip
 from asdf import util
 from asdf.tests import helpers
 
 import astropy.units as u
 from astropy.modeling import models as astmodels
+
 
 test_models = [
     astmodels.Identity(2), astmodels.Polynomial1D(2, c0=1, c1=2, c2=3),

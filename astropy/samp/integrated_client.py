@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 from .client import SAMPClient
 from .hub_proxy import SAMPHubProxy
 

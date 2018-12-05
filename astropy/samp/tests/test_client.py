@@ -1,15 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import pytest
 
-from astropy.samp.hub_proxy import SAMPHubProxy
+from astropy.samp import conf
 from astropy.samp.client import SAMPClient
-from astropy.samp.integrated_client import SAMPIntegratedClient
 from astropy.samp.hub import SAMPHubServer
+from astropy.samp.hub_proxy import SAMPHubProxy
+from astropy.samp.integrated_client import SAMPIntegratedClient
 
 # By default, tests should not use the internet.
-from astropy.samp import conf
-
 
 def setup_module(module):
     conf.use_internet = False

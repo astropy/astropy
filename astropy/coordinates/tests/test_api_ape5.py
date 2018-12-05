@@ -12,14 +12,17 @@ this package, like ``test_sky_coord.py``, ``test_frames.py``, or
 deviations from the original APE5 plan.
 """
 
-import pytest
+
 import numpy as np
 from numpy import testing as npt
 
-from astropy.tests.helper import raises, assert_quantity_allclose as assert_allclose
-from astropy import units as u
-from astropy import time
+import pytest
+
 from astropy import coordinates as coords
+from astropy import time
+from astropy import units as u
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.tests.helper import raises
 from astropy.units import allclose
 
 try:

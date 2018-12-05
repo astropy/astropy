@@ -4,26 +4,24 @@ used to represent low-level cartesian, spherical, cylindrical, and other
 coordinates.
 """
 
-
 import abc
-import functools
-import operator
-from collections import OrderedDict
 import inspect
+import operator
 import warnings
+import functools
+from collections import OrderedDict
 
 import numpy as np
+
 import astropy.units as u
-
-from .angles import Angle, Longitude, Latitude
-from .distances import Distance
 from astropy._erfa import ufunc as erfa_ufunc
-from astropy.utils import ShapedLikeNDArray, classproperty
-
-from astropy.utils import deprecated_attribute
+from astropy.utils import ShapedLikeNDArray, classproperty, deprecated_attribute
+from astropy.utils.compat import NUMPY_LT_1_14
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import InheritDocstrings
-from astropy.utils.compat import NUMPY_LT_1_14
+
+from .angles import Angle, Latitude, Longitude
+from .distances import Distance
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
@@ -60,7 +58,6 @@ def get_reprdiff_cls_hash():
 def _invalidate_reprdiff_cls_hash():
     global _REPRDIFF_HASH
     _REPRDIFF_HASH = None
-
 
 
 # recommended_units deprecation message; if the attribute is removed later,

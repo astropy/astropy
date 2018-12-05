@@ -1,21 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-import copy
 import os
+import copy
 import select
 import socket
-import threading
 import warnings
+import threading
 from urllib.parse import urlunparse
 
 from .constants import SAMP_STATUS_OK, SAMP_STATUS_WARNING
-from .hub import SAMPHubServer
 from .errors import SAMPClientError, SAMPWarning
-from .utils import internet_on, get_num_args
-
+from .hub import SAMPHubServer
 from .standard_profile import ThreadingXMLRPCServer
-
+from .utils import get_num_args, internet_on
 
 __all__ = ['SAMPClient']
 

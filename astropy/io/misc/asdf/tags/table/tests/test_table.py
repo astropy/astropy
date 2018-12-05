@@ -1,12 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-import pytest
+
 import numpy as np
 
-from astropy import table
-
-asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
+import pytest
+asdf = pytest.importorskip('asdf')  # isort:skip
 from asdf.tests import helpers
+
+from astropy import table
 
 
 def test_table(tmpdir):

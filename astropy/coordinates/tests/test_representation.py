@@ -1,33 +1,30 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 from copy import deepcopy
 from collections import OrderedDict
 
-import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
+import pytest
+
 from astropy import units as u
-from astropy.tests.helper import (assert_quantity_allclose as
-                             assert_allclose_quantity, catch_warnings)
+from astropy.coordinates.angles import Angle, Latitude, Longitude
+from astropy.coordinates.distances import Distance
+from astropy.coordinates.representation import (DIFFERENTIAL_CLASSES, REPRESENTATION_CLASSES,
+                                                BaseRepresentation, CartesianDifferential,
+                                                CartesianRepresentation, CylindricalRepresentation,
+                                                PhysicsSphericalRepresentation,
+                                                SphericalCosLatDifferential, SphericalDifferential,
+                                                SphericalRepresentation,
+                                                UnitSphericalRepresentation, _combine_xyz)
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose_quantity
+from astropy.tests.helper import catch_warnings
 from astropy.utils import isiterable
 from astropy.utils.compat import NUMPY_LT_1_14
 from astropy.utils.exceptions import AstropyDeprecationWarning
-from astropy.coordinates.angles import Longitude, Latitude, Angle
-from astropy.coordinates.distances import Distance
-from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
-                              DIFFERENTIAL_CLASSES,
-                              BaseRepresentation,
-                              SphericalRepresentation,
-                              UnitSphericalRepresentation,
-                              SphericalCosLatDifferential,
-                              CartesianRepresentation,
-                              CylindricalRepresentation,
-                              PhysicsSphericalRepresentation,
-                              CartesianDifferential,
-                              SphericalDifferential,
-                              _combine_xyz)
 
 
 # Preserve the original REPRESENTATION_CLASSES dict so that importing
@@ -1418,7 +1415,6 @@ def unitphysics():
     if hasattr(PhysicsSphericalRepresentation, '_unit_representation'):
         orig = PhysicsSphericalRepresentation._unit_representation
         had_unit = True
-
 
     class UnitPhysicsSphericalRepresentation(BaseRepresentation):
         attr_classes = OrderedDict([('phi', Angle),

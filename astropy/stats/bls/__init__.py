@@ -11,4 +11,5 @@ to discover transiting exoplanets.
 
 __all__ = ["BoxLeastSquares", "BoxLeastSquaresResults"]
 
+
 from .core import BoxLeastSquares, BoxLeastSquaresResults

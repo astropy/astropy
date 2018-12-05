@@ -2,8 +2,8 @@
 """URL unescaper functions."""
 
 # STDLIB
-from xml.sax import saxutils
 
+from xml.sax import saxutils
 
 __all__ = ['unescape_all']
 

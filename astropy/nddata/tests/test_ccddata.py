@@ -1,25 +1,24 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module implements the base CCDData class.
 
+
 import textwrap
 
 import numpy as np
+
 import pytest
 
-from astropy.io import fits
-from astropy.nddata.nduncertainty import (
-    StdDevUncertainty, MissingDataAssociationException, VarianceUncertainty,
-    InverseVariance)
-from astropy import units as u
 from astropy import log
-from astropy.wcs import WCS, FITSFixedWarning
+from astropy import units as u
+from astropy.io import fits
+from astropy.nddata.ccddata import CCDData
+from astropy.nddata.nduncertainty import (InverseVariance, MissingDataAssociationException,
+                                          StdDevUncertainty, VarianceUncertainty)
+from astropy.table import Table
 from astropy.tests.helper import catch_warnings
 from astropy.utils import NumpyRNGContext
-from astropy.utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
-                           get_pkg_data_contents)
-
-from astropy.nddata.ccddata import CCDData
-from astropy.table import Table
+from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename, get_pkg_data_filenames
+from astropy.wcs import WCS, FITSFixedWarning
 
 # If additional pytest markers are defined the key in the dictionary below
 # should be the name of the marker.

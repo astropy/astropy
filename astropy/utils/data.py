@@ -4,22 +4,21 @@
 caching data files.
 """
 
-import atexit
-import contextlib
-import fnmatch
-import hashlib
-import os
 import io
-import pathlib
-import shutil
-import socket
+import os
 import sys
 import time
-import urllib.request
+import atexit
+import shelve
+import shutil
+import socket
+import fnmatch
+import hashlib
+import pathlib
+import contextlib
 import urllib.error
 import urllib.parse
-import shelve
-
+import urllib.request
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
 

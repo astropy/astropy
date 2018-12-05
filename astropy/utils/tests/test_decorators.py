@@ -1,16 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import functools
-import inspect
+
 import pickle
+import inspect
+import functools
 
 import pytest
 
-from astropy.utils.decorators import (deprecated_attribute, deprecated, wraps,
-                          sharedmethod, classproperty,
-                          format_doc, deprecated_renamed_argument)
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.tests.helper import catch_warnings
+from astropy.utils.decorators import (classproperty, deprecated, deprecated_attribute,
+                                      deprecated_renamed_argument, format_doc, sharedmethod, wraps)
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 
 class NewDeprecationWarning(AstropyDeprecationWarning):

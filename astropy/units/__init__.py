@@ -13,29 +13,25 @@ code under a BSD license.
 # whatever advanced ones need generally has been imported already;
 # this helps prevent circular imports and makes it easier to understand
 # where most time is spent (e.g., using python -X importtime).
-from .core import *
-from .quantity import *
+from .core import *  # isort:skip
+from .quantity import *  # isort:skip
 
-from . import si
-from . import cgs
-from . import astrophys
-from . import photometric
-from .function import units as function_units
+from . import astrophys, cgs, photometric, si
 
-from .si import *
+# The following two imports have to come first before the others
+from .si import *  # isort:skip
+from .cgs import *  # isort:skip
+
 from .astrophys import *
-from .photometric import *
-from .cgs import *
-from .physical import *
-from .function.units import *
-
+from .decorators import *
 from .equivalencies import *
-
+from .function import magnitude_zero_points
+from .function import units as function_units
 from .function.core import *
 from .function.logarithmic import *
-from .function import magnitude_zero_points
-
-from .decorators import *
+from .function.units import *
+from .photometric import *
+from .physical import *
 
 del bases
 

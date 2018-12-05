@@ -14,7 +14,6 @@ table column attributes such as name, format, dtype, meta, and description.
 # tests via their use in providing mixin column info, and in
 # astropy/tests/test_info for providing table and column info summary data.
 
-
 import os
 import re
 import sys
@@ -23,13 +22,12 @@ import warnings
 from io import StringIO
 from copy import deepcopy
 from functools import partial
-from collections import OrderedDict
 from contextlib import contextmanager
+from collections import OrderedDict
 
 import numpy as np
 
 from . import metadata
-
 
 __all__ = ['data_info_factory', 'dtype_info_name', 'BaseColumnInfo',
            'DataInfo', 'MixinInfo', 'ParentDtypeInfo']

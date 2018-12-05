@@ -2,21 +2,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import pytest
 import numpy as np
-from astropy.units import allclose as quantity_allclose
 
-from astropy import units as u
+import pytest
+
 from astropy import constants
-from astropy.time import Time
-from astropy.coordinates.builtin_frames import ICRS, AltAz, LSR, GCRS, Galactic, FK5
+from astropy import units as u
+from astropy.coordinates import (CartesianDifferential, CartesianRepresentation,
+                                 DynamicMatrixTransform, FunctionTransformWithFiniteDifference,
+                                 SphericalDifferential, SphericalRepresentation, TimeAttribute,
+                                 get_sun)
 from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.builtin_frames import FK5, GCRS, ICRS, LSR, AltAz, Galactic
 from astropy.coordinates.sites import get_builtin_sites
-from astropy.coordinates import (TimeAttribute,
-                FunctionTransformWithFiniteDifference, get_sun,
-                CartesianRepresentation, SphericalRepresentation,
-                CartesianDifferential, SphericalDifferential,
-                DynamicMatrixTransform)
+from astropy.time import Time
+from astropy.units import allclose as quantity_allclose
 
 J2000 = Time('J2000')
 

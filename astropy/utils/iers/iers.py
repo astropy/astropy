@@ -9,6 +9,7 @@ celestial-to-terrestrial coordinate transformations
 (in `astropy.coordinates`).
 """
 
+
 from warnings import warn
 
 try:
@@ -20,9 +21,9 @@ import numpy as np
 
 from astropy import config as _config
 from astropy import units as u
-from astropy.table import Table, QTable
-from astropy.utils.data import get_pkg_data_filename, clear_download_cache
 from astropy import utils
+from astropy.table import QTable, Table
+from astropy.utils.data import clear_download_cache, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
 
 __all__ = ['Conf', 'conf',

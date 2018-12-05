@@ -8,17 +8,15 @@
 
 """
 
-# STDLIB
 import time
 
-# THIRD-PARTY
-import pytest
 import numpy as np
 
-# LOCAL
+import pytest
+
+from astropy.modeling.fitting import ModelsError
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.timer import RunTimePredictor
-from astropy.modeling.fitting import ModelsError
 
 
 def func_to_time(x):

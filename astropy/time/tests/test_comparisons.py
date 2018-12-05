@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import operator
 
-import pytest
 import numpy as np
+
+import pytest
 
 from astropy.time import Time, TimeDelta
 

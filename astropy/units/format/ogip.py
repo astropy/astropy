@@ -17,10 +17,11 @@ FITS files
 <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__.
 """
 
-import keyword
-import math
+
 import os
 import copy
+import math
+import keyword
 import warnings
 from fractions import Fraction
 

@@ -1,16 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+import os
+import sys
 import glob
 import logging
 import optparse
-import os
-import sys
 import textwrap
 import warnings
 
 from astropy.io import fits
 from astropy.io.fits.util import fill
 from astropy.utils.exceptions import AstropyDeprecationWarning
-
 
 log = logging.getLogger('fitsdiff')
 

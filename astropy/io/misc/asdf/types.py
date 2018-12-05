@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+
 import six
-
 from asdf.types import CustomType, ExtensionTypeMeta
-
 
 __all__ = ['AstropyType', 'AstropyAsdfType']
 

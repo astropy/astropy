@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # LOCAL
+
 from astropy.io.votable import parse
 from astropy.utils.data import get_pkg_data_filename
 

@@ -1,27 +1,25 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 
-
-import datetime
 import os
 import sys
+import datetime
 import warnings
+from inspect import Parameter, signature
 from contextlib import suppress
-from inspect import signature, Parameter
 
 import numpy as np
 
 from astropy.io.fits import conf
 from astropy.io.fits.file import _File
 from astropy.io.fits.header import Header, _pad_length
-from astropy.io.fits.util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
-                    itersubclasses, decode_ascii, _get_array_mmap, first,
-                    _free_space_check, _extract_number)
-from astropy.io.fits.verify import _Verify, _ErrList
-
+from astropy.io.fits.util import (_extract_number, _free_space_check, _get_array_mmap,
+                                  _is_int, _is_pseudo_unsigned, _unsigned_zero,
+                                  decode_ascii, first, itersubclasses)
+from astropy.io.fits.verify import _ErrList, _Verify
 from astropy.utils import lazyproperty
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 class _Delayed:

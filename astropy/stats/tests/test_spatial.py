@@ -1,12 +1,12 @@
 
-import numpy as np
-import pytest
 
+import numpy as np
 from numpy.testing import assert_allclose
+
+import pytest
 
 from astropy.stats.spatial import RipleysKEstimator
 from astropy.utils.misc import NumpyRNGContext
-
 
 a = np.array([[1, 4], [2, 5], [3, 6]])
 b = np.array([[-1, 1], [-2, 2], [-3, 3]])

@@ -3,9 +3,9 @@
 
 import numpy as np
 
+import matplotlib.transforms as mtransforms
 from matplotlib import rcParams
 from matplotlib.text import Text
-import matplotlib.transforms as mtransforms
 
 from .frame import RectangularFrame
 

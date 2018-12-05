@@ -1,16 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+
+from numpy.random import randint, random
+
 import pytest
-
-from numpy.random import random, randint
-
-import astropy.units as u
-
-from astropy.coordinates import Angle
-import astropy.coordinates.representation as r
-
-asdf = pytest.importorskip('asdf')
+asdf = pytest.importorskip('asdf')  # isort:skip
 from asdf.tests.helpers import assert_roundtrip_tree
+
+import astropy.coordinates.representation as r
+import astropy.units as u
+from astropy.coordinates import Angle
+
+
 
 
 @pytest.fixture(params=filter(lambda x: "Base" not in x, r.__all__))

@@ -1,22 +1,18 @@
 """
 This file tests the behavior of subclasses of Representation and Frames
 """
+
 from copy import deepcopy
 from collections import OrderedDict
 
-from astropy.coordinates import Longitude, Latitude
-from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
-                                                SphericalRepresentation,
+import astropy.coordinates
+import astropy.units as u
+from astropy.coordinates import ICRS, Latitude, Longitude
+from astropy.coordinates.baseframe import RepresentationMapping, frame_transform_graph
+from astropy.coordinates.representation import (REPRESENTATION_CLASSES, SphericalRepresentation,
                                                 UnitSphericalRepresentation,
                                                 _invalidate_reprdiff_cls_hash)
-from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransform
-from astropy.coordinates import ICRS
-from astropy.coordinates.baseframe import RepresentationMapping
-
-import astropy.units as u
-
-import astropy.coordinates
 
 # Classes setup, borrowed from SunPy.
 

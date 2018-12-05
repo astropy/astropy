@@ -8,18 +8,15 @@ It analyzes ``n_inputs``, ``n_outputs`` and the operators
 in a compound model by stepping through the transforms
 and creating a ``coord_matrix`` of shape (``n_outputs``, ``n_inputs``).
 
-
 Each modeling operator is represented by a function which
 takes two simple models (or two ``coord_matrix`` arrays) and
 returns an array of shape (``n_outputs``, ``n_inputs``).
-
 """
 
 import numpy as np
 
-from .core import Model, _CompoundModel, ModelDefinitionError
+from .core import Model, ModelDefinitionError, _CompoundModel
 from .mappings import Mapping
-
 
 __all__ = ["is_separable", "separability_matrix"]
 
@@ -152,7 +149,6 @@ def _arith_oper(left, right):
         else:
             n_outputs, n_inputs = input.shape
         return n_inputs, n_outputs
-
 
     left_inputs, left_outputs = _n_inputs_outputs(left)
     right_inputs, right_outputs = _n_inputs_outputs(right)

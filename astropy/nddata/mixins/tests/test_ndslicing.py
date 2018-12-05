@@ -1,14 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-
-import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
+import pytest
+
+from astropy import units as u
 from astropy.nddata import NDData, NDSlicingMixin
 from astropy.nddata.nduncertainty import NDUncertainty, StdDevUncertainty
-from astropy import units as u
 
 
 # Just add the Mixin to NDData

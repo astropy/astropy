@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import os
 from distutils.version import LooseVersion
 
-from astropy.visualization.mpl_normalize import simple_norm
 from astropy import log
 from astropy.io.fits import getdata
+from astropy.visualization.mpl_normalize import simple_norm
 
 
 def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',

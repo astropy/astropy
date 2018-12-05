@@ -6,25 +6,26 @@ reader/writer.
 
 Requires `pyyaml <http://pyyaml.org/>`_ to be installed.
 """
+
 import os
-import copy
 import sys
+import copy
 from io import StringIO
 
-import pytest
 import numpy as np
 
-from astropy.table import Table, Column, QTable, NdarrayMixin
-from astropy.table.table_helpers import simple_table
-from astropy.coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
-from astropy.time import Time, TimeDelta
-from astropy.units import allclose as quantity_allclose
-from astropy.units import QuantityInfo
-from astropy.tests.helper import catch_warnings
+import pytest
 
-from astropy.io.ascii.ecsv import DELIMITERS
-from astropy.io import ascii
 from astropy import units as u
+from astropy.coordinates import Angle, EarthLocation, Latitude, Longitude, SkyCoord
+from astropy.io import ascii
+from astropy.io.ascii.ecsv import DELIMITERS
+from astropy.table import Column, NdarrayMixin, QTable, Table
+from astropy.table.table_helpers import simple_table
+from astropy.tests.helper import catch_warnings
+from astropy.time import Time, TimeDelta
+from astropy.units import QuantityInfo
+from astropy.units import allclose as quantity_allclose
 
 try:
     import yaml  # pylint: disable=W0611

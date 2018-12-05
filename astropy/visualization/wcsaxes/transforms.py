@@ -6,6 +6,7 @@
 # This file contains Matplotlib transformation objects (e.g. from pixel to world
 # coordinates, but also world-to-world).
 
+
 import abc
 
 import numpy as np
@@ -14,12 +15,10 @@ from matplotlib.path import Path
 from matplotlib.transforms import Transform
 
 from astropy import units as u
+from astropy.coordinates import (BaseCoordinateFrame, SkyCoord, SphericalRepresentation,
+                                 UnitSphericalRepresentation, frame_transform_graph)
 from astropy.wcs import WCS
 from astropy.wcs.utils import wcs_to_celestial_frame
-from astropy.coordinates import (SkyCoord, frame_transform_graph,
-                            SphericalRepresentation,
-                            UnitSphericalRepresentation,
-                            BaseCoordinateFrame)
 
 
 class CurvedTransform(Transform, metaclass=abc.ABCMeta):

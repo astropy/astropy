@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+
 import numpy as np
 from numpy.testing import assert_array_equal
 
@@ -8,8 +9,9 @@ from asdf import yamlutil
 
 from astropy import modeling
 from astropy import units as u
-from .basic import TransformType
 from astropy.tests.helper import assert_quantity_allclose
+
+from .basic import TransformType
 
 __all__ = ['TabularType']
 

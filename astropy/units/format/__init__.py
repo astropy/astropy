@@ -12,10 +12,10 @@ import sys
 core = sys.modules['astropy.units.core']
 
 from .base import Base
-from .generic import Generic, Unscaled
 from .cds import CDS
 from .console import Console
 from .fits import Fits
+from .generic import Generic, Unscaled
 from .latex import Latex, LatexInline
 from .ogip import OGIP
 from .unicode_format import Unicode

@@ -5,7 +5,6 @@ which outputs from a source model are mapped to which inputs of a target model.
 
 from .core import FittableModel
 
-
 __all__ = ['Mapping', 'Identity']
 
 
@@ -58,7 +57,6 @@ class Mapping(FittableModel):
         self._input_units_strict = {key: False for key in self._inputs}
         self._input_units_allow_dimensionless = {key: False for key in self._inputs}
         super().__init__(name=name, meta=meta)
-
 
     @property
     def inputs(self):

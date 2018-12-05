@@ -1,29 +1,25 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-import copy
 import os
-import select
-import socket
-import threading
+import copy
 import time
 import uuid
-import warnings
 import queue
+import select
+import socket
+import warnings
+import threading
 import xmlrpc.client as xmlrpc
 from urllib.parse import urlunparse
 
 from astropy import log
 
-from .constants import SAMP_STATUS_OK
-from .constants import __profile_version__
-from .errors import SAMPWarning, SAMPHubError, SAMPProxyError
-from .utils import internet_on, ServerProxyPool, _HubAsClient
-from .lockfile_helpers import read_lockfile, create_lock_file
-
+from .constants import SAMP_STATUS_OK, __profile_version__
+from .errors import SAMPHubError, SAMPProxyError, SAMPWarning
+from .lockfile_helpers import create_lock_file, read_lockfile
 from .standard_profile import ThreadingXMLRPCServer
+from .utils import ServerProxyPool, _HubAsClient, internet_on
 from .web_profile import WebProfileXMLRPCServer, web_profile_text_dialog
-
 
 __all__ = ['SAMPHubServer', 'WebProfileDialog']
 

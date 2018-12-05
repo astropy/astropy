@@ -1,13 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import re
 import copy
 from collections import OrderedDict
 
-from . import core
 from astropy.table import Table
-from . import cparser
 from astropy.utils import set_locale
+
+from . import core, cparser
 
 
 class FastBasic(metaclass=core.MetaBaseReader):

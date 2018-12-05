@@ -2,15 +2,16 @@
 """
 Test the conversion to/from astropy.table
 """
+
 import io
 import os
-
 import pathlib
+
 import numpy as np
 
-from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj
-from astropy.io.votable.table import parse, writeto
 from astropy.io.votable import tree
+from astropy.io.votable.table import parse, writeto
+from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj
 
 
 def test_table(tmpdir):

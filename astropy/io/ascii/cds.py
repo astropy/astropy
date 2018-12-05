@@ -9,17 +9,15 @@ cds.py:
 """
 
 
+import os
+import re
 import fnmatch
 import itertools
-import re
-import os
 from contextlib import suppress
-
-from . import core
-from . import fixedwidth
 
 from astropy.units import Unit
 
+from . import core, fixedwidth
 
 __doctest_skip__ = ['*']
 

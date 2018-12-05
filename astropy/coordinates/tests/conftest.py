@@ -1,5 +1,7 @@
-import pytest
+
 import warnings
+
+import pytest
 
 
 # autouse makes this an all-coordinates-tests fixture

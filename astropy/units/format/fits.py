@@ -5,11 +5,11 @@ Handles the "FITS" unit format.
 """
 
 
-import numpy as np
-
 import copy
 import keyword
 import operator
+
+import numpy as np
 
 from . import core, generic, utils
 

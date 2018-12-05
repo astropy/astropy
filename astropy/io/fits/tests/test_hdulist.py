@@ -1,20 +1,22 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import glob
+
 import io
 import os
-import platform
 import sys
 import copy
+import glob
+import platform
 import subprocess
 
-import pytest
 import numpy as np
 
-from astropy.io.fits.verify import VerifyError
+import pytest
+
 from astropy.io import fits
-from astropy.tests.helper import raises, catch_warnings, ignore_warnings
-from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from astropy.io.fits.verify import VerifyError
+from astropy.tests.helper import catch_warnings, ignore_warnings, raises
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from . import FitsTestCase
 

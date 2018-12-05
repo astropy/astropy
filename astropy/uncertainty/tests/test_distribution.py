@@ -1,14 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
 
 from astropy import units as u
-from astropy.uncertainty.core import Distribution
-from astropy.uncertainty import distributions as ds
-from astropy.utils import NumpyRNGContext
 from astropy.tests.helper import assert_quantity_allclose, pytest
+from astropy.uncertainty import distributions as ds
+from astropy.uncertainty.core import Distribution
+from astropy.utils import NumpyRNGContext
 
 try:
     from scipy.stats import norm  # pylint: disable=W0611
@@ -307,7 +308,6 @@ def test_array_repr_latex():
     # as of this writing ndarray does not have a _repr_latex_, and this test
     # ensure distributions account for that. However, if in the future ndarray
     # gets a _repr_latex_, we can skip this.
-
 
     arr = np.random.randn(4, 1000)
 

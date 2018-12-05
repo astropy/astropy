@@ -3,19 +3,18 @@
 This plugin provides customization of the header displayed by pytest for
 reporting purposes.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import os
 import sys
-import datetime
-import locale
 import math
+import locale
+import datetime
 from collections import OrderedDict
 
+# This always returns with Astropy's version
+from astropy import __version__
 from astropy.tests.helper import ignore_warnings
 from astropy.utils.introspection import resolve_name
-
 
 PYTEST_HEADER_MODULES = OrderedDict([('Numpy', 'numpy'),
                                      ('Scipy', 'scipy'),
@@ -23,8 +22,6 @@ PYTEST_HEADER_MODULES = OrderedDict([('Numpy', 'numpy'),
                                      ('h5py', 'h5py'),
                                      ('Pandas', 'pandas')])
 
-# This always returns with Astropy's version
-from astropy import __version__
 TESTED_VERSIONS = OrderedDict([('Astropy', __version__)])
 
 

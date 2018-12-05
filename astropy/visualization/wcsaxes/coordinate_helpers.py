@@ -6,23 +6,24 @@ This file defines the classes used to represent a 'coordinate', which includes
 axes, ticks, tick labels, and grid lines.
 """
 
+
 import warnings
 
 import numpy as np
 
+from matplotlib import rcParams
+from matplotlib.patches import PathPatch
 from matplotlib.ticker import Formatter
 from matplotlib.transforms import Affine2D, ScaledTranslation
-from matplotlib.patches import PathPatch
-from matplotlib import rcParams
 
 from astropy import units as u
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
-from .ticks import Ticks
-from .ticklabels import TickLabels
 from .axislabels import AxisLabels
-from .grid_paths import get_lon_lat_path, get_gridline_path
+from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
+from .grid_paths import get_gridline_path, get_lon_lat_path
+from .ticklabels import TickLabels
+from .ticks import Ticks
 
 __all__ = ['CoordinateHelper']
 
@@ -37,7 +38,6 @@ LINES_TO_PATCHES_LINESTYLE = {'-': 'solid',
                               'None': 'none',
                               ' ': 'none',
                               '': 'none'}
-
 
 
 def wrap_angle_at(values, coord_wrap):

@@ -8,13 +8,15 @@ In particular, this implements the logic that determines scaling and result
 units for a given ufunc, given input units.
 """
 
+
 from fractions import Fraction
 
 import numpy as np
 
+from astropy.units.core import (UnitConversionError, UnitsError, UnitTypeError,
+                                dimensionless_unscaled, get_current_unit_registry)
+
 from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
-from astropy.units.core import (UnitsError, UnitConversionError, UnitTypeError,
-                    dimensionless_unscaled, get_current_unit_registry)
 
 
 def _d(unit):

@@ -1,24 +1,26 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import gc
 import sys
 import copy
 from io import StringIO
 from collections import OrderedDict
 
-import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
-from astropy.io import fits
-from astropy.tests.helper import (assert_follows_unicode_guidelines,
-                             ignore_warnings, catch_warnings)
-from astropy.utils.data import get_pkg_data_filename
+import pytest
+
 from astropy import table
 from astropy import units as u
-from .conftest import MaskedTable
+from astropy.io import fits
+from astropy.tests.helper import assert_follows_unicode_guidelines, catch_warnings, ignore_warnings
+from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.tests.test_metadata import MetaBaseTest
 
+from .conftest import MaskedTable
 
 try:
     with ignore_warnings(DeprecationWarning):
@@ -1444,8 +1446,6 @@ def test_equality_masked_bug():
 # Check that the meta descriptor is working as expected. The MetaBaseTest class
 # takes care of defining all the tests, and we simply have to define the class
 # and any minimal set of args to pass.
-
-from astropy.utils.tests.test_metadata import MetaBaseTest
 
 
 class TestMetaTable(MetaBaseTest):

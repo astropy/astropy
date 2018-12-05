@@ -3,17 +3,18 @@
 """
 Regression tests for the units package
 """
+
 import pickle
 from fractions import Fraction
 
-import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.tests.helper import raises, catch_warnings
+import pytest
 
-from astropy import units as u
 from astropy import constants as c
+from astropy import units as u
+from astropy.tests.helper import catch_warnings, raises
 from astropy.units import utils
 
 

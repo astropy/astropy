@@ -3,14 +3,15 @@
 # isolated in this mix-in class to avoid making the main wcs.py file too
 # long.
 
+
 import warnings
 
 import numpy as np
 
 from astropy import units as u
 
-from .low_level_api import BaseLowLevelWCS
 from .high_level_api import HighLevelWCSMixin
+from .low_level_api import BaseLowLevelWCS
 
 __all__ = ['custom_ctype_to_ucd_mapping', 'FITSWCSAPIMixin']
 

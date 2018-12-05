@@ -1,16 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
-from copy import copy
-from io import StringIO
 
-import pytest
+import os
+from io import StringIO
+from copy import copy
+
 import numpy as np
 
-from astropy.io.registry import _readers, _writers, _identifiers
-from astropy.io import registry as io_registry
-from astropy.table import Table
+import pytest
+
 from astropy import units as u
+from astropy.io import registry as io_registry
+from astropy.io.registry import _identifiers, _readers, _writers
+from astropy.table import Table
 
 _READERS_ORIGINAL = copy(_readers)
 _WRITERS_ORIGINAL = copy(_writers)

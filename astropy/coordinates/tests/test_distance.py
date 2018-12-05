@@ -4,15 +4,17 @@
 This includes tests for the Distance class and related calculations
 """
 
-import pytest
+
 import numpy as np
 from numpy import testing as npt
 
+import pytest
+
 from astropy import units as u
-from astropy.units import allclose as quantity_allclose
-from astropy.coordinates import Longitude, Latitude, Distance, CartesianRepresentation
+from astropy.coordinates import CartesianRepresentation, Distance, Latitude, Longitude
 from astropy.coordinates.builtin_frames import ICRS, Galactic
 from astropy.tests.helper import catch_warnings
+from astropy.units import allclose as quantity_allclose
 from astropy.utils.exceptions import AstropyWarning
 
 try:

@@ -5,12 +5,11 @@ Classes that deal with stretching, i.e. mapping a range of [0:1] values onto
 another set of [0:1] values with a transformation
 """
 
-
 import numpy as np
 
 from astropy.utils.misc import InheritDocstrings
-from .transform import BaseTransform
 
+from .transform import BaseTransform
 
 __all__ = ["BaseStretch", "LinearStretch", "SqrtStretch", "PowerStretch",
            "PowerDistStretch", "SquaredStretch", "LogStretch", "AsinhStretch",

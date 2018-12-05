@@ -10,14 +10,14 @@ must be installed to read HTML tables.
 
 
 import warnings
+from copy import deepcopy
+
 import numpy
 
-
-from . import core
 from astropy.table import Column
 from astropy.utils.xml import writer
 
-from copy import deepcopy
+from . import core
 
 
 class SoupString(str):

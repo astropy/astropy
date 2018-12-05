@@ -1,16 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import inspect
 
-import pytest
 import numpy as np
 
+import pytest
+
+from astropy import units as u
+from astropy.nddata.decorators import support_nddata
+from astropy.nddata.nddata import NDData
 from astropy.tests.helper import catch_warnings
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy import units as u
-
-from astropy.nddata.nddata import NDData
-from astropy.nddata.decorators import support_nddata
 
 
 class CCDData(NDData):

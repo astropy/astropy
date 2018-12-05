@@ -1,9 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module implements the base NDDataBase class.
 
-
 from abc import ABCMeta, abstractmethod
-
 
 __all__ = ['NDDataBase']
 

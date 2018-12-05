@@ -57,13 +57,14 @@ With Astropy installed, please run ``fitsheader --help`` to see the full usage
 documentation.
 """
 
+
 import sys
 import argparse
 
 import numpy as np
 
-from astropy.io import fits
 from astropy import log
+from astropy.io import fits
 
 
 class ExtensionNotFoundException(Exception):

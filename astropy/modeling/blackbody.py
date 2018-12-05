@@ -94,11 +94,12 @@ from collections import OrderedDict
 
 import numpy as np
 
-from .core import Fittable1DModel
-from .parameters import Parameter
 from astropy import constants as const
 from astropy import units as u
 from astropy.utils.exceptions import AstropyUserWarning
+
+from .core import Fittable1DModel
+from .parameters import Parameter
 
 __all__ = ['BlackBody1D', 'blackbody_nu', 'blackbody_lambda']
 

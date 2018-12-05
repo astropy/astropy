@@ -5,19 +5,16 @@ This file contains a contains the high-level functions to read a
 VOTable file.
 """
 
-# STDLIB
 import io
 import os
 import sys
 import textwrap
 import warnings
 
-# LOCAL
-from . import exceptions
-from . import tree
-from astropy.utils.xml import iterparser
 from astropy.utils import data
+from astropy.utils.xml import iterparser
 
+from . import exceptions, tree
 
 __all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate',
            'reset_vo_warnings']

@@ -1,10 +1,9 @@
 
-import pytest
+
 import numpy as np
+from numpy.testing import assert_allclose, assert_equal
 
-from numpy.testing import assert_equal, assert_allclose
-
-from astropy import units as u
+import pytest
 
 try:
     import scipy.stats
@@ -13,6 +12,7 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
+from astropy import units as u
 from astropy.stats.circstats import _length, circmean, circvar, circmoment, circcorrcoef
 from astropy.stats.circstats import rayleightest, vtest, vonmisesmle
 

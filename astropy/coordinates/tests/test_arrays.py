@@ -2,18 +2,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-
-import pytest
 import numpy as np
 from numpy import testing as npt
 
-from astropy import units as u
-from astropy.time import Time
-from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+import pytest
 
-from astropy.coordinates import (Angle, ICRS, FK4, FK5, Galactic, SkyCoord,
-                CartesianRepresentation)
+from astropy import units as u
+from astropy.coordinates import FK4, FK5, ICRS, Angle, CartesianRepresentation, Galactic, SkyCoord
 from astropy.coordinates.angle_utilities import dms_to_degrees, hms_to_hours
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.time import Time
 
 
 def test_angle_arrays():

@@ -10,18 +10,19 @@ Requires `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_
 to be installed.
 """
 
+
 from io import StringIO
 
-from astropy.io.ascii import html
-from astropy.io.ascii import core
-from astropy.table import Table
-
-import pytest
 import numpy as np
 
-from .common import setup_function, teardown_function
+import pytest
+
 from astropy.io import ascii
+from astropy.io.ascii import core, html
+from astropy.table import Table
 from astropy.utils.xml.writer import HAS_BLEACH
+
+from .common import setup_function, teardown_function
 
 # Check to see if the BeautifulSoup dependency is present.
 try:

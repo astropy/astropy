@@ -6,20 +6,20 @@ import re
 import warnings
 from collections import OrderedDict
 
-from astropy.io import registry as io_registry
 from astropy import units as u
-from astropy.table import Table, serialize, meta, Column, MaskedColumn
+from astropy.io import registry as io_registry
+from astropy.table import Column, MaskedColumn, Table, meta, serialize
 from astropy.table.table import has_info_class
 from astropy.time import Time
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data_info import MixinInfo, serialize_context_as
-from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
-from .column import KEYWORD_NAMES, ASCII_DEFAULT_WIDTHS, _fortran_to_python_format
+from astropy.utils.exceptions import AstropyUserWarning
+
+from . import BinTableHDU, GroupsHDU, HDUList, TableHDU
+from .column import ASCII_DEFAULT_WIDTHS, KEYWORD_NAMES, _fortran_to_python_format
 from .convenience import table_to_hdu
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
 from .verify import VerifyError, VerifyWarning
-
 
 # FITS file signature as per RFC 4047
 FITS_SIGNATURE = (b"\x53\x49\x4d\x50\x4c\x45\x20\x20\x3d\x20\x20\x20\x20\x20"

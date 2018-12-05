@@ -40,15 +40,14 @@ Example uses of fitscheck:
 """
 
 
-import logging
-import optparse
 import os
 import sys
+import logging
+import optparse
 import textwrap
 
-from astropy.tests.helper import catch_warnings
 from astropy.io import fits
-
+from astropy.tests.helper import catch_warnings
 
 log = logging.getLogger('fitscheck')
 

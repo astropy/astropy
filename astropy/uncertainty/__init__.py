@@ -7,6 +7,5 @@ work similar to `~astropy.units.Quantity` or array objects, but can propogate
 uncertainties.
 """
 
-
 from .core import *
 from .distributions import *

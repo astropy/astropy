@@ -1,17 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import pytest
+
 import numpy as np
 
+import pytest
+
+from astropy.io import fits
 from astropy.io.fits.column import Column
-from astropy.io.fits.diff import (FITSDiff, HeaderDiff, ImageDataDiff, TableDataDiff,
-                    HDUDiff)
-from astropy.io.fits.hdu import HDUList, PrimaryHDU, ImageHDU
+from astropy.io.fits.diff import FITSDiff, HDUDiff, HeaderDiff, ImageDataDiff, TableDataDiff
+from astropy.io.fits.hdu import HDUList, ImageHDU, PrimaryHDU
 from astropy.io.fits.hdu.table import BinTableHDU
 from astropy.io.fits.header import Header
-
 from astropy.tests.helper import catch_warnings
 from astropy.utils.exceptions import AstropyDeprecationWarning
-from astropy.io import fits
 
 from . import FitsTestCase
 

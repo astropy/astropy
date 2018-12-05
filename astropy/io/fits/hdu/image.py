@@ -1,16 +1,17 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+
 import sys
 import warnings
 
 import numpy as np
 
-from .base import DELAYED, _ValidHDU, ExtensionHDU, BITPIX2DTYPE, DTYPE2BITPIX
 from astropy.io.fits.header import Header
-from astropy.io.fits.util import _is_pseudo_unsigned, _unsigned_zero, _is_int
+from astropy.io.fits.util import _is_int, _is_pseudo_unsigned, _unsigned_zero
 from astropy.io.fits.verify import VerifyWarning
-
 from astropy.utils import isiterable, lazyproperty
+
+from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU, _ValidHDU
 
 
 class _ImageBaseHDU(_ValidHDU):

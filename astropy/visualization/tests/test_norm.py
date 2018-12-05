@@ -1,12 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
+
 import numpy as np
 from numpy import ma
 from numpy.testing import assert_allclose
 
-from astropy.visualization.mpl_normalize import ImageNormalize, simple_norm, imshow_norm
+import pytest
+
 from astropy.visualization.interval import ManualInterval
+from astropy.visualization.mpl_normalize import ImageNormalize, imshow_norm, simple_norm
 from astropy.visualization.stretch import SqrtStretch
 
 try:

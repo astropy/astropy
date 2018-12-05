@@ -2,21 +2,21 @@
 
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import gc
-import locale
 import re
+import locale
+
+import numpy as np
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 import pytest
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-import numpy as np
 
-from astropy.tests.helper import raises, catch_warnings
-from astropy.io import fits
-from astropy.wcs import wcs
-from astropy.wcs import _wcs
-from astropy.utils.data import get_pkg_data_contents, get_pkg_data_fileobj, get_pkg_data_filename
 from astropy import units as u
-
+from astropy.io import fits
+from astropy.tests.helper import catch_warnings, raises
+from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename, get_pkg_data_fileobj
+from astropy.wcs import _wcs, wcs
 
 ######################################################################
 

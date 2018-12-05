@@ -8,24 +8,25 @@ place to live
 
 
 import io
-import pytest
+
 import numpy as np
 
+import pytest
 
 from astropy import units as u
-from astropy.coordinates import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
-                GeocentricTrueEcliptic, Longitude, Latitude, GCRS, HCRS,
-                get_moon, FK4, FK4NoETerms, BaseCoordinateFrame,
-                QuantityAttribute, SphericalRepresentation,
-                UnitSphericalRepresentation, CartesianRepresentation)
+from astropy.coordinates import (CIRS, FK4, GCRS, HCRS, ICRS, ITRS, AltAz,
+                                 BaseCoordinateFrame, CartesianRepresentation, EarthLocation,
+                                 FK4NoETerms, GeocentricTrueEcliptic, Latitude, Longitude,
+                                 QuantityAttribute, SkyCoord, SphericalRepresentation,
+                                 UnitSphericalRepresentation, get_moon, get_sun)
 from astropy.coordinates.sites import get_builtin_sites
-from astropy.time import Time
-from astropy.utils import iers
 from astropy.table import Table
-
 from astropy.tests.helper import assert_quantity_allclose, catch_warnings
-from .test_matching import HAS_SCIPY, OLDER_SCIPY
+from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
+from astropy.utils import iers
+
+from .test_matching import HAS_SCIPY, OLDER_SCIPY
 
 try:
     import yaml  # pylint: disable=W0611

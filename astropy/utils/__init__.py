@@ -9,7 +9,6 @@ developers or to implement python hacks. This subpackage also includes the
 compatibility and bugfixes across all versions of Python that Astropy supports.
 """
 
-
 from .codegen import *
 from .decorators import *
 from .introspection import *

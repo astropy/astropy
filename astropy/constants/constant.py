@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import functools
 import types
 import warnings
+import functools
+
 import numpy as np
 
 from astropy.units.core import Unit, UnitsError

@@ -5,8 +5,9 @@ import operator
 
 import numpy as np
 
-from astropy.modeling.utils import ExpressionTree as ET, ellipse_extent
 from astropy.modeling.models import Ellipse2D
+from astropy.modeling.utils import ExpressionTree as ET
+from astropy.modeling.utils import ellipse_extent
 
 
 def test_traverse_postorder_duplicate_subtrees():

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
-from astropy.coordinates.matrix_utilities import rotation_matrix, angle_axis
+from astropy.coordinates.matrix_utilities import angle_axis, rotation_matrix
 
 
 def test_rotation_matrix():

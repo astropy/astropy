@@ -15,19 +15,18 @@ can not be defined in a module by a different name and still be shared
 between modules.
 """
 
+
+import pickle
 from copy import deepcopy
 from collections import OrderedDict
-import pickle
 
-import pytest
 import numpy as np
 
-from astropy import table
-from astropy.table import table_helpers, Table, QTable
-from astropy import time
+import pytest
+
+from astropy import coordinates, table, time
 from astropy import units as u
-from astropy import coordinates
-from astropy.table import pprint
+from astropy.table import QTable, Table, pprint, table_helpers
 
 
 @pytest.fixture(params=[table.Column, table.MaskedColumn])

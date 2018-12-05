@@ -1,16 +1,16 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+
 import re
 import warnings
 
 import numpy as np
 
-from .util import _str_to_num, _is_int, translate, _words_group
-from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
-
-from . import conf
 from astropy.utils.exceptions import AstropyUserWarning
 
+from . import conf
+from .util import _is_int, _str_to_num, _words_group, translate
+from .verify import VerifyError, VerifyWarning, _ErrList, _Verify
 
 __all__ = ['Card', 'Undefined']
 

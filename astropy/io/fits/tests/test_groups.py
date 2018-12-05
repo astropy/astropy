@@ -1,14 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import os
 import time
 
-import pytest
 import numpy as np
+
+import pytest
+
+from astropy.io import fits
 
 from . import FitsTestCase
 from .test_table import comparerecords
-from astropy.io import fits
 
 
 class TestGroupsFunctions(FitsTestCase):

@@ -1,13 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # namedtuple is needed for find_mod_objs so it can have a non-local module
+
 from collections import namedtuple
 
 import pytest
 
 from astropy.utils import introspection
 from astropy.utils.introspection import (find_current_module, find_mod_objs,
-                             isinstancemethod, minversion)
+                                         isinstancemethod, minversion)
 
 
 def test_pkg_finder():
