@@ -2418,52 +2418,6 @@ class CompoundModel(Model):
                                               self.right.inverse,
                                               self.left.inverse,
                                               inverse=self)
-        ###elif op == '%':
-        ###    if not isinstance(right, dict):
-        ###        raise ValueError('expecting dictionary for right side of "%"'
-        ###                         ' operator')
-            # else:
-            #     # Dict keys must match either possible indices
-            #     # for model on left side,
-            #     # or names for inputs.
-            #     self.n_inputs = left.n_inputs - len(right)
-            #     self.outputs = left.outputs
-            #     self.n_outputs = left.n_outputs
-            #     newinputs = list(left.inputs)
-            #     keys = right.keys()
-            #     input_ind = []
-            #     for key in keys:
-            #         if isinstance(key, int):
-            #             if key >= left.n_inputs or key < 0:
-            #                 raise ValueError(
-            #                     'substitution key integer value '
-            #                     'not among possible input choices')
-            #             else:
-            #                 if key in input_ind:
-            #                     raise ValueError("Duplicate specification of "
-            #                                      "same input (index/name)")
-            #                 else:
-            #                     input_ind.append(key)
-            #         elif isinstance(key, str):
-            #             if key not in left.inputs:
-            #                 raise ValueError(
-            #                     'Substitution key string not among possible '
-            #                     'input choices')
-            #             # Check to see it doesn't match positional
-            #             # specification.
-            #             ind = left.inputs.index(key)
-            #             if ind in input_ind:
-            #                 raise ValueError("Duplicate specification of "
-            #                                  "same input (index/name)")
-            #             else:
-            #                 input_ind.append(ind)
-            #     # Remove substituted inputs
-            #     input_ind.sort()
-            #     input_ind.reverse()
-            #     for ind in input_ind:
-            #         del newinputs[ind]
-            #     self.inputs = tuple(newinputs)
-
         else:
             raise ModelDefinitionError('Illegal operator: ', self.op)
         if inverse is not None:

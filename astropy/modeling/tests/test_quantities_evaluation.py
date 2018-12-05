@@ -270,7 +270,7 @@ def test_compound_pipe_equiv_call():
     out = cs(10 * u.pix, equivalencies={'x': u.pixel_scale(0.5 * u.deg / u.pix)})
     assert_quantity_allclose(out, 25 * u.deg)
 
-# xxx
+
 # def test_compound_and_equiv_call():
 #     """
 #     Check that equivalencies work when passed to evaluate, for a compsite model
