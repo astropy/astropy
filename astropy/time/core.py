@@ -108,18 +108,21 @@ class TimeInfo(MixinInfo):
                                       'in_subfmt', 'out_subfmt', 'location',
                                       '_delta_ut1_utc', '_delta_tdb_tt')
 
-    # When serializing, write out the `value` attribute using the column name.
-    _represent_as_dict_primary_data = 'value'
+    # When serializing, write out the `value` or 'datetime64' attributes using
+    # the column name.
+    _represent_as_dict_primary_data = ('value', 'datetime64')
 
     mask_val = np.ma.masked
 
     @property
     def _represent_as_dict_attrs(self):
-        method = self.serialize_method[self._serialize_context]
+        method = self.serialize_method.get(self._serialize_context, 'formatted_value')
         if method == 'formatted_value':
             out = ('value',)
         elif method == 'jd1_jd2':
             out = ('jd1', 'jd2')
+        elif method == 'datetime64':
+            out = ('datetime64',)
         else:
             raise ValueError("serialize method must be 'formatted_value' or 'jd1_jd2'")
 
@@ -136,6 +139,7 @@ class TimeInfo(MixinInfo):
             # (e.g. the ISO time string).  If ``False`` then use float jd1 and jd2.
             self.serialize_method = {'fits': 'jd1_jd2',
                                      'ecsv': 'formatted_value',
+                                     'pandas': 'datetime64',
                                      'hdf5': 'jd1_jd2',
                                      'yaml': 'jd1_jd2',
                                      None: 'jd1_jd2'}

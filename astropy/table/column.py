@@ -1068,7 +1068,7 @@ class MaskedColumnInfo(ColumnInfo):
 
         # If the serialize method for this context (e.g. 'fits' or 'ecsv') is
         # 'data_mask', that means to serialize using an explicit mask column.
-        method = self.serialize_method[self._serialize_context]
+        method = self.serialize_method.get(self._serialize_context, 'null_value')
         if method == 'data_mask':
             if np.any(col.mask):
                 # Note that adding to _represent_as_dict_attrs triggers later code which
