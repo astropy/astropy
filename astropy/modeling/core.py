@@ -2798,7 +2798,7 @@ class CompoundModel(Model):
     __and__ =     _model_oper('&')
     ###__mod__ =     _model_oper('%')
 
-    def map_parameters(self, namestyle=None):
+    def map_parameters(self):
         """
         Map all the constituent model parameters to the compound object,
         renaming as necessary by appending a suffix number.
