@@ -2708,15 +2708,39 @@ class Table:
         """
         from pandas import DataFrame
 
-        if self.has_mixin_columns:
-            raise ValueError("Cannot convert a table with mixin columns to a pandas DataFrame")
+        def _encode_mixins(tbl):
+            """Encode a Table ``tbl`` that may have mixin columns to a Table with only
+            astropy Columns + appropriate meta-data to allow subsequent decoding.
+            """
+            from . import serialize
+            from astropy.utils.data_info import MixinInfo, serialize_context_as
 
-        if any(getattr(col, 'ndim', 1) > 1 for col in self.columns.values()):
-            raise ValueError("Cannot convert a table with multi-dimensional columns to a pandas DataFrame")
+            # If PyYAML is not available then check to see if there are any mixin cols
+            # that *require* YAML serialization.
+            try:
+                import yaml
+            except ImportError:
+                for col in tbl.itercols():
+                    if has_info_class(col, MixinInfo):
+                        raise TypeError("cannot convert {} column '{}' "
+                                        "to pandas without PyYAML installed."
+                                        .format(col.__class__.__name__, col.info.name))
+
+            # Convert the table to one with no mixins, only Column objects.  This adds
+            # meta data which is extracted with meta.get_yaml_from_table.
+            with serialize_context_as('pandas'):
+                encode_tbl = serialize._represent_mixins_as_columns(tbl)
+            return encode_tbl
+
+        tbl = _encode_mixins(self)
+
+        if any(getattr(col, 'ndim', 1) > 1 for col in tbl.columns.values()):
+            raise ValueError("Cannot convert a table with multi-dimensional "
+                             "columns to a pandas DataFrame")
 
         out = OrderedDict()
 
-        for name, column in self.columns.items():
+        for name, column in tbl.columns.items():
             if isinstance(column, MaskedColumn) and np.any(column.mask):
                 if column.dtype.kind in ['i', 'u']:
                     out[name] = column.astype(float).filled(np.nan)

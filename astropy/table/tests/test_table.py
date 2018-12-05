@@ -13,12 +13,13 @@ from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.io import fits
 from astropy.tests.helper import (assert_follows_unicode_guidelines,
-                             ignore_warnings, catch_warnings)
+                                  ignore_warnings, catch_warnings)
+
 from astropy.utils.data import get_pkg_data_filename
 from astropy import table
 from astropy import units as u
-from .conftest import MaskedTable
-
+from astropy.time import Time
+from .conftest import MaskedTable, MIXIN_COLS
 
 try:
     with ignore_warnings(DeprecationWarning):
@@ -29,6 +30,12 @@ except ImportError:
     HAS_PANDAS = False
 else:
     HAS_PANDAS = True
+
+try:
+    import yaml  # pylint: disable=W0611
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
 
 
 class SetupData:
@@ -1655,6 +1662,7 @@ class TestPandas:
             t.to_pandas()
         assert exc.value.args[0] == "Cannot convert a table with multi-dimensional columns to a pandas DataFrame"
 
+<<<<<<< HEAD
     def test_mixin(self):
 
         from astropy.coordinates import SkyCoord
@@ -1665,6 +1673,27 @@ class TestPandas:
         with pytest.raises(ValueError) as exc:
             t.to_pandas()
         assert exc.value.args[0] == "Cannot convert a table with mixin columns to a pandas DataFrame"
+=======
+    @pytest.mark.skipif('not HAS_PANDAS')
+    def test_mixin_pandas(self):
+
+        t = table.QTable()
+        for name in sorted(MIXIN_COLS):
+            if name != 'ndarray':
+                t[name] = MIXIN_COLS[name]
+
+        tp = t.to_pandas()
+        t2 = table.Table.from_pandas(tp)
+
+        assert np.allclose(t2['quantity'], [0, 1, 2, 3])
+        assert np.allclose(t2['longitude'], [0., 1., 5., 6.])
+        assert np.allclose(t2['latitude'], [5., 6., 10., 11.])
+        assert np.allclose(Time(t2['time']).jyear, [2000, 2001, 2002, 2003])
+        assert np.allclose(t2['skycoord.ra'], [0, 1, 2, 3])
+        assert np.allclose(t2['skycoord.dec'], [0, 1, 2, 3])
+        assert np.allclose(t2['arraywrap'], [0, 1, 2, 3])
+        assert np.allclose(t2['earthlocation.y'], [0, 110708, 547501, 654527], rtol=0, atol=1)
+>>>>>>> Serialize mixin columns in to_pandas()
 
     def test_masking(self):
 
