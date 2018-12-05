@@ -1248,6 +1248,49 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         """
         return attrnm in self._attr_names_with_defaults
 
+    @staticmethod
+    def _frameattr_equiv(left_fattr, right_fattr):
+        """
+        Determine if two frame attributes are equivalent.  Implemented as a
+        staticmethod mainly as a convenient location, althought conceivable it
+        might be desirable for subclasses to override this behavior.
+
+        Primary purpose is to check for equality of representations, since by
+        default representation equality is only "is it the same object", which
+        is too strict for frame comparisons.
+
+        Note: this method may be removed when/if representations have an
+        appropriate equality defined.
+        """
+        if isinstance(left_fattr, r.BaseRepresentationOrDifferential):
+            if left_fattr is right_fattr:
+                # shortcut if it's exactly the same object
+                return True
+            elif isinstance(right_fattr, r.BaseRepresentationOrDifferential):
+                # both are representations.
+                if ((hasattr(left_fattr, 'differentials') and left_fattr.differentials) or
+                    hasattr(right_fattr, 'differentials') and right_fattr.differentials):
+                    warnings.warn('Two representation frame attributes were '
+                                  'checked for equivalence when at least one of'
+                                  ' them has differentials.  This yields False '
+                                  'even if the underlying representations are '
+                                  'equivalent (although this may change in '
+                                  'future versions of Astropy)', AstropyWarning)
+                    return False
+                if isinstance(right_fattr, left_fattr.__class__):
+                    # if same representation type, compare components.
+                    return np.all([(getattr(left_fattr, comp) ==
+                                    getattr(right_fattr, comp))
+                                   for comp in left_fattr.components])
+                else:
+                    # convert to cartesian and see if they match
+                    return np.all(left_fattr.to_cartesian().xyz ==
+                                  right_fattr.to_cartesian().xyz)
+            else:
+                return False
+        else:
+            return np.all(left_fattr == right_fattr)
+
     def is_equivalent_frame(self, other):
         """
         Checks if this object is the same frame as the ``other`` object.
@@ -1273,8 +1316,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         """
         if self.__class__ == other.__class__:
             for frame_attr_name in self.get_frame_attr_names():
-                if np.any(getattr(self, frame_attr_name) !=
-                          getattr(other, frame_attr_name)):
+                if not self._frameattr_equiv(getattr(self, frame_attr_name),
+                                             getattr(other, frame_attr_name)):
                     return False
             return True
         elif not isinstance(other, BaseCoordinateFrame):
