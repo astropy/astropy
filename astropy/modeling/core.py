@@ -1,4 +1,4 @@
-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
 This module defines base classes for all models.  The base class of all
