@@ -351,6 +351,11 @@ astropy.coordinates
 - Creation of new frames now generally creates copies of frame attributes,
   rather than inconsistently either copying or making references. [#8204]
 
+- The frame class method ``is_equivalent_frame`` now checks for equality of
+  components to determine if a frame is the same when it has frame attributes
+  that are representations, rather than checking if they are the same
+  object. [#8218]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 

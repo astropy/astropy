@@ -593,3 +593,10 @@ def test_regression_6697():
     obsgeopos, obsgeovel = location.get_gcrs_posvel(t)
     delta = (obsgeovel-pint_vels).norm()
     assert delta < 1*u.cm/u.s
+
+
+def test_regression_8138():
+    sc = SkyCoord(1*u.deg, 2*u.deg)
+    newframe = GCRS()
+    sc2 = sc.transform_to(newframe)
+    assert newframe.is_equivalent_frame(sc2.frame)
