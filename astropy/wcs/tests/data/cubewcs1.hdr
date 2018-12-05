@@ -1,0 +1,48 @@
+SIMPLE  =                    T / file does conform to FITS standard
+BITPIX  =                  -64 / number of bits per data pixel
+NAXIS   =                    3 / number of data axes
+NAXIS1  =                  950 / length of data axis 1
+NAXIS2  =                  300 / length of data axis 2
+NAXIS3  =                 1374 / length of data axis 3
+EXTEND  =                    T / FITS dataset may contain extensions
+COMMENT   FITS (Flexible Image Transport System) format is defined in 'Astronomy
+COMMENT   and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H
+BUNIT   = 'K       '           / Units of the primary array
+DATE    = '2014-04-25T03:48:31' / file creation date (YYYY-MM-DDThh:mm:ss UT)
+ORIGIN  = 'Starlink Software'  / Origin of this FITS file
+BSCALE  =                  1.0 / True_value = BSCALE * FITS_value + BZERO
+BZERO   =                  0.0 / True_value = BSCALE * FITS_value + BZERO
+HDUCLAS1= 'NDF     '           / Starlink NDF (hierarchical n-dim format)
+HDUCLAS2= 'DATA    '           / Array component subclass
+HDSTYPE = 'NDF     '           / HDS data type of the component
+CDELT1  = -0.00138888888888888 / Pixel size on axis 1
+CDELT2  =  0.00138888888888889 / Pixel size on axis 2
+SPECSYS = 'LSRK    '           / Standard of rest for spectral axis
+VELREF  =                  257
+RESTFRQ =       218222192000.0 / [Hz] Rest frequency
+CTYPE1  = 'GLON-CAR'           / Type of co-ordinate on axis 1
+CTYPE2  = 'GLAT-CAR'           / Type of co-ordinate on axis 2
+CRVAL1  =                 0.35 / Value at ref. pixel on axis 1
+CRVAL2  =                  0.0 / Value at ref. pixel on axis 2
+CRPIX1  =                475.0 / Reference pixel on axis 1
+CRPIX2  =                204.0 / Reference pixel on axis 2
+BMAJ    =  0.00645185488669461
+BMIN    =  0.00645185488669461
+CRPIX3  =                  1.0 / Reference pixel on axis 3
+CRVAL3  =       218000000000.0 / Value at ref. pixel on axis 3
+CDELT3  =     727836.855678687 / Pixel size on axis 3
+CTYPE3  = 'FREQ    '           / Type of co-ordinate on axis 3
+CUNIT3  = 'Hz      '           / Units for axis 3
+PC1_1   =                    1 /
+PC1_2   =                    0 /
+PC1_3   =                    0 /
+PC2_1   =                    0 /
+PC2_2   =                    1 /
+PC2_3   =                    0 /
+PC3_1   =                    0 /
+PC3_2   =                    0 /
+PC3_3   =                    1 /
+MJD-OBS =     51544.4992571308 / Modified Julian Date of observation
+DATE-OBS= '2000-01-01T11:58:55.816' / Date of observation
+VELOSYS =    -17250.2796797219 / [m/s] Topo. apparent velocity of rest frame
+END

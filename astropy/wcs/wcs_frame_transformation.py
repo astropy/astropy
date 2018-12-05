@@ -4,7 +4,10 @@ from astropy import units as u
 from astropy import constants
 import warnings
 
-from .utils import ExperimentalImplementationWarning
+from astropy.utils.exceptions import AstropyUserWarning
+
+class ExperimentalImplementationWarning(AstropyUserWarning):
+    pass
 
 def _parse_velocity_convention(vc):
     if vc in (u.doppler_radio, 'radio', 'RADIO', 'VRAD', 'F', 'FREQ'):
