@@ -114,8 +114,6 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     def __prepare__(mcls, name, bases):
         return OrderedDict()
 
-    registry = set()
-
     _is_dynamic = False
     """
     This flag signifies whether this class was created in the "normal" way,
@@ -182,8 +180,6 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
                     for parname, val in cls._parameter_vals_.items():
                         pdict[parname] = val
         cls._handle_special_methods(members, pdict)
-        if not inspect.isabstract(cls) and not name.startswith('_'):
-            cls.registry.add(cls)
 
     def __repr__(cls):
         """
