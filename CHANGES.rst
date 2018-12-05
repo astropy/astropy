@@ -25,6 +25,9 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- IPAC tables now output data types of ``float`` instead of ``double``, or
+  ``int`` instead of ``long``, based on the column ``dtype.itemsize``. [#8216]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -94,6 +97,9 @@ astropy.extern
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
+
+- IPAC tables now output data types of ``float`` instead of ``double``, or
+  ``int`` instead of ``long``, based on the column ``dtype.itemsize``. [#8216]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
