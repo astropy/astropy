@@ -3188,18 +3188,6 @@ def binary_operation(binoperator, left, right):
     else:
         return binoperator(left, right)
 
-
-def tree_to_list(tree):
-    '''
-    Walk a tree and return a list of the leaves in order of traversal.
-    '''
-    if not hasattr(tree, 'isleaf'):
-        return [tree]
-    else:
-        return tree_to_list(tree.left, get_oper) + \
-               tree_to_list(tree.right, get_oper)
-
-
 def make_subtree_dict(tree, nodepath, tdict, leaflist):
     '''
     Traverse a tree noting each node by a key that indicates all the
