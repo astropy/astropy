@@ -88,6 +88,7 @@ templates_path.append('_templates')
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
 rst_epilog += """
+.. |minimum_python_version| replace:: {0.__minimum_python_version__}
 .. |minimum_numpy_version| replace:: {0.__minimum_numpy_version__}
 
 .. Astropy
