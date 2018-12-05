@@ -170,8 +170,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
     def __init__(cls, name, bases, members):
         super(_ModelMeta, cls).__init__(name, bases, members)
-        if not isinstance(cls, CompoundModel):
-        ###if cls.__name__ != "CompoundModel":
+        if cls.__name__ != "CompoundModel":
             cls._create_inverse_property(members)
         cls._create_bounding_box_property(members)
         pdict = OrderedDict()
@@ -2506,48 +2505,8 @@ class CompoundModel(Model):
                     return self.right(leftval, **kw)
             elif op in SPECIAL_OPERATORS:
                 return binary_operation(SPECIAL_OPERATORS[op], leftval, rightval)
-        # elif op == '%':
-        #     subs = self.right
-        #     newargs = list(args)
-        #     subinds = []
-        #     subvals = []
-        #     for key in subs.keys():
-        #         if isinstance(key, int):
-        #             subinds.append(key)
-        #         elif isinstance(key, str):
-        #             ind = self.left.inputs.index(key)
-        #             subinds.append(ind)
-        #         subvals.append(subs[key])
-        #     # Turn inputs specified in kw into positional indices.
-        #     # Names for compound inputs do not propagate to sub models.
-        #     kwind = []
-        #     kwval = []
-        #     for kwkey in list(kw.keys()):
-        #         if kwkey in self.inputs:
-        #             ind = self.inputs.index(kwkey)
-        #             if ind < len(args):
-        #                 raise ValueError("Keyword argument duplicates "
-        #                                 "positional value supplied")
-        #             kwind.append(ind)
-        #             kwval.append(kw[kwkey])
-        #             del kw[kwkey]
-        #     # Build new argument list
-        #     # Append keyword specified args first
-        #     if kwind:
-        #         kwargs = list(zip(kwind, kwval))
-        #         kwargs.sort()
-        #         kwindsorted, kwvalsorted = list(zip(*kwargs))
-        #         newargs = newargs + list(kwvalsorted)
-        #     if subinds:
-        #         subargs = list(zip(subinds, subvals))
-        #         subargs.sort()
-        #         subindsorted, subvalsorted = list(zip(*subargs))
-        #     # The substitutions must be inserted in order
-        #     for ind, val in subargs:
-        #         newargs.insert(ind, val)
-        #     return self.left(*newargs, **kw)
         else:
-            raise ModelDefinitionError('unrecognized operator')
+            raise ModelDefinitionError('unrecognized operator {op}')
 
     @property
     def param_names(self):
