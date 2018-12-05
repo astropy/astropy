@@ -170,7 +170,8 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
     def __init__(cls, name, bases, members):
         super(_ModelMeta, cls).__init__(name, bases, members)
-        if cls.__name__ != "CompoundModel":
+        if not isinstance(cls, CompoundModel):
+        ###if cls.__name__ != "CompoundModel":
             cls._create_inverse_property(members)
         cls._create_bounding_box_property(members)
         pdict = OrderedDict()
@@ -2314,8 +2315,6 @@ SPECIAL_OPERATORS = {}
 
 def _add_special_operator(sop_name, sop):
     SPECIAL_OPERATORS[sop_name] = sop
-
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
 This module provides an alternate implementation of compound models that
