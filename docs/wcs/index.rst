@@ -265,11 +265,6 @@ Other information
    history
    wcsapi
 
-.. note that if this section gets too long, it should be moved to a separate
-   doc page - see the top of performance.inc.rst for the instructions on how to do
-   that
-.. include:: performance.inc.rst
-
 See Also
 ========
 

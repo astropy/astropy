@@ -1303,11 +1303,6 @@ that can be parsed with Python standard library `time.strptime`
   >>> t
   <Time object: scale='utc' format='isot' value=2015-06-30T23:59:60.000>
 
-.. note that if this section gets too long, it should be moved to a separate
-   doc page - see the top of performance.inc.rst for the instructions on how to do
-   that
-.. include:: performance.inc.rst
-
 Reference/API
 =============
 
