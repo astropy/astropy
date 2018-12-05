@@ -402,6 +402,11 @@ class Ipac(basic.Basic):
                   N/A     29.09056      null         2.06               -999
          2345678901.0 3456789012.0 456789012 4567890123.0 567890123456789012
 
+    When writing a table with a column of integers, the data type is output
+    as ``int`` when the column ``dtype.itemsize`` is less than or equal to 2;
+    othewise the data type is ``long``. For a column of floating-point values,
+    the data type is ``float`` when ``dtype.itemsize`` is less than or equal
+    to 4; otherwise the data type is ``double``.
 
     Parameters
     ----------
