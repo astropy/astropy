@@ -30,6 +30,7 @@ from ... import units as u
 from ..column import BaseColumn
 from .. import table_helpers
 from .conftest import MIXIN_COLS
+from ... import nddata
 
 
 def test_attributes(mixin_cols):

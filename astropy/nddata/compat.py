@@ -5,6 +5,7 @@
 import numpy as np
 
 from ..units import UnitsError, UnitConversionError, Unit
+from ..utils.data_info import ParentDtypeInfo
 from .. import log
 
 from .nddata import NDData
@@ -16,7 +17,7 @@ from .mixins.ndio import NDIOMixin
 
 from .flag_collection import FlagCollection
 
-__all__ = ['NDDataArray']
+__all__ = ['NDDataArray', 'NDDataColumn']
 
 
 class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
@@ -286,3 +287,21 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
                                 meta=self.meta, unit=unit)
 
         return result
+
+
+class NDDataColumn(NDDataArray):
+    info = ParentDtypeInfo()
+
+    def __len__(self):
+        return self.shape[0]
+
+    def __init__(self, data, *args, **kwargs):
+        super().__init__(data, *args, **kwargs)
+        if 'info' in getattr(data, '__dict__', ()):
+            self.info = data.info
+
+    def __getitem__(self, item):
+        out = super().__getitem__(item)
+        if not isinstance(item, (int, np.integer)) and 'info' in self.__dict__:
+            out.info = self.info
+        return out

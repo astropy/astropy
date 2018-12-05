@@ -27,6 +27,7 @@ from ...table import table_helpers, Table, QTable
 from ... import time
 from ... import units as u
 from ... import coordinates
+from ... import nddata
 from .. import pprint
 
 
@@ -147,6 +148,10 @@ MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
               'time': time.Time([2000, 2001, 2002, 2003], format='jyear'),
               'skycoord': coordinates.SkyCoord(ra=[0, 1, 2, 3] * u.deg,
                                                dec=[0, 1, 2, 3] * u.deg),
+              'nddata': nddata.NDDataColumn([[0, 1],
+                                             [2, 3],
+                                             [4, 5],
+                                             [6, 7]]),
               'arraywrap': table_helpers.ArrayWrapper([0, 1, 2, 3]),
               'ndarray': np.array([(7, 'a'), (8, 'b'), (9, 'c'), (9, 'c')],
                            dtype='<i4,|S1').view(table.NdarrayMixin),
