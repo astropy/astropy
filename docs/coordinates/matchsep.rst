@@ -174,6 +174,12 @@ frame aligned with standard ICRA RA/Dec, but on M31::
     >>> eta  # doctest: +FLOAT_CMP
     <Latitude 7.261837574183891 deg>
 
+.. note::
+
+    Currently, distance information in the ``origin`` of a
+    :class:`~astropy.coordinates.builtin_frames.skyoffset.SkyOffsetFrame` is not
+    used to compute any part of the transform. The ``origin`` is only used for
+    on-sky rotation.  This may change in the future, however.
 
 
 .. _astropy-coordinates-matching:
