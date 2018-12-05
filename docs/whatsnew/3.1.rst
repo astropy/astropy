@@ -147,7 +147,8 @@ Performance has been improved throughout this sub-package. Highlights include
 typically 2-3x faster creation of scalar `~astropy.coordinates.SkyCoord` and
 frame classes objects, or up to 20x faster in certain cases. These performance
 improvements translate to nearly all convenience methods and operations on
-coordinates as well. Coordinate matching can be 1000x faster in certain cases.
+coordinates as well. Coordinate matching is 2-3x faster and can be up to 1000x
+faster in certain cases.
 
 A `~astropy.coordinates.SkyCoord.directional_offset_by` method has been added
 that will yield a new `~astropy.coordinates.SkyCoord` given a "from" coordinate
