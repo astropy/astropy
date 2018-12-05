@@ -84,18 +84,21 @@ if not os.path.exists(os.path.join(os.path.dirname(__file__), 'PKG-INFO')):
 
 install_requires = [min_numpy_version]
 
-extras_require = {
-    'test': ['pytest-astropy', 'pytest-xdist', 'pytest-mpl',
-             'objgraph', 'IPython', 'coverage', 'skyfield'],
-    'all': ['scipy', 'h5py', 'beautifulsoup4', 'bleach', 'PyYAML',
-            'pandas', 'bintrees', 'sortedcontainers',
-            'pytz', 'jplephem', 'matplotlib>=2.0', 'scikit-image', 'mpmath',
-            'asdf>=2.3', 'bottleneck', 'ipython'],
-    'docs': ['scipy', 'h5py', 'beautifulsoup4', 'bleach', 'PyYAML',
-             'pandas', 'bintrees', 'sortedcontainers',
-             'pytz', 'jplephem', 'matplotlib>=2.0', 'scikit-image', 'mpmath',
-             'asdf>=2.3', 'bottleneck', 'ipython', 'sphinx-astropy', 'pytest']
-}
+extras_require = {}
+
+# All optional dependencies for the tests
+extras_require['test'] = ['pytest-astropy', 'pytest-xdist', 'pytest-mpl',
+                          'objgraph', 'ipython', 'coverage', 'skyfield'],
+
+# A configuration with all optional dependencies
+extras_require['all'] = ['scipy', 'h5py', 'beautifulsoup4', 'bleach', 'PyYAML',
+                         'pandas', 'bintrees', 'sortedcontainers', 'pytz',
+                         'jplephem', 'matplotlib>=2.0', 'scikit-image',
+                         'mpmath', 'asdf>=2.3', 'bottleneck', 'ipython',
+                         'pytest']
+
+# Building the docs requires most optional dependencies as well as sphinx-astropy
+extras_require['docs'] = extras_require['all'] + ['sphinx-astropy']
 
 # Avoid installing setup_requires dependencies if the user just
 # queries for information
