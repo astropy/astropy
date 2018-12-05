@@ -131,7 +131,9 @@ class SkyOffsetFrame(BaseCoordinateFrame):
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
     origin : `SkyCoord` or low-level coordinate object.
-        the coordinate which specifies the origin of this frame.
+        The coordinate which specifies the origin of this frame. Note that this
+        origin is used purely for on-sky location/rotation.  It can have a
+        ``distance`` but it will not be used by this ``SkyOffsetFrame``.
     rotation : `~astropy.coordinates.Angle` or `~astropy.units.Quantity` with angle units
         The final rotation of the frame about the ``origin``. The sign of
         the rotation is the left-hand rule.  That is, an object at a
