@@ -47,15 +47,19 @@ import numpy as np
 from astropy.convolution.convolve import convolve
 from astropy.convolution.convolve import convolve_fft
 array = np.random.random([%i]*%i)
-kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims)
+kernel = np.random.random([%i]*%i)""") % (2 ** ii, ndims, 2 ** ii, ndims)
 
             print("%16i:" % (int(2 ** ii)), end=' ')
 
             if ii <= max_exponents_linear[ndims]:
-                for convolve_type in ("", "_fft"):
-                    statement = "convolve{}(array, kernel, boundary='fill')".format(convolve_type)
-                    besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
-                    print("%17f" % (besttime), end=' ')
+                for convolve_type in ("", "_fft",):
+                    # convolve doesn't allow even-sized kernels
+                    if convolve_type == "":
+                        print("%17s" % ("-"), end=' ')
+                    else:
+                        statement = "convolve{}(array, kernel, boundary='fill')".format(convolve_type)
+                        besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
+                        print("%17f" % (besttime), end=' ')
             else:
                 print("%17s" % "skipped", end=' ')
                 statement = "convolve_fft(array, kernel, boundary='fill')"
