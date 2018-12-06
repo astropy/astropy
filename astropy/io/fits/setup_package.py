@@ -11,6 +11,7 @@ import numpy
 
 from extension_helpers import pkg_config, get_compiler
 
+
 def _get_compression_extension():
 
     debug = '--debug' in sys.argv
