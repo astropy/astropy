@@ -3,6 +3,16 @@
 
 import sys
 
+from distutils.version import LooseVersion
+
+# We require setuptools 30.3.0 or later for the configuration in setup.cfg to
+# work properly.
+import setuptools
+if LooseVersion(setuptools.__version__) < LooseVersion('30.3.0'):
+    sys.stderr.write("ERROR: Astropy requires setuptools 30.3.0 or later "
+                     "(found {0})".format(setuptools.__version__))
+    sys.exit(1)
+
 from setuptools.config import read_configuration
 conf = read_configuration('setup.cfg')
 
