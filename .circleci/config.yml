@@ -27,11 +27,23 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install dependencies
-          command: /opt/python/cp36-cp36m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2
+          name: Install dependencies for Python 3.5
+          command: /opt/python/cp35-cp35m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2 matplotlib --only-binary numpy,scipy,matplotlib,Cython
       - run:
-          name: Run tests
+          name: Run tests for Python 3.5
+          command: PYTHONHASHSEED=42 /opt/python/cp35-cp35m/bin/python setup.py test --parallel=4 -V -a "--durations=50"
+      - run:
+          name: Install dependencies for Python 3.6
+          command: /opt/python/cp36-cp36m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2 matplotlib --only-binary numpy,scipy,matplotlib,Cython
+      - run:
+          name: Run tests for Python 3.6
           command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4 -V -a "--durations=50"
+      - run:
+          name: Install dependencies for Python 3.7
+          command: /opt/python/cp37-cp37m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2 matplotlib --only-binary numpy,scipy,matplotlib,Cython
+      - run:
+          name: Run tests for Python 3.7
+          command: PYTHONHASHSEED=42 /opt/python/cp37-cp37m/bin/python setup.py test --parallel=4 -V -a "--durations=50"
 
   image-tests-mpl202:
     docker:
