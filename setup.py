@@ -84,22 +84,6 @@ if not os.path.exists(os.path.join(os.path.dirname(__file__), 'PKG-INFO')):
 
 install_requires = [min_numpy_version]
 
-extras_require = {}
-
-# All optional dependencies for the tests
-extras_require['test'] = ['pytest-astropy', 'pytest-xdist', 'pytest-mpl',
-                          'objgraph', 'ipython', 'coverage', 'skyfield'],
-
-# A configuration with all optional dependencies
-extras_require['all'] = ['scipy', 'h5py', 'beautifulsoup4', 'bleach', 'PyYAML',
-                         'pandas', 'bintrees', 'sortedcontainers', 'pytz',
-                         'jplephem', 'matplotlib>=2.0', 'scikit-image',
-                         'mpmath', 'asdf>=2.3', 'bottleneck', 'ipython',
-                         'pytest']
-
-# Building the docs requires most optional dependencies as well as sphinx-astropy
-extras_require['docs'] = extras_require['all'] + ['sphinx-astropy']
-
 # Avoid installing setup_requires dependencies if the user just
 # queries for information
 if is_distutils_display_option():
@@ -112,7 +96,6 @@ setup(name=NAME,
       requires=['numpy'],
       setup_requires=setup_requires,
       install_requires=install_requires,
-      extras_require=extras_require,
       provides=[NAME],
       author='The Astropy Developers',
       author_email='astropy.team@gmail.com',
