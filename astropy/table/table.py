@@ -2736,11 +2736,11 @@ class Table:
                     new_col = col.datetime64
                     if col.masked:
                         new_col[col.mask] = np.datetime64('NaT')
+                    tbl[col.info.name] = new_col
 
             # Convert the table to one with no mixins, only Column objects.  This adds
             # meta data which is extracted with meta.get_yaml_from_table.
-            with serialize_context_as('pandas'):
-                encode_tbl = serialize._represent_mixins_as_columns(tbl)
+            encode_tbl = serialize._represent_mixins_as_columns(tbl)
             return encode_tbl
 
         tbl = _encode_mixins(self)
