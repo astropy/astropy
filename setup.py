@@ -8,7 +8,7 @@ conf = read_configuration('setup.cfg')
 
 # This is the same check as astropy/__init__.py but this one has to
 # happen before importing ah_bootstrap
-minimum_python_version = conf['minimum_python_version']
+minimum_python_version = conf['options']['python_requires'].replace('>', '').replace('<', '').replace('=', '')
 if sys.version_info < tuple((int(val) for val in minimum_python_version.split('.'))):
     sys.stderr.write("ERROR: Astropy requires Python {} or later\n".format(
         minimum_python_version))
@@ -27,6 +27,8 @@ from astropy_helpers.git_helpers import get_git_devstr
 from astropy_helpers.version_helpers import generate_version_py
 
 import astropy
+
+NAME = conf['metadata']['name']
 
 # VERSION should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
 VERSION = conf['metadata']['version']
