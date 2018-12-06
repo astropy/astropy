@@ -3778,14 +3778,14 @@ def generic_call(self, *inputs, **kwargs):
 def _strip_ones(intup):
     return tuple(item for item in intup if item !=1)
 
-def ismodel(obj):
-    """
-    Returns True if the object is an instance of Model or CompoundModel.
+# def ismodel(obj):
+#     """
+#     Returns True if the object is an instance of Model or CompoundModel.
 
-    This should be used instead of isinstance since CompoundModel does
-    not inherit from Model for efficiency reasons.
-    """
-    return isinstance(obj, Model) or isinstance(obj, CompoundModel)
+#     This should be used instead of isinstance since CompoundModel does
+#     not inherit from Model for efficiency reasons.
+#     """
+#     return isinstance(obj, Model) or isinstance(obj, CompoundModel)
 
 
 copyreg.pickle(_ModelMeta, _ModelMeta.__reduce__)
