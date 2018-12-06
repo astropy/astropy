@@ -1676,7 +1676,6 @@ class TestPandas:
 =======
     @pytest.mark.skipif('not HAS_PANDAS')
     def test_mixin_pandas(self):
-
         t = table.QTable()
         for name in sorted(MIXIN_COLS):
             if name != 'ndarray':
@@ -1688,12 +1687,27 @@ class TestPandas:
         assert np.allclose(t2['quantity'], [0, 1, 2, 3])
         assert np.allclose(t2['longitude'], [0., 1., 5., 6.])
         assert np.allclose(t2['latitude'], [5., 6., 10., 11.])
-        assert np.allclose(Time(t2['time']).jyear, [2000, 2001, 2002, 2003])
+        assert np.allclose(t2['time'].jyear, [2000, 2001, 2002, 2003])
+        assert np.all(t2['time'].isot == ['2000-01-01T12:00:00.000',
+                                          '2000-12-31T18:00:00.000',
+                                          '2002-01-01T00:00:00.000',
+                                          '2003-01-01T06:00:00.000'])
+        assert t2['time'].format == 'isot'
         assert np.allclose(t2['skycoord.ra'], [0, 1, 2, 3])
         assert np.allclose(t2['skycoord.dec'], [0, 1, 2, 3])
         assert np.allclose(t2['arraywrap'], [0, 1, 2, 3])
         assert np.allclose(t2['earthlocation.y'], [0, 110708, 547501, 654527], rtol=0, atol=1)
 >>>>>>> Serialize mixin columns in to_pandas()
+
+    @pytest.mark.skipif('not HAS_PANDAS')
+    def test_mixin_pandas_masked(self):
+        tm = Time([1, 2, 3], format='cxcsec')
+        tm[1] = np.ma.masked
+        t = table.QTable([tm], names=['tm'])
+        tp = t.to_pandas()
+        t2 = table.Table.from_pandas(tp)
+        assert np.all(t2['tm'].mask == tm.mask)
+        assert np.ma.allclose(t2['tm'].jd, tm.jd)
 
     def test_masking(self):
 
