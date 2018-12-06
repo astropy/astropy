@@ -335,8 +335,8 @@ def test_indexing_on_instance():
     m = g + p
     assert m[0].name == 'g'
     assert m[1].name == 'p'
-    #assert m['g'].name == 'g'
-    #assert m['p'].name == 'p'
+    assert m['g'].name == 'g'
+    assert m['p'].name == 'p'
 
 
     # Test negative indexing
@@ -346,8 +346,8 @@ def test_indexing_on_instance():
     with pytest.raises(IndexError):
         m[42]
 
-    # with pytest.raises(IndexError):
-    #     m['foobar']
+    with pytest.raises(IndexError):
+        m['foobar']
 
 
 class _ConstraintsTestA(Model):
@@ -481,20 +481,6 @@ def test_pickle_compound():
     assert np.all(m(0) == m2(0))
 
 
-def test_name():
-    offx = Shift(1)
-    scl = Scale(2)
-    m = offx | scl
-    scl.name = "scale"
-    assert m.submodel_names == ('None_0', 'scale')
-    assert m.name is None
-    m.name = "M"
-    assert m.name == "M"
-    m1 = m.rename("M1")
-    assert m.name == "M1"
-    assert m1.name == "M1"
-
-
 def test_update_parameters():
     offx = Shift(1)
     scl = Scale(2)
@@ -524,6 +510,17 @@ def test_name():
     assert m.name == "M1"
     assert m1.name == "M1"
 
+def test_name_index():
+    g1 = Gaussian1D(1, 1, 1)
+    g2 = Gaussian1D(1, 2, 1)
+    g = g1 + g2
+    with pytest.raises(IndexError):
+        g['bozo']
+    g1.name = 'bozo'
+    assert g['bozo'].mean == 1
+    g2.name = 'bozo'
+    with pytest.raises(IndexError):
+        g['bozo']
 
 
 @pytest.mark.skipif("not HAS_SCIPY_14")
