@@ -3676,25 +3676,7 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
                 arg_a, shape_a, arg_b, shape_b))
 
     return input_broadcast
-
-
-def remove_axis_from_shape(shape, axis):
-    """
-    Given a shape tuple as the first input, construct a new one by  removing
-    that particular axis from the shape. Negative axis numbers are permittted,
-    where the axis is relative to the last axis.
-    """
-    if len(shape) == 0:
-        return shape
-    if axis < 0:
-        axis = len(shape) + axis
-    if axis >= len(shape):
-        axis = len(shape)-1
-    shape = shape[:axis] + shape[axis+1:]
-    if shape == (1,):
-        return ()
-    return shape
-
+    
 
 def remove_axes_from_shape(shape, axis):
     """
