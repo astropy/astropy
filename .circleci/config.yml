@@ -28,7 +28,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies for Python 3.5
-          command: /opt/python/cp35-cp35m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2 matplotlib --only-binary numpy,scipy,matplotlib,Cython
+          command: /opt/python/cp35-cp35m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2 --only-binary numpy,scipy,Cython
       - run:
           name: Run tests for Python 3.5
           command: PYTHONHASHSEED=42 /opt/python/cp35-cp35m/bin/python setup.py test --parallel=4 -V -a "--durations=50"
@@ -86,7 +86,7 @@ jobs:
 
   image-tests-mpldev:
     docker:
-      - image: astropy/image-tests-py35-base:1.0
+      - image: astropy/image-tests-py36-base:1.0
     steps:
       - checkout
       - run:
