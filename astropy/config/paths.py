@@ -89,9 +89,9 @@ def get_config_dir(rootname='astropy'):
     Parameters
     ----------
     rootname : str
-        Name of the root configuration directory. For example, if
-        ``rootname = 'pkgname'``, the configuration directory will be
-        ``<home>/.pkgname/``.
+        Name of the root configuration directory. For example, if ``rootname =
+        'pkgname'``, the configuration directory would be ``<home>/.pkgname/``
+        rather than ``<home>/.astropy`` (depending on platform).
 
     Returns
     -------
