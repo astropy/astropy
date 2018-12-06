@@ -8,8 +8,8 @@ from astropy.tests.helper import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from . import path as data_path
-from ..wcs_frame_transformatino import (convert_spectral_axis,
+from ...utils.data import get_pkg_data_contents as data_path
+from ..wcs_frame_transformation import (convert_spectral_axis,
                                         determine_ctype_from_vconv,
                                         cdelt_derivative,
                                         determine_vconv_from_ctype,
