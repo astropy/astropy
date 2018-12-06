@@ -1697,6 +1697,38 @@ class TestPandas:
         assert t2['dt'].format == 'sec'
 
     @pytest.mark.skipif('not HAS_YAML')
+    def test_to_pandas_index(self):
+        import pandas as pd
+        row_index = pd.RangeIndex(0, 2, 1)
+        tm_index = pd.DatetimeIndex(['1998-01-01', '2002-01-01'],
+                                                   dtype='datetime64[ns]',
+                                                   name='tm', freq=None)
+
+        tm = Time([1998, 2002], format='jyear')
+        x = [1, 2]
+        t = table.QTable([tm, x], names=['tm', 'x'])
+        tp = t.to_pandas()
+        assert np.all(tp.index == row_index)
+
+        tp = t.to_pandas(index='tm')
+        assert np.all(tp.index == tm_index)
+
+        t.add_index('tm')
+        tp = t.to_pandas(index='tm')
+        assert np.all(tp.index == tm_index)
+
+        tp = t.to_pandas(index=True)
+        assert np.all(tp.index == tm_index)
+
+        tp = t.to_pandas(index=False)
+        assert np.all(tp.index == row_index)
+
+        with pytest.raises(ValueError) as err:
+            t.to_pandas(index='not a column')
+        assert 'index must be None, False' in str(err)
+
+
+    @pytest.mark.skipif('not HAS_YAML')
     def test_mixin_pandas_masked(self):
         tm = Time([1, 2, 3], format='cxcsec')
         dt = TimeDelta([1, 2, 3], format='sec')

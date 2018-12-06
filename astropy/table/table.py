@@ -2691,9 +2691,16 @@ class Table:
         """
         return groups.table_group_by(self, keys)
 
-    def to_pandas(self):
+    def to_pandas(self, index=None):
         """
         Return a :class:`pandas.DataFrame` instance
+
+        The index of the created DataFrame is controlled by the ``index``
+        argument.  For ``index=True`` or the default ``None``, an index will be
+        specified for the DataFrame if there is a primary key index on the
+        Table *and* if it corresponds to a single column.  If ``index=False``
+        then no DataFrame index will be specified.  If ``index`` is the name of
+        a column in the table then that will be the DataFrame index.
 
         In additional to vanilla columns or masked columns, this supports Table
         mixin columns like Quantity, Time, or SkyCoord.  In many cases these
@@ -2707,7 +2714,8 @@ class Table:
         -------
         dataframe : :class:`pandas.DataFrame`
             A pandas :class:`pandas.DataFrame` instance
-
+        index : None, bool, str
+            Specify DataFrame index mode
         Raises
         ------
         ImportError
@@ -2731,13 +2739,26 @@ class Table:
 
           >>> t = QTable([q, tm, sc, dt], names=['q', 'tm', 'sc', 'dt'])
 
-          >>> t.to_pandas()
-               q         tm  sc.ra  sc.dec       dt
-          0  1.0 1998-01-01    5.0     7.0 00:00:03
-          1  2.0 2002-01-01    6.0     8.0 00:03:20
+          >>> t.to_pandas(index='tm')
+                        q  sc.ra  sc.dec       dt
+          tm
+          1998-01-01  1.0    5.0     7.0 00:00:03
+          2002-01-01  2.0    6.0     8.0 00:03:20
 
         """
         from pandas import DataFrame
+
+        if index is not False:
+            if index in (None, True):
+                # Default is to use the table primary key if available and a single column
+                if self.primary_key and len(self.primary_key) == 1:
+                    index = self.primary_key[0]
+                else:
+                    index = False
+            else:
+                if index not in self.colnames:
+                    raise ValueError('index must be None, False, True or a table '
+                                     'column name')
 
         def _encode_mixins(tbl):
             """Encode a Table ``tbl`` that may have mixin columns to a Table with only
@@ -2761,7 +2782,14 @@ class Table:
             # Convert any Time or TimeDelta columns and pay attention to masking
             time_cols = [col for col in tbl.itercols() if isinstance(col, Time)]
             if time_cols:
+
+                # Make a light copy of table and clear any indices
                 tbl = tbl.copy(copy_data=False)
+                for col in tbl.itercols():
+                    col.info.indices.clear()
+                tbl.indices.clear()
+                tbl.primary_key = None
+
                 for col in time_cols:
                     if isinstance(col, TimeDelta):
                         # Convert to nanoseconds (matches astropy datetime64 support)
@@ -2804,7 +2832,9 @@ class Table:
             if out[name].dtype.byteorder not in ('=', '|'):
                 out[name] = out[name].byteswap().newbyteorder()
 
-        return DataFrame(out)
+        kwargs = {'index': out.pop(index)} if index else {}
+
+        return DataFrame(out, **kwargs)
 
     @classmethod
     def from_pandas(cls, dataframe):
