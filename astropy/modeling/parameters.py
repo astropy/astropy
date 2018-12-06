@@ -184,9 +184,6 @@ class Parameter(OrderedDescriptor):
     bounds : tuple
         specify min and max as a single tuple--bounds may not be specified
         simultaneously with min or max
-    model : `Model` instance
-        This parameter is no longer of general use and is provided for backward
-        compatibilty.
     """
 
     constraints = ('fixed', 'tied', 'bounds')
@@ -225,6 +222,10 @@ class Parameter(OrderedDescriptor):
 
         self._default = default
         self._unit = unit
+        # Internal units correspond to raw_units held by the model in the
+        # previous implementation. The private _getter and _setter methods
+        # use this to convert to and from the public unit defined for the
+        # parameter.
         self._internal_unit = None
         if not self._model_required:
             if self._default is not None:
@@ -324,6 +325,11 @@ class Parameter(OrderedDescriptor):
         if self._getter is None and self._setter is None:
             return np.float64(self._value)
         else:
+            # This new implementation uses the names of internal_unit
+            # in place of raw_unit used previously. The contrast between
+            # internal values and units is that between the public
+            # units that the parameter advertises to what it actually 
+            # uses internally.
             if self.internal_unit:
                 return np.float64(self._getter(self._internal_value,
                                   self.internal_unit, self.unit).value)
@@ -381,11 +387,17 @@ class Parameter(OrderedDescriptor):
 
     @property
     def internal_unit(self):
+        """
+        Return the internal unit the parameter uses for the internal value stored
+        """
         return self._internal_unit
 
     @internal_unit.setter
     def internal_unit(self, internal_unit):
-
+        """
+        Set the unit the parameter will convert the supplied value to the 
+        representation used internally.
+        """
         self._internal_unit = internal_unit
 
     @property
