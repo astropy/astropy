@@ -18,7 +18,7 @@ from astropy.tests.helper import (assert_follows_unicode_guidelines,
 from astropy.utils.data import get_pkg_data_filename
 from astropy import table
 from astropy import units as u
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
 from .conftest import MaskedTable, MIXIN_COLS
 
 try:
@@ -1669,6 +1669,8 @@ class TestPandas:
             if name != 'ndarray':
                 t[name] = MIXIN_COLS[name]
 
+        t['dt'] = TimeDelta([0, 2, 4, 6], format='sec')
+
         tp = t.to_pandas()
         t2 = table.Table.from_pandas(tp)
 
@@ -1680,7 +1682,7 @@ class TestPandas:
         assert np.allclose(t2['arraywrap'], [0, 1, 2, 3])
         assert np.allclose(t2['earthlocation.y'], [0, 110708, 547501, 654527], rtol=0, atol=1)
 
-        # For pandas, Time is the only mixin that round-trips the class
+        # For pandas, Time, TimeDelta are the mixins that round-trip the class
         assert isinstance(t2['time'], Time)
         assert np.allclose(t2['time'].jyear, [2000, 2001, 2002, 2003])
         assert np.all(t2['time'].isot == ['2000-01-01T12:00:00.000',
@@ -1689,17 +1691,30 @@ class TestPandas:
                                           '2003-01-01T06:00:00.000'])
         assert t2['time'].format == 'isot'
 
+        # TimeDelta
+        assert isinstance(t2['dt'], TimeDelta)
+        assert np.allclose(t2['dt'].value, [0, 2, 4, 6])
+        assert t2['dt'].format == 'sec'
+
     @pytest.mark.skipif('not HAS_PANDAS')
     def test_mixin_pandas_masked(self):
         tm = Time([1, 2, 3], format='cxcsec')
+        dt = TimeDelta([1, 2, 3], format='sec')
         tm[1] = np.ma.masked
-        t = table.QTable([tm], names=['tm'])
+        dt[1] = np.ma.masked
+        t = table.QTable([tm, dt], names=['tm', 'dt'])
+
         tp = t.to_pandas()
         assert np.all(tp['tm'].isnull() == [False, True, False])
+        assert np.all(tp['dt'].isnull() == [False, True, False])
 
         t2 = table.Table.from_pandas(tp)
+
         assert np.all(t2['tm'].mask == tm.mask)
-        assert np.ma.allclose(t2['tm'].jd, tm.jd)
+        assert np.ma.allclose(t2['tm'].jd, tm.jd, rtol=1e-14, atol=1e-14)
+
+        assert np.all(t2['dt'].mask == dt.mask)
+        assert np.ma.allclose(t2['dt'].jd, dt.jd, rtol=1e-14, atol=1e-14)
 
     def test_masking(self):
 
