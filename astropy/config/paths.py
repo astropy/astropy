@@ -76,7 +76,7 @@ def _find_home():
     return homedir
 
 
-def get_config_dir(rootname, create=True):
+def get_config_dir(create=True, rootname='astropy'):
     """
     Determines the package configuration directory name and creates the
     directory if it doesn't exist.
@@ -88,13 +88,13 @@ def get_config_dir(rootname, create=True):
 
     Parameters
     ----------
+    create : bool, optional
+        Create the path if it doesn't exist.
+
     rootname : str
         Name of the root configuration directory. For example, if
         ``rootname = 'pkgname'``, the configuration directory will be
         ``<home>/.pkgname/``.
-
-    create : bool, optional
-        Create the path if it doesn't exist.
 
     Returns
     -------
@@ -127,7 +127,7 @@ def get_config_dir(rootname, create=True):
     return os.path.abspath(_find_or_create_root_dir('config', linkto, rootname))
 
 
-def get_cache_dir(rootname):
+def get_cache_dir(rootname="astropy"):
     """
     Determines the Astropy cache directory name and creates the directory if it
     doesn't exist.
