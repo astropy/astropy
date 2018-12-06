@@ -2727,15 +2727,20 @@ class Table:
                                         "to pandas without PyYAML installed."
                                         .format(col.__class__.__name__, col.info.name))
 
-            # Convert any Time columns to datetime64 and pay attention to masking
-            time_cols = [col for col in tbl.itercols()
-                         if isinstance(col, Time) and not isinstance(col, TimeDelta)]
+            # Convert any Time or TimeDelta columns and pay attention to masking
+            time_cols = [col for col in tbl.itercols() if isinstance(col, Time)]
             if time_cols:
                 tbl = tbl.copy(copy_data=False)
                 for col in time_cols:
-                    new_col = col.datetime64
+                    if isinstance(col, TimeDelta):
+                        # Convert to nanoseconds (matches astropy datetime64 support)
+                        new_col = (col.sec * 1e9).astype('timedelta64[ns]')
+                        nat = np.timedelta64('NaT')
+                    else:
+                        new_col = col.datetime64
+                        nat = np.datetime64('NaT')
                     if col.masked:
-                        new_col[col.mask] = np.datetime64('NaT')
+                        new_col[col.mask] = nat
                     tbl[col.info.name] = new_col
 
             # Convert the table to one with no mixins, only Column objects.  This adds
@@ -2814,6 +2819,14 @@ class Table:
                 if np.any(mask):
                     out[name][mask] = np.ma.masked
                 out[name].format = 'isot'
+
+            # Numpy timedelta64
+            elif data.dtype.kind == 'm':
+                from astropy.time import TimeDelta
+                data_sec = data.astype('timedelta64[ns]').astype(np.float64) / 1e9
+                out[name] = TimeDelta(data_sec, format='sec')
+                if np.any(mask):
+                    out[name][mask] = np.ma.masked
 
             else:
                 if np.any(mask):
