@@ -6,7 +6,7 @@ from asdf.yamlutil import tagged_tree_to_custom_tree
 
 from asdf import tagged
 from asdf import yamlutil
-
+from asdf.tests.helpers import assert_tree_match
 from .basic import TransformType, ConstantType
 from ......modeling.core import Model, CompoundModel
 from ......modeling.models import Identity, Mapping
@@ -102,13 +102,10 @@ class CompoundType(TransformType):
     @classmethod
     def assert_equal(cls, a, b):
         # TODO: If models become comparable themselves, remove this.
-        #TransformType.assert_equal(a, b)
-        #from ...tests.helpers import assert_tree_match
-        #assert_tree_match(a._tree.left.value, b._tree.left.value)
-        #assert_tree_match(a._tree.right.value, b._tree.right.value)
-        #assert a._tree.value == b._tree.value
-        pass
-
+        TransformType.assert_equal(a, b)
+        assert_tree_match(a._tree.left.value, b._tree.left.value)
+        assert_tree_match(a._tree.right.value, b._tree.right.value)
+        assert a._tree.value == b._tree.value
 
 
 class RemapAxesType(TransformType):
