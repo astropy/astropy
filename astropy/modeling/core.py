@@ -2557,6 +2557,18 @@ class CompoundModel(Model):
             raise IndexError("No appropriate subtree matches slice")
         elif isinstance(index, type(0)):
             return leaflist[index]
+        elif isinstance(index, type('')):
+            # Search through leaflist for item with that name
+            found = []
+            for nleaf, leaf in enumerate(leaflist):
+                if leaf.name == index:
+                    found.append(nleaf)
+            if len(found) == 0:
+                raise IndexError("No component with name '{}' found".format(index))
+            if len(found) > 1:
+                raise IndexError("Multiple components found using '{}' as name\n"
+                                 "at indices {}".format(index, found))
+            return leaflist[found[0]]
         else:
             raise TypeError('index must be integer or slice')
     @property
@@ -3777,15 +3789,6 @@ def generic_call(self, *inputs, **kwargs):
 
 def _strip_ones(intup):
     return tuple(item for item in intup if item !=1)
-
-# def ismodel(obj):
-#     """
-#     Returns True if the object is an instance of Model or CompoundModel.
-
-#     This should be used instead of isinstance since CompoundModel does
-#     not inherit from Model for efficiency reasons.
-#     """
-#     return isinstance(obj, Model) or isinstance(obj, CompoundModel)
 
 
 copyreg.pickle(_ModelMeta, _ModelMeta.__reduce__)
