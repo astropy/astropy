@@ -177,7 +177,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
         for base in bases:
             for tbase in base.__mro__:
                 if issubclass(tbase, Model):
-                    for parname, val in cls._parameter_vals_.items():
+                    for parname, val in cls._parameters_.items():
                         pdict[parname] = val
         cls._handle_special_methods(members, pdict)
 
@@ -731,7 +731,7 @@ class Model(metaclass=_ModelMeta):
         mro = self.__class__.__mro__
         for cls in mro:
             if issubclass(cls, Model):
-                for parname, val in cls._parameter_vals_.items():
+                for parname, val in cls._parameters_.items():
                     newpar = copy.deepcopy(val)
                     newpar.model = self
                     self.__dict__[parname] = newpar
@@ -858,15 +858,6 @@ class Model(metaclass=_ModelMeta):
         """
 
         return generic_call(self, *inputs, **kwargs)
-
-    # # *** Arithmetic operators for creating compound models ***
-    # __add__ = compound._model_oper('+')
-    # __sub__ = compound._model_oper('-')
-    # __mul__ = compound._model_oper('*')
-    # __truediv__ = compound._model_oper('/')
-    # __pow__ = compound._model_oper('**')
-    # __or__ = compound._model_oper('|')
-    # __and__ = compound._model_oper('&')
 
     # *** Properties ***
     @property
@@ -1713,8 +1704,7 @@ class Model(metaclass=_ModelMeta):
             self.__init__()
         if isinstance(self, CompoundModel):
             # Need to set parameter attributes
-            self._parameters_ = param_names
-            self._parameter_vals_ = \
+            self._parameters_ = \
                 [getattr(existing, param_name) for param_name in param_names]
             for param_name in param_names:
                 self.__dict__[param_name] = getattr(existing, param_name)

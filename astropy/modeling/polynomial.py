@@ -77,7 +77,7 @@ class PolynomialModel(PolynomialBase):
         else:
             minshape = ()
         for param_name in self._param_names:
-            self._parameter_vals_[param_name] = \
+            self._parameters_[param_name] = \
                 Parameter(param_name, default=np.zeros(minshape))
 
         super().__init__(
@@ -182,7 +182,7 @@ class OrthoPolynomialBase(PolynomialBase):
         self.y_window = y_window
         self._param_names = self._generate_coeff_names()
         for param_name in self._param_names:
-            self._parameter_vals_[param_name] = \
+            self._parameters_[param_name] = \
                 Parameter(param_name, default=0.0)
         super().__init__(
             n_models=n_models, model_set_axis=model_set_axis,
