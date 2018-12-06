@@ -336,3 +336,76 @@ def _greisen2006_air_to_vac_deriv(wavelength):
     """
     wlum = wavelength.to(u.um).value
     return (1+1e-6*(287.6155 - 1.62887/wlum**2 - 0.04080/wlum**4))
+
+def determine_vconv_from_ctype(ctype):
+    """
+    Given a CTYPE, say what velocity convention it is associated with,
+    i.e. what unit the velocity is linearly proportional to
+
+    Parameters
+    ----------
+    ctype : str
+        The spectral CTYPE
+    """
+    if len(ctype) < 5:
+        return _parse_velocity_convention(ctype)
+    elif len(ctype) == 8:
+        return _parse_velocity_convention(ctype[7])
+    else:
+        raise ValueError("A valid ctype must either have 4 or 8 characters.")
+
+def determine_ctype_from_vconv(ctype, unit, velocity_convention=None):
+    """
+    Given a CTYPE describing the current WCS and an output unit and velocity
+    convention, determine the appropriate output CTYPE
+
+    Examples
+    --------
+    >>> determine_ctype_from_vconv('VELO-F2V', u.Hz)
+    'FREQ'
+    >>> determine_ctype_from_vconv('VELO-F2V', u.m)
+    'WAVE-F2W'
+    >>> determine_ctype_from_vconv('FREQ', u.m/u.s)  # doctest: +SKIP
+    ...
+    ValueError: A velocity convention must be specified
+    >>> determine_ctype_from_vconv('FREQ', u.m/u.s, velocity_convention=u.doppler_radio)
+    'VRAD'
+    >>> determine_ctype_from_vconv('FREQ', u.m/u.s, velocity_convention=u.doppler_optical)
+    'VOPT-F2W'
+    >>> determine_ctype_from_vconv('FREQ', u.m/u.s, velocity_convention=u.doppler_relativistic)
+    'VELO-F2V'
+    """
+    unit = u.Unit(unit)
+
+    if len(ctype) > 4:
+        in_physchar = ctype[5]
+    else:
+        lin_cunit = LINEAR_CUNIT_DICT[ctype]
+        in_physchar = PHYSICAL_TYPE_TO_CHAR[lin_cunit.physical_type]
+
+    if unit.physical_type == 'speed':
+        if velocity_convention is None and ctype[0] == 'V':
+            # Special case: velocity <-> velocity doesn't care about convention
+            return ctype
+        elif velocity_convention is None:
+            raise ValueError('A velocity convention must be specified')
+        vcin = _parse_velocity_convention(ctype[:4])
+        vcout = _parse_velocity_convention(velocity_convention)
+        if vcin == vcout:
+            return LINEAR_CTYPES[vcout]
+        else:
+            return "{type}-{s1}2{s2}".format(type=LINEAR_CTYPES[vcout],
+                                             s1=in_physchar,
+                                             s2=LINEAR_CTYPE_CHARS[vcout])
+
+    else:
+        in_phystype = CTYPE_TO_PHYSICALTYPE[in_physchar]
+        if in_phystype == unit.physical_type:
+            # Linear case
+            return ALL_CTYPES[in_phystype]
+        else:
+            # Nonlinear case
+            out_physchar = PHYSICAL_TYPE_TO_CTYPE[unit.physical_type]
+            return "{type}-{s1}2{s2}".format(type=ALL_CTYPES[unit.physical_type],
+                                             s1=in_physchar,
+                                             s2=out_physchar)

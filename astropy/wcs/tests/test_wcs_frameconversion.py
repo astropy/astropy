@@ -8,10 +8,10 @@ from astropy.tests.helper import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ...utils.data import get_pkg_data_contents as data_path
+from ...utils.data import get_pkg_data_filename as data_path
 from ..wcs_frame_transformation import (convert_spectral_axis,
                                         determine_ctype_from_vconv,
-                                        cdelt_derivative,
+                                        _cdelt_derivative,
                                         determine_vconv_from_ctype,
                                         get_rest_value_from_wcs, _greisen2006_air_to_vac,
                                         _greisen2006_air_to_vac_deriv, _greisen2006_vac_to_air,
@@ -123,10 +123,10 @@ def test_byhand_f2v():
     # -21217.552294728768 m / s>, <Quantity -21217.552294728768 m / s>)
     crvalv_computed = crvalf.to(CUNIT3V, u.doppler_relativistic(restfreq))
     cdeltv_computed = -4*constants.c*cdeltf*crvalf*restfreq**2 / (crvalf**2+restfreq**2)**2
-    cdeltv_computed_byfunction = cdelt_derivative(crvalf, cdeltf,
-                                                  intype='frequency',
-                                                  outtype='speed',
-                                                  rest=restfreq)
+    cdeltv_computed_byfunction = _cdelt_derivative(crvalf, cdeltf,
+                                                   intype='frequency',
+                                                   outtype='speed',
+                                                   rest=restfreq)
     # this should be EXACT
     assert cdeltv_computed == cdeltv_computed_byfunction
 
@@ -149,10 +149,11 @@ def test_byhand_f2v():
     assert_allclose(crvalf_computed, crvalf, rtol=1.e-2)
     assert_allclose(cdeltf_computed, cdeltf, rtol=1.e-2)
 
-    cdeltf_computed_byfunction = cdelt_derivative(crvalv_computed, cdeltv_computed,
-                                                  intype='speed',
-                                                  outtype='frequency',
-                                                  rest=restfreq)
+    cdeltf_computed_byfunction = _cdelt_derivative(crvalv_computed,
+                                                   cdeltv_computed,
+                                                   intype='speed',
+                                                   outtype='frequency',
+                                                   rest=restfreq)
     # this should be EXACT
     assert cdeltf_computed == cdeltf_computed_byfunction
 
@@ -221,10 +222,10 @@ def test_byhand_vopt():
     crvalw_computed = crvalf.to(u.m, u.spectral())
     crvalw_computed32 = crvalf.astype('float32').to(u.m, u.spectral())
     cdeltw_computed = -(cdeltf / crvalf**2)*constants.c
-    cdeltw_computed_byfunction = cdelt_derivative(crvalf, cdeltf,
-                                                  intype='frequency',
-                                                  outtype='length',
-                                                  rest=None)
+    cdeltw_computed_byfunction = _cdelt_derivative(crvalf, cdeltf,
+                                                   intype='frequency',
+                                                   outtype='length',
+                                                   rest=None)
     # this should be EXACT
     assert cdeltw_computed == cdeltw_computed_byfunction
 
@@ -234,12 +235,12 @@ def test_byhand_vopt():
     #                   4*constants.c*crvalw_computed*restwav**2 /
     #                   (restwav**2+crvalw_computed**2)**2)
     cdeltv_computed = (cdeltw_computed / restwav)*constants.c
-    cdeltv_computed_byfunction = cdelt_derivative(crvalw_computed,
-                                                  cdeltw_computed,
-                                                  intype='length',
-                                                  outtype='speed',
-                                                  rest=restwav,
-                                                  linear=True)
+    cdeltv_computed_byfunction = _cdelt_derivative(crvalw_computed,
+                                                   cdeltw_computed,
+                                                   intype='length',
+                                                   outtype='speed',
+                                                   rest=restwav,
+                                                   linear=True)
 
     # Disagreement is 2.5e-7: good, but not really great...
     #assert np.abs((crvalv_computed-crvalv)/crvalv) < 1e-6
@@ -253,12 +254,12 @@ def test_byhand_vopt():
 
     crvalw_computed = crvalv_computed.to(u.m, u.doppler_optical(restwav))
     cdeltw_computed = (cdeltv_computed/constants.c) * restwav
-    cdeltw_computed_byfunction = cdelt_derivative(crvalv_computed,
-                                                  cdeltv_computed,
-                                                  intype='speed',
-                                                  outtype='length',
-                                                  rest=restwav,
-                                                  linear=True)
+    cdeltw_computed_byfunction = _cdelt_derivative(crvalv_computed,
+                                                   cdeltv_computed,
+                                                   intype='speed',
+                                                   outtype='length',
+                                                   rest=restwav,
+                                                   linear=True)
     assert cdeltw_computed == cdeltw_computed_byfunction
 
     crvalf_computed = crvalw_computed.to(CUNIT3F, u.spectral())
@@ -267,10 +268,11 @@ def test_byhand_vopt():
     assert_allclose(crvalf_computed, crvalf, rtol=1.e-3)
     assert_allclose(cdeltf_computed, cdeltf, rtol=1.e-3)
 
-    cdeltf_computed_byfunction = cdelt_derivative(crvalw_computed, cdeltw_computed,
-                                                  intype='length',
-                                                  outtype='frequency',
-                                                  rest=None)
+    cdeltf_computed_byfunction = _cdelt_derivative(crvalw_computed,
+                                                   cdeltw_computed,
+                                                   intype='length',
+                                                   outtype='frequency',
+                                                   rest=None)
     assert cdeltf_computed == cdeltf_computed_byfunction
 
     # Fails intentionally (but not really worth testing)
