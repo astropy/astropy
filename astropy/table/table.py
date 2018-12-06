@@ -2796,10 +2796,19 @@ class Table:
                     # numpy initializes to the correct string or unicode type.
                     data = np.array([x for x in data])
 
-            if np.any(mask):
-                out[name] = MaskedColumn(data=data, name=name, mask=mask)
+            # Numpy datetime64
+            if data.dtype.kind == 'M':
+                from astropy.time import Time
+                out[name] = Time(data, format='datetime64')
+                if np.any(mask):
+                    out[name][mask] = np.ma.masked
+                out[name].format = 'isot'
+
             else:
-                out[name] = Column(data=data, name=name)
+                if np.any(mask):
+                    out[name] = MaskedColumn(data=data, name=name, mask=mask)
+                else:
+                    out[name] = Column(data=data, name=name)
 
         return cls(out)
 
