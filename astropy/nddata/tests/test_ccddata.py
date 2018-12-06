@@ -680,6 +680,9 @@ def test_wcs_keyword_removal_for_wcs_test_files():
         if 'invalid' in hdr or 'nonstandard' in hdr or 'segfault' in hdr:
             continue
         header_string = get_pkg_data_contents(hdr)
+        if "\n" in header_string:
+            # allow tests against newline-separated FITS headers
+            header_string = fits.Header.fromtextfile(hdr).tostring()
         wcs = WCS(header_string)
         header = wcs.to_header(relax=True)
         new_header, new_wcs = _generate_wcs_and_update_header(header)
