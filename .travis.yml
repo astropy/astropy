@@ -9,6 +9,7 @@ compiler: gcc
 # https://docs.travis-ci.com/user/caching#Clearing-Caches
 cache:
   - ccache
+  - pip
 
 os:
     - linux
@@ -23,45 +24,13 @@ sudo: false
 addons:
     apt:
         packages:
-            - graphviz
             - language-pack-de
 
 env:
     global:
         # Set defaults to avoid repeating in most cases
-        - PYTHON_VERSION=3.6
-        - NUMPY_VERSION=stable
-        - PYTEST_VERSION=3.10
-        - MAIN_CMD='python setup.py'
-        - CONDA_DEPENDENCIES='Cython jinja2'
-        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
-        - CRON_PIP_DEP='asdf>=2.3 Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
-        - ASDF_PIP_DEP='asdf>=2.3'
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
-        - SETUP_CMD='test'
-        - INSTALL_WITH_PIP=False
-        - EXTRAS_INSTALL=""
-
-        # PEP8 errors/warnings:
-        # E101 - mix of tabs and spaces
-        # W191 - use of tabs
-        # W291 - trailing whitespace
-        # W292 - no newline at end of file
-        # W293 - trailing whitespace
-        # W391 - blank line at end of file
-        # E111 - 4 spaces per indentation level
-        # E112 - 4 spaces per indentation level
-        # E113 - 4 spaces per indentation level
-        # E502 - the backslash is redundant between brackets
-        # E722 - do not use bare except
-        # E901 - SyntaxError or IndentationError
-        # E902 - IOError
-        # E999: SyntaxError -- failed to compile a file into an Abstract Syntax Tree
-        # # F821: undefined name  # Note: Removed for now because of heavy use of units.si
-        # F822: undefined name in __all__
-        # F823: local variable name referenced before assignment
-        - FLAKE8_OPT="--select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E502,E722,E901,E902,E999,F822,F823"
 
 stages:
    # Do the style check and a single test job, don't proceed if it fails
@@ -81,11 +50,12 @@ matrix:
         # all supported numpy versions.
         - os: osx
           stage: Cron tests
-          env: SETUP_CMD='test --remote-data=astropy'
-               CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang"
-               PIP_DEPENDENCIES="jplephem $ASDF_PIP_DEP"
-               CCOMPILER=clang
-               EVENT_TYPE='cron'
+          env: PYTHON_VERSION=3.6
+               TOXENV=py36-setup-all
+               TOXARGS='--remote-data=astropy'
+               # EVENT_TYPE='cron'
+               # CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang"
+               # CCOMPILER=clang
 
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
@@ -93,63 +63,64 @@ matrix:
         # time.
         # Run this test using native pytest
         - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.13
-               INSTALL_CMD='python setup.py build_ext --inplace'
-               PIP_DEPENDENCIES='pytest-astropy'
-               TEST_CMD='pytest --open-files --doctest-rst'
-               PYTEST_VERSION=3.7
-          script:
-            - $INSTALL_CMD
-            - $TEST_CMD
+          env: PYTHON_VERSION=3.5
+               TOXENV=py35
+               TOXOPTS='--develop --force-dep \'pytest==3.7\' --force-dep \'numpy==1.13.3\''
+               TOXARGS='--open-files --doctest-rst'
 
         # Now try with all optional dependencies. We also include the --readonly
         # flag to make sure no files are being written to the temporary install
         # location during testing. We also use this build to make sure that the
         # dependencies get correctly installed with pip.
         - os: linux
-          env: SETUP_CMD='test --remote-data=astropy --readonly'
+          env: PYTHON_VERSION=3.6
+               TOXENV=py36-setup-all
+               TOXOPTS='--force-dep \'pytest==3.7\''
+               TOXARGS='--remote-data=astropy --readonly'
                LC_CTYPE=C.ascii LC_ALL=C
-               PYTEST_VERSION=3.7
-               PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
-               INSTALL_WITH_PIP=True
-               EXTRAS_INSTALL="test,all"
 
         - os: linux
           stage: Initial tests
-          env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES=$ASDF_PIP_DEP
-               SETUP_CMD='test -a "--durations=50"'
+          # language: python
+          # python: 3.7
+          # dist: xenial
+          # sudo: true
+          env: PYTHON_VERSION=3.7
+               TOXENV=py37-all
+               TOXARGS='--durations=50'
           compiler: clang
 
         # Full tests with coverage checks.
         - os: linux
-          env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="codecov objgraph jplephem bintrees sortedcontainers $ASDF_PIP_DEP"
+          env: PYTHON_VERSION=3.6
+               TOXENV=py36-setup-all
+               TOXARGS='--coverage --remote-data=astropy --readonly'
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='--coverage -fno-inline-functions -O0'
-               MATPLOTLIB_VERSION=2.0
                EVENT_TYPE='push pull_request cron'
 
         # Try pre-release version of Numpy without optional dependencies
         - os: linux
-          env: NUMPY_VERSION=prerelease
+          env: PYTHON_VERSION=3.6
+               TOXENV=py36
+               TOXOPTS='--pre'
                EVENT_TYPE='push pull_request cron'
 
         # Do a PEP8/pyflakes test with flake8
         - os: linux
           stage: Initial tests
-          env: MAIN_CMD="flake8 astropy --count $FLAKE8_OPT" SETUP_CMD=''
+          # language: python
+          # python: 3.6
+          env: TOXENV=flake8
 
         # Try developer version of Numpy with optional dependencies and also
         # run all remote tests. Since both cases will be potentially
         # unstable, we combine them into a single unstable build that we can
         # mark as an allowed failure below.
         - os: linux
-          env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES=$ASDF_PIP_DEP
-               MATPLOTLIB_VERSION=dev
+          env: PYTHON_VERSION=3.7
+               TOXENV=dev
+               TOXARGS='--remote-data=astropy'
 
         # We check numpy-dev also in a job that only runs from cron, so that
         # we can spot issues sooner. We do not use remote data here, since
@@ -158,16 +129,15 @@ matrix:
         # releases.
         - os: linux
           stage: Cron tests
-          env: NUMPY_VERSION=dev MATPLOTLIB_VERSION=dev EVENT_TYPE='cron'
-               CONDA_DEPENDENCIES=''
-               PIP_DEPENDENCIES=$CRON_PIP_DEP
+          env: PYTHON_VERSION=3.6
+               TOXENV=dev
+               EVENT_TYPE='cron'
 
     allow_failures:
       - os: linux
-        env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
-             CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-             PIP_DEPENDENCIES=$ASDF_PIP_DEP
-             MATPLOTLIB_VERSION=dev
+        env: PYTHON_VERSION=3.7
+             TOXENV=dev
+             TOXARGS='--remote-data=astropy'
 
 before_install:
 
@@ -183,18 +153,12 @@ before_install:
 install:
     - git clone git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda.sh
-    - if [[ $INSTALL_WITH_PIP == True ]]; then
-        if [ -z $EXTRAS_INSTALL ]; then
-          pip install -e .;
-        else
-          pip install -e .[$EXTRAS_INSTALL];
-        fi
-      fi
+    - pip install tox tox-venv tox-conda
 
 script:
-    - $MAIN_CMD $SETUP_CMD
+    - tox -vv $TOXOPTS -- $TOXARGS
 
 after_success:
-    - if [[ $SETUP_CMD == *--coverage* ]]; then
+    - if [[ $TOXARGS == *--coverage* ]]; then
         codecov --gcov-glob "*cextern*";
       fi
