@@ -1,5 +1,5 @@
-3.1rc2 (2018-11-27)
-===================
+3.1 (2018-12-06)
+================
 
 New Features
 ------------
@@ -356,12 +356,6 @@ astropy.coordinates
   that are representations, rather than checking if they are the same
   object. [#8218]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
@@ -679,6 +673,8 @@ astropy.utils
 
 - The download progress bar is now only displayed in terminals, to avoid
   polluting piped output. [#7577]
+
+- Ignore URL mirror caching when there is no internet. [#8163]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -1375,18 +1371,11 @@ Other Changes and Additions
 
 
 
-
-2.0.10 (unreleased)
+2.0.10 (2018-12-04)
 ===================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
@@ -1397,38 +1386,13 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
+- Disable ``of_address`` usage due to Google API now requiring API key. [#7993]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - ``fits.append`` now correctly handles file objects with valid modes other
   than ``ostream``. [#7856]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -1438,20 +1402,14 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
-astropy.time
-^^^^^^^^^^^^
+- Explicitly disallow incompatible versions of ``pytest`` when using the test
+  runner. [#8188]
 
 astropy.units
 ^^^^^^^^^^^^^
 
 - Fixed the spelling of the 'luminous emittance/illuminance' physical
   property. [#7942]
-
-
-astropy.utils
-^^^^^^^^^^^^^
-
-- Ignore URL mirror caching when there is no internet. [#8163]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -1465,12 +1423,6 @@ astropy.visualization
   factor out calculation of bin edges into public function
   ``calculate_bin_edges``. [#7991]
 
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
 
 Other Changes and Additions
 ---------------------------
@@ -1478,9 +1430,18 @@ Other Changes and Additions
 - Fixing ``astropy.__citation__`` to provide the full bibtex entry of the 2018
   paper. [#8110]
 
+- Pytest 4.0 is not supported by the 2.0.x LTS releases. [#8173]
+
+- Updating bundled ``pytest-remotedata`` to v0.3.1. [#8174]
+
+- Updating bundled ``pytest-doctestplus`` to v0.2.0. [#8175]
+
+- Updating bundled ``pytest-openfiles`` to v0.3.0. [#8176]
+
 - Adding ``warning_type`` keyword argument to the "deprecated" decorators to
   allow issuing custom warning types instead of the default
   ``AstropyDeprecationWarning``. [#8178]
+
 
 
 2.0.9 (2018-10-14)
