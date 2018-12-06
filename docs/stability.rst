@@ -101,7 +101,7 @@ The current planned and existing sub-packages are:
                 <span class="mature"></span>
             </td>
             <td>
-                Constants were changed to <tt class="docutils literal"><span class="pre">Quantity</span></tt> objects in v0.2. Since then, the package has been stable, with occasional additions of new constants.
+                The package has been stable except for the occasional additions of new constants.  Since v3.0, it includes the ability to use sets of constants from previous versions.
             </td>
         </tr>
         <tr>
@@ -137,7 +137,7 @@ The current planned and existing sub-packages are:
                 <span class="mature"></span>
             </td>
             <td>
-                Incremental improvements since v0.1, stable API last several interfaces.
+                Incremental improvements since v0.1, stable API last several versions.
             </td>
         </tr>
         <tr>
@@ -236,7 +236,7 @@ The current planned and existing sub-packages are:
                 <span class="mature"></span>
             </td>
             <td>
-                Incremental improvements since v0.1, but mostly stable API and backwards compatibility is a major goal.
+                Incremental improvements since v0.1, mostly stable API with backwards compatibility an explicit goal.
             </td>
         </tr>
         <tr>
