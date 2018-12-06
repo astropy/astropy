@@ -572,6 +572,7 @@ Contributors to the v3.1 release
   *  Joe Hunkeler
   *  John Parejko
   *  Johnny Greco
+  *  Joseph Schlitz  *
   *  Juanjo Bazán  *
   *  Julien Woillez
   *  K.A. Oman
@@ -602,7 +603,6 @@ Contributors to the v3.1 release
   *  Ritiek Malhotra  *
   *  Rocio Kiman  *
   *  Rohan Rajpal  *
-  *  SG004  *
   *  Sanjeev Dubey  *
   *  Sara Ogaz
   *  Sashank Mishra  *
