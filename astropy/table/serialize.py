@@ -93,13 +93,7 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         # (e.g. skycoord.ra, skycoord.dec).unless it is the primary data
         # attribute for the column (e.g. value for Quantity or data
         # for MaskedColumn)
-        cir = col.info._represent_as_dict_primary_data
-        if isinstance(cir, tuple):
-            need_new_name = data_attr in cir
-        else:
-            need_new_name = data_attr == cir
-
-        if need_new_name:
+        if data_attr == col.info._represent_as_dict_primary_data:
             new_name = name
         else:
             new_name = name + '.' + data_attr
