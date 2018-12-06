@@ -36,6 +36,7 @@ __doctest_skip__ = ['Table.read', 'Table.write',
                     'Table.convert_unicode_to_bytestring',
                     ]
 
+__doctest_requires__ = {'*pandas': ['pandas', 'yaml']}
 
 class TableReplaceWarning(UserWarning):
     """
@@ -2694,6 +2695,14 @@ class Table:
         """
         Return a :class:`pandas.DataFrame` instance
 
+        In additional to vanilla columns or masked columns, this supports Table
+        mixin columns like Quantity, Time, or SkyCoord.  In many cases these
+        objects have no analog in pandas and will be converted to a "encoded"
+        representation using only Column or MaskedColumn.  The exception is
+        Time or TimeDelta columns, which will be converted to the corresponding
+        representation in pandas using `numpy.datetime64` or `numpy.timedelta64`.
+        See the example below.
+
         Returns
         -------
         dataframe : :class:`pandas.DataFrame`
@@ -2704,7 +2713,29 @@ class Table:
         ImportError
             If pandas is not installed
         ValueError
-            If the Table contains mixin or multi-dimensional columns
+            If the Table multi-dimensional columns
+
+        Examples
+        --------
+        Here we convert a table with a few mixins to a :class:`pandas.DataFrame` instance.
+
+          >>> from astropy.table import QTable
+          >>> import astropy.units as u
+          >>> from astropy.time import Time, TimeDelta
+          >>> from astropy.coordinates import SkyCoord
+
+          >>> q = [1, 2] * u.m
+          >>> tm = Time([1998, 2002], format='jyear')
+          >>> sc = SkyCoord([5, 6], [7, 8], unit='deg')
+          >>> dt = TimeDelta([3, 200] * u.s)
+
+          >>> t = QTable([q, tm, sc, dt], names=['q', 'tm', 'sc', 'dt'])
+
+          >>> t.to_pandas()
+               q         tm  sc.ra  sc.dec       dt
+          0  1.0 1998-01-01    5.0     7.0 00:00:03
+          1  2.0 2002-01-01    6.0     8.0 00:03:20
+
         """
         from pandas import DataFrame
 
@@ -2779,6 +2810,45 @@ class Table:
     def from_pandas(cls, dataframe):
         """
         Create a `Table` from a :class:`pandas.DataFrame` instance
+
+        In addition to converting generic numeric or string columns, this supports
+        conversion of pandas Date and Time delta columns to `~astropy.time.Time`
+        and `~astropy.time.TimeDelta` columns, respectively.
+
+        Returns
+        -------
+        dataframe : :class:`pandas.DataFrame`
+            A pandas :class:`pandas.DataFrame` instance
+
+        Raises
+        ------
+        ImportError
+            If pandas is not installed
+        ValueError
+            If the Table multi-dimensional columns
+
+        Examples
+        --------
+        Here we convert a :class:`pandas.DataFrame` instance to a `QTable`.
+
+          >>> import pandas as pd
+          >>> from astropy.table import QTable
+
+          >>> time = pd.Series(['1998-01-01', '2002-01-01'], dtype='datetime64[ns]')
+          >>> dt = pd.Series(np.array([1, 300], dtype='timedelta64[s]'))
+          >>> df = pd.DataFrame({'time': time, 'dt': dt, 'x': [1, 2], 'y': [3., 4.]})
+          >>> df
+                  time       dt  x    y
+          0 1998-01-01 00:00:01  1  3.0
+          1 2002-01-01 00:05:00  2  4.0
+
+          >>> QTable.from_pandas(df)
+          <QTable length=2>
+                    time            dt     x      y
+                   object         object int64 float64
+          ----------------------- ------ ----- -------
+          1998-01-01T00:00:00.000    1.0     1     3.0
+          2002-01-01T00:00:00.000  300.0     2     4.0
 
         Parameters
         ----------
