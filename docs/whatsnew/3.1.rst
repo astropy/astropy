@@ -33,9 +33,11 @@ In addition to these major changes, Astropy 3.1 includes a large number of
 smaller improvements and bug fixes, which are described in the
 :ref:`changelog`. By the numbers:
 
-* xxx issues have been closed since v3.0
-* xxx pull requests have been merged since v3.0
-* xxx distinct people have contributed code
+
+* 906 issues have been closed since v3.0
+* 437 pull requests have been merged since v3.0
+* 94 distinct people have contributed code to this release, 51 of which are
+  first time contributors to Astropy.
 
 .. _whatsnew-3.1-tips:
 
@@ -520,5 +522,105 @@ To see a detailed list of all changes in version v3.1, including changes in
 API, please see the :ref:`changelog`.
 
 
-Renamed/removed functionality
-=============================
+Contributors to the v3.1 release
+================================
+
+.. hlist::
+  :columns: 4
+
+  *  Aarya Patil
+  *  Abhinuv Nitin Pitale  *
+  *  Abigail Stevens  *
+  *  Adam Ginsburg
+  *  Aditya Sharma  *
+  *  Adrian Price-Whelan
+  *  Akash Deshpande  *
+  *  Alexander Bakanov
+  *  Alexandre Beelen  *
+  *  Ana Posses  *
+  *  Anany Shrey Jain  *
+  *  Arfon Smith  *
+  *  Benjamin Alan Weaver
+  *  Brigitta Sipocz
+  *  Bruno Oliveira
+  *  Christian Clauss  *
+  *  Christoph Deil
+  *  Clara Brasseur  *
+  *  Dan Foreman-Mackey  *
+  *  Daniel D'Avella
+  *  Daria Cara  *
+  *  David M. Palmer
+  *  David Stansby  *
+  *  Delosari  *
+  *  Derek Homeier
+  *  Douglas Burke
+  *  Duncan Macleod
+  *  Emily Deibert  *
+  *  Eric Koch  *
+  *  Erik M. Bray
+  *  Erik Tollerud
+  *  Felix Yan  *
+  *  Giang Nguyen
+  *  Grant Jenks  *
+  *  Hannes Breytenbach
+  *  Humna Awan  *
+  *  Jake VanderPlas
+  *  James Davies  *
+  *  James Noss  *
+  *  James Turner
+  *  Jani Šumak  *
+  *  Joe Hunkeler
+  *  John Parejko
+  *  Johnny Greco
+  *  Juanjo Bazán  *
+  *  Julien Woillez
+  *  K.A. Oman
+  *  Karl Gordon
+  *  Katrin Leinweber  *
+  *  Kyle Oman  *
+  *  Larry Bradley
+  *  Leah Fulmer  *
+  *  Lehman Garrison
+  *  Leo Singer
+  *  Manas Satish Bedmutha  *
+  *  Mangala Gowri Krishnamoorthy  *
+  *  Manish Biswas  *
+  *  Marten van Kerkwijk
+  *  Martin Glatzle  *
+  *  Matthew Craig
+  *  Matthew Petroff  *
+  *  Michael Wood-Vasey  *
+  *  Michael Seifert
+  *  Michael Zhang  *
+  *  Mihai Cara
+  *  Mike Alexandersen  *
+  *  Mikołaj  *
+  *  Nadia Dencheva
+  *  Ole Streicher
+  *  Patricio Rojo  *
+  *  Pey Lian Lim
+  *  Ritiek Malhotra  *
+  *  Rocio Kiman  *
+  *  Rohan Rajpal  *
+  *  SG004  *
+  *  Sanjeev Dubey  *
+  *  Sara Ogaz
+  *  Sashank Mishra  *
+  *  Shresth Verma
+  *  Simon Conseil
+  *  Stefan Becker
+  *  Stephen Portillo  *
+  *  Steve Crawford
+  *  Stuart Mumford
+  *  Sushobhana Patra  *
+  *  Swapnil Sharma  *
+  *  Thomas Robitaille
+  *  Tim Jenness  *
+  *  Tom Aldcroft
+  *  Vishnunarayan K I  *
+  *  Zé Vinicius
+  *  ananyashreyjain  *
+  *  jimboH  *
+  *  mmebsout  *
+
+Where a * indicates their first contribution to Astropy.
