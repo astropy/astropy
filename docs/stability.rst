@@ -98,10 +98,10 @@ The current planned and existing sub-packages are:
                 astropy.constants
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td>
-                Constants were changed to <tt class="docutils literal"><span class="pre">Quantity</span></tt> objects in v0.2. Since then on, the package has been stable, with occasional additions of new constants.
+                The package has been stable except for the occasional additions of new constants.  Since v3.0, it includes the ability to use sets of constants from previous versions.
             </td>
         </tr>
         <tr>
@@ -134,11 +134,10 @@ The current planned and existing sub-packages are:
                 astropy.cosmology
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td>
-                Incremental improvements since v0.1, but mostly stable API.
-                Pure functional interface deprecated in v0.4.
+                Incremental improvements since v0.1, stable API last several versions.
             </td>
         </tr>
         <tr>
@@ -212,7 +211,7 @@ The current planned and existing sub-packages are:
                 astropy.samp
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td>
                 Virtual Observatory service access: SAMP. This was renamed from astropy.vo.samp to astropy.samp in 2.0.
@@ -234,10 +233,10 @@ The current planned and existing sub-packages are:
                 astropy.table
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td>
-                Incremental improvements since v0.1, but mostly stable API.
+                Incremental improvements since v0.1, mostly stable API with backwards compatibility an explicit goal.
             </td>
         </tr>
         <tr>
