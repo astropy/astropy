@@ -845,8 +845,8 @@ def get_parameters(members):
             setattr(obj, '_name', name)
         pdict[name] = obj
 
-    members['_parameter_vals_'] = pdict
-    members['_parameters_'] = pdict.keys()
+    # members['_parameter_vals_'] = pdict
+    members['_parameters_'] = pdict
 
 LOCALE_LOCK = threading.Lock()
 
