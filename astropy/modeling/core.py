@@ -828,7 +828,7 @@ class Model(metaclass=_ModelMeta):
                 vshape = (1,)
             esize = self._param_metrics[attr]['size']
             if (np.size(value) != esize or
-                strip_ones(vshape) != strip_ones(eshape)):
+                _strip_ones(vshape) != _strip_ones(eshape)):
                 raise InputParameterError(
                     "Value for parameter {0} does not match shape or size\n"
                     "expected by model ({1}, {2}) vs ({3}, {4})".format(
@@ -3676,7 +3676,7 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
                 arg_a, shape_a, arg_b, shape_b))
 
     return input_broadcast
-    
+
 
 def remove_axes_from_shape(shape, axis):
     """
@@ -3775,7 +3775,7 @@ def generic_call(self, *inputs, **kwargs):
     else:
         return outputs
 
-def strip_ones(intup):
+def _strip_ones(intup):
     return tuple(item for item in intup if item !=1)
 
 def ismodel(obj):
