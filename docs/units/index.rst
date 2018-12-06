@@ -212,6 +212,8 @@ Reference/API
 
 .. automodapi:: astropy.units.function
 
+.. automodapi:: astropy.units.photometric
+
 .. automodapi:: astropy.units.deprecated
 
 .. automodapi:: astropy.units.required_by_vounit
