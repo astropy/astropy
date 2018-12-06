@@ -982,12 +982,27 @@ class TimeDatetime64(TimeISOT):
         return val1, None
 
     def set_jds(self, val1, val2):
+        # If there are any masked values in the ``val1`` datetime64 array
+        # ('NaT') then stub them with a valid date so downstream parse_string
+        # will work.  The value under the mask is arbitrary but a "modern" date
+        # is good.
+        mask = np.isnat(val1)
+        masked = np.any(mask)
+        if masked:
+            val1 = val1.copy()
+            val1[mask] = '2000'
+
+        # Make sure M(onth) and Y(ear) dates will parse and convert to bytestring
         if val1.dtype.name in ['datetime64[M]', 'datetime64[Y]']:
             val1 = val1.astype('datetime64[D]')
-
         val1 = val1.astype('S')
 
+        # Standard ISO string parsing now
         super().set_jds(val1, val2)
+
+        # Finally apply mask if necessary
+        if masked:
+            self.jd2[mask] = np.nan
 
     @property
     def value(self):
