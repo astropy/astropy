@@ -342,7 +342,7 @@ def test_data_noastropy_fallback(monkeypatch):
 
     with pytest.raises(OSError):
         # make sure the config dir search fails
-        paths.get_cache_dir('astropy')
+        paths.get_cache_dir(rootname='astropy')
 
     # first try with cache
     with catch_warnings(CacheMissingWarning) as w:
