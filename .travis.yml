@@ -160,6 +160,6 @@ script:
 
 after_success:
     - if [[ $TOXARGS == *--coverage* ]]; then
-        pip install codecov
+        pip install codecov;
         codecov --gcov-glob "*cextern*";
       fi
