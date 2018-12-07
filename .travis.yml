@@ -75,7 +75,7 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.6
                TOXENV=py36-setup-all
-               TOXOPTS='--force-dep \'pytest==3.7\''
+               TOXOPTS='--force-dep pytest==3.7'
                TOXARGS='--remote-data=astropy --readonly'
                LC_CTYPE=C.ascii LC_ALL=C
 
