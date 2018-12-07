@@ -1714,8 +1714,10 @@ class TestPandas:
         assert np.all(tp.index == tm_index)
 
         t.add_index('tm')
-        tp = t.to_pandas(index='tm')
+        tp = t.to_pandas()
         assert np.all(tp.index == tm_index)
+        # Make sure writing to pandas didn't hack the original table
+        assert t['tm'].info.indices
 
         tp = t.to_pandas(index=True)
         assert np.all(tp.index == tm_index)
