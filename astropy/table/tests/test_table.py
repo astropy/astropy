@@ -1750,6 +1750,20 @@ class TestPandas:
         assert np.all(t2['dt'].mask == dt.mask)
         assert np.ma.allclose(t2['dt'].jd, dt.jd, rtol=1e-14, atol=1e-14)
 
+    @pytest.mark.skipif('not HAS_YAML')
+    def test_from_pandas_index(self):
+        tm = Time([1998, 2002], format='jyear')
+        x = [1, 2]
+        t = table.Table([tm, x], names=['tm', 'x'])
+        tp = t.to_pandas(index='tm')
+
+        t2 = table.Table.from_pandas(tp)
+        assert t2.colnames == ['x']
+
+        t2 = table.Table.from_pandas(tp, index=True)
+        assert t2.colnames == ['tm', 'x']
+        assert np.allclose(t2['tm'].jyear, tm.jyear)
+
     def test_masking(self):
 
         t = table.Table(masked=True)
