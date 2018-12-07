@@ -10,6 +10,7 @@ from numpy.testing import assert_allclose
 
 # LOCAL
 from astropy import units as u
+from astropy.units.equivalencies import Equivalency
 from astropy import constants, cosmology
 from astropy.tests.helper import assert_quantity_allclose
 
@@ -770,3 +771,27 @@ def test_littleh():
     # Then M - 5*log_10(h)  = M + 5 = 17
     withlittlehmag = 17 * (u.mag + u.MagUnit(u.littleh**2))
     assert_quantity_allclose(withlittlehmag.to(u.mag, u.with_H0(H0_10)), 12*u.mag)
+
+
+def test_equivelency():
+    ps = u.pixel_scale(10*u.arcsec/u.pix)
+    assert isinstance(ps, Equivalency)
+    assert isinstance(ps.name, list)
+    assert len(ps.name) == 1
+    assert ps.name[0] == "pixel_scale"
+    assert isinstance(ps.args, list)
+    assert len(ps.args) == 1
+    assert ps.args[0][0] == 10*u.arcsec/u.pix
+    assert isinstance(ps.kwargs, list)
+    assert len(ps.kwargs) == 1
+    assert ps.kwargs[0] == dict()
+
+def test_add_equivelencies():
+    e1 = u.pixel_scale(10*u.arcsec/u.pixel) + u.temperature_energy()
+    assert isinstance(e1, Equivalency)
+    assert e1.name == ["pixel_scale", "temperature_energy"]
+    assert isinstance(e1.args, list)
+    assert len(e1.args) == 2
+    assert e1.args[0][0] == 10*u.arcsec/u.pix
+    assert isinstance(e1.kwargs, list)
+    assert e1.kwargs == [dict(), dict()]

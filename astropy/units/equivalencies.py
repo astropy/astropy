@@ -52,7 +52,7 @@ class Equivalency(UserList):
         new.args = self.args
         new.kwargs = self.kwargs
         if isinstance(other, Equivalency):
-            new.name = other.name
+            new.name += other.name
             new.args += other.args
             new.kwargs += other.kwargs
         return new
@@ -720,7 +720,7 @@ def pixel_scale(pixscale):
 
     return Equivalency([(astrophys.pix, si.radian,
                          lambda px: px*pixscale_val, lambda rad: rad/pixscale_val)],
-                       "pixel_scale", (pixel_scale,), {})
+                       "pixel_scale", (pixscale,), {})
 
 
 def plate_scale(platescale):
