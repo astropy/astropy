@@ -1898,6 +1898,8 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
     - The last form, which creates a new `Unit` is described in detail
       below.
 
+    See also: http://docs.astropy.org/en/stable/units/
+
     Parameters
     ----------
     st : str or list of str
