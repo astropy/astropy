@@ -2837,7 +2837,7 @@ class Table:
         return DataFrame(out, **kwargs)
 
     @classmethod
-    def from_pandas(cls, dataframe):
+    def from_pandas(cls, dataframe, index=True):
         """
         Create a `Table` from a :class:`pandas.DataFrame` instance
 
@@ -2849,6 +2849,8 @@ class Table:
         -------
         dataframe : :class:`pandas.DataFrame`
             A pandas :class:`pandas.DataFrame` instance
+        index : bool
+            Include the index column in the returned table (default=True)
 
         Raises
         ------
@@ -2872,7 +2874,7 @@ class Table:
           0 1998-01-01 00:00:01  1  3.0
           1 2002-01-01 00:05:00  2  4.0
 
-          >>> QTable.from_pandas(df)
+          >>> QTable.from_pandas(df, index=False)
           <QTable length=2>
                     time            dt     x      y
                    object         object int64 float64
@@ -2893,10 +2895,21 @@ class Table:
 
         out = OrderedDict()
 
-        for name in dataframe.columns:
-            column = dataframe[name]
-            mask = np.array(column.isnull())
-            data = np.array(column)
+        names = list(dataframe.columns)
+        columns = [dataframe[name] for name in names]
+        datas = [np.array(column) for column in columns]
+        masks = [np.array(column.isnull()) for column in columns]
+
+        if index:
+            index_name = dataframe.index.name or 'index'
+            while index_name in names:
+                index_name = '_' + index_name + '_'
+            names.insert(0, index_name)
+            columns.insert(0, dataframe.index)
+            datas.insert(0, np.array(dataframe.index))
+            masks.insert(0, np.zeros(len(dataframe), dtype=bool))
+
+        for name, column, data, mask in zip(names, columns, datas, masks):
 
             if data.dtype.kind == 'O':
                 # If all elements of an object array are string-like or np.nan
