@@ -64,7 +64,7 @@ matrix:
         # Run this test using native pytest
         - os: linux
           env: PYTHON_VERSION=3.5
-               TOXENV=py35
+               TOXENV=py35-pytest
                TOXOPTS='--develop --force-dep \'pytest==3.7\' --force-dep \'numpy==1.13.3\''
                TOXARGS='--open-files --doctest-rst'
 
@@ -86,7 +86,7 @@ matrix:
           # dist: xenial
           # sudo: true
           env: PYTHON_VERSION=3.7
-               TOXENV=py37-all
+               TOXENV=py37-pytest-all
                TOXARGS='--durations=50'
           compiler: clang
 
@@ -102,7 +102,7 @@ matrix:
         # Try pre-release version of Numpy without optional dependencies
         - os: linux
           env: PYTHON_VERSION=3.6
-               TOXENV=py36
+               TOXENV=py36-pytest
                TOXOPTS='--pre'
                EVENT_TYPE='push pull_request cron'
 
@@ -160,5 +160,6 @@ script:
 
 after_success:
     - if [[ $TOXARGS == *--coverage* ]]; then
+        pip install codecov
         codecov --gcov-glob "*cextern*";
       fi
