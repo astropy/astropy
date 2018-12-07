@@ -21,19 +21,19 @@ jobs:
       - checkout
       - run:
           name: Install dependencies for Python 3.5
-          command: /opt/python/cp35-cp35m/bin/pip install numpy scipy "pytest<3.7" pytest-astropy pytest-xdist Cython jinja2 matplotlib --only-binary numpy,scipy,matplotlib,Cython
+          command: /opt/python/cp35-cp35m/bin/pip install numpy scipy "pytest<3.7" pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests for Python 3.5
           command: PYTHONHASHSEED=42 /opt/python/cp35-cp35m/bin/python setup.py test --parallel=4 -V -a "--durations=50"
       - run:
           name: Install dependencies for Python 3.6
-          command: /opt/python/cp36-cp36m/bin/pip install numpy scipy "pytest<3.7" pytest-astropy pytest-xdist Cython jinja2 matplotlib --only-binary numpy,scipy,matplotlib,Cython
+          command: /opt/python/cp36-cp36m/bin/pip install numpy scipy "pytest<3.7" pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests for Python 3.6
           command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4 -V -a "--durations=50"
       - run:
           name: Install dependencies for Python 3.7
-          command: /opt/python/cp37-cp37m/bin/pip install numpy scipy "pytest<3.7" pytest-astropy pytest-xdist Cython jinja2 matplotlib --only-binary numpy,scipy,matplotlib,Cython
+          command: /opt/python/cp37-cp37m/bin/pip install numpy scipy "pytest<3.7" pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests for Python 3.7
           command: PYTHONHASHSEED=42 /opt/python/cp37-cp37m/bin/python setup.py test --parallel=4 -V -a "--durations=50"
@@ -86,16 +86,52 @@ jobs:
       - run:
           name: Temporarily downgrade pytest
           command: pip3 install "pytest<3.7"
+          name: Run tests
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
+  image-tests-mpldev:
+    docker:
+      - image: astropy/image-tests-py36-base:1.1
+    steps:
+      - checkout
+      - run:
+          name: Install apt dependencies
+          command: apt-get install -y libfreetype6-dev libpng12-dev pkg-config
+      - run:
+          name: Install Python dependencies, including developer version of Matplotlib
+          command: pip3 install "pytest<3.7" pytest-mpl pytest-astropy numpy scipy git+https://github.com/matplotlib/matplotlib.git
       - run:
           name: Run tests
-          command: |
-            python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
+  html-docs:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - run: *apt-install
+      - run: *pip-install
+      - run:
+          name: Build Docs
+          command: venv/bin/python setup.py build_docs -w
+          environment:
+            LC_CTYPE: C
+            LC_ALL: C
+            LANG: C
+
+      - store_artifacts:
+          path: docs/_build/html
+
+      - run:
+          name: "Built documentation is available at:"
+          command: DOCS_URL="${CIRCLE_BUILD_URL}/artifacts/${CIRCLE_NODE_INDEX}/${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}/docs/_build/html/index.html"; echo $DOCS_URL
 
 
 workflows:
   version: 2
   build_and_test:
     jobs:
+      - html-docs
       - 32bit_py2
       - 32bit_py3
       - image-tests-mpl153
@@ -103,3 +139,8 @@ workflows:
       - image-tests-mpl212
       - image-tests-mpl222
       - image-tests-mpl300
+      - image-tests-mpldev
+
+notify:
+  webhooks:
+    - url: https://giles.cadair.com/circleci
