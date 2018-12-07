@@ -228,7 +228,11 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+Installation
+^^^^^^^^^^^^
 
+- We now define groups of dependencies that can be installed with pip, e.g.
+  ``pip install astropy[all]`` (to install all optional dependencies). [#8198]
 
 3.1.1 (unreleased)
 ==================
