@@ -28,19 +28,19 @@ jobs:
       - checkout
       - run:
           name: Install dependencies for Python 3.5
-          command: /opt/python/cp35-cp35m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2 matplotlib --only-binary numpy,scipy,matplotlib,Cython
+          command: /opt/python/cp35-cp35m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests for Python 3.5
           command: PYTHONHASHSEED=42 /opt/python/cp35-cp35m/bin/python setup.py test --parallel=4 -V -a "--durations=50"
       - run:
           name: Install dependencies for Python 3.6
-          command: /opt/python/cp36-cp36m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2 matplotlib --only-binary numpy,scipy,matplotlib,Cython
+          command: /opt/python/cp36-cp36m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests for Python 3.6
           command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4 -V -a "--durations=50"
       - run:
           name: Install dependencies for Python 3.7
-          command: /opt/python/cp37-cp37m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2 matplotlib --only-binary numpy,scipy,matplotlib,Cython
+          command: /opt/python/cp37-cp37m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests for Python 3.7
           command: PYTHONHASHSEED=42 /opt/python/cp37-cp37m/bin/python setup.py test --parallel=4 -V -a "--durations=50"
@@ -78,15 +78,12 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Temporarily downgrade pytest
-          command: pip3 install "pytest<3.7"
-      - run:
           name: Run tests
           command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
 
   image-tests-mpldev:
     docker:
-      - image: astropy/image-tests-py35-base:1.0
+      - image: astropy/image-tests-py36-base:1.1
     steps:
       - checkout
       - run:
