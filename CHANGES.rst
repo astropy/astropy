@@ -228,8 +228,8 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-setup.py
-^^^^^^^^
+Installation
+^^^^^^^^^^^^
 
 - We now define groups of dependencies that can be installed with pip, e.g.
   ``pip install astropy[all]`` (to install all optional dependencies). [#8198]
