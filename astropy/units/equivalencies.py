@@ -39,11 +39,23 @@ class Equivalency(UserList):
     kwargs: `dict`
         Any keyword arguments used to make the equivalency.
     """
-    def __init__(self, equiv_list, name, args=None, kwargs=None):
+    def __init__(self, equiv_list, name='', args=None, kwargs=None):
         self.data = equiv_list
-        self.name = name
-        self.args = args if args is not None else tuple()
-        self.kwargs = kwargs if kwargs is not None else dict()
+        self.name = [name]
+        self.args = [args] if args is not None else [tuple()]
+        self.kwargs = [kwargs] if kwargs is not None else [dict()]
+
+
+    def __add__(self, other):
+        new = super().__add__(other)
+        new.name = self.name
+        new.args = self.args
+        new.kwargs = self.kwargs
+        if isinstance(other, Equivalency):
+            new.name = other.name
+            new.args += other.args
+            new.kwargs += other.kwargs
+        return new
 
 
 def dimensionless_angles():
