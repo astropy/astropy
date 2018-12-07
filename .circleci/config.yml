@@ -74,7 +74,7 @@ jobs:
 
   image-tests-mpl300:
     docker:
-      - image: astropy/image-tests-py36-mpl302:1.3
+      - image: astropy/image-tests-py35-mpl300:1.3
     steps:
       - checkout
       - run:
@@ -83,12 +83,12 @@ jobs:
 
   image-tests-mpldev:
     docker:
-      - image: astropy/image-tests-py36-base:1.0
+      - image: astropy/image-tests-py36-base:1.1
     steps:
       - checkout
       - run:
           name: Install apt dependencies
-          command: apt-get install -y libfreetype6-dev libpng-dev pkg-config
+          command: apt-get install -y libfreetype6-dev libpng12-dev pkg-config
       - run:
           name: Install Python dependencies, including developer version of Matplotlib
           command: pip3 install "pytest<3.7" pytest-mpl pytest-astropy numpy scipy git+https://github.com/matplotlib/matplotlib.git
