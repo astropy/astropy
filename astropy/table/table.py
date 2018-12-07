@@ -2707,7 +2707,7 @@ class Table:
         objects have no analog in pandas and will be converted to a "encoded"
         representation using only Column or MaskedColumn.  The exception is
         Time or TimeDelta columns, which will be converted to the corresponding
-        representation in pandas using `numpy.datetime64` or `numpy.timedelta64`.
+        representation in pandas using ``np.datetime64`` or ``np.timedelta64``.
         See the example below.
 
         Returns
@@ -2716,12 +2716,13 @@ class Table:
             A pandas :class:`pandas.DataFrame` instance
         index : None, bool, str
             Specify DataFrame index mode
+
         Raises
         ------
         ImportError
             If pandas is not installed
         ValueError
-            If the Table multi-dimensional columns
+            If the Table has multi-dimensional columns
 
         Examples
         --------
@@ -2845,19 +2846,22 @@ class Table:
         conversion of pandas Date and Time delta columns to `~astropy.time.Time`
         and `~astropy.time.TimeDelta` columns, respectively.
 
-        Returns
-        -------
+        Parameters
+        ----------
         dataframe : :class:`pandas.DataFrame`
             A pandas :class:`pandas.DataFrame` instance
         index : bool
             Include the index column in the returned table (default=False)
 
+        Returns
+        -------
+        table : `Table`
+            A `Table` (or subclass) instance
+
         Raises
         ------
         ImportError
             If pandas is not installed
-        ValueError
-            If the Table multi-dimensional columns
 
         Examples
         --------
@@ -2868,29 +2872,22 @@ class Table:
 
           >>> time = pd.Series(['1998-01-01', '2002-01-01'], dtype='datetime64[ns]')
           >>> dt = pd.Series(np.array([1, 300], dtype='timedelta64[s]'))
-          >>> df = pd.DataFrame({'time': time, 'dt': dt, 'x': [1, 2], 'y': [3., 4.]})
+          >>> df = pd.DataFrame({'time': time})
+          >>> df['dt'] = dt
+          >>> df['x'] = [3., 4.]
           >>> df
-                  time       dt  x    y
-          0 1998-01-01 00:00:01  1  3.0
-          1 2002-01-01 00:05:00  2  4.0
+                  time       dt    x
+          0 1998-01-01 00:00:01  3.0
+          1 2002-01-01 00:05:00  4.0
 
           >>> QTable.from_pandas(df)
           <QTable length=2>
-                    time            dt     x      y
-                   object         object int64 float64
-          ----------------------- ------ ----- -------
-          1998-01-01T00:00:00.000    1.0     1     3.0
-          2002-01-01T00:00:00.000  300.0     2     4.0
+                    time            dt      x
+                   object         object float64
+          ----------------------- ------ -------
+          1998-01-01T00:00:00.000    1.0     3.0
+          2002-01-01T00:00:00.000  300.0     4.0
 
-        Parameters
-        ----------
-        dataframe : :class:`pandas.DataFrame`
-            The pandas :class:`pandas.DataFrame` instance
-
-        Returns
-        -------
-        table : `Table`
-            A `Table` (or subclass) instance
         """
 
         out = OrderedDict()
