@@ -332,7 +332,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
             kwargs.append((param.name, param.default))
 
-        # __call__ = make_function_with_signature(__call__, ('self',), kwargs)
         __call__.__signature__ = sig
 
         return type(str('_{0}BoundingBox'.format(cls.name)), (_BoundingBox,),
