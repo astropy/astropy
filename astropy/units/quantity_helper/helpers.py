@@ -13,7 +13,7 @@ from fractions import Fraction
 import numpy as np
 
 from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
-from ..core import (UnitsError, UnitConversionError, UnitTypeError,
+from astropy.units.core import (UnitsError, UnitConversionError, UnitTypeError,
                     dimensionless_unscaled, get_current_unit_registry)
 
 
@@ -152,7 +152,7 @@ def helper_dimensionless_to_dimensionless(f, unit):
 
 
 def helper_dimensionless_to_radian(f, unit):
-    from ..si import radian
+    from astropy.units.si import radian
     if unit is None:
         return [None], radian
 
@@ -165,7 +165,7 @@ def helper_dimensionless_to_radian(f, unit):
 
 
 def helper_degree_to_radian(f, unit):
-    from ..si import degree, radian
+    from astropy.units.si import degree, radian
     try:
         return [get_converter(unit, degree)], radian
     except UnitsError:
@@ -175,7 +175,7 @@ def helper_degree_to_radian(f, unit):
 
 
 def helper_radian_to_degree(f, unit):
-    from ..si import degree, radian
+    from astropy.units.si import degree, radian
     try:
         return [get_converter(unit, radian)], degree
     except UnitsError:
@@ -185,7 +185,7 @@ def helper_radian_to_degree(f, unit):
 
 
 def helper_radian_to_dimensionless(f, unit):
-    from ..si import radian
+    from astropy.units.si import radian
     try:
         return [get_converter(unit, radian)], dimensionless_unscaled
     except UnitsError:
@@ -280,7 +280,7 @@ def helper_twoarg_comparison(f, unit1, unit2):
 
 
 def helper_twoarg_invtrig(f, unit1, unit2):
-    from ..si import radian
+    from astropy.units.si import radian
     converters, _ = get_converters_and_unit(f, unit1, unit2)
     return converters, radian
 

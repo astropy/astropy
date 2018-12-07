@@ -4,9 +4,9 @@ from os.path import abspath, dirname, join
 
 from .table import Table
 
-from ..io import registry as io_registry
-from .. import config as _config
-from .. import extern
+from astropy.io import registry as io_registry
+from astropy import config as _config
+from astropy import extern
 
 
 class Conf(_config.ConfigNamespace):

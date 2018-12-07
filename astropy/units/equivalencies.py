@@ -6,8 +6,8 @@ import numpy as np
 import warnings
 
 # LOCAL
-from ..constants import si as _si
-from ..utils.misc import isiterable
+from astropy.constants import si as _si
+from astropy.utils.misc import isiterable
 from . import si
 from . import cgs
 from . import astrophys
@@ -620,7 +620,7 @@ def thermodynamic_temperature(frequency, T_cmb=None):
     nu = frequency.to(si.GHz, spectral())
 
     if T_cmb is None:
-        from ..cosmology import default_cosmology
+        from astropy.cosmology import default_cosmology
         T_cmb = default_cosmology.get().Tcmb0
 
     def f(nu, T_cmb=T_cmb):
@@ -725,7 +725,7 @@ def with_H0(H0=None):
     """
 
     if H0 is None:
-        from .. import cosmology
+        from astropy import cosmology
         H0 = cosmology.default_cosmology.get().H0
 
     h100_val_unit = Unit(H0.to((si.km/si.s)/astrophys.Mpc).value/100 * astrophys.littleh)

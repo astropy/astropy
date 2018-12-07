@@ -6,15 +6,15 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from ...nduncertainty import (StdDevUncertainty, VarianceUncertainty,
+from astropy.nddata.nduncertainty import (StdDevUncertainty, VarianceUncertainty,
                               InverseVariance,
                               UnknownUncertainty,
                               IncompatibleUncertaintiesException)
-from ... import NDDataRef
-from ...nddata import NDData
+from astropy.nddata import NDDataRef
+from astropy.nddata.nddata import NDData
 
-from ....units import UnitsError, Quantity
-from .... import units as u
+from astropy.units import UnitsError, Quantity
+from astropy import units as u
 
 
 # Alias NDDataAllMixins in case this will be renamed ... :-)

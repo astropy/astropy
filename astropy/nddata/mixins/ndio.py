@@ -2,7 +2,7 @@
 # This module implements the I/O mixin to the NDData class.
 
 
-from ...io import registry as io_registry
+from astropy.io import registry as io_registry
 
 __all__ = ['NDIOMixin']
 

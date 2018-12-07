@@ -10,7 +10,7 @@ from .table import (
 from .exceptions import (
     VOWarning, VOTableChangeWarning, VOTableSpecWarning, UnimplementedWarning,
     IOWarning, VOTableSpecError)
-from ... import config as _config
+from astropy import config as _config
 
 __all__ = [
     'Conf', 'conf', 'parse', 'parse_single_table', 'validate',

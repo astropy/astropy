@@ -4,12 +4,12 @@ import pytest
 import numpy as np
 import matplotlib.pyplot as plt
 
-from ....wcs import WCS
+from astropy.wcs import WCS
 
-from .. import WCSAxes
-from ..frame import BaseFrame
+from astropy.visualization.wcsaxes import WCSAxes
+from astropy.visualization.wcsaxes.frame import BaseFrame
 
-from ....tests.image_tests import IMAGE_REFERENCE_DIR
+from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
 from .test_images import BaseImageTests
 
 

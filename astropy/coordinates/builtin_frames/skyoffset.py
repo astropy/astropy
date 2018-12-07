@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ... import units as u
-from ...utils.compat import namedtuple_asdict
-from .. import representation as r
-from ..transformations import DynamicMatrixTransform, FunctionTransform
-from ..baseframe import (frame_transform_graph, RepresentationMapping,
+from astropy import units as u
+from astropy.utils.compat import namedtuple_asdict
+from astropy.coordinates import representation as r
+from astropy.coordinates.transformations import DynamicMatrixTransform, FunctionTransform
+from astropy.coordinates.baseframe import (frame_transform_graph, RepresentationMapping,
                          BaseCoordinateFrame)
-from ..attributes import CoordinateAttribute, QuantityAttribute
-from ..matrix_utilities import (rotation_matrix,
+from astropy.coordinates.attributes import CoordinateAttribute, QuantityAttribute
+from astropy.coordinates.matrix_utilities import (rotation_matrix,
                                 matrix_product, matrix_transpose)
 
 _skyoffset_cache = {}

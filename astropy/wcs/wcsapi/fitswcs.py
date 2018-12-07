@@ -7,7 +7,7 @@ import warnings
 
 import numpy as np
 
-from ... import units as u
+from astropy import units as u
 
 from .low_level_api import BaseLowLevelWCS
 from .high_level_api import HighLevelWCSMixin
@@ -285,8 +285,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 self._components_and_classes_cache = None
 
         # Avoid circular imports by importing here
-        from ..utils import wcs_to_celestial_frame
-        from ...coordinates import SkyCoord
+        from astropy.wcs.utils import wcs_to_celestial_frame
+        from astropy.coordinates import SkyCoord
 
         components = [None] * self.naxis
         classes = {}

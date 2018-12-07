@@ -9,8 +9,8 @@ import pytest
 
 
 from . import test_progress_bar_func
-from .. import console
-from ... import units as u
+from astropy.utils import console
+from astropy import units as u
 
 
 class FakeTTY(io.StringIO):

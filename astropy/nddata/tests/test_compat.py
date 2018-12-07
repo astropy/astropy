@@ -5,10 +5,10 @@
 import pytest
 import numpy as np
 
-from ..nddata import NDData
-from ..compat import NDDataArray
-from ..nduncertainty import StdDevUncertainty
-from ... import units as u
+from astropy.nddata.nddata import NDData
+from astropy.nddata.compat import NDDataArray
+from astropy.nddata.nduncertainty import StdDevUncertainty
+from astropy import units as u
 
 
 NDDATA_ATTRIBUTES = ['mask', 'flags', 'uncertainty', 'unit', 'shape', 'size',

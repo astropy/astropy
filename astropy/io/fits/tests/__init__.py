@@ -6,7 +6,7 @@ import stat
 import tempfile
 import time
 
-from ... import fits
+from astropy.io import fits
 
 
 class FitsTestCase:

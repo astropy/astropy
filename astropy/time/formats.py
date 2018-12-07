@@ -10,10 +10,10 @@ from collections import OrderedDict, defaultdict
 
 import numpy as np
 
-from ..utils.decorators import lazyproperty
-from ..utils.exceptions import AstropyDeprecationWarning
-from .. import units as u
-from .. import _erfa as erfa
+from astropy.utils.decorators import lazyproperty
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy import units as u
+from astropy import _erfa as erfa
 from .utils import day_frac, quantity_day_frac, two_sum, two_product
 
 

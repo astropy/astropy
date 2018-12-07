@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ... import ascii
+from astropy.io import ascii
 from .common import (assert_equal, assert_almost_equal, has_isnan,
                      setup_function, teardown_function)
 
@@ -149,7 +149,7 @@ def test_header_from_readme():
 
 
 def test_cds_units():
-    from .... import units
+    from astropy import units
     data_and_readme = 't/cds.dat'
     reader = ascii.get_reader(ascii.Cds)
     table = reader.read(data_and_readme)

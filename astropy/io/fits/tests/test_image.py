@@ -12,10 +12,10 @@ import pytest
 import numpy as np
 from numpy.testing import assert_equal
 
-from ....io import fits
-from ....utils.exceptions import AstropyPendingDeprecationWarning
-from ....tests.helper import raises, catch_warnings, ignore_warnings
-from ..hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
+from astropy.io import fits
+from astropy.utils.exceptions import AstropyPendingDeprecationWarning
+from astropy.tests.helper import raises, catch_warnings, ignore_warnings
+from astropy.io.fits.hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
 from .test_table import comparerecords
 
 from . import FitsTestCase

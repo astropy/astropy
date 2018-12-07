@@ -3,9 +3,9 @@ import os
 
 import pytest
 
-from ....table import Table, Column
+from astropy.table import Table, Column
 
-from ....table.table_helpers import simple_table
+from astropy.table.table_helpers import simple_table
 
 import numpy as np
 

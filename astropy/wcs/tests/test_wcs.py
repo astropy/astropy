@@ -11,15 +11,15 @@ from numpy.testing import (
     assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp,
     assert_array_equal)
 
-from ...tests.helper import raises, catch_warnings
-from ... import wcs
-from .. import _wcs
-from ...utils.data import (
+from astropy.tests.helper import raises, catch_warnings
+from astropy import wcs
+from astropy.wcs import _wcs
+from astropy.utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
-from ...utils.misc import NumpyRNGContext
-from ...utils.exceptions import AstropyUserWarning
-from ...io import fits
-from ...coordinates import SkyCoord
+from astropy.utils.misc import NumpyRNGContext
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.io import fits
+from astropy.coordinates import SkyCoord
 
 
 class TestMaps:

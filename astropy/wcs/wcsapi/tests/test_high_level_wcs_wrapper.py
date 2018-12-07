@@ -2,10 +2,10 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ....coordinates import SkyCoord
+from astropy.coordinates import SkyCoord
 
-from ..low_level_api import BaseLowLevelWCS
-from ..high_level_wcs_wrapper import HighLevelWCSWrapper
+from astropy.wcs.wcsapi.low_level_api import BaseLowLevelWCS
+from astropy.wcs.wcsapi.high_level_wcs_wrapper import HighLevelWCSWrapper
 
 
 class CustomLowLevelWCS(BaseLowLevelWCS):

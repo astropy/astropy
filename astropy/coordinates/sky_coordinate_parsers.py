@@ -6,8 +6,8 @@ import inspect
 
 import numpy as np
 
-from ..units import Unit, IrreducibleUnit
-from .. import units as u
+from astropy.units import Unit, IrreducibleUnit
+from astropy import units as u
 
 from .baseframe import (BaseCoordinateFrame, frame_transform_graph,
                         _get_repr_cls, _get_diff_cls,

@@ -11,7 +11,7 @@ import numpy as np
 
 from .core import Fittable1DModel
 from .parameters import Parameter, InputParameterError
-from ..units import Quantity
+from astropy.units import Quantity
 
 __all__ = ['PowerLaw1D', 'BrokenPowerLaw1D', 'SmoothlyBrokenPowerLaw1D',
            'ExponentialCutoffPowerLaw1D', 'LogParabola1D']

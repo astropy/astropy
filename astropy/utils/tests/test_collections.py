@@ -2,9 +2,9 @@
 
 import pytest
 
-from ...tests.helper import raises
+from astropy.tests.helper import raises
 
-from .. import collections
+from astropy.utils import collections
 
 
 @raises(TypeError)

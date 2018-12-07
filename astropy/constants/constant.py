@@ -5,11 +5,11 @@ import types
 import warnings
 import numpy as np
 
-from ..units.core import Unit, UnitsError
-from ..units.quantity import Quantity
-from ..utils import lazyproperty
-from ..utils.exceptions import AstropyUserWarning
-from ..utils.misc import InheritDocstrings
+from astropy.units.core import Unit, UnitsError
+from astropy.units.quantity import Quantity
+from astropy.utils import lazyproperty
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.misc import InheritDocstrings
 
 __all__ = ['Constant', 'EMConstant']
 

@@ -2,9 +2,9 @@
 
 import numpy as np
 
-from ....io import fits
+from astropy.io import fits
 from . import FitsTestCase
-from ....tests.helper import catch_warnings
+from astropy.tests.helper import catch_warnings
 
 
 class TestDivisionFunctions(FitsTestCase):

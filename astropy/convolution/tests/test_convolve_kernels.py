@@ -6,9 +6,9 @@ import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from ..convolve import convolve, convolve_fft
-from ..kernels import Gaussian2DKernel, Box2DKernel, Tophat2DKernel
-from ..kernels import Moffat2DKernel
+from astropy.convolution.convolve import convolve, convolve_fft
+from astropy.convolution.kernels import Gaussian2DKernel, Box2DKernel, Tophat2DKernel
+from astropy.convolution.kernels import Moffat2DKernel
 
 
 SHAPES_ODD = [[15, 15], [31, 31]]

@@ -10,9 +10,9 @@ from .card import Card, _pad, KEYWORD_LENGTH
 from .file import _File
 from .util import encode_ascii, decode_ascii, fileobj_closed, fileobj_is_binary
 
-from ...utils import isiterable
-from ...utils.exceptions import AstropyUserWarning
-from ...utils.decorators import deprecated_renamed_argument
+from astropy.utils import isiterable
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.decorators import deprecated_renamed_argument
 
 
 BLOCK_SIZE = 2880  # the FITS block size

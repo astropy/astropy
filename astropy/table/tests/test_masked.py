@@ -7,7 +7,7 @@ import pytest
 import numpy as np
 import numpy.ma as ma
 
-from ...table import Column, MaskedColumn, Table
+from astropy.table import Column, MaskedColumn, Table
 
 
 class SetupData:

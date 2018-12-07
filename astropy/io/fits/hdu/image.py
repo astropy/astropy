@@ -6,11 +6,11 @@ import warnings
 import numpy as np
 
 from .base import DELAYED, _ValidHDU, ExtensionHDU, BITPIX2DTYPE, DTYPE2BITPIX
-from ..header import Header
-from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
-from ..verify import VerifyWarning
+from astropy.io.fits.header import Header
+from astropy.io.fits.util import _is_pseudo_unsigned, _unsigned_zero, _is_int
+from astropy.io.fits.verify import VerifyWarning
 
-from ....utils import isiterable, lazyproperty
+from astropy.utils import isiterable, lazyproperty
 
 
 class _ImageBaseHDU(_ValidHDU):

@@ -3,9 +3,9 @@ import textwrap
 
 import pytest
 
-from ..table import Table
-from ... import extern
-from ...utils.xml.writer import HAS_BLEACH
+from astropy.table.table import Table
+from astropy import extern
+from astropy.utils.xml.writer import HAS_BLEACH
 
 try:
     import IPython  # pylint: disable=W0611

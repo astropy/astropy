@@ -1,5 +1,5 @@
 
-from ... import NDData, NDIOMixin, NDDataRef
+from astropy.nddata import NDData, NDIOMixin, NDDataRef
 
 
 # Alias NDDataAllMixins in case this will be renamed ... :-)

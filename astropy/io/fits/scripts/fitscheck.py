@@ -46,8 +46,8 @@ import os
 import sys
 import textwrap
 
-from ....tests.helper import catch_warnings
-from ... import fits
+from astropy.tests.helper import catch_warnings
+from astropy.io import fits
 
 
 log = logging.getLogger('fitscheck')

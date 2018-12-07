@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # LOCAL
-from .. import parse
-from ....utils.data import get_pkg_data_filename
+from astropy.io.votable import parse
+from astropy.utils.data import get_pkg_data_filename
 
 
 def test_resource_groups():

@@ -3,7 +3,7 @@
 
 import pytest
 
-from ... import units as u  # pylint: disable=W0611
+from astropy import units as u  # pylint: disable=W0611
 
 
 @pytest.mark.parametrize("solarx_unit,solary_unit", [

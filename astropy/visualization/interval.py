@@ -9,7 +9,7 @@ various criteria.
 import abc
 import numpy as np
 
-from ..utils.misc import InheritDocstrings
+from astropy.utils.misc import InheritDocstrings
 from .transform import BaseTransform
 
 

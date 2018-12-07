@@ -14,8 +14,8 @@ import numpy
 
 
 from . import core
-from ...table import Column
-from ...utils.xml import writer
+from astropy.table import Column
+from astropy.utils.xml import writer
 
 from copy import deepcopy
 

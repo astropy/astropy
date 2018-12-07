@@ -11,9 +11,9 @@ from collections import OrderedDict
 
 import pytest
 
-from ...config.paths import set_temp_config, set_temp_cache
-from ...utils.argparse import writeable_directory
-from ..helper import treat_deprecations_as_exceptions
+from astropy.config.paths import set_temp_config, set_temp_cache
+from astropy.utils.argparse import writeable_directory
+from astropy.tests.helper import treat_deprecations_as_exceptions
 
 import importlib.machinery as importlib_machinery
 

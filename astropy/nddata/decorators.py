@@ -6,8 +6,8 @@ from inspect import signature
 from itertools import islice
 import warnings
 
-from ..utils import wraps
-from ..utils.exceptions import AstropyUserWarning
+from astropy.utils import wraps
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .nddata import NDData
 

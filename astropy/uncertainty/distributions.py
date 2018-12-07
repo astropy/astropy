@@ -8,7 +8,7 @@ from warnings import warn
 
 import numpy as np
 
-from .. import units as u
+from astropy import units as u
 from .core import Distribution
 
 __all__ = ['normal', 'poisson', 'uniform']

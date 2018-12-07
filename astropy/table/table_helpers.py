@@ -11,7 +11,7 @@ import string
 import numpy as np
 
 from .table import Table, Column
-from ..utils.data_info import ParentDtypeInfo
+from astropy.utils.data_info import ParentDtypeInfo
 
 
 class TimingTables:
@@ -123,8 +123,8 @@ def complex_table():
     Return a masked table from the io.votable test set that has a wide variety
     of stressing types.
     """
-    from ..utils.data import get_pkg_data_filename
-    from ..io.votable.table import parse
+    from astropy.utils.data import get_pkg_data_filename
+    from astropy.io.votable.table import parse
     import warnings
 
     with warnings.catch_warnings():

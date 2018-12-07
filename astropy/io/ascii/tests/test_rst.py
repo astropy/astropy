@@ -2,7 +2,7 @@
 
 from io import StringIO
 
-from ... import ascii
+from astropy.io import ascii
 from .common import (assert_equal, assert_almost_equal)
 
 

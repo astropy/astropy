@@ -6,7 +6,7 @@ Defines custom errors and exceptions used in `astropy.samp`.
 
 import xmlrpc.client as xmlrpc
 
-from ..utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['SAMPWarning', 'SAMPHubError', 'SAMPClientError', 'SAMPProxyError']

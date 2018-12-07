@@ -9,9 +9,9 @@ from copy import deepcopy
 import weakref
 
 
-# from ..utils.compat import ignored
-from .. import log
-from ..units import Unit, Quantity, UnitConversionError
+# from astropy.utils.compat import ignored
+from astropy import log
+from astropy.units import Unit, Quantity, UnitConversionError
 
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',

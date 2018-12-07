@@ -2,7 +2,7 @@ import time
 
 import numpy as np
 
-from ..misc import NumpyRNGContext
+from astropy.utils.misc import NumpyRNGContext
 
 
 def func(i):

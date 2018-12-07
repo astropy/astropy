@@ -4,8 +4,8 @@
 __all__ = ['quantity_input']
 
 import inspect
-from ..utils.decorators import wraps
-from ..utils.misc import isiterable
+from astropy.utils.decorators import wraps
+from astropy.utils.misc import isiterable
 
 from .core import Unit, UnitsError, add_enabled_equivalencies
 from .physical import _unit_physical_mapping

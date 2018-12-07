@@ -4,7 +4,7 @@ import astropy.coordinates.representation
 from astropy.coordinates.representation import BaseRepresentationOrDifferential
 from astropy.tests.helper import assert_quantity_allclose
 
-from ...types import AstropyType
+from astropy.io.misc.asdf.types import AstropyType
 
 
 class RepresentationType(AstropyType):

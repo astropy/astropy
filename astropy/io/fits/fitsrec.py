@@ -16,7 +16,7 @@ from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
                      _AsciiColDefs, _FormatX, _FormatP, _VLF, _get_index,
                      _wrapx, _unwrapx, _makep, Delayed)
 from .util import decode_ascii, encode_ascii, _rstrip_inplace
-from ...utils import lazyproperty
+from astropy.utils import lazyproperty
 
 
 class FITS_record:

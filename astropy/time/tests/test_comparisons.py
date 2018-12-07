@@ -5,7 +5,7 @@ import operator
 import pytest
 import numpy as np
 
-from .. import Time, TimeDelta
+from astropy.time import Time, TimeDelta
 
 
 class TestTimeComparisons():
