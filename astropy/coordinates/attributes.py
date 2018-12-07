@@ -7,9 +7,9 @@ import numpy as np
 import warnings
 
 # Project
-from .. import units as u
-from ..utils.exceptions import AstropyDeprecationWarning
-from ..utils import OrderedDescriptor, ShapedLikeNDArray
+from astropy import units as u
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils import OrderedDescriptor, ShapedLikeNDArray
 
 __all__ = ['Attribute', 'TimeAttribute', 'QuantityAttribute',
            'EarthLocationAttribute', 'CoordinateAttribute',
@@ -169,7 +169,7 @@ class TimeAttribute(Attribute):
             If the input is not valid for this attribute.
         """
 
-        from ..time import Time
+        from astropy.time import Time
 
         if value is None:
             return None, False

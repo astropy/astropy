@@ -8,14 +8,14 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_almost_equal
 
-from .. import projections
-from ..parameters import InputParameterError
+from astropy.modeling import projections
+from astropy.modeling.parameters import InputParameterError
 
-from ... import units as u
-from ...io import fits
-from ... import wcs
-from ...utils.data import get_pkg_data_filename
-from ...tests.helper import assert_quantity_allclose
+from astropy import units as u
+from astropy.io import fits
+from astropy import wcs
+from astropy.utils.data import get_pkg_data_filename
+from astropy.tests.helper import assert_quantity_allclose
 
 
 def test_Projection_properties():

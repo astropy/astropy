@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from .. import config as _config
+from astropy import config as _config
 
 
 class Conf(_config.ConfigNamespace):
@@ -50,12 +50,12 @@ from .serialize import SerializedColumn
 
 # Finally import the formats for the read and write method but delay building
 # the documentation until all are loaded. (#5275)
-from ..io import registry
+from astropy.io import registry
 
 with registry.delay_doc_updates(Table):
     # Import routines that connect readers/writers to astropy.table
     from .jsviewer import JSViewer
-    from ..io.ascii import connect
-    from ..io.fits import connect
-    from ..io.misc import connect
-    from ..io.votable import connect
+    from astropy.io.ascii import connect
+    from astropy.io.fits import connect
+    from astropy.io.misc import connect
+    from astropy.io.votable import connect

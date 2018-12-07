@@ -17,8 +17,8 @@ import numpy as np
 
 from warnings import warn
 
-from ..utils.decorators import deprecated_renamed_argument
-from ..utils import isiterable
+from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils import isiterable
 from . import _stats
 
 

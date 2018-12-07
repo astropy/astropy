@@ -14,7 +14,7 @@ from numpy.lib.stride_tricks import (
     broadcast_arrays as np_broadcast_arrays,
     broadcast_to as np_broadcast_to)
 
-from ....exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['broadcast_arrays', 'broadcast_to', 'GE1P10']
 __doctest_skip__ = ['*']

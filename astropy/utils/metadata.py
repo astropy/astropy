@@ -3,7 +3,7 @@
 This module contains helper functions and classes for handling metadata.
 """
 
-from ..utils import wraps
+from astropy.utils import wraps
 
 import warnings
 
@@ -12,8 +12,8 @@ from collections.abc import Mapping
 from copy import deepcopy
 
 import numpy as np
-from ..utils.exceptions import AstropyWarning
-from ..utils.misc import dtype_bytes_or_chars
+from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.misc import dtype_bytes_or_chars
 
 
 __all__ = ['MergeConflictError', 'MergeConflictWarning', 'MERGE_STRATEGIES',

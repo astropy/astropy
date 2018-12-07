@@ -18,8 +18,8 @@ from warnings import warn
 from . import core
 from . import fixedwidth
 from . import basic
-from ...utils.exceptions import AstropyUserWarning
-from ...table.pprint import get_auto_format_func
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.table.pprint import get_auto_format_func
 
 
 class IpacFormatErrorDBMS(Exception):

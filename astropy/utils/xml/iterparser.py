@@ -9,7 +9,7 @@ import io
 import sys
 
 # ASTROPY
-from .. import data
+from astropy.utils import data
 
 
 __all__ = ['get_xml_iterator', 'get_xml_encoding', 'xml_readlines']

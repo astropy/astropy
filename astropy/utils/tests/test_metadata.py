@@ -5,10 +5,10 @@ from collections import OrderedDict
 import pytest
 import numpy as np
 
-from ..metadata import MetaData, MergeConflictError, merge, enable_merge_strategies
-from ..metadata import common_dtype
-from ...utils import metadata
-from ...io import fits
+from astropy.utils.metadata import MetaData, MergeConflictError, merge, enable_merge_strategies
+from astropy.utils.metadata import common_dtype
+from astropy.utils import metadata
+from astropy.io import fits
 
 
 class OrderedDictSubclass(OrderedDict):

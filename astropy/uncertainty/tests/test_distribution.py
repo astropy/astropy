@@ -4,11 +4,11 @@ from __future__ import absolute_import, division, print_function
 
 import numpy as np
 
-from ... import units as u
-from ..core import Distribution
-from .. import distributions as ds
-from ...utils import NumpyRNGContext
-from ...tests.helper import assert_quantity_allclose, pytest
+from astropy import units as u
+from astropy.uncertainty.core import Distribution
+from astropy.uncertainty import distributions as ds
+from astropy.utils import NumpyRNGContext
+from astropy.tests.helper import assert_quantity_allclose, pytest
 
 try:
     from scipy.stats import norm  # pylint: disable=W0611

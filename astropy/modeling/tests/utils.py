@@ -4,7 +4,7 @@
 
 import contextlib
 import warnings
-from ...tests.helper import catch_warnings
+from astropy.tests.helper import catch_warnings
 
 
 @contextlib.contextmanager

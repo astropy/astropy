@@ -6,15 +6,15 @@ from collections import OrderedDict
 import pytest
 import numpy as np
 
-from ...tests.helper import catch_warnings
-from ...table import Table, QTable, TableMergeError
-from ...table.operations import _get_out_class
-from ... import units as u
-from ...utils import metadata
-from ...utils.metadata import MergeConflictError
-from ... import table
-from ...time import Time
-from ...coordinates import SkyCoord
+from astropy.tests.helper import catch_warnings
+from astropy.table import Table, QTable, TableMergeError
+from astropy.table.operations import _get_out_class
+from astropy import units as u
+from astropy.utils import metadata
+from astropy.utils.metadata import MergeConflictError
+from astropy import table
+from astropy.time import Time
+from astropy.coordinates import SkyCoord
 
 
 def sort_eq(list1, list2):

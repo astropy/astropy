@@ -5,7 +5,7 @@ import warnings
 
 import numpy as np
 
-from ... import units as u
+from astropy import units as u
 
 # Algorithm inspired by PGSBOX from WCSLIB by M. Calabretta
 

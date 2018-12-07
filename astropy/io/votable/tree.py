@@ -16,12 +16,12 @@ import numpy as np
 from numpy import ma
 
 # LOCAL
-from .. import fits
-from ... import __version__ as astropy_version
-from ...utils.collections import HomogeneousList
-from ...utils.xml.writer import XMLWriter
-from ...utils.exceptions import AstropyDeprecationWarning
-from ...utils.misc import InheritDocstrings
+from astropy.io import fits
+from astropy import __version__ as astropy_version
+from astropy.utils.collections import HomogeneousList
+from astropy.utils.xml.writer import XMLWriter
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.misc import InheritDocstrings
 
 from . import converters
 from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
@@ -772,7 +772,7 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
             self._unit = None
             return
 
-        from ... import units as u
+        from astropy import units as u
 
         if not self._config.get('version_1_2_or_later'):
             warn_or_raise(W28, W28, ('unit', 'INFO', '1.2'),
@@ -1379,7 +1379,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
             self._unit = None
             return
 
-        from ... import units as u
+        from astropy import units as u
 
         # First, parse the unit in the default way, so that we can
         # still emit a warning if the unit is not to spec.
@@ -2842,7 +2842,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
            identically when round-tripping through the
            `astropy.table.Table` instance.
         """
-        from ...table import Table
+        from astropy.table import Table
 
         meta = {}
         for key in ['ID', 'name', 'ref', 'ucd', 'utype', 'description']:

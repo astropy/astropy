@@ -3,7 +3,7 @@
 
 import numpy as np
 from inspect import signature
-from ..stats.histogram import calculate_bin_edges
+from astropy.stats.histogram import calculate_bin_edges
 
 __all__ = ['hist']
 

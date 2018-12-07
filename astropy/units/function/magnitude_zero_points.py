@@ -7,8 +7,8 @@ names remain here for backwards compatibility.
 """
 from warnings import warn
 
-from ..photometric import AB, ST
-from ...utils import deprecated
+from astropy.units.photometric import AB, ST
+from astropy.utils import deprecated
 
 _ns = globals()
 
@@ -32,7 +32,7 @@ def enable():
     # manager
 
     # Local import to avoid cyclical import
-    from ..core import add_enabled_units
+    from astropy.units.core import add_enabled_units
     # Local import to avoid polluting namespace
     import inspect
     return add_enabled_units(inspect.getmodule(enable))

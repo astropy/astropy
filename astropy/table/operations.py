@@ -16,9 +16,9 @@ from collections.abc import Mapping, Sequence
 
 import numpy as np
 
-from ..utils import metadata
+from astropy.utils import metadata
 from .table import Table, QTable, Row, Column
-from ..units import Quantity
+from astropy.units import Quantity
 
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError

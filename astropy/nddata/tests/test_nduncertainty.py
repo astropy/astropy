@@ -6,17 +6,17 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from ..nduncertainty import (StdDevUncertainty,
+from astropy.nddata.nduncertainty import (StdDevUncertainty,
                              VarianceUncertainty,
                              InverseVariance,
                              NDUncertainty,
                              IncompatibleUncertaintiesException,
                              MissingDataAssociationException,
                              UnknownUncertainty)
-from ..nddata import NDData
-from ..compat import NDDataArray
-from ..ccddata import CCDData
-from ... import units as u
+from astropy.nddata.nddata import NDData
+from astropy.nddata.compat import NDDataArray
+from astropy.nddata.ccddata import CCDData
+from astropy import units as u
 
 # Regarding setter tests:
 # No need to test setters since the uncertainty is considered immutable after
@@ -240,7 +240,7 @@ def test_for_leak_with_uncertainty():
 
     # Same for NDDataArray:
 
-    from ..compat import NDDataArray
+    from astropy.nddata.compat import NDDataArray
 
     def non_leaker_nddataarray():
         NDDataArray(np.ones(100))

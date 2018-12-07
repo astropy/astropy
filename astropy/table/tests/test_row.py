@@ -6,9 +6,9 @@ import sys
 import pytest
 import numpy as np
 
-from ... import table
-from ...table import Row
-from ... import units as u
+from astropy import table
+from astropy.table import Row
+from astropy import units as u
 from .conftest import MaskedTable
 
 

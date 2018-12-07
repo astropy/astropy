@@ -9,7 +9,7 @@ This module defines magnitude zero points and related photometric quantities.
 import numpy as _numpy
 from .core import UnitBase, def_unit, Unit
 
-from ..constants import si as _si
+from astropy.constants import si as _si
 from . import cgs, si, astrophys
 
 

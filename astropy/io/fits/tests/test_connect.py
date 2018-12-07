@@ -7,23 +7,23 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ..column import (_parse_tdisp_format, _fortran_to_python_format,
+from astropy.io.fits.column import (_parse_tdisp_format, _fortran_to_python_format,
                       python_to_tdisp)
 
-from .. import HDUList, PrimaryHDU, BinTableHDU
+from astropy.io.fits import HDUList, PrimaryHDU, BinTableHDU
 
-from ... import fits
+from astropy.io import fits
 
-from .... import units as u
-from ....table import Table, QTable, NdarrayMixin, Column
-from ....table.table_helpers import simple_table
-from ....tests.helper import catch_warnings
-from ....units.format.fits import UnitScaleError
-from ....utils.exceptions import AstropyUserWarning
+from astropy import units as u
+from astropy.table import Table, QTable, NdarrayMixin, Column
+from astropy.table.table_helpers import simple_table
+from astropy.tests.helper import catch_warnings
+from astropy.units.format.fits import UnitScaleError
+from astropy.utils.exceptions import AstropyUserWarning
 
-from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
-from ....time import Time, TimeDelta
-from ....units.quantity import QuantityInfo
+from astropy.coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
+from astropy.time import Time, TimeDelta
+from astropy.units.quantity import QuantityInfo
 
 try:
     import yaml  # pylint: disable=W0611

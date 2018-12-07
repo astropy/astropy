@@ -13,8 +13,8 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
-from ..circstats import _length, circmean, circvar, circmoment, circcorrcoef
-from ..circstats import rayleightest, vtest, vonmisesmle
+from astropy.stats.circstats import _length, circmean, circvar, circmoment, circcorrcoef
+from astropy.stats.circstats import rayleightest, vtest, vonmisesmle
 
 
 def test__length():

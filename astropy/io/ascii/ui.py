@@ -34,9 +34,9 @@ from . import fastbasic
 from . import cparser
 from . import fixedwidth
 
-from ...table import Table, vstack, MaskedColumn
-from ...utils.data import get_readable_fileobj
-from ...utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from astropy.table import Table, vstack, MaskedColumn
+from astropy.utils.data import get_readable_fileobj
+from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 _read_trace = []
 

@@ -6,7 +6,7 @@ This package defines the SI units.  They are also available in the
 
 """
 
-from ..constants import si as _si
+from astropy.constants import si as _si
 from .core import UnitBase, Unit, def_unit
 
 import numpy as _numpy

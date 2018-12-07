@@ -4,7 +4,7 @@ import pickle
 import random
 import string
 
-from .. import SAMP_STATUS_OK
+from astropy.samp import SAMP_STATUS_OK
 
 TEST_REPLY = {"samp.status": SAMP_STATUS_OK,
               "samp.result": {"txt": "test"}}

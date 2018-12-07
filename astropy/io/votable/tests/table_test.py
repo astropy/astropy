@@ -8,9 +8,9 @@ import os
 import pathlib
 import numpy as np
 
-from ....utils.data import get_pkg_data_filename, get_pkg_data_fileobj
-from ..table import parse, writeto
-from .. import tree
+from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj
+from astropy.io.votable.table import parse, writeto
+from astropy.io.votable import tree
 
 
 def test_table(tmpdir):
@@ -68,7 +68,7 @@ def test_table(tmpdir):
 
 
 def test_read_through_table_interface(tmpdir):
-    from ....table import Table
+    from astropy.table import Table
 
     with get_pkg_data_fileobj('data/regression.xml', encoding='binary') as fd:
         t = Table.read(fd, format='votable', table_id='main_table')
@@ -85,7 +85,7 @@ def test_read_through_table_interface(tmpdir):
 
 
 def test_read_through_table_interface2():
-    from ....table import Table
+    from astropy.table import Table
 
     with get_pkg_data_fileobj('data/regression.xml', encoding='binary') as fd:
         t = Table.read(fd, format='votable', table_id='last_table')
@@ -120,7 +120,7 @@ def test_table_read_with_unnamed_tables():
     """
     Issue #927
     """
-    from ....table import Table
+    from astropy.table import Table
 
     with get_pkg_data_fileobj('data/names.xml', encoding='binary') as fd:
         t = Table.read(fd, format='votable')
@@ -140,7 +140,7 @@ def test_votable_path_object():
 
 
 def test_from_table_without_mask():
-    from ....table import Table, Column
+    from astropy.table import Table, Column
     t = Table()
     c = Column(data=[1, 2, 3], name='a')
     t.add_column(c)
@@ -149,7 +149,7 @@ def test_from_table_without_mask():
 
 
 def test_write_with_format():
-    from ....table import Table, Column
+    from astropy.table import Table, Column
     t = Table()
     c = Column(data=[1, 2, 3], name='a')
     t.add_column(c)

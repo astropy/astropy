@@ -9,8 +9,8 @@ import warnings
 
 import numpy as np
 
-from .. import units as u
-from ..utils.exceptions import AstropyWarning
+from astropy import units as u
+from astropy.utils.exceptions import AstropyWarning
 from .angles import Angle
 
 __all__ = ['Distance']
@@ -105,7 +105,7 @@ class Distance(u.SpecificTypeQuantity):
                                  'or `distmod` in Distance constructor.')
 
             if cosmology is None:
-                from ..cosmology import default_cosmology
+                from astropy.cosmology import default_cosmology
                 cosmology = default_cosmology.get()
 
             value = cosmology.luminosity_distance(z)
@@ -209,10 +209,10 @@ class Distance(u.SpecificTypeQuantity):
         """
 
         if cosmology is None:
-            from ..cosmology import default_cosmology
+            from astropy.cosmology import default_cosmology
             cosmology = default_cosmology.get()
 
-        from ..cosmology import z_at_value
+        from astropy.cosmology import z_at_value
         return z_at_value(cosmology.luminosity_distance, self, ztol=1.e-10)
 
     @property

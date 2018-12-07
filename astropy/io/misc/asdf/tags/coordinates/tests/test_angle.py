@@ -11,7 +11,7 @@ from asdf.tests.helpers import assert_roundtrip_tree
 
 from astropy.coordinates import Longitude, Latitude, Angle
 
-from ....extension import AstropyExtension
+from astropy.io.misc.asdf.extension import AstropyExtension
 
 
 def test_angle(tmpdir):

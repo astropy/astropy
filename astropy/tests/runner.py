@@ -12,9 +12,9 @@ import importlib
 from collections import OrderedDict
 from importlib.util import find_spec
 
-from ..config.paths import set_temp_config, set_temp_cache
-from ..utils import wraps, find_current_module
-from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from astropy.config.paths import set_temp_config, set_temp_cache
+from astropy.utils import wraps, find_current_module
+from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 __all__ = ['TestRunner', 'TestRunnerBase', 'keyword']
 
@@ -600,6 +600,6 @@ class TestRunner(TestRunnerBase):
         # This prevents cyclical import problems that make it
         # impossible to test packages that define Table types on their
         # own.
-        from ..table import Table  # pylint: disable=W0611
+        from astropy.table import Table  # pylint: disable=W0611
 
         return super().run_tests(**kwargs)

@@ -5,8 +5,8 @@ from io import StringIO
 
 import pytest
 
-from ... import ascii
-from ..core import InconsistentTableError
+from astropy.io import ascii
+from astropy.io.ascii.core import InconsistentTableError
 from .common import (assert_equal, assert_almost_equal)
 
 

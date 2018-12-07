@@ -11,14 +11,14 @@ from copy import deepcopy
 import numpy as np
 from numpy import ma
 
-from .. import log
-from ..io import registry as io_registry
-from ..units import Quantity, QuantityInfo
-from ..utils import isiterable, ShapedLikeNDArray
-from ..utils.console import color_print
-from ..utils.metadata import MetaData
-from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
-from ..utils.exceptions import AstropyDeprecationWarning, NoValue
+from astropy import log
+from astropy.io import registry as io_registry
+from astropy.units import Quantity, QuantityInfo
+from astropy.utils import isiterable, ShapedLikeNDArray
+from astropy.utils.console import color_print
+from astropy.utils.metadata import MetaData
+from astropy.utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
+from astropy.utils.exceptions import AstropyDeprecationWarning, NoValue
 
 from . import groups
 from .pprint import TableFormatter
@@ -853,7 +853,7 @@ class Table:
 
         descr = ' '.join(descr_vals)
         if html:
-            from ..utils.xml.writer import xml_escape
+            from astropy.utils.xml.writer import xml_escape
             descr = '<i>{0}</i>\n'.format(xml_escape(descr))
         else:
             descr = '<{0}>\n'.format(descr)

@@ -24,10 +24,10 @@ from io import StringIO
 
 import numpy
 
-from ...utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyWarning
 
-from ...table import Table
-from ...utils.data import get_readable_fileobj
+from astropy.table import Table
+from astropy.utils.data import get_readable_fileobj
 from . import connect
 
 # Global dictionary mapping format arg to the corresponding Reader class

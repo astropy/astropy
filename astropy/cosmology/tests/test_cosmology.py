@@ -5,10 +5,10 @@ from io import StringIO
 import pytest
 import numpy as np
 
-from .. import core, funcs
-from ...units import allclose
-from ...utils.compat import NUMPY_LT_1_14
-from ... import units as u
+from astropy.cosmology import core, funcs
+from astropy.units import allclose
+from astropy.utils.compat import NUMPY_LT_1_14
+from astropy import units as u
 
 try:
     import scipy  # pylint: disable=W0611

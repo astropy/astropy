@@ -1,6 +1,6 @@
-from ... import units as u
+from astropy import units as u
 
-from ..helper import assert_quantity_allclose, pytest
+from astropy.tests.helper import assert_quantity_allclose, pytest
 
 
 def test_assert_quantity_allclose():

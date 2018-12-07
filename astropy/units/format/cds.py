@@ -23,9 +23,9 @@ import re
 
 from .base import Base
 from . import core, utils
-from ..utils import is_effectively_unity
-from ...utils import classproperty
-from ...utils.misc import did_you_mean
+from astropy.units.utils import is_effectively_unity
+from astropy.utils import classproperty
+from astropy.utils.misc import did_you_mean
 
 
 # TODO: Support logarithmic units using bracketed syntax
@@ -66,8 +66,8 @@ class CDS(Base):
 
     @staticmethod
     def _generate_unit_names():
-        from .. import cds
-        from ... import units as u
+        from astropy.units import cds
+        from astropy import units as u
 
         names = {}
 
@@ -80,7 +80,7 @@ class CDS(Base):
     @classmethod
     def _make_lexer(cls):
 
-        from ...extern.ply import lex
+        from astropy.extern.ply import lex
 
         tokens = cls._tokens
 
@@ -149,7 +149,7 @@ class CDS(Base):
         <https://bitbucket.org/nxg/unity/>`_.
         """
 
-        from ...extern.ply import yacc
+        from astropy.extern.ply import yacc
 
         tokens = cls._tokens
 
@@ -159,7 +159,7 @@ class CDS(Base):
                  | combined_units
                  | factor
             '''
-            from ..core import Unit
+            from astropy.units.core import Unit
             if len(p) == 3:
                 p[0] = Unit(p[1] * p[2])
             else:

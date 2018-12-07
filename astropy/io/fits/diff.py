@@ -19,16 +19,16 @@ from itertools import islice
 
 import numpy as np
 
-from ... import __version__
+from astropy import __version__
 
 from .card import Card, BLANK_CARD
 from .header import Header
-from ...utils.decorators import deprecated_renamed_argument
+from astropy.utils.decorators import deprecated_renamed_argument
 # HDUList is used in one of the doctests
 from .hdu.hdulist import fitsopen, HDUList  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
-from ...utils.exceptions import AstropyDeprecationWarning
-from ...utils.diff import (report_diff_values, fixed_width_indent,
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.diff import (report_diff_values, fixed_width_indent,
                            where_not_allclose, diff_values)
 
 __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',

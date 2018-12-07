@@ -12,10 +12,10 @@ from inspect import signature
 import numpy as np
 
 
-from ..utils import isiterable, check_broadcast
-from ..utils.compat import NUMPY_LT_1_14
+from astropy.utils import isiterable, check_broadcast
+from astropy.utils.compat import NUMPY_LT_1_14
 
-from .. import units as u
+from astropy import units as u
 
 __all__ = ['ExpressionTree', 'AliasDict', 'check_broadcast',
            'poly_map_domain', 'comb', 'ellipse_extent']

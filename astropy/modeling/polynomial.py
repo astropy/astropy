@@ -12,8 +12,8 @@ from .core import FittableModel, Model
 from .functional_models import Shift
 from .parameters import Parameter
 from .utils import poly_map_domain, comb
-from ..utils import indent, check_broadcast
-from ..units import Quantity
+from astropy.utils import indent, check_broadcast
+from astropy.units import Quantity
 
 __all__ = [
     'Chebyshev1D', 'Chebyshev2D', 'Hermite1D', 'Hermite2D',

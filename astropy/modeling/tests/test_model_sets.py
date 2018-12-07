@@ -6,10 +6,10 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ..models import Polynomial1D, Polynomial2D
-from ..fitting import LinearLSQFitter
-from ..core import Model
-from ..parameters import Parameter
+from astropy.modeling.models import Polynomial1D, Polynomial2D
+from astropy.modeling.fitting import LinearLSQFitter
+from astropy.modeling.core import Model
+from astropy.modeling.parameters import Parameter
 
 
 x = np.arange(4)

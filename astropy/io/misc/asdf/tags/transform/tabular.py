@@ -6,10 +6,10 @@ from numpy.testing import assert_array_equal
 
 from asdf import yamlutil
 
-from ...... import modeling
-from ...... import units as u
+from astropy import modeling
+from astropy import units as u
 from .basic import TransformType
-from ......tests.helper import assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose
 
 __all__ = ['TabularType']
 

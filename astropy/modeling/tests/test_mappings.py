@@ -4,9 +4,9 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
-from ..fitting import LevMarLSQFitter
-from ..models import Shift, Rotation2D, Gaussian1D, Identity, Mapping
-from ...utils import NumpyRNGContext
+from astropy.modeling.fitting import LevMarLSQFitter
+from astropy.modeling.models import Shift, Rotation2D, Gaussian1D, Identity, Mapping
+from astropy.utils import NumpyRNGContext
 
 try:
     from scipy import optimize  # pylint: disable=W0611

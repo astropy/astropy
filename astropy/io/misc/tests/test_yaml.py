@@ -11,13 +11,13 @@ from io import StringIO
 import pytest
 import numpy as np
 
-from ....coordinates import SkyCoord, EarthLocation, Angle, Longitude, Latitude
-from .... import units as u
-from ....time import Time
-from ....table import QTable, SerializedColumn
+from astropy.coordinates import SkyCoord, EarthLocation, Angle, Longitude, Latitude
+from astropy import units as u
+from astropy.time import Time
+from astropy.table import QTable, SerializedColumn
 
 try:
-    from ..yaml import load, load_all, dump
+    from astropy.io.misc.yaml import load, load_all, dump
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False

@@ -4,7 +4,7 @@ import io
 
 import pytest
 
-from ..xml import check, unescaper, writer
+from astropy.utils.xml import check, unescaper, writer
 
 
 def test_writer():

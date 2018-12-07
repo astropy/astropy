@@ -6,7 +6,7 @@ Available ufuncs in this module are at
 https://docs.scipy.org/doc/scipy/reference/special.html
 """
 
-from ..core import UnitsError, UnitTypeError, dimensionless_unscaled
+from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
 from . import UFUNC_HELPERS
 from .helpers import (get_converter,
                       helper_dimensionless_to_dimensionless,
@@ -38,7 +38,7 @@ scipy_special_ufuncs += ('cbrt', 'radian')
 
 
 def helper_degree_to_dimensionless(f, unit):
-    from ..si import degree
+    from astropy.units.si import degree
     try:
         return [get_converter(unit, degree)], dimensionless_unscaled
     except UnitsError:
@@ -48,7 +48,7 @@ def helper_degree_to_dimensionless(f, unit):
 
 
 def helper_degree_minute_second_to_radian(f, unit1, unit2, unit3):
-    from ..si import degree, arcmin, arcsec, radian
+    from astropy.units.si import degree, arcmin, arcsec, radian
     try:
         return [get_converter(unit1, degree),
                 get_converter(unit2, arcmin),

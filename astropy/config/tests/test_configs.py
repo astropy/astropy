@@ -8,12 +8,12 @@ import subprocess
 
 import pytest
 
-from ...tests.helper import catch_warnings
+from astropy.tests.helper import catch_warnings
 
-from ...utils.data import get_pkg_data_filename
-from .. import configuration
-from .. import paths
-from ...utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.data import get_pkg_data_filename
+from astropy.config import configuration
+from astropy.config import paths
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_paths():
@@ -72,7 +72,7 @@ def test_set_temp_cache(tmpdir, monkeypatch):
 
 
 def test_config_file():
-    from ..configuration import get_config, reload_config
+    from astropy.config.configuration import get_config, reload_config
 
     apycfg = get_config('astropy')
     assert apycfg.filename.endswith('astropy.cfg')
@@ -87,7 +87,7 @@ def test_config_file():
 
 def test_configitem():
 
-    from ..configuration import ConfigNamespace, ConfigItem, get_config
+    from astropy.config.configuration import ConfigNamespace, ConfigItem, get_config
 
     ci = ConfigItem(34, 'this is a Description')
 
@@ -118,7 +118,7 @@ def test_configitem():
 
 def test_configitem_types():
 
-    from ..configuration import ConfigNamespace, ConfigItem
+    from astropy.config.configuration import ConfigNamespace, ConfigItem
 
     cio = ConfigItem(['op1', 'op2', 'op3'])
 
@@ -146,7 +146,7 @@ def test_configitem_types():
 
 def test_configitem_options(tmpdir):
 
-    from ..configuration import ConfigNamespace, ConfigItem, get_config
+    from astropy.config.configuration import ConfigNamespace, ConfigItem, get_config
 
     cio = ConfigItem(['op1', 'op2', 'op3'])
 
@@ -214,7 +214,7 @@ def test_config_noastropy_fallback(monkeypatch):
 
 def test_configitem_setters():
 
-    from ..configuration import ConfigNamespace, ConfigItem
+    from astropy.config.configuration import ConfigNamespace, ConfigItem
 
     class Conf(ConfigNamespace):
         tstnm12 = ConfigItem(42, 'this is another Description')
@@ -243,7 +243,7 @@ def test_configitem_setters():
 
 
 def test_empty_config_file():
-    from ..configuration import is_unedited_config_file
+    from astropy.config.configuration import is_unedited_config_file
 
     def get_content(fn):
         with open(get_pkg_data_filename(fn), 'rt', encoding='latin-1') as fd:
@@ -288,7 +288,7 @@ class TestAliasRead:
 
 def test_configitem_unicode(tmpdir):
 
-    from ..configuration import ConfigNamespace, ConfigItem, get_config
+    from astropy.config.configuration import ConfigNamespace, ConfigItem, get_config
 
     cio = ConfigItem('ასტრონომიის')
 
@@ -307,7 +307,7 @@ def test_configitem_unicode(tmpdir):
 def test_warning_move_to_top_level():
     # Check that the warning about deprecation config items in the
     # file works.  See #2514
-    from ... import conf
+    from astropy import conf
 
     configuration._override_config_file = get_pkg_data_filename('data/deprecated.cfg')
 

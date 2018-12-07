@@ -2,7 +2,7 @@
 
 import pytest
 
-from .. import Time
+from astropy.time import Time
 
 
 class TestGuess():

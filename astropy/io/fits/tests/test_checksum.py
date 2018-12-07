@@ -7,8 +7,8 @@ import pytest
 import numpy as np
 
 from .test_table import comparerecords
-from ..hdu.base import _ValidHDU
-from ....io import fits
+from astropy.io.fits.hdu.base import _ValidHDU
+from astropy.io import fits
 
 from . import FitsTestCase
 

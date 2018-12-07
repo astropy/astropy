@@ -27,8 +27,8 @@ from inspect import signature
 
 import numpy as np
 
-from .. import units as u
-from ..utils.exceptions import AstropyWarning
+from astropy import units as u
+from astropy.utils.exceptions import AstropyWarning
 
 from .representation import REPRESENTATION_CLASSES
 from .matrix_utilities import matrix_product

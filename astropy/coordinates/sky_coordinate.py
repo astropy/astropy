@@ -4,14 +4,14 @@ import copy
 
 import numpy as np
 
-from .. import _erfa as erfa
-from ..utils.compat.misc import override__dir__
-from .. import units as u
-from ..constants import c as speed_of_light
-from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
-from ..utils.data_info import MixinInfo
-from ..utils import ShapedLikeNDArray
-from ..time import Time
+from astropy import _erfa as erfa
+from astropy.utils.compat.misc import override__dir__
+from astropy import units as u
+from astropy.constants import c as speed_of_light
+from astropy.wcs.utils import skycoord_to_pixel, pixel_to_skycoord
+from astropy.utils.data_info import MixinInfo
+from astropy.utils import ShapedLikeNDArray
+from astropy.time import Time
 
 from .distances import Distance
 from .angles import Angle

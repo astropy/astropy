@@ -6,7 +6,7 @@ from collections.abc import Mapping
 import pytest
 import numpy as np
 
-from ...table import Column, TableColumns
+from astropy.table import Column, TableColumns
 
 
 class TestTableColumnsInit():

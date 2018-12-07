@@ -7,11 +7,11 @@ import os
 import re
 
 # ASTROPY
-from ....utils.xml.writer import XMLWriter, xml_escape
-from .... import online_docs_root
+from astropy.utils.xml.writer import XMLWriter, xml_escape
+from astropy import online_docs_root
 
 # VO
-from .. import exceptions
+from astropy.io.votable import exceptions
 
 html_header = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html

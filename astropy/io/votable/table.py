@@ -15,8 +15,8 @@ import warnings
 # LOCAL
 from . import exceptions
 from . import tree
-from ...utils.xml import iterparser
-from ...utils import data
+from astropy.utils.xml import iterparser
+from astropy.utils import data
 
 
 __all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate',
@@ -175,7 +175,7 @@ def writeto(table, file, tabledata_format=None):
         each ``table`` object as it was created or read in.  See
         :ref:`votable-serialization`.
     """
-    from ...table import Table
+    from astropy.table import Table
     if isinstance(table, Table):
         table = tree.VOTableFile.from_table(table)
     elif not isinstance(table, tree.VOTableFile):
@@ -217,7 +217,7 @@ def validate(source, output=None, xmllint=False, filename=None):
         `None`, the return value will be a string.
     """
 
-    from ...utils.console import print_code_line, color_print
+    from astropy.utils.console import print_code_line, color_print
 
     if output is None:
         output = sys.stdout

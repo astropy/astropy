@@ -11,10 +11,10 @@ import subprocess
 import pytest
 import numpy as np
 
-from ..verify import VerifyError
-from ....io import fits
-from ....tests.helper import raises, catch_warnings, ignore_warnings
-from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from astropy.io.fits.verify import VerifyError
+from astropy.io import fits
+from astropy.tests.helper import raises, catch_warnings, ignore_warnings
+from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 from . import FitsTestCase
 

@@ -2,7 +2,7 @@
 import ctypes
 import numpy as np
 
-from ..modeling.core import FittableModel, custom_model
+from astropy.modeling.core import FittableModel, custom_model
 
 __all__ = ['discretize_model']
 

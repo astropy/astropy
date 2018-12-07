@@ -16,14 +16,14 @@ try:
 except ImportError:
     HAVE_OBJGRAPH = False
 
-from ....io import fits
-from ....tests.helper import catch_warnings, ignore_warnings
-from ....utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
-from ....utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.io import fits
+from astropy.tests.helper import catch_warnings, ignore_warnings
+from astropy.utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-from ..column import Delayed, NUMPY2FITS
-from ..util import decode_ascii
-from ..verify import VerifyError
+from astropy.io.fits.column import Delayed, NUMPY2FITS
+from astropy.io.fits.util import decode_ascii
+from astropy.io.fits.verify import VerifyError
 from . import FitsTestCase
 
 
@@ -3113,7 +3113,7 @@ def test_regression_5383():
 
 
 def test_table_to_hdu():
-    from ....table import Table
+    from astropy.table import Table
     table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
                     names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
     table['a'].unit = 'm/s'

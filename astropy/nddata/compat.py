@@ -4,8 +4,8 @@
 
 import numpy as np
 
-from ..units import UnitsError, UnitConversionError, Unit
-from .. import log
+from astropy.units import UnitsError, UnitConversionError, Unit
+from astropy import log
 
 from .nddata import NDData
 from .nduncertainty import NDUncertainty

@@ -3,7 +3,7 @@
 """Quantity helpers for the ERFA ufuncs."""
 
 
-from ..core import UnitsError, UnitTypeError, dimensionless_unscaled
+from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
 from . import UFUNC_HELPERS
 from .helpers import get_converter, helper_invariant, helper_multiplication
 
@@ -12,7 +12,7 @@ erfa_ufuncs = ('s2c', 's2p', 'c2s', 'p2s', 'pm', 'pdp', 'pxp', 'rxp')
 
 
 def helper_s2c(f, unit1, unit2):
-    from ..si import radian
+    from astropy.units.si import radian
     try:
         return [get_converter(unit1, radian),
                 get_converter(unit2, radian)], dimensionless_unscaled
@@ -23,7 +23,7 @@ def helper_s2c(f, unit1, unit2):
 
 
 def helper_s2p(f, unit1, unit2, unit3):
-    from ..si import radian
+    from astropy.units.si import radian
     try:
         return [get_converter(unit1, radian),
                 get_converter(unit2, radian), None], unit3
@@ -34,17 +34,17 @@ def helper_s2p(f, unit1, unit2, unit3):
 
 
 def helper_c2s(f, unit1):
-    from ..si import radian
+    from astropy.units.si import radian
     return [None], (radian, radian)
 
 
 def helper_p2s(f, unit1):
-    from ..si import radian
+    from astropy.units.si import radian
     return [None], (radian, radian, unit1)
 
 
 def get_erfa_helpers():
-    from ..._erfa import ufunc as erfa_ufunc
+    from astropy._erfa import ufunc as erfa_ufunc
 
     ERFA_HELPERS = {}
     ERFA_HELPERS[erfa_ufunc.s2c] = helper_s2c

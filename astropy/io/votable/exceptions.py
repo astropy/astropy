@@ -40,7 +40,7 @@ import re
 from textwrap import dedent
 from warnings import warn
 
-from ...utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyWarning
 
 
 __all__ = [

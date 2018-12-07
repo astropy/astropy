@@ -5,13 +5,13 @@ import pytest
 import os
 
 from . import FitsTestCase
-from ..convenience import writeto
-from ..hdu import PrimaryHDU, hdulist
-from .. import Header, ImageHDU, HDUList
-from ..scripts import fitsdiff
-from ....tests.helper import catch_warnings
-from ....utils.exceptions import AstropyDeprecationWarning
-from ....version import version
+from astropy.io.fits.convenience import writeto
+from astropy.io.fits.hdu import PrimaryHDU, hdulist
+from astropy.io.fits import Header, ImageHDU, HDUList
+from astropy.io.fits.scripts import fitsdiff
+from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.version import version
 
 
 class TestFITSDiff_script(FitsTestCase):

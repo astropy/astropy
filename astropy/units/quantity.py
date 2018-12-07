@@ -20,12 +20,12 @@ from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitConversionError, UnitTypeError)
 from .utils import is_effectively_unity
 from .format.latex import Latex
-from ..utils.compat import NUMPY_LT_1_14
-from ..utils.compat.misc import override__dir__
-from ..utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from ..utils.misc import isiterable, InheritDocstrings
-from ..utils.data_info import ParentDtypeInfo
-from .. import config as _config
+from astropy.utils.compat import NUMPY_LT_1_14
+from astropy.utils.compat.misc import override__dir__
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.misc import isiterable, InheritDocstrings
+from astropy.utils.data_info import ParentDtypeInfo
+from astropy import config as _config
 from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
                               check_output)
 

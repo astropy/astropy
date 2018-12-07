@@ -6,9 +6,9 @@ import numpy as np
 
 from .core import Kernel1D, Kernel2D, Kernel
 from .utils import has_even_axis, raise_even_kernel_exception
-from ..modeling import models
-from ..modeling.core import Fittable1DModel, Fittable2DModel
-from ..utils.decorators import deprecated_renamed_argument
+from astropy.modeling import models
+from astropy.modeling.core import Fittable1DModel, Fittable2DModel
+from astropy.utils.decorators import deprecated_renamed_argument
 
 __all__ = ['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
            'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',

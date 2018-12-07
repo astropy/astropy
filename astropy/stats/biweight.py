@@ -8,7 +8,7 @@ Tukey's biweight function.
 import numpy as np
 
 from .funcs import median_absolute_deviation
-from ..utils.decorators import deprecated_renamed_argument
+from astropy.utils.decorators import deprecated_renamed_argument
 
 
 __all__ = ['biweight_location', 'biweight_scale', 'biweight_midvariance',

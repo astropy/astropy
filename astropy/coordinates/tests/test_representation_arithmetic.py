@@ -5,17 +5,17 @@ import functools
 import pytest
 import numpy as np
 
-from ... import units as u
-from .. import (PhysicsSphericalRepresentation, CartesianRepresentation,
+from astropy import units as u
+from astropy.coordinates import (PhysicsSphericalRepresentation, CartesianRepresentation,
                 CylindricalRepresentation, SphericalRepresentation,
                 UnitSphericalRepresentation, SphericalDifferential,
                 CartesianDifferential, UnitSphericalDifferential,
                 SphericalCosLatDifferential, UnitSphericalCosLatDifferential,
                 PhysicsSphericalDifferential, CylindricalDifferential,
                 RadialRepresentation, RadialDifferential, Longitude, Latitude)
-from ..representation import DIFFERENTIAL_CLASSES
-from ..angle_utilities import angular_separation
-from ...tests.helper import assert_quantity_allclose, quantity_allclose
+from astropy.coordinates.representation import DIFFERENTIAL_CLASSES
+from astropy.coordinates.angle_utilities import angular_separation
+from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 
 
 def assert_representation_allclose(actual, desired, rtol=1.e-7, atol=None,

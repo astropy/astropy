@@ -10,7 +10,7 @@ compatibility is no longer supported.
 """
 import builtins
 import warnings
-from ..utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .helper import enable_deprecations_as_exceptions
 from .plugins.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS

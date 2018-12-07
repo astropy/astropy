@@ -10,10 +10,10 @@ import numpy as np
 
 from . import scalar_inv_efuncs
 
-from .. import constants as const
-from .. import units as u
-from ..utils import isiterable
-from ..utils.state import ScienceState
+from astropy import constants as const
+from astropy import units as u
+from astropy.utils import isiterable
+from astropy.utils.state import ScienceState
 
 from . import parameters
 

@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # LOCAL
-from ....utils.xml.iterparser import _fast_iterparse
+from astropy.utils.xml.iterparser import _fast_iterparse
 
 # SYSTEM
 import io

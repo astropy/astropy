@@ -18,7 +18,7 @@ from .integrated_client import *
 from .hub_proxy import *
 
 
-from .. import config as _config
+from astropy import config as _config
 
 
 class Conf(_config.ConfigNamespace):

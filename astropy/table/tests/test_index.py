@@ -4,13 +4,13 @@ import pytest
 import numpy as np
 
 from .test_table import SetupData
-from ..bst import BST, FastRBT, FastBST
-from ..sorted_array import SortedArray
-from ..soco import SCEngine, HAS_SOCO
-from ..table import QTable, Row, Table
-from ... import units as u
-from ...time import Time
-from ..column import BaseColumn
+from astropy.table.bst import BST, FastRBT, FastBST
+from astropy.table.sorted_array import SortedArray
+from astropy.table.soco import SCEngine, HAS_SOCO
+from astropy.table.table import QTable, Row, Table
+from astropy import units as u
+from astropy.time import Time
+from astropy.table.column import BaseColumn
 
 try:
     import bintrees

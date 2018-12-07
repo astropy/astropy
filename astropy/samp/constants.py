@@ -4,7 +4,7 @@ Defines constants used in `astropy.samp`.
 """
 
 
-from ..utils.data import get_pkg_data_filename
+from astropy.utils.data import get_pkg_data_filename
 
 __all__ = ['SAMP_STATUS_OK', 'SAMP_STATUS_WARNING', 'SAMP_STATUS_ERROR',
            'SAFE_MTYPES', 'SAMP_ICON']

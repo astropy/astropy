@@ -7,7 +7,7 @@ import warnings
 import numpy as np
 
 from .core import CosmologyError
-from ..units import Quantity
+from astropy.units import Quantity
 
 __all__ = ['z_at_value']
 
