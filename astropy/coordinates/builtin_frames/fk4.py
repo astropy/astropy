@@ -3,15 +3,15 @@
 
 import numpy as np
 
-from ... import units as u
-from ...utils.decorators import format_doc
-from ..baseframe import frame_transform_graph, base_doc
-from ..attributes import TimeAttribute
-from ..transformations import (FunctionTransformWithFiniteDifference,
+from astropy import units as u
+from astropy.utils.decorators import format_doc
+from astropy.coordinates.baseframe import frame_transform_graph, base_doc
+from astropy.coordinates.attributes import TimeAttribute
+from astropy.coordinates.transformations import (FunctionTransformWithFiniteDifference,
                                FunctionTransform, DynamicMatrixTransform)
-from ..representation import (CartesianRepresentation,
+from astropy.coordinates.representation import (CartesianRepresentation,
                               UnitSphericalRepresentation)
-from .. import earth_orientation as earth
+from astropy.coordinates import earth_orientation as earth
 
 from .utils import EQUINOX_B1950
 from .baseradec import doc_components, BaseRADecFrame

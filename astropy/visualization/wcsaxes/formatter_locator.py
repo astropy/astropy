@@ -15,9 +15,9 @@ import numpy as np
 
 from matplotlib import rcParams
 
-from ... import units as u
-from ...units import UnitsError
-from ...coordinates import Angle
+from astropy import units as u
+from astropy.units import UnitsError
+from astropy.coordinates import Angle
 
 DMS_RE = re.compile('^dd(:mm(:ss(.(s)+)?)?)?$')
 HMS_RE = re.compile('^hh(:mm(:ss(.(s)+)?)?)?$')

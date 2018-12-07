@@ -3,8 +3,8 @@
 import operator
 import warnings
 
-from ...utils import indent
-from ...utils.exceptions import AstropyUserWarning
+from astropy.utils import indent
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 class VerifyError(Exception):

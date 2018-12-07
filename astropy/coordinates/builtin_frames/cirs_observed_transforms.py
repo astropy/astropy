@@ -7,12 +7,12 @@ Currently that just means AltAz.
 
 import numpy as np
 
-from ... import units as u
-from ..baseframe import frame_transform_graph
-from ..transformations import FunctionTransformWithFiniteDifference
-from ..representation import (SphericalRepresentation,
+from astropy import units as u
+from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
+from astropy.coordinates.representation import (SphericalRepresentation,
                               UnitSphericalRepresentation)
-from ... import _erfa as erfa
+from astropy import _erfa as erfa
 
 from .cirs import CIRS
 from .altaz import AltAz

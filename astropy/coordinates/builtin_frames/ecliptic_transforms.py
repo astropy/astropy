@@ -4,19 +4,19 @@
 Contains the transformation functions for getting to/from ecliptic systems.
 """
 
-from ... import units as u
-from ..baseframe import frame_transform_graph
-from ..transformations import FunctionTransformWithFiniteDifference, DynamicMatrixTransform
-from ..matrix_utilities import (rotation_matrix,
+from astropy import units as u
+from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference, DynamicMatrixTransform
+from astropy.coordinates.matrix_utilities import (rotation_matrix,
                                 matrix_product, matrix_transpose)
-from ..representation import CartesianRepresentation
-from ... import _erfa as erfa
+from astropy.coordinates.representation import CartesianRepresentation
+from astropy import _erfa as erfa
 
 from .icrs import ICRS
 from .gcrs import GCRS
 from .ecliptic import GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
 from .utils import get_jd12
-from ..errors import UnitsError
+from astropy.coordinates.errors import UnitsError
 
 
 def _ecliptic_rotation_matrix(equinox):
@@ -80,7 +80,7 @@ def icrs_to_helioecliptic(from_coo, to_frame):
 
     # get barycentric sun coordinate
     # this goes here to avoid circular import errors
-    from ..solar_system import get_body_barycentric
+    from astropy.coordinates.solar_system import get_body_barycentric
     bary_sun_pos = get_body_barycentric('sun', to_frame.obstime)
 
     # offset to heliocentric
@@ -107,7 +107,7 @@ def helioecliptic_to_icrs(from_coo, to_frame):
     # now offset back to barycentric, which is the correct center for ICRS
 
     # this goes here to avoid circular import errors
-    from ..solar_system import get_body_barycentric
+    from astropy.coordinates.solar_system import get_body_barycentric
 
     # get barycentric sun coordinate
     bary_sun_pos = get_body_barycentric('sun', from_coo.obstime)

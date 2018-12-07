@@ -11,7 +11,7 @@ def test_imports():
     dependencies that sneak through
     """
 
-    from ...utils import find_current_module
+    from astropy.utils import find_current_module
 
     pkgornm = find_current_module(1).__name__.split('.')[0]
 

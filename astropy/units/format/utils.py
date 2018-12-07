@@ -8,7 +8,7 @@ Utilities shared by the different formats.
 import warnings
 from fractions import Fraction
 
-from ...utils.misc import did_you_mean
+from astropy.utils.misc import did_you_mean
 
 
 def get_grouped_by_powers(bases, powers):
@@ -94,7 +94,7 @@ def decompose_to_known_units(unit, func):
     unit : `~astropy.units.UnitBase` instance
         A flattened unit.
     """
-    from .. import core
+    from astropy.units import core
     if isinstance(unit, core.CompositeUnit):
         new_unit = core.Unit(unit.scale)
         for base, power in zip(unit.bases, unit.powers):
@@ -208,7 +208,7 @@ def unit_deprecation_warning(s, unit, standard_name, format_decomposed):
         A function to turn a decomposed version of the unit into a
         string.  Should return `None` if not possible
     """
-    from ..core import UnitsWarning
+    from astropy.units.core import UnitsWarning
 
     message = "The unit '{0}' has been deprecated in the {1} standard.".format(
         s, standard_name)

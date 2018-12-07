@@ -1,8 +1,8 @@
 import sys
 
-from ..hub_script import hub_script
+from astropy.samp.hub_script import hub_script
 
-from .. import conf
+from astropy.samp import conf
 
 
 def setup_module(module):

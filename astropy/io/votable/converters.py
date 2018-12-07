@@ -16,7 +16,7 @@ import numpy as np
 from numpy import ma
 
 # ASTROPY
-from ...utils.xml.writer import xml_escape_cdata
+from astropy.utils.xml.writer import xml_escape_cdata
 
 # LOCAL
 from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01,

@@ -20,8 +20,8 @@ from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
                    NotifierMixin)
 from .verify import VerifyError, VerifyWarning
 
-from ...utils import lazyproperty, isiterable, indent
-from ...utils.exceptions import AstropyUserWarning
+from astropy.utils import lazyproperty, isiterable, indent
+from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ['Column', 'ColDefs', 'Delayed']
 

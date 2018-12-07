@@ -18,11 +18,11 @@ except ImportError:
     # For Numpy versions that do not raise this warning.
     MaskedArrayFutureWarning = None
 
-from ..units import Unit, Quantity
-from ..utils.console import color_print
-from ..utils.metadata import MetaData
-from ..utils.data_info import BaseColumnInfo, dtype_info_name
-from ..utils.misc import dtype_bytes_or_chars
+from astropy.units import Unit, Quantity
+from astropy.utils.console import color_print
+from astropy.utils.metadata import MetaData
+from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
+from astropy.utils.misc import dtype_bytes_or_chars
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
@@ -866,7 +866,7 @@ class Column(BaseColumn):
         descr = '<' + ' '.join(descr_vals) + '>\n'
 
         if html:
-            from ..utils.xml.writer import xml_escape
+            from astropy.utils.xml.writer import xml_escape
             descr = xml_escape(descr)
 
         data_lines, outs = self._formatter._pformat_col(

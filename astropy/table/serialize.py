@@ -3,10 +3,10 @@ import re
 from copy import deepcopy
 from collections import OrderedDict
 
-from ..utils.data_info import MixinInfo
+from astropy.utils.data_info import MixinInfo
 from .column import Column
 from .table import Table, QTable, has_info_class
-from ..units.quantity import QuantityInfo
+from astropy.units.quantity import QuantityInfo
 
 
 __construct_mixin_classes = ('astropy.time.core.Time',

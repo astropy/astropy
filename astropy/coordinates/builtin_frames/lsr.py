@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ... import units as u
-from ...utils.decorators import format_doc
-from ...time import Time
-from .. import representation as r
-from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
+from astropy import units as u
+from astropy.utils.decorators import format_doc
+from astropy.time import Time
+from astropy.coordinates import representation as r
+from astropy.coordinates.baseframe import (BaseCoordinateFrame, RepresentationMapping,
                          frame_transform_graph, base_doc)
-from ..transformations import AffineTransform
-from ..attributes import DifferentialAttribute
+from astropy.coordinates.transformations import AffineTransform
+from astropy.coordinates.attributes import DifferentialAttribute
 
 from .baseradec import BaseRADecFrame, doc_components as doc_components_radec
 from .icrs import ICRS

@@ -7,8 +7,8 @@ because they are required for VOUnit support but are not in common use."""
 
 import pytest
 
-from .. import deprecated, required_by_vounit
-from ... import units as u
+from astropy.units import deprecated, required_by_vounit
+from astropy import units as u
 
 
 def test_emu():

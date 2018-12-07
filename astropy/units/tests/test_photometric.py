@@ -7,10 +7,10 @@ might be expected because a lot of the relevant tests that deal
 with magnidues are in `test_logarithmic.py`
 """
 
-from ...tests.helper import assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose
 
-from .. import Magnitude, mgy, nmgy, ABflux, STflux, zero_point_flux, Jy
-from .. import erg, cm, s, AA
+from astropy.units import Magnitude, mgy, nmgy, ABflux, STflux, zero_point_flux, Jy
+from astropy.units import erg, cm, s, AA
 
 
 def test_maggies():

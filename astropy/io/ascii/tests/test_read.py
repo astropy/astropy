@@ -13,16 +13,16 @@ import pathlib
 import pytest
 import numpy as np
 
-from ... import ascii
-from ....table import Table
-from .... import table
-from ....units import Unit
-from ....table.table_helpers import simple_table
+from astropy.io import ascii
+from astropy.table import Table
+from astropy import table
+from astropy.units import Unit
+from astropy.table.table_helpers import simple_table
 
 from .common import (raises, assert_equal, assert_almost_equal,
                      assert_true)
-from .. import core
-from ..ui import _probably_html, get_read_trace, cparser
+from astropy.io.ascii import core
+from astropy.io.ascii.ui import _probably_html, get_read_trace, cparser
 
 # setup/teardown function to have the tests run in the correct directory
 from .common import setup_function, teardown_function

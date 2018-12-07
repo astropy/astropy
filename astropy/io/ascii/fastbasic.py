@@ -5,9 +5,9 @@ import copy
 from collections import OrderedDict
 
 from . import core
-from ...table import Table
+from astropy.table import Table
 from . import cparser
-from ...utils import set_locale
+from astropy.utils import set_locale
 
 
 class FastBasic(metaclass=core.MetaBaseReader):

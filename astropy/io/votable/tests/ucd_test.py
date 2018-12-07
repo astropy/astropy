@@ -3,10 +3,10 @@
 
 
 
-from ....tests.helper import raises
+from astropy.tests.helper import raises
 
 # LOCAL
-from .. import ucd
+from astropy.io.votable import ucd
 
 
 def test_none():

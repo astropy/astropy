@@ -6,7 +6,7 @@ import copy
 import pytest
 import numpy as np
 
-from .. import Time
+from astropy.time import Time
 
 
 @pytest.fixture(scope="module", params=[True, False])

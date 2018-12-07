@@ -11,8 +11,8 @@ is instead primarily for internal use in `coordinates`
 
 import numpy as np
 
-from ..time import Time
-from .. import units as u
+from astropy.time import Time
+from astropy import units as u
 from .matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 
 

@@ -5,7 +5,7 @@ Test ``allclose`` and ``isclose``.
 import numpy as np
 import pytest
 
-from ... import units as u
+from astropy import units as u
 
 
 @pytest.mark.parametrize(

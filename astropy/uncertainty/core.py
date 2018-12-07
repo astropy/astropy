@@ -7,9 +7,9 @@ Distribution class and associated machinery.
 
 import numpy as np
 
-from .. import units as u
-from .. import visualization
-from .. import stats
+from astropy import units as u
+from astropy import visualization
+from astropy import stats
 
 __all__ = ['Distribution']
 

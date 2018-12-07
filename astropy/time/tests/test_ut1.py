@@ -4,8 +4,8 @@ import functools
 import pytest
 import numpy as np
 
-from .. import Time
-from ...utils.iers import iers  # used in testing
+from astropy.time import Time
+from astropy.utils.iers import iers  # used in testing
 
 allclose_jd = functools.partial(np.allclose, rtol=0, atol=1e-9)
 allclose_sec = functools.partial(np.allclose, rtol=1e-15, atol=1e-4)

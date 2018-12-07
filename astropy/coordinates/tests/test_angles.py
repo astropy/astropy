@@ -6,9 +6,9 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
-from ..angles import Longitude, Latitude, Angle
-from ... import units as u
-from ..errors import (IllegalSecondError, IllegalMinuteError, IllegalHourError,
+from astropy.coordinates.angles import Longitude, Latitude, Angle
+from astropy import units as u
+from astropy.coordinates.errors import (IllegalSecondError, IllegalMinuteError, IllegalHourError,
                       IllegalSecondWarning, IllegalMinuteWarning)
 
 
@@ -902,9 +902,9 @@ def test_angle_with_cds_units_enabled():
     Especially the example in
     https://github.com/astropy/astropy/issues/5350#issuecomment-248770151
     """
-    from ...units import cds
+    from astropy.units import cds
     # the problem is with the parser, so remove it temporarily
-    from ..angle_utilities import _AngleParser
+    from astropy.coordinates.angle_utilities import _AngleParser
     del _AngleParser._parser
     with cds.enable():
         Angle('5d')

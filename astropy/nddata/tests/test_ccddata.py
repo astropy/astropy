@@ -6,19 +6,19 @@ import textwrap
 import numpy as np
 import pytest
 
-from ...io import fits
-from ..nduncertainty import (
+from astropy.io import fits
+from astropy.nddata.nduncertainty import (
     StdDevUncertainty, MissingDataAssociationException, VarianceUncertainty,
     InverseVariance)
-from ... import units as u
-from ... import log
-from ...wcs import WCS, FITSFixedWarning
-from ...tests.helper import catch_warnings
-from ...utils import NumpyRNGContext
-from ...utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
+from astropy import units as u
+from astropy import log
+from astropy.wcs import WCS, FITSFixedWarning
+from astropy.tests.helper import catch_warnings
+from astropy.utils import NumpyRNGContext
+from astropy.utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
                            get_pkg_data_contents)
 
-from ..ccddata import CCDData
+from astropy.nddata.ccddata import CCDData
 from astropy.table import Table
 
 # If additional pytest markers are defined the key in the dictionary below
@@ -649,7 +649,7 @@ def test_wcs_keywords_removed_from_header():
     Test, for the file included with the nddata tests, that WCS keywords are
     properly removed from header.
     """
-    from ..ccddata import _KEEP_THESE_KEYWORDS_IN_HEADER
+    from astropy.nddata.ccddata import _KEEP_THESE_KEYWORDS_IN_HEADER
     keepers = set(_KEEP_THESE_KEYWORDS_IN_HEADER)
     data_file = get_pkg_data_filename('data/sip-wcs.fits')
     ccd = CCDData.read(data_file)
@@ -668,8 +668,8 @@ def test_wcs_keyword_removal_for_wcs_test_files():
     expected. Those cover a much broader range of WCS types than
     test_wcs_keywords_removed_from_header
     """
-    from ..ccddata import _generate_wcs_and_update_header
-    from ..ccddata import _KEEP_THESE_KEYWORDS_IN_HEADER
+    from astropy.nddata.ccddata import _generate_wcs_and_update_header
+    from astropy.nddata.ccddata import _KEEP_THESE_KEYWORDS_IN_HEADER
 
     keepers = set(_KEEP_THESE_KEYWORDS_IN_HEADER)
     wcs_headers = get_pkg_data_filenames('../../wcs/tests/data',

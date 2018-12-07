@@ -5,7 +5,7 @@ from io import StringIO
 
 import numpy as np
 
-from ... import ascii
+from astropy.io import ascii
 
 from .common import assert_equal
 

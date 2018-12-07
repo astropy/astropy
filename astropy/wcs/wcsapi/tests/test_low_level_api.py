@@ -1,6 +1,6 @@
 from pytest import raises
 
-from ..low_level_api import validate_physical_types
+from astropy.wcs.wcsapi.low_level_api import validate_physical_types
 
 
 def test_validate_physical_types():

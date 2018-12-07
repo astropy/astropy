@@ -3,8 +3,8 @@
 import pytest
 import numpy as np
 
-from ... import convolution as conv
-from ...tests.helper import pickle_protocol, check_pickling_recovery  # noqa
+from astropy import convolution as conv
+from astropy.tests.helper import pickle_protocol, check_pickling_recovery  # noqa
 
 
 @pytest.mark.parametrize(("name", "args", "kwargs", "xfail"),

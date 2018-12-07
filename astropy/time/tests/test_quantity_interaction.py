@@ -4,9 +4,9 @@ import functools
 import pytest
 import numpy as np
 
-from .. import Time, TimeDelta
-from ... import units as u
-from ...table import Column
+from astropy.time import Time, TimeDelta
+from astropy import units as u
+from astropy.table import Column
 
 allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52 * 24 * 3600)  # 20 ps atol

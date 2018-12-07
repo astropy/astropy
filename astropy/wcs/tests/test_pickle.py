@@ -7,10 +7,10 @@ import pickle
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from ...utils.data import get_pkg_data_contents, get_pkg_data_fileobj
-from ...utils.misc import NumpyRNGContext
-from ...io import fits
-from ... import wcs
+from astropy.utils.data import get_pkg_data_contents, get_pkg_data_fileobj
+from astropy.utils.misc import NumpyRNGContext
+from astropy.io import fits
+from astropy import wcs
 
 
 def test_basic():

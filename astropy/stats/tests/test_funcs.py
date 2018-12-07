@@ -19,10 +19,10 @@ except ImportError:
 else:
     HAS_MPMATH = True
 
-from .. import funcs
-from ... import units as u
-from ...tests.helper import catch_warnings
-from ...utils.misc import NumpyRNGContext
+from astropy.stats import funcs
+from astropy import units as u
+from astropy.tests.helper import catch_warnings
+from astropy.utils.misc import NumpyRNGContext
 
 
 def test_median_absolute_deviation():

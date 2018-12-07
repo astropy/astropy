@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ... import units as u
-from ...utils.decorators import format_doc
-from ..angles import Angle
-from .. import representation as r
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
+from astropy import units as u
+from astropy.utils.decorators import format_doc
+from astropy.coordinates.angles import Angle
+from astropy.coordinates import representation as r
+from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
 
 # these are needed for defining the NGP
 from .fk5 import FK5

@@ -8,7 +8,7 @@ import os
 
 import numpy as np
 
-from ....table import Table, Column
+from astropy.table import Table, Column
 
 
 def ref_fk4_no_e_fk4(fnout='fk4_no_e_fk4.csv'):

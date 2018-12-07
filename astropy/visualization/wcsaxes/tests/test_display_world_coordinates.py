@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ..core import WCSAxes
+from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import KeyEvent
 
-from ....wcs import WCS
-from ....coordinates import FK5
-from ....time import Time
-from ....tests.image_tests import ignore_matplotlibrc
+from astropy.wcs import WCS
+from astropy.coordinates import FK5
+from astropy.time import Time
+from astropy.tests.image_tests import ignore_matplotlibrc
 
 from .test_images import BaseImageTests
 

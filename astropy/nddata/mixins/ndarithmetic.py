@@ -6,9 +6,9 @@ from copy import deepcopy
 
 import numpy as np
 
-from ..nduncertainty import NDUncertainty
-from ...units import dimensionless_unscaled
-from ...utils import format_doc, sharedmethod
+from astropy.nddata.nduncertainty import NDUncertainty
+from astropy.units import dimensionless_unscaled
+from astropy.utils import format_doc, sharedmethod
 
 __all__ = ['NDArithmeticMixin']
 

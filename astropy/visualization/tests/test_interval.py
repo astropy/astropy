@@ -3,9 +3,9 @@
 import pytest
 import numpy as np
 
-from ...utils import NumpyRNGContext
+from astropy.utils import NumpyRNGContext
 
-from ..interval import (ManualInterval, MinMaxInterval, PercentileInterval,
+from astropy.visualization.interval import (ManualInterval, MinMaxInterval, PercentileInterval,
                         AsymmetricPercentileInterval, ZScaleInterval)
 
 

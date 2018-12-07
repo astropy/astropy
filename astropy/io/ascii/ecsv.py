@@ -10,9 +10,9 @@ import contextlib
 import warnings
 
 from . import core, basic
-from ...table import meta, serialize
-from ...utils.data_info import serialize_context_as
-from ...utils.exceptions import AstropyWarning
+from astropy.table import meta, serialize
+from astropy.utils.data_info import serialize_context_as
+from astropy.utils.exceptions import AstropyWarning
 
 __doctest_requires__ = {'Ecsv': ['yaml']}
 

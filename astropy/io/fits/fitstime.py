@@ -8,13 +8,13 @@ import numpy as np
 
 from . import Header, Card
 
-from ... import units as u
-from ...coordinates import EarthLocation
-from ...table import Column
-from ...time import Time, TimeDelta
-from ...time.core import BARYCENTRIC_SCALES
-from ...time.formats import FITS_DEPRECATED_SCALES
-from ...utils.exceptions import AstropyUserWarning
+from astropy import units as u
+from astropy.coordinates import EarthLocation
+from astropy.table import Column
+from astropy.time import Time, TimeDelta
+from astropy.time.core import BARYCENTRIC_SCALES
+from astropy.time.formats import FITS_DEPRECATED_SCALES
+from astropy.utils.exceptions import AstropyUserWarning
 
 # The following is based on the FITS WCS Paper IV, "Representations of time
 # coordinates in FITS".

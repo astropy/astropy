@@ -1,9 +1,9 @@
 from pytest import raises
 
-from ....tests.helper import assert_quantity_allclose
-from .... import units as u
+from astropy.tests.helper import assert_quantity_allclose
+from astropy import units as u
 
-from ..utils import deserialize_class
+from astropy.wcs.wcsapi.utils import deserialize_class
 
 
 def test_construct():

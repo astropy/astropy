@@ -11,15 +11,15 @@ import numpy as np
 
 from numpy.testing import assert_allclose
 
-from .. import fitting
-from ... import wcs
-from ...io import fits
-from ..polynomial import (Chebyshev1D, Hermite1D, Legendre1D, Polynomial1D,
+from astropy.modeling import fitting
+from astropy import wcs
+from astropy.io import fits
+from astropy.modeling.polynomial import (Chebyshev1D, Hermite1D, Legendre1D, Polynomial1D,
                           Chebyshev2D, Hermite2D, Legendre2D, Polynomial2D, SIP,
                           PolynomialBase, OrthoPolynomialBase)
-from ..functional_models import Linear1D
-from ..mappings import Identity
-from ...utils.data import get_pkg_data_filename
+from astropy.modeling.functional_models import Linear1D
+from astropy.modeling.mappings import Identity
+from astropy.utils.data import get_pkg_data_filename
 
 try:
     from scipy import optimize  # pylint: disable=W0611

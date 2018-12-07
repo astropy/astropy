@@ -21,12 +21,12 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 # LOCAL
-from ..table import parse, parse_single_table, validate
-from .. import tree
-from ..exceptions import VOTableSpecError, VOWarning
-from ..xmlutil import validate_schema
-from ....utils.data import get_pkg_data_filename, get_pkg_data_filenames
-from ....tests.helper import raises, catch_warnings
+from astropy.io.votable.table import parse, parse_single_table, validate
+from astropy.io.votable import tree
+from astropy.io.votable.exceptions import VOTableSpecError, VOWarning
+from astropy.io.votable.xmlutil import validate_schema
+from astropy.utils.data import get_pkg_data_filename, get_pkg_data_filenames
+from astropy.tests.helper import raises, catch_warnings
 
 # Determine the kind of float formatting in this build of Python
 if hasattr(sys, 'float_repr_style'):
@@ -693,7 +693,7 @@ class TestThroughBinary2(TestParse):
 
 
 def table_from_scratch():
-    from ..tree import VOTableFile, Resource, Table, Field
+    from astropy.io.votable.tree import VOTableFile, Resource, Table, Field
 
     # Create a new VOTable file...
     votable = VOTableFile()
@@ -864,7 +864,7 @@ def test_from_scratch_example():
 
 
 def _run_test_from_scratch_example():
-    from ..tree import VOTableFile, Resource, Table, Field
+    from astropy.io.votable.tree import VOTableFile, Resource, Table, Field
 
     # Create a new VOTable file...
     votable = VOTableFile()
@@ -896,7 +896,7 @@ def _run_test_from_scratch_example():
 def test_fileobj():
     # Assert that what we get back is a raw C file pointer
     # so it will be super fast in the C extension.
-    from ....utils.xml import iterparser
+    from astropy.utils.xml import iterparser
     filename = get_pkg_data_filename('data/regression.xml')
     with iterparser._convert_to_fd_or_read_function(filename) as fd:
         if sys.platform == 'win32':
@@ -906,7 +906,7 @@ def test_fileobj():
 
 
 def test_nonstandard_units():
-    from .... import units as u
+    from astropy import units as u
 
     votable = parse(
         get_pkg_data_filename('data/nonstandard_units.xml'),

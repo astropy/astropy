@@ -9,11 +9,11 @@ import warnings
 
 import numpy as np
 
-from ... import units as u
-from ... import _erfa as erfa
-from ...time import Time
-from ...utils import iers
-from ...utils.exceptions import AstropyWarning
+from astropy import units as u
+from astropy import _erfa as erfa
+from astropy.time import Time
+from astropy.utils import iers
+from astropy.utils.exceptions import AstropyWarning
 
 
 # The UTC time scale is not properly defined prior to 1960, so Time('B1950',
@@ -279,7 +279,7 @@ def prepare_earth_position_vel(time):
         Heliocentric position of Earth in au
     """
     # this goes here to avoid circular import errors
-    from ..solar_system import (get_body_barycentric, get_body_barycentric_posvel)
+    from astropy.coordinates.solar_system import (get_body_barycentric, get_body_barycentric_posvel)
     # get barycentric position and velocity of earth
     earth_p, earth_v = get_body_barycentric_posvel('earth', time)
 

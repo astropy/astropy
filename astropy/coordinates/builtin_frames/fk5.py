@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ...utils.decorators import format_doc
-from ..baseframe import frame_transform_graph, base_doc
-from ..attributes import TimeAttribute
-from ..transformations import DynamicMatrixTransform
-from .. import earth_orientation as earth
+from astropy.utils.decorators import format_doc
+from astropy.coordinates.baseframe import frame_transform_graph, base_doc
+from astropy.coordinates.attributes import TimeAttribute
+from astropy.coordinates.transformations import DynamicMatrixTransform
+from astropy.coordinates import earth_orientation as earth
 
 from .baseradec import BaseRADecFrame, doc_components
 from .utils import EQUINOX_J2000

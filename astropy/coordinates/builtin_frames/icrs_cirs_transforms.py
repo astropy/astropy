@@ -7,12 +7,12 @@ anything in between (currently that means GCRS)
 
 import numpy as np
 
-from ... import units as u
-from ..baseframe import frame_transform_graph
-from ..transformations import FunctionTransformWithFiniteDifference, AffineTransform
-from ..representation import (SphericalRepresentation, CartesianRepresentation,
+from astropy import units as u
+from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference, AffineTransform
+from astropy.coordinates.representation import (SphericalRepresentation, CartesianRepresentation,
                               UnitSphericalRepresentation)
-from ... import _erfa as erfa
+from astropy import _erfa as erfa
 
 from .icrs import ICRS
 from .gcrs import GCRS
@@ -287,13 +287,13 @@ def hcrs_to_icrs(hcrs_coo, icrs_frame):
         raise u.UnitsError(_NEED_ORIGIN_HINT.format(hcrs_coo.__class__.__name__))
 
     if hcrs_coo.data.differentials:
-        from ..solar_system import get_body_barycentric_posvel
+        from astropy.coordinates.solar_system import get_body_barycentric_posvel
         bary_sun_pos, bary_sun_vel = get_body_barycentric_posvel('sun',
                                                                  hcrs_coo.obstime)
         bary_sun_pos = bary_sun_pos.with_differentials(bary_sun_vel)
 
     else:
-        from ..solar_system import get_body_barycentric
+        from astropy.coordinates.solar_system import get_body_barycentric
         bary_sun_pos = get_body_barycentric('sun', hcrs_coo.obstime)
         bary_sun_vel = None
 
@@ -307,13 +307,13 @@ def icrs_to_hcrs(icrs_coo, hcrs_frame):
         raise u.UnitsError(_NEED_ORIGIN_HINT.format(icrs_coo.__class__.__name__))
 
     if icrs_coo.data.differentials:
-        from ..solar_system import get_body_barycentric_posvel
+        from astropy.coordinates.solar_system import get_body_barycentric_posvel
         bary_sun_pos, bary_sun_vel = get_body_barycentric_posvel('sun',
                                                                  hcrs_frame.obstime)
         bary_sun_pos = -bary_sun_pos.with_differentials(-bary_sun_vel)
 
     else:
-        from ..solar_system import get_body_barycentric
+        from astropy.coordinates.solar_system import get_body_barycentric
         bary_sun_pos = -get_body_barycentric('sun', hcrs_frame.obstime)
         bary_sun_vel = None
 

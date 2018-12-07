@@ -2,7 +2,7 @@
 # This module implements the Slicing mixin to the NDData class.
 
 
-from ... import log
+from astropy import log
 
 __all__ = ['NDSlicingMixin']
 

@@ -6,7 +6,7 @@ import warnings
 import numpy as np
 from numpy import matmul as np_matmul
 
-from ....exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['matmul', 'GE1P10']
 

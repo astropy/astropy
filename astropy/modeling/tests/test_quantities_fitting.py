@@ -8,12 +8,12 @@ Tests that relate to fitting models with quantity parameters
 import numpy as np
 import pytest
 
-from ..models import Gaussian1D
-from ... import units as u
-from ...units import UnitsError
-from ...tests.helper import assert_quantity_allclose
-from ...utils import NumpyRNGContext
-from .. import fitting
+from astropy.modeling.models import Gaussian1D
+from astropy import units as u
+from astropy.units import UnitsError
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils import NumpyRNGContext
+from astropy.modeling import fitting
 
 try:
     from scipy import optimize

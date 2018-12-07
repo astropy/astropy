@@ -6,7 +6,7 @@
 import pytest
 import numpy as np
 
-from ..data_info import dtype_info_name
+from astropy.utils.data_info import dtype_info_name
 
 STRING_TYPE_NAMES = {(True, 'S'): 'bytes',
                      (True, 'U'): 'str'}

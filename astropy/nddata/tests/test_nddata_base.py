@@ -2,7 +2,7 @@
 # Tests of NDDataBase
 
 
-from ..nddata_base import NDDataBase
+from astropy.nddata.nddata_base import NDDataBase
 
 
 class MinimalSubclass(NDDataBase):

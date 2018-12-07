@@ -1,6 +1,6 @@
 import numpy as np
 
-from .. import np_utils
+from astropy.table import np_utils
 
 
 def test_common_dtype():

@@ -10,18 +10,18 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ...tests.helper import raises, catch_warnings
+from astropy.tests.helper import raises, catch_warnings
 
-from ... import units as u
-from ... import constants as c
-from .. import utils
+from astropy import units as u
+from astropy import constants as c
+from astropy.units import utils
 
 
 def test_getting_started():
     """
     Corresponds to "Getting Started" section in the docs.
     """
-    from .. import imperial
+    from astropy.units import imperial
     with imperial.enable():
         speed_unit = u.cm / u.s
         x = speed_unit.to(imperial.mile / u.hour, 1)
@@ -282,8 +282,8 @@ def test_decompose_bases():
     From issue #576
     """
 
-    from .. import cgs
-    from ...constants import e
+    from astropy.units import cgs
+    from astropy.constants import e
 
     d = e.esu.unit.decompose(bases=cgs.bases)
     assert d._bases == [u.cm, u.g, u.s]
@@ -388,7 +388,7 @@ def test_to_cgs():
 
 
 def test_decompose_to_cgs():
-    from .. import cgs
+    from astropy.units import cgs
     assert u.m.decompose(bases=cgs.bases)._bases[0] is cgs.cm
 
 
@@ -568,7 +568,7 @@ def test_duplicate_define():
 
 
 def test_all_units():
-    from ...units.core import get_current_unit_registry
+    from astropy.units.core import get_current_unit_registry
     registry = get_current_unit_registry()
     assert len(registry.all_units) > len(registry.non_prefix_units)
 
@@ -595,7 +595,7 @@ def test_comparison():
 
 def test_compose_into_arbitrary_units():
     # Issue #1438
-    from ...constants import G
+    from astropy.constants import G
     G.decompose([u.kg, u.km, u.Unit("15 s")])
 
 
@@ -638,7 +638,7 @@ def test_composite_unit_get_format_name():
 
 
 def test_unicode_policy():
-    from ...tests.helper import assert_follows_unicode_guidelines
+    from astropy.tests.helper import assert_follows_unicode_guidelines
 
     assert_follows_unicode_guidelines(
         u.degree, roundtrip=u.__dict__)
@@ -774,12 +774,12 @@ def test_fractional_rounding_errors_simple():
 
 
 def test_enable_unit_groupings():
-    from ...units import cds
+    from astropy.units import cds
 
     with cds.enable():
         assert cds.geoMass in u.kg.find_equivalent_units()
 
-    from ...units import imperial
+    from astropy.units import imperial
     with imperial.enable():
         assert imperial.inch in u.m.find_equivalent_units()
 
@@ -792,7 +792,7 @@ def test_unit_summary_prefixes():
     Regression test for https://github.com/astropy/astropy/issues/3835
     """
 
-    from .. import astrophys
+    from astropy.units import astrophys
 
     for summary in utils._iter_unit_summary(astrophys.__dict__):
         unit, _, _, _, prefixes = summary

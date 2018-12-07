@@ -6,10 +6,10 @@ import os
 
 from . import parse, from_table
 from .tree import VOTableFile, Table as VOTable
-from .. import registry as io_registry
-from ...table import Table
-from ...table.column import BaseColumn
-from ...units import Quantity
+from astropy.io import registry as io_registry
+from astropy.table import Table
+from astropy.table.column import BaseColumn
+from astropy.units import Quantity
 
 
 def is_votable(origin, filepath, fileobj, *args, **kwargs):

@@ -13,9 +13,9 @@ import warnings
 
 import numpy as np
 
-from ..utils.decorators import lazyproperty
-from ..utils.exceptions import AstropyWarning
-from ..utils.misc import isiterable, InheritDocstrings
+from astropy.utils.decorators import lazyproperty
+from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.misc import isiterable, InheritDocstrings
 from .utils import (is_effectively_unity, sanitize_scale, validate_power,
                     resolve_fractions)
 from . import format as unit_format

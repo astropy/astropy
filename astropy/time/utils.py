@@ -8,7 +8,7 @@ Geometry 18(3):305-363 -- http://www.cs.berkeley.edu/~jrs/papers/robustr.pdf
 """
 
 import numpy as np
-from .. import units as u
+from astropy import units as u
 
 
 def day_frac(val1, val2, factor=1., divisor=1.):

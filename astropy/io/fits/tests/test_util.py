@@ -15,9 +15,9 @@ try:
 except ImportError:
     HAS_PIL = False
 
-from ....tests.helper import catch_warnings
-from .. import util
-from ..util import ignore_sigint, _rstrip_inplace
+from astropy.tests.helper import catch_warnings
+from astropy.io.fits import util
+from astropy.io.fits.util import ignore_sigint, _rstrip_inplace
 
 from . import FitsTestCase
 

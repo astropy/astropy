@@ -10,10 +10,10 @@ import urllib.request
 import pytest
 import numpy as np
 
-from ..name_resolve import (get_icrs_coordinates, NameResolveError,
+from astropy.coordinates.name_resolve import (get_icrs_coordinates, NameResolveError,
                             sesame_database, _parse_response, sesame_url)
-from ..sky_coordinate import SkyCoord
-from ... import units as u
+from astropy.coordinates.sky_coordinate import SkyCoord
+from astropy import units as u
 
 _cached_ngc3642 = dict()
 _cached_ngc3642["simbad"] = """# NGC 3642    #Q22523669

@@ -5,11 +5,11 @@
 import pytest
 import numpy as np
 
-from ... import table
-from ...table import Table, QTable
-from ...table.table_helpers import simple_table
-from ... import units as u
-from ...utils import console
+from astropy import table
+from astropy.table import Table, QTable
+from astropy.table.table_helpers import simple_table
+from astropy import units as u
+from astropy.utils import console
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
 SMALL_ARR = np.arange(18, dtype=np.int64).reshape(6, 3)
@@ -293,7 +293,7 @@ class TestFormat():
         assert t['a'].format == '%4.2f {0:}'  # format did not change
 
     def test_column_format_with_threshold(self, table_type):
-        from ... import conf
+        from astropy import conf
         with conf.set_temp('max_lines', 8):
             t = table_type([np.arange(20)], names=['a'])
             t['a'].format = '%{0:}'
@@ -413,7 +413,7 @@ class TestFormatWithMaskedElements():
         assert str(t['a']) == '   a   \n-------\n     --\n%4.2f 2\n     --'
 
     def test_column_format_with_threshold(self, table_type):
-        from ... import conf
+        from astropy import conf
         with conf.set_temp('max_lines', 8):
             t = table_type([np.arange(20)], names=['a'])
             t['a'].format = '%{0:}'

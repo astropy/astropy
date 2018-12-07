@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from inspect import isclass
 
 import numpy as np
-from ..utils.data_info import DataInfo
+from astropy.utils.data_info import DataInfo
 
 __all__ = ['table_info', 'TableInfo', 'serialize_method_as']
 

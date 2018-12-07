@@ -12,9 +12,9 @@ import pytest
 
 import numpy as np
 
-from ... import units as u
-from ...tests.helper import assert_quantity_allclose
-from .. import (SkyCoord, ICRS, SphericalRepresentation, SphericalDifferential,
+from astropy import units as u
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.coordinates import (SkyCoord, ICRS, SphericalRepresentation, SphericalDifferential,
                 SphericalCosLatDifferential, CartesianRepresentation,
                 CartesianDifferential, Galactic, PrecessedGeocentric)
 

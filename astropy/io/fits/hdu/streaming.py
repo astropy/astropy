@@ -7,9 +7,9 @@ from .base import _BaseHDU, BITPIX2DTYPE
 from .hdulist import HDUList
 from .image import PrimaryHDU
 
-from ..file import _File
-from ..header import _pad_length
-from ..util import fileobj_name
+from astropy.io.fits.file import _File
+from astropy.io.fits.header import _pad_length
+from astropy.io.fits.util import fileobj_name
 
 
 

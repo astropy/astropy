@@ -15,7 +15,7 @@ from .coordinate_helpers import CoordinateHelper
 from .coordinates_map import CoordinatesMap
 from .patches import *
 
-from ... import config as _config
+from astropy import config as _config
 
 
 class Conf(_config.ConfigNamespace):

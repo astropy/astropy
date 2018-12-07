@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
-from .. import core as erfa
-from ...tests.helper import catch_warnings
+from astropy._erfa import core as erfa
+from astropy.tests.helper import catch_warnings
 
 
 def test_erfa_wrapper():

@@ -6,10 +6,10 @@ import os
 import pytest
 import numpy as np
 
-from ...utils.data import get_pkg_data_filenames, get_pkg_data_contents
-from ...utils.misc import NumpyRNGContext
+from astropy.utils.data import get_pkg_data_filenames, get_pkg_data_contents
+from astropy.utils.misc import NumpyRNGContext
 
-from ... import wcs
+from astropy import wcs
 
 # hdr_map_file_list = list(get_pkg_data_filenames("maps", pattern="*.hdr"))
 

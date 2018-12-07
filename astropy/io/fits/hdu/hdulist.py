@@ -15,14 +15,14 @@ from . import compressed
 from .base import _BaseHDU, _ValidHDU, _NonstandardHDU, ExtensionHDU
 from .groups import GroupsHDU
 from .image import PrimaryHDU, ImageHDU
-from ..file import _File, FILE_MODES
-from ..header import _pad_length
-from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
+from astropy.io.fits.file import _File, FILE_MODES
+from astropy.io.fits.header import _pad_length
+from astropy.io.fits.util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
                     _get_array_mmap, _free_space_check, fileobj_mode, isfile)
-from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
-from ....utils import indent
-from ....utils.exceptions import AstropyUserWarning
-from ....utils.decorators import deprecated_renamed_argument
+from astropy.io.fits.verify import _Verify, _ErrList, VerifyError, VerifyWarning
+from astropy.utils import indent
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.decorators import deprecated_renamed_argument
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
@@ -127,7 +127,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
 
     """
 
-    from .. import conf
+    from astropy.io.fits import conf
 
     if memmap is None:
         # distinguish between True (kwarg explicitly set)

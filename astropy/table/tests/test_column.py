@@ -7,9 +7,9 @@ import operator
 import pytest
 import numpy as np
 
-from ...tests.helper import assert_follows_unicode_guidelines, catch_warnings
-from ... import table
-from ... import units as u
+from astropy.tests.helper import assert_follows_unicode_guidelines, catch_warnings
+from astropy import table
+from astropy import units as u
 
 
 class TestColumn():
@@ -73,7 +73,7 @@ class TestColumn():
 
     def test_format(self, Column):
         """Show that the formatted output from str() works"""
-        from ... import conf
+        from astropy import conf
         with conf.set_temp('max_lines', 8):
             c1 = Column(np.arange(2000), name='a', dtype=float,
                         format='%6.2f')
@@ -438,7 +438,7 @@ class TestAttrEqual():
 # and any minimal set of args to pass.
 
 
-from ...utils.tests.test_metadata import MetaBaseTest
+from astropy.utils.tests.test_metadata import MetaBaseTest
 
 
 class TestMetaColumn(MetaBaseTest):

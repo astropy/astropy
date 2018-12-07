@@ -21,14 +21,14 @@ from io import StringIO
 import pytest
 import numpy as np
 
-from ...coordinates import EarthLocation
-from ...table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
-from ...table import serialize
-from ... import time
-from ... import coordinates
-from ... import units as u
-from ..column import BaseColumn
-from .. import table_helpers
+from astropy.coordinates import EarthLocation
+from astropy.table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
+from astropy.table import serialize
+from astropy import time
+from astropy import coordinates
+from astropy import units as u
+from astropy.table.column import BaseColumn
+from astropy.table import table_helpers
 from .conftest import MIXIN_COLS
 
 
@@ -100,7 +100,7 @@ def test_io_ascii_write():
     every pure Python writer.  No validation of the output is done,
     this just confirms no exceptions.
     """
-    from ...io.ascii.connect import _get_connectors_table
+    from astropy.io.ascii.connect import _get_connectors_table
     t = QTable(MIXIN_COLS)
     for fmt in _get_connectors_table():
         if fmt['Format'] == 'ascii.ecsv' and not HAS_YAML:

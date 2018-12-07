@@ -32,8 +32,8 @@ def _initialize_module():
     import numpy as np
 
     from . import core
-    from .. import units as u
-    from ..constants import si as _si
+    from astropy import units as u
+    from astropy.constants import si as _si
 
     # The CDS format also supports power-of-2 prefixes as defined here:
     # http://physics.nist.gov/cuu/Units/binary.html

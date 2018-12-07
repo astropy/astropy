@@ -15,12 +15,12 @@ from time import strftime, strptime
 
 import numpy as np
 
-from .. import units as u, constants as const
-from .. import _erfa as erfa
-from ..units import UnitConversionError
-from ..utils import ShapedLikeNDArray
-from ..utils.compat.misc import override__dir__
-from ..utils.data_info import MixinInfo, data_info_factory
+from astropy import units as u, constants as const
+from astropy import _erfa as erfa
+from astropy.units import UnitConversionError
+from astropy.utils import ShapedLikeNDArray
+from astropy.utils.compat.misc import override__dir__
+from astropy.utils.data_info import MixinInfo, data_info_factory
 from .utils import day_frac
 from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
                       TimeJD, TimeUnique, TimeAstropyTime, TimeDatetime)
@@ -28,7 +28,7 @@ from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
 # making a custom timescale in the documentation.
 from .formats import TimeFromEpoch  # pylint: disable=W0611
 
-from ..extern import _strptime
+from astropy.extern import _strptime
 
 __all__ = ['Time', 'TimeDelta', 'TIME_SCALES', 'STANDARD_TIME_SCALES', 'TIME_DELTA_SCALES',
            'ScaleValueError', 'OperandTypeError', 'TimeInfo']
@@ -371,7 +371,7 @@ class Time(ShapedLikeNDArray):
                  location=None, copy=False):
 
         if location is not None:
-            from ..coordinates import EarthLocation
+            from astropy.coordinates import EarthLocation
             if isinstance(location, EarthLocation):
                 self.location = location
             else:
@@ -1050,7 +1050,7 @@ class Time(ShapedLikeNDArray):
                                  'corrections')
             location = self.location
 
-        from ..coordinates import (UnitSphericalRepresentation, CartesianRepresentation,
+        from astropy.coordinates import (UnitSphericalRepresentation, CartesianRepresentation,
                                    HCRS, ICRS, GCRS, solar_system_ephemeris)
 
         # ensure sky location is ICRS compatible
@@ -1115,7 +1115,7 @@ class Time(ShapedLikeNDArray):
             Sidereal time as a quantity with units of hourangle
         """  # docstring is formatted below
 
-        from ..coordinates import Longitude
+        from astropy.coordinates import Longitude
 
         if kind.lower() not in SIDEREAL_TIME_MODELS.keys():
             raise ValueError('The kind of sidereal time has to be {0}'.format(
@@ -1156,7 +1156,7 @@ class Time(ShapedLikeNDArray):
     def _erfa_sidereal_time(self, model):
         """Calculate a sidereal time using a IAU precession/nutation model."""
 
-        from ..coordinates import Longitude
+        from astropy.coordinates import Longitude
 
         erfa_function = model['function']
         erfa_parameters = [getattr(getattr(self, scale)._time, jd_part)
@@ -1621,7 +1621,7 @@ class Time(ShapedLikeNDArray):
             array([ True, False]...)
         """
         if iers_table is None:
-            from ..utils.iers import IERS
+            from astropy.utils.iers import IERS
             iers_table = IERS.open()
 
         return iers_table.ut1_utc(self.utc, return_status=return_status)
@@ -1637,7 +1637,7 @@ class Time(ShapedLikeNDArray):
         # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
         # seconds. It is obtained from tables published by the IERS.
         if not hasattr(self, '_delta_ut1_utc'):
-            from ..utils.iers import IERS_Auto
+            from astropy.utils.iers import IERS_Auto
             iers_table = IERS_Auto.open()
             # jd1, jd2 are normally set (see above), except if delta_ut1_utc
             # is access directly; ensure we behave as expected for that case
@@ -1699,7 +1699,7 @@ class Time(ShapedLikeNDArray):
             ut = day_frac(njd1 - 0.5, njd2)[1]
 
             if self.location is None:
-                from ..coordinates import EarthLocation
+                from astropy.coordinates import EarthLocation
                 location = EarthLocation.from_geodetic(0., 0., 0.)
             else:
                 location = self.location

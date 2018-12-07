@@ -7,10 +7,10 @@ import warnings
 import pytest
 import numpy as np
 
-from ....io import fits
-from ....table import Table
-from .. import printdiff
-from ....tests.helper import catch_warnings
+from astropy.io import fits
+from astropy.table import Table
+from astropy.io.fits import printdiff
+from astropy.tests.helper import catch_warnings
 
 from . import FitsTestCase
 

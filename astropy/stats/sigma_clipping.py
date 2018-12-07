@@ -4,9 +4,9 @@ import warnings
 
 import numpy as np
 
-from ..utils import isiterable
-from ..utils.decorators import deprecated_renamed_argument
-from ..utils.exceptions import AstropyUserWarning
+from astropy.utils import isiterable
+from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 try:

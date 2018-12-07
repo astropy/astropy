@@ -7,9 +7,9 @@ from copy import deepcopy
 
 from .nddata_base import NDDataBase
 from .nduncertainty import NDUncertainty, UnknownUncertainty
-from .. import log
-from ..units import Unit, Quantity
-from ..utils.metadata import MetaData
+from astropy import log
+from astropy.units import Unit, Quantity
+from astropy.utils.metadata import MetaData
 
 __all__ = ['NDData']
 

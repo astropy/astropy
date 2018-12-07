@@ -12,13 +12,13 @@ import numpy as np
 from numpy.ctypeslib import ndpointer, load_library
 
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
-from ..utils.exceptions import AstropyUserWarning
-from ..utils.console import human_file_size
-from ..utils.decorators import deprecated_renamed_argument
-from .. import units as u
-from ..nddata import support_nddata
-from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
-from ..modeling.core import _CompoundModelMeta
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.console import human_file_size
+from astropy.utils.decorators import deprecated_renamed_argument
+from astropy import units as u
+from astropy.nddata import support_nddata
+from astropy.modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
+from astropy.modeling.core import _CompoundModelMeta
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 
 LIBRARY_PATH = os.path.dirname(__file__)

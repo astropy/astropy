@@ -7,14 +7,14 @@ import warnings
 import numpy as np
 from numpy.testing import assert_equal, assert_allclose
 
-from .... import units as u
-from ....tests.helper import assert_quantity_allclose
-from ....units import Quantity
-from ....coordinates import ICRS, FK5, Galactic, SkyCoord
-from ....io.fits import Header
-from ....utils.data import get_pkg_data_filename
-from ...wcs import WCS
-from ..fitswcs import custom_ctype_to_ucd_mapping
+from astropy import units as u
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.units import Quantity
+from astropy.coordinates import ICRS, FK5, Galactic, SkyCoord
+from astropy.io.fits import Header
+from astropy.utils.data import get_pkg_data_filename
+from astropy.wcs.wcs import WCS
+from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
 
 ###############################################################################
 # The following example is the simplest WCS with default values

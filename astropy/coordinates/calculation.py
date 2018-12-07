@@ -10,8 +10,8 @@ from datetime import datetime
 from urllib.request import urlopen
 
 # Third-party
-from .. import time as atime
-from ..utils.console import color_print, _color_text
+from astropy import time as atime
+from astropy.utils.console import color_print, _color_text
 from . import get_sun
 
 __all__ = []

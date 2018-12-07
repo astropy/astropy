@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from .. import bayesian_blocks, RegularEvents
+from astropy.stats import bayesian_blocks, RegularEvents
 
 
 def test_single_change_point(rseed=0):

@@ -1,8 +1,8 @@
 
 from numpy.testing import assert_allclose
 
-from ..info_theory import bayesian_info_criterion, bayesian_info_criterion_lsq
-from ..info_theory import akaike_info_criterion, akaike_info_criterion_lsq
+from astropy.stats.info_theory import bayesian_info_criterion, bayesian_info_criterion_lsq
+from astropy.stats.info_theory import akaike_info_criterion, akaike_info_criterion_lsq
 
 
 def test_bayesian_info_criterion():

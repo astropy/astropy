@@ -4,11 +4,11 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_almost_equal_nulp
 
-from ..biweight import (biweight_location, biweight_scale,
+from astropy.stats.biweight import (biweight_location, biweight_scale,
                         biweight_midvariance, biweight_midcovariance,
                         biweight_midcorrelation)
-from ...tests.helper import catch_warnings
-from ...utils.misc import NumpyRNGContext
+from astropy.tests.helper import catch_warnings
+from astropy.utils.misc import NumpyRNGContext
 
 
 def test_biweight_location():
