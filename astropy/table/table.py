@@ -196,6 +196,8 @@ class Table:
     has a unique identifier and may contain additional metadata such as the
     data unit, format, and description.
 
+    See also: http://docs.astropy.org/en/stable/table/
+
     Parameters
     ----------
     data : numpy ndarray, dict, list, Table, or table-like object, optional
@@ -2521,7 +2523,7 @@ class Table:
           >>> dat = Table.read('table.dat', format='ascii')
           >>> events = Table.read('events.fits', format='fits')
 
-        See http://docs.astropy.org/en/stable/io/unified.html for details.
+        See also: http://docs.astropy.org/en/stable/io/unified.html
 
         Parameters
         ----------
@@ -2570,7 +2572,7 @@ class Table:
           >>> dat = Table([[1, 2], [3, 4]], names=('a', 'b'))
           >>> dat.write('table.dat', format='ascii')
 
-        See http://docs.astropy.org/en/stable/io/unified.html for details.
+        See also: http://docs.astropy.org/en/stable/io/unified.html
 
         Parameters
         ----------
@@ -2789,6 +2791,11 @@ class QTable(Table):
     The `QTable` class is identical to `Table` except that columns with an
     associated ``unit`` attribute are converted to `~astropy.units.Quantity`
     objects.
+
+    See also:
+
+    - http://docs.astropy.org/en/stable/table/
+    - http://docs.astropy.org/en/stable/table/mixin_columns.html
 
     Parameters
     ----------

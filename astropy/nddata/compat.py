@@ -28,6 +28,8 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
     additional metadata such as uncertainties, a mask, units, flags,
     and/or a coordinate system.
 
+    See also: http://docs.astropy.org/en/stable/nddata/
+
     Parameters
     -----------
     data : `~numpy.ndarray` or `NDData`
