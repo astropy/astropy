@@ -2784,11 +2784,11 @@ class Table:
             if time_cols:
 
                 # Make a light copy of table and clear any indices
-                tbl = tbl.copy(copy_data=False)
+                new_cols = []
                 for col in tbl.itercols():
-                    col.info.indices.clear()
-                tbl.indices.clear()
-                tbl.primary_key = None
+                    new_col = col_copy(col, copy_indices=False) if col.info.indices else col
+                    new_cols.append(new_col)
+                tbl = tbl.__class__(new_cols, copy=False)
 
                 for col in time_cols:
                     if isinstance(col, TimeDelta):
