@@ -274,7 +274,9 @@ class Generic(Base):
         def p_factor_fits(p):
             '''
             factor_fits : UINT power OPEN_PAREN signed_int CLOSE_PAREN
+                        | UINT power OPEN_PAREN UINT CLOSE_PAREN
                         | UINT power signed_int
+                        | UINT power UINT
                         | UINT SIGN UINT
                         | UINT OPEN_PAREN signed_int CLOSE_PAREN
             '''
