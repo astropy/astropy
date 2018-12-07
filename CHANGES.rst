@@ -234,14 +234,6 @@ setup.py
 - We now define groups of dependencies that can be installed with pip, e.g.
   ``pip install astropy[all]`` (to install all optional dependencies). [#8198]
 
-astropy.stats
-^^^^^^^^^^^^^
-
-- A Cython implementation for `astropy.stats.kuiper_two` and a vectorized
-  implementation for `astropy.stats.kuiper_false_positive_probability` have
-  been added, speeding up both functions.  [#8104]
-
-
 3.1.1 (unreleased)
 ==================
 
