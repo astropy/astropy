@@ -84,10 +84,6 @@ if not os.path.exists(os.path.join(os.path.dirname(__file__), 'PKG-INFO')):
 
 install_requires = [min_numpy_version]
 
-extras_require = {
-    'test': ['pytest-astropy']
-}
-
 # Avoid installing setup_requires dependencies if the user just
 # queries for information
 if is_distutils_display_option():
@@ -97,10 +93,9 @@ if is_distutils_display_option():
 setup(name=NAME,
       version=VERSION,
       description='Community-developed python astronomy tools',
-      requires=['numpy'],  # scipy not required, but strongly recommended
+      requires=['numpy'],
       setup_requires=setup_requires,
       install_requires=install_requires,
-      extras_require=extras_require,
       provides=[NAME],
       author='The Astropy Developers',
       author_email='astropy.team@gmail.com',
