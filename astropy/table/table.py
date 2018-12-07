@@ -2837,7 +2837,7 @@ class Table:
         return DataFrame(out, **kwargs)
 
     @classmethod
-    def from_pandas(cls, dataframe, index=True):
+    def from_pandas(cls, dataframe, index=False):
         """
         Create a `Table` from a :class:`pandas.DataFrame` instance
 
@@ -2850,7 +2850,7 @@ class Table:
         dataframe : :class:`pandas.DataFrame`
             A pandas :class:`pandas.DataFrame` instance
         index : bool
-            Include the index column in the returned table (default=True)
+            Include the index column in the returned table (default=False)
 
         Raises
         ------
@@ -2874,7 +2874,7 @@ class Table:
           0 1998-01-01 00:00:01  1  3.0
           1 2002-01-01 00:05:00  2  4.0
 
-          >>> QTable.from_pandas(df, index=False)
+          >>> QTable.from_pandas(df)
           <QTable length=2>
                     time            dt     x      y
                    object         object int64 float64
