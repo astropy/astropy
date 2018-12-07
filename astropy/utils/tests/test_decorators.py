@@ -46,11 +46,11 @@ def test_wraps():
     if hasattr(foo, '__qualname__'):
         assert bar.__qualname__ == foo.__qualname__
 
-    argspec = inspect.getfullargspec(bar)
-    assert argspec.varkw == 'kwargs'
+    sig = inspect.signature(bar)
+    assert list(sig.parameters) == ['a', 'b', 'c', 'd', 'e', 'kwargs']
 
-    assert argspec.args == ['a', 'b', 'c', 'd', 'e']
-    assert argspec.defaults == (1, 2, 3)
+    defaults = [inspect._empty, inspect._empty, 1, 2, 3, inspect._empty]
+    assert [p.default for p in sig.parameters.values()] == defaults
 
 
 def test_deprecated_attribute():
