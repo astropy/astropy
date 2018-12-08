@@ -64,8 +64,10 @@ matrix:
         # Run this test using native pytest
         - os: linux
           env: PYTHON_VERSION=3.5
+               PYTEST_VERSION='==3.7'
+               NUMPY_VERSION='==1.13.3'
                TOXENV=py35-pytest
-               TOXOPTS='--develop --force-dep \'pytest==3.7\' --force-dep \'numpy==1.13.3\''
+               TOXOPTS='--develop'
                TOXARGS='--open-files --doctest-rst'
 
         # Now try with all optional dependencies. We also include the --readonly
@@ -75,7 +77,7 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.6
                TOXENV=py36-setup-all
-               TOXOPTS='--force-dep pytest==3.7'
+               PYTEST_VERSION='==3.7'
                TOXARGS='--remote-data=astropy --readonly'
                LC_CTYPE=C.ascii LC_ALL=C
 
