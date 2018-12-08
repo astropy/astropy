@@ -1212,7 +1212,18 @@ class Model(metaclass=_ModelMeta):
                 parameter.value = parameter.quantity.to(unit).value
                 parameter._set_unit(None, force=True)
 
+        if isinstance(model, _CompoundModel):
+            model.strip_units_from_tree()
+
         return model
+
+    def strip_units_from_tree(self):
+        for item in self._tree.traverse_inorder():
+            if isinstance(item.value, Model):
+                for parname in item.value.param_names:
+                    par = getattr(item.value, parname)
+                    par._set_unit(None, force=True)
+                    setattr(item.value, parname, par)
 
     def with_units_from_data(self, **kwargs):
         """
@@ -2842,10 +2853,6 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
 
         if d:  # Note that if d is empty, we just return None
             return d
-
-    @property
-    def _supports_unit_fitting(self):
-        return False
 
     @property
     def input_units_allow_dimensionless(self):
