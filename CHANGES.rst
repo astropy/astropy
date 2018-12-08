@@ -377,6 +377,11 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fixed slowness for certain compound models consisting of large numbers 
+  of multi-input models [#8338, #8349]
+
+- Fixed bugs in fitting of compound models with units. [#8369]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 

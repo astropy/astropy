@@ -7,19 +7,21 @@ from collections import OrderedDict
 
 import numpy as np
 
-from .core import (Fittable1DModel, Fittable2DModel,
-                   ModelDefinitionError)
-from .parameters import Parameter, InputParameterError
-from .utils import ellipse_extent
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
+from .core import (Fittable1DModel, Fittable2DModel,
+                   ModelDefinitionError)
+
+from .parameters import Parameter, InputParameterError
+from .utils import ellipse_extent
+
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
-           'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
-           'Gaussian2D', 'Linear1D', 'Lorentz1D',
-           'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor',
-           'Scale', 'Multiply', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
-           'TrapezoidDisk2D', 'Ring2D', 'Voigt1D']
+           'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D', 'Gaussian2D', 'Linear1D',
+           'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor',
+           'Multiply', 'Planar2D', 'Scale', 'Sersic1D', 'Sersic2D', 'Shift',
+           'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D', 'Ring2D', 'Voigt1D']
+
 
 TWOPI = 2 * np.pi
 FLOAT_EPSILON = float(np.finfo(np.float32).tiny)
@@ -459,9 +461,6 @@ class Shift(Fittable1DModel):
         Offset to add to a coordinate.
     """
 
-    inputs = ('x',)
-    outputs = ('x',)
-
     offset = Parameter(default=0)
     linear = True
 
@@ -496,6 +495,9 @@ class Shift(Fittable1DModel):
         d_offset = np.ones_like(x)
         return [d_offset]
 
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('offset', outputs_unit['y'])])
+
 
 class Scale(Fittable1DModel):
     """
@@ -513,9 +515,6 @@ class Scale(Fittable1DModel):
     stripped before the scaling operation.
 
     """
-
-    inputs = ('x',)
-    outputs = ('x',)
 
     factor = Parameter(default=1)
     linear = True
@@ -553,6 +552,12 @@ class Scale(Fittable1DModel):
         d_factor = x
         return [d_factor]
 
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        unit = outputs_unit['y'] / inputs_unit['x']
+        if unit == u.one:
+            unit = None
+        return OrderedDict([('factor', unit)])
+
 
 class Multiply(Fittable1DModel):
     """
@@ -565,7 +570,7 @@ class Multiply(Fittable1DModel):
     """
 
     inputs = ('x',)
-    outputs = ('x',)
+    outputs = ('y',)
 
     factor = Parameter(default=1)
     linear = True
@@ -589,6 +594,9 @@ class Multiply(Fittable1DModel):
 
         d_factor = x
         return [d_factor]
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('factor', outputs_unit['y'])])
 
 
 class RedshiftScaleFactor(Fittable1DModel):
@@ -886,10 +894,6 @@ class Planar2D(Fittable2DModel):
     intercept : float
         Z-intercept of the straight line
 
-    See Also
-    --------
-    Linear1D, Polynomial2D
-
     Notes
     -----
     Model formula:
@@ -916,6 +920,11 @@ class Planar2D(Fittable2DModel):
         d_slope_y = y
         d_intercept = np.ones_like(x)
         return [d_slope_x, d_slope_y, d_intercept]
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('intercept', outputs_unit['z']),
+                            ('slope_x', outputs_unit['z'] / inputs_unit['x']),
+                            ('slope_y', outputs_unit['z'] / inputs_unit['y'])])
 
 
 class Lorentz1D(Fittable1DModel):
