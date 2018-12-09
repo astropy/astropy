@@ -196,6 +196,8 @@ class QuantityInfo(QuantityInfoBase):
 class Quantity(np.ndarray, metaclass=InheritDocstrings):
     """A `~astropy.units.Quantity` represents a number with some associated unit.
 
+    See also: http://docs.astropy.org/en/stable/units/quantity.html
+
     Parameters
     ----------
     value : number, `~numpy.ndarray`, `Quantity` object (sequence), str

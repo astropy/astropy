@@ -152,6 +152,24 @@ The sections of the docstring are:
    below. You may refer to the parameters and the function name, but parameter
    descriptions still belong in the **parameters** section.
 
+   At the end of the extended summary one may optionally include one or more
+   links to section(s) in the narrative documentation which provide additional
+   usage information.  This is most commonly the case for major classes
+   or functions which have complex behavior that is not fully described
+   by the docstring itself.  The format is shown in the two examples
+   below.
+
+   One link::
+
+      See also: http://docs.astropy.org/en/stable/table/
+
+   Two or more links::
+
+      See also:
+
+      - http://docs.astropy.org/en/stable/table/
+      - http://docs.astropy.org/en/stable/table/mixin_columns.html
+
 4. **Parameters**
 
    Description of the function arguments, keywords and their respective types.
@@ -234,7 +252,6 @@ The sections of the docstring are:
    (by looking at the module docstring, for example). Routines whose
    docstrings further explain parameters used by this function are good
    candidates.
-
    As an example, for a hypothetical function ``astropy.wcs.world2pix``
    converting sky to pixel coordinates, we would have::
 

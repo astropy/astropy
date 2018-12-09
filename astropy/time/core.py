@@ -310,6 +310,8 @@ class Time(ShapedLikeNDArray):
        'datetime', 'iso', 'isot', 'yday', 'datetime64', 'fits', 'byear',
        'jyear', 'byear_str', 'jyear_str']
 
+    See also: http://docs.astropy.org/en/stable/time/
+
     Parameters
     ----------
     val : sequence, ndarray, number, str, bytes, or `~astropy.time.Time` object
@@ -1918,6 +1920,11 @@ class TimeDelta(Time):
     this requires knowledge of the actual times, not just their difference. For
     a similar reason, 'utc' is not a valid scale for a time difference: a UTC
     day is not always 86400 seconds.
+
+    See also:
+
+    - http://docs.astropy.org/en/stable/time/
+    - http://docs.astropy.org/en/stable/time/index.html#time-deltas
 
     Parameters
     ----------
