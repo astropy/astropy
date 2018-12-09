@@ -64,7 +64,7 @@ matrix:
         # Run this test using native pytest
         - os: linux
           env: PYTHON_VERSION=3.5
-               PYTEST_VERSION='==3.7'
+               PYTEST_VERSION='==3.6'
                NUMPY_VERSION='==1.13.3'
                TOXENV=py35-pytest
                TOXOPTS='--develop'
@@ -77,7 +77,7 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.6
                TOXENV=py36-setup-all
-               PYTEST_VERSION='==3.7'
+               PYTEST_VERSION='==3.6'
                TOXARGS='--remote-data=astropy --readonly'
                LC_CTYPE=C.ascii LC_ALL=C
 
