@@ -207,6 +207,11 @@ def read(table, guess=None, **kwargs):
     the default behavior for various parameters is determined by the Reader
     class.
 
+    See also:
+
+    - http://docs.astropy.org/en/stable/io/ascii/
+    - http://docs.astropy.org/en/stable/io/ascii/read.html
+
     Parameters
     ----------
     table : str, file-like, list, pathlib.Path object
@@ -819,6 +824,11 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
           overwrite=None, **kwargs):
     """Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
+
+    See also:
+
+    - http://docs.astropy.org/en/stable/io/ascii/
+    - http://docs.astropy.org/en/stable/io/ascii/write.html
 
     Parameters
     ----------

@@ -27,6 +27,8 @@ class NDData(NDDataBase):
     provides a container for *storing* such datasets. For further functionality
     take a look at the ``See also`` section.
 
+    See also: http://docs.astropy.org/en/stable/nddata/
+
     Parameters
     -----------
     data : `numpy.ndarray`-like or `NDData`-like

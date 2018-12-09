@@ -15,6 +15,9 @@ class NDDataBase(metaclass=ABCMeta):
     All properties and ``__init__`` have to be overridden in subclasses. See
     `NDData` for a subclass that defines this interface on `numpy.ndarray`-like
     ``data``.
+
+    See also: http://docs.astropy.org/en/stable/nddata/
+
     """
 
     @abstractmethod
