@@ -22,7 +22,7 @@ class EquivalencyType(AstropyAsdfType):
             eqs = []
             for i, e in enumerate(equiv.name):
                 args = equiv.args[i]
-                args = [custom_tree_to_tagged_tree(i, ctx) if isinstance(i, Quantity) \
+                args = [custom_tree_to_tagged_tree(i, ctx) if isinstance(i, Quantity)
                         else i for i in args]
                 kwargs = equiv.kwargs[i]
                 eq = {'name': e, 'args': args,  'kwargs_names': list(kwargs.keys()),
@@ -32,7 +32,7 @@ class EquivalencyType(AstropyAsdfType):
             raise TypeError("'{0}' is not a valid Equivalency".format(equiv))
         node['equivalencies'] = eqs
         return node
-     
+
 
 
     @classmethod
