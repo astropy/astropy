@@ -31,6 +31,7 @@ env:
         # Set defaults to avoid repeating in most cases
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
+        - USE_CONDA=True
 
 stages:
    # Do the style check and a single test job, don't proceed if it fails
@@ -92,6 +93,17 @@ matrix:
                TOXARGS='--durations=50'
           compiler: clang
 
+        - os: linux
+          stage: Initial tests
+          language: python
+          python: 3.7
+          dist: xenial
+          sudo: true
+          env: USE_CONDA=False
+               TOXENV=py37-pytest-all
+               TOXARGS='--durations=50'
+          compiler: clang
+
         # Full tests with coverage checks.
         - os: linux
           env: PYTHON_VERSION=3.6
@@ -111,9 +123,10 @@ matrix:
         # Do a PEP8/pyflakes test with flake8
         - os: linux
           stage: Initial tests
-          # language: python
-          # python: 3.6
-          env: TOXENV=flake8
+          language: python
+          python: 3.6
+          env: USE_CONDA=False
+               TOXENV=flake8
 
         # Try developer version of Numpy with optional dependencies and also
         # run all remote tests. Since both cases will be potentially
@@ -153,9 +166,13 @@ before_install:
     - echo $CC
 
 install:
-    - git clone git://github.com/astropy/ci-helpers.git
-    - source ci-helpers/travis/setup_conda.sh
-    - pip install tox tox-venv tox-conda
+    - if [[ $USE_CONDA == True ]]; then
+        git clone git://github.com/astropy/ci-helpers.git;
+        source ci-helpers/travis/setup_conda.sh;
+        pip install tox tox-conda tox-venv;
+      else
+        pip install tox tox-venv;
+      fi
 
 script:
     - tox -vv $TOXOPTS -- $TOXARGS
