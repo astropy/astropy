@@ -36,7 +36,7 @@ smaller improvements and bug fixes, which are described in the
 
 * 906 issues have been closed since v3.0
 * 437 pull requests have been merged since v3.0
-* 94 distinct people have contributed code to this release, 51 of which are
+* 92 distinct people have contributed code to this release, 48 of which are
   first time contributors to Astropy.
 
 .. _whatsnew-3.1-tips:
@@ -551,7 +551,6 @@ Contributors to the v3.1 release
   *  Daria Cara*
   *  David M. Palmer
   *  David Stansby*
-  *  Delosari*
   *  Derek Homeier
   *  Douglas Burke
   *  Duncan Macleod
@@ -575,10 +574,9 @@ Contributors to the v3.1 release
   *  Joseph Schlitz*
   *  Juanjo Bazán*
   *  Julien Woillez
-  *  K.A. Oman
   *  Karl Gordon
   *  Katrin Leinweber*
-  *  Kyle Oman*
+  *  Kyle Oman
   *  Larry Bradley
   *  Leah Fulmer*
   *  Lehman Garrison
@@ -618,8 +616,8 @@ Contributors to the v3.1 release
   *  Tim Jenness*
   *  Tom Aldcroft
   *  Vishnunarayan K I*
+  *  Vital Fernández*
   *  Zé Vinicius
-  *  ananyashreyjain*
   *  jimboH*
   *  mmebsout*
 
