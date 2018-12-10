@@ -7,6 +7,7 @@ from collections import OrderedDict
 from collections.abc import Mapping
 import warnings
 from copy import deepcopy
+import inspect
 
 import numpy as np
 from numpy import ma
@@ -2641,7 +2642,22 @@ class Table:
         # import-time processing that collects available formats into an
         # RST table and inserts at the end of the docstring.  DO NOT REMOVE.
 
-        out = io_registry.read(cls, *args, **kwargs)
+        format = kwargs.pop('format', None)
+        if format and not args and not kwargs:
+            reader = io_registry.get_reader(format, cls)
+            reader_doc = ('Table.read() general documentation\n'
+                          '==================================\n')
+            reader_doc += inspect.cleandoc(cls.read.__doc__)
+            reader_doc = re.sub(r'Notes\n-----.*',
+                                'Table.read() format-specific documentation\n'
+                                '==========================================\n',
+                                reader_doc,
+                                flags=re.DOTALL)
+            reader_doc += inspect.cleandoc(reader.__doc__)
+            print(reader_doc)
+            return
+
+        out = io_registry.read(cls, *args, format=format, **kwargs)
         # For some readers (e.g., ascii.ecsv), the returned `out` class is not
         # guaranteed to be the same as the desired output `cls`.  If so,
         # try coercing to desired class without copying (io.registry.read
