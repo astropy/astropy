@@ -10,15 +10,28 @@ from astropy.io import registry as io_registry
 from astropy.table import Table
 
 
-def read_table(filename, data_key='data', find_table=None, **kwargs):
+def read_table(filename, data_key=None, find_table=None, **kwargs):
+
+    if data_key and find_table:
+        raise ValueError("Options 'data_key' and 'find_table' are not compatible")
 
     with asdf.open(filename, **kwargs) as af:
-        return af[data_key]
+        if find_table:
+            return find_table(af)
+        else:
+            return af[data_key or 'data']
 
 
-def write_table(table, filename, data_key='data', **kwargs):
+def write_table(table, filename, data_key=None, make_tree=None, **kwargs):
 
-    tree = { data_key : table }
+    if data_key and make_tree:
+        raise ValueError("Options 'data_key' and 'make_tree' are not compatible")
+
+    if make_tree:
+        tree = make_tree(table)
+    else:
+        tree = { data_key or 'data' : table }
+
     with asdf.AsdfFile(tree) as af:
         af.write_to(filename, **kwargs)
 
