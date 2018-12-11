@@ -185,6 +185,8 @@ latex_logo = '_static/astropy_logo.pdf'
 man_pages = [('index', project.lower(), project + u' Documentation',
               [author], 1)]
 
+# Setting this URL is requited by sphinx-astropy
+github_issues_url = 'https://github.com/astropy/astropy/issues/'
 
 # Enable nitpicky mode - which ensures that all references in the docs
 # resolve.
