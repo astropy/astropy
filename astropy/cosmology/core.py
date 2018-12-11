@@ -1088,7 +1088,13 @@ class FLRW(Cosmology, metaclass=ABCMeta):
           Lookback time in Gyr to each input redshift.
         """
         from scipy.integrate import quad
-        f = lambda red: quad(self._lookback_time_integrand_scalar, 0, red)[0]
+        # f = lambda red: quad(self._lookback_time_integrand_scalar, 0, red)[0]
+        def f(red):
+            val = quad(self._lookback_time_integrand_scalar, 0, red)[0]
+            if val * self._hubble_time < 1e-6 * u.Gyr and red > 1:
+                x, w = np.polynomial.legendre.leggauss(2000)
+                return np.inner(np.vectorize(self._lookback_time_integrand_scalar)(x * red / 2 + red / 2), w) * red / 2
+            return val
         return self._hubble_time * vectorize_if_needed(f, z)
 
     def lookback_distance(self, z):
