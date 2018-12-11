@@ -66,7 +66,7 @@ Astropy also depends on other packages for optional features:
 
 - `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
 
-- `asdf <https://github.com/spacetelescope/asdf>`_ 2.0 or later: Enables the
+- `asdf <https://github.com/spacetelescope/asdf>`_ 2.3 or later: Enables the
   serialization of various Astropy classes into a portable, hierarchical,
   human-readable representation.
 
