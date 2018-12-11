@@ -26,3 +26,5 @@ Documentation on the ASDF Standard can be found `here
 <https://asdf-standard.readthedocs.io>`__. Documentation on the ASDF Python
 module can be found `here <https://asdf.readthedocs.io>`__.
 """
+
+from . import connect
