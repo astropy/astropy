@@ -13,8 +13,9 @@ from fractions import Fraction
 import numpy as np
 
 from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
-from astropy.units.core import (UnitsError, UnitConversionError, UnitTypeError,
-                    dimensionless_unscaled, get_current_unit_registry)
+from astropy.units.core import (
+    UnitsError, UnitConversionError, UnitTypeError,
+    dimensionless_unscaled, get_current_unit_registry)
 
 
 def _d(unit):
@@ -395,6 +396,8 @@ for ufunc in twoarg_invtrig_ufuncs:
 
 # ufuncs handled as special cases
 UFUNC_HELPERS[np.multiply] = helper_multiplication
+if isinstance(getattr(np, 'matmul', None), np.ufunc):
+    UFUNC_HELPERS[np.matmul] = helper_multiplication
 UFUNC_HELPERS[np.divide] = helper_division
 UFUNC_HELPERS[np.true_divide] = helper_division
 UFUNC_HELPERS[np.power] = helper_power

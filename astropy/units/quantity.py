@@ -20,7 +20,7 @@ from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitConversionError, UnitTypeError)
 from .utils import is_effectively_unity
 from .format.latex import Latex
-from astropy.utils.compat import NUMPY_LT_1_14
+from astropy.utils.compat import NUMPY_LT_1_14, NUMPY_LT_1_16
 from astropy.utils.compat.misc import override__dir__
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.misc import isiterable, InheritDocstrings
@@ -990,15 +990,20 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         return super().__pow__(other)
 
     # For Py>=3.5
-    def __matmul__(self, other, reverse=False):
-        result_unit = self.unit * getattr(other, 'unit', dimensionless_unscaled)
-        result_array = np.matmul(self.value, getattr(other, 'value', other))
-        return self._new_view(result_array, result_unit)
+    if NUMPY_LT_1_16:
+        def __matmul__(self, other):
+            result_unit = self.unit * getattr(other, 'unit',
+                                              dimensionless_unscaled)
+            result_array = np.matmul(self.value,
+                                     getattr(other, 'value', other))
+            return self._new_view(result_array, result_unit)
 
-    def __rmatmul__(self, other):
-        result_unit = self.unit * getattr(other, 'unit', dimensionless_unscaled)
-        result_array = np.matmul(getattr(other, 'value', other), self.value)
-        return self._new_view(result_array, result_unit)
+        def __rmatmul__(self, other):
+            result_unit = self.unit * getattr(other, 'unit',
+                                              dimensionless_unscaled)
+            result_array = np.matmul(getattr(other, 'value', other),
+                                     self.value)
+            return self._new_view(result_array, result_unit)
 
     # In numpy 1.13, 1.14, a np.positive ufunc exists, but ndarray.__pos__
     # does not go through it, so we define it, to allow subclasses to override
