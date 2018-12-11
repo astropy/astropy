@@ -27,4 +27,8 @@ Documentation on the ASDF Standard can be found `here
 module can be found `here <https://asdf.readthedocs.io>`__.
 """
 
-from . import connect
+try:
+    import asdf
+    from . import connect
+except ImportError:
+    pass
