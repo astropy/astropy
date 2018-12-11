@@ -57,6 +57,23 @@ class Equivalency(UserList):
             new.kwargs += other.kwargs
         return new
 
+    def __eq__(self, other):
+        equal = True
+        if not isinstance(other, self.__class__):
+            return False
+        else:
+            if self.name != other.name:
+                equal = False
+            if self.args != other.args:
+                return False
+
+            for i in range(len(self.name)):
+                if not (list(self.kwargs[i].keys()) == list(other.kwargs[i].keys())):
+                    return False
+                if not all([self.kwargs[i][name] == other.kwargs[i][name] for name in self.kwargs[i].keys()]):
+                    return False
+            return equal
+
 
 def dimensionless_angles():
     """Allow angles to be equivalent to dimensionless (with 1 rad = 1 m/m = 1).
@@ -161,7 +178,6 @@ def spectral_density(wav, factor=None):
             raise ValueError(
                 'If `wav` is specified as a unit, `factor` should be set')
         wav = factor * wav   # Convert to Quantity
-
     c_Aps = _si.c.to_value(si.AA / si.s)  # Angstrom/s
     h_cgs = _si.h.cgs.value  # erg * s
     hc = c_Aps * h_cgs
@@ -577,9 +593,9 @@ def brightness_temperature(frequency, beam_area=None):
             factor = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
             return (x_K * beam / factor)
 
-        return [(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy),
-                (astrophys.Jy/astrophys.beam, si.K, convert_Jy_to_K, convert_K_to_Jy)
-               ]
+        return Equivalency([(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy),
+                            (astrophys.Jy/astrophys.beam, si.K, convert_Jy_to_K, convert_K_to_Jy),],
+                           "brightness_temperature", (frequency,), {'beam_area': beam_area})
     else:
         def convert_JySr_to_K(x_jysr):
             factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value

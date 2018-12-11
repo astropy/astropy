@@ -12,36 +12,46 @@ from astropy.io.misc.asdf.types import AstropyAsdfType
 class EquivalencyType(AstropyAsdfType):
     name = "unit/equivalency"
     types = [Equivalency]
-    requires = ['astropy']
-    version = '1.1.0'
+    version = '1.0.0'
 
     @classmethod
     def to_tree(cls, equiv, ctx):
         node = {}
-        if isinstance(equiv, Equivalency):
-            eqs = []
-            for i, e in enumerate(equiv.name):
-                args = equiv.args[i]
-                args = [custom_tree_to_tagged_tree(i, ctx) if isinstance(i, Quantity)
-                        else i for i in args]
-                kwargs = equiv.kwargs[i]
-                eq = {'name': e, 'args': args,  'kwargs_names': list(kwargs.keys()),
-                      'kwargs_values': list(kwargs.values())}
-                eqs.append(eq)
-        else:
+        if not isinstance(equiv, Equivalency):
             raise TypeError("'{0}' is not a valid Equivalency".format(equiv))
+
+        eqs = []
+        for i, e in enumerate(equiv.name):
+            args = equiv.args[i]
+            args = [custom_tree_to_tagged_tree(val, ctx) if isinstance(val, Quantity)
+                    else val for val in args]
+            kwargs = equiv.kwargs[i]
+            kwarg_names = list(kwargs.keys())
+            kwarg_values = list(kwargs.values())
+            kwarg_values = [custom_tree_to_tagged_tree(val, ctx) if isinstance(val, Quantity)
+                            else val for val in kwarg_values]
+            eq = {'name': e, 'args': args,  'kwargs_names': kwarg_names,
+                  'kwargs_values': kwarg_values}
+            eqs.append(eq)
+
         node['equivalencies'] = eqs
         return node
-
-
 
     @classmethod
     def from_tree(cls, node, ctx):
         import operator
-        e = []
+        eqs = []
         for eq in node['equivalencies']:
             equiv = getattr(equivalencies, eq['name'])
             args = eq['args']
             kwargs = dict(zip(eq['kwargs_names'], eq['kwargs_values']))
-            e.append(equiv(*args, **kwargs))
-        return operator.add(*e)
+            print('equivname', eq['name'], equiv)
+            eqs.append(equiv(*args, **kwargs))
+        if len(eqs) > 1:
+            return operator.add(*eqs)
+        else:
+            return eqs[0]
+
+    @classmethod
+    def assert_equal(cls, a, b):
+        assert a == b
