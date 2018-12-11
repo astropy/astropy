@@ -3,7 +3,7 @@
 
 import pytest
 
-import asdf
+asdf = pytest.importorskip('asdf')
 
 from astropy.table import Table
 
