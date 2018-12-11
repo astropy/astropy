@@ -17,7 +17,7 @@ def read_table(filename, data_key=None, find_table=None, **kwargs):
 
     with asdf.open(filename, **kwargs) as af:
         if find_table:
-            return find_table(af)
+            return find_table(af.tree)
         else:
             return af[data_key or 'data']
 
