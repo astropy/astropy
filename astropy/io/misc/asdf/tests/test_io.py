@@ -56,3 +56,32 @@ def test_table_io_custom_key(tmpdir):
 
     new_t = Table.read(tmpfile, data_key='something')
     assert all(new_t == table)
+
+
+def test_table_io_custom_tree(tmpdir):
+
+    tmpfile = str(tmpdir.join('table.asdf'))
+
+    table = make_table()
+
+    def make_custom_tree(tab):
+        return dict(foo=dict(bar=tab))
+
+    table.write(tmpfile, make_tree=make_custom_tree)
+
+    # Simple sanity check using ASDF directly
+    with asdf.open(tmpfile) as af:
+        assert 'foo' in af.keys()
+        assert 'bar' in af['foo']
+        assert 'data' not in af.keys()
+        assert all(af['foo']['bar'] == table)
+
+    # Now test using table reader
+    with pytest.raises(KeyError):
+        new_t = Table.read(tmpfile)
+
+    def find_table(asdffile):
+        return asdffile['foo']['bar']
+
+    new_t = Table.read(tmpfile, find_table=find_table)
+    assert all(new_t == table)
