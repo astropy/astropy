@@ -3,28 +3,22 @@
 """
 The **asdf** subpackage contains code that is used to serialize astropy types
 so that they can be represented and stored using the Advanced Scientific Data
-Format (ASDF). This subpackage defines classes, referred to as **tags**, that
-implement the logic for serialization and deserialization.
-
-ASDF makes use of abstract data type definitions called **schemas**. The tag
-classes provided here are specific implementations of particular schemas. Some
-of the tags in Astropy (e.g., those related to transforms) implement schemas
-that are defined by the ASDF Standard. In other cases, both the tags and
-schemas are defined within Astropy (e.g., those related to many of the
-coordinate frames).
-
-Astropy currently has no ability to read or write ASDF files itself. In order
-to process ASDF files it is necessary to make use of the standalone **asdf**
-package. Users should never need to refer to tag implementations directly.
-Their presence should be entirely transparent when processing ASDF files.
+Format (ASDF).
 
 If both **asdf** and **astropy** are installed, no further configuration is
-required in order to process ASDF files. The **asdf** package has been designed
-to automatically detect the presence of the tags defined by **astropy**.
+required in order to process ASDF files that contain **astropy** types. The
+**asdf** package has been designed to automatically detect the presence of the
+tags defined by **astropy**.
+
+For convenience, users can write `~astropy.table.Table` objects to ASDF files
+using the :ref:`table_io`. See :ref:`asdf_io` below.
 
 Documentation on the ASDF Standard can be found `here
 <https://asdf-standard.readthedocs.io>`__. Documentation on the ASDF Python
-module can be found `here <https://asdf.readthedocs.io>`__.
+module can be found `here <https://asdf.readthedocs.io>`__. Additional details
+for Astropy developers can be found in :ref:`asdf_dev`.
+
+.. _asdf_io:
 
 Using ASDF With Table I/O
 =========================
@@ -118,6 +112,29 @@ locate the table within the ASDF tree. The option in this case is
         return tree['foo']['bar']
 
     foo = Table.read('foobar.asdf', find_table=find_table)
+
+.. _asdf_dev:
+
+Details
+=======
+
+The **asdf** subpackage defines classes, referred to as **tags**, that
+implement the logic for serialization and deserialization of Astropy types.
+Users should never need to refer to tag implementations directly.  Their
+presence should be entirely transparent when processing ASDF files.
+
+ASDF makes use of abstract data type definitions called **schemas**. The tag
+classes provided here are specific implementations of particular schemas. Some
+of the tags in Astropy (e.g., those related to transforms) implement schemas
+that are defined by the ASDF Standard. In other cases, both the tags and
+schemas are defined within Astropy (e.g., those related to many of the
+coordinate frames).
+
+Not all Astropy types are currently serializable by ASDF. Attempting to write
+unsupported types to an ASDF file will lead to a ``RepresenterError``. In order
+to support new types, new tags and schemas must be created. See `Writing ASDF
+Extensions <https://asdf.readthedocs.io/en/latest/asdf/extensions.html>`_ for
+additional details.
 """
 
 try:
