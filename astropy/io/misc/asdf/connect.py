@@ -4,8 +4,6 @@
 
 import functools
 
-import asdf
-
 from astropy.io import registry as io_registry
 from astropy.table import Table
 
@@ -41,6 +39,11 @@ def read_table(filename, data_key=None, find_table=None, **kwargs):
     table : `~astropy.table.Table`
         `~astropy.table.Table` instance
     """
+    try:
+        import asdf
+    except ImportError:
+        raise Exception(
+            "The asdf module is required to read and write ASDF files")
 
     if data_key and find_table:
         raise ValueError("Options 'data_key' and 'find_table' are not compatible")
@@ -80,6 +83,11 @@ def write_table(table, filename, data_key=None, make_tree=None, **kwargs):
         to be written. The function must return a `dict` representing the ASDF
         tree to be created.
     """
+    try:
+        import asdf
+    except ImportError:
+        raise Exception(
+            "The asdf module is required to read and write ASDF files")
 
     if data_key and make_tree:
         raise ValueError("Options 'data_key' and 'make_tree' are not compatible")
@@ -93,11 +101,14 @@ def write_table(table, filename, data_key=None, make_tree=None, **kwargs):
         af.write_to(filename, **kwargs)
 
 
-def io_identify(suffix, origin, filepath, fileobj, *args, **kwargs):
-    return filepath is not None and filepath.endswith(suffix)
+def asdf_identify(origin, filepath, fileobj, *args, **kwargs):
+    try:
+        import asdf
+    except ImportError:
+        return False
 
+    return filepath is not None and filepath.endswith('.asdf')
 
-asdf_identify = functools.partial(io_identify, '.asdf')
 
 io_registry.register_reader('asdf', Table, read_table)
 io_registry.register_writer('asdf', Table, write_table)
