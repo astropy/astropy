@@ -3,6 +3,7 @@
 import pytest
 import numpy as np
 
+import astropy.units as u
 from astropy import table
 from astropy import __minimum_asdf_version__
 
@@ -134,5 +135,18 @@ def test_masked_table(tmpdir):
 
     def check(ff):
         assert len(ff.blocks) == 4
+
+    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+
+
+def test_quantity_mixin(tmpdir):
+
+    t = table.QTable()
+    t['a'] = [1, 2, 3]
+    t['b'] = ['x', 'y', 'z']
+    t['c'] = [2.0, 5.0, 8.2] * u.m
+
+    def check(ff):
+        assert isinstance(ff['table']['c'], u.Quantity)
 
     helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
