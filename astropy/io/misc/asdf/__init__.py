@@ -136,9 +136,3 @@ to support new types, new tags and schemas must be created. See `Writing ASDF
 Extensions <https://asdf.readthedocs.io/en/latest/asdf/extensions.html>`_ for
 additional details.
 """
-
-try:
-    import asdf
-    from . import connect
-except ImportError:
-    pass

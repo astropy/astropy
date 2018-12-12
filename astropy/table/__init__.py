@@ -59,8 +59,4 @@ with registry.delay_doc_updates(Table):
     from astropy.io.fits import connect
     from astropy.io.misc import connect
     from astropy.io.votable import connect
-    try:
-        import asdf
-        from astropy.io.misc.asdf import connect
-    except ImportError:
-        pass
+    from astropy.io.misc.asdf import connect
