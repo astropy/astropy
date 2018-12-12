@@ -2022,8 +2022,10 @@ class CompositeUnit(UnitBase):
                         "bases must be sequence of UnitBase instances")
             powers = [validate_power(p) for p in powers]
 
-        if not decompose and len(bases) == 1:
-            # Short-cut; with one unit there's nothing to expand and gather.
+        if not decompose and len(bases) == 1 and powers[0] >= 0:
+            # Short-cut; with one unit there's nothing to expand and gather,
+            # as that has happened already when creating the unit.  But do only
+            # positive powers, since for negative powers we need to re-sort.
             unit = bases[0]
             power = powers[0]
             if power == 1:
@@ -2038,6 +2040,7 @@ class CompositeUnit(UnitBase):
                 self._bases = unit.bases
                 self._powers = [operator.mul(*resolve_fractions(p, power))
                                 for p in unit.powers]
+
             self._scale = sanitize_scale(scale)
         else:
             # Regular case: use inputs as preliminary scale, bases, and powers,

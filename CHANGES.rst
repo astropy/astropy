@@ -300,6 +300,8 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Ensure correctness of units when raising to a negative power. [#8263]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
