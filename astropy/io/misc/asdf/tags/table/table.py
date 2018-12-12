@@ -2,37 +2,45 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
+from asdf import tagged
 from asdf import yamlutil
 from asdf.tags.core.ndarray import NDArrayType
 
 from astropy import table
-from astropy.io.misc.asdf.types import AstropyAsdfType
+from astropy.io.misc.asdf.types import AstropyType, AstropyAsdfType
 
 
-class TableType(AstropyAsdfType):
-    name = 'core/table'
+class TableType(AstropyType):
+    name = 'table/table'
     types = ['astropy.table.Table']
     requires = ['astropy']
 
     @classmethod
     def from_tree(cls, node, ctx):
 
-        columns = [
-            yamlutil.tagged_tree_to_custom_tree(c, ctx)
-            for c in node['columns']
-        ]
+        if node.get('qtable', False):
+            t = table.QTable(meta=node.get('meta', {}))
+        else:
+            t = table.Table(meta=node.get('meta', {}))
 
-        return table.Table(columns, meta=node.get('meta', {}))
+        for name, col in zip(node['colnames'], node['columns']):
+            t[name] = yamlutil.tagged_tree_to_custom_tree(col, ctx)
+
+        return t
 
     @classmethod
     def to_tree(cls, data, ctx):
         columns = []
         for name in data.colnames:
-            column = yamlutil.custom_tree_to_tagged_tree(
-                data.columns[name], ctx)
+            thiscol = data[name]
+            column = yamlutil.custom_tree_to_tagged_tree(thiscol, ctx)
             columns.append(column)
 
-        node = {'columns': columns}
+        node = dict(
+            columns=columns,
+            colnames=data.colnames,
+            qtable = isinstance(data, table.QTable)
+        )
         if data.meta:
             node['meta'] = data.meta
 
