@@ -58,12 +58,8 @@ class TimeType(AstropyAsdfType):
 
         guessable_format = format in _guessable_formats
 
-        if node.scale == 'utc' and guessable_format:
-            if node.isscalar:
-                return node.value
-            else:
-                return yamlutil.custom_tree_to_tagged_tree(
-                    node.value, ctx)
+        if node.scale == 'utc' and guessable_format and node.isscalar:
+            return node.value
 
         d = {'value': yamlutil.custom_tree_to_tagged_tree(node.value, ctx)}
 
