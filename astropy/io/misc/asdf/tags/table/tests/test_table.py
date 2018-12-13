@@ -102,23 +102,25 @@ def test_table_inline(tmpdir):
 
 def test_mismatched_columns():
     yaml = """
-table: !core/table
+table: !<tag:astropy.org:astropy/table/table-1.0.0>
   columns:
-  - !core/column
-    data: !core/ndarray
+  - !core/column-1.0.0
+    data: !core/ndarray-1.0.0
       data: [0, 1, 2]
     name: a
-  - !core/column
-    data: !core/ndarray
+  - !core/column-1.0.0
+    data: !core/ndarray-1.0.0
       data: [0, 1, 2, 3]
     name: b
+  colnames: [a, b]
     """
 
     buff = helpers.yaml_to_asdf(yaml)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as err:
         with asdf.open(buff) as ff:
             pass
+    assert 'Inconsistent data column lengths' in str(err)
 
 
 def test_masked_table(tmpdir):
