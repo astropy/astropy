@@ -79,6 +79,15 @@ def test_isot(tmpdir):
     assert isinstance(tree['time'], str)
 
 
+def test_isot_array(tmpdir):
+
+    tree = {
+        'time': time.Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02'])
+    }
+
+    helpers.assert_roundtrip_tree(tree, tmpdir)
+
+
 def test_time_tag():
     schema = asdf_schema.load_schema(
         'http://stsci.edu/schemas/asdf/time/time-1.1.0',
