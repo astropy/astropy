@@ -33,6 +33,6 @@ def test_fits_table(tmpdir):
     tree = {'fits': h}
 
     def check_yaml(content):
-        assert b'!core/table' in content
+        assert b'!<tag:astropy.org:astropy/table/table-1.0.0>' in content
 
     helpers.assert_roundtrip_tree(tree, tmpdir, raw_yaml_check_func=check_yaml)

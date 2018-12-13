@@ -8,10 +8,10 @@ from asdf import yamlutil
 
 from astropy import table
 from astropy.io import fits
-from astropy.io.misc.asdf.types import AstropyAsdfType
+from astropy.io.misc.asdf.types import AstropyType
 
 
-class FitsType(AstropyAsdfType):
+class FitsType(AstropyType):
     name = 'fits/fits'
     types = ['astropy.io.fits.HDUList']
     requires = ['astropy']
