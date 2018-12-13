@@ -59,3 +59,4 @@ with registry.delay_doc_updates(Table):
     from astropy.io.fits import connect
     from astropy.io.misc import connect
     from astropy.io.votable import connect
+    from astropy.io.misc.asdf import connect
