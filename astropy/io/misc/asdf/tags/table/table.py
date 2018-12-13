@@ -10,13 +10,31 @@ from astropy import table
 from astropy.io.misc.asdf.types import AstropyType, AstropyAsdfType
 
 
-class TableType(AstropyType):
-    name = 'table/table'
-    types = ['astropy.table.Table']
-    requires = ['astropy']
+class TableType:
+    """
+    This class defines to_tree and from_tree methods that are used by both the
+    AstropyTableType and the AsdfTableType defined below. The behavior is
+    differentiated by the ``_compat`` class attribute. When ``_compat==True``,
+    the behavior will conform to the table schema defined by the ASDF Standard.
+    Otherwise, the behavior will conform to the custom table schema defined by
+    Astropy.
+    """
+    _compat = False
 
     @classmethod
     def from_tree(cls, node, ctx):
+
+        # This is getting meta, guys
+        meta = node.get('meta', {})
+
+        # This enables us to support files that use the table definition from
+        # the ASDF Standard, rather than the custom one that Astropy defines.
+        if cls._compat:
+            columns = [
+                yamlutil.tagged_tree_to_custom_tree(col, ctx)
+                for col in node['columns']
+            ]
+            return table.Table(columns, meta=meta)
 
         if node.get('qtable', False):
             t = table.QTable(meta=node.get('meta', {}))
@@ -36,11 +54,12 @@ class TableType(AstropyType):
             column = yamlutil.custom_tree_to_tagged_tree(thiscol, ctx)
             columns.append(column)
 
-        node = dict(
-            columns=columns,
-            colnames=data.colnames,
-            qtable = isinstance(data, table.QTable)
-        )
+        node = dict(columns=columns)
+        # Files that use the table definition from the ASDF Standard (instead
+        # of the one defined by Astropy) will not contain these fields
+        if not cls._compat:
+            node['colnames'] = data.colnames
+            node['qtable'] = isinstance(data, table.QTable)
         if data.meta:
             node['meta'] = data.meta
 
@@ -50,6 +69,32 @@ class TableType(AstropyType):
     def assert_equal(cls, old, new):
         assert old.meta == new.meta
         NDArrayType.assert_equal(np.array(old), np.array(new))
+
+
+class AstropyTableType(TableType, AstropyType):
+    """
+    This tag class reads and writes tables that conform to the custom schema
+    that is defined by Astropy (in contrast to the one that is defined by the
+    ASDF Standard). The primary reason for differentiating is to enable the
+    support of Astropy mixin columns, which are not supported by the ASDF
+    Standard.
+    """
+    name = 'table/table'
+    types = ['astropy.table.Table']
+    requires = ['astropy']
+
+
+class AsdfTableType(TableType, AstropyAsdfType):
+    """
+    This tag class allows Astropy to read (and write) ASDF files that use the
+    table definition that is provided by the ASDF Standard (instead of the
+    custom one defined by Astropy). This is important to maintain for
+    cross-compatibility.
+    """
+    name = 'core/table'
+    types = ['astropy.table.Table']
+    requires = ['astropy']
+    _compat = True
 
 
 class ColumnType(AstropyAsdfType):
