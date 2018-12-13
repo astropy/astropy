@@ -68,7 +68,14 @@ class TableType:
     @classmethod
     def assert_equal(cls, old, new):
         assert old.meta == new.meta
-        NDArrayType.assert_equal(np.array(old), np.array(new))
+        try:
+            NDArrayType.assert_equal(np.array(old), np.array(new))
+        except (AttributeError, TypeError, ValueError):
+            for col0, col1 in zip(old, new):
+                try:
+                    NDArrayType.assert_equal(np.array(col0), np.array(col1))
+                except (AttributeError, TypeError, ValueError):
+                    assert col0 == col1
 
 
 class AstropyTableType(TableType, AstropyType):

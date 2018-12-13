@@ -100,6 +100,7 @@ properties:
     items:
       anyOf:
         - $ref: "tag:stsci.edu:asdf/core/column-1.0.0"
+        - $ref: "tag:stsci.edu:asdf/time/time-1.1.0"
         - $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
 
   colnames:
