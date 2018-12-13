@@ -1,9 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-import os
-import urllib.parse
-
-import yaml
 
 import pytest
 import numpy as np
@@ -14,10 +10,9 @@ from astropy import __minimum_asdf_version__
 
 asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
 
-from asdf import treeutil
 from asdf.tests import helpers
-from asdf.types import format_tag
-from asdf.resolver import default_resolver
+
+from ...tests.helpers import run_schema_example_test
 
 
 def test_table(tmpdir):
@@ -163,7 +158,7 @@ def test_quantity_mixin(tmpdir):
     helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
 
 
-def test_backwards_compat(tmpdir):
+def test_backwards_compat():
     """
     Make sure that we can continue to read tables that use the schema from
     the ASDF Standard.
@@ -172,27 +167,7 @@ def test_backwards_compat(tmpdir):
     since these make no reference to Astropy's own table definition.
     """
 
-    tag = format_tag('stsci.edu', 'asdf', '1.0.0', 'core/table')
-    schema_path = urllib.parse.urlparse(default_resolver(tag)).path
+    def check(asdffile):
+        assert isinstance(asdffile['example'], table.Table)
 
-    with open(schema_path, 'rb') as ff:
-        schema = yaml.load(ff)
-
-    examples = []
-    for node in treeutil.iter_tree(schema):
-        if (isinstance(node, dict) and
-            'examples' in node and
-            isinstance(node['examples'], list)):
-            for desc, example in node['examples']:
-                examples.append(example)
-
-    for example in examples:
-        buff = helpers.yaml_to_asdf('example: ' + example.strip())
-        ff = asdf.AsdfFile(uri=schema_path)
-        # Add some dummy blocks so that the ndarray examples work
-        for i in range(3):
-            b = asdf.block.Block(np.zeros((1024*1024*8), dtype=np.uint8))
-            b._used = True
-            ff.blocks.add(b)
-        ff._open_impl(ff, buff, mode='r')
-        assert isinstance(ff['example'], table.Table)
+    run_schema_example_test('stsci.edu', 'asdf', 'core/table', '1.0.0', check)
