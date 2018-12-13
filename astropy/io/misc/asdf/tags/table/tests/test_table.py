@@ -9,8 +9,9 @@ from astropy import table
 from astropy import __minimum_asdf_version__
 
 asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
-
 from asdf.tests import helpers
+
+from astropy.time import Time
 
 from ...tests.helpers import run_schema_example_test
 
@@ -154,6 +155,19 @@ def test_quantity_mixin(tmpdir):
 
     def check(ff):
         assert isinstance(ff['table']['c'], u.Quantity)
+
+    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+
+
+def test_time_mixin(tmpdir):
+
+    t = table.Table()
+    t['a'] = [1, 2]
+    t['b'] = ['x', 'y']
+    t['c'] = Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02'])
+
+    def check(ff):
+        assert isinstance(ff['table']['c'], Time)
 
     helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
 
