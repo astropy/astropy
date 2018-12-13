@@ -6,14 +6,14 @@ import numpy as np
 
 import astropy.units as u
 from astropy import table
+from astropy.time import Time
+from astropy.coordinates import SkyCoord
 from astropy import __minimum_asdf_version__
 from astropy.table.tests.test_operations import skycoord_equal
 
 asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
 from asdf.tests import helpers
 from asdf.tags.core.ndarray import NDArrayType
-
-from astropy.time import Time
 
 from ...tests.helpers import run_schema_example_test
 
