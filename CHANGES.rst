@@ -37,6 +37,8 @@ astropy.io.fits
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
+- Implement ``Table`` reader and writer for ``ASDF``. [#8261]
+
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
