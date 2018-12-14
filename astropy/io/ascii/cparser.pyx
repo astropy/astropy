@@ -1033,6 +1033,7 @@ cdef class FastWriter:
         # store all the rows in memory at one time (inefficient)
         # or fail to take advantage of the speed boost of writerows()
         # over writerow().
+        cdef int i = -1
         cdef int N = 100
         cdef int num_cols = <int>len(self.use_names)
         cdef int num_rows = <int>len(self.table)
@@ -1080,7 +1081,7 @@ cdef class FastWriter:
                 writer.writerows(rows)
 
         # Write leftover rows not included in previous chunks
-        if i % N != N - 1:
+        if i >= 0 and i % N != N - 1:
             writer.writerows(rows[:i % N + 1])
 
         if opened_file:
