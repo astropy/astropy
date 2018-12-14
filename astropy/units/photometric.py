@@ -16,16 +16,17 @@ from . import cgs, si, astrophys
 _ns = globals()
 
 def_unit(['Bol', 'L_bol'], _si.L_bol0, namespace=_ns, prefixes=False,
-         doc="Luminosity corresponding to absolute bolometric magnitude zero")
+         doc="Luminosity corresponding to absolute bolometric magnitude zero "
+         "(magnitude M_bol).")
 def_unit(['bol', 'f_bol'], _si.L_bol0 / (4 * _numpy.pi * (10.*astrophys.pc)**2),
          namespace=_ns, prefixes=False, doc="Irradiance corresponding to "
-         "appparent bolometric magnitude zero")
+         "appparent bolometric magnitude zero (magnitude m_bol).")
 def_unit(['AB', 'ABflux'], 10.**(48.6/-2.5) * cgs.erg * cgs.cm**-2 / si.s / si.Hz,
          namespace=_ns, prefixes=False,
-         doc="AB magnitude zero flux density.")
+         doc="AB magnitude zero flux density (magnitude ABmag).")
 def_unit(['ST', 'STflux'], 10.**(21.1/-2.5) * cgs.erg * cgs.cm**-2 / si.s / si.AA,
          namespace=_ns, prefixes=False,
-         doc="ST magnitude zero flux density.")
+         doc="ST magnitude zero flux density. (magnitude STmag).")
 
 def_unit(['mgy', 'maggy'],
          namespace=_ns, prefixes=[(['n'], ['nano'], 1e-9)],
