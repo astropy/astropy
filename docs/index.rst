@@ -22,7 +22,7 @@ Astropy Documentation
 
 .. raw:: html
 
-   <img src="_images/astropy_banner.svg" onerror="this.src='_images/astropy_banner_96.png'; this.onerror=null;" width="485"/>
+   <img src="_static/astropy_banner.svg" onerror="this.src='_static/astropy_banner_96.png'; this.onerror=null;" width="485"/>
 
 .. only:: latex
 
