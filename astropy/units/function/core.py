@@ -277,6 +277,13 @@ class FunctionUnitBase(metaclass=ABCMeta):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __rlshift__(self, m):
+        """Unit converstion operator `<<`"""
+        try:
+            return FunctionQuantity(m, self, copy=False, subok=True)
+        except Exception:
+            return NotImplemented
+
     def __mul__(self, other):
         if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
@@ -636,6 +643,15 @@ class FunctionQuantity(Quantity):
 
     def __le__(self, other):
         return self._comparison(other, self.value.__le__)
+
+    def __lshift__(self, other):
+        """Unit converstion operator `<<`"""
+        try:
+            other = Unit(other, parse_strict='silent')
+        except UnitTypeError:
+            return NotImplemented
+
+        return self.__class__(self, other, copy=False, subok=True)
 
     # Ensure Quantity methods are used only if they make sense.
     def _wrap_function(self, function, *args, **kwargs):
