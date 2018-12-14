@@ -260,19 +260,7 @@ Astropy you are working on. Do that with:
 
 .. code-block:: bash
 
-    python setup.py develop  # typically python 2.x, not python 3
-
-or:
-
-.. code-block:: bash
-
-    python3 setup.py install # python 3...
-    # ...though python3 may be called python3.3 or just python,
-    # depending on your system.
-
-If you are using python 3 you will need to re-install after making changes to
-the Astropy source code. Re-installing goes much faster than the initial install
-because it typically does not require new compilation.
+    python setup.py develop
 
 .. _edit-flow:
 
