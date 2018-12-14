@@ -310,6 +310,29 @@ A B C D E F G H
     assert_table_equal(table, expected)
 
 
+def test_doubled_quotes(read_csv):
+    """
+    Test #8283 (fix for #8281), parsing doubled-quotes "ab""cd" in a quoted
+    field was incorrect.
+
+    """
+    tbl = '\n'.join(['a,b',
+                     '"d""","d""q"',
+                     '"""q",""""'])
+    expected = Table([['d"', '"q'],
+                      ['d"q', '"']],
+                     names=('a', 'b'))
+
+    dat = read_csv(tbl)
+    assert_table_equal(dat, expected)
+
+    # In addition to the local read_csv wrapper, check that default
+    # parsing with guessing gives the right answer.
+    for fast_reader in True, False:
+        dat = ascii.read(tbl, fast_reader=fast_reader)
+        assert_table_equal(dat, expected)
+
+
 @pytest.mark.parametrize("parallel", [True, False])
 def test_quoted_fields(parallel, read_basic):
     """
