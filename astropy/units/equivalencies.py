@@ -34,10 +34,8 @@ class Equivalency(UserList):
     ----------
     name: `str`
         The name of the equivalency.
-    args: `tuple`
-        Any arguments used to make the equivalency.
     kwargs: `dict`
-        Any keyword arguments used to make the equivalency.
+        Any positional or keyword arguments used to make the equivalency.
     """
     def __init__(self, equiv_list, name='', kwargs=None):
         self.data = equiv_list
