@@ -39,21 +39,19 @@ class Equivalency(UserList):
     kwargs: `dict`
         Any keyword arguments used to make the equivalency.
     """
-    def __init__(self, equiv_list, name='', args=None, kwargs=None):
+    def __init__(self, equiv_list, name='', kwargs=None):
         self.data = equiv_list
         self.name = [name]
-        self.args = [args] if args is not None else [tuple()]
+        #self.args = [args] if args is not None else [tuple()]
         self.kwargs = [kwargs] if kwargs is not None else [dict()]
 
 
     def __add__(self, other):
         new = super().__add__(other)
         new.name = self.name[:]
-        new.args = self.args[:]
         new.kwargs = self.kwargs[:]
         if isinstance(other, Equivalency):
             new.name += other.name
-            new.args += other.args
             new.kwargs += other.kwargs
         return new
 
@@ -267,7 +265,7 @@ def spectral_density(wav, factor=None):
         (phot_L_la, phot_L_nu, converter_phot_L_la_phot_L_nu, iconverter_phot_L_la_phot_L_nu),
         (phot_L_nu, L_nu, converter_phot_L_nu_to_L_nu, iconverter_phot_L_nu_to_L_nu),
         (phot_L_nu, L_la, converter_phot_L_nu_to_L_la, iconverter_phot_L_nu_to_L_la),
-    ], "spectral_density", (wav,), {'factor': factor})
+    ], "spectral_density", {'wav': wav, 'factor': factor})
 
 
 def doppler_radio(rest):
@@ -332,7 +330,7 @@ def doppler_radio(rest):
     return Equivalency([(si.Hz, si.km/si.s, to_vel_freq, from_vel_freq),
             (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
             (si.eV, si.km/si.s, to_vel_en, from_vel_en),
-            ], "doppler_radio", (rest,))
+            ], "doppler_radio", {'rest': rest})
 
 
 def doppler_optical(rest):
@@ -398,7 +396,7 @@ def doppler_optical(rest):
     return Equivalency([(si.Hz, si.km/si.s, to_vel_freq, from_vel_freq),
             (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
             (si.eV, si.km/si.s, to_vel_en, from_vel_en),
-            ], "doppler_optical", (rest,))
+            ], "doppler_optical", {'rest': rest})
 
 
 def doppler_relativistic(rest):
@@ -471,7 +469,7 @@ def doppler_relativistic(rest):
     return Equivalency([(si.Hz, si.km/si.s, to_vel_freq, from_vel_freq),
             (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
             (si.eV, si.km/si.s, to_vel_en, from_vel_en),
-            ], "doppler_relativistic", (rest,))
+            ], "doppler_relativistic", {'rest': rest})
 
 
 def molar_mass_amu():
@@ -583,7 +581,7 @@ def brightness_temperature(frequency, beam_area=None):
 
         return Equivalency([(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy),
                             (astrophys.Jy/astrophys.beam, si.K, convert_Jy_to_K, convert_K_to_Jy),],
-                           "brightness_temperature", (frequency,), {'beam_area': beam_area})
+                           "brightness_temperature", {'frequency': frequency, 'beam_area': beam_area})
     else:
         def convert_JySr_to_K(x_jysr):
             factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
@@ -594,7 +592,7 @@ def brightness_temperature(frequency, beam_area=None):
             return (x_K / factor) # multiplied by 1x for 1 steradian
 
         return Equivalency([(astrophys.Jy/si.sr, si.K, convert_JySr_to_K, convert_K_to_JySr)],
-                           "brightness_temperature", (frequency,), {'beam_area': beam_area})
+                           "brightness_temperature", {'frequency': frequency, 'beam_area': beam_area})
 
 
 def beam_angular_area(beam_area):
@@ -612,7 +610,7 @@ def beam_angular_area(beam_area):
     return Equivalency([(astrophys.beam, Unit(beam_area)),
                         (astrophys.beam**-1, Unit(beam_area)**-1),
                         (astrophys.Jy/astrophys.beam, astrophys.Jy/Unit(beam_area)),],
-                       "beam_angular_area", (beam_area,))
+                       "beam_angular_area", {'beam_area': beam_area})
 
 
 def thermodynamic_temperature(frequency, T_cmb=None):
@@ -675,7 +673,7 @@ def thermodynamic_temperature(frequency, T_cmb=None):
         return x_K / factor
 
     return Equivalency([(astrophys.Jy/si.sr, si.K, convert_Jy_to_K, convert_K_to_Jy)],
-                       "thermodynamic_temperature", (frequency,), {"T_cmb": T_cmb})
+                       "thermodynamic_temperature", {'frequency': frequency, "T_cmb": T_cmb})
 
 
 def temperature():
@@ -724,7 +722,7 @@ def pixel_scale(pixscale):
 
     return Equivalency([(astrophys.pix, si.radian,
                          lambda px: px*pixscale_val, lambda rad: rad/pixscale_val)],
-                       "pixel_scale", (pixscale,), {})
+                       "pixel_scale", {'pixscale': pixscale})
 
 
 def plate_scale(platescale):
@@ -746,7 +744,7 @@ def plate_scale(platescale):
                          "distance/angle")
 
     return Equivalency([(si.m, si.radian, lambda d: d*platescale_val, lambda rad: rad/platescale_val)],
-                       "plate_scale", (platescale,))
+                       "plate_scale", {'platescale': platescale})
 
 
 def with_H0(H0=None):
