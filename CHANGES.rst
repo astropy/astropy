@@ -1724,6 +1724,9 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Fix fast reader C tokenizer to handle double quotes in quoted field.
+  [#8283]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
