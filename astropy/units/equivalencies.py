@@ -48,9 +48,9 @@ class Equivalency(UserList):
 
     def __add__(self, other):
         new = super().__add__(other)
-        new.name = self.name
-        new.args = self.args
-        new.kwargs = self.kwargs
+        new.name = self.name[:]
+        new.args = self.args[:]
+        new.kwargs = self.kwargs[:]
         if isinstance(other, Equivalency):
             new.name += other.name
             new.args += other.args
@@ -58,21 +58,9 @@ class Equivalency(UserList):
         return new
 
     def __eq__(self, other):
-        equal = True
-        if not isinstance(other, self.__class__):
-            return False
-        else:
-            if self.name != other.name:
-                equal = False
-            if self.args != other.args:
-                return False
-
-            for i in range(len(self.name)):
-                if not (list(self.kwargs[i].keys()) == list(other.kwargs[i].keys())):
-                    return False
-                if not all([self.kwargs[i][name] == other.kwargs[i][name] for name in self.kwargs[i].keys()]):
-                    return False
-            return equal
+        return (isinstance(other, self.__class__) and
+                self.name == other.name and
+                self.kwargs == other.kwargs)
 
 
 def dimensionless_angles():
