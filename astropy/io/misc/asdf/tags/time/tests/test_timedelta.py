@@ -3,6 +3,7 @@
 
 import pytest
 
+asdf = pytest.importorskip('asdf')
 from asdf.tests.helpers import assert_roundtrip_tree
 
 from astropy.time import Time
