@@ -504,9 +504,21 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                 // ignore initial whitespace
                 break;
             }
-            else if (c == self->quotechar) // empty quotes
+            else if (c == self->quotechar)
             {
-                self->state = FIELD; // parse the rest of the field normally
+                // Lookahead check for double quote inside quoted field,
+                // e.g. """cd" => "cd
+                if (self->source_pos < self->source_len - 1)
+                {
+                    if (self->source[self->source_pos + 1] == self->quotechar)
+                    {
+                        self->state = QUOTED_FIELD_DOUBLE_QUOTE;
+                        PUSH(c);
+                        break;
+                    }
+                }
+                // Parse rest of field normally, e.g. ""c
+                self->state = FIELD;
             }
             else
             {
@@ -536,7 +548,8 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
         case QUOTED_FIELD:
             if (c == self->quotechar)
             {
-                // Lookahead check for double quote inside quoted field, e.g. "ab""cd" => ab"cd
+                // Lookahead check for double quote inside quoted field,
+                // e.g. "ab""cd" => ab"cd
                 if (self->source_pos < self->source_len - 1)
                 {
                     if (self->source[self->source_pos + 1] == self->quotechar)
