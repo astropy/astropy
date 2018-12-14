@@ -45,12 +45,8 @@ class EquivalencyType(AstropyAsdfType):
             equiv = getattr(equivalencies, eq['name'])
             args = eq['args']
             kwargs = dict(zip(eq['kwargs_names'], eq['kwargs_values']))
-            print('equivname', eq['name'], equiv)
             eqs.append(equiv(*args, **kwargs))
-        if len(eqs) > 1:
-            return operator.add(*eqs)
-        else:
-            return eqs[0]
+        return sum(eqs[1:], eqs[0])
 
     @classmethod
     def assert_equal(cls, a, b):
