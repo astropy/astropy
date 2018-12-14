@@ -534,14 +534,33 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
             }
 
         case QUOTED_FIELD:
-            if (c == self->quotechar) // Parse rest of field normally, e.g. "ab"c
+            if (c == self->quotechar)
+            {
+                // Lookahead check for double quote inside quoted field, e.g. "ab""cd" => ab"cd
+                if (self->source_pos < self->source_len - 1)
+                {
+                    if (self->source[self->source_pos + 1] == self->quotechar)
+                    {
+                        self->state = QUOTED_FIELD_DOUBLE_QUOTE;
+                        PUSH(c);
+                        break;
+                    }
+                }
+                // Parse rest of field normally, e.g. "ab"c
                 self->state = FIELD;
+            }
             else if (c == '\n')
                 self->state = QUOTED_FIELD_NEWLINE;
             else
             {
                 PUSH(c);
             }
+            break;
+
+        case QUOTED_FIELD_DOUBLE_QUOTE:
+            // Ignore the second double quote from "ab""cd" and parse rest of
+            // field normally as quoted field.
+            self->state = QUOTED_FIELD;
             break;
 
         case COMMENT:
