@@ -35,6 +35,8 @@ astropy.io.misc
 
 - Implement serialization of ``EarthLocation`` in ASDF. [#8286]
 
+- Implement serialization of ``SkyCoord`` in ASDF. [#8284]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
