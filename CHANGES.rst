@@ -263,6 +263,8 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Fix error when writing out empty table. [#8279]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 

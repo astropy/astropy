@@ -667,6 +667,15 @@ def test_write_quoted_empty_field(fast_writer):
     assert out.getvalue().splitlines() == ['col0,col1', 'Hello,', ',']
 
 
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_empty_table(fast_writer):
+    """Test writing empty table #8275."""
+    t = table.Table([[]], dtype=['S2'])
+    out = StringIO()
+    ascii.write(t, out, fast_writer=fast_writer)
+    assert out.getvalue().splitlines() == ['col0']
+
+
 @pytest.mark.parametrize("format", ['ascii', 'csv', 'html', 'latex',
                                     'ascii.fixed_width', 'html'])
 @pytest.mark.parametrize("fast_writer", [True, False])
