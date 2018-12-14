@@ -779,19 +779,13 @@ def test_equivelency():
     assert isinstance(ps.name, list)
     assert len(ps.name) == 1
     assert ps.name[0] == "pixel_scale"
-    assert isinstance(ps.args, list)
-    assert len(ps.args) == 1
-    assert ps.args[0][0] == 10*u.arcsec/u.pix
     assert isinstance(ps.kwargs, list)
     assert len(ps.kwargs) == 1
-    assert ps.kwargs[0] == dict()
+    assert ps.kwargs[0] == dict({'pixscale': 10*u.arcsec/u.pix})
 
 def test_add_equivelencies():
     e1 = u.pixel_scale(10*u.arcsec/u.pixel) + u.temperature_energy()
     assert isinstance(e1, Equivalency)
     assert e1.name == ["pixel_scale", "temperature_energy"]
-    assert isinstance(e1.args, list)
-    assert len(e1.args) == 2
-    assert e1.args[0][0] == 10*u.arcsec/u.pix
     assert isinstance(e1.kwargs, list)
-    assert e1.kwargs == [dict(), dict()]
+    assert e1.kwargs == [dict({'pixscale': 10*u.arcsec/u.pix}), dict()]

@@ -22,16 +22,12 @@ class EquivalencyType(AstropyAsdfType):
 
         eqs = []
         for i, e in enumerate(equiv.name):
-            args = equiv.args[i]
-            args = [custom_tree_to_tagged_tree(val, ctx) if isinstance(val, Quantity)
-                    else val for val in args]
             kwargs = equiv.kwargs[i]
             kwarg_names = list(kwargs.keys())
             kwarg_values = list(kwargs.values())
             kwarg_values = [custom_tree_to_tagged_tree(val, ctx) if isinstance(val, Quantity)
                             else val for val in kwarg_values]
-            eq = {'name': e, 'args': args,  'kwargs_names': kwarg_names,
-                  'kwargs_values': kwarg_values}
+            eq = {'name': e, 'kwargs_names': kwarg_names, 'kwargs_values': kwarg_values}
             eqs.append(eq)
 
         node['equivalencies'] = eqs
@@ -39,13 +35,11 @@ class EquivalencyType(AstropyAsdfType):
 
     @classmethod
     def from_tree(cls, node, ctx):
-        import operator
         eqs = []
         for eq in node['equivalencies']:
             equiv = getattr(equivalencies, eq['name'])
-            args = eq['args']
             kwargs = dict(zip(eq['kwargs_names'], eq['kwargs_values']))
-            eqs.append(equiv(*args, **kwargs))
+            eqs.append(equiv(**kwargs))
         return sum(eqs[1:], eqs[0])
 
     @classmethod
