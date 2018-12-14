@@ -57,6 +57,13 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Improved the Table - pandas ``DataFrame`` interface (``to_pandas()`` and
+  ``from_pandas()``).  Mixin columns like ``Time`` and ``Quantity`` can now be
+  converted to pandas by flattening the columns as necessary to plain
+  columns.  ``Time`` and ``TimeDelta`` columns get converted to
+  corresponding pandas date or time delta types.  The ``DataFrame``
+  index is now handled in the conversion methods. [#8247]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

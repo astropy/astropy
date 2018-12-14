@@ -36,6 +36,7 @@ __doctest_skip__ = ['Table.read', 'Table.write',
                     'Table.convert_unicode_to_bytestring',
                     ]
 
+__doctest_requires__ = {'*pandas': ['pandas']}
 
 class TableReplaceWarning(UserWarning):
     """
@@ -2690,33 +2691,120 @@ class Table:
         """
         return groups.table_group_by(self, keys)
 
-    def to_pandas(self):
+    def to_pandas(self, index=None):
         """
         Return a :class:`pandas.DataFrame` instance
+
+        The index of the created DataFrame is controlled by the ``index``
+        argument.  For ``index=True`` or the default ``None``, an index will be
+        specified for the DataFrame if there is a primary key index on the
+        Table *and* if it corresponds to a single column.  If ``index=False``
+        then no DataFrame index will be specified.  If ``index`` is the name of
+        a column in the table then that will be the DataFrame index.
+
+        In additional to vanilla columns or masked columns, this supports Table
+        mixin columns like Quantity, Time, or SkyCoord.  In many cases these
+        objects have no analog in pandas and will be converted to a "encoded"
+        representation using only Column or MaskedColumn.  The exception is
+        Time or TimeDelta columns, which will be converted to the corresponding
+        representation in pandas using ``np.datetime64`` or ``np.timedelta64``.
+        See the example below.
 
         Returns
         -------
         dataframe : :class:`pandas.DataFrame`
             A pandas :class:`pandas.DataFrame` instance
+        index : None, bool, str
+            Specify DataFrame index mode
 
         Raises
         ------
         ImportError
             If pandas is not installed
         ValueError
-            If the Table contains mixin or multi-dimensional columns
+            If the Table has multi-dimensional columns
+
+        Examples
+        --------
+        Here we convert a table with a few mixins to a :class:`pandas.DataFrame` instance.
+
+          >>> from astropy.table import QTable
+          >>> import astropy.units as u
+          >>> from astropy.time import Time, TimeDelta
+          >>> from astropy.coordinates import SkyCoord
+
+          >>> q = [1, 2] * u.m
+          >>> tm = Time([1998, 2002], format='jyear')
+          >>> sc = SkyCoord([5, 6], [7, 8], unit='deg')
+          >>> dt = TimeDelta([3, 200] * u.s)
+
+          >>> t = QTable([q, tm, sc, dt], names=['q', 'tm', 'sc', 'dt'])
+
+          >>> t.to_pandas(index='tm')
+                        q  sc.ra  sc.dec       dt
+          tm
+          1998-01-01  1.0    5.0     7.0 00:00:03
+          2002-01-01  2.0    6.0     8.0 00:03:20
+
         """
         from pandas import DataFrame
 
-        if self.has_mixin_columns:
-            raise ValueError("Cannot convert a table with mixin columns to a pandas DataFrame")
+        if index is not False:
+            if index in (None, True):
+                # Default is to use the table primary key if available and a single column
+                if self.primary_key and len(self.primary_key) == 1:
+                    index = self.primary_key[0]
+                else:
+                    index = False
+            else:
+                if index not in self.colnames:
+                    raise ValueError('index must be None, False, True or a table '
+                                     'column name')
 
-        if any(getattr(col, 'ndim', 1) > 1 for col in self.columns.values()):
-            raise ValueError("Cannot convert a table with multi-dimensional columns to a pandas DataFrame")
+        def _encode_mixins(tbl):
+            """Encode a Table ``tbl`` that may have mixin columns to a Table with only
+            astropy Columns + appropriate meta-data to allow subsequent decoding.
+            """
+            from . import serialize
+            from astropy.utils.data_info import MixinInfo, serialize_context_as
+            from astropy.time import Time, TimeDelta
+
+            # Convert any Time or TimeDelta columns and pay attention to masking
+            time_cols = [col for col in tbl.itercols() if isinstance(col, Time)]
+            if time_cols:
+
+                # Make a light copy of table and clear any indices
+                new_cols = []
+                for col in tbl.itercols():
+                    new_col = col_copy(col, copy_indices=False) if col.info.indices else col
+                    new_cols.append(new_col)
+                tbl = tbl.__class__(new_cols, copy=False)
+
+                for col in time_cols:
+                    if isinstance(col, TimeDelta):
+                        # Convert to nanoseconds (matches astropy datetime64 support)
+                        new_col = (col.sec * 1e9).astype('timedelta64[ns]')
+                        nat = np.timedelta64('NaT')
+                    else:
+                        new_col = col.datetime64.copy()
+                        nat = np.datetime64('NaT')
+                    if col.masked:
+                        new_col[col.mask] = nat
+                    tbl[col.info.name] = new_col
+
+            # Convert the table to one with no mixins, only Column objects.
+            encode_tbl = serialize._represent_mixins_as_columns(tbl)
+            return encode_tbl
+
+        tbl = _encode_mixins(self)
+
+        if any(getattr(col, 'ndim', 1) > 1 for col in tbl.columns.values()):
+            raise ValueError("Cannot convert a table with multi-dimensional "
+                             "columns to a pandas DataFrame")
 
         out = OrderedDict()
 
-        for name, column in self.columns.items():
+        for name, column in tbl.columns.items():
             if isinstance(column, MaskedColumn) and np.any(column.mask):
                 if column.dtype.kind in ['i', 'u']:
                     out[name] = column.astype(float).filled(np.nan)
@@ -2733,30 +2821,80 @@ class Table:
             if out[name].dtype.byteorder not in ('=', '|'):
                 out[name] = out[name].byteswap().newbyteorder()
 
-        return DataFrame(out)
+        kwargs = {'index': out.pop(index)} if index else {}
+
+        return DataFrame(out, **kwargs)
 
     @classmethod
-    def from_pandas(cls, dataframe):
+    def from_pandas(cls, dataframe, index=False):
         """
         Create a `Table` from a :class:`pandas.DataFrame` instance
+
+        In addition to converting generic numeric or string columns, this supports
+        conversion of pandas Date and Time delta columns to `~astropy.time.Time`
+        and `~astropy.time.TimeDelta` columns, respectively.
 
         Parameters
         ----------
         dataframe : :class:`pandas.DataFrame`
-            The pandas :class:`pandas.DataFrame` instance
+            A pandas :class:`pandas.DataFrame` instance
+        index : bool
+            Include the index column in the returned table (default=False)
 
         Returns
         -------
         table : `Table`
             A `Table` (or subclass) instance
+
+        Raises
+        ------
+        ImportError
+            If pandas is not installed
+
+        Examples
+        --------
+        Here we convert a :class:`pandas.DataFrame` instance to a `QTable`.
+
+          >>> import pandas as pd
+          >>> from astropy.table import QTable
+
+          >>> time = pd.Series(['1998-01-01', '2002-01-01'], dtype='datetime64[ns]')
+          >>> dt = pd.Series(np.array([1, 300], dtype='timedelta64[s]'))
+          >>> df = pd.DataFrame({'time': time})
+          >>> df['dt'] = dt
+          >>> df['x'] = [3., 4.]
+          >>> df
+                  time       dt    x
+          0 1998-01-01 00:00:01  3.0
+          1 2002-01-01 00:05:00  4.0
+
+          >>> QTable.from_pandas(df)
+          <QTable length=2>
+                    time            dt      x
+                   object         object float64
+          ----------------------- ------ -------
+          1998-01-01T00:00:00.000    1.0     3.0
+          2002-01-01T00:00:00.000  300.0     4.0
+
         """
 
         out = OrderedDict()
 
-        for name in dataframe.columns:
-            column = dataframe[name]
-            mask = np.array(column.isnull())
-            data = np.array(column)
+        names = list(dataframe.columns)
+        columns = [dataframe[name] for name in names]
+        datas = [np.array(column) for column in columns]
+        masks = [np.array(column.isnull()) for column in columns]
+
+        if index:
+            index_name = dataframe.index.name or 'index'
+            while index_name in names:
+                index_name = '_' + index_name + '_'
+            names.insert(0, index_name)
+            columns.insert(0, dataframe.index)
+            datas.insert(0, np.array(dataframe.index))
+            masks.insert(0, np.zeros(len(dataframe), dtype=bool))
+
+        for name, column, data, mask in zip(names, columns, datas, masks):
 
             if data.dtype.kind == 'O':
                 # If all elements of an object array are string-like or np.nan
@@ -2772,10 +2910,27 @@ class Table:
                     # numpy initializes to the correct string or unicode type.
                     data = np.array([x for x in data])
 
-            if np.any(mask):
-                out[name] = MaskedColumn(data=data, name=name, mask=mask)
+            # Numpy datetime64
+            if data.dtype.kind == 'M':
+                from astropy.time import Time
+                out[name] = Time(data, format='datetime64')
+                if np.any(mask):
+                    out[name][mask] = np.ma.masked
+                out[name].format = 'isot'
+
+            # Numpy timedelta64
+            elif data.dtype.kind == 'm':
+                from astropy.time import TimeDelta
+                data_sec = data.astype('timedelta64[ns]').astype(np.float64) / 1e9
+                out[name] = TimeDelta(data_sec, format='sec')
+                if np.any(mask):
+                    out[name][mask] = np.ma.masked
+
             else:
-                out[name] = Column(data=data, name=name)
+                if np.any(mask):
+                    out[name] = MaskedColumn(data=data, name=name, mask=mask)
+                else:
+                    out[name] = Column(data=data, name=name)
 
         return cls(out)
 

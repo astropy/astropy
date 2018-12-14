@@ -13,12 +13,13 @@ from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.io import fits
 from astropy.tests.helper import (assert_follows_unicode_guidelines,
-                             ignore_warnings, catch_warnings)
+                                  ignore_warnings, catch_warnings)
+
 from astropy.utils.data import get_pkg_data_filename
 from astropy import table
 from astropy import units as u
-from .conftest import MaskedTable
-
+from astropy.time import Time, TimeDelta
+from .conftest import MaskedTable, MIXIN_COLS
 
 try:
     with ignore_warnings(DeprecationWarning):
@@ -1655,16 +1656,103 @@ class TestPandas:
             t.to_pandas()
         assert exc.value.args[0] == "Cannot convert a table with multi-dimensional columns to a pandas DataFrame"
 
-    def test_mixin(self):
+    def test_mixin_pandas(self):
+        t = table.QTable()
+        for name in sorted(MIXIN_COLS):
+            if name != 'ndarray':
+                t[name] = MIXIN_COLS[name]
 
-        from astropy.coordinates import SkyCoord
+        t['dt'] = TimeDelta([0, 2, 4, 6], format='sec')
 
-        t = table.Table()
-        t['c'] = SkyCoord([1, 2, 3], [4, 5, 6], unit='deg')
+        tp = t.to_pandas()
+        t2 = table.Table.from_pandas(tp)
 
-        with pytest.raises(ValueError) as exc:
-            t.to_pandas()
-        assert exc.value.args[0] == "Cannot convert a table with mixin columns to a pandas DataFrame"
+        assert np.allclose(t2['quantity'], [0, 1, 2, 3])
+        assert np.allclose(t2['longitude'], [0., 1., 5., 6.])
+        assert np.allclose(t2['latitude'], [5., 6., 10., 11.])
+        assert np.allclose(t2['skycoord.ra'], [0, 1, 2, 3])
+        assert np.allclose(t2['skycoord.dec'], [0, 1, 2, 3])
+        assert np.allclose(t2['arraywrap'], [0, 1, 2, 3])
+        assert np.allclose(t2['earthlocation.y'], [0, 110708, 547501, 654527], rtol=0, atol=1)
+
+        # For pandas, Time, TimeDelta are the mixins that round-trip the class
+        assert isinstance(t2['time'], Time)
+        assert np.allclose(t2['time'].jyear, [2000, 2001, 2002, 2003])
+        assert np.all(t2['time'].isot == ['2000-01-01T12:00:00.000',
+                                          '2000-12-31T18:00:00.000',
+                                          '2002-01-01T00:00:00.000',
+                                          '2003-01-01T06:00:00.000'])
+        assert t2['time'].format == 'isot'
+
+        # TimeDelta
+        assert isinstance(t2['dt'], TimeDelta)
+        assert np.allclose(t2['dt'].value, [0, 2, 4, 6])
+        assert t2['dt'].format == 'sec'
+
+    def test_to_pandas_index(self):
+        import pandas as pd
+        row_index = pd.RangeIndex(0, 2, 1)
+        tm_index = pd.DatetimeIndex(['1998-01-01', '2002-01-01'],
+                                                   dtype='datetime64[ns]',
+                                                   name='tm', freq=None)
+
+        tm = Time([1998, 2002], format='jyear')
+        x = [1, 2]
+        t = table.QTable([tm, x], names=['tm', 'x'])
+        tp = t.to_pandas()
+        assert np.all(tp.index == row_index)
+
+        tp = t.to_pandas(index='tm')
+        assert np.all(tp.index == tm_index)
+
+        t.add_index('tm')
+        tp = t.to_pandas()
+        assert np.all(tp.index == tm_index)
+        # Make sure writing to pandas didn't hack the original table
+        assert t['tm'].info.indices
+
+        tp = t.to_pandas(index=True)
+        assert np.all(tp.index == tm_index)
+
+        tp = t.to_pandas(index=False)
+        assert np.all(tp.index == row_index)
+
+        with pytest.raises(ValueError) as err:
+            t.to_pandas(index='not a column')
+        assert 'index must be None, False' in str(err)
+
+
+    def test_mixin_pandas_masked(self):
+        tm = Time([1, 2, 3], format='cxcsec')
+        dt = TimeDelta([1, 2, 3], format='sec')
+        tm[1] = np.ma.masked
+        dt[1] = np.ma.masked
+        t = table.QTable([tm, dt], names=['tm', 'dt'])
+
+        tp = t.to_pandas()
+        assert np.all(tp['tm'].isnull() == [False, True, False])
+        assert np.all(tp['dt'].isnull() == [False, True, False])
+
+        t2 = table.Table.from_pandas(tp)
+
+        assert np.all(t2['tm'].mask == tm.mask)
+        assert np.ma.allclose(t2['tm'].jd, tm.jd, rtol=1e-14, atol=1e-14)
+
+        assert np.all(t2['dt'].mask == dt.mask)
+        assert np.ma.allclose(t2['dt'].jd, dt.jd, rtol=1e-14, atol=1e-14)
+
+    def test_from_pandas_index(self):
+        tm = Time([1998, 2002], format='jyear')
+        x = [1, 2]
+        t = table.Table([tm, x], names=['tm', 'x'])
+        tp = t.to_pandas(index='tm')
+
+        t2 = table.Table.from_pandas(tp)
+        assert t2.colnames == ['x']
+
+        t2 = table.Table.from_pandas(tp, index=True)
+        assert t2.colnames == ['tm', 'x']
+        assert np.allclose(t2['tm'].jyear, tm.jyear)
 
     def test_masking(self):
 
