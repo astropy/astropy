@@ -36,7 +36,7 @@ __doctest_skip__ = ['Table.read', 'Table.write',
                     'Table.convert_unicode_to_bytestring',
                     ]
 
-__doctest_requires__ = {'*pandas': ['pandas', 'yaml']}
+__doctest_requires__ = {'*pandas': ['pandas']}
 
 class TableReplaceWarning(UserWarning):
     """
@@ -2769,17 +2769,6 @@ class Table:
             from astropy.utils.data_info import MixinInfo, serialize_context_as
             from astropy.time import Time, TimeDelta
 
-            # If PyYAML is not available then check to see if there are any mixin cols
-            # that *require* YAML serialization.
-            try:
-                import yaml
-            except ImportError:
-                for col in tbl.itercols():
-                    if has_info_class(col, MixinInfo):
-                        raise TypeError("cannot convert {} column '{}' "
-                                        "to pandas without PyYAML installed."
-                                        .format(col.__class__.__name__, col.info.name))
-
             # Convert any Time or TimeDelta columns and pay attention to masking
             time_cols = [col for col in tbl.itercols() if isinstance(col, Time)]
             if time_cols:
@@ -2803,8 +2792,7 @@ class Table:
                         new_col[col.mask] = nat
                     tbl[col.info.name] = new_col
 
-            # Convert the table to one with no mixins, only Column objects.  This adds
-            # meta data which is extracted with meta.get_yaml_from_table.
+            # Convert the table to one with no mixins, only Column objects.
             encode_tbl = serialize._represent_mixins_as_columns(tbl)
             return encode_tbl
 

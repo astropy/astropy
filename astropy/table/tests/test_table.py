@@ -31,12 +31,6 @@ except ImportError:
 else:
     HAS_PANDAS = True
 
-try:
-    import yaml  # pylint: disable=W0611
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
-
 
 class SetupData:
     def _setup(self, table_types):
@@ -1662,7 +1656,6 @@ class TestPandas:
             t.to_pandas()
         assert exc.value.args[0] == "Cannot convert a table with multi-dimensional columns to a pandas DataFrame"
 
-    @pytest.mark.skipif('not HAS_YAML')
     def test_mixin_pandas(self):
         t = table.QTable()
         for name in sorted(MIXIN_COLS):
@@ -1696,7 +1689,6 @@ class TestPandas:
         assert np.allclose(t2['dt'].value, [0, 2, 4, 6])
         assert t2['dt'].format == 'sec'
 
-    @pytest.mark.skipif('not HAS_YAML')
     def test_to_pandas_index(self):
         import pandas as pd
         row_index = pd.RangeIndex(0, 2, 1)
@@ -1730,7 +1722,6 @@ class TestPandas:
         assert 'index must be None, False' in str(err)
 
 
-    @pytest.mark.skipif('not HAS_YAML')
     def test_mixin_pandas_masked(self):
         tm = Time([1, 2, 3], format='cxcsec')
         dt = TimeDelta([1, 2, 3], format='sec')
@@ -1750,7 +1741,6 @@ class TestPandas:
         assert np.all(t2['dt'].mask == dt.mask)
         assert np.ma.allclose(t2['dt'].jd, dt.jd, rtol=1e-14, atol=1e-14)
 
-    @pytest.mark.skipif('not HAS_YAML')
     def test_from_pandas_index(self):
         tm = Time([1998, 2002], format='jyear')
         x = [1, 2]
