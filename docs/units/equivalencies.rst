@@ -385,12 +385,12 @@ convert to/from physical to "little h" units.  Two example conversions:
 
     >>> import astropy.units as u
     >>> H0_70 = 70 * u.km/u.s / u.Mpc
-    >>> distance = 100 * (u.Mpc/u.littleh)
+    >>> distance = 70 * (u.Mpc/u.littleh)
     >>> distance.to(u.Mpc, u.with_H0(H0_70))  # doctest: +FLOAT_CMP
-    <Quantity 70.0 Mpc>
-    >>> luminosity = 1 * u.Lsun * u.littleh**-2
+    <Quantity 100.0 Mpc>
+    >>> luminosity = 0.49 * u.Lsun * u.littleh**-2
     >>> luminosity.to(u.Lsun, u.with_H0(H0_70))  # doctest: +FLOAT_CMP
-    <Quantity 0.49 solLum>
+    <Quantity 1.0 solLum>
 
 Note the unit name ``littleh`` - while this unit is usually expressed in the
 literature as just ``h``, here it is ``littleh`` to not cause confusion with
@@ -401,14 +401,14 @@ the ``H0`` from the current default cosmology:
 
     >>> distance = 100 * (u.Mpc/u.littleh)
     >>> distance.to(u.Mpc, u.with_H0())  # doctest: +FLOAT_CMP
-    <Quantity 67.74 Mpc>
+    <Quantity 147.62326543 Mpc>
 
-This equivalency also allows the common magnitude formulation of little h
+This equivalency also allows a common magnitude formulation of little h
 scaling:
 
-    >>> mag_quantity = 12 * (u.mag + u.MagUnit(u.littleh**2))
+    >>> mag_quantity = 12 * (u.mag - u.MagUnit(u.littleh**2))
     >>> mag_quantity  # doctest: +FLOAT_CMP
-    <Magnitude 12. mag(littleh2)>
+    <Magnitude 12. mag(1 / littleh2)>
     >>> mag_quantity.to(u.mag, u.with_H0(H0_70))  # doctest: +FLOAT_CMP
     <Quantity 11.2254902 mag>
 
