@@ -5,6 +5,7 @@ import contextlib
 import pathlib
 import re
 import sys
+import inspect
 
 from collections import OrderedDict
 from operator import itemgetter
@@ -196,10 +197,13 @@ def _update__doc__(data_class, readwrite):
 
     # Depending on Python version and whether class_readwrite_func is
     # an instancemethod or classmethod, one of the following will work.
-    try:
-        class_readwrite_func.__doc__ = '\n'.join(lines)
-    except AttributeError:
-        class_readwrite_func.__func__.__doc__ = '\n'.join(lines)
+    if isinstance(class_readwrite_func, UnifiedReadWrite):
+        class_readwrite_func.__class__.__doc__ = '\n'.join(lines)
+    else:
+        try:
+            class_readwrite_func.__doc__ = '\n'.join(lines)
+        except AttributeError:
+            class_readwrite_func.__func__.__doc__ = '\n'.join(lines)
 
 
 def register_reader(data_format, data_class, function, force=False):
@@ -599,3 +603,37 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
                 ', '.join(sorted(valid_formats, key=itemgetter(0)))))
 
     return valid_formats[0]
+
+
+class UnifiedReadWrite:
+    """
+    Base class for unified read() or write() methods.
+    """
+    def __init__(self, cls, method_name):
+        self._cls = cls
+        self._method_name = method_name  # 'read' or 'write'
+
+    def help(self, format):
+        import pydoc
+        cls = self._cls
+        method_name = self._method_name
+        reader = get_reader(format, cls)
+
+        # General docs
+        header = ('{}.{} general documentation\n'
+                  .format(cls.__name__, method_name))
+        reader_doc = re.sub('.', '=', header)
+        reader_doc += header
+        reader_doc += re.sub('.', '=', header)
+        reader_doc += inspect.cleandoc(cls.read.__doc__)
+
+        # Format-specific
+        header = ("{}.{}(format='{}') documentation\n"
+                  .format(cls.__name__, method_name, format))
+        reader_doc += '\n\n'
+        reader_doc += re.sub('.', '=', header)
+        reader_doc += header
+        reader_doc += re.sub('.', '=', header)
+        reader_doc += inspect.cleandoc(reader.__doc__)
+
+        pydoc.pager(reader_doc)
