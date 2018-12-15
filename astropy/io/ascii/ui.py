@@ -738,52 +738,7 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
 
 def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
           overwrite=None, **kwargs):
-    """Write the input ``table`` to ``filename``.  Most of the default behavior
-    for various parameters is determined by the Writer class.
-
-    See also:
-
-    - http://docs.astropy.org/en/stable/io/ascii/
-    - http://docs.astropy.org/en/stable/io/ascii/write.html
-
-    Parameters
-    ----------
-    table : `~astropy.io.ascii.BaseReader`, array_like, str, file_like, list
-        Input table as a Reader object, Numpy struct array, file name,
-        file-like object, list of strings, or single newline-separated string.
-    output : str, file_like
-        Output [filename, file-like object]. Defaults to``sys.stdout``.
-    format : str
-        Output table format. Defaults to 'basic'.
-    delimiter : str
-        Column delimiter string
-    comment : str
-        String defining a comment line in table
-    quotechar : str
-        One-character string to quote fields containing special characters
-    formats : dict
-        Dictionary of format specifiers or formatting functions
-    strip_whitespace : bool
-        Strip surrounding whitespace from column values.
-    names : list
-        List of names corresponding to each data column
-    include_names : list
-        List of names to include in output.
-    exclude_names : list
-        List of names to exclude from output (applied after ``include_names``)
-    fast_writer : bool
-        Whether to use the fast Cython writer.
-    overwrite : bool
-        If ``overwrite=None`` (default) and the file exists, then a
-        warning will be issued. In a future release this will instead
-        generate an exception. If ``overwrite=False`` and the file
-        exists, then an exception is raised.
-        This parameter is ignored when the ``output`` arg is not a string
-        (e.g., a file object).
-    Writer : ``Writer``
-        Writer class (DEPRECATED).
-
-    """
+    # Docstring inserted below
     if isinstance(output, str):
         if os.path.lexists(output):
             if overwrite is None:

@@ -617,7 +617,10 @@ class UnifiedReadWrite:
         import pydoc
         cls = self._cls
         method_name = self._method_name
-        reader = get_reader(format, cls)
+
+        # Get reader or writer function
+        get_func = get_reader if method_name == 'read' else get_writer
+        read_write_func = get_func(format, cls)
 
         # General docs
         header = ('{}.{} general documentation\n'
@@ -625,7 +628,7 @@ class UnifiedReadWrite:
         reader_doc = re.sub('.', '=', header)
         reader_doc += header
         reader_doc += re.sub('.', '=', header)
-        reader_doc += inspect.cleandoc(cls.read.__doc__)
+        reader_doc += inspect.cleandoc(getattr(cls, method_name).__doc__)
 
         # Format-specific
         header = ("{}.{}(format='{}') documentation\n"
@@ -634,6 +637,6 @@ class UnifiedReadWrite:
         reader_doc += re.sub('.', '=', header)
         reader_doc += header
         reader_doc += re.sub('.', '=', header)
-        reader_doc += inspect.cleandoc(reader.__doc__)
+        reader_doc += inspect.cleandoc(read_write_func.__doc__)
 
         pydoc.pager(reader_doc)
