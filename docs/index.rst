@@ -35,6 +35,12 @@ the community to develop a robust ecosystem of `Affiliated Packages
 <http://www.astropy.org/affiliated/index.html>`_ covering a broad range of
 needs for astronomical research, data processing, and data analysis.
 
+.. Important:: If you use Astropy for work presented in a publication or talk
+   please help the project via proper `citation or acknowledgement
+   <http://www.astropy.org/acknowledging.html>`_.  This also applies to use of
+   software or `affliated packages <http://www.astropy.org/affiliated/>`_ that
+   depend on the astropy core package.
+
 .. _getting-started:
 
 ***************
