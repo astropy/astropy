@@ -256,7 +256,7 @@ class HTMLData(core.BaseData):
 
 
 class HTML(core.BaseReader):
-    """Read and write HTML tables.
+    """HTML format table.
 
     In order to customize input and output, a dict of parameters may
     be passed to this class holding specific customizations.

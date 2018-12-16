@@ -262,9 +262,9 @@ class FixedWidthData(basic.BasicData):
 
 
 class FixedWidth(basic.Basic):
-    """
-    Read or write a fixed width table with a single header line that defines column
-    names and positions.  Examples::
+    """Fixed width table with single header line defining column names and positions.
+
+    Examples::
 
       # Bar delimiter in header and data
 
@@ -312,12 +312,13 @@ class FixedWidthNoHeaderData(FixedWidthData):
 
 
 class FixedWidthNoHeader(FixedWidth):
-    """
-    Read or write a fixed width table which has no header line.  Column
-    names are either input (``names`` keyword) or auto-generated.  Column
-    positions are determined either by input (``col_starts`` and ``col_stops``
-    keywords) or by splitting the first data line.  In the latter case a
-    ``delimiter`` is required to split the data line.
+    """Fixed width table which has no header line.
+
+    When reading, column names are either input (``names`` keyword) or
+    auto-generated.  Column positions are determined either by input
+    (``col_starts`` and ``col_stops`` keywords) or by splitting the first data
+    line.  In the latter case a ``delimiter`` is required to split the data
+    line.
 
     Examples::
 
@@ -368,10 +369,12 @@ class FixedWidthTwoLineData(FixedWidthData):
 
 
 class FixedWidthTwoLine(FixedWidth):
-    """
-    Read or write a fixed width table which has two header lines.  The first
-    header line defines the column names and the second implicitly defines the
-    column positions.  Examples::
+    """Fixed width table which has two header lines.
+
+    The first header line defines the column names and the second implicitly
+    defines the column positions.
+
+    Examples::
 
       # Typical case with column extent defined by ---- under column names.
 
