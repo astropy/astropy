@@ -8,8 +8,7 @@ __doctest_skip__ = ['TableRead', 'TableWrite']
 
 
 class TableRead(registry.UnifiedReadWrite):
-    """
-    Read and parse a data table and return as a Table.
+    """Read and parse a data table and return as a Table.
 
     This function provides the Table interface to the astropy unified I/O
     layer.  This allows easily reading a file in many supported data formats
@@ -18,6 +17,11 @@ class TableRead(registry.UnifiedReadWrite):
       >>> from astropy.table import Table
       >>> dat = Table.read('table.dat', format='ascii')
       >>> events = Table.read('events.fits', format='fits')
+
+    Get help on the reader for a particular format (e.g. 'fits') using the
+    ``help()`` method::
+
+      >>> Table.read.help('fits')  # Get detailed help on FITS reader
 
     See also: http://docs.astropy.org/en/stable/io/unified.html
 
@@ -38,6 +42,7 @@ class TableRead(registry.UnifiedReadWrite):
 
     Notes
     -----
+
     """
     def __init__(self, instance, cls):
         super().__init__(instance, cls, 'read')
@@ -71,6 +76,15 @@ class TableWrite(registry.UnifiedReadWrite):
       >>> from astropy.table import Table
       >>> dat = Table([[1, 2], [3, 4]], names=('a', 'b'))
       >>> dat.write('table.dat', format='ascii')
+
+    Get help on the writer for a particular format (e.g. 'fits') using the
+    ``help()`` method::
+
+      >>> Table.write.help('fits')  # Get detailed help on FITS writer
+
+    The ``serialize_method`` argument is explained in the section on
+    `Table serialization methods
+    <http://docs.astropy.org/en/latest/io/unified.html#table-serialization-methods>`_.
 
     See also: http://docs.astropy.org/en/stable/io/unified.html
 
