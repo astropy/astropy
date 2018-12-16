@@ -204,6 +204,8 @@ Reference/API
 
 .. automodapi:: astropy.units.function.units
 
+.. automodapi:: astropy.units.photometric
+
 .. automodapi:: astropy.units.imperial
 
 .. automodapi:: astropy.units.cds
@@ -211,10 +213,6 @@ Reference/API
 .. automodapi:: astropy.units.equivalencies
 
 .. automodapi:: astropy.units.function
-
-.. automodapi:: astropy.units.photometric
-
-.. automodapi:: astropy.units.logarithmic
 
 .. automodapi:: astropy.units.deprecated
 
