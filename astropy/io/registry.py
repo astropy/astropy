@@ -634,7 +634,7 @@ class UnifiedReadWrite:
         self._cls = cls
         self._method_name = method_name  # 'read' or 'write'
 
-    def help(self, format, out=None):
+    def help(self, format=None, out=None):
         """Output help documentation for the specified unified I/O ``format``.
 
         By default the help output is printed to the console via `pydoc.pager`.
@@ -654,7 +654,8 @@ class UnifiedReadWrite:
         # Get reader or writer function
         get_func = get_reader if method_name == 'read' else get_writer
         try:
-            read_write_func = get_func(format, cls)
+            if format:
+                read_write_func = get_func(format, cls)
         except IORegistryError as err:
             reader_doc = 'ERROR: ' + str(err)
         else:
@@ -666,14 +667,15 @@ class UnifiedReadWrite:
             reader_doc += re.sub('.', '=', header)
             reader_doc += inspect.cleandoc(getattr(cls, method_name).__doc__)
 
-            # Format-specific
-            header = ("{}.{}(format='{}') documentation\n"
-                      .format(cls.__name__, method_name, format))
-            reader_doc += '\n\n'
-            reader_doc += re.sub('.', '=', header)
-            reader_doc += header
-            reader_doc += re.sub('.', '=', header)
-            reader_doc += inspect.cleandoc(read_write_func.__doc__)
+            if format:
+                # Format-specific
+                header = ("{}.{}(format='{}') documentation\n"
+                          .format(cls.__name__, method_name, format))
+                reader_doc += '\n\n'
+                reader_doc += re.sub('.', '=', header)
+                reader_doc += header
+                reader_doc += re.sub('.', '=', header)
+                reader_doc += inspect.cleandoc(read_write_func.__doc__)
 
         if out is None:
             import pydoc
