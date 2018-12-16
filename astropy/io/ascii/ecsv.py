@@ -233,11 +233,12 @@ class EcsvData(basic.BasicData):
 
 
 class Ecsv(basic.Basic):
-    """
-    Read a file which conforms to the ECSV (Enhanced Character Separated
-    Values) format.  This format allows for specification of key table
-    and column meta-data, in particular the data type and unit.  For details
-    see: https://github.com/astropy/astropy-APEs/blob/master/APE6.rst.
+    """ECSV (Enhanced Character Separated Values) format table.
+
+    Th ECSV format allows for specification of key table and column meta-data, in
+    particular the data type and unit.
+
+    See: https://github.com/astropy/astropy-APEs/blob/master/APE6.rst
 
     Examples
     --------
@@ -252,6 +253,7 @@ class Ecsv(basic.Basic):
     ... 001 2
     ... 004 3
     ... '''
+
     >>> Table.read(ecsv_content, format='ascii.ecsv')
     <Table length=2>
       a     b
@@ -260,6 +262,7 @@ class Ecsv(basic.Basic):
     ----- -----
       001     2
       004     3
+
     """
     _format_name = 'ecsv'
     _description = 'Enhanced CSV'

@@ -314,7 +314,8 @@ class DaophotInputter(core.ContinuationLinesInputter):
 
 class Daophot(core.BaseReader):
     """
-    Read a DAOphot file.
+    DAOphot format table.
+
     Example::
 
       #K MERGERAD   = INDEF                   scaleunit  %-23.7g

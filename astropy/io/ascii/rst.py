@@ -31,9 +31,9 @@ class SimpleRSTData(FixedWidthData):
 
 
 class RST(FixedWidth):
-    """
-    Read or write a `reStructuredText simple format table
-    <http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables>`_.
+    """reStructuredText simple format table.
+
+    See: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables
 
     Example::
 
@@ -47,6 +47,7 @@ class RST(FixedWidth):
     Currently there is no support for reading tables which utilize continuation lines,
     or for ones which define column spans through the use of an additional
     line of dashes in the header.
+
     """
     _format_name = 'rst'
     _description = 'reStructuredText simple table'

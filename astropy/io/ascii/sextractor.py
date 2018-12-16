@@ -103,10 +103,12 @@ class SExtractorData(core.BaseData):
 
 
 class SExtractor(core.BaseReader):
-    """Read a SExtractor file.
-       SExtractor is a package for faint-galaxy photometry.
-       Bertin & Arnouts 1996, A&A Supp. 317, 393.
-       http://www.astromatic.net/software/sextractor
+    """SExtractor format table.
+
+    SExtractor is a package for faint-galaxy photometry (Bertin & Arnouts
+    1996, A&A Supp. 317, 393.)
+
+    See: http://www.astromatic.net/software/sextractor
 
     Example::
 
@@ -121,10 +123,11 @@ class SExtractor(core.BaseReader):
       1 32.23222 10.1211 0.8 1.2 1.4 18.1 1000.0 0.00304 -3.498
       2 38.12321 -88.1321 2.2 2.4 3.1 17.0 1500.0 0.00908 1.401
 
-    Note the skipped numbers since flux_radius has 3 columns.  The three FLUX_RADIUS
-    columns will be named FLUX_RADIUS, FLUX_RADIUS_1, FLUX_RADIUS_2
-    Also note that a post-ID description (e.g. "Variance along x") is
-    optional and that units may be specified at the end of a line in brackets.
+    Note the skipped numbers since flux_radius has 3 columns.  The three
+    FLUX_RADIUS columns will be named FLUX_RADIUS, FLUX_RADIUS_1, FLUX_RADIUS_2
+    Also note that a post-ID description (e.g. "Variance along x") is optional
+    and that units may be specified at the end of a line in brackets.
+
     """
     _format_name = 'sextractor'
     _io_registry_can_write = False

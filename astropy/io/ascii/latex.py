@@ -195,7 +195,7 @@ class LatexData(core.BaseData):
 
 
 class Latex(core.BaseReader):
-    r'''Write and read LaTeX tables.
+    r'''LaTeX format table.
 
     This class implements some LaTeX specific commands.  Its main
     purpose is to write out a table in a form that LaTeX can compile. It
@@ -425,7 +425,7 @@ class AASTexData(LatexData):
 
 
 class AASTex(Latex):
-    '''Write and read AASTeX tables.
+    '''AASTeX format table.
 
     This class implements some AASTeX specific commands.
     AASTeX is used for the AAS (American Astronomical Society)
