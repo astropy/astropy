@@ -3,6 +3,7 @@
 from io import StringIO
 
 from astropy.table import Table
+from astropy.nddata import CCDData
 
 
 def test_table_read_help_fits():
@@ -66,3 +67,34 @@ def test_table_write_help_fits():
     assert "The available built-in formats" in doc
     assert "Table.write(format='fits') documentation" in doc
     assert "Write a Table object to a FITS file" in doc
+
+
+def test_ccddata_write_help_fits():
+    """
+    Test dynamically created documentation help via the I/O registry for 'fits'.
+    """
+    out = StringIO()
+    CCDData.write.help('fits', out)
+    doc = out.getvalue()
+
+    # Check a smattering of expected content
+    assert "CCDData.write general documentation" in doc
+    assert "The available built-in formats" in doc
+    assert "CCDData.write(format='fits') documentation" in doc
+    assert "Write this CCDData object out in the specified format" in doc
+
+
+def test_ccddata_read_help_fits():
+    """Test dynamically created documentation help via the I/O registry for
+    CCDData 'fits'.
+
+    """
+    out = StringIO()
+    CCDData.read.help('fits', out)
+    doc = out.getvalue()
+
+    # Check a smattering of expected content
+    assert "CCDData.read general documentation" in doc
+    assert "The available built-in formats" in doc
+    assert "CCDData.read(format='fits') documentation" in doc
+    assert "Read and parse gridded N-dimensional data" in doc
