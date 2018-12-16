@@ -4,6 +4,8 @@ from astropy.io import registry
 
 from .info import serialize_method_as
 
+__doctest_skip__ = ['TableRead', 'TableWrite']
+
 
 class TableRead(registry.UnifiedReadWrite):
     """
