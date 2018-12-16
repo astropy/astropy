@@ -807,6 +807,9 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
         output.write(os.linesep)
 
 
+write.__doc__ = core.WRITE_DOCSTRING
+
+
 def get_read_trace():
     """
     Return a traceback of the attempted read formats for the last call to
