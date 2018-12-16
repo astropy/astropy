@@ -67,6 +67,7 @@ class Basic(core.BaseReader):
     """
     _format_name = 'basic'
     _description = 'Basic table with custom delimiters'
+    _io_registry_format_aliases = ['ascii']
 
     header_class = BasicHeader
     data_class = BasicData
@@ -273,7 +274,9 @@ class Csv(Basic):
       2,38.12321,-88.1321,2.2,17.0
     """
     _format_name = 'csv'
+    _io_registry_format_aliases = ['csv']
     _io_registry_can_write = True
+    _io_registry_suffix = '.csv'
     _description = 'Comma-separated-values'
 
     header_class = CsvHeader
