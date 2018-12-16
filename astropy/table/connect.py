@@ -37,8 +37,8 @@ class TableRead(registry.UnifiedReadWrite):
     Notes
     -----
     """
-    def __init__(self, cls):
-        super().__init__(cls, 'read')
+    def __init__(self, instance, cls):
+        super().__init__(instance, cls, 'read')
 
     def __call__(self, *args, **kwargs):
         cls = self._cls
@@ -87,20 +87,21 @@ class TableWrite(registry.UnifiedReadWrite):
     Notes
     -----
     """
-    def __init__(self, cls):
-        super().__init__(cls, 'write')
+    def __init__(self, instance, cls):
+        super().__init__(instance, cls, 'write')
 
     def __call__(self, *args, **kwargs):
         serialize_method = kwargs.pop('serialize_method', None)
-        with serialize_method_as(self, serialize_method):
-            registry.write(self, *args, **kwargs)
+        instance = self._instance
+        with serialize_method_as(instance, serialize_method):
+            registry.write(instance, *args, **kwargs)
 
 
 class TableReadMethod:
     def __get__(self, instance, owner_cls):
-        return TableRead(owner_cls)
+        return TableRead(instance, owner_cls)
 
 
 class TableWriteMethod:
     def __get__(self, instance, owner_cls):
-        return TableWrite(owner_cls)
+        return TableWrite(instance, owner_cls)

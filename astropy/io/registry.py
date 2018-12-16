@@ -609,7 +609,8 @@ class UnifiedReadWrite:
     """
     Base class for unified read() or write() methods.
     """
-    def __init__(self, cls, method_name):
+    def __init__(self, instance, cls, method_name):
+        self._instance = instance
         self._cls = cls
         self._method_name = method_name  # 'read' or 'write'
 
