@@ -97,13 +97,3 @@ class TableWrite(registry.UnifiedReadWrite):
         instance = self._instance
         with serialize_method_as(instance, serialize_method):
             registry.write(instance, *args, **kwargs)
-
-
-class TableReadMethod:
-    def __get__(self, instance, owner_cls):
-        return TableRead(instance, owner_cls)
-
-
-class TableWriteMethod:
-    def __get__(self, instance, owner_cls):
-        return TableWrite(instance, owner_cls)

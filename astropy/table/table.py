@@ -18,6 +18,8 @@ from astropy.utils.console import color_print
 from astropy.utils.metadata import MetaData
 from astropy.utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
 from astropy.utils.decorators import format_doc
+from astropy.utils.exceptions import AstropyDeprecationWarning, NoValue
+from astropy.io.registry import UnifiedReadWriteMethod
 
 from . import groups
 from .pprint import TableFormatter
@@ -27,7 +29,7 @@ from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 from .info import TableInfo
 from .index import Index, _IndexModeContext, get_index
-from .connect import TableReadMethod, TableWriteMethod
+from .connect import TableRead, TableWrite
 from . import conf
 
 
@@ -329,8 +331,8 @@ class Table:
     TableFormatter = TableFormatter
 
     # Unified I/O read and write methods from .connect
-    read = TableReadMethod()
-    write = TableWriteMethod()
+    read = UnifiedReadWriteMethod(TableRead)
+    write = UnifiedReadWriteMethod(TableWrite)
 
     def as_array(self, keep_byteorder=False, names=None):
         """
