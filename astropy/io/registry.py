@@ -15,7 +15,8 @@ import numpy as np
 
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
            'identify_format', 'get_reader', 'get_writer', 'read', 'write',
-           'get_formats', 'IORegistryError', 'delay_doc_updates']
+           'get_formats', 'IORegistryError', 'delay_doc_updates',
+           'UnifiedReadWriteMethod', 'UnifiedReadWrite']
 
 
 __doctest_skip__ = ['register_identifier']
@@ -617,7 +618,7 @@ class UnifiedReadWrite:
     called when the data object ``read()`` or ``write()`` method is called.
 
     For the canonical example see the `~astropy.table.Table` class
-    implementation.
+    implementation (in particular the ``connect.py`` module there).
 
     Parameters
     ----------
@@ -679,3 +680,28 @@ class UnifiedReadWrite:
             pydoc.pager(reader_doc)
         else:
             out.write(reader_doc)
+
+
+class UnifiedReadWriteMethod:
+    """Descriptor class for creating read() and write() methods in unified I/O.
+
+    The canonical example is in the ``Table`` class, where the ``connect.py``
+    module creates subclasses of the ``UnifiedReadWrite`` class.  These have
+    custom ``__call__`` methods that do the setup work related to calling the
+    registry read() or write() functions.  With this, the ``Table`` class
+    defines read and write methods as follows::
+
+      read = UnifiedReadWriteMethod(TableRead)
+      write = UnifiedReadWriteMethod(TableWrite)
+
+    Parameters
+    ----------
+    func : `~astropy.io.registry.UnifiedReadWrite` subclass
+        Class that defines read or write functionality
+
+    """
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, instance, owner_cls):
+        return self.func(instance, owner_cls)
