@@ -18,6 +18,11 @@ class NDDataRead(registry.UnifiedReadWrite):
       >>> from astropy.nddata import CCDData
       >>> dat = CCDData.read('image.fits')
 
+    Get help on the reader for a particular format (e.g. 'fits') using the
+    ``help()`` method::
+
+      >>> CCDData.read.help('fits')  # Get detailed help on FITS reader
+
     See also:
 
     - http://docs.astropy.org/en/stable/nddata
@@ -49,8 +54,7 @@ class NDDataRead(registry.UnifiedReadWrite):
 
 
 class NDDataWrite(registry.UnifiedReadWrite):
-    """
-    Write this CCDData object out in the specified format.
+    """Write this CCDData object out in the specified format.
 
     This function provides the NDData interface to the astropy unified I/O
     layer.  This allows easily writing a file in many supported data formats
@@ -59,6 +63,11 @@ class NDDataWrite(registry.UnifiedReadWrite):
       >>> from astropy.nddata import CCDData
       >>> dat = CCDData(np.zeros((12, 12)), unit='adu')  # 12x12 image of zeros
       >>> dat.write('zeros.fits')
+
+    Get help on the writer for a particular format (e.g. 'fits') using the
+    ``help()`` method::
+
+      >>> CCDData.write.help('fits')  # Get detailed help on FITS writer
 
     See also:
 
@@ -77,6 +86,7 @@ class NDDataWrite(registry.UnifiedReadWrite):
 
     Notes
     -----
+
     """
     def __init__(self, instance, cls):
         super().__init__(instance, cls, 'write')

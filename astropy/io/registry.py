@@ -637,7 +637,7 @@ class UnifiedReadWrite:
     def help(self, format=None, out=None):
         """Output help documentation for the specified unified I/O ``format``.
 
-        By default the help output is printed to the console via `pydoc.pager`.
+        By default the help output is printed to the console via ``pydoc.pager``.
         Instead one can supplied a file handle object as ``out`` and the output
         will be written to that handle.
 
