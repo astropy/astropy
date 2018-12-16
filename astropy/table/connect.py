@@ -23,11 +23,11 @@ class TableRead(registry.UnifiedReadWrite):
 
     Parameters
     ----------
-    format : str
-        File format specifier.
     *args : tuple, optional
         Positional arguments passed through to data reader. If supplied the
-        first argument is the input filename.
+        first argument is typically the input filename.
+    format : str
+        File format specifier.
     **kwargs : dict, optional
         Keyword arguments passed through to data reader.
 
@@ -76,13 +76,13 @@ class TableWrite(registry.UnifiedReadWrite):
 
     Parameters
     ----------
+    *args : tuple, optional
+        Positional arguments passed through to data writer. If supplied the
+        first argument is the output filename.
     format : str
         File format specifier.
     serialize_method : str, dict, optional
         Serialization method specifier for columns.
-    *args : tuple, optional
-        Positional arguments passed through to data writer. If supplied the
-        first argument is the output filename.
     **kwargs : dict, optional
         Keyword arguments passed through to data writer.
 
