@@ -69,6 +69,34 @@ def test_table_write_help_fits():
     assert "Write a Table object to a FITS file" in doc
 
 
+def test_table_write_help_no_format():
+    """
+    Test dynamically created documentation help via the I/O registry for no
+    format provided.
+    """
+    out = StringIO()
+    Table.write.help(out=out)
+    doc = out.getvalue()
+
+    # Check a smattering of expected content
+    assert "Table.write general documentation" in doc
+    assert "The available built-in formats" in doc
+
+
+def test_table_read_help_no_format():
+    """
+    Test dynamically created documentation help via the I/O registry for not
+    format provided.
+    """
+    out = StringIO()
+    Table.read.help(out=out)
+    doc = out.getvalue()
+
+    # Check a smattering of expected content
+    assert "Table.read general documentation" in doc
+    assert "The available built-in formats" in doc
+
+
 def test_ccddata_write_help_fits():
     """
     Test dynamically created documentation help via the I/O registry for 'fits'.
