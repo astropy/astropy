@@ -315,11 +315,11 @@ and cosmologists.  To see it in action::
 
   >>> import astropy.units as u
   >>> from astropy.cosmology import WMAP9
-  >>> distance = 100 * (u.Mpc/u.littleh)
+  >>> distance = 70 * (u.Mpc/u.littleh)
   >>> distance  # doctest: +FLOAT_CMP
-  <Quantity 100. Mpc / littleh>
+  <Quantity 70. Mpc / littleh>
   >>> distance.to(u.Mpc, u.with_H0(WMAP9.H0))  # doctest: +FLOAT_CMP
-  <Quantity 69.32 Mpc>
+  <Quantity 100.98095788 Mpc>
 
 See :ref:`H0-equivalency` for more details.
 
