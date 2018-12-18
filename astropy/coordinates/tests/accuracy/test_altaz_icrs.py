@@ -152,7 +152,8 @@ def test_against_jpl_horizons():
     assert distance < 1 * u.arcsec
 
 
-@pytest.mark.xfail
+@pytest.mark.remote_data
+@pytest.mark.xfail(reason="Current output is completely incorrect")
 def test_fk5_equinox_and_epoch_j2000_0_to_topocentric_observed():
     """
     http://phn.github.io/pytpm/conversions.html#fk5-equinox-and-epoch-j2000-0-to-topocentric-observed
