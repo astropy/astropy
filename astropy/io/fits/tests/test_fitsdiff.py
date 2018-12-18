@@ -290,3 +290,24 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
 
         numdiff = fitsdiff.main([tmp_a, tmp_b, "-u", "SCI"])
         assert numdiff == 0
+
+    def test_ignore_hdus_report(self, capsys):
+        a = np.arange(100).reshape(10, 10)
+        b = a.copy() + 1
+        ha = Header([('A', 1), ('B', 2), ('C', 3)])
+        phdu_a = PrimaryHDU(header=ha)
+        phdu_b = PrimaryHDU(header=ha)
+        ihdu_a = ImageHDU(data=a, name='SCI')
+        ihdu_b = ImageHDU(data=b, name='SCI')
+        hdulist_a = HDUList([phdu_a, ihdu_a])
+        hdulist_b = HDUList([phdu_b, ihdu_b])
+        tmp_a = self.temp('testa.fits')
+        tmp_b = self.temp('testb.fits')
+        hdulist_a.writeto(tmp_a)
+        hdulist_b.writeto(tmp_b)
+
+        numdiff = fitsdiff.main([tmp_a, tmp_b, "-u", "SCI"])
+        assert numdiff == 0
+        out, err = capsys.readouterr()
+        assert "testa.fits" in out
+        assert "testb.fits" in out
