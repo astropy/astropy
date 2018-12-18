@@ -278,6 +278,9 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- ``fitsdiff --ignore-hdus`` now prints input filenames in the diff report
+  instead of ``<HDUList object at 0x1150f9778>``. [#8295]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
