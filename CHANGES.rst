@@ -313,7 +313,7 @@ astropy.units
 
 - Ensure correctness of units when raising to a negative power. [#8263]
 
-- Fix ``with_H0`` equivalency to how the appropriate direction of
+- Fix ``with_H0`` equivalency to use the correct direction of
   conversion. [#8292]
 
 astropy.utils
