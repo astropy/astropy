@@ -26,8 +26,7 @@ The key distinctions between |SkyCoord| and the low-level classes
   all attributes, such a round-trip transformation will return to the same
   coordinate object.
 
-- The |SkyCoord| class is more flexible with inputs to accommodate a wide
-  variety of user preferences and available data formats.
+- The |SkyCoord| class is more flexible with inputs to accommodate a wide variety of user preferences and available data formats, whereas the frame classes expect to receive Quantity-like objects with angular units.
 
 - The |SkyCoord| class has a number of convenience methods that are useful
   in typical analysis.
@@ -222,6 +221,27 @@ versions of the class name.
 If the frame is not supplied then you will see a special ``ICRS``
 identifier.  This indicates that the frame is unspecified and operations
 that require comparing coordinates (even within that object) are not allowed.
+
+It is important to note that frame classes expect to receive Quantity-like objects with angular units. For example,
+
+  >>> import astropy
+  >>> from astropy import units as u
+  >>> from astropy.coordinates import SkyCoord, ICRS
+  >>> astropy.__version__
+  '3.1rc2'
+  >>> ra = 0
+  >>> deg = 0
+  >>> SkyCoord(ra, deg, unit=u.deg)
+  <SkyCoord (ICRS): (ra, dec) in deg
+      (0., 0.)>
+  >>> ICRS(ra, deg, unit=u.deg)
+  UnitTypeError: Longitude instances require units equivalent to 'rad', but no uni
+  t was given.
+  >>> ICRS(ra * u.deg, deg * u.deg)
+  <ICRS Coordinate: (ra, dec) in deg
+      (0., 0.)>
+
+Here 'ICRS(ra, deg, unit=u.deg)' gave an error while SkyCoord(ra, deg, unit=u.deg) worked fine.
 
 **unit=UNIT**
 
