@@ -214,6 +214,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Catch the error case case of a ``QuantityAttribute`` defaulting to None at
+  attribute creation, and give a more useful error message [#8300]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
