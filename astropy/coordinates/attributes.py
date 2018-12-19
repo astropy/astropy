@@ -278,6 +278,9 @@ class QuantityAttribute(Attribute):
     """
 
     def __init__(self, default=None, secondary_attribute='', unit=None, shape=None):
+        if default is None:
+            raise TypeError('QuantityAttributes need to have defaults, because '
+                            'None is not a Quantity')
         super().__init__(default, secondary_attribute)
         self.unit = unit
         self.shape = shape
