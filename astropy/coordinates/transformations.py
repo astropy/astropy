@@ -706,8 +706,8 @@ class CoordinateTransform(metaclass=ABCMeta):
                 hasattr(tosys, 'get_frame_attr_names')):
             # the if statement is there so that non-frame things might be usable
             # if it makes sense
-            for from_nm in fromsys.get_frame_attr_names():
-                if from_nm in tosys.get_frame_attr_names():
+            for from_nm in fromsys.frame_attributes.keys():
+                if from_nm in tosys.frame_attributes.keys():
                     overlap.append(from_nm)
 
     def register(self, graph):
