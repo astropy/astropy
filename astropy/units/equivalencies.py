@@ -728,6 +728,6 @@ def with_H0(H0=None):
         from astropy import cosmology
         H0 = cosmology.default_cosmology.get().H0
 
-    h100_val_unit = Unit(H0.to((si.km/si.s)/astrophys.Mpc).value/100 * astrophys.littleh)
+    h100_val_unit = Unit(100/(H0.to_value((si.km/si.s)/astrophys.Mpc)) * astrophys.littleh)
 
     return [(h100_val_unit, None)]
