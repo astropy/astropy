@@ -1745,6 +1745,8 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Fix a bug in ``io.fits`` with writting Fortran-ordered arrays to file objects [#8282]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
