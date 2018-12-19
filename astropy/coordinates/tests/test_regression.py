@@ -613,6 +613,7 @@ def test_regression_8138():
     sc2 = sc.transform_to(newframe)
     assert newframe.is_equivalent_frame(sc2.frame)
 
+
 def test_regression_8276():
     from astropy.coordinates import baseframe
 
@@ -624,8 +625,13 @@ def test_regression_8276():
     try:
         baseframe.frame_transform_graph = copy.copy(baseframe.frame_transform_graph)
 
+        # as reported in 8276, this fails right here because registering the
+        # transform tries to create a frame attribute
         @baseframe.frame_transform_graph.transform(FunctionTransform, MyFrame, AltAz)
         def trans(my_frame_coord, altaz_frame):
             pass
+
+        # should also be able to *create* the Frame at this point
+        MyFrame()
     finally:
         baseframe.frame_transform_graph = old_transform_graph
