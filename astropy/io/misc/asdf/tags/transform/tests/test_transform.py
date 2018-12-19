@@ -4,7 +4,9 @@
 import pytest
 import numpy as np
 
-asdf = pytest.importorskip('asdf', minversion='2.0.0.dev0')
+from astropy import __minimum_asdf_version__
+
+asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
 from asdf import util
 from asdf.tests import helpers
 
