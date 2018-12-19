@@ -27,6 +27,7 @@ from astropy.utils.compat import NUMPY_LT_1_14
 from astropy.units import allclose as quantity_allclose
 from astropy.io import fits
 from astropy.wcs import WCS
+from astropy.table.tests.test_operations import skycoord_equal
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
@@ -1555,3 +1556,23 @@ def test_none_differential_type():
 
     fr = MockHeliographicStonyhurst(lon=1*u.deg, lat=2*u.deg, radius=10*u.au)
     SkyCoord(0*u.deg, fr.lat, fr.radius, frame=fr) # this was the failure
+
+
+def test_represent_as_dict_proper_motion():
+
+    c = SkyCoord(ra=1*u.deg, dec=2*u.deg, pm_ra_cosdec=2*u.mas/u.yr,
+                 pm_dec=1*u.mas/u.yr)
+
+    newc = SkyCoord.info._construct_from_dict(c.info._represent_as_dict())
+
+    assert skycoord_equal(c, newc)
+
+
+def test_represent_as_dict_radial_velocity():
+
+    c = SkyCoord(ra=1*u.deg, dec=2*u.deg, pm_ra_cosdec=2*u.mas/u.yr,
+                 pm_dec=1*u.mas/u.yr)
+
+    newc = SkyCoord.info._construct_from_dict(c.info._represent_as_dict())
+
+    assert skycoord_equal(c, newc)
