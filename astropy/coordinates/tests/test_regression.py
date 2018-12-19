@@ -8,16 +8,18 @@ place to live
 
 
 import io
+import copy
 import pytest
 import numpy as np
 
 
 from astropy import units as u
-from astropy.coordinates import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
-                GeocentricTrueEcliptic, Longitude, Latitude, GCRS, HCRS,
-                get_moon, FK4, FK4NoETerms, BaseCoordinateFrame,
-                QuantityAttribute, SphericalRepresentation,
-                UnitSphericalRepresentation, CartesianRepresentation)
+from astropy.coordinates import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS,
+                GeocentricTrueEcliptic, Longitude, Latitude, GCRS, HCRS, CIRS,
+                get_moon, FK4, FK4NoETerms, BaseCoordinateFrame, ITRS,
+                QuantityAttribute, UnitSphericalRepresentation,
+                SphericalRepresentation, CartesianRepresentation,
+                FunctionTransform)
 from astropy.coordinates.sites import get_builtin_sites
 from astropy.time import Time
 from astropy.utils import iers
@@ -610,3 +612,20 @@ def test_regression_8138():
     newframe = GCRS()
     sc2 = sc.transform_to(newframe)
     assert newframe.is_equivalent_frame(sc2.frame)
+
+def test_regression_8276():
+    from astropy.coordinates import baseframe
+
+    class MyFrame(BaseCoordinateFrame):
+        a = QuantityAttribute(unit=u.m)
+
+    # we save the transform graph so that it doesn't acidentally mess with other tests
+    old_transform_graph = baseframe.frame_transform_graph
+    try:
+        baseframe.frame_transform_graph = copy.copy(baseframe.frame_transform_graph)
+
+        @baseframe.frame_transform_graph.transform(FunctionTransform, MyFrame, AltAz)
+        def trans(my_frame_coord, altaz_frame):
+            pass
+    finally:
+        baseframe.frame_transform_graph = old_transform_graph
