@@ -141,6 +141,53 @@ class TestImageFunctions(FitsTestCase):
         finally:
             fits.conf.lazy_load_hdus = True
 
+    def test_fortran_array(self):
+        # Test that files are being correctly written+read for "C" and "F" order arrays
+        a = np.arange(21).reshape(3,7)
+        b = np.asfortranarray(a)
+
+        afits = self.temp('a_str.fits')
+        bfits = self.temp('b_str.fits')
+        # writting to str specified files
+        fits.PrimaryHDU(data=a).writeto(afits)
+        fits.PrimaryHDU(data=b).writeto(bfits)
+        np.testing.assert_array_equal(fits.getdata(afits), a)
+        np.testing.assert_array_equal(fits.getdata(bfits), a)
+
+        # writting to fileobjs
+        aafits = self.temp('a_fileobj.fits')
+        bbfits = self.temp('b_fileobj.fits')
+        with open(aafits, mode='wb') as fd:
+            fits.PrimaryHDU(data=a).writeto(fd)
+        with open(bbfits, mode='wb') as fd:
+            fits.PrimaryHDU(data=b).writeto(fd)
+        np.testing.assert_array_equal(fits.getdata(aafits), a)
+        np.testing.assert_array_equal(fits.getdata(bbfits), a)
+
+    def test_fortran_array_non_contiguous(self):
+        # Test that files are being correctly written+read for 'C' and 'F' order arrays
+        a = np.arange(105).reshape(3,5,7)
+        b = np.asfortranarray(a)
+
+        # writting to str specified files
+        afits = self.temp('a_str_slice.fits')
+        bfits = self.temp('b_str_slice.fits')
+        fits.PrimaryHDU(data=a[::2, ::2]).writeto(afits)
+        fits.PrimaryHDU(data=b[::2, ::2]).writeto(bfits)
+        np.testing.assert_array_equal(fits.getdata(afits), a[::2, ::2])
+        np.testing.assert_array_equal(fits.getdata(bfits), a[::2, ::2])
+
+        # writting to fileobjs
+        aafits = self.temp('a_fileobj_slice.fits')
+        bbfits = self.temp('b_fileobj_slice.fits')
+        with open(aafits, mode='wb') as fd:
+            fits.PrimaryHDU(data=a[::2, ::2]).writeto(fd)
+        with open(bbfits, mode='wb') as fd:
+            fits.PrimaryHDU(data=b[::2, ::2]).writeto(fd)
+        np.testing.assert_array_equal(fits.getdata(aafits), a[::2, ::2])
+        np.testing.assert_array_equal(fits.getdata(bbfits), a[::2, ::2])
+
+
     def test_primary_with_extname(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/151
 

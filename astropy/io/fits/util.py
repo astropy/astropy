@@ -713,7 +713,7 @@ def _array_to_file_like(arr, fileobj):
 
     if hasattr(np, 'nditer'):
         # nditer version for non-contiguous arrays
-        for item in np.nditer(arr):
+        for item in np.nditer(arr, order='C'):
             fileobj.write(item.tostring())
     else:
         # Slower version for Numpy versions without nditer;
