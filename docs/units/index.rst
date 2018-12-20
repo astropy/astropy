@@ -214,6 +214,9 @@ Reference/API
 
 .. automodapi:: astropy.units.function
 
+.. automodapi:: astropy.units.function.logarithmic
+   :include-all-objects:
+
 .. automodapi:: astropy.units.deprecated
 
 .. automodapi:: astropy.units.required_by_vounit
