@@ -182,6 +182,8 @@ class XMLWriter:
         current_xml_escape_cdata = self.xml_escape_cdata
 
         if method == 'bleach_clean':
+            # NOTE: bleach is imported locally to avoid importing it when
+            # it is not nocessary
             try:
                 import bleach
             except ImportError:
