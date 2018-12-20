@@ -1034,6 +1034,7 @@ def test_representation_str_multi_d():
             ' [(2., 11., 20.), (5., 14., 23.), (8., 17., 26.)]] m')
 
 
+@pytest.mark.remote_data
 def test_subclass_representation():
     from astropy.coordinates.builtin_frames import ICRS
 

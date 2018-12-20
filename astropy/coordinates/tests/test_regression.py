@@ -59,6 +59,7 @@ def test_regression_5085():
     assert_quantity_allclose(expected_result, actual_result)
 
 
+@pytest.mark.remote_data
 def test_regression_3920():
     """
     Issue: https://github.com/astropy/astropy/issues/3920
@@ -82,6 +83,7 @@ def test_regression_3920():
     assert icoo2.transform_to(aa).shape == tuple()
 
 
+@pytest.mark.remote_data
 def test_regression_3938():
     """
     Issue: https://github.com/astropy/astropy/issues/3938
@@ -122,6 +124,7 @@ def test_regression_3998():
     assert sun.obstime is time
 
 
+@pytest.mark.remote_data
 def test_regression_4033():
     """
     Issue: https://github.com/astropy/astropy/issues/4033
@@ -274,6 +277,7 @@ def test_regression_4293():
     assert_quantity_allclose(fk4noe.dec, fk4noe_dec, atol=3.*u.uas, rtol=0)
 
 
+@pytest.mark.remote_data
 def test_regression_4926():
     times = Time('2010-01-1') + np.arange(20)*u.day
     green = get_builtin_sites()['greenwich']
@@ -296,6 +300,7 @@ def test_regression_5209():
     assert_quantity_allclose(new_coord[0].distance, moon.distance)
 
 
+@pytest.mark.remote_data
 def test_regression_5133():
     N = 1000
     np.random.seed(12345)
@@ -320,6 +325,7 @@ def test_regression_5133():
         assert not quantity_allclose(coo.alt, coo.alt[0])
 
 
+@pytest.mark.remote_data
 def test_itrs_vals_5133():
     time = Time('2010-1-1')
     el = EarthLocation.from_geodetic(lon=20*u.deg, lat=45*u.deg, height=0*u.km)
@@ -350,6 +356,7 @@ def test_itrs_vals_5133():
     assert_quantity_allclose(aacs[2].distance, 10*u.km)
 
 
+@pytest.mark.remote_data
 def test_regression_simple_5133():
     t = Time('J2010')
     obj = EarthLocation(-1*u.deg, 52*u.deg, height=[100., 0.]*u.km)
@@ -367,6 +374,7 @@ def test_regression_5743():
     assert sc[0].obstime.shape == tuple()
 
 
+@pytest.mark.remote_data
 def test_regression_5889_5890():
     # ensure we can represent all Representations and transform to ND frames
     greenwich = EarthLocation(
@@ -514,6 +522,7 @@ def test_regression_6300():
             assert False, "Deprecation warning not raised"
 
 
+@pytest.mark.remote_data
 def test_gcrs_itrs_cartesian_repr():
     # issue 6436: transformation failed if coordinate representation was
     # Cartesian
@@ -580,6 +589,7 @@ def test_regression_6597_2():
     assert sc1.frame.name == frame.name
 
 
+@pytest.mark.remote_data
 def test_regression_6697():
     """
     Test for regression of a bug in get_gcrs_posvel that introduced errors at the 1m/s level.
