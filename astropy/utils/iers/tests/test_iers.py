@@ -200,15 +200,16 @@ class TestIERS_Auto():
         IERS_Auto._check_interpolate_indices() is formatted correctly.
         """
         with iers.conf.set_temp('iers_auto_url', self.iers_a_url_1):
-            with iers.conf.set_temp('auto_max_age', self.ame):
-                with pytest.raises(ValueError) as err:
-                    iers_table = iers.IERS_Auto.open()
-                    with warnings.catch_warnings():
-                        # Ignoring this if it comes up -- IERS_Auto predictive
-                        # values are older than 30.0 days but downloading the
-                        # latest table did not find newer values
-                        warnings.simplefilter('ignore', iers.IERSStaleWarning)
-                        iers_table.ut1_utc(self.t.jd1, self.t.jd2)
+            with iers.conf.set_temp('iers_auto_url_mirror', self.iers_a_url_1):
+                with iers.conf.set_temp('auto_max_age', self.ame):
+                    with pytest.raises(ValueError) as err:
+                        iers_table = iers.IERS_Auto.open()
+                        with warnings.catch_warnings():
+                            # Ignoring this if it comes up -- IERS_Auto predictive
+                            # values are older than 30.0 days but downloading the
+                            # latest table did not find newer values
+                            warnings.simplefilter('ignore', iers.IERSStaleWarning)
+                            iers_table.ut1_utc(self.t.jd1, self.t.jd2)
         assert str(err.value) == iers.INTERPOLATE_ERROR.format(self.ame)
 
     def test_auto_max_age_none(self):
