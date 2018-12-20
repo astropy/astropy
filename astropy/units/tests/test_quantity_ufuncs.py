@@ -311,6 +311,26 @@ class TestQuantityMathFuncs:
         assert np.all(np.multiply(np.arange(3.) * u.m, 2. / u.s) ==
                       np.arange(0, 6., 2.) * u.m / u.s)
 
+    @pytest.mark.skipif(not isinstance(getattr(np, 'matmul', None), np.ufunc),
+                        reason="np.matmul is not yet a gufunc")
+    def test_matmul(self):
+        q = np.arange(3.) * u.m
+        r = np.matmul(q, q)
+        assert r == 5. * u.m ** 2
+        # less trivial case.
+        q1 = np.eye(3) * u.m
+        q2 = np.array([[[1., 0., 0.],
+                        [0., 1., 0.],
+                        [0., 0., 1.]],
+                       [[0., 1., 0.],
+                        [0., 0., 1.],
+                        [1., 0., 0.]],
+                       [[0., 0., 1.],
+                        [1., 0., 0.],
+                        [0., 1., 0.]]]) / u.s
+        r2 = np.matmul(q1, q2)
+        assert np.all(r2 == np.matmul(q1.value, q2.value) * q1.unit * q2.unit)
+
     @pytest.mark.parametrize('function', (np.divide, np.true_divide))
     def test_divide_scalar(self, function):
         assert function(4. * u.m, 2. * u.s) == function(4., 2.) * u.m / u.s
