@@ -1,14 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
+import pytest
 
 from astropy import units as u
 from astropy.coordinates import Longitude, Latitude, EarthLocation, SkyCoord
+
 # test on frame with most complicated frame attributes.
 from astropy.coordinates.builtin_frames import ICRS, AltAz, GCRS
 from astropy.time import Time
 
 
+@pytest.mark.remote_data
 class TestManipulation():
     """Manipulation of Frame shapes.
 
