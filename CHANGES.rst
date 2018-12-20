@@ -74,6 +74,8 @@ astropy.units
 - Fix ``with_H0`` equivalency to use the correct direction of
   conversion. [#8292]
 
+- Add support for ``np.matmul`` as a ``ufunc`` (new in numpy 1.16). [#8264]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
