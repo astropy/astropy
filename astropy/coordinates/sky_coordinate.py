@@ -72,6 +72,9 @@ class SkyCoordInfo(MixinInfo):
         if 'distance' in attrs and np.all(obj.distance == 1.0):
             attrs.remove('distance')
 
+        if 's' in obj.frame.data.differentials:
+            attrs.extend(obj.get_representation_component_names('s'))
+
         self._represent_as_dict_attrs = attrs
 
         out = super()._represent_as_dict()
