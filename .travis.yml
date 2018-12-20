@@ -161,7 +161,7 @@ matrix:
 
     allow_failures:
       - os: linux
-        env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
+        env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
              CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
              PIP_DEPENDENCIES=$ASDF_PIP_DEP
              MATPLOTLIB_VERSION=dev
