@@ -42,4 +42,4 @@ transform |skycoord| objects into frames with vector properties.  For example::
     >>> aa_frame = coord.AltAz(obstime=times[:, np.newaxis], location=lapalma)
 
     >>> # calculate alt-az of each object at each time.
-    >>> aa_coos = coos.transform_to(aa_frame)
+    >>> aa_coos = coos.transform_to(aa_frame)  # doctest: +REMOTE_DATA
