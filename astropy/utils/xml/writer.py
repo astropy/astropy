@@ -9,12 +9,6 @@ import contextlib
 import textwrap
 
 try:
-    import bleach
-    HAS_BLEACH = True
-except ImportError:
-    HAS_BLEACH = False
-
-try:
     from . import _iterparser
 except ImportError:
     def xml_escape_cdata(s):
@@ -188,13 +182,17 @@ class XMLWriter:
         current_xml_escape_cdata = self.xml_escape_cdata
 
         if method == 'bleach_clean':
-            if HAS_BLEACH:
-                if clean_kwargs is None:
-                    clean_kwargs = {}
-                self.xml_escape_cdata = lambda x: bleach.clean(x, **clean_kwargs)
-            else:
+            # NOTE: bleach is imported locally to avoid importing it when
+            # it is not nocessary
+            try:
+                import bleach
+            except ImportError:
                 raise ValueError('bleach package is required when HTML escaping is disabled.\n'
                                  'Use "pip install bleach".')
+
+            if clean_kwargs is None:
+                clean_kwargs = {}
+            self.xml_escape_cdata = lambda x: bleach.clean(x, **clean_kwargs)
         elif method == "none":
             self.xml_escape_cdata = lambda x: x
         elif method != 'escape_xml':

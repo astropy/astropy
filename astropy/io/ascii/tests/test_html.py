@@ -21,7 +21,12 @@ import numpy as np
 
 from .common import setup_function, teardown_function
 from astropy.io import ascii
-from astropy.utils.xml.writer import HAS_BLEACH
+
+try:
+    import bleach  # noqa
+    HAS_BLEACH = True
+except ImportError:
+    HAS_BLEACH = False
 
 # Check to see if the BeautifulSoup dependency is present.
 try:
