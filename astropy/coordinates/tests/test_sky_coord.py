@@ -32,6 +32,7 @@ from ...utils import minversion, isiterable
 from ...utils.compat import NUMPY_LT_1_14
 from ...utils.exceptions import AstropyDeprecationWarning
 
+
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
 C_ICRS = ICRS(RA, DEC)
@@ -508,6 +509,7 @@ def test_repr():
                                                     else '0., 1.')
 
 
+@pytest.mark.remote_data
 def test_repr_altaz():
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
     loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)

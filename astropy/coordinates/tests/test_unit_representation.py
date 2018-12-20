@@ -4,6 +4,8 @@ This file tests the behavior of subclasses of Representation and Frames
 from copy import deepcopy
 from collections import OrderedDict
 
+import pytest
+
 from astropy.coordinates import Longitude, Latitude
 from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
                                                 SphericalRepresentation,
@@ -32,6 +34,7 @@ def teardown_function(func):
     REPRESENTATION_CLASSES.update(func.REPRESENTATION_CLASSES_ORIG)
 
 
+@pytest.mark.remote_data
 def test_unit_representation_subclass():
 
     class Longitude180(Longitude):

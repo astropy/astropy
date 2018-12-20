@@ -311,11 +311,11 @@ the final heliocentric radial velocity::
     >>> # keck = EarthLocation.of_site('Keck')  # the easiest way... but requires internet
     >>> keck = EarthLocation.from_geodetic(lat=19.8283*u.deg, lon=-155.4783*u.deg, height=4160*u.m)
     >>> sc = SkyCoord(ra=4.88375*u.deg, dec=35.0436389*u.deg)
-    >>> barycorr = sc.radial_velocity_correction(obstime=Time('2016-6-4'), location=keck)
-    >>> barycorr.to(u.km/u.s)  # doctest: +FLOAT_CMP
+    >>> barycorr = sc.radial_velocity_correction(obstime=Time('2016-6-4'), location=keck)  # doctest: +REMOTE_DATA
+    >>> barycorr.to(u.km/u.s)  # doctest: +REMOTE_DATA +FLOAT_CMP
     <Quantity 20.077135 km / s>
-    >>> heliocorr = sc.radial_velocity_correction('heliocentric', obstime=Time('2016-6-4'), location=keck)
-    >>> heliocorr.to(u.km/u.s)  # doctest: +FLOAT_CMP
+    >>> heliocorr = sc.radial_velocity_correction('heliocentric', obstime=Time('2016-6-4'), location=keck)  # doctest: +REMOTE_DATA
+    >>> heliocorr.to(u.km/u.s)  # doctest: +REMOTE_DATA +FLOAT_CMP
     <Quantity 20.070039 km / s>
 
 Note that there are a few different ways to specify the options for the

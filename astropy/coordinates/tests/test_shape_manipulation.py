@@ -2,14 +2,17 @@
 
 # TEST_UNICODE_LITERALS
 import numpy as np
+import pytest
 
 from ... import units as u
 from .. import Longitude, Latitude, EarthLocation, SkyCoord
+
 # test on frame with most complicated frame attributes.
 from ..builtin_frames import ICRS, AltAz, GCRS
 from ...time import Time
 
 
+@pytest.mark.remote_data
 class TestManipulation():
     """Manipulation of Frame shapes.
 

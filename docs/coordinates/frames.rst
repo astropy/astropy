@@ -204,8 +204,8 @@ Similar broadcasting happens if you transform to another frame.  E.g.::
     >>> coo = ICRS(ra=180.*u.deg, dec=51.477811*u.deg)
     >>> lf = AltAz(location=EarthLocation.of_site('greenwich'),
     ...            obstime=['2012-03-21T00:00:00', '2012-06-21T00:00:00'])
-    >>> lcoo = coo.transform_to(lf)  # this can load finals2000A.all # doctest: +IGNORE_OUTPUT
-    >>> lcoo  # doctest: +FLOAT_CMP
+    >>> lcoo = coo.transform_to(lf)  # this can load finals2000A.all # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> lcoo  # doctest: +REMOTE_DATA +FLOAT_CMP
     <AltAz Coordinate (obstime=['2012-03-21T00:00:00.000' '2012-06-21T00:00:00.000'], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0.0, obswl=1.0 micron): (az, alt) in deg
         [( 94.71264994, 89.2142425 ), (307.69488826, 37.98077772)]>
 
@@ -225,7 +225,7 @@ set of coordinates, you'd need to make sure that the shapes allowed this::
     >>> lf2 = lf[:, np.newaxis]
     >>> lf2.shape
     (2, 1)
-    >>> coo2.transform_to(lf2)  # doctest: +FLOAT_CMP
+    >>> coo2.transform_to(lf2)  # doctest:  +REMOTE_DATA +FLOAT_CMP
     <AltAz Coordinate (obstime=[['2012-03-21T00:00:00.000' '2012-03-21T00:00:00.000'
       '2012-03-21T00:00:00.000']
      ['2012-06-21T00:00:00.000' '2012-06-21T00:00:00.000'

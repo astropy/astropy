@@ -3,6 +3,7 @@
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+import warnings
 
 import pytest
 import numpy as np
@@ -31,7 +32,10 @@ def fullstack_icrs():
 def fullstack_fiducial_altaz(fullstack_icrs):
     altazframe = AltAz(location=EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m),
                        obstime=Time('J2000'))
-    return fullstack_icrs.transform_to(altazframe)
+    with warnings.catch_warnings():  # Ignore remote_data warning
+        warnings.simplefilter('ignore')
+        result = fullstack_icrs.transform_to(altazframe)
+    return result
 
 
 @pytest.fixture(scope="function", params=['J2000.1', 'J2010'])
@@ -71,6 +75,7 @@ def _erfa_check(ira, idec, astrom):
     return dct
 
 
+@pytest.mark.remote_data
 def test_iau_fullstack(fullstack_icrs, fullstack_fiducial_altaz,
                        fullstack_times, fullstack_locations,
                        fullstack_obsconditions):
@@ -135,6 +140,7 @@ def test_iau_fullstack(fullstack_icrs, fullstack_fiducial_altaz,
     npt.assert_allclose(erfadct['az'], aacoo.az.radian, atol=1e-7)
 
 
+@pytest.mark.remote_data
 def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
     """
     Test the full transform from ICRS <-> AltAz
