@@ -436,11 +436,11 @@ class TestQuantityOperations:
     def test_matrix_multiplication(self):
         a = np.eye(3)
         q = a * u.m
-        result1 = eval("q @ a")
+        result1 = q @ a
         assert np.all(result1 == q)
-        result2 = eval("a @ q")
+        result2 = a @ q
         assert np.all(result2 == q)
-        result3 = eval("q @ q")
+        result3 = q @ q
         assert np.all(result3 == a * u.m ** 2)
         # less trivial case.
         q2 = np.array([[[1., 0., 0.],
@@ -452,7 +452,7 @@ class TestQuantityOperations:
                        [[0., 0., 1.],
                         [1., 0., 0.],
                         [0., 1., 0.]]]) / u.s
-        result4 = eval("q @ q2")
+        result4 = q @ q2
         assert np.all(result4 == np.matmul(a, q2.value) * q.unit * q2.unit)
 
     def test_unary(self):
