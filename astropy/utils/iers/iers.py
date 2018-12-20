@@ -403,9 +403,7 @@ class IERS_A(IERS):
     Notes
     -----
     The IERS A file is not part of astropy.  It can be downloaded from
-    ``iers.IERS_A_URL`` or ``iers.IERS_A_URL_MIRROR``.
-    See ``iers.__doc__`` for instructions on how to use
-    it in ``Time``, etc.
+    ``iers.IERS_A_URL`` or ``iers.IERS_A_URL_MIRROR``. See ``iers.__doc__`` for instructions on use in ``Time``, etc.
     """
 
     iers_table = None
