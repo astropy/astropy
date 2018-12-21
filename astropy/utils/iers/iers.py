@@ -31,13 +31,14 @@ __all__ = ['Conf', 'conf',
            'IERS', 'IERS_B', 'IERS_A', 'IERS_Auto',
            'FROM_IERS_B', 'FROM_IERS_A', 'FROM_IERS_A_PREDICTION',
            'TIME_BEFORE_IERS_RANGE', 'TIME_BEYOND_IERS_RANGE',
-           'IERS_A_FILE', 'IERS_A_URL', 'IERS_A_README',
+           'IERS_A_FILE', 'IERS_A_URL', 'IERS_A_URL_MIRROR', 'IERS_A_README',
            'IERS_B_FILE', 'IERS_B_URL', 'IERS_B_README',
            'IERSRangeError', 'IERSStaleWarning']
 
 # IERS-A default file name, URL, and ReadMe with content description
 IERS_A_FILE = 'finals2000A.all'
 IERS_A_URL = 'http://maia.usno.navy.mil/ser7/finals2000A.all'
+IERS_A_URL_MIRROR = 'http://toshi.nofs.navy.mil/ser7/finals2000A.all'
 IERS_A_README = get_pkg_data_filename('data/ReadMe.finals2000A')
 
 # IERS-B default file name, URL, and ReadMe with content description
@@ -98,6 +99,9 @@ class Conf(_config.ConfigNamespace):
     iers_auto_url = _config.ConfigItem(
         IERS_A_URL,
         'URL for auto-downloading IERS file data.')
+    iers_auto_url_mirror = _config.ConfigItem(
+        IERS_A_URL_MIRROR,
+        'Mirror URL for auto-downloading IERS file data.')
     remote_timeout = _config.ConfigItem(
         10.0,
         'Remote timeout downloading IERS file data (seconds).')
@@ -365,8 +369,8 @@ class IERS_A(IERS):
     Notes
     -----
     The IERS A file is not part of astropy.  It can be downloaded from
-    ``iers.IERS_A_URL``.  See ``iers.__doc__`` for instructions on how to use
-    it in ``Time``, etc.
+    ``iers.IERS_A_URL`` or ``iers.IERS_A_URL_MIRROR``. See ``iers.__doc__``
+    for instructions on use in ``Time``, etc.
     """
 
     iers_table = None
@@ -561,27 +565,40 @@ class IERS_Auto(IERS_A):
             cls.iers_table = IERS.open()
             return cls.iers_table
 
+        all_urls = (conf.iers_auto_url, conf.iers_auto_url_mirror)
+
         if cls.iers_table is not None:
 
             # If the URL has changed, we need to redownload the file, so we
             # should ignore the internally cached version.
 
-            if cls.iers_table.meta.get('data_url') == conf.iers_auto_url:
+            if cls.iers_table.meta.get('data_url') in all_urls:
                 return cls.iers_table
 
-        try:
-            filename = download_file(conf.iers_auto_url, cache=True)
-        except Exception as err:
+        dl_success = False
+        err_list = []
+
+        for url in all_urls:
+            try:
+                filename = download_file(url, cache=True)
+            except Exception as err:
+                err_list.append(str(err))
+            else:
+                dl_success = True
+                break
+
+        if not dl_success:
             # Issue a warning here, perhaps user is offline.  An exception
             # will be raised downstream when actually trying to interpolate
             # predictive values.
             warn(AstropyWarning('failed to download {}, using local IERS-B: {}'
-                                .format(conf.iers_auto_url, str(err))))
+                                .format(' and '.join(all_urls),
+                                        ';'.join(err_list))))  # noqa
             cls.iers_table = IERS.open()
             return cls.iers_table
 
         cls.iers_table = cls.read(file=filename)
-        cls.iers_table.meta['data_url'] = str(conf.iers_auto_url)
+        cls.iers_table.meta['data_url'] = str(url)
 
         return cls.iers_table
 
@@ -633,13 +650,24 @@ class IERS_Auto(IERS_A):
             raise ValueError('IERS auto_max_age configuration value must be larger than 10 days')
 
         if (max_input_mjd > predictive_mjd and
-               now_mjd - predictive_mjd > auto_max_age):
+                now_mjd - predictive_mjd > auto_max_age):
+
+            all_urls = (conf.iers_auto_url, conf.iers_auto_url_mirror)
+            dl_success = False
+            err_list = []
 
             # Get the latest version
-            try:
-                clear_download_cache(conf.iers_auto_url)
-                filename = download_file(conf.iers_auto_url, cache=True)
-            except Exception as err:
+            for url in all_urls:
+                try:
+                    clear_download_cache(url)
+                    filename = download_file(url, cache=True)
+                except Exception as err:
+                    err_list.append(str(err))
+                else:
+                    dl_success = True
+                    break
+
+            if not dl_success:
                 # Issue a warning here, perhaps user is offline.  An exception
                 # will be raised downstream when actually trying to interpolate
                 # predictive values.
@@ -648,10 +676,11 @@ class IERS_Auto(IERS_A):
                                     'not covered by the available IERS file.  See the '
                                     '"IERS data access" section of the astropy documentation '
                                     'for additional information on working offline.'
-                                    .format(conf.iers_auto_url, str(err))))
+                                    .format(' and '.join(all_urls), ';'.join(err_list))))
                 return
 
             new_table = self.__class__.read(file=filename)
+            new_table.meta['data_url'] = str(url)
 
             # New table has new values?
             if new_table['MJD'][-1] > self['MJD'][-1]:
