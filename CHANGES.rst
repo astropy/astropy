@@ -1534,6 +1534,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Fix failures caused by IERS_A_URL being unavailable by introducing
+  IERS_A_URL_MIRROR. [#8308]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
