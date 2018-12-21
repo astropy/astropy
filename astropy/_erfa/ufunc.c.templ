@@ -581,11 +581,15 @@ fail:
     return -1;
 }
 
+{%- if NUMPY_LT_1_16 %}
 /*
- * The following is a bit of a hack, which can be removed once ufuncs support
- * fixed dimensions (see numpy gh-5015 and gh-11132)
+ * The following is only necessary for NUMPY_LT_1_16.  Once we support
+ * only numpy >=1.16, it can be removed here and in the template part.
  *
- * Rather than just go for our type resolver, we check here whether the
+ * For numpy <1.16, this works around the fact that gufuncs could not
+ * have fixed dimensions.
+ *
+ * Rather than just go for our type resolver, we check here whether
  * any double input with core dimensions has dimension equal to 3.  Here,
  * we already know that all core dimensions are equal, so we have to check
  * only one.
@@ -624,6 +628,7 @@ static int ErfaUFuncD3CheckTypeResolver(PyUFuncObject *ufunc,
     return ErfaUFuncTypeResolver(ufunc, casting, operands, type_tup,
                                  out_dtypes);
 }
+{%- endif %}
 
 /*
  * UFUNC MODULE DEFINITIONS AND INITIALIZATION
