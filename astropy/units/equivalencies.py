@@ -2,6 +2,7 @@
 """A set of standard astronomical equivalencies."""
 
 from collections import UserList
+import copy
 
 # THIRD-PARTY
 import numpy as np
@@ -40,18 +41,17 @@ class Equivalency(UserList):
     def __init__(self, equiv_list, name='', kwargs=None):
         self.data = equiv_list
         self.name = [name]
-        #self.args = [args] if args is not None else [tuple()]
         self.kwargs = [kwargs] if kwargs is not None else [dict()]
 
 
     def __add__(self, other):
-        new = super().__add__(other)
-        new.name = self.name[:]
-        new.kwargs = self.kwargs[:]
         if isinstance(other, Equivalency):
-            new.name += other.name
-            new.kwargs += other.kwargs
-        return new
+            new = super().__add__(other)
+            new.name = self.name[:] + other.name
+            new.kwargs = self.kwargs[:] + other.kwargs
+            return new
+        else:
+            return self.data.__add__(other)
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
