@@ -35,10 +35,3 @@ equiv = [eq.plate_scale(.3 * u.deg/u.mm), eq.pixel_scale(.5 * u.deg/u.pix),
 def test_equivalencies(tmpdir, equiv):
     tree = {'equiv': equiv}
     helpers.assert_roundtrip_tree(tree, tmpdir)
-
-
-def test_equiv_list_addition():
-    equiv1 = eq.brightness_temperature(5 * u.Hz, beam_area=2 * u.sr)
-    equiv2 = eq.spectral_density(35 * u.nm)
-    result = equiv2 + equiv1.data
-    assert isinstance(result, list)
