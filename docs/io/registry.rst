@@ -71,10 +71,9 @@ files with filenames ending in ``.mtf`` as being in the ``my-table-format``
 format::
 
     import os
-    from astropy.extern import six
 
     def identify_mtf(origin, *args, **kwargs):
-        return (isinstance(args[0], six.string_types) and
+        return (isinstance(args[0], str) and
                 os.path.splitext(args[0].lower())[1] == '.mtf')
 
 .. note:: Identifier functions should be prepared for arbitrary input - in
