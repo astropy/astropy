@@ -1130,6 +1130,10 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         lstr
             A LaTeX string with the contents of this Quantity
         """
+        if unit is not None and unit != self.unit:
+            return self.to(unit).to_string(
+                unit=None, precision=precision, format=format, subfmt=subfmt)
+
         # need to do try/finally because "threshold" cannot be overridden
         # with array2string
         pops = np.get_printoptions()
