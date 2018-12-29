@@ -1114,21 +1114,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
 
         return unitstr
 
-    # Display
-    # TODO: we may want to add a hook for dimensionless quantities?
-    def __str__(self):
-        return '{0}{1:s}'.format(self.value, self._unitstr)
-
-    def __repr__(self):
-        prefixstr = '<' + self.__class__.__name__ + ' '
-        sep = ',' if NUMPY_LT_1_14 else ', '
-        arrstr = np.array2string(self.view(np.ndarray), separator=sep,
-                                 prefix=prefixstr)
-        return '{0}{1}{2:s}>'.format(prefixstr, arrstr, self._unitstr)
-
-    def _repr_latex_(self):
+    def to_string(self, unit=None, precision=None, format=None, subfmt=None):
         """
-        Generate a latex representation of the quantity and its unit.
+        Generate a string representation of the quantity and its unit.
 
         The behavior of this function can be altered via the
         `numpy.set_printoptions` function and its various keywords.  The
@@ -1190,6 +1178,30 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                       else _UNIT_NOT_INITIALISED)
 
         return r'${0} \; {1}$'.format(latex_value, latex_unit)
+
+    # Display
+    # TODO: we may want to add a hook for dimensionless quantities?
+    def __str__(self):
+        return '{0}{1:s}'.format(self.value, self._unitstr)
+
+    def __repr__(self):
+        prefixstr = '<' + self.__class__.__name__ + ' '
+        sep = ',' if NUMPY_LT_1_14 else ', '
+        arrstr = np.array2string(self.view(np.ndarray), separator=sep,
+                                 prefix=prefixstr)
+        return '{0}{1}{2:s}>'.format(prefixstr, arrstr, self._unitstr)
+
+    def _repr_latex_(self):
+        """
+        Generate a latex representation of the quantity and its unit.
+
+        Returns
+        -------
+        lstr
+            A LaTeX string with the contents of this Quantity
+        """
+        # NOTE: This should change to display format in a future release
+        return self.to_string(format='latex', subfmt='inline')
 
     def __format__(self, format_spec):
         """
