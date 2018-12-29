@@ -904,6 +904,15 @@ class TestQuantityDisplay:
         res = 'Quantity as KMS: 150000000000.0 km / s'
         assert "Quantity as KMS: {0}".format(qscalar.to_string(unit=u.km / u.s)) == res
 
+        res = r'$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$'
+        assert qscalar.to_string(format="latex") == res
+
+        res = r'$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$'
+        assert qscalar.to_string(format="latex", subfmt="inline") == res
+
+        res = r'$$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$$'
+        assert qscalar.to_string(format="latex", subfmt="display") == res
+
     def test_repr_latex(self):
         from astropy.units.quantity import conf
 
