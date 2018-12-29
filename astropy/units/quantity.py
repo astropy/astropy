@@ -1134,6 +1134,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             return self.to(unit).to_string(
                 unit=None, precision=precision, format=format, subfmt=subfmt)
 
+        if format is None:
+            return '{0}{1:s}'.format(self.value, self._unitstr)
+
         # need to do try/finally because "threshold" cannot be overridden
         # with array2string
         pops = np.get_printoptions()
@@ -1186,7 +1189,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
     def __str__(self):
-        return '{0}{1:s}'.format(self.value, self._unitstr)
+        return self.to_string()
 
     def __repr__(self):
         prefixstr = '<' + self.__class__.__name__ + ' '

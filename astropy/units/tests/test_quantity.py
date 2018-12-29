@@ -898,6 +898,9 @@ class TestQuantityDisplay:
     def test_to_string(self):
         qscalar = u.Quantity(1.5e14, 'm/s')
 
+        # __str__ is the default `format`
+        assert str(qscalar) == qscalar.to_string()
+
         res = 'Quantity as KMS: 150000000000.0 km / s'
         assert "Quantity as KMS: {0}".format(qscalar.to_string(unit=u.km / u.s)) == res
 
