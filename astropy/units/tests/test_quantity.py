@@ -895,6 +895,12 @@ class TestQuantityDisplay:
         assert str(bad_quantity).endswith(_UNIT_NOT_INITIALISED)
         assert repr(bad_quantity).endswith(_UNIT_NOT_INITIALISED + '>')
 
+    def test_to_string(self):
+        qscalar = u.Quantity(1.5e14, 'm/s')
+
+        res = 'Quantity as KMS: 150000000000.0 km / s'
+        assert "Quantity as KMS: {0}".format(qscalar.to_string(unit=u.km / u.s)) == res
+
     def test_repr_latex(self):
         from astropy.units.quantity import conf
 
