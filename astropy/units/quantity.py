@@ -1134,8 +1134,21 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             return self.to(unit).to_string(
                 unit=None, precision=precision, format=format, subfmt=subfmt)
 
-        if format is None:
+        formats = {
+            None: None,
+            "latex": {
+                None: ("$", "$"),
+                "inline": ("$", "$"),
+                "display": (r"$$", r"$$"),
+            },
+        }
+
+        if format not in formats:
+            raise ValueError("Unknown format '{0}'".format(format))
+        elif format is None:
             return '{0}{1:s}'.format(self.value, self._unitstr)
+
+        # else, for the moment we assume format="latex"
 
         # need to do try/finally because "threshold" cannot be overridden
         # with array2string
@@ -1184,7 +1197,11 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                       if self.unit is not None
                       else _UNIT_NOT_INITIALISED)
 
-        return r'${0} \; {1}$'.format(latex_value, latex_unit)
+        delimiter_left, delimiter_right = formats[format][subfmt]
+
+        return r'{left}{0} \; {1}{right}'.format(latex_value, latex_unit,
+                                                 left=delimiter_left,
+                                                 right=delimiter_right)
 
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
