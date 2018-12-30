@@ -63,6 +63,8 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- Add support for ``np.matmul`` as a ``ufunc`` (new in numpy 1.16). [#8305]
+
 astropy.utils
 ^^^^^^^^^^^^^
 

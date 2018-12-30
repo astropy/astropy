@@ -23,7 +23,7 @@ from ..extern.six.moves import zip
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitTypeError)
 from .format.latex import Latex
-from ..utils.compat import NUMPY_LT_1_13, NUMPY_LT_1_14
+from ..utils.compat import NUMPY_LT_1_13, NUMPY_LT_1_14, NUMPY_LT_1_16
 from ..utils.compat.misc import override__dir__
 from ..utils.compat.numpy import matmul
 from ..utils.misc import isiterable, InheritDocstrings
@@ -1105,15 +1105,16 @@ class Quantity(np.ndarray):
         return super(Quantity, self).__pow__(other)
 
     # For Py>=3.5
-    def __matmul__(self, other, reverse=False):
-        result_unit = self.unit * getattr(other, 'unit', dimensionless_unscaled)
-        result_array = matmul(self.value, getattr(other, 'value', other))
-        return self._new_view(result_array, result_unit)
+    if NUMPY_LT_1_16:
+        def __matmul__(self, other, reverse=False):
+            result_unit = self.unit * getattr(other, 'unit', dimensionless_unscaled)
+            result_array = matmul(self.value, getattr(other, 'value', other))
+            return self._new_view(result_array, result_unit)
 
-    def __rmatmul__(self, other):
-        result_unit = self.unit * getattr(other, 'unit', dimensionless_unscaled)
-        result_array = matmul(getattr(other, 'value', other), self.value)
-        return self._new_view(result_array, result_unit)
+        def __rmatmul__(self, other):
+            result_unit = self.unit * getattr(other, 'unit', dimensionless_unscaled)
+            result_array = matmul(getattr(other, 'value', other), self.value)
+            return self._new_view(result_array, result_unit)
 
     if NUMPY_LT_1_13:
         # Pre-numpy 1.13, there was no np.positive ufunc and the copy done

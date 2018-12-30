@@ -235,6 +235,8 @@ def helper_multiplication(f, unit1, unit2):
 
 
 UFUNC_HELPERS[np.multiply] = helper_multiplication
+if isinstance(getattr(np, 'matmul', None), np.ufunc):
+    UFUNC_HELPERS[np.matmul] = helper_multiplication
 
 
 def helper_division(f, unit1, unit2):
