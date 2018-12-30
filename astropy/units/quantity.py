@@ -482,7 +482,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         ----------
         result : `~numpy.ndarray` or tuple of `~numpy.ndarray`
             Array(s) which need to be turned into quantity.
-        unit : `~astropy.units.Unit` or None
+        unit : `~astropy.units.Unit`
             Unit for the quantities to be returned (or `None` if the result
             should not be a quantity).  Should be tuple if result is a tuple.
         out : `~astropy.units.Quantity` or None
@@ -561,10 +561,13 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         if unit is None:
             unit = self.unit
             quantity_subclass = self.__class__
+        elif unit is self.unit and self.__class__ is Quantity:
+            # The second part is because we should not presume what other
+            # classes want to do for the same unit.  E.g., Constant will
+            # always want to fall back to Quantity, and relies on going
+            # through `__quantity_subclass__`.
+            quantity_subclass = Quantity
         else:
-            # In principle, could gain time by testing unit is self.unit
-            # as well, and then quantity_subclass = self.__class__, but
-            # Constant relies on going through `__quantity_subclass__`.
             unit = Unit(unit)
             quantity_subclass = getattr(unit, '_quantity_class', Quantity)
             if isinstance(self, quantity_subclass):
