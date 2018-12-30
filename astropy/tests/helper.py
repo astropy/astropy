@@ -232,7 +232,7 @@ def treat_deprecations_as_exceptions():
     # on. See https://github.com/astropy/astropy/pull/5513.
     for module in list(sys.modules.values()):
         # We don't want to deal with six.MovedModules, only "real"
-        # modules.
+        # modules. FIXME: we no more use six, this should be useless ?
         if (isinstance(module, types.ModuleType) and
                 hasattr(module, '__warningregistry__')):
             del module.__warningregistry__
