@@ -961,7 +961,7 @@ fields.  This might look something like::
       Row = ParamsRow
 
       def __getitem__(self, item):
-          if isinstance(item, six.string_types):
+          if isinstance(item, str):
               if item in self.colnames:
                   return self.columns[item]
               else:
