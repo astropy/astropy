@@ -164,6 +164,8 @@ def transform_contour_set_inplace(cset, transform):
 
     for collection in cset.collections:
         paths = collection.get_paths()
+        if len(paths) == 0:
+            continue
         all_paths.append(paths)
         # The last item in pos isn't needed for np.split and in fact causes
         # issues if we keep it because it will cause an extra empty array to be
