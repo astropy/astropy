@@ -260,7 +260,7 @@ Astropy you are working on. Do that with:
 
 .. code-block:: bash
 
-    python setup.py develop
+    pip install -e .
 
 .. _edit-flow:
 
