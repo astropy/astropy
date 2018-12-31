@@ -12,5 +12,6 @@ mpmath
 matplotlib
 scipy
 pillow
+sphinx
 sphinx-gallery
 jplephem
