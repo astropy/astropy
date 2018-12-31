@@ -1186,3 +1186,25 @@ def test_fortran_invalid_exp(parallel):
                    fast_reader={'parallel': parallel, 'exponent_style': 'A'})
     read_values = [col[0] for col in t.itercols()]
     assert read_values == values
+
+
+@pytest.mark.parametrize('fast_reader', [False,
+                                         dict(parallel=True),
+                                         dict(parallel=False)])
+def test_read_empty_basic_table_with_comments(fast_reader):
+    """
+    Test for reading a "basic" format table that has no data but has comments.
+    Tests the fix for #8267.
+    """
+    dat = """
+    # comment 1
+    # comment 2
+    col1 col2
+    """
+    if os.name == 'nt' and fast_reader and fast_reader.get('parallel'):
+        pytest.xfail("Multiprocessing is currently unsupported on Windows")
+
+    t = ascii.read(dat, fast_reader=fast_reader)
+    assert t.meta['comments'] == ['comment 1', 'comment 2']
+    assert len(t) == 0
+    assert t.colnames == ['col1', 'col2']

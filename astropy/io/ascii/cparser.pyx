@@ -388,7 +388,8 @@ cdef class CParser:
         if tokenize(self.tokenizer, data_end, 0, <int>len(self.names)) != 0:
             self.raise_error("an error occurred while parsing table data")
         elif self.tokenizer.num_rows == 0: # no data
-            return ([np.array([], dtype=np.int_)] * self.width, [])
+            return ([np.array([], dtype=np.int_)] * self.width,
+                    self._get_comments(self.tokenizer))
         self._set_fill_values()
         cdef int num_rows = self.tokenizer.num_rows
         if self.data_end is not None and self.data_end < 0: # negative indexing
@@ -415,7 +416,8 @@ cdef class CParser:
 
         if offset == source_len: # no data
             return (dict((name, np.array([], dtype=np.int_)) for name in
-                         self.names), [])
+                         self.names),
+                    self._get_comments(self.tokenizer))
 
         cdef long chunksize = math.ceil((source_len - offset) / float(N))
         cdef list chunkindices = [offset]
