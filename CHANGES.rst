@@ -1,26 +1,8 @@
-2.0.11 (unreleased)
+2.0.11 (2018-12-31)
 ===================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -31,34 +13,8 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
-- Fix a bug in ``io.fits`` with writting Fortran-ordered arrays to file objects [#8282]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
+- Fix a bug in ``io.fits`` with writing Fortran-ordered arrays to file
+  objects [#8282]
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -70,20 +26,6 @@ astropy.utils
 
 - Fix failures caused by IERS_A_URL being unavailable by introducing
   IERS_A_URL_MIRROR. [#8308]
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Other Changes and Additions
----------------------------
-
 
 
 
