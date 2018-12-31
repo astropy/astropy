@@ -272,4 +272,3 @@ def test_sigma_clippped_stats_unit():
     data = np.array([1, 1]) * u.kpc
     result = sigma_clipped_stats(data)
     assert result == (1. * u.kpc, 1. * u.kpc, 0. * u.kpc)
-
