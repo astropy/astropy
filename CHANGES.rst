@@ -1,70 +1,19 @@
-3.1.1 (unreleased)
+3.1.1 (2018-12-31)
 ==================
 
 Bug fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
 - Fix error when writing out empty table. [#8279]
 
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - ``fitsdiff --ignore-hdus`` now prints input filenames in the diff report
   instead of ``<HDUList object at 0x1150f9778>``. [#8295]
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -73,23 +22,6 @@ astropy.units
 
 - Fix ``with_H0`` equivalency to use the correct direction of
   conversion. [#8292]
-
-- Add support for ``np.matmul`` as a ``ufunc`` (new in numpy 1.16). [#8264]
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-
-Other Changes and Additions
----------------------------
-
 
 
 
@@ -1466,29 +1398,11 @@ Other Changes and Additions
 
 
 
-2.0.11 (unreleased)
+2.0.11 (2018-12-31)
 ===================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -1499,56 +1413,20 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
-- Fix a bug in ``io.fits`` with writting Fortran-ordered arrays to file objects [#8282]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
+- Fix a bug in ``io.fits`` with writing Fortran-ordered arrays to file
+  objects. [#8282]
 
 astropy.units
 ^^^^^^^^^^^^^
+
+- Add support for ``np.matmul`` as a ``ufunc`` (new in numpy 1.16).
+  [#8264, #8305]
 
 astropy.utils
 ^^^^^^^^^^^^^
 
 - Fix failures caused by IERS_A_URL being unavailable by introducing
   IERS_A_URL_MIRROR. [#8308]
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Other Changes and Additions
----------------------------
 
 
 
