@@ -1,3 +1,82 @@
+2.0.12 (unreleased)
+===================
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.vo
+^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+Other Changes and Additions
+---------------------------
+
+
+
+
 2.0.11 (2018-12-31)
 ===================
 
@@ -14,12 +93,13 @@ astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - Fix a bug in ``io.fits`` with writing Fortran-ordered arrays to file
-  objects [#8282]
+  objects. [#8282]
 
 astropy.units
 ^^^^^^^^^^^^^
 
-- Add support for ``np.matmul`` as a ``ufunc`` (new in numpy 1.16). [#8305]
+- Add support for ``np.matmul`` as a ``ufunc`` (new in numpy 1.16).
+  [#8264, #8305]
 
 astropy.utils
 ^^^^^^^^^^^^^
@@ -4919,7 +4999,7 @@ astropy.utils
 
 - Updated ``astropy/utils/console.py`` ProgressBar() module to
   display output to IPython notebook with the addition of an
-  ``interactive`` kwarg. [#2658] [#2789]
+  ``interactive`` kwarg. [#2658, #2789]
 
 astropy.wcs
 ^^^^^^^^^^^
@@ -8428,7 +8508,7 @@ astropy.wcs
 
 - Fixed how ``setup.py`` uses ``distribute_setup.py`` to prevent possible
   ``VersionConflict`` errors when an older version of distribute is already
-  installed on the user's system. [#616][#640]
+  installed on the user's system. [#616, #640]
 
 - Changed use of ``log.warn`` in the logging module to ``log.warning`` since
   the former is deprecated. [#624]
