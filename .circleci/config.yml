@@ -1,5 +1,17 @@
 version: 2
 
+apt-run: &apt-install
+  name: Install apt packages
+  command: |
+    sudo apt update
+    sudo apt install -y graphviz
+pip-run: &pip-install
+  name: Install Python dependencies
+  command: |
+    python3 -m venv venv
+    . venv/bin/activate
+    pip install -q -r pip-requirements-doc
+
 jobs:
   32bit_py2:
     docker:
@@ -86,6 +98,7 @@ jobs:
       - run:
           name: Temporarily downgrade pytest
           command: pip3 install "pytest<3.7"
+      - run:
           name: Run tests
           command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
 
