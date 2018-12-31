@@ -2,9 +2,11 @@
 
 import os
 import warnings
+from distutils.version import LooseVersion
 
 import pytest
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.contour import QuadContourSet
 
@@ -18,6 +20,8 @@ from astropy.tests.image_tests import ignore_matplotlibrc
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
+
+MATPLOTLIB_LT_21 = LooseVersion(matplotlib.__version__) < LooseVersion("2.1")
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
@@ -297,6 +301,7 @@ def test_contour_return():
     assert isinstance(cset, QuadContourSet)
 
 
+@pytest.mark.skipif('MATPLOTLIB_LT_21')
 def test_contour_empty():
 
     # Regression test for a bug that caused contour to crash if no contours
