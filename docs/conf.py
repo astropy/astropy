@@ -185,25 +185,7 @@ latex_logo = '_static/astropy_logo.pdf'
 man_pages = [('index', project.lower(), project + u' Documentation',
               [author], 1)]
 
-
-# -- Options for the edit_on_github extension ----------------------------------------
-
-extensions += ['sphinx_astropy.ext.edit_on_github']
-
-# Don't import the module as "version" or it will override the
-# "version" configuration parameter
-from astropy import version as versionmod
-edit_on_github_project = "astropy/astropy"
-if versionmod.release:
-    edit_on_github_branch = "v{0}.{1}.x".format(
-        versionmod.major, versionmod.minor)
-else:
-    edit_on_github_branch = "master"
-edit_on_github_source_root = ""
-edit_on_github_doc_root = "docs"
-
-edit_on_github_skip_regex = '_.*|api/.*'
-
+# Setting this URL is requited by sphinx-astropy
 github_issues_url = 'https://github.com/astropy/astropy/issues/'
 
 # Enable nitpicky mode - which ensures that all references in the docs
