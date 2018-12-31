@@ -321,6 +321,15 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+astropy.visualization.wcsaxes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Fix a bug that caused an error when passing an array with all values the same
+  to contour or contourf. [#8321]
+
+- Fix a bug that caused contour and contourf to return None instead of the
+  contour set. [#8321]
+
 astropy.wcs
 ^^^^^^^^^^^
 
