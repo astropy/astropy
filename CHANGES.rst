@@ -2959,6 +2959,9 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Fix an issue where the fast C-reader was dropping table comments for a
+  table with no data lines. [#8274]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
