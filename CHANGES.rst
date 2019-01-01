@@ -245,7 +245,9 @@ Installation
 - We now define groups of dependencies that can be installed with pip, e.g.
   ``pip install astropy[all]`` (to install all optional dependencies). [#8198]
 
-3.1.1 (unreleased)
+
+
+3.1.2 (unreleased)
 ==================
 
 Bug fixes
@@ -272,16 +274,11 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
-- Fix error when writing out empty table. [#8279]
-
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
-
-- ``fitsdiff --ignore-hdus`` now prints input filenames in the diff report
-  instead of ``<HDUList object at 0x1150f9778>``. [#8295]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
@@ -316,13 +313,6 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
-- Ensure correctness of units when raising to a negative power. [#8263]
-
-- Fix ``with_H0`` equivalency to use the correct direction of
-  conversion. [#8292]
-
-- Add support for ``np.matmul`` as a ``ufunc`` (new in numpy 1.16). [#8264]
-
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -337,6 +327,34 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+
+
+
+
+3.1.1 (2018-12-31)
+==================
+
+Bug fixes
+---------
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- Fix error when writing out empty table. [#8279]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- ``fitsdiff --ignore-hdus`` now prints input filenames in the diff report
+  instead of ``<HDUList object at 0x1150f9778>``. [#8295]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Ensure correctness of units when raising to a negative power. [#8263]
+
+- Fix ``with_H0`` equivalency to use the correct direction of
+  conversion. [#8292]
 
 
 
@@ -1713,8 +1731,7 @@ Other Changes and Additions
 
 
 
-
-2.0.11 (unreleased)
+2.0.12 (unreleased)
 ===================
 
 Bug Fixes
@@ -1741,13 +1758,8 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
-- Fix fast reader C tokenizer to handle double quotes in quoted field.
-  [#8283]
-
 astropy.io.fits
 ^^^^^^^^^^^^^^^
-
-- Fix a bug in ``io.fits`` with writting Fortran-ordered arrays to file objects [#8282]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
@@ -1782,9 +1794,6 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
-- Fix failures caused by IERS_A_URL being unavailable by introducing
-  IERS_A_URL_MIRROR. [#8308]
-
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -1797,6 +1806,38 @@ astropy.wcs
 
 Other Changes and Additions
 ---------------------------
+
+
+
+2.0.11 (2018-12-31)
+===================
+
+Bug Fixes
+---------
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- Fix fast reader C tokenizer to handle double quotes in quoted field.
+  [#8283]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix a bug in ``io.fits`` with writing Fortran-ordered arrays to file
+  objects. [#8282]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Add support for ``np.matmul`` as a ``ufunc`` (new in numpy 1.16).
+  [#8264, #8305]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Fix failures caused by IERS_A_URL being unavailable by introducing
+  IERS_A_URL_MIRROR. [#8308]
 
 
 
