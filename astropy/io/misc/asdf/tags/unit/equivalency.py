@@ -6,11 +6,11 @@ from astropy.units import equivalencies
 from astropy.units.quantity import Quantity
 from asdf.yamlutil import custom_tree_to_tagged_tree
 
-from astropy.io.misc.asdf.types import AstropyAsdfType
+from astropy.io.misc.asdf.types import AstropyType
 
 
-class EquivalencyType(AstropyAsdfType):
-    name = "unit/equivalency"
+class EquivalencyType(AstropyType):
+    name = "units/equivalency"
     types = [Equivalency]
     version = '1.0.0'
 
