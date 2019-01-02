@@ -9,13 +9,13 @@ from asdf.tests.helpers import assert_roundtrip_tree
 from astropy.time import Time, TimeDelta
 
 
-@pytest.mark.parametrize('fmt', Time.FORMATS.keys())
+@pytest.mark.parametrize('fmt', TimeDelta.FORMATS.keys())
 def test_timedelta(fmt, tmpdir):
 
-    t1 = Time(Time.now(), format=fmt)
-    t2 = Time(Time.now(), format=fmt)
+    t1 = Time(Time.now())
+    t2 = Time(Time.now())
 
-    td = t2 - t1
+    td = TimeDelta(t2 - t1, format=fmt)
     tree = dict(timedelta=td)
     assert_roundtrip_tree(tree, tmpdir)
 
