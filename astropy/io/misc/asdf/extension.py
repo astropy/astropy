@@ -18,6 +18,7 @@ from .tags.coordinates.representation import *
 from .tags.fits.fits import *
 from .tags.table.table import *
 from .tags.time.time import *
+from .tags.time.timedelta import *
 from .tags.transform.basic import *
 from .tags.transform.compound import *
 from .tags.transform.polynomial import *
