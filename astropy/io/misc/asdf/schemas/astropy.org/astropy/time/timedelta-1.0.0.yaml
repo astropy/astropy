@@ -24,7 +24,7 @@ properties:
       type: string
       description: |
         Time scale of input value(s).
-      enum: [tdb, tt, ut1, tcg, tcb, tai]
-required: [jd1, jd2, format, scale]
+      enum: [tdb, tt, ut1, tcg, tcb, tai, local]
+required: [jd1, jd2, format]
 additionalProperties: False
 ...
