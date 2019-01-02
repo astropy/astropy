@@ -5,8 +5,13 @@ Handle loading six package from system or from the bundled copy
 """
 
 import imp
+import warnings
 from distutils.version import StrictVersion
 
+from astropy.utils.exceptions import AstropyDeprecationWarning
+
+warnings.warn('six bundled with Astropy will be removed in 4.0',
+              AstropyDeprecationWarning)
 
 _SIX_MIN_VERSION = StrictVersion('1.10.0')
 
