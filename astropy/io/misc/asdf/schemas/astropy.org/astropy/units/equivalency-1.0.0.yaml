@@ -29,10 +29,7 @@ definitions:
             - type: number
             - type: "null"
 
-type: object
-properties:
-  equivalencies:
-    type: array
-    items:
-      $ref: "#/definitions/equivalency"
+type: array
+items:
+  $ref: "#/definitions/equivalency"
 ...
