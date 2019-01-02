@@ -29,14 +29,12 @@ class EquivalencyType(AstropyType):
                             else val for val in kwarg_values]
             eq = {'name': e, 'kwargs_names': kwarg_names, 'kwargs_values': kwarg_values}
             eqs.append(eq)
-
-        node['equivalencies'] = eqs
-        return node
+        return eqs
 
     @classmethod
     def from_tree(cls, node, ctx):
         eqs = []
-        for eq in node['equivalencies']:
+        for eq in node:
             equiv = getattr(equivalencies, eq['name'])
             kwargs = dict(zip(eq['kwargs_names'], eq['kwargs_values']))
             eqs.append(equiv(**kwargs))
