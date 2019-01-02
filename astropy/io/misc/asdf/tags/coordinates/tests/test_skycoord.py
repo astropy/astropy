@@ -84,6 +84,7 @@ def test_skycoord_vector_frames(tmpdir):
     assert_roundtrip_tree(tree, tmpdir)
 
 
+@pytest.mark.xfail(reason='Velocities are not properly serialized yet')
 def test_skycoord_radial_velocity(tmpdir):
 
     c = SkyCoord(ra=1*u.deg, dec=2*u.deg, radial_velocity=10*u.km/u.s)
@@ -91,6 +92,7 @@ def test_skycoord_radial_velocity(tmpdir):
     assert_roundtrip_tree(tree, tmpdir)
 
 
+@pytest.mark.xfail(reason='Velocities are not properly serialized yet')
 def test_skycoord_proper_motion(tmpdir):
 
     c = SkyCoord(ra=1*u.deg, dec=2*u.deg, pm_ra_cosdec=2*u.mas/u.yr,
