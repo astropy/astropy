@@ -2249,6 +2249,52 @@ class Table:
 
         self.columns[name].info.name = new_name
 
+    def rename_columns(self, names, new_names):
+        '''
+        Rename multiple columns.
+
+        Parameters
+        ----------
+        names: list, tuple
+            A list or tuple of existing column names.
+        new_names: list, tuple
+            A list or tuple of new column names.
+
+        Examples
+        --------
+        Create a table with three columns 'a', 'b', 'c'::
+
+            >>> t = Table([[1,2],[3,4],[5,6]], names=('a','b','c'))
+            >>> print(t)
+              a   b   c
+             --- --- ---
+              1   3   5
+              2   4   6
+
+        Renaming columns 'a' to 'aa' and 'b' to 'bb'::
+
+            >>> names = ('a','b')
+            >>> new_names = ('aa','bb')
+            >>> t.rename_columns(names, new_names)
+            >>> print(t)
+             aa  bb   c
+            --- --- ---
+              1   3   5
+              2   4   6
+        '''
+
+        if not self._is_list_or_tuple_of_str(names):
+            raise TypeError("input 'names' must be a tuple or a list of column names")
+
+        if not self._is_list_or_tuple_of_str(new_names):
+            raise TypeError("input 'new_names' must be a tuple or a list of column names")
+
+        if len(names) != len(new_names):
+            raise ValueError("input 'names' and 'new_names' list arguments must be the same length")
+
+        for name, new_name in zip(names, new_names):
+            self.rename_column(name, new_name)
+
     def _set_row(self, idx, colnames, vals):
         try:
             assert len(vals) == len(colnames)
