@@ -112,6 +112,8 @@ astropy.table
   columns.  ``Time`` and ``TimeDelta`` columns get converted to
   corresponding pandas date or time delta types.  The ``DataFrame``
   index is now handled in the conversion methods. [#8247]
+- Added ``rename_columns`` method to rename multiple columns in one call. [#5159, #8070]
+
 
 - Improved Table performance by reducing unnecessary calls to copy and deepcopy,
   especially as related to the table and column ``meta`` attributes.  Changed the
