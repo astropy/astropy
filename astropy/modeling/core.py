@@ -849,7 +849,10 @@ class Model(metaclass=_ModelMeta):
                     param._unit = value.unit
                     param.value = value.value
         else:
-            super().__setattr__(attr, value)
+            if attr in ['fittable', 'linear']:
+                self.__dict__[attr] = value
+            else:
+                super().__setattr__(attr, value)
 
     def __call__(self, *inputs, **kwargs):
         """
@@ -2353,6 +2356,7 @@ class CompoundModel(Model):
         self._bounding_box = None
         self._user_bounding_box = None
         self._leaflist = None
+        self._tdict = None
         self._parameters = None
         self._parameters_ = None
         self._param_metrics = None

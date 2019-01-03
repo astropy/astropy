@@ -1277,6 +1277,15 @@ class _SIP1D(PolynomialBase):
         self.coeff_prefix = coeff_prefix
         self._param_names = self._generate_coeff_names(coeff_prefix)
 
+        if n_models:
+            if model_set_axis is None:
+                model_set_axis = 0
+            minshape = (1,) * model_set_axis + (n_models,)
+        else:
+            minshape = ()
+        for param_name in self._param_names:
+            self._parameters_[param_name] = \
+                Parameter(param_name, default=np.zeros(minshape))
         super().__init__(n_models=n_models, model_set_axis=model_set_axis,
                          name=name, meta=meta, **params)
 
