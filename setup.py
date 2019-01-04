@@ -83,11 +83,6 @@ else:
 
 install_requires = [min_numpy_version]
 
-# Avoid installing setup_requires dependencies if the user just
-# queries for information
-if is_distutils_display_option():
-    setup_requires = []
-
 setup(version=VERSION,
       setup_requires=setup_requires,
       install_requires=install_requires,
