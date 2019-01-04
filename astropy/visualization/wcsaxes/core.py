@@ -229,7 +229,7 @@ class WCSAxes(Axes):
             # a transData component at the end, but we can remove that since
             # we are already working in data space.
             transform = transform - self.transData
-            cset = transform_contour_set_inplace(cset, transform)
+            transform_contour_set_inplace(cset, transform)
 
         return cset
 
@@ -255,7 +255,7 @@ class WCSAxes(Axes):
             # a transData component at the end, but we can remove that since
             # we are already working in data space.
             transform = transform - self.transData
-            cset = transform_contour_set_inplace(cset, transform)
+            transform_contour_set_inplace(cset, transform)
 
         return cset
 
