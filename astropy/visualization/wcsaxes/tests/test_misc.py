@@ -2,10 +2,13 @@
 
 import os
 import warnings
+from distutils.version import LooseVersion
 
 import pytest
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.contour import QuadContourSet
 
 from astropy import units as u
 from astropy.wcs import WCS
@@ -17,6 +20,8 @@ from astropy.tests.image_tests import ignore_matplotlibrc
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
+
+MATPLOTLIB_LT_21 = LooseVersion(matplotlib.__version__) < LooseVersion("2.1")
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
@@ -278,3 +283,31 @@ def test_grid_contour_large_spacing(tmpdir):
 
     ax.coords[0].grid(grid_type='contours')
     plt.savefig(filename)
+
+
+def test_contour_return():
+
+    # Regression test for a bug that caused contour and contourf to return None
+    # instead of the contour object.
+
+    fig = plt.figure()
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
+    fig.add_axes(ax)
+
+    cset = ax.contour(np.arange(16).reshape(4, 4), transform=ax.get_transform('world'))
+    assert isinstance(cset, QuadContourSet)
+
+    cset = ax.contourf(np.arange(16).reshape(4, 4), transform=ax.get_transform('world'))
+    assert isinstance(cset, QuadContourSet)
+
+
+@pytest.mark.skipif('MATPLOTLIB_LT_21')
+def test_contour_empty():
+
+    # Regression test for a bug that caused contour to crash if no contours
+    # were present.
+
+    fig = plt.figure()
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
+    fig.add_axes(ax)
+    ax.contour(np.zeros((4, 4)), transform=ax.get_transform('world'))
