@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from .index import TableIndices, TableLoc, TableILoc, TableLocIndices
 
-import re
 import sys
 from collections import OrderedDict
 from collections.abc import Mapping
@@ -18,7 +17,6 @@ from astropy.utils import isiterable, ShapedLikeNDArray
 from astropy.utils.console import color_print
 from astropy.utils.metadata import MetaData
 from astropy.utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
-from astropy.utils.exceptions import AstropyDeprecationWarning, NoValue
 
 from . import groups
 from .pprint import TableFormatter
@@ -37,6 +35,7 @@ __doctest_skip__ = ['Table.read', 'Table.write',
                     ]
 
 __doctest_requires__ = {'*pandas': ['pandas']}
+
 
 class TableReplaceWarning(UserWarning):
     """
