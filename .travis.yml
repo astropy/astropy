@@ -178,7 +178,10 @@ before_install:
     - echo $CC
 
 install:
-    - git clone git://github.com/astropy/ci-helpers.git
+    - git clone git://github.com/pllim/ci-helpers.git
+    - cd ci-helpers
+    - git checkout patch-1
+    - cd ..
     - source ci-helpers/travis/setup_conda.sh
     - if [[ $INSTALL_WITH_PIP == True ]]; then
         if [ -z $EXTRAS_INSTALL ]; then
