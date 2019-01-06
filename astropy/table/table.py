@@ -2725,8 +2725,10 @@ class Table:
 
         Examples
         --------
-        Here we convert a table with a few mixins to a :class:`pandas.DataFrame` instance.
+        Here we convert a table with a few mixins to a
+        :class:`pandas.DataFrame` instance.
 
+          >>> import pandas as pd
           >>> from astropy.table import QTable
           >>> import astropy.units as u
           >>> from astropy.time import Time, TimeDelta
@@ -2739,7 +2741,9 @@ class Table:
 
           >>> t = QTable([q, tm, sc, dt], names=['q', 'tm', 'sc', 'dt'])
 
-          >>> t.to_pandas(index='tm')
+          >>> df = t.to_pandas(index='tm')
+          >>> with pd.option_context('display.width', 80):
+          ...     print(df)
                         q  sc.ra  sc.dec       dt
           tm
           1998-01-01  1.0    5.0     7.0 00:00:03
@@ -2854,6 +2858,7 @@ class Table:
         --------
         Here we convert a :class:`pandas.DataFrame` instance to a `QTable`.
 
+          >>> import numpy as np
           >>> import pandas as pd
           >>> from astropy.table import QTable
 
@@ -2862,18 +2867,18 @@ class Table:
           >>> df = pd.DataFrame({'time': time})
           >>> df['dt'] = dt
           >>> df['x'] = [3., 4.]
-          >>> df
+          >>> with pd.option_context('display.width', 80):
+          ...     print(df)
                   time       dt    x
           0 1998-01-01 00:00:01  3.0
           1 2002-01-01 00:05:00  4.0
 
-          >>> QTable.from_pandas(df)
-          <QTable length=2>
-                    time            dt      x
-                   object         object float64
-          ----------------------- ------ -------
-          1998-01-01T00:00:00.000    1.0     3.0
-          2002-01-01T00:00:00.000  300.0     4.0
+          >>> t = QTable.from_pandas(df)
+          >>> t.pprint(max_lines=-1, max_width=-1)
+                    time            dt   x
+          ----------------------- ----- ---
+          1998-01-01T00:00:00.000   1.0 3.0
+          2002-01-01T00:00:00.000 300.0 4.0
 
         """
 
