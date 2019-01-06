@@ -761,16 +761,14 @@ class TestHDUListFunctions(FitsTestCase):
             hdu_b = fits.PrimaryHDU(data=arr_b)
             hdu_b.writeto(self.temp('test_b.fits'), overwrite=True)
 
-            hdul_a = fits.open(self.temp('test_a.fits'), mode='update',
-                               memmap=mmap_a)
-            hdul_b = fits.open(self.temp('test_b.fits'), memmap=mmap_b)
-            hdul_a[0].data = hdul_b[0].data
-            hdul_a.close()
-            hdul_b.close()
+            with fits.open(self.temp('test_a.fits'), mode='update',
+                           memmap=mmap_a) as hdul_a:
+                with fits.open(self.temp('test_b.fits'),
+                               memmap=mmap_b) as hdul_b:
+                    hdul_a[0].data = hdul_b[0].data
 
-            hdul_a = fits.open(self.temp('test_a.fits'))
-
-            assert np.all(hdul_a[0].data == arr_b)
+            with fits.open(self.temp('test_a.fits')) as hdul_a:
+                assert np.all(hdul_a[0].data == arr_b)
 
         with ignore_warnings():
             test(True, True)
@@ -801,18 +799,16 @@ class TestHDUListFunctions(FitsTestCase):
             hdu_b = fits.BinTableHDU.from_columns([col_b])
             hdu_b.writeto(self.temp('test_b.fits'), overwrite=True)
 
-            hdul_a = fits.open(self.temp('test_a.fits'), mode='update',
-                               memmap=mmap_a)
-            hdul_b = fits.open(self.temp('test_b.fits'), memmap=mmap_b)
-            hdul_a[1].data = hdul_b[1].data
-            hdul_a.close()
-            hdul_b.close()
+            with fits.open(self.temp('test_a.fits'), mode='update',
+                           memmap=mmap_a) as hdul_a:
+                with fits.open(self.temp('test_b.fits'),
+                               memmap=mmap_b) as hdul_b:
+                    hdul_a[1].data = hdul_b[1].data
 
-            hdul_a = fits.open(self.temp('test_a.fits'))
-
-            assert 'b' in hdul_a[1].columns.names
-            assert 'a' not in hdul_a[1].columns.names
-            assert np.all(hdul_a[1].data['b'] == arr_b)
+            with fits.open(self.temp('test_a.fits')) as hdul_a:
+                assert 'b' in hdul_a[1].columns.names
+                assert 'a' not in hdul_a[1].columns.names
+                assert np.all(hdul_a[1].data['b'] == arr_b)
 
         with ignore_warnings():
             test(True, True)
