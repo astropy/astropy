@@ -803,9 +803,7 @@ class TestHDUListFunctions(FitsTestCase):
                     hdul_a[0].data = hdul_b[0].data
 
             with fits.open(self.temp('test_a.fits')) as hdul_a:
-                status = np.all(hdul_a[0].data == arr_b)
-
-            assert status
+                assert np.all(hdul_a[0].data == arr_b)
 
         with ignore_warnings():
             test(True, True)
@@ -843,11 +841,9 @@ class TestHDUListFunctions(FitsTestCase):
                     hdul_a[1].data = hdul_b[1].data
 
             with fits.open(self.temp('test_a.fits')) as hdul_a:
-                status = (('b' in hdul_a[1].columns.names) and
-                          ('a' not in hdul_a[1].columns.names) and
-                          np.all(hdul_a[1].data['b'] == arr_b))
-
-            assert status
+                assert 'b' in hdul_a[1].columns.names
+                assert 'a' not in hdul_a[1].columns.names
+                assert np.all(hdul_a[1].data['b'] == arr_b)
 
         with ignore_warnings():
             test(True, True)
