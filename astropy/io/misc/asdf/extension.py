@@ -26,6 +26,7 @@ from .tags.transform.projections import *
 from .tags.transform.tabular import *
 from .tags.unit.quantity import *
 from .tags.unit.unit import *
+from .tags.unit.equivalency import *
 from .types import _astropy_types, _astropy_asdf_types
 
 
