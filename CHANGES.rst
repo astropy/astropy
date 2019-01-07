@@ -120,6 +120,8 @@ astropy.io.ascii
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
+- Unit equivalencies can now be serialized to ASDF. [#8252]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
@@ -155,6 +157,9 @@ astropy.uncertainty
 
 astropy.units
 ^^^^^^^^^^^^^
+
+- Unit equivalencies can now be introspected. [#8252]
+
 
 astropy.utils
 ^^^^^^^^^^^^^
