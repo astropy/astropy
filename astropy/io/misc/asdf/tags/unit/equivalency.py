@@ -21,8 +21,7 @@ class EquivalencyType(AstropyType):
             raise TypeError("'{0}' is not a valid Equivalency".format(equiv))
 
         eqs = []
-        for i, e in enumerate(equiv.name):
-            kwargs = equiv.kwargs[i]
+        for e, kwargs in zip(equiv.name, equiv.kwargs):
             kwarg_names = list(kwargs.keys())
             kwarg_values = list(kwargs.values())
             kwarg_values = [custom_tree_to_tagged_tree(val, ctx) if isinstance(val, Quantity)

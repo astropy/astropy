@@ -13,7 +13,7 @@ from asdf.tests import helpers
 
 def get_equivalencies():
     """
-    Return a list od example equivalencies for testing serialization.
+    Return a list of example equivalencies for testing serialization.
     """
     return [eq.plate_scale(.3 * u.deg/u.mm), eq.pixel_scale(.5 * u.deg/u.pix),
             eq.spectral_density(3500 * u.Angstrom, factor=2),
