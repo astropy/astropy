@@ -101,7 +101,7 @@ def test_custom_model_signature():
     sig = signature(model_a.__call__)
     assert list(sig.parameters.keys()) == ['self', 'x', 'model_set_axis',
                                            'with_bounding_box', 'fill_value',
-                                           'equivalencies']
+                                           'equivalencies', 'inputs_map']
 
     @custom_model
     def model_b(x, a=1, b=2):
@@ -115,7 +115,7 @@ def test_custom_model_signature():
     sig = signature(model_b.__call__)
     assert list(sig.parameters.keys()) == ['self', 'x', 'model_set_axis',
                                            'with_bounding_box', 'fill_value',
-                                           'equivalencies']
+                                           'equivalencies', 'inputs_map']
 
     @custom_model
     def model_c(x, y, a=1, b=2):
@@ -129,7 +129,7 @@ def test_custom_model_signature():
     sig = signature(model_c.__call__)
     assert list(sig.parameters.keys()) == ['self', 'x', 'y', 'model_set_axis',
                                            'with_bounding_box', 'fill_value',
-                                           'equivalencies']
+                                           'equivalencies', 'inputs_map']
 
 
 def test_custom_model_subclass():
@@ -155,7 +155,7 @@ def test_custom_model_subclass():
     sig = signature(model_b.__call__)
     assert list(sig.parameters.keys()) == ['self', 'x', 'model_set_axis',
                                            'with_bounding_box', 'fill_value',
-                                           'equivalencies']
+                                           'equivalencies', 'inputs_map']
 
 
 def test_custom_model_parametrized_decorator():
