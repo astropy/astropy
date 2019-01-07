@@ -49,7 +49,7 @@ from .parameters import (Parameter, InputParameterError,
 from collections import deque
 
 
-from ..utils import indent
+from astropy.utils import indent
 from .utils import combine_labels, _BoundingBox
 
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
@@ -429,7 +429,8 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
                     __call__, args, [('model_set_axis', None),
                                      ('with_bounding_box', False),
                                      ('fill_value', np.nan),
-                                     ('equivalencies', None)])
+                                     ('equivalencies', None),
+                                     ('inputs_map', None)])
 
             # The following makes it look like __call__
             # was defined in the class
@@ -1523,7 +1524,11 @@ class Model(metaclass=_ModelMeta):
         _validate_input_shapes(inputs, self.inputs, n_models,
                                model_set_axis, self.standard_broadcasting)
 
-        inputs = self._validate_input_units(inputs, equivalencies)
+        if 'inputs_map' in kwargs:
+            inputs_map = kwargs['inputs_map']
+        else:
+            inputs_map = None
+        inputs = self._validate_input_units(inputs, equivalencies, inputs_map)
 
         # The input formatting required for single models versus a multiple
         # model set are different enough that they've been split into separate
@@ -1535,19 +1540,28 @@ class Model(metaclass=_ModelMeta):
             return _prepare_inputs_model_set(self, params, inputs, n_models,
                                              model_set_axis, **kwargs)
 
-    def _validate_input_units(self, inputs, equivalencies=None):
+    def _validate_input_units(self, inputs, equivalencies=None, inputs_map=None):
 
         inputs = list(inputs)
         name = self.name or self.__class__.__name__
         # Check that the units are correct, if applicable
 
         if self.input_units is not None:
-
+            # If a leaflist is provided that means this is in the context of
+            # a compound model and it is necessary to create the appropriate
+            # alias for the input coordinate name for the equivalencies dict
+            if inputs_map:
+                edict = {}
+                for mod, mapping in inputs_map:
+                    if self is mod:
+                        edict[mapping[0]] = equivalencies[mapping[1]]
+            else:
+                edict = equivalencies
             # We combine any instance-level input equivalencies with user
             # specified ones at call-time.
             input_units_equivalencies = \
                 _combine_equivalency_dict(self.inputs,
-                                          equivalencies,
+                                          edict,
                                           self.input_units_equivalencies)
 
             # We now iterate over the different inputs and make sure that their
@@ -1595,8 +1609,7 @@ class Model(metaclass=_ModelMeta):
                                              "required dimensionless "
                                              "input".format(self.inputs[i],
                                                             inputs[i].unit,
-                                                            inputs[i].unit.
-                                                            physical_type))
+                                                            inputs[i].unit.physical_type))
                         else:
                             raise UnitsError("Units of input '{0}', {1} ({2}),"
                                              " could not be "
@@ -2467,6 +2480,17 @@ class CompoundModel(Model):
         return True
 
     def __call__(self, *args, **kw):
+        # If equivalencies are provided, necessary to map parameters and pass
+        # the leaflist as a keyword input for use by model evaluation so that
+        # the compound model input names can be matched to the model input
+        # names.
+        if 'equivalencies' in kw:
+            self.map_parameters()
+            # Restructure to be useful for the individual model lookup
+            kw['inputs_map'] = [(value[0], (value[1], key)) for
+                                      key, value in self.inputs_map().items()]
+
+            #kw['inputs_map'] = self.inputs_map()
         op = self.op
         if op != '%':
             if op != '&':
@@ -2861,6 +2885,84 @@ class CompoundModel(Model):
             param_metrics[name]['size'] = param_size
             total_size += param_size
         self._parameters = np.empty(total_size, dtype=np.float64)
+
+    @staticmethod
+    def _recursive_lookup(branch, adict, key):
+        if isinstance(branch, CompoundModel):
+            return adict[key]
+        else:
+            return branch, key
+
+    def inputs_map(self):
+        """
+        Map the names of the inputs to this ExpressionTree to the inputs to the leaf models.
+        """
+        inputs_map = {}
+        if not isinstance(self.op, str):  # If we don't have an operator the mapping is trivial
+            return {inp: (self, inp) for inp in self.inputs}
+
+        elif self.op == '|':
+            for inp in self.inputs:
+                if isinstance(self.left, CompoundModel):
+                    inputs_map[inp] = self.left.inputs_map()[inp]
+                else:
+                    inputs_map[inp] = self.left, inp
+        elif self.op == '&':
+            for i, inp in enumerate(self.inputs):
+                if i < len(self.left.inputs):  # Get from left
+                    if isinstance(self.left, CompoundModel):
+                        inputs_map[inp] = self.left.inputs_map()[self.left.inputs[i]]
+                    else:
+                        inputs_map[inp] = self.left, self.left.inputs[i]
+                else:  # Get from right
+                    if isinstance(self.right, CompoundModel):
+                       inputs_map[inp] = self.right.inputs_map()[self.right.inputs[i
+                                                                   - len(self.left.inputs)]]
+                    else:
+                        inputs_map[inp] = self.right, self.right.inputs[i
+                                                                   - len(self.left.inputs)]
+        else:
+            for inp in self.left.inputs:
+                inputs_map[inp] = self.left.inputs_map()[inp]
+        return inputs_map
+
+
+
+
+    # @property
+    # def outputs_map(self):
+    #     """
+    #     Map the names of the outputs to this ExpressionTree to the outputs to the leaf models.
+    #     """
+    #     outputs_map = {}
+    #     if not isinstance(self.value, str):  # If we don't have an operator the mapping is trivial
+    #         return {out: (self.value, out) for out in self.outputs}
+
+    #     elif self.value == '|':
+    #         for out in self.outputs:
+    #             m, out2 = self._recursive_lookup(self.right, self.right.outputs_map, out)
+    #             outputs_map[out] = m, out2
+
+    #     elif self.value == '&':
+    #         for i, out in enumerate(self.outputs):
+    #             if i < len(self.left.outputs):  # Get from left
+    #                 m, out2 = self._recursive_lookup(self.left,
+    #                                                  self.left.outputs_map,
+    #                                                  self.left.outputs[i])
+    #                 outputs_map[out] = m, out2
+    #             else:  # Get from right
+    #                 m, out2 = self._recursive_lookup(self.right,
+    #                                                  self.right.outputs_map,
+    #                                                  self.right.outputs[i - len(self.left.outputs)])
+    #                 outputs_map[out] = m, out2
+
+    #     else:
+    #         for out in self.left.outputs:
+    #             m, out2 = self._recursive_lookup(self.left, self.left.outputs_map, out)
+    #             outputs_map[out] = m, out2
+
+    #     return outputs_map
+
 
     @property
     def _constraints(self):
@@ -3790,6 +3892,7 @@ def generic_call(self, *inputs, **kwargs):
         return outputs[0]
     else:
         return outputs
+
 
 def _strip_ones(intup):
     return tuple(item for item in intup if item !=1)

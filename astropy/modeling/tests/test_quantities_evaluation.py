@@ -271,20 +271,20 @@ def test_compound_pipe_equiv_call():
     assert_quantity_allclose(out, 25 * u.deg)
 
 
-# def test_compound_and_equiv_call():
-#     """
-#     Check that equivalencies work when passed to evaluate, for a compsite model
-#     with two inputs.
-#     """
-#     s1 = Shift(10 * u.deg)
-#     s2 = Shift(10 * u.deg)
+def test_compound_and_equiv_call():
+    """
+    Check that equivalencies work when passed to evaluate, for a compsite model
+    with two inputs.
+    """
+    s1 = Shift(10 * u.deg)
+    s2 = Shift(10 * u.deg)
 
-#     cs = s1 & s2
+    cs = s1 & s2
 
-#     out = cs(10 * u.pix, 10 * u.pix, equivalencies={'x0': u.pixel_scale(0.5 * u.deg / u.pix),
-#                                                     'x1': u.pixel_scale(0.5 * u.deg / u.pix)})
-#     assert_quantity_allclose(out[0], 15 * u.deg)
-#     assert_quantity_allclose(out[1], 15 * u.deg)
+    out = cs(10 * u.pix, 10 * u.pix, equivalencies={'x0': u.pixel_scale(0.5 * u.deg / u.pix),
+                                                    'x1': u.pixel_scale(0.5 * u.deg / u.pix)})
+    assert_quantity_allclose(out[0], 15 * u.deg)
+    assert_quantity_allclose(out[1], 15 * u.deg)
 
 
 def test_compound_input_units_equivalencies():

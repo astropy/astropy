@@ -718,7 +718,6 @@ def _parameter_without_unit(value, old_unit, new_unit):
     else:
         return value * old_unit.to(new_unit)
 
-
 def _combine_equivalency_dict(keys, eq1=None, eq2=None):
     # Given two dictionaries that give equivalencies for a set of keys, for
     # example input value names, return a dictionary that includes all the
@@ -732,6 +731,25 @@ def _combine_equivalency_dict(keys, eq1=None, eq2=None):
             eq[key].extend(eq2[key])
     return eq
 
+def _extract_equivalencies(model, edict, leaflist):
+    # Given the input equivalencies dict, determine which items within apply to 
+    # given model and create a new dict with only the relevant keys, where the
+    # new keys are what the model expects to see, not what the compound model
+    # uses as keys
+    print('input edict:', edict)
+    print('leaflist:', leaflist)
+    try:
+        ind = leaflist.index(model)
+    except ValueError:
+        # This edict is not relevant for this model
+        return {}
+    new_edict = {}
+    for key, value in edict.items():
+        if key.endswith('_' + str(ind)):
+            newkey = '_'.join(key.split('_')[:-1])
+            new_edict[newkey] = edict[key]
+    print('new edict:', new_edict)
+    return new_edict
 
 def _to_radian(value):
     """ Convert ``value`` to radian. """
