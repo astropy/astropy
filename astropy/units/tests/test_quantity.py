@@ -910,7 +910,7 @@ class TestQuantityDisplay:
         res = r'$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$'
         assert qscalar.to_string(format="latex", subfmt="inline") == res
 
-        res = r'$$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$$'
+        res = r'$\displaystyle 1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$'
         assert qscalar.to_string(format="latex", subfmt="display") == res
 
     def test_repr_latex(self):
