@@ -1102,6 +1102,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             raise TypeError('only integer dimensionless scalar quantities '
                             'can be converted to a Python index')
 
+    # TODO: we may want to add a hook for dimensionless quantities?
     @property
     def _unitstr(self):
         if self.unit is None:
@@ -1125,10 +1126,29 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         This is treated separately because the numpy default of 1000 is too big
         for most browsers to handle.
 
+        Parameters
+        ----------
+        unit : `~astropy.units.UnitBase`, optional
+            Specifies the unit.  If not provided,
+            the unit used to initialize the quantity will be used.
+
+        precision : , optional
+            The level of decimal precision. If `None`, or not provided,
+            it will be determined from NumPy print options.
+
+        format : str, optional
+            The format of the result. If not provided, an unadorned
+            string is returned. Supported values are:
+
+            - 'latex': Return a LaTeX-formatted string
+
+        subfmt : str, optional
+            Subformat of the result.
+
         Returns
         -------
         lstr
-            A LaTeX string with the contents of this Quantity
+            A string with the contents of this Quantity
         """
         if unit is not None and unit != self.unit:
             return self.to(unit).to_string(
@@ -1139,7 +1159,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             "latex": {
                 None: ("$", "$"),
                 "inline": ("$", "$"),
-                "display": (r"$$", r"$$"),
+                "display": (r"$\\displaystyle ", r"$"),
             },
         }
 
@@ -1154,7 +1174,8 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         # with array2string
         pops = np.get_printoptions()
 
-        format_spec = '.{}g'.format(pops['precision'])
+        format_spec = '.{}g'.format(
+            precision if precision is not None else pops['precision'])
 
         def float_formatter(value):
             return Latex.format_exponential_notation(value,
@@ -1203,8 +1224,6 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                                                  left=delimiter_left,
                                                  right=delimiter_right)
 
-    # Display
-    # TODO: we may want to add a hook for dimensionless quantities?
     def __str__(self):
         return self.to_string()
 
