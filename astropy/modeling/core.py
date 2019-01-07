@@ -2926,42 +2926,43 @@ class CompoundModel(Model):
                 inputs_map[inp] = self.left.inputs_map()[inp]
         return inputs_map
 
+    def outputs_map(self):
+        """
+        Map the names of the outputs to this ExpressionTree to the outputs to the leaf models.
+        """
+        outputs_map = {}
+        if not isinstance(self.op, str):  # If we don't have an operator the mapping is trivial
+            return {out: (self, out) for out in self.outputs}
+
+        elif self.op == '|':
+            for out in self.outputs:
+                if isinstance(self.right, CompoundModel):
+                    outputs_map[out] = self.right.outputs_map()[out]
+                else:
+                    outputs_map[out] = self, out
 
 
+        elif self.op == '&':
+            for i, out in enumerate(self.outputs):
+                if i < len(self.left.outputs):  # Get from left
+                    if isinstance(self.left, CompoundModel):
+                        outputs_map[out] = self.left.outputs_map()[self.left.outputs[i]]
+                    else:
+                        outputs_map[out] = self.left, self.left.outputs[i]
+                else:  # Get from right
+                    if isinstance(self.right, CompoundModel):
+                        outputs_map[out] = self.right.outputs_map()[self.right.outputs[i
+                                                   - len(self.left.outputs)]]
+                    else:
+                        outputs_map[out] = self.right, self.right.outputs[i
+                                                   - len(self.left.outputs)]
 
-    # @property
-    # def outputs_map(self):
-    #     """
-    #     Map the names of the outputs to this ExpressionTree to the outputs to the leaf models.
-    #     """
-    #     outputs_map = {}
-    #     if not isinstance(self.value, str):  # If we don't have an operator the mapping is trivial
-    #         return {out: (self.value, out) for out in self.outputs}
+        else:
+            for out in self.left.outputs:
+                if isinstance(self.left, CompoundModel):
+                    outputs_map[out] = self.left.outputs_map()[out]
 
-    #     elif self.value == '|':
-    #         for out in self.outputs:
-    #             m, out2 = self._recursive_lookup(self.right, self.right.outputs_map, out)
-    #             outputs_map[out] = m, out2
-
-    #     elif self.value == '&':
-    #         for i, out in enumerate(self.outputs):
-    #             if i < len(self.left.outputs):  # Get from left
-    #                 m, out2 = self._recursive_lookup(self.left,
-    #                                                  self.left.outputs_map,
-    #                                                  self.left.outputs[i])
-    #                 outputs_map[out] = m, out2
-    #             else:  # Get from right
-    #                 m, out2 = self._recursive_lookup(self.right,
-    #                                                  self.right.outputs_map,
-    #                                                  self.right.outputs[i - len(self.left.outputs)])
-    #                 outputs_map[out] = m, out2
-
-    #     else:
-    #         for out in self.left.outputs:
-    #             m, out2 = self._recursive_lookup(self.left, self.left.outputs_map, out)
-    #             outputs_map[out] = m, out2
-
-    #     return outputs_map
+        return outputs_map
 
 
     @property
