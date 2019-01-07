@@ -1143,7 +1143,12 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             - 'latex': Return a LaTeX-formatted string
 
         subfmt : str, optional
-            Subformat of the result.
+            Subformat of the result. For the moment,
+            only used for format="latex". Supported values are:
+
+            - 'inline': Use ``$ ... $`` as delimiters.
+
+            - 'display': Use ``$\\displaystyle ... $`` as delimiters.
 
         Returns
         -------
