@@ -1164,7 +1164,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             "latex": {
                 None: ("$", "$"),
                 "inline": ("$", "$"),
-                "display": (r"$\\displaystyle ", r"$"),
+                "display": (r"$\displaystyle ", r"$"),
             },
         }
 
