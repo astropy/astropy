@@ -63,7 +63,7 @@ int eraUtcut1(double utc1, double utc2, double dut1,
 **     eraUtctai    UTC to TAI
 **     eraTaiut1    TAI to UT1
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -95,7 +95,7 @@ int eraUtcut1(double utc1, double utc2, double dut1,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

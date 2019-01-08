@@ -4,16 +4,13 @@
 Regression tests for the physical_type support in the units package
 """
 
-# TEST_UNICODE_LITERALS
-
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 
-from ... import units as u
-from ...units import physical
-from ...constants import hbar
-from ...tests.helper import raises
+
+from astropy import units as u
+from astropy.units import physical
+from astropy.constants import hbar
+from astropy.tests.helper import raises
 
 
 def test_simple():

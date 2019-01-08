@@ -1,17 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 import sys
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest, catch_warnings
-from ... import table
-from ...table import Row
-from ...utils.compat import NUMPY_LT_1_8
-from ...utils.exceptions import AstropyDeprecationWarning
-from ...extern.six.moves import zip
+from astropy import table
+from astropy.table import Row
+from astropy import units as u
 from .conftest import MaskedTable
 
 
@@ -21,18 +18,10 @@ def test_masked_row_with_object_col():
     a column with object type.
     """
     t = table.Table([[1]], dtype=['O'], masked=True)
-    if NUMPY_LT_1_8:
-        with pytest.raises(ValueError):
-            t['col0'].mask = False
-            t[0].as_void()
-        with pytest.raises(ValueError):
-            t['col0'].mask = True
-            t[0].as_void()
-    else:
-        t['col0'].mask = False
-        assert t[0]['col0'] == 1
-        t['col0'].mask = True
-        assert t[0]['col0'] is np.ma.masked
+    t['col0'].mask = False
+    assert t[0]['col0'] == 1
+    t['col0'].mask = True
+    assert t[0]['col0'] is np.ma.masked
 
 
 @pytest.mark.usefixtures('table_types')
@@ -158,7 +147,7 @@ class TestRow():
                                          '--- ---',
                                          '  1   4']
 
-        assert row._repr_html_().splitlines() == ['&lt;{0} {1}{2}&gt;'
+        assert row._repr_html_().splitlines() == ['<i>{0} {1}{2}</i>'
                                                   .format(row.__class__.__name__,
                                                           'index=0',
                                                           ' masked=True' if table.masked else ''),
@@ -203,14 +192,8 @@ class TestRow():
         t = table_types.Table([[{'a': 1}, {'b': 2}]], names=('a',))
         assert t[0][0] == {'a': 1}
         assert t[0]['a'] == {'a': 1}
-        if NUMPY_LT_1_8 and t.masked:
-            # With numpy < 1.8 there is a bug setting mvoid with
-            # an object.
-            with pytest.raises(ValueError):
-                t[0].as_void()
-        else:
-            assert t[0].as_void()[0] == {'a': 1}
-            assert t[0].as_void()['a'] == {'a': 1}
+        assert t[0].as_void()[0] == {'a': 1}
+        assert t[0].as_void()['a'] == {'a': 1}
 
     def test_bounds_checking(self, table_types):
         """Row gives index error upon creation for out-of-bounds index"""
@@ -218,3 +201,109 @@ class TestRow():
         for ibad in (-5, -4, 3, 4):
             with pytest.raises(IndexError):
                 self.t[ibad]
+
+
+def test_row_tuple_column_slice():
+    """
+    Test getting and setting a row using a tuple or list of column names
+    """
+    t = table.QTable([[1, 2, 3] * u.m,
+                      [10., 20., 30.],
+                      [100., 200., 300.],
+                      ['x', 'y', 'z']], names=['a', 'b', 'c', 'd'])
+    # Get a row for index=1
+    r1 = t[1]
+    # Column slice with tuple of col names
+    r1_abc = r1['a', 'b', 'c']  # Row object for these cols
+    r1_abc_repr = ['<Row index=1>',
+                   '   a       b       c   ',
+                   '   m                   ',
+                   'float64 float64 float64',
+                   '------- ------- -------',
+                   '    2.0    20.0   200.0']
+    assert repr(r1_abc).splitlines() == r1_abc_repr
+
+    # Column slice with list of col names
+    r1_abc = r1[['a', 'b', 'c']]
+    assert repr(r1_abc).splitlines() == r1_abc_repr
+
+    # Make sure setting on a tuple or slice updates parent table and row
+    r1['c'] = 1000
+    r1['a', 'b'] = 1000 * u.cm, 100.
+    assert r1['a'] == 10 * u.m
+    assert r1['b'] == 100
+    assert t['a'][1] == 10 * u.m
+    assert t['b'][1] == 100.
+    assert t['c'][1] == 1000
+
+    # Same but using a list of column names instead of tuple
+    r1[['a', 'b']] = 2000 * u.cm, 200.
+    assert r1['a'] == 20 * u.m
+    assert r1['b'] == 200
+    assert t['a'][1] == 20 * u.m
+    assert t['b'][1] == 200.
+
+    # Set column slice of column slice
+    r1_abc['a', 'c'] = -1 * u.m, -10
+    assert t['a'][1] == -1 * u.m
+    assert t['b'][1] == 200.
+    assert t['c'][1] == -10.
+
+    # Bad column name
+    with pytest.raises(KeyError) as err:
+        t[1]['a', 'not_there']
+    assert "KeyError: 'not_there'" in str(err)
+
+    # Too many values
+    with pytest.raises(ValueError) as err:
+        t[1]['a', 'b'] = 1 * u.m, 2, 3
+    assert 'right hand side must be a sequence' in str(err)
+
+    # Something without a length
+    with pytest.raises(ValueError) as err:
+        t[1]['a', 'b'] = 1
+    assert 'right hand side must be a sequence' in str(err)
+
+
+def test_row_tuple_column_slice_transaction():
+    """
+    Test that setting a row that fails part way through does not
+    change the table at all.
+    """
+    t = table.QTable([[10., 20., 30.],
+                      [1, 2, 3] * u.m], names=['a', 'b'])
+    tc = t.copy()
+
+    # First one succeeds but second fails.
+    with pytest.raises(ValueError) as err:
+        t[1]['a', 'b'] = (-1, -1 * u.s)  # Bad unit
+    assert "'s' (time) and 'm' (length) are not convertible" in str(err)
+    assert t[1] == tc[1]
+
+def test_uint_indexing():
+    """
+    Test that accessing a row with an unsigned integer
+    works as with a signed integer.  Similarly tests
+    that printing such a row works.
+
+    This is non-trivial: adding a signed and unsigned
+    integer in numpy results in a float, which is an
+    invalid slice index.
+
+    Regression test for gh-7464.
+    """
+    t = table.Table([[1., 2., 3.]], names='a')
+    assert t['a'][1] == 2.
+    assert t['a'][np.int(1)] == 2.
+    assert t['a'][np.uint(1)] == 2.
+    assert t[np.uint(1)]['a'] == 2.
+
+    trepr = ['<Row index=1>',
+             '   a   ',
+             'float64',
+             '-------',
+             '    2.0']
+
+    assert repr(t[1]).splitlines() == trepr
+    assert repr(t[np.int(1)]).splitlines() == trepr
+    assert repr(t[np.uint(1)]).splitlines() == trepr

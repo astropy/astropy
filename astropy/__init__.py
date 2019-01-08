@@ -6,14 +6,25 @@ Python. It also provides an index for other astronomy packages and tools for
 managing them.
 """
 
-from __future__ import absolute_import
 
 import sys
 import os
 from warnings import warn
 
-if sys.version_info[:2] < (2, 7):
-    warn("Astropy does not support Python 2.6 (in v1.2 and later)")
+__minimum_python_version__ = '3.5'
+__minimum_numpy_version__ = '1.13.0'
+# ASDF is an optional dependency, but this is the minimum version that is
+# compatible with Astropy when it is installed.
+__minimum_asdf_version__ = '2.3.0'
+
+
+class UnsupportedPythonError(Exception):
+    pass
+
+
+# This is the same check as the one at the top of setup.py
+if sys.version_info < tuple((int(val) for val in __minimum_python_version__.split('.'))):
+    raise UnsupportedPythonError("Astropy does not support Python < {}".format(__minimum_python_version__))
 
 
 def _is_astropy_source(path=None):
@@ -54,10 +65,7 @@ try:
     _ASTROPY_SETUP_
 except NameError:
     from sys import version_info
-    if version_info[0] >= 3:
-        import builtins
-    else:
-        import __builtin__ as builtins
+    import builtins
 
     # This will set the _ASTROPY_SETUP_ to True by default if
     # we are running Astropy's setup.py
@@ -74,9 +82,6 @@ try:
 except ImportError:
     # TODO: Issue a warning using the logging framework
     __githash__ = ''
-
-
-__minimum_numpy_version__ = '1.7.0'
 
 
 # The location of the online documentation for astropy
@@ -118,6 +123,7 @@ if not _ASTROPY_SETUP_:
 
 from . import config as _config
 
+
 class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for `astropy`.
@@ -146,6 +152,7 @@ class Conf(_config.ConfigNamespace):
         'limit.',
         cfgtype='integer(default=None)',
         aliases=['astropy.table.pprint.max_width'])
+
 
 conf = Conf()
 
@@ -221,7 +228,6 @@ def _rebuild_extensions():
     import time
 
     from .utils.console import Spinner
-    from .extern.six import next
 
     devnull = open(os.devnull, 'w')
     old_cwd = os.getcwd()
@@ -257,20 +263,18 @@ def _rebuild_extensions():
         pass
 
 
-# Set the bibtex entry to the article referenced in CITATION
+# Set the bibtex entry to the article referenced in CITATION.
 def _get_bibtex():
-    import re
-    if os.path.exists('CITATION'):
-        with open('CITATION', 'r') as citation:
-            refs = re.findall(r'\{[^()]*\}', citation.read())
-            if len(refs) == 0: return ''
-            bibtexreference = "@ARTICLE{0}".format(refs[0])
-        return bibtexreference
-    else:
-        return ''
+    citation_file = os.path.join(os.path.dirname(__file__), 'CITATION')
 
-__bibtex__ = _get_bibtex()
+    with open(citation_file, 'r') as citation:
+        refs = citation.read().split('@ARTICLE')[1:]
+        if len(refs) == 0: return ''
+        bibtexreference = "@ARTICLE{0}".format(refs[0])
+    return bibtexreference
 
+
+__citation__ = __bibtex__ = _get_bibtex()
 
 import logging
 
@@ -299,7 +303,7 @@ def online_help(query):
     query : str
         The search query.
     """
-    from .extern.six.moves.urllib.parse import urlencode
+    from urllib.parse import urlencode
     import webbrowser
 
     version = __version__
@@ -314,17 +318,17 @@ def online_help(query):
     webbrowser.open(url)
 
 
-__dir__ = ['__version__', '__githash__', '__minimum_numpy_version__',
-           '__bibtex__', 'test', 'log', 'find_api_page', 'online_help',
-           'online_docs_root', 'conf']
+__dir_inc__ = ['__version__', '__githash__', '__minimum_numpy_version__',
+               '__bibtex__', 'test', 'log', 'find_api_page', 'online_help',
+               'online_docs_root', 'conf']
 
 
 from types import ModuleType as __module_type__
-# Clean up top-level namespace--delete everything that isn't in __dir__
+# Clean up top-level namespace--delete everything that isn't in __dir_inc__
 # or is a magic attribute, and that isn't a submodule of this package
 for varname in dir():
     if not ((varname.startswith('__') and varname.endswith('__')) or
-            varname in __dir__ or
+            varname in __dir_inc__ or
             (varname[0] != '_' and
                 isinstance(locals()[varname], __module_type__) and
                 locals()[varname].__name__.startswith(__name__ + '.'))):

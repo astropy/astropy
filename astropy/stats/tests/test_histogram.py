@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ...tests.helper import pytest
-from .. import histogram, scott_bin_width, freedman_bin_width, knuth_bin_width
+from astropy.stats import (histogram, calculate_bin_edges,
+                scott_bin_width, freedman_bin_width, knuth_bin_width)
 
 try:
     import scipy  # pylint: disable=W0611
@@ -22,10 +20,10 @@ def test_scott_bin_width(N=10000, rseed=0):
     X = rng.randn(N)
 
     delta = scott_bin_width(X)
-    assert_allclose(delta,  3.5 * np.std(X) / N ** (1 / 3))
+    assert_allclose(delta, 3.5 * np.std(X) / N ** (1 / 3))
 
     delta, bins = scott_bin_width(X, return_bins=True)
-    assert_allclose(delta,  3.5 * np.std(X) / N ** (1 / 3))
+    assert_allclose(delta, 3.5 * np.std(X) / N ** (1 / 3))
 
     with pytest.raises(ValueError):
         scott_bin_width(rng.rand(2, 10))
@@ -45,6 +43,18 @@ def test_freedman_bin_width(N=10000, rseed=0):
 
     with pytest.raises(ValueError):
         freedman_bin_width(rng.rand(2, 10))
+
+    # data with too small IQR
+    test_x = [1, 2, 3] + [4] * 100 + [5, 6, 7]
+    with pytest.raises(ValueError) as e:
+        freedman_bin_width(test_x, return_bins=True)
+        assert 'Please use another bin method' in str(e)
+
+    # data with small IQR but not too small
+    test_x = np.asarray([1, 2, 3] * 100 + [4] + [5, 6, 7], dtype=np.float32)
+    test_x *= 1.5e-6
+    delta, bins = freedman_bin_width(test_x, return_bins=True)
+    assert_allclose(delta, 8.923325554510689e-07)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -71,24 +81,47 @@ def test_knuth_histogram(N=1000, rseed=0):
     assert (len(counts) == len(bins) - 1)
 
 
-def test_histogram(N=1000, rseed=0):
+_bin_types_to_test = [30, 'scott', 'freedman', 'blocks']
+
+if HAS_SCIPY:
+    _bin_types_to_test += ['knuth']
+
+
+@pytest.mark.parametrize('bin_type',
+                         _bin_types_to_test + [np.linspace(-5, 5, 31)])
+def test_histogram(bin_type, N=1000, rseed=0):
     rng = np.random.RandomState(rseed)
     x = rng.randn(N)
 
-    for bins in [30, np.linspace(-5, 5, 31),
-                 'scott', 'freedman', 'blocks']:
-        counts, bins = histogram(x, bins)
-        assert (counts.sum() == len(x))
-        assert (len(counts) == len(bins) - 1)
+    counts, bins = histogram(x, bin_type)
+    assert (counts.sum() == len(x))
+    assert (len(counts) == len(bins) - 1)
 
 
-def test_histogram_range(N=1000, rseed=0):
+# Don't include a list of bins as a bin_type here because the effect
+# of range is different in that case
+@pytest.mark.parametrize('bin_type', _bin_types_to_test)
+def test_histogram_range(bin_type, N=1000, rseed=0):
+    # Regression test for #8010
     rng = np.random.RandomState(rseed)
     x = rng.randn(N)
     range = (0.1, 0.8)
 
-    for bins in ['scott', 'freedman', 'blocks']:
-        counts, bins = histogram(x, bins, range=range)
+    bins = calculate_bin_edges(x, bin_type, range=range)
+    assert bins.max() == range[1]
+    assert bins.min() == range[0]
+
+
+def test_histogram_range_with_bins_list(N=1000, rseed=0):
+    # The expected result when the input bins is a list is
+    # the same list on output.
+    rng = np.random.RandomState(rseed)
+    x = rng.randn(N)
+    range = (0.1, 0.8)
+
+    input_bins = np.linspace(-5, 5, 31)
+    bins = calculate_bin_edges(x, input_bins, range=range)
+    assert all(bins == input_bins)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -126,7 +159,7 @@ def test_histogram_output():
 
     counts, bins = histogram(X, bins='blocks')
     assert_allclose(counts, [10, 61, 29])
-    assert_allclose(bins, [-2.55298982, -1.24381059,  0.46422235,  2.26975462])
+    assert_allclose(bins, [-2.55298982, -1.24381059, 0.46422235, 2.26975462])
 
 
 def test_histogram_badargs(N=1000, rseed=0):

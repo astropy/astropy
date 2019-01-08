@@ -43,6 +43,7 @@ py:class json.encoder.JSONEncoder
 # astropy.table
 py:class astropy.table.column.BaseColumn
 py:class astropy.table.groups.BaseGroups
+py:class astropy.table.bst.FastBase
 
 # astropy.time
 py:class astropy.time.core.TimeUnique
@@ -85,3 +86,8 @@ py:obj RuntimeError
 py:obj NotImplementedError
 py:obj AttributeError
 py:obj NotImplementedError
+py:obj RendererBase
+py:obj Artist
+py:obj BboxBase
+py:obj Text
+py:obj text

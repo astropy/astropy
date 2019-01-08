@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
+from matplotlib import rcParams
 from matplotlib.text import Text
 
 from .frame import RectangularFrame
@@ -18,11 +18,19 @@ class TickLabels(Text):
     def __init__(self, frame, *args, **kwargs):
         self.clear()
         self._frame = frame
-        super(TickLabels, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.set_clip_on(True)
         self.set_visible_axes('all')
-        self.pad = 0.3
+        self.set_pad(rcParams['xtick.major.pad'])
         self._exclude_overlapping = False
+
+        # Check rcParams
+
+        if 'color' not in kwargs:
+            self.set_color(rcParams['xtick.color'])
+
+        if 'size' not in kwargs:
+            self.set_size(rcParams['xtick.labelsize'])
 
     def clear(self):
         self.world = {}
@@ -70,15 +78,27 @@ class TickLabels(Text):
                     t1 = self.text[axis][i]
                     continue
                 start = 0
-                for j in range(len(t1)):
+                # In the following loop, we need to ignore the last character,
+                # hence the len(t1) - 1. This is because if we have two strings
+                # like 13d14m15s we want to make sure that we keep the last
+                # part (15s) even if the two labels are identical.
+                for j in range(len(t1) - 1):
                     if t1[j] != t2[j]:
                         break
                     if t1[j] not in '-0123456789.':
                         start = j + 1
-                if start == 0:
-                    t1 = self.text[axis][i]
-                else:
+                t1 = self.text[axis][i]
+                if start != 0:
+                    starts_dollar = self.text[axis][i].startswith('$')
                     self.text[axis][i] = self.text[axis][i][start:]
+                    if starts_dollar:
+                        self.text[axis][i] = '$' + self.text[axis][i]
+
+    def set_pad(self, value):
+        self._pad = value
+
+    def get_pad(self):
+        return self._pad
 
     def set_visible_axes(self, visible_axes):
         self._visible_axes = visible_axes
@@ -92,7 +112,7 @@ class TickLabels(Text):
     def set_exclude_overlapping(self, exclude_overlapping):
         self._exclude_overlapping = exclude_overlapping
 
-    def draw(self, renderer, bboxes, ticklabels_bbox):
+    def draw(self, renderer, bboxes, ticklabels_bbox, tick_out_size):
 
         if not self.get_visible():
             return
@@ -105,9 +125,17 @@ class TickLabels(Text):
 
             for i in range(len(self.world[axis])):
 
+                # In the event that the label is empty (which is not expected
+                # but could happen in unforeseen corner cases), we should just
+                # skip to the next label.
+                if self.text[axis][i] == '':
+                    continue
+
                 self.set_text(self.text[axis][i])
 
                 x, y = self.pixel[axis][i]
+
+                pad = renderer.points_to_pixels(self.get_pad() + tick_out_size)
 
                 if isinstance(self._frame, RectangularFrame):
 
@@ -117,23 +145,23 @@ class TickLabels(Text):
                     if np.abs(self.angle[axis][i]) < 45.:
                         ha = 'right'
                         va = 'bottom'
-                        dx = - text_size * 0.5
-                        dy = - text_size * 0.5
+                        dx = -pad
+                        dy = -text_size * 0.5
                     elif np.abs(self.angle[axis][i] - 90.) < 45:
                         ha = 'center'
                         va = 'bottom'
                         dx = 0
-                        dy = - text_size * 1.5
+                        dy = -text_size - pad
                     elif np.abs(self.angle[axis][i] - 180.) < 45:
                         ha = 'left'
                         va = 'bottom'
-                        dx = text_size * 0.5
-                        dy = - text_size * 0.5
+                        dx = pad
+                        dy = -text_size * 0.5
                     else:
                         ha = 'center'
                         va = 'bottom'
                         dx = 0
-                        dy = text_size * 0.2
+                        dy = pad
 
                     self.set_position((x + dx, y + dy))
                     self.set_ha(ha)
@@ -146,7 +174,7 @@ class TickLabels(Text):
 
                     # Set initial position and find bounding box
                     self.set_position((x, y))
-                    bb = super(TickLabels, self).get_window_extent(renderer)
+                    bb = super().get_window_extent(renderer)
 
                     # Find width and height, as well as angle at which we
                     # transition which side of the label we use to anchor the
@@ -183,20 +211,20 @@ class TickLabels(Text):
                     ddx = dx / dist
                     ddy = dy / dist
 
-                    dx += ddx * text_size * self.pad
-                    dy += ddy * text_size * self.pad
+                    dx += ddx * pad
+                    dy += ddy * pad
 
                     self.set_position((x - dx, y - dy))
                     self.set_ha('center')
                     self.set_va('center')
 
-                bb = super(TickLabels, self).get_window_extent(renderer)
+                bb = super().get_window_extent(renderer)
 
                 # TODO: the problem here is that we might get rid of a label
                 # that has a key starting bit such as -0:30 where the -0
                 # might be dropped from all other labels.
 
                 if not self._exclude_overlapping or bb.count_overlaps(bboxes) == 0:
-                    super(TickLabels, self).draw(renderer)
+                    super().draw(renderer)
                     bboxes.append(bb)
-                    ticklabels_bbox.append(bb)
+                    ticklabels_bbox[axis].append(bb)

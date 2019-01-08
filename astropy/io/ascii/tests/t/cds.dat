@@ -24,7 +24,7 @@ Byte-by-byte Description of file: datafile3.txt
   29- 68 A40    ---    Match  Literature match 
   70- 75 A6     ---    Class  Source classification (1)
   77-80  F4.2   mag    AK     ? The K band extinction (2) 
-  82-86  F5.2   ---    Fit    ? Fit of IRAC photometry (3)
+  82-86  F5.2   GMsun  Fit    ? Fit of IRAC photometry with bogus unit (3)
 --------------------------------------------------------------------------------
 Note (1): Asterisks mark "deeply embedded" sources with questionable IRAC 
           colors or incomplete IRAC photometry and relatively bright 

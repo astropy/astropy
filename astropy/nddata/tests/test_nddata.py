@@ -1,50 +1,30 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
+import pickle
 import textwrap
 from collections import OrderedDict
 
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from ..nddata import NDData
-from ..nduncertainty import NDUncertainty, StdDevUncertainty
-from ...tests.helper import pytest
-from ... import units as u
-from ...utils import NumpyRNGContext
+from astropy.nddata.nddata import NDData
+from astropy.nddata.nduncertainty import StdDevUncertainty
+from astropy import units as u
+from astropy.utils import NumpyRNGContext
+
+from .test_nduncertainty import FakeUncertainty
 
 
-class FakeUncertainty(NDUncertainty):
-
-    @property
-    def uncertainty_type(self):
-        return 'fake'
-
-    def _propagate_add(self, data, final_data):
-        pass
-
-    def _propagate_subtract(self, data, final_data):
-        pass
-
-    def _propagate_multiply(self, data, final_data):
-        pass
-
-    def _propagate_divide(self, data, final_data):
-        pass
-
-
-class FakeNumpyArray(object):
+class FakeNumpyArray:
     """
     Class that has a few of the attributes of a numpy array.
 
     These attributes are checked for by NDData.
     """
     def __init__(self):
-        super(FakeNumpyArray, self).__init__()
+        super().__init__()
 
     def shape(self):
         pass
@@ -60,7 +40,7 @@ class FakeNumpyArray(object):
         return 'fake'
 
 
-class MinimalUncertainty(object):
+class MinimalUncertainty:
     """
     Define the minimum attributes acceptable as an uncertainty object.
     """
@@ -234,7 +214,7 @@ def test_nddata_init_data_nddata():
     assert nd1.data[2, 3] != nd2.data[2, 3]
 
     # Now let's see what happens if we have all explicitly set
-    nd1 = NDData(np.array([1]), mask=False, uncertainty=10, unit=u.s,
+    nd1 = NDData(np.array([1]), mask=False, uncertainty=StdDevUncertainty(10), unit=u.s,
                  meta={'dest': 'mordor'}, wcs=10)
     nd2 = NDData(nd1)
     assert nd2.data is nd1.data
@@ -245,7 +225,7 @@ def test_nddata_init_data_nddata():
     assert nd2.meta == nd1.meta
 
     # now what happens if we overwrite them all too
-    nd3 = NDData(nd1, mask=True, uncertainty=200, unit=u.km,
+    nd3 = NDData(nd1, mask=True, uncertainty=StdDevUncertainty(200), unit=u.km,
                  meta={'observer': 'ME'}, wcs=4)
     assert nd3.data is nd1.data
     assert nd3.wcs != nd1.wcs
@@ -256,6 +236,7 @@ def test_nddata_init_data_nddata():
 
 
 def test_nddata_init_data_nddata_subclass():
+    uncert = StdDevUncertainty(3)
     # There might be some incompatible subclasses of NDData around.
     bnd = BadNDDataSubclass(False, True, 3, 2, 'gollum', 100)
     # Before changing the NDData init this would not have raised an error but
@@ -263,12 +244,12 @@ def test_nddata_init_data_nddata_subclass():
     with pytest.raises(TypeError):
         NDData(bnd)
     # but if it has no actual incompatible attributes it passes
-    bnd_good = BadNDDataSubclass(np.array([1, 2]), True, 3, 2,
+    bnd_good = BadNDDataSubclass(np.array([1, 2]), uncert, 3, 2,
                                  {'enemy': 'black knight'}, u.km)
     nd = NDData(bnd_good)
     assert nd.unit == bnd_good.unit
     assert nd.meta == bnd_good.meta
-    assert nd.uncertainty.array == bnd_good.uncertainty
+    assert nd.uncertainty == bnd_good.uncertainty
     assert nd.mask == bnd_good.mask
     assert nd.wcs == bnd_good.wcs
     assert nd.data is bnd_good.data
@@ -280,7 +261,7 @@ def test_nddata_init_data_fail():
         NDData({'a': 'dict'})
 
     # This has a shape but is not sliceable
-    class Shape(object):
+    class Shape:
         def __init__(self):
             self.shape = 5
 
@@ -374,10 +355,43 @@ def test_param_unit():
     assert nd3.unit == u.km
 
 
+def test_pickle_nddata_with_uncertainty():
+    ndd = NDData(np.ones(3),
+                 uncertainty=StdDevUncertainty(np.ones(5), unit=u.m),
+                 unit=u.m)
+    ndd_dumped = pickle.dumps(ndd)
+    ndd_restored = pickle.loads(ndd_dumped)
+    assert type(ndd_restored.uncertainty) is StdDevUncertainty
+    assert ndd_restored.uncertainty.parent_nddata is ndd_restored
+    assert ndd_restored.uncertainty.unit == u.m
+
+
+def test_pickle_uncertainty_only():
+    ndd = NDData(np.ones(3),
+                 uncertainty=StdDevUncertainty(np.ones(5), unit=u.m),
+                 unit=u.m)
+    uncertainty_dumped = pickle.dumps(ndd.uncertainty)
+    uncertainty_restored = pickle.loads(uncertainty_dumped)
+    np.testing.assert_array_equal(ndd.uncertainty.array,
+                                  uncertainty_restored.array)
+    assert ndd.uncertainty.unit == uncertainty_restored.unit
+    # Even though it has a parent there is no one that references the parent
+    # after unpickling so the weakref "dies" immediately after unpickling
+    # finishes.
+    assert uncertainty_restored.parent_nddata is None
+
+
+def test_pickle_nddata_without_uncertainty():
+    ndd = NDData(np.ones(3), unit=u.m)
+    dumped = pickle.dumps(ndd)
+    ndd_restored = pickle.loads(dumped)
+    np.testing.assert_array_equal(ndd.data, ndd_restored.data)
+
+
 # Check that the meta descriptor is working as expected. The MetaBaseTest class
 # takes care of defining all the tests, and we simply have to define the class
 # and any minimal set of args to pass.
-from ...utils.tests.test_metadata import MetaBaseTest
+from astropy.utils.tests.test_metadata import MetaBaseTest
 
 
 class TestMetaNDData(MetaBaseTest):

@@ -2,8 +2,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Utilities for generating new Python code at runtime."""
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import inspect
 import itertools
@@ -13,7 +11,6 @@ import re
 import textwrap
 
 from .introspection import find_current_module
-from ..extern import six
 
 
 __all__ = ['make_function_with_signature']
@@ -55,12 +52,8 @@ def make_function_with_signature(func, args=(), kwargs={}, varargs=None,
     pos_args = []
     key_args = []
 
-    if six.PY2 and varargs and kwargs:
-        raise SyntaxError('keyword arguments not allowed after '
-                          '*{0}'.format(varargs))
-
     if isinstance(kwargs, dict):
-        iter_kwargs = six.iteritems(kwargs)
+        iter_kwargs = kwargs.items()
     else:
         iter_kwargs = iter(kwargs)
 

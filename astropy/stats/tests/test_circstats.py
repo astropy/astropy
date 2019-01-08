@@ -1,10 +1,8 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
+import pytest
 import numpy as np
 
-from numpy.testing import assert_equal
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_equal, assert_allclose
 
 from astropy import units as u
 
@@ -15,9 +13,8 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
-from ...tests.helper import pytest
-from ..circstats import _length, circmean, circvar, circmoment, circcorrcoef
-from ..circstats import rayleightest, vtest, vonmisesmle
+from astropy.stats.circstats import _length, circmean, circvar, circmoment, circcorrcoef
+from astropy.stats.circstats import rayleightest, vtest, vonmisesmle
 
 
 def test__length():
@@ -91,7 +88,7 @@ def test_circcorrcoef():
 
 def test_rayleightest():
     # testing against R CircStats package
-    data = np.array([190.18,  175.48,  155.95,  217.83, 156.36])*u.deg
+    data = np.array([190.18, 175.48, 155.95, 217.83, 156.36])*u.deg
     # answer was obtained through R CircStats function r.test(x)
     answer = (0.00640418, 0.9202565)
     result = (rayleightest(data), _length(data))
@@ -102,7 +99,7 @@ def test_rayleightest():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_vtest():
     # testing against R CircStats package
-    data = np.array([190.18,  175.48,  155.95,  217.83, 156.36])*u.deg
+    data = np.array([190.18, 175.48, 155.95, 217.83, 156.36])*u.deg
     # answer was obtained through R CircStats function v0.test(x)
     answer = 0.9994725
     assert_allclose(answer, vtest(data), atol=1e-5)

@@ -1,16 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import operator
 import numpy as np
-from ..extern.six.moves import zip, range
 
 
-class MaxValue(object):
+class MaxValue:
     '''
     Represents an infinite value for purposes
     of tuple comparison.
     '''
+
     def __gt__(self, other):
         return True
 
@@ -31,11 +29,12 @@ class MaxValue(object):
     __str__ = __repr__
 
 
-class MinValue(object):
+class MinValue:
     '''
     The opposite of MaxValue, i.e. a representation of
     negative infinity.
     '''
+
     def __lt__(self, other):
         return True
 
@@ -56,7 +55,7 @@ class MinValue(object):
     __str__ = __repr__
 
 
-class Epsilon(object):
+class Epsilon:
     '''
     Represents the "next largest" version of a given value,
     so that for all valid comparisons we have
@@ -89,7 +88,8 @@ class Epsilon(object):
     def __repr__(self):
         return repr(self.val) + " + epsilon"
 
-class Node(object):
+
+class Node:
     '''
     An element in a binary search tree, containing
     a key, data, and references to children nodes and
@@ -148,7 +148,7 @@ class Node(object):
         return str(self)
 
 
-class BST(object):
+class BST:
     '''
     A basic binary search tree in pure Python, used
     as an engine for indexing.
@@ -197,7 +197,7 @@ class BST(object):
                 curr_node = curr_node.right
             elif self.unique:
                 raise ValueError("Cannot insert non-unique value")
-            else: # add data to node
+            else:  # add data to node
                 curr_node.data.extend(node.data)
                 curr_node.data = sorted(curr_node.data)
                 return
@@ -253,7 +253,7 @@ class BST(object):
                 if node.left is None:
                     return (None, None)
                 return self._find_recursive(key, node.left, node)
-        except TypeError: # wrong key type
+        except TypeError:  # wrong key type
             return (None, None)
 
     def traverse(self, order='inorder'):
@@ -489,7 +489,7 @@ class BST(object):
             data[:] = [row_map[x] for x in data if x in row_map]
 
 
-class FastBase(object):
+class FastBase:
     '''
     A fast binary search tree implementation for indexing,
     using the bintrees library.
@@ -503,6 +503,7 @@ class FastBase(object):
     unique : bool (defaults to False)
         Whether the values of the index must be unique
     '''
+
     def __init__(self, data, row_index, unique=False):
         self.data = self.engine()
         self.unique = unique
@@ -556,7 +557,6 @@ class FastBase(object):
                 raise ValueError("Data does not belong to correct node")
             node.remove(data)
         return True
-
 
     def shift_left(self, row):
         '''
@@ -630,9 +630,9 @@ class FastBase(object):
         # we need Epsilon since bintrees searches for
         # lower <= key < upper, while we might want lower <= key <= upper
         # or similar
-        if not bounds[0]: # lower < key
+        if not bounds[0]:  # lower < key
             lower = Epsilon(lower)
-        if bounds[1]: # key <= upper
+        if bounds[1]:  # key <= upper
             upper = Epsilon(upper)
         l = [v for v in self.data.value_slice(lower, upper)]
         if self.unique:
@@ -661,6 +661,7 @@ class FastBase(object):
 
     def __repr__(self):
         return str(self)
+
 
 try:
     # bintrees is an optional dependency

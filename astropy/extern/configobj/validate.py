@@ -165,7 +165,6 @@ __all__ = (
 import re
 import sys
 from pprint import pprint
-from ...extern.six.moves import zip
 
 #TODO - #21 - six is part of the repo now, but we didn't switch over to it here
 # this could be replaced if six is used for compatibility, or there are no

@@ -1,35 +1,35 @@
 .. doctest-skip-all
 .. _doc-rules:
 
-=======================
+***********************
 Astropy Docstring Rules
-=======================
+***********************
 
 The original source for these docstring standards is the NumPy_ project, and
 the associated numpydoc_ tools. The most up-to-date version of these standards
 can be found at `numpy's github site
-<http://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_. The
+<https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_. The
 guidelines below have been adapted to the Astropy package.
 
 
 Overview
---------
+========
 
 In general, we follow the standard Python style conventions as described here:
 
- * `Style Guide for C Code <http://www.python.org/peps/pep-0007.html>`_
- * `Style Guide for Python Code <http://www.python.org/peps/pep-0008.html>`_
- * `Docstring Conventions <http://www.python.org/peps/pep-0257.html>`_
+ * `Style Guide for C Code <https://www.python.org/dev/peps/pep-0007/>`_
+ * `Style Guide for Python Code <https://www.python.org/dev/peps/pep-0008/>`_
+ * `Docstring Conventions <https://www.python.org/dev/peps/pep-0257/>`_
 
 Additional PEPs of interest regarding documentation of code:
 
- * `Docstring Processing Framework <http://www.python.org/peps/pep-0256.html>`_
- * `Docutils Design Specification <http://www.python.org/peps/pep-0258.html>`_
+ * `Docstring Processing Framework <https://www.python.org/dev/peps/pep-0256/>`_
+ * `Docutils Design Specification <https://www.python.org/dev/peps/pep-0258/>`_
 
 Use a code checker:
 
- * `pylint <http://www.logilab.org/857>`_
- * `pyflakes <http://pypi.python.org/pypi/pyflakes>`_
+ * `pylint <https://www.logilab.org/857>`_
+ * `pyflakes <https://pypi.python.org/pypi/pyflakes>`_
  * `pycodestyle <https://github.com/PyCQA/pycodestyle>`_
 
 The following import conventions are used throughout the Astropy source
@@ -54,7 +54,7 @@ after which you may use it::
   np.fft.fft2(...)
 
 Docstring Standard
-------------------
+==================
 
 A documentation string (docstring) is a string that describes a module,
 function, class, or method definition. The docstring is a special attribute
@@ -91,7 +91,7 @@ facilitate reading the docstrings in text terminals.
 .. _numpydoc-sections:
 
 Sections
---------
+========
 
 .. highlight:: rst
 
@@ -151,6 +151,24 @@ The sections of the docstring are:
    background theory, which should rather be explored in the **notes** section
    below. You may refer to the parameters and the function name, but parameter
    descriptions still belong in the **parameters** section.
+
+   At the end of the extended summary one may optionally include one or more
+   links to section(s) in the narrative documentation which provide additional
+   usage information.  This is most commonly the case for major classes
+   or functions which have complex behavior that is not fully described
+   by the docstring itself.  The format is shown in the two examples
+   below.
+
+   One link::
+
+      See also: http://docs.astropy.org/en/stable/table/
+
+   Two or more links::
+
+      See also:
+
+      - http://docs.astropy.org/en/stable/table/
+      - http://docs.astropy.org/en/stable/table/mixin_columns.html
 
 4. **Parameters**
 
@@ -234,7 +252,6 @@ The sections of the docstring are:
    (by looking at the module docstring, for example). Routines whose
    docstrings further explain parameters used by this function are good
    candidates.
-
    As an example, for a hypothetical function ``astropy.wcs.world2pix``
    converting sky to pixel coordinates, we would have::
 
@@ -318,15 +335,15 @@ The sections of the docstring are:
 
      .. [1] O. McNoleg, "The integration of GIS, remote sensing,
         expert systems and adaptive co-kriging for environmental habitat
-        modelling of the Highland Haggis using object-oriented, fuzzy-logic
+        modeling of the Highland Haggis using object-oriented, fuzzy-logic
         and neural-network techniques," Computers & Geosciences, vol. 22,
         pp. 585-588, 1996.
 
-   which renders as
+   which renders as [1]_
 
    .. [1] O. McNoleg, "The integration of GIS, remote sensing,
       expert systems and adaptive co-kriging for environmental habitat
-      modelling of the Highland Haggis using object-oriented, fuzzy-logic
+      modeling of the Highland Haggis using object-oriented, fuzzy-logic
       and neural-network techniques," Computers & Geosciences, vol. 22,
       pp. 585-588, 1996.
 
@@ -338,7 +355,7 @@ The sections of the docstring are:
 11. **Examples**
 
    An optional section for examples, using the `doctest
-   <http://docs.python.org/library/doctest.html>`_ format. This section
+   <https://docs.python.org/3/library/doctest.html>`_ format. This section
    is meant to illustrate usage, not to provide a testing framework -- for
    that, use the ``tests/`` directory. While optional, this section is very
    strongly encouraged.
@@ -369,10 +386,10 @@ The sections of the docstring are:
 .. enable automated testing of the examples as in Numpy.
 
 Documenting classes
--------------------
+===================
 
 Class docstrings
-^^^^^^^^^^^^^^^^
+----------------
 
 Use the same sections as outlined above (all except ``Returns`` are
 applicable). The constructor (``__init__``) should also be documented here,
@@ -436,7 +453,7 @@ methods in the Methods section.
 Do not list ``self`` as the first parameter of a method.
 
 Method docstrings
-^^^^^^^^^^^^^^^^^
+-----------------
 
 Document these as you would any other function. Do not include ``self`` in
 the list of parameters. If a method has an equivalent function, the function
@@ -445,7 +462,7 @@ docstring should refer to it. Only put brief ``Summary`` and ``See Also``
 sections in the method docstring.
 
 Documenting class instances
----------------------------
+===========================
 
 Instances of classes that are part of the Astropy API may require some care.
 To give these instances a useful docstring, we do the following:
@@ -459,7 +476,7 @@ To give these instances a useful docstring, we do the following:
   be mentioned in the Notes and See Also sections.
 
 Documenting constants
----------------------
+=====================
 
 Use the same sections as outlined for functions where applicable::
 
@@ -475,7 +492,7 @@ to them like for for class instances), but will appear in the
 documentation built with Sphinx.
 
 Documenting modules
--------------------
+===================
 
 Each module should have a docstring with at least a summary line. Other
 sections are optional, and should be used in the same order as for documenting
@@ -497,7 +514,7 @@ Note that license and author info, while often included in source files, do not
 belong in docstrings.
 
 Other points to keep in mind
-----------------------------
+============================
 
 * Notes and Warnings : If there are points in the docstring that deserve
   special emphasis, the reST directives for a note or warning can be used
@@ -513,17 +530,13 @@ Other points to keep in mind
   and are not often necessary. One situation in which a warning can
   be useful is for marking a known bug that is not yet fixed.
 
-* Questions and Answers : For general questions on how to write docstrings
-  that are not answered in this document, refer to
-  `<http://docs-old.scipy.org/numpy/Questions+Answers/>`_.
-
 * ``array-like`` : For functions that take arguments which can have not only
   a type ``ndarray``, but also types that can be converted to an ndarray
   (i.e. scalar types, sequence types), those arguments can be documented
   with type ``array-like``.
 
 Common reST concepts
---------------------
+====================
 
 For paragraphs, indentation is significant and indicates indentation in the
 output. New paragraphs are marked with a blank line.
@@ -540,17 +553,17 @@ useful while editing.
 Line spacing and indentation are significant and should be carefully followed.
 
 Conclusion
-----------
+==========
 
-`An example <http://github.com/numpy/numpy/blob/master/doc/example.py>`_ of the
+`An example <https://github.com/numpy/numpy/blob/master/doc/example.py>`_ of the
 format shown here is available.  Refer to `How to Build API/Reference
 Documentation
 <https://github.com/numpy/numpy/blob/master/doc/HOWTO_BUILD_DOCS.rst.txt>`_
 on how to use Sphinx_ to build the manual.
 
 
-.. _NumPy: http://numpy.scipy.org/
-.. _numpydoc: http://pypi.python.org/pypi/numpydoc/0.3.1
+.. _NumPy: http://www.numpy.org/
+.. _numpydoc: https://pypi.python.org/pypi/numpydoc/0.3.1
 .. _Matplotlib: http://matplotlib.sourceforge.net/
-.. _SciPy: http://www.scipy.org
+.. _SciPy: https://www.scipy.org/
 .. _Sphinx: http://sphinx.pocoo.org

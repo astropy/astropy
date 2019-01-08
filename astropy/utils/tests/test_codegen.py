@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import sys
 import traceback
 
-from ..codegen import make_function_with_signature
-from ...tests.helper import pytest
+import pytest
+
+from astropy.utils.codegen import make_function_with_signature
 
 
 def test_make_function_with_signature_lineno():

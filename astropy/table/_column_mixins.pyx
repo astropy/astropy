@@ -1,3 +1,4 @@
+#cython: language_level=3
 """
 This module provides mixin bases classes for the Column and MaskedColumn
 classes to provide those classes with their custom __getitem__ implementations.
@@ -21,15 +22,10 @@ behavior in the case where the element returned from a single row of the
 Column is itself an array.
 """
 
-
 import sys
 import numpy as np
 
-
-if sys.version_info[0] == 3:
-    INTEGER_TYPES = (int, np.integer)
-else:
-    INTEGER_TYPES = (int, long, np.integer)
+cdef tuple INTEGER_TYPES = (int, np.integer)
 
 
 # Annoying boilerplate that we shouldn't have to write; Cython should
@@ -58,7 +54,15 @@ cdef inline object base_getitem(object self, object item, item_getter getitem):
     if (<ndarray>self).ndim > 1 and isinstance(item, INTEGER_TYPES):
         return self.data[item]
 
-    return getitem(self, item)
+    value = getitem(self, item)
+
+    try:
+        if value.dtype.char == 'S' and not value.shape:
+            value = value.decode('utf-8', errors='replace')
+    except AttributeError:
+        pass
+
+    return value
 
 
 cdef inline object column_getitem(object self, object item):

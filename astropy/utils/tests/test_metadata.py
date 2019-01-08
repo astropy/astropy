@@ -2,17 +2,20 @@ import abc
 
 from collections import OrderedDict
 
-from ..metadata import MetaData, MergeConflictError, merge, enable_merge_strategies
-from ...utils import metadata
-from ...tests.helper import pytest
-from ...io import fits
+import pytest
+import numpy as np
+
+from astropy.utils.metadata import MetaData, MergeConflictError, merge, enable_merge_strategies
+from astropy.utils.metadata import common_dtype
+from astropy.utils import metadata
+from astropy.io import fits
 
 
 class OrderedDictSubclass(OrderedDict):
     pass
 
 
-class MetaBaseTest(object):
+class MetaBaseTest:
 
     __metaclass__ = abc.ABCMeta
 
@@ -20,7 +23,6 @@ class MetaBaseTest(object):
         d = self.test_class(*self.args)
         assert isinstance(d.meta, OrderedDict)
         assert len(d.meta) == 0
-
 
     @pytest.mark.parametrize(('meta'), ([dict([('a', 1)]),
                                          OrderedDict([('a', 1)]),
@@ -30,12 +32,10 @@ class MetaBaseTest(object):
         assert type(d.meta) == type(meta)
         assert d.meta['a'] == 1
 
-
     @pytest.mark.parametrize(('meta'), (["ceci n'est pas un meta", 1.2, [1, 2, 3]]))
     def test_non_mapping_init(self, meta):
         with pytest.raises(TypeError):
             self.test_class(*self.args, meta=meta)
-
 
     @pytest.mark.parametrize(('meta'), ([dict([('a', 1)]),
                                          OrderedDict([('a', 1)]),
@@ -45,12 +45,10 @@ class MetaBaseTest(object):
         assert type(d.meta) == type(meta)
         assert d.meta['a'] == 1
 
-
     @pytest.mark.parametrize(('meta'), (["ceci n'est pas un meta", 1.2, [1, 2, 3]]))
     def test_non_mapping_set(self, meta):
         with pytest.raises(TypeError):
             d = self.test_class(*self.args, meta=meta)
-
 
     def test_meta_fits_header(self):
 
@@ -63,7 +61,7 @@ class MetaBaseTest(object):
         assert d.meta['OBSERVER'] == 'Edwin Hubble'
 
 
-class ExampleData(object):
+class ExampleData:
     meta = MetaData()
 
     def __init__(self, meta=None):
@@ -88,8 +86,6 @@ def test_metadata_merging_conflict_exception():
     with pytest.raises(MergeConflictError):
         merge(data1.meta, data2.meta, metadata_conflicts='error')
 
-
-import numpy as np
 
 def test_metadata_merging():
     # Recursive merge
@@ -191,5 +187,26 @@ def test_metadata_merging_new_strategy():
     assert not MergeNumbersAsList.enabled
     assert not MergeConcatStrings.enabled
 
-
     metadata.MERGE_STRATEGIES = original_merge_strategies
+
+
+def test_common_dtype_string():
+    u3 = np.array([u'123'])
+    u4 = np.array([u'1234'])
+    b3 = np.array([b'123'])
+    b5 = np.array([b'12345'])
+    assert common_dtype([u3, u4]).endswith('U4')
+    assert common_dtype([b5, u4]).endswith('U5')
+    assert common_dtype([b3, b5]).endswith('S5')
+
+
+def test_common_dtype_basic():
+    i8 = np.array(1, dtype=np.int64)
+    f8 = np.array(1, dtype=np.float64)
+    u3 = np.array(u'123')
+
+    with pytest.raises(MergeConflictError):
+        common_dtype([i8, u3])
+
+    assert common_dtype([i8, i8]).endswith('i8')
+    assert common_dtype([i8, f8]).endswith('f8')

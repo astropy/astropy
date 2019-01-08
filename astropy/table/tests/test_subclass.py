@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
-from ... import table
-from .. import pprint
+from astropy import table
+from astropy.table import pprint
+
 
 class MyRow(table.Row):
     def __str__(self):
@@ -33,6 +33,7 @@ class MyTable(table.Table):
     MaskedColumn = MyMaskedColumn
     TableColumns = MyTableColumns
     TableFormatter = MyTableFormatter
+
 
 def test_simple_subclass():
     t = MyTable([[1, 2], [3, 4]])
@@ -65,11 +66,12 @@ class ParamsRow(table.Row):
     Row class that allows access to an arbitrary dict of parameters
     stored as a dict object in the ``params`` column.
     """
+
     def __getitem__(self, item):
         if item not in self.colnames:
-            return super(ParamsRow, self).__getitem__('params')[item]
+            return super().__getitem__('params')[item]
         else:
-            return super(ParamsRow, self).__getitem__(item)
+            return super().__getitem__(item)
 
     def keys(self):
         out = [name for name in self.colnames if name != 'params']
@@ -82,6 +84,7 @@ class ParamsRow(table.Row):
 
 class ParamsTable(table.Table):
     Row = ParamsRow
+
 
 def test_params_table():
     t = ParamsTable(names=['a', 'b', 'params'], dtype=['i', 'f', 'O'])

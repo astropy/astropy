@@ -196,11 +196,7 @@ str_list_proxy_repr(
   *wp++ = ']';
   *wp++ = '\0';
 
-  #if PY3K
   result = PyUnicode_FromString(buffer);
-  #else
-  result = PyString_FromString(buffer);
-  #endif
   free(buffer);
   return result;
 }
@@ -226,12 +222,7 @@ static PySequenceMethods PyStrListProxy_sequence_methods = {
 };
 
 static PyTypeObject PyStrListProxyType = {
-  #if PY3K
   PyVarObject_HEAD_INIT(NULL, 0)
-  #else
-  PyObject_HEAD_INIT(NULL)
-  0,                          /*ob_size*/
-  #endif
   "astropy.wcs.StrListProxy", /*tp_name*/
   sizeof(PyStrListProxy),  /*tp_basicsize*/
   0,                          /*tp_itemsize*/

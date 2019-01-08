@@ -3,11 +3,10 @@
 A set of tests for the util.py module
 """
 
-# TEST_UNICODE_LITERALS
 
-#LOCAL
-from .. import util
-from ....tests.helper import raises
+# LOCAL
+from astropy.io.votable import util
+from astropy.tests.helper import raises
 
 
 def test_range_list():

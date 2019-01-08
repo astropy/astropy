@@ -1,6 +1,6 @@
-=========================
+*************************
 What's New in Astropy 0.1
-=========================
+*************************
 
 This was the initial version of Astropy, released on June 19, 2012.  It was
 released primarily as a "developer preview" for developers interested in

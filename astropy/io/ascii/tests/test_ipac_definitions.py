@@ -1,15 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
-from ..ui import read
-from ..ipac import Ipac, IpacFormatError, IpacFormatErrorDBMS
-from ....tests.helper import pytest, catch_warnings
-from ... import ascii
-from ....table import Table
-from ..core import masked
+from io import StringIO
 
-from ....extern.six.moves import cStringIO as StringIO
+import pytest
+
+from astropy.io.ascii.ui import read
+from astropy.io.ascii.ipac import Ipac, IpacFormatError, IpacFormatErrorDBMS
+from astropy.tests.helper import catch_warnings
+from astropy.io import ascii
+from astropy.table import Table, Column
+from astropy.io.ascii.core import masked
 
 
 DATA = '''
@@ -145,5 +146,20 @@ def test_include_exclude_names():
 |    |
 |null|
     2
+"""
+    assert out.getvalue().strip().splitlines() == expected_out.splitlines()
+
+
+def test_short_dtypes():
+    table = Table([Column([1.0], dtype='f4'), Column([2], dtype='i2')],
+                  names=('float_col', 'int_col'))
+    out = StringIO()
+    ascii.write(table, out, Writer=Ipac)
+    expected_out = """\
+|float_col|int_col|
+|    float|    int|
+|         |       |
+|     null|   null|
+       1.0       2
 """
     assert out.getvalue().strip().splitlines() == expected_out.splitlines()

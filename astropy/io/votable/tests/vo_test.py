@@ -1,40 +1,32 @@
 # -*- coding: utf-8 -*-
 
-# TEST_UNICODE_LITERALS
 
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This is a set of regression tests for vo.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-from ....extern import six
-from ....extern.six.moves import range, zip
 
 # STDLIB
 import difflib
 import io
+import pathlib
 import sys
 import gzip
+from unittest import mock
 
 # THIRD-PARTY
-from numpy.testing import assert_array_equal
+import pytest
 import numpy as np
+from numpy.testing import assert_array_equal
 
 # LOCAL
-from ..table import parse, parse_single_table, validate
-from .. import tree
-from ..exceptions import VOTableSpecError, VOWarning
-from ..xmlutil import validate_schema
-from ....utils.data import get_pkg_data_filename, get_pkg_data_filenames
-from ....tests.helper import pytest, raises, catch_warnings
-
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
+from astropy.io.votable.table import parse, parse_single_table, validate
+from astropy.io.votable import tree
+from astropy.io.votable.exceptions import VOTableSpecError, VOWarning
+from astropy.io.votable.xmlutil import validate_schema
+from astropy.utils.data import get_pkg_data_filename, get_pkg_data_filenames
+from astropy.tests.helper import raises, catch_warnings
 
 # Determine the kind of float formatting in this build of Python
 if hasattr(sys, 'float_repr_style'):
@@ -75,7 +67,7 @@ def test_parse_single_table2():
 
 @raises(IndexError)
 def test_parse_single_table3():
-    table2 = parse_single_table(
+    parse_single_table(
         get_pkg_data_filename('data/regression.xml'),
         table_number=3, pedantic=False)
 
@@ -156,23 +148,20 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
     assert_validate_schema(str(tmpdir.join("regression.bin.tabledata.xml")),
                            votable.version)
 
-    with io.open(
+    with open(
         get_pkg_data_filename(
             'data/regression.bin.tabledata.truth.{0}.xml'.format(
                 votable.version)),
-        'rt', encoding='utf-8') as fd:
+            'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
-    with io.open(str(tmpdir.join("regression.bin.tabledata.xml")),
-                 'rt', encoding='utf-8') as fd:
+    with open(str(tmpdir.join("regression.bin.tabledata.xml")),
+              'rt', encoding='utf-8') as fd:
         output = fd.readlines()
 
     # If the lines happen to be different, print a diff
     # This is convenient for debugging
-    for line in difflib.unified_diff(truth, output):
-        sys.stdout.write(
-            line.
-            encode('unicode_escape').
-            replace('\\n', '\n'))
+    sys.stdout.writelines(
+        difflib.unified_diff(truth, output, fromfile='truth', tofile='output'))
 
     assert truth == output
 
@@ -182,7 +171,7 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
         _astropy_version="testing",
         _debug_python_based_parser=_python_based)
     with gzip.GzipFile(
-        str(tmpdir.join("regression.bin.tabledata.xml.gz")), 'rb') as gzfd:
+            str(tmpdir.join("regression.bin.tabledata.xml.gz")), 'rb') as gzfd:
         output = gzfd.readlines()
     output = [x.decode('utf-8').rstrip() for x in output]
     truth = [x.rstrip() for x in truth]
@@ -363,7 +352,7 @@ class TestParse:
         assert issubclass(self.array['double'].dtype.type,
                           np.float64)
         assert_array_equal(self.array['double'],
-                           [8.999999, 0.0, np.inf, np.nan, -np.inf])
+                           [8.9990234375, 0.0, np.inf, np.nan, -np.inf])
         assert_array_equal(self.mask['double'],
                            [False, False, False, True, False])
 
@@ -407,16 +396,16 @@ class TestParse:
                           np.bool_)
         assert self.array['bitarray'].shape == (5, 3, 2)
         assert_array_equal(self.array['bitarray'],
-                           [[[ True, False],
-                             [ True,  True],
-                             [False,  True]],
+                           [[[True, False],
+                             [True, True],
+                             [False, True]],
 
-                            [[False,  True],
+                            [[False, True],
                              [False, False],
-                             [ True,  True]],
+                             [True, True]],
 
-                            [[ True,  True],
-                             [ True, False],
+                            [[True, True],
+                             [True, False],
                              [False, False]],
 
                             [[False, False],
@@ -441,20 +430,20 @@ class TestParse:
                              [False, False],
                              [False, False]],
 
-                            [[ True,  True],
-                             [ True,  True],
-                             [ True,  True]],
+                            [[True, True],
+                             [True, True],
+                             [True, True]],
 
-                            [[ True,  True],
-                             [ True,  True],
-                             [ True,  True]]])
+                            [[True, True],
+                             [True, True],
+                             [True, True]]])
 
     def test_bitvararray(self):
         assert issubclass(self.array['bitvararray'].dtype.type,
                           np.object_)
-        match = [[ True,  True,  True],
+        match = [[True, True, True],
                  [False, False, False, False, False],
-                 [ True, False,  True, False,  True],
+                 [True, False, True, False, True],
                  [], []]
         for a, b in zip(self.array['bitvararray'], match):
             assert_array_equal(a, b)
@@ -470,16 +459,16 @@ class TestParse:
                           np.object_)
         match = [[],
 
-                 [[[False,  True],
+                 [[[False, True],
                    [False, False],
-                   [ True, False]],
-                  [[ True, False],
-                   [ True, False],
-                   [ True, False]]],
+                   [True, False]],
+                  [[True, False],
+                   [True, False],
+                   [True, False]]],
 
-                 [[[ True,  True],
-                   [ True,  True],
-                   [ True,  True]]],
+                 [[[True, True],
+                   [True, True],
+                   [True, True]]],
 
                  [],
 
@@ -527,9 +516,9 @@ class TestParse:
         assert issubclass(self.array['booleanArray'].dtype.type,
                           np.bool_)
         assert_array_equal(self.array['booleanArray'],
-                           [[ True,  True,  True,  True],
-                            [ True,  True, False,  True],
-                            [ True,  True, False,  True],
+                           [[True, True, True, True],
+                            [True, True, False, True],
+                            [True, True, False, True],
                             [False, False, False, False],
                             [False, False, False, False]])
 
@@ -537,9 +526,9 @@ class TestParse:
         assert_array_equal(self.mask['booleanArray'],
                            [[False, False, False, False],
                             [False, False, False, False],
-                            [False, False,  True, False],
-                            [ True,  True,  True,  True],
-                            [ True,  True,  True,  True]])
+                            [False, False, True, False],
+                            [True, True, True, True],
+                            [True, True, True, True]])
 
     def test_nulls(self):
         assert_array_equal(self.array['nulls'],
@@ -555,20 +544,20 @@ class TestParse:
                             [[0, -9], [1, -9]],
                             [[-9, -9], [-9, -9]]])
         assert_array_equal(self.mask['nulls_array'],
-                           [[[ True,  True],
-                             [ True,  True]],
+                           [[[True, True],
+                             [True, True]],
 
                             [[False, False],
                              [False, False]],
 
-                            [[ True, False],
-                             [ True, False]],
+                            [[True, False],
+                             [True, False]],
 
-                            [[False,  True],
-                             [False,  True]],
+                            [[False, True],
+                             [False, True]],
 
-                            [[ True,  True],
-                             [ True,  True]]])
+                            [[True, True],
+                             [True, True]]])
 
     def test_double_array(self):
         assert issubclass(self.array['doublearray'].dtype.type,
@@ -605,12 +594,12 @@ class TestParse:
 
         if self.votable.version != '1.1':
             info = self.votable.get_info_by_id("ErrorInfo")
-            assert info.value == "One might expect to find some INFO here, too..."
+            assert info.value == "One might expect to find some INFO here, too..."  # noqa
 
     def test_repr(self):
         assert '3 tables' in repr(self.votable)
         assert repr(list(self.votable.iter_fields_and_params())[0]) == \
-            '<PARAM ID="awesome" arraysize="*" datatype="float" name="INPUT" unit="deg" value="[0.0 0.0]"/>'
+            '<PARAM ID="awesome" arraysize="*" datatype="float" name="INPUT" unit="deg" value="[0.0 0.0]"/>'  # noqa
         # Smoke test
         repr(list(self.votable.iter_groups()))
 
@@ -704,7 +693,7 @@ class TestThroughBinary2(TestParse):
 
 
 def table_from_scratch():
-    from ..tree import VOTableFile, Resource, Table, Field
+    from astropy.io.votable.tree import VOTableFile, Resource, Table, Field
 
     # Create a new VOTable file...
     votable = VOTableFile()
@@ -745,7 +734,7 @@ def test_open_files():
 
 @raises(VOTableSpecError)
 def test_too_many_columns():
-    votable = parse(
+    parse(
         get_pkg_data_filename('data/too_many_columns.xml.gz'),
         pedantic=False)
 
@@ -785,8 +774,8 @@ def test_build_from_scratch(tmpdir):
     assert_array_equal(
         table.array.mask, np.array([(False, [[False, False], [False, False]]),
                                     (False, [[False, False], [False, False]])],
-                                    dtype=[(str('filename'), str('?')),
-                                           (str('matrix'), str('?'), (2, 2))]))
+                                   dtype=[(str('filename'), str('?')),
+                                          (str('matrix'), str('?'), (2, 2))]))
 
 
 def test_validate(test_path_object=False):
@@ -811,30 +800,35 @@ def test_validate(test_path_object=False):
     output = output.readlines()
 
     # Uncomment to generate new groundtruth
-    # with io.open('validation.txt', 'wt', encoding='utf-8') as fd:
+    # with open('validation.txt', 'wt', encoding='utf-8') as fd:
     #     fd.write(u''.join(output))
 
-    with io.open(
+    with open(
         get_pkg_data_filename('data/validation.txt'),
-        'rt', encoding='utf-8') as fd:
+            'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
 
     truth = truth[1:]
     output = output[1:-1]
 
-    for line in difflib.unified_diff(truth, output):
-        if six.PY2:
-            sys.stdout.write(
-                line.encode('unicode_escape').
-                replace('\\n', '\n'))
-        else:
-            sys.stdout.write(
-                line.replace('\\n', '\n'))
+    sys.stdout.writelines(
+        difflib.unified_diff(truth, output, fromfile='truth', tofile='output'))
 
     assert truth == output
 
 
-@pytest.mark.skipif('not HAS_PATHLIB')
+@mock.patch('subprocess.Popen')
+def test_validate_xmllint_true(mock_subproc_popen):
+    process_mock = mock.Mock()
+    attrs = {'communicate.return_value': ('ok', 'ko'),
+             'returncode': 0}
+    process_mock.configure_mock(**attrs)
+    mock_subproc_popen.return_value = process_mock
+
+    assert validate(get_pkg_data_filename('data/empty_table.xml'),
+                    xmllint=True)
+
+
 def test_validate_path_object():
     """
     Validating when source is passed as path object. (#4412)
@@ -846,7 +840,6 @@ def test_gzip_filehandles(tmpdir):
     votable = parse(
         get_pkg_data_filename('data/regression.xml'),
         pedantic=False)
-
 
     with open(str(tmpdir.join("regression.compressed.xml")), 'wb') as fd:
         votable.to_xml(
@@ -871,7 +864,7 @@ def test_from_scratch_example():
 
 
 def _run_test_from_scratch_example():
-    from ..tree import VOTableFile, Resource, Table, Field
+    from astropy.io.votable.tree import VOTableFile, Resource, Table, Field
 
     # Create a new VOTable file...
     votable = VOTableFile()
@@ -903,20 +896,17 @@ def _run_test_from_scratch_example():
 def test_fileobj():
     # Assert that what we get back is a raw C file pointer
     # so it will be super fast in the C extension.
-    from ....utils.xml import iterparser
+    from astropy.utils.xml import iterparser
     filename = get_pkg_data_filename('data/regression.xml')
     with iterparser._convert_to_fd_or_read_function(filename) as fd:
         if sys.platform == 'win32':
             fd()
         else:
-            if six.PY2:
-                assert isinstance(fd, file)
-            else:
-                assert isinstance(fd, io.FileIO)
+            assert isinstance(fd, io.FileIO)
 
 
 def test_nonstandard_units():
-    from .... import units as u
+    from astropy import units as u
 
     votable = parse(
         get_pkg_data_filename('data/nonstandard_units.xml'),
@@ -996,31 +986,25 @@ def test_no_resource_check():
     output = output.readlines()
 
     # Uncomment to generate new groundtruth
-    # with io.open('no_resource.txt', 'wt', encoding='utf-8') as fd:
+    # with open('no_resource.txt', 'wt', encoding='utf-8') as fd:
     #     fd.write(u''.join(output))
 
-    with io.open(
+    with open(
         get_pkg_data_filename('data/no_resource.txt'),
-        'rt', encoding='utf-8') as fd:
+            'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
 
     truth = truth[1:]
     output = output[1:-1]
 
-    for line in difflib.unified_diff(truth, output):
-        if six.PY2:
-            sys.stdout.write(
-                line.encode('unicode_escape').
-                replace('\\n', '\n'))
-        else:
-            sys.stdout.write(
-                line.replace('\\n', '\n'))
+    sys.stdout.writelines(
+        difflib.unified_diff(truth, output, fromfile='truth', tofile='output'))
 
     assert truth == output
 
 
 def test_instantiate_vowarning():
-    # This used to raise a deprecation exception on Python 2.6.
+    # This used to raise a deprecation exception.
     # See https://github.com/astropy/astroquery/pull/276
     VOWarning(())
 

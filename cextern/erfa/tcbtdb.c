@@ -47,7 +47,7 @@ int eraTcbtdb(double tcb1, double tcb2, double *tdb1, double *tdb2)
 **
 **     IAU 2006 Resolution B3
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -80,7 +80,7 @@ int eraTcbtdb(double tcb1, double tcb2, double *tdb1, double *tdb2)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

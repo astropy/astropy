@@ -3,19 +3,10 @@
 Contains a class that makes it simple to stream out well-formed and
 nicely-indented XML.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ...extern import six
 
 # STDLIB
 import contextlib
 import textwrap
-
-try:
-    import bleach
-    HAS_BLEACH = True
-except ImportError:
-    HAS_BLEACH = False
 
 try:
     from . import _iterparser
@@ -28,7 +19,6 @@ except ImportError:
         s = s.replace("<", "&lt;")
         s = s.replace(">", "&gt;")
         return s
-
 
     def xml_escape(s):
         """
@@ -140,7 +130,7 @@ class XMLWriter:
         if attrib or extra:
             attrib = attrib.copy()
             attrib.update(extra)
-            attrib = list(six.iteritems(attrib))
+            attrib = list(attrib.items())
             attrib.sort()
             for k, v in attrib:
                 if v is not None:
@@ -192,13 +182,17 @@ class XMLWriter:
         current_xml_escape_cdata = self.xml_escape_cdata
 
         if method == 'bleach_clean':
-            if HAS_BLEACH:
-                if clean_kwargs is None:
-                    clean_kwargs = {}
-                self.xml_escape_cdata = lambda x: bleach.clean(x, **clean_kwargs)
-            else:
+            # NOTE: bleach is imported locally to avoid importing it when
+            # it is not nocessary
+            try:
+                import bleach
+            except ImportError:
                 raise ValueError('bleach package is required when HTML escaping is disabled.\n'
                                  'Use "pip install bleach".')
+
+            if clean_kwargs is None:
+                clean_kwargs = {}
+            self.xml_escape_cdata = lambda x: bleach.clean(x, **clean_kwargs)
         elif method == "none":
             self.xml_escape_cdata = lambda x: x
         elif method != 'escape_xml':
@@ -264,11 +258,14 @@ class XMLWriter:
             If omitted, the current element is closed.
         """
         if tag:
-            assert self._tags, "unbalanced end({})".format(tag)
-            assert tag == self._tags[-1],\
-                   "expected end({}), got {}".format(self._tags[-1], tag)
+            if not self._tags:
+                raise ValueError("unbalanced end({})".format(tag))
+            if tag != self._tags[-1]:
+                raise ValueError("expected end({}), got {}".format(
+                        self._tags[-1], tag))
         else:
-            assert self._tags, "unbalanced end()"
+            if not self._tags:
+                raise ValueError("unbalanced end()")
         tag = self._tags.pop()
         if self._data:
             self._flush(indent, wrap)
@@ -345,5 +342,5 @@ class XMLWriter:
         d = {}
         for attr in attrs:
             if getattr(obj, attr) is not None:
-                d[attr.replace('_', '-')] = six.text_type(getattr(obj, attr))
+                d[attr.replace('_', '-')] = str(getattr(obj, attr))
         return d

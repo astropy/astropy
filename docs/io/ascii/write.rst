@@ -3,7 +3,7 @@
 .. _astropy.io.ascii_write:
 
 Writing tables
---------------
+**************
 
 :mod:`astropy.io.ascii` is able to write ASCII tables out to a file or file-like
 object using the same class structure and basic user interface as for reading
@@ -48,7 +48,7 @@ To disable this engine, use the parameter ``fast_writer``::
    >>> ascii.write(data, 'values.csv', format='csv', fast_writer=False)  # doctest: +SKIP
 
 Input data format
-^^^^^^^^^^^^^^^^^
+=================
 
 The input ``table`` argument to |write| can be any value that is supported for
 initializing a |Table| object.  This is documented in detail in the
@@ -57,9 +57,9 @@ columns, a dictionary of columns, or from `numpy` arrays (either structured or
 homogeneous).  The sections below show a few examples.
 
 Table or NumPy structured array
-"""""""""""""""""""""""""""""""
+-------------------------------
 
-An AstroPy |Table| object or a NumPy `structured array`_ (or record array) can
+An Astropy |Table| object or a NumPy `structured array`_ (or record array) can
 serve as input to the |write| function.
 
 ::
@@ -92,7 +92,7 @@ object that can be an input to the |write| function.
     >>> ascii.write(data, 'space_delimited_table.dat')  # doctest: +SKIP
 
 List of lists
-"""""""""""""
+-------------
 
 A list of Python lists (or any iterable object) can be used as input::
 
@@ -120,7 +120,7 @@ from the output::
 
 
 Dict of lists
-"""""""""""""
+-------------
 
 A dictionary containing iterable objects can serve as input to |write|.  Each
 dict key is taken as the column name while the value must be an iterable object
@@ -144,7 +144,7 @@ unpredictable unless the ``names`` argument is provided.
 .. _io_ascii_write_parameters:
 
 Parameters for ``write()``
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+==========================
 
 The |write| function accepts a number of parameters that specify the detailed output table
 format.  Each of the :ref:`supported_formats` is handled by a corresponding Writer class that
@@ -269,3 +269,180 @@ details.
   Note: Reader classes and Writer classes are synonymous, in other
   words Reader classes can also write, but for historical reasons they are
   often called Reader classes.
+
+
+.. _ecsv_format:
+
+ECSV format
+===========
+
+The `Enhanced Character-Separated Values (ECSV) format
+<https://github.com/astropy/astropy-APEs/blob/master/APE6.rst>`_ can be used to
+write astropy `~astropy.table.Table` or `~astropy.table.QTable` datasets to a
+text-only data file and then read the table back without loss of information.
+The format handles the key issue of serializing column specifications and table
+metadata by using a YAML-encoded data structure. The actual tabular data are
+stored in a standard character separated values (CSV) format, giving
+compatibility with a wide variety of non-specialized CSV table readers.
+
+.. _ecsv_format_mixin_columns:
+
+Mixin columns
+-------------
+
+Starting with astropy 2.0 it is possible to store not only standard
+`~astropy.table.Column` objects to ECSV but also the following
+:ref:`mixin_columns`:
+
+- `astropy.time.Time`
+- `astropy.time.TimeDelta`
+- `astropy.units.Quantity`
+- `astropy.coordinates.Latitude`
+- `astropy.coordinates.Longitude`
+- `astropy.coordinates.Angle`
+- `astropy.coordinates.Distance`
+- `astropy.coordinates.EarthLocation`
+- `astropy.coordinates.SkyCoord`
+
+In general a mixin column may contain multiple data components as well as
+object attributes beyond the standard `~astropy.table.Column` attributes like
+``format`` or ``description``.  Storing such mixin columns is done by replacing
+the mixin column with column(s) representing the underlying data component(s)
+and then inserting meta data which informs the reader how to reconstruct the
+original column.  For example a `~astropy.coordinates.SkyCoord` mixin column in
+``'spherical'`` representation would have data attributes ``ra``, ``dec``,
+``distance``, along with object attributes like ``representation_type`` or
+``frame``.  For example::
+
+  >>> from astropy.io import ascii
+  >>> from astropy.coordinates import SkyCoord
+  >>> import astropy.units as u
+  >>> from astropy.time import Time
+  >>> from astropy.table import QTable, Column
+
+  >>> sc = SkyCoord(ra=[1,2]*u.deg, dec=[3,4]*u.deg, distance=[5,6]*u.m,
+  ...               frame='fk4', obstime=Time('2000:001'))
+  >>> sc.info.description = 'flying circus'
+  >>> c = Column([1,2])
+  >>> q = [1,2]*u.m
+  >>> q.info.format = '.2f'
+  >>> t = QTable([c, q, sc], names=['c', 'q', 'sc'])
+
+  >>> ascii.write(t, format='ecsv')   # doctest: +SKIP
+  # %ECSV 0.9
+  # ---
+  # datatype:
+  # - {name: c, datatype: int64}
+  # - {name: q, unit: m, datatype: float64}
+  # - {name: sc.ra, unit: deg, datatype: float64}
+  # - {name: sc.dec, unit: deg, datatype: float64}
+  # - {name: sc.distance, unit: m, datatype: float64}
+  # meta: !!omap
+  # - __serialized_columns__:
+  #     q:
+  #       __class__: astropy.units.quantity.Quantity
+  #       value: !astropy.table.SerializedColumn {name: q}
+  #     sc:
+  #       __class__: astropy.coordinates.sky_coordinate.SkyCoord
+  #       __info__: {description: flying circus}
+  #       dec: !astropy.table.SerializedColumn
+  #         __class__: astropy.coordinates.angles.Latitude
+  #         value: !astropy.table.SerializedColumn {name: sc.dec}
+  #       distance: !astropy.table.SerializedColumn
+  #         __class__: astropy.coordinates.distances.Distance
+  #         value: !astropy.table.SerializedColumn {name: sc.distance}
+  #       equinox: !astropy.time.Time {format: byear_str, in_subfmt: '*', jd1: 2400000.5,
+  #         jd2: 33281.92345905, out_subfmt: '*', precision: 3, scale: tai}
+  #       frame: fk4
+  #       obstime: !astropy.time.Time {format: yday, in_subfmt: '*', jd1: 2451544.5, jd2: 0.0,
+  #         out_subfmt: '*', precision: 3, scale: utc}
+  #       ra: !astropy.table.SerializedColumn
+  #         __class__: astropy.coordinates.angles.Longitude
+  #         value: !astropy.table.SerializedColumn {name: sc.ra}
+  #         wrap_angle: !astropy.coordinates.Angle
+  #           unit: !astropy.units.Unit {unit: deg}
+  #           value: 360.0
+  #       representation: spherical
+  # schema: astropy-2.0
+  c q sc.ra sc.dec sc.distance
+  1 1.0 1.0 3.0 5.0
+  2 2.0 2.0 4.0 6.0
+
+The ``'__class__'`` keyword gives the fully-qualified class name, and must be
+one of the specifically-allowed astropy classes.  There is no option to add
+user-specified allowed classes.  The ``'__info__'`` keyword contains values for
+standard `~astropy.table.Column` attributes like ``description`` or ``format``,
+for any mixin columns that are represented by more than one serialized column.
+
+.. _ecsv_format_masked_columns:
+
+Masked columns
+--------------
+
+By default, the ECSV format uses an empty (zero-length) string in the output
+table to represent masked or missing data in `~astropy.table.MaskedColumn`
+columns.  In certain cases this may not be sufficient:
+
+- String column that contains empty (zero-length) string(s) as valid data.
+- Masked data values must be stored so those values can later be unmasked.
+
+In this case there is an available mechanism to specify that the full data
+and the mask itself should be written as columns in the output table as
+shown in the example below.  For further context see the section on
+:ref:`table_serialization_methods`.
+::
+
+  >>> from astropy.table.table_helpers import simple_table
+  >>> t = simple_table(masked=True)
+  >>> t['c'][0] = ""  # Valid empty string in data
+  >>> t
+  <Table masked=True length=3>
+    a      b     c
+  int64 float64 str1
+  ----- ------- ----
+     --     1.0
+      2     2.0   --
+      3      --    e
+
+Now we tell ECSV writer to output separate data and mask columns for the
+string column ``'c'``::
+
+  >>> t['c'].info.serialize_method['ecsv'] = 'data_mask'
+
+When this is written out notice that the output shows all the
+data values for the ``'c'`` column (include the masked ``'d'``
+value) and a new column ``'c.masked'``.  It also stores metadata
+that tells the ECSV reader to interpret the ``'c'`` and ``'c.masked'``
+columns as components of one `~astropy.table.MaskedColumn` object:
+
+.. doctest-skip::
+
+  >>> ascii.write(t, format='ecsv')
+  # %ECSV 0.9
+  # ---
+  # datatype:
+  # - {name: a, datatype: int64}
+  # - {name: b, datatype: float64}
+  # - {name: c, datatype: string}
+  # - {name: c.mask, datatype: bool}
+  # meta: !!omap
+  # - __serialized_columns__:
+  #     c:
+  #       __class__: astropy.table.column.MaskedColumn
+  #       data: !astropy.table.SerializedColumn {name: c}
+  #       mask: !astropy.table.SerializedColumn {name: c.mask}
+  # schema: astropy-2.0
+  a b c c.mask
+  "" 1.0 "" False
+  2 2.0 d True
+  3 "" e False
+
+When you read this back in, the empty (zero-length) string in the
+first row of column ``'c'`` will be preserved.  One can easily write
+all the columns out as data and mask pairs using the Unified I/O
+interface for tables with the ``serialize_method`` keyword argument::
+
+  >>> t.write('out.ecsv', format='ascii.ecsv', serialize_method='data_mask')  # doctest: +SKIP
+
+In this case all data values, including those "under the mask" in the
+original table, will be restored exactly when you read the file back.

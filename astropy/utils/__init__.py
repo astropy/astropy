@@ -8,13 +8,9 @@ developers or to implement python hacks. This subpackage also includes the
 `astropy.utils.compat` package, which houses utilities that provide
 compatibility and bugfixes across all versions of Python that Astropy supports.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 from .codegen import *
 from .decorators import *
 from .introspection import *
 from .misc import *
-
-from .compat.odict import OrderedDict

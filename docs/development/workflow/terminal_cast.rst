@@ -4,7 +4,7 @@
 .. _terminal_cast:
 
 Terminal-cast of worked example
-===============================
+*******************************
 
 .. note::
 

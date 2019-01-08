@@ -5,12 +5,10 @@ Classes that deal with stretching, i.e. mapping a range of [0:1] values onto
 another set of [0:1] values with a transformation
 """
 
-from __future__ import division, print_function
 
 import numpy as np
 
-from ..extern import six
-from ..utils.misc import InheritDocstrings
+from astropy.utils.misc import InheritDocstrings
 from .transform import BaseTransform
 
 
@@ -46,8 +44,7 @@ def _prepare(values, clip=True, out=None):
             return out
 
 
-@six.add_metaclass(InheritDocstrings)
-class BaseStretch(BaseTransform):
+class BaseStretch(BaseTransform, metaclass=InheritDocstrings):
     """
     Base class for the stretch classes, which, when called with an array
     of values in the range [0:1], return an transformed array of values,
@@ -112,7 +109,8 @@ class SqrtStretch(BaseStretch):
 
     def __call__(self, values, clip=True, out=None):
         values = _prepare(values, clip=clip, out=out)
-        np.sqrt(values, out=values)
+        with np.errstate(invalid='ignore'):
+            np.sqrt(values, out=values)
         return values
 
     @property
@@ -137,7 +135,7 @@ class PowerStretch(BaseStretch):
     """
 
     def __init__(self, a):
-        super(PowerStretch, self).__init__()
+        super().__init__()
         self.power = a
 
     def __call__(self, values, clip=True, out=None):
@@ -170,7 +168,7 @@ class PowerDistStretch(BaseStretch):
     def __init__(self, a=1000.0):
         if a == 1:  # singularity
             raise ValueError("a cannot be set to 1")
-        super(PowerDistStretch, self).__init__()
+        super().__init__()
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
@@ -206,7 +204,7 @@ class InvertedPowerDistStretch(BaseStretch):
     def __init__(self, a=1000.0):
         if a == 1:  # singularity
             raise ValueError("a cannot be set to 1")
-        super(InvertedPowerDistStretch, self).__init__()
+        super().__init__()
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
@@ -233,7 +231,7 @@ class SquaredStretch(PowerStretch):
     """
 
     def __init__(self):
-        super(SquaredStretch, self).__init__(2)
+        super().__init__(2)
 
     @property
     def inverse(self):
@@ -257,7 +255,7 @@ class LogStretch(BaseStretch):
     """
 
     def __init__(self, a=1000.0):
-        super(LogStretch, self).__init__()
+        super().__init__()
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
@@ -290,7 +288,7 @@ class InvertedLogStretch(BaseStretch):
     """
 
     def __init__(self, a):
-        super(InvertedLogStretch, self).__init__()
+        super().__init__()
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
@@ -327,7 +325,7 @@ class AsinhStretch(BaseStretch):
     """
 
     def __init__(self, a=0.1):
-        super(AsinhStretch, self).__init__()
+        super().__init__()
         self.a = a
 
     def __call__(self, values, clip=True, out=None):
@@ -359,7 +357,7 @@ class SinhStretch(BaseStretch):
     """
 
     def __init__(self, a=1./3.):
-        super(SinhStretch, self).__init__()
+        super().__init__()
         self.a = a
 
     def __call__(self, values, clip=True, out=None):
@@ -465,7 +463,7 @@ class ContrastBiasStretch(BaseStretch):
     """
 
     def __init__(self, contrast, bias):
-        super(ContrastBiasStretch, self).__init__()
+        super().__init__()
         self.contrast = contrast
         self.bias = bias
 
@@ -505,7 +503,7 @@ class InvertedContrastBiasStretch(BaseStretch):
     """
 
     def __init__(self, contrast, bias):
-        super(InvertedContrastBiasStretch, self).__init__()
+        super().__init__()
         self.contrast = contrast
         self.bias = bias
 

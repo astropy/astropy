@@ -1,24 +1,16 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
-from ... import units as u
-from ..representation import SphericalRepresentation
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping
+from astropy import units as u
+from astropy.utils.decorators import format_doc
+from astropy.coordinates import representation as r
+from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
 from .galactic import Galactic
 
+__all__ = ['Supergalactic']
 
-class Supergalactic(BaseCoordinateFrame):
-    """
-    Supergalactic Coordinates
-    (see Lahav et al. 2000, <http://adsabs.harvard.edu/abs/2000MNRAS.312..166L>,
-    and references therein).
 
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
+doc_components = """
     sgl : `Angle`, optional, must be keyword
         The supergalactic longitude for this object (``sgb`` must also be given and
         ``representation`` must be None).
@@ -27,22 +19,44 @@ class Supergalactic(BaseCoordinateFrame):
         ``representation`` must be None).
     distance : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
+
+    pm_sgl_cossgb : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Right Ascension for this object (``pm_sgb`` must
+        also be given).
+    pm_sgb : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Declination for this object (``pm_sgl_cossgb`` must
+        also be given).
+    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The radial velocity of this object.
+"""
+
+@format_doc(base_doc, components=doc_components, footer="")
+class Supergalactic(BaseCoordinateFrame):
+    """
+    Supergalactic Coordinates
+    (see Lahav et al. 2000, <http://adsabs.harvard.edu/abs/2000MNRAS.312..166L>,
+    and references therein).
     """
 
     frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'sgl'),
-                      RepresentationMapping('lat', 'sgb')],
-        'cartesian': [RepresentationMapping('x', 'sgx'),
-                      RepresentationMapping('y', 'sgy'),
-                      RepresentationMapping('z', 'sgz')]
+        r.SphericalRepresentation: [
+            RepresentationMapping('lon', 'sgl'),
+            RepresentationMapping('lat', 'sgb')
+        ],
+        r.CartesianRepresentation: [
+            RepresentationMapping('x', 'sgx'),
+            RepresentationMapping('y', 'sgy'),
+            RepresentationMapping('z', 'sgz')
+        ],
+        r.CartesianDifferential: [
+            RepresentationMapping('d_x', 'v_x', u.km/u.s),
+            RepresentationMapping('d_y', 'v_y', u.km/u.s),
+            RepresentationMapping('d_z', 'v_z', u.km/u.s)
+        ],
     }
-    frame_specific_representation_info['unitspherical'] = \
-        frame_specific_representation_info['spherical']
 
-    default_representation = SphericalRepresentation
+    default_representation = r.SphericalRepresentation
+    default_differential = r.SphericalCosLatDifferential
 
     # North supergalactic pole in Galactic coordinates.
     # Needed for transformations to/from Galactic coordinates.

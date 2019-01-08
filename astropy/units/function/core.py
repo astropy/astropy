@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Function Units and Quantities."""
-from __future__ import (absolute_import, unicode_literals,
-                        division, print_function)
 
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from ...extern import six
-from .. import (Unit, UnitBase, UnitsError, UnitTypeError,
+from astropy.units import (Unit, UnitBase, UnitsError, UnitTypeError,
                 dimensionless_unscaled, Quantity)
 
 __all__ = ['FunctionUnitBase', 'FunctionQuantity']
@@ -17,7 +14,7 @@ __all__ = ['FunctionUnitBase', 'FunctionQuantity']
 SUPPORTED_UFUNCS = set(getattr(np.core.umath, ufunc) for ufunc in (
     'isfinite', 'isinf', 'isnan', 'sign', 'signbit',
     'rint', 'floor', 'ceil', 'trunc', 'power',
-    '_ones_like', 'ones_like') if hasattr(np.core.umath, ufunc))
+    '_ones_like', 'ones_like', 'positive') if hasattr(np.core.umath, ufunc))
 
 # TODO: the following could work if helper changed relative to Quantity:
 # - spacing should return dimensionless, not same unit
@@ -30,8 +27,7 @@ SUPPORTED_FUNCTIONS = set(getattr(np, function) for function in
 
 # subclassing UnitBase or CompositeUnit was found to be problematic, requiring
 # a large number of overrides. Hence, define new class.
-@six.add_metaclass(ABCMeta)
-class FunctionUnitBase(object):
+class FunctionUnitBase(metaclass=ABCMeta):
     """Abstract base class for function units.
 
     Function units are functions containing a physical unit, such as dB(mW).
@@ -54,7 +50,8 @@ class FunctionUnitBase(object):
     """
     # ↓↓↓ the following four need to be set by subclasses
     # Make this a property so we can ensure subclasses define it.
-    @abstractproperty
+    @property
+    @abstractmethod
     def _default_function_unit(self):
         """Default function unit corresponding to the function.
 
@@ -64,7 +61,8 @@ class FunctionUnitBase(object):
 
     # This has to be a property because the function quantity will not be
     # known at unit definition time, as it gets defined after.
-    @abstractproperty
+    @property
+    @abstractmethod
     def _quantity_class(self):
         """Function quantity class corresponding to this function unit.
 
@@ -270,7 +268,7 @@ class FunctionUnitBase(object):
         return not self.__eq__(other)
 
     def __mul__(self, other):
-        if isinstance(other, (six.string_types, UnitBase, FunctionUnitBase)):
+        if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
                 # If dimensionless, drop back to normal unit and retry.
                 return self.function_unit * other
@@ -288,7 +286,7 @@ class FunctionUnitBase(object):
         return self.__mul__(other)
 
     def __div__(self, other):
-        if isinstance(other, (six.string_types, UnitBase, FunctionUnitBase)):
+        if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
                 # If dimensionless, drop back to normal unit and retry.
                 return self.function_unit / other
@@ -303,7 +301,7 @@ class FunctionUnitBase(object):
                 return NotImplemented
 
     def __rdiv__(self, other):
-        if isinstance(other, (six.string_types, UnitBase, FunctionUnitBase)):
+        if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
                 # If dimensionless, drop back to normal unit and retry.
                 return other / self.function_unit
@@ -493,9 +491,8 @@ class FunctionQuantity(Quantity):
             unit = cls._unit_class(physical_unit, function_unit=unit)
 
         # initialise!
-        return super(FunctionQuantity,
-                     cls).__new__(cls, value, unit, dtype=dtype, copy=copy,
-                                  order=order, subok=subok, ndmin=ndmin)
+        return super().__new__(cls, value, unit, dtype=dtype, copy=copy,
+                               order=order, subok=subok, ndmin=ndmin)
 
     # ↓↓↓ properties not found in Quantity
     @property
@@ -511,7 +508,7 @@ class FunctionQuantity(Quantity):
         """
         return self._new_view(unit=self.unit.function_unit)
 
-    # ↓↓↓ methods overridden to change the behaviour
+    # ↓↓↓ methods overridden to change the behavior
     @property
     def si(self):
         """Return a copy with the physical unit in SI units."""
@@ -529,33 +526,12 @@ class FunctionQuantity(Quantity):
         """
         return self.__class__(self.physical.decompose(bases))
 
-    # ↓↓↓ methods overridden to add additional behaviour
-    def __array_prepare__(self, obj, context=None):
-        """Check that the ufunc can deal with a FunctionQuantity."""
-
-        # If no context is set, just return the input
-        if context is None:  # pragma: no cover
-            return obj
-
-        # Find out whether ufunc is supported
-        function = context[0]
-        if not (function in self._supported_ufuncs or
-                all(arg.unit.physical_unit == dimensionless_unscaled
-                    for arg in context[1][:function.nin]
-                    if (hasattr(arg, 'unit') and
-                        hasattr(arg.unit, 'physical_unit')))):
-            raise UnitTypeError("Cannot use function '{0}' with function "
-                                "quantities that are not dimensionless."
-                                .format(context[0].__name__))
-
-        return super(FunctionQuantity, self).__array_prepare__(obj, context)
-
+    # ↓↓↓ methods overridden to add additional behavior
     def __quantity_subclass__(self, unit):
         if isinstance(unit, FunctionUnitBase):
             return self.__class__, True
         else:
-            return super(FunctionQuantity,
-                         self).__quantity_subclass__(unit)[0], False
+            return super().__quantity_subclass__(unit)[0], False
 
     def _set_unit(self, unit):
         if not isinstance(unit, self._unit_class):
@@ -571,7 +547,7 @@ class FunctionQuantity(Quantity):
 
         self._unit = unit
 
-    # ↓↓↓ methods overridden to change behaviour
+    # ↓↓↓ methods overridden to change behavior
     def __mul__(self, other):
         if self.unit.physical_unit == dimensionless_unscaled:
             return self._function_view * other
@@ -642,8 +618,7 @@ class FunctionQuantity(Quantity):
     # Ensure Quantity methods are used only if they make sense.
     def _wrap_function(self, function, *args, **kwargs):
         if function in self._supported_functions:
-            return super(FunctionQuantity,
-                         self)._wrap_function(function, *args, **kwargs)
+            return super()._wrap_function(function, *args, **kwargs)
 
         # For dimensionless, we can convert to regular quantities.
         if all(arg.unit.physical_unit == dimensionless_unscaled

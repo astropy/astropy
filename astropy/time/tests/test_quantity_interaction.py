@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import functools
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest
-from .. import Time, TimeDelta, OperandTypeError
-from ... import units as u
-from ...table import Column
+from astropy.time import Time, TimeDelta
+from astropy import units as u
+from astropy.table import Column
 
 allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52 * 24 * 3600)  # 20 ps atol
@@ -22,14 +22,14 @@ class TestTimeQuantity():
         assert t1.value == q.value
         q2 = q.to(u.second)
         t2 = Time(q2, format='jd', scale='utc')
-        assert t2.value == q.value == q2.to(u.day).value
+        assert t2.value == q.value == q2.to_value(u.day)
         q3 = q-2400000.5*u.day
         t3 = Time(q3, format='mjd', scale='utc')
         assert t3.value == q3.value
         # test we can deal with two quantity arguments, with different units
         qs = 24.*36.*u.second
         t4 = Time(q3, qs, format='mjd', scale='utc')
-        assert t4.value == (q3+qs).to(u.day).value
+        assert t4.value == (q3+qs).to_value(u.day)
 
         qy = 1990.*u.yr
         ty1 = Time(qy, format='jyear', scale='utc')
@@ -38,11 +38,11 @@ class TestTimeQuantity():
         assert ty2.value == qy.value
         qy2 = 10.*u.yr
         tcxc = Time(qy2, format='cxcsec')
-        assert tcxc.value == qy2.to(u.second).value
+        assert tcxc.value == qy2.to_value(u.second)
         tgps = Time(qy2, format='gps')
-        assert tgps.value == qy2.to(u.second).value
+        assert tgps.value == qy2.to_value(u.second)
         tunix = Time(qy2, format='unix')
-        assert tunix.value == qy2.to(u.second).value
+        assert tunix.value == qy2.to_value(u.second)
         qd = 2000.*365.*u.day
         tplt = Time(qd, format='plot_date', scale='utc')
         assert tplt.value == qd.value
@@ -82,22 +82,22 @@ class TestTimeQuantity():
         q1 = 10.*u.second
         t1 = t0 + q1
         assert isinstance(t1, Time)
-        assert t1.value == t0.value+q1.to(u.second).value
+        assert t1.value == t0.value+q1.to_value(u.second)
         q2 = 1.*u.day
         t2 = t0 - q2
-        assert allclose_sec(t2.value, t0.value-q2.to(u.second).value)
+        assert allclose_sec(t2.value, t0.value-q2.to_value(u.second))
         # check broadcasting
         q3 = np.arange(15.).reshape(3, 5) * u.hour
         t3 = t0 - q3
         assert t3.shape == q3.shape
-        assert allclose_sec(t3.value, t0.value-q3.to(u.second).value)
+        assert allclose_sec(t3.value, t0.value-q3.to_value(u.second))
 
     def test_invalid_quantity_operations(self):
         """Check that comparisons of Time with quantities does not work
         (even for time-like, since we cannot compare Time to TimeDelta)"""
-        with pytest.raises(OperandTypeError):
+        with pytest.raises(TypeError):
             Time(100000., format='cxcsec') > 10.*u.m
-        with pytest.raises(OperandTypeError):
+        with pytest.raises(TypeError):
             Time(100000., format='cxcsec') > 10.*u.second
 
 
@@ -109,7 +109,7 @@ class TestTimeDeltaQuantity():
         dt1 = TimeDelta(q, format='jd')
         assert dt1.value == q.value
         dt2 = TimeDelta(q, format='sec')
-        assert dt2.value == q.to(u.second).value
+        assert dt2.value == q.to_value(u.second)
         dt3 = TimeDelta(q)
         assert dt3.value == q.value
 
@@ -120,14 +120,14 @@ class TestTimeDeltaQuantity():
         with pytest.raises(u.UnitsError):
             Time(2450000.*u.dimensionless_unscaled, format='jd', scale='utc')
 
-        with pytest.raises(OperandTypeError):
+        with pytest.raises(TypeError):
             TimeDelta(100, format='sec') > 10.*u.m
 
     def test_quantity_output(self):
         q = 500.25*u.day
         dt = TimeDelta(q)
         assert dt.to(u.day) == q
-        assert dt.to(u.second).value == q.to(u.second).value
+        assert dt.to(u.second).value == q.to_value(u.second)
         with pytest.raises(u.UnitsError):
             dt.to(u.m)
 
@@ -138,10 +138,10 @@ class TestTimeDeltaQuantity():
         q1 = 10.*u.second
         t1 = t0 + q1
         assert isinstance(t1, TimeDelta)
-        assert t1.value == t0.value+q1.to(u.second).value
+        assert t1.value == t0.value+q1.to_value(u.second)
         q2 = 1.*u.day
         t2 = t0 - q2
-        assert allclose_sec(t2.value, t0.value-q2.to(u.second).value)
+        assert allclose_sec(t2.value, t0.value-q2.to_value(u.second))
         # now comparisons
         assert t0 > q1
         assert t0 < 1.*u.yr
@@ -149,7 +149,7 @@ class TestTimeDeltaQuantity():
         q3 = np.arange(12.).reshape(4, 3) * u.hour
         t3 = t0 + q3
         assert t3.shape == q3.shape
-        assert allclose_sec(t3.value, t0.value + q3.to(u.second).value)
+        assert allclose_sec(t3.value, t0.value + q3.to_value(u.second))
 
     def test_valid_quantity_operations2(self):
         """Check that TimeDelta is treated as a quantity where possible."""
@@ -178,7 +178,7 @@ class TestTimeDeltaQuantity():
 
     def test_invalid_quantity_operations(self):
         """Check comparisons of TimeDelta with non-time quantities fails."""
-        with pytest.raises(OperandTypeError):
+        with pytest.raises(TypeError):
             TimeDelta(100000., format='sec') > 10.*u.m
 
     def test_invalid_quantity_broadcast(self):
@@ -197,6 +197,11 @@ class TestDeltaAttributes():
         assert t.ut1.iso == '2010-01-01 00:00:00.400000'
         with pytest.raises(u.UnitsError):
             t.delta_ut1_utc = 0.4 * u.m
+        # Also check that a TimeDelta works.
+        t.delta_ut1_utc = TimeDelta(0.3, format='sec')
+        assert t.ut1.iso == '2010-01-01 00:00:00.300000'
+        t.delta_ut1_utc = TimeDelta(0.5/24./3600., format='jd')
+        assert t.ut1.iso == '2010-01-01 00:00:00.500000'
 
     def test_delta_tdb_tt(self):
         t = Time('2010-01-01 00:00:00', format='iso', scale='tt', precision=6)
@@ -206,3 +211,33 @@ class TestDeltaAttributes():
         assert t.tdb.iso == '2010-01-01 00:00:30.000000'
         with pytest.raises(u.UnitsError):
             t.delta_tdb_tt = 0.4 * u.m
+        # Also check that a TimeDelta works.
+        t.delta_tdb_tt = TimeDelta(40., format='sec')
+        assert t.tdb.iso == '2010-01-01 00:00:40.000000'
+        t.delta_tdb_tt = TimeDelta(50./24./3600., format='jd')
+        assert t.tdb.iso == '2010-01-01 00:00:50.000000'
+
+
+@pytest.mark.parametrize('q1, q2', ((5e8*u.s, None),
+                                    (5e17*u.ns, None),
+                                    (4e8*u.s, 1e17*u.ns),
+                                    (4e14*u.us, 1e17*u.ns)))
+def test_quantity_conversion_rounding(q1, q2):
+    """Check that no rounding errors are incurred by unit conversion.
+
+    This occurred before as quantities in seconds were converted to days
+    before trying to split them into two-part doubles.  See gh-7622.
+    """
+    t = Time('2001-01-01T00:00:00.', scale='tai')
+    expected = Time('2016-11-05T00:53:20.', scale='tai')
+    if q2 is None:
+        t0 = t + q1
+    else:
+        t0 = t + q1 + q2
+    assert abs(t0 - expected) < 20 * u.ps
+    dt1 = TimeDelta(q1, q2)
+    t1 = t + dt1
+    assert abs(t1 - expected) < 20 * u.ps
+    dt2 = TimeDelta(q1, q2, format='sec')
+    t2 = t + dt2
+    assert abs(t2 - expected) < 20 * u.ps

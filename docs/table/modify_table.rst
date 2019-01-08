@@ -3,7 +3,7 @@
 .. include:: references.txt
 
 Modifying a table
------------------
+*****************
 
 The data values within a |Table| object can be modified in much the same manner
 as for `numpy` structured arrays by accessing columns or rows of data and
@@ -12,7 +12,7 @@ is the ability to easily modify the structure of the table: one can add or
 remove columns, and add new rows of data.
 
 Quick overview
-^^^^^^^^^^^^^^
+==============
 
 The code below shows the basics of modifying a table and its data.
 
@@ -76,11 +76,13 @@ of the correct size, or a scalar value that will be broadcast::
 For more explicit control the :meth:`~astropy.table.Table.add_column` and
 :meth:`~astropy.table.Table.add_columns` methods can be used to add one or multiple
 columns to a table.  In both cases the new columns must be specified as |Column| or
-|MaskedColumn| objects with the ``name`` defined::
+|MaskedColumn| objects::
 
   >>> from astropy.table import Column
   >>> aa = Column(np.arange(5), name='aa')
   >>> t.add_column(aa, index=0)  # Insert before the first table column
+  >>> bb = Column(np.arange(5))
+  >>> t.add_column(bb, name='bb')  # Append unnamed column to the table with 'bb' as name
 
   # Make a new table with the same number of rows and add columns to original table
   >>> t2 = Table(np.arange(25).reshape(5, 5), names=('e', 'f', 'g', 'h', 'i'))
@@ -180,7 +182,7 @@ as the item as shown below::
   >>> t_acb = t[new_order]
 
 Caveats
-^^^^^^^
+=======
 
 Modifying the table data and properties is fairly straightforward.  One thing
 to keep in mind is that adding a row *may* require a new copy in memory of the
@@ -212,7 +214,7 @@ a time.
 .. _table-replace-1_3:
 
 API change in replacing columns
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===============================
 
 Astropy version 1.3 introduces an API change in the way that the following
 behaves::

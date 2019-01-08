@@ -27,16 +27,15 @@ package.
 """
 
 ##############################################################################
-# Let’s suppose you are planning to visit picturesque Bear Mountain State Park
-# in New York, USA. You’re bringing your telescope with you (of course), and
+# Let's suppose you are planning to visit picturesque Bear Mountain State Park
+# in New York, USA. You're bringing your telescope with you (of course), and
 # someone told you M33 is a great target to observe there. You happen to know
-# you’re free at 11:00 pm local time, and you want to know if it will be up.
+# you're free at 11:00 pm local time, and you want to know if it will be up.
 # Astropy can answer that.
 #
 # Make print work the same in all versions of Python, set up numpy,
 # matplotlib, and use a nicer set of plot parameters:
 
-from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.visualization import astropy_mpl_style
@@ -117,6 +116,16 @@ times_July12_to_13 = midnight + delta_midnight
 frame_July12_to_13 = AltAz(obstime=times_July12_to_13, location=bear_mountain)
 sunaltazs_July12_to_13 = get_sun(times_July12_to_13).transform_to(frame_July12_to_13)
 
+
+##############################################################################
+# Do the same with `~astropy.coordinates.get_moon` to find when the moon is
+# up. Be aware that this will need to download a 10MB file from the internet
+# to get a precise location of the moon.
+
+from astropy.coordinates import get_moon
+moon_July12_to_13 = get_moon(times_July12_to_13)
+moonaltazs_July12_to_13 = moon_July12_to_13.transform_to(frame_July12_to_13)
+
 ##############################################################################
 # Find the alt,az coordinates of M33 at those same times:
 
@@ -127,6 +136,7 @@ m33altazs_July12_to_13 = m33.transform_to(frame_July12_to_13)
 # the Sun over that time:
 
 plt.plot(delta_midnight, sunaltazs_July12_to_13.alt, color='r', label='Sun')
+plt.plot(delta_midnight, moonaltazs_July12_to_13.alt, color=[0.75]*3, ls='--', label='Moon')
 plt.scatter(delta_midnight, m33altazs_July12_to_13.alt,
             c=m33altazs_July12_to_13.az, label='M33', lw=0, s=8,
             cmap='viridis')

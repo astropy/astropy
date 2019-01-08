@@ -1,0 +1,47 @@
+%YAML 1.1
+---
+$schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
+id: "http://astropy.org/schemas/astropy/coordinates/frames/fk4noeterms-1.0.0"
+tag: "tag:astropy.org:astropy/coordinates/frames/fk4noeterms-1.0.0"
+
+title: |
+  Represents a FK4NoETerms coordinate object from astropy
+
+examples:
+  -
+    - A FK4NoETerms frame without data
+    - |
+        !<tag:astropy.org:astropy/coordinates/frames/fk4noeterms-1.0.0>
+          frame_attributes:
+            equinox: !time/time-1.1.0 {scale: tai, value: B1950.000}
+            obstime: !time/time-1.1.0 {scale: tai, value: B1950.000}
+  -
+    - A FK4NoETerms frame with data
+    - |
+        !<tag:astropy.org:astropy/coordinates/frames/fk4noeterms-1.0.0>
+          data: !<tag:astropy.org:astropy/coordinates/representation-1.0.0>
+            components:
+              lat: !<tag:astropy.org:astropy/coordinates/latitude-1.0.0> {unit: !unit/unit-1.0.0 deg,
+                value: 10.0}
+              lon: !<tag:astropy.org:astropy/coordinates/longitude-1.0.0>
+                unit: !unit/unit-1.0.0 deg
+                value: 120.0
+                wrap_angle: !<tag:astropy.org:astropy/coordinates/angle-1.0.0> {unit: !unit/unit-1.0.0 deg,
+                  value: 360.0}
+            type: UnitSphericalRepresentation
+          frame_attributes:
+            equinox: !time/time-1.1.0 {scale: tai, value: B1950.000}
+            obstime: !time/time-1.1.0 {scale: tai, value: B1950.000}
+
+allOf:
+  - $ref: baseframe-1.0.0
+  - properties:
+      frame_attributes:
+        type: object
+        properties:
+          equinox:
+            $ref: "tag:stsci.edu:asdf/time/time-1.1.0"
+          obstime:
+            $ref: "tag:stsci.edu:asdf/time/time-1.1.0"
+        required: [equinox]
+...

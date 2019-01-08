@@ -2,29 +2,28 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Sundry function and class decorators."""
 
-from __future__ import print_function
-
 
 import functools
 import inspect
 import textwrap
 import types
 import warnings
+from inspect import signature
 
 from .codegen import make_function_with_signature
 from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
                          AstropyPendingDeprecationWarning)
-from ..extern import six
-from ..extern.six.moves import zip
 
 
 __all__ = ['classproperty', 'deprecated', 'deprecated_attribute',
            'deprecated_renamed_argument', 'format_doc',
            'lazyproperty', 'sharedmethod', 'wraps']
 
+_NotFound = object()
+
 
 def deprecated(since, message='', name='', alternative='', pending=False,
-               obj_type=None):
+               obj_type=None, warning_type=AstropyDeprecationWarning):
     """
     Used to mark a function or class as deprecated.
 
@@ -62,11 +61,15 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
     pending : bool, optional
         If True, uses a AstropyPendingDeprecationWarning instead of a
-        AstropyDeprecationWarning.
+        ``warning_type``.
 
     obj_type : str, optional
         The type of this object, if the automatically determined one
         needs to be overridden.
+
+    warning_type : warning
+        Warning to be issued.
+        Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
     """
 
     method_types = (classmethod, staticmethod, types.MethodType)
@@ -97,10 +100,10 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             func = func.__func__
         return func
 
-    def deprecate_function(func, message):
+    def deprecate_function(func, message, warning_type=warning_type):
         """
-        Returns a wrapped function that displays an
-        ``AstropyDeprecationWarning`` when it is called.
+        Returns a wrapped function that displays ``warning_type``
+        when it is called.
         """
 
         if isinstance(func, method_types):
@@ -114,7 +117,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             if pending:
                 category = AstropyPendingDeprecationWarning
             else:
-                category = AstropyDeprecationWarning
+                category = warning_type
 
             warnings.warn(message, category, stacklevel=2)
 
@@ -132,40 +135,32 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
         return func_wrapper(deprecated_func)
 
-    def deprecate_class(cls, message):
+    def deprecate_class(cls, message, warning_type=warning_type):
         """
-        Returns a wrapper class with the docstrings updated and an
-        __init__ function that will raise an
-        ``AstropyDeprectationWarning`` warning when called.
+        Update the docstring and wrap the ``__init__`` in-place (or ``__new__``
+        if the class or any of the bases overrides ``__new__``) so it will give
+        a deprecation warning when an instance is created.
+
+        This won't work for extension classes because these can't be modified
+        in-place and the alternatives don't work in the general case:
+
+        - Using a new class that looks and behaves like the original doesn't
+          work because the __new__ method of extension types usually makes sure
+          that it's the same class or a subclass.
+        - Subclassing the class and return the subclass can lead to problems
+          with pickle and will look weird in the Sphinx docs.
         """
-        # Creates a new class with the same name and bases as the
-        # original class, but updates the dictionary with a new
-        # docstring and a wrapped __init__ method.  __module__ needs
-        # to be manually copied over, since otherwise it will be set
-        # to *this* module (astropy.utils.misc).
-
-        # This approach seems to make Sphinx happy (the new class
-        # looks enough like the original class), and works with
-        # extension classes (which functools.wraps does not, since
-        # it tries to modify the original class).
-
-        # We need to add a custom pickler or you'll get
-        #     Can't pickle <class ..>: it's not found as ...
-        # errors. Picklability is required for any class that is
-        # documented by Sphinx.
-
-        members = cls.__dict__.copy()
-
-        members.update({
-            '__doc__': deprecate_doc(cls.__doc__, message),
-            '__init__': deprecate_function(get_function(cls.__init__),
-                                           message),
-        })
-
-        return type(cls)(cls.__name__, cls.__bases__, members)
+        cls.__doc__ = deprecate_doc(cls.__doc__, message)
+        if cls.__new__ is object.__new__:
+            cls.__init__ = deprecate_function(get_function(cls.__init__),
+                                              message, warning_type)
+        else:
+            cls.__new__ = deprecate_function(get_function(cls.__new__),
+                                             message, warning_type)
+        return cls
 
     def deprecate(obj, message=message, name=name, alternative=alternative,
-                  pending=pending):
+                  pending=pending, warning_type=warning_type):
         if obj_type is None:
             if isinstance(obj, type):
                 obj_type_name = 'class'
@@ -200,9 +195,9 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             altmessage)
 
         if isinstance(obj, type):
-            return deprecate_class(obj, message)
+            return deprecate_class(obj, message, warning_type)
         else:
-            return deprecate_function(obj, message)
+            return deprecate_function(obj, message, warning_type)
 
     if type(message) is type(deprecate):
         return deprecate(message)
@@ -211,7 +206,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
 
 def deprecated_attribute(name, since, message=None, alternative=None,
-                         pending=False):
+                         pending=False, warning_type=AstropyDeprecationWarning):
     """
     Used to mark a public attribute as deprecated.  This creates a
     property that will warn when the given attribute name is accessed.
@@ -241,8 +236,12 @@ def deprecated_attribute(name, since, message=None, alternative=None,
         user about this alternative if provided.
 
     pending : bool, optional
-        If True, uses a AstropyPendingDeprecationWarning instead of a
-        AstropyDeprecationWarning.
+        If True, uses a AstropyPendingDeprecationWarning instead of
+        ``warning_type``.
+
+    warning_type : warning
+        Warning to be issued.
+        Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
 
     Examples
     --------
@@ -258,15 +257,15 @@ def deprecated_attribute(name, since, message=None, alternative=None,
     """
     private_name = '_' + name
 
-    @deprecated(since, name=name, obj_type='attribute')
+    @deprecated(since, name=name, obj_type='attribute', warning_type=warning_type)
     def get(self):
         return getattr(self, private_name)
 
-    @deprecated(since, name=name, obj_type='attribute')
+    @deprecated(since, name=name, obj_type='attribute', warning_type=warning_type)
     def set(self, val):
         setattr(self, private_name, val)
 
-    @deprecated(since, name=name, obj_type='attribute')
+    @deprecated(since, name=name, obj_type='attribute', warning_type=warning_type)
     def delete(self):
         delattr(self, private_name)
 
@@ -275,7 +274,8 @@ def deprecated_attribute(name, since, message=None, alternative=None,
 
 def deprecated_renamed_argument(old_name, new_name, since,
                                 arg_in_kwargs=False, relax=False,
-                                pending=False):
+                                pending=False,
+                                warning_type=AstropyDeprecationWarning):
     """Deprecate a _renamed_ function argument.
 
     The decorator assumes that the argument with the ``old_name`` was removed
@@ -313,6 +313,10 @@ def deprecated_renamed_argument(old_name, new_name, since,
         If ``True`` this will hide the deprecation warning and ignore the
         corresponding ``relax`` parameter value.
         Default is ``False``.
+
+    warning_type : warning
+        Warning to be issued.
+        Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
 
     Raises
     ------
@@ -353,7 +357,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
         >>> test(sig=2)
         2
 
-    To deprecate an argument catched inside the ``**kwargs`` the
+    To deprecate an argument caught inside the ``**kwargs`` the
     ``arg_in_kwargs`` has to be set::
 
         >>> @deprecated_renamed_argument('sig', 'sigma', '1.0',
@@ -391,11 +395,6 @@ def deprecated_renamed_argument(old_name, new_name, since,
     In this case ``arg_in_kwargs`` and ``relax`` can be a single value (which
     is applied to all renamed arguments) or must also be a `tuple` or `list`
     with values for each of the arguments.
-
-    .. warning::
-        This decorator needs to access the original signature of the decorated
-        function. Therefore this decorator must be the **first** decorator on
-        any function if it needs to work for Python before version 3.4.
     """
     cls_iter = (list, tuple)
     if isinstance(old_name, cls_iter):
@@ -421,9 +420,6 @@ def deprecated_renamed_argument(old_name, new_name, since,
         pending = [pending]
 
     def decorator(function):
-        # Lazy import to avoid cyclic imports
-        from .compat.funcsigs import signature
-
         # The named arguments of the function.
         arguments = signature(function).parameters
         keys = list(arguments.keys())
@@ -439,7 +435,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 if param.kind == param.POSITIONAL_OR_KEYWORD:
                     position[i] = keys.index(new_name[i])
 
-                # 2.) Keyword only argument (Python 3 only):
+                # 2.) Keyword only argument:
                 elif param.kind == param.KEYWORD_ONLY:
                     # These cannot be specified by position.
                     position[i] = None
@@ -447,11 +443,11 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 # 3.) positional-only argument, varargs, varkwargs or some
                 #     unknown type:
                 else:
-                    raise TypeError('cannot replace argument "{0}" of kind {1}'
-                                    '.'.format(new_name[i], repr(param.kind)))
+                    raise TypeError('cannot replace argument "{0}" of kind '
+                                    '{1!r}.'.format(new_name[i], param.kind))
 
             # In case the argument is not found in the list of arguments
-            # the only remaining possibility is that it should be catched
+            # the only remaining possibility is that it should be caught
             # by some kind of **kwargs argument.
             # This case has to be explicitly specified, otherwise throw
             # an exception!
@@ -479,7 +475,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
                             'and will be removed in a future version. '
                             'Use argument "{2}" instead.'
                             ''.format(old_name[i], since[i], new_name[i]),
-                            AstropyDeprecationWarning)
+                            warning_type, stacklevel=2)
 
                     # Check if the newkeyword was given as well.
                     newarg_in_args = (position[i] is not None and
@@ -525,7 +521,7 @@ class classproperty(property):
     .. note::
 
         classproperty only works for *read-only* properties.  It does not
-        currently allow writeable/deleteable properties, due to subtleties of how
+        currently allow writeable/deletable properties, due to subtleties of how
         Python descriptors work.  In order to implement such properties on a class
         a metaclass for that class must be implemented.
 
@@ -552,7 +548,7 @@ class classproperty(property):
 
     ::
 
-        >>> class Foo(object):
+        >>> class Foo:
         ...     _bar_internal = 1
         ...     @classproperty
         ...     def bar(cls):
@@ -570,7 +566,7 @@ class classproperty(property):
     As previously noted, a `classproperty` is limited to implementing
     read-only attributes::
 
-        >>> class Foo(object):
+        >>> class Foo:
         ...     _bar_internal = 1
         ...     @classproperty
         ...     def bar(cls):
@@ -586,7 +582,7 @@ class classproperty(property):
 
     When the ``lazy`` option is used, the getter is only called once::
 
-        >>> class Foo(object):
+        >>> class Foo:
         ...     @classproperty(lazy=True)
         ...     def bar(cls):
         ...         print("Performing complicated calculation")
@@ -620,7 +616,7 @@ class classproperty(property):
 
             return wrapper
 
-        return super(classproperty, cls).__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, fget, doc=None, lazy=False):
         self._lazy = lazy
@@ -628,37 +624,32 @@ class classproperty(property):
             self._cache = {}
         fget = self._wrap_fget(fget)
 
-        super(classproperty, self).__init__(fget=fget, doc=doc)
+        super().__init__(fget=fget, doc=doc)
 
         # There is a buglet in Python where self.__doc__ doesn't
         # get set properly on instances of property subclasses if
         # the doc argument was used rather than taking the docstring
         # from fget
+        # Related Python issue: https://bugs.python.org/issue24766
         if doc is not None:
             self.__doc__ = doc
 
-    def __get__(self, obj, objtype=None):
+    def __get__(self, obj, objtype):
         if self._lazy and objtype in self._cache:
             return self._cache[objtype]
 
-        if objtype is not None:
-            # The base property.__get__ will just return self here;
-            # instead we pass objtype through to the original wrapped
-            # function (which takes the class as its sole argument)
-            val = self.fget.__wrapped__(objtype)
-        else:
-            val = super(classproperty, self).__get__(obj, objtype=objtype)
+        # The base property.__get__ will just return self here;
+        # instead we pass objtype through to the original wrapped
+        # function (which takes the class as its sole argument)
+        val = self.fget.__wrapped__(objtype)
 
         if self._lazy:
-            if objtype is None:
-                objtype = obj.__class__
-
             self._cache[objtype] = val
 
         return val
 
     def getter(self, fget):
-        return super(classproperty, self).getter(self._wrap_fget(fget))
+        return super().getter(self._wrap_fget(fget))
 
     def setter(self, fset):
         raise NotImplementedError(
@@ -682,9 +673,6 @@ class classproperty(property):
         def fget(obj):
             return orig_fget(obj.__class__)
 
-        # Set the __wrapped__ attribute manually for support on Python 2
-        fget.__wrapped__ = orig_fget
-
         return fget
 
 
@@ -697,7 +685,7 @@ class lazyproperty(property):
     useful for computing the value of some property that should otherwise be
     invariant.  For example::
 
-        >>> class LazyTest(object):
+        >>> class LazyTest:
         ...     @lazyproperty
         ...     def complicated_property(self):
         ...         print('Computing the value for complicated_property...')
@@ -726,16 +714,18 @@ class lazyproperty(property):
     """
 
     def __init__(self, fget, fset=None, fdel=None, doc=None):
-        super(lazyproperty, self).__init__(fget, fset, fdel, doc)
+        super().__init__(fget, fset, fdel, doc)
         self._key = self.fget.__name__
 
     def __get__(self, obj, owner=None):
         try:
-            return obj.__dict__[self._key]
-        except KeyError:
-            val = self.fget(obj)
-            obj.__dict__[self._key] = val
-            return val
+            val = obj.__dict__.get(self._key, _NotFound)
+            if val is not _NotFound:
+                return val
+            else:
+                val = self.fget(obj)
+                obj.__dict__[self._key] = val
+                return val
         except AttributeError:
             if obj is None:
                 return self
@@ -769,7 +759,7 @@ class sharedmethod(classmethod):
     behaves like a normal instance method (a reference to the instance is
     automatically passed as the first ``self`` argument of the method)::
 
-        >>> class Example(object):
+        >>> class Example:
         ...     @sharedmethod
         ...     def identify(self, *args):
         ...         print('self was', self)
@@ -792,14 +782,12 @@ class sharedmethod(classmethod):
     has a method of the same name as the `sharedmethod`, the version on
     the metaclass is delegated to::
 
-        >>> from astropy.extern.six import add_metaclass
         >>> class ExampleMeta(type):
         ...     def identify(self):
         ...         print('this implements the {0}.identify '
         ...               'classmethod'.format(self.__name__))
         ...
-        >>> @add_metaclass(ExampleMeta)
-        ... class Example(object):
+        >>> class Example(metaclass=ExampleMeta):
         ...     @sharedmethod
         ...     def identify(self):
         ...         print('this implements the instancemethod')
@@ -810,23 +798,12 @@ class sharedmethod(classmethod):
         this implements the Example.identify classmethod
     """
 
-    def __getobjwrapper(func):
-        return func
-
-    @__getobjwrapper
     def __get__(self, obj, objtype=None):
         if obj is None:
             mcls = type(objtype)
             clsmeth = getattr(mcls, self.__func__.__name__, None)
             if callable(clsmeth):
-                if isinstance(clsmeth, types.MethodType):
-                    # This case will generally only apply on Python 2, which
-                    # uses MethodType for unbound methods; Python 3 has no
-                    # particular concept of unbound methods and will just
-                    # return a function
-                    func = clsmeth.__func__
-                else:
-                    func = clsmeth
+                func = clsmeth
             else:
                 func = self.__func__
 
@@ -834,18 +811,9 @@ class sharedmethod(classmethod):
         else:
             return self._make_method(self.__func__, obj)
 
-    del __getobjwrapper
-
-    if not six.PY2:
-        # The 'instancemethod' type of Python 2 and the method type of
-        # Python 3 have slightly different constructors
-        @staticmethod
-        def _make_method(func, instance):
-            return types.MethodType(func, instance)
-    else:
-        @staticmethod
-        def _make_method(func, instance):
-            return types.MethodType(func, instance, type(instance))
+    @staticmethod
+    def _make_method(func, instance):
+        return types.MethodType(func, instance)
 
 
 def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
@@ -879,57 +847,34 @@ def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
     return wrapper
 
 
-if (isinstance(wraps.__doc__, six.string_types) and
+if (isinstance(wraps.__doc__, str) and
         wraps.__doc__ is not None and functools.wraps.__doc__ is not None):
     wraps.__doc__ += functools.wraps.__doc__
 
 
-if not six.PY2:
-    def _get_function_args_internal(func):
-        """
-        Utility function for `wraps`.
+def _get_function_args_internal(func):
+    """
+    Utility function for `wraps`.
 
-        Reads the argspec for the given function and converts it to arguments
-        for `make_function_with_signature`.  This requires different
-        implementations on Python 2 versus Python 3.
-        """
+    Reads the argspec for the given function and converts it to arguments
+    for `make_function_with_signature`.
+    """
 
-        argspec = inspect.getfullargspec(func)
+    argspec = inspect.getfullargspec(func)
 
-        if argspec.defaults:
-            args = argspec.args[:-len(argspec.defaults)]
-            kwargs = zip(argspec.args[len(args):], argspec.defaults)
-        else:
-            args = argspec.args
-            kwargs = []
+    if argspec.defaults:
+        args = argspec.args[:-len(argspec.defaults)]
+        kwargs = zip(argspec.args[len(args):], argspec.defaults)
+    else:
+        args = argspec.args
+        kwargs = []
 
-        if argspec.kwonlyargs:
-            kwargs.extend((argname, argspec.kwonlydefaults[argname])
-                          for argname in argspec.kwonlyargs)
+    if argspec.kwonlyargs:
+        kwargs.extend((argname, argspec.kwonlydefaults[argname])
+                      for argname in argspec.kwonlyargs)
 
-        return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
-                'varkwargs': argspec.varkw}
-else:
-    def _get_function_args_internal(func):
-        """
-        Utility function for `wraps`.
-
-        Reads the argspec for the given function and converts it to arguments
-        for `make_function_with_signature`.  This requires different
-        implementations on Python 2 versus Python 3.
-        """
-
-        argspec = inspect.getargspec(func)
-
-        if argspec.defaults:
-            args = argspec.args[:-len(argspec.defaults)]
-            kwargs = zip(argspec.args[len(args):], argspec.defaults)
-        else:
-            args = argspec.args
-            kwargs = {}
-
-        return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
-                'varkwargs': argspec.keywords}
+    return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
+            'varkwargs': argspec.varkw}
 
 
 def _get_function_args(func, exclude_args=()):
@@ -1151,7 +1096,7 @@ def format_doc(docstring, *args, **kwargs):
             # Delete documentation in this case so we don't end up with
             # awkwardly self-inserted docs.
             obj.__doc__ = None
-        elif isinstance(docstring, six.string_types):
+        elif isinstance(docstring, str):
             # String: use the string that was given
             doc = docstring
         else:
@@ -1166,12 +1111,6 @@ def format_doc(docstring, *args, **kwargs):
         # If the original has a not-empty docstring append it to the format
         # kwargs.
         kwargs['__doc__'] = obj.__doc__ or ''
-        if six.PY2 and isinstance(obj, type):
-            # For python 2 we must create a subclass because there the __doc__
-            # is not mutable for objects.
-            obj = type(obj.__name__, (obj,), {'__doc__': doc.format(*args, **kwargs),
-                                              '__module__': obj.__module__})
-        else:
-            obj.__doc__ = doc.format(*args, **kwargs)
+        obj.__doc__ = doc.format(*args, **kwargs)
         return obj
     return set_docstring

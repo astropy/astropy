@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ... import ascii
+from astropy.io import ascii
 from .common import (assert_equal, assert_almost_equal, has_isnan,
                      setup_function, teardown_function)
 
@@ -147,8 +147,20 @@ def test_header_from_readme():
             else:
                 assert val == Q[i]
 
+
+def test_cds_units():
+    from astropy import units
+    data_and_readme = 't/cds.dat'
+    reader = ascii.get_reader(ascii.Cds)
+    table = reader.read(data_and_readme)
+    # column unit is GMsun (giga solar masses)
+    # make sure this is parsed correctly, not as a "string" unit
+    assert table['Fit'].to(units.solMass).unit == units.solMass
+
+
 if __name__ == "__main__":  # run from main directory; not from test/
     test_header_from_readme()
     test_multi_header()
     test_glob_header()
     test_description()
+    test_cds_units()

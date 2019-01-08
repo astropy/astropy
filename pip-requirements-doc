@@ -1,6 +1,0 @@
--r pip-requirements
-matplotlib
-scipy
-pillow
-sphinx-gallery
-jplephem

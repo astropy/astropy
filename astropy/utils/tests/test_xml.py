@@ -1,13 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-from ...extern import six
 
 import io
 
-from ..xml import check, unescaper, writer
-from ...tests.helper import pytest
+import pytest
+
+from astropy.utils.xml import check, unescaper, writer
+
+try:
+    import bleach  # noqa
+    HAS_BLEACH = True
+except ImportError:
+    HAS_BLEACH = False
 
 
 def test_writer():
@@ -65,7 +68,7 @@ def test_unescape_all():
 
 def test_escape_xml():
     s = writer.xml_escape('This & That')
-    assert type(s) == six.text_type
+    assert type(s) == str
     assert s == 'This &amp; That'
 
     s = writer.xml_escape(1)
@@ -77,7 +80,7 @@ def test_escape_xml():
     assert s == b'This &amp; That'
 
 
-@pytest.mark.skipif('writer.HAS_BLEACH')
+@pytest.mark.skipif('HAS_BLEACH')
 def test_escape_xml_without_bleach():
     fh = io.StringIO()
     w = writer.XMLWriter(fh)
@@ -88,7 +91,7 @@ def test_escape_xml_without_bleach():
     assert 'bleach package is required when HTML escaping is disabled' in str(err)
 
 
-@pytest.mark.skipif('not writer.HAS_BLEACH')
+@pytest.mark.skipif('not HAS_BLEACH')
 def test_escape_xml_with_bleach():
     fh = io.StringIO()
     w = writer.XMLWriter(fh)

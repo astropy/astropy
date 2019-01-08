@@ -1,18 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import types
 
-from ..core import Fittable1DModel
-from ..parameters import Parameter
-from .. import models
-from .. import fitting
+import pytest
 import numpy as np
-from numpy.testing import utils
+from numpy.testing import assert_allclose
 from numpy.random import RandomState
-from ...tests.helper import pytest
+
+from astropy.modeling.core import Fittable1DModel
+from astropy.modeling.parameters import Parameter
+from astropy.modeling import models
+from astropy.modeling import fitting
+
 from .utils import ignore_non_integer_warning
 
 try:
@@ -22,7 +21,7 @@ except ImportError:
     HAS_SCIPY = False
 
 
-class TestNonLinearConstraints(object):
+class TestNonLinearConstraints:
 
     def setup_class(self):
         self.g1 = models.Gaussian1D(10, 14.9, stddev=.3)
@@ -52,8 +51,8 @@ class TestNonLinearConstraints(object):
         g1 = models.Gaussian1D(10, mean=14.9, stddev=.3, tied={'mean': tied})
         fitter = fitting.LevMarLSQFitter()
         model = fitter(g1, self.x, self.ny1)
-        utils.assert_allclose(model.mean.value, 50 * model.stddev,
-                              rtol=10 ** (-5))
+        assert_allclose(model.mean.value, 50 * model.stddev,
+                        rtol=10 ** (-5))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_joint_fitter(self):
@@ -82,8 +81,8 @@ class TestNonLinearConstraints(object):
                       compmodel(p[0], p[3:], x2) - y2])
 
         fitparams, _ = optimize.leastsq(errf, p, args=(x, ny1, x, ny2))
-        utils.assert_allclose(jf.fitparams, fitparams, rtol=10 ** (-5))
-        utils.assert_allclose(g1.amplitude.value, g2.amplitude.value)
+        assert_allclose(jf.fitparams, fitparams, rtol=10 ** (-5))
+        assert_allclose(g1.amplitude.value, g2.amplitude.value)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_no_constraints(self):
@@ -102,11 +101,11 @@ class TestNonLinearConstraints(object):
         fitpar, s = optimize.leastsq(errf, p0, args=(self.x, ny))
         fitter = fitting.LevMarLSQFitter()
         model = fitter(g1, self.x, ny)
-        utils.assert_allclose(model.parameters, fitpar, rtol=5 * 10 ** (-3))
+        assert_allclose(model.parameters, fitpar, rtol=5 * 10 ** (-3))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-class TestBounds(object):
+class TestBounds:
 
     def setup_class(self):
         A = -2.0
@@ -210,7 +209,7 @@ class TestBounds(object):
         assert y_stddev - 10 ** -5 <= bounds['y_stddev'][1]
 
 
-class TestLinearConstraints(object):
+class TestLinearConstraints:
 
     def setup_class(self):
         self.p1 = models.Polynomial1D(4)
@@ -228,7 +227,7 @@ class TestLinearConstraints(object):
         self.p1.c1.fixed = True
         pfit = fitting.LinearLSQFitter()
         model = pfit(self.p1, self.x, self.y)
-        utils.assert_allclose(self.y, model(self.x))
+        assert_allclose(self.y, model(self.x))
 
 # Test constraints as parameter properties
 
@@ -422,3 +421,116 @@ def test_fit_with_bound_constraints_estimate_jacobian():
     # Check that the estimated Jacobian was computed (it doesn't matter what
     # the values are so long as they're not all zero.
     assert np.any(f2.fit_info['fjac'] != 0)
+
+
+# https://github.com/astropy/astropy/issues/6014
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_gaussian2d_positive_stddev():
+    # This is 2D Gaussian with noise to be fitted, as provided by @ysBach
+    test = [
+        [-54.33, 13.81, -34.55, 8.95, -143.71, -0.81, 59.25, -14.78, -204.9,
+         -30.87, -124.39, 123.53, 70.81, -109.48, -106.77, 35.64, 18.29],
+        [-126.19, -89.13, 63.13, 50.74, 61.83, 19.06, 65.7, 77.94, 117.14,
+         139.37, 52.57, 236.04, 100.56, 242.28, -180.62, 154.02, -8.03],
+        [91.43, 96.45, -118.59, -174.58, -116.49, 80.11, -86.81, 14.62, 79.26,
+         7.56, 54.99, 260.13, -136.42, -20.77, -77.55, 174.52, 134.41],
+        [33.88, 7.63, 43.54, 70.99, 69.87, 33.97, 273.75, 176.66, 201.94,
+         336.34, 340.54, 163.77, -156.22, 21.49, -148.41, 94.88, 42.55],
+        [82.28, 177.67, 26.81, 17.66, 47.81, -31.18, 353.23, 589.11, 553.27,
+         242.35, 444.12, 186.02, 140.73, 75.2, -87.98, -18.23, 166.74],
+        [113.09, -37.01, 134.23, 71.89, 107.88, 198.69, 273.88, 626.63, 551.8,
+         547.61, 580.35, 337.8, 139.8, 157.64, -1.67, -26.99, 37.35],
+        [106.47, 31.97, 84.99, -125.79, 195.0, 493.65, 861.89, 908.31, 803.9,
+         781.01, 532.59, 404.67, 115.18, 111.11, 28.08, 122.05, -58.36],
+        [183.62, 45.22, 40.89, 111.58, 425.81, 321.53, 545.09, 866.02, 784.78,
+         731.35, 609.01, 405.41, -19.65, 71.2, -140.5, 144.07, 25.24],
+        [137.13, -86.95, 15.39, 180.14, 353.23, 699.01, 1033.8, 1014.49,
+         814.11, 647.68, 461.03, 249.76, 94.8, 41.17, -1.16, 183.76, 188.19],
+        [35.39, 26.92, 198.53, -37.78, 638.93, 624.41, 816.04, 867.28, 697.0,
+         491.56, 378.21, -18.46, -65.76, 98.1, 12.41, -102.18, 119.05],
+        [190.73, 125.82, 311.45, 369.34, 554.39, 454.37, 755.7, 736.61, 542.43,
+         188.24, 214.86, 217.91, 7.91, 27.46, -172.14, -82.36, -80.31],
+        [-55.39, 80.18, 267.19, 274.2, 169.53, 327.04, 488.15, 437.53, 225.38,
+         220.94, 4.01, -92.07, 39.68, 57.22, 144.66, 100.06, 34.96],
+        [130.47, -4.23, 46.3, 101.49, 115.01, 217.38, 249.83, 115.9, 87.36,
+         105.81, -47.86, -9.94, -82.28, 144.45, 83.44, 23.49, 183.9],
+        [-110.38, -115.98, 245.46, 103.51, 255.43, 163.47, 56.52, 33.82,
+         -33.26, -111.29, 88.08, 193.2, -100.68, 15.44, 86.32, -26.44, -194.1],
+        [109.36, 96.01, -124.89, -16.4, 84.37, 114.87, -65.65, -58.52, -23.22,
+         42.61, 144.91, -209.84, 110.29, 66.37, -117.85, -147.73, -122.51],
+        [10.94, 45.98, 118.12, -46.53, -72.14, -74.22, 21.22, 0.39, 86.03,
+         23.97, -45.42, 12.05, -168.61, 27.79, 61.81, 84.07, 28.79],
+        [46.61, -104.11, 56.71, -90.85, -16.51, -66.45, -141.34, 0.96, 58.08,
+         285.29, -61.41, -9.01, -323.38, 58.35, 80.14, -101.22, 145.65]]
+    g_init = models.Gaussian2D(x_mean=8, y_mean=8)
+    fitter = fitting.LevMarLSQFitter()
+    y, x = np.mgrid[:17, :17]
+    g_fit = fitter(g_init, x, y, test)
+
+    # Compare with @ysBach original result:
+    # - x_stddev was negative, so its abs value is used for comparison here.
+    # - theta is beyond (-90, 90) deg, which doesn't make sense, so ignored.
+    assert_allclose([g_fit.amplitude.value, g_fit.y_stddev.value],
+                    [984.7694929790363, 3.1840618351417307], rtol=1.5e-6)
+    assert_allclose(g_fit.x_mean.value, 7.198391516587464)
+    assert_allclose(g_fit.y_mean.value, 7.49720660088511, rtol=5e-7)
+    assert_allclose(g_fit.x_stddev.value, 1.9840185107597297, rtol=2e-6)
+
+
+# Issue #6403
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_2d_model():
+    # 2D model with LevMarLSQFitter
+    gauss2d = models.Gaussian2D(10.2, 4.3, 5, 2, 1.2, 1.4)
+    fitter = fitting.LevMarLSQFitter()
+    X = np.linspace(-1, 7, 200)
+    Y = np.linspace(-1, 7, 200)
+    x, y = np.meshgrid(X, Y)
+    z = gauss2d(x, y)
+    w = np.ones(x.size)
+    w.shape = x.shape
+    from astropy.utils import NumpyRNGContext
+
+    with NumpyRNGContext(1234567890):
+
+        n = np.random.randn(x.size)
+        n.shape = x.shape
+        m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
+        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+        m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
+        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+
+        # 2D model with LevMarLSQFitter, fixed constraint
+        gauss2d.x_stddev.fixed = True
+        m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
+        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+        m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
+        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+
+        # Polynomial2D, col_fit_deriv=False
+        p2 = models.Polynomial2D(1, c0_0=1, c1_0=1.2, c0_1=3.2)
+        z = p2(x, y)
+        m = fitter(p2, x, y, z + 2 * n, weights=None)
+        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+        m = fitter(p2, x, y, z + 2 * n, weights=w)
+        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+
+        # Polynomial2D, col_fit_deriv=False, fixed constraint
+        p2.c1_0.fixed = True
+        m = fitter(p2, x, y, z + 2 * n, weights=w)
+        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+        m = fitter(p2, x, y, z + 2 * n, weights=None)
+        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+
+
+def test_prior_posterior():
+    model = models.Gaussian1D()
+    model.amplitude.prior = models.Polynomial1D(1, c0=1, c1=2)
+    assert isinstance(model.amplitude.prior, models.Polynomial1D)
+    assert model.amplitude.prior.c0 == 1
+    assert model.amplitude.prior.c1 == 2
+    assert isinstance(model._constraints['prior']['amplitude'], models.Polynomial1D)
+
+    model.amplitude.prior = None
+    assert model.amplitude.prior is None
+    assert model._constraints['prior']['amplitude'] is None

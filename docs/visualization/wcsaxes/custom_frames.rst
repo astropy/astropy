@@ -1,6 +1,6 @@
-====================
+********************
 Using a custom frame
-====================
+********************
 
 By default, `~astropy.visualization.wcsaxes.WCSAxes` will make use of a rectangular
 frame for a plot, but this can be changed to provide any custom frame. The
@@ -73,6 +73,7 @@ The following example shows how you could for example define a hexagonal frame:
    :include-source:
    :nofigs:
 
+    import numpy as np
     from astropy.visualization.wcsaxes.frame import BaseFrame
 
     class HexagonalFrame(BaseFrame):
@@ -122,7 +123,7 @@ which we can then use:
 
 
 Frame properties
-================
+****************
 
 The color and linewidth of the frame can also be set by
 

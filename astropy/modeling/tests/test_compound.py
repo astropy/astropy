@@ -1,25 +1,33 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import inspect
 from copy import deepcopy
 
+import pickle
+import pytest
 import numpy as np
 
-from numpy.testing.utils import (assert_allclose, assert_array_equal,
-                                 assert_almost_equal)
+from numpy.testing import assert_allclose, assert_array_equal
 
-from ...extern.six.moves import cPickle as pickle
-from ...tests.helper import pytest
-
-from ..core import Model, ModelDefinitionError
-from ..parameters import Parameter
-from ..models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
+from astropy.utils import minversion
+from astropy.modeling.core import Model, ModelDefinitionError
+from astropy.modeling.parameters import Parameter
+from astropy.modeling.models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
                       Gaussian2D, Polynomial1D, Polynomial2D,
                       Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D,
-                      AffineTransformation2D, Identity, Mapping)
+                      AffineTransformation2D, Identity, Mapping,
+                      Tabular1D)
+
+
+try:
+    import scipy
+    from scipy import optimize  # pylint: disable=W0611
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
+
+HAS_SCIPY_14 = HAS_SCIPY and minversion(scipy, "0.14")
 
 
 @pytest.mark.parametrize(('expr', 'result'),
@@ -181,6 +189,7 @@ def test_simple_two_model_class_compose_2d():
     r3 = R2(45, 45, 45, 45)
     assert_allclose(r3(0, 1), (0, -1), atol=1e-10)
 
+
 def test_n_submodels():
     """
     Test that CompoundModel.n_submodels properly returns the number
@@ -202,6 +211,7 @@ def test_n_submodels():
     p = Polynomial1D + Polynomial1D
 
     assert p.n_submodels() == 2
+
 
 def test_expression_formatting():
     """
@@ -423,7 +433,6 @@ def test_indexing_on_instance():
     const.amplitude = 137
     assert m.amplitude_1 == 137
 
-
     # Similar couple of tests, but now where the compound model was created
     # from model instances
     g = Gaussian1D(1, 2, 3, name='g')
@@ -571,7 +580,7 @@ def test_slicing_on_instances_2():
     with pytest.raises(IndexError):
         m['x']
     with pytest.raises(IndexError):
-        m['a' : 'r']
+        m['a': 'r']
 
     with pytest.raises(ModelDefinitionError):
         assert m[-4:4].submodel_names == ('b', 'c', 'd')
@@ -606,7 +615,7 @@ def test_slicing_on_instances_3():
     with pytest.raises(IndexError):
         m['x']
     with pytest.raises(IndexError):
-        m['a' : 'r']
+        m['a': 'r']
     assert m[-4:4].submodel_names == ('b', 'c', 'd')
     assert m[-4:-2].submodel_names == ('b', 'c')
 
@@ -835,7 +844,6 @@ class _TestPickleModel(Gaussian1D + Gaussian1D):
     pass
 
 
-@pytest.mark.skipif(str("sys.version_info < (2, 7, 3)"))
 def test_pickle_compound():
     """
     Regression test for
@@ -875,25 +883,13 @@ def test_pickle_compound():
     assert pickle.loads(p) is _TestPickleModel
 
 
-@pytest.mark.skipif(str("sys.version_info >= (2, 7, 3)"))
-def test_pickle_compound_fallback():
-    """
-    Test fallback for pickling compound model on old versions of Python
-    affected by http://bugs.python.org/issue7689
-    """
-
-    gg = (Gaussian1D + Gaussian1D)()
-    with pytest.raises(RuntimeError):
-        pickle.dumps(gg)
-
-
 def test_update_parameters():
     offx = Shift(1)
     scl = Scale(2)
     m = offx | scl
     assert(m(1) == 4)
 
-    offx.offset=42
+    offx.offset = 42
     assert(m(1) == 4)
 
     m.factor_1 = 100
@@ -914,3 +910,21 @@ def test_name():
     m1 = m.rename("M1")
     assert m.name == "M"
     assert m1.name == "M1"
+
+@pytest.mark.skipif("not HAS_SCIPY_14")
+def test_tabular_in_compound():
+    """
+    Issue #7411 - evaluate should not change the shape of the output.
+    """
+    t = Tabular1D(points=([1, 5, 7],), lookup_table=[12, 15, 19],
+                  bounds_error=False)
+    rot = Rotation2D(2)
+    p = Polynomial1D(1)
+    x = np.arange(12).reshape((3,4))
+    # Create a compound model which does ot execute Tabular.__call__,
+    # but model.evaluate and is followed by a Rotation2D which
+    # checks the exact shapes.
+    model = p & t | rot
+    x1, y1 = model(x, x)
+    assert x1.ndim == 2
+    assert y1.ndim == 2

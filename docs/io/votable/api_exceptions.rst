@@ -1,14 +1,14 @@
 .. include:: references.txt
 
 `astropy.io.votable.exceptions`
-===============================
+*******************************
 
 .. contents::
 
 .. automodule:: astropy.io.votable.exceptions
 
 Exception utilities
--------------------
+===================
 
 .. currentmodule:: astropy.io.votable.exceptions
 

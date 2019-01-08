@@ -6,8 +6,6 @@ makes a subprocess call to xmllint.  This could use a Python-based
 library at some point in the future, if something appropriate could be
 found.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 import os
@@ -50,7 +48,7 @@ def validate_schema(filename, schema_file):
         raise OSError(
             "xmllint not found, so can not validate schema")
     elif p.returncode < 0:
-        from ..misc import signal_number_to_name
+        from astropy.utils.misc import signal_number_to_name
         raise OSError(
             "xmllint was terminated by signal '{0}'".format(
                 signal_number_to_name(-p.returncode)))

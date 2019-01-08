@@ -1,25 +1,24 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import itertools
 
+import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from ..convolve import convolve, convolve_fft
-from ..kernels import Gaussian2DKernel, Box2DKernel, Tophat2DKernel
-from ..kernels import Moffat2DKernel
-from ...tests.helper import pytest
+from astropy.convolution.convolve import convolve, convolve_fft
+from astropy.convolution.kernels import Gaussian2DKernel, Box2DKernel, Tophat2DKernel
+from astropy.convolution.kernels import Moffat2DKernel
 
 
 SHAPES_ODD = [[15, 15], [31, 31]]
-SHAPES_EVEN = [[8, 8], [16, 16], [32, 32]]
+SHAPES_EVEN = [[8, 8], [16, 16], [32, 32]]  # FIXME: not used ?!
+NOSHAPE = [[None, None]]
 WIDTHS = [2, 3, 4, 5]
 
 KERNELS = []
 
-for shape in SHAPES_ODD:
+for shape in SHAPES_ODD + NOSHAPE:
     for width in WIDTHS:
 
         KERNELS.append(Gaussian2DKernel(width,
@@ -46,7 +45,7 @@ for shape in SHAPES_ODD:
                                       factor=10))
 
 
-class Test2DConvolutions(object):
+class Test2DConvolutions:
 
     @pytest.mark.parametrize('kernel', KERNELS)
     def test_centered_makekernel(self, kernel):
@@ -57,7 +56,7 @@ class Test2DConvolutions(object):
         shape = kernel.array.shape
 
         x = np.zeros(shape)
-        xslice = [slice(sh // 2, sh // 2 + 1) for sh in shape]
+        xslice = tuple([slice(sh // 2, sh // 2 + 1) for sh in shape])
         x[xslice] = 1.0
 
         c2 = convolve_fft(x, kernel, boundary='fill')
@@ -96,7 +95,7 @@ class Test2DConvolutions(object):
         kernel = np.ones([width, width])
 
         x = np.zeros(shape)
-        xslice = [slice(sh // 2, sh // 2 + 1) for sh in shape]
+        xslice = tuple([slice(sh // 2, sh // 2 + 1) for sh in shape])
         x[xslice] = 1.0
 
         c2 = convolve_fft(x, kernel, boundary='fill')
@@ -112,11 +111,11 @@ class Test2DConvolutions(object):
         Compares a small uniform kernel to the Box2DKernel
         """
 
-        kernel1 = np.ones([width, width]) / np.float(width) ** 2
+        kernel1 = np.ones([width, width]) / float(width) ** 2
         kernel2 = Box2DKernel(width, mode='oversample', factor=10)
 
         x = np.zeros(shape)
-        xslice = [slice(sh // 2, sh // 2 + 1) for sh in shape]
+        xslice = tuple([slice(sh // 2, sh // 2 + 1) for sh in shape])
         x[xslice] = 1.0
 
         c2 = convolve_fft(x, kernel2, boundary='fill')

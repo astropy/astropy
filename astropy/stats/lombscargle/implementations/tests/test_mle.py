@@ -1,15 +1,15 @@
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from .....tests.helper import pytest
-from .....extern.six.moves import range
-from ..mle import design_matrix, periodic_fit
+from astropy.stats.lombscargle.implementations.mle import design_matrix, periodic_fit
 
 
 @pytest.fixture
 def t():
     rand = np.random.RandomState(42)
     return 10 * rand.rand(10)
+
 
 @pytest.mark.parametrize('freq', [1.0, 2])
 @pytest.mark.parametrize('dy', [None, 2.0])

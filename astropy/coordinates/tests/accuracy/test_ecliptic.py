@@ -2,16 +2,14 @@
 """
 Accuracy tests for Ecliptic coordinate systems.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
-from ....tests.helper import quantity_allclose
-from .... import units as u
-from ... import SkyCoord
-from ...builtin_frames import FK5, ICRS, GCRS, GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
-from ....constants import R_sun, R_earth
+from astropy.units import allclose as quantity_allclose
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+from astropy.coordinates.builtin_frames import FK5, ICRS, GCRS, GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
+from astropy.constants import R_sun, R_earth
 
 
 def test_against_pytpm_doc_example():
@@ -26,8 +24,7 @@ def test_against_pytpm_doc_example():
                                         equinox='J2000')
     astropy_out = fk5_in.transform_to(pytpm_out)
 
-    # we check w/i 1 arcmin because there are some subtle differences in pyTPM's ecl definition
-    assert pytpm_out.separation(astropy_out) < (1*u.arcmin)
+    assert pytpm_out.separation(astropy_out) < (1*u.arcsec)
 
 
 def test_ecliptic_heliobary():
@@ -92,6 +89,7 @@ def test_arraytransforms():
 
     geo_gcrs = geo_arr.transform_to(GCRS)
     assert geo_gcrs.shape == test_gcrs.shape
+
 
 def test_roundtrip_scalar():
     icrs = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.au)

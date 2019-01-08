@@ -1,13 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ..bst import BST
-from ...extern.six.moves import range
-from ...tests.helper import pytest
+
+import pytest
+
+from astropy.table.bst import BST
+
 
 def get_tree(TreeType):
     b = TreeType([], [])
     for val in [5, 2, 9, 3, 4, 1, 6, 10, 8, 7]:
         b.add(val)
     return b
+
 
 @pytest.fixture
 def tree():
@@ -24,9 +27,11 @@ def tree():
           7
     '''
 
+
 @pytest.fixture
-def bst():
-    return tree()
+def bst(tree):
+    return tree
+
 
 def test_bst_add(bst):
     root = bst.root
@@ -41,9 +46,11 @@ def test_bst_add(bst):
     assert root.right.left.right.data == [8]
     assert root.right.left.right.left.data == [7]
 
+
 def test_bst_dimensions(bst):
     assert bst.size == 10
     assert bst.height == 4
+
 
 def test_bst_find(tree):
     bst = tree
@@ -53,6 +60,7 @@ def test_bst_find(tree):
     assert bst.find(0) == []
     assert bst.find(11) == []
     assert bst.find('1') == []
+
 
 def test_bst_traverse(bst):
     preord = [5, 2, 1, 3, 4, 9, 6, 8, 7, 10]
@@ -65,6 +73,7 @@ def test_bst_traverse(bst):
     assert traversals['inorder'] == inord
     assert traversals['postorder'] == postord
 
+
 def test_bst_remove(bst):
     order = (6, 9, 1, 3, 7, 2, 10, 5, 4, 8)
     vals = set(range(1, 11))
@@ -76,15 +85,17 @@ def test_bst_remove(bst):
         assert bst.size == 10 - i - 1
         assert bst.remove(-val) is False
 
+
 def test_bst_duplicate(bst):
     bst.add(10, 11)
     assert bst.find(10) == [10, 11]
     assert bst.remove(10, data=10) is True
     assert bst.find(10) == [11]
     with pytest.raises(ValueError):
-        bst.remove(10, data=30) # invalid data
+        bst.remove(10, data=30)  # invalid data
     assert bst.remove(10) is True
     assert bst.remove(10) is False
+
 
 def test_bst_range(tree):
     bst = tree

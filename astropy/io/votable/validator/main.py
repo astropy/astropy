@@ -3,20 +3,17 @@
 Validates a large collection of web-accessible VOTable files,
 and generates a report as a directory tree of HTML files.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-from ....extern import six
 
 # STDLIB
 import os
 
 # LOCAL
-from ....utils.data import get_pkg_data_filename
+from astropy.utils.data import get_pkg_data_filename
 from . import html
 from . import result
 
 
 __all__ = ['make_validation_report']
-
 
 
 def get_srcdir():
@@ -35,7 +32,7 @@ def get_urls(destdir, s):
             'urls/cone.{0}.dat.gz'.format(type))
         with gzip.open(filename, 'rb') as fd:
             for url in fd.readlines():
-                six.next(s)
+                next(s)
                 url = url.strip()
                 if url not in seen:
                     with result.Result(url, root=destdir) as r:
@@ -113,7 +110,7 @@ def make_validation_report(
     locally in *destdir*.  To refresh the cache, remove *destdir*
     first.
     """
-    from ....utils.console import (color_print, ProgressBar, Spinner)
+    from astropy.utils.console import (color_print, ProgressBar, Spinner)
 
     if stilts is not None:
         if not os.path.exists(stilts):
@@ -146,7 +143,6 @@ def make_validation_report(
         votlint_args = [(stilts, x, destdir) for x in urls]
         ProgressBar.map(
             votlint_validate, votlint_args, multiprocess=multiprocess)
-
 
     color_print('Generating HTML files', 'green')
     ProgressBar.map(

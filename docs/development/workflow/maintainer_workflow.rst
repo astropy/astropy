@@ -1,8 +1,8 @@
 .. _maintainer-workflow:
 
-########################
+************************
 Workflow for Maintainers
-########################
+************************
 
 This page is for maintainers |emdash| those of us who merge our own or other
 peoples' changes into the upstream repository.
@@ -10,17 +10,17 @@ peoples' changes into the upstream repository.
 Being as how you're a maintainer, you are completely on top of the basic stuff
 in :ref:`development-workflow`.
 
-*******************************************************
+=======================================================
 Integrating changes via the web interface (recommended)
-*******************************************************
+=======================================================
 
 Whenever possible, merge pull requests automatically via the pull request manager on GitHub. Merging should only be done manually if there is a really good reason to do this!
 
 Make sure that pull requests do not contain a messy history with merges, etc. If this is the case, then follow the manual instructions, and make sure the fork is rebased to tidy the history before committing.
 
-****************************
+============================
 Integrating changes manually
-****************************
+============================
 
 First, check out the ``astropy`` repository. The instructions in :ref:`set_upstream_master` add a remote that has read-only
 access to the upstream repo.  Being a maintainer, you've got read-write access.
@@ -46,7 +46,7 @@ So now you are on the branch with the changes to be incorporated upstream. The
 rest of this section assumes you are on this branch.
 
 A few commits
-=============
+-------------
 
 If there are only a few commits, consider rebasing to upstream::
 
@@ -61,7 +61,7 @@ github pull requests manually, because github will not be able to detect the
 changes have already been merged.
 
 A long series of commits
-========================
+------------------------
 
 If there are a longer series of related commits, consider a merge instead::
 
@@ -77,7 +77,7 @@ rejoin the main history with a merge, rather than appearing to have been made
 directly on top of trunk.
 
 Check the history
-=================
+-----------------
 
 Now, in either case, you should check that the history is sensible and you
 have the right commits::
@@ -93,7 +93,7 @@ at the end). So, it shows the commits unique to this branch compared to trunk.
 The ``-p`` option shows the diff for these commits in patch form.
 
 Push to trunk
-=============
+-------------
 
 ::
 
@@ -105,9 +105,9 @@ branch in the ``upstream-rw`` repository.
 
 .. _milestones-and-labels:
 
-***************************
+===========================
 Using Milestones and Labels
-***************************
+===========================
 
 These guidelines are adapted from `similar guidelines <https://github.com/ipython/ipython/wiki/IPython-on-GitHub>`_
 followed by IPython:
@@ -165,9 +165,9 @@ followed by IPython:
 
 .. _changelog-format:
 
-**************************************
+======================================
 Updating and Maintaining the Changelog
-**************************************
+======================================
 
 The Astropy "changelog" is kept in the file ``CHANGES.rst`` at the root of the
 repository.  As the filename extension suggests this is a reStructured Text
@@ -181,7 +181,7 @@ that were changed (and how they were changed) or removed.  It also lists all
 bug fixes.  Affiliated packages are encouraged to maintain a similar changelog.
 
 Adding to the changelog
-=======================
+-----------------------
 
 There are two approaches one may take to adding a new entry to the changelog,
 each with certain pros and cons.  Before describing the two specific approaches
@@ -222,7 +222,7 @@ The first approach is probably preferable, especially for core contributors.
 But the latter approach is acceptable as well.
 
 Changelog format
-================
+----------------
 
 The exact formatting of the changelog content is a bit loose for now (though
 it might become stricter if we want to develop more tools around the

@@ -1,15 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest, catch_warnings
-from ...table import Table, Column
-from ...utils.exceptions import AstropyUserWarning
+from astropy.tests.helper import catch_warnings
+from astropy.table import Table, Column, QTable, table_helpers, NdarrayMixin, unique
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy import time
+from astropy import units as u
+from astropy import coordinates
+
 
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
+
 
 def test_column_group_by(T1):
     for masked in (False, True):
@@ -27,6 +32,7 @@ def test_column_group_by(T1):
         # Group by a numpy structured array
         t1ag = t1a.group_by(t1['a', 'b'].as_array())
         assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
+
 
 def test_table_group_by(T1):
     """
@@ -453,8 +459,10 @@ def test_table_aggregate_reduceat(T1):
     # Comparison functions without reduceat
     def np_mean(x):
         return np.mean(x)
+
     def np_sum(x):
         return np.sum(x)
+
     def np_add(x):
         return np.add(x)
 
@@ -573,3 +581,50 @@ def test_column_filter():
     assert c2.groups[0].pformat() == [' c ', '---', '7.0', '5.0']
     assert c2.groups[1].pformat() == [' c ', '---', '0.0']
     assert c2.groups[2].pformat() == [' c ', '---', '3.0', '2.0', '1.0']
+
+
+def test_group_mixins():
+    """
+    Test grouping a table with mixin columns
+    """
+    # Setup mixins
+    idx = np.arange(4)
+    x = np.array([3., 1., 2., 1.])
+    q = x * u.m
+    lon = coordinates.Longitude(x * u.deg)
+    lat = coordinates.Latitude(x * u.deg)
+    # For Time do J2000.0 + few * 0.1 ns (this requires > 64 bit precision)
+    tm = time.Time(2000, format='jyear') + time.TimeDelta(x * 1e-10, format='sec')
+    sc = coordinates.SkyCoord(ra=lon, dec=lat)
+    aw = table_helpers.ArrayWrapper(x)
+    nd = np.array([(3, 'c'), (1, 'a'), (2, 'b'), (1, 'a')],
+                  dtype='<i4,|S1').view(NdarrayMixin)
+
+    qt = QTable([idx, x, q, lon, lat, tm, sc, aw, nd],
+                names=['idx', 'x', 'q', 'lon', 'lat', 'tm', 'sc', 'aw', 'nd'])
+
+    # Test group_by with each supported mixin type
+    mixin_keys = ['x', 'q', 'lon', 'lat', 'tm', 'sc', 'aw', 'nd']
+    for key in mixin_keys:
+        qtg = qt.group_by(key)
+
+        # Test that it got the sort order correct
+        assert np.all(qtg['idx'] == [1, 3, 2, 0])
+
+        # Test that the groups are right
+        # Note: skip testing SkyCoord column because that doesn't have equality
+        for name in ['x', 'q', 'lon', 'lat', 'tm', 'aw', 'nd']:
+            assert np.all(qt[name][[1, 3]] == qtg.groups[0][name])
+            assert np.all(qt[name][[2]] == qtg.groups[1][name])
+            assert np.all(qt[name][[0]] == qtg.groups[2][name])
+
+    # Test that unique also works with mixins since most of the work is
+    # done with group_by().  This is using *every* mixin as key.
+    uqt = unique(qt, keys=mixin_keys)
+    assert len(uqt) == 3
+    assert np.all(uqt['idx'] == [1, 2, 0])
+    assert np.all(uqt['x'] == [1., 2., 3.])
+
+    # Column group_by() with mixins
+    idxg = qt['idx'].group_by(qt[mixin_keys])
+    assert np.all(idxg == [1, 3, 2, 0])

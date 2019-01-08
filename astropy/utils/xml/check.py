@@ -3,12 +3,10 @@
 A collection of functions for checking various XML-related strings for
 standards compliance.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ...extern.six.moves import range, urllib
 
 import re
+import urllib.parse
 
 
 def check_id(ID):
@@ -34,6 +32,7 @@ def fix_id(ID):
                      re.sub(r"[^A-Za-z0-9_\.\-]", "_", corrected[1:]))
         return corrected
     return ''
+
 
 _token_regex = r"(?![\r\l\t ])[^\r\l\t]*(?![\r\l\t ])"
 

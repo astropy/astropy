@@ -6,8 +6,6 @@ See the `Astropy documentation
 <http://docs.astropy.org/en/latest/cosmology/index.html>`_ for more
 detailed usage examples and references.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from .core import *
 from .funcs import *

@@ -1,21 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ...extern import six
 
 import copy
 
-from .. import Constant
-from ...units import Quantity as Q
-from ...tests.helper import pytest
+import pytest
+
+from astropy.constants import Constant
+from astropy.units import Quantity as Q
 
 
 def test_c():
 
-    from .. import c
+    from astropy.constants import c
 
     # c is an exactly defined constant, so it shouldn't be changing
     assert c.value == 2.99792458e8  # default is S.I.
@@ -31,7 +28,7 @@ def test_c():
 
 def test_h():
 
-    from .. import h
+    from astropy.constants import h
 
     # check that the value is fairly close to what it should be (not exactly
     # checking because this might get updated in the future)
@@ -49,7 +46,7 @@ def test_h():
 def test_e():
     """Tests for #572 demonstrating how EM constants should behave."""
 
-    from .. import e
+    from astropy.constants import e
 
     # A test quantity
     E = Q(100, 'V/m')
@@ -75,7 +72,7 @@ def test_e():
 
 def test_g0():
     """Tests for #1263 demonstrating how g0 constant should behave."""
-    from .. import g0
+    from astropy.constants import g0
 
     # g0 is an exactly defined constant, so it shouldn't be changing
     assert g0.value == 9.80665  # default is S.I.
@@ -97,8 +94,8 @@ def test_b_wien():
     given blackbody temperature. The Sun is used in this test.
 
     """
-    from .. import b_wien
-    from ... import units as u
+    from astropy.constants import b_wien
+    from astropy import units as u
     t = 5778 * u.K
     w = (b_wien / t).to(u.nm)
     assert round(w.value) == 502
@@ -106,11 +103,11 @@ def test_b_wien():
 
 def test_unit():
 
-    from ... import units as u
+    from astropy import units as u
 
-    from ... import constants as const
+    from astropy import constants as const
 
-    for key, val in six.iteritems(vars(const)):
+    for key, val in vars(const).items():
         if isinstance(val, Constant):
             # Getting the unit forces the unit parser to run.  Confirm
             # that none of the constants defined in astropy have
@@ -119,7 +116,7 @@ def test_unit():
 
 
 def test_copy():
-    from ... import constants as const
+    from astropy import constants as const
     cc = copy.deepcopy(const.c)
     assert cc == const.c
 
@@ -129,7 +126,7 @@ def test_copy():
 
 def test_view():
     """Check that Constant and Quantity views can be taken (#3537, #3538)."""
-    from .. import c
+    from astropy.constants import c
     c2 = c.view(Constant)
     assert c2 == c
     assert c2.value == c.value

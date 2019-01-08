@@ -1,9 +1,7 @@
 # Load the WCS information from a fits header, and use it
 # to convert pixel coordinates to world coordinates.
 
-from __future__ import division, print_function
-
-import numpy
+import numpy as np
 from astropy import wcs
 from astropy.io import fits
 import sys
@@ -21,8 +19,9 @@ def load_wcs_from_file(filename):
     # Print out all of the settings that were parsed from the header
     w.wcs.print_contents()
 
-    # Some pixel coordinates of interest.
-    pixcrd = numpy.array([[0, 0], [24, 38], [45, 98]], numpy.float_)
+    # Three pixel coordinates of interest.
+    # Note we've silently assumed a NAXIS=2 image here
+    pixcrd = np.array([[0, 0], [24, 38], [45, 98]], np.float_)
 
     # Convert pixel coordinates to world coordinates
     # The second argument is "origin" -- in this case we're declaring we
@@ -36,7 +35,7 @@ def load_wcs_from_file(filename):
 
     # These should be the same as the original pixel coordinates, modulo
     # some floating-point error.
-    assert numpy.max(numpy.abs(pixcrd - pixcrd2)) < 1e-6
+    assert np.max(np.abs(pixcrd - pixcrd2)) < 1e-6
 
 
 if __name__ == '__main__':

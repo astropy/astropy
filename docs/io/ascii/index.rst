@@ -20,7 +20,7 @@ The following shows a few of the ASCII formats that are available, while the sec
 * :class:`~astropy.io.ascii.Basic`: basic table with customizable delimiters and header configurations
 * :class:`~astropy.io.ascii.Cds`: `CDS format table <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ (also Vizier and ApJ machine readable tables)
 * :class:`~astropy.io.ascii.Daophot`: table from the IRAF DAOphot package
-* :class:`~astropy.io.ascii.Ecsv`: `Enhanced CSV format <https://github.com/astropy/astropy-APEs/blob/master/APE6.rst>`_
+* :class:`~astropy.io.ascii.Ecsv`: :ref:`ecsv_format` for lossless round-trip of data tables
 * :class:`~astropy.io.ascii.FixedWidth`: table with fixed-width columns (see also :ref:`fixed_width_gallery`)
 * :class:`~astropy.io.ascii.Ipac`: `IPAC format table <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
 * :class:`~astropy.io.ascii.HTML`: HTML format table contained in a <table> tag
@@ -34,7 +34,7 @@ be easily accommodated.
 
 .. note::
 
-    It is also possible to use the functionality from
+    It is also possible (and encouraged) to use the functionality from
     :mod:`astropy.io.ascii` through a higher-level interface in the
     :ref:`Data Tables <astropy-table>` package. See :ref:`table_io` for more details.
 
@@ -96,11 +96,13 @@ disable the fast engine::
 
    >>> data = ascii.read(lines, format='csv', fast_reader=False)
 
+For reading very large tables see the section on :ref:`chunk_reading`.
+
 .. Note::
 
-   Reading a table which contains non-ASCII (unicode) characters is only
-   supported in Python 3 or greater.  If you have Python 2.x and need
-   this functionality, consider using a newer version of Python.
+   Reading a table which contains unicode characters is supported; if you need
+   a different encoding, you can specify the ``encoding`` parameter in the
+   pure-Python readers.
 
 Writing Tables
 --------------
@@ -145,8 +147,7 @@ To disable this engine, use the parameter ``fast_writer``::
 
    >>> ascii.write(data, 'values.csv', format='csv', fast_writer=False)  # doctest: +SKIP
 
-Finally, one can write data in the `ECSV table format
-<https://github.com/astropy/astropy-APEs/blob/master/APE6.rst>`_ which allows
+Finally, one can write data in the :ref:`ecsv_format` which allows
 preserving table meta-data such as column data types and units.  In this way a
 data table (including one with masked entries) can be stored and read back as
 ASCII with no loss of information.
@@ -156,8 +157,8 @@ ASCII with no loss of information.
   >>> t['x'][1] = np.ma.masked
   >>> t['y'] = MaskedColumn([False, True], dtype='bool')
 
-  >>> from astropy.extern.six.moves import StringIO
-  >>> fh = StringIO()
+  >>> import io
+  >>> fh = io.StringIO()
   >>> t.write(fh, format='ascii.ecsv')  # doctest: +SKIP
   >>> table_string = fh.getvalue()      # doctest: +SKIP
   >>> print(table_string)               # doctest: +SKIP
@@ -221,6 +222,19 @@ the fast Cython/C engine for reading and writing.
 ========================= ===== ==== ============================================================================================
 
 
+.. attention:: **ECSV is recommended**
+
+   For writing and reading tables to ASCII in a way that fully reproduces the
+   table data, types and metadata (i.e. the table will "round-trip"), we highly
+   recommend using the :ref:`ecsv_format`.  This writes the actual data in a
+   simple space-delimited format (the ``basic`` format) that any ASCII table
+   reader can parse, but also includes metadata encoded in a comment block that
+   allows full reconstruction of the original columns.  This includes support
+   for :ref:`ecsv_format_mixin_columns` (such as
+   `~astropy.coordinates.SkyCoord` or `~astropy.time.Time`) and
+   :ref:`ecsv_format_masked_columns`.
+
+
 Using `astropy.io.ascii`
 ========================
 
@@ -274,6 +288,10 @@ Extension Reader classes
 
    extension_classes
 
+.. note that if this section gets too long, it should be moved to a separate 
+   doc page - see the top of performance.inc.rst for the instructions on how to do 
+   that
+.. include:: performance.inc.rst
 
 Reference/API
 =============

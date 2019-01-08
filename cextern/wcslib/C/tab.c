@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.14 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2016, Mark Calabretta
+  WCSLIB 5.19 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.c,v 5.14 2016/02/07 10:49:31 mcalabre Exp $
+  $Id: tab.c,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -411,7 +411,7 @@ int tabcpy(int alloc, const struct tabprm *tabsrc, struct tabprm *tabdst)
 
 /*--------------------------------------------------------------------------*/
 
-int tabcmp(int cmp,
+int tabcmp(int dummy,
            double tol,
            const struct tabprm *tab1,
            const struct tabprm *tab2,
@@ -419,6 +419,9 @@ int tabcmp(int cmp,
 
 {
   int m, M, N;
+
+  /* Avert nuisance compiler warnings about unused parameters. */
+  (void)dummy;
 
   if (tab1  == 0x0) return TABERR_NULL_POINTER;
   if (tab2  == 0x0) return TABERR_NULL_POINTER;
@@ -1432,8 +1435,8 @@ int tabedge(struct tabprm* tab)
 int tabrow(struct tabprm* tab, const double *wp)
 
 {
-  int iv, M, m, nv, offset;
-  unsigned int eq, gt, lt;
+  int M, m, offset;
+  unsigned int eq, gt, iv, lt, nv;
   const double tol = 1e-10;
   double *cp, w;
 
@@ -1529,8 +1532,8 @@ int tabvox(
   unsigned int *vox)
 
 {
-  int i, iv, jv, M, m, nv;
-  unsigned int eq, et, gt, lt, vox2[16];
+  int i, M, m;
+  unsigned int eq, et, gt, iv, jv, lt, nv, vox2[16];
   const double tol = 1e-10;
   double coord[16], *cp, dv, w, wgt;
 

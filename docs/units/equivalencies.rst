@@ -3,16 +3,16 @@
 .. _unit_equivalencies:
 
 Equivalencies
-=============
+*************
 
 The unit module has machinery for supporting equivalences between
-different units in certain contexts. Namely when equations can
+different units in certain contexts, namely when equations can
 uniquely relate a value in one unit to a different unit. A good
 example is the equivalence between wavelength, frequency and energy
 for specifying a wavelength of radiation. Normally these units are not
 convertible, but when understood as representing light, they are
-convertible in certain contexts.  This will describe how to use the
-equivalencies included in `astropy.units` and then describe how to
+convertible in certain contexts.  Here we describe how to use the
+equivalencies included in `astropy.units` and how to
 define new equivalencies.
 
 Equivalencies are used by passing a list of equivalency pairs to the
@@ -23,10 +23,10 @@ piece of code needs the same equivalencies, one can set them for a
 :ref:`given context <equivalency-context>`.
 
 Built-in equivalencies
-----------------------
+======================
 
 Parallax Units
-^^^^^^^^^^^^^^
+--------------
 
 :func:`~astropy.units.equivalencies.parallax` is a function that returns an
 equivalency list to handle conversions between angles and length.
@@ -51,11 +51,12 @@ into units of length (and vice versa).
     3437.7467707580054
 
 Angles as Dimensionless Units
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------
 
-Angles are treated as a physically distinct type, which usually helps to
-avoid mistakes.  For units such as rotational energy, however, it is not
-very handy.  (Indeed, this double-sidedness underlies why radian went from
+Angles are treated as a physically distinct type, which usually helps
+to avoid mistakes.  However, this is not very handy when working with
+units related to rotational energy or the small angle approximation.
+(Indeed, this double-sidedness underlies why radian went from
 `supplementary to derived unit <http://www.bipm.org/en/CGPM/db/20/8/>`__.)
 The function :func:`~astropy.units.equivalencies.dimensionless_angles`
 provides the required equivalency list that helps convert between
@@ -74,7 +75,7 @@ dimensionless).  For instance, normally the following raise exceptions::
     ...
   UnitConversionError: 'cycle2 kg m2 / s2' and 'J' (energy) are not convertible
 
-But when passing we pass the proper conversion function,
+But when passing the proper conversion function,
 :func:`~astropy.units.equivalencies.dimensionless_angles`, it works.
 
   >>> u.deg.to('', equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP
@@ -83,15 +84,39 @@ But when passing we pass the proper conversion function,
   ...                            equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP
   <Quantity 1.9739208802178715e+39 J>
   >>> import numpy as np
-  >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))  # doctest: +FLOAT_CMP
-  <Quantity (0.7071067811865476+0.7071067811865475j)>
+  >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))  # doctest: +SKIP
+  <Quantity  0.70710678+0.70710678j>
 
 The example with complex numbers is also one may well be doing a fair
 number of similar calculations.  For such situations, there is the
 option to :ref:`set default equivalencies <equivalency-context>`.
 
+In some situations, this equivalency may behave differently than
+anticipated.  For instance, it might at first seem reasonable to use it
+for converting from an angular velocity :math:`\omega` in radians per
+second to the corresponding frequency :math:`f` in hertz (i.e., to
+implement :math:`f=\omega/2\pi`). However, attempting this yields:
+
+  >>> (1*u.rad/u.s).to(u.Hz, equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP
+  <Quantity 1. Hz>
+  >>> (1*u.cycle/u.s).to(u.Hz, equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP
+  <Quantity 6.283185307179586 Hz>
+
+Here, we might have expected ~0.159 Hz in the first example and 1 Hz in
+the second. However, :func:`~astropy.units.equivalencies.dimensionless_angles`
+converts to radians per second and then drops radians as a unit. The
+implicit mistake made in these examples is that the unit Hz is taken to be
+equivalent to cycles per second, which it is not (it is just "per second").
+This realization also leads to the solution: to use an explicit equivalency
+between cycles per second and hertz:
+
+  >>> (1*u.rad/u.s).to(u.Hz, equivalencies=[(u.cy/u.s, u.Hz)])  # doctest: +FLOAT_CMP
+  <Quantity 0.15915494309189535 Hz>
+  >>> (1*u.cy/u.s).to(u.Hz, equivalencies=[(u.cy/u.s, u.Hz)])  # doctest: +FLOAT_CMP
+  <Quantity 1. Hz>
+
 Spectral Units
-^^^^^^^^^^^^^^
+--------------
 
 :func:`~astropy.units.equivalencies.spectral` is a function that returns
 an equivalency list to handle conversions between wavelength,
@@ -103,10 +128,10 @@ equivalencies (in this case, the result of
 :meth:`~astropy.units.core.UnitBase.to` method and wavelength, frequency and
 energy can be converted.
 
-  >>> ([1000, 2000] * u.nm).to(u.Hz, equivalencies=u.spectral())
-  <Quantity [  2.99792458e+14,  1.49896229e+14] Hz>
+  >>> ([1000, 2000] * u.nm).to(u.Hz, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
+  <Quantity [2.99792458e+14, 1.49896229e+14] Hz>
   >>> ([1000, 2000] * u.nm).to(u.eV, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
-  <Quantity [ 1.23984193, 0.61992096] eV>
+  <Quantity [1.23984193, 0.61992096] eV>
 
 These equivalencies even work with non-base units::
 
@@ -116,7 +141,7 @@ These equivalencies even work with non-base units::
   1.869180759162485e-27
 
 Spectral (Doppler) equivalencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 Spectral equivalencies allow you to convert between wavelength,
 frequency, energy, and wave number but not to velocity, which is
@@ -143,7 +168,7 @@ These three conventions are implemented in
     <Quantity -1895.4321928669085 km / s>
 
 Spectral Flux / Luminosity Density Units
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------------
 
 There is also support for spectral flux and luminosity density units. Their use
 is more complex, since it is necessary to also supply the location in the
@@ -163,14 +188,15 @@ its arguments the |quantity| for the spectral location. For example::
     ...      equivalencies=u.spectral_density(5500 * u.AA)) # doctest: +FLOAT_CMP
     <Quantity 3.6443382634999996e-23 erg / (Hz s)>
 
-Brightness Temperature / Flux Density Equivalency
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Brightness Temperature / Surface Brightness Equivalency
+-------------------------------------------------------
 
-There is an equivalency for brightness temperature and flux density.
-This equivalency is often referred to as "Antenna Gain" since, at a
-given frequency, telescope brightness sensitivity is unrelated to
-aperture size, but flux density sensitivity is, so this equivalency is
-only dependent on the aperture size.  See `Tools of Radio Astronomy
+There is an equivalency between surface brightness (flux density per area) and
+brightness temperature.  This equivalency is often referred to as "Antenna
+Gain" since, at a given frequency, telescope brightness sensitivity is
+unrelated to aperture size, but flux density sensitivity is, so this
+equivalency is only dependent on the aperture size.  See `Tools of Radio
+Astronomy
 <http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__
 for details.
 
@@ -184,20 +210,15 @@ for details.
 The `~astropy.units.equivalencies.brightness_temperature` equivalency requires
 the beam area and frequency as arguments.  Recalling that the area of a 2D
 gaussian is :math:`2 \pi \sigma^2` (see `wikipedia
-<http://en.wikipedia.org/wiki/Gaussian_function#Two-dimensional_Gaussian_function>`_),
+<https://en.wikipedia.org/wiki/Gaussian_function#Two-dimensional_Gaussian_function>`_),
 here is an example::
 
     >>> import numpy as np
     >>> beam_sigma = 50*u.arcsec
     >>> omega_B = 2 * np.pi * beam_sigma**2
     >>> freq = 5 * u.GHz
-    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
-    3.526294...
-
-.. note:: Despite the Astropy unit on the left being shown as ``u.Jy``, this is
-          the conversion factor from Jy/beam to K (because ``u.beam`` cannot
-          currently be used as a meaningful unit since it depends on the
-          observations).
+    >>> (1*u.Jy/omega_B).to(u.K, equivalencies=u.brightness_temperature(freq))  # doctest: +FLOAT_CMP
+    <Quantity 3.526295144567176 K>
 
 If you have beam full-width half-maxima (FWHM), which are often quoted and are
 the values stored in the FITS header keywords BMAJ and BMIN, a more appropriate
@@ -209,12 +230,56 @@ example converts the FWHM to sigma::
     >>> beam_sigma = beam_fwhm * fwhm_to_sigma
     >>> omega_B = 2 * np.pi * beam_sigma**2
     >>> freq = 5 * u.GHz
-    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))  # doctest: +FLOAT_CMP
-    19.553928332631582
+    >>> (1*u.Jy/omega_B).to(u.K, equivalencies=u.brightness_temperature(freq))  # doctest: +FLOAT_CMP
+    <Quantity 19.553932298231704 K>
 
+You can also convert between ``Jy/beam`` and ``K`` by specifying the beam area::
+
+    >>> import numpy as np
+    >>> beam_fwhm = 50*u.arcsec
+    >>> fwhm_to_sigma = 1. / (8 * np.log(2))**0.5
+    >>> beam_sigma = beam_fwhm * fwhm_to_sigma
+    >>> omega_B = 2 * np.pi * beam_sigma**2
+    >>> freq = 5 * u.GHz
+    >>> (1*u.Jy/u.beam).to(u.K, u.brightness_temperature(freq, beam_area=omega_B))  # doctest: +FLOAT_CMP
+    <Quantity 19.553932298231704 K>
+
+Finally, there is an equivalency that allows you to convert from Jansky to Kelvin.
+In this case, the Jansky unit is *implicitly* Jansky/beam.  Because of the implicit
+assumed per beam unit, this approach is deprecated.::
+
+    >>> import numpy as np
+    >>> beam_fwhm = 50*u.arcsec
+    >>> fwhm_to_sigma = 1. / (8 * np.log(2))**0.5
+    >>> beam_sigma = beam_fwhm * fwhm_to_sigma
+    >>> omega_B = 2 * np.pi * beam_sigma**2
+    >>> freq = 5 * u.GHz
+    >>> # DEPRECATED
+    >>> (1*u.Jy).to(u.K, u.brightness_temperature(freq, beam_area=omega_B))  # doctest: +FLOAT_CMP
+    <Quantity 19.553932298231704 K>
+
+
+Beam Equivalency
+----------------
+
+Radio data, especially from interferometers, is often produced in units of ``Jy/beam``.
+Converting this number to a beam-independent value, e.g., ``Jy/sr``, can be done
+with the `~astropy.units.equivalencies.beam_angular_area` equivalency::
+
+    >>> import numpy as np
+    >>> beam_fwhm = 50*u.arcsec
+    >>> fwhm_to_sigma = 1. / (8 * np.log(2))**0.5
+    >>> beam_sigma = beam_fwhm * fwhm_to_sigma
+    >>> omega_B = 2 * np.pi * beam_sigma**2
+    >>> (1*u.Jy/u.beam).to(u.MJy/u.sr, equivalencies=u.beam_angular_area(omega_B))  # doctest: +FLOAT_CMP
+    <Quantity 15.019166691021288 MJy / sr>
+
+
+Note that the `radio_beam <https://github.com/radio-astro-tools/radio-beam>`_ package
+deals with beam input/output and various operations more directly.
 
 Temperature Energy Equivalency
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
 This equivalency allows conversion between temperature and its equivalent
 in energy (i.e., the temperature multiplied by the Boltzmann constant),
@@ -226,9 +291,49 @@ observations at high-energy, be it for solar or X-ray astronomy. Example::
     >>> t_k.to(u.eV, equivalencies=u.temperature_energy())  # doctest: +FLOAT_CMP
     <Quantity 86.17332384960955 eV>
 
+.. _tcmb-equivalency:
+
+Thermodynamic Temperature Equivalency
+-------------------------------------
+
+This :func:`~astropy.units.equivalencies.thermodynamic_temperature`
+equivalency allows conversion between Jy/beam and "thermodynamic
+temperature", :math:`T_{CMB}`, in Kelvins. Example::
+
+    >>> import astropy.units as u
+    >>> nu = 143 * u.GHz
+    >>> t_k = 0.002632051878 * u.K
+    >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu))  # doctest: +FLOAT_CMP
+    <Quantity 1. MJy / sr>
+
+By default, this will use the :math:`T_{CMB}` value for the 'default cosmology'
+in astropy, but it is possible to specify a custom :math:`T_{CMB}` value for a
+specific cosmology as the second argument to the equivalency::
+
+    >>> from astropy.cosmology import WMAP9
+    >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu, T_cmb=WMAP9.Tcmb0))  # doctest: +FLOAT_CMP
+    <Quantity 0.99982392 MJy / sr>
+
+Molar Mass AMU Equivalency
+--------------------------
+
+This equivalency allows conversion
+between the atomic mass unit and the equivalent g/mol.
+For reference to why this was added,
+refer to `NIST Mole Reference <https://physics.nist.gov/cuu/Units/mole.html>`_
+The following is an example of it's usage:
+
+    >>> import astropy.units as u
+    >>> import astropy.constants as const
+    >>> x = 1 * (u.g / u.mol)
+    >>> y = 1 * u.u
+    >>> x.to(u.u, equivalencies=u.molar_mass_amu()) # doctest: +FLOAT_CMP
+    <Quantity 1.0 u>
+    >>> y.to(u.g/u.mol, equivalencies=u.molar_mass_amu()) # doctest: +FLOAT_CMP
+    <Quantity 1.0 g / mol>
 
 Pixel and plate scale Equivalencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------
 
 These equivalencies are for converting between angular scales and either linear
 scales in the focal plane or distances in units of the number of pixels.  For
@@ -251,8 +356,65 @@ and you want to know how big your pixels need to be to cover half an arcsecond::
     >>> (0.5*u.arcsec).to(u.micron, tel_platescale)  # doctest: +FLOAT_CMP
     <Quantity 18.9077335632719 micron>
 
+Photometric Zero Point Equivalency
+----------------------------------
+
+This equivalency provides an easy way to move between photometric systems (i.e.,
+those defined relative to a particular zero-point flux) and absolute fluxes.
+This is most useful in conjuction with support for :ref:`logarithmic_units`.
+For example, suppose you are observing a target with a filter with a reported
+standard zero point of 3631.1 Jy::
+
+    >>> target_flux = 1.2 * u.nanomaggy
+    >>> zero_point_star_equiv = u.zero_point_flux(3631.1 * u.Jy)
+    >>> u.Magnitude(target_flux.to(u.AB, zero_point_star_equiv))  # doctest: +FLOAT_CMP
+    <Magnitude 22.30195136 mag(AB)>
+
+.. _H0-equivalency:
+
+Reduced Hubble constant/"little-h" Equivalency
+----------------------------------------------
+
+The dimensionless version of the Hubble constant - often known as "little h" -
+is a frequently-used quantity in extragalactic astrophysics.  It is also widely
+known as the bane of beginners' existence in such fields (See e.g., the title of
+`this paper <https://doi.org/10.1017/pasa.2013.31>`__, which also provides
+valuable advice on the use of little h).  Astropy provides an equivalency that
+helps keep this straight in at least some of these cases, by providing a way to
+convert to/from physical to "little h" units.  Two example conversions:
+
+    >>> import astropy.units as u
+    >>> H0_70 = 70 * u.km/u.s / u.Mpc
+    >>> distance = 70 * (u.Mpc/u.littleh)
+    >>> distance.to(u.Mpc, u.with_H0(H0_70))  # doctest: +FLOAT_CMP
+    <Quantity 100.0 Mpc>
+    >>> luminosity = 0.49 * u.Lsun * u.littleh**-2
+    >>> luminosity.to(u.Lsun, u.with_H0(H0_70))  # doctest: +FLOAT_CMP
+    <Quantity 1.0 solLum>
+
+Note the unit name ``littleh`` - while this unit is usually expressed in the
+literature as just ``h``, here it is ``littleh`` to not cause confusion with
+"hours".
+
+If no argument is given (or the argument is `None`), this equivalency assumes
+the ``H0`` from the current default cosmology:
+
+    >>> distance = 100 * (u.Mpc/u.littleh)
+    >>> distance.to(u.Mpc, u.with_H0())  # doctest: +FLOAT_CMP
+    <Quantity 147.62326543 Mpc>
+
+This equivalency also allows a common magnitude formulation of little h
+scaling:
+
+    >>> mag_quantity = 12 * (u.mag - u.MagUnit(u.littleh**2))
+    >>> mag_quantity  # doctest: +FLOAT_CMP
+    <Magnitude 12. mag(1 / littleh2)>
+    >>> mag_quantity.to(u.mag, u.with_H0(H0_70))  # doctest: +FLOAT_CMP
+    <Quantity 11.2254902 mag>
+
+
 Writing new equivalencies
--------------------------
+=========================
 
 An equivalence list is just a list of tuples, where each tuple has 4
 elements::
@@ -260,7 +422,9 @@ elements::
   (from_unit, to_unit, forward, backward)
 
 ``from_unit`` and ``to_unit`` are the equivalent units.  ``forward`` and
-``backward`` are functions that convert values between those units.
+``backward`` are functions that convert values between those units. ``forward``
+and ``backward`` are optional, and if omitted such an equivalency simply
+declares that the two units should be taken as equivalent.
 
 For example, until 1964 the metric liter was defined as the volume of
 1kg of water at 4°C at 760mm mercury pressure.  Volumes and masses are
@@ -286,7 +450,7 @@ And it also works in the other direction::
   0.9586114172355459
 
 A slightly more complicated example: Spectral Doppler Equivalencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------------------------------
 
 We show how to define an equivalency using the radio convention for CO 1-0.
 This function is already defined in
@@ -296,8 +460,8 @@ but this example is illustrative::
     >>> from astropy.constants import si
     >>> restfreq = 115.27120  # rest frequency of 12 CO 1-0 in GHz
     >>> freq_to_vel = [(u.GHz, u.km/u.s,
-    ... lambda x: (restfreq-x) / restfreq * si.c.to('km/s').value,
-    ... lambda x: (1-x/si.c.to('km/s').value) * restfreq )]
+    ... lambda x: (restfreq-x) / restfreq * si.c.to_value('km/s'),
+    ... lambda x: (1-x/si.c.to_value('km/s')) * restfreq )]
     >>> u.Hz.to(u.km / u.s, 116e9, equivalencies=freq_to_vel)  # doctest: +FLOAT_CMP
     -1895.4321928669262
     >>> (116e9 * u.Hz).to(u.km / u.s, equivalencies=freq_to_vel)  # doctest: +FLOAT_CMP
@@ -310,7 +474,7 @@ return value is assumed to be in units of ``km/s``, which is why the ``.value``
 of ``c`` is used instead of the constant.
 
 Displaying available equivalencies
-----------------------------------
+==================================
 
 The :meth:`~astropy.units.core.UnitBase.find_equivalent_units` method also
 understands equivalencies.  For example, without passing equivalencies,
@@ -339,7 +503,7 @@ all kinds of things that ``Hz`` can be converted to::
     Ry           | 2.17987e-18 kg m2 / s2 | rydberg               ,
     cm           | 0.01 m                 | centimeter            ,
     eV           | 1.60218e-19 kg m2 / s2 | electronvolt          ,
-    earthRad     | 6.37814e+06 m          | R_earth, Rearth       ,
+    earthRad     | 6.3781e+06 m           | R_earth, Rearth       ,
     erg          | 1e-07 kg m2 / s2       |                       ,
     jupiterRad   | 7.1492e+07 m           | R_jup, Rjup, R_jupiter, Rjupiter ,
     k            | 100 / m                | Kayser, kayser        ,
@@ -347,13 +511,13 @@ all kinds of things that ``Hz`` can be converted to::
     m            | irreducible            | meter                 ,
     micron       | 1e-06 m                |                       ,
     pc           | 3.08568e+16 m          | parsec                ,
-    solRad       | 6.95508e+08 m          | R_sun, Rsun           ,
+    solRad       | 6.957e+08 m            | R_sun, Rsun           ,
   ]
 
 .. _equivalency-context:
 
 Using equivalencies in larger pieces of code
---------------------------------------------
+============================================
 Sometimes one has an involved calculation where one is regularly
 switching back between equivalent units. For these cases, one can set
 equivalencies that will by default be used, in a way similar to which

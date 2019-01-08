@@ -1,20 +1,24 @@
-from ...extern.six.moves import zip, cPickle as pickle
-from ...coordinates import Longitude
-from ... import coordinates as coord
-from ...tests.helper import pytest, pickle_protocol, check_pickling_recovery
+import pickle
+import pytest
 import numpy as np
 
-#Can't test distances without scipy due to cosmology deps
+from astropy.coordinates import Longitude
+from astropy import coordinates as coord
+from astropy.tests.helper import pickle_protocol, check_pickling_recovery  # noqa
+
+# Can't test distances without scipy due to cosmology deps
 try:
     import scipy  # pylint: disable=W0611
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
 
+
 def test_basic():
     lon1 = Longitude(1.23, "radian", wrap_angle='180d')
     s = pickle.dumps(lon1)
     lon2 = pickle.loads(s)
+
 
 def test_pickle_longitude_wrap_angle():
     a = Longitude(1.23, "radian", wrap_angle='180d')
@@ -51,17 +55,17 @@ _args = [[0.0],
          [np.identity(3), coord.ICRS, coord.ICRS],
          ]
 
-_kwargs = [{'unit':'radian'},
-           {'z':0.23},
+_kwargs = [{'unit': 'radian'},
+           {'z': 0.23},
            {},
-           {'unit':['radian', 'radian']},
-           {'unit':'radian'},
-           {'unit':'radian'},
+           {'unit': ['radian', 'radian']},
+           {'unit': 'radian'},
+           {'unit': 'radian'},
            {},
            ]
 
 
-@pytest.mark.parametrize(("name","args","kwargs","xfail"),
+@pytest.mark.parametrize(("name", "args", "kwargs", "xfail"),
                          zip(_names, _args, _kwargs, _xfail))
 def test_simple_object(pickle_protocol, name, args, kwargs, xfail):
     # Tests easily instantiated objects

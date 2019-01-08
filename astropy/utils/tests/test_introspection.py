@@ -1,15 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-#namedtuple is needed for find_mod_objs so it can have a non-local module
+# namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple
 
-from ...extern import six
-from ...tests.helper import pytest
-from .. import introspection
-from ..introspection import (find_current_module, find_mod_objs,
-                             isinstancemethod)
+import pytest
+
+from astropy.utils import introspection
+from astropy.utils.introspection import (find_current_module, find_mod_objs,
+                             isinstancemethod, minversion)
 
 
 def test_pkg_finder():
@@ -65,30 +63,13 @@ def test_find_mod_objs():
     assert namedtuple not in objs
 
 
-def test_isinstancemethod():
-    """
-    Note, this is an exact copy of the doctest in `isinstancemethod`'s
-    docstring.
-
-    It is included here as well so that it can be tested on Python 2 and 3
-    which require very different implementations.  Once we enable running
-    doctests on Python 3 this extra test can be dropped.
-    """
-
-    class MetaClass(type):
-        def a_classmethod(cls): pass
-
-    @six.add_metaclass(MetaClass)
-    class MyClass(object):
-        def an_instancemethod(self): pass
-
-        @classmethod
-        def another_classmethod(cls): pass
-
-        @staticmethod
-        def a_staticmethod(): pass
-
-    assert not isinstancemethod(MyClass, MyClass.a_classmethod)
-    assert not isinstancemethod(MyClass, MyClass.another_classmethod)
-    assert not isinstancemethod(MyClass, MyClass.a_staticmethod)
-    assert isinstancemethod(MyClass, MyClass.an_instancemethod)
+def test_minversion():
+    from types import ModuleType
+    test_module = ModuleType(str("test_module"))
+    test_module.__version__ = '0.12.2'
+    good_versions = ['0.12', '0.12.1', '0.12.0.dev', '0.12dev']
+    bad_versions = ['1', '1.2rc1']
+    for version in good_versions:
+        assert minversion(test_module, version)
+    for version in bad_versions:
+        assert not minversion(test_module, version)

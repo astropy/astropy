@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
+import pytest
 import numpy as np
 from numpy import testing as npt
-from ...tests.helper import pytest, assert_quantity_allclose as assert_allclose
-from ...extern.six.moves import zip
 
-from ... import units as u
-from ...utils import minversion
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 
-from .. import matching
+from astropy import units as u
+from astropy.utils import minversion
+
+from astropy.coordinates import matching
 
 """
 These are the tests for coordinate matching.
@@ -33,9 +32,9 @@ else:
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_function():
-    from .. import ICRS
-    from ..matching import match_coordinates_3d
-    #this only uses match_coordinates_3d because that's the actual implementation
+    from astropy.coordinates import ICRS
+    from astropy.coordinates.matching import match_coordinates_3d
+    # this only uses match_coordinates_3d because that's the actual implementation
 
     cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree)
     ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree)
@@ -50,10 +49,11 @@ def test_matching_function():
     npt.assert_array_almost_equal(d2d.degree, [1, 0.9])
     npt.assert_array_less(d3d.value, 0.02)
 
+
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_function_3d_and_sky():
-    from .. import ICRS
-    from ..matching import match_coordinates_3d, match_coordinates_sky
+    from astropy.coordinates import ICRS
+    from astropy.coordinates.matching import match_coordinates_3d, match_coordinates_sky
 
     cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 5] * u.kpc)
     ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree, distance=[1, 1, 1, 5] * u.kpc)
@@ -61,17 +61,15 @@ def test_matching_function_3d_and_sky():
     idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog)
     npt.assert_array_equal(idx, [2, 3])
 
-
     assert_allclose(d2d, [1, 1.9] * u.deg)
-    assert np.abs(d3d[0].to(u.kpc).value - np.radians(1)) < 1e-6
-    assert np.abs(d3d[1].to(u.kpc).value - 5*np.radians(1.9)) < 1e-5
+    assert np.abs(d3d[0].to_value(u.kpc) - np.radians(1)) < 1e-6
+    assert np.abs(d3d[1].to_value(u.kpc) - 5*np.radians(1.9)) < 1e-5
 
     idx, d2d, d3d = match_coordinates_sky(cmatch, ccatalog)
     npt.assert_array_equal(idx, [3, 1])
 
     assert_allclose(d2d, [0, 0.1] * u.deg)
     assert_allclose(d3d, [4, 4.0000019] * u.kpc)
-
 
 
 @pytest.mark.parametrize('functocheck, args, defaultkdtname, bothsaved',
@@ -82,7 +80,7 @@ def test_matching_function_3d_and_sky():
                          ])
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
-    from .. import ICRS
+    from astropy.coordinates import ICRS
 
     def make_scs():
         cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 2]*u.kpc)
@@ -126,10 +124,22 @@ def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
 
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
+def test_python_kdtree(monkeypatch):
+    from astropy.coordinates import ICRS
+
+    cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 2]*u.kpc)
+    ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree, distance=[1, 2, 3, 4]*u.kpc)
+
+    monkeypatch.delattr("scipy.spatial.cKDTree")
+    with pytest.warns(UserWarning, match='C-based KD tree not found'):
+        matching.match_coordinates_sky(cmatch, ccatalog)
+
+
+@pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_method():
-    from .. import ICRS, SkyCoord
-    from ...utils import NumpyRNGContext
-    from ..matching import match_coordinates_3d, match_coordinates_sky
+    from astropy.coordinates import ICRS, SkyCoord
+    from astropy.utils import NumpyRNGContext
+    from astropy.coordinates.matching import match_coordinates_3d, match_coordinates_sky
 
     with NumpyRNGContext(987654321):
         cmatch = ICRS(np.random.rand(20) * 360.*u.degree,
@@ -144,7 +154,7 @@ def test_matching_method():
     assert_allclose(d2d1, d2d2)
     assert_allclose(d3d1, d3d2)
 
-    #should be the same as above because there's no distance, but just make sure this method works
+    # should be the same as above because there's no distance, but just make sure this method works
     idx1, d2d1, d3d1 = SkyCoord(cmatch).match_to_catalog_sky(ccatalog)
     idx2, d2d2, d3d2 = match_coordinates_sky(cmatch, ccatalog)
 
@@ -158,8 +168,8 @@ def test_matching_method():
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 @pytest.mark.skipif(str('OLDER_SCIPY'))
 def test_search_around():
-    from .. import ICRS, SkyCoord
-    from ..matching import search_around_sky, search_around_3d
+    from astropy.coordinates import ICRS, SkyCoord
+    from astropy.coordinates.matching import search_around_sky, search_around_3d
 
     coo1 = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 5] * u.kpc)
     coo2 = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree, distance=[1, 1, 1, 5] * u.kpc)
@@ -238,8 +248,6 @@ def test_search_around():
     assert d3d.unit == u.dimensionless_unscaled
 
 
-
-
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 @pytest.mark.skipif(str('OLDER_SCIPY'))
 def test_search_around_scalar():
@@ -259,15 +267,16 @@ def test_search_around_scalar():
         cat.search_around_3d(target, Angle('2d'))
     assert 'search_around_3d' in str(excinfo.value)
 
+
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 @pytest.mark.skipif(str('OLDER_SCIPY'))
 def test_match_catalog_empty():
     from astropy.coordinates import SkyCoord
 
     sc1 = SkyCoord(1, 2, unit="deg")
-    cat0  = SkyCoord([], [], unit="deg")
-    cat1  = SkyCoord([1.1], [2.1], unit="deg")
-    cat2  = SkyCoord([1.1, 3], [2.1, 5], unit="deg")
+    cat0 = SkyCoord([], [], unit="deg")
+    cat1 = SkyCoord([1.1], [2.1], unit="deg")
+    cat2 = SkyCoord([1.1, 3], [2.1, 5], unit="deg")
 
     sc1.match_to_catalog_sky(cat2)
     sc1.match_to_catalog_3d(cat2)

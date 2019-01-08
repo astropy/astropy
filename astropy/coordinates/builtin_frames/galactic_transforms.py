@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
-from ..matrix_utilities import (rotation_matrix,
+from astropy.coordinates.matrix_utilities import (rotation_matrix,
                                 matrix_product, matrix_transpose)
-from ..baseframe import frame_transform_graph
-from ..transformations import DynamicMatrixTransform
+from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.transformations import DynamicMatrixTransform
 
 from .fk5 import FK5
 from .fk4 import FK4NoETerms
@@ -18,7 +16,7 @@ from .galactic import Galactic
 # can't be static because the equinox is needed
 @frame_transform_graph.transform(DynamicMatrixTransform, FK5, Galactic)
 def fk5_to_gal(fk5coord, galframe):
-    #need precess to J2000 first
+    # need precess to J2000 first
     pmat = fk5coord._precession_matrix(fk5coord.equinox, EQUINOX_J2000)
     mat1 = rotation_matrix(180 - Galactic._lon0_J2000.degree, 'z')
     mat2 = rotation_matrix(90 - Galactic._ngp_J2000.dec.degree, 'y')

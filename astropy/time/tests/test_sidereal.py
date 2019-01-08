@@ -2,14 +2,14 @@
 import functools
 import itertools
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest
-from .. import Time
-from ..core import SIDEREAL_TIME_MODELS
+from astropy.time import Time
+from astropy.time.core import SIDEREAL_TIME_MODELS
 
-allclose_hours = functools.partial(np.allclose, rtol=1e-15, atol=1e-9)
-# 1 nanosec atol
+allclose_hours = functools.partial(np.allclose, rtol=1e-15, atol=3e-8)
+# 0.1 ms atol; IERS-B files change at that level.
 within_1_second = functools.partial(np.allclose, rtol=1., atol=1./3600.)
 within_2_seconds = functools.partial(np.allclose, rtol=1., atol=2./3600.)
 
@@ -57,11 +57,11 @@ class TestERFATestCases():
 
         model = SIDEREAL_TIME_MODELS[kind][model_name]
         gst_erfa = self.time_ut1._erfa_sidereal_time(model)
-        assert np.allclose(gst_erfa.to('radian').value, result,
+        assert np.allclose(gst_erfa.to_value('radian'), result,
                            rtol=1., atol=precision)
 
         gst = self.time_ut1.sidereal_time(kind, 'greenwich', model_name)
-        assert np.allclose(gst.to('radian').value, result,
+        assert np.allclose(gst.to_value('radian'), result,
                            rtol=1., atol=precision)
 
 
@@ -122,9 +122,9 @@ class TestST():
         lmst2 = self.t2.sidereal_time(kind)
         assert allclose_hours(lmst2.value, lst_compare[kind])
         assert allclose_hours((lmst2-gmst2).wrap_at('12h').value,
-                              self.t2.location.longitude.to('hourangle').value)
+                              self.t2.location.lon.to_value('hourangle'))
         # check it also works when one gives longitude explicitly
-        lmst1 = self.t1.sidereal_time(kind, self.t2.location.longitude)
+        lmst1 = self.t1.sidereal_time(kind, self.t2.location.lon)
         assert allclose_hours(lmst1.value, lst_compare[kind])
 
     def test_lst_needs_location(self):

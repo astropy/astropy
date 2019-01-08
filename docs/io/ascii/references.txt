@@ -1,4 +1,4 @@
 .. |read| replace:: :func:`~astropy.io.ascii.read`
 .. |write| replace:: :func:`~astropy.io.ascii.write`
 .. |Table| replace:: :class:`~astropy.table.Table`
-.. _structured array: http://docs.scipy.org/doc/numpy/user/basics.rec.html
+.. _structured array: https://docs.scipy.org/doc/numpy/user/basics.rec.html

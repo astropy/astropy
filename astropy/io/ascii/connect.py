@@ -1,14 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This file connects the readers/writers to the astropy.table.Table class
 
-from __future__ import absolute_import, division, print_function
 
 import re
 import functools
 
-from .. import registry as io_registry
-from ...table import Table
-from ...extern.six.moves import zip
+from astropy.io import registry as io_registry
+from astropy.table import Table
 
 __all__ = []
 
@@ -21,12 +19,14 @@ def read_asciitable(filename, **kwargs):
     from .ui import read
     return read(filename, **kwargs)
 
+
 io_registry.register_reader('ascii', Table, read_asciitable)
 
 
 def write_asciitable(table, filename, **kwargs):
     from .ui import write
     return write(table, filename, **kwargs)
+
 
 io_registry.register_writer('ascii', Table, write_asciitable)
 

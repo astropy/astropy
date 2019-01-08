@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ... import units as u
-from ...coordinates import EarthLocation, SkyCoord, solar_system_ephemeris
-from .. import Time, TimeDelta
-from ...tests.helper import (pytest, remote_data)
+import pytest
+
+from astropy import units as u
+from astropy.coordinates import EarthLocation, SkyCoord, solar_system_ephemeris
+from astropy.time import Time, TimeDelta
 
 try:
     import jplephem  # pylint: disable=W0611
@@ -53,7 +54,7 @@ class TestHelioBaryCentric():
         assert bval_arr[0]-bval1 < 1. * u.us
         assert bval_arr[1]-bval2 < 1. * u.us
 
-    @remote_data
+    @pytest.mark.remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     def test_ephemerides(self):
         bval1 = self.obstime.light_travel_time(self.star, 'barycentric')

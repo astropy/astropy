@@ -8,13 +8,11 @@ This module is (currently) not intended to be part of the public API, but
 is instead primarily for internal use in `coordinates`
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
-from ..time import Time
-from .. import units as u
+from astropy.time import Time
+from astropy import units as u
 from .matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 
 
@@ -260,6 +258,7 @@ def _load_nutation_data(datastr, seriestype):
         for i, e in enumerate(l.split(' ')):
             lists[i].append(dtypes[i][1](e))
     return np.rec.fromarrays(lists, names=[e[0] for e in dtypes])
+
 
 _nut_data_00b = """
 #l lprime F D Omega longitude_sin longitude_sin*t longitude_cos obliquity_cos obliquity_cos*t,obliquity_sin

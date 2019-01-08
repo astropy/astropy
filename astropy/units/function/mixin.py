@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ..core import IrreducibleUnit, Unit
+from astropy.units.core import IrreducibleUnit, Unit
 
 
-class FunctionMixin(object):
+class FunctionMixin:
     """Mixin class that makes UnitBase subclasses callable.
 
     Provides a __call__ method that passes on arguments to a FunctionUnit.

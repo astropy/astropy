@@ -3,10 +3,10 @@
 .. _additional-git:
 
 Some other things you might want to do
-======================================
+**************************************
 
 Delete a branch on GitHub
--------------------------
+=========================
 
 `git`_ strongly encourages making a new branch each time you make a change in the
 code. At some point you will need to clean up the branches you no longer need--
@@ -40,7 +40,7 @@ deleting a branch
 if you want to delete the GitHub copy through GitHub.
 
 Several people sharing a single repository
-------------------------------------------
+==========================================
 
 If you want to work on some stuff with other people, where you are all
 committing into the same repository, or even the same branch, then just
@@ -58,7 +58,7 @@ collaborator:
 
 Now all those people can do::
 
-    git clone git@githhub.com:your-user-name/astropy.git
+    git clone --recursive git@githhub.com:your-user-name/astropy.git
 
 Remember that links starting with ``git@`` use the ssh protocol and are
 read-write; links starting with ``git://`` are read-only.
@@ -70,7 +70,7 @@ usual::
      git push origin master # pushes directly into your repo
 
 Explore your repository
------------------------
+=======================
 
 To see a graphical representation of the repository branches and
 commits::
@@ -87,7 +87,7 @@ repo.
 .. _rebase-on-trunk:
 
 Rebasing on trunk
------------------
+=================
 
 Let's say you thought of some work you'd like to do. You
 :ref:`fetch-latest` and :ref:`make-feature-branch` called
@@ -165,7 +165,7 @@ this would re-write commit history and thus cause problems for all others.
 .. _recovering-from-mess-up:
 
 Recovering from mess-ups
-------------------------
+========================
 
 Sometimes, you mess up merges or rebases. Luckily, in git it is relatively
 straightforward to recover from such mistakes.
@@ -195,7 +195,7 @@ If you forgot to make a backup branch::
 .. _rewriting-commit-history:
 
 Rewriting commit history
-------------------------
+========================
 
 .. note::
 
@@ -280,7 +280,7 @@ If it went wrong, recovery is again possible as explained :ref:`above
 <recovering-from-mess-up>`.
 
 Converting a GitHub issue to a pull request
--------------------------------------------
+===========================================
 
 Sometimes you have a branch in your own GitHub repository designed to
 fix one particular issue.  If that issue is listed on GitHub, a natural
@@ -297,7 +297,7 @@ directly to it (for Astropy, that means being an Astropy maintainer):
   option to determine the precise usage.
 
 * You can use the ``hub`` command-line utility provided `here
-  <https://github.com/defunkt/hub>`_ by GitHub. Once installed, you can
+  <https://github.com/github/hub>`_ by GitHub. Once installed, you can
   attach a branch to a pull request by doing::
 
           hub pull-request -i <ID> -b astropy:master -h <USER>:<BRANCH>
@@ -320,7 +320,7 @@ directly to it (for Astropy, that means being an Astropy maintainer):
 .. _merge-commits-and-cherry-picks:
 
 Merge commits and cherry picks
-------------------------------
+==============================
 
 Let's say that you have a fork (origin) on GitHub of the main Astropy
 repository (upstream).  Your fork is up to date with upstream's master branch

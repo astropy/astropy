@@ -6,9 +6,7 @@ If called, their arguments are used to initialize the corresponding function
 unit (e.g., ``u.mag(u.ct/u.s)``).  Note that the prefixed versions cannot be
 called, as it would be unclear what, e.g., ``u.mmag(u.ct/u.s)`` would mean.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ..core import _add_prefixes
+from astropy.units.core import _add_prefixes
 from .mixin import RegularFunctionUnit, IrreducibleFunctionUnit
 
 
@@ -43,6 +41,6 @@ del IrreducibleFunctionUnit
 
 # This generates a docstring for this module that describes all of the
 # standard units defined here.
-from ..utils import generate_unit_summary as _generate_unit_summary
+from astropy.units.utils import generate_unit_summary as _generate_unit_summary
 if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())

@@ -2,24 +2,24 @@
 """
 This module contains helper functions and classes for handling metadata.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ..extern import six
-from ..utils import wraps
+
+from astropy.utils import wraps
 
 import warnings
 
-import collections
 from collections import OrderedDict
+from collections.abc import Mapping
 from copy import deepcopy
 
 import numpy as np
-from ..utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.misc import dtype_bytes_or_chars
 
 
 __all__ = ['MergeConflictError', 'MergeConflictWarning', 'MERGE_STRATEGIES',
            'common_dtype', 'MergePlus', 'MergeNpConcatenate', 'MergeStrategy',
            'MergeStrategyMeta', 'enable_merge_strategies', 'merge', 'MetaData']
+
 
 class MergeConflictError(TypeError):
     pass
@@ -37,12 +37,17 @@ def common_dtype(arrs):
     Use numpy to find the common dtype for a list of ndarrays.
 
     Only allow arrays within the following fundamental numpy data types:
-    ``np.bool``, ``np.object``, ``np.number``, ``np.character``, ``np.void``
+    ``np.bool_``, ``np.object_``, ``np.number``, ``np.character``, ``np.void``
 
     Parameters
     ----------
     arrs : list of ndarray objects
         Arrays for which to find the common dtype
+
+    Returns
+    -------
+    dtype_str : str
+        String representation of dytpe (dtype ``str`` attribute)
     """
     def dtype(arr):
         return getattr(arr, 'dtype', np.dtype('O'))
@@ -64,10 +69,12 @@ def common_dtype(arrs):
     # values or the final arr_common = .. step is unpredictable.
     for i, arr in enumerate(arrs):
         if arr.dtype.kind in ('S', 'U'):
-            arrs[i] = [(u'0' if arr.dtype.kind == 'U' else b'0') * arr.itemsize]
+            arrs[i] = [(u'0' if arr.dtype.kind == 'U' else b'0') *
+                       dtype_bytes_or_chars(arr.dtype)]
 
     arr_common = np.array([arr[0] for arr in arrs])
     return arr_common.dtype.str
+
 
 class MergeStrategyMeta(type):
     """
@@ -76,12 +83,13 @@ class MergeStrategyMeta(type):
     """
 
     def __new__(mcls, name, bases, members):
-        cls = super(MergeStrategyMeta, mcls).__new__(mcls, name, bases, members)
+        cls = super().__new__(mcls, name, bases, members)
 
         # Wrap ``merge`` classmethod to catch any exception and re-raise as
         # MergeConflictError.
         if 'merge' in members and isinstance(members['merge'], classmethod):
             orig_merge = members['merge'].__func__
+
             @wraps(orig_merge)
             def merge(cls, left, right):
                 try:
@@ -102,8 +110,7 @@ class MergeStrategyMeta(type):
         return cls
 
 
-@six.add_metaclass(MergeStrategyMeta)
-class MergeStrategy(object):
+class MergeStrategy(metaclass=MergeStrategyMeta):
     """
     Base class for defining a strategy for merging metadata from two
     sources, left and right, into a single output.
@@ -160,6 +167,7 @@ class MergeStrategy(object):
 
     # types = [(left_types, right_types), ...]
 
+
 class MergePlus(MergeStrategy):
     """
     Merge ``left`` and ``right`` objects using the plus operator.  This
@@ -204,7 +212,7 @@ def _not_equal(left, right):
         return True
 
 
-class _EnableMergeStrategies(object):
+class _EnableMergeStrategies:
     def __init__(self, *merge_strategies):
         self.merge_strategies = merge_strategies
         self.orig_enabled = {}
@@ -280,7 +288,23 @@ def enable_merge_strategies(*merge_strategies):
     return _EnableMergeStrategies(*merge_strategies)
 
 
-def merge(left, right, merge_func=None, metadata_conflicts='warn'):
+def _warn_str_func(key, left, right):
+    out = ('Cannot merge meta key {0!r} types {1!r}'
+           ' and {2!r}, choosing {0}={3!r}'
+           .format(key, type(left), type(right), right))
+    return out
+
+
+def _error_str_func(key, left, right):
+    out = ('Cannot merge meta key {0!r} '
+           'types {1!r} and {2!r}'
+           .format(key, type(left), type(right)))
+    return out
+
+
+def merge(left, right, merge_func=None, metadata_conflicts='warn',
+          warn_str_func=_warn_str_func,
+          error_str_func=_error_str_func):
     """
     Merge the ``left`` and ``right`` metadata objects.
 
@@ -291,7 +315,7 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn'):
 
     out = deepcopy(left)
 
-    for key, val in six.iteritems(right):
+    for key, val in right.items():
         # If no conflict then insert val into out dict and continue
         if key not in out:
             out[key] = deepcopy(val)
@@ -332,14 +356,10 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn'):
                     out[key] = left[key]
                 elif _not_equal(left[key], right[key]):
                     if metadata_conflicts == 'warn':
-                        warnings.warn('Cannot merge meta key {0!r} types {1!r}'
-                                      ' and {2!r}, choosing {0}={3!r}'
-                                      .format(key, type(left[key]), type(right[key]), right[key]),
+                        warnings.warn(warn_str_func(key, left[key], right[key]),
                                       MergeConflictWarning)
                     elif metadata_conflicts == 'error':
-                        raise MergeConflictError('Cannot merge meta key {0!r} '
-                                                 'types {1!r} and {2!r}'
-                                                 .format(key, type(left[key]), type(right[key])))
+                        raise MergeConflictError(error_str_func(key, left[key], right[key]))
                     elif metadata_conflicts != 'silent':
                         raise ValueError('metadata_conflicts argument must be one '
                                          'of "silent", "warn", or "error"')
@@ -350,11 +370,11 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn'):
     return out
 
 
-class MetaData(object):
+class MetaData:
     """
     A descriptor for classes that have a ``meta`` property.
 
-    This can be set to any valid `~collections.Mapping`.
+    This can be set to any valid `~collections.abc.Mapping`.
 
     Parameters
     ----------
@@ -371,6 +391,7 @@ class MetaData(object):
 
         .. versionadded:: 1.2
     """
+
     def __init__(self, doc="", copy=True):
         self.__doc__ = doc
         self.copy = copy
@@ -386,7 +407,7 @@ class MetaData(object):
         if value is None:
             instance._meta = OrderedDict()
         else:
-            if isinstance(value, collections.Mapping):
+            if isinstance(value, Mapping):
                 if self.copy:
                     instance._meta = deepcopy(value)
                 else:

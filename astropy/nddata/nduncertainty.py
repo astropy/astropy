@@ -1,22 +1,22 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+
+from .nddata_base import NDDataBase
 
 import numpy as np
-from abc import ABCMeta, abstractproperty, abstractmethod
+from abc import ABCMeta, abstractmethod
 from copy import deepcopy
 import weakref
 
-# from ..utils.compat import ignored
-from ..utils import deprecated
-from .. import log
-from ..units import Unit, Quantity
-from ..extern import six
+
+# from astropy.utils.compat import ignored
+from astropy import log
+from astropy.units import Unit, Quantity, UnitConversionError
 
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',
-           'StdDevUncertainty', 'UnknownUncertainty']
+           'StdDevUncertainty', 'UnknownUncertainty',
+           'VarianceUncertainty', 'InverseVariance']
 
 
 class IncompatibleUncertaintiesException(Exception):
@@ -31,8 +31,7 @@ class MissingDataAssociationException(Exception):
     """
 
 
-@six.add_metaclass(ABCMeta)
-class NDUncertainty(object):
+class NDUncertainty(metaclass=ABCMeta):
     """This is the metaclass for uncertainty classes used with `NDData`.
 
     Parameters
@@ -101,7 +100,8 @@ class NDUncertainty(object):
         self.array = array
         self.parent_nddata = None  # no associated NDData - until it is set!
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def uncertainty_type(self):
         """`str` : Short description of the type of uncertainty.
 
@@ -119,11 +119,6 @@ class NDUncertainty(object):
         return False
 
     @property
-    @deprecated('1.2', alternative=':attr:`supports_correlated`')
-    def support_correlated(self):
-        return self.supports_correlated
-
-    @property
     def array(self):
         """`numpy.ndarray` : the uncertainty's value.
         """
@@ -138,20 +133,39 @@ class NDUncertainty(object):
     @property
     def unit(self):
         """`~astropy.units.Unit` : The unit of the uncertainty, if any.
-
-        Even though it is not enforced the unit should be convertible to the
-        ``parent_nddata`` unit. Otherwise uncertainty propagation might give
-        wrong results.
-
-        If the unit is not set the unit of the parent will be returned.
         """
-        if self._unit is None:
-            if (self._parent_nddata is None or
-                    self.parent_nddata.unit is None):
-                return None
-            else:
-                return self.parent_nddata.unit
         return self._unit
+
+    @unit.setter
+    def unit(self, value):
+        """
+        The unit should be set to a value consistent with the parent NDData
+        unit and the uncertainty type.
+        """
+        if value is not None:
+            # Check the hidden attribute below, not the property. The property
+            # raises an exception if there is no parent_nddata.
+            if self._parent_nddata is not None:
+                parent_unit = self.parent_nddata.unit
+                try:
+                    # Check for consistency with the unit of the parent_nddata
+                    self._data_unit_to_uncertainty_unit(parent_unit).to(value)
+                except UnitConversionError:
+                    raise UnitConversionError("Unit {} is incompatible "
+                                              "with unit {} of parent "
+                                              "nddata".format(value,
+                                                              parent_unit))
+
+            self._unit = Unit(value)
+        else:
+            self._unit = value
+
+    @property
+    def quantity(self):
+        """
+        This uncertainty as an `~astropy.units.Quantity` object.
+        """
+        return Quantity(self.array, self.unit, copy=False, dtype=self.array.dtype)
 
     @property
     def parent_nddata(self):
@@ -161,21 +175,34 @@ class NDUncertainty(object):
         possible since propagation might need the uncertain data besides the
         uncertainty.
         """
-        message = "uncertainty is not associated with an NDData object"
+        no_parent_message = "uncertainty is not associated with an NDData object"
+        parent_lost_message = (
+            "the associated NDData object was deleted and cannot be accessed "
+            "anymore. You can prevent the NDData object from being deleted by "
+            "assigning it to a variable. If this happened after unpickling "
+            "make sure you pickle the parent not the uncertainty directly."
+        )
         try:
-            if self._parent_nddata is None:
-                raise MissingDataAssociationException(message)
+            parent = self._parent_nddata
+        except AttributeError:
+            raise MissingDataAssociationException(no_parent_message)
+        else:
+            if parent is None:
+                raise MissingDataAssociationException(no_parent_message)
             else:
                 # The NDData is saved as weak reference so we must call it
-                # to get the object the reference points to.
+                # to get the object the reference points to. However because
+                # we have a weak reference here it's possible that the parent
+                # was deleted because its reference count dropped to zero.
                 if isinstance(self._parent_nddata, weakref.ref):
-                    return self._parent_nddata()
+                    resolved_parent = self._parent_nddata()
+                    if resolved_parent is None:
+                        log.info(parent_lost_message)
+                    return resolved_parent
                 else:
                     log.info("parent_nddata should be a weakref to an NDData "
                              "object.")
                     return self._parent_nddata
-        except AttributeError:
-            raise MissingDataAssociationException(message)
 
     @parent_nddata.setter
     def parent_nddata(self, value):
@@ -184,7 +211,40 @@ class NDUncertainty(object):
             # instance of NDData. Direct references should NOT be used:
             # https://github.com/astropy/astropy/pull/4799#discussion_r61236832
             value = weakref.ref(value)
+        # Set _parent_nddata here and access below with the property because value
+        # is a weakref
         self._parent_nddata = value
+        # set uncertainty unit to that of the parent if it was not already set, unless initializing
+        # with empty parent (Value=None)
+        if value is not None:
+            parent_unit = self.parent_nddata.unit
+            if self.unit is None:
+                if parent_unit is None:
+                    self.unit = None
+                else:
+                    # Set the uncertainty's unit to the appropriate value
+                    self.unit = self._data_unit_to_uncertainty_unit(parent_unit)
+            else:
+                # Check that units of uncertainty are compatible with those of
+                # the parent. If they are, no need to change units of the
+                # uncertainty or the data. If they are not, let the user know.
+                unit_from_data = self._data_unit_to_uncertainty_unit(parent_unit)
+                try:
+                    unit_from_data.to(self.unit)
+                except UnitConversionError:
+                    raise UnitConversionError("Unit {} of uncertainty "
+                                              "incompatible with unit {} of "
+                                              "data".format(self.unit,
+                                                            parent_unit))
+
+    @abstractmethod
+    def _data_unit_to_uncertainty_unit(self, value):
+        """
+        Subclasses must override this property. It should take in a data unit
+        and return the correct unit for the uncertainty given the uncertainty
+        type.
+        """
+        return None
 
     def __repr__(self):
         prefix = self.__class__.__name__ + '('
@@ -194,6 +254,25 @@ class NDUncertainty(object):
             # In case it wasn't possible to use array2string
             body = str(self.array)
         return ''.join([prefix, body, ')'])
+
+    def __getstate__(self):
+        # Because of the weak reference the class wouldn't be picklable.
+        try:
+            return self._array, self._unit, self.parent_nddata
+        except MissingDataAssociationException:
+            # In case there's no parent
+            return self._array, self._unit, None
+
+    def __setstate__(self, state):
+        if len(state) != 3:
+            raise TypeError('The state should contain 3 items.')
+        self._array = state[0]
+        self._unit = state[1]
+
+        parent = state[2]
+        if parent is not None:
+            parent = weakref.ref(parent)
+        self._parent_nddata = parent
 
     def __getitem__(self, item):
         """Normal slicing on the array, keep the unit and return a reference.
@@ -345,6 +424,12 @@ class UnknownUncertainty(NDUncertainty):
         """
         return 'unknown'
 
+    def _data_unit_to_uncertainty_unit(self, value):
+        """
+        No way to convert if uncertainty is unknown.
+        """
+        return None
+
     def _convert_uncertainty(self, other_uncert):
         """Raise an Exception because unknown uncertainty types cannot
         implement propagation.
@@ -367,7 +452,210 @@ class UnknownUncertainty(NDUncertainty):
         return None
 
 
-class StdDevUncertainty(NDUncertainty):
+class _VariancePropagationMixin:
+    """
+    Propagation of uncertainties for variances, also used to perform error
+    propagation for variance-like uncertainties (standard deviation and inverse
+    variance).
+    """
+    def _propagate_add_sub(self, other_uncert, result_data, correlation,
+                           subtract=False,
+                           to_variance=lambda x: x, from_variance=lambda x: x):
+        """
+        Error propagation for addition or subtraction of variance or
+        variance-like uncertainties. Uncertainties are calculated using the
+        formulae for variance but can be used for uncertainty convertible to
+        a variance.
+
+        Parameters
+        ----------
+
+        other_uncert : `~astropy.nddata.NDUncertainty` instance
+            The uncertainty, if any, of the other operand.
+
+        result_data : `~astropy.nddata.NDData` instance
+            The results of the operation on the data.
+
+        correlation : float or `numpy.ndarray`-like
+            Correlation of the uncertainties.
+
+        subtract : bool, optional
+            If ``True``, propagate for subtraction, otherwise propagate for
+            addition.
+
+        to_variance : function, optional
+            Function that will transform the input uncertainties to variance.
+            The default assumes the uncertainty is the variance.
+
+        from_variance : function, optional
+            Function that will convert from variance to the input uncertainty.
+            The default assumes the uncertainty is the variance.
+        """
+        if subtract:
+            correlation_sign = -1
+        else:
+            correlation_sign = 1
+
+        try:
+            result_unit_sq = result_data.unit ** 2
+        except AttributeError:
+            result_unit_sq = None
+
+        if other_uncert.array is not None:
+            # Formula: sigma**2 = dB
+            if (other_uncert.unit is not None and
+                result_unit_sq != to_variance(other_uncert.unit)):
+                # If the other uncertainty has a unit and this unit differs
+                # from the unit of the result convert it to the results unit
+                other = to_variance(other_uncert.array *
+                                    other_uncert.unit).to(result_unit_sq).value
+            else:
+                other = to_variance(other_uncert.array)
+        else:
+            other = 0
+
+        if self.array is not None:
+            # Formula: sigma**2 = dA
+
+            if self.unit is not None and to_variance(self.unit) != self.parent_nddata.unit**2:
+                # If the uncertainty has a different unit than the result we
+                # need to convert it to the results unit.
+                this = to_variance(self.array * self.unit).to(result_unit_sq).value
+            else:
+                this = to_variance(self.array)
+        else:
+            this = 0
+
+        # Formula: sigma**2 = dA + dB +/- 2*cor*sqrt(dA*dB)
+        # Formula: sigma**2 = sigma_other + sigma_self +/- 2*cor*sqrt(dA*dB)
+        #     (sign depends on whether addition or subtraction)
+
+        # Determine the result depending on the correlation
+        if isinstance(correlation, np.ndarray) or correlation != 0:
+            corr = 2 * correlation * np.sqrt(this * other)
+            result = this + other + correlation_sign * corr
+        else:
+            result = this + other
+
+        return from_variance(result)
+
+    def _propagate_multiply_divide(self, other_uncert, result_data,
+                                   correlation,
+                                   divide=False,
+                                   to_variance=lambda x: x,
+                                   from_variance=lambda x: x):
+        """
+        Error propagation for multiplication or division of variance or
+        variance-like uncertainties. Uncertainties are calculated using the
+        formulae for variance but can be used for uncertainty convertible to
+        a variance.
+
+        Parameters
+        ----------
+
+        other_uncert : `~astropy.nddata.NDUncertainty` instance
+            The uncertainty, if any, of the other operand.
+
+        result_data : `~astropy.nddata.NDData` instance
+            The results of the operation on the data.
+
+        correlation : float or `numpy.ndarray`-like
+            Correlation of the uncertainties.
+
+        divide : bool, optional
+            If ``True``, propagate for division, otherwise propagate for
+            multiplication.
+
+        to_variance : function, optional
+            Function that will transform the input uncertainties to variance.
+            The default assumes the uncertainty is the variance.
+
+        from_variance : function, optional
+            Function that will convert from variance to the input uncertainty.
+            The default assumes the uncertainty is the variance.
+        """
+        # For multiplication we don't need the result as quantity
+        if isinstance(result_data, Quantity):
+            result_data = result_data.value
+
+        if divide:
+            correlation_sign = -1
+        else:
+            correlation_sign = 1
+
+        if other_uncert.array is not None:
+            # We want the result to have a unit consistent with the parent, so
+            # we only need to convert the unit of the other uncertainty if it
+            # is different from its data's unit.
+            if (other_uncert.unit and
+                to_variance(1 * other_uncert.unit) !=
+                    ((1 * other_uncert.parent_nddata.unit)**2).unit):
+                d_b = to_variance((other_uncert.array * other_uncert.unit)).to(
+                    (1 * other_uncert.parent_nddata.unit)**2).value
+            else:
+                d_b = to_variance(other_uncert.array)
+            # Formula: sigma**2 = |A|**2 * d_b
+            right = np.abs(self.parent_nddata.data**2 * d_b)
+        else:
+            right = 0
+
+        if self.array is not None:
+            # Just the reversed case
+            if (self.unit and
+                to_variance(1 * self.unit) !=
+                    ((1 * self.parent_nddata.unit)**2).unit):
+                d_a = to_variance(self.array * self.unit).to(
+                    (1 * self.parent_nddata.unit)**2).value
+            else:
+                d_a = to_variance(self.array)
+            # Formula: sigma**2 = |B|**2 * d_a
+            left = np.abs(other_uncert.parent_nddata.data**2 * d_a)
+        else:
+            left = 0
+
+        # Multiplication
+        #
+        # The fundamental formula is:
+        #   sigma**2 = |AB|**2*(d_a/A**2+d_b/B**2+2*sqrt(d_a)/A*sqrt(d_b)/B*cor)
+        #
+        # This formula is not very handy since it generates NaNs for every
+        # zero in A and B. So we rewrite it:
+        #
+        # Multiplication Formula:
+        #   sigma**2 = (d_a*B**2 + d_b*A**2 + (2 * cor * ABsqrt(dAdB)))
+        #   sigma**2 = (left + right + (2 * cor * ABsqrt(dAdB)))
+        #
+        # Division
+        #
+        # The fundamental formula for division is:
+        #   sigma**2 = |A/B|**2*(d_a/A**2+d_b/B**2-2*sqrt(d_a)/A*sqrt(d_b)/B*cor)
+        #
+        # As with multiplication, it is convenient to rewrite this to avoid
+        # nans where A is zero.
+        #
+        # Division formula (rewritten):
+        #   sigma**2 = d_a/B**2 + (A/B)**2 * d_b/B**2
+        #                   - 2 * cor * A *sqrt(dAdB) / B**3
+        #   sigma**2 = d_a/B**2 + (A/B)**2 * d_b/B**2
+        #                   - 2*cor * sqrt(d_a)/B**2  * sqrt(d_b) * A / B
+        #   sigma**2 = multiplication formula/B**4 (and sign change in
+        #               the correlation)
+
+        if isinstance(correlation, np.ndarray) or correlation != 0:
+            corr = (2 * correlation * np.sqrt(d_a * d_b) *
+                    self.parent_nddata.data *
+                    other_uncert.parent_nddata.data)
+        else:
+            corr = 0
+
+        if divide:
+            return from_variance((left + right + correlation_sign * corr) /
+                                 other_uncert.parent_nddata.data**4)
+        else:
+            return from_variance(left + right + correlation_sign * corr)
+
+
+class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
     """Standard deviation uncertainty assuming first order gaussian error
     propagation.
 
@@ -390,16 +678,16 @@ class StdDevUncertainty(NDUncertainty):
     instance, either by creating it during initialization::
 
         >>> from astropy.nddata import NDData, StdDevUncertainty
-        >>> ndd = NDData([1,2,3],
+        >>> ndd = NDData([1,2,3], unit='m',
         ...              uncertainty=StdDevUncertainty([0.1, 0.1, 0.1]))
-        >>> ndd.uncertainty
-        StdDevUncertainty([ 0.1,  0.1,  0.1])
+        >>> ndd.uncertainty  # doctest: +FLOAT_CMP
+        StdDevUncertainty([0.1, 0.1, 0.1])
 
     or by setting it manually on the `NDData` instance::
 
         >>> ndd.uncertainty = StdDevUncertainty([0.2], unit='m', copy=True)
-        >>> ndd.uncertainty
-        StdDevUncertainty([ 0.2])
+        >>> ndd.uncertainty  # doctest: +FLOAT_CMP
+        StdDevUncertainty([0.2])
 
     the uncertainty ``array`` can also be set directly::
 
@@ -433,257 +721,216 @@ class StdDevUncertainty(NDUncertainty):
         else:
             raise IncompatibleUncertaintiesException
 
-# TODO: These 4 methods were part of the pre-astropy 1.2 version. Remove
-# them at some point. It's unlikely they were used directly but in any case
-# better keep them around for now.
-
-    @deprecated('1.2', alternative=':meth:`~NDUncertainty.propagate`')
-    def propagate_add(self, other_nddata, result_data):
-        return self.propagate(np.add, other_nddata, result_data, 0)
-
-    @deprecated('1.2', alternative=':meth:`~NDUncertainty.propagate`')
-    def propagate_subtract(self, other_nddata, result_data):
-        return self.propagate(np.subtract, other_nddata, result_data, 0)
-
-    @deprecated('1.2', alternative=':meth:`~NDUncertainty.propagate`')
-    def propagate_multiply(self, other_nddata, result_data):
-        return self.propagate(np.multiply, other_nddata, result_data, 0)
-
-    @deprecated('1.2', alternative=':meth:`~NDUncertainty.propagate`')
-    def propagate_divide(self, other_nddata, result_data):
-        return self.propagate(np.divide, other_nddata, result_data, 0)
-
     def _propagate_add(self, other_uncert, result_data, correlation):
-
-        if self.array is None:
-            # Formula: sigma = dB
-
-            if other_uncert.unit is not None and (
-                        result_data.unit != other_uncert.unit):
-                # If the other uncertainty has a unit and this unit differs
-                # from the unit of the result convert it to the results unit
-                return (other_uncert.array * other_uncert.unit).to(
-                            result_data.unit).value
-            else:
-                # Copy the result because _propagate will not copy it but for
-                # arithmetic operations users will expect copies.
-                return deepcopy(other_uncert.array)
-
-        elif other_uncert.array is None:
-            # Formula: sigma = dA
-
-            if self.unit is not None and self.unit != self.parent_nddata.unit:
-                # If the uncertainty has a different unit than the result we
-                # need to convert it to the results unit.
-                return (self.array * self.unit).to(result_data.unit).value
-            else:
-                # Copy the result because _propagate will not copy it but for
-                # arithmetic operations users will expect copies.
-                return deepcopy(self.array)
-
-        else:
-            # Formula: sigma = sqrt(dA**2 + dB**2 + 2*cor*dA*dB)
-
-            # Calculate: dA (this) and dB (other)
-            if self.unit != other_uncert.unit:
-                # In case the two uncertainties (or data) have different units
-                # we need to use quantity operations. The case where only one
-                # has a unit and the other doesn't is not possible with
-                # addition and would have raised an exception in the data
-                # computation
-                this = self.array * self.unit
-                other = other_uncert.array * other_uncert.unit
-            else:
-                # Since both units are the same or None we can just use
-                # numpy operations
-                this = self.array
-                other = other_uncert.array
-
-            # Determine the result depending on the correlation
-            if isinstance(correlation, np.ndarray) or correlation != 0:
-                corr = 2 * correlation * this * other
-                result = np.sqrt(this**2 + other**2 + corr)
-            else:
-                result = np.sqrt(this**2 + other**2)
-
-            if isinstance(result, Quantity):
-                # In case we worked with quantities we need to return the
-                # uncertainty that has the same unit as the resulting data
-                if result.unit == result_data.unit:
-                    return result.value
-                else:
-                    # Convert it to the data's unit and then drop the unit.
-                    return result.to(result_data.unit).value
-            else:
-                return result
+        return super()._propagate_add_sub(other_uncert, result_data,
+                                          correlation, subtract=False,
+                                          to_variance=np.square,
+                                          from_variance=np.sqrt)
 
     def _propagate_subtract(self, other_uncert, result_data, correlation):
-        # Since the formulas are equivalent to addition you should look at the
-        # explanations provided in _propagate_add
-
-        if self.array is None:
-            if other_uncert.unit is not None and (
-                        result_data.unit != other_uncert.unit):
-                return (other_uncert.array * other_uncert.unit).to(
-                            result_data.unit).value
-            else:
-                return deepcopy(other_uncert.array)
-        elif other_uncert.array is None:
-            if self.unit is not None and self.unit != self.parent_nddata.unit:
-                return (self.array * self.unit).to(result_data.unit).value
-            else:
-                return deepcopy(self.array)
-        else:
-            # Formula: sigma = sqrt(dA**2 + dB**2 - 2*cor*dA*dB)
-            if self.unit != other_uncert.unit:
-                this = self.array * self.unit
-                other = other_uncert.array * other_uncert.unit
-            else:
-                this = self.array
-                other = other_uncert.array
-            if isinstance(correlation, np.ndarray) or correlation != 0:
-                corr = 2 * correlation * this * other
-                # The only difference to addition is that the correlation is
-                # subtracted.
-                result = np.sqrt(this**2 + other**2 - corr)
-            else:
-                result = np.sqrt(this**2 + other**2)
-            if isinstance(result, Quantity):
-                if result.unit == result_data.unit:
-                    return result.value
-                else:
-                    return result.to(result_data.unit).value
-            else:
-                return result
+        return super()._propagate_add_sub(other_uncert, result_data,
+                                          correlation, subtract=True,
+                                          to_variance=np.square,
+                                          from_variance=np.sqrt)
 
     def _propagate_multiply(self, other_uncert, result_data, correlation):
-
-        # For multiplication we don't need the result as quantity
-        if isinstance(result_data, Quantity):
-            result_data = result_data.value
-
-        if self.array is None:
-            # Formula: sigma = |A| * dB
-
-            # We want the result to have the same unit as the parent, so we
-            # only need to convert the unit of the other uncertainty if it is
-            # different from its data's unit.
-            if other_uncert.unit != other_uncert.parent_nddata.unit:
-                other = (other_uncert.array * other_uncert.unit).to(
-                            other_uncert.parent_nddata.unit).value
-            else:
-                other = other_uncert.array
-            return np.abs(self.parent_nddata.data * other)
-
-        elif other_uncert.array is None:
-            # Formula: sigma = dA * |B|
-
-            # Just the reversed case
-            if self.unit != self.parent_nddata.unit:
-                this = (self.array * self.unit).to(
-                                            self.parent_nddata.unit).value
-            else:
-                this = self.array
-            return np.abs(other_uncert.parent_nddata.data * this)
-
-        else:
-            # Formula: sigma = |AB|*sqrt((dA/A)**2+(dB/B)**2+2*dA/A*dB/B*cor)
-
-            # This formula is not very handy since it generates NaNs for every
-            # zero in A and B. So we rewrite it:
-
-            # Formula: sigma = sqrt((dA*B)**2 + (dB*A)**2 + (2 * cor * ABdAdB))
-
-            # Calculate: dA * B (left)
-            if self.unit != self.parent_nddata.unit:
-                # To get the unit right we need to convert the unit of
-                # each uncertainty to the same unit as it's parent
-                left = ((self.array * self.unit).to(
-                        self.parent_nddata.unit).value *
-                        other_uncert.parent_nddata.data)
-            else:
-                left = self.array * other_uncert.parent_nddata.data
-
-            # Calculate: dB * A (right)
-            if other_uncert.unit != other_uncert.parent_nddata.unit:
-                right = ((other_uncert.array * other_uncert.unit).to(
-                        other_uncert.parent_nddata.unit).value *
-                        self.parent_nddata.data)
-            else:
-                right = other_uncert.array * self.parent_nddata.data
-
-            if isinstance(correlation, np.ndarray) or correlation != 0:
-                corr = (2 * correlation * left * right)
-                return np.sqrt(left**2 + right**2 + corr)
-            else:
-                return np.sqrt(left**2 + right**2)
+        return super()._propagate_multiply_divide(other_uncert,
+                                                  result_data, correlation,
+                                                  divide=False,
+                                                  to_variance=np.square,
+                                                  from_variance=np.sqrt)
 
     def _propagate_divide(self, other_uncert, result_data, correlation):
+        return super()._propagate_multiply_divide(other_uncert,
+                                                  result_data, correlation,
+                                                  divide=True,
+                                                  to_variance=np.square,
+                                                  from_variance=np.sqrt)
 
-        # For division we don't need the result as quantity
-        if isinstance(result_data, Quantity):
-            result_data = result_data.value
+    def _data_unit_to_uncertainty_unit(self, value):
+        return value
 
-        if self.array is None:
-            # Formula: sigma = |(A / B) * (dB / B)|
 
-            # Calculate: dB / B (right)
-            if other_uncert.unit != other_uncert.parent_nddata.unit:
-                # We need (dB / B) to be dimensionless so we convert
-                # (if necessary) dB to the same unit as B
-                right = ((other_uncert.array * other_uncert.unit).to(
-                    other_uncert.parent_nddata.unit).value /
-                    other_uncert.parent_nddata.data)
-            else:
-                right = (other_uncert.array / other_uncert.parent_nddata.data)
-            return np.abs(result_data * right)
+class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
+    """
+    Variance uncertainty assuming first order Gaussian error
+    propagation.
 
-        elif other_uncert.array is None:
-            # Formula: sigma = dA / |B|.
+    This class implements uncertainty propagation for ``addition``,
+    ``subtraction``, ``multiplication`` and ``division`` with other instances
+    of `VarianceUncertainty`. The class can handle if the uncertainty has a
+    unit that differs from (but is convertible to) the parents `NDData` unit.
+    The unit of the resulting uncertainty will be the square of the unit of the
+    resulting data. Also support for correlation is possible but requires the
+    correlation as input. It cannot handle correlation determination itself.
 
-            # Calculate: dA
-            if self.unit != self.parent_nddata.unit:
-                # We need to convert dA to the unit of A to have a result that
-                # matches the resulting data's unit.
-                left = (self.array * self.unit).to(
-                        self.parent_nddata.unit).value
-            else:
-                left = self.array
+    Parameters
+    ----------
+    args, kwargs :
+        see `NDUncertainty`
 
-            return np.abs(left / other_uncert.parent_nddata.data)
+    Examples
+    --------
+    Compare this example to that in `StdDevUncertainty`; the uncertainties
+    in the examples below are equivalent to the uncertainties in
+    `StdDevUncertainty`.
 
-        else:
-            # Formula: sigma = |A/B|*sqrt((dA/A)**2+(dB/B)**2-2*dA/A*dB/B*cor)
+    `VarianceUncertainty` should always be associated with an `NDData`-like
+    instance, either by creating it during initialization::
 
-            # As with multiplication this formula creates NaNs where A is zero.
-            # So I'll rewrite it again:
-            # => sigma = sqrt((dA/B)**2 + (AdB/B**2)**2 - 2*cor*AdAdB/B**3)
+        >>> from astropy.nddata import NDData, VarianceUncertainty
+        >>> ndd = NDData([1,2,3], unit='m',
+        ...              uncertainty=VarianceUncertainty([0.01, 0.01, 0.01]))
+        >>> ndd.uncertainty  # doctest: +FLOAT_CMP
+        VarianceUncertainty([0.01, 0.01, 0.01])
 
-            # So we need to calculate dA/B in the same units as the result
-            # and the dimensionless dB/B to get a resulting uncertainty with
-            # the same unit as the data.
+    or by setting it manually on the `NDData` instance::
 
-            # Calculate: dA/B (left)
-            if self.unit != self.parent_nddata.unit:
-                left = ((self.array * self.unit).to(
-                        self.parent_nddata.unit).value /
-                        other_uncert.parent_nddata.data)
-            else:
-                left = self.array / other_uncert.parent_nddata.data
+        >>> ndd.uncertainty = VarianceUncertainty([0.04], unit='m^2', copy=True)
+        >>> ndd.uncertainty  # doctest: +FLOAT_CMP
+        VarianceUncertainty([0.04])
 
-            # Calculate: dB/B (right)
-            if other_uncert.unit != other_uncert.parent_nddata.unit:
-                right = ((other_uncert.array * other_uncert.unit).to(
-                    other_uncert.parent_nddata.unit).value /
-                    other_uncert.parent_nddata.data) * result_data
-            else:
-                right = (result_data * other_uncert.array /
-                         other_uncert.parent_nddata.data)
+    the uncertainty ``array`` can also be set directly::
 
-            if isinstance(correlation, np.ndarray) or correlation != 0:
-                corr = 2 * correlation * left * right
-                # This differs from multiplication because the correlation
-                # term needs to be subtracted
-                return np.sqrt(left**2 + right**2 - corr)
-            else:
-                return np.sqrt(left**2 + right**2)
+        >>> ndd.uncertainty.array = 4
+        >>> ndd.uncertainty
+        VarianceUncertainty(4)
+
+    .. note::
+        The unit will not be displayed.
+    """
+    @property
+    def uncertainty_type(self):
+        """``"var"`` : `VarianceUncertainty` implements variance.
+        """
+        return 'var'
+
+    @property
+    def supports_correlated(self):
+        """`True` : `VarianceUncertainty` allows to propagate correlated \
+                    uncertainties.
+
+        ``correlation`` must be given, this class does not implement computing
+        it by itself.
+        """
+        return True
+
+    def _propagate_add(self, other_uncert, result_data, correlation):
+        return super()._propagate_add_sub(other_uncert, result_data,
+                                          correlation, subtract=False)
+
+    def _propagate_subtract(self, other_uncert, result_data, correlation):
+        return super()._propagate_add_sub(other_uncert, result_data,
+                                          correlation, subtract=True)
+
+    def _propagate_multiply(self, other_uncert, result_data, correlation):
+        return super()._propagate_multiply_divide(other_uncert,
+                                                  result_data, correlation,
+                                                  divide=False)
+
+    def _propagate_divide(self, other_uncert, result_data, correlation):
+        return super()._propagate_multiply_divide(other_uncert,
+                                                  result_data, correlation,
+                                                  divide=True)
+
+    def _data_unit_to_uncertainty_unit(self, value):
+        return value ** 2
+
+
+def _inverse(x):
+    """Just a simple inverse for use in the InverseVariance"""
+    return 1 / x
+
+
+class InverseVariance(_VariancePropagationMixin, NDUncertainty):
+    """
+    Inverse variance uncertainty assuming first order Gaussian error
+    propagation.
+
+    This class implements uncertainty propagation for ``addition``,
+    ``subtraction``, ``multiplication`` and ``division`` with other instances
+    of `InverseVariance`. The class can handle if the uncertainty has a unit
+    that differs from (but is convertible to) the parents `NDData` unit. The
+    unit of the resulting uncertainty will the inverse square of the unit of
+    the resulting data. Also support for correlation is possible but requires
+    the correlation as input. It cannot handle correlation determination
+    itself.
+
+    Parameters
+    ----------
+    args, kwargs :
+        see `NDUncertainty`
+
+    Examples
+    --------
+    Compare this example to that in `StdDevUncertainty`; the uncertainties
+    in the examples below are equivalent to the uncertainties in
+    `StdDevUncertainty`.
+
+    `InverseVariance` should always be associated with an `NDData`-like
+    instance, either by creating it during initialization::
+
+        >>> from astropy.nddata import NDData, InverseVariance
+        >>> ndd = NDData([1,2,3], unit='m',
+        ...              uncertainty=InverseVariance([100, 100, 100]))
+        >>> ndd.uncertainty  # doctest: +FLOAT_CMP
+        InverseVariance([100, 100, 100])
+
+    or by setting it manually on the `NDData` instance::
+
+        >>> ndd.uncertainty = InverseVariance([25], unit='1/m^2', copy=True)
+        >>> ndd.uncertainty  # doctest: +FLOAT_CMP
+        InverseVariance([25])
+
+    the uncertainty ``array`` can also be set directly::
+
+        >>> ndd.uncertainty.array = 0.25
+        >>> ndd.uncertainty
+        InverseVariance(0.25)
+
+    .. note::
+        The unit will not be displayed.
+    """
+    @property
+    def uncertainty_type(self):
+        """``"ivar"`` : `InverseVariance` implements inverse variance.
+        """
+        return 'ivar'
+
+    @property
+    def supports_correlated(self):
+        """`True` : `InverseVariance` allows to propagate correlated \
+                    uncertainties.
+
+        ``correlation`` must be given, this class does not implement computing
+        it by itself.
+        """
+        return True
+
+    def _propagate_add(self, other_uncert, result_data, correlation):
+        return super()._propagate_add_sub(other_uncert, result_data,
+                                          correlation, subtract=False,
+                                          to_variance=_inverse,
+                                          from_variance=_inverse)
+
+    def _propagate_subtract(self, other_uncert, result_data, correlation):
+        return super()._propagate_add_sub(other_uncert, result_data,
+                                          correlation, subtract=True,
+                                          to_variance=_inverse,
+                                          from_variance=_inverse)
+
+    def _propagate_multiply(self, other_uncert, result_data, correlation):
+        return super()._propagate_multiply_divide(other_uncert,
+                                                  result_data, correlation,
+                                                  divide=False,
+                                                  to_variance=_inverse,
+                                                  from_variance=_inverse)
+
+    def _propagate_divide(self, other_uncert, result_data, correlation):
+        return super()._propagate_multiply_divide(other_uncert,
+                                                  result_data, correlation,
+                                                  divide=True,
+                                                  to_variance=_inverse,
+                                                  from_variance=_inverse)
+    def _data_unit_to_uncertainty_unit(self, value):
+        return 1 / value ** 2

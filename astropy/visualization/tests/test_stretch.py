@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
 import numpy as np
-from ...tests.helper import pytest
-from ..stretch import (LinearStretch, SqrtStretch, PowerStretch,
+
+from astropy.visualization.stretch import (LinearStretch, SqrtStretch, PowerStretch,
                        PowerDistStretch, SquaredStretch, LogStretch,
                        AsinhStretch, SinhStretch, HistEqStretch,
                        ContrastBiasStretch)
@@ -28,7 +29,7 @@ RESULTS[HistEqStretch(DATA ** 0.5)] = np.array([0., 0.125, 0.25, 0.5674767,
                                                 1.])
 
 
-class TestStretch(object):
+class TestStretch:
 
     @pytest.mark.parametrize('stretch', RESULTS.keys())
     def test_no_clip(self, stretch):

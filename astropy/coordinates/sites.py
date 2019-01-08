@@ -10,17 +10,15 @@ Request to the [astropy-data GitHub repository](https://github.com/astropy/astro
 updating the ``location.json`` file.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import json
 from difflib import get_close_matches
-from collections import Mapping
+from collections.abc import Mapping
 
-from ..utils.data import get_pkg_data_contents, get_file_contents
+from astropy.utils.data import get_pkg_data_contents, get_file_contents
 from .earth import EarthLocation
 from .errors import UnknownSiteException
-from .. import units as u
+from astropy import units as u
 
 
 class SiteRegistry(Mapping):
@@ -103,13 +101,16 @@ class SiteRegistry(Mapping):
     def from_json(cls, jsondb):
         reg = cls()
         for site in jsondb:
-            site_info = jsondb[site]
-            location = EarthLocation.from_geodetic(site_info['longitude'] * u.Unit(site_info['longitude_unit']),
-                                                   site_info['latitude'] * u.Unit(site_info['latitude_unit']),
-                                                   site_info['elevation'] * u.Unit(site_info['elevation_unit']))
-            location.info.name = site_info['name']
+            site_info = jsondb[site].copy()
+            location = EarthLocation.from_geodetic(site_info.pop('longitude') * u.Unit(site_info.pop('longitude_unit')),
+                                                   site_info.pop('latitude') * u.Unit(site_info.pop('latitude_unit')),
+                                                   site_info.pop('elevation') * u.Unit(site_info.pop('elevation_unit')))
+            location.info.name = site_info.pop('name')
+            aliases = site_info.pop('aliases')
+            location.info.meta = site_info  # whatever is left
 
-            reg.add_site([site] + site_info['aliases'], location)
+            reg.add_site([site] + aliases, location)
+
         reg._loaded_jsondb = jsondb
         return reg
 
@@ -123,9 +124,17 @@ def get_builtin_sites():
     return SiteRegistry.from_json(jsondb)
 
 
-def get_downloaded_sites(jsonurl='http://data.astropy.org/coordinates/sites.json'):
+def get_downloaded_sites(jsonurl=None):
     """
     Load observatory database from data.astropy.org and parse into a SiteRegistry
     """
-    jsondb = json.loads(get_file_contents(jsonurl, show_progress=False))
+
+    # we explicitly set the encoding because the default is to leave it set by
+    # the users' locale, which may fail if it's not matched to the sites.json
+    if jsonurl is None:
+        content = get_pkg_data_contents('coordinates/sites.json', encoding='UTF-8')
+    else:
+        content = get_file_contents(jsonurl, encoding='UTF-8')
+
+    jsondb = json.loads(content)
     return SiteRegistry.from_json(jsondb)

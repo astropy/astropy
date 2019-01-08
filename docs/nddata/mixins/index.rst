@@ -1,5 +1,5 @@
 Mixins for added functionality
-==============================
+******************************
 
 .. toctree::
     :maxdepth: 2
