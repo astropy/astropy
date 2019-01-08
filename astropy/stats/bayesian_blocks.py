@@ -340,6 +340,8 @@ class FitnessFunc:
         # Compute ncp_prior if not defined
         if self.ncp_prior is None:
             ncp_prior = self.compute_ncp_prior(N)
+        else:
+            ncp_prior = self.ncp_prior
         # ----------------------------------------------------------------
         # Start with first data cell; add one cell at each iteration
         # ----------------------------------------------------------------
