@@ -2926,6 +2926,45 @@ class CompoundModel(Model):
                 inputs_map[inp] = self.left.inputs_map()[inp]
         return inputs_map
 
+    @property
+    def _supports_unit_fitting(self):
+        return False
+
+    @property
+    def input_units(self):
+        inputs_map = self.inputs_map()
+        return {key: inputs_map[key][0].input_units[orig_key] 
+            for key, (mod, orig_key) in inputs_map.items()
+                     if inputs_map[key][0].input_units is not None}
+    
+    @property
+    def input_units_equivalencies(self):
+        inputs_map = self.inputs_map()
+        return {key: inputs_map[key][0].input_units_equivalencies[orig_key] 
+            for key, (mod, orig_key) in inputs_map.items()
+                if inputs_map[key][0].input_units_equivalencies is not None}
+
+    @property
+    def input_units_allow_dimensionless(self):
+        inputs_map = self.inputs_map()
+        return {key: inputs_map[key][0].input_units_allow_dimensionless[orig_key] 
+            for key, (mod, orig_key) in inputs_map.items()}
+
+    @property
+    def input_units_strict(self):
+        inputs_map = self.inputs_map()
+        return {key: inputs_map[key][0].input_units_strict[orig_key] 
+            for key, (mod, orig_key) in inputs_map.items()}
+
+    @property
+    def return_units(self):
+        inputs_map = self.inputs_map()
+        return {key: inputs_map[key][0].return_units[orig_key] 
+            for key, (mod, orig_key) in inputs_map.items()
+                     if inputs_map[key][0].return_units is not None}
+    
+    
+
     def outputs_map(self):
         """
         Map the names of the outputs to this ExpressionTree to the outputs to the leaf models.
