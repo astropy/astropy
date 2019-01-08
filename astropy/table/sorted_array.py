@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import numpy as np
-from ..extern.six.moves import range, zip
+
 
 def _searchsorted(array, val, side='left'):
     '''
@@ -26,7 +24,8 @@ def _searchsorted(array, val, side='left'):
             end = mid
     return begin
 
-class SortedArray(object):
+
+class SortedArray:
     '''
     Implements a sorted array container using
     a list of numpy arrays.
@@ -40,6 +39,7 @@ class SortedArray(object):
     unique : bool (defaults to False)
         Whether the values of the index must be unique
     '''
+
     def __init__(self, data, row_index, unique=False):
         self.data = data
         self.row_index = row_index
@@ -61,7 +61,7 @@ class SortedArray(object):
         row : int
             Row number
         '''
-        pos = self.find_pos(key, row) # first >= key
+        pos = self.find_pos(key, row)  # first >= key
 
         if self.unique and 0 <= pos < len(self.row_index) and \
            all(self.data[pos][i] == key[i] for i in range(len(key))):
@@ -118,11 +118,10 @@ class SortedArray(object):
                 return begin + t
             end = begin + _searchsorted(key_slice, key[i], side='right')
             begin += t
-            if begin >= len(self.row_index): # greater than all keys
+            if begin >= len(self.row_index):  # greater than all keys
                 return begin
 
         return begin
-
 
     def find(self, key):
         '''
@@ -154,7 +153,7 @@ class SortedArray(object):
                 return []
             end = begin + _searchsorted(key_slice, key[i], side='right')
             begin += t
-            if begin >= len(self.row_index): # greater than all keys
+            if begin >= len(self.row_index):  # greater than all keys
                 return []
 
         return self.row_index[begin:end]
@@ -182,16 +181,16 @@ class SortedArray(object):
 
         lower_bound = tuple([col[lower_pos] for col in self.cols])
         if not bounds[0] and lower_bound == lower:
-            lower_pos += 1 # data[lower_pos] > lower
+            lower_pos += 1  # data[lower_pos] > lower
 
         # data[lower_pos] >= lower
         # data[upper_pos] >= upper
         if upper_pos < len(self.row_index):
             upper_bound = tuple([col[upper_pos] for col in self.cols])
             if not bounds[1] and upper_bound == upper:
-                upper_pos -= 1 # data[upper_pos] < upper
+                upper_pos -= 1  # data[upper_pos] < upper
             elif upper_bound > upper:
-                upper_pos -= 1 # data[upper_pos] <= upper
+                upper_pos -= 1  # data[upper_pos] <= upper
         return self.row_index[lower_pos:upper_pos + 1]
 
     def remove(self, key, data):
@@ -211,11 +210,11 @@ class SortedArray(object):
             Whether the entry was successfully removed
         '''
         pos = self.find_pos(key, data, exact=True)
-        if pos == -1: # key not found
+        if pos == -1:  # key not found
             return False
 
         self.data.remove_row(pos)
-        keep_mask = np.ones(len(self.row_index), dtype=np.bool)
+        keep_mask = np.ones(len(self.row_index), dtype=bool)
         keep_mask[pos] = False
         self.row_index = self.row_index[keep_mask]
         return True
@@ -254,7 +253,7 @@ class SortedArray(object):
             Mapping of row numbers to new row numbers
         '''
         num_rows = len(row_map)
-        keep_rows = np.zeros(len(self.row_index), dtype=np.bool)
+        keep_rows = np.zeros(len(self.row_index), dtype=bool)
         tagged = 0
         for i, row in enumerate(self.row_index):
             if row in row_map:

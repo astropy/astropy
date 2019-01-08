@@ -5,22 +5,21 @@ Helper functions for table development, mostly creating useful
 tables for testing.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from itertools import cycle
 import string
 import numpy as np
 
 from .table import Table, Column
-from ..extern.six.moves import zip, range
-from ..utils.data_info import ParentDtypeInfo
+from astropy.utils.data_info import ParentDtypeInfo
 
-class TimingTables(object):
+
+class TimingTables:
     """
     Object which contains two tables and various other attributes that
     are useful for timing and other API tests.
     """
+
     def __init__(self, size=1000, masked=False):
         self.masked = masked
 
@@ -32,17 +31,17 @@ class TimingTables(object):
         self.table['i'] = np.arange(size)
         self.table['a'] = np.random.random(size)  # float
         self.table['b'] = np.random.random(size) > 0.5  # bool
-        self.table['c'] = np.random.random((size,10))  # 2d column
-        self.table['d'] = np.random.choice(np.array(list(string.ascii_letters)),size)
+        self.table['c'] = np.random.random((size, 10))  # 2d column
+        self.table['d'] = np.random.choice(np.array(list(string.ascii_letters)), size)
 
-        self.extra_row = {'a':1.2, 'b':True, 'c':np.repeat(1, 10), 'd':'Z'}
+        self.extra_row = {'a': 1.2, 'b': True, 'c': np.repeat(1, 10), 'd': 'Z'}
         self.extra_column = np.random.randint(0, 100, size)
         self.row_indices = np.where(self.table['a'] > 0.9)[0]
         self.table_grouped = self.table.group_by('d')
 
         # Another table for testing joining
         self.other_table = Table(masked=self.masked)
-        self.other_table['i'] = np.arange(1,size,3)
+        self.other_table['i'] = np.arange(1, size, 3)
         self.other_table['f'] = np.random.random()
         self.other_table.sort('f')
 
@@ -74,8 +73,8 @@ def simple_table(size=3, cols=None, kinds='ifS', masked=False):
     ----------
     size : int
         Number of table rows
-    cols : int, default=number of kinds
-        Number of table columns
+    cols : int, optional
+        Number of table columns. Defaults to number of kinds.
     kinds : str
         String consisting of the column dtype.kinds.  This string
         will be cycled through to generate the column dtype.
@@ -124,10 +123,9 @@ def complex_table():
     Return a masked table from the io.votable test set that has a wide variety
     of stressing types.
     """
-    from ..utils.data import get_pkg_data_filename
-    from ..io.votable.table import parse
+    from astropy.utils.data import get_pkg_data_filename
+    from astropy.io.votable.table import parse
     import warnings
-
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -138,7 +136,8 @@ def complex_table():
 
     return table
 
-class ArrayWrapper(object):
+
+class ArrayWrapper:
     """
     Minimal mixin using a simple wrapper around a numpy array
     """
@@ -163,6 +162,13 @@ class ArrayWrapper(object):
 
     def __len__(self):
         return len(self.data)
+
+    def __eq__(self, other):
+        """Minimal equality testing, mostly for mixin unit tests"""
+        if isinstance(other, ArrayWrapper):
+            return self.data == other.data
+        else:
+            return self.data == other
 
     @property
     def dtype(self):

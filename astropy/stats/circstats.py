@@ -6,15 +6,12 @@ instance, mean, variance, standard deviation, correlation coefficient, and so
 on. This module also cover tests of uniformity, e.g., the Rayleigh and V tests.
 The Maximum Likelihood Estimator for the Von Mises distribution along with the
 Cramer-Rao Lower Bounds are also implemented. Almost all of the implementations
-are based on reference [1], which is also the basis for the R package
-'CircStats' [2].
+are based on reference [1]_, which is also the basis for the R package
+'CircStats' [2]_.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import numpy as np
 from astropy.units import Quantity
-from astropy.utils.compat.numpy import broadcast_to
 
 __all__ = ['circmean', 'circvar', 'circmoment', 'circcorrcoef', 'rayleightest',
            'vtest', 'vonmisesmle']
@@ -27,7 +24,7 @@ def _components(data, p=1, phi=0.0, axis=None, weights=None):
     if weights is None:
         weights = np.ones((1,))
     try:
-        weights = broadcast_to(weights, data.shape)
+        weights = np.broadcast_to(weights, data.shape)
     except ValueError:
         raise ValueError('Weights and data have inconsistent shape.')
 
@@ -71,7 +68,7 @@ def circmean(data, axis=None, weights=None):
     weights : numpy.ndarray, optional
         In case of grouped data, the i-th element of ``weights`` represents a
         weighting factor for each group such that ``sum(weights, axis)``
-        equals the number of observations. See [1], remark 1.4, page 22, for
+        equals the number of observations. See [1]_, remark 1.4, page 22, for
         detailed explanation.
 
     Returns
@@ -103,8 +100,8 @@ def circvar(data, axis=None, weights=None):
     """ Computes the circular variance of an array of circular data.
 
     There are some concepts for defining measures of dispersion for circular
-    data. The variance implemented here is based on the definition given by [1]
-    , which is also the same used by the R package 'CircStats' [2].
+    data. The variance implemented here is based on the definition given by
+    [1]_, which is also the same used by the R package 'CircStats' [2]_.
 
     Parameters
     ----------
@@ -117,8 +114,8 @@ def circvar(data, axis=None, weights=None):
     weights : numpy.ndarray, optional
         In case of grouped data, the i-th element of ``weights`` represents a
         weighting factor for each group such that ``sum(weights, axis)``
-        equals the number of observations. See [1], remark 1.4, page 22, for
-        detailed explanation.
+        equals the number of observations. See [1]_, remark 1.4, page 22,
+        for detailed explanation.
 
     Returns
     -------
@@ -172,8 +169,8 @@ def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
     weights : numpy.ndarray, optional
         In case of grouped data, the i-th element of ``weights`` represents a
         weighting factor for each group such that ``sum(weights, axis)``
-        equals the number of observations. See [1], remark 1.4, page 22, for
-        detailed explanation.
+        equals the number of observations. See [1]_, remark 1.4, page 22,
+        for detailed explanation.
 
     Returns
     -------
@@ -228,7 +225,7 @@ def circcorrcoef(alpha, beta, axis=None, weights_alpha=None,
         In case of grouped data, the i-th element of ``weights_alpha``
         represents a weighting factor for each group such that
         ``sum(weights_alpha, axis)`` equals the number of observations.
-        See [1], remark 1.4, page 22, for detailed explanation.
+        See [1]_, remark 1.4, page 22, for detailed explanation.
     weights_beta : numpy.ndarray, optional
         See description of ``weights_alpha``.
 
@@ -294,7 +291,7 @@ def rayleightest(data, axis=None, weights=None):
         In case of grouped data, the i-th element of ``weights`` represents a
         weighting factor for each group such that ``np.sum(weights, axis)``
         equals the number of observations.
-        See [1], remark 1.4, page 22, for detailed explanation.
+        See [1]_, remark 1.4, page 22, for detailed explanation.
 
     Returns
     -------
@@ -354,8 +351,8 @@ def vtest(data, mu=0.0, axis=None, weights=None):
     weights : numpy.ndarray, optional
         In case of grouped data, the i-th element of ``weights`` represents a
         weighting factor for each group such that ``sum(weights, axis)``
-        equals the number of observations. See [1], remark 1.4, page 22, for
-        detailed explanation.
+        equals the number of observations. See [1]_, remark 1.4, page 22,
+        for detailed explanation.
 
     Returns
     -------
@@ -386,7 +383,7 @@ def vtest(data, mu=0.0, axis=None, weights=None):
     if weights is None:
         weights = np.ones((1,))
     try:
-        weights = broadcast_to(weights, data.shape)
+        weights = np.broadcast_to(weights, data.shape)
     except ValueError:
         raise ValueError('Weights and data have inconsistent shape.')
 
@@ -404,7 +401,7 @@ def vtest(data, mu=0.0, axis=None, weights=None):
 def _A1inv(x):
     # Approximation for _A1inv(x) according R Package 'CircStats'
     # See http://www.scienceasia.org/2012.38.n1/scias38_118.pdf, equation (4)
-    if(x >= 0 and x < 0.53):
+    if 0 <= x < 0.53:
         return 2.0*x + x*x*x + (5.0*x**5)/6.0
     elif x < 0.85:
         return -0.4 + 1.39*x + 0.43/(1.0 - x)

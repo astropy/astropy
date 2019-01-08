@@ -22,8 +22,10 @@ from .mixins.ndio import *
 
 from .compat import *
 from .utils import *
+from .ccddata import *
+from .bitmask import *
 
-from .. import config as _config
+from astropy import config as _config
 
 
 class Conf(_config.ConfigNamespace):
@@ -44,5 +46,6 @@ class Conf(_config.ConfigNamespace):
         'attribute is changed from a non-``None`` value to another value '
         'that data values/uncertainties are not scaled with the unit change.'
     )
+
 
 conf = Conf()

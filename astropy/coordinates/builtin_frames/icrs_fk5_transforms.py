@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
-from ..matrix_utilities import (rotation_matrix,
+from astropy.coordinates.matrix_utilities import (rotation_matrix,
                                 matrix_product, matrix_transpose)
-from ..baseframe import frame_transform_graph
-from ..transformations import DynamicMatrixTransform
+from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.transformations import DynamicMatrixTransform
 
 from .fk5 import FK5
 from .icrs import ICRS
@@ -28,6 +26,8 @@ def _icrs_to_fk5_matrix():
     m3 = rotation_matrix(da0, 'z')
 
     return matrix_product(m1, m2, m3)
+
+
 # define this here because it only needs to be computed once
 _ICRS_TO_FK5_J2000_MAT = _icrs_to_fk5_matrix()
 

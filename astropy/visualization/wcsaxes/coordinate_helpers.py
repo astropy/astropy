@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 """
 This file defines the classes used to represent a 'coordinate', which includes
 axes, ticks, tick labels, and grid lines.
 """
+
+import warnings
 
 import numpy as np
 
@@ -14,8 +15,8 @@ from matplotlib.transforms import Affine2D, ScaledTranslation
 from matplotlib.patches import PathPatch
 from matplotlib import rcParams
 
-from ... import units as u
-from ...extern import six
+from astropy import units as u
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
@@ -26,6 +27,19 @@ from .grid_paths import get_lon_lat_path, get_gridline_path
 __all__ = ['CoordinateHelper']
 
 
+# Matplotlib's gridlines use Line2D, but ours use PathPatch.
+# Patches take a slightly different format of linestyle argument.
+LINES_TO_PATCHES_LINESTYLE = {'-': 'solid',
+                              '--': 'dashed',
+                              '-.': 'dashdot',
+                              ':': 'dotted',
+                              'none': 'none',
+                              'None': 'none',
+                              ' ': 'none',
+                              '': 'none'}
+
+
+
 def wrap_angle_at(values, coord_wrap):
     # On ARM processors, np.mod emits warnings if there are NaN values in the
     # array, although this doesn't seem to happen on other processors.
@@ -33,7 +47,7 @@ def wrap_angle_at(values, coord_wrap):
         return np.mod(values - coord_wrap, 360.) - (360. - coord_wrap)
 
 
-class CoordinateHelper(object):
+class CoordinateHelper:
     """
     Helper class to control one of the coordinates in the
     :class:`~astropy.visualization.wcsaxes.WCSAxes`.
@@ -57,14 +71,17 @@ class CoordinateHelper(object):
         and do not wrap.
     coord_unit : `~astropy.units.Unit`
         The unit that this coordinate is in given the output of transform.
+    format_unit : `~astropy.units.Unit`, optional
+        The unit to use to display the coordinates.
     coord_wrap : float
         The angle at which the longitude wraps (defaults to 360)
     frame : `~astropy.visualization.wcsaxes.frame.BaseFrame`
         The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
     """
 
-    def __init__(self, parent_axes=None, parent_map=None, transform=None, coord_index=None,
-                 coord_type='scalar', coord_unit=None, coord_wrap=None, frame=None):
+    def __init__(self, parent_axes=None, parent_map=None, transform=None,
+                 coord_index=None, coord_type='scalar', coord_unit=None,
+                 coord_wrap=None, frame=None, format_unit=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
@@ -72,6 +89,7 @@ class CoordinateHelper(object):
         self.transform = transform
         self.coord_index = coord_index
         self.coord_unit = coord_unit
+        self.format_unit = format_unit
         self.frame = frame
 
         self.set_coord_type(coord_type, coord_wrap)
@@ -85,7 +103,7 @@ class CoordinateHelper(object):
         self.ticklabels = TickLabels(self.frame,
                                      transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
-        self.ticks.display_minor_ticks(False)
+        self.ticks.display_minor_ticks(rcParams['xtick.minor.visible'])
         self.minor_frequency = 5
 
         # Initialize axis labels
@@ -98,26 +116,15 @@ class CoordinateHelper(object):
 
         # Initialize grid style. Take defaults from matplotlib.rcParams.
         # Based on matplotlib.axis.YTick._get_gridline.
-        #
-        # Matplotlib's gridlines use Line2D, but ours use PathPatch.
-        # Patches take a slightly different format of linestyle argument.
-        lines_to_patches_linestyle = {'-': 'solid',
-                                      '--': 'dashed',
-                                      '-.': 'dashdot',
-                                      ':': 'dotted',
-                                      'none': 'none',
-                                      'None': 'none',
-                                      ' ': 'none',
-                                      '': 'none'}
         self.grid_lines_kwargs = {'visible': False,
                                   'facecolor': 'none',
                                   'edgecolor': rcParams['grid.color'],
-                                  'linestyle': lines_to_patches_linestyle[rcParams['grid.linestyle']],
+                                  'linestyle': LINES_TO_PATCHES_LINESTYLE[rcParams['grid.linestyle']],
                                   'linewidth': rcParams['grid.linewidth'],
-                                  'alpha': rcParams.get('grid.alpha', 1.0),
+                                  'alpha': rcParams['grid.alpha'],
                                   'transform': self.parent_axes.transData}
 
-    def grid(self, draw_grid=True, grid_type='lines', **kwargs):
+    def grid(self, draw_grid=True, grid_type=None, **kwargs):
         """
         Plot grid lines for this coordinate.
 
@@ -128,15 +135,23 @@ class CoordinateHelper(object):
         ----------
         draw_grid : bool
             Whether to show the gridlines
-        grid_type : { 'lines' | 'contours' }
+        grid_type : {'lines', 'contours'}
             Whether to plot the contours by determining the grid lines in
             world coordinates and then plotting them in world coordinates
             (``'lines'``) or by determining the world coordinates at many
             positions in the image and then drawing contours
             (``'contours'``). The first is recommended for 2-d images, while
             for 3-d (or higher dimensional) cubes, the ``'contours'`` option
-            is recommended.
+            is recommended. By default, 'lines' is used if the transform has
+            an inverse, otherwise 'contours' is used.
         """
+
+        if grid_type == 'lines' and not self.transform.has_inverse:
+            raise ValueError('The specified transform has no inverse, so the '
+                             'grid cannot be drawn using grid_type=\'lines\'')
+
+        if grid_type is None:
+            grid_type = 'lines' if self.transform.has_inverse else 'contours'
 
         if grid_type in ('lines', 'contours'):
             self._grid_type = grid_type
@@ -178,14 +193,15 @@ class CoordinateHelper(object):
 
         # Initialize tick formatter/locator
         if coord_type == 'scalar':
-            self._coord_unit_scale = None
+            self._coord_scale_to_deg = None
             self._formatter_locator = ScalarFormatterLocator(unit=self.coord_unit)
         elif coord_type in ['longitude', 'latitude']:
             if self.coord_unit is u.deg:
-                self._coord_unit_scale = None
+                self._coord_scale_to_deg = None
             else:
-                self._coord_unit_scale = self.coord_unit.to(u.deg)
-            self._formatter_locator = AngleFormatterLocator()
+                self._coord_scale_to_deg = self.coord_unit.to(u.deg)
+            self._formatter_locator = AngleFormatterLocator(unit=self.coord_unit,
+                                                            format_unit=self.format_unit)
         else:
             raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
 
@@ -200,16 +216,25 @@ class CoordinateHelper(object):
         """
         if isinstance(formatter, Formatter):
             raise NotImplementedError()  # figure out how to swap out formatter
-        elif isinstance(formatter, six.string_types):
+        elif isinstance(formatter, str):
             self._formatter_locator.format = formatter
         else:
             raise TypeError("formatter should be a string or a Formatter "
                             "instance")
 
-    def format_coord(self, value):
+    def format_coord(self, value, format='auto'):
         """
         Given the value of a coordinate, will format it according to the
         format of the formatter_locator.
+
+        Parameters
+        ----------
+        value : float
+            The value to format
+        format : {'auto', 'ascii', 'latex'}, optional
+            The format to use - by default the formatting will be adjusted
+            depending on whether Matplotlib is using LaTeX or MathTex. To
+            get plain ASCII strings, use format='ascii'.
         """
 
         if not hasattr(self, "_fl_spacing"):
@@ -219,16 +244,16 @@ class CoordinateHelper(object):
         if isinstance(fl, AngleFormatterLocator):
 
             # Convert to degrees if needed
-            if self._coord_unit_scale is not None:
-                value *= self._coord_unit_scale
+            if self._coord_scale_to_deg is not None:
+                value *= self._coord_scale_to_deg
 
             if self.coord_type == 'longitude':
                 value = wrap_angle_at(value, self.coord_wrap)
             value = value * u.degree
-            value = value.to(fl._unit).value
+            value = value.to_value(fl._unit)
 
         spacing = self._fl_spacing
-        string = fl.formatter(values=[value] * fl._unit, spacing=spacing)
+        string = fl.formatter(values=[value] * fl._unit, spacing=spacing, format=format)
 
         return string[0]
 
@@ -238,17 +263,18 @@ class CoordinateHelper(object):
 
         Parameters
         ----------
-        separator : The separator between numbers in sexagesimal
-        representation. Can be either a string or a tuple.
+        separator : str or tuple or None
+            The separator between numbers in sexagesimal representation. Can be
+            either a string or a tuple (or `None` for default).
         """
         if not (self._formatter_locator.__class__ == AngleFormatterLocator):
             raise TypeError("Separator can only be specified for angle coordinates")
-        if isinstance(separator, six.string_types) or isinstance(separator, tuple):
+        if isinstance(separator, (str, tuple)) or separator is None:
             self._formatter_locator.sep = separator
         else:
-            raise TypeError("separator should be a string or a tuple")
+            raise TypeError("separator should be a string, a tuple, or None")
 
-    def set_format_unit(self, unit):
+    def set_format_unit(self, unit, decimal=None, show_decimal_unit=True):
         """
         Set the unit for the major tick labels.
 
@@ -256,13 +282,20 @@ class CoordinateHelper(object):
         ----------
         unit : class:`~astropy.units.Unit`
             The unit to which the tick labels should be converted to.
+        decimal : bool, optional
+            Whether to use decimal formatting. By default this is `False`
+            for degrees or hours (which therefore use sexagesimal formatting)
+            and `True` for all other units.
+        show_decimal_unit : bool, optional
+            Whether to include units when in decimal mode.
         """
-        if not issubclass(unit.__class__, u.UnitBase):
-            raise TypeError("unit should be an astropy UnitBase subclass")
-        self._formatter_locator.format_unit = unit
+        self._formatter_locator.format_unit = u.Unit(unit)
+        self._formatter_locator.decimal = decimal
+        self._formatter_locator.show_decimal_unit = show_decimal_unit
 
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
-                  width=None, color=None, alpha=None, exclude_overlapping=False):
+                  width=None, color=None, alpha=None, direction=None,
+                  exclude_overlapping=None):
         """
         Set the location and properties of the ticks.
 
@@ -279,10 +312,12 @@ class CoordinateHelper(object):
             The approximate number of ticks shown.
         size : float, optional
             The length of the ticks in points
-        color : str or tuple
+        color : str or tuple, optional
             A valid Matplotlib color for the ticks
-        exclude_overlapping : bool, optional
-            Whether to exclude tick labels that overlap over each other.
+        alpha : float, optional
+            The alpha value (transparency) for the ticks.
+        direction : {'in','out'}, optional
+            Whether the ticks should point inwards or outwards.
         """
 
         if sum([values is None, spacing is None, number is None]) < 2:
@@ -308,7 +343,17 @@ class CoordinateHelper(object):
         if alpha is not None:
             self.ticks.set_alpha(alpha)
 
-        self.ticklabels.set_exclude_overlapping(exclude_overlapping)
+        if direction is not None:
+            if direction in ('in', 'out'):
+                self.ticks.set_tick_out(direction == 'out')
+            else:
+                raise ValueError("direction should be 'in' or 'out'")
+
+        if exclude_overlapping is not None:
+            warnings.warn("exclude_overlapping= should be passed to "
+                          "set_ticklabel instead of set_ticks",
+                          AstropyDeprecationWarning)
+            self.ticklabels.set_exclude_overlapping(exclude_overlapping)
 
     def set_ticks_position(self, position):
         """
@@ -336,17 +381,32 @@ class CoordinateHelper(object):
         """
         self.ticks.set_visible(visible)
 
-    def set_ticklabel(self, **kwargs):
+    def set_ticklabel(self, color=None, size=None, pad=None,
+                      exclude_overlapping=None, **kwargs):
         """
         Set the visual properties for the tick labels.
 
         Parameters
         ----------
+        size : float, optional
+            The size of the ticks labels in points
+        color : str or tuple, optional
+            A valid Matplotlib color for the tick labels
+        pad : float, optional
+            Distance in points between tick and label.
+        exclude_overlapping : bool, optional
+            Whether to exclude tick labels that overlap over each other.
         kwargs
-            Keyword arguments are passed to :class:`matplotlib.text.Text`. These
-            can include keywords to set the ``color``, ``size``, ``weight``, and
-            other text properties.
+            Other keyword arguments are passed to :class:`matplotlib.text.Text`.
         """
+        if size is not None:
+            self.ticklabels.set_size(size)
+        if color is not None:
+            self.ticklabels.set_color(color)
+        if pad is not None:
+            self.ticklabels.set_pad(pad)
+        if exclude_overlapping is not None:
+            self.ticklabels.set_exclude_overlapping(exclude_overlapping)
         self.ticklabels.set(**kwargs)
 
     def set_ticklabel_position(self, position):
@@ -390,9 +450,21 @@ class CoordinateHelper(object):
             can include keywords to set the ``color``, ``size``, ``weight``, and
             other text properties.
         """
+
+        fontdict = kwargs.pop('fontdict', None)
+
+        # NOTE: When using plt.xlabel/plt.ylabel, minpad can get set explicitly
+        # to None so we need to make sure that in that case we change to a
+        # default numerical value.
+        if minpad is None:
+            minpad = 1
+
         self.axislabels.set_text(text)
         self.axislabels.set_minpad(minpad)
         self.axislabels.set(**kwargs)
+
+        if fontdict is not None:
+            self.axislabels.update(fontdict)
 
     def get_axislabel(self):
         """
@@ -419,6 +491,26 @@ class CoordinateHelper(object):
         """
         self.axislabels.set_visible_axes(position)
 
+    def set_axislabel_visibility_rule(self, rule):
+        """
+        Set the rule used to determine when the axis label is drawn.
+
+        Parameters
+        ----------
+        rule : str
+            If the rule is 'always' axis labels will always be drawn on the
+            axis. If the rule is 'ticks' the label will only be drawn if ticks
+            were drawn on that axis. If the rule is 'labels' the axis label
+            will only be drawn if tick labels were drawn on that axis.
+        """
+        self.axislabels.set_visibility_rule(rule)
+
+    def get_axislabel_visibility_rule(self, rule):
+        """
+        Get the rule used to determine when the axis label is drawn.
+        """
+        return self.axislabels.get_visibility_rule()
+
     @property
     def locator(self):
         return self._formatter_locator.locator
@@ -427,15 +519,11 @@ class CoordinateHelper(object):
     def formatter(self):
         return self._formatter_locator.formatter
 
-    def _draw(self, renderer, bboxes, ticklabels_bbox):
+    def _draw_grid(self, renderer):
 
-        renderer.open_group('coordinate_axis')
+        renderer.open_group('grid lines')
 
         self._update_ticks()
-
-        self.ticks.draw(renderer)
-        self.ticklabels.draw(renderer, bboxes=bboxes,
-                             ticklabels_bbox=ticklabels_bbox)
 
         if self.grid_lines_kwargs['visible']:
 
@@ -458,14 +546,27 @@ class CoordinateHelper(object):
                     line.set(**self.grid_lines_kwargs)
                     line.draw(renderer)
 
-        renderer.close_group('coordinate_axis')
+        renderer.close_group('grid lines')
 
-    def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, visible_ticks):
+    def _draw_ticks(self, renderer, bboxes, ticklabels_bbox, ticks_locs):
+
+        renderer.open_group('ticks')
+
+        self.ticks.draw(renderer, ticks_locs)
+        self.ticklabels.draw(renderer, bboxes=bboxes,
+                             ticklabels_bbox=ticklabels_bbox,
+                             tick_out_size=self.ticks.out_size)
+
+        renderer.close_group('ticks')
+
+    def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, ticks_locs, visible_ticks):
 
         renderer.open_group('axis labels')
 
         self.axislabels.draw(renderer, bboxes=bboxes,
-                             ticklabels_bbox_list=ticklabels_bbox,
+                             ticklabels_bbox=ticklabels_bbox,
+                             coord_ticklabels_bbox=ticklabels_bbox[self],
+                             ticks_locs=ticks_locs,
                              visible_ticks=visible_ticks)
 
         renderer.close_group('axis labels')
@@ -484,6 +585,7 @@ class CoordinateHelper(object):
 
         # First find the ticks we want to show
         tick_world_coordinates, self._fl_spacing = self.locator(*coord_range[self.coord_index])
+
         if self.ticks.get_display_minor_ticks():
             minor_ticks_w_coordinates = self._formatter_locator.minor_locator(self._fl_spacing, self.get_minor_frequency(), *coord_range[self.coord_index])
 
@@ -503,7 +605,7 @@ class CoordinateHelper(object):
         transData = self.parent_axes.transData
         invertedTransLimits = transData.inverted()
 
-        for axis, spine in six.iteritems(frame):
+        for axis, spine in frame.items():
 
             # Determine tick rotation in display coordinates and compare to
             # the normal angle in display coordinates.
@@ -531,11 +633,12 @@ class CoordinateHelper(object):
             # Rotate by 90 degrees
             dx, dy = -dy, dx
 
-            if self._coord_unit_scale is not None:
-                dx *= self._coord_unit_scale
-                dy *= self._coord_unit_scale
-
             if self.coord_type == 'longitude':
+
+                if self._coord_scale_to_deg is not None:
+                    dx *= self._coord_scale_to_deg
+                    dy *= self._coord_scale_to_deg
+
                 # Here we wrap at 180 not self.coord_wrap since we want to
                 # always ensure abs(dx) < 180 and abs(dy) < 180
                 dx = wrap_angle_at(dx, 180.)
@@ -555,16 +658,21 @@ class CoordinateHelper(object):
             w1 = spine.world[:-1, self.coord_index]
             w2 = spine.world[1:, self.coord_index]
 
-            if self._coord_unit_scale is not None:
-                w1 = w1 * self._coord_unit_scale
-                w2 = w2 * self._coord_unit_scale
-
             if self.coord_type == 'longitude':
+
+                if self._coord_scale_to_deg is not None:
+                    w1 = w1 * self._coord_scale_to_deg
+                    w2 = w2 * self._coord_scale_to_deg
+
                 w1 = wrap_angle_at(w1, self.coord_wrap)
                 w2 = wrap_angle_at(w2, self.coord_wrap)
                 with np.errstate(invalid='ignore'):
                     w1[w2 - w1 > 180.] += 360
                     w2[w1 - w2 > 180.] += 360
+
+                if self._coord_scale_to_deg is not None:
+                    w1 = w1 / self._coord_scale_to_deg
+                    w2 = w2 / self._coord_scale_to_deg
 
             # For longitudes, we need to check ticks as well as ticks + 360,
             # since the above can produce pairs such as 359 to 361 or 0.5 to
@@ -581,11 +689,16 @@ class CoordinateHelper(object):
         for kwargs, txt in zip(self.lblinfo, text):
             self.ticklabels.add(text=txt, **kwargs)
 
-    def _compute_ticks(self, tick_world_coordinates, spine, axis, w1, w2, tick_angle, ticks='major'):
-        tick_world_coordinates_values = tick_world_coordinates.value
+    def _compute_ticks(self, tick_world_coordinates, spine, axis, w1, w2,
+                       tick_angle, ticks='major'):
+
         if self.coord_type == 'longitude':
+            tick_world_coordinates_values = tick_world_coordinates.to_value(u.deg)
             tick_world_coordinates_values = np.hstack([tick_world_coordinates_values,
                                                        tick_world_coordinates_values + 360])
+            tick_world_coordinates_values *= u.deg.to(self.coord_unit)
+        else:
+            tick_world_coordinates_values = tick_world_coordinates.to_value(self.coord_unit)
 
         for t in tick_world_coordinates_values:
 
@@ -623,7 +736,15 @@ class CoordinateHelper(object):
                     angle_i = tick_angle[imin] + frac * delta_angle
 
                 if self.coord_type == 'longitude':
+
+                    if self._coord_scale_to_deg is not None:
+                        t *= self._coord_scale_to_deg
+
                     world = wrap_angle_at(t, self.coord_wrap)
+
+                    if self._coord_scale_to_deg is not None:
+                        world /= self._coord_scale_to_deg
+
                 else:
                     world = t
 
@@ -690,7 +811,7 @@ class CoordinateHelper(object):
         coord_range = self.parent_map.get_coord_range()
 
         tick_world_coordinates, spacing = self.locator(*coord_range[self.coord_index])
-        tick_world_coordinates_values = tick_world_coordinates.value
+        tick_world_coordinates_values = tick_world_coordinates.to_value(self.coord_unit)
 
         n_coord = len(tick_world_coordinates_values)
 
@@ -713,11 +834,6 @@ class CoordinateHelper(object):
         # single go rather than doing this in the gridline to path conversion
         # to fully benefit from vectorized coordinate transformations.
 
-        # Currently xy_world is in deg, but transform function needs it in
-        # native units
-        if self._coord_unit_scale is not None:
-            xy_world /= self._coord_unit_scale
-
         # Transform line to pixel coordinates
         pixel = self.transform.inverted().transform(xy_world)
 
@@ -736,20 +852,25 @@ class CoordinateHelper(object):
 
     def _update_grid_contour(self):
 
-        if hasattr(self, '_grid'):
+        if hasattr(self, '_grid') and self._grid:
             for line in self._grid.collections:
                 line.remove()
 
         xmin, xmax = self.parent_axes.get_xlim()
         ymin, ymax = self.parent_axes.get_ylim()
 
-        x, y, field = self.transform.get_coord_slices(xmin, xmax, ymin, ymax, 200, 200)
+        from . import conf
+        res = conf.contour_grid_samples
+
+        x, y = np.meshgrid(np.linspace(xmin, xmax, res),
+                           np.linspace(ymin, ymax, res))
+        pixel = np.array([x.ravel(), y.ravel()]).T
+        world = self.transform.transform(pixel)
+        field = world[:, self.coord_index].reshape(res, res).T
 
         coord_range = self.parent_map.get_coord_range()
 
         tick_world_coordinates, spacing = self.locator(*coord_range[self.coord_index])
-
-        field = field[self.coord_index]
 
         # tick_world_coordinates is a Quantities array and we only needs its values
         tick_world_coordinates_values = tick_world_coordinates.value
@@ -773,3 +894,123 @@ class CoordinateHelper(object):
             self._grid = self.parent_axes.contour(x, y, field.transpose(), levels=np.sort(tick_world_coordinates_values))
         else:
             self._grid = None
+
+    def tick_params(self, which='both', **kwargs):
+        """
+        Method to set the tick and tick label parameters in the same way as the
+        :meth:`~matplotlib.axes.Axes.tick_params` method in Matplotlib.
+
+        This is provided for convenience, but the recommended API is to use
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticks`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticklabel`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticks_position`,
+        :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticklabel_position`,
+        and :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.grid`.
+
+        Parameters
+        ----------
+        which : {'both', 'major', 'minor'}, optional
+            Which ticks to apply the settings to. By default, setting are
+            applied to both major and minor ticks. Note that if ``'minor'`` is
+            specified, only the length of the ticks can be set currently.
+        direction : {'in', 'out'}, optional
+            Puts ticks inside the axes, or outside the axes.
+        length : float, optional
+            Tick length in points.
+        width : float, optional
+            Tick width in points.
+        color : color, optional
+            Tick color (accepts any valid Matplotlib color)
+        pad : float, optional
+            Distance in points between tick and label.
+        labelsize : float or str, optional
+            Tick label font size in points or as a string (e.g., 'large').
+        labelcolor : color, optional
+            Tick label color (accepts any valid Matplotlib color)
+        colors : color, optional
+            Changes the tick color and the label color to the same value
+             (accepts any valid Matplotlib color).
+        bottom, top, left, right : bool, optional
+            Where to draw the ticks. Note that this will not work correctly if
+            the frame is not rectangular.
+        labelbottom, labeltop, labelleft, labelright : bool, optional
+            Where to draw the tick labels. Note that this will not work
+            correctly if the frame is not rectangular.
+        grid_color : color, optional
+            The color of the grid lines (accepts any valid Matplotlib color).
+        grid_alpha : float, optional
+            Transparency of grid lines: 0 (transparent) to 1 (opaque).
+        grid_linewidth : float, optional
+            Width of grid lines in points.
+        grid_linestyle : string, optional
+            The style of the grid lines (accepts any valid Matplotlib line
+            style).
+        """
+
+        # First do some sanity checking on the keyword arguments
+
+        # colors= is a fallback default for color and labelcolor
+        if 'colors' in kwargs:
+            if 'color' not in kwargs:
+                kwargs['color'] = kwargs['colors']
+            if 'labelcolor' not in kwargs:
+                kwargs['labelcolor'] = kwargs['colors']
+
+        # The only property that can be set *specifically* for minor ticks is
+        # the length. In future we could consider having a separate Ticks instance
+        # for minor ticks so that e.g. the color can be set separately.
+        if which == 'minor':
+            if len(set(kwargs) - {'length'}) > 0:
+                raise ValueError("When setting which='minor', the only "
+                                 "property that can be set at the moment is "
+                                 "'length' (the minor tick length)")
+            else:
+                if 'length' in kwargs:
+                    self.ticks.set_minor_ticksize(kwargs['length'])
+            return
+
+        # At this point, we can now ignore the 'which' argument.
+
+        # Set the tick arguments
+        self.set_ticks(size=kwargs.get('length'),
+                       width=kwargs.get('width'),
+                       color=kwargs.get('color'),
+                       direction=kwargs.get('direction'))
+
+        # Set the tick position
+        position = None
+        for arg in ('bottom', 'left', 'top', 'right'):
+            if arg in kwargs and position is None:
+                position = ''
+            if kwargs.get(arg):
+                position += arg[0]
+        if position is not None:
+            self.set_ticks_position(position)
+
+        # Set the tick label arguments.
+        self.set_ticklabel(color=kwargs.get('labelcolor'),
+                           size=kwargs.get('labelsize'),
+                           pad=kwargs.get('pad'))
+
+        # Set the tick label position
+        position = None
+        for arg in ('bottom', 'left', 'top', 'right'):
+            if 'label' + arg in kwargs and position is None:
+                position = ''
+            if kwargs.get('label' + arg):
+                position += arg[0]
+        if position is not None:
+            self.set_ticklabel_position(position)
+
+        # And the grid settings
+        if 'grid_color' in kwargs:
+            self.grid_lines_kwargs['edgecolor'] = kwargs['grid_color']
+        if 'grid_alpha' in kwargs:
+            self.grid_lines_kwargs['alpha'] = kwargs['grid_alpha']
+        if 'grid_linewidth' in kwargs:
+            self.grid_lines_kwargs['linewidth'] = kwargs['grid_linewidth']
+        if 'grid_linestyle' in kwargs:
+            if kwargs['grid_linestyle'] in LINES_TO_PATCHES_LINESTYLE:
+                self.grid_lines_kwargs['linestyle'] = LINES_TO_PATCHES_LINESTYLE[kwargs['grid_linestyle']]
+            else:
+                self.grid_lines_kwargs['linestyle'] = kwargs['grid_linestyle']

@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 """
 This includes tests for the Distance class and related calculations
 """
 
+import pytest
 import numpy as np
 from numpy import testing as npt
 
-from ...tests.helper import pytest
-from ... import units as u
-from .. import Longitude, Latitude, Distance, CartesianRepresentation
-from ..builtin_frames import ICRS, Galactic
+from astropy import units as u
+from astropy.units import allclose as quantity_allclose
+from astropy.coordinates import Longitude, Latitude, Distance, CartesianRepresentation
+from astropy.coordinates.builtin_frames import ICRS, Galactic
+from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyWarning
 
 try:
     import scipy  # pylint: disable=W0611
@@ -35,7 +34,7 @@ def test_distances():
     coordinate.
     '''
 
-    #try all the different ways to initialize a Distance
+    # try all the different ways to initialize a Distance
     distance = Distance(12, u.parsec)
     Distance(40, unit=u.au)
     Distance(value=5, unit=u.kpc)
@@ -53,12 +52,11 @@ def test_distances():
     c = Galactic(l=158.558650*u.degree, b=-43.350066*u.degree,
                  distance=Distance(12, u.parsec))
 
-    #or initialize distances via redshifts - this is actually tested in the
-    #function below that checks for scipy. This is kept here as an example
-    #c.distance = Distance(z=0.2)  # uses current cosmology
-    #with whatever your preferred cosmology may be
-    #c.distance = Distance(z=0.2, cosmology=WMAP5)
-
+    # or initialize distances via redshifts - this is actually tested in the
+    # function below that checks for scipy. This is kept here as an example
+    # c.distance = Distance(z=0.2)  # uses current cosmology
+    # with whatever your preferred cosmology may be
+    # c.distance = Distance(z=0.2, cosmology=WMAP5)
 
     # Coordinate objects can be initialized with a distance using special
     # syntax
@@ -98,7 +96,7 @@ def test_distances():
     # CartesianRepresentation objects can be added and subtracted, which are
     # vector/elementwise they can also be given as arguments to a coordinate
     # system
-    #csum = ICRS(c1.cartesian + c2.cartesian)
+    # csum = ICRS(c1.cartesian + c2.cartesian)
     csumrep = CartesianRepresentation(c1.cartesian.xyz + c2.cartesian.xyz)
     csum = ICRS(csumrep)
 
@@ -116,9 +114,9 @@ def test_distances_scipy():
     The distance-related tests that require scipy due to the cosmology
     module needing scipy integration routines
     """
-    from ...cosmology import WMAP5
+    from astropy.cosmology import WMAP5
 
-    #try different ways to initialize a Distance
+    # try different ways to initialize a Distance
     d4 = Distance(z=0.23)  # uses default cosmology - as of writing, WMAP7
     npt.assert_allclose(d4.z, 0.23, rtol=1e-8)
 
@@ -127,6 +125,12 @@ def test_distances_scipy():
 
     d6 = Distance(z=0.23, cosmology=WMAP5, unit=u.km)
     npt.assert_allclose(d6.value, 3.5417046898762366e+22)
+
+    with pytest.raises(ValueError):
+        Distance(cosmology=WMAP5, unit=u.km)
+
+    with pytest.raises(ValueError):
+        Distance()
 
 
 def test_distance_change():
@@ -138,11 +142,11 @@ def test_distance_change():
     oldx = c1.cartesian.x.value
     assert (oldx - 0.35284083171901953) < 1e-10
 
-    #first make sure distances are immutible
+    # first make sure distances are immutible
     with pytest.raises(AttributeError):
         c1.distance = Distance(2, unit=u.kpc)
 
-    #now x should increase with a bigger distance increases
+    # now x should increase with a bigger distance increases
     c2 = ICRS(ra, dec, Distance(2, unit=u.kpc))
     assert c2.cartesian.x.value == oldx * 2
 
@@ -195,15 +199,47 @@ def test_distmod():
     with pytest.raises(ValueError):
         d = Distance(z=.23, distmod=20)
 
-    #check the Mpc/kpc/pc behavior
+    # check the Mpc/kpc/pc behavior
     assert Distance(distmod=1).unit == u.pc
     assert Distance(distmod=11).unit == u.kpc
     assert Distance(distmod=26).unit == u.Mpc
     assert Distance(distmod=-21).unit == u.AU
 
-    #if an array, uses the mean of the log of the distances
+    # if an array, uses the mean of the log of the distances
     assert Distance(distmod=[1, 11, 26]).unit == u.kpc
 
+
+def test_parallax():
+
+    d = Distance(parallax=1*u.arcsecond)
+    assert d.pc == 1.
+
+    with pytest.raises(ValueError):
+        d = Distance(15*u.pc, parallax=20*u.milliarcsecond)
+
+    with pytest.raises(ValueError):
+        d = Distance(parallax=20*u.milliarcsecond, distmod=20)
+
+    # array
+    plx = [1, 10, 100.]*u.mas
+    d = Distance(parallax=plx)
+    assert quantity_allclose(d.pc, [1000., 100., 10.])
+    assert quantity_allclose(plx, d.parallax)
+
+    # check behavior for negative parallax
+    with pytest.raises(ValueError):
+        Distance(parallax=-1 * u.mas)
+
+    with pytest.raises(ValueError):
+        Distance(parallax=[10, 1, -1] * u.mas)
+
+    with catch_warnings(AstropyWarning) as w:
+        Distance(parallax=-1 * u.mas, allow_negative=True)
+    assert len(w) > 0
+
+    with catch_warnings(AstropyWarning) as w:
+        Distance(parallax=[10, 1, -1] * u.mas, allow_negative=True)
+    assert len(w) > 0
 
 
 def test_distance_in_coordinates():
@@ -247,7 +283,7 @@ def test_distance_comparison():
 
 
 def test_distance_to_quantity_when_not_units_of_length():
-    """Any operatation that leaves units other than those of length
+    """Any operation that leaves units other than those of length
     should turn a distance into a quantity (#2206, #2250)"""
     d = Distance(15*u.kpc)
     twice = 2.*d

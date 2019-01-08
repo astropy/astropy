@@ -1,21 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-# TEST_UNICODE_LITERALS
-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-from ...extern import six  # pylint: disable=W0611
-from ...extern.six import next
-from ...extern.six.moves import range
 
 import io
-import locale
 
-from ...tests.helper import pytest
-from .. import console
-from ... import units as u
+import numpy as np
+import pytest
+
+
+from . import test_progress_bar_func
+from astropy.utils import console
+from astropy import units as u
 
 
 class FakeTTY(io.StringIO):
@@ -26,18 +21,16 @@ class FakeTTY(io.StringIO):
     def __new__(cls, encoding=None):
         # Return a new subclass of FakeTTY with the requested encoding
         if encoding is None:
-            return super(FakeTTY, cls).__new__(cls)
+            return super().__new__(cls)
 
-        # Since we're using unicode_literals in this module ensure that this is
-        # a 'str' object (since a class name can't be unicode in Python 2.7)
-        encoding = str(encoding)
+        encoding = encoding
         cls = type(encoding.title() + cls.__name__, (cls,),
                    {'encoding': encoding})
 
         return cls.__new__(cls)
 
     def __init__(self, encoding=None):
-        super(FakeTTY, self).__init__()
+        super().__init__()
 
     def write(self, s):
         if isinstance(s, bytes):
@@ -46,7 +39,7 @@ class FakeTTY(io.StringIO):
         elif self.encoding is not None:
             s.encode(self.encoding)
 
-        return super(FakeTTY, self).write(s)
+        return super().write(s)
 
     def isatty(self):
         return True
@@ -114,32 +107,6 @@ def test_color_print_invalid_color():
     console.color_print("foo", "unknown")
 
 
-@pytest.mark.skipif(str('not six.PY2'))
-def test_color_print_no_default_encoding():
-    """Regression test for #1244
-
-    In some environments `locale.getpreferredencoding` can return ``''``;
-    make sure there are some reasonable fallbacks.
-    """
-
-    # Not sure of a reliable way to force getpreferredencoding() to return
-    # an empty string other than to temporarily patch it
-    orig_func = locale.getpreferredencoding
-    locale.getpreferredencoding = lambda: ''
-    try:
-        # Try printing a string that can be utf-8 decoded (the default)
-        stream = io.StringIO()
-        console.color_print(b'\xe2\x98\x83', 'white', file=stream)
-        assert stream.getvalue() == '☃\n'
-
-        # Test the latin-1 fallback
-        stream = io.StringIO()
-        console.color_print(b'\xcd\xef', 'red', file=stream)
-        assert stream.getvalue() == 'Íï\n'
-    finally:
-        locale.getpreferredencoding = orig_func
-
-
 def test_spinner_non_unicode_console():
     """Regression test for #1760
 
@@ -191,29 +158,39 @@ def test_progress_bar_as_generator():
         sum += x
     assert sum == 1225
 
-@pytest.mark.parametrize(("seconds","string"),
-       [(864088," 1w 3d"),
+
+def test_progress_bar_map():
+    items = list(range(100))
+    result = console.ProgressBar.map(test_progress_bar_func.func,
+                                     items, step=10, multiprocess=True)
+    assert items == result
+
+
+@pytest.mark.parametrize(("seconds", "string"),
+       [(864088, " 1w 3d"),
        (187213, " 2d 4h"),
-       (3905,   " 1h 5m"),
-       (64,     " 1m 4s"),
-       (15,     "   15s"),
-       (2,      "    2s")]
+       (3905, " 1h 5m"),
+       (64, " 1m 4s"),
+       (15, "   15s"),
+       (2, "    2s")]
 )
 def test_human_time(seconds, string):
     human_time = console.human_time(seconds)
     assert human_time == string
 
-@pytest.mark.parametrize(("size","string"),
-       [(8640882,"8.6M"),
+
+@pytest.mark.parametrize(("size", "string"),
+       [(8640882, "8.6M"),
        (187213, "187k"),
-       (3905,   "3.9k"),
-       (64,     " 64 "),
-       (2,      "  2 "),
-       (10*u.GB,  " 10G")]
+       (3905, "3.9k"),
+       (64, " 64 "),
+       (2, "  2 "),
+       (10*u.GB, " 10G")]
 )
 def test_human_file_size(size, string):
     human_time = console.human_file_size(size)
     assert human_time == string
+
 
 @pytest.mark.parametrize("size", (50*u.km, 100*u.g))
 def test_bad_human_file_size(size):

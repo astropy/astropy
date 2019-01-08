@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
-from __future__ import division, with_statement, print_function
 
 import contextlib
 import copy
 import gc
+import pickle
 import re
 
+import pytest
 import numpy as np
 from numpy import char as chararray
 
@@ -15,16 +16,14 @@ try:
 except ImportError:
     HAVE_OBJGRAPH = False
 
-from ....extern import six
-from ....extern.six.moves import range, zip
-from ....extern.six.moves import cPickle as pickle
-from ....io import fits
-from ....tests.helper import pytest, catch_warnings, ignore_warnings
-from ....utils.exceptions import AstropyDeprecationWarning
+from astropy.io import fits
+from astropy.tests.helper import catch_warnings, ignore_warnings
+from astropy.utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-from ..column import Delayed, NUMPY2FITS
-from ..util import decode_ascii
-from ..verify import VerifyError
+from astropy.io.fits.column import Delayed, NUMPY2FITS
+from astropy.io.fits.util import decode_ascii
+from astropy.io.fits.verify import VerifyError
 from . import FitsTestCase
 
 
@@ -228,7 +227,13 @@ class TestTableFunctions(FitsTestCase):
                 'bzero': ['', '', 0.4, ''],
                 'disp': ['I11', 'A3', 'G15.7', 'L6'],
                 'start': ['', '', '', ''],
-                'dim': ['', '', '', '']}
+                'dim': ['', '', '', ''],
+                'coord_inc': ['', '', '', ''],
+                'coord_type': ['', '', '', ''],
+                'coord_unit': ['', '', '', ''],
+                'coord_ref_point': ['', '', '', ''],
+                'coord_ref_value': ['', '', '', ''],
+                'time_ref_pos': ['', '', '', '']}
 
         assert t[1].columns.info(output=False) == info
 
@@ -294,6 +299,19 @@ class TestTableFunctions(FitsTestCase):
         hdul = fits.open(self.temp('toto.fits'))
         assert comparerecords(hdu.data, hdul[1].data)
         hdul.close()
+
+        # Test Scaling
+
+        r1 = np.array([11., 12.])
+        c2 = fits.Column(name='def', format='D', array=r1, bscale=2.3,
+                         bzero=0.6)
+        hdu = fits.TableHDU.from_columns([c2])
+        hdu.writeto(self.temp('toto.fits'), overwrite=True)
+        with open(self.temp('toto.fits')) as f:
+            assert '4.95652173913043548D+00' in f.read()
+        with fits.open(self.temp('toto.fits')) as hdul:
+            assert comparerecords(hdu.data, hdul[1].data)
+
         a.close()
 
     def test_endianness(self):
@@ -315,7 +333,7 @@ class TestTableFunctions(FitsTestCase):
     def test_column_endianness(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/77
-        (PyFITS doesn't preserve byte order of non-native order column arrays)
+        (Astropy doesn't preserve byte order of non-native order column arrays)
         """
 
         a = [1., 2., 3., 4.]
@@ -358,6 +376,19 @@ class TestTableFunctions(FitsTestCase):
         a = np.array([(1, 'Serius', -1.45, 'A1V'),
                       (2, 'Canopys', -0.73, 'F0Ib'),
                       (3, 'Rigil Kent', -0.1, 'G2V')], dtype=desc)
+        hdu = fits.BinTableHDU(a)
+        assert comparerecords(hdu.data, a.view(fits.FITS_rec))
+        hdu.writeto(self.temp('toto.fits'), overwrite=True)
+        hdul = fits.open(self.temp('toto.fits'))
+        assert comparerecords(hdu.data, hdul[1].data)
+        hdul.close()
+
+    def test_numpy_ndarray_to_bintablehdu_with_unicode(self):
+        desc = np.dtype({'names': ['order', 'name', 'mag', 'Sp'],
+                         'formats': ['int', 'U20', 'float32', 'U10']})
+        a = np.array([(1, u'Serius', -1.45, u'A1V'),
+                      (2, u'Canopys', -0.73, u'F0Ib'),
+                      (3, u'Rigil Kent', -0.1, u'G2V')], dtype=desc)
         hdu = fits.BinTableHDU(a)
         assert comparerecords(hdu.data, a.view(fits.FITS_rec))
         hdu.writeto(self.temp('toto.fits'), overwrite=True)
@@ -519,13 +550,13 @@ class TestTableFunctions(FitsTestCase):
 
         hdu.writeto(self.temp('newtable.fits'))
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (), '', ''),
-                (1, '', 'BinTableHDU', 19, '8R x 5C', '[10A, J, 10A, 5E, L]',
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
+                (1, '', 1, 'BinTableHDU', 19, '8R x 5C', '[10A, J, 10A, 5E, L]',
                  '')]
 
         assert fits.info(self.temp('newtable.fits'), output=False) == info
 
-        z = np.array([0.,  0.,  0.,  0.,  0.], dtype=np.float32)
+        z = np.array([0., 0., 0., 0., 0.], dtype=np.float32)
         array = np.rec.array(
             [('NGC1', 312, '', z, True),
              ('NGC2', 334, '', z, False),
@@ -637,7 +668,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu1.columns.names == ['target', 'counts', 'notes',
                                         'spectrum', 'flag']
 
-        z = np.array([0.,  0.,  0.,  0.,  0.], dtype=np.float32)
+        z = np.array([0., 0., 0., 0., 0.], dtype=np.float32)
         array = np.rec.array(
             [('NGC1', 312, '', z, True),
              ('NGC2', 334, '', z, False),
@@ -678,7 +709,7 @@ class TestTableFunctions(FitsTestCase):
 
         hdu = fits.BinTableHDU.from_columns(t1[1].columns + t2[1].columns)
 
-        z = np.array([0.,  0.,  0.,  0.,  0.], dtype=np.float32)
+        z = np.array([0., 0., 0., 0., 0.], dtype=np.float32)
         array = np.rec.array(
             [('NGC1', 312, '', z, True, 'NGC5', 412, '', z, False),
              ('NGC2', 334, '', z, False, 'NGC6', 434, '', z, True),
@@ -726,8 +757,8 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.columns.columns[1].array[0] == 80
         assert hdu.data[0][1] == 80
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (), '', ''),
-                (1, '', 'BinTableHDU', 30, '4R x 10C',
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
+                (1, '', 1, 'BinTableHDU', 30, '4R x 10C',
                  '[10A, J, 10A, 5E, L, 10A, J, 10A, 5E, L]', '')]
 
         assert fits.info(self.temp('newtable.fits'), output=False) == info
@@ -739,7 +770,7 @@ class TestTableFunctions(FitsTestCase):
                 ['target', 'counts', 'notes', 'spectrum', 'flag', 'target1',
                  'counts1', 'notes1', 'spectrum1', 'flag1'])
 
-        z = np.array([0.,  0.,  0.,  0.,  0.], dtype=np.float32)
+        z = np.array([0., 0., 0., 0., 0.], dtype=np.float32)
         array = np.rec.array(
             [('NGC1', 312, '', z, True, 'NGC5', 412, '', z, False),
              ('NGC2', 334, '', z, False, 'NGC6', 434, '', z, True),
@@ -795,10 +826,7 @@ class TestTableFunctions(FitsTestCase):
         well to other similar cases.
         """
 
-        NULLS = {}
-        NULLS['a'] = 2
-        NULLS['b'] = 'b'
-        NULLS['c'] = 2.3
+        NULLS = {'a': 2, 'b': 'b', 'c': 2.3}
 
         data = np.array(list(zip([1, 2, 3, 4],
                                  ['a', 'b', 'c', 'd'],
@@ -817,6 +845,8 @@ class TestTableFunctions(FitsTestCase):
             assert header['TNULL2'] == 'b'
             assert header['TNULL3'] == 2.3
 
+    @pytest.mark.xfail(not NUMPY_LT_1_14_1 and NUMPY_LT_1_14_2,
+        reason="See https://github.com/astropy/astropy/issues/7214")
     def test_mask_array(self):
         t = fits.open(self.data('table.fits'))
         tbdata = t[1].data
@@ -854,7 +884,7 @@ class TestTableFunctions(FitsTestCase):
         a, b, c = row[1:4]
         assert a == counts[2]
         assert b == ''
-        assert (c == np.array([0., 0.,  0.,  0., 0.], dtype=np.float32)).all()
+        assert (c == np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
         row['counts'] = 310
         assert row['counts'] == 310
 
@@ -1058,7 +1088,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns.columns[2].array[8] == ''
         assert (tbhdu2.columns.columns[3].array[8] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert tbhdu2.columns.columns[4].array[8] == False  #nopep8
+        assert tbhdu2.columns.columns[4].array[8] == False  # nopep8
 
     def test_verify_data_references(self):
         counts = np.array([312, 334, 308, 317])
@@ -1507,6 +1537,28 @@ class TestTableFunctions(FitsTestCase):
             assert hdu.name == 'FOO'
             assert hdu.header['EXTNAME'] == 'FOO'
 
+    def test_constructor_ver_arg(self):
+        for hducls in [fits.BinTableHDU, fits.TableHDU]:
+            # First test some default assumptions
+            hdu = hducls()
+            assert hdu.ver == 1
+            assert 'EXTVER' not in hdu.header
+            hdu.ver = 2
+            assert hdu.ver == 2
+            assert hdu.header['EXTVER'] == 2
+
+            # Passing name to constructor
+            hdu = hducls(ver=3)
+            assert hdu.ver == 3
+            assert hdu.header['EXTVER'] == 3
+
+            # And overriding a header with a different extver
+            hdr = fits.Header()
+            hdr['EXTVER'] = 4
+            hdu = hducls(header=hdr, ver=5)
+            assert hdu.ver == 5
+            assert hdu.header['EXTVER'] == 5
+
     def test_unicode_colname(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/5204
@@ -1524,16 +1576,16 @@ class TestTableFunctions(FitsTestCase):
         tbhdu1 = fits.BinTableHDU.from_columns(coldefs)
 
         assert (tbhdu1.data.field('flag')[0] ==
-                np.array([True, False], dtype=np.bool)).all()
+                np.array([True, False], dtype=bool)).all()
         assert (tbhdu1.data.field('flag')[1] ==
-                np.array([False, True], dtype=np.bool)).all()
+                np.array([False, True], dtype=bool)).all()
 
         tbhdu = fits.BinTableHDU.from_columns(tbhdu1.data)
 
         assert (tbhdu.data.field('flag')[0] ==
-                np.array([True, False], dtype=np.bool)).all()
+                np.array([True, False], dtype=bool)).all()
         assert (tbhdu.data.field('flag')[1] ==
-                np.array([False, True], dtype=np.bool)).all()
+                np.array([False, True], dtype=bool)).all()
 
     def test_fits_rec_column_access(self):
         t = fits.open(self.data('table.fits'))
@@ -1717,10 +1769,7 @@ class TestTableFunctions(FitsTestCase):
 
         def test_dims_and_roundtrip(tbhdu):
             assert tbhdu.data['S'].shape == (5, 3, 2)
-            if six.PY2:
-                assert tbhdu.data['S'].dtype.str.endswith('S4')
-            else:
-                assert tbhdu.data['S'].dtype.str.endswith('U4')
+            assert tbhdu.data['S'].dtype.str.endswith('U4')
 
             tbhdu.writeto(self.temp('test.fits'), overwrite=True)
 
@@ -1728,10 +1777,7 @@ class TestTableFunctions(FitsTestCase):
                 tbhdu2 = hdul[1]
                 assert tbhdu2.header['TDIM1'] == '(4,2,3)'
                 assert tbhdu2.data['S'].shape == (5, 3, 2)
-                if six.PY2:
-                    assert tbhdu.data['S'].dtype.str.endswith('S4')
-                else:
-                    assert tbhdu.data['S'].dtype.str.endswith('U4')
+                assert tbhdu.data['S'].dtype.str.endswith('U4')
                 assert np.all(tbhdu2.data['S'] == tbhdu.data['S'])
 
         test_dims_and_roundtrip(tbhdu1)
@@ -1771,7 +1817,7 @@ class TestTableFunctions(FitsTestCase):
             raw_bytes = f.read()
 
         # Artificially truncate TDIM in the header; this seems to be the
-        # easiest way to do this while getting around pyfits' insistence on the
+        # easiest way to do this while getting around Astropy's insistence on the
         # data and header matching perfectly; again, we have no interest in
         # making it possible to write files in this format, only read them
         with open(self.temp('test.fits'), 'wb') as f:
@@ -1884,7 +1930,7 @@ class TestTableFunctions(FitsTestCase):
         """Regression test for https://github.com/astropy/astropy/pull/3580"""
 
         hdulist = fits.open(self.data('tdim.fits'))
-        assert hdulist[1].data['V_mag'].shape == (3,1,1)
+        assert hdulist[1].data['V_mag'].shape == (3, 1, 1)
 
     def test_slicing(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/52"""
@@ -2006,7 +2052,7 @@ class TestTableFunctions(FitsTestCase):
         """
 
         # Create a table containing a variety of data types.
-        a0 = np.array([False, True, False], dtype=np.bool)
+        a0 = np.array([False, True, False], dtype=bool)
         c0 = fits.Column(name='c0', format='L', array=a0)
 
         # Format X currently not supported by the format
@@ -2437,7 +2483,7 @@ class TestTableFunctions(FitsTestCase):
             readfile(self.data('memtest.fits'))
 
     @pytest.mark.skipif(str('not HAVE_OBJGRAPH'))
-    def test_reference_leak(self, tmpdir):
+    def test_reference_leak2(self, tmpdir):
         """
         Regression test for https://github.com/astropy/astropy/pull/4539
 
@@ -2491,11 +2537,65 @@ class TestTableFunctions(FitsTestCase):
             tbhdu.dump(datafile, cdfile, hfile, overwrite=True)
             with catch_warnings(AstropyDeprecationWarning) as warning_lines:
                 tbhdu.dump(datafile, cdfile, hfile, clobber=True)
-                assert len(warning_lines) == 0
-                # assert warning_lines[0].category == AstropyDeprecationWarning
-                # assert (str(warning_lines[0].message) == '"clobber" was '
-                #         'deprecated in version 1.3 and will be removed in a '
-                #         'future version. Use argument "overwrite" instead.')
+                assert warning_lines[0].category == AstropyDeprecationWarning
+                assert (str(warning_lines[0].message) == '"clobber" was '
+                        'deprecated in version 2.0 and will be removed in a '
+                        'future version. Use argument "overwrite" instead.')
+
+    def test_pseudo_unsigned_ints(self):
+        """
+        Tests updating a table column containing pseudo-unsigned ints.
+        """
+
+        data = np.array([1, 2, 3], dtype=np.uint32)
+        col = fits.Column(name='A', format='1J', bzero=2**31, array=data)
+        thdu = fits.BinTableHDU.from_columns([col])
+        thdu.writeto(self.temp('test.fits'))
+
+        # Test that the file wrote out correctly
+        with fits.open(self.temp('test.fits'), uint=True) as hdul:
+            hdu = hdul[1]
+            assert 'TZERO1' in hdu.header
+            assert hdu.header['TZERO1'] == 2**31
+            assert hdu.data['A'].dtype == np.dtype('uint32')
+            assert np.all(hdu.data['A'] == data)
+
+            # Test updating the unsigned int data
+            hdu.data['A'][0] = 99
+            hdu.writeto(self.temp('test2.fits'))
+
+        with fits.open(self.temp('test2.fits'), uint=True) as hdul:
+            hdu = hdul[1]
+            assert 'TZERO1' in hdu.header
+            assert hdu.header['TZERO1'] == 2**31
+            assert hdu.data['A'].dtype == np.dtype('uint32')
+            assert np.all(hdu.data['A'] == [99, 2, 3])
+
+    def test_column_with_scaling(self):
+        """Check that a scaled column if correctly saved once it is modified.
+        Regression test for https://github.com/astropy/astropy/issues/6887
+        """
+        c1 = fits.Column(name='c1', array=np.array([1], dtype='>i2'),
+                         format='1I', bscale=1, bzero=32768)
+        S = fits.HDUList([fits.PrimaryHDU(),
+                          fits.BinTableHDU.from_columns([c1])])
+
+        # Change value in memory
+        S[1].data['c1'][0] = 2
+        S.writeto(self.temp("a.fits"))
+        assert S[1].data['c1'] == 2
+
+        # Read and change value in memory
+        X = fits.open(self.temp("a.fits"))
+        X[1].data['c1'][0] = 10
+        assert X[1].data['c1'][0] == 10
+
+        # Write back to file
+        X.writeto(self.temp("b.fits"))
+
+        # Now check the file
+        with fits.open(self.temp("b.fits")) as hdul:
+            assert hdul[1].data['c1'][0] == 10
 
 
 @contextlib.contextmanager
@@ -2513,7 +2613,6 @@ def _refcounting(type_):
     gc.collect()
     assert len(objgraph.by_type(type_)) <= refcount, \
             "More {0!r} objects still in memory than before."
-
 
 
 class TestVLATables(FitsTestCase):
@@ -2861,7 +2960,9 @@ class TestColumnFunctions(FitsTestCase):
             # Doesn't pickle zero-width (_phanotm) column 'ORBPARM'
             zwc_pd = pickle.dumps(zwc[2].data)
             zwc_pl = pickle.loads(zwc_pd)
-            assert comparerecords(zwc_pl, zwc[2].data)
+            with pytest.warns(UserWarning, match='Field 2 has a repeat count '
+                              'of 0 in its format code'):
+                assert comparerecords(zwc_pl, zwc[2].data)
 
     def test_column_lookup_by_name(self):
         """Tests that a `ColDefs` can be indexed by column name."""
@@ -2958,6 +3059,47 @@ class TestColumnFunctions(FitsTestCase):
         assert np.all(c4.array[0] == c3.array[0])
         assert np.all(c4.array[1] == c3.array[1])
 
+    def test_column_verify_keywords(self):
+        """
+        Test that the keyword arguments used to initialize a Column, specifically
+        those that typically read from a FITS header (so excluding array),
+        are verified to have a valid value.
+        """
+
+        with pytest.raises(AssertionError) as err:
+            c = fits.Column(1, format='I', array=[1, 2, 3, 4, 5])
+        assert 'Column name must be a string able to fit' in str(err.value)
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('col', format='I', null='Nan', disp=1, coord_type=1,
+                            coord_unit=2, coord_ref_point='1', coord_ref_value='1',
+                            coord_inc='1', time_ref_pos=1)
+        err_msgs = ['keyword arguments to Column were invalid', 'TNULL', 'TDISP',
+                    'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT', 'TRPOS']
+        for msg in err_msgs:
+            assert msg in str(err.value)
+
+    def test_column_verify_start(self):
+        """
+        Regression test for https://github.com/astropy/astropy/pull/6359
+
+        Test the validation of the column start position option (ASCII table only),
+        corresponding to ``TBCOL`` keyword.
+        Test whether the VerifyError message generated is the one with highest priority,
+        i.e. the order of error messages to be displayed is maintained.
+        """
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('a', format='B', start='a', array=[1, 2, 3])
+        assert "start option (TBCOLn) is not allowed for binary table columns" in str(err.value)
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('a', format='I', start='a', array=[1, 2, 3])
+        assert "start option (TBCOLn) must be a positive integer (got 'a')." in str(err.value)
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('a', format='I', start='-56', array=[1, 2, 3])
+        assert "start option (TBCOLn) must be a positive integer (got -56)." in str(err.value)
 
 def test_regression_5383():
 
@@ -2968,3 +3110,151 @@ def test_regression_5383():
     hdu = fits.BinTableHDU.from_columns([col])
     del hdu._header['TTYPE1']
     hdu.columns[0].name = 'b'
+
+
+def test_table_to_hdu():
+    from astropy.table import Table
+    table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
+                    names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
+    table['a'].unit = 'm/s'
+    table['b'].unit = 'not-a-unit'
+    table.meta['foo'] = 'bar'
+
+    with catch_warnings() as w:
+        hdu = fits.BinTableHDU(table, header=fits.Header({'TEST': 1}))
+        assert len(w) == 1
+        assert str(w[0].message).startswith("'not-a-unit' did not parse as"
+                                            " fits unit")
+
+    for name in 'abc':
+        assert np.array_equal(table[name], hdu.data[name])
+
+    # Check that TUNITn cards appear in the correct order
+    # (https://github.com/astropy/astropy/pull/5720)
+    assert hdu.header.index('TUNIT1') < hdu.header.index('TTYPE2')
+
+    assert hdu.header['FOO'] == 'bar'
+    assert hdu.header['TEST'] == 1
+
+
+def test_regression_scalar_indexing():
+    # Indexing a FITS_rec with a tuple that returns a scalar record
+    # should work
+    x = np.array([(1.0, 2), (3.0, 4)],
+                 dtype=[('x', float), ('y', int)]).view(fits.FITS_rec)
+    x1a = x[1]
+    # this should succeed.
+    x1b = x[(1,)]
+    # FITS_record does not define __eq__; so test elements.
+    assert all(a == b for a, b in zip(x1a, x1b))
+
+
+
+def test_new_column_attributes_preserved(tmpdir):
+
+    # Regression test for https://github.com/astropy/astropy/issues/7145
+    # This makes sure that for now we don't clear away keywords that have
+    # newly been recognized (in Astropy 3.0) as special column attributes but
+    # instead just warn that we might do so in future. The new keywords are:
+    # TCTYP, TCUNI, TCRPX, TCRVL, TCDLT, TRPOS
+
+    col = []
+    col.append(fits.Column(name="TIME", format="1E", unit="s"))
+    col.append(fits.Column(name="RAWX", format="1I", unit="pixel"))
+    col.append(fits.Column(name="RAWY", format="1I"))
+    cd = fits.ColDefs(col)
+
+    hdr = fits.Header()
+
+    # Keywords that will get ignored in favor of these in the data
+    hdr['TUNIT1'] = 'pixel'
+    hdr['TUNIT2'] = 'm'
+    hdr['TUNIT3'] = 'm'
+
+    # Keywords that were added in Astropy 3.0 that should eventually be
+    # ignored and set on the data instead
+    hdr['TCTYP2'] = 'RA---TAN'
+    hdr['TCTYP3'] = 'ANGLE'
+    hdr['TCRVL2'] = -999.0
+    hdr['TCRVL3'] = -999.0
+    hdr['TCRPX2'] = 1.0
+    hdr['TCRPX3'] = 1.0
+    hdr['TALEN2'] = 16384
+    hdr['TALEN3'] = 1024
+    hdr['TCUNI2'] = 'angstrom'
+    hdr['TCUNI3'] = 'deg'
+
+    # Other non-relevant keywords
+    hdr['RA'] = 1.5
+    hdr['DEC'] = 3.0
+
+    with pytest.warns(AstropyDeprecationWarning) as warning_list:
+        hdu = fits.BinTableHDU.from_columns(cd, hdr)
+    assert str(warning_list[0].message).startswith("The following keywords are now recognized as special")
+
+    # First, check that special keywords such as TUNIT are ignored in the header
+    # We may want to change that behavior in future, but this is the way it's
+    # been for a while now.
+
+    assert hdu.columns[0].unit == 's'
+    assert hdu.columns[1].unit == 'pixel'
+    assert hdu.columns[2].unit is None
+
+    assert hdu.header['TUNIT1'] == 's'
+    assert hdu.header['TUNIT2'] == 'pixel'
+    assert 'TUNIT3' not in hdu.header  # TUNIT3 was removed
+
+    # Now, check that the new special keywords are actually still there
+    # but weren't used to set the attributes on the data
+
+    assert hdu.columns[0].coord_type is None
+    assert hdu.columns[1].coord_type is None
+    assert hdu.columns[2].coord_type is None
+
+    assert 'TCTYP1' not in hdu.header
+    assert hdu.header['TCTYP2'] == 'RA---TAN'
+    assert hdu.header['TCTYP3'] == 'ANGLE'
+
+    # Make sure that other keywords are still there
+
+    assert hdu.header['RA'] == 1.5
+    assert hdu.header['DEC'] == 3.0
+
+    # Now we can write this HDU to a file and re-load. Re-loading *should*
+    # cause the special column attribtues to be picked up (it's just that when a
+    # header is manually specified, these values are ignored)
+
+    filename = tmpdir.join('test.fits').strpath
+
+    hdu.writeto(filename)
+
+    # Make sure we don't emit a warning in this case
+    with pytest.warns(None) as warning_list:
+        hdu2 = fits.open(filename)[1]
+    assert len(warning_list) == 0
+
+    # Check that column attributes are now correctly set
+
+    assert hdu2.columns[0].unit == 's'
+    assert hdu2.columns[1].unit == 'pixel'
+    assert hdu2.columns[2].unit is None
+
+    assert hdu2.header['TUNIT1'] == 's'
+    assert hdu2.header['TUNIT2'] == 'pixel'
+    assert 'TUNIT3' not in hdu2.header  # TUNIT3 was removed
+
+    # Now, check that the new special keywords are actually still there
+    # but weren't used to set the attributes on the data
+
+    assert hdu2.columns[0].coord_type is None
+    assert hdu2.columns[1].coord_type == 'RA---TAN'
+    assert hdu2.columns[2].coord_type == 'ANGLE'
+
+    assert 'TCTYP1' not in hdu2.header
+    assert hdu2.header['TCTYP2'] == 'RA---TAN'
+    assert hdu2.header['TCTYP3'] == 'ANGLE'
+
+    # Make sure that other keywords are still there
+
+    assert hdu2.header['RA'] == 1.5
+    assert hdu2.header['DEC'] == 3.0

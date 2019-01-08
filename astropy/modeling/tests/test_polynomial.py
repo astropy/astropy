@@ -2,25 +2,24 @@
 
 """Tests for polynomial models."""
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import os
 
 from itertools import product
 
+import pytest
 import numpy as np
 
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_allclose
 
-from .. import fitting
-from ...tests.helper import pytest
-from ... import wcs
-from ...io import fits
-from ..polynomial import (Chebyshev1D, Hermite1D, Legendre1D, Polynomial1D,
+from astropy.modeling import fitting
+from astropy import wcs
+from astropy.io import fits
+from astropy.modeling.polynomial import (Chebyshev1D, Hermite1D, Legendre1D, Polynomial1D,
                           Chebyshev2D, Hermite2D, Legendre2D, Polynomial2D, SIP,
                           PolynomialBase, OrthoPolynomialBase)
-from ..functional_models import Linear1D
-from ...utils.data import get_pkg_data_filename
+from astropy.modeling.functional_models import Linear1D
+from astropy.modeling.mappings import Identity
+from astropy.utils.data import get_pkg_data_filename
 
 try:
     from scipy import optimize  # pylint: disable=W0611
@@ -92,7 +91,7 @@ linear2d = {
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-class TestFitting(object):
+class TestFitting:
     """Test linear fitter with polynomial models."""
 
     def setup_class(self):
@@ -110,8 +109,8 @@ class TestFitting(object):
     # TODO: Most of these test cases have some pretty repetitive setup that we
     # could probably factor out
 
-    @pytest.mark.parametrize(('model_class','constraints'),
-                             list(product(linear1d.keys(), (False, True))))
+    @pytest.mark.parametrize(('model_class', 'constraints'),
+                             list(product(sorted(linear1d, key=str), (False, True))))
     def test_linear_fitter_1D(self, model_class, constraints):
         """Test fitting with LinearLSQFitter"""
 
@@ -140,8 +139,8 @@ class TestFitting(object):
             assert_allclose(model_lin.parameters, model.parameters,
                             atol=0.2)
 
-    @pytest.mark.parametrize(('model_class','constraints'),
-                             list(product(linear1d.keys(), (False, True))))
+    @pytest.mark.parametrize(('model_class', 'constraints'),
+                             list(product(sorted(linear1d, key=str), (False, True))))
     def test_non_linear_fitter_1D(self, model_class, constraints):
         """Test fitting with non-linear LevMarLSQFitter"""
 
@@ -168,8 +167,8 @@ class TestFitting(object):
             assert_allclose(model_nlin.parameters, model.parameters,
                             atol=0.2)
 
-    @pytest.mark.parametrize(('model_class','constraints'),
-                             list(product(linear2d.keys(), (False, True))))
+    @pytest.mark.parametrize(('model_class', 'constraints'),
+                             list(product(sorted(linear2d, key=str), (False, True))))
     def test_linear_fitter_2D(self, model_class, constraints):
         """Test fitting with LinearLSQFitter"""
 
@@ -196,8 +195,8 @@ class TestFitting(object):
             assert_allclose(model_lin.parameters, model.parameters,
                             atol=0.2)
 
-    @pytest.mark.parametrize(('model_class','constraints'),
-                             list(product(linear2d.keys(), (False, True))))
+    @pytest.mark.parametrize(('model_class', 'constraints'),
+                             list(product(sorted(linear2d, key=str), (False, True))))
     def test_non_linear_fitter_2D(self, model_class, constraints):
         """Test fitting with non-linear LevMarLSQFitter"""
 
@@ -307,7 +306,7 @@ def test_sip_irac():
 
 
 def test_sip_no_coeff():
-    sip = SIP([10,12], 2, 2)
+    sip = SIP([10, 12], 2, 2)
     assert_allclose(sip.sip1d_a.parameters, [0., 0., 0])
     assert_allclose(sip.sip1d_b.parameters, [0., 0., 0])
     with pytest.raises(NotImplementedError):
@@ -348,7 +347,7 @@ def test_zero_degree_polynomial(cls):
         assert p2(0, 0) == 1
         assert np.all(p2(np.zeros(5), np.zeros(5)) == np.ones(5))
 
-        y, x = np.mgrid[0:1:100j,0:1:100j]
+        y, x = np.mgrid[0:1:100j, 0:1:100j]
         z = (1 + np.random.uniform(0, 0.1, x.size)).reshape(100, 100)
 
         if issubclass(cls, OrthoPolynomialBase):
@@ -359,3 +358,26 @@ def test_zero_degree_polynomial(cls):
         p2_fit = fitter(p2_init, x, y, z)
 
         assert_allclose(p2_fit.c0_0, 1, atol=0.10)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_2d_orthopolynomial_in_compound_model():
+    """
+    Ensure that OrthoPolynomialBase (ie. Chebyshev2D & Legendre2D) models get
+    evaluated & fitted correctly when part of a compound model.
+
+    Regression test for https://github.com/astropy/astropy/pull/6085.
+    """
+
+    y, x = np.mgrid[0:5, 0:5]
+    z = x + y
+
+    fitter = fitting.LevMarLSQFitter()
+    simple_model = Chebyshev2D(2, 2)
+    simple_fit = fitter(simple_model, x, y, z)
+
+    fitter = fitting.LevMarLSQFitter()  # re-init to compare like with like
+    compound_model = Identity(2) | Chebyshev2D(2, 2)
+    compound_fit = fitter(compound_model, x, y, z)
+
+    assert_allclose(simple_fit(x, y), compound_fit(x, y), atol=1e-15)

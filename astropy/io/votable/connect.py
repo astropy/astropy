@@ -1,15 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
 
-from ...extern import six
 
 from . import parse, from_table
 from .tree import VOTableFile, Table as VOTable
-from .. import registry as io_registry
-from ...table import Table
+from astropy.io import registry as io_registry
+from astropy.table import Table
+from astropy.table.column import BaseColumn
+from astropy.units import Quantity
 
 
 def is_votable(origin, filepath, fileobj, *args, **kwargs):
@@ -88,13 +88,13 @@ def read_table_votable(input, table_id=None, use_names_over_ids=False):
                     "the table_id= argument. The available tables are {0}, "
                     'or integers less than {1}.'.format(
                         ', '.join(table_id_mapping.keys()), len(tables)))
-            elif isinstance(table_id, six.string_types):
+            elif isinstance(table_id, str):
                 if table_id in table_id_mapping:
                     table = table_id_mapping[table_id]
                 else:
                     raise ValueError(
                         "No tables with id={0} found".format(table_id))
-            elif isinstance(table_id, six.integer_types):
+            elif isinstance(table_id, int):
                 if table_id < len(tables):
                     table = tables[table_id]
                 else:
@@ -139,19 +139,19 @@ def write_table_votable(input, output, table_id=None, overwrite=False,
         ``tabledata``.  See :ref:`votable-serialization`.
     """
 
-    # Tables with mixin columns are not supported
-    if input.has_mixin_columns:
-        mixin_names = [name for name, col in input.columns.items()
-                       if not isinstance(col, input.ColumnClass)]
+    # Only those columns which are instances of BaseColumn or Quantity can be written
+    unsupported_cols = input.columns.not_isinstance((BaseColumn, Quantity))
+    if unsupported_cols:
+        unsupported_names = [col.info.name for col in unsupported_cols]
         raise ValueError('cannot write table with mixin column(s) {0} to VOTable'
-                         .format(mixin_names))
+                         .format(unsupported_names))
 
     # Check if output file already exists
-    if isinstance(output, six.string_types) and os.path.exists(output):
+    if isinstance(output, str) and os.path.exists(output):
         if overwrite:
             os.remove(output)
         else:
-            raise IOError("File exists: {0}".format(output))
+            raise OSError("File exists: {0}".format(output))
 
     # Create a new VOTable file
     table_file = from_table(input, table_id=table_id)

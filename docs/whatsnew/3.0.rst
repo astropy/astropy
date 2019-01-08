@@ -1,0 +1,309 @@
+.. doctest-skip-all
+
+.. _whatsnew-3.0:
+
+**************************
+What's New in Astropy 3.0?
+**************************
+
+Overview
+========
+
+Astropy 3.0 is a major release that adds significant new functionality since
+the 2.0.x series of releases. It is the first version that supports only
+Python 3.
+
+In particular, this release includes:
+
+* :ref:`whatsnew-3.0-velocities-skycoord-vel`
+* :ref:`whatsnew-3.0-velocities-skycoord-space-motion`
+* :ref:`whatsnew-3.0-constants-contextmanager`
+* :ref:`whatsnew-3.0-quantities-scipy-ufuncs`
+* :ref:`whatsnew-3.0-showtable`
+* :ref:`whatsnew-3.0-hdf5-mixins`
+* :ref:`whatsnew-3.0-fits-time-support`
+* :ref:`whatsnew-3.0-fits-performance`
+* :ref:`whatsnew-3.0-lomb-scargle-false-alarm`
+* :ref:`whatsnew-3.0-ascii-chunks`
+* :ref:`whatsnew-3.0-python3`
+* :ref:`whatsnew-3.0-pytest-plugins`
+
+In addition to these major changes, Astropy 3.0 includes a large number of
+smaller improvements and bug fixes, which are described in the
+:ref:`changelog`. By the numbers:
+
+* 757 issues have been closed since v2.0
+* 399 pull requests have been merged since v2.0
+* 253 distinct people have contributed code
+
+.. _whatsnew-3.0-python3:
+
+Astropy now only supports Python 3
+==================================
+
+Astropy v3.0 is the first release to support only Python 3.
+
+Python 2.7 users will be able to continue downloading and installing older
+releases of Astropy, and we will continue to release new v2.0.x versions (which
+fix bugs but don't add new features compared to v2.0) until the end of 2019 (see
+`the APE10 document <https://github.com/astropy/astropy-APEs/blob/master/APE10.rst>`_
+for more details).
+
+.. _whatsnew-3.0-velocities-skycoord-vel:
+
+Full support for velocities in ``astropy.coordinates``
+======================================================
+
+The :class:`~astropy.coordinates.SkyCoord` object now supports representing and
+transforming velocity components along with positional coordinates. For example,
+to transform equatorial (ICRS) proper motions to the Galactic coordinate
+system::
+
+    >>> import astropy.units as u
+    >>> import astropy.coordinates as coord
+    >>> c = coord.SkyCoord(ra=86.7 * u.deg, dec=53.09 * u.deg,
+    ...                    pm_ra_cosdec=112*u.mas/u.yr,
+    ...                    pm_dec=35*u.mas/u.yr)
+    >>> c.galactic # doctest: +FLOAT_CMP
+    <SkyCoord (Galactic): (l, b) in deg
+        ( 159.1426742,  12.46482854)
+     (pm_l_cosb, pm_b) in mas / yr
+        ( 23.48718747,  114.96674312)>
+
+
+.. _whatsnew-3.0-velocities-skycoord-space-motion:
+
+Support for position updates based on source motion for ``SkyCoord`` objects
+============================================================================
+
+:class:`~astropy.coordinates.SkyCoord` now also has a method for computing the
+position of a source at a new epoch, given position and some velocity data at a
+specified epoch. For example, the reference epoch for the Tycho-Gaia Astrometric
+Solution (TGAS) is J2015.0, but we might want to compute the position of a
+source at a prior epoch to cross-match to an old catalog, or compute the
+position at a future epoch to observe the source. We can do this with
+:meth:`~astropy.coordinates.SkyCoord.apply_space_motion`::
+
+    >>> from astropy.time import Time
+    >>> c = coord.SkyCoord(ra=86.7 * u.deg, dec=53.09 * u.deg,
+    ...                    distance=100*u.pc,
+    ...                    pm_ra_cosdec=112*u.mas/u.yr,
+    ...                    pm_dec=35*u.mas/u.yr,
+    ...                    obstime=Time('J2015.0'))
+    >>> c.apply_space_motion(Time('J2000')) # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, pc)
+        ( 86.69922295,  53.08985416,  100.00000008)
+     (pm_ra, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+        ( 186.49140891,  35.00121452, -0.00047467)>
+    >>> c.apply_space_motion(Time(58228.62, format='mjd')) # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, pc)
+        ( 86.70017096,  53.09003208,  99.99999998)
+     (pm_ra, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+        ( 186.49295097,  34.99973279,  0.00010443)>
+
+For a more in-depth example and more explanation of this feature, see
+:ref:`astropy-coordinates-apply-space-motion`.
+
+
+.. _whatsnew-3.0-constants-contextmanager:
+
+Context managers for versioned constants
+========================================
+
+The context manager :func:`~astropy.constants.set_enabled_constants` is now
+available for temporarily switching to an older version of constants::
+
+    >>> from astropy import constants as const
+    >>> with const.set_enabled_constants('astropyconst13'):
+    ...     print(const.h)
+      Name   = Planck constant
+      Value  = 6.62606957e-34
+      Uncertainty  = 2.9e-41
+      Unit  = J s
+      Reference = CODATA 2010
+    >>> print(const.h)
+      Name   = Planck constant
+      Value  = 6.62607004e-34
+      Uncertainty  = 8.1e-42
+      Unit  = J s
+      Reference = CODATA 2014
+
+.. _whatsnew-3.0-quantities-scipy-ufuncs:
+
+Support for quantities in scipy special functions
+=================================================
+
+:class:`~astropy.units.Quantity`'s support for all relevant numpy "universal functions" or ufuncs
+has been extended to many of the `scipy.special` functions (with more to be
+added in future releases; PRs welcome!), so that these can now be used with
+any :class:`~astropy.units.Quantity` that has appropriate units.  For instance, using the error
+function to calculate confidence intervals:
+
+.. doctest-requires:: scipy
+
+    >>> import astropy.units as u
+    >>> import scipy.special as sps
+    >>> sigma = [1., 3.] * u.minute / (60. * u.s)
+    >>> sps.erf(sigma / 2**0.5).to(u.percent)  # doctest: +FLOAT_CMP
+    <Quantity [ 68.26894921, 99.73002039] %>
+
+.. _whatsnew-3.0-showtable:
+
+``showtable`` command line script
+=================================
+
+The new command-line tool ``showtable`` can be used to print the content of
+tables for the formats supported by the unified I/O interface (ASCII, FITS,
+HDF5 or VOTable)::
+
+    $ showtable astropy/io/fits/tests/data/table.fits
+
+     target V_mag
+    ------- -----
+    NGC1001  11.1
+    NGC1002  12.3
+    NGC1003  15.2
+
+To get full documentation on the usage and available options do ``showtable
+--help``.
+
+.. _whatsnew-3.0-hdf5-mixins:
+
+Lossless writing and reading mixin columns to HDF5 and FITS
+===========================================================
+
+It is now possible to write Table :ref:`mixin_columns` such as
+:class:`~astropy.coordinates.SkyCoord`, :class:`~astropy.time.Time`, and
+:class:`~astropy.units.Quantity` (and subclasses like
+:class:`~astropy.coordinates.EarthLocation`) to both HDF5 and FITS with no loss of
+information.  All object attributes and metadata are stored to file and the object is
+exactly regenerated (to the bit level) when reading back into astropy.
+
+For details see the :ref:`fits_astropy_native` section.
+
+.. _whatsnew-3.0-fits-time-support:
+
+Support for FITS time standard
+==============================
+
+The `FITS Time standard paper <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_
+defines the formats and keywords used to represent timing information in FITS files. The
+Astropy FITS package now provides support for reading and writing native
+:class:`~astropy.time.Time` table columns using this format. This is described within the
+:ref:`FITS unified I/O interface <table_io_fits>` and examples of usage can be found in
+the :ref:`fits_astropy_native` section.
+
+Implementation of this feature was made possible through the support of the Google Summer
+of Code 2017 program.  To learn more about this project please see the final report, `A
+mixin protocol for seamless interoperability
+<https://aaryapatil.wordpress.com/2017/08/28/a-mixin-protocol-for-seamless-interoperability/>`_.
+
+.. _whatsnew-3.0-fits-performance:
+
+FITS table performance enhancements
+===================================
+
+The performance for reading and writing FITS tables has been significantly
+improved, in particular for cases where the tables contain one or more string
+columns and when done through the :class:`~astropy.table.Table` interface.  The
+:meth:`Table.read() <astropy.table.Table.read>` method now supports a ``memmap=``
+keyword argument to control whether or not to use memory mapping when reading
+the table, and :func:`fits.open() <astropy.io.fits.open>` supports a new keyword
+argument ``character_as_bytes`` to return character columns as Numpy byte arrays
+(Numpy type 'S'), which uses less memory.
+
+.. _whatsnew-3.0-lomb-scargle-false-alarm:
+
+False alarm probabilities in ``astropy.stats.LombScargle``
+==========================================================
+
+:class:`~astropy.stats.LombScargle` now supports estimation of false alarm
+probabilities, using the
+:meth:`~astropy.stats.LombScargle.false_alarm_probability` and
+:meth:`~astropy.stats.LombScargle.false_alarm_level` methods. Supported
+approaches to false alarm estimation include a common heuristic based on an
+estimated number of independent frequencies (``method='naive'``), a more careful
+approach based on extreme value statistics (``method='baluev'``; first explored
+by Baluev (2007)), and a more accurate (but computationally intensive) approach
+based on bootstrap resampling (``method='bootstrap'``). These methods are
+implemented for all of the available periodogram normalizations. Further
+explanation and examples are available in :ref:`stats-lombscargle`.
+
+.. _whatsnew-3.0-ascii-chunks:
+
+Reading large ASCII files in chunks
+===================================
+
+Astropy now supports reading very large ASCII tables in smaller chunks, allowing tables to
+be loaded that approach or exceed the maximum memory available.  There are two possible
+ways to do this:
+
+- Read the table in chunks and aggregate the final table along the way.  This uses only
+  somewhat more memory than the final table requires.  In contrast, the default reading
+  process may temporarily require up to 10 times more memory than the size of the file.
+- Use a Python generator function to return a :class:`~astropy.table.Table` object for
+  each chunk of the input table.  This allows for scanning through arbitrarily large
+  tables since it never returns the final aggregate table.
+
+For details see :ref:`chunk_reading`.
+
+Full change log
+===============
+
+To see a detailed list of all changes in version v3.0, including changes in
+API, please see the :ref:`changelog`.
+
+
+Renamed/removed functionality
+=============================
+
+.. _whatsnew-3.0-pytest-plugins:
+
+pytest plugins moved to external packages
+*****************************************
+
+The following ``pytest`` plugins were previously provided as part of the
+Astropy core package but have now been moved to separate packages:
+
+* `pytest-remotedata <https://github.com/astropy/pytest-remotedata>`__
+* `pytest-doctestplus <https://github.com/astropy/pytest-doctestplus>`__
+* `pytest-openfiles <https://github.com/astropy/pytest-openfiles>`__
+
+Affiliated packages that make use of one or more of these plugins may install
+them individually using ``pip``, or they may install the Astropy testing
+package ``pytest-astropy``, which includes all of these plugins as
+dependencies. Packages that use Astropy's test runner will also need to install
+``pytest-astropy``. See :ref:`testing-dependencies` for more details.
+
+The ``config`` and ``display`` plugins are still provided as part of the
+Astropy core package, but they have moved from ``astropy.tests.pytest_plugins``
+to ``astropy.tests.plugins.config`` and ``astropy.tests.plugins.display``,
+respectively.
+
+Affiliated packages that currently access plugin decorators and other variables
+from ``astropy.tests.pytest_plugins`` will need to make updates, although
+backwards compatibility will be maintained in the meantime.
+
+Below is an outline of the required changes:
+
+* Affiliated packages that use the ``remote_data`` decorator to mark tests that
+  require remote data access should now mark them with
+  ``@pytest.mark.remote_data``. This requires installing either
+  ``pytest-remotedata`` or ``pytest-astropy``. Importing ``remote_data`` from
+  ``astropy.tests.helper`` is maintained for backwards compatibility but will
+  eventually be removed.
+* Packages should no longer import ``disable_internet`` from ``astropy.tests``.
+  It is available using ``from pytest_remotedata import disable_internet`` if
+  required, but developers should consider whether they can avoid importing it
+  directly by instead using ``@pytest.mark.remote_data`` and
+  ``@pytest.mark.internet_off`` provided by ``pytest-remotedata``.  Use of
+  ``disable_internet.INTERNET_OFF`` is not recommended and should be replaced
+  by use of ``remote_data`` and ``internet_off``.
+* Packages that access the display configuration variables
+  ``PYTEST_HEADER_MODULES`` and ``TESTED_VERSIONS`` should no longer import
+  them from ``astropy.tests.pytest_plugins``. They should instead be imported
+  from ``astropy.tests.plugins.display``. We hope that eventually these will be
+  configurable using ``setup.cfg`` instead.
+* The function ``enable_deprecations_as_exceptions`` should not be imported
+  from ``astropy.tests.pytest_plugins``. It should be imported from
+  ``astropy.tests.helper`` instead.

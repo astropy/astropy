@@ -4,9 +4,6 @@ This module handles the conversion of various VOTABLE datatypes
 to/from TABLEDATA_ and BINARY_ formats.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-from ...extern import six
-from ...extern.six.moves import range, zip
 
 # STDLIB
 import re
@@ -19,7 +16,7 @@ import numpy as np
 from numpy import ma
 
 # ASTROPY
-from ...utils.xml.writer import xml_escape_cdata
+from astropy.utils.xml.writer import xml_escape_cdata
 
 # LOCAL
 from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01,
@@ -43,15 +40,8 @@ _empty_bytes = b''
 _zero_byte = b'\0'
 
 
-if not six.PY2:
-    struct_unpack = _struct_unpack
-    struct_pack = _struct_pack
-else:
-    def struct_unpack(format, s):
-        return _struct_unpack(format.encode('ascii'), s)
-
-    def struct_pack(format, *args):
-        return _struct_pack(format.encode('ascii'), *args)
+struct_unpack = _struct_unpack
+struct_pack = _struct_pack
 
 
 if sys.byteorder == 'little':
@@ -102,8 +92,6 @@ def bitarray_to_bool(data, length):
     """
     results = []
     for byte in data:
-        if six.PY2:
-            byte = ord(byte)
         for bit_no in range(7, -1, -1):
             bit = byte & (1 << bit_no)
             bit = (bit != 0)
@@ -151,7 +139,7 @@ def bool_to_bitarray(value):
     return struct_pack("{}B".format(len(bytes)), *bytes)
 
 
-class Converter(object):
+class Converter:
     """
     The base class for all converters.  Each subclass handles
     converting a specific VOTABLE data type to/from the TABLEDATA_ and
@@ -170,6 +158,7 @@ class Converter(object):
         found.  Used for error messages.
 
     """
+
     def __init__(self, field, config=None, pos=None):
         pass
 
@@ -415,7 +404,7 @@ class UnicodeChar(Converter):
     def output(self, value, mask):
         if mask:
             return ''
-        return xml_escape_cdata(six.text_type(value))
+        return xml_escape_cdata(str(value))
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
@@ -445,6 +434,7 @@ class Array(Converter):
     """
     Handles both fixed and variable-lengths arrays.
     """
+
     def __init__(self, field, config=None, pos=None):
         if config is None:
             config = {}
@@ -515,6 +505,7 @@ class ArrayVarArray(VarArray):
     Handles an array of variable-length arrays, i.e. where *arraysize*
     ends in '*'.
     """
+
     def parse(self, value, config=None, pos=None):
         if value.strip() == '':
             return ma.array([]), False
@@ -538,6 +529,7 @@ class ScalarVarArray(VarArray):
     """
     Handles a variable-length array of numeric scalars.
     """
+
     def parse(self, value, config=None, pos=None):
         if value.strip() == '':
             return ma.array([]), False
@@ -617,10 +609,10 @@ class NumericArray(Array):
         value = np.asarray(value)
         mask = np.asarray(mask)
         return ' '.join(base_output(x, m) for x, m in
-                         zip(value.flat, mask.flat))
+                        zip(value.flat, mask.flat))
 
     def binparse(self, read):
-        result = np.fromstring(read(self._memsize),
+        result = np.frombuffer(read(self._memsize),
                                dtype=self._bigendian_format)[0]
         result_mask = self._base.is_null(result)
         return result, result_mask
@@ -652,7 +644,7 @@ class Numeric(Converter):
             self.is_null = np.isnan
 
     def binparse(self, read):
-        result = np.fromstring(read(self._memsize),
+        result = np.frombuffer(read(self._memsize),
                                dtype=self._bigendian_format)
         return result[0], self.is_null(result[0])
 
@@ -681,7 +673,7 @@ class FloatingPoint(Numeric):
             format_parts = ['{:']
 
         if width is not None:
-            format_parts.append(six.text_type(width))
+            format_parts.append(str(width))
 
         if precision is not None:
             if precision.startswith("E"):
@@ -799,7 +791,7 @@ class Integer(Numeric):
         if config is None:
             config = {}
         mask = False
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             value = value.lower()
             if value == '':
                 if config['version_1_3_or_later']:
@@ -840,8 +832,8 @@ class Integer(Numeric):
             if self.null is None:
                 warn_or_raise(W31, W31)
                 return 'NaN'
-            return six.text_type(self.null)
-        return six.text_type(value)
+            return str(self.null)
+        return str(value)
 
     def binoutput(self, value, mask):
         if mask:
@@ -902,6 +894,7 @@ class ComplexArrayVarArray(VarArray):
     """
     Handles an array of variable-length arrays of complex numbers.
     """
+
     def parse(self, value, config=None, pos=None):
         if value.strip() == '':
             return ma.array([]), True
@@ -925,6 +918,7 @@ class ComplexVarArray(VarArray):
     """
     Handles a variable-length array of complex numbers.
     """
+
     def parse(self, value, config=None, pos=None):
         if value.strip() == '':
             return ma.array([]), True
@@ -1138,8 +1132,6 @@ class BooleanArray(NumericArray):
         result = []
         result_mask = []
         for char in data:
-            if six.PY2:
-                char = ord(char)
             value, mask = binparse(char)
             result.append(value)
             result_mask.append(mask)
@@ -1175,16 +1167,16 @@ class Boolean(Converter):
             return False, True
         if value is False:
             return False, True
-        mapping = {'TRUE'  : (True, False),
-                   'FALSE' : (False, False),
-                   '1'     : (True, False),
-                   '0'     : (False, False),
-                   'T'     : (True, False),
-                   'F'     : (False, False),
-                   '\0'    : (False, True),
-                   ' '     : (False, True),
-                   '?'     : (False, True),
-                   ''      : (False, True)}
+        mapping = {'TRUE': (True, False),
+                   'FALSE': (False, False),
+                   '1': (True, False),
+                   '0': (False, False),
+                   'T': (True, False),
+                   'F': (False, False),
+                   '\0': (False, True),
+                   ' ': (False, True),
+                   '?': (False, True),
+                   '': (False, True)}
         try:
             return mapping[value.upper()]
         except KeyError:
@@ -1202,15 +1194,15 @@ class Boolean(Converter):
         return self.binparse_value(value)
 
     _binparse_mapping = {
-        ord('T')  : (True, False),
-        ord('t')  : (True, False),
-        ord('1')  : (True, False),
-        ord('F')  : (False, False),
-        ord('f')  : (False, False),
-        ord('0')  : (False, False),
-        ord('\0') : (False, True),
-        ord(' ')  : (False, True),
-        ord('?')  : (False, True)}
+        ord('T'): (True, False),
+        ord('t'): (True, False),
+        ord('1'): (True, False),
+        ord('F'): (False, False),
+        ord('f'): (False, False),
+        ord('0'): (False, False),
+        ord('\0'): (False, True),
+        ord(' '): (False, True),
+        ord('?'): (False, True)}
 
     def binparse_value(self, value):
         try:
@@ -1227,18 +1219,18 @@ class Boolean(Converter):
 
 
 converter_mapping = {
-    'double'        : Double,
-    'float'         : Float,
-    'bit'           : Bit,
-    'boolean'       : Boolean,
-    'unsignedByte'  : UnsignedByte,
-    'short'         : Short,
-    'int'           : Int,
-    'long'          : Long,
-    'floatComplex'  : FloatComplex,
-    'doubleComplex' : DoubleComplex,
-    'char'          : Char,
-    'unicodeChar'   : UnicodeChar }
+    'double': Double,
+    'float': Float,
+    'bit': Bit,
+    'boolean': Boolean,
+    'unsignedByte': UnsignedByte,
+    'short': Short,
+    'int': Int,
+    'long': Long,
+    'floatComplex': FloatComplex,
+    'doubleComplex': DoubleComplex,
+    'char': Char,
+    'unicodeChar': UnicodeChar}
 
 
 def get_converter(field, config=None, pos=None):
@@ -1303,16 +1295,16 @@ def get_converter(field, config=None, pos=None):
 
 
 numpy_dtype_to_field_mapping = {
-    np.float64().dtype.num    : 'double',
-    np.float32().dtype.num    : 'float',
-    np.bool_().dtype.num      : 'bit',
-    np.uint8().dtype.num      : 'unsignedByte',
-    np.int16().dtype.num      : 'short',
-    np.int32().dtype.num      : 'int',
-    np.int64().dtype.num      : 'long',
-    np.complex64().dtype.num  : 'floatComplex',
-    np.complex128().dtype.num : 'doubleComplex',
-    np.unicode_().dtype.num   : 'unicodeChar'
+    np.float64().dtype.num: 'double',
+    np.float32().dtype.num: 'float',
+    np.bool_().dtype.num: 'bit',
+    np.uint8().dtype.num: 'unsignedByte',
+    np.int16().dtype.num: 'short',
+    np.int32().dtype.num: 'int',
+    np.int64().dtype.num: 'long',
+    np.complex64().dtype.num: 'floatComplex',
+    np.complex128().dtype.num: 'doubleComplex',
+    np.unicode_().dtype.num: 'unicodeChar'
 }
 
 
@@ -1328,7 +1320,7 @@ def _all_bytes(column):
 
 def _all_unicode(column):
     for x in column:
-        if not isinstance(x, six.text_type):
+        if not isinstance(x, str):
             return False
     return True
 
@@ -1425,7 +1417,7 @@ def table_column_to_votable_datatype(column):
         if isinstance(column[0], bytes):
             if _all_bytes(column[1:]):
                 return {'datatype': 'char', 'arraysize': '*'}
-        elif isinstance(column[0], six.text_type):
+        elif isinstance(column[0], str):
             if _all_unicode(column[1:]):
                 return {'datatype': 'unicodeChar', 'arraysize': '*'}
         elif isinstance(column[0], np.ndarray):

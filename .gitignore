@@ -16,13 +16,14 @@ astropy/version.py
 astropy/cython_version.py
 astropy/wcs/include/wcsconfig.h
 astropy/_erfa/core.py
-astropy/_erfa/core.pyx
 
 # Sphinx
 _build
 _generated
 docs/api
 docs/generated
+docs/visualization/ngc6976.jpeg
+docs/visualization/ngc6976-default.jpeg
 
 # Packages/installer info
 *.egg
@@ -38,6 +39,8 @@ sdist
 develop-eggs
 .installed.cfg
 distribute-*.tar.gz
+.venv
+venv
 
 # Other
 .cache
@@ -57,3 +60,10 @@ htmlcov
 
 # PyCharm
 .idea
+
+# Pytest
+v
+.pytest_cache
+
+# VSCode
+.vscode

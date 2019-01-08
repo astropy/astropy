@@ -6,11 +6,13 @@ writing all the meta data associated with an astropy Table object.
 
 import re
 from collections import OrderedDict
-
-from ...extern import six
+import contextlib
+import warnings
 
 from . import core, basic
-from ...table import meta
+from astropy.table import meta, serialize
+from astropy.utils.data_info import serialize_context_as
+from astropy.utils.exceptions import AstropyWarning
 
 __doctest_requires__ = {'Ecsv': ['yaml']}
 
@@ -50,7 +52,7 @@ class EcsvHeader(basic.BasicHeader):
         for the *last* comment line as defining the column names.
         """
         if self.splitter.delimiter not in DELIMITERS:
-            raise ValueError('only space and comma are allowed for delimiter in ECVS format')
+            raise ValueError('only space and comma are allowed for delimiter in ECSV format')
 
         for col in self.cols:
             if len(getattr(col, 'shape', ())) > 1:
@@ -58,7 +60,7 @@ class EcsvHeader(basic.BasicHeader):
                                  .format(col.info.name))
 
         # Now assemble the header dict that will be serialized by the YAML dumper
-        header = {'cols': self.cols}
+        header = {'cols': self.cols, 'schema': 'astropy-2.0'}
 
         if self.table_meta:
             header['meta'] = self.table_meta
@@ -123,6 +125,13 @@ class EcsvHeader(basic.BasicHeader):
 
         try:
             header = meta.get_header_from_yaml(lines)
+        except ImportError as exc:
+            if 'PyYAML package is required' in str(exc):
+                warnings.warn("file looks like ECSV format but PyYAML is not installed "
+                              "so it cannot be parsed as ECSV",
+                              AstropyWarning)
+            raise core.InconsistentTableError('unable to parse yaml in meta header'
+                                              ' (PyYAML package is required)')
         except meta.YamlParseError:
             raise core.InconsistentTableError('unable to parse yaml in meta header')
 
@@ -132,7 +141,7 @@ class EcsvHeader(basic.BasicHeader):
         if 'delimiter' in header:
             delimiter = header['delimiter']
             if delimiter not in DELIMITERS:
-                raise ValueError('only space and comma are allowed for delimiter in ECVS format')
+                raise ValueError('only space and comma are allowed for delimiter in ECSV format')
             self.splitter.delimiter = delimiter
             self.data.splitter.delimiter = delimiter
 
@@ -142,16 +151,18 @@ class EcsvHeader(basic.BasicHeader):
 
         # Read the first non-commented line of table and split to get the CSV
         # header column names.  This is essentially what the Basic reader does.
-        header_line = next(super(EcsvHeader, self).process_lines(raw_lines))
+        header_line = next(super().process_lines(raw_lines))
         header_names = next(self.splitter([header_line]))
 
         # Check for consistency of the ECSV vs. CSV header column names
         if header_names != self.names:
-            raise ValueError('column names from ECSV header {} do not '
+            raise core.InconsistentTableError('column names from ECSV header {} do not '
                              'match names from header line of CSV data {}'
                              .format(self.names, header_names))
 
-        self._set_cols_from_names()  # BaseHeader method to create self.cols
+        # BaseHeader method to create self.cols, which is a list of
+        # io.ascii.core.Column objects (*not* Table Column objects).
+        self._set_cols_from_names()
 
         # Transfer attributes from the column descriptor stored in the input
         # header YAML metadata to the new columns to create this table.
@@ -161,7 +172,7 @@ class EcsvHeader(basic.BasicHeader):
                     setattr(col, attr, header_cols[col.name][attr])
             col.dtype = header_cols[col.name]['datatype']
             # ECSV "string" means numpy dtype.kind == 'U' AKA str in Python 3
-            if not six.PY2 and col.dtype == 'string':
+            if col.dtype == 'string':
                 col.dtype = 'str'
             if col.dtype.startswith('complex'):
                 raise TypeError('ecsv reader does not support complex number types')
@@ -169,11 +180,56 @@ class EcsvHeader(basic.BasicHeader):
 
 class EcsvOutputter(core.TableOutputter):
     """
-    Output the table as an astropy.table.Table object.  This overrides the
-    default converters to be an empty list because there is no "guessing"
-    of the conversion function.
+    After reading the input lines and processing, convert the Reader columns
+    and metadata to an astropy.table.Table object.  This overrides the default
+    converters to be an empty list because there is no "guessing" of the
+    conversion function.
     """
     default_converters = []
+
+    def __call__(self, cols, meta):
+        # Convert to a Table with all plain Column subclass columns
+        out = super().__call__(cols, meta)
+
+        # If mixin columns exist (based on the special '__mixin_columns__'
+        # key in the table ``meta``), then use that information to construct
+        # appropriate mixin columns and remove the original data columns.
+        # If no __mixin_columns__ exists then this function just passes back
+        # the input table.
+        out = serialize._construct_mixins_from_columns(out)
+
+        return out
+
+
+class EcsvData(basic.BasicData):
+    def _set_fill_values(self, cols):
+        """Set the fill values of the individual cols based on fill_values of BaseData
+
+        For ECSV handle the corner case of data that has been serialized using
+        the serialize_method='data_mask' option, which writes the full data and
+        mask directly, AND where that table includes a string column with zero-length
+        string entries ("") which are valid data.
+
+        Normally the super() method will set col.fill_value=('', '0') to replace
+        blanks with a '0'.  But for that corner case subset, instead do not do
+        any filling.
+        """
+        super()._set_fill_values(cols)
+
+        # Get the serialized columns spec.  It might not exist and there might
+        # not even be any table meta, so punt in those cases.
+        try:
+            scs = self.header.table_meta['__serialized_columns__']
+        except (AttributeError, KeyError):
+            return
+
+        # Got some serialized columns, so check for string type and serialized
+        # as a MaskedColumn.  Without 'data_mask', MaskedColumn objects are
+        # stored to ECSV as normal columns.
+        for col in cols:
+            if (col.dtype == 'str' and col.name in scs and
+                    scs[col.name]['__class__'] == 'astropy.table.column.MaskedColumn'):
+                col.fill_values = {}  # No data value replacement
 
 
 class Ecsv(basic.Basic):
@@ -207,6 +263,30 @@ class Ecsv(basic.Basic):
     """
     _format_name = 'ecsv'
     _description = 'Enhanced CSV'
+    _io_registry_suffix = '.ecsv'
 
     header_class = EcsvHeader
+    data_class = EcsvData
     outputter_class = EcsvOutputter
+
+    def update_table_data(self, table):
+        """
+        Update table columns in place if mixin columns are present.
+
+        This is a hook to allow updating the table columns after name
+        filtering but before setting up to write the data.  This is currently
+        only used by ECSV and is otherwise just a pass-through.
+
+        Parameters
+        ----------
+        table : `astropy.table.Table`
+            Input table for writing
+
+        Returns
+        -------
+        table : `astropy.table.Table`
+            Output table for writing
+        """
+        with serialize_context_as('ecsv'):
+            out = serialize._represent_mixins_as_columns(table)
+        return out

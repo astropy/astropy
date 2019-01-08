@@ -5,21 +5,15 @@
 Regression tests for the units.format package
 """
 
-# TEST_UNICODE_LITERALS
+import pytest
+from numpy.testing import assert_allclose
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
-
-from ...extern import six
-
-from numpy.testing.utils import assert_allclose
-from ...tests.helper import pytest, catch_warnings
-
-from ... import units as u
-from ...constants import si
-from .. import core
-from .. import format as u_format
-from ..utils import is_effectively_unity
+from astropy.tests.helper import catch_warnings
+from astropy import units as u
+from astropy.constants import si
+from astropy.units import core
+from astropy.units import format as u_format
+from astropy.units.utils import is_effectively_unity
 
 
 @pytest.mark.parametrize('strings, unit', [
@@ -51,6 +45,7 @@ def test_unit_grammar_fail(string):
     with pytest.raises(ValueError):
         print(string)
         u_format.Generic.parse(string)
+
 
 @pytest.mark.parametrize('strings, unit', [
     (["0.1nm"], u.AA),
@@ -114,7 +109,7 @@ def test_cds_grammar_fail(string):
 
 
 # These examples are taken from the EXAMPLES section of
-# http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/
+# https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/
 @pytest.mark.parametrize('strings, unit', [
     (["count /s", "count/s", "count s**(-1)", "count / s", "count /s "],
      u.count / u.s),
@@ -238,7 +233,7 @@ def test_cds_units_available():
 def test_cds_non_ascii_unit():
     """Regression test for #5350.  This failed with a decoding error as
     μas could not be represented in ascii."""
-    from .. import cds
+    from astropy.units import cds
     with cds.enable():
         u.radian.find_equivalent_units(include_prefix_units=True)
 
@@ -254,25 +249,25 @@ def test_new_style_latex():
 
 
 def test_latex_scale():
-    fluxunit = u.Unit(1.e-24 * u.erg / (u.cm **2 * u.s * u.Hz))
+    fluxunit = u.Unit(1.e-24 * u.erg / (u.cm ** 2 * u.s * u.Hz))
     latex = r'$\mathrm{1 \times 10^{-24}\,\frac{erg}{Hz\,s\,cm^{2}}}$'
     assert fluxunit.to_string('latex') == latex
 
 
 def test_latex_inline_scale():
-    fluxunit = u.Unit(1.e-24 * u.erg / (u.cm **2 * u.s * u.Hz))
+    fluxunit = u.Unit(1.e-24 * u.erg / (u.cm ** 2 * u.s * u.Hz))
     latex_inline = (r'$\mathrm{1 \times 10^{-24}\,erg'
                     r'\,Hz^{-1}\,s^{-1}\,cm^{-2}}$')
     assert fluxunit.to_string('latex_inline') == latex_inline
 
 
 @pytest.mark.parametrize('format_spec, string', [
-    ('generic','erg / (cm2 s)'),
+    ('generic', 'erg / (cm2 s)'),
     ('s', 'erg / (cm2 s)'),
     ('console', '  erg  \n ------\n s cm^2'),
     ('latex', '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'),
     ('latex_inline', '$\\mathrm{erg\\,s^{-1}\\,cm^{-2}}$'),
-    ('>20s','       erg / (cm2 s)')])
+    ('>20s', '       erg / (cm2 s)')])
 def test_format_styles(format_spec, string):
     fluxunit = u.erg / (u.cm ** 2 * u.s)
     assert format(fluxunit, format_spec) == string
@@ -323,7 +318,7 @@ def test_scale_effectively_unity():
 
 def test_percent():
     """Test that the % unit is properly recognized.  Since % is a special
-    symbol, this goes slightly beyond the roundtripping tested above."""
+    symbol, this goes slightly beyond the round-tripping tested above."""
     assert u.Unit('%') == u.percent == u.Unit(0.01)
 
     assert u.Unit('%', format='cds') == u.Unit(0.01)
@@ -358,32 +353,25 @@ def test_deprecated_did_you_mean_units():
     try:
         u.Unit('ANGSTROM', format='fits')
     except ValueError as e:
-        assert 'angstrom (deprecated)' in six.text_type(e)
-        assert 'Angstrom (deprecated)' in six.text_type(e)
-        assert '10**-1 nm' in six.text_type(e)
-
-    with catch_warnings() as w:
-        u.Unit('Angstrom', format='fits')
-    assert len(w) == 1
-    assert '10**-1 nm' in six.text_type(w[0].message)
+        assert 'Did you mean Angstrom or angstrom?' in str(e)
 
     try:
         u.Unit('crab', format='ogip')
     except ValueError as e:
-        assert 'Crab (deprecated)' in six.text_type(e)
-        assert 'mCrab (deprecated)' in six.text_type(e)
+        assert 'Crab (deprecated)' in str(e)
+        assert 'mCrab (deprecated)' in str(e)
 
     try:
         u.Unit('ANGSTROM', format='vounit')
     except ValueError as e:
-        assert 'angstrom (deprecated)' in six.text_type(e)
-        assert '0.1nm' in six.text_type(e)
-        assert six.text_type(e).count('0.1nm') == 1
+        assert 'angstrom (deprecated)' in str(e)
+        assert '0.1nm' in str(e)
+        assert str(e).count('0.1nm') == 1
 
     with catch_warnings() as w:
         u.Unit('angstrom', format='vounit')
     assert len(w) == 1
-    assert '0.1nm' in six.text_type(w[0].message)
+    assert '0.1nm' in str(w[0].message)
 
 
 @pytest.mark.parametrize('string', ['mag(ct/s)', 'dB(mW)', 'dex(cm s**-2)'])

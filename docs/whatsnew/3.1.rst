@@ -1,0 +1,624 @@
+.. _whatsnew-3.1:
+
+**************************
+What's New in Astropy 3.1?
+**************************
+
+Overview
+========
+
+Astropy 3.1 is a major release with a focus on performance enhancements, but also
+adds significant new functionality since the 3.0.x series of releases.
+
+In particular, this release includes:
+
+* :ref:`whatsnew-3.1-tips`
+* :ref:`whatsnew-3.1-uncertainty`
+* :ref:`whatsnew-3.1-transit-periodogram`
+* :ref:`whatsnew-3.1-coordinates`
+* :ref:`whatsnew-3.1-table`
+* :ref:`whatsnew-3.1-time`
+* :ref:`whatsnew-3.1-nddata`
+* :ref:`whatsnew-3.1-nocopy-unit`
+* :ref:`whatsnew-3.1-tcmb`
+* :ref:`whatsnew-3.1-littleh`
+* :ref:`whatsnew-3.1-default-cosmology`
+* :ref:`whatsnew-3.1-faster-cosmology`
+* :ref:`whatsnew-3.1-wcsaxes`
+* :ref:`whatsnew-3.1-imshow-norm`
+* :ref:`whatsnew-3.1-fits`
+* :ref:`whatsnew-3.1-ape14`
+
+In addition to these major changes, Astropy 3.1 includes a large number of
+smaller improvements and bug fixes, which are described in the
+:ref:`changelog`. By the numbers:
+
+
+* 906 issues have been closed since v3.0
+* 437 pull requests have been merged since v3.0
+* 92 distinct people have contributed code to this release, 48 of which are
+  first time contributors to Astropy.
+
+.. _whatsnew-3.1-tips:
+
+Performance Tips
+================
+
+We now include a standard section called **Performance tips** in the
+documentation for each sub-package (when appropriate) which helps you get the
+best performance out of a given sub-package. For example, if you want to
+improve the performance of your code when using :class:`~astropy.units.Unit`
+and :class:`~astropy.units.Quantity`, you can read up about it in the
+:ref:`Performance tips for astropy.units <astropy-units-performance>`.
+
+.. _whatsnew-3.1-uncertainty:
+
+New Sub-package for Uncertainties and Distributions
+===================================================
+
+Astropy 3.1 includes a new experimentation sub-package: :ref:`astropy-uncertainty`.
+Currently this sub-package provides uncertainty propagation and classes for
+representing distributions using  a Monte Carlo sampling technique, which is
+useful for some cases but certainly not all.  The longer-term
+plan is to integrate other uncertainty propagation techniques to address typical
+astronomy uses cases, including integrating with the already-existing
+uncertainty classes that are focused on representing uncertainties in
+`astropy.nddata`.
+
+To demonstrate this new functionality, the example below shows propagation of
+uncertainty in the geometric mean of three numbers that have units:
+
+.. plot::
+  :include-source:
+  :align: center
+
+  import numpy as np
+  from astropy import units as u
+  from astropy import uncertainty as unc
+  from astropy.visualization import quantity_support
+  from matplotlib import pyplot as plt
+
+  np.random.seed(12345)
+
+  a = unc.normal(1.5*u.kpc, std=50*u.pc, n_samples=10000)
+  b = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=10000)
+  c = unc.Distribution(((np.random.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
+  d = (a * b * c) ** (1/3)
+
+  with quantity_support():
+      plt.hist(d.distribution, bins=50)
+      plt.title(r'$\mu={0.value:.2f}$ {0.unit}, $\sigma={1.value:.2f}$ {1.unit}'.format(d.pdf_mean, d.pdf_std))
+
+
+This sub-package should be considered experimental and subject to API changes in
+the future if user feedback calls for it.
+
+
+.. _whatsnew-3.1-transit-periodogram:
+
+New Box Least Squares Periodogram
+=================================
+
+Astropy now has an implementation of the :ref:`stats-bls`
+that is commonly used to detect transiting exoplanets and eclipsing
+binary star systems. The interface has been designed to match the
+`~astropy.stats.LombScargle` periodogram, and it can be used with a time series
+dataset ``time``, ``flux``, and ``flux_err`` as follows::
+
+  >>> from astropy import units as u
+  >>> from astropy.stats import BoxLeastSquares
+  >>> model = BoxLeastSquares(time * u.day, flux, flux_err=0.01)  # doctest: +SKIP
+  >>> duration = 0.2 * u.day
+  >>> periodogram = model.autopower(duration)  # doctest: +SKIP
+
+The resulting periodogram will look something like the following when the time
+series includes a transiting planet:
+
+.. plot::
+   :context: reset
+   :align: center
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy.stats import BoxLeastSquares
+
+    np.random.seed(42)
+    t = np.random.uniform(0, 20, 2000)
+    y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*np.random.randn(len(t))
+    model = BoxLeastSquares(t, y, dy=0.01)
+    periodogram = model.autopower(0.2)
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 8))
+    ax1.scatter(t, y, c="k", s=1)
+    ax1.set_xlabel("time [day]")
+    ax1.set_xlabel("flux [arbitrary]")
+
+    ax2.plot(periodogram.period, periodogram.power, "k")
+    ax2.set_xlabel("period [day]")
+    ax2.set_ylabel("power")
+
+
+
+
+.. _whatsnew-3.1-coordinates:
+
+Improvements and New Features in Coordinates
+============================================
+
+Performance has been improved throughout this sub-package. Highlights include
+typically 2-3x faster creation of scalar `~astropy.coordinates.SkyCoord` and
+frame classes objects, or up to 20x faster in certain cases. These performance
+improvements translate to nearly all convenience methods and operations on
+coordinates as well. Coordinate matching is 2-3x faster and can be up to 1000x
+faster in certain cases.
+
+A `~astropy.coordinates.SkyCoord.directional_offset_by` method has been added
+that will yield a new `~astropy.coordinates.SkyCoord` given a "from" coordinate
+and an offset::
+
+  >>> from astropy import units as u
+  >>> from astropy.coordinates import SkyCoord
+  >>> c1 = SkyCoord(1*u.deg, 1*u.deg, frame='icrs')
+  >>> c1.directional_offset_by(45 * u.deg, 1.414 * u.deg)  # doctest: +FLOAT_CMP
+  <SkyCoord (ICRS): (ra, dec) in deg
+    (2.0004075, 1.99964588)>
+
+The `~astropy.coordinates.SkyCoord.from_name` method of
+`~astropy.coordinates.SkyCoord` now parses  "J-coordinate" names (e.g.
+"SDSS J153243.67-004342.5") into their actual coordinate locations.  For
+example::
+
+  >>> from astropy.coordinates import SkyCoord
+  >>> SkyCoord.from_name('2MASS J06495091-0737408', parse=True)  # doctest: +FLOAT_CMP
+  <SkyCoord (ICRS): (ra, dec) in deg
+    (102.462125, -7.628)>
+
+Additionally, the `~astropy.coordinates.EarthLocation.of_address` convenience
+method now gets coordinates from OpenStreetMap. Google Maps is still supported
+but only if you provide your own API key (due to Google new requiring a key) -
+see `~astropy.coordinates.EarthLocation.of_address` for more details.
+
+
+.. _whatsnew-3.1-table:
+
+Improvements and New Features in Table
+======================================
+
+The `~astropy.table.Table` class now supports fine-grained control of the way to
+write out (serialize) the columns in a Table to FITS, HDF5, ECSV, or YAML.  In
+particular one can specify on a per-class or per-column basis how to write
+`~astropy.time.Time` and masked columns.  For details see `Table serialization
+methods
+<http://docs.astropy.org/en/stable/io/unified.html?highlight=serialize_method#table-serialization-methods>`_.
+
+A new table index engine ``SCEngine`` was added which uses the `Sorted
+Containers <https://pypi.org/project/sortedcontainers/>`_ package.  This provides
+the capability for efficiently maintaining an indexed table when the table is
+being modified (for instance adding new rows).  It replaces the deprecated
+``FastRBT`` engine as the preferred engine in this case.
+
+Support for use of `~astropy.time.Time` and `~astropy.time.TimeDelta` columns
+within a Table was improved significantly:
+
+- The join, hstack, and vstack table operations now work when a `~astropy.time.Time` column is present
+- Allow inserting a Table row including times.
+- Allow array-valued `~astropy.time.Time` and `~astropy.time.TimeDelta` object
+  to be modified in place.
+
+.. _whatsnew-3.1-time:
+
+Improvements and New Features in Time
+=====================================
+
+Array-valued `~astropy.time.Time` and `~astropy.time.TimeDelta` objects are now
+"mutable" and one can set items or slices like normal arrays.  In general the
+the right-side set value will be converted as needed to match attributes like
+time scale of the object.  For details see `Get and set values
+<https://astropy.readthedocs.io/en/stable/time/index.html#get-and-set-values>`_.
+
+New `~astropy.time.Time.strftime` and `~astropy.time.Time.strptime` methods were
+added to the `~astropy.time.Time` class.  These methods are similar to those in
+the Python standard library `time` package and provide flexible input and output
+formatting.  However, the astropy versions also include fractional second
+support.
+
+A new ``datetime64`` format was added to the `~astropy.time.Time` class to
+support working with ``numpy.datetime64`` dtype arrays.
+
+A potentially important API change to note is removing timescale from the string
+version of FITS format time string. Previous versions of astropy incorrectly
+included the time scale as part of the string (e.g.
+``2010-01-01T00:00:34.000(TAI)``). However, the timescale is not part of the
+FITS standard and should not be included, so this has been fixed. For now
+strings in this format will be parsed, but this behavior is deprecated and
+should no longer be relied on. New FITS strings produced by the
+`~astropy.time.Time` object will no longer include the scale, in line with the
+standard.
+
+
+.. _whatsnew-3.1-nddata:
+
+Improvements and New Features in NDData
+=======================================
+
+New uncertainty types
+---------------------
+
+Two new uncertainty types, `~astropy.nddata.VarianceUncertainty` and
+`~astropy.nddata.InverseVariance`, have been added for use with the gridded
+data types in ``NDData``. As with `~astropy.nddata.StdDevUncertainty`, these
+uncertainties are propagated when used with `~astropy.nddata.CCDData`.
+
+Support for working with bit planes and converting them to binary masks
+-----------------------------------------------------------------------
+
+A new function for converting bit planes to binary masks,
+`~astropy.nddata.bitfield_to_boolean_mask`, supports a very flexible way to
+specify which planes to include in calculating masks. See
+:ref:`bitmask_details` for details and several examples.
+
+.. _whatsnew-3.1-units:
+
+Improvements and New Features for Units and Quantities
+======================================================
+
+.. _whatsnew-3.1-nocopy-unit:
+
+New operator for quantities
+---------------------------
+
+The easiest way to create a `~astropy.units.Quantity` until now has been to
+multiply scalars or arrays by units, for example::
+
+    >>> import numpy as np
+    >>> from astropy import units as u
+    >>> array = np.arange(1000000)
+    >>> quantity = array * u.m / u.s
+
+However, this can be inefficient, because the array is copied, and in addition
+to using up more memory, this makes things slow. We have now introduced a new
+operator that creates a `~astropy.units.Quantity` without copying the data::
+
+    >>> quantity = array << u.m / u.s
+
+Depending on the size of the array, this can be several times faster than  using
+the ``*`` operator. Note that this means that the quantity and the array now
+share the same memory (so modifying the array will modify the quantity).
+
+
+.. _whatsnew-3.1-tcmb:
+
+Thermodynamic temperature equivalency
+-------------------------------------
+
+The new :func:`~astropy.units.equivalencies.thermodynamic_temperature` cosmology
+equivalency allows conversion between Jy/beam and "thermodynamic temperature",
+:math:`T_{CMB}`, in Kelvins. For example::
+
+    >>> import astropy.units as u
+    >>> nu = 143 * u.GHz
+    >>> t_k = 0.002632051878 * u.K
+    >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu))  # doctest: +FLOAT_CMP
+    <Quantity 1. MJy / sr>
+
+See :ref:`tcmb-equivalency` for more details.
+
+.. _whatsnew-3.1-littleh:
+
+Little-h equivalency
+--------------------
+
+The new :func:`~astropy.units.equivalencies.with_H0` equivalency allows
+conversion between physical units and so called "little-h" units, a frequent
+source of confusion for novice (and not-so-novice...) extragalactic astronomers
+and cosmologists.  To see it in action::
+
+  >>> import astropy.units as u
+  >>> from astropy.cosmology import WMAP9
+  >>> distance = 70 * (u.Mpc/u.littleh)
+  >>> distance  # doctest: +FLOAT_CMP
+  <Quantity 70. Mpc / littleh>
+  >>> distance.to(u.Mpc, u.with_H0(WMAP9.H0))  # doctest: +FLOAT_CMP
+  <Quantity 100.98095788 Mpc>
+
+See :ref:`H0-equivalency` for more details.
+
+
+.. _whatsnew-3.1-cosmology:
+
+Improvements for Cosmology
+==========================
+
+.. _whatsnew-3.1-default-cosmology:
+
+Change in default cosmology
+---------------------------
+
+The default cosmology returned by the ``astropy.cosmology.default_cosmology``
+configuration item has been changed from the WMAP 9 year results to the Planck
+2015 results - as a result, you may see small changes in results of calculations
+where the cosmology was not explicitly specified. The default cosmology
+infrastructure is only provided for convenience and should be expected to
+change over time - as a result, for reproducibility it is always best to use
+an explicit cosmology rather than rely on the default.
+
+.. _whatsnew-3.1-faster-cosmology:
+
+Faster Cosmological Calculations
+--------------------------------
+
+There are now significant speedups (up to 100x) for distance and age
+calculations for FlatLambdaCDM cosmologies with no radiation or neutrinos,
+including de Sitter and Einstein-de Sitter cosmologies. For example,
+calculations such as::
+
+    >> import astropy.units as u
+    >> from astropy.cosmology import FlatLambdaCDM
+    >> FlatLambdaCDM(H0=60 * u.km / u.sec / u.Mpc, Om0=0.3, Tcmb0=0)
+    >> cosmology.age([1.0, 2.0, 3.0])
+
+will now be significantly faster.
+
+.. _whatsnew-3.1-visualization:
+
+Improvements and New Features in astropy.visualization
+======================================================
+
+.. _whatsnew-3.1-wcsaxes:
+
+Improvements in WCSAxes
+-----------------------
+
+The WCSAxes framework for making plots of astronomical images with Matplotlib
+has been improved in this release - in particular, `Matplotlib styles
+<https://matplotlib.org/users/style_sheets.html>`_ (e.g.
+``plt.style.use('ggplot')``) and
+`rcParams <https://matplotlib.org/users/customizing.html>`_ should now be
+correctly taken into account, and the default spacing of tick labels from the
+ticks should now be improved. The following shows an example of using the
+default, the ``ggplot``, and the ``seaborn`` styles:
+
+.. plot::
+   :context: reset
+   :align: center
+
+    import matplotlib.pyplot as plt
+
+    from astropy.wcs import WCS
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
+
+    plt.figure(figsize=(9, 4.5))
+
+    for istyle, style in enumerate([{}, 'ggplot', 'seaborn']):
+
+        plt.style.use(style)
+
+        ax = plt.subplot(1, 3, istyle + 1, projection=wcs)
+        ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
+
+        if style == {}:
+            ax.set_title('Default', size=11)
+        else:
+            ax.set_title("plt.style.use('{0}')".format(style), size=11)
+
+        ax.set_xlabel('Galactic Longitude')
+
+        if istyle  == 0:
+            ax.coords[1].set_axislabel('Galactic Latitude')
+        elif istyle == 1:
+            ax.coords[1].set_ticklabel_visible(False)
+        else:
+            ax.coords[1].set_axislabel('Galactic Latitude')
+            ax.coords[1].set_ticklabel_position('r')
+            ax.coords[1].set_axislabel_position('r')
+
+By default, Right Ascension coordinates will now default to being formatted in
+hours rather than in degrees. Finally, there have been a number of
+improvements to the API, including for example the ability to use the Matplotlib
+`tick_params <https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.tick_params.html>`_
+method, the ability to more easily set the
+tick labels to be decimal using the ``decimal=True`` option to
+:meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_format_unit`, and
+the ability to control whether the ticks should be facing inwards or outwards using
+the ``direction='in'/'out'`` argument to :meth:`~astropy.visualization.wcsaxes.CoordinateHelper.set_ticks`.
+
+In addition to these improvements, drawing of contours has now been made significantly faster,
+by factors of 10-100x depending on the specific contours shown.
+
+.. _whatsnew-3.1-imshow-norm:
+
+New convenience function for imshow with ImageNormalize
+-------------------------------------------------------
+
+A new `~astropy.visualization.imshow_norm` function has been created to simplify
+the display of images using matplotlib with astronomy-appropriate stretches.
+Specifically, it allows plotting an image using matplotlib's imshow, using the
+`~astropy.visualization` stretch and interval classes, but all in a single
+compact function call:
+
+.. plot::
+    :include-source:
+    :align: center
+
+    import matplotlib.pyplot as plt
+    from astropy.utils.data import get_pkg_data_filename
+    from astropy.io import fits
+    from astropy.visualization import imshow_norm, PercentileInterval, SqrtStretch
+
+    # Get an example dataset
+    img_fn = get_pkg_data_filename('visualization/reprojected_sdss_r.fits.bz2')
+    image = fits.getdata(img_fn, 0)
+
+    # plot the central 99th percentile with a sqrt stretch in one call
+    imshow_norm(image, origin='lower',
+                interval=PercentileInterval(99), stretch=SqrtStretch())
+    plt.colorbar(orientation='horizontal')
+
+See the :ref:`astropy-visualization-stretchnorm` section for more details on
+this and related features.
+
+.. _whatsnew-3.1-fits:
+
+Improvements and New Features in astropy.io.fits
+================================================
+
+The ``fitsheader`` command line tool now supports a `dfits+fitsort
+<https://www.eso.org/sci/software/eclipse/eug/eug/node8.html>`_ mode,
+and the dotted notation for keywords (e.g. ``ESO.INS.ID``)::
+
+   $ fitsheader --fitsort astropy/io/fits/tests/data/test* -k DATE-OBS -k ORIGIN
+                  filename               DATE-OBS                 ORIGIN
+   ------------------------------------- -------- --------------------------------------
+   astropy/io/fits/tests/data/test0.fits 19/05/94 NOAO-IRAF FITS Image Kernel Aug 1 1997
+   astropy/io/fits/tests/data/test1.fits 19/05/94 NOAO-IRAF FITS Image Kernel Aug 1 1997
+
+
+
+
+.. _whatsnew-3.1-ape14:
+
+Common API for World Coordinate Systems
+=======================================
+
+We have designed a new general programmatic interface for objects that represent
+world coordinate system (WCS) transformations, and astropy's own
+:class:`~astropy.wcs.WCS` now implements this interface. One of the highlights
+of this interface is the ability to transform to/from astropy objects such as
+:class:`~astropy.coordinates.SkyCoord` or :class:`~astropy.units.Quantity`
+objects::
+
+   >>> from astropy.wcs import WCS
+   >>> from astropy.coordinates import SkyCoord
+   >>> from astropy.utils.data import get_pkg_data_filename
+   >>> from astropy.io import fits
+   >>> filename = get_pkg_data_filename('galactic_center/gc_2mass_k.fits')  # doctest: +REMOTE_DATA
+   >>> wcs = WCS(filename)  # doctest: +REMOTE_DATA
+   >>> wcs.pixel_to_world([1, 2], [4, 3])  # doctest: +REMOTE_DATA +FLOAT_CMP
+   <SkyCoord (FK5: equinox=2000.0): (ra, dec) in deg
+       [(266.97242993, -29.42584415), (266.97084321, -29.42723968)]>
+   >>> wcs.world_to_pixel(SkyCoord('00h00m00s +00d00m00s', frame='galactic'))  # doctest: +REMOTE_DATA +FLOAT_CMP
+   [array(356.85179997), array(357.45340331)]
+
+You can find out more about using this new API in :ref:`wcsapi`.
+
+For anyone interested in implementing this interface in other WCS classes, we
+recommend reading the  Astropy Proposal for Enhancement 14: `A shared Python
+interface for World Coordinate Systems (APE 14)
+<https://doi.org/10.5281/zenodo.1188875>`_, and we have provided base classes
+defining the API, as well as wrapper classes to help automatically implement the
+high-level class.
+
+
+Full change log
+===============
+
+To see a detailed list of all changes in version v3.1, including changes in
+API, please see the :ref:`changelog`.
+
+
+Contributors to the v3.1 release
+================================
+
+.. hlist::
+  :columns: 4
+
+  *  Aarya Patil
+  *  Abhinuv Nitin Pitale*
+  *  Abigail Stevens*
+  *  Adam Ginsburg
+  *  Aditya Sharma*
+  *  Adrian Price-Whelan
+  *  Akash Deshpande*
+  *  Alexander Bakanov
+  *  Alexandre Beelen*
+  *  Ana Posses*
+  *  Anany Shrey Jain*
+  *  Arfon Smith*
+  *  Benjamin Alan Weaver
+  *  Brigitta Sipocz
+  *  Bruno Oliveira
+  *  Christian Clauss*
+  *  Christoph Deil
+  *  Clara Brasseur*
+  *  Dan Foreman-Mackey*
+  *  Daniel D'Avella
+  *  Daria Cara*
+  *  David M. Palmer
+  *  David Stansby*
+  *  Derek Homeier
+  *  Douglas Burke
+  *  Duncan Macleod
+  *  Emily Deibert*
+  *  Eric Koch*
+  *  Erik M. Bray
+  *  Erik Tollerud
+  *  Felix Yan*
+  *  Giang Nguyen
+  *  Grant Jenks*
+  *  Hannes Breytenbach
+  *  Humna Awan*
+  *  Jake VanderPlas
+  *  James Davies*
+  *  James Noss*
+  *  James Turner
+  *  Jani Šumak*
+  *  Joe Hunkeler
+  *  John Parejko
+  *  Johnny Greco
+  *  Joseph Schlitz*
+  *  Juanjo Bazán*
+  *  Julien Woillez
+  *  Karl Gordon
+  *  Katrin Leinweber*
+  *  Kyle Oman
+  *  Larry Bradley
+  *  Leah Fulmer*
+  *  Lehman Garrison
+  *  Leo Singer
+  *  Manas Satish Bedmutha*
+  *  Mangala Gowri Krishnamoorthy*
+  *  Manish Biswas*
+  *  Marten van Kerkwijk
+  *  Martin Glatzle*
+  *  Matthew Craig
+  *  Matthew Petroff*
+  *  Michael Wood-Vasey*
+  *  Michael Seifert
+  *  Michael Zhang*
+  *  Mihai Cara
+  *  Mike Alexandersen*
+  *  Mikołaj*
+  *  Nadia Dencheva
+  *  Ole Streicher
+  *  Patricio Rojo*
+  *  Pey Lian Lim
+  *  Ritiek Malhotra*
+  *  Rocio Kiman*
+  *  Rohan Rajpal*
+  *  Sanjeev Dubey*
+  *  Sara Ogaz
+  *  Sashank Mishra*
+  *  Shresth Verma
+  *  Simon Conseil
+  *  Stefan Becker
+  *  Stephen Portillo*
+  *  Steve Crawford
+  *  Stuart Mumford
+  *  Sushobhana Patra*
+  *  Swapnil Sharma*
+  *  Thomas Robitaille
+  *  Tim Jenness*
+  *  Tom Aldcroft
+  *  Vishnunarayan K I*
+  *  Vital Fernández*
+  *  Zé Vinicius
+  *  jimboH*
+  *  mmebsout*
+
+Where a * indicates their first contribution to Astropy.

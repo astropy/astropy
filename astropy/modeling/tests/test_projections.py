@@ -2,19 +2,20 @@
 
 """Test sky projections defined in WCS Paper II"""
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 import os
-import numpy as np
-from numpy.testing import utils
-from .. import projections
-from ..parameters import InputParameterError
 
-from ...io import fits
-from ... import wcs
-from ...utils.data import get_pkg_data_filename
-from ...tests.helper import pytest
-from ...extern.six.moves import range, zip
+import pytest
+import numpy as np
+from numpy.testing import assert_allclose, assert_almost_equal
+
+from astropy.modeling import projections
+from astropy.modeling.parameters import InputParameterError
+
+from astropy import units as u
+from astropy.io import fits
+from astropy import wcs
+from astropy.utils.data import get_pkg_data_filename
+from astropy.tests.helper import assert_quantity_allclose
 
 
 def test_Projection_properties():
@@ -56,8 +57,8 @@ def test_Sky2Pix(code):
     model = getattr(projections, 'Sky2Pix_' + code)
     tinv = model(*params)
     x, y = tinv(wcslibout['phi'], wcslibout['theta'])
-    utils.assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
-    utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
+    assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
+    assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
 
 @pytest.mark.parametrize(('code',), pars)
@@ -85,8 +86,71 @@ def test_Pix2Sky(code):
     model = getattr(projections, 'Pix2Sky_' + code)
     tanprj = model(*params)
     phi, theta = tanprj(*PIX_COORDINATES)
-    utils.assert_almost_equal(np.asarray(phi), wcs_phi)
-    utils.assert_almost_equal(np.asarray(theta), wcs_theta)
+    assert_almost_equal(np.asarray(phi), wcs_phi)
+    assert_almost_equal(np.asarray(theta), wcs_theta)
+
+
+@pytest.mark.parametrize(('code',), pars)
+def test_Sky2Pix_unit(code):
+    """Check astropy model eval against wcslib eval"""
+
+    wcs_map = os.path.join(os.pardir, os.pardir, "wcs", "tests", "maps",
+                           "1904-66_{0}.hdr".format(code))
+    test_file = get_pkg_data_filename(wcs_map)
+    header = fits.Header.fromfile(test_file, endcard=False, padding=False)
+
+    params = []
+    for i in range(3):
+        key = 'PV2_{0}'.format(i + 1)
+        if key in header:
+            params.append(header[key])
+
+    w = wcs.WCS(header)
+    w.wcs.crval = [0., 0.]
+    w.wcs.crpix = [0, 0]
+    w.wcs.cdelt = [1, 1]
+    wcslibout = w.wcs.p2s([PIX_COORDINATES], 1)
+    wcs_pix = w.wcs.s2p(wcslibout['world'], 1)['pixcrd']
+    model = getattr(projections, 'Sky2Pix_' + code)
+    tinv = model(*params)
+    x, y = tinv(wcslibout['phi'] * u.deg, wcslibout['theta'] * u.deg)
+    assert_quantity_allclose(x, wcs_pix[:, 0] * u.deg)
+    assert_quantity_allclose(y, wcs_pix[:, 1] * u.deg)
+
+
+@pytest.mark.parametrize(('code',), pars)
+def test_Pix2Sky_unit(code):
+    """Check astropy model eval against wcslib eval"""
+
+    wcs_map = os.path.join(os.pardir, os.pardir, "wcs", "tests", "maps",
+                           "1904-66_{0}.hdr".format(code))
+    test_file = get_pkg_data_filename(wcs_map)
+    header = fits.Header.fromfile(test_file, endcard=False, padding=False)
+
+    params = []
+    for i in range(3):
+        key = 'PV2_{0}'.format(i + 1)
+        if key in header:
+            params.append(header[key])
+
+    w = wcs.WCS(header)
+    w.wcs.crval = [0., 0.]
+    w.wcs.crpix = [0, 0]
+    w.wcs.cdelt = [1, 1]
+    wcslibout = w.wcs.p2s([PIX_COORDINATES], 1)
+    wcs_phi = wcslibout['phi']
+    wcs_theta = wcslibout['theta']
+    model = getattr(projections, 'Pix2Sky_' + code)
+    tanprj = model(*params)
+    phi, theta = tanprj(*PIX_COORDINATES * u.deg)
+    assert_quantity_allclose(phi, wcs_phi * u.deg)
+    assert_quantity_allclose(theta, wcs_theta * u.deg)
+    phi, theta = tanprj(*(PIX_COORDINATES * u.deg).to(u.rad))
+    assert_quantity_allclose(phi, wcs_phi * u.deg)
+    assert_quantity_allclose(theta, wcs_theta * u.deg)
+    phi, theta = tanprj(*(PIX_COORDINATES * u.deg).to(u.arcmin))
+    assert_quantity_allclose(phi, wcs_phi * u.deg)
+    assert_quantity_allclose(theta, wcs_theta * u.deg)
 
 
 @pytest.mark.parametrize(('code',), pars)
@@ -104,7 +168,7 @@ def test_projection_default(code):
     x, y = tinv(0, 0)
 
 
-class TestZenithalPerspective(object):
+class TestZenithalPerspective:
     """Test Zenithal Perspective projection"""
 
     def setup_class(self):
@@ -125,18 +189,18 @@ class TestZenithalPerspective(object):
         wcs_phi = wcslibout['phi']
         wcs_theta = wcslibout['theta']
         phi, theta = self.azp(-10, 30)
-        utils.assert_almost_equal(np.asarray(phi), wcs_phi)
-        utils.assert_almost_equal(np.asarray(theta), wcs_theta)
+        assert_almost_equal(np.asarray(phi), wcs_phi)
+        assert_almost_equal(np.asarray(theta), wcs_theta)
 
     def test_AZP_s2p(self):
         wcslibout = self.wazp.wcs.p2s([[-10, 30]], 1)
         wcs_pix = self.wazp.wcs.s2p(wcslibout['world'], 1)['pixcrd']
         x, y = self.azp.inverse(wcslibout['phi'], wcslibout['theta'])
-        utils.assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
-        utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
+        assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
+        assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
 
-class TestCylindricalPerspective(object):
+class TestCylindricalPerspective:
     """Test cylindrical perspective projection"""
 
     def setup_class(self):
@@ -157,15 +221,15 @@ class TestCylindricalPerspective(object):
         wcs_phi = wcslibout['phi']
         wcs_theta = wcslibout['theta']
         phi, theta = self.azp(-10, 30)
-        utils.assert_almost_equal(np.asarray(phi), wcs_phi)
-        utils.assert_almost_equal(np.asarray(theta), wcs_theta)
+        assert_almost_equal(np.asarray(phi), wcs_phi)
+        assert_almost_equal(np.asarray(theta), wcs_theta)
 
     def test_CYP_s2p(self):
         wcslibout = self.wazp.wcs.p2s([[-10, 30]], 1)
         wcs_pix = self.wazp.wcs.s2p(wcslibout['world'], 1)['pixcrd']
         x, y = self.azp.inverse(wcslibout['phi'], wcslibout['theta'])
-        utils.assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
-        utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
+        assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
+        assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
 
 def test_AffineTransformation2D():
@@ -201,7 +265,7 @@ def test_AffineTransformation2D_inverse():
 
     x_new, y_new = model2.inverse(*model2(x, y))
 
-    utils.assert_allclose([x, y], [x_new, y_new], atol=1e-10)
+    assert_allclose([x, y], [x_new, y_new], atol=1e-10)
 
 
 def test_c_projection_striding():
@@ -213,11 +277,11 @@ def test_c_projection_striding():
 
     phi, theta = model(coords[:, 0], coords[:, 1])
 
-    utils.assert_almost_equal(
+    assert_almost_equal(
         phi,
         [0., 2.2790416, 4.4889294, 6.6250643, 8.68301])
 
-    utils.assert_almost_equal(
+    assert_almost_equal(
         theta,
         [-76.4816918, -75.3594654, -74.1256332, -72.784558, -71.3406629])
 
@@ -232,12 +296,60 @@ def test_c_projections_shaped():
 
     phi, theta = model(xv, yv)
 
-    utils.assert_allclose(
+    assert_allclose(
         phi,
-        [[0., 90., 90., 90., 90.,],
+        [[0., 90., 90., 90., 90.],
          [180., 165.96375653, 153.43494882, 143.13010235, 135.]])
 
-    utils.assert_allclose(
+    assert_allclose(
         theta,
         [[90., 89.75000159, 89.50001269, 89.25004283, 89.00010152],
-         [89.00010152, 88.96933478, 88.88210788, 88.75019826,  88.58607353]])
+         [89.00010152, 88.96933478, 88.88210788, 88.75019826, 88.58607353]])
+
+
+def test_affine_with_quantities():
+    x = 1
+    y = 2
+    xdeg = (x * u.pix).to(u.deg, equivalencies=u.pixel_scale(2.5 * u.deg / u.pix))
+    ydeg = (y * u.pix).to(u.deg, equivalencies=u.pixel_scale(2.5 * u.deg / u.pix))
+    xpix = x * u.pix
+    ypix = y * u.pix
+
+    # test affine with matrix only
+    qaff = projections.AffineTransformation2D(matrix=[[1, 2], [2, 1]] * u.deg)
+    with pytest.raises(ValueError):
+        qx1, qy1 = qaff(xpix, ypix, equivalencies={
+            'x': u.pixel_scale(2.5 * u.deg / u.pix),
+            'y': u.pixel_scale(2.5 * u.deg / u.pix)})
+
+    # test affine with matrix and translation
+    qaff = projections.AffineTransformation2D(matrix=[[1, 2], [2, 1]] * u.deg,
+                                              translation=[1, 2] * u.deg)
+    qx1, qy1 = qaff(xpix, ypix, equivalencies={
+        'x': u.pixel_scale(2.5 * u.deg / u.pix),
+        'y': u.pixel_scale(2.5 * u.deg / u.pix)})
+    aff = projections.AffineTransformation2D(matrix=[[1, 2], [2, 1]], translation=[1, 2])
+    x1, y1 = aff(xdeg.value, ydeg.value)
+    assert_quantity_allclose(qx1, x1 * u.deg)
+    assert_quantity_allclose(qy1, y1 * u.deg)
+
+    # test the case of WCS PC and CDELT transformations
+    pc = np.array([[0.86585778922708, 0.50029020461607],
+                   [-0.50029020461607, 0.86585778922708]])
+    cdelt = np.array([[1, 3.0683055555556E-05], [3.0966944444444E-05, 1]])
+    matrix = cdelt * pc
+    qaff = projections.AffineTransformation2D(matrix=matrix * u.deg,
+                                              translation=[0, 0] * u.deg)
+
+    inv_matrix = np.linalg.inv(matrix)
+    inv_qaff = projections.AffineTransformation2D(matrix=inv_matrix * u.pix,
+                                                  translation=[0, 0] * u.pix)
+    qaff.inverse = inv_qaff
+    qx1, qy1 = qaff(xpix, ypix, equivalencies={
+            'x': u.pixel_scale(1 * u.deg / u.pix),
+            'y': u.pixel_scale(1 * u.deg / u.pix)})
+    x1, y1 = qaff.inverse(qx1, qy1, equivalencies={
+        'x': u.pixel_scale(1 * u.deg / u.pix),
+        'y': u.pixel_scale(1 * u.deg / u.pix)})
+    assert_quantity_allclose(x1, xpix)
+    assert_quantity_allclose(y1, ypix)

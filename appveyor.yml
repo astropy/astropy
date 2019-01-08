@@ -14,12 +14,8 @@ environment:
         PIP_DEPENDENCIES: "objgraph"
 
     matrix:
-
-        - PYTHON_VERSION: "2.7"
+        - PYTHON_VERSION: "3.7"
           NUMPY_VERSION: "stable"
-        - PYTHON_VERSION: "3.6"
-          NUMPY_VERSION: "stable"
-          ASTROPY_USE_SYSTEM_PYTEST: 1
 
 matrix:
     fast_finish: true
@@ -27,7 +23,7 @@ matrix:
 platform:
     -x64
 
-os: Visual Studio 2015 Update 2
+os: Visual Studio 2017
 
 install:
     - "git clone git://github.com/astropy/ci-helpers.git"
@@ -39,5 +35,4 @@ install:
 build: false
 
 test_script:
-    - "%CMD_IN_ENV% python setup.py test"
-
+    - "%CMD_IN_ENV% python setup.py test --readonly"

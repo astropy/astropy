@@ -4,20 +4,17 @@
 This module contains functions/values used repeatedly in different modules of
 the ``builtin_frames`` package.
 """
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import warnings
 
 import numpy as np
 
-from ... import units as u
-from ... import _erfa as erfa
-from ...time import Time
-from ...utils import iers
-from ...utils.exceptions import AstropyWarning
+from astropy import units as u
+from astropy import _erfa as erfa
+from astropy.time import Time
+from astropy.utils import iers
+from astropy.utils.exceptions import AstropyWarning
 
-from ...extern.six.moves import range
 
 # The UTC time scale is not properly defined prior to 1960, so Time('B1950',
 # scale='utc') will emit a warning. Instead, we use Time('B1950', scale='tai')
@@ -62,7 +59,7 @@ def get_polar_motion(time):
 
         warnings.warn(wmsg, AstropyWarning)
 
-    return xp.to(u.radian).value, yp.to(u.radian).value
+    return xp.to_value(u.radian), yp.to_value(u.radian)
 
 
 def _warn_iers(ierserr):
@@ -122,7 +119,13 @@ def norm(p):
     """
     Normalise a p-vector.
     """
-    return p/np.sqrt(np.einsum('...i,...i', p, p))[..., np.newaxis]
+    if np.__version__ == '1.14.0':
+        # there is a bug in numpy v1.14.0 (fixed in 1.14.1) that causes
+        # this einsum call to break with the default of optimize=True
+        # see https://github.com/astropy/astropy/issues/7051
+        return p / np.sqrt(np.einsum('...i,...i', p, p, optimize=False))[..., np.newaxis]
+    else:
+        return p / np.sqrt(np.einsum('...i,...i', p, p))[..., np.newaxis]
 
 
 def get_cip(jd1, jd2):
@@ -276,20 +279,18 @@ def prepare_earth_position_vel(time):
         Heliocentric position of Earth in au
     """
     # this goes here to avoid circular import errors
-    from ..solar_system import (get_body_barycentric, get_body_barycentric_posvel)
+    from astropy.coordinates.solar_system import (get_body_barycentric, get_body_barycentric_posvel)
     # get barycentric position and velocity of earth
-    earth_pv = get_body_barycentric_posvel('earth', time)
+    earth_p, earth_v = get_body_barycentric_posvel('earth', time)
 
     # get heliocentric position of earth, preparing it for passing to erfa.
     sun = get_body_barycentric('sun', time)
-    earth_heliocentric = (earth_pv[0] -
-                          sun).get_xyz(xyz_axis=-1).to(u.au).value
+    earth_heliocentric = (earth_p -
+                          sun).get_xyz(xyz_axis=-1).to_value(u.au)
 
-    # Also prepare earth_pv for passing to erfa, which wants xyz in last
-    # dimension, and pos/vel in one-but-last.
-    # (Note could use np.stack once our minimum numpy version is >=1.10.)
-    earth_pv = np.concatenate((earth_pv[0].get_xyz(xyz_axis=-1).to(u.au)
-                               [..., np.newaxis, :].value,
-                               earth_pv[1].get_xyz(xyz_axis=-1).to(u.au/u.d)
-                               [..., np.newaxis, :].value), axis=-2)
+    # Also prepare earth_pv for passing to erfa, which wants it as
+    # a structured dtype.
+    earth_pv = erfa.pav2pv(
+        earth_p.get_xyz(xyz_axis=-1).to_value(u.au),
+        earth_v.get_xyz(xyz_axis=-1).to_value(u.au/u.d))
     return earth_pv, earth_heliocentric

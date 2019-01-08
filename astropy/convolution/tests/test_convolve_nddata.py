@@ -1,14 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest
-
-from ..convolve import convolve, convolve_fft
-from ..kernels import Gaussian2DKernel
-from ...nddata import NDData
+from astropy.convolution.convolve import convolve, convolve_fft
+from astropy.convolution.kernels import Gaussian2DKernel
+from astropy.nddata import NDData
 
 
 def test_basic_nddata():
@@ -27,14 +24,17 @@ def test_basic_nddata():
     resultf = convolve_fft(ndd, test_kernel)
     np.testing.assert_allclose(resultf, expected, atol=1e-6)
 
-@pytest.mark.parametrize('convfunc', [convolve,
-    lambda *args: convolve_fft(*args, interpolate_nan=True, normalize_kernel=True)])
+
+@pytest.mark.parametrize('convfunc',
+   [lambda *args: convolve(*args, nan_treatment='interpolate', normalize_kernel=True),
+    lambda *args: convolve_fft(*args, nan_treatment='interpolate', normalize_kernel=True)])
 def test_masked_nddata(convfunc):
     arr = np.zeros((11, 11))
     arr[4, 5] = arr[6, 5] = arr[5, 4] = arr[5, 6] = 0.2
+    arr[5, 5] = 1.5
     ndd_base = NDData(arr)
 
-    mask = arr < 0
+    mask = arr < 0  # this is all False
     mask[5, 5] = True
     ndd_mask = NDData(arr, mask=mask)
 

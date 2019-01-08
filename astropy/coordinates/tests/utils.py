@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
-from ... import units as u
-from ...utils import NumpyRNGContext
+from astropy import units as u
+from astropy.utils import NumpyRNGContext
 
 
 def randomly_sample_sphere(ntosample, randomseed=12345):

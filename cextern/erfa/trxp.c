@@ -22,7 +22,7 @@ void eraTrxp(double r[3][3], double p[3], double trp[3])
 **     eraTr        transpose r-matrix
 **     eraRxp       product of r-matrix and p-vector
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -41,7 +41,7 @@ void eraTrxp(double r[3][3], double p[3], double trp[3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

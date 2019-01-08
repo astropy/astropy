@@ -8,7 +8,6 @@ Classes to read DAOphot table format
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import re
 import numpy as np
@@ -17,7 +16,6 @@ from collections import defaultdict, OrderedDict
 
 from . import core
 from . import fixedwidth
-from ...extern.six.moves import zip, map, range
 from .misc import first_true_index, first_false_index, groupmore
 
 
@@ -308,7 +306,7 @@ class DaophotInputter(core.ContinuationLinesInputter):
                     outlines.append(''.join(parts))
                     parts = []
             else:
-                raise ValueError('multiline re could not match line '
+                raise core.InconsistentTableError('multiline re could not match line '
                                  '{}: {}'.format(i, line))
 
         return outlines

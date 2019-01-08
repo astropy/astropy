@@ -1,7 +1,7 @@
 .. _compound-models:
 
 Compound Models
-===============
+***************
 
 .. versionadded:: 1.0
 
@@ -13,7 +13,7 @@ concatenation (explained below) with ``&``.
 
 
 Some terminology
-----------------
+================
 
 In discussing the compound model feature, it is useful to be clear about a
 few terms where there have been points of confusion:
@@ -80,7 +80,7 @@ few terms where there have been points of confusion:
 
 
 Creating compound models
-------------------------
+========================
 
 As discussed in the :ref:`introduction to compound models
 <compound-models-intro>`, the only way, currently, to create compound models is
@@ -95,7 +95,7 @@ other words, any object for which either ``isinstance(obj, Model)`` or
 .. _compound-model-classes:
 
 Compound model classes
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 We start by demonstrating how new compound model *classes* can be created
 by combining other classes.  This is more advanced usage, but it's useful to
@@ -184,7 +184,7 @@ a compound model by accessing the method ``n_submodels``::
 
 
 Model names
-^^^^^^^^^^^
+-----------
 
 In the last two examples another notable feature of the generated compound
 model classes is that the class name, as displayed when printing the class at
@@ -234,7 +234,7 @@ well.  This can be used to good effect, for example as shown in the section on
 .. _compound-model-instances:
 
 Compound models with model instances
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------
 
 So far we have seen how to create compound model *classes* from expressions
 involving other model classes.  This is the most "generic" way to create new
@@ -287,7 +287,7 @@ the already known parameter values.  We can see this by checking the type of
     Fittable parameters: ('amplitude_0', 'mean_0', 'stddev_0', 'amplitude_1', 'mean_1', 'stddev_1')
     Expression: [0] + [1]
     Components:
-        [0]: <Gaussian1D(amplitude=1.0, mean=0.0, stddev=0.2)>
+        [0]: <Gaussian1D(amplitude=1., mean=0., stddev=0.2)>
     <BLANKLINE>
         [1]: <Gaussian1D(amplitude=2.5, mean=0.5, stddev=0.1)>
 
@@ -296,7 +296,7 @@ combination of classes *and* instances in the same expression::
 
     >>> from astropy.modeling.models import Linear1D, Sine1D
     >>> MyModel = Linear1D + Sine1D(amplitude=1, frequency=1, phase=0)
-    >>> MyModel
+    >>> MyModel  # doctest: +FLOAT_CMP
     <class '__main__.CompoundModel...'>
     Name: CompoundModel...
     Inputs: ('x',)
@@ -310,7 +310,7 @@ combination of classes *and* instances in the same expression::
         Outputs: ('y',)
         Fittable parameters: ('slope', 'intercept')
     <BLANKLINE>
-        [1]: <Sine1D(amplitude=1.0, frequency=1.0, phase=0.0)>
+        [1]: <Sine1D(amplitude=1., frequency=1., phase=0.)>
 
 In this case the result is always a class.  However (and this is not
 immediately obvious by the representation) the difference is that the
@@ -349,10 +349,10 @@ should not have any practical drawbacks.
 
 
 Operators
----------
+=========
 
 Arithmetic operators
-^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 Compound models can be created from expressions that include any
 number of the arithmetic operators ``+``, ``-``, ``*``, ``/``, and
@@ -380,7 +380,7 @@ arrays.
 .. _compound-model-composition:
 
 Model composition
-^^^^^^^^^^^^^^^^^
+-----------------
 
 The sixth binary operator that can be used to create compound models is the
 composition operator, also known as the "pipe" operator ``|`` (not to be
@@ -395,7 +395,7 @@ when evaluated, is equivalent to evaluating :math:`g \circ f = g(f(x))`.
     This is in part because there is no operator symbol supported in Python
     that corresponds well to this.  The ``|`` operator should instead be read
     like the `pipe operator
-    <http://en.wikipedia.org/wiki/Pipeline_%28Unix%29>`_ of UNIX shell syntax:
+    <https://en.wikipedia.org/wiki/Pipeline_%28Unix%29>`_ of UNIX shell syntax:
     It chains together models by piping the output of the left-hand operand to
     the input of the right-hand operand, forming a "pipeline" of models, or
     transformations.
@@ -414,7 +414,7 @@ example, to create the following compound model:
     digraph {
         in0 [shape="none", label="input 0"];
         out0 [shape="none", label="output 0"];
-        redshift0 [shape="box", label="Redshift"];
+        redshift0 [shape="box", label="RedshiftScaleFactor"];
         gaussian0 [shape="box", label="Gaussian1D(1, 0.75, 0.1)"];
 
         in0 -> redshift0;
@@ -426,6 +426,7 @@ example, to create the following compound model:
     :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling.models import RedshiftScaleFactor, Gaussian1D
 
     class RedshiftedGaussian(RedshiftScaleFactor | Gaussian1D(1, 0.75, 0.1)):
@@ -454,6 +455,7 @@ model *instances*:
     :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling.models import RedshiftScaleFactor, Gaussian1D, Scale
 
     x = np.linspace(1000, 5000, 1000)
@@ -501,6 +503,7 @@ example:
     :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling.models import Rotation2D, Gaussian2D
 
     class RotatedGaussian(Rotation2D | Gaussian2D(1, 0, 0, 0.1, 0.3)):
@@ -543,7 +546,7 @@ especially when used in concert with :ref:`mappings <compound-model-mappings>`.
 .. _compound-model-concatenation:
 
 Model concatenation
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 The concatenation operator ``&``, sometimes also referred to as a "join",
 combines two models into a single, fully separable transformation.  That is, it
@@ -632,7 +635,7 @@ transformation matrix::
 .. _compound-model-indexing:
 
 Indexing and slicing
---------------------
+====================
 
 As seen in some of the previous examples in this document, when creating a
 compound model each component of the model is assigned an integer index
@@ -711,8 +714,8 @@ The new compound model for the subexpression can be instantiated and evaluated
 like any other::
 
     >>> m = M[1:](2, 3)
-    >>> m
-    <CompoundModel...(amplitude_1=2.0, amplitude_2=3.0)>
+    >>> m  # doctest: +FLOAT_CMP
+    <CompoundModel...(amplitude_1=2., amplitude_2=3.)>
     >>> m(0)
     6.0
 
@@ -779,7 +782,7 @@ input we pass in, so 0 is used without loss of generality::
 .. _compound-model-parameters:
 
 Parameters
-----------
+==========
 
 A question that frequently comes up when first encountering compound models is
 how exactly all the parameters are dealt with.  By now we've seen a few
@@ -858,7 +861,7 @@ the original models.
 .. _compound-model-mappings:
 
 Advanced mappings
------------------
+=================
 
 We have seen in some previous examples how models can be chained together to
 form a "pipeline" of transformations by using model :ref:`composition

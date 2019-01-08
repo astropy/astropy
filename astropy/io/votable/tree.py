@@ -1,30 +1,27 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # TODO: Test FITS parsing
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-from ...extern import six
-from ...extern.six.moves import range, urllib, zip
-
 # STDLIB
-import base64
-import codecs
 import io
 import re
 import sys
-import warnings
 import gzip
+import base64
+import codecs
+import urllib.request
+import warnings
 
 # THIRD-PARTY
 import numpy as np
 from numpy import ma
 
 # LOCAL
-from .. import fits
-from ... import __version__ as astropy_version
-from ...utils.collections import HomogeneousList
-from ...utils.xml.writer import XMLWriter
-from ...utils.exceptions import AstropyDeprecationWarning
-from ...utils.misc import InheritDocstrings
+from astropy.io import fits
+from astropy import __version__ as astropy_version
+from astropy.utils.collections import HomogeneousList
+from astropy.utils.xml.writer import XMLWriter
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.misc import InheritDocstrings
 
 from . import converters
 from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
@@ -68,15 +65,8 @@ def _resize(masked, new_size):
     """
     new_array = ma.zeros((new_size,), dtype=masked.dtype)
     length = min(len(masked), new_size)
-    try:
-        # Pre Numpy 1.10 way
-        new_array.data[:length] = masked.data[:length]
-    except TypeError:
-        # Numpy 1.10 and later
-        new_array[:length] = masked[:length]
-    else:
-        if length != 0:
-            new_array.mask[:length] = masked.mask[:length]
+    new_array[:length] = masked[:length]
+
     return new_array
 
 
@@ -110,6 +100,7 @@ def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
     factory : function
         A function that looks up an element by the given attribute.
     """
+
     def lookup_by_attr(self, ref, before=None):
         """
         Given a string *ref*, finds the first element in the iterator
@@ -148,6 +139,7 @@ def _lookup_by_id_or_name_factory(iterator, element_name, doc):
     Like `_lookup_by_attr_factory`, but looks in both the "ID" and
     "name" attributes.
     """
+
     def lookup_by_id_or_name(self, ref, before=None):
         """
         Given an key *ref*, finds the first element in the iterator
@@ -193,7 +185,6 @@ def _get_unit_format(config):
     return format
 
 
-
 ######################################################################
 # ATTRIBUTE CHECKERS
 def check_astroyear(year, field, config=None, pos=None):
@@ -231,14 +222,14 @@ def check_string(string, attr_name, config=None, pos=None):
     string : str
         An astronomical year string
 
-    field : str
+    attr_name : str
         The name of the field this year was found in (used for error
         message)
 
     config, pos : optional
         Information about the source of the value
     """
-    if string is not None and not isinstance(string, six.string_types):
+    if string is not None and not isinstance(string, str):
         warn_or_raise(W08, W08, attr_name, config, pos)
         return False
     return True
@@ -278,16 +269,16 @@ def check_ucd(ucd, config=None, pos=None):
         except ValueError as e:
             # This weird construction is for Python 3 compatibility
             if config.get('pedantic'):
-                vo_raise(W06, (ucd, six.text_type(e)), config, pos)
+                vo_raise(W06, (ucd, str(e)), config, pos)
             else:
-                vo_warn(W06, (ucd, six.text_type(e)), config, pos)
+                vo_warn(W06, (ucd, str(e)), config, pos)
                 return False
     return True
 
 
 ######################################################################
 # PROPERTY MIXINS
-class _IDProperty(object):
+class _IDProperty:
     @property
     def ID(self):
         """
@@ -306,7 +297,7 @@ class _IDProperty(object):
         self._ID = None
 
 
-class _NameProperty(object):
+class _NameProperty:
     @property
     def name(self):
         """An optional name for the element."""
@@ -322,7 +313,7 @@ class _NameProperty(object):
         self._name = None
 
 
-class _XtypeProperty(object):
+class _XtypeProperty:
     @property
     def xtype(self):
         """Extended data type information."""
@@ -342,7 +333,7 @@ class _XtypeProperty(object):
         self._xtype = None
 
 
-class _UtypeProperty(object):
+class _UtypeProperty:
     _utype_in_v1_2 = False
 
     @property
@@ -366,7 +357,7 @@ class _UtypeProperty(object):
         self._utype = None
 
 
-class _UcdProperty(object):
+class _UcdProperty:
     _ucd_in_v1_2 = False
 
     @property
@@ -392,7 +383,7 @@ class _UcdProperty(object):
         self._ucd = None
 
 
-class _DescriptionProperty(object):
+class _DescriptionProperty:
     @property
     def description(self):
         """
@@ -412,8 +403,7 @@ class _DescriptionProperty(object):
 
 ######################################################################
 # ELEMENT CLASSES
-@six.add_metaclass(InheritDocstrings)
-class Element(object):
+class Element(metaclass=InheritDocstrings):
     """
     A base class for all classes that represent XML elements in the
     VOTABLE file.
@@ -425,12 +415,12 @@ class Element(object):
         warn_or_raise(W10, W10, tag, config, pos)
 
     def _ignore_add(self, iterator, tag, data, config, pos):
-        warn_unknown_attrs(tag, six.iterkeys(data), config, pos)
+        warn_unknown_attrs(tag, data.keys(), config, pos)
 
     def _add_definitions(self, iterator, tag, data, config, pos):
         if config.get('version_1_1_or_later'):
             warn_or_raise(W22, W22, (), config, pos)
-        warn_unknown_attrs(tag, six.iterkeys(data), config, pos)
+        warn_unknown_attrs(tag, data.keys(), config, pos)
 
     def parse(self, iterator, config):
         """
@@ -474,6 +464,7 @@ class SimpleElement(Element):
     A base class for simple elements, such as FIELD, PARAM and INFO
     that don't require any special parsing or outputting machinery.
     """
+
     def __init__(self):
         Element.__init__(self)
 
@@ -501,6 +492,7 @@ class SimpleElementWithContent(SimpleElement):
     A base class for simple elements, such as FIELD, PARAM and INFO
     that don't require any special parsing or outputting machinery.
     """
+
     def __init__(self):
         SimpleElement.__init__(self)
 
@@ -562,16 +554,16 @@ class Link(SimpleElement, _IDProperty):
         if 'gref' in kwargs:
             warn_or_raise(W11, W11, (), config, pos)
 
-        self.ID           = resolve_id(ID, id, config, pos)
+        self.ID = resolve_id(ID, id, config, pos)
         self.content_role = content_role
         self.content_type = content_type
-        self.title        = title
-        self.value        = value
-        self.href         = href
-        self.action       = action
+        self.title = title
+        self.value = value
+        self.href = href
+        self.action = action
 
         warn_unknown_attrs(
-            'LINK', six.iterkeys(kwargs), config, pos,
+            'LINK', kwargs.keys(), config, pos,
             ['content-role', 'content_role', 'content-type', 'content_type',
              'gref'])
 
@@ -666,15 +658,15 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
 
         SimpleElementWithContent.__init__(self)
 
-        self.ID      = (resolve_id(ID, id, config, pos) or
+        self.ID = (resolve_id(ID, id, config, pos) or
                         xmlutil.fix_id(name, config, pos))
-        self.name    = name
-        self.value   = value
-        self.xtype   = xtype
-        self.ref     = ref
-        self.unit    = unit
-        self.ucd     = ucd
-        self.utype   = utype
+        self.name = name
+        self.value = value
+        self.xtype = xtype
+        self.ref = ref
+        self.unit = unit
+        self.ucd = ucd
+        self.utype = utype
 
         if config.get('version_1_2_or_later'):
             self._attr_list = self._attr_list_12
@@ -691,7 +683,7 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
             if utype is not None:
                 warn_unknown_attrs('INFO', ['utype'], config, pos)
 
-        warn_unknown_attrs('INFO', six.iterkeys(extra), config, pos)
+        warn_unknown_attrs('INFO', extra.keys(), config, pos)
 
     @property
     def name(self):
@@ -780,7 +772,7 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
             self._unit = None
             return
 
-        from ... import units as u
+        from astropy import units as u
 
         if not self._config.get('version_1_2_or_later'):
             warn_or_raise(W28, W28, ('unit', 'INFO', '1.2'),
@@ -821,29 +813,30 @@ class Values(Element, _IDProperty):
     The keyword arguments correspond to setting members of the same
     name, documented below.
     """
+
     def __init__(self, votable, field, ID=None, null=None, ref=None,
                  type="legal", id=None, config=None, pos=None, **extras):
         if config is None:
             config = {}
-        self._config  = config
+        self._config = config
         self._pos = pos
 
         Element.__init__(self)
 
         self._votable = votable
-        self._field   = field
-        self.ID       = resolve_id(ID, id, config, pos)
-        self.null     = null
-        self._ref     = ref
-        self.type     = type
+        self._field = field
+        self.ID = resolve_id(ID, id, config, pos)
+        self.null = null
+        self._ref = ref
+        self.type = type
 
-        self.min           = None
-        self.max           = None
+        self.min = None
+        self.max = None
         self.min_inclusive = True
         self.max_inclusive = True
-        self._options      = []
+        self._options = []
 
-        warn_unknown_attrs('VALUES', six.iterkeys(extras), config, pos)
+        warn_unknown_attrs('VALUES', extras.keys(), config, pos)
 
     def __repr__(self):
         buff = io.StringIO()
@@ -860,7 +853,7 @@ class Values(Element, _IDProperty):
 
     @null.setter
     def null(self, null):
-        if null is not None and isinstance(null, six.string_types):
+        if null is not None and isinstance(null, str):
             try:
                 null_val = self._field.converter.parse_scalar(
                     null, self._config, self._pos)[0]
@@ -1028,7 +1021,7 @@ class Values(Element, _IDProperty):
                         self.min = data['value']
                         self.min_inclusive = data.get('inclusive', 'yes')
                         warn_unknown_attrs(
-                            'MIN', six.iterkeys(data), config, pos,
+                            'MIN', data.keys(), config, pos,
                             ['value', 'inclusive'])
                     elif tag == 'MAX':
                         if 'value' not in data:
@@ -1036,7 +1029,7 @@ class Values(Element, _IDProperty):
                         self.max = data['value']
                         self.max_inclusive = data.get('inclusive', 'yes')
                         warn_unknown_attrs(
-                            'MAX', six.iterkeys(data), config, pos,
+                            'MAX', data.keys(), config, pos,
                             ['value', 'inclusive'])
                     elif tag == 'OPTION':
                         if 'value' not in data:
@@ -1046,7 +1039,7 @@ class Values(Element, _IDProperty):
                         self.options.append(
                             (data.get('name'), data.get('value')))
                         warn_unknown_attrs(
-                            'OPTION', six.iterkeys(data), config, pos,
+                            'OPTION', data.keys(), config, pos,
                             ['data', 'name'])
                 elif tag == 'VALUES':
                     break
@@ -1115,10 +1108,10 @@ class Values(Element, _IDProperty):
         column.meta['values'] = meta
 
     def from_table_column(self, column):
-        if 'values' not in column.meta:
+        if column.info.meta is None or 'values' not in column.info.meta:
             return
 
-        meta = column.meta['values']
+        meta = column.info.meta['values']
         for key in ['ID', 'null']:
             val = meta.get(key, None)
             if val is not None:
@@ -1203,16 +1196,16 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
             vo_raise(W12, self._element_name, config, pos)
 
         datatype_mapping = {
-            'string'        : 'char',
-            'unicodeString' : 'unicodeChar',
-            'int16'         : 'short',
-            'int32'         : 'int',
-            'int64'         : 'long',
-            'float32'       : 'float',
-            'float64'       : 'double',
+            'string': 'char',
+            'unicodeString': 'unicodeChar',
+            'int16': 'short',
+            'int32': 'int',
+            'int64': 'long',
+            'float32': 'float',
+            'float64': 'double',
             # The following appear in some Vizier tables
-            'unsignedInt'   : 'long',
-            'unsignedShort' : 'int'
+            'unsignedInt': 'long',
+            'unsignedShort': 'int'
         }
 
         datatype_mapping.update(config.get('datatype_mapping', {}))
@@ -1222,23 +1215,23 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
                           config, pos)
             datatype = datatype_mapping[datatype]
 
-        self.ref        = ref
-        self.datatype   = datatype
-        self.arraysize  = arraysize
-        self.ucd        = ucd
-        self.unit       = unit
-        self.width      = width
-        self.precision  = precision
-        self.utype      = utype
-        self.type       = type
-        self._links     = HomogeneousList(Link)
-        self.title      = self.name
-        self.values     = Values(self._votable, self)
-        self.xtype      = xtype
+        self.ref = ref
+        self.datatype = datatype
+        self.arraysize = arraysize
+        self.ucd = ucd
+        self.unit = unit
+        self.width = width
+        self.precision = precision
+        self.utype = utype
+        self.type = type
+        self._links = HomogeneousList(Link)
+        self.title = self.name
+        self.values = Values(self._votable, self)
+        self.xtype = xtype
 
         self._setup(config, pos)
 
-        warn_unknown_attrs(self._element_name, six.iterkeys(extra), config, pos)
+        warn_unknown_attrs(self._element_name, extra.keys(), config, pos)
 
     @classmethod
     def uniqify_names(cls, fields):
@@ -1386,7 +1379,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
             self._unit = None
             return
 
-        from ... import units as u
+        from astropy import units as u
 
         # First, parse the unit in the default way, so that we can
         # still emit a warning if the unit is not to spec.
@@ -1485,7 +1478,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
                     link.parse(iterator, config)
                 elif tag == 'DESCRIPTION':
                     warn_unknown_attrs(
-                        'DESCRIPTION', six.iterkeys(data), config, pos)
+                        'DESCRIPTION', data.keys(), config, pos)
                 elif tag != self._element_name:
                     self._add_unknown_tag(iterator, tag, data, config, pos)
             else:
@@ -1547,24 +1540,26 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         `astropy.table.Column` instance.
         """
         kwargs = {}
-        for key in ['ucd', 'width', 'precision', 'utype', 'xtype']:
-            val = column.meta.get(key, None)
-            if val is not None:
-                kwargs[key] = val
+        meta = column.info.meta
+        if meta:
+            for key in ['ucd', 'width', 'precision', 'utype', 'xtype']:
+                val = meta.get(key, None)
+                if val is not None:
+                    kwargs[key] = val
         # TODO: Use the unit framework when available
-        if column.unit is not None:
-            kwargs['unit'] = column.unit
-        kwargs['name'] = column.name
+        if column.info.unit is not None:
+            kwargs['unit'] = column.info.unit
+        kwargs['name'] = column.info.name
         result = converters.table_column_to_votable_datatype(column)
         kwargs.update(result)
 
         field = cls(votable, **kwargs)
 
-        if column.description is not None:
-            field.description = column.description
+        if column.info.description is not None:
+            field.description = column.info.description
         field.values.from_table_column(column)
-        if 'links' in column.meta:
-            for link in column.meta['links']:
+        if meta and 'links' in meta:
+            for link in meta['links']:
                 field.links.append(Link.from_table_column(link))
 
         # TODO: Parse format into precision and width
@@ -1604,8 +1599,7 @@ class Param(Field):
     def value(self, value):
         if value is None:
             value = ""
-        if ((not six.PY2 and isinstance(value, six.text_type)) or
-            (six.PY2 and isinstance(value, six.string_types))):
+        if isinstance(value, str):
             self._value = self.converter.parse(
                 value, self._config, self._pos)[0]
         else:
@@ -1647,12 +1641,12 @@ class CooSys(SimpleElement):
 
         SimpleElement.__init__(self)
 
-        self.ID      = resolve_id(ID, id, config, pos)
+        self.ID = resolve_id(ID, id, config, pos)
         self.equinox = equinox
-        self.epoch   = epoch
-        self.system  = system
+        self.epoch = epoch
+        self.system = system
 
-        warn_unknown_attrs('COOSYS', six.iterkeys(extra), config, pos)
+        warn_unknown_attrs('COOSYS', extra.keys(), config, pos)
 
     @property
     def ID(self):
@@ -1755,9 +1749,9 @@ class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
 
         SimpleElement.__init__(self)
         self._table = table
-        self.ref    = ref
-        self.ucd    = ucd
-        self.utype  = utype
+        self.ref = ref
+        self.ucd = ucd
+        self.utype = utype
 
         if config.get('version_1_2_or_later'):
             self._attr_list = self._attr_list_12
@@ -1821,9 +1815,9 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
 
         Element.__init__(self)
         self._table = table
-        self.ref    = ref
-        self.ucd    = ucd
-        self.utype  = utype
+        self.ref = ref
+        self.ucd = ucd
+        self.utype = utype
 
         if config.get('version_1_2_or_later'):
             self._attr_list = self._attr_list_12
@@ -1879,24 +1873,24 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
                  utype=None, id=None, config=None, pos=None, **extra):
         if config is None:
             config = {}
-        self._config     = config
-        self._pos        = pos
+        self._config = config
+        self._pos = pos
 
         Element.__init__(self)
         self._table = table
 
-        self.ID          = (resolve_id(ID, id, config, pos)
+        self.ID = (resolve_id(ID, id, config, pos)
                             or xmlutil.fix_id(name, config, pos))
-        self.name        = name
-        self.ref         = ref
-        self.ucd         = ucd
-        self.utype       = utype
+        self.name = name
+        self.ref = ref
+        self.ucd = ucd
+        self.utype = utype
         self.description = None
 
         self._entries = HomogeneousList(
             (FieldRef, ParamRef, Group, Param))
 
-        warn_unknown_attrs('GROUP', six.iterkeys(extra), config, pos)
+        warn_unknown_attrs('GROUP', extra.keys(), config, pos)
 
     def __repr__(self):
         return '<GROUP>... {0} entries ...</GROUP>'.format(len(self._entries))
@@ -1951,11 +1945,11 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
     def parse(self, iterator, config):
         tag_mapping = {
-            'FIELDref'    : self._add_fieldref,
-            'PARAMref'    : self._add_paramref,
-            'PARAM'       : self._add_param,
-            'GROUP'       : self._add_group,
-            'DESCRIPTION' : self._ignore_add}
+            'FIELDref': self._add_fieldref,
+            'PARAMref': self._add_paramref,
+            'PARAM': self._add_param,
+            'GROUP': self._add_group,
+            'DESCRIPTION': self._ignore_add}
 
         for start, tag, data, pos in iterator:
             if start:
@@ -2026,6 +2020,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
     The keyword arguments correspond to setting members of the same
     name, documented below.
     """
+
     def __init__(self, votable, ID=None, name=None, ref=None, ucd=None,
                  utype=None, nrows=None, id=None, config=None, pos=None,
                  **extra):
@@ -2047,7 +2042,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         self.utype = utype
         if nrows is not None:
             nrows = int(nrows)
-            assert nrows >= 0
+            if nrows < 0:
+                raise ValueError("'nrows' cannot be negative.")
         self._nrows = nrows
         self.description = None
         self.format = 'tabledata'
@@ -2055,25 +2051,21 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         self._fields = HomogeneousList(Field)
         self._params = HomogeneousList(Param)
         self._groups = HomogeneousList(Group)
-        self._links  = HomogeneousList(Link)
-        self._infos  = HomogeneousList(Info)
+        self._links = HomogeneousList(Link)
+        self._infos = HomogeneousList(Info)
 
         self.array = ma.array([])
 
-        warn_unknown_attrs('TABLE', six.iterkeys(extra), config, pos)
+        warn_unknown_attrs('TABLE', extra.keys(), config, pos)
 
     def __repr__(self):
         return repr(self.to_table())
 
     def __bytes__(self):
         return bytes(self.to_table())
-    if six.PY2:
-        __str__ = __bytes__
 
-    def __unicode__(self):
-        return six.text_type(self.to_table())
-    if not six.PY2:
-        __str__ = __unicode__
+    def __str__(self):
+        return str(self.to_table())
 
     @property
     def ref(self):
@@ -2101,7 +2093,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 self._fields = table.fields
                 self._params = table.params
                 self._groups = table.groups
-                self._links  = table.links
+                self._links = table.links
         else:
             del self._fields[:]
             del self._params[:]
@@ -2226,17 +2218,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
             dtype = []
             for x in fields:
-                if six.PY2:
-                    if x._unique_name == x.ID:
-                        id = x.ID.encode('utf-8')
-                    else:
-                        id = (x._unique_name.encode('utf-8'),
-                              x.ID.encode('utf-8'))
+                if x._unique_name == x.ID:
+                    id = x.ID
                 else:
-                    if x._unique_name == x.ID:
-                        id = x.ID
-                    else:
-                        id = (x._unique_name, x.ID)
+                    id = (x._unique_name, x.ID)
                 dtype.append((id, x.converter.format))
 
             array = np.recarray((nrows,), dtype=np.dtype(dtype))
@@ -2323,7 +2308,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 if start:
                     if tag == 'DATA':
                         warn_unknown_attrs(
-                            'DATA', six.iterkeys(data), config, pos)
+                            'DATA', data.keys(), config, pos)
                         break
                 else:
                     if tag == 'TABLE':
@@ -2334,18 +2319,18 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                         self.description = data or None
         else:
             tag_mapping = {
-                'FIELD'       : self._add_field,
-                'PARAM'       : self._add_param,
-                'GROUP'       : self._add_group,
-                'LINK'        : self._add_link,
-                'INFO'        : self._add_info,
-                'DESCRIPTION' : self._ignore_add}
+                'FIELD': self._add_field,
+                'PARAM': self._add_param,
+                'GROUP': self._add_group,
+                'LINK': self._add_link,
+                'INFO': self._add_info,
+                'DESCRIPTION': self._ignore_add}
 
             for start, tag, data, pos in iterator:
                 if start:
                     if tag == 'DATA':
                         warn_unknown_attrs(
-                            'DATA', six.iterkeys(data), config, pos)
+                            'DATA', data.keys(), config, pos)
                         break
 
                     tag_mapping.get(tag, self._add_unknown_tag)(
@@ -2370,7 +2355,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         if not columns:
             colnumbers = list(range(len(fields)))
         else:
-            if isinstance(columns, six.string_types):
+            if isinstance(columns, str):
                 columns = [columns]
             columns = np.asarray(columns)
             if issubclass(columns.dtype.type, np.integer):
@@ -2392,13 +2377,13 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 if start:
                     if tag == 'TABLEDATA':
                         warn_unknown_attrs(
-                            'TABLEDATA', six.iterkeys(data), config, pos)
+                            'TABLEDATA', data.keys(), config, pos)
                         self.array = self._parse_tabledata(
                             iterator, colnumbers, fields, config)
                         break
                     elif tag == 'BINARY':
                         warn_unknown_attrs(
-                            'BINARY', six.iterkeys(data), config, pos)
+                            'BINARY', data.keys(), config, pos)
                         self.array = self._parse_binary(
                             1, iterator, colnumbers, fields, config, pos)
                         break
@@ -2411,11 +2396,11 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                         break
                     elif tag == 'FITS':
                         warn_unknown_attrs(
-                            'FITS', six.iterkeys(data), config, pos, ['extnum'])
+                            'FITS', data.keys(), config, pos, ['extnum'])
                         try:
                             extnum = int(data.get('extnum', 0))
                             if extnum < 0:
-                                raise ValueError()
+                                raise ValueError("'extnum' cannot be negative.")
                         except ValueError:
                             vo_raise(E17, (), config, pos)
                         self.array = self._parse_fits(
@@ -2475,7 +2460,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     if start:
                         binary = (data.get('encoding', None) == 'base64')
                         warn_unknown_attrs(
-                            tag, six.iterkeys(data), config, pos, ['encoding'])
+                            tag, data.keys(), config, pos, ['encoding'])
                     else:
                         if tag == 'TD':
                             if i >= len(fields):
@@ -2564,7 +2549,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             if tag == 'STREAM':
                 if start:
                     warn_unknown_attrs(
-                        'STREAM', six.iterkeys(data), config, pos,
+                        'STREAM', data.keys(), config, pos,
                         ['type', 'href', 'actuate', 'encoding', 'expires',
                          'rights'])
                     if 'href' not in data:
@@ -2676,7 +2661,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             if tag == 'STREAM':
                 if start:
                     warn_unknown_attrs(
-                        'STREAM', six.iterkeys(data), config, pos,
+                        'STREAM', data.keys(), config, pos,
                         ['type', 'href', 'actuate', 'encoding', 'expires',
                          'rights'])
                     href = data['href']
@@ -2828,7 +2813,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     for i, converter in fields_basic:
                         try:
                             chunk = converter(array_row[i], array_mask[i])
-                            assert type(chunk) == six.binary_type
+                            assert type(chunk) == bytes
                         except Exception as e:
                             vo_reraise(
                                 e, additional="(in row {:d}, col '{}')".format(
@@ -2857,7 +2842,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
            identically when round-tripping through the
            `astropy.table.Table` instance.
         """
-        from ...table import Table
+        from astropy.table import Table
 
         meta = {}
         for key in ['ID', 'name', 'ref', 'ucd', 'utype', 'description']:
@@ -2874,18 +2859,12 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 while new_name in unique_names:
                     new_name = '{0}{1}'.format(name, i)
                     i += 1
-                if six.PY2:
-                    new_name = new_name.encode(
-                        sys.getdefaultencoding(), 'replace')
                 unique_names.append(new_name)
-            array = self.array.copy()
-            array.dtype.names = unique_names
             names = unique_names
         else:
-            array = self.array
             names = [field.ID for field in self.fields]
 
-        table = Table(self.array, meta=meta)
+        table = Table(self.array, names=names, meta=meta)
 
         for name, field in zip(names, self.fields):
             column = table[name]
@@ -2988,29 +2967,31 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
     The keyword arguments correspond to setting members of the same
     name, documented below.
     """
+
     def __init__(self, name=None, ID=None, utype=None, type='results',
                  id=None, config=None, pos=None, **kwargs):
         if config is None:
             config = {}
-        self._config           = config
-        self._pos              = pos
+        self._config = config
+        self._pos = pos
 
         Element.__init__(self)
-        self.name              = name
-        self.ID                = resolve_id(ID, id, config, pos)
-        self.utype             = utype
-        self.type              = type
+        self.name = name
+        self.ID = resolve_id(ID, id, config, pos)
+        self.utype = utype
+        self.type = type
         self._extra_attributes = kwargs
-        self.description       = None
+        self.description = None
 
         self._coordinate_systems = HomogeneousList(CooSys)
-        self._params             = HomogeneousList(Param)
-        self._infos              = HomogeneousList(Info)
-        self._links              = HomogeneousList(Link)
-        self._tables             = HomogeneousList(Table)
-        self._resources          = HomogeneousList(Resource)
+        self._groups = HomogeneousList(Group)
+        self._params = HomogeneousList(Param)
+        self._infos = HomogeneousList(Info)
+        self._links = HomogeneousList(Link)
+        self._tables = HomogeneousList(Table)
+        self._resources = HomogeneousList(Resource)
 
-        warn_unknown_attrs('RESOURCE', six.iterkeys(kwargs), config, pos)
+        warn_unknown_attrs('RESOURCE', kwargs.keys(), config, pos)
 
     def __repr__(self):
         buff = io.StringIO()
@@ -3066,6 +3047,13 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         return self._infos
 
     @property
+    def groups(self):
+        """
+        A list of groups
+        """
+        return self._groups
+
+    @property
     def params(self):
         """
         A list of parameters (constant-valued columns) for the
@@ -3108,6 +3096,11 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         self.infos.append(info)
         info.parse(iterator, config)
 
+    def _add_group(self, iterator, tag, data, config, pos):
+        group = Group(self, config=config, pos=pos, **data)
+        self.groups.append(group)
+        group.parse(iterator, config)
+
     def _add_param(self, iterator, tag, data, config, pos):
         param = Param(self._votable, config=config, pos=pos, **data)
         self.params.append(param)
@@ -3132,13 +3125,14 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         self._votable = votable
 
         tag_mapping = {
-            'TABLE'       : self._add_table,
-            'INFO'        : self._add_info,
-            'PARAM'       : self._add_param,
-            'COOSYS'      : self._add_coosys,
-            'RESOURCE'    : self._add_resource,
-            'LINK'        : self._add_link,
-            'DESCRIPTION' : self._ignore_add
+            'TABLE': self._add_table,
+            'INFO': self._add_info,
+            'PARAM': self._add_param,
+            'GROUP' : self._add_group,
+            'COOSYS': self._add_coosys,
+            'RESOURCE': self._add_resource,
+            'LINK': self._add_link,
+            'DESCRIPTION': self._ignore_add
             }
 
         for start, tag, data, pos in iterator:
@@ -3230,25 +3224,28 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     tests for building the rest of the structure depend on it.
     """
 
-    def __init__(self, ID=None, id=None, config=None, pos=None, version="1.2"):
+    def __init__(self, ID=None, id=None, config=None, pos=None, version="1.3"):
         if config is None:
             config = {}
-        self._config             = config
-        self._pos                = pos
+        self._config = config
+        self._pos = pos
 
         Element.__init__(self)
-        self.ID                  = resolve_id(ID, id, config, pos)
-        self.description         = None
+        self.ID = resolve_id(ID, id, config, pos)
+        self.description = None
 
         self._coordinate_systems = HomogeneousList(CooSys)
-        self._params             = HomogeneousList(Param)
-        self._infos              = HomogeneousList(Info)
-        self._resources          = HomogeneousList(Resource)
-        self._groups             = HomogeneousList(Group)
+        self._params = HomogeneousList(Param)
+        self._infos = HomogeneousList(Info)
+        self._resources = HomogeneousList(Resource)
+        self._groups = HomogeneousList(Group)
 
         version = str(version)
-        assert version in ("1.0", "1.1", "1.2")
-        self._version            = version
+        if version not in ("1.0", "1.1", "1.2", "1.3"):
+            raise ValueError("'version' should be one of '1.0', '1.1', "
+                             "'1.2', or '1.3'")
+
+        self._version = version
 
     def __repr__(self):
         n_tables = len(list(self.iter_tables()))
@@ -3379,13 +3376,13 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             util.version_compare(config['version'], '1.3') >= 0
 
         tag_mapping = {
-            'PARAM'       : self._add_param,
-            'RESOURCE'    : self._add_resource,
-            'COOSYS'      : self._add_coosys,
-            'INFO'        : self._add_info,
-            'DEFINITIONS' : self._add_definitions,
-            'DESCRIPTION' : self._ignore_add,
-            'GROUP'       : self._add_group}
+            'PARAM': self._add_param,
+            'RESOURCE': self._add_resource,
+            'COOSYS': self._add_coosys,
+            'INFO': self._add_info,
+            'DEFINITIONS': self._add_definitions,
+            'DESCRIPTION': self._ignore_add,
+            'GROUP': self._add_group}
 
         for start, tag, data, pos in iterator:
             if start:
@@ -3401,10 +3398,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
         return self
 
-    def to_xml(self, fd, write_null_values=False,
-               compressed=False, tabledata_format=None,
-               _debug_python_based_parser=False,
-               _astropy_version=None):
+    def to_xml(self, fd, compressed=False, tabledata_format=None,
+               _debug_python_based_parser=False, _astropy_version=None):
         """
         Write to an XML file.
 
@@ -3412,12 +3407,6 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         ----------
         fd : str path or writable file-like object
             Where to write the file.
-
-        write_null_values : bool, optional
-            Deprecated and retained for backward compatibility.  When
-            ``write_null_values`` was `False`, invalid VOTable files
-            could be generated, so the option has just been removed
-            entirely.
 
         compressed : bool, optional
             When `True`, write to a gzip-compressed file.  (Default:
@@ -3430,11 +3419,6 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             in each `Table` object as it was created or read in.  See
             :ref:`votable-serialization`.
         """
-        if write_null_values:
-            warnings.warn(
-                "write_null_values has been deprecated and has no effect",
-                AstropyDeprecationWarning)
-
         if tabledata_format is not None:
             if tabledata_format.lower() not in (
                     'tabledata', 'binary', 'binary2'):

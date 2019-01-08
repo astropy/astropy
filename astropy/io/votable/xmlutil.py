@@ -3,13 +3,12 @@
 Various XML-related utilities
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # ASTROPY
-from ...logger import log
-from ...utils import data
-from ...utils.xml import check as xml_check
-from ...utils.xml import validate
+from astropy.logger import log
+from astropy.utils import data
+from astropy.utils.xml import check as xml_check
+from astropy.utils.xml import validate
 
 # LOCAL
 from .exceptions import (warn_or_raise, vo_warn, W02, W03, W04, W05)

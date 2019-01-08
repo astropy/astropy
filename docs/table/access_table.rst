@@ -3,13 +3,17 @@
 .. include:: references.txt
 
 Accessing a table
------------------
+*****************
 
 Accessing the table properties and data is straightforward and is generally consistent with
 the basic interface for `numpy` structured arrays.
 
+.. Warning:: Astropy 2.0 introduces an API change that affects comparison of
+   bytestring column elements in Python 3.  See
+   :ref:`bytestring-columns-python-3` for details.
+
 Quick overview
-^^^^^^^^^^^^^^
+==============
 
 For the impatient, the code below shows the basics of accessing table data.
 Where relevant there is a comment about what sort of object is returned.
@@ -78,7 +82,7 @@ to update the original table data or properties.  See also the section on
 
 
 Details
-^^^^^^^
+=======
 
 For all the following examples it is assumed that the table has been created as below::
 
@@ -105,7 +109,7 @@ For all the following examples it is assumed that the table has been created as 
 .. _table-summary-information:
 
 Summary information
-"""""""""""""""""""
+-------------------
 
 You can get summary information about the table as follows::
 
@@ -163,7 +167,7 @@ but provides information about a single column::
 
 
 Accessing properties
-""""""""""""""""""""
+--------------------
 
 The code below shows accessing the table columns as a |TableColumns| object,
 getting the column names, table meta-data, and number of table rows.  The table
@@ -184,7 +188,7 @@ meta-data is simply an ordered dictionary (OrderedDict_) by default.
 
 
 Accessing data
-""""""""""""""
+--------------
 
 As expected you can access a table column by name and get an element from that
 column with a numerical index::
@@ -284,6 +288,20 @@ selected rows or columns.  ::
        9.000  11
       12.000  14
 
+We can select rows from a table using conditionals to create boolean masks. A
+table indexed with a boolean array will only return rows where the mask array
+element is `True`. Different conditionals can be combined using the bitwise
+operators.  ::
+
+  >>> mask = (t['a'] > 4) & (t['b'] > 8)  # Table rows where column a > 4
+  >>> print(t[mask])                      # and b > 8
+  ...
+       a      b   c
+    m sec^-1
+    -------- --- ---
+       9.000  10  11
+      12.000  13  14
+
 Finally, you can access the underlying table data as a native `numpy`
 structured array by creating a copy or reference with ``np.array``::
 
@@ -292,12 +310,12 @@ structured array by creating a copy or reference with ``np.array``::
 
 
 Formatted printing
-""""""""""""""""""
+------------------
 
 The values in a table or column can be printed or retrieved as a formatted
 table using one of several methods:
 
-- `print` statement (Python 2) or `print()` function (Python 3).
+- `print()` function.
 - Table :meth:`~astropy.table.Table.more` or Column
   :meth:`~astropy.table.Column.more` methods to interactively scroll
   through table values.
@@ -347,7 +365,7 @@ too large then rows and/or columns are cut from the middle so it fits.  For exam
   Length = 100 rows
 
 more() method
-'''''''''''''
+^^^^^^^^^^^^^
 
 In order to browse all rows of a table or column use the Table
 :meth:`~astropy.table.Table.more` or Column :func:`~astropy.table.Column.more`
@@ -366,7 +384,7 @@ supported navigation keys are:
 |  **h** : print this help
 
 pprint() method
-'''''''''''''''
+^^^^^^^^^^^^^^^
 
 In order to fully control the print output use the Table
 :meth:`~astropy.table.Table.pprint` or Column
@@ -440,7 +458,7 @@ For columns the syntax and behavior of
   Length = 100 rows
 
 Column alignment
-''''''''''''''''
+^^^^^^^^^^^^^^^^
 
 Individual columns have the ability to be aligned in a number of different
 ways, for an enhanced viewing experience::
@@ -518,7 +536,7 @@ used::
   ##2.00# 2!!!!!!
 
 pformat() method
-''''''''''''''''
+^^^^^^^^^^^^^^^^
 
 In order to get the formatted output for manipulation or writing to a file use
 the Table :meth:`~astropy.table.Table.pformat` or Column
@@ -529,7 +547,7 @@ the Table :meth:`~astropy.table.Table.pformat` or Column
   >>> lines = t['col3'].pformat(max_lines=8)
 
 Multidimensional columns
-''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 If a column has more than one dimension then each element of the column is
 itself an array.  In the example below there are 3 rows, each of which is a
@@ -571,7 +589,7 @@ any array::
 .. _columns_with_units:
 
 Columns with Units
-''''''''''''''''''
+^^^^^^^^^^^^^^^^^^
 
 A `~astropy.table.Column` object with units within a standard
 `~astropy.table.Table` (as opposed to a `~astropy.table.QTable`) has certain
@@ -584,10 +602,10 @@ explicitly to a `~astropy.units.Quantity` object via the
   >>> t = Table(data, names=('a', 'b'))
   >>> t['a'].unit = u.m
   >>> t['b'].unit = 'km/s'
-  >>> t['a'].quantity
-  <Quantity [ 1., 2., 3.] m>
+  >>> t['a'].quantity  # doctest: +FLOAT_CMP
+  <Quantity [1., 2., 3.] m>
   >>> t['b'].to(u.kpc/u.Myr)  # doctest: +FLOAT_CMP
-  <Quantity [ 40.9084866 , 51.13560825, 61.3627299 ] kpc / Myr>
+  <Quantity [40.9084866 , 51.13560825, 61.3627299 ] kpc / Myr>
 
 Note that the :attr:`~astropy.table.Column.quantity` property is actually
 a *view* of the data in the column, not a copy.  Hence, you can set the
@@ -611,11 +629,11 @@ Even without explicit conversion, columns with units can be treated like
 like an Astropy `~astropy.units.Quantity` in *some* arithmetic
 expressions (see the warning below for caveats to this)::
 
-  >>> t['a'] + .005*u.km
-  <Quantity [ 6., 7., 8.] m>
+  >>> t['a'] + .005*u.km  # doctest: +FLOAT_CMP
+  <Quantity [6., 7., 8.] m>
   >>> from astropy.constants import c
   >>> (t['b'] / c).decompose()  # doctest: +FLOAT_CMP
-  <Quantity [ 0.15010384, 0.16678205, 0.20013846]>
+  <Quantity [0.15010384, 0.16678205, 0.20013846]>
 
 .. warning::
 
@@ -643,4 +661,98 @@ expressions (see the warning below for caveats to this)::
   `~astropy.units.Quantity`::
 
     >>> np.sin(t['angle'].quantity)  # doctest: +FLOAT_CMP
-    <Quantity [ 0.5, 1. ]>
+    <Quantity [0.5, 1. ]>
+
+.. _bytestring-columns-python-3:
+
+Bytestring columns in Python 3
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Prior to astropy 2.0, using bytestring columns (numpy ``'S'`` dtype) in Python
+3 was inconvenient because it was not possible to compare with the natural
+Python string (``str``) type.  See `The bytes/str dichotomy in Python 3
+<http://eli.thegreenplace.net/2012/01/30/the-bytesstr-dichotomy-in-python-3>`_
+for a very brief overview of the difference.
+
+The standard method of representing Python 3 strings in `numpy` is via the
+unicode ``'U'`` dtype.  The problem is that this requires 4 bytes per
+character, and if you have a very large number of strings in memory this could
+fill memory and impact performance.  A very common use case is that these
+strings are actually ASCII and can be represented with 1 byte per character.
+Starting with astropy 2.0 it is possible to work directly and conveniently with
+bytestring data in astropy Table and Column
+
+Note that the bytestring issue is a particular problem when dealing with HDF5
+files, where character data are read as bytestrings (``'S'`` dtype) when using
+the :ref:`table_io`. Since HDF5 files are frequently used to store very large
+datasets, the memory bloat associated with conversion to ``'U'`` dtype is
+unacceptable.
+
+
+Python 3 examples
+"""""""""""""""""
+
+The examples below highlight the change in behavior introduced by astropy 2.0
+for Python 3.  *In particular* please note the API change when comparing with a
+single element of a bytestring column.  Previously one was required to compare
+with a ``bytes`` object while now one must compare with a ``str`` object.  When
+comparing with the entire column one can use either a ``bytes`` or ``str``.
+
+.. doctest-skip-all
+
+**Before astropy 2.0**
+
+    >>> from astropy.table import Table
+    >>> t = Table([['abc', 'def']], names=['a'], dtype=['S'])
+
+    >>> t['a'] == 'abc'  # WRONG answer!
+    False
+
+    >>> t['a'] == b'abc'  # Must explicitly compare to bytestring
+    array([ True, False], dtype=bool)
+
+    >>> t = Table([['bä', 'def']], dtype=['S'])
+    Traceback (most recent call last):
+      ...
+    UnicodeEncodeError: 'ascii' codec can't encode character '\xe4' in position 1:
+                        ordinal not in range(128)
+
+**Astropy 2.0 or later**:
+
+    >>> t = Table([['abc', 'def']], names=['a'], dtype=['S'])
+
+    >>> t['a'] == 'abc'  # Gives expected answer
+    array([ True, False], dtype=bool)
+
+    >>> t['a'] == b'abc'  # Still gives expected answer
+    array([ True, False], dtype=bool)
+
+    >>> t['a'][0] == 'abc'  # Expected answer
+    True
+
+    >>> t['a'][0] == b'abc'  # API change, this NO LONGER WORKS
+    False
+
+    >>> t['a'][0] = 'bä'
+    >>> t
+    <Table length=2>
+      a
+    bytes3
+    ------
+        bä
+       def
+
+    >>> t['a'] == 'bä'
+    array([ True, False], dtype=bool)
+
+    >>> # Round trip unicode strings through HDF5
+    >>> t = Table([['bä', 'def']], dtype=['S'])
+    >>> t.write('test.hdf5', format='hdf5', path='data', overwrite=True)
+    >>> t2 = Table.read('test.hdf5', format='hdf5', path='data')
+    >>> t2
+    <Table length=2>
+     col0
+    bytes3
+    ------
+        bä
+       def

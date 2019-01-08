@@ -1,21 +1,15 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-# TEST_UNICODE_LITERALS
-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 """Test initalization and other aspects of Angle and subclasses"""
 
+import pytest
 import numpy as np
-from numpy.testing.utils import assert_allclose, assert_array_equal
+from numpy.testing import assert_allclose, assert_array_equal
 
-from ..angles import Longitude, Latitude, Angle, rotation_matrix, angle_axis
-from ...tests.helper import pytest, catch_warnings
-from ... import units as u
-from ..errors import IllegalSecondError, IllegalMinuteError, IllegalHourError
-from ...utils.exceptions import AstropyDeprecationWarning
+from astropy.coordinates.angles import Longitude, Latitude, Angle
+from astropy import units as u
+from astropy.coordinates.errors import (IllegalSecondError, IllegalMinuteError, IllegalHourError,
+                      IllegalSecondWarning, IllegalMinuteWarning)
 
 
 def test_create_angles():
@@ -36,7 +30,7 @@ def test_create_angles():
     a3 = Angle("54:07:26.832", unit=u.degree)
     a4 = Angle("54.12412 deg")
     a5 = Angle("54.12412 degrees")
-    a6 = Angle("54.12412°") # because we like Unicode
+    a6 = Angle("54.12412°")  # because we like Unicode
     a7 = Angle((54, 7, 26.832), unit=u.degree)
     a8 = Angle("54°07'26.832\"")
     # (deg,min,sec) *tuples* are acceptable, but lists/arrays are *not*
@@ -55,7 +49,7 @@ def test_create_angles():
 
     with pytest.raises(u.UnitsError):
         Angle(54.12412)
-        #raises an exception because this is ambiguous
+        # raises an exception because this is ambiguous
 
     with pytest.raises(u.UnitsError):
         Angle(54.12412, unit=u.m)
@@ -63,9 +57,9 @@ def test_create_angles():
     with pytest.raises(ValueError):
         Angle(12.34, unit="not a unit")
 
-    a14 = Angle("03h36m29.7888000120") # no trailing 's', but unambiguous
+    a14 = Angle("03h36m29.7888000120")  # no trailing 's', but unambiguous
 
-    a15 = Angle("5h4m3s") # single digits, no decimal
+    a15 = Angle("5h4m3s")  # single digits, no decimal
     assert a15.unit == u.hourangle
 
     a16 = Angle("1 d")
@@ -82,7 +76,7 @@ def test_create_angles():
     a23 = Angle("- 3h", unit=u.hour)
     a24 = Angle("+ 3h", unit=u.hour)
 
-    #ensure the above angles that should match do
+    # ensure the above angles that should match do
     assert a1 == a2 == a3 == a4 == a5 == a6 == a7 == a8 == a18 == a19 == a20
     assert_allclose(a1.radian, a2.radian)
     assert_allclose(a2.degree, a3.degree)
@@ -206,7 +200,7 @@ def test_angle_convert():
     assert angle.hms[0] == 3
     assert angle.hms[1] == 36
     assert_allclose(angle.hms[2], 29.78879999999947)
-    #also check that the namedtuple attribute-style access works:
+    # also check that the namedtuple attribute-style access works:
     assert angle.hms.h == 3
     assert angle.hms.m == 36
     assert_allclose(angle.hms.s, 29.78879999999947)
@@ -216,7 +210,7 @@ def test_angle_convert():
     assert angle.dms[0] == 54
     assert angle.dms[1] == 7
     assert_allclose(angle.dms[2], 26.831999999992036)
-    #also check that the namedtuple attribute-style access works:
+    # also check that the namedtuple attribute-style access works:
     assert angle.dms.d == 54
     assert angle.dms.m == 7
     assert_allclose(angle.dms.s, 26.831999999992036)
@@ -224,7 +218,7 @@ def test_angle_convert():
     assert isinstance(angle.dms[0], float)
     assert isinstance(angle.hms[0], float)
 
-    #now make sure dms and signed_dms work right for negative angles
+    # now make sure dms and signed_dms work right for negative angles
     negangle = Angle("-54.12412", unit=u.degree)
 
     assert negangle.dms.d == -54
@@ -253,7 +247,7 @@ def test_angle_formatting():
 
     angle = Angle("54.12412", unit=u.degree)
 
-    #__str__ is the default `format`
+    # __str__ is the default `format`
     assert str(angle) == angle.to_string()
 
     res = 'Angle as HMS: 3h36m29.7888s'
@@ -361,7 +355,7 @@ def test_angle_format_roundtripping():
     assert Angle(str(a3)).degree == a3.degree
     assert Angle(str(a4)).degree == a4.degree
 
-    #also check Longitude/Latitude
+    # also check Longitude/Latitude
     ra = Longitude('1h2m3.4s')
     dec = Latitude('1d2m3.4s')
 
@@ -391,15 +385,15 @@ def test_radec():
         ra = Longitude("-4:08:15.162342")
 
     # the "smart" initializer allows >24 to automatically do degrees, but the
-    #Angle-based one does not
-    #TODO: adjust in 0.3 for whatever behavior is decided on
+    # Angle-based one does not
+    # TODO: adjust in 0.3 for whatever behavior is decided on
 
-    #ra = Longitude("26:34:15.345634")  # unambiguous b/c hours don't go past 24
-    #assert_allclose(ra.degree, 26.570929342)
+    # ra = Longitude("26:34:15.345634")  # unambiguous b/c hours don't go past 24
+    # assert_allclose(ra.degree, 26.570929342)
     with pytest.raises(u.UnitsError):
         ra = Longitude("26:34:15.345634")
 
-    #ra = Longitude(68)
+    # ra = Longitude(68)
     with pytest.raises(u.UnitsError):
         ra = Longitude(68)
 
@@ -413,8 +407,8 @@ def test_radec():
     assert_allclose(ra.hour, 12.7230555556)
 
     ra = Longitude((56, 14, 52.52), unit=u.degree)      # can accept tuples
-    #TODO: again, fix based on >24 behavior
-    #ra = Longitude((56,14,52.52))
+    # TODO: again, fix based on >24 behavior
+    # ra = Longitude((56,14,52.52))
     with pytest.raises(u.UnitsError):
         ra = Longitude((56, 14, 52.52))
     with pytest.raises(u.UnitsError):
@@ -426,10 +420,10 @@ def test_radec():
     # Units can be specified
     ra = Longitude("4:08:15.162342", unit=u.hour)
 
-    #TODO: this was the "smart" initializer behavior - adjust in 0.3 appropriately
-    ## Where Longitude values are commonly found in hours or degrees, declination is
-    ## nearly always specified in degrees, so this is the default.
-    #dec = Latitude("-41:08:15.162342")
+    # TODO: this was the "smart" initializer behavior - adjust in 0.3 appropriately
+    # Where Longitude values are commonly found in hours or degrees, declination is
+    # nearly always specified in degrees, so this is the default.
+    # dec = Latitude("-41:08:15.162342")
     with pytest.raises(u.UnitsError):
         dec = Latitude("-41:08:15.162342")
     dec = Latitude("-41:08:15.162342", unit=u.degree)  # same as above
@@ -465,48 +459,56 @@ def test_negative_zero_hm():
 
 def test_negative_sixty_hm():
     # Test for HM parser
-    a = Angle('-00:60', u.hour)
+    with pytest.warns(IllegalMinuteWarning):
+        a = Angle('-00:60', u.hour)
     assert_allclose(a.hour, -1.)
 
 
 def test_plus_sixty_hm():
     # Test for HM parser
-    a = Angle('00:60', u.hour)
+    with pytest.warns(IllegalMinuteWarning):
+        a = Angle('00:60', u.hour)
     assert_allclose(a.hour, 1.)
 
 
 def test_negative_fifty_nine_sixty_dms():
     # Test for DMS parser
-    a = Angle('-00:59:60', u.deg)
+    with pytest.warns(IllegalSecondWarning):
+        a = Angle('-00:59:60', u.deg)
     assert_allclose(a.degree, -1.)
 
 
 def test_plus_fifty_nine_sixty_dms():
     # Test for DMS parser
-    a = Angle('+00:59:60', u.deg)
+    with pytest.warns(IllegalSecondWarning):
+        a = Angle('+00:59:60', u.deg)
     assert_allclose(a.degree, 1.)
 
 
 def test_negative_sixty_dms():
     # Test for DMS parser
-    a = Angle('-00:00:60', u.deg)
+    with pytest.warns(IllegalSecondWarning):
+        a = Angle('-00:00:60', u.deg)
     assert_allclose(a.degree, -1. / 60.)
 
 
 def test_plus_sixty_dms():
     # Test for DMS parser
-    a = Angle('+00:00:60', u.deg)
+    with pytest.warns(IllegalSecondWarning):
+        a = Angle('+00:00:60', u.deg)
     assert_allclose(a.degree, 1. / 60.)
 
 
 def test_angle_to_is_angle():
-    a = Angle('00:00:60', u.deg)
+    with pytest.warns(IllegalSecondWarning):
+        a = Angle('00:00:60', u.deg)
     assert isinstance(a, Angle)
     assert isinstance(a.to(u.rad), Angle)
 
 
 def test_angle_to_quantity():
-    a = Angle('00:00:60', u.deg)
+    with pytest.warns(IllegalSecondWarning):
+        a = Angle('00:00:60', u.deg)
     q = u.Quantity(a)
     assert isinstance(q, u.Quantity)
     assert q.unit is u.deg
@@ -525,7 +527,8 @@ def test_quantity_to_angle():
 
 
 def test_angle_string():
-    a = Angle('00:00:60', u.deg)
+    with pytest.warns(IllegalSecondWarning):
+        a = Angle('00:00:60', u.deg)
     assert str(a) == '0d01m00s'
     a = Angle('-00:00:10', u.hour)
     assert str(a) == '-0h00m10s'
@@ -632,14 +635,15 @@ def test_latitude():
     assert "A Longitude angle cannot be assigned to a Latitude angle" in str(excinfo)
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
-    lon = Longitude(10,'deg')
+    lon = Longitude(10, 'deg')
     lat = Latitude(Angle(lon))
     assert lat.value == 10.0
     # Check setitem.
-    lon = Longitude(10,'deg')
+    lon = Longitude(10, 'deg')
     lat = Latitude([20], 'deg')
     lat[0] = Angle(lon)
     assert lat.value[0] == 10.0
+
 
 def test_longitude():
     # Default wrapping at 360d with an array input
@@ -689,20 +693,20 @@ def test_longitude():
     lon.wrap_angle = '90d'
     assert lon == Angle('-260d')
 
-    #check that if we initialize a longitude with another longitude,
-    #wrap_angle is kept by default
+    # check that if we initialize a longitude with another longitude,
+    # wrap_angle is kept by default
     lon2 = Longitude(lon)
     assert lon2.wrap_angle == lon.wrap_angle
-    #but not if we explicitly set it
+    # but not if we explicitly set it
     lon3 = Longitude(lon, wrap_angle='180d')
     assert lon3.wrap_angle == 180 * u.deg
 
-    #check for problem reported in #2037 about Longitude initializing to -0
+    # check for problem reported in #2037 about Longitude initializing to -0
     lon = Longitude(0, u.deg)
     lonstr = lon.to_string()
     assert not lonstr.startswith('-')
 
-    #also make sure dtype is correctly conserved
+    # also make sure dtype is correctly conserved
     assert Longitude(0, u.deg, dtype=float).dtype == np.dtype(float)
     assert Longitude(0, u.deg, dtype=int).dtype == np.dtype(int)
 
@@ -719,11 +723,11 @@ def test_longitude():
     assert "A Latitude angle cannot be assigned to a Longitude angle" in str(excinfo)
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
-    lat = Latitude(10,'deg')
+    lat = Latitude(10, 'deg')
     lon = Longitude(Angle(lat))
     assert lon.value == 10.0
     # Check setitem.
-    lat = Latitude(10,'deg')
+    lat = Latitude(10, 'deg')
     lon = Longitude([20], 'deg')
     lon[0] = Angle(lat)
     assert lon.value[0] == 10.0
@@ -779,10 +783,12 @@ def test_regression_formatting_negative():
     assert Angle(-0., unit='hour').to_string() == '-0h00m00s'
     assert Angle(-1., unit='hour').to_string() == '-1h00m00s'
 
+
 def test_empty_sep():
     a = Angle('05h04m31.93830s')
 
     assert a.to_string(sep='', precision=2, pad=True) == '050431.94'
+
 
 def test_create_tuple():
     """
@@ -794,6 +800,7 @@ def test_create_tuple():
     a1 = Angle((1, 30, 0), unit=u.hourangle)
     assert a1.value == 1.5
 
+
 def test_list_of_quantities():
     a1 = Angle([1*u.deg, 1*u.hourangle])
     assert a1.unit == u.deg
@@ -802,6 +809,7 @@ def test_list_of_quantities():
     a2 = Angle([1*u.hourangle, 1*u.deg], u.deg)
     assert a2.unit == u.deg
     assert_allclose(a2.value, [15, 1])
+
 
 def test_multiply_divide():
     # Issue #2273
@@ -815,6 +823,7 @@ def test_multiply_divide():
     assert_allclose(a3.value, [.25, .4, .5])
     assert a3.unit == u.dimensionless_unscaled
 
+
 def test_mixed_string_and_quantity():
     a1 = Angle(['1d', 1. * u.deg])
     assert_array_equal(a1.value, [1., 1.])
@@ -824,10 +833,12 @@ def test_mixed_string_and_quantity():
     assert_array_equal(a2.value, [1., 180., 3.])
     assert a2.unit == u.deg
 
+
 def test_array_angle_tostring():
     aobj = Angle([1, 2], u.deg)
     assert aobj.to_string().dtype.kind == 'U'
     assert np.all(aobj.to_string() == ['1d00m00s', '2d00m00s'])
+
 
 def test_wrap_at_without_new():
     """
@@ -841,6 +852,27 @@ def test_wrap_at_without_new():
 
     l = np.concatenate([l1, l2])
     assert l._wrap_angle is not None
+
+
+def test__str__():
+    """
+    Check the __str__ method used in printing the Angle
+    """
+
+    # scalar angle
+    scangle = Angle('10.2345d')
+    strscangle = scangle.__str__()
+    assert strscangle == '10d14m04.2s'
+
+    # non-scalar array angles
+    arrangle = Angle(['10.2345d', '-20d'])
+    strarrangle = arrangle.__str__()
+
+    assert strarrangle == '[10d14m04.2s -20d00m00s]'
+
+    # summarizing for large arrays, ... should appear
+    bigarrangle = Angle(np.ones(10000), u.deg)
+    assert '...' in bigarrangle.__str__()
 
 
 def test_repr_latex():
@@ -864,32 +896,15 @@ def test_repr_latex():
     assert '...' in bigarrangle._repr_latex_()
 
 
-def test_rotation_matrix_deprecation():
-    with catch_warnings(AstropyDeprecationWarning):
-        m = rotation_matrix(0.*u.deg, 'x')
-    assert isinstance(m, np.matrix)
-    assert_array_equal(m, np.eye(3))
-
-
-def test_angle_axis_deprecation():
-    m = np.matrix([[0., 1., 0,],
-                   [-1, 0., 0.],
-                   [0., 0., 1.]])
-    with catch_warnings(AstropyDeprecationWarning):
-        an1, ax1 = angle_axis(m)
-    assert_allclose(an1.to(u.deg).value, 90.)
-    assert_allclose(ax1, [0., 0., 1.])
-
-
 def test_angle_with_cds_units_enabled():
     """Regression test for #5350
 
     Especially the example in
     https://github.com/astropy/astropy/issues/5350#issuecomment-248770151
     """
-    from ...units import cds
+    from astropy.units import cds
     # the problem is with the parser, so remove it temporarily
-    from ..angle_utilities import _AngleParser
+    from astropy.coordinates.angle_utilities import _AngleParser
     del _AngleParser._parser
     with cds.enable():
         Angle('5d')

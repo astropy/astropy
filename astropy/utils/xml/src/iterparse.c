@@ -55,13 +55,6 @@ next_power_of_2(Py_ssize_t n)
 /******************************************************************************
  * Python version compatibility macros
  ******************************************************************************/
-#if PY_MAJOR_VERSION >= 3
-#  define IS_PY3K
-#endif
-
-#  ifndef Py_TYPE
-#    define Py_TYPE(o) ((o)->ob_type)
-#  endif
 
 #if BYTEORDER == 1234
 # define TD_AS_INT      0x00004454
@@ -120,6 +113,51 @@ typedef struct {
     PyObject*  td_singleton;    /* String "TD" */
     PyObject*  read_args;       /* (buffersize) */
 } IterParser;
+
+/******************************************************************************
+ * Tuple queue
+ ******************************************************************************/
+
+/**
+ * Extend the tuple queue based on the new length of the textual XML input.
+ * This helps to cope with situations where the input is longer than
+ * requested (as occurs with transparent decompression of the input
+ * stream), and for the initial allocation to combine the logic in one place.
+ */
+static int
+queue_realloc(IterParser *self, Py_ssize_t req_size)
+{
+    PyObject** new_queue;
+    Py_ssize_t n = req_size / 2;
+
+    if (n <= self->queue_size)
+        return 0;
+
+    new_queue = realloc(self->queue, sizeof(PyObject*) * (size_t)n);
+
+    if (new_queue == NULL) {
+        PyErr_SetString(PyExc_MemoryError, "Out of memory for XML parsing queue.");
+        /*
+         * queue_realloc() is only called from IterParser_init() or
+         * IterParser_next() in situations where the queue is clear
+         * and empty.  If this function were to be used in other
+         * situations it would be wise to iterate over the queue and
+         * clear/decrement the individual references, to save work for
+         * the garbage collector (in an out-of-memory situation).
+         */
+        goto fail;
+    }
+
+    self->queue = new_queue;
+    self->queue_size = n;
+    return 0;
+
+fail:
+    free(self->queue);
+    self->queue = NULL;
+    self->queue_size = 0;
+    return -1;
+}
 
 /******************************************************************************
  * Text buffer
@@ -325,19 +363,7 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
             }
             do {
                 if (*(*(att_ptr + 1)) != 0) {
-                    /* Python < 2.6.5 can't handle unicode keyword
-                       arguments.  Since those were coming from here
-                       (the dictionary of attributes), we use byte
-                       strings for the keys instead.  Should be fine
-                       for VOTable, since it has ascii attribute
-                       names, but that's not true of XML in
-                       general. */
-                    #if PY_VERSION_HEX < 0x02060500
-                    /* Due to Python issue #4978 */
-                    key = PyBytes_FromString(*att_ptr);
-                    #else
                     key = PyUnicode_FromString(*att_ptr);
-                    #endif
                     if (key == NULL) {
                         goto fail;
                     }
@@ -673,6 +699,7 @@ IterParser_next(IterParser* self)
             }
 
             if (buflen < self->buffersize) {
+                /* EOF detection method only works for local regular files */
                 self->done = 1;
             }
         /* Handle a real C file descriptor or handle -- this is faster
@@ -681,13 +708,19 @@ IterParser_next(IterParser* self)
             buflen = (Py_ssize_t)read(
                 self->file, self->buffer, (size_t)self->buffersize);
             if (buflen == -1) {
-                PyErr_SetFromErrno(PyExc_IOError);
+                PyErr_SetFromErrno(PyExc_OSError);
                 goto fail;
             } else if (buflen < self->buffersize) {
+                /* EOF detection method only works for local regular files */
                 self->done = 1;
             }
 
             buf = self->buffer;
+        }
+
+        if(queue_realloc(self, buflen)) {
+            Py_XDECREF(data);
+            goto fail;
         }
 
         /* Feed the read buffer to expat, which will call the event handlers */
@@ -998,10 +1031,7 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
         goto fail;
     }
 
-    self->queue_size = buffersize / 2;
-    self->queue = malloc(sizeof(PyObject*) * (size_t)self->queue_size);
-    if (self->queue == NULL) {
-        PyErr_SetString(PyExc_MemoryError, "Out of memory");
+    if (queue_realloc(self, buffersize)) {
         goto fail;
     }
 
@@ -1052,12 +1082,7 @@ static PyMethodDef IterParser_methods[] =
 
 static PyTypeObject IterParserType =
 {
-    #ifdef IS_PY3K
     PyVarObject_HEAD_INIT(NULL, 0)
-    #else
-    PyObject_HEAD_INIT(NULL)
-    0,                            /*ob_size*/
-    #endif
     "astropy.utils.xml._iterparser.IterParser",    /*tp_name*/
     sizeof(IterParser),         /*tp_basicsize*/
     0,                          /*tp_itemsize*/
@@ -1149,15 +1174,9 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
     }
 
     /* First, try as Unicode */
-    #ifdef IS_PY3K
     if (!PyBytes_Check(input_obj)) {
         input_coerce = PyObject_Str(input_obj);
     }
-    #else
-    if (PyUnicode_Check(input_obj)) {
-        input_coerce = PyObject_Unicode(input_obj);
-    }
-    #endif
     if (input_coerce) {
         uinput = PyUnicode_AsUnicode(input_coerce);
         if (uinput == NULL) {
@@ -1165,7 +1184,7 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
             return NULL;
         }
 
-        input_len = PyUnicode_GetSize(input_coerce);
+        input_len = PyUnicode_GetLength(input_coerce);
 
         for (i = 0; i < input_len; ++i) {
             for (esc = escapes; ; esc += 2) {
@@ -1265,11 +1284,7 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
         }
     }
 
-    #ifdef IS_PY3K
     PyErr_SetString(PyExc_TypeError, "must be convertible to str or bytes");
-    #else
-    PyErr_SetString(PyExc_TypeError, "must be convertible to str or unicode");
-    #endif
     return NULL;
 }
 
@@ -1302,7 +1317,6 @@ struct module_state {
     void* none;
 };
 
-#ifdef IS_PY3K
 static int module_traverse(PyObject* m, visitproc visit, void* arg)
 {
     return 0;
@@ -1325,39 +1339,20 @@ static struct PyModuleDef moduledef = {
     NULL
 };
 
-#  define INITERROR return NULL
-
 PyMODINIT_FUNC
 PyInit__iterparser(void)
-#else /* Not PY3K */
-#  define INITERROR return
-
-#  ifndef PyMODINIT_FUNC  /* declarations for DLL import/export */
-#    define PyMODINIT_FUNC void
-#  endif
-
-PyMODINIT_FUNC
-init_iterparser(void)
-#endif
 {
     PyObject* m;
-
-#ifdef IS_PY3K
     m = PyModule_Create(&moduledef);
-#else
-    m = Py_InitModule3("_iterparser", module_methods, "Fast XML parser");
-#endif
 
     if (m == NULL)
-        INITERROR;
+        return NULL;
 
     if (PyType_Ready(&IterParserType) < 0)
-        INITERROR;
+        return NULL;
 
     Py_INCREF(&IterParserType);
     PyModule_AddObject(m, "IterParser", (PyObject *)&IterParserType);
 
-#ifdef IS_PY3K
     return m;
-#endif
 }

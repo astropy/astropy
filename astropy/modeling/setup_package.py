@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import
 
 import os
 from os.path import join
@@ -7,7 +6,6 @@ from os.path import join
 from distutils.core import Extension
 from distutils import log
 
-from astropy.extern import six
 from astropy_helpers import setup_helpers, utils
 from astropy_helpers.version_helpers import get_pkg_version_module
 
@@ -110,7 +108,7 @@ def preprocess_source():
 
     from jinja2 import Environment, FileSystemLoader
 
-    #Prepare the jinja2 templating environment
+    # Prepare the jinja2 templating environment
     env = Environment(loader=FileSystemLoader(MODELING_SRC))
 
     c_in = env.get_template('projections.c.templ')
@@ -120,16 +118,11 @@ def preprocess_source():
         fd.write(c_out)
 
 
-
 def get_package_data():
     return {
         'astropy.modeling.tests': ['data/*.fits', 'data/*.hdr',
                                    '../../wcs/tests/maps/*.hdr']
     }
-
-
-def requires_2to3():
-    return False
 
 
 def get_extensions():
@@ -156,6 +149,6 @@ def get_extensions():
     cfg['sources'].extend(join(MODELING_SRC, x) for x in astropy_files)
 
     cfg['sources'] = [str(x) for x in cfg['sources']]
-    cfg = dict((str(key), val) for key, val in six.iteritems(cfg))
+    cfg = dict((str(key), val) for key, val in cfg.items())
 
     return [Extension(str('astropy.modeling._projections'), **cfg)]

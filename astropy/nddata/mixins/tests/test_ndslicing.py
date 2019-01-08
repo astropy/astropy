@@ -1,17 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from ... import NDData, NDSlicingMixin
-from ...nduncertainty import NDUncertainty, StdDevUncertainty
-from ....tests.helper import pytest
-from .... import units as u
+from astropy.nddata import NDData, NDSlicingMixin
+from astropy.nddata.nduncertainty import NDUncertainty, StdDevUncertainty
+from astropy import units as u
 
 
 # Just add the Mixin to NDData
@@ -79,7 +76,7 @@ def test_slicing_1dmask_ndslice(prop_name):
 def test_slicing_all_npndarray_1d():
     data = np.arange(10)
     mask = data > 3
-    uncertainty = np.linspace(10, 20, 10)
+    uncertainty = StdDevUncertainty(np.linspace(10, 20, 10))
     wcs = np.linspace(1, 1000, 10)
     # Just to have them too
     unit = u.s
@@ -90,7 +87,7 @@ def test_slicing_all_npndarray_1d():
     nd2 = nd[2:5]
     assert_array_equal(data[2:5], nd2.data)
     assert_array_equal(mask[2:5], nd2.mask)
-    assert_array_equal(uncertainty[2:5], nd2.uncertainty.array)
+    assert_array_equal(uncertainty[2:5].array, nd2.uncertainty.array)
     assert_array_equal(wcs[2:5], nd2.wcs)
     assert unit is nd2.unit
     assert meta == nd.meta

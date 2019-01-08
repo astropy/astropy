@@ -7,8 +7,6 @@ It is unlikely users will need to work with these classes directly, unless they
 define their own models.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import functools
 import numbers
@@ -17,17 +15,26 @@ import operator
 
 import numpy as np
 
-from ..utils import isiterable, OrderedDescriptor
-from ..extern import six
-from ..extern.six.moves import zip
+from astropy import units as u
+from astropy.units import Quantity, UnitsError
+from astropy.utils import isiterable, OrderedDescriptor
+from .utils import array_repr_oneline
 
 from .utils import get_inputs_and_params
 
-__all__ = ['Parameter', 'InputParameterError']
+__all__ = ['Parameter', 'InputParameterError', 'ParameterError']
 
 
-class InputParameterError(ValueError):
+class ParameterError(Exception):
+    """Generic exception class for all exceptions pertaining to Parameters."""
+
+
+class InputParameterError(ValueError, ParameterError):
     """Used for incorrect input parameter values and definitions."""
+
+
+class ParameterDefinitionError(ParameterError):
+    """Exception in declaration of class-level Parameters."""
 
 
 def _tofloat(value):
@@ -35,13 +42,16 @@ def _tofloat(value):
 
     if isiterable(value):
         try:
-            value = np.array(value, dtype=np.float)
+            value = np.asanyarray(value, dtype=float)
         except (TypeError, ValueError):
             # catch arrays with strings or user errors like different
             # types of parameters in a parameter set
             raise InputParameterError(
                 "Parameter of {0} could not be converted to "
                 "float".format(type(value)))
+    elif isinstance(value, Quantity):
+        # Quantities are fine as is
+        pass
     elif isinstance(value, np.ndarray):
         # A scalar/dimensionless array
         value = float(value.item())
@@ -66,10 +76,15 @@ def _binary_arithmetic_operation(op, reflected=False):
         if self._model is None:
             return NotImplemented
 
-        if reflected:
-            return op(val, self.value)
+        if self.unit is not None:
+            self_value = Quantity(self.value, self.unit)
         else:
-            return op(self.value, val)
+            self_value = self.value
+
+        if reflected:
+            return op(val, self_value)
+        else:
+            return op(self_value, val)
 
     return wrapper
 
@@ -87,7 +102,12 @@ def _binary_comparison_operation(op):
             else:
                 return NotImplemented
 
-        return op(self.value, val)
+        if self.unit is not None:
+            self_value = Quantity(self.value, self.unit)
+        else:
+            self_value = self.value
+
+        return op(self_value, val)
 
     return wrapper
 
@@ -98,7 +118,12 @@ def _unary_arithmetic_operation(op):
         if self._model is None:
             return NotImplemented
 
-        return op(self.value)
+        if self.unit is not None:
+            self_value = Quantity(self.value, self.unit)
+        else:
+            self_value = self.value
+
+        return op(self_value)
 
     return wrapper
 
@@ -142,6 +167,10 @@ class Parameter(OrderedDescriptor):
         parameter description
     default : float or array
         default value to use for this parameter
+    unit : `~astropy.units.Unit`
+        if specified, the parameter will be in these units, and when the
+        parameter is updated in future, it should be set to a
+        :class:`~astropy.units.Quantity` that has equivalent units.
     getter : callable
         a function that wraps the raw (internal) value of the parameter
         when returning the value through the parameter proxy (eg. a
@@ -169,25 +198,39 @@ class Parameter(OrderedDescriptor):
         as class attributes
     """
 
-    constraints = ('fixed', 'tied', 'bounds')
+    constraints = ('fixed', 'tied', 'bounds', 'prior', 'posterior')
     """
     Types of constraints a parameter can have.  Excludes 'min' and 'max'
     which are just aliases for the first and second elements of the 'bounds'
-    constraint (which is represented as a 2-tuple).
+    constraint (which is represented as a 2-tuple). 'prior' and 'posterior'
+    are available for use by user fitters but are not used by any built-in
+    fitters as of this writing.
     """
 
     # Settings for OrderedDescriptor
     _class_attribute_ = '_parameters_'
     _name_attribute_ = '_name'
 
-    def __init__(self, name='', description='', default=None, getter=None,
-                 setter=None, fixed=False, tied=False, min=None, max=None,
-                 bounds=None, model=None):
-        super(Parameter, self).__init__()
+    def __init__(self, name='', description='', default=None, unit=None,
+                 getter=None, setter=None, fixed=False, tied=False, min=None,
+                 max=None, bounds=None, prior=None, posterior=None, model=None):
+        super().__init__()
 
         self._name = name
         self.__doc__ = self._description = description.strip()
+
+        # We only need to perform this check on unbound parameters
+        if model is None and isinstance(default, Quantity):
+            if unit is not None and not unit.is_equivalent(default.unit):
+                raise ParameterDefinitionError(
+                    "parameter default {0} does not have units equivalent to "
+                    "the required unit {1}".format(default, unit))
+
+            unit = default.unit
+            default = default.value
+
         self._default = default
+        self._unit = unit
 
         # NOTE: These are *default* constraints--on model instances constraints
         # are taken from the model if set, otherwise the defaults set here are
@@ -203,7 +246,8 @@ class Parameter(OrderedDescriptor):
         self._fixed = fixed
         self._tied = tied
         self._bounds = bounds
-
+        self._posterior = posterior
+        self._prior = prior
         self._order = None
         self._model = None
 
@@ -235,7 +279,23 @@ class Parameter(OrderedDescriptor):
         return parameter
 
     def __set__(self, obj, value):
+
         value = _tofloat(value)
+
+        # Check that units are compatible with default or units already set
+        param_unit = obj._param_metrics[self.name]['orig_unit']
+        if param_unit is None:
+            if isinstance(value, Quantity):
+                obj._param_metrics[self.name]['orig_unit'] = value.unit
+        else:
+            if not isinstance(value, Quantity):
+                raise UnitsError("The '{0}' parameter should be given as a "
+                                 "Quantity because it was originally initialized "
+                                 "as a Quantity".format(self._name))
+            else:
+                # We need to make sure we update the unit because the units are
+                # then dropped from the value below.
+                obj._param_metrics[self.name]['orig_unit'] = value.unit
 
         # Call the validator before the setter
         if self._validator is not None:
@@ -243,8 +303,10 @@ class Parameter(OrderedDescriptor):
 
         if self._setter is not None:
             setter = self._create_value_wrapper(self._setter, obj)
-            value = setter(value)
-
+            if self.unit is not None:
+                value = setter(value * self.unit).value
+            else:
+                value = setter(value)
         self._set_model_value(obj, value)
 
     def __len__(self):
@@ -266,7 +328,7 @@ class Parameter(OrderedDescriptor):
         oldvalue = self.value
         n_models = len(self._model)
 
-        #if n_models == 1:
+        # if n_models == 1:
         #    # Convert the single-dimension value to a list to allow some slices
         #    # that would be compatible with a length-1 array like [:] and [0:]
         #    oldvalue = [oldvalue]
@@ -293,6 +355,9 @@ class Parameter(OrderedDescriptor):
                 args += ', default={0}'.format(self._default)
         else:
             args += ', value={0}'.format(self.value)
+
+        if self.unit is not None:
+            args += ', unit={0}'.format(self.unit)
 
         for cons in self.constraints:
             val = getattr(self, cons)
@@ -339,17 +404,21 @@ class Parameter(OrderedDescriptor):
 
     @property
     def value(self):
-        """The unadorned value proxied by this parameter"""
+        """The unadorned value proxied by this parameter."""
 
         if self._model is None:
             raise AttributeError('Parameter definition does not have a value')
 
         value = self._get_model_value(self._model)
-
         if self._getter is None:
             return value
         else:
-            return self._getter(value)
+            raw_unit = self._model._param_metrics[self.name]['raw_unit']
+            orig_unit = self._model._param_metrics[self.name]['orig_unit']
+            if raw_unit is not None:
+                return np.float64(self._getter(value, raw_unit, orig_unit).value)
+            else:
+                return self._getter(value)
 
     @value.setter
     def value(self, value):
@@ -360,7 +429,67 @@ class Parameter(OrderedDescriptor):
         if self._setter is not None:
             val = self._setter(value)
 
+        if isinstance(value, Quantity):
+            raise TypeError("The .value property on parameters should be set to "
+                            "unitless values, not Quantity objects. To set a "
+                            "parameter to a quantity simply set the parameter "
+                            "directly without using .value")
         self._set_model_value(self._model, value)
+
+    @property
+    def unit(self):
+        """
+        The unit attached to this parameter, if any.
+
+        On unbound parameters (i.e. parameters accessed through the
+        model class, rather than a model instance) this is the required/
+        default unit for the parameter.
+        """
+
+        if self._model is None:
+            return self._unit
+        else:
+            # orig_unit may be undefined early on in model instantiation
+            return self._model._param_metrics[self.name].get('orig_unit',
+                                                             self._unit)
+
+    @unit.setter
+    def unit(self, unit):
+        self._set_unit(unit)
+
+    def _set_unit(self, unit, force=False):
+
+        if self._model is None:
+            raise AttributeError('Cannot set unit on a parameter definition')
+
+        orig_unit = self._model._param_metrics[self.name]['orig_unit']
+
+        if force:
+            self._model._param_metrics[self.name]['orig_unit'] = unit
+        else:
+            if orig_unit is None:
+                raise ValueError('Cannot attach units to parameters that were '
+                                 'not initially specified with units')
+            else:
+                raise ValueError('Cannot change the unit attribute directly, '
+                                 'instead change the parameter to a new quantity')
+
+    @property
+    def quantity(self):
+        """
+        This parameter, as a :class:`~astropy.units.Quantity` instance.
+        """
+        if self.unit is not None:
+            return self.value * self.unit
+        else:
+            return None
+
+    @quantity.setter
+    def quantity(self, quantity):
+        if not isinstance(quantity, Quantity):
+            raise TypeError("The .quantity attribute should be set to a Quantity object")
+        self.value = quantity.value
+        self._set_unit(quantity.unit, force=True)
 
     @property
     def shape(self):
@@ -379,8 +508,16 @@ class Parameter(OrderedDescriptor):
 
             if model_axis < 0:
                 model_axis = len(shape) + model_axis
+                shape = shape[:model_axis] + shape[model_axis + 1:]
+            else:
+                # When a model set is initialized, the dimension of the parameters
+                # is increased by model_set_axis+1. To find the shape of a parameter
+                # within a single model the extra dimensions need to be removed first.
+                # The following dimension shows the number of models.
+                # The rest of the shape tuple represents the shape of the parameter
+                # in a single model.
 
-            shape = shape[:model_axis] + shape[model_axis + 1:]
+                shape = shape[model_axis + 1:]
 
         return shape
 
@@ -392,6 +529,38 @@ class Parameter(OrderedDescriptor):
         # size of the parameter in _param_metrics
 
         return np.size(self.value)
+
+    @property
+    def prior(self):
+        if self._model is not None:
+            prior = self._model._constraints['prior']
+            return prior.get(self._name, self._prior)
+        else:
+            return self._prior
+
+    @prior.setter
+    def prior(self, val):
+        if self._model is not None:
+            self._model._constraints['prior'][self._name] = val
+        else:
+            raise AttributeError("can't set attribute 'prior' on Parameter "
+                                 "definition")
+
+    @property
+    def posterior(self):
+        if self._model is not None:
+            posterior = self._model._constraints['posterior']
+            return posterior.get(self._name, self._posterior)
+        else:
+            return self._posterior
+
+    @posterior.setter
+    def posterior(self, val):
+        if self._model is not None:
+            self._model._constraints['posterior'][self._name] = val
+        else:
+            raise AttributeError("can't set attribute 'posterior' on Parameter "
+                                 "definition")
 
     @property
     def fixed(self):
@@ -435,7 +604,7 @@ class Parameter(OrderedDescriptor):
         """Tie a parameter"""
 
         if self._model is not None:
-            if not six.callable(value) and value not in (False, None):
+            if not callable(value) and value not in (False, None):
                 raise TypeError("Tied must be a callable")
             self._model._constraints['tied'][self._name] = value
         else:
@@ -578,14 +747,11 @@ class Parameter(OrderedDescriptor):
                 if self._validator is not None:
                     return self._validator(self._model, value)
 
-            if six.PY2:
-                return types.MethodType(validator, self, type(self))
-            else:
-                return types.MethodType(validator, self)
+            return types.MethodType(validator, self)
 
-    def copy(self, name=None, description=None, default=None, getter=None,
-             setter=None, fixed=False, tied=False, min=None, max=None,
-             bounds=None):
+    def copy(self, name=None, description=None, default=None, unit=None,
+             getter=None, setter=None, fixed=False, tied=False, min=None,
+             max=None, bounds=None, prior=None, posterior=None):
         """
         Make a copy of this `Parameter`, overriding any of its core attributes
         in the process (or an exact copy).
@@ -603,7 +769,7 @@ class Parameter(OrderedDescriptor):
         kwargs = locals().copy()
         del kwargs['self']
 
-        for key, value in six.iteritems(kwargs):
+        for key, value in kwargs.items():
             if value is None:
                 # Annoying special cases for min/max where are just aliases for
                 # the components of bounds
@@ -644,6 +810,9 @@ class Parameter(OrderedDescriptor):
         self._getter = self._create_value_wrapper(self._getter, model)
         self._setter = self._create_value_wrapper(self._setter, model)
 
+    # TODO: These methods should probably be moved to the Model class, since it
+    # has entirely to do with details of how the model stores parameters.
+    # Parameter should just act as a user front-end to this.
     def _get_model_value(self, model):
         """
         This method implements how to retrieve the value of this parameter from
@@ -661,13 +830,15 @@ class Parameter(OrderedDescriptor):
 
         # Use the _param_metrics to extract the parameter value from the
         # _parameters array
-        param_slice = model._param_metrics[self._name]['slice']
-        param_shape = model._param_metrics[self._name]['shape']
+        param_metrics = model._param_metrics[self._name]
+        param_slice = param_metrics['slice']
+        param_shape = param_metrics['shape']
         value = model._parameters[param_slice]
         if param_shape:
             value = value.reshape(param_shape)
         else:
             value = value[0]
+
         return value
 
     def _set_model_value(self, model, value):
@@ -681,14 +852,15 @@ class Parameter(OrderedDescriptor):
         """
         def _update_parameter_value(model, name, value):
             # TODO: Maybe handle exception on invalid input shape
-            param_slice = model._param_metrics[name]['slice']
-            param_shape = model._param_metrics[name]['shape']
+            param_metrics = model._param_metrics[name]
+            param_slice = param_metrics['slice']
+            param_shape = param_metrics['shape']
             param_size = np.prod(param_shape)
 
             if np.size(value) != param_size:
                 raise InputParameterError(
                     "Input value for parameter {0!r} does not have {1} elements "
-                    "as the current value does".format(self._name, param_size))
+                    "as the current value does".format(name, param_size))
 
             model._parameters[param_slice] = np.array(value).ravel()
         _update_parameter_value(model, self._name, value)
@@ -735,15 +907,18 @@ class Parameter(OrderedDescriptor):
 
     def __array__(self, dtype=None):
         # Make np.asarray(self) work a little more straightforwardly
-        return np.asarray(self.value, dtype=dtype)
+        arr = np.asarray(self.value, dtype=dtype)
 
-    def __nonzero__(self):
+        if self.unit is not None:
+            arr = Quantity(arr, self.unit, copy=False)
+
+        return arr
+
+    def __bool__(self):
         if self._model is None:
             return True
         else:
             return bool(self.value)
-
-    __bool__ = __nonzero__
 
     __add__ = _binary_arithmetic_operation(operator.add)
     __radd__ = _binary_arithmetic_operation(operator.add, reflected=True)
@@ -765,3 +940,15 @@ class Parameter(OrderedDescriptor):
     __ge__ = _binary_comparison_operation(operator.ge)
     __neg__ = _unary_arithmetic_operation(operator.neg)
     __abs__ = _unary_arithmetic_operation(operator.abs)
+
+
+def param_repr_oneline(param):
+    """
+    Like array_repr_oneline but works on `Parameter` objects and supports
+    rendering parameters with units like quantities.
+    """
+
+    out = array_repr_oneline(param.value)
+    if param.unit is not None:
+        out = '{0} {1!s}'.format(out, param.unit)
+    return out

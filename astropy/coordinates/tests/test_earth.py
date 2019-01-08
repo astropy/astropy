@@ -1,27 +1,27 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 """Test initialization of angles not already covered by the API tests"""
 
 import pickle
+
+import pytest
 import numpy as np
 
-from ..earth import EarthLocation, ELLIPSOIDS
-from ..angles import Longitude, Latitude
-from ...tests.helper import pytest, quantity_allclose, remote_data
-from ...extern.six.moves import zip
-from ... import units as u
-from ..name_resolve import NameResolveError
+from astropy.coordinates.earth import EarthLocation, ELLIPSOIDS
+from astropy.coordinates.angles import Longitude, Latitude
+from astropy.units import allclose as quantity_allclose
+from astropy import units as u
+from astropy.time import Time
+from astropy import constants
+from astropy.coordinates.name_resolve import NameResolveError
+
 
 def allclose_m14(a, b, rtol=1.e-14, atol=None):
     if atol is None:
         atol = 1.e-14 * getattr(a, 'unit', 1)
     return quantity_allclose(a, b, rtol, atol)
+
 
 def allclose_m8(a, b, rtol=1.e-8, atol=None):
     if atol is None:
@@ -31,6 +31,7 @@ def allclose_m8(a, b, rtol=1.e-8, atol=None):
 
 def isclose_m14(val, ref):
     return np.array([allclose_m14(v, r) for (v, r) in zip(val, ref)])
+
 
 def isclose_m8(val, ref):
     return np.array([allclose_m8(v, r) for (v, r) in zip(val, ref)])
@@ -99,7 +100,7 @@ class TestInput():
         self.lon = Longitude([0., 45., 90., 135., 180., -180, -90, -45], u.deg,
                              wrap_angle=180*u.deg)
         self.lat = Latitude([+0., 30., 60., +90., -90., -60., -30., 0.], u.deg)
-        self.h = u.Quantity([0.1, 0.5, 1.0, -0.5, -1.0, +4.2, -11.,-.1], u.m)
+        self.h = u.Quantity([0.1, 0.5, 1.0, -0.5, -1.0, +4.2, -11., -.1], u.m)
         self.location = EarthLocation.from_geodetic(self.lon, self.lat, self.h)
         self.x, self.y, self.z = self.location.to_geocentric()
 
@@ -119,8 +120,8 @@ class TestInput():
         assert type(self.location.x) is u.Quantity
         assert type(self.location.y) is u.Quantity
         assert type(self.location.z) is u.Quantity
-        assert type(self.location.longitude) is Longitude
-        assert type(self.location.latitude) is Latitude
+        assert type(self.location.lon) is Longitude
+        assert type(self.location.lat) is Latitude
         assert type(self.location.height) is u.Quantity
 
     def test_input(self):
@@ -134,22 +135,22 @@ class TestInput():
         assert np.all(geocentric2 == self.location)
         geodetic = EarthLocation(self.lon, self.lat, self.h)
         assert np.all(geodetic == self.location)
-        geodetic2 = EarthLocation(self.lon.to(u.degree).value,
-                                  self.lat.to(u.degree).value,
-                                  self.h.to(u.m).value)
+        geodetic2 = EarthLocation(self.lon.to_value(u.degree),
+                                  self.lat.to_value(u.degree),
+                                  self.h.to_value(u.m))
         assert np.all(geodetic2 == self.location)
         geodetic3 = EarthLocation(self.lon, self.lat)
-        assert allclose_m14(geodetic3.longitude.value,
-                            self.location.longitude.value)
-        assert allclose_m14(geodetic3.latitude.value,
-                            self.location.latitude.value)
+        assert allclose_m14(geodetic3.lon.value,
+                            self.location.lon.value)
+        assert allclose_m14(geodetic3.lat.value,
+                            self.location.lat.value)
         assert not np.any(isclose_m14(geodetic3.height.value,
                                       self.location.height.value))
         geodetic4 = EarthLocation(self.lon, self.lat, self.h[-1])
-        assert allclose_m14(geodetic4.longitude.value,
-                            self.location.longitude.value)
-        assert allclose_m14(geodetic4.latitude.value,
-                            self.location.latitude.value)
+        assert allclose_m14(geodetic4.lon.value,
+                            self.location.lon.value)
+        assert allclose_m14(geodetic4.lat.value,
+                            self.location.lat.value)
         assert allclose_m14(geodetic4.height[-1].value,
                             self.location.height[-1].value)
         assert not np.any(isclose_m14(geodetic4.height[:-1].value,
@@ -159,12 +160,12 @@ class TestInput():
         assert geocentric5.unit is u.pc
         assert geocentric5.x.unit is u.pc
         assert geocentric5.height.unit is u.pc
-        assert allclose_m14(geocentric5.x.to(self.x.unit).value, self.x.value)
+        assert allclose_m14(geocentric5.x.to_value(self.x.unit), self.x.value)
         geodetic5 = EarthLocation(self.lon, self.lat, self.h.to(u.pc))
         assert geodetic5.unit is u.pc
         assert geodetic5.x.unit is u.pc
         assert geodetic5.height.unit is u.pc
-        assert allclose_m14(geodetic5.x.to(self.x.unit).value, self.x.value)
+        assert allclose_m14(geodetic5.x.to_value(self.x.unit), self.x.value)
 
     def test_invalid_input(self):
         """Check invalid input raises exception"""
@@ -252,6 +253,18 @@ class TestInput():
         else:
             assert not np.all(isclose_m14(location.z.value, self.z.value))
 
+        def test_to_value(self):
+            loc = self.location
+            loc_ndarray = loc.view(np.ndarray)
+            assert np.all(loc.value == loc_ndarray)
+            loc2 = self.location.to(u.km)
+            loc2_ndarray = np.empty_like(loc_ndarray)
+            for coo in 'x', 'y', 'z':
+                loc2_ndarray[coo] = loc_ndarray[coo] / 1000.
+            assert np.all(loc2.value == loc2_ndarray)
+            loc2_value = self.location.to_value(u.km)
+            assert np.all(loc2_value == loc2_ndarray)
+
 
 def test_pickling():
     """Regression test against #4304."""
@@ -259,6 +272,7 @@ def test_pickling():
     s = pickle.dumps(el)
     el2 = pickle.loads(s)
     assert el == el2
+
 
 def test_repr_latex():
     """
@@ -270,20 +284,115 @@ def test_repr_latex():
     somelocation2._repr_latex_()
 
 
-@remote_data
-def test_of_address():
-    # no match
+@pytest.mark.remote_data
+# TODO: this parametrize should include a second option with a valid Google API
+# key. For example, we should make an API key for Astropy, and add it to Travis
+# as an environment variable (for security).
+@pytest.mark.parametrize('google_api_key', [None])
+def test_of_address(google_api_key):
+    NYC_lon = -74.0 * u.deg
+    NYC_lat = 40.7 * u.deg
+    # ~10 km tolerance to address difference between OpenStreetMap and Google
+    # for "New York, NY". This doesn't matter in practice because this test is
+    # only used to verify that the query succeeded, not that the returned
+    # position is precise.
+    NYC_tol = 0.1 * u.deg
+
+    # just a location
+    try:
+        loc = EarthLocation.of_address("New York, NY")
+    except NameResolveError as e:
+        # API limit might surface even here in Travis CI.
+        if 'unknown failure with' not in str(e):
+            pytest.xfail(str(e))
+    else:
+        assert quantity_allclose(loc.lat, NYC_lat, atol=NYC_tol)
+        assert quantity_allclose(loc.lon, NYC_lon, atol=NYC_tol)
+        assert np.allclose(loc.height.value, 0.)
+
+    # Put this one here as buffer to get around Google map API limit per sec.
+    # no match: This always raises NameResolveError
     with pytest.raises(NameResolveError):
         EarthLocation.of_address("lkjasdflkja")
 
-    # just a location
-    loc = EarthLocation.of_address("New York, NY")
-    assert quantity_allclose(loc.latitude, 40.7128*u.degree)
-    assert quantity_allclose(loc.longitude, -74.0059*u.degree)
-    assert np.allclose(loc.height.value, 0.)
+    if google_api_key is not None:
+        # a location and height
+        try:
+            loc = EarthLocation.of_address("New York, NY", get_height=True)
+        except NameResolveError as e:
+            # Buffer above sometimes insufficient to get around API limit but
+            # we also do not want to drag things out with time.sleep(0.195),
+            # where 0.195 was empirically determined on some physical machine.
+            pytest.xfail(str(e))
+        else:
+            assert quantity_allclose(loc.lat, NYC_lat, atol=NYC_tol)
+            assert quantity_allclose(loc.lon, NYC_lon, atol=NYC_tol)
+            assert quantity_allclose(loc.height, 10.438*u.meter, atol=1.*u.cm)
 
-    # a location and height
-    loc = EarthLocation.of_address("New York, NY", get_height=True)
-    assert quantity_allclose(loc.latitude, 40.7128*u.degree)
-    assert quantity_allclose(loc.longitude, -74.0059*u.degree)
-    assert quantity_allclose(loc.height, 10.438659669*u.meter, atol=1.*u.cm)
+
+def test_geodetic_tuple():
+    lat = 2*u.deg
+    lon = 10*u.deg
+    height = 100*u.m
+
+    el = EarthLocation.from_geodetic(lat=lat, lon=lon, height=height)
+
+    res1 = el.to_geodetic()
+    res2 = el.geodetic
+
+    assert res1.lat == res2.lat and quantity_allclose(res1.lat, lat)
+    assert res1.lon == res2.lon and quantity_allclose(res1.lon, lon)
+    assert res1.height == res2.height and quantity_allclose(res1.height, height)
+
+
+def test_gravitational_redshift():
+    someloc = EarthLocation(lon=-87.7*u.deg, lat=37*u.deg)
+    sometime = Time('2017-8-21 18:26:40')
+    zg0 = someloc.gravitational_redshift(sometime)
+
+    # should be of order ~few mm/s change per week
+    zg_week = someloc.gravitational_redshift(sometime + 7 * u.day)
+    assert 1.*u.mm/u.s < abs(zg_week - zg0) < 1*u.cm/u.s
+
+    # ~cm/s over a half-year
+    zg_halfyear = someloc.gravitational_redshift(sometime + 0.5 * u.yr)
+    assert 1*u.cm/u.s < abs(zg_halfyear - zg0) < 1*u.dm/u.s
+
+    # but when back to the same time in a year, should be tenths of mm
+    # even over decades
+    zg_year = someloc.gravitational_redshift(sometime - 20 * u.year)
+    assert .1*u.mm/u.s < abs(zg_year - zg0) < 1*u.mm/u.s
+
+    # Check mass adjustments.
+    # If Jupiter and the moon are ignored, effect should be off by ~ .5 mm/s
+    masses = {'sun': constants.G*constants.M_sun,
+              'jupiter': 0*constants.G*u.kg,
+              'moon': 0*constants.G*u.kg}
+    zg_moonjup = someloc.gravitational_redshift(sometime, masses=masses)
+    assert .1*u.mm/u.s < abs(zg_moonjup - zg0) < 1*u.mm/u.s
+    # Check that simply not including the bodies gives the same result.
+    assert zg_moonjup == someloc.gravitational_redshift(sometime,
+                                                        bodies=('sun',))
+    # And that earth can be given, even not as last argument
+    assert zg_moonjup == someloc.gravitational_redshift(
+        sometime, bodies=('earth', 'sun',))
+
+    # If the earth is also ignored, effect should be off by ~ 20 cm/s
+    # This also tests the conversion of kg to gravitational units.
+    masses['earth'] = 0*u.kg
+    zg_moonjupearth = someloc.gravitational_redshift(sometime, masses=masses)
+    assert 1*u.dm/u.s < abs(zg_moonjupearth - zg0) < 1*u.m/u.s
+
+    # If all masses are zero, redshift should be 0 as well.
+    masses['sun'] = 0*u.kg
+    assert someloc.gravitational_redshift(sometime, masses=masses) == 0
+
+    with pytest.raises(KeyError):
+        someloc.gravitational_redshift(sometime, bodies=('saturn',))
+
+    with pytest.raises(u.UnitsError):
+        masses = {'sun': constants.G*constants.M_sun,
+                  'jupiter': constants.G*constants.M_jup,
+                  'moon': 1*u.km,  # wrong units!
+                  'earth': constants.G*constants.M_earth}
+        someloc.gravitational_redshift(sometime, masses=masses)

@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import io
 
@@ -11,14 +9,13 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 # LOCAL
-from .. import converters
-from .. import exceptions
-from .. import tree
+from astropy.io.votable import converters
+from astropy.io.votable import exceptions
+from astropy.io.votable import tree
 
-from ..table import parse_single_table
-from ....extern.six.moves import range
-from ....tests.helper import raises, catch_warnings
-from ....utils.data import get_pkg_data_filename
+from astropy.io.votable.table import parse_single_table
+from astropy.tests.helper import raises, catch_warnings
+from astropy.utils.data import get_pkg_data_filename
 
 
 @raises(exceptions.E13)
@@ -237,8 +234,8 @@ def test_float_default_precision():
         None, name='c', datatype='float', arraysize="4",
         config=config)
     c = converters.get_converter(field, config=config)
-    assert (c.output([1, 2, 3, 8.999999], [False, False, False, False]) ==
-            '1 2 3 8.9999990000000007')
+    assert (c.output([1, 2, 3, 8.9990234375], [False, False, False, False]) ==
+            '1 2 3 8.9990234375')
 
 
 def test_vararray():
@@ -266,6 +263,7 @@ def test_vararray():
         table.array[i] = values
     buff = io.BytesIO()
     votable.to_xml(buff)
+
 
 def test_gemini_v1_2():
     '''

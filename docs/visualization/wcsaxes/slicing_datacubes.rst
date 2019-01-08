@@ -1,6 +1,6 @@
-=============================
+*****************************
 Slicing Multidimensional Data
-=============================
+*****************************
 
 WCSAxes can ultimately only plot two-dimensional data. If we have an
 n-dimensional dataset, we have to select which dimensions to use for
@@ -8,13 +8,13 @@ the x and y axis of the image. This example will show how to slice a FITS
 data cube and plot an image from it.
 
 Slicing the WCS object
-======================
+**********************
 
 Like the example introduced in :ref:`initialization`, we will read in the
 data using `astropy.io.fits
 <http://docs.astropy.org/en/stable/io/fits/index.html>`_ and parse the WCS
 information. The original FITS file can be downloaded from `here
-<http://astrofrog.github.io/wcsaxes-datasets/L1448_13CO.fits>`_.
+<http://astropy.github.io/wcsaxes-datasets/L1448_13CO.fits>`_.
 
 .. plot::
    :context: reset
@@ -22,6 +22,7 @@ information. The original FITS file can be downloaded from `here
    :align: center
    :nofigs:
 
+    import matplotlib.pyplot as plt
     from astropy.wcs import WCS
     from astropy.io import fits
     from astropy.utils.data import get_pkg_data_filename
@@ -64,7 +65,7 @@ can experiment with this by changing the selected slice and looking at how the
 plotted image changes.
 
 Plotting the image
-==================
+******************
 
 We then add the axes to the image and plot it using the method
 :meth:`~matplotlib.axes.Axes.imshow`.
@@ -74,7 +75,7 @@ We then add the axes to the image and plot it using the method
    :include-source:
    :align: center
 
-    ax.coords[2].set_ticks(exclude_overlapping=True)
+    ax.coords[2].set_ticklabel(exclude_overlapping=True)
     ax.imshow(image_data[:, :, 50].transpose())
 
 Here, ``image_data`` is an :class:`~numpy.ndarray` object. In Numpy, the order
@@ -105,5 +106,6 @@ If we don't want to reverse the dimensions plotted, we can simply do:
    :include-source:
    :align: center
 
+    import matplotlib.pyplot as plt
     ax = plt.subplot(projection=wcs, slices=(50, 'x', 'y'))
     ax.imshow(image_data[:, :, 50])

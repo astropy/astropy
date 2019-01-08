@@ -4,15 +4,11 @@
 Utilities shared by the different formats.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import warnings
 from fractions import Fraction
 
-from ...extern import six
-from ...extern.six.moves import zip
-from ...utils.misc import did_you_mean
+from astropy.utils.misc import did_you_mean
 
 
 def get_grouped_by_powers(bases, powers):
@@ -46,24 +42,24 @@ def get_grouped_by_powers(bases, powers):
     return positive, negative
 
 
-def split_mantissa_exponent(v):
+def split_mantissa_exponent(v, format_spec=".8g"):
     """
     Given a number, split it into its mantissa and base 10 exponent
     parts, each as strings.  If the exponent is too small, it may be
     returned as the empty string.
 
-    The precise rules are based on Python's "general purpose" (`g`)
-    formatting.
-
     Parameters
     ----------
     v : float
+
+    format_spec : str, optional
+        Number representation formatting string
 
     Returns
     -------
     mantissa, exponent : tuple of strings
     """
-    x = "{0:.8g}".format(v).split('e')
+    x = format(v, format_spec).split('e')
     if x[0] != '1.' + '0' * (len(x[0]) - 2):
         m = x[0]
     else:
@@ -98,7 +94,7 @@ def decompose_to_known_units(unit, func):
     unit : `~astropy.units.UnitBase` instance
         A flattened unit.
     """
-    from .. import core
+    from astropy.units import core
     if isinstance(unit, core.CompositeUnit):
         new_unit = core.Unit(unit.scale)
         for base, power in zip(unit.bases, unit.powers):
@@ -128,7 +124,7 @@ def format_power(power):
                 power = int(power.numerator)
         else:
             power = int(power)
-    return six.text_type(power)
+    return str(power)
 
 
 def _try_decomposed(unit, format_decomposed):
@@ -212,7 +208,7 @@ def unit_deprecation_warning(s, unit, standard_name, format_decomposed):
         A function to turn a decomposed version of the unit into a
         string.  Should return `None` if not possible
     """
-    from ..core import UnitsWarning
+    from astropy.units.core import UnitsWarning
 
     message = "The unit '{0}' has been deprecated in the {1} standard.".format(
         s, standard_name)

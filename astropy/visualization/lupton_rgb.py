@@ -6,7 +6,6 @@ The three images must be aligned and have the same pixel scale and size.
 
 For details, see : http://adsabs.harvard.edu/abs/2004PASP..116..133L
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
 from . import ZScaleInterval
@@ -47,7 +46,7 @@ def compute_intensity(image_r, image_g=None, image_b=None):
     return np.asarray(intensity, dtype=image_r.dtype)
 
 
-class Mapping(object):
+class Mapping:
     """
     Baseclass to map red, blue, green intensities into uint8 values.
 
@@ -155,7 +154,8 @@ class Mapping(object):
         image_rgb = [image_r, image_g, image_b]
         for c in image_rgb:
             c *= fac
-            c[c < 0] = 0                # individual bands can still be < 0, even if fac isn't
+            with np.errstate(invalid='ignore'):
+                c[c < 0] = 0                # individual bands can still be < 0, even if fac isn't
 
         pixmax = self._uint8Max
         r0, g0, b0 = image_rgb           # copies -- could work row by row to minimise memory usage

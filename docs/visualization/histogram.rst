@@ -28,7 +28,7 @@ matplotlib's default of 10 bins, the second with an arbitrarily chosen
                         -1 + 0.3 * rng.standard_cauchy(500),
                         2 + 0.8 * rng.standard_cauchy(1000),
                         4 + 1.5 * rng.standard_cauchy(1000)])
-    
+
     # truncate to a reasonable range
     t = t[(t > -15) & (t < 15)]
 
@@ -37,7 +37,7 @@ matplotlib's default of 10 bins, the second with an arbitrarily chosen
 
     fig.subplots_adjust(left=0.1, right=0.95, bottom=0.15)
     for i, bins in enumerate([10, 200]):
-        ax[i].hist(t, bins=bins, histtype='stepfilled', alpha=0.2, normed=True)
+        ax[i].hist(t, bins=bins, histtype='stepfilled', alpha=0.2, density=True)
         ax[i].set_xlabel('t')
         ax[i].set_ylabel('P(t)')
         ax[i].set_title('plt.hist(t, bins={0})'.format(bins),
@@ -58,7 +58,7 @@ implemented in :func:`astropy.stats.histogram`, which has a similar syntax
 to the ``np.histogram`` function.
 
 Normal Reference Rules
-----------------------
+======================
 The simplest methods of tuning the number of bins are the normal reference
 rules due to Scott (implemented in :func:`~astropy.stats.scott_bin_width`) and
 Freedman & Diaconis (implemented in :func:`~astropy.stats.freedman_bin_width`).
@@ -72,6 +72,7 @@ The following figure shows the results of these two rules on the above dataset:
    :align: center
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.visualization import hist
 
     # generate some complicated data
@@ -81,18 +82,17 @@ The following figure shows the results of these two rules on the above dataset:
                         -1 + 0.3 * rng.standard_cauchy(500),
                         2 + 0.8 * rng.standard_cauchy(1000),
                         4 + 1.5 * rng.standard_cauchy(1000)])
-    
+
     # truncate to a reasonable range
     t = t[(t > -15) & (t < 15)]
 
     # draw histograms with two different bin widths
     fig, ax = plt.subplots(1, 2, figsize=(10, 4))
-    hist_kwds1 = dict(histtype='stepfilled', alpha=0.2, normed=True)
 
     fig.subplots_adjust(left=0.1, right=0.95, bottom=0.15)
     for i, bins in enumerate(['scott', 'freedman']):
         hist(t, bins=bins, ax=ax[i], histtype='stepfilled',
-             alpha=0.2, normed=True)
+             alpha=0.2, density=True)
         ax[i].set_xlabel('t')
         ax[i].set_ylabel('P(t)')
         ax[i].set_title('hist(t, bins="{0}")'.format(bins),
@@ -100,11 +100,11 @@ The following figure shows the results of these two rules on the above dataset:
 
 
 As we can see, both of these rules of thumb choose an intermediate number of
-bins which provide a good tradeoff between data representation and noise
+bins which provide a good trade-off between data representation and noise
 suppression.
 
 Bayesian Models
----------------
+===============
 
 Though rules-of-thumb like Scott's rule and the Freedman-Diaconis rule are
 fast and convenient, their strong assumptions about the data make them
@@ -124,7 +124,9 @@ the results of these procedures for the above dataset:
 .. plot::
    :align: center
 
+    import warnings
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.visualization import hist
 
     # generate some complicated data
@@ -134,18 +136,19 @@ the results of these procedures for the above dataset:
                         -1 + 0.3 * rng.standard_cauchy(500),
                         2 + 0.8 * rng.standard_cauchy(1000),
                         4 + 1.5 * rng.standard_cauchy(1000)])
-    
+
     # truncate to a reasonable range
     t = t[(t > -15) & (t < 15)]
 
     # draw histograms with two different bin widths
     fig, ax = plt.subplots(1, 2, figsize=(10, 4))
-    hist_kwds1 = dict(histtype='stepfilled', alpha=0.2, normed=True)
 
     fig.subplots_adjust(left=0.1, right=0.95, bottom=0.15)
     for i, bins in enumerate(['knuth', 'blocks']):
-        hist(t, bins=bins, ax=ax[i], histtype='stepfilled',
-             alpha=0.2, normed=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')  # Ignore bayesian block p0 warning
+            hist(t, bins=bins, ax=ax[i], histtype='stepfilled',
+                 alpha=0.2, density=True)
         ax[i].set_xlabel('t')
         ax[i].set_ylabel('P(t)')
         ax[i].set_title('hist(t, bins="{0}")'.format(bins),

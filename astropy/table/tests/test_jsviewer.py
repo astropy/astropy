@@ -1,10 +1,16 @@
 from os.path import abspath, dirname, join
 import textwrap
 
-from ..table import Table
-from ... import extern
-from ...tests.helper import pytest
-from ...extern.six.moves import zip
+import pytest
+
+from astropy.table.table import Table
+from astropy import extern
+
+try:
+    import bleach  # noqa
+    HAS_BLEACH = True
+except ImportError:
+    HAS_BLEACH = False
 
 try:
     import IPython  # pylint: disable=W0611
@@ -105,16 +111,18 @@ def test_write_jsviewer_default(tmpdir):
         assert f.read().strip() == ref.strip()
 
 
+@pytest.mark.skipif('not HAS_BLEACH')
 def test_write_jsviewer_options(tmpdir):
     t = Table()
     t['a'] = [1, 2, 3, 4, 5]
-    t['b'] = ['a', 'b', 'c', 'd', 'e']
+    t['b'] = ['<b>a</b>', 'b', 'c', 'd', 'e']
     t['a'].unit = 'm'
 
     tmpfile = tmpdir.join('test.html').strpath
-
     t.write(tmpfile, format='jsviewer', table_id='test', max_lines=3,
-            jskwargs={'display_length': 5}, table_class='display hover')
+            jskwargs={'display_length': 5}, table_class='display hover',
+            htmldict=dict(raw_html_cols='b'))
+
     ref = REFERENCE % dict(
         lines=format_lines(t['a'][:3], t['b'][:3]),
         table_class='display hover',
@@ -171,7 +179,6 @@ def test_show_in_notebook():
     <tr><td>3</td><td>4</td><td>d</td></tr>
     <tr><td>4</td><td>5</td><td>e</td></tr>
     """).strip() in htmlstr_windx)
-
 
     assert '<thead><tr><th>realidx</th><th>a</th><th>b</th></tr></thead>' in htmlstr_windx_named
 

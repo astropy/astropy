@@ -1,13 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 import numpy as np
 from matplotlib.patches import Polygon
 
-from ... import units as u
-from ...coordinates.representation import UnitSphericalRepresentation
-from ...coordinates.matrix_utilities import rotation_matrix, matrix_product
+from astropy import units as u
+from astropy.coordinates.representation import UnitSphericalRepresentation
+from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product
 
 
 __all__ = ['SphericalCircle']
@@ -77,15 +76,15 @@ class SphericalCircle(Polygon):
 
         # Start off by generating the circle around the North pole
         lon = np.linspace(0., 2 * np.pi, resolution + 1)[:-1] * u.radian
-        lat = np.repeat(0.5 * np.pi - radius.to(u.radian).value, resolution) * u.radian
+        lat = np.repeat(0.5 * np.pi - radius.to_value(u.radian), resolution) * u.radian
 
         lon, lat = _rotate_polygon(lon, lat, longitude, latitude)
 
         # Extract new longitude/latitude in the requested units
-        lon = lon.to(vertex_unit).value
-        lat = lat.to(vertex_unit).value
+        lon = lon.to_value(vertex_unit)
+        lat = lat.to_value(vertex_unit)
 
         # Create polygon vertices
         vertices = np.array([lon, lat]).transpose()
 
-        super(SphericalCircle, self).__init__(vertices, **kwargs)
+        super().__init__(vertices, **kwargs)

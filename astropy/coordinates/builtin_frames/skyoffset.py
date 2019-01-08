@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# Note: `from __future__ import unicode_literals` is omitted here on purpose.
-# Adding it leads to str / unicode errors on Python 2
-from __future__ import (absolute_import, division, print_function)
-
-from ... import units as u
-from ..transformations import DynamicMatrixTransform, FunctionTransform
-from ..baseframe import (CoordinateAttribute, QuantityFrameAttribute,
-                         frame_transform_graph, RepresentationMapping,
+from astropy import units as u
+from astropy.utils.compat import namedtuple_asdict
+from astropy.coordinates import representation as r
+from astropy.coordinates.transformations import DynamicMatrixTransform, FunctionTransform
+from astropy.coordinates.baseframe import (frame_transform_graph, RepresentationMapping,
                          BaseCoordinateFrame)
-from ..matrix_utilities import (rotation_matrix,
+from astropy.coordinates.attributes import CoordinateAttribute, QuantityAttribute
+from astropy.coordinates.matrix_utilities import (rotation_matrix,
                                 matrix_product, matrix_transpose)
-from ...utils.compat import namedtuple_asdict
 
 _skyoffset_cache = {}
 
@@ -64,46 +61,13 @@ def make_skyoffset_cls(framecls):
             # This has to be done because FrameMeta will set these attributes
             # to the defaults from BaseCoordinateFrame when it creates the base
             # SkyOffsetFrame class initially.
-            members['_frame_specific_representation_info'] = framecls._frame_specific_representation_info
             members['_default_representation'] = framecls._default_representation
+            members['_default_differential'] = framecls._default_differential
 
             newname = name[:-5] if name.endswith('Frame') else name
             newname += framecls.__name__
 
-            res = super(SkyOffsetMeta, cls).__new__(cls, newname, bases, members)
-
-            # now go through all the component names and make any spherical names be "lon" and "lat"
-            # instead of e.g. "ra" and "dec"
-
-            lists_done = []
-            for nm, component_list in res._frame_specific_representation_info.items():
-                if nm in ('spherical', 'unitspherical'):
-                    gotlatlon = []
-                    for i, comp in enumerate(component_list):
-                        if component_list in lists_done:
-                            # we need this because sometimes the component_
-                            # list's are the exact *same* object for both
-                            # spherical and unitspherical.  So looping then makes
-                            # the change *twice*.  This hack bypasses that.
-                            continue
-
-                        if comp.reprname in ('lon', 'lat'):
-                            dct = namedtuple_asdict(comp)
-                            # this forces the component names to be 'lat' and
-                            # 'lon' regardless of what the actual base frame
-                            # might use
-                            dct['framename'] = comp.reprname
-                            component_list[i] = type(comp)(**dct)
-                            gotlatlon.append(comp.reprname)
-                    if 'lon' not in gotlatlon:
-                        rmlon = RepresentationMapping('lon', 'lon', 'recommended')
-                        component_list.insert(0, rmlon)
-                    if 'lat' not in gotlatlon:
-                        rmlat = RepresentationMapping('lat', 'lat', 'recommended')
-                        component_list.insert(0, rmlat)
-                    lists_done.append(component_list)
-
-            return res
+            return super().__new__(cls, newname, bases, members)
 
     # We need this to handle the intermediate metaclass correctly, otherwise we could
     # just subclass SkyOffsetFrame.
@@ -167,7 +131,9 @@ class SkyOffsetFrame(BaseCoordinateFrame):
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
     origin : `SkyCoord` or low-level coordinate object.
-        the coordinate which specifies the origin of this frame.
+        The coordinate which specifies the origin of this frame. Note that this
+        origin is used purely for on-sky location/rotation.  It can have a
+        ``distance`` but it will not be used by this ``SkyOffsetFrame``.
     rotation : `~astropy.coordinates.Angle` or `~astropy.units.Quantity` with angle units
         The final rotation of the frame about the ``origin``. The sign of
         the rotation is the left-hand rule.  That is, an object at a
@@ -183,7 +149,7 @@ class SkyOffsetFrame(BaseCoordinateFrame):
     of ``origin``.
     """
 
-    rotation = QuantityFrameAttribute(default=0, unit=u.deg)
+    rotation = QuantityAttribute(default=0, unit=u.deg)
     origin = CoordinateAttribute(default=None, frame=None)
 
     def __new__(cls, *args, **kwargs):
@@ -204,12 +170,12 @@ class SkyOffsetFrame(BaseCoordinateFrame):
         # See above for why this is necessary. Basically, because some child
         # may override __new__, we must override it here to never pass
         # arguments to the object.__new__ method.
-        if super(SkyOffsetFrame, cls).__new__ is object.__new__:
-            return super(SkyOffsetFrame, cls).__new__(cls)
-        return super(SkyOffsetFrame, cls).__new__(cls, *args, **kwargs)
+        if super().__new__ is object.__new__:
+            return super().__new__(cls)
+        return super().__new__(cls, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
-        super(SkyOffsetFrame, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if self.origin is not None and not self.origin.has_data:
             raise ValueError('The origin supplied to SkyOffsetFrame has no '
                              'data.')

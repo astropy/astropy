@@ -1,34 +1,27 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-# TEST_UNICODE_LITERALS
-
 """
 Regression tests for the units package
 """
-
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
-
+import pickle
 from fractions import Fraction
 
+import pytest
 import numpy as np
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_allclose
 
-from ...extern import six
-from ...extern.six.moves import range, cPickle as pickle
-from ...tests.helper import pytest, raises, catch_warnings
+from astropy.tests.helper import raises, catch_warnings
 
-from ... import units as u
-from ... import constants as c
-from .. import utils
+from astropy import units as u
+from astropy import constants as c
+from astropy.units import utils
 
 
 def test_getting_started():
     """
     Corresponds to "Getting Started" section in the docs.
     """
-    from .. import imperial
+    from astropy.units import imperial
     with imperial.enable():
         speed_unit = u.cm / u.s
         x = speed_unit.to(imperial.mile / u.hour, 1)
@@ -192,6 +185,13 @@ def test_unknown_unit3():
     assert unit != unit3
     assert not unit.is_equivalent(unit3)
 
+    # Also test basic (in)equalities.
+    assert unit == "FOO"
+    assert unit != u.m
+    # next two from gh-7603.
+    assert unit != None  # noqa
+    assert unit not in (None, u.m)
+
     with pytest.raises(ValueError):
         unit._get_converter(unit3)
 
@@ -258,7 +258,7 @@ def test_convertible_exception2():
 
 @raises(TypeError)
 def test_invalid_type():
-    class A(object):
+    class A:
         pass
 
     u.Unit(A())
@@ -282,8 +282,8 @@ def test_decompose_bases():
     From issue #576
     """
 
-    from .. import cgs
-    from ...constants import e
+    from astropy.units import cgs
+    from astropy.constants import e
 
     d = e.esu.unit.decompose(bases=cgs.bases)
     assert d._bases == [u.cm, u.g, u.s]
@@ -347,13 +347,13 @@ for val in u.cgs.__dict__.values():
             val != u.cgs.deg_C):
         COMPOSE_CGS_TO_SI.add(val)
 
+
 @pytest.mark.parametrize('unit', sorted(COMPOSE_CGS_TO_SI, key=_unit_as_str),
                          ids=_unit_as_str)
 def test_compose_cgs_to_si(unit):
-    for iter in range(10):
-        si = unit.to_system(u.si)
-        assert [x.is_equivalent(unit) for x in si]
-        assert si[0] == unit.si
+    si = unit.to_system(u.si)
+    assert [x.is_equivalent(unit) for x in si]
+    assert si[0] == unit.si
 
 
 # We use a set to make sure we don't have any duplicates.
@@ -364,6 +364,7 @@ for val in u.si.__dict__.values():
             not isinstance(val, u.PrefixUnit) and
             val != u.si.deg_C):
         COMPOSE_SI_TO_CGS.add(val)
+
 
 @pytest.mark.parametrize('unit', sorted(COMPOSE_SI_TO_CGS, key=_unit_as_str), ids=_unit_as_str)
 def test_compose_si_to_cgs(unit):
@@ -381,14 +382,13 @@ def test_compose_si_to_cgs(unit):
         assert cgs[0] == unit.cgs
 
 
-
 def test_to_cgs():
     assert u.Pa.to_system(u.cgs)[1]._bases[0] is u.Ba
     assert u.Pa.to_system(u.cgs)[1]._scale == 10.0
 
 
 def test_decompose_to_cgs():
-    from .. import cgs
+    from astropy.units import cgs
     assert u.m.decompose(bases=cgs.bases)._bases[0] is cgs.cm
 
 
@@ -400,6 +400,25 @@ def test_compose_issue_579():
     assert len(result) == 1
     assert result[0]._bases == [u.s, u.N, u.m]
     assert result[0]._powers == [4, 1, -2]
+
+
+def test_compose_prefix_unit():
+    x =  u.m.compose(units=(u.m,))
+    assert x[0].bases[0] is u.m
+    assert x[0].scale == 1.0
+    x = u.m.compose(units=[u.km], include_prefix_units=True)
+    assert x[0].bases[0] is u.km
+    assert x[0].scale == 0.001
+    x = u.m.compose(units=[u.km])
+    assert x[0].bases[0] is u.km
+    assert x[0].scale == 0.001
+
+    x = (u.km/u.s).compose(units=(u.pc, u.Myr))
+    assert x[0].bases == [u.pc, u.Myr]
+    assert_allclose(x[0].scale, 1.0227121650537077)
+
+    with raises(u.UnitsError):
+        (u.km/u.s).compose(units=(u.pc, u.Myr), include_prefix_units=False)
 
 
 def test_self_compose():
@@ -416,7 +435,10 @@ def test_compose_failed():
 
 
 def test_compose_fractional_powers():
-    x = (u.kg / u.s ** 3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2)
+    # Warning: with a complicated unit, this test becomes very slow;
+    # e.g., x = (u.kg / u.s ** 3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2)
+    # takes 3 s
+    x = u.m ** 0.5 / u.yr ** 1.5
 
     factored = x.compose()
 
@@ -471,7 +493,7 @@ def test_endian_independence():
     for endian in ['<', '>']:
         for ntype in ['i', 'f']:
             for byte in ['4', '8']:
-                x = np.array([1,2,3], dtype=(endian + ntype + byte))
+                x = np.array([1, 2, 3], dtype=(endian + ntype + byte))
                 u.m.to(u.cm, x)
 
 
@@ -496,6 +518,7 @@ def test_no_duplicates_in_names():
     assert u.ct.long_names == ['count']
     assert set(u.ph.names) == set(u.ph.short_names) | set(u.ph.long_names)
 
+
 def test_pickling():
     p = pickle.dumps(u.m)
     other = pickle.loads(p)
@@ -503,11 +526,32 @@ def test_pickling():
     assert other is u.m
 
     new_unit = u.IrreducibleUnit(['foo'], format={'baz': 'bar'})
+    # This is local, so the unit should not be registered.
+    assert 'foo' not in u.get_current_unit_registry().registry
+
+    # Test pickling of this unregistered unit.
+    p = pickle.dumps(new_unit)
+    new_unit_copy = pickle.loads(p)
+    assert new_unit_copy.names == ['foo']
+    assert new_unit_copy.get_format_name('baz') == 'bar'
+    # It should still not be registered.
+    assert 'foo' not in u.get_current_unit_registry().registry
+
+    # Now try the same with a registered unit.
     with u.add_enabled_units([new_unit]):
         p = pickle.dumps(new_unit)
+        assert 'foo' in u.get_current_unit_registry().registry
+
+    # Check that a registered unit can be loaded and that it gets re-enabled.
+    with u.add_enabled_units([]):
+        assert 'foo' not in u.get_current_unit_registry().registry
         new_unit_copy = pickle.loads(p)
         assert new_unit_copy.names == ['foo']
         assert new_unit_copy.get_format_name('baz') == 'bar'
+        assert 'foo' in u.get_current_unit_registry().registry
+
+    # And just to be sure, that it gets removed outside of the context.
+    assert 'foo' not in u.get_current_unit_registry().registry
 
 
 def test_pickle_unrecognized_unit():
@@ -524,7 +568,7 @@ def test_duplicate_define():
 
 
 def test_all_units():
-    from ...units.core import get_current_unit_registry
+    from astropy.units.core import get_current_unit_registry
     registry = get_current_unit_registry()
     assert len(registry.all_units) > len(registry.non_prefix_units)
 
@@ -551,7 +595,7 @@ def test_comparison():
 
 def test_compose_into_arbitrary_units():
     # Issue #1438
-    from ...constants import G
+    from astropy.constants import G
     G.decompose([u.kg, u.km, u.Unit("15 s")])
 
 
@@ -594,7 +638,7 @@ def test_composite_unit_get_format_name():
 
 
 def test_unicode_policy():
-    from ...tests.helper import assert_follows_unicode_guidelines
+    from astropy.tests.helper import assert_follows_unicode_guidelines
 
     assert_follows_unicode_guidelines(
         u.degree, roundtrip=u.__dict__)
@@ -613,7 +657,7 @@ def test_suggestions():
         try:
             u.Unit(search)
         except ValueError as e:
-            assert 'Did you mean {0}?'.format(matches) in six.text_type(e)
+            assert 'Did you mean {0}?'.format(matches) in str(e)
         else:
             assert False, 'Expected ValueError'
 
@@ -730,12 +774,12 @@ def test_fractional_rounding_errors_simple():
 
 
 def test_enable_unit_groupings():
-    from ...units import cds
+    from astropy.units import cds
 
     with cds.enable():
         assert cds.geoMass in u.kg.find_equivalent_units()
 
-    from ...units import imperial
+    from astropy.units import imperial
     with imperial.enable():
         assert imperial.inch in u.m.find_equivalent_units()
 
@@ -748,7 +792,7 @@ def test_unit_summary_prefixes():
     Regression test for https://github.com/astropy/astropy/issues/3835
     """
 
-    from .. import astrophys
+    from astropy.units import astrophys
 
     for summary in utils._iter_unit_summary(astrophys.__dict__):
         unit, _, _, _, prefixes = summary
@@ -760,6 +804,18 @@ def test_unit_summary_prefixes():
         elif unit.name == 'barn':
             assert prefixes
         elif unit.name == 'cycle':
-            assert not prefixes
+            assert prefixes == 'No'
         elif unit.name == 'vox':
-            assert prefixes
+            assert prefixes == 'Yes'
+
+
+def test_raise_to_negative_power():
+    """Test that order of bases is changed when raising to negative power.
+
+    Regression test for https://github.com/astropy/astropy/issues/8260
+    """
+    m2s2 = u.m ** 2 / u.s **2
+    spm = m2s2 ** (-1 / 2)
+    assert spm.bases == [u.s, u.m]
+    assert spm.powers == [1, -1]
+    assert spm == u.s / u.m

@@ -4,8 +4,6 @@
 This module contains simple functions for model selection.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import numpy as np
 
 __all__ = ['bayesian_info_criterion', 'bayesian_info_criterion_lsq',
@@ -106,9 +104,9 @@ def bayesian_info_criterion(log_likelihood, n_params, n_samples):
     .. [3] Origin Lab. Comparing Two Fitting Functions.
        <http://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
     .. [4] Liddle, A. R. Information Criteria for Astrophysical Model
-       Selection. 2008. <http://arxiv.org/pdf/astro-ph/0701113v2.pdf>
+       Selection. 2008. <https://arxiv.org/pdf/astro-ph/0701113v2.pdf>
     .. [5] Liddle, A. R. How many cosmological parameters? 2008.
-       <http://arxiv.org/pdf/astro-ph/0401198v3.pdf>
+       <https://arxiv.org/pdf/astro-ph/0401198v3.pdf>
     """
 
     return n_params*np.log(n_samples) - 2.0*log_likelihood
@@ -163,8 +161,10 @@ def bayesian_info_criterion_lsq(ssr, n_params, n_samples):
     >>> x = np.linspace(-5., 5., 200)
     >>> y = 3 * np.exp(-0.5 * (x - 1.3)**2 / 0.8**2)
     >>> y += np.random.normal(0., 0.2, x.shape)
-    >>> # Fit the data using a Box model
-    >>> t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5)
+    >>> # Fit the data using a Box model.
+    >>> # Bounds are not really needed but included here to demonstrate usage.
+    >>> t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5,
+    ...                             bounds={"x_0": (-5., 5.)})
     >>> fit_t = fitting.LevMarLSQFitter()
     >>> t = fit_t(t_init, x, y)
     >>> # Fit the data using a Gaussian
@@ -280,7 +280,7 @@ def akaike_info_criterion(log_likelihood, n_params, n_samples):
     ----------
     .. [1] Cavanaugh, J. E.  Model Selection Lecture II: The Akaike
        Information Criterion.
-       <http://myweb.uiowa.edu/cavaaugh/ms_lec_2_ho.pdf>
+       <http://machinelearning102.pbworks.com/w/file/fetch/47699383/ms_lec_2_ho.pdf>
     .. [2] Mazerolle, M. J. Making sense out of Akaike's Information
        Criterion (AIC): its use and interpretation in model selection and
        inference from ecological data.
@@ -290,9 +290,9 @@ def akaike_info_criterion(log_likelihood, n_params, n_samples):
     .. [4] Origin Lab. Comparing Two Fitting Functions.
        <http://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
     .. [5] Liddle, A. R. Information Criteria for Astrophysical Model
-       Selection. 2008. <http://arxiv.org/pdf/astro-ph/0701113v2.pdf>
+       Selection. 2008. <https://arxiv.org/pdf/astro-ph/0701113v2.pdf>
     .. [6] Liddle, A. R. How many cosmological parameters? 2008.
-       <http://arxiv.org/pdf/astro-ph/0401198v3.pdf>
+       <https://arxiv.org/pdf/astro-ph/0401198v3.pdf>
     """
     # Correction in case of small number of observations
     if n_samples/float(n_params) >= 40.0:
@@ -379,7 +379,7 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
     >>> ssr_g2 = np.sum((g2_fit(x) - y)**2.0)
     >>> ssr_g1 = np.sum((g1_fit(x) - y)**2.0)
     >>> akaike_info_criterion_lsq(ssr_g3, 9, x.shape[0]) # doctest: +FLOAT_CMP
-    -656.32589850659224
+    -660.41075962620482
     >>> akaike_info_criterion_lsq(ssr_g2, 6, x.shape[0]) # doctest: +FLOAT_CMP
     -662.83834510232043
     >>> akaike_info_criterion_lsq(ssr_g1, 3, x.shape[0]) # doctest: +FLOAT_CMP
@@ -387,7 +387,7 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
 
     Hence, from the AIC values, we would prefer to choose the model g2_fit.
     However, we can considerably support the model g3_fit, since the
-    difference in AIC is about 6.5. We should reject the model g1_fit.
+    difference in AIC is about 2.4. We should reject the model g1_fit.
 
     References
     ----------

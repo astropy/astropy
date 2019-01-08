@@ -1,8 +1,8 @@
 .. _development-workflow:
 
-===============================
+*******************************
 How to make a code contribution
-===============================
+*******************************
 
 This document outlines the process for contributing code to the Astropy
 project.
@@ -11,7 +11,7 @@ project.
 :ref:`astropy-git`.
 
 Pre-requisites
-==============
+**************
 
 Before following the steps in this document you need:
 
@@ -20,7 +20,7 @@ Before following the steps in this document you need:
   basics you need for setting up git and GitHub, are at :ref:`get_devel`.
 
 Strongly Recommended, but not required
-======================================
+**************************************
 
 You cannot easily work on the development version of astropy in a python
 environment in which you also use the stable version. It can be done |emdash|
@@ -39,10 +39,10 @@ developers are friendly and want you to help, so don't be shy about asking
 questions on the `astropy-dev mailing list`_.
 
 New to `git`_?
-==============
+**************
 
 Some `git`_ resources
----------------------
+=====================
 
 If you have never used git or have limited experience with it, take a few
 minutes to look at these resources:
@@ -55,7 +55,7 @@ to Astropy. There is a more extensive list of :ref:`git-resources` if you
 want more background.
 
 Double check your setup
------------------------
+=======================
 
 Before going further, make sure you have set up astropy as described in
 :ref:`get_devel`.
@@ -71,7 +71,7 @@ your installation is working and you have a complete list of all branches in
 your clone, ``your-github-username`` and ``astropy``.
 
 About names in `git`_
----------------------
+=====================
 
 `git`_ is designed to be a *distributed* version control system. Each clone of
 a repository is, itself, a repository. That can lead to some confusion,
@@ -93,7 +93,7 @@ to merge code contributions into the official master branch,
 branch, ``master``. Always work on a branch instead.
 
 Essential `git`_ commands
--------------------------
+=========================
 
 A full `git`_ tutorial is beyond the scope of this document but this list
 describes the few ``git`` commands you are likely to encounter in contributing
@@ -113,7 +113,7 @@ to Astropy:
     easier. Some options are described in :ref:`git_gui_options`.
 
 If something goes wrong
------------------------
+=======================
 
 `git`_ provides a number of ways to recover from errors. If you end up making a
 `git`_ mistake, do not hesitate to ask for help. An additional resource that
@@ -123,9 +123,9 @@ walks you through recovering from `git`_ mistakes is the
 .. _astropy-git:
 
 Astropy Guidelines for `git`_
-=============================
+*****************************
 
-* Don't use your ``master`` branch for anything.
+* Don't use your ``master`` branch for anything. Consider :ref:`delete-master`.
 * Make a new branch, called a *feature branch*, for each separable set of
   changes: "one task, one branch" (`ipython git workflow`_).
 * Start that new *feature branch* from the most current development version
@@ -148,7 +148,7 @@ document:
   ``upstream``.
 
 Workflow
-========
+********
 
 These, conceptually, are the steps you will follow in contributing to Astropy:
 
@@ -174,10 +174,19 @@ A worked example that follows these steps for fixing an Astropy issue is at
 
 Some additional topics related to `git`_ are in :ref:`additional-git`.
 
+.. _delete-master:
+
+Deleting your master branch
+===========================
+
+It may sound strange, but deleting your own ``master`` branch can help reduce
+confusion about which branch you are on.  See `deleting master on github`_ for
+details.
+
 .. _fetch-latest:
 
 Fetch the latest Astropy
-========================
+************************
 
 From time to time you should fetch the development version (i.e. Astropy
 ``astropy/master``) changes from GitHub::
@@ -192,10 +201,10 @@ you last checked, ``astropy/master`` will change after you do the fetch.
 .. _make-feature-branch:
 
 Make a new feature branch
-=========================
+*************************
 
 Make the new branch
--------------------
+===================
 
 When you are ready to make some changes to the code, you should start a new
 branch. Branches that are for a collection of related edits are often called
@@ -219,7 +228,7 @@ changes on the latest version of Astropy::
     git checkout my-new-feature
 
 Connect the branch to GitHub
-----------------------------
+============================
 
 At this point you have made and checked out a new branch, but `git`_ does not
 know it should be connected to your fork on GitHub. You need that connection
@@ -239,7 +248,7 @@ setup in this section will make that easier.
 .. _install-branch:
 
 Install your branch
-===================
+*******************
 
 Ideally you should set up a python virtual environment just for this fix;
 instructions for doing to are at :ref:`virtual_envs`. Doing so ensures you
@@ -251,24 +260,12 @@ Astropy you are working on. Do that with:
 
 .. code-block:: bash
 
-    python setup.py develop  # typically python 2.x, not python 3
-
-or:
-
-.. code-block:: bash
-
-    python3 setup.py install # python 3...
-    # ...though python3 may be called python3.3 or just python,
-    # depending on your system.
-
-If you are using python 3 you will need to re-install after making changes to
-the Astropy source code. Re-installing goes much faster than the initial install
-because it typically does not require new compilation.
+    pip install -e .
 
 .. _edit-flow:
 
 The editing workflow
-====================
+********************
 
 Conceptually, you will:
 
@@ -283,7 +280,7 @@ Conceptually, you will:
 
 
 In more detail
---------------
+==============
 
 #. Make some changes to one or more files. You should follow the Astropy
    :ref:`code-guide`. Each logical set of changes should be treated as one
@@ -358,18 +355,20 @@ In more detail
 .. _add-changelog:
 
 Add a changelog entry
-=====================
+*********************
 
 Add an entry to the file ``CHANGES.rst`` briefly describing the change you
-made. Include the pull request number if the change fixes an issue. An
+made. Include the pull request number, too at the end of the entry. An
 example entry, for the changes which fixed
 `issue 1845 <https://github.com/astropy/astropy/pull/1845>`_, is::
 
   - ``astropy.wcs.Wcs.printwcs`` will no longer warn that ``cdelt`` is
     being ignored when none was present in the FITS file. [#1845]
 
-If the change is a new feature, rather than an existing issue, you will not be
-able to put in the issue number until *after* you make the pull request.
+If you are opening a new pull request, you may not know its number yet, but you
+can add it *after* you make the pull request. If you're not sure where to
+put the changelog entry, wait at least until a maintainer has reviewed your
+PR and assigned it to a milestone.
 
 When writing changelog entries, do not attempt to make API reference links
 by using single-backticks.  This is because the changelog (in its current
@@ -381,7 +380,7 @@ names and the like is encouraged.
 .. _push-to-github:
 
 Copy your changes to GitHub
-===========================
+***************************
 
 This step is easy because of the way you created the feature branch. Just::
 
@@ -390,7 +389,7 @@ This step is easy because of the way you created the feature branch. Just::
 .. _pull-request:
 
 Ask for your changes to be reviewed
-===================================
+***********************************
 
 A *pull request* on GitHub is a request to merge the changes you have made into
 another repository.
@@ -422,7 +421,7 @@ it into Astropy:
 .. _revise and push:
 
 Revise and push as necessary
-============================
+****************************
 
 You may be asked to make changes in the discussion of the pull request. Make
 those changes in your local copy, commit them to your local repo and push them
@@ -431,25 +430,43 @@ to GitHub. GitHub will automatically update your pull request.
 .. _rebase:
 
 Rebase, but only if asked
-=========================
+*************************
 
-Sometimes the maintainers of Astropy will ask you to *rebase* your changes
-before they are merged into the main Astropy repository.
+Sometimes the maintainers of Astropy may ask a pull request to be *rebased*
+or *squashed* in the process of reviewing a pull request for merging into
+the main Astropy *master* repository.
+
+The decisions of when to request a *squash* or *rebase* are left to
+individual maintainers.  These may be requested to reduce the number of
+visible commits saved in the repository history, or because of code changes
+in Astropy in the meantime.  A rebase may be necessary to allow the Continuous
+Integration tests to run.  Both involve rewriting the `git`_ history, meaning
+that commit hashes will change, which is why you should do it only if asked.
 
 Conceptually, rebasing means taking your changes and applying them to the latest
-version of the development branch of the official astropy as though that was the
-version you had originally branched from.
-
-Behind the scenes, `git`_ is deleting the changes and branch you made, making the
-changes others made to the development branch of Astropy, then re-making your
-branch from the development branch and applying your changes to your branch.
-This results in re-writing the history of commits, which is why you should do it
-only if asked.
+version of the development branch of the official Astropy as though that was the
+version you had originally branched from. Each individual commit remains
+visible, but with new metadata/commit hashes. Squashing commits changes the
+metadata/commit hash, and also removes separate visibility of individual
+commits; a new commit and commit message will only contain a textual
+list of the earlier commits.
 
 It is easier to make mistakes rebasing than other areas of `git`_, so before you
 start make a branch to serve as a backup copy of your work::
 
     git branch tmp my-new-feature # make temporary branch--will be deleted later
+
+After altering the history, e.g. with ``git rebase``, a normal ``git push``
+is prevented, and a ``git push --force`` will be required.
+
+.. _howto_rebase:
+
+How to rebase
+*************
+
+Behind the scenes, `git`_ is deleting the changes and branch you made, making the
+changes others made to the development branch of Astropy, then re-making your
+branch from the development branch and applying your changes to your branch.
 
 The actual rebasing is usually easy::
 
@@ -460,24 +477,54 @@ You are more likely to run into *conflicts* here--places where the changes you
 made conflict with changes that someone else made--than anywhere else. Ask for
 help if you need it.
 
-After the rebase you need to push your changes to GitHub; you will need force
-the push because `git`_ objects to re-writing the history of the repository
-after you have pushed it somewhere::
+.. _howto_squash:
 
-    git push -f
+How to squash
+*************
+
+Typically we ask to *squash* when there was a fair amount of trial
+and error, but the final patch remains quite small, or when files were added
+and removed (especially binary files or files that should not remain in the
+repository) or if the number of commits in the history is disproportionate
+compared to the work being carried out (for example 30 commits gradually
+refining a final 10-line change).  Conceptually this is equivalent to
+exporting the final diff from a feature branch, then starting a new branch and
+applying only that patch.
+
+Many of us find that is it actually easiest to squash using rebase. In particular,
+you can rebase and squash within the existing branch using::
+
+  git fetch upstream
+  git rebase -i upstream/master
+
+The last command will open an editor with all your commits, allowing you to
+squash several commits together, rename them, etc. Helpfully, the file you are
+editing has the instructions on what to do.
+
+.. _howto_push_force:
+
+How to push
+***********
+
+After using ``git rebase`` you will still need to push your changes to
+GitHub so that they are visible to others and the pull request can be
+updated.  Use of a simple ``git push`` will be prevented because of the
+changed history, and will need to be manually overridden using::
+
+    git push --force
 
 If you run into any problems, do not hesitate to ask. A more detailed conceptual
 discussing of rebasing is at :ref:`rebase-on-trunk`.
 
-Once your rebase is successfully pushed to GitHub you can delete the backup
-branch you made::
+Once the modifications and new git history are successfully pushed to GitHub you
+can delete any backup branches that may have been created::
 
     git branch -D tmp
 
 .. include:: links.inc
 
 .. _Interactive tutorial: http://try.github.io/
-.. _Git Basics: http://git-scm.com/book/en/Getting-Started-Git-Basics
-.. _git book: http://git-scm.com/book/
+.. _Git Basics: https://git-scm.com/book/en/Getting-Started-Git-Basics
+.. _git book: https://git-scm.com/book/
 .. _Astropy issue list: https://github.com/astropy/astropy/issues
 .. _git choose-your-own-adventure: http://sethrobertson.github.io/GitFixUm/fixup.html

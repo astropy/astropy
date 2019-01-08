@@ -1,7 +1,7 @@
 .. _modeling-new-classes:
 
 Defining New Model Classes
-==========================
+**************************
 
 This document describes how to add a model to the package or to create a
 user-defined model. In short, one needs to define all model parameters and
@@ -13,7 +13,7 @@ used.
 
 
 Basic custom models
--------------------
+===================
 
 For most cases, the `~astropy.modeling.custom_model` decorator provides an
 easy way to make a new `~astropy.modeling.Model` class from an existing Python
@@ -24,6 +24,7 @@ of two Gaussians:
    :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling.models import custom_model
     from astropy.modeling.fitting import LevMarLSQFitter
 
@@ -60,7 +61,7 @@ examples.
 
 
 A step by step definition of a 1-D Gaussian model
--------------------------------------------------
+=================================================
 
 The example described in `Basic custom models`_ can be used for most simple
 cases, but the following section describes how to construct model classes in
@@ -122,6 +123,11 @@ Fittable models can be linear or nonlinear in a regression sense. The default
 value of the `~astropy.modeling.Model.linear` attribute is ``False``.  Linear
 models should define the ``linear`` class attribute as ``True``.  Because this
 model is non-linear we can stick with the default.
+
+Models which inherit from `~astropy.modeling.Fittable1DModel` have the
+``Model._separable`` property already set to ``True``.
+All other models should define this property to indicate the
+:ref:`separability`.
 
 Next, provide methods called ``evaluate`` to evaluate the model and
 ``fit_deriv``, to compute its derivatives with respect to parameters.  These
@@ -200,12 +206,12 @@ this looks something like:
 
         # Don't pass on cov_matrix since it doesn't mean anything to the base
         # class
-        super(Gaussian2D, self).__init__(amplitude, x_mean, y_mean, x_stddev,
-                                         y_stddev, theta, **kwargs)
+        super().__init__(amplitude, x_mean, y_mean, x_stddev, y_stddev, theta,
+                         **kwargs)
 
 
 Full example
-^^^^^^^^^^^^
+------------
 
 .. code-block:: python
 
@@ -233,7 +239,7 @@ Full example
 
 
 A full example of a LineModel
------------------------------
+=============================
 
 This example demonstrates one other optional feature for model classes, which
 is an *inverse*.  An `~astropy.modeling.Model.inverse` implementation should be
@@ -275,7 +281,7 @@ input``.
 
 
 Defining New Fitter Classes
-===========================
+***************************
 
 This section describes how to add a new nonlinear fitting algorithm to this
 package or write a user-defined fitter.  In short, one needs to define an error
@@ -292,7 +298,7 @@ The base class for all fitters is `~astropy.modeling.fitting.Fitter`::
         def __init__(self):
             # Most currently defined fitters take no arguments in their
             # __init__, but the option certainly exists for custom fitters
-            super(SLSQPFitter, self).__init__()
+            super().__init__()
 
 All fitters take a model (their ``__call__`` method modifies the model's
 parameters) as their first argument.
@@ -328,16 +334,16 @@ necessary::
         return model_copy
 
 Defining a Plugin Fitter
-------------------------
+========================
 
-`astropy.modeling` includes a plugin mechanism which allows fitters 
-defined outside of astropy's core to be inserted into the 
-`astropy.modeling.fitting` namespace through the use of entry points. 
+`astropy.modeling` includes a plugin mechanism which allows fitters
+defined outside of astropy's core to be inserted into the
+`astropy.modeling.fitting` namespace through the use of entry points.
 Entry points are references to importable objects. A tutorial on defining
 entry points can be found in `setuptools' documentation <http://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`_.
-Plugin fitters must to extend from the `~astropy.modeling.fitting.Fitter` 
-base class. For the fitter to be discovered and inserted into 
-`astropy.modeling.fitting` the entry points must be inserted into 
+Plugin fitters must to extend from the `~astropy.modeling.fitting.Fitter`
+base class. For the fitter to be discovered and inserted into
+`astropy.modeling.fitting` the entry points must be inserted into
 the `astropy.modeling` entry point group
 
 .. doctest-skip::
@@ -353,11 +359,11 @@ This would allow users to import the ``PlugFitterName`` through `astropy.modelin
 
     from astropy.modeling.fitting import PlugFitterName
 
-One project which uses this functionality is `Saba <https://saba.readthedocs.io/>`_ 
-and be can be used as a reference. 
+One project which uses this functionality is `Saba <https://saba.readthedocs.io/>`_
+and be can be used as a reference.
 
 Using a Custom Statistic Function
-=================================
+*********************************
 
 This section describes how to write a new fitter with a user-defined statistic
 function.  The example below shows a specialized class which fits a straight
@@ -422,8 +428,7 @@ above::
 
         def __init__(self, optimizer=Simplex):
             self.statistic = chi_line
-            super(LineFitter, self).__init__(optimizer,
-                                             statistic=self.statistic)
+            super().__init__(optimizer, statistic=self.statistic)
 
 The last thing to define is the ``__call__`` method::
 

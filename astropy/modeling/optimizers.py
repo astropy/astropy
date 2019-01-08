@@ -4,13 +4,10 @@
 Optimization algorithms used in `~astropy.modeling.fitting`.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 import warnings
 import abc
 import numpy as np
-from ..extern import six
-from ..utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ["Optimization", "SLSQP", "Simplex"]
 
@@ -20,14 +17,13 @@ DEFAULT_MAXITER = 100
 # Step for the forward difference approximation of the Jacobian
 DEFAULT_EPS = np.sqrt(np.finfo(float).eps)
 
-#Default requested accuracy
+# Default requested accuracy
 DEFAULT_ACC = 1e-07
 
 DEFAULT_BOUNDS = (-10 ** 12, 10 ** 12)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Optimization(object):
+class Optimization(metaclass=abc.ABCMeta):
     """
     Base class for optimizers.
 
@@ -111,7 +107,7 @@ class SLSQP(Optimization):
 
     def __init__(self):
         from scipy.optimize import fmin_slsqp
-        super(SLSQP, self).__init__(fmin_slsqp)
+        super().__init__(fmin_slsqp)
         self.fit_info = {
             'final_func_val': None,
             'numiter': None,
@@ -151,11 +147,11 @@ class SLSQP(Optimization):
         bounds = np.asarray(bounds)
         for i in bounds:
             if i[0] is None:
-                i[0] =  DEFAULT_BOUNDS[0]
+                i[0] = DEFAULT_BOUNDS[0]
             if i[1] is None:
                 i[1] = DEFAULT_BOUNDS[1]
         # older versions of scipy require this array to be float
-        bounds = np.asarray(bounds, dtype=np.float)
+        bounds = np.asarray(bounds, dtype=float)
         eqcons = np.array(model.eqcons)
         ineqcons = np.array(model.ineqcons)
         fitparams, final_func_val, numiter, exit_mode, mess = self.opt_method(
@@ -178,20 +174,22 @@ class SLSQP(Optimization):
 
 class Simplex(Optimization):
     """
-    Neald-Mead (downhill simplex) algorithm [1].
+    Neald-Mead (downhill simplex) algorithm.
 
-    This algorithm only uses function values, not derivatives.
+    This algorithm [1]_ only uses function values, not derivatives.
     Uses `scipy.optimize.fmin`.
 
+    References
+    ----------
     .. [1] Nelder, J.A. and Mead, R. (1965), "A simplex method for function
-           minimization", The Computer Journal, 7, pp. 308-313
+       minimization", The Computer Journal, 7, pp. 308-313
     """
 
     supported_constraints = ['bounds', 'fixed', 'tied']
 
     def __init__(self):
         from scipy.optimize import fmin as simplex
-        super(Simplex, self).__init__(simplex)
+        super().__init__(simplex)
         self.fit_info = {
             'final_func_val': None,
             'numiter': None,

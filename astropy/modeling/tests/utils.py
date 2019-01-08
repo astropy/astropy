@@ -1,11 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, unicode_literals, print_function
 
 import contextlib
 import warnings
-from ...tests.helper import catch_warnings
+from astropy.tests.helper import catch_warnings
 
 
 @contextlib.contextmanager

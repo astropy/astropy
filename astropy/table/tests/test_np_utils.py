@@ -1,19 +1,19 @@
 import numpy as np
 
-from .. import np_utils
+from astropy.table import np_utils
 
 
 def test_common_dtype():
     """
     Test that allowed combinations are those expected.
     """
-    dtype = [(str('int'), np.int),
+    dtype = [(str('int'), int),
              (str('uint8'), np.uint8),
              (str('float32'), np.float32),
              (str('float64'), np.float64),
              (str('str'), 'S2'),
              (str('uni'), 'U2'),
-             (str('bool'), np.bool),
+             (str('bool'), bool),
              (str('object'), np.object_)]
     arr = np.empty(1, dtype=dtype)
     fail = set()

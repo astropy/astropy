@@ -1,0 +1,37 @@
+%YAML 1.1
+---
+$schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
+id: "http://astropy.org/schemas/astropy/coordinates/frames/galactic-1.0.0"
+tag: "tag:astropy.org:astropy/coordinates/frames/galactic-1.0.0"
+
+title: |
+  Represents an Galactic coordinate object from astropy.
+
+examples:
+  -
+    - An Galactic frame without data
+    - |
+         !<tag:astropy.org:astropy/coordinates/frames/galactic-1.0.0>
+           frame_attributes: {}
+  -
+    - An Galactic frame with data
+    - |
+         !<tag:astropy.org:astropy/coordinates/frames/galactic-1.0.0>
+           data: !<tag:astropy.org:astropy/coordinates/representation-1.0.0>
+             components:
+               lat: !<tag:astropy.org:astropy/coordinates/latitude-1.0.0> {unit: !unit/unit-1.0.0 deg,
+                 value: 2.0}
+               lon: !<tag:astropy.org:astropy/coordinates/longitude-1.0.0>
+                 unit: !unit/unit-1.0.0 deg
+                 value: 1.0
+                 wrap_angle: !<tag:astropy.org:astropy/coordinates/angle-1.0.0> {unit: !unit/unit-1.0.0 deg,
+                   value: 360.0}
+             type: UnitSphericalRepresentation
+           frame_attributes: {}
+
+
+
+
+allOf:
+  - $ref: baseframe-1.0.0
+...

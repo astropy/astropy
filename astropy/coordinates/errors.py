@@ -3,10 +3,8 @@
 
 ''' This module defines custom errors and exceptions used in astropy.coordinates.
 '''
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ..utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyWarning
 
 __all__ = ['RangeError', 'BoundsError', 'IllegalHourError',
            'IllegalMinuteError', 'IllegalSecondError', 'ConvertError',
@@ -174,4 +172,4 @@ class UnknownSiteException(KeyError):
         self.site = site
         self.attribute = attribute
         self.close_names = close_names
-        return super(UnknownSiteException, self).__init__(message)
+        return super().__init__(message)

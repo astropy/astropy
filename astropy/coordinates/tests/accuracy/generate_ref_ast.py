@@ -3,15 +3,12 @@ This series of functions are used to generate the reference CSV files
 used by the accuracy tests.  Running this as a comand-line script will
 generate them all.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import os
 
 import numpy as np
 
-from ....table import Table, Column
-from ....extern.six.moves import range
+from astropy.table import Table, Column
 
 
 def ref_fk4_no_e_fk4(fnout='fk4_no_e_fk4.csv'):
@@ -248,6 +245,7 @@ def ref_icrs_fk5(fnout='icrs_fk5.csv'):
     f.write("# This file was generated with the {0} script, and the reference "
             "values were computed using AST\n".format(os.path.basename(__file__)))
     t.write(f, format='ascii', delimiter=',')
+
 
 if __name__ == '__main__':
     ref_fk4_no_e_fk4()

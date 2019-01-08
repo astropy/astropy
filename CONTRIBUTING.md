@@ -4,9 +4,9 @@ Contributing to Astropy
 Reporting Issues
 ----------------
 
-When opening an issue to report a problem, please try and provide a minimal
-code example that reproduces the issue, and also include details of the
-operating system, and the Python, Numpy, and Astropy versions you are using.
+When opening an issue to report a problem, please try and provide a minimal code
+example that reproduces the issue, and also include details of the operating
+system, and the Python, Numpy, and Astropy versions you are using.
 
 Contributing code
 -----------------
@@ -14,8 +14,17 @@ Contributing code
 So you're interested in contributing code to Astropy? Excellent!
 
 Most contributions to Astropy are done via pull requests from GitHub users'
-forks of the [astropy repository](https://github.com/astropy/astropy). If you're new to this style of development,
-you'll want to read over our [development workflow](http://docs.astropy.org/en/latest/development/workflow/development_workflow.html).
+forks of the [astropy repository](https://github.com/astropy/astropy). If you're
+new to this style of development, you'll want to read over our
+[development workflow](http://docs.astropy.org/en/latest/development/workflow/development_workflow.html).
+
+You may also/instead be interested in contributing to an
+[astropy affiliated package](http://www.astropy.org/affiliated/).
+Affiliated packages are astronomy-related software packages that are not a part
+of the astropy core package, but build on it for more specialized applications
+and follow the astropy guidelines for reuse, interoperability, and interfacing.
+Each affiliated package has its own developers/maintainers and its own specific
+guidelines for contributions, so be sure to read their docs.
 
 Once you open a pull request (which should be opened against the ``master``
 branch, not against any of the other branches), please make sure that you
@@ -24,7 +33,7 @@ include the following:
 - **Code**: the code you are adding, which should follow as much as possible
   our [coding guidelines](http://docs.astropy.org/en/latest/development/codeguide.html).
 
-- **Tests**: these are usually tests that ensures that code that previously
+- **Tests**: these are usually tests to ensure that code that previously
   failed now works (regression tests) or tests that cover as much as possible
   of the new functionality to make sure it doesn't break in future, and also
   returns consistent results on all platforms (since we run these tests on many
@@ -36,15 +45,21 @@ include the following:
   detailed [documentation guidelines](http://docs.astropy.org/en/latest/development/docguide.html)
   to help you out.
 
+- **Performance improvements**: if you are making changes that impact Astropy
+  performance, consider adding a performance benchmark in the
+  [astropy-benchmarks](https://github.com/astropy/astropy-benchmarks)
+  repository. You can find out more about how to do this
+  [in the README for that repository](https://github.com/astropy/astropy-benchmarks#contributing-a-benchmark).
+
 - **Changelog entry**: whether you are fixing a bug or adding new
   functionality, you should add an entry to the ``CHANGES.rst`` file that
-  includes if possible the issue number (if you are opening a pull request you
-  may not know this yet, but you can add it once the pull request is open). If
-  you're not sure where to put the changelog entry, wait at least until a
-  maintainer has reviewed your PR and assigned it to a milestone.
+  includes the PR number (if you are opening a pull request you may not know
+  this yet, but you can add it once the pull request is open). If you're not
+  sure where to put the changelog entry, wait at least until a maintainer
+  has reviewed your PR and assigned it to a milestone.
 
   You do not need to include a changelog entry for fixes to bugs introduced in
-  the developer version and which are not present in the stable releases.  In
+  the developer version and therefore are not present in the stable releases. In
   general you do not need to include a changelog entry for minor documentation
   or test updates.  Only user-visible changes (new features/API changes, fixed
   issues) need to be mentioned.  If in doubt ask the core maintainer reviewing
@@ -53,31 +68,40 @@ include the following:
 Other Tips
 ----------
 
-- When contributing trivial documentation fixes (i.e. fixes to typos, spelling,
-  grammar) that do not contain any special markup and are not associated with code
-  changes, include the string "[skip ci]" at the end of your commit message.
-  For example:
+- To prevent the automated tests from running you can add ``[ci skip]`` to your
+  commit message. This is useful if your PR is a work in progress and you are
+  not yet ready for the tests to run.  For example:
 
-      $ git commit -m "Fixed typo [skip ci]"
-
-  This will prevent automated tests for running against your change, freeing
-  up resources for testing non-trivial changes.
+      $ git commit -m "WIP widget [ci skip]"
 
   - If you already made the commit without including this string, you can edit
     your existing commit message by running:
 
         $ git commit --amend
 
-- To skip only the AppVeyor (Windows) CI builds you can use "[skip appveyor]".
-  But there is (currently) no possibility to only skip the Travis CI builds.
+- To skip only the AppVeyor (Windows) CI builds you can use ``[skip appveyor]``,
+  and to skip testing on Travis CI use ``[skip travis]``.
+
+- If your commit makes substantial changes to the documentation, but no code
+  changes, the you can use ``[docs only]``, that will skip all but the
+  documentation building jobs on Travis.
+
+- When contributing trivial documentation fixes (i.e. fixes to typos, spelling,
+  grammar) that do not contain any special markup and are not associated with
+  code changes, please include the string ``[docs only]`` in your commit
+  message.
+
+      $ git commit -m "Fixed typo [docs only]"
 
 Checklist for Contributed Code
 ------------------------------
 
-A pull request for a new feature will be reviewed to see if it meets the following requirements.  For any pull request, an astropy maintainer can help to make sure that the pull request meets the requirements for inclusion in the package.
+A pull request for a new feature will be reviewed to see if it meets the
+following requirements.  For any pull request, an astropy maintainer can help to
+make sure that the pull request meets the requirements for inclusion in the
+package.
 
-**Scientific Quality**
-(when applicable)
+**Scientific Quality** (when applicable)
   * Is the submission relevant to astronomy?
   * Are references included to the origin source for the algorithm?
   * Does the code perform as expected?
@@ -86,9 +110,9 @@ A pull request for a new feature will be reviewed to see if it meets the followi
 **Code Quality**
   * Are the [coding guidelines](http://docs.astropy.org/en/latest/development/codeguide.html)
     followed?
-  * Is the code compatible with Python 2.6, 2.7, as well as >=3.3?
+  * Is the code compatible with Python >=3.5?
   * Are there dependencies other than the Astropy core, the Python Standard
-    Library, and NumPy 1.6.0 or later?
+    Library, and NumPy 1.10.0 or later?
     * Is the package importable even if the C-extensions are not built?
     * Are additional dependencies handled appropriately?
     * Do functions that require additional dependencies  raise an `ImportError`
@@ -105,7 +129,8 @@ A pull request for a new feature will be reviewed to see if it meets the followi
 
 **Documentation**
   * Are the [documentation guidelines](http://docs.astropy.org/en/latest/development/docguide.html) followed?
-  * Is there a [docstring](http://docs.astropy.org/en/latest/development/docrules.html) in the function describing:
+  * Is there a [docstring](http://docs.astropy.org/en/latest/development/docrules.html)
+    in the function describing:
     * What the code does?
     * The format of the inputs of the function?
     * The format of the outputs of the function?
@@ -119,7 +144,7 @@ A pull request for a new feature will be reviewed to see if it meets the followi
   * Is the astropy license included at the top of the file?
   * Are there any conflicts with this code and existing codes?
 
-**astropy requirements**
-  * Do all the tests pass on the Travis and AppVeyor build?
+**Astropy requirements**
+  * Do all the Travis CI, AppVeyor, and CircleCI tests pass?
   * If applicable, has an entry been added into the changelog?
   * Can you checkout the pull request and repeat the examples and tests?

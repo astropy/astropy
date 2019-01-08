@@ -1,6 +1,6 @@
-=============================
+*****************************
 Overlaying coordinate systems
-=============================
+*****************************
 
 For the example in the following page we start from the example introduced in
 :ref:`initialization`.

@@ -71,10 +71,9 @@ files with filenames ending in ``.mtf`` as being in the ``my-table-format``
 format::
 
     import os
-    from astropy.extern import six
 
     def identify_mtf(origin, *args, **kwargs):
-        return (isinstance(args[0], six.string_types) and
+        return (isinstance(args[0], str) and
                 os.path.splitext(args[0].lower())[1] == '.mtf')
 
 .. note:: Identifier functions should be prepared for arbitrary input - in
@@ -97,10 +96,10 @@ keyword argument.
 It is also possible to create custom writers. To go with our custom reader
 above, we can write a custom writer::
 
-   def my_table_writer(table, filename, clobber=False):
+   def my_table_writer(table, filename, overwrite=False):
        ...  # Write the table out to a file
 
-Writer functons should take a dataset object (either an instance of the
+Writer functions should take a dataset object (either an instance of the
 :class:`~astropy.table.Table` or :class:`~astropy.nddata.NDData`
 classes or sub-classes), and any number of subsequent positional and keyword
 arguments - although as for the reader, the ``format`` keyword argument cannot

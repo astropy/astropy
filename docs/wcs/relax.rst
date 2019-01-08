@@ -1,7 +1,7 @@
 .. _relax:
 
 Relax constants
-===============
+***************
 
 The ``relax`` keyword argument controls the handling of non-standard
 FITS WCS keywords.
@@ -16,7 +16,7 @@ out only standard keywords), in accordance with `Postel's prescription
 .. _relaxread:
 
 Header-reading relaxation constants
------------------------------------
+===================================
 
 `~astropy.wcs.WCS`, `~astropy.wcs.Wcsprm` and
 `~astropy.wcs.find_all_wcs` have a *relax* argument, which may be
@@ -128,7 +128,7 @@ The flag bits are:
 
 - ``WCSHDR_VSOURCE``: Accept ``VSOURCEa`` or ``VSOUna``.  This appeared
   in early drafts of WCS Paper III and was subsequently dropped in
-  favour of ``ZSOURCEa`` and ``ZSOUna``.  The constructor accepts
+  favor of ``ZSOURCEa`` and ``ZSOUna``.  The constructor accepts
   ``VSOURCEa`` only if ``WCSHDR_AUXIMG`` is also enabled.
 
 - ``WCSHDR_DOBSn``: Allow ``DOBSn``, the column-specific analogue of
@@ -176,7 +176,7 @@ The flag bits are:
 
 - ``WCSHDR_CNAMn``: Accept ``iCNAMn``, ``iCRDEn``, ``iCSYEn``,
   ``TCNAMn``, ``TCRDEn``, and ``TCSYEn``, i.e. with ``a`` blank.
-  While non-standard, these are the obvious analogues of ``iCTYPn``,
+  While non-standard, these are the analogues of ``iCTYPn``,
   ``TCTYPn``, etc.
 
 - ``WCSHDR_AUXIMG``: Allow the image-header form of an auxiliary WCS
@@ -310,7 +310,7 @@ The flag bits are:
 .. _relaxwrite:
 
 Header-writing relaxation constants
------------------------------------
+===================================
 
 `~astropy.wcs.wcs.WCS.to_header` and `~astropy.wcs.wcs.WCS.to_header_string`
 has a *relax* argument which may be either `True`, `False` or an
@@ -339,7 +339,7 @@ The flag bits are:
 - ``WCSHDO_DOBSn``: Write ``DOBSn``, the column-specific analogue of
   ``DATE-OBS`` for use in binary tables and pixel lists.  WCS Paper
   III introduced ``DATE-AVG`` and ``DAVGn`` but by an oversight
-  ``DOBSn`` (the obvious analogy) was never formally defined by the
+  ``DOBSn`` was never formally defined by the
   standard.  The alternative to using ``DOBSn`` is to write
   ``DATE-OBS`` which applies to the whole table.  This usage is
   considered to be safe and is recommended.
@@ -390,7 +390,7 @@ The flag bits are:
     pixel lists
 
     for use with an alternate version specifier (the ``a``).  Like the
-    ``PC``, ``CD``, ``PV``, and ``PS`` keywords there is an obvious
+    ``PC``, ``CD``, ``PV``, and ``PS`` keywords there is a
     tendency to confuse these two forms for column numbers up to 99.
     It is very unlikely that any parser would reject keywords in the
     first set with a non-blank alternate version specifier so this

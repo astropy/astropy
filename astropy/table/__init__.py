@@ -1,9 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ..extern import six
 
-from .. import config as _config
+from astropy import config as _config
+
 
 class Conf(_config.ConfigNamespace):
     """
@@ -40,22 +38,25 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
-from .column import Column, MaskedColumn, StringTruncateWarning
+from .column import Column, MaskedColumn, StringTruncateWarning, ColumnInfo
 from .groups import TableGroups, ColumnGroups
 from .table import (Table, QTable, TableColumns, Row, TableFormatter,
                     NdarrayMixin, TableReplaceWarning)
-from .operations import join, hstack, vstack, unique, TableMergeError
+from .operations import join, setdiff, hstack, vstack, unique, TableMergeError
 from .bst import BST, FastBST, FastRBT
 from .sorted_array import SortedArray
+from .soco import SCEngine
+from .serialize import SerializedColumn
 
 # Finally import the formats for the read and write method but delay building
 # the documentation until all are loaded. (#5275)
-from ..io import registry
+from astropy.io import registry
 
 with registry.delay_doc_updates(Table):
     # Import routines that connect readers/writers to astropy.table
     from .jsviewer import JSViewer
-    from ..io.ascii import connect
-    from ..io.fits import connect
-    from ..io.misc import connect
-    from ..io.votable import connect
+    from astropy.io.ascii import connect
+    from astropy.io.fits import connect
+    from astropy.io.misc import connect
+    from astropy.io.votable import connect
+    from astropy.io.misc.asdf import connect

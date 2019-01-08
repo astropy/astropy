@@ -1,10 +1,10 @@
 .. _nddata_subclassing:
 
 Subclassing
-===========
+***********
 
 `~astropy.nddata.NDData`
-------------------------
+========================
 
 This class serves as the base for subclasses that use a `numpy.ndarray` (or
 something that presents a numpy-like interface) as the ``data`` attribute.
@@ -14,7 +14,7 @@ something that presents a numpy-like interface) as the ``data`` attribute.
   the ``data`` is saved as ``_data`` and the ``mask`` as ``_mask``, and so on.
 
 Adding another property
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
     >>> from astropy.nddata import NDData
 
@@ -22,7 +22,7 @@ Adding another property
     ...     def __init__(self, *args, **kwargs):
     ...         # Remove flags attribute if given and pass it to the setter.
     ...         self.flags = kwargs.pop('flags') if 'flags' in kwargs else None
-    ...         super(NDDataWithFlags, self).__init__(*args, **kwargs)
+    ...         super().__init__(*args, **kwargs)
     ...
     ...     @property
     ...     def flags(self):
@@ -46,7 +46,7 @@ Adding another property
   the setter and will also apply during instance creation.
 
 Customize the setter for a property
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------
 
     >>> import numpy as np
 
@@ -58,12 +58,12 @@ Customize the setter for a property
     ...         self._mask = np.array(value, dtype=np.bool_)
 
     >>> ndd = NDDataMaskBoolNumpy([1,2,3])
-    >>> ndd.mask = True
+    >>> ndd.mask = [True, False, True]
     >>> ndd.mask
-    array(True, dtype=bool)
+    array([ True, False,  True]...)
 
 Extend the setter for a property
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 ``unit``, ``meta`` and ``uncertainty`` implement some additional logic in their
 setter so subclasses might define a call to the superclass and let the
@@ -81,6 +81,9 @@ super property set the attribute afterwards::
     ...         # Call the setter of the super class in case it might contain some
     ...         # important logic (only True for meta, unit and uncertainty)
     ...         super(NDDataUncertaintyShapeChecker, self.__class__).uncertainty.fset(self, value)
+    ...         # Unlike "super(cls_name, cls_name).uncertainty.fset" or
+    ...         # or "NDData.uncertainty.fset" this will respect Pythons method
+    ...         # resolution order.
 
     >>> ndd = NDDataUncertaintyShapeChecker([1,2,3], uncertainty=[2,3,4])
     INFO: uncertainty should have attribute uncertainty_type. [astropy.nddata.nddata]
@@ -88,7 +91,7 @@ super property set the attribute afterwards::
     UnknownUncertainty([2, 3, 4])
 
 Having a setter for the data
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------
 
     >>> class NDDataWithDataSetter(NDData):
     ...
@@ -101,8 +104,10 @@ Having a setter for the data
     >>> ndd.data
     array([3, 2, 1])
 
+.. _NDDataRef:
+
 `~astropy.nddata.NDDataRef`
----------------------------
+===========================
 
 `~astropy.nddata.NDDataRef` itself inherits from `~astropy.nddata.NDData` so
 any of the possibilities there also apply to NDDataRef. But NDDataRef also
@@ -115,7 +120,7 @@ inherits from the Mixins:
 which allow additional operations.
 
 Add another arithmetic operation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 Adding another possible operations is quite easy provided the ``data`` and
 ``unit`` allow it within the framework of `~astropy.units.Quantity`.
@@ -165,12 +170,12 @@ possible.
 
 
 Arithmetic on an existing property
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------
 
 Customizing how an existing property is handled during arithmetic is possible
 with some arguments to the function calls like
 :meth:`~astropy.nddata.NDArithmeticMixin.add` but it's possible to hardcode
-behaviour too. The actual operation on the attribute (except for ``unit``) is
+behavior too. The actual operation on the attribute (except for ``unit``) is
 done in a method ``_arithmetic_*`` where ``*`` is the name of the property.
 
 For example to customize how the ``meta`` will be affected during arithmetics::
@@ -219,7 +224,7 @@ be anything except ``None`` or ``"first_found"``::
 
 
 Changing default argument for arithmetic operations
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------------------
 
 If the goal is to change the default value of an existing parameter for
 arithmetic methods, maybe because explicitly specifying the parameter each
@@ -236,7 +241,7 @@ signature of ``_arithmetic``::
     ...         if 'handle_mask' not in kwargs:
     ...             kwargs['handle_mask'] = None
     ...         # Call the original with the updated kwargs
-    ...         return super(NDDDiffAritDefaults, self)._arithmetic(*args, **kwargs)
+    ...         return super()._arithmetic(*args, **kwargs)
 
     >>> ndd1 = NDDDiffAritDefaults(1, mask=False)
     >>> ndd2 = NDDDiffAritDefaults(1, mask=True)
@@ -252,13 +257,11 @@ signature of ``_arithmetic``::
 
 The parameter controlling how properties are handled are all keyword-only
 so using the ``*args, **kwargs`` approach allows one to only alter one default
-without needing to care about the positional order of arguments. But using
-``def _arithmetic(self, *args, handle_mask=None, **kwargs)`` doesn't work
-for python 2.
+without needing to care about the positional order of arguments.
 
 
 Arithmetic with an additional property
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
 
 This also requires overriding the ``_arithmetic`` method. Suppose we have a
 ``flags`` attribute again::
@@ -270,7 +273,7 @@ This also requires overriding the ``_arithmetic`` method. Suppose we have a
     ...     def __init__(self, *args, **kwargs):
     ...         # Remove flags attribute if given and pass it to the setter.
     ...         self.flags = kwargs.pop('flags') if 'flags' in kwargs else None
-    ...         super(NDDataWithFlags, self).__init__(*args, **kwargs)
+    ...         super().__init__(*args, **kwargs)
     ...
     ...     @property
     ...     def flags(self):
@@ -296,7 +299,7 @@ This also requires overriding the ``_arithmetic`` method. Suppose we have a
     ...
     ...         # Let the superclass do all the other attributes note that
     ...         # this returns the result and a dictionary containing other attributes
-    ...         result, kwargs = super(NDDataWithFlags, self)._arithmetic(operation, operand, *args, **kwargs)
+    ...         result, kwargs = super()._arithmetic(operation, operand, *args, **kwargs)
     ...         # The arguments for creating a new instance are saved in kwargs
     ...         # so we need to add another keyword "flags" and add the processed flags
     ...         kwargs['flags'] = result_flags
@@ -306,11 +309,11 @@ This also requires overriding the ``_arithmetic`` method. Suppose we have a
     >>> ndd2 = NDDataWithFlags([1,2,3], flags=np.array([0,0,1], dtype=bool))
     >>> ndd3 = ndd1.add(ndd2)
     >>> ndd3.flags
-    array([ True, False,  True], dtype=bool)
+    array([ True, False,  True]...)
 
 
 Slicing an existing property
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------
 
 Suppose you have a class expecting a 2 dimensional ``data`` but the mask is
 only 1D. This would lead to problems if one were to slice in two dimensions.
@@ -325,12 +328,12 @@ only 1D. This would lead to problems if one were to slice in two dimensions.
     ...             # only use the first dimension of the slice
     ...             return self.mask[item[0]]
     ...         # Let the superclass deal with the other cases
-    ...         return super(NDDataMask1D, self)._slice_mask(item)
+    ...         return super()._slice_mask(item)
 
     >>> ndd = NDDataMask1D(np.ones((3,3)), mask=np.ones(3, dtype=bool))
     >>> nddsliced = ndd[1:3,1:3]
     >>> nddsliced.mask
-    array([ True,  True], dtype=bool)
+    array([ True,  True]...)
 
 .. note::
   The methods doing the slicing of the attributes are prefixed by a
@@ -342,7 +345,7 @@ only 1D. This would lead to problems if one were to slice in two dimensions.
 
 
 Slicing an additional property
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
 Building on the added property ``flags`` we want them to be sliceable:
 
@@ -350,7 +353,7 @@ Building on the added property ``flags`` we want them to be sliceable:
     ...     def __init__(self, *args, **kwargs):
     ...         # Remove flags attribute if given and pass it to the setter.
     ...         self.flags = kwargs.pop('flags') if 'flags' in kwargs else None
-    ...         super(NDDataWithFlags, self).__init__(*args, **kwargs)
+    ...         super().__init__(*args, **kwargs)
     ...
     ...     @property
     ...     def flags(self):
@@ -362,7 +365,7 @@ Building on the added property ``flags`` we want them to be sliceable:
     ...
     ...     def _slice(self, item):
     ...         # slice all normal attributes
-    ...         kwargs = super(NDDataWithFlags, self)._slice(item)
+    ...         kwargs = super()._slice(item)
     ...         # The arguments for creating a new instance are saved in kwargs
     ...         # so we need to add another keyword "flags" and add the sliced flags
     ...         kwargs['flags'] = self.flags[item]
@@ -377,7 +380,7 @@ If you wanted to keep just the original ``flags`` instead of the sliced ones
 you could use ``kwargs['flags'] = self.flags`` and omit the ``[item]``.
 
 `~astropy.nddata.NDDataBase`
-----------------------------
+============================
 
 The class `~astropy.nddata.NDDataBase` is a metaclass -- when subclassing it,
 all properties of `~astropy.nddata.NDDataBase` *must* be overridden in the
@@ -390,7 +393,7 @@ be more straightforward to subclass `~astropy.nddata.NDData` instead of
 `~astropy.nddata.NDDataBase`.
 
 Implementing the NDDataBase interface
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------
 
 For example to create a readonly container::
 
@@ -438,7 +441,7 @@ For example to create a readonly container::
   return arbitrary values but the properties **must** be defined.
 
 Subclassing `~astropy.nddata.NDUncertainty`
--------------------------------------------
+===========================================
 .. warning::
     The internal interface of NDUncertainty and subclasses is experimental and
     might change in future versions.
@@ -451,7 +454,7 @@ Subclasses deriving from `~astropy.nddata.NDUncertainty` need to implement:
   that is used on the ``NDData`` parent.
 
 Creating an uncertainty without propagation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------
 
 `~astropy.nddata.UnknownUncertainty` is a minimal working implementation
 without error propagation. So let's create an uncertainty just storing
@@ -463,6 +466,9 @@ systematic uncertainties::
     ...     @property
     ...     def uncertainty_type(self):
     ...         return 'systematic'
+    ...
+    ...     def _data_unit_to_uncertainty_unit(self, value):
+    ...         return None
     ...
     ...     def _propagate_add(self, other_uncert, *args, **kwargs):
     ...         return None
@@ -478,78 +484,3 @@ systematic uncertainties::
 
     >>> SystematicUncertainty([10])
     SystematicUncertainty([10])
-
-Subclassing `~astropy.nddata.StdDevUncertainty`
------------------------------------------------
-
-Creating an variance uncertainty
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`~astropy.nddata.StdDevUncertainty` already implements propagation based
-on gaussian standard deviation so this could be the starting point of an
-uncertainty using these propagations:
-
-    >>> from astropy.nddata import StdDevUncertainty
-    >>> import numpy as np
-    >>> import weakref
-
-    >>> class VarianceUncertainty(StdDevUncertainty):
-    ...     @property
-    ...     def uncertainty_type(self):
-    ...         return 'variance'
-    ...
-    ...     def _propagate_add(self, other_uncert, *args, **kwargs):
-    ...         # Neglect the unit assume that both are Variance uncertainties
-    ...         this = StdDevUncertainty(np.sqrt(self.array))
-    ...         other = StdDevUncertainty(np.sqrt(other_uncert.array))
-    ...
-    ...         # We need to set the parent_nddata attribute otherwise it will
-    ...         # fail for multiplication and division where the data
-    ...         # not only the uncertainty matters.
-    ...         this.parent_nddata = weakref.ref(self.parent_nddata)
-    ...         other.parent_nddata = weakref.ref(other_uncert.parent_nddata)
-    ...
-    ...         # Call propagation:
-    ...         result = this._propagate_add(other, *args, **kwargs)
-    ...
-    ...         # Return the square of it
-    ...         return np.square(result)
-
-    >>> from astropy.nddata import NDDataRef
-
-    >>> ndd1 = NDDataRef([1,2,3], unit='m', uncertainty=VarianceUncertainty([1,4,9]))
-    >>> ndd2 = NDDataRef([1,2,3], unit='m', uncertainty=VarianceUncertainty([1,4,9]))
-    >>> ndd = ndd1.add(ndd2)
-    >>> ndd.uncertainty
-    VarianceUncertainty([  2.,   8.,  18.])
-
-this approach certainly works if both are variance uncertainties, but if you
-want to allow that the second operand also can be a standard deviation one can
-override the ``_convert_uncertainty`` method as well::
-
-    >>> class VarianceUncertainty2(VarianceUncertainty):
-    ...     def _convert_uncertainty(self, other_uncert):
-    ...         if isinstance(other_uncert, VarianceUncertainty):
-    ...             return other_uncert
-    ...         elif isinstance(other_uncert, StdDevUncertainty):
-    ...             converted = VarianceUncertainty(np.square(other_uncert.array))
-    ...             converted.parent_nddata = weakref.ref(other_uncert.parent_nddata)
-    ...             return converted
-    ...         raise ValueError('not compatible uncertainties.')
-
-    >>> ndd1 = NDDataRef([1,2,3], uncertainty=VarianceUncertainty2([1,4,9]))
-    >>> ndd2 = NDDataRef([1,2,3], uncertainty=StdDevUncertainty([1,2,3]))
-    >>> ndd = ndd1.add(ndd2)
-    >>> ndd.uncertainty
-    VarianceUncertainty2([  2.,   8.,  18.])
-
-.. warning::
-    This will only allow the **second** operand to have a
-    `~astropy.nddata.StdDevUncertainty` uncertainty. It will fail if the first
-    operand is standard deviation and the second operand a variance.
-
-.. note::
-    Creating a variance uncertainty like this might require more work to
-    include proper treatment of the unit of the uncertainty! And of course
-    implementing also the ``_propagate_*`` for subtraction, division and
-    multiplication.

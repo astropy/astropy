@@ -4,7 +4,7 @@
 .. _table_operations:
 
 Table operations
------------------
+*****************
 
 In this section we describe higher-level operations that can be used to generate a new
 table from one or more input tables.  This includes:
@@ -36,12 +36,18 @@ table from one or more input tables.  This includes:
    * - `Unique rows`_
      - Unique table rows by keys
      - `~astropy.table.unique`
+   * - `Set difference`_
+     - Set difference of two tables
+     - `~astropy.table.setdiff`
+   * - `Table diff`_
+     - Generic difference of two simple tables
+     - `~astropy.utils.diff.report_diff_values`
 
 
 .. _grouped-operations:
 
 Grouped operations
-^^^^^^^^^^^^^^^^^^
+------------------
 
 Sometimes in a table or table column there are natural groups within the dataset for which
 it makes sense to compute some derived values.  A simple example is a list of objects with
@@ -62,7 +68,7 @@ photometry from various observing runs::
   ...                     """, format='ascii')
 
 Table groups
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 Now suppose we want the mean magnitudes for each object.  We first group the data by the
 ``name`` column with the :func:`~astropy.table.Table.group_by` method.  This returns
@@ -127,7 +133,7 @@ night, we would first group the table on both ``name`` and ``obs_date`` as follo
 
 
 Manipulating groups
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Once you have applied grouping to a table then you can easily access the individual
 groups or subsets of groups.  In all cases this returns a new grouped table.
@@ -200,7 +206,7 @@ One can iterate over the group sub-tables and corresponding keys with::
    M82 2012-03-26  15.7  16.5
 
 Column Groups
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 Like |Table| objects, |Column| objects can also be grouped for subsequent
 manipulation with grouped operations.  This can apply both to columns within a
@@ -242,7 +248,7 @@ Examples::
 
 
 Aggregation
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 Aggregation is the process of applying a
 specified reduction function to the values within each group for each
@@ -274,19 +280,22 @@ it is automatically ignored from aggregation.
 From a grouped table it is possible to select one or more columns on which
 to perform the aggregation::
 
-  >>> print(obs_by_name['mag_b'].groups.aggregate(np.mean))
+  >>> print(obs_by_name['mag_b'].groups.aggregate(np.mean))  # doctest: +SKIP
   mag_b
   -----
    15.0
    17.0
-   15.7
+   15.1
 
-  >>> print(obs_by_name['name', 'mag_v', 'mag_b'].groups.aggregate(np.mean))
+
+  >>> print(obs_by_name['name', 'mag_v', 'mag_b'].groups.aggregate(np.mean))  # doctest: +SKIP
   name mag_v  mag_b
   ---- ------ -----
   M101 13.725  15.0
    M31   17.4  17.0
    M82   15.5  15.7
+
+.. above tests skipped as results look different in "not NUMPY_LT_1_14".
 
 A single column of data can be aggregated as well::
 
@@ -321,7 +330,7 @@ respective reduceat methods.
 
 
 Filtering
-~~~~~~~~~~
+^^^^^^^^^^
 
 Table groups can be filtered by means of the
 `~astropy.table.groups.TableGroups.filter` method.  This is done by
@@ -384,7 +393,7 @@ either `True` or `False`.  For example::
 .. _table_binning:
 
 Binning
-^^^^^^^
+-------
 
 A common tool in analysis is to bin a table based on some reference value.
 Examples:
@@ -437,7 +446,7 @@ This time plot with ``plt.plot(dat_binned['phase'], dat_binned['mag'])``.
 .. _stack-vertically:
 
 Stack vertically
-^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 The |Table| class supports stacking tables vertically with the
 `~astropy.table.vstack` function.  This process is also commonly known as
@@ -519,7 +528,7 @@ full table as one of the inputs.
 .. _stack-horizontally:
 
 Stack horizontally
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 The |Table| class supports stacking tables horizontally (in the column-wise direction) with the
 `~astropy.table.hstack` function.    It corresponds roughly
@@ -585,9 +594,9 @@ full table as one of the inputs.
 .. _table-join:
 
 Join
-^^^^^^^^^^^^^^
+--------------
 
-The |Table| class supports the `database join <http://en.wikipedia.org/wiki/Join_(SQL)>`_
+The |Table| class supports the `database join <https://en.wikipedia.org/wiki/Join_(SQL)>`_
 operation.  This provides a flexible and powerful way to combine tables based on the
 values in one or more key columns.
 
@@ -632,7 +641,7 @@ the "left" (``optical``) and "right" (``xray``) tables, respectively.
 
 
 Different join options
-~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^
 
 The table joins so far are known as "inner" joins and represent the strict intersection of
 the two tables on the key columns.
@@ -679,7 +688,7 @@ In all cases the output join table will be sorted by the key column(s) and in ge
 will not preserve the row order of the input tables.
 
 Non-identical key column names
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The |join| function requires the key column names to be identical in the
 two tables. However, in the following one table has a ``'name'`` column
@@ -718,7 +727,7 @@ The original ``xray_1`` table remains unchanged after the operation::
 
 
 Identical key values
-~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^
 
 The |Table| join operation works even if there are multiple rows with identical key
 values.  For example the following tables have multiple rows for the key column ``x``::
@@ -742,7 +751,7 @@ values.  For example the following tables have multiple rows for the key column 
     4  R4
 
 Doing an outer join on these tables shows that what is really happening is a `Cartesian
-product <http://en.wikipedia.org/wiki/Cartesian_product>`_.  For each matching key, every
+product <https://en.wikipedia.org/wiki/Cartesian_product>`_.  For each matching key, every
 combination of the left and right tables is represented.  When there is no match in either
 the left or right table, the corresponding column values are designated as missing.
 
@@ -786,14 +795,14 @@ attributes`_ for details on how these characteristics of the input tables are me
 the single output table.
 
 Merging details
-^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 When combining two or more tables there is the need to merge certain
 characteristics in the inputs and potentially resolve conflicts.  This
 section describes the process.
 
 Column renaming
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 
 In cases where the input tables have conflicting column names, there
@@ -821,7 +830,7 @@ in the |join| example defined previously::
 
 
 Merging metadata
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 |Table| objects can have associated metadata:
 
@@ -858,7 +867,7 @@ In most cases one also will use the
 strategies. The linked documentation strings provide details.
 
 Merging column attributes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In addition to the table and column ``meta`` attributes, the column attributes ``unit``,
 ``format``, and ``description`` are merged by going through the input tables in
@@ -884,7 +893,7 @@ The rules for merging are as for `Merging metadata`_, and the
 .. _unique-rows:
 
 Unique rows
-^^^^^^^^^^^
+-----------
 
 Sometimes it makes sense to use only rows with unique key columns or even
 fully unique rows from a table. This can be done using the above described
@@ -934,3 +943,85 @@ Using multiple columns as ``keys``::
    M31 2012-02-14  16.9  17.3
    M82 2012-02-14  16.2  14.5
    M82 2012-03-26  15.7  16.5
+
+
+.. _set-difference:
+
+Set difference
+--------------
+
+A set difference will tell you the elements that are contained in one set but
+not in the other.  This concept can be applied to rows of a table by using the
+`~astropy.table.setdiff` function. You provide the function with two input
+tables and it will return all rows in the first table which do not occur in
+the second table.
+
+The optional ``keys`` parameter specifies the names of columns that are used to
+match table rows.  This can be a subset of the full list of columns, but both
+the first and second tables must contain all columns specified by ``keys``.
+If not provided then ``keys`` defaults to all column names in the first table.
+
+If no different rows are found the `~astropy.table.setdiff` function will
+return an empty table.
+
+The example below illustrates finding the set difference of two observation
+lists using a common subset of the columns in two tables.::
+
+  >>> from astropy.table import Table, setdiff
+  >>> cat_1 = Table.read("""name    obs_date    mag_b  mag_v
+  ...                       M31     2012-01-02  17.0   16.0
+  ...                       M82     2012-10-29  16.2   15.2
+  ...                       M101    2012-10-31  15.1   15.5""", format='ascii')
+  >>> cat_2 = Table.read("""   name    obs_date    logLx
+  ...                          NGC3516 2011-11-11  42.1
+  ...                          M31     2012-01-02  43.1
+  ...                          M82     2012-10-29  45.0""", format='ascii')
+  >>> sdiff = setdiff(cat_1, cat_2, keys=['name', 'obs_date'])
+  >>> print(sdiff)
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+  M101 2012-10-31  15.1  15.5
+
+In this example there is a column in the first table that is not
+present in the second table, so the ``keys`` parameter must be used to specify
+the desired column names.
+
+
+.. _table-diff:
+
+Table diff
+----------
+
+To compare two simple tables, you can use
+:func:`~astropy.utils.diff.report_diff_values`, which would produce a report
+identical to :ref:`FITS diff <io-fits-differs>`.
+The example below illustrates finding the difference between two
+simple tables::
+
+  >>> from astropy.table import Table
+  >>> from astropy.utils.diff import report_diff_values
+  >>> import sys
+  >>> cat_1 = Table.read("""name    obs_date    mag_b  mag_v
+  ...                       M31     2012-01-02  17.0   16.0
+  ...                       M82     2012-10-29  16.2   15.2
+  ...                       M101    2012-10-31  15.1   15.5""", format='ascii')
+  >>> cat_2 = Table.read("""name    obs_date    mag_b  mag_v
+  ...                       M31     2012-01-02  17.0   16.5
+  ...                       M82     2012-10-29  16.2   15.2
+  ...                       M101    2012-10-30  15.1   15.5
+  ...                       NEW     2018-05-08   nan    9.0""", format='ascii')
+  >>> identical = report_diff_values(cat_1, cat_2, fileobj=sys.stdout)
+       name  obs_date  mag_b mag_v
+       ---- ---------- ----- -----
+    a>  M31 2012-01-02  17.0  16.0
+     ?                           ^
+    b>  M31 2012-01-02  17.0  16.5
+     ?                           ^
+        M82 2012-10-29  16.2  15.2
+    a> M101 2012-10-31  15.1  15.5
+     ?               ^
+    b> M101 2012-10-30  15.1  15.5
+     ?               ^
+    b>  NEW 2018-05-08   nan   9.0
+  >>> identical
+  False
