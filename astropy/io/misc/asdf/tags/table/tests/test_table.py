@@ -219,6 +219,16 @@ def test_earthlocation_mixin(tmpdir):
     helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
 
 
+def test_ndarray_mixin(tmpdir):
+
+    t = table.Table()
+    t['a'] = [1, 2]
+    t['b'] = ['x', 'y']
+    t['c'] = table.NdarrayMixin([5, 6])
+
+    helpers.assert_roundtrip_tree({'table': t}, tmpdir)
+
+
 def test_backwards_compat():
     """
     Make sure that we can continue to read tables that use the schema from
