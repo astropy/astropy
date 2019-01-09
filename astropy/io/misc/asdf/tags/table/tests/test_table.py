@@ -6,7 +6,7 @@ import numpy as np
 
 import astropy.units as u
 from astropy import table
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
 from astropy import __minimum_asdf_version__
 from astropy.table.tests.test_operations import skycoord_equal
@@ -170,6 +170,19 @@ def test_time_mixin(tmpdir):
 
     def check(ff):
         assert isinstance(ff['table']['c'], Time)
+
+    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+
+
+def test_timedelta_mixin(tmpdir):
+
+    t = table.Table()
+    t['a'] = [1, 2]
+    t['b'] = ['x', 'y']
+    t['c'] = TimeDelta([1, 2] * u.day)
+
+    def check(ff):
+        assert isinstance(ff['table']['c'], TimeDelta)
 
     helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
 
