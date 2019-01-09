@@ -5,6 +5,8 @@
 from asdf.yamlutil import custom_tree_to_tagged_tree
 
 from astropy.time import TimeDelta
+from astropy.time.tests.test_delta import (allclose_jd, allclose_jd2,
+                                           allclose_sec)
 
 from ...types import AstropyType
 
@@ -26,3 +28,10 @@ class TimeDeltaType(AstropyType):
     @classmethod
     def from_tree(cls, node, ctx):
         return TimeDelta.info._construct_from_dict(node)
+
+
+    @classmethod
+    def assert_equal(cls, old, new):
+        assert allclose_jd(old.jd, new.jd)
+        assert allclose_jd2(old.jd2, new.jd2)
+        assert allclose_sec(old.sec, new.sec)

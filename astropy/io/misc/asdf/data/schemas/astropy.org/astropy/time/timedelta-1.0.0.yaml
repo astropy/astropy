@@ -9,11 +9,15 @@ description: |
 type: object
 properties:
     jd1:
-      type: number
+      anyOf:
+        - type: number
+        - $ref: "tag:stsci.edu:asdf/core/ndarray-1.0.0"
       description: |
         Value representing first 64 bits of precision
     jd2:
-      type: number
+      anyOf:
+        - type: number
+        - $ref: "tag:stsci.edu:asdf/core/ndarray-1.0.0"
       description: |
         Value representing second 64 bits of precision
     format:
