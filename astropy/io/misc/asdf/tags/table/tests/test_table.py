@@ -7,9 +7,11 @@ import numpy as np
 import astropy.units as u
 from astropy import table
 from astropy import __minimum_asdf_version__
+from astropy.table.tests.test_operations import skycoord_equal
 
 asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
 from asdf.tests import helpers
+from asdf.tags.core.ndarray import NDArrayType
 
 from astropy.time import Time
 
@@ -170,6 +172,25 @@ def test_time_mixin(tmpdir):
         assert isinstance(ff['table']['c'], Time)
 
     helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+
+
+def test_skycoord_mixin(tmpdir):
+
+    t = table.Table()
+    t['a'] = [1, 2]
+    t['b'] = ['x', 'y']
+    t['c'] = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4', obstime='J1990.5')
+
+    def check(ff):
+        assert isinstance(ff['table']['c'], SkyCoord)
+
+    def tree_match(old, new):
+        NDArrayType.assert_equal(new['a'], old['a'])
+        NDArrayType.assert_equal(new['b'], old['b'])
+        assert skycoord_equal(new['c'], old['c'])
+
+    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check,
+                                  tree_match_func=tree_match)
 
 
 def test_backwards_compat():

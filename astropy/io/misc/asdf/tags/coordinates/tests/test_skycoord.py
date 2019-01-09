@@ -111,3 +111,11 @@ def test_skycoord_extra_attribute(tmpdir):
         assert hasattr(asdffile['coord'], 'equinox')
 
     assert_roundtrip_tree(tree, tmpdir, asdf_check_func=check_asdf)
+
+
+def test_skycoord_2d_obstime(tmpdir):
+
+    sc = SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
+                    obstime=['J1990.5', 'J1991.5']),
+    tree = dict(coord=sc)
+    assert_roundtrip_tree(tree, tmpdir)
