@@ -832,29 +832,7 @@ class TestLogQuantityMethods:
 
     @pytest.mark.parametrize('method', ('prod', 'cumprod'))
     def test_never_ok(self, method):
-        with pytest.raises(u.UnitsError):
+        with pytest.raises(TypeError):
             getattr(self.mJy, method)()
-        with pytest.raises(u.UnitsError):
+        with pytest.raises(TypeError):
             getattr(self.m1, method)()
-
-
-class TestLogQuantityUfuncs:
-    """Spot checks on ufuncs."""
-
-    def setup(self):
-        self.mJy = np.arange(1., 5.).reshape(2, 2) * u.mag(u.Jy)
-        self.m1 = np.arange(1., 5.5, 0.5).reshape(3, 3) * u.mag()
-        self.mags = (self.mJy, self.m1)
-
-    def test_power(self):
-        assert np.all(np.power(self.mJy, 0.) == 1.)
-        assert np.all(np.power(self.m1, 1.) == self.m1)
-        assert np.all(np.power(self.mJy, 1.) == self.mJy)
-        assert np.all(np.power(self.m1, 2.) == self.m1 ** 2)
-        with pytest.raises(u.UnitsError):
-            np.power(self.mJy, 2.)
-
-    def test_not_implemented_with_physical_unit(self):
-        with pytest.raises(u.UnitsError):
-            np.square(self.mJy)
-        assert np.all(np.square(self.m1) == self.m1 ** 2)

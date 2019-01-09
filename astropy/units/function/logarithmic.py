@@ -265,6 +265,16 @@ class LogQuantity(FunctionQuantity):
         self._set_unit(new_unit)
         return self
 
+    def __pow__(self, other):
+        # We check if this power is OK by applying it first to the unit.
+        try:
+            other = float(other)
+        except TypeError:
+            return NotImplemented
+        new_unit = self.unit ** other
+        new_value = self.view(np.ndarray) ** other
+        return self._new_view(new_value, new_unit)
+
     # Could add __mul__ and __div__ and try interpreting other as a power,
     # but this seems just too error-prone.
 

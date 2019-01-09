@@ -158,11 +158,10 @@ This will result in the following traceback when using this with Quantities::
 
     >>> from astropy import units as u, constants as const
     >>> import numpy as np
-    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s)
+    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s)  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
-    astropy.units.core.UnitsError: Can only apply 'add' function to dimensionless quantities when other argument is not
-    a quantity (unless the latter is all zero/infinity/nan)
+    UnitConversionError: Can only apply 'add' function to dimensionless quantities when other argument is not a quantity (unless the latter is all zero/infinity/nan)
 
 An easy solution is::
 
