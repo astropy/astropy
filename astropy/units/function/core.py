@@ -7,13 +7,13 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 
 from astropy.units import (Unit, UnitBase, UnitsError, UnitTypeError,
-                dimensionless_unscaled, Quantity)
+                           dimensionless_unscaled, Quantity)
 
 __all__ = ['FunctionUnitBase', 'FunctionQuantity']
 
 SUPPORTED_UFUNCS = set(getattr(np.core.umath, ufunc) for ufunc in (
     'isfinite', 'isinf', 'isnan', 'sign', 'signbit',
-    'rint', 'floor', 'ceil', 'trunc', 'power',
+    'rint', 'floor', 'ceil', 'trunc',
     '_ones_like', 'ones_like', 'positive') if hasattr(np.core.umath, ufunc))
 
 # TODO: the following could work if helper changed relative to Quantity:
@@ -547,6 +547,18 @@ class FunctionQuantity(Quantity):
 
         self._unit = unit
 
+    def __array_ufunc__(self, function, method, *inputs, **kwargs):
+        # TODO: it would be more logical to have this in Quantity already,
+        # instead of in UFUNC_HELPERS, where it cannot be overridden.
+        # And really it should just return NotImplemented, since possibly
+        # another argument might know what to do.
+        if function not in self._supported_ufuncs:
+            raise UnitTypeError(
+                "Cannot use ufunc '{0}' with function quantities"
+                .format(function.__name__))
+
+        return super().__array_ufunc__(function, method, *inputs, **kwargs)
+
     # ↓↓↓ methods overridden to change behavior
     def __mul__(self, other):
         if self.unit.physical_unit == dimensionless_unscaled:
@@ -631,3 +643,21 @@ class FunctionQuantity(Quantity):
         raise TypeError("Cannot use method that uses function '{0}' with "
                         "function quantities that are not dimensionless."
                         .format(function.__name__))
+
+    # Override functions that are supported but do not use _wrap_function
+    # in Quantity.
+    def mean(self, axis=None, dtype=None, out=None):
+        return self._wrap_function(np.mean, axis, dtype, out=out)
+
+    def max(self, axis=None, out=None, keepdims=False):
+        return self._wrap_function(np.max, axis, out=out, keepdims=keepdims)
+
+    def min(self, axis=None, out=None, keepdims=False):
+        return self._wrap_function(np.min, axis, out=out, keepdims=keepdims)
+
+    def sum(self, axis=None, dtype=None, out=None, keepdims=False):
+        return self._wrap_function(np.sum, axis, dtype, out=out,
+                                   keepdims=keepdims)
+
+    def cumsum(self, axis=None, dtype=None, out=None):
+        return self._wrap_function(np.cumsum, axis, dtype, out=out)
