@@ -577,7 +577,7 @@ def beam_angular_area(beam_area):
 
 
 def thermodynamic_temperature(frequency, T_cmb=None):
-    r"""Defines the conversion between Jy/beam and "thermodynamic temperature",
+    r"""Defines the conversion between Jy/sr and "thermodynamic temperature",
     :math:`T_{CMB}`, in Kelvins.  The thermodynamic temperature is a unit very
     commonly used in cosmology. See eqn 8 in [1]
 
