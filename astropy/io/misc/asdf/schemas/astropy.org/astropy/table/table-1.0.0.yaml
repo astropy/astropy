@@ -103,6 +103,7 @@ properties:
         - $ref: "tag:stsci.edu:asdf/time/time-1.1.0"
         - $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
         - $ref: "../coordinates/skycoord-1.0.0"
+        - $ref: "../coordinates/earthlocation-1.0.0"
         - $ref: "../time/timedelta-1.0.0"
 
   colnames:

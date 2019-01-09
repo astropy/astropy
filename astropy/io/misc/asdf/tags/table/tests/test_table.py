@@ -7,10 +7,10 @@ import numpy as np
 import astropy.units as u
 from astropy import table
 from astropy.time import Time, TimeDelta
-from astropy.coordinates import SkyCoord
-from astropy import __minimum_asdf_version__
+from astropy.coordinates import SkyCoord, EarthLocation
 from astropy.table.tests.test_operations import skycoord_equal
 
+from astropy import __minimum_asdf_version__
 asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
 from asdf.tests import helpers
 from asdf.tags.core.ndarray import NDArrayType
@@ -204,6 +204,19 @@ def test_skycoord_mixin(tmpdir):
 
     helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check,
                                   tree_match_func=tree_match)
+
+
+def test_earthlocation_mixin(tmpdir):
+
+    t = table.Table()
+    t['a'] = [1, 2]
+    t['b'] = ['x', 'y']
+    t['c'] = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
+
+    def check(ff):
+        assert isinstance(ff['table']['c'], EarthLocation)
+
+    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
 
 
 def test_backwards_compat():
