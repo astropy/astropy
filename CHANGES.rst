@@ -45,6 +45,7 @@ astropy.io.misc
 - Implement serialization of ``SkyCoord`` in ASDF. [#8284]
 
 - No warnings when reading HDF5 files with only one table and no ``path=`` argument [#8483]
+- Support serialization of Astropy tables with mixin columns in ASDF. [#8337]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
