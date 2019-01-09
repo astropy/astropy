@@ -22,6 +22,9 @@ astropy.cosmology
 astropy.extern
 ^^^^^^^^^^^^^^
 
+- Bundled ``six`` now emits ``AstropyDeprecationWarning``. It will be removed
+  in 4.0. [#8323]
+
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
