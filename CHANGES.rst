@@ -605,7 +605,7 @@ astropy.units
 - Add complex numbers support for ``Quantity._repr_latex_``. [#7676]
 
 - Add ``thermodynamic_temperature`` equivalency to convert between
-  Jy/beam and "thermodynamic temperature" for cosmology. [#7054]
+  Jy/sr and "thermodynamic temperature" for cosmology. [#7054]
 
 - Add millibar unit. [#7863]
 
