@@ -14,6 +14,7 @@ from asdf.util import filepath_to_url
 from .tags.coordinates.angle import *
 from .tags.coordinates.frames import *
 from .tags.coordinates.earthlocation import *
+from .tags.coordinates.skycoord import *
 from .tags.coordinates.representation import *
 from .tags.fits.fits import *
 from .tags.table.table import *
