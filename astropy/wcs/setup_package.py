@@ -13,6 +13,7 @@ from distutils.core import Extension
 from distutils.dep_util import newer_group
 
 
+from astropy_helpers.utils import import_file
 from astropy_helpers import setup_helpers
 from astropy_helpers.distutils_helpers import get_distutils_build_option
 
@@ -113,7 +114,8 @@ def write_wcsconfig_h(paths):
 
 
 def generate_c_docstrings():
-    from astropy.wcs import docstrings
+    docstrings = import_file(os.path.join(WCSROOT, 'docstrings.py'),
+                             name='astropy.wcs.docstrings')
     docstrings = docstrings.__dict__
     keys = [
         key for key, val in docstrings.items()
@@ -176,7 +178,10 @@ MSVC, do not support string literals greater than 256 characters.
 
 
 def get_wcslib_cfg(cfg, wcslib_files, include_paths):
-    from astropy.version import debug
+
+    # FIXME: figure out a better way to deal with debug flag
+    # from astropy.version import debug
+    debug = False
 
     cfg['include_dirs'].append('numpy')
     cfg['define_macros'].extend([
