@@ -13,8 +13,7 @@ import ah_bootstrap  # noqa
 from astropy_helpers.distutils_helpers import is_distutils_display_option
 from astropy_helpers.setup_helpers import setup
 
-import astropy  # noqa
-min_numpy_version = 'numpy>=' + astropy.__minimum_numpy_version__
+min_numpy_version = 'numpy>=1.13'
 
 if is_distutils_display_option():
     # Avoid installing setup_requires dependencies if the user just
