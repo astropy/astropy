@@ -7,6 +7,7 @@ from distutils import log
 from distutils.extension import Extension
 
 from astropy_helpers import setup_helpers
+from astropy_helpers.utils import import_file
 from astropy_helpers.version_helpers import get_pkg_version_module
 
 ERFAPKGDIR = os.path.relpath(os.path.dirname(__file__))
@@ -46,7 +47,8 @@ def preprocess_source():
         erfa_mtime = max(os.path.getmtime(filename) for filename in SRC_FILES)
         gen_mtime = min(os.path.getmtime(filename) for filename in GEN_FILES)
 
-        version = get_pkg_version_module('astropy')
+        version = import_file(os.path.join(ERFAPKGDIR, '..', 'version.py'),
+                              name='astropy.version')
 
         if gen_mtime > erfa_mtime:
             # If generated source is recent enough, don't update
@@ -72,16 +74,8 @@ def preprocess_source():
                      "ERFA core.py and ufunc.c files will be used")
             return
 
-    name = 'erfa_generator'
-    filename = os.path.join(ERFAPKGDIR, 'erfa_generator.py')
-
-    try:
-        from importlib import machinery as import_machinery
-        loader = import_machinery.SourceFileLoader(name, filename)
-        gen = loader.load_module()
-    except ImportError:
-        import imp
-        gen = imp.load_source(name, filename)
+    gen = import_file(os.path.join(ERFAPKGDIR, 'erfa_generator.py'),
+                      name='erfa_generator')
 
     gen.main(verbose=False)
 
