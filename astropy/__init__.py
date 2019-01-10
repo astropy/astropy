@@ -59,19 +59,6 @@ def _is_astropy_setup():
             os.path.basename(main_mod.__file__).rstrip('co') == 'setup.py' and
             _is_astropy_source(main_mod.__file__))
 
-
-# this indicates whether or not we are in astropy's setup.py
-try:
-    _ASTROPY_SETUP_
-except NameError:
-    from sys import version_info
-    import builtins
-
-    # This will set the _ASTROPY_SETUP_ to True by default if
-    # we are running Astropy's setup.py
-    builtins._ASTROPY_SETUP_ = _is_astropy_setup()
-
-
 try:
     from .version import version as __version__
 except ImportError:
@@ -117,8 +104,7 @@ def _check_numpy():
     return numpy
 
 
-if not _ASTROPY_SETUP_:
-    _check_numpy()
+_check_numpy()
 
 
 from . import config as _config
@@ -282,14 +268,13 @@ import logging
 log = logging.getLogger()
 
 
-if not _ASTROPY_SETUP_:
-    from .logger import _init_log, _teardown_log
+from .logger import _init_log, _teardown_log
 
-    log = _init_log()
+log = _init_log()
 
-    _initialize_astropy()
+_initialize_astropy()
 
-    from .utils.misc import find_api_page
+from .utils.misc import find_api_page
 
 
 def online_help(query):

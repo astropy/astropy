@@ -46,13 +46,7 @@ import numpy as np
 from astropy import log
 from astropy.io import fits
 from . import docstrings as docutils
-try:
-    from . import _wcs
-except ImportError:
-    if not _ASTROPY_SETUP_:
-        raise
-    else:
-        _wcs = None
+from . import _wcs
 
 from astropy.utils.compat import possible_filename
 from astropy.utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
