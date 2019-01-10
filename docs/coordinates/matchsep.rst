@@ -187,7 +187,7 @@ frame aligned with standard ICRA RA/Dec, but on M31::
 Matching Catalogs
 =================
 
-`~astropy.coordinates` supports leverages the coordinate framework to make it
+`~astropy.coordinates` leverages the coordinate framework to make it
 straightforward to find the closest coordinates in a catalog to a desired set
 of other coordinates. For example, assuming ``ra1``/``dec1`` and
 ``ra2``/``dec2`` are numpy arrays loaded from some file::
@@ -230,6 +230,18 @@ will work on either |skycoord| objects *or* the lower-level frame classes::
     >>> from astropy.coordinates import match_coordinates_sky
     >>> idx, d2d, d3d = match_coordinates_sky(c, catalog)  # doctest: +SKIP
     >>> idx, d2d, d3d = match_coordinates_sky(c.frame, catalog.frame)  # doctest: +SKIP
+
+It is possible to impose a separation constraint (e.g., the maximum separation to be
+considered a match) by creating a boolean mask with ``d2d`` or ``d3d``. For example,::
+
+    >>> max_sep = 1.0 * u.arcsec # doctest: +SKIP
+    >>> idx, d2d, d3d = c.match_to_catalog_3d(catalog) # doctest: +SKIP
+    >>> sep_constraint = idx < max_sep # doctest: +SKIP
+    >>> c_matches = c[sep_constraint] # doctest: +SKIP
+    >>> catalog_matches = c[idx[sep_constraint]] # doctest: +SKIP
+
+Now, ``c_matches`` and ``catalog_matches`` are the matched sources in ``c``
+and ``catalog``, respectively, which are separated by less than 1 arcsecond.
 
 .. _astropy-searching-coordinates:
 
