@@ -16,15 +16,6 @@ if LooseVersion(setuptools.__version__) < LooseVersion('30.3.0'):
 from setuptools.config import read_configuration
 conf = read_configuration('setup.cfg')
 
-# This is the same check as astropy/__init__.py but this one has to
-# happen before importing ah_bootstrap. We strip the > or >= from
-# python_requires to find the actual minimum version.
-minimum_python_version = conf['options']['python_requires'].replace('>', '').replace('=', '')
-if sys.version_info < tuple((int(val) for val in minimum_python_version.split('.'))):
-    sys.stderr.write("ERROR: Astropy requires Python {} or later\n".format(
-        minimum_python_version))
-    sys.exit(1)
-
 import os
 import glob
 
