@@ -68,7 +68,7 @@ packages that use the full bugfix/maintenance branch approach.)
 #. Make sure that the continuous integration services (e.g., Travis) are passing
    for the `astropy core repository`_ branch you're going to release.  You may
    also want to locally run the tests (with remote data on to ensure all the
-   tests actually run), and make sure the description in ``setup.py`` is ReST
+   tests actually run), and make sure the description in ``setup.cfg`` is ReST
    compliant::
 
       $ python setup.py test --remote-data=any
@@ -98,12 +98,12 @@ packages that use the full bugfix/maintenance branch approach.)
       $ git add CHANGES.rst
       $ git commit -m "Finalizing changelog for v<version>"
 
-#. Edit the ``setup.py`` file by removing the ``".dev"`` at the end of the
-   ``VERSION`` string, then add and commit that change as the final step prior
+#. Edit the ``setup.cfg`` file by removing the ``".dev"`` at the end of the
+   ``version`` string, then add and commit that change as the final step prior
    to release::
 
-      <use your favorite editor on setup.py>
-      $ git add setup.py
+      <use your favorite editor on setup.cfg>
+      $ git add setup.cfg
       $ git commit -m "Preparing release v<version>"
 
 #. Tag the commit with ``v<version>``, being certain to sign the tag with the
@@ -200,13 +200,13 @@ packages that use the full bugfix/maintenance branch approach.)
       $ gpg --detach-sign -a dist/astropy-<version>.tar.gz
       $ twine upload dist/astropy-<version>*
 
-#. Go back to release branch (e.g., ``1.2.x``) and edit the ``VERSION`` in
-   ``setup.py`` to be the next version number, but with
+#. Go back to release branch (e.g., ``1.2.x``) and edit the ``version`` in
+   ``setup.cfg`` to be the next version number, but with
    a ``.dev`` suffix at the end (e.g., ``1.2.3.dev``).  Then add and commit::
 
       $ git checkout v1.2.x
-      <use your favorite editor on setup.py>
-      $ git add setup.py
+      <use your favorite editor on setup.cfg>
+      $ git add setup.cfg
       $ git commit -m "Back to development: v<next_version>.dev"
 
 #. Also update the ``CHANGES.rst`` file with a new section for the next version.
@@ -333,12 +333,12 @@ The procedure for this is straightforward:
 
       $ git branch v<version>.x
 
-#. Update the ``VERSION`` in ``setup.py`` to reflect the new major version. For
+#. Update the ``version`` in ``setup.cfg`` to reflect the new major version. For
    example, if you are about to issue a feature freeze for version ``1.2``, you
    will want to set the new version to ``'1.3.dev'``. Then add and commit that::
 
-      <use your favorite editor on setup.py>
-      $ git add setup.py
+      <use your favorite editor on setup.cfg>
+      $ git add setup.cfg
       $ git commit -m "Next major version: <next_version>"
 
 #. Update the ``CHANGES.rst`` file with a new section at the very top for the

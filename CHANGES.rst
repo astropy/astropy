@@ -254,6 +254,9 @@ Other Changes and Additions
 Installation
 ^^^^^^^^^^^^
 
+- We now require setuptools 30.3.0 or later to install the core astropy
+  package. [#8240]
+
 - We now define groups of dependencies that can be installed with pip, e.g.
   ``pip install astropy[all]`` (to install all optional dependencies). [#8198]
 
