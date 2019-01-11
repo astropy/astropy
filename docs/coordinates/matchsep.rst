@@ -2,8 +2,8 @@
 
 .. _astropy-coordinates-separations-matching:
 
-Separations, Catalog Matching, and Related Functionality
-********************************************************
+Separations, Offsets, Catalog Matching, and Related Functionality
+*****************************************************************
 
 `astropy.coordinates` contains commonly-used tools for comparing or
 matching coordinate objects.  Of particular importance are those for
@@ -60,6 +60,41 @@ defined::
     >>> sep  # doctest: +FLOAT_CMP
     <Distance 28.743988157814094 kpc>
 
+
+Offsets
+=======
+
+Closely related to angular separations are offsets between coordinates. The key
+distinction for offsets is generally the concept of a "from" and "to" coordinate
+rather than the single scalar angular offset of a separation.
+`~astropy.coordinates` contains conveniences to compute some of the common
+offsets encountered in astronomy.
+
+The first piece of such functionality is the
+:meth:`~astropy.coordinates.SkyCoord.position_angle` method, which gives the
+conventional astronomy position angle (positive angles East of North) from one
+the |skycoord| it is called on to another given as the argument::
+
+    >>> from astropy.coordinates import SkyCoord
+    >>> c1 = SkyCoord(1*u.deg, 1*u.deg, frame='icrs')
+    >>> c2 = SkyCoord(2*u.deg, 2*u.deg, frame='icrs')
+    >>> c1.position_angle(c2).to(u.deg)  # doctest: +FLOAT_CMP
+    <Angle 44.97818294 deg>
+
+The combination of :meth:`~astropy.coordinates.SkyCoord.separation` and
+:meth:`~astropy.coordinates.SkyCoord.position_angle` thus give a set of
+directional offsets. To do the inverse operation - determining the new
+"destination" coordinate given a separation and position angle - the
+:meth:`~astropy.coordinates.SkyCoord.directional_offset_by` method is provided::
+
+    >>> from astropy.coordinates import SkyCoord
+    >>> c1 = SkyCoord(1*u.deg, 1*u.deg, frame='icrs')
+    >>> position_angle = 45 * u.deg
+    >>> separation = 1.414 * u.deg
+    >>> c1.directional_offset_by(position_angle, separation)  # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): (ra, dec) in deg
+    (2.0004075, 1.99964588)>
+
 There is also a :meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to` method
 for computing angular offsets (e.g., small shifts like you might give a
 telescope operator to move from a bright star to a fainter target.)::
@@ -73,10 +108,11 @@ telescope operator to move from a bright star to a fainter target.)::
     >>> ddec.to(u.arcsec)  # doctest: +FLOAT_CMP
     <Angle 10.605103417374696 arcsec>
 
+
 .. _astropy-skyoffset-frames:
 
 "Sky Offset" Frames
-===================
+-------------------
 
 To extend the concept of spherical offsets, `~astropy.coordinates` has
 a frame class :class:`~astropy.coordinates.builtin_frames.skyoffset.SkyOffsetFrame`
@@ -138,6 +174,12 @@ frame aligned with standard ICRA RA/Dec, but on M31::
     >>> eta  # doctest: +FLOAT_CMP
     <Latitude 7.261837574183891 deg>
 
+.. note::
+
+    Currently, distance information in the ``origin`` of a
+    :class:`~astropy.coordinates.builtin_frames.skyoffset.SkyOffsetFrame` is not
+    used to compute any part of the transform. The ``origin`` is only used for
+    on-sky rotation.  This may change in the future, however.
 
 
 .. _astropy-coordinates-matching:
@@ -145,7 +187,7 @@ frame aligned with standard ICRA RA/Dec, but on M31::
 Matching Catalogs
 =================
 
-`~astropy.coordinates` supports leverages the coordinate framework to make it
+`~astropy.coordinates` leverages the coordinate framework to make it
 straightforward to find the closest coordinates in a catalog to a desired set
 of other coordinates. For example, assuming ``ra1``/``dec1`` and
 ``ra2``/``dec2`` are numpy arrays loaded from some file::
@@ -188,6 +230,18 @@ will work on either |skycoord| objects *or* the lower-level frame classes::
     >>> from astropy.coordinates import match_coordinates_sky
     >>> idx, d2d, d3d = match_coordinates_sky(c, catalog)  # doctest: +SKIP
     >>> idx, d2d, d3d = match_coordinates_sky(c.frame, catalog.frame)  # doctest: +SKIP
+
+It is possible to impose a separation constraint (e.g., the maximum separation to be
+considered a match) by creating a boolean mask with ``d2d`` or ``d3d``. For example,::
+
+    >>> max_sep = 1.0 * u.arcsec # doctest: +SKIP
+    >>> idx, d2d, d3d = c.match_to_catalog_3d(catalog) # doctest: +SKIP
+    >>> sep_constraint = idx < max_sep # doctest: +SKIP
+    >>> c_matches = c[sep_constraint] # doctest: +SKIP
+    >>> catalog_matches = c[idx[sep_constraint]] # doctest: +SKIP
+
+Now, ``c_matches`` and ``catalog_matches`` are the matched sources in ``c``
+and ``catalog``, respectively, which are separated by less than 1 arcsecond.
 
 .. _astropy-searching-coordinates:
 

@@ -3,12 +3,12 @@
 
 import numpy as np
 
-from .... import units as u
-from ...builtin_frames import Galactic, FK4
-from ....time import Time
-from ....table import Table
-from ...angle_utilities import angular_separation
-from ....utils.data import get_pkg_data_contents
+from astropy import units as u
+from astropy.coordinates.builtin_frames import Galactic, FK4
+from astropy.time import Time
+from astropy.table import Table
+from astropy.coordinates.angle_utilities import angular_separation
+from astropy.utils.data import get_pkg_data_contents
 
 # the number of tests to run
 from . import N_ACCURACY_TESTS

@@ -73,7 +73,7 @@ Composition can be combined with :ref:`unit_equivalencies`::
     Unit("4.58743e+17 Ry"),
     Unit("6.24151e+18 eV")]
 
-Obviously a name doesn't exist for every arbitrary derived unit
+A name doesn't exist for every arbitrary derived unit
 imaginable.  In that case, the system will do its best to reduce the
 unit to the fewest possible symbols::
 

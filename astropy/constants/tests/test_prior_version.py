@@ -1,18 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-
 import copy
 
 import pytest
 
-from .. import Constant
-from ...units import Quantity as Q
+from astropy.constants import Constant
+from astropy.units import Quantity as Q
 
 
 def test_c():
 
-    from ..codata2010 import c
+    from astropy.constants.codata2010 import c
 
     # c is an exactly defined constant, so it shouldn't be changing
     assert c.value == 2.99792458e8  # default is S.I.
@@ -28,8 +26,8 @@ def test_c():
 
 def test_h():
 
-    from ..codata2010 import h
-    from .. import h as h_current
+    from astropy.constants.codata2010 import h
+    from astropy.constants import h as h_current
 
     # check that the value is the CODATA2010 value
     assert abs(h.value - 6.62606957e-34) < 1e-43
@@ -48,7 +46,7 @@ def test_h():
 
 def test_e():
 
-    from ..astropyconst13 import e
+    from astropy.constants.astropyconst13 import e
 
     # A test quantity
     E = Q(100.00000348276221, 'V/m')
@@ -68,7 +66,7 @@ def test_e():
 
 def test_g0():
     """Tests for #1263 demonstrating how g0 constant should behave."""
-    from ..astropyconst13 import g0
+    from astropy.constants.astropyconst13 import g0
 
     # g0 is an exactly defined constant, so it shouldn't be changing
     assert g0.value == 9.80665  # default is S.I.
@@ -90,8 +88,8 @@ def test_b_wien():
     given blackbody temperature. The Sun is used in this test.
 
     """
-    from ..astropyconst13 import b_wien
-    from ... import units as u
+    from astropy.constants.astropyconst13 import b_wien
+    from astropy import units as u
     t = 5778 * u.K
     w = (b_wien / t).to(u.nm)
     assert round(w.value) == 502
@@ -99,9 +97,9 @@ def test_b_wien():
 
 def test_unit():
 
-    from ... import units as u
+    from astropy import units as u
 
-    from .. import astropyconst13 as const
+    from astropy.constants import astropyconst13 as const
 
     for key, val in vars(const).items():
         if isinstance(val, Constant):
@@ -112,7 +110,7 @@ def test_unit():
 
 
 def test_copy():
-    from ... import constants as const
+    from astropy import constants as const
     cc = copy.deepcopy(const.c)
     assert cc == const.c
 
@@ -122,7 +120,7 @@ def test_copy():
 
 def test_view():
     """Check that Constant and Quantity views can be taken (#3537, #3538)."""
-    from .. import c
+    from astropy.constants import c
     c2 = c.view(Constant)
     assert c2 == c
     assert c2.value == c.value
@@ -155,3 +153,16 @@ def test_view():
 
     c4 = Q(c, subok=True, copy=False)
     assert c4 is c
+
+
+def test_context_manager():
+    from astropy import constants as const
+
+    with const.set_enabled_constants('astropyconst13'):
+        assert const.h.value == 6.62606957e-34  # CODATA2010
+
+    assert const.h.value == 6.626070040e-34  # CODATA2014
+
+    with pytest.raises(ValueError):
+        with const.set_enabled_constants('notreal'):
+            const.h

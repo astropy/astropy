@@ -5,15 +5,16 @@ import io
 import os
 import platform
 import sys
+import copy
+import subprocess
 
 import pytest
 import numpy as np
 
-from ..verify import VerifyError
-from ....io import fits
-from ....tests.helper import raises, catch_warnings, ignore_warnings
-from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
-from ....utils.compat import NUMPY_LT_1_12
+from astropy.io.fits.verify import VerifyError
+from astropy.io import fits
+from astropy.tests.helper import raises, catch_warnings, ignore_warnings
+from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 from . import FitsTestCase
 
@@ -376,6 +377,43 @@ class TestHDUListFunctions(FitsTestCase):
         info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', '')]
         assert fits.info(self.temp('tmpfile.fits'), output=False) == info
 
+    def test_shallow_copy(self):
+        """
+        Tests that `HDUList.__copy__()` and `HDUList.copy()` return a
+        shallow copy (regression test for #7211).
+        """
+
+        n = np.arange(10.0)
+        primary_hdu = fits.PrimaryHDU(n)
+        hdu = fits.ImageHDU(n)
+        hdul = fits.HDUList([primary_hdu, hdu])
+
+        for hdulcopy in (hdul.copy(), copy.copy(hdul)):
+            assert isinstance(hdulcopy, fits.HDUList)
+            assert hdulcopy is not hdul
+            assert hdulcopy[0] is hdul[0]
+            assert hdulcopy[1] is hdul[1]
+
+    def test_deep_copy(self):
+        """
+        Tests that `HDUList.__deepcopy__()` returns a deep copy.
+        """
+
+        n = np.arange(10.0)
+        primary_hdu = fits.PrimaryHDU(n)
+        hdu = fits.ImageHDU(n)
+        hdul = fits.HDUList([primary_hdu, hdu])
+
+        hdulcopy = copy.deepcopy(hdul)
+
+        assert isinstance(hdulcopy, fits.HDUList)
+        assert hdulcopy is not hdul
+
+        for index in range(len(hdul)):
+            assert hdulcopy[index] is not hdul[index]
+            assert hdulcopy[index].header == hdul[index].header
+            np.testing.assert_array_equal(hdulcopy[index].data, hdul[index].data)
+
     def test_new_hdu_extname(self):
         """
         Tests that new extension HDUs that are added to an HDUList can be
@@ -386,11 +424,13 @@ class TestHDUListFunctions(FitsTestCase):
         f = fits.open(self.data('test0.fits'))
         hdul = fits.HDUList()
         hdul.append(f[0].copy())
-        hdul.append(fits.ImageHDU(header=f[1].header))
+        hdu = fits.ImageHDU(header=f[1].header)
+        hdul.append(hdu)
 
         assert hdul[1].header['EXTNAME'] == 'SCI'
         assert hdul[1].header['EXTVER'] == 1
         assert hdul.index_of(('SCI', 1)) == 1
+        assert hdul.index_of(hdu) == len(hdul) - 1
 
     def test_update_filelike(self):
         """Test opening a file-like object in update mode and resizing the
@@ -576,7 +616,7 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits')) as hdul:
             assert (hdul[0].data == data).all()
 
-    @pytest.mark.xfail(platform.system() == 'Windows' and not NUMPY_LT_1_12,
+    @pytest.mark.xfail(platform.system() == 'Windows',
                        reason='https://github.com/astropy/astropy/issues/5797')
     def test_update_resized_header(self):
         """
@@ -756,16 +796,14 @@ class TestHDUListFunctions(FitsTestCase):
             hdu_b = fits.PrimaryHDU(data=arr_b)
             hdu_b.writeto(self.temp('test_b.fits'), overwrite=True)
 
-            hdul_a = fits.open(self.temp('test_a.fits'), mode='update',
-                               memmap=mmap_a)
-            hdul_b = fits.open(self.temp('test_b.fits'), memmap=mmap_b)
-            hdul_a[0].data = hdul_b[0].data
-            hdul_a.close()
-            hdul_b.close()
+            with fits.open(self.temp('test_a.fits'), mode='update',
+                           memmap=mmap_a) as hdul_a:
+                with fits.open(self.temp('test_b.fits'),
+                               memmap=mmap_b) as hdul_b:
+                    hdul_a[0].data = hdul_b[0].data
 
-            hdul_a = fits.open(self.temp('test_a.fits'))
-
-            assert np.all(hdul_a[0].data == arr_b)
+            with fits.open(self.temp('test_a.fits')) as hdul_a:
+                assert np.all(hdul_a[0].data == arr_b)
 
         with ignore_warnings():
             test(True, True)
@@ -796,18 +834,16 @@ class TestHDUListFunctions(FitsTestCase):
             hdu_b = fits.BinTableHDU.from_columns([col_b])
             hdu_b.writeto(self.temp('test_b.fits'), overwrite=True)
 
-            hdul_a = fits.open(self.temp('test_a.fits'), mode='update',
-                               memmap=mmap_a)
-            hdul_b = fits.open(self.temp('test_b.fits'), memmap=mmap_b)
-            hdul_a[1].data = hdul_b[1].data
-            hdul_a.close()
-            hdul_b.close()
+            with fits.open(self.temp('test_a.fits'), mode='update',
+                           memmap=mmap_a) as hdul_a:
+                with fits.open(self.temp('test_b.fits'),
+                               memmap=mmap_b) as hdul_b:
+                    hdul_a[1].data = hdul_b[1].data
 
-            hdul_a = fits.open(self.temp('test_a.fits'))
-
-            assert 'b' in hdul_a[1].columns.names
-            assert 'a' not in hdul_a[1].columns.names
-            assert np.all(hdul_a[1].data['b'] == arr_b)
+            with fits.open(self.temp('test_a.fits')) as hdul_a:
+                assert 'b' in hdul_a[1].columns.names
+                assert 'a' not in hdul_a[1].columns.names
+                assert np.all(hdul_a[1].data['b'] == arr_b)
 
         with ignore_warnings():
             test(True, True)
@@ -824,8 +860,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         Regression test for https://github.com/astropy/astropy/issues/3060
         """
-
-        hdulist = fits.HDUList()
+        hdulist = fits.open(self.data('o4sp040b0_raw.fits'))
         hdulist.append(fits.ImageHDU(name='a'))
 
         assert 'a' in hdulist
@@ -836,6 +871,8 @@ class TestHDUListFunctions(FitsTestCase):
         assert ('a', 2) not in hdulist
         assert ('b', 1) not in hdulist
         assert ('b', 2) not in hdulist
+        assert hdulist[0] in hdulist
+        assert fits.ImageHDU() not in hdulist
 
     def test_overwrite_vs_clobber(self):
         hdulist = fits.HDUList([fits.PrimaryHDU()])
@@ -914,7 +951,9 @@ class TestHDUListFunctions(FitsTestCase):
 
         # This should raise an OSError because there is no end card.
         with pytest.raises(OSError):
-            fits.open(filename)
+            with pytest.warns(AstropyUserWarning, match='non-ASCII characters '
+                              'are present in the FITS file header'):
+                fits.open(filename)
 
     def test_no_resource_warning_raised_on_non_fits_file(self):
         """
@@ -963,3 +1002,47 @@ class TestHDUListFunctions(FitsTestCase):
                 fits.open(filename, ignore_missing_end=True)
 
         assert len(ws) == 0
+
+    def test_pop_with_lazy_load(self):
+        filename = self.data('checksum.fits')
+        hdul = fits.open(filename)
+        # Try popping the hdulist before doing anything else. This makes sure
+        # that https://github.com/astropy/astropy/issues/7185 is fixed.
+        hdu = hdul.pop()
+        assert len(hdul) == 1
+
+        # Read the file again and try popping from the beginning
+        hdul2 = fits.open(filename)
+        hdu2 = hdul2.pop(0)
+        assert len(hdul2) == 1
+
+        # Just a sanity check
+        hdul3 = fits.open(filename)
+        assert len(hdul3) == 2
+        assert hdul3[0].header == hdu2.header
+        assert hdul3[1].header == hdu.header
+
+    def test_pop_extname(self):
+        hdul = fits.open(self.data('o4sp040b0_raw.fits'))
+        assert len(hdul) == 7
+        hdu1 = hdul[1]
+        hdu4 = hdul[4]
+        hdu_popped = hdul.pop(('SCI', 2))
+        assert len(hdul) == 6
+        assert hdu_popped is hdu4
+        hdu_popped = hdul.pop('SCI')
+        assert len(hdul) == 5
+        assert hdu_popped is hdu1
+
+    def test_write_hdulist_to_stream(self):
+        """
+        Unit test for https://github.com/astropy/astropy/issues/7435
+        Ensure that an HDUList can be written to a stream in Python 2
+        """
+        data = np.array([[1,2,3],[4,5,6]])
+        hdu = fits.PrimaryHDU(data)
+        hdulist = fits.HDUList([hdu])
+
+        with open(self.temp('test.fits'), 'wb') as fout:
+            p = subprocess.Popen(["cat"], stdin=subprocess.PIPE, stdout=fout)
+            hdulist.writeto(p.stdin)

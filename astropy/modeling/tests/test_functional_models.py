@@ -5,17 +5,29 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
-from .. import models, InputParameterError
-from ...coordinates import Angle
-from .. import fitting
-from ...tests.helper import catch_warnings
-from ...utils.exceptions import AstropyDeprecationWarning
+from astropy.modeling import models, InputParameterError
+from astropy.coordinates import Angle
+from astropy.modeling import fitting
+from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 try:
     from scipy import optimize  # pylint: disable=W0611
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
+
+
+def test_sigma_constant():
+    """
+    Test that the GAUSSIAN_SIGMA_TO_FWHM constant matches the
+    gaussian_sigma_to_fwhm constant in astropy.stats. We define
+    it manually in astropy.modeling to avoid importing from
+    astropy.stats.
+    """
+    from astropy.stats.funcs import gaussian_sigma_to_fwhm
+    from astropy.modeling.functional_models import GAUSSIAN_SIGMA_TO_FWHM
+    assert gaussian_sigma_to_fwhm == GAUSSIAN_SIGMA_TO_FWHM
 
 
 def test_Trapezoid1D():
@@ -171,6 +183,11 @@ def test_Scale_inverse():
     assert_allclose(m.inverse(m(6.789)), 6.789)
 
 
+def test_Multiply_inverse():
+    m = models.Multiply(1.2345)
+    assert_allclose(m.inverse(m(6.789)), 6.789)
+
+
 def test_Shift_inverse():
     m = models.Shift(1.2345)
     assert_allclose(m.inverse(m(6.789)), 6.789)
@@ -205,10 +222,11 @@ def test_Shift_model_set_linear_fit():
     assert_allclose(fitted_model.parameters, [0.1, -0.2], atol=1e-15)
 
 
-def test_Scale_model_set_linear_fit():
+@pytest.mark.parametrize('Model', (models.Scale, models.Multiply))
+def test_Scale_model_set_linear_fit(Model):
     """Test linear fitting of Scale model (#6103)."""
 
-    init_model = models.Scale(factor=[0, 0], n_models=2)
+    init_model = Model(factor=[0, 0], n_models=2)
 
     x = np.arange(-3, 7)
     yy = np.array([1.15*x, 0.96*x])

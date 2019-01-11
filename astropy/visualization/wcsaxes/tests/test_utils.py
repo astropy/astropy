@@ -3,11 +3,11 @@
 
 from numpy.testing import assert_almost_equal
 
-from .... import units as u
+from astropy import units as u
 
-from ..utils import (select_step_degree, select_step_hour, select_step_scalar,
+from astropy.visualization.wcsaxes.utils import (select_step_degree, select_step_hour, select_step_scalar,
                      coord_type_from_ctype)
-from ....tests.helper import (assert_quantity_allclose as
+from astropy.tests.helper import (assert_quantity_allclose as
                               assert_almost_equal_quantity)
 
 
@@ -61,10 +61,10 @@ def test_select_step_scalar():
 
 
 def test_coord_type_from_ctype():
-    assert coord_type_from_ctype(' LON') == ('longitude', None)
-    assert coord_type_from_ctype(' LAT') == ('latitude', None)
-    assert coord_type_from_ctype('HPLN') == ('longitude', 180.)
-    assert coord_type_from_ctype('HPLT') == ('latitude', None)
-    assert coord_type_from_ctype('RA--') == ('longitude', None)
-    assert coord_type_from_ctype('DEC-') == ('latitude', None)
-    assert coord_type_from_ctype('spam') == ('scalar', None)
+    assert coord_type_from_ctype(' LON') == ('longitude', None, None)
+    assert coord_type_from_ctype(' LAT') == ('latitude', None, None)
+    assert coord_type_from_ctype('HPLN') == ('longitude', u.arcsec, 180.)
+    assert coord_type_from_ctype('HPLT') == ('latitude', u.arcsec, None)
+    assert coord_type_from_ctype('RA--') == ('longitude', u.hourangle, None)
+    assert coord_type_from_ctype('DEC-') == ('latitude', None, None)
+    assert coord_type_from_ctype('spam') == ('scalar', None, None)

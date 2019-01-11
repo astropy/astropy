@@ -6,17 +6,32 @@ from collections import OrderedDict
 import pytest
 import numpy as np
 
-from ...tests.helper import catch_warnings
-from ...table import Table, QTable, TableMergeError
-from ...table.operations import _get_out_class
-from ... import units as u
-from ...utils import metadata
-from ...utils.metadata import MergeConflictError
-from ... import table
+from astropy.tests.helper import catch_warnings
+from astropy.table import Table, QTable, TableMergeError
+from astropy.table.operations import _get_out_class
+from astropy import units as u
+from astropy.utils import metadata
+from astropy.utils.metadata import MergeConflictError
+from astropy import table
+from astropy.time import Time
+from astropy.coordinates import SkyCoord
 
 
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
+
+
+def skycoord_equal(sc1, sc2):
+    if not sc1.is_equivalent_frame(sc2):
+        return False
+    if sc1.representation_type is not sc2.representation_type:
+        return False
+    if sc1.shape != sc2.shape:
+        return False  # Maybe raise ValueError corresponding to future numpy behavior
+    eq = np.ones(shape=sc1.shape, dtype=bool)
+    for comp in sc1.data.components:
+        eq &= getattr(sc1.data, comp) == getattr(sc2.data, comp)
+    return np.all(eq)
 
 
 class TestJoin():
@@ -450,6 +465,64 @@ class TestJoin():
                                         [False, False],
                                         [False, False]])
 
+    def test_mixin_functionality(self, mixin_cols):
+        col = mixin_cols['m']
+        cls_name = type(col).__name__
+        len_col = len(col)
+        idx = np.arange(len_col)
+        t1 = table.QTable([idx, col], names=['idx', 'm1'])
+        t2 = table.QTable([idx, col], names=['idx', 'm2'])
+        # Set up join mismatches for different join_type cases
+        t1 = t1[[0, 1, 3]]
+        t2 = t2[[0, 2, 3]]
+
+        # Test inner join, which works for all mixin_cols
+        out = table.join(t1, t2, join_type='inner')
+        assert len(out) == 2
+        assert out['m2'].__class__ is col.__class__
+        assert np.all(out['idx'] == [0, 3])
+        if cls_name == 'SkyCoord':
+            # SkyCoord doesn't support __eq__ so use our own
+            assert skycoord_equal(out['m1'], col[[0, 3]])
+            assert skycoord_equal(out['m2'], col[[0, 3]])
+        else:
+            assert np.all(out['m1'] == col[[0, 3]])
+            assert np.all(out['m2'] == col[[0, 3]])
+
+        # Check for left, right, outer join which requires masking.  Only Time
+        # supports this currently.
+        if cls_name == 'Time':
+            out = table.join(t1, t2, join_type='left')
+            assert len(out) == 3
+            assert np.all(out['idx'] == [0, 1, 3])
+            assert np.all(out['m1'] == t1['m1'])
+            assert np.all(out['m2'] == t2['m2'])
+            assert np.all(out['m1'].mask == [False, False, False])
+            assert np.all(out['m2'].mask == [False, True, False])
+
+            out = table.join(t1, t2, join_type='right')
+            assert len(out) == 3
+            assert np.all(out['idx'] == [0, 2, 3])
+            assert np.all(out['m1'] == t1['m1'])
+            assert np.all(out['m2'] == t2['m2'])
+            assert np.all(out['m1'].mask == [False, True, False])
+            assert np.all(out['m2'].mask == [False, False, False])
+
+            out = table.join(t1, t2, join_type='outer')
+            assert len(out) == 4
+            assert np.all(out['idx'] == [0, 1, 2, 3])
+            assert np.all(out['m1'] == col)
+            assert np.all(out['m2'] == col)
+            assert np.all(out['m1'].mask == [False, False, True, False])
+            assert np.all(out['m2'].mask == [False, True, False, False])
+        else:
+            # Otherwise make sure it fails with the right exception message
+            for join_type in ('outer', 'left', 'right'):
+                with pytest.raises(NotImplementedError) as err:
+                    table.join(t1, t2, join_type='outer')
+                assert ('join requires masking' in str(err) or
+                        'join unavailable' in str(err))
+
 
 class TestSetdiff():
 
@@ -472,8 +545,6 @@ class TestSetdiff():
         self.t1 = t_cls.read(lines1, format='ascii')
         self.t2 = t_cls.read(lines2, format='ascii')
         self.t3 = t_cls.read(lines3, format='ascii')
-
-
 
     def test_default_same_columns(self, operation_table_type):
         self._setup(operation_table_type)
@@ -572,6 +643,18 @@ class TestVStack():
                                  '1.0 bar',
                                  '1.0 bar']
 
+    def test_stack_table_column(self, operation_table_type):
+        self._setup(operation_table_type)
+        t2 = self.t1.copy()
+        t2.meta.clear()
+        out = table.vstack([self.t1, t2['a']])
+        assert out.pformat() == [' a   b ',
+                                 '--- ---',
+                                 '0.0 foo',
+                                 '1.0 bar',
+                                 '0.0  --',
+                                 '1.0  --']
+
     def test_table_meta_merge(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.vstack([self.t1, self.t2, self.t4], join_type='inner')
@@ -606,7 +689,7 @@ class TestVStack():
 
     def test_bad_input_type(self, operation_table_type):
         self._setup(operation_table_type)
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             table.vstack([])
         with pytest.raises(TypeError):
             table.vstack(1)
@@ -837,22 +920,46 @@ class TestVStack():
         assert (self.t1 == table.vstack(self.t1)).all()
         assert (self.t1 == table.vstack([self.t1])).all()
 
-    def test_check_for_mixin_functionality(self, mixin_cols):
+    def test_mixin_functionality(self, mixin_cols):
         col = mixin_cols['m']
-        t = table.QTable([col])
+        len_col = len(col)
+        t = table.QTable([col], names=['a'])
         cls_name = type(col).__name__
 
         # Vstack works for these classes:
-        implemented_mixin_classes = ['Quantity', 'Angle',
+        implemented_mixin_classes = ['Quantity', 'Angle', 'Time',
                                      'Latitude', 'Longitude',
                                      'EarthLocation']
         if cls_name in implemented_mixin_classes:
-            table.vstack([t, t])
+            out = table.vstack([t, t])
+            assert len(out) == len_col * 2
+            assert np.all(out['a'][:len_col] == col)
+            assert np.all(out['a'][len_col:] == col)
         else:
             with pytest.raises(NotImplementedError) as err:
                 table.vstack([t, t])
             assert ('vstack unavailable for mixin column type(s): {}'
                     .format(cls_name) in str(err))
+
+        # Check for outer stack which requires masking.  Only Time supports
+        # this currently.
+        t2 = table.QTable([col], names=['b'])  # different from col name for t
+        if cls_name == 'Time':
+            out = table.vstack([t, t2], join_type='outer')
+            assert len(out) == len_col * 2
+            assert np.all(out['a'][:len_col] == col)
+            assert np.all(out['b'][len_col:] == col)
+            assert np.all(out['a'].mask == [False] * len_col + [True] * len_col)
+            assert np.all(out['b'].mask == [True] * len_col + [False] * len_col)
+            # check directly stacking mixin columns:
+            out2 = table.vstack([t, t2['b']])
+            assert np.all(out['a'] == out2['a'])
+            assert np.all(out['b'] == out2['b'])
+        else:
+            with pytest.raises(NotImplementedError) as err:
+                table.vstack([t, t2], join_type='outer')
+            assert ('vstack requires masking' in str(err) or
+                    'vstack unavailable' in str(err))
 
 
 class TestHStack():
@@ -906,6 +1013,17 @@ class TestHStack():
                                  '--- --- --- --- ---',
                                  '0.0 foo 3.0 sez   5']
 
+    def test_stack_columns(self, operation_table_type):
+        self._setup(operation_table_type)
+        out = table.hstack([self.t1, self.t2['c']])
+        assert type(out['a']) is type(self.t1['a'])
+        assert type(out['b']) is type(self.t1['b'])
+        assert type(out['c']) is type(self.t2['c'])
+        assert out.pformat() == [' a   b   c ',
+                                 '--- --- ---',
+                                 '0.0 foo   4',
+                                 '1.0 bar   5']
+
     def test_table_meta_merge(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.hstack([self.t1, self.t2, self.t4], join_type='inner')
@@ -940,7 +1058,7 @@ class TestHStack():
 
     def test_bad_input_type(self, operation_table_type):
         self._setup(operation_table_type)
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             table.hstack([])
         with pytest.raises(TypeError):
             table.hstack(1)
@@ -1057,6 +1175,43 @@ class TestHStack():
         """Regression test for issue #3313"""
         assert (self.t1 == table.hstack(self.t1)).all()
         assert (self.t1 == table.hstack([self.t1])).all()
+
+    def test_mixin_functionality(self, mixin_cols):
+        col1 = mixin_cols['m']
+        col2 = col1[2:4]  # Shorter version of col1
+        t1 = table.QTable([col1])
+        t2 = table.QTable([col2])
+
+        cls_name = type(col1).__name__
+
+        out = table.hstack([t1, t2], join_type='inner')
+        assert type(out['col0_1']) is type(out['col0_2'])
+        assert len(out) == len(col2)
+
+        # Check that columns are as expected.
+        if cls_name == 'SkyCoord':
+            assert skycoord_equal(out['col0_1'], col1[:len(col2)])
+            assert skycoord_equal(out['col0_2'], col2)
+        else:
+            assert np.all(out['col0_1'] == col1[:len(col2)])
+            assert np.all(out['col0_2'] == col2)
+
+        # Time class supports masking, all other mixins do not
+        if cls_name == 'Time':
+            out = table.hstack([t1, t2], join_type='outer')
+            assert len(out) == len(t1)
+            assert np.all(out['col0_1'] == col1)
+            assert np.all(out['col0_2'][:len(col2)] == col2)
+            assert np.all(out['col0_2'].mask == [False, False, True, True])
+
+            # check directly stacking mixin columns:
+            out2 = table.hstack([t1, t2['col0']], join_type='outer')
+            assert np.all(out['col0_1'] == out2['col0_1'])
+            assert np.all(out['col0_2'] == out2['col0_2'])
+        else:
+            with pytest.raises(NotImplementedError) as err:
+                table.hstack([t1, t2], join_type='outer')
+            assert 'hstack requires masking' in str(err)
 
 
 def test_unique(operation_table_type):
@@ -1234,3 +1389,46 @@ def test_masking_required_exception():
     with pytest.raises(NotImplementedError) as err:
         table.join(t1, t2, join_type='outer')
     assert 'join requires masking' in str(err)
+
+
+def test_stack_columns():
+    c = table.Column([1, 2])
+    mc = table.MaskedColumn([1, 2])
+    q = [1, 2] * u.m
+    time = Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02'])
+    sc = SkyCoord([1, 2], [3, 4], unit='deg')
+    cq = table.Column([11, 22], unit=u.m)
+
+    t = table.hstack([c, q])
+    assert t.__class__ is table.QTable
+    assert t.masked is False
+    t = table.hstack([q, c])
+    assert t.__class__ is table.QTable
+    assert t.masked is False
+
+    t = table.hstack([mc, q])
+    assert t.__class__ is table.QTable
+    assert t.masked is True
+
+    t = table.hstack([c, mc])
+    assert t.__class__ is table.Table
+    assert t.masked is True
+
+    t = table.vstack([q, q])
+    assert t.__class__ is table.QTable
+
+    t = table.vstack([c, c])
+    assert t.__class__ is table.Table
+
+    t = table.hstack([c, time])
+    assert t.__class__ is table.Table
+    t = table.hstack([c, sc])
+    assert t.__class__ is table.Table
+    t = table.hstack([q, time, sc])
+    assert t.__class__ is table.QTable
+
+    with pytest.raises(ValueError):
+        table.vstack([c, q])
+
+    with pytest.raises(ValueError):
+        t = table.vstack([q, cq])

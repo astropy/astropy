@@ -19,16 +19,15 @@ References
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 """
 
-
 import math
 
 import numpy as np
 
 from .core import Model
 from .parameters import Parameter
-from ..coordinates.matrix_utilities import rotation_matrix, matrix_product
-from .. import units as u
-from ..utils.decorators import deprecated
+from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product
+from astropy import units as u
+from astropy.utils.decorators import deprecated
 from .utils import _to_radian, _to_orig_unit
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
@@ -40,12 +39,14 @@ class _EulerRotation:
     Base class which does the actual computation.
     """
 
+    _separable = False
+
     def _create_matrix(self, phi, theta, psi, axes_order):
         matrices = []
         for angle, axis in zip([phi, theta, psi], axes_order):
             if isinstance(angle, u.Quantity):
                 angle = angle.value
-            angle = np.asscalar(angle)
+            angle = angle.item()
             matrices.append(rotation_matrix(angle, axis, unit=u.rad))
         result = matrix_product(*matrices[::-1])
         return result
@@ -95,9 +96,9 @@ class _EulerRotation:
             b.shape = shape
         return a, b
 
-    input_units_strict = True
+    _input_units_strict = True
 
-    input_units_allow_dimensionless = True
+    _input_units_allow_dimensionless = True
 
     @property
     def input_units(self):
@@ -342,12 +343,9 @@ class Rotation2D(Model):
 
     inputs = ('x', 'y')
     outputs = ('x', 'y')
+    _separable = False
 
     angle = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian)
-
-    input_units_strict = True
-
-    input_units_allow_dimensionless = True
 
     @property
     def inverse(self):
@@ -372,21 +370,28 @@ class Rotation2D(Model):
         if x.shape != y.shape:
             raise ValueError("Expected input arrays to have the same shape")
 
+        # If one argument has units, enforce they both have units and they are compatible.
+        x_unit = getattr(x, 'unit', None)
+        y_unit = getattr(y, 'unit', None)
+        has_units = x_unit is not None and y_unit is not None
+        if x_unit != y_unit:
+            if has_units and y_unit.is_equivalent(x_unit):
+                y = y.to(x_unit)
+                y_unit = x_unit
+            else:
+                raise u.UnitsError("x and y must have compatible units")
+
         # Note: If the original shape was () (an array scalar) convert to a
         # 1-element 1-D array on output for consistency with most other models
         orig_shape = x.shape or (1,)
-        if isinstance(x, u.Quantity):
-            unit = x.unit
-        else:
-            unit = None
         inarr = np.array([x.flatten(), y.flatten()])
         if isinstance(angle, u.Quantity):
-            angle = angle.value
+            angle = angle.to_value(u.rad)
         result = np.dot(cls._compute_matrix(angle), inarr)
         x, y = result[0], result[1]
         x.shape = y.shape = orig_shape
-        if unit is not None:
-            return u.Quantity(x, unit=unit), u.Quantity(y, unit=unit)
+        if has_units:
+            return u.Quantity(x, unit=x_unit), u.Quantity(y, unit=y_unit)
         else:
             return x, y
 

@@ -4,4 +4,4 @@
 def get_package_data():
     return {
         'astropy.tests': ['coveragerc'],
-        'astropy.tests.tests': ['data/open_file_detection.txt']}
+    }

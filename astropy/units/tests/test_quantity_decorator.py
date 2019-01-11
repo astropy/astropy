@@ -3,9 +3,7 @@
 
 import pytest
 
-from ... import units as u
-
-from .py3_test_quantity_annotations import *
+from astropy import units as u
 
 # list of pairs (target unit/physical type, input unit)
 x_inputs = [(u.arcsec, u.deg), ('angle', u.deg),

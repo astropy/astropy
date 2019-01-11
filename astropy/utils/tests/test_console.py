@@ -4,11 +4,13 @@
 
 import io
 
+import numpy as np
 import pytest
 
 
-from .. import console
-from ... import units as u
+from . import test_progress_bar_func
+from astropy.utils import console
+from astropy import units as u
 
 
 class FakeTTY(io.StringIO):
@@ -155,6 +157,13 @@ def test_progress_bar_as_generator():
     for x in console.ProgressBar(50):
         sum += x
     assert sum == 1225
+
+
+def test_progress_bar_map():
+    items = list(range(100))
+    result = console.ProgressBar.map(test_progress_bar_func.func,
+                                     items, step=10, multiprocess=True)
+    assert items == result
 
 
 @pytest.mark.parametrize(("seconds", "string"),

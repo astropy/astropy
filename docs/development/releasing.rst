@@ -6,11 +6,25 @@ The current release procedure for Astropy involves a combination of an
 automated release script and some manual steps.  Future versions will automate
 more of the process, if not all.
 
+There are several different procedures below, depending on the situation:
+
+* :ref:`release-procedure`
+    - :ref:`release-procedure-beta-rc`
+* :ref:`release-procedure-new-major`
+* :ref:`release-procedure-bug-fix`
+    - :ref:`release-procedure-bug-fix-backport`
+    - :ref:`release-procedure-bug-fix-direct`
+    - :ref:`release-procedure-bug-fix-release`
+* :ref:`helpers-release-info`
+
+For a signed release, see :ref:`key-signing-info` for relevant setup
+instructions.
+
 
 .. _release-procedure:
 
-Release Procedure
-=================
+Standard Release Procedure
+==========================
 
 This is the standard release procedure for releasing Astropy (or affiliated
 packages that use the full bugfix/maintenance branch approach.)
@@ -43,21 +57,22 @@ packages that use the full bugfix/maintenance branch approach.)
       $ conda create -n astropy_release_build_v<version> astropy
       $ source activate astropy_release_build_v<version>
       $ conda uninstall astropy  # still keeps the dependencies
-      $ pip install -r pip-requirements-dev  # any that might be left over
+      $ pip install -e .[docs,test]  # any that might be left over
+      $ pip uninstall astropy
 
 #. Before doing a release of Astropy, you may need to do a release of
    astropy-helpers.  This is not always necessary, as there are not always any
    significant changes in the helpers.  See :ref:`helpers-release-info` for more
    on this.
 
-
 #. Make sure that the continuous integration services (e.g., Travis) are passing
    for the `astropy core repository`_ branch you're going to release.  You may
    also want to locally run the tests (with remote data on to ensure all the
-   tests actually run), and make sure the description in ``setup.py`` is ReST
+   tests actually run), and make sure the description in ``setup.cfg`` is ReST
    compliant::
 
       $ python setup.py test --remote-data=any
+      $ TEST_READ_HUGE_FILE=1 pytest -sv astropy/io/ascii/tests/test_c_reader.py -k big_table
       $ python setup.py check --restructuredtext
 
 #. Ensure you have a GPG key pair available for when git needs to sign the
@@ -83,36 +98,18 @@ packages that use the full bugfix/maintenance branch approach.)
       $ git add CHANGES.rst
       $ git commit -m "Finalizing changelog for v<version>"
 
-
-
-
-#. Edit the ``setup.py`` file by removing the ``".dev"`` at the end of the
-   ``VERSION`` string, then add and commit that change as the final step prior
+#. Edit the ``setup.cfg`` file by removing the ``".dev"`` at the end of the
+   ``version`` string, then add and commit that change as the final step prior
    to release::
 
-      <use your favorite editor on setup.py>
-      $ git add setup.py
+      <use your favorite editor on setup.cfg>
+      $ git add setup.cfg
       $ git commit -m "Preparing release v<version>"
 
 #. Tag the commit with ``v<version>``, being certain to sign the tag with the
    ``-s`` option::
 
       $ git tag -s v<version> -m "Tagging v<version>"
-
-#. Edit the ``VERSION`` in ``setup.py`` to be the next version number, but with
-   a ``.dev`` suffix at the end (E.g., ``1.2.3.dev``).  Then add and commit::
-
-      <use your favorite editor on setup.py>
-      $ git add setup.py
-      $ git commit -m "Back to development: v<next_version>.dev"
-
-#. Also update the ``CHANGES.rst`` file with a new section for the next version.
-   You will likely want to use the ``add_to_changelog.py`` script in the
-   `astropy-tools repository`_ for this.  Then add and commit::
-
-      <use your favorite editor on CHANGES.rst>
-      $ git add CHANGES.rst
-      $ git commit -m "Add v<next_version> to the changelog"
 
 #. Now go back and check out the tag of the released version with
    ``git checkout v<version>``.  For example::
@@ -177,7 +174,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
    * build and upload the Astropy wheels;
    * make and upload the Astropy source release.
-   
+
 
 #. For the wheel build / upload, follow the `wheel builder README`_
    instructions again.  Edit the ``.travis.yml`` and ``appveyor.yml`` files
@@ -202,15 +199,23 @@ packages that use the full bugfix/maintenance branch approach.)
       $ python setup.py build sdist
       $ gpg --detach-sign -a dist/astropy-<version>.tar.gz
       $ twine upload dist/astropy-<version>*
-      
-#. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
-   and ensure that only the most recent releases in each actively maintained
-   release line are *not* marked hidden.  For example, if v1.2.2 was
-   just released, v1.2.1 should be hidden.  This is so that users only find
-   the latest bugfix releases.
 
-   Do not enabled "Auto-hide old releases" as that may hide bugfix releases
-   from older release lines that we may still want to make available.
+#. Go back to release branch (e.g., ``1.2.x``) and edit the ``version`` in
+   ``setup.cfg`` to be the next version number, but with
+   a ``.dev`` suffix at the end (e.g., ``1.2.3.dev``).  Then add and commit::
+
+      $ git checkout v1.2.x
+      <use your favorite editor on setup.cfg>
+      $ git add setup.cfg
+      $ git commit -m "Back to development: v<next_version>.dev"
+
+#. Also update the ``CHANGES.rst`` file with a new section for the next version.
+   You will likely want to use the ``add_to_changelog.py`` script in the
+   `astropy-tools repository`_ for this.  Then add and commit::
+
+      <use your favorite editor on CHANGES.rst>
+      $ git add CHANGES.rst
+      $ git commit -m "Add v<next_version> to the changelog"
 
 #. Push up these changes and the tag to the `astropy core repository`_::
 
@@ -255,7 +260,7 @@ packages that use the full bugfix/maintenance branch approach.)
    performed and to include the new section of the changelog.  Often the easiest
    way to do this is to use ``git cherry-pick`` the changelog commit just before
    the release commit from above. If you aren't sure how to do this, you might
-   be better off just copying-and-pasting the relevant parts of the maintenance
+   be better off copying-and-pasting the relevant parts of the maintenance
    branch's ``CHANGES.rst`` into master.
 
 #. If there are any issues in the Github issue tracker that are labeled
@@ -279,6 +284,8 @@ packages that use the full bugfix/maintenance branch approach.)
    available.
 
 
+.. _release-procedure-beta-rc:
+
 Modifications for a beta/release candidate release
 --------------------------------------------------
 
@@ -301,6 +308,8 @@ Modifications for a beta/release candidate release
    * Do not do step #26 or later, as those are tasks for an actual release.
 
 
+.. _release-procedure-new-major:
+
 Performing a Feature Freeze/Branching new Major Versions
 ========================================================
 
@@ -314,22 +323,22 @@ soon-to-be-released version can focus on bug fixes and documentation updates.
 
 The procedure for this is straightforward:
 
-#. Make sure you're on master, and updated to the latest version from github::
+#. Update your local master branch to use to the latest version from github::
 
       $ git fetch upstream
-      $ git checkout upstream/master
+      $ git checkout -B master upstream/master
 
 #. Create a new branch from master at the point you want the feature freeze to
    occur::
 
       $ git branch v<version>.x
 
-#. Update the ``VERSION`` in ``setup.py`` to reflect the new major version. For
+#. Update the ``version`` in ``setup.cfg`` to reflect the new major version. For
    example, if you are about to issue a feature freeze for version ``1.2``, you
    will want to set the new version to ``'1.3.dev'``. Then add and commit that::
 
-      <use your favorite editor on setup.py>
-      $ git add setup.py
+      <use your favorite editor on setup.cfg>
+      $ git add setup.cfg
       $ git commit -m "Next major version: <next_version>"
 
 #. Update the ``CHANGES.rst`` file with a new section at the very top for the
@@ -361,7 +370,7 @@ The procedure for this is straightforward:
 #. Push all of these changes up to github::
 
       $ git push upstream v<version>.x:v<version>.x
-      $ git push upstream HEAD:master
+      $ git push upstream master:master
 
    .. note::
 
@@ -371,6 +380,9 @@ The procedure for this is straightforward:
 #. On the github issue tracker, add a new milestone for the next major version.
 
 #. Repeat the above steps for the astropy-helpers, using the same version series.
+
+
+.. _release-procedure-bug-fix:
 
 Maintaining Bug Fix Releases
 ============================
@@ -413,13 +425,16 @@ milestone--this is any work that goes in the master branch that should not
 be backported.  For a more detailed set of guidelines on using milestones, see
 :ref:`milestones-and-labels`.
 
+
+.. _release-procedure-bug-fix-backport:
+
 Backporting fixes from master
 -----------------------------
 
 Most fixes are backported using the ``git cherry-pick`` command, which applies
 the diff from a single commit like a patch.  For the sake of example, say the
 current bug fix branch is 'v1.2.x', and that a bug was fixed in master in a
-commit ``abcd1234``.  In order to backport the fix, simply checkout the v1.2.x
+commit ``abcd1234``.  In order to backport the fix, checkout the v1.2.x
 branch (it's also good to make sure it's in sync with the
 `astropy core repository`_) and cherry-pick the appropriate commit::
 
@@ -458,7 +473,7 @@ not brought in as a pull request, read on.
     cherry-pick command and how it works with merge commits.
 
 If not cherry-picking a merge commit there are still other options for dealing
-with multiple commits.  The simplest, though potentially tedious, is to simply
+with multiple commits.  The simplest, though potentially tedious, is to
 run the cherry-pick command once for each commit in the correct order.
 However, as of Git 1.7.2 it is possible to merge a range of commits like so::
 
@@ -470,6 +485,9 @@ will involve followup commits that need to back backported as well.  Most bug
 fixes will have an issues associated with it in the issue tracker, so make sure
 to reference all commits related to that issue in the commit message.  That way
 it's harder for commits that need to be backported from getting lost.
+
+
+.. _release-procedure-bug-fix-direct:
 
 Making fixes directly to the bug fix branch
 -------------------------------------------
@@ -490,6 +508,9 @@ there are two choices:
    drop-down and instead select the bug fix branch ("v1.2.x" for example). Then
    GitHub will instead compare your fix against that branch, and merge into
    that branch when the PR is accepted.
+
+
+.. _release-procedure-bug-fix-release:
 
 Preparing the bug fix branch for release
 ----------------------------------------
@@ -690,7 +711,7 @@ command, consult the documentation for your system on how to install it.
 
 For OSX, GPG can be installed from MacPorts using ``sudo port install gnupg``.
 
-To create a new public/private key pair, simply run::
+To create a new public/private key pair, run::
 
     $ gpg --gen-key
 

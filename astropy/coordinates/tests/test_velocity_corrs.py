@@ -3,13 +3,14 @@ import pytest
 
 import numpy as np
 
-from ...tests.helper import assert_quantity_allclose
-from ... import units as u
-from ...time import Time
-from .. import EarthLocation, SkyCoord, Angle
-from ..sites import get_builtin_sites
+from astropy.tests.helper import assert_quantity_allclose
+from astropy import units as u
+from astropy.time import Time
+from astropy.coordinates import EarthLocation, SkyCoord, Angle
+from astropy.coordinates.sites import get_builtin_sites
 
 
+@pytest.mark.remote_data
 @pytest.mark.parametrize('kind', ['heliocentric', 'barycentric'])
 def test_basic(kind):
     t0 = Time('2015-1-1')
@@ -36,6 +37,7 @@ test_input_loc = EarthLocation.from_geodetic(lon=-70.403*u.deg,
                                              height=2635*u.m)
 
 
+@pytest.mark.remote_data
 def test_helio_iraf():
     """
     Compare the heliocentric correction to the IRAF rvcorrect.
@@ -197,6 +199,7 @@ def _get_test_input_radecs():
     return SkyCoord(ra=ras, dec=decs, unit=u.deg)
 
 
+@pytest.mark.remote_data
 def test_barycorr():
     # this is the result of calling _get_barycorr_bvcs
     barycorr_bvcs = u.Quantity([
@@ -248,7 +251,7 @@ def _get_barycorr_bvcs(coos, loc, injupyter=False):
     the tests.
     """
     import barycorr
-    from ...utils.console import ProgressBar
+    from astropy.utils.console import ProgressBar
 
     bvcs = []
     for ra, dec in ProgressBar(list(zip(coos.ra.deg, coos.dec.deg)),
@@ -261,6 +264,7 @@ def _get_barycorr_bvcs(coos, loc, injupyter=False):
     return bvcs*u.m/u.s
 
 
+@pytest.mark.remote_data
 def test_rvcorr_multiple_obstimes_onskycoord():
     loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
     arrtime = Time('2005-03-21 00:00:00') + np.linspace(-1, 1, 10)*u.day
@@ -276,6 +280,7 @@ def test_rvcorr_multiple_obstimes_onskycoord():
     assert len(rvcbary_sc3) == 10
 
 
+@pytest.mark.remote_data
 def test_invalid_argument_combos():
     loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
     time = Time('2005-03-21 00:00:00')

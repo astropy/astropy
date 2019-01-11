@@ -23,6 +23,9 @@ int ffgtgc(fitsfile *gfptr, int *xtensionCol, int *extnameCol, int *extverCol,
 	   int *positionCol, int *locationCol, int *uriCol, int *grptype,
 	   int *status);
 
+int ffvcfm(fitsfile *gfptr, int xtensionCol, int extnameCol, int extverCol,
+	   int positionCol, int locationCol, int uriCol, int *status);
+
 int ffgmul(fitsfile *mfptr, int rmopt, int *status);
 
 int ffgmf(fitsfile *gfptr, char *xtension, char *extname, int extver,	   
@@ -41,7 +44,7 @@ int fftsud(fitsfile *mfptr, HDUtracker *HDU, int newPosition,
 
 void prepare_keyvalue(char *keyvalue);
 
-int fits_path2url(char *inpath, char *outpath, int  *status);
+int fits_path2url(char *inpath, int maxlength, char *outpath, int  *status);
 
 int fits_url2path(char *inpath, char *outpath, int  *status);
 
@@ -57,7 +60,7 @@ int fits_relurl2url(char *refURL, char *relURL, char *absURL, int *status);
 
 int fits_url2relurl(char *refURL, char *absURL, char *relURL, int *status);
 
-int fits_encode_url(char *inpath, char *outpath, int *status);
+int fits_encode_url(char *inpath, int maxlength, char *outpath, int *status);
 
 int fits_unencode_url(char *inpath, char *outpath, int *status);
 

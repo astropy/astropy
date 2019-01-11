@@ -14,14 +14,13 @@ deviations from the original APE5 plan.
 
 import pytest
 import numpy as np
-from numpy.random import randn
 from numpy import testing as npt
 
-from ...tests.helper import (raises, quantity_allclose as allclose,
-                             assert_quantity_allclose as assert_allclose)
-from ... import units as u
-from ... import time
-from ... import coordinates as coords
+from astropy.tests.helper import raises, assert_quantity_allclose as assert_allclose
+from astropy import units as u
+from astropy import time
+from astropy import coordinates as coords
+from astropy.units import allclose
 
 try:
     import scipy  # pylint: disable=W0611
@@ -32,10 +31,10 @@ else:
 
 
 def test_representations_api():
-    from ..representation import SphericalRepresentation, \
+    from astropy.coordinates.representation import SphericalRepresentation, \
         UnitSphericalRepresentation, PhysicsSphericalRepresentation, \
         CartesianRepresentation
-    from ... coordinates import Angle, Longitude, Latitude, Distance
+    from astropy.coordinates import Angle, Longitude, Latitude, Distance
 
     # <-----------------Classes for representation of coordinate data-------------->
     # These classes inherit from a common base class and internally contain Quantity
@@ -115,17 +114,19 @@ def test_representations_api():
     c3 = PhysicsSphericalRepresentation(phi=120*u.deg, theta=85*u.deg, r=3*u.kpc)
 
     # first dimension must be length-3 if a lone `Quantity` is passed in.
-    c1 = CartesianRepresentation(randn(3, 100) * u.kpc)
+    c1 = CartesianRepresentation(np.random.randn(3, 100) * u.kpc)
     assert c1.xyz.shape[0] == 3
     assert c1.xyz.unit == u.kpc
     assert c1.x.shape[0] == 100
     assert c1.y.shape[0] == 100
     assert c1.z.shape[0] == 100
     # can also give each as separate keywords
-    CartesianRepresentation(x=randn(100)*u.kpc, y=randn(100)*u.kpc, z=randn(100)*u.kpc)
+    CartesianRepresentation(x=np.random.randn(100)*u.kpc,
+                            y=np.random.randn(100)*u.kpc,
+                            z=np.random.randn(100)*u.kpc)
     # if the units don't match but are all distances, they will automatically be
     # converted to match `x`
-    xarr, yarr, zarr = randn(3, 100)
+    xarr, yarr, zarr = np.random.randn(3, 100)
     c1 = CartesianRepresentation(x=xarr*u.kpc, y=yarr*u.kpc, z=zarr*u.kpc)
     c2 = CartesianRepresentation(x=xarr*u.kpc, y=yarr*u.kpc, z=zarr*u.pc)
     assert c1.xyz.unit == c2.xyz.unit == u.kpc
@@ -144,9 +145,9 @@ def test_representations_api():
 
 
 def test_frame_api():
-    from ..representation import SphericalRepresentation, \
+    from astropy.coordinates.representation import SphericalRepresentation, \
                                  UnitSphericalRepresentation
-    from ..builtin_frames import ICRS, FK5
+    from astropy.coordinates.builtin_frames import ICRS, FK5
     # <--------------------Reference Frame/"Low-level" classes--------------------->
     # The low-level classes have a dual role: they act as specifiers of coordinate
     # frames and they *may* also contain data as one of the representation objects,
@@ -199,7 +200,7 @@ def test_frame_api():
     assert_allclose(icrs.dec, 5*u.deg)
     assert_allclose(fk5.ra, 8*u.hourangle)
 
-    assert icrs.representation == SphericalRepresentation
+    assert icrs.representation_type == SphericalRepresentation
 
     # low-level classes can also be initialized with names valid for that representation
     # and frame:
@@ -231,10 +232,10 @@ def test_frame_api():
 
 
 def test_transform_api():
-    from ..representation import UnitSphericalRepresentation
-    from ..builtin_frames import ICRS, FK5
-    from ..baseframe import frame_transform_graph, BaseCoordinateFrame
-    from ..transformations import DynamicMatrixTransform
+    from astropy.coordinates.representation import UnitSphericalRepresentation
+    from astropy.coordinates.builtin_frames import ICRS, FK5
+    from astropy.coordinates.baseframe import frame_transform_graph, BaseCoordinateFrame
+    from astropy.coordinates.transformations import DynamicMatrixTransform
     # <------------------------Transformations------------------------------------->
     # Transformation functionality is the key to the whole scheme: they transform
     # low-level classes from one frame to another.

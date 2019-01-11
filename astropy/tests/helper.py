@@ -3,14 +3,12 @@
 This module provides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the `pytest` testing framework.
 """
-
 import os
 import sys
 import types
 import pickle
 import warnings
 import functools
-
 import pytest
 
 try:
@@ -21,7 +19,8 @@ try:
 except ImportError:
     pass
 
-from ..utils.exceptions import (AstropyDeprecationWarning,
+from astropy.units import allclose as quantity_allclose  # noqa
+from astropy.utils.exceptions import (AstropyDeprecationWarning,
                                 AstropyPendingDeprecationWarning)
 
 
@@ -30,7 +29,7 @@ from .runner import TestRunner  # pylint: disable=W0611
 
 __all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
            'treat_deprecations_as_exceptions', 'catch_warnings',
-           'assert_follows_unicode_guidelines', 'quantity_allclose',
+           'assert_follows_unicode_guidelines',
            'assert_quantity_allclose', 'check_pickling_recovery',
            'pickle_protocol', 'generic_recursive_equality_test']
 
@@ -54,7 +53,7 @@ def _save_coverage(cov, result, rootdir, testing_path):
     This method is called after the tests have been run in coverage mode
     to cleanup and then save the coverage data and report.
     """
-    from ..utils.console import color_print
+    from astropy.utils.console import color_print
 
     if result != 0:
         return
@@ -134,23 +133,35 @@ _modules_to_ignore_on_import = set([
     'setuptools'])
 _warnings_to_ignore_entire_module = set([])
 _warnings_to_ignore_by_pyver = {
-    (3, 5): set([
+    None: set([  # Python version agnostic
         # py.test reads files with the 'U' flag, which is
         # deprecated.
         r"'U' mode is deprecated",
+        # https://github.com/astropy/astropy/pull/7372
+        r"Importing from numpy\.testing\.decorators is deprecated, "
+        r"import from numpy\.testing instead\.",
+        # Deprecation warnings ahead of pytest 4.x
+        r"MarkInfo objects are deprecated"]),
+    (3, 5): set([
         # py.test raised this warning in inspect on Python 3.5.
         # See https://github.com/pytest-dev/pytest/pull/1009
         # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
         r"inspect\.getargspec\(\) is deprecated, use "
         r"inspect\.signature\(\) instead"]),
     (3, 6): set([
-        # py.test reads files with the 'U' flag, which is
-        # deprecated.
-        r"'U' mode is deprecated",
-        # inspect raises this slightly different warning on Python 3.6.
+        # inspect raises this slightly different warning on Python 3.6-3.7.
         # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
         r"inspect\.getargspec\(\) is deprecated, use "
-        r"inspect\.signature\(\) or inspect\.getfullargspec\(\)"])}
+        r"inspect\.signature\(\) or inspect\.getfullargspec\(\)"]),
+    (3, 7): set([
+        # inspect raises this slightly different warning on Python 3.6-3.7.
+        # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
+        r"inspect\.getargspec\(\) is deprecated, use "
+        r"inspect\.signature\(\) or inspect\.getfullargspec\(\)",
+        # Deprecation warning for collections.abc, fixed in Astropy but still
+        # used in lxml, and maybe others
+        r"Using or importing the ABCs from 'collections'"])
+}
 
 
 def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
@@ -180,8 +191,9 @@ def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
 
     warnings_to_ignore_by_pyver : dict
         Dictionary mapping tuple of ``(major, minor)`` Python version to
-        a list of deprecation warning messages to ignore. This is in
-        addition of those already ignored by default
+        a list of deprecation warning messages to ignore.
+        Python version-agnostic warnings should be mapped to `None` key.
+        This is in addition of those already ignored by default
         (see ``_warnings_to_ignore_by_pyver`` values).
 
     """
@@ -220,7 +232,7 @@ def treat_deprecations_as_exceptions():
     # on. See https://github.com/astropy/astropy/pull/5513.
     for module in list(sys.modules.values()):
         # We don't want to deal with six.MovedModules, only "real"
-        # modules.
+        # modules. FIXME: we no more use six, this should be useless ?
         if (isinstance(module, types.ModuleType) and
                 hasattr(module, '__warningregistry__')):
             del module.__warningregistry__
@@ -263,7 +275,7 @@ def treat_deprecations_as_exceptions():
             warnings.filterwarnings('ignore', category=w, module=m)
 
     for v in _warnings_to_ignore_by_pyver:
-        if sys.version_info[:2] == v:
+        if v is None or sys.version_info[:2] == v:
             for s in _warnings_to_ignore_by_pyver[v]:
                 warnings.filterwarnings("ignore", s, DeprecationWarning)
 
@@ -288,11 +300,11 @@ class catch_warnings(warnings.catch_warnings):
     """
 
     def __init__(self, *classes):
-        super(catch_warnings, self).__init__(record=True)
+        super().__init__(record=True)
         self.classes = classes
 
     def __enter__(self):
-        warning_list = super(catch_warnings, self).__enter__()
+        warning_list = super().__enter__()
         treat_deprecations_as_exceptions()
         if len(self.classes) == 0:
             warnings.simplefilter('always')
@@ -316,7 +328,7 @@ class ignore_warnings(catch_warnings):
     """
 
     def __init__(self, category=None):
-        super(ignore_warnings, self).__init__()
+        super().__init__()
 
         if isinstance(category, type) and issubclass(category, Warning):
             self.category = [category]
@@ -335,7 +347,7 @@ class ignore_warnings(catch_warnings):
         return wrapper
 
     def __enter__(self):
-        retval = super(ignore_warnings, self).__enter__()
+        retval = super().__enter__()
         if self.category is not None:
             for category in self.category:
                 warnings.simplefilter('ignore', category)
@@ -361,7 +373,7 @@ def assert_follows_unicode_guidelines(
         ensure that ``__bytes__(x)`` roundtrip.
         If not provided, no roundtrip testing will be performed.
     """
-    from .. import conf
+    from astropy import conf
 
     with conf.set_temp('unicode_output', False):
         bytes_x = bytes(x)
@@ -461,52 +473,6 @@ def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=None,
     :func:`numpy.testing.assert_allclose`.
     """
     import numpy as np
-    np.testing.assert_allclose(*_unquantify_allclose_arguments(actual, desired,
-                                                               rtol, atol),
-                               **kwargs)
-
-
-def quantity_allclose(a, b, rtol=1.e-5, atol=None, **kwargs):
-    """
-    Returns True if two arrays are element-wise equal within a tolerance.
-
-    This is a :class:`~astropy.units.Quantity`-aware version of
-    :func:`numpy.allclose`.
-    """
-    import numpy as np
-    return np.allclose(*_unquantify_allclose_arguments(a, b, rtol, atol),
-                       **kwargs)
-
-
-def _unquantify_allclose_arguments(actual, desired, rtol, atol):
-    from .. import units as u
-
-    actual = u.Quantity(actual, subok=True, copy=False)
-
-    desired = u.Quantity(desired, subok=True, copy=False)
-    try:
-        desired = desired.to(actual.unit)
-    except u.UnitsError:
-        raise u.UnitsError("Units for 'desired' ({0}) and 'actual' ({1}) "
-                           "are not convertible"
-                           .format(desired.unit, actual.unit))
-
-    if atol is None:
-        # by default, we assume an absolute tolerance of 0
-        atol = u.Quantity(0)
-    else:
-        atol = u.Quantity(atol, subok=True, copy=False)
-        try:
-            atol = atol.to(actual.unit)
-        except u.UnitsError:
-            raise u.UnitsError("Units for 'atol' ({0}) and 'actual' ({1}) "
-                               "are not convertible"
-                               .format(atol.unit, actual.unit))
-
-    rtol = u.Quantity(rtol, subok=True, copy=False)
-    try:
-        rtol = rtol.to(u.dimensionless_unscaled)
-    except Exception:
-        raise u.UnitsError("`rtol` should be dimensionless")
-
-    return actual.value, desired.value, rtol.value, atol.value
+    from astropy.units.quantity import _unquantify_allclose_arguments
+    np.testing.assert_allclose(*_unquantify_allclose_arguments(
+        actual, desired, rtol, atol), **kwargs)

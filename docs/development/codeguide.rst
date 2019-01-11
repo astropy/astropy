@@ -54,7 +54,7 @@ Interface and Dependencies
           ...
 
   In the astropy core package, such optional dependencies should be recorded in
-  the ``pip-requirements-dev`` file in the root of the repository.
+  the ``setup.py`` file in the ``extras_require`` entry.
 
 * General utilities necessary for but not specific to the package or
   sub-package should be placed in the ``packagename.utils`` module. These
@@ -143,11 +143,11 @@ Coding Style/Conventions
   maximum line length for different subpackages (typically either 80 or 100
   characters).  Please try to maintain the style when adding or modifying code.
 
-* One exception is to be made from the PEP8 style: new style relative imports
-  of the form ``from . import modname`` are allowed and required for Astropy,
-  as opposed to absolute (as PEP8 suggests) or the simpler ``import modname``
-  syntax. This is primarily due to improved relative import support since PEP8
-  was developed, and to simplify the process of moving modules.
+* Following PEP8's recommendation, absolute imports are to be used in general.
+  The exception to this is relative imports of the form
+  ``from . import modname``, best when referring to files within the same
+  sub-module.  This makes it clearer what code is from the current submodule
+  as opposed to from another.
 
   .. note:: There are multiple options for testing PEP8 compliance of code,
             see :doc:`testguide` for more information.

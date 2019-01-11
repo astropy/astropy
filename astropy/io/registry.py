@@ -54,7 +54,7 @@ def delay_doc_updates(cls):
 
     Notes
     -----
-    Registering mutliple readers and writers can cause significant overhead
+    Registering multiple readers and writers can cause significant overhead
     because the documentation of the corresponding ``read`` and ``write``
     methods are build every time.
 
@@ -95,7 +95,7 @@ def get_formats(data_class=None, readwrite=None):
     format_table : Table
         Table of available I/O formats.
     """
-    from ..table import Table
+    from astropy.table import Table
 
     format_classes = sorted(set(_readers) | set(_writers), key=itemgetter(0))
     rows = []
@@ -492,7 +492,7 @@ def read(cls, *args, format=None, **kwargs):
 
             if len(args):
                 if isinstance(args[0], PATH_TYPES):
-                    from ..utils.data import get_readable_fileobj
+                    from astropy.utils.data import get_readable_fileobj
                     # path might be a pathlib.Path object
                     if isinstance(args[0], pathlib.Path):
                         args = (str(args[0]),) + args[1:]
@@ -517,18 +517,14 @@ def read(cls, *args, format=None, **kwargs):
         data = reader(*args, **kwargs)
 
         if not isinstance(data, cls):
-            if issubclass(cls, data.__class__):
-                # User has read with a subclass where only the parent class is
-                # registered.  This returns the parent class, so try coercing
-                # to desired subclass.
-                try:
-                    data = cls(data)
-                except Exception:
-                    raise TypeError('could not convert reader output to {0} '
-                                    'class.'.format(cls.__name__))
-            else:
-                raise TypeError("reader should return a {0} instance"
-                                "".format(cls.__name__))
+            # User has read with a subclass where only the parent class is
+            # registered.  This returns the parent class, so try coercing
+            # to desired subclass.
+            try:
+                data = cls(data)
+            except Exception:
+                raise TypeError('could not convert reader output to {0} '
+                                'class.'.format(cls.__name__))
     finally:
         if ctx is not None:
             ctx.__exit__(*sys.exc_info())
@@ -569,15 +565,19 @@ def _is_best_match(class1, class2, format_classes):
     Determine if class2 is the "best" match for class1 in the list
     of classes.  It is assumed that (class2 in classes) is True.
     class2 is the the best match if:
-      - class1 is class2 => class1 was directly registered.
-      - OR class1 is a subclass of class2 and class1 is not in classes.
-        In this case the subclass will use the parent reader/writer.
+
+    - ``class1`` is a subclass of ``class2`` AND
+    - ``class2`` is the nearest ancestor of ``class1`` that is in classes
+      (which includes the case that ``class1 is class2``)
     """
-    # The set with the classes is only created if class1 is not class2 and
-    # class1 is a subclass of class2.
-    return (class1 is class2 or
-            (issubclass(class1, class2) and
-             class1 not in {cls for fmt, cls in format_classes}))
+    if issubclass(class1, class2):
+        classes = {cls for fmt, cls in format_classes}
+        for parent in class1.__mro__:
+            if parent is class2:  # class2 is closest registered ancestor
+                return True
+            if parent in classes:  # class2 was superceded
+                return False
+    return False
 
 
 def _get_valid_format(mode, cls, path, fileobj, args, kwargs):

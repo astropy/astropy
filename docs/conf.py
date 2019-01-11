@@ -27,31 +27,23 @@
 
 from datetime import datetime
 import os
-ON_RTD = os.environ.get('READTHEDOCS') == 'True'
-ON_TRAVIS = os.environ.get('TRAVIS') == 'true'
-
-try:
-    import astropy_helpers
-except ImportError:
-    # Building from inside the docs/ directory?
-    import os
-    import sys
-    if os.path.basename(os.getcwd()) == 'docs':
-        a_h_path = os.path.abspath(os.path.join('..', 'astropy_helpers'))
-        if os.path.isdir(a_h_path):
-            sys.path.insert(1, a_h_path)
-
-    # If that doesn't work trying to import from astropy_helpers below will
-    # still blow up
-
-# Load all of the global Astropy configuration
-from astropy_helpers.sphinx.conf import *
+import sys
 
 import astropy
 
-# Use the astropy style when building docs
-from astropy import visualization
-plot_rcparams = visualization.astropy_mpl_docs_style
+try:
+    from sphinx_astropy.conf.v1 import *  # noqa
+except ImportError:
+    print('ERROR: the documentation requires the sphinx-astropy package to be installed')
+    sys.exit(1)
+
+plot_rcparams = {}
+plot_rcparams['figure.figsize'] = (6, 6)
+plot_rcparams['savefig.facecolor'] = 'none'
+plot_rcparams['savefig.bbox'] = 'tight'
+plot_rcparams['axes.labelsize'] = 'large'
+plot_rcparams['figure.subplot.hspace'] = 0.5
+
 plot_apply_rcparams = True
 plot_html_show_source_link = False
 plot_formats = ['png', 'svg', 'pdf']
@@ -74,15 +66,18 @@ check_sphinx_version("1.2.1")
 del intersphinx_mapping['astropy']
 
 # add any custom intersphinx for astropy
-intersphinx_mapping['pytest'] = ('https://docs.pytest.org/en/latest/', None)
+intersphinx_mapping['pytest'] = ('https://docs.pytest.org/en/stable/', None)
 intersphinx_mapping['ipython'] = ('http://ipython.readthedocs.io/en/stable/', None)
 intersphinx_mapping['pandas'] = ('http://pandas.pydata.org/pandas-docs/stable/', None)
 intersphinx_mapping['sphinx_automodapi'] = ('https://sphinx-automodapi.readthedocs.io/en/stable/', None)
+intersphinx_mapping['packagetemplate'] = ('http://docs.astropy.org/projects/package-template/en/latest/', None)
+intersphinx_mapping['h5py'] = ('http://docs.h5py.org/en/stable/', None)
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns.append('_templates')
 exclude_patterns.append('_pkgtemplate.rst')
+exclude_patterns.append('**/*.inc.rst')  # .inc.rst mean *include* files, don't have sphinx process them
 
 # Add any paths that contain templates here, relative to this directory.
 if 'templates_path' not in locals():  # in case parent conf.py defines it
@@ -93,6 +88,7 @@ templates_path.append('_templates')
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
 rst_epilog += """
+.. |minimum_python_version| replace:: {0.__minimum_python_version__}
 .. |minimum_numpy_version| replace:: {0.__minimum_numpy_version__}
 
 .. Astropy
@@ -167,6 +163,10 @@ html_title = '{0} v{1}'.format(project, release)
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + 'doc'
 
+# A dictionary of values to pass into the template engine’s context for all pages.
+html_context = {
+    'to_be_indexed': ['stable', 'latest']
+}
 
 # -- Options for LaTeX output --------------------------------------------------
 
@@ -185,25 +185,7 @@ latex_logo = '_static/astropy_logo.pdf'
 man_pages = [('index', project.lower(), project + u' Documentation',
               [author], 1)]
 
-
-# -- Options for the edit_on_github extension ----------------------------------------
-
-extensions += ['astropy_helpers.sphinx.ext.edit_on_github']
-
-# Don't import the module as "version" or it will override the
-# "version" configuration parameter
-from astropy import version as versionmod
-edit_on_github_project = "astropy/astropy"
-if versionmod.release:
-    edit_on_github_branch = "v{0}.{1}.x".format(
-        versionmod.major, versionmod.minor)
-else:
-    edit_on_github_branch = "master"
-edit_on_github_source_root = ""
-edit_on_github_doc_root = "docs"
-
-edit_on_github_skip_regex = '_.*|api/.*'
-
+# Setting this URL is requited by sphinx-astropy
 github_issues_url = 'https://github.com/astropy/astropy/issues/'
 
 # Enable nitpicky mode - which ensures that all references in the docs

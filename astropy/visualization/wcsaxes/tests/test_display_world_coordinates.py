@@ -1,17 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ..core import WCSAxes
+from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import KeyEvent
 
-from ....wcs import WCS
-from ....coordinates import FK5
-from ....time import Time
+from astropy.wcs import WCS
+from astropy.coordinates import FK5
+from astropy.time import Time
+from astropy.tests.image_tests import ignore_matplotlibrc
 
 from .test_images import BaseImageTests
 
 
 class TestDisplayWorldCoordinate(BaseImageTests):
 
+    @ignore_matplotlibrc
     def test_overlay_coords(self, tmpdir):
         wcs = WCS(self.msx_header)
 
@@ -56,7 +58,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         # Test that it displays the overlay world coordinates
         string_world3 = ax._display_world_coords(0.523412, 0.518311)
 
-        assert string_world3 == '267.176 -28\xb045\'56" (world, overlay 1)'
+        assert string_world3 == '267.176\xb0 -28\xb045\'56" (world, overlay 1)'
 
         overlay = ax.get_coords_overlay(FK5())
 
@@ -73,7 +75,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         # Test that it displays the overlay world coordinates
         string_world4 = ax._display_world_coords(0.523412, 0.518311)
 
-        assert string_world4 == '267.176 -28\xb045\'56" (world, overlay 2)'
+        assert string_world4 == '267.176\xb0 -28\xb045\'56" (world, overlay 2)'
 
         overlay = ax.get_coords_overlay(FK5(equinox=Time("J2030")))
 
@@ -90,8 +92,9 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         # Test that it displays the overlay world coordinates
         string_world5 = ax._display_world_coords(0.523412, 0.518311)
 
-        assert string_world5 == '267.652 -28\xb046\'23" (world, overlay 3)'
+        assert string_world5 == '267.652\xb0 -28\xb046\'23" (world, overlay 3)'
 
+    @ignore_matplotlibrc
     def test_cube_coords(self, tmpdir):
         wcs = WCS(self.cube_header)
 
@@ -107,7 +110,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # Testing default displayed world coordinates
         string_world = ax._display_world_coords(0.523412, 0.518311)
-        assert string_world == '2563 51\xb043\'01" (world)'
+        assert string_world == '2563 3h26m52.0s (world)'
 
         # Test pixel coordinates
         event1 = KeyEvent('test_pixel_coords', canvas, 'w')

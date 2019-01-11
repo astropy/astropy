@@ -11,19 +11,23 @@ from .core import (Fittable1DModel, Fittable2DModel,
                    ModelDefinitionError)
 from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
-from ..stats.funcs import gaussian_sigma_to_fwhm
-from .. import units as u
-from ..units import Quantity, UnitsError
+from astropy import units as u
+from astropy.units import Quantity, UnitsError
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
            'Gaussian2D', 'Linear1D', 'Lorentz1D',
            'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor',
-           'Scale', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
+           'Scale', 'Multiply', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
            'TrapezoidDisk2D', 'Ring2D', 'Voigt1D']
 
 TWOPI = 2 * np.pi
 FLOAT_EPSILON = float(np.finfo(np.float32).tiny)
+
+# Note that we define this here rather than using the value defined in
+# astropy.stats to avoid importing astropy.stats every time astropy.modeling
+# is loaded.
+GAUSSIAN_SIGMA_TO_FWHM = 2.0 * np.sqrt(2.0 * np.log(2.0))
 
 
 class Gaussian1D(Fittable1DModel):
@@ -150,7 +154,7 @@ class Gaussian1D(Fittable1DModel):
     @property
     def fwhm(self):
         """Gaussian full width at half maximum."""
-        return self.stddev * gaussian_sigma_to_fwhm
+        return self.stddev * GAUSSIAN_SIGMA_TO_FWHM
 
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
@@ -314,12 +318,12 @@ class Gaussian2D(Fittable2DModel):
     @property
     def x_fwhm(self):
         """Gaussian full width at half maximum in X."""
-        return self.x_stddev * gaussian_sigma_to_fwhm
+        return self.x_stddev * GAUSSIAN_SIGMA_TO_FWHM
 
     @property
     def y_fwhm(self):
         """Gaussian full width at half maximum in Y."""
-        return self.y_stddev * gaussian_sigma_to_fwhm
+        return self.y_stddev * GAUSSIAN_SIGMA_TO_FWHM
 
     def bounding_box(self, factor=5.5):
         """
@@ -461,10 +465,6 @@ class Shift(Fittable1DModel):
     offset = Parameter(default=0)
     linear = True
 
-    input_units_strict = True
-
-    input_units_allow_dimensionless = True
-
     @property
     def input_units(self):
         if self.offset.unit is None:
@@ -482,14 +482,7 @@ class Shift(Fittable1DModel):
     @staticmethod
     def evaluate(x, offset):
         """One dimensional Shift model function"""
-        if isinstance(offset, u.Quantity):
-            return_unit = offset.unit
-            offset = offset.value
-        if isinstance(x, u.Quantity):
-            x = x.value
-            return (x + offset) * return_unit
-        else:
-            return x + offset
+        return x + offset
 
     @staticmethod
     def sum_of_implicit_terms(x):
@@ -506,12 +499,19 @@ class Shift(Fittable1DModel):
 
 class Scale(Fittable1DModel):
     """
-    Multiply a model by a factor.
+    Multiply a model by a dimensionless factor.
 
     Parameters
     ----------
     factor : float
         Factor by which to scale a coordinate.
+
+    Notes
+    -----
+
+    If ``factor`` is a `~astropy.units.Quantity` then the units will be
+    stripped before the scaling operation.
+
     """
 
     inputs = ('x',)
@@ -521,9 +521,8 @@ class Scale(Fittable1DModel):
     linear = True
     fittable = True
 
-    input_units_strict = True
-
-    input_units_allow_dimensionless = True
+    _input_units_strict = True
+    _input_units_allow_dimensionless = True
 
     @property
     def input_units(self):
@@ -543,16 +542,50 @@ class Scale(Fittable1DModel):
     def evaluate(x, factor):
         """One dimensional Scale model function"""
         if isinstance(factor, u.Quantity):
-            return_unit = factor.unit
             factor = factor.value
-        if isinstance(x, u.Quantity):
-            return (x.value * factor) * return_unit
-        else:
-            return factor * x
+
+        return factor * x
 
     @staticmethod
     def fit_deriv(x, *params):
         """One dimensional Scale model derivative with respect to parameter"""
+
+        d_factor = x
+        return [d_factor]
+
+
+class Multiply(Fittable1DModel):
+    """
+    Multiply a model by a quantity or number.
+
+    Parameters
+    ----------
+    factor : float
+        Factor by which to multiply a coordinate.
+    """
+
+    inputs = ('x',)
+    outputs = ('x',)
+
+    factor = Parameter(default=1)
+    linear = True
+    fittable = True
+
+    @property
+    def inverse(self):
+        """One dimensional inverse multiply model function"""
+        inv = self.copy()
+        inv.factor = 1 / self.factor
+        return inv
+
+    @staticmethod
+    def evaluate(x, factor):
+        """One dimensional multiply model function"""
+        return factor * x
+
+    @staticmethod
+    def fit_deriv(x, *params):
+        """One dimensional multiply model derivative with respect to parameter"""
 
         d_factor = x
         return [d_factor]
@@ -605,7 +638,7 @@ class Sersic1D(Fittable1DModel):
     Parameters
     ----------
     amplitude : float
-        Central surface brightness, within r_eff.
+        Surface brightness at r_eff.
     r_eff : float
         Effective (half-light) radius
     n : float
@@ -1620,15 +1653,6 @@ class Box1D(Fittable1DModel):
         else:
             return result
 
-    @classmethod
-    def fit_deriv(cls, x, amplitude, x_0, width):
-        """One dimensional Box model derivative with respect to parameters"""
-
-        d_amplitude = cls.evaluate(x, 1, x_0, width)
-        d_x_0 = np.zeros_like(x)
-        d_width = np.zeros_like(x)
-        return [d_amplitude, d_x_0, d_width]
-
     @property
     def bounding_box(self):
         """
@@ -2245,12 +2269,12 @@ class Moffat1D(Fittable1DModel):
     def fit_deriv(x, amplitude, x_0, gamma, alpha):
         """One dimensional Moffat model derivative with respect to parameters"""
 
-        d_A = (1 + (x - x_0) ** 2 / gamma ** 2) ** (-alpha)
-        d_x_0 = (-amplitude * alpha * d_A * (-2 * x + 2 * x_0) /
-                 (gamma ** 2 * d_A ** alpha))
-        d_gamma = (2 * amplitude * alpha * d_A * (x - x_0) ** 2 /
-                   (gamma ** 3 * d_A ** alpha))
-        d_alpha = -amplitude * d_A * np.log(1 + (x - x_0) ** 2 / gamma ** 2)
+        fac = (1 + (x - x_0) ** 2 / gamma ** 2)
+        d_A = fac ** (-alpha)
+        d_x_0 = (2 * amplitude * alpha * (x - x_0) * d_A / (fac * gamma ** 2))
+        d_gamma = (2 * amplitude * alpha * (x - x_0) ** 2 * d_A /
+                   (fac * gamma ** 3))
+        d_alpha = -amplitude * d_A * np.log(fac)
         return [d_A, d_x_0, d_gamma, d_alpha]
 
     @property
@@ -2325,12 +2349,13 @@ class Moffat2D(Fittable2DModel):
 
         rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
         d_A = (1 + rr_gg) ** (-alpha)
-        d_x_0 = (-amplitude * alpha * d_A * (-2 * x + 2 * x_0) /
+        d_x_0 = (2 * amplitude * alpha * d_A * (x - x_0) /
                  (gamma ** 2 * (1 + rr_gg)))
-        d_y_0 = (-amplitude * alpha * d_A * (-2 * y + 2 * y_0) /
+        d_y_0 = (2 * amplitude * alpha * d_A * (y - y_0) /
                  (gamma ** 2 * (1 + rr_gg)))
         d_alpha = -amplitude * d_A * np.log(1 + rr_gg)
-        d_gamma = 2 * amplitude * alpha * d_A * (rr_gg / (gamma * (1 + rr_gg)))
+        d_gamma = (2 * amplitude * alpha * d_A * rr_gg /
+                   (gamma ** 3 * (1 + rr_gg)))
         return [d_A, d_x_0, d_y_0, d_gamma, d_alpha]
 
     @property
@@ -2360,7 +2385,7 @@ class Sersic2D(Fittable2DModel):
     Parameters
     ----------
     amplitude : float
-        Central surface brightness, within r_eff.
+        Surface brightness at r_eff.
     r_eff : float
         Effective (half-light) radius
     n : float

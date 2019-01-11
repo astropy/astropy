@@ -13,7 +13,7 @@ import queue
 import xmlrpc.client as xmlrpc
 from urllib.parse import urlunparse
 
-from .. import log
+from astropy import log
 
 from .constants import SAMP_STATUS_OK
 from .constants import __profile_version__

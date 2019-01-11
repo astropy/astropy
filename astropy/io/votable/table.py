@@ -5,8 +5,6 @@ This file contains a contains the high-level functions to read a
 VOTable file.
 """
 
-
-
 # STDLIB
 import io
 import os
@@ -17,8 +15,8 @@ import warnings
 # LOCAL
 from . import exceptions
 from . import tree
-from ...utils.xml import iterparser
-from ...utils import data
+from astropy.utils.xml import iterparser
+from astropy.utils import data
 
 
 __all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate',
@@ -133,8 +131,8 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         config['filename'] = source
 
     with iterparser.get_xml_iterator(
-        source,
-        _debug_python_based_parser=_debug_python_based_parser) as iterator:
+            source,
+            _debug_python_based_parser=_debug_python_based_parser) as iterator:
         return tree.VOTableFile(
             config=config, pos=(1, 1)).parse(iterator, config)
 
@@ -177,7 +175,7 @@ def writeto(table, file, tabledata_format=None):
         each ``table`` object as it was created or read in.  See
         :ref:`votable-serialization`.
     """
-    from ...table import Table
+    from astropy.table import Table
     if isinstance(table, Table):
         table = tree.VOTableFile.from_table(table)
     elif not isinstance(table, tree.VOTableFile):
@@ -219,7 +217,7 @@ def validate(source, output=None, xmllint=False, filename=None):
         `None`, the return value will be a string.
     """
 
-    from ...utils.console import print_code_line, color_print
+    from astropy.utils.console import print_code_line, color_print
 
     if output is None:
         output = sys.stdout
@@ -294,19 +292,19 @@ def validate(source, output=None, xmllint=False, filename=None):
 
     success = 0
     if xmllint and os.path.exists(filename):
-        from ...utils.xml import validate
+        from . import xmlutil
 
         if votable is None:
             version = "1.1"
         else:
             version = votable.version
-        success, stdout, stderr = validate.validate_schema(
+        success, stdout, stderr = xmlutil.validate_schema(
             filename, version)
 
         if success != 0:
             output.write(
                 'xmllint schema violations:\n\n')
-            output.write(stderr)
+            output.write(stderr.decode('utf-8'))
         else:
             output.write('xmllint passed\n')
 
@@ -352,12 +350,12 @@ def is_votable(source):
     """
     try:
         with iterparser.get_xml_iterator(source) as iterator:
-            for start, tag, data, pos in iterator:
+            for start, tag, d, pos in iterator:
                 if tag != 'xml':
                     return False
                 break
 
-            for start, tag, data, pos in iterator:
+            for start, tag, d, pos in iterator:
                 if tag != 'VOTABLE':
                     return False
                 break

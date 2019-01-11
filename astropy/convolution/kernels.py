@@ -5,10 +5,10 @@ import math
 import numpy as np
 
 from .core import Kernel1D, Kernel2D, Kernel
-from .utils import KernelSizeError
-from ..modeling import models
-from ..modeling.core import Fittable1DModel, Fittable2DModel
-from ..utils.decorators import deprecated_renamed_argument
+from .utils import has_even_axis, raise_even_kernel_exception
+from astropy.modeling import models
+from astropy.modeling.core import Fittable1DModel, Fittable2DModel
+from astropy.utils.decorators import deprecated_renamed_argument
 
 __all__ = ['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
            'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',
@@ -543,7 +543,7 @@ class MexicanHat1DKernel(Kernel1D):
     1D Mexican hat filter kernel.
 
     The Mexican Hat, or inverted Gaussian-Laplace filter, is a
-    bandpass filter. It smoothes the data and removes slowly varying
+    bandpass filter. It smooths the data and removes slowly varying
     or constant structures (e.g. Background). It is useful for peak or
     multi-scale detection.
 
@@ -613,7 +613,7 @@ class MexicanHat2DKernel(Kernel2D):
     2D Mexican hat filter kernel.
 
     The Mexican Hat, or inverted Gaussian-Laplace filter, is a
-    bandpass filter. It smoothes the data and removes slowly varying
+    bandpass filter. It smooths the data and removes slowly varying
     or constant structures (e.g. Background). It is useful for peak or
     multi-scale detection.
 
@@ -801,10 +801,11 @@ class Moffat2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, gamma, alpha, **kwargs):
-        self._model = models.Moffat2D((gamma - 1.0) / (np.pi * alpha * alpha),
-                                      0, 0, gamma, alpha)
-        fwhm = 2.0 * alpha * (2.0 ** (1.0 / gamma) - 1.0) ** 0.5
-        self._default_size = _round_up_to_odd_integer(4.0 * fwhm)
+        # Compute amplitude, from
+        # https://en.wikipedia.org/wiki/Moffat_distribution
+        amplitude = (alpha - 1.0) / (np.pi * gamma * gamma)
+        self._model = models.Moffat2D(amplitude, 0, 0, gamma, alpha)
+        self._default_size = _round_up_to_odd_integer(4.0 * self._model.fwhm)
         super().__init__(**kwargs)
         self.normalize()
         self._truncation = None
@@ -1014,9 +1015,8 @@ class CustomKernel(Kernel):
             raise TypeError("Must be list or array.")
 
         # Check if array is odd in all axes
-        odd = all(axes_size % 2 != 0 for axes_size in self.shape)
-        if not odd:
-            raise KernelSizeError("Kernel size must be odd in all axes.")
+        if has_even_axis(self):
+            raise_even_kernel_exception()
 
         # Check if array is bool
         ones = self._array == 1.

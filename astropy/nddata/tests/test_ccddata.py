@@ -6,17 +6,20 @@ import textwrap
 import numpy as np
 import pytest
 
-from ...io import fits
-from ..nduncertainty import StdDevUncertainty, MissingDataAssociationException
-from ... import units as u
-from ... import log
-from ...wcs import WCS, FITSFixedWarning
-from ...tests.helper import catch_warnings
-from ...utils import NumpyRNGContext
-from ...utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
+from astropy.io import fits
+from astropy.nddata.nduncertainty import (
+    StdDevUncertainty, MissingDataAssociationException, VarianceUncertainty,
+    InverseVariance)
+from astropy import units as u
+from astropy import log
+from astropy.wcs import WCS, FITSFixedWarning
+from astropy.tests.helper import catch_warnings
+from astropy.utils import NumpyRNGContext
+from astropy.utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
                            get_pkg_data_contents)
 
-from ..ccddata import CCDData
+from astropy.nddata.ccddata import CCDData
+from astropy.table import Table
 
 # If additional pytest markers are defined the key in the dictionary below
 # should be the name of the marker.
@@ -33,11 +36,11 @@ DEFAULT_DATA_SCALE = 1.0
 
 
 def value_from_markers(key, request):
-    try:
-        val = request.keywords[key].args[0]
-    except KeyError:
-        val = DEFAULTS[key]
-    return val
+    m = request.node.get_closest_marker(key)
+    if m is not None:
+        return m.args[0]
+    else:
+        return DEFAULTS[key]
 
 
 @pytest.fixture
@@ -144,6 +147,15 @@ def test_initialize_from_fits_with_ADU_in_header(tmpdir):
     assert ccd.unit is u.adu
 
 
+def test_initialize_from_fits_with_invalid_unit_in_header(tmpdir):
+    hdu = fits.PrimaryHDU(np.ones((2, 2)))
+    hdu.header['bunit'] = 'definetely-not-a-unit'
+    filename = tmpdir.join('afile.fits').strpath
+    hdu.writeto(filename)
+    with pytest.raises(ValueError):
+        CCDData.read(filename)
+
+
 def test_initialize_from_fits_with_data_in_different_extension(tmpdir):
     fake_img = np.random.random(size=(100, 100))
     hdu1 = fits.PrimaryHDU()
@@ -163,7 +175,6 @@ def test_initialize_from_fits_with_data_in_different_extension(tmpdir):
 def test_initialize_from_fits_with_extension(tmpdir):
     fake_img1 = np.random.random(size=(100, 100))
     fake_img2 = np.random.random(size=(100, 100))
-    new_hdul = fits.HDUList()
     hdu0 = fits.PrimaryHDU()
     hdu1 = fits.ImageHDU(fake_img1)
     hdu2 = fits.ImageHDU(fake_img2)
@@ -279,7 +290,7 @@ def test_setting_uncertainty_with_array(ccd_data):
 
 def test_setting_uncertainty_wrong_shape_raises_error(ccd_data):
     with pytest.raises(ValueError):
-        ccd_data.uncertainty = np.random.random(size=2 * ccd_data.shape)
+        ccd_data.uncertainty = np.random.random(size=(3, 4))
 
 
 def test_to_hdu(ccd_data):
@@ -459,15 +470,19 @@ def test_arithmetic_overload_ccddata_operand(ccd_data):
     assert len(result.meta) == 0
     np.testing.assert_array_equal(result.data,
                                   2 * ccd_data.data)
-    np.testing.assert_array_equal(result.uncertainty.array,
-                                  np.sqrt(2) * ccd_data.uncertainty.array)
+    np.testing.assert_array_almost_equal_nulp(
+        result.uncertainty.array,
+        np.sqrt(2) * ccd_data.uncertainty.array
+    )
 
     result = ccd_data.subtract(operand)
     assert len(result.meta) == 0
     np.testing.assert_array_equal(result.data,
                                   0 * ccd_data.data)
-    np.testing.assert_array_equal(result.uncertainty.array,
-                                  np.sqrt(2) * ccd_data.uncertainty.array)
+    np.testing.assert_array_almost_equal_nulp(
+        result.uncertainty.array,
+        np.sqrt(2) * ccd_data.uncertainty.array
+    )
 
     result = ccd_data.multiply(operand)
     assert len(result.meta) == 0
@@ -634,7 +649,7 @@ def test_wcs_keywords_removed_from_header():
     Test, for the file included with the nddata tests, that WCS keywords are
     properly removed from header.
     """
-    from ..ccddata import _KEEP_THESE_KEYWORDS_IN_HEADER
+    from astropy.nddata.ccddata import _KEEP_THESE_KEYWORDS_IN_HEADER
     keepers = set(_KEEP_THESE_KEYWORDS_IN_HEADER)
     data_file = get_pkg_data_filename('data/sip-wcs.fits')
     ccd = CCDData.read(data_file)
@@ -653,8 +668,8 @@ def test_wcs_keyword_removal_for_wcs_test_files():
     expected. Those cover a much broader range of WCS types than
     test_wcs_keywords_removed_from_header
     """
-    from ..ccddata import _generate_wcs_and_update_header
-    from ..ccddata import _KEEP_THESE_KEYWORDS_IN_HEADER
+    from astropy.nddata.ccddata import _generate_wcs_and_update_header
+    from astropy.nddata.ccddata import _KEEP_THESE_KEYWORDS_IN_HEADER
 
     keepers = set(_KEEP_THESE_KEYWORDS_IN_HEADER)
     wcs_headers = get_pkg_data_filenames('../../wcs/tests/data',
@@ -800,13 +815,34 @@ def test_write_read_multiextensionfits_mask_default(ccd_data, tmpdir):
     np.testing.assert_array_equal(ccd_data.mask, ccd_after.mask)
 
 
-def test_write_read_multiextensionfits_uncertainty_default(ccd_data, tmpdir):
+@pytest.mark.parametrize(
+    'uncertainty_type',
+    [StdDevUncertainty, VarianceUncertainty, InverseVariance])
+def test_write_read_multiextensionfits_uncertainty_default(
+        ccd_data, tmpdir, uncertainty_type):
     # Test that if a uncertainty is present it is saved and loaded by default.
-    ccd_data.uncertainty = StdDevUncertainty(ccd_data.data * 10)
+    ccd_data.uncertainty = uncertainty_type(ccd_data.data * 10)
     filename = tmpdir.join('afile.fits').strpath
     ccd_data.write(filename)
     ccd_after = CCDData.read(filename)
     assert ccd_after.uncertainty is not None
+    assert type(ccd_after.uncertainty) is uncertainty_type
+    np.testing.assert_array_equal(ccd_data.uncertainty.array,
+                                  ccd_after.uncertainty.array)
+
+
+@pytest.mark.parametrize(
+    'uncertainty_type',
+    [StdDevUncertainty, VarianceUncertainty, InverseVariance])
+def test_write_read_multiextensionfits_uncertainty_different_uncertainty_key(
+        ccd_data, tmpdir, uncertainty_type):
+    # Test that if a uncertainty is present it is saved and loaded by default.
+    ccd_data.uncertainty = uncertainty_type(ccd_data.data * 10)
+    filename = tmpdir.join('afile.fits').strpath
+    ccd_data.write(filename, key_uncertainty_type='Blah')
+    ccd_after = CCDData.read(filename, key_uncertainty_type='Blah')
+    assert ccd_after.uncertainty is not None
+    assert type(ccd_after.uncertainty) is uncertainty_type
     np.testing.assert_array_equal(ccd_data.uncertainty.array,
                                   ccd_after.uncertainty.array)
 
@@ -873,3 +909,18 @@ def test_stddevuncertainty_compat_descriptor_no_weakref():
     uncert._parent_nddata = ccd
     assert uncert.parent_nddata is ccd
     uncert._parent_nddata = None
+
+
+# https://github.com/astropy/astropy/issues/7595
+def test_read_returns_image(tmpdir):
+    # Test if CCData.read returns a image when reading a fits file containing
+    # a table and image, in that order.
+    tbl = Table(np.ones(10).reshape(5, 2))
+    img = np.ones((5, 5))
+    hdul = fits.HDUList(hdus=[fits.PrimaryHDU(), fits.TableHDU(tbl.as_array()),
+                              fits.ImageHDU(img)])
+    filename = tmpdir.join('table_image.fits').strpath
+    hdul.writeto(filename)
+    ccd = CCDData.read(filename, unit='adu')
+    # Expecting to get (5, 5), the size of the image
+    assert ccd.data.shape == (5, 5)

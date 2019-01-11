@@ -237,7 +237,7 @@ int ffgsvk(fitsfile *fptr, /* I - FITS file pointer                         */
 
     if (naxis < 1 || naxis > 9)
     {
-        sprintf(msg, "NAXIS = %d in call to ffgsvj is out of range", naxis);
+        snprintf(msg, FLEN_ERRMSG,"NAXIS = %d in call to ffgsvj is out of range", naxis);
         ffpmsg(msg);
         return(*status = BAD_DIMEN);
     }
@@ -315,7 +315,7 @@ int ffgsvk(fitsfile *fptr, /* I - FITS file pointer                         */
         }
         else
         {
-          sprintf(msg, "ffgsvk: illegal range specified for axis %ld", ii + 1);
+          snprintf(msg, FLEN_ERRMSG,"ffgsvk: illegal range specified for axis %ld", ii + 1);
           ffpmsg(msg);
           return(*status = BAD_PIX_NUM);
         }
@@ -414,7 +414,7 @@ int ffgsfk(fitsfile *fptr, /* I - FITS file pointer                         */
 
     if (naxis < 1 || naxis > 9)
     {
-        sprintf(msg, "NAXIS = %d in call to ffgsvj is out of range", naxis);
+        snprintf(msg, FLEN_ERRMSG,"NAXIS = %d in call to ffgsvj is out of range", naxis);
         ffpmsg(msg);
         return(*status = BAD_DIMEN);
     }
@@ -483,7 +483,7 @@ int ffgsfk(fitsfile *fptr, /* I - FITS file pointer                         */
     {
       if (trc[ii] < blc[ii])
       {
-        sprintf(msg, "ffgsvj: illegal range specified for axis %ld", ii + 1);
+        snprintf(msg, FLEN_ERRMSG,"ffgsvj: illegal range specified for axis %ld", ii + 1);
         ffpmsg(msg);
         return(*status = BAD_PIX_NUM);
       }
@@ -666,7 +666,7 @@ int ffgclk( fitsfile *fptr,   /* I - FITS file pointer                       */
     LONGLONG repeat, startpos, elemnum, readptr, tnull;
     LONGLONG rowlen, rownum, remain, next, rowincre, maxelem;
     char tform[20];
-    char message[81];
+    char message[FLEN_ERRMSG];
     char snull[20];   /*  the FITS null value if reading from ASCII table  */
 
     double cbuff[DBUFFSIZE / sizeof(double)]; /* align cbuff on word boundary */
@@ -850,7 +850,7 @@ int ffgclk( fitsfile *fptr,   /* I - FITS file pointer                       */
                 break;
 
             default:  /*  error trap for invalid column format */
-                sprintf(message, 
+                snprintf(message, FLEN_ERRMSG,
                    "Cannot read numbers from column %d which has format %s",
                     colnum, tform);
                 ffpmsg(message);
@@ -868,11 +868,11 @@ int ffgclk( fitsfile *fptr,   /* I - FITS file pointer                       */
         {
 	  dtemp = (double) next;
           if (hdutype > 0)
-            sprintf(message,
+            snprintf(message, FLEN_ERRMSG,
             "Error reading elements %.0f thru %.0f from column %d (ffgclk).",
               dtemp+1., dtemp+ntodo, colnum);
           else
-            sprintf(message,
+            snprintf(message, FLEN_ERRMSG,
             "Error reading elements %.0f thru %.0f from image (ffgclk).",
               dtemp+1., dtemp+ntodo);
 
@@ -1282,10 +1282,32 @@ int fffi8int(LONGLONG *input,     /* I - array of values to be converted     */
 {
     long ii;
     double dvalue;
+    ULONGLONG ulltemp;
 
     if (nullcheck == 0)     /* no null checking required */
     {
-        if (scale == 1. && zero == 0.)      /* no scaling */
+        if (scale == 1. && zero ==  9223372036854775808.)
+        {       
+            /* The column we read contains unsigned long long values. */
+            /* Instead of adding 9223372036854775808, it is more efficient */
+            /* and more precise to just flip the sign bit with the XOR operator */
+
+            for (ii = 0; ii < ntodo; ii++) {
+ 
+                ulltemp = (ULONGLONG) (((LONGLONG) input[ii]) ^ 0x8000000000000000);
+
+                if (ulltemp > INT_MAX)
+                {
+                    *status = OVERFLOW_ERR;
+                    output[ii] = INT_MAX;
+                }
+                else
+		{
+                    output[ii] = (int) ulltemp;
+		}
+            }
+        }
+        else if (scale == 1. && zero == 0.)      /* no scaling */
         {       
             for (ii = 0; ii < ntodo; ii++)
             {
@@ -1326,7 +1348,39 @@ int fffi8int(LONGLONG *input,     /* I - array of values to be converted     */
     }
     else        /* must check for null values */
     {
-        if (scale == 1. && zero == 0.)  /* no scaling */
+        if (scale == 1. && zero ==  9223372036854775808.)
+        {       
+            /* The column we read contains unsigned long long values. */
+            /* Instead of subtracting 9223372036854775808, it is more efficient */
+            /* and more precise to just flip the sign bit with the XOR operator */
+
+            for (ii = 0; ii < ntodo; ii++) {
+ 
+                if (input[ii] == tnull)
+                {
+                    *anynull = 1;
+                    if (nullcheck == 1)
+                        output[ii] = nullval;
+                    else
+                        nullarray[ii] = 1;
+                }
+                else
+		{
+                    ulltemp = (ULONGLONG) (((LONGLONG) input[ii]) ^ 0x8000000000000000);
+
+                    if (ulltemp > INT_MAX)
+                    {
+                        *status = OVERFLOW_ERR;
+                        output[ii] = INT_MAX;
+                    }
+                    else
+		    {
+                        output[ii] = (int) ulltemp;
+		    }
+                }
+            }
+        }
+        else if (scale == 1. && zero == 0.)  /* no scaling */
         {       
             for (ii = 0; ii < ntodo; ii++)
             {
@@ -1752,7 +1806,7 @@ int fffstrint(char *input,        /* I - array of values to be converted     */
     int nullen;
     long ii;
     double dvalue;
-    char *cstring, message[81];
+    char *cstring, message[FLEN_ERRMSG];
     char *cptr, *tpos;
     char tempstore, chrzero = '0';
     double val, power;
@@ -1865,9 +1919,9 @@ int fffstrint(char *input,        /* I - array of values to be converted     */
 
         if (*cptr  != 0)  /* should end up at the null terminator */
         {
-          sprintf(message, "Cannot read number from ASCII table");
+          snprintf(message, FLEN_ERRMSG,"Cannot read number from ASCII table");
           ffpmsg(message);
-          sprintf(message, "Column field = %s.", cstring);
+          snprintf(message, FLEN_ERRMSG,"Column field = %s.", cstring);
           ffpmsg(message);
           /* restore the char that was overwritten by the null */
           *tpos = tempstore;

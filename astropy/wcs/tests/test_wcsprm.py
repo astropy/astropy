@@ -10,12 +10,12 @@ import pytest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import numpy as np
 
-from ...tests.helper import raises, catch_warnings
-from ...io import fits
-from .. import wcs
-from .. import _wcs
-from ...utils.data import get_pkg_data_contents, get_pkg_data_fileobj, get_pkg_data_filename
-from ... import units as u
+from astropy.tests.helper import raises, catch_warnings
+from astropy.io import fits
+from astropy.wcs import wcs
+from astropy.wcs import _wcs
+from astropy.utils.data import get_pkg_data_contents, get_pkg_data_fileobj, get_pkg_data_filename
+from astropy import units as u
 
 
 ######################################################################
@@ -391,25 +391,36 @@ def test_equinox():
 
 def test_fix():
     w = _wcs.Wcsprm()
-    assert w.fix() == {
+    fix_ref = {
         'cdfix': 'No change',
         'cylfix': 'No change',
+        'obsfix': 'No change',
         'datfix': 'No change',
         'spcfix': 'No change',
         'unitfix': 'No change',
         'celfix': 'No change'}
+    version = wcs._wcs.__version__
+    if version[0] <= "5":
+        del fix_ref['obsfix']
+    assert w.fix() == fix_ref
 
 
 def test_fix2():
     w = _wcs.Wcsprm()
     w.dateobs = '31/12/99'
-    assert w.fix() == {
+    fix_ref = {
         'cdfix': 'No change',
         'cylfix': 'No change',
-        'datfix': "Changed '31/12/99' to '1999-12-31'",
+        'obsfix': 'No change',
+        'datfix': "Set MJD-OBS to 51543.000000 from DATE-OBS.\nChanged DATE-OBS from '31/12/99' to '1999-12-31'",
         'spcfix': 'No change',
         'unitfix': 'No change',
         'celfix': 'No change'}
+    version = wcs._wcs.__version__
+    if version[0] <= "5":
+        del fix_ref['obsfix']
+        fix_ref['datfix'] = "Changed '31/12/99' to '1999-12-31'"
+    assert w.fix() == fix_ref
     assert w.dateobs == '1999-12-31'
     assert w.mjdobs == 51543.0
 
@@ -417,13 +428,19 @@ def test_fix2():
 def test_fix3():
     w = _wcs.Wcsprm()
     w.dateobs = '31/12/F9'
-    assert w.fix() == {
+    fix_ref = {
         'cdfix': 'No change',
         'cylfix': 'No change',
-        'datfix': "Invalid parameter value: invalid date '31/12/F9'",
+        'obsfix': 'No change',
+        'datfix': "Invalid DATE-OBS format '31/12/F9'",
         'spcfix': 'No change',
         'unitfix': 'No change',
         'celfix': 'No change'}
+    version = wcs._wcs.__version__
+    if version[0] <= "5":
+        del fix_ref['obsfix']
+        fix_ref['datfix'] = "Invalid parameter value: invalid date '31/12/F9'"
+    assert w.fix() == fix_ref
     assert w.dateobs == '31/12/F9'
     assert np.isnan(w.mjdobs)
 
@@ -809,7 +826,7 @@ def test_detailed_err():
 
 
 def test_header_parse():
-    from ...io import fits
+    from astropy.io import fits
     with get_pkg_data_fileobj(
             'data/header_newlines.fits', encoding='binary') as test_file:
         hdulist = fits.open(test_file)

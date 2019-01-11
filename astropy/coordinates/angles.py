@@ -6,14 +6,14 @@ This module contains the fundamental classes used for representing
 coordinates in astropy.
 """
 
-import math
 from collections import namedtuple
 
 import numpy as np
 
 from . import angle_utilities as util
-from .. import units as u
-from ..utils import isiterable
+from astropy import units as u
+from astropy.utils import isiterable
+from astropy.utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
 
 __all__ = ['Angle', 'Latitude', 'Longitude']
 
@@ -426,23 +426,32 @@ class Angle(u.SpecificTypeQuantity):
             ok &= np.all(self < Angle(upper))
         return bool(ok)
 
+    def _str_helper(self, format=None):
+        if self.isscalar:
+            return self.to_string(format=format)
+
+        if NUMPY_LT_1_14_1 or not NUMPY_LT_1_14_2:
+            def formatter(x):
+                return x.to_string(format=format)
+        else:
+            # In numpy 1.14.1, array2print formatters get passed plain numpy scalars instead
+            # of subclass array scalars, so we need to recreate an array scalar.
+            def formatter(x):
+                return self._new_view(x).to_string(format=format)
+
+        return np.array2string(self, formatter={'all': formatter})
+
     def __str__(self):
-        return str(self.to_string())
+        return self._str_helper()
 
     def _repr_latex_(self):
-        if self.isscalar:
-            return self.to_string(format='latex')
-        else:
-            # Need to do a magic incantation to convert to str.  Regular str
-            # or array2string causes all backslashes to get doubled.
-            return np.array2string(self.to_string(format='latex'),
-                                   formatter={'str_kind': lambda x: x})
+        return self._str_helper(format='latex')
 
 
 def _no_angle_subclass(obj):
     """Return any Angle subclass objects as an Angle objects.
 
-    This is used to ensure that Latitute and Longitude change to Angle
+    This is used to ensure that Latitude and Longitude change to Angle
     objects when they are used in calculations (such as lon/2.)
     """
     if isinstance(obj, tuple):
@@ -530,10 +539,6 @@ class Latitude(Angle):
         super().__setitem__(item, value)
 
     # Any calculation should drop to Angle
-    def __array_wrap__(self, obj, context=None):
-        obj = super().__array_wrap__(obj, context=context)
-        return _no_angle_subclass(obj)
-
     def __array_ufunc__(self, *args, **kwargs):
         results = super().__array_ufunc__(*args, **kwargs)
         return _no_angle_subclass(results)
@@ -645,7 +650,7 @@ class Longitude(Angle):
 
     @wrap_angle.setter
     def wrap_angle(self, value):
-        self._wrap_angle = Angle(value)
+        self._wrap_angle = Angle(value, copy=False)
         self._wrap_internal()
 
     def __array_finalize__(self, obj):
@@ -654,10 +659,6 @@ class Longitude(Angle):
                                    self._default_wrap_angle)
 
     # Any calculation should drop to Angle
-    def __array_wrap__(self, obj, context=None):
-        obj = super().__array_wrap__(obj, context=context)
-        return _no_angle_subclass(obj)
-
     def __array_ufunc__(self, *args, **kwargs):
         results = super().__array_ufunc__(*args, **kwargs)
         return _no_angle_subclass(results)

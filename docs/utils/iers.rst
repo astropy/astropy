@@ -81,6 +81,9 @@ of the automatic IERS downloading:
   iers_auto_url:
     URL for auto-downloading IERS file data
 
+  iers_auto_url_mirror:
+    Mirror URL for auto-downloading IERS file data.
+
   remote_timeout:
     Remote timeout downloading IERS file data (seconds)
 
@@ -149,14 +152,14 @@ part of astropy and can be used for transformations.  For example::
   >>> from astropy.utils import iers
   >>> t = Time('2010:001')
   >>> iers_b = iers.IERS_B.open()
-  >>> iers_b.ut1_utc(t)
-  <Quantity 0.1140749 s>
+  >>> iers_b.ut1_utc(t)  # doctest: +FLOAT_CMP
+  <Quantity 0.1140827 s>
   >>> t.delta_ut1_utc = iers_b.ut1_utc(t)
   >>> t.ut1.iso
   '2010-01-01 00:00:00.114'
 
 Instead of local copies of IERS files, one can also download them, using
-``iers.IERS_A_URL`` and ``iers.IERS_B_URL``::
+``iers.IERS_A_URL`` (or ``iers.IERS_A_URL_MIRROR``) and ``iers.IERS_B_URL``::
 
   >>> iers_a = iers.IERS_A.open(iers.IERS_A_URL)  # doctest: +SKIP
 
@@ -208,5 +211,3 @@ UT1Flag, PM_x, PM_y, PolPMFlag::
   57877.0 -0.6573705        P 0.010328 0.451777         P
   57878.0 -0.6587712        P 0.011924 0.453209         P
   57879.0  -0.660187        P 0.013544 0.454617         P
-
-

@@ -7,8 +7,9 @@ import pytest
 import numpy as np
 
 from astropy.io import fits
+from astropy import __minimum_asdf_version__
 
-asdf = pytest.importorskip('asdf')
+asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
 from asdf.tests import helpers
 
 

@@ -2,8 +2,8 @@
 
 import pytest
 from . import FitsTestCase
-from ..scripts import fitscheck
-from ... import fits
+from astropy.io.fits.scripts import fitscheck
+from astropy.io import fits
 
 
 class TestFitscheck(FitsTestCase):

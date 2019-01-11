@@ -3,26 +3,25 @@
 Module to test fitting routines
 """
 
-
 import os.path
 
 import pytest
 import numpy as np
 from numpy import linalg
-from numpy.testing.utils import assert_allclose, assert_almost_equal
+from numpy.testing import assert_allclose, assert_almost_equal
 from unittest import mock
 
 from . import irafutil
-from .. import models
-from ..core import Fittable2DModel, Parameter
-from ..fitting import *
-from ...utils import NumpyRNGContext
-from ...utils.data import get_pkg_data_filename
+from astropy.modeling import models
+from astropy.modeling.core import Fittable2DModel, Parameter
+from astropy.modeling.fitting import *
+from astropy.utils import NumpyRNGContext
+from astropy.utils.data import get_pkg_data_filename
 from .utils import ignore_non_integer_warning
-from ...stats import sigma_clip
+from astropy.stats import sigma_clip
 
-from ...utils.exceptions import AstropyUserWarning
-from ..fitting import populate_entry_points
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.modeling.fitting import populate_entry_points
 import warnings
 
 try:
@@ -183,8 +182,19 @@ class TestJointFitter:
                                     args=(self.x, self.ny1, self.x, self.ny2))
         assert_allclose(coeff, self.jf.fitparams, rtol=10 ** (-2))
 
-
 class TestLinearLSQFitter:
+    def test_compound_model_raises_error(self):
+        """Test that if an user tries to use a compound model, raises an error"""
+        with pytest.raises(ValueError) as excinfo:
+            init_model1 = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
+            init_model2 = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
+            init_model_comp = init_model1 + init_model2
+            x = np.arange(10)
+            y = init_model_comp(x, model_set_axis=False)
+            fitter = LinearLSQFitter()
+            fitted_model = fitter(init_model_comp, x, y)
+        assert "Model must be simple, not compound" in str(excinfo.value)
+
     def test_chebyshev1D(self):
         """Tests fitting a 1D Chebyshev polynomial to some real world data."""
 
@@ -288,6 +298,46 @@ class TestLinearLSQFitter:
 
         assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
                         atol=1e-14)
+
+    def test_linear_fit_model_set_masked_values(self):
+        """
+        Tests model set fitting with masked value(s) (#4824, #6819).
+        """
+        # NB. For single models, there is an equivalent doctest.
+
+        init_model = models.Polynomial1D(degree=1, n_models=2)
+        x = np.arange(10)
+        y = np.ma.masked_array([2*x+1, x-2], mask=np.zeros_like([x, x]))
+
+        y[0, 7] = 100.  # throw off fit coefficients if unmasked
+        y.mask[0, 7] = True
+        y[1, 1:3] = -100.
+        y.mask[1, 1:3] = True
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y)
+
+        assert_allclose(fitted_model.c0, [1., -2.], atol=1e-14)
+        assert_allclose(fitted_model.c1, [2., 1.], atol=1e-14)
+
+    def test_linear_fit_2d_model_set_masked_values(self):
+        """
+        Tests 2D model set fitting with masked value(s) (#4824, #6819).
+        """
+        init_model = models.Polynomial2D(1, n_models=2)
+        x, y = np.mgrid[0:5, 0:5]
+        z = np.ma.masked_array([2*x+3*y+1, x-0.5*y-2],
+                               mask=np.zeros_like([x, x]))
+
+        z[0, 3, 1] = -1000.  # throw off fit coefficients if unmasked
+        z.mask[0, 3, 1] = True
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y, z)
+
+        assert_allclose(fitted_model.c0_0, [1., -2.], atol=1e-14)
+        assert_allclose(fitted_model.c1_0, [2., 1.], atol=1e-14)
+        assert_allclose(fitted_model.c0_1, [3., -0.5], atol=1e-14)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -573,17 +623,17 @@ class Test1DFittingWithOutlierRemoval:
         # test with Levenberg-Marquardt Least Squares fitter
         fit = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
                                         niter=3, sigma=3.0)
-        _, fitted_model = fit(g_init, self.x, self.y)
+        fitted_model, _ = fit(g_init, self.x, self.y)
         assert_allclose(fitted_model.parameters, self.model_params, rtol=1e-1)
         # test with Sequential Least Squares Programming fitter
         fit = FittingWithOutlierRemoval(SLSQPLSQFitter(), sigma_clip,
                                         niter=3, sigma=3.0)
-        _, fitted_model = fit(g_init, self.x, self.y)
+        fitted_model, _ = fit(g_init, self.x, self.y)
         assert_allclose(fitted_model.parameters, self.model_params, rtol=1e-1)
         # test with Simplex LSQ fitter
         fit = FittingWithOutlierRemoval(SimplexLSQFitter(), sigma_clip,
                                         niter=3, sigma=3.0)
-        _, fitted_model = fit(g_init, self.x, self.y)
+        fitted_model, _ = fit(g_init, self.x, self.y)
         assert_allclose(fitted_model.parameters, self.model_params, atol=1e-1)
 
 
@@ -637,21 +687,147 @@ class Test2DFittingWithOutlierRemoval:
         # test with Levenberg-Marquardt Least Squares fitter
         fit = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
                                         niter=3, sigma=3.)
-        _, fitted_model = fit(g2_init, self.x, self.y, self.z)
+        fitted_model, _ = fit(g2_init, self.x, self.y, self.z)
         assert_allclose(fitted_model.parameters[0:5], self.model_params,
                         atol=1e-1)
         # test with Sequential Least Squares Programming fitter
         fit = FittingWithOutlierRemoval(SLSQPLSQFitter(), sigma_clip, niter=3,
                                         sigma=3.)
-        _, fitted_model = fit(g2_init, self.x, self.y, self.z)
+        fitted_model, _ = fit(g2_init, self.x, self.y, self.z)
         assert_allclose(fitted_model.parameters[0:5], self.model_params,
                         atol=1e-1)
         # test with Simplex LSQ fitter
         fit = FittingWithOutlierRemoval(SimplexLSQFitter(), sigma_clip,
                                         niter=3, sigma=3.)
-        _, fitted_model = fit(g2_init, self.x, self.y, self.z)
+        fitted_model, _ = fit(g2_init, self.x, self.y, self.z)
         assert_allclose(fitted_model.parameters[0:5], self.model_params,
                         atol=1e-1)
+
+
+def test_1d_set_fitting_with_outlier_removal():
+    """Test model set fitting with outlier removal (issue #6819)"""
+
+    poly_set = models.Polynomial1D(2, n_models=2)
+
+    fitter = FittingWithOutlierRemoval(LinearLSQFitter(),
+                                       sigma_clip, sigma=2.5, niter=3,
+                                       cenfunc=np.ma.mean, stdfunc=np.ma.std)
+
+    x = np.arange(10)
+    y = np.array([2.5*x - 4, 2*x*x + x + 10])
+    y[1,5] = -1000  # outlier
+
+    poly_set, filt_y = fitter(poly_set, x, y)
+
+    assert_allclose(poly_set.c0, [-4., 10.], atol=1e-14)
+    assert_allclose(poly_set.c1, [2.5, 1.], atol=1e-14)
+    assert_allclose(poly_set.c2, [0., 2.], atol=1e-14)
+
+
+def test_2d_set_axis_2_fitting_with_outlier_removal():
+    """Test fitting 2D model set (axis 2) with outlier removal (issue #6819)"""
+
+    poly_set = models.Polynomial2D(1, n_models=2, model_set_axis=2)
+
+    fitter = FittingWithOutlierRemoval(LinearLSQFitter(),
+                                       sigma_clip, sigma=2.5, niter=3,
+                                       cenfunc=np.ma.mean, stdfunc=np.ma.std)
+
+    y, x = np.mgrid[0:5, 0:5]
+    z = np.rollaxis(np.array([x+y, 1-0.1*x+0.2*y]), 0, 3)
+    z[3,3:5,0] = 100.   # outliers
+
+    poly_set, filt_z = fitter(poly_set, x, y, z)
+
+    assert_allclose(poly_set.c0_0, [[[0., 1.]]], atol=1e-14)
+    assert_allclose(poly_set.c1_0, [[[1., -0.1]]], atol=1e-14)
+    assert_allclose(poly_set.c0_1, [[[1., 0.2]]], atol=1e-14)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+class TestWeightedFittingWithOutlierRemoval:
+    """Issue #7020 """
+
+    def setup_class(self):
+        # values of x,y not important as we fit y(x,y) = p0 model here
+        self.y, self.x = np.mgrid[0:20, 0:20]
+        self.z = np.mod(self.x + self.y, 2) * 2 - 1 # -1,1 chessboard
+        self.weights = np.mod(self.x + self.y, 2) * 2 + 1 # 1,3 chessboard
+        self.z[0,0] = 1000.0 # outlier
+        self.z[0,1] = 1000.0 # outlier
+        self.x1d = self.x.flatten()
+        self.z1d = self.z.flatten()
+        self.weights1d = self.weights.flatten()
+
+    def test_1d_without_weights_without_sigma_clip(self):
+        model = models.Polynomial1D(0)
+        fitter = LinearLSQFitter()
+        fit = fitter(model, self.x1d, self.z1d)
+        assert_allclose(fit.parameters[0], self.z1d.mean(), atol=10**(-2))
+
+    def test_1d_without_weights_with_sigma_clip(self):
+        model = models.Polynomial1D(0)
+        fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        fit, mask = fitter(model, self.x1d, self.z1d)
+        assert((~mask).sum() == self.z1d.size - 2)
+        assert(mask[0] and mask[1])
+        assert_allclose(fit.parameters[0], 0.0, atol=10**(-2)) # with removed outliers mean is 0.0
+
+    def test_1d_with_weights_without_sigma_clip(self):
+        model = models.Polynomial1D(0)
+        fitter = LinearLSQFitter()
+        fit = fitter(model, self.x1d, self.z1d, weights=self.weights1d)
+        assert(fit.parameters[0] > 1.0)     # outliers pulled it high
+
+    def test_1d_with_weights_with_sigma_clip(self):
+        """smoke test for #7020 - fails without fitting.py patch because weights does not propagate"""
+        model = models.Polynomial1D(0)
+        fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        fit, filtered = fitter(model, self.x1d, self.z1d, weights=self.weights1d)
+        assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
+        assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
+
+    def test_1d_set_with_common_weights_with_sigma_clip(self):
+        """added for #6819 (1D model set with weights in common)"""
+        model = models.Polynomial1D(0, n_models=2)
+        fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        z1d = np.array([self.z1d, self.z1d])
+
+        fit, filtered = fitter(model, self.x1d, z1d, weights=self.weights1d)
+        assert_allclose(fit.parameters, [0.8, 0.8], atol=1e-14)
+
+    def test_2d_without_weights_without_sigma_clip(self):
+        model = models.Polynomial2D(0)
+        fitter = LinearLSQFitter()
+        fit = fitter(model, self.x, self.y, self.z)
+        assert_allclose(fit.parameters[0], self.z.mean(), atol=10**(-2))
+
+    def test_2d_without_weights_with_sigma_clip(self):
+        model = models.Polynomial2D(0)
+        fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        fit, mask = fitter(model, self.x, self.y, self.z)
+        assert((~mask).sum() == self.z.size - 2)
+        assert(mask[0,0] and mask[0,1])
+        assert_allclose(fit.parameters[0], 0.0, atol=10**(-2))
+
+    def test_2d_with_weights_without_sigma_clip(self):
+        model = models.Polynomial2D(0)
+        fitter = LevMarLSQFitter() # LinearLSQFitter doesn't handle weights properly in 2D
+        fit = fitter(model, self.x, self.y, self.z, weights=self.weights)
+        assert(fit.parameters[0] > 1.0)     # outliers pulled it high
+
+    def test_2d_with_weights_with_sigma_clip(self):
+        """smoke test for #7020 - fails without fitting.py patch because weights does not propagate"""
+        model = models.Polynomial2D(0)
+        fitter = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        fit, filtered = fitter(model, self.x, self.y, self.z, weights=self.weights)
+        assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
+        assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

@@ -8,9 +8,9 @@ import warnings
 import pytest
 
 from .helper import catch_warnings
-from .. import log
-from ..logger import LoggingError, conf
-from ..utils.exceptions import AstropyWarning, AstropyUserWarning
+from astropy import log
+from astropy.logger import LoggingError, conf
+from astropy.utils.exceptions import AstropyWarning, AstropyUserWarning
 
 
 # Save original values of hooks. These are not the system values, but the
@@ -133,7 +133,7 @@ def test_warnings_logging_with_custom_class():
 
 
 def test_warning_logging_with_io_votable_warning():
-    from ..io.votable.exceptions import W02, vo_warn
+    from astropy.io.votable.exceptions import W02, vo_warn
 
     with catch_warnings() as warn_list:
         log.enable_warnings_logging()
@@ -243,7 +243,7 @@ def test_exception_logging_origin():
     # The point here is to get an exception raised from another location
     # and make sure the error's origin is reported correctly
 
-    from ..utils.collections import HomogeneousList
+    from astropy.utils.collections import HomogeneousList
 
     l = HomogeneousList(int)
     try:
@@ -263,8 +263,8 @@ def test_exception_logging_origin():
     assert log_list[0].origin == 'astropy.utils.collections'
 
 
-@pytest.mark.xfail(True, reason="Infinite recursion on Python 3.5+, probably a real issue")
-@pytest.mark.xfail(str("ip is not None"))
+@pytest.mark.skip(reason="Infinite recursion on Python 3.5+, probably a real issue")
+#@pytest.mark.xfail(str("ip is not None"))
 def test_exception_logging_argless_exception():
     """
     Regression test for a crash that occurred on Python 3 when logging an

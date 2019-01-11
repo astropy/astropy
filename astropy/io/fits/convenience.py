@@ -69,11 +69,8 @@ from .hdu.image import PrimaryHDU, ImageHDU
 from .hdu.table import BinTableHDU
 from .header import Header
 from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
-from ...units import Unit
-from ...units.format.fits import UnitScaleError
-from ...units import Quantity
-from ...utils.exceptions import AstropyUserWarning
-from ...utils.decorators import deprecated_renamed_argument
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.decorators import deprecated_renamed_argument
 
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
@@ -423,7 +420,7 @@ def writeto(filename, data, header=None, output_verify='exception',
                 checksum=checksum)
 
 
-def table_to_hdu(table):
+def table_to_hdu(table, character_as_bytes=False):
     """
     Convert an `~astropy.table.Table` object to a FITS
     `~astropy.io.fits.BinTableHDU`.
@@ -432,6 +429,10 @@ def table_to_hdu(table):
     ----------
     table : astropy.table.Table
         The table to convert.
+    character_as_bytes : bool
+        Whether to return bytes for string columns when accessed from the HDU.
+        By default this is `False` and (unicode) strings are returned, but for
+        large tables this may use up a lot of memory.
 
     Returns
     -------
@@ -440,6 +441,7 @@ def table_to_hdu(table):
     """
     # Avoid circular imports
     from .connect import is_column_keyword, REMOVE_KEYWORDS
+    from .column import python_to_tdisp
 
     # Header to store Time related metadata
     hdr = None
@@ -448,8 +450,9 @@ def table_to_hdu(table):
     if table.has_mixin_columns:
         # Import is done here, in order to avoid it at build time as erfa is not
         # yet available then.
-        from ...table.column import BaseColumn, Column
-        from ...time import Time
+        from astropy.table.column import BaseColumn
+        from astropy.time import Time
+        from astropy.units import Quantity
         from .fitstime import time_to_fits
 
         # Only those columns which are instances of BaseColumn, Quantity or Time can
@@ -474,7 +477,7 @@ def table_to_hdu(table):
 
         # TODO: it might be better to construct the FITS table directly from
         # the Table columns, rather than go via a structured array.
-        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr)
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr, character_as_bytes=True)
         for col in table_hdu.columns:
             # Binary FITS tables support TNULL *only* for integer data columns
             # TODO: Determine a schema for handling non-integer masked columns
@@ -491,12 +494,26 @@ def table_to_hdu(table):
 
             col.null = fill_value.astype(table[col.name].dtype)
     else:
-        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr)
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr, character_as_bytes=character_as_bytes)
 
-    # Set units for output HDU
+    # Set units and format display for output HDU
     for col in table_hdu.columns:
+
+        if table[col.name].info.format is not None:
+            # check for boolean types, special format case
+            logical = table[col.name].info.dtype == bool
+
+            tdisp_format = python_to_tdisp(table[col.name].info.format,
+                                           logical_dtype=logical)
+            if tdisp_format is not None:
+                col.disp = tdisp_format
+
         unit = table[col.name].unit
         if unit is not None:
+            # Local imports to avoid importing units when it is not required,
+            # e.g. for command-line scripts
+            from astropy.units import Unit
+            from astropy.units.format.fits import UnitScaleError
             try:
                 col.unit = unit.to_string(format='fits')
             except UnitScaleError:
@@ -885,9 +902,7 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
     # Create the default data file name if one was not provided
     try:
         if not datafile:
-            # TODO: Really need to provide a better way to access the name of
-            # any files underlying an HDU
-            root, tail = os.path.splitext(f._HDUList__file.name)
+            root, tail = os.path.splitext(f._file.name)
             datafile = root + '_' + repr(ext) + '.txt'
 
         # Dump the data from the HDU to the files

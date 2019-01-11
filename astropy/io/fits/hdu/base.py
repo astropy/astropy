@@ -11,17 +11,17 @@ from inspect import signature, Parameter
 
 import numpy as np
 
-from .. import conf
-from ..file import _File
-from ..header import Header, _pad_length
-from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
+from astropy.io.fits import conf
+from astropy.io.fits.file import _File
+from astropy.io.fits.header import Header, _pad_length
+from astropy.io.fits.util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
                     itersubclasses, decode_ascii, _get_array_mmap, first,
                     _free_space_check, _extract_number)
-from ..verify import _Verify, _ErrList
+from astropy.io.fits.verify import _Verify, _ErrList
 
-from ....utils import lazyproperty
-from ....utils.exceptions import AstropyUserWarning
-from ....utils.decorators import deprecated_renamed_argument
+from astropy.utils import lazyproperty
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.decorators import deprecated_renamed_argument
 
 
 class _Delayed:
@@ -635,7 +635,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
     def _writeto(self, fileobj, inplace=False, copy=False):
         try:
             dirname = os.path.dirname(fileobj._file.name)
-        except AttributeError:
+        except (AttributeError, TypeError):
             dirname = None
 
         with _free_space_check(self, dirname):
@@ -1596,7 +1596,8 @@ class NonstandardExtHDU(ExtensionHDU):
                 xtension not in standard_xtensions)
 
     def _summary(self):
-        return (self.name, self.ver, 'NonstandardExtHDU', len(self._header))
+        axes = tuple(self.data.shape)
+        return (self.name, self.ver, 'NonstandardExtHDU', len(self._header), axes)
 
     @lazyproperty
     def data(self):

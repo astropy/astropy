@@ -8,14 +8,15 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ... import units as u
-from ...tests.helper import (assert_quantity_allclose as
-                             assert_allclose_quantity)
-from ...utils import isiterable
-from ...utils.compat import NUMPY_LT_1_14
-from ..angles import Longitude, Latitude, Angle
-from ..distances import Distance
-from ..representation import (REPRESENTATION_CLASSES,
+from astropy import units as u
+from astropy.tests.helper import (assert_quantity_allclose as
+                             assert_allclose_quantity, catch_warnings)
+from astropy.utils import isiterable
+from astropy.utils.compat import NUMPY_LT_1_14
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.coordinates.angles import Longitude, Latitude, Angle
+from astropy.coordinates.distances import Distance
+from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
                               DIFFERENTIAL_CLASSES,
                               BaseRepresentation,
                               SphericalRepresentation,
@@ -192,6 +193,23 @@ class TestSphericalRepresentation:
         with pytest.raises(TypeError):
             len(s)
         assert not isiterable(s)
+
+    def test_nan_distance(self):
+        """ This is a regression test: calling represent_as() and passing in the
+            same class as the object shouldn't round-trip through cartesian.
+        """
+
+        sph = SphericalRepresentation(1*u.deg, 2*u.deg, np.nan*u.kpc)
+        new_sph = sph.represent_as(SphericalRepresentation)
+        assert_allclose_quantity(new_sph.lon, sph.lon)
+        assert_allclose_quantity(new_sph.lat, sph.lat)
+
+        dif = SphericalCosLatDifferential(1*u.mas/u.yr, 2*u.mas/u.yr,
+                                          3*u.km/u.s)
+        sph = sph.with_differentials(dif)
+        new_sph = sph.represent_as(SphericalRepresentation)
+        assert_allclose_quantity(new_sph.lon, sph.lon)
+        assert_allclose_quantity(new_sph.lat, sph.lat)
 
 
 class TestUnitSphericalRepresentation:
@@ -548,6 +566,23 @@ class TestCartesianRepresentation:
         assert_allclose_quantity(x, s1.x)
         assert_allclose_quantity(y, s1.y)
         assert_allclose_quantity(z, s1.z)
+
+    def test_xyz_is_view_if_possible(self):
+        xyz = np.arange(1., 10.).reshape(3, 3)
+        s1 = CartesianRepresentation(xyz, unit=u.kpc, copy=False)
+        s1_xyz = s1.xyz
+        assert s1_xyz.value[0, 0] == 1.
+        xyz[0, 0] = 0.
+        assert s1.x[0] == 0.
+        assert s1_xyz.value[0, 0] == 0.
+        # Not possible: we don't check that tuples are from the same array
+        xyz = np.arange(1., 10.).reshape(3, 3)
+        s2 = CartesianRepresentation(*xyz, unit=u.kpc, copy=False)
+        s2_xyz = s2.xyz
+        assert s2_xyz.value[0, 0] == 1.
+        xyz[0, 0] = 0.
+        assert s2.x[0] == 0.
+        assert s2_xyz.value[0, 0] == 1.
 
     def test_reprobj(self):
 
@@ -999,8 +1034,9 @@ def test_representation_str_multi_d():
             ' [(2., 11., 20.), (5., 14., 23.), (8., 17., 26.)]] m')
 
 
+@pytest.mark.remote_data
 def test_subclass_representation():
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     class Longitude180(Longitude):
         def __new__(cls, angle, unit=None, wrap_angle=180 * u.deg, **kwargs):
@@ -1012,7 +1048,6 @@ def test_subclass_representation():
         attr_classes = OrderedDict([('lon', Longitude180),
                                     ('lat', Latitude),
                                     ('distance', u.Quantity)])
-        recommended_units = {'lon': u.deg, 'lat': u.deg}
 
     class ICRSWrap180(ICRS):
         frame_specific_representation_info = ICRS._frame_specific_representation_info.copy()
@@ -1360,3 +1395,132 @@ def test_to_cartesian():
     cart = sr.to_cartesian()
     assert cart.get_name() == 'cartesian'
     assert not cart.differentials
+
+
+def test_recommended_units_deprecation():
+    sr = SphericalRepresentation(lat=1*u.deg, lon=2*u.deg, distance=10*u.m)
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        sr.recommended_units
+    assert 'recommended_units' in str(w[0].message)
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        class MyClass(SphericalRepresentation):
+            attr_classes = SphericalRepresentation.attr_classes
+            recommended_units = {}
+    assert 'recommended_units' in str(w[0].message)
+
+
+@pytest.fixture
+def unitphysics():
+    """
+    This fixture is used
+    """
+    had_unit = False
+    if hasattr(PhysicsSphericalRepresentation, '_unit_representation'):
+        orig = PhysicsSphericalRepresentation._unit_representation
+        had_unit = True
+
+
+    class UnitPhysicsSphericalRepresentation(BaseRepresentation):
+        attr_classes = OrderedDict([('phi', Angle),
+                                    ('theta', Angle)])
+
+        def __init__(self, phi, theta, differentials=None, copy=True):
+            super().__init__(phi, theta, copy=copy, differentials=differentials)
+
+            # Wrap/validate phi/theta
+            if copy:
+                self._phi = self._phi.wrap_at(360 * u.deg)
+            else:
+                # necessary because the above version of `wrap_at` has to be a copy
+                self._phi.wrap_at(360 * u.deg, inplace=True)
+
+            if np.any(self._theta < 0.*u.deg) or np.any(self._theta > 180.*u.deg):
+                raise ValueError('Inclination angle(s) must be within '
+                                 '0 deg <= angle <= 180 deg, '
+                                 'got {0}'.format(theta.to(u.degree)))
+
+        @property
+        def phi(self):
+            return self._phi
+
+        @property
+        def theta(self):
+            return self._theta
+
+        def unit_vectors(self):
+            sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
+            sintheta, costheta = np.sin(self.theta), np.cos(self.theta)
+            return OrderedDict(
+                (('phi', CartesianRepresentation(-sinphi, cosphi, 0., copy=False)),
+                 ('theta', CartesianRepresentation(costheta*cosphi,
+                                                   costheta*sinphi,
+                                                   -sintheta, copy=False))))
+
+        def scale_factors(self):
+            sintheta = np.sin(self.theta)
+            l = np.broadcast_to(1.*u.one, self.shape, subok=True)
+            return OrderedDict((('phi', sintheta),
+                                ('theta', l)))
+
+        def to_cartesian(self):
+            x = np.sin(self.theta) * np.cos(self.phi)
+            y = np.sin(self.theta) * np.sin(self.phi)
+            z = np.cos(self.theta)
+
+            return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+
+        @classmethod
+        def from_cartesian(cls, cart):
+            """
+            Converts 3D rectangular cartesian coordinates to spherical polar
+            coordinates.
+            """
+            s = np.hypot(cart.x, cart.y)
+
+            phi = np.arctan2(cart.y, cart.x)
+            theta = np.arctan2(s, cart.z)
+
+            return cls(phi=phi, theta=theta, copy=False)
+
+        def norm(self):
+            return u.Quantity(np.ones(self.shape), u.dimensionless_unscaled,
+                              copy=False)
+
+    PhysicsSphericalRepresentation._unit_representation = UnitPhysicsSphericalRepresentation
+    yield UnitPhysicsSphericalRepresentation
+
+    if had_unit:
+        PhysicsSphericalRepresentation._unit_representation = orig
+    else:
+        del PhysicsSphericalRepresentation._unit_representation
+
+    # remove from the module-level representations, if present
+    REPRESENTATION_CLASSES.pop(UnitPhysicsSphericalRepresentation.get_name(), None)
+
+
+def test_unitphysics(unitphysics):
+    obj = unitphysics(phi=0*u.deg, theta=10*u.deg)
+    objkw = unitphysics(phi=0*u.deg, theta=10*u.deg)
+    assert objkw.phi == obj.phi
+    assert objkw.theta == obj.theta
+
+    asphys = obj.represent_as(PhysicsSphericalRepresentation)
+    assert asphys.phi == obj.phi
+    assert asphys.theta == obj.theta
+    assert_allclose_quantity(asphys.r, 1*u.dimensionless_unscaled)
+
+    assph = obj.represent_as(SphericalRepresentation)
+    assert assph.lon == obj.phi
+    assert assph.lat == 80*u.deg
+    assert_allclose_quantity(assph.distance, 1*u.dimensionless_unscaled)
+
+
+def test_distance_warning(recwarn):
+    SphericalRepresentation(1*u.deg, 2*u.deg, 1*u.kpc)
+    with pytest.raises(ValueError) as excinfo:
+        SphericalRepresentation(1*u.deg, 2*u.deg, -1*u.kpc)
+    assert 'Distance must be >= 0' in str(excinfo.value)
+    # second check is because the "originating" ValueError says the above,
+    # while the representation one includes the below
+    assert 'you must explicitly pass' in str(excinfo.value)

@@ -26,7 +26,7 @@ class Fits(generic.Generic):
 
     @staticmethod
     def _generate_unit_names():
-        from ... import units as u
+        from astropy import units as u
         names = {}
         deprecated_names = set()
 

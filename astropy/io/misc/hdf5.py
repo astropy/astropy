@@ -12,7 +12,7 @@ import numpy as np
 
 # NOTE: Do not import anything from astropy.table here.
 # https://github.com/astropy/astropy/issues/6604
-from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 META_KEY = '__table_column_meta__'
@@ -55,10 +55,10 @@ def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
     except ImportError:
         return False
     else:
-        return isinstance(args[0], (h5py.highlevel.File, h5py.highlevel.Group, h5py.highlevel.Dataset))
+        return isinstance(args[0], (h5py.File, h5py.Group, h5py.Dataset))
 
 
-def read_table_hdf5(input, path=None):
+def read_table_hdf5(input, path=None, character_as_bytes=True):
     """
     Read a Table object from an HDF5 file
 
@@ -75,6 +75,9 @@ def read_table_hdf5(input, path=None):
     path : str
         The path from which to read the table inside the HDF5 file.
         This should be relative to the input file or group.
+    character_as_bytes: boolean
+        If `True` then Table columns are left as bytes.
+        If `False` then Table columns are converted to unicode.
     """
 
     try:
@@ -88,7 +91,7 @@ def read_table_hdf5(input, path=None):
     # Here, we save its value to be used at the end when the conditions are
     # right.
     input_save = input
-    if isinstance(input, (h5py.highlevel.File, h5py.highlevel.Group)):
+    if isinstance(input, (h5py.File, h5py.Group)):
 
         # If a path was specified, follow the path
 
@@ -103,7 +106,7 @@ def read_table_hdf5(input, path=None):
         # is one we can proceed otherwise an error is raised. If it is a
         # dataset, we just proceed with the reading.
 
-        if isinstance(input, h5py.highlevel.Group):
+        if isinstance(input, h5py.Group):
 
             # Find all structured arrays in group
             arrays = _find_all_structured_arrays(input)
@@ -119,7 +122,7 @@ def read_table_hdf5(input, path=None):
                               AstropyUserWarning)
                 return read_table_hdf5(input, path=path)
 
-    elif not isinstance(input, h5py.highlevel.Dataset):
+    elif not isinstance(input, h5py.Dataset):
 
         # If a file object was passed, then we need to extract the filename
         # because h5py cannot properly read in file objects.
@@ -136,7 +139,7 @@ def read_table_hdf5(input, path=None):
         f = h5py.File(input, 'r')
 
         try:
-            return read_table_hdf5(f, path=path)
+            return read_table_hdf5(f, path=path, character_as_bytes=character_as_bytes)
         finally:
             f.close()
 
@@ -144,7 +147,7 @@ def read_table_hdf5(input, path=None):
     # convert to a Table.
 
     # Create a Table object
-    from ...table import Table, meta
+    from astropy.table import Table, meta, serialize
 
     table = Table(np.array(input))
 
@@ -170,11 +173,51 @@ def read_table_hdf5(input, path=None):
             for attr in ('description', 'format', 'unit', 'meta'):
                 if attr in header_cols[col.name]:
                     setattr(col, attr, header_cols[col.name][attr])
+
+        # Construct new table with mixins, using tbl.meta['__serialized_columns__']
+        # as guidance.
+        table = serialize._construct_mixins_from_columns(table)
+
     else:
         # Read the meta-data from the file
         table.meta.update(input.attrs)
 
+    if not character_as_bytes:
+        table.convert_bytestring_to_unicode()
+
     return table
+
+
+def _encode_mixins(tbl):
+    """Encode a Table ``tbl`` that may have mixin columns to a Table with only
+    astropy Columns + appropriate meta-data to allow subsequent decoding.
+    """
+    from astropy.table import serialize
+    from astropy.table.table import has_info_class
+    from astropy import units as u
+    from astropy.utils.data_info import MixinInfo, serialize_context_as
+
+    # If PyYAML is not available then check to see if there are any mixin cols
+    # that *require* YAML serialization.  HDF5 already has support for
+    # Quantity, so if those are the only mixins the proceed without doing the
+    # YAML bit, for backward compatibility (i.e. not requiring YAML to write
+    # Quantity).
+    try:
+        import yaml
+    except ImportError:
+        for col in tbl.itercols():
+            if (has_info_class(col, MixinInfo) and
+                    col.__class__ is not u.Quantity):
+                raise TypeError("cannot write type {} column '{}' "
+                                "to HDF5 without PyYAML installed."
+                                .format(col.__class__.__name__, col.info.name))
+
+    # Convert the table to one with no mixins, only Column objects.  This adds
+    # meta data which is extracted with meta.get_yaml_from_table.
+    with serialize_context_as('hdf5'):
+        encode_tbl = serialize._represent_mixins_as_columns(tbl)
+
+    return encode_tbl
 
 
 def write_table_hdf5(table, output, path=None, compression=False,
@@ -208,19 +251,12 @@ def write_table_hdf5(table, output, path=None, compression=False,
         If ``append=True`` and ``overwrite=True`` then only the dataset will be
         replaced; the file/group will not be overwritten.
     """
-    from ...table import meta
 
+    from astropy.table import meta
     try:
         import h5py
     except ImportError:
         raise Exception("h5py is required to read and write HDF5 files")
-
-    # Tables with mixin columns are not supported
-    if table.has_mixin_columns:
-        mixin_names = [name for name, col in table.columns.items()
-                       if not isinstance(col, table.ColumnClass)]
-        raise ValueError('cannot write table with mixin column(s) {0} to HDF5'
-                         .format(mixin_names))
 
     if path is None:
         raise ValueError("table path should be set via the path= argument")
@@ -232,7 +268,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
     else:
         group, name = None, path
 
-    if isinstance(output, (h5py.highlevel.File, h5py.highlevel.Group)):
+    if isinstance(output, (h5py.File, h5py.Group)):
 
         if group:
             try:
@@ -276,6 +312,28 @@ def write_table_hdf5(table, output, path=None, compression=False,
         else:
             raise OSError("Table {0} already exists".format(path))
 
+    # Encode any mixin columns as plain columns + appropriate metadata
+    table = _encode_mixins(table)
+
+    # Table with numpy unicode strings can't be written in HDF5 so
+    # to write such a table a copy of table is made containing columns as
+    # bytestrings.  Now this copy of the table can be written in HDF5.
+    if any(col.info.dtype.kind == 'U' for col in table.itercols()):
+        table = table.copy(copy_data=False)
+        table.convert_unicode_to_bytestring()
+
+    # Warn if information will be lost when serialize_meta=False.  This is
+    # hardcoded to the set difference between column info attributes and what
+    # HDF5 can store natively (name, dtype) with no meta.
+    if serialize_meta is False:
+        for col in table.itercols():
+            for attr in ('unit', 'format', 'description', 'meta'):
+                if getattr(col.info, attr, None) not in (None, {}):
+                    warnings.warn("table contains column(s) with defined 'unit', 'format',"
+                                  " 'description', or 'meta' info attributes. These will"
+                                  " be dropped since serialize_meta=False.",
+                                  AstropyUserWarning)
+
     # Write the table to the file
     if compression:
         if compression is True:
@@ -304,7 +362,10 @@ def write_table_hdf5(table, output, path=None, compression=False,
                                         data=header_encoded)
 
     else:
-        # Write the meta-data to the file
+        # Write the Table meta dict key:value pairs to the file as HDF5
+        # attributes.  This works only for a limited set of scalar data types
+        # like numbers, strings, etc., but not any complex types.  This path
+        # also ignores column meta like unit or format.
         for key in table.meta:
             val = table.meta[key]
             try:
@@ -320,8 +381,8 @@ def register_hdf5():
     """
     Register HDF5 with Unified I/O.
     """
-    from .. import registry as io_registry
-    from ...table import Table
+    from astropy.io import registry as io_registry
+    from astropy.table import Table
 
     io_registry.register_reader('hdf5', Table, read_table_hdf5)
     io_registry.register_writer('hdf5', Table, write_table_hdf5)

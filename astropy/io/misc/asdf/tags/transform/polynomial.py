@@ -6,21 +6,23 @@ from numpy.testing import assert_array_equal
 
 from asdf import yamlutil
 
+import astropy.units as u
 from astropy import modeling
 from .basic import TransformType
+from . import _parameter_to_value
 
-
-__all__ = ['ShiftType', 'ScaleType', 'PolynomialType']
+__all__ = ['ShiftType', 'ScaleType', 'PolynomialType', 'Linear1DType']
 
 
 class ShiftType(TransformType):
     name = "transform/shift"
+    version = '1.2.0'
     types = ['astropy.modeling.models.Shift']
 
     @classmethod
     def from_tree_transform(cls, node, ctx):
         offset = node['offset']
-        if not np.isscalar(offset):
+        if not isinstance(offset, u.Quantity) and not np.isscalar(offset):
             raise NotImplementedError(
                 "Asdf currently only supports scalar inputs to Shift transform.")
 
@@ -28,8 +30,9 @@ class ShiftType(TransformType):
 
     @classmethod
     def to_tree_transform(cls, model, ctx):
-        return {'offset': model.offset.value}
-        #return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+        offset = model.offset
+        node = {'offset': _parameter_to_value(offset)}
+        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -42,12 +45,13 @@ class ShiftType(TransformType):
 
 class ScaleType(TransformType):
     name = "transform/scale"
+    version = '1.2.0'
     types = ['astropy.modeling.models.Scale']
 
     @classmethod
     def from_tree_transform(cls, node, ctx):
         factor = node['factor']
-        if not np.isscalar(factor):
+        if not isinstance(factor, u.Quantity) and not np.isscalar(factor):
             raise NotImplementedError(
                 "Asdf currently only supports scalar inputs to Scale transform.")
 
@@ -55,7 +59,8 @@ class ScaleType(TransformType):
 
     @classmethod
     def to_tree_transform(cls, model, ctx):
-        node = {'factor': model.factor.value}
+        factor = model.factor
+        node = {'factor': _parameter_to_value(factor)}
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
@@ -64,6 +69,31 @@ class ScaleType(TransformType):
         TransformType.assert_equal(a, b)
         assert (isinstance(a, modeling.models.Scale) and
                 isinstance(b, modeling.models.Scale))
+        assert_array_equal(a.factor, b.factor)
+
+
+class MultiplyType(TransformType):
+    name = "transform/multiplyscale"
+    version = '1.0.0'
+    types = ['astropy.modeling.models.Multiply']
+
+    @classmethod
+    def from_tree_transform(cls, node, ctx):
+        factor = node['factor']
+        return modeling.models.Multiply(factor)
+
+    @classmethod
+    def to_tree_transform(cls, model, ctx):
+        factor = model.factor
+        node = {'factor': _parameter_to_value(factor)}
+        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+
+    @classmethod
+    def assert_equal(cls, a, b):
+        # TODO: If models become comparable themselves, remove this.
+        TransformType.assert_equal(a, b)
+        assert (isinstance(a, modeling.models.Multiply) and
+                isinstance(b, modeling.models.Multiply))
         assert_array_equal(a.factor, b.factor)
 
 
@@ -108,7 +138,7 @@ class PolynomialType(TransformType):
             for i in range(degree + 1):
                 for j in range(degree + 1):
                     if i + j < degree + 1:
-                        name = 'c' + str(i) + '_' +str(j)
+                        name = 'c' + str(i) + '_' + str(j)
                         coefficients[i, j] = getattr(model, name).value
         node = {'coefficients': coefficients}
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
@@ -120,3 +150,33 @@ class PolynomialType(TransformType):
         assert (isinstance(a, (modeling.models.Polynomial1D, modeling.models.Polynomial2D)) and
                 isinstance(b, (modeling.models.Polynomial1D, modeling.models.Polynomial2D)))
         assert_array_equal(a.parameters, b.parameters)
+
+
+class Linear1DType(TransformType):
+    name = "transform/linear1d"
+    version = '1.0.0'
+    types = ['astropy.modeling.models.Linear1D']
+
+    @classmethod
+    def from_tree_transform(cls, node, ctx):
+        slope = node.get('slope', None)
+        intercept = node.get('intercept', None)
+
+        return modeling.models.Linear1D(slope=slope, intercept=intercept)
+
+    @classmethod
+    def to_tree_transform(cls, model, ctx):
+        node = {
+            'slope': _parameter_to_value(model.slope),
+            'intercept': _parameter_to_value(model.intercept),
+        }
+        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
+
+    @classmethod
+    def assert_equal(cls, a, b):
+        # TODO: If models become comparable themselves, remove this.
+        TransformType.assert_equal(a, b)
+        assert (isinstance(a, modeling.models.Linear1D) and
+                isinstance(b, modeling.models.Linear1D))
+        assert_array_equal(a.slope, b.slope)
+        assert_array_equal(a.intercept, b.intercept)

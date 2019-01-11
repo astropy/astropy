@@ -260,19 +260,7 @@ Astropy you are working on. Do that with:
 
 .. code-block:: bash
 
-    python setup.py develop  # typically python 2.x, not python 3
-
-or:
-
-.. code-block:: bash
-
-    python3 setup.py install # python 3...
-    # ...though python3 may be called python3.3 or just python,
-    # depending on your system.
-
-If you are using python 3 you will need to re-install after making changes to
-the Astropy source code. Re-installing goes much faster than the initial install
-because it typically does not require new compilation.
+    pip install -e .
 
 .. _edit-flow:
 
@@ -370,15 +358,17 @@ Add a changelog entry
 *********************
 
 Add an entry to the file ``CHANGES.rst`` briefly describing the change you
-made. Include the pull request number if the change fixes an issue. An
+made. Include the pull request number, too at the end of the entry. An
 example entry, for the changes which fixed
 `issue 1845 <https://github.com/astropy/astropy/pull/1845>`_, is::
 
   - ``astropy.wcs.Wcs.printwcs`` will no longer warn that ``cdelt`` is
     being ignored when none was present in the FITS file. [#1845]
 
-If the change is a new feature, rather than an existing issue, you will not be
-able to put in the issue number until *after* you make the pull request.
+If you are opening a new pull request, you may not know its number yet, but you
+can add it *after* you make the pull request. If you're not sure where to
+put the changelog entry, wait at least until a maintainer has reviewed your
+PR and assigned it to a milestone.
 
 When writing changelog entries, do not attempt to make API reference links
 by using single-backticks.  This is because the changelog (in its current
@@ -449,7 +439,7 @@ the main Astropy *master* repository.
 The decisions of when to request a *squash* or *rebase* are left to
 individual maintainers.  These may be requested to reduce the number of
 visible commits saved in the repository history, or because of code changes
-in Astropy in the meantime.  A rebase may be necessary to allow the Continious
+in Astropy in the meantime.  A rebase may be necessary to allow the Continuous
 Integration tests to run.  Both involve rewriting the `git`_ history, meaning
 that commit hashes will change, which is why you should do it only if asked.
 

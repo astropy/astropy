@@ -18,19 +18,18 @@ from .base import DELAYED, _ValidHDU, ExtensionHDU
 # This module may have many dependencies on astropy.io.fits.column, but
 # astropy.io.fits.column has fewer dependencies overall, so it's easier to
 # keep table/column-related utilities in astropy.io.fits.column
-from .. import _numpy_hacks as nh
-from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
+from astropy.io.fits.column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
                       ATTRIBUTE_TO_KEYWORD, TDEF_RE, Column, ColDefs,
                       _AsciiColDefs, _FormatP, _FormatQ, _makep,
                       _parse_tformat, _scalar_to_format, _convert_format,
-                      _cmp_recformats, _get_index)
-from ..fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
-from ..header import Header, _pad_length
-from ..util import _is_int, _str_to_num
+                      _cmp_recformats)
+from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
+from astropy.io.fits.header import Header, _pad_length
+from astropy.io.fits.util import _is_int, _str_to_num
 
-from ....utils import lazyproperty
-from ....utils.exceptions import AstropyUserWarning
-from ....utils.decorators import deprecated_renamed_argument
+from astropy.utils import lazyproperty
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.decorators import deprecated_renamed_argument
 
 
 class FITSTableDumpDialect(csv.excel):
@@ -71,7 +70,7 @@ class _TableLikeHDU(_ValidHDU):
 
     @classmethod
     def from_columns(cls, columns, header=None, nrows=0, fill=False,
-                     **kwargs):
+                     character_as_bytes=False, **kwargs):
         """
         Given either a `ColDefs` object, a sequence of `Column` objects,
         or another table HDU or table data (a `FITS_rec` or multi-field
@@ -111,6 +110,11 @@ class _TableLikeHDU(_ValidHDU):
             copy the data from input, undefined cells will still be filled with
             zeros/blanks.
 
+        character_as_bytes : bool
+            Whether to return bytes for string columns when accessed from the
+            HDU. By default this is `False` and (unicode) strings are returned,
+            but for large tables this may use up a lot of memory.
+
         Notes
         -----
 
@@ -119,8 +123,9 @@ class _TableLikeHDU(_ValidHDU):
         """
 
         coldefs = cls._columns_type(columns)
-        data = FITS_rec.from_columns(coldefs, nrows=nrows, fill=fill)
-        hdu = cls(data=data, header=header, **kwargs)
+        data = FITS_rec.from_columns(coldefs, nrows=nrows, fill=fill,
+                                     character_as_bytes=character_as_bytes)
+        hdu = cls(data=data, header=header, character_as_bytes=character_as_bytes, **kwargs)
         coldefs._add_listener(hdu)
         return hdu
 
@@ -237,7 +242,11 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     data : array
         Data to be used.
     header : `Header` instance
-        Header to be used.
+        Header to be used. If the ``data`` is also specified, header keywords
+        specifically related to defining the table structure (such as the
+        "TXXXn" keywords like TTYPEn) will be overridden by the supplied column
+        definitions, but all other informational and data model-specific
+        keywords are kept.
     name : str
         Name to be populated in ``EXTNAME`` keyword.
     uint : bool, optional
@@ -296,6 +305,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 ('TFIELDS', 0, 'number of table fields')]
 
             if header is not None:
+
                 # Make a "copy" (not just a view) of the input header, since it
                 # may get modified.  the data is still a "view" (for now)
                 hcopy = header.copy(strip=True)
@@ -308,45 +318,31 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 if isinstance(data, self._data_type):
                     self.data = data
                 else:
-                    # Just doing a view on the input data screws up unsigned
-                    # columns, so treat those more carefully.
-                    # TODO: I need to read this code a little more closely
-                    # again, but I think it can be simplified quite a bit with
-                    # the use of some appropriate utility functions
-                    update_coldefs = {}
-                    if 'u' in [data.dtype[k].kind for k in data.dtype.names]:
-                        self._uint = True
-                        bzeros = {2: np.uint16(2**15), 4: np.uint32(2**31),
-                                  8: np.uint64(2**63)}
+                    self.data = self._data_type.from_columns(data)
 
-                        new_dtype = [
-                            (k, data.dtype[k].kind.replace('u', 'i') +
-                            str(data.dtype[k].itemsize))
-                            for k in data.dtype.names]
-
-                        new_data = np.zeros(data.shape, dtype=new_dtype)
-
-                        for k in data.dtype.fields:
-                            dtype = data.dtype[k]
-                            if dtype.kind == 'u':
-                                new_data[k] = data[k] - bzeros[dtype.itemsize]
-                                update_coldefs[k] = bzeros[dtype.itemsize]
-                            else:
-                                new_data[k] = data[k]
-                        self.data = new_data.view(self._data_type)
-                        # Uck...
-                        self.data._uint = True
-                    else:
-                        self.data = data.view(self._data_type)
-                    for k in update_coldefs:
-                        indx = _get_index(self.data.names, k)
-                        self.data._coldefs[indx].bzero = update_coldefs[k]
-                        # This is so bad that we have to update this in
-                        # duplicate...
-                        self.data._coldefs.bzeros[indx] = update_coldefs[k]
-                        # More uck...
-                        self.data._coldefs[indx]._physical_values = False
-                        self.data._coldefs[indx]._pseudo_unsigned_ints = True
+                # TEMP: Special column keywords are normally overwritten by attributes
+                # from Column objects. In Astropy 3.0, several new keywords are now
+                # recognized as being special column keywords, but we don't
+                # automatically clear them yet, as we need to raise a deprecation
+                # warning for at least one major version.
+                if header is not None:
+                    future_ignore = set()
+                    for keyword in self._header.keys():
+                        match = TDEF_RE.match(keyword)
+                        try:
+                            base_keyword = match.group('label')
+                        except Exception:
+                            continue                # skip if there is no match
+                        if base_keyword in {'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT', 'TRPOS'}:
+                            future_ignore.add(base_keyword)
+                    if future_ignore:
+                        keys = ', '.join(x + 'n' for x in sorted(future_ignore))
+                        warnings.warn("The following keywords are now recognized as special "
+                                      "column-related attributes and should be set via the "
+                                      "Column objects: {0}. In future, these values will be "
+                                      "dropped from manually specified headers automatically "
+                                      "and replaced with values generated based on the "
+                                      "Column objects.".format(keys), AstropyDeprecationWarning)
 
                 # TODO: Too much of the code in this class uses header keywords
                 # in making calculations related to the data size.  This is
@@ -655,6 +651,14 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 continue                # skip if there is no match
 
             if base_keyword in KEYWORD_TO_ATTRIBUTE:
+
+                # TEMP: For Astropy 3.0 we don't clear away the following keywords
+                # as we are first raising a deprecation warning that these will be
+                # dropped automatically if they were specified in the header. We
+                # can remove this once we are happy to break backward-compatibility
+                if base_keyword in {'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT', 'TRPOS'}:
+                    continue
+
                 num = int(match.group('num')) - 1  # convert to zero-base
                 table_keywords.append((idx, match.group(0), base_keyword,
                                        num))
@@ -839,9 +843,9 @@ class BinTableHDU(_TableBaseHDU):
 
     def __init__(self, data=None, header=None, name=None, uint=False, ver=None,
                  character_as_bytes=False):
-        from ....table import Table
+        from astropy.table import Table
         if isinstance(data, Table):
-            from ..convenience import table_to_hdu
+            from astropy.io.fits.convenience import table_to_hdu
             hdu = table_to_hdu(data)
             if header is not None:
                 hdu.header.update(header)
@@ -1083,9 +1087,6 @@ class BinTableHDU(_TableBaseHDU):
             if isinstance(f, str):
                 if os.path.exists(f) and os.path.getsize(f) != 0:
                     if overwrite:
-                        warnings.warn(
-                            "Overwriting existing file '{}'.".format(f),
-                            AstropyUserWarning)
                         os.remove(f)
                     else:
                         exist.append(f)
@@ -1147,7 +1148,7 @@ class BinTableHDU(_TableBaseHDU):
         header : Header object
             When the cdfile and hfile are missing, use this Header object in
             the creation of the new table and HDU.  Otherwise this Header
-            supercedes the keywords from hfile, which is only used to update
+            supersedes the keywords from hfile, which is only used to update
             values not present in this Header, unless ``replace=True`` in which
             this Header's values are completely replaced with the values from
             hfile.
@@ -1525,10 +1526,9 @@ def _binary_table_byte_swap(data):
     for arr in reversed(to_swap):
         arr.byteswap(True)
 
-    new_dtype = nh.realign_dtype(np.dtype(list(zip(names, formats))),
-                                 offsets)
-
-    data.dtype = new_dtype
+    data.dtype = np.dtype({'names': names,
+                           'formats': formats,
+                           'offsets': offsets})
 
     yield data
 

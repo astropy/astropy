@@ -16,13 +16,14 @@ try:
 except ImportError:
     HAVE_OBJGRAPH = False
 
-from ....io import fits
-from ....tests.helper import catch_warnings, ignore_warnings
-from ....utils.exceptions import AstropyDeprecationWarning
+from astropy.io import fits
+from astropy.tests.helper import catch_warnings, ignore_warnings
+from astropy.utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-from ..column import Delayed, NUMPY2FITS
-from ..util import decode_ascii
-from ..verify import VerifyError
+from astropy.io.fits.column import Delayed, NUMPY2FITS
+from astropy.io.fits.util import decode_ascii
+from astropy.io.fits.verify import VerifyError
 from . import FitsTestCase
 
 
@@ -298,6 +299,19 @@ class TestTableFunctions(FitsTestCase):
         hdul = fits.open(self.temp('toto.fits'))
         assert comparerecords(hdu.data, hdul[1].data)
         hdul.close()
+
+        # Test Scaling
+
+        r1 = np.array([11., 12.])
+        c2 = fits.Column(name='def', format='D', array=r1, bscale=2.3,
+                         bzero=0.6)
+        hdu = fits.TableHDU.from_columns([c2])
+        hdu.writeto(self.temp('toto.fits'), overwrite=True)
+        with open(self.temp('toto.fits')) as f:
+            assert '4.95652173913043548D+00' in f.read()
+        with fits.open(self.temp('toto.fits')) as hdul:
+            assert comparerecords(hdu.data, hdul[1].data)
+
         a.close()
 
     def test_endianness(self):
@@ -831,6 +845,8 @@ class TestTableFunctions(FitsTestCase):
             assert header['TNULL2'] == 'b'
             assert header['TNULL3'] == 2.3
 
+    @pytest.mark.xfail(not NUMPY_LT_1_14_1 and NUMPY_LT_1_14_2,
+        reason="See https://github.com/astropy/astropy/issues/7214")
     def test_mask_array(self):
         t = fits.open(self.data('table.fits'))
         tbdata = t[1].data
@@ -2526,6 +2542,61 @@ class TestTableFunctions(FitsTestCase):
                         'deprecated in version 2.0 and will be removed in a '
                         'future version. Use argument "overwrite" instead.')
 
+    def test_pseudo_unsigned_ints(self):
+        """
+        Tests updating a table column containing pseudo-unsigned ints.
+        """
+
+        data = np.array([1, 2, 3], dtype=np.uint32)
+        col = fits.Column(name='A', format='1J', bzero=2**31, array=data)
+        thdu = fits.BinTableHDU.from_columns([col])
+        thdu.writeto(self.temp('test.fits'))
+
+        # Test that the file wrote out correctly
+        with fits.open(self.temp('test.fits'), uint=True) as hdul:
+            hdu = hdul[1]
+            assert 'TZERO1' in hdu.header
+            assert hdu.header['TZERO1'] == 2**31
+            assert hdu.data['A'].dtype == np.dtype('uint32')
+            assert np.all(hdu.data['A'] == data)
+
+            # Test updating the unsigned int data
+            hdu.data['A'][0] = 99
+            hdu.writeto(self.temp('test2.fits'))
+
+        with fits.open(self.temp('test2.fits'), uint=True) as hdul:
+            hdu = hdul[1]
+            assert 'TZERO1' in hdu.header
+            assert hdu.header['TZERO1'] == 2**31
+            assert hdu.data['A'].dtype == np.dtype('uint32')
+            assert np.all(hdu.data['A'] == [99, 2, 3])
+
+    def test_column_with_scaling(self):
+        """Check that a scaled column if correctly saved once it is modified.
+        Regression test for https://github.com/astropy/astropy/issues/6887
+        """
+        c1 = fits.Column(name='c1', array=np.array([1], dtype='>i2'),
+                         format='1I', bscale=1, bzero=32768)
+        S = fits.HDUList([fits.PrimaryHDU(),
+                          fits.BinTableHDU.from_columns([c1])])
+
+        # Change value in memory
+        S[1].data['c1'][0] = 2
+        S.writeto(self.temp("a.fits"))
+        assert S[1].data['c1'] == 2
+
+        # Read and change value in memory
+        X = fits.open(self.temp("a.fits"))
+        X[1].data['c1'][0] = 10
+        assert X[1].data['c1'][0] == 10
+
+        # Write back to file
+        X.writeto(self.temp("b.fits"))
+
+        # Now check the file
+        with fits.open(self.temp("b.fits")) as hdul:
+            assert hdul[1].data['c1'][0] == 10
+
 
 @contextlib.contextmanager
 def _refcounting(type_):
@@ -2889,7 +2960,9 @@ class TestColumnFunctions(FitsTestCase):
             # Doesn't pickle zero-width (_phanotm) column 'ORBPARM'
             zwc_pd = pickle.dumps(zwc[2].data)
             zwc_pl = pickle.loads(zwc_pd)
-            assert comparerecords(zwc_pl, zwc[2].data)
+            with pytest.warns(UserWarning, match='Field 2 has a repeat count '
+                              'of 0 in its format code'):
+                assert comparerecords(zwc_pl, zwc[2].data)
 
     def test_column_lookup_by_name(self):
         """Tests that a `ColDefs` can be indexed by column name."""
@@ -3040,7 +3113,7 @@ def test_regression_5383():
 
 
 def test_table_to_hdu():
-    from ....table import Table
+    from astropy.table import Table
     table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
                     names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
     table['a'].unit = 'm/s'
@@ -3074,3 +3147,114 @@ def test_regression_scalar_indexing():
     x1b = x[(1,)]
     # FITS_record does not define __eq__; so test elements.
     assert all(a == b for a, b in zip(x1a, x1b))
+
+
+
+def test_new_column_attributes_preserved(tmpdir):
+
+    # Regression test for https://github.com/astropy/astropy/issues/7145
+    # This makes sure that for now we don't clear away keywords that have
+    # newly been recognized (in Astropy 3.0) as special column attributes but
+    # instead just warn that we might do so in future. The new keywords are:
+    # TCTYP, TCUNI, TCRPX, TCRVL, TCDLT, TRPOS
+
+    col = []
+    col.append(fits.Column(name="TIME", format="1E", unit="s"))
+    col.append(fits.Column(name="RAWX", format="1I", unit="pixel"))
+    col.append(fits.Column(name="RAWY", format="1I"))
+    cd = fits.ColDefs(col)
+
+    hdr = fits.Header()
+
+    # Keywords that will get ignored in favor of these in the data
+    hdr['TUNIT1'] = 'pixel'
+    hdr['TUNIT2'] = 'm'
+    hdr['TUNIT3'] = 'm'
+
+    # Keywords that were added in Astropy 3.0 that should eventually be
+    # ignored and set on the data instead
+    hdr['TCTYP2'] = 'RA---TAN'
+    hdr['TCTYP3'] = 'ANGLE'
+    hdr['TCRVL2'] = -999.0
+    hdr['TCRVL3'] = -999.0
+    hdr['TCRPX2'] = 1.0
+    hdr['TCRPX3'] = 1.0
+    hdr['TALEN2'] = 16384
+    hdr['TALEN3'] = 1024
+    hdr['TCUNI2'] = 'angstrom'
+    hdr['TCUNI3'] = 'deg'
+
+    # Other non-relevant keywords
+    hdr['RA'] = 1.5
+    hdr['DEC'] = 3.0
+
+    with pytest.warns(AstropyDeprecationWarning) as warning_list:
+        hdu = fits.BinTableHDU.from_columns(cd, hdr)
+    assert str(warning_list[0].message).startswith("The following keywords are now recognized as special")
+
+    # First, check that special keywords such as TUNIT are ignored in the header
+    # We may want to change that behavior in future, but this is the way it's
+    # been for a while now.
+
+    assert hdu.columns[0].unit == 's'
+    assert hdu.columns[1].unit == 'pixel'
+    assert hdu.columns[2].unit is None
+
+    assert hdu.header['TUNIT1'] == 's'
+    assert hdu.header['TUNIT2'] == 'pixel'
+    assert 'TUNIT3' not in hdu.header  # TUNIT3 was removed
+
+    # Now, check that the new special keywords are actually still there
+    # but weren't used to set the attributes on the data
+
+    assert hdu.columns[0].coord_type is None
+    assert hdu.columns[1].coord_type is None
+    assert hdu.columns[2].coord_type is None
+
+    assert 'TCTYP1' not in hdu.header
+    assert hdu.header['TCTYP2'] == 'RA---TAN'
+    assert hdu.header['TCTYP3'] == 'ANGLE'
+
+    # Make sure that other keywords are still there
+
+    assert hdu.header['RA'] == 1.5
+    assert hdu.header['DEC'] == 3.0
+
+    # Now we can write this HDU to a file and re-load. Re-loading *should*
+    # cause the special column attribtues to be picked up (it's just that when a
+    # header is manually specified, these values are ignored)
+
+    filename = tmpdir.join('test.fits').strpath
+
+    hdu.writeto(filename)
+
+    # Make sure we don't emit a warning in this case
+    with pytest.warns(None) as warning_list:
+        hdu2 = fits.open(filename)[1]
+    assert len(warning_list) == 0
+
+    # Check that column attributes are now correctly set
+
+    assert hdu2.columns[0].unit == 's'
+    assert hdu2.columns[1].unit == 'pixel'
+    assert hdu2.columns[2].unit is None
+
+    assert hdu2.header['TUNIT1'] == 's'
+    assert hdu2.header['TUNIT2'] == 'pixel'
+    assert 'TUNIT3' not in hdu2.header  # TUNIT3 was removed
+
+    # Now, check that the new special keywords are actually still there
+    # but weren't used to set the attributes on the data
+
+    assert hdu2.columns[0].coord_type is None
+    assert hdu2.columns[1].coord_type == 'RA---TAN'
+    assert hdu2.columns[2].coord_type == 'ANGLE'
+
+    assert 'TCTYP1' not in hdu2.header
+    assert hdu2.header['TCTYP2'] == 'RA---TAN'
+    assert hdu2.header['TCTYP3'] == 'ANGLE'
+
+    # Make sure that other keywords are still there
+
+    assert hdu2.header['RA'] == 1.5
+    assert hdu2.header['DEC'] == 3.0

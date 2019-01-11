@@ -7,11 +7,12 @@ writing all the meta data associated with an astropy Table object.
 import re
 from collections import OrderedDict
 import contextlib
-
+import warnings
 
 from . import core, basic
-from ...table import meta, serialize
-from ...utils.data_info import serialize_context_as
+from astropy.table import meta, serialize
+from astropy.utils.data_info import serialize_context_as
+from astropy.utils.exceptions import AstropyWarning
 
 __doctest_requires__ = {'Ecsv': ['yaml']}
 
@@ -124,6 +125,13 @@ class EcsvHeader(basic.BasicHeader):
 
         try:
             header = meta.get_header_from_yaml(lines)
+        except ImportError as exc:
+            if 'PyYAML package is required' in str(exc):
+                warnings.warn("file looks like ECSV format but PyYAML is not installed "
+                              "so it cannot be parsed as ECSV",
+                              AstropyWarning)
+            raise core.InconsistentTableError('unable to parse yaml in meta header'
+                                              ' (PyYAML package is required)')
         except meta.YamlParseError:
             raise core.InconsistentTableError('unable to parse yaml in meta header')
 
@@ -148,7 +156,7 @@ class EcsvHeader(basic.BasicHeader):
 
         # Check for consistency of the ECSV vs. CSV header column names
         if header_names != self.names:
-            raise ValueError('column names from ECSV header {} do not '
+            raise core.InconsistentTableError('column names from ECSV header {} do not '
                              'match names from header line of CSV data {}'
                              .format(self.names, header_names))
 
@@ -193,6 +201,37 @@ class EcsvOutputter(core.TableOutputter):
         return out
 
 
+class EcsvData(basic.BasicData):
+    def _set_fill_values(self, cols):
+        """Set the fill values of the individual cols based on fill_values of BaseData
+
+        For ECSV handle the corner case of data that has been serialized using
+        the serialize_method='data_mask' option, which writes the full data and
+        mask directly, AND where that table includes a string column with zero-length
+        string entries ("") which are valid data.
+
+        Normally the super() method will set col.fill_value=('', '0') to replace
+        blanks with a '0'.  But for that corner case subset, instead do not do
+        any filling.
+        """
+        super()._set_fill_values(cols)
+
+        # Get the serialized columns spec.  It might not exist and there might
+        # not even be any table meta, so punt in those cases.
+        try:
+            scs = self.header.table_meta['__serialized_columns__']
+        except (AttributeError, KeyError):
+            return
+
+        # Got some serialized columns, so check for string type and serialized
+        # as a MaskedColumn.  Without 'data_mask', MaskedColumn objects are
+        # stored to ECSV as normal columns.
+        for col in cols:
+            if (col.dtype == 'str' and col.name in scs and
+                    scs[col.name]['__class__'] == 'astropy.table.column.MaskedColumn'):
+                col.fill_values = {}  # No data value replacement
+
+
 class Ecsv(basic.Basic):
     """
     Read a file which conforms to the ECSV (Enhanced Character Separated
@@ -227,6 +266,7 @@ class Ecsv(basic.Basic):
     _io_registry_suffix = '.ecsv'
 
     header_class = EcsvHeader
+    data_class = EcsvData
     outputter_class = EcsvOutputter
 
     def update_table_data(self, table):

@@ -13,10 +13,10 @@ import numpy as np
 from matplotlib.path import Path
 from matplotlib.transforms import Transform
 
-from ... import units as u
-from ...wcs import WCS
-from ...wcs.utils import wcs_to_celestial_frame
-from ...coordinates import (SkyCoord, frame_transform_graph,
+from astropy import units as u
+from astropy.wcs import WCS
+from astropy.wcs.utils import wcs_to_celestial_frame
+from astropy.coordinates import (SkyCoord, frame_transform_graph,
                             SphericalRepresentation,
                             UnitSphericalRepresentation,
                             BaseCoordinateFrame)
@@ -49,11 +49,9 @@ class CurvedTransform(Transform, metaclass=abc.ABCMeta):
 
     transform_path_non_affine = transform_path
 
-    @abc.abstractmethod
     def transform(self, input):
         raise NotImplementedError("")
 
-    @abc.abstractmethod
     def inverted(self):
         raise NotImplementedError("")
 
@@ -62,6 +60,8 @@ class WCSWorld2PixelTransform(CurvedTransform):
     """
     WCS transformation from world to pixel coordinates
     """
+
+    has_inverse = True
 
     def __init__(self, wcs, slice=None):
         super().__init__()
@@ -78,6 +78,10 @@ class WCSWorld2PixelTransform(CurvedTransform):
                 self.y_index = slice.index('y')
         else:
             self.slice = None
+
+    def __eq__(self, other):
+        return (isinstance(other, type(self)) and self.wcs == other.wcs
+                and self.slice == other.slice)
 
     @property
     def input_dims(self):
@@ -118,6 +122,8 @@ class WCSPixel2WorldTransform(CurvedTransform):
     WCS transformation from pixel to world coordinates
     """
 
+    has_inverse = True
+
     def __init__(self, wcs, slice=None):
         super().__init__()
         self.wcs = wcs
@@ -126,20 +132,13 @@ class WCSPixel2WorldTransform(CurvedTransform):
             self.x_index = slice.index('x')
             self.y_index = slice.index('y')
 
+    def __eq__(self, other):
+        return (isinstance(other, type(self)) and self.wcs == other.wcs
+                and self.slice == other.slice)
+
     @property
     def output_dims(self):
         return self.wcs.wcs.naxis
-
-    def get_coord_slices(self, xmin, xmax, ymin, ymax, nx, ny):
-        """
-        Get a coordinate slice
-        """
-        x = np.linspace(xmin, xmax, nx)
-        y = np.linspace(ymin, ymax, ny)
-        Y, X = np.meshgrid(y, x)
-        pixel = np.array([X.ravel(), Y.ravel()]).transpose()
-        world = self.transform(pixel)
-        return X, Y, [world[:, i].reshape(nx, ny).transpose() for i in range(self.wcs.wcs.naxis)]
 
     def transform(self, pixel):
         """
@@ -189,6 +188,8 @@ class WCSPixel2WorldTransform(CurvedTransform):
 
 class CoordinateTransform(CurvedTransform):
 
+    has_inverse = True
+
     def __init__(self, input_system, output_system):
         super().__init__()
         self._input_system_name = input_system
@@ -236,9 +237,10 @@ class CoordinateTransform(CurvedTransform):
         if self.same_frames:
             return input_coords
 
+        input_coords = input_coords*u.deg
         x_in, y_in = input_coords[:, 0], input_coords[:, 1]
 
-        c_in = SkyCoord(x_in, y_in, unit=(u.deg, u.deg),
+        c_in = SkyCoord(UnitSphericalRepresentation(x_in, y_in),
                         frame=self.input_system)
 
         # We often need to transform arrays that contain NaN values, and filtering
@@ -247,12 +249,8 @@ class CoordinateTransform(CurvedTransform):
         with np.errstate(all='ignore'):
             c_out = c_in.transform_to(self.output_system)
 
-        if issubclass(c_out.representation, (SphericalRepresentation, UnitSphericalRepresentation)):
-            lon = c_out.data.lon.deg
-            lat = c_out.data.lat.deg
-        else:
-            lon = c_out.spherical.lon.deg
-            lat = c_out.spherical.lat.deg
+        lon = c_out.spherical.lon.deg
+        lat = c_out.spherical.lat.deg
 
         return np.concatenate((lon[:, np.newaxis], lat[:, np.newaxis]), axis=1)
 

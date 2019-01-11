@@ -97,7 +97,7 @@ These same attributes can be used to access the data in the frames, as
     >>> coo.ra.to(u.hourangle)  # doctest: +FLOAT_CMP
     <Longitude 0.07333333 hourangle>
 
-You can use the ``representation`` attribute in conjunction
+You can use the ``representation_type`` attribute in conjunction
 with the ``representation_component_names`` attribute to figure out what
 keywords are accepted by a particular class object.  The former will be the
 representation class the system is expressed in (e.g.,
@@ -107,7 +107,7 @@ class::
 
     >>> import astropy.units as u
     >>> icrs = ICRS(1*u.deg, 2*u.deg)
-    >>> icrs.representation
+    >>> icrs.representation_type
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
     >>> icrs.representation_component_names
     OrderedDict([('ra', 'lon'), ('dec', 'lat'), ('distance', 'distance')])
@@ -118,18 +118,31 @@ One can get the data in a different representation if needed::
     <CartesianRepresentation (x, y, z) [dimensionless]
          (0.99923861, 0.01744177, 0.0348995)>
 
+.. note::
+
+    In previous versions of Astropy, both the frame attribute and the argument
+    to frame classes that are now named ``representation_type`` used to be
+    simply ``representation``. The name of this attribute/argument is confusing
+    as it points to the representation *class*, not the object containing the
+    underlying frame data (this is accessed via the frame attribute ``.data``).
+    To clarify, we have renamed ``representation`` to ``representation_type``.
+    In this version 3.0, we have only changed the references to this attribute
+    in the documentation. In the next major version, we will issue a deprecation
+    warning. In two major versions, we will remove the ``.representation``
+    attribute and ``representation=`` argument.
+
 The representation of the coordinate object can also be changed directly, as
 shown below.  This actually does *nothing* to the object internal data which
 stores the coordinate values, but it changes the external view of that data in
 two ways: (1) the object prints itself in accord with the new representation,
 and (2) the available attributes change to match those of the new
 representation (e.g. from ``ra, dec, distance`` to ``x, y, z``).  Setting the
-``representation`` thus changes a *property* of the object (how it appears)
+``representation_type`` thus changes a *property* of the object (how it appears)
 without changing the intrinsic object itself which represents a point in 3d
 space.::
 
     >>> from astropy.coordinates import CartesianRepresentation
-    >>> icrs.representation = CartesianRepresentation
+    >>> icrs.representation_type = CartesianRepresentation
     >>> icrs  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (x, y, z) [dimensionless]
         (0.99923861, 0.01744177, 0.0348995)>
@@ -140,7 +153,7 @@ The representation can also be set at the time of creating a coordinate
 and affects the set of keywords used to supply the coordinate data.  For
 example to create a coordinate with cartesian data do::
 
-    >>> ICRS(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc, representation=CartesianRepresentation)  #  doctest: +FLOAT_CMP
+    >>> ICRS(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc, representation_type='cartesian')  #  doctest: +FLOAT_CMP
     <ICRS Coordinate: (x, y, z) in kpc
         (1., 2., 3.)>
 
@@ -204,10 +217,10 @@ Similar broadcasting happens if you transform to another frame.  E.g.::
     >>> coo = ICRS(ra=180.*u.deg, dec=51.477811*u.deg)
     >>> lf = AltAz(location=EarthLocation.of_site('greenwich'),
     ...            obstime=['2012-03-21T00:00:00', '2012-06-21T00:00:00'])
-    >>> lcoo = coo.transform_to(lf)  # this can load finals2000A.all # doctest: +IGNORE_OUTPUT
-    >>> lcoo  # doctest: +FLOAT_CMP
-    <AltAz Coordinate (obstime=['2012-03-21T00:00:00.000' '2012-06-21T00:00:00.000'], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): (az, alt) in deg
-        [( 94.71264994, 89.2142425 ), (307.69488826, 37.98077772)]>
+    >>> lcoo = coo.transform_to(lf)  # this can load finals2000A.all # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> lcoo  # doctest: +REMOTE_DATA +FLOAT_CMP
+    <AltAz Coordinate (obstime=['2012-03-21T00:00:00.000' '2012-06-21T00:00:00.000'], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0.0, obswl=1.0 micron): (az, alt) in deg
+        [( 94.71264944, 89.21424252), (307.69488825, 37.98077771)]>
 
 Above, the shapes -- ``()`` for ``coo`` and ``(2,)`` for ``lf`` -- were
 broadcast against each other.  If you wished to determine the positions for a
@@ -217,7 +230,7 @@ set of coordinates, you'd need to make sure that the shapes allowed this::
     >>> coo2.transform_to(lf)
     Traceback (most recent call last):
     ...
-    ValueError: shape mismatch: objects cannot be broadcast to a single shape
+    ValueError: operands could not be broadcast together...
     >>> coo2.shape
     (3,)
     >>> lf.shape
@@ -225,11 +238,11 @@ set of coordinates, you'd need to make sure that the shapes allowed this::
     >>> lf2 = lf[:, np.newaxis]
     >>> lf2.shape
     (2, 1)
-    >>> coo2.transform_to(lf2)  # doctest: +FLOAT_CMP
+    >>> coo2.transform_to(lf2)  # doctest:  +REMOTE_DATA +FLOAT_CMP
     <AltAz Coordinate (obstime=[['2012-03-21T00:00:00.000' '2012-03-21T00:00:00.000'
       '2012-03-21T00:00:00.000']
      ['2012-06-21T00:00:00.000' '2012-06-21T00:00:00.000'
-      '2012-06-21T00:00:00.000']], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): (az, alt) in deg
+      '2012-06-21T00:00:00.000']], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0.0, obswl=1.0 micron): (az, alt) in deg
         [[( 93.09845202, 89.21613119), (126.85789652, 25.46600543),
           ( 51.37993229, 37.18532521)],
          [(307.71713699, 37.99437658), (231.37407871, 26.36768329),
@@ -332,6 +345,32 @@ user-created frames.
 
     See also :ref:`sphx_glr_generated_examples_coordinates_plot_sgr-coordinate-frame.py`
     for a more annotated example of defining a new coordinate frame.
+
+
+Customizing Display of Attributes
+---------------------------------
+
+While the default `repr` for coordinate frames is suitable for most cases, you may want
+to customize how frame attributes are displayed in certain cases.  To do this you can
+define a method named ``_astropy_repr_in_frame``. This method should be defined on the
+the object that's set to the frame attribute itself, **not** the
+`~astropy.coordinates.Attribute` descriptor.
+
+For example, you could have an object ``Spam`` which you have as an attribute of your frame::
+
+  >>> class Spam:
+  ...     def _astropy_repr_in_frame(self):
+  ...         return "<A can of Spam>"
+
+If your frame has this class as an attribute::
+
+  >>> class Egg(BaseCoordinateFrame):
+  ...     can = Attribute(default=Spam())
+
+When it is displayed by the frame it will use the result of ``_astropy_repr_in_frame``::
+
+  >>> Egg()
+  <Egg Frame (can=<A can of Spam>)>
 
 
 Defining Transformations

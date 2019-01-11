@@ -153,20 +153,20 @@ resulting mask will be. There are several options.
       >>> ndd3.add(ndd2, handle_mask="first_found").mask
       False
 
-- a function (or an arbitary callable) that takes at least two arguments.
+- a function (or an arbitrary callable) that takes at least two arguments.
   For example `numpy.logical_or` is the default::
 
       >>> ndd1 = NDDataRef(1, mask=np.array([True, False, True, False]))
       >>> ndd2 = NDDataRef(1, mask=np.array([True, False, False, True]))
       >>> ndd1.add(ndd2).mask
-      array([ True, False,  True,  True], dtype=bool)
+      array([ True, False,  True,  True]...)
 
   This defaults to ``"first_found"`` in case only one ``mask`` is not None::
 
       >>> ndd1 = NDDataRef(1)
       >>> ndd2 = NDDataRef(1, mask=np.array([True, False, False, True]))
       >>> ndd1.add(ndd2).mask
-      array([ True, False, False,  True], dtype=bool)
+      array([ True, False, False,  True]...)
 
   Custom functions are also possible::
 
@@ -176,20 +176,20 @@ resulting mask will be. There are several options.
       ...     result[start+1::2] = mask2[start+1::2]
       ...     return result
 
-  This function is obviously non-sense but let's see how it performs::
+  This function is non-sense but let's see how it performs::
 
       >>> ndd1 = NDDataRef(1, mask=np.array([True, False, True, False]))
       >>> ndd2 = NDDataRef(1, mask=np.array([True, False, False, True]))
       >>> ndd1.add(ndd2, handle_mask=take_alternating_values).mask
-      array([ True, False,  True,  True], dtype=bool)
+      array([ True, False,  True,  True]...)
 
   Additional parameters can be given by prefixing them with ``mask_``
   (which will be stripped before passing it to the function)::
 
       >>> ndd1.add(ndd2, handle_mask=take_alternating_values, mask_start=1).mask
-      array([False, False, False, False], dtype=bool)
+      array([False, False, False, False]...)
       >>> ndd1.add(ndd2, handle_mask=take_alternating_values, mask_start=2).mask
-      array([False, False,  True,  True], dtype=bool)
+      array([False, False,  True,  True]...)
 
 meta
 ----
@@ -364,8 +364,8 @@ correct uncertainty of ``0``::
 
 which would be consistent with the equivalent operation ``ndd1 * 0``::
 
-    >>> ndd1.multiply(0, propagate_uncertainties=True).uncertainty
-    StdDevUncertainty([0])
+    >>> ndd1.multiply(0, propagate_uncertainties=True).uncertainty # doctest: +FLOAT_CMP
+    StdDevUncertainty([0.])
 
 .. warning::
     The user needs to calculate or know the appropriate value or array manually

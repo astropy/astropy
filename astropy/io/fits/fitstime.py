@@ -8,13 +8,13 @@ import numpy as np
 
 from . import Header, Card
 
-from ... import units as u
-from ...coordinates import EarthLocation
-from ...table import Column
-from ...time import Time, TimeDelta
-from ...time.core import BARYCENTRIC_SCALES
-from ...time.formats import FITS_DEPRECATED_SCALES
-from ...utils.exceptions import AstropyUserWarning
+from astropy import units as u
+from astropy.coordinates import EarthLocation
+from astropy.table import Column
+from astropy.time import Time, TimeDelta
+from astropy.time.core import BARYCENTRIC_SCALES
+from astropy.time.formats import FITS_DEPRECATED_SCALES
+from astropy.utils.exceptions import AstropyUserWarning
 
 # The following is based on the FITS WCS Paper IV, "Representations of time
 # coordinates in FITS".
@@ -450,6 +450,11 @@ def fits_to_time(hdr, table):
             time_columns[int(idx)][base] = value
             hcopy.remove(key)
 
+        elif (value in ('OBSGEO-X', 'OBSGEO-Y', 'OBSGEO-Z') and
+              re.match('TTYPE[0-9]+', key)):
+
+            global_info[value] = table[value]
+
     # Verify and get the global time reference frame information
     _verify_global_info(global_info)
     _convert_global_time(table, global_info)
@@ -535,7 +540,7 @@ def time_to_fits(table):
         coord_meta[col.info.name]['coord_unit'] = 'd'
 
         # Time column reference position
-        if col.location is None:
+        if getattr(col, 'location') is None:
             if location is not None:
                 warnings.warn(
                     'Time Column "{}" has no specified location, but global Time '
@@ -550,14 +555,17 @@ def time_to_fits(table):
                     'Earth Location "TOPOCENTER" for Time Column "{}" is incompatabile '
                     'with scale "{}".'.format(col.info.name, col.scale.upper()),
                     AstropyUserWarning)
-            if col.location.size > 1:
-                raise ValueError('Vectorized Location of Time Column "{}" cannot be '
-                                 'written, as it is not supported.'.format(col.info.name))
+
             if location is None:
                 # Set global geocentric location
                 location = col.location
-                hdr.extend([Card(keyword='OBSGEO-{}'.format(dim.upper()),
-                                 value=getattr(location, dim).to_value(u.m))
+                if location.size > 1:
+                    for dim in ('x', 'y', 'z'):
+                        newtable.add_column(Column(getattr(location, dim).to_value(u.m)),
+                                            name='OBSGEO-{}'.format(dim.upper()))
+                else:
+                    hdr.extend([Card(keyword='OBSGEO-{}'.format(dim.upper()),
+                                     value=getattr(location, dim).to_value(u.m))
                             for dim in ('x', 'y', 'z')])
             elif location != col.location:
                 raise ValueError('Multiple Time Columns with different geocentric '

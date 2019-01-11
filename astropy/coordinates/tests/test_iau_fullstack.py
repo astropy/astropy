@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
 
 import pytest
 import numpy as np
 from numpy import testing as npt
 
-from ... import units as u
-from ...time import Time
-from ..builtin_frames import ICRS, AltAz
-from ..builtin_frames.utils import get_jd12
-from .. import EarthLocation
-from .. import SkyCoord
-from ...tests.helper import catch_warnings
-from ... import _erfa as erfa
-from ...utils import iers
+from astropy import units as u
+from astropy.time import Time
+from astropy.coordinates.builtin_frames import ICRS, AltAz
+from astropy.coordinates.builtin_frames.utils import get_jd12
+from astropy.coordinates import EarthLocation
+from astropy.coordinates import SkyCoord
+from astropy.tests.helper import catch_warnings
+from astropy import _erfa as erfa
+from astropy.utils import iers
 from .utils import randomly_sample_sphere
 
 
@@ -29,7 +30,10 @@ def fullstack_icrs():
 def fullstack_fiducial_altaz(fullstack_icrs):
     altazframe = AltAz(location=EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m),
                        obstime=Time('J2000'))
-    return fullstack_icrs.transform_to(altazframe)
+    with warnings.catch_warnings():  # Ignore remote_data warning
+        warnings.simplefilter('ignore')
+        result = fullstack_icrs.transform_to(altazframe)
+    return result
 
 
 @pytest.fixture(scope="function", params=['J2000.1', 'J2010'])
@@ -43,11 +47,12 @@ def fullstack_locations(request):
                          height=request.param[0]*u.m)
 
 
-@pytest.fixture(scope="function", params=[(0*u.bar, 0*u.deg_C, 0, 1*u.micron),
-                                        (1*u.bar, 0*u.deg_C, 0, 1*u.micron),
-                                        (1*u.bar, 10*u.deg_C, 0, 1*u.micron),
-                                        (1*u.bar, 0*u.deg_C, .5, 1*u.micron),
-                                        (1*u.bar, 0*u.deg_C, 0, 21*u.cm)])
+@pytest.fixture(scope="function",
+                params=[(0*u.bar, 0*u.deg_C, 0, 1*u.micron),
+                        (1*u.bar, 0*u.deg_C, 0*u.one, 1*u.micron),
+                        (1*u.bar, 10*u.deg_C, 0, 1*u.micron),
+                        (1*u.bar, 0*u.deg_C, 50*u.percent, 1*u.micron),
+                        (1*u.bar, 0*u.deg_C, 0, 21*u.cm)])
 def fullstack_obsconditions(request):
     return request.param
 
@@ -68,6 +73,7 @@ def _erfa_check(ira, idec, astrom):
     return dct
 
 
+@pytest.mark.remote_data
 def test_iau_fullstack(fullstack_icrs, fullstack_fiducial_altaz,
                        fullstack_times, fullstack_locations,
                        fullstack_obsconditions):
@@ -116,19 +122,23 @@ def test_iau_fullstack(fullstack_icrs, fullstack_fiducial_altaz,
     lat = fullstack_locations.geodetic[1].to_value(u.radian)
     height = fullstack_locations.geodetic[2].to_value(u.m)
     jd1, jd2 = get_jd12(fullstack_times, 'utc')
+    pressure = fullstack_obsconditions[0].to_value(u.hPa)
+    temperature = fullstack_obsconditions[1].to_value(u.deg_C)
+    # Relative humidity can be a quantity or a number.
+    relative_humidity = u.Quantity(fullstack_obsconditions[2], u.one).value
+    obswl = fullstack_obsconditions[3].to_value(u.micron)
     astrom, eo = erfa.apco13(jd1, jd2,
                              fullstack_times.delta_ut1_utc,
                              lon, lat, height,
                              xp, yp,
-                             fullstack_obsconditions[0].to_value(u.hPa),
-                             fullstack_obsconditions[1].to_value(u.deg_C),
-                             fullstack_obsconditions[2],
-                             fullstack_obsconditions[3].to_value(u.micron))
+                             pressure, temperature, relative_humidity,
+                             obswl)
     erfadct = _erfa_check(fullstack_icrs.ra.rad, fullstack_icrs.dec.rad, astrom)
     npt.assert_allclose(erfadct['alt'], aacoo.alt.radian, atol=1e-7)
     npt.assert_allclose(erfadct['az'], aacoo.az.radian, atol=1e-7)
 
 
+@pytest.mark.remote_data
 def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
     """
     Test the full transform from ICRS <-> AltAz
@@ -147,11 +157,11 @@ def test_future_altaz():
     warning is raised when attempting to get to AltAz in the future (beyond
     IERS tables)
     """
-    from ...utils.exceptions import AstropyWarning
+    from astropy.utils.exceptions import AstropyWarning
 
     # this is an ugly hack to get the warning to show up even if it has already
     # appeared
-    from ..builtin_frames import utils
+    from astropy.coordinates.builtin_frames import utils
     if hasattr(utils, '__warningregistry__'):
         utils.__warningregistry__.clear()
 

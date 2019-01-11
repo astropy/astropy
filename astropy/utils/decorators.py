@@ -3,7 +3,6 @@
 """Sundry function and class decorators."""
 
 
-
 import functools
 import inspect
 import textwrap
@@ -20,9 +19,11 @@ __all__ = ['classproperty', 'deprecated', 'deprecated_attribute',
            'deprecated_renamed_argument', 'format_doc',
            'lazyproperty', 'sharedmethod', 'wraps']
 
+_NotFound = object()
+
 
 def deprecated(since, message='', name='', alternative='', pending=False,
-               obj_type=None):
+               obj_type=None, warning_type=AstropyDeprecationWarning):
     """
     Used to mark a function or class as deprecated.
 
@@ -60,11 +61,15 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
     pending : bool, optional
         If True, uses a AstropyPendingDeprecationWarning instead of a
-        AstropyDeprecationWarning.
+        ``warning_type``.
 
     obj_type : str, optional
         The type of this object, if the automatically determined one
         needs to be overridden.
+
+    warning_type : warning
+        Warning to be issued.
+        Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
     """
 
     method_types = (classmethod, staticmethod, types.MethodType)
@@ -95,10 +100,10 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             func = func.__func__
         return func
 
-    def deprecate_function(func, message):
+    def deprecate_function(func, message, warning_type=warning_type):
         """
-        Returns a wrapped function that displays an
-        ``AstropyDeprecationWarning`` when it is called.
+        Returns a wrapped function that displays ``warning_type``
+        when it is called.
         """
 
         if isinstance(func, method_types):
@@ -112,7 +117,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             if pending:
                 category = AstropyPendingDeprecationWarning
             else:
-                category = AstropyDeprecationWarning
+                category = warning_type
 
             warnings.warn(message, category, stacklevel=2)
 
@@ -130,7 +135,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
         return func_wrapper(deprecated_func)
 
-    def deprecate_class(cls, message):
+    def deprecate_class(cls, message, warning_type=warning_type):
         """
         Update the docstring and wrap the ``__init__`` in-place (or ``__new__``
         if the class or any of the bases overrides ``__new__``) so it will give
@@ -147,13 +152,15 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         """
         cls.__doc__ = deprecate_doc(cls.__doc__, message)
         if cls.__new__ is object.__new__:
-            cls.__init__ = deprecate_function(get_function(cls.__init__), message)
+            cls.__init__ = deprecate_function(get_function(cls.__init__),
+                                              message, warning_type)
         else:
-            cls.__new__ = deprecate_function(get_function(cls.__new__), message)
+            cls.__new__ = deprecate_function(get_function(cls.__new__),
+                                             message, warning_type)
         return cls
 
     def deprecate(obj, message=message, name=name, alternative=alternative,
-                  pending=pending):
+                  pending=pending, warning_type=warning_type):
         if obj_type is None:
             if isinstance(obj, type):
                 obj_type_name = 'class'
@@ -188,9 +195,9 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             altmessage)
 
         if isinstance(obj, type):
-            return deprecate_class(obj, message)
+            return deprecate_class(obj, message, warning_type)
         else:
-            return deprecate_function(obj, message)
+            return deprecate_function(obj, message, warning_type)
 
     if type(message) is type(deprecate):
         return deprecate(message)
@@ -199,7 +206,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
 
 def deprecated_attribute(name, since, message=None, alternative=None,
-                         pending=False):
+                         pending=False, warning_type=AstropyDeprecationWarning):
     """
     Used to mark a public attribute as deprecated.  This creates a
     property that will warn when the given attribute name is accessed.
@@ -229,8 +236,12 @@ def deprecated_attribute(name, since, message=None, alternative=None,
         user about this alternative if provided.
 
     pending : bool, optional
-        If True, uses a AstropyPendingDeprecationWarning instead of a
-        AstropyDeprecationWarning.
+        If True, uses a AstropyPendingDeprecationWarning instead of
+        ``warning_type``.
+
+    warning_type : warning
+        Warning to be issued.
+        Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
 
     Examples
     --------
@@ -246,15 +257,15 @@ def deprecated_attribute(name, since, message=None, alternative=None,
     """
     private_name = '_' + name
 
-    @deprecated(since, name=name, obj_type='attribute')
+    @deprecated(since, name=name, obj_type='attribute', warning_type=warning_type)
     def get(self):
         return getattr(self, private_name)
 
-    @deprecated(since, name=name, obj_type='attribute')
+    @deprecated(since, name=name, obj_type='attribute', warning_type=warning_type)
     def set(self, val):
         setattr(self, private_name, val)
 
-    @deprecated(since, name=name, obj_type='attribute')
+    @deprecated(since, name=name, obj_type='attribute', warning_type=warning_type)
     def delete(self):
         delattr(self, private_name)
 
@@ -263,7 +274,8 @@ def deprecated_attribute(name, since, message=None, alternative=None,
 
 def deprecated_renamed_argument(old_name, new_name, since,
                                 arg_in_kwargs=False, relax=False,
-                                pending=False):
+                                pending=False,
+                                warning_type=AstropyDeprecationWarning):
     """Deprecate a _renamed_ function argument.
 
     The decorator assumes that the argument with the ``old_name`` was removed
@@ -301,6 +313,10 @@ def deprecated_renamed_argument(old_name, new_name, since,
         If ``True`` this will hide the deprecation warning and ignore the
         corresponding ``relax`` parameter value.
         Default is ``False``.
+
+    warning_type : warning
+        Warning to be issued.
+        Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
 
     Raises
     ------
@@ -341,7 +357,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
         >>> test(sig=2)
         2
 
-    To deprecate an argument catched inside the ``**kwargs`` the
+    To deprecate an argument caught inside the ``**kwargs`` the
     ``arg_in_kwargs`` has to be set::
 
         >>> @deprecated_renamed_argument('sig', 'sigma', '1.0',
@@ -431,7 +447,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
                                     '{1!r}.'.format(new_name[i], param.kind))
 
             # In case the argument is not found in the list of arguments
-            # the only remaining possibility is that it should be catched
+            # the only remaining possibility is that it should be caught
             # by some kind of **kwargs argument.
             # This case has to be explicitly specified, otherwise throw
             # an exception!
@@ -459,7 +475,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
                             'and will be removed in a future version. '
                             'Use argument "{2}" instead.'
                             ''.format(old_name[i], since[i], new_name[i]),
-                            AstropyDeprecationWarning, stacklevel=2)
+                            warning_type, stacklevel=2)
 
                     # Check if the newkeyword was given as well.
                     newarg_in_args = (position[i] is not None and
@@ -505,7 +521,7 @@ class classproperty(property):
     .. note::
 
         classproperty only works for *read-only* properties.  It does not
-        currently allow writeable/deleteable properties, due to subtleties of how
+        currently allow writeable/deletable properties, due to subtleties of how
         Python descriptors work.  In order to implement such properties on a class
         a metaclass for that class must be implemented.
 
@@ -703,11 +719,13 @@ class lazyproperty(property):
 
     def __get__(self, obj, owner=None):
         try:
-            return obj.__dict__[self._key]
-        except KeyError:
-            val = self.fget(obj)
-            obj.__dict__[self._key] = val
-            return val
+            val = obj.__dict__.get(self._key, _NotFound)
+            if val is not _NotFound:
+                return val
+            else:
+                val = self.fget(obj)
+                obj.__dict__[self._key] = val
+                return val
         except AttributeError:
             if obj is None:
                 return self

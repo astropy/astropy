@@ -10,9 +10,9 @@ from .card import Card, _pad, KEYWORD_LENGTH
 from .file import _File
 from .util import encode_ascii, decode_ascii, fileobj_closed, fileobj_is_binary
 
-from ...utils import isiterable
-from ...utils.exceptions import AstropyUserWarning
-from ...utils.decorators import deprecated_renamed_argument
+from astropy.utils import isiterable
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.decorators import deprecated_renamed_argument
 
 
 BLOCK_SIZE = 2880  # the FITS block size
@@ -268,6 +268,9 @@ class Header:
     def __iadd__(self, other):
         self.extend(other)
         return self
+
+    def _ipython_key_completions_(self):
+        return self.__iter__()
 
     @property
     def cards(self):
@@ -1212,7 +1215,7 @@ class Header:
 
         update : bool, optional
             If `True`, update the current header with the values and comments
-            from duplicate keywords in the input header.  This supercedes the
+            from duplicate keywords in the input header.  This supersedes the
             ``unique`` argument.  Commentary keywords are treated the same as
             if ``unique=True``.
 
@@ -1901,8 +1904,8 @@ class Header:
             self[key] = value
 
 
-collections.MutableSequence.register(Header)
-collections.MutableMapping.register(Header)
+collections.abc.MutableSequence.register(Header)
+collections.abc.MutableMapping.register(Header)
 
 
 class _CardAccessor:
@@ -1973,8 +1976,8 @@ class _CardAccessor:
         return False
 
 
-collections.Mapping.register(_CardAccessor)
-collections.Sequence.register(_CardAccessor)
+collections.abc.Mapping.register(_CardAccessor)
+collections.abc.Sequence.register(_CardAccessor)
 
 
 class _HeaderComments(_CardAccessor):

@@ -115,8 +115,10 @@ and `~astropy.modeling.functional_models.Trapezoid1D` models and the
     y = 3 * np.exp(-0.5 * (x - 1.3)**2 / 0.8**2)
     y += np.random.normal(0., 0.2, x.shape)
 
-    # Fit the data using a box model
-    t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5)
+    # Fit the data using a box model.
+    # Bounds are not really needed but included here to demonstrate usage.
+    t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5,
+                                bounds={"x_0": (-5., 5.)})
     fit_t = fitting.LevMarLSQFitter()
     t = fit_t(t_init, x, y)
 
@@ -342,10 +344,41 @@ function in which the resulting mean (variance) is the sum of the means
     g2 = models.Gaussian1D(1, 1, 1)
     g3 = convolve_models(g1, g2)
 
-    x = np.linspace(-3, -3, 50)
+    x = np.linspace(-3, 3, 50)
     plt.plot(x, g1(x), 'k-')
     plt.plot(x, g2(x), 'k-')
     plt.plot(x, g3(x), 'k-')
+
+.. _modeling-getting-started-masked-data:
+
+Fitting masked data
+-------------------
+
+.. versionadded:: 2.0.4
+
+When `astropy.modeling.fitting.LinearLSQFitter` is provided with the dependent
+co-ordinate values as a `numpy.ma.MaskedArray`, it ignores any masked values
+when performing the fit::
+
+    >>> p_init = models.Polynomial1D(degree=1)
+    >>> x = np.arange(10)
+    >>> y = np.ma.masked_array(2*x+1, mask=np.zeros_like(x))
+    >>> y[7] = 100.       # simulate spurious value
+    >>> y.mask[7] = True
+    >>> fitter = fitting.LinearLSQFitter()
+    >>> p = fitter(p_init, x, y)
+    >>> print('Fit intercept={:.3f}, slope={:.3f}'.format(p.c0.value, p.c1.value))  # doctest: +FLOAT_CMP
+    Fit intercept=1.000, slope=2.000
+
+At present, the non-linear fitters do not distinguish between good and bad
+values in this way.
+
+Note that model set fitting is currently about an order of magnitude slower in
+the presence of masked values, because the matrix equation has to be solved for
+each model separately, on their respective co-ordinate grids. This is still an
+order of magnitude faster than fitting separate model instances, however.
+Supplying a `numpy.ma.MaskedArray` without any bad (``True``) mask values
+produces the normal, faster behavior.
 
 .. _modeling-using:
 
@@ -364,6 +397,11 @@ Using `astropy.modeling`
    algorithms
    units
 
+.. note that if this section gets too long, it should be moved to a separate 
+   doc page - see the top of performance.inc.rst for the instructions on how to do 
+   that
+.. include:: performance.inc.rst
+
 Reference/API
 =============
 
@@ -381,3 +419,4 @@ Reference/API
 .. automodapi:: astropy.modeling.fitting
 .. automodapi:: astropy.modeling.optimizers
 .. automodapi:: astropy.modeling.statistic
+.. automodapi:: astropy.modeling.separable

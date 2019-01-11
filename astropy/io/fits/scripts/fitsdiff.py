@@ -7,9 +7,9 @@ import sys
 import textwrap
 import warnings
 
-from ... import fits
-from ..util import fill
-from ....utils.exceptions import AstropyDeprecationWarning
+from astropy.io import fits
+from astropy.io.fits.util import fill
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 log = logging.getLogger('fitsdiff')
@@ -149,6 +149,13 @@ def handle_options(argv=None):
         help='Output results to this file; otherwise results are printed to '
              'stdout.')
 
+    parser.add_option(
+        '-u', '--ignore-hdus', action='callback', callback=store_list,
+        nargs=1, type='str', default=[], dest='ignore_hdus',
+        metavar='HDU_NAMES',
+        help='Comma-separated list of HDU names not to be compared.  HDU '
+             'names may contain wildcard patterns.')
+
     group = optparse.OptionGroup(parser, 'Header Comparison Options')
 
     group.add_option(
@@ -221,37 +228,51 @@ def setup_logging(outfile=None):
 
 
 def match_files(paths):
-    filelists = []
+    if os.path.isfile(paths[0]) and os.path.isfile(paths[1]):
+        # shortcut if both paths are files
+        return [paths]
 
-    for path in paths:
+    dirnames = [None, None]
+    filelists = [None, None]
+
+    for i, path in enumerate(paths):
         if glob.has_magic(path):
-            files = [os.path.abspath(f) for f in glob.glob(path)]
+            files = [os.path.split(f) for f in glob.glob(path)]
             if not files:
-                log.error('Wildcard pattern {!r} did not match '
-                          'any files.'.format(path))
+                log.error('Wildcard pattern %r did not match any files.', path)
                 sys.exit(2)
-            filelists.append(files)
+
+            dirs, files = list(zip(*files))
+            if len(set(dirs)) > 1:
+                log.error('Wildcard pattern %r should match only one '
+                          'directory.', path)
+                sys.exit(2)
+
+            dirnames[i] = set(dirs).pop()
+            filelists[i] = sorted(files)
         elif os.path.isdir(path):
-            filelists.append([os.path.abspath(f) for f in os.listdir(path)])
+            dirnames[i] = path
+            filelists[i] = sorted(os.listdir(path))
         elif os.path.isfile(path):
-            filelists.append([path])
+            dirnames[i] = os.path.dirname(path)
+            filelists[i] = [os.path.basename(path)]
         else:
             log.error(
-                '{!r} is not an existing file, directory, or wildcard pattern; '
-                'see `fitsdiff --help` for more usage help.'.format(path))
+                '%r is not an existing file, directory, or wildcard '
+                'pattern; see `fitsdiff --help` for more usage help.', path)
             sys.exit(2)
 
-    filelists[0].sort()
-    filelists[1].sort()
+        dirnames[i] = os.path.abspath(dirnames[i])
+
+    filematch = set(filelists[0]) & set(filelists[1])
 
     for a, b in [(0, 1), (1, 0)]:
-        if len(filelists[a]) > len(filelists[b]):
-            for extra in filelists[a][len(filelists[b]):]:
-                log.warning('{!r} has no match in {!r}'.format(extra, paths[b]))
-            filelists[a] = filelists[a][:len(filelists[b])]
-            break
+        if len(filelists[a]) > len(filematch) and not os.path.isdir(paths[a]):
+            for extra in sorted(set(filelists[a]) - filematch):
+                log.warning('%r has no match in %r', extra, dirnames[b])
 
-    return zip(*filelists)
+    return [(os.path.join(dirnames[0], f),
+             os.path.join(dirnames[1], f)) for f in filematch]
 
 
 def main(args=None):
@@ -303,6 +324,7 @@ def main(args=None):
             # TODO: pass in any additional arguments here too
             diff = fits.diff.FITSDiff(
                 a, b,
+                ignore_hdus=opts.ignore_hdus,
                 ignore_keywords=opts.ignore_keywords,
                 ignore_comments=opts.ignore_comments,
                 ignore_fields=opts.ignore_fields,

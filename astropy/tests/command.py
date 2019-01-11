@@ -5,13 +5,32 @@ Implements the wrapper for the Astropy test runner in the form of the
 
 
 import os
-import glob
+import stat
 import shutil
 import subprocess
 import sys
 import tempfile
+from distutils import log
+from contextlib import contextmanager
 
 from setuptools import Command
+
+
+@contextmanager
+def _suppress_stdout():
+    '''
+    A context manager to temporarily disable stdout.
+
+    Used later when installing a temporary copy of astropy to avoid a
+    very verbose output.
+    '''
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
 
 
 class FixRemoteDataOption(type):
@@ -38,7 +57,7 @@ class FixRemoteDataOption(type):
         else:
             sys.argv[idx] = '-R=any'
 
-        return super(FixRemoteDataOption, cls).__init__(name, bases, dct)
+        return super().__init__(name, bases, dct)
 
 
 class AstropyTest(Command, metaclass=FixRemoteDataOption):
@@ -46,7 +65,8 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
 
     user_options = [
         ('package=', 'P',
-         "The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
+         "The name of a specific package to test, e.g. 'io.fits' or 'utils'. "
+         "Accepts comma separated string to specify multiple packages. "
          "If nothing is specified, all default tests are run."),
         ('test-path=', 't',
          'Specify a test location by path.  If a relative path to a  .py file, '
@@ -75,7 +95,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
          'psutil package.'),
         ('parallel=', 'j',
          'Run the tests in parallel on the specified number of '
-         'CPUs.  If negative, all the cores on the machine will be '
+         'CPUs.  If "auto", all the cores on the machine will be '
          'used.  Requires the pytest-xdist plugin.'),
         ('docs-path=', None,
          'The path to the documentation .rst files.  If not provided, and '
@@ -89,7 +109,12 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         ('temp-root=', None,
          'The root directory in which to create the temporary testing files. '
          'If unspecified the system default is used (e.g. /tmp) as explained '
-         'in the documentation for tempfile.mkstemp.')
+         'in the documentation for tempfile.mkstemp.'),
+        ('verbose-install', None,
+         'Turn on terminal output from the installation of astropy in a '
+         'temporary folder.'),
+        ('readonly', None,
+         'Make the temporary installation being tested read-only.')
     ]
 
     package_name = ''
@@ -111,6 +136,8 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         self.skip_docs = False
         self.repeat = None
         self.temp_root = None
+        self.verbose_install = False
+        self.readonly = False
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -192,6 +219,12 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         if os.path.exists('.eggs'):
             shutil.copytree('.eggs', os.path.join(self.testing_path, '.eggs'))
 
+        # This option exists so that we can make sure that the tests don't
+        # write to an installed location.
+        if self.readonly:
+            log.info('changing permissions of temporary installation to read-only')
+            self._change_permissions_testing_path(writable=False)
+
         # Run everything in a try: finally: so that the tmp dir gets deleted.
         try:
             # Construct this modules testing command
@@ -213,6 +246,8 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             retcode = testproc.wait()
         finally:
             # Remove temporary directory
+            if self.readonly:
+                self._change_permissions_testing_path(writable=True)
             shutil.rmtree(self.tmp_dir)
 
         raise SystemExit(retcode)
@@ -234,13 +269,19 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
                                    dir=self.temp_root)
         self.tmp_dir = os.path.realpath(tmp_dir)
 
+        log.info('installing to temporary directory: {0}'.format(self.tmp_dir))
+
         # We now install the package to the temporary directory. We do this
         # rather than build and copy because this will ensure that e.g. entry
         # points work.
         self.reinitialize_command('install')
         install_cmd = self.distribution.get_command_obj('install')
         install_cmd.prefix = self.tmp_dir
-        self.run_command('install')
+        if self.verbose_install:
+            self.run_command('install')
+        else:
+            with _suppress_stdout():
+                self.run_command('install')
 
         # We now get the path to the site-packages directory that was created
         # inside self.tmp_dir
@@ -257,6 +298,17 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             self.docs_path = new_docs_path
 
         shutil.copy('setup.cfg', self.testing_path)
+
+    def _change_permissions_testing_path(self, writable=False):
+        if writable:
+            basic_flags = stat.S_IRUSR | stat.S_IWUSR
+        else:
+            basic_flags = stat.S_IRUSR
+        for root, dirs, files in os.walk(self.testing_path):
+            for dirname in dirs:
+                os.chmod(os.path.join(root, dirname), basic_flags | stat.S_IXUSR)
+            for filename in files:
+                os.chmod(os.path.join(root, filename), basic_flags)
 
     def _generate_coverage_commands(self):
         """
@@ -278,26 +330,27 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         # requires importing astropy.config and thus screwing
         # up coverage results for those packages.
         coveragerc = os.path.join(
-            self.testing_path, self.package_name, 'tests', 'coveragerc')
+            self.testing_path, self.package_name.replace('.', '/'),
+            'tests', 'coveragerc')
 
         with open(coveragerc, 'r') as fd:
             coveragerc_content = fd.read()
 
         coveragerc_content = coveragerc_content.replace(
-            "{packagename}", self.package_name)
+            "{packagename}", self.package_name.replace('.', '/'))
         tmp_coveragerc = os.path.join(self.tmp_dir, 'coveragerc')
         with open(tmp_coveragerc, 'wb') as tmp:
             tmp.write(coveragerc_content.encode('utf-8'))
 
         cmd_pre = (
             'import coverage; '
-            'cov = coverage.coverage(data_file="{0}", config_file="{1}"); '
+            'cov = coverage.coverage(data_file=r"{0}", config_file=r"{1}"); '
             'cov.start();'.format(
-                os.path.abspath(".coverage"), tmp_coveragerc))
+                os.path.abspath(".coverage"), os.path.abspath(tmp_coveragerc)))
         cmd_post = (
             'cov.stop(); '
             'from astropy.tests.helper import _save_coverage; '
-            '_save_coverage(cov, result, "{0}", "{1}");'.format(
-                os.path.abspath('.'), self.testing_path))
+            '_save_coverage(cov, result, r"{0}", r"{1}");'.format(
+                os.path.abspath('.'), os.path.abspath(self.testing_path)))
 
         return cmd_pre, cmd_post

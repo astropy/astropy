@@ -4,16 +4,15 @@
     Test the Logarithmic Units and Quantities
 """
 
-
 import pickle
 import itertools
 
 import pytest
 import numpy as np
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_allclose
 
-from ...tests.helper import assert_quantity_allclose
-from ... import units as u, constants as c
+from astropy.tests.helper import assert_quantity_allclose
+from astropy import units as u, constants as c
 
 lu_units = [u.dex, u.mag, u.decibel]
 
@@ -82,20 +81,25 @@ def test_predefined_magnitudes():
                              1.*u.erg/u.cm**2/u.s/u.AA)
     assert_quantity_allclose((-48.6*u.ABmag).physical,
                              1.*u.erg/u.cm**2/u.s/u.Hz)
+
     assert_quantity_allclose((0*u.M_bol).physical, c.L_bol0)
     assert_quantity_allclose((0*u.m_bol).physical,
                              c.L_bol0/(4.*np.pi*(10.*c.pc)**2))
 
 
 def test_predefined_reinitialisation():
-    assert u.mag('ST') == u.STmag
-    assert u.mag('AB') == u.ABmag
+    assert u.mag('STflux') == u.STmag
+    assert u.mag('ABflux') == u.ABmag
     assert u.mag('Bol') == u.M_bol
     assert u.mag('bol') == u.m_bol
 
+    # required for backwards-compatibility, at least unless deprecated
+    assert u.mag('ST') == u.STmag
+    assert u.mag('AB') == u.ABmag
+
 
 def test_predefined_string_roundtrip():
-    """Ensure roundtripping; see #5015"""
+    """Ensure round-tripping; see #5015"""
     with u.magnitude_zero_points.enable():
         assert u.Unit(u.STmag.to_string()) == u.STmag
         assert u.Unit(u.ABmag.to_string()) == u.ABmag

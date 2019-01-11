@@ -3,9 +3,7 @@
 import pytest
 
 import numpy as np
-from numpy.random import randn, normal
-from numpy.testing import assert_equal
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_equal, assert_allclose
 
 try:
     import scipy  # pylint: disable=W0611
@@ -21,16 +19,16 @@ except ImportError:
 else:
     HAS_MPMATH = True
 
-from .. import funcs
-from ... import units as u
-from ...tests.helper import catch_warnings
-from ...utils.misc import NumpyRNGContext
+from astropy.stats import funcs
+from astropy import units as u
+from astropy.tests.helper import catch_warnings
+from astropy.utils.misc import NumpyRNGContext
 
 
 def test_median_absolute_deviation():
     with NumpyRNGContext(12345):
         # test that it runs
-        randvar = randn(10000)
+        randvar = np.random.randn(10000)
         mad = funcs.median_absolute_deviation(randvar)
 
         # test whether an array is returned if an axis is used
@@ -317,14 +315,13 @@ def test_bootstrap_multiple_outputs():
 
 def test_mad_std():
     with NumpyRNGContext(12345):
-        data = normal(5, 2, size=(100, 100))
+        data = np.random.normal(5, 2, size=(100, 100))
         assert_allclose(funcs.mad_std(data), 2.0, rtol=0.05)
 
 
-@pytest.mark.xfail()
 def test_mad_std_scalar_return():
     with NumpyRNGContext(12345):
-        data = normal(5, 2, size=(10, 10))
+        data = np.random.normal(5, 2, size=(10, 10))
         # make a masked array with no masked points
         data = np.ma.masked_where(np.isnan(data), data)
         rslt = funcs.mad_std(data)
@@ -337,12 +334,17 @@ def test_mad_std_scalar_return():
         with catch_warnings():
             rslt = funcs.mad_std(data)
             assert np.isscalar(rslt)
-            assert not np.isnan(rslt)
+            try:
+                assert not np.isnan(rslt)
+            # This might not be an issue anymore when only numpy>=1.13 is
+            # supported. NUMPY_LT_1_13 xref #7267
+            except AssertionError:
+                pytest.xfail('See #5232')
 
 
 def test_mad_std_warns():
     with NumpyRNGContext(12345):
-        data = normal(5, 2, size=(10, 10))
+        data = np.random.normal(5, 2, size=(10, 10))
         data[5, 5] = np.nan
 
         with catch_warnings() as warns:
@@ -354,7 +356,7 @@ def test_mad_std_withnan():
     with NumpyRNGContext(12345):
         data = np.empty([102, 102])
         data[:] = np.nan
-        data[1:-1, 1:-1] = normal(5, 2, size=(100, 100))
+        data[1:-1, 1:-1] = np.random.normal(5, 2, size=(100, 100))
         assert_allclose(funcs.mad_std(data, ignore_nan=True), 2.0, rtol=0.05)
 
     assert np.isnan(funcs.mad_std([1, 2, 3, 4, 5, np.nan]))
@@ -725,9 +727,12 @@ def test_histogram_intervals_known(ii, rr):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-@pytest.mark.parametrize('N,m,p', [(100, 10000, 0.01),
-                                   (300, 10000, 0.001),
+@pytest.mark.parametrize('N,m,p', [pytest.param(100, 10000, 0.01,
+                                                marks=pytest.mark.skip('Test too slow')),
+                                   pytest.param(300, 10000, 0.001,
+                                                marks=pytest.mark.skip('Test too slow')),
                                    (10, 10000, 0.001),
+                                   (3, 10000, 0.001),
                                    ])
 def test_uniform_binomial(N, m, p):
     """Check that the false positive probability is right
@@ -739,8 +744,10 @@ def test_uniform_binomial(N, m, p):
 
     """
     with NumpyRNGContext(1234):
-        fpps = [funcs.kuiper(np.random.random(N))[1]
-                for i in range(m)]
-        assert (scipy.stats.binom(n=m, p=p).ppf(0.01) <
-                len([fpp for fpp in fpps if fpp < p]) <
-                scipy.stats.binom(n=m, p=p).ppf(0.99))
+        fpps = np.array([funcs.kuiper(np.random.random(N))[1]
+                         for i in range(m)])
+        assert (fpps >= 0).all()
+        assert (fpps <= 1).all()
+        low = scipy.stats.binom(n=m, p=p).ppf(0.01)
+        high = scipy.stats.binom(n=m, p=p).ppf(0.99)
+        assert (low < sum(fpps < p) < high)

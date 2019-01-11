@@ -14,12 +14,12 @@ import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_almost_equal)
 
-from ...tests.helper import catch_warnings, raises
-from ...utils import isiterable, minversion
-from ...utils.compat import NUMPY_LT_1_14
-from ...utils.exceptions import AstropyDeprecationWarning
-from ... import units as u
-from ...units.quantity import _UNIT_NOT_INITIALISED
+from astropy.tests.helper import catch_warnings, raises
+from astropy.utils import isiterable, minversion
+from astropy.utils.compat import NUMPY_LT_1_14
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy import units as u
+from astropy.units.quantity import _UNIT_NOT_INITIALISED
 
 try:
     import matplotlib
@@ -260,6 +260,80 @@ class TestQuantityCreation:
         with pytest.raises(TypeError):
             u.Quantity(mylookalike)
 
+    def test_creation_via_view(self):
+        # This works but is no better than 1. * u.m
+        q1 = 1. << u.m
+        assert isinstance(q1, u.Quantity)
+        assert q1.unit == u.m
+        assert q1.value == 1.
+        # With an array, we get an actual view.
+        a2 = np.arange(10.)
+        q2 = a2 << u.m / u.s
+        assert isinstance(q2, u.Quantity)
+        assert q2.unit == u.m / u.s
+        assert np.all(q2.value == a2)
+        a2[9] = 0.
+        assert np.all(q2.value == a2)
+        # But with a unit change we get a copy.
+        q3 = q2 << u.mm / u.s
+        assert isinstance(q3, u.Quantity)
+        assert q3.unit == u.mm / u.s
+        assert np.all(q3.value == a2 * 1000.)
+        a2[8] = 0.
+        assert q3[8].value == 8000.
+        # Without a unit change, we do get a view.
+        q4 = q2 << q2.unit
+        a2[7] = 0.
+        assert np.all(q4.value == a2)
+        with pytest.raises(u.UnitsError):
+            q2 << u.s
+        # But one can do an in-place unit change.
+        a2_copy = a2.copy()
+        q2 <<= u.mm / u.s
+        assert q2.unit == u.mm / u.s
+        # Of course, this changes a2 as well.
+        assert np.all(q2.value == a2)
+        # Sanity check on the values.
+        assert np.all(q2.value == a2_copy * 1000.)
+        a2[8] = -1.
+        # Using quantities, one can also work with strings.
+        q5 = q2 << 'km/hr'
+        assert q5.unit == u.km / u.hr
+        assert np.all(q5 == q2)
+        # Finally, we can use scalar quantities as units.
+        not_quite_a_foot = 30. * u.cm
+        a6 = np.arange(5.)
+        q6 = a6 << not_quite_a_foot
+        assert q6.unit == u.Unit(not_quite_a_foot)
+        assert np.all(q6.to_value(u.cm) == 30. * a6)
+
+    def test_rshift_warns(self):
+        with pytest.raises(TypeError), \
+                catch_warnings() as warning_lines:
+            1 >> u.m
+        assert len(warning_lines) == 1
+        assert warning_lines[0].category == AstropyWarning
+        assert 'is not implemented' in str(warning_lines[0].message)
+        q = 1. * u.km
+        with pytest.raises(TypeError), \
+                catch_warnings() as warning_lines:
+            q >> u.m
+        assert len(warning_lines) == 1
+        assert warning_lines[0].category == AstropyWarning
+        assert 'is not implemented' in str(warning_lines[0].message)
+        with pytest.raises(TypeError), \
+                catch_warnings() as warning_lines:
+            q >>= u.m
+        assert len(warning_lines) == 1
+        assert warning_lines[0].category == AstropyWarning
+        assert 'is not implemented' in str(warning_lines[0].message)
+        with pytest.raises(TypeError), \
+                catch_warnings() as warning_lines:
+            1. >> q
+        assert len(warning_lines) == 1
+        assert warning_lines[0].category == AstropyWarning
+        assert 'is not implemented' in str(warning_lines[0].message)
+
 
 class TestQuantityOperations:
     q1 = u.Quantity(11.42, u.meter)
@@ -362,11 +436,11 @@ class TestQuantityOperations:
     def test_matrix_multiplication(self):
         a = np.eye(3)
         q = a * u.m
-        result1 = eval("q @ a")
+        result1 = q @ a
         assert np.all(result1 == q)
-        result2 = eval("a @ q")
+        result2 = a @ q
         assert np.all(result2 == q)
-        result3 = eval("q @ q")
+        result3 = q @ q
         assert np.all(result3 == a * u.m ** 2)
         # less trivial case.
         q2 = np.array([[[1., 0., 0.],
@@ -378,7 +452,7 @@ class TestQuantityOperations:
                        [[0., 0., 1.],
                         [1., 0., 0.],
                         [0., 1., 0.]]]) / u.s
-        result4 = eval("q @ q2")
+        result4 = q @ q2
         assert np.all(result4 == np.matmul(a, q2.value) * q.unit * q2.unit)
 
     def test_unary(self):
@@ -466,7 +540,7 @@ class TestQuantityOperations:
 
     def test_complicated_operation(self):
         """ Perform a more complicated test """
-        from .. import imperial
+        from astropy.units import imperial
 
         # Multiple units
         distance = u.Quantity(15., u.meter)
@@ -760,6 +834,12 @@ class TestQuantityDisplay:
     scalarfloatq = u.Quantity(1.3, unit='m')
     arrq = u.Quantity([1, 2.3, 8.9], unit='m')
 
+    scalar_complex_q = u.Quantity(complex(1.0, 2.0))
+    scalar_big_complex_q = u.Quantity(complex(1.0, 2.0e27) * 1e25)
+    scalar_big_neg_complex_q = u.Quantity(complex(-1.0, -2.0e27) * 1e36)
+    arr_complex_q = u.Quantity(np.arange(3) * (complex(-1.0, -2.0e27) * 1e36))
+    big_arr_complex_q = u.Quantity(np.arange(125) * (complex(-1.0, -2.0e27) * 1e36))
+
     def test_dimensionless_quantity_repr(self):
         q2 = u.Quantity(1., unit='m-1')
         q3 = u.Quantity(1, unit='m-1', dtype=int)
@@ -816,7 +896,7 @@ class TestQuantityDisplay:
         assert repr(bad_quantity).endswith(_UNIT_NOT_INITIALISED + '>')
 
     def test_repr_latex(self):
-        from ...units.quantity import conf
+        from astropy.units.quantity import conf
 
         q2scalar = u.Quantity(1.5e14, 'm/s')
         assert self.scalarintq._repr_latex_() == r'$1 \; \mathrm{m}$'
@@ -824,6 +904,17 @@ class TestQuantityDisplay:
         assert (q2scalar._repr_latex_() ==
                 r'$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$')
         assert self.arrq._repr_latex_() == r'$[1,~2.3,~8.9] \; \mathrm{m}$'
+
+        # Complex quantities
+        assert self.scalar_complex_q._repr_latex_() == r'$(1+2i) \; \mathrm{}$'
+        assert (self.scalar_big_complex_q._repr_latex_() ==
+                r'$(1 \times 10^{25}+2 \times 10^{52}i) \; \mathrm{}$')
+        assert (self.scalar_big_neg_complex_q._repr_latex_() ==
+                r'$(-1 \times 10^{36}-2 \times 10^{63}i) \; \mathrm{}$')
+        assert (self.arr_complex_q._repr_latex_() ==
+                (r'$[(0-0i),~(-1 \times 10^{36}-2 \times 10^{63}i),'
+                 r'~(-2 \times 10^{36}-4 \times 10^{63}i)] \; \mathrm{}$'))
+        assert r'\dots' in self.big_arr_complex_q._repr_latex_()
 
         qmed = np.arange(100)*u.m
         qbig = np.arange(1000)*u.m
@@ -936,7 +1027,7 @@ def test_arrays():
     qkpc = u.Quantity(a, u.kpc)
     assert not qkpc.isscalar
     qkpc0 = qkpc[0]
-    assert qkpc0.value == a[0].item()
+    assert qkpc0.value == a[0]
     assert qkpc0.unit == qkpc.unit
     assert isinstance(qkpc0, u.Quantity)
     assert qkpc0.isscalar
@@ -1275,7 +1366,7 @@ def test_quantity_from_table():
 
 def test_assign_slice_with_quantity_like():
     # Regression tests for gh-5961
-    from ... table import Table, Column
+    from astropy.table import Table, Column
     # first check directly that we can use a Column to assign to a slice.
     c = Column(np.arange(10.), unit=u.mm)
     q = u.Quantity(c)

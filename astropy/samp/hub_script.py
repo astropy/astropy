@@ -6,11 +6,11 @@ import time
 import sys
 import argparse
 
-from .. import log, __version__
+from astropy import log, __version__
 
 from .hub import SAMPHubServer
 
-__all__ = ['main']
+__all__ = ['hub_script']
 
 
 def hub_script(timeout=0):

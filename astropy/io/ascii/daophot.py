@@ -306,7 +306,7 @@ class DaophotInputter(core.ContinuationLinesInputter):
                     outlines.append(''.join(parts))
                     parts = []
             else:
-                raise ValueError('multiline re could not match line '
+                raise core.InconsistentTableError('multiline re could not match line '
                                  '{}: {}'.format(i, line))
 
         return outlines

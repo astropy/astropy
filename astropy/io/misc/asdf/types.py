@@ -1,9 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-import six
-
-from asdf.asdftypes import CustomType, ExtensionTypeMeta
+from asdf.types import CustomType, ExtensionTypeMeta
 
 
 __all__ = ['AstropyType', 'AstropyAsdfType']
@@ -19,7 +17,7 @@ class AstropyTypeMeta(ExtensionTypeMeta):
     be stored automatically by astropy extensions for ASDF.
     """
     def __new__(mcls, name, bases, attrs):
-        cls = super(AstropyTypeMeta, mcls).__new__(mcls, name, bases, attrs)
+        cls = super().__new__(mcls, name, bases, attrs)
         # Classes using this metaclass are automatically added to the list of
         # astropy extensions
         if cls.organization == 'astropy.org' and cls.standard == 'astropy':
@@ -30,8 +28,7 @@ class AstropyTypeMeta(ExtensionTypeMeta):
         return cls
 
 
-@six.add_metaclass(AstropyTypeMeta)
-class AstropyType(CustomType):
+class AstropyType(CustomType, metaclass=AstropyTypeMeta):
     """
     This class represents types that have schemas and tags that are defined by
     Astropy.
@@ -43,8 +40,7 @@ class AstropyType(CustomType):
     standard = 'astropy'
 
 
-@six.add_metaclass(AstropyTypeMeta)
-class AstropyAsdfType(CustomType):
+class AstropyAsdfType(CustomType, metaclass=AstropyTypeMeta):
     """
     This class represents types that have schemas that are defined in the ASDF
     standard, but have tags that are implemented within astropy.

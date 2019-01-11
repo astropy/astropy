@@ -22,8 +22,8 @@ import abc
 import numpy as np
 
 from .core import Model
-from .. import units as u
-from ..utils import minversion
+from astropy import units as u
+from astropy.utils import minversion
 
 try:
     import scipy
@@ -215,7 +215,7 @@ class _Tabular(Model):
         """
         if isinstance(inputs, u.Quantity):
             inputs = inputs.value
-
+        shape = inputs[0].shape
         inputs = [inp.flatten() for inp in inputs[: self.n_inputs]]
         inputs = np.array(inputs).T
         if not has_scipy:  # pragma: no cover
@@ -229,6 +229,10 @@ class _Tabular(Model):
                 not isinstance(self.points[0], u.Quantity)):
             result = result * self.lookup_table.unit
 
+        if self.n_outputs == 1:
+            result = result.reshape(shape)
+        else:
+            result = [r.reshape(shape) for r in result]
         return result
 
 
@@ -277,6 +281,12 @@ def tabular_model(dim, name=None):
     table = np.zeros([2] * dim)
     inputs = tuple('x{0}'.format(idx) for idx in range(table.ndim))
     members = {'lookup_table': table, 'inputs': inputs}
+
+    if dim == 1:
+        members['_separable'] = True
+    else:
+        members['_separable'] = False
+
     if name is None:
         model_id = _Tabular._id
         _Tabular._id += 1

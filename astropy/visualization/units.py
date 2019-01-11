@@ -32,7 +32,7 @@ def quantity_support(format='latex_inline'):
         provided, defaults to ``latex_inline``.
 
     """
-    from .. import units as u
+    from astropy import units as u
 
     from matplotlib import units
     from matplotlib import ticker
@@ -80,6 +80,8 @@ def quantity_support(format='latex_inline'):
         def convert(val, unit, axis):
             if isinstance(val, u.Quantity):
                 return val.to_value(unit)
+            elif isinstance(val, list) and isinstance(val[0], u.Quantity):
+                return [v.to_value(unit) for v in val]
             else:
                 return val
 

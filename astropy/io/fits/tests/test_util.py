@@ -7,6 +7,7 @@ import gzip
 
 import pytest
 import numpy as np
+from numpy.testing import assert_equal
 
 try:
     from PIL import Image
@@ -14,10 +15,9 @@ try:
 except ImportError:
     HAS_PIL = False
 
-from ....tests.helper import catch_warnings
-from .. import util
-from ..util import ignore_sigint
-from .._numpy_hacks import realign_dtype
+from astropy.tests.helper import catch_warnings
+from astropy.io.fits import util
+from astropy.io.fits.util import ignore_sigint, _rstrip_inplace
 
 from . import FitsTestCase
 
@@ -40,31 +40,37 @@ class TestUtils(FitsTestCase):
 
     def test_realign_dtype(self):
         """
-        Tests a few corner-cases for the realign_dtype hack.
+        Tests a few corner-cases for numpy dtype creation.
 
-        These are unlikely to come in practice given how this is currently
-        used in astropy.io.fits, but nonetheless tests for bugs that were
-        present in earlier versions of the function.
+        These originally were the reason for having a realign_dtype hack.
         """
 
         dt = np.dtype([('a', np.int32), ('b', np.int16)])
-        dt2 = realign_dtype(dt, [0, 0])
+        names = dt.names
+        formats = [dt.fields[name][0] for name in names]
+        dt2 = np.dtype({'names': names, 'formats': formats,
+                        'offsets': [0, 0]})
         assert dt2.itemsize == 4
 
-        dt2 = realign_dtype(dt, [0, 1])
+        dt2 = np.dtype({'names': names, 'formats': formats,
+                        'offsets': [0, 1]})
         assert dt2.itemsize == 4
 
-        dt2 = realign_dtype(dt, [1, 0])
+        dt2 = np.dtype({'names': names, 'formats': formats,
+                        'offsets': [1, 0]})
         assert dt2.itemsize == 5
 
         dt = np.dtype([('a', np.float64), ('b', np.int8), ('c', np.int8)])
-        dt2 = realign_dtype(dt, [0, 0, 0])
+        names = dt.names
+        formats = [dt.fields[name][0] for name in names]
+        dt2 = np.dtype({'names': names, 'formats': formats,
+                        'offsets': [0, 0, 0]})
         assert dt2.itemsize == 8
-
-        dt2 = realign_dtype(dt, [0, 0, 1])
+        dt2 = np.dtype({'names': names, 'formats': formats,
+                        'offsets': [0, 0, 1]})
         assert dt2.itemsize == 8
-
-        dt2 = realign_dtype(dt, [0, 0, 27])
+        dt2 = np.dtype({'names': names, 'formats': formats,
+                        'offsets': [0, 0, 27]})
         assert dt2.itemsize == 28
 
 
@@ -148,3 +154,37 @@ class TestUtilMode(FitsTestCase):
             filename = self.temp('test3{0}.dat'.format(num))
             with open(filename, mode) as fileobj:
                 assert util.fileobj_mode(fileobj) == res
+
+
+def test_rstrip_inplace():
+
+    # Incorrect type
+    s = np.array([1, 2, 3])
+    with pytest.raises(TypeError) as exc:
+        _rstrip_inplace(s)
+    assert exc.value.args[0] == 'This function can only be used on string arrays'
+
+    # Bytes array
+    s = np.array(['a ', ' b', ' c c   '], dtype='S6')
+    _rstrip_inplace(s)
+    assert_equal(s, np.array(['a', ' b', ' c c'], dtype='S6'))
+
+    # Unicode array
+    s = np.array(['a ', ' b', ' c c   '], dtype='U6')
+    _rstrip_inplace(s)
+    assert_equal(s, np.array(['a', ' b', ' c c'], dtype='U6'))
+
+    # 2-dimensional array
+    s = np.array([['a ', ' b'], [' c c   ', ' a ']], dtype='S6')
+    _rstrip_inplace(s)
+    assert_equal(s, np.array([['a', ' b'], [' c c', ' a']], dtype='S6'))
+
+    # 3-dimensional array
+    s = np.repeat(' a a ', 24).reshape((2, 3, 4))
+    _rstrip_inplace(s)
+    assert_equal(s, ' a a')
+
+    # 3-dimensional non-contiguous array
+    s = np.repeat(' a a ', 1000).reshape((10, 10, 10))[:2, :3, :4]
+    _rstrip_inplace(s)
+    assert_equal(s, ' a a')

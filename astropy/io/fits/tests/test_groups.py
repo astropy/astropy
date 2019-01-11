@@ -8,7 +8,7 @@ import numpy as np
 
 from . import FitsTestCase
 from .test_table import comparerecords
-from ....io import fits
+from astropy.io import fits
 
 
 class TestGroupsFunctions(FitsTestCase):

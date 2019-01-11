@@ -32,8 +32,8 @@ def _initialize_module():
     import numpy as np
 
     from . import core
-    from .. import units as u
-    from ..constants import si as _si
+    from astropy import units as u
+    from astropy.constants import si as _si
 
     # The CDS format also supports power-of-2 prefixes as defined here:
     # http://physics.nist.gov/cuu/Units/binary.html
@@ -53,8 +53,8 @@ def _initialize_module():
         (['lyr'], u.lyr, "Light year"),
         (['alpha'], _si.alpha, "Fine structure constant"),
         ((['AA', 'Å'], ['Angstrom', 'Angstroem']), u.AA, "Angstrom"),
-        (['arcm', 'arcmin'], u.arcminute, "minute of arc"),
-        (['arcs', 'arcsec'], u.arcsecond, "second of arc"),
+        (['arcmin', 'arcm'], u.arcminute, "minute of arc"),
+        (['arcsec', 'arcs'], u.arcsecond, "second of arc"),
         (['atm'], _si.atm, "atmosphere"),
         (['AU', 'au'], u.au, "astronomical unit"),
         (['bar'], u.bar, "bar"),

@@ -2,8 +2,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-from ... import table
-from .. import pprint
+from astropy import table
+from astropy.table import pprint
 
 
 class MyRow(table.Row):

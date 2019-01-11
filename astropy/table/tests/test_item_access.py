@@ -220,13 +220,13 @@ class TestTableItems(BaseTestItems):
         """Selecting a column that doesn't exist fails"""
         self.t = table_data.Table(table_data.COLS)
 
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(KeyError) as err:
             self.t[['xxxx']]
-        assert 'Slice name(s) xxxx not valid column name(s)' in str(err)
+        assert "KeyError: 'xxxx'" in str(err)
 
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(KeyError) as err:
             self.t[['xxxx', 'yyyy']]
-        assert 'Slice name(s) xxxx, yyyy not valid column name(s)' in str(err)
+        assert "KeyError: 'xxxx'" in str(err)
 
     def test_np_where(self, table_data):
         """Select rows using output of np.where"""

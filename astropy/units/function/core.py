@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from .. import (Unit, UnitBase, UnitsError, UnitTypeError,
+from astropy.units import (Unit, UnitBase, UnitsError, UnitTypeError,
                 dimensionless_unscaled, Quantity)
 
 __all__ = ['FunctionUnitBase', 'FunctionQuantity']
@@ -508,7 +508,7 @@ class FunctionQuantity(Quantity):
         """
         return self._new_view(unit=self.unit.function_unit)
 
-    # ↓↓↓ methods overridden to change the behaviour
+    # ↓↓↓ methods overridden to change the behavior
     @property
     def si(self):
         """Return a copy with the physical unit in SI units."""
@@ -526,27 +526,7 @@ class FunctionQuantity(Quantity):
         """
         return self.__class__(self.physical.decompose(bases))
 
-    # ↓↓↓ methods overridden to add additional behaviour
-    def __array_prepare__(self, obj, context=None):
-        """Check that the ufunc can deal with a FunctionQuantity."""
-
-        # If no context is set, just return the input
-        if context is None:  # pragma: no cover
-            return obj
-
-        # Find out whether ufunc is supported
-        function = context[0]
-        if not (function in self._supported_ufuncs or
-                all(arg.unit.physical_unit == dimensionless_unscaled
-                    for arg in context[1][:function.nin]
-                    if (hasattr(arg, 'unit') and
-                        hasattr(arg.unit, 'physical_unit')))):
-            raise UnitTypeError("Cannot use function '{0}' with function "
-                                "quantities that are not dimensionless."
-                                .format(context[0].__name__))
-
-        return super().__array_prepare__(obj, context)
-
+    # ↓↓↓ methods overridden to add additional behavior
     def __quantity_subclass__(self, unit):
         if isinstance(unit, FunctionUnitBase):
             return self.__class__, True
@@ -567,7 +547,7 @@ class FunctionQuantity(Quantity):
 
         self._unit = unit
 
-    # ↓↓↓ methods overridden to change behaviour
+    # ↓↓↓ methods overridden to change behavior
     def __mul__(self, other):
         if self.unit.physical_unit == dimensionless_unscaled:
             return self._function_view * other

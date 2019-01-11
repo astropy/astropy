@@ -7,9 +7,9 @@ import numpy as np
 import warnings
 
 # Project
-from .. import units as u
-from ..utils.exceptions import AstropyDeprecationWarning
-from ..utils import OrderedDescriptor, ShapedLikeNDArray
+from astropy import units as u
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils import OrderedDescriptor, ShapedLikeNDArray
 
 __all__ = ['Attribute', 'TimeAttribute', 'QuantityAttribute',
            'EarthLocationAttribute', 'CoordinateAttribute',
@@ -169,7 +169,7 @@ class TimeAttribute(Attribute):
             If the input is not valid for this attribute.
         """
 
-        from ..time import Time
+        from astropy.time import Time
 
         if value is None:
             return None, False
@@ -186,6 +186,10 @@ class TimeAttribute(Attribute):
                                                                value, err))
             converted = True
 
+        # Set attribute as read-only for arrays (not allowed by numpy
+        # for array scalars)
+        if out.shape:
+            out.writeable = False
         return out, converted
 
 
@@ -302,7 +306,7 @@ class QuantityAttribute(Attribute):
         if np.all(value == 0) and self.unit is not None:
             return u.Quantity(np.zeros(self.shape), self.unit), True
         else:
-            if not hasattr(value, 'unit'):
+            if not hasattr(value, 'unit') and self.unit != u.dimensionless_unscaled:
                 raise TypeError('Tried to set a QuantityAttribute with '
                                 'something that does not have a unit.')
             oldvalue = value
@@ -313,6 +317,7 @@ class QuantityAttribute(Attribute):
                                                                   self.shape))
             converted = oldvalue is not value
             return value, converted
+
 
 class EarthLocationAttribute(Attribute):
     """
@@ -494,6 +499,7 @@ class FrameAttribute(Attribute):
                       AstropyDeprecationWarning)
         super().__init__(*args, **kwargs)
 
+
 class TimeFrameAttribute(TimeAttribute):
 
     def __init__(self, *args, **kwargs):
@@ -501,12 +507,14 @@ class TimeFrameAttribute(TimeAttribute):
                       AstropyDeprecationWarning)
         super().__init__(*args, **kwargs)
 
+
 class QuantityFrameAttribute(QuantityAttribute):
 
     def __init__(self, *args, **kwargs):
         warnings.warn("QuantityFrameAttribute has been renamed to "
                       "QuantityAttribute.", AstropyDeprecationWarning)
         super().__init__(*args, **kwargs)
+
 
 class CartesianRepresentationFrameAttribute(CartesianRepresentationAttribute):
 

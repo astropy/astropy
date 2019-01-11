@@ -4,9 +4,6 @@
 A "grab bag" of relatively small general-purpose utilities that don't have
 a clear module/package to live in.
 """
-
-
-
 import abc
 import contextlib
 import difflib
@@ -20,12 +17,10 @@ import unicodedata
 import locale
 import threading
 import re
-import urllib.request
 
 from itertools import zip_longest
 from contextlib import contextmanager
 from collections import defaultdict, OrderedDict
-
 
 
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
@@ -98,7 +93,7 @@ def format_exception(msg, *args, **kwargs):
         in the formatting arguments. Since `sys.exc_info` is not carried
         outside a handled exception, it's not wise to use this
         outside of an ``except`` clause - if it is, this will substitute
-        '<unkown>' for the 4 formatting arguments.
+        '<unkonwn>' for the 4 formatting arguments.
     """
 
     tb = traceback.extract_tb(sys.exc_info()[2], limit=1)
@@ -199,7 +194,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
 
     """
     import webbrowser
-
+    import urllib.request
     from zlib import decompress
 
     if (not isinstance(obj, str) and
@@ -210,7 +205,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         obj = obj.__name__
 
     if version is None:
-        from .. import version
+        from astropy import version
 
         if version.release:
             version = 'v' + version.version
@@ -384,7 +379,7 @@ class JsonCustomEncoder(json.JSONEncoder):
     """
 
     def default(self, obj):
-        from .. import units as u
+        from astropy import units as u
         import numpy as np
         if isinstance(obj, u.Quantity):
             return dict(value=obj.value, unit=obj.unit.to_string())
@@ -528,9 +523,9 @@ class InheritDocstrings(type):
                 not key.startswith('_'))
 
         for key, val in dct.items():
-            if (inspect.isfunction(val) and
-                is_public_member(key) and
-                val.__doc__ is None):
+            if ((inspect.isfunction(val) or inspect.isdatadescriptor(val)) and
+                    is_public_member(key) and
+                    val.__doc__ is None):
                 for base in cls.__mro__[1:]:
                     super_method = getattr(base, key, None)
                     if super_method is not None:
@@ -1127,3 +1122,17 @@ def dtype_bytes_or_chars(dtype):
     match = re.search(r'(\d+)$', dtype.str)
     out = int(match.group(1)) if match else None
     return out
+
+
+def pizza():  # pragma: no cover
+    """
+    Open browser loaded with pizza options near you.
+
+    *Disclaimers: Payments not included. Astropy is not
+    responsible for any liability from using this function.*
+
+    .. note:: Accuracy depends on your browser settings.
+
+    """
+    import webbrowser
+    webbrowser.open('https://www.google.com/search?q=pizza+near+me')

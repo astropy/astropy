@@ -11,9 +11,9 @@ from functools import partial, wraps
 import numpy as np
 
 # LOCAL
-from .. import units as u
-from .. import log
-from .. import modeling
+from astropy import units as u
+from astropy import log
+from astropy import modeling
 from .exceptions import AstropyUserWarning
 
 __all__ = ['timefunc', 'RunTimePredictor']

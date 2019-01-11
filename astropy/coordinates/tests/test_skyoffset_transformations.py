@@ -4,12 +4,12 @@
 import pytest
 import numpy as np
 
-from ... import units as u
-from ..distances import Distance
-from ..builtin_frames import ICRS, FK5, Galactic, AltAz, SkyOffsetFrame
-from .. import SkyCoord, EarthLocation
-from ...time import Time
-from ...tests.helper import assert_quantity_allclose as assert_allclose
+from astropy import units as u
+from astropy.coordinates.distances import Distance
+from astropy.coordinates.builtin_frames import ICRS, FK5, Galactic, AltAz, SkyOffsetFrame
+from astropy.coordinates import SkyCoord, EarthLocation
+from astropy.time import Time
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 
 
 @pytest.mark.parametrize("inradec,expectedlatlon, tolsep", [
@@ -90,7 +90,7 @@ def test_skyoffset_functional_dec():
                       np.sin(dec_rad) * np.cos(input_ra_rad) * np.cos(input_dec_rad))
         expected = SkyCoord(x=expected_x,
                             y=expected_y,
-                            z=expected_z, unit='kpc', representation='cartesian')
+                            z=expected_z, unit='kpc', representation_type='cartesian')
         expected_xyz = expected.cartesian.xyz
 
         # actual transformation to the frame
@@ -136,7 +136,7 @@ def test_skyoffset_functional_ra_dec():
                           np.sin(dec_rad) * np.sin(ra_rad) * np.sin(input_ra_rad) * np.cos(input_dec_rad))
             expected = SkyCoord(x=expected_x,
                                 y=expected_y,
-                                z=expected_z, unit='kpc', representation='cartesian')
+                                z=expected_z, unit='kpc', representation_type='cartesian')
             expected_xyz = expected.cartesian.xyz
 
             # actual transformation to the frame
@@ -207,6 +207,7 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
                     [1.0*u.deg, 1.0*u.deg], atol=convert_precision)
 
 
+@pytest.mark.remote_data
 def test_altaz_attribute_transforms():
     """Test transforms between AltAz frames with different attributes."""
     el1 = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)
@@ -290,18 +291,29 @@ def test_skyoffset_lonwrap():
     assert sc.lon < 180 * u.deg
 
 
-def test_skyoffset_velerr():
-    # TODO: remove this when the SkyOffsetFrame's support velocities
-    origin = ICRS(45*u.deg, 45*u.deg)
-    originwvel = ICRS(45*u.deg, 45*u.deg, radial_velocity=1*u.km/u.s)
+def test_skyoffset_velocity():
+    c = ICRS(ra=170.9*u.deg, dec=-78.4*u.deg,
+             pm_ra_cosdec=74.4134*u.mas/u.yr,
+             pm_dec=-93.2342*u.mas/u.yr)
+    skyoffset_frame = SkyOffsetFrame(origin=c)
+    c_skyoffset = c.transform_to(skyoffset_frame)
 
-    SkyOffsetFrame(origin=origin)
-    with pytest.raises(NotImplementedError):
-        SkyOffsetFrame(origin=originwvel)
-    SkyOffsetFrame(origin.data, origin=origin)
-    with pytest.raises(NotImplementedError):
-        SkyOffsetFrame(originwvel.data, origin=origin)
-    with pytest.raises(NotImplementedError):
-        SkyOffsetFrame(origin.data, origin=originwvel)
-    with pytest.raises(NotImplementedError):
-        SkyOffsetFrame(originwvel.data, origin=originwvel)
+    assert_allclose(c_skyoffset.pm_lon_coslat, c.pm_ra_cosdec)
+    assert_allclose(c_skyoffset.pm_lat, c.pm_dec)
+
+
+@pytest.mark.parametrize("rotation, expectedpmlonlat", [
+    (0*u.deg, [1, 2]*u.mas/u.yr),
+    (45*u.deg, [-2**-0.5, 3*2**-0.5]*u.mas/u.yr),
+    (90*u.deg, [-2, 1]*u.mas/u.yr),
+    (180*u.deg, [-1, -2]*u.mas/u.yr),
+    (-90*u.deg, [2, -1]*u.mas/u.yr)
+    ])
+def test_skyoffset_velocity_rotation(rotation, expectedpmlonlat):
+    sc = SkyCoord(ra=170.9*u.deg, dec=-78.4*u.deg,
+                  pm_ra_cosdec=1*u.mas/u.yr,
+                  pm_dec=2*u.mas/u.yr)
+
+    c_skyoffset0 = sc.transform_to(sc.skyoffset_frame(rotation=rotation))
+    assert_allclose(c_skyoffset0.pm_lon_coslat, expectedpmlonlat[0])
+    assert_allclose(c_skyoffset0.pm_lat, expectedpmlonlat[1])

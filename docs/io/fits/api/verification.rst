@@ -7,8 +7,8 @@ Verification options
 
 There are 5 options for the ``output_verify`` argument of the following methods
 of :class:`HDUList`: :meth:`~HDUList.close`, :meth:`~HDUList.writeto`, and
-:meth:`~HDUList.flush`, or the :meth:``~_BaseHDU.writeto`` method on any HDU
-object.  In these cases, the verification option is passed to a :meth:``verify``
+:meth:`~HDUList.flush`, or the ``_BaseHDU.writeto`` method on any HDU
+object.  In these cases, the verification option is passed to a ``verify``
 call within these methods.
 
 exception
@@ -39,7 +39,7 @@ No warning message will be printed out. This is like a silent warn (see below)
 option.
 
 fix
-^^^
+===
 
 This option will try to fix any FITS standard violations. It is not always
 possible to fix such violations. In general, there are two kinds of FITS

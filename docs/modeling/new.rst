@@ -124,6 +124,11 @@ value of the `~astropy.modeling.Model.linear` attribute is ``False``.  Linear
 models should define the ``linear`` class attribute as ``True``.  Because this
 model is non-linear we can stick with the default.
 
+Models which inherit from `~astropy.modeling.Fittable1DModel` have the
+``Model._separable`` property already set to ``True``.
+All other models should define this property to indicate the
+:ref:`separability`.
+
 Next, provide methods called ``evaluate`` to evaluate the model and
 ``fit_deriv``, to compute its derivatives with respect to parameters.  These
 may be normal methods, `classmethod`, or `staticmethod`, though the convention

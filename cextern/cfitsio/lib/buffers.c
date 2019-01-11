@@ -1132,7 +1132,7 @@ int ffptbb(fitsfile *fptr,        /* I - FITS file pointer                 */
 */
 {
     LONGLONG bytepos, endrow, nrows;
-    char message[81];
+    char message[FLEN_ERRMSG];
 
     if (*status > 0 || nchars <= 0)
         return(*status);
@@ -1163,7 +1163,7 @@ int ffptbb(fitsfile *fptr,        /* I - FITS file pointer                 */
             /* ffirow also updates the heap address and numrows */
             if (ffirow(fptr, (fptr->Fptr)->numrows, nrows, status) > 0)
             {
-                 sprintf(message,
+                 snprintf(message, FLEN_ERRMSG,
                  "ffptbb failed to add space for %.0f new rows in table.",
                          (double) nrows);
                  ffpmsg(message);

@@ -14,16 +14,17 @@ from io import StringIO
 import pytest
 import numpy as np
 
-from ....table import Table, Column, QTable, NdarrayMixin
-from ....table.table_helpers import simple_table
-from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
-from ....time import Time, TimeDelta
-from ....tests.helper import quantity_allclose
-from ....units.quantity import QuantityInfo
+from astropy.table import Table, Column, QTable, NdarrayMixin
+from astropy.table.table_helpers import simple_table
+from astropy.coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
+from astropy.time import Time, TimeDelta
+from astropy.units import allclose as quantity_allclose
+from astropy.units import QuantityInfo
+from astropy.tests.helper import catch_warnings
 
-from ..ecsv import DELIMITERS
-from ... import ascii
-from .... import units as u
+from astropy.io.ascii.ecsv import DELIMITERS
+from astropy.io import ascii
+from astropy import units as u
 
 try:
     import yaml  # pylint: disable=W0611
@@ -257,7 +258,7 @@ el = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
 sc = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4',
               obstime='J1990.5')
 scc = sc.copy()
-scc.representation = 'cartesian'
+scc.representation_type = 'cartesian'
 tm = Time([51000.5, 51001.5], format='mjd', scale='tai', precision=5, location=el[0])
 tm2 = Time(tm, format='iso')
 tm3 = Time(tm, location=el)
@@ -290,9 +291,9 @@ compare_attrs = {
     'tm2': time_attrs,
     'tm3': time_attrs,
     'dt': ['shape', 'value', 'format', 'scale'],
-    'sc': ['ra', 'dec', 'representation', 'frame.name'],
-    'scc': ['x', 'y', 'z', 'representation', 'frame.name'],
-    'scd': ['ra', 'dec', 'distance', 'representation', 'frame.name'],
+    'sc': ['ra', 'dec', 'representation_type', 'frame.name'],
+    'scc': ['x', 'y', 'z', 'representation_type', 'frame.name'],
+    'scd': ['ra', 'dec', 'distance', 'representation_type', 'frame.name'],
     'q': ['value', 'unit'],
     'lon': ['value', 'unit', 'wrap_angle'],
     'lat': ['value', 'unit'],
@@ -346,8 +347,11 @@ def test_ecsv_mixins_qtable_to_table():
         if isinstance(col.info, QuantityInfo):
             # Downgrade Quantity to Column + unit
             assert type(col2) is Column
-            attrs = ['unit']  # Other attrs are lost
+            # Class-specific attributes like `value` or `wrap_angle` are lost.
+            attrs = ['unit']
             compare_class = False
+            # Compare data values here (assert_objects_equal doesn't know how in this case)
+            assert np.allclose(col.value, col2, rtol=1e-10)
 
         assert_objects_equal(col, col2, attrs, compare_class)
 
@@ -416,3 +420,76 @@ def test_ecsv_mixins_per_column(table_cls, name_col):
     if name.startswith('tm'):
         assert t2[name]._time.jd1.__class__ is np.ndarray
         assert t2[name]._time.jd2.__class__ is np.ndarray
+
+
+@pytest.mark.skipif('HAS_YAML')
+def test_ecsv_but_no_yaml_warning():
+    """
+    Test that trying to read an ECSV without PyYAML installed when guessing
+    emits a warning, but reading with guess=False gives an exception.
+    """
+    with catch_warnings() as w:
+        ascii.read(SIMPLE_LINES)
+    assert len(w) == 1
+    assert "file looks like ECSV format but PyYAML is not installed" in str(w[0].message)
+
+    with pytest.raises(ascii.InconsistentTableError) as exc:
+        ascii.read(SIMPLE_LINES, format='ecsv')
+    assert "PyYAML package is required" in str(exc)
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_round_trip_masked_table_default(tmpdir):
+    """Test (mostly) round-trip of MaskedColumn through ECSV using default serialization
+    that uses an empty string "" to mark NULL values.  Note:
+
+    >>> simple_table(masked=True)
+    <Table masked=True length=3>
+      a      b     c
+    int64 float64 str1
+    ----- ------- ----
+       --     1.0    c
+        2     2.0   --
+        3      --    e
+    """
+    filename = str(tmpdir.join('test.ecsv'))
+
+    t = simple_table(masked=True)  # int, float, and str cols with one masked element
+    t.write(filename)
+
+    t2 = Table.read(filename)
+    assert t2.masked is True
+    assert t2.colnames == t.colnames
+    for name in t2.colnames:
+        # From formal perspective the round-trip columns are the "same"
+        assert np.all(t2[name].mask == t[name].mask)
+        assert np.all(t2[name] == t[name])
+
+        # But peeking under the mask shows that the underlying data are changed
+        # because by default ECSV uses "" to represent masked elements.
+        t[name].mask = False
+        t2[name].mask = False
+        assert not np.all(t2[name] == t[name])  # Expected diff
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_round_trip_masked_table_serialize_mask(tmpdir):
+    """Same as prev but set the serialize_method to 'data_mask' so mask is written out"""
+    filename = str(tmpdir.join('test.ecsv'))
+
+    t = simple_table(masked=True)  # int, float, and str cols with one masked element
+    t['c'][0] = ''  # This would come back as masked for default "" NULL marker
+
+    t.write(filename, serialize_method='data_mask')
+
+    t2 = Table.read(filename)
+    assert t2.masked is True
+    assert t2.colnames == t.colnames
+    for name in t2.colnames:
+        assert np.all(t2[name].mask == t[name].mask)
+        assert np.all(t2[name] == t[name])
+
+        # Data under the mask round-trips also (unmask data to show this).
+        t[name].mask = False
+        t2[name].mask = False
+        assert np.all(t2[name] == t[name])

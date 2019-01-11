@@ -1,0 +1,42 @@
+%YAML 1.1
+---
+$schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
+id: "http://astropy.org/schemas/astropy/coordinates/frames/icrs-1.0.0"
+tag: "tag:astropy.org:astropy/coordinates/frames/icrs-1.0.0"
+
+title: |
+  Represents an ICRS coordinate object from astropy
+
+description:
+  This object represents the right ascension (RA) and declination of an ICRS
+  coordinate or frame. The ICRS class contains additional fields that may be
+  useful to add here in the future.
+
+type: object
+properties:
+  ra:
+    type: object
+    description: |
+      A longitude representing the right ascension of the ICRS coordinate
+    properties:
+      value:
+        type: number
+      unit:
+        $ref: "tag:stsci.edu:asdf/unit/unit-1.0.0"
+        default: deg
+      wrap_angle:
+        $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+        default: "360 deg"
+  dec:
+    type: object
+    description: |
+      A latitude representing the declination of the ICRS coordinate
+    properties:
+      value:
+        type: number
+      unit:
+        $ref: "tag:stsci.edu:asdf/unit/unit-1.0.0"
+        default: deg
+
+required: [ra, dec]
+...

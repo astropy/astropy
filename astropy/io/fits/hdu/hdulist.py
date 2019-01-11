@@ -15,14 +15,14 @@ from . import compressed
 from .base import _BaseHDU, _ValidHDU, _NonstandardHDU, ExtensionHDU
 from .groups import GroupsHDU
 from .image import PrimaryHDU, ImageHDU
-from ..file import _File
-from ..header import _pad_length
-from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
-                    _get_array_mmap, _free_space_check)
-from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
-from ....utils import indent
-from ....utils.exceptions import AstropyUserWarning
-from ....utils.decorators import deprecated_renamed_argument
+from astropy.io.fits.file import _File, FILE_MODES
+from astropy.io.fits.header import _pad_length
+from astropy.io.fits.util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
+                    _get_array_mmap, _free_space_check, fileobj_mode, isfile)
+from astropy.io.fits.verify import _Verify, _ErrList, VerifyError, VerifyWarning
+from astropy.utils import indent
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.decorators import deprecated_renamed_argument
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
@@ -35,33 +35,36 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         File to be opened.
 
     mode : str, optional
-        Open mode, 'readonly' (default), 'update', 'append', 'denywrite', or
-        'ostream'.
+        Open mode, 'readonly', 'update', 'append', 'denywrite', or
+        'ostream'. Default is 'readonly'.
 
         If ``name`` is a file object that is already opened, ``mode`` must
         match the mode the file was opened with, readonly (rb), update (rb+),
         append (ab+), ostream (w), denywrite (rb)).
 
     memmap : bool, optional
-        Is memory mapping to be used?
+        Is memory mapping to be used? This value is obtained from the
+        configuration item ``astropy.io.fits.Conf.use_memmap``.
+        Default is `True`.
 
     save_backup : bool, optional
-        If the file was opened in update or append mode, this ensures that a
-        backup of the original file is saved before any changes are flushed.
+        If the file was opened in update or append mode, this ensures that
+        a backup of the original file is saved before any changes are flushed.
         The backup has the same name as the original file with ".bak" appended.
         If "file.bak" already exists then "file.bak.1" is used, and so on.
+        Default is `False`.
 
     cache : bool, optional
         If the file name is a URL, `~astropy.utils.data.download_file` is used
         to open the file.  This specifies whether or not to save the file
-        locally in Astropy's download cache (default: `True`).
+        locally in Astropy's download cache. Default is `True`.
 
-    lazy_load_hdus : bool, option
-        By default `~astropy.io.fits.open` will not read all the HDUs and
-        headers in a FITS file immediately upon opening.  This is an
-        optimization especially useful for large files, as FITS has no way
-        of determining the number and offsets of all the HDUs in a file
-        without scanning through the file and reading all the headers.
+    lazy_load_hdus : bool, optional
+        To avoid reading all the HDUs and headers in a FITS file immediately
+        upon opening.  This is an optimization especially useful for large
+        files, as FITS has no way of determining the number and offsets of all
+        the HDUs in a file without scanning through the file and reading all
+        the headers. Default is `True`.
 
         To disable lazy loading and read all HDUs immediately (the old
         behavior) use ``lazy_load_hdus=False``.  This can lead to fewer
@@ -73,74 +76,58 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
 
         .. versionadded:: 1.3
 
-    kwargs : dict, optional
-        additional optional keyword arguments, possible values are:
+    uint : bool, optional
+        Interpret signed integer data where ``BZERO`` is the central value and
+        ``BSCALE == 1`` as unsigned integer data.  For example, ``int16`` data
+        with ``BZERO = 32768`` and ``BSCALE = 1`` would be treated as
+        ``uint16`` data. Default is `True` so that the pseudo-unsigned
+        integer convention is assumed.
 
-        - **uint** : bool
+    ignore_missing_end : bool, optional
+        Do not issue an exception when opening a file that is missing an
+        ``END`` card in the last header. Default is `False`.
 
-            Interpret signed integer data where ``BZERO`` is the
-            central value and ``BSCALE == 1`` as unsigned integer
-            data.  For example, ``int16`` data with ``BZERO = 32768``
-            and ``BSCALE = 1`` would be treated as ``uint16`` data.
-            This is enabled by default so that the pseudo-unsigned
-            integer convention is assumed.
+    checksum : bool, str, optional
+        If `True`, verifies that both ``DATASUM`` and ``CHECKSUM`` card values
+        (when present in the HDU header) match the header and data of all HDU's
+        in the file.  Updates to a file that already has a checksum will
+        preserve and update the existing checksums unless this argument is
+        given a value of 'remove', in which case the CHECKSUM and DATASUM
+        values are not checked, and are removed when saving changes to the
+        file. Default is `False`.
 
-            Note, for backward compatibility, the kwarg **uint16** may
-            be used instead.  The kwarg was renamed when support was
-            added for integers of any size.
+    disable_image_compression : bool, optional
+        If `True`, treats compressed image HDU's like normal binary table
+        HDU's.  Default is `False`.
 
-        - **ignore_missing_end** : bool
+    do_not_scale_image_data : bool, optional
+        If `True`, image data is not scaled using BSCALE/BZERO values
+        when read.  Default is `False`.
 
-            Do not issue an exception when opening a file that is
-            missing an ``END`` card in the last header.
+    character_as_bytes : bool, optional
+        Whether to return bytes for string columns, otherwise unicode strings
+        are returned, but this does not respect memory mapping and loads the
+        whole column in memory when accessed. Default is `False`.
 
-        - **checksum** : bool, str
+    ignore_blank : bool, optional
+        If `True`, the BLANK keyword is ignored if present.
+        Default is `False`.
 
-            If `True`, verifies that both ``DATASUM`` and
-            ``CHECKSUM`` card values (when present in the HDU header)
-            match the header and data of all HDU's in the file.  Updates to a
-            file that already has a checksum will preserve and update the
-            existing checksums unless this argument is given a value of
-            'remove', in which case the CHECKSUM and DATASUM values are not
-            checked, and are removed when saving changes to the file.
-
-        - **disable_image_compression** : bool
-
-            If `True`, treats compressed image HDU's like normal
-            binary table HDU's.
-
-        - **do_not_scale_image_data** : bool
-
-            If `True`, image data is not scaled using BSCALE/BZERO values
-            when read.
-
-        - **character_as_bytes** : bool
-
-            Whether to return bytes for string columns. By default this is `False`
-            and (unicode) strings are returned, but this does not respect memory
-            mapping and loads the whole column in memory when accessed.
-
-        - **ignore_blank** : bool
-
-            If `True`, the BLANK keyword is ignored if present.
-
-        - **scale_back** : bool
-
-            If `True`, when saving changes to a file that contained scaled
-            image data, restore the data to the original type and reapply the
-            original BSCALE/BZERO values.  This could lead to loss of accuracy
-            if scaling back to integer values after performing floating point
-            operations on the data.
+    scale_back : bool, optional
+        If `True`, when saving changes to a file that contained scaled image
+        data, restore the data to the original type and reapply the original
+        BSCALE/BZERO values. This could lead to loss of accuracy if scaling
+        back to integer values after performing floating point operations on
+        the data. Default is `False`.
 
     Returns
     -------
         hdulist : an `HDUList` object
-            `HDUList` containing all of the header data units in the
-            file.
+            `HDUList` containing all of the header data units in the file.
 
     """
 
-    from .. import conf
+    from astropy.io.fits import conf
 
     if memmap is None:
         # distinguish between True (kwarg explicitly set)
@@ -238,16 +225,14 @@ class HDUList(list, _Verify):
 
     def __len__(self):
         if not self._in_read_next_hdu:
-            while self._read_next_hdu():
-                pass
+            self.readall()
 
         return super().__len__()
 
     def __repr__(self):
         # In order to correctly repr an HDUList we need to load all the
         # HDUs as well
-        while self._read_next_hdu():
-            pass
+        self.readall()
 
         return super().__repr__()
 
@@ -324,12 +309,15 @@ class HDUList(list, _Verify):
 
     def __contains__(self, item):
         """
-        Returns `True` if ``HDUList.index_of(item)`` succeeds.
-        """
+        Returns `True` if ``item`` is an ``HDU`` _in_ ``self`` or a valid
+        extension specification (e.g., integer extension number, extension
+        name, or a tuple of extension name and an extension version)
+        of a ``HDU`` in ``self``.
 
+        """
         try:
             self._try_while_unread_hdus(self.index_of, item)
-        except KeyError:
+        except (KeyError, ValueError):
             return False
 
         return True
@@ -512,6 +500,57 @@ class HDUList(list, _Verify):
 
         return output
 
+    def __copy__(self):
+        """
+        Return a shallow copy of an HDUList.
+
+        Returns
+        -------
+        copy : `HDUList`
+            A shallow copy of this `HDUList` object.
+
+        """
+
+        return self[:]
+
+    # Syntactic sugar for `__copy__()` magic method
+    copy = __copy__
+
+    def __deepcopy__(self, memo=None):
+        return HDUList([hdu.copy() for hdu in self])
+
+    def pop(self, index=-1):
+        """ Remove an item from the list and return it.
+
+        Parameters
+        ----------
+        index : int, str, tuple of (string, int), optional
+            An integer value of ``index`` indicates the position from which
+            ``pop()`` removes and returns an HDU. A string value or a tuple
+            of ``(string, int)`` functions as a key for identifying the
+            HDU to be removed and returned. If ``key`` is a tuple, it is
+            of the form ``(key, ver)`` where ``ver`` is an ``EXTVER``
+            value that must match the HDU being searched for.
+
+            If the key is ambiguous (e.g. there are multiple 'SCI' extensions)
+            the first match is returned.  For a more precise match use the
+            ``(name, ver)`` pair.
+
+            If even the ``(name, ver)`` pair is ambiguous the numeric index
+            must be used to index the duplicate HDU.
+
+        Returns
+        -------
+        hdu : HDU object
+            The HDU object at position indicated by ``index`` or having name
+            and version specified by ``index``.
+        """
+
+        # Make sure that HDUs are loaded before attempting to pop
+        self.readall()
+        list_index = self.index_of(index)
+        return super().pop(list_index)
+
     def insert(self, index, hdu):
         """
         Insert an HDU into the `HDUList` at the given ``index``.
@@ -630,9 +669,9 @@ class HDUList(list, _Verify):
 
         Parameters
         ----------
-        key : int, str or tuple of (string, int)
+        key : int, str, tuple of (string, int) or an HDU object
            The key identifying the HDU.  If ``key`` is a tuple, it is of the
-           form ``(key, ver)`` where ``ver`` is an ``EXTVER`` value that must
+           form ``(name, ver)`` where ``ver`` is an ``EXTVER`` value that must
            match the HDU being searched for.
 
            If the key is ambiguous (e.g. there are multiple 'SCI' extensions)
@@ -643,16 +682,32 @@ class HDUList(list, _Verify):
            but it's not impossible) the numeric index must be used to index
            the duplicate HDU.
 
+           When ``key`` is an HDU object, this function returns the
+           index of that HDU object in the ``HDUList``.
+
         Returns
         -------
         index : int
            The index of the HDU in the `HDUList`.
+
+        Raises
+        ------
+        ValueError
+           If ``key`` is an HDU object and it is not found in the ``HDUList``.
+
+        KeyError
+           If an HDU specified by the ``key`` that is an extension number,
+           extension name, or a tuple of extension name and version is not
+           found in the ``HDUList``.
+
         """
 
         if _is_int(key):
             return key
         elif isinstance(key, tuple):
             _key, _ver = key
+        elif isinstance(key, _BaseHDU):
+            return self.index(key)
         else:
             _key = key
             _ver = None
@@ -711,10 +766,8 @@ class HDUList(list, _Verify):
         """
         Read data of all HDUs into memory.
         """
-
-        for hdu in self:
-            if hdu.data is not None:
-                continue
+        while self._read_next_hdu():
+            pass
 
     @ignore_sigint
     def flush(self, output_verify='fix', verbose=False):
@@ -859,15 +912,15 @@ class HDUList(list, _Verify):
         # of the caller)
         closed = isinstance(fileobj, str) or fileobj_closed(fileobj)
 
-        # writeto is only for writing a new file from scratch, so the most
-        # sensible mode to require is 'ostream'.  This can accept an open
-        # file object that's open to write only, or in append/update modes
-        # but only if the file doesn't exist.
-        fileobj = _File(fileobj, mode='ostream', overwrite=overwrite)
+        mode = FILE_MODES[fileobj_mode(fileobj)] if isfile(fileobj) else 'ostream'
+
+        # This can accept an open file object that's open to write only, or in
+        # append/update modes but only if the file doesn't exist.
+        fileobj = _File(fileobj, mode=mode, overwrite=overwrite)
         hdulist = self.fromfile(fileobj)
         try:
             dirname = os.path.dirname(hdulist._file.name)
-        except AttributeError:
+        except (AttributeError, TypeError):
             dirname = None
 
         with _free_space_check(self, dirname=dirname):

@@ -1,6 +1,8 @@
 import os
+import re
 
-from ..scripts import showtable
+from astropy.table.scripts import showtable
+from astropy.utils.compat import NUMPY_LT_1_14
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 ASCII_ROOT = os.path.join(ROOT, '..', '..', 'io', 'ascii', 'tests')
@@ -28,11 +30,24 @@ def test_info(capsys):
 def test_stats(capsys):
     showtable.main([os.path.join(FITS_ROOT, 'data/table.fits'), '--stats'])
     out, err = capsys.readouterr()
-    assert out == ('<Table length=3>{0}'
-                   ' name    mean    std   min  max {0}'
-                   '------ ------- ------- ---- ----{0}'
-                   'target      --      --   --   --{0}'
-                   ' V_mag 12.8667 1.72111 11.1 15.2{0}').format(os.linesep)
+    if NUMPY_LT_1_14:
+        expected = ['<Table length=3>',
+                    ' name    mean    std   min  max ',
+                    '------ ------- ------- ---- ----',
+                    'target      --      --   --   --',
+                    ' V_mag 12.8667 1.72111 11.1 15.2']
+    else:
+        expected = ['<Table length=3>',
+                    ' name     mean      std    min  max ',
+                    '------ --------- --------- ---- ----',
+                    'target        --        --   --   --',
+                    ' V_mag 12.86666[0-9]? 1.7211105 11.1 15.2']
+
+    out = out.splitlines()
+    assert out[:4] == expected[:4]
+    # Here we use re.match as in some cases one of the values above is
+    # platform-dependent.
+    assert re.match(expected[4], out[4]) is not None
 
 
 def test_fits(capsys):
@@ -49,12 +64,18 @@ def test_fits_hdu(capsys):
     showtable.main([os.path.join(FITS_ROOT, 'data/zerowidth.fits'),
                     '--hdu', 'AIPS OF'])
     out, err = capsys.readouterr()
-    assert out.startswith(
-        '  TIME   SOURCE ID ANTENNA NO. SUBARRAY FREQ ID ANT FLAG STATUS 1\n'
-        '  DAYS                                                           \n'
-        '-------- --------- ----------- -------- ------- -------- --------\n'
-        '0.144387         1          10        1       1        4        4\n'
-    )
+    if NUMPY_LT_1_14:
+        assert out.startswith(
+            '  TIME   SOURCE ID ANTENNA NO. SUBARRAY FREQ ID ANT FLAG STATUS 1\n'
+            '  DAYS                                                           \n'
+            '-------- --------- ----------- -------- ------- -------- --------\n'
+            '0.144387         1          10        1       1        4        4\n')
+    else:
+        assert out.startswith(
+            '   TIME    SOURCE ID ANTENNA NO. SUBARRAY FREQ ID ANT FLAG STATUS 1\n'
+            '   DAYS                                                            \n'
+            '---------- --------- ----------- -------- ------- -------- --------\n'
+            '0.14438657         1          10        1       1        4        4\n')
 
 
 def test_csv(capsys):
@@ -140,10 +161,10 @@ def test_hide_unit(capsys):
                     '--format', 'ascii.cds'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
-        'Index RAh RAm  RAs  DE- DEd  DEm    DEs   Match Class  AK Fit ',
-        '       h  min   s       deg arcmin arcsec             mag     ',
-        '----- --- --- ----- --- --- ------ ------ ----- ----- --- ----',
-        '    1   3  28 39.09   +  31      6    1.9    --    I*  -- 1.35',
+        'Index RAh RAm  RAs  DE- DEd  DEm    DEs   Match Class  AK  Fit ',
+        '       h  min   s       deg arcmin arcsec             mag GMsun',
+        '----- --- --- ----- --- --- ------ ------ ----- ----- --- -----',
+        '    1   3  28 39.09   +  31      6    1.9    --    I*  --  1.35',
     ]
 
     showtable.main([os.path.join(ASCII_ROOT, 't/cds.dat'),

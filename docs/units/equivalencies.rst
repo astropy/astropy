@@ -188,14 +188,15 @@ its arguments the |quantity| for the spectral location. For example::
     ...      equivalencies=u.spectral_density(5500 * u.AA)) # doctest: +FLOAT_CMP
     <Quantity 3.6443382634999996e-23 erg / (Hz s)>
 
-Brightness Temperature / Flux Density Equivalency
--------------------------------------------------
+Brightness Temperature / Surface Brightness Equivalency
+-------------------------------------------------------
 
-There is an equivalency for brightness temperature and flux density.
-This equivalency is often referred to as "Antenna Gain" since, at a
-given frequency, telescope brightness sensitivity is unrelated to
-aperture size, but flux density sensitivity is, so this equivalency is
-only dependent on the aperture size.  See `Tools of Radio Astronomy
+There is an equivalency between surface brightness (flux density per area) and
+brightness temperature.  This equivalency is often referred to as "Antenna
+Gain" since, at a given frequency, telescope brightness sensitivity is
+unrelated to aperture size, but flux density sensitivity is, so this
+equivalency is only dependent on the aperture size.  See `Tools of Radio
+Astronomy
 <http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__
 for details.
 
@@ -216,13 +217,8 @@ here is an example::
     >>> beam_sigma = 50*u.arcsec
     >>> omega_B = 2 * np.pi * beam_sigma**2
     >>> freq = 5 * u.GHz
-    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))  # doctest: +FLOAT_CMP
-    3.526295144567176
-
-.. note:: Despite the Astropy unit on the left being shown as ``u.Jy``, this is
-          the conversion factor from Jy/beam to K (because ``u.beam`` cannot
-          currently be used as a meaningful unit since it depends on the
-          observations).
+    >>> (1*u.Jy/omega_B).to(u.K, equivalencies=u.brightness_temperature(freq))  # doctest: +FLOAT_CMP
+    <Quantity 3.526295144567176 K>
 
 If you have beam full-width half-maxima (FWHM), which are often quoted and are
 the values stored in the FITS header keywords BMAJ and BMIN, a more appropriate
@@ -234,9 +230,53 @@ example converts the FWHM to sigma::
     >>> beam_sigma = beam_fwhm * fwhm_to_sigma
     >>> omega_B = 2 * np.pi * beam_sigma**2
     >>> freq = 5 * u.GHz
-    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))  # doctest: +FLOAT_CMP
-    19.553928332631582
+    >>> (1*u.Jy/omega_B).to(u.K, equivalencies=u.brightness_temperature(freq))  # doctest: +FLOAT_CMP
+    <Quantity 19.553932298231704 K>
 
+You can also convert between ``Jy/beam`` and ``K`` by specifying the beam area::
+
+    >>> import numpy as np
+    >>> beam_fwhm = 50*u.arcsec
+    >>> fwhm_to_sigma = 1. / (8 * np.log(2))**0.5
+    >>> beam_sigma = beam_fwhm * fwhm_to_sigma
+    >>> omega_B = 2 * np.pi * beam_sigma**2
+    >>> freq = 5 * u.GHz
+    >>> (1*u.Jy/u.beam).to(u.K, u.brightness_temperature(freq, beam_area=omega_B))  # doctest: +FLOAT_CMP
+    <Quantity 19.553932298231704 K>
+
+Finally, there is an equivalency that allows you to convert from Jansky to Kelvin.
+In this case, the Jansky unit is *implicitly* Jansky/beam.  Because of the implicit
+assumed per beam unit, this approach is deprecated.::
+
+    >>> import numpy as np
+    >>> beam_fwhm = 50*u.arcsec
+    >>> fwhm_to_sigma = 1. / (8 * np.log(2))**0.5
+    >>> beam_sigma = beam_fwhm * fwhm_to_sigma
+    >>> omega_B = 2 * np.pi * beam_sigma**2
+    >>> freq = 5 * u.GHz
+    >>> # DEPRECATED
+    >>> (1*u.Jy).to(u.K, u.brightness_temperature(freq, beam_area=omega_B))  # doctest: +FLOAT_CMP
+    <Quantity 19.553932298231704 K>
+
+
+Beam Equivalency
+----------------
+
+Radio data, especially from interferometers, is often produced in units of ``Jy/beam``.
+Converting this number to a beam-independent value, e.g., ``Jy/sr``, can be done
+with the `~astropy.units.equivalencies.beam_angular_area` equivalency::
+
+    >>> import numpy as np
+    >>> beam_fwhm = 50*u.arcsec
+    >>> fwhm_to_sigma = 1. / (8 * np.log(2))**0.5
+    >>> beam_sigma = beam_fwhm * fwhm_to_sigma
+    >>> omega_B = 2 * np.pi * beam_sigma**2
+    >>> (1*u.Jy/u.beam).to(u.MJy/u.sr, equivalencies=u.beam_angular_area(omega_B))  # doctest: +FLOAT_CMP
+    <Quantity 15.019166691021288 MJy / sr>
+
+
+Note that the `radio_beam <https://github.com/radio-astro-tools/radio-beam>`_ package
+deals with beam input/output and various operations more directly.
 
 Temperature Energy Equivalency
 ------------------------------
@@ -251,6 +291,28 @@ observations at high-energy, be it for solar or X-ray astronomy. Example::
     >>> t_k.to(u.eV, equivalencies=u.temperature_energy())  # doctest: +FLOAT_CMP
     <Quantity 86.17332384960955 eV>
 
+.. _tcmb-equivalency:
+
+Thermodynamic Temperature Equivalency
+-------------------------------------
+
+This :func:`~astropy.units.equivalencies.thermodynamic_temperature`
+equivalency allows conversion between Jy/beam and "thermodynamic
+temperature", :math:`T_{CMB}`, in Kelvins. Example::
+
+    >>> import astropy.units as u
+    >>> nu = 143 * u.GHz
+    >>> t_k = 0.002632051878 * u.K
+    >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu))  # doctest: +FLOAT_CMP
+    <Quantity 1. MJy / sr>
+
+By default, this will use the :math:`T_{CMB}` value for the 'default cosmology'
+in astropy, but it is possible to specify a custom :math:`T_{CMB}` value for a
+specific cosmology as the second argument to the equivalency::
+
+    >>> from astropy.cosmology import WMAP9
+    >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu, T_cmb=WMAP9.Tcmb0))  # doctest: +FLOAT_CMP
+    <Quantity 0.99982392 MJy / sr>
 
 Molar Mass AMU Equivalency
 --------------------------
@@ -294,6 +356,63 @@ and you want to know how big your pixels need to be to cover half an arcsecond::
     >>> (0.5*u.arcsec).to(u.micron, tel_platescale)  # doctest: +FLOAT_CMP
     <Quantity 18.9077335632719 micron>
 
+Photometric Zero Point Equivalency
+----------------------------------
+
+This equivalency provides an easy way to move between photometric systems (i.e.,
+those defined relative to a particular zero-point flux) and absolute fluxes.
+This is most useful in conjuction with support for :ref:`logarithmic_units`.
+For example, suppose you are observing a target with a filter with a reported
+standard zero point of 3631.1 Jy::
+
+    >>> target_flux = 1.2 * u.nanomaggy
+    >>> zero_point_star_equiv = u.zero_point_flux(3631.1 * u.Jy)
+    >>> u.Magnitude(target_flux.to(u.AB, zero_point_star_equiv))  # doctest: +FLOAT_CMP
+    <Magnitude 22.30195136 mag(AB)>
+
+.. _H0-equivalency:
+
+Reduced Hubble constant/"little-h" Equivalency
+----------------------------------------------
+
+The dimensionless version of the Hubble constant - often known as "little h" -
+is a frequently-used quantity in extragalactic astrophysics.  It is also widely
+known as the bane of beginners' existence in such fields (See e.g., the title of
+`this paper <https://doi.org/10.1017/pasa.2013.31>`__, which also provides
+valuable advice on the use of little h).  Astropy provides an equivalency that
+helps keep this straight in at least some of these cases, by providing a way to
+convert to/from physical to "little h" units.  Two example conversions:
+
+    >>> import astropy.units as u
+    >>> H0_70 = 70 * u.km/u.s / u.Mpc
+    >>> distance = 70 * (u.Mpc/u.littleh)
+    >>> distance.to(u.Mpc, u.with_H0(H0_70))  # doctest: +FLOAT_CMP
+    <Quantity 100.0 Mpc>
+    >>> luminosity = 0.49 * u.Lsun * u.littleh**-2
+    >>> luminosity.to(u.Lsun, u.with_H0(H0_70))  # doctest: +FLOAT_CMP
+    <Quantity 1.0 solLum>
+
+Note the unit name ``littleh`` - while this unit is usually expressed in the
+literature as just ``h``, here it is ``littleh`` to not cause confusion with
+"hours".
+
+If no argument is given (or the argument is `None`), this equivalency assumes
+the ``H0`` from the current default cosmology:
+
+    >>> distance = 100 * (u.Mpc/u.littleh)
+    >>> distance.to(u.Mpc, u.with_H0())  # doctest: +FLOAT_CMP
+    <Quantity 147.62326543 Mpc>
+
+This equivalency also allows a common magnitude formulation of little h
+scaling:
+
+    >>> mag_quantity = 12 * (u.mag - u.MagUnit(u.littleh**2))
+    >>> mag_quantity  # doctest: +FLOAT_CMP
+    <Magnitude 12. mag(1 / littleh2)>
+    >>> mag_quantity.to(u.mag, u.with_H0(H0_70))  # doctest: +FLOAT_CMP
+    <Quantity 11.2254902 mag>
+
+
 Writing new equivalencies
 =========================
 
@@ -303,7 +422,9 @@ elements::
   (from_unit, to_unit, forward, backward)
 
 ``from_unit`` and ``to_unit`` are the equivalent units.  ``forward`` and
-``backward`` are functions that convert values between those units.
+``backward`` are functions that convert values between those units. ``forward``
+and ``backward`` are optional, and if omitted such an equivalency simply
+declares that the two units should be taken as equivalent.
 
 For example, until 1964 the metric liter was defined as the volume of
 1kg of water at 4°C at 760mm mercury pressure.  Volumes and masses are

@@ -7,9 +7,9 @@ import operator
 import pytest
 import numpy as np
 
-from ...tests.helper import assert_follows_unicode_guidelines, catch_warnings
-from ... import table
-from ... import units as u
+from astropy.tests.helper import assert_follows_unicode_guidelines, catch_warnings
+from astropy import table
+from astropy import units as u
 
 
 class TestColumn():
@@ -73,7 +73,7 @@ class TestColumn():
 
     def test_format(self, Column):
         """Show that the formatted output from str() works"""
-        from ... import conf
+        from astropy import conf
         with conf.set_temp('max_lines', 8):
             c1 = Column(np.arange(2000), name='a', dtype=float,
                         format='%6.2f')
@@ -319,11 +319,13 @@ class TestColumn():
         assert np.all(c1 == ['a', [100, 200], 1, None])
 
     def test_insert_masked(self):
-        c = table.MaskedColumn([0, 1, 2], name='a', mask=[False, True, False])
+        c = table.MaskedColumn([0, 1, 2], name='a', fill_value=9999,
+                               mask=[False, True, False])
 
         # Basic insert
         c1 = c.insert(1, 100)
         assert np.all(c1.data.data == [0, 100, 1, 2])
+        assert c1.fill_value == 9999
         assert np.all(c1.data.mask == [False, False, True, False])
         assert type(c) is type(c1)
 
@@ -436,7 +438,7 @@ class TestAttrEqual():
 # and any minimal set of args to pass.
 
 
-from ...utils.tests.test_metadata import MetaBaseTest
+from astropy.utils.tests.test_metadata import MetaBaseTest
 
 
 class TestMetaColumn(MetaBaseTest):

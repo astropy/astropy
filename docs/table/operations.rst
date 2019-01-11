@@ -39,6 +39,9 @@ table from one or more input tables.  This includes:
    * - `Set difference`_
      - Set difference of two tables
      - `~astropy.table.setdiff`
+   * - `Table diff`_
+     - Generic difference of two simple tables
+     - `~astropy.utils.diff.report_diff_values`
 
 
 .. _grouped-operations:
@@ -277,19 +280,22 @@ it is automatically ignored from aggregation.
 From a grouped table it is possible to select one or more columns on which
 to perform the aggregation::
 
-  >>> print(obs_by_name['mag_b'].groups.aggregate(np.mean))
+  >>> print(obs_by_name['mag_b'].groups.aggregate(np.mean))  # doctest: +SKIP
   mag_b
   -----
    15.0
    17.0
-   15.7
+   15.1
 
-  >>> print(obs_by_name['name', 'mag_v', 'mag_b'].groups.aggregate(np.mean))
+
+  >>> print(obs_by_name['name', 'mag_v', 'mag_b'].groups.aggregate(np.mean))  # doctest: +SKIP
   name mag_v  mag_b
   ---- ------ -----
   M101 13.725  15.0
    M31   17.4  17.0
    M82   15.5  15.7
+
+.. above tests skipped as results look different in "not NUMPY_LT_1_14".
 
 A single column of data can be aggregated as well::
 
@@ -979,3 +985,43 @@ lists using a common subset of the columns in two tables.::
 In this example there is a column in the first table that is not
 present in the second table, so the ``keys`` parameter must be used to specify
 the desired column names.
+
+
+.. _table-diff:
+
+Table diff
+----------
+
+To compare two simple tables, you can use
+:func:`~astropy.utils.diff.report_diff_values`, which would produce a report
+identical to :ref:`FITS diff <io-fits-differs>`.
+The example below illustrates finding the difference between two
+simple tables::
+
+  >>> from astropy.table import Table
+  >>> from astropy.utils.diff import report_diff_values
+  >>> import sys
+  >>> cat_1 = Table.read("""name    obs_date    mag_b  mag_v
+  ...                       M31     2012-01-02  17.0   16.0
+  ...                       M82     2012-10-29  16.2   15.2
+  ...                       M101    2012-10-31  15.1   15.5""", format='ascii')
+  >>> cat_2 = Table.read("""name    obs_date    mag_b  mag_v
+  ...                       M31     2012-01-02  17.0   16.5
+  ...                       M82     2012-10-29  16.2   15.2
+  ...                       M101    2012-10-30  15.1   15.5
+  ...                       NEW     2018-05-08   nan    9.0""", format='ascii')
+  >>> identical = report_diff_values(cat_1, cat_2, fileobj=sys.stdout)
+       name  obs_date  mag_b mag_v
+       ---- ---------- ----- -----
+    a>  M31 2012-01-02  17.0  16.0
+     ?                           ^
+    b>  M31 2012-01-02  17.0  16.5
+     ?                           ^
+        M82 2012-10-29  16.2  15.2
+    a> M101 2012-10-31  15.1  15.5
+     ?               ^
+    b> M101 2012-10-30  15.1  15.5
+     ?               ^
+    b>  NEW 2018-05-08   nan   9.0
+  >>> identical
+  False

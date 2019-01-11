@@ -165,17 +165,17 @@ So far we have been using a spherical coordinate representation in the all the
 examples, and this is the default for the built-in frames.  Frequently it is
 convenient to initialize or work with a coordinate using a different
 representation such as cartesian or cylindrical.  This can be done by setting
-the ``representation`` for either |skycoord| objects or low-level frame
+the ``representation_type`` for either |skycoord| objects or low-level frame
 coordinate objects::
 
-    >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation='cartesian')
+    >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation_type='cartesian')
     >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (x, y, z) in kpc
         (1., 2., 3.)>
     >>> c.x, c.y, c.z  # doctest: +FLOAT_CMP
     (<Quantity 1. kpc>, <Quantity 2. kpc>, <Quantity 3. kpc>)
 
-    >>> c.representation = 'cylindrical'
+    >>> c.representation_type = 'cylindrical'
     >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (rho, phi, z) in (kpc, deg, kpc)
         (2.23606798, 63.43494882, 3.)>
@@ -186,7 +186,7 @@ Distance
 --------
 
 |skycoord| and the individual frame classes also support specifying a distance
-from the frame origin. The origin depends on the particular coordiante frame;
+from the frame origin. The origin depends on the particular coordinate frame;
 this can be, e.g., centered on the earth, centered on the solar system
 barycenter, etc. Two angles and a distance specify a unique point in 3D space,
 which also allows converting the coordinates to a Cartesian representation::
@@ -237,8 +237,22 @@ for a particular named object::
     <SkyCoord (ICRS): (ra, dec) in deg
         (153.1393271, 53.117343)>
 
+In some cases, the coordinates are embedded in the catalogue name of the object.
+For such object names, `~astropy.coordinates.SkyCoord.from_name` is able
+to parse the coordinates from the name if given the ``parse=True`` option.
+For slow connections, this may be much faster than a sesame query for the same
+object name. It's worth noting, however, that the coordinates extracted in this
+way may differ from the database coordinates by a few deci-arcseconds, so only
+use this option if you do not need sub-arcsecond accuracy for your coordinates::
+
+    >>> SkyCoord.from_name("CRTS SSS100805 J194428-420209", parse=True)  # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): (ra, dec) in deg
+        (296.11666667, -42.03583333)>
+
+
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
-a quick way to get an `~astropy.coordinates.EarthLocation`::
+a quick way to get an `~astropy.coordinates.EarthLocation` - the
+`~astropy.coordinates.EarthLocation.of_site` method::
 
     >>> from astropy.coordinates import EarthLocation
     >>> EarthLocation.of_site('Apache Point Observatory')  # doctest: +REMOTE_DATA +FLOAT_CMP
@@ -252,14 +266,16 @@ For arbitrary Earth addresses (e.g., not observatory sites), use the
 to this function uses Google maps to retrieve the latitude and longitude and can
 also (optionally) query Google maps to get the height of the location. As with
 Google maps, this works with fully specified addresses, location names, city
-names, and etc.::
+names, and etc.:
 
-    >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')  # doctest: +REMOTE_DATA +FLOAT_CMP
+.. doctest-skip::
+
+    >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')
     <EarthLocation (-26726.98216371, -4997009.8604809, 3950271.16507911) m>
     >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO',
-    ...                          get_height=True)  # doctest: +REMOTE_DATA +FLOAT_CMP
+    ...                          get_height=True)
     <EarthLocation (-26727.6272786, -4997130.47437768, 3950367.15622108) m>
-    >>> EarthLocation.of_address('Danbury, CT')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> EarthLocation.of_address('Danbury, CT')
     <EarthLocation ( 1364606.64511651, -4593292.9428273,  4195415.93695139) m>
 
 .. note::
@@ -286,15 +302,26 @@ high-level |skycoord| method - see :ref:`astropy-coordinates-rv-corrs`)::
     >>> target = SkyCoord.from_name('M31')  # doctest: +REMOTE_DATA
     >>> keck = EarthLocation.of_site('Keck')  # doctest: +REMOTE_DATA
     >>> target.radial_velocity_correction(obstime=obstime, location=keck).to('km/s')  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <Quantity -22.363056056 km / s>
+    <Quantity -22.359784554780255 km / s>
 
 Velocities (Proper Motions and Radial Velocities)
 -------------------------------------------------
 
-New in Astropy v2.0, the :doc:`coordinate frame classes <frames>` can now store
-and transform velocities along with positional coordinate information. This
-is not available from the |skycoord| class as this new functionality is
-experimental, but is accessible  for more information see the :doc:`velocities` page.
+In addition to positional coordinates, `~astropy.coordinates` supports storing
+and transforming velocities.  These are available both via the lower-level
+:doc:`coordinate frame classes <frames>`, and (new in v3.0) via  |skycoord|
+objects::
+
+    >>> sc = SkyCoord(1*u.deg, 2*u.deg, radial_velocity=20*u.km/u.s)
+    >>> sc  # doctest: +SKIP
+    <SkyCoord (ICRS): (ra, dec) in deg
+        ( 1.,  2.)
+     (radial_velocity) in km / s
+        ( 20.,)>
+
+.. the SKIP above in the ``sc`` line is because numpy has a subtly different output in versions < 12 - the trailing comma is missing.  If a NPY_LT_1_12 comes in to being this can switch to that.  But don't forget to *also* change this in the velocities.rst file
+
+For more details on velocity support (and limitations), see the :doc:`velocities` page.
 
 .. _astropy-coordinates-overview:
 
@@ -358,6 +385,7 @@ listed below.
    representations
    frames
    velocities
+   apply_space_motion
    galactocentric
    remote_methods
    definitions
@@ -374,6 +402,11 @@ IPython session::
     In [1]: from astropy.coordinates.tests import test_api_ape5
     In [2]: test_api_ape5??
 
+
+.. note that if this section gets too long, it should be moved to a separate
+   doc page - see the top of performance.inc.rst for the instructions on how to do
+   that
+.. include:: performance.inc.rst
 
 .. _astropy-coordinates-seealso:
 

@@ -60,7 +60,7 @@ Customize the setter for a property
     >>> ndd = NDDataMaskBoolNumpy([1,2,3])
     >>> ndd.mask = [True, False, True]
     >>> ndd.mask
-    array([ True, False,  True], dtype=bool)
+    array([ True, False,  True]...)
 
 Extend the setter for a property
 --------------------------------
@@ -175,7 +175,7 @@ Arithmetic on an existing property
 Customizing how an existing property is handled during arithmetic is possible
 with some arguments to the function calls like
 :meth:`~astropy.nddata.NDArithmeticMixin.add` but it's possible to hardcode
-behaviour too. The actual operation on the attribute (except for ``unit``) is
+behavior too. The actual operation on the attribute (except for ``unit``) is
 done in a method ``_arithmetic_*`` where ``*`` is the name of the property.
 
 For example to customize how the ``meta`` will be affected during arithmetics::
@@ -309,7 +309,7 @@ This also requires overriding the ``_arithmetic`` method. Suppose we have a
     >>> ndd2 = NDDataWithFlags([1,2,3], flags=np.array([0,0,1], dtype=bool))
     >>> ndd3 = ndd1.add(ndd2)
     >>> ndd3.flags
-    array([ True, False,  True], dtype=bool)
+    array([ True, False,  True]...)
 
 
 Slicing an existing property
@@ -333,7 +333,7 @@ only 1D. This would lead to problems if one were to slice in two dimensions.
     >>> ndd = NDDataMask1D(np.ones((3,3)), mask=np.ones(3, dtype=bool))
     >>> nddsliced = ndd[1:3,1:3]
     >>> nddsliced.mask
-    array([ True,  True], dtype=bool)
+    array([ True,  True]...)
 
 .. note::
   The methods doing the slicing of the attributes are prefixed by a
@@ -467,6 +467,9 @@ systematic uncertainties::
     ...     def uncertainty_type(self):
     ...         return 'systematic'
     ...
+    ...     def _data_unit_to_uncertainty_unit(self, value):
+    ...         return None
+    ...
     ...     def _propagate_add(self, other_uncert, *args, **kwargs):
     ...         return None
     ...
@@ -481,78 +484,3 @@ systematic uncertainties::
 
     >>> SystematicUncertainty([10])
     SystematicUncertainty([10])
-
-Subclassing `~astropy.nddata.StdDevUncertainty`
-===============================================
-
-Creating an variance uncertainty
---------------------------------
-
-`~astropy.nddata.StdDevUncertainty` already implements propagation based
-on gaussian standard deviation so this could be the starting point of an
-uncertainty using these propagations:
-
-    >>> from astropy.nddata import StdDevUncertainty
-    >>> import numpy as np
-    >>> import weakref
-
-    >>> class VarianceUncertainty(StdDevUncertainty):
-    ...     @property
-    ...     def uncertainty_type(self):
-    ...         return 'variance'
-    ...
-    ...     def _propagate_add(self, other_uncert, *args, **kwargs):
-    ...         # Neglect the unit assume that both are Variance uncertainties
-    ...         this = StdDevUncertainty(np.sqrt(self.array))
-    ...         other = StdDevUncertainty(np.sqrt(other_uncert.array))
-    ...
-    ...         # We need to set the parent_nddata attribute otherwise it will
-    ...         # fail for multiplication and division where the data
-    ...         # not only the uncertainty matters.
-    ...         this.parent_nddata = weakref.ref(self.parent_nddata)
-    ...         other.parent_nddata = weakref.ref(other_uncert.parent_nddata)
-    ...
-    ...         # Call propagation:
-    ...         result = this._propagate_add(other, *args, **kwargs)
-    ...
-    ...         # Return the square of it
-    ...         return np.square(result)
-
-    >>> from astropy.nddata import NDDataRef
-
-    >>> ndd1 = NDDataRef([1,2,3], unit='m', uncertainty=VarianceUncertainty([1,4,9]))
-    >>> ndd2 = NDDataRef([1,2,3], unit='m', uncertainty=VarianceUncertainty([1,4,9]))
-    >>> ndd = ndd1.add(ndd2)
-    >>> ndd.uncertainty
-    VarianceUncertainty([  2.,   8.,  18.])
-
-this approach certainly works if both are variance uncertainties, but if you
-want to allow that the second operand also can be a standard deviation one can
-override the ``_convert_uncertainty`` method as well::
-
-    >>> class VarianceUncertainty2(VarianceUncertainty):
-    ...     def _convert_uncertainty(self, other_uncert):
-    ...         if isinstance(other_uncert, VarianceUncertainty):
-    ...             return other_uncert
-    ...         elif isinstance(other_uncert, StdDevUncertainty):
-    ...             converted = VarianceUncertainty(np.square(other_uncert.array))
-    ...             converted.parent_nddata = weakref.ref(other_uncert.parent_nddata)
-    ...             return converted
-    ...         raise ValueError('not compatible uncertainties.')
-
-    >>> ndd1 = NDDataRef([1,2,3], uncertainty=VarianceUncertainty2([1,4,9]))
-    >>> ndd2 = NDDataRef([1,2,3], uncertainty=StdDevUncertainty([1,2,3]))
-    >>> ndd = ndd1.add(ndd2)
-    >>> ndd.uncertainty
-    VarianceUncertainty2([  2.,   8.,  18.])
-
-.. warning::
-    This will only allow the **second** operand to have a
-    `~astropy.nddata.StdDevUncertainty` uncertainty. It will fail if the first
-    operand is standard deviation and the second operand a variance.
-
-.. note::
-    Creating a variance uncertainty like this might require more work to
-    include proper treatment of the unit of the uncertainty! And of course
-    implementing also the ``_propagate_*`` for subtraction, division and
-    multiplication.

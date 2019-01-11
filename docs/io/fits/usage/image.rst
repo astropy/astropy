@@ -112,8 +112,8 @@ before and after the data is touched::
     16
     >>> hdu.header['bzero']
     1500.0
-    >>> hdu.data[0, 0]  # once data is touched, it is scaled
-    557.75629
+    >>> hdu.data[0, 0]  # once data is touched, it is scaled  #  doctest: +FLOAT_CMP
+    557.7563
     >>> hdu.data.dtype.name
     'float32'
     >>> hdu.header['bitpix']  # BITPIX is also updated

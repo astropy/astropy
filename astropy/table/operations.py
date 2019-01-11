@@ -9,16 +9,16 @@ High-level table operations:
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from copy import deepcopy
-import warnings
 import collections
 import itertools
 from collections import OrderedDict, Counter
+from collections.abc import Mapping, Sequence
 
 import numpy as np
-from numpy import ma
 
-from ..utils import metadata
-from .column import Column
+from astropy.utils import metadata
+from .table import Table, QTable, Row, Column
+from astropy.units import Quantity
 
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
@@ -38,18 +38,30 @@ def _get_list_of_tables(tables):
     Check that tables is a Table or sequence of Tables.  Returns the
     corresponding list of Tables.
     """
-    from .table import Table, Row
 
     # Make sure we have a list of things
-    if not isinstance(tables, collections.Sequence):
+    if not isinstance(tables, Sequence):
         tables = [tables]
 
-    # Make sure each thing is a Table or Row
-    if any(not isinstance(x, (Table, Row)) for x in tables) or len(tables) == 0:
-        raise TypeError('`tables` arg must be a Table or sequence of Tables or Rows')
+    # Make sure there is something to stack
+    if len(tables) == 0:
+        raise ValueError('no values provided to stack.')
 
-    # Convert any Rows to Tables
-    tables = [(x if isinstance(x, Table) else Table(x)) for x in tables]
+    # Convert inputs (Table, Row, or anything column-like) to Tables.
+    # Special case that Quantity converts to a QTable.
+    for ii, val in enumerate(tables):
+        if isinstance(val, Table):
+            pass
+        elif isinstance(val, Row):
+            tables[ii] = Table(val)
+        elif isinstance(val, Quantity):
+            tables[ii] = QTable([val])
+        else:
+            try:
+                tables[ii] = Table([val])
+            except (ValueError, TypeError):
+                raise TypeError('cannot convert {} to table column.'
+                                .format(val))
 
     return tables
 
@@ -107,7 +119,6 @@ def join(left, right, keys=None, join_type='inner',
     joined_table : `~astropy.table.Table` object
         New table containing the result of the join operation.
     """
-    from .table import Table
 
     # Try converting inputs to Table as needed
     if not isinstance(left, Table):
@@ -682,7 +693,7 @@ def _join(left, right, keys=None, join_type='inner',
     diffs = np.concatenate(([True], out_keys[1:] != out_keys[:-1], [True]))
     idxs = np.flatnonzero(diffs)
 
-    # Main inner loop in Cython to compute the cartesion product
+    # Main inner loop in Cython to compute the cartesian product
     # indices for the given join type
     int_join_type = {'inner': 0, 'outer': 1, 'left': 2, 'right': 3}[join_type]
     masked, n_out, left_out, left_mask, right_out, right_mask = \
@@ -733,24 +744,27 @@ def _join(left, right, keys=None, join_type='inner',
 
         # If the output table is masked then set the output column masking
         # accordingly.  Check for columns that don't support a mask attribute.
-        if masked:
+        if masked and np.any(array_mask):
             # array_mask is 1-d corresponding to length of output column.  We need
             # make it have the correct shape for broadcasting, i.e. (length, 1, 1, ..).
             # Mixin columns might not have ndim attribute so use len(col.shape).
             array_mask.shape = (out[out_name].shape[0],) + (1,) * (len(out[out_name].shape) - 1)
 
+            # Now broadcast to the correct final shape
+            array_mask = np.broadcast_to(array_mask, out[out_name].shape)
+
             if array.masked:
                 array_mask = array_mask | array[name].mask[array_out]
             try:
-                out[out_name].mask[:] = array_mask
-            except ValueError:
+                out[out_name][array_mask] = out[out_name].info.mask_val
+            except Exception:  # Not clear how different classes will fail here
                 raise NotImplementedError(
                     "join requires masking column '{}' but column"
                     " type {} does not support masking"
                     .format(out_name, out[out_name].__class__.__name__))
 
     # If col_name_map supplied as a dict input, then update.
-    if isinstance(_col_name_map, collections.Mapping):
+    if isinstance(_col_name_map, Mapping):
         _col_name_map.update(col_name_map)
 
     return out
@@ -850,8 +864,8 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
                 out[out_name][idx0:idx1] = array[name]
             else:
                 try:
-                    out[out_name].mask[idx0:idx1] = True
-                except ValueError:
+                    out[out_name][idx0:idx1] = out[out_name].info.mask_val
+                except Exception:
                     raise NotImplementedError(
                         "vstack requires masking column '{}' but column"
                         " type {} does not support masking"
@@ -859,7 +873,7 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
             idx0 = idx1
 
     # If col_name_map supplied as a dict input, then update.
-    if isinstance(_col_name_map, collections.Mapping):
+    if isinstance(_col_name_map, Mapping):
         _col_name_map.update(col_name_map)
 
     return out
@@ -947,8 +961,8 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
                 indices[arr_len:] = 0
                 out[out_name] = array[name][indices]
                 try:
-                    out[out_name].mask[arr_len:] = True
-                except ValueError:
+                    out[out_name][arr_len:] = out[out_name].info.mask_val
+                except Exception:
                     raise NotImplementedError(
                         "hstack requires masking column '{}' but column"
                         " type {} does not support masking"
@@ -957,7 +971,7 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
                 out[out_name] = array[name][:n_rows]
 
     # If col_name_map supplied as a dict input, then update.
-    if isinstance(_col_name_map, collections.Mapping):
+    if isinstance(_col_name_map, Mapping):
         _col_name_map.update(col_name_map)
 
     return out

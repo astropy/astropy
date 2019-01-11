@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 ************
 Known Issues
 ************
@@ -39,41 +37,33 @@ E.g.::
     >>> import astropy.units as u
     >>> import numpy as np
     >>> q = u.Quantity(np.arange(10.), u.m)
-    >>> np.dot(q,q)
+    >>> np.dot(q,q) # doctest: +FLOAT_CMP
     285.0
-    >>> np.hstack((q,q))
-    <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
-                5., 6., 7., 8., 9.] (Unit not initialised)>
+    >>> np.hstack((q,q)) # doctest: +FLOAT_CMP
+    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
+               6., 7., 8., 9.] (Unit not initialised)>
 
 ::
 
     >>> ratio = (3600 * u.s) / (1 * u.h)
-    >>> ratio
-    <Quantity 3600.0 s / h>
-    >>> np.array(ratio)
-    array(3600.0)
-    >>> np.array([ratio])
-    array([ 1.])
-
-Also in-place operations where the output is a normal `~numpy.ndarray`
-will drop the unit silently (at least in numpy <= 1.9)::
-
-    >>> a = np.arange(10.)
-    >>> a *= 1. * u.kg
-    >>> a
-    array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.])
+    >>> ratio # doctest: +FLOAT_CMP
+    <Quantity 3600. s / h>
+    >>> np.array(ratio) # doctest: +FLOAT_CMP
+    array(3600.)
+    >>> np.array([ratio]) # doctest: +FLOAT_CMP
+    array([1.])
 
 Work-arounds are available for some cases.  For the above::
 
-    >>> q.dot(q)
-    <Quantity 285.0 m2>
+    >>> q.dot(q) # doctest: +FLOAT_CMP
+    <Quantity 285. m2>
 
-    >>> np.array(ratio.to(u.dimensionless_unscaled))
-    array(1.0)
+    >>> np.array(ratio.to(u.dimensionless_unscaled)) # doctest: +FLOAT_CMP
+    array(1.)
 
-    >>> u.Quantity([q, q]).flatten()
-    <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
-                5., 6., 7., 8., 9.] m>
+    >>> u.Quantity([q, q]).flatten() # doctest: +FLOAT_CMP
+    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
+               6., 7., 8., 9.] m>
 
 An incomplete list of specific functions which are known to exhibit this behavior follows.
 
@@ -87,6 +77,72 @@ An incomplete list of specific functions which are known to exhibit this behavio
 
 See: https://github.com/astropy/astropy/issues/1274
 
+
+Care has to be taken when setting array slices using Quantities::
+
+    >>> a = np.ones(4)
+    >>> a[2:3] = 2*u.kg
+    >>> a # doctest: +FLOAT_CMP
+    array([1., 1., 2., 1.])
+
+::
+
+    >>> a = np.ones(4)
+    >>> a[2:3] = 1*u.cm/u.m
+    >>> a # doctest: +FLOAT_CMP
+    array([1., 1., 1., 1.])
+
+Either set single array entries or use lists of Quantities::
+
+    >>> a = np.ones(4)
+    >>> a[2] = 1*u.cm/u.m
+    >>> a # doctest: +FLOAT_CMP
+    array([1.  , 1.  , 0.01, 1.  ])
+
+::
+
+    >>> a = np.ones(4)
+    >>> a[2:3] = [1*u.cm/u.m]
+    >>> a # doctest: +FLOAT_CMP
+    array([1.  , 1.  , 0.01, 1.  ])
+
+Both will throw an exception if units do not cancel, e.g.::
+
+    >>> a = np.ones(4)
+    >>> a[2] = 1*u.cm # doctest: +SKIP
+    Traceback (most recent call last):
+    ...
+    TypeError: only dimensionless scalar quantities can be converted to Python scalars
+
+
+See: https://github.com/astropy/astropy/issues/7582
+
+Quantities lose their units when broadcasted
+--------------------------------------------
+
+When broadcasting Quantities, it is necessary to pass ``subok=True`` to
+`~numpy.broadcast_to`, or else a bare `~numpy.ndarray` will be returned::
+
+   >>> q = u.Quantity(np.arange(10.), u.m)
+   >>> b = np.broadcast_to(q, (2, len(q)))
+   >>> b # doctest: +FLOAT_CMP
+   array([[0., 1., 2., 3., 4., 5., 6., 7., 8., 9.],
+          [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.]])
+   >>> b2 = np.broadcast_to(q, (2, len(q)), subok=True)
+   >>> b2 # doctest: +FLOAT_CMP
+   <Quantity [[0., 1., 2., 3., 4., 5., 6., 7., 8., 9.],
+              [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.]] m>
+
+This is analogous to the case of passing a Quantity to `~numpy.array`::
+
+   >>> a = np.array(q)
+   >>> a # doctest: +FLOAT_CMP
+   array([0., 1., 2., 3., 4., 5., 6., 7., 8., 9.])
+   >>> a2 = np.array(q, subok=True)
+   >>> a2 # doctest: +FLOAT_CMP
+   <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] m>
+
+See: https://github.com/astropy/astropy/issues/7832
 
 Quantities float comparison with np.isclose fails
 -------------------------------------------------
@@ -102,15 +158,16 @@ This will result in the following traceback when using this with Quantities::
 
     >>> from astropy import units as u, constants as const
     >>> import numpy as np
-    >>> np.isclose(500* u.km/u.s, 300 * u.km / u.s)
-    UnitsError: Can only apply 'add' function to dimensionless quantities when
-    other argument is not a quantity (unless the latter is all zero/infinity/nan)
+    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s)
+    Traceback (most recent call last):
+    ...
+    astropy.units.core.UnitsError: Can only apply 'add' function to dimensionless quantities when other argument is not
+    a quantity (unless the latter is all zero/infinity/nan)
 
 An easy solution is::
 
-    >>> np.isclose(500* u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s)
-    array([False], dtype=bool)
-
+    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s) # doctest: +SKIP
+    False
 
 Quantities in np.linspace failure on numpy 1.10
 -----------------------------------------------
@@ -167,7 +224,7 @@ Locale errors in MacOS X and Linux
 
 On MacOS X, you may see the following error when running ``setup.py``::
 
-      ...
+    ...
     ValueError: unknown locale: UTF-8
 
 This is due to the ``LC_CTYPE`` environment variable being incorrectly set to
@@ -176,7 +233,7 @@ This is due to the ``LC_CTYPE`` environment variable being incorrectly set to
 On MacOS X or Linux (or other platforms) you may also encounter the following
 error::
 
-      ...
+    ...
       stderr = stderr.decode(stdio_encoding)
     TypeError: decode() argument 1 must be str, not None
 
@@ -217,7 +274,8 @@ In some cases, have users have upgraded Astropy from an older version to v1.0
 or greater they have run into the following crash when trying to create a
 `~astropy.time.Time` object::
 
-    >>> datetime = Time('2012-03-01T13:08:00', scale='utc')
+    >>> from astropy.time import Time
+    >>> datetime = Time('2012-03-01T13:08:00', scale='utc') # doctest: +SKIP
     Traceback (most recent call last):
     ...
     ValueError: Input values did not match any of the formats where
@@ -284,3 +342,28 @@ processing and you just want docstrings to work, this may be
 acceptable.
 
 The IPython issue: https://github.com/ipython/ipython/pull/2738
+
+Compatibility issues with pytest 3.7 and later
+----------------------------------------------
+
+Due to a bug in `pytest <http://www.pytest.org>`_ related to test collection,
+the tests for the core astropy package for version 2.0.x (LTS), and for packages
+using the core package's test infrastructure and being tested against 2.0.x
+(LTS) will not be executed correctly with pytest 3.7, 3.8, or 3.9. The symptom
+of this bug is that no tests or only tests in RST files are collected. In
+addition, astropy 2.0.x (LTS) is not compatible with pytest 4.0 and above
+as in this case deprecation errors from pytest can cause tests to fail.
+Therefore, when testing against astropy v2.0.x (LTS), pytest 3.6 or earlier
+versions should be used. These issues do not occur in version 3.0.x and above of
+the core package.
+
+There is also an unrelated issue that also affects more recent versions of
+astropy when testing with pytest 4.0 and later, which can
+cause issues when collecting tests - in this case, the symptom is that the
+test collection hangs and/or appears to run the tests recursively. If you are
+maintaining a package that was created using the astropy
+`package template <http://github.com/astropy/package-template>`_, then
+this can be fixed by updating to the latest version of the ``_astropy_init.py``
+file. The root cause of this issue is that pytest now tries to pick up the
+top-level ``test()`` function as a test, so we need to make sure that we set a
+``test.__test__`` attribute on the function to ``False``.

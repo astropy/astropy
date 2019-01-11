@@ -10,16 +10,20 @@ import functools
 import operator
 from collections import OrderedDict
 import inspect
+import warnings
 
 import numpy as np
 import astropy.units as u
 
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
-from ..utils import ShapedLikeNDArray, classproperty
+from astropy._erfa import ufunc as erfa_ufunc
+from astropy.utils import ShapedLikeNDArray, classproperty
 
-from ..utils.misc import InheritDocstrings
-from ..utils.compat import NUMPY_LT_1_12, NUMPY_LT_1_14
+from astropy.utils import deprecated_attribute
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.misc import InheritDocstrings
+from astropy.utils.compat import NUMPY_LT_1_14
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
@@ -38,33 +42,43 @@ __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
 REPRESENTATION_CLASSES = {}
 DIFFERENTIAL_CLASSES = {}
 
+# a hash for the content of the above two dicts, cached for speed.
+_REPRDIFF_HASH = None
+def get_reprdiff_cls_hash():
+    """
+    Returns a hash value that should be invariable if the
+    `REPRESENTATION_CLASSES` and `DIFFERENTIAL_CLASSES` dictionaries have not
+    changed.
+    """
+    global _REPRDIFF_HASH
+    if _REPRDIFF_HASH is None:
+        _REPRDIFF_HASH = (hash(tuple(REPRESENTATION_CLASSES.items())) +
+                          hash(tuple(DIFFERENTIAL_CLASSES.items())) )
+    return _REPRDIFF_HASH
+
+
+def _invalidate_reprdiff_cls_hash():
+    global _REPRDIFF_HASH
+    _REPRDIFF_HASH = None
+
+
+
+# recommended_units deprecation message; if the attribute is removed later,
+# also remove its use in BaseFrame._get_representation_info.
+_recommended_units_deprecation = """
+The 'recommended_units' attribute is deprecated since 3.0 and may be removed
+in a future version. Its main use, of representing angles in degrees in frames,
+is now done automatically in frames. Further overrides are discouraged but can
+be done using a frame's ``frame_specific_representation_info``.
+"""
+
 
 def _array2string(values, prefix=''):
-    # Mimic numpy >=1.12 array2string, in which structured arrays are
-    # typeset taking into account all printoptions.
+    # Work around version differences for array2string.
     kwargs = {'separator': ', ', 'prefix': prefix}
-    if NUMPY_LT_1_12:  # pragma: no cover
-        # Mimic StructureFormat from numpy >=1.12 assuming float-only data.
-        from numpy.core.arrayprint import FloatFormat
-        opts = np.get_printoptions()
-        format_functions = [FloatFormat(np.atleast_1d(values[component]).ravel(),
-                                        precision=opts['precision'],
-                                        suppress_small=opts['suppress'])
-                            for component in values.dtype.names]
-
-        def fmt(x):
-            return '({})'.format(', '.join(format_function(field)
-                                           for field, format_function in
-                                           zip(x, format_functions)))
-        # Before 1.12, structures arrays were set as "numpystr",
-        # so that is the formmater we need to replace.
-        kwargs['formatter'] = {'numpystr': fmt}
-        kwargs['style'] = fmt
-
-    else:
-        kwargs['formatter'] = {}
-        if NUMPY_LT_1_14:  # in 1.14, style is no longer used (and deprecated)
-            kwargs['style'] = repr
+    kwargs['formatter'] = {}
+    if NUMPY_LT_1_14:  # in 1.14, style is no longer used (and deprecated)
+        kwargs['style'] = repr
 
     return np.array2string(values, **kwargs)
 
@@ -87,27 +101,16 @@ def _combine_xyz(x, y, z, xyz_axis=0):
         With dimension 3 along ``xyz_axis``, i.e., using the default of ``0``,
         the shape will be ``(3,) + x.shape``.
     """
-    # Add new axis in x, y, z so one can concatenate them around it.
-    # NOTE: just use np.stack once our minimum numpy version is 1.10.
-    result_ndim = x.ndim + 1
-    if not -result_ndim <= xyz_axis < result_ndim:
-        raise IndexError('xyz_axis {0} out of bounds [-{1}, {1})'
-                         .format(xyz_axis, result_ndim))
-
-    if xyz_axis < 0:
-        xyz_axis += result_ndim
-
     # Get x, y, z to the same units (this is very fast for identical units)
-    # since np.concatenate cannot deal with quantity.
+    # since np.stack cannot deal with quantity.
     cls = x.__class__
-    y = cls(y, x.unit, copy=False)
-    z = cls(z, x.unit, copy=False)
+    unit = x.unit
+    x = x.value
+    y = y.to_value(unit)
+    z = z.to_value(unit)
 
-    sh = x.shape
-    sh = sh[:xyz_axis] + (1,) + sh[xyz_axis:]
-    xyz_value = np.concatenate([c.reshape(sh).value for c in (x, y, z)],
-                               axis=xyz_axis)
-    return cls(xyz_value, unit=x.unit, copy=False)
+    xyz = np.stack([x, y, z], axis=xyz_axis)
+    return cls(xyz, unit=unit, copy=False)
 
 
 class BaseRepresentationOrDifferential(ShapedLikeNDArray):
@@ -254,8 +257,11 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         else:
             apply_method = operator.methodcaller(method, *args, **kwargs)
 
-        return self.__class__(*[apply_method(getattr(self, component))
-                                for component in self.components], copy=False)
+        new = super().__new__(self.__class__)
+        for component in self.components:
+            setattr(new, '_' + component,
+                    apply_method(getattr(self, component)))
+        return new
 
     @property
     def shape(self):
@@ -420,6 +426,13 @@ class MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
             raise NotImplementedError('Representations must have an '
                                       '"attr_classes" class attribute.')
 
+        if 'recommended_units' in dct:
+            warnings.warn(_recommended_units_deprecation,
+                          AstropyDeprecationWarning)
+            # Ensure we don't override the property that warns about the
+            # deprecation, but that the value remains the same.
+            dct.setdefault('_recommended_units', dct.pop('recommended_units'))
+
         repr_name = cls.get_name()
 
         if repr_name in REPRESENTATION_CLASSES:
@@ -427,6 +440,7 @@ class MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
                              .format(repr_name))
 
         REPRESENTATION_CLASSES[repr_name] = cls
+        _invalidate_reprdiff_cls_hash()
 
         # define getters for any component that does not yet have one.
         for component in cls.attr_classes:
@@ -467,13 +481,11 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
     that want to define a smarter transformation path can overload the
     ``represent_as`` method. If one wants to use an associated differential
     class, one should also define ``unit_vectors`` and ``scale_factors``
-    methods (see those methods for details). Finally, classes can also define a
-    ``recommended_units`` dictionary, which maps component names to the units
-    they are best presented to users in (this is used only in representations
-    of coordinates, and may be overridden by frame classes).
+    methods (see those methods for details).
     """
 
-    recommended_units = {}  # subclasses can override
+    recommended_units = deprecated_attribute('recommended_units', since='3.0')
+    _recommended_units = {}
 
     def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
@@ -673,8 +685,11 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
                                  "must be a class, not a string. For "
                                  "strings, use frame objects")
 
-            # The default is to convert via cartesian coordinates
-            new_rep = other_class.from_cartesian(self.to_cartesian())
+            if other_class is not self.__class__:
+                # The default is to convert via cartesian coordinates
+                new_rep = other_class.from_cartesian(self.to_cartesian())
+            else:
+                new_rep = self
 
             new_rep._differentials = self._re_represent_differentials(
                 new_rep, differential_class)
@@ -978,18 +993,37 @@ class CartesianRepresentation(BaseRepresentation):
                                 ('y', u.Quantity),
                                 ('z', u.Quantity)])
 
+    _xyz = None
+
     def __init__(self, x, y=None, z=None, unit=None, xyz_axis=None,
                  differentials=None, copy=True):
 
         if y is None and z is None:
-            if xyz_axis is not None and xyz_axis != 0:
-                x = np.rollaxis(x, xyz_axis, 0)
-            x, y, z = x
-        elif xyz_axis is not None:
+            if isinstance(x, np.ndarray) and x.dtype.kind not in 'OV':
+                # Short-cut for 3-D array input.
+                x = u.Quantity(x, unit, copy=copy, subok=True)
+                # Keep a link to the array with all three coordinates
+                # so that we can return it quickly if needed in get_xyz.
+                self._xyz = x
+                if xyz_axis:
+                    x = np.moveaxis(x, xyz_axis, 0)
+                    self._xyz_axis = xyz_axis
+                else:
+                    self._xyz_axis = 0
+
+                self._x, self._y, self._z = x
+                self._differentials = self._validate_differentials(differentials)
+                return
+
+            else:
+                x, y, z = x
+
+        if xyz_axis is not None:
             raise ValueError("xyz_axis should only be set if x, y, and z are "
                              "in a single array passed in through x, "
                              "i.e., y and z should not be not given.")
-        elif (y is None and z is not None) or (y is not None and z is None):
+
+        if y is None or z is None:
             raise ValueError("x, y, and z are required to instantiate {0}"
                              .format(self.__class__.__name__))
 
@@ -1000,8 +1034,8 @@ class CartesianRepresentation(BaseRepresentation):
             copy = False
 
         super().__init__(x, y, z, copy=copy, differentials=differentials)
-        if not (self._x.unit.physical_type ==
-                self._y.unit.physical_type == self._z.unit.physical_type):
+        if not (self._x.unit.is_equivalent(self._y.unit) and
+                self._x.unit.is_equivalent(self._z.unit)):
             raise u.UnitsError("x, y, and z should have matching physical types")
 
     def unit_vectors(self):
@@ -1028,8 +1062,18 @@ class CartesianRepresentation(BaseRepresentation):
         Returns
         -------
         xyz : `~astropy.units.Quantity`
-            With dimension 3 along ``xyz_axis``.
+            With dimension 3 along ``xyz_axis``.  Note that, if possible,
+            this will be a view.
         """
+        if self._xyz is not None:
+            if self._xyz_axis == xyz_axis:
+                return self._xyz
+            else:
+                return np.moveaxis(self._xyz, self._xyz_axis, xyz_axis)
+
+        # Create combined array.  TO DO: keep it in _xyz for repeated use?
+        # But then in-place changes have to cancel it. Likely best to
+        # also update components.
         return _combine_xyz(self._x, self._y, self._z, xyz_axis=xyz_axis)
 
     xyz = property(get_xyz)
@@ -1079,34 +1123,8 @@ class CartesianRepresentation(BaseRepresentation):
                        [ 1.23205081, 1.59807621],
                        [ 3.        , 4.        ]] pc>
         """
-
-        # Avoid doing gratuitous np.array for things that look like arrays.
-        try:
-            matrix_shape = matrix.shape
-        except AttributeError:
-            matrix = np.array(matrix)
-            matrix_shape = matrix.shape
-
-        if matrix_shape[-2:] != (3, 3):
-            raise ValueError("tried to do matrix multiplication with an array "
-                             "that doesn't end in 3x3")
-
-        # TODO: since this is likely to be a widely used function in coordinate
-        # transforms, it should be optimized (for example in Cython).
-
-        # Get xyz once since it's an expensive operation
-        oldxyz = self.xyz
-        # Note that neither dot nor einsum handles Quantity properly, so we use
-        # the arrays and put the unit back in the end.
-        if self.isscalar and not matrix_shape[:-2]:
-            # a fast path for scalar coordinates.
-            newxyz = matrix.dot(oldxyz.value)
-        else:
-            # Matrix multiply all pmat items and coordinates, broadcasting the
-            # remaining dimensions.
-            newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value)
-
-        newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
+        # erfa rxp: Multiply a p-vector by an r-matrix.
+        p = erfa_ufunc.rxp(matrix, self.get_xyz(xyz_axis=-1))
         # Handle differentials attached to this representation
         if self.differentials:
             # TODO: speed this up going via d.d_xyz.
@@ -1116,7 +1134,7 @@ class CartesianRepresentation(BaseRepresentation):
         else:
             new_diffs = None
 
-        return self.__class__(*newxyz, copy=False, differentials=new_diffs)
+        return self.__class__(p, xyz_axis=-1, copy=False, differentials=new_diffs)
 
     def _combine_operation(self, op, other, reverse=False):
         self._raise_if_has_differentials(op.__name__)
@@ -1131,6 +1149,23 @@ class CartesianRepresentation(BaseRepresentation):
         return self.__class__(*(op(getattr(first, component),
                                    getattr(second, component))
                                 for component in first.components))
+
+    def norm(self):
+        """Vector norm.
+
+        The norm is the standard Frobenius norm, i.e., the square root of the
+        sum of the squares of all components with non-angular units.
+
+        Note that any associated differentials will be dropped during this
+        operation.
+
+        Returns
+        -------
+        norm : `astropy.units.Quantity`
+            Vector norm, with the same shape as the representation.
+        """
+        # erfa pm: Modulus of p-vector.
+        return erfa_ufunc.pm(self.get_xyz(xyz_axis=-1))
 
     def mean(self, *args, **kwargs):
         """Vector mean.
@@ -1181,10 +1216,9 @@ class CartesianRepresentation(BaseRepresentation):
             raise TypeError("cannot only take dot product with another "
                             "representation, not a {0} instance."
                             .format(type(other)))
-        return functools.reduce(operator.add,
-                                (getattr(self, component) *
-                                 getattr(other_c, component)
-                                 for component in self.components))
+        # erfa pdp: p-vector inner (=scalar=dot) product.
+        return erfa_ufunc.pdp(self.get_xyz(xyz_axis=-1),
+                              other_c.get_xyz(xyz_axis=-1))
 
     def cross(self, other):
         """Cross product of two representations.
@@ -1206,9 +1240,10 @@ class CartesianRepresentation(BaseRepresentation):
             raise TypeError("cannot only take cross product with another "
                             "representation, not a {0} instance."
                             .format(type(other)))
-        return self.__class__(self.y * other_c.z - self.z * other_c.y,
-                              self.z * other_c.x - self.x * other_c.z,
-                              self.x * other_c.y - self.y * other_c.x)
+        # erfa pxp: p-vector outer (=vector=cross) product.
+        sxo = erfa_ufunc.pxp(self.get_xyz(xyz_axis=-1),
+                             other_c.get_xyz(xyz_axis=-1))
+        return self.__class__(sxo, xyz_axis=-1)
 
 
 class UnitSphericalRepresentation(BaseRepresentation):
@@ -1240,7 +1275,6 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     attr_classes = OrderedDict([('lon', Longitude),
                                 ('lat', Latitude)])
-    recommended_units = {'lon': u.deg, 'lat': u.deg}
 
     @classproperty
     def _dimensional_representation(cls):
@@ -1290,11 +1324,12 @@ class UnitSphericalRepresentation(BaseRepresentation):
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
-        x = np.cos(self.lat) * np.cos(self.lon)
-        y = np.cos(self.lat) * np.sin(self.lon)
-        z = np.sin(self.lat)
-
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+        # NUMPY_LT_1_16 cannot create a vector automatically
+        p = u.Quantity(np.empty(self.shape + (3,)), u.dimensionless_unscaled,
+                       copy=False)
+        # erfa s2c: Convert [unit]spherical coordinates to Cartesian.
+        p = erfa_ufunc.s2c(self.lon, self.lat, p)
+        return CartesianRepresentation(p, xyz_axis=-1, copy=False)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -1302,13 +1337,9 @@ class UnitSphericalRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
-
-        s = np.hypot(cart.x, cart.y)
-
-        lon = np.arctan2(cart.y, cart.x)
-        lat = np.arctan2(cart.z, s)
-
-        return cls(lon=lon, lat=lat, copy=False)
+        p = cart.get_xyz(xyz_axis=-1)
+        # erfa c2s: P-vector to [unit]spherical coordinates.
+        return cls(*erfa_ufunc.c2s(p), copy=False)
 
     def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
@@ -1529,14 +1560,22 @@ class SphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('lon', Longitude),
                                 ('lat', Latitude),
                                 ('distance', u.Quantity)])
-    recommended_units = {'lon': u.deg, 'lat': u.deg}
     _unit_representation = UnitSphericalRepresentation
 
     def __init__(self, lon, lat, distance, differentials=None, copy=True):
         super().__init__(lon, lat, distance, copy=copy,
                          differentials=differentials)
         if self._distance.unit.physical_type == 'length':
-            self._distance = self._distance.view(Distance)
+            try:
+                self._distance = Distance(self._distance, copy=False)
+            except ValueError as e:
+                if e.args[0].startswith('Distance must be >= 0'):
+                    raise ValueError("Distance must be >= 0. To allow negative "
+                                     "distance values, you must explicitly pass"
+                                     " in a `Distance` object with the the "
+                                     "argument 'allow_negative=True'.")
+                else:
+                    raise
 
     @property
     def _compatible_differentials(self):
@@ -1609,11 +1648,12 @@ class SphericalRepresentation(BaseRepresentation):
         else:
             d = self.distance
 
-        x = d * np.cos(self.lat) * np.cos(self.lon)
-        y = d * np.cos(self.lat) * np.sin(self.lon)
-        z = d * np.sin(self.lat)
+        # NUMPY_LT_1_16 cannot create a vector automatically
+        p = u.Quantity(np.empty(self.shape + (3,)), d.unit, copy=False)
+        # erfa s2p: Convert spherical polar coordinates to p-vector.
+        p = erfa_ufunc.s2p(self.lon, self.lat, d, p)
 
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+        return CartesianRepresentation(p, xyz_axis=-1, copy=False)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -1621,14 +1661,9 @@ class SphericalRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
-
-        s = np.hypot(cart.x, cart.y)
-        r = np.hypot(s, cart.z)
-
-        lon = np.arctan2(cart.y, cart.x)
-        lat = np.arctan2(cart.z, s)
-
-        return cls(lon=lon, lat=lat, distance=r, copy=False)
+        p = cart.get_xyz(xyz_axis=-1)
+        # erfa p2s: P-vector to spherical polar coordinates.
+        return cls(*erfa_ufunc.p2s(p), copy=False)
 
     def norm(self):
         """Vector norm.
@@ -1643,6 +1678,11 @@ class SphericalRepresentation(BaseRepresentation):
             Vector norm, with the same shape as the representation.
         """
         return np.abs(self.distance)
+
+    def __neg__(self):
+        self._raise_if_has_differentials('negation')
+        return self.__class__(self.lon + 180. * u.deg, -self.lat, self.distance,
+                              copy=False)
 
 
 class PhysicsSphericalRepresentation(BaseRepresentation):
@@ -1682,7 +1722,6 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('phi', Angle),
                                 ('theta', Angle),
                                 ('r', u.Quantity)])
-    recommended_units = {'phi': u.deg, 'theta': u.deg}
 
     def __init__(self, phi, theta, r, differentials=None, copy=True):
         super().__init__(phi, theta, r, copy=copy, differentials=differentials)
@@ -1838,7 +1877,6 @@ class CylindricalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('rho', u.Quantity),
                                 ('phi', Angle),
                                 ('z', u.Quantity)])
-    recommended_units = {'phi': u.deg}
 
     def __init__(self, rho, phi, z, differentials=None, copy=True):
         super().__init__(rho, phi, z, copy=copy, differentials=differentials)
@@ -1931,12 +1969,20 @@ class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
             cls.attr_classes = OrderedDict([('d_' + c, u.Quantity)
                                             for c in base_attr_classes])
 
+        if 'recommended_units' in dct:
+            warnings.warn(_recommended_units_deprecation,
+                          AstropyDeprecationWarning)
+            # Ensure we don't override the property that warns about the
+            # deprecation, but that the value remains the same.
+            dct.setdefault('_recommended_units', dct.pop('recommended_units'))
+
         repr_name = cls.get_name()
         if repr_name in DIFFERENTIAL_CLASSES:
             raise ValueError("Differential class {0} already defined"
                              .format(repr_name))
 
         DIFFERENTIAL_CLASSES[repr_name] = cls
+        _invalidate_reprdiff_cls_hash()
 
         # If not defined explicitly, create properties for the components.
         for component in cls.attr_classes:
@@ -1974,7 +2020,8 @@ class BaseDifferential(BaseRepresentationOrDifferential,
     those, and a default ``__init__`` for initialization.
     """
 
-    recommended_units = {}  # subclasses can override
+    recommended_units = deprecated_attribute('recommended_units', since='3.0')
+    _recommended_units = {}
 
     @classmethod
     def _check_base(cls, base):
@@ -1998,13 +2045,22 @@ class BaseDifferential(BaseRepresentationOrDifferential,
             d_comp = getattr(self, 'd_{0}'.format(name), None)
             if d_comp is not None:
                 d_unit = comp.unit / d_comp.unit
-                # Get the si unit without a scale by going via Quantity;
-                # `.si` causes the scale to be included in the value.
-                return str(u.Quantity(1., d_unit).si.unit)
+
+                # This is quite a bit faster than using to_system() or going
+                # through Quantity()
+                d_unit_si = d_unit.decompose(u.si.bases)
+                d_unit_si._scale = 1 # remove the scale from the unit
+
+                return str(d_unit_si)
 
         else:
-            raise RuntimeError("Invalid representation-differential match! Not "
-                               "sure how we got into this state.")
+            raise RuntimeError("Invalid representation-differential units! This"
+                               " likely happened because either the "
+                               "representation or the associated differential "
+                               "have non-standard units. Check that the input "
+                               "positional data have positional units, and the "
+                               "input velocity data have velocity units, or "
+                               "are both dimensionless.")
 
     @classmethod
     def _get_base_vectors(cls, base):
@@ -2208,20 +2264,36 @@ class CartesianDifferential(BaseDifferential):
         If `True` (default), arrays will be copied rather than referenced.
     """
     base_representation = CartesianRepresentation
+    _d_xyz = None
 
     def __init__(self, d_x, d_y=None, d_z=None, unit=None, xyz_axis=None,
                  copy=True):
 
         if d_y is None and d_z is None:
-            if xyz_axis is not None and xyz_axis != 0:
-                d_x = np.rollaxis(d_x, xyz_axis, 0)
-            d_x, d_y, d_z = d_x
-        elif xyz_axis is not None:
+            if isinstance(d_x, np.ndarray) and d_x.dtype.kind not in 'OV':
+                # Short-cut for 3-D array input.
+                d_x = u.Quantity(d_x, unit, copy=copy, subok=True)
+                # Keep a link to the array with all three coordinates
+                # so that we can return it quickly if needed in get_xyz.
+                self._d_xyz = d_x
+                if xyz_axis:
+                    d_x = np.moveaxis(d_x, xyz_axis, 0)
+                    self._xyz_axis = xyz_axis
+                else:
+                    self._xyz_axis = 0
+
+                self._d_x, self._d_y, self._d_z = d_x
+                return
+
+            else:
+                d_x, d_y, d_z = d_x
+
+        if xyz_axis is not None:
             raise ValueError("xyz_axis should only be set if d_x, d_y, and d_z "
                              "are in a single array passed in through d_x, "
                              "i.e., d_y and d_z should not be not given.")
-        elif ((d_y is None and d_z is not None) or
-              (d_y is not None and d_z is None)):
+
+        if d_y is None or d_z is None:
             raise ValueError("d_x, d_y, and d_z are required to instantiate {0}"
                              .format(self.__class__.__name__))
 
@@ -2255,9 +2327,19 @@ class CartesianDifferential(BaseDifferential):
 
         Returns
         -------
-        xyz : `~astropy.units.Quantity`
-            With dimension 3 along ``xyz_axis``.
+        d_xyz : `~astropy.units.Quantity`
+            With dimension 3 along ``xyz_axis``.  Note that, if possible,
+            this will be a view.
         """
+        if self._d_xyz is not None:
+            if self._xyz_axis == xyz_axis:
+                return self._d_xyz
+            else:
+                return np.moveaxis(self._d_xyz, self._xyz_axis, xyz_axis)
+
+        # Create combined array.  TO DO: keep it in _d_xyz for repeated use?
+        # But then in-place changes have to cancel it. Likely best to
+        # also update components.
         return _combine_xyz(self._d_x, self._d_y, self._d_z, xyz_axis=xyz_axis)
 
     d_xyz = property(get_d_xyz)
@@ -2431,7 +2513,7 @@ class SphericalDifferential(BaseSphericalDifferential):
 
 
 class BaseSphericalCosLatDifferential(BaseDifferential):
-    """Differtials from points on a spherical base representation.
+    """Differentials from points on a spherical base representation.
 
     With cos(lat) assumed to be included in the longitude differential.
     """

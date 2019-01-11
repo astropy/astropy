@@ -8,7 +8,7 @@ import locale
 import pytest
 import numpy as np
 
-from .. import data, misc
+from astropy.utils import data, misc
 
 
 def test_isiterable():
@@ -50,7 +50,7 @@ def test_skip_hidden():
 
 
 def test_JsonCustomEncoder():
-    from ... import units as u
+    from astropy import units as u
     assert json.dumps(np.arange(3), cls=misc.JsonCustomEncoder) == '[0, 1, 2]'
     assert json.dumps(1+2j, cls=misc.JsonCustomEncoder) == '[1.0, 2.0]'
     assert json.dumps(set([1, 2, 1]), cls=misc.JsonCustomEncoder) == '[1, 2]'
@@ -80,13 +80,25 @@ def test_inherit_docstrings():
             "FOO"
             pass
 
+        @property
+        def bar(self):
+            "BAR"
+            pass
+
     class Subclass(Base):
         def __call__(self, *args):
             pass
 
+        @property
+        def bar(self):
+            return 42
+
     if Base.__call__.__doc__ is not None:
         # TODO: Maybe if __doc__ is None this test should be skipped instead?
         assert Subclass.__call__.__doc__ == "FOO"
+
+    if Base.bar.__doc__ is not None:
+        assert Subclass.bar.__doc__ == "BAR"
 
 
 def test_set_locale():

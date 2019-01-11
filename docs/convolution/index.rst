@@ -252,6 +252,12 @@ Some contexts in which you might want to use kernel-based interpolation include:
    the imaged area, but an approximation of the extended sky emission can still
    be constructed.
 
+.. note::
+    Care must be taken to ensure that the kernel is large enough to completely
+    cover potential contiguous regions of ``NaN`` values.
+    An ``AstropyUserWarning`` is raised if ``NaN`` values are detected post
+    convolution, in which case the kernel size should be increased.
+
 The script below shows an example of kernel interpolation to fill in
 flagged-out pixels:
 
@@ -406,6 +412,11 @@ Using `astropy.convolution`
    using.rst
    kernels.rst
    non_normalized_kernels.rst
+
+.. note that if this section gets too long, it should be moved to a separate 
+   doc page - see the top of performance.inc.rst for the instructions on how to do
+   that
+.. include:: performance.inc.rst
 
 Reference/API
 =============

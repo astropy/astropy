@@ -22,7 +22,7 @@ Astropy Documentation
 
 .. raw:: html
 
-   <img src="_images/astropy_banner.svg" onerror="this.src='_images/astropy_banner_96.png'; this.onerror=null;" width="485"/>
+   <img src="_static/astropy_banner.svg" onerror="this.src='_static/astropy_banner_96.png'; this.onerror=null;" width="485"/>
 
 .. only:: latex
 
@@ -35,6 +35,12 @@ the community to develop a robust ecosystem of `Affiliated Packages
 <http://www.astropy.org/affiliated/index.html>`_ covering a broad range of
 needs for astronomical research, data processing, and data analysis.
 
+.. Important:: If you use Astropy for work presented in a publication or talk
+   please help the project via proper `citation or acknowledgement
+   <http://www.astropy.org/acknowledging.html>`_.  This also applies to use of
+   software or `affliated packages <http://www.astropy.org/affiliated/>`_ that
+   depend on the astropy core package.
+
 .. _getting-started:
 
 ***************
@@ -45,7 +51,7 @@ Getting Started
    :maxdepth: 1
 
    install
-   whatsnew/2.0
+   whatsnew/3.2
    importing_astropy
    Example Gallery <generated/examples/index>
    Tutorials <http://tutorials.astropy.org/>
@@ -73,6 +79,7 @@ Data structures and transformations
    coordinates/index
    wcs/index
    modeling/index
+   uncertainty/index
 
 Files, I/O, and Communication
 -----------------------------
@@ -123,14 +130,11 @@ Astropy or affiliated packages, as well as coding, documentation, and
 testing guidelines. For the guiding vision of this process and the project
 as a whole, see :doc:`development/vision`.
 
-There are additional tools of use for developers in the
-`astropy/astropy-tools repository
-<https://github.com/astropy/astropy-tools>`__.
-
 .. toctree::
    :maxdepth: 1
 
    development/workflow/development_workflow
+   development/when_to_rebase
    development/codeguide
    development/docguide
    development/testguide
@@ -141,6 +145,10 @@ There are additional tools of use for developers in the
    development/workflow/maintainer_workflow
    development/astropy-package-template
    changelog
+
+There are some additional tools, mostly of use for maintainers, in the
+`astropy/astropy-procedures repository
+<https://github.com/astropy/astropy-procedures>`__.
 
 .. _project-details:
 

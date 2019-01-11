@@ -58,7 +58,7 @@ collaborator:
 
 Now all those people can do::
 
-    git clone git@githhub.com:your-user-name/astropy.git
+    git clone --recursive git@githhub.com:your-user-name/astropy.git
 
 Remember that links starting with ``git@`` use the ssh protocol and are
 read-write; links starting with ``git://`` are read-only.

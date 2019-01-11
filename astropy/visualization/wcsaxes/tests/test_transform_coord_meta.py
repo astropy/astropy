@@ -5,19 +5,21 @@ import pytest
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .... import units as u
-from ....wcs import WCS
+from astropy import units as u
+from astropy.wcs import WCS
 
-from .. import WCSAxes
+from astropy.visualization.wcsaxes import WCSAxes
 from .test_images import BaseImageTests
-from ..transforms import CurvedTransform
+from astropy.visualization.wcsaxes.transforms import CurvedTransform
 
-from ....tests.image_tests import IMAGE_REFERENCE_DIR
+from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
 
 # Create fake transforms that roughly mimic a polar projection
 
 
 class DistanceToLonLat(CurvedTransform):
+
+    has_inverse = True
 
     def __init__(self, R=6e3):
         super().__init__()
@@ -57,7 +59,8 @@ class LonLatToDistance(CurvedTransform):
 class TestTransformCoordMeta(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR, filename='coords_overlay.png', tolerance=1.5)
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
     def test_coords_overlay(self):
 
         # Set up a simple WCS that maps pixels to non-projected distances
@@ -90,14 +93,14 @@ class TestTransformCoordMeta(BaseImageTests):
         overlay['lon'].grid(color='red', linestyle='solid', alpha=0.3)
         overlay['lat'].grid(color='blue', linestyle='solid', alpha=0.3)
 
-        overlay['lon'].set_ticklabel(size=7)
-        overlay['lat'].set_ticklabel(size=7)
+        overlay['lon'].set_ticklabel(size=7, exclude_overlapping=True)
+        overlay['lat'].set_ticklabel(size=7, exclude_overlapping=True)
 
         overlay['lon'].set_ticklabel_position('brtl')
         overlay['lat'].set_ticklabel_position('brtl')
 
-        overlay['lon'].set_ticks(spacing=10. * u.deg, exclude_overlapping=True)
-        overlay['lat'].set_ticks(spacing=10. * u.deg, exclude_overlapping=True)
+        overlay['lon'].set_ticks(spacing=10. * u.deg)
+        overlay['lat'].set_ticks(spacing=10. * u.deg)
 
         ax.set_xlim(-0.5, 1215.5)
         ax.set_ylim(-0.5, 1791.5)
@@ -105,7 +108,8 @@ class TestTransformCoordMeta(BaseImageTests):
         return fig
 
     @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR, filename='coords_overlay_auto_coord_meta.png', tolerance=1.5)
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
     def test_coords_overlay_auto_coord_meta(self):
 
         fig = plt.figure(figsize=(4, 4))
@@ -128,7 +132,8 @@ class TestTransformCoordMeta(BaseImageTests):
         return fig
 
     @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR, filename='direct_init.png', tolerance=1.5)
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
     def test_direct_init(self):
 
         s = DistanceToLonLat(R=6378.273)
@@ -146,14 +151,14 @@ class TestTransformCoordMeta(BaseImageTests):
         ax.coords['lon'].grid(color='red', linestyle='solid', alpha=0.3)
         ax.coords['lat'].grid(color='blue', linestyle='solid', alpha=0.3)
 
-        ax.coords['lon'].set_ticklabel(size=7)
-        ax.coords['lat'].set_ticklabel(size=7)
+        ax.coords['lon'].set_ticklabel(size=7, exclude_overlapping=True)
+        ax.coords['lat'].set_ticklabel(size=7, exclude_overlapping=True)
 
         ax.coords['lon'].set_ticklabel_position('brtl')
         ax.coords['lat'].set_ticklabel_position('brtl')
 
-        ax.coords['lon'].set_ticks(spacing=10. * u.deg, exclude_overlapping=True)
-        ax.coords['lat'].set_ticks(spacing=10. * u.deg, exclude_overlapping=True)
+        ax.coords['lon'].set_ticks(spacing=10. * u.deg)
+        ax.coords['lat'].set_ticks(spacing=10. * u.deg)
 
         ax.set_xlim(-400., 500.)
         ax.set_ylim(-300., 400.)

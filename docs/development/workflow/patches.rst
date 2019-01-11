@@ -17,7 +17,7 @@ If you haven't already configured git::
 Then, the workflow is the following::
 
    # Get the repository if you don't have it
-   git clone git://github.com/astropy/astropy.git
+   git clone --recursive git://github.com/astropy/astropy.git
 
    # Make a branch for your patching
    cd astropy
@@ -58,7 +58,7 @@ In detail
 #. If you don't already have one, clone a copy of the
    Astropy_ repository::
 
-      git clone git://github.com/astropy/astropy.git
+      git clone --recursive git://github.com/astropy/astropy.git
       cd astropy
 
 #. Make a 'feature branch'. This will be where you work on your bug fix. It's

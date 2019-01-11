@@ -13,8 +13,8 @@ import locale
 import math
 from collections import OrderedDict
 
-from ..helper import ignore_warnings
-from ...utils.introspection import resolve_name
+from astropy.tests.helper import ignore_warnings
+from astropy.utils.introspection import resolve_name
 
 
 PYTEST_HEADER_MODULES = OrderedDict([('Numpy', 'numpy'),
@@ -24,7 +24,7 @@ PYTEST_HEADER_MODULES = OrderedDict([('Numpy', 'numpy'),
                                      ('Pandas', 'pandas')])
 
 # This always returns with Astropy's version
-from ... import __version__
+from astropy import __version__
 TESTED_VERSIONS = OrderedDict([('Astropy', __version__)])
 
 
@@ -40,7 +40,7 @@ def pytest_report_header(config):
     # TESTED_VERSIONS can contain the affiliated package version, too
     if len(TESTED_VERSIONS) > 1:
         for pkg, version in TESTED_VERSIONS.items():
-            if pkg != 'Astropy':
+            if pkg not in ['Astropy', 'astropy_helpers']:
                 s = "\nRunning tests with {0} version {1}.\n".format(
                     pkg, version)
     else:
@@ -93,6 +93,18 @@ def pytest_report_header(config):
             except AttributeError:
                 version = 'unknown (no __version__ attribute)'
             s += "{0}: {1}\n".format(module_display, version)
+
+    # Helpers version
+    if 'astropy_helpers' in TESTED_VERSIONS:
+        astropy_helpers_version = TESTED_VERSIONS['astropy_helpers']
+    else:
+        try:
+            from astropy.version import astropy_helpers_version
+        except ImportError:
+            astropy_helpers_version = None
+
+    if astropy_helpers_version:
+        s += "astropy_helpers: {0}\n".format(astropy_helpers_version)
 
     special_opts = ["remote_data", "pep8"]
     opts = []

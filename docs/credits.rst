@@ -15,12 +15,14 @@ Core Package Contributors
 =========================
 
 * Ryan Abernathey
+* Mohan Agrawal
 * Shailesh Ahuja
 * Tom Aldcroft
 * Anne Archibald
 * Cristian Ardelean
 * Tomas Babej
 * Matteo Bachetti
+* Alexander Bakanov
 * Steven Bamford
 * Kyle Barbary
 * Geert Barentsen
@@ -28,10 +30,13 @@ Core Package Contributors
 * Paul Barrett
 * Andreas Baumbach
 * Chris Beaumont
+* Stefan Becker
 * Daniel Bell
 * Elijah Bernstein-Cooper
 * Kristin Berry
 * Edward Betts
+* Mavani Bhautik
+* Nimit Bhardwaj
 * Mavani Bhautik
 * Francesco Biscani
 * Thompson Le Blanc
@@ -69,6 +74,7 @@ Core Package Contributors
 * Robert Cross
 * Kelle Cruz
 * Dan P. Cunningham
+* Daniel D'Avella
 * Ritwick DSouza
 * Daniel Datsev
 * Matt Davis
@@ -76,6 +82,7 @@ Core Package Contributors
 * Christoph Deil
 * Nadia Dencheva
 * Eric Depagne
+* Akash Deshpande
 * Jörg Dietrich
 * Axel Donath
 * Bili Dong
@@ -94,6 +101,7 @@ Core Package Contributors
 * Christoph Gohlke
 * Danny Goldstein
 * Ralf Gommers
+* Karl Gordon
 * J. Goutin
 * Johnny Greco
 * Perry Greenfield
@@ -118,7 +126,9 @@ Core Package Contributors
 * Lingyi Hu
 * Jurien Huisman
 * Joe Hunkeler
+* Zeljko Ivezic
 * Anchit Jain
+* Anany Shrey Jain
 * VSN Reddy Janga
 * Eric Jeschke
 * Graham Kanarek
@@ -150,6 +160,8 @@ Core Package Contributors
 * Jerry Ma
 * Duncan Macleod
 * Michele Mastropietro
+* Jeffrey McBeth
+* Mike McCarty
 * Curtis McCully
 * Vinayak Mehta
 * Aaron Meisner
@@ -172,9 +184,12 @@ Core Package Contributors
 * Bryce Nordgren
 * Sigurd Næss
 * Maximilian Nöthe
+* Ricardo Ogando
 * Sara Ogaz
 * Georgiana Ogrean
 * Semyeong Oh
+* Bruno Oliveira
+* K.A. Oman
 * Miruna Oprescu
 * Carl Osterwisch
 * Luigi Paioro
@@ -185,12 +200,15 @@ Core Package Contributors
 * Neil Parley
 * Sergio Pascual
 * Pratik Patel
-* Rohit Patil
 * Aarya Patil
+* Rohit Patil
+* Sushobhana Patra
+* Molly Peeples
 * Ray Plante
 * Adele Plunkett
 * Orion Poplawski
 * Joanna Power
+* Paul Price
 * Adrian Price-Whelan
 * J. Xavier Prochaska
 * David Pérez-Suárez
@@ -200,6 +218,7 @@ Core Package Contributors
 * Evert Rol
 * Alex Rudy
 * Joseph Ryan
+* Saurav Sachidanand
 * Eloy Salinas
 * Gerrit Schellenberger
 * Michael Seifert
@@ -218,10 +237,13 @@ Core Package Contributors
 * Paul Sladen
 * Kevin Sooley
 * Shivan Sornarajah
+* Megan Sosey
 * Shantanu Srivastava
+* David Stansby
 * Ole Streicher
 * Matej Stuchlik
 * Bernardo Sulzbach
+* Jonas Große Sundrup
 * Vatsala Swaroop
 * Esteban Pardo Sánchez
 * James Taylor
@@ -230,6 +252,7 @@ Core Package Contributors
 * Kirill Tchernyshyov
 * Régis Terrier
 * Víctor Terrón
+* Peter Teuben
 * Scott Thomas
 * Erik Tollerud
 * Matthew Turk
@@ -237,6 +260,7 @@ Core Package Contributors
 * Miguel de Val-Borro
 * Jake VanderPlas
 * Alex de la Vega
+* Shresth Verma
 * Sam Verstocken
 * Zé Vinicius
 * Karl Vyhmeister
@@ -245,6 +269,7 @@ Core Package Contributors
 * Benjamin Alan Weaver
 * Jonathan Whitmore
 * Julien Woillez
+* Michael Wood-Vasey
 * Maneesh Yadav
 * Víctor Zabalza
 

@@ -4,13 +4,13 @@
 import pytest
 import numpy as np
 
-from ..blackbody import BlackBody1D, blackbody_nu, blackbody_lambda, FNU
-from ..fitting import LevMarLSQFitter
+from astropy.modeling.blackbody import BlackBody1D, blackbody_nu, blackbody_lambda, FNU
+from astropy.modeling.fitting import LevMarLSQFitter
 
-from ...tests.helper import assert_quantity_allclose, catch_warnings
-from ... import constants as const
-from ... import units as u
-from ...utils.exceptions import AstropyUserWarning
+from astropy.tests.helper import assert_quantity_allclose, catch_warnings
+from astropy import constants as const
+from astropy import units as u
+from astropy.utils.exceptions import AstropyUserWarning
 
 try:
     from scipy import optimize, integrate  # noqa

@@ -2,7 +2,7 @@ import numpy as np
 
 import pytest
 
-from ... import units as u
+from astropy import units as u
 
 
 class TestQuantityLinAlgFuncs:

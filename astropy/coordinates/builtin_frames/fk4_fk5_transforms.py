@@ -4,9 +4,9 @@
 
 import numpy as np
 
-from ..baseframe import frame_transform_graph
-from ..transformations import DynamicMatrixTransform
-from ..matrix_utilities import matrix_product, matrix_transpose
+from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.transformations import DynamicMatrixTransform
+from astropy.coordinates.matrix_utilities import matrix_product, matrix_transpose
 
 
 from .fk4 import FK4NoETerms

@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-
-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import hashlib
-import io
 import os
 import pathlib
 import sys
@@ -14,15 +11,14 @@ import urllib.error
 
 import pytest
 
-from ..data import (_get_download_cache_locs, CacheMissingWarning,
-                    get_pkg_data_filename, get_readable_fileobj)
+from astropy.utils.data import (_get_download_cache_locs, CacheMissingWarning,
+                                get_pkg_data_filename, get_readable_fileobj, conf)
 
-from ...tests.helper import raises, catch_warnings
+from astropy.tests.helper import raises, catch_warnings
 
 TESTURL = 'http://www.astropy.org'
 
 # General file object function
-
 
 try:
     import bz2  # noqa
@@ -39,36 +35,85 @@ else:
     HAS_XZ = True
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_download_nocache():
-    from ..data import download_file
+    from astropy.utils.data import download_file
 
     fnout = download_file(TESTURL)
     assert os.path.isfile(fnout)
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_download_parallel():
-    from ..data import download_files_in_parallel
+    from astropy.utils.data import download_files_in_parallel
 
-    fnout = download_files_in_parallel(
-        ['http://data.astropy.org',
-         'https://astropy.stsci.edu/data/intersphinx/README'])
+    main_url = conf.dataurl
+    mirror_url = conf.dataurl_mirror
+    fileloc = 'intersphinx/README'
+    try:
+        fnout = download_files_in_parallel([main_url, main_url + fileloc])
+    except urllib.error.URLError:  # Use mirror if timed out
+        fnout = download_files_in_parallel([mirror_url, mirror_url + fileloc])
     assert all([os.path.isfile(f) for f in fnout]), fnout
 
 
-@pytest.mark.remote_data('astropy')
+# NOTE: Does not need remote data.
+def test_download_mirror_cache():
+    import pathlib
+    import shelve
+    from astropy.utils.data import _find_pkg_data_path, download_file, get_cached_urls
+
+    main_url = pathlib.Path(
+        _find_pkg_data_path(os.path.join('data', 'dataurl'))).as_uri() + '/'
+    mirror_url = pathlib.Path(
+        _find_pkg_data_path(os.path.join('data', 'dataurl_mirror'))).as_uri() + '/'  # noqa
+
+    main_file = main_url + 'index.html'
+    mirror_file = mirror_url + 'index.html'
+
+    # Temporarily change data.conf.
+    # This also test https://github.com/astropy/astropy/pull/8163 because
+    # urlopen() on a local dir URI also gives URLError.
+    with conf.set_temp('dataurl', main_url):
+        with conf.set_temp('dataurl_mirror', mirror_url):
+
+            # "Download" files by rerouting URLs to local URIs.
+            download_file(main_file, cache=True)
+            download_file(mirror_file, cache=True)
+
+            # Now test that download_file looks in mirror's cache before
+            # download.
+            # https://github.com/astropy/astropy/issues/6982
+            dldir, urlmapfn = _get_download_cache_locs()
+            with shelve.open(urlmapfn) as url2hash:
+                del url2hash[main_file]
+
+            # Comparing hash makes sure they download the same file
+            # but does not guarantee they were downloaded from the same URL.
+            assert (download_file(main_file, cache=True) ==
+                    download_file(mirror_file, cache=True))
+
+            # This has to be called after the last download to obtain
+            # an accurate view of cached URLs.
+            # This is to ensure that main_file was not re-downloaded
+            # unnecessarily.
+            # This test also tests for "assert TESTURL in get_cached_urls()".
+            c_urls = get_cached_urls()
+            assert (mirror_file in c_urls) and (main_file not in c_urls)
+
+
+@pytest.mark.remote_data(source='astropy')
 def test_download_noprogress():
-    from ..data import download_file
+    from astropy.utils.data import download_file
 
     fnout = download_file(TESTURL, show_progress=False)
     assert os.path.isfile(fnout)
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_download_cache():
 
-    from ..data import download_file, clear_download_cache
+    from astropy.utils.data import download_file, clear_download_cache
 
     download_dir = _get_download_cache_locs()[0]
 
@@ -98,19 +143,16 @@ def test_download_cache():
     assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_url_nocache():
-
-    from ..data import get_readable_fileobj
-
     with get_readable_fileobj(TESTURL, cache=False, encoding='utf-8') as page:
         assert page.read().find('Astropy') > -1
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_find_by_hash():
 
-    from ..data import get_readable_fileobj, get_pkg_data_filename, clear_download_cache
+    from astropy.utils.data import clear_download_cache
 
     with get_readable_fileobj(TESTURL, encoding="binary", cache=True) as page:
         hash = hashlib.md5(page.read())
@@ -126,10 +168,8 @@ def test_find_by_hash():
     assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_find_invalid():
-    from ..data import get_pkg_data_filename
-
     # this is of course not a real data file and not on any remote server, but
     # it should *try* to go to the remote server
     with pytest.raises(urllib.error.URLError):
@@ -140,7 +180,7 @@ def test_find_invalid():
 @pytest.mark.parametrize(('filename'), ['local.dat', 'local.dat.gz',
                                         'local.dat.bz2', 'local.dat.xz'])
 def test_local_data_obj(filename):
-    from ..data import get_pkg_data_fileobj
+    from astropy.utils.data import get_pkg_data_fileobj
 
     if (not HAS_BZ2 and 'bz2' in filename) or (not HAS_XZ and 'xz' in filename):
         with pytest.raises(ValueError) as e:
@@ -200,8 +240,6 @@ def test_local_data_obj_invalid(bad_compressed):
 
 
 def test_local_data_name():
-    from ..data import get_pkg_data_filename
-
     fnout = get_pkg_data_filename('data/local.dat')
     assert os.path.isfile(fnout) and fnout.endswith('local.dat')
 
@@ -238,20 +276,18 @@ def test_data_name_third_party_package():
 
 @raises(RuntimeError)
 def test_local_data_nonlocalfail():
-    from ..data import get_pkg_data_filename
-
-    # this would go *outside* the atropy tree
+    # this would go *outside* the astropy tree
     get_pkg_data_filename('../../../data/README.rst')
 
 
 def test_compute_hash(tmpdir):
-    from ..data import compute_hash
+    from astropy.utils.data import compute_hash
 
     rands = b'1234567890abcdefghijklmnopqrstuvwxyz'
 
     filename = tmpdir.join('tmp.dat').strpath
 
-    with io.open(filename, 'wb') as ntf:
+    with open(filename, 'wb') as ntf:
         ntf.write(rands)
         ntf.flush()
 
@@ -262,7 +298,7 @@ def test_compute_hash(tmpdir):
 
 
 def test_get_pkg_data_contents():
-    from ..data import get_pkg_data_fileobj, get_pkg_data_contents
+    from astropy.utils.data import get_pkg_data_fileobj, get_pkg_data_contents
 
     with get_pkg_data_fileobj('data/local.dat') as f:
         contents1 = f.read()
@@ -272,21 +308,21 @@ def test_get_pkg_data_contents():
     assert contents1 == contents2
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_data_noastropy_fallback(monkeypatch):
     """
     Tests to make sure the default behavior when the cache directory can't
     be located is correct
     """
 
-    from .. import data
-    from ...config import paths
+    from astropy.utils import data
+    from astropy.config import paths
 
     # needed for testing the *real* lock at the end
     lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
 
     # better yet, set the configuration to make sure the temp files are deleted
-    data.conf.delete_temporary_downloads_at_exit = True
+    conf.delete_temporary_downloads_at_exit = True
 
     # make sure the config and cache directories are not searched
     monkeypatch.setenv(str('XDG_CONFIG_HOME'), 'foo')
@@ -360,7 +396,7 @@ def test_data_noastropy_fallback(monkeypatch):
     pytest.param('unicode.txt.bz2', marks=pytest.mark.xfail(not HAS_BZ2, reason='no bz2 support')),
     pytest.param('unicode.txt.xz', marks=pytest.mark.xfail(not HAS_XZ, reason='no lzma support'))])
 def test_read_unicode(filename):
-    from ..data import get_pkg_data_contents
+    from astropy.utils.data import get_pkg_data_contents
 
     contents = get_pkg_data_contents(os.path.join('data', filename), encoding='utf-8')
     assert isinstance(contents, str)
@@ -376,7 +412,6 @@ def test_read_unicode(filename):
 
 def test_compressed_stream():
     import base64
-    from ..data import get_readable_fileobj
 
     gzipped_data = (b"H4sICIxwG1AAA2xvY2FsLmRhdAALycgsVkjLzElVANKlxakpCpl5CiUZqQ"
                     b"olqcUl8Tn5yYk58SmJJYnxWmCRzLx0hbTSvOSSzPy8Yi5nf78QV78QLgAlLytnRQAAAA==")
@@ -406,13 +441,13 @@ def test_compressed_stream():
         assert f.read().rstrip() == b'CONTENT'
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_invalid_location_download():
     """
     checks that download_file gives a URLError and not an AttributeError,
     as its code pathway involves some fiddling with the exception.
     """
-    from ..data import download_file
+    from astropy.utils.data import download_file
 
     with pytest.raises(urllib.error.URLError):
         download_file('http://www.astropy.org/nonexistentfile')
@@ -422,16 +457,16 @@ def test_invalid_location_download_noconnect():
     """
     checks that download_file gives an OSError if the socket is blocked
     """
-    from ..data import download_file
+    from astropy.utils.data import download_file
 
     # This should invoke socket's monkeypatched failure
     with pytest.raises(OSError):
         download_file('http://astropy.org/nonexistentfile')
 
 
-@pytest.mark.remote_data('astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_is_url_in_cache():
-    from ..data import download_file, is_url_in_cache
+    from astropy.utils.data import download_file, is_url_in_cache
 
     assert not is_url_in_cache('http://astropy.org/nonexistentfile')
 
@@ -465,11 +500,3 @@ def test_path_objects_get_readable_fileobj():
     with get_readable_fileobj(fpath) as f:
         assert f.read().rstrip() == ('This file is used in the test_local_data_* '
                                      'testing functions\nCONTENT')
-
-
-@pytest.mark.remote_data('astropy')
-def test_get_cached_urls():
-    from ..data import download_file, get_cached_urls
-    download_file(TESTURL, cache=True, show_progress=False)
-
-    assert TESTURL in get_cached_urls()

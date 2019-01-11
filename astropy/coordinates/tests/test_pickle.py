@@ -2,9 +2,9 @@ import pickle
 import pytest
 import numpy as np
 
-from ...coordinates import Longitude
-from ... import coordinates as coord
-from ...tests.helper import pickle_protocol, check_pickling_recovery  # noqa
+from astropy.coordinates import Longitude
+from astropy import coordinates as coord
+from astropy.tests.helper import pickle_protocol, check_pickling_recovery  # noqa
 
 # Can't test distances without scipy due to cosmology deps
 try:

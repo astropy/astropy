@@ -129,6 +129,12 @@ environment.
       `documentation for the conda command`_ and the
       `blog post announcing anaconda environments`_.
 
+    + If astropy is installed in your environment, you may need to uninstall it
+      in order for the development version to install properly. You can do this
+      with the following command::
+
+        conda uninstall astropy
+
 .. _activate_env:
 
 Activate a virtual environment

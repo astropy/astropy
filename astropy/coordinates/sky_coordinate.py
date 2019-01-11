@@ -1,35 +1,29 @@
 
 import re
 import copy
-import warnings
-import collections
 
 import numpy as np
 
-from ..utils.compat.misc import override__dir__
-from ..units import Unit, IrreducibleUnit
-from .. import units as u
-from ..constants import c as speed_of_light
-from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
-from ..utils.exceptions import AstropyDeprecationWarning
-from ..utils.data_info import MixinInfo
-from ..utils import ShapedLikeNDArray
+from astropy import _erfa as erfa
+from astropy.utils.compat.misc import override__dir__
+from astropy import units as u
+from astropy.constants import c as speed_of_light
+from astropy.wcs.utils import skycoord_to_pixel, pixel_to_skycoord
+from astropy.utils.data_info import MixinInfo
+from astropy.utils import ShapedLikeNDArray
+from astropy.time import Time
 
 from .distances import Distance
 from .angles import Angle
-from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
+from .baseframe import (BaseCoordinateFrame, frame_transform_graph,
+                        GenericFrame, _get_repr_cls)
 from .builtin_frames import ICRS, SkyOffsetFrame
-from .representation import (BaseRepresentation, SphericalRepresentation,
-                             UnitSphericalRepresentation)
+from .representation import (SphericalRepresentation,
+                             UnitSphericalRepresentation, SphericalDifferential)
+from .sky_coordinate_parsers import (_get_frame_class, _get_frame_without_data,
+                                     _parse_coordinate_data)
 
 __all__ = ['SkyCoord', 'SkyCoordInfo']
-
-PLUS_MINUS_RE = re.compile(r'(\+|\-)')
-J_PREFIXED_RA_DEC_RE = re.compile(
-    r"""J                              # J prefix
-    ([0-9]{6,7}\.?[0-9]{0,2})          # RA as HHMMSS.ss or DDDMMSS.ss, optional decimal digits
-    ([\+\-][0-9]{6}\.?[0-9]{0,2})\s*$  # Dec as DDMMSS.ss, optional decimal digits
-    """, re.VERBOSE)
 
 
 class SkyCoordInfo(MixinInfo):
@@ -61,11 +55,12 @@ class SkyCoordInfo(MixinInfo):
             return None
 
         sc = self._parent
-        if (issubclass(sc.representation, SphericalRepresentation) and
+        if (issubclass(sc.representation_type, SphericalRepresentation) and
                 isinstance(sc.data, UnitSphericalRepresentation)):
             repr_data = sc.represent_as(sc.data.__class__, in_frame_units=True)
         else:
-            repr_data = sc.represent_as(sc.representation, in_frame_units=True)
+            repr_data = sc.represent_as(sc.representation_type,
+                                        in_frame_units=True)
         return repr_data
 
     def _represent_as_dict(self):
@@ -81,7 +76,7 @@ class SkyCoordInfo(MixinInfo):
 
         out = super()._represent_as_dict()
 
-        out['representation'] = obj.representation.get_name()
+        out['representation_type'] = obj.representation_type.get_name()
         out['frame'] = obj.frame.name
         # Note that obj.info.unit is a fake composite unit (e.g. 'deg,deg,None'
         # or None,None,m) and is not stored.  The individual attributes have
@@ -108,8 +103,10 @@ class SkyCoord(ShapedLikeNDArray):
 
     It is also possible to input coordinate values in other representations
     such as cartesian or cylindrical.  In this case one includes the keyword
-    argument ``representation='cartesian'`` (for example) along with data in
-    ``x``, ``y``, and ``z``.
+    argument ``representation_type='cartesian'`` (for example) along with data
+    in ``x``, ``y``, and ``z``.
+
+    See also: http://docs.astropy.org/en/stable/coordinates/
 
     Examples
     --------
@@ -126,25 +123,33 @@ class SkyCoord(ShapedLikeNDArray):
     positional and keyword arguments::
 
       >>> c = SkyCoord(10, 20, unit="deg")  # defaults to ICRS frame
-      >>> c = SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")  # 3 coords
+      >>> c = SkyCoord([1, 2, 3], [-30, 45, 8], frame="icrs", unit="deg")  # 3 coords
 
       >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
-      >>> c = SkyCoord(coords, FK4, unit=(u.deg, u.hourangle), obstime="J1992.21")
+      >>> c = SkyCoord(coords, frame=FK4, unit=(u.deg, u.hourangle), obstime="J1992.21")
 
-      >>> c = SkyCoord("1h12m43.2s +1d12m43s", Galactic)  # Units from string
-      >>> c = SkyCoord("galactic", l="1h12m43.2s", b="+1d12m43s")
+      >>> c = SkyCoord("1h12m43.2s +1d12m43s", frame=Galactic)  # Units from string
+      >>> c = SkyCoord(frame="galactic", l="1h12m43.2s", b="+1d12m43s")
 
       >>> ra = Longitude([1, 2, 3], unit=u.deg)  # Could also use Angle
       >>> dec = np.array([4.5, 5.2, 6.3]) * u.deg  # Astropy Quantity
       >>> c = SkyCoord(ra, dec, frame='icrs')
-      >>> c = SkyCoord(ICRS, ra=ra, dec=dec, obstime='2001-01-02T12:34:56')
+      >>> c = SkyCoord(frame=ICRS, ra=ra, dec=dec, obstime='2001-01-02T12:34:56')
 
       >>> c = FK4(1 * u.deg, 2 * u.deg)  # Uses defaults for obstime, equinox
       >>> c = SkyCoord(c, obstime='J2010.11', equinox='B1965')  # Override defaults
 
-      >>> c = SkyCoord(w=0, u=1, v=2, unit='kpc', frame='galactic', representation='cartesian')
+      >>> c = SkyCoord(w=0, u=1, v=2, unit='kpc', frame='galactic',
+      ...              representation_type='cartesian')
 
       >>> c = SkyCoord([ICRS(ra=1*u.deg, dec=2*u.deg), ICRS(ra=3*u.deg, dec=4*u.deg)])
+
+    Velocity components (proper motions or radial velocities) can also be
+    provided in a similar manner::
+
+      >>> c = SkyCoord(ra=1*u.deg, dec=2*u.deg, radial_velocity=10*u.km/u.s)
+
+      >>> c = SkyCoord(ra=1*u.deg, dec=2*u.deg, pm_ra_cosdec=2*u.mas/u.yr, pm_dec=1*u.mas/u.yr)
 
     As shown, the frame can be a `~astropy.coordinates.BaseCoordinateFrame`
     class or the corresponding string alias.  The frame classes that are built in
@@ -166,7 +171,7 @@ class SkyCoord(ShapedLikeNDArray):
         Time of observation
     equinox : valid `~astropy.time.Time` initializer, optional
         Coordinate frame equinox
-    representation : str or Representation class
+    representation_type : str or Representation class
         Specifies the representation, e.g. 'spherical', 'cartesian', or
         'cylindrical'.  This affects the positional args and other keyword args
         which must correspond to the given representation.
@@ -181,14 +186,22 @@ class SkyCoord(ShapedLikeNDArray):
             RA and Dec for frames where ``ra`` and ``dec`` are keys in the
             frame's ``representation_component_names``, including `ICRS`,
             `FK5`, `FK4`, and `FK4NoETerms`.
+        pm_ra_cosdec, pm_dec  : `~astropy.units.Quantity`, optional
+            Proper motion components, in angle per time units.
         l, b : valid `~astropy.coordinates.Angle` initializer, optional
             Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
             keys in the frame's ``representation_component_names``, including
             the `Galactic` frame.
+        pm_l_cosb, pm_b : `~astropy.units.Quantity`, optional
+            Proper motion components in the `Galactic` frame, in angle per time
+            units.
         x, y, z : float or `~astropy.units.Quantity`, optional
             Cartesian coordinates values
         u, v, w : float or `~astropy.units.Quantity`, optional
             Cartesian coordinates values for the Galactic frame.
+        radial_velocity : `~astropy.units.Quantity`, optional
+            The component of the velocity along the line-of-sight (i.e., the
+            radial direction), in velocity units.
     """
 
     # Declare that SkyCoord can be used as a Table column by defining the
@@ -197,43 +210,83 @@ class SkyCoord(ShapedLikeNDArray):
 
     def __init__(self, *args, copy=True, **kwargs):
 
-        # Parse the args and kwargs to assemble a sanitized and validated
-        # kwargs dict for initializing attributes for this object and for
-        # creating the internal self._sky_coord_frame object
-        args = list(args)  # Make it mutable
-        kwargs = self._parse_inputs(args, kwargs)
-
-        frame = kwargs['frame']
-        frame_attr_names = frame.get_frame_attr_names()
-
         # these are frame attributes set on this SkyCoord but *not* a part of
         # the frame object this SkyCoord contains
         self._extra_frameattr_names = set()
 
-        for attr in kwargs:
-            if (attr not in frame_attr_names and
-                attr in frame_transform_graph.frame_attributes):
+        # If all that is passed in is a frame instance that already has data,
+        # we should bypass all of the parsing and logic below. This is here
+        # to make this the fastest way to create a SkyCoord instance. Many of
+        # the classmethods implemented for performance enhancements will use
+        # this as the initialization path
+        if (len(args) == 1 and len(kwargs) == 0 and
+                isinstance(args[0], (BaseCoordinateFrame, SkyCoord))):
+
+            coords = args[0]
+            if isinstance(coords, SkyCoord):
+                self._extra_frameattr_names = coords._extra_frameattr_names
+                self.info = coords.info
+
+                # Copy over any extra frame attributes
+                for attr_name in self._extra_frameattr_names:
+                    # Setting it will also validate it.
+                    setattr(self, attr_name, getattr(coords, attr_name))
+
+                coords = coords.frame
+
+            if not coords.has_data:
+                raise ValueError('Cannot initialize from a coordinate frame '
+                                 'instance without coordinate data')
+
+            if copy:
+                self._sky_coord_frame = coords.copy()
+            else:
+                self._sky_coord_frame = coords
+
+        else:
+            # Get the frame instance without coordinate data but with all frame
+            # attributes set - these could either have been passed in with the
+            # frame as an instance, or passed in as kwargs here
+            frame_cls, frame_kwargs = _get_frame_without_data(args, kwargs)
+
+            # Parse the args and kwargs to assemble a sanitized and validated
+            # kwargs dict for initializing attributes for this object and for
+            # creating the internal self._sky_coord_frame object
+            args = list(args)  # Make it mutable
+            skycoord_kwargs, components, info = _parse_coordinate_data(
+                frame_cls(**frame_kwargs), args, kwargs)
+
+            # In the above two parsing functions, these kwargs were identified
+            # as valid frame attributes for *some* frame, but not the frame that
+            # this SkyCoord will have. We keep these attributes as special
+            # skycoord frame attributes:
+            for attr in skycoord_kwargs:
                 # Setting it will also validate it.
-                setattr(self, attr, kwargs[attr])
+                setattr(self, attr, skycoord_kwargs[attr])
 
-        coord_kwargs = {}
-        if 'representation' in kwargs:
-            coord_kwargs['representation'] = _get_repr_cls(kwargs['representation'])
-        for attr, value in kwargs.items():
-            if value is not None and (attr in frame.representation_component_names
-                                      or attr in frame.get_frame_attr_names()):
-                coord_kwargs[attr] = value
+            if info is not None:
+                self.info = info
 
-        # Finally make the internal coordinate object.
-        self._sky_coord_frame = frame.__class__(copy=copy, **coord_kwargs)
+            # Finally make the internal coordinate object.
+            frame_kwargs.update(components)
+            self._sky_coord_frame = frame_cls(copy=copy, **frame_kwargs)
 
-        if not self._sky_coord_frame.has_data:
-            raise ValueError('Cannot create a SkyCoord without data')
+            if not self._sky_coord_frame.has_data:
+                raise ValueError('Cannot create a SkyCoord without data')
 
     @property
     def frame(self):
         return self._sky_coord_frame
 
+    @property
+    def representation_type(self):
+        return self.frame.representation_type
+
+    @representation_type.setter
+    def representation_type(self, value):
+        self.frame.representation_type = value
+
+    # TODO: remove these in future
     @property
     def representation(self):
         return self.frame.representation
@@ -280,117 +333,29 @@ class SkyCoord(ShapedLikeNDArray):
                 else:
                     return getattr(value, method)(*args, **kwargs)
 
-        self_frame = self._sky_coord_frame
-        try:
-            # First turn `self` into a mockup of the thing we want - we can copy
-            # this to get all the right attributes
-            self._sky_coord_frame = self_frame._apply(method, *args, **kwargs)
-            out = SkyCoord(self, representation=self.representation, copy=False)
-            for attr in self._extra_frameattr_names:
-                value = getattr(self, attr)
-                if getattr(value, 'size', 1) > 1:
-                    value = apply_method(value)
-                elif method == 'copy' or method == 'flatten':
-                    # flatten should copy also for a single element array, but
-                    # we cannot use it directly for array scalars, since it
-                    # always returns a one-dimensional array. So, just copy.
-                    value = copy.copy(value)
-                setattr(out, '_' + attr, value)
+        # create a new but empty instance, and copy over stuff
+        new = super().__new__(self.__class__)
+        new._sky_coord_frame = self._sky_coord_frame._apply(method,
+                                                            *args, **kwargs)
+        new._extra_frameattr_names = self._extra_frameattr_names.copy()
+        for attr in self._extra_frameattr_names:
+            value = getattr(self, attr)
+            if getattr(value, 'size', 1) > 1:
+                value = apply_method(value)
+            elif method == 'copy' or method == 'flatten':
+                # flatten should copy also for a single element array, but
+                # we cannot use it directly for array scalars, since it
+                # always returns a one-dimensional array. So, just copy.
+                value = copy.copy(value)
+            setattr(new, '_' + attr, value)
 
-            # Copy other 'info' attr only if it has actually been defined.
-            # See PR #3898 for further explanation and justification, along
-            # with Quantity.__array_finalize__
-            if 'info' in self.__dict__:
-                out.info = self.info
+        # Copy other 'info' attr only if it has actually been defined.
+        # See PR #3898 for further explanation and justification, along
+        # with Quantity.__array_finalize__
+        if 'info' in self.__dict__:
+            new.info = self.info
 
-            return out
-        finally:
-            # now put back the right frame in self
-            self._sky_coord_frame = self_frame
-
-    def _parse_inputs(self, args, kwargs):
-        """
-        Assemble a validated and sanitized keyword args dict for instantiating a
-        SkyCoord and coordinate object from the provided `args`, and `kwargs`.
-        """
-        valid_kwargs = {}
-
-        # Put the SkyCoord attributes like frame, equinox, obstime, location
-        # into valid_kwargs dict.  `Frame` could come from args or kwargs, so
-        # set valid_kwargs['frame'] accordingly.  The others must be specified
-        # by keyword args or else get a None default.  Pop them off of kwargs
-        # in the process.
-        frame = valid_kwargs['frame'] = _get_frame(args, kwargs)
-        if 'representation' in kwargs:
-            valid_kwargs['representation'] = _get_repr_cls(kwargs.pop('representation'))
-
-        for attr in frame_transform_graph.frame_attributes:
-            if attr in kwargs:
-                valid_kwargs[attr] = kwargs.pop(attr)
-
-        # Get units
-        units = _get_units(args, kwargs)
-
-        # Grab any frame-specific attr names like `ra` or `l` or `distance` from kwargs
-        # and migrate to valid_kwargs.
-        valid_kwargs.update(_get_representation_attrs(frame, units, kwargs))
-
-        # Error if anything is still left in kwargs
-        if kwargs:
-
-            # TODO: remove this when velocities are supported in SkyCoord
-            vel_url = 'http://docs.astropy.org/en/stable/coordinates/velocities.html'
-            for k in kwargs:
-                if k.startswith('pm_') or k == 'radial_velocity':
-                    raise ValueError('Velocity data is currently only supported'
-                                     ' in the coordinate frame objects, not in '
-                                     'SkyCoord. See the velocities '
-                                     'documentation page for more information: '
-                                     '{0}'.format(vel_url))
-
-            raise ValueError('Unrecognized keyword argument(s) {0}'
-                             .format(', '.join("'{0}'".format(key) for key in kwargs)))
-
-        # Finally deal with the unnamed args.  This figures out what the arg[0] is
-        # and returns a dict with appropriate key/values for initializing frame class.
-        if args:
-            if len(args) == 1:
-                # One arg which must be a coordinate.  In this case
-                # coord_kwargs will contain keys like 'ra', 'dec', 'distance'
-                # along with any frame attributes like equinox or obstime which
-                # were explicitly specified in the coordinate object (i.e. non-default).
-                coord_kwargs = _parse_coordinate_arg(args[0], frame, units, kwargs)
-
-                # Copy other 'info' attr only if it has actually been defined.
-                if 'info' in getattr(args[0], '__dict__', ()):
-                    self.info = args[0].info
-
-            elif len(args) <= 3:
-                frame_attr_names = frame.representation_component_names.keys()
-                repr_attr_names = frame.representation_component_names.values()
-                coord_kwargs = {}
-                for arg, frame_attr_name, repr_attr_name, unit in zip(args, frame_attr_names,
-                                                                      repr_attr_names, units):
-                    attr_class = frame.representation.attr_classes[repr_attr_name]
-                    coord_kwargs[frame_attr_name] = attr_class(arg, unit=unit)
-
-            else:
-                raise ValueError('Must supply no more than three positional arguments, got {}'
-                                 .format(len(args)))
-
-            # Copy the coord_kwargs into the final valid_kwargs dict.  For each
-            # of the coord_kwargs ensure that there is no conflict with a value
-            # specified by the user in the original kwargs.
-            for attr, coord_value in coord_kwargs.items():
-                if (attr in valid_kwargs
-                        and valid_kwargs[attr] is not None
-                        and np.any(valid_kwargs[attr] != coord_value)):
-                    raise ValueError("Coordinate attribute '{0}'={1!r} conflicts with "
-                                     "keyword argument '{0}'={2!r}"
-                                     .format(attr, coord_value, valid_kwargs[attr]))
-                valid_kwargs[attr] = coord_value
-
-        return valid_kwargs
+        return new
 
     def transform_to(self, frame, merge_attributes=True):
         """Transform this coordinate to a new frame.
@@ -482,7 +447,125 @@ class SkyCoord(ShapedLikeNDArray):
         for attr in (set(new_coord.get_frame_attr_names()) &
                      set(frame_kwargs.keys())):
             frame_kwargs.pop(attr)
+
         return self.__class__(new_coord, **frame_kwargs)
+
+    def apply_space_motion(self, new_obstime=None, dt=None):
+        """
+        Compute the position of the source represented by this coordinate object
+        to a new time using the velocities stored in this object and assuming
+        linear space motion (including relativistic corrections). This is
+        sometimes referred to as an "epoch transformation."
+
+        The initial time before the evolution is taken from the ``obstime``
+        attribute of this coordinate.  Note that this method currently does not
+        support evolving coordinates where the *frame* has an ``obstime`` frame
+        attribute, so the ``obstime`` is only used for storing the before and
+        after times, not actually as an attribute of the frame. Alternatively,
+        if ``dt`` is given, an ``obstime`` need not be provided at all.
+
+        Parameters
+        ----------
+        new_obstime : `~astropy.time.Time`, optional
+            The time at which to evolve the position to. Requires that the
+            ``obstime`` attribute be present on this frame.
+        dt : `~astropy.units.Quantity`, `~astropy.time.TimeDelta`, optional
+            An amount of time to evolve the position of the source. Cannot be
+            given at the same time as ``new_obstime``.
+
+        Returns
+        -------
+        new_coord : `SkyCoord`
+            A new coordinate object with the evolved location of this coordinate
+            at the new time.  ``obstime`` will be set on this object to the new
+            time only if ``self`` also has ``obstime``.
+        """
+
+        if (new_obstime is None and dt is None or
+                new_obstime is not None and dt is not None):
+            raise ValueError("You must specify one of `new_obstime` or `dt`, "
+                             "but not both.")
+
+        # Validate that we have velocity info
+        if 's' not in self.frame.data.differentials:
+            raise ValueError('SkyCoord requires velocity data to evolve the '
+                             'position.')
+
+        if 'obstime' in self.frame.frame_attributes:
+            raise NotImplementedError("Updating the coordinates in a frame "
+                                      "with explicit time dependence is "
+                                      "currently not supported. If you would "
+                                      "like this functionality, please open an "
+                                      "issue on github:\n"
+                                      "https://github.com/astropy/astropy")
+
+        if new_obstime is not None and self.obstime is None:
+            # If no obstime is already on this object, raise an error if a new
+            # obstime is passed: we need to know the time / epoch at which the
+            # the position / velocity were measured initially
+            raise ValueError('This object has no associated `obstime`. '
+                             'apply_space_motion() must receive a time '
+                             'difference, `dt`, and not a new obstime.')
+
+        # Compute t1 and t2, the times used in the starpm call, which *only*
+        # uses them to compute a delta-time
+        t1 = self.obstime
+        if dt is None:
+            # self.obstime is not None and new_obstime is not None b/c of above
+            # checks
+            t2 = new_obstime
+        else:
+            # new_obstime is definitely None b/c of the above checks
+            if t1 is None:
+                # MAGIC NUMBER: if the current SkyCoord object has no obstime,
+                # assume J2000 to do the dt offset. This is not actually used
+                # for anything except a delta-t in starpm, so it's OK that it's
+                # not necessarily the "real" obstime
+                t1 = Time('J2000')
+                new_obstime = None  # we don't actually know the inital obstime
+                t2 = t1 + dt
+            else:
+                t2 = t1 + dt
+                new_obstime = t2
+        # starpm wants tdb time
+        t1 = t1.tdb
+        t2 = t2.tdb
+
+        # proper motion in RA should not include the cos(dec) term, see the
+        # erfa function eraStarpv, comment (4).  So we convert to the regular
+        # spherical differentials.
+        icrsrep = self.icrs.represent_as(SphericalRepresentation, SphericalDifferential)
+        icrsvel = icrsrep.differentials['s']
+
+        try:
+            plx = icrsrep.distance.to_value(u.arcsecond, u.parallax())
+        except u.UnitConversionError: # No distance: set to 0 by starpm convention
+            plx = 0.
+
+        try:
+            rv = icrsvel.d_distance.to_value(u.km/u.s)
+        except u.UnitConversionError: # No RV
+            rv = 0.
+
+        starpm = erfa.starpm(icrsrep.lon.radian, icrsrep.lat.radian,
+                             icrsvel.d_lon.to_value(u.radian/u.yr),
+                             icrsvel.d_lat.to_value(u.radian/u.yr),
+                             plx, rv, t1.jd1, t1.jd2, t2.jd1, t2.jd2)
+
+        icrs2 = ICRS(ra=u.Quantity(starpm[0], u.radian, copy=False),
+                     dec=u.Quantity(starpm[1], u.radian, copy=False),
+                     pm_ra=u.Quantity(starpm[2], u.radian/u.yr, copy=False),
+                     pm_dec=u.Quantity(starpm[3], u.radian/u.yr, copy=False),
+                     distance=Distance(parallax=starpm[4] * u.arcsec, copy=False),
+                     radial_velocity=u.Quantity(starpm[5], u.km/u.s, copy=False),
+                     differential_type=SphericalDifferential)
+
+        # Update the obstime of the returned SkyCoord, and need to carry along
+        # the frame attributes
+        frattrs = {attrnm: getattr(self, attrnm)
+                   for attrnm in self._extra_frameattr_names}
+        frattrs['obstime'] = new_obstime
+        return self.__class__(icrs2, **frattrs).transform_to(self.frame)
 
     def __getattr__(self, attr):
         """
@@ -719,7 +802,7 @@ class SkyCoord(ShapedLikeNDArray):
 
             If the ``other`` coordinate object is in a different frame, it is
             first transformed to the frame of this object. This can lead to
-            unintutive behavior if not accounted for. Particularly of note is
+            unintuitive behavior if not accounted for. Particularly of note is
             that ``self.separation(other)`` and ``other.separation(self)`` may
             not give the same answer in this case.
 
@@ -800,7 +883,9 @@ class SkyCoord(ShapedLikeNDArray):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 
-        return Distance((self.cartesian - other.cartesian).norm())
+        c1 = self.cartesian.without_differentials()
+        c2 = other.cartesian.without_differentials()
+        return Distance((c1 - c2).norm())
 
     def spherical_offsets_to(self, tocoord):
         r"""
@@ -809,7 +894,7 @@ class SkyCoord(ShapedLikeNDArray):
         Parameters
         ----------
         tocoord : `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate to offset to.
+            The coordinate to find the offset to.
 
         Returns
         -------
@@ -836,7 +921,8 @@ class SkyCoord(ShapedLikeNDArray):
 
         See Also
         --------
-        separation : for the *total* angular offset (not broken out into components)
+        separation : for the *total* angular offset (not broken out into components).
+        position_angle : for the direction of the offset.
 
         """
         if not self.is_equivalent_frame(tocoord):
@@ -848,6 +934,53 @@ class SkyCoord(ShapedLikeNDArray):
         dlon = acoord.spherical.lon.view(Angle)
         dlat = acoord.spherical.lat.view(Angle)
         return dlon, dlat
+
+    def directional_offset_by(self, position_angle, separation):
+        """
+        Computes coordinates at the given offset from this coordinate.
+
+        Parameters
+        ----------
+        position_angle : `~astropy.coordinates.Angle`
+            position_angle of offset
+        separation : `~astropy.coordinates.Angle`
+            offset angular separation
+
+        Returns
+        -------
+        newpoints : `~astropy.coordinates.SkyCoord`
+            The coordinates for the location that corresponds to offsetting by
+            the given `position_angle` and `separation`.
+
+        Notes
+        -----
+        Returned SkyCoord frame retains only the frame attributes that are for
+        the resulting frame type.  (e.g. if the input frame is
+        `~astropy.coordinates.ICRS`, an ``equinox`` value will be retained, but
+        an ``obstime`` will not.)
+
+        For a more complete set of transform offsets, use `~astropy.wcs.WCS`.
+        `~astropy.coordinates.SkyCoord.skyoffset_frame()` can also be used to
+        create a spherical frame with (lat=0, lon=0) at a reference point,
+        approximating an xy cartesian system for small offsets. This method
+        is distinct in that it is accurate on the sphere.
+
+        See Also
+        --------
+        position_angle : inverse operation for the ``position_angle`` component
+        separation : inverse operation for the ``separation`` component
+
+        """
+        from . import angle_utilities
+
+        slat = self.represent_as(UnitSphericalRepresentation).lat
+        slon = self.represent_as(UnitSphericalRepresentation).lon
+
+        newlon, newlat = angle_utilities.offset_by(
+            lon=slon, lat=slat,
+            posang=position_angle, distance=separation)
+
+        return SkyCoord(newlon, newlat, frame=self.frame)
 
     def match_to_catalog_sky(self, catalogcoord, nthneighbor=1):
         """
@@ -1192,7 +1325,17 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from .funcs import get_constellation
 
-        return get_constellation(self, short_name, constellation_list)
+        # because of issue #7028, the conversion to a PrecessedGeocentric
+        # system fails in some cases.  Work around is to  drop the velocities.
+        # they are not needed here since only position infromation is used
+        extra_frameattrs = {nm: getattr(self, nm)
+                            for nm in self._extra_frameattr_names}
+        novel = SkyCoord(self.realize_frame(self.data.without_differentials()),
+                         **extra_frameattrs)
+        return get_constellation(novel, short_name, constellation_list)
+
+        # the simpler version below can be used when gh-issue #7028 is resolved
+        #return get_constellation(self, short_name, constellation_list)
 
     # WCS pixel to/from sky conversions
     def to_pixel(self, wcs, origin=0, mode='all'):
@@ -1251,6 +1394,45 @@ class SkyCoord(ShapedLikeNDArray):
         astropy.wcs.utils.pixel_to_skycoord : the implementation of this method
         """
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
+
+
+    def contained_by(self, wcs, image=None, **kwargs):
+        """
+        Determines if the SkyCoord is contained in the given wcs footprint.
+
+        Parameters
+        ----------
+        wcs : `~astropy.wcs.WCS`
+            The coordinate to check if it is within the wcs coordinate.
+        image : array
+            Optional.  The image associated with the wcs object that the cooordinate
+            is being checked against. If not given the naxis keywords will be used
+            to determine if the coordinate falls within the wcs footprint.
+        **kwargs :
+           Additional arguments to pass to `~astropy.coordinates.SkyCoord.to_pixel`
+
+        Returns
+        -------
+        response : bool
+           True means the WCS footprint contains the coordinate, False means it does not.
+        """
+
+        if image is not None:
+            ymax,xmax = image.shape
+        else:
+            xmax,ymax = wcs._naxis
+
+        import warnings
+        with warnings.catch_warnings():
+            #  Suppress warnings since they just mean we didn't find the coordinate
+            warnings.simplefilter("ignore")
+            try:
+                x,y = self.to_pixel(wcs, **kwargs)
+            except Exception:
+                return False
+
+        return (x < xmax) & (x > 0) & (y < ymax) & (y > 0)
+
 
     def radial_velocity_correction(self, kind='barycentric', obstime=None,
                                    location=None):
@@ -1386,7 +1568,7 @@ class SkyCoord(ShapedLikeNDArray):
         if kind == 'barycentric':
             beta_obs = (v_origin_to_earth + gcrs_v) / speed_of_light
             gamma_obs = 1 / np.sqrt(1 - beta_obs.norm()**2)
-            gr = location._gravitational_redshift(obstime)
+            gr = location.gravitational_redshift(obstime)
             # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
             # neglecting Shapiro delay and effects of the star's own motion
             zb = gamma_obs * (1 + targcart.dot(beta_obs)) / (1 + gr/speed_of_light) - 1
@@ -1436,9 +1618,9 @@ class SkyCoord(ShapedLikeNDArray):
         newsc : same as this class
             The new `SkyCoord` (or subclass) object.
         """
-        inital_frame = coord_kwargs.get('frame')
-        frame = _get_frame([], coord_kwargs)
-        coord_kwargs['frame'] = inital_frame
+        _frame_cls, _frame_kwargs = _get_frame_without_data([], coord_kwargs)
+        frame = _frame_cls(**_frame_kwargs)
+        coord_kwargs['frame'] = coord_kwargs.get('frame', frame)
 
         comp_kwargs = {}
         for comp_name in frame.representation_component_names:
@@ -1475,7 +1657,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     # Name resolve
     @classmethod
-    def from_name(cls, name, frame='icrs'):
+    def from_name(cls, name, frame='icrs', parse=False):
         """
         Given a name, query the CDS name resolver to attempt to retrieve
         coordinate information for that object. The search database, sesame
@@ -1490,6 +1672,15 @@ class SkyCoord(ShapedLikeNDArray):
             The name of the object to get coordinates for, e.g. ``'M42'``.
         frame : str or `BaseCoordinateFrame` class or instance
             The frame to transform the object to.
+        parse: bool
+            Whether to attempt extracting the coordinates from the name by
+            parsing with a regex. For objects catalog names that have
+            J-coordinates embedded in their names eg:
+            'CRTS SSS100805 J194428-420209', this may be much faster than a
+            sesame query for the same object name. The coordinates extracted
+            in this way may differ from the database coordinates by a few
+            deci-arcseconds, so only use this option if you do not need
+            sub-arcsecond accuracy for coordinates.
 
         Returns
         -------
@@ -1499,411 +1690,9 @@ class SkyCoord(ShapedLikeNDArray):
 
         from .name_resolve import get_icrs_coordinates
 
-        icrs_coord = get_icrs_coordinates(name)
+        icrs_coord = get_icrs_coordinates(name, parse)
         icrs_sky_coord = cls(icrs_coord)
         if frame in ('icrs', icrs_coord.__class__):
             return icrs_sky_coord
         else:
             return icrs_sky_coord.transform_to(frame)
-
-
-# <----------------Private utility functions below here------------------------->
-
-
-def _get_frame_class(frame):
-    """
-    Get a frame class from the input `frame`, which could be a frame name
-    string, or frame class.
-    """
-    import inspect
-
-    if isinstance(frame, str):
-        frame_names = frame_transform_graph.get_names()
-        if frame not in frame_names:
-            raise ValueError('Coordinate frame {0} not in allowed values {1}'
-                             .format(frame, sorted(frame_names)))
-        frame_cls = frame_transform_graph.lookup_name(frame)
-
-    elif inspect.isclass(frame) and issubclass(frame, BaseCoordinateFrame):
-        frame_cls = frame
-
-    else:
-        raise ValueError('Coordinate frame must be a frame name or frame class')
-
-    return frame_cls
-
-
-def _get_frame(args, kwargs):
-    """
-    Determine the coordinate frame from input SkyCoord args and kwargs.  This
-    modifies args and/or kwargs in-place to remove the item that provided
-    `frame`.  It also infers the frame if an input coordinate was provided and
-    checks for conflicts.
-
-    This allows for frame to be specified as a string like 'icrs' or a frame
-    class like ICRS, but not an instance ICRS() since the latter could have
-    non-default representation attributes which would require a three-way merge.
-    """
-    frame = kwargs.pop('frame', None)
-
-    if frame is None and len(args) > 1:
-
-        # We do not allow frames to be passed as positional arguments if data
-        # is passed separately from frame.
-
-        for arg in args:
-
-            if isinstance(arg, (SkyCoord, BaseCoordinateFrame)):
-                raise ValueError("{0} instance cannot be passed as a positional "
-                                 "argument for the frame, pass it using the "
-                                 "frame= keyword instead.".format(arg.__class__.__name__))
-
-    # If the frame is an instance or SkyCoord, we split up the attributes and
-    # make it into a class.
-
-    if isinstance(frame, SkyCoord):
-        # Copy any extra attributes if they are not explicitly given.
-        for attr in frame._extra_frameattr_names:
-            kwargs.setdefault(attr, getattr(frame, attr))
-        frame = frame.frame
-
-    if isinstance(frame, BaseCoordinateFrame):
-
-        for attr in frame.get_frame_attr_names():
-            if attr in kwargs:
-                raise ValueError("cannot specify frame attribute '{0}' directly in SkyCoord since a frame instance was passed in".format(attr))
-            else:
-                kwargs[attr] = getattr(frame, attr)
-
-        frame = frame.__class__
-
-    if frame is not None:
-        # Frame was provided as kwarg so validate and coerce into corresponding frame.
-        frame_cls = _get_frame_class(frame)
-        frame_specified_explicitly = True
-    else:
-        # Look for the frame in args
-        for arg in args:
-            try:
-                frame_cls = _get_frame_class(arg)
-                frame_specified_explicitly = True
-            except ValueError:
-                pass
-            else:
-                args.remove(arg)
-                warnings.warn("Passing a frame as a positional argument is now "
-                              "deprecated, use the frame= keyword argument "
-                              "instead.", AstropyDeprecationWarning)
-                break
-        else:
-            # Not in args nor kwargs - default to icrs
-            frame_cls = ICRS
-            frame_specified_explicitly = False
-
-    # Check that the new frame doesn't conflict with existing coordinate frame
-    # if a coordinate is supplied in the args list.  If the frame still had not
-    # been set by this point and a coordinate was supplied, then use that frame.
-    for arg in args:
-        # this catches the "single list passed in" case.  For that case we want
-        # to allow the first argument to set the class.  That's OK because
-        # _parse_coordinate_arg goes and checks that the frames match between
-        # the first and all the others
-        if (isinstance(arg, (collections.Sequence, np.ndarray)) and
-             len(args) == 1 and len(arg) > 0):
-            arg = arg[0]
-
-        coord_frame_cls = None
-        if isinstance(arg, BaseCoordinateFrame):
-            coord_frame_cls = arg.__class__
-        elif isinstance(arg, SkyCoord):
-            coord_frame_cls = arg.frame.__class__
-
-        if coord_frame_cls is not None:
-            if not frame_specified_explicitly:
-                frame_cls = coord_frame_cls
-            elif frame_cls is not coord_frame_cls:
-                raise ValueError("Cannot override frame='{0}' of input coordinate with "
-                                 "new frame='{1}'.  Instead transform the coordinate."
-                                 .format(coord_frame_cls.__name__, frame_cls.__name__))
-
-    if 'representation' in kwargs:
-        frame = frame_cls(representation=_get_repr_cls(kwargs['representation']))
-    else:
-        frame = frame_cls()
-
-    return frame
-
-
-def _get_units(args, kwargs):
-    """
-    Get the longitude unit and latitude unit from kwargs.  Possible enhancement
-    is to allow input from args as well.
-    """
-    if 'unit' not in kwargs:
-        units = [None, None, None]
-
-    else:
-        units = kwargs.pop('unit')
-
-        if isinstance(units, str):
-            units = [x.strip() for x in units.split(',')]
-            # Allow for input like unit='deg' or unit='m'
-            if len(units) == 1:
-                units = [units[0], units[0], units[0]]
-        elif isinstance(units, (Unit, IrreducibleUnit)):
-            units = [units, units, units]
-
-        try:
-            units = [(Unit(x) if x else None) for x in units]
-            units.extend(None for x in range(3 - len(units)))
-            if len(units) > 3:
-                raise ValueError()
-        except Exception:
-            raise ValueError('Unit keyword must have one to three unit values as '
-                             'tuple or comma-separated string')
-
-    return units
-
-
-def _parse_coordinate_arg(coords, frame, units, init_kwargs):
-    """
-    Single unnamed arg supplied.  This must be:
-    - Coordinate frame with data
-    - Representation
-    - SkyCoord
-    - List or tuple of:
-      - String which splits into two values
-      - Iterable with two values
-      - SkyCoord, frame, or representation objects.
-
-    Returns a dict mapping coordinate attribute names to values (or lists of
-    values)
-    """
-    is_scalar = False  # Differentiate between scalar and list input
-    valid_kwargs = {}  # Returned dict of lon, lat, and distance (optional)
-
-    frame_attr_names = frame.representation_component_names.keys()
-    repr_attr_names = frame.representation_component_names.values()
-    repr_attr_classes = frame.representation.attr_classes.values()
-    n_attr_names = len(repr_attr_names)
-
-    # Turn a single string into a list of strings for convenience
-    if isinstance(coords, str):
-        is_scalar = True
-        coords = [coords]
-
-    if isinstance(coords, (SkyCoord, BaseCoordinateFrame)):
-        # Note that during parsing of `frame` it is checked that any coordinate
-        # args have the same frame as explicitly supplied, so don't worry here.
-
-        if not coords.has_data:
-            raise ValueError('Cannot initialize from a frame without coordinate data')
-
-        data = coords.data.represent_as(frame.representation)
-
-        values = []  # List of values corresponding to representation attrs
-        for repr_attr_name in repr_attr_names:
-            # If coords did not have an explicit distance then don't include in initializers.
-            if (isinstance(coords.data, UnitSphericalRepresentation) and
-                    repr_attr_name == 'distance'):
-                continue
-
-            # Get the value from `data` in the eventual representation
-            values.append(getattr(data, repr_attr_name))
-
-        for attr in frame_transform_graph.frame_attributes:
-            value = getattr(coords, attr, None)
-            use_value = (isinstance(coords, SkyCoord)
-                         or attr not in coords._attr_names_with_defaults)
-            if use_value and value is not None:
-                valid_kwargs[attr] = value
-
-    elif isinstance(coords, BaseRepresentation):
-        data = coords.represent_as(frame.representation)
-        values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
-
-    elif (isinstance(coords, np.ndarray) and coords.dtype.kind in 'if'
-          and coords.ndim == 2 and coords.shape[1] <= 3):
-        # 2-d array of coordinate values.  Handle specially for efficiency.
-        values = coords.transpose()  # Iterates over repr attrs
-
-    elif isinstance(coords, (collections.Sequence, np.ndarray)):
-        # Handles list-like input.
-
-        vals = []
-        is_ra_dec_representation = ('ra' in frame.representation_component_names and
-                                    'dec' in frame.representation_component_names)
-        coord_types = (SkyCoord, BaseCoordinateFrame, BaseRepresentation)
-        if any(isinstance(coord, coord_types) for coord in coords):
-            # this parsing path is used when there are coordinate-like objects
-            # in the list - instead of creating lists of values, we create
-            # SkyCoords from the list elements and then combine them.
-            scs = [SkyCoord(coord, **init_kwargs) for coord in coords]
-
-            # Check that all frames are equivalent
-            for sc in scs[1:]:
-                if not sc.is_equivalent_frame(scs[0]):
-                    raise ValueError("List of inputs don't have equivalent "
-                                     "frames: {0} != {1}".format(sc, scs[0]))
-
-            # Now use the first to determine if they are all UnitSpherical
-            allunitsphrepr = isinstance(scs[0].data, UnitSphericalRepresentation)
-
-            # get the frame attributes from the first coord in the list, because
-            # from the above we know it matches all the others.  First copy over
-            # the attributes that are in the frame itself, then copy over any
-            # extras in the SkyCoord
-            for fattrnm in scs[0].frame.frame_attributes:
-                valid_kwargs[fattrnm] = getattr(scs[0].frame, fattrnm)
-            for fattrnm in scs[0]._extra_frameattr_names:
-                valid_kwargs[fattrnm] = getattr(scs[0], fattrnm)
-
-            # Now combine the values, to be used below
-            values = []
-            for data_attr_name, repr_attr_name in zip(frame_attr_names, repr_attr_names):
-                if allunitsphrepr and repr_attr_name == 'distance':
-                    # if they are *all* UnitSpherical, don't give a distance
-                    continue
-                data_vals = []
-                for sc in scs:
-                    data_val = getattr(sc, data_attr_name)
-                    data_vals.append(data_val.reshape(1,) if sc.isscalar else data_val)
-                concat_vals = np.concatenate(data_vals)
-                # Hack because np.concatenate doesn't fully work with Quantity
-                if isinstance(concat_vals, u.Quantity):
-                    concat_vals._unit = data_val.unit
-                values.append(concat_vals)
-        else:
-            # none of the elements are "frame-like"
-            # turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
-            for coord in coords:
-                if isinstance(coord, str):
-                    coord1 = coord.split()
-                    if len(coord1) == 6:
-                        coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
-                    elif is_ra_dec_representation:
-                        coord = _parse_ra_dec(coord)
-                    else:
-                        coord = coord1
-                vals.append(coord)  # Assumes coord is a sequence at this point
-
-            # Do some basic validation of the list elements: all have a length and all
-            # lengths the same
-            try:
-                n_coords = sorted(set(len(x) for x in vals))
-            except Exception:
-                raise ValueError('One or more elements of input sequence does not have a length')
-
-            if len(n_coords) > 1:
-                raise ValueError('Input coordinate values must have same number of elements, found {0}'
-                                 .format(n_coords))
-            n_coords = n_coords[0]
-
-            # Must have no more coord inputs than representation attributes
-            if n_coords > n_attr_names:
-                raise ValueError('Input coordinates have {0} values but '
-                                 'representation {1} only accepts {2}'
-                                 .format(n_coords, frame.representation.get_name(), n_attr_names))
-
-            # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
-            # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)
-            # because Longitude et al distinguishes list from tuple so [a1, a2, ..] is needed
-            # while (a1, a2, ..) doesn't work.
-            values = [list(x) for x in zip(*vals)]
-
-            if is_scalar:
-                values = [x[0] for x in values]
-    else:
-        raise ValueError('Cannot parse coordinates from first argument')
-
-    # Finally we have a list of values from which to create the keyword args
-    # for the frame initialization.  Validate by running through the appropriate
-    # class initializer and supply units (which might be None).
-    try:
-        for frame_attr_name, repr_attr_class, value, unit in zip(
-                frame_attr_names, repr_attr_classes, values, units):
-            valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit,
-                                                            copy=False)
-    except Exception as err:
-        raise ValueError('Cannot parse first argument data "{0}" for attribute '
-                         '{1}'.format(value, frame_attr_name), err)
-    return valid_kwargs
-
-
-def _get_representation_attrs(frame, units, kwargs):
-    """
-    Find instances of the "representation attributes" for specifying data
-    for this frame.  Pop them off of kwargs, run through the appropriate class
-    constructor (to validate and apply unit), and put into the output
-    valid_kwargs.  "Representation attributes" are the frame-specific aliases
-    for the underlying data values in the representation, e.g. "ra" for "lon"
-    for many equatorial spherical representations, or "w" for "x" in the
-    cartesian representation of Galactic.
-    """
-    frame_attr_names = frame.representation_component_names.keys()
-    repr_attr_classes = frame.representation.attr_classes.values()
-
-    valid_kwargs = {}
-    for frame_attr_name, repr_attr_class, unit in zip(frame_attr_names, repr_attr_classes, units):
-        value = kwargs.pop(frame_attr_name, None)
-        if value is not None:
-            valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
-
-    return valid_kwargs
-
-
-def _parse_ra_dec(coord_str):
-    """
-    Parse RA and Dec values from a coordinate string. Currently the
-    following formats are supported:
-
-     * space separated 6-value format
-     * space separated <6-value format, this requires a plus or minus sign
-       separation between RA and Dec
-     * sign separated format
-     * JHHMMSS.ss+DDMMSS.ss format, with up to two optional decimal digits
-     * JDDDMMSS.ss+DDMMSS.ss format, with up to two optional decimal digits
-
-    Parameters
-    ----------
-    coord_str : str
-        Coordinate string to parse.
-
-    Returns
-    -------
-    coord : str or list of str
-        Parsed coordinate values.
-    """
-
-    if isinstance(coord_str, str):
-        coord1 = coord_str.split()
-    else:
-        # This exception should never be raised from SkyCoord
-        raise TypeError('coord_str must be a single str')
-
-    if len(coord1) == 6:
-        coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
-    elif len(coord1) > 2:
-        coord = PLUS_MINUS_RE.split(coord_str)
-        coord = (coord[0], ' '.join(coord[1:]))
-    elif len(coord1) == 1:
-        match_j = J_PREFIXED_RA_DEC_RE.match(coord_str)
-        if match_j:
-            coord = match_j.groups()
-            if len(coord[0].split('.')[0]) == 7:
-                coord = ('{0} {1} {2}'.
-                         format(coord[0][0:3], coord[0][3:5], coord[0][5:]),
-                         '{0} {1} {2}'.
-                         format(coord[1][0:3], coord[1][3:5], coord[1][5:]))
-            else:
-                coord = ('{0} {1} {2}'.
-                         format(coord[0][0:2], coord[0][2:4], coord[0][4:]),
-                         '{0} {1} {2}'.
-                         format(coord[1][0:3], coord[1][3:5], coord[1][5:]))
-        else:
-            coord = PLUS_MINUS_RE.split(coord_str)
-            coord = (coord[0], ' '.join(coord[1:]))
-    else:
-        coord = coord1
-
-    return coord

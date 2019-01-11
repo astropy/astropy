@@ -6,7 +6,7 @@ This package defines the SI units.  They are also available in the
 
 """
 
-from ..constants import si as _si
+from astropy.constants import si as _si
 from .core import UnitBase, Unit, def_unit
 
 import numpy as _numpy
@@ -159,6 +159,7 @@ def_unit(['eV', 'electronvolt'], _si.e.value * J, namespace=_ns, prefixes=True,
 def_unit(['Pa', 'Pascal', 'pascal'], J * m ** -3, namespace=_ns, prefixes=True,
          doc="Pascal: pressure")
 def_unit(['bar'], 1e5 * Pa, namespace=_ns,
+         prefixes=[(['m'], ['milli'], 1.e-3)],
          doc="bar: pressure")
 
 
@@ -206,7 +207,7 @@ def_unit(['cd', 'candela'], namespace=_ns, prefixes=True,
 def_unit(['lm', 'lumen'], cd * sr, namespace=_ns, prefixes=True,
          doc="lumen: luminous flux")
 def_unit(['lx', 'lux'], lm * m ** -2, namespace=_ns, prefixes=True,
-         doc="lux: luminous emittence")
+         doc="lux: luminous emittance")
 
 ###########################################################################
 # RADIOACTIVITY

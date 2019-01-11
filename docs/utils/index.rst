@@ -55,6 +55,9 @@ Reference/API
 .. automodapi:: astropy.utils.decorators
     :no-inheritance-diagram:
 
+.. automodapi:: astropy.utils.diff
+    :no-inheritance-diagram:
+
 .. automodapi:: astropy.utils.exceptions
     :no-inheritance-diagram:
 

@@ -7,6 +7,7 @@ from asdf import yamlutil
 
 from astropy import modeling
 from .basic import TransformType
+from . import _parameter_to_value
 
 
 __all__ = ['AffineType', 'Rotate2DType', 'Rotate3DType']
@@ -14,6 +15,7 @@ __all__ = ['AffineType', 'Rotate2DType', 'Rotate3DType']
 
 class AffineType(TransformType):
     name = "transform/affine"
+    version = '1.2.0'
     types = ['astropy.modeling.projections.AffineTransformation2D']
 
     @classmethod
@@ -33,7 +35,8 @@ class AffineType(TransformType):
 
     @classmethod
     def to_tree_transform(cls, model, ctx):
-        node = {'matrix': model.matrix.value, 'translation': model.translation.value}
+        node = {'matrix': _parameter_to_value(model.matrix),
+                'translation': _parameter_to_value(model.translation)}
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
@@ -47,6 +50,7 @@ class AffineType(TransformType):
 
 class Rotate2DType(TransformType):
     name = "transform/rotate2d"
+    version = '1.2.0'
     types = ['astropy.modeling.rotations.Rotation2D']
 
     @classmethod
@@ -55,7 +59,8 @@ class Rotate2DType(TransformType):
 
     @classmethod
     def to_tree_transform(cls, model, ctx):
-        return {'angle': model.angle.value}
+        node = {'angle': _parameter_to_value(model.angle)}
+        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -68,6 +73,7 @@ class Rotate2DType(TransformType):
 
 class Rotate3DType(TransformType):
     name = "transform/rotate3d"
+    version = '1.2.0'
     types = ['astropy.modeling.rotations.RotateNative2Celestial',
              'astropy.modeling.rotations.RotateCelestial2Native',
              'astropy.modeling.rotations.EulerAngleRotation']
@@ -93,36 +99,38 @@ class Rotate3DType(TransformType):
     def to_tree_transform(cls, model, ctx):
         if isinstance(model, modeling.rotations.RotateNative2Celestial):
             try:
-                return {"phi": model.lon.value,
-                        "theta": model.lat.value,
-                        "psi": model.lon_pole.value,
+                node = {"phi": _parameter_to_value(model.lon),
+                        "theta": _parameter_to_value(model.lat),
+                        "psi": _parameter_to_value(model.lon_pole),
                         "direction": "native2celestial"
                         }
             except AttributeError:
-                return {"phi": model.lon,
+                node = {"phi": model.lon,
                         "theta": model.lat,
                         "psi": model.lon_pole,
                         "direction": "native2celestial"
                         }
         elif isinstance(model, modeling.rotations.RotateCelestial2Native):
             try:
-                return {"phi": model.lon.value,
-                        "theta": model.lat.value,
-                        "psi": model.lon_pole.value,
+                node = {"phi": _parameter_to_value(model.lon),
+                        "theta": _parameter_to_value(model.lat),
+                        "psi": _parameter_to_value(model.lon_pole),
                         "direction": "celestial2native"
                         }
             except AttributeError:
-                return {"phi": model.lon,
+                node = {"phi": model.lon,
                         "theta": model.lat,
                         "psi": model.lon_pole,
                         "direction": "celestial2native"
                         }
         else:
-            return {"phi": model.phi.value,
-                    "theta": model.theta.value,
-                    "psi": model.psi.value,
+            node = {"phi": _parameter_to_value(model.phi),
+                    "theta": _parameter_to_value(model.theta),
+                    "psi": _parameter_to_value(model.psi),
                     "direction": model.axes_order
                     }
+
+        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -172,47 +180,51 @@ class GenericProjectionType(TransformType):
 
 
 _generic_projections = {
-    'zenithal_perspective': ('ZenithalPerspective', (('mu', 0.0), ('gamma', 0.0))),
-    'gnomonic': ('Gnomonic', ()),
-    'stereographic': ('Stereographic', ()),
-    'slant_orthographic': ('SlantOrthographic', (('xi', 0.0), ('eta', 0.0))),
-    'zenithal_equidistant': ('ZenithalEquidistant', ()),
-    'zenithal_equal_area': ('ZenithalEqualArea', ()),
-    'airy': ('Airy', (('theta_b', 90.0),)),
-    'cylindrical_perspective': ('CylindricalPerspective', (('mu', 0.0), ('lam', 0.0))),
-    'cylindrical_equal_area': ('CylindricalEqualArea', (('lam', 0.0),)),
-    'plate_carree': ('PlateCarree', ()),
-    'mercator': ('Mercator', ()),
-    'sanson_flamsteed': ('SansonFlamsteed', ()),
-    'parabolic': ('Parabolic', ()),
-    'molleweide': ('Molleweide', ()),
-    'hammer_aitoff': ('HammerAitoff', ()),
-    'conic_perspective': ('ConicPerspective', (('sigma', 0.0), ('delta', 0.0))),
-    'conic_equal_area': ('ConicEqualArea', (('sigma', 0.0), ('delta', 0.0))),
-    'conic_equidistant': ('ConicEquidistant', (('sigma', 0.0), ('delta', 0.0))),
-    'conic_orthomorphic': ('ConicOrthomorphic', (('sigma', 0.0), ('delta', 0.0))),
-    'bonne_equal_area': ('BonneEqualArea', (('theta1', 0.0),)),
-    'polyconic': ('Polyconic', ()),
-    'tangential_spherical_cube': ('TangentialSphericalCube', ()),
-    'cobe_quad_spherical_cube': ('COBEQuadSphericalCube', ()),
-    'quad_spherical_cube': ('QuadSphericalCube', ()),
-    'healpix': ('HEALPix', (('H', 4.0), ('X', 3.0))),
-    'healpix_polar': ('HEALPixPolar', ())
+    'zenithal_perspective': ('ZenithalPerspective', (('mu', 0.0), ('gamma', 0.0)), '1.2.0'),
+    'gnomonic': ('Gnomonic', (), None),
+    'stereographic': ('Stereographic', (), None),
+    'slant_orthographic': ('SlantOrthographic', (('xi', 0.0), ('eta', 0.0)), None),
+    'zenithal_equidistant': ('ZenithalEquidistant', (), None),
+    'zenithal_equal_area': ('ZenithalEqualArea', (), None),
+    'airy': ('Airy', (('theta_b', 90.0),), '1.2.0'),
+    'cylindrical_perspective': ('CylindricalPerspective', (('mu', 0.0), ('lam', 0.0)), '1.2.0'),
+    'cylindrical_equal_area': ('CylindricalEqualArea', (('lam', 0.0),), '1.2.0'),
+    'plate_carree': ('PlateCarree', (), None),
+    'mercator': ('Mercator', (), None),
+    'sanson_flamsteed': ('SansonFlamsteed', (), None),
+    'parabolic': ('Parabolic', (), None),
+    'molleweide': ('Molleweide', (), None),
+    'hammer_aitoff': ('HammerAitoff', (), None),
+    'conic_perspective': ('ConicPerspective', (('sigma', 0.0), ('delta', 0.0)), '1.2.0'),
+    'conic_equal_area': ('ConicEqualArea', (('sigma', 0.0), ('delta', 0.0)), '1.2.0'),
+    'conic_equidistant': ('ConicEquidistant', (('sigma', 0.0), ('delta', 0.0)), '1.2.0'),
+    'conic_orthomorphic': ('ConicOrthomorphic', (('sigma', 0.0), ('delta', 0.0)), '1.2.0'),
+    'bonne_equal_area': ('BonneEqualArea', (('theta1', 0.0),), '1.2.0'),
+    'polyconic': ('Polyconic', (), None),
+    'tangential_spherical_cube': ('TangentialSphericalCube', (), None),
+    'cobe_quad_spherical_cube': ('COBEQuadSphericalCube', (), None),
+    'quad_spherical_cube': ('QuadSphericalCube', (), None),
+    'healpix': ('HEALPix', (('H', 4.0), ('X', 3.0)), None),
+    'healpix_polar': ('HEALPixPolar', (), None)
 }
 
 
 def make_projection_types():
-    for tag_name, (name, params) in _generic_projections.items():
+    for tag_name, (name, params, version) in _generic_projections.items():
         class_name = '{0}Type'.format(name)
         types = ['astropy.modeling.projections.Pix2Sky_{0}'.format(name),
                  'astropy.modeling.projections.Sky2Pix_{0}'.format(name)]
 
+        members = {'name': 'transform/{0}'.format(tag_name),
+                   'types': types,
+                   'params': params}
+        if version:
+            members['version'] = version
+
         globals()[class_name] = type(
             str(class_name),
             (GenericProjectionType,),
-            {'name': 'transform/{0}'.format(tag_name),
-             'types': types,
-             'params': params})
+            members)
 
         __all__.append(class_name)
 

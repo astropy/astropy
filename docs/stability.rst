@@ -98,10 +98,10 @@ The current planned and existing sub-packages are:
                 astropy.constants
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td>
-                Constants were changed to <tt class="docutils literal"><span class="pre">Quantity</span></tt> objects in v0.2. Since then on, the package has been stable, with occasional additions of new constants.
+                The package has been stable except for the occasional additions of new constants.  Since v3.0, it includes the ability to use sets of constants from previous versions.
             </td>
         </tr>
         <tr>
@@ -134,11 +134,10 @@ The current planned and existing sub-packages are:
                 astropy.cosmology
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td>
-                Incremental improvements since v0.1, but mostly stable API.
-                Pure functional interface deprecated in v0.4.
+                Incremental improvements since v0.1, stable API last several versions.
             </td>
         </tr>
         <tr>
@@ -212,7 +211,7 @@ The current planned and existing sub-packages are:
                 astropy.samp
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td>
                 Virtual Observatory service access: SAMP. This was renamed from astropy.vo.samp to astropy.samp in 2.0.
@@ -234,10 +233,10 @@ The current planned and existing sub-packages are:
                 astropy.table
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td>
-                Incremental improvements since v0.1, but mostly stable API.
+                Incremental improvements since v0.1, mostly stable API with backwards compatibility an explicit goal.
             </td>
         </tr>
         <tr>
@@ -257,10 +256,10 @@ The current planned and existing sub-packages are:
                 astropy.units
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td>
-                New in v0.2. Current functionality stable with intent to maintain backwards compatibility. Significant new functionality, in particular to allow dealing with uncertainties, is likely to be added in future versions.
+                Incremental improvements since v0.4. Functionality mature and unlikely to change. Efforts focused on performance and increased interoperability with Numpy functions.
             </td>
         </tr>
         <tr>
@@ -272,6 +271,17 @@ The current planned and existing sub-packages are:
             </td>
             <td>
                 Contains mostly utilities destined for internal use with other parts of Astropy.  Existing functionality generally stable, but regular additions and occasional changes.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                astropy.uncertainty
+            </td>
+            <td align='center'>
+                <span class="dev"></span>
+            </td>
+            <td>
+                New in v3.1, in heavy development.
             </td>
         </tr>
         <tr>

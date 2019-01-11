@@ -16,9 +16,10 @@ converted in any way but are used natively.
 
 The available built-in mixin column classes are:
 
-- |Quantity|
-- |SkyCoord|
-- |Time|
+- |Quantity| and subclasses
+- |SkyCoord| and coordinate frame classes
+- |Time| and :class:`~astropy.time.TimeDelta`
+- :class:`~astropy.coordinates.EarthLocation`
 - `~astropy.table.NdarrayMixin`
 
 As a first example we can create a table and add a time column::
@@ -170,14 +171,12 @@ the table.  However, there are limitations in the current implementation.
 
 Adding or inserting a row works as expected only for mixin classes that are
 mutable (data can changed internally) and that have an ``insert()`` method.
-|Quantity| supports ``insert()`` but |Time| and |SkyCoord| do not.  If we try to
-insert a row into the previously defined table an exception occurs::
+|Quantity| and |Time| support ``insert()`` but for example |SkyCoord| does not.
+If one tried to insert a row into a table with a |SkyCoord| column then
+an exception like the following would occur::
 
-  >>> qt.add_row((1, '2001-02-03T00:01:02', 5 * u.m / u.s))
-  Traceback (most recent call last):
-    ...
-  ValueError: Unable to insert row because of exception in column 'time':
-  'Time' object has no attribute 'insert'
+  ValueError: Unable to insert row because of exception in column 'skycoord':
+  'SkyCoord' object has no attribute 'insert'
 
 **Initializing from a list of rows or a list of dicts**
 
@@ -198,17 +197,18 @@ the following will fail::
 
 The problem lies in knowing if and how to assemble the individual elements
 for each column into an appropriate mixin column.  The current code uses
-numpy to perform this function on numerical or string types, but it obviously
+numpy to perform this function on numerical or string types, but it
 does not handle mixin column types like |Quantity| or |SkyCoord|.
 
 **Masking**
 
-Mixin columns do not support masking, but there is limited support for use of
+Mixin columns do not generally support masking (with the exception of |Time|),
+but there is limited support for use of
 mixins within a masked table.  In this case a ``mask`` attribute is assigned to
 the mixin column object.  This ``mask`` is a special object that is a boolean
 array of ``False`` corresponding to the mixin data shape.  The ``mask`` looks
 like a normal numpy array but an exception will be raised if ``True`` is assigned
-to any element.  The consequences of the limitation are most obvious in the
+to any element.  The consequences of the limitation are most apparent in the
 high-level table operations.
 
 **High-level table operations**
@@ -225,7 +225,8 @@ that contain mixin columns:
    * - :ref:`grouped-operations`
      - Not implemented yet, but no fundamental limitation
    * - :ref:`stack-vertically`
-     - Available for `~astropy.units.Quantity` and any other mixin classes that provide an
+     - Available for `~astropy.units.Quantity` subclasses, |Time|
+       and any other mixin classes that provide a
        `new_like() method`_ in the ``info`` descriptor.
    * - :ref:`stack-horizontally`
      - Works if output mixin column supports masking or if no masking is required
@@ -237,10 +238,19 @@ that contain mixin columns:
 
 **ASCII table writing**
 
-Mixin columns can be written out to file using the `astropy.io.ascii` module,
-but the fast C-based writers are not available.  Instead the legacy pure-Python
-writers will be used.
+Tables with mixin columns can be written out to file using the `astropy.io.ascii` module,
+but the fast C-based writers are not available.  Instead the pure-Python
+writers will be used.  For writing tables with mixin columns it is recommended
+to use the ``'ecsv'`` ASCII format.  This will fully serialize the table data and
+metadata, allowing full "round-trip" of the table when it is read back.  See
+:ref:`ecsv_format` for details.
 
+**Binary table writing**
+
+Starting with astropy 3.0, tables with mixin columns can be written in binary
+format to file using both FITS and HDF5 formats.  These can be read back to
+recover exactly the original Table including mixin columns and metadata. See
+:ref:`table_io` for details.
 
 .. _mixin_protocol:
 

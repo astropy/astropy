@@ -5,10 +5,10 @@ from io import StringIO
 import pytest
 import numpy as np
 
-from .. import core, funcs
-from ...tests.helper import quantity_allclose as allclose
-from ...utils.compat import NUMPY_LT_1_14
-from ... import units as u
+from astropy.cosmology import core, funcs
+from astropy.units import allclose
+from astropy.utils.compat import NUMPY_LT_1_14
+from astropy import units as u
 
 try:
     import scipy  # pylint: disable=W0611
@@ -1117,6 +1117,45 @@ def test_comoving_distance_z1z2():
     assert allclose(tcos._comoving_distance_z1z2(z1, z2),
                     results)
 
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_age_in_special_cosmologies():
+    """Check that age in de Sitter and Einstein-de Sitter Universes work.
+
+    Some analytic solutions fail at these critical points.
+    """
+    c_dS = core.FlatLambdaCDM(100, 0, Tcmb0=0)
+    assert allclose(c_dS.age(z=0), np.inf * u.Gyr)
+    assert allclose(c_dS.age(z=1), np.inf * u.Gyr)
+    assert allclose(c_dS.lookback_time(z=0), 0 * u.Gyr)
+    assert allclose(c_dS.lookback_time(z=1), 6.777539216261741 * u.Gyr)
+
+    c_EdS = core.FlatLambdaCDM(100, 1, Tcmb0=0)
+    assert allclose(c_EdS.age(z=0), 6.518614811154189 * u.Gyr)
+    assert allclose(c_EdS.age(z=1), 2.3046783684542738 * u.Gyr)
+    assert allclose(c_EdS.lookback_time(z=0), 0 * u.Gyr)
+    assert allclose(c_EdS.lookback_time(z=1), 4.213936442699092 * u.Gyr)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_distance_in_special_cosmologies():
+    """Check that de Sitter and Einstein-de Sitter Universes both work.
+
+    Some analytic solutions fail at these critical points.
+    """
+    c_dS = core.FlatLambdaCDM(100, 0, Tcmb0=0)
+    assert allclose(c_dS.comoving_distance(z=0), 0 * u.Mpc)
+    assert allclose(c_dS.comoving_distance(z=1), 2997.92458 * u.Mpc)
+
+    c_EdS = core.FlatLambdaCDM(100, 1, Tcmb0=0)
+    assert allclose(c_EdS.comoving_distance(z=0), 0 * u.Mpc)
+    assert allclose(c_EdS.comoving_distance(z=1), 1756.1435599923348 * u.Mpc)
+
+    c_dS = core.LambdaCDM(100, 0, 1, Tcmb0=0)
+    assert allclose(c_dS.comoving_distance(z=0), 0 * u.Mpc)
+    assert allclose(c_dS.comoving_distance(z=1), 2997.92458 * u.Mpc)
+
+    c_EdS = core.LambdaCDM(100, 1, 0, Tcmb0=0)
+    assert allclose(c_EdS.comoving_distance(z=0), 0 * u.Mpc)
+    assert allclose(c_EdS.comoving_distance(z=1), 1756.1435599923348 * u.Mpc)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_comoving_transverse_distance_z1z2():
@@ -1137,6 +1176,24 @@ def test_comoving_transverse_distance_z1z2():
     assert allclose(tcos._comoving_distance_z1z2(z1, z2),
                     tcos._comoving_transverse_distance_z1z2(z1, z2))
 
+    # Test Flat Universe with Omega_M > 1.  Rarely used, but perfectly valid.
+    tcos = core.FlatLambdaCDM(100, 1.5, Tcmb0=0.0)
+    results = (2202.72682564,
+               1559.51679971,
+               -643.21002593,
+               1408.36365679,
+                 85.09286258) * u.Mpc
+
+    assert allclose(tcos._comoving_transverse_distance_z1z2(z1, z2),
+                    results)
+
+    # In a flat universe comoving distance and comoving transverse
+    # distance are identical
+    z1 = 0, 0, 2, 0.5, 1
+    z2 = 2, 1, 1, 2.5, 1.1
+
+    assert allclose(tcos._comoving_distance_z1z2(z1, z2),
+                    tcos._comoving_transverse_distance_z1z2(z1, z2))
     # Test non-flat cases to avoid simply testing
     # comoving_distance_z1z2. Test array, array case.
     tcos = core.LambdaCDM(100, 0.3, 0.5, Tcmb0=0.0)
@@ -1511,12 +1568,15 @@ def test_z_at_value():
     assert allclose(z_at_value(cosmo.distmod, 46 * u.mag),
                     1.9913891680278133, rtol=1e-6)
 
-    # test behaviour when the solution is outside z limits (should
+    # test behavior when the solution is outside z limits (should
     # raise a CosmologyError)
     with pytest.raises(core.CosmologyError):
-        z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmax=0.5)
+        with pytest.warns(UserWarning, match='fval is not bracketed'):
+            z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmax=0.5)
+
     with pytest.raises(core.CosmologyError):
-        z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmin=4.)
+        with pytest.warns(UserWarning, match='fval is not bracketed'):
+            z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmin=4.)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

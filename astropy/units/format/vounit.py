@@ -27,8 +27,8 @@ class VOUnit(generic.Generic):
 
     @staticmethod
     def _generate_unit_names():
-        from ... import units as u
-        from ...units import required_by_vounit as uvo
+        from astropy import units as u
+        from astropy.units import required_by_vounit as uvo
 
         names = {}
         deprecated_names = set()
@@ -185,7 +185,7 @@ class VOUnit(generic.Generic):
 
     @classmethod
     def to_string(cls, unit):
-        from .. import core
+        from astropy.units import core
 
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
@@ -222,7 +222,7 @@ class VOUnit(generic.Generic):
 
     @classmethod
     def _to_decomposed_alternative(cls, unit):
-        from .. import core
+        from astropy.units import core
 
         try:
             s = cls.to_string(unit)

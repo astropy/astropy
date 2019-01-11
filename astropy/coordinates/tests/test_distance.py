@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-
 """
 This includes tests for the Distance class and related calculations
 """
@@ -10,10 +8,12 @@ import pytest
 import numpy as np
 from numpy import testing as npt
 
-from ... import units as u
-from ...tests.helper import quantity_allclose
-from .. import Longitude, Latitude, Distance, CartesianRepresentation
-from ..builtin_frames import ICRS, Galactic
+from astropy import units as u
+from astropy.units import allclose as quantity_allclose
+from astropy.coordinates import Longitude, Latitude, Distance, CartesianRepresentation
+from astropy.coordinates.builtin_frames import ICRS, Galactic
+from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyWarning
 
 try:
     import scipy  # pylint: disable=W0611
@@ -114,7 +114,7 @@ def test_distances_scipy():
     The distance-related tests that require scipy due to the cosmology
     module needing scipy integration routines
     """
-    from ...cosmology import WMAP5
+    from astropy.cosmology import WMAP5
 
     # try different ways to initialize a Distance
     d4 = Distance(z=0.23)  # uses default cosmology - as of writing, WMAP7
@@ -125,6 +125,12 @@ def test_distances_scipy():
 
     d6 = Distance(z=0.23, cosmology=WMAP5, unit=u.km)
     npt.assert_allclose(d6.value, 3.5417046898762366e+22)
+
+    with pytest.raises(ValueError):
+        Distance(cosmology=WMAP5, unit=u.km)
+
+    with pytest.raises(ValueError):
+        Distance()
 
 
 def test_distance_change():
@@ -220,6 +226,22 @@ def test_parallax():
     assert quantity_allclose(d.pc, [1000., 100., 10.])
     assert quantity_allclose(plx, d.parallax)
 
+    # check behavior for negative parallax
+    with pytest.raises(ValueError):
+        Distance(parallax=-1 * u.mas)
+
+    with pytest.raises(ValueError):
+        Distance(parallax=[10, 1, -1] * u.mas)
+
+    with catch_warnings(AstropyWarning) as w:
+        Distance(parallax=-1 * u.mas, allow_negative=True)
+    assert len(w) > 0
+
+    with catch_warnings(AstropyWarning) as w:
+        Distance(parallax=[10, 1, -1] * u.mas, allow_negative=True)
+    assert len(w) > 0
+
+
 def test_distance_in_coordinates():
     """
     test that distances can be created from quantities and that cartesian
@@ -261,7 +283,7 @@ def test_distance_comparison():
 
 
 def test_distance_to_quantity_when_not_units_of_length():
-    """Any operatation that leaves units other than those of length
+    """Any operation that leaves units other than those of length
     should turn a distance into a quantity (#2206, #2250)"""
     d = Distance(15*u.kpc)
     twice = 2.*d

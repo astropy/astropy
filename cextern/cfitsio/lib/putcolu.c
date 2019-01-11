@@ -276,7 +276,7 @@ int ffpclu( fitsfile *fptr,  /* I - FITS file pointer                       */
                 break;
 
             default:  /*  error trap  */
-                sprintf(message, 
+                snprintf(message,FLEN_ERRMSG, 
                    "Cannot write null value to column %d which has format %s",
                      colnum,tform);
                 ffpmsg(message);
@@ -289,7 +289,7 @@ int ffpclu( fitsfile *fptr,  /* I - FITS file pointer                       */
         /*-------------------------*/
         if (*status > 0)  /* test for error during previous write operation */
         {
-           sprintf(message,
+           snprintf(message,FLEN_ERRMSG,
              "Error writing %.0f thru %.0f of null values (ffpclu).",
               (double) (next+1), (double) (next+ntodo));
            ffpmsg(message);
@@ -444,7 +444,7 @@ int ffpcluc( fitsfile *fptr,  /* I - FITS file pointer                       */
       {
          i8null = tnull;
 #if BYTESWAPPED
-         ffswap4( (INT32BIT*) &i8null, 2); /* reverse order of bytes */
+         ffswap8((double *)(&i8null), 1);  /* reverse order of bytes */
 #endif
       }
     }
@@ -518,7 +518,7 @@ int ffpcluc( fitsfile *fptr,  /* I - FITS file pointer                       */
                 break;
 
             default:  /*  error trap  */
-                sprintf(message, 
+                snprintf(message, FLEN_ERRMSG,
                    "Cannot write null value to column %d which has format %s",
                      colnum,tform);
                 ffpmsg(message);
@@ -531,7 +531,7 @@ int ffpcluc( fitsfile *fptr,  /* I - FITS file pointer                       */
         /*-------------------------*/
         if (*status > 0)  /* test for error during previous write operation */
         {
-           sprintf(message,
+           snprintf(message,FLEN_ERRMSG,
              "Error writing %.0f thru %.0f of null values (ffpclu).",
               (double) (next+1), (double) (next+ntodo));
            ffpmsg(message);

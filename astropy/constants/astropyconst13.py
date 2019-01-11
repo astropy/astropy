@@ -4,15 +4,12 @@ Astronomical and physics constants for Astropy v1.3 and earlier.
 See :mod:`astropy.constants` for a complete listing of constants
 defined in Astropy.
 """
-
-
-
-import itertools
-
-from .constant import Constant
+import inspect
+from . import utils as _utils
 from . import codata2010, iau2012
 
-for _nm, _c in itertools.chain(sorted(vars(codata2010).items()),
-                               sorted(vars(iau2012).items())):
-    if (isinstance(_c, Constant) and _c.abbrev not in locals()):
-        locals()[_c.abbrev] = _c
+_utils._set_c(codata2010, iau2012, inspect.getmodule(inspect.currentframe()))
+
+# Clean up namespace
+del inspect
+del _utils

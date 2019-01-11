@@ -9,7 +9,7 @@ various criteria.
 import abc
 import numpy as np
 
-from ..utils.misc import InheritDocstrings
+from astropy.utils.misc import InheritDocstrings
 from .transform import BaseTransform
 
 
@@ -112,7 +112,7 @@ class MinMaxInterval(BaseInterval):
     """
 
     def get_limits(self, values):
-        return np.min(values), np.max(values)
+        return np.nanmin(values), np.nanmax(values)
 
 
 class AsymmetricPercentileInterval(BaseInterval):
@@ -150,8 +150,9 @@ class AsymmetricPercentileInterval(BaseInterval):
         values = values[np.isfinite(values)]
 
         # Determine values at percentiles
-        vmin, vmax = np.percentile(values, (self.lower_percentile,
-                                            self.upper_percentile))
+        vmin, vmax = np.nanpercentile(values,
+                                      (self.lower_percentile,
+                                       self.upper_percentile))
 
         return vmin, vmax
 

@@ -5,26 +5,29 @@ This module provides utility functions for the models package
 """
 
 
-from collections import deque, MutableMapping
+from collections import deque
+from collections.abc import MutableMapping
 from inspect import signature
 
 import numpy as np
 
 
-from ..utils import isiterable, check_broadcast
-from ..utils.compat import NUMPY_LT_1_14
+from astropy.utils import isiterable, check_broadcast
+from astropy.utils.compat import NUMPY_LT_1_14
 
-from .. import units as u
+from astropy import units as u
 
 __all__ = ['ExpressionTree', 'AliasDict', 'check_broadcast',
            'poly_map_domain', 'comb', 'ellipse_extent']
 
 
 class ExpressionTree:
-    __slots__ = ['left', 'right', 'value']
+    __slots__ = ['left', 'right', 'value', 'inputs', 'outputs']
 
-    def __init__(self, value, left=None, right=None):
+    def __init__(self, value, left=None, right=None, inputs=None, outputs=None):
         self.value = value
+        self.inputs = inputs
+        self.outputs = outputs
         self.left = left
 
         # Two subtrees can't be the same *object* or else traverse_postorder
@@ -42,6 +45,81 @@ class ExpressionTree:
     def __setstate__(self, state):
         for slot, value in state.items():
             setattr(self, slot, value)
+
+    @staticmethod
+    def _recursive_lookup(branch, adict, key):
+        if isinstance(branch, ExpressionTree):
+            return adict[key]
+        else:
+            return branch, key
+
+    @property
+    def inputs_map(self):
+        """
+        Map the names of the inputs to this ExpressionTree to the inputs to the leaf models.
+        """
+        inputs_map = {}
+        if not isinstance(self.value, str):  # If we don't have an operator the mapping is trivial
+            return {inp: (self.value, inp) for inp in self.inputs}
+
+        elif self.value == '|':
+            for inp in self.inputs:
+                m, inp2 = self._recursive_lookup(self.left, self.left.inputs_map, inp)
+                inputs_map[inp] = m, inp2
+
+        elif self.value == '&':
+            for i, inp in enumerate(self.inputs):
+                if i < len(self.left.inputs):  # Get from left
+                    m, inp2 = self._recursive_lookup(self.left,
+                                                     self.left.inputs_map,
+                                                     self.left.inputs[i])
+                    inputs_map[inp] = m, inp2
+                else:  # Get from right
+                    m, inp2 = self._recursive_lookup(self.right,
+                                                     self.right.inputs_map,
+                                                     self.right.inputs[i - len(self.left.inputs)])
+                    inputs_map[inp] = m, inp2
+
+        else:
+            for inp in self.left.inputs:
+                m, inp2 = self._recursive_lookup(self.left, self.left.inputs_map, inp)
+                inputs_map[inp] = m, inp2
+
+        return inputs_map
+
+    @property
+    def outputs_map(self):
+        """
+        Map the names of the outputs to this ExpressionTree to the outputs to the leaf models.
+        """
+        outputs_map = {}
+        if not isinstance(self.value, str):  # If we don't have an operator the mapping is trivial
+            return {out: (self.value, out) for out in self.outputs}
+
+        elif self.value == '|':
+            for out in self.outputs:
+                m, out2 = self._recursive_lookup(self.right, self.right.outputs_map, out)
+                outputs_map[out] = m, out2
+
+        elif self.value == '&':
+            for i, out in enumerate(self.outputs):
+                if i < len(self.left.outputs):  # Get from left
+                    m, out2 = self._recursive_lookup(self.left,
+                                                     self.left.outputs_map,
+                                                     self.left.outputs[i])
+                    outputs_map[out] = m, out2
+                else:  # Get from right
+                    m, out2 = self._recursive_lookup(self.right,
+                                                     self.right.outputs_map,
+                                                     self.right.outputs[i - len(self.left.outputs)])
+                    outputs_map[out] = m, out2
+
+        else:
+            for out in self.left.outputs:
+                m, out2 = self._recursive_lookup(self.left, self.left.outputs_map, out)
+                outputs_map[out] = m, out2
+
+        return outputs_map
 
     @property
     def isleaf(self):
@@ -395,26 +473,40 @@ class _BoundingBox(tuple):
         nd = model.n_inputs
 
         if nd == 1:
-            if (not isiterable(bounding_box)
-                    or np.shape(bounding_box) not in ((2,), (1, 2))):
-                raise ValueError(
-                    "Bounding box for {0} model must be a sequence of length "
-                    "2 consisting of a lower and upper bound, or a 1-tuple "
-                    "containing such a sequence as its sole element.".format(
-                        model.name))
+            MESSAGE = "Bounding box for {0} model must be a sequence of length "
+            "2 consisting of a lower and upper bound, or a 1-tuple "
+            "containing such a sequence as its sole element.".format(model.name)
+
+            try:
+                valid_shape = np.shape(bounding_box) in ((2,), (1, 2))
+            except TypeError:
+                # np.shape does not work with lists of Quantities
+                valid_shape = np.shape([b.to_value() for b in bounding_box]) in ((2,), (1, 2))
+            except ValueError:
+                raise ValueError(MESSAGE)
+
+            if not isiterable(bounding_box) or not valid_shape:
+                raise ValueError(MESSAGE)
 
             if len(bounding_box) == 1:
                 return cls((tuple(bounding_box[0]),))
             else:
                 return cls(tuple(bounding_box))
         else:
-            if (not isiterable(bounding_box)
-                    or np.shape(bounding_box) != (nd, 2)):
-                raise ValueError(
-                    "Bounding box for {0} model must be a sequence of length "
-                    "{1} (the number of model inputs) consisting of pairs of "
-                    "lower and upper bounds for those inputs on which to "
-                    "evaluate the model.".format(model.name, nd))
+            MESSAGE = "Bounding box for {0} model must be a sequence of length "
+            "{1} (the number of model inputs) consisting of pairs of "
+            "lower and upper bounds for those inputs on which to "
+            "evaluate the model.".format(model.name, nd)
+
+            try:
+                valid_shape = all([len(i) == 2 for i in bounding_box])
+            except TypeError:
+                valid_shape = False
+            if len(bounding_box) != nd:
+                valid_shape = False
+
+            if not isiterable(bounding_box) or not valid_shape:
+                    raise ValueError(MESSAGE)
 
             return cls(tuple(bounds) for bounds in bounding_box)
 

@@ -16,12 +16,12 @@ import numpy as np
 from numpy import ma
 
 # LOCAL
-from .. import fits
-from ... import __version__ as astropy_version
-from ...utils.collections import HomogeneousList
-from ...utils.xml.writer import XMLWriter
-from ...utils.exceptions import AstropyDeprecationWarning
-from ...utils.misc import InheritDocstrings
+from astropy.io import fits
+from astropy import __version__ as astropy_version
+from astropy.utils.collections import HomogeneousList
+from astropy.utils.xml.writer import XMLWriter
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.misc import InheritDocstrings
 
 from . import converters
 from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
@@ -772,7 +772,7 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
             self._unit = None
             return
 
-        from ... import units as u
+        from astropy import units as u
 
         if not self._config.get('version_1_2_or_later'):
             warn_or_raise(W28, W28, ('unit', 'INFO', '1.2'),
@@ -1379,7 +1379,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
             self._unit = None
             return
 
-        from ... import units as u
+        from astropy import units as u
 
         # First, parse the unit in the default way, so that we can
         # still emit a warning if the unit is not to spec.
@@ -2842,7 +2842,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
            identically when round-tripping through the
            `astropy.table.Table` instance.
         """
-        from ...table import Table
+        from astropy.table import Table
 
         meta = {}
         for key in ['ID', 'name', 'ref', 'ucd', 'utype', 'description']:
@@ -2860,14 +2860,11 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     new_name = '{0}{1}'.format(name, i)
                     i += 1
                 unique_names.append(new_name)
-            array = self.array.copy()
-            array.dtype.names = unique_names
             names = unique_names
         else:
-            array = self.array
             names = [field.ID for field in self.fields]
 
-        table = Table(self.array, meta=meta)
+        table = Table(self.array, names=names, meta=meta)
 
         for name, field in zip(names, self.fields):
             column = table[name]
@@ -2987,6 +2984,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         self.description = None
 
         self._coordinate_systems = HomogeneousList(CooSys)
+        self._groups = HomogeneousList(Group)
         self._params = HomogeneousList(Param)
         self._infos = HomogeneousList(Info)
         self._links = HomogeneousList(Link)
@@ -3049,6 +3047,13 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         return self._infos
 
     @property
+    def groups(self):
+        """
+        A list of groups
+        """
+        return self._groups
+
+    @property
     def params(self):
         """
         A list of parameters (constant-valued columns) for the
@@ -3091,6 +3096,11 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         self.infos.append(info)
         info.parse(iterator, config)
 
+    def _add_group(self, iterator, tag, data, config, pos):
+        group = Group(self, config=config, pos=pos, **data)
+        self.groups.append(group)
+        group.parse(iterator, config)
+
     def _add_param(self, iterator, tag, data, config, pos):
         param = Param(self._votable, config=config, pos=pos, **data)
         self.params.append(param)
@@ -3118,6 +3128,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
             'TABLE': self._add_table,
             'INFO': self._add_info,
             'PARAM': self._add_param,
+            'GROUP' : self._add_group,
             'COOSYS': self._add_coosys,
             'RESOURCE': self._add_resource,
             'LINK': self._add_link,

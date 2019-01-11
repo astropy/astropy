@@ -27,15 +27,51 @@ from inspect import signature
 
 import numpy as np
 
-from .. import units as u
-from ..utils.exceptions import AstropyWarning
+from astropy import units as u
+from astropy.utils.exceptions import AstropyWarning
 
 from .representation import REPRESENTATION_CLASSES
+from .matrix_utilities import matrix_product
 
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
            'BaseAffineTransform', 'AffineTransform',
            'StaticMatrixTransform', 'DynamicMatrixTransform',
            'FunctionTransformWithFiniteDifference', 'CompositeTransform']
+
+
+def frame_attrs_from_set(frame_set):
+    """
+    A `dict` of all the attributes of all frame classes in this
+    `TransformGraph`.
+
+    Broken out of the class so this can be called on a temporary frame set to
+    validate new additions to the transform graph before actually adding them.
+    """
+    result = {}
+
+    for frame_cls in frame_set:
+        result.update(frame_cls.frame_attributes)
+
+    return result
+
+
+def frame_comps_from_set(frame_set):
+    """
+    A `set` of all component names every defined within any frame class in
+    this `TransformGraph`.
+
+    Broken out of the class so this can be called on a temporary frame set to
+    validate new additions to the transform graph before actually adding them.
+    """
+    result = set()
+
+    for frame_cls in frame_set:
+        rep_info = frame_cls._frame_specific_representation_info
+        for mappings in rep_info.values():
+            for rep_map in mappings:
+                result.update([rep_map.framename])
+
+    return result
 
 
 class TransformGraph:
@@ -64,26 +100,35 @@ class TransformGraph:
         A `set` of all the frame classes present in this `TransformGraph`.
         """
         if self._cached_frame_set is None:
-            self._cached_frame_set = frm_set = set()
+            self._cached_frame_set = set()
             for a in self._graph:
-                frm_set.add(a)
+                self._cached_frame_set.add(a)
                 for b in self._graph[a]:
-                    frm_set.add(b)
+                    self._cached_frame_set.add(b)
 
         return self._cached_frame_set.copy()
 
     @property
     def frame_attributes(self):
         """
-        A `dict` of all the attributes of all frame classes in this `TransformGraph`.
+        A `dict` of all the attributes of all frame classes in this
+        `TransformGraph`.
         """
         if self._cached_frame_attributes is None:
-            result = {}
-            for frame_cls in self.frame_set:
-                result.update(frame_cls.frame_attributes)
-            self._cached_frame_attributes = result
+            self._cached_frame_attributes = frame_attrs_from_set(self.frame_set)
 
         return self._cached_frame_attributes
+
+    @property
+    def frame_component_names(self):
+        """
+        A `set` of all component names every defined within any frame class in
+        this `TransformGraph`.
+        """
+        if self._cached_component_names is None:
+            self._cached_component_names = frame_comps_from_set(self.frame_set)
+
+        return self._cached_component_names
 
     def invalidate_cache(self):
         """
@@ -95,6 +140,7 @@ class TransformGraph:
         self._cached_names_dct = None
         self._cached_frame_set = None
         self._cached_frame_attributes = None
+        self._cached_component_names = None
         self._shortestpaths = {}
         self._composite_cache = {}
 
@@ -126,6 +172,32 @@ class TransformGraph:
             raise TypeError('tosys must be a class')
         if not callable(transform):
             raise TypeError('transform must be callable')
+
+        frame_set = self.frame_set.copy()
+        frame_set.add(fromsys)
+        frame_set.add(tosys)
+
+        # Now we check to see if any attributes on the proposed frames override
+        # *any* component names, which we can't allow for some of the logic in
+        # the SkyCoord initializer to work
+        attrs = set(frame_attrs_from_set(frame_set).keys())
+        comps = frame_comps_from_set(frame_set)
+
+        invalid_attrs = attrs.intersection(comps)
+        if invalid_attrs:
+            invalid_frames = set()
+            for attr in invalid_attrs:
+                if attr in fromsys.frame_attributes:
+                    invalid_frames.update([fromsys])
+
+                if attr in tosys.frame_attributes:
+                    invalid_frames.update([tosys])
+
+            raise ValueError("Frame(s) {0} contain invalid attribute names: {1}"
+                             "\nFrame attributes can not conflict with *any* of"
+                             " the frame data component names (see"
+                             " `frame_transform_graph.frame_component_names`)."
+                             .format(list(invalid_frames), invalid_attrs))
 
         self._graph[fromsys][tosys] = transform
         self.invalidate_cache()
@@ -776,7 +848,7 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
         difference.  Both the to and the from frame will be checked for this
         attribute, but only one needs to have it. If None, no velocity
         component induced from the frame itself will be included - only the
-        re-orientation of any exsiting differential.
+        re-orientation of any existing differential.
     finite_difference_dt : `~astropy.units.Quantity` or callable
         If a quantity, this is the size of the differential used to do the
         finite difference.  If a callable, should accept
@@ -942,7 +1014,7 @@ class BaseAffineTransform(CoordinateTransform):
         # Some initial checking to short-circuit doing any re-representation if
         # we're going to fail anyways:
         if isinstance(data, UnitSphericalRepresentation) and offset is not None:
-            raise TypeError("Position information stored on coordiante frame "
+            raise TypeError("Position information stored on coordinate frame "
                             "is insufficient to do a full-space position "
                             "transformation (representation class: {0})"
                             .format(data.__class__))
@@ -1276,7 +1348,7 @@ class CompositeTransform(CoordinateTransform):
 
             if (isinstance(lasttrans, StaticMatrixTransform) and
                     isinstance(currtrans, StaticMatrixTransform)):
-                combinedmat = np.dot(lasttrans.matrix, currtrans.matrix)
+                combinedmat = matrix_product(currtrans.matrix, lasttrans.matrix)
                 newtrans[-1] = StaticMatrixTransform(combinedmat,
                                                      lasttrans.fromsys,
                                                      currtrans.tosys)

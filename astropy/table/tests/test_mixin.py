@@ -21,13 +21,14 @@ from io import StringIO
 import pytest
 import numpy as np
 
-from ...coordinates import EarthLocation
-from ...table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
-from ... import time
-from ... import coordinates
-from ... import units as u
-from ..column import BaseColumn
-from .. import table_helpers
+from astropy.coordinates import EarthLocation
+from astropy.table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
+from astropy.table import serialize
+from astropy import time
+from astropy import coordinates
+from astropy import units as u
+from astropy.table.column import BaseColumn
+from astropy.table import table_helpers
 from .conftest import MIXIN_COLS
 
 
@@ -99,7 +100,7 @@ def test_io_ascii_write():
     every pure Python writer.  No validation of the output is done,
     this just confirms no exceptions.
     """
-    from ...io.ascii.connect import _get_connectors_table
+    from astropy.io.ascii.connect import _get_connectors_table
     t = QTable(MIXIN_COLS)
     for fmt in _get_connectors_table():
         if fmt['Format'] == 'ascii.ecsv' and not HAS_YAML:
@@ -109,47 +110,41 @@ def test_io_ascii_write():
             t.write(out, format=fmt['Format'])
 
 
-def test_io_quantity_write(tmpdir):
+def test_votable_quantity_write(tmpdir):
     """
-    Test that table with Quantity mixin column can be written by io.fits and
-    io.votable but not by io.misc.hdf5. Validation of the output is done.
-    Test that io.fits writes a table containing Quantity mixin columns that can
-    be round-tripped (metadata unit).
+    Test that table with Quantity mixin column can be round-tripped by
+    io.votable.  Note that FITS and HDF5 mixin support are tested (much more
+    thoroughly) in their respective subpackage tests
+    (io/fits/tests/test_connect.py and io/misc/tests/test_hdf5.py).
     """
     t = QTable()
     t['a'] = u.Quantity([1, 2, 4], unit='Angstrom')
 
     filename = str(tmpdir.join('table-tmp'))
-
-    # Show that FITS and VOTable formats succeed
-    for fmt in ('fits', 'votable'):
-        t.write(filename, format=fmt, overwrite=True)
-        qt = QTable.read(filename, format=fmt)
-        assert isinstance(qt['a'], u.Quantity)
-        assert qt['a'].unit == 'Angstrom'
-
-    # Show that HDF5 format fails
-    if HAS_H5PY:
-        with pytest.raises(ValueError) as err:
-            t.write(filename, format='hdf5', overwrite=True)
-        assert 'cannot write table with mixin column(s)' in str(err.value)
+    t.write(filename, format='votable', overwrite=True)
+    qt = QTable.read(filename, format='votable')
+    assert isinstance(qt['a'], u.Quantity)
+    assert qt['a'].unit == 'Angstrom'
 
 
 @pytest.mark.parametrize('table_types', (Table, QTable))
-def test_io_time_write_fits(tmpdir, table_types):
+def test_io_time_write_fits_standard(tmpdir, table_types):
     """
     Test that table with Time mixin columns can be written by io.fits.
     Validation of the output is done. Test that io.fits writes a table
     containing Time mixin columns that can be partially round-tripped
     (metadata scale, location).
+
+    Note that we postpone checking the "local" scale, since that cannot
+    be done with format 'cxcsec', as it requires an epoch.
     """
-    t = table_types([[1,2], ['string', 'column']])
-    for scale in time.TIME_SCALES:
-        t['a'+scale] = time.Time([[1,2],[3,4]], format='cxcsec', scale=scale,
-                                  location=EarthLocation(-2446354,
-                                  4237210, 4077985, unit='m'))
+    t = table_types([[1, 2], ['string', 'column']])
+    for scale in time.STANDARD_TIME_SCALES:
+        t['a'+scale] = time.Time([[1, 2], [3, 4]], format='cxcsec',
+                                 scale=scale, location=EarthLocation(
+                                     -2446354, 4237210, 4077985, unit='m'))
         t['b'+scale] = time.Time(['1999-01-01T00:00:00.123456789',
-                                  '2010-01-01T00:00:00'], format='isot', scale=scale)
+                                  '2010-01-01T00:00:00'], scale=scale)
     t['c'] = [3., 4.]
 
     filename = str(tmpdir.join('table-tmp'))
@@ -158,7 +153,7 @@ def test_io_time_write_fits(tmpdir, table_types):
     t.write(filename, format='fits', overwrite=True)
     tm = table_types.read(filename, format='fits', astropy_native=True)
 
-    for scale in time.TIME_SCALES:
+    for scale in time.STANDARD_TIME_SCALES:
         for ab in ('a', 'b'):
             name = ab + scale
 
@@ -185,7 +180,7 @@ def test_io_time_write_fits(tmpdir, table_types):
         assert (tm[name] == t[name]).all()
 
     # Test for conversion of time data to its value, as defined by its format
-    for scale in time.TIME_SCALES:
+    for scale in time.STANDARD_TIME_SCALES:
         for ab in ('a', 'b'):
             name = ab + scale
             t[name].info.serialize_method['fits'] = 'formatted_value'
@@ -193,7 +188,7 @@ def test_io_time_write_fits(tmpdir, table_types):
     t.write(filename, format='fits', overwrite=True)
     tm = table_types.read(filename, format='fits')
 
-    for scale in time.TIME_SCALES:
+    for scale in time.STANDARD_TIME_SCALES:
         for ab in ('a', 'b'):
             name = ab + scale
 
@@ -201,30 +196,86 @@ def test_io_time_write_fits(tmpdir, table_types):
             assert (tm[name] == t[name].value).all()
 
 
-def test_io_write_fail(mixin_cols):
+@pytest.mark.parametrize('table_types', (Table, QTable))
+def test_io_time_write_fits_local(tmpdir, table_types):
+    """
+    Test that table with a Time mixin with scale local can also be written
+    by io.fits. Like ``test_io_time_write_fits_standard`` above, but avoiding
+    ``cxcsec`` format, which requires an epoch and thus cannot be used for a
+    local time scale.
+    """
+    t = table_types([[1, 2], ['string', 'column']])
+    t['a_local'] = time.Time([[50001, 50002], [50003, 50004]],
+                             format='mjd', scale='local',
+                             location=EarthLocation(-2446354, 4237210, 4077985,
+                                                    unit='m'))
+    t['b_local'] = time.Time(['1999-01-01T00:00:00.123456789',
+                              '2010-01-01T00:00:00'], scale='local')
+    t['c'] = [3., 4.]
+
+    filename = str(tmpdir.join('table-tmp'))
+
+    # Show that FITS format succeeds
+    t.write(filename, format='fits', overwrite=True)
+    tm = table_types.read(filename, format='fits', astropy_native=True)
+
+    for ab in ('a', 'b'):
+        name = ab + '_local'
+
+        # Assert that the time columns are read as Time
+        assert isinstance(tm[name], time.Time)
+
+        # Assert that the scales round-trip
+        assert tm[name].scale == t[name].scale
+
+        # Assert that the format is jd
+        assert tm[name].format == 'jd'
+
+        # Assert that the location round-trips
+        assert tm[name].location == t[name].location
+
+        # Finally assert that the column data round-trips
+        assert (tm[name] == t[name]).all()
+
+    for name in ('col0', 'col1', 'c'):
+        # Assert that the non-time columns are read as Column
+        assert isinstance(tm[name], Column)
+
+        # Assert that the non-time columns' data round-trips
+        assert (tm[name] == t[name]).all()
+
+    # Test for conversion of time data to its value, as defined by its format.
+    for ab in ('a', 'b'):
+        name = ab + '_local'
+        t[name].info.serialize_method['fits'] = 'formatted_value'
+
+    t.write(filename, format='fits', overwrite=True)
+    tm = table_types.read(filename, format='fits')
+
+    for ab in ('a', 'b'):
+        name = ab + '_local'
+
+        assert not isinstance(tm[name], time.Time)
+        assert (tm[name] == t[name].value).all()
+
+
+def test_votable_mixin_write_fail(mixin_cols):
     """
     Test that table with mixin columns (excluding Quantity) cannot be written by
-    io.votable, io.fits and io.misc.hdf5. Also test that table with Time mixin
-    columns cannot be written by io.votable and io.misc.hdf5.
+    io.votable.
     """
     t = QTable(mixin_cols)
     # Only do this test if there are unsupported column types (i.e. anything besides
     # BaseColumn and Quantity class instances).
     unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity))
-    # Partially supported columns (FITS)
-    fits_unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity, time.Time))
 
     if not unsupported_cols:
         pytest.skip("no unsupported column types")
-    for fmt in ('fits', 'votable', 'hdf5'):
-        if fmt == 'fits' and not fits_unsupported_cols:
-            pytest.skip("no unsupported column types")
-        if fmt == 'hdf5' and not HAS_H5PY:
-            continue
-        out = StringIO()
-        with pytest.raises(ValueError) as err:
-            t.write(out, format=fmt)
-        assert 'cannot write table with mixin column(s)' in str(err.value)
+
+    out = StringIO()
+    with pytest.raises(ValueError) as err:
+        t.write(out, format='votable')
+    assert 'cannot write table with mixin column(s)' in str(err.value)
 
 
 def test_join(table_types):
@@ -436,7 +487,7 @@ def test_insert_row(mixin_cols):
     """
     t = QTable(mixin_cols)
     t['m'].info.description = 'd'
-    if isinstance(t['m'], (u.Quantity, Column)):
+    if isinstance(t['m'], (u.Quantity, Column, time.Time)):
         t.insert_row(1, t[-1])
         assert t[1] == t[-1]
         assert t['m'].info.description == 'd'
@@ -489,16 +540,6 @@ def test_assignment_and_copy():
                 assert np.all(t['m'][i0] == m[i1])
                 assert np.all(t0['m'][i0] == m[i0])
                 assert np.all(t0['m'][i0] != t['m'][i0])
-
-
-def test_grouping():
-    """
-    Test grouping with mixin columns.  Raises not yet implemented error.
-    """
-    t = QTable(MIXIN_COLS)
-    t['index'] = ['a', 'b', 'b', 'c']
-    with pytest.raises(NotImplementedError):
-        t.group_by('index')
 
 
 def test_conversion_qtable_table():
@@ -555,7 +596,7 @@ def test_skycoord_representation():
     values are output and in changing the frame representation.
     """
     # With no unit we get "None" in the unit row
-    c = coordinates.SkyCoord([0], [1], [0], representation='cartesian')
+    c = coordinates.SkyCoord([0], [1], [0], representation_type='cartesian')
     t = Table([c])
     assert t.pformat() == ['     col0     ',
                            'None,None,None',
@@ -563,20 +604,20 @@ def test_skycoord_representation():
                            '   0.0,1.0,0.0']
 
     # Test that info works with a dynamically changed representation
-    c = coordinates.SkyCoord([0], [1], [0], unit='m', representation='cartesian')
+    c = coordinates.SkyCoord([0], [1], [0], unit='m', representation_type='cartesian')
     t = Table([c])
     assert t.pformat() == ['    col0   ',
                            '   m,m,m   ',
                            '-----------',
                            '0.0,1.0,0.0']
 
-    t['col0'].representation = 'unitspherical'
+    t['col0'].representation_type = 'unitspherical'
     assert t.pformat() == ['  col0  ',
                            'deg,deg ',
                            '--------',
                            '90.0,0.0']
 
-    t['col0'].representation = 'cylindrical'
+    t['col0'].representation_type = 'cylindrical'
     assert t.pformat() == ['    col0    ',
                            '  m,deg,m   ',
                            '------------',
@@ -688,3 +729,14 @@ def test_rename_mixin_columns(mixin_cols):
         assert np.all(t['mm'].dec == tc['m'].dec)
     else:
         assert np.all(t['mm'] == tc['m'])
+
+
+def test_represent_mixins_as_columns_unit_fix():
+    """
+    If the unit is invalid for a column that gets serialized this would
+    cause an exception.  Fixed in #7481.
+    """
+    t = Table({'a': [1, 2]}, masked=True)
+    t['a'].unit = 'not a valid unit'
+    t['a'].mask[1] = True
+    serialize._represent_mixins_as_columns(t)

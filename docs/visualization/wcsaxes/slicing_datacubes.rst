@@ -14,7 +14,7 @@ Like the example introduced in :ref:`initialization`, we will read in the
 data using `astropy.io.fits
 <http://docs.astropy.org/en/stable/io/fits/index.html>`_ and parse the WCS
 information. The original FITS file can be downloaded from `here
-<http://astrofrog.github.io/wcsaxes-datasets/L1448_13CO.fits>`_.
+<http://astropy.github.io/wcsaxes-datasets/L1448_13CO.fits>`_.
 
 .. plot::
    :context: reset
@@ -75,7 +75,7 @@ We then add the axes to the image and plot it using the method
    :include-source:
    :align: center
 
-    ax.coords[2].set_ticks(exclude_overlapping=True)
+    ax.coords[2].set_ticklabel(exclude_overlapping=True)
     ax.imshow(image_data[:, :, 50].transpose())
 
 Here, ``image_data`` is an :class:`~numpy.ndarray` object. In Numpy, the order

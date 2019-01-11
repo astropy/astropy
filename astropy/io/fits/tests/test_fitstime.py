@@ -1,25 +1,26 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import os
 
 import pytest
 import numpy as np
 
 from . import FitsTestCase
 
-from ..fitstime import GLOBAL_TIME_INFO, time_to_fits, is_time_column_keyword
-from ....coordinates import EarthLocation
-from ....io import fits
-from ....table import Table, QTable
-from ....time import Time, TimeDelta
-from ....time.core import BARYCENTRIC_SCALES
-from ....time.formats import FITS_DEPRECATED_SCALES
-from ....tests.helper import catch_warnings
+from astropy.io.fits.fitstime import GLOBAL_TIME_INFO, time_to_fits, is_time_column_keyword
+from astropy.coordinates import EarthLocation
+from astropy.io import fits
+from astropy.table import Table, QTable
+from astropy.time import Time, TimeDelta
+from astropy.time.core import BARYCENTRIC_SCALES
+from astropy.time.formats import FITS_DEPRECATED_SCALES
+from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 
 class TestFitsTime(FitsTestCase):
 
     def setup_class(self):
         self.time = np.array(['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00'])
+        self.time_3d = np.array([[[1, 2], [1, 3], [3, 4]]])
 
     def test_is_time_column_keyword(self):
         # Time column keyword without column number
@@ -41,12 +42,25 @@ class TestFitsTime(FitsTestCase):
         t['a'] = Time(self.time, format='isot', scale='utc')
         t['b'] = Time(self.time, format='isot', scale='tt')
 
-        # Check that vectorized location raises an exception
-        t['a'].location = EarthLocation([1,2], [2,3], [3,4])
+        # Check that vectorized location is stored using Green Bank convention
+        t['a'].location = EarthLocation([1., 2.], [2., 3.], [3., 4.],
+                                        unit='Mm')
 
-        with pytest.raises(ValueError) as err:
+        with pytest.warns(AstropyUserWarning, match='Time Column "b" has no '
+                          'specified location, but global Time Position is present'):
             table, hdr = time_to_fits(t)
-        assert 'Vectorized Location of Time Column' in str(err.value)
+        assert (table['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')).all()
+        assert (table['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')).all()
+        assert (table['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')).all()
+
+        with pytest.warns(AstropyUserWarning, match='Time Column "b" has no '
+                          'specified location, but global Time Position is present'):
+            t.write(self.temp('time.fits'), format='fits', overwrite=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits',
+                              astropy_native=True)
+
+        assert (tm['a'].location == t['a'].location).all()
+        assert tm['b'].location == t['b'].location
 
         # Check that multiple Time columns with different locations raise an exception
         t['a'].location = EarthLocation(1, 2, 3)
@@ -83,6 +97,40 @@ class TestFitsTime(FitsTestCase):
                 assert str(w[0].message).startswith('Earth Location "TOPOCENTER" '
                                                     'for Time Column')
 
+        # Check that multidimensional vectorized location (ndim=3) is stored
+        # using Green Bank convention.
+        t = table_types()
+        location = EarthLocation([[[1., 2.], [1., 3.], [3., 4.]]],
+                                 [[[1., 2.], [1., 3.], [3., 4.]]],
+                                 [[[1., 2.], [1., 3.], [3., 4.]]], unit='Mm')
+        t['a'] = Time(self.time_3d, format='jd', location=location)
+
+        table, hdr = time_to_fits(t)
+        assert (table['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')).all()
+        assert (table['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')).all()
+        assert (table['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')).all()
+
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits',
+                              astropy_native=True)
+
+        assert (tm['a'].location == t['a'].location).all()
+
+        # Check that singular location with ndim>1 can be written
+        t['a'] = Time(self.time, location=EarthLocation([[[1.]]], [[[2.]]],
+                                                        [[[3.]]], unit='Mm'))
+
+        table, hdr = time_to_fits(t)
+        assert hdr['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')
+        assert hdr['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')
+        assert hdr['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')
+
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits',
+                              astropy_native=True)
+
+        assert tm['a'].location == t['a'].location
+
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_time_to_fits_header(self, table_types):
         """
@@ -98,7 +146,9 @@ class TestFitsTime(FitsTestCase):
                          'OBSGEO-Y' : t['a'].location.y.value,
                          'OBSGEO-Z' : t['a'].location.z.value}
 
-        table, hdr = time_to_fits(t)
+        with pytest.warns(AstropyUserWarning, match='Time Column "b" has no '
+                          'specified location, but global Time Position is present'):
+            table, hdr = time_to_fits(t)
 
         # Check the global time keywords in hdr
         for key, value in GLOBAL_TIME_INFO.items():
@@ -131,7 +181,7 @@ class TestFitsTime(FitsTestCase):
         t.meta['DATE'] = '1999-01-01T00:00:00'
         t.meta['MJD-OBS'] = 56670
 
-        # Test for default write behaviour (full precision) and read it
+        # Test for default write behavior (full precision) and read it
         # back using native astropy objects; thus, ensure its round-trip
         t.write(self.temp('time.fits'), format='fits', overwrite=True)
         tm = table_types.read(self.temp('time.fits'), format='fits',
@@ -139,7 +189,7 @@ class TestFitsTime(FitsTestCase):
 
         # Test DATE
         assert isinstance(tm.meta['DATE'], Time)
-        assert tm.meta['DATE'].value == t.meta['DATE'] + '(UTC)'
+        assert tm.meta['DATE'].value == t.meta['DATE']
         assert tm.meta['DATE'].format == 'fits'
         # Default time scale according to the FITS standard is UTC
         assert tm.meta['DATE'].scale == 'utc'
@@ -159,7 +209,7 @@ class TestFitsTime(FitsTestCase):
 
         # Test DATE
         assert isinstance(tm.meta['DATE'], Time)
-        assert tm.meta['DATE'].value == t.meta['DATE'] + '(UTC)'
+        assert tm.meta['DATE'].value == t.meta['DATE']
         assert tm.meta['DATE'].scale == 'utc'
 
         # Test MJD-xxx
@@ -197,19 +247,19 @@ class TestFitsTime(FitsTestCase):
         table, hdr = time_to_fits(t)
 
         # Check the header
-        hdr['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')
-        hdr['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')
-        hdr['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')
+        assert hdr['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')
+        assert hdr['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')
+        assert hdr['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')
 
         t.write(self.temp('time.fits'), format='fits', overwrite=True)
         tm = table_types.read(self.temp('time.fits'), format='fits',
                               astropy_native=True)
 
         # Check the round-trip of location
-        tm['a'].location == t['a'].location
-        tm['a'].location.x.value == t['a'].location.x.to_value(unit='m')
-        tm['a'].location.y.value == t['a'].location.y.to_value(unit='m')
-        tm['a'].location.z.value == t['a'].location.z.to_value(unit='m')
+        assert (tm['a'].location == t['a'].location).all()
+        assert tm['a'].location.x.value == t['a'].location.x.to_value(unit='m')
+        assert tm['a'].location.y.value == t['a'].location.y.to_value(unit='m')
+        assert tm['a'].location.z.value == t['a'].location.z.to_value(unit='m')
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_io_time_read_fits(self, table_types):
@@ -225,7 +275,9 @@ class TestFitsTime(FitsTestCase):
            to be time.
         """
         filename = self.data('chandra_time.fits')
-        tm = table_types.read(filename, astropy_native=True)
+        with pytest.warns(AstropyUserWarning, match='Time column "time" reference '
+                          'position will be ignored'):
+            tm = table_types.read(filename, astropy_native=True)
 
         # Test case 1
         assert isinstance(tm['time'], Time)
@@ -279,7 +331,9 @@ class TestFitsTime(FitsTestCase):
                  ('OBSGEO-Z', 4077985)]
 
         # Explicitly create a FITS Binary Table
-        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        with pytest.warns(AstropyDeprecationWarning, match='should be set via '
+                          'the Column objects: TCTYPn, TRPOSn'):
+            bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
         tm = table_types.read(self.temp('time.fits'), astropy_native=True)
@@ -293,7 +347,9 @@ class TestFitsTime(FitsTestCase):
         cards = [('OBSGEO-L', 0), ('OBSGEO-B', 0), ('OBSGEO-H', 0)]
 
         # Explicitly create a FITS Binary Table
-        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        with pytest.warns(AstropyDeprecationWarning, match='should be set via '
+                          'the Column objects: TCTYPn, TRPOSn'):
+            bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
         tm = table_types.read(self.temp('time.fits'), astropy_native=True)
@@ -301,7 +357,8 @@ class TestFitsTime(FitsTestCase):
         assert isinstance(tm['datetime'], Time)
         assert tm['datetime'].location.lon.value == 0
         assert tm['datetime'].location.lat.value == 0
-        assert tm['datetime'].location.height.value == 0
+        assert np.isclose(tm['datetime'].location.height.value, 0,
+                          rtol=0, atol=1e-9)
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_io_time_read_fits_scale(self, table_types):
@@ -316,7 +373,9 @@ class TestFitsTime(FitsTestCase):
 
         cards = [('OBSGEO-L', 0), ('OBSGEO-B', 0), ('OBSGEO-H', 0)]
 
-        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        with pytest.warns(AstropyDeprecationWarning, match='should be set via '
+                          'the Column objects: TCTYPn, TCUNIn, TRPOSn'):
+            bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
         with catch_warnings() as w:
@@ -338,15 +397,12 @@ class TestFitsTime(FitsTestCase):
         bhdu = fits.BinTableHDU.from_columns([c])
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
-        with catch_warnings() as w:
-            tm = table_types.read(self.temp('time.fits'), astropy_native=True)
-            assert len(w) == 1
-            assert 'FITS recognized time scale value "LOCAL"' in str(w[0].message)
+        tm = table_types.read(self.temp('time.fits'), astropy_native=True)
 
         assert isinstance(tm['local_time'], Time)
         assert tm['local_time'].format == 'mjd'
-        # Default scale is UTC
-        assert tm['local_time'].scale == 'utc'
+
+        assert tm['local_time'].scale == 'local'
         assert (tm['local_time'].value == local_time).all()
 
     @pytest.mark.parametrize('table_types', (Table, QTable))

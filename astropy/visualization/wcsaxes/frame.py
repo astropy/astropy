@@ -7,6 +7,7 @@ from collections import OrderedDict
 import numpy as np
 
 
+from matplotlib import rcParams
 from matplotlib.lines import Line2D, Path
 from matplotlib.patches import PathPatch
 
@@ -97,8 +98,8 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
 
         self.parent_axes = parent_axes
         self._transform = transform
-        self._linewidth = 1
-        self._color = 'black'
+        self._linewidth = rcParams['axes.linewidth']
+        self._color = rcParams['axes.edgecolor']
         self._path = path
 
         for axis in self.spine_names:
@@ -137,7 +138,7 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
     def patch(self):
         self._update_patch_path()
         return PathPatch(self._path, transform=self.parent_axes.transData,
-                         facecolor='white', edgecolor='white')
+                         facecolor=rcParams['axes.facecolor'], edgecolor='white')
 
     def draw(self, renderer):
         for axis in self:

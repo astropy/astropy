@@ -468,7 +468,7 @@ int ffpclui( fitsfile *fptr,  /* I - FITS file pointer                       */
                 /* can't write to string column, so fall thru to default: */
 
             default:  /*  error trap  */
-                sprintf(message, 
+                snprintf(message,FLEN_ERRMSG, 
                     "Cannot write numbers to column %d which has format %s",
                       colnum,tform);
                 ffpmsg(message);
@@ -484,7 +484,7 @@ int ffpclui( fitsfile *fptr,  /* I - FITS file pointer                       */
         /*-------------------------*/
         if (*status > 0)  /* test for error during previous write operation */
         {
-         sprintf(message,
+         snprintf(message,FLEN_ERRMSG,
           "Error writing elements %.0f thru %.0f of input data array (ffpclui).",
              (double) (next+1), (double) (next+ntodo));
          ffpmsg(message);
@@ -834,7 +834,20 @@ int ffu2fi8(unsigned short *input,  /* I - array of values to be converted  */
     long ii;
     double dvalue;
 
-    if (scale == 1. && zero == 0.)
+    if (scale == 1. && zero ==  9223372036854775808.)
+    {       
+        /* Writing to unsigned long long column. */
+        /* Instead of subtracting 9223372036854775808, it is more efficient */
+        /* and more precise to just flip the sign bit with the XOR operator */
+
+        /* no need to check range limits because all unsigned short values */
+	/* are valid ULONGLONG values. */
+
+        for (ii = 0; ii < ntodo; ii++) {
+             output[ii] =  ((LONGLONG) input[ii]) ^ 0x8000000000000000;
+        }
+    }
+    else if (scale == 1. && zero == 0.)
     {       
         for (ii = 0; ii < ntodo; ii++)
                 output[ii] = input[ii];

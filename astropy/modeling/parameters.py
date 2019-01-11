@@ -15,9 +15,9 @@ import operator
 
 import numpy as np
 
-from .. import units as u
-from ..units import Quantity, UnitsError
-from ..utils import isiterable, OrderedDescriptor
+from astropy import units as u
+from astropy.units import Quantity, UnitsError
+from astropy.utils import isiterable, OrderedDescriptor
 from .utils import array_repr_oneline
 
 from .utils import get_inputs_and_params
@@ -198,11 +198,13 @@ class Parameter(OrderedDescriptor):
         as class attributes
     """
 
-    constraints = ('fixed', 'tied', 'bounds')
+    constraints = ('fixed', 'tied', 'bounds', 'prior', 'posterior')
     """
     Types of constraints a parameter can have.  Excludes 'min' and 'max'
     which are just aliases for the first and second elements of the 'bounds'
-    constraint (which is represented as a 2-tuple).
+    constraint (which is represented as a 2-tuple). 'prior' and 'posterior'
+    are available for use by user fitters but are not used by any built-in
+    fitters as of this writing.
     """
 
     # Settings for OrderedDescriptor
@@ -211,7 +213,7 @@ class Parameter(OrderedDescriptor):
 
     def __init__(self, name='', description='', default=None, unit=None,
                  getter=None, setter=None, fixed=False, tied=False, min=None,
-                 max=None, bounds=None, model=None):
+                 max=None, bounds=None, prior=None, posterior=None, model=None):
         super().__init__()
 
         self._name = name
@@ -244,7 +246,8 @@ class Parameter(OrderedDescriptor):
         self._fixed = fixed
         self._tied = tied
         self._bounds = bounds
-
+        self._posterior = posterior
+        self._prior = prior
         self._order = None
         self._model = None
 
@@ -505,8 +508,16 @@ class Parameter(OrderedDescriptor):
 
             if model_axis < 0:
                 model_axis = len(shape) + model_axis
+                shape = shape[:model_axis] + shape[model_axis + 1:]
+            else:
+                # When a model set is initialized, the dimension of the parameters
+                # is increased by model_set_axis+1. To find the shape of a parameter
+                # within a single model the extra dimensions need to be removed first.
+                # The following dimension shows the number of models.
+                # The rest of the shape tuple represents the shape of the parameter
+                # in a single model.
 
-            shape = shape[:model_axis] + shape[model_axis + 1:]
+                shape = shape[model_axis + 1:]
 
         return shape
 
@@ -518,6 +529,38 @@ class Parameter(OrderedDescriptor):
         # size of the parameter in _param_metrics
 
         return np.size(self.value)
+
+    @property
+    def prior(self):
+        if self._model is not None:
+            prior = self._model._constraints['prior']
+            return prior.get(self._name, self._prior)
+        else:
+            return self._prior
+
+    @prior.setter
+    def prior(self, val):
+        if self._model is not None:
+            self._model._constraints['prior'][self._name] = val
+        else:
+            raise AttributeError("can't set attribute 'prior' on Parameter "
+                                 "definition")
+
+    @property
+    def posterior(self):
+        if self._model is not None:
+            posterior = self._model._constraints['posterior']
+            return posterior.get(self._name, self._posterior)
+        else:
+            return self._posterior
+
+    @posterior.setter
+    def posterior(self, val):
+        if self._model is not None:
+            self._model._constraints['posterior'][self._name] = val
+        else:
+            raise AttributeError("can't set attribute 'posterior' on Parameter "
+                                 "definition")
 
     @property
     def fixed(self):
@@ -708,7 +751,7 @@ class Parameter(OrderedDescriptor):
 
     def copy(self, name=None, description=None, default=None, unit=None,
              getter=None, setter=None, fixed=False, tied=False, min=None,
-             max=None, bounds=None):
+             max=None, bounds=None, prior=None, posterior=None):
         """
         Make a copy of this `Parameter`, overriding any of its core attributes
         in the process (or an exact copy).

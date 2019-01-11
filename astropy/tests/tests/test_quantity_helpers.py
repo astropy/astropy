@@ -1,6 +1,6 @@
-from ... import units as u
+from astropy import units as u
 
-from ..helper import assert_quantity_allclose, pytest
+from astropy.tests.helper import assert_quantity_allclose, pytest
 
 
 def test_assert_quantity_allclose():
@@ -11,8 +11,9 @@ def test_assert_quantity_allclose():
 
     assert_quantity_allclose([1, 2] * u.m, [101, 201] * u.cm, atol=2 * u.cm)
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError) as exc:
         assert_quantity_allclose([1, 2] * u.m, [90, 200] * u.cm)
+    assert exc.value.args[0].startswith("\nNot equal to tolerance")
 
     with pytest.raises(AssertionError):
         assert_quantity_allclose([1, 2] * u.m, [101, 201] * u.cm, atol=0.5 * u.cm)

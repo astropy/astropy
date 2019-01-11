@@ -10,11 +10,11 @@ import pytest
 from numpy.testing import assert_allclose
 
 
-from ..core import Model
-from ..models import Gaussian1D
-from ... import units as u
-from ...units import UnitsError
-from ...tests.helper import assert_quantity_allclose
+from astropy.modeling.core import Model
+from astropy.modeling.models import Gaussian1D, Shift, Scale, Pix2Sky_TAN
+from astropy import units as u
+from astropy.units import UnitsError
+from astropy.tests.helper import assert_quantity_allclose
 
 
 # We start off by taking some simple cases where the units are defined by
@@ -42,7 +42,7 @@ def test_evaluate_with_quantities():
     # error is raised
     with pytest.raises(UnitsError) as exc:
         gq(1)
-    assert exc.value.args[0] == ("Units of input 'x', (dimensionless), could not be "
+    assert exc.value.args[0] == ("Gaussian1D: Units of input 'x', (dimensionless), could not be "
                                  "converted to required input units of m (length)")
 
     # However, zero is a special case
@@ -54,7 +54,7 @@ def test_evaluate_with_quantities():
     # But not with incompatible units
     with pytest.raises(UnitsError) as exc:
         gq(3 * u.s)
-    assert exc.value.args[0] == ("Units of input 'x', s (time), could not be "
+    assert exc.value.args[0] == ("Gaussian1D: Units of input 'x', s (time), could not be "
                                  "converted to required input units of m (length)")
 
     # We also can't evaluate the model without quantities with a quantity
@@ -75,7 +75,7 @@ def test_evaluate_with_quantities_and_equivalencies():
     # We aren't setting the equivalencies, so this won't work
     with pytest.raises(UnitsError) as exc:
         g(30 * u.PHz)
-    assert exc.value.args[0] == ("Units of input 'x', PHz (frequency), could "
+    assert exc.value.args[0] == ("Gaussian1D: Units of input 'x', PHz (frequency), could "
                                  "not be converted to required input units of "
                                  "nm (length)")
 
@@ -107,7 +107,7 @@ class TestInputUnits():
 
     def test_input_units(self):
 
-        self.model.input_units = {'a': u.deg}
+        self.model._input_units = {'a': u.deg}
 
         assert_quantity_allclose(self.model(3 * u.deg, 4), 12 * u.deg)
         assert_quantity_allclose(self.model(4 * u.rad, 2), 8 * u.rad)
@@ -115,33 +115,33 @@ class TestInputUnits():
 
         with pytest.raises(UnitsError) as exc:
             self.model(4 * u.s, 3)
-        assert exc.value.args[0] == ("Units of input 'a', s (time), could not be "
+        assert exc.value.args[0] == ("MyTestModel: Units of input 'a', s (time), could not be "
                                      "converted to required input units of deg (angle)")
 
         with pytest.raises(UnitsError) as exc:
             self.model(3, 3)
-        assert exc.value.args[0] == ("Units of input 'a', (dimensionless), could "
+        assert exc.value.args[0] == ("MyTestModel: Units of input 'a', (dimensionless), could "
                                      "not be converted to required input units of deg (angle)")
 
     def test_input_units_allow_dimensionless(self):
 
-        self.model.input_units = {'a': u.deg}
-        self.model.input_units_allow_dimensionless = True
+        self.model._input_units = {'a': u.deg}
+        self.model._input_units_allow_dimensionless = True
 
         assert_quantity_allclose(self.model(3 * u.deg, 4), 12 * u.deg)
         assert_quantity_allclose(self.model(4 * u.rad, 2), 8 * u.rad)
 
         with pytest.raises(UnitsError) as exc:
             self.model(4 * u.s, 3)
-        assert exc.value.args[0] == ("Units of input 'a', s (time), could not be "
+        assert exc.value.args[0] == ("MyTestModel: Units of input 'a', s (time), could not be "
                                      "converted to required input units of deg (angle)")
 
         assert_quantity_allclose(self.model(3, 3), 9)
 
     def test_input_units_strict(self):
 
-        self.model.input_units = {'a': u.deg}
-        self.model.input_units_strict = True
+        self.model._input_units = {'a': u.deg}
+        self.model._input_units_strict = True
 
         assert_quantity_allclose(self.model(3 * u.deg, 4), 12 * u.deg)
 
@@ -151,11 +151,11 @@ class TestInputUnits():
 
     def test_input_units_equivalencies(self):
 
-        self.model.input_units = {'a': u.micron}
+        self.model._input_units = {'a': u.micron}
 
         with pytest.raises(UnitsError) as exc:
             self.model(3 * u.PHz, 3)
-        assert exc.value.args[0] == ("Units of input 'a', PHz (frequency), could "
+        assert exc.value.args[0] == ("MyTestModel: Units of input 'a', PHz (frequency), could "
                                      "not be converted to required input units of "
                                      "micron (length)")
 
@@ -166,8 +166,8 @@ class TestInputUnits():
 
     def test_return_units(self):
 
-        self.model.input_units = {'a': u.deg}
-        self.model.return_units = {'f': u.rad}
+        self.model._input_units = {'a': u.deg}
+        self.model._return_units = {'f': u.rad}
 
         result = self.model(3 * u.deg, 4)
 
@@ -179,10 +179,275 @@ class TestInputUnits():
         # Check that return_units also works when giving a single unit since
         # there is only one output, so is unambiguous.
 
-        self.model.input_units = {'a': u.deg}
-        self.model.return_units = u.rad
+        self.model._input_units = {'a': u.deg}
+        self.model._return_units = u.rad
 
         result = self.model(3 * u.deg, 4)
 
         assert_quantity_allclose(result, 12 * u.deg)
         assert result.unit is u.rad
+
+
+def test_and_input_units():
+    """
+    Test units to first model in chain.
+    """
+    s1 = Shift(10 * u.deg)
+    s2 = Shift(10 * u.deg)
+
+    cs = s1 & s2
+
+    out = cs(10 * u.arcsecond, 20 * u.arcsecond)
+
+    assert_quantity_allclose(out[0], 10 * u.deg + 10 * u.arcsec)
+    assert_quantity_allclose(out[1], 10 * u.deg + 20 * u.arcsec)
+
+
+def test_plus_input_units():
+    """
+    Test units to first model in chain.
+    """
+    s1 = Shift(10 * u.deg)
+    s2 = Shift(10 * u.deg)
+
+    cs = s1 + s2
+
+    out = cs(10 * u.arcsecond)
+
+    assert_quantity_allclose(out, 20 * u.deg + 20 * u.arcsec)
+
+
+def test_compound_input_units():
+    """
+    Test units to first model in chain.
+    """
+    s1 = Shift(10 * u.deg)
+    s2 = Shift(10 * u.deg)
+
+    cs = s1 | s2
+
+    out = cs(10 * u.arcsecond)
+
+    assert_quantity_allclose(out, 20 * u.deg + 10 * u.arcsec)
+
+
+def test_compound_input_units_fail():
+    """
+    Test incompatible units to first model in chain.
+    """
+    s1 = Shift(10 * u.deg)
+    s2 = Shift(10 * u.deg)
+
+    cs = s1 | s2
+
+    with pytest.raises(UnitsError):
+        cs(10 * u.pix)
+
+
+def test_compound_incompatible_units_fail():
+    """
+    Test incompatible model units in chain.
+    """
+    s1 = Shift(10 * u.pix)
+    s2 = Shift(10 * u.deg)
+
+    cs = s1 | s2
+
+    with pytest.raises(UnitsError):
+        cs(10 * u.pix)
+
+
+def test_compound_pipe_equiv_call():
+    """
+    Check that equivalencies work when passed to evaluate, for a chained model
+    (which has one input).
+    """
+    s1 = Shift(10 * u.deg)
+    s2 = Shift(10 * u.deg)
+
+    cs = s1 | s2
+
+    out = cs(10 * u.pix, equivalencies={'x': u.pixel_scale(0.5 * u.deg / u.pix)})
+    assert_quantity_allclose(out, 25 * u.deg)
+
+
+def test_compound_and_equiv_call():
+    """
+    Check that equivalencies work when passed to evaluate, for a compsite model
+    with two inputs.
+    """
+    s1 = Shift(10 * u.deg)
+    s2 = Shift(10 * u.deg)
+
+    cs = s1 & s2
+
+    out = cs(10 * u.pix, 10 * u.pix, equivalencies={'x0': u.pixel_scale(0.5 * u.deg / u.pix),
+                                                    'x1': u.pixel_scale(0.5 * u.deg / u.pix)})
+    assert_quantity_allclose(out[0], 15 * u.deg)
+    assert_quantity_allclose(out[1], 15 * u.deg)
+
+
+def test_compound_input_units_equivalencies():
+    """
+    Test setting input_units_equivalencies on one of the models.
+    """
+
+    s1 = Shift(10 * u.deg)
+    s1.input_units_equivalencies = {'x': u.pixel_scale(0.5 * u.deg / u.pix)}
+    s2 = Shift(10 * u.deg)
+    sp = Shift(10 * u.pix)
+
+    cs = s1 | s2
+
+    out = cs(10 * u.pix)
+    assert_quantity_allclose(out, 25 * u.deg)
+
+    cs = sp | s1
+
+    out = cs(10 * u.pix)
+    assert_quantity_allclose(out, 20 * u.deg)
+
+    cs = s1 & s2
+    cs = cs.rename('TestModel')
+    out = cs(20 * u.pix, 10 * u.deg)
+    assert_quantity_allclose(out, 20 * u.deg)
+
+    with pytest.raises(UnitsError) as exc:
+        out = cs(20 * u.pix, 10 * u.pix)
+    assert exc.value.args[0] == "TestModel: Units of input 'x1', pix (unknown), could not be converted to required input units of deg (angle)"
+
+
+def test_compound_input_units_strict():
+    """
+    Test setting input_units_strict on one of the models.
+    """
+
+    class ScaleDegrees(Scale):
+        input_units = {'x': u.deg}
+
+    s1 = ScaleDegrees(2)
+    s2 = Scale(2)
+
+    cs = s1 | s2
+
+    out = cs(10 * u.arcsec)
+    assert_quantity_allclose(out, 40 * u.arcsec)
+    assert out.unit is u.deg  # important since this tests input_units_strict
+
+    cs = s2 | s1
+
+    out = cs(10 * u.arcsec)
+    assert_quantity_allclose(out, 40 * u.arcsec)
+    assert out.unit is u.deg  # important since this tests input_units_strict
+
+    cs = s1 & s2
+
+    out = cs(10 * u.arcsec, 10 * u.arcsec)
+    assert_quantity_allclose(out, 20 * u.arcsec)
+    assert out[0].unit is u.deg
+    assert out[1].unit is u.arcsec
+
+
+def test_compound_input_units_allow_dimensionless():
+    """
+    Test setting input_units_allow_dimensionless on one of the models.
+    """
+
+    class ScaleDegrees(Scale):
+        input_units = {'x': u.deg}
+
+    s1 = ScaleDegrees(2)
+    s1._input_units_allow_dimensionless = True
+    s2 = Scale(2)
+
+    cs = s1 | s2
+    cs = cs.rename('TestModel')
+    out = cs(10)
+    assert_quantity_allclose(out, 40 * u.one)
+
+    out = cs(10 * u.arcsec)
+    assert_quantity_allclose(out, 40 * u.arcsec)
+
+    with pytest.raises(UnitsError) as exc:
+        out = cs(10 * u.m)
+    assert exc.value.args[0] == "TestModel: Units of input 'x', m (length), could not be converted to required input units of deg (angle)"
+
+    s1._input_units_allow_dimensionless = False
+
+    cs = s1 | s2
+    cs = cs.rename('TestModel')
+
+    with pytest.raises(UnitsError) as exc:
+        out = cs(10)
+    assert exc.value.args[0] == "TestModel: Units of input 'x', (dimensionless), could not be converted to required input units of deg (angle)"
+
+    s1._input_units_allow_dimensionless = True
+
+    cs = s2 | s1
+    cs = cs.rename('TestModel')
+
+    out = cs(10)
+    assert_quantity_allclose(out, 40 * u.one)
+
+    out = cs(10 * u.arcsec)
+    assert_quantity_allclose(out, 40 * u.arcsec)
+
+    with pytest.raises(UnitsError) as exc:
+        out = cs(10 * u.m)
+    assert exc.value.args[0] == "ScaleDegrees: Units of input 'x', m (length), could not be converted to required input units of deg (angle)"
+
+    s1._input_units_allow_dimensionless = False
+
+    cs = s2 | s1
+
+    with pytest.raises(UnitsError) as exc:
+        out = cs(10)
+    assert exc.value.args[0] == "ScaleDegrees: Units of input 'x', (dimensionless), could not be converted to required input units of deg (angle)"
+
+    s1._input_units_allow_dimensionless = True
+
+    s1 = ScaleDegrees(2)
+    s1._input_units_allow_dimensionless = True
+    s2 = ScaleDegrees(2)
+    s2._input_units_allow_dimensionless = False
+
+    cs = s1 & s2
+    cs = cs.rename('TestModel')
+
+    out = cs(10, 10 * u.arcsec)
+    assert_quantity_allclose(out[0], 20 * u.one)
+    assert_quantity_allclose(out[1], 20 * u.arcsec)
+
+    with pytest.raises(UnitsError) as exc:
+        out = cs(10, 10)
+    assert exc.value.args[0] == "TestModel: Units of input 'x1', (dimensionless), could not be converted to required input units of deg (angle)"
+
+
+def test_compound_return_units():
+    """
+    Test that return_units on the first model in the chain is respected for the
+    input to the second.
+    """
+
+    class PassModel(Model):
+
+        inputs = ('x', 'y')
+        outputs = ('x', 'y')
+
+        @property
+        def input_units(self):
+            """ Input units. """
+            return {'x': u.deg, 'y': u.deg}
+
+        @property
+        def return_units(self):
+            """ Output units. """
+            return {'x': u.deg, 'y': u.deg}
+
+        def evaluate(self, x, y):
+            return x.value, y.value
+
+
+    cs = Pix2Sky_TAN() | PassModel()
+
+    assert_quantity_allclose(cs(0*u.deg, 0*u.deg), (0, 90)*u.deg)

@@ -19,9 +19,9 @@ import urllib.error
 import http.client
 
 # VO
-from .. import table
-from .. import exceptions
-from .. import xmlutil
+from astropy.io.votable import table
+from astropy.io.votable import exceptions
+from astropy.io.votable import xmlutil
 
 
 class Result:

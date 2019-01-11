@@ -7,12 +7,12 @@ Currently that just means AltAz.
 
 import numpy as np
 
-from ... import units as u
-from ..baseframe import frame_transform_graph
-from ..transformations import FunctionTransformWithFiniteDifference
-from ..representation import (SphericalRepresentation,
+from astropy import units as u
+from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
+from astropy.coordinates.representation import (SphericalRepresentation,
                               UnitSphericalRepresentation)
-from ... import _erfa as erfa
+from astropy import _erfa as erfa
 
 from .cirs import CIRS
 from .altaz import AltAz
@@ -60,7 +60,7 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
                          # all below are already in correct units because they are QuantityFrameAttribues
                          altaz_frame.pressure.value,
                          altaz_frame.temperature.value,
-                         altaz_frame.relative_humidity,
+                         altaz_frame.relative_humidity.value,
                          altaz_frame.obswl.value)
 
     az, zen, _, _, _ = erfa.atioq(cirs_ra, cirs_dec, astrom)
@@ -100,7 +100,7 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
                          # all below are already in correct units because they are QuantityFrameAttribues
                          altaz_coo.pressure.value,
                          altaz_coo.temperature.value,
-                         altaz_coo.relative_humidity,
+                         altaz_coo.relative_humidity.value,
                          altaz_coo.obswl.value)
 
     # the 'A' indicates zen/az inputs

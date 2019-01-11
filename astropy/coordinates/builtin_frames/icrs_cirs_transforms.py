@@ -7,12 +7,12 @@ anything in between (currently that means GCRS)
 
 import numpy as np
 
-from ... import units as u
-from ..baseframe import frame_transform_graph
-from ..transformations import FunctionTransformWithFiniteDifference, AffineTransform
-from ..representation import (SphericalRepresentation, CartesianRepresentation,
+from astropy import units as u
+from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference, AffineTransform
+from astropy.coordinates.representation import (SphericalRepresentation, CartesianRepresentation,
                               UnitSphericalRepresentation)
-from ... import _erfa as erfa
+from astropy import _erfa as erfa
 
 from .icrs import ICRS
 from .gcrs import GCRS
@@ -121,17 +121,16 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
     # get the position and velocity arrays for the observatory.  Need to
     # have xyz in last dimension, and pos/vel in one-but-last.
     # (Note could use np.stack once our minimum numpy version is >=1.10.)
-    pv = np.concatenate(
-        (gcrs_frame.obsgeoloc.get_xyz(xyz_axis=-1).value[..., np.newaxis, :],
-         gcrs_frame.obsgeovel.get_xyz(xyz_axis=-1).value[..., np.newaxis, :]),
-        axis=-2)
+    obs_pv = erfa.pav2pv(
+        gcrs_frame.obsgeoloc.get_xyz(xyz_axis=-1).to_value(u.m),
+        gcrs_frame.obsgeovel.get_xyz(xyz_axis=-1).to_value(u.m/u.s))
 
     # find the position and velocity of earth
     jd1, jd2 = get_jd12(gcrs_frame.obstime, 'tdb')
     earth_pv, earth_heliocentric = prepare_earth_position_vel(gcrs_frame.obstime)
 
     # get astrometry context object, astrom.
-    astrom = erfa.apcs(jd1, jd2, pv, earth_pv, earth_heliocentric)
+    astrom = erfa.apcs(jd1, jd2, obs_pv, earth_pv, earth_heliocentric)
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -173,15 +172,14 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to BCRS
     # coordinate direction
-    pv = np.concatenate(
-        (gcrs_coo.obsgeoloc.get_xyz(xyz_axis=-1).value[..., np.newaxis, :],
-         gcrs_coo.obsgeovel.get_xyz(xyz_axis=-1).value[..., np.newaxis, :]),
-        axis=-2)
+    obs_pv = erfa.pav2pv(
+        gcrs_coo.obsgeoloc.get_xyz(xyz_axis=-1).to_value(u.m),
+        gcrs_coo.obsgeovel.get_xyz(xyz_axis=-1).to_value(u.m/u.s))
 
     jd1, jd2 = get_jd12(gcrs_coo.obstime, 'tdb')
 
     earth_pv, earth_heliocentric = prepare_earth_position_vel(gcrs_coo.obstime)
-    astrom = erfa.apcs(jd1, jd2, pv, earth_pv, earth_heliocentric)
+    astrom = erfa.apcs(jd1, jd2, obs_pv, earth_pv, earth_heliocentric)
 
     i_ra, i_dec = aticq(gcrs_ra, gcrs_dec, astrom)
 
@@ -235,14 +233,13 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to ICRS
     # coordinate direction
-    pv = np.concatenate(
-        (gcrs_coo.obsgeoloc.get_xyz(xyz_axis=-1).value[..., np.newaxis, :],
-         gcrs_coo.obsgeovel.get_xyz(xyz_axis=-1).value[..., np.newaxis, :]),
-        axis=-2)
+    obs_pv = erfa.pav2pv(
+        gcrs_coo.obsgeoloc.get_xyz(xyz_axis=-1).to_value(u.m),
+        gcrs_coo.obsgeovel.get_xyz(xyz_axis=-1).to_value(u.m/u.s))
 
     jd1, jd2 = get_jd12(hcrs_frame.obstime, 'tdb')
     earth_pv, earth_heliocentric = prepare_earth_position_vel(gcrs_coo.obstime)
-    astrom = erfa.apcs(jd1, jd2, pv, earth_pv, earth_heliocentric)
+    astrom = erfa.apcs(jd1, jd2, obs_pv, earth_pv, earth_heliocentric)
 
     i_ra, i_dec = aticq(gcrs_ra, gcrs_dec, astrom)
 
@@ -290,13 +287,13 @@ def hcrs_to_icrs(hcrs_coo, icrs_frame):
         raise u.UnitsError(_NEED_ORIGIN_HINT.format(hcrs_coo.__class__.__name__))
 
     if hcrs_coo.data.differentials:
-        from ..solar_system import get_body_barycentric_posvel
+        from astropy.coordinates.solar_system import get_body_barycentric_posvel
         bary_sun_pos, bary_sun_vel = get_body_barycentric_posvel('sun',
                                                                  hcrs_coo.obstime)
         bary_sun_pos = bary_sun_pos.with_differentials(bary_sun_vel)
 
     else:
-        from ..solar_system import get_body_barycentric
+        from astropy.coordinates.solar_system import get_body_barycentric
         bary_sun_pos = get_body_barycentric('sun', hcrs_coo.obstime)
         bary_sun_vel = None
 
@@ -310,13 +307,13 @@ def icrs_to_hcrs(icrs_coo, hcrs_frame):
         raise u.UnitsError(_NEED_ORIGIN_HINT.format(icrs_coo.__class__.__name__))
 
     if icrs_coo.data.differentials:
-        from ..solar_system import get_body_barycentric_posvel
+        from astropy.coordinates.solar_system import get_body_barycentric_posvel
         bary_sun_pos, bary_sun_vel = get_body_barycentric_posvel('sun',
                                                                  hcrs_frame.obstime)
         bary_sun_pos = -bary_sun_pos.with_differentials(-bary_sun_vel)
 
     else:
-        from ..solar_system import get_body_barycentric
+        from astropy.coordinates.solar_system import get_body_barycentric
         bary_sun_pos = -get_body_barycentric('sun', hcrs_frame.obstime)
         bary_sun_vel = None
 

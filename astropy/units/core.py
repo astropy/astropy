@@ -13,9 +13,9 @@ import warnings
 
 import numpy as np
 
-from ..utils.decorators import lazyproperty
-from ..utils.exceptions import AstropyWarning
-from ..utils.misc import isiterable, InheritDocstrings
+from astropy.utils.decorators import lazyproperty
+from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.misc import isiterable, InheritDocstrings
 from .utils import (is_effectively_unity, sanitize_scale, validate_power,
                     resolve_fractions)
 from . import format as unit_format
@@ -28,6 +28,8 @@ __all__ = [
     'set_enabled_units', 'add_enabled_units',
     'set_enabled_equivalencies', 'add_enabled_equivalencies',
     'dimensionless_unscaled', 'one']
+
+UNITY = 1.0
 
 
 def _flatten_units_collection(items):
@@ -496,6 +498,8 @@ class UnitBase(metaclass=InheritDocstrings):
     # arrays to avoid element-wise multiplication.
     __array_priority__ = 1000
 
+    _hash = None
+
     def __deepcopy__(self, memo):
         # This may look odd, but the units conversion will be very
         # broken after deep-copying if we don't guarantee that a given
@@ -637,7 +641,8 @@ class UnitBase(metaclass=InheritDocstrings):
         return normalized
 
     def __pow__(self, p):
-        return CompositeUnit(1, [self], [p])
+        p = validate_power(p)
+        return CompositeUnit(1, [self], [p], _error_check=False)
 
     def __div__(self, m):
         if isinstance(m, (bytes, str)):
@@ -713,10 +718,26 @@ class UnitBase(metaclass=InheritDocstrings):
         except TypeError:
             return NotImplemented
 
+    def __rlshift__(self, m):
+        try:
+            from .quantity import Quantity
+            return Quantity(m, self, copy=False, subok=True)
+        except Exception:
+            return NotImplemented
+
+    def __rrshift__(self, m):
+        warnings.warn(">> is not implemented. Did you mean to convert "
+                      "to a Quantity with unit {} using '<<'?".format(self),
+                      AstropyWarning)
+        return NotImplemented
+
     def __hash__(self):
-        # This must match the hash used in CompositeUnit for a unit
-        # with only one base and no scale or power.
-        return hash((str(self.scale), self.name, str('1')))
+        if self._hash is None:
+            parts = ([str(self.scale)] +
+                     [x.name for x in self.bases] +
+                     [str(x) for x in self.powers])
+            self._hash = hash(tuple(parts))
+        return self._hash
 
     def __eq__(self, other):
         if self is other:
@@ -725,7 +746,7 @@ class UnitBase(metaclass=InheritDocstrings):
         try:
             other = Unit(other, parse_strict='silent')
         except (ValueError, UnitsError, TypeError):
-            return False
+            return NotImplemented
 
         # Other is Unit-like, but the test below requires it is a UnitBase
         # instance; if it is not, give up (so that other can try).
@@ -931,7 +952,7 @@ class UnitBase(metaclass=InheritDocstrings):
         raise UnitConversionError(
             "'{0!r}' is not a scaled version of '{1!r}'".format(self, other))
 
-    def to(self, other, value=1.0, equivalencies=[]):
+    def to(self, other, value=UNITY, equivalencies=[]):
         """
         Return the converted values in the specified unit.
 
@@ -962,7 +983,10 @@ class UnitBase(metaclass=InheritDocstrings):
         UnitsError
             If units are inconsistent
         """
-        return self._get_converter(other, equivalencies=equivalencies)(value)
+        if other is self and value is UNITY:
+            return UNITY
+        else:
+            return self._get_converter(other, equivalencies=equivalencies)(value)
 
     def in_units(self, other, value=1.0, equivalencies=[]):
         """
@@ -1115,7 +1139,7 @@ class UnitBase(metaclass=InheritDocstrings):
         return [self]
 
     def compose(self, equivalencies=[], units=None, max_depth=2,
-                include_prefix_units=False):
+                include_prefix_units=None):
         """
         Return the simplest possible composite unit(s) that represent
         the given unit.  Since there may be multiple equally simple
@@ -1141,7 +1165,8 @@ class UnitBase(metaclass=InheritDocstrings):
 
         include_prefix_units : bool, optional
             When `True`, include prefixed units in the result.
-            Default is `False`.
+            Default is `True` if a sequence is passed in to ``units``,
+            `False` otherwise.
 
         Returns
         -------
@@ -1151,6 +1176,11 @@ class UnitBase(metaclass=InheritDocstrings):
             automatically determine which of the candidates are
             better.
         """
+        # if units parameter is specified and is a sequence (list|tuple),
+        # include_prefix_units is turned on by default.  Ex: units=[u.kpc]
+        if include_prefix_units is None:
+            include_prefix_units = isinstance(units, (list, tuple))
+
         # Pre-normalize the equivalencies list
         equivalencies = self._normalize_equivalencies(equivalencies)
 
@@ -1391,7 +1421,7 @@ class UnitBase(metaclass=InheritDocstrings):
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to also list.  See
             :ref:`unit_equivalencies`.
-            Any list given, including an empty one, supercedes global defaults
+            Any list given, including an empty one, supersedes global defaults
             that may be in effect (as set by `set_enabled_equivalencies`)
 
         units : set of units to search in, optional
@@ -1663,7 +1693,7 @@ class IrreducibleUnit(NamedUnit):
 class UnrecognizedUnit(IrreducibleUnit):
     """
     A unit that did not parse correctly.  This allows for
-    roundtripping it as a string, but no unit operations actually work
+    round-tripping it as a string, but no unit operations actually work
     on it.
 
     Parameters
@@ -1698,8 +1728,12 @@ class UnrecognizedUnit(IrreducibleUnit):
         _unrecognized_operator
 
     def __eq__(self, other):
-        other = Unit(other, parse_strict='silent')
-        return isinstance(other, UnrecognizedUnit) and self.name == other.name
+        try:
+            other = Unit(other, parse_strict='silent')
+        except (ValueError, UnitsError, TypeError):
+            return NotImplemented
+
+        return isinstance(other, type(self)) and self.name == other.name
 
     def __ne__(self, other):
         return not (self == other)
@@ -1743,11 +1777,11 @@ class _UnitMetaClass(InheritDocstrings):
             if is_effectively_unity(represents.value):
                 represents = represents.unit
             else:
-                # cannot use _error_check=False: scale may be effectively unity
                 represents = CompositeUnit(represents.value *
                                            represents.unit.scale,
                                            bases=represents.unit.bases,
-                                           powers=represents.unit.powers)
+                                           powers=represents.unit.powers,
+                                           _error_check=False)
 
         if isinstance(s, Quantity):
             if is_effectively_unity(s.value):
@@ -1755,7 +1789,8 @@ class _UnitMetaClass(InheritDocstrings):
             else:
                 s = CompositeUnit(s.value * s.unit.scale,
                                   bases=s.unit.bases,
-                                  powers=s.unit.powers)
+                                  powers=s.unit.powers,
+                                  _error_check=False)
 
         # now decide what we really need to do; define derived Unit?
         if isinstance(represents, UnitBase):
@@ -1804,7 +1839,7 @@ class _UnitMetaClass(InheritDocstrings):
                 return UnrecognizedUnit(s)
 
         elif isinstance(s, (int, float, np.floating, np.integer)):
-            return CompositeUnit(s, [], [])
+            return CompositeUnit(s, [], [], _error_check=False)
 
         elif s is None:
             raise TypeError("None is not a valid Unit")
@@ -1863,6 +1898,8 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
     - The last form, which creates a new `Unit` is described in detail
       below.
 
+    See also: http://docs.astropy.org/en/stable/units/
+
     Parameters
     ----------
     st : str or list of str
@@ -1918,7 +1955,9 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         return self._represents.is_unity()
 
     def __hash__(self):
-        return hash(self.name) + hash(self._represents)
+        if self._hash is None:
+            self._hash = hash((self.name, self._represents))
+        return self._hash
 
     @classmethod
     def _from_physical_type_id(cls, physical_type_id):
@@ -1929,7 +1968,8 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         if len(physical_type_id) == 1 and powers[0] == 1:
             unit = bases[0]
         else:
-            unit = CompositeUnit(1, bases, powers)
+            unit = CompositeUnit(1, bases, powers,
+                                 _error_check=False)
 
         return unit
 
@@ -1965,6 +2005,7 @@ class CompositeUnit(UnitBase):
         A sequence of powers (in parallel with ``bases``) for each
         of the base units.
     """
+    _decomposed_cache = None
 
     def __init__(self, scale, bases, powers, decompose=False,
                  decompose_bases=set(), _error_check=True):
@@ -1975,19 +2016,40 @@ class CompositeUnit(UnitBase):
         # kwarg `_error_check` is False, the error checking is turned
         # off.
         if _error_check:
-            scale = sanitize_scale(scale)
             for base in bases:
                 if not isinstance(base, UnitBase):
                     raise TypeError(
                         "bases must be sequence of UnitBase instances")
             powers = [validate_power(p) for p in powers]
 
-        self._scale = scale
-        self._bases = bases
-        self._powers = powers
-        self._decomposed_cache = None
-        self._expand_and_gather(decompose=decompose, bases=decompose_bases)
-        self._hash = None
+        if not decompose and len(bases) == 1 and powers[0] >= 0:
+            # Short-cut; with one unit there's nothing to expand and gather,
+            # as that has happened already when creating the unit.  But do only
+            # positive powers, since for negative powers we need to re-sort.
+            unit = bases[0]
+            power = powers[0]
+            if power == 1:
+                scale *= unit.scale
+                self._bases = unit.bases
+                self._powers = unit.powers
+            elif power == 0:
+                self._bases = []
+                self._powers = []
+            else:
+                scale *= unit.scale ** power
+                self._bases = unit.bases
+                self._powers = [operator.mul(*resolve_fractions(p, power))
+                                for p in unit.powers]
+
+            self._scale = sanitize_scale(scale)
+        else:
+            # Regular case: use inputs as preliminary scale, bases, and powers,
+            # then "expand and gather" identical bases, sanitize the scale, &c.
+            self._scale = scale
+            self._bases = bases
+            self._powers = powers
+            self._expand_and_gather(decompose=decompose,
+                                    bases=decompose_bases)
 
     def __repr__(self):
         if len(self._bases):
@@ -1998,14 +2060,6 @@ class CompositeUnit(UnitBase):
                     self._scale)
             else:
                 return 'Unit(dimensionless)'
-
-    def __hash__(self):
-        if self._hash is None:
-            parts = ([str(self._scale)] +
-                     [x.name for x in self._bases] +
-                     [str(x) for x in self._powers])
-            self._hash = hash(tuple(parts))
-        return self._hash
 
     @property
     def scale(self):
@@ -2030,7 +2084,7 @@ class CompositeUnit(UnitBase):
 
     def _expand_and_gather(self, decompose=False, bases=set()):
         def add_unit(unit, power, scale):
-            if unit not in bases:
+            if bases and unit not in bases:
                 for base in bases:
                     try:
                         scale *= unit._to(base) ** power
@@ -2048,9 +2102,9 @@ class CompositeUnit(UnitBase):
             return scale
 
         new_parts = {}
-        scale = self.scale
+        scale = self._scale
 
-        for b, p in zip(self.bases, self.powers):
+        for b, p in zip(self._bases, self._powers):
             if decompose and b not in bases:
                 b = b.decompose(bases=bases)
 
@@ -2066,7 +2120,7 @@ class CompositeUnit(UnitBase):
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], 'name', '')))
 
         self._bases = [x[0] for x in new_parts]
-        self._powers = [validate_power(x[1]) for x in new_parts]
+        self._powers = [x[1] for x in new_parts]
         self._scale = sanitize_scale(scale)
 
     def __copy__(self):

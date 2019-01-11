@@ -72,14 +72,14 @@ column values (*including* the bounds), or a list or ndarray of column values::
        2     1
    >>> t.loc[[1, 4]]
    <Table length=2>
-     a     b  
+     a     b
    int64 int64
    ----- -----
        1    10
        4     9
    >>> t.loc[1:3]
    <Table length=3>
-     a     b  
+     a     b
    int64 int64
    ----- -----
        1    10
@@ -87,7 +87,7 @@ column values (*including* the bounds), or a list or ndarray of column values::
        3     9
    >>> t.loc[:]
    <Table length=4>
-     a     b  
+     a     b
    int64 int64
    ----- -----
        1    10
@@ -103,7 +103,7 @@ retrieval data::
    >>> t.add_index('b')
    >>> t.loc['b', 8:10]
    <Table length=3>
-     a     b  
+     a     b
    int64 int64
    ----- -----
        3     9
@@ -122,7 +122,7 @@ rather than column values. For example::
        1    10
    >>> t.iloc['b', 1:] # all but smallest value of 'b'
    <Table length=3>
-     a     b  
+     a     b
    int64 int64
    ----- -----
        3     9
@@ -176,10 +176,12 @@ The *copy_on_getitem* mode forces columns to copy and relabel their indices upon
 slicing. In the absence of this mode, table slices will preserve
 indices while column slices will not::
 
-  >>> t['a'][[1, 3]].info.indices
+  >>> ca = t['a'][[1, 3]]
+  >>> ca.info.indices
   []
   >>> with t.index_mode('copy_on_getitem'):
-  ...    print(t['a'][[1, 3]].info.indices)
+  ...     ca = t['a'][[1, 3]]
+  ...     print(ca.info.indices)
   [ a  rows
   --- ----
     2    0
@@ -208,6 +210,59 @@ or table is copied::
   ...    print(t2.indices)
   []
 
+Updating row using indices
+==========================
+
+Row updates can be accomplished by assigning the table property: `~astropy.table.Table.loc` a complete row or a list of rows::
+
+   >>> t = Table([('w', 'x', 'y', 'z'), (10, 1, 9, 9)], names=('a', 'b'), dtype=['str', 'i8'])
+   >>> t.add_index('a')
+   >>> t.loc['x']
+   <Row index=1>
+    a     b
+   str1 int64
+   ---- -----
+      x     1
+   >>> t.loc['x'] = ['a', 12]
+   >>> t
+   <Table length=4>
+    a     b
+   str1 int64
+   ---- -----
+      w    10
+      a    12
+      y     9
+      z     9
+   >>> t.loc[['w', 'y']]
+   <Table length=2>
+    a     b
+   str1 int64
+   ---- -----
+      w    10
+      y     9
+   >>> t.loc[['w', 'z']] = [['b',23], ['c',56]]
+   >>> t
+   <Table length=4>
+    a     b
+   str1 int64
+   ---- -----
+      b    23
+      a    12
+      y     9
+      c    56
+
+Retrieving the location of rows using indices
+=============================================
+
+Retrieval of the location of rows can be accomplished using a table property: `~astropy.table.Table.loc_indices`.
+The `~astropy.table.Table.loc_indices` property can be indexed either by column value, range of
+column values (*including* the bounds), or a list or ndarray of column values::
+
+   >>> t = Table([('w', 'x', 'y', 'z'), (10, 1, 9, 9)], names=('a', 'b'), dtype=['str', 'i8'])
+   >>> t.add_index('a')
+   >>> t.loc_indices['x']
+   1
+
 Engines
 =======
 When creating an index via |add_index|, the keyword argument "engine" may be
@@ -215,14 +270,17 @@ specified to use a particular indexing engine. The available engines are
 
 * `~astropy.table.SortedArray`, a sorted array engine using an underlying
   sorted Table
+* `~astropy.table.SCEngine`, a sorted list engine using the `Sorted Containers
+  <https://pypi.org/project/sortedcontainers/>`_ package
 * `~astropy.table.FastRBT`, a C-based red-black tree engine
 * `~astropy.table.FastBST`, a C-based binary search tree engine
 * `~astropy.table.BST`, a Python-based binary search tree engine
 
 Note that FastRBT and FastBST depend on the bintrees dependency; without this
-dependency, both classes default to `~astropy.table.BST`. For a comparison of
+dependency, both classes default to `~astropy.table.BST`. The SCEngine depends
+on the sortedcontainers dependency. For a comparison of
 engine performance, see `this IPython notebook
-<http://nbviewer.jupyter.org/github/mdmueller/astropy-notebooks/blob/master/table/indexing-profiling.ipynb>`_. Probably
+<http://nbviewer.jupyter.org/github/grantjenks/astropy-notebooks/blob/master/table/indexing-profiling.ipynb>`_. Probably
 the most important takeaway is that `~astropy.table.SortedArray` (the default
-engine) is usually best, although `~astropy.table.FastRBT` may be more
+engine) is usually best, although `~astropy.table.SCEngine` may be more
 appropriate for an index created on an empty column since adding new values is quicker.

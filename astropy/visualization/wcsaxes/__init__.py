@@ -15,7 +15,7 @@ from .coordinate_helpers import CoordinateHelper
 from .coordinates_map import CoordinatesMap
 from .patches import *
 
-from ... import config as _config
+from astropy import config as _config
 
 
 class Conf(_config.ConfigNamespace):
@@ -33,6 +33,9 @@ class Conf(_config.ConfigNamespace):
 
     grid_samples = _config.ConfigItem(1000,
         'How many points to sample along grid lines.')
+
+    contour_grid_samples = _config.ConfigItem(200,
+        'The grid size to use when drawing a grid using contours')
 
 
 conf = Conf()

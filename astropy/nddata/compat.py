@@ -4,8 +4,8 @@
 
 import numpy as np
 
-from ..units import UnitsError, UnitConversionError, Unit
-from .. import log
+from astropy.units import UnitsError, UnitConversionError, Unit
+from astropy import log
 
 from .nddata import NDData
 from .nduncertainty import NDUncertainty
@@ -27,6 +27,8 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
     The key distinction from raw numpy arrays is the presence of
     additional metadata such as uncertainties, a mask, units, flags,
     and/or a coordinate system.
+
+    See also: http://docs.astropy.org/en/stable/nddata/
 
     Parameters
     -----------
@@ -58,7 +60,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         WCS-object containing the world coordinate system for the data.
 
         .. warning::
-            This is not yet defind because the discussion of how best to
+            This is not yet defined because the discussion of how best to
             represent this class's WCS system generically is still under
             consideration. For now just leave it as None
 
@@ -113,15 +115,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         if value is not None:
             if isinstance(value, NDUncertainty):
                 class_name = self.__class__.__name__
-                if self.unit and value._unit:
-                    try:
-                        scaling = (1 * value._unit).to(self.unit)
-                    except UnitsError:
-                        raise UnitConversionError(
-                            'Cannot convert unit of uncertainty to unit of '
-                            '{0} object.'.format(class_name))
-                    value.array *= scaling
-                elif not self.unit and value._unit:
+                if not self.unit and value._unit:
                     # Raise an error if uncertainty has unit and data does not
                     raise ValueError("Cannot assign an uncertainty with unit "
                                      "to {0} without "

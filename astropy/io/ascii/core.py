@@ -24,10 +24,10 @@ from io import StringIO
 
 import numpy
 
-from ...utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyWarning
 
-from ...table import Table
-from ...utils.data import get_readable_fileobj
+from astropy.table import Table
+from astropy.utils.data import get_readable_fileobj
 from . import connect
 
 # Global dictionary mapping format arg to the corresponding Reader class
@@ -141,12 +141,22 @@ class MaskedConstant(numpy.ma.core.MaskedConstant):
     The constant ``numpy.ma.masked`` is not hashable (see
     https://github.com/numpy/numpy/issues/4660), so we need to extend it
     here with a hash value.
+
+    See https://github.com/numpy/numpy/issues/11021 for rationale for
+    __copy__ and __deepcopy__ methods.
     """
 
     def __hash__(self):
         '''All instances of this class shall have the same hash.'''
         # Any large number will do.
         return 1234567890
+
+    def __copy__(self):
+        """This is a singleton so just return self."""
+        return self
+
+    def __deepcopy__(self, memo):
+        return self
 
 
 masked = MaskedConstant()
@@ -391,7 +401,7 @@ class DefaultSplitter(BaseSplitter):
     escapechar = None
     """ one-character stringto quote fields containing special characters """
     quoting = csv.QUOTE_MINIMAL
-    """ control when quotes are recognised by the reader """
+    """ control when quotes are recognized by the reader """
     skipinitialspace = True
     """ ignore whitespace immediately following the delimiter """
     csv_writer = None
@@ -639,19 +649,17 @@ class BaseHeader:
             # Impose strict requirements on column names (normally used in guessing)
             bads = [" ", ",", "|", "\t", "'", '"']
             for name in self.colnames:
-                if (_is_number(name) or
-                    len(name) == 0 or
-                    name[0] in bads or
-                    name[-1] in bads):
-                    raise ValueError('Column name {0!r} does not meet strict name requirements'
-                                     .format(name))
+                if (_is_number(name) or len(name) == 0
+                        or name[0] in bads or name[-1] in bads):
+                    raise InconsistentTableError('Column name {0!r} does not meet strict name requirements'
+                                                 .format(name))
         # When guessing require at least two columns
         if guessing and len(self.colnames) <= 1:
             raise ValueError('Table format guessing requires at least two columns, got {}'
                              .format(list(self.colnames)))
 
         if names is not None and len(names) != len(self.colnames):
-            raise ValueError('Length of names argument ({0}) does not match number'
+            raise InconsistentTableError('Length of names argument ({0}) does not match number'
                              ' of table columns ({1})'.format(len(names), len(self.colnames)))
 
 
@@ -1175,8 +1183,8 @@ class BaseReader(metaclass=MetaBaseReader):
                               ' data columns ({}) at data line {}\n'
                               'Header values: {}\n'
                               'Data values: {}'.format(
-                            n_cols, len(str_vals), i,
-                            [x.name for x in cols], str_vals))
+                                  n_cols, len(str_vals), i,
+                                  [x.name for x in cols], str_vals))
 
                     raise InconsistentTableError(errmsg)
 
@@ -1376,8 +1384,16 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
             kwargs['Inputter'] = Inputter
         return Reader(**kwargs)
 
+    # If user explicitly passed a fast reader with enable='force'
+    # (e.g. by passing non-default options), raise an error for slow readers
     if 'fast_reader' in kwargs:
-        del kwargs['fast_reader']  # ignore fast_reader parameter for slow readers
+        if kwargs['fast_reader']['enable'] == 'force':
+            raise ParameterError('fast_reader required with ' +
+                                 '{0}, but this is not a fast C reader: {1}'
+                                 .format(kwargs['fast_reader'], Reader))
+        else:
+            del kwargs['fast_reader']  # Otherwise ignore fast_reader parameter
+
     reader_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_reader_pars)
     reader = Reader(**reader_kwargs)
 

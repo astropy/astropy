@@ -3,9 +3,14 @@ import textwrap
 
 import pytest
 
-from ..table import Table
-from ... import extern
-from ...utils.xml.writer import HAS_BLEACH
+from astropy.table.table import Table
+from astropy import extern
+
+try:
+    import bleach  # noqa
+    HAS_BLEACH = True
+except ImportError:
+    HAS_BLEACH = False
 
 try:
     import IPython  # pylint: disable=W0611

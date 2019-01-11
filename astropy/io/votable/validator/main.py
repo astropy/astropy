@@ -8,7 +8,7 @@ and generates a report as a directory tree of HTML files.
 import os
 
 # LOCAL
-from ....utils.data import get_pkg_data_filename
+from astropy.utils.data import get_pkg_data_filename
 from . import html
 from . import result
 
@@ -110,7 +110,7 @@ def make_validation_report(
     locally in *destdir*.  To refresh the cache, remove *destdir*
     first.
     """
-    from ....utils.console import (color_print, ProgressBar, Spinner)
+    from astropy.utils.console import (color_print, ProgressBar, Spinner)
 
     if stilts is not None:
         if not os.path.exists(stilts):

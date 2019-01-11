@@ -10,10 +10,10 @@ import urllib.request
 import pytest
 import numpy as np
 
-from ..name_resolve import (get_icrs_coordinates, NameResolveError,
+from astropy.coordinates.name_resolve import (get_icrs_coordinates, NameResolveError,
                             sesame_database, _parse_response, sesame_url)
-from ..sky_coordinate import SkyCoord
-from ... import units as u
+from astropy.coordinates.sky_coordinate import SkyCoord
+from astropy import units as u
 
 _cached_ngc3642 = dict()
 _cached_ngc3642["simbad"] = """# NGC 3642    #Q22523669
@@ -134,6 +134,20 @@ def test_names():
     icrs_true = SkyCoord(ra="07h 34m 35.87s", dec="+31d 53m 17.8s")
     np.testing.assert_almost_equal(icrs.ra.degree, icrs_true.ra.degree, 1)
     np.testing.assert_almost_equal(icrs.dec.degree, icrs_true.dec.degree, 1)
+
+
+def test_names_parse():
+    # a few test cases for parsing embedded coordinates from object name
+    test_names = ['CRTS SSS100805 J194428-420209',
+                  'MASTER OT J061451.7-272535.5',
+                  '2MASS J06495091-0737408',
+                  '1RXS J042555.8-194534',
+                  'SDSS J132411.57+032050.5',
+                  'DENIS-P J203137.5-000511',
+                  '2QZ J142438.9-022739',
+                  'CXOU J141312.3-652013']
+    for name in test_names:
+        sc = get_icrs_coordinates(name, parse=True)
 
 
 @pytest.mark.remote_data

@@ -36,12 +36,16 @@ Reading and Updating Existing FITS Files
 Opening a FITS file
 ^^^^^^^^^^^^^^^^^^^
 
+.. note::
+
+    The ``astropy.io.fits.util.get_testdata_filepath()`` function,
+    used in the examples here, is for accessing data shipped with Astropy.
+    To work with your own data instead, please use :func:`astropy.io.fits.open`,
+    which takes either relative or absolute path.
+
 Once the `astropy.io.fits` package is loaded using the standard convention
 [#f1]_, we can open an existing FITS file::
 
-    >>> # Generally you would store the filename as string but in case you
-    >>> # have no suitable FITS files you can use the ones shipped with Astropy
-    >>> # like this:
     >>> from astropy.io import fits
     >>> fits_image_filename = fits.util.get_testdata_filepath('test0.fits')
 
@@ -94,8 +98,9 @@ After exiting the ``with`` scope the file will be closed automatically. That's
 (generally) the preferred way to open a file in Python, because it will close
 the file even if an exception happens.
 
-The headers will still be accessible after the HDUList is closed. The data may
-or may not be accessible depending on whether the data are touched and if they
+If the file is opened with ``lazy_load_hdus=False``, all of the headers will
+still be accessible after the HDUList is closed. The headers and data may or
+may not be  accessible depending on whether the data are touched and if they
 are memory-mapped, see later chapters for detail.
 
 .. _fits-large-files:
@@ -106,7 +111,7 @@ Working with large files
 The :func:`open` function supports a ``memmap=True`` argument that allows the
 array data of each HDU to be accessed with mmap, rather than being read into
 memory all at once.  This is particularly useful for working with very large
-arrays that cannot fit entirely into physical memory.
+arrays that cannot fit entirely into physical memory. Here ``memmap=True`` by default, and this value is obtained from the configuration item ``astropy.io.fits.Conf.use_memmap``.
 
 This has minimal impact on smaller files as well, though some operations, such
 as reading the array data sequentially, may incur some additional overhead.  On
@@ -510,8 +515,8 @@ tools to use. We can reassign (update) the values::
 
 take the mean of a column::
 
-    >>> data['c3'].mean()
-    5.1999998927116398
+    >>> data['c3'].mean()  # doctest: +FLOAT_CMP
+    5.19999989271164
 
 and so on.
 
@@ -883,6 +888,11 @@ Other Information
     appendix/faq
     appendix/header_transition
     appendix/history
+
+.. note that if this section gets too long, it should be moved to a separate
+   doc page - see the top of performance.inc.rst for the instructions on how to do
+   that
+.. include:: performance.inc.rst
 
 Reference/API
 =============

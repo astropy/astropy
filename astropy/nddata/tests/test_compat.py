@@ -5,10 +5,10 @@
 import pytest
 import numpy as np
 
-from ..nddata import NDData
-from ..compat import NDDataArray
-from ..nduncertainty import StdDevUncertainty
-from ... import units as u
+from astropy.nddata.nddata import NDData
+from astropy.nddata.compat import NDDataArray
+from astropy.nddata.nduncertainty import StdDevUncertainty
+from astropy import units as u
 
 
 NDDATA_ATTRIBUTES = ['mask', 'flags', 'uncertainty', 'unit', 'shape', 'size',
@@ -124,7 +124,7 @@ def test_nddataarray_from_nddataarray():
     ndd2 = NDDataArray(ndd1)
     # Test that the 2 instances point to the same objects and aren't just
     # equal; this is explicitly documented for the main data array and we
-    # probably want to catch any future change in behaviour for the other
+    # probably want to catch any future change in behavior for the other
     # attributes too and ensure they are intentional.
     assert ndd2.data is ndd1.data
     assert ndd2.uncertainty is ndd1.uncertainty

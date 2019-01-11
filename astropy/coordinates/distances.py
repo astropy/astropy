@@ -5,9 +5,12 @@ This module contains the classes and utility functions for distance and
 cartesian coordinates.
 """
 
+import warnings
+
 import numpy as np
 
-from .. import units as u
+from astropy import units as u
+from astropy.utils.exceptions import AstropyWarning
 from .angles import Angle
 
 __all__ = ['Distance']
@@ -102,7 +105,7 @@ class Distance(u.SpecificTypeQuantity):
                                  'or `distmod` in Distance constructor.')
 
             if cosmology is None:
-                from ..cosmology import default_cosmology
+                from astropy.cosmology import default_cosmology
                 cosmology = default_cosmology.get()
 
             value = cosmology.luminosity_distance(z)
@@ -142,12 +145,30 @@ class Distance(u.SpecificTypeQuantity):
                 copy = False
 
             elif parallax is not None:
-                value = parallax.to(u.pc, equivalencies=u.parallax()).value
+                value = parallax.to_value(u.pc, equivalencies=u.parallax())
                 unit = u.pc
 
                 # Continue on to take account of unit and other arguments
                 # but a copy is already made, so no longer necessary
                 copy = False
+
+                if np.any(parallax < 0):
+                    if allow_negative:
+                        warnings.warn(
+                            "Negative parallaxes are converted to NaN "
+                            "distances even when `allow_negative=True`, "
+                            "because negative parallaxes cannot be transformed "
+                            "into distances. See discussion in this paper: "
+                            "https://arxiv.org/abs/1507.02105", AstropyWarning)
+                    else:
+                        raise ValueError("Some parallaxes are negative, which "
+                                         "are notinterpretable as distances. "
+                                         "See the discussion in this paper: "
+                                         "https://arxiv.org/abs/1507.02105 . "
+                                         "If you want parallaxes to pass "
+                                         "through, with negative parallaxes "
+                                         "instead becoming NaN, use the "
+                                         "`allow_negative=True` argument.")
 
             elif value is None:
                 raise ValueError('None of `value`, `z`, `distmod`, or '
@@ -188,10 +209,10 @@ class Distance(u.SpecificTypeQuantity):
         """
 
         if cosmology is None:
-            from ..cosmology import default_cosmology
+            from astropy.cosmology import default_cosmology
             cosmology = default_cosmology.get()
 
-        from ..cosmology import z_at_value
+        from astropy.cosmology import z_at_value
         return z_at_value(cosmology.luminosity_distance, self, ztol=1.e-10)
 
     @property
@@ -209,17 +230,3 @@ class Distance(u.SpecificTypeQuantity):
     def parallax(self):
         """The parallax angle as an `~astropy.coordinates.Angle` object"""
         return Angle(self.to(u.milliarcsecond, u.parallax()))
-
-
-def _convert_to_and_validate_length_unit(unit, allow_dimensionless=False):
-    """
-    raises UnitsError if not a length unit
-    """
-    try:
-        unit = u.Unit(unit)
-        assert (unit.is_equivalent(u.kpc) or
-                allow_dimensionless and unit == u.dimensionless_unscaled)
-    except (TypeError, AssertionError):
-        raise u.UnitsError('Unit "{0}" is not a length type'.format(unit))
-
-    return unit

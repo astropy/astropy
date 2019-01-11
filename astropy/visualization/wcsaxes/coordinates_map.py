@@ -34,7 +34,9 @@ class CoordinatesMap:
         ``longitude``, ``latitude``, or ``scalar``, the ``wrap`` entries should
         give, for the longitude, the angle at which the coordinate wraps (and
         `None` otherwise), and the ``unit`` should give the unit of the
-        coordinates as :class:`~astropy.units.Unit` instances.
+        coordinates as :class:`~astropy.units.Unit` instances.  This can
+        optionally also include a ``format_unit`` entry giving the units to use
+        for the tick labels (if not specified, this defaults to ``unit``).
     slice : tuple, optional
         For WCS transformations with more than two dimensions, we need to
         choose which dimensions are being shown in the 2D image. The slice
@@ -92,8 +94,8 @@ class CoordinatesMap:
 
             # Extract coordinate metadata from WCS object or transform
             if wcs is not None:
-                coord_type, coord_wrap = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
                 coord_unit = wcs.wcs.cunit[coord_index]
+                coord_type, format_unit, coord_wrap = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
                 name = wcs.wcs.ctype[coord_index][:4].replace('-', '')
             else:
                 try:
@@ -101,6 +103,10 @@ class CoordinatesMap:
                     coord_wrap = coord_meta['wrap'][coord_index]
                     coord_unit = coord_meta['unit'][coord_index]
                     name = coord_meta['name'][coord_index]
+                    if 'format_unit' in coord_meta:
+                        format_unit = coord_meta['format_unit'][coord_index]
+                    else:
+                        format_unit = None
                 except IndexError:
                     raise ValueError("coord_meta items should have a length of {0}".format(len(wcs.wcs.naxis)))
 
@@ -111,6 +117,7 @@ class CoordinatesMap:
                                                  coord_type=coord_type,
                                                  coord_wrap=coord_wrap,
                                                  coord_unit=coord_unit,
+                                                 format_unit=format_unit,
                                                  frame=self.frame))
 
             # Set up aliases for coordinates
@@ -122,6 +129,12 @@ class CoordinatesMap:
         else:
             return self._coords[item]
 
+    def __contains__(self, item):
+        if isinstance(item, str):
+            return item.lower() in self._aliases
+        else:
+            return 0 <= item < len(self._coords)
+
     def set_visible(self, visibility):
         raise NotImplementedError()
 
@@ -129,7 +142,7 @@ class CoordinatesMap:
         for coord in self._coords:
             yield coord
 
-    def grid(self, draw_grid=True, grid_type='lines', **kwargs):
+    def grid(self, draw_grid=True, grid_type=None, **kwargs):
         """
         Plot gridlines for both coordinates.
 
@@ -147,7 +160,8 @@ class CoordinatesMap:
             positions in the image and then drawing contours
             (``'contours'``). The first is recommended for 2-d images, while
             for 3-d (or higher dimensional) cubes, the ``'contours'`` option
-            is recommended.
+            is recommended. By default, 'lines' is used if the transform has
+            an inverse, otherwise 'contours' is used.
         """
         for coord in self:
             coord.grid(draw_grid=draw_grid, grid_type=grid_type, **kwargs)

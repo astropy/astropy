@@ -12,19 +12,20 @@ import pytest
 import numpy as np
 
 
-from ... import units as u
-from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
+from astropy import units as u
+from astropy.coordinates import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
                 GeocentricTrueEcliptic, Longitude, Latitude, GCRS, HCRS,
                 get_moon, FK4, FK4NoETerms, BaseCoordinateFrame,
                 QuantityAttribute, SphericalRepresentation,
                 UnitSphericalRepresentation, CartesianRepresentation)
-from ..sites import get_builtin_sites
-from ...time import Time
-from ...utils import iers
-from ...table import Table
+from astropy.coordinates.sites import get_builtin_sites
+from astropy.time import Time
+from astropy.utils import iers
+from astropy.table import Table
 
-from ...tests.helper import assert_quantity_allclose, catch_warnings, quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose, catch_warnings
 from .test_matching import HAS_SCIPY, OLDER_SCIPY
+from astropy.units import allclose as quantity_allclose
 
 try:
     import yaml  # pylint: disable=W0611
@@ -58,6 +59,7 @@ def test_regression_5085():
     assert_quantity_allclose(expected_result, actual_result)
 
 
+@pytest.mark.remote_data
 def test_regression_3920():
     """
     Issue: https://github.com/astropy/astropy/issues/3920
@@ -81,6 +83,7 @@ def test_regression_3920():
     assert icoo2.transform_to(aa).shape == tuple()
 
 
+@pytest.mark.remote_data
 def test_regression_3938():
     """
     Issue: https://github.com/astropy/astropy/issues/3938
@@ -121,6 +124,7 @@ def test_regression_3998():
     assert sun.obstime is time
 
 
+@pytest.mark.remote_data
 def test_regression_4033():
     """
     Issue: https://github.com/astropy/astropy/issues/4033
@@ -158,7 +162,7 @@ def test_regression_4082():
     """
     Issue: https://github.com/astropy/astropy/issues/4082
     """
-    from .. import search_around_sky, search_around_3d
+    from astropy.coordinates import search_around_sky, search_around_3d
     cat = SkyCoord([10.076, 10.00455], [18.54746, 18.54896], unit='deg')
     search_around_sky(cat[0:1], cat, seplimit=u.arcsec * 60, storekdtree=False)
     # in the issue, this raises a TypeError
@@ -182,7 +186,7 @@ def test_regression_4210():
 
     # and for good measure, check the other ecliptic systems are all the same
     # names for their attributes
-    from ..builtin_frames import ecliptic
+    from astropy.coordinates.builtin_frames import ecliptic
     for frame_name in ecliptic.__all__:
         eclcls = getattr(ecliptic, frame_name)
         eclobj = eclcls(1*u.deg, 2*u.deg, 3*u.AU)
@@ -200,11 +204,11 @@ def test_regression_futuretimes_4302():
 
     Relevant comment: https://github.com/astropy/astropy/pull/4302#discussion_r44836531
     """
-    from ...utils.exceptions import AstropyWarning
+    from astropy.utils.exceptions import AstropyWarning
 
     # this is an ugly hack to get the warning to show up even if it has already
     # appeared
-    from ..builtin_frames import utils
+    from astropy.coordinates.builtin_frames import utils
     if hasattr(utils, '__warningregistry__'):
         utils.__warningregistry__.clear()
 
@@ -273,6 +277,7 @@ def test_regression_4293():
     assert_quantity_allclose(fk4noe.dec, fk4noe_dec, atol=3.*u.uas, rtol=0)
 
 
+@pytest.mark.remote_data
 def test_regression_4926():
     times = Time('2010-01-1') + np.arange(20)*u.day
     green = get_builtin_sites()['greenwich']
@@ -295,6 +300,7 @@ def test_regression_5209():
     assert_quantity_allclose(new_coord[0].distance, moon.distance)
 
 
+@pytest.mark.remote_data
 def test_regression_5133():
     N = 1000
     np.random.seed(12345)
@@ -319,6 +325,7 @@ def test_regression_5133():
         assert not quantity_allclose(coo.alt, coo.alt[0])
 
 
+@pytest.mark.remote_data
 def test_itrs_vals_5133():
     time = Time('2010-1-1')
     el = EarthLocation.from_geodetic(lon=20*u.deg, lat=45*u.deg, height=0*u.km)
@@ -349,6 +356,7 @@ def test_itrs_vals_5133():
     assert_quantity_allclose(aacs[2].distance, 10*u.km)
 
 
+@pytest.mark.remote_data
 def test_regression_simple_5133():
     t = Time('J2010')
     obj = EarthLocation(-1*u.deg, 52*u.deg, height=[100., 0.]*u.km)
@@ -366,6 +374,7 @@ def test_regression_5743():
     assert sc[0].obstime.shape == tuple()
 
 
+@pytest.mark.remote_data
 def test_regression_5889_5890():
     # ensure we can represent all Representations and transform to ND frames
     greenwich = EarthLocation(
@@ -387,11 +396,11 @@ def test_regression_6236():
 
     class MySpecialFrame(MyFrame):
         def __init__(self, *args, **kwargs):
-            _rep_kwarg = kwargs.get('representation', None)
+            _rep_kwarg = kwargs.get('representation_type', None)
             super().__init__(*args, **kwargs)
             if not _rep_kwarg:
-                self.representation = self.default_representation
-                self._data = self.data.represent_as(self.representation)
+                self.representation_type = self.default_representation
+                self._data = self.data.represent_as(self.representation_type)
 
     rep1 = UnitSphericalRepresentation([0., 1]*u.deg, [2., 3.]*u.deg)
     rep2 = SphericalRepresentation([10., 11]*u.deg, [12., 13.]*u.deg,
@@ -403,16 +412,16 @@ def test_regression_6236():
     # realize_frame should do the same. Just in case, check attrs are passed.
     assert mf1.data is rep1
     assert mf2.data is rep2
-    assert mf1.representation is CartesianRepresentation
-    assert mf2.representation is CartesianRepresentation
+    assert mf1.representation_type is CartesianRepresentation
+    assert mf2.representation_type is CartesianRepresentation
     assert mf2.my_attr == mf1.my_attr
     # It should be independent of whether I set the reprensentation explicitly
-    mf3 = MyFrame(rep1, my_attr=1.*u.km, representation='unitspherical')
+    mf3 = MyFrame(rep1, my_attr=1.*u.km, representation_type='unitspherical')
     mf4 = mf3.realize_frame(rep2)
     assert mf3.data is rep1
     assert mf4.data is rep2
-    assert mf3.representation is UnitSphericalRepresentation
-    assert mf4.representation is CartesianRepresentation
+    assert mf3.representation_type is UnitSphericalRepresentation
+    assert mf4.representation_type is CartesianRepresentation
     assert mf4.my_attr == mf3.my_attr
     # This should be enough to help sunpy, but just to be sure, a test
     # even closer to what is done there, i.e., transform the representation.
@@ -422,17 +431,17 @@ def test_regression_6236():
     assert msf2.data is not rep2
     assert type(msf1.data) is CartesianRepresentation
     assert type(msf2.data) is CartesianRepresentation
-    assert msf1.representation is CartesianRepresentation
-    assert msf2.representation is CartesianRepresentation
+    assert msf1.representation_type is CartesianRepresentation
+    assert msf2.representation_type is CartesianRepresentation
     assert msf2.my_attr == msf1.my_attr
     # And finally a test where the input is not transformed.
     msf3 = MySpecialFrame(rep1, my_attr=1.*u.km,
-                          representation='unitspherical')
+                          representation_type='unitspherical')
     msf4 = msf3.realize_frame(rep2)
     assert msf3.data is rep1
     assert msf4.data is not rep2
-    assert msf3.representation is UnitSphericalRepresentation
-    assert msf4.representation is CartesianRepresentation
+    assert msf3.representation_type is UnitSphericalRepresentation
+    assert msf4.representation_type is CartesianRepresentation
     assert msf4.my_attr == msf3.my_attr
 
 
@@ -479,9 +488,9 @@ def test_regression_6300():
     """Check that importing old frame attribute names from astropy.coordinates
     still works. See comments at end of #6300
     """
-    from ...utils.exceptions import AstropyDeprecationWarning
-    from .. import CartesianRepresentation
-    from .. import (TimeFrameAttribute, QuantityFrameAttribute,
+    from astropy.utils.exceptions import AstropyDeprecationWarning
+    from astropy.coordinates import CartesianRepresentation
+    from astropy.coordinates import (TimeFrameAttribute, QuantityFrameAttribute,
                     CartesianRepresentationFrameAttribute)
 
     with catch_warnings() as found_warnings:
@@ -513,11 +522,12 @@ def test_regression_6300():
             assert False, "Deprecation warning not raised"
 
 
+@pytest.mark.remote_data
 def test_gcrs_itrs_cartesian_repr():
     # issue 6436: transformation failed if coordinate representation was
     # Cartesian
     gcrs = GCRS(CartesianRepresentation((859.07256, -4137.20368,  5295.56871),
-                                        unit='km'), representation='cartesian')
+                                        unit='km'), representation_type='cartesian')
     gcrs.transform_to(ITRS)
 
 
@@ -579,6 +589,7 @@ def test_regression_6597_2():
     assert sc1.frame.name == frame.name
 
 
+@pytest.mark.remote_data
 def test_regression_6697():
     """
     Test for regression of a bug in get_gcrs_posvel that introduced errors at the 1m/s level.
@@ -592,3 +603,10 @@ def test_regression_6697():
     obsgeopos, obsgeovel = location.get_gcrs_posvel(t)
     delta = (obsgeovel-pint_vels).norm()
     assert delta < 1*u.cm/u.s
+
+
+def test_regression_8138():
+    sc = SkyCoord(1*u.deg, 2*u.deg)
+    newframe = GCRS()
+    sc2 = sc.transform_to(newframe)
+    assert newframe.is_equivalent_frame(sc2.frame)

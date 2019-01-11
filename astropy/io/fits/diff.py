@@ -5,11 +5,7 @@ FITS files, individual HDUs, FITS headers, or just FITS data.
 
 Used to implement the fitsdiff program.
 """
-
-
-import difflib
 import fnmatch
-import functools
 import glob
 import io
 import operator
@@ -18,22 +14,22 @@ import textwrap
 import warnings
 
 from collections import defaultdict
-from functools import reduce
 from inspect import signature
 from itertools import islice
 
 import numpy as np
 
-from ... import __version__
+from astropy import __version__
 
-from ...utils import indent
 from .card import Card, BLANK_CARD
 from .header import Header
-from ...utils.decorators import deprecated_renamed_argument
+from astropy.utils.decorators import deprecated_renamed_argument
 # HDUList is used in one of the doctests
-from .hdu.hdulist import fitsopen  # pylint: disable=W0611
+from .hdu.hdulist import fitsopen, HDUList  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
-from ...utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.diff import (report_diff_values, fixed_width_indent,
+                           where_not_allclose, diff_values)
 
 __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',
            'TableDataDiff']
@@ -42,10 +38,6 @@ __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',
 _COL_ATTRS = [('unit', 'units'), ('null', 'null values'),
               ('bscale', 'bscales'), ('bzero', 'bzeros'),
               ('disp', 'display formats'), ('dim', 'dimensions')]
-
-
-# Smaller default shift-width for indent:
-indent = functools.partial(indent, width=2)
 
 
 class _BaseDiff:
@@ -187,7 +179,7 @@ class _BaseDiff:
             return fileobj.getvalue()
 
     def _writeln(self, text):
-        self._fileobj.write(indent(text, self._indent) + '\n')
+        self._fileobj.write(fixed_width_indent(text, self._indent) + '\n')
 
     def _diff(self):
         raise NotImplementedError
@@ -210,8 +202,9 @@ class FITSDiff(_BaseDiff):
       representing the differences between the two HDUs.
     """
 
-    def __init__(self, a, b, ignore_keywords=[], ignore_comments=[],
-                 ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0,
+    def __init__(self, a, b, ignore_hdus=[], ignore_keywords=[],
+                 ignore_comments=[], ignore_fields=[],
+                 numdiffs=10, rtol=0.0, atol=0.0,
                  ignore_blanks=True, ignore_blank_cards=True, tolerance=None):
         """
         Parameters
@@ -222,6 +215,11 @@ class FITSDiff(_BaseDiff):
         b : str or `HDUList`
             The filename of a FITS file on disk, or an `HDUList` object to
             compare to the first file.
+
+        ignore_hdus : sequence, optional
+            HDU names to ignore when comparing two FITS files or HDU lists; the
+            presence of these HDUs and their contents are ignored.  Wildcard
+            strings may also be included in the list.
 
         ignore_keywords : sequence, optional
             Header keywords to ignore when comparing two headers; the presence
@@ -294,6 +292,7 @@ class FITSDiff(_BaseDiff):
             close_b = False
 
         # Normalize keywords/fields to ignore to upper case
+        self.ignore_hdus = set(k.upper() for k in ignore_hdus)
         self.ignore_keywords = set(k.upper() for k in ignore_keywords)
         self.ignore_comments = set(k.upper() for k in ignore_comments)
         self.ignore_fields = set(k.upper() for k in ignore_fields)
@@ -313,6 +312,13 @@ class FITSDiff(_BaseDiff):
         self.ignore_blanks = ignore_blanks
         self.ignore_blank_cards = ignore_blank_cards
 
+        # Some hdu names may be pattern wildcards.  Find them.
+        self.ignore_hdu_patterns = set()
+        for name in list(self.ignore_hdus):
+            if name != '*' and glob.has_magic(name):
+                self.ignore_hdus.remove(name)
+                self.ignore_hdu_patterns.add(name)
+
         self.diff_hdu_count = ()
         self.diff_hdus = []
 
@@ -328,8 +334,32 @@ class FITSDiff(_BaseDiff):
         if len(self.a) != len(self.b):
             self.diff_hdu_count = (len(self.a), len(self.b))
 
-        # For now, just compare the extensions one by one in order...might
-        # allow some more sophisticated types of diffing later...
+        # Record filenames for use later in _report
+        self.filenamea = self.a.filename()
+        if not self.filenamea:
+            self.filenamea = '<{} object at {:#x}>'.format(
+                self.a.__class__.__name__, id(self.a))
+
+        self.filenameb = self.b.filename()
+        if not self.filenameb:
+            self.filenameb = '<{} object at {:#x}>'.format(
+                self.b.__class__.__name__, id(self.b))
+
+        if self.ignore_hdus:
+            self.a = HDUList([h for h in self.a if h.name not in self.ignore_hdus])
+            self.b = HDUList([h for h in self.b if h.name not in self.ignore_hdus])
+        if self.ignore_hdu_patterns:
+            a_names = [hdu.name for hdu in self.a]
+            b_names = [hdu.name for hdu in self.b]
+            for pattern in self.ignore_hdu_patterns:
+                self.a = HDUList([h for h in self.a if h.name not in fnmatch.filter(
+                    a_names, pattern)])
+                self.b = HDUList([h for h in self.b if h.name not in fnmatch.filter(
+                    b_names, pattern)])
+
+        # For now, just compare the extensions one by one in order.
+        # Might allow some more sophisticated types of diffing later.
+
         # TODO: Somehow or another simplify the passing around of diff
         # options--this will become important as the number of options grows
         for idx in range(min(len(self.a), len(self.b))):
@@ -342,20 +372,20 @@ class FITSDiff(_BaseDiff):
         wrapper = textwrap.TextWrapper(initial_indent='  ',
                                        subsequent_indent='  ')
 
-        # print out heading and parameter values
-        filenamea = self.a.filename()
-        if not filenamea:
-            filenamea = '<{} object at {:#x}>'.format(
-                self.a.__class__.__name__, id(self.a))
-
-        filenameb = self.b.filename()
-        if not filenameb:
-            filenameb = '<{} object at {:#x}>'.format(
-                self.b.__class__.__name__, id(self.b))
-
         self._fileobj.write('\n')
         self._writeln(' fitsdiff: {}'.format(__version__))
-        self._writeln(' a: {}\n b: {}'.format(filenamea, filenameb))
+        self._writeln(' a: {}\n b: {}'.format(self.filenamea, self.filenameb))
+
+        if self.ignore_hdus:
+            ignore_hdus = ' '.join(sorted(self.ignore_hdus))
+            self._writeln(' HDU(s) not to be compared:\n{}'
+                          .format(wrapper.fill(ignore_hdus)))
+
+        if self.ignore_hdu_patterns:
+            ignore_hdu_patterns = ' '.join(sorted(self.ignore_hdu_patterns))
+            self._writeln(' HDU(s) not to be compared:\n{}'
+                          .format(wrapper.fill(ignore_hdu_patterns)))
+
         if self.ignore_keywords:
             ignore_keywords = ' '.join(sorted(self.ignore_keywords))
             self._writeln(' Keyword(s) not to be compared:\n{}'
@@ -365,10 +395,12 @@ class FITSDiff(_BaseDiff):
             ignore_comments = ' '.join(sorted(self.ignore_comments))
             self._writeln(' Keyword(s) whose comments are not to be compared'
                           ':\n{}'.format(wrapper.fill(ignore_comments)))
+
         if self.ignore_fields:
             ignore_fields = ' '.join(sorted(self.ignore_fields))
             self._writeln(' Table column(s) not to be compared:\n{}'
                           .format(wrapper.fill(ignore_fields)))
+
         self._writeln(' Maximum number of different data values to be '
                       'reported: {}'.format(self.numdiffs))
         self._writeln(' Relative tolerance: {}, Absolute tolerance: {}'
@@ -432,7 +464,62 @@ class HDUDiff(_BaseDiff):
                  ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0,
                  ignore_blanks=True, ignore_blank_cards=True, tolerance=None):
         """
-        See `FITSDiff` for explanations of the initialization parameters.
+        Parameters
+        ----------
+        a : `HDUList`
+            An `HDUList` object.
+
+        b : str or `HDUList`
+            An `HDUList` object to compare to the first `HDUList` object.
+
+        ignore_keywords : sequence, optional
+            Header keywords to ignore when comparing two headers; the presence
+            of these keywords and their values are ignored.  Wildcard strings
+            may also be included in the list.
+
+        ignore_comments : sequence, optional
+            A list of header keywords whose comments should be ignored in the
+            comparison.  May contain wildcard strings as with ignore_keywords.
+
+        ignore_fields : sequence, optional
+            The (case-insensitive) names of any table columns to ignore if any
+            table data is to be compared.
+
+        numdiffs : int, optional
+            The number of pixel/table values to output when reporting HDU data
+            differences.  Though the count of differences is the same either
+            way, this allows controlling the number of different values that
+            are kept in memory or output.  If a negative value is given, then
+            numdiffs is treated as unlimited (default: 10).
+
+        rtol : float, optional
+            The relative difference to allow when comparing two float values
+            either in header values, image arrays, or table columns
+            (default: 0.0). Values which satisfy the expression
+
+            .. math::
+
+                \\left| a - b \\right| > \\text{atol} + \\text{rtol} \\cdot \\left| b \\right|
+
+            are considered to be different.
+            The underlying function used for comparison is `numpy.allclose`.
+
+            .. versionchanged:: 2.0
+               ``rtol`` replaces the deprecated ``tolerance`` argument.
+
+        atol : float, optional
+            The allowed absolute difference. See also ``rtol`` parameter.
+
+            .. versionadded:: 2.0
+
+        ignore_blanks : bool, optional
+            Ignore extra whitespace at the end of string values either in
+            headers or data. Extra leading whitespace is not ignored
+            (default: True).
+
+        ignore_blank_cards : bool, optional
+            Ignore all cards that are blank, i.e. they only contain
+            whitespace (default: True).
         """
 
         self.ignore_keywords = {k.upper() for k in ignore_keywords}
@@ -571,7 +658,58 @@ class HeaderDiff(_BaseDiff):
                  rtol=0.0, atol=0.0, ignore_blanks=True, ignore_blank_cards=True,
                  tolerance=None):
         """
-        See `FITSDiff` for explanations of the initialization parameters.
+        Parameters
+        ----------
+        a : `HDUList`
+            An `HDUList` object.
+
+        b : `HDUList`
+            An `HDUList` object to compare to the first `HDUList` object.
+
+        ignore_keywords : sequence, optional
+            Header keywords to ignore when comparing two headers; the presence
+            of these keywords and their values are ignored.  Wildcard strings
+            may also be included in the list.
+
+        ignore_comments : sequence, optional
+            A list of header keywords whose comments should be ignored in the
+            comparison.  May contain wildcard strings as with ignore_keywords.
+
+        numdiffs : int, optional
+            The number of pixel/table values to output when reporting HDU data
+            differences.  Though the count of differences is the same either
+            way, this allows controlling the number of different values that
+            are kept in memory or output.  If a negative value is given, then
+            numdiffs is treated as unlimited (default: 10).
+
+        rtol : float, optional
+            The relative difference to allow when comparing two float values
+            either in header values, image arrays, or table columns
+            (default: 0.0). Values which satisfy the expression
+
+            .. math::
+
+                \\left| a - b \\right| > \\text{atol} + \\text{rtol} \\cdot \\left| b \\right|
+
+            are considered to be different.
+            The underlying function used for comparison is `numpy.allclose`.
+
+            .. versionchanged:: 2.0
+               ``rtol`` replaces the deprecated ``tolerance`` argument.
+
+        atol : float, optional
+            The allowed absolute difference. See also ``rtol`` parameter.
+
+            .. versionadded:: 2.0
+
+        ignore_blanks : bool, optional
+            Ignore extra whitespace at the end of string values either in
+            headers or data. Extra leading whitespace is not ignored
+            (default: True).
+
+        ignore_blank_cards : bool, optional
+            Ignore all cards that are blank, i.e. they only contain
+            whitespace (default: True).
         """
 
         self.ignore_keywords = {k.upper() for k in ignore_keywords}
@@ -826,7 +964,40 @@ class ImageDataDiff(_BaseDiff):
 
     def __init__(self, a, b, numdiffs=10, rtol=0.0, atol=0.0, tolerance=None):
         """
-        See `FITSDiff` for explanations of the initialization parameters.
+        Parameters
+        ----------
+        a : `HDUList`
+            An `HDUList` object.
+
+        b : `HDUList`
+            An `HDUList` object to compare to the first `HDUList` object.
+
+        numdiffs : int, optional
+            The number of pixel/table values to output when reporting HDU data
+            differences.  Though the count of differences is the same either
+            way, this allows controlling the number of different values that
+            are kept in memory or output.  If a negative value is given, then
+            numdiffs is treated as unlimited (default: 10).
+
+        rtol : float, optional
+            The relative difference to allow when comparing two float values
+            either in header values, image arrays, or table columns
+            (default: 0.0). Values which satisfy the expression
+
+            .. math::
+
+                \\left| a - b \\right| > \\text{atol} + \\text{rtol} \\cdot \\left| b \\right|
+
+            are considered to be different.
+            The underlying function used for comparison is `numpy.allclose`.
+
+            .. versionchanged:: 2.0
+               ``rtol`` replaces the deprecated ``tolerance`` argument.
+
+        atol : float, optional
+            The allowed absolute difference. See also ``rtol`` parameter.
+
+            .. versionadded:: 2.0
         """
 
         self.numdiffs = numdiffs
@@ -909,8 +1080,8 @@ class ImageDataDiff(_BaseDiff):
         for index, values in self.diff_pixels:
             index = [x + 1 for x in reversed(index)]
             self._writeln(' Data differs at {}:'.format(index))
-            report_diff_values(self._fileobj, values[0], values[1],
-                               ind=self._indent + 1)
+            report_diff_values(values[0], values[1], fileobj=self._fileobj,
+                               indent_width=self._indent + 1)
 
         if self.diff_total > self.numdiffs:
             self._writeln(' ...')
@@ -942,7 +1113,20 @@ class RawDataDiff(ImageDataDiff):
 
     def __init__(self, a, b, numdiffs=10):
         """
-        See `FITSDiff` for explanations of the initialization parameters.
+        Parameters
+        ----------
+        a : `HDUList`
+            An `HDUList` object.
+
+        b : `HDUList`
+            An `HDUList` object to compare to the first `HDUList` object.
+
+        numdiffs : int, optional
+            The number of pixel/table values to output when reporting HDU data
+            differences.  Though the count of differences is the same either
+            way, this allows controlling the number of different values that
+            are kept in memory or output.  If a negative value is given, then
+            numdiffs is treated as unlimited (default: 10).
         """
 
         self.diff_dimensions = ()
@@ -975,8 +1159,8 @@ class RawDataDiff(ImageDataDiff):
 
         for index, values in self.diff_bytes:
             self._writeln(' Data differs at byte {}:'.format(index))
-            report_diff_values(self._fileobj, values[0], values[1],
-                               ind=self._indent + 1)
+            report_diff_values(values[0], values[1], fileobj=self._fileobj,
+                               indent_width=self._indent + 1)
 
         self._writeln(' ...')
         self._writeln(' {} different bytes found ({:.2%} different).'
@@ -1034,7 +1218,44 @@ class TableDataDiff(_BaseDiff):
     def __init__(self, a, b, ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0,
                  tolerance=None):
         """
-        See `FITSDiff` for explanations of the initialization parameters.
+        Parameters
+        ----------
+        a : `HDUList`
+            An `HDUList` object.
+
+        b : `HDUList`
+            An `HDUList` object to compare to the first `HDUList` object.
+
+        ignore_fields : sequence, optional
+            The (case-insensitive) names of any table columns to ignore if any
+            table data is to be compared.
+
+        numdiffs : int, optional
+            The number of pixel/table values to output when reporting HDU data
+            differences.  Though the count of differences is the same either
+            way, this allows controlling the number of different values that
+            are kept in memory or output.  If a negative value is given, then
+            numdiffs is treated as unlimited (default: 10).
+
+        rtol : float, optional
+            The relative difference to allow when comparing two float values
+            either in header values, image arrays, or table columns
+            (default: 0.0). Values which satisfy the expression
+
+            .. math::
+
+                \\left| a - b \\right| > \\text{atol} + \\text{rtol} \\cdot \\left| b \\right|
+
+            are considered to be different.
+            The underlying function used for comparison is `numpy.allclose`.
+
+            .. versionchanged:: 2.0
+               ``rtol`` replaces the deprecated ``tolerance`` argument.
+
+        atol : float, optional
+            The allowed absolute difference. See also ``rtol`` parameter.
+
+            .. versionadded:: 2.0
         """
 
         self.ignore_fields = set(ignore_fields)
@@ -1238,8 +1459,8 @@ class TableDataDiff(_BaseDiff):
             name, attr = col_attr
             self._writeln(' Column {} has different {}:'.format(
                     name, col_attrs[attr]))
-            report_diff_values(self._fileobj, vals[0], vals[1],
-                               ind=self._indent + 1)
+            report_diff_values(vals[0], vals[1], fileobj=self._fileobj,
+                               indent_width=self._indent + 1)
 
         if self.diff_rows:
             self._writeln(' Table rows differ:')
@@ -1254,8 +1475,8 @@ class TableDataDiff(_BaseDiff):
         # Finally, let's go through and report column data differences:
         for indx, values in self.diff_values:
             self._writeln(' Column {} data differs in row {}:'.format(*indx))
-            report_diff_values(self._fileobj, values[0], values[1],
-                               ind=self._indent + 1)
+            report_diff_values(values[0], values[1], fileobj=self._fileobj,
+                               indent_width=self._indent + 1)
 
         if self.diff_values and self.numdiffs < self.diff_total:
             self._writeln(' ...{} additional difference(s) found.'.format(
@@ -1267,70 +1488,6 @@ class TableDataDiff(_BaseDiff):
         self._writeln(' {} different table data element(s) found '
                       '({:.2%} different).'
                       .format(self.diff_total, self.diff_ratio))
-
-
-def diff_values(a, b, rtol=0.0, atol=0.0):
-    """
-    Diff two scalar values.  If both values are floats they are compared to
-    within the given absolute and relative tolerance.
-    """
-
-    if isinstance(a, float) and isinstance(b, float):
-        if np.isnan(a) and np.isnan(b):
-            return False
-        return not np.allclose(a, b, rtol=rtol, atol=atol)
-    else:
-        return a != b
-
-
-def report_diff_values(fileobj, a, b, ind=0):
-    """Write a diff between two values to the specified file-like object."""
-
-    typea = type(a)
-    typeb = type(b)
-
-    if (isinstance(a, str) and not isinstance(b, str)):
-        a = repr(a).lstrip('u')
-    elif (isinstance(b, str) and not isinstance(a, str)):
-        b = repr(b).lstrip('u')
-
-    if isinstance(a, (int, float, complex, np.number)):
-        a = repr(a)
-
-    if isinstance(b, (int, float, complex, np.number)):
-        b = repr(b)
-
-    if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
-        diff_indices = np.where(a != b)
-        num_diffs = reduce(operator.mul, map(len, diff_indices), 1)
-        for idx in islice(zip(*diff_indices), 3):
-            fileobj.write(indent('  at {!r}:\n'.format(list(idx)), ind))
-            report_diff_values(fileobj, a[idx], b[idx], ind=ind + 1)
-
-        if num_diffs > 3:
-            fileobj.write(indent('  ...and at {} more indices.\n'
-                                 .format(num_diffs - 3), ind))
-        return
-
-    padding = max(len(typea.__name__), len(typeb.__name__)) + 3
-
-    for line in difflib.ndiff(str(a).splitlines(), str(b).splitlines()):
-        if line[0] == '-':
-            line = 'a>' + line[1:]
-            if typea != typeb:
-                typename = '(' + typea.__name__ + ') '
-                line = typename.rjust(padding) + line
-
-        elif line[0] == '+':
-            line = 'b>' + line[1:]
-            if typea != typeb:
-                typename = '(' + typeb.__name__ + ') '
-                line = typename.rjust(padding) + line
-        else:
-            line = ' ' + line
-            if typea != typeb:
-                line = ' ' * padding + line
-        fileobj.write(indent('  {}\n'.format(line.rstrip('\n')), ind))
 
 
 def report_diff_keyword_attr(fileobj, attr, diffs, keyword, ind=0):
@@ -1348,25 +1505,8 @@ def report_diff_keyword_attr(fileobj, attr, diffs, keyword, ind=0):
                 dup = ''
             else:
                 dup = '[{}]'.format(idx + 1)
-            fileobj.write(indent(' Keyword {:8}{} has different {}:\n'
-                                 .format(keyword, dup, attr), ind))
-            report_diff_values(fileobj, val[0], val[1], ind=ind + 1)
-
-
-def where_not_allclose(a, b, rtol=1e-5, atol=1e-8):
-    """
-    A version of numpy.allclose that returns the indices where the two arrays
-    differ, instead of just a boolean value.
-    """
-
-    # Create fixed mask arrays to handle INF and NaN; currently INF and NaN
-    # are handled as equivalent
-    if not np.all(np.isfinite(a)):
-        a = np.ma.fix_invalid(a).data
-    if not np.all(np.isfinite(b)):
-        b = np.ma.fix_invalid(b).data
-
-    if atol == 0.0 and rtol == 0.0:
-        # Use a faster comparison for the most simple (and common) case
-        return np.where(a != b)
-    return np.where(np.abs(a - b) > (atol + rtol * np.abs(b)))
+            fileobj.write(
+                fixed_width_indent(' Keyword {:8}{} has different {}:\n'
+                                   .format(keyword, dup, attr), ind))
+            report_diff_values(val[0], val[1], fileobj=fileobj,
+                               indent_width=ind + 1)

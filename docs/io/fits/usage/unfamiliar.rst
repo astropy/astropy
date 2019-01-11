@@ -26,8 +26,8 @@ table, Astropy will automatically detect what kind of table it is.
     >>> from astropy.io import fits
     >>> filename = fits.util.get_testdata_filepath('ascii.fits')
     >>> hdul = fits.open(filename)
-    >>> hdul[1].data[:1]
-    FITS_rec([(10.122999999999999, 37)],
+    >>> hdul[1].data[:1]  # doctest: +FLOAT_CMP
+    FITS_rec([(10.123, 37)],
              dtype=(numpy.record, {'names':['a','b'], 'formats':['S10','S5'], 'offsets':[0,11], 'itemsize':16}))
     >>> hdul[1].data['a']
     array([  10.123,    5.2  ,   15.61 ,    0.   ,  345.   ])
@@ -270,10 +270,10 @@ The group parameter can be accessed by the :meth:`~GroupData.par` method. Like
 the table :meth:`~FITS_rec.field` method, the argument can be either index or
 name::
 
-    >>> hdul[0].data.par(0)[8]  # Access group parameter by name or by index
-    8.1000004
-    >>> hdul[0].data.par('abc')[8]
-    8.1000004
+    >>> hdul[0].data.par(0)[8]  # Access group parameter by name or by index  # doctest: +FLOAT_CMP
+    8.1
+    >>> hdul[0].data.par('abc')[8]  # doctest: +FLOAT_CMP
+    8.1
 
 Note that the parameter name 'xyz' appears twice. This is a feature in the
 random access group, and it means to add the values together. Thus::
@@ -294,10 +294,10 @@ data item (a group). So there are two possible ways to get a group parameter
 for a certain group, this is similar to the situation in table data (with its
 :meth:`~FITS_rec.field` method)::
 
-    >>> hdul[0].data.par(0)[8]
-    8.1000004
-    >>> hdul[0].data[8].par(0)
-    8.1000004
+    >>> hdul[0].data.par(0)[8]  # doctest: +FLOAT_CMP
+    8.1
+    >>> hdul[0].data[8].par(0)  # doctest: +FLOAT_CMP
+    8.1
 
 On the other hand, to modify a group parameter, we can either assign the new
 value directly (if accessing the row/group number last) or use the

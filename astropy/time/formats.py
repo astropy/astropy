@@ -5,13 +5,16 @@ import fnmatch
 import time
 import re
 import datetime
-from collections import OrderedDict
+import warnings
+from collections import OrderedDict, defaultdict
 
 import numpy as np
 
-from .. import units as u
-from .. import _erfa as erfa
-from .utils import day_frac, two_sum
+from astropy.utils.decorators import lazyproperty
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy import units as u
+from astropy import _erfa as erfa
+from .utils import day_frac, quantity_day_frac, two_sum, two_product
 
 
 __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
@@ -22,7 +25,7 @@ __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeDeltaFormat', 'TimeDeltaSec', 'TimeDeltaJD',
            'TimeEpochDateString', 'TimeBesselianEpochString',
            'TimeJulianEpochString', 'TIME_FORMATS', 'TIME_DELTA_FORMATS',
-           'TimezoneInfo']
+           'TimezoneInfo', 'TimeDeltaDatetime', 'TimeDatetime64']
 
 __doctest_skip__ = ['TimePlotDate']
 
@@ -141,20 +144,71 @@ class TimeFormat(metaclass=TimeFormatMeta):
     def scale(self, val):
         self._scale = val
 
+    def mask_if_needed(self, value):
+        if self.masked:
+            value = np.ma.array(value, mask=self.mask, copy=False)
+        return value
+
+    @property
+    def mask(self):
+        if 'mask' not in self.cache:
+            self.cache['mask'] = np.isnan(self.jd2)
+            if self.cache['mask'].shape:
+                self.cache['mask'].flags.writeable = False
+        return self.cache['mask']
+
+    @property
+    def masked(self):
+        if 'masked' not in self.cache:
+            self.cache['masked'] = bool(np.any(self.mask))
+        return self.cache['masked']
+
+    @property
+    def jd2_filled(self):
+        return np.nan_to_num(self.jd2) if self.masked else self.jd2
+
+    @lazyproperty
+    def cache(self):
+        """
+        Return the cache associated with this instance.
+        """
+        return defaultdict(dict)
+
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
-        if not (val1.dtype == np.double and np.all(np.isfinite(val1)) and
-                (val2 is None or
-                 val2.dtype == np.double and np.all(np.isfinite(val2)))):
+        # val1 cannot contain nan, but val2 can contain nan
+        ok1 = val1.dtype == np.double and np.all(np.isfinite(val1))
+        ok2 = val2 is None or (val2.dtype == np.double and not np.any(np.isinf(val2)))
+        if not (ok1 and ok2):
             raise TypeError('Input values for {0} class must be finite doubles'
                             .format(self.name))
 
         if getattr(val1, 'unit', None) is not None:
-            # Possibly scaled unit any quantity-likes should be converted to
-            _unit = u.CompositeUnit(getattr(self, 'unit', 1.), [u.day], [1])
-            val1 = u.Quantity(val1, copy=False).to_value(_unit)
+            # Convert any quantity-likes to days first, attempting to be
+            # careful with the conversion, so that, e.g., large numbers of
+            # seconds get converted without loosing precision because
+            # 1/86400 is not exactly representable as a float.
+            val1 = u.Quantity(val1, copy=False)
             if val2 is not None:
-                val2 = u.Quantity(val2, copy=False).to_value(_unit)
+                val2 = u.Quantity(val2, copy=False)
+
+            try:
+                val1, val2 = quantity_day_frac(val1, val2)
+            except u.UnitsError:
+                raise u.UnitConversionError(
+                    "only quantities with time units can be "
+                    "used to instantiate Time instances.")
+            # We now have days, but the format may expect another unit.
+            # On purpose, multiply with 1./day_unit because typically it is
+            # 1./erfa.DAYSEC, and inverting it recovers the integer.
+            # (This conversion will get undone in format's set_jds, hence
+            # there may be room for optimizing this.)
+            factor = 1. / getattr(self, 'unit', 1.)
+            if factor != 1.:
+                val1, carry = two_product(val1, factor)
+                carry += val2 * factor
+                val1, val2 = two_sum(val1, carry)
+
         elif getattr(val2, 'unit', None) is not None:
             raise TypeError('Cannot mix float and Quantity inputs')
 
@@ -211,7 +265,7 @@ class TimeFormat(metaclass=TimeFormatMeta):
         require ``parent`` or have other optional args for ``to_value``
         should compute and return the value directly.
         """
-        return self.value
+        return self.mask_if_needed(self.value)
 
     @property
     def value(self):
@@ -302,7 +356,7 @@ class TimeDecimalYear(TimeFormat):
     def value(self):
         scale = self.scale.upper().encode('ascii')
         iy_start, ims, ids, ihmsfs = erfa.d2dtf(scale, 0,  # precision=0
-                                                self.jd1, self.jd2)
+                                                self.jd1, self.jd2_filled)
         imon = np.ones_like(iy_start)
         iday = np.ones_like(iy_start)
         ihr = np.zeros_like(iy_start)
@@ -388,14 +442,22 @@ class TimeFromEpoch(TimeFormat):
         if self.scale != self.epoch_scale:
             if parent is None:
                 raise ValueError('cannot compute value without parent Time object')
-            tm = getattr(parent, self.epoch_scale)
+            try:
+                tm = getattr(parent, self.epoch_scale)
+            except Exception as err:
+                raise ScaleValueError("Cannot convert from '{0}' epoch scale '{1}'"
+                                      "to specified scale '{2}', got error:\n{3}"
+                                      .format(self.name, self.epoch_scale,
+                                              self.scale, err))
+
             jd1, jd2 = tm._time.jd1, tm._time.jd2
         else:
             jd1, jd2 = self.jd1, self.jd2
 
         time_from_epoch = ((jd1 - self.epoch.jd1) +
                            (jd2 - self.epoch.jd2)) / self.unit
-        return time_from_epoch
+
+        return self.mask_if_needed(time_from_epoch)
 
     value = property(to_value)
 
@@ -599,11 +661,11 @@ class TimeDatetime(TimeUnique):
         # since we want to be able to pass in timezone information.
         scale = self.scale.upper().encode('ascii')
         iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 6,  # 6 for microsec
-                                           self.jd1, self.jd2)
-        ihrs = ihmsfs[..., 0]
-        imins = ihmsfs[..., 1]
-        isecs = ihmsfs[..., 2]
-        ifracs = ihmsfs[..., 3]
+                                           self.jd1, self.jd2_filled)
+        ihrs = ihmsfs['h']
+        imins = ihmsfs['m']
+        isecs = ihmsfs['s']
+        ifracs = ihmsfs['f']
         iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
                              flags=['refs_ok'],
                              op_dtypes=7*[iys.dtype] + [object])
@@ -618,7 +680,8 @@ class TimeDatetime(TimeUnique):
                                              tzinfo=TimezoneInfo()).astimezone(timezone)
             else:
                 out[...] = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec)
-        return iterator.operands[-1]
+
+        return self.mask_if_needed(iterator.operands[-1])
 
     value = property(to_value)
 
@@ -759,7 +822,7 @@ class TimeString(TimeUnique):
         """
         scale = self.scale.upper().encode('ascii'),
         iys, ims, ids, ihmsfs = erfa.d2dtf(scale, self.precision,
-                                           self.jd1, self.jd2)
+                                           self.jd1, self.jd2_filled)
 
         # Get the str_fmt element of the first allowed output subformat
         _, _, str_fmt = self._select_subfmts(self.out_subfmt)[0]
@@ -770,10 +833,10 @@ class TimeString(TimeUnique):
             has_yday = False
             yday = None
 
-        ihrs = ihmsfs[..., 0]
-        imins = ihmsfs[..., 1]
-        isecs = ihmsfs[..., 2]
-        ifracs = ihmsfs[..., 3]
+        ihrs = ihmsfs['h']
+        imins = ihmsfs['m']
+        isecs = ihmsfs['s']
+        ifracs = ihmsfs['f']
         for iy, im, id, ihr, imin, isec, ifracsec in np.nditer(
                 [iys, ims, ids, ihrs, imins, isecs, ifracs]):
             if has_yday:
@@ -908,18 +971,53 @@ class TimeYearDayTime(TimeISO):
                 '{year:d}:{yday:03d}'))
 
 
+class TimeDatetime64(TimeISOT):
+    name = 'datetime64'
+
+    def _check_val_type(self, val1, val2):
+        # Note: don't care about val2 for this class`
+        if not val1.dtype.kind == 'M':
+            raise TypeError('Input values for {0} class must be '
+                            'datetime64 objects'.format(self.name))
+        return val1, None
+
+    def set_jds(self, val1, val2):
+        # If there are any masked values in the ``val1`` datetime64 array
+        # ('NaT') then stub them with a valid date so downstream parse_string
+        # will work.  The value under the mask is arbitrary but a "modern" date
+        # is good.
+        mask = np.isnat(val1)
+        masked = np.any(mask)
+        if masked:
+            val1 = val1.copy()
+            val1[mask] = '2000'
+
+        # Make sure M(onth) and Y(ear) dates will parse and convert to bytestring
+        if val1.dtype.name in ['datetime64[M]', 'datetime64[Y]']:
+            val1 = val1.astype('datetime64[D]')
+        val1 = val1.astype('S')
+
+        # Standard ISO string parsing now
+        super().set_jds(val1, val2)
+
+        # Finally apply mask if necessary
+        if masked:
+            self.jd2[mask] = np.nan
+
+    @property
+    def value(self):
+        precision = self.precision
+        self.precision = 9
+        ret = super().value
+        self.precision = precision
+        return ret.astype('datetime64')
+
+
 class TimeFITS(TimeString):
     """
-    FITS format: "[±Y]YYYY-MM-DD[THH:MM:SS[.sss]][(SCALE[(REALIZATION)])]".
+    FITS format: "[±Y]YYYY-MM-DD[THH:MM:SS[.sss]]".
 
-    ISOT with two extensions:
-    - Can give signed five-digit year (mostly for negative years);
-    - A possible time scale (and realization) appended in parentheses.
-
-    Note: FITS supports some deprecated names for timescales; these are
-    translated to the formal names upon initialization.  Furthermore, any
-    specific realization information is stored only as long as the time scale
-    is not changed.
+    ISOT but can give signed five-digit year (mostly for negative years);
 
     The allowed subformats are:
 
@@ -947,15 +1045,15 @@ class TimeFITS(TimeString):
          r'(?P<year>[+-]\d{5})-(?P<mon>\d\d)-(?P<mday>\d\d)',
          '{year:+06d}-{mon:02d}-{day:02d}'))
     # Add the regex that parses the scale and possible realization.
+    # Support for this is deprecated.  Read old style but no longer write
+    # in this style.
     subfmts = tuple(
         (subfmt[0],
          subfmt[1] + r'(\((?P<scale>\w+)(\((?P<realization>\w+)\))?\))?',
          subfmt[2]) for subfmt in subfmts)
-    _fits_scale = None
-    _fits_realization = None
 
     def parse_string(self, timestr, subfmts):
-        """Read time and set scale according to trailing scale codes."""
+        """Read time and deprecated scale if present"""
         # Try parsing with any of the allowed sub-formats.
         for _, regex, _ in subfmts:
             tm = re.match(regex, timestr)
@@ -965,7 +1063,11 @@ class TimeFITS(TimeString):
             raise ValueError('Time {0} does not match {1} format'
                              .format(timestr, self.name))
         tm = tm.groupdict()
+        # Scale and realization are deprecated and strings in this form
+        # are no longer created.  We issue a warning but still use the value.
         if tm['scale'] is not None:
+            warnings.warn("FITS time strings should no longer have embedded time scale.",
+                          AstropyDeprecationWarning)
             # If a scale was given, translate from a possible deprecated
             # timescale identifier to the scale used by Time.
             fits_scale = tm['scale'].upper()
@@ -974,32 +1076,18 @@ class TimeFITS(TimeString):
                 raise ValueError("Scale {0!r} is not in the allowed scales {1}"
                                  .format(scale, sorted(TIME_SCALES)))
             # If no scale was given in the initialiser, set the scale to
-            # that given in the string.  Also store a possible realization,
-            # so we can round-trip (as long as no scale changes are made).
-            fits_realization = (tm['realization'].upper()
-                                if tm['realization'] else None)
-            if self._fits_scale is None:
-                self._fits_scale = fits_scale
-                self._fits_realization = fits_realization
-                if self._scale is None:
-                    self._scale = scale
-            if (scale != self.scale or fits_scale != self._fits_scale or
-                fits_realization != self._fits_realization):
+            # that given in the string.  Realization is ignored
+            # and is only supported to allow old-style strings to be
+            # parsed.
+            if self._scale is None:
+                self._scale = scale
+            if scale != self.scale:
                 raise ValueError("Input strings for {0} class must all "
                                  "have consistent time scales."
                                  .format(self.name))
         return [int(tm['year']), int(tm['mon']), int(tm['mday']),
                 int(tm.get('hour', 0)), int(tm.get('min', 0)),
                 float(tm.get('sec', 0.))]
-
-    def format_string(self, str_fmt, **kwargs):
-        """Format time-string: append the scale to the normal ISOT format."""
-        time_str = super().format_string(str_fmt, **kwargs)
-        if self._fits_scale and self._fits_realization:
-            return '{0}({1}({2}))'.format(time_str, self._fits_scale,
-                                          self._fits_realization)
-        else:
-            return '{0}({1})'.format(time_str, self._scale.upper())
 
     @property
     def value(self):
@@ -1147,6 +1235,41 @@ class TimeDeltaJD(TimeDeltaFormat):
     """Time delta in Julian days (86400 SI seconds)"""
     name = 'jd'
     unit = 1.
+
+
+class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
+    """Time delta in datetime.timedelta"""
+    name = 'datetime'
+
+    def _check_val_type(self, val1, val2):
+        # Note: don't care about val2 for this class
+        if not all(isinstance(val, datetime.timedelta) for val in val1.flat):
+            raise TypeError('Input values for {0} class must be '
+                            'datetime.timedelta objects'.format(self.name))
+        return val1, None
+
+    def set_jds(self, val1, val2):
+        self._check_scale(self._scale)  # Validate scale.
+        iterator = np.nditer([val1, None],
+                             flags=['refs_ok'],
+                             op_dtypes=[object] + [np.double])
+
+        for val, sec in iterator:
+            sec[...] = val.item().total_seconds()
+
+        self.jd1, self.jd2 = day_frac(iterator.operands[-1], 0.0,
+                                      divisor=erfa.DAYSEC)
+
+    @property
+    def value(self):
+        iterator = np.nditer([self.jd1 + self.jd2, None],
+                             flags=['refs_ok'],
+                             op_dtypes=[self.jd1.dtype] + [object])
+
+        for jd, out in iterator:
+            out[...] = datetime.timedelta(days=jd.item())
+
+        return self.mask_if_needed(iterator.operands[-1])
 
 
 from .core import Time, TIME_SCALES, TIME_DELTA_SCALES, ScaleValueError

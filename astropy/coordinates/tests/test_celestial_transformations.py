@@ -4,16 +4,15 @@
 import pytest
 import numpy as np
 
-from ... import units as u
-from ..distances import Distance
-from ..builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
+from astropy import units as u
+from astropy.coordinates.distances import Distance
+from astropy.coordinates.builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
                               Supergalactic, Galactocentric, HCRS, GCRS, LSR)
-from .. import SkyCoord
-from ...tests.helper import (quantity_allclose as allclose,
-                             assert_quantity_allclose as assert_allclose)
-from .. import EarthLocation, CartesianRepresentation
-from ...time import Time
-
+from astropy.coordinates import SkyCoord
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.coordinates import EarthLocation, CartesianRepresentation
+from astropy.time import Time
+from astropy.units import allclose
 
 # used below in the next parametrized test
 m31_sys = [ICRS, FK5, FK4, Galactic]
@@ -238,6 +237,7 @@ class TestHelioBaryCentric():
         self.obstime = Time("2013-02-02T23:00")
         self.wht_itrs = wht.get_itrs(obstime=self.obstime)
 
+    @pytest.mark.remote_data
     def test_heliocentric(self):
         gcrs = self.wht_itrs.transform_to(GCRS(obstime=self.obstime))
         helio = gcrs.transform_to(HCRS(obstime=self.obstime))
@@ -250,6 +250,7 @@ class TestHelioBaryCentric():
         assert np.sqrt(((helio.cartesian.xyz -
                          helio_slalib)**2).sum()) < 14. * u.km
 
+    @pytest.mark.remote_data
     def test_barycentric(self):
         gcrs = self.wht_itrs.transform_to(GCRS(obstime=self.obstime))
         bary = gcrs.transform_to(ICRS())

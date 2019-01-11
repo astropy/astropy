@@ -2,7 +2,7 @@
 
 import pytest
 
-from ..bst import BST
+from astropy.table.bst import BST
 
 
 def get_tree(TreeType):
@@ -29,8 +29,8 @@ def tree():
 
 
 @pytest.fixture
-def bst():
-    return tree()
+def bst(tree):
+    return tree
 
 
 def test_bst_add(bst):

@@ -7,10 +7,11 @@ from copy import deepcopy
 import numpy as np
 
 from .decorators import support_nddata
-from .. import units as u
-from ..coordinates import SkyCoord
-from ..utils import lazyproperty
-from ..wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+from astropy.utils import lazyproperty
+from astropy.wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
+from astropy.wcs import Sip
 
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',
@@ -28,29 +29,6 @@ class PartialOverlapError(ValueError):
     pass
 
 
-def _round(a):
-    '''Always round up.
-
-    ``np.round`` cannot be used here, because it rounds .5 to the nearest
-    even number.
-    '''
-    return int(np.floor(a + 0.5))
-
-
-def _offset(a):
-    '''Offset by 0.5 for an even array.
-
-    For an array with an odd number of elements, the center is
-    symmetric, e.g. for 3 elements, it's center +/-1 elements, but for
-    four elements it's center -2 / +1
-    This function introduces that offset.
-    '''
-    if np.mod(a, 2) == 0:
-        return -0.5
-    else:
-        return 0.
-
-
 def overlap_slices(large_array_shape, small_array_shape, position,
                    mode='partial'):
     """
@@ -65,10 +43,10 @@ def overlap_slices(large_array_shape, small_array_shape, position,
 
     Parameters
     ----------
-    large_array_shape : tuple or int
+    large_array_shape : tuple of int or int
         The shape of the large array (for 1D arrays, this can be an
         `int`).
-    small_array_shape : tuple or int
+    small_array_shape : tuple of int or int
         The shape of the small array (for 1D arrays, this can be an
         `int`).  See the ``mode`` keyword for additional details.
     position : tuple of numbers or number
@@ -94,7 +72,7 @@ def overlap_slices(large_array_shape, small_array_shape, position,
         A tuple of slice objects for each axis of the large array, such
         that ``large_array[slices_large]`` extracts the region of the
         large array that overlaps with the small array.
-    slices_small : slice
+    slices_small : tuple of slices
         A tuple of slice objects for each axis of the small array, such
         that ``small_array[slices_small]`` extracts the region that is
         inside the large array.
@@ -116,40 +94,42 @@ def overlap_slices(large_array_shape, small_array_shape, position,
     if len(small_array_shape) != len(position):
         raise ValueError('"position" must have the same number of dimensions '
                          'as "small_array_shape".')
-    # Get edge coordinates
-    edges_min = [_round(pos + 0.5 - small_shape / 2. + _offset(small_shape))
-                 for (pos, small_shape) in zip(position, small_array_shape)]
-    edges_max = [_round(pos + 0.5 + small_shape / 2. + _offset(small_shape))
-                 for (pos, small_shape) in zip(position, small_array_shape)]
 
-    for e_max in edges_max:
+    # define the min/max pixel indices
+    indices_min = [int(np.ceil(pos - (small_shape / 2.)))
+                   for (pos, small_shape) in zip(position, small_array_shape)]
+    indices_max = [int(np.ceil(pos + (small_shape / 2.)))
+                   for (pos, small_shape) in zip(position, small_array_shape)]
+
+    for e_max in indices_max:
         if e_max <= 0:
             raise NoOverlapError('Arrays do not overlap.')
-    for e_min, large_shape in zip(edges_min, large_array_shape):
+    for e_min, large_shape in zip(indices_min, large_array_shape):
         if e_min >= large_shape:
             raise NoOverlapError('Arrays do not overlap.')
 
     if mode == 'strict':
-        for e_min in edges_min:
+        for e_min in indices_min:
             if e_min < 0:
                 raise PartialOverlapError('Arrays overlap only partially.')
-        for e_max, large_shape in zip(edges_max, large_array_shape):
+        for e_max, large_shape in zip(indices_max, large_array_shape):
             if e_max >= large_shape:
                 raise PartialOverlapError('Arrays overlap only partially.')
 
     # Set up slices
-    slices_large = tuple(slice(max(0, edge_min), min(large_shape, edge_max))
-                         for (edge_min, edge_max, large_shape) in
-                         zip(edges_min, edges_max, large_array_shape))
+    slices_large = tuple(slice(max(0, indices_min),
+                               min(large_shape, indices_max))
+                         for (indices_min, indices_max, large_shape) in
+                         zip(indices_min, indices_max, large_array_shape))
     if mode == 'trim':
         slices_small = tuple(slice(0, slc.stop - slc.start)
                              for slc in slices_large)
     else:
-        slices_small = tuple(slice(max(0, -edge_min),
-                                   min(large_shape - edge_min,
-                                       edge_max - edge_min))
-                             for (edge_min, edge_max, large_shape) in
-                             zip(edges_min, edges_max, large_array_shape))
+        slices_small = tuple(slice(max(0, -indices_min),
+                                   min(large_shape - indices_min,
+                                       indices_max - indices_min))
+                             for (indices_min, indices_max, large_shape) in
+                             zip(indices_min, indices_max, large_array_shape))
 
     return slices_large, slices_small
 
@@ -232,6 +212,7 @@ def extract_array(array_large, shape, position, mode='partial',
     extracted_array = array_large[large_slices]
     if return_position:
         new_position = [i - s.start for i, s in zip(position, large_slices)]
+
     # Extracting on the edges is presumably a rare case, so treat special here
     if (extracted_array.shape != shape) and (mode == 'partial'):
         extracted_array = np.zeros(shape, dtype=array_large.dtype)
@@ -290,7 +271,8 @@ def add_array(array_large, array_small, position):
     if all(large_shape > small_shape for (large_shape, small_shape)
            in zip(array_large.shape, array_small.shape)):
         large_slices, small_slices = overlap_slices(array_large.shape,
-                                                    array_small.shape, position)
+                                                    array_small.shape,
+                                                    position)
         array_large[large_slices] += array_small[small_slices]
         return array_large
     else:
@@ -732,6 +714,11 @@ class Cutout2D:
         if wcs is not None:
             self.wcs = deepcopy(wcs)
             self.wcs.wcs.crpix -= self._origin_original_true
+            self.wcs.array_shape = self.data.shape
+            if wcs.sip is not None:
+                self.wcs.sip = Sip(wcs.sip.a, wcs.sip.b,
+                                   wcs.sip.ap, wcs.sip.bp,
+                                   wcs.sip.crpix - self._origin_original_true)
         else:
             self.wcs = None
 
@@ -855,14 +842,25 @@ class Cutout2D:
         """
         return (self.slices_cutout[1].start, self.slices_cutout[0].start)
 
+    @staticmethod
+    def _round(a):
+        """
+        Round the input to the nearest integer.
+
+        If two integers are equally close, the value is rounded up.
+        Note that this is different from `np.round`, which rounds to the
+        nearest even number.
+        """
+        return int(np.floor(a + 0.5))
+
     @lazyproperty
     def position_original(self):
         """
         The ``(x, y)`` position index (rounded to the nearest pixel) in
         the original array.
         """
-        return (_round(self.input_position_original[0]),
-                _round(self.input_position_original[1]))
+        return (self._round(self.input_position_original[0]),
+                self._round(self.input_position_original[1]))
 
     @lazyproperty
     def position_cutout(self):
@@ -870,8 +868,8 @@ class Cutout2D:
         The ``(x, y)`` position index (rounded to the nearest pixel) in
         the cutout array.
         """
-        return (_round(self.input_position_cutout[0]),
-                _round(self.input_position_cutout[1]))
+        return (self._round(self.input_position_cutout[0]),
+                self._round(self.input_position_cutout[1]))
 
     @lazyproperty
     def center_original(self):

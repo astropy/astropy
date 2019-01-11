@@ -3,6 +3,7 @@
 
 import bz2
 import gzip
+import errno
 import http.client
 import mmap
 import operator
@@ -18,14 +19,13 @@ import re
 from functools import reduce
 
 import numpy as np
-from numpy import memmap as Memmap
 
 from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
                    _array_to_file, _write_string)
-from ...utils.data import download_file, _is_url
-from ...utils.decorators import classproperty, deprecated_renamed_argument
-from ...utils.exceptions import AstropyUserWarning
+from astropy.utils.data import download_file, _is_url
+from astropy.utils.decorators import classproperty, deprecated_renamed_argument
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 # Maps astropy.io.fits-specific file mode names to the appropriate file
@@ -60,8 +60,11 @@ TEXT_RE = re.compile(r'^[rwa]((t?\+?)|(\+?t?))$')
 # should be clarified that 'denywrite' mode is not directly analogous to the
 # use of that flag; it was just taken, for lack of anything better, as a name
 # that means something like "read only" but isn't readonly.
-MEMMAP_MODES = {'readonly': 'c', 'copyonwrite': 'c', 'update': 'r+',
-                'append': 'c', 'denywrite': 'r'}
+MEMMAP_MODES = {'readonly': mmap.ACCESS_COPY,
+                'copyonwrite': mmap.ACCESS_COPY,
+                'update': mmap.ACCESS_WRITE,
+                'append': mmap.ACCESS_COPY,
+                'denywrite': mmap.ACCESS_READ}
 
 # TODO: Eventually raise a warning, and maybe even later disable the use of
 # 'copyonwrite' and 'denywrite' modes unless memmap=True.  For now, however,
@@ -291,20 +294,41 @@ class _File:
                     # Instantiate Memmap array of the file offset at 0 (so we
                     # can return slices of it to offset anywhere else into the
                     # file)
-                    memmap = Memmap(self._file, mode=MEMMAP_MODES[self.mode],
-                                    dtype=np.uint8)
+                    access_mode = MEMMAP_MODES[self.mode]
 
-                    # Now we immediately discard the memmap array; we are
-                    # really just using it as a factory function to instantiate
-                    # the mmap object in a convenient way (may later do away
-                    # with this usage)
-                    self._mmap = memmap.base
-
-                    # Prevent dorking with self._memmap._mmap by memmap.__del__
-                    # in Numpy 1.6 (see
-                    # https://github.com/numpy/numpy/commit/dcc355a0b179387eeba10c95baf2e1eb21d417c7)
-                    memmap._mmap = None
-                    del memmap
+                    # For reasons unknown the file needs to point to (near)
+                    # the beginning or end of the file. No idea how close to
+                    # the beginning or end.
+                    # If I had to guess there is some bug in the mmap module
+                    # of CPython or perhaps in microsoft's underlying code
+                    # for generating the mmap.
+                    self._file.seek(0, 0)
+                    # This would also work:
+                    # self._file.seek(0, 2)   # moves to the end
+                    try:
+                        self._mmap = mmap.mmap(self._file.fileno(), 0,
+                                               access=access_mode,
+                                               offset=0)
+                    except OSError as exc:
+                        # NOTE: mode='readonly' results in the memory-mapping
+                        # using the ACCESS_COPY mode in mmap so that users can
+                        # modify arrays. However, on some systems, the OS raises
+                        # a '[Errno 12] Cannot allocate memory' OSError if the
+                        # address space is smaller than the file. The solution
+                        # is to open the file in mode='denywrite', which at
+                        # least allows the file to be opened even if the
+                        # resulting arrays will be truly read-only.
+                        if exc.errno == errno.ENOMEM and self.mode == 'readonly':
+                            warnings.warn("Could not memory map array with "
+                                          "mode='readonly', falling back to "
+                                          "mode='denywrite', which means that "
+                                          "the array will be read-only",
+                                          AstropyUserWarning)
+                            self._mmap = mmap.mmap(self._file.fileno(), 0,
+                                                   access=MEMMAP_MODES['denywrite'],
+                                                   offset=0)
+                        else:
+                            raise
 
                 return np.ndarray(shape=shape, dtype=dtype, offset=offset,
                                   buffer=self._mmap)
@@ -416,6 +440,9 @@ class _File:
     def _try_read_compressed(self, obj_or_name, magic, mode, ext=''):
         """Attempt to determine if the given file is compressed"""
         if ext == '.gz' or magic.startswith(GZIP_MAGIC):
+            if mode == 'append':
+                raise OSError("'append' mode is not supported with gzip files."
+                              "Use 'update' mode instead")
             # Handle gzip files
             kwargs = dict(mode=IO_FITS_MODES[mode])
             if isinstance(obj_or_name, str):

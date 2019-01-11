@@ -23,8 +23,9 @@ from .mixins.ndio import *
 from .compat import *
 from .utils import *
 from .ccddata import *
+from .bitmask import *
 
-from .. import config as _config
+from astropy import config as _config
 
 
 class Conf(_config.ConfigNamespace):

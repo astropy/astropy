@@ -1,23 +1,22 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from .index import TableIndices, TableLoc, TableILoc
+from .index import TableIndices, TableLoc, TableILoc, TableLocIndices
 
-import re
 import sys
-from collections import OrderedDict, Mapping
+from collections import OrderedDict
+from collections.abc import Mapping
 import warnings
 from copy import deepcopy
 
 import numpy as np
 from numpy import ma
 
-from .. import log
-from ..io import registry as io_registry
-from ..units import Quantity, QuantityInfo
-from ..utils import isiterable, ShapedLikeNDArray
-from ..utils.console import color_print
-from ..utils.metadata import MetaData
-from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
-from ..utils.exceptions import AstropyDeprecationWarning, NoValue
+from astropy import log
+from astropy.io import registry as io_registry
+from astropy.units import Quantity, QuantityInfo
+from astropy.utils import isiterable, ShapedLikeNDArray
+from astropy.utils.console import color_print
+from astropy.utils.metadata import MetaData
+from astropy.utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
 
 from . import groups
 from .pprint import TableFormatter
@@ -25,7 +24,7 @@ from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
                      col_copy)
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
-from .info import TableInfo
+from .info import TableInfo, serialize_method_as
 from .index import Index, _IndexModeContext, get_index
 from . import conf
 
@@ -34,6 +33,8 @@ __doctest_skip__ = ['Table.read', 'Table.write',
                     'Table.convert_bytestring_to_unicode',
                     'Table.convert_unicode_to_bytestring',
                     ]
+
+__doctest_requires__ = {'*pandas': ['pandas']}
 
 
 class TableReplaceWarning(UserWarning):
@@ -194,6 +195,8 @@ class Table:
     input data consists of columns of homogeneous data, where each column
     has a unique identifier and may contain additional metadata such as the
     data unit, format, and description.
+
+    See also: http://docs.astropy.org/en/stable/table/
 
     Parameters
     ----------
@@ -494,6 +497,14 @@ class Table:
         return TableLoc(self)
 
     @property
+    def loc_indices(self):
+        """
+        Return a TableLocIndices object that can be used for retrieving
+        the row indices corresponding to given table index key value or values.
+        """
+        return TableLocIndices(self)
+
+    @property
     def iloc(self):
         '''
         Return a TableILoc object that can be used for retrieving
@@ -513,8 +524,8 @@ class Table:
             List of column names (or a single column name) to index
         engine : type or None
             Indexing engine class to use, from among SortedArray, BST,
-            FastBST, and FastRBT. If the supplied argument is None (by
-            default), use SortedArray.
+            FastBST, FastRBT, and SCEngine. If the supplied argument is None
+            (by default), use SortedArray.
         unique : bool
             Whether the values of the index must be unique. Default is False.
         '''
@@ -844,7 +855,7 @@ class Table:
 
         descr = ' '.join(descr_vals)
         if html:
-            from ..utils.xml.writer import xml_escape
+            from astropy.utils.xml.writer import xml_escape
             descr = '<i>{0}</i>\n'.format(xml_escape(descr))
         else:
             descr = '<{0}>\n'.format(descr)
@@ -1017,7 +1028,7 @@ class Table:
 
         columns = display_table.columns.values()
         sortable_columns = [i for i, col in enumerate(columns)
-                            if col.dtype.kind in 'iufc']
+                            if col.info.dtype.kind in 'iufc']
         html += jsv.ipynb(tableid, css=css, sort_columns=sortable_columns)
         return HTML(html)
 
@@ -1216,12 +1227,7 @@ class Table:
             return self.Row(self, item)
         elif (isinstance(item, np.ndarray) and item.shape == () and item.dtype.kind == 'i'):
             return self.Row(self, item.item())
-        elif (isinstance(item, (tuple, list)) and item and
-              all(isinstance(x, str) for x in item)):
-            bad_names = [x for x in item if x not in self.colnames]
-            if bad_names:
-                raise ValueError('Slice name(s) {0} not valid column name(s)'
-                                 .format(', '.join(bad_names)))
+        elif self._is_list_or_tuple_of_str(item):
             out = self.__class__([self[x] for x in item],
                                  meta=deepcopy(self.meta),
                                  copy_indices=self._copy_indices)
@@ -1315,16 +1321,7 @@ class Table:
                 self.columns[item][:] = value
 
             elif isinstance(item, (int, np.integer)):
-                # Set the corresponding row assuming value is an iterable.
-                if not hasattr(value, '__len__'):
-                    raise TypeError('Right side value must be iterable')
-
-                if len(value) != n_cols:
-                    raise ValueError('Right side value needs {0} elements (one for each column)'
-                                     .format(n_cols))
-
-                for col, val in zip(self.columns.values(), value):
-                    col[item] = val
+                self._set_row(idx=item, colnames=self.colnames, vals=value)
 
             elif (isinstance(item, slice) or
                   isinstance(item, np.ndarray) or
@@ -1370,6 +1367,9 @@ class Table:
             self.remove_rows(item)
         else:
             raise IndexError('illegal key or index value')
+
+    def _ipython_key_completions_(self):
+        return self.colnames
 
     def field(self, item):
         """Return column[item] for recarray compatibility."""
@@ -1429,6 +1429,12 @@ class Table:
     @property
     def colnames(self):
         return list(self.columns.keys())
+
+    @staticmethod
+    def _is_list_or_tuple_of_str(names):
+        """Check that ``names`` is a tuple or list of strings"""
+        return (isinstance(names, (tuple, list)) and names and
+                all(isinstance(x, str) for x in names))
 
     def keys(self):
         return list(self.columns.keys())
@@ -1697,15 +1703,17 @@ class Table:
             for col in cols:
                 i = 1
                 orig_name = col.info.name
-                while col.info.name in existing_names:
+                if col.info.name in existing_names:
                     # If the column belongs to another table then copy it
                     # before renaming
-                    if col.info.parent_table is not None:
-                        col = col_copy(col)
-                    new_name = '{0}_{1}'.format(orig_name, i)
-                    col.info.name = new_name
-                    i += 1
-                existing_names.add(new_name)
+                    while col.info.name in existing_names:
+                        # Iterate until a unique name is found
+                        if col.info.parent_table is not None:
+                            col = col_copy(col)
+                        new_name = '{0}_{1}'.format(orig_name, i)
+                        col.info.name = new_name
+                        i += 1
+                    existing_names.add(new_name)
 
         self._init_from_cols(newcols)
 
@@ -1992,7 +2000,7 @@ class Table:
         for name in names:
             self.columns.pop(name)
 
-    def _convert_string_dtype(self, in_kind, out_kind):
+    def _convert_string_dtype(self, in_kind, out_kind, encode_decode_func):
         """
         Convert string-like columns to/from bytestring and unicode (internal only).
 
@@ -2004,52 +2012,45 @@ class Table:
             Output dtype.kind
         """
 
-        # If there are no `in_kind` columns then do nothing
-        cols = self.columns.values()
-        if not any(col.dtype.kind == in_kind for col in cols):
-            return
-
-        newcols = []
-        for col in cols:
+        for col in self.itercols():
             if col.dtype.kind == in_kind:
-                newdtype = re.sub(in_kind, out_kind, col.dtype.str)
-                newcol = col.__class__(col, dtype=newdtype)
-            else:
-                newcol = col
-            newcols.append(newcol)
+                try:
+                    # This requires ASCII and is faster by a factor of up to ~8, so
+                    # try that first.
+                    newcol = col.__class__(col, dtype=out_kind)
+                except (UnicodeEncodeError, UnicodeDecodeError):
+                    newcol = col.__class__(encode_decode_func(col, 'utf-8'))
 
-        self._init_from_cols(newcols)
+                    # Quasi-manually copy info attributes.  Unfortunately
+                    # DataInfo.__set__ does not do the right thing in this case
+                    # so newcol.info = col.info does not get the old info attributes.
+                    for attr in col.info.attr_names - col.info._attrs_no_copy - set(['dtype']):
+                        value = deepcopy(getattr(col.info, attr))
+                        setattr(newcol.info, attr, value)
 
-    def convert_bytestring_to_unicode(self, python3_only=NoValue):
+                self[col.name] = newcol
+
+    def convert_bytestring_to_unicode(self):
         """
-        Convert bytestring columns (dtype.kind='S') to unicode (dtype.kind='U') assuming
-        ASCII encoding.
+        Convert bytestring columns (dtype.kind='S') to unicode (dtype.kind='U')
+        using UTF-8 encoding.
 
         Internally this changes string columns to represent each character
         in the string with a 4-byte UCS-4 equivalent, so it is inefficient
         for memory but allows scripts to manipulate string arrays with
         natural syntax.
         """
-        if python3_only is not NoValue:
-            warnings.warn('The "python3_only" keyword is now deprecated.',
-                          AstropyDeprecationWarning)
+        self._convert_string_dtype('S', 'U', np.char.decode)
 
-        self._convert_string_dtype('S', 'U')
-
-    def convert_unicode_to_bytestring(self, python3_only=NoValue):
+    def convert_unicode_to_bytestring(self):
         """
-        Convert ASCII-only unicode columns (dtype.kind='U') to bytestring (dtype.kind='S').
+        Convert unicode columns (dtype.kind='U') to bytestring (dtype.kind='S')
+        using UTF-8 encoding.
 
         When exporting a unicode string array to a file, it may be desirable
-        to encode unicode columns as bytestrings.  This routine takes
-        advantage of numpy automated conversion which works for strings that
-        are pure ASCII.
+        to encode unicode columns as bytestrings.
         """
-        if python3_only is not NoValue:
-            warnings.warn('The "python3_only" keyword is now deprecated.',
-                          AstropyDeprecationWarning)
-
-        self._convert_string_dtype('U', 'S')
+        self._convert_string_dtype('U', 'S', np.char.encode)
 
     def keep_columns(self, names):
         '''
@@ -2153,6 +2154,27 @@ class Table:
             raise KeyError("Column {0} does not exist".format(name))
 
         self.columns[name].info.name = new_name
+
+    def _set_row(self, idx, colnames, vals):
+        try:
+            assert len(vals) == len(colnames)
+        except Exception:
+            raise ValueError('right hand side must be a sequence of values with '
+                             'the same length as the number of selected columns')
+
+        # Keep track of original values before setting each column so that
+        # setting row can be transactional.
+        orig_vals = []
+        cols = self.columns
+        try:
+            for name, val in zip(colnames, vals):
+                orig_vals.append(cols[name][idx])
+                cols[name][idx] = val
+        except Exception:
+            # If anything went wrong first revert the row update then raise
+            for name, val in zip(colnames, orig_vals[:-1]):
+                cols[name][idx] = val
+            raise
 
     def add_row(self, vals=None, mask=None):
         """Add a new row to the end of the table.
@@ -2501,9 +2523,30 @@ class Table:
           >>> dat = Table.read('table.dat', format='ascii')
           >>> events = Table.read('events.fits', format='fits')
 
-        The arguments and keywords (other than ``format``) provided to this function are
-        passed through to the underlying data reader (e.g. `~astropy.io.ascii.read`).
+        See also: http://docs.astropy.org/en/stable/io/unified.html
+
+        Parameters
+        ----------
+        format : str
+            File format specifier.
+        *args : tuple, optional
+            Positional arguments passed through to data reader. If supplied the
+            first argument is the input filename.
+        **kwargs : dict, optional
+            Keyword arguments passed through to data reader.
+
+        Returns
+        -------
+        out : `Table`
+            Table corresponding to file contents
+
+        Notes
+        -----
         """
+        # The hanging Notes section just above is a section placeholder for
+        # import-time processing that collects available formats into an
+        # RST table and inserts at the end of the docstring.  DO NOT REMOVE.
+
         out = io_registry.read(cls, *args, **kwargs)
         # For some readers (e.g., ascii.ecsv), the returned `out` class is not
         # guaranteed to be the same as the desired output `cls`.  If so,
@@ -2519,8 +2562,7 @@ class Table:
         return out
 
     def write(self, *args, **kwargs):
-        """
-        Write this Table object out in the specified format.
+        """Write this Table object out in the specified format.
 
         This function provides the Table interface to the astropy unified I/O
         layer.  This allows easily writing a file in many supported data formats
@@ -2530,10 +2572,26 @@ class Table:
           >>> dat = Table([[1, 2], [3, 4]], names=('a', 'b'))
           >>> dat.write('table.dat', format='ascii')
 
-        The arguments and keywords (other than ``format``) provided to this function are
-        passed through to the underlying data reader (e.g. `~astropy.io.ascii.write`).
+        See also: http://docs.astropy.org/en/stable/io/unified.html
+
+        Parameters
+        ----------
+        format : str
+            File format specifier.
+        serialize_method : str, dict, optional
+            Serialization method specifier for columns.
+        *args : tuple, optional
+            Positional arguments passed through to data writer. If supplied the
+            first argument is the output filename.
+        **kwargs : dict, optional
+            Keyword arguments passed through to data writer.
+
+        Notes
+        -----
         """
-        io_registry.write(self, *args, **kwargs)
+        serialize_method = kwargs.pop('serialize_method', None)
+        with serialize_method_as(self, serialize_method):
+            io_registry.write(self, *args, **kwargs)
 
     def copy(self, copy_data=True):
         '''
@@ -2630,41 +2688,132 @@ class Table:
         out : `Table`
             New table with groups set
         """
-        if self.has_mixin_columns:
-            raise NotImplementedError('group_by not available for tables with mixin columns')
-
         return groups.table_group_by(self, keys)
 
-    def to_pandas(self):
+    def to_pandas(self, index=None):
         """
         Return a :class:`pandas.DataFrame` instance
+
+        The index of the created DataFrame is controlled by the ``index``
+        argument.  For ``index=True`` or the default ``None``, an index will be
+        specified for the DataFrame if there is a primary key index on the
+        Table *and* if it corresponds to a single column.  If ``index=False``
+        then no DataFrame index will be specified.  If ``index`` is the name of
+        a column in the table then that will be the DataFrame index.
+
+        In additional to vanilla columns or masked columns, this supports Table
+        mixin columns like Quantity, Time, or SkyCoord.  In many cases these
+        objects have no analog in pandas and will be converted to a "encoded"
+        representation using only Column or MaskedColumn.  The exception is
+        Time or TimeDelta columns, which will be converted to the corresponding
+        representation in pandas using ``np.datetime64`` or ``np.timedelta64``.
+        See the example below.
 
         Returns
         -------
         dataframe : :class:`pandas.DataFrame`
             A pandas :class:`pandas.DataFrame` instance
+        index : None, bool, str
+            Specify DataFrame index mode
 
         Raises
         ------
         ImportError
             If pandas is not installed
         ValueError
-            If the Table contains mixin or multi-dimensional columns
+            If the Table has multi-dimensional columns
+
+        Examples
+        --------
+        Here we convert a table with a few mixins to a
+        :class:`pandas.DataFrame` instance.
+
+          >>> import pandas as pd
+          >>> from astropy.table import QTable
+          >>> import astropy.units as u
+          >>> from astropy.time import Time, TimeDelta
+          >>> from astropy.coordinates import SkyCoord
+
+          >>> q = [1, 2] * u.m
+          >>> tm = Time([1998, 2002], format='jyear')
+          >>> sc = SkyCoord([5, 6], [7, 8], unit='deg')
+          >>> dt = TimeDelta([3, 200] * u.s)
+
+          >>> t = QTable([q, tm, sc, dt], names=['q', 'tm', 'sc', 'dt'])
+
+          >>> df = t.to_pandas(index='tm')
+          >>> with pd.option_context('display.width', 80):
+          ...     print(df)
+                        q  sc.ra  sc.dec       dt
+          tm
+          1998-01-01  1.0    5.0     7.0 00:00:03
+          2002-01-01  2.0    6.0     8.0 00:03:20
+
         """
         from pandas import DataFrame
 
-        if self.has_mixin_columns:
-            raise ValueError("Cannot convert a table with mixin columns to a pandas DataFrame")
+        if index is not False:
+            if index in (None, True):
+                # Default is to use the table primary key if available and a single column
+                if self.primary_key and len(self.primary_key) == 1:
+                    index = self.primary_key[0]
+                else:
+                    index = False
+            else:
+                if index not in self.colnames:
+                    raise ValueError('index must be None, False, True or a table '
+                                     'column name')
 
-        if any(getattr(col, 'ndim', 1) > 1 for col in self.columns.values()):
-            raise ValueError("Cannot convert a table with multi-dimensional columns to a pandas DataFrame")
+        def _encode_mixins(tbl):
+            """Encode a Table ``tbl`` that may have mixin columns to a Table with only
+            astropy Columns + appropriate meta-data to allow subsequent decoding.
+            """
+            from . import serialize
+            from astropy.utils.data_info import MixinInfo, serialize_context_as
+            from astropy.time import Time, TimeDelta
+
+            # Convert any Time or TimeDelta columns and pay attention to masking
+            time_cols = [col for col in tbl.itercols() if isinstance(col, Time)]
+            if time_cols:
+
+                # Make a light copy of table and clear any indices
+                new_cols = []
+                for col in tbl.itercols():
+                    new_col = col_copy(col, copy_indices=False) if col.info.indices else col
+                    new_cols.append(new_col)
+                tbl = tbl.__class__(new_cols, copy=False)
+
+                for col in time_cols:
+                    if isinstance(col, TimeDelta):
+                        # Convert to nanoseconds (matches astropy datetime64 support)
+                        new_col = (col.sec * 1e9).astype('timedelta64[ns]')
+                        nat = np.timedelta64('NaT')
+                    else:
+                        new_col = col.datetime64.copy()
+                        nat = np.datetime64('NaT')
+                    if col.masked:
+                        new_col[col.mask] = nat
+                    tbl[col.info.name] = new_col
+
+            # Convert the table to one with no mixins, only Column objects.
+            encode_tbl = serialize._represent_mixins_as_columns(tbl)
+            return encode_tbl
+
+        tbl = _encode_mixins(self)
+
+        if any(getattr(col, 'ndim', 1) > 1 for col in tbl.columns.values()):
+            raise ValueError("Cannot convert a table with multi-dimensional "
+                             "columns to a pandas DataFrame")
 
         out = OrderedDict()
 
-        for name, column in self.columns.items():
-            if isinstance(column, MaskedColumn):
+        for name, column in tbl.columns.items():
+            if isinstance(column, MaskedColumn) and np.any(column.mask):
                 if column.dtype.kind in ['i', 'u']:
                     out[name] = column.astype(float).filled(np.nan)
+                    warnings.warn(
+                        "converted column '{}' from integer to float".format(
+                            name), TableReplaceWarning, stacklevel=3)
                 elif column.dtype.kind in ['f', 'c']:
                     out[name] = column.filled(np.nan)
                 else:
@@ -2675,30 +2824,82 @@ class Table:
             if out[name].dtype.byteorder not in ('=', '|'):
                 out[name] = out[name].byteswap().newbyteorder()
 
-        return DataFrame(out)
+        kwargs = {'index': out.pop(index)} if index else {}
+
+        return DataFrame(out, **kwargs)
 
     @classmethod
-    def from_pandas(cls, dataframe):
+    def from_pandas(cls, dataframe, index=False):
         """
         Create a `Table` from a :class:`pandas.DataFrame` instance
+
+        In addition to converting generic numeric or string columns, this supports
+        conversion of pandas Date and Time delta columns to `~astropy.time.Time`
+        and `~astropy.time.TimeDelta` columns, respectively.
 
         Parameters
         ----------
         dataframe : :class:`pandas.DataFrame`
-            The pandas :class:`pandas.DataFrame` instance
+            A pandas :class:`pandas.DataFrame` instance
+        index : bool
+            Include the index column in the returned table (default=False)
 
         Returns
         -------
         table : `Table`
             A `Table` (or subclass) instance
+
+        Raises
+        ------
+        ImportError
+            If pandas is not installed
+
+        Examples
+        --------
+        Here we convert a :class:`pandas.DataFrame` instance to a `QTable`.
+
+          >>> import numpy as np
+          >>> import pandas as pd
+          >>> from astropy.table import QTable
+
+          >>> time = pd.Series(['1998-01-01', '2002-01-01'], dtype='datetime64[ns]')
+          >>> dt = pd.Series(np.array([1, 300], dtype='timedelta64[s]'))
+          >>> df = pd.DataFrame({'time': time})
+          >>> df['dt'] = dt
+          >>> df['x'] = [3., 4.]
+          >>> with pd.option_context('display.width', 80):
+          ...     print(df)
+                  time       dt    x
+          0 1998-01-01 00:00:01  3.0
+          1 2002-01-01 00:05:00  4.0
+
+          >>> QTable.from_pandas(df)
+          <QTable length=2>
+                    time            dt      x
+                   object         object float64
+          ----------------------- ------ -------
+          1998-01-01T00:00:00.000    1.0     3.0
+          2002-01-01T00:00:00.000  300.0     4.0
+
         """
 
         out = OrderedDict()
 
-        for name in dataframe.columns:
-            column = dataframe[name]
-            mask = np.array(column.isnull())
-            data = np.array(column)
+        names = list(dataframe.columns)
+        columns = [dataframe[name] for name in names]
+        datas = [np.array(column) for column in columns]
+        masks = [np.array(column.isnull()) for column in columns]
+
+        if index:
+            index_name = dataframe.index.name or 'index'
+            while index_name in names:
+                index_name = '_' + index_name + '_'
+            names.insert(0, index_name)
+            columns.insert(0, dataframe.index)
+            datas.insert(0, np.array(dataframe.index))
+            masks.insert(0, np.zeros(len(dataframe), dtype=bool))
+
+        for name, column, data, mask in zip(names, columns, datas, masks):
 
             if data.dtype.kind == 'O':
                 # If all elements of an object array are string-like or np.nan
@@ -2714,10 +2915,27 @@ class Table:
                     # numpy initializes to the correct string or unicode type.
                     data = np.array([x for x in data])
 
-            if np.any(mask):
-                out[name] = MaskedColumn(data=data, name=name, mask=mask)
+            # Numpy datetime64
+            if data.dtype.kind == 'M':
+                from astropy.time import Time
+                out[name] = Time(data, format='datetime64')
+                if np.any(mask):
+                    out[name][mask] = np.ma.masked
+                out[name].format = 'isot'
+
+            # Numpy timedelta64
+            elif data.dtype.kind == 'm':
+                from astropy.time import TimeDelta
+                data_sec = data.astype('timedelta64[ns]').astype(np.float64) / 1e9
+                out[name] = TimeDelta(data_sec, format='sec')
+                if np.any(mask):
+                    out[name][mask] = np.ma.masked
+
             else:
-                out[name] = Column(data=data, name=name)
+                if np.any(mask):
+                    out[name] = MaskedColumn(data=data, name=name, mask=mask)
+                else:
+                    out[name] = Column(data=data, name=name)
 
         return cls(out)
 
@@ -2733,6 +2951,11 @@ class QTable(Table):
     The `QTable` class is identical to `Table` except that columns with an
     associated ``unit`` attribute are converted to `~astropy.units.Quantity`
     objects.
+
+    See also:
+
+    - http://docs.astropy.org/en/stable/table/
+    - http://docs.astropy.org/en/stable/table/mixin_columns.html
 
     Parameters
     ----------

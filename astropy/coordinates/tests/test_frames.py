@@ -5,15 +5,18 @@
 from copy import deepcopy
 import numpy as np
 
-from ... import units as u
-from ...tests.helper import (catch_warnings,
-                             pytest, quantity_allclose as allclose,
+from astropy import units as u
+from astropy.tests.helper import (catch_warnings, pytest,
                              assert_quantity_allclose as assert_allclose)
-from ...utils import OrderedDescriptorContainer
-from ...utils.compat import NUMPY_LT_1_14
-from ...utils.exceptions import AstropyWarning
-from .. import representation as r
-from ..representation import REPRESENTATION_CLASSES
+from astropy.utils import OrderedDescriptorContainer
+from astropy.utils.compat import NUMPY_LT_1_14
+from astropy.utils.exceptions import AstropyWarning
+from astropy.coordinates import representation as r
+from astropy.coordinates.representation import REPRESENTATION_CLASSES
+from astropy.units import allclose
+
+
+from .test_representation import unitphysics  # this fixture is used below
 
 
 def setup_function(func):
@@ -27,7 +30,7 @@ def teardown_function(func):
 
 def test_frame_attribute_descriptor():
     """ Unit tests of the Attribute descriptor """
-    from ..attributes import Attribute
+    from astropy.coordinates.attributes import Attribute
 
     class TestAttributes(metaclass=OrderedDescriptorContainer):
         attr_none = Attribute()
@@ -64,8 +67,8 @@ def test_frame_attribute_descriptor():
 
 
 def test_frame_subclass_attribute_descriptor():
-    from ..builtin_frames import FK4
-    from ..attributes import Attribute, TimeAttribute
+    from astropy.coordinates.builtin_frames import FK4
+    from astropy.coordinates.attributes import Attribute, TimeAttribute
     from astropy.time import Time
 
     _EQUINOX_B1980 = Time('B1980', scale='tai')
@@ -89,7 +92,7 @@ def test_frame_subclass_attribute_descriptor():
 
 
 def test_create_data_frames():
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     # from repr
     i1 = ICRS(r.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc))
@@ -116,7 +119,7 @@ def test_create_data_frames():
 
 
 def test_create_orderered_data():
-    from ..builtin_frames import ICRS, Galactic, AltAz
+    from astropy.coordinates.builtin_frames import ICRS, Galactic, AltAz
 
     TOL = 1e-10*u.deg
 
@@ -141,7 +144,7 @@ def test_create_orderered_data():
 
 
 def test_create_nodata_frames():
-    from ..builtin_frames import ICRS, FK4, FK5
+    from astropy.coordinates.builtin_frames import ICRS, FK4, FK5
 
     i = ICRS()
     assert len(i.get_frame_attr_names()) == 0
@@ -158,7 +161,7 @@ def test_create_nodata_frames():
 
 
 def test_no_data_nonscalar_frames():
-    from ..builtin_frames import AltAz
+    from astropy.coordinates.builtin_frames import AltAz
     from astropy.time import Time
     a1 = AltAz(obstime=Time('2012-01-01') + np.arange(10.) * u.day,
                temperature=np.ones((3, 1)) * u.deg_C)
@@ -172,7 +175,7 @@ def test_no_data_nonscalar_frames():
 
 
 def test_frame_repr():
-    from ..builtin_frames import ICRS, FK5
+    from astropy.coordinates.builtin_frames import ICRS, FK5
 
     i = ICRS()
     assert repr(i) == '<ICRS Frame>'
@@ -208,7 +211,7 @@ def test_frame_repr():
 
 
 def test_frame_repr_vels():
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     i = ICRS(ra=1*u.deg, dec=2*u.deg,
              pm_ra_cosdec=1*u.marcsec/u.yr, pm_dec=2*u.marcsec/u.yr)
@@ -224,8 +227,8 @@ def test_frame_repr_vels():
 
 def test_converting_units():
     import re
-    from ..baseframe import RepresentationMapping
-    from ..builtin_frames import ICRS, FK5
+    from astropy.coordinates.baseframe import RepresentationMapping
+    from astropy.coordinates.builtin_frames import ICRS, FK5
 
     # this is a regular expression that with split (see below) removes what's
     # the decimal point  to fix rounding problems
@@ -255,19 +258,10 @@ def test_converting_units():
     # but that *shouldn't* hold if we turn off units for the representation
     class FakeICRS(ICRS):
         frame_specific_representation_info = {
-            'spherical': {'names': ('ra', 'dec', 'distance'),
-                          'units': (None, None, None)},
-            'unitspherical': {'names': ('ra', 'dec'),
-                              'units': (None, None)}
-        }
-
-        frame_specific_representation_info = {
             'spherical': [RepresentationMapping('lon', 'ra', u.hourangle),
                           RepresentationMapping('lat', 'dec', None),
                           RepresentationMapping('distance', 'distance')]  # should fall back to default of None unit
         }
-        frame_specific_representation_info['unitspherical'] = \
-            frame_specific_representation_info['spherical']
 
     fi = FakeICRS(i4.data)
     ri2 = ''.join(rexrepr.split(repr(i2)))
@@ -283,9 +277,77 @@ def test_converting_units():
     assert fi.ra.unit == u.hourangle
 
 
+def test_representation_info():
+    from astropy.coordinates.baseframe import RepresentationMapping
+    from astropy.coordinates.builtin_frames import ICRS
+
+    class NewICRS1(ICRS):
+        frame_specific_representation_info = {
+            r.SphericalRepresentation: [
+                RepresentationMapping('lon', 'rara', u.hourangle),
+                RepresentationMapping('lat', 'decdec', u.degree),
+                RepresentationMapping('distance', 'distance', u.kpc)]
+        }
+
+    i1 = NewICRS1(rara=10*u.degree, decdec=-12*u.deg, distance=1000*u.pc,
+                  pm_rara_cosdecdec=100*u.mas/u.yr,
+                  pm_decdec=17*u.mas/u.yr,
+                  radial_velocity=10*u.km/u.s)
+    assert allclose(i1.rara, 10*u.deg)
+    assert i1.rara.unit == u.hourangle
+    assert allclose(i1.decdec, -12*u.deg)
+    assert allclose(i1.distance, 1000*u.pc)
+    assert i1.distance.unit == u.kpc
+    assert allclose(i1.pm_rara_cosdecdec, 100*u.mas/u.yr)
+    assert allclose(i1.pm_decdec, 17*u.mas/u.yr)
+
+    # this should auto-set the names of UnitSpherical:
+    i1.set_representation_cls(r.UnitSphericalRepresentation,
+                              s=r.UnitSphericalCosLatDifferential)
+    assert allclose(i1.rara, 10*u.deg)
+    assert allclose(i1.decdec, -12*u.deg)
+    assert allclose(i1.pm_rara_cosdecdec, 100*u.mas/u.yr)
+    assert allclose(i1.pm_decdec, 17*u.mas/u.yr)
+
+    # For backwards compatibility, we also support the string name in the
+    # representation info dictionary:
+    class NewICRS2(ICRS):
+        frame_specific_representation_info = {
+            'spherical': [
+                RepresentationMapping('lon', 'ang1', u.hourangle),
+                RepresentationMapping('lat', 'ang2', u.degree),
+                RepresentationMapping('distance', 'howfar', u.kpc)]
+        }
+
+    i2 = NewICRS2(ang1=10*u.degree, ang2=-12*u.deg, howfar=1000*u.pc)
+    assert allclose(i2.ang1, 10*u.deg)
+    assert i2.ang1.unit == u.hourangle
+    assert allclose(i2.ang2, -12*u.deg)
+    assert allclose(i2.howfar, 1000*u.pc)
+    assert i2.howfar.unit == u.kpc
+
+    # Test that the differential kwargs get overridden
+    class NewICRS3(ICRS):
+        frame_specific_representation_info = {
+            r.SphericalCosLatDifferential: [
+                RepresentationMapping('d_lon_coslat', 'pm_ang1', u.hourangle/u.year),
+                RepresentationMapping('d_lat', 'pm_ang2'),
+                RepresentationMapping('d_distance', 'vlos', u.kpc/u.Myr)]
+        }
+
+    i3 = NewICRS3(lon=10*u.degree, lat=-12*u.deg, distance=1000*u.pc,
+                  pm_ang1=1*u.mas/u.yr, pm_ang2=2*u.mas/u.yr,
+                  vlos=100*u.km/u.s)
+    assert allclose(i3.pm_ang1, 1*u.mas/u.yr)
+    assert i3.pm_ang1.unit == u.hourangle/u.year
+    assert allclose(i3.pm_ang2, 2*u.mas/u.yr)
+    assert allclose(i3.vlos, 100*u.km/u.s)
+    assert i3.vlos.unit == u.kpc/u.Myr
+
+
 def test_realizing():
-    from ..builtin_frames import ICRS, FK5
-    from ...time import Time
+    from astropy.coordinates.builtin_frames import ICRS, FK5
+    from astropy.time import Time
 
     rep = r.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
 
@@ -306,14 +368,14 @@ def test_realizing():
 
     # Check that a nicer error message is returned:
     with pytest.raises(TypeError) as excinfo:
-        f.realize_frame(f.representation)
+        f.realize_frame(f.representation_type)
 
     assert ('Class passed as data instead of a representation' in
             excinfo.value.args[0])
 
 def test_replicating():
-    from ..builtin_frames import ICRS, AltAz
-    from ...time import Time
+    from astropy.coordinates.builtin_frames import ICRS, AltAz
+    from astropy.time import Time
 
     i = ICRS(ra=[1]*u.deg, dec=[2]*u.deg)
 
@@ -336,7 +398,7 @@ def test_replicating():
 
 
 def test_getitem():
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     rep = r.SphericalRepresentation(
         [1, 2, 3]*u.deg, [4, 5, 6]*u.deg, [7, 8, 9]*u.kpc)
@@ -356,8 +418,8 @@ def test_transform():
     This test just makes sure the transform architecture works, but does *not*
     actually test all the builtin transforms themselves are accurate
     """
-    from ..builtin_frames import ICRS, FK4, FK5, Galactic
-    from ...time import Time
+    from astropy.coordinates.builtin_frames import ICRS, FK4, FK5, Galactic
+    from astropy.time import Time
 
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
     f = i.transform_to(FK5)
@@ -407,8 +469,8 @@ def test_transform():
 
 def test_transform_to_nonscalar_nodata_frame():
     # https://github.com/astropy/astropy/pull/5254#issuecomment-241592353
-    from ..builtin_frames import ICRS, FK5
-    from ...time import Time
+    from astropy.coordinates.builtin_frames import ICRS, FK5
+    from astropy.time import Time
     times = Time('2016-08-23') + np.linspace(0, 10, 12)*u.day
     coo1 = ICRS(ra=[[0.], [10.], [20.]]*u.deg,
                 dec=[[-30.], [30.], [60.]]*u.deg)
@@ -417,7 +479,7 @@ def test_transform_to_nonscalar_nodata_frame():
 
 
 def test_sep():
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     i1 = ICRS(ra=0*u.deg, dec=1*u.deg)
     i2 = ICRS(ra=0*u.deg, dec=2*u.deg)
@@ -446,8 +508,8 @@ def test_time_inputs():
     """
     Test validation and conversion of inputs for equinox and obstime attributes.
     """
-    from ...time import Time
-    from ..builtin_frames import FK4
+    from astropy.time import Time
+    from astropy.coordinates.builtin_frames import FK4
 
     c = FK4(1 * u.deg, 2 * u.deg, equinox='J2001.5', obstime='2000-01-01 12:00:00')
     assert c.equinox == Time('J2001.5')
@@ -473,8 +535,8 @@ def test_is_frame_attr_default():
     """
     Check that the `is_frame_attr_default` machinery works as expected
     """
-    from ...time import Time
-    from ..builtin_frames import FK5
+    from astropy.time import Time
+    from astropy.coordinates.builtin_frames import FK5
 
     c1 = FK5(ra=1*u.deg, dec=1*u.deg)
     c2 = FK5(ra=1*u.deg, dec=1*u.deg, equinox=FK5.get_frame_attr_names()['equinox'])
@@ -495,8 +557,8 @@ def test_is_frame_attr_default():
 
 
 def test_altaz_attributes():
-    from ...time import Time
-    from .. import EarthLocation, AltAz
+    from astropy.time import Time
+    from astropy.coordinates import EarthLocation, AltAz
 
     aa = AltAz(1*u.deg, 2*u.deg)
     assert aa.obstime is None
@@ -513,7 +575,7 @@ def test_representation():
     """
     Test the getter and setter properties for `representation`
     """
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     # Create the frame object.
     icrs = ICRS(ra=1*u.deg, dec=1*u.deg)
@@ -524,9 +586,9 @@ def test_representation():
     icrs_spher = icrs.spherical
 
     # Testing when `_representation` set to `CartesianRepresentation`.
-    icrs.representation = r.CartesianRepresentation
+    icrs.representation_type = r.CartesianRepresentation
 
-    assert icrs.representation == r.CartesianRepresentation
+    assert icrs.representation_type == r.CartesianRepresentation
     assert icrs_cart.x == icrs.x
     assert icrs_cart.y == icrs.y
     assert icrs_cart.z == icrs.z
@@ -539,15 +601,15 @@ def test_representation():
         assert 'object has no attribute' in str(err)
 
     # Testing when `_representation` set to `CylindricalRepresentation`.
-    icrs.representation = r.CylindricalRepresentation
+    icrs.representation_type = r.CylindricalRepresentation
 
-    assert icrs.representation == r.CylindricalRepresentation
+    assert icrs.representation_type == r.CylindricalRepresentation
     assert icrs.data == data
 
     # Testing setter input using text argument for spherical.
-    icrs.representation = 'spherical'
+    icrs.representation_type = 'spherical'
 
-    assert icrs.representation is r.SphericalRepresentation
+    assert icrs.representation_type is r.SphericalRepresentation
     assert icrs_spher.lat == icrs.dec
     assert icrs_spher.lon == icrs.ra
     assert icrs_spher.distance == icrs.distance
@@ -560,22 +622,22 @@ def test_representation():
         assert 'object has no attribute' in str(err)
 
     # Testing setter input using text argument for cylindrical.
-    icrs.representation = 'cylindrical'
+    icrs.representation_type = 'cylindrical'
 
-    assert icrs.representation is r.CylindricalRepresentation
+    assert icrs.representation_type is r.CylindricalRepresentation
     assert icrs.data == data
 
     with pytest.raises(ValueError) as err:
-        icrs.representation = 'WRONG'
+        icrs.representation_type = 'WRONG'
     assert 'but must be a BaseRepresentation class' in str(err)
 
     with pytest.raises(ValueError) as err:
-        icrs.representation = ICRS
+        icrs.representation_type = ICRS
     assert 'but must be a BaseRepresentation class' in str(err)
 
 
 def test_represent_as():
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     icrs = ICRS(ra=1*u.deg, dec=1*u.deg)
 
@@ -617,7 +679,7 @@ def test_represent_as():
 
 
 def test_shorthand_representations():
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     rep = r.CartesianRepresentation([1, 2, 3]*u.pc)
     dif = r.CartesianDifferential([1, 2, 3]*u.km/u.s)
@@ -635,7 +697,7 @@ def test_shorthand_representations():
 
 
 def test_dynamic_attrs():
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
     c = ICRS(1*u.deg, 2*u.deg)
     assert 'ra' in dir(c)
     assert 'dec' in dir(c)
@@ -653,7 +715,7 @@ def test_dynamic_attrs():
 
 
 def test_nodata_error():
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     i = ICRS()
     with pytest.raises(ValueError) as excinfo:
@@ -663,7 +725,7 @@ def test_nodata_error():
 
 
 def test_len0_data():
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     i = ICRS([]*u.deg, []*u.deg)
     assert i.has_data
@@ -671,7 +733,7 @@ def test_len0_data():
 
 
 def test_quantity_attributes():
-    from ..builtin_frames import GCRS
+    from astropy.coordinates.builtin_frames import GCRS
 
     # make sure we can create a GCRS frame with valid inputs
     GCRS(obstime='J2002', obsgeoloc=[1, 2, 3]*u.km, obsgeovel=[4, 5, 6]*u.km/u.s)
@@ -685,8 +747,9 @@ def test_quantity_attributes():
         GCRS(obsgeoloc=[1, 3]*u.km)  # incorrect shape
 
 
+@pytest.mark.remote_data
 def test_eloc_attributes():
-    from .. import AltAz, ITRS, GCRS, EarthLocation
+    from astropy.coordinates import AltAz, ITRS, GCRS, EarthLocation
 
     el = EarthLocation(lon=12.3*u.deg, lat=45.6*u.deg, height=1*u.km)
     it = ITRS(r.SphericalRepresentation(lon=12.3*u.deg, lat=45.6*u.deg, distance=1*u.km))
@@ -721,8 +784,8 @@ def test_eloc_attributes():
 
 
 def test_equivalent_frames():
-    from .. import SkyCoord
-    from ..builtin_frames import ICRS, FK4, FK5, AltAz
+    from astropy.coordinates import SkyCoord
+    from astropy.coordinates.builtin_frames import ICRS, FK4, FK5, AltAz
 
     i = ICRS()
     i2 = ICRS(1*u.deg, 2*u.deg)
@@ -756,23 +819,23 @@ def test_representation_subclass():
 
     # Regression test for #3354
 
-    from ..builtin_frames import FK5
+    from astropy.coordinates.builtin_frames import FK5
 
     # Normally when instantiating a frame without a distance the frame will try
     # and use UnitSphericalRepresentation internally instead of
     # SphericalRepresentation.
-    frame = FK5(representation=r.SphericalRepresentation, ra=32 * u.deg, dec=20 * u.deg)
+    frame = FK5(representation_type=r.SphericalRepresentation, ra=32 * u.deg, dec=20 * u.deg)
     assert type(frame._data) == r.UnitSphericalRepresentation
-    assert frame.representation == r.SphericalRepresentation
+    assert frame.representation_type == r.SphericalRepresentation
 
     # If using a SphericalRepresentation class this used to not work, so we
     # test here that this is now fixed.
     class NewSphericalRepresentation(r.SphericalRepresentation):
         attr_classes = r.SphericalRepresentation.attr_classes
 
-    frame = FK5(representation=NewSphericalRepresentation, lon=32 * u.deg, lat=20 * u.deg)
+    frame = FK5(representation_type=NewSphericalRepresentation, lon=32 * u.deg, lat=20 * u.deg)
     assert type(frame._data) == r.UnitSphericalRepresentation
-    assert frame.representation == NewSphericalRepresentation
+    assert frame.representation_type == NewSphericalRepresentation
 
     # A similar issue then happened in __repr__ with subclasses of
     # SphericalRepresentation.
@@ -791,7 +854,7 @@ def test_representation_subclass():
             return "<NewUnitSphericalRepresentation: spam spam spam>"
 
     frame = FK5(NewUnitSphericalRepresentation(lon=32 * u.deg, lat=20 * u.deg),
-                representation=NewSphericalRepresentation)
+                representation_type=NewSphericalRepresentation)
 
     assert repr(frame) == "<FK5 Coordinate (equinox=J2000.000):  spam spam spam>"
 
@@ -801,10 +864,10 @@ def test_getitem_representation():
     Make sure current representation survives __getitem__ even if different
     from data representation.
     """
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
     c = ICRS([1, 1] * u.deg, [2, 2] * u.deg)
-    c.representation = 'cartesian'
-    assert c[0].representation is r.CartesianRepresentation
+    c.representation_type = 'cartesian'
+    assert c[0].representation_type is r.CartesianRepresentation
 
 
 def test_component_error_useful():
@@ -812,7 +875,7 @@ def test_component_error_useful():
     Check that a data-less frame gives useful error messages about not having
     data when the attributes asked for are possible coordinate components
     """
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     i = ICRS()
 
@@ -829,7 +892,7 @@ def test_component_error_useful():
 
 
 def test_cache_clear():
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     i = ICRS(1*u.deg, 2*u.deg)
 
@@ -844,7 +907,7 @@ def test_cache_clear():
 
 
 def test_inplace_array():
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     i = ICRS([[1, 2], [3, 4]]*u.deg, [[10, 20], [30, 40]]*u.deg)
 
@@ -866,7 +929,7 @@ def test_inplace_array():
 
 
 def test_inplace_change():
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     i = ICRS(1*u.deg, 2*u.deg)
 
@@ -888,7 +951,7 @@ def test_inplace_change():
 
 
 def test_representation_with_multiple_differentials():
-    from ..builtin_frames import ICRS
+    from astropy.coordinates.builtin_frames import ICRS
 
     dif1 = r.CartesianDifferential([1, 2, 3]*u.km/u.s)
     dif2 = r.CartesianDifferential([1, 2, 3]*u.km/u.s**2)
@@ -898,3 +961,84 @@ def test_representation_with_multiple_differentials():
     # check warning is raised for a scalar
     with pytest.raises(ValueError):
         ICRS(rep)
+
+
+def test_representation_arg_backwards_compatibility():
+    # TODO: this test can be removed when the `representation` argument is
+    # removed from the BaseCoordinateFrame initializer.
+    from astropy.coordinates.builtin_frames import ICRS
+
+    c1 = ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+              representation_type=r.CartesianRepresentation)
+
+    c2 = ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+              representation_type=r.CartesianRepresentation)
+
+    c3 = ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+              representation_type='cartesian')
+
+    assert c1.x == c2.x
+    assert c1.y == c2.y
+    assert c1.z == c2.z
+
+    assert c1.x == c3.x
+    assert c1.y == c3.y
+    assert c1.z == c3.z
+
+    assert c1.representation_type == c1.representation_type
+
+    with pytest.raises(ValueError):
+        ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+             representation_type='cartesian',
+             representation='cartesian')
+
+
+def test_missing_component_error_names():
+    """
+    This test checks that the component names are frame component names, not
+    representation or differential names, when referenced in an exception raised
+    when not passing in enough data. For example:
+
+    ICRS(ra=10*u.deg)
+
+    should state:
+
+    TypeError: __init__() missing 1 required positional argument: 'dec'
+    """
+    from astropy.coordinates.builtin_frames import ICRS
+
+    with pytest.raises(TypeError) as e:
+        ICRS(ra=150 * u.deg)
+    assert "missing 1 required positional argument: 'dec'" in str(e)
+
+    with pytest.raises(TypeError) as e:
+        ICRS(ra=150*u.deg, dec=-11*u.deg,
+             pm_ra=100*u.mas/u.yr, pm_dec=10*u.mas/u.yr)
+    assert "pm_ra_cosdec" in str(e)
+
+
+def test_non_spherical_representation_unit_creation(unitphysics):
+    from astropy.coordinates.builtin_frames import ICRS
+
+    class PhysicsICRS(ICRS):
+        default_representation = r.PhysicsSphericalRepresentation
+
+    pic = PhysicsICRS(phi=1*u.deg, theta=25*u.deg, r=1*u.kpc)
+    assert isinstance(pic.data, r.PhysicsSphericalRepresentation)
+
+    picu = PhysicsICRS(phi=1*u.deg, theta=25*u.deg)
+    assert isinstance(picu.data, unitphysics)
+
+
+def test_attribute_repr():
+    from astropy.coordinates.attributes import Attribute
+    from astropy.coordinates.baseframe import BaseCoordinateFrame
+
+    class Spam:
+        def _astropy_repr_in_frame(self):
+            return "TEST REPR"
+
+    class TestFrame(BaseCoordinateFrame):
+        attrtest = Attribute(default=Spam())
+
+    assert "TEST REPR" in repr(TestFrame())

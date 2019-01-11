@@ -19,9 +19,14 @@ that section, and options therein, determine the next step taken:  If it
 contains an option called ``auto_use`` with a value of ``True``, it will
 automatically call the main function of this module called
 `use_astropy_helpers` (see that function's docstring for full details).
-Otherwise no further action is taken (however,
-``ah_bootstrap.use_astropy_helpers`` may be called manually from within the
-setup.py script).
+Otherwise no further action is taken and by default the system-installed version
+of astropy-helpers will be used (however, ``ah_bootstrap.use_astropy_helpers``
+may be called manually from within the setup.py script).
+
+This behavior can also be controlled using the ``--auto-use`` and
+``--no-auto-use`` command-line flags. For clarity, an alias for
+``--no-auto-use`` is ``--use-system-astropy-helpers``, and we recommend using
+the latter if needed.
 
 Additional options in the ``[ah_boostrap]`` section of setup.cfg have the same
 names as the arguments to `use_astropy_helpers`, and can be used to configure
@@ -33,7 +38,6 @@ latest version of this module.
 
 import contextlib
 import errno
-import imp
 import io
 import locale
 import os
@@ -41,55 +45,35 @@ import re
 import subprocess as sp
 import sys
 
+__minimum_python_version__ = (3, 5)
+
+if sys.version_info < __minimum_python_version__:
+    print("ERROR: Python {} or later is required by astropy-helpers".format(
+        __minimum_python_version__))
+    sys.exit(1)
+
 try:
     from ConfigParser import ConfigParser, RawConfigParser
 except ImportError:
     from configparser import ConfigParser, RawConfigParser
 
 
-if sys.version_info[0] < 3:
-    _str_types = (str, unicode)
-    _text_type = unicode
-    PY3 = False
-else:
-    _str_types = (str, bytes)
-    _text_type = str
-    PY3 = True
+_str_types = (str, bytes)
 
 
 # What follows are several import statements meant to deal with install-time
 # issues with either missing or misbehaving pacakges (including making sure
 # setuptools itself is installed):
 
+# Check that setuptools 1.0 or later is present
+from distutils.version import LooseVersion
 
-# Some pre-setuptools checks to ensure that either distribute or setuptools >=
-# 0.7 is used (over pre-distribute setuptools) if it is available on the path;
-# otherwise the latest setuptools will be downloaded and bootstrapped with
-# ``ez_setup.py``.  This used to be included in a separate file called
-# setuptools_bootstrap.py; but it was combined into ah_bootstrap.py
 try:
-    import pkg_resources
-    _setuptools_req = pkg_resources.Requirement.parse('setuptools>=0.7')
-    # This may raise a DistributionNotFound in which case no version of
-    # setuptools or distribute is properly installed
-    _setuptools = pkg_resources.get_distribution('setuptools')
-    if _setuptools not in _setuptools_req:
-        # Older version of setuptools; check if we have distribute; again if
-        # this results in DistributionNotFound we want to give up
-        _distribute = pkg_resources.get_distribution('distribute')
-        if _setuptools != _distribute:
-            # It's possible on some pathological systems to have an old version
-            # of setuptools and distribute on sys.path simultaneously; make
-            # sure distribute is the one that's used
-            sys.path.insert(1, _distribute.location)
-            _distribute.activate()
-            imp.reload(pkg_resources)
-except:
-    # There are several types of exceptions that can occur here; if all else
-    # fails bootstrap and use the bootstrapped version
-    from ez_setup import use_setuptools
-    use_setuptools()
-
+    import setuptools
+    assert LooseVersion(setuptools.__version__) >= LooseVersion('1.0')
+except (ImportError, AssertionError):
+    print("ERROR: setuptools 1.0 or later is required by astropy-helpers")
+    sys.exit(1)
 
 # typing as a dependency for 1.6.1+ Sphinx causes issues when imported after
 # initializing submodule with ah_boostrap.py
@@ -137,7 +121,6 @@ import pkg_resources
 
 from setuptools import Distribution
 from setuptools.package_index import PackageIndex
-from setuptools.sandbox import run_setup
 
 from distutils import log
 from distutils.debug import DEBUG
@@ -146,6 +129,7 @@ from distutils.debug import DEBUG
 # TODO: Maybe enable checking for a specific version of astropy_helpers?
 DIST_NAME = 'astropy-helpers'
 PACKAGE_NAME = 'astropy_helpers'
+UPPER_VERSION_EXCLUSIVE = None
 
 # Defaults for other options
 DOWNLOAD_IF_NEEDED = True
@@ -177,7 +161,7 @@ class _Bootstrapper(object):
         if not (isinstance(path, _str_types) or path is False):
             raise TypeError('path must be a string or False')
 
-        if PY3 and not isinstance(path, _text_type):
+        if not isinstance(path, str):
             fs_encoding = sys.getfilesystemencoding()
             path = path.decode(fs_encoding)  # path to unicode
 
@@ -286,6 +270,18 @@ class _Bootstrapper(object):
         if '--offline' in argv:
             config['offline'] = True
             argv.remove('--offline')
+
+        if '--auto-use' in argv:
+            config['auto_use'] = True
+            argv.remove('--auto-use')
+
+        if '--no-auto-use' in argv:
+            config['auto_use'] = False
+            argv.remove('--no-auto-use')
+
+        if '--use-system-astropy-helpers' in argv:
+            config['auto_use'] = False
+            argv.remove('--use-system-astropy-helpers')
 
         return config
 
@@ -464,9 +460,10 @@ class _Bootstrapper(object):
             # setup.py exists we can generate it
             setup_py = os.path.join(path, 'setup.py')
             if os.path.isfile(setup_py):
-                with _silence():
-                    run_setup(os.path.join(path, 'setup.py'),
-                              ['egg_info'])
+                # We use subprocess instead of run_setup from setuptools to
+                # avoid segmentation faults - see the following for more details:
+                # https://github.com/cython/cython/issues/2104
+                sp.check_output([sys.executable, 'setup.py', 'egg_info'], cwd=path)
 
                 for dist in pkg_resources.find_distributions(path, True):
                     # There should be only one...
@@ -501,16 +498,32 @@ class _Bootstrapper(object):
         if version:
             req = '{0}=={1}'.format(DIST_NAME, version)
         else:
-            req = DIST_NAME
+            if UPPER_VERSION_EXCLUSIVE is None:
+                req = DIST_NAME
+            else:
+                req = '{0}<{1}'.format(DIST_NAME, UPPER_VERSION_EXCLUSIVE)
 
         attrs = {'setup_requires': [req]}
 
+        # NOTE: we need to parse the config file (e.g. setup.cfg) to make sure
+        # it honours the options set in the [easy_install] section, and we need
+        # to explicitly fetch the requirement eggs as setup_requires does not
+        # get honored in recent versions of setuptools:
+        # https://github.com/pypa/setuptools/issues/1273
+
         try:
-            if DEBUG:
-                _Distribution(attrs=attrs)
-            else:
-                with _silence():
-                    _Distribution(attrs=attrs)
+
+            context = _verbose if DEBUG else _silence
+            with context():
+                dist = _Distribution(attrs=attrs)
+                try:
+                    dist.parse_config_files(ignore_option_errors=True)
+                    dist.fetch_build_eggs(req)
+                except TypeError:
+                    # On older versions of setuptools, ignore_option_errors
+                    # doesn't exist, and the above two lines are not needed
+                    # so we can just continue
+                    pass
 
             # If the setup_requires succeeded it will have added the new dist to
             # the main working_set
@@ -791,9 +804,9 @@ def run_cmd(cmd):
         stdio_encoding = 'latin1'
 
     # Unlikely to fail at this point but even then let's be flexible
-    if not isinstance(stdout, _text_type):
+    if not isinstance(stdout, str):
         stdout = stdout.decode(stdio_encoding, 'replace')
-    if not isinstance(stderr, _text_type):
+    if not isinstance(stderr, str):
         stderr = stderr.decode(stdio_encoding, 'replace')
 
     return (p.returncode, stdout, stderr)
@@ -845,6 +858,10 @@ class _DummyFile(object):
     def flush(self):
         pass
 
+
+@contextlib.contextmanager
+def _verbose():
+    yield
 
 @contextlib.contextmanager
 def _silence():

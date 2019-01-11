@@ -4,8 +4,6 @@
 caching data files.
 """
 
-
-
 import atexit
 import contextlib
 import fnmatch
@@ -25,9 +23,9 @@ import shelve
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
 
-from .. import config as _config
-from ..utils.exceptions import AstropyWarning
-from ..utils.introspection import find_current_module, resolve_name
+from astropy import config as _config
+from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.introspection import find_current_module, resolve_name
 
 __all__ = [
     'Conf', 'conf', 'get_readable_fileobj', 'get_file_contents',
@@ -37,6 +35,8 @@ __all__ = [
     'CacheMissingWarning', 'get_free_space_in_dir',
     'check_free_space_in_dir', 'download_file',
     'download_files_in_parallel', 'is_url_in_cache', 'get_cached_urls']
+
+_dataurls_to_alias = {}
 
 
 class Conf(_config.ConfigNamespace):
@@ -418,7 +418,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
 
         >>> from astropy.utils.data import get_pkg_data_fileobj
         >>> with get_pkg_data_fileobj('allsky/allsky_rosat.fits',
-        ...                           encoding='binary') as fobj:  # doctest: +REMOTE_DATA
+        ...                           encoding='binary') as fobj:  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         ...     fcontents = fobj.read()
         ...
         Downloading http://data.astropy.org/allsky/allsky_rosat.fits [Done]
@@ -426,7 +426,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
     This does the same thing but does *not* cache it locally::
 
         >>> with get_pkg_data_fileobj('allsky/allsky_rosat.fits',
-        ...                           encoding='binary', cache=False) as fobj:  # doctest: +REMOTE_DATA
+        ...                           encoding='binary', cache=False) as fobj:  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         ...     fcontents = fobj.read()
         ...
         Downloading http://data.astropy.org/allsky/allsky_rosat.fits [Done]
@@ -934,7 +934,7 @@ def check_free_space_in_dir(path, size):
     -------
     OSError : There is not enough room on the filesystem
     """
-    from ..utils.console import human_file_size
+    from astropy.utils.console import human_file_size
 
     space = get_free_space_in_dir(path)
     if space < size:
@@ -961,7 +961,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     show_progress : bool, optional
         Whether to display a progress bar during the download (default
-        is `True`)
+        is `True`). Regardless of this setting, the progress bar is only
+        displayed when outputting to a terminal.
 
     timeout : float, optional
         The timeout, in seconds.  Otherwise, use
@@ -978,7 +979,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
         Whenever there's a problem getting the remote file.
     """
 
-    from ..utils.console import ProgressBarOrSpinner
+    from astropy.utils.console import ProgressBarOrSpinner
 
     if timeout is None:
         timeout = conf.remote_timeout
@@ -997,12 +998,28 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     url_key = remote_url
 
+    # Check if URL is Astropy data server, which has alias, and cache it.
+    if (url_key.startswith(conf.dataurl) and
+            conf.dataurl not in _dataurls_to_alias):
+        try:
+            with urllib.request.urlopen(conf.dataurl, timeout=timeout) as remote:
+                _dataurls_to_alias[conf.dataurl] = [conf.dataurl, remote.geturl()]
+        except urllib.error.URLError:  # Host unreachable
+            _dataurls_to_alias[conf.dataurl] = [conf.dataurl]
     try:
         if cache:
             # We don't need to acquire the lock here, since we are only reading
             with shelve.open(urlmapfn) as url2hash:
                 if url_key in url2hash:
                     return url2hash[url_key]
+                # If there is a cached copy from mirror, use it.
+                else:
+                    for cur_url in _dataurls_to_alias.get(conf.dataurl, []):
+                        if url_key.startswith(cur_url):
+                            url_mirror = url_key.replace(cur_url,
+                                                         conf.dataurl_mirror)
+                            if url_mirror in url2hash:
+                                return url2hash[url_mirror]
 
         with urllib.request.urlopen(remote_url, timeout=timeout) as remote:
             # keep a hash to rename the local file to the hashed name
@@ -1022,7 +1039,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                 if cache:
                     check_free_space_in_dir(dldir, size)
 
-            if show_progress:
+            if show_progress and sys.stdout.isatty():
                 progress_stream = sys.stdout
             else:
                 progress_stream = io.StringIO()
@@ -1266,7 +1283,7 @@ def _get_download_cache_locs():
     shelveloc : str
         The path to the shelve object that stores the cache info.
     """
-    from ..config.paths import get_cache_dir
+    from astropy.config.paths import get_cache_dir
 
     # datadir includes both the download files and the shelveloc.  This structure
     # is required since we cannot know a priori the actual file name corresponding

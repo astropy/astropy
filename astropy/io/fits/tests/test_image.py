@@ -12,11 +12,10 @@ import pytest
 import numpy as np
 from numpy.testing import assert_equal
 
-from ....io import fits
-from ....utils.exceptions import AstropyPendingDeprecationWarning
-from ....utils.compat import NUMPY_LT_1_12
-from ....tests.helper import raises, catch_warnings, ignore_warnings
-from ..hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
+from astropy.io import fits
+from astropy.utils.exceptions import AstropyPendingDeprecationWarning
+from astropy.tests.helper import raises, catch_warnings, ignore_warnings
+from astropy.io.fits.hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
 from .test_table import comparerecords
 
 from . import FitsTestCase
@@ -169,6 +168,53 @@ class TestImageFunctions(FitsTestCase):
         finally:
             fits.conf.lazy_load_hdus = True
 
+    def test_fortran_array(self):
+        # Test that files are being correctly written+read for "C" and "F" order arrays
+        a = np.arange(21).reshape(3,7)
+        b = np.asfortranarray(a)
+
+        afits = self.temp('a_str.fits')
+        bfits = self.temp('b_str.fits')
+        # writting to str specified files
+        fits.PrimaryHDU(data=a).writeto(afits)
+        fits.PrimaryHDU(data=b).writeto(bfits)
+        np.testing.assert_array_equal(fits.getdata(afits), a)
+        np.testing.assert_array_equal(fits.getdata(bfits), a)
+
+        # writting to fileobjs
+        aafits = self.temp('a_fileobj.fits')
+        bbfits = self.temp('b_fileobj.fits')
+        with open(aafits, mode='wb') as fd:
+            fits.PrimaryHDU(data=a).writeto(fd)
+        with open(bbfits, mode='wb') as fd:
+            fits.PrimaryHDU(data=b).writeto(fd)
+        np.testing.assert_array_equal(fits.getdata(aafits), a)
+        np.testing.assert_array_equal(fits.getdata(bbfits), a)
+
+    def test_fortran_array_non_contiguous(self):
+        # Test that files are being correctly written+read for 'C' and 'F' order arrays
+        a = np.arange(105).reshape(3,5,7)
+        b = np.asfortranarray(a)
+
+        # writting to str specified files
+        afits = self.temp('a_str_slice.fits')
+        bfits = self.temp('b_str_slice.fits')
+        fits.PrimaryHDU(data=a[::2, ::2]).writeto(afits)
+        fits.PrimaryHDU(data=b[::2, ::2]).writeto(bfits)
+        np.testing.assert_array_equal(fits.getdata(afits), a[::2, ::2])
+        np.testing.assert_array_equal(fits.getdata(bfits), a[::2, ::2])
+
+        # writting to fileobjs
+        aafits = self.temp('a_fileobj_slice.fits')
+        bbfits = self.temp('b_fileobj_slice.fits')
+        with open(aafits, mode='wb') as fd:
+            fits.PrimaryHDU(data=a[::2, ::2]).writeto(fd)
+        with open(bbfits, mode='wb') as fd:
+            fits.PrimaryHDU(data=b[::2, ::2]).writeto(fd)
+        np.testing.assert_array_equal(fits.getdata(aafits), a[::2, ::2])
+        np.testing.assert_array_equal(fits.getdata(bbfits), a[::2, ::2])
+
+
     def test_primary_with_extname(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/151
 
@@ -197,8 +243,8 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.temp('test.fits')) as hdul:
             assert hdul[0].name == 'XPRIMARY2'
 
-    @pytest.mark.xfail(platform.system() == 'Windows' and not NUMPY_LT_1_12,
-                              reason='https://github.com/astropy/astropy/issues/5797')
+    @pytest.mark.xfail(platform.system() == 'Windows',
+                       reason='https://github.com/astropy/astropy/issues/5797')
     def test_io_manipulation(self):
         # Get a keyword value.  An extension can be referred by name or by
         # number.  Both extension and keyword names are case insensitive.
@@ -840,14 +886,17 @@ class TestImageFunctions(FitsTestCase):
 
         # Let's just add a value to the data that should be converted to NaN
         # when it is read back in:
+        filename = self.temp('test.fits')
         hdu.data[0] = 9999
         hdu.header['BLANK'] = 9999
-        hdu.writeto(self.temp('test.fits'))
+        hdu.writeto(filename)
 
-        with fits.open(self.temp('test.fits')) as hdul:
+        with fits.open(filename) as hdul:
             data = hdul[0].data
             assert np.isnan(data[0])
-            hdul.writeto(self.temp('test2.fits'))
+            with pytest.warns(fits.verify.VerifyWarning,
+                              match="Invalid 'BLANK' keyword in header"):
+                hdul.writeto(self.temp('test2.fits'))
 
         # Now reopen the newly written file.  It should not have a 'BLANK'
         # keyword
@@ -859,12 +908,12 @@ class TestImageFunctions(FitsTestCase):
                 assert np.isnan(data[0])
 
         # Finally, test that scale_back keeps the BLANKs correctly
-        with fits.open(self.temp('test.fits'), scale_back=True,
+        with fits.open(filename, scale_back=True,
                        mode='update') as hdul3:
             data = hdul3[0].data
             assert np.isnan(data[0])
 
-        with fits.open(self.temp('test.fits'),
+        with fits.open(filename,
                        do_not_scale_image_data=True) as hdul4:
             assert hdul4[0].header['BLANK'] == 9999
             assert hdul4[0].header['BSCALE'] == 1.23
@@ -1049,7 +1098,9 @@ class TestImageFunctions(FitsTestCase):
         data = np.arange(100, dtype=np.float64)
         hdu = fits.PrimaryHDU(data)
         hdu.header['BLANK'] = 'nan'
-        hdu.writeto(self.temp('test.fits'))
+        with pytest.warns(fits.verify.VerifyWarning, match="Invalid value for "
+                          "'BLANK' keyword in header: 'nan'"):
+            hdu.writeto(self.temp('test.fits'))
 
         with catch_warnings() as w:
             with fits.open(self.temp('test.fits')) as hdul:
@@ -1157,8 +1208,8 @@ class TestCompressedImage(FitsTestCase):
         primary_hdu = fits.PrimaryHDU()
         ofd = fits.HDUList(primary_hdu)
         chdu = fits.CompImageHDU(data, name='SCI',
-                                 compressionType=compression_type,
-                                 quantizeLevel=quantize_level)
+                                 compression_type=compression_type,
+                                 quantize_level=quantize_level)
         ofd.append(chdu)
         ofd.writeto(self.temp('test_new.fits'), overwrite=True)
         ofd.close()
@@ -1199,7 +1250,6 @@ class TestCompressedImage(FitsTestCase):
         assert np.isclose(np.min(im1 - im3), -50, atol=1e-1)
         assert np.isclose(np.max(im1 - im3), 50, atol=1e-1)
 
-    @ignore_warnings(AstropyPendingDeprecationWarning)
     def test_comp_image_hcompression_1_invalid_data(self):
         """
         Tests compression with the HCOMPRESS_1 algorithm with data that is
@@ -1208,10 +1258,9 @@ class TestCompressedImage(FitsTestCase):
 
         pytest.raises(ValueError, fits.CompImageHDU,
                       np.zeros((2, 10, 10), dtype=np.float32), name='SCI',
-                      compressionType='HCOMPRESS_1', quantizeLevel=16,
-                      tileSize=[2, 10, 10])
+                      compression_type='HCOMPRESS_1', quantize_level=16,
+                      tile_size=[2, 10, 10])
 
-    @ignore_warnings(AstropyPendingDeprecationWarning)
     def test_comp_image_hcompress_image_stack(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/171
@@ -1223,8 +1272,8 @@ class TestCompressedImage(FitsTestCase):
 
         cube = np.arange(300, dtype=np.float32).reshape(3, 10, 10)
         hdu = fits.CompImageHDU(data=cube, name='SCI',
-                                compressionType='HCOMPRESS_1',
-                                quantizeLevel=16, tileSize=[5, 5, 1])
+                                compression_type='HCOMPRESS_1',
+                                quantize_level=16, tile_size=[5, 5, 1])
         hdu.writeto(self.temp('test.fits'))
 
         with fits.open(self.temp('test.fits')) as hdul:
@@ -1450,7 +1499,7 @@ class TestCompressedImage(FitsTestCase):
 
         noise = np.random.normal(size=(1000, 1000))
 
-        chdu1 = fits.CompImageHDU(data=noise, compressionType='GZIP_1')
+        chdu1 = fits.CompImageHDU(data=noise, compression_type='GZIP_1')
         # First make a test image with lossy compression and make sure it
         # wasn't compressed perfectly.  This shouldn't happen ever, but just to
         # make sure the test non-trivial.
@@ -1461,8 +1510,8 @@ class TestCompressedImage(FitsTestCase):
 
         del h
 
-        chdu2 = fits.CompImageHDU(data=noise, compressionType='GZIP_1',
-                                  quantizeLevel=0.0)  # No quantization
+        chdu2 = fits.CompImageHDU(data=noise, compression_type='GZIP_1',
+                                  quantize_level=0.0)  # No quantization
         with ignore_warnings():
             chdu2.writeto(self.temp('test.fits'), overwrite=True)
 
@@ -1479,8 +1528,8 @@ class TestCompressedImage(FitsTestCase):
         np.random.seed(1337)
         data1 = np.random.uniform(size=(6 * 4, 7 * 4))
         data1[:data2.shape[0], :data2.shape[1]] = data2
-        chdu = fits.CompImageHDU(data1, compressionType='RICE_1',
-                                 tileSize=(6, 7))
+        chdu = fits.CompImageHDU(data1, compression_type='RICE_1',
+                                 tile_size=(6, 7))
         chdu.writeto(self.temp('test.fits'))
 
         with fits.open(self.temp('test.fits'),

@@ -10,18 +10,17 @@ astronomy.
 
 import copy
 import operator
-from datetime import datetime
-from collections import defaultdict
+from datetime import datetime, date, timedelta
+from time import strftime, strptime
 
 import numpy as np
 
-from .. import units as u, constants as const
-from .. import _erfa as erfa
-from ..units import UnitConversionError
-from ..utils.decorators import lazyproperty
-from ..utils import ShapedLikeNDArray
-from ..utils.compat.misc import override__dir__
-from ..utils.data_info import MixinInfo, data_info_factory
+from astropy import units as u, constants as const
+from astropy import _erfa as erfa
+from astropy.units import UnitConversionError
+from astropy.utils import ShapedLikeNDArray
+from astropy.utils.compat.misc import override__dir__
+from astropy.utils.data_info import MixinInfo, data_info_factory
 from .utils import day_frac
 from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
                       TimeJD, TimeUnique, TimeAstropyTime, TimeDatetime)
@@ -29,12 +28,16 @@ from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
 # making a custom timescale in the documentation.
 from .formats import TimeFromEpoch  # pylint: disable=W0611
 
+from astropy.extern import _strptime
 
-__all__ = ['Time', 'TimeDelta', 'TIME_SCALES', 'TIME_DELTA_SCALES',
+__all__ = ['Time', 'TimeDelta', 'TIME_SCALES', 'STANDARD_TIME_SCALES', 'TIME_DELTA_SCALES',
            'ScaleValueError', 'OperandTypeError', 'TimeInfo']
 
 
-TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
+STANDARD_TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
+LOCAL_SCALES = ('local',)
+TIME_TYPES = dict((scale, scales) for scales in (STANDARD_TIME_SCALES, LOCAL_SCALES) for scale in scales)
+TIME_SCALES = STANDARD_TIME_SCALES + LOCAL_SCALES
 MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tai', 'tcg'): ('tt',),
               ('tai', 'ut1'): ('utc',),
@@ -56,8 +59,8 @@ BARYCENTRIC_SCALES = ('tcb', 'tdb')
 ROTATIONAL_SCALES = ('ut1',)
 TIME_DELTA_TYPES = dict((scale, scales)
                         for scales in (GEOCENTRIC_SCALES, BARYCENTRIC_SCALES,
-                                       ROTATIONAL_SCALES) for scale in scales)
-TIME_DELTA_SCALES = TIME_DELTA_TYPES.keys()
+                                       ROTATIONAL_SCALES, LOCAL_SCALES) for scale in scales)
+TIME_DELTA_SCALES = GEOCENTRIC_SCALES + BARYCENTRIC_SCALES + ROTATIONAL_SCALES + LOCAL_SCALES
 # For time scale changes, we need L_G and L_B, which are stored in erfam.h as
 #   /* L_G = 1 - d(TT)/d(TCG) */
 #   define ERFA_ELG (6.969290134e-10)
@@ -104,6 +107,11 @@ class TimeInfo(MixinInfo):
     _represent_as_dict_extra_attrs = ('format', 'scale', 'precision',
                                       'in_subfmt', 'out_subfmt', 'location',
                                       '_delta_ut1_utc', '_delta_tdb_tt')
+
+    # When serializing, write out the `value` attribute using the column name.
+    _represent_as_dict_primary_data = 'value'
+
+    mask_val = np.ma.masked
 
     @property
     def _represent_as_dict_attrs(self):
@@ -169,12 +177,119 @@ class TimeInfo(MixinInfo):
 
         return out
 
+    def new_like(self, cols, length, metadata_conflicts='warn', name=None):
+        """
+        Return a new Time instance which is consistent with the input Time objects
+        ``cols`` and has ``length`` rows.
+
+        This is intended for creating an empty Time instance whose elements can
+        be set in-place for table operations like join or vstack.  It checks
+        that the input locations and attributes are consistent.  This is used
+        when a Time object is used as a mixin column in an astropy Table.
+
+        Parameters
+        ----------
+        cols : list
+            List of input columns (Time objects)
+        length : int
+            Length of the output column object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts
+        name : str
+            Output column name
+
+        Returns
+        -------
+        col : Time (or subclass)
+            Empty instance of this class consistent with ``cols``
+
+        """
+        # Get merged info attributes like shape, dtype, format, description, etc.
+        attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
+                                           ('meta', 'description'))
+        attrs.pop('dtype')  # Not relevant for Time
+        col0 = cols[0]
+
+        # Check that location is consistent for all Time objects
+        for col in cols[1:]:
+            # This is the method used by __setitem__ to ensure that the right side
+            # has a consistent location (and coerce data if necessary, but that does
+            # not happen in this case since `col` is already a Time object).  If this
+            # passes then any subsequent table operations via setitem will work.
+            try:
+                col0._make_value_equivalent(slice(None), col)
+            except ValueError:
+                raise ValueError('input columns have inconsistent locations')
+
+        # Make a new Time object with the desired shape and attributes
+        shape = (length,) + attrs.pop('shape')
+        jd2000 = 2451544.5  # Arbitrary JD value J2000.0 that will work with ERFA
+        jd1 = np.full(shape, jd2000, dtype='f8')
+        jd2 = np.zeros(shape, dtype='f8')
+        tm_attrs = {attr: getattr(col0, attr)
+                    for attr in ('scale', 'location',
+                                 'precision', 'in_subfmt', 'out_subfmt')}
+        out = self._parent_cls(jd1, jd2, format='jd', **tm_attrs)
+        out.format = col0.format
+
+        # Set remaining info attributes
+        for attr, value in attrs.items():
+            setattr(out.info, attr, value)
+
+        return out
+
 
 class TimeDeltaInfo(TimeInfo):
     _represent_as_dict_extra_attrs = ('format', 'scale')
 
     def _construct_from_dict(self, map):
         return self._construct_from_dict_base(map)
+
+    def new_like(self, cols, length, metadata_conflicts='warn', name=None):
+        """
+        Return a new TimeDelta instance which is consistent with the input Time objects
+        ``cols`` and has ``length`` rows.
+
+        This is intended for creating an empty Time instance whose elements can
+        be set in-place for table operations like join or vstack.  It checks
+        that the input locations and attributes are consistent.  This is used
+        when a Time object is used as a mixin column in an astropy Table.
+
+        Parameters
+        ----------
+        cols : list
+            List of input columns (Time objects)
+        length : int
+            Length of the output column object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts
+        name : str
+            Output column name
+
+        Returns
+        -------
+        col : Time (or subclass)
+            Empty instance of this class consistent with ``cols``
+
+        """
+        # Get merged info attributes like shape, dtype, format, description, etc.
+        attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
+                                           ('meta', 'description'))
+        attrs.pop('dtype')  # Not relevant for Time
+        col0 = cols[0]
+
+        # Make a new Time object with the desired shape and attributes
+        shape = (length,) + attrs.pop('shape')
+        jd1 = np.zeros(shape, dtype='f8')
+        jd2 = np.zeros(shape, dtype='f8')
+        out = self._parent_cls(jd1, jd2, format='jd', scale=col0.scale)
+        out.format = col0.format
+
+        # Set remaining info attributes
+        for attr, value in attrs.items():
+            setattr(out.info, attr, value)
+
+        return out
 
 
 class Time(ShapedLikeNDArray):
@@ -192,8 +307,10 @@ class Time(ShapedLikeNDArray):
 
       >>> list(Time.FORMATS)
       ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date',
-       'datetime', 'iso', 'isot', 'yday', 'fits', 'byear', 'jyear', 'byear_str',
-       'jyear_str']
+       'datetime', 'iso', 'isot', 'yday', 'datetime64', 'fits', 'byear',
+       'jyear', 'byear_str', 'jyear_str']
+
+    See also: http://docs.astropy.org/en/stable/time/
 
     Parameters
     ----------
@@ -256,15 +373,17 @@ class Time(ShapedLikeNDArray):
                  location=None, copy=False):
 
         if location is not None:
-            from ..coordinates import EarthLocation
+            from astropy.coordinates import EarthLocation
             if isinstance(location, EarthLocation):
                 self.location = location
             else:
                 self.location = EarthLocation(*location)
+            if self.location.size == 1:
+                self.location = self.location.squeeze()
         else:
             self.location = None
 
-        if isinstance(val, Time):
+        if isinstance(val, self.__class__):
             # Update _time formatting parameters if explicitly specified
             if precision is not None:
                 self._time.precision = precision
@@ -272,12 +391,13 @@ class Time(ShapedLikeNDArray):
                 self._time.in_subfmt = in_subfmt
             if out_subfmt is not None:
                 self._time.out_subfmt = out_subfmt
-
+            self.SCALES = TIME_TYPES[self.scale]
             if scale is not None:
                 self._set_scale(scale)
         else:
             self._init_from_vals(val, val2, format, scale, copy,
                                  precision, in_subfmt, out_subfmt)
+            self.SCALES = TIME_TYPES[self.scale]
 
         if self.location is not None and (self.location.size > 1 and
                                           self.location.shape != self.shape):
@@ -325,10 +445,21 @@ class Time(ShapedLikeNDArray):
                                       "{1}".format(scale,
                                                    sorted(self.SCALES)))
 
+        # If either of the input val, val2 are masked arrays then
+        # find the masked elements and fill them.
+        mask, val, val2 = _check_for_masked_and_fill(val, val2)
+
         # Parse / convert input values into internal jd1, jd2 based on format
         self._time = self._get_time_fmt(val, val2, format, scale,
                                         precision, in_subfmt, out_subfmt)
         self._format = self._time.name
+
+        # If any inputs were masked then masked jd2 accordingly.  From above
+        # routine ``mask`` must be either Python bool False or an bool ndarray
+        # with shape broadcastable to jd2.
+        if mask is not False:
+            mask = np.broadcast_to(mask, self._time.jd2.shape)
+            self._time.jd2[mask] = np.nan
 
     def _get_time_fmt(self, val, val2, format, scale,
                       precision, in_subfmt, out_subfmt):
@@ -341,7 +472,7 @@ class Time(ShapedLikeNDArray):
         guess available formats and stop when one matches.
         """
 
-        if format is None and val.dtype.kind in ('S', 'U', 'O'):
+        if format is None and val.dtype.kind in ('S', 'U', 'O', 'M'):
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeUnique)]
             err_msg = ('any of the formats where the format keyword is '
@@ -397,6 +528,66 @@ class Time(ShapedLikeNDArray):
 
     info = TimeInfo()
 
+    @classmethod
+    def strptime(cls, time_string, format_string, **kwargs):
+        """
+        Parse a string to a Time according to a format specification.
+        See `time.strptime` documentation for format specification.
+
+        >>> Time.strptime('2012-Jun-30 23:59:60', '%Y-%b-%d %H:%M:%S')
+        <Time object: scale='utc' format='isot' value=2012-06-30T23:59:60.000>
+
+        Parameters
+        ----------
+        time_string : string, sequence, ndarray
+            Objects containing time data of type string
+        format_string : string
+            String specifying format of time_string.
+        kwargs : dict
+            Any keyword arguments for ``Time``.  If the ``format`` keyword
+            argument is present, this will be used as the Time format.
+
+        Returns
+        -------
+        time_obj : `~astropy.time.Time`
+            A new `~astropy.time.Time` object corresponding to the input
+            ``time_string``.
+
+        """
+        time_array = np.asarray(time_string)
+
+        if time_array.dtype.kind not in ('U', 'S'):
+            err = "Expected type is string, a bytes-like object or a sequence"\
+                  " of these. Got dtype '{}'".format(time_array.dtype.kind)
+            raise TypeError(err)
+
+        to_string = (str if time_array.dtype.kind == 'U' else
+                     lambda x: str(x.item(), encoding='ascii'))
+        iterator = np.nditer([time_array, None],
+                             op_dtypes=[time_array.dtype, 'U30'])
+
+        for time, formatted in iterator:
+            tt, fraction = _strptime._strptime(to_string(time), format_string)
+            time_tuple = tt[:6] + (fraction,)
+            formatted[...] = '{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:06}'\
+                .format(*time_tuple)
+
+        format = kwargs.pop('format', None)
+        out = cls(*iterator.operands[1:], format='isot', **kwargs)
+        if format is not None:
+            out.format = format
+
+        return out
+
+    @property
+    def writeable(self):
+        return self._time.jd1.flags.writeable & self._time.jd2.flags.writeable
+
+    @writeable.setter
+    def writeable(self, value):
+        self._time.jd1.flags.writeable = value
+        self._time.jd2.flags.writeable = value
+
     @property
     def format(self):
         """
@@ -409,8 +600,8 @@ class Time(ShapedLikeNDArray):
 
           >>> list(Time.FORMATS)
           ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date',
-           'datetime', 'iso', 'isot', 'yday', 'fits', 'byear', 'jyear', 'byear_str',
-           'jyear_str']
+           'datetime', 'iso', 'isot', 'yday', 'datetime64', 'fits', 'byear',
+           'jyear', 'byear_str', 'jyear_str']
         """
         return self._format
 
@@ -444,6 +635,41 @@ class Time(ShapedLikeNDArray):
     def __str__(self):
         return str(getattr(self, self.format))
 
+    def strftime(self, format_spec):
+        """
+        Convert Time to a string or a numpy.array of strings according to a
+        format specification.
+        See `time.strftime` documentation for format specification.
+
+        Parameters
+        ----------
+        format_spec : string
+            Format definition of return string.
+
+        Returns
+        -------
+        formatted : string, numpy.array
+            String or numpy.array of strings formatted according to the given
+            format string.
+
+        """
+        formatted_strings = []
+        for sk in self.replicate('iso')._time.str_kwargs():
+            date_tuple = date(sk['year'], sk['mon'], sk['day']).timetuple()
+            datetime_tuple = (sk['year'], sk['mon'], sk['day'],
+                              sk['hour'], sk['min'], sk['sec'],
+                              date_tuple[6], date_tuple[7], -1)
+            fmtd_str = format_spec
+            if '%f' in fmtd_str:
+                fmtd_str = fmtd_str.replace('%f', '{frac:0{precision}}'.format(frac=sk['fracsec'], precision=self.precision))
+            fmtd_str = strftime(fmtd_str, datetime_tuple)
+            formatted_strings.append(fmtd_str)
+
+        if self.isscalar:
+            return formatted_strings[0]
+        else:
+            return np.array(formatted_strings).reshape(self.shape)
+
     @property
     def scale(self):
         """Time scale"""
@@ -474,7 +700,7 @@ class Time(ShapedLikeNDArray):
             xforms = tuple(reversed(xforms))
 
         # Transform the jd1,2 pairs through the chain of scale xforms.
-        jd1, jd2 = self._time.jd1, self._time.jd2
+        jd1, jd2 = self._time.jd1, self._time.jd2_filled
         for sys1, sys2 in zip(xforms[:-1], xforms[1:]):
             # Some xforms require an additional delta_ argument that is
             # provided through Time methods.  These values may be supplied by
@@ -494,6 +720,10 @@ class Time(ShapedLikeNDArray):
 
             conv_func = getattr(erfa, sys1 + sys2)
             jd1, jd2 = conv_func(*args)
+
+        if self.masked:
+            jd2[self.mask] = np.nan
+
         self._time = self.FORMATS[self.format](jd1, jd2, scale, self.precision,
                                                self.in_subfmt, self.out_subfmt,
                                                from_jd=True)
@@ -508,11 +738,11 @@ class Time(ShapedLikeNDArray):
 
     @precision.setter
     def precision(self, val):
+        del self.cache
         if not isinstance(val, int) or val < 0 or val > 9:
             raise ValueError('precision attribute must be an int between '
                              '0 and 9')
         self._time.precision = val
-        del self.cache
 
     @property
     def in_subfmt(self):
@@ -524,10 +754,10 @@ class Time(ShapedLikeNDArray):
 
     @in_subfmt.setter
     def in_subfmt(self, val):
+        del self.cache
         if not isinstance(val, str):
             raise ValueError('in_subfmt attribute must be a string')
         self._time.in_subfmt = val
-        del self.cache
 
     @property
     def out_subfmt(self):
@@ -538,10 +768,10 @@ class Time(ShapedLikeNDArray):
 
     @out_subfmt.setter
     def out_subfmt(self, val):
+        del self.cache
         if not isinstance(val, str):
             raise ValueError('out_subfmt attribute must be a string')
         self._time.out_subfmt = val
-        del self.cache
 
     @property
     def shape(self):
@@ -566,14 +796,24 @@ class Time(ShapedLikeNDArray):
 
     @shape.setter
     def shape(self, shape):
+        del self.cache
+
         # We have to keep track of arrays that were already reshaped,
         # since we may have to return those to their original shape if a later
         # shape-setting fails.
         reshaped = []
         oldshape = self.shape
-        for attr in ('jd1', 'jd2', '_delta_ut1_utc', '_delta_tdb_tt',
-                     'location'):
-            val = getattr(self, attr, None)
+
+        # In-place reshape of data/attributes.  Need to access _time.jd1/2 not
+        # self.jd1/2 because the latter are not guaranteed to be the actual
+        # data, and in fact should not be directly changeable from the public
+        # API.
+        for obj, attr in ((self._time, 'jd1'),
+                          (self._time, 'jd2'),
+                          (self, '_delta_ut1_utc'),
+                          (self, '_delta_tdb_tt'),
+                          (self, 'location')):
+            val = getattr(obj, attr, None)
             if val is not None and val.size > 1:
                 try:
                     val.shape = shape
@@ -585,21 +825,28 @@ class Time(ShapedLikeNDArray):
                     reshaped.append(val)
 
     def _shaped_like_input(self, value):
-        return value if self._time.jd1.shape else value.item()
+        out = value
+        if value.dtype.kind == 'M':
+            return value[()]
+        if not self._time.jd1.shape and not np.ma.is_masked(value):
+            out = value.item()
+        return out
 
     @property
     def jd1(self):
         """
         First of the two doubles that internally store time value(s) in JD.
         """
-        return self._shaped_like_input(self._time.jd1)
+        jd1 = self._time.mask_if_needed(self._time.jd1)
+        return self._shaped_like_input(jd1)
 
     @property
     def jd2(self):
         """
         Second of the two doubles that internally store time value(s) in JD.
         """
-        return self._shaped_like_input(self._time.jd2)
+        jd2 = self._time.mask_if_needed(self._time.jd2)
+        return self._shaped_like_input(jd2)
 
     @property
     def value(self):
@@ -609,6 +856,155 @@ class Time(ShapedLikeNDArray):
         # This is done in __getattr__.  By calling getattr(self, self.format)
         # the ``value`` attribute is cached.
         return getattr(self, self.format)
+
+    @property
+    def masked(self):
+        return self._time.masked
+
+    @property
+    def mask(self):
+        return self._time.mask
+
+    def insert(self, obj, values, axis=0):
+        """
+        Insert values before the given indices in the column and return
+        a new `~astropy.time.Time` or  `~astropy.time.TimeDelta` object.
+
+        The values to be inserted must conform to the rules for in-place setting
+        of ``Time`` objects (see ``Get and set values`` in the ``Time``
+        documentation).
+
+        The API signature matches the ``np.insert`` API, but is more limited.
+        The specification of insert index ``obj`` must be a single integer,
+        and the ``axis`` must be ``0`` for simple row insertion before the
+        index.
+
+        Parameters
+        ----------
+        obj : int
+            Integer index before which ``values`` is inserted.
+        values : array_like
+            Value(s) to insert.  If the type of ``values`` is different
+            from that of quantity, ``values`` is converted to the matching type.
+        axis : int, optional
+            Axis along which to insert ``values``.  Default is 0, which is the
+            only allowed value and will insert a row.
+
+        Returns
+        -------
+        out : `~astropy.time.Time` subclass
+            New time object with inserted value(s)
+
+        """
+        # Validate inputs: obj arg is integer, axis=0, self is not a scalar, and
+        # input index is in bounds.
+        try:
+            idx0 = operator.index(obj)
+        except TypeError:
+            raise TypeError('obj arg must be an integer')
+
+        if axis != 0:
+            raise ValueError('axis must be 0')
+
+        if not self.shape:
+            raise TypeError('cannot insert into scalar {} object'
+                            .format(self.__class__.__name__))
+
+        if abs(idx0) > len(self):
+            raise IndexError('index {} is out of bounds for axis 0 with size {}'
+                             .format(idx0, len(self)))
+
+        # Turn negative index into positive
+        if idx0 < 0:
+            idx0 = len(self) + idx0
+
+        # For non-Time object, use numpy to help figure out the length.  (Note annoying
+        # case of a string input that has a length which is not the length we want).
+        if not isinstance(values, Time):
+            values = np.asarray(values)
+        n_values = len(values) if values.shape else 1
+
+        # Finally make the new object with the correct length and set values for the
+        # three sections, before insert, the insert, and after the insert.
+        out = self.__class__.info.new_like([self], len(self) + n_values, name=self.info.name)
+
+        out._time.jd1[:idx0] = self._time.jd1[:idx0]
+        out._time.jd2[:idx0] = self._time.jd2[:idx0]
+
+        # This uses the Time setting machinery to coerce and validate as necessary.
+        out[idx0:idx0 + n_values] = values
+
+        out._time.jd1[idx0 + n_values:] = self._time.jd1[idx0:]
+        out._time.jd2[idx0 + n_values:] = self._time.jd2[idx0:]
+
+        return out
+
+    def _make_value_equivalent(self, item, value):
+        """Coerce setitem value into an equivalent Time object"""
+
+        # If there is a vector location then broadcast to the Time shape
+        # and then select with ``item``
+        if self.location is not None and self.location.shape:
+            self_location = np.broadcast_to(self.location, self.shape, subok=True)[item]
+        else:
+            self_location = self.location
+
+        if isinstance(value, Time):
+            # Make sure locations are compatible.  Location can be either None or
+            # a Location object.
+            if self_location is None and value.location is None:
+                match = True
+            elif ((self_location is None and value.location is not None) or
+                  (self_location is not None and value.location is None)):
+                match = False
+            else:
+                match = np.all(self_location == value.location)
+            if not match:
+                raise ValueError('cannot set to Time with different location: '
+                                 'expected location={} and '
+                                 'got location={}'
+                                 .format(self_location, value.location))
+        else:
+            try:
+                value = self.__class__(value, scale=self.scale, location=self_location)
+            except Exception:
+                try:
+                    value = self.__class__(value, scale=self.scale, format=self.format,
+                                           location=self_location)
+                except Exception as err:
+                    raise ValueError('cannot convert value to a compatible Time object: {}'
+                                     .format(err))
+        return value
+
+    def __setitem__(self, item, value):
+        if not self.writeable:
+            if self.shape:
+                raise ValueError('{} object is read-only. Make a '
+                                 'copy() or set "writeable" attribute to True.'
+                                 .format(self.__class__.__name__))
+            else:
+                raise ValueError('scalar {} object is read-only.'
+                                 .format(self.__class__.__name__))
+
+        # Any use of setitem results in immediate cache invalidation
+        del self.cache
+
+        # Setting invalidates transform deltas
+        for attr in ('_delta_tdb_tt', '_delta_ut1_utc'):
+            if hasattr(self, attr):
+                delattr(self, attr)
+
+        if value is np.ma.masked or value is np.nan:
+            self._time.jd2[item] = np.nan
+            return
+
+        value = self._make_value_equivalent(item, value)
+
+        # Finally directly set the jd1/2 values.  Locations are known to match.
+        if self.scale is not None:
+            value = getattr(value, self.scale)
+        self._time.jd1[item] = value._time.jd1
+        self._time.jd2[item] = value._time.jd2
 
     def light_travel_time(self, skycoord, kind='barycentric', location=None, ephemeris=None):
         """Light travel time correction to the barycentre or heliocentre.
@@ -642,6 +1038,7 @@ class Time(ShapedLikeNDArray):
             The time offset between the barycentre or Heliocentre and Earth,
             in TDB seconds.  Should be added to the original time to get the
             time in the Solar system barycentre or the Heliocentre.
+            Also, the time conversion to BJD will then include the relativistic correction as well.
         """
 
         if kind.lower() not in ('barycentric', 'heliocentric'):
@@ -655,7 +1052,7 @@ class Time(ShapedLikeNDArray):
                                  'corrections')
             location = self.location
 
-        from ..coordinates import (UnitSphericalRepresentation, CartesianRepresentation,
+        from astropy.coordinates import (UnitSphericalRepresentation, CartesianRepresentation,
                                    HCRS, ICRS, GCRS, solar_system_ephemeris)
 
         # ensure sky location is ICRS compatible
@@ -720,7 +1117,7 @@ class Time(ShapedLikeNDArray):
             Sidereal time as a quantity with units of hourangle
         """  # docstring is formatted below
 
-        from ..coordinates import Longitude
+        from astropy.coordinates import Longitude
 
         if kind.lower() not in SIDEREAL_TIME_MODELS.keys():
             raise ValueError('The kind of sidereal time has to be {0}'.format(
@@ -761,14 +1158,17 @@ class Time(ShapedLikeNDArray):
     def _erfa_sidereal_time(self, model):
         """Calculate a sidereal time using a IAU precession/nutation model."""
 
-        from ..coordinates import Longitude
+        from astropy.coordinates import Longitude
 
         erfa_function = model['function']
         erfa_parameters = [getattr(getattr(self, scale)._time, jd_part)
                            for scale in model['scales']
-                           for jd_part in ('jd1', 'jd2')]
+                           for jd_part in ('jd1', 'jd2_filled')]
 
         sidereal_time = erfa_function(*erfa_parameters)
+
+        if self.masked:
+            sidereal_time[self.mask] = np.nan
 
         return Longitude(sidereal_time, u.radian).to(u.hourangle)
 
@@ -920,7 +1320,7 @@ class Time(ShapedLikeNDArray):
                              tm.in_subfmt, tm.out_subfmt,
                              from_jd=True)
         tm._format = new_format
-
+        tm.SCALES = self.SCALES
         return tm
 
     def __copy__(self):
@@ -991,7 +1391,8 @@ class Time(ShapedLikeNDArray):
         """
         # first get the minimum at normal precision.
         jd = self.jd1 + self.jd2
-        approx = jd.min(axis, keepdims=True)
+
+        approx = np.min(jd, axis, keepdims=True)
 
         # Approx is very close to the true minimum, and by subtracting it at
         # full precision, all numbers near 0 can be represented correctly,
@@ -1002,6 +1403,7 @@ class Time(ShapedLikeNDArray):
         # approx_jd1, approx_jd2 = day_frac(approx, 0.)
         # dt = (self.jd1 - approx_jd1) + (self.jd2 - approx_jd2)
         dt = (self.jd1 - approx) + self.jd2
+
         return dt.argmin(axis, out)
 
     def argmax(self, axis=None, out=None):
@@ -1013,9 +1415,11 @@ class Time(ShapedLikeNDArray):
         """
         # For procedure, see comment on argmin.
         jd = self.jd1 + self.jd2
-        approx = jd.max(axis, keepdims=True)
+
+        approx = np.max(jd, axis, keepdims=True)
 
         dt = (self.jd1 - approx) + self.jd2
+
         return dt.argmax(axis, out)
 
     def argsort(self, axis=-1):
@@ -1099,12 +1503,16 @@ class Time(ShapedLikeNDArray):
         return self[self._advanced_index(self.argsort(axis), axis,
                                          keepdims=True)]
 
-    @lazyproperty
+    @property
     def cache(self):
         """
         Return the cache associated with this instance.
         """
-        return defaultdict(dict)
+        return self._time.cache
+
+    @cache.deleter
+    def cache(self):
+        del self._time.cache
 
     def __getattr__(self, attr):
         """
@@ -1118,6 +1526,9 @@ class Time(ShapedLikeNDArray):
                 else:
                     tm = self.replicate()
                     tm._set_scale(attr)
+                    if tm.shape:
+                        # Prevent future modification of cached array-like object
+                        tm.writeable = False
                 cache[attr] = tm
             return cache[attr]
 
@@ -1209,10 +1620,10 @@ class Time(ShapedLikeNDArray):
             >>> t = Time(['1961-01-01', '2000-01-01'], scale='utc')
             >>> delta, status = t.get_delta_ut1_utc(return_status=True)
             >>> status == TIME_BEFORE_IERS_RANGE
-            array([ True, False], dtype=bool)
+            array([ True, False]...)
         """
         if iers_table is None:
-            from ..utils.iers import IERS
+            from astropy.utils.iers import IERS
             iers_table = IERS.open()
 
         return iers_table.ut1_utc(self.utc, return_status=return_status)
@@ -1228,13 +1639,13 @@ class Time(ShapedLikeNDArray):
         # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
         # seconds. It is obtained from tables published by the IERS.
         if not hasattr(self, '_delta_ut1_utc'):
-            from ..utils.iers import IERS_Auto
+            from astropy.utils.iers import IERS_Auto
             iers_table = IERS_Auto.open()
             # jd1, jd2 are normally set (see above), except if delta_ut1_utc
             # is access directly; ensure we behave as expected for that case
             if jd1 is None:
                 self_utc = self.utc
-                jd1, jd2 = self_utc.jd1, self_utc.jd2
+                jd1, jd2 = self_utc._time.jd1, self_utc._time.jd2_filled
                 scale = 'utc'
             else:
                 scale = self.scale
@@ -1245,7 +1656,7 @@ class Time(ShapedLikeNDArray):
             if scale == 'ut1':
                 # calculate UTC using the offset we got; the ERFA routine
                 # is tolerant of leap seconds, so will do this right
-                jd1_utc, jd2_utc = erfa.ut1utc(jd1, jd2, delta)
+                jd1_utc, jd2_utc = erfa.ut1utc(jd1, jd2, delta.to_value(u.s))
                 # calculate a better estimate using the nearly correct UTC
                 delta = iers_table.ut1_utc(jd1_utc, jd2_utc)
 
@@ -1254,11 +1665,11 @@ class Time(ShapedLikeNDArray):
         return self._delta_ut1_utc
 
     def _set_delta_ut1_utc(self, val):
+        del self.cache
         if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
             val = val.to(u.second).value
         val = self._match_shape(val)
         self._delta_ut1_utc = val
-        del self.cache
 
     # Note can't use @property because _get_delta_tdb_tt is explicitly
     # called with the optional jd1 and jd2 args.
@@ -1278,7 +1689,7 @@ class Time(ShapedLikeNDArray):
                                      'scales')
                 else:
                     jd1 = self._time.jd1
-                    jd2 = self._time.jd2
+                    jd2 = self._time.jd2_filled
 
             # First go from the current input time (which is either
             # TDB or TT) to an approximate UT1.  Since TT and TDB are
@@ -1290,7 +1701,7 @@ class Time(ShapedLikeNDArray):
             ut = day_frac(njd1 - 0.5, njd2)[1]
 
             if self.location is None:
-                from ..coordinates import EarthLocation
+                from astropy.coordinates import EarthLocation
                 location = EarthLocation.from_geodetic(0., 0., 0.)
             else:
                 location = self.location
@@ -1305,11 +1716,11 @@ class Time(ShapedLikeNDArray):
         return self._delta_tdb_tt
 
     def _set_delta_tdb_tt(self, val):
+        del self.cache
         if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
             val = val.to(u.second).value
         val = self._match_shape(val)
         self._delta_tdb_tt = val
-        del self.cache
 
     # Note can't use @property because _get_delta_tdb_tt is explicitly
     # called with the optional jd1 and jd2 args.
@@ -1321,7 +1732,7 @@ class Time(ShapedLikeNDArray):
             try:
                 other = TimeDelta(other)
             except Exception:
-                raise OperandTypeError(self, other, '-')
+                return NotImplemented
 
         # Tdelta - something is dealt with in TimeDelta, so we have
         # T      - Tdelta = T
@@ -1336,14 +1747,25 @@ class Time(ShapedLikeNDArray):
                 if other.scale not in (out.scale, None):
                     other = getattr(other, out.scale)
             else:
-                out._set_scale(other.scale if other.scale is not None
-                               else 'tai')
+                if other.scale is None:
+                    out._set_scale('tai')
+                else:
+                    if self.scale not in TIME_TYPES[other.scale]:
+                        raise TypeError("Cannot subtract Time and TimeDelta instances "
+                                        "with scales '{0}' and '{1}'"
+                                        .format(self.scale, other.scale))
+                    out._set_scale(other.scale)
             # remove attributes that are invalidated by changing time
             for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
                 if hasattr(out, attr):
                     delattr(out, attr)
 
         else:  # T - T
+            # the scales should be compatible (e.g., cannot convert TDB to LOCAL)
+            if other.scale not in self.SCALES:
+                raise TypeError("Cannot subtract Time instances "
+                                "with scales '{0}' and '{1}'"
+                                .format(self.scale, other.scale))
             self_time = (self._time if self.scale in TIME_DELTA_SCALES
                          else self.tai._time)
             # set up TimeDelta, subtraction to be done shortly
@@ -1369,7 +1791,7 @@ class Time(ShapedLikeNDArray):
             try:
                 other = TimeDelta(other)
             except Exception:
-                raise OperandTypeError(self, other, '+')
+                return NotImplemented
 
         # Tdelta + something is dealt with in TimeDelta, so we have
         # T      + Tdelta = T
@@ -1386,8 +1808,14 @@ class Time(ShapedLikeNDArray):
             if other.scale not in (out.scale, None):
                 other = getattr(other, out.scale)
         else:
-            out._set_scale(other.scale if other.scale is not None else 'tai')
-
+            if other.scale is None:
+                out._set_scale('tai')
+            else:
+                if self.scale not in TIME_TYPES[other.scale]:
+                    raise TypeError("Cannot add Time and TimeDelta instances "
+                                    "with scales '{0}' and '{1}'"
+                                    .format(self.scale, other.scale))
+                out._set_scale(other.scale)
         # remove attributes that are invalidated by changing time
         for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
             if hasattr(out, attr):
@@ -1410,31 +1838,35 @@ class Time(ShapedLikeNDArray):
         out = self.__sub__(other)
         return -out
 
-    def _time_difference(self, other, op=None):
-        """If other is of same class as self, return difference in self.scale.
-        Otherwise, raise OperandTypeError.
+    def _time_comparison(self, other, op):
+        """If other is of same class as self, compare difference in self.scale.
+        Otherwise, return NotImplemented
         """
         if other.__class__ is not self.__class__:
             try:
                 other = self.__class__(other, scale=self.scale)
             except Exception:
-                raise OperandTypeError(self, other, op)
+                # Let other have a go.
+                return NotImplemented
 
         if(self.scale is not None and self.scale not in other.SCALES or
            other.scale is not None and other.scale not in self.SCALES):
-            raise TypeError("Cannot compare TimeDelta instances with scales "
-                            "'{0}' and '{1}'".format(self.scale, other.scale))
+            # Other will also not be able to do it, so raise a TypeError
+            # immediately, allowing us to explain why it doesn't work.
+            raise TypeError("Cannot compare {0} instances with scales "
+                            "'{1}' and '{2}'".format(self.__class__.__name__,
+                                                     self.scale, other.scale))
 
         if self.scale is not None and other.scale is not None:
             other = getattr(other, self.scale)
 
-        return (self.jd1 - other.jd1) + (self.jd2 - other.jd2)
+        return op((self.jd1 - other.jd1) + (self.jd2 - other.jd2), 0.)
 
     def __lt__(self, other):
-        return self._time_difference(other, '<') < 0.
+        return self._time_comparison(other, operator.lt)
 
     def __le__(self, other):
-        return self._time_difference(other, '<=') <= 0.
+        return self._time_comparison(other, operator.le)
 
     def __eq__(self, other):
         """
@@ -1442,11 +1874,7 @@ class Time(ShapedLikeNDArray):
         Otherwise, return `True` if the time difference between self and
         other is zero.
         """
-        try:
-            diff = self._time_difference(other)
-        except OperandTypeError:
-            return False
-        return diff == 0.
+        return self._time_comparison(other, operator.eq)
 
     def __ne__(self, other):
         """
@@ -1454,17 +1882,13 @@ class Time(ShapedLikeNDArray):
         Otherwise, return `False` if the time difference between self and
         other is zero.
         """
-        try:
-            diff = self._time_difference(other)
-        except OperandTypeError:
-            return True
-        return diff != 0.
+        return self._time_comparison(other, operator.ne)
 
     def __gt__(self, other):
-        return self._time_difference(other, '>') > 0.
+        return self._time_comparison(other, operator.gt)
 
     def __ge__(self, other):
-        return self._time_difference(other, '>=') >= 0.
+        return self._time_comparison(other, operator.ge)
 
     def to_datetime(self, timezone=None):
         tm = self.replicate(format='datetime')
@@ -1486,7 +1910,7 @@ class TimeDelta(Time):
     The allowed values for ``format`` can be listed with::
 
       >>> list(TimeDelta.FORMATS)
-      ['sec', 'jd']
+      ['sec', 'jd', 'datetime']
 
     Note that for time differences, the scale can be among three groups:
     geocentric ('tai', 'tt', 'tcg'), barycentric ('tcb', 'tdb'), and rotational
@@ -1497,11 +1921,18 @@ class TimeDelta(Time):
     a similar reason, 'utc' is not a valid scale for a time difference: a UTC
     day is not always 86400 seconds.
 
+    See also:
+
+    - http://docs.astropy.org/en/stable/time/
+    - http://docs.astropy.org/en/stable/time/index.html#time-deltas
+
     Parameters
     ----------
-    val : sequence, ndarray, number, or `~astropy.time.TimeDelta` object
-        Value(s) to initialize the time difference(s).
-    val2 : numpy ndarray, list, str, or number; optional
+    val : sequence, ndarray, number, `~astropy.units.Quantity` or `~astropy.time.TimeDelta` object
+        Value(s) to initialize the time difference(s). Any quantities will
+        be converted appropriately (with care taken to avoid rounding
+        errors for regular time units).
+    val2 : sequence, ndarray, number, or `~astropy.units.Quantity`; optional
         Additional values, as needed to preserve precision.
     format : str, optional
         Format of input value(s)
@@ -1527,15 +1958,7 @@ class TimeDelta(Time):
                 self._set_scale(scale)
         else:
             if format is None:
-                try:
-                    val = val.to(u.day)
-                    if val2 is not None:
-                        val2 = val2.to(u.day)
-                except Exception:
-                    raise ValueError('Only Quantities with Time units can '
-                                     'be used to initiate {0} instances .'
-                                     .format(self.__class__.__name__))
-                format = 'jd'
+                format = 'datetime' if isinstance(val, timedelta) else 'jd'
 
             self._init_from_vals(val, val2, format, scale, copy)
 
@@ -1546,6 +1969,13 @@ class TimeDelta(Time):
         out = super().replicate(*args, **kwargs)
         out.SCALES = self.SCALES
         return out
+
+    def to_datetime(self):
+        """
+        Convert to ``datetime.timedelta`` object.
+        """
+        tm = self.replicate(format='datetime')
+        return tm._shaped_like_input(tm._time.value)
 
     def _set_scale(self, scale):
         """
@@ -1581,7 +2011,7 @@ class TimeDelta(Time):
             try:
                 other = TimeDelta(other)
             except Exception:
-                raise OperandTypeError(self, other, '+')
+                return NotImplemented
 
         # the scales should be compatible (e.g., cannot convert TDB to TAI)
         if(self.scale is not None and self.scale not in other.SCALES or
@@ -1613,7 +2043,7 @@ class TimeDelta(Time):
             try:
                 other = TimeDelta(other)
             except Exception:
-                raise OperandTypeError(self, other, '-')
+                return NotImplemented
 
         # the scales should be compatible (e.g., cannot convert TDB to TAI)
         if(self.scale is not None and self.scale not in other.SCALES or
@@ -1718,6 +2148,16 @@ class TimeDelta(Time):
         return u.Quantity(self._time.jd1 + self._time.jd2,
                           u.day).to(*args, **kwargs)
 
+    def _make_value_equivalent(self, item, value):
+        """Coerce setitem value into an equivalent TimeDelta object"""
+        if not isinstance(value, TimeDelta):
+            try:
+                value = self.__class__(value, scale=self.scale, format=self.format)
+            except Exception as err:
+                raise ValueError('cannot convert value to a compatible TimeDelta '
+                                 'object: {}'.format(err))
+        return value
+
 
 class ScaleValueError(Exception):
     pass
@@ -1738,10 +2178,71 @@ def _make_array(val, copy=False):
     # Allow only float64, string or object arrays as input
     # (object is for datetime, maybe add more specific test later?)
     # This also ensures the right byteorder for float64 (closes #2942).
-    if not (val.dtype == np.float64 or val.dtype.kind in 'OSUa'):
+    if not (val.dtype == np.float64 or val.dtype.kind in 'OSUMa'):
         val = np.asanyarray(val, dtype=np.float64)
 
     return val
+
+
+def _check_for_masked_and_fill(val, val2):
+    """
+    If ``val`` or ``val2`` are masked arrays then fill them and cast
+    to ndarray.
+
+    Returns a mask corresponding to the logical-or of masked elements
+    in ``val`` and ``val2``.  If neither is masked then the return ``mask``
+    is ``None``.
+
+    If either ``val`` or ``val2`` are masked then they are replaced
+    with filled versions of themselves.
+
+    Parameters
+    ----------
+    val : ndarray or MaskedArray
+        Input val
+    val2 : ndarray or MaskedArray
+        Input val2
+
+    Returns
+    -------
+    mask, val, val2: ndarray or None
+        Mask: (None or bool ndarray), val, val2: ndarray
+    """
+    def get_as_filled_ndarray(mask, val):
+        """
+        Fill the given MaskedArray ``val`` from the first non-masked
+        element in the array.  This ensures that upstream Time initialization
+        will succeed.
+
+        Note that nothing happens if there are no masked elements.
+        """
+        fill_value = None
+
+        if np.any(val.mask):
+            # Final mask is the logical-or of inputs
+            mask = mask | val.mask
+
+            # First unmasked element.  If all elements are masked then
+            # use fill_value=None from above which will use val.fill_value.
+            # As long as the user has set this appropriately then all will
+            # be fine.
+            val_unmasked = val.compressed()  # 1-d ndarray of unmasked values
+            if len(val_unmasked) > 0:
+                fill_value = val_unmasked[0]
+
+        # Fill the input ``val``.  If fill_value is None then this just returns
+        # an ndarray view of val (no copy).
+        val = val.filled(fill_value)
+
+        return mask, val
+
+    mask = False
+    if isinstance(val, np.ma.MaskedArray):
+        mask, val = get_as_filled_ndarray(mask, val)
+    if isinstance(val2, np.ma.MaskedArray):
+        mask, val2 = get_as_filled_ndarray(mask, val2)
+
+    return mask, val, val2
 
 
 class OperandTypeError(TypeError):

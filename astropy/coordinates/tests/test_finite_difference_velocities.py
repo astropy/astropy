@@ -4,15 +4,15 @@
 
 import pytest
 import numpy as np
-from ...tests.helper import quantity_allclose
+from astropy.units import allclose as quantity_allclose
 
-from ... import units as u
-from ... import constants
-from ...time import Time
-from ..builtin_frames import ICRS, AltAz, LSR, GCRS, Galactic, FK5
-from ..baseframe import frame_transform_graph
-from ..sites import get_builtin_sites
-from .. import (TimeAttribute,
+from astropy import units as u
+from astropy import constants
+from astropy.time import Time
+from astropy.coordinates.builtin_frames import ICRS, AltAz, LSR, GCRS, Galactic, FK5
+from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.sites import get_builtin_sites
+from astropy.coordinates import (TimeAttribute,
                 FunctionTransformWithFiniteDifference, get_sun,
                 CartesianRepresentation, SphericalRepresentation,
                 CartesianDifferential, SphericalDifferential,
@@ -41,8 +41,8 @@ def test_faux_lsr(dt, symmetric):
                                      LSR2, ICRS, finite_difference_dt=dt,
                                      symmetric_finite_difference=symmetric)
     def lsr_to_icrs(lsr_coo, icrs_frame):
-        dt = lsr_frame.obstime - J2000
-        offset = lsr_frame.v_bary * dt.to(u.second)
+        dt = lsr_coo.obstime - J2000
+        offset = lsr_coo.v_bary * dt.to(u.second)
         return icrs_frame.realize_frame(lsr_coo.data - offset)
 
     ic = ICRS(ra=12.3*u.deg, dec=45.6*u.deg, distance=7.8*u.au,
@@ -59,17 +59,21 @@ def test_faux_lsr(dt, symmetric):
     assert quantity_allclose(totchange, np.sum(lsrc.v_bary.d_xyz**2)**0.5)
 
     ic2 = ICRS(ra=120.3*u.deg, dec=45.6*u.deg, distance=7.8*u.au,
-              pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=10*u.marcsec/u.yr,
-              radial_velocity=1000*u.km/u.s)
+               pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=10*u.marcsec/u.yr,
+               radial_velocity=1000*u.km/u.s)
     lsrc2 = ic2.transform_to(LSR2())
+    ic2_roundtrip = lsrc2.transform_to(ICRS)
 
     tot = np.sum(lsrc2.cartesian.differentials['s'].d_xyz**2)**0.5
     assert np.abs(tot.to('km/s') - 1000*u.km/u.s) < 20*u.km/u.s
 
+    assert quantity_allclose(ic2.cartesian.xyz,
+                             ic2_roundtrip.cartesian.xyz)
+
 
 def test_faux_fk5_galactic():
 
-    from ..builtin_frames.galactic_transforms import fk5_to_gal, _gal_to_fk5
+    from astropy.coordinates.builtin_frames.galactic_transforms import fk5_to_gal, _gal_to_fk5
 
     class Galactic2(Galactic):
         pass
@@ -140,6 +144,7 @@ def test_gcrs_diffs():
     assert np.all(np.abs(qtrisun2.data.differentials['s'].d_xyz) < 3e-5*u.km/u.s)
 
 
+@pytest.mark.remote_data
 def test_altaz_diffs():
     time = Time('J2015') + np.linspace(-1, 1, 1000)*u.day
     loc = get_builtin_sites()['greenwich']

@@ -17,7 +17,7 @@ from astropy_helpers import setup_helpers
 from astropy_helpers.distutils_helpers import get_distutils_build_option
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
-WCSVERSION = "5.16"
+WCSVERSION = "5.19.1"
 
 
 def b(s):
@@ -339,6 +339,7 @@ def get_package_data():
                                    'maps/*.hdr', 'spectra/*.hdr',
                                    'extension/*.c'],
         str('astropy.wcs'): api_files,
+        str('astropy.wcs.wcsapi'): ['ucds.txt']
     }
 
 

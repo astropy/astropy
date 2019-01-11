@@ -69,8 +69,8 @@ to convert the |quantity| to base S.I. or c.g.s units::
     >>> logg.si  # doctest: +FLOAT_CMP
     <Dex 3. dex(m / s2)>
 
-Arithmetic
-==========
+Arithmetic and Photometric Applications
+=======================================
 
 Addition and subtraction work as expected for logarithmic quantities,
 multiplying and dividing the physical units as appropriate.  It may be best
@@ -219,3 +219,10 @@ supported as logarithmic units.  For instance::
           <http://adsabs.harvard.edu/abs/1995PASP..107.1065H>`_
 .. [OG83] Oke, J.B., & Gunn, J. E., 1983, `ApJ 266, 713
 	  <http://adsabs.harvard.edu/abs/1983ApJ...266..713O>`_
+
+Reference/API
+=============
+.. automodapi:: astropy.units.function.logarithmic
+   :include-all-objects:
+
+.. automodapi:: astropy.units.photometric

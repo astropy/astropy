@@ -8,7 +8,7 @@ another set of [0:1] values with a transformation
 
 import numpy as np
 
-from ..utils.misc import InheritDocstrings
+from astropy.utils.misc import InheritDocstrings
 from .transform import BaseTransform
 
 
@@ -109,7 +109,8 @@ class SqrtStretch(BaseStretch):
 
     def __call__(self, values, clip=True, out=None):
         values = _prepare(values, clip=clip, out=out)
-        np.sqrt(values, out=values)
+        with np.errstate(invalid='ignore'):
+            np.sqrt(values, out=values)
         return values
 
     @property

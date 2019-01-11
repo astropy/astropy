@@ -5,17 +5,15 @@
 Regression tests for the units.format package
 """
 
-
-
 import pytest
-from numpy.testing.utils import assert_allclose
+from numpy.testing import assert_allclose
 
-from ...tests.helper import catch_warnings
-from ... import units as u
-from ...constants import si
-from .. import core
-from .. import format as u_format
-from ..utils import is_effectively_unity
+from astropy.tests.helper import catch_warnings
+from astropy import units as u
+from astropy.constants import si
+from astropy.units import core
+from astropy.units import format as u_format
+from astropy.units.utils import is_effectively_unity
 
 
 @pytest.mark.parametrize('strings, unit', [
@@ -235,7 +233,7 @@ def test_cds_units_available():
 def test_cds_non_ascii_unit():
     """Regression test for #5350.  This failed with a decoding error as
     μas could not be represented in ascii."""
-    from .. import cds
+    from astropy.units import cds
     with cds.enable():
         u.radian.find_equivalent_units(include_prefix_units=True)
 
@@ -320,7 +318,7 @@ def test_scale_effectively_unity():
 
 def test_percent():
     """Test that the % unit is properly recognized.  Since % is a special
-    symbol, this goes slightly beyond the roundtripping tested above."""
+    symbol, this goes slightly beyond the round-tripping tested above."""
     assert u.Unit('%') == u.percent == u.Unit(0.01)
 
     assert u.Unit('%', format='cds') == u.Unit(0.01)

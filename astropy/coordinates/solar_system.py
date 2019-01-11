@@ -10,13 +10,13 @@ from collections import OrderedDict
 import numpy as np
 
 from .sky_coordinate import SkyCoord
-from ..utils.data import download_file
-from ..utils.decorators import classproperty
-from ..utils.state import ScienceState
-from ..utils import indent
-from .. import units as u
-from .. import _erfa as erfa
-from ..constants import c as speed_of_light
+from astropy.utils.data import download_file
+from astropy.utils.decorators import classproperty
+from astropy.utils.state import ScienceState
+from astropy.utils import indent
+from astropy import units as u
+from astropy import _erfa as erfa
+from astropy.constants import c as speed_of_light
 from .representation import CartesianRepresentation
 from .orbital_elements import calc_moon
 from .builtin_frames import GCRS, ICRS
@@ -226,7 +226,7 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
             return calc_moon(time).cartesian
 
         else:
-            sun_pv_bary = earth_pv_bary - earth_pv_helio
+            sun_pv_bary = erfa.pvmpv(earth_pv_bary, earth_pv_helio)
             if body == 'sun':
                 body_pv_bary = sun_pv_bary
             else:
@@ -237,13 +237,13 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
                                    "calculated with the '{1}' ephemeris."
                                    .format(body, ephemeris))
                 body_pv_helio = erfa.plan94(jd1, jd2, body_index)
-                body_pv_bary = body_pv_helio + sun_pv_bary
+                body_pv_bary = erfa.pvppv(body_pv_helio, sun_pv_bary)
 
         body_pos_bary = CartesianRepresentation(
-            body_pv_bary[..., 0, :], unit=u.au, xyz_axis=-1, copy=False)
+            body_pv_bary['p'], unit=u.au, xyz_axis=-1, copy=False)
         if get_velocity:
             body_vel_bary = CartesianRepresentation(
-                body_pv_bary[..., 1, :], unit=u.au/u.day, xyz_axis=-1,
+                body_pv_bary['v'], unit=u.au/u.day, xyz_axis=-1,
                 copy=False)
 
     else:

@@ -5,12 +5,12 @@ import inspect
 import pytest
 import numpy as np
 
-from ...tests.helper import catch_warnings
-from ...utils.exceptions import AstropyUserWarning
-from ... import units as u
+from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy import units as u
 
-from ..nddata import NDData
-from ..decorators import support_nddata
+from astropy.nddata.nddata import NDData
+from astropy.nddata.decorators import support_nddata
 
 
 class CCDData(NDData):
@@ -181,10 +181,9 @@ def test_wrap_preserve_signature_docstring():
     if wrapped_function_6.__doc__ is not None:
         assert wrapped_function_6.__doc__.strip() == "An awesome function"
 
-    signature = inspect.formatargspec(
-        *inspect.getfullargspec(wrapped_function_6))
+    signature = inspect.signature(wrapped_function_6)
 
-    assert signature == "(data, wcs=None, unit=None)"
+    assert str(signature) == "(data, wcs=None, unit=None)"
 
 
 def test_setup_failures1():

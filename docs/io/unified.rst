@@ -5,8 +5,7 @@ Unified file read/write interface
 
 Astropy provides a unified interface for reading and writing data in different formats.
 For many common cases this will simplify the process of file I/O and reduce the need to
-master the separate details of all the I/O packages within Astropy.  This functionality is
-still in active development and the number of supported formats will be increasing.  For
+master the separate details of all the I/O packages within Astropy.  For
 details on the implementation see :ref:`io_registry`.
 
 Getting started with Table I/O
@@ -33,8 +32,8 @@ the file format, for instance ``'ascii.daophot'``:
 It is possible to load tables directly from the Internet using URLs. For example,
 download tables from Vizier catalogues in CDS format (``'ascii.cds'``)::
 
-    >>> t = Table.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat", 
-    ...         readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe", 
+    >>> t = Table.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat",
+    ...         readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe",
     ...         format="ascii.cds")  # doctest: +SKIP
 
 For certain file formats, the format can be automatically detected, for
@@ -53,6 +52,13 @@ The underlying file handler will also automatically detect various
 compressed data formats and transparently uncompress them as far as
 supported by the Python installation (see
 :meth:`~astropy.utils.data.get_readable_fileobj`).
+
+For writing, one can also specify details about the `Table serialization
+methods`_ via the ``serialize_method`` keyword argument.  This allows
+fine control of the way to write out certain columns, for instance
+writing an ISO format Time column as a pair of JD1 / JD2 floating
+point values (for full resolution) or as a formatted ISO date string.
+
 
 Any additional arguments specified will depend on the format.  For examples of this see the
 section `Built-in table readers/writers`_.  This section also provides the full list of
@@ -81,39 +87,39 @@ To get full documentation on the usage and available options do ``showtable
 Built-in table readers/writers
 ==============================
 
-The :class:`~astropy.table.Table` class has built-in support for various input 
-and output formats including :ref:`table_io_ascii`, 
+The :class:`~astropy.table.Table` class has built-in support for various input
+and output formats including :ref:`table_io_ascii`,
 -:ref:`table_io_fits`, :ref:`table_io_hdf5`, and :ref:`table_io_votable`.
 
 A full list of the supported formats and corresponding classes
 is shown in the table below.
-The ``Write`` column indicates those formats that support write functionality, and 
+The ``Write`` column indicates those formats that support write functionality, and
 the ``Suffix`` column indicates the filename suffix indicating a particular format.
 If the value of ``Suffix`` is ``auto``, the format is auto-detected from the file itself.
 Not all formats support auto-detection.
 
 ===========================  =====  ======  ============================================================================================
-           Format            Write  Suffix                                          Description                                    
+           Format            Write  Suffix                                          Description
 ===========================  =====  ======  ============================================================================================
-                      ascii    Yes          ASCII table in any supported format (uses guessing)                                     
-               ascii.aastex    Yes          :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals             
-                ascii.basic    Yes          :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters                    
-                  ascii.cds     No          :class:`~astropy.io.ascii.Cds`: CDS format table                                                
-     ascii.commented_header    Yes          :class:`~astropy.io.ascii.CommentedHeader`: Column names in a commented line            
-                  ascii.csv    Yes    .csv  :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values                         
-              ascii.daophot     No          :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table                           
-                 ascii.ecsv    Yes   .ecsv  :class:`~astropy.io.ascii.Ecsv`: Basic table with Enhanced CSV (supporting metadata)    
-          ascii.fixed_width    Yes          :class:`~astropy.io.ascii.FixedWidth`: Fixed width                                              
-ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed width with no header                       
- ascii.fixed_width_two_line    Yes          :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed width with second header line               
-                 ascii.html    Yes   .html  :class:`~astropy.io.ascii.HTML`: HTML table                                             
-                 ascii.ipac    Yes          :class:`~astropy.io.ascii.Ipac`: IPAC format table                                              
-                ascii.latex    Yes    .tex  :class:`~astropy.io.ascii.Latex`: LaTeX table                                           
-            ascii.no_header    Yes          :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers                                
-                  ascii.rdb    Yes    .rdb  :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line                
+                      ascii    Yes          ASCII table in any supported format (uses guessing)
+               ascii.aastex    Yes          :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals
+                ascii.basic    Yes          :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters
+                  ascii.cds     No          :class:`~astropy.io.ascii.Cds`: CDS format table
+     ascii.commented_header    Yes          :class:`~astropy.io.ascii.CommentedHeader`: Column names in a commented line
+                  ascii.csv    Yes    .csv  :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values
+              ascii.daophot     No          :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table
+                 ascii.ecsv    Yes   .ecsv  :class:`~astropy.io.ascii.Ecsv`: Basic table with Enhanced CSV (supporting metadata)
+          ascii.fixed_width    Yes          :class:`~astropy.io.ascii.FixedWidth`: Fixed width
+ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed width with no header
+ ascii.fixed_width_two_line    Yes          :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed width with second header line
+                 ascii.html    Yes   .html  :class:`~astropy.io.ascii.HTML`: HTML table
+                 ascii.ipac    Yes          :class:`~astropy.io.ascii.Ipac`: IPAC format table
+                ascii.latex    Yes    .tex  :class:`~astropy.io.ascii.Latex`: LaTeX table
+            ascii.no_header    Yes          :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
+                  ascii.rdb    Yes    .rdb  :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line
                   ascii.rst    Yes    .rst  :class:`~astropy.io.ascii.RST`: reStructuredText simple format table
-           ascii.sextractor     No          :class:`~astropy.io.ascii.SExtractor`: SExtractor format table                          
-                  ascii.tab    Yes          :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values  
+           ascii.sextractor     No          :class:`~astropy.io.ascii.SExtractor`: SExtractor format table
+                  ascii.tab    Yes          :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
                        fits    Yes    auto  :mod:`~astropy.io.fits`: Flexible Image Transport System file
                        hdf5    Yes    auto  HDF5_: Hierarchical Data Format binary file
                     votable    Yes    auto  :mod:`~astropy.io.votable`: Table format used by Virtual Observatory (VO) initiative
@@ -176,6 +182,18 @@ column delimiter and the output format for the ``colc`` column use:
    For compatibility with astropy version 0.2 and earlier, the following format
    values are also allowed in ``Table.read()``: ``daophot``, ``ipac``, ``html``, ``latex``, and ``rdb``.
 
+.. attention:: **ECSV is recommended**
+
+   For writing and reading tables to ASCII in a way that fully reproduces the
+   table data, types and metadata (i.e. the table will "round-trip"), we highly
+   recommend using the :ref:`ecsv_format`.  This writes the actual data in a
+   simple space-delimited format (the ``basic`` format) that any ASCII table
+   reader can parse, but also includes metadata encoded in a comment block that
+   allows full reconstruction of the original columns.  This includes support
+   for :ref:`ecsv_format_mixin_columns` (such as
+   `~astropy.coordinates.SkyCoord` or `~astropy.time.Time`) and
+   :ref:`ecsv_format_masked_columns`.
+
 .. _table_io_fits:
 
 FITS
@@ -227,6 +245,13 @@ can use the convenience function
 binary table HDU and insert or append that to an existing
 :class:`~astropy.io.fits.HDUList`.
 
+As of astropy version 3.0 there is support for writing a table which contains
+:ref:`mixin_columns` such as `~astropy.time.Time` or
+`~astropy.coordinates.SkyCoord`.  This uses FITS ``COMMENT`` cards to capture
+additional information needed order to fully reconstruct the mixin columns when
+reading back from FITS.  The information is a Python `dict` structure which is
+serialized using YAML.
+
 Keywords
 ^^^^^^^^^
 
@@ -262,19 +287,148 @@ FITS header (for example, keyword comments are dropped).
 
 .. _fits_astropy_native:
 
+
+TDISPn Keyword
+^^^^^^^^^^^^^^
+
+TDISPn FITS keywords will map to and from the `~astropy.table.Column` ``format``
+attribute if the display format is convertible to and from a Python display
+format. Below are the rules used for both conversion directions.
+
+TDISPn to Python Format String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TDISPn format characters are defined in the table below.
+
+============   ================================================================
+   Format                              Description
+============   ================================================================
+Aw             Character
+Lw             Logical
+Iw.m           Integer
+Bw.m           Binary, integers only
+Ow.m           Octal, integers only
+Zw.m           Hexadecimal, integers only
+Fw.d           Floating-point, fixed decimal notation
+Ew.dEe         Floating-point, exponential notation
+ENw.d          Engineering; E format with exponent multiple of three
+ESw.d          Scientific; same as EN but non-zero leading digit if not zero
+Gw.dEe         General; appears as F if significance not lost, also E
+Dw.dEe         Floating-point, exponential notation, double precision
+============   ================================================================
+
+Where w is the width in characters of displayed values, m is the minimum number
+of digits displayed, d is the number of digits to the right of decimal, and e
+is number of digits in the exponent.  The .m and Ee fields are optional.
+
+The A (character), L (logical), F (floating point), and G (general) display
+formats can be directly translated to Python format strings.  The other formats
+need to be modified to match Python display formats.
+
+For the integer formats (I, B, O, and Z), the width (w) value is used to add
+space padding to the left of the column value.  The minimum number (m) value is
+not used.  For the E, G, D, EN, and ES formats (floating point exponential) the
+width (w) and precision (d) are both used, but the exponential (e) is not used.
+
+Python Format String to TDISPn
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The conversion from Python format strings back to TDISPn is slightly more
+complicated.
+
+Python strings map to the TDISP format A if the Python formatting string does
+not contain right space padding.  It will accept left space padding. The same
+applies to the logical format L.
+
+The integer formats (decimal integer, binary, octal, hexidecimal) map to the
+I, B, O, and Z TDISP formats respectively. Integer formats do not accept a
+zero padded format string or a format string with no left padding defined (a
+width is required in the TDISP format standard for the Integer formats).
+
+For all float and exponential values zero padding is not accepted.  There
+must be at least a width or precision defined.  If only a width is defined,
+there is no precision set for the TDISPn format.  If only a precision is
+defined, the width is set to the precision plus an extra padding value
+depending on format type, and both are set in the TDISPn format.  Otherwise,
+if both a width and precision are present they are both set in the TDISPn
+format.  A Python ``f`` or ``F`` map to TDISP F format.  The Python ``g`` or
+``G`` map to TDISP G format.  The Python ``e`` and ``E`` map to TDISP E format.
+
+Masked columns
+^^^^^^^^^^^^^^
+
+Tables that contain `~astropy.table.MaskedColumn` columns can be written to
+FITS.  By default this will replace the masked data elements with certain
+sentinel values according to the FITS standard:
+
+- ``NaN`` for float columns
+- Value of ``TNULLn`` for integer columns, as defined by the column
+  ``fill_value`` attribute
+- Null string for string columns (not currently implemented)
+
+When the file is read back those elements are marked as masked in the returned
+table, but see `issue #4708 <https://github.com/astropy/astropy/issues/4708>`_
+for problems in all three cases.
+
+The FITS standard has a few limitations:
+
+- Not all data types are supported (e.g. logical / boolean)
+- Integer columns require picking one value as the NULL indicator.  If
+  all possible values are represented in valid data (e.g. an unsigned
+  int columns with all 256 possible values in valid data) then there
+  is no way to represent missing data.
+- The masked data values are permanently lost, precluding the possibility
+  of later unmasking the values.
+
+Astropy provides a work-around for this limitation that users can choose to
+use.  The key part is to use the ``serialize_method='data_mask'`` keyword argument
+when writing the table.  This tells the FITS writer to split each masked
+column into two separate columns, one for the data and one for the mask.
+When it gets read back that process is reversed and the two columns are
+merged back into one masked column.
+
+.. doctest-skip::
+
+  >>> from astropy.table.table_helpers import simple_table
+  >>> t = simple_table(masked=True)
+  >>> t['d'] = [False, False, True]
+  >>> t['d'].mask = [True, False, False]
+  >>> t
+  <Table masked=True length=3>
+    a      b     c     d
+  int64 float64 str1  bool
+  ----- ------- ---- -----
+     --     1.0    c    --
+      2     2.0   -- False
+      3      --    e  True
+
+.. doctest-skip::
+
+  >>> t.write('data.fits', serialize_method='data_mask', overwrite=True)
+  >>> Table.read('data.fits')
+  <Table masked=True length=3>
+    a      b      c      d
+  int64 float64 bytes1  bool
+  ----- ------- ------ -----
+     --     1.0      c    --
+      2     2.0     -- False
+      3      --      e  True
+
+.. warning:: This option goes outside of the established FITS standard for
+   representing missing data so users should be careful about choosing this option,
+   especially if other (non-astropy) users will be reading the file(s).  Behind
+   the scenes, astropy is converting the masked columns into two distinct
+   data and mask columns, then writing metadata into ``COMMENT`` cards to
+   allow reconstruction of the original data.
+
 Astropy native objects (mixin columns)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is possible to store not only standard `~astropy.table.Column` objects to a
-FITS table HDU, but also the following Astropy native objects
-(:ref:`mixin_columns`) within a `~astropy.table.Table` or `~astropy.table.QTable`:
-
-- `astropy.time.Time`
-- `astropy.units.Quantity`
-
-Other mixin columns such as `~astropy.coordinates.SkyCoord` or
-`~astropy.coordinates.EarthLocation` are not currently supported due to reasons
-including extensive metadata and no precise mapping to the FITS standard.
+FITS table HDU, but also any Astropy native objects
+(:ref:`mixin_columns`) within a `~astropy.table.Table` or
+`~astropy.table.QTable`.  This includes `~astropy.time.Time`,
+`~astropy.units.Quantity`, `~astropy.coordinates.SkyCoord`, and many others.
 
 In general a mixin column may contain multiple data components as well as
 object attributes beyond the standard Column attributes like ``format`` or
@@ -323,7 +477,7 @@ By default, a `~astropy.time.Time` mixin column within a `~astropy.table.Table`
 or `~astropy.table.QTable` will be written to FITS in full precision. This will be
 done using the FITS time standard by setting the necessary FITS header keywords.
 
-The default behaviour for reading a FITS table into an `~astropy.table.Table`
+The default behavior for reading a FITS table into an `~astropy.table.Table`
 has historically been to convert all FITS columns to `~astropy.table.Column`
 objects, which have closely matching properties. For some columns, however,
 closer native astropy representations are possible, and one can indicate these
@@ -346,8 +500,8 @@ precision. For example:
     <Time object: scale='tt' format='jd' value=[ 2400100.5  2400200.5]>
     >>> tm['a'].location
     <EarthLocation (-2446354.,  4237210.,  4077985.) m>
-    >>> tm['a'] == t['a']
-    array([ True,  True], dtype=bool)
+    >>> all(tm['a'] == t['a'])
+    True
 
 The same will work with ``QTable``.
 
@@ -440,16 +594,16 @@ and the time coordinate column ``time`` as ``[1, 2]`` will give::
     >>> chandra_events = get_pkg_data_filename('data/chandra_time.fits',
     ...                                        package='astropy.io.fits.tests')
     >>> native = Table.read(chandra_events, astropy_native=True)
-    >>> native['time']
-    <Time object: scale='tt' format='mjd' value=[ 57413.76033393  57413.76033393]>
+    >>> native['time']  # doctest: +FLOAT_CMP
+    <Time object: scale='tt' format='mjd' value=[57413.76033393 57413.76033393]>
     >>> non_native = Table.read(chandra_events)
     >>> # MJDREF  =  5.0814000000000E+04, TIMESYS = 'TT'
     >>> ref_time = Time(non_native.meta['MJDREF'], format='mjd',
     ...                 scale=non_native.meta['TIMESYS'].lower())
     >>> # TTYPE1  = 'time', TUNIT1 = 's'
     >>> delta_time = TimeDelta(non_native['time'])
-    >>> ref_time + delta_time == native['time']
-    array([ True,  True], dtype=bool)
+    >>> all(ref_time + delta_time == native['time'])
+    True
 
 By default, FITS table columns will be read as standard `~astropy.table.Column`
 objects without taking the FITS time standard into consideration.
@@ -550,8 +704,9 @@ of the `~astropy.time.Time` column, instead of the ``(jd1, jd2)`` format, with
 no extra metadata in the header. This is the "lossy" version, but can help
 portability. For the above example, the FITS column corresponding
 to ``t['a']`` will then store ``[100.0 200.0]`` instead of
-``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``. This is done by using a special
-``info.serialize_method`` attribute, as in the following example:
+``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``. This is done by setting the
+`Table serialization methods`_ for Time columns when writing, as in the
+following example:
 
 .. doctest-skip::
 
@@ -560,17 +715,17 @@ to ``t['a']`` will then store ``[100.0 200.0]`` instead of
     >>> from astropy.coordinates import EarthLocation
     >>> t = Table()
     >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd')
-    >>> t['a'].info.serialize_method['fits'] = 'formatted_value'
-    >>> t.write('my_table.fits', overwrite=True)
+    >>> t.write('my_table.fits', overwrite=True,
+    ...         serialize_method={Time: 'formatted_value'})
     >>> tm = Table.read('my_table.fits')
     >>> tm['a']
     <Column name='a' dtype='float64' length=2>
     100.0
     200.0
-    >>> tm['a'] == t['a'].value
-    array([ True,  True], dtype=bool)
+    >>> all(tm['a'] == t['a'].value)
+    True
 
-By default, ``serialize_method['fits']`` in a Time column ``info`` is equal to
+By default, ``serialize_method`` for Time columns is equal to
 ``'jd1_jd2'``, that is, Time column will be written in full precision.
 
 .. note::
@@ -584,14 +739,20 @@ By default, ``serialize_method['fits']`` in a Time column ``info`` is equal to
      Astropy Time allows for many other formats like ``unix`` or ``cxcsec``
      for representing the values.
 
+     Hence, the ``format`` attribute of Time is not stored.  After reading from FITS
+     the user must set the ``format`` as desired.
+
    * LOCATION
 
-     In Astropy Time, location can be an array which is broadcastable to the
-     Time values. In the FITS standard, location is a scalar expressed via
-     keywords.
+     In the FITS standard, the reference position for a time coordinate is a scalar
+     expressed via keywords. However, vectorized reference position or location can
+     be supported by the `Green Bank Keyword Convention
+     <https://fits.gsfc.nasa.gov/registry/greenbank.html/>`_ which is a Registered FITS
+     Convention. In Astropy Time, location can be an array which is broadcastable to the
+     Time values.
 
-   Hence the ``format`` attribute and a vector ``location`` attribute are not
-   stored.  After reading from FITS the user must set the ``format`` as desired.
+     Hence, vectorized ``location`` attribute of Time is stored and read following this
+     convention.
 
 .. doctest-skip-all
 
@@ -635,24 +796,60 @@ overwriting existing files. To overwrite only a single table within an HDF5
 file that has multiple datasets, use *both* the ``overwrite=True`` and
 ``append=True`` arguments.
 
-If the metadata of the table cannot be written directly to the HDF5 file 
-(e.g. dictionaries), or if you want to preserve the units and description
-of tables and columns, use ``serialize_meta=True``::
-
-    >>> t.write('observations.hdf5', path='updated_data', serialize_meta=True)
-
-The way serialized meta are saved in the HDF5 dataset have changed in Astropy 3.0.
-Files in the old format are still read correctly. If for some reason the user wants to *write*
-in the old format, they will specify the (deprecated) ``compatibility_mode`` keyword
-
-    >>> t.write('observations.hdf5', path='updated_data', serialize_meta=True, compatibility_mode=True)
-
 Finally, when writing to HDF5 files, the ``compression=`` argument can be
 used to ensure that the data is compressed on disk::
 
     >>> t.write('new_file.hdf5', path='updated_data', compression=True)
 
+Metadata and mixin columns
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Astropy tables can contain metadata, both in the table ``meta`` attribute
+(which is an ordered dictionary of arbitrary key/value pairs), and within the
+columns, which each have attributes ``unit``, ``format``, ``description``,
+and ``meta``.
+
+By default, when writing a table to HDF5 the code will attempt to store each
+key/value pair within the table ``meta`` as HDF5 attributes of the table
+dataset.  This will fail of the values within ``meta`` are not objects that can
+be stored as HDF5 attributes.  In addition, if the table columns being stored
+have defined values for any of the above-listed column attributes, these
+metadata will *not* be stored and a warning will be issued.
+
+serialize_meta
+~~~~~~~~~~~~~~
+To enable storing all table and column metadata to the HDF5 file, call
+the ``write()`` method with ``serialize_meta=True``.  This will store metadata
+in a separate HDF5 dataset, contained in the same file, which is named
+``<path>.__table_column_meta__``.  Here ``path`` is the argument provided in
+the call to ``write()``::
+
+    >>> t.write('observations.hdf5', path='data', serialize_meta=True)
+
+As of astropy 3.0, by specifying ``serialize_meta=True`` one can also store to
+HDF5 tables that contain :ref:`mixin_columns` such as `~astropy.time.Time` or
+`~astropy.coordinates.SkyCoord` columns.
+
+compatibility_mode
+~~~~~~~~~~~~~~~~~~
+
+The way metadata are saved in the HDF5 dataset has changed in astropy 3.0.
+Previously the metadata were serialized with YAML and this was stored as an
+HDF5 attribute.  This process was subject to a fixed limit on the size of an
+attribute.  Starting with 3.0 the YAML-serialized metadata are stored as a
+separate dataset as described above, with no size limit.
+
+Files using the old convention are automatically recognized and will always be read
+correctly.
+
+If for some reason the user needs to *write* in the old format, they should
+specify the deprecated ``compatibility_mode`` keyword::
+
+    >>> t.write('observations.hdf5', path='updated_data', serialize_meta=True,
+    ...         compatibility_mode=True)
+
+.. warning:: The ``compatibility_mode`` keyword will be removed in a future
+   version of astropy so your code should be changed.
 
 .. _table_io_jsviewer:
 
@@ -716,3 +913,86 @@ To write to a new file, the ID of the table should also be specified (unless
 When writing, the ``compression=True`` argument can be used to force
 compression of the data on disk, and the ``overwrite=True`` argument can be
 used to overwrite an existing file.
+
+.. _table_serialization_methods:
+
+Table serialization methods
+===========================
+
+Astropy supports fine-grained control of the way to write out (serialize)
+the columns in a Table.  For instance if you are writing an ISO format
+Time column to an ECSV ASCII table file, you may want to write this as a pair
+of JD1 / JD2 floating point values for full resolution (perfect round-trip), or
+as a formatted ISO date string so that the values are easily readable by you or
+other applications.
+
+The default method for serialization depends on the format (FITS, ECSV, HDF5).
+For instance HDF5 is a binary format and so it would make sense to store a Time
+object as JD1 / JD2, while ECSV is a flat ASCII format and commonly you
+would want to see the date in the same format as the Time object.  The defaults
+also reflect an attempt to minimize compatibility issues between astropy
+versions.  For instance it was possible to write Time columns to ECSV as
+formatted strings in a version prior to the ability to write as JD1 / JD2
+pairs, so the current default for ECSV is to write as formatted strings.
+
+The two classes which have configurable serialization method are
+`~astropy.time.Time` and `~astropy.table.MaskedColumn`.  See the sections
+on Time `Details`_ and `Masked columns`_, respectively, for additional
+information.  The defaults for each format are listed below:
+
+====== ==================== ===============
+Format    Time                MaskedColumn
+====== ==================== ===============
+FITS    ``jd1_jd2``          ``null_value``
+ECSV    ``formatted_value``  ``null_value``
+HDF5    ``jd1_jd2``          ``data_mask``
+YAML    ``jd2_jd2``            ---
+====== ==================== ===============
+
+As an example, start by making a table with a Time column and masked column:
+
+  >>> import sys
+  >>> from astropy.time import Time
+  >>> from astropy.table import Table, MaskedColumn
+
+  >>> t = Table(masked=True)
+  >>> t['tm'] = Time(['2000-01-01', '2000-01-02'])
+  >>> t['mc1'] = MaskedColumn([1.0, 2.0], mask=[True, False])
+  >>> t['mc2'] = MaskedColumn([3.0, 4.0], mask=[False, True])
+  >>> t
+  <Table masked=True length=2>
+             tm             mc1     mc2
+           object         float64 float64
+  ----------------------- ------- -------
+  2000-01-01 00:00:00.000      --     3.0
+  2000-01-02 00:00:00.000     2.0      --
+
+Now specify that you want all `~astropy.time.Time` columns written as JD1 / JD2
+and the ``mc1`` column written as a data / mask pair and
+write to ECSV:
+
+.. doctest-skip::
+
+  >>> serialize_method = {Time: 'jd1_jd2', 'mc1': 'data_mask'}
+  >>> t.write(sys.stdout, format='ascii.ecsv', serialize_method=serialize_method)
+  # %ECSV 0.9
+   ...
+  # schema: astropy-2.0
+   tm.jd1    tm.jd2  mc1  mc1.mask  mc2
+  2451544.0    0.5   1.0   True     3.0
+  2451546.0   -0.5   2.0   False     ""
+
+(Spaces added for clarity)
+
+Notice that the ``tm`` column has been replaced by the ``tm.jd1`` and ``tm.jd2``
+columns, and likewise a new column ``mc1.mask`` has appeared and it explicitly
+contains the mask values.  When this table is read back with the ``ascii.ecsv``
+reader then the original columns are reconstructed.
+
+The ``serialize_method`` argument can be set in two different ways:
+
+- As a single string like ``data_mask``.  This value then applies to every column,
+  and is a convenient strategy for a masked table with no Time columns.
+- As a `dict`, where the key can be either a single column name or a class (as
+  shown in the example above), and the value is the corresponding serialization
+  method.

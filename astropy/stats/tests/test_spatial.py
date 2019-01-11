@@ -2,9 +2,10 @@
 import numpy as np
 import pytest
 
-from numpy.testing.utils import assert_allclose
-from ..spatial import RipleysKEstimator
-from ...utils.misc import NumpyRNGContext
+from numpy.testing import assert_allclose
+
+from astropy.stats.spatial import RipleysKEstimator
+from astropy.utils.misc import NumpyRNGContext
 
 
 a = np.array([[1, 4], [2, 5], [3, 6]])

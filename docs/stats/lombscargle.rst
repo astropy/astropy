@@ -297,7 +297,7 @@ arguments which control the model for the data:
   and likely other names as well.
 - ``nterms`` (``1`` by default) controls how many Fourier terms are used in the
   model. As seen above, the standard Lomb-Scargle periodogram is equivalent to
-  a single-term sinusoidal fit to the data at each frequency; the obvious
+  a single-term sinusoidal fit to the data at each frequency; the
   generalization is to expand this to a truncated Fourier series with multiple
   frequencies. While this can be very useful in some cases, in others the
   additional model complexity can lead to spurious periodogram peaks that
@@ -407,8 +407,7 @@ Next we compute the two versions of the PSD from uniformly-sampled data:
 
 Examining the results, we see that the two outputs match:
 
->>> from astropy.tests.helper import quantity_allclose
->>> quantity_allclose(PSD_fourier, PSD_LS)
+>>> u.allclose(PSD_fourier, PSD_LS)
 True
 
 This equivalence is one reason the Lomb-Scargle periodogram is considered
@@ -441,11 +440,11 @@ For example, let's simulate 60 observations of a sine wave with noise:
 >>> y = np.sin(2 * np.pi * t) + dy * rand.randn(60)
 >>> ls = LombScargle(t, y, dy)
 >>> freq, power = ls.autopower()
->>> print(power.max())
-0.338140019582
+>>> print(power.max())  # doctest: +FLOAT_CMP
+0.33814001958188855
 
 The peak of the periodogram has a value of 0.33, but how significant is
-this peak? We can address this question using the 
+this peak? We can address this question using the
 :func:`~astropy.stats.LombScargle.false_alarm_probability` method:
 
 .. doctest-requires:: scipy
@@ -479,7 +478,7 @@ false alarm probability, which can be done with the
 
   >>> probabilities = [0.1, 0.05, 0.01]
   >>> ls.false_alarm_level(probabilities)  # doctest: +FLOAT_CMP
-  array([ 0.25446627,  0.27436154,  0.31716182])
+  array([0.25446627, 0.27436154, 0.31716182])
 
 This tells us that to attain a 10% false alarm probability requires the highest
 periodogram peak to be approximately 0.25; 5% requires 0.27, and 1% requires

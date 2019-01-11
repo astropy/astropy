@@ -2,9 +2,9 @@
 
 import numpy as np
 
-from .. import units as u
+from astropy import units as u
 
-from .wcs import WCS, WCSSUB_CELESTIAL
+from .wcs import WCS, WCSSUB_LONGITUDE, WCSSUB_LATITUDE, WCSSUB_CELESTIAL
 
 __doctest_skip__ = ['wcs_to_celestial_frame', 'celestial_frame_to_wcs']
 
@@ -45,13 +45,13 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
 def _wcs_to_celestial_frame_builtin(wcs):
 
     # Import astropy.coordinates here to avoid circular imports
-    from ..coordinates import FK4, FK4NoETerms, FK5, ICRS, Galactic
+    from astropy.coordinates import FK4, FK4NoETerms, FK5, ICRS, ITRS, Galactic
 
     # Import astropy.time here otherwise setup.py fails before extensions are compiled
-    from ..time import Time
+    from astropy.time import Time
 
     # Keep only the celestial part of the axes
-    wcs = wcs.sub([WCSSUB_CELESTIAL])
+    wcs = wcs.sub([WCSSUB_LONGITUDE, WCSSUB_LATITUDE])
 
     if wcs.wcs.lng == -1 or wcs.wcs.lat == -1:
         return None
@@ -92,6 +92,8 @@ def _wcs_to_celestial_frame_builtin(wcs):
     else:
         if xcoord == 'GLON' and ycoord == 'GLAT':
             frame = Galactic()
+        elif xcoord == 'TLON' and ycoord == 'TLAT':
+            frame = ITRS(obstime=wcs.wcs.dateobs or None)
         else:
             frame = None
 
@@ -101,7 +103,7 @@ def _wcs_to_celestial_frame_builtin(wcs):
 def _celestial_frame_to_wcs_builtin(frame, projection='TAN'):
 
     # Import astropy.coordinates here to avoid circular imports
-    from ..coordinates import BaseRADecFrame, FK4, FK4NoETerms, FK5, ICRS, Galactic
+    from astropy.coordinates import BaseRADecFrame, FK4, FK4NoETerms, FK5, ICRS, ITRS, Galactic
 
     # Create a 2-dimensional WCS
     wcs = WCS(naxis=2)
@@ -126,6 +128,11 @@ def _celestial_frame_to_wcs_builtin(frame, projection='TAN'):
     elif isinstance(frame, Galactic):
         xcoord = 'GLON'
         ycoord = 'GLAT'
+    elif isinstance(frame, ITRS):
+        xcoord = 'TLON'
+        ycoord = 'TLAT'
+        wcs.wcs.radesys = 'ITRS'
+        wcs.wcs.dateobs = frame.obstime.utc.isot
     else:
         return None
 
@@ -517,7 +524,7 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
     # Keep only the celestial part of the axes, also re-orders lon/lat
-    wcs = wcs.sub([WCSSUB_CELESTIAL])
+    wcs = wcs.sub([WCSSUB_LONGITUDE, WCSSUB_LATITUDE])
 
     if wcs.naxis != 2:
         raise ValueError("WCS should contain celestial component")
@@ -587,7 +594,7 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
     """
 
     # Import astropy.coordinates here to avoid circular imports
-    from ..coordinates import SkyCoord, UnitSphericalRepresentation
+    from astropy.coordinates import SkyCoord, UnitSphericalRepresentation
 
     # we have to do this instead of actually setting the default to SkyCoord
     # because importing SkyCoord at the module-level leads to circular
@@ -599,7 +606,7 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
     # Keep only the celestial part of the axes, also re-orders lon/lat
-    wcs = wcs.sub([WCSSUB_CELESTIAL])
+    wcs = wcs.sub([WCSSUB_LONGITUDE, WCSSUB_LATITUDE])
 
     if wcs.naxis != 2:
         raise ValueError("WCS should contain celestial component")

@@ -249,7 +249,7 @@ When reading a table the second element of a ``<missing_spec>`` should always
 be the string ``'0'``,
 otherwise you may get unexpected behavior [#f1]_.  By default the
 ``<missing_spec>`` is applied to all columns unless column name strings are
-supplied.  An alterate way to limit the columns is via the
+supplied.  An alternate way to limit the columns is via the
 ``fill_include_names`` and ``fill_exclude_names`` keyword arguments in |read|.
 
 In the example below we read back the weather table after filling the missing
@@ -290,6 +290,8 @@ values in with typical placeholders::
          used ``'nan'`` for the ``<match_string>`` value then integer columns
          would wind up as float.
 
+.. _guess_formats:
+
 Guess table format
 ==================
 
@@ -316,8 +318,8 @@ Guess order
 The order of guessing is shown by this Python code, where ``Reader`` is the
 class which actually implements reading the different file formats::
 
-  for Reader in (Ecsv, FixedWidthTwoLine, FastBasic, Basic,
-                 Rdb, FastTab, Tab, Cds, Daophot, SExtractor,
+  for Reader in (Ecsv, FixedWidthTwoLine, Rst, FastBasic, Basic,
+                 FastRdb, Rdb, FastTab, Tab, Cds, Daophot, SExtractor,
                  Ipac, Latex, AASTex):
       read(Reader=Reader)
 
@@ -338,13 +340,16 @@ without checking the column requirements.  In this way a table with only one
 column or column names that look like a number can still be successfully read.
 
 The guessing process respects any values of the Reader, delimiter, and
-quotechar parameters that were supplied to the read() function.  Any guesses
-that would conflict are skipped.  For example the call::
+quotechar parameters as well as options for the fast reader that were
+supplied to the read() function.  Any guesses that would conflict are
+skipped.  For example the call::
 
  >>> data = ascii.read(table, Reader=ascii.NoHeader, quotechar="'")
 
 would only try the four delimiter possibilities, skipping all the conflicting
-Reader and quotechar combinations.
+Reader and quotechar combinations.  Similarly with any setting of
+``fast_reader`` that requires use of the fast engine, only the fast
+variants in the Reader list above will be tried.
 
 Disabling
 ---------
@@ -638,7 +643,7 @@ these sub-tables and then stack them at the end.
 .. Note:: **Performance**
 
   Specifying the ``format`` explicitly and using ``guess=False`` is a good idea
-  for large tables.  This prevent unneccesary guessing in the typical case
+  for large tables.  This prevent unnecessary guessing in the typical case
   where the format is already known.
 
   The ``chunk_size`` should generally be set to the largest value that is 
