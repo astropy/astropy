@@ -2524,7 +2524,7 @@ class CompoundModel(Model):
             elif op in SPECIAL_OPERATORS:
                 return binary_operation(SPECIAL_OPERATORS[op], leftval, rightval)
         else:
-            raise ModelDefinitionError('unrecognized operator {op}')
+            raise ModelDefinitionError('Unrecognized operator {op}')
 
     @property
     def param_names(self):
@@ -3363,11 +3363,6 @@ for idx, ops in enumerate(_ORDER_OF_OPERATORS):
     for op in ops:
         OPERATOR_PRECEDENCE[op] = idx
 del idx, op, ops
-
-try:
-    import asdf_compound
-except ImportError:
-    pass
 
 
 def custom_model(*args, fit_deriv=None, **kwargs):
