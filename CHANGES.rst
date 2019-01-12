@@ -251,6 +251,8 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+- Update bundled expat to 2.2.6. [#8343]
+
 Installation
 ^^^^^^^^^^^^
 

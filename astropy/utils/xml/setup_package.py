@@ -24,7 +24,8 @@ def get_extensions(build_type='release'):
         EXPAT_DIR = 'cextern/expat/lib'
         cfg['sources'].extend([
             join(EXPAT_DIR, fn) for fn in
-            ["xmlparse.c", "xmlrole.c", "xmltok.c", "xmltok_impl.c"]])
+            ["xmlparse.c", "xmlrole.c", "xmltok.c", "xmltok_impl.c",
+             "loadlibrary.c"]])
         cfg['include_dirs'].extend([XML_DIR, EXPAT_DIR])
         if sys.platform.startswith('linux'):
             # This is to ensure we only export the Python entry point
