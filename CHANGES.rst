@@ -1833,6 +1833,8 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+- Fixed ``make clean`` for the documentation on Windows to ensure it
+  properly removes the ``api`` and ``generated`` directories. [#8346]
 
 
 2.0.11 (2018-12-31)
