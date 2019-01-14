@@ -1132,7 +1132,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             Specifies the unit.  If not provided,
             the unit used to initialize the quantity will be used.
 
-        precision : , optional
+        precision : numeric, optional
             The level of decimal precision. If `None`, or not provided,
             it will be determined from NumPy print options.
 
