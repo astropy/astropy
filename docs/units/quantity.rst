@@ -232,7 +232,7 @@ numeric types:
     >>> 13.5 * u.km + 19.412  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
       ...
-    UnitsError: Can only apply 'add' function to dimensionless
+    UnitConversionError: Can only apply 'add' function to dimensionless
     quantities when other argument is not a quantity (unless the
     latter is all zero/infinity/nan)
 

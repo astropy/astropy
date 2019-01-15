@@ -5,7 +5,7 @@
 import numpy as np
 
 from astropy.units.core import (UnitsError, UnitConversionError, UnitTypeError,
-                    dimensionless_unscaled)
+                                dimensionless_unscaled)
 
 __all__ = ['can_have_arbitrary_unit', 'converters_and_unit',
            'check_output', 'UFUNC_HELPERS', 'UNSUPPORTED_UFUNCS']
@@ -177,11 +177,12 @@ def converters_and_unit(function, method, *args):
                 if can_have_arbitrary_unit(maybe_arbitrary_arg):
                     converters = [None, None]
                 else:
-                    raise UnitsError("Can only apply '{0}' function to "
-                                     "dimensionless quantities when other "
-                                     "argument is not a quantity (unless the "
-                                     "latter is all zero/infinity/nan)"
-                                     .format(function.__name__))
+                    raise UnitConversionError(
+                        "Can only apply '{0}' function to "
+                        "dimensionless quantities when other "
+                        "argument is not a quantity (unless the "
+                        "latter is all zero/infinity/nan)"
+                        .format(function.__name__))
             except TypeError:
                 # _can_have_arbitrary_unit failed: arg could not be compared
                 # with zero or checked to be finite. Then, ufunc will fail too.
@@ -259,6 +260,9 @@ def converters_and_unit(function, method, *args):
             (unit is not None and unit is not result_unit and
              (not result_unit.is_equivalent(unit) or
               result_unit.to(unit) != 1.))):
+            # NOTE: this cannot be the more logical UnitTypeError, since
+            # then things like np.cumprod will not longer fail (they check
+            # for TypeError).
             raise UnitsError("Cannot use '{1}' method on ufunc {0} with a "
                              "Quantity instance as it would change the unit."
                              .format(function.__name__, method))

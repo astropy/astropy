@@ -482,7 +482,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         ----------
         result : `~numpy.ndarray` or tuple of `~numpy.ndarray`
             Array(s) which need to be turned into quantity.
-        unit : `~astropy.units.Unit` or None
+        unit : `~astropy.units.Unit`
             Unit for the quantities to be returned (or `None` if the result
             should not be a quantity).  Should be tuple if result is a tuple.
         out : `~astropy.units.Quantity` or None
@@ -561,10 +561,13 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         if unit is None:
             unit = self.unit
             quantity_subclass = self.__class__
+        elif unit is self.unit and self.__class__ is Quantity:
+            # The second part is because we should not presume what other
+            # classes want to do for the same unit.  E.g., Constant will
+            # always want to fall back to Quantity, and relies on going
+            # through `__quantity_subclass__`.
+            quantity_subclass = Quantity
         else:
-            # In principle, could gain time by testing unit is self.unit
-            # as well, and then quantity_subclass = self.__class__, but
-            # Constant relies on going through `__quantity_subclass__`.
             unit = Unit(unit)
             quantity_subclass = getattr(unit, '_quantity_class', Quantity)
             if isinstance(self, quantity_subclass):
@@ -1439,51 +1442,12 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         return self._wrap_function(np.trace, offset, axis1, axis2, dtype,
                                    out=out)
 
-    def var(self, axis=None, dtype=None, out=None, ddof=0):
-        return self._wrap_function(np.var, axis, dtype,
-                                   out=out, ddof=ddof, unit=self.unit**2)
-
-    def std(self, axis=None, dtype=None, out=None, ddof=0):
-        return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof)
-
-    def mean(self, axis=None, dtype=None, out=None):
-        return self._wrap_function(np.mean, axis, dtype, out=out)
-
-    def ptp(self, axis=None, out=None):
-        return self._wrap_function(np.ptp, axis, out=out)
-
     def round(self, decimals=0, out=None):
         return self._wrap_function(np.round, decimals, out=out)
-
-    def max(self, axis=None, out=None, keepdims=False):
-        return self._wrap_function(np.max, axis, out=out, keepdims=keepdims)
-
-    def min(self, axis=None, out=None, keepdims=False):
-        return self._wrap_function(np.min, axis, out=out, keepdims=keepdims)
-
-    def sum(self, axis=None, dtype=None, out=None, keepdims=False):
-        return self._wrap_function(np.sum, axis, dtype, out=out,
-                                   keepdims=keepdims)
-
-    def prod(self, axis=None, dtype=None, out=None, keepdims=False):
-        if not self.unit.is_unity():
-            raise ValueError("cannot use prod on scaled or "
-                             "non-dimensionless Quantity arrays")
-        return self._wrap_function(np.prod, axis, dtype, out=out,
-                                   keepdims=keepdims)
 
     def dot(self, b, out=None):
         result_unit = self.unit * getattr(b, 'unit', dimensionless_unscaled)
         return self._wrap_function(np.dot, b, out=out, unit=result_unit)
-
-    def cumsum(self, axis=None, dtype=None, out=None):
-        return self._wrap_function(np.cumsum, axis, dtype, out=out)
-
-    def cumprod(self, axis=None, dtype=None, out=None):
-        if not self.unit.is_unity():
-            raise ValueError("cannot use cumprod on scaled or "
-                             "non-dimensionless Quantity arrays")
-        return self._wrap_function(np.cumprod, axis, dtype, out=out)
 
     # Calculation: override methods that do not make sense.
 
