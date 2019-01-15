@@ -2742,7 +2742,7 @@ class Table:
           >>> t = QTable([q, tm, sc, dt], names=['q', 'tm', 'sc', 'dt'])
 
           >>> df = t.to_pandas(index='tm')
-          >>> with pd.option_context('display.width', 80):
+          >>> with pd.option_context('display.max_columns', 20):
           ...     print(df)
                         q  sc.ra  sc.dec       dt
           tm
@@ -2867,7 +2867,7 @@ class Table:
           >>> df = pd.DataFrame({'time': time})
           >>> df['dt'] = dt
           >>> df['x'] = [3., 4.]
-          >>> with pd.option_context('display.width', 80):
+          >>> with pd.option_context('display.max_columns', 20):
           ...     print(df)
                   time       dt    x
           0 1998-01-01 00:00:01  3.0
