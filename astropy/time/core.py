@@ -2084,24 +2084,27 @@ class TimeDelta(Time):
 
     def __mul__(self, other):
         """Multiplication of `TimeDelta` objects by numbers/arrays."""
-        # check needed since otherwise the self.jd1 * other multiplication
+        # Check needed since otherwise the self.jd1 * other multiplication
         # would enter here again (via __rmul__)
         if isinstance(other, Time):
             raise OperandTypeError(self, other, '*')
 
-        try:   # convert to straight float if dimensionless quantity
-            other = other.to(1)
-        except Exception:
-            pass
-
+        # If other is something consistent with a dimensionless quantity
+        # (could just be a float or an array), then we can just multiple in.
         try:
-            jd1, jd2 = day_frac(self.jd1, self.jd2, factor=other)
-            out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
-        except Exception as err:  # try downgrading self to a quantity
+            other = u.Quantity(other, u.dimensionless_unscaled, copy=False)
+        except Exception:
+            # If not consistent with a dimensionless quantity, try downgrading
+            # self to a quantity and see if things work.
             try:
                 return self.to(u.day) * other
             except Exception:
-                raise err
+                # The various ways we could multiply all failed;
+                # returning NotImplemented to give other a final chance.
+                return NotImplemented
+
+        jd1, jd2 = day_frac(self.jd1, self.jd2, factor=other.value)
+        out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
 
         if self.format != 'jd':
             out = out.replicate(format=self.format)
@@ -2121,20 +2124,24 @@ class TimeDelta(Time):
 
     def __truediv__(self, other):
         """Division of `TimeDelta` objects by numbers/arrays."""
-        # cannot do __mul__(1./other) as that looses precision
-        try:
-            other = other.to(1)
-        except Exception:
-            pass
+        # Cannot do __mul__(1./other) as that looses precision
 
-        try:   # convert to straight float if dimensionless quantity
-            jd1, jd2 = day_frac(self.jd1, self.jd2, divisor=other)
-            out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
-        except Exception as err:  # try downgrading self to a quantity
+        # If other is something consistent with a dimensionless quantity
+        # (could just be a float or an array), then we can just divide in.
+        try:
+            other = u.Quantity(other, u.dimensionless_unscaled, copy=False)
+        except Exception:
+            # If not consistent with a dimensionless quantity, try downgrading
+            # self to a quantity and see if things work.
             try:
                 return self.to(u.day) / other
             except Exception:
-                raise err
+                # The various ways we could divide all failed;
+                # returning NotImplemented to give other a final chance.
+                return NotImplemented
+
+        jd1, jd2 = day_frac(self.jd1, self.jd2, divisor=other.value)
+        out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
 
         if self.format != 'jd':
             out = out.replicate(format=self.format)
@@ -2142,6 +2149,8 @@ class TimeDelta(Time):
 
     def __rtruediv__(self, other):
         """Division by `TimeDelta` objects of numbers/arrays."""
+        # Here, we do not have to worry about returning NotImplemented,
+        # since other has already had a chance to look at us.
         return other / self.to(u.day)
 
     def to(self, *args, **kwargs):

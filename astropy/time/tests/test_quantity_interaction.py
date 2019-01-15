@@ -141,6 +141,7 @@ class TestTimeDeltaQuantity():
         assert t1.value == t0.value+q1.to_value(u.second)
         q2 = 1.*u.day
         t2 = t0 - q2
+        assert isinstance(t2, TimeDelta)
         assert allclose_sec(t2.value, t0.value-q2.to_value(u.second))
         # now comparisons
         assert t0 > q1
@@ -148,6 +149,7 @@ class TestTimeDeltaQuantity():
         # and broadcasting
         q3 = np.arange(12.).reshape(4, 3) * u.hour
         t3 = t0 + q3
+        assert isinstance(t3, TimeDelta)
         assert t3.shape == q3.shape
         assert allclose_sec(t3.value, t0.value + q3.to_value(u.second))
 
@@ -160,21 +162,47 @@ class TestTimeDeltaQuantity():
         g = 10.*u.m/u.second**2
         v = t0 * g
         assert isinstance(v, u.Quantity)
-        assert v.decompose().unit == u.m / u.second
+        assert u.allclose(v, t0.sec * g.value * u.m / u.second)
         q = np.log10(t0/u.second)
         assert isinstance(q, u.Quantity)
         assert q.value == np.log10(t0.sec)
         s = 1.*u.m
         v = s/t0
         assert isinstance(v, u.Quantity)
-        assert v.decompose().unit == u.m / u.second
+        assert u.allclose(v, 1. / t0.sec * u.m / u.s)
+        t = 1.*u.s
+        t2 = t0 * t
+        assert isinstance(t2, u.Quantity)
+        assert u.allclose(t2, t0.sec * u.s ** 2)
         # broadcasting
         t1 = TimeDelta(np.arange(100000., 100012.).reshape(6, 2), format='sec')
         f = np.array([1., 2.]) * u.cycle * u.Hz
         phase = f * t1
         assert isinstance(phase, u.Quantity)
         assert phase.shape == t1.shape
-        assert phase.unit.is_equivalent(u.cycle)
+        assert u.allclose(phase, t1.sec * f.value * u.cycle)
+
+    def test_valid_quantity_operations3(self):
+        """Test a TimeDelta remains one if possible."""
+        t0 = TimeDelta(10., format='jd')
+        q = 10. * u.one
+        t1 = q * t0
+        assert isinstance(t1, TimeDelta)
+        assert t1 == TimeDelta(100., format='jd')
+        t2 = t0 * q
+        assert isinstance(t2, TimeDelta)
+        assert t2 == TimeDelta(100., format='jd')
+        t3 = t0 / q
+        assert isinstance(t3, TimeDelta)
+        assert t3 == TimeDelta(1., format='jd')
+        q2 = 1. * u.percent
+        t4 = t0 * q2
+        assert isinstance(t4, TimeDelta)
+        assert abs(t4 - TimeDelta(0.1, format='jd')) < 1. * u.ns
+        q3 = 1. * u.hr / (36. * u.s)
+        t5 = q3 * t0
+        assert isinstance(t4, TimeDelta)
+        assert abs(t5 - TimeDelta(1000., format='jd')) < 1. * u.ns
 
     def test_invalid_quantity_operations(self):
         """Check comparisons of TimeDelta with non-time quantities fails."""
