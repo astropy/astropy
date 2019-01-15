@@ -107,8 +107,8 @@ class ExpressionTree:
                 outputs_map[out] = m, out2
 
         elif self.value == '&':
-            r_outputs_map = self.right.outputs_map 
-            l_outputs_map = self.left.outputs_map          
+            r_outputs_map = self.right.outputs_map
+            l_outputs_map = self.left.outputs_map
             for i, out in enumerate(self.outputs):
                 if i < len(self.left.outputs):  # Get from left
                     m, out2 = self._recursive_lookup(self.left,
@@ -122,7 +122,7 @@ class ExpressionTree:
                     outputs_map[out] = m, out2
 
         else:
-            l_outputs_map = self.left.outputs_map 
+            l_outputs_map = self.left.outputs_map
             for out in self.left.outputs:
                 m, out2 = self._recursive_lookup(self.left, l_outputs_map, out)
                 outputs_map[out] = m, out2
