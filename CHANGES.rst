@@ -159,6 +159,9 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Removed ``pytest_plugins`` as they are completely broken for ``pytest>=4``.
+  [#7786]
+
 astropy.time
 ^^^^^^^^^^^^
 
