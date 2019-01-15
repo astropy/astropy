@@ -2926,6 +2926,15 @@ class TestColumnFunctions(FitsTestCase):
 
         pytest.raises(TypeError, fits.ColDefs, [1, 2, 3])
 
+    def test_coldefs_init_from_array(self):
+        """Test that ColDefs._init_from_array works with single element data-
+        types as well as multi-element data-types
+        """
+        nd_array = np.ndarray((1,), dtype=[('A', '<u4', (2,)), ('B', 'uint16')])
+        col_defs = fits.column.ColDefs(nd_array)
+        assert 2**31 == col_defs['A'].bzero
+        assert 2**15 == col_defs['B'].bzero
+
     def test_pickle(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/1597
