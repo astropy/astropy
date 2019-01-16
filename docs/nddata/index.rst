@@ -328,11 +328,15 @@ the mask, metadata, etc are discarded:
 
 .. doctest-requires:: skimage
 
+    >>> from astropy.utils import minversion
+    >>> from astropy.utils.compat import NUMPY_LT_1_16
     >>> from astropy.nddata import block_reduce, block_replicate
-    >>> smaller = block_reduce(ccd, 4)
-    >>> smaller
-    array(...)
-    >>> plt.imshow(smaller, origin='lower')  # doctest: +SKIP
+    >>> SKIMAGE_LT_1_14_2 = not minversion('skimage', '0.14.2')
+    >>> # Version check is necessary here due to upstream incompatibility.
+    >>> if not SKIMAGE_LT_1_14_2 or (SKIMAGE_LT_1_14_2 and NUMPY_LT_1_16):
+    ...     smaller = block_reduce(ccd, 4)
+    ...     print(smaller)  # doctest: +SKIP
+    ...     plt.imshow(smaller, origin='lower')  # doctest: +SKIP
 
 .. plot::
 
