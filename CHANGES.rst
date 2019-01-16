@@ -351,6 +351,17 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Ensure multiplication of a ``TimeDelta`` instance with a ``Quantity`` with
+  units of time results in a ``Quantity`` with units of time squared. [#8356]
+
+- Like for comparisons, addition, and subtraction of ``Time`` instances with
+  with non-time instances, multiplication and division of ``TimeDelta``
+  instances with incompatible other instances no longer immediately raise an
+  ``UnitsError`` or ``TypeError`` (depending on the other instance), but
+  rather go through the regular python mechanism of ``TimeDelta`` returning
+  ``NotImplemented`` (which will lead to a regular ``TypeError`` unless the
+  other instance can handle ``TimeDelta``). [#8356]
+
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
 
