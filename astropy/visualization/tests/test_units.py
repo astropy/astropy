@@ -61,11 +61,20 @@ def test_units_errbarr():
 
 @pytest.mark.skipif('not HAS_PLT')
 def test_incompatible_units():
+    # NOTE: minversion check does not work properly for matplotlib dev.
+    try:
+        # https://github.com/matplotlib/matplotlib/pull/13005
+        from matplotlib.units import ConversionError
+    except ImportError:
+        err_type = u.UnitConversionError
+    else:
+        err_type = ConversionError
+
     plt.figure()
 
     with quantity_support():
         plt.plot([1, 2, 3] * u.m)
-        with pytest.raises(u.UnitConversionError):
+        with pytest.raises(err_type):
             plt.plot([105, 210, 315] * u.kg)
 
     plt.clf()
