@@ -54,9 +54,6 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Fixed slowness for certain compound models consisting of large numbers 
-  of multi-input models [#8338]
-
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -316,6 +313,9 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+
+- Fixed slowness for certain compound models consisting of large numbers 
+  of multi-input models [#8338]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
