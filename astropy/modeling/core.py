@@ -2902,28 +2902,43 @@ class CompoundModel(Model):
             return {inp: (self, inp) for inp in self.inputs}
 
         elif self.op == '|':
+            if isinstance(self.left, CompoundModel):
+                l_inputs_map = left.inputs_map()
             for inp in self.inputs:
                 if isinstance(self.left, CompoundModel):
-                    inputs_map[inp] = self.left.inputs_map()[inp]
+                    inputs_map[inp] = l_inputs_map[inp]
                 else:
                     inputs_map[inp] = self.left, inp
         elif self.op == '&':
+            if isinstance(self.left, CompoundModel):
+                l_inputs_map = left.inputs_map()
+            if isinstance(self.right, CompoundModel):
+                r_inputs_map = right.inputs_map()
             for i, inp in enumerate(self.inputs):
                 if i < len(self.left.inputs):  # Get from left
                     if isinstance(self.left, CompoundModel):
-                        inputs_map[inp] = self.left.inputs_map()[self.left.inputs[i]]
+                        inputs_map[inp] = l_inputs_map[self.left.inputs[i]]
                     else:
                         inputs_map[inp] = self.left, self.left.inputs[i]
                 else:  # Get from right
                     if isinstance(self.right, CompoundModel):
+<<<<<<< HEAD
                        inputs_map[inp] = self.right.inputs_map()[self.right.inputs[i
+=======
+                       inputs_map[inp] = r_inputs_map[self.right.inputs[i 
+>>>>>>> changes to inputs_map and outputs_map to avoid slow compound behavior
                                                                    - len(self.left.inputs)]]
                     else:
                         inputs_map[inp] = self.right, self.right.inputs[i
                                                                    - len(self.left.inputs)]
         else:
+            if isinstance(self.left, CompoundModel):
+                l_inputs_map = left.inputs_map()
             for inp in self.left.inputs:
-                inputs_map[inp] = self.left.inputs_map()[inp]
+                if isinstance(self.left, CompoundModel):
+                    inputs_map[inp] = l_inputs_map[inp]
+                else:
+                    inputs_map[inp] = self.left, inp
         return inputs_map
 
     @property
@@ -2974,33 +2989,43 @@ class CompoundModel(Model):
             return {out: (self, out) for out in self.outputs}
 
         elif self.op == '|':
+            r_outputs_map = self.right.outputs_map()
             for out in self.outputs:
                 if isinstance(self.right, CompoundModel):
-                    outputs_map[out] = self.right.outputs_map()[out]
+                    outputs_map[out] = r_outputs_map[out]
                 else:
                     outputs_map[out] = self, out
 
 
         elif self.op == '&':
+            l_inputs_map = self.left.inputs_map()
+            r_outputs_map = self.right.outputs_map()
             for i, out in enumerate(self.outputs):
                 if i < len(self.left.outputs):  # Get from left
                     if isinstance(self.left, CompoundModel):
-                        outputs_map[out] = self.left.outputs_map()[self.left.outputs[i]]
+                        outputs_map[out] = l_outputs_map[self.left.outputs[i]]
                     else:
                         outputs_map[out] = self.left, self.left.outputs[i]
                 else:  # Get from right
                     if isinstance(self.right, CompoundModel):
+<<<<<<< HEAD
                         outputs_map[out] = self.right.outputs_map()[self.right.outputs[i
+=======
+                        outputs_map[out] = r_outputs_map[self.right.outputs[i 
+>>>>>>> changes to inputs_map and outputs_map to avoid slow compound behavior
                                                    - len(self.left.outputs)]]
                     else:
                         outputs_map[out] = self.right, self.right.outputs[i
                                                    - len(self.left.outputs)]
 
         else:
+            if isinstance(self.left, CompoundModel):
+                l_outputs_map = self.left.outputs_map()
             for out in self.left.outputs:
                 if isinstance(self.left, CompoundModel):
-                    outputs_map[out] = self.left.outputs_map()[out]
-
+                    outputs_map[out] = l_outputs_map()[out]
+                else:
+                    outputs_map[out] = self.left, out
         return outputs_map
 
 
