@@ -167,15 +167,9 @@ though the second line is given in ``cm``:
     plt.plot([1, 2, 3] * u.m)
     plt.plot([1, 2, 3] * u.cm)
 
-Plotting a quantity with an incompatible unit will raise an exception:
-
-.. doctest-requires:: matplotlib
-
-    >>> plt.plot([1, 2, 3] * u.kg)  # doctest: +IGNORE_EXCEPTION_DETAIL
-    Traceback (most recent call last):
-    ...
-    UnitConversionError: 'kg' (mass) and 'm' (length) are not convertible
-    >>> plt.clf()
+Plotting a quantity with an incompatible unit will raise an exception.
+For example, calling ``plt.plot([1, 2, 3] * u.kg)`` (mass unit) to overplot
+on the plot above that is displaying length units.
 
 To make sure unit support is turned off afterward, you can use
 `~astropy.visualization.quantity_support` with a ``with`` statement:
