@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from copy import deepcopy
+from distutils.version import LooseVersion
 
 import numpy as np
 
+import astropy
 from astropy.table import groups, QTable, Table
 from astropy.time import Time, TimeDelta
 from astropy import units as u
@@ -12,6 +14,8 @@ from astropy.units import Quantity
 from .core import BaseTimeSeries
 
 __all__ = ['TimeSeries']
+
+ASTROPY_LT_32 = LooseVersion(astropy.__version__) < LooseVersion("3.2")
 
 
 class TimeSeries(BaseTimeSeries):
@@ -144,12 +148,20 @@ class TimeSeries(BaseTimeSeries):
         return result
 
     @classmethod
-    def from_pandas(self, df):
+    def from_pandas(self, df, index=False):
         """
         Convert a :class:`~pandas.DataFrame` to a
         :class:`astropy.timeseries.TimeSeries`.
-        """
 
+        Parameters
+        ----------
+        df : :class:`pandas.DataFrame`
+            A pandas :class:`pandas.DataFrame` instance
+        index : bool, optional
+            Include the index column in the returned TimeSeries (default=False)
+            Only used if Astropy version >=``3.2``.
+
+        """
         from pandas import DataFrame, DatetimeIndex
 
         if not isinstance(df, DataFrame):
@@ -161,22 +173,45 @@ class TimeSeries(BaseTimeSeries):
         # TODO: determine how user can specify time scale
         time = Time(df.index)
 
-        # Create table without the time column
-        table = Table.from_pandas(df)
+        if ASTROPY_LT_32:
+            table = Table.from_pandas(df)
+        else:
+            table = Table.from_pandas(df, index=index)
 
         return TimeSeries(time=time, data=table)
 
-    def to_pandas(self):
+    def to_pandas(self, index=None):
         """
-        Convert this time series to a :class:`~pandas.DataFrame` with a
-        :class:`~pandas.DatetimeIndex` index.
+        Convert this :class:`~astropy.timeseries.TimeSeries` to a
+        :class:`~pandas.DataFrame` with a :class:`~pandas.DatetimeIndex` index.
+
+        Parameters
+        ----------
+        index : None, bool, str
+            Only used if Astropy version >=``3.2``.
+            Specify DataFrame index mode.
+
+            For the default ``None`` (``index=True`` also), an index will be
+            specified for the DataFrame if there is a primary key index on the
+            TimeSeries *and* if it corresponds to a single column.
+            If ``index=False`` then no DataFrame index will be specified.
+            If ``index`` is a string which corresponds to the the name of a
+            column in the table then that will be the DataFrame index.
+
+        Returns
+        -------
+        dataframe : :class:`pandas.DataFrame`
+            A pandas :class:`pandas.DataFrame` instance
         """
 
         # Extract table without time column
         table = self[[x for x in self.colnames if x != 'time']]
 
         # First make a normal pandas dataframe
-        df = Table(table).to_pandas()
+        if ASTROPY_LT_32:
+            df = Table(table).to_pandas()
+        else:
+            df = Table(table).to_pandas(index=index)
 
         # Set index
         df.set_index(self.time.datetime64, inplace=True)
