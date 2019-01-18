@@ -387,7 +387,7 @@ class Header:
         if image:
             cards.append(Card.fromstring(''.join(image)))
 
-        return cls(cards)
+        return cls._fromcards(cards)
 
     @classmethod
     def fromfile(cls, fileobj, sep='', endcard=True, padding=True):
@@ -448,6 +448,19 @@ class Header:
         finally:
             if close_file:
                 fileobj.close()
+
+    @classmethod
+    def _fromcards(cls, cards):
+        header = cls()
+        for idx, card in enumerate(cards):
+            header._cards.append(card)
+            keyword = Card.normalize_keyword(card.keyword)
+            header._keyword_indices[keyword].append(idx)
+            if card.field_specifier is not None:
+                header._rvkc_indices[card.rawkeyword].append(idx)
+
+        header._modified = False
+        return header
 
     @classmethod
     def _from_blocks(cls, block_iter, is_binary, sep, endcard, padding):
