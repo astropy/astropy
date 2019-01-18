@@ -1102,6 +1102,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             raise TypeError('only integer dimensionless scalar quantities '
                             'can be converted to a Python index')
 
+    # TODO: we may want to add a hook for dimensionless quantities?
     @property
     def _unitstr(self):
         if self.unit is None:
@@ -1114,21 +1115,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
 
         return unitstr
 
-    # Display
-    # TODO: we may want to add a hook for dimensionless quantities?
-    def __str__(self):
-        return '{0}{1:s}'.format(self.value, self._unitstr)
-
-    def __repr__(self):
-        prefixstr = '<' + self.__class__.__name__ + ' '
-        sep = ',' if NUMPY_LT_1_14 else ', '
-        arrstr = np.array2string(self.view(np.ndarray), separator=sep,
-                                 prefix=prefixstr)
-        return '{0}{1}{2:s}>'.format(prefixstr, arrstr, self._unitstr)
-
-    def _repr_latex_(self):
+    def to_string(self, unit=None, precision=None, format=None, subfmt=None):
         """
-        Generate a latex representation of the quantity and its unit.
+        Generate a string representation of the quantity and its unit.
 
         The behavior of this function can be altered via the
         `numpy.set_printoptions` function and its various keywords.  The
@@ -1137,16 +1126,61 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         This is treated separately because the numpy default of 1000 is too big
         for most browsers to handle.
 
+        Parameters
+        ----------
+        unit : `~astropy.units.UnitBase`, optional
+            Specifies the unit.  If not provided,
+            the unit used to initialize the quantity will be used.
+
+        precision : numeric, optional
+            The level of decimal precision. If `None`, or not provided,
+            it will be determined from NumPy print options.
+
+        format : str, optional
+            The format of the result. If not provided, an unadorned
+            string is returned. Supported values are:
+
+            - 'latex': Return a LaTeX-formatted string
+
+        subfmt : str, optional
+            Subformat of the result. For the moment,
+            only used for format="latex". Supported values are:
+
+            - 'inline': Use ``$ ... $`` as delimiters.
+
+            - 'display': Use ``$\\displaystyle ... $`` as delimiters.
+
         Returns
         -------
         lstr
-            A LaTeX string with the contents of this Quantity
+            A string with the contents of this Quantity
         """
+        if unit is not None and unit != self.unit:
+            return self.to(unit).to_string(
+                unit=None, precision=precision, format=format, subfmt=subfmt)
+
+        formats = {
+            None: None,
+            "latex": {
+                None: ("$", "$"),
+                "inline": ("$", "$"),
+                "display": (r"$\displaystyle ", r"$"),
+            },
+        }
+
+        if format not in formats:
+            raise ValueError("Unknown format '{0}'".format(format))
+        elif format is None:
+            return '{0}{1:s}'.format(self.value, self._unitstr)
+
+        # else, for the moment we assume format="latex"
+
         # need to do try/finally because "threshold" cannot be overridden
         # with array2string
         pops = np.get_printoptions()
 
-        format_spec = '.{}g'.format(pops['precision'])
+        format_spec = '.{}g'.format(
+            precision if precision is not None else pops['precision'])
 
         def float_formatter(value):
             return Latex.format_exponential_notation(value,
@@ -1189,7 +1223,33 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                       if self.unit is not None
                       else _UNIT_NOT_INITIALISED)
 
-        return r'${0} \; {1}$'.format(latex_value, latex_unit)
+        delimiter_left, delimiter_right = formats[format][subfmt]
+
+        return r'{left}{0} \; {1}{right}'.format(latex_value, latex_unit,
+                                                 left=delimiter_left,
+                                                 right=delimiter_right)
+
+    def __str__(self):
+        return self.to_string()
+
+    def __repr__(self):
+        prefixstr = '<' + self.__class__.__name__ + ' '
+        sep = ',' if NUMPY_LT_1_14 else ', '
+        arrstr = np.array2string(self.view(np.ndarray), separator=sep,
+                                 prefix=prefixstr)
+        return '{0}{1}{2:s}>'.format(prefixstr, arrstr, self._unitstr)
+
+    def _repr_latex_(self):
+        """
+        Generate a latex representation of the quantity and its unit.
+
+        Returns
+        -------
+        lstr
+            A LaTeX string with the contents of this Quantity
+        """
+        # NOTE: This should change to display format in a future release
+        return self.to_string(format='latex', subfmt='inline')
 
     def __format__(self, format_spec):
         """

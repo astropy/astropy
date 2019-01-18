@@ -247,6 +247,10 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Added a ``Quantity.to_string`` method to add flexibility to the string formatting
+  of quantities. It produces unadorned or LaTeX strings, and accepts two different
+  sets of delimiters in the latter case: ``inline`` and ``display``. [#8313]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
