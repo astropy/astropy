@@ -1524,6 +1524,9 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Fixed bug in ``ColDefs._init_from_array()`` that caused non-scalar unsigned
+  entries to not have the correct bzero value set. [#8353]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
