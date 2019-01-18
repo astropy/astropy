@@ -3,15 +3,9 @@ from numpy.testing import assert_equal
 
 from astropy import units as u
 from astropy.table import Table
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
 
 from ..binned import BinnedTimeSeries
-
-
-INPUT_TIME = Time(['2016-03-22T12:30:31',
-                   '2015-01-21T12:30:32',
-                   '2016-03-22T12:30:40'])
-PLAIN_TABLE = Table([[1, 2, 11], [3, 4, 1], [1, 1, 1]], names=['a', 'b', 'c'])
 
 
 def test_empty_initialization():
@@ -28,6 +22,97 @@ def test_empty_initialization_invalid():
         ts['flux'] = [1, 2, 3]
     assert exc.value.args[0] == ("BinnedTimeSeries requires a column called "
                                  "'time_bin_start' to be set before data can be added")
+
+
+def test_initialization_time_bin_invalid():
+
+    # Make sure things crash when time_bin_* is passed incorrectly.
+
+    with pytest.raises(TypeError) as exc:
+        BinnedTimeSeries(data=[[1, 4, 3]])
+    assert exc.value.args[0] == ("'time_bin_start' has not been specified")
+
+    with pytest.raises(TypeError) as exc:
+        BinnedTimeSeries(time_bin_start='2016-03-22T12:30:31', data=[[1, 4, 3]])
+    assert exc.value.args[0] == ("Either 'time_bin_size' or 'time_bin_end' should be specified")
+
+
+def test_initialization_time_bin_both():
+
+    # Make sure things crash when time_bin_* is passed twice.
+
+    with pytest.raises(TypeError) as exc:
+        BinnedTimeSeries(data={"time_bin_start": ["2016-03-22T12:30:31"]},
+                              time_bin_start="2016-03-22T12:30:31")
+    assert exc.value.args[0] == ("'time_bin_start' has been given both in the table "
+                                 "and as a keyword argument")
+
+    with pytest.raises(TypeError) as exc:
+        BinnedTimeSeries(data={"time_bin_size": ["2016-03-22T12:30:31"]},
+                              time_bin_size=[1]*u.s)
+    assert exc.value.args[0] == ("'time_bin_size' has been given both in the table "
+                                 "and as a keyword argument")
+
+
+def test_initialization_time_bin_size():
+
+    # Make sure things crash when time_bin_size has no units
+
+    with pytest.raises(TypeError) as exc:
+        BinnedTimeSeries(data={"time": ["2016-03-22T12:30:31"]},
+                         time_bin_start="2016-03-22T12:30:31",
+                         time_bin_size=1)
+    assert exc.value.args[0] == ("'time_bin_size' should be a Quantity or a TimeDelta")
+
+    # TimeDelta for time_bin_size
+    ts = BinnedTimeSeries(data={"time": ["2016-03-22T12:30:31"]},
+                          time_bin_start="2016-03-22T12:30:31",
+                          time_bin_size=TimeDelta(1))
+    assert isinstance(ts.time_bin_size, u.quantity.Quantity)
+
+
+def test_initialization_time_bin_start_scalar():
+
+    # Make sure things crash when time_bin_start is a scalar with no time_bin_size
+
+    with pytest.raises(TypeError) as exc:
+        BinnedTimeSeries(data={"time": ["2016-03-22T12:30:31"]},
+                         time_bin_start=Time(1, format='mjd'),
+                         time_bin_end=Time(1, format='mjd'))
+    assert exc.value.args[0] == ("'time_bin_start' is scalar, so 'time_bin_size' is required")
+
+
+def test_initialization_n_bins():
+
+    # Make sure things crash with incorrect n_bins
+
+    with pytest.raises(TypeError) as exc:
+        BinnedTimeSeries(data={"time": ["2016-03-22T12:30:31"]},
+                         time_bin_start=Time(1, format='mjd'),
+                         time_bin_size=1*u.s,
+                         time_bin_end=Time(1, format='mjd'),
+                         n_bins=10)
+    assert exc.value.args[0] == ("'n_bins' has been given and it is not the "
+                                 "same length as the input data.")
+
+
+def test_initialization_non_scalar_time():
+
+    # Make sure things crash with incorrect size of time_bin_start
+
+    with pytest.raises(ValueError) as exc:
+        BinnedTimeSeries(data={"time": ["2016-03-22T12:30:31"]},
+                         time_bin_start=["2016-03-22T12:30:31", "2016-03-22T12:30:32"],
+                         time_bin_size=1*u.s,
+                         time_bin_end=Time(1, format='mjd'))
+    assert exc.value.args[0] == ("Length of 'time_bin_start' (2) should match table length (1)")
+
+    with pytest.raises(TypeError) as exc:
+        BinnedTimeSeries(data={"time": ["2016-03-22T12:30:31"]},
+                         time_bin_start=["2016-03-22T12:30:31"],
+                         time_bin_size=None,
+                         time_bin_end=None)
+    assert exc.value.args[0] == ("Either 'time_bin_size' or 'time_bin_end' should be specified")
 
 
 def test_even_contiguous():
