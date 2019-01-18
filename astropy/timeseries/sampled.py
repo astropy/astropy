@@ -40,8 +40,12 @@ class TimeSeries(BaseTimeSeries):
         # and treat it as if it had been passed as a keyword argument.
 
         if data is not None:
-            # TODO: raise error if also passed explicily and inconsistent
-            n_samples = len(self)
+            if n_samples is not None:
+                if n_samples != len(self):
+                    raise TypeError("'n_samples' has been given both and it is not the "
+                                    "same length as the input data.")
+            else:
+                n_samples = len(self)
 
         if 'time' in self.colnames:
             if time is None:
