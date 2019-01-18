@@ -2856,7 +2856,8 @@ class Table:
 
         Examples
         --------
-        Here we convert a :class:`pandas.DataFrame` instance to a `QTable`.
+        Here we convert a :class:`pandas.DataFrame` instance
+        to a `~astropy.table.QTable`.
 
           >>> import numpy as np
           >>> import pandas as pd
