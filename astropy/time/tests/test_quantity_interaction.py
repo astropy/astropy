@@ -203,6 +203,25 @@ class TestTimeDeltaQuantity():
         t5 = q3 * t0
         assert isinstance(t4, TimeDelta)
         assert abs(t5 - TimeDelta(1000., format='jd')) < 1. * u.ns
+        # Test multiplication with a unit.
+        t6 = t0 * u.one
+        assert isinstance(t6, TimeDelta)
+        assert t6 == TimeDelta(10., format='jd')
+        t7 = u.one * t0
+        assert isinstance(t7, TimeDelta)
+        assert t7 == TimeDelta(10., format='jd')
+        t8 = t0 * ''
+        assert isinstance(t8, TimeDelta)
+        assert t8 == TimeDelta(10., format='jd')
+        t9 = '' * t0
+        assert isinstance(t9, TimeDelta)
+        assert t9 == TimeDelta(10., format='jd')
+        t10 = t0 / u.one
+        assert isinstance(t10, TimeDelta)
+        assert t6 == TimeDelta(10., format='jd')
+        t11 = t0 / ''
+        assert isinstance(t11, TimeDelta)
+        assert t11 == TimeDelta(10., format='jd')
 
     def test_invalid_quantity_operations(self):
         """Check comparisons of TimeDelta with non-time quantities fails."""

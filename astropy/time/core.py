@@ -2088,6 +2088,10 @@ class TimeDelta(Time):
         # would enter here again (via __rmul__)
         if isinstance(other, Time):
             raise OperandTypeError(self, other, '*')
+        elif ((isinstance(other, u.UnitBase) and
+               other == u.dimensionless_unscaled) or
+              (isinstance(other, str) and other == '')):
+            return self.copy()
 
         # If other is something consistent with a dimensionless quantity
         # (could just be a float or an array), then we can just multiple in.
@@ -2125,6 +2129,10 @@ class TimeDelta(Time):
     def __truediv__(self, other):
         """Division of `TimeDelta` objects by numbers/arrays."""
         # Cannot do __mul__(1./other) as that looses precision
+        if ((isinstance(other, u.UnitBase) and
+             other == u.dimensionless_unscaled) or
+                (isinstance(other, str) and other == '')):
+            return self.copy()
 
         # If other is something consistent with a dimensionless quantity
         # (could just be a float or an array), then we can just divide in.
