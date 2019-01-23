@@ -17,6 +17,14 @@ __all__ = ['remove_input_frame']
 
 
 def tree_or_compound(func):
+    """
+    A decorator which processes the first argument of the function to be an
+    ExpressionTree.
+
+    If the first argument is a CompoundModel then it will be converted into an
+    ExpressionTree and then back to a CompoundModel before being returned.
+
+    """
     @wraps(func)
     def compound_wrapper(tree, *args, **kwargs):
         re_tree = False
