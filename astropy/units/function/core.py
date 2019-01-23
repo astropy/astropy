@@ -646,9 +646,6 @@ class FunctionQuantity(Quantity):
 
     # Override functions that are supported but do not use _wrap_function
     # in Quantity.
-    def mean(self, axis=None, dtype=None, out=None):
-        return self._wrap_function(np.mean, axis, dtype, out=out)
-
     def max(self, axis=None, out=None, keepdims=False):
         return self._wrap_function(np.max, axis, out=out, keepdims=keepdims)
 
