@@ -1462,8 +1462,8 @@ As both parts of the tree are separable, it is possible to remove one::
 
   >>> comp1 = (Scale(factor=1.2) | Shift(10)) & Identity(1)
   >>> comp2 = remove_input_frame(comp1, "x0")
-  >>> print(comp2)
-  Model: CompoundModel33
+  >>> print(comp2)  #doctest: +ELLIPSIS
+  Model: CompoundModel...
   Inputs: ('x',)
   Outputs: ('x',)
   Model set size: 1
