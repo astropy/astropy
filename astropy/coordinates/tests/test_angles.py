@@ -185,6 +185,30 @@ def test_angle_ops():
         np.sin(a6, out=a6)
 
 
+def test_angle_methods():
+    # Most methods tested as part of the Quantity tests.
+    # A few tests here which caused problems before: #8368
+    a = Angle([0., 2.], 'deg')
+    a_mean = a.mean()
+    assert type(a_mean) is Angle
+    assert a_mean == 1. * u.degree
+    a_std = a.std()
+    assert type(a_std) is Angle
+    assert a_std == 1. * u.degree
+    a_var = a.var()
+    assert type(a_var) is u.Quantity
+    assert a_var == 1. * u.degree ** 2
+    a_ptp = a.ptp()
+    assert type(a_ptp) is Angle
+    assert a_ptp == 2. * u.degree
+    a_max = a.max()
+    assert type(a_max) is Angle
+    assert a_max == 2. * u.degree
+    a_min = a.min()
+    assert type(a_min) is Angle
+    assert a_min == 0. * u.degree
+
+
 def test_angle_convert():
     """
     Test unit conversion of Angle objects
