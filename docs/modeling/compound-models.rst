@@ -1424,3 +1424,70 @@ This opens up the possibility of essentially arbitrarily complex transformation
 graphs.  Currently the tools do not exist to make it easy to navigate and
 reason about highly complex compound models that use these mappings, but that
 is a possible enhancement for future versions.
+
+
+.. _compound-model-splitting:
+
+Splitting Compound Models
+=========================
+
+If you wish to reduce a compound model, it is possible to remove a subtree from
+the model, based on the inputs to the model. For example given the following
+simple model:
+
+
+.. graphviz::
+
+    digraph {
+        in0 [shape="none", label="x"];
+        in1 [shape="none", label="x0"];
+        out0 [shape="none", label="output 0"];
+        out1 [shape="none", label="output 1"];
+        scale0 [shape="box", label="Scale(factor=1.2)"];
+        identity0 [shape="box", label="Identity(1)"];
+        shift0 [shape="box", label="Shift(10)"];
+
+        in0 -> scale0;
+        scale0 -> shift0;
+        shift0 -> out0;
+
+        in1 -> identity0;
+        identity0 -> out1;
+    }
+
+As both parts of the tree are separable, it is possible to remove one::
+
+  >>> from astropy.modeling.models import Scale, Identity, Shift
+  >>> from astropy.modeling.splitting import remove_input_frame
+
+  >>> comp1 = (Scale(factor=1.2) | Shift(10)) & Identity(1)
+  >>> comp2 = remove_input_frame(comp1, "x0")
+  >>> print(comp2)
+  Model: CompoundModel33
+  Inputs: ('x',)
+  Outputs: ('x',)
+  Model set size: 1
+  Expression: [0] | [1]
+  Components: 
+      [0]: <Scale(factor=1.2)>
+  <BLANKLINE>
+      [1]: <Shift(offset=10.)>
+  Parameters:
+      factor_0 offset_1
+      -------- --------
+           1.2     10.0
+
+Which removes the model chain with the input ``x0``, leading to a model which looks like:
+
+.. graphviz::
+
+    digraph {
+        in0 [shape="none", label="x"];
+        out0 [shape="none", label="output 0"];
+        scale0 [shape="box", label="Scale(factor=1.2)"];
+        shift0 [shape="box", label="Shift(10)"];
+
+        in0 -> scale0;
+        scale0 -> shift0;
+        shift0 -> out0;
+    }

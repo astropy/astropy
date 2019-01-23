@@ -420,3 +420,4 @@ Reference/API
 .. automodapi:: astropy.modeling.optimizers
 .. automodapi:: astropy.modeling.statistic
 .. automodapi:: astropy.modeling.separable
+.. automodapi:: astropy.modeling.splitting
