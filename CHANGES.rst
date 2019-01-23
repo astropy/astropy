@@ -88,7 +88,9 @@ astropy.units
 - ``Quantity`` overrides of ``ndarray`` methods such as ``sum``, ``min``,
   ``max``, which are implemented via reductions, have been removed since they
   are dealt with in ``Quantity.__array_ufunc__``. This should not affect
-  subclasses, but they may consider doing similarly. [#8316]
+  subclasses, but they may consider doing similarly. [#8316]  Note that this
+  does not include methods that use more complicated python code such as
+  ``mean``, ``std`` and ``var``. [#8370]
 
 astropy.utils
 ^^^^^^^^^^^^^
@@ -318,7 +320,7 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Fixed slowness for certain compound models consisting of large numbers 
+- Fixed slowness for certain compound models consisting of large numbers
   of multi-input models [#8338, #8349]
 
 astropy.nddata
