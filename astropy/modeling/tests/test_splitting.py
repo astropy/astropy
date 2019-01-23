@@ -82,6 +82,18 @@ def test_spatial_remove(spatial_like):
     assert len(trees[0].inputs) == 2
 
 
+def test_spatial_remove_comp(spatial_like):
+    new_comp = remove_input_frame(spatial_like, "x01")
+    assert isinstance(new_comp, Model)
+    assert new_comp.n_inputs == 2
+
+
+def test_input_frame_model():
+    with pytest.raises(TypeError):
+        # Should raise if not CompoundModel or ExpressionTree
+        remove_input_frame(Identity(2), "x1")
+
+
 def test_remove_non_sep(single_non_separable):
     tree = single_non_separable._tree
     trees = remove_input_frame(tree, "x")

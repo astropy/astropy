@@ -3,76 +3,44 @@ Functions for splitting `~astropy.modeling.CompoundModel` objects into smaller
 models.
 """
 
+from functools import wraps
 from collections import defaultdict
 
 from astropy.modeling import separable
-from astropy.modeling.core import BINARY_OPERATORS, _model_oper
+from astropy.modeling.core import BINARY_OPERATORS, _model_oper, _CompoundModel, _CompoundModelMeta
+from astropy.modeling.utils import ExpressionTree
 
 OPERATORS = dict((oper, _model_oper(oper)) for oper in BINARY_OPERATORS)
 
 
-def tree_is_separable(tree):
-    """
-    Given a tree, convert it to a `CompoundModel` and then return the
-    separability of the inputs.
-    """
-    return separable.is_separable(tree.evaluate(OPERATORS))
+__all__ = ['remove_input_frame']
 
 
-def make_tree_input_map(tree):
-    """
-    Construct a mapping of tree to input names.
+def tree_or_compound(func):
+    @wraps(func)
+    def compound_wrapper(tree, *args, **kwargs):
+        re_tree = False
+        if isinstance(tree, _CompoundModel) or isinstance(tree, _CompoundModelMeta):
+            tree = tree._tree
+            re_tree = True
+        elif not isinstance(tree, ExpressionTree):
+            raise TypeError("The tree argument must be either a"
+                            " CompoundModel or an ExpressionTree")
 
-    This function iterates over all the inputs of a model and determines which
-    side of the tree (left or right) the input corresponds to. It returns a
-    mapping of tree to set of all inputs for that side of the tree (which is
-    also a tree).
+        out_trees = func(tree, *args, **kwargs)
 
-    Parameters
-    ----------
-    tree : `astropy.modelling.utils.ExpressionTree`
-        The tree to analyse the inputs of.
+        if re_tree:
+            return re_model_trees(out_trees)
 
-    Returns
-    -------
-    tree_input_map : `dict`
-       A mapping of tree to a set of input names.
-    """
-    tree_input_map = defaultdict(set)
-    for i, inp in enumerate(tree.inputs):
-
-        if tree.isleaf or tree.value != "&":
-            # If the tree is a leaf node then the inputs map to the original tree.
-            return {tree: set(tree.inputs)}
-
-        # If this input number is less than the number of inputs in the left
-        # hand side of the tree then the input maps to the LHS of the tree. If
-        # not it maps to the right.
-        if i < len(tree.left.inputs):
-            tree_input_map[tree.left].add(inp)
-        else:
-            tree_input_map[tree.right].add(inp)
-    return tree_input_map
+        return out_trees
+    return compound_wrapper
 
 
-def make_forward_input_map(tree):
-    """
-    Given a tree, generate a mapping of inputs to the tree, to inputs of it's
-    branches.
-    """
-    inp_map = {}
-    assert tree.value == "&"
-    for i, ori_inp in enumerate(tree.inputs):
-        if i < len(tree.left.inputs):
-            inp_map[ori_inp] = tree.left.inputs[i]
-        else:
-            inp_map[ori_inp] = tree.right.inputs[i - len(tree.left.inputs)]
-    return inp_map
-
-
+@tree_or_compound
 def remove_input_frame(tree, inp, remove_coupled_trees=False):
     """
-    Given a tree, remove the smallest subtree needed to remove the input from the tree.
+    Given a tree, remove the smallest subtree needed to remove the input from
+    the tree.
 
     This method traverses the expression tree until it finds a tree with only
     the given input or a tree which has non-separable inputs and takes the
@@ -81,7 +49,7 @@ def remove_input_frame(tree, inp, remove_coupled_trees=False):
 
     Parameters
     ----------
-    tree : `astropy.modelling.utils.ExpressionTree`
+    tree : `astropy.modelling.utils.ExpressionTree`, `astropy.modeling.CompoundModel`
         The tree to analyse the inputs of.
 
     inp : `str`
@@ -152,13 +120,74 @@ def remove_input_frame(tree, inp, remove_coupled_trees=False):
                     continue
             # Otherwise we split up the subtree by recusing down the tree.
             else:
-                new_trees += remove_input_frame(stree, inp_map[inp], remove_coupled_trees)
+                new_trees += remove_input_frame(stree, inp_map[inp],
+                                                remove_coupled_trees)
     return new_trees
+
+
+def tree_is_separable(tree):
+    """
+    Given a tree, convert it to a `CompoundModel` and then return the
+    separability of the inputs.
+    """
+    return separable.is_separable(tree.evaluate(OPERATORS))
+
+
+def make_tree_input_map(tree):
+    """
+    Construct a mapping of tree to input names.
+
+    This function iterates over all the inputs of a model and determines which
+    side of the tree (left or right) the input corresponds to. It returns a
+    mapping of tree to set of all inputs for that side of the tree (which is
+    also a tree).
+
+    Parameters
+    ----------
+    tree : `astropy.modelling.utils.ExpressionTree`
+        The tree to analyse the inputs of.
+
+    Returns
+    -------
+    tree_input_map : `dict`
+       A mapping of tree to a set of input names.
+    """
+    tree_input_map = defaultdict(set)
+    for i, inp in enumerate(tree.inputs):
+
+        if tree.isleaf or tree.value != "&":
+            # If the tree is a leaf node then the inputs map to the original tree.
+            return {tree: set(tree.inputs)}
+
+        # If this input number is less than the number of inputs in the left
+        # hand side of the tree then the input maps to the LHS of the tree. If
+        # not it maps to the right.
+        if i < len(tree.left.inputs):
+            tree_input_map[tree.left].add(inp)
+        else:
+            tree_input_map[tree.right].add(inp)
+    return tree_input_map
+
+
+def make_forward_input_map(tree):
+    """
+    Given a tree, generate a mapping of inputs to the tree, to inputs of it's
+    branches.
+    """
+    inp_map = {}
+    assert tree.value == "&"
+    for i, ori_inp in enumerate(tree.inputs):
+        if i < len(tree.left.inputs):
+            inp_map[ori_inp] = tree.left.inputs[i]
+        else:
+            inp_map[ori_inp] = tree.right.inputs[i - len(tree.left.inputs)]
+    return inp_map
 
 
 def re_model_trees(trees):
     """
-    Given a list of trees return a `CompoundModel` by applying the `&` operator.
+    Given a list of trees return a `CompoundModel` by applying the `&`
+    operator.
 
     Parameters
     ----------
