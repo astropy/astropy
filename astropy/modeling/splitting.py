@@ -1,5 +1,5 @@
 """
-Functions for splitting `~astropy.modeling.CompoundModel` objects into smaller
+Functions for splitting ``CompoundModel`` objects into smaller
 models.
 """
 
@@ -57,7 +57,7 @@ def remove_input_frame(tree, inp, remove_coupled_trees=False):
 
     Parameters
     ----------
-    tree : `astropy.modelling.utils.ExpressionTree`, `astropy.modeling.CompoundModel`
+    tree : ``astropy.modelling.utils.ExpressionTree``, ``astropy.modeling.core._CompoundModel``
         The tree to analyse the inputs of.
 
     inp : `str`
@@ -70,8 +70,8 @@ def remove_input_frame(tree, inp, remove_coupled_trees=False):
     Returns
     -------
     new_trees : `list`
-        A list of all the trees. Can have the `&` operator applied to
-        reconstruct a `CompoundModel`.
+        A list of all the trees. Can have the ``&`` operator applied to
+        reconstruct a ``CompoundModel``.
     """
     # If the input is not found, noop
     if inp not in tree.inputs:
