@@ -20,7 +20,10 @@ w.wcs.ctype = ["RA---AIR", "DEC--AIR"]
 w.wcs.set_pv([(2, 1, 45.0)])
 
 # Some pixel coordinates of interest.
-pixcrd = numpy.array([[0, 0], [24, 38], [45, 98]], numpy.float_)
+# Note the pixel coordinates are in pairs of [X, Y].
+# FITS WCS usually uses [1, 1] as the origin, as it hails from the Fortran tradition, unlike in Python/Numpy
+# where the origin is [0, 0]. 
+pixcrd = numpy.array([[1, 1], [24, 38], [45, 98]], numpy.float_)
 
 # Convert pixel coordinates to world coordinates
 world = w.wcs_pix2world(pixcrd, 1)
