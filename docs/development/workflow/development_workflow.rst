@@ -251,6 +251,12 @@ Astropy you are working on. Do that with:
 
 .. code-block:: bash
 
+    python setup.py develop # Preferred, typically with python 2.x, but not with python 3
+
+or:
+
+.. code-block:: bash
+
     python setup.py install # Where python is python3 
     
 or with pip:     
