@@ -259,7 +259,7 @@ or with pip:
 
     pip install -e . # Where pip is pip3; note the dot after a space is necessary 
 
-Note that aliasing python3 to python and pip3 to pip may be useful in this context, while keeping python2 as an exception. 
+Note that aliasing python3 to python and pip3 to pip may be useful in this context, while keeping python2 and pip2 as an exception. 
 
 .. _edit-flow:
 
