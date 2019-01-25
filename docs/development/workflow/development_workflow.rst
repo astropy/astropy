@@ -259,9 +259,7 @@ or with pip:
 
     pip install -e . # Where pip is pip3; note the dot after a space is necessary 
 
-If you are using python 3 you will need to re-install after making changes to
-the Astropy source code. Re-installing goes much faster than the initial install
-because it typically does not require new compilation.
+Note that aliasing python3 to python and pip3 to pip may be useful in this context, while keeping python2 as an exception. 
 
 .. _edit-flow:
 
