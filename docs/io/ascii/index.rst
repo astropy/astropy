@@ -11,7 +11,7 @@ Introduction
 
 `astropy.io.ascii` provides methods for reading and writing a wide range of ASCII data table
 formats via built-in :ref:`extension_reader_classes`.  The emphasis is on flexibility and ease of use,
-although readers can optionally use a less flexible C/Cython engine for reading and writing for
+although readers can optionally use a less flexible C-based engine for reading and writing for
 improved performance.
 
 The following shows a few of the ASCII formats that are available, while the section on
@@ -28,9 +28,12 @@ The following shows a few of the ASCII formats that are available, while the sec
 * :class:`~astropy.io.ascii.Rdb`: tab-separated values with an extra line after the column definition line
 * :class:`~astropy.io.ascii.SExtractor`: `SExtractor format table <http://www.astromatic.net/software/sextractor>`_
 
-The :mod:`astropy.io.ascii` package is built on a modular and extensible class
-structure with independent :ref:`base_class_elements` so that new formats can
-be easily accommodated.
+The strength of `astropy.io.ascii` is the support for astronomy-specific
+formats (often with metadata) and specialized data types such as
+:ref:`SkyCoord <astropy-coordinates-high-level>`, :ref:`Time
+<astropy-time>`, and :ref:`Quantity <quantity>`.  For reading or writing large
+data tables in a generic format such as CSV, using the :ref:`Table - Pandas
+interface <pandas>` is a recommended option to consider.
 
 .. note::
 
@@ -66,7 +69,15 @@ representation of a table, or a list of table lines.  The return value
 (``data`` in this case) is a :ref:`Table <astropy-table>` object.
 
 By default |read| will try to `guess the table format <#guess-table-format>`_
-by trying all the `supported formats`_.  If this does not work (for unusually
+by trying all the `supported formats`_.
+
+.. Warning::
+
+   Guessing the file format is often slow for large files because the reader
+   simply tries parsing the file with every allowed format until one succeeds.
+   For large files it is recommended to disable guessing with ``guess=False``.
+
+If guessing the format does not work (for unusually
 formatted tables) then one needs give ``astropy.io.ascii`` additional hints about
 the format, for example::
 
@@ -96,13 +107,18 @@ disable the fast engine::
 
    >>> data = ascii.read(lines, format='csv', fast_reader=False)
 
-For reading very large tables see the section on :ref:`chunk_reading`.
+For reading very large tables see the section on :ref:`chunk_reading` or
+use `pandas <http://pandas.pydata.org/>`_ (see Note below).
 
 .. Note::
 
-   Reading a table which contains unicode characters is supported; if you need
-   a different encoding, you can specify the ``encoding`` parameter in the
-   pure-Python readers.
+   Reading a table which contains unicode characters is supported with the
+   pure-Python readers by specifying the ``encoding`` parameter.  The fast
+   C-readers do not support unicode.  For large data files containing unicode,
+   we recommend reading the file using `pandas <http://pandas.pydata.org/>`_
+   and converting to a :ref:`Table <astropy-table>` via the :ref:`Table -
+   Pandas interface <pandas>`.
+
 
 Writing Tables
 --------------
