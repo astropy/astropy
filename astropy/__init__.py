@@ -6,6 +6,12 @@ Python. It also provides an index for other astronomy packages and tools for
 managing them.
 """
 
+try:
+    _ASTROPY_SETUP_
+except NameError:
+    pass
+else:
+    raise Exception("Can't import astropy at setup time")
 
 import sys
 import os
