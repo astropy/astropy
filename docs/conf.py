@@ -163,6 +163,11 @@ html_title = '{0} v{1}'.format(project, release)
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + 'doc'
 
+# A dictionary of values to pass into the template engine’s context for all pages.
+html_context = {
+    'to_be_indexed': ['stable', 'latest']
+}
+
 # -- Options for LaTeX output --------------------------------------------------
 
 # Grouping the document tree into LaTeX files. List of tuples
