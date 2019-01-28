@@ -325,7 +325,7 @@ class Parameter(OrderedDescriptor):
             # This new implementation uses the names of internal_unit
             # in place of raw_unit used previously. The contrast between
             # internal values and units is that between the public
-            # units that the parameter advertises to what it actually 
+            # units that the parameter advertises to what it actually
             # uses internally.
             if self.internal_unit:
                 return np.float64(self._getter(self._internal_value,
@@ -392,7 +392,7 @@ class Parameter(OrderedDescriptor):
     @internal_unit.setter
     def internal_unit(self, internal_unit):
         """
-        Set the unit the parameter will convert the supplied value to the 
+        Set the unit the parameter will convert the supplied value to the
         representation used internally.
         """
         self._internal_unit = internal_unit

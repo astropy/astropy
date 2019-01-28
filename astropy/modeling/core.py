@@ -2457,7 +2457,7 @@ class CompoundModel(Model):
         if 'equivalencies' in kw:
             self.map_parameters()
             # Restructure to be useful for the individual model lookup
-            kw['inputs_map'] = [(value[0], (value[1], key)) for 
+            kw['inputs_map'] = [(value[0], (value[1], key)) for
                                       key, value in self.inputs_map().items()]
 
             #kw['inputs_map'] = self.inputs_map()
@@ -2892,10 +2892,10 @@ class CompoundModel(Model):
                         inputs_map[inp] = self.left, self.left.inputs[i]
                 else:  # Get from right
                     if isinstance(self.right, CompoundModel):
-                       inputs_map[inp] = r_inputs_map[self.right.inputs[i 
+                        inputs_map[inp] = r_inputs_map[self.right.inputs[i
                                                                    - len(self.left.inputs)]]
                     else:
-                        inputs_map[inp] = self.right, self.right.inputs[i 
+                        inputs_map[inp] = self.right, self.right.inputs[i
                                                                    - len(self.left.inputs)]
         else:
             if isinstance(self.left, CompoundModel):
@@ -2914,37 +2914,35 @@ class CompoundModel(Model):
     @property
     def input_units(self):
         inputs_map = self.inputs_map()
-        return {key: inputs_map[key][0].input_units[orig_key] 
+        return {key: inputs_map[key][0].input_units[orig_key]
             for key, (mod, orig_key) in inputs_map.items()
                      if inputs_map[key][0].input_units is not None}
-    
+
     @property
     def input_units_equivalencies(self):
         inputs_map = self.inputs_map()
-        return {key: inputs_map[key][0].input_units_equivalencies[orig_key] 
+        return {key: inputs_map[key][0].input_units_equivalencies[orig_key]
             for key, (mod, orig_key) in inputs_map.items()
                 if inputs_map[key][0].input_units_equivalencies is not None}
 
     @property
     def input_units_allow_dimensionless(self):
         inputs_map = self.inputs_map()
-        return {key: inputs_map[key][0].input_units_allow_dimensionless[orig_key] 
+        return {key: inputs_map[key][0].input_units_allow_dimensionless[orig_key]
             for key, (mod, orig_key) in inputs_map.items()}
 
     @property
     def input_units_strict(self):
         inputs_map = self.inputs_map()
-        return {key: inputs_map[key][0].input_units_strict[orig_key] 
+        return {key: inputs_map[key][0].input_units_strict[orig_key]
             for key, (mod, orig_key) in inputs_map.items()}
 
     @property
     def return_units(self):
         inputs_map = self.inputs_map()
-        return {key: inputs_map[key][0].return_units[orig_key] 
+        return {key: inputs_map[key][0].return_units[orig_key]
             for key, (mod, orig_key) in inputs_map.items()
                      if inputs_map[key][0].return_units is not None}
-    
-    
 
     def outputs_map(self):
         """
@@ -2974,7 +2972,7 @@ class CompoundModel(Model):
                         outputs_map[out] = self.left, self.left.outputs[i]
                 else:  # Get from right
                     if isinstance(self.right, CompoundModel):
-                        outputs_map[out] = r_outputs_map[self.right.outputs[i 
+                        outputs_map[out] = r_outputs_map[self.right.outputs[i
                                                    - len(self.left.outputs)]]
                     else:
                         outputs_map[out] = self.right, self.right.outputs[i
