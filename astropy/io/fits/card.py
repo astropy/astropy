@@ -606,8 +606,7 @@ class Card(_Verify):
             return False
 
         if len(args) == 1:
-            # FIXME: result is not used here!
-            self._check_if_rvkc_image(*args)
+            return self._check_if_rvkc_image(*args)
         elif len(args) == 2:
             keyword, value = args
             if not isinstance(keyword, str):
