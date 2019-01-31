@@ -199,3 +199,70 @@ class TimeSeries(BaseTimeSeries):
             df = Table(self).to_pandas(index='time')
 
         return df
+
+    @classmethod
+    def read(self, filename, format, time=None, time_column=None, time_format=None,
+             time_delta=None, *args, **kwargs):
+        """
+        Read and parse a file and returns a `astropy.timeseries.sampled.TimeSeries`.
+
+        This function provides the access to the astropy unified I/O layer.
+        This allows easily reading a file in many supported data formats
+        using syntax such as::
+
+          >>> from astropy.timeseries.sampled import TimeSeries
+          >>> dat = TimeSeries.read('table.dat', format='ascii', time_column='DATE')  # doctest: +SKIP
+
+        See also: http://docs.astropy.org/en/stable/io/unified.html
+
+        Parameters
+        ----------
+        filename: str
+            File to parse.
+        format : str
+            File format specifier.
+        time: str or list of str, optional
+            Can be a `astropy.time.Time` parseable string or a list of said strings.
+            This or ``time_column`` must be passed in.
+        time_column: str, optional
+            The name of the time column within the file.
+            This or ``time`` must be passed in.
+        time_format: str, optional
+            Time format for the time_column.
+        time_delta: float or list, optional
+            The time step between each time index. If evenly sampled, you can specify
+            one single time step. If arbitrarily sampled, you can pass in a list.
+        *args : tuple, optional
+            Positional arguments passed through to the data reader.
+            If supplied, the first argument is the input filename.
+        **kwargs : dict, optional
+            Keyword arguments passed through to the data reader.
+
+        Returns
+        -------
+        out : `astropy.timeseries.sampled.TimeSeries`
+            TimeSeries corresponding to file contents.
+
+        """
+
+        table = Table.read(filename, format=format, *args, **kwargs)
+
+        if time is None and time_column is None:
+            raise ValueError("time and time_column are not set, please specify one of them.")
+
+        if isinstance(time, list) and len(time) != len(table):
+            raise ValueError("The time list is not the same length ({}) as the data ({}).".format(len(table), len(time)))
+
+        if isinstance(time, str) and time_delta is None:
+            raise ValueError("Please specify a time_delta for your time string.")
+
+        if time_column is not None:
+            if time_column not in table.colnames:
+                raise ValueError("Time column {}, not found in the input data.".format(time_column))
+            else:
+                time = Time(table.columns[time_column])
+                table.remove_column(time_column)
+                if time_format is not None:
+                    time.format = time_format
+
+        return TimeSeries(time=time, data=table, time_delta=time_delta, n_samples=len(table))

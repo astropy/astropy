@@ -45,7 +45,7 @@ source::
 We can then use the |TimeSeries| class to read in this file::
 
     >>> from astropy.timeseries import TimeSeries
-    >>> ts = TimeSeries.read(filename, format='kepler.fits')  # doctest: +REMOTE_DATA
+    >>> ts = TimeSeries.read(filename, format='kepler.fits', time_column='time')  # doctest: +REMOTE_DATA
 
 Time series are specialized kinds of |Table| objects::
 
@@ -151,7 +151,7 @@ Let's use what we've seen so far to make a plot
     from astropy.utils.data import get_pkg_data_filename
     filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
     from astropy.timeseries import TimeSeries
-    ts = TimeSeries.read(filename, format='kepler.fits')
+    ts = TimeSeries.read(filename, format='kepler.fits', time_column='time')
 
 .. plot::
    :include-source:

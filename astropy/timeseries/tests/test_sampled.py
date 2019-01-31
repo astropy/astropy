@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import os
 from datetime import datetime
 
 import pytest
@@ -16,6 +17,8 @@ INPUT_TIME = Time(['2016-03-22T12:30:31',
                    '2015-01-21T12:30:32',
                    '2016-03-22T12:30:40'])
 PLAIN_TABLE = Table([[1, 2, 11], [3, 4, 1], [1, 1, 1]], names=['a', 'b', 'c'])
+TEST_DIR = os.path.dirname(__file__)
+CSV_FILE = TEST_DIR + '/test_data/sampled.csv'
 
 
 def test_empty_initialization():
@@ -178,3 +181,43 @@ def test_pandas():
     with pytest.raises(TypeError) as exc:
         TimeSeries.from_pandas(df4)
     assert exc.value.args[0] == 'DataFrame does not have a DatetimeIndex'
+
+
+def test_read_empty():
+    with pytest.raises(ValueError) as exc:
+        TimeSeries.read(CSV_FILE, format='csv')
+    assert exc.value.args[0] == 'time and time_column are not set, please specify one of them.'
+
+
+def test_read_time_wrong():
+    with pytest.raises(ValueError) as exc:
+        TimeSeries.read(CSV_FILE, time_column='abc', format='csv')
+    assert exc.value.args[0] == 'Time column abc, not found in the input data.'
+
+
+def test_read_time_length():
+    with pytest.raises(ValueError) as exc:
+        TimeSeries.read(CSV_FILE, time=['abc'], format='csv')
+    assert exc.value.args[0] == 'The time list is not the same length (11) as the data (1).'
+
+
+def test_read_time_delta():
+    with pytest.raises(ValueError) as exc:
+        TimeSeries.read(CSV_FILE, time='abc', format='csv')
+    assert exc.value.args[0] == 'Please specify a time_delta for your time string.'
+
+
+def test_read():
+    timeseries = TimeSeries.read(CSV_FILE, time_column='Date', format='csv')
+    assert timeseries.colnames == ['time', 'A', 'B', 'C', 'D', 'E', 'F', 'G']
+    assert len(timeseries) == 11
+    assert timeseries['time'].format == 'iso'
+    assert timeseries['A'].sum() == 266.5
+
+    # Check for time_format change.
+    timeseries = TimeSeries.read(CSV_FILE, time_column='Date', format='csv', time_format='jd')
+    assert timeseries['time'].format == 'jd'
+
+    # Check for time_format change.
+    timeseries = TimeSeries.read(CSV_FILE, time_column='Date', format='csv', time_format='jd')
+    assert timeseries['time'].format == 'jd'
