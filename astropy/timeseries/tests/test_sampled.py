@@ -160,7 +160,7 @@ def test_pandas():
     assert_equal(ts.time.isot, INPUT_TIME.isot)
     assert ts.colnames == ['time', 'a']
 
-    ts1 = TimeSeries.from_pandas(df1, index='a')
+    ts1 = TimeSeries.from_pandas(df1, index=True)
     assert_equal(ts1.time.isot, INPUT_TIME.isot)
     assert ts1.colnames == ['time', 'index', 'a']
 
