@@ -1928,13 +1928,18 @@ collections.abc.MutableSequence.register(Header)
 collections.abc.MutableMapping.register(Header)
 
 
-class BasicHeaderCards:
+class _BasicHeaderCards:
+    """
+    This class allows to access cards with the _BasicHeader.cards attribute.
+    """
 
     def __init__(self, header):
         self.header = header
 
     def __getitem__(self, key):
+        # get the keyword name from its index.
         key = self.header._keys[key]
+        # then we get the card from the _BasicHeader._cards list
         try:
             return self.header._cards[key]
         except KeyError:
@@ -1943,13 +1948,28 @@ class BasicHeaderCards:
             return card
 
 
-class BasicHeader(collections.abc.Mapping):
+class _BasicHeader(collections.abc.Mapping):
+    """This class provides a fast header parsing, without all the additional
+    features of the Header class. Here only standard keywords are parsed, no
+    support for CONTINUE, HIERARCH, COMMENT, HISTORY, or rvkc.
+
+    The card images are stored and parsed only if needed. The idea is that to
+    create the HDU objects, only a small subset of standard cards is needed.
+    Once a card is parsed, with the Card class, the Card object is kept in
+    a cache. This is useful because a small subset of cards is used a lot in
+    the HDU creation process (NAXIS, XTENSION, ...).
+
+    """
 
     def __init__(self, cards):
+        # dict of (keywords, card images)
         self._raw_cards = cards
         self._keys = list(cards.keys())
+        # dict of (keyword, Card object) storing the parsed cards
         self._cards = {}
-        self.cards = BasicHeaderCards(self)
+        # the _BasicHeaderCards object allows to access Card objects from
+        # keyword indices
+        self.cards = _BasicHeaderCards(self)
 
     def __getitem__(self, key):
         if isinstance(key, int):
@@ -1958,6 +1978,7 @@ class BasicHeader(collections.abc.Mapping):
         try:
             return self._cards[key].value
         except KeyError:
+            # parse the Card and store it
             card = Card.fromstring(self._raw_cards[key])
             self._cards[key] = card
             return card.value
@@ -1970,6 +1991,7 @@ class BasicHeader(collections.abc.Mapping):
 
     @classmethod
     def fromfile(cls, fileobj):
+        """The main method allowing to parse quickly a FITS header."""
 
         close_file = False
         if isinstance(fileobj, str):
@@ -1982,6 +2004,7 @@ class BasicHeader(collections.abc.Mapping):
 
         try:
             while True:
+                # iterate on blocks
                 block = fileobj.read(BLOCK_SIZE)
                 if not block or len(block) < BLOCK_SIZE:
                     raise Exception
@@ -1990,6 +2013,7 @@ class BasicHeader(collections.abc.Mapping):
                 read_blocks.append(block)
                 idx = 0
                 while idx < BLOCK_SIZE:
+                    # iterate on cards
                     end_idx = idx + CARD_LENGTH
                     card_image = block[idx:end_idx]
                     idx = end_idx
@@ -2013,6 +2037,8 @@ class BasicHeader(collections.abc.Mapping):
                 if found_end:
                     break
 
+            # we keep the full header string as it may be needed later to
+            # create a Header object
             header_str = ''.join(read_blocks)
             return header_str, cls(cards)
         finally:
