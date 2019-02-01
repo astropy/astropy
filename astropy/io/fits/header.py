@@ -6,7 +6,7 @@ import itertools
 import re
 import warnings
 
-from .card import Card, _pad, KEYWORD_LENGTH, UNDEFINED
+from .card import Card, _pad, KEYWORD_LENGTH, UNDEFINED, VALUE_INDICATOR, CARD_LENGTH
 from .file import _File
 from .util import encode_ascii, decode_ascii, fileobj_closed, fileobj_is_binary
 
@@ -1926,6 +1926,98 @@ class Header:
 
 collections.abc.MutableSequence.register(Header)
 collections.abc.MutableMapping.register(Header)
+
+
+class BasicHeaderCards:
+
+    def __init__(self, header):
+        self.header = header
+
+    def __getitem__(self, key):
+        key = self.header._keys[key]
+        try:
+            return self.header._cards[key]
+        except KeyError:
+            card = Card.fromstring(self.header._raw_cards[key])
+            self.header._cards[key] = card
+            return card
+
+
+class BasicHeader(collections.abc.Mapping):
+
+    def __init__(self, cards):
+        self._raw_cards = cards
+        self._keys = list(cards.keys())
+        self._cards = {}
+        self.cards = BasicHeaderCards(self)
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            key = self._keys[key]
+
+        try:
+            return self._cards[key].value
+        except KeyError:
+            card = Card.fromstring(self._raw_cards[key])
+            self._cards[key] = card
+            return card.value
+
+    def __len__(self):
+        return len(self._raw_cards)
+
+    def __iter__(self):
+        return iter(self._raw_cards)
+
+    @classmethod
+    def fromfile(cls, fileobj):
+
+        close_file = False
+        if isinstance(fileobj, str):
+            fileobj = open(fileobj, 'rb')
+            close_file = True
+
+        cards = {}
+        read_blocks = []
+        found_end = False
+
+        try:
+            while True:
+                block = fileobj.read(BLOCK_SIZE)
+                if not block or len(block) < BLOCK_SIZE:
+                    raise Exception
+
+                block = decode_ascii(block)
+                read_blocks.append(block)
+                idx = 0
+                while idx < BLOCK_SIZE:
+                    end_idx = idx + CARD_LENGTH
+                    card_image = block[idx:end_idx]
+                    idx = end_idx
+
+                    keyword = card_image[:8].strip()
+                    keyword_upper = keyword.upper()
+                    sep_idx = card_image.find(VALUE_INDICATOR)
+
+                    # We are interested only in standard keyword, so we skip
+                    # other cards, e.G. CONTINUE, HIERARCH, COMMENT.
+                    if sep_idx == 8:
+                        # ok, found standard keyword
+                        cards[keyword_upper] = card_image
+                    elif 0 < sep_idx < 8:
+                        keyword = card_image[:sep_idx]
+                        cards[keyword_upper] = card_image
+                    elif card_image == END_CARD:
+                        found_end = True
+                        break
+
+                if found_end:
+                    break
+
+            header_str = ''.join(read_blocks)
+            return header_str, cls(cards)
+        finally:
+            if close_file:
+                fileobj.close()
 
 
 class _CardAccessor:
