@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-
-
 import datetime
 import os
 import sys
@@ -13,10 +11,10 @@ import numpy as np
 
 from astropy.io.fits import conf
 from astropy.io.fits.file import _File
-from astropy.io.fits.header import Header, _pad_length
-from astropy.io.fits.util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
-                    itersubclasses, decode_ascii, _get_array_mmap, first,
-                    _free_space_check, _extract_number)
+from astropy.io.fits.header import Header, BasicHeader, _pad_length
+from astropy.io.fits.util import (
+    _is_int, _is_pseudo_unsigned, _unsigned_zero, itersubclasses, decode_ascii,
+    _get_array_mmap, first, _free_space_check, _extract_number)
 from astropy.io.fits.verify import _Verify, _ErrList
 
 from astropy.utils import lazyproperty
@@ -68,6 +66,7 @@ def _hdu_class_from_header(cls, header):
                 if not (c.__module__.startswith('astropy.io.fits.') or
                         c in cls._hdu_registry):
                     continue
+                # print('try', c)
                 if c.match_header(header):
                     klass = c
                     break
@@ -154,6 +153,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
         if header is None:
             header = Header()
         self._header = header
+        self._header_str = None
         self._file = None
         self._buffer = None
         self._header_offset = None
@@ -176,6 +176,9 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
 
     @property
     def header(self):
+        if self._header is None and self._header_str is not None:
+            self._header = Header.fromstring(self._header_str)
+            self._header_str = None
         return self._header
 
     @header.setter
@@ -390,7 +393,12 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
         if isinstance(data, _File):
             if header is None:
                 header_offset = data.tell()
-                header = Header.fromfile(data, endcard=not ignore_missing_end)
+                try:
+                    header_str, header = BasicHeader.fromfile(data)
+                except Exception:
+                    data.seek(header_offset)
+                    header = Header.fromfile(data,
+                                             endcard=not ignore_missing_end)
             hdu_fileobj = data
             data_offset = data.tell()  # *after* reading the header
         else:
@@ -456,6 +464,10 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
         # Checksums are not checked on invalid HDU types
         if checksum and checksum != 'remove' and isinstance(hdu, _ValidHDU):
             hdu._verify_checksum_datasum()
+
+        if isinstance(hdu._header, BasicHeader):
+            hdu._header = None
+            hdu._header_str = header_str
 
         return hdu
 

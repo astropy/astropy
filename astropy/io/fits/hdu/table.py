@@ -18,13 +18,13 @@ from .base import DELAYED, _ValidHDU, ExtensionHDU
 # This module may have many dependencies on astropy.io.fits.column, but
 # astropy.io.fits.column has fewer dependencies overall, so it's easier to
 # keep table/column-related utilities in astropy.io.fits.column
-from astropy.io.fits.column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
-                      ATTRIBUTE_TO_KEYWORD, TDEF_RE, Column, ColDefs,
-                      _AsciiColDefs, _FormatP, _FormatQ, _makep,
-                      _parse_tformat, _scalar_to_format, _convert_format,
-                      _cmp_recformats)
+from astropy.io.fits.column import (
+    FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE, ATTRIBUTE_TO_KEYWORD,
+    TDEF_RE, Column, ColDefs, _AsciiColDefs, _FormatP, _FormatQ, _makep,
+    _parse_tformat, _scalar_to_format, _convert_format, _cmp_recformats
+)
 from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
-from astropy.io.fits.header import Header, _pad_length
+from astropy.io.fits.header import Header, BasicHeader, _pad_length
 from astropy.io.fits.util import _is_int, _str_to_num
 
 from astropy.utils import lazyproperty
@@ -277,7 +277,8 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
         super().__init__(data=data, header=header, name=name, ver=ver)
 
-        if header is not None and not isinstance(header, Header):
+        if header is not None and \
+                not isinstance(header, (BasicHeader, Header)):
             raise ValueError('header must be a Header object.')
 
         self._uint = uint
