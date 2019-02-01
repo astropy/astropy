@@ -24,7 +24,7 @@ from astropy.io.fits.column import (
     _parse_tformat, _scalar_to_format, _convert_format, _cmp_recformats
 )
 from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
-from astropy.io.fits.header import Header, BasicHeader, _pad_length
+from astropy.io.fits.header import Header, _BasicHeader, _pad_length
 from astropy.io.fits.util import _is_int, _str_to_num
 
 from astropy.utils import lazyproperty
@@ -278,7 +278,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         super().__init__(data=data, header=header, name=name, ver=ver)
 
         if header is not None and \
-                not isinstance(header, (BasicHeader, Header)):
+                not isinstance(header, (_BasicHeader, Header)):
             raise ValueError('header must be a Header object.')
 
         self._uint = uint

@@ -6,7 +6,7 @@ import warnings
 import numpy as np
 
 from .base import DELAYED, _ValidHDU, ExtensionHDU, BITPIX2DTYPE, DTYPE2BITPIX
-from astropy.io.fits.header import Header, BasicHeader
+from astropy.io.fits.header import Header, _BasicHeader
 from astropy.io.fits.util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 from astropy.io.fits.verify import VerifyWarning
 
@@ -43,7 +43,7 @@ class _ImageBaseHDU(_ValidHDU):
         super().__init__(data=data, header=header)
 
         if header is not None:
-            if not isinstance(header, (Header, BasicHeader)):
+            if not isinstance(header, (Header, _BasicHeader)):
                 # TODO: Instead maybe try initializing a new Header object from
                 # whatever is passed in as the header--there are various types
                 # of objects that could work for this...

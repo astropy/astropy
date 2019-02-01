@@ -11,7 +11,7 @@ import numpy as np
 
 from astropy.io.fits import conf
 from astropy.io.fits.file import _File
-from astropy.io.fits.header import Header, BasicHeader, _pad_length
+from astropy.io.fits.header import Header, _BasicHeader, _pad_length
 from astropy.io.fits.util import (
     _is_int, _is_pseudo_unsigned, _unsigned_zero, itersubclasses, decode_ascii,
     _get_array_mmap, first, _free_space_check, _extract_number)
@@ -394,7 +394,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
             if header is None:
                 header_offset = data.tell()
                 try:
-                    header_str, header = BasicHeader.fromfile(data)
+                    header_str, header = _BasicHeader.fromfile(data)
                 except Exception:
                     data.seek(header_offset)
                     header = Header.fromfile(data,
@@ -465,7 +465,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
         if checksum and checksum != 'remove' and isinstance(hdu, _ValidHDU):
             hdu._verify_checksum_datasum()
 
-        if isinstance(hdu._header, BasicHeader):
+        if isinstance(hdu._header, _BasicHeader):
             hdu._header_str = header_str
 
         return hdu
