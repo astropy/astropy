@@ -6,18 +6,18 @@ Known Issues
    :local:
    :depth: 2
 
-While most bugs and issues are managed using the `astropy issue
+While most bugs and issues are managed using the `Astropy issue
 tracker <https://github.com/astropy/astropy/issues>`_, this document
 lists issues that are too difficult to fix, may require some
-intervention from the user to workaround, or are due to bugs in other
+intervention from the user to work around, or are caused by bugs in other
 projects or packages.
 
-Issues listed on this page are grouped into two categories:  The first is known
+Issues listed on this page are grouped into two categories: The first is known
 issues and shortcomings in actual algorithms and interfaces that currently do
 not have fixes or workarounds, and that users should be aware of when writing
-code that uses Astropy.  Some of those issues are still platform-specific,
-while others are very general.  The second category is common issues that come
-up when configuring, building, or installing Astropy.  This also includes
+code that uses Astropy. Some of those issues are still platform-specific,
+while others are very general. The second category is of common issues that come
+up when configuring, building, or installing Astropy. This also includes
 cases where the test suite can report false negatives depending on the context/
 platform on which it was run.
 
@@ -29,9 +29,10 @@ Known deficiencies
 Quantities lose their units with some operations
 ------------------------------------------------
 
-Quantities are subclassed from numpy's `~numpy.ndarray` and in some numpy operations
-(and in scipy operations using numpy internally) the subclass is ignored, which
-means that either a plain array is returned, or a `~astropy.units.quantity.Quantity` without units.
+Quantities are subclassed from Numpy's `~numpy.ndarray` and in some Numpy
+operations (and in SciPy operations using Numpy internally) the subclass is
+ignored, which means that either a plain array is returned, or a
+`~astropy.units.quantity.Quantity` without units.
 E.g.::
 
     >>> import astropy.units as u
@@ -53,7 +54,7 @@ E.g.::
     >>> np.array([ratio]) # doctest: +FLOAT_CMP
     array([1.])
 
-Work-arounds are available for some cases.  For the above::
+Workarounds are available for some cases. For the above::
 
     >>> q.dot(q) # doctest: +FLOAT_CMP
     <Quantity 285. m2>
@@ -65,7 +66,7 @@ Work-arounds are available for some cases.  For the above::
     <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
                6., 7., 8., 9.] m>
 
-An incomplete list of specific functions which are known to exhibit this behavior follows.
+An incomplete list of specific functions which are known to exhibit this behavior follows:
 
 * `numpy.dot`
 * `numpy.hstack`, `numpy.vstack`, ``numpy.c_``, ``numpy.r_``, `numpy.append`
@@ -78,7 +79,7 @@ An incomplete list of specific functions which are known to exhibit this behavio
 See: https://github.com/astropy/astropy/issues/1274
 
 
-Care has to be taken when setting array slices using Quantities::
+Care must be taken when setting array slices using Quantities::
 
     >>> a = np.ones(4)
     >>> a[2:3] = 2*u.kg
@@ -120,7 +121,7 @@ See: https://github.com/astropy/astropy/issues/7582
 Quantities lose their units when broadcasted
 --------------------------------------------
 
-When broadcasting Quantities, it is necessary to pass ``subok=True`` to
+When broadcasting Quantities, it's necessary to pass ``subok=True`` to
 `~numpy.broadcast_to`, or else a bare `~numpy.ndarray` will be returned::
 
    >>> q = u.Quantity(np.arange(10.), u.m)
@@ -147,8 +148,8 @@ See: https://github.com/astropy/astropy/issues/7832
 Quantities float comparison with np.isclose fails
 -------------------------------------------------
 
-Comparing Quantities floats using the numpy function `~numpy.isclose` fails on
-numpy 1.9 as the comparison between ``a`` and ``b`` is made using the formula
+Comparing Quantities floats using the Numpy function `~numpy.isclose` fails on
+Numpy 1.9 as the comparison between ``a`` and ``b`` is made using the formula
 
 .. math::
 
@@ -163,44 +164,44 @@ This will result in the following traceback when using this with Quantities::
     ...
     UnitConversionError: Can only apply 'add' function to dimensionless quantities when other argument is not a quantity (unless the latter is all zero/infinity/nan)
 
-An easy solution is::
+One solution is::
 
     >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s) # doctest: +SKIP
     False
 
-Quantities in np.linspace failure on numpy 1.10
+Quantities in np.linspace failure on Numpy 1.10
 -----------------------------------------------
 
-`~numpy.linspace` does not work correctly with quantities when using numpy
-1.10.0 to 1.10.5 due to a bug in numpy. The solution is to upgrade to numpy
+`~numpy.linspace` does not work correctly with quantities when using Numpy
+1.10.0 to 1.10.5 due to a bug in Numpy. The solution is to upgrade to Numpy
 1.10.6 or later, in which the bug was fixed.
 
 
 mmap support for ``astropy.io.fits`` on GNU Hurd
 ------------------------------------------------
 
-On Hurd and possibly other platforms ``flush()`` on memory-mapped files is not
+On Hurd and possibly other platforms, ``flush()`` on memory-mapped files are not
 implemented, so writing changes to a mmap'd FITS file may not be reliable and is
-thus disabled.  Attempting to open a FITS file in writeable mode with mmap will
+thus disabled. Attempting to open a FITS file in writeable mode with mmap will
 result in a warning (and mmap will be disabled on the file automatically).
 
 See: https://github.com/astropy/astropy/issues/968
 
 
-Bug with unicode endianness in ``io.fits`` for big-endian processors
+Bug with Unicode endianness in ``io.fits`` for big endian processors
 --------------------------------------------------------------------
 
-On big-endian processors (e.g. SPARC, PowerPC, MIPS), string columns in FITS
+On big endian processors (e.g. SPARC, PowerPC, MIPS), string columns in FITS
 files may not be correctly read when using the ``Table.read`` interface. This
 will be fixed in a subsequent bug fix release of Astropy (see `bug report here
-<https://github.com/astropy/astropy/issues/3415>`_)
+<https://github.com/astropy/astropy/issues/3415>`_).
 
 
 Color printing on Windows
 -------------------------
 
-Colored printing of log messages and other colored text does work in Windows
-but only when running in the IPython console.  Colors are not currently
+Colored printing of log messages and other colored text does work in Windows,
+but only when running in the IPython console. Colors are not currently
 supported in the basic Python command-line interpreter on Windows.
 
 
@@ -210,7 +211,7 @@ Build/installation/test issues
 Anaconda users should upgrade with ``conda``, not ``pip``
 ---------------------------------------------------------
 
-Upgrading Astropy in the anaconda python distribution using ``pip`` can result
+Upgrading Astropy in the Anaconda Python distribution using ``pip`` can result
 in a corrupted install with a mix of files from the old version and the new
 version. Anaconda users should update with ``conda update astropy``. There
 may be a brief delay between the release of Astropy on PyPI and its release
@@ -269,8 +270,8 @@ terminal).
 Creating a Time object fails with ValueError after upgrading Astropy
 --------------------------------------------------------------------
 
-In some cases, have users have upgraded Astropy from an older version to v1.0
-or greater they have run into the following crash when trying to create a
+In some cases, when users have upgraded Astropy from an older version to v1.0
+or greater, they have run into the following crash when trying to create an
 `~astropy.time.Time` object::
 
     >>> from astropy.time import Time
@@ -282,32 +283,32 @@ or greater they have run into the following crash when trying to create a
     u'jyear_str', u'iso', u'isot', u'yday', u'byear_str']
 
 This problem can occur when there is a version mismatch between the compiled
-ERFA library (this is included as part of Astropy in most distributions), and
+ERFA library (included as part of Astropy in most distributions), and
 the version of the Astropy Python source.
 
-This can have a number of causes.  The most likely is that when installing the
+This can be from a number of causes. The most likely is that when installing the
 new Astropy version, your previous Astropy version was not fully uninstalled
-first, resulting in a mishmash of versions.  Your best bet is to fully remove
-Astropy from its installation path, and reinstall from scratch using your
-preferred installation method.  How to remove the old version may be a simple
-matter if removing the entire ``astropy/`` directory from within the
-``site-packages`` directory it is installed in.  However, if in doubt, ask
+first, resulting in a mishmash of versions. Your best bet is to fully remove
+Astropy from its installation path and reinstall from scratch using your
+preferred installation method. Removing the old version may be achieved by
+removing the entire ``astropy/`` directory from within the
+``site-packages`` directory it is installed in. However, if in doubt, ask
 how best to uninstall packages from your preferred Python distribution.
 
-Another possible cause of this, in particular for people developing on Astropy
-and installing from a source checkout, is simply that your Astropy build
-directory is unclean.  To fix this, run ``git clean -dfx``.  This removes
+Another possible cause of this error, in particular for people developing on
+Astropy and installing from a source checkout, is that your Astropy build
+directory is unclean. To fix this, run ``git clean -dfx``. This removes
 *all* build artifacts from the repository that aren't normally tracked by git.
 Make sure before running this that there are no untracked files in the
-repository you intend to save.  Then rebuild/reinstall from the clean repo.
+repository you intend to save. Then rebuild/reinstall from the clean repo.
 
 
 Failing logging tests when running the tests in IPython
 -------------------------------------------------------
 
 When running the Astropy tests using ``astropy.test()`` in an IPython
-interpreter some of the tests in the ``astropy/tests/test_logger.py`` *might*
-fail, depending on the version of IPython or other factors.
+interpreter, some of the tests in the ``astropy/tests/test_logger.py`` *might*
+fail depending on the version of IPython or other factors.
 This is due to mutually incompatible behaviors in IPython and py.test, and is
 not due to a problem with the test itself or the feature being tested.
 
@@ -336,7 +337,7 @@ by adding the following to your ``sitecustomize.py`` file::
 Note that in general, `this is not recommended
 <https://ziade.org/2008/01/08/syssetdefaultencoding-is-evil/>`_,
 because it can hide other Unicode encoding bugs in your application.
-However, in general if your application does not deal with text
+However, if your application does not deal with text
 processing and you just want docstrings to work, this may be
 acceptable.
 
@@ -346,21 +347,21 @@ Compatibility issues with pytest 3.7 and later
 ----------------------------------------------
 
 Due to a bug in `pytest <http://www.pytest.org>`_ related to test collection,
-the tests for the core astropy package for version 2.0.x (LTS), and for packages
+the tests for the core Astropy package for version 2.0.x (LTS), and for packages
 using the core package's test infrastructure and being tested against 2.0.x
-(LTS) will not be executed correctly with pytest 3.7, 3.8, or 3.9. The symptom
+(LTS), will not be executed correctly with pytest 3.7, 3.8, or 3.9. The symptom
 of this bug is that no tests or only tests in RST files are collected. In
-addition, astropy 2.0.x (LTS) is not compatible with pytest 4.0 and above
+addition, Astropy 2.0.x (LTS) is not compatible with pytest 4.0 and above,
 as in this case deprecation errors from pytest can cause tests to fail.
-Therefore, when testing against astropy v2.0.x (LTS), pytest 3.6 or earlier
+Therefore, when testing against Astropy v2.0.x (LTS), pytest 3.6 or earlier
 versions should be used. These issues do not occur in version 3.0.x and above of
 the core package.
 
-There is also an unrelated issue that also affects more recent versions of
-astropy when testing with pytest 4.0 and later, which can
+There is an unrelated issue that also affects more recent versions of
+Astropy when testing with pytest 4.0 and later, which can
 cause issues when collecting tests - in this case, the symptom is that the
-test collection hangs and/or appears to run the tests recursively. If you are
-maintaining a package that was created using the astropy
+test collection hangs and/or appears to run the tests recursively. If you're
+maintaining a package that was created using the Astropy
 `package template <http://github.com/astropy/package-template>`_, then
 this can be fixed by updating to the latest version of the ``_astropy_init.py``
 file. The root cause of this issue is that pytest now tries to pick up the
