@@ -67,8 +67,8 @@ Astropy also depends on other packages for optional features:
   human-readable representation.
 
 - `bottleneck <https://pypi.org/project/Bottleneck/>`_: Improves the performance
-  of sigma-clipping and other functionality that may required computing statistics
-  on arrays with NaN values.
+  of sigma-clipping and other functionality that may require computing
+  statistics on arrays with NaN values.
 
 And the following packages can optionally be used when testing:
 
@@ -83,7 +83,7 @@ And the following packages can optionally be used when testing:
 
 - `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
 
-- `IPython <https://ipython.org/>`__: Used for testing notebook interface of
+- `IPython <https://ipython.org/>`__: Used for testing the notebook interface of
   `~astropy.table.Table`.
 
 - `coverage <https://coverage.readthedocs.io/>`_: Used for code coverage
@@ -92,8 +92,9 @@ And the following packages can optionally be used when testing:
 - `skyfield <https://rhodesmill.org/skyfield/>`_: Used for testing Solar System
   coordinates.
 
-However, note that these only need to be installed if those particular features
-are needed. Astropy will import even if these dependencies are not installed.
+However, note that these packages require installation only if those particular
+features are needed. Astropy will import even if these dependencies are not
+installed.
 
 Installing Astropy
 ==================
@@ -106,7 +107,7 @@ Using pip
     Users of the Anaconda python distribution should follow the instructions
     for :ref:`anaconda_install`.
 
-To install Astropy with `pip <https://pip.pypa.io>`__, simply run::
+To install Astropy with `pip <https://pip.pypa.io>`__, run::
 
     pip install astropy
 
@@ -115,8 +116,8 @@ can also do::
 
     pip install astropy --no-deps
 
-On the other hand, if you want to install Astropy along with all the available
-optional depdendencies, you can do::
+On the other hand, if you want to install Astropy along with all of the
+available optional dependencies, you can do::
 
     pip install astropy[all]
 
@@ -124,9 +125,9 @@ Note that you will need a C compiler (e.g. ``gcc`` or ``clang``) to be installed
 (see `Building from source`_ below) for the installation to succeed.
 
 If you get a ``PermissionError`` this means that you do not have the required
-administrative access to install new packages to your Python installation.  In
+administrative access to install new packages to your Python installation. In
 this case you may consider using the ``--user`` option to install the package
-into your home directory.  You can read more about how to do this in the `pip
+into your home directory. You can read more about how to do this in the `pip
 documentation <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_.
 
 Alternatively, if you intend to do development on other software that uses
@@ -160,7 +161,7 @@ for the list of available versions with ``conda search astropy``.
 Testing an installed Astropy
 ----------------------------
 
-The easiest way to test your installed version of astropy is running
+The easiest way to test if your installed version of Astropy is running
 correctly is to use the :ref:`astropy.test()` function::
 
     import astropy
@@ -169,8 +170,8 @@ correctly is to use the :ref:`astropy.test()` function::
 The tests should run and print out any failures, which you can report at
 the `Astropy issue tracker <https://github.com/astropy/astropy/issues>`_.
 
-This way of running the tests may not work if you do it in the astropy source
-distribution.  See :ref:`sourcebuildtest` for how to run the tests from the
+This way of running the tests may not work if you do it in the Astropy source
+distribution. See :ref:`sourcebuildtest` for how to run the tests from the
 source code directory, or :ref:`running-tests` for more details.
 
 Building from source
@@ -179,21 +180,21 @@ Building from source
 Prerequisites
 -------------
 
-You will need a compiler suite and the development headers for Python and
+You'll need a compiler suite and the development headers for Python and
 Numpy in order to build Astropy.
 
-If you are building the latest developer version rather than using a stable
+If you're building the latest developer version rather than using a stable
 release, you will also need `Cython <http://cython.org/>`_ (v0.21 or later) and
-`jinja2 <http://jinja.pocoo.org/docs/dev/>`_ (v2.7 or later) installed (the
+`jinja2 <http://jinja.pocoo.org/docs/dev/>`_ (v2.7 or later) installed. The
 released packages have the necessary C files packaged with them, and hence do
-not require Cython).
+not require Cython.
 
 Prerequisites for Linux
 -----------------------
 
 On Linux, using the package manager for your distribution will usually be the
-easiest route to making sure you have the pre-requisites to build Astropy. In
-order to build from source, you'll need the python development package for your
+easiest route to making sure you have the prerequisites to build Astropy. In
+order to build from source, you'll need the Python development package for your
 Linux distribution.
 
 For Debian/Ubuntu::
@@ -232,37 +233,37 @@ The latest stable source package for Astropy can be `downloaded here
 Development repository
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The latest development version of Astropy can be cloned from github
+The latest development version of Astropy can be cloned from GitHub
 using this command::
 
    git clone --recursive git://github.com/astropy/astropy.git
 
 If you wish to participate in the development of Astropy, see
-:ref:`developer-docs`.  This document covers only the basics necessary to
-install Astropy.
+:ref:`developer-docs`. This document covers only the basics necessary to
+installing Astropy.
 
-Building and Installing
+Building and installing
 -----------------------
 
 Astropy uses the Python built-in `distutils framework
 <http://docs.python.org/install/index.html>`_ for building and
-installing and requires the `setuptools`_ package.
+installing, and requires the `setuptools`_ package.
 
-If Numpy is not already installed in your Python environment, the astropy setup
+If Numpy is not already installed in your Python environment, the Astropy setup
 process will try to download and install it before continuing to install
-astropy.
+Astropy.
 
 To build and install Astropy (from the root of the source tree)::
 
     pip install .
 
-If you install in this way, if you make changes to the code, you will need to
+If you install in this way and you make changes to the code, you'll need to
 re-run the install command for changes to be reflected. Alternatively, you can
 use::
 
     pip install -e .
 
-Which installs astropy in develop/editable mode, which means that changes in
+Which installs Astropy in develop/editable mode, which means that changes in
 the code are immediately reflected in the installed version.
 
 Troubleshooting
@@ -281,8 +282,8 @@ External C libraries
 ^^^^^^^^^^^^^^^^^^^^
 
 The Astropy source ships with the C source code of a number of
-libraries.  By default, these internal copies are used to build
-Astropy.  However, if you wish to use the system-wide installation of
+libraries. By default, these internal copies are used to build
+Astropy. However, if you wish to use the system-wide installation of
 one of those libraries, you can pass one or more of the
 ``--use-system-X`` flags to the ``setup.py build`` command.
 
@@ -299,8 +300,8 @@ To see which system libraries Astropy knows how to build against, use::
 
     python setup.py build --help
 
-As with all distutils commandline options, they may also be provided in a
-``setup.cfg`` in the same directory as ``setup.py``.  For example, to use
+As with all distutils command line options, they may also be provided in a
+``setup.cfg`` in the same directory as ``setup.py``. For example, to use
 the system `libexpat <http://www.libexpat.org/>`_, add the following to the
 ``setup.cfg`` file::
 
@@ -330,7 +331,7 @@ If you want to be able to use Astropy inside `CASA
 <https://casa.nrao.edu/>`_, the easiest way is to do so from inside CASA.
 
 First, we need to make sure `pip <https://pip.pypa.io>`__ is
-installed. Start up CASA as normal, and type::
+installed. Start up CASA as normal, and then type::
 
     CASA <2>: from setuptools.command import easy_install
 
@@ -346,16 +347,16 @@ Then close CASA again and open it, and you should be able to import Astropy::
 
     CASA <2>: import astropy
 
-Any astropy affiliated package can be installed the same way (e.g. the
+Any Astropy affiliated package can be installed the same way (e.g. the
 `spectral-cube <http://spectral-cube.readthedocs.io/en/latest/>`_ or other
 packages that may be useful for radio astronomy).
 
 .. note:: The above instructions have not been tested on all systems.
    We know of a few examples that do work, but that is not a guarantee
-   that this will work on all systems.  If you install astropy and begin to
+   that this will work on all systems. If you install Astropy and begin to
    encounter issues with CASA, please look at the `known CASA issues
    <https://github.com/astropy/astropy/issues?q=+label%3ACASA-Installation+>`_
-   and, if you don't encounter your issue there, post a new one.
+   and if you don't encounter your issue there, please post a new one.
 
 .. _builddocs:
 
@@ -364,9 +365,9 @@ Building documentation
 
 .. note::
 
-    Building the documentation is in general not necessary unless you
-    are writing new documentation or do not have internet access, because
-    the latest (and archive) versions of astropy's documentation should
+    Building the documentation is in general not necessary unless you're
+    writing new documentation or do not have internet access, because
+    the latest (and archive) versions of Astropy's documentation should
     be available at `docs.astropy.org <http://docs.astropy.org>`_ .
 
 Dependencies
@@ -389,22 +390,22 @@ ecosystem, this package also serves as a way to automatically get the main
 dependencies, including:
 
 * `Sphinx <http://sphinx.pocoo.org>`_ - the main package we use to build
-  the documentation.
+  the documentation
 * `astropy-sphinx-theme <https://github.com/astropy/astropy-sphinx-theme>`_ -
   the default 'bootstrap' theme use by Astropy and a number of affiliated
-  packages.
+  packages
 * `sphinx-automodapi <http://sphinx-automodapi.readthedocs.io>`_ - an extension
-  that makes it easy to automatically generate API documentation.
+  that makes it easy to automatically generate API documentation
 * `sphinx-gallery <https://sphinx-gallery.readthedocs.io/en/latest/>`_ - an
   extension to generate example galleries
 * `numpydoc <https://numpydoc.readthedocs.io>`_ - an extension to parse
   docstrings in NumpyDoc format
 * `pillow <https://pillow.readthedocs.io>`_ - used in one of the examples
 
-In addition, if you want inheritance graphs to be generated, you will need to
+In addition, if you want inheritance graphs to be generated, you'll need to
 make sure that `Graphviz <http://www.graphviz.org>`_ is installed. If you
-install sphinx-astropy with conda, graphviz will automatically get installed,
-but if you use pip, you will need to install Graphviz separately as it isn't
+install sphinx-astropy with conda, Graphviz will automatically get installed,
+but if you use pip, you'll need to install Graphviz separately as it isn't
 a Python package.
 
 .. _astropy-doc-building:
@@ -412,15 +413,15 @@ a Python package.
 Building
 ^^^^^^^^
 
-There are two ways to build the Astropy documentation. The most straightforward
-way is to execute the command (from the astropy source directory)::
+There are two ways to build the Astropy documentation. The first way is to
+execute the command (from the Astropy source directory)::
 
     python setup.py build_docs
 
 The documentation will be built in the ``docs/_build/html`` directory, and can
 be read by pointing a web browser to ``docs/_build/html/index.html``.
 
-The LaTeX documentation can be generated by using the command::
+In the second way, LaTeX documentation can be generated by using the command::
 
     python setup.py build_docs -b latex
 
@@ -440,10 +441,10 @@ Reporting issues/requesting features
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As mentioned above, building the documentation depends on a number of sphinx
-extensions and other packages. Since it isn't necessarily straightforward to
-know which package is causing issues or would need to have a new feature
-implemented, you can simply open an issue in the `core astropy package issue
-tracker <https://github.com/astropy/astropy/issues>`_. However, if you wish you
+extensions and other packages. Since it isn't always possible to know which
+package is causing issues or would need to have a new feature implemented, you
+can open an issue in the `core Astropy package issue
+tracker <https://github.com/astropy/astropy/issues>`_. However, if you wish, you
 can also open issues in the repositories for some of the dependencies:
 
 * For requests/issues related to the appearance of the docs (e.g. related to
@@ -464,7 +465,7 @@ can also open issues in the repositories for some of the dependencies:
 Testing a source code build of Astropy
 --------------------------------------
 
-Before running tests, it is necessary to make sure that Astropy's test
+Before running tests, it's necessary to make sure that Astropy's test
 dependencies are installed. This can be done with the following command::
 
     pip install pytest-astropy
@@ -472,12 +473,12 @@ dependencies are installed. This can be done with the following command::
 More information on what the ``pytest-astropy`` package provides can be found
 in :ref:`testing-dependencies`.
 
-The easiest way to test that your Astropy built correctly (without
-installing astropy) is to run this from the root of the source tree::
+The most convenient way to test that your Astropy package built correctly
+(without installing Astropy) is to run this from the root of the source tree::
 
     python setup.py test
 
-There are also alternative methods of :ref:`running-tests`. Note that you will
+There are also alternative methods of :ref:`running-tests`. Note that you'll
 need `pytest <http://pytest.org>`_ to be installed for this to work.
 
 .. include:: development/workflow/known_projects.inc
