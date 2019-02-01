@@ -1471,7 +1471,7 @@ class CompImageHDU(BinTableHDU):
         if hasattr(self, '_image_header'):
             return self._image_header
 
-        if self._header is None and self._header_str is not None:
+        if self._header_str is not None:
             self._header = Header.fromstring(self._header_str)
             self._header_str = None
 
