@@ -1,16 +1,16 @@
-*********************************
-Importing astropy and subpackages
-*********************************
+**********************************
+Importing Astropy and sub-packages
+**********************************
 
-In order to encourage consistency amongst users in importing and using Astropy
+In order to encourage consistency among users in importing and using Astropy
 functionality, we have put together the following guidelines.
 
 Since most of the functionality in Astropy resides in sub-packages, importing
-astropy as::
+Astropy as::
 
     >>> import astropy
 
-is not very useful. Instead, it is best to import the desired sub-package
+is not very useful. Instead, it's best to import the desired sub-package
 with the syntax::
 
     >>> from astropy import subpackage  # doctest: +SKIP
@@ -22,7 +22,7 @@ For example, to access the FITS-related functionality, you can import
     >>> hdulist = fits.open('data.fits')  # doctest: +SKIP
 
 In specific cases, we have recommended shortcuts in the documentation for
-specific sub-packages, for example::
+specific sub-packages. For example::
 
     >>> from astropy import units as u
     >>> from astropy import coordinates as coord
@@ -38,26 +38,27 @@ imported::
     >>> from astropy.table import Table
     >>> from astropy.wcs import WCS
 
-Note that for clarity, and to avoid any issues, we recommend to **never**
-import any Astropy functionality using ``*``, for example::
+Note that for clarity, and to avoid any issues, we recommend **never**
+importing any Astropy functionality using ``*``, for example::
 
     >>> from astropy.io.fits import *  # NOT recommended
 
-Some components of Astropy started off as standalone packages (e.g. PyFITS, PyWCS),
-so in cases where Astropy needs to be used as a drop-in replacement, the following
-syntax is also acceptable::
+Some components of Astropy started off as standalone packages (e.g. PyFITS,
+PyWCS), so in cases where Astropy needs to be used as a drop-in replacement,
+the following syntax is also acceptable::
 
     >>> from astropy.io import fits as pyfits
 
-********************************
-Getting started with subpackages
-********************************
+*********************************
+Getting started with sub-packages
+*********************************
 
-Because different subpackages have very different functionality, each subpackage has its own
-getting started guide. These can be found by browsing the sections listed in the :ref:`user-docs`.
+Because different sub-packages have very different functionalities, each
+sub-package has its own getting started guide. These can be found by browsing
+the sections listed in the :ref:`user-docs`.
 
-You can also look at docstrings for a
-particular package or object, or access their documentation using the
+You can also look at docstrings for a particular package or object, or access
+their documentation using the
 `~astropy.utils.misc.find_api_page` function. For example, ::
 
     >>> from astropy import find_api_page
