@@ -176,7 +176,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
 
     @property
     def header(self):
-        if self._header is None and self._header_str is not None:
+        if self._header_str is not None:
             self._header = Header.fromstring(self._header_str)
             self._header_str = None
         return self._header
@@ -466,7 +466,6 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
             hdu._verify_checksum_datasum()
 
         if isinstance(hdu._header, BasicHeader):
-            hdu._header = None
             hdu._header_str = header_str
 
         return hdu

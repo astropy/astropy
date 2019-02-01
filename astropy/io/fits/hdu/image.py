@@ -213,7 +213,7 @@ class _ImageBaseHDU(_ValidHDU):
 
     @property
     def header(self):
-        if self._header is None and self._header_str is not None:
+        if self._header_str is not None:
             self._header = Header.fromstring(self._header_str)
             self._header_str = None
         return self._header
