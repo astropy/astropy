@@ -11,7 +11,8 @@ from .utils import EQUINOX_J2000, DEFAULT_OBSTIME
 __all__ = ['GeocentricMeanEcliptic', 'BarycentricMeanEcliptic',
            'HeliocentricMeanEcliptic', 'BaseEclipticFrame',
            'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
-           'HeliocentricTrueEcliptic']
+           'HeliocentricTrueEcliptic',
+           'HeliocentricEclipticIAU76']
 
 
 doc_components_ecl = """
@@ -202,4 +203,25 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
+
+
+@format_doc(base_doc, components=doc_components_ecl.format("sun's center"),
+            footer="")
+class HeliocentricEclipticIAU76(BaseEclipticFrame):
+    """
+    Heliocentric ecliptic coordinates.  These origin of the coordinates are the
+    center of the sun, with the x axis pointing in the direction of
+    the *mean* (not true) equinox of J2000, and the xy-plane in the plane of the
+    ecliptic of J2000 (according to the IAU 1976/1980 obliquity model).
+    It has, therefore, a fixed equinox and an older obliquity value
+    than the rest of the frames.
+
+    The frame attributes are listed under **Other Parameters**.
+
+    {params}
+
+
+    """
+
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
