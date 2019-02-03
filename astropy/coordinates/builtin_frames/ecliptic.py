@@ -60,6 +60,9 @@ doc_footer_geo = """
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth (necessary for transformation to
         non-geocentric systems). Defaults to the 'J2000' equinox.
+    obstime : `~astropy.time.Time`, optional
+        The time at which the observation is taken.  Used for determining the
+        position of the Earth. Defaults to J2000 UTC.
 """
 
 
@@ -80,6 +83,7 @@ class GeocentricTrueEcliptic(BaseEclipticFrame):
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
 doc_footer_bary = """
