@@ -16,7 +16,7 @@ from .icrs import ICRS
 from .gcrs import GCRS
 from .ecliptic import (GeocentricMeanEcliptic, BarycentricMeanEcliptic, HeliocentricMeanEcliptic,
                        GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic,
-                       HeliocentricEclipticIAU76)
+                       HeliocentricEclipticIAU76, CustomBarycentricEcliptic)
 from .utils import get_jd12
 from astropy.coordinates.errors import UnitsError
 
@@ -259,3 +259,15 @@ def icrs_to_iau76_ecliptic(from_coo, to_frame):
 
     newrepr = heliocart.transform(rmat)
     return to_frame.realize_frame(newrepr)
+
+
+@frame_transform_graph.transform(DynamicMatrixTransform,
+                                 ICRS, CustomBarycentricEcliptic)
+def icrs_to_custombaryecliptic(from_coo, to_frame):
+    return _obliquity_only_rotation_matrix(to_frame.obliquity)
+
+
+@frame_transform_graph.transform(DynamicMatrixTransform,
+                                 CustomBarycentricEcliptic, ICRS)
+def custombaryecliptic_to_icrs(from_coo, to_frame):
+    return icrs_to_custombaryecliptic(to_frame, from_coo).T
