@@ -12,7 +12,7 @@ from astropy.time import Time
 from astropy.coordinates import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
                 PrecessedGeocentric, CartesianRepresentation, SkyCoord,
                 SphericalRepresentation, UnitSphericalRepresentation,
-                HCRS, HeliocentricTrueEcliptic)
+                HCRS, HeliocentricMeanEcliptic)
 
 
 from astropy._erfa import epv00
@@ -504,7 +504,7 @@ def test_ephemerides():
 
     icrs_frame = ICRS()
     hcrs_frame = HCRS(obstime=t)
-    ecl_frame = HeliocentricTrueEcliptic(equinox=t)
+    ecl_frame = HeliocentricMeanEcliptic(equinox=t)
     cirs_frame = CIRS(obstime=t)
 
     moon_icrs_builtin = moon.transform_to(icrs_frame)

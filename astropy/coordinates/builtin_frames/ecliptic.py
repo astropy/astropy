@@ -8,8 +8,8 @@ from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMap
 from astropy.coordinates.attributes import TimeAttribute
 from .utils import EQUINOX_J2000, DEFAULT_OBSTIME
 
-__all__ = ['GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
-           'HeliocentricTrueEcliptic', 'BaseEclipticFrame']
+__all__ = ['GeocentricMeanEcliptic', 'BarycentricMeanEcliptic',
+           'HeliocentricMeanEcliptic', 'BaseEclipticFrame']
 
 
 doc_components_ecl = """
@@ -68,7 +68,7 @@ doc_footer_geo = """
 
 @format_doc(base_doc, components=doc_components_ecl.format('geocenter'),
             footer=doc_footer_geo)
-class GeocentricTrueEcliptic(BaseEclipticFrame):
+class GeocentricMeanEcliptic(BaseEclipticFrame):
     """
     Geocentric ecliptic coordinates.  These origin of the coordinates are the
     geocenter (Earth), with the x axis pointing to the *mean* (not true) equinox
@@ -98,7 +98,7 @@ doc_footer_bary = """
 
 @format_doc(base_doc, components=doc_components_ecl.format("barycenter"),
             footer=doc_footer_bary)
-class BarycentricTrueEcliptic(BaseEclipticFrame):
+class BarycentricMeanEcliptic(BaseEclipticFrame):
     """
     Barycentric ecliptic coordinates.  These origin of the coordinates are the
     barycenter of the solar system, with the x axis pointing in the direction of
@@ -127,7 +127,7 @@ doc_footer_helio = """
 
 @format_doc(base_doc, components=doc_components_ecl.format("sun's center"),
             footer=doc_footer_helio)
-class HeliocentricTrueEcliptic(BaseEclipticFrame):
+class HeliocentricMeanEcliptic(BaseEclipticFrame):
     """
     Heliocentric ecliptic coordinates.  These origin of the coordinates are the
     center of the sun, with the x axis pointing in the direction of

@@ -8,7 +8,7 @@ import numpy as np
 from astropy.units import allclose as quantity_allclose
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from astropy.coordinates.builtin_frames import FK5, ICRS, GCRS, GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
+from astropy.coordinates.builtin_frames import FK5, ICRS, GCRS, GeocentricMeanEcliptic, BarycentricMeanEcliptic, HeliocentricMeanEcliptic
 from astropy.constants import R_sun, R_earth
 
 
@@ -19,7 +19,7 @@ def test_against_pytpm_doc_example():
     Currently this is only testing against the example given in the pytpm docs
     """
     fk5_in = SkyCoord('12h22m54.899s', '15d49m20.57s', frame=FK5(equinox='J2000'))
-    pytpm_out = BarycentricTrueEcliptic(lon=178.78256462*u.deg,
+    pytpm_out = BarycentricMeanEcliptic(lon=178.78256462*u.deg,
                                         lat=16.7597002513*u.deg,
                                         equinox='J2000')
     astropy_out = fk5_in.transform_to(pytpm_out)
@@ -34,8 +34,8 @@ def test_ecliptic_heliobary():
     """
     icrs = ICRS(1*u.deg, 2*u.deg, distance=1.5*R_sun)
 
-    bary = icrs.transform_to(BarycentricTrueEcliptic)
-    helio = icrs.transform_to(HeliocentricTrueEcliptic)
+    bary = icrs.transform_to(BarycentricMeanEcliptic)
+    helio = icrs.transform_to(HeliocentricMeanEcliptic)
 
     # make sure there's a sizable distance shift - in 3d hundreds of km, but
     # this is 1D so we allow it to be somewhat smaller
@@ -54,7 +54,7 @@ def test_ecl_geo():
     geocentric/GCRS comparison we want to do here.  Contributions welcome!
     """
     gcrs = GCRS(10*u.deg, 20*u.deg, distance=1.5*R_earth)
-    gecl = gcrs.transform_to(GeocentricTrueEcliptic)
+    gecl = gcrs.transform_to(GeocentricMeanEcliptic)
 
     assert quantity_allclose(gecl.distance, gcrs.distance)
 
@@ -71,13 +71,13 @@ def test_arraytransforms():
     test_icrs = ICRS(ra=ra, dec=dec, distance=distance)
     test_gcrs = GCRS(test_icrs.data)
 
-    bary_arr = test_icrs.transform_to(BarycentricTrueEcliptic)
+    bary_arr = test_icrs.transform_to(BarycentricMeanEcliptic)
     assert bary_arr.shape == ra.shape
 
-    helio_arr = test_icrs.transform_to(HeliocentricTrueEcliptic)
+    helio_arr = test_icrs.transform_to(HeliocentricMeanEcliptic)
     assert helio_arr.shape == ra.shape
 
-    geo_arr = test_gcrs.transform_to(GeocentricTrueEcliptic)
+    geo_arr = test_gcrs.transform_to(GeocentricMeanEcliptic)
     assert geo_arr.shape == ra.shape
 
     # now check that we also can go back the other way without shape problems
@@ -95,9 +95,9 @@ def test_roundtrip_scalar():
     icrs = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.au)
     gcrs = GCRS(icrs.cartesian)
 
-    bary = icrs.transform_to(BarycentricTrueEcliptic)
-    helio = icrs.transform_to(HeliocentricTrueEcliptic)
-    geo = gcrs.transform_to(GeocentricTrueEcliptic)
+    bary = icrs.transform_to(BarycentricMeanEcliptic)
+    helio = icrs.transform_to(HeliocentricMeanEcliptic)
+    geo = gcrs.transform_to(GeocentricMeanEcliptic)
 
     bary_icrs = bary.transform_to(ICRS)
     helio_icrs = helio.transform_to(ICRS)
