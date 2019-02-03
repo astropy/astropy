@@ -50,7 +50,7 @@ def test_regression_5085():
     distances = u.Quantity([0.00243266, 0.0025424, 0.00271296]*u.au)
     coo = GeocentricTrueEcliptic(lat=latitudes,
                                  lon=longitudes,
-                                 distance=distances, equinox=times)
+                                 distance=distances, obstime=times, equinox=times)
     # expected result
     ras = Longitude([310.50095400, 314.67109920, 319.56507428]*u.deg)
     decs = Latitude([-18.25190443, -17.1556676, -15.71616522]*u.deg)

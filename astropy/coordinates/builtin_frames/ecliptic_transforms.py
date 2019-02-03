@@ -38,7 +38,7 @@ def _ecliptic_rotation_matrix(equinox):
                                  finite_difference_frameattr_name='equinox')
 def gcrs_to_geoecliptic(gcrs_coo, to_frame):
     # first get us to a 0 pos/vel GCRS at the target equinox
-    gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=to_frame.equinox))
+    gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=to_frame.obstime))
 
     rmat = _ecliptic_rotation_matrix(to_frame.equinox)
     newrepr = gcrs_coo2.cartesian.transform(rmat)
@@ -49,7 +49,7 @@ def gcrs_to_geoecliptic(gcrs_coo, to_frame):
 def geoecliptic_to_gcrs(from_coo, gcrs_frame):
     rmat = _ecliptic_rotation_matrix(from_coo.equinox)
     newrepr = from_coo.cartesian.transform(matrix_transpose(rmat))
-    gcrs = GCRS(newrepr, obstime=from_coo.equinox)
+    gcrs = GCRS(newrepr, obstime=from_coo.obstime)
 
     # now do any needed offsets (no-op if same obstime and 0 pos/vel)
     return gcrs.transform_to(gcrs_frame)
