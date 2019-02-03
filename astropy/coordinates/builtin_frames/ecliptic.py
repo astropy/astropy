@@ -5,14 +5,14 @@ from astropy import units as u
 from astropy.utils.decorators import format_doc
 from astropy.coordinates import representation as r
 from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
-from astropy.coordinates.attributes import TimeAttribute
+from astropy.coordinates.attributes import TimeAttribute, QuantityAttribute
 from .utils import EQUINOX_J2000, DEFAULT_OBSTIME
 
 __all__ = ['GeocentricMeanEcliptic', 'BarycentricMeanEcliptic',
            'HeliocentricMeanEcliptic', 'BaseEclipticFrame',
            'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
            'HeliocentricTrueEcliptic',
-           'HeliocentricEclipticIAU76']
+           'HeliocentricEclipticIAU76', 'CustomBarycentricEcliptic']
 
 
 doc_components_ecl = """
@@ -225,3 +225,19 @@ class HeliocentricEclipticIAU76(BaseEclipticFrame):
     """
 
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
+
+
+@format_doc(base_doc, components=doc_components_ecl.format("barycenter"),
+            footer="")
+class CustomBarycentricEcliptic(BaseEclipticFrame):
+    """
+    Barycentric ecliptic coordinates with custom obliquity.
+    These origin of the coordinates are the
+    barycenter of the solar system, with the x axis pointing in the direction of
+    the *mean* (not true) equinox of J2000, and the xy-plane in the plane of the
+    ecliptic tilted a custom obliquity angle.
+
+    The frame attributes are listed under **Other Parameters**.
+    """
+
+    obliquity = QuantityAttribute(default=84381.448 * u.arcsec, unit=u.arcsec)
