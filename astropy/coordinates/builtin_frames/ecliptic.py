@@ -115,6 +115,9 @@ doc_footer_helio = """
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth and Sun.
         Defaults to the 'J2000' equinox.
+    obstime : `~astropy.time.Time`, optional
+        The time at which the observation is taken.  Used for determining the
+        position of the Sun. Defaults to J2000 UTC.
 """
 
 
