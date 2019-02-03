@@ -14,7 +14,8 @@ from astropy import _erfa as erfa
 
 from .icrs import ICRS
 from .gcrs import GCRS
-from .ecliptic import GeocentricMeanEcliptic, BarycentricMeanEcliptic, HeliocentricMeanEcliptic
+from .ecliptic import (GeocentricMeanEcliptic, BarycentricMeanEcliptic, HeliocentricMeanEcliptic,
+                       GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic)
 from .utils import get_jd12
 from astropy.coordinates.errors import UnitsError
 
@@ -29,6 +30,20 @@ def _mean_ecliptic_rotation_matrix(equinox):
     rbp = erfa.pmat06(jd1, jd2)
     obl = erfa.obl06(jd1, jd2)*u.radian
     return matrix_product(rotation_matrix(obl, 'x'), rbp)
+
+
+def _true_ecliptic_rotation_matrix(equinox):
+    # This code calls pnm06a from ERFA, which retrieves the precession
+    # matrix (including frame bias) according to the IAU 2006 model, and
+    # including the nutation. This family of systems is less popular
+    # (see https://github.com/astropy/astropy/pull/6508).
+    jd1, jd2 = get_jd12(equinox, 'tt')
+    rnpb = erfa.pnm06a(jd1, jd2)
+    obl = erfa.obl06(jd1, jd2)*u.radian
+    return matrix_product(rotation_matrix(obl, 'x'), rnpb)
+
+
+# MeanEcliptic frames
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
@@ -100,6 +115,86 @@ def helioecliptic_to_icrs(from_coo, to_frame):
 
     # first un-precess from ecliptic to ICRS orientation
     rmat = _mean_ecliptic_rotation_matrix(from_coo.equinox)
+    intermed_repr = from_coo.cartesian.transform(matrix_transpose(rmat))
+
+    # now offset back to barycentric, which is the correct center for ICRS
+
+    # this goes here to avoid circular import errors
+    from astropy.coordinates.solar_system import get_body_barycentric
+
+    # get barycentric sun coordinate
+    bary_sun_pos = get_body_barycentric('sun', from_coo.obstime)
+
+    newrepr = intermed_repr + bary_sun_pos
+    return to_frame.realize_frame(newrepr)
+
+
+# TrueEcliptic frames
+
+
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                 GCRS, GeocentricTrueEcliptic,
+                                 finite_difference_frameattr_name='equinox')
+def gcrs_to_true_geoecliptic(gcrs_coo, to_frame):
+    # first get us to a 0 pos/vel GCRS at the target equinox
+    gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=to_frame.obstime))
+
+    rmat = _true_ecliptic_rotation_matrix(to_frame.equinox)
+    newrepr = gcrs_coo2.cartesian.transform(rmat)
+    return to_frame.realize_frame(newrepr)
+
+
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GeocentricTrueEcliptic, GCRS)
+def true_geoecliptic_to_gcrs(from_coo, gcrs_frame):
+    rmat = _true_ecliptic_rotation_matrix(from_coo.equinox)
+    newrepr = from_coo.cartesian.transform(matrix_transpose(rmat))
+    gcrs = GCRS(newrepr, obstime=from_coo.obstime)
+
+    # now do any needed offsets (no-op if same obstime and 0 pos/vel)
+    return gcrs.transform_to(gcrs_frame)
+
+
+@frame_transform_graph.transform(DynamicMatrixTransform, ICRS, BarycentricTrueEcliptic)
+def icrs_to_true_baryecliptic(from_coo, to_frame):
+    return _true_ecliptic_rotation_matrix(to_frame.equinox)
+
+
+@frame_transform_graph.transform(DynamicMatrixTransform, BarycentricTrueEcliptic, ICRS)
+def true_baryecliptic_to_icrs(from_coo, to_frame):
+    return matrix_transpose(icrs_to_true_baryecliptic(to_frame, from_coo))
+
+
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                 ICRS, HeliocentricTrueEcliptic,
+                                 finite_difference_frameattr_name='equinox')
+def icrs_to_true_helioecliptic(from_coo, to_frame):
+    if not u.m.is_equivalent(from_coo.cartesian.x.unit):
+        raise UnitsError(_NEED_ORIGIN_HINT.format(from_coo.__class__.__name__))
+
+    # get barycentric sun coordinate
+    # this goes here to avoid circular import errors
+    from astropy.coordinates.solar_system import get_body_barycentric
+    bary_sun_pos = get_body_barycentric('sun', to_frame.obstime)
+
+    # offset to heliocentric
+    heliocart = from_coo.cartesian - bary_sun_pos
+
+    # now compute the matrix to precess to the right orientation
+    rmat = _true_ecliptic_rotation_matrix(to_frame.equinox)
+
+    newrepr = heliocart.transform(rmat)
+    return to_frame.realize_frame(newrepr)
+
+
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                 HeliocentricTrueEcliptic, ICRS,
+                                 finite_difference_frameattr_name='equinox')
+def true_helioecliptic_to_icrs(from_coo, to_frame):
+    if not u.m.is_equivalent(from_coo.cartesian.x.unit):
+        raise UnitsError(_NEED_ORIGIN_HINT.format(from_coo.__class__.__name__))
+
+    # first un-precess from ecliptic to ICRS orientation
+    rmat = _true_ecliptic_rotation_matrix(from_coo.equinox)
     intermed_repr = from_coo.cartesian.transform(matrix_transpose(rmat))
 
     # now offset back to barycentric, which is the correct center for ICRS
