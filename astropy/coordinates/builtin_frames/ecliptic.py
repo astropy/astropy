@@ -9,7 +9,9 @@ from astropy.coordinates.attributes import TimeAttribute
 from .utils import EQUINOX_J2000, DEFAULT_OBSTIME
 
 __all__ = ['GeocentricMeanEcliptic', 'BarycentricMeanEcliptic',
-           'HeliocentricMeanEcliptic', 'BaseEclipticFrame']
+           'HeliocentricMeanEcliptic', 'BaseEclipticFrame',
+           'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
+           'HeliocentricTrueEcliptic']
 
 
 doc_components_ecl = """
@@ -86,6 +88,26 @@ class GeocentricMeanEcliptic(BaseEclipticFrame):
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
+@format_doc(base_doc, components=doc_components_ecl.format('geocenter'),
+            footer=doc_footer_geo)
+class GeocentricTrueEcliptic(BaseEclipticFrame):
+    """
+    Geocentric ecliptic coordinates.  These origin of the coordinates are the
+    geocenter (Earth), with the x axis pointing to the *true* (not mean) equinox
+    at the time specified by the ``equinox`` attribute, and the xy-plane in the
+    plane of the ecliptic for that date.
+
+    Be aware that the definition of "geocentric" here means that this frame
+    *includes* light deflection from the sun, aberration, etc when transforming
+    to/from e.g. ICRS.
+
+    The frame attributes are listed under **Other Parameters**.
+    """
+
+    equinox = TimeAttribute(default=EQUINOX_J2000)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
+
+
 doc_footer_bary = """
     Other parameters
     ----------------
@@ -103,6 +125,22 @@ class BarycentricMeanEcliptic(BaseEclipticFrame):
     Barycentric ecliptic coordinates.  These origin of the coordinates are the
     barycenter of the solar system, with the x axis pointing in the direction of
     the *mean* (not true) equinox as at the time specified by the ``equinox``
+    attribute (as seen from Earth), and the xy-plane in the plane of the
+    ecliptic for that date.
+
+    The frame attributes are listed under **Other Parameters**.
+    """
+
+    equinox = TimeAttribute(default=EQUINOX_J2000)
+
+
+@format_doc(base_doc, components=doc_components_ecl.format("barycenter"),
+            footer=doc_footer_bary)
+class BarycentricTrueEcliptic(BaseEclipticFrame):
+    """
+    Barycentric ecliptic coordinates.  These origin of the coordinates are the
+    barycenter of the solar system, with the x axis pointing in the direction of
+    the *true* (not mean) equinox as at the time specified by the ``equinox``
     attribute (as seen from Earth), and the xy-plane in the plane of the
     ecliptic for that date.
 
@@ -132,6 +170,27 @@ class HeliocentricMeanEcliptic(BaseEclipticFrame):
     Heliocentric ecliptic coordinates.  These origin of the coordinates are the
     center of the sun, with the x axis pointing in the direction of
     the *mean* (not true) equinox as at the time specified by the ``equinox``
+    attribute (as seen from Earth), and the xy-plane in the plane of the
+    ecliptic for that date.
+
+    The frame attributes are listed under **Other Parameters**.
+
+    {params}
+
+
+    """
+
+    equinox = TimeAttribute(default=EQUINOX_J2000)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
+
+
+@format_doc(base_doc, components=doc_components_ecl.format("sun's center"),
+            footer=doc_footer_helio)
+class HeliocentricTrueEcliptic(BaseEclipticFrame):
+    """
+    Heliocentric ecliptic coordinates.  These origin of the coordinates are the
+    center of the sun, with the x axis pointing in the direction of
+    the *true* (not mean) equinox as at the time specified by the ``equinox``
     attribute (as seen from Earth), and the xy-plane in the plane of the
     ecliptic for that date.
 
