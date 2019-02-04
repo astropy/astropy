@@ -1384,7 +1384,6 @@ some not, on three coordinate axes might look something like:
             rank=same;
             out0 [shape="none", label="output 0"];
             out1 [shape="none", label="output 1"];
-            out2 [shape="none", label="output 2"];
         }
 
         in0 -> poly0;
@@ -1397,8 +1396,7 @@ some not, on three coordinate axes might look something like:
         e -> poly2;
         f -> gaussian0;
         poly2 -> out0;
-        poly2 -> out1;
-        gaussian0 -> out2;
+        gaussian0 -> out1;
     }
 
 ::
