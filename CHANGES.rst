@@ -267,6 +267,8 @@ Other Changes and Additions
 
 - Update bundled expat to 2.2.6. [#8343]
 
+- Added instructions for uploading releases to Zenodo. [#8395]
+
 Installation
 ^^^^^^^^^^^^
 
