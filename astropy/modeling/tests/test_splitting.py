@@ -3,7 +3,8 @@ import pytest
 import astropy.units as u
 from astropy.modeling.core import Model
 from astropy.modeling.models import Shift, Identity, Multiply, Pix2Sky_AZP
-from astropy.modeling.splitting import re_model_trees, remove_input_frame, make_tree_input_map, make_forward_input_map
+from astropy.modeling.splitting import (re_model_trees, remove_input_frame,
+                                        make_tree_input_map)
 
 
 @pytest.fixture
@@ -64,8 +65,8 @@ def test_not_and(single_non_separable):
 def test_leaf_map(triple_input_nested):
     tree = triple_input_nested._tree
     ti_map = make_tree_input_map(tree)
-    assert list(ti_map.keys())[1] is tree.right
     assert isinstance(list(ti_map.keys())[1].value, Model)
+    assert list(ti_map.keys())[1] is tree.right
 
 
 def test_spatial_imap(spatial_like):
