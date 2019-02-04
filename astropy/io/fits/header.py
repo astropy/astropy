@@ -1971,6 +1971,8 @@ class _BasicHeader(collections.abc.Mapping):
         # keyword indices
         self.cards = _BasicHeaderCards(self)
 
+        self._modified = False
+
     def __getitem__(self, key):
         if isinstance(key, int):
             key = self._keys[key]
@@ -1988,6 +1990,9 @@ class _BasicHeader(collections.abc.Mapping):
 
     def __iter__(self):
         return iter(self._raw_cards)
+
+    def index(self, keyword):
+        return self._keys.index(keyword)
 
     @classmethod
     def fromfile(cls, fileobj):
