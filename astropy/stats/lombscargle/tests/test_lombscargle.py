@@ -66,7 +66,7 @@ def test_autofrequency(data, minimum_frequency, maximum_frequency,
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
 def test_all_methods(data, method, center_data, fit_mean,
                      errors, with_units, normalization):
-    if method == 'scipy' and (fit_mean or with_errors):
+    if method == 'scipy' and (fit_mean or errors != 'none'):
         return
 
     t, y, dy = data
