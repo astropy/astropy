@@ -20,8 +20,11 @@ def load_wcs_from_file(filename):
     w.wcs.print_contents()
 
     # Three pixel coordinates of interest.
-    # Note we've silently assumed a NAXIS=2 image here
-    pixcrd = np.array([[0, 0], [24, 38], [45, 98]], np.float_)
+    # Note we've silently assumed a NAXIS=2 image here.
+    # Note also that the pixel coordinates are pairs of [X, Y], 
+    # and since WCS built from FITS header automatically has
+    # origin set to 1, [0, 0] is actually not inside the image.
+    pixcrd = np.array([[0, 0], [24, 38], [45, 98]], dtype=np.float_)
 
     # Convert pixel coordinates to world coordinates
     # The second argument is "origin" -- in this case we're declaring we
