@@ -106,6 +106,9 @@ jobs:
             LC_CTYPE: C
             LC_ALL: C
             LANG: C
+      - run:
+          name: Link Check
+          command: venv/bin/python setup.py build_docs -b linkcheck
 
       - store_artifacts:
           path: docs/_build/html
@@ -113,7 +116,6 @@ jobs:
       - run:
           name: "Built documentation is available at:"
           command: DOCS_URL="${CIRCLE_BUILD_URL}/artifacts/${CIRCLE_NODE_INDEX}/${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}/docs/_build/html/index.html"; echo $DOCS_URL
-
 
 workflows:
   version: 2
