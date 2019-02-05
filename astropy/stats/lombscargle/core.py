@@ -376,7 +376,7 @@ class LombScargle:
 
     def offset(self):
         """Return the offset of the model
-        
+
         The offset of the model is the (weighted) mean of the y values.
         Note that if self.center_data is False, the offset is 0 by definition.
 
@@ -409,7 +409,7 @@ class LombScargle:
         .. math::
 
             y(t; f, \vec{\theta}) = \theta_0 + \sum_{n=1}^{\tt nterms} [\theta_{2n-1}\sin(2\pi n f t) + \theta_{2n}\cos(2\pi n f t)]
- 
+
         where :math:`\vec{\theta}` is the array of parameters returned by this function.
 
         Parameters
