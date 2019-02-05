@@ -61,11 +61,11 @@ def test_autofrequency(data, minimum_frequency, maximum_frequency,
 @pytest.mark.parametrize('method', ALL_METHODS_NO_AUTO)
 @pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('fit_mean', [True, False])
-@pytest.mark.parametrize('with_errors', [True, False])
+@pytest.mark.parametrize('errors', ['none', 'partial', 'full'])
 @pytest.mark.parametrize('with_units', [True, False])
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
 def test_all_methods(data, method, center_data, fit_mean,
-                     with_errors, with_units, normalization):
+                     errors, with_units, normalization):
     if method == 'scipy' and (fit_mean or with_errors):
         return
 
@@ -76,8 +76,15 @@ def test_all_methods(data, method, center_data, fit_mean,
         y = y * units.mag
         dy = dy * units.mag
         frequency = frequency / t.unit
-    if not with_errors:
+
+    if errors == 'none':
         dy = None
+    elif errors == 'partial':
+        dy = dy[0]
+    elif errors == 'full':
+        pass
+    else:
+        raise ValueError("Unrecognized error type: '{0}'".format(errors))
 
     kwds = {}
 
@@ -91,7 +98,7 @@ def test_all_methods(data, method, center_data, fit_mean,
     P_method = ls.power(frequency, method=method, **kwds)
 
     if with_units:
-        if normalization == 'psd' and not with_errors:
+        if normalization == 'psd' and errors == 'none':
             assert P_method.unit == y.unit ** 2
         else:
             assert P_method.unit == units.dimensionless_unscaled
@@ -140,15 +147,22 @@ def test_integer_inputs(data, method, center_data, fit_mean, with_errors,
 @pytest.mark.parametrize('method', NTERMS_METHODS)
 @pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('fit_mean', [True, False])
-@pytest.mark.parametrize('with_errors', [True, False])
+@pytest.mark.parametrize('errors', ['none', 'partial', 'full'])
 @pytest.mark.parametrize('nterms', [0, 2, 4])
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
-def test_nterms_methods(method, center_data, fit_mean, with_errors,
+def test_nterms_methods(method, center_data, fit_mean, errors,
                         nterms, normalization, data):
     t, y, dy = data
     frequency = 0.8 + 0.01 * np.arange(40)
-    if not with_errors:
+
+    if errors == 'none':
         dy = None
+    elif errors == 'partial':
+        dy = dy[0]
+    elif errors == 'full':
+        pass
+    else:
+        raise ValueError("Unrecognized error type: '{0}'".format(errors))
 
     ls = LombScargle(t, y, dy, center_data=center_data,
                      fit_mean=fit_mean, nterms=nterms,
@@ -173,14 +187,21 @@ def test_nterms_methods(method, center_data, fit_mean, with_errors,
 @pytest.mark.parametrize('method', FAST_METHODS)
 @pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('fit_mean', [True, False])
-@pytest.mark.parametrize('with_errors', [True, False])
+@pytest.mark.parametrize('errors', ['none', 'partial', 'full'])
 @pytest.mark.parametrize('nterms', [0, 1, 2])
 def test_fast_approximations(method, center_data, fit_mean,
-                             with_errors, nterms, data):
+                             errors, nterms, data):
     t, y, dy = data
     frequency = 0.8 + 0.01 * np.arange(40)
-    if not with_errors:
+
+    if errors == 'none':
         dy = None
+    elif errors == 'partial':
+        dy = dy[0]
+    elif errors == 'full':
+        pass
+    else:
+        raise ValueError("Unrecognized error type: '{0}'".format(errors))
 
     ls = LombScargle(t, y, dy, center_data=center_data,
                      fit_mean=fit_mean, nterms=nterms,
@@ -238,12 +259,8 @@ def test_errors_on_unit_mismatch(method, data):
 
 # we don't test all normalizations here because they are tested above
 # only test method='auto' because unit handling does not depend on method
-@pytest.mark.parametrize('fit_mean', [True, False])
-@pytest.mark.parametrize('center_data', [True, False])
-@pytest.mark.parametrize('normalization', ['standard', 'psd'])
 @pytest.mark.parametrize('with_error', [True, False])
-def test_unit_conversions(data, fit_mean, center_data,
-                          normalization, with_error):
+def test_unit_conversions(data, with_error):
     t, y, dy = data
 
     t_day = t * units.day
@@ -357,3 +374,51 @@ def test_autopower(data):
 
     assert_allclose(freq1, freq2)
     assert_allclose(power1, power2)
+
+
+@pytest.mark.parametrize('with_units', [True, False])
+@pytest.mark.parametrize('errors', ['none', 'partial', 'full'])
+@pytest.mark.parametrize('center_data', [True, False])
+@pytest.mark.parametrize('fit_mean', [True, False])
+@pytest.mark.parametrize('nterms', [0, 1, 2])
+def test_model_parameters(data, nterms, fit_mean, center_data,
+                          errors, with_units):
+    if nterms == 0 and not fit_mean:
+        return
+
+    t, y, dy = data
+    frequency = 1.5
+    if with_units:
+        t = t * units.day
+        y = y * units.mag
+        dy = dy * units.mag
+        frequency = frequency / t.unit
+
+    if errors == 'none':
+        dy = None
+    elif errors == 'partial':
+        dy = dy[0]
+    elif errors == 'full':
+        pass
+    else:
+        raise ValueError("Unrecognized error type: '{0}'".format(errors))
+
+    ls = LombScargle(t, y, dy,
+                     nterms=nterms,
+                     fit_mean=fit_mean,
+                     center_data=center_data)
+    tfit = np.linspace(0, 20, 10)
+    if with_units:
+        tfit = tfit * units.day
+
+    model = ls.model(tfit, frequency)
+    params = ls.model_parameters(frequency)
+    design = ls.design_matrix(frequency, t=tfit)
+    offset = ls.offset()
+
+    assert len(params) == int(fit_mean) + 2 * nterms
+
+    print(offset)
+    print(design)
+    print(params)
+    assert_quantity_allclose(offset + design.dot(params), model)

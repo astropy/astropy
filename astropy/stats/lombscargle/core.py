@@ -3,7 +3,7 @@
 import numpy as np
 
 from .implementations import lombscargle, available_methods
-from .implementations.mle import periodic_fit
+from .implementations.mle import periodic_fit, design_matrix
 from . import _statistics
 from astropy import units
 
@@ -343,6 +343,9 @@ class LombScargle:
     def model(self, t, frequency):
         """Compute the Lomb-Scargle model at the given frequency.
 
+        The model at a particular frequency is a linear model:
+        model = offset + dot(design_matrix, model_parameters)
+
         Parameters
         ----------
         t : array_like or Quantity, length n_samples
@@ -354,6 +357,12 @@ class LombScargle:
         -------
         y : np.ndarray, length n_samples
             The model fit corresponding to the input times
+
+        See Also
+        --------
+        design_matrix
+        offset
+        model_parameters
         """
         frequency = self._validate_frequency(frequency)
         t = self._validate_t(t)
@@ -364,6 +373,108 @@ class LombScargle:
                              fit_mean=self.fit_mean,
                              nterms=self.nterms)
         return y_fit * get_unit(self.y)
+
+    def offset(self):
+        """Return the offset of the model
+        
+        The offset of the model is the (weighted) mean of the y values.
+        Note that if self.center_data is False, the offset is 0 by definition.
+
+        Returns
+        -------
+        offset : scalar
+
+        See Also
+        --------
+        design_matrix
+        model
+        model_parameters
+        """
+        y, dy = strip_units(self.y, self.dy)
+        if dy is None:
+            dy = 1
+        dy = np.broadcast_to(dy, y.shape)
+        if self.center_data:
+            w = dy ** -2.0
+            y_mean = np.dot(y, w) / w.sum()
+        else:
+            y_mean = 0
+        return y_mean * get_unit(self.y)
+
+    def model_parameters(self, frequency, units=True):
+        r"""Compute the best-fit model parameters at the given frequency.
+
+        The model described by these parameters is:
+
+        .. math::
+
+            y(t; f, \vec{\theta}) = \theta_0 + \sum_{n=1}^{\tt nterms} [\theta_{2n-1}\sin(2\pi n f t) + \theta_{2n}\cos(2\pi n f t)]
+ 
+        where :math:`\vec{\theta}` is the array of parameters returned by this function.
+
+        Parameters
+        ----------
+        t : array_like or Quantity, length n_samples
+            times at which to compute the model
+        frequency : float
+            the frequency for the model
+        units : bool
+            If True (default), return design matrix with data units.
+
+        Returns
+        -------
+        theta : np.ndarray (n_parameters,)
+            The best-fit model parameters at the given frequency.
+
+        See Also
+        --------
+        design_matrix
+        model
+        offset
+        """
+        frequency = self._validate_frequency(frequency)
+        t, y, dy = strip_units(self.t, self.y, self.dy)
+
+        if self.center_data:
+            y = y - strip_units(self.offset())
+
+        dy = np.ones_like(y) if dy is None else np.asarray(dy)
+        X = self.design_matrix(frequency)
+        parameters = np.linalg.solve(np.dot(X.T, X),
+                                     np.dot(X.T, y / dy))
+        if units:
+            parameters = get_unit(self.y) * parameters
+        return parameters
+
+    def design_matrix(self, frequency, t=None):
+        """Compute the design matrix for a given frequency
+
+        Parameters
+        ----------
+        frequency : float
+            the frequency for the model
+        t : array_like or Quantity, length n_samples
+            times at which to compute the model (optional). If not specified,
+            then the times and uncertainties of the input data are used
+
+        Returns
+        -------
+        X : np.ndarray (len(t), n_parameters)
+            The design matrix for the model at the given frequency.
+
+        See Also
+        --------
+        model
+        model_parameters
+        offset
+        """
+        if t is None:
+            t, dy = strip_units(self.t, self.dy)
+        else:
+            t, dy = strip_units(self._validate_t(t), None)
+        return design_matrix(t, frequency, dy,
+                             nterms=self.nterms,
+                             bias=self.fit_mean)
 
     def distribution(self, power, cumulative=False):
         """Expected periodogram distribution under the null hypothesis.
