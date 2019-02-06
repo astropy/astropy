@@ -442,7 +442,7 @@ class CompImageHDU(BinTableHDU):
 
         quantize_method : int, optional
             Floating point quantization dithering method; can be either
-            ``NO_DITHER`` (-1), ``SUBTRACTIVE_DITHER_1`` (1; default), or
+            ``NO_DITHER`` (-1; default), ``SUBTRACTIVE_DITHER_1`` (1), or
             ``SUBTRACTIVE_DITHER_2`` (2); see note below
 
         dither_seed : int, optional
