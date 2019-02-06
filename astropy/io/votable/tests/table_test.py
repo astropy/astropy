@@ -75,6 +75,9 @@ def test_read_through_table_interface(tmpdir):
 
     assert len(t) == 5
 
+    # Issue 8354
+    assert t['float'].format is None
+
     fn = os.path.join(str(tmpdir), "table_interface.xml")
     t.write(fn, table_id='FOO', format='votable')
 
