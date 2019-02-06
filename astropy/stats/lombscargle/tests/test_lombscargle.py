@@ -418,7 +418,4 @@ def test_model_parameters(data, nterms, fit_mean, center_data,
 
     assert len(params) == int(fit_mean) + 2 * nterms
 
-    print(offset)
-    print(design)
-    print(params)
     assert_quantity_allclose(offset + design.dot(params), model)
