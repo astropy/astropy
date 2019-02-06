@@ -7,8 +7,6 @@ statement for the various implementations available in this submodule
 
 __all__ = ['lombscargle', 'available_methods']
 
-import warnings
-
 import numpy as np
 
 from .slow_impl import lombscargle_slow
