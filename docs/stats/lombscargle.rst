@@ -243,7 +243,8 @@ This best-fit sinusoid can be computed using the :func:`~astropy.stats.LombScarg
 
 >>> best_frequency = frequency[np.argmax(power)]
 >>> t_fit = np.linspace(0, 1)
->>> y_fit = LombScargle(t, y, dy).model(t_fit, best_frequency)
+>>> ls = LombScargle(t, y, dy)
+>>> y_fit = ls.model(t_fit, best_frequency)
 
 We can then phase the data and plot the Lomb-Scargle model fit:
 
@@ -275,6 +276,30 @@ We can then phase the data and plot the Lomb-Scargle model fit:
     ax.set(xlabel='phase',
            ylabel='magnitude',
            title='phased data at frequency={0:.2f}'.format(best_frequency))
+
+The best-fit model parameters can be computed with the :func:`~astropy.stats.LombScargle.model_parameters`
+method of the :class:`~astropy.stats.LombScargle` object at a given frequency:
+
+>>> theta = ls.model_parameters(best_frequency)
+>>> theta.round(2)
+array([-0.02,  1.05,  0.07])
+
+These parameters :math:`\vec{\theta}` are fit using the following model:
+
+.. math::
+
+    y(t; f, \vec{\theta}) = \theta_0 + \sum_{n=1}^{\tt nterms} [\theta_{2n-1}\sin(2\pi n f t) + \theta_{2n}\cos(2\pi n f t)]
+
+The model can be constructed from these parameters by computing the associated
+:func:`~astropy.stats.LombScargle.offset`, which accounts for pre-centering of data
+(i.e. the ``center_data`` argument), and
+:func:`~astropy.stats.LombScargle.design_matrix`, which computes the sine and cosine
+terms for you:
+
+>>> offset = ls.offset()
+>>> design_matrix = ls.design_matrix(best_frequency, t_fit)
+>>> np.allclose(y_fit, offset + design_matrix.dot(theta))
+True
 
 Additional Arguments
 --------------------
