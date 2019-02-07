@@ -226,7 +226,9 @@ except ImportError:
                  'gallery will not be built.  You will probably see '
                  'additional warnings about undefined references due '
                  'to this.')
-
+# -- Options for linkcheck output -------------------------------------------
+linkcheck_retry = 2
+linkcheck_timeout = 10
 linkcheck_anchors = False
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
