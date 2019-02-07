@@ -114,8 +114,7 @@ def write_wcsconfig_h(paths):
 
 
 def generate_c_docstrings():
-    docstrings = import_file(os.path.join(WCSROOT, 'docstrings.py'),
-                             name='astropy.wcs.docstrings')
+    docstrings = import_file(os.path.join(WCSROOT, 'docstrings.py'))
     docstrings = docstrings.__dict__
     keys = [
         key for key, val in docstrings.items()

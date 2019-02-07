@@ -47,8 +47,7 @@ def preprocess_source():
         erfa_mtime = max(os.path.getmtime(filename) for filename in SRC_FILES)
         gen_mtime = min(os.path.getmtime(filename) for filename in GEN_FILES)
 
-        version = import_file(os.path.join(ERFAPKGDIR, '..', 'version.py'),
-                              name='astropy.version')
+        version = import_file(os.path.join(ERFAPKGDIR, '..', 'version.py'))
 
         if gen_mtime > erfa_mtime:
             # If generated source is recent enough, don't update
@@ -74,8 +73,7 @@ def preprocess_source():
                      "ERFA core.py and ufunc.c files will be used")
             return
 
-    gen = import_file(os.path.join(ERFAPKGDIR, 'erfa_generator.py'),
-                      name='erfa_generator')
+    gen = import_file(os.path.join(ERFAPKGDIR, 'erfa_generator.py'))
 
     gen.main(verbose=False)
 
