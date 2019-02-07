@@ -1,8 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-import numpy as np
-from inspect import signature
 from astropy.stats.histogram import calculate_bin_edges
 
 __all__ = ['hist']
@@ -32,7 +29,7 @@ def hist(x, bins=10, ax=None, max_bins=1e5, **kwargs):
 
         - 'scott' : use Scott's rule to determine bins
 
-        - 'freedman' : use the Freedman-diaconis rule to determine bins
+        - 'freedman' : use the Freedman-Diaconis rule to determine bins
 
     ax : Axes instance (optional)
         specify the Axes on which to draw the histogram.  If not specified,
