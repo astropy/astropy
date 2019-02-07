@@ -1624,6 +1624,7 @@ def test_z_at_value_roundtrip():
         assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5),
                         rtol=2e-8)
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_elliptic_comoving_distance_z1z2():
     """Regression test for #8388."""
     cosmo = core.LambdaCDM(70., 2.3, 0.05, Tcmb0=0)
