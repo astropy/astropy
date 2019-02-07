@@ -1630,3 +1630,5 @@ def test_elliptic_comoving_distance_z1z2():
     z = 0.2
     assert allclose(cosmo.comoving_distance(z),
                     cosmo._integral_comoving_distance_z1z2(0., z))
+    assert allclose(cosmo._elliptic_comoving_distance_z1z2(0., z),
+                    cosmo._integral_comoving_distance_z1z2(0., z))
