@@ -1,3 +1,290 @@
+3.2 (unreleased)
+================
+
+New Features
+------------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- Fix elliptic analytical solution for comoving distance. Only
+  relevant for non-flat cosmologies without radiation and ``Om0`` >
+  ``Ode0``. [#8391]
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+- Bundled ``six`` now emits ``AstropyDeprecationWarning``. It will be removed
+  in 4.0. [#8323]
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- IPAC tables now output data types of ``float`` instead of ``double``, or
+  ``int`` instead of ``long``, based on the column ``dtype.itemsize``. [#8216]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Implement serialization of ``TimeDelta`` in ASDF. [#8285]
+
+- Implement serialization of ``EarthLocation`` in ASDF. [#8286]
+
+- Implement serialization of ``SkyCoord`` in ASDF. [#8284]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+- Implement ``Table`` reader and writer for ``ASDF``. [#8261]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- Added model inspection methods (``model_parameters()``, ``design_matrix()``,
+  and ``offset()``) to ``astropy.stats.LombScargle`` class [#8397].
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Improved the Table - pandas ``DataFrame`` interface (``to_pandas()`` and
+  ``from_pandas()``).  Mixin columns like ``Time`` and ``Quantity`` can now be
+  converted to pandas by flattening the columns as necessary to plain
+  columns.  ``Time`` and ``TimeDelta`` columns get converted to
+  corresponding pandas date or time delta types.  The ``DataFrame``
+  index is now handled in the conversion methods. [#8247]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+- ``Quantity`` overrides of ``ndarray`` methods such as ``sum``, ``min``,
+  ``max``, which are implemented via reductions, have been removed since they
+  are dealt with in ``Quantity.__array_ufunc__``. This should not affect
+  subclasses, but they may consider doing similarly. [#8316]  Note that this
+  does not include methods that use more complicated python code such as
+  ``mean``, ``std`` and ``var``. [#8370]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+API Changes
+-----------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- IPAC tables now output data types of ``float`` instead of ``double``, or
+  ``int`` instead of ``long``, based on the column ``dtype.itemsize``. [#8216]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Unit equivalencies can now be serialized to ASDF. [#8252]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+- Removed ``pytest_plugins`` as they are completely broken for ``pytest>=4``.
+  [#7786]
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Unit equivalencies can now be introspected. [#8252]
+
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Added a ``Quantity.to_string`` method to add flexibility to the string formatting
+  of quantities. It produces unadorned or LaTeX strings, and accepts two different
+  sets of delimiters in the latter case: ``inline`` and ``display``. [#8313]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+Other Changes and Additions
+---------------------------
+
+- Update bundled expat to 2.2.6. [#8343]
+
+Installation
+^^^^^^^^^^^^
+
+- We now require setuptools 30.3.0 or later to install the core astropy
+  package. [#8240]
+
+- We now define groups of dependencies that can be installed with pip, e.g.
+  ``pip install astropy[all]`` (to install all optional dependencies). [#8198]
+
+
+
 3.1.2 (unreleased)
 ==================
 
