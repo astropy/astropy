@@ -21,7 +21,7 @@ astropy.cosmology
 
 - Fix elliptic analytical solution for comoving distance. Only
   relevant for non-flat cosmologies without radiation and ``Om0`` >
-  ``Ode0``.
+  ``Ode0``. [#8391]
 
 astropy.extern
 ^^^^^^^^^^^^^^
