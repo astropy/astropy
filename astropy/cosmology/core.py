@@ -1794,7 +1794,7 @@ class LambdaCDM(FLRW):
         elif (0 < b) and (b < 2) and self._Om0 > self._Ode0:
             def phi_z(Om0, Ok0, y1, y2, z):
                 return np.arcsin(np.sqrt((y1 - y2) /
-                                         ((1. + z) * Om0 / abs(Ok0) + y1)))
+                                         ((1 + z) * Om0 / abs(Ok0) + y1)))
 
             yb = cos(acos(1 - b) / 3)
             yc = sqrt(3) * sin(acos(1 - b) / 3)
