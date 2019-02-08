@@ -45,7 +45,7 @@ import numpy as np
 # LOCAL
 from astropy import log
 from astropy.io import fits
-from . import docstrings as docutils
+from . import docstrings
 from . import _wcs
 
 from astropy.utils.compat import possible_filename
@@ -1353,9 +1353,9 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         InvalidTransformError
             Ill-conditioned coordinate transformation parameters.
-        """.format(docutils.TWO_OR_MORE_ARGS('naxis', 8),
-                   docutils.RA_DEC_ORDER(8),
-                   docutils.RETURNS('sky coordinates, in degrees', 8))
+        """.format(docstrings.TWO_OR_MORE_ARGS('naxis', 8),
+                   docstrings.RA_DEC_ORDER(8),
+                   docstrings.RETURNS('sky coordinates, in degrees', 8))
 
     def wcs_pix2world(self, *args, **kwargs):
         if self.wcs is None:
@@ -1422,9 +1422,9 @@ reduce these to 2 dimensions using the naxis kwarg.
         `~astropy.wcs.Wcsprm.lattyp` and `~astropy.wcs.Wcsprm.lngtyp`
         members can be used to determine the order of the axes.
 
-        """.format(docutils.TWO_OR_MORE_ARGS('naxis', 8),
-                   docutils.RA_DEC_ORDER(8),
-                   docutils.RETURNS('world coordinates, in degrees', 8))
+        """.format(docstrings.TWO_OR_MORE_ARGS('naxis', 8),
+                   docstrings.RA_DEC_ORDER(8),
+                   docstrings.RETURNS('world coordinates, in degrees', 8))
 
     def _all_world2pix(self, world, origin, tolerance, maxiter, adaptive,
                        detect_divergence, quiet):
@@ -2158,9 +2158,9 @@ reduce these to 2 dimensions using the naxis kwarg.
         requested accuracy.  After 6 iterations, the solution is
         diverging at least for one input point.
 
-        """.format(docutils.TWO_OR_MORE_ARGS('naxis', 8),
-                   docutils.RA_DEC_ORDER(8),
-                   docutils.RETURNS('pixel coordinates', 8))
+        """.format(docstrings.TWO_OR_MORE_ARGS('naxis', 8),
+                   docstrings.RA_DEC_ORDER(8),
+                   docstrings.RETURNS('pixel coordinates', 8))
 
     def wcs_world2pix(self, *args, **kwargs):
         if self.wcs is None:
@@ -2221,9 +2221,9 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         InvalidTransformError
             Ill-conditioned coordinate transformation parameters.
-        """.format(docutils.TWO_OR_MORE_ARGS('naxis', 8),
-                   docutils.RA_DEC_ORDER(8),
-                   docutils.RETURNS('pixel coordinates', 8))
+        """.format(docstrings.TWO_OR_MORE_ARGS('naxis', 8),
+                   docstrings.RA_DEC_ORDER(8),
+                   docstrings.RETURNS('pixel coordinates', 8))
 
     def pix2foc(self, *args):
         return self._array_converter(self._pix2foc, None, *args)
@@ -2252,8 +2252,8 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """.format(docutils.TWO_OR_MORE_ARGS('2', 8),
-                   docutils.RETURNS('focal coordinates', 8))
+        """.format(docstrings.TWO_OR_MORE_ARGS('2', 8),
+                   docstrings.RETURNS('focal coordinates', 8))
 
     def p4_pix2foc(self, *args):
         return self._array_converter(self._p4_pix2foc, None, *args)
@@ -2281,8 +2281,8 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """.format(docutils.TWO_OR_MORE_ARGS('2', 8),
-                   docutils.RETURNS('focal coordinates', 8))
+        """.format(docstrings.TWO_OR_MORE_ARGS('2', 8),
+                   docstrings.RETURNS('focal coordinates', 8))
 
     def det2im(self, *args):
         return self._array_converter(self._det2im, None, *args)
@@ -2310,8 +2310,8 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """.format(docutils.TWO_OR_MORE_ARGS('2', 8),
-                   docutils.RETURNS('pixel coordinates', 8))
+        """.format(docstrings.TWO_OR_MORE_ARGS('2', 8),
+                   docstrings.RETURNS('pixel coordinates', 8))
 
     def sip_pix2foc(self, *args):
         if self.sip is None:
@@ -2351,8 +2351,8 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """.format(docutils.TWO_OR_MORE_ARGS('2', 8),
-                   docutils.RETURNS('focal coordinates', 8))
+        """.format(docstrings.TWO_OR_MORE_ARGS('2', 8),
+                   docstrings.RETURNS('focal coordinates', 8))
 
     def sip_foc2pix(self, *args):
         if self.sip is None:
@@ -2388,8 +2388,8 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """.format(docutils.TWO_OR_MORE_ARGS('2', 8),
-                   docutils.RETURNS('pixel coordinates', 8))
+        """.format(docstrings.TWO_OR_MORE_ARGS('2', 8),
+                   docstrings.RETURNS('pixel coordinates', 8))
 
     def to_fits(self, relax=False, key=None):
         """
