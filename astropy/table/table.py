@@ -222,7 +222,7 @@ class Table:
         Additional keyword args when converting table-like object.
     """
 
-    meta = MetaData()
+    meta = MetaData(copy=False)
 
     # Define class attributes for core container objects to allow for subclass
     # customization.
@@ -286,7 +286,6 @@ class Table:
         # Set up a placeholder empty table
         self._set_masked(masked)
         self.columns = self.TableColumns()
-        self.meta = meta
         self.formatter = self.TableFormatter()
         self._copy_indices = True  # copy indices from this Table by default
         self._init_indices = copy_indices  # whether to copy indices in init
@@ -321,8 +320,7 @@ class Table:
             # Data object implements the __astropy_table__ interface method.
             # Calling that method returns an appropriate instance of
             # self.__class__ and respects the `copy` arg.  The returned
-            # Table object should NOT then be copied (though the meta
-            # will be deep-copied anyway).
+            # Table object should NOT then be copied.
             data = data.__astropy_table__(self.__class__, copy, **kwargs)
             copy = False
         elif kwargs:
@@ -372,7 +370,9 @@ class Table:
         elif data is None:
             if names is None:
                 if dtype is None:
-                    return  # Empty table
+                    if meta is not None:
+                        self.meta = deepcopy(meta) if copy else meta
+                    return
                 try:
                     # No data nor names but dtype is available.  This must be
                     # valid to initialize a structured array.
@@ -409,6 +409,12 @@ class Table:
 
         # Finally do the real initialization
         init_func(data, names, dtype, n_cols, copy)
+
+        # If meta supplied then override what may have already been set (e.g. for
+        # # _init_from_table.  If copy=True then deepcopy meta otherwise use the
+        # user-supplied meta directly.
+        if meta is not None:
+            self.meta = deepcopy(meta) if copy else meta
 
         # Whatever happens above, the masked property should be set to a boolean
         if type(self.masked) is not bool:
@@ -451,7 +457,7 @@ class Table:
         return self.as_array().mask
 
     def filled(self, fill_value=None):
-        """Return a copy of self, with masked values filled.
+        """Return self, with masked values filled.
 
         If input ``fill_value`` supplied then that value is used for all
         masked entries in the table.  Otherwise the individual
@@ -469,10 +475,13 @@ class Table:
             New table with masked values filled
         """
         if self.masked:
+            # Get new columns with masked values filled, then create Table with those
+            # new cols (copy=False) but deepcopy the meta.
             data = [col.filled(fill_value) for col in self.columns.values()]
+            return self.__class__(data, meta=deepcopy(self.meta), copy=False)
         else:
-            data = self
-        return self.__class__(data, meta=deepcopy(self.meta))
+            # Return copy of the original object.
+            return self.copy()
 
     @property
     def indices(self):
@@ -730,8 +739,8 @@ class Table:
         """Initialize table from an existing Table object """
 
         table = data  # data is really a Table, rename for clarity
-        self.meta.clear()
-        self.meta.update(deepcopy(table.meta))
+        if table.meta:
+            self.meta = deepcopy(table.meta) if copy else table.meta.copy()
         self.primary_key = table.primary_key
         cols = list(table.columns.values())
 
@@ -782,8 +791,8 @@ class Table:
         """Create a new table as a referenced slice from self."""
 
         table = self.__class__(masked=self.masked)
-        table.meta.clear()
-        table.meta.update(deepcopy(self.meta))
+        if self.meta:
+            table.meta = self.meta.copy()  # Shallow copy for slice
         table.primary_key = self.primary_key
         cols = self.columns.values()
 
@@ -1229,10 +1238,10 @@ class Table:
             return self.Row(self, item.item())
         elif self._is_list_or_tuple_of_str(item):
             out = self.__class__([self[x] for x in item],
-                                 meta=deepcopy(self.meta),
                                  copy_indices=self._copy_indices)
             out._groups = groups.TableGroups(out, indices=self.groups._indices,
                                              keys=self.groups._keys)
+            out.meta = self.meta.copy()  # Shallow copy for meta
             return out
         elif ((isinstance(item, np.ndarray) and item.size == 0) or
               (isinstance(item, (tuple, list)) and not item)):
