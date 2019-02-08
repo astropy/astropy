@@ -13,7 +13,6 @@ of the same type of model, but with potentially different values of the
 parameters in each model making up the set.
 """
 
-
 import abc
 import copy
 import copyreg
@@ -27,7 +26,6 @@ from collections import defaultdict, OrderedDict
 from contextlib import suppress
 from inspect import signature
 from itertools import chain, islice
-from functools import partial
 
 import numpy as np
 
@@ -36,8 +34,8 @@ from astropy.table import Table
 from astropy.units import Quantity, UnitsError, dimensionless_unscaled
 from astropy.units.utils import quantity_asanyarray
 from astropy.utils import (sharedmethod, find_current_module,
-                     InheritDocstrings, OrderedDescriptorContainer,
-                     check_broadcast, IncompatibleShapeError, isiterable)
+                           InheritDocstrings, OrderedDescriptorContainer,
+                           check_broadcast, IncompatibleShapeError, isiterable)
 from astropy.utils.codegen import make_function_with_signature
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from .utils import (combine_labels, make_binary_operator_eval,
@@ -70,9 +68,18 @@ def _model_oper(oper, **kwargs):
     # used in the class definition of _CompoundModelMeta since
     # _CompoundModelMeta has not been defined yet.
 
-    # Perform an arithmetic operation on two models.
-    return lambda left, right: _CompoundModelMeta._from_operator(oper, left,
-                                                                 right, **kwargs)
+    def _opfunc(left, right):
+        # Deprecation is for https://github.com/astropy/astropy/issues/8234
+        if not (isinstance(left, Model) and isinstance(right, Model)):
+            warnings.warn(
+                'Composition of model classes will be removed in 4.0'
+                '(but composition of model instances is not affected)',
+                AstropyDeprecationWarning)
+
+        # Perform an arithmetic operation on two models.
+        return _CompoundModelMeta._from_operator(oper, left, right, **kwargs)
+
+    return _opfunc
 
 
 class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
