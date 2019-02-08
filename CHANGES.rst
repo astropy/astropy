@@ -153,6 +153,9 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Composition of model classes is deprecated and will be removed in 4.0.
+  Composition of model instances remain unaffected. [#8234, #8408]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
