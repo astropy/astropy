@@ -6,12 +6,18 @@ Python. It also provides an index for other astronomy packages and tools for
 managing them.
 """
 
+# Prior to Astropy 3.2, astropy was imported during setup.py commands. If we are
+# in setup mode, then astropy-helpers defines an _ASTROPY_SETUP_ variable, which
+# we used to use to conditionally import C extensions for example. However, the
+# behavior of importing the package during the setup process is not good
+# practice and we therefore now explicitly prevent the package from being
+# imported in that case to prevent any regressions.
 try:
     _ASTROPY_SETUP_
 except NameError:
     pass
 else:
-    raise Exception("Can't import astropy at setup time")
+    raise Exception("The astropy package cannot be imported during setup")
 
 import sys
 import os
