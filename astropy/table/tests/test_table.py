@@ -1894,14 +1894,15 @@ class Test__Astropy_Table__():
         st = self.SimpleTable()
         dtypes = [np.int32, np.float32, np.float16]
         names = ['a', 'b', 'c']
-        t = table.Table(st, dtype=dtypes, names=names, meta=OrderedDict([('c', 3)]))
+        meta = OrderedDict([('c', 3)])
+        t = table.Table(st, dtype=dtypes, names=names, meta=meta)
         assert t.colnames == names
         assert all(col.dtype.type is dtype
                    for col, dtype in zip(t.columns.values(), dtypes))
 
-        # The supplied meta is ignored.  This is consistent with current
-        # behavior when initializing from an existing astropy Table.
-        assert t.meta == st.meta
+        # The supplied meta is overrides the existing meta.  Changed in astropy 3.2.
+        assert t.meta != st.meta
+        assert t.meta == meta
 
     def test_kwargs_exception(self):
         """If extra kwargs provided but without initializing with a table-like
