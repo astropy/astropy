@@ -1,19 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
+from collections import defaultdict
 from distutils.core import Extension
 from os.path import join
+
 import sys
 
-from astropy_helpers import setup_helpers
+from extension_helpers import pkg_config
 
 
 def get_extensions(build_type='release'):
     XML_DIR = 'astropy/utils/xml/src'
 
-    cfg = setup_helpers.DistutilsExtensionArgs({
-        'sources': [join(XML_DIR, "iterparse.c")]
-        })
+    cfg = defaultdict(list)
+    cfg['sources'] = [join(XML_DIR, "iterparse.c")]
 
     if (int(os.environ.get('ASTROPY_USE_SYSTEM_EXPAT', 0)) or
             int(os.environ.get('ASTROPY_USE_SYSTEM_ALL', 0))):

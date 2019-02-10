@@ -9,7 +9,7 @@ from astropy.io.fits.convenience import writeto
 from astropy.io.fits.hdu import PrimaryHDU, hdulist
 from astropy.io.fits import Header, ImageHDU, HDUList
 from astropy.io.fits.scripts import fitsdiff
-from astropy.version import version
+from astropy import __version__ as version
 
 
 class TestFITSDiff_script(FitsTestCase):

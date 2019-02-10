@@ -1,0 +1,8 @@
+[build-system]
+requires = ["setuptools",
+            "wheel",
+            "cython",
+            "jinja2",
+            "oldest-supported-numpy",
+            "extension-helpers"]
+build-backend = 'setuptools.build_meta'

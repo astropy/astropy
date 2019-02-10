@@ -2,28 +2,28 @@
 
 import os
 import sys
+from collections import defaultdict
 
 from distutils.core import Extension
 from glob import glob
 
-from astropy_helpers import setup_helpers
+import numpy
 
+from extension_helpers import pkg_config, get_compiler
 
 def _get_compression_extension():
 
     debug = '--debug' in sys.argv
 
-    # 'numpy' will be replaced with the proper path to the numpy includes
-    cfg = setup_helpers.DistutilsExtensionArgs()
-    cfg['include_dirs'].append('numpy')
-    cfg['sources'].append(os.path.join(os.path.dirname(__file__), 'src',
-                                       'compressionmodule.c'))
+    cfg = defaultdict(list)
+    cfg['include_dirs'].append(numpy.get_include())
+    cfg['sources'].append(os.path.join(os.path.dirname(__file__), 'src', 'compressionmodule.c'))
 
     if (int(os.environ.get('ASTROPY_USE_SYSTEM_CFITSIO', 0)) or
             int(os.environ.get('ASTROPY_USE_SYSTEM_ALL', 0))):
         cfg.update(setup_helpers.pkg_config(['cfitsio'], ['cfitsio']))
     else:
-        if setup_helpers.get_compiler_option() == 'msvc':
+        if get_compiler() == 'msvc':
             # These come from the CFITSIO vcc makefile, except the last
             # which ensures on windows we do not include unistd.h (in regular
             # compilation of cfitsio, an empty file would be generated)
