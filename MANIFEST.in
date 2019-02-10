@@ -5,6 +5,7 @@ include CHANGES.rst
 include pip-requirements*
 include CITATION
 include astropy/CITATION
+include pyproject.toml
 
 include ah_bootstrap.py
 include setup.cfg
