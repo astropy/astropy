@@ -700,7 +700,7 @@ def test_spcfix():
     # TODO: We need some data with broken spectral headers here to
     # really test
     header = get_pkg_data_contents(
-        'spectra/orion-velo-1.hdr', encoding='binary')
+        'data/spectra/orion-velo-1.hdr', encoding='binary')
     w = _wcs.Wcsprm(header)
     assert w.spcfix() == -1
 
@@ -1072,7 +1072,7 @@ def test_invalid_args():
         w = _wcs.Wcsprm(naxis=64)
 
     header = get_pkg_data_contents(
-        'spectra/orion-velo-1.hdr', encoding='binary')
+        'data/spectra/orion-velo-1.hdr', encoding='binary')
     with pytest.raises(ValueError):
         w = _wcs.Wcsprm(header, relax='FOO')
 

@@ -552,7 +552,7 @@ def test_skycoord_to_pixel(mode):
     # Import astropy.coordinates here to avoid circular imports
     from astropy.coordinates import SkyCoord
 
-    header = get_pkg_data_contents('maps/1904-66_TAN.hdr', encoding='binary')
+    header = get_pkg_data_contents('data/maps/1904-66_TAN.hdr', encoding='binary')
     wcs = WCS(header)
 
     ref = SkyCoord(0.1 * u.deg, -89. * u.deg, frame='icrs')
@@ -586,7 +586,7 @@ def test_skycoord_to_pixel_swapped():
     # Import astropy.coordinates here to avoid circular imports
     from astropy.coordinates import SkyCoord
 
-    header = get_pkg_data_contents('maps/1904-66_TAN.hdr', encoding='binary')
+    header = get_pkg_data_contents('data/maps/1904-66_TAN.hdr', encoding='binary')
     wcs = WCS(header)
 
     wcs_swapped = wcs.sub([WCSSUB_LATITUDE, WCSSUB_LONGITUDE])
