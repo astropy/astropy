@@ -296,47 +296,5 @@ def get_extensions():
     return [Extension('astropy.wcs._wcs', **cfg)]
 
 
-def get_package_data():
-    # Installs the testing data files
-    api_files = [
-        'astropy_wcs.h',
-        'astropy_wcs_api.h',
-        'distortion.h',
-        'isnan.h',
-        'pipeline.h',
-        'pyutil.h',
-        'sip.h',
-        'util.h',
-        'wcsconfig.h',
-        ]
-    api_files = [join('include', 'astropy_wcs', x) for x in api_files]
-    api_files.append(join('include', 'astropy_wcs_api.h'))
-
-    wcslib_headers = [
-        'cel.h',
-        'lin.h',
-        'prj.h',
-        'spc.h',
-        'spx.h',
-        'tab.h',
-        'wcs.h',
-        'wcserr.h',
-        'wcsmath.h',
-        'wcsprintf.h',
-        ]
-    if not setup_helpers.use_system_library('wcslib'):
-        for header in wcslib_headers:
-            source = join('cextern', 'wcslib', 'C', header)
-            dest = join('astropy', 'wcs', 'include', 'wcslib', header)
-            if newer_group([source], dest, 'newer'):
-                shutil.copy(source, dest)
-            api_files.append(join('include', 'wcslib', header))
-
-    return {
-        'astropy.wcs.tests': ['extension/*.c'],
-        'astropy.wcs': api_files,
-    }
-
-
 def get_external_libraries():
     return ['wcslib']
