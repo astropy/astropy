@@ -57,7 +57,7 @@ def _nanmean(array, axis=None):
         axis = 0
 
     if isinstance(array, Quantity):
-        return bottleneck.nanmean(array, axis=axis) * array.unit
+        return array.__array_wrap__(bottleneck.nanmean(array, axis=axis))
     else:
         return bottleneck.nanmean(array, axis=axis)
 
@@ -70,7 +70,7 @@ def _nanmedian(array, axis=None):
         axis = 0
 
     if isinstance(array, Quantity):
-        return bottleneck.nanmedian(array, axis=axis) * array.unit
+        return array.__array_wrap__(bottleneck.nanmedian(array, axis=axis))
     else:
         return bottleneck.nanmedian(array, axis=axis)
 
@@ -83,10 +83,10 @@ def _nanstd(array, axis=None, ddof=0):
         axis = 0
 
     if isinstance(array, Quantity):
-        return bottleneck.nanstd(array, axis=axis, ddof=ddof) * array.unit
+        return array.__array_wrap__(bottleneck.nanstd(array, axis=axis,
+                                                      ddof=ddof))
     else:
         return bottleneck.nanstd(array, axis=axis, ddof=ddof)
-
 
 
 class SigmaClip:
