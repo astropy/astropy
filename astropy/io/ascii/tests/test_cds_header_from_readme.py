@@ -21,8 +21,8 @@ def read_table3(readme, data):
 
 
 def test_description():
-    readme = 't/cds/description/ReadMe'
-    data = 't/cds/description/table.dat'
+    readme = 'data/cds/description/ReadMe'
+    data = 'data/cds/description/table.dat'
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
         assert_equal(len(table), 2)
@@ -36,14 +36,14 @@ def test_description():
 
 
 def test_multi_header():
-    readme = 't/cds/multi/ReadMe'
-    data = 't/cds/multi/lhs2065.dat'
+    readme = 'data/cds/multi/ReadMe'
+    data = 'data/cds/multi/lhs2065.dat'
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
         assert_equal(len(table), 18)
         assert_almost_equal(table['Lambda'][-1], 6479.32)
         assert_equal(table['Fnu'][-1], '0.285937')
-    data = 't/cds/multi/lp944-20.dat'
+    data = 'data/cds/multi/lp944-20.dat'
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
         assert_equal(len(table), 18)
@@ -52,8 +52,8 @@ def test_multi_header():
 
 
 def test_glob_header():
-    readme = 't/cds/glob/ReadMe'
-    data = 't/cds/glob/lmxbrefs.dat'
+    readme = 'data/cds/glob/ReadMe'
+    data = 'data/cds/glob/lmxbrefs.dat'
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
         assert_equal(len(table), 291)
@@ -62,8 +62,8 @@ def test_glob_header():
 
 
 def test_header_from_readme():
-    r = ascii.Cds("t/vizier/ReadMe")
-    table = r.read("t/vizier/table1.dat")
+    r = ascii.Cds("data/vizier/ReadMe")
+    table = r.read("data/vizier/table1.dat")
     assert len(r.data.data_lines) == 15
     assert len(table) == 15
     assert len(table.keys()) == 18
@@ -85,7 +85,7 @@ def test_header_from_readme():
     for i, val in enumerate(table.field('Bmag')):
         assert val == Bmag[i]
 
-    table = r.read("t/vizier/table5.dat")
+    table = r.read("data/vizier/table5.dat")
     assert len(r.data.data_lines) == 49
     assert len(table) == 49
     assert len(table.keys()) == 10
@@ -150,7 +150,7 @@ def test_header_from_readme():
 
 def test_cds_units():
     from astropy import units
-    data_and_readme = 't/cds.dat'
+    data_and_readme = 'data/cds.dat'
     reader = ascii.get_reader(ascii.Cds)
     table = reader.read(data_and_readme)
     # column unit is GMsun (giga solar masses)

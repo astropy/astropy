@@ -189,7 +189,7 @@ def test_backend_parsers():
     """
     for parser in ('lxml', 'xml', 'html.parser', 'html5lib'):
         try:
-            table = Table.read('t/html2.html', format='ascii.html',
+            table = Table.read('data/html2.html', format='ascii.html',
                                htmldict={'parser': parser}, guess=False)
         except FeatureNotFound:
             if parser == 'html.parser':
@@ -198,7 +198,7 @@ def test_backend_parsers():
 
     # reading should fail if the parser is invalid
     with pytest.raises(FeatureNotFound):
-        Table.read('t/html2.html', format='ascii.html',
+        Table.read('data/html2.html', format='ascii.html',
                    htmldict={'parser': 'foo'}, guess=False)
 
 
@@ -221,7 +221,7 @@ def test_htmlinputter():
     into a list of SoupStrings representing table elements.
     """
 
-    f = 't/html.html'
+    f = 'data/html.html'
     with open(f) as fd:
         table = fd.read()
 
@@ -290,7 +290,7 @@ def test_htmlheader_start():
     for sample input.
     """
 
-    f = 't/html.html'
+    f = 'data/html.html'
     with open(f) as fd:
         table = fd.read()
 
@@ -329,7 +329,7 @@ def test_htmldata():
     t/html.html for sample input.
     """
 
-    f = 't/html.html'
+    f = 'data/html.html'
     with open(f) as fd:
         table = fd.read()
 
@@ -552,7 +552,7 @@ def test_multicolumn_read():
     casts all elements to string prior to type conversion operations.
     """
 
-    table = Table.read('t/html2.html', format='ascii.html')
+    table = Table.read('data/html2.html', format='ascii.html')
     str_type = np.dtype((str, 21))
     expected = Table(np.array([(['1', '2.5000000000000000001'], 3),
                                (['1a', '1'], 3.5)],

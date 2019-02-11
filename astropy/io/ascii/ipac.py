@@ -345,7 +345,7 @@ class Ipac(basic.Basic):
 
       >>> import os
       >>> from astropy.io import ascii
-      >>> filename = os.path.join(ascii.__path__[0], 'tests/t/ipac.dat')
+      >>> filename = os.path.join(ascii.__path__[0], 'tests/data/ipac.dat')
       >>> data = ascii.read(filename)
       >>> print(data.meta['comments'])
       ['This is an example of a valid comment']

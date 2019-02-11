@@ -433,7 +433,7 @@ def check_write_table_via_table(test_def, table, fast_writer):
 @pytest.mark.parametrize("fast_writer", [True, False])
 def test_write_table(fast_writer):
     table = ascii.get_reader(Reader=ascii.Daophot)
-    data = table.read('t/daophot.dat')
+    data = table.read('data/daophot.dat')
 
     for test_def in test_defs:
         check_write_table(test_def, data, fast_writer)
@@ -464,7 +464,7 @@ def test_write_fill_masked_different(fast_writer):
 def test_write_no_data_ipac(fast_writer):
     """Write an IPAC table that contains no data."""
     table = ascii.get_reader(Reader=ascii.Ipac)
-    data = table.read('t/no_data_ipac.dat')
+    data = table.read('data/no_data_ipac.dat')
 
     for test_def in test_defs_no_data:
         check_write_table(test_def, data, fast_writer)
@@ -476,7 +476,7 @@ def test_write_invalid_toplevel_meta_ipac():
     specified) metadata stored in the top-level metadata and therefore should
     raise a warning, and check that the warning has been raised"""
     table = ascii.get_reader(Reader=ascii.Ipac)
-    data = table.read('t/no_data_ipac.dat')
+    data = table.read('data/no_data_ipac.dat')
     data.meta['blah'] = 'extra'
 
     with catch_warnings(AstropyWarning) as ASwarn:
@@ -492,7 +492,7 @@ def test_write_invalid_keyword_meta_ipac():
     of the metadata but with invalid format and therefore should raise a
     warning, and check that the warning has been raised"""
     table = ascii.get_reader(Reader=ascii.Ipac)
-    data = table.read('t/no_data_ipac.dat')
+    data = table.read('data/no_data_ipac.dat')
     data.meta['keywords']['blah'] = 'invalid'
 
     with catch_warnings(AstropyWarning) as ASwarn:
@@ -506,7 +506,7 @@ def test_write_valid_meta_ipac():
     """Write an IPAC table that contains no data and has *correctly* specified
     metadata.  No warnings should be issued"""
     table = ascii.get_reader(Reader=ascii.Ipac)
-    data = table.read('t/no_data_ipac.dat')
+    data = table.read('data/no_data_ipac.dat')
     data.meta['keywords']['blah'] = {'value': 'invalid'}
 
     with catch_warnings(AstropyWarning) as ASwarn:
