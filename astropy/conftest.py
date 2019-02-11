@@ -54,3 +54,4 @@ def pytest_unconfigure(config):
 
 
 PYTEST_HEADER_MODULES['Cython'] = 'cython'
+PYTEST_HEADER_MODULES['Scikit-image'] = 'skimage'
