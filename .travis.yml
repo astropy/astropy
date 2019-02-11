@@ -35,6 +35,7 @@ env:
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
+        - CRON_PIP_DEP='asdf>=2.3 Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
         - ASDF_PIP_DEP='asdf>=2.3'
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
@@ -149,11 +150,13 @@ matrix:
         # We check numpy-dev also in a job that only runs from cron, so that
         # we can spot issues sooner. We do not use remote data here, since
         # that gives too many false positives due to URL timeouts.
+        # We also install all dependencies via pip here so we pick up the latest
+        # releases.
         - os: linux
           stage: Cron tests
           env: NUMPY_VERSION=dev MATPLOTLIB_VERSION=dev EVENT_TYPE='cron'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES=$ASDF_PIP_DEP
+               CONDA_DEPENDENCIES=''
+               PIP_DEPENDENCIES=$CRON_PIP_DEP
 
     allow_failures:
       - os: linux
