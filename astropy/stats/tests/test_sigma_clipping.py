@@ -13,6 +13,7 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
+from astropy import units as u
 from astropy.stats.sigma_clipping import sigma_clip, SigmaClip, sigma_clipped_stats
 from astropy.utils.misc import NumpyRNGContext
 
@@ -265,3 +266,9 @@ def test_sigmaclip_repr():
 
     assert repr(sigclip).startswith(sigclip_repr)
     assert str(sigclip).startswith(sigclip_str)
+
+
+def test_sigma_clippped_stats_unit():
+    data = np.array([1, 1]) * u.kpc
+    result = sigma_clipped_stats(data)
+    assert result == (1. * u.kpc, 1. * u.kpc, 0. * u.kpc)

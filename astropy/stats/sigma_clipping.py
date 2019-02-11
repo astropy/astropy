@@ -12,6 +12,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 try:
     import bottleneck  # pylint: disable=W0611
     HAS_BOTTLENECK = True
+    from astropy.units import Quantity
 except ImportError:
     HAS_BOTTLENECK = False
 
@@ -54,7 +55,11 @@ def _nanmean(array, axis=None):
     if isinstance(axis, tuple):
         array = _move_tuple_axes_first(array, axis=axis)
         axis = 0
-    return bottleneck.nanmean(array, axis=axis)
+
+    if isinstance(array, Quantity):
+        return array.__array_wrap__(bottleneck.nanmean(array, axis=axis))
+    else:
+        return bottleneck.nanmean(array, axis=axis)
 
 
 def _nanmedian(array, axis=None):
@@ -63,7 +68,11 @@ def _nanmedian(array, axis=None):
     if isinstance(axis, tuple):
         array = _move_tuple_axes_first(array, axis=axis)
         axis = 0
-    return bottleneck.nanmedian(array, axis=axis)
+
+    if isinstance(array, Quantity):
+        return array.__array_wrap__(bottleneck.nanmedian(array, axis=axis))
+    else:
+        return bottleneck.nanmedian(array, axis=axis)
 
 
 def _nanstd(array, axis=None, ddof=0):
@@ -72,7 +81,12 @@ def _nanstd(array, axis=None, ddof=0):
     if isinstance(axis, tuple):
         array = _move_tuple_axes_first(array, axis=axis)
         axis = 0
-    return bottleneck.nanstd(array, axis=axis, ddof=ddof)
+
+    if isinstance(array, Quantity):
+        return array.__array_wrap__(bottleneck.nanstd(array, axis=axis,
+                                                      ddof=ddof))
+    else:
+        return bottleneck.nanstd(array, axis=axis, ddof=ddof)
 
 
 class SigmaClip:
