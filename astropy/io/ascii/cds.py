@@ -226,10 +226,10 @@ class Cds(core.BaseReader):
     the header information is at the top of the given table.  Examples::
 
       >>> from astropy.io import ascii
-      >>> table = ascii.read("t/cds.dat")
-      >>> table = ascii.read("t/vizier/table1.dat", readme="t/vizier/ReadMe")
-      >>> table = ascii.read("t/cds/multi/lhs2065.dat", readme="t/cds/multi/ReadMe")
-      >>> table = ascii.read("t/cds/glob/lmxbrefs.dat", readme="t/cds/glob/ReadMe")
+      >>> table = ascii.read("data/cds.dat")
+      >>> table = ascii.read("data/vizier/table1.dat", readme="data/vizier/ReadMe")
+      >>> table = ascii.read("data/cds/multi/lhs2065.dat", readme="data/cds/multi/ReadMe")
+      >>> table = ascii.read("data/cds/glob/lmxbrefs.dat", readme="data/cds/glob/ReadMe")
 
     The table name and the CDS ReadMe file can be entered as URLs.  This can be used
     to directly load tables from the Internet.  For example, Vizier tables from the
@@ -254,20 +254,20 @@ class Cds(core.BaseReader):
     ``InconsistentTableError`` is raised if the ``readme`` file does not
     have header information for the given table.
 
-      >>> readme = "t/vizier/ReadMe"
+      >>> readme = "data/vizier/ReadMe"
       >>> r = ascii.get_reader(ascii.Cds, readme=readme)
-      >>> table = r.read("t/vizier/table1.dat")
+      >>> table = r.read("data/vizier/table1.dat")
       >>> # table5.dat has the same ReadMe file
-      >>> table = r.read("t/vizier/table5.dat")
+      >>> table = r.read("data/vizier/table5.dat")
 
     If no ``readme`` parameter is specified, then the header
     information is assumed to be at the top of the given table.
 
       >>> r = ascii.get_reader(ascii.Cds)
-      >>> table = r.read("t/cds.dat")
+      >>> table = r.read("data/cds.dat")
       >>> #The following gives InconsistentTableError, since no
       >>> #readme file was given and table1.dat does not have a header.
-      >>> table = r.read("t/vizier/table1.dat")
+      >>> table = r.read("data/vizier/table1.dat")
       Traceback (most recent call last):
         ...
       InconsistentTableError: No CDS section delimiter found
