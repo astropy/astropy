@@ -19,7 +19,7 @@ except ImportError:
 else:
     HAS_IPYTHON = True
 
-EXTERN_DIR = abspath(dirname(extern.__file__))
+EXTERN_DIR = abspath(join(dirname(extern.__file__), 'jquery', 'data'))
 
 REFERENCE = """
 <html>
