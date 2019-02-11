@@ -38,12 +38,9 @@ def _move_tuple_axes_first(array, axis):
     # Reorder the array so that the axes being operated on are at the beginning
     array_new = np.moveaxis(array, axis, destination)
 
-    # Figure out the size of the product of the dimensions being operated on
-    first = np.prod(array_new.shape[:naxis])
-
     # Collapse the dimensions being operated on into a single dimension so that
     # we can then use axis=0 with the bottleneck functions
-    array_new = array_new.reshape((first,) + array_new.shape[naxis:])
+    array_new = array_new.reshape((-1,) + array_new.shape[naxis:])
 
     return array_new
 
