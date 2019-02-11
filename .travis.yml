@@ -30,6 +30,7 @@ env:
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath'
+        - CRON_PIP_DEP='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath'
         - PIP_DEPENDENCIES=''
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
@@ -149,7 +150,8 @@ matrix:
         # that gives too many false positives due to URL timeouts.
         - os: linux
           env: NUMPY_VERSION=dev MATPLOTLIB_VERSION=dev
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               CONDA_DEPENDENCIES=''
+               PIP_DEPENDENCIES=$CRON_PIP_DEP
                EVENT_TYPE='cron'
 
     allow_failures:
