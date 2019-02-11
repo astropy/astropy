@@ -25,7 +25,7 @@ from astropy.coordinates import SkyCoord
 class TestMaps:
     def setup(self):
         # get the list of the hdr files that we want to test
-        self._file_list = list(get_pkg_data_filenames("maps", pattern="*.hdr"))
+        self._file_list = list(get_pkg_data_filenames("data/maps", pattern="*.hdr"))
 
     def test_consistency(self):
         # Check to see that we actually have the list we expect, so that we
@@ -46,7 +46,7 @@ class TestMaps:
             filename = os.path.basename(filename)
             # Now find the associated file in the installed wcs test directory.
             header = get_pkg_data_contents(
-                os.path.join("maps", filename), encoding='binary')
+                os.path.join("data", "maps", filename), encoding='binary')
             # finally run the test.
             wcsobj = wcs.WCS(header)
             world = wcsobj.wcs_pix2world([[97, 97]], 1)
@@ -57,7 +57,7 @@ class TestMaps:
 
 class TestSpectra:
     def setup(self):
-        self._file_list = list(get_pkg_data_filenames("spectra",
+        self._file_list = list(get_pkg_data_filenames("data/spectra",
                                                       pattern="*.hdr"))
 
     def test_consistency(self):
@@ -79,7 +79,7 @@ class TestSpectra:
             filename = os.path.basename(filename)
             # Now find the associated file in the installed wcs test directory.
             header = get_pkg_data_contents(
-                os.path.join("spectra", filename), encoding='binary')
+                os.path.join("data", "spectra", filename), encoding='binary')
             # finally run the test.
             all_wcs = wcs.find_all_wcs(header)
             assert len(all_wcs) == 9
@@ -737,7 +737,7 @@ def test_printwcs():
     """
     Just make sure that it runs
     """
-    h = get_pkg_data_contents('spectra/orion-freq-1.hdr', encoding='binary')
+    h = get_pkg_data_contents('data/spectra/orion-freq-1.hdr', encoding='binary')
     w = wcs.WCS(h)
     w.printwcs()
     h = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
@@ -886,7 +886,7 @@ def test_list_naxis():
     assert w.naxis == 2
     assert w.wcs.naxis == 2
 
-    path = get_pkg_data_filename("maps/1904-66_SIN.hdr")
+    path = get_pkg_data_filename("data/maps/1904-66_SIN.hdr")
     with open(path, 'rb') as fd:
         content = fd.read()
     w = wcs.WCS(content, naxis=['celestial'])
