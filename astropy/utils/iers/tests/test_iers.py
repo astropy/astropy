@@ -22,7 +22,7 @@ except OSError:
 else:
     HAS_IERS_A = True
 
-IERS_A_EXCERPT = os.path.join(os.path.dirname(__file__), 'iers_a_excerpt')
+IERS_A_EXCERPT = os.path.join(os.path.dirname(__file__), 'data', 'iers_a_excerpt')
 
 
 class TestBasic():
@@ -184,8 +184,8 @@ class TestIERS_Auto():
         """
         self.N = 40
         self.ame = 30.0
-        self.iers_a_file_1 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-02-30-test')
-        self.iers_a_file_2 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-04-30-test')
+        self.iers_a_file_1 = os.path.join(os.path.dirname(__file__), 'data', 'finals2000A-2016-02-30-test')
+        self.iers_a_file_2 = os.path.join(os.path.dirname(__file__), 'data', 'finals2000A-2016-04-30-test')
         self.iers_a_url_1 = os.path.normpath('file://' + os.path.abspath(self.iers_a_file_1))
         self.iers_a_url_2 = os.path.normpath('file://' + os.path.abspath(self.iers_a_file_2))
         self.t = Time.now() + TimeDelta(10, format='jd') * np.arange(self.N)
