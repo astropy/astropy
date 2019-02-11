@@ -64,11 +64,5 @@ def get_extensions():
     return [_get_compression_extension()]
 
 
-def get_package_data():
-    # Installs the testing data files
-    return {
-        'astropy.io.fits.tests': [os.path.join('data', '*.fits')]}
-
-
 def get_external_libraries():
     return ['cfitsio']
