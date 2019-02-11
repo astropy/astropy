@@ -336,7 +336,6 @@ def get_package_data():
     return {
         str('astropy.wcs.tests'): ['extension/*.c'],
         str('astropy.wcs'): api_files,
-        str('astropy.wcs.wcsapi'): ['ucds.txt']
     }
 
 
