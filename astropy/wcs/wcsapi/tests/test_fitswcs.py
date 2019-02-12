@@ -288,8 +288,27 @@ def test_spectral_cube_nonaligned():
 
     wcs = WCS_SPECTRAL_CUBE_NONALIGNED
 
+    assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
+    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
+
     assert_equal(wcs.axis_correlation_matrix, [[True, True, True], [False, True, True], [True, True, True]])
 
+    # NOTE: we check world_axis_object_components and world_axis_object_classes
+    # again here because in the past this failed when non-aligned axes were
+    # present, so this serves as a regression test.
+
+    assert wcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
+                                                  ('freq', 0, 'value'),
+                                                  ('celestial', 0, 'spherical.lon.degree')]
+
+    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
+    assert wcs.world_axis_object_classes['celestial'][1] == ()
+    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], Galactic)
+    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
+
+    assert wcs.world_axis_object_classes['freq'][0] is Quantity
+    assert wcs.world_axis_object_classes['freq'][1] == ()
+    assert wcs.world_axis_object_classes['freq'][2] == {'unit': 'Hz'}
 
 ###############################################################################
 # The following example is from Rots et al (2015), Table 5. It represents a
