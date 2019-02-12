@@ -98,6 +98,20 @@ are needed. Astropy will import even if these dependencies are not installed.
 Installing Astropy
 ==================
 
+Two methods of installing astropy, :ref:`pip_install` and
+:ref:`anaconda_install`, are described below. Tutorials for managing
+different versions of Python and Astropy using Anaconda environments
+are also available:
+
+.. toctree::
+   :maxdepth: 1
+
+   01-conda_astropy_install
+   02-conda_envs
+   03-astropy_dev_env
+
+.. _pip_install:
+
 Using pip
 ---------
 
