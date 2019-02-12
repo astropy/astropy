@@ -3052,10 +3052,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
     @property
     def has_celestial(self):
-        try:
-            return self.celestial.naxis == 2
-        except InconsistentAxisTypesError:
-            return False
+        return self.wcs.lng >= 0 and self.wcs.lat >= 0
 
     @property
     def has_distortion(self):

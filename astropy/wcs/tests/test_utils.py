@@ -524,6 +524,16 @@ def test_has_celestial(ctype, cel):
     assert mywcs.has_celestial == cel
 
 
+def test_has_celestial_correlated():
+    # Regression test for astropy/astropy#8416 - has_celestial failed when
+    # celestial axes were correlated with other axes.
+    mywcs = WCS(naxis=3)
+    mywcs.wcs.ctype = 'RA---TAN', 'DEC--TAN', 'FREQ'
+    mywcs.wcs.cd = np.ones((3, 3))
+    mywcs.wcs.set()
+    assert mywcs.has_celestial
+
+
 @pytest.mark.parametrize(('cdelt', 'pc', 'cd'),
                          ((np.array([0.1, 0.2]), np.eye(2), np.eye(2)),
                           (np.array([1, 1]), np.diag([0.1, 0.2]), np.eye(2)),
