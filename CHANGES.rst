@@ -1845,6 +1845,9 @@ astropy.table
   ``dex``). Previously setting this was possible, but getting raised
   an error. [#8425]
 
+- Passing the final row of a table into ``Table`` now returns a new table
+  containing that row. [#8422]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
