@@ -15,7 +15,7 @@ Try the development version
     `astropy forums <http://www.astropy.org/help.html>`_ to get help.
 
 
-Trying out the development version of Astropy is useful in three ways:
+Trying out the development version of astropy is useful in three ways:
 
 * More users testing new features helps uncover bugs before the feature is
   released.
@@ -23,14 +23,14 @@ Trying out the development version of Astropy is useful in three ways:
   development version. Knowing whether that is the case can make your bug
   reports more useful.
 * You will need to go through all of these steps before contributing any
-  code to Astropy. Practicing now will save you time later if you plan to
+  code to `Astropy`_. Practicing now will save you time later if you plan to
   contribute.
 
 Overview
 ========
 
 Conceptually, there are several steps to getting a working copy of the latest
-version of Astropy on your computer:
+version of astropy on your computer:
 
 #. :ref:`fork_a_copy`; this copy is called a *fork* (if you don't have an
    account on `github`_ yet, go there now and make one).
@@ -65,7 +65,7 @@ history.
 
    After a short pause and an animation of Octocat scanning a book on a
    flatbed scanner, you should find yourself at the home page for your own
-   forked copy of Astropy_.
+   forked copy of astropy.
 
 .. _check_git_install:
 
@@ -77,7 +77,7 @@ Make sure git is installed and configured on your computer
 Check by typing, in a terminal::
 
     $ git --version
-    # if git is installed, will get something like: git version 1.8.4
+    # if git is installed, will get something like: git version 2.20.1
 
 If `git`_ is not installed, `get it <https://git-scm.com/downloads>`_.
 
@@ -95,7 +95,7 @@ essential items:
   `using SSH keys instead <https://help.github.com/articles/generating-ssh-keys>`_
 
 We also recommend setting up `git`_ so that when you copy changes from your
-computer to `GitHub`_ only the copy (called a *branch*) of Astropy that you are
+computer to `GitHub`_ only the copy (called a *branch*) of astropy that you are
 working on gets pushed up to GitHub.  *If* your version of git is 1.7.11 or,
 greater, you can do that with::
 
@@ -141,8 +141,8 @@ authentication.
 Tell git where to look for changes in the development version of Astropy
 ------------------------------------------------------------------------
 
-Right now your local copy of `Astropy`_ doesn't know where the development
-version of `Astropy`_ is. There is no easy way to keep your local copy up to
+Right now your local copy of astropy doesn't know where the development
+version of astropy is. There is no easy way to keep your local copy up to
 date. In `git`_ the name for another location of the same repository is a
 *remote*. The repository that contains the latest "official" development
 version is traditionally called the *upstream* remote, but here we use a
@@ -164,9 +164,9 @@ show you all of the remotes it knows about for your local repository of
     origin     git@github.com:your-user-name/astropy.git (push)
 
 Note that `git`_ already knew about one remote, called *origin*; that is your
-fork of Astropy on `GitHub`_.
+fork of `Astropy`_ on `GitHub`_.
 
-To make more explicit that origin is really *your* fork of Astropy, rename that
+To make more explicit that origin is really *your* fork of `Astropy`_, rename that
 remote to your `GitHub`_ user name::
 
   git remote rename origin your-user-name
@@ -182,7 +182,7 @@ calls these workspaces *branches*.
 
 Your repository already has several branches; see them if you want by running
 ``git branch -a``. Most of them are on ``remotes/origin``; in other words,
-they exist on your remote copy of Astropy on GitHub.
+they exist on your remote copy of astropy on GitHub.
 
 There is one special branch, called *master*. Right now it is the one you are
 working on; you can tell because it has a marker next to it in your list of
@@ -216,36 +216,43 @@ and you should be rewarded with::
 "Activate" the development version of astropy
 ---------------------------------------------
 
-Right now you have the development version of `Astropy`_, but python will not
+Right now you have the development version of astropy, but python will not
 see it. Though there are more sophisticated ways of managing multiple versions
-of `Astropy`_, for now this straightforward way will work (if you want to jump
+of astropy, for now this straightforward way will work (if you want to jump
 ahead to the more sophisticated method look at :ref:`virtual_envs`).
 
 .. note::
-    There are a couple of circumstances in which this quick method of
-    activating your copy of `Astropy`_ will NOT work and you need to go
-    straight to using a virtual python environment:
+    If you want to work on C or Cython code in `Astropy`_, this quick method
+    of activating your copy of astropy will *not* work _ -- you need to go 
+    straight to using a virtual python environment.
 
-    + You use Python 3.
-    + You want to work on C or Cython code in `Astropy`_.
+If you have decided to use the recommended "activation" method with
+``pip``, please note the following: Before trying to install, 
+check that you have the required dependencies: "cython" and "jinja2". 
+If not, install them with ``pip``. Note that on some platforms, 
+the pip command is ``pip3`` instead of ``pip``, so be sure to use 
+this instead in the examples below if that is the case. 
+If you have any problem with different versions of ``pip`` installed,
+try aliasing to resolve the issue. If you are unsure about which ``pip`` 
+version you are using, try the command ``which pip`` on the terminal.
 
-In the directory where your copy of `Astropy`_ is type::
+In the directory where your copy of astropy is type::
 
-    pip install -e .[all,test]
+    pip install -e .
 
 Several pages of output will follow the first time you do this; this wouldn't
 be a bad time to get a fresh cup of coffee. At the end of it you should see
-something like  ``Finished processing dependencies for astropy==0.3.dev6272``.
+something like  ``Finished processing dependencies for astropy==3.2.dev6272``.
 
 To make sure it has been activated **change to a different directory outside of
 the astropy distribution** and try this in python::
 
     >>> import astropy
     >>> astropy.__version__  # doctest: +SKIP
-    '0.3.dev6272'
+    '3.2.dev6272'
 
 The actual version number will be different than in this example, but it
-should have dev in the name.
+should have ``'dev'`` in the name.
 
 .. warning::
     Right now every time you run Python, the development version of astropy
@@ -263,7 +270,7 @@ should have dev in the name.
 Test your development copy
 --------------------------
 
-Testing is an important part of making sure `Astropy`_ produces reliable,
+Testing is an important part of making sure astropy produces reliable,
 reproducible results. Before you try out a new feature or think you have found
 a bug make sure the tests run properly on your system.
 
@@ -306,19 +313,23 @@ Either way, once you are done, make sure you do the next step.
 ------------------------------------
 
 Be sure to turn the development version off before you go back to doing
-science work with Astropy.
+science work with astropy.
 
 Navigate to the directory where your local copy of the development version is,
 then run::
 
-    python setup.py develop -u
+    pip uninstall astropy
+
+This should remove the development version only. Once again,
+it is important to check that you are using the proper version of
+``pip`` corresponding to the Python executable desired.
 
 You should really confirm it is deactivated by **changing to a different
 directory outside of the astropy distribution** and running this in python::
 
     >>> import astropy
     >>> astropy.__version__  # doctest: +SKIP
-    '0.2.5'
+    '3.1.1'
 
 The actual version number you see will likely be different than this example,
 but it should not have ``'dev'`` in it.

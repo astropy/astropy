@@ -75,17 +75,19 @@ Set up an isolated workspace
 
   If you are using a different distribution, see :ref:`virtual_envs` for
   instructions for creating and activating a new environment.
-+ Install our branch in this environment (will not work in python 3) with::
-
-    python setup.py develop
++ Install our branch in this environment with::
+  
+    pip install -e .
+  
+  Remember also to use the proper version of pip or python in this context.
 
 Do you really have to set up a separate python environment for each fix? No,
 but you definitely want to have a python environment for your work on code
 contributions. Making new environments is fast, doesn't take much space and
 provide a way to keep your work organized.
 
-Tests first, please
-===================
+Test first, please
+==================
 
 It would be hard to overstate the importance of testing to Astropy. Tests are
 what gives you confidence that new code does what it should and that it
