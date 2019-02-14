@@ -134,7 +134,7 @@ matrix:
         # mark as an allowed failure below.
         - os: linux
           env: PYTHON_VERSION=3.7
-               TOXENV=dev
+               TOXENV=py37-pytest-dev
                TOXARGS='--remote-data=astropy'
 
         # We check numpy-dev also in a job that only runs from cron, so that
@@ -145,13 +145,13 @@ matrix:
         - os: linux
           stage: Cron tests
           env: PYTHON_VERSION=3.6
-               TOXENV=dev
+               TOXENV=py37-pytest-dev
                EVENT_TYPE='cron'
 
     allow_failures:
       - os: linux
         env: PYTHON_VERSION=3.7
-             TOXENV=dev
+             TOXENV=py37-pytest-dev
              TOXARGS='--remote-data=astropy'
 
 before_install:
