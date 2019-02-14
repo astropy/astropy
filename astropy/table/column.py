@@ -697,7 +697,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         # the Quantity initializer is used here because it correctly fails
         # if the column's values are non-numeric (like strings), while .view
         # will happily return a quantity with gibberish for numerical values
-        return Quantity(self, copy=False, dtype=self.dtype, order='A')
+        return Quantity(self, self.unit, copy=False, dtype=self.dtype, order='A', subok=True)
 
     def to(self, unit, equivalencies=[], **kwargs):
         """
