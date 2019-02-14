@@ -54,9 +54,7 @@ matrix:
           env: PYTHON_VERSION=3.6
                TOXENV=py36-setup-all
                TOXARGS='--remote-data=astropy'
-               # EVENT_TYPE='cron'
-               # CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang"
-               # CCOMPILER=clang
+               # FIXME: uncomment this! EVENT_TYPE='cron'
 
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
@@ -84,10 +82,6 @@ matrix:
 
         - os: linux
           stage: Initial tests
-          # language: python
-          # python: 3.7
-          # dist: xenial
-          # sudo: true
           env: PYTHON_VERSION=3.7
                TOXENV=py37-pytest-all
                TOXARGS='--durations=50'
