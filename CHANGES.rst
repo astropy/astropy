@@ -171,6 +171,10 @@ astropy.tests
 - Removed ``pytest_plugins`` as they are completely broken for ``pytest>=4``.
   [#7786]
 
+- Removed ``--astropy-config-dir`` and ``--astropy-cache-dir`` options from
+  testing. Please use caching functionality that is natively in ``pytest``.
+  [#7787]
+
 astropy.time
 ^^^^^^^^^^^^
 
