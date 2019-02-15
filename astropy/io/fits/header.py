@@ -1928,6 +1928,30 @@ collections.abc.MutableSequence.register(Header)
 collections.abc.MutableMapping.register(Header)
 
 
+class _DelayedHeader:
+
+    def __get__(self, obj, owner=None):
+        try:
+            return obj.__dict__['_header']
+        except KeyError:
+            if obj._header_str is not None:
+                # print('>> LOAD HEADER')
+                hdr = Header.fromstring(obj._header_str)
+                obj._header_str = None
+            else:
+                hdr = None
+            obj.__dict__['_header'] = hdr
+            return hdr
+
+    def __set__(self, obj, val):
+        # print('>> SET:', val)
+        obj.__dict__['_header'] = val
+
+    def __delete__(self, obj):
+        # print('>> DELETE')
+        del obj.__dict__['_header']
+
+
 class _BasicHeaderCards:
     """
     This class allows to access cards with the _BasicHeader.cards attribute.
