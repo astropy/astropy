@@ -48,9 +48,6 @@ def _wcs_to_celestial_frame_builtin(wcs):
     from ..coordinates import FK4, FK4NoETerms, FK5, ICRS, Galactic
     from ..time import Time
 
-    # Keep only the celestial part of the axes
-    wcs = wcs.sub([WCSSUB_LONGITUDE, WCSSUB_LATITUDE])
-
     if wcs.wcs.lng == -1 or wcs.wcs.lat == -1:
         return None
 
@@ -61,8 +58,8 @@ def _wcs_to_celestial_frame_builtin(wcs):
     else:
         equinox = wcs.wcs.equinox
 
-    xcoord = wcs.wcs.ctype[0][:4]
-    ycoord = wcs.wcs.ctype[1][:4]
+    xcoord = wcs.wcs.ctype[wcs.wcs.lng][:4]
+    ycoord = wcs.wcs.ctype[wcs.wcs.lat][:4]
 
     # Apply logic from FITS standard to determine the default radesys
     if radesys == '' and xcoord == 'RA--' and ycoord == 'DEC-':

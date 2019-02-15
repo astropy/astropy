@@ -260,6 +260,22 @@ def test_wcs_to_celestial_frame():
     assert isinstance(frame, Galactic)
 
 
+def test_wcs_to_celestial_frame_correlated():
+
+    # Regression test for a bug that caused wcs_to_celestial_frame to fail when
+    # the celestial axes were correlated with other axes.
+
+    # Import astropy.coordinates here to avoid circular imports
+    from astropy.coordinates.builtin_frames import ICRS
+
+    mywcs = WCS(naxis=3)
+    mywcs.wcs.ctype = 'RA---TAN', 'DEC--TAN', 'FREQ'
+    mywcs.wcs.cd = np.ones((3, 3))
+    mywcs.wcs.set()
+    frame = wcs_to_celestial_frame(mywcs)
+    assert isinstance(frame, ICRS)
+
+
 def test_wcs_to_celestial_frame_extend():
 
     mywcs = WCS(naxis=2)
@@ -372,6 +388,16 @@ def test_has_celestial(ctype, cel):
     mywcs.wcs.ctype = ctype
 
     assert mywcs.has_celestial == cel
+
+
+def test_has_celestial_correlated():
+    # Regression test for astropy/astropy#8416 - has_celestial failed when
+    # celestial axes were correlated with other axes.
+    mywcs = WCS(naxis=3)
+    mywcs.wcs.ctype = 'RA---TAN', 'DEC--TAN', 'FREQ'
+    mywcs.wcs.cd = np.ones((3, 3))
+    mywcs.wcs.set()
+    assert mywcs.has_celestial
 
 
 @pytest.mark.parametrize(('cdelt', 'pc', 'cd'),

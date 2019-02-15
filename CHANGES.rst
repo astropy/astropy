@@ -73,6 +73,10 @@ astropy.vo
 astropy.wcs
 ^^^^^^^^^^^
 
+- Fix bug that caused ``WCS.has_celestial``, ``wcs_to_celestial_frame``, and
+  other functionality depending on it to fail in the presence of correlated
+  celestial and other axes. [#8420]
+
 
 Other Changes and Additions
 ---------------------------
