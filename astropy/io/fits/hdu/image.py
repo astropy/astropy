@@ -6,7 +6,7 @@ import warnings
 import numpy as np
 
 from .base import DELAYED, _ValidHDU, ExtensionHDU, BITPIX2DTYPE, DTYPE2BITPIX
-from astropy.io.fits.header import Header, _BasicHeader
+from astropy.io.fits.header import Header
 from astropy.io.fits.util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 from astropy.io.fits.verify import VerifyWarning
 
@@ -42,24 +42,12 @@ class _ImageBaseHDU(_ValidHDU):
 
         super().__init__(data=data, header=header)
 
-        if header is not None:
-            if not isinstance(header, (Header, _BasicHeader)):
-                # TODO: Instead maybe try initializing a new Header object from
-                # whatever is passed in as the header--there are various types
-                # of objects that could work for this...
-                raise ValueError('header must be a Header object')
-
         if data is DELAYED:
             # Presumably if data is DELAYED then this HDU is coming from an
             # open file, and was not created in memory
             if header is None:
                 # this should never happen
                 raise ValueError('No header to setup HDU.')
-
-            # if the file is read the first time, no need to copy, and keep it
-            # unchanged
-            else:
-                self._header = header
         else:
             # TODO: Some of this card manipulation should go into the
             # PrimaryHDU and GroupsHDU subclasses
@@ -213,9 +201,6 @@ class _ImageBaseHDU(_ValidHDU):
 
     @property
     def header(self):
-        if self._header_str is not None:
-            self._header = Header.fromstring(self._header_str)
-            self._header_str = None
         return self._header
 
     @header.setter

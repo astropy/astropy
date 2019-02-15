@@ -11,7 +11,8 @@ import numpy as np
 
 from astropy.io.fits import conf
 from astropy.io.fits.file import _File
-from astropy.io.fits.header import Header, _BasicHeader, _pad_length
+from astropy.io.fits.header import (Header, _BasicHeader, _pad_length,
+                                    _DelayedHeader)
 from astropy.io.fits.util import (
     _is_int, _is_pseudo_unsigned, _unsigned_zero, itersubclasses, decode_ascii,
     _get_array_mmap, first, _free_space_check, _extract_number)
@@ -132,6 +133,8 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
 
     _default_name = ''
 
+    _header = _DelayedHeader()
+
     def __new__(cls, data=None, header=None, *args, **kwargs):
         """
         Iterates through the subclasses of _BaseHDU and uses that class's
@@ -176,9 +179,6 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
 
     @property
     def header(self):
-        if self._header_str is not None:
-            self._header = Header.fromstring(self._header_str)
-            self._header_str = None
         return self._header
 
     @header.setter
@@ -461,12 +461,16 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
         size = hdu.size
         hdu._data_size = size + _pad_length(size)
 
+        if isinstance(hdu._header, _BasicHeader):
+            # Delete the temporary _BasicHeader
+            # We need to do this before an eventual checksum computation, since
+            # it needs to modify temporarily the header
+            del hdu._header
+            hdu._header_str = header_str
+
         # Checksums are not checked on invalid HDU types
         if checksum and checksum != 'remove' and isinstance(hdu, _ValidHDU):
             hdu._verify_checksum_datasum()
-
-        if isinstance(hdu._header, _BasicHeader):
-            hdu._header_str = header_str
 
         return hdu
 
@@ -878,6 +882,13 @@ class _ValidHDU(_BaseHDU, _Verify):
 
     def __init__(self, data=None, header=None, name=None, ver=None, **kwargs):
         super().__init__(data=data, header=header)
+
+        if (header is not None and
+                not isinstance(header, (Header, _BasicHeader))):
+            # TODO: Instead maybe try initializing a new Header object from
+            # whatever is passed in as the header--there are various types
+            # of objects that could work for this...
+            raise ValueError('header must be a Header object')
 
         # NOTE:  private data members _checksum and _datasum are used by the
         # utility script "fitscheck" to detect missing checksums.
