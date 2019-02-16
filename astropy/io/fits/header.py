@@ -1939,7 +1939,9 @@ class _DelayedHeader:
                 hdr = Header.fromstring(obj._header_str)
                 obj._header_str = None
             else:
-                hdr = None
+                raise AttributeError("'{}' object has no attribute '_header'"
+                                     .format(obj.__class__.__name__))
+
             obj.__dict__['_header'] = hdr
             return hdr
 
