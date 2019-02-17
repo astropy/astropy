@@ -24,7 +24,7 @@ BLANK_CARD = ' ' * CARD_LENGTH
 KEYWORD_LENGTH = 8  # The max length for FITS-standard keywords
 
 VALUE_INDICATOR = '= '  # The standard FITS value indicator
-VALUE_INDICATOR_LEN = 2
+VALUE_INDICATOR_LEN = len(VALUE_INDICATOR)
 HIERARCH_VALUE_INDICATOR = '='  # HIERARCH cards may use a shortened indicator
 
 
