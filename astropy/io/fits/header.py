@@ -535,34 +535,8 @@ class Header:
             raise OSError('Header missing END card.')
 
         header_str = ''.join(read_blocks)
-
-        # Strip any zero-padding (see ticket #106)
-        if header_str and header_str[-1] == '\0':
-            if is_eof and header_str.strip('\0') == '':
-                # TODO: Pass this warning to validation framework
-                warnings.warn(
-                    'Unexpected extra padding at the end of the file.  This '
-                    'padding may not be preserved when saving changes.',
-                    AstropyUserWarning)
-                raise EOFError()
-            else:
-                # Replace the illegal null bytes with spaces as required by
-                # the FITS standard, and issue a nasty warning
-                # TODO: Pass this warning to validation framework
-                warnings.warn(
-                    'Header block contains null bytes instead of spaces for '
-                    'padding, and is not FITS-compliant. Nulls may be '
-                    'replaced with spaces upon writing.', AstropyUserWarning)
-                header_str.replace('\0', ' ')
-
-        if padding and (len(header_str) % actual_block_size) != 0:
-            # This error message ignores the length of the separator for
-            # now, but maybe it shouldn't?
-            actual_len = len(header_str) - actual_block_size + BLOCK_SIZE
-            # TODO: Pass this error to validation framework
-            raise ValueError(
-                'Header size is not multiple of {0}: {1}'.format(BLOCK_SIZE,
-                                                                 actual_len))
+        _check_padding(header_str, actual_block_size, is_eof,
+                       check_block_size=padding)
 
         return header_str, cls.fromstring(header_str, sep=sep)
 
@@ -2032,12 +2006,15 @@ class _BasicHeader(collections.abc.Mapping):
         cards = {}
         read_blocks = []
         found_end = False
+        is_eof = False
 
         try:
             while True:
                 # iterate on blocks
                 block = fileobj.read(BLOCK_SIZE)
                 if not block or len(block) < BLOCK_SIZE:
+                    # header looks incorrect, raising exception to fall back to
+                    # the full Header parsing
                     raise Exception
 
                 block = decode_ascii(block)
@@ -2071,6 +2048,7 @@ class _BasicHeader(collections.abc.Mapping):
             # we keep the full header string as it may be needed later to
             # create a Header object
             header_str = ''.join(read_blocks)
+            _check_padding(header_str, BLOCK_SIZE, is_eof)
             return header_str, cls(cards)
         finally:
             if close_file:
@@ -2266,3 +2244,32 @@ def _pad_length(stringlen):
     """Bytes needed to pad the input stringlen to the next FITS block."""
 
     return (BLOCK_SIZE - (stringlen % BLOCK_SIZE)) % BLOCK_SIZE
+
+
+def _check_padding(header_str, block_size, is_eof, check_block_size=True):
+    # Strip any zero-padding (see ticket #106)
+    if header_str and header_str[-1] == '\0':
+        if is_eof and header_str.strip('\0') == '':
+            # TODO: Pass this warning to validation framework
+            warnings.warn(
+                'Unexpected extra padding at the end of the file.  This '
+                'padding may not be preserved when saving changes.',
+                AstropyUserWarning)
+            raise EOFError()
+        else:
+            # Replace the illegal null bytes with spaces as required by
+            # the FITS standard, and issue a nasty warning
+            # TODO: Pass this warning to validation framework
+            warnings.warn(
+                'Header block contains null bytes instead of spaces for '
+                'padding, and is not FITS-compliant. Nulls may be '
+                'replaced with spaces upon writing.', AstropyUserWarning)
+            header_str.replace('\0', ' ')
+
+    if check_block_size and (len(header_str) % block_size) != 0:
+        # This error message ignores the length of the separator for
+        # now, but maybe it shouldn't?
+        actual_len = len(header_str) - block_size + BLOCK_SIZE
+        # TODO: Pass this error to validation framework
+        raise ValueError('Header size is not multiple of {0}: {1}'
+                         .format(BLOCK_SIZE, actual_len))
