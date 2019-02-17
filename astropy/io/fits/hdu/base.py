@@ -135,23 +135,6 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
 
     _header = _DelayedHeader()
 
-    def __new__(cls, data=None, header=None, *args, **kwargs):
-        """
-        Iterates through the subclasses of _BaseHDU and uses that class's
-        match_header() method to determine which subclass to instantiate.
-
-        It's important to be aware that the class hierarchy is traversed in a
-        depth-last order.  Each match_header() should identify an HDU type as
-        uniquely as possible.  Abstract types may choose to simply return False
-        or raise NotImplementedError to be skipped.
-
-        If any unexpected exceptions are raised while evaluating
-        match_header(), the type is taken to be _CorruptedHDU.
-        """
-
-        klass = _hdu_class_from_header(cls, header)
-        return super().__new__(klass)
-
     def __init__(self, data=None, header=None, *args, **kwargs):
         if header is None:
             header = Header()
