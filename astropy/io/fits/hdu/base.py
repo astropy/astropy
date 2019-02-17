@@ -379,6 +379,8 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
                 try:
                     header_str, header = _BasicHeader.fromfile(data)
                 except Exception:
+                    # if the fast header parsing failed, fallback to the normal
+                    # one
                     data.seek(header_offset)
                     header = Header.fromfile(data,
                                              endcard=not ignore_missing_end)

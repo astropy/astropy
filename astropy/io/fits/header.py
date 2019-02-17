@@ -1903,13 +1903,16 @@ collections.abc.MutableMapping.register(Header)
 
 
 class _DelayedHeader:
+    """
+    Descriptor used to create the Header object from the header string that
+    is stored when parsing a file.
+    """
 
     def __get__(self, obj, owner=None):
         try:
             return obj.__dict__['_header']
         except KeyError:
             if obj._header_str is not None:
-                # print('>> LOAD HEADER')
                 hdr = Header.fromstring(obj._header_str)
                 obj._header_str = None
             else:
@@ -1920,17 +1923,17 @@ class _DelayedHeader:
             return hdr
 
     def __set__(self, obj, val):
-        # print('>> SET:', val)
         obj.__dict__['_header'] = val
 
     def __delete__(self, obj):
-        # print('>> DELETE')
         del obj.__dict__['_header']
 
 
 class _BasicHeaderCards:
     """
     This class allows to access cards with the _BasicHeader.cards attribute.
+    Cards cannot be modified as the _BasicHeader object will be deleted
+    once the HDU object is created.
     """
 
     def __init__(self, header):
@@ -1981,8 +1984,7 @@ class _BasicHeader(collections.abc.Mapping):
             return self._cards[key].value
         except KeyError:
             # parse the Card and store it
-            card = Card.fromstring(self._raw_cards[key])
-            self._cards[key] = card
+            self._cards[key] = card = Card.fromstring(self._raw_cards[key])
             return card.value
 
     def __len__(self):
