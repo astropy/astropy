@@ -93,9 +93,7 @@ class Header:
 
             .. versionadded:: 1.3
         """
-        self._cards = []
-        self._keyword_indices = collections.defaultdict(list)
-        self._rvkc_indices = collections.defaultdict(list)
+        self.clear()
 
         if isinstance(cards, Header):
             if copy:
