@@ -80,6 +80,10 @@ astropy.table
   corresponding pandas date or time delta types.  The ``DataFrame``
   index is now handled in the conversion methods. [#8247]
 
+- Fix ``.quantity`` property of ``Column`` class for function-units (e.g.,
+  ``dex``). Previously setting this was possible, but getting raised
+  an error. [#8425]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
