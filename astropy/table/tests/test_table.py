@@ -144,19 +144,6 @@ class TestSetTableColumn(SetupData):
         assert np.all(t['bb'] == 3)
         assert t['bb'].unit == u.m
 
-    def test_get_col_table_func_quantity(self, table_types):
-        """Set a log-scale unit to column and get correct quantity back"""
-        self._setup(table_types)
-        t = table_types.Table()
-
-        t['aa'] = np.array([1, 2, 3]) * u.dex(u.AA)
-        assert np.all(t['aa'] == np.array([1, 2, 3]))
-        assert t['aa'].unit == u.dex(u.AA)
-
-        q = u.Quantity(t['aa'], t['aa'].unit, subok=True)
-
-        assert u.quantity.allclose(t['aa'].quantity, q)
-
     def test_set_new_col_existing_table(self, table_types):
         """Create a new column in an existing table using the item access syntax"""
         self._setup(table_types)
