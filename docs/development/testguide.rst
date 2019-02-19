@@ -745,7 +745,7 @@ You can find the names of the available Docker images on the `Docker Hub
 Writing image tests
 -------------------
 
-The `README.rst <https://github.com/astropy/pytest-mpl/blob/master/README.rst>`__
+The `README.rst <https://github.com/matplotlib/pytest-mpl/blob/master/README.rst>`__
 for the plugin contains information on writing tests with this plugin. The only
 key addition compared to those instructions is that you should set
 ``baseline_dir``::
