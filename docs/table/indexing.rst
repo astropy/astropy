@@ -278,9 +278,7 @@ specified to use a particular indexing engine. The available engines are
 
 Note that FastRBT and FastBST depend on the bintrees dependency; without this
 dependency, both classes default to `~astropy.table.BST`. The SCEngine depends
-on the sortedcontainers dependency. For a comparison of
-engine performance, see `this IPython notebook
-<http://nbviewer.jupyter.org/github/grantjenks/astropy-notebooks/blob/master/table/indexing-profiling.ipynb>`_. Probably
+on the sortedcontainers dependency. Probably
 the most important takeaway is that `~astropy.table.SortedArray` (the default
 engine) is usually best, although `~astropy.table.SCEngine` may be more
 appropriate for an index created on an empty column since adding new values is quicker.

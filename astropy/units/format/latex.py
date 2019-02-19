@@ -131,7 +131,7 @@ class LatexInline(Latex):
     Attempts to follow the `IAU Style Manual
     <https://www.iau.org/static/publications/stylemanual1989.pdf>`_ and the
     `ApJ and AJ style guide
-    <http://journals.aas.org/authors/manuscript.html>`_.
+    <https://journals.aas.org/manuscript-preparation/>`_.
     """
     name = 'latex_inline'
 
