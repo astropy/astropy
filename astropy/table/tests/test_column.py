@@ -224,6 +224,21 @@ class TestColumn():
         with pytest.raises(TypeError):
             d3.quantity
 
+    def test_to_funcunit_quantity(self, Column):
+        """
+        Tests for #8424, check if function-unit can be retrieved from column.
+        """
+        d = Column([1, 2, 3], name='a', dtype="f8", unit="dex(AA)")
+
+        assert np.all(d.quantity == ([1, 2, 3] * u.dex(u.AA)))
+        assert np.all(d.quantity.value == ([1, 2, 3] * u.dex(u.AA)).value)
+        assert np.all(d.quantity == d.to("dex(AA)"))
+        assert np.all(d.quantity.value == d.to("dex(AA)").value)
+
+        # make sure, casting to linear unit works
+        q = [10, 100, 1000] * u.AA
+        np.testing.assert_allclose(d.to(u.AA), q)
+
     def test_item_access_type(self, Column):
         """
         Tests for #3095, which forces integer item access to always return a plain
