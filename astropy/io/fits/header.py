@@ -387,7 +387,7 @@ class Header:
         if image:
             cards.append(Card.fromstring(''.join(image)))
 
-        return cls(cards)
+        return cls._fromcards(cards)
 
     @classmethod
     def fromfile(cls, fileobj, sep='', endcard=True, padding=True):
@@ -448,6 +448,19 @@ class Header:
         finally:
             if close_file:
                 fileobj.close()
+
+    @classmethod
+    def _fromcards(cls, cards):
+        header = cls()
+        for idx, card in enumerate(cards):
+            header._cards.append(card)
+            keyword = Card.normalize_keyword(card.keyword)
+            header._keyword_indices[keyword].append(idx)
+            if card.field_specifier is not None:
+                header._rvkc_indices[card.rawkeyword].append(idx)
+
+        header._modified = False
+        return header
 
     @classmethod
     def _from_blocks(cls, block_iter, is_binary, sep, endcard, padding):
@@ -938,13 +951,14 @@ class Header:
         instance has the same behavior.
         """
 
-        return self.__iter__()
+        for card in self._cards:
+            yield card.keyword
 
     def values(self):
         """Like :meth:`dict.values`."""
 
-        for _, v in self.items():
-            yield v
+        for card in self._cards:
+            yield card.value
 
     def pop(self, *args):
         """
@@ -1241,7 +1255,7 @@ class Header:
             temp._strip()
 
         if len(self):
-            first = self.cards[0].keyword
+            first = self._cards[0].keyword
         else:
             first = None
 
@@ -1504,10 +1518,10 @@ class Header:
                                  'renamed to each other.')
         elif not force and newkeyword in self:
             raise ValueError('Intended keyword {} already exists in header.'
-                            .format(newkeyword))
+                             .format(newkeyword))
 
         idx = self.index(oldkeyword)
-        card = self.cards[idx]
+        card = self._cards[idx]
         del self[idx]
         self.insert(idx, (newkeyword, card.value, card.comment))
 

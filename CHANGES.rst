@@ -47,6 +47,8 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+-  Optimize ``Header`` parsing. [#8428]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
