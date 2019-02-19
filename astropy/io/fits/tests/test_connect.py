@@ -8,7 +8,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from astropy.io.fits.column import (_parse_tdisp_format, _fortran_to_python_format,
-                      python_to_tdisp)
+                                    python_to_tdisp)
 
 from astropy.io.fits import HDUList, PrimaryHDU, BinTableHDU
 
@@ -26,7 +26,7 @@ from astropy.time import Time, TimeDelta
 from astropy.units.quantity import QuantityInfo
 
 try:
-    import yaml  # pylint: disable=W0611
+    import yaml  # pylint: disable=W0611  # noqa
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False
@@ -422,7 +422,7 @@ def test_convert_comment_convention(tmpdir):
     Regression test for https://github.com/astropy/astropy/issues/6079
     """
     filename = os.path.join(DATA, 'stddata.fits')
-    with pytest.warns(AstropyUserWarning, catch='hdu= was not specified but '
+    with pytest.warns(AstropyUserWarning, match='hdu= was not specified but '
                       'multiple tables are present'):
         t = Table.read(filename)
 
