@@ -35,7 +35,7 @@ env:
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
-        - CRON_PIP_DEP='asdf>=2.3 Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
+        - DEV_PIP_DEP='asdf>=2.3 Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
         - ASDF_PIP_DEP='asdf>=2.3'
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
@@ -147,8 +147,8 @@ matrix:
         # mark as an allowed failure below.
         - os: linux
           env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES=$ASDF_PIP_DEP
+               CONDA_DEPENDENCIES=''
+               PIP_DEPENDENCIES=$DEV_PIP_DEP
                MATPLOTLIB_VERSION=dev
 
         # We check numpy-dev also in a job that only runs from cron, so that
@@ -160,13 +160,13 @@ matrix:
           stage: Cron tests
           env: NUMPY_VERSION=dev MATPLOTLIB_VERSION=dev EVENT_TYPE='cron'
                CONDA_DEPENDENCIES=''
-               PIP_DEPENDENCIES=$CRON_PIP_DEP
+               PIP_DEPENDENCIES=$DEV_PIP_DEP
 
     allow_failures:
       - os: linux
         env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
-             CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-             PIP_DEPENDENCIES=$ASDF_PIP_DEP
+             CONDA_DEPENDENCIES=''
+             PIP_DEPENDENCIES=$DEV_PIP_DEP
              MATPLOTLIB_VERSION=dev
 
 before_install:
