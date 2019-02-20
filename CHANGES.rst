@@ -351,14 +351,16 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
-- Ensure multiplication of a ``TimeDelta`` instance with a ``Quantity`` with
-  units of time results in a ``Quantity`` with units of time squared. [#8356]
+- Fixed a number of issues to ensure a consistent output type resulting from
+  multiplication or division involving a ``TimeDelta`` instance. The output is
+  now always a ``TimeDelta`` if the result is a time unit (like u.s or u.d),
+  otherwise it will be a ``Quantity``. [#8356]
 
 - Like for comparisons, addition, and subtraction of ``Time`` instances with
   with non-time instances, multiplication and division of ``TimeDelta``
   instances with incompatible other instances no longer immediately raise an
   ``UnitsError`` or ``TypeError`` (depending on the other instance), but
-  rather go through the regular python mechanism of ``TimeDelta`` returning
+  rather go through the regular Python mechanism of ``TimeDelta`` returning
   ``NotImplemented`` (which will lead to a regular ``TypeError`` unless the
   other instance can handle ``TimeDelta``). [#8356]
 
@@ -378,12 +380,18 @@ astropy.wcs
 ^^^^^^^^^^^
 
 
-
 Other Changes and Additions
 ---------------------------
 
+- The bug fixes to the behaviour of ``TimeDelta`` for multiplcation and
+  division, which ensure that the output is now always a ``TimeDelta`` if the
+  result is a time unit (like u.s or u.d) and otherwise a ``Quantity``, imply
+  that sometimes the output type will be different than it was before. [#8356]
 
-
+- For types unrecognized by ``TimeDelta``, multiplication and division now
+  will consistently return a ``TypeError`` if the other instance cannot handle
+  ``TimeDelta`` (rather than ``UnitsError`` or ``TypeError`` depending on
+  presumed abilities of the other instance). [#8356]
 
 3.1.2 (2019-02-23)
 ==================
