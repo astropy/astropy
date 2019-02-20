@@ -157,7 +157,7 @@ following formats:
     <https://www.iau.org/static/publications/stylemanual1989.pdf>`__
     recommendations for unit presentation, using negative powers instead of
     fractions, as required by some journals (e.g., `Apj and AJ
-    <http://journals.aas.org/authors/manuscript.html#_Toc2.2>`_.)
+    <https://journals.aas.org/manuscript-preparation/>`_.)
     Best suited for unit representation inline with text::
 
       >>> fluxunit.to_string('latex_inline')  # doctest: +SKIP

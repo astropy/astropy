@@ -28,9 +28,9 @@ on masked arrays
    convention of ignoring masked (invalid) values.  This differs from
    the behavior of the floating point ``NaN``, for which the sum of an
    array including one or more ``NaN's`` will result in ``NaN``.
-   See `<http://www.numpy.org/NA-overview.html>`_ for a very
-   interesting discussion of different strategies for handling
-   missing data in the context of `numpy`.
+
+   See `<https://www.numpy.org/neps/>`_ for information on NumPy
+   Enhancement Proposals 24, 25, and 26.
 
 Table creation
 ===============

@@ -191,9 +191,8 @@ class DataInfo:
     called ``info`` so that the DataInfo() object can be stored in the
     ``instance`` using the ``info`` key.  Because owner_cls.x is a descriptor,
     Python doesn't use __dict__['x'] normally, and the descriptor can safely
-    store stuff there.  Thanks to http://nbviewer.ipython.org/urls/
-    gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb for
-    this trick that works for non-hashable classes.
+    store stuff there.  Thanks to http://nbviewer.ipython.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
+    for this trick that works for non-hashable classes.
 
     Parameters
     ----------
