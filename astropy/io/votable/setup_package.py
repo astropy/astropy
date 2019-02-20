@@ -11,14 +11,3 @@ def get_extensions(build_type='release'):
         "astropy.io.votable.tablewriter",
         [join(VO_DIR, "tablewriter.c")],
         include_dirs=[VO_DIR])]
-
-
-def get_package_data():
-    return {
-        'astropy.io.votable': [
-            'data/ucd1p-words.txt', 'data/*.xsd', 'data/*.dtd'],
-        'astropy.io.votable.tests': [
-            'data/*.xml', 'data/*.gz', 'data/*.json', 'data/*.fits',
-            'data/*.txt'],
-        'astropy.io.votable.validator': [
-            'urls/*.dat.gz']}

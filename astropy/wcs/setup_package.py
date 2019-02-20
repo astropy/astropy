@@ -334,12 +334,8 @@ def get_package_data():
             api_files.append(join('include', 'wcslib', header))
 
     return {
-        str('astropy.wcs.tests'): ['data/*.hdr', 'data/*.fits',
-                                   'data/*.txt', 'data/*.fits.gz',
-                                   'maps/*.hdr', 'spectra/*.hdr',
-                                   'extension/*.c'],
+        str('astropy.wcs.tests'): ['extension/*.c'],
         str('astropy.wcs'): api_files,
-        str('astropy.wcs.wcsapi'): ['ucds.txt']
     }
 
 

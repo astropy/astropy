@@ -30,8 +30,8 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
-EXTERN_JS_DIR = abspath(join(dirname(extern.__file__), 'js'))
-EXTERN_CSS_DIR = abspath(join(dirname(extern.__file__), 'css'))
+EXTERN_JS_DIR = abspath(join(dirname(extern.__file__), 'jquery', 'data', 'js'))
+EXTERN_CSS_DIR = abspath(join(dirname(extern.__file__), 'jquery', 'data', 'css'))
 
 _SORTING_SCRIPT_PART_1 = """
 var astropy_sort_num = function(a, b) {{

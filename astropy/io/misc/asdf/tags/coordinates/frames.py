@@ -20,6 +20,7 @@ __all__ = ['CoordType']
 
 SCHEMA_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                            '..', '..',
+                                           'data',
                                            'schemas',
                                            'astropy.org',
                                            'astropy'))

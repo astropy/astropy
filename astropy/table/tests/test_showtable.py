@@ -79,7 +79,7 @@ def test_fits_hdu(capsys):
 
 
 def test_csv(capsys):
-    showtable.main([os.path.join(ASCII_ROOT, 't/simple_csv.csv')])
+    showtable.main([os.path.join(ASCII_ROOT, 'data/simple_csv.csv')])
     out, err = capsys.readouterr()
     assert out.splitlines() == [' a   b   c ',
                                 '--- --- ---',
@@ -88,7 +88,7 @@ def test_csv(capsys):
 
 
 def test_ascii_format(capsys):
-    showtable.main([os.path.join(ASCII_ROOT, 't/commented_header.dat'),
+    showtable.main([os.path.join(ASCII_ROOT, 'data/commented_header.dat'),
                     '--format', 'ascii.commented_header'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [' a   b   c ',
@@ -98,7 +98,7 @@ def test_ascii_format(capsys):
 
 
 def test_ascii_delimiter(capsys):
-    showtable.main([os.path.join(ASCII_ROOT, 't/simple2.txt'),
+    showtable.main([os.path.join(ASCII_ROOT, 'data/simple2.txt'),
                     '--format', 'ascii', '--delimiter', '|'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
@@ -126,7 +126,7 @@ def test_votable(capsys):
 
 
 def test_max_lines(capsys):
-    showtable.main([os.path.join(ASCII_ROOT, 't/cds2.dat'),
+    showtable.main([os.path.join(ASCII_ROOT, 'data/cds2.dat'),
                     '--format', 'ascii.cds', '--max-lines', '7',
                     '--max-width', '30'])
     out, err = capsys.readouterr()
@@ -157,7 +157,7 @@ def test_show_dtype(capsys):
 
 
 def test_hide_unit(capsys):
-    showtable.main([os.path.join(ASCII_ROOT, 't/cds.dat'),
+    showtable.main([os.path.join(ASCII_ROOT, 'data/cds.dat'),
                     '--format', 'ascii.cds'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
@@ -167,7 +167,7 @@ def test_hide_unit(capsys):
         '    1   3  28 39.09   +  31      6    1.9    --    I*  --  1.35',
     ]
 
-    showtable.main([os.path.join(ASCII_ROOT, 't/cds.dat'),
+    showtable.main([os.path.join(ASCII_ROOT, 'data/cds.dat'),
                     '--format', 'ascii.cds', '--hide-unit'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [

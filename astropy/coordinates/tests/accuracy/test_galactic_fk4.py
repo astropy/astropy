@@ -17,7 +17,7 @@ TOLERANCE = 0.3  # arcseconds
 
 
 def test_galactic_fk4():
-    lines = get_pkg_data_contents('galactic_fk4.csv').split('\n')
+    lines = get_pkg_data_contents('data/galactic_fk4.csv').split('\n')
     t = Table.read(lines, format='ascii', delimiter=',', guess=False)
 
     if N_ACCURACY_TESTS >= len(t):
