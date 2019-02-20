@@ -359,6 +359,9 @@ Building documentation
     the latest (and archive) versions of astropy's documentation should
     be available at `docs.astropy.org <http://docs.astropy.org>`_ .
 
+
+.. _astropy-doc-building:
+
 Building the documentation requires the Astropy source code and some additional
 packages:
 
@@ -370,7 +373,7 @@ packages:
       and most affiliated packages include this as a submodule in the source
       repository, so it does not need to be installed separately.)
 
-    - `Pillow <http://python-pillow.org/>`_
+    - `Pillow <https://pillow.readthedocs.io>`_
 
     - (optional) `sphinx-gallery <http://sphinx-gallery.readthedocs.io/>`_
 
@@ -380,6 +383,7 @@ packages:
         .../docs/coordinates/frames.rst:278: WARNING: undefined label:
             sphx_glr_generated_examples_coordinates_plot_sgr-coordinate-frame.py
             (if the link has no caption the label must precede a section header)
+
 
 There are two ways to build the Astropy documentation. The most straightforward
 way is to execute the command (from the astropy source directory)::

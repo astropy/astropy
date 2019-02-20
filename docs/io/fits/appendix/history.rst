@@ -954,8 +954,7 @@ API Changes
 New Features
 ------------
 
-- Added support for the proposed "FITS" extension HDU type.  See
-  http://listmgr.cv.nrao.edu/pipermail/fitsbits/2002-April/001094.html.  FITS
+- Added support for the proposed "FITS" extension HDU type. FITS
   HDUs contain an entire FITS file embedded in their data section.  ``FitsHDU``
   objects work like other HDU types in PyFITS.  Their ``.data`` attribute
   returns the raw data array.  However, they have a special ``.hdulist``
@@ -3239,4 +3238,4 @@ Things not yet supported but are part of future development:
 - Support for tables with TNULL values. This awaits an enhancement to numarray
   to support mask arrays (planned).  (At least a couple of months off).
 
-.. _PyFITS: http://www.stsci.edu/institute/software_hardware/pyfits
+.. _PyFITS: https://github.com/spacetelescope/pyfits

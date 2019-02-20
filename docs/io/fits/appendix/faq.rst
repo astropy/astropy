@@ -30,7 +30,7 @@ Although PyFITS is written mostly in Python, it includes an optional module
 written in C that's required to read/write compressed image data.  However,
 the rest of PyFITS functions without this extension module.
 
-.. _PyFITS: http://www.stsci.edu/institute/software_hardware/pyfits
+.. _PyFITS: https://github.com/spacetelescope/pyfits
 .. _Python: https://www.python.org/
 .. _FITS: https://fits.gsfc.nasa.gov/
 .. _Numpy: http://www.numpy.org/
