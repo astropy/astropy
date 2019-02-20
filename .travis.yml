@@ -111,12 +111,7 @@ matrix:
                MATPLOTLIB_VERSION=1.5
                EVENT_TYPE='push pull_request cron'
 
-        # Pinning conda version temporarily to 4.3.21, as some anaconda
-        # packges build with 4.3.27 are faulty and we see this job failing,
-        # while locally there are no issues when the same version of
-        # packages are installed from pip.  Also make sure that series v2.0.x
-        # is compatible with pytest-astropy
-        # TODO: remove the pinning once the issue is solved upstream.
+        # Making sure that series v2.0.x is compatible with pytest-astropy
         - os: linux
           env: SETUP_CMD='test --coverage --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
@@ -125,7 +120,6 @@ matrix:
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.0 NUMPY_VERSION=1.13
                EVENT_TYPE='push pull_request cron'
-               CONDA_VERSION=4.3.21
 
         # Try pre-release version of Numpy without optional dependencies
         - os: linux
