@@ -30,7 +30,7 @@ env:
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath'
-        - CRON_PIP_DEP='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath'
+        - DEV_PIP_DEP='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath'
         - PIP_DEPENDENCIES=''
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
@@ -142,7 +142,8 @@ matrix:
         # mark as an allowed failure below.
         - os: linux
           env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               CONDA_DEPENDENCIES=''
+               PIP_DEPENDENCIES=$DEV_PIP_DEP
                MATPLOTLIB_VERSION=dev
 
         # We check numpy-dev also in a job that only runs from cron, so that
@@ -151,12 +152,13 @@ matrix:
         - os: linux
           env: NUMPY_VERSION=dev MATPLOTLIB_VERSION=dev
                CONDA_DEPENDENCIES=''
-               PIP_DEPENDENCIES=$CRON_PIP_DEP
+               PIP_DEPENDENCIES=$DEV_PIP_DEP
                EVENT_TYPE='cron'
 
     allow_failures:
       - env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
-             CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+             CONDA_DEPENDENCIES=''
+             PIP_DEPENDENCIES=$DEV_PIP_DEP
              MATPLOTLIB_VERSION=dev
 
 install:
