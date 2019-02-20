@@ -91,6 +91,8 @@ Other Changes and Additions
 - Fixed ``make clean`` for the documentation on Windows to ensure it
   properly removes the ``api`` and ``generated`` directories. [#8346]
 
+- Updating bundled ``pytest-openfiles`` to v0.3.2. [#8434]
+
 
 
 2.0.11 (2018-12-31)

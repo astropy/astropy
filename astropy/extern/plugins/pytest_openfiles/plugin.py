@@ -6,6 +6,10 @@ closed.
 import imp
 import os
 
+from distutils.version import StrictVersion
+
+import pytest
+
 try:
     import importlib.machinery as importlib_machinery
 except ImportError:
@@ -56,9 +60,16 @@ def _get_open_file_list():
 
 
 def pytest_runtest_setup(item):
+
+    # Retain backwards compatibility with earlier versions of pytest
+    if StrictVersion(pytest.__version__) < StrictVersion("3.6"):
+        ignore = item.get_marker('openfiles_ignore')
+    else:
+        ignore = item.get_closest_marker('openfiles_ignore')
+
     # Store a list of the currently opened files so we can compare
     # against them when the test is done.
-    if item.config.getvalue('open_files') and not item.get_marker('openfiles_ignore'):
+    if item.config.getvalue('open_files') and not ignore:
         item.open_files = _get_open_file_list()
 
 
