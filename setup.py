@@ -7,6 +7,7 @@
 # programmatically.
 
 import os
+import builtins
 
 import ah_bootstrap  # noqa
 
@@ -14,6 +15,11 @@ from astropy_helpers.distutils_helpers import is_distutils_display_option
 from astropy_helpers.setup_helpers import setup
 
 from setuptools.config import read_configuration
+
+# We set up the following variable because we then use this in astropy/__init__.py
+# to make sure that we aren't importing astropy during the setup process (we used
+# to do this)
+builtins._ASTROPY_CORE_SETUP_ = True
 
 if is_distutils_display_option():
     # Avoid installing setup_requires dependencies if the user just
