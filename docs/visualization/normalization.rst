@@ -81,7 +81,7 @@ Stretching
 ==========
 
 In addition to classes that can scale values to the [0:1] range, a
-number of classes are provide to 'stretch' the values using different
+number of classes are provided to 'stretch' the values using different
 functions. These map a [0:1] range onto a transformed [0:1] range. A
 simple example is the :class:`~astropy.visualization.SqrtStretch`
 class::
