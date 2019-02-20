@@ -174,6 +174,9 @@ class TestTimeDeltaQuantity():
         t2 = t0 * t
         assert isinstance(t2, u.Quantity)
         assert u.allclose(t2, t0.sec * u.s ** 2)
+        t3 = [1] / t0
+        assert isinstance(t3, u.Quantity)
+        assert u.allclose(t3, 1 / (t0.sec * u.s))
         # broadcasting
         t1 = TimeDelta(np.arange(100000., 100012.).reshape(6, 2), format='sec')
         f = np.array([1., 2.]) * u.cycle * u.Hz
@@ -222,6 +225,12 @@ class TestTimeDeltaQuantity():
         t11 = t0 / ''
         assert isinstance(t11, TimeDelta)
         assert t11 == TimeDelta(10., format='jd')
+        t12 = t0 / [1]
+        assert isinstance(t12, TimeDelta)
+        assert t12 == TimeDelta(10., format='jd')
+        t13 = [1] * t0
+        assert isinstance(t13, TimeDelta)
+        assert t13 == TimeDelta(10., format='jd')
 
     def test_invalid_quantity_operations(self):
         """Check comparisons of TimeDelta with non-time quantities fails."""
