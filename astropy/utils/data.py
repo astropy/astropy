@@ -706,7 +706,7 @@ def get_pkg_data_filenames(datadir, package=None, pattern='*'):
     tests::
 
         >>> from astropy.utils.data import get_pkg_data_filenames
-        >>> for fn in get_pkg_data_filenames('maps', 'astropy.wcs.tests',
+        >>> for fn in get_pkg_data_filenames('data/maps', 'astropy.wcs.tests',
         ...                                  '*.hdr'):
         ...     with open(fn) as f:
         ...         fcontents = f.read()
@@ -778,7 +778,7 @@ def get_pkg_data_fileobjs(datadir, package=None, pattern='*', encoding=None):
     tests::
 
         >>> from astropy.utils.data import get_pkg_data_filenames
-        >>> for fd in get_pkg_data_fileobjs('maps', 'astropy.wcs.tests',
+        >>> for fd in get_pkg_data_fileobjs('data/maps', 'astropy.wcs.tests',
         ...                                 '*.hdr'):
         ...     fcontents = fd.read()
         ...

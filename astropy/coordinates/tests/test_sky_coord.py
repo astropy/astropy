@@ -903,7 +903,7 @@ def test_wcs_methods(mode, origin):
     from astropy.utils.data import get_pkg_data_contents
     from astropy.wcs.utils import pixel_to_skycoord
 
-    header = get_pkg_data_contents('../../wcs/tests/maps/1904-66_TAN.hdr', encoding='binary')
+    header = get_pkg_data_contents('../../wcs/tests/data/maps/1904-66_TAN.hdr', encoding='binary')
     wcs = WCS(header)
 
     ref = SkyCoord(0.1 * u.deg, -89. * u.deg, frame='icrs')

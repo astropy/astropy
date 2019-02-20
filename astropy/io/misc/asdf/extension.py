@@ -36,7 +36,7 @@ __all__ = ['AstropyExtension', 'AstropyAsdfExtension']
 
 ASTROPY_SCHEMA_URI_BASE = 'http://astropy.org/schemas/'
 SCHEMA_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), 'schemas'))
+    os.path.join(os.path.dirname(__file__), 'data', 'schemas'))
 ASTROPY_URL_MAPPING = [
     (ASTROPY_SCHEMA_URI_BASE,
      filepath_to_url(

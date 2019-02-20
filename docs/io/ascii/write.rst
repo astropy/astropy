@@ -88,7 +88,7 @@ object that can be an input to the |write| function.
 
 ::
 
-    >>> data = ascii.read('t/daophot.dat', format='daophot')  # doctest: +SKIP
+    >>> data = ascii.read('data/daophot.dat', format='daophot')  # doctest: +SKIP
     >>> ascii.write(data, 'space_delimited_table.dat')  # doctest: +SKIP
 
 List of lists

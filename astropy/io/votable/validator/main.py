@@ -29,7 +29,7 @@ def get_urls(destdir, s):
     urls = []
     for type in types:
         filename = get_pkg_data_filename(
-            'urls/cone.{0}.dat.gz'.format(type))
+            'data/urls/cone.{0}.dat.gz'.format(type))
         with gzip.open(filename, 'rb') as fd:
             for url in fd.readlines():
                 next(s)

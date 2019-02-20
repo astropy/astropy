@@ -17,7 +17,7 @@ TOLERANCE = 0.03  # arcseconds
 
 
 def test_icrs_fk5():
-    lines = get_pkg_data_contents('icrs_fk5.csv').split('\n')
+    lines = get_pkg_data_contents('data/icrs_fk5.csv').split('\n')
     t = Table.read(lines, format='ascii', delimiter=',', guess=False)
 
     if N_ACCURACY_TESTS >= len(t):
