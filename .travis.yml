@@ -66,7 +66,7 @@ matrix:
 
         # Try MacOS X.
         - os: osx
-          env: SETUP_CMD='test --remote-data=astropy'
+          env: PYTHON_VERSION=3.7 SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='jplephem'
 
@@ -93,7 +93,7 @@ matrix:
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.11
                SETUP_CMD='test --open-files'
         - os: linux
-          env: PYTHON_VERSION=3.7 NUMPY_VERSION=1.14
+          env: NUMPY_VERSION=1.14
                SETUP_CMD='test --open-files'
         - os: linux
           env: NUMPY_VERSION=1.12
