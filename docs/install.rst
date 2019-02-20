@@ -426,6 +426,9 @@ a Python package.
 
 .. note:: Also see ``pip-requirements-doc``.
 
+
+.. _astropy-doc-building:
+
 Building
 ^^^^^^^^
 

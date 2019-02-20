@@ -14,7 +14,7 @@ Like the example introduced in :ref:`initialization`, we will read in the
 data using `astropy.io.fits
 <http://docs.astropy.org/en/stable/io/fits/index.html>`_ and parse the WCS
 information. The original FITS file can be downloaded from `here
-<http://astropy.github.io/wcsaxes-datasets/L1448_13CO.fits>`_.
+<https://astropy.stsci.edu/data/l1448/l1448_13co.fits>`_.
 
 .. plot::
    :context: reset

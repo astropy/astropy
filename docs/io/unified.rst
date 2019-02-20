@@ -747,7 +747,7 @@ By default, ``serialize_method`` for Time columns is equal to
      In the FITS standard, the reference position for a time coordinate is a scalar
      expressed via keywords. However, vectorized reference position or location can
      be supported by the `Green Bank Keyword Convention
-     <https://fits.gsfc.nasa.gov/registry/greenbank.html/>`_ which is a Registered FITS
+     <https://fits.gsfc.nasa.gov/registry/greenbank.html>`_ which is a Registered FITS
      Convention. In Astropy Time, location can be an array which is broadcastable to the
      Time values.
 
