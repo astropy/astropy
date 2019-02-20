@@ -11,9 +11,12 @@ managing them.
 # we used to use to conditionally import C extensions for example. However, the
 # behavior of importing the package during the setup process is not good
 # practice and we therefore now explicitly prevent the package from being
-# imported in that case to prevent any regressions.
+# imported in that case to prevent any regressions. We use _ASTROPY_CORE_SETUP_
+# (defined in setup.py) rather than _ASTROPY_SETUP_ since the latter is also
+# set up for affiliated packages, and those need to be able to import the
+# (installed) core package during e.g. python setup.py test.
 try:
-    _ASTROPY_SETUP_
+    _ASTROPY_CORE_SETUP_
 except NameError:
     pass
 else:
