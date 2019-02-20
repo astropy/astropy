@@ -1044,5 +1044,6 @@ class TestHDUListFunctions(FitsTestCase):
         hdulist = fits.HDUList([hdu])
 
         with open(self.temp('test.fits'), 'wb') as fout:
-            p = subprocess.Popen(["cat"], stdin=subprocess.PIPE, stdout=fout)
-            hdulist.writeto(p.stdin)
+            with subprocess.Popen(["cat"], stdin=subprocess.PIPE,
+                                  stdout=fout) as p:
+                hdulist.writeto(p.stdin)
