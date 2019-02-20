@@ -130,7 +130,7 @@ class ImageNormalize(Normalize):
         return values_norm * (self.vmax - self.vmin) + self.vmin
 
 
-def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
+def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, log_a=1000, min_cut=None,
                 max_cut=None, min_percent=None, max_percent=None,
                 percent=None, clip=True):
     """
@@ -154,6 +154,9 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
 
     power : float, optional
         The power index for ``stretch='power'``.  The default is 1.0.
+
+    log : float, optional
+        The log index for ``stretch='log'``. The default is 1000.
 
     asinh_a : float, optional
         For ``stretch='asinh'``, the value where the asinh curve
@@ -219,7 +222,7 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
     elif stretch == 'power':
         stretch = PowerStretch(power)
     elif stretch == 'log':
-        stretch = LogStretch()
+        stretch = LogStretch(log_a)
     elif stretch == 'asinh':
         stretch = AsinhStretch(asinh_a)
     else:
