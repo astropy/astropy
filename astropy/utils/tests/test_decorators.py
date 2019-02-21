@@ -7,8 +7,8 @@ import pickle
 import pytest
 
 from astropy.utils.decorators import (deprecated_attribute, deprecated, wraps,
-                          sharedmethod, classproperty,
-                          format_doc, deprecated_renamed_argument)
+                                      sharedmethod, classproperty,
+                                      format_doc, deprecated_renamed_argument)
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.tests.helper import catch_warnings
 
@@ -511,6 +511,23 @@ def test_deprecated_argument_not_allowed_use():
         @deprecated_renamed_argument('overwrite', 'kwargs', '1.3')
         def test3(**kwargs):
             return kwargs
+
+
+def test_deprecated_argument_remove():
+    @deprecated_renamed_argument('x', None, '2.0', alternative='astropy.y')
+    def test(dummy=11):
+        return dummy
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        assert test(x=1) == 11
+        assert len(w) == 1
+        assert 'Use astropy.y instead' in str(w[0].message)
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        assert test(x=1, dummy=10) == 10
+        assert len(w) == 1
+
+    assert test() == 11
 
 
 def test_sharedmethod_reuse_on_subclasses():
