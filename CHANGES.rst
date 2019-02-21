@@ -1790,6 +1790,17 @@ Other Changes and Additions
 2.0.12 (unreleased)
 ===================
 
+New Features
+------------
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- The ``deprecated_renamed_argument`` decorator now capable deprecating an
+  argument without renaming it. It also got a new ``alternative`` keyword
+  argument to suggest alternative functionality instead of the removed
+  one. [#8324]
+
 Bug Fixes
 ---------
 
