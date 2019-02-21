@@ -23,14 +23,8 @@ Each of these transformations can be used independently or together in
 a standard pipeline.
 """
 
-
-try:
-    # Not guaranteed available at setup time
-    from .wcs import *
-    from . import utils
-except ImportError:
-    if not _ASTROPY_SETUP_:
-        raise
+from .wcs import *
+from . import utils
 
 
 def get_include():

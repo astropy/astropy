@@ -7,29 +7,29 @@
 # programmatically.
 
 import os
+import builtins
 
 import ah_bootstrap  # noqa
 
 from astropy_helpers.distutils_helpers import is_distutils_display_option
 from astropy_helpers.setup_helpers import setup
 
-import astropy  # noqa
-min_numpy_version = 'numpy>=' + astropy.__minimum_numpy_version__
+from setuptools.config import read_configuration
+
+# We set up the following variable because we then use this in astropy/__init__.py
+# to make sure that we aren't importing astropy during the setup process (we used
+# to do this)
+builtins._ASTROPY_CORE_SETUP_ = True
 
 if is_distutils_display_option():
     # Avoid installing setup_requires dependencies if the user just
     # queries for information
     setup_requires = []
 else:
-    setup_requires = [min_numpy_version]
-
+    setup_requires = read_configuration('setup.cfg')['options']['setup_requires']
     # Make sure we have the packages needed for building astropy, but do not
-    # require them when installing from an sdist as the c files are included
-    # there.
+    # require them when installing from an sdist as the c files are included.
     if not os.path.exists(os.path.join(os.path.dirname(__file__), 'PKG-INFO')):
         setup_requires.extend(['cython>=0.21', 'jinja2>=2.7'])
 
-install_requires = [min_numpy_version]
-
-setup(setup_requires=setup_requires,
-      install_requires=install_requires)
+setup(setup_requires=setup_requires)

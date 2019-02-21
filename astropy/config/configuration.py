@@ -516,28 +516,24 @@ def get_config(packageormod=None, reload=False):
     cobj = _cfgobjs.get(rootname, None)
 
     if cobj is None or reload:
-        if _ASTROPY_SETUP_:
-            # There's no reason to use anything but the default config
-            cobj = configobj.ConfigObj(interpolation=False)
-        else:
-            cfgfn = None
-            try:
-                # This feature is intended only for use by the unit tests
-                if _override_config_file is not None:
-                    cfgfn = _override_config_file
-                else:
-                    cfgfn = path.join(get_config_dir(), rootname + '.cfg')
-                cobj = configobj.ConfigObj(cfgfn, interpolation=False)
-            except OSError as e:
-                msg = ('Configuration defaults will be used due to ')
-                errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
-                msg += e.__class__.__name__ + errstr
-                msg += ' on {0}'.format(cfgfn)
-                warn(ConfigurationMissingWarning(msg))
+        cfgfn = None
+        try:
+            # This feature is intended only for use by the unit tests
+            if _override_config_file is not None:
+                cfgfn = _override_config_file
+            else:
+                cfgfn = path.join(get_config_dir(), rootname + '.cfg')
+            cobj = configobj.ConfigObj(cfgfn, interpolation=False)
+        except OSError as e:
+            msg = ('Configuration defaults will be used due to ')
+            errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
+            msg += e.__class__.__name__ + errstr
+            msg += ' on {0}'.format(cfgfn)
+            warn(ConfigurationMissingWarning(msg))
 
-                # This caches the object, so if the file becomes accessible, this
-                # function won't see it unless the module is reloaded
-                cobj = configobj.ConfigObj(interpolation=False)
+            # This caches the object, so if the file becomes accessible, this
+            # function won't see it unless the module is reloaded
+            cobj = configobj.ConfigObj(interpolation=False)
 
         _cfgobjs[rootname] = cobj
 

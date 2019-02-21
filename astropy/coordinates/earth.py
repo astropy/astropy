@@ -17,13 +17,7 @@ from .angles import Longitude, Latitude
 from .representation import CartesianRepresentation, CartesianDifferential
 from .errors import UnknownSiteException
 from astropy.utils import data, deprecated
-
-try:
-    # Not guaranteed available at setup time.
-    from astropy import _erfa as erfa
-except ImportError:
-    if not _ASTROPY_SETUP_:
-        raise
+from astropy import _erfa as erfa
 
 __all__ = ['EarthLocation']
 

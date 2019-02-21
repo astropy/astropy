@@ -6,7 +6,60 @@
 # which are then converted by setup.py into docstrings.h, which is
 # included by pywcs.c
 
-from . import _docutil as __
+__all__ = ['TWO_OR_MORE_ARGS', 'RETURNS', 'ORIGIN', 'RA_DEC_ORDER']
+
+
+def _fix(content, indent=0):
+    lines = content.split('\n')
+    indent = '\n' + ' ' * indent
+    return indent.join(lines)
+
+
+def TWO_OR_MORE_ARGS(naxis, indent=0):
+    return _fix(
+"""args : flexible
+    There are two accepted forms for the positional arguments:
+
+        - 2 arguments: An *N* x *{0}* array of coordinates, and an
+          *origin*.
+
+        - more than 2 arguments: An array for each axis, followed by
+          an *origin*.  These arrays must be broadcastable to one
+          another.
+
+    Here, *origin* is the coordinate in the upper left corner of the
+    image.  In FITS and Fortran standards, this is 1.  In Numpy and C
+    standards this is 0.
+""".format(naxis), indent)
+
+
+def RETURNS(out_type, indent=0):
+    return _fix("""result : array
+    Returns the {0}.  If the input was a single array and
+    origin, a single array is returned, otherwise a tuple of arrays is
+    returned.""".format(out_type), indent)
+
+
+def ORIGIN(indent=0):
+    return _fix(
+"""
+origin : int
+    Specifies the origin of pixel values.  The Fortran and FITS
+    standards use an origin of 1.  Numpy and C use array indexing with
+    origin at 0.
+""", indent)
+
+
+def RA_DEC_ORDER(indent=0):
+    return _fix(
+"""
+ra_dec_order : bool, optional
+    When `True` will ensure that world coordinates are always given
+    and returned in as (*ra*, *dec*) pairs, regardless of the order of
+    the axes specified by the in the ``CTYPE`` keywords.  Default is
+    `False`.
+""", indent)
+
 
 a = """
 ``double array[a_order+1][a_order+1]`` Focal plane transformation
@@ -77,7 +130,7 @@ InvalidTransformError
 
 InvalidTransformError
     Ill-conditioned coordinate transformation parameters.
-""".format(__.ORIGIN())
+""".format(ORIGIN())
 
 alt = """
 ``str`` Character code for alternate coordinate descriptions.
@@ -1150,7 +1203,7 @@ Because of its generality, `~astropy.wcs.Wcsprm.mix` is very
 compute-intensive.  For compute-limited applications, more efficient
 special-case solvers could be written for simple projections, for
 example non-oblique cylindrical projections.
-""".format(__.ORIGIN())
+""".format(ORIGIN())
 
 mjdavg = """
 ``double`` Modified Julian Date corresponding to ``DATE-AVG``.
@@ -1311,7 +1364,7 @@ See also
 --------
 astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
     Definition of the latitude and longitude axes
-""".format(__.ORIGIN())
+""".format(ORIGIN())
 
 p4_pix2foc = """
 p4_pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
@@ -1338,7 +1391,7 @@ MemoryError
 
 ValueError
     Invalid coordinate transformation parameters.
-""".format(__.ORIGIN())
+""".format(ORIGIN())
 
 pc = """
 ``double array[naxis][naxis]`` The ``PCi_ja`` (pixel coordinate)
@@ -1406,7 +1459,7 @@ MemoryError
 
 ValueError
     Invalid coordinate transformation parameters.
-""".format(__.ORIGIN())
+""".format(ORIGIN())
 
 piximg_matrix = """
 ``double array[2][2]`` (read-only) Matrix containing the product of
@@ -1524,7 +1577,7 @@ See also
 --------
 astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
     Definition of the latitude and longitude axes
-""".format(__.ORIGIN())
+""".format(ORIGIN())
 
 sense = """
 ``int array[M]`` +1 if monotonically increasing, -1 if decreasing.
@@ -1707,7 +1760,7 @@ MemoryError
 
 ValueError
     Invalid coordinate transformation parameters.
-""".format(__.ORIGIN())
+""".format(ORIGIN())
 
 sip_pix2foc = """
 sip_pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
@@ -1734,7 +1787,7 @@ MemoryError
 
 ValueError
     Invalid coordinate transformation parameters.
-""".format(__.ORIGIN())
+""".format(ORIGIN())
 
 spcfix = """
 spcfix() -> int
