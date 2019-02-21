@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module contains errors/exceptions and warnings of general use for
-astropy. Exceptions that are specific to a given subpackage should *not*
-be here, but rather in the particular subpackage.
+astropy. Exceptions that are specific to a given subpackage should *not* be
+here, but rather in the particular subpackage. Exception is the _erfa module
+as we rather have the users import those exceptions from here.
 """
 
 
@@ -42,6 +43,19 @@ class AstropyBackwardsIncompatibleChangeWarning(AstropyWarning):
     The suggested procedure is to issue this warning for the version in
     which the change occurs, and remove it for all following versions.
     """
+
+
+class ErfaError(ValueError):
+    """
+    A class for errors triggered by ERFA functions (status codes < 0)
+    """
+
+
+class ErfaWarning(AstropyUserWarning):
+    """
+    A class for warnings triggered by ERFA functions (status codes > 0)
+    """
+
 
 class _NoValue:
     """Special keyword value.

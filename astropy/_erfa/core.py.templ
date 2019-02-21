@@ -32,7 +32,7 @@ import warnings
 
 import numpy
 
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import ErfaError, ErfaWarning
 from astropy.utils.misc import check_broadcast
 
 from . import ufunc
@@ -48,17 +48,6 @@ __all__ = ['ErfaError', 'ErfaWarning',
 
 
 # <---------------------------------Error-handling---------------------------->
-
-class ErfaError(ValueError):
-    """
-    A class for errors triggered by ERFA functions (status codes < 0)
-    """
-
-
-class ErfaWarning(AstropyUserWarning):
-    """
-    A class for warnings triggered by ERFA functions (status codes > 0)
-    """
 
 
 STATUS_CODES = {}  # populated below before each function that returns an int
