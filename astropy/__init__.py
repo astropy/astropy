@@ -20,7 +20,7 @@ try:
 except NameError:
     pass
 else:
-    raise Exception("The astropy package cannot be imported during setup")
+    raise RuntimeError("The astropy package cannot be imported during setup")
 
 import sys
 import os
