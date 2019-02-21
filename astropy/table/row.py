@@ -37,6 +37,9 @@ class Row:
             raise IndexError('index {0} out of range for table with length {1}'
                              .format(index, len(table)))
 
+        # Ensure that the row index is positive [#8422]
+        self._index = self._index % n
+
     def __getitem__(self, item):
         if self._table._is_list_or_tuple_of_str(item):
             cols = [self._table[name] for name in item]

@@ -1845,6 +1845,10 @@ astropy.table
   ``dex``). Previously setting this was possible, but getting raised
   an error. [#8425]
 
+- Fixes a bug where initializing a new ``Table`` from the final row of an
+  existing ``Table`` failed.  This happened when that row was generated using
+  the item index ``[-1]``. [#8422]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
