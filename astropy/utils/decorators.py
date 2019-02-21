@@ -437,10 +437,10 @@ def deprecated_renamed_argument(old_name, new_name, since,
         for i in range(n):
             # Determine the position of the argument.
             if arg_in_kwargs[i]:
-                position[i] = None
+                pass
             else:
                 if new_name[i] is None:
-                    param = arguments[old_name[i]]
+                    continue
                 elif new_name[i] in arguments:
                     param = arguments[new_name[i]]
                 # In case the argument is not found in the list of arguments
@@ -513,14 +513,11 @@ def deprecated_renamed_argument(old_name, new_name, since,
                                     'cannot specify both "{}" and "{}"'
                                     '.'.format(old_name[i], new_name[i]))
                     else:
-                        if new_name[i] is None:
-                            # Keep the old argument if it was deprecated to
-                            # be removed
-                            kwargs[old_name[i]] = value
-                        else:
-                            # Pass the value of the old argument with the
-                            # name of the new argument to the function
+                        # Pass the value of the old argument with the
+                        # name of the new argument to the function
+                        if new_name[i] is not None:
                             kwargs[new_name[i]] = value
+
             return function(*args, **kwargs)
 
         return wrapper
