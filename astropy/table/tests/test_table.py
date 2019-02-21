@@ -2105,3 +2105,12 @@ def test_qtable_read_for_ipac_table_with_char_columns():
     t1.write(out, format="ascii.ipac")
     t2 = table.QTable.read(out.getvalue(), format="ascii.ipac", guess=False)
     assert t2["B"].unit is None
+
+
+def test_create_table_from_final_row():
+    """Regression test for issue #8422: passing the last row of a table into
+    Table should return a new table containing that row."""
+    t1 = table.Table([(1, 2)], names=['col'])
+    row = t1[-1]
+    t2 = table.Table(row)['col']
+    assert t2[0] == 2
