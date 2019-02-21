@@ -1,0 +1,126 @@
+resources:
+  repositories:
+  - repository: OpenAstronomy
+    type: github
+    endpoint: astropy
+    name: OpenAstronomy/azure-pipelines-templates
+    ref: master
+
+jobs:
+
+- template: run-tox-env.yml@OpenAstronomy
+  parameters:
+
+    coverage: codecov
+
+    envs:
+
+    - linux: codestyle
+
+    # Linux job with minimal dependencies
+    - linux: py37-test
+
+    # Try MacOS X, with clang installed from conda
+    - macos: py37-test-alldeps-conda-clang
+      posargs: --remote-data=astropy
+
+    # Try all python versions and Numpy versions. Since we can assume that
+    # the Numpy developers have taken care of testing Numpy with different
+    # versions of Python, we can vary Python and Numpy versions at the same
+    # time.
+
+    # For the Numpy 1.16 build we use oldestdeps not numpy116 since we can check
+    # the oldest version of all dependencies where this is known. We also check
+    # that tests do not open and leave open any files. This has a performance
+    # impact on running the tests, hence why it is not enabled by default.
+    - linux: py36-test-oldestdeps
+      posargs: --open-files
+
+    # Now try with all optional dependencies.
+    - linux: py37-test-alldeps-clang
+      posargs: --durations=50
+
+    # Full tests with coverage checks.
+    - linux: py37-test-alldeps-numpy117-clocale-cov
+      posargs: --remote-data=astropy
+
+    # Try on Windows
+    - windows: py37-test-alldeps
+
+    # Do a PEP8/pyflakes test with flake8
+    - linux: codestyle
+
+    # Try developer version of Numpy with optional dependencies and also
+    # run all remote tests.
+    # TODO: determine how to do cron jobs
+    - linux: py37-test-devdeps
+      posargs: --remote-data=any
+
+    # We check numpy-dev also in a job that only runs from cron, so that
+    # we can spot issues sooner. We do not use remote data here, since
+    # that gives too many false positives due to URL timeouts.
+    # We also install all dependencies via pip here so we pick up the latest
+    # releases.
+    # TODO: determine how to do cron jobs
+    - linux: py37-test-devdeps
+
+    # Run documentation build
+    - linux: build_docs
+      # libraries:
+      #   apt:
+      #     - graphviz
+
+    # Run documentation link check in a cron job.
+    # TODO: determine how to do cron jobs
+    - linux: linkcheck
+      # libraries:
+      #   apt:
+      #     - graphviz
+
+    # Test against Python dev in cron job.
+    # TODO: determine how to run with Python dev
+
+    # Also regularly try the big-endian s390 architecture, in the
+    # process checking that installing dependencies with apt works.
+    # TODO: determine how to run with s390x architecture
+
+    # And with an arm64 processor, again with apt for convenience.
+    # TODO: determine how to run with arm64 architecture
+
+    # Regularly make sure that astropy can be used in application bundles
+    - linux: pyinstaller
+
+    # 32-bit Linux builds
+    - linux32: py36-test
+      posargs: n=4 --durations=50
+    - linux32: py37-test
+      posargs: n=4 --durations=50
+    - linux32: py38-test
+      posargs: n=4 --durations=50
+
+# Visualization tests with pixel-by-pixel image comparisons
+
+- job: VisualizationMatplotlib
+  displayName: Visualization tests
+  strategy:
+    matrix:
+      mpl212:
+        version: 2.1.2
+        image: astropy/image-tests-py35-mpl212:1.10
+      mpl222:
+        version: 2.2.2
+        image: astropy/image-tests-py35-mpl222:1.10
+      mpl300:
+        version: 3.0.2
+        image: astropy/image-tests-py35-mpl302:1.10
+      mpl310:
+        version: 3.1.1
+        image: astropy/image-tests-py35-mpl301:1.10
+  pool:
+    vmImage: Ubuntu 16.04
+  container: $[ variables['image'] ]
+  steps:
+  - script: pip install -e .[test] pytest-mpl
+    displayName: Installing dependencies
+  - script: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+    displayName: Running tests
