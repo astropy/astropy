@@ -277,7 +277,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
                                 pending=False,
                                 warning_type=AstropyDeprecationWarning,
                                 alternative=''):
-    """Deprecate a _renamed_ function argument.
+    """Deprecate a _renamed_ or _removed_ function argument.
 
     The decorator assumes that the argument with the ``old_name`` was removed
     from the function signature and the ``new_name`` replaced it at the
@@ -291,8 +291,8 @@ def deprecated_renamed_argument(old_name, new_name, since,
         The old name of the argument.
 
     new_name : str or list/tuple thereof or `None`
-        The new name of the argument. ``old_name`` has been deprecated to
-        be removed if `None`.
+        The new name of the argument. Set this to `None` to remove the
+        argument ``old_name`` instead of renaming it.
 
     since : str or number or list/tuple thereof
         The release at which the old argument became deprecated.
@@ -324,6 +324,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
         An alternative function or class name that the user may use in
         place of the deprecated object if ``new_name`` is None. The deprecation
         warning will tell the user about this alternative if provided.
+
 
     Raises
     ------
@@ -402,6 +403,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
     In this case ``arg_in_kwargs`` and ``relax`` can be a single value (which
     is applied to all renamed arguments) or must also be a `tuple` or `list`
     with values for each of the arguments.
+
     """
     cls_iter = (list, tuple)
     if isinstance(old_name, cls_iter):
@@ -510,12 +512,15 @@ def deprecated_renamed_argument(old_name, new_name, since,
                                 raise TypeError(
                                     'cannot specify both "{}" and "{}"'
                                     '.'.format(old_name[i], new_name[i]))
-                    elif new_name[i] is None:
-                        kwargs[old_name[i]] = value
                     else:
-                        # If the new argument isn't specified just pass the old
-                        # one with the name of the new argument to the function
-                        kwargs[new_name[i]] = value
+                        if new_name[i] is None:
+                            # Keep the old argument if it was deprecated to
+                            # be removed
+                            kwargs[old_name[i]] = value
+                        else:
+                            # Pass the value of the old argument with the
+                            # name of the new argument to the function
+                            kwargs[new_name[i]] = value
             return function(*args, **kwargs)
 
         return wrapper
