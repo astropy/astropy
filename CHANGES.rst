@@ -35,6 +35,10 @@ astropy.io.ascii
 - IPAC tables now output data types of ``float`` instead of ``double``, or
   ``int`` instead of ``long``, based on the column ``dtype.itemsize``. [#8216]
 
+- Update handling of MaskedColumn columns when using the 'data_mask' serialization
+  method.  This can make writing ECSV significantly faster if the data do not
+  actually have any masked values. [#8447]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
