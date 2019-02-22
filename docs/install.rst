@@ -340,7 +340,7 @@ Now, quit CASA and re-open it, then type the following to install Astropy::
 
     CASA <2>: import subprocess, sys
 
-    CASA <3>: subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'astropy'])
+    CASA <3>: subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'astropy'])
 
 Then close CASA again and open it, and you should be able to import Astropy::
 
