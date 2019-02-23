@@ -1892,6 +1892,10 @@ Other Changes and Additions
 - Fixed ``make clean`` for the documentation on Windows to ensure it
   properly removes the ``api`` and ``generated`` directories. [#8346]
 
+- Making ``ErfaWarning`` and ``ErfaError`` available via
+  ``astropy.utils.exceptions``. [#8441]
+
+
 
 2.0.11 (2018-12-31)
 ===================
