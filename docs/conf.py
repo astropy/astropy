@@ -153,6 +153,8 @@ modindex_common_prefix = ['astropy.']
 # name of a builtin theme or the name of a custom theme in html_theme_path.
 #html_theme = None
 
+html_theme_options = {'astropy_project_menubar': True}
+
 # Custom sidebar templates, maps document names to template names.
 #html_sidebars = {}
 
