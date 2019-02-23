@@ -620,6 +620,11 @@ def test_regression_8276():
     with pytest.raises(TypeError) as excinfo:
         class MyFrame(BaseCoordinateFrame):
             a = QuantityAttribute(unit=u.m)
+            # note that the remainder of this with clause does not get executed
+            # because an exception is raised here. A future PR is planned to
+            # allow the default to be left off, after which the rest of this
+            # test will get executed, so it is being left in place.  See
+            # https://github.com/astropy/astropy/pull/8300 for more info
 
         # we save the transform graph so that it doesn't acidentally mess with other tests
         old_transform_graph = baseframe.frame_transform_graph
