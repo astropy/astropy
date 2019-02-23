@@ -2118,14 +2118,6 @@ class TimeDelta(Time):
         """Multiplication of numbers/arrays with `TimeDelta` objects."""
         return self.__mul__(other)
 
-    def __div__(self, other):
-        """Division of `TimeDelta` objects by numbers/arrays."""
-        return self.__truediv__(other)
-
-    def __rdiv__(self, other):
-        """Division by `TimeDelta` objects of numbers/arrays."""
-        return self.__rtruediv__(other)
-
     def __truediv__(self, other):
         """Division of `TimeDelta` objects by numbers/arrays."""
         # Cannot do __mul__(1./other) as that looses precision
