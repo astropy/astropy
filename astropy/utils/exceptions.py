@@ -48,12 +48,22 @@ class AstropyBackwardsIncompatibleChangeWarning(AstropyWarning):
 class ErfaError(ValueError):
     """
     A class for errors triggered by ERFA functions (status codes < 0)
+
+    Note: this class should *not* be referenced by fully-qualified name, because
+    it may move to ERFA in a future version.  In a future such move it will
+    still be imported here as an alias, but the true namespace of the class may
+    change.
     """
 
 
 class ErfaWarning(AstropyUserWarning):
     """
     A class for warnings triggered by ERFA functions (status codes > 0)
+
+    Note: this class should *not* be referenced by fully-qualified name, because
+    it may move to ERFA in a future version.  In a future such move it will
+    still be imported here as an alias, but the true namespace of the class may
+    change.
     """
 
 
