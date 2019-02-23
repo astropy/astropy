@@ -641,4 +641,4 @@ def test_regression_8276():
             MyFrame()
         finally:
             baseframe.frame_transform_graph = old_transform_graph
-    assert 'QuantityAttributes need to have defaults' in str(excinfo.value)
+    assert 'QuantityAttributes cannot be None' in str(excinfo.value)

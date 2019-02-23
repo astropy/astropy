@@ -278,12 +278,10 @@ class QuantityAttribute(Attribute):
     """
 
     def __init__(self, default=None, secondary_attribute='', unit=None, shape=None):
-        if default is None:
-            raise TypeError('QuantityAttributes need to have defaults, because '
-                            'None is not a Quantity')
-        super().__init__(default, secondary_attribute)
         self.unit = unit
         self.shape = shape
+        default = self.convert_input(default)[0]
+        super().__init__(default, secondary_attribute)
 
     def convert_input(self, value):
         """
@@ -306,6 +304,10 @@ class QuantityAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
+        if value is None:
+            raise TypeError('QuantityAttributes cannot be None, because None '
+                            'is not a Quantity')
+
         if np.all(value == 0) and self.unit is not None:
             return u.Quantity(np.zeros(self.shape), self.unit), True
         else:
