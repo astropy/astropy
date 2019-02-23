@@ -184,6 +184,12 @@ class TestTimeDeltaQuantity():
         assert isinstance(phase, u.Quantity)
         assert phase.shape == t1.shape
         assert u.allclose(phase, t1.sec * f.value * u.cycle)
+        q = t0 * t1
+        assert isinstance(q, u.Quantity)
+        assert np.all(q == t0.to(u.day) * t1.to(u.day))
+        q = t1 / t0
+        assert isinstance(q, u.Quantity)
+        assert np.all(q == t1.to(u.day) / t0.to(u.day))
 
     def test_valid_quantity_operations3(self):
         """Test a TimeDelta remains one if possible."""

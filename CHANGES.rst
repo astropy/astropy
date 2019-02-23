@@ -356,6 +356,10 @@ astropy.time
   now always a ``TimeDelta`` if the result is a time unit (like u.s or u.d),
   otherwise it will be a ``Quantity``. [#8356]
 
+- Multiplication between two ``TimeDelta`` instances is now possible, resulting
+  in a ``Quantity`` with units of time squared (division already correctly
+  resulted in a dimensionless ``Quantity``). [#8356]
+
 - Like for comparisons, addition, and subtraction of ``Time`` instances with
   with non-time instances, multiplication and division of ``TimeDelta``
   instances with incompatible other instances no longer immediately raise an
@@ -393,6 +397,12 @@ Other Changes and Additions
   ``TimeDelta`` (rather than ``UnitsError`` or ``TypeError`` depending on
   presumed abilities of the other instance). [#8356]
 
+- Multiplication between two ``TimeDelta`` instances will no longer result in
+  an ``OperandTypeError``, but rather result in a ``Quantity`` with units of
+  time squared (division already correctly resulted in a dimensionless
+  ``Quantity``). [#8356]
+
+
 3.1.2 (2019-02-23)
 ==================
 
@@ -427,7 +437,6 @@ astropy.visualization.wcsaxes
 
 - Fix a bug that caused contour and contourf to return None instead of the
   contour set. [#8321]
-
 
 
 3.1.1 (2018-12-31)
