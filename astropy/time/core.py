@@ -2086,7 +2086,7 @@ class TimeDelta(Time):
         """Multiplication of `TimeDelta` objects by numbers/arrays."""
         # Check needed since otherwise the self.jd1 * other multiplication
         # would enter here again (via __rmul__)
-        if isinstance(other, Time):
+        if isinstance(other, Time) and not isinstance(other, TimeDelta):
             raise OperandTypeError(self, other, '*')
         elif ((isinstance(other, u.UnitBase) and
                other == u.dimensionless_unscaled) or

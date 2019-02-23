@@ -191,8 +191,6 @@ class TestTimeDelta():
         dt6 = self.dt * [0, 1, 2]
         assert np.all(dt6.jd == dt5.jd)
         with pytest.raises(OperandTypeError):
-            self.dt * self.dt
-        with pytest.raises(OperandTypeError):
             self.dt * self.t
         with pytest.raises(TypeError):
             self.dt * object()
