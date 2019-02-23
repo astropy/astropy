@@ -541,8 +541,7 @@ Conclusion
 `An example <https://github.com/numpy/numpy/blob/master/doc/example.py>`_ of the
 format shown here is available.
 Refer to How to Build API/Reference
-Documentation :ref:`astropy-doc-building`
-on how to use Sphinx_ to build the manual.
+Documentation :ref:`builddocs` on how to use Sphinx_ to build the manual.
 
 
 .. _NumPy: http://www.numpy.org/

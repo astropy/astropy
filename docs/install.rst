@@ -359,9 +359,6 @@ Building documentation
     the latest (and archive) versions of astropy's documentation should
     be available at `docs.astropy.org <http://docs.astropy.org>`_ .
 
-
-.. _astropy-doc-building:
-
 Building the documentation requires the Astropy source code and some additional
 packages:
 
