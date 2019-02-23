@@ -1,4 +1,4 @@
-2.0.12 (unreleased)
+2.0.12 (2019-02-23)
 ===================
 
 New Features
@@ -12,29 +12,9 @@ astropy.utils
   argument to suggest alternative functionality instead of the removed
   one. [#8324]
 
+
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -42,26 +22,11 @@ astropy.io.fits
 - Fixed bug in ``ColDefs._init_from_array()`` that caused non-scalar unsigned
   entries to not have the correct bzero value set. [#8353]
 
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - Fixed compatibility of ``JointFitter`` with the latest version of Numpy.
   [#7984]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -73,24 +38,6 @@ astropy.table
 - Fixes a bug where initializing a new ``Table`` from the final row of an
   existing ``Table`` failed.  This happened when that row was generated using
   the item index ``[-1]``. [#8422]
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.vo
-^^^^^^^^^^
 
 astropy.wcs
 ^^^^^^^^^^^
