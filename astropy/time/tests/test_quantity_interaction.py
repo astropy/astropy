@@ -237,6 +237,14 @@ class TestTimeDeltaQuantity():
         with pytest.raises(TypeError):
             TimeDelta(100000., format='sec') > 10.*u.m
 
+    def test_invalid_quantity_operations2(self):
+        """Check that operations with non-time/quantity fail."""
+        td = TimeDelta(100000., format='sec')
+        with pytest.raises(TypeError):
+            td * object()
+        with pytest.raises(TypeError):
+            td / object()
+
     def test_invalid_quantity_broadcast(self):
         """Check broadcasting rules in interactions with Quantity."""
         t0 = TimeDelta(np.arange(12.).reshape(4, 3), format='sec')

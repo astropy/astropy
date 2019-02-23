@@ -194,6 +194,8 @@ class TestTimeDelta():
             self.dt * self.dt
         with pytest.raises(OperandTypeError):
             self.dt * self.t
+        with pytest.raises(TypeError):
+            self.dt * object()
 
     def test_keep_properties(self):
         # closes #1924 (partially)
