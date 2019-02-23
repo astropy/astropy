@@ -36,10 +36,14 @@ from __future__ import absolute_import, division, print_function
 
 import warnings
 
-from ..utils.exceptions import AstropyUserWarning
-
 import numpy
 from . import _core
+
+# we import these exceptions from astropy locations instead of defining them
+# in this file because otherwise there are circular dependencies
+from ..utils.exceptions import ErfaError, ErfaWarning
+from ..utils.misc import check_broadcast
+
 
 # TODO: remove the above variable and the code using it and make_outputs_scalar
 # when numpy < 1.8 is no longer supported
@@ -53,17 +57,6 @@ __all__ = ['ErfaError', 'ErfaWarning',
 
 
 # <---------------------------------Error-handling---------------------------->
-
-class ErfaError(ValueError):
-    """
-    A class for errors triggered by ERFA functions (status codes < 0)
-    """
-
-
-class ErfaWarning(AstropyUserWarning):
-    """
-    A class for warnings triggered by ERFA functions (status codes > 0)
-    """
 
 
 STATUS_CODES = {}  # populated below before each function that returns an int

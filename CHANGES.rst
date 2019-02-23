@@ -108,6 +108,9 @@ Other Changes and Additions
 
 - Updating bundled ``pytest-openfiles`` to v0.3.2. [#8434]
 
+- Making ``ErfaWarning`` and ``ErfaError`` available via
+  ``astropy.utils.exceptions``. [#8441]
+
 
 
 2.0.11 (2018-12-31)
