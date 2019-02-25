@@ -351,6 +351,23 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Fixed a number of issues to ensure a consistent output type resulting from
+  multiplication or division involving a ``TimeDelta`` instance. The output is
+  now always a ``TimeDelta`` if the result is a time unit (like u.s or u.d),
+  otherwise it will be a ``Quantity``. [#8356]
+
+- Multiplication between two ``TimeDelta`` instances is now possible, resulting
+  in a ``Quantity`` with units of time squared (division already correctly
+  resulted in a dimensionless ``Quantity``). [#8356]
+
+- Like for comparisons, addition, and subtraction of ``Time`` instances with
+  with non-time instances, multiplication and division of ``TimeDelta``
+  instances with incompatible other instances no longer immediately raise an
+  ``UnitsError`` or ``TypeError`` (depending on the other instance), but
+  rather go through the regular Python mechanism of ``TimeDelta`` returning
+  ``NotImplemented`` (which will lead to a regular ``TypeError`` unless the
+  other instance can handle ``TimeDelta``). [#8356]
+
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
 
@@ -367,11 +384,23 @@ astropy.wcs
 ^^^^^^^^^^^
 
 
-
 Other Changes and Additions
 ---------------------------
 
+- The bug fixes to the behaviour of ``TimeDelta`` for multiplcation and
+  division, which ensure that the output is now always a ``TimeDelta`` if the
+  result is a time unit (like u.s or u.d) and otherwise a ``Quantity``, imply
+  that sometimes the output type will be different than it was before. [#8356]
 
+- For types unrecognized by ``TimeDelta``, multiplication and division now
+  will consistently return a ``TypeError`` if the other instance cannot handle
+  ``TimeDelta`` (rather than ``UnitsError`` or ``TypeError`` depending on
+  presumed abilities of the other instance). [#8356]
+
+- Multiplication between two ``TimeDelta`` instances will no longer result in
+  an ``OperandTypeError``, but rather result in a ``Quantity`` with units of
+  time squared (division already correctly resulted in a dimensionless
+  ``Quantity``). [#8356]
 
 
 3.1.2 (2019-02-23)
@@ -408,7 +437,6 @@ astropy.visualization.wcsaxes
 
 - Fix a bug that caused contour and contourf to return None instead of the
   contour set. [#8321]
-
 
 
 3.1.1 (2018-12-31)
