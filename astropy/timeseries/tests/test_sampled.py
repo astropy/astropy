@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from unittest import mock
 from datetime import datetime
 
 import pytest
 
 from numpy.testing import assert_equal, assert_allclose
 
-import astropy
 from astropy.table import Table
 from astropy.time import Time, TimeDelta
 from astropy import units as u
@@ -159,18 +157,16 @@ def test_pandas():
     ts = TimeSeries.from_pandas(df1)
     assert_equal(ts.time.isot, INPUT_TIME.isot)
     assert ts.colnames == ['time', 'a']
+    assert len(ts.indices) == 1
+    assert (ts.indices['time'].columns[0] == INPUT_TIME).all()
 
-    ts1 = TimeSeries.from_pandas(df1, index=True)
-    assert_equal(ts1.time.isot, INPUT_TIME.isot)
-    assert ts1.colnames == ['time', 'index', 'a']
+    ts_tcb = TimeSeries.from_pandas(df1, time_scale='tcb')
+    assert ts_tcb.time.scale == 'tcb'
 
     df2 = ts.to_pandas()
-    assert_equal(df2.index, INPUT_TIME.datetime64)
+    assert (df2.index.values == pandas.Index(INPUT_TIME.datetime64).values).all()
     assert df2.columns == pandas.Index(['a'])
-
-    df3 = ts.to_pandas(index='a')
-    assert_equal(df3.index, INPUT_TIME.datetime64)
-    assert len(df3.columns) == 0
+    assert (df1['a'] == df2['a']).all()
 
     with pytest.raises(TypeError) as exc:
         TimeSeries.from_pandas(None)
