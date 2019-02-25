@@ -80,9 +80,7 @@ class BinnedTimeSeries(BaseTimeSeries):
                 raise TypeError("'time_bin_start' is scalar, so 'time_bin_size' is required")
 
             if time_bin_size.isscalar:
-
                 if data is not None:
-
                     if n_bins is not None:
                         if n_bins != len(self):
                             raise TypeError("'n_bins' has been given and it is not the "
