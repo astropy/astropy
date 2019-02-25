@@ -1069,13 +1069,23 @@ class MaskedColumnInfo(ColumnInfo):
         # If the serialize method for this context (e.g. 'fits' or 'ecsv') is
         # 'data_mask', that means to serialize using an explicit mask column.
         method = self.serialize_method[self._serialize_context]
+
         if method == 'data_mask':
+            # Note that adding to _represent_as_dict_attrs triggers later code which
+            # will add this to the '__serialized_columns__' meta YAML dict.
+
+            # Note also one driver here is a performance issue in #8443 where repr() of a
+            # np.ma.MaskedArray value is up to 10 times slower than repr of a normal array
+            # value.  So regardless of whether there are masked elements it is useful to
+            # explicitly define this as a serialized column and use col.data.data (ndarray)
+            # instead of letting it fall through to the "standard" serialization machinery.
+            out['data'] = col.data.data
+            self._represent_as_dict_attrs += ('data',)
+
             if np.any(col.mask):
-                # Note that adding to _represent_as_dict_attrs triggers later code which
-                # will add this to the '__serialized_columns__' meta YAML dict.
-                out['data'] = col.data.data
+                # Only if there are actually masked elements do we add the ``mask`` column
                 out['mask'] = col.mask
-                self._represent_as_dict_attrs += ('data', 'mask',)
+                self._represent_as_dict_attrs += ('mask',)
 
         elif method is 'null_value':
             pass
