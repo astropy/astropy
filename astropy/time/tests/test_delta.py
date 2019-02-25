@@ -188,10 +188,12 @@ class TestTimeDelta():
         dt5 = self.dt * np.arange(3)
         assert dt5[0].jd == 0.
         assert dt5[-1].jd == (self.dt + self.dt).jd
-        with pytest.raises(OperandTypeError):
-            self.dt * self.dt
+        dt6 = self.dt * [0, 1, 2]
+        assert np.all(dt6.jd == dt5.jd)
         with pytest.raises(OperandTypeError):
             self.dt * self.t
+        with pytest.raises(TypeError):
+            self.dt * object()
 
     def test_keep_properties(self):
         # closes #1924 (partially)
