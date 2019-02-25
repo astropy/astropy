@@ -669,13 +669,17 @@ def test_round_trip_masked_table_serialize_mask(tmpdir, method):
 
     t = simple_table(masked=True)  # int, float, and str cols with one masked element
 
+    # MaskedColumn but no masked elements.  See table the MaskedColumnInfo class
+    # _represent_as_dict() method for info about we test a column with no masked elements.
+    t['d'] = [1, 2, 3]
+
     if method == 'set_cols':
         for col in t.itercols():
             col.info.serialize_method['fits'] = 'data_mask'
         t.write(filename)
     elif method == 'names':
         t.write(filename, serialize_method={'a': 'data_mask', 'b': 'data_mask',
-                                            'c': 'data_mask'})
+                                            'c': 'data_mask', 'd': 'data_mask'})
     elif method == 'class':
         t.write(filename, serialize_method='data_mask')
 

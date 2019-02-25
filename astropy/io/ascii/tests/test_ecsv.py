@@ -480,6 +480,10 @@ def test_round_trip_masked_table_serialize_mask(tmpdir):
     t = simple_table(masked=True)  # int, float, and str cols with one masked element
     t['c'][0] = ''  # This would come back as masked for default "" NULL marker
 
+    # MaskedColumn with no masked elements. See table the MaskedColumnInfo class
+    # _represent_as_dict() method for info about we test a column with no masked elements.
+    t['d'] = [1, 2, 3]
+
     t.write(filename, serialize_method='data_mask')
 
     t2 = Table.read(filename)
