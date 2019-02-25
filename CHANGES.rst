@@ -19,10 +19,6 @@ astropy.coordinates
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
-- Fix elliptic analytical solution for comoving distance. Only
-  relevant for non-flat cosmologies without radiation and ``Om0`` >
-  ``Ode0``. [#8391]
-
 astropy.extern
 ^^^^^^^^^^^^^^
 
@@ -295,7 +291,7 @@ Installation
 
 
 
-3.1.2 (unreleased)
+3.1.3 (unreleased)
 ==================
 
 Bug fixes
@@ -312,10 +308,6 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
-
-- Convert the default of ``QuantityAttribute``, thereby catching the error case
-  case of it being set to None at attribute creation, and giving a more useful
-  error message in the process. [#8300]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -340,9 +332,6 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
-
-- Fixed slowness for certain compound models consisting of large numbers
-  of multi-input models [#8338, #8349]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
@@ -374,15 +363,6 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-astropy.visualization.wcsaxes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Fix a bug that caused an error when passing an array with all values the same
-  to contour or contourf. [#8321]
-
-- Fix a bug that caused contour and contourf to return None instead of the
-  contour set. [#8321]
-
 astropy.wcs
 ^^^^^^^^^^^
 
@@ -392,6 +372,42 @@ Other Changes and Additions
 ---------------------------
 
 
+
+
+3.1.2 (2019-02-23)
+==================
+
+Bug fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Convert the default of ``QuantityAttribute``, thereby catching the error case
+  case of it being set to None at attribute creation, and giving a more useful
+  error message in the process. [#8300]
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- Fix elliptic analytical solution for comoving distance. Only
+  relevant for non-flat cosmologies without radiation and ``Om0`` > ``Ode0``.
+  [#8391]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fixed slowness for certain compound models consisting of large numbers
+  of multi-input models [#8338, #8349]
+
+astropy.visualization.wcsaxes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Fix a bug that caused an error when passing an array with all values the same
+  to contour or contourf. [#8321]
+
+- Fix a bug that caused contour and contourf to return None instead of the
+  contour set. [#8321]
 
 
 
@@ -1795,19 +1811,8 @@ Other Changes and Additions
 
 
 
-2.0.12 (unreleased)
+2.0.13 (unreleased)
 ===================
-
-New Features
-------------
-
-astropy.utils
-^^^^^^^^^^^^^
-
-- The ``deprecated_renamed_argument`` decorator now capable deprecating an
-  argument without renaming it. It also got a new ``alternative`` keyword
-  argument to suggest alternative functionality instead of the removed
-  one. [#8324]
 
 Bug Fixes
 ---------
@@ -1836,9 +1841,6 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
-- Fixed bug in ``ColDefs._init_from_array()`` that caused non-scalar unsigned
-  entries to not have the correct bzero value set. [#8353]
-
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -1859,14 +1861,6 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
-
-- Fix ``.quantity`` property of ``Column`` class for function-units (e.g.,
-  ``dex``). Previously setting this was possible, but getting raised
-  an error. [#8425]
-
-- Fixes a bug where initializing a new ``Table`` from the final row of an
-  existing ``Table`` failed.  This happened when that row was generated using
-  the item index ``[-1]``. [#8422]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -1889,6 +1883,56 @@ astropy.vo
 astropy.wcs
 ^^^^^^^^^^^
 
+
+Other Changes and Additions
+---------------------------
+
+
+
+2.0.12 (2019-02-23)
+===================
+
+New Features
+------------
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- The ``deprecated_renamed_argument`` decorator now capable deprecating an
+  argument without renaming it. It also got a new ``alternative`` keyword
+  argument to suggest alternative functionality instead of the removed
+  one. [#8324]
+
+
+Bug Fixes
+---------
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fixed bug in ``ColDefs._init_from_array()`` that caused non-scalar unsigned
+  entries to not have the correct bzero value set. [#8353]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fixed compatibility of ``JointFitter`` with the latest version of Numpy.
+  [#7984]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fix ``.quantity`` property of ``Column`` class for function-units (e.g.,
+  ``dex``). Previously setting this was possible, but getting raised
+  an error. [#8425]
+
+- Fixes a bug where initializing a new ``Table`` from the final row of an
+  existing ``Table`` failed.  This happened when that row was generated using
+  the item index ``[-1]``. [#8422]
+
+astropy.wcs
+^^^^^^^^^^^
+
 - Fix bug that caused ``WCS.has_celestial``, ``wcs_to_celestial_frame``, and
   other functionality depending on it to fail in the presence of correlated
   celestial and other axes. [#8420]
@@ -1899,6 +1943,8 @@ Other Changes and Additions
 
 - Fixed ``make clean`` for the documentation on Windows to ensure it
   properly removes the ``api`` and ``generated`` directories. [#8346]
+
+- Updating bundled ``pytest-openfiles`` to v0.3.2. [#8434]
 
 - Making ``ErfaWarning`` and ``ErfaError`` available via
   ``astropy.utils.exceptions``. [#8441]
