@@ -9,7 +9,6 @@ from asdf import yamlutil
 from astropy import modeling
 from astropy import units as u
 from .basic import TransformType
-from astropy.tests.helper import assert_quantity_allclose
 
 __all__ = ['TabularType']
 
@@ -61,10 +60,10 @@ class TabularType(TransformType):
     @classmethod
     def assert_equal(cls, a, b):
         if isinstance(a.lookup_table, u.Quantity):
-            assert_quantity_allclose(a.lookup_table, b.lookup_table)
-            assert_quantity_allclose(a.points, b.points)
+            assert u.allclose(a.lookup_table, b.lookup_table)
+            assert u.allclose(a.points, b.points)
             for i in range(len(a.bounding_box)):
-                assert_quantity_allclose(a.bounding_box[i], b.bounding_box[i])
+                assert u.allclose(a.bounding_box[i], b.bounding_box[i])
         else:
             assert_array_equal(a.lookup_table, b.lookup_table)
             assert_array_equal(a.points, b.points)
