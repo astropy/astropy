@@ -12,13 +12,6 @@ from astropy import units as u
 
 from ..sampled import TimeSeries
 
-try:
-    import pandas  # pylint: disable=W0611
-except ImportError:
-    HAS_PANDAS = False
-else:
-    HAS_PANDAS = True
-
 INPUT_TIME = Time(['2016-03-22T12:30:31',
                    '2015-01-21T12:30:32',
                    '2016-03-22T12:30:40'])
@@ -113,6 +106,16 @@ def test_initialization_with_time_in_data():
     assert exc.value.args[0] == "'time' has been given both in the table and as a keyword argument"
 
 
+def test_initialization_n_samples():
+
+    # Make sure things crash with incorrect n_samples
+
+    with pytest.raises(TypeError) as exc:
+        TimeSeries(time=INPUT_TIME, data=PLAIN_TABLE, n_samples=1000)
+    assert exc.value.args[0] == ("'n_samples' has been given both and it is not the "
+                                 "same length as the input data.")
+
+
 def test_initialization_length_mismatch():
     with pytest.raises(ValueError) as exc:
         TimeSeries(time=INPUT_TIME, data=[[10, 2], [4, 5]], names=['a', 'b'])
@@ -144,8 +147,8 @@ def test_fold():
     assert_allclose(tsf.time.sec, [-1.5, -0.5, 0.5, 1.5, -1.5, 1.5], rtol=1e-6)
 
 
-@pytest.mark.skipif('not HAS_PANDAS')
 def test_pandas():
+    pandas = pytest.importorskip("pandas")
 
     df1 = pandas.DataFrame()
     df1['a'] = [1, 2, 3]
@@ -153,17 +156,25 @@ def test_pandas():
 
     ts = TimeSeries.from_pandas(df1)
     assert_equal(ts.time.isot, INPUT_TIME.isot)
+    assert ts.colnames == ['time', 'a']
+    assert len(ts.indices) == 1
+    assert (ts.indices['time'].columns[0] == INPUT_TIME).all()
+
+    ts_tcb = TimeSeries.from_pandas(df1, time_scale='tcb')
+    assert ts_tcb.time.scale == 'tcb'
 
     df2 = ts.to_pandas()
-    assert_equal(df2.index, INPUT_TIME.datetime64)
+    assert (df2.index.values == pandas.Index(INPUT_TIME.datetime64).values).all()
+    assert df2.columns == pandas.Index(['a'])
+    assert (df1['a'] == df2['a']).all()
 
     with pytest.raises(TypeError) as exc:
         TimeSeries.from_pandas(None)
     assert exc.value.args[0] == 'Input should be a pandas DataFrame'
 
-    df3 = pandas.DataFrame()
-    df3['a'] = [1, 2, 3]
+    df4 = pandas.DataFrame()
+    df4['a'] = [1, 2, 3]
 
     with pytest.raises(TypeError) as exc:
-        TimeSeries.from_pandas(df3)
+        TimeSeries.from_pandas(df4)
     assert exc.value.args[0] == 'DataFrame does not have a DatetimeIndex'

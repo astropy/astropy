@@ -80,10 +80,13 @@ class BinnedTimeSeries(BaseTimeSeries):
                 raise TypeError("'time_bin_start' is scalar, so 'time_bin_size' is required")
 
             if time_bin_size.isscalar:
-
                 if data is not None:
-                    # TODO: raise error if also passed explicily and inconsistent
-                    n_bins = len(self)
+                    if n_bins is not None:
+                        if n_bins != len(self):
+                            raise TypeError("'n_bins' has been given and it is not the "
+                                            "same length as the input data.")
+                    else:
+                        n_bins = len(self)
 
                 time_bin_size = np.repeat(time_bin_size, n_bins)
 
@@ -110,8 +113,6 @@ class BinnedTimeSeries(BaseTimeSeries):
                     times[-1] = time_bin_end
                     time_bin_end = times
                 time_bin_size = (time_bin_end - time_bin_start).sec * u.s
-            elif time_bin_size is None:
-                raise TypeError("Either 'time_bin_size' or 'time_bin_end' should be specified")
 
         self.add_column(time_bin_start, index=0, name='time_bin_start')
         self.add_index('time_bin_start')
