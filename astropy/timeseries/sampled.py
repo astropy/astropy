@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from copy import deepcopy
+from distutils.version import LooseVersion
 
 import numpy as np
 
+import astropy
 from astropy.table import groups, QTable, Table
 from astropy.time import Time, TimeDelta
 from astropy import units as u
@@ -12,6 +14,8 @@ from astropy.units import Quantity
 from .core import BaseTimeSeries
 
 __all__ = ['TimeSeries']
+
+ASTROPY_LT_32 = LooseVersion(astropy.__version__) < LooseVersion("3.2")
 
 
 class TimeSeries(BaseTimeSeries):
@@ -36,8 +40,12 @@ class TimeSeries(BaseTimeSeries):
         # and treat it as if it had been passed as a keyword argument.
 
         if data is not None:
-            # TODO: raise error if also passed explicily and inconsistent
-            n_samples = len(self)
+            if n_samples is not None:
+                if n_samples != len(self):
+                    raise TypeError("'n_samples' has been given both and it is not the "
+                                    "same length as the input data.")
+            else:
+                n_samples = len(self)
 
         if 'time' in self.colnames:
             if time is None:
@@ -86,7 +94,6 @@ class TimeSeries(BaseTimeSeries):
                                 "'time' is an array")
 
         self.add_column(time, index=0, name='time')
-        self.add_index('time')
 
     @property
     def time(self):
@@ -144,12 +151,20 @@ class TimeSeries(BaseTimeSeries):
         return result
 
     @classmethod
-    def from_pandas(self, df):
+    def from_pandas(self, df, time_scale='utc'):
         """
         Convert a :class:`~pandas.DataFrame` to a
         :class:`astropy.timeseries.TimeSeries`.
-        """
 
+        Parameters
+        ----------
+        df : :class:`pandas.DataFrame`
+            A pandas :class:`pandas.DataFrame` instance.
+        time_scale : str
+            The time scale to pass into `astropy.time.Time`.
+            Defaults to ``UTC``.
+
+        """
         from pandas import DataFrame, DatetimeIndex
 
         if not isinstance(df, DataFrame):
@@ -158,27 +173,29 @@ class TimeSeries(BaseTimeSeries):
         if not isinstance(df.index, DatetimeIndex):
             raise TypeError("DataFrame does not have a DatetimeIndex")
 
-        # TODO: determine how user can specify time scale
-        time = Time(df.index)
-
-        # Create table without the time column
+        time = Time(df.index, scale=time_scale)
         table = Table.from_pandas(df)
 
         return TimeSeries(time=time, data=table)
 
     def to_pandas(self):
         """
-        Convert this time series to a :class:`~pandas.DataFrame` with a
-        :class:`~pandas.DatetimeIndex` index.
+        Convert this :class:`~astropy.timeseries.TimeSeries` to a
+        :class:`~pandas.DataFrame` with a :class:`~pandas.DatetimeIndex` index.
+
+        Returns
+        -------
+        dataframe : :class:`pandas.DataFrame`
+            A pandas :class:`pandas.DataFrame` instance
         """
 
-        # Extract table without time column
-        table = self[[x for x in self.colnames if x != 'time']]
-
-        # First make a normal pandas dataframe
-        df = Table(table).to_pandas()
-
-        # Set index
-        df.set_index(self.time.datetime64, inplace=True)
+        if ASTROPY_LT_32:
+            # Extract table without time column
+            table = self[[x for x in self.colnames if x != 'time']]
+            df = Table(table).to_pandas()
+            # Set index
+            df.set_index(self.time.datetime64, inplace=True)
+        else:
+            df = Table(self).to_pandas(index='time')
 
         return df
