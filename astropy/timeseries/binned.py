@@ -115,9 +115,6 @@ class BinnedTimeSeries(BaseTimeSeries):
                     times[-1] = time_bin_end
                     time_bin_end = times
                 time_bin_size = (time_bin_end - time_bin_start).sec * u.s
-            elif time_bin_size is None:
-                # I am not sure this is triggerable.
-                raise TypeError("Either 'time_bin_size' or 'time_bin_end' should be specified")
 
         self.add_column(time_bin_start, index=0, name='time_bin_start')
         self.add_index('time_bin_start')
