@@ -28,7 +28,7 @@ The second approach using iteration should be avoided as it is extraordinarily s
 
     >>> coos = coord.SkyCoord(ra, dec, unit=u.deg)
     >>> observatory = coord.EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
-    >>> %time ltts = [Time.light_travel_time(self=Time.now(), skycoord=coos, location=observatory) for coo in coos] # doctest: +SKIP
+    >>> ltts = [Time.light_travel_time(self=Time.now(), skycoord=coos, location=observatory) for coo in coos] # doctest: +SKIP
 
 If you have an internet connection, **coord.EarthLocation.of_site('lapalma')** can be used.
 However, if that does not work you, or you don't have an internet connection, use
@@ -38,7 +38,7 @@ Approach Not Using Iteration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 This approach takes advantage of the vectorized operations in numpy.
 
-   >>> %time Time.light_travel_time(self=Time.now, skycoord=coos, location=observatory)
+   >>> Time.light_travel_time(self=Time.now, skycoord=coos, location=observatory)
 
    **CPU times:** user 56 ms, sys: 3.21 ms, total: 59.2 ms
 
@@ -50,7 +50,7 @@ Iterating over a SkyCoord object is not fast, due to the how a SkyCoord is const
 the user time is significantly longer.
 
    >>> observatory = coord.EarthLocation.of_site('lapalma')
-   >>> %time ltts = [Time.light_travel_time(self=Time.now(),skycoord=coos, location=observatory) for coo in coos]
+   >>> ltts = [Time.light_travel_time(self=Time.now(),skycoord=coos, location=observatory) for coo in coos]
 
    **CPU times:** user 16min 45s, sys: 5.08 s, total: 16min 50s
 
@@ -72,7 +72,7 @@ across the larger array. If you would like to know more about broadcasting go he
    (50000,)
 >>> coos2.shape
    (50000, 1)
->>> %time ltts = times.light_travel_time(skycoord=coos2, location=observatory)
+>>> ltts = times.light_travel_time(skycoord=coos2, location=observatory)
 
    **CPU times:** user 13.8 s, sys: 13 s, total: 26.8 s
 
