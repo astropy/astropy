@@ -6,9 +6,9 @@ import glob
 from asdf import tagged
 from asdf.yamlutil import custom_tree_to_tagged_tree
 
+import astropy.units as u
 import astropy.coordinates
 from astropy.coordinates.baseframe import frame_transform_graph
-from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import Quantity
 from astropy.coordinates import ICRS, Longitude, Latitude, Angle
 
@@ -99,8 +99,8 @@ class BaseCoordType:
     def assert_equal(cls, old, new):
         assert isinstance(new, type(old))
         if new.has_data:
-            assert_quantity_allclose(new.data.lon, old.data.lon)
-            assert_quantity_allclose(new.data.lat, old.data.lat)
+            assert u.allclose(new.data.lon, old.data.lon)
+            assert u.allclose(new.data.lat, old.data.lat)
 
 
 class CoordType(BaseCoordType, AstropyType):
@@ -160,5 +160,5 @@ class ICRSType10(AstropyType):
     def assert_equal(cls, old, new):
         assert isinstance(old, ICRS)
         assert isinstance(new, ICRS)
-        assert_quantity_allclose(new.ra, old.ra)
-        assert_quantity_allclose(new.dec, old.dec)
+        assert u.allclose(new.ra, old.ra)
+        assert u.allclose(new.dec, old.dec)

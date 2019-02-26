@@ -321,6 +321,9 @@ astropy.io.ascii
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
+- Fixed bug in ASDF tag that inadvertently introduced dependency on ``pytest``.
+  [#8456]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 

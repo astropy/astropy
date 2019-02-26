@@ -1,8 +1,8 @@
 from asdf.yamlutil import custom_tree_to_tagged_tree
 
+import astropy.units as u
 import astropy.coordinates.representation
 from astropy.coordinates.representation import BaseRepresentationOrDifferential
-from astropy.tests.helper import assert_quantity_allclose
 
 from astropy.io.misc.asdf.types import AstropyType
 
@@ -43,4 +43,4 @@ class RepresentationType(AstropyType):
         for comp in new.components:
             nc = getattr(new, comp)
             oc = getattr(old, comp)
-            assert_quantity_allclose(nc, oc)
+            assert u.allclose(nc, oc)
