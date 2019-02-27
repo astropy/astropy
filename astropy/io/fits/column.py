@@ -1423,12 +1423,13 @@ class ColDefs(NotifierMixin):
 
             # Check for unsigned ints.
             bzero = None
-            if 'I' in format and ftype.base == np.dtype('uint16'):
-                bzero = np.uint16(2**15)
-            elif 'J' in format and ftype.base == np.dtype('uint32'):
-                bzero = np.uint32(2**31)
-            elif 'K' in format and ftype.base == np.dtype('uint64'):
-                bzero = np.uint64(2**63)
+            if ftype.base.kind == 'u':
+                if 'I' in format:
+                    bzero = np.uint16(2**15)
+                elif 'J' in format:
+                    bzero = np.uint32(2**31)
+                elif 'K' in format:
+                    bzero = np.uint64(2**63)
 
             c = Column(name=cname, format=format,
                        array=array.view(np.ndarray)[cname], bzero=bzero,
