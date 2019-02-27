@@ -326,9 +326,6 @@ astropy.io.misc
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
-- Fixed bug in ``ColDefs._init_from_array()`` that caused unsigned datatypes
-  with the opposite endianess as the host architecture to fail the
-  TestColumnFunctions.test_coldefs_init_from_array unit test. [#8460]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
@@ -1874,6 +1871,9 @@ astropy.io.ascii
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
+- Fixed bug in ``ColDefs._init_from_array()`` that caused unsigned datatypes
+  with the opposite endianess as the host architecture to fail the
+  TestColumnFunctions.test_coldefs_init_from_array unit test. [#8460]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
