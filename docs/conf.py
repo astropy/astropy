@@ -240,4 +240,3 @@ linkcheck_anchors = False
 html_extra_path = ['robots.txt']
 
 class_members_toctree = False
-numpydoc_show_class_members = True
