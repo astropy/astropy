@@ -239,4 +239,5 @@ linkcheck_anchors = False
 # directly to the root of the documentation.
 html_extra_path = ['robots.txt']
 
+numpydoc_show_class_members = True
 class_members_toctree = False
