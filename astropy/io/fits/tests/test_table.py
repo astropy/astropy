@@ -2930,7 +2930,7 @@ class TestColumnFunctions(FitsTestCase):
         """Test that ColDefs._init_from_array works with single element data-
         types as well as multi-element data-types
         """
-        nd_array = np.ndarray((1,), dtype=[('A', '<u4', (2,)), ('B', 'uint16')])
+        nd_array = np.ndarray((1,), dtype=[('A', '<u4', (2,)), ('B', '>u2')])
         col_defs = fits.column.ColDefs(nd_array)
         assert 2**31 == col_defs['A'].bzero
         assert 2**15 == col_defs['B'].bzero
