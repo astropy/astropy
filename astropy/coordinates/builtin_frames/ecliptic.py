@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 from astropy import units as u
 from astropy.utils.decorators import format_doc
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.coordinates import representation as r
 from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
 from astropy.coordinates.attributes import TimeAttribute, QuantityAttribute
@@ -12,6 +15,8 @@ __all__ = ['GeocentricMeanEcliptic', 'BarycentricMeanEcliptic',
            'HeliocentricMeanEcliptic', 'BaseEclipticFrame',
            'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
            'HeliocentricTrueEcliptic',
+           'GeocentricCorrectTrueEcliptic', 'BarycentricCorrectTrueEcliptic',
+           'HeliocentricCorrectTrueEcliptic',
            'HeliocentricEclipticIAU76', 'CustomBarycentricEcliptic']
 
 
@@ -89,9 +94,22 @@ class GeocentricMeanEcliptic(BaseEclipticFrame):
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
+class GeocentricTrueEcliptic(GeocentricMeanEcliptic):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "This class actually provides the same transformation "
+            "as GeocentricMeanEcliptic, and its semantics "
+            "will be fixed in the next Astropy version.", FutureWarning)
+
+        super().__init__(*args, **kwargs)
+
+
+GeocentricTrueEcliptic.__doc__ = GeocentricMeanEcliptic.__doc__
+
+
 @format_doc(base_doc, components=doc_components_ecl.format('geocenter'),
             footer=doc_footer_geo)
-class GeocentricTrueEcliptic(BaseEclipticFrame):
+class GeocentricCorrectTrueEcliptic(BaseEclipticFrame):
     """
     Geocentric ecliptic coordinates.  These origin of the coordinates are the
     geocenter (Earth), with the x axis pointing to the *true* (not mean) equinox
@@ -107,6 +125,14 @@ class GeocentricTrueEcliptic(BaseEclipticFrame):
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "This class is temporary and you should use "
+            "GeocentricTrueEcliptic in the next Astropy version, "
+            "when it has the proper semantics.", AstropyDeprecationWarning)
+
+        super().__init__(*args, **kwargs)
 
 
 doc_footer_bary = """
@@ -135,9 +161,22 @@ class BarycentricMeanEcliptic(BaseEclipticFrame):
     equinox = TimeAttribute(default=EQUINOX_J2000)
 
 
+class BarycentricTrueEcliptic(BarycentricMeanEcliptic):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "This class actually provides the same transformation "
+            "as BarycentricMeanEcliptic, and its semantics "
+            "will be fixed in the next Astropy version.", FutureWarning)
+
+        super().__init__(*args, **kwargs)
+
+
+BarycentricTrueEcliptic.__doc__ = BarycentricMeanEcliptic.__doc__
+
+
 @format_doc(base_doc, components=doc_components_ecl.format("barycenter"),
             footer=doc_footer_bary)
-class BarycentricTrueEcliptic(BaseEclipticFrame):
+class BarycentricCorrectTrueEcliptic(BaseEclipticFrame):
     """
     Barycentric ecliptic coordinates.  These origin of the coordinates are the
     barycenter of the solar system, with the x axis pointing in the direction of
@@ -149,6 +188,14 @@ class BarycentricTrueEcliptic(BaseEclipticFrame):
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "This class is temporary and you should use "
+            "BarycentricTrueEcliptic in the next Astropy version, "
+            "when it has the proper semantics.", AstropyDeprecationWarning)
+
+        super().__init__(*args, **kwargs)
 
 
 doc_footer_helio = """
@@ -185,9 +232,22 @@ class HeliocentricMeanEcliptic(BaseEclipticFrame):
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
+class HeliocentricTrueEcliptic(HeliocentricMeanEcliptic):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "This class actually provides the same transformation "
+            "as HeliocentricMeanEcliptic, and its semantics "
+            "will be fixed in the next Astropy version.", FutureWarning)
+
+        super().__init__(*args, **kwargs)
+
+
+HeliocentricTrueEcliptic.__doc__ = HeliocentricMeanEcliptic.__doc__
+
+
 @format_doc(base_doc, components=doc_components_ecl.format("sun's center"),
             footer=doc_footer_helio)
-class HeliocentricTrueEcliptic(BaseEclipticFrame):
+class HeliocentricCorrectTrueEcliptic(BaseEclipticFrame):
     """
     Heliocentric ecliptic coordinates.  These origin of the coordinates are the
     center of the sun, with the x axis pointing in the direction of
@@ -204,6 +264,14 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "This class is temporary and you should use "
+            "HeliocentricTrueEcliptic in the next Astropy version, "
+            "when it has the proper semantics.", AstropyDeprecationWarning)
+
+        super().__init__(*args, **kwargs)
 
 
 @format_doc(base_doc, components=doc_components_ecl.format("sun's center"),
