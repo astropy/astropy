@@ -6,7 +6,7 @@ import pytest
 from astropy.io.fits import HDUList, Header, PrimaryHDU, BinTableHDU
 from astropy.utils.data import get_pkg_data_filename
 
-from ..core import unified_reader
+from ..kepler import kepler_read
 
 
 def fake_header(extver, version, timesys, telescop):
@@ -20,15 +20,15 @@ def fake_header(extver, version, timesys, telescop):
 
 
 def fake_hdulist(extver=1, version=2, timesys="TDB", telescop="KEPLER"):
-        new_header = fake_header(extver, version, timesys, telescop)
-        return [HDUList(hdus=[PrimaryHDU(header=new_header),
-                              BinTableHDU(header=new_header, name="LIGHTCURVE")])]
+    new_header = fake_header(extver, version, timesys, telescop)
+    return [HDUList(hdus=[PrimaryHDU(header=new_header),
+                    BinTableHDU(header=new_header, name="LIGHTCURVE")])]
 
 
 @mock.patch("astropy.io.fits.open", side_effect=fake_hdulist(telescop="MadeUp"))
 def test_raise_telescop_wrong(mock_file):
     with pytest.raises(NotImplementedError) as exc:
-        unified_reader(None)
+        kepler_read(None)
     assert exc.value.args[0] == ("MadeUp is not implemented, only KEPLER or TESS are "
                                  "supported through this reader")
 
@@ -36,7 +36,7 @@ def test_raise_telescop_wrong(mock_file):
 @mock.patch("astropy.io.fits.open", side_effect=fake_hdulist(extver=2))
 def test_raise_extversion_kepler(mock_file):
     with pytest.raises(NotImplementedError) as exc:
-        unified_reader(None)
+        kepler_read(None)
     assert exc.value.args[0] == ("Support for KEPLER v2 files not yet "
                                  "implemented")
 
@@ -44,7 +44,7 @@ def test_raise_extversion_kepler(mock_file):
 @mock.patch("astropy.io.fits.open", side_effect=fake_hdulist(extver=2, telescop="TESS"))
 def test_raise_extversion_tess(mock_file):
     with pytest.raises(NotImplementedError) as exc:
-        unified_reader(None)
+        kepler_read(None)
     assert exc.value.args[0] == ("Support for TESS v2 files not yet "
                                  "implemented")
 
@@ -52,7 +52,7 @@ def test_raise_extversion_tess(mock_file):
 @mock.patch("astropy.io.fits.open", side_effect=fake_hdulist(timesys="TCB"))
 def test_raise_timesys_kepler(mock_file):
     with pytest.raises(NotImplementedError) as exc:
-        unified_reader(None)
+        kepler_read(None)
     assert exc.value.args[0] == ("Support for TCB time scale not yet "
                                  "implemented in KEPLER reader")
 
@@ -60,7 +60,7 @@ def test_raise_timesys_kepler(mock_file):
 @mock.patch("astropy.io.fits.open", side_effect=fake_hdulist(timesys="TCB", telescop="TESS"))
 def test_raise_timesys_tess(mock_file):
     with pytest.raises(NotImplementedError) as exc:
-        unified_reader(None)
+        kepler_read(None)
     assert exc.value.args[0] == ("Support for TCB time scale not yet "
                                  "implemented in TESS reader")
 
@@ -68,7 +68,7 @@ def test_raise_timesys_tess(mock_file):
 @pytest.mark.remote_data(source='astropy')
 def test_keppler_astropy():
     filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
-    timeseries = unified_reader(filename)
+    timeseries = kepler_read(filename)
     assert timeseries["time"].format == 'isot'
     assert timeseries["time"].scale == 'tdb'
     assert timeseries["sap_flux"].unit.to_string() == 'electron / s'
@@ -79,7 +79,7 @@ def test_keppler_astropy():
 @pytest.mark.remote_data(source='astropy')
 def test_tess_astropy():
     filename = get_pkg_data_filename('timeseries/hlsp_tess-data-alerts_tess_phot_00025155310-s01_tess_v1_lc.fits')
-    timeseries = unified_reader(filename)
+    timeseries = kepler_read(filename)
     assert timeseries["time"].format == 'isot'
     assert timeseries["time"].scale == 'tdb'
     assert timeseries["sap_flux"].unit.to_string() == 'electron / s'
