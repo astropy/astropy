@@ -9,15 +9,29 @@ from astropy.time import Time, TimeDelta
 
 from astropy.timeseries.sampled import TimeSeries
 
-__all__ = ["unified_reader"]
+__all__ = ["kepler_read"]
 
 
-def _unsupported(hdulist):
+def kepler_read(filename):
     """
-    We checks to make sure we support these files.
-    Since KEPLER and TESS have the same checks, we can combine them here.
-    """
+    This serves as the FITS reader for KEPLER or TESS files within astropy-timeseries.
 
+    This allows reading a supported FITS file using syntax such as::
+    >>> from astropy.timeseries.io import kepler
+    >>> timeseries = kepler.kepler_reader('<name of fits file>')  # doctest: +SKIP
+
+    Parameters
+    ----------
+    filename: `str`, `pathlib.Path`
+        File to load.
+
+    Returns
+    -------
+    `astropy.timeseries.sampled.TimeSeries`
+        Data converted into a TimeSeries.
+
+    """
+    hdulist = fits.open(filename)
     telescop = hdulist[0].header['telescop'].lower()
     if telescop not in ["kepler", "tess"]:
         raise NotImplementedError("{} is not implemented, only KEPLER or TESS are "
@@ -44,31 +58,6 @@ def _unsupported(hdulist):
             warnings.warn("This is not a EVEREST pipeline version 2 KEPLER file.")
         else:
             warnings.warn("This seems to be a non EVEREST reduced KEPLER file.")
-
-    return hdu
-
-
-# TODO: Rename this
-def unified_reader(filename):
-    """
-    This serves as the basis for the FITS reader within astropy-timeseries.
-
-    Internally we call out to private functions if specific fixes or checks
-    are needed for a source/telescope.
-
-    Parameters
-    ----------
-    filename: `str`, `pathlib.Path`
-        File to load.
-
-    Returns
-    -------
-    timeseries: `astropy.timeseries.sampled.TimeSeries`
-        Data converted into a TimeSeries.
-
-    """
-    hdulist = fits.open(filename)
-    hdu = _unsupported(hdulist)
 
     tab = Table.read(hdu, format='fits')
 
@@ -105,5 +94,5 @@ def unified_reader(filename):
     return TimeSeries(time=time, data=tab)
 
 
-registry.register_reader('kepler.fits', TimeSeries, unified_reader)
-registry.register_reader('tess.fits', TimeSeries, unified_reader)
+registry.register_reader('kepler.fits', TimeSeries, kepler_read)
+registry.register_reader('tess.fits', TimeSeries, kepler_read)
