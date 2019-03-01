@@ -199,7 +199,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             if format is None:
                 format = data.format
             if meta is None:
-                meta = deepcopy(data.meta)
+                meta = data.meta
             if name is None:
                 name = data.name
         elif isinstance(data, Quantity):
@@ -213,7 +213,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             if format is None:
                 format = data.info.format
             if meta is None:
-                meta = deepcopy(data.info.meta)
+                meta = data.info.meta
 
         else:
             if np.dtype(dtype).char == 'S':
@@ -227,8 +227,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         self._format = format
         self.description = description
         self.meta = meta
-        self.indices = deepcopy(getattr(data, 'indices', [])) if \
-                       copy_indices else []
+        self.indices = deepcopy(getattr(data, 'indices', [])) if copy_indices else []
         for index in self.indices:
             index.replace_col(data, self)
 
@@ -292,6 +291,13 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         out = data.view(self.__class__)
         out.__array_finalize__(self)
+
+        # If there is meta on the original column then deepcopy (since "copy" of column
+        # implies complete independence from original).  __array_finalize__ will have already
+        # made a light copy.  I'm not sure how to avoid that initial light copy.
+        if self.meta is not None:
+            out.meta = self.meta  # MetaData descriptor does a deepcopy here
+
         # for MaskedColumn, MaskedArray.__array_finalize__ also copies mask
         # from self, which is not the idea here, so undo
         if isinstance(self, MaskedColumn):
@@ -728,7 +734,11 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         for attr in ('name', 'unit', '_format', 'description'):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
-        self.meta = deepcopy(getattr(obj, 'meta', {}))
+
+        # Light copy of meta if it is not empty
+        obj_meta = getattr(obj, 'meta', None)
+        if obj_meta:
+            self.meta = obj_meta.copy()
 
     @staticmethod
     def _encode_str(value):
@@ -1275,6 +1285,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         data = super().filled(fill_value)
         # Use parent table definition of Column if available
         column_cls = self.parent_table.Column if (self.parent_table is not None) else Column
+
         out = column_cls(name=self.name, data=data, unit=self.unit,
                          format=self.format, description=self.description,
                          meta=deepcopy(self.meta))
