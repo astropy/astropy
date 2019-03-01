@@ -88,13 +88,12 @@ def make_transform_graph_docs(transform_graph):
                                             priorities=False)
 
     docstr = """
-    The diagram below shows all of the coordinate systems built into the
-    `~astropy.coordinates` package, their aliases (useful for converting
-    other coordinates to them using attribute-style access) and the
-    pre-defined transformations between them.  The user is free to
-    override any of these transformations by defining new transformations
-    between these systems, but the pre-defined transformations should be
-    sufficient for typical usage.
+    The diagram below shows all of the built in coordinate systems,
+    their aliases (useful for converting other coordinates to them using
+    attribute-style access) and the pre-defined transformations between
+    them.  The user is free to override any of these transformations by
+    defining new transformations between these systems, but the
+    pre-defined transformations should be sufficient for typical usage.
 
     The color of an edge in the graph (i.e. the transformations between two
     frames) is set by the type of transformation; the legend box defines the
