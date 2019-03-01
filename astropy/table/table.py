@@ -6,6 +6,8 @@ from collections import OrderedDict
 from collections.abc import Mapping
 import warnings
 from copy import deepcopy
+import operator
+from functools import reduce
 
 import numpy as np
 from numpy import ma
@@ -1884,12 +1886,18 @@ class Table:
               2 0.2   y
               3 0.3   z
         """
-        # Update indices
-        for index in self.indices:
-            index.remove_rows(row_specifier)
 
         keep_mask = np.ones(len(self), dtype=bool)
-        keep_mask[row_specifier] = False
+        
+        if isinstance(row_specifier, np.ndarray) and np.all([a.dtype == np.dtype('bool') for a in row_specifier]):
+            keep_mask = row_specifier
+        
+        # Update indices
+        else:
+            for index in self.indices:
+                index.remove_rows(row_specifier)
+
+            keep_mask[row_specifier] = False
 
         columns = self.TableColumns()
         for name, col in self.columns.items():
@@ -1903,14 +1911,9 @@ class Table:
         if hasattr(self, '_groups'):
             del self._groups
 
-    def remove_na(self):
+    def remove_masked_rows(self):
         '''
-        Remove rows from a table that has N/A.
-        For masked tables only
-
-        Parameters
-        ----------
-        Masked Table
+        Remove masked rows from a table.
 
         Examples
         --------
@@ -1919,34 +1922,35 @@ class Table:
             >>> weather_data = """
             ...      day,temp,type
             ...      ,35,rainy
-            ...      Tues,55,sunny
             ...      Wed,31,snowy
             ...      Thu,25,snowy
             ...      Sun,1.1,
             ...      """
 
-            >>> t = ascii.read(weather_data)
+            you would read it like this: t = ascii.read(weather_data)
+            >>> t = weather_data
             >>> print (t)
             day  temp  type
             ---- ---- -----
               -- 35.0 rainy
-            Tues 55.0 sunny
              Wed 31.0 snowy
              Thu 25.0 snowy
              Sun  1.1    --
 
-        Remove rows that have n/a values::
+        Remove rows that have masked values::
 
-            >>> t.remove_na()
+            >>> t.remove_masked_rows()
             >>> print(t)
             day  temp  type
             ---- ---- -----
-            Tues 55.0 sunny
              Wed 31.0 snowy
              Thu 25.0 snowy
         '''
-
-        self.remove_rows(np.where([col.data for col in self.mask.itercols()])[-1])
+        if not self.masked:
+            return
+        else:
+            keep_mask = reduce(operator.and_, [~col.mask for col in self.itercols()])
+            self.remove_rows(keep_mask)
 
 
     def remove_column(self, name):

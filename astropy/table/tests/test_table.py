@@ -909,47 +909,54 @@ class TestRemove(SetupData):
         assert self.t.dtype == np.dtype([(str('a'), 'int'),
                                          (str('b'), 'int')])
 
-    def test_remove_na(self):
-        z = """
-        day,temp,type
-        ,35,rainy
-        Tues,55,sunny
-        Wed,31,snowy
-        Thu,25,snowy
-        Sun,1.1,
-        """
-        
-        t = ascii.read(z)
-        assert t.colnames == ['day', 'temp', 'type']
-        t.remove_na()
-        assert t.colnames == ['day', 'temp', 'type']
-        assert len(t) == 3
-        assert np.all([np.array(t['day'], dtype=str) == np.array
-            ([b"Tues", b"Wed", b"Thu"], dtype=str)])
-        assert np.all([t['temp'] == np.array([55.0, 31.0, 25.0])])
-        assert np.all([np.array(t['type'], dtype=str) == np.array
-            ([b"sunny", b"snowy", b"snowy"], dtype=str)])
+    
+    def test_remove_masked_rows_1(self, table_types):
+        self._setup(table_types)
+        self.t.add_column(self.b)
+        self.t.add_column(self.c)
+        self.t.remove_masked_rows()
+        assert self.t.colnames == ['a', 'b', 'c']
+        assert np.all([self.t['a'] == np.array([1, 2, 3])])
+        assert np.all([self.t['b'] == np.array([4, 5, 6])])
+        assert np.all([self.t['c'] == np.array([7, 8, 9])])
 
-    def test_remove_na_2(self):
+    def test_remove_masked_rows_2(self):
+        z = """
+        a,b,c
+        ,2.0,3.11
+        1.34,2.12,3.1
+        89.12,33.24,11.22
+        12,1.17,
+        """
+        
+        t = ascii.read(z)
+        assert t.colnames == ['a', 'b', 'c']
+        t.remove_masked_rows()
+        assert t.colnames == ['a', 'b', 'c']
+        assert len(t) == 3
+        assert np.all([t['a'] == np.array([1.34, 89.12])])
+        assert np.all( [t['b'] == np.array([2.12, 33.24])])
+        assert np.all([t['c'] == np.array([3.1, 11.22])])
+
+    def test_remove_masked_rows_2(self):
         z = """
         day,temp,type
-        Mon,78,Sunny
-        Tues,70,Rainy
-        Wed,40,Foggy
-        ,25,Snowy
-        ,1.1,Snowy
+        Mon,25,Sunny
+        Wed,4,Foggy
+        ,3,Snowy
+        ,21,Snowy
         """
         
         t = ascii.read(z)
         assert t.colnames == ['day', 'temp', 'type']
-        t.remove_na()
+        t.remove_masked_rows()
         assert t.colnames == ['day', 'temp', 'type']
-        assert len(t) == 3
+        assert len(t) == 2
         assert np.all([np.array(t['day'], dtype=str) == np.array
-            ([b"Mon", b"Tues", b"Wed"], dtype=str)])
-        assert np.all([t['temp'] == np.array([78.0, 70.0, 40.0])])
+            ([b"Mon", b"Wed"], dtype=str)])
+        assert np.all([t['temp'] == np.array([25.0, 4.0])])
         assert np.all([np.array(t['type'], dtype=str) == np.array
-            ([b"Sunny", b"Rainy", b"Foggy"], dtype=str)])
+            ([b"Sunny", b"Foggy"], dtype=str)])
 
     def test_delitem_row(self, table_types):
         self._setup(table_types)
