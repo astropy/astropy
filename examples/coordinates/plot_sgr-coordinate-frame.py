@@ -12,7 +12,7 @@ Dwarf Galaxy (hereafter Sgr; as defined in Majewski et al. 2003).  The Sgr
 coordinate system is often referred to in terms of two angular coordinates,
 :math:`\Lambda,B`.
 
-To do this, wee need to define a subclass of
+To do this, we need to define a subclass of
 `~astropy.coordinates.BaseCoordinateFrame` that knows the names and units of the
 coordinate system angles in each of the supported representations.  In this case
 we support `~astropy.coordinates.SphericalRepresentation` with "Lambda" and
@@ -121,7 +121,7 @@ class Sagittarius(coord.BaseCoordinateFrame):
 # the new system. Because the transformation to the Sagittarius coordinate
 # system is just a spherical rotation from Galactic coordinates, we'll just
 # define a function that returns this matrix. We'll start by constructing the
-# transformation matrix using pre-deteremined Euler angles and the
+# transformation matrix using pre-determined Euler angles and the
 # ``rotation_matrix`` helper function:
 
 SGR_PHI = (180 + 3.75) * u.degree # Euler angles (from Law & Majewski 2010)
