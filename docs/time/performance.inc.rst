@@ -27,7 +27,7 @@ The second approach using iteration should be avoided as it is extraordinarily s
     >>> dec = np.random.normal(0.0, 1.0, 50000)
 
     >>> coos = coord.SkyCoord(ra, dec, unit=u.deg)
-    >>> observatory = coord.EarthLocation.of_site('lapalma')
+    >>> observatory = coord.EarthLocation.of_site("lapalma")
     >>> ltts = [Time.light_travel_time(self=Time.now(), skycoord=coos, location=observatory) for coo in coos] # doctest: +SKIP
 
 If you have an internet connection, **coord.EarthLocation.of_site('lapalma')** can be used.
@@ -38,7 +38,7 @@ Approach Not Using Iteration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 This approach takes advantage of the vectorized operations in numpy.
 
-   >>> Time.light_travel_time(self=Time.now, skycoord=coos, location=observatory)
+   >>> ltt = Time.light_travel_time(self=Time.now(), skycoord=coos, location=observatory)
 
    **CPU times:** user 56 ms, sys: 3.21 ms, total: 59.2 ms
 
@@ -49,7 +49,6 @@ Approach Using Iteration
 Iterating over a SkyCoord object is not fast, due to the how a SkyCoord is constructed. Therefore
 the user time is significantly longer.
 
-   >>> observatory = coord.EarthLocation.of_site('lapalma')
    >>> ltts = [Time.light_travel_time(self=Time.now(),skycoord=coos, location=observatory) for coo in coos]
 
    **CPU times:** user 16min 45s, sys: 5.08 s, total: 16min 50s
