@@ -11,7 +11,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
-from astropy.io import fits
+from astropy.io import fits, ascii
 from astropy.tests.helper import (assert_follows_unicode_guidelines,
                                   ignore_warnings, catch_warnings)
 
@@ -908,6 +908,48 @@ class TestRemove(SetupData):
         assert self.t['a'].meta == {'aa': [0, 1, 2, 3, 4]}
         assert self.t.dtype == np.dtype([(str('a'), 'int'),
                                          (str('b'), 'int')])
+
+    def test_remove_na(self):
+        z = """
+        day,temp,type
+        ,35,rainy
+        Tues,55,sunny
+        Wed,31,snowy
+        Thu,25,snowy
+        Sun,1.1,
+        """
+        
+        t = ascii.read(z)
+        assert t.colnames == ['day', 'temp', 'type']
+        t.remove_na()
+        assert t.colnames == ['day', 'temp', 'type']
+        assert len(t) == 3
+        assert np.all([np.array(t['day'], dtype=str) == np.array
+            ([b"Tues", b"Wed", b"Thu"], dtype=str)])
+        assert np.all([t['temp'] == np.array([55.0, 31.0, 25.0])])
+        assert np.all([np.array(t['type'], dtype=str) == np.array
+            ([b"sunny", b"snowy", b"snowy"], dtype=str)])
+
+    def test_remove_na_2(self):
+        z = """
+        day,temp,type
+        Mon,78,Sunny
+        Tues,70,Rainy
+        Wed,40,Foggy
+        ,25,Snowy
+        ,1.1,Snowy
+        """
+        
+        t = ascii.read(z)
+        assert t.colnames == ['day', 'temp', 'type']
+        t.remove_na()
+        assert t.colnames == ['day', 'temp', 'type']
+        assert len(t) == 3
+        assert np.all([np.array(t['day'], dtype=str) == np.array
+            ([b"Mon", b"Tues", b"Wed"], dtype=str)])
+        assert np.all([t['temp'] == np.array([78.0, 70.0, 40.0])])
+        assert np.all([np.array(t['type'], dtype=str) == np.array
+            ([b"Sunny", b"Rainy", b"Foggy"], dtype=str)])
 
     def test_delitem_row(self, table_types):
         self._setup(table_types)

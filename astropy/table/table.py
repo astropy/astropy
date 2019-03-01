@@ -1903,6 +1903,52 @@ class Table:
         if hasattr(self, '_groups'):
             del self._groups
 
+    def remove_na(self):
+        '''
+        Remove rows from a table that has N/A.
+        For masked tables only
+
+        Parameters
+        ----------
+        Masked Table
+
+        Examples
+        --------
+        Create a table with three columns 'a', 'b' and 'c'::
+
+            >>> weather_data = """
+            ...      day,temp,type
+            ...      ,35,rainy
+            ...      Tues,55,sunny
+            ...      Wed,31,snowy
+            ...      Thu,25,snowy
+            ...      Sun,1.1,
+            ...      """
+
+            >>> t = ascii.read(weather_data)
+            >>> print (t)
+            day  temp  type
+            ---- ---- -----
+              -- 35.0 rainy
+            Tues 55.0 sunny
+             Wed 31.0 snowy
+             Thu 25.0 snowy
+             Sun  1.1    --
+
+        Remove rows that have n/a values::
+
+            >>> t.remove_na()
+            >>> print(t)
+            day  temp  type
+            ---- ---- -----
+            Tues 55.0 sunny
+             Wed 31.0 snowy
+             Thu 25.0 snowy
+        '''
+
+        self.remove_rows(np.where([col.data for col in self.mask.itercols()])[-1])
+
+
     def remove_column(self, name):
         """
         Remove a column from the table.
