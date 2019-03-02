@@ -921,15 +921,13 @@ class TestRemove(SetupData):
         assert np.all([self.t['c'] == np.array([7, 8, 9])])
 
     def test_remove_masked_rows_2(self):
-        z = """
-        a,b,c
-        ,2.0,3.11
-        1.34,2.12,3.1
-        89.12,33.24,11.22
-        12,1.17,
-        """
+        t = table.Table.read([' a, b, c',
+                            ' , 2.0, 3.11',
+                            '1.34, 2.12, 3.1',
+                            '89.12, 33.24, 11.22',
+                            '12, 1.17, ',
+                            ], format="ascii", delimiter=",")
         
-        t = ascii.read(z)
         assert t.colnames == ['a', 'b', 'c']
         t.remove_masked_rows()
         assert t.colnames == ['a', 'b', 'c']
@@ -946,8 +944,12 @@ class TestRemove(SetupData):
         ,3,Snowy
         ,21,Snowy
         """
-        
-        t = ascii.read(z)
+        t = table.Table.read([' day, temp, type',
+                            'Mon, 25, Sunny',
+                            'Wed, 4, Foggy',
+                            ' , 3, Snowy',
+                            ' , 21, Snowy',
+                            ], format="ascii", delimiter=",")
         assert t.colnames == ['day', 'temp', 'type']
         t.remove_masked_rows()
         assert t.colnames == ['day', 'temp', 'type']

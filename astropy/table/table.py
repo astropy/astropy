@@ -1919,32 +1919,29 @@ class Table:
         --------
         Create a table with three columns 'a', 'b' and 'c'::
 
-            >>> weather_data = """
-            ...      day,temp,type
-            ...      ,35,rainy
-            ...      Wed,31,snowy
-            ...      Thu,25,snowy
-            ...      Sun,1.1,
-            ...      """
+            >>> t = Table.read([' a, b, c',
+            ...                '  , 35.0, rainy',
+            ...                ' Wed, 31.0, snowy',
+            ...                ' Thu, 25.0, snowy',
+            ...                ' Sun, 1.10, ',
+            ...                ], format='ascii', delimiter=",")
 
-            you would read it like this: t = ascii.read(weather_data)
-            >>> t = weather_data
             >>> print (t)
-            day  temp  type
-            ---- ---- -----
-              -- 35.0 rainy
-             Wed 31.0 snowy
-             Thu 25.0 snowy
-             Sun  1.1    --
+             a   b     c  
+            --- ---- -----
+             -- 35.0 rainy
+            Wed 31.0 snowy
+            Thu 25.0 snowy
+            Sun  1.1    --
 
         Remove rows that have masked values::
 
             >>> t.remove_masked_rows()
-            >>> print(t)
-            day  temp  type
-            ---- ---- -----
-             Wed 31.0 snowy
-             Thu 25.0 snowy
+            >>> print (t)
+             a   b     c  
+            --- ---- -----
+            Wed 31.0 snowy
+            Thu 25.0 snowy
         '''
         if not self.masked:
             return
