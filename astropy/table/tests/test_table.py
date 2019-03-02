@@ -909,7 +909,6 @@ class TestRemove(SetupData):
         assert self.t.dtype == np.dtype([(str('a'), 'int'),
                                          (str('b'), 'int')])
 
-    
     def test_remove_masked_rows_1(self, table_types):
         self._setup(table_types)
         self.t.add_column(self.b)
@@ -926,8 +925,7 @@ class TestRemove(SetupData):
                             '1.34, 2.12, 3.1',
                             '89.12, 33.24, 11.22',
                             '12, 1.17, ',
-                            ], format="ascii", delimiter=",")
-        
+                            ], format="ascii", delimiter=",") 
         assert t.colnames == ['a', 'b', 'c']
         t.remove_masked_rows()
         assert t.colnames == ['a', 'b', 'c']

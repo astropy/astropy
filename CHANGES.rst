@@ -82,6 +82,8 @@ astropy.table
   corresponding pandas date or time delta types.  The ``DataFrame``
   index is now handled in the conversion methods. [#8247]
 
+- Added ``remove_masked_rows`` function that removes any masked rows [#8468]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
