@@ -11,7 +11,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
-from astropy.io import fits, ascii
+from astropy.io import fits
 from astropy.tests.helper import (assert_follows_unicode_guidelines,
                                   ignore_warnings, catch_warnings)
 
