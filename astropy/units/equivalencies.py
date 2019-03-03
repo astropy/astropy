@@ -2,7 +2,6 @@
 """A set of standard astronomical equivalencies."""
 
 from collections import UserList
-import copy
 
 # THIRD-PARTY
 import numpy as np
