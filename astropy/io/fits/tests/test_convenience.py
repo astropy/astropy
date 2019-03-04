@@ -157,6 +157,29 @@ class TestConvenience(FitsTestCase):
         fits.tabledump(self.temp('tb.fits'), datafile=self.temp('test_tb.txt'))
         assert os.path.isfile(self.temp('test_tb.txt'))
 
+    def test_append(self):
+        """
+        Test that ``fits.append()`` works in the case where the file does not exist
+        or is empty in case 1, and in case 2 in which ``verify`` is True or if
+        ``filename`` is a file object, as well as in case 3 where ``verify`` is set to
+        False
+        """
+        # Test case 1
+        fits.append('test_append_1.fits', data=np.ones((16,32)))
+        with fits.open('test_append_1.fits', checksum=True, verify=True) as hdu1:
+            assert isinstance(hdu1[0], fits.PrimaryHDU)
+            assert np.all(hdu1[0].data == np.ones((16,32)))
+
+        # Test case 2
+        filename = self.temp('test_append_2.fits')
+        with open(filename, mode='wb') as fp:
+            fits.append(fp, data=np.arange(10), verify=True)
+
+        # Test case 3
+        filename2 = self.temp('test_append_3.fits')
+        with open(filename2, mode='wb') as fp:
+            fits.append(fp, data=np.arange(10), verify=False)
+
     @pytest.mark.parametrize('mode', ['wb', 'wb+', 'ab', 'ab+'])
     def test_append_filehandle(self, tmpdir, mode):
 
