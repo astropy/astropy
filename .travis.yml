@@ -59,9 +59,13 @@ env:
         # E902 - IOError
         # E999: SyntaxError -- failed to compile a file into an Abstract Syntax Tree
         # # F821: undefined name  # Note: Removed for now because of heavy use of units.si
+        # F401 - module imported but unused
+	# F402 - import module from line N shadowed by loop variable
+	# F403 - ‘from module import *’ used; unable to detect undefined names
+	# F404 - future import(s) name after other statements
         # F822: undefined name in __all__
         # F823: local variable name referenced before assignment
-        - FLAKE8_OPT="--select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E502,E722,E901,E902,E999,F822,F823"
+        - FLAKE8_OPT="--select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E502,E722,E901,E902,E999,F401,F402,F403,F404,F822,F823"
 
 stages:
    # Do the style check and a single test job, don't proceed if it fails
