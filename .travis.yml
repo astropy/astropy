@@ -162,6 +162,16 @@ matrix:
                CONDA_DEPENDENCIES=''
                PIP_DEPENDENCIES=$DEV_PIP_DEP
 
+        # Run documentation link check in a cron job.
+        # Was originally in CircleCI doc build but links are too flaky, so
+        # we moved it here instead.
+        - os: linux
+          stage: Cron tests
+          env: SETUP_CMD='build_docs -b linkcheck'
+               PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
+               INSTALL_WITH_PIP=True
+               EXTRAS_INSTALL="docs,all"
+
     allow_failures:
       - os: linux
         env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'

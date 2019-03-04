@@ -230,7 +230,8 @@ except ImportError:
 
 # -- Options for linkcheck output -------------------------------------------
 linkcheck_retry = 5
-linkcheck_ignore = ['https://journals.aas.org/manuscript-preparation/']
+linkcheck_ignore = ['https://journals.aas.org/manuscript-preparation/',
+                    r'https://github\.com/astropy/astropy/(?:issues|pull)/\d+']
 linkcheck_timeout = 180
 linkcheck_anchors = False
 

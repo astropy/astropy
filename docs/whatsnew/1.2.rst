@@ -154,7 +154,7 @@ The **Jackknife resampling method** is available via the
 generates n deterministic samples of size n-1 from a measured sample of size n.
 Those samples can then be used for various statistics estimation such as
 variance and bias using the :func:`~astropy.stats.jackknife_stats` function.
-  
+
 **Circular statistics** (circular mean, variance, etc) are now provided by the
 :func:`~astropy.stats.circmean`, :func:`~astropy.stats.circvar`, ,
 :func:`~astropy.stats.circmoment`, and :func:`~astropy.stats.circcorrcoef`
@@ -220,7 +220,7 @@ The `zscale <http://iraf.net/forum/viewtopic.php?showtopic=134139>`_ algorithm
 from IRAF is now included in Astropy's :ref:`visualization
 <astropy-visualization>` sub-package, and available as
 a `~astropy.visualization.ZScaleInterval` interval class. The implementation is
-based on `Numdisplay’s <http://stsdas.stsci.edu/numdisplay/>`_ one, slightly
+based on `Numdisplay’s <https://github.com/spacetelescope/stsci.numdisplay>`_ one, slightly
 modified to expose more arguments and work with data with any number of
 dimensions.
 
