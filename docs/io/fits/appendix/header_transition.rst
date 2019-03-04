@@ -406,10 +406,8 @@ Other Gotchas
   return just ``'Value'``.
 
   There is, however, one convention used by the IRAF ccdmosaic task for
-  representing its `TNX World Coordinate System
-  <http://iraf.noao.edu/projects/ccdmosaic/tnx.html>`_ and `ZPX World
-  Coordinate System <http://iraf.noao.edu/projects/ccdmosaic/zpx.html>`_
-  non-standard WCS' that uses a series of keywords in the form ``WATj_nnn``
+  representing its TNX World Coordinate System and ZPX World Coordinate System
+  non-standard WCS that uses a series of keywords in the form ``WATj_nnn``
   which store a text description of coefficients for a non-linear distortion
   projection.  It uses its own microformat for listing the coefficients as a
   string, but the string is long, and thus broken up into several of these
