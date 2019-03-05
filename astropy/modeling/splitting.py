@@ -6,8 +6,9 @@ models.
 from functools import wraps
 from collections import defaultdict
 
-from astropy.modeling import separable
-from astropy.modeling.core import BINARY_OPERATORS, _model_oper, _CompoundModel, _CompoundModelMeta
+from astropy.modeling import coupled
+from astropy.modeling.core import (BINARY_OPERATORS, _model_oper,
+                                   _CompoundModel, _CompoundModelMeta)
 from astropy.modeling.utils import ExpressionTree
 
 OPERATORS = dict((oper, _model_oper(oper)) for oper in BINARY_OPERATORS)
@@ -79,8 +80,8 @@ def remove_input_frame(tree, inp, remove_coupled_trees=False):
 
     if tree.value != "&":
         # If the input is not a "&" then we have to respect remove_coupled_trees
-        sep = tree_is_separable(tree)
-        if all(~sep):
+        sep = input_coupling(tree, inp)
+        if all(sep):
             if not remove_coupled_trees:
                 return [tree]
         # Otherwise, we know this tree has the input, so we just drop it.
@@ -118,11 +119,11 @@ def remove_input_frame(tree, inp, remove_coupled_trees=False):
         # one input, then we need to determine how to handle it based on if the
         # inputs are separable or not.
         else:
-            sep = tree_is_separable(stree)
+            sep = input_coupling(stree, inp)
             # If they are separable, then we either keep the whole tree and
             # move on, or we drop the subtree if we are removing whole coupled
             # trees
-            if all(~sep):
+            if all(sep):
                 if not remove_coupled_trees:
                     new_trees.append(stree)
                     continue
@@ -133,12 +134,14 @@ def remove_input_frame(tree, inp, remove_coupled_trees=False):
     return new_trees
 
 
-def tree_is_separable(tree):
+def input_coupling(tree, inp):
     """
-    Given a tree, convert it to a `CompoundModel` and then return the
-    separability of the inputs.
+    Given a tree, convert it to a `CompoundModel` and then return an array of
+    the inputs coupling to the outputs of the tree.
     """
-    return separable.is_separable(tree.evaluate(OPERATORS))
+    cmat = coupled.coupling_matrix(tree.evaluate(OPERATORS))
+    idx = tree.inputs.index(inp)
+    return cmat[idx]
 
 
 def make_tree_input_map(tree):
