@@ -50,9 +50,8 @@ def spatial_like():
 def test_input_map(triple_input_flat):
     ti_map = make_tree_input_map(triple_input_flat._tree)
     assert len(ti_map) == 2
-    assert "x00" in list(ti_map.values())[0]
-    assert "x01" in list(ti_map.values())[0]
-    assert "x0" in list(ti_map.values())[1]
+    assert {"x00", "x01"} in list(ti_map.values())
+    assert {"x0"} in list(ti_map.values())
 
 
 def test_not_and(single_non_separable):
@@ -65,8 +64,9 @@ def test_not_and(single_non_separable):
 def test_leaf_map(triple_input_nested):
     tree = triple_input_nested._tree
     ti_map = make_tree_input_map(tree)
-    assert isinstance(list(ti_map.keys())[1].value, Model)
-    assert list(ti_map.keys())[1] is tree.right
+    r_ti_map = {tuple(v): k for k, v in ti_map.items()}
+    assert isinstance(r_ti_map[("x0",)].value, Model)
+    assert r_ti_map[("x0",)] is tree.right
 
 
 def test_spatial_imap(spatial_like):
