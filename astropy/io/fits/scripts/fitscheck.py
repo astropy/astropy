@@ -42,7 +42,6 @@ Example uses of fitscheck:
 
 import logging
 import optparse
-import os
 import sys
 import textwrap
 

@@ -13,15 +13,14 @@ import numpy as np
 from numpy.testing import assert_equal
 
 from astropy.io import fits
-from astropy.utils.exceptions import AstropyPendingDeprecationWarning
-from astropy.tests.helper import raises, catch_warnings, ignore_warnings
+from astropy.tests.helper import catch_warnings, ignore_warnings
 from astropy.io.fits.hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
 from .test_table import comparerecords
 
 from . import FitsTestCase
 
 try:
-    import scipy  # pylint: disable=W0611
+    import scipy  # noqa
 except ImportError:
     HAS_SCIPY = False
 else:
