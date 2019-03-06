@@ -1462,7 +1462,7 @@ As both parts of the tree are separable, it is possible to remove one::
 
   >>> comp1 = (Scale(factor=1.2) | Shift(10)) & Identity(1)
   >>> comp2 = remove_input_frame(comp1, "x0")
-  >>> print(comp2)  #doctest: +ELLIPSIS
+  >>> print(comp2)  #doctest: +ELLIPSIS +FLOAT_CMP
   Model: CompoundModel...
   Inputs: ('x',)
   Outputs: ('x',)
@@ -1471,7 +1471,7 @@ As both parts of the tree are separable, it is possible to remove one::
   Components: 
       [0]: <Scale(factor=1.2)>
   <BLANKLINE>
-      [1]: <Shift(offset=10.)>
+      [1]: <Shift(offset=10.0)>
   Parameters:
       factor_0 offset_1
       -------- --------
