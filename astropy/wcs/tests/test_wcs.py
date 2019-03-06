@@ -1183,3 +1183,26 @@ NAXIS2  =                 2078 / length of second array dimension
 
     hasCoord = test_wcs.footprint_contains(SkyCoord(24,2,unit='deg'))
     assert hasCoord == False
+
+
+def test_cunit():
+    # Initializing WCS
+    w1 = wcs.WCS(naxis=2)
+    w2 = wcs.WCS(naxis=2)
+    w3 = wcs.WCS(naxis=2)
+    # Initializing the values of cunit
+    w1.wcs.cunit = ['deg', 'm/s']
+    w2.wcs.cunit = ['km/h', 'km/h']
+    w3.wcs.cunit = ['deg', 'm/s']
+
+    # Equality checking a cunit with itself
+    assert w1.wcs.cunit == w1.wcs.cunit
+    # Equality checking of two different cunit object having same values
+    assert w1.wcs.cunit == w3.wcs.cunit
+    # Inequality checking of two different cunit object having different values
+    assert w1.wcs.cunit != w2.wcs.cunit
+    # Inequality checking of cunit with a list of literals
+    assert w1.wcs.cunit != [1, 2, 3]
+    # Comparison is not implemented TypeError will raise
+    with pytest.raises(TypeError):
+        w1.wcs.cunit < w2.wcs.cunit
