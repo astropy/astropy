@@ -277,7 +277,7 @@ class QuantityAttribute(Attribute):
         If given, specifies the shape the attribute must be
     """
 
-    def __init__(self, default=None, secondary_attribute='', unit=None, shape=None):
+    def __init__(self, default, secondary_attribute='', unit=None, shape=None):
         self.unit = unit
         self.shape = shape
         default = self.convert_input(default)[0]

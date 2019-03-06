@@ -126,6 +126,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- ``QuantityAttribute`` no longer has a default value for ``default``.  The
+  previous value of None was misleading as it always was an error. [#8450] 
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
