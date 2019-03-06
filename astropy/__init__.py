@@ -26,6 +26,8 @@ import sys
 import os
 from warnings import warn
 
+from .version import version as __version__
+
 __minimum_python_version__ = '3.6'
 __minimum_numpy_version__ = '1.16.0'
 # ASDF is an optional dependency, but this is the minimum version that is
@@ -73,18 +75,6 @@ def _is_astropy_setup():
     return (getattr(main_mod, '__file__', False) and
             os.path.basename(main_mod.__file__).rstrip('co') == 'setup.py' and
             _is_astropy_source(main_mod.__file__))
-
-
-try:
-    from .version import version as __version__
-except ImportError:
-    # TODO: Issue a warning using the logging framework
-    __version__ = ''
-try:
-    from .version import githash as __githash__
-except ImportError:
-    # TODO: Issue a warning using the logging framework
-    __githash__ = ''
 
 
 # The location of the online documentation for astropy

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import os
 import builtins
 from setuptools import setup
 
@@ -15,4 +16,4 @@ builtins._ASTROPY_CORE_SETUP_ = True
 # programmatically.
 
 from extension_helpers import get_extensions
-setup(ext_modules=get_extensions())
+setup(use_scm_version={'write_to': os.path.join('astropy', 'version.py')}, ext_modules=get_extensions())
