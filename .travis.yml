@@ -34,7 +34,7 @@ env:
         - PYTEST_VERSION=3.10
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
-        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
+        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
         - DEV_PIP_DEP='asdf>=2.3 Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
         - ASDF_PIP_DEP='asdf>=2.3'
         - SETUP_XVFB=True
@@ -83,7 +83,7 @@ matrix:
           stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang"
-               PIP_DEPENDENCIES="jplephem $ASDF_PIP_DEP"
+               PIP_DEPENDENCIES="scikit-image jplephem $ASDF_PIP_DEP"
                CCOMPILER=clang
                EVENT_TYPE='cron'
 
@@ -117,7 +117,7 @@ matrix:
         - os: linux
           stage: Initial tests
           env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES=$ASDF_PIP_DEP
+               PIP_DEPENDENCIES="scikit-image $ASDF_PIP_DEP"
                SETUP_CMD='test -a "--durations=50"'
           compiler: clang
 
@@ -125,7 +125,7 @@ matrix:
         - os: linux
           env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="codecov objgraph jplephem bintrees sortedcontainers $ASDF_PIP_DEP"
+               PIP_DEPENDENCIES="scikit-image codecov objgraph jplephem bintrees sortedcontainers $ASDF_PIP_DEP"
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='--coverage -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.0
