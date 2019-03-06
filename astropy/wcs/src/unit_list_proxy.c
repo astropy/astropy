@@ -4,6 +4,8 @@
 */
 
 #define NO_IMPORT_ARRAY
+#ifndef ASTROPY_WCS_API_H
+#define ASTROPY_WCS_API_H
 
 #include "astropy_wcs/pyutil.h"
 #include "astropy_wcs/str_list_proxy.h"
@@ -186,6 +188,44 @@ PyUnitListProxy_getitem(
   return result;
 }
 
+static PyObject *
+PyUnitListProxy_richcmp(PyUnitListProxy *self, PyUnitListProxy *other, int op)
+{int equal;
+  int status;
+   
+
+  if ((op == Py_EQ || op == Py_NE) &&
+      PyObject_TypeCheck(other, &PyUnitListProxyType)) {
+     
+
+    if (self->size!=other->size||self->unit_class!=other->unit_class||self->array!=other->array)
+       {status = 0;
+        equal = 0;}
+    else if (self == 0x0 || other == 0x0){
+       status = 1;}
+    else{status = 0;
+         equal = 1;}
+
+    if (status == 0) {
+      if (op == Py_NE) {
+        equal = !equal;
+      }
+      if (equal) {
+        Py_RETURN_TRUE;
+      } else {
+        Py_RETURN_FALSE;
+      }
+    } else {
+      return NULL;
+    }
+  }
+
+  Py_INCREF(Py_NotImplemented);
+    return Py_NotImplemented;
+
+
+   }
+
 static int
 PyUnitListProxy_setitem(
     PyUnitListProxy* self,
@@ -274,7 +314,7 @@ static PyTypeObject PyUnitListProxyType = {
   0,                          /* tp_doc */
   (traverseproc)PyUnitListProxy_traverse, /* tp_traverse */
   (inquiry)PyUnitListProxy_clear, /* tp_clear */
-  0,                          /* tp_richcompare */
+  (richcmpfunc)PyUnitListProxy_richcmp, /* tp_richcompare */
   0,                          /* tp_weaklistoffset */
   0,                          /* tp_iter */
   0,                          /* tp_iternext */
@@ -362,3 +402,6 @@ _setup_unit_list_proxy_type(
 
   return 0;
 }
+
+#endif /* ASTROPY_WCS_API_H */
+
