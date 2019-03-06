@@ -4,8 +4,6 @@
 */
 
 #define NO_IMPORT_ARRAY
-#ifndef ASTROPY_WCS_API_H
-#define ASTROPY_WCS_API_H
 
 #include "astropy_wcs/pyutil.h"
 #include "astropy_wcs/str_list_proxy.h"
@@ -15,6 +13,7 @@
  ***************************************************************************/
 
 #define MAXSIZE 68
+#define ARRAYSIZE 72
 
 static PyTypeObject PyUnitListProxyType;
 
@@ -22,7 +21,7 @@ typedef struct {
   PyObject_HEAD
   /*@null@*/ /*@shared@*/ PyObject* pyobject;
   Py_ssize_t size;
-  char (*array)[72];
+  char (*array)[ARRAYSIZE];
   PyObject* unit_class;
 } PyUnitListProxy;
 
@@ -96,7 +95,7 @@ PyUnitListProxy_clear(
 PyUnitListProxy_New(
     /*@shared@*/ PyObject* owner,
     Py_ssize_t size,
-    char (*array)[72]) {
+    char (*array)[ARRAYSIZE]) {
 
   PyUnitListProxy* self = NULL;
   PyObject *units_module;
@@ -188,43 +187,35 @@ PyUnitListProxy_getitem(
   return result;
 }
 
-static PyObject *
-PyUnitListProxy_richcmp(PyUnitListProxy *self, PyUnitListProxy *other, int op)
-{int equal;
-  int status;
-   
-
-  if ((op == Py_EQ || op == Py_NE) &&
-      PyObject_TypeCheck(other, &PyUnitListProxyType)) {
-     
-
-    if (self->size!=other->size||self->unit_class!=other->unit_class||self->array!=other->array)
-       {status = 0;
-        equal = 0;}
-    else if (self == 0x0 || other == 0x0){
-       status = 1;}
-    else{status = 0;
-         equal = 1;}
-
-    if (status == 0) {
-      if (op == Py_NE) {
-        equal = !equal;
-      }
-      if (equal) {
-        Py_RETURN_TRUE;
-      } else {
-        Py_RETURN_FALSE;
-      }
-    } else {
-      return NULL;
-    }
+static PyObject*
+PyUnitListProxy_richcmp(
+	PyObject *a,
+	PyObject *b,
+	int op){
+  PyUnitListProxy *lhs, *rhs;
+  assert(a != NULL && b != NULL);
+  if (!PyObject_TypeCheck(a, &PyUnitListProxyType) ||
+      !PyObject_TypeCheck(b, &PyUnitListProxyType)) {
+    Py_RETURN_NOTIMPLEMENTED;
   }
-
-  Py_INCREF(Py_NotImplemented);
-    return Py_NotImplemented;
-
-
-   }
+  if (op != Py_EQ && op != Py_NE) {
+    Py_RETURN_NOTIMPLEMENTED;
+  }
+  lhs = (PyUnitListProxy *)a;
+  rhs = (PyUnitListProxy *)b;
+  int equal = PyObject_RichCompareBool(lhs->unit_class, rhs->unit_class, Py_EQ);
+  if (equal == -1) {
+    return NULL;  // Exception will be set because the rich-compare failed
+  }
+  equal = equal == 1 && !strncmp(lhs->array, rhs->array, ARRAYSIZE) && lhs->size == rhs->size;
+  if ((op == Py_EQ && equal == 1) ||
+      (op == Py_NE && equal == 0)) {
+    Py_RETURN_TRUE;
+  } 
+  else {
+    Py_RETURN_FALSE;
+  }
+}
 
 static int
 PyUnitListProxy_setitem(
@@ -338,7 +329,7 @@ set_unit_list(
     const char* propname,
     PyObject* value,
     Py_ssize_t len,
-    char (*dest)[72]) {
+    char (*dest)[ARRAYSIZE]) {
 
   PyObject*  unit  = NULL;
   PyObject*  proxy = NULL;
@@ -402,6 +393,4 @@ _setup_unit_list_proxy_type(
 
   return 0;
 }
-
-#endif /* ASTROPY_WCS_API_H */
 
