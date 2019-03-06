@@ -282,9 +282,7 @@ NumPy structured array
 ----------------------
 The structured array is the standard mechanism in `numpy` for storing
 heterogeneous table data.  Most scientific I/O packages that read table
-files (e.g.  `PyFITS
-<https://github.com/spacetelescope/pyfits>`_, `vo.table
-<http://stsdas.stsci.edu/astrolib/vo/html/intro_table.html>`_, `asciitable
+files (e.g., `astropy.io.fits`, `astropy.io.votable`, and `asciitable
 <http://cxc.harvard.edu/contrib/asciitable/>`_) will return the table in an
 object that is based on the structured array.  A structured array can be
 created using::

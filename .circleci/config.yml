@@ -106,9 +106,6 @@ jobs:
             LC_CTYPE: C
             LC_ALL: C
             LANG: C
-      - run:
-          name: Link Check
-          command: venv/bin/python setup.py build_docs -b linkcheck
 
       - store_artifacts:
           path: docs/_build/html
