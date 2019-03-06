@@ -2823,7 +2823,7 @@ The following bugs were fixed:
   windows platform using a drive letter in the file specification caused a
   misleading IOError exception to be raised.
 
-.. _[2]: http://stsdas.stsci.edu/stsci_python_sphinxdocs_2.13/tools/stpyfits.html
+.. _[2]: https://stscitools.readthedocs.io/en/latest/stpyfits.html
 
 
 1.1 (2007-06-15)
