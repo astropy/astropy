@@ -410,7 +410,7 @@ input is only checked when a value other than ``None`` is passed:
     >>> myfunction(1.*u.km, 1*u.deg)  # doctest: +FLOAT_CMP
     (<Quantity 1. km>, <Quantity 1. deg>)
 
-Under Python 3 you can use the annotations syntax to provide the units:
+Alternatively, you can use the annotations syntax to provide the units:
 
     >>> @u.quantity_input  # doctest: +SKIP
     ... def myfunction(myarg: u.arcsec):
@@ -419,7 +419,7 @@ Under Python 3 you can use the annotations syntax to provide the units:
     >>> myfunction(100*u.arcsec)  # doctest: +SKIP
     Unit("arcsec")
 
-Also under Python 3 only you can define a return decoration, to which the return
+You can define a return decoration, to which the return
 value will be converted, i.e.::
 
     >>> @u.quantity_input  # doctest: +SKIP
