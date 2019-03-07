@@ -6,9 +6,10 @@ import itertools
 import re
 import warnings
 
-from .card import Card, _pad, KEYWORD_LENGTH, UNDEFINED, VALUE_INDICATOR, CARD_LENGTH
+from .card import Card, _pad, KEYWORD_LENGTH, UNDEFINED
 from .file import _File
 from .util import encode_ascii, decode_ascii, fileobj_closed, fileobj_is_binary
+from ._utils import parse_header
 
 from astropy.utils import isiterable
 from astropy.utils.exceptions import AstropyUserWarning
@@ -1913,7 +1914,8 @@ class _DelayedHeader:
             return obj.__dict__['_header']
         except KeyError:
             if obj._header_str is not None:
-                hdr = Header.fromstring(obj._header_str)
+                header = decode_ascii(obj._header_str)
+                hdr = Header.fromstring(header)
                 obj._header_str = None
             else:
                 raise AttributeError("'{}' object has no attribute '_header'"
@@ -1946,7 +1948,8 @@ class _BasicHeaderCards:
         try:
             return self.header._cards[key]
         except KeyError:
-            card = Card.fromstring(self.header._raw_cards[key])
+            cardstr = self.header._raw_cards[key].decode('ascii')
+            card = Card.fromstring(cardstr)
             self.header._cards[key] = card
             return card
 
@@ -1984,7 +1987,8 @@ class _BasicHeader(collections.abc.Mapping):
             return self._cards[key].value
         except KeyError:
             # parse the Card and store it
-            self._cards[key] = card = Card.fromstring(self._raw_cards[key])
+            cardstr = self._raw_cards[key].decode('ascii')
+            self._cards[key] = card = Card.fromstring(cardstr)
             return card.value
 
     def __len__(self):
@@ -2005,52 +2009,9 @@ class _BasicHeader(collections.abc.Mapping):
             fileobj = open(fileobj, 'rb')
             close_file = True
 
-        cards = {}
-        read_blocks = []
-        found_end = False
-        is_eof = False
-
         try:
-            while True:
-                # iterate on blocks
-                block = fileobj.read(BLOCK_SIZE)
-                if not block or len(block) < BLOCK_SIZE:
-                    # header looks incorrect, raising exception to fall back to
-                    # the full Header parsing
-                    raise Exception
-
-                block = decode_ascii(block)
-                read_blocks.append(block)
-                idx = 0
-                while idx < BLOCK_SIZE:
-                    # iterate on cards
-                    end_idx = idx + CARD_LENGTH
-                    card_image = block[idx:end_idx]
-                    idx = end_idx
-
-                    keyword = card_image[:8].strip()
-                    keyword_upper = keyword.upper()
-                    sep_idx = card_image.find(VALUE_INDICATOR)
-
-                    # We are interested only in standard keyword, so we skip
-                    # other cards, e.G. CONTINUE, HIERARCH, COMMENT.
-                    if sep_idx == 8:
-                        # ok, found standard keyword
-                        cards[keyword_upper] = card_image
-                    elif 0 < sep_idx < 8:
-                        keyword = card_image[:sep_idx]
-                        cards[keyword_upper] = card_image
-                    elif card_image == END_CARD:
-                        found_end = True
-                        break
-
-                if found_end:
-                    break
-
-            # we keep the full header string as it may be needed later to
-            # create a Header object
-            header_str = ''.join(read_blocks)
-            _check_padding(header_str, BLOCK_SIZE, is_eof)
+            header_str, cards = parse_header(fileobj)
+            _check_padding(header_str, BLOCK_SIZE, False)
             return header_str, cls(cards)
         finally:
             if close_file:
