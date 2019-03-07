@@ -116,10 +116,11 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
                                  format(path))
             elif len(arrays) > 0:
                 path = arrays[0] if path is None else path + '/' + arrays[0]
-                warnings.warn("path= was not specified but multiple tables"
-                              " are present, reading in first available"
-                              " table (path={0})".format(path),
-                              AstropyUserWarning)
+                if len(arrays) > 1:
+                    warnings.warn("path= was not specified but multiple tables"
+                                  " are present, reading in first available"
+                                  " table (path={0})".format(path),
+                                  AstropyUserWarning)
                 return read_table_hdf5(input, path=path)
 
     elif not isinstance(input, h5py.Dataset):
