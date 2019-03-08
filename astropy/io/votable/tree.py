@@ -1530,7 +1530,8 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         if self.unit is not None:
             # TODO: Use units framework when it's available
             column.unit = self.unit
-        if isinstance(self.converter, converters.FloatingPoint):
+        if (isinstance(self.converter, converters.FloatingPoint) and
+                self.converter.output_format != '{!r:>}'):
             column.format = self.converter.output_format
 
     @classmethod
