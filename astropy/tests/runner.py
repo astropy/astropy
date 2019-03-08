@@ -223,11 +223,6 @@ class TestRunnerBase:
         else:
             plugins = []
 
-        # If we are running the astropy tests with the astropy plugins handle
-        # the config stuff, otherwise ignore it.
-        if 'astropy.tests.plugins.config' not in plugins:
-            return pytest.main(args=args, plugins=plugins)
-
         # override the config locations to not make a new directory nor use
         # existing cache or config
         astropy_config = tempfile.mkdtemp('astropy_config')
@@ -412,7 +407,7 @@ class TestRunner(TestRunnerBase):
 
         return []
 
-    @keyword(default_value=['astropy.tests.plugins.display', 'astropy.tests.plugins.config'])
+    @keyword(default_value=['astropy.tests.plugins.display'])
     def plugins(self, plugins, kwargs):
         """
         plugins : list, optional
