@@ -1888,6 +1888,9 @@ astropy.io.registry
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+- Block floating-point columns from using repr format when converted to Table
+  [#8358]
+
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
