@@ -18,6 +18,9 @@ thousands of sources in a degree patch of the sky. The first approach calculates
 the travel times without iteration while the second calculates using iteration.
 The second approach using iteration should be avoided as it is extraordinarily slow.
 
+.. note::
+   The wall times and cpu times were calculated on google co-laboratory.
+
     >>> import numpy as np
     >>> import astropy.coordinates as coord
     >>> import astropy.units as u
@@ -40,9 +43,9 @@ This approach takes advantage of the vectorized operations in numpy.
 
    >>> ltt = Time.light_travel_time(self=Time.now(), skycoord=coos, location=observatory)
 
-   **CPU times:** user 56 ms, sys: 3.21 ms, total: 59.2 ms
+   **CPU times:** user 31.4 ms, sys: 1 ms, total: 32.4 ms
 
-   **Wall time:** 58.2 ms
+   **Wall time:** 31.8 ms
 
 Approach Using Iteration
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -51,9 +54,9 @@ the user time is significantly longer.
 
    >>> ltts = [Time.light_travel_time(self=Time.now(),skycoord=coos, location=observatory) for coo in coos]
 
-   **CPU times:** user 16min 45s, sys: 5.08 s, total: 16min 50s
+   **CPU times:** user 4min 41s, sys: 1.71 s, total: 4min 43s
 
-   **Wall time:** 16min 58s
+   **Wall time:** 4min 44s
 
 Avoid Iteration For Light Travel Time for Many Objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -73,8 +76,8 @@ across the larger array. If you would like to know more about broadcasting go he
    (50000, 1)
 >>> ltts = times.light_travel_time(skycoord=coos2, location=observatory)
 
-   **CPU times:** user 13.8 s, sys: 13 s, total: 26.8 s
+   **CPU times:** user 2.62 s, sys: 1.18 s, total: 3.81 s
 
-   **Wall time:** 27.9 s
+   **Wall time:** 3.81 s
 
 .. _here: https://docs.scipy.org/doc/numpy-1.15.0/user/basics.broadcasting.html
