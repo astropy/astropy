@@ -236,7 +236,7 @@ considered a match) by creating a boolean mask with ``d2d`` or ``d3d``. For exam
 
     >>> max_sep = 1.0 * u.arcsec # doctest: +SKIP
     >>> idx, d2d, d3d = c.match_to_catalog_3d(catalog) # doctest: +SKIP
-    >>> sep_constraint = idx < max_sep # doctest: +SKIP
+    >>> sep_constraint = idx[d2d < max_sep] # doctest: +SKIP
     >>> c_matches = c[sep_constraint] # doctest: +SKIP
     >>> catalog_matches = c[idx[sep_constraint]] # doctest: +SKIP
 
