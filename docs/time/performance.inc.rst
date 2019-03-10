@@ -21,17 +21,18 @@ The second approach using iteration should be avoided as it is extraordinarily s
 .. note::
    The wall times and cpu times were calculated on google co-laboratory.
 
-    >>> import numpy as np
-    >>> import astropy.coordinates as coord
-    >>> import astropy.units as u
-    >>> from astropy.time import Time
+   >>> import numpy as np
+   >>> import astropy.coordinates as coord
+   >>> import astropy.units as u
+   >>> from astropy.time import Time
 
-    >>> ra = np.random.normal(0.0, 1.0, 50000)
-    >>> dec = np.random.normal(0.0, 1.0, 50000)
+   >>> ra = np.random.normal(0.0, 1.0, 10000)
+   >>> dec = np.random.normal(0.0, 1.0, 10000)
 
-    >>> coos = coord.SkyCoord(ra, dec, unit=u.deg)
-    >>> observatory = coord.EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
-    >>> ltts = [Time.light_travel_time(self=Time.now(), skycoord=coos, location=observatory) for coo in coos] # doctest: +SKIP
+   >>> coos = coord.SkyCoord(ra, dec, unit=u.deg)
+   >>> observatory = coord.EarthLocation.of_site('lapalma')
+   >>> %time ltts = [Time.light_travel_time(self=Time.now(), skycoord=coos, location=observatory) for coo in coos]
+
 
 If you have an internet connection, **coord.EarthLocation.of_site('lapalma')** can be used.
 However, if that does not work you, or you don't have an internet connection, use
