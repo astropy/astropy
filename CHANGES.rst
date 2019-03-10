@@ -82,6 +82,14 @@ astropy.table
   corresponding pandas date or time delta types.  The ``DataFrame``
   index is now handled in the conversion methods. [#8247]
 
+- Improved Table performance by reducing unnecessary calls to copy and deepcopy,
+  especially as related to the table and column ``meta`` attributes.  Changed the
+  behavior when slicing a table (either in rows or with a list of column names)
+  so now the sliced output gets a light (key-only) copy of ``meta`` instead of a
+  deepcopy.  Changed the ``Table.meta`` class-level descriptor so that assigning
+  directly to ``meta``, e.g. ``tbl.meta = new_meta`` no longer does a deepcopy
+  and instead just directly assigns the ``new_meta`` object reference. [#8404]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -169,6 +177,12 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
+- Changed the behavior when slicing a table (either in rows or with a list of column
+  names) so now the sliced output gets a light (key-only) copy of ``meta`` instead of
+  a deepcopy.  Changed the ``Table.meta`` class-level descriptor so that assigning
+  directly to ``meta``, e.g. ``tbl.meta = new_meta`` no longer does a deepcopy
+  and instead just directly assigns the ``new_meta`` object reference. [#8404]
 
 astropy.tests
 ^^^^^^^^^^^^^
