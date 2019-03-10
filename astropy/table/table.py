@@ -801,35 +801,55 @@ class Table:
         if self.meta:
             table.meta = self.meta.copy()  # Shallow copy for slice
         table.primary_key = self.primary_key
-        cols = self.columns.values()
 
         newcols = []
-        for col in cols:
-            col.info._copy_indices = self._copy_indices
+        for col in self.columns.values():
             newcol = col[slice_]
-            if col.info.indices:
-                newcol = col.info.slice_indices(newcol, slice_, len(col))
-            newcols.append(newcol)
-            col.info._copy_indices = True
 
-        self._make_table_from_cols(table, newcols)
+            # Note in line below, use direct attribute access to col.indices for Column
+            # instances instead of the generic col.info.indices.  This saves about 4 usec
+            # per column.
+            if (col if isinstance(col, Column) else col.info).indices:
+                # TODO : as far as I can tell the only purpose of setting _copy_indices
+                # here is to communicate that to the initial test in `slice_indices`.
+                # Why isn't that just sent as an arg to the function?
+                col.info._copy_indices = self._copy_indices
+                newcol = col.info.slice_indices(newcol, slice_, len(col))
+
+                # Don't understand why this is forcing a value on the original column.
+                # Normally col.info does not even have a _copy_indices attribute.  Tests
+                # still pass if this line is deleted.  (Each col.info attribute access
+                # is expensive).
+                col.info._copy_indices = True
+
+            newcols.append(newcol)
+
+        self._make_table_from_cols(table, newcols, check_cols=False,
+                                   names=self.columns.keys())
         return table
 
     @staticmethod
-    def _make_table_from_cols(table, cols):
+    def _make_table_from_cols(table, cols, check_cols=True, names=None):
         """
         Make ``table`` in-place so that it represents the given list of ``cols``.
         """
-        colnames = set(col.info.name for col in cols)
-        if None in colnames:
-            raise TypeError('Cannot have None for column name')
-        if len(colnames) != len(cols):
-            raise ValueError('Duplicate column names')
+        if check_cols:
+            colnames = set(col.info.name for col in cols)
+            if None in colnames:
+                raise TypeError('Cannot have None for column name')
+            if len(colnames) != len(cols):
+                raise ValueError('Duplicate column names')
 
-        columns = table.TableColumns((col.info.name, col) for col in cols)
+        if names is None:
+            names = (col.info.name for col in cols)
+
+        columns = table.TableColumns((name, col) for name, col in zip(names, cols))
 
         for col in cols:
-            col.info.parent_table = table
+            # For Column instances it is much faster to do direct attribute access
+            # instead of going through .info
+            col_info = col if isinstance(col, Column) else col.info
+            col_info.parent_table = table
             if table.masked and not hasattr(col, 'mask'):
                 col.mask = FalseArray(col.shape)
 
