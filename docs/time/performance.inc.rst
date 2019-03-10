@@ -30,7 +30,7 @@ The second approach using iteration should be avoided as it is extraordinarily s
    >>> dec = np.random.normal(0.0, 1.0, 10000)
 
    >>> coos = coord.SkyCoord(ra, dec, unit=u.deg)
-   >>> coord.EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
+   >>> observatory = coord.EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
    >>> %time ltts = [Time.light_travel_time(self=Time.now(), skycoord=coos, location=observatory) for coo in coos]
 
 
