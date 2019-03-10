@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import collections
-import operator
+from operator import index as operator_index
 
 import numpy as np
 
@@ -29,16 +29,21 @@ class Row:
     """
 
     def __init__(self, table, index):
-        self._table = table
-        self._index = operator.index(index)
+        # Get the length of the first column.  Rely on the table being well-formed
+        # at this point.
+        n = len(next(iter(table.columns.values())))
 
-        n = len(table)
         if index < -n or index >= n:
             raise IndexError('index {0} out of range for table with length {1}'
                              .format(index, len(table)))
 
-        # Ensure that the row index is positive [#8422]
-        self._index = self._index % n
+        self._table = table
+
+        # Ensure that the row index is a valid index (int) and positive [#8422]
+        index = operator_index(index)
+        if index < 0:
+            index = index % n
+        self._index = index
 
     def __getitem__(self, item):
         if self._table._is_list_or_tuple_of_str(item):
