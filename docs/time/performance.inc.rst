@@ -31,7 +31,7 @@ The second approach using iteration should be avoided as it is extraordinarily s
 
    >>> coos = coord.SkyCoord(ra, dec, unit=u.deg)
    >>> observatory = coord.EarthLocation.from_geocentric(5327448.9957829, -1718665.73869569, 3051566.90295403, unit='m')
-   >>> %time ltts = [Time.light_travel_time(self=Time.now(), skycoord=coos, location=observatory) for coo in coos]
+   >>> ltts = [Time.light_travel_time(self=Time.now(), skycoord=coos, location=observatory) for coo in coos]
 
 
 If you have an internet connection, **coord.EarthLocation.of_site('lapalma')** can be used.
