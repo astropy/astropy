@@ -41,10 +41,7 @@ class Row:
         self._table = table
 
         # Ensure that the row index is a valid index (int) and positive [#8422]
-        index = operator_index(index)
-        if index < 0:
-            index = index % n
-        self._index = index
+        self._index = operator_index(index) % n
 
     def __getitem__(self, item):
         try:
