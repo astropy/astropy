@@ -73,9 +73,9 @@ across the larger array. If you would like to know more about broadcasting go he
     >>> times = Time.now() + np.linspace(0, 3, 1000)*u.day
     >>> coos2 = coos[:,np.newaxis]
     >>> coos.shape
-         (10000,)
+    (10000,)
     >>> coos2.shape
-         (10000, 1)
+    (10000, 1)
     >>> ltts = times.light_travel_time(skycoord=coos2, location=observatory)
 
    **CPU times:** user 2.62 s, sys: 1.18 s, total: 3.81 s
