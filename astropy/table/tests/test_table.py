@@ -1912,6 +1912,73 @@ class Test__Astropy_Table__():
         assert '__init__() got unexpected keyword argument' in str(err)
 
 
+def test_table_meta_copy():
+    """
+    Test no copy vs light (key) copy vs deep copy of table meta for different
+    situations.  #8404.
+    """
+    t = table.Table([[1]])
+    meta = {1: [1, 2]}
+
+    # Assigning meta directly implies using direct object reference
+    t.meta = meta
+    assert t.meta is meta
+
+    # Table slice implies key copy, so values are unchanged
+    t2 = t[:]
+    assert t2.meta is not t.meta  # NOT the same OrderedDict object but equal
+    assert t2.meta == t.meta
+    assert t2.meta[1] is t.meta[1]  # Value IS the list same object
+
+    # Table init with copy=False implies key copy
+    t2 = table.Table(t, copy=False)
+    assert t2.meta is not t.meta  # NOT the same OrderedDict object but equal
+    assert t2.meta == t.meta
+    assert t2.meta[1] is t.meta[1]  # Value IS the same list object
+
+    # Table init with copy=True implies deep copy
+    t2 = table.Table(t, copy=True)
+    assert t2.meta is not t.meta  # NOT the same OrderedDict object but equal
+    assert t2.meta == t.meta
+    assert t2.meta[1] is not t.meta[1]  # Value is NOT the same list object
+
+
+def test_table_meta_copy_with_meta_arg():
+    """
+    Test no copy vs light (key) copy vs deep copy of table meta when meta is
+    supplied as a table init argument.  #8404.
+    """
+    meta = {1: [1, 2]}
+    meta2 = {2: [3, 4]}
+    t = table.Table([[1]], meta=meta, copy=False)
+    assert t.meta is meta
+
+    t = table.Table([[1]], meta=meta)  # default copy=True
+    assert t.meta is not meta
+    assert t.meta == meta
+
+    # Test initializing from existing table with meta with copy=False
+    t2 = table.Table(t, meta=meta2, copy=False)
+    assert t2.meta is meta2
+    assert t2.meta != t.meta  # Change behavior in #8404
+
+    # Test initializing from existing table with meta with default copy=True
+    t2 = table.Table(t, meta=meta2)
+    assert t2.meta is not meta2
+    assert t2.meta != t.meta  # Change behavior in #8404
+
+    # Test initializing empty table with meta with copy=False
+    t = table.Table(meta=meta, copy=False)
+    assert t.meta is meta
+    assert t.meta[1] is meta[1]
+
+    # Test initializing empty table with meta with default copy=True (deepcopy meta)
+    t = table.Table(meta=meta)
+    assert t.meta is not meta
+    assert t.meta == meta
+    assert t.meta[1] is not meta[1]
+
+
 def test_replace_column_qtable():
     """Replace existing Quantity column with a new column in a QTable"""
     a = [1, 2, 3] * u.m
