@@ -457,7 +457,7 @@ class Table:
         return self.as_array().mask
 
     def filled(self, fill_value=None):
-        """Return self, with masked values filled.
+        """Return copy of self, with masked values filled.
 
         If input ``fill_value`` supplied then that value is used for all
         masked entries in the table.  Otherwise the individual
