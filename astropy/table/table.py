@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import functools
+
 from .index import TableIndices, TableLoc, TableILoc, TableLocIndices
 
 import sys
@@ -361,7 +363,12 @@ class Table:
             n_cols = len(default_names)
 
         elif isinstance(data, Table):
-            init_func = self._init_from_table
+            # If input meta is not None (default), then provide direction to
+            # self._init_from_table to entirely ignore meta on the input table.
+            # This saves a potential deepcopy of the table meta that later gets
+            # discarded.
+            use_table_meta = (meta is None)
+            init_func = functools.partial(self._init_from_table, use_table_meta=use_table_meta)
             n_cols = len(data.colnames)
             default_names = data.colnames
             # don't copy indices if the input Table is in non-copy mode
@@ -409,6 +416,7 @@ class Table:
 
         # Finally do the real initialization
         init_func(data, names, dtype, n_cols, copy)
+
 
         # If meta supplied then override what may have already been set (e.g. for
         # # _init_from_table.  If copy=True then deepcopy meta otherwise use the
@@ -735,12 +743,18 @@ class Table:
         data_list = [data[name] for name in names]
         self._init_from_list(data_list, names, dtype, n_cols, copy)
 
-    def _init_from_table(self, data, names, dtype, n_cols, copy):
-        """Initialize table from an existing Table object """
+    def _init_from_table(self, data, names, dtype, n_cols, copy, *, use_table_meta=True):
+        """Initialize table from an existing Table object
+
+        The ``use_table_meta`` kwargs indicates that the caller has a different meta
+        that will be used for the final output table meta, so ignore ``data.meta``.
+        """
 
         table = data  # data is really a Table, rename for clarity
-        if table.meta:
+
+        if use_table_meta and table.meta:
             self.meta = deepcopy(table.meta) if copy else table.meta.copy()
+
         self.primary_key = table.primary_key
         cols = list(table.columns.values())
 
