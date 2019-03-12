@@ -1967,6 +1967,17 @@ def test_table_meta_copy_with_meta_arg():
     assert t2.meta is not meta2
     assert t2.meta != t.meta  # Change behavior in #8404
 
+    # Table init with copy=True and empty dict meta gets that empty dict
+    t2 = table.Table(t, copy=True, meta={})
+    assert t2.meta == {}
+
+    # Table init with copy=True and kwarg meta=None gets the original table dict.
+    # This is a somewhat ambiguous case because it could be interpreted as the
+    # user wanting NO meta set on the output.  This could be implemented by inspecting
+    # call args.
+    t2 = table.Table(t, copy=True, meta=None)
+    assert t2.meta == t.meta
+
     # Test initializing empty table with meta with copy=False
     t = table.Table(meta=meta, copy=False)
     assert t.meta is meta
