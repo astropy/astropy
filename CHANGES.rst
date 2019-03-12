@@ -88,7 +88,9 @@ astropy.table
   so now the sliced output gets a light (key-only) copy of ``meta`` instead of a
   deepcopy.  Changed the ``Table.meta`` class-level descriptor so that assigning
   directly to ``meta``, e.g. ``tbl.meta = new_meta`` no longer does a deepcopy
-  and instead just directly assigns the ``new_meta`` object reference. [#8404]
+  and instead just directly assigns the ``new_meta`` object reference.  Changed
+  Table initialization so that input ``meta`` is copied only if ``copy=True``.
+  [#8404]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -182,7 +184,9 @@ astropy.table
   names) so now the sliced output gets a light (key-only) copy of ``meta`` instead of
   a deepcopy.  Changed the ``Table.meta`` class-level descriptor so that assigning
   directly to ``meta``, e.g. ``tbl.meta = new_meta`` no longer does a deepcopy
-  and instead just directly assigns the ``new_meta`` object reference. [#8404]
+  and instead just directly assigns the ``new_meta`` object reference. Changed
+  Table initialization so that input ``meta`` is copied only if ``copy=True``.
+  [#8404]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -267,6 +271,10 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
+- Fixed a bug when initializing from an existing ``Table``.  In this case the
+  input ``meta`` argument was being ignored.  Now the input ``meta``, if
+  supplied, will be used as the ``meta`` for the new ``Table``. [#8404]
 
 astropy.tests
 ^^^^^^^^^^^^^
