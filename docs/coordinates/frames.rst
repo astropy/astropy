@@ -1,7 +1,7 @@
 .. include:: references.txt
 
 .. We call EarthLocation.of_site here first to force the downloading
-.. of sites.json so that future doctest output isn't clutted with
+.. of sites.json so that future doctest output isn't cluttered with
 .. "Downloading ... [done]". This can be removed once we have a better
 .. way of ignoring output lines based on pattern-matching, e.g.:
 .. https://github.com/astropy/pytest-doctestplus/issues/11
@@ -18,7 +18,7 @@ In `astropy.coordinates`, as outlined in the
 classes") define particular coordinate frames. They can (but do not
 *have* to) contain representation objects storing the actual coordinate
 data. The actual coordinate transformations are defined as functions
-that transform representations between frame classes.  This approach
+that transform representations between frame classes. This approach
 serves to separate high-level user functionality (see :doc:`skycoord`)
 and details of how the coordinates are actually stored (see
 :doc:`representations`) from the definition of frames and how they are
@@ -30,7 +30,7 @@ Using Frame Objects
 Frames without Data
 -------------------
 
-Frame objects have two distinct (but related) uses.  The first is
+Frame objects have two distinct (but related) uses. The first is
 storing the information needed to uniquely define a frame (e.g.,
 equinox, observation time). This information is stored on the frame
 objects as (read-only) Python attributes, which are set when the object
@@ -45,14 +45,14 @@ is first created::
     <FK5 Frame (equinox=J2000.000)>
 
 The specific names of attributes available for a particular frame (and
-their default values)  are available as the class method
+their default values) are available as the class method
 ``get_frame_attr_names``::
 
     >>> FK5.get_frame_attr_names()
     OrderedDict([('equinox', <Time object: scale='utc' format='jyear_str' value=J2000.000>)])
 
 You can access any of the attributes on a frame by using standard Python
-attribute access.  Note that for cases like ``equinox``, which are time
+attribute access. Note that for cases like ``equinox``, which are time
 inputs, if you pass in any unambiguous time string, it will be converted
 into an `~astropy.time.Time` object with UTC scale (see
 :ref:`astropy-time-inferring-input`)::
@@ -71,10 +71,10 @@ Frames with Data
 The second use for frame objects is to store actual realized coordinate
 data for frames like those described above. In this use, it is similar
 to the |skycoord| class, and in fact, the |skycoord| class internally
-uses the frame classes as its implementation.  However, the frame
-classes have fewer "convenience" features, thereby keeping the
-implementation of frame classes simple.  As such, they are created
-similarly to |skycoord| object.  The simplest way is to use
+uses the frame classes as its implementation. However, the frame
+classes have fewer "convenience" features, thereby streamlining the
+implementation of frame classes. As such, they are created
+similarly to |skycoord| objects. One suggested way is to use
 with keywords appropriate for the frame (e.g. ``ra`` and ``dec`` for
 equatorial systems)::
 
@@ -86,7 +86,7 @@ equatorial systems)::
     <FK5 Coordinate (equinox=J1975.000): (ra, dec) in deg
         (1.1, 2.2)>
 
-These same attributes can be used to access the data in the frames, as
+These same attributes can be used to access the data in the frames as
 |Angle| objects (or |Angle| subclasses)::
 
     >>> coo = ICRS(ra=1.1*u.deg, dec=2.2*u.deg)
@@ -99,11 +99,10 @@ These same attributes can be used to access the data in the frames, as
 
 You can use the ``representation_type`` attribute in conjunction
 with the ``representation_component_names`` attribute to figure out what
-keywords are accepted by a particular class object.  The former will be the
-representation class the system is expressed in (e.g.,
-spherical for equatorial frames), and the latter will be a dictionary
-mapping names for that frame to the attribute name on the representation
-class::
+keywords are accepted by a particular class object. The former will be the
+representation class in which the system is expressed (e.g., spherical for
+equatorial frames), and the latter will be a dictionary mapping names for that
+frame to the attribute name on the representation class::
 
     >>> import astropy.units as u
     >>> icrs = ICRS(1*u.deg, 2*u.deg)
@@ -112,7 +111,7 @@ class::
     >>> icrs.representation_component_names
     OrderedDict([('ra', 'lon'), ('dec', 'lat'), ('distance', 'distance')])
 
-One can get the data in a different representation if needed::
+You can get the data in a different representation if needed::
 
     >>> icrs.represent_as('cartesian')  # doctest: +FLOAT_CMP
     <CartesianRepresentation (x, y, z) [dimensionless]
@@ -124,7 +123,7 @@ One can get the data in a different representation if needed::
     to frame classes that are now named ``representation_type`` used to be
     simply ``representation``. The name of this attribute/argument is confusing
     as it points to the representation *class*, not the object containing the
-    underlying frame data (this is accessed via the frame attribute ``.data``).
+    underlying frame data (which is accessed via the frame attribute ``.data``).
     To clarify, we have renamed ``representation`` to ``representation_type``.
     In this version 3.0, we have only changed the references to this attribute
     in the documentation. In the next major version, we will issue a deprecation
@@ -132,14 +131,13 @@ One can get the data in a different representation if needed::
     attribute and ``representation=`` argument.
 
 The representation of the coordinate object can also be changed directly, as
-shown below.  This actually does *nothing* to the object internal data which
-stores the coordinate values, but it changes the external view of that data in
-two ways: (1) the object prints itself in accord with the new representation,
-and (2) the available attributes change to match those of the new
-representation (e.g. from ``ra, dec, distance`` to ``x, y, z``).  Setting the
-``representation_type`` thus changes a *property* of the object (how it appears)
-without changing the intrinsic object itself which represents a point in 3d
-space.::
+shown below. This does *nothing* to the object internal data which stores the
+coordinate values, but it changes the external view of that data in two ways:
+(1) the object prints itself in accord with the new representation, and (2) the
+available attributes change to match those of the new representation (e.g. from
+``ra, dec, distance`` to ``x, y, z``). Setting the ``representation_type``
+thus changes a *property* of the object (how it appears) without changing the
+intrinsic object itself which represents a point in 3D space.::
 
     >>> from astropy.coordinates import CartesianRepresentation
     >>> icrs.representation_type = CartesianRepresentation
@@ -150,8 +148,8 @@ space.::
     <Quantity 0.99923861>
 
 The representation can also be set at the time of creating a coordinate
-and affects the set of keywords used to supply the coordinate data.  For
-example to create a coordinate with cartesian data do::
+and affects the set of keywords used to supply the coordinate data. For
+example, to create a coordinate with Cartesian data do::
 
     >>> ICRS(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc, representation_type='cartesian')  #  doctest: +FLOAT_CMP
     <ICRS Coordinate: (x, y, z) in kpc
@@ -161,9 +159,9 @@ For more information about the use of representations in coordinates see the
 :ref:`astropy-skycoord-representations` section, and for details about the
 representations themselves see :ref:`astropy-coordinates-representations`.
 
-There are two other ways to create frame classes with coordinates.  A
+There are two other ways to create frame classes with coordinates. A
 representation class can be passed in directly at creation, along with
-any  frame attributes required::
+any frame attributes required::
 
     >>> from astropy.coordinates import SphericalRepresentation
     >>> rep = SphericalRepresentation(lon=1.1*u.deg, lat=2.2*u.deg, distance=3.3*u.kpc)
@@ -184,7 +182,7 @@ will yield a frame with the same attributes, but new data::
         (1.1, 2.2, 3.3)>
 
 You can check if a frame object has data using the ``has_data`` attribute, and
-if it is preset, it can be accessed from the ``data`` attribute::
+if it is present, it can be accessed from the ``data`` attribute::
 
     >>> ICRS().has_data
     False
@@ -210,7 +208,7 @@ over the scalars appropriately::
     <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
         [(1.5, 3.5, 5.), (2.5, 4.5, 5.)]>
 
-Similar broadcasting happens if you transform to another frame.  E.g.::
+Similar broadcasting happens if you transform to another frame. E.g.::
 
     >>> import numpy as np
     >>> from astropy.coordinates import EarthLocation, AltAz
@@ -222,9 +220,9 @@ Similar broadcasting happens if you transform to another frame.  E.g.::
     <AltAz Coordinate (obstime=['2012-03-21T00:00:00.000' '2012-06-21T00:00:00.000'], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0.0, obswl=1.0 micron): (az, alt) in deg
         [( 94.71264944, 89.21424252), (307.69488825, 37.98077771)]>
 
-Above, the shapes -- ``()`` for ``coo`` and ``(2,)`` for ``lf`` -- were
-broadcast against each other.  If you wished to determine the positions for a
-set of coordinates, you'd need to make sure that the shapes allowed this::
+Above, the shapes — ``()`` for ``coo`` and ``(2,)`` for ``lf`` — were
+broadcast against each other. If you wish to determine the positions for a
+set of coordinates, you will need to make sure that the shapes allow this::
 
     >>> coo2 = ICRS(ra=[180., 225., 270.]*u.deg, dec=[51.5, 0., 51.5]*u.deg)
     >>> coo2.transform_to(lf)
@@ -249,9 +247,9 @@ set of coordinates, you'd need to make sure that the shapes allowed this::
           ( 85.42187335, 89.69297997)]]>
 
 .. Note::
-   One sees that frames without data have a ``shape`` that is determined by
-   their frame attributes.  For frames with data the ``shape`` always is that
-   of the data; any non-scalar attributes are broadcast to have matching shape
+   Frames without data have a ``shape`` that is determined by their frame
+   attributes. For frames with data, the ``shape`` always is that of the data;
+   any non-scalar attributes are broadcast to have matching shapes
    (as can be seen for ``obstime`` in the last line above).
 
 Transforming between Frames
