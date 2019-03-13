@@ -679,6 +679,8 @@ the periodogram frequencies using a fast Fourier transform. As with the
 ``slow`` method, it can handle data errors and floating mean.
 The scaling is approximately :math:`O[N\log M]` for :math:`N`
 data points and :math:`M` frequencies.
+The fast method trades accuracy for speed, and produces a close approximation to 
+the true periodogram. Specifically, negative powers are obserevd in some cases.
 
 ``method='chi2'``
 -----------------
