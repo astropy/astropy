@@ -6,7 +6,7 @@ Known Issues
    :local:
    :depth: 2
 
-While most bugs and issues are managed using the `Astropy issue
+While most bugs and issues are managed using the `astropy issue
 tracker <https://github.com/astropy/astropy/issues>`_, this document
 lists issues that are too difficult to fix, may require some
 intervention from the user to work around, or are caused by bugs in other
@@ -15,22 +15,22 @@ projects or packages.
 Issues listed on this page are grouped into two categories: The first is known
 issues and shortcomings in actual algorithms and interfaces that currently do
 not have fixes or workarounds, and that users should be aware of when writing
-code that uses Astropy. Some of those issues are still platform-specific,
+code that uses `astropy`. Some of those issues are still platform-specific,
 while others are very general. The second category is of common issues that come
-up when configuring, building, or installing Astropy. This also includes
+up when configuring, building, or installing `astropy`. This also includes
 cases where the test suite can report false negatives depending on the context/
 platform on which it was run.
 
-Known deficiencies
+Known Deficiencies
 ==================
 
 .. _quantity_issues:
 
-Quantities lose their units with some operations
+Quantities Lose Their Units with Some Operations
 ------------------------------------------------
 
-Quantities are subclassed from Numpy's `~numpy.ndarray` and in some Numpy
-operations (and in SciPy operations using Numpy internally) the subclass is
+Quantities are subclassed from NumPy's `~numpy.ndarray` and in some NumPy
+operations (and in SciPy operations using NumPy internally) the subclass is
 ignored, which means that either a plain array is returned, or a
 `~astropy.units.quantity.Quantity` without units.
 E.g.::
@@ -118,10 +118,10 @@ Both will throw an exception if units do not cancel, e.g.::
 
 See: https://github.com/astropy/astropy/issues/7582
 
-Quantities lose their units when broadcasted
+Quantities Lose Their Units When Broadcasted
 --------------------------------------------
 
-When broadcasting Quantities, it's necessary to pass ``subok=True`` to
+When broadcasting Quantities, it is necessary to pass ``subok=True`` to
 `~numpy.broadcast_to`, or else a bare `~numpy.ndarray` will be returned::
 
    >>> q = u.Quantity(np.arange(10.), u.m)
@@ -145,11 +145,11 @@ This is analogous to the case of passing a Quantity to `~numpy.array`::
 
 See: https://github.com/astropy/astropy/issues/7832
 
-Quantities float comparison with np.isclose fails
+Quantities Float Comparison with np.isclose Fails
 -------------------------------------------------
 
-Comparing Quantities floats using the Numpy function `~numpy.isclose` fails on
-Numpy 1.9 as the comparison between ``a`` and ``b`` is made using the formula
+Comparing Quantities floats using the NumPy function `~numpy.isclose` fails on
+NumPy 1.9 as the comparison between ``a`` and ``b`` is made using the formula
 
 .. math::
 
@@ -169,15 +169,15 @@ One solution is::
     >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s) # doctest: +SKIP
     False
 
-Quantities in np.linspace failure on Numpy 1.10
+Quantities in np.linspace Failure on NumPy 1.10
 -----------------------------------------------
 
-`~numpy.linspace` does not work correctly with quantities when using Numpy
-1.10.0 to 1.10.5 due to a bug in Numpy. The solution is to upgrade to Numpy
+`~numpy.linspace` does not work correctly with quantities when using NumPy
+1.10.0 to 1.10.5 due to a bug in NumPy. The solution is to upgrade to NumPy
 1.10.6 or later, in which the bug was fixed.
 
 
-mmap support for ``astropy.io.fits`` on GNU Hurd
+mmap Support for ``astropy.io.fits`` on GNU Hurd
 ------------------------------------------------
 
 On Hurd and possibly other platforms, ``flush()`` on memory-mapped files are not
@@ -188,16 +188,16 @@ result in a warning (and mmap will be disabled on the file automatically).
 See: https://github.com/astropy/astropy/issues/968
 
 
-Bug with Unicode endianness in ``io.fits`` for big endian processors
+Bug with Unicode Endianness in ``io.fits`` for Big Endian Processors
 --------------------------------------------------------------------
 
 On big endian processors (e.g. SPARC, PowerPC, MIPS), string columns in FITS
 files may not be correctly read when using the ``Table.read`` interface. This
-will be fixed in a subsequent bug fix release of Astropy (see `bug report here
+will be fixed in a subsequent bug fix release of `astropy` (see `bug report here
 <https://github.com/astropy/astropy/issues/3415>`_).
 
 
-Color printing on Windows
+Color Printing on Windows
 -------------------------
 
 Colored printing of log messages and other colored text does work in Windows,
@@ -205,21 +205,21 @@ but only when running in the IPython console. Colors are not currently
 supported in the basic Python command-line interpreter on Windows.
 
 
-Build/installation/test issues
+Build/Installation/Test Issues
 ==============================
 
-Anaconda users should upgrade with ``conda``, not ``pip``
+Anaconda Users Should Upgrade with ``conda``, Not ``pip``
 ---------------------------------------------------------
 
-Upgrading Astropy in the Anaconda Python distribution using ``pip`` can result
+Upgrading `astropy` in the Anaconda Python distribution using ``pip`` can result
 in a corrupted install with a mix of files from the old version and the new
 version. Anaconda users should update with ``conda update astropy``. There
-may be a brief delay between the release of Astropy on PyPI and its release
+may be a brief delay between the release of `astropy` on PyPI and its release
 via the ``conda`` package manager; users can check the availability of new
 versions with ``conda search astropy``.
 
 
-Locale errors in MacOS X and Linux
+Locale Errors in MacOS X and Linux
 ----------------------------------
 
 On MacOS X, you may see the following error when running ``setup.py``::
@@ -267,10 +267,10 @@ If so, you can go ahead and try running ``setup.py`` again (in the new
 terminal).
 
 
-Creating a Time object fails with ValueError after upgrading Astropy
+Creating a Time Object Fails with ValueError After Upgrading `astropy`
 --------------------------------------------------------------------
 
-In some cases, when users have upgraded Astropy from an older version to v1.0
+In some cases, when users have upgraded `astropy` from an older version to v1.0
 or greater, they have run into the following crash when trying to create an
 `~astropy.time.Time` object::
 
@@ -283,13 +283,13 @@ or greater, they have run into the following crash when trying to create an
     u'jyear_str', u'iso', u'isot', u'yday', u'byear_str']
 
 This problem can occur when there is a version mismatch between the compiled
-ERFA library (included as part of Astropy in most distributions), and
-the version of the Astropy Python source.
+ERFA library (included as part of `astropy` in most distributions), and
+the version of the `astropy` Python source.
 
 This can be from a number of causes. The most likely is that when installing the
-new Astropy version, your previous Astropy version was not fully uninstalled
+new `astropy` version, your previous `astropy` version was not fully uninstalled
 first, resulting in a mishmash of versions. Your best bet is to fully remove
-Astropy from its installation path and reinstall from scratch using your
+`astropy` from its installation path and reinstall from scratch using your
 preferred installation method. Removing the old version may be achieved by
 removing the entire ``astropy/`` directory from within the
 ``site-packages`` directory it is installed in. However, if in doubt, ask
@@ -303,7 +303,7 @@ Make sure before running this that there are no untracked files in the
 repository you intend to save. Then rebuild/reinstall from the clean repo.
 
 
-Failing logging tests when running the tests in IPython
+Failing Logging Tests When Running the Tests in IPython
 -------------------------------------------------------
 
 When running the Astropy tests using ``astropy.test()`` in an IPython
@@ -315,7 +315,7 @@ not due to a problem with the test itself or the feature being tested.
 See: https://github.com/astropy/astropy/issues/717
 
 
-Some docstrings can not be displayed in IPython < 0.13.2
+Some Docstrings Can Not Be Displayed in IPython < 0.13.2
 --------------------------------------------------------
 
 Displaying long docstrings that contain Unicode characters may fail on
@@ -343,25 +343,25 @@ acceptable.
 
 The IPython issue: https://github.com/ipython/ipython/pull/2738
 
-Compatibility issues with pytest 3.7 and later
+Compatibility Issues with pytest 3.7 and later
 ----------------------------------------------
 
 Due to a bug in `pytest <http://www.pytest.org>`_ related to test collection,
-the tests for the core Astropy package for version 2.0.x (LTS), and for packages
-using the core package's test infrastructure and being tested against 2.0.x
-(LTS), will not be executed correctly with pytest 3.7, 3.8, or 3.9. The symptom
-of this bug is that no tests or only tests in RST files are collected. In
-addition, Astropy 2.0.x (LTS) is not compatible with pytest 4.0 and above,
+the tests for the core `astropy` package for version 2.0.x (LTS), and for
+packages using the core package's test infrastructure and being tested against
+2.0.x (LTS), will not be executed correctly with pytest 3.7, 3.8, or 3.9. The
+symptom of this bug is that no tests or only tests in RST files are collected.
+In addition, `astropy` 2.0.x (LTS) is not compatible with pytest 4.0 and above,
 as in this case deprecation errors from pytest can cause tests to fail.
-Therefore, when testing against Astropy v2.0.x (LTS), pytest 3.6 or earlier
+Therefore, when testing against `astropy` v2.0.x (LTS), pytest 3.6 or earlier
 versions should be used. These issues do not occur in version 3.0.x and above of
 the core package.
 
 There is an unrelated issue that also affects more recent versions of
-Astropy when testing with pytest 4.0 and later, which can
-cause issues when collecting tests - in this case, the symptom is that the
-test collection hangs and/or appears to run the tests recursively. If you're
-maintaining a package that was created using the Astropy
+`astropy` when testing with pytest 4.0 and later, which can
+cause issues when collecting tests — in this case, the symptom is that the
+test collection hangs and/or appears to run the tests recursively. If you are
+maintaining a package that was created using the `astropy`
 `package template <http://github.com/astropy/package-template>`_, then
 this can be fixed by updating to the latest version of the ``_astropy_init.py``
 file. The root cause of this issue is that pytest now tries to pick up the
