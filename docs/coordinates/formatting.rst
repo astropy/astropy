@@ -15,7 +15,7 @@ For example::
 
 To get better control over the formatting, you can use the angles'
 :meth:`~astropy.coordinates.Angle.to_string` method (see :doc:`angles` for
-more).  For example::
+more). For example::
 
   >>> rahmsstr = c.ra.to_string(u.hour)
   >>> str(rahmsstr)
@@ -26,7 +26,7 @@ more).  For example::
   >>> rahmsstr + ' ' + decdmsstr
   u'12h30m49.4208s +12d23m28.032s'
 
-You can also use python's `format` string method to create more complex
+You can also use Python's `format` string method to create more complex
 string expressions, such as IAU-style coordinates or even full sentences::
 
   >>> 'SDSS J{0}{1}'.format(c.ra.to_string(unit=u.hourangle, sep='', precision=2, pad=True), c.dec.to_string(sep='', precision=2, alwayssign=True, pad=True))
