@@ -1,12 +1,12 @@
 **********************************
-Importing Astropy and sub-packages
+Importing `astropy` and sub-packages
 **********************************
 
 In order to encourage consistency among users in importing and using Astropy
 functionality, we have put together the following guidelines.
 
 Since most of the functionality in Astropy resides in sub-packages, importing
-Astropy as::
+`astropy` as::
 
     >>> import astropy
 
@@ -50,7 +50,7 @@ the following syntax is also acceptable::
     >>> from astropy.io import fits as pyfits
 
 *********************************
-Getting started with sub-packages
+Getting Started with Sub-packages
 *********************************
 
 Because different sub-packages have very different functionalities, each
@@ -58,8 +58,8 @@ sub-package has its own getting started guide. These can be found by browsing
 the sections listed in the :ref:`user-docs`.
 
 You can also look at docstrings for a particular package or object, or access
-their documentation using the
-`~astropy.utils.misc.find_api_page` function. For example, ::
+their documentation using the `~astropy.utils.misc.find_api_page` function. For
+example, ::
 
     >>> from astropy import find_api_page
     >>> from astropy.units import Quantity
