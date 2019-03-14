@@ -1,7 +1,7 @@
 cdef Py_ssize_t BLOCK_SIZE = 2880  # the FITS block size
 cdef Py_ssize_t CARD_LENGTH = 80
-cdef bytes VALUE_INDICATOR = b'= '  # The standard FITS value indicator
-cdef bytes END_CARD = b'END' + b' ' * 77
+cdef str VALUE_INDICATOR = '= '  # The standard FITS value indicator
+cdef str END_CARD = 'END' + ' ' * 77
 
 
 def parse_header(fileobj):
@@ -10,8 +10,8 @@ def parse_header(fileobj):
     cards = {}
     read_blocks = []
     cdef int found_end = 0
-    cdef bytes header_str, block, card_image, keyword
-    cdef str keyword_upper
+    cdef bytes block
+    cdef str header_str, block_str, card_image, keyword
     cdef Py_ssize_t idx, end_idx, sep_idx
 
     while True:
@@ -22,12 +22,13 @@ def parse_header(fileobj):
             # the full Header parsing
             raise Exception
 
-        read_blocks.append(block)
+        block_str = block.decode('ascii')
+        read_blocks.append(block_str)
         idx = 0
         while idx < BLOCK_SIZE:
             # iterate on cards
             end_idx = idx + CARD_LENGTH
-            card_image = block[idx:end_idx]
+            card_image = block_str[idx:end_idx]
             idx = end_idx
 
             keyword = card_image[:8].strip()
@@ -37,12 +38,10 @@ def parse_header(fileobj):
             # other cards, e.G. CONTINUE, HIERARCH, COMMENT.
             if sep_idx == 8:
                 # ok, found standard keyword
-                keyword_upper = keyword.decode('ascii').upper()
-                cards[keyword_upper] = card_image
+                cards[keyword.upper()] = card_image
             elif 0 < sep_idx < 8:
                 keyword = card_image[:sep_idx]
-                keyword_upper = keyword.decode('ascii').upper()
-                cards[keyword_upper] = card_image
+                cards[keyword.upper()] = card_image
             elif card_image == END_CARD:
                 found_end = 1
                 break
@@ -52,5 +51,5 @@ def parse_header(fileobj):
 
     # we keep the full header string as it may be needed later to
     # create a Header object
-    header_str = b''.join(read_blocks)
+    header_str = ''.join(read_blocks)
     return header_str, cards
