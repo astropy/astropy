@@ -1914,8 +1914,7 @@ class _DelayedHeader:
             return obj.__dict__['_header']
         except KeyError:
             if obj._header_str is not None:
-                header = decode_ascii(obj._header_str)
-                hdr = Header.fromstring(header)
+                hdr = Header.fromstring(obj._header_str)
                 obj._header_str = None
             else:
                 raise AttributeError("'{}' object has no attribute '_header'"
@@ -1948,7 +1947,7 @@ class _BasicHeaderCards:
         try:
             return self.header._cards[key]
         except KeyError:
-            cardstr = self.header._raw_cards[key].decode('ascii')
+            cardstr = self.header._raw_cards[key]
             card = Card.fromstring(cardstr)
             self.header._cards[key] = card
             return card
@@ -1987,7 +1986,7 @@ class _BasicHeader(collections.abc.Mapping):
             return self._cards[key].value
         except KeyError:
             # parse the Card and store it
-            cardstr = self._raw_cards[key].decode('ascii')
+            cardstr = self._raw_cards[key]
             self._cards[key] = card = Card.fromstring(cardstr)
             return card.value
 
