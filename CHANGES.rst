@@ -1908,6 +1908,9 @@ astropy.io.fits
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
+- Explicitly set PyYAML default flow style to None to ensure consistent
+  astropy YAML output for PyYAML version 5.1 and later. [#8500]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
