@@ -15,7 +15,7 @@ __all__ = ['PANDAS_FMTS']
 PANDAS_FMTS = {'csv': {'read': {},
                        'write': {'index': False}},
                'fwf': {'read': {}},  # No writer
-               'html': {'read': {},
+               'html': {'read': {'flavor': 'bs4'},
                         'write': {'index': False}},
                'json': {'read': {'orient': 'columns'},
                         'write': {'orient': 'columns', 'index': True}}}
