@@ -538,7 +538,8 @@ def test_fail_meta_serialize(tmpdir):
 
     with pytest.raises(Exception) as err:
         t1.write(test_file, path='the_table', serialize_meta=True)
-    assert "cannot represent an object: <class 'str'>" in str(err)
+    assert "cannot represent an object" in str(err)
+    assert "<class 'str'>" in str(err)
 
 
 @pytest.mark.skipif('not HAS_H5PY')
