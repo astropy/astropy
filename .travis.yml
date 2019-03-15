@@ -35,7 +35,7 @@ env:
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
-        - DEV_PIP_DEP='asdf>=2.3 Cython jinja2 scipy h5py matplotlib pyyaml<5.1 scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
+        - DEV_PIP_DEP='asdf>=2.3 Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach bottleneck'
         - ASDF_PIP_DEP='asdf>=2.3'
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
