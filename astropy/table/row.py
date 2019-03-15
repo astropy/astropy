@@ -30,18 +30,20 @@ class Row:
     """
 
     def __init__(self, table, index):
+        # Ensure that the row index is a valid index (int)
+        index = operator_index(index)
+
         # Get the length of the first column.  Rely on the table being well-formed
         # at this point.
-        n = len(next(iter(table.columns.values())))
+        n = len(table)
 
         if index < -n or index >= n:
             raise IndexError('index {0} out of range for table with length {1}'
                              .format(index, len(table)))
 
+        # Finally, ensure the index is positive [#8422] and set Row attributes
+        self._index = index % n
         self._table = table
-
-        # Ensure that the row index is a valid index (int) and positive [#8422]
-        self._index = operator_index(index) % n
 
     def __getitem__(self, item):
         try:
