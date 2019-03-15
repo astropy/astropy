@@ -824,24 +824,26 @@ class Table:
 
             newcols.append(newcol)
 
-        self._make_table_from_cols(table, newcols, check_cols=False,
-                                   names=self.columns.keys())
+        self._make_table_from_cols(table, newcols, verify=False, names=self.columns.keys())
         return table
 
     @staticmethod
-    def _make_table_from_cols(table, cols, check_cols=True, names=None):
+    def _make_table_from_cols(table, cols, verify=True, names=None):
         """
         Make ``table`` in-place so that it represents the given list of ``cols``.
         """
-        if check_cols:
-            colnames = set(col.info.name for col in cols)
-            if None in colnames:
-                raise TypeError('Cannot have None for column name')
-            if len(colnames) != len(cols):
-                raise ValueError('Duplicate column names')
-
         if names is None:
-            names = (col.info.name for col in cols)
+            names = [col.info.name for col in cols]
+
+        # Note: we do not test for len(names) == len(cols) if names is not None.  In that
+        # case the function is being called by from "trusted" source (e.g. right above here)
+        # that is assumed to provide valid inputs.  In that case verify=False.
+
+        if verify:
+            if None in names:
+                raise TypeError('Cannot have None for column name')
+            if len(set(names)) != len(names):
+                raise ValueError('Duplicate column names')
 
         columns = table.TableColumns((name, col) for name, col in zip(names, cols))
 
