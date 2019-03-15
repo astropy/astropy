@@ -54,6 +54,9 @@ astropy.io.registry
 
 - Implement ``Table`` reader and writer for ``ASDF``. [#8261]
 
+- Implement ``Table`` reader and writer methods to wrap ``pandas`` I/O methods
+  for CSV, Fixed width format, HTML, and JSON. [#8381]
+
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
