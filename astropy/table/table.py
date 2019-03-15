@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import functools
 
 from .index import TableIndices, TableLoc, TableILoc, TableLocIndices
 
@@ -363,16 +362,26 @@ class Table:
             n_cols = len(default_names)
 
         elif isinstance(data, Table):
-            # If input meta is not None (default), then provide direction to
-            # self._init_from_table to entirely ignore meta on the input table.
-            # This saves a potential deepcopy of the table meta that later gets
-            # discarded.
-            use_table_meta = (meta is None)
-            init_func = functools.partial(self._init_from_table, use_table_meta=use_table_meta)
-            n_cols = len(data.colnames)
-            default_names = data.colnames
-            # don't copy indices if the input Table is in non-copy mode
+            # If user-input meta is None then use data.meta (if non-trivial)
+            if meta is None and data.meta:
+                # At this point do NOT deepcopy data.meta as this will happen after
+                # table init_func() is called.  But for table input the table meta
+                # gets a key copy here if copy=False because later a direct object ref
+                # is used.
+                meta = data.meta if copy else data.meta.copy()
+
+            # Handle indices on input table. Copy primary key and don't copy indices
+            # if the input Table is in non-copy mode.
+            self.primary_key = data.primary_key
             self._init_indices = self._init_indices and data._copy_indices
+
+            # Extract default names, n_cols, and then overwrite ``data`` to be the
+            # table columns so we can use _init_from_list.
+            default_names = data.colnames
+            n_cols = len(default_names)
+            data = list(data.columns.values())
+
+            init_func = self._init_from_list
 
         elif data is None:
             if names is None:
@@ -417,9 +426,7 @@ class Table:
         # Finally do the real initialization
         init_func(data, names, dtype, n_cols, copy)
 
-
-        # If meta supplied then override what may have already been set (e.g. for
-        # # _init_from_table.  If copy=True then deepcopy meta otherwise use the
+        # Set table meta.  If copy=True then deepcopy meta otherwise use the
         # user-supplied meta directly.
         if meta is not None:
             self.meta = deepcopy(meta) if copy else meta
@@ -742,23 +749,6 @@ class Table:
 
         data_list = [data[name] for name in names]
         self._init_from_list(data_list, names, dtype, n_cols, copy)
-
-    def _init_from_table(self, data, names, dtype, n_cols, copy, *, use_table_meta=True):
-        """Initialize table from an existing Table object
-
-        The ``use_table_meta`` kwargs indicates that the caller has a different meta
-        that will be used for the final output table meta, so ignore ``data.meta``.
-        """
-
-        table = data  # data is really a Table, rename for clarity
-
-        if use_table_meta and table.meta:
-            self.meta = deepcopy(table.meta) if copy else table.meta.copy()
-
-        self.primary_key = table.primary_key
-        cols = list(table.columns.values())
-
-        self._init_from_list(cols, names, dtype, n_cols, copy)
 
     def _convert_col_for_table(self, col):
         """
