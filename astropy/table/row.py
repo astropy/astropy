@@ -33,8 +33,6 @@ class Row:
         # Ensure that the row index is a valid index (int)
         index = operator_index(index)
 
-        # Get the length of the first column.  Rely on the table being well-formed
-        # at this point.
         n = len(table)
 
         if index < -n or index >= n:
