@@ -49,6 +49,9 @@ def simple_downsample(time_series, time_bin_size, func=None, time_bin_start=None
     if not isinstance(time_series, TimeSeries):
         raise TypeError("time_series should be a TimeSeries")
 
+    if not isinstance(time_bin_size, u.Quantity):
+        raise TypeError("time_bin_size should be a astropy.unit quantity")
+
     bin_size_sec = time_bin_size.to_value(u.s)
 
     # Use the table sorted by time
@@ -66,7 +69,7 @@ def simple_downsample(time_series, time_bin_size, func=None, time_bin_start=None
         n_bins = int(np.ceil(relative_time_sec[-1] / bin_size_sec))
 
     if func is None:
-        func = np.nanmedian
+        func = np.nanmean
 
     # Determine the bins
     relative_bins_sec = np.cumsum(np.hstack([0, np.repeat(bin_size_sec, n_bins)]))
