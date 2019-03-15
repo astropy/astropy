@@ -64,6 +64,9 @@ def has_info_class(obj, cls):
     return hasattr(obj, 'info') and isinstance(obj.info, cls)
 
 
+# Note to future maintainers: when transitioning this to dict
+# be sure to change the OrderedDict ref(s) in Row and in __len__().
+
 class TableColumns(OrderedDict):
     """OrderedDict subclass for a set of columns.
 
@@ -1453,15 +1456,19 @@ class Table:
         return list(self.columns.keys())
 
     def __len__(self):
-        if len(self.columns) == 0:
-            return 0
+        # For performance reasons (esp. in Row) cache the first column name
+        # and use that subsequently for the table length.  If might not be
+        # available yet or the column might be gone now, in which case
+        # try again in the except block.
+        try:
+            return len(OrderedDict.__getitem__(self.columns, self._first_colname))
+        except (AttributeError, KeyError):
+            if len(self.columns) == 0:
+                return 0
 
-        lengths = set(len(col) for col in self.columns.values())
-        if len(lengths) != 1:
-            len_strs = [' {0} : {1}'.format(name, len(col)) for name, col in self.columns.items()]
-            raise ValueError('Column length mismatch:\n{0}'.format('\n'.join(len_strs)))
-
-        return lengths.pop()
+            # Get the first column name
+            self._first_colname = next(iter(self.columns))
+            return len(self.columns[self._first_colname])
 
     def index_column(self, name):
         """

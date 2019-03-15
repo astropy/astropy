@@ -75,6 +75,10 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Improved speed of table row access by a factor of about 2-3.  Improved speed
+  of Table len() by a factor of around 3-10 (depending on the number of columns).
+  [#8494]
+
 - Improved the Table - pandas ``DataFrame`` interface (``to_pandas()`` and
   ``from_pandas()``).  Mixin columns like ``Time`` and ``Quantity`` can now be
   converted to pandas by flattening the columns as necessary to plain
