@@ -96,6 +96,9 @@ astropy.table
   Table initialization so that input ``meta`` is copied only if ``copy=True``.
   [#8404]
 
+- Improved Table slicing performance with internal implementation changes
+  related to column attribute access and certain input validation. [#8493]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
