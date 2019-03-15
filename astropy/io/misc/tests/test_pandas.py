@@ -42,7 +42,7 @@ def test_read_fixed_width_format():
     """
     tbl = """\
     a   b   c
-    1  2.0  a 
+    1  2.0  a
     2  3.0  b"""
     buf = StringIO()
     buf.write(tbl)
