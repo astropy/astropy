@@ -8,19 +8,55 @@ import astropy.io.registry as io_registry
 
 __all__ = ['PANDAS_FMTS']
 
-# By default pandas ``to_<fmt>`` methods want to write the index row, which
-# for ``Table.to_pandas()`` is going to be just the integer row number.
-# Normally astropy users don't expect that in their output table.
-# But JSON is different for some reason.
+# Astropy users normally expect to not have an index, so default to turn
+# off writing the index.  This structure allows for astropy-specific
+# customization of all options.
 PANDAS_FMTS = {'csv': {'read': {},
                        'write': {'index': False}},
                'fwf': {'read': {}},  # No writer
-               'html': {'read': {'flavor': 'bs4'},
+               'html': {'read': {},
                         'write': {'index': False}},
-               'json': {'read': {'orient': 'columns'},
-                        'write': {'orient': 'columns', 'index': True}}}
+               'json': {'read': {},
+                        'write': {}}}
+
 PANDAS_PREFIX = 'pandas.'
 
+# Copy the following from pandas.io.html
+_IMPORTS = False
+_HAS_BS4 = False
+_HAS_LXML = False
+_HAS_HTML5LIB = False
+
+
+def _importers():
+    # import things we need
+    # but make this done on a first use basis
+
+    global _IMPORTS
+    if _IMPORTS:
+        return
+
+    global _HAS_BS4, _HAS_LXML, _HAS_HTML5LIB
+
+    try:
+        import bs4  # noqa
+        _HAS_BS4 = True
+    except ImportError:
+        pass
+
+    try:
+        import lxml  # noqa
+        _HAS_LXML = True
+    except ImportError:
+        pass
+
+    try:
+        import html5lib  # noqa
+        _HAS_HTML5LIB = True
+    except ImportError:
+        pass
+
+    _IMPORTS = True
 
 def _pandas_read(fmt, filespec, **kwargs):
     """Provide io Table connector to read table using pandas.
@@ -37,6 +73,15 @@ def _pandas_read(fmt, filespec, **kwargs):
     # Get defaults and then override with user-supplied values
     read_kwargs = PANDAS_FMTS[pandas_fmt]['read'].copy()
     read_kwargs.update(kwargs)
+
+    # Special case: pandas defaults to HTML lxml for reading, but does not attempt
+    # to fall back to bs4 + html5lib.  So do that now for convenience if user has
+    # not specifically selected a flavor.  If things go wrong the pandas exception
+    # with instruction to install a library will come up.
+    if pandas_fmt == 'html' and 'flavor' not in kwargs:
+        _importers()
+        if (not _HAS_LXML and _HAS_HTML5LIB and _HAS_BS4):
+            read_kwargs['flavor'] = 'bs4'
 
     df = read_func(filespec, **read_kwargs)
 
