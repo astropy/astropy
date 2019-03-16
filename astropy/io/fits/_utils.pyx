@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 cdef Py_ssize_t BLOCK_SIZE = 2880  # the FITS block size
 cdef Py_ssize_t CARD_LENGTH = 80
 cdef str VALUE_INDICATOR = '= '  # The standard FITS value indicator
@@ -7,7 +9,7 @@ cdef str END_CARD = 'END' + ' ' * 77
 def parse_header(fileobj):
     """The main method allowing to parse quickly a FITS header."""
 
-    cards = {}
+    cards = OrderedDict()
     read_blocks = []
     cdef int found_end = 0
     cdef bytes block
