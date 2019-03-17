@@ -21,14 +21,18 @@ PANDAS_FMTS = {'csv': {'read': {},
 
 PANDAS_PREFIX = 'pandas.'
 
-# Copy the following from pandas.io.html
+# Imports for reading HTML
 _IMPORTS = False
 _HAS_BS4 = False
 _HAS_LXML = False
 _HAS_HTML5LIB = False
 
 
-def _importers():
+def import_html_libs():
+    """Try importing dependencies for reading HTML.
+
+    This is copied from pandas.io.html
+    """
     # import things we need
     # but make this done on a first use basis
 
@@ -79,7 +83,7 @@ def _pandas_read(fmt, filespec, **kwargs):
     # not specifically selected a flavor.  If things go wrong the pandas exception
     # with instruction to install a library will come up.
     if pandas_fmt == 'html' and 'flavor' not in kwargs:
-        _importers()
+        import_html_libs()
         if (not _HAS_LXML and _HAS_HTML5LIB and _HAS_BS4):
             read_kwargs['flavor'] = 'bs4'
 
