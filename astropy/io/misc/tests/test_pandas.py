@@ -9,11 +9,17 @@ from astropy.io import ascii
 from astropy.table import Table, QTable
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from astropy.io.misc.pandas.connect import PANDAS_FMTS
+from astropy.io.misc.pandas import connect
 
+# Check dependencies
 pandas = pytest.importorskip("pandas")
 
-WRITE_FMTS = [fmt for fmt in PANDAS_FMTS if 'write' in PANDAS_FMTS[fmt]]
+connect.import_html_libs()
+HAS_HTML_DEPS = connect._HAS_LXML or (connect._HAS_BS4 and connect._HAS_HTML5LIB)
+
+
+WRITE_FMTS = [fmt for fmt in connect.PANDAS_FMTS
+              if 'write' in connect.PANDAS_FMTS[fmt]]
 
 
 @pytest.mark.parametrize('fmt', WRITE_FMTS)
@@ -24,6 +30,10 @@ def test_read_write_format(fmt):
     :param fmt: format name, e.g. csv, html, json
     :return:
     """
+    # Skip the reading tests
+    if fmt == 'html' and not HAS_HTML_DEPS:
+        pytest.skip('Missing lxml or bs4 + html5lib for HTML read/write test')
+
     pandas_fmt = 'pandas.' + fmt
     t = Table([[1, 2, 3], [1.0, 2.5, 5.0], ['a', 'b', 'c']])
     buf = StringIO()
