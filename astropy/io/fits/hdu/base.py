@@ -67,7 +67,6 @@ def _hdu_class_from_header(cls, header):
                 if not (c.__module__.startswith('astropy.io.fits.') or
                         c in cls._hdu_registry):
                     continue
-                # print('try', c)
                 if c.match_header(header):
                     klass = c
                     break
