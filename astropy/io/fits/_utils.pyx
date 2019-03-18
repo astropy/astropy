@@ -1,3 +1,4 @@
+# cython: language_level=3
 from collections import OrderedDict
 
 cdef Py_ssize_t BLOCK_SIZE = 2880  # the FITS block size
@@ -10,7 +11,7 @@ def parse_header(fileobj):
     """The main method allowing to parse quickly a FITS header."""
 
     cards = OrderedDict()
-    cdef read_blocks = []
+    cdef list read_blocks = []
     cdef int found_end = 0
     cdef bytes block
     cdef str header_str, block_str, card_image, keyword
