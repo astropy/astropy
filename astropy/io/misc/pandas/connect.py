@@ -62,6 +62,7 @@ def import_html_libs():
 
     _IMPORTS = True
 
+
 def _pandas_read(fmt, filespec, **kwargs):
     """Provide io Table connector to read table using pandas.
 
