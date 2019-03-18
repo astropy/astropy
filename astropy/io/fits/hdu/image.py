@@ -152,7 +152,6 @@ class _ImageBaseHDU(_ValidHDU):
             # appropriate BITPIX for the data, and always sets _bzero=0 and
             # _bscale=1.
             self.data = data
-            self.update_header()
 
             # Check again for BITPIX/BSCALE/BZERO in case they changed when the
             # data was assigned. This can happen, for example, if the input
