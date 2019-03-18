@@ -306,6 +306,9 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- In addition to ``DeprecationWarning``, now ``FutureWarning``
+  would also be turned into exceptions. [#8506]
+
 astropy.time
 ^^^^^^^^^^^^
 

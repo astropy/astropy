@@ -15,17 +15,17 @@ try:
     # Import pkg_resources to prevent it from issuing warnings upon being
     # imported from within py.test.  See
     # https://github.com/astropy/astropy/pull/537 for a detailed explanation.
-    import pkg_resources  # pylint: disable=W0611
+    import pkg_resources  # pylint: disable=W0611  # noqa
 except ImportError:
     pass
 
 from astropy.units import allclose as quantity_allclose  # noqa
 from astropy.utils.exceptions import (AstropyDeprecationWarning,
-                                AstropyPendingDeprecationWarning)
+                                      AstropyPendingDeprecationWarning)
 
 
 # For backward-compatibility with affiliated packages
-from .runner import TestRunner  # pylint: disable=W0611
+from .runner import TestRunner  # pylint: disable=W0611  # noqa
 
 __all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
            'treat_deprecations_as_exceptions', 'catch_warnings',
@@ -257,8 +257,8 @@ def treat_deprecations_as_exceptions():
 
     # Now, start over again with the warning filters
     warnings.resetwarnings()
-    # Now, turn DeprecationWarnings into exceptions
-    _all_warns = [DeprecationWarning]
+    # Now, turn these warnings into exceptions
+    _all_warns = [DeprecationWarning, FutureWarning]
 
     # Only turn astropy deprecation warnings into exceptions if requested
     if _include_astropy_deprecations:
