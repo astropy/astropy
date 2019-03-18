@@ -25,6 +25,10 @@ Astropy also depends on other packages for optional features:
 - `BeautifulSoup <https://www.crummy.com/software/BeautifulSoup/>`_: To read
   :class:`~astropy.table.table.Table` objects from HTML files.
 
+- `html5lib <https://html5lib.readthedocs.io/en/stable/>`_: To read
+  :class:`~astropy.table.table.Table` objects from HTML files using the
+  `pandas <http://pandas.pydata.org/>`_ reader.
+
 - `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
   disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
 
@@ -35,8 +39,10 @@ Astropy also depends on other packages for optional features:
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
   This is a command line tool installed outside of Python.
 
-- `pandas <http://pandas.pydata.org/>`_: To read/write
+- `pandas <http://pandas.pydata.org/>`_: To convert
   :class:`~astropy.table.Table` objects from/to pandas DataFrame objects.
+  Version 0.14 or higher is required to use the :ref:`table_io_pandas`
+  I/O functions to read/write :class:`~astropy.table.Table` objects.
 
 - `bintrees <https://pypi.python.org/pypi/bintrees>`_ for faster ``FastRBT`` and
   ``FastBST`` indexing engines with ``Table``, although these will still be
