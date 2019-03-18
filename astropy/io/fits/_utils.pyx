@@ -34,20 +34,20 @@ def parse_header(fileobj):
             card_image = block_str[idx:end_idx]
             idx = end_idx
 
-            keyword = card_image[:8].strip()
-            sep_idx = card_image.find(VALUE_INDICATOR)
-
             # We are interested only in standard keyword, so we skip
-            # other cards, e.G. CONTINUE, HIERARCH, COMMENT.
-            if sep_idx == 8:
+            # other cards, e.g. CONTINUE, HIERARCH, COMMENT.
+            if card_image[8:10] == VALUE_INDICATOR:
                 # ok, found standard keyword
+                keyword = card_image[:8].strip()
                 cards[keyword.upper()] = card_image
-            elif 0 < sep_idx < 8:
-                keyword = card_image[:sep_idx]
-                cards[keyword.upper()] = card_image
-            elif card_image == END_CARD:
-                found_end = 1
-                break
+            else:
+                sep_idx = card_image[:8].find(VALUE_INDICATOR)
+                if 0 < sep_idx < 8:
+                    keyword = card_image[:sep_idx]
+                    cards[keyword.upper()] = card_image
+                elif card_image == END_CARD:
+                    found_end = 1
+                    break
 
     # we keep the full header string as it may be needed later to
     # create a Header object
