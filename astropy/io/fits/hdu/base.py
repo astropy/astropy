@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+
+
 import datetime
 import os
 import sys
@@ -13,9 +15,9 @@ from astropy.io.fits import conf
 from astropy.io.fits.file import _File
 from astropy.io.fits.header import (Header, _BasicHeader, _pad_length,
                                     _DelayedHeader)
-from astropy.io.fits.util import (
-    _is_int, _is_pseudo_unsigned, _unsigned_zero, itersubclasses, decode_ascii,
-    _get_array_mmap, first, _free_space_check, _extract_number)
+from astropy.io.fits.util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
+                    itersubclasses, decode_ascii, _get_array_mmap, first,
+                    _free_space_check, _extract_number)
 from astropy.io.fits.verify import _Verify, _ErrList
 
 from astropy.utils import lazyproperty
