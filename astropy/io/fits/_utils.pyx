@@ -10,13 +10,13 @@ def parse_header(fileobj):
     """The main method allowing to parse quickly a FITS header."""
 
     cards = OrderedDict()
-    read_blocks = []
+    cdef read_blocks = []
     cdef int found_end = 0
     cdef bytes block
     cdef str header_str, block_str, card_image, keyword
     cdef Py_ssize_t idx, end_idx, sep_idx
 
-    while True:
+    while found_end == 0:
         # iterate on blocks
         block = fileobj.read(BLOCK_SIZE)
         if not block or len(block) < BLOCK_SIZE:
@@ -47,9 +47,6 @@ def parse_header(fileobj):
             elif card_image == END_CARD:
                 found_end = 1
                 break
-
-        if found_end == 1:
-            break
 
     # we keep the full header string as it may be needed later to
     # create a Header object
