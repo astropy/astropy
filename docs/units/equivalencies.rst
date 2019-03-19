@@ -416,8 +416,7 @@ scaling:
 Temperature Equivalency
 -----------------------
 
-The :func:`~astropy.units.temperature` equivalency allows conversion between the temperature units; degree Celsius, Fahrenheit and Kelvin.
-Example:
+The :func:`~astropy.units.temperature` equivalency allows conversion between the Celsius, Fahrenheit and Kelvin temperature units. For example::
 
     >>> import astropy.units as u
     >>> temp_C = 0*u.Celsius
