@@ -522,10 +522,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     Examples
     --------
     >>> convolve_fft([1, 0, 3], [1, 1, 1])
-    array([ 1.,  4.,  3.])
+    array([0.33333333, 1.33333333, 1.])
 
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1])
-    array([ 1.,  4.,  3.])
+    array([0.5, 2. , 1.5])
 
     >>> convolve_fft([1, 0, 3], [0, 1, 0])
     array([ 1.,  0.,  3.])
@@ -542,17 +542,17 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     array([ 1.,  nan,  3.])
 
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate')
-    array([ 1.,  4.,  3.])
+    array([0.5, 2. , 1.5])
 
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate',
     ...               normalize_kernel=True)
-    array([ 1.,  2.,  3.])
+    array([0.5, 2. , 1.5])
 
     >>> import scipy.fftpack  # optional - requires scipy
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate',
     ...               normalize_kernel=True,
     ...               fftn=scipy.fftpack.fft, ifftn=scipy.fftpack.ifft)
-    array([ 1.,  2.,  3.])
+    array([0.5, 2. , 1.5])
 
     """
     # Checking copied from convolve.py - however, since FFTs have real &
