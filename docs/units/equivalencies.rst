@@ -424,8 +424,8 @@ The :func:`~astropy.units.temperature` equivalency allows conversion between the
     >>> temp_Kelvin
     <Quantity 273.15 K>
     >>> temp_F = temp_C.to(u.imperial.deg_F, equivalencies = u.temperature())
-    >>> temp_F
-    <Quantity 32. deg_F>    # doctest: +FLOAT_CMP
+    >>> temp_F    # doctest: +FLOAT_CMP
+    <Quantity 32. deg_F>
 
 (Note : You can also use ``u.deg_C`` instead of ``u.Celsius``)
 
