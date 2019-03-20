@@ -49,7 +49,12 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
--  Optimize ``Header`` parsing. [#8428]
+- Optimize parsing of cards within the ``Header`` class. [#8428]
+
+- Optimize the parsing of headers to get the structural keywords that are
+  needed to find extensions. Thanks to this, getting a random HDU from a file
+  with many extensions is much faster than before, in particular when the
+  extension headers contain many keywords. [#8502]
 
 -  Change behavior of FITS undefined value in ``Header`` such that ``None``
    is used in Python to represent FITS undefined when using dict interface.
