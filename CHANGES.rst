@@ -2582,6 +2582,8 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fix ``FixedWidthNoHeader`` to pay attention to ``data_start`` keyword when finding first data line to split columns [#8485]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
