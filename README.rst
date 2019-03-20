@@ -86,4 +86,4 @@ reach out to PyPI.
     :alt: Powered by NumFOCUS
 
 .. |Donate| image:: https://img.shields.io/badge/Donate-to%20Astropy-brightgreen.svg
-    :target: https://www.flipcause.com/widget/give_now/MjI1NA==
+    :target: https://numfocus.salsalabs.org/donate-to-astropy/index.html
