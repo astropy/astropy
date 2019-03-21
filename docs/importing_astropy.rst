@@ -1,6 +1,6 @@
-**********************************
-Importing `astropy` and sub-packages
-**********************************
+************************************
+Importing `astropy` and Sub-packages
+************************************
 
 In order to encourage consistency among users in importing and using Astropy
 functionality, we have put together the following guidelines.
