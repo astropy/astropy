@@ -370,6 +370,8 @@ astropy.constants
 - Add CODATA 2018 constants but not make them default because the
   redefinition of SI units that will follow has not been implemented
   yet. [#8595]
+- The version of constants can be specified in the configuration file in a way
+  that ``units`` will be consistent. [#8517]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
