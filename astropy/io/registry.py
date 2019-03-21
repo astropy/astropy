@@ -137,7 +137,7 @@ def get_formats(data_class=None, readwrite=None):
     format_table = Table(data, names=('Data class', 'Format', 'Read', 'Write',
                                       'Auto-identify', 'Deprecated'))
 
-    if not np.any(format_table['Deprecated'] == 'Yes'):
+    if not np.any('Yes' in format_table['Deprecated']):
         format_table.remove_column('Deprecated')
 
     return format_table
