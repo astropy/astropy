@@ -1,12 +1,12 @@
 .. _coordinates-galactocentric:
 
 ********************************************************
-Description of Galactocentric coordinates transformation
+Description of Galactocentric Coordinates Transformation
 ********************************************************
 
 This document describes the mathematics behind the transformation from
 :class:`~astropy.coordinates.ICRS` to `~astropy.coordinates.Galactocentric`
-coordinates. This is described in detail here both due to the mathematical
+coordinates. This is described in detail here on account of the mathematical
 subtleties and the fact that there is no official standard/definition for this
 frame. For examples of how to use this transformation in code, see the
 the *Examples* section of the `~astropy.coordinates.Galactocentric` class
