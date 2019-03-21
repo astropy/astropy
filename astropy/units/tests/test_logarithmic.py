@@ -235,6 +235,14 @@ class TestLogUnitConversion:
         lu = u.mag(u.Jy)
         assert lu.is_equivalent(pu_sample)
 
+    def test_magnitude_conversion_fails_message(self):
+        """Check that "dimensionless" magnitude units include a message in their
+        exception text suggesting a possible cause of the problem.
+        """
+        with pytest.raises(u.UnitConversionError) as excinfo:
+            (10*u.ABmag - 2*u.ABmag).to(u.nJy)
+        assert "Did you perhaps subtract magnitudes so the unit got lost?" in str(excinfo.value)
+
 
 class TestLogUnitArithmetic:
     def test_multiplication_division(self):
