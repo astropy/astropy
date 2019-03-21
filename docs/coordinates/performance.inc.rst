@@ -21,7 +21,7 @@ single |skycoord| with arrays of values as opposed to looping over the
 |skycoord| and transforming them individually.
 
 Finally, for more advanced users, note that you can use broadcasting to
-transform |skycoord| objects into frames with vector properties.  For example::
+transform |skycoord| objects into frames with vector properties. For example::
 
     >>> from astropy.coordinates import SkyCoord, EarthLocation
     >>> from astropy import coordinates as coord
