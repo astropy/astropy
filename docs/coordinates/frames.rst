@@ -75,7 +75,7 @@ uses the frame classes as its implementation. However, the frame
 classes have fewer "convenience" features, thereby streamlining the
 implementation of frame classes. As such, they are created
 similarly to |skycoord| objects. One suggested way is to use
-with keywords appropriate for the frame (e.g. ``ra`` and ``dec`` for
+with keywords appropriate for the frame (e.g., ``ra`` and ``dec`` for
 equatorial systems)::
 
     >>> from astropy import units as u
@@ -134,7 +134,7 @@ The representation of the coordinate object can also be changed directly, as
 shown below. This does *nothing* to the object internal data which stores the
 coordinate values, but it changes the external view of that data in two ways:
 (1) the object prints itself in accord with the new representation, and (2) the
-available attributes change to match those of the new representation (e.g. from
+available attributes change to match those of the new representation (e.g., from
 ``ra, dec, distance`` to ``x, y, z``). Setting the ``representation_type``
 thus changes a *property* of the object (how it appears) without changing the
 intrinsic object itself which represents a point in 3D space.::
@@ -208,7 +208,7 @@ over the scalars appropriately::
     <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
         [(1.5, 3.5, 5.), (2.5, 4.5, 5.)]>
 
-Similar broadcasting happens if you transform to another frame. E.g.::
+Similar broadcasting happens if you transform to another frame. For example::
 
     >>> import numpy as np
     >>> from astropy.coordinates import EarthLocation, AltAz
@@ -257,7 +257,7 @@ Transforming between Frames
 
 To transform a frame object with data into another frame, use the
 ``transform_to`` method of an object, and provide it the frame you wish to
-transform to.  This frame can either be a frame *class*, in which case
+transform to. This frame can either be a frame *class*, in which case
 the default attributes will be used, or a frame object (with or without
 data)::
 
@@ -272,7 +272,7 @@ data)::
 The :ref:`astropy-coordinates-api` includes a list of all of the frames built
 into `astropy.coordinates`, as well as the defined transformations between
 them. Any transformation that has a valid path, even if it passes through
-other frames, can be transformed to. To programmatically check for or
+other frames, can be transformed too. To programmatically check for or
 manipulate transformations, see the `~astropy.coordinates.TransformGraph`
 documentation.
 
@@ -283,15 +283,15 @@ Defining a New Frame
 ====================
 
 Users can add new coordinate frames by creating new classes that are subclasses
-of `~astropy.coordinates.BaseCoordinateFrame`.  Detailed instructions for
-subclassing are in the docstrings for that class.  The key aspects are to
+of `~astropy.coordinates.BaseCoordinateFrame`. Detailed instructions for
+subclassing are in the docstrings for that class. The key aspects are to
 define the class attributes ``default_representation`` and
 ``frame_specific_representation_info`` along with frame attributes as
 `~astropy.coordinates.Attribute` class instances (or subclasses like
-`~astropy.coordinates.TimeAttribute`).  If these are
-defined, there is often no need to define an ``__init__`` function, as the
-initializer in `~astropy.coordinates.BaseCoordinateFrame` will probably behave
-the way you want.  As an example::
+`~astropy.coordinates.TimeAttribute`). If these are defined, there is often no
+need to define an ``__init__`` function, as the initializer in
+`~astropy.coordinates.BaseCoordinateFrame` will probably behave in
+the way you want. As an example::
 
   >>> from astropy.coordinates import BaseCoordinateFrame, Attribute, TimeAttribute, RepresentationMapping
   >>> import astropy.coordinates.representation as r
@@ -329,14 +329,14 @@ velocities documentation at
 :ref:`astropy-coordinate-custom-frame-with-velocities`.
 
 You can also define arbitrary methods for any added functionality you
-want your frame to have that's unique to that frame.  These methods will
+want your frame to have that is unique to that frame. These methods will
 be available in any |skycoord| that is created using your user-defined
 frame.
 
 For examples of defining frame classes, the first place to look is
-probably the source code for the frames that are included in astropy
-(available at ``astropy.coordinates.builtin_frames``).  These are not
-"magic" in any way, and use all the same API and features available to
+at the source code for the frames that are included in `astropy`
+(available at ``astropy.coordinates.builtin_frames``). These are not
+"magic" in any way, and use all of the same API and features available to
 user-created frames.
 
 .. topic:: Examples:
@@ -348,13 +348,14 @@ user-created frames.
 Customizing Display of Attributes
 ---------------------------------
 
-While the default `repr` for coordinate frames is suitable for most cases, you may want
-to customize how frame attributes are displayed in certain cases.  To do this you can
-define a method named ``_astropy_repr_in_frame``. This method should be defined on the
-the object that's set to the frame attribute itself, **not** the
-`~astropy.coordinates.Attribute` descriptor.
+While the default `repr` for coordinate frames is suitable for most cases, you
+may want to customize how frame attributes are displayed in certain cases. To
+do this you can define a method named ``_astropy_repr_in_frame``. This method
+should be defined on the object that is set to the frame attribute itself,
+**not** the `~astropy.coordinates.Attribute` descriptor.
 
-For example, you could have an object ``Spam`` which you have as an attribute of your frame::
+For example, you could have an object ``Spam`` which you have as an attribute
+of your frame::
 
   >>> class Spam:
   ...     def _astropy_repr_in_frame(self):
@@ -375,22 +376,22 @@ Defining Transformations
 ========================
 
 A frame may not be too useful without a way to transform coordinates
-defined in it to or from other frames. Fortunately,
-`astropy.coordinates` provides a framework to do just that.  The key
+defined within it to or from other frames. Fortunately,
+`astropy.coordinates` provides a framework to do just that. The key
 concept for these transformations is the frame transform graph,
 available as ``astropy.coordinates.frame_transform_graph``, an instance of
-the `~astropy.coordinates.TransformGraph` class.  This graph (in the
+the `~astropy.coordinates.TransformGraph` class. This graph (in the
 "graph theory" sense, not "plot"), stores all the transformations
-between all of the builtin frames, as well as tools for finding shortest
-paths through this graph to transform from any frame to any other.  All
+between all of the built-in frames, as well as tools for finding shortest
+paths through this graph to transform from any frame to any other. All
 of the power of this graph is available to user-created frames as well, meaning
 that once you define even one transform from your frame to some frame in
-the graph,  coordinates defined in your frame can be transformed to
+the graph, coordinates defined in your frame can be transformed to
 *any* other frame in the graph.
 
 The transforms themselves are represented as
-`~astropy.coordinates.CoordinateTransform` objects or their subclasses. The useful
-subclasses/types of transformations are:
+`~astropy.coordinates.CoordinateTransform` objects or their subclasses. The
+useful subclasses/types of transformations are:
 
 * `~astropy.coordinates.FunctionTransform`
 
@@ -408,18 +409,18 @@ subclasses/types of transformations are:
 * `~astropy.coordinates.StaticMatrixTransform`
 * `~astropy.coordinates.DynamicMatrixTransform`
 
-    The matrix transforms are `~astropy.coordinates.AffineTransform`'s without
-    a translation, i.e. a rotation. The static version is for
-    the case where the matrix is independent of the frame attributes
-    (e.g., the ICRS->FK5 transformation, because ICRS has no frame
-    attributes).  The dynamic case is for transformations where the
+    The matrix transforms are `~astropy.coordinates.AffineTransform` 
+    transformations without a translation (i.e., a rotation). The static
+    version is for the case where the matrix is independent of the frame
+    attributes (e.g., the ICRS->FK5 transformation, because ICRS has no frame
+    attributes). The dynamic case is for transformations where the
     transformation matrix depends on the frame attributes of either the
     to or from frame.
 
 
-Generally, it is not necessary to use these classes directly.  Instead,
+Generally, it is not necessary to use these classes directly. Instead,
 use methods on ``frame_transform_graph`` that can be used as function
-decorators.  Then just define functions that either do the actual
+decorators. Define functions that either do the actual
 transformation (for FunctionTransform), or that compute the necessary
 transformation matrices to transform. Then decorate the functions to
 register these transformations with the frame transform graph::
@@ -448,7 +449,7 @@ Furthermore, the ``frame_transform_graph`` does some caching and
 optimization to speed up transformations after the first attempt to go
 from one frame to another, and shortcuts steps where relevant (for
 example, combining multiple static matrix transforms into a single
-matrix).  Hence, in general, it is better to define whatever are the
+matrix). Hence, in general, it is better to define whatever are the
 most natural transformations for a user-defined frame, rather than
 worrying about optimizing or caching a transformation to speed up the
 process.
