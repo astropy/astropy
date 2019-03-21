@@ -14,11 +14,10 @@ from astropy.time import Time
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data_info import MixinInfo, serialize_context_as
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
-from .column import KEYWORD_NAMES, ASCII_DEFAULT_WIDTHS, _fortran_to_python_format
+from .column import KEYWORD_NAMES, _fortran_to_python_format
 from .convenience import table_to_hdu
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
-from .verify import VerifyError, VerifyWarning
 
 
 # FITS file signature as per RFC 4047
@@ -299,7 +298,7 @@ def _encode_mixins(tbl):
     # description or meta) will be silently dropped, consistent with astropy <=
     # 2.0 behavior.
     try:
-        import yaml
+        import yaml  # noqa
     except ImportError:
         for col in tbl.itercols():
             if (has_info_class(col, MixinInfo) and
