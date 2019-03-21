@@ -19,7 +19,7 @@ except ImportError:
 from astropy.io import fits
 from astropy.tests.helper import catch_warnings, ignore_warnings
 from astropy.utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from astropy.io.fits.column import Delayed, NUMPY2FITS
 from astropy.io.fits.util import decode_ascii
