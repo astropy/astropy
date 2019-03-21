@@ -187,7 +187,7 @@ Distance
 
 |skycoord| and the individual frame classes also support specifying a distance
 from the frame origin. The origin depends on the particular coordinate frame;
-this can be, e.g., centered on the earth, centered on the solar system
+this can be, for example, centered on the earth, centered on the solar system
 barycenter, etc. Two angles and a distance specify a unique point in 3D space,
 which also allows converting the coordinates to a Cartesian representation::
 
@@ -212,7 +212,7 @@ Convenience Methods
 -------------------
 
 |skycoord| defines a number of convenience methods that support, for example,
-computing on-sky (i.e. angular) and 3D separations between two coordinates::
+computing on-sky (i.e., angular) and 3D separations between two coordinates::
 
     >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
     >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, frame='fk5')
