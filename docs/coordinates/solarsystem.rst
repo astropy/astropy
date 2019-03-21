@@ -9,26 +9,26 @@ Solar System Ephemerides
 system objects. By default, it uses approximate orbital elements calculated
 using built-in `ERFA <https://github.com/liberfa/erfa>`_ routines, but it can
 also use more precise ones using the JPL ephemerides (which are derived from
-dynamical models).  The default JPL ephemerides (DE430) provide predictions
-valid roughly for years between 1550 and 2650. The file is 115 MB and will need
-to be downloaded the first time you use this functionality, but will be cached
-after that.
+dynamical models). The default JPL ephemerides (DE430) provide predictions
+valid roughly for the years between 1550 and 2650. The file is 115 MB and will
+need to be downloaded the first time you use this functionality, but will be
+cached after that.
 
 .. note::
    Using JPL ephemerides requires that the `jplephem
    <https://pypi.python.org/pypi/jplephem>`_ package be installed. This is
-   most easily achieved via ``pip install jplephem``, although whatever
+   most conveniently achieved via ``pip install jplephem``, although whatever
    package management system you use might have it as well.
 
 Three functions are provided; :meth:`~astropy.coordinates.get_body`,
 :meth:`~astropy.coordinates.get_moon` and
 :meth:`~astropy.coordinates.get_body_barycentric`. The first two functions
-return |SkyCoord| objects in the `~astropy.coordinates.GCRS` frame, whilst the
+return |SkyCoord| objects in the `~astropy.coordinates.GCRS` frame, while the
 latter returns a `~astropy.coordinates.CartesianRepresentation` of the
-barycentric position of a body (i.e in the `~astropy.coordinates.ICRS` frame).
+barycentric position of a body (i.e., in the `~astropy.coordinates.ICRS` frame).
 
-Here is an example of using these functions with built-in ephemerides, i.e.,
-without the need to download a large ephemerides file::
+Here is an example of using these functions with built-in ephemerides (i.e.,
+without the need to download a large ephemerides file)::
 
   >>> from astropy.time import Time
   >>> from astropy.coordinates import solar_system_ephemeris, EarthLocation
@@ -44,8 +44,8 @@ without the need to download a large ephemerides file::
 Above, we used ``solar_system_ephemeris`` as a context, which sets the default
 ephemeris while in the ``with`` clause, and resets it at the end.
 
-To get more precise positions, one could use the ``de430`` ephemeris mentioned
-above, but between 1950 and 2050 one could also opt for the ``de432s``
+To get more precise positions, you could use the ``de430`` ephemeris mentioned
+above, but between 1950 and 2050 you could also opt for the ``de432s``
 ephemeris, which is stored in a smaller, ~10 MB, file (which will be
 downloaded and cached when the ephemeris is set):
 
@@ -63,7 +63,7 @@ downloaded and cached when the ephemeris is set):
   <CartesianRepresentation (x, y, z) in km
       (  1.50107535e+08, -866789.11996916, -418963.55218495)>
 
-For one-off calculations with a given ephemeris, one can also pass it directly
+For one-off calculations with a given ephemeris, you can also pass it directly
 to the various functions:
 
 .. doctest-requires:: jplephem
