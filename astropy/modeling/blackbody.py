@@ -50,21 +50,20 @@ any Numpy warnings:
 
 Alternatively, the same results for ``flux_nu`` can be computed using
 :class:`BlackBody1D` with blackbody representation as a model. The difference between
-this and the former approach is in one addition step as outlined as follows:
+this and the former approach is in one additional step outlined as follows:
 
 >>> from astropy import constants as const
 >>> from astropy.modeling import models
 >>> temperature = 5000 * u.K
 >>> bolometric_flux = const.sigma_sb * temperature ** 4 / np.pi
->>> bolometric_flux.cgs/u.g*(u.s)**2*u.erg/(u.cm)**2  # doctest: +FLOAT_CMP
+>>> bolometric_flux.to(u.erg / (u.cm * u.cm * u.s))  # doctest: +FLOAT_CMP
 <Quantity 1.12808367e+10 erg / (cm2 s)>
 >>> wavelengths = [100, 10000] * u.AA
 >>> bb_astro = models.BlackBody1D(temperature, bolometric_flux=bolometric_flux)
->>> bb_astro(wavelengths).cgs/u.g*(u.s**2)*(u.erg/(u.cm*u.cm*u.Hz*u.s*u.sr))  # doctest: +FLOAT_CMP
+>>> bb_astro(wavelengths).to(u.erg / (u.cm * u.cm * u.Hz * u.s)) / u.sr  # doctest: +FLOAT_CMP
 <Quantity [4.25102471e-123, 2.36893879e-005] erg / (cm2 Hz s sr)>
 
-where ``extra`` is the intermediate ``bolometric_flux`` computed, and the ``bb_astro(wavelengths)``
-in this case is the same as ``flux_nu`` above.
+where ``bb_astro(wavelengths)`` computes the equivalent result as ``flux_nu`` above.
 
 Plot a blackbody spectrum for 5000 K:
 
