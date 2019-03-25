@@ -9,16 +9,16 @@ from astropy.time import Time, TimeDelta
 
 from astropy.timeseries.sampled import TimeSeries
 
-__all__ = ["kepler_read"]
+__all__ = ["kepler_fits_reader"]
 
 
-def kepler_read(filename):
+def kepler_fits_reader(filename):
     """
     This serves as the FITS reader for KEPLER or TESS files within astropy-timeseries.
 
     This allows reading a supported FITS file using syntax such as::
-    >>> from astropy.timeseries.io import kepler
-    >>> timeseries = kepler.kepler_reader('<name of fits file>')  # doctest: +SKIP
+    >>> from astropy.timeseries.sampled import TimeSeries
+    >>> timeseries = TimeSeries.read('<name of fits file>', format='kepler.fits')  # doctest: +SKIP
 
     Parameters
     ----------
@@ -32,16 +32,16 @@ def kepler_read(filename):
 
     """
     hdulist = fits.open(filename)
-    telescop = hdulist[0].header['telescop'].lower()
-    if telescop not in ["kepler", "tess"]:
-        raise NotImplementedError("{} is not implemented, only KEPLER or TESS are "
-                                  "supported through this reader".format(hdulist[0].header['telescop']))
-
     # Get the lightcurve HDU
+    telescop = hdulist[0].header['telescop'].lower()
+
     if telescop == 'tess':
         hdu = hdulist['LIGHTCURVE']
-    if telescop == 'kepler':
+    elif telescop == 'kepler':
         hdu = hdulist[1]
+    else:
+        raise NotImplementedError("{} is not implemented, only KEPLER or TESS are "
+                                  "supported through this reader".format(hdulist[0].header['telescop']))
 
     if hdu.header['EXTVER'] > 1:
         raise NotImplementedError("Support for {0} v{1} files not yet "
@@ -52,7 +52,6 @@ def kepler_read(filename):
         raise NotImplementedError("Support for {0} time scale not yet "
                                   "implemented in {1} reader".format(hdu.header['TIMESYS'], hdu.header['TELESCOP']))
 
-    # TODO: I wonder if we need these checks.
     if telescop == 'kepler':
         if "VERSION" in hdu.header.keys() and hdu.header["VERSION"] != '2.0':
             warnings.warn("This is not a EVEREST pipeline version 2 KEPLER file.")
@@ -94,5 +93,5 @@ def kepler_read(filename):
     return TimeSeries(time=time, data=tab)
 
 
-registry.register_reader('kepler.fits', TimeSeries, kepler_read)
-registry.register_reader('tess.fits', TimeSeries, kepler_read)
+registry.register_reader('kepler.fits', TimeSeries, kepler_fits_reader)
+registry.register_reader('tess.fits', TimeSeries, kepler_fits_reader)
