@@ -12,11 +12,16 @@ __all__ = ['simple_downsample']
 
 def reduceat(array, indices, function):
     """
-    Manual reduceat functionality for cases where Numpy functions don't have a reduceat
+    Manual reduceat functionality for cases where Numpy functions don't have a reduceat.
+    It will check if the input function has a reduceat and call that if it does.
     """
-    result = [function(array[indices[i]:indices[i+1]]) for i in range(len(indices) - 1)]
-    result.append(function(array[indices[-1]:]))
-    return np.array(result)
+    # Taken some inspiration from TableGroups.aggregate.
+    if hasattr(function, 'reduceat'):
+        return np.array(function.reduceat(array, indices))
+    else:
+        result = [function(array[indices[i]:indices[i+1]]) for i in range(len(indices) - 1)]
+        result.append(function(array[indices[-1]:]))
+        return np.array(result)
 
 
 def simple_downsample(time_series, time_bin_size, func=None, time_bin_start=None, n_bins=None):
@@ -83,6 +88,8 @@ def simple_downsample(time_series, time_bin_size, func=None, time_bin_start=None
     # Figure out which bin each row falls in - the -1 is because items
     # falling in the first bins will have index 1 but we want that to be 0
     indices = np.searchsorted(relative_bins_sec, relative_time_sec[keep]) - 1
+    # Add back the first time.
+    indices[relative_time_sec[keep] == relative_bins_sec[0]] = 0
 
     # Create new binned time series
     binned = BinnedTimeSeries(time_bin_start=bins[:-1], time_bin_end=bins[-1])
@@ -108,16 +115,16 @@ def simple_downsample(time_series, time_bin_size, func=None, time_bin_start=None
             warnings.warn("Skipping column {0} since it has a mix-in type", AstropyUserWarning)
             continue
 
-        data = np.ma.zeros(n_bins, dtype=values.dtype)
-        data.mask = 1
-
         if isinstance(values, u.Quantity):
+            data = u.Quantity(np.repeat(np.nan,  n_bins), unit=values.unit)
             data[unique_indices] = u.Quantity(reduceat(values.value, groups, func),
                                               values.unit, copy=False)
         else:
+            data = np.ma.zeros(n_bins, dtype=values.dtype)
+            data.mask = 1
             data[unique_indices] = reduceat(values, groups, func)
+            data.mask[unique_indices] = 0
 
-        data.mask[unique_indices] = 0
         binned[colname] = data
 
     return binned
