@@ -41,8 +41,8 @@ def parse_header(fileobj):
                 keyword = card_image[:8].strip()
                 cards[keyword.upper()] = card_image
             else:
-                sep_idx = card_image[:8].find(VALUE_INDICATOR)
-                if 0 < sep_idx < 8:
+                sep_idx = card_image.find(VALUE_INDICATOR, 0, 8)
+                if sep_idx > 0:
                     keyword = card_image[:sep_idx]
                     cards[keyword.upper()] = card_image
                 elif card_image == END_CARD:
