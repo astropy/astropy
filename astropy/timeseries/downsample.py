@@ -15,11 +15,15 @@ def reduceat(array, indices, function):
     Manual reduceat functionality for cases where Numpy functions don't have a reduceat.
     It will check if the input function has a reduceat and call that if it does.
     """
-    # Taken some inspiration from TableGroups.aggregate.
     if hasattr(function, 'reduceat'):
         return np.array(function.reduceat(array, indices))
     else:
-        result = [function(array[indices[i]:indices[i+1]]) for i in range(len(indices) - 1)]
+        result = []
+        for i in range(len(indices) - 1):
+            if indices[i+1] <= indices[i]+1:
+                result.append(function(array[indices[i]]))
+            else:
+                result.append(function(array[indices[i]:indices[i+1]]))
         result.append(function(array[indices[-1]:]))
         return np.array(result)
 
