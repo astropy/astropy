@@ -239,3 +239,14 @@ linkcheck_anchors = False
 # .htaccess) here, relative to this directory. These files are copied
 # directly to the root of the documentation.
 html_extra_path = ['robots.txt']
+
+# -- Options for ASDF schema documentation ----------------------------------
+extensions += ['sphinx_asdf']
+# Top-level directory containing ASDF schemas (relative to current directory)
+asdf_schema_path = '../astropy/io/misc/asdf/data/schemas'
+# This is the prefix common to all schema IDs in this repository
+asdf_schema_standard_prefix = 'astropy.org/astropy'
+asdf_schema_reference_mappings = [
+    ('tag:stsci.edu:asdf',
+     'http://asdf-standard.readthedocs.io/en/latest/generated/stsci.edu/asdf/'),
+]
