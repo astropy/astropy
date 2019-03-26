@@ -39,7 +39,7 @@ the time series using:
    :nofigs:
 
    from astropy.timeseries import TimeSeries
-   kepler = TimeSeries.read(example_data, format='kepler.fits', time_column='time')
+   kepler = TimeSeries.read(example_data,  'time', format='kepler.fits')
 
 Let's check that the time series has been read in correctly:
 

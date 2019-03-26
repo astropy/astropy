@@ -10,6 +10,7 @@ from astropy.table import groups, QTable, Table
 from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.units import Quantity
+from astropy.io.registry import IORegistryError
 
 from .core import BaseTimeSeries
 
@@ -201,8 +202,7 @@ class TimeSeries(BaseTimeSeries):
         return df
 
     @classmethod
-    def read(self, filename, format, time=None, time_column=None, time_format=None,
-             time_delta=None, *args, **kwargs):
+    def read(self, filename, time_column=None, time_format=None, time_scale=None, format=None, *args, **kwargs):
         """
         Read and parse a file and returns a `astropy.timeseries.sampled.TimeSeries`.
 
@@ -221,17 +221,12 @@ class TimeSeries(BaseTimeSeries):
             File to parse.
         format : str
             File format specifier.
-        time: str or list of str, optional
-            Can be a `astropy.time.Time` parseable string or a list of said strings.
-            This or ``time_column`` must be passed in.
         time_column: str, optional
             The name of the time column within the file.
-            This or ``time`` must be passed in.
         time_format: str, optional
-            Time format for the time_column.
-        time_delta: float or list, optional
-            The time step between each time index. If evenly sampled, you can specify
-            one single time step. If arbitrarily sampled, you can pass in a list.
+            The time format for the time column.
+        time_scale: str, optional
+            The time scale for the time column.
         *args : tuple, optional
             Positional arguments passed through to the data reader.
             If supplied, the first argument is the input filename.
@@ -244,25 +239,18 @@ class TimeSeries(BaseTimeSeries):
             TimeSeries corresponding to file contents.
 
         """
+        try:
+            table = super().read(filename, format=format, *args, **kwargs)
+            return table
+        # TODO: Seemed to be TypeError and not IORegistryError
+        except TypeError:
+            table = Table.read(filename, format=format, *args, **kwargs)
 
-        table = Table.read(filename, format=format, *args, **kwargs)
+            if time_column is not None:
+                if time_column not in table.colnames:
+                    raise ValueError("Time column {}, not found in the input data.".format(time_column))
+                else:
+                    time = Time(table.columns[time_column], scale=time_scale, format=time_format)
+                    table.remove_column(time_column)
 
-        if time is None and time_column is None:
-            raise ValueError("time and time_column are not set, please specify one of them.")
-
-        if isinstance(time, list) and len(time) != len(table):
-            raise ValueError("The time list is not the same length ({}) as the data ({}).".format(len(table), len(time)))
-
-        if isinstance(time, str) and time_delta is None:
-            raise ValueError("Please specify a time_delta for your time string.")
-
-        if time_column is not None:
-            if time_column not in table.colnames:
-                raise ValueError("Time column {}, not found in the input data.".format(time_column))
-            else:
-                time = Time(table.columns[time_column])
-                table.remove_column(time_column)
-                if time_format is not None:
-                    time.format = time_format
-
-        return TimeSeries(time=time, data=table, time_delta=time_delta, n_samples=len(table))
+            return TimeSeries(time=time, data=table, n_samples=len(table))

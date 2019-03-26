@@ -10,7 +10,7 @@ from ..binned import BinnedTimeSeries
 
 
 TEST_DIR = os.path.dirname(__file__)
-CSV_FILE = TEST_DIR + '/test_data/binned.csv'
+CSV_FILE = TEST_DIR + '/data/binned.csv'
 
 
 def test_empty_initialization():
@@ -217,58 +217,53 @@ def test_uneven_non_contiguous_full():
 
 def test_read_empty():
     with pytest.raises(ValueError) as exc:
-        BinnedTimeSeries.read(CSV_FILE, format='csv')
-    assert exc.value.args[0] == 'time_bin_start and time_column are not set, please specify one of them.'
+        BinnedTimeSeries.read(CSV_FILE, 'time_bin', format='csv')
+    assert exc.value.args[0] == 'Please enter `time_bin_end_column` or `time_bin_size_column`.'
 
 
-def test_read_time_bin_list():
+def test_read_no_end_bin():
     with pytest.raises(ValueError) as exc:
-        BinnedTimeSeries.read(CSV_FILE, time_bin_start=["2016-03-22T12:30:31"], format='csv')
-    assert exc.value.args[0] == "The time_bin_start list is not the same length (10) as the data (1)."
+        BinnedTimeSeries.read(CSV_FILE, 'time_bin', format='csv')
+    assert exc.value.args[0] == "Please enter `time_bin_end_column` or `time_bin_size_column`."
 
 
-def test_read_time_bin_size():
+def test_read_both_extra_bins():
     with pytest.raises(ValueError) as exc:
-        BinnedTimeSeries.read(CSV_FILE, time_bin_start="2016-03-22T12:30:31", format='csv')
-    assert exc.value.args[0] == "Please specify a time_bin_size for your time_bin_start string."
+        BinnedTimeSeries.read(CSV_FILE, 'time_bin', time_bin_end_column='END', time_bin_size_column='SIZE', format='csv')
+    assert exc.value.args[0] == "Please choose between `time_bin_end_column` or `time_bin_size_column`."
 
 
-def test_read_time_length():
+def test_read_size_no_unit():
     with pytest.raises(ValueError) as exc:
-        BinnedTimeSeries.read(CSV_FILE, time_bin_start="2016-03-22T12:30:31",
-                              time_bin_size=["2016-03-22T12:30:31"], format='csv')
-    assert exc.value.args[0] == "The time_bin_size list is not the same length (10) as the data (1)."
+        BinnedTimeSeries.read(CSV_FILE, 'time_bin', time_bin_size_column='SIZE', format='csv')
+    assert exc.value.args[0] == "Please enter `time_bin_unit` for the `time_bin_size_column`."
 
 
 def test_read_time_missing():
     with pytest.raises(ValueError) as exc:
-        BinnedTimeSeries.read(CSV_FILE, time_column='abc', format='csv')
-    assert exc.value.args[0] == 'Time column abc, not found in the input data.'
+        BinnedTimeSeries.read(CSV_FILE, 'abc', time_bin_size_column='SIZE', time_bin_unit=1*u.second, format='csv')
+    assert exc.value.args[0] == 'Time start bin column abc, not found in the input data.'
 
 
 def test_read_time_unit_missing():
     with pytest.raises(ValueError) as exc:
-        BinnedTimeSeries.read(CSV_FILE, time_bin_start="2016-03-22T12:30:31",
-                              time_bin_size_column="missing", format='csv')
+        BinnedTimeSeries.read(CSV_FILE, 'time_bin', time_bin_size_column="missing", time_bin_unit='', format='csv')
     assert exc.value.args[0] == "Please specify a time_bin_unit for your time_bin_size_column. Make sure this is a `astropy.units.Quantity.`"
 
 
-def test_read_time_size_missing():
+def test_read_time_bin_missing():
     with pytest.raises(ValueError) as exc:
-        BinnedTimeSeries.read(CSV_FILE, time_bin_start="2016-03-22T12:30:31", time_bin_size_column="missing",
-                              time_bin_unit=1*u.s, format='csv')
-    assert exc.value.args[0] == "Bin size column missing, not found in the input data."
+        BinnedTimeSeries.read(CSV_FILE, 'time_bin', time_bin_size_column="missing", time_bin_unit=1*u.second, format='csv')
+    assert exc.value.args[0] == "Time bin size column missing, not found in the input data."
 
 
 def test_read():
-    timeseries = BinnedTimeSeries.read(CSV_FILE, time_column='time_bin',
-                                       time_bin_end='2016-03-22T12:30:58.000', format='csv')
+    timeseries = BinnedTimeSeries.read(CSV_FILE, 'time_bin', time_bin_end_column='2016-03-22T12:30:58.000', format='csv')
     assert timeseries.colnames == ['time_bin_start', 'time_bin_size', 'bin_size', 'A', 'B', 'C', 'D', 'E', 'F']
     assert len(timeseries) == 10
     assert timeseries['B'].sum() == 1151.54
 
-    timeseries = BinnedTimeSeries.read(CSV_FILE, time_bin_start='2016-03-22T12:30:31.000',
-                                       time_bin_size_column='bin_size', time_bin_unit=1*u.s, format='csv')
-    assert timeseries.colnames == ['time_bin_start', 'time_bin_size', 'time_bin', 'A', 'B', 'C', 'D', 'E', 'F']
+    timeseries = BinnedTimeSeries.read(CSV_FILE, 'time_bin', time_bin_size_column='bin_size', time_bin_unit=1*u.second, format='csv')
+    assert timeseries.colnames == ['time_bin_start', 'time_bin_size', 'A', 'B', 'C', 'D', 'E', 'F']
     assert len(timeseries) == 10
     assert timeseries['B'].sum() == 1151.54
