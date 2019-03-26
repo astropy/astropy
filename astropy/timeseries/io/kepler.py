@@ -1,37 +1,96 @@
-from astropy.io import registry
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+import warnings
+
+import numpy as np
+
+from astropy.io import registry, fits
 from astropy.table import Table
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
 
-from ..sampled import TimeSeries
+from astropy.timeseries.sampled import TimeSeries
 
-__all__ = ['kepler_fits_reader']
+__all__ = ["kepler_fits_reader"]
 
 
 def kepler_fits_reader(filename):
+    """
+    This serves as the FITS reader for KEPLER or TESS files within astropy-timeseries.
 
-    # Parse Kepler FITS file with regular FITS reader
-    tab = Table.read(filename, format='fits')
+    This allows reading a supported FITS file using syntax such as::
+    >>> from astropy.timeseries.sampled import TimeSeries
+    >>> timeseries = TimeSeries.read('<name of fits file>', format='kepler.fits')  # doctest: +SKIP
+
+    Parameters
+    ----------
+    filename: `str`, `pathlib.Path`
+        File to load.
+
+    Returns
+    -------
+    `astropy.timeseries.sampled.TimeSeries`
+        Data converted into a TimeSeries.
+
+    """
+    hdulist = fits.open(filename)
+    # Get the lightcurve HDU
+    telescop = hdulist[0].header['telescop'].lower()
+
+    if telescop == 'tess':
+        hdu = hdulist['LIGHTCURVE']
+    elif telescop == 'kepler':
+        hdu = hdulist[1]
+    else:
+        raise NotImplementedError("{} is not implemented, only KEPLER or TESS are "
+                                  "supported through this reader".format(hdulist[0].header['telescop']))
+
+    if hdu.header['EXTVER'] > 1:
+        raise NotImplementedError("Support for {0} v{1} files not yet "
+                                  "implemented".format(hdu.header['TELESCOP'], hdu.header['EXTVER']))
+
+    # Check time scale
+    if hdu.header['TIMESYS'] != 'TDB':
+        raise NotImplementedError("Support for {0} time scale not yet "
+                                  "implemented in {1} reader".format(hdu.header['TIMESYS'], hdu.header['TELESCOP']))
+
+    if telescop == 'kepler':
+        if "VERSION" in hdu.header.keys() and hdu.header["VERSION"] != '2.0':
+            warnings.warn("This is not a EVEREST pipeline version 2 KEPLER file.")
+        else:
+            warnings.warn("This seems to be a non EVEREST reduced KEPLER file.")
+
+    tab = Table.read(hdu, format='fits')
+
+    # Some KEPLER files have a T column instead of TIME.
+    if "T" in tab.colnames:
+        tab.rename_column("T", "TIME")
 
     for colname in tab.colnames:
-
         # Fix units
         if tab[colname].unit == 'e-/s':
             tab[colname].unit = 'electron/s'
+        if tab[colname].unit == 'pixels':
+            tab[colname].unit = 'pixel'
 
         # Rename columns to lowercase
         tab.rename_column(colname, colname.lower())
 
-    # Compute Time object
-    time = Time(tab['time'].data + 2454833, scale='tcb', format='jd')
+    # Filter out NaN rows
+    nans = np.isnan(tab['time'].data)
+    if np.any(nans):
+        warnings.warn('Ignoring {0} rows with NaN times'.format(np.sum(nans)))
+    tab = tab[~nans]
+
+    # Time column is dependent on source and we correct it here
+    reference_date = Time(hdu.header['BJDREFI'], hdu.header['BJDREFF'],
+                          scale=hdu.header['TIMESYS'].lower(), format='jd')
+    time = reference_date + TimeDelta(tab['time'].data)
+    time.format = 'isot'
 
     # Remove original time column
     tab.remove_column('time')
 
-    # Create time series
-    ts = TimeSeries(time=time, data=tab)
-    ts.time.format = 'isot'
-
-    return ts
+    return TimeSeries(time=time, data=tab)
 
 
 registry.register_reader('kepler.fits', TimeSeries, kepler_fits_reader)
+registry.register_reader('tess.fits', TimeSeries, kepler_fits_reader)
