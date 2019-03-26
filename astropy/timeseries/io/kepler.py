@@ -75,7 +75,6 @@ def kepler_fits_reader(filename):
         tab.rename_column(colname, colname.lower())
 
     # Filter out NaN rows
-    # TODO: Maybe change them to 0 instead?
     nans = np.isnan(tab['time'].data)
     if np.any(nans):
         warnings.warn('Ignoring {0} rows with NaN times'.format(np.sum(nans)))
