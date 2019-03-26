@@ -10,6 +10,7 @@ from numpy.testing import assert_equal, assert_allclose
 from astropy.table import Table
 from astropy.time import Time, TimeDelta
 from astropy import units as u
+from astropy.utils.data import get_pkg_data_filename
 
 from ..sampled import TimeSeries
 
@@ -18,7 +19,7 @@ INPUT_TIME = Time(['2016-03-22T12:30:31',
                    '2016-03-22T12:30:40'])
 PLAIN_TABLE = Table([[1, 2, 11], [3, 4, 1], [1, 1, 1]], names=['a', 'b', 'c'])
 TEST_DIR = os.path.dirname(__file__)
-CSV_FILE = TEST_DIR + '/test_data/sampled.csv'
+CSV_FILE = TEST_DIR + '/data/sampled.csv'
 
 
 def test_empty_initialization():
@@ -183,28 +184,10 @@ def test_pandas():
     assert exc.value.args[0] == 'DataFrame does not have a DatetimeIndex'
 
 
-def test_read_empty():
-    with pytest.raises(ValueError) as exc:
-        TimeSeries.read(CSV_FILE, format='csv')
-    assert exc.value.args[0] == 'time and time_column are not set, please specify one of them.'
-
-
 def test_read_time_wrong():
     with pytest.raises(ValueError) as exc:
         TimeSeries.read(CSV_FILE, time_column='abc', format='csv')
     assert exc.value.args[0] == 'Time column abc, not found in the input data.'
-
-
-def test_read_time_length():
-    with pytest.raises(ValueError) as exc:
-        TimeSeries.read(CSV_FILE, time=['abc'], format='csv')
-    assert exc.value.args[0] == 'The time list is not the same length (11) as the data (1).'
-
-
-def test_read_time_delta():
-    with pytest.raises(ValueError) as exc:
-        TimeSeries.read(CSV_FILE, time='abc', format='csv')
-    assert exc.value.args[0] == 'Please specify a time_delta for your time string.'
 
 
 def test_read():
@@ -214,10 +197,24 @@ def test_read():
     assert timeseries['time'].format == 'iso'
     assert timeseries['A'].sum() == 266.5
 
-    # Check for time_format change.
-    timeseries = TimeSeries.read(CSV_FILE, time_column='Date', format='csv', time_format='jd')
-    assert timeseries['time'].format == 'jd'
 
-    # Check for time_format change.
-    timeseries = TimeSeries.read(CSV_FILE, time_column='Date', format='csv', time_format='jd')
-    assert timeseries['time'].format == 'jd'
+@pytest.mark.remote_data(source='astropy')
+def test_keppler_astropy():
+    filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
+    timeseries = TimeSeries.read(filename, format='kepler.fits')
+    assert timeseries["time"].format == 'isot'
+    assert timeseries["time"].scale == 'tdb'
+    assert timeseries["sap_flux"].unit.to_string() == 'electron / s'
+    assert len(timeseries) == 14280
+    assert len(timeseries.columns) == 20
+
+
+@pytest.mark.remote_data(source='astropy')
+def test_tess_astropy():
+    filename = get_pkg_data_filename('timeseries/hlsp_tess-data-alerts_tess_phot_00025155310-s01_tess_v1_lc.fits')
+    timeseries = TimeSeries.read(filename, format='tess.fits')
+    assert timeseries["time"].format == 'isot'
+    assert timeseries["time"].scale == 'tdb'
+    assert timeseries["sap_flux"].unit.to_string() == 'electron / s'
+    assert len(timeseries) == 19261
+    assert len(timeseries.columns) == 20
