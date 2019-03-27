@@ -55,12 +55,51 @@ class TestMaskedArrayInitialization(ArraySetup):
         assert isinstance(ma, Masked)
         assert_array_equal(ma.data, self.a)
         assert_array_equal(ma.mask, self.mask_a)
+        assert ma.mask is not self.mask_a
+        assert np.may_share_memory(ma.mask, self.mask_a)
 
 
 class TestMaskedQuantityInitialization(TestMaskedArrayInitialization):
     def setup_arrays(self):
         super().setup_arrays()
         self.a = Quantity(self.a, u.m)
+
+
+class TestMaskSetting(ArraySetup):
+    def test_whole_mask_setting(self):
+        ma = Masked(self.a)
+        assert ma.mask.shape == ma.shape
+        assert not ma.mask.any()
+        ma.mask = True
+        assert ma.mask.shape == ma.shape
+        assert ma.mask.all()
+        ma.mask = [[True], [False]]
+        assert ma.mask.shape == ma.shape
+        assert_array_equal(ma.mask, np.array([[True] * 3, [False] * 3]))
+        ma.mask = self.mask_a
+        assert ma.mask.shape == ma.shape
+        assert_array_equal(ma.mask, self.mask_a)
+        assert ma.mask is not self.mask_a
+        assert np.may_share_memory(ma.mask, self.mask_a)
+
+    @pytest.mark.parametrize('item', ((1, 1),
+                                      slice(None, 1),
+                                      (),
+                                      1))
+    def test_part_mask_setting(self, item):
+        ma = Masked(self.a)
+        ma.mask[item] = True
+        expected = np.zeros(ma.shape, bool)
+        expected[item] = True
+        assert_array_equal(ma.mask, expected)
+        ma.mask[item] = False
+        assert_array_equal(ma.mask, np.zeros(ma.shape, bool))
+        # Mask propagation
+        mask = np.zeros(self.a.shape, bool)
+        ma = Masked(self.a, mask)
+        ma.mask[item] = True
+        assert np.may_share_memory(ma.mask, mask)
+        assert_array_equal(ma.mask, mask)
 
 
 # Following are tests where we trust the initializer works.
@@ -74,7 +113,15 @@ class MaskedArraySetup(ArraySetup):
         self.mc = Masked(self.c, mask=self.mask_c)
 
 
-class TestMaskedArrayFilled(MaskedArraySetup):
+class TestMaskedArrayCopyFilled(MaskedArraySetup):
+    def test_copy(self):
+        ma_copy = self.ma.copy()
+        assert type(ma_copy) is type(self.ma)
+        assert_array_equal(ma_copy.data, self.ma.data)
+        assert_array_equal(ma_copy.mask, self.ma.mask)
+        assert not np.may_share_memory(ma_copy.data, self.ma.data)
+        assert not np.may_share_memory(ma_copy.mask, self.ma.mask)
+
     @pytest.mark.parametrize('fill_value', (0, 1))
     def test_filled(self, fill_value):
         fill_value = fill_value * getattr(self.a, 'unit', 1)
@@ -84,12 +131,40 @@ class TestMaskedArrayFilled(MaskedArraySetup):
         assert_array_equal(expected, result)
 
 
-class TestMaskedQuantityFilled(TestMaskedArrayFilled, QuantitySetup):
+class TestMaskedQuantityCopyFilled(TestMaskedArrayCopyFilled, QuantitySetup):
     pass
 
 
-class TestMaskedLongitudeFilled(TestMaskedArrayFilled, LongitudeSetup):
+class TestMaskedLongitudeCopyFilled(TestMaskedArrayCopyFilled, LongitudeSetup):
     pass
+
+
+class TestGetItemSetItem(MaskedArraySetup):
+    @pytest.mark.parametrize('item', ((1, 1),
+                                      slice(None, 1),
+                                      (),
+                                      1))
+    def test_getitem(self, item):
+        ma_part = self.ma[item]
+        expected_data = self.a[item]
+        expected_mask = self.mask_a[item]
+        assert_array_equal(ma_part.data, expected_data)
+        assert_array_equal(ma_part.mask, expected_mask)
+
+    @pytest.mark.parametrize('item', ((1, 1),
+                                      slice(None, 1),
+                                      (),
+                                      1))
+    def test_setitem(self, item):
+        base = self.ma.copy()
+        expected_data = self.a.copy()
+        expected_mask = self.mask_a.copy()
+        for mask in True, False:
+            value = self.ma.__class__(base[0, 0], mask)
+            base[item] = value
+            expected_data[item] = value.data
+            expected_mask[item] = value.mask
+            assert_array_equal(base.mask, expected_mask)
 
 
 class MaskedUfuncTests(MaskedArraySetup):
