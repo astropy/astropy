@@ -13,9 +13,102 @@ __all__ = ['Masked']
 
 
 REDUCTION_FILL_VALUES = {
-    np.add: 0,
     np.subtract: 0,
-    np.multiply: 1}
+    np.minimum: np.ma.minimum_fill_value,
+    np.maximum: np.ma.maximum_fill_value}
+"""For ufuncs without an identity but where reduction makes sense."""
+
+
+# Note: at present, cannot directly use ShapedLikeNDArray, because of
+# metaclass problems.
+# TODO: split this off in misc.py
+class NDArrayShapeMethods:
+    def __getitem__(self, item):
+        try:
+            return self._apply('__getitem__', item)
+        except IndexError:
+            if self.shape == ():
+                raise TypeError('scalar {0!r} object is not subscriptable.'
+                                .format(self.__class__.__name__))
+            else:
+                raise
+
+    def copy(self, *args, **kwargs):
+        """Return an instance containing copies of the internal data.
+
+        Parameters are as for :meth:`~numpy.ndarray.copy`.
+        """
+        return self._apply('copy', *args, **kwargs)
+
+    def reshape(self, *args, **kwargs):
+        """Returns an instance containing the same data with a new shape.
+
+        Parameters are as for :meth:`~numpy.ndarray.reshape`.  Note that it is
+        not always possible to change the shape of an array without copying the
+        data (see :func:`~numpy.reshape` documentation). If you want an error
+        to be raise if the data is copied, you should assign the new shape to
+        the shape attribute (note: this may not be implemented for all classes
+        using ``ShapedLikeNDArray``).
+        """
+        return self._apply('reshape', *args, **kwargs)
+
+    def ravel(self, *args, **kwargs):
+        """Return an instance with the array collapsed into one dimension.
+
+        Parameters are as for :meth:`~numpy.ndarray.ravel`. Note that it is
+        not always possible to unravel an array without copying the data.
+        If you want an error to be raise if the data is copied, you should
+        should assign shape ``(-1,)`` to the shape attribute.
+        """
+        return self._apply('ravel', *args, **kwargs)
+
+    def flatten(self, *args, **kwargs):
+        """Return a copy with the array collapsed into one dimension.
+
+        Parameters are as for :meth:`~numpy.ndarray.flatten`.
+        """
+        return self._apply('flatten', *args, **kwargs)
+
+    def transpose(self, *args, **kwargs):
+        """Return an instance with the data transposed.
+
+        Parameters are as for :meth:`~numpy.ndarray.transpose`.  All internal
+        data are views of the data of the original.
+        """
+        return self._apply('transpose', *args, **kwargs)
+
+    def swapaxes(self, *args, **kwargs):
+        """Return an instance with the given axes interchanged.
+
+        Parameters are as for :meth:`~numpy.ndarray.swapaxes`:
+        ``axis1, axis2``.  All internal data are views of the data of the
+        original.
+        """
+        return self._apply('swapaxes', *args, **kwargs)
+
+    def diagonal(self, *args, **kwargs):
+        """Return an instance with the specified diagonals.
+
+        Parameters are as for :meth:`~numpy.ndarray.diagonal`.  All internal
+        data are views of the data of the original.
+        """
+        return self._apply('diagonal', *args, **kwargs)
+
+    def squeeze(self, *args, **kwargs):
+        """Return an instance with single-dimensional shape entries removed
+
+        Parameters are as for :meth:`~numpy.ndarray.squeeze`.  All internal
+        data are views of the data of the original.
+        """
+        return self._apply('squeeze', *args, **kwargs)
+
+    def take(self, indices, axis=None, mode='raise'):
+        """Return a new instance formed from the elements at the given indices.
+
+        Parameters are as for :meth:`~numpy.ndarray.take`, except that,
+        obviously, no output array can be given.
+        """
+        return self._apply('take', indices, axis=axis, mode=mode)
 
 
 class Masked:
@@ -57,7 +150,7 @@ class Masked:
             if new_cls is None:
                 new_name = (cls.__name__ +
                             data_cls.__name__[0].upper() + data_cls.__name__[1:])
-                new_cls = type(new_name, (cls, data_cls),
+                new_cls = type(new_name, (cls, NDArrayShapeMethods, data_cls),
                                {'_data_cls': data_cls})
                 cls._generated_subclasses[data_cls] = new_cls
 
@@ -100,17 +193,20 @@ class Masked:
         else:
             self._mask = ma
 
-    def copy(self, order='C'):
-        return self.__class__(self.data.copy(order), self.mask.copy(order))
-
     def filled(self, fill_value):
         result = self.data.copy()
         result[self.mask] = fill_value
         return result
 
-    def __getitem__(self, item):
-        data = self.data[item]
-        mask = self.mask[item]
+    def _apply(self, method, *args, **kwargs):
+        # For use with NDArrayShapeMethods.
+        if callable(method):
+            data = method(self.data, *args, **kwargs)
+            mask = method(self.mask, *args, **kwargs)
+        else:
+            data = getattr(self.data, method)(*args, **kwargs)
+            mask = getattr(self.mask, method)(*args, **kwargs)
+
         return self.__class__(data, mask=mask)
 
     def __setitem__(self, item, value):
@@ -144,11 +240,13 @@ class Masked:
 
         elif method == 'reduce':
 
-            fill_value = REDUCTION_FILL_VALUES.get(ufunc, None)
-            if fill_value is None:
-                return NotImplemented
-
             if isinstance(inputs[0], Masked):
+                fill_value = REDUCTION_FILL_VALUES.get(ufunc, ufunc.identity)
+                if fill_value is None:
+                    return NotImplemented
+                elif callable(fill_value):
+                    fill_value = fill_value(inputs[0])
+
                 mask = np.logical_and.reduce(inputs[0].mask, **kwargs)
                 converted = inputs[0].filled(fill_value)
             else:
