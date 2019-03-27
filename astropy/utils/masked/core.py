@@ -29,21 +29,20 @@ class Masked:
     Parameters
     ----------
     data : array-like
-        The data for which a mask is to be added.
+        The data for which a mask is to be added.  If this is an array,
+        the result will be a view of the original data.
+    mask : array-like of bool, optional
+        The initial mask to assign.  If not given, taken from the data.
+        A view is used if possible, i.e., if no broadcasting or type conversion
+        is needed.
     """
     _generated_subclasses = {}
 
     def __new__(cls, data, mask=None):
-        data_mask = getattr(data, 'mask', None)
+        data, data_mask = cls._data_mask(data)
 
-        if data_mask is None:
-            data = np.asanyarray(data)
-            if mask is None:
-                mask = False
-        else:
-            data = data.data
-            if mask is None:
-                mask = data_mask
+        if mask is None:
+            mask = False if data_mask is None else data_mask
 
         if data.dtype.names:
             raise NotImplementedError("cannot deal with structured dtype.")
@@ -66,18 +65,45 @@ class Masked:
         self.mask = mask
         return self
 
+    @staticmethod
+    def _data_mask(data):
+        mask = getattr(data, 'mask', None)
+        if mask is None:
+            data = np.asanyarray(data)
+
+        else:
+            data = data.data
+
+        return data, mask
+
     @property
     def data(self):
         return self.view(self._data_cls)
 
     @property
     def mask(self):
+        """The mask.
+
+        If set, replace the original mask, with whatever it is set with,
+        using a view if no broadcasting or type conversion is required.
+        """
         return self._mask
 
     @mask.setter
     def mask(self, mask):
-        self._mask = np.zeros(self.shape, dtype='?')
-        self._mask[...] = mask
+        ma = np.asanyarray(mask, dtype='?')
+        if ma.shape != self.shape:
+            # This will fail (correctly) if not broadcastable.
+            self._mask = np.zeros(self.shape, dtype='?')
+            self._mask[...] = ma
+        elif ma is mask:
+            # Use a view so that shape setting does not propagate.
+            self._mask = mask.view()
+        else:
+            self._mask = ma
+
+    def copy(self, order='C'):
+        return self.__class__(self.data.copy(order), self.mask.copy(order))
 
     def filled(self, fill_value):
         result = self.data.copy()
@@ -85,13 +111,14 @@ class Masked:
         return result
 
     def __getitem__(self, item):
-        result = super().__getitem__(item)
+        data = self.data[item]
         mask = self.mask[item]
-        if isinstance(result, Masked):
-            result._mask = mask
-            return result
-        else:
-            return self.__class__(result, mask=mask)
+        return self.__class__(data, mask=mask)
+
+    def __setitem__(self, item, value):
+        value, mask = self._data_mask(value)
+        self.data[item] = value
+        self.mask[item] = mask
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         out = kwargs.pop('out', None)
