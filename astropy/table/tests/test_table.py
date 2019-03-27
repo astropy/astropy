@@ -1054,6 +1054,26 @@ class TestSort():
                                           [3, 4],
                                           [1, 2]]))
 
+    def test_single_reverse(self, table_types):
+        t = table_types.Table()
+        t.add_column(table_types.Column(name='a', data=[2, 1, 3]))
+        t.add_column(table_types.Column(name='b', data=[6, 5, 4]))
+        t.add_column(table_types.Column(name='c', data=[(1, 2), (3, 4), (4, 5)]))
+        assert np.all(t['a'] == np.array([2, 1, 3]))
+        assert np.all(t['b'] == np.array([6, 5, 4]))
+        t.sort('a', reverse=True)
+        assert np.all(t['a'] == np.array([3, 2, 1]))
+        assert np.all(t['b'] == np.array([4, 6, 5]))
+        assert np.all(t['c'] == np.array([[4, 5],
+                                          [1, 2],
+                                          [3, 4]]))
+        t.sort('b', reverse=True)
+        assert np.all(t['a'] == np.array([2, 1, 3]))
+        assert np.all(t['b'] == np.array([6, 5, 4]))
+        assert np.all(t['c'] == np.array([[1, 2],
+                                          [3, 4],
+                                          [4, 5]]))
+
     def test_single_big(self, table_types):
         """Sort a big-ish table with a non-trivial sort order"""
         x = np.arange(10000)
@@ -1064,9 +1084,10 @@ class TestSort():
         assert np.all(t['x'] == x[idx])
         assert np.all(t['y'] == y[idx])
 
-    def test_empty(self, table_types):
+    @pytest.mark.parametrize('reverse', [True, False])
+    def test_empty_reverse(self, table_types, reverse):
         t = table_types.Table([[], []], dtype=['f4', 'U1'])
-        t.sort('col1')
+        t.sort('col1', reverse=reverse)
 
     def test_multiple(self, table_types):
         t = table_types.Table()
@@ -1083,6 +1104,22 @@ class TestSort():
         t.sort(('a', 'b'))
         assert np.all(t['a'] == np.array([1, 1, 2, 2, 3, 3]))
         assert np.all(t['b'] == np.array([4, 5, 3, 6, 4, 5]))
+
+    def test_multiple_reverse(self, table_types):
+        t = table_types.Table()
+        t.add_column(table_types.Column(name='a', data=[2, 1, 3, 2, 3, 1]))
+        t.add_column(table_types.Column(name='b', data=[6, 5, 4, 3, 5, 4]))
+        assert np.all(t['a'] == np.array([2, 1, 3, 2, 3, 1]))
+        assert np.all(t['b'] == np.array([6, 5, 4, 3, 5, 4]))
+        t.sort(['a', 'b'], reverse=True)
+        assert np.all(t['a'] == np.array([3, 3, 2, 2, 1, 1]))
+        assert np.all(t['b'] == np.array([5, 4, 6, 3, 5, 4]))
+        t.sort(['b', 'a'], reverse=True)
+        assert np.all(t['a'] == np.array([2, 3, 1, 3, 1, 2]))
+        assert np.all(t['b'] == np.array([6, 5, 5, 4, 4, 3]))
+        t.sort(('a', 'b'), reverse=True)
+        assert np.all(t['a'] == np.array([3, 3, 2, 2, 1, 1]))
+        assert np.all(t['b'] == np.array([5, 4, 6, 3, 5, 4]))
 
     def test_multiple_with_bytes(self, table_types):
         t = table_types.Table()
@@ -1122,6 +1159,19 @@ class TestSort():
         assert np.all(t['a'][i0] == t['a'][i1])
         i0 = t.argsort(['a', 'b'])
         i1 = t.as_array().argsort(order=['a', 'b'])
+        assert np.all(t['a'][i0] == t['a'][i1])
+        assert np.all(t['b'][i0] == t['b'][i1])
+
+    def test_argsort_reverse(self, table_types):
+        t = table_types.Table()
+        t.add_column(table_types.Column(name='a', data=[2, 1, 3, 2, 3, 1]))
+        t.add_column(table_types.Column(name='b', data=[6, 5, 4, 3, 5, 4]))
+        assert np.all(t.argsort(reverse=True) == np.array([4, 2, 0, 3, 1, 5]))
+        i0 = t.argsort('a', reverse=True)
+        i1 = np.array([4, 2, 3, 0, 5, 1])
+        assert np.all(t['a'][i0] == t['a'][i1])
+        i0 = t.argsort(['a', 'b'], reverse=True)
+        i1 = np.array([4, 2, 0, 3, 1, 5])
         assert np.all(t['a'][i0] == t['a'][i1])
         assert np.all(t['b'][i0] == t['b'][i1])
 
