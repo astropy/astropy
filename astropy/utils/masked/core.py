@@ -40,6 +40,7 @@ class Masked:
 
     def __new__(cls, data, mask=None):
         data, data_mask = cls._data_mask(data)
+        data = np.asanyarray(data)
 
         if mask is None:
             mask = False if data_mask is None else data_mask
@@ -68,11 +69,8 @@ class Masked:
     @staticmethod
     def _data_mask(data):
         mask = getattr(data, 'mask', None)
-        if mask is None:
-            data = np.asanyarray(data)
-
-        else:
-            data = data.data
+        if mask is not None:
+            data = getattr(data, 'data', data)
 
         return data, mask
 
@@ -123,7 +121,7 @@ class Masked:
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         out = kwargs.pop('out', None)
         if out is not None:
-            kwargs['out'] = tuple((out_.data if hasattr(out_, 'mask')
+            kwargs['out'] = tuple((out_.data if isinstance(out_, Masked)
                                    else out_) for out_ in out)
             if ufunc.nout == 1:
                 out = out[0]
@@ -132,9 +130,8 @@ class Masked:
             converted = []
             masks = []
             for input_ in inputs:
-                mask = getattr(input_, 'mask', None)
-                if mask is not None:
-                    masks.append(mask)
+                if isinstance(input_, Masked):
+                    masks.append(input_.mask)
                     converted.append(input_.data)
                 else:
                     converted.append(input_)
@@ -151,11 +148,13 @@ class Masked:
             if fill_value is None:
                 return NotImplemented
 
-            mask = getattr(inputs[0], 'mask', False)
-            converted = inputs[0].filled(fill_value)
+            if isinstance(inputs[0], Masked):
+                mask = np.logical_and.reduce(inputs[0].mask, **kwargs)
+                converted = inputs[0].filled(fill_value)
+            else:
+                mask = False
+                converted = inputs[0]
             result = getattr(ufunc, method)(converted, **kwargs)
-            if mask is not False:
-                mask = np.logical_and.reduce(mask, **kwargs)
 
         elif method in {'accumulate', 'reduceat'}:
             return NotImplemented
