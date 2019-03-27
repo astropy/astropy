@@ -240,8 +240,8 @@ class MaskedUfuncTests(MaskedArraySetup):
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_sum(self, axis):
         ma_sum = self.ma.sum(axis)
-        masked0 = self.ma.data * (1. - self.ma.mask)
-        expected_data = masked0.sum(axis)
+        filled = self.ma.data * (1. - self.ma.mask)
+        expected_data = filled.sum(axis)
         assert_array_equal(ma_sum.data, expected_data)
         assert not np.any(ma_sum.mask)
 
@@ -250,7 +250,9 @@ class TestMaskedArrayUfuncs(MaskedUfuncTests, ArraySetup):
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_reduce_filled_one(self, axis):
         ma_reduce = np.prod(self.ma, axis=axis)
-        expected_data = np.prod(self.ma.filled(1), axis=axis)
+        filled = self.a.copy()
+        filled[self.mask_a] = 1
+        expected_data = np.prod(filled, axis=axis)
         expected_mask = np.logical_and.reduce(self.ma.mask, axis=axis)
         assert_array_equal(ma_reduce.data, expected_data)
         assert_array_equal(ma_reduce.mask, expected_mask)
@@ -268,16 +270,18 @@ class TestMaskedArrayMinMax(MaskedArraySetup):
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_min(self, axis):
         ma_sum = self.ma.min(axis)
-        masked0 = self.ma.filled(self.a.max())
-        expected_data = masked0.min(axis)
+        filled = self.a.copy()
+        filled[self.mask_a] = self.a.max()
+        expected_data = filled.min(axis)
         assert_array_equal(ma_sum.data, expected_data)
         assert not np.any(ma_sum.mask)
 
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_max(self, axis):
         ma_sum = self.ma.max(axis)
-        masked0 = self.ma.filled(self.a.min())
-        expected_data = masked0.max(axis)
+        filled = self.a.copy()
+        filled[self.mask_a] = self.a.min()
+        expected_data = filled.max(axis)
         assert_array_equal(ma_sum.data, expected_data)
         assert not np.any(ma_sum.mask)
 
