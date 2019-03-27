@@ -2420,7 +2420,7 @@ class Table:
 
         self.columns = columns
 
-    def argsort(self, keys=None, kind=None):
+    def argsort(self, keys=None, kind=None,reverse=False):
         """
         Return the indices which would sort the table according to one or
         more key columns.  This simply calls the `numpy.argsort` function on
@@ -2445,7 +2445,7 @@ class Table:
         # use index sorted order if possible
         if keys is not None:
             index = get_index(self, self[keys])
-            if index is not None:
+            if index is not None:   
                 return index.sorted_data()
 
         kwargs = {}
@@ -2459,7 +2459,10 @@ class Table:
         else:
             data = self.as_array()
 
-        return data.argsort(**kwargs)
+        if reverse==False:
+            return data.argsort(**kwargs)
+        elif reverse==True:
+            return data.argsort(**kwargs)[::-1]    
 
     def sort(self, keys=None):
         '''
