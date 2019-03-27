@@ -139,7 +139,38 @@ class TestMaskedLongitudeCopyFilled(TestMaskedArrayCopyFilled, LongitudeSetup):
     pass
 
 
-class TestGetItemSetItem(MaskedArraySetup):
+class TestMaskedArrayShaping(MaskedArraySetup):
+    def test_reshape(self):
+        ma_reshape = self.ma.reshape((6,))
+        expected_data = self.a.reshape((6,))
+        expected_mask = self.mask_a.reshape((6,))
+        assert ma_reshape.shape == expected_data.shape
+        assert_array_equal(ma_reshape.data, expected_data)
+        assert_array_equal(ma_reshape.mask, expected_mask)
+
+    def test_ravel(self):
+        ma_ravel = self.ma.ravel()
+        expected_data = self.a.ravel()
+        expected_mask = self.mask_a.ravel()
+        assert ma_ravel.shape == expected_data.shape
+        assert_array_equal(ma_ravel.data, expected_data)
+        assert_array_equal(ma_ravel.mask, expected_mask)
+
+    def test_transpose(self):
+        ma_transpose = self.ma.transpose()
+        expected_data = self.a.transpose()
+        expected_mask = self.mask_a.transpose()
+        assert ma_transpose.shape == expected_data.shape
+        assert_array_equal(ma_transpose.data, expected_data)
+        assert_array_equal(ma_transpose.mask, expected_mask)
+
+    def test_iter(self):
+        for ma, d, m in zip(self.ma, self.a, self.mask_a):
+            assert_array_equal(ma.data, d)
+            assert_array_equal(ma.mask, m)
+
+
+class TestMaskedArrayItems(MaskedArraySetup):
     @pytest.mark.parametrize('item', ((1, 1),
                                       slice(None, 1),
                                       (),
@@ -165,6 +196,14 @@ class TestGetItemSetItem(MaskedArraySetup):
             expected_data[item] = value.data
             expected_mask[item] = value.mask
             assert_array_equal(base.mask, expected_mask)
+
+
+class TestMaskedQuantityItems(TestMaskedArrayItems, QuantitySetup):
+    pass
+
+
+class TestMaskedLongitudeItems(TestMaskedArrayItems, LongitudeSetup):
+    pass
 
 
 class MaskedUfuncTests(MaskedArraySetup):
@@ -202,7 +241,8 @@ class MaskedUfuncTests(MaskedArraySetup):
     def test_sum(self, axis):
         ma_sum = self.ma.sum(axis)
         masked0 = self.ma.data * (1. - self.ma.mask)
-        assert_array_equal(ma_sum.data, masked0.sum(axis))
+        expected_data = masked0.sum(axis)
+        assert_array_equal(ma_sum.data, expected_data)
         assert not np.any(ma_sum.mask)
 
 
@@ -220,5 +260,30 @@ class TestMaskedQuantityUfuncs(MaskedUfuncTests, QuantitySetup):
     pass
 
 
-class TestMaskedLongitude(MaskedUfuncTests, LongitudeSetup):
+class TestMaskedLongitudeUfuncs(MaskedUfuncTests, LongitudeSetup):
     pass
+
+
+class TestMaskedArrayMinMax(MaskedArraySetup):
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_min(self, axis):
+        ma_sum = self.ma.min(axis)
+        masked0 = self.ma.filled(self.a.max())
+        expected_data = masked0.min(axis)
+        assert_array_equal(ma_sum.data, expected_data)
+        assert not np.any(ma_sum.mask)
+
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_max(self, axis):
+        ma_sum = self.ma.max(axis)
+        masked0 = self.ma.filled(self.a.min())
+        expected_data = masked0.max(axis)
+        assert_array_equal(ma_sum.data, expected_data)
+        assert not np.any(ma_sum.mask)
+
+
+class TestMaskedQuantityMinMax(TestMaskedArrayMinMax, QuantitySetup):
+    pass
+
+
+# Note: Longtitude doesn't work, as one cannot set elements to +/-inf.
