@@ -236,7 +236,7 @@ class Table:
     TableColumns = TableColumns
     TableFormatter = TableFormatter
 
-    def as_array(self, keep_byteorder=False):
+    def as_array(self, keep_byteorder=False, key_values=[]):
         """
         Return a new copy of the table in the form of a structured np.ndarray or
         np.ma.MaskedArray object (as appropriate).
@@ -247,6 +247,11 @@ class Table:
             By default the returned array has all columns in native byte
             order.  However, if this option is `True` this preserves the
             byte order of all columns (if any are non-native).
+
+        key_values : list, optional
+            By default the returned array contains all columns.
+            However, if this list contains some values of columns then
+            the returned array is sliced according to it.
 
         Returns
         -------
@@ -261,7 +266,15 @@ class Table:
 
         dtype = []
 
-        cols = self.columns.values()
+        for key in key_values:
+           if key not in self.columns:
+              print('Warning! Key does not exist')
+
+        if key_values != []:
+           cols = self[key_values].columns.values()
+
+        else:
+       	   cols = self.columns.values()
 
         for col in cols:
             col_descr = descr(col)
