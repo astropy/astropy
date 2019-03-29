@@ -200,6 +200,9 @@ astropy.table
   Table initialization so that input ``meta`` is copied only if ``copy=True``.
   [#8404]
 
+- Added a keyword key_values in ``Table.as_array()`` . If a value is passed then 
+  ``Table.as_array()`` will return a sliced array according to passed columns.
+
 astropy.tests
 ^^^^^^^^^^^^^
 
