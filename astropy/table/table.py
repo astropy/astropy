@@ -267,14 +267,14 @@ class Table:
         dtype = []
 
         for key in key_values:
-           if key not in self.columns:
-              print('Warning! Key does not exist')
+            if key not in self.columns:
+                print('Warning! Key does not exist')
 
         if key_values != []:
-           cols = self[key_values].columns.values()
+            cols = self[key_values].columns.values()
 
         else:
-       	   cols = self.columns.values()
+            cols = self.columns.values()
 
         for col in cols:
             col_descr = descr(col)

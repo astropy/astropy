@@ -2193,3 +2193,22 @@ def test_create_table_from_final_row():
     row = t1[-1]
     t2 = table.Table(row)['col']
     assert t2[0] == 2
+
+
+def test_key_values_in_as_array():
+    # Test for cheking column slicing using key_values in Table.as_array()
+    data_rows = [(1, 2.0, 'x'),
+                 (4, 5.0, 'y'),
+                 (5, 8.2, 'z')]
+    # Creating a table with three columns
+    t1 = table.Table(rows=data_rows, names=('a', 'b', 'c'),
+                     meta={'name': 'first table'},
+                     dtype=('i4', 'f8', 'S1'))
+    # Values of sliced column a,b is stored in a numpy array
+    a = np.array([(1, 2.), (4, 5.), (5, 8.2)],
+                 dtype=[('a', '<i4'), ('b', '<f8')])
+    # Values fo sliced column c is stored in a numpy array
+    b = np.array([(b'x',), (b'y',), (b'y',)], dtype=[('c', 'S1')])
+    # Comparing initialised array with sliced array using Table.as_array()
+    assert np.array_equal(a, t1.as_array(key_values=['a', 'b']))
+    assert np.array_equal(b, t1.as_array(key_values=['c']))
