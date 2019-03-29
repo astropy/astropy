@@ -2208,7 +2208,7 @@ def test_key_values_in_as_array():
     a = np.array([(1, 2.), (4, 5.), (5, 8.2)],
                  dtype=[('a', '<i4'), ('b', '<f8')])
     # Values fo sliced column c is stored in a numpy array
-    b = np.array([(b'x',), (b'y',), (b'y',)], dtype=[('c', 'S1')])
+    b = np.array([(b'x',), (b'y',), (b'z',)], dtype=[('c', 'S1')])
     # Comparing initialised array with sliced array using Table.as_array()
-    assert np.array_equal(a, t1.as_array(key_values=['a', 'b']))
-    assert np.array_equal(b, t1.as_array(key_values=['c']))
+    assert np.array_equal(a, t1.as_array(names=['a', 'b']))
+    assert np.array_equal(b, t1.as_array(names=['c']))
