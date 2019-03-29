@@ -54,6 +54,7 @@ In addition to the on-sky separation described above,
 determine the 3D distance between two coordinates that have ``distance``
 defined::
 
+    >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
     >>> c1 = SkyCoord('5h23m34.5s', '-69d45m22s', distance=70*u.kpc, frame='icrs')
     >>> c2 = SkyCoord('0h52m44.8s', '-72d49m43s', distance=80*u.kpc, frame='icrs')
@@ -76,6 +77,7 @@ The first piece of such functionality is the
 conventional astronomy position angle (positive angles East of North) from one
 the |skycoord| it is called on to another given as the argument::
 
+    >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
     >>> c1 = SkyCoord(1*u.deg, 1*u.deg, frame='icrs')
     >>> c2 = SkyCoord(2*u.deg, 2*u.deg, frame='icrs')
@@ -88,6 +90,7 @@ directional offsets. To do the inverse operation - determining the new
 "destination" coordinate given a separation and position angle - the
 :meth:`~astropy.coordinates.SkyCoord.directional_offset_by` method is provided::
 
+    >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
     >>> c1 = SkyCoord(1*u.deg, 1*u.deg, frame='icrs')
     >>> position_angle = 45 * u.deg
@@ -100,6 +103,7 @@ There is also a :meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to` metho
 for computing angular offsets (e.g., small shifts like you might give a
 telescope operator to move from a bright star to a fainter target.)::
 
+    >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
     >>> bright_star = SkyCoord('8h50m59.75s', '+11d39m22.15s', frame='icrs')
     >>> faint_galaxy = SkyCoord('8h50m47.92s', '+11d39m32.74s', frame='icrs')
@@ -122,7 +126,8 @@ These are known as "sky offset frames", as they are a convenient way to create
 a frame centered on an arbitrary position on the sky, suitable for computing
 positional offsets (e.g., for astrometry)::
 
-    >>> from astropy.coordinates import SkyOffsetFrame, ICRS
+    >>> from astropy import units as u
+    >>> from astropy.coordinates import SkyOffsetFrame, ICRS, SkyCoord
     >>> center = ICRS(10*u.deg, 45*u.deg)
     >>> center.transform_to(SkyOffsetFrame(origin=center)) # doctest: +FLOAT_CMP
     <SkyOffsetICRS Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
@@ -152,6 +157,7 @@ frame from an already-existing |SkyCoord|::
         (-0.71943945, -0.99556216)>
 
 .. note ::
+
     While sky offset frames *appear* to be all the same class, this not the
     case: the sky offset frame for each different type of frame for ``origin`` is
     actually a distinct class.  E.g., ``SkyOffsetFrame(origin=ICRS(...))``
@@ -278,6 +284,7 @@ with an interface very similar to ``match_coordinates_*``::
 
 ..  doctest-requires:: scipy
 
+    >>> import numpy as np
     >>> idxc, idxcatalog, d2d, d3d = catalog.search_around_sky(c, 1*u.deg)
     >>> np.all(d2d < 1*u.deg)
     True
@@ -300,19 +307,16 @@ matter, any array with the same order::
     True
     >>> np.all(c[idxc].separation_3d(catalog[idxcatalog]) == d3d)
     True
-    >>> print (catalog_objectnames[idxcatalog]) #doctest: +SKIP
+    >>> print(catalog_objectnames[idxcatalog]) #doctest: +SKIP
     ['NGC 1234' 'NGC 4567' ...]
 
 Note, though, that this dual-indexing means that ``search_around_*`` does not
 work well if one of the coordinates is a scalar, because the returned index
 would not make sense for a scalar::
 
-..  doctest-requires:: scipy
-
-    >>> scalarc = SkyCoord(ra=1*u.deg, dec=2*u.deg, distance= distance1*u.kpc)
+    >>> scalarc = SkyCoord(ra=1*u.deg, dec=2*u.deg, distance=distance1*u.kpc)
     >>> idxscalarc, idxcatalog, d2d, d3d = catalog.search_around_sky(scalarc, 1*u.deg) # doctest: +SKIP
-    >>> scalarc[idxscalarc] # doctest: +SKIP
-    IndexError: 0-d arrays can't be indexed
+    ValueError: One of the inputs to search_around_sky is a scalar.
 
 As a result (and because the ``search_around_*`` algorithm is inefficient in
 the scalar case, anyway), the best approach for this scenario is to instead
