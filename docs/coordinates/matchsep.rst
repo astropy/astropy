@@ -197,10 +197,9 @@ Matching Catalogs
 `~astropy.coordinates` leverages the coordinate framework to make it
 straightforward to find the closest coordinates in a catalog to a desired set
 of other coordinates. For example, assuming ``ra1``/``dec1`` and
-``ra2``/``dec2`` are numpy arrays loaded from some file::
+``ra2``/``dec2`` are numpy arrays loaded from some file:
 
-.. testsetup ::
-
+.. testsetup::
     >>> ra1 = [5.3517]
     >>> dec1 = [-5.2328]
     >>> distance1 = 1344
@@ -223,7 +222,7 @@ of 1 (dimensionless).
 
 You can also find the nearest 3d matches, different from the on-sky
 separation shown above only when the coordinates were initialized with
-a ``distance``::
+a ``distance``:
 
 .. doctest-requires:: scipy
 
@@ -235,8 +234,7 @@ Now ``idx`` are indices into ``catalog`` that are the closest objects to each
 of the coordinates in ``c``, ``d2d`` are the on-sky distances between them, and
 ``d3d`` are the 3-dimensional distances.  Because coordinate objects support
 indexing, ``idx`` enables easy access to the matched set of coordinates in
-the catalog::
-
+the catalog:
 
 .. doctest-requires:: scipy
 
@@ -248,8 +246,7 @@ the catalog::
 This functionality can also be accessed from the
 :func:`~astropy.coordinates.match_coordinates_sky` and
 :func:`~astropy.coordinates.match_coordinates_3d` functions. These
-will work on either |skycoord| objects *or* the lower-level frame classes::
-
+will work on either |skycoord| objects *or* the lower-level frame classes:
 
 .. doctest-requires:: scipy
 
@@ -258,7 +255,7 @@ will work on either |skycoord| objects *or* the lower-level frame classes::
     >>> idx, d2d, d3d = match_coordinates_sky(c.frame, catalog.frame)
 
 It is possible to impose a separation constraint (e.g., the maximum separation to be
-considered a match) by creating a boolean mask with ``d2d`` or ``d3d``. For example,::
+considered a match) by creating a boolean mask with ``d2d`` or ``d3d``. For example,:
 
 .. doctest-requires:: scipy
 
@@ -279,8 +276,7 @@ Searching Around Coordinates
 Closely-related functionality can be used to search for *all* coordinates within
 a certain distance (either 3D distance or on-sky) of another set of coordinates.
 The ``search_around_*`` methods (and functions) provide this functionality,
-with an interface very similar to ``match_coordinates_*``::
-
+with an interface very similar to ``match_coordinates_*``:
 
 ..  doctest-requires:: scipy
 
@@ -299,7 +295,7 @@ The key difference for these methods is that there can be multiple (or no)
 matches in ``catalog`` around any locations in ``c``.  Hence, indices into both
 ``c`` and ``catalog`` are returned instead of just indices into ``catalog``.
 These can then be indexed back into the two |skycoord| objects, or, for that
-matter, any array with the same order::
+matter, any array with the same order:
 
 ..  doctest-requires:: scipy
 
@@ -320,7 +316,7 @@ would not make sense for a scalar::
 
 As a result (and because the ``search_around_*`` algorithm is inefficient in
 the scalar case, anyway), the best approach for this scenario is to instead
-use the ``separation*`` methods::
+use the ``separation*`` methods:
 
 ..  doctest-requires:: scipy
 
