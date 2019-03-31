@@ -524,7 +524,7 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
 
         if hdu_uncertainty is not None and hdu_uncertainty in hdus:
             unc_hdu = hdus[hdu_uncertainty]
-            stored_unc_name = unc_hdu.header[key_uncertainty_type]
+            stored_unc_name = unc_hdu.header.get(key_uncertainty_type, 'None')
             # For compatibility reasons the default is standard deviation
             # uncertainty because files could have been created before the
             # uncertainty type was stored in the header.
