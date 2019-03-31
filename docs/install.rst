@@ -98,8 +98,8 @@ However, note that these packages require installation only if those particular
 features are needed. `astropy` will import even if these dependencies are not
 installed.
 
-Installing `astropy`
-====================
+Installing ``astropy``
+======================
 
 Using pip
 ---------
@@ -327,7 +327,7 @@ The C libraries currently bundled with `astropy` include:
 
 
 Installing `astropy` into CASA
--------------------------------
+---------------------------------
 
 If you want to be able to use `astropy` inside `CASA
 <https://casa.nrao.edu/>`_, the easiest way is to do so from inside CASA.
@@ -464,8 +464,8 @@ can also open issues in the repositories for some of the dependencies:
 
 .. _sourcebuildtest:
 
-Testing a Source Code Build of Astropy
---------------------------------------
+Testing a Source Code Build of ``astropy``
+------------------------------------------
 
 Before running tests, it is necessary to make sure that Astropy's test
 dependencies are installed. This can be done with the following command::
