@@ -888,9 +888,9 @@ def test_read_old_style_multiextensionfits(tmpdir):
     #
     # Current version should be able to read those in.
     #
-    size = 100
+    size = 4
     # Value of the variables below are not important to the test.
-    data = np.random.rand(size, size)
+    data = np.zeros([size, size])
     mask = data > 0.9
     uncert = np.sqrt(data)
 
