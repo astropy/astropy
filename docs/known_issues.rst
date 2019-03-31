@@ -267,8 +267,8 @@ If so, you can go ahead and try running ``setup.py`` again (in the new
 terminal).
 
 
-Creating a Time Object Fails with ValueError After Upgrading `astropy`
-----------------------------------------------------------------------
+Creating a Time Object Fails with ValueError After Upgrading ``astropy``
+------------------------------------------------------------------------
 
 In some cases, when users have upgraded `astropy` from an older version to v1.0
 or greater, they have run into the following crash when trying to create an
