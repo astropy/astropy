@@ -12,7 +12,6 @@ from astropy.nddata.nduncertainty import (
     InverseVariance)
 from astropy import units as u
 from astropy import log
-from astropy.io import fits
 from astropy.wcs import WCS, FITSFixedWarning
 from astropy.tests.helper import catch_warnings
 from astropy.utils import NumpyRNGContext
