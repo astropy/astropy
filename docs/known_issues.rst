@@ -204,6 +204,23 @@ Colored printing of log messages and other colored text does work in Windows,
 but only when running in the IPython console. Colors are not currently
 supported in the basic Python command-line interpreter on Windows.
 
+numpy.int64 does not decompose input
+------------------------------------
+::
+
+    >>> np.int64((15 * u.km) / (15 * u.imperial.foot))
+    1
+    >>> np.int((15 * u.km) / (15 * u.imperial.foot))
+    3280
+
+    >>> int is np.int
+    True
+    >>> np.int_ is np.int64
+    True
+
+Python's int or np.int goes through ``__index__`` while np.int64 or `np.int_` does not go through ``__index__``
+
+Hence int(...) is to be used if an integer is needed.
 
 Build/Installation/Test Issues
 ==============================
