@@ -1136,11 +1136,12 @@ class SkyCoord(ShapedLikeNDArray):
         Returns
         -------
         idxsearcharound : integer array
-            Indices into ``self`` that matches to the corresponding element of
-            ``idxself``. Shape matches ``idxself``.
+            Indices into ``searcharoundcoords`` that match the
+            corresponding elements of ``idxself``. Shape matches
+            ``idxself``.
         idxself : integer array
-            Indices into ``searcharoundcoords`` that matches to the
-            corresponding element of ``idxsearcharound``. Shape matches
+            Indices into ``self`` that match the
+            corresponding elements of ``idxsearcharound``. Shape matches
             ``idxsearcharound``.
         sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the coordinates. Shape matches
@@ -1194,11 +1195,12 @@ class SkyCoord(ShapedLikeNDArray):
         Returns
         -------
         idxsearcharound : integer array
-            Indices into ``self`` that matches to the corresponding element of
-            ``idxself``. Shape matches ``idxself``.
+            Indices into ``searcharoundcoords`` that match the
+            corresponding elements of ``idxself``. Shape matches
+            ``idxself``.
         idxself : integer array
-            Indices into ``searcharoundcoords`` that matches to the
-            corresponding element of ``idxsearcharound``. Shape matches
+            Indices into ``self`` that match the
+            corresponding elements of ``idxsearcharound``. Shape matches
             ``idxsearcharound``.
         sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the coordinates. Shape matches
