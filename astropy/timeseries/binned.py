@@ -9,7 +9,7 @@ from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.units import Quantity
 
-from .core import BaseTimeSeries
+from astropy.timeseries.core import BaseTimeSeries
 
 __all__ = ['BinnedTimeSeries']
 

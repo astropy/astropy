@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import pytest
 import numpy as np
 from numpy.testing import assert_equal
@@ -5,8 +7,8 @@ from numpy.testing import assert_equal
 from astropy import units as u
 from astropy.time import Time
 
-from ..sampled import TimeSeries
-from ..downsample import simple_downsample, reduceat
+from astropy.timeseries.sampled import TimeSeries
+from astropy.timeseries.downsample import simple_downsample, reduceat
 
 INPUT_TIME = Time(['2016-03-22T12:30:31', '2016-03-22T12:30:32',
                    '2016-03-22T12:30:33', '2016-03-22T12:30:34'])

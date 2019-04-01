@@ -1,21 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from copy import deepcopy
-from distutils.version import LooseVersion
 
 import numpy as np
 
-import astropy
 from astropy.table import groups, QTable, Table
 from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.units import Quantity
 
-from .core import BaseTimeSeries
+from astropy.timeseries.core import BaseTimeSeries
 
 __all__ = ['TimeSeries']
-
-ASTROPY_LT_32 = LooseVersion(astropy.__version__) < LooseVersion("3.2")
 
 
 class TimeSeries(BaseTimeSeries):
@@ -23,8 +19,6 @@ class TimeSeries(BaseTimeSeries):
     _require_time_column = False
 
     def __init__(self, data=None, time=None, time_delta=None, n_samples=None, **kwargs):
-        """
-        """
 
         super().__init__(data=data, **kwargs)
 
@@ -188,17 +182,7 @@ class TimeSeries(BaseTimeSeries):
         dataframe : :class:`pandas.DataFrame`
             A pandas :class:`pandas.DataFrame` instance
         """
-
-        if ASTROPY_LT_32:
-            # Extract table without time column
-            table = self[[x for x in self.colnames if x != 'time']]
-            df = Table(table).to_pandas()
-            # Set index
-            df.set_index(self.time.datetime64, inplace=True)
-        else:
-            df = Table(self).to_pandas(index='time')
-
-        return df
+        return Table(self).to_pandas(index='time')
 
     @classmethod
     def read(self, filename, time_column=None, time_format=None, time_scale=None, format=None, *args, **kwargs):
