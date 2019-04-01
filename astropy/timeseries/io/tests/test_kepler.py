@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 from unittest import mock
 
 import pytest
@@ -6,7 +7,7 @@ import pytest
 from astropy.io.fits import HDUList, Header, PrimaryHDU, BinTableHDU
 from astropy.utils.data import get_pkg_data_filename
 
-from ..kepler import kepler_fits_reader
+from astropy.timeseries.io.kepler import kepler_fits_reader
 
 
 def fake_header(extver, version, timesys, telescop):

@@ -1,11 +1,13 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 from numpy.testing import assert_equal
 
 from astropy import units as u
 from astropy.table import Table, QTable, vstack
 from astropy.time import Time
 
-from ..sampled import TimeSeries
-from ..binned import BinnedTimeSeries
+from astropy.timeseries.sampled import TimeSeries
+from astropy.timeseries.binned import BinnedTimeSeries
 
 
 INPUT_TIME = Time(['2016-03-22T12:30:31', '2015-01-21T12:30:32', '2016-03-22T12:30:40'])

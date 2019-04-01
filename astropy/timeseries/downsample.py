@@ -1,11 +1,13 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import warnings
 
 import numpy as np
 from astropy import units as u
 from astropy.utils.exceptions import AstropyUserWarning
 
-from .sampled import TimeSeries
-from .binned import BinnedTimeSeries
+from astropy.timeseries.sampled import TimeSeries
+from astropy.timeseries.binned import BinnedTimeSeries
 
 __all__ = ['simple_downsample']
 

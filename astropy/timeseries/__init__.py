@@ -1,16 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This subpackage contains classes and functions for work with time series
-data sets.
-
+This subpackage contains classes and functions for work with time series.
 """
 
-from ._astropy_init import *
-
-if not _ASTROPY_SETUP_:
-    from .core import *  # noqa
-    from .sampled import *  # noqa
-    from .binned import *  # noqa
-    from . import io  # noqa
-    from .downsample import *  # noqa
+from astropy.timeseries.core import *  # noqa
+from astropy.timeseries.sampled import *  # noqa
+from astropy.timeseries.binned import *  # noqa
+from astropy.timeseries import io  # noqa
+from astropy.timeseries.downsample import *  # noqa

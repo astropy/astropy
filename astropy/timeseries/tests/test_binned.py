@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import os
 
 import pytest
@@ -6,7 +8,7 @@ from numpy.testing import assert_equal
 from astropy import units as u
 from astropy.time import Time, TimeDelta
 
-from ..binned import BinnedTimeSeries
+from astropy.timeseries.binned import BinnedTimeSeries
 
 
 CSV_FILE = os.path.join(os.path.dirname(__file__), 'data', 'binned.csv')
