@@ -746,10 +746,6 @@ class Table:
     def _init_from_dict(self, data, names, dtype, n_cols, copy):
         """Initialize table from a dictionary of columns"""
 
-        # TODO: is this restriction still needed with no ndarray?
-        if not copy:
-            raise ValueError('Cannot use copy=False with a dict data input')
-
         data_list = [data[name] for name in names]
         self._init_from_list(data_list, names, dtype, n_cols, copy)
 
