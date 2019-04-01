@@ -478,3 +478,28 @@ def test_init_and_ref_from_multidim_ndarray(table_type):
         else:
             assert nd[str('a')][0] == -200
             assert nd[str('b')][1][1] == -100
+
+@pytest.mark.usefixtures('table_type')
+def test_init_and_ref_from_dict(table_type):
+    """
+    Test that initializing from a dict works for both copy=False and True and that
+    the referencing is as expected.
+    """
+    for copy in (False, True):
+        x1 = np.arange(10.)
+        x2 = np.zeros(10)
+        x3 = np.random.randint(10, size=10)
+        col_dict = dict([('x1', x1), ('x2', x2), ('x3', x3)])
+        t = table_type(col_dict, copy=copy)
+        assert t.colnames == ['x1', 'x2', 'x3']
+        assert t['x1'].shape == (10,)
+        assert t['x2'].shape == (10,)
+        assert t['x3'].shape == (10,)
+        t['x1'][0] = -200
+        t['x2'][1] = -100
+        if copy:
+            assert x1[0] == 0.
+            assert x2[1] == 0.
+        else:
+            assert x1[0] == -200
+            assert x2[1] == -100
