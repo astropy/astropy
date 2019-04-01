@@ -629,7 +629,7 @@ copy
 
 By default the input ``data`` are copied into a new internal ``np.ndarray``
 object in the Table object.  In the case where ``data`` is either an
-``np.ndarray`` object or an existing ``Table``, it is possible to use a
+``np.ndarray`` object, a ``dict``, or an existing ``Table``, it is possible to use a
 reference to the existing data by setting ``copy=False``.  This has the
 advantage of reducing memory use and being faster.  However one should take
 care because any modifications to the new Table data will also be seen in the
@@ -645,7 +645,7 @@ Copy versus Reference
 Normally when a new |Table| object is created, the input data are *copied* into
 a new internal array object.  This ensures that if the new table elements are
 modified then the original data will not be affected.  However, when creating a
-table from a numpy ndarray object (structured or homogeneous), it is possible to
+table from a numpy ndarray object (structured or homogeneous) or a dict, it is possible to
 disable copying so that instead a memory reference to the original data is
 used.  This has the advantage of being faster and using less memory.  However,
 caution must be exercised because the new table data and original data will be
