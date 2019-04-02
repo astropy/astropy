@@ -53,8 +53,7 @@ from astropy.utils.exceptions import AstropyWarning, AstropyUserWarning, Astropy
 
 
 # Mix-in class that provides the APE 14 API
-from .wcsapi.fitswcs import FITSWCSAPIMixin
-
+from .wcsapi.fitswcs import FITSWCSAPIMixin, SlicedFITSWCS
 
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'DistortionLookupTable', 'Sip', 'Tabprm', 'Wcsprm',
@@ -2942,9 +2941,15 @@ reduce these to 2 dimensions using the naxis kwarg.
             view = [view]
 
         if not all(isinstance(x, slice) for x in view):
-            raise ValueError("Cannot downsample a WCS with indexing.  Use "
-                             "wcs.sub or wcs.dropaxis if you want to remove "
-                             "axes.")
+            # We need to drop some dimensions, but this may not always be
+            # possible with .sub due to correlated axes, so instead we use the
+            # generalized slicing infrastructure from astropy.wcs.wcsapi.
+            return SlicedFITSWCS(self, view)
+
+        # NOTE: we could in principle use SlicedFITSWCS as above for all slicing,
+        # but in the simple case where there are no axes dropped, we can just
+        # create a full WCS object with updated WCS parameters which is faster
+        # for this specific case and also backward-compatible.
 
         wcs_new = self.deepcopy()
         if wcs_new.sip is not None:
@@ -2992,7 +2997,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 if 'indices must be integers' not in str(exc):
                     raise
                 warnings.warn("NAXIS{0} attribute is not updated because at "
-                              "least one indix ('{1}') is no integer."
+                              "least one index ('{1}') is no integer."
                               "".format(wcs_index, iview), AstropyUserWarning)
             else:
                 wcs_new._naxis[wcs_index] = nitems
