@@ -52,12 +52,6 @@ def kepler_fits_reader(filename):
         raise NotImplementedError("Support for {0} time scale not yet "
                                   "implemented in {1} reader".format(hdu.header['TIMESYS'], hdu.header['TELESCOP']))
 
-    if telescop == 'kepler':
-        if "VERSION" in hdu.header.keys() and hdu.header["VERSION"] != '2.0':
-            warnings.warn("This is not a EVEREST pipeline version 2 KEPLER file.")
-        else:
-            warnings.warn("This seems to be a non EVEREST reduced KEPLER file.")
-
     tab = Table.read(hdu, format='fits')
 
     # Some KEPLER files have a T column instead of TIME.
