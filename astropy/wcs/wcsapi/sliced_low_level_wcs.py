@@ -44,11 +44,12 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
     def __init__(self, wcs, slices):
  
         self._wcs = wcs
-        self._slices = sanitize_slices(slices, self._wcs.pixel_n_dim)
+        self._slices_array = sanitize_slices(slices, self._wcs.pixel_n_dim)
+        self._slices_pixel = self._slices_array[::-1]
 
         # figure out which pixel dimensions have been kept, then use axis correlation
         # matrix to figure out which world dims are kept
-        self._pixel_keep = np.nonzero([not isinstance(self._slices[ip], numbers.Integral)
+        self._pixel_keep = np.nonzero([not isinstance(self._slices_pixel[ip], numbers.Integral)
                                        for ip in range(self._wcs.pixel_n_dim)])[0]
 
         # axis_correlation_matrix[world, pixel]
@@ -75,15 +76,15 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
         pixel_arrays_new = []
         ipix_curr = -1
         for ipix in range(self._wcs.pixel_n_dim):
-            if self._slices[ipix] is slice(None):
+            if self._slices_pixel[ipix] is slice(None):
                 ipix_curr += 1
                 pixel_arrays_new.append(pixel_arrays[ipix_curr])
-            elif isinstance(self._slices[ipix], int):
-                pixel_arrays_new.append(self._slices[ipix])
+            elif isinstance(self._slices_pixel[ipix], int):
+                pixel_arrays_new.append(self._slices_pixel[ipix])
             else:
                 ipix_curr += 1
-                if self._slices[ipix].start is not None:
-                    pixel_arrays_new.append(pixel_arrays[ipix_curr] + self._slices[ipix].start)
+                if self._slices_pixel[ipix].start is not None:
+                    pixel_arrays_new.append(pixel_arrays[ipix_curr] + self._slices_pixel[ipix].start)
                 else:
                     pixel_arrays_new.append(pixel_arrays[ipix_curr])
 
@@ -105,9 +106,14 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
 
         pixel_arrays = self._wcs.world_to_pixel_values(*world_arrays_new)
 
+        print('here1', pixel_arrays)
+
         for ipixel in range(self._wcs.pixel_n_dim):
-            if isinstance(self._slices[ipixel], slice) and self._slices[ipixel].start is not None:
-                pixel_arrays[ipixel] -= self._slices[ipixel].start
+            if isinstance(self._slices_pixel[ipixel], slice) and self._slices_pixel[ipixel].start is not None:
+                pixel_arrays[ipixel] -= self._slices_pixel[ipixel].start
+
+        print('here2', pixel_arrays)
+        print('here3', self._pixel_keep)
 
         return [pixel_arrays[ip] for ip in self._pixel_keep]
 
@@ -127,8 +133,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
 
     @property
     def array_shape(self):
-        return np.broadcast_to(0, self._wcs.array_shape)[self._slices].shape
-        # return tuple([self._wcs.array_shape[idx] for idx in self._pixel_keep])
+        return np.broadcast_to(0, self._wcs.array_shape)[self._slices_array].shape
 
     @property
     def pixel_shape(self):
