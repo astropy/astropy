@@ -76,10 +76,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
         pixel_arrays_new = []
         ipix_curr = -1
         for ipix in range(self._wcs.pixel_n_dim):
-            if self._slices_pixel[ipix] is slice(None):
-                ipix_curr += 1
-                pixel_arrays_new.append(pixel_arrays[ipix_curr])
-            elif isinstance(self._slices_pixel[ipix], int):
+            if isinstance(self._slices_pixel[ipix], int):
                 pixel_arrays_new.append(self._slices_pixel[ipix])
             else:
                 ipix_curr += 1
@@ -106,14 +103,9 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
 
         pixel_arrays = self._wcs.world_to_pixel_values(*world_arrays_new)
 
-        print('here1', pixel_arrays)
-
         for ipixel in range(self._wcs.pixel_n_dim):
             if isinstance(self._slices_pixel[ipixel], slice) and self._slices_pixel[ipixel].start is not None:
                 pixel_arrays[ipixel] -= self._slices_pixel[ipixel].start
-
-        print('here2', pixel_arrays)
-        print('here3', self._pixel_keep)
 
         return [pixel_arrays[ip] for ip in self._pixel_keep]
 
@@ -141,13 +133,23 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
 
     @property
     def pixel_bounds(self):
-        # FIXME: incorect when slices are present
-        return [self._wcs.pixel_bounds[::-1][idx] for idx in self._pixel_keep][::-1]
+
+        if self._wcs.pixel_bounds is None:
+            return None
+
+        bounds = []
+        for idx in self._pixel_keep:
+            if self._slices_pixel[idx].start is None:
+                bounds.append(self._wcs.pixel_bounds[idx])
+            else:
+                imin, imax = self._wcs.pixel_bounds[idx]
+                start = self._slices_pixel[idx].start
+                bounds.append([imin - start, imax - start])
+
+        return bounds
    
     @property
     def axis_correlation_matrix(self):
         return self._wcs.axis_correlation_matrix[self._world_keep][:,self._pixel_keep]
-
-
 
 

@@ -39,6 +39,7 @@ CUNIT3  = deg
 """
 
 WCS_SPECTRAL_CUBE = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep='\n'))
+WCS_SPECTRAL_CUBE.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
 
 
 @pytest.mark.parametrize("item, ndim, expected", (
@@ -87,6 +88,8 @@ def test_ellipsis():
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (29., 39., 44.))
     assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 29))
 
+    assert_equal(wcs.pixel_bounds, [(-1, 11), (-2, 18), (5, 15)])
+
 
 def test_spectral_slice():
 
@@ -114,6 +117,8 @@ def test_spectral_slice():
 
     assert_allclose(wcs.world_to_pixel_values(10, 25), (29., 44.))
     assert_equal(wcs.world_to_array_index_values(10, 25), (44, 29))
+
+    assert_equal(wcs.pixel_bounds, [(-1, 11), (5, 15)])
 
 
 def test_spectral_range():
@@ -148,6 +153,8 @@ def test_spectral_range():
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (29., 35., 44.))
     assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 35, 29))
 
+    assert_equal(wcs.pixel_bounds, [(-1, 11), (-6, 14), (5, 15)])
+
 
 def test_celestial_slice():
 
@@ -180,6 +187,8 @@ def test_celestial_slice():
 
     assert_allclose(wcs.world_to_pixel_values(12.4, 20, 25), (39., 44.))
     assert_equal(wcs.world_to_array_index_values(12.4, 20, 25), (44, 39))
+
+    assert_equal(wcs.pixel_bounds, [(-2, 18), (5, 15)])
 
 
 def test_celestial_range():
@@ -214,11 +223,16 @@ def test_celestial_range():
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (24., 39., 44.))
     assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 24))
 
+    assert_equal(wcs.pixel_bounds, [(-6, 6), (-2, 18), (5, 15)])
+
+
 # Now try with a 90 degree rotation
 
 WCS_SPECTRAL_CUBE_ROT = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep='\n'))
 WCS_SPECTRAL_CUBE_ROT.wcs.pc = [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
 WCS_SPECTRAL_CUBE_ROT.wcs.crval[0] = 0
+WCS_SPECTRAL_CUBE_ROT.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
+
 
 def test_celestial_range_rot():
     
@@ -251,3 +265,5 @@ def test_celestial_range_rot():
 
     assert_allclose(wcs.world_to_pixel_values(1, 15, 24), (14., 29., 34.))
     assert_equal(wcs.world_to_array_index_values(1, 15, 24), (34, 29, 14))
+
+    assert_equal(wcs.pixel_bounds, [(-6, 6), (-2, 18), (5, 15)])
