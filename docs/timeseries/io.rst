@@ -57,10 +57,38 @@ Reading other formats
 =====================
 
 At the moment only a few formats are defined in astropy itself, in part because
-there are not many well documented formats for storing time series. So in many cases,
-you will likely have to first read in your files using the more generic |Table|
-class (see :ref:`read_write_tables`), and then construct the time series object as
-described in :ref:`timeseries-initializing`.
+there are not many well documented formats for storing time series. So in many
+cases, you will likely have to first read in your files using e.g. the more
+generic |Table| class (see :ref:`read_write_tables`). In fact, the
+:meth:`TimeSeries.read <astropy.timeseries.TimeSeries.read>` and
+:meth:`BinnedTimeSeries.read <astropy.timeseries.BinnedTimeSeries.read>` methods
+can do this behind the scenes - if the table cannot be read by any of the time
+series readers, these methods will try and use some of the default :class:`~astropy.table.Table`
+readers and then require users to specify the name of the important columns.
 
-If you have written a reader/writer for a commonly used format, and it is well
-documented, please feel free to contribute it to astropy!
+For example, if you are reading in a file called ``sampled.dat`` where the time
+column is called ``date`` and is an ISO string, you can do::
+
+    >>> from astropy.timeseries import TimeSeries
+    >>> ts = TimeSeries.read('sampled.dat', format='ascii.csv',
+    ...                      time_column='date')  # doctest: +SKIP
+
+If you are reading in a binned time series from a file called ``binned.dat``
+and with a column ``date_start`` giving the start time and ``date_end`` giving
+the end time of each bin, you can do::
+
+    >>> from astropy.timeseries import BinnedTimeSeries
+    >>> ts = BinnedTimeSeries.read('binned.dat', format='ascii.csv',
+    ...                            time_bin_start_column='date_start',
+    ...                            time_bin_end_column='date_end')  # doctest: +SKIP
+
+
+See the documentation for :meth:`TimeSeries.read
+<astropy.timeseries.TimeSeries.read>` and :meth:`BinnedTimeSeries.read
+<astropy.timeseries.BinnedTimeSeries.read>` for more details.
+
+Alternatively, you can read in the table using your own code then construct the
+time series object as described in :ref:`timeseries-initializing`.
+
+If you have written a reader/writer for a commonly used format, please feel free
+to contribute it to astropy!

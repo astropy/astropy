@@ -199,3 +199,68 @@ class TimeSeries(BaseTimeSeries):
             df = Table(self).to_pandas(index='time')
 
         return df
+
+    @classmethod
+    def read(self, filename, time_column=None, time_format=None, time_scale=None, format=None, *args, **kwargs):
+        """
+        Read and parse a file and returns a `astropy.timeseries.TimeSeries`.
+
+        This method uses the unified I/O infrastructure in Astropy which makes
+        it easy to define readers/writers for various classes
+        (http://docs.astropy.org/en/stable/io/unified.html). By default, this
+        method will try and use readers defined specifically for the
+        `astropy.timeseries.TimeSeries` class - however, it is also
+        possible to use the ``format`` keyword to specify formats defined for
+        the `astropy.table.Table` class - in this case, you will need to also
+        provide the column names for column containing the start times for the
+        bins, as well as other column names (see the Parameters section below
+        for details)::
+
+            >>> from astropy.timeseries import TimeSeries
+            >>> ts = TimeSeries.read('sampled.dat', format='ascii.ecsv',
+            ...                      time_column='date')  # doctest: +SKIP
+
+        Parameters
+        ----------
+        filename: str
+            File to parse.
+        format : str
+            File format specifier.
+        time_column: str, optional
+            The name of the time column.
+        time_format: str, optional
+            The time format for the time column.
+        time_scale: str, optional
+            The time scale for the time column.
+        *args : tuple, optional
+            Positional arguments passed through to the data reader.
+        **kwargs : dict, optional
+            Keyword arguments passed through to the data reader.
+
+        Returns
+        -------
+        out : `astropy.timeseries.sampled.TimeSeries`
+            TimeSeries corresponding to file contents.
+
+        """
+        try:
+
+            # First we try the readers defined for the BinnedTimeSeries class
+            return super().read(filename, format=format, *args, **kwargs)
+
+        except TypeError:
+
+            # Otherwise we fall back to the default Table readers
+
+            if time_column is None:
+                raise ValueError("``time_column`` should be provided since the default Table readers are being used.")
+
+            table = Table.read(filename, format=format, *args, **kwargs)
+
+            if time_column in table.colnames:
+                time = Time(table.columns[time_column], scale=time_scale, format=time_format)
+                table.remove_column(time_column)
+            else:
+                raise ValueError("Time column '{}' not found in the input data.".format(time_column))
+
+            return TimeSeries(time=time, data=table)
