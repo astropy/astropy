@@ -490,7 +490,7 @@ def test_init_and_ref_from_dict(table_type, copy):
     x2 = np.zeros(10)
     col_dict = dict([('x1', x1), ('x2', x2)])
     t = table_type(col_dict, copy=copy)
-    assert t.colnames == ['x1', 'x2']
+    assert set(t.colnames) == set(['x1', 'x2'])
     assert t['x1'].shape == (10,)
     assert t['x2'].shape == (10,)
     t['x1'][0] = -200
