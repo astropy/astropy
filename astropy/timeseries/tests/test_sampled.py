@@ -184,10 +184,16 @@ def test_pandas():
     assert exc.value.args[0] == 'DataFrame does not have a DatetimeIndex'
 
 
+def test_read_time_missing():
+    with pytest.raises(ValueError) as exc:
+        TimeSeries.read(CSV_FILE, format='csv')
+    assert exc.value.args[0] == '``time_column`` should be provided since the default Table readers are being used.'
+
+
 def test_read_time_wrong():
     with pytest.raises(ValueError) as exc:
         TimeSeries.read(CSV_FILE, time_column='abc', format='csv')
-    assert exc.value.args[0] == 'Time column abc, not found in the input data.'
+    assert exc.value.args[0] == "Time column 'abc' not found in the input data."
 
 
 def test_read():
