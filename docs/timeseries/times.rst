@@ -88,5 +88,5 @@ for example by subtracting a reference time from an existing time object::
 
 The |TimeDelta| values can be converted to different time units using e.g.::
 
-    >>> ts_rel.time.sec
-    array([ 0.,  3.,  6.,  9., 12.])
+    >>> ts_rel.time.to('s')
+    <Quantity [ 0.,  3.,  6.,  9., 12.] s>
