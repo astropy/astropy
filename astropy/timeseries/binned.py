@@ -167,13 +167,13 @@ class BinnedTimeSeries(BaseTimeSeries):
              time_bin_size_column=None, time_bin_size_unit=None, time_format=None, time_scale=None,
              format=None, *args, **kwargs):
         """
-        Read and parse a file and returns a `astropy.timeseries.binned.BinnedTimeSeries`.
+        Read and parse a file and returns a `astropy.timeseries.BinnedTimeSeries`.
 
         This method uses the unified I/O infrastructure in Astropy which makes
         it easy to define readers/writers for various classes
         (http://docs.astropy.org/en/stable/io/unified.html). By default, this
         method will try and use readers defined specifically for the
-        `astropy.timeseries.binned.BinnedTimeSeries` class - however, it is also
+        `astropy.timeseries.BinnedTimeSeries` class - however, it is also
         possible to use the ``format`` keyword to specify formats defined for
         the `astropy.table.Table` class - in this case, you will need to also
         provide the column names for column containing the start times for the
@@ -181,9 +181,9 @@ class BinnedTimeSeries(BaseTimeSeries):
         for details)::
 
             >>> from astropy.timeseries.binned import BinnedTimeSeries
-            >>> dat = BinnedTimeSeries.read('table.dat', format='ascii.ecsv',
-            ...                             time_bin_start_column='date_start',
-            ...                             time_bin_end_column='date_end')  # doctest: +SKIP
+            >>> ts = BinnedTimeSeries.read('binned.dat', format='ascii.ecsv',
+            ...                            time_bin_start_column='date_start',
+            ...                            time_bin_end_column='date_end')  # doctest: +SKIP
 
         Parameters
         ----------
