@@ -117,7 +117,7 @@ using:
     from astropy.timeseries import TimeSeries
     from astropy.utils.data import get_pkg_data_filename
     example_data = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
-    kepler = TimeSeries.read(example_data, 'time', format='kepler.fits')
+    kepler = TimeSeries.read(example_data, format='kepler.fits')
 
 (see :ref:`timeseries-io` for more details about reading in data). We can then
 downsample using:
@@ -164,7 +164,7 @@ an epoch as a :class:`~astropy.time.Time`, which defines a zero time offset:
    from astropy.utils.data import get_pkg_data_filename
 
    example_data = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
-   kepler = TimeSeries.read(example_data, 'time', format='kepler.fits')
+   kepler = TimeSeries.read(example_data, format='kepler.fits')
 
 .. plot::
    :include-source:
@@ -195,7 +195,7 @@ sigma-clipped median value.
    from astropy.utils.data import get_pkg_data_filename
 
    example_data = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
-   kepler = TimeSeries.read(example_data, 'time', format='kepler.fits')
+   kepler = TimeSeries.read(example_data, format='kepler.fits')
    kepler_folded = kepler.fold(period=2.2 * u.day, midpoint_epoch='2009-05-02T20:53:40')
 
 .. plot::

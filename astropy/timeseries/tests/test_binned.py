@@ -9,8 +9,7 @@ from astropy.time import Time, TimeDelta
 from ..binned import BinnedTimeSeries
 
 
-TEST_DIR = os.path.dirname(__file__)
-CSV_FILE = TEST_DIR + '/data/binned.csv'
+CSV_FILE = os.path.join(os.path.dirname(__file__), 'data', 'binned.csv')
 
 
 def test_empty_initialization():
@@ -218,25 +217,19 @@ def test_uneven_non_contiguous_full():
 def test_read_empty():
     with pytest.raises(ValueError) as exc:
         BinnedTimeSeries.read(CSV_FILE, 'time_bin', format='csv')
-    assert exc.value.args[0] == 'Please enter `time_bin_end_column` or `time_bin_size_column`.'
-
-
-def test_read_no_end_bin():
-    with pytest.raises(ValueError) as exc:
-        BinnedTimeSeries.read(CSV_FILE, 'time_bin', format='csv')
-    assert exc.value.args[0] == "Please enter `time_bin_end_column` or `time_bin_size_column`."
+    assert exc.value.args[0] == 'Either `time_bin_end_column` or `time_bin_size_column` should be provided.'
 
 
 def test_read_both_extra_bins():
     with pytest.raises(ValueError) as exc:
         BinnedTimeSeries.read(CSV_FILE, 'time_bin', time_bin_end_column='END', time_bin_size_column='SIZE', format='csv')
-    assert exc.value.args[0] == "Please choose between `time_bin_end_column` or `time_bin_size_column`."
+    assert exc.value.args[0] == "Cannot specify both `time_bin_end_column` and `time_bin_size_column`."
 
 
 def test_read_size_no_unit():
     with pytest.raises(ValueError) as exc:
         BinnedTimeSeries.read(CSV_FILE, 'time_bin', time_bin_size_column='SIZE', format='csv')
-    assert exc.value.args[0] == "Please enter `time_bin_unit` for the `time_bin_size_column`."
+    assert exc.value.args[0] == "`time_bin_unit` should be specified since `time_bin_size_column` was given."
 
 
 def test_read_time_missing():
