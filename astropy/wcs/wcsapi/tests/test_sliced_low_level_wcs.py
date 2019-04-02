@@ -213,3 +213,41 @@ def test_celestial_range():
 
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (24., 39., 44.))
     assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 24))
+
+# Now try with a 90 degree rotation
+
+WCS_SPECTRAL_CUBE_ROT = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep='\n'))
+WCS_SPECTRAL_CUBE_ROT.wcs.pc = [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
+WCS_SPECTRAL_CUBE_ROT.wcs.crval[0] = 0
+
+def test_celestial_range_rot():
+    
+    wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE_ROT, [Ellipsis, slice(5, 10)])
+
+    assert wcs.pixel_n_dim == 3
+    assert wcs.world_n_dim == 3
+    assert wcs.array_shape == (30, 20, 5)
+    assert wcs.pixel_shape == (5, 20, 30)
+    assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
+    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
+
+    assert_equal(wcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
+
+    assert wcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
+                                                ('freq', 0, 'value'),
+                                                ('celestial', 0, 'spherical.lon.degree')]
+
+    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
+    assert wcs.world_axis_object_classes['celestial'][1] == ()
+    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], Galactic)
+    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
+
+    assert wcs.world_axis_object_classes['freq'][0] is Quantity
+    assert wcs.world_axis_object_classes['freq'][1] == ()
+    assert wcs.world_axis_object_classes['freq'][2] == {'unit': 'Hz'}
+
+    assert_allclose(wcs.pixel_to_world_values(14, 29, 34), (1, 15, 24))
+    assert_allclose(wcs.array_index_to_world_values(34, 29, 14), (1, 15, 24))
+
+    assert_allclose(wcs.world_to_pixel_values(1, 15, 24), (14., 29., 34.))
+    assert_equal(wcs.world_to_array_index_values(1, 15, 24), (34, 29, 14))
