@@ -10,7 +10,6 @@ from astropy.table import groups, QTable, Table
 from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.units import Quantity
-from astropy.io.registry import IORegistryError
 
 from .core import BaseTimeSeries
 
