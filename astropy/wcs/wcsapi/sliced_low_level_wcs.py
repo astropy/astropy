@@ -2,10 +2,12 @@ import numbers
 import numpy as np
 from astropy.wcs.wcsapi import BaseLowLevelWCS
 
+__all__ = ['sanitize_slices', 'SlicedLowLevelWCS']
+
 
 def sanitize_slices(slices, ndim):
     """
-    Given a set of input 
+    Given a set of input
     """
 
     if not isinstance(slices, (tuple, list)):  # We just have a single int
@@ -34,7 +36,7 @@ def sanitize_slices(slices, ndim):
             elif not isinstance(slc, numbers.Integral):
                 raise ValueError("Only integer or range slices are accepted.")
         else:
-            slices.append(slice(None)) 
+            slices.append(slice(None))
 
     return slices
 
@@ -42,7 +44,7 @@ def sanitize_slices(slices, ndim):
 class SlicedLowLevelWCS(BaseLowLevelWCS):
 
     def __init__(self, wcs, slices):
- 
+
         self._wcs = wcs
         self._slices_array = sanitize_slices(slices, self._wcs.pixel_n_dim)
         self._slices_pixel = self._slices_array[::-1]
@@ -67,7 +69,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
     @property
     def world_axis_physical_types(self):
         return [self._wcs.world_axis_physical_types[i] for i in self._world_keep]
-      
+
     @property
     def world_axis_units(self):
         return [self._wcs.world_axis_units[i] for i in self._world_keep]
@@ -90,7 +92,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
 
     def array_index_to_world_values(self, *index_arrays):
         return self.pixel_to_world_values(*index_arrays[::-1])
- 
+
     def world_to_pixel_values(self, *world_arrays):
         world_arrays_new = []
         iworld_curr = -1
@@ -147,9 +149,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
                 bounds.append([imin - start, imax - start])
 
         return bounds
-   
+
     @property
     def axis_correlation_matrix(self):
         return self._wcs.axis_correlation_matrix[self._world_keep][:,self._pixel_keep]
-
-
