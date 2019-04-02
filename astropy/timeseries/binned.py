@@ -213,18 +213,17 @@ class BinnedTimeSeries(BaseTimeSeries):
         try:
             table = super().read(filename, format=format, *args, **kwargs)
             return table
-        # TODO: Seemed to be TypeError and not IORegistryError
         except TypeError:
             table = Table.read(filename, format=format, *args, **kwargs)
 
             if time_bin_end_column is None and time_bin_size_column is None:
-                raise ValueError("Please enter `time_bin_end_column` or `time_bin_size_column`.")
+                raise ValueError("Either `time_bin_end_column` or `time_bin_size_column` should be provided.")
 
             if time_bin_end_column is not None and time_bin_size_column is not None:
-                raise ValueError("Please choose between `time_bin_end_column` or `time_bin_size_column`.")
+                raise ValueError("Cannot specify both `time_bin_end_column` and `time_bin_size_column`.")
 
             if time_bin_size_column is not None and time_bin_unit is None:
-                raise ValueError("Please enter `time_bin_unit` for the `time_bin_size_column`.")
+                raise ValueError("`time_bin_unit` should be specified since `time_bin_size_column` was given.")
 
             if time_bin_start_column not in table.colnames:
                 raise ValueError("Time start bin column {}, not found in the input data.".format(time_bin_start_column))
@@ -233,7 +232,6 @@ class BinnedTimeSeries(BaseTimeSeries):
                                       scale=time_scale, format=time_format)
                 table.remove_column(time_bin_start_column)
 
-            # TODO: what if it should just be the last entry of the time bin column?
             if time_bin_end_column is not None:
                 time_bin_end_column = Time(time_bin_end_column, scale=time_scale, format=time_format)
 
