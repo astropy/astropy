@@ -234,7 +234,6 @@ class TimeSeries(BaseTimeSeries):
             The time scale for the time column.
         *args : tuple, optional
             Positional arguments passed through to the data reader.
-            If supplied, the first argument is the input filename.
         **kwargs : dict, optional
             Keyword arguments passed through to the data reader.
 
