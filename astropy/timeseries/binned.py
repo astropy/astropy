@@ -8,7 +8,6 @@ from astropy.table import groups, Table, QTable
 from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.units import Quantity
-from astropy.io.registry import IORegistryError
 
 from .core import BaseTimeSeries
 
