@@ -164,19 +164,26 @@ class BinnedTimeSeries(BaseTimeSeries):
 
     @classmethod
     def read(self, filename, time_bin_start_column=None, time_bin_end_column=None,
-             time_bin_size_column=None, time_bin_unit=None, time_format=None, time_scale=None,
+             time_bin_size_column=None, time_bin_size_unit=None, time_format=None, time_scale=None,
              format=None, *args, **kwargs):
         """
         Read and parse a file and returns a `astropy.timeseries.binned.BinnedTimeSeries`.
 
-        This function provides the access to the astropy unified I/O layer.
-        This allows easily reading a file in many supported data formats
-        using syntax such as::
+        This method uses the unified I/O infrastructure in Astropy which makes
+        it easy to define readers/writers for various classes
+        (http://docs.astropy.org/en/stable/io/unified.html). By default, this
+        method will try and use readers defined specifically for the
+        `astropy.timeseries.binned.BinnedTimeSeries` class - however, it is also
+        possible to use the ``format`` keyword to specify formats defined for
+        the `astropy.table.Table` class - in this case, you will need to also
+        provide the column names for column containing the start times for the
+        bins, as well as other column names (see the Parameters section below
+        for details)::
 
-          >>> from astropy.timeseries.binned import BinnedTimeSeries
-          >>> dat = BinnedTimeSeries.read('table.dat', format='ascii', time_column='DATE')  # doctest: +SKIP
-
-        See also: http://docs.astropy.org/en/stable/io/unified.html
+            >>> from astropy.timeseries.binned import BinnedTimeSeries
+            >>> dat = BinnedTimeSeries.read('table.dat', format='ascii.ecsv',
+            ...                             time_bin_start_column='date_start',
+            ...                             time_bin_end_column='date_end')  # doctest: +SKIP
 
         Parameters
         ----------
@@ -185,20 +192,20 @@ class BinnedTimeSeries(BaseTimeSeries):
         format : str
             File format specifier.
         time_bin_start_column: str
-            The name of the column with the start time for each bin within the file.
+            The name of the column with the start time for each bin.
         time_bin_end_column: str, optional
-            The time of the last bin of data.
-            You might pass in this or ``time_bin_size_column``.
+            The name of the column with the end time for each bin. Either this
+            option or ``time_bin_size_column`` should be specified.
         time_bin_size_column: str, optional
-            The name of the column with the size for each bin within the file.
-            Use this with only ``time_bin_start_column`` and not ``time_bin_end_column``.
-        time_bin_unit: `astropy.units.quantity.Quantity`, optional
-            If you pass in a time_bin_size_column, you have to specify the unit for that column.
-            This should be a `astropy.units` time quantity.
+            The name of the column with the size for each bin. Either this
+            option or ``time_bin_end_column`` should be specified.
+        time_bin_size_unit: `astropy.units.quantity.Quantity`, optional
+            If ``time_bin_size_column`` is specified but does not have a unit
+            set in the table, you can specify the unit manually.
         time_format: str, optional
-            The time format for the start and end column.
+            The time format for the start and end columns.
         time_scale: str, optional
-            The time scale for the start and end column.
+            The time scale for the start and end columns.
         *args : tuple, optional
             Positional arguments passed through to the data reader.
         **kwargs : dict, optional
@@ -207,45 +214,65 @@ class BinnedTimeSeries(BaseTimeSeries):
         Returns
         -------
         out : `astropy.timeseries.binned.BinnedTimeSeries`
-            BinnedTimeSeries corresponding to file contents.
+            BinnedTimeSeries corresponding to the file.
 
         """
-        try:
-            table = super().read(filename, format=format, *args, **kwargs)
-            return table
-        except TypeError:
-            table = Table.read(filename, format=format, *args, **kwargs)
 
+        try:
+
+            # First we try the readers defined for the BinnedTimeSeries class
+            return super().read(filename, format=format, *args, **kwargs)
+
+        except TypeError:
+
+            # Otherwise we fall back to the default Table readers
+
+            if time_bin_start_column is None:
+                raise ValueError("``time_bin_start_column`` should be provided since the default Table readers are being used.")
             if time_bin_end_column is None and time_bin_size_column is None:
                 raise ValueError("Either `time_bin_end_column` or `time_bin_size_column` should be provided.")
-
-            if time_bin_end_column is not None and time_bin_size_column is not None:
+            elif time_bin_end_column is not None and time_bin_size_column is not None:
                 raise ValueError("Cannot specify both `time_bin_end_column` and `time_bin_size_column`.")
 
-            if time_bin_size_column is not None and time_bin_unit is None:
-                raise ValueError("`time_bin_unit` should be specified since `time_bin_size_column` was given.")
+            table = Table.read(filename, format=format, *args, **kwargs)
 
-            if time_bin_start_column not in table.colnames:
-                raise ValueError("Time start bin column {}, not found in the input data.".format(time_bin_start_column))
-            else:
+            if time_bin_start_column in table.colnames:
                 time_bin_start = Time(table.columns[time_bin_start_column],
                                       scale=time_scale, format=time_format)
                 table.remove_column(time_bin_start_column)
+            else:
+                raise ValueError("Bin start time column '{}' not found in the input data.".format(time_bin_start_column))
 
             if time_bin_end_column is not None:
-                time_bin_end_column = Time(time_bin_end_column, scale=time_scale, format=time_format)
 
-            time_bin_size = None
-            if time_bin_size_column is not None:
-                if not isinstance(time_bin_unit, u.Quantity):
-                    raise ValueError("Please specify a time_bin_unit for your time_bin_size_column."
-                                     " Make sure this is a `astropy.units.Quantity.`")
-                if time_bin_size_column not in table.colnames:
-                    raise ValueError("Time bin size column {}, not found in the input data.".format(time_bin_size_column))
+                if time_bin_end_column in table.colnames:
+                    time_bin_end = Time(table.columns[time_bin_end_column],
+                                        scale=time_scale, format=time_format)
+                    table.remove_column(time_bin_end_column)
                 else:
-                    time_bin_size = table.columns[time_bin_size_column] * time_bin_unit
-                    table.remove_column(time_bin_size_column)
+                    raise ValueError("Bin end time column '{}' not found in the input data.".format(time_bin_end_column))
 
-            return BinnedTimeSeries(data=table, time_bin_start=time_bin_start,
-                                    time_bin_end=time_bin_end_column, time_bin_size=time_bin_size,
+                time_bin_size = None
+
+            elif time_bin_size_column is not None:
+
+                if time_bin_size_column in table.colnames:
+                    time_bin_size = table.columns[time_bin_size_column]
+                    table.remove_column(time_bin_size_column)
+                else:
+                    raise ValueError("Bin size column '{}' not found in the input data.".format(time_bin_size_column))
+
+                if time_bin_size.unit is None:
+                    if time_bin_size_unit is None or not isinstance(time_bin_size_unit, u.Quantity):
+                        raise ValueError("The bin size unit should be specified as an astropy Quantity using ``time_bin_size_unit``.")
+                    time_bin_size = time_bin_size * time_bin_size_unit
+                else:
+                    time_bin_size = u.Quantity(time_bin_size)
+
+                time_bin_end = None
+
+            return BinnedTimeSeries(data=table,
+                                    time_bin_start=time_bin_start,
+                                    time_bin_end=time_bin_end,
+                                    time_bin_size=time_bin_size,
                                     n_bins=len(table))
