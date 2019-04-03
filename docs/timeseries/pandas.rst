@@ -67,6 +67,7 @@ Converting to :class:`~pandas.DataFrame` can also easily be done with
     >>> df_new = ts.to_pandas()
     >>> df_new
                 a    b
+    time
     2015-07-04  1  1.2
     2015-07-05  2  3.4
     2015-07-06  3  5.4
