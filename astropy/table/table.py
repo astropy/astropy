@@ -4,6 +4,7 @@ from .index import TableIndices, TableLoc, TableILoc, TableLocIndices
 
 import sys
 from collections import OrderedDict
+from collections import defaultdict
 from collections.abc import Mapping
 import warnings
 from copy import deepcopy
@@ -665,7 +666,7 @@ class Table:
             names_from_data.update(row)
 
         cols = {}
-        missing_indexes = collections.defaultdict(list)
+        missing_indexes = defaultdict(list)
         for name in names_from_data:
             cols[name] = []
             for i, row in enumerate(data):
