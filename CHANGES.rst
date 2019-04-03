@@ -108,6 +108,12 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+- Added a new astropy.timeseries sub-package to represent and manipulate
+  sampled and binned time series. [#8540]
+
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
 

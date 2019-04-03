@@ -75,8 +75,8 @@ Data structures and transformations
    units/index
    nddata/index
    table/index
-   timeseries/index
    time/index
+   timeseries/index
    coordinates/index
    wcs/index
    modeling/index
