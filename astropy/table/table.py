@@ -658,21 +658,32 @@ class Table:
                 self._set_masked(True)
 
     def _init_from_list_of_dicts(self, data, names, dtype, n_cols, copy):
-        names_from_data = set()
+        """Initialize table from a list of dictionaries representing rows."""
+        MISSING = b''
+        names_from_data = set(names)
         for row in data:
             names_from_data.update(row)
 
         cols = {}
+        missing_indexes = collections.defaultdict(list)
         for name in names_from_data:
             cols[name] = []
             for i, row in enumerate(data):
                 try:
-                    cols[name].append(row[name])
+                    val = row[name]
                 except KeyError:
-                    raise ValueError('Row {0} has no value for column {1}'.format(i, name))
+                    missing_indexes[name].append(i)
+                    val = MISSING
+                cols[name].append(val)
+                
         if all(name is None for name in names):
             names = sorted(names_from_data)
+            self._set_masked(True)
         self._init_from_dict(cols, names, dtype, n_cols, copy)
+        
+        if missing_indexes:
+            for name, indexes in missing_indexes.items():
+                self[name].mask[indexes] = True
         return
 
     def _init_from_list(self, data, names, dtype, n_cols, copy):
