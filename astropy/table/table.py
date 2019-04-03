@@ -3,7 +3,7 @@
 from .index import TableIndices, TableLoc, TableILoc, TableLocIndices
 
 import sys
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from collections.abc import Mapping
 import warnings
 from copy import deepcopy
@@ -804,6 +804,8 @@ class Table:
                 .format(inp_str))
 
     def _init_from_list_of_dicts(self, data, names, dtype, n_cols, copy):
+        """Initialize table from a list of dictionaries representing rows."""
+        MISSING = object()
         names_from_data = set()
         for row in data:
             names_from_data.update(row)
@@ -817,19 +819,44 @@ class Table:
         # Note: if set(data[0].keys()) != names_from_data, this will give an
         # exception later, so NO need to catch here.
 
+        # read cols, keep track of missing indexes and put a placeholder
         cols = {}
+        missing_indexes = defaultdict(list)
         for name in names_from_data:
             cols[name] = []
             for i, row in enumerate(data):
                 try:
-                    cols[name].append(row[name])
+                    val = row[name]
                 except KeyError:
-                    raise ValueError(f'Row {i} has no value for column {name}')
+                    missing_indexes[name].append(i)
+                    val = MISSING
+                cols[name].append(val)
 
+        # fill the missing entries with first values
+        if missing_indexes:
+            n_cols = len(names_from_data)
+            first_vals = {}
+            for name in names_from_data:
+                col = cols[name]
+                for val in col:
+                    if val is not MISSING:
+                        first_vals[name] = val
+                        break
+                for index in missing_indexes[name]:
+                    col[index] = first_vals[name]
+
+        # prepare initialization
         if all(name is None for name in names):
-            names = names_from_data
-
+            names = sorted(names_from_data)
+        if dtype == None or len(dtype) != n_cols:
+            dtype = [None for i in range(len(names_from_data))]
+        self._set_masked(bool(missing_indexes))
         self._init_from_dict(cols, names, dtype, n_cols, copy)
+
+        # mask the missing values
+        if missing_indexes:
+            for name, indexes in missing_indexes.items():
+                self[name].mask[indexes] = True
         return
 
     def _init_from_list(self, data, names, dtype, n_cols, copy):
