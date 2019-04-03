@@ -677,7 +677,7 @@ class Table:
                     val = MISSING
                 cols[name].append(val)
                 
-        if all(name is None for name in names):
+        if all(name is not None for name in names):
             names = sorted(names_from_data)
             self._set_masked(True)
         self._init_from_dict(cols, names, dtype, n_cols, copy)
