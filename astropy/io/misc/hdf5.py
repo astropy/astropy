@@ -260,7 +260,9 @@ def write_table_hdf5(table, output, path=None, compression=False,
         raise Exception("h5py is required to read and write HDF5 files")
 
     if path is None:
-        raise ValueError("table path should be set via the path= argument")
+        path = '__astropy__'
+        log.warn("table path was not set via the path= argument; "
+                 "using default path __astropy__")
     elif path.endswith('/'):
         raise ValueError("table path should end with table name, not /")
 
