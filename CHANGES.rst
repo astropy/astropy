@@ -78,6 +78,8 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Removed restriction of initializing a Table from a dict with copy=False. [#8541]
+
 - Improved speed of table row access by a factor of about 2-3.  Improved speed
   of Table len() by a factor of around 3-10 (depending on the number of columns).
   [#8494]
