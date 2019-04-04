@@ -239,7 +239,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
     path : str
         The path to which to write the table inside the HDF5 file.
         This should be relative to the input file or group.
-        If not specified, defaults to __astropy__
+        If not specified, defaults to ``__astropy__``.
     compression : bool or str or int
         Whether to compress the table inside the HDF5 file. If set to `True`,
         ``'gzip'`` compression is used. If a string is specified, it should be
