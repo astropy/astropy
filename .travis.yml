@@ -109,7 +109,7 @@ matrix:
         - os: linux
           env: SETUP_CMD='test --remote-data=astropy --readonly'
                LC_CTYPE=C.ascii LC_ALL=C
-               PYTEST_VERSION=3.7
+               PYTEST_VERSION=4.4
                PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
                INSTALL_WITH_PIP=True
                EXTRAS_INSTALL="test,all"
