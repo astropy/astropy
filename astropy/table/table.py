@@ -677,18 +677,19 @@ class Table:
                     val = MISSING
                 cols[name].append(val)
 
-        if missing_indexes:
-            first_vals = {}
-            for name in names_from_data:
-                for val in cols[name]:
-                    if val is not MISSING:
-                        first_vals[name] = val
-                        break
+        first_vals = {}
+        for name in names_from_data:
+            for val in cols[name]:
+                if val is not MISSING:
+                    first_vals[name] = val
+                    break
+
         dtype = []
         for name in names_from_data:
             dtype.append(type(first_vals[name]))
-            for index in missing_indexes[name]:
-                cols[name][index] = first_vals[name]
+            if missing_indexes:
+                for index in missing_indexes[name]:
+                    cols[name][index] = first_vals[name]
 
         if all(name is None for name in names):
             names = sorted(names_from_data)
