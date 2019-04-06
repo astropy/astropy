@@ -659,7 +659,7 @@ class Table:
                 self._set_masked(True)
 
     def _init_from_list_of_dicts(self, data, names, dtype, n_cols, copy):
-        """Initialize table from a list of dictionaries representing rows."""
+        """Initialize table from a list of rows."""
         MISSING = object()
         names_from_data = set()
         for row in data:
