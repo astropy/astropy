@@ -658,7 +658,7 @@ class Table:
             if any(np.any(col.mask) for col in cols if isinstance(col, (MaskedColumn, ma.MaskedArray))):
                 self._set_masked(True)
 
-    def _init_from_list_of_dicts_(self, data, names, dtype, n_cols, copy):
+    def _init_from_list_of_dicts(self, data, names, dtype, n_cols, copy):
         """Initialize table from a list of dictionaries representing rows."""
         MISSING = object()
         names_from_data = set()
