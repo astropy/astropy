@@ -658,10 +658,10 @@ class Table:
             if any(np.any(col.mask) for col in cols if isinstance(col, (MaskedColumn, ma.MaskedArray))):
                 self._set_masked(True)
 
-    def _init_from_list_of_dicts(self, data, names, dtype, n_cols, copy):
+    def _init_from_list_of_dicts_2(self, data, names, dtype, n_cols, copy):
         """Initialize table from a list of dictionaries representing rows."""
-        MISSING = b''
-        names_from_data = set(names)
+        MISSING = object()
+        names_from_data = set()
         for row in data:
             names_from_data.update(row)
 
@@ -677,10 +677,25 @@ class Table:
                     val = MISSING
                 cols[name].append(val)
 
-        if all(name is not None for name in names):
+        if missing_indexes:
+            first_vals = {}
+            for name in names_from_data:
+                for val in cols[name]:
+                    if val is not MISSING:
+                        first_vals[name] = val
+                        break
+        dtype = []
+        for name in names_from_data:
+            dtype.append(type(first_vals[name]))
+            for index in missing_indexes[name]:
+                cols[name][index] = first_vals[name]
+
+        if all(name is None for name in names):
             names = sorted(names_from_data)
+        n_cols = len(names)
+        self._set_masked(True)
         self._init_from_dict(cols, names, dtype, n_cols, copy)
-        
+
         if missing_indexes:
             for name, indexes in missing_indexes.items():
                 self[name].mask[indexes] = True
