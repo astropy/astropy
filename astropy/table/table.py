@@ -3,8 +3,7 @@
 from .index import TableIndices, TableLoc, TableILoc, TableLocIndices
 
 import sys
-from collections import OrderedDict
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from collections.abc import Mapping
 import warnings
 from copy import deepcopy
@@ -664,8 +663,9 @@ class Table:
         names_from_data = set()
         for row in data:
             names_from_data.update(row)
-        names_from_data = sorted(names_from_data)
+        names_from_data = sorted(names_from_data) # probably have to do this
 
+        # read cols, keep track of missing indexes and put a placeholder
         cols = {}
         missing_indexes = defaultdict(list)
         for name in names_from_data:
@@ -678,33 +678,27 @@ class Table:
                     val = MISSING
                 cols[name].append(val)
 
-        first_vals = {}
-        for name in names_from_data:
-            for val in cols[name]:
-                if val is not MISSING:
-                    first_vals[name] = val
-                    break
+        # fill the missing entries with first values
+        if missing_indexes:
+            n_cols = len(names_from_data)
+            first_vals = {}
+            for name in names_from_data:
+                col = cols[name]
+                for val in col:
+                    if val is not MISSING:
+                        first_vals[name] = val
+                        break
+                for index in missing_indexes[name]:
+                    col[index] = first_vals[name]
 
-        for name in names_from_data:
-            for index in missing_indexes[name]:
-                cols[name][index] = first_vals[name]
-
-        dtype = []
-        int_indexes = []
-        for i in range(len(names_from_data)):
-            val_type = type(first_vals[names_from_data[i]])
-            dtype.append(val_type)
-            if val_type == int:
-                int_indexes.append(i)
-
-        for j in int_indexes:
-            if not all(type(x) == int for x in cols[names_from_data[j]]):
-                dtype[j] = float
-
-        n_cols = len(names_from_data)
-        self._set_masked(True)
+        # prepare initialization
+        if all(name is None for name in names):
+            names = sorted(names_from_data)
+        dtype = [None for i in range(len(names_from_data))] # have to do this somehow
+        self._set_masked(bool(missing_indexes))
         self._init_from_dict(cols, names_from_data, dtype, n_cols, copy)
 
+        # mask the missing values
         if missing_indexes:
             for name, indexes in missing_indexes.items():
                 self[name].mask[indexes] = True
