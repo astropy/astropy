@@ -659,11 +659,12 @@ class Table:
                 self._set_masked(True)
 
     def _init_from_list_of_dicts(self, data, names, dtype, n_cols, copy):
-        """Initialize table from a list of rows."""
+        """Initialize table from a list of dictionaries representing rows."""
         MISSING = object()
         names_from_data = set()
         for row in data:
             names_from_data.update(row)
+        names_from_data = sorted(names_from_data)
 
         cols = {}
         missing_indexes = defaultdict(list)
@@ -684,18 +685,25 @@ class Table:
                     first_vals[name] = val
                     break
 
-        dtype = []
         for name in names_from_data:
-            dtype.append(type(first_vals[name]))
-            if missing_indexes:
-                for index in missing_indexes[name]:
-                    cols[name][index] = first_vals[name]
+            for index in missing_indexes[name]:
+                cols[name][index] = first_vals[name]
 
-        if all(name is None for name in names):
-            names = sorted(names_from_data)
-        n_cols = len(names)
+        dtype = []
+        int_indexes = []
+        for i in range(len(names_from_data)):
+            val_type = type(first_vals[names_from_data[i]])
+            dtype.append(val_type)
+            if val_type == int:
+                int_indexes.append(i)
+
+        for j in int_indexes:
+            if not all(type(x) == int for x in cols[names_from_data[j]]):
+                dtype[j] = float
+
+        n_cols = len(names_from_data)
         self._set_masked(True)
-        self._init_from_dict(cols, names, dtype, n_cols, copy)
+        self._init_from_dict(cols, names_from_data, dtype, n_cols, copy)
 
         if missing_indexes:
             for name, indexes in missing_indexes.items():
