@@ -602,9 +602,11 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
 
     kwargs
         Additional arguments are passed to:
-        - `~astropy.io.fits.writeto` if the file does not exist or is empty. In this case
-        ``output_verify`` is the only possible argument.
-        - `~astropy.io.fits.open` if ``verify`` is True or if ``filename`` is a file object.
+
+        - `~astropy.io.fits.writeto` if the file does not exist or is empty.
+          In this case ``output_verify`` is the only possible argument.
+        - `~astropy.io.fits.open` if ``verify`` is True or if ``filename``
+          is a file object.
         - Otherwise no additional arguments can be used.
 
     """
@@ -624,7 +626,7 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
             hdu = ImageHDU(data, header)
 
         if verify or not closed:
-            f = fitsopen(filename, mode='append')
+            f = fitsopen(filename, mode='append', **kwargs)
             try:
                 f.append(hdu)
 
