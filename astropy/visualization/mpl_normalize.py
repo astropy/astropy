@@ -130,8 +130,8 @@ class ImageNormalize(Normalize):
         return values_norm * (self.vmax - self.vmin) + self.vmin
 
 
-def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
-                max_cut=None, min_percent=None, max_percent=None,
+def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, log_a=1000,
+                min_cut=None, max_cut=None, min_percent=None, max_percent=None,
                 percent=None, clip=True):
     """
     Return a Normalization class that can be used for displaying images
@@ -148,7 +148,7 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
     data : `~numpy.ndarray`
         The image array.
 
-    stretch : {'linear', 'sqrt', 'power', log', 'asinh'}, optional
+    stretch : {'linear', 'sqrt', 'power', 'log', 'asinh'}, optional
         The stretch function to apply to the image.  The default is
         'linear'.
 
@@ -160,6 +160,9 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
         transitions from linear to logarithmic behavior, expressed as a
         fraction of the normalized image.  Must be in the range between
         0 and 1.  The default is 0.1.
+
+    log_a : float, optional
+        For ``stretch='log'``. The default is 1000.
 
     min_cut : float, optional
         The pixel value of the minimum cut level.  Data values less than
@@ -219,7 +222,7 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
     elif stretch == 'power':
         stretch = PowerStretch(power)
     elif stretch == 'log':
-        stretch = LogStretch()
+        stretch = LogStretch(log_a)
     elif stretch == 'asinh':
         stretch = AsinhStretch(asinh_a)
     else:
