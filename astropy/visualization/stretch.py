@@ -80,21 +80,29 @@ class BaseStretch(BaseTransform, metaclass=InheritDocstrings):
 
 class LinearStretch(BaseStretch):
     """
-    A linear stretch.
+    A linear stretch with a slope and offset.
 
     The stretch is given by:
 
     .. math::
-        y = x
+        y = ax + b
     """
 
+    def __init__(self, a=1, b=0):
+        super().__init__()
+        self.slope = a
+        self.intercept = b
+
     def __call__(self, values, clip=True, out=None):
-        return _prepare(values, clip=clip, out=out)
+        values = _prepare(values, clip=clip, out=out)
+        np.multiply(values, self.slope, out=values)
+        np.add(values, self.intercept, out=values)
+        return values
 
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return LinearStretch()
+        return LinearStretch(1. / self.slope, - self.intercept / self.slope)
 
 
 class SqrtStretch(BaseStretch):
