@@ -1906,7 +1906,7 @@ collections.abc.MutableMapping.register(Header)
 class _DelayedHeader:
     """
     Descriptor used to create the Header object from the header string that
-    is stored when parsing a file.
+    was stored in HDU._header_str when parsing the file.
     """
 
     def __get__(self, obj, owner=None):
@@ -1933,17 +1933,22 @@ class _DelayedHeader:
 class _BasicHeaderCards:
     """
     This class allows to access cards with the _BasicHeader.cards attribute.
-    Cards cannot be modified as the _BasicHeader object will be deleted
-    once the HDU object is created.
+
+    This is needed because during the HDU class detection, some HDUs uses
+    the .cards interface.  Cards cannot be modified here as the _BasicHeader
+    object will be deleted once the HDU object is created.
+
     """
 
     def __init__(self, header):
         self.header = header
 
     def __getitem__(self, key):
+        # .cards is a list of cards, so key here is an integer.
         # get the keyword name from its index.
         key = self.header._keys[key]
-        # then we get the card from the _BasicHeader._cards list
+        # then we get the card from the _BasicHeader._cards list, or parse it
+        # if needed.
         try:
             return self.header._cards[key]
         except KeyError:
@@ -1958,11 +1963,11 @@ class _BasicHeader(collections.abc.Mapping):
     features of the Header class. Here only standard keywords are parsed, no
     support for CONTINUE, HIERARCH, COMMENT, HISTORY, or rvkc.
 
-    The card images are stored and parsed only if needed. The idea is that to
-    create the HDU objects, only a small subset of standard cards is needed.
-    Once a card is parsed, with the Card class, the Card object is kept in
-    a cache. This is useful because a small subset of cards is used a lot in
-    the HDU creation process (NAXIS, XTENSION, ...).
+    The raw card images are stored and parsed only if needed. The idea is that
+    to create the HDU objects, only a small subset of standard cards is needed.
+    Once a card is parsed, which is deferred to the Card class, the Card object
+    is kept in a cache. This is useful because a small subset of cards is used
+    a lot in the HDU creation process (NAXIS, XTENSION, ...).
 
     """
 
@@ -2001,7 +2006,8 @@ class _BasicHeader(collections.abc.Mapping):
 
     @classmethod
     def fromfile(cls, fileobj):
-        """The main method allowing to parse quickly a FITS header."""
+        """The main method to parse a FITS header from a file. The parsing is
+        done with the parse_header function implemented in Cython."""
 
         close_file = False
         if isinstance(fileobj, str):

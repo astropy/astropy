@@ -134,6 +134,8 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
 
     _default_name = ''
 
+    # _header uses a descriptor to delay the loading of the fits.Header object
+    # until it is necessary.
     _header = _DelayedHeader()
 
     def __init__(self, data=None, header=None, *args, **kwargs):
@@ -378,10 +380,16 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
             if header is None:
                 header_offset = data.tell()
                 try:
+                    # First we try to read the header with the fast parser
+                    # from _BasicHeader, which will read only the standard
+                    # 8 character keywords to get the structural keywords
+                    # that are needed to build the HDU object.
                     header_str, header = _BasicHeader.fromfile(data)
                 except Exception:
-                    # if the fast header parsing failed, fallback to the normal
-                    # one
+                    # If the fast header parsing failed, then fallback to
+                    # the classic Header parser, which has better support
+                    # and reporting for the various issues that can be found
+                    # in the wild.
                     data.seek(header_offset)
                     header = Header.fromfile(data,
                                              endcard=not ignore_missing_end)
@@ -448,9 +456,13 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
         hdu._data_size = size + _pad_length(size)
 
         if isinstance(hdu._header, _BasicHeader):
-            # Delete the temporary _BasicHeader
-            # We need to do this before an eventual checksum computation, since
-            # it needs to modify temporarily the header
+            # Delete the temporary _BasicHeader.
+            # We need to do this before an eventual checksum computation,
+            # since it needs to modify temporarily the header
+            #
+            # The header string is stored in the HDU._header_str attribute,
+            # so that it can be used directly when we need to create the
+            # classic Header object, without having to parse again the file.
             del hdu._header
             hdu._header_str = header_str
 
