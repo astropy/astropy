@@ -8,7 +8,17 @@ cdef str END_CARD = 'END' + ' ' * 77
 
 
 def parse_header(fileobj):
-    """The main method allowing to parse quickly a FITS header."""
+    """Fast (and incomplete) parser for FITS headers.
+
+    This parser only reads the standard 8 character keywords, and ignores the
+    CONTINUE, COMMENT, HISTORY and HIERARCH cards. The goal is to find quickly
+    the structural keywords needed to build the HDU objects.
+
+    The implementation is straightforward: first iterate on the 2880-bytes
+    blocks, then iterate on the 80-bytes cards, find the value separator, and
+    store the parsed (keyword, card image) in a dictionary.
+
+    """
 
     cards = OrderedDict()
     cdef list read_blocks = []
