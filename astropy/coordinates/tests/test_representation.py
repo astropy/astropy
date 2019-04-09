@@ -12,6 +12,7 @@ from astropy import units as u
 from astropy.tests.helper import (assert_quantity_allclose as
                                   assert_allclose_quantity)
 from astropy.utils import isiterable
+from astropy.utils.exceptions import DuplicateRepresentationWarning
 from astropy.coordinates.angles import Longitude, Latitude, Angle
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
@@ -1074,12 +1075,20 @@ def test_minimal_subclass():
     with pytest.raises(TypeError):
         LogDRepresentation(0.*u.deg, 1.*u.deg, 1.*u.dex(u.kpc), foo='bar')
 
+    # if we define it a second time, even the qualnames are the same,
+    # so we raise
     with pytest.raises(ValueError):
-        # check we cannot redefine an existing class.
         class LogDRepresentation(BaseRepresentation):
             attr_classes = OrderedDict([('lon', Longitude),
                                         ('lat', Latitude),
                                         ('logr', u.Dex)])
+
+
+def test_duplicate_warning():
+    with pytest.warns(DuplicateRepresentationWarning):
+        class UnitSphericalRepresentation(BaseRepresentation):
+            attr_classes = OrderedDict([('lon', Longitude),
+                                        ('lat', Latitude)])
 
 
 def test_combine_xyz():

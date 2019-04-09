@@ -9,6 +9,7 @@ import functools
 import operator
 from collections import OrderedDict
 import inspect
+import warnings
 
 import numpy as np
 import astropy.units as u
@@ -17,6 +18,8 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from astropy._erfa import ufunc as erfa_ufunc
 from astropy.utils import ShapedLikeNDArray, classproperty
+from astropy.utils.exceptions import DuplicateRepresentationWarning
+
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
@@ -409,10 +412,22 @@ class MetaBaseRepresentation(abc.ABCMeta):
                                       '"attr_classes" class attribute.')
 
         repr_name = cls.get_name()
-
         if repr_name in REPRESENTATION_CLASSES:
-            raise ValueError("Representation class {} already defined"
-                             .format(repr_name))
+            existing = REPRESENTATION_CLASSES[repr_name]
+            if cls.__qualname__ == existing.__qualname__:
+                raise ValueError(
+                    f'Representation with qualname "{cls.__qualname__}" already defined'
+                )
+
+            msg = (
+                'Representation "{}" already defined, removing it to avoid confusion.'
+                'Use qualnames "{}" and "{}" or class instaces directly'
+            ).format(repr_name, cls.__qualname__, existing.__qualname__)
+            warnings.warn(msg, DuplicateRepresentationWarning)
+
+            del REPRESENTATION_CLASSES[repr_name]
+            REPRESENTATION_CLASSES[existing.__qualname__] = existing
+            repr_name = cls.__qualname__
 
         REPRESENTATION_CLASSES[repr_name] = cls
         _invalidate_reprdiff_cls_hash()
