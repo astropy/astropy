@@ -37,7 +37,6 @@ References
 .. [1] http://adsabs.harvard.edu/abs/2012arXiv1207.5578S
 .. [2] http://astroml.org/ https://github.com//astroML/astroML/
 """
-
 import warnings
 
 import numpy as np
@@ -385,12 +384,14 @@ class FitnessFunc:
         change_points = np.zeros(N, dtype=int)
         i_cp = N
         ind = N
-        while True:
+        while i_cp > 0:
             i_cp -= 1
             change_points[i_cp] = ind
             if ind == 0:
                 break
             ind = last[ind - 1]
+        if i_cp == 0:
+            change_points[i_cp] = 0
         change_points = change_points[i_cp:]
 
         return edges[change_points]
