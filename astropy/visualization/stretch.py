@@ -10,11 +10,13 @@ import numpy as np
 
 from astropy.utils.misc import InheritDocstrings
 from .transform import BaseTransform
+from .transform import CompositeTransform
 
 
 __all__ = ["BaseStretch", "LinearStretch", "SqrtStretch", "PowerStretch",
            "PowerDistStretch", "SquaredStretch", "LogStretch", "AsinhStretch",
-           "SinhStretch", "HistEqStretch", "ContrastBiasStretch"]
+           "SinhStretch", "HistEqStretch", "ContrastBiasStretch",
+           "CompositeStretch"]
 
 
 def _logn(n, x, out=None):
@@ -50,6 +52,9 @@ class BaseStretch(BaseTransform, metaclass=InheritDocstrings):
     of values in the range [0:1], return an transformed array of values,
     also in the range [0:1].
     """
+
+    def __add__(self, other):
+        return CompositeStretch(other, self)
 
     def __call__(self, values, clip=True, out=None):
         """
@@ -532,3 +537,28 @@ class InvertedContrastBiasStretch(BaseStretch):
     def inverse(self):
         """A stretch object that performs the inverse operation."""
         return ContrastBiasStretch(self.contrast, self.bias)
+
+
+class CompositeStretch(CompositeTransform, BaseStretch):
+    """
+    A combination of two stretches.
+
+    Parameters
+    ----------
+    stretch_1 : :class:`astropy.visualization.BaseStretch`
+        The first stretch to apply.
+    stretch_2 : :class:`astropy.visualization.BaseStretch`
+        The second stretch to apply.
+    """
+
+    def __init__(self, stretch_1, stretch_2):
+        super().__init__(stretch_1, stretch_2)
+
+    def __call__(self, values, clip=True, out=None):
+        return self.transform_2(
+            self.transform_1(values, clip=clip, out=out), clip=clip, out=out)
+
+    @property
+    def inverse(self):
+        return CompositeStretch(self.transform_2.inverse,
+                                self.transform_1.inverse)
