@@ -45,6 +45,12 @@ class AstropyBackwardsIncompatibleChangeWarning(AstropyWarning):
     """
 
 
+class DuplicateRepresentationWarning(AstropyWarning):
+    """
+    A warning class indicating a represenation name was already registered
+    """
+
+
 class ErfaError(ValueError):
     """
     A class for errors triggered by ERFA functions (status codes < 0)
