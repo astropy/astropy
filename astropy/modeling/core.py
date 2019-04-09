@@ -2564,26 +2564,30 @@ class CompoundModel(Model):
             if index.step:
                 raise ValueError('Steps in slices not supported '
                                  'for compound models')
-            # Following won't work for negative indices
-            if index.start:
+            if index.start is not None:
                 start = index.start
             else:
                 start = 0
-            if index.stop:
-                stop = index.stop
+            if index.stop is not None:
+                stop = index.stop - 1
             else:
                 stop = len(leaflist) - 1
+            if index.stop == 0:
+                raise ValueError("Slice endpoint cannot be 0")
             if start < 0:
                 start = len(leaflist) + start
             if stop < 0:
                 stop = len(leaflist) + stop
             # now search for matching node:
-            for key in tdict:
-                node, leftind, rightind = tdict[key]
-                if leftind == start and rightind == stop:
-                    return node
-            raise IndexError("No appropriate subtree matches slice")
-        elif isinstance(index, type(0)):
+            if stop == start: # only single value, get leaf instead in code below
+                index = start
+            else:
+                for key in tdict:
+                    node, leftind, rightind = tdict[key]
+                    if leftind == start and rightind == stop:
+                        return node
+                raise IndexError("No appropriate subtree matches slice")
+        if isinstance(index, type(0)):
             return leaflist[index]
         elif isinstance(index, type('')):
             # Search through leaflist for item with that name
@@ -2598,7 +2602,7 @@ class CompoundModel(Model):
                                  "at indices {}".format(index, found))
             return leaflist[found[0]]
         else:
-            raise TypeError('index must be integer or slice')
+            raise TypeError('index must be integer, slice, or model name string')
     @property
     def n_inputs(self):
         return self._n_inputs
