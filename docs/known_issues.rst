@@ -15,9 +15,9 @@ projects or packages.
 Issues listed on this page are grouped into two categories: The first is known
 issues and shortcomings in actual algorithms and interfaces that currently do
 not have fixes or workarounds, and that users should be aware of when writing
-code that uses `astropy`. Some of those issues are still platform-specific,
+code that uses ``astropy``. Some of those issues are still platform-specific,
 while others are very general. The second category is of common issues that come
-up when configuring, building, or installing `astropy`. This also includes
+up when configuring, building, or installing ``astropy``. This also includes
 cases where the test suite can report false negatives depending on the context/
 platform on which it was run.
 
