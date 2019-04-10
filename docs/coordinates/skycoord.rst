@@ -233,7 +233,7 @@ The unit specifier can be one of the following:
 - 2-tuple of `~astropy.units.Unit` objects or string unit names specifying the
   LON and LAT unit, respectively (e.g., ``('hourangle', 'degree')``).
 - Single string with two unit names separated by a comma (e.g.,
-``'hourangle,degree'``).
+  ``'hourangle,degree'``).
 
 If only a single unit is provided then it applies to both LON and LAT.
 
