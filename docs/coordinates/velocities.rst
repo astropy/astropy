@@ -390,7 +390,7 @@ surface. For these reasons, the barycentric correction in
 be used for high precision work.
 
 Other considerations necessary for radial velocity corrections at the cm/s
-level are outlined in `Wright & Eastmann (2014) <http://adsabs.harvard.edu/abs 2014PASP..126..838W>`_.
+level are outlined in `Wright & Eastmann (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_.
 Most important is that the barycentric correction is, strictly speaking,
 *multiplicative*, so that you should apply it as:
 
