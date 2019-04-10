@@ -275,29 +275,19 @@ composite stretch can stretch residual images with negative values:
 
     import numpy as np
     import matplotlib.pyplot as plt
-    from astropy.visualization.stretch import AsinhStretch, \
-        LinearStretch, SinhStretch
+    from astropy.visualization.stretch import SinhStretch, LinearStretch
     from astropy.visualization import ImageNormalize
-    # For nicer colorbars to show the stretch
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-    # Streches to transform normalized values [0,1] to [-1,1] and back
-    stretch_signed = LinearStretch(a=2, b=-1)
-    stretch_unsigned = LinearStretch(a=0.5, b=0.5)
-
-    # sinh and arcsinh stretches with default values
-    stretches = {
-        'sinh(a=1/3)': stretch_unsigned + SinhStretch(1/3) + stretch_signed,
-        'linear': LinearStretch(),
-        'asinh(a=0.2)': stretch_unsigned + AsinhStretch(0.2) + stretch_signed,
-    }
+    # Transforms normalized values [0,1] to [-1,1] before stretch and then back
+    stretch = LinearStretch(a=0.5, b=0.5) + SinhStretch() + \
+        LinearStretch(a=2, b=-1)
 
     # Image of random Gaussian noise
-    img = np.random.normal(size=(64, 64))
-    fig, axes = plt.subplots(1, len(stretches), figsize=(16, 16))
-    for (title, stretch), axis in zip(stretches.items(), axes):
-        norm = ImageNormalize(stretch=stretch)
-        imgax = axis.imshow(img, norm=norm, cmap='gray', vmin=-5, vmax=5)
-        axis.set_title(title)
-        cax = make_axes_locatable(axis).append_axes('right', size='5%', pad=0.1)
-        plt.colorbar(imgax, cax=cax, orientation='vertical')
+    image = np.random.normal(size=(64, 64))
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    # ImageNormalize normalizes values to [0,1] before applying the stretch
+    norm = ImageNormalize(stretch=stretch)
+    im = ax.imshow(image, origin='lower', norm=norm, cmap='gray',
+        vmin=-5, vmax=5)
+    fig.colorbar(im)
