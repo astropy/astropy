@@ -551,14 +551,6 @@ class CompositeStretch(CompositeTransform, BaseStretch):
         The second stretch to apply.
     """
 
-    def __init__(self, stretch_1, stretch_2):
-        super().__init__(stretch_1, stretch_2)
-
     def __call__(self, values, clip=True, out=None):
         return self.transform_2(
             self.transform_1(values, clip=clip, out=out), clip=clip, out=out)
-
-    @property
-    def inverse(self):
-        return CompositeStretch(self.transform_2.inverse,
-                                self.transform_1.inverse)
