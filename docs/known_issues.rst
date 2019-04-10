@@ -193,7 +193,7 @@ Bug with Unicode Endianness in ``io.fits`` for Big Endian Processors
 
 On big endian processors (e.g. SPARC, PowerPC, MIPS), string columns in FITS
 files may not be correctly read when using the ``Table.read`` interface. This
-will be fixed in a subsequent bug fix release of``astropy``(see `bug report here
+will be fixed in a subsequent bug fix release of ``astropy`` (see `bug report here
 <https://github.com/astropy/astropy/issues/3415>`_).
 
 
@@ -211,10 +211,10 @@ Build/Installation/Test Issues
 Anaconda Users Should Upgrade with ``conda``, Not ``pip``
 ---------------------------------------------------------
 
-Upgrading``astropy``in the Anaconda Python distribution using ``pip`` can result
+Upgrading ``astropy`` in the Anaconda Python distribution using ``pip`` can result
 in a corrupted install with a mix of files from the old version and the new
 version. Anaconda users should update with ``conda update astropy``. There
-may be a brief delay between the release of``astropy``on PyPI and its release
+may be a brief delay between the release of ``astropy`` on PyPI and its release
 via the ``conda`` package manager; users can check the availability of new
 versions with ``conda search astropy``.
 
@@ -270,7 +270,7 @@ terminal).
 Creating a Time Object Fails with ValueError After Upgrading ``astropy``
 ------------------------------------------------------------------------
 
-In some cases, when users have upgraded``astropy``from an older version to v1.0
+In some cases, when users have upgraded ``astropy`` from an older version to v1.0
 or greater, they have run into the following crash when trying to create an
 `~astropy.time.Time` object::
 
@@ -283,13 +283,13 @@ or greater, they have run into the following crash when trying to create an
     u'jyear_str', u'iso', u'isot', u'yday', u'byear_str']
 
 This problem can occur when there is a version mismatch between the compiled
-ERFA library (included as part of``astropy``in most distributions), and
-the version of the``astropy``Python source.
+ERFA library (included as part of ``astropy`` in most distributions), and
+the version of the ``astropy`` Python source.
 
 This can be from a number of causes. The most likely is that when installing the
-new``astropy``version, your previous``astropy``version was not fully uninstalled
+new ``astropy`` version, your previous ``astropy`` version was not fully uninstalled
 first, resulting in a mishmash of versions. Your best bet is to fully remove
-`astropy` from its installation path and reinstall from scratch using your
+``astropy`` from its installation path and reinstall from scratch using your
 preferred installation method. Removing the old version may be achieved by
 removing the entire ``astropy/`` directory from within the
 ``site-packages`` directory it is installed in. However, if in doubt, ask
@@ -347,21 +347,21 @@ Compatibility Issues with pytest 3.7 and later
 ----------------------------------------------
 
 Due to a bug in `pytest <http://www.pytest.org>`_ related to test collection,
-the tests for the core``astropy``package for version 2.0.x (LTS), and for
+the tests for the core ``astropy`` package for version 2.0.x (LTS), and for
 packages using the core package's test infrastructure and being tested against
 2.0.x (LTS), will not be executed correctly with pytest 3.7, 3.8, or 3.9. The
 symptom of this bug is that no tests or only tests in RST files are collected.
-In addition,``astropy``2.0.x (LTS) is not compatible with pytest 4.0 and above,
+In addition, ``astropy`` 2.0.x (LTS) is not compatible with pytest 4.0 and above,
 as in this case deprecation errors from pytest can cause tests to fail.
-Therefore, when testing against``astropy``v2.0.x (LTS), pytest 3.6 or earlier
+Therefore, when testing against ``astropy`` v2.0.x (LTS), pytest 3.6 or earlier
 versions should be used. These issues do not occur in version 3.0.x and above of
 the core package.
 
 There is an unrelated issue that also affects more recent versions of
-`astropy` when testing with pytest 4.0 and later, which can
+``astropy`` when testing with pytest 4.0 and later, which can
 cause issues when collecting tests — in this case, the symptom is that the
 test collection hangs and/or appears to run the tests recursively. If you are
-maintaining a package that was created using the `astropy`
+maintaining a package that was created using the Astropy
 `package template <http://github.com/astropy/package-template>`_, then
 this can be fixed by updating to the latest version of the ``_astropy_init.py``
 file. The root cause of this issue is that pytest now tries to pick up the

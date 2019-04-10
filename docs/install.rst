@@ -7,7 +7,7 @@ Installation
 Requirements
 ============
 
-`astropy` has the following strict requirements:
+``astropy`` has the following strict requirements:
 
 - `Python <https://www.python.org/>`_ |minimum_python_version| or later
 
@@ -15,7 +15,7 @@ Requirements
 
 - `pytest`_ 3.1 or later
 
-`astropy` also depends on other packages for optional features:
+``astropy`` also depends on other packages for optional features:
 
 - `scipy`_: To power a variety of features in several modules.
 
@@ -95,7 +95,7 @@ And the following packages can optionally be used when testing:
   coordinates.
 
 However, note that these packages require installation only if those particular
-features are needed.``astropy``will import even if these dependencies are not
+features are needed. ``astropy`` will import even if these dependencies are not
 installed.
 
 Installing ``astropy``
@@ -109,7 +109,7 @@ Using pip
     Users of the Anaconda Python distribution should follow the instructions
     for :ref:`anaconda_install`.
 
-To install``astropy``with `pip <https://pip.pypa.io>`__, run::
+To install ``astropy`` with `pip <https://pip.pypa.io>`__, run::
 
     pip install astropy
 
@@ -118,7 +118,7 @@ can also do::
 
     pip install astropy --no-deps
 
-On the other hand, if you want to install``astropy``along with all of the
+On the other hand, if you want to install ``astropy`` along with all of the
 available optional dependencies, you can do::
 
     pip install astropy[all]
@@ -133,10 +133,10 @@ into your home directory. You can read more about how to do this in the `pip
 documentation <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_.
 
 Alternatively, if you intend to do development on other software that uses
-`astropy`, such as an affiliated package, consider installing``astropy``into a
+``astropy``, such as an affiliated package, consider installing ``astropy`` into a
 :ref:`virtualenv<using-virtualenv>`.
 
-Do **not** install``astropy``or other third-party packages using ``sudo``
+Do **not** install ``astropy`` or other third-party packages using ``sudo``
 unless you are fully aware of the risks.
 
 .. _anaconda_install:
@@ -144,26 +144,26 @@ unless you are fully aware of the risks.
 Using Conda
 -----------
 
-`astropy` is installed by default with the `Anaconda Distribution
+``astropy`` is installed by default with the `Anaconda Distribution
 <https://www.anaconda.com/download/>`_. To update to the latest version run::
 
     conda update astropy
 
-There may be a delay of a day or two between when a new version of `astropy`
+There may be a delay of a day or two between when a new version of ``astropy``
 is released and when a package is available for Anaconda. You can check
 for the list of available versions with ``conda search astropy``.
 
 .. warning::
 
     Attempting to use `pip <https://pip.pypa.io>`__ to upgrade your installation
-    of``astropy``may result in a corrupted installation.
+    of ``astropy`` may result in a corrupted installation.
 
 .. _testing_installed_astropy:
 
-Testing an Installed `astropy`
-------------------------------
+Testing an Installed ``astropy``
+--------------------------------
 
-The easiest way to test if your installed version of``astropy``is running
+The easiest way to test if your installed version of ``astropy`` is running
 correctly is to use the :ref:`astropy.test()` function::
 
     import astropy
@@ -172,7 +172,7 @@ correctly is to use the :ref:`astropy.test()` function::
 The tests should run and print out any failures, which you can report at
 the `Astropy issue tracker <https://github.com/astropy/astropy/issues>`_.
 
-This way of running the tests may not work if you do it in the``astropy``source
+This way of running the tests may not work if you do it in the ``astropy`` source
 distribution. See :ref:`sourcebuildtest` for how to run the tests from the
 source code directory, or :ref:`running-tests` for more details.
 
@@ -229,13 +229,13 @@ Obtaining the Source Packages
 Source Packages
 ^^^^^^^^^^^^^^^
 
-The latest stable source package for``astropy``can be `downloaded here
+The latest stable source package for ``astropy`` can be `downloaded here
 <https://pypi.python.org/pypi/astropy>`_.
 
 Development Repository
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The latest development version of``astropy``can be cloned from GitHub
+The latest development version of ``astropy`` can be cloned from GitHub
 using this command::
 
    git clone --recursive git://github.com/astropy/astropy.git
@@ -247,15 +247,15 @@ installing `astropy`.
 Building and Installing
 -----------------------
 
-`astropy` uses the Python built-in `distutils framework
+``astropy`` uses the Python built-in `distutils framework
 <http://docs.python.org/install/index.html>`_ for building and
 installing, and requires the `setuptools`_ package.
 
-If NumPy is not already installed in your Python environment, the `astropy`
+If NumPy is not already installed in your Python environment, the ``astropy``
 setup process will try to download and install it before continuing to install
-`astropy`.
+``astropy``.
 
-To build and install``astropy``(from the root of the source tree)::
+To build and install ``astropy`` (from the root of the source tree)::
 
     pip install .
 
@@ -265,14 +265,14 @@ use::
 
     pip install -e .
 
-which installs``astropy``in develop/editable mode, which means that changes in
+which installs ``astropy`` in develop/editable mode, which means that changes in
 the code are immediately reflected in the installed version.
 
 Troubleshooting
 ---------------
 
 If you get an error mentioning that you do not have the correct permissions to
-install``astropy``into the default ``site-packages`` directory, you can try
+install ``astropy`` into the default ``site-packages`` directory, you can try
 installing with::
 
     pip install . --user
@@ -283,13 +283,13 @@ which will install into a default directory in your home directory.
 External C Libraries
 ^^^^^^^^^^^^^^^^^^^^
 
-The``astropy``source ships with the C source code of a number of
+The ``astropy`` source ships with the C source code of a number of
 libraries. By default, these internal copies are used to build
-`astropy`. However, if you wish to use the system-wide installation of
+``astropy``. However, if you wish to use the system-wide installation of
 one of those libraries, you can pass one or more of the
 ``--use-system-X`` flags to the ``setup.py build`` command.
 
-For example, to build``astropy``using the system `libexpat
+For example, to build ``astropy`` using the system `libexpat
 <http://www.libexpat.org/>`_, use::
 
     python setup.py build --use-system-expat
@@ -298,7 +298,7 @@ To build using all of the system libraries, use::
 
     python setup.py build --use-system-libraries
 
-To see which system libraries``astropy``knows how to build against, use::
+To see which system libraries ``astropy`` knows how to build against, use::
 
     python setup.py build --help
 
@@ -311,7 +311,7 @@ the system `libexpat <http://www.libexpat.org/>`_, add the following to the
     use_system_expat=1
 
 
-The C libraries currently bundled with``astropy``include:
+The C libraries currently bundled with ``astropy`` include:
 
 - `wcslib <http://www.atnf.csiro.au/people/mcalabre/WCS/>`_ see
   ``cextern/wcslib/README`` for the bundled version.
@@ -326,10 +326,10 @@ The C libraries currently bundled with``astropy``include:
   bundled version.
 
 
-Installing``astropy``into CASA
----------------------------------
+Installing ``astropy`` into CASA
+--------------------------------
 
-If you want to be able to use``astropy``inside `CASA
+If you want to be able to use ``astropy`` inside `CASA
 <https://casa.nrao.edu/>`_, the easiest way is to do so from inside CASA.
 
 First, we need to make sure `pip <https://pip.pypa.io>`__ is
@@ -349,13 +349,13 @@ Then close CASA again and open it, and you should be able to import `astropy`::
 
     CASA <2>: import astropy
 
-Any``astropy``affiliated package can be installed the same way (e.g. the
+Any ``astropy`` affiliated package can be installed the same way (e.g. the
 `spectral-cube <http://spectral-cube.readthedocs.io/en/latest/>`_ or other
 packages that may be useful for radio astronomy).
 
 .. note:: The above instructions have not been tested on all systems.
    We know of a few examples that do work, but that is not a guarantee
-   that this will work on all systems. If you install``astropy``and begin to
+   that this will work on all systems. If you install ``astropy`` and begin to
    encounter issues with CASA, please look at the `known CASA issues
    <https://github.com/astropy/astropy/issues?q=+label%3ACASA-Installation+>`_
    and if you do not encounter your issue there, please post a new one.
@@ -375,7 +375,7 @@ Building Documentation
 Dependencies
 ^^^^^^^^^^^^
 
-Building the documentation requires the``astropy``source code and some
+Building the documentation requires the ``astropy`` source code and some
 additional packages, including those in :ref:`astropy-main-req`. The easiest
 way to install the extra dependencies for documentation is to install
 the `sphinx-astropy <https://github.com/astropy/sphinx-astropy>`_ package,
@@ -394,7 +394,7 @@ dependencies, including:
 * `Sphinx <http://sphinx.pocoo.org>`_ - the main package we use to build
   the documentation
 * `astropy-sphinx-theme <https://github.com/astropy/astropy-sphinx-theme>`_ -
-  the default 'bootstrap' theme used by``astropy``and a number of affiliated
+  the default 'bootstrap' theme used by ``astropy`` and a number of affiliated
   packages
 * `sphinx-automodapi <http://sphinx-automodapi.readthedocs.io>`_ - an extension
   that makes it easy to automatically generate API documentation
@@ -416,7 +416,7 @@ Building
 ^^^^^^^^
 
 There are two ways to build the Astropy documentation. The first way is to
-execute the command (from the``astropy``source directory)::
+execute the command (from the ``astropy`` source directory)::
 
     python setup.py build_docs
 
