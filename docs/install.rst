@@ -183,7 +183,7 @@ Prerequisites
 -------------
 
 You will need a compiler suite and the development headers for Python and
-NumPy in order to build `astropy`.
+NumPy in order to build ``astropy``.
 
 If you are building the latest developer version rather than using a stable
 release, you will also need `Cython <http://cython.org/>`_ (v0.21 or later) and
@@ -195,7 +195,7 @@ Prerequisites for Linux
 -----------------------
 
 On Linux, using the package manager for your distribution will usually be the
-easiest route to making sure you have the prerequisites to build `astropy`. In
+easiest route to making sure you have the prerequisites to build ``astropy``. In
 order to build from source, you will need the Python development package for
 your Linux distribution.
 
@@ -240,9 +240,9 @@ using this command::
 
    git clone --recursive git://github.com/astropy/astropy.git
 
-If you wish to participate in the development of `astropy`, see
+If you wish to participate in the development of ``astropy``, see
 :ref:`developer-docs`. This document covers only the basics necessary to
-installing `astropy`.
+installing ``astropy``.
 
 Building and Installing
 -----------------------
@@ -339,13 +339,13 @@ installed. Start up CASA as normal, and then type::
 
     CASA <3>: easy_install.main(['--user', 'pip'])
 
-Now, quit CASA and re-open it, then type the following to install `astropy`::
+Now, quit CASA and re-open it, then type the following to install ``astropy``::
 
     CASA <2>: import subprocess, sys
 
     CASA <3>: subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'astropy'])
 
-Then close CASA again and open it, and you should be able to import `astropy`::
+Then close CASA again and open it, and you should be able to import ``astropy``::
 
     CASA <2>: import astropy
 
@@ -437,7 +437,7 @@ Alternatively, you can do::
     make html
 
 And the documentation will be generated in the same location, but using the
-*installed* version of `astropy`.
+*installed* version of ``astropy``.
 
 Reporting Issues/Requesting Features
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -476,7 +476,7 @@ More information on what the ``pytest-astropy`` package provides can be found
 in :ref:`testing-dependencies`.
 
 The most convenient way to test that your Astropy built correctly
-(without installing `astropy`) is to run this from the root of the source tree::
+(without installing ``astropy``) is to run this from the root of the source tree::
 
     python setup.py test
 
