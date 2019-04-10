@@ -148,9 +148,9 @@ class _ImageBaseHDU(_ValidHDU):
                 self._data_needs_rescale = True
             return
         else:
-            # Setting data will set set _bitpix, _bzero, and _bscale to the
-            # appropriate BITPIX for the data, and always sets _bzero=0 and
-            # _bscale=1.
+            # Setting data will update the header and set _bitpix, _bzero,
+            # and _bscale to the appropriate BITPIX for the data, and always
+            # sets _bzero=0 and _bscale=1.
             self.data = data
 
             # Check again for BITPIX/BSCALE/BZERO in case they changed when the
