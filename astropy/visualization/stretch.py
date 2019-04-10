@@ -100,8 +100,10 @@ class LinearStretch(BaseStretch):
 
     def __call__(self, values, clip=True, out=None):
         values = _prepare(values, clip=clip, out=out)
-        np.multiply(values, self.slope, out=values)
-        np.add(values, self.intercept, out=values)
+        if self.slope != 1:
+            np.multiply(values, self.slope, out=values)
+        if self.intercept != 0:
+            np.add(values, self.intercept, out=values)
         return values
 
     @property
