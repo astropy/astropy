@@ -265,11 +265,10 @@ class Table:
 
         dtype = []
 
-        if names != None:
-            cols = self[names].columns.values()
+        cols = self.columns.values()
 
-        else:
-            cols = self.columns.values()
+        if names != None:
+            cols = [col for col in cols if col.info.name in names]
 
         for col in cols:
             col_descr = descr(col)
