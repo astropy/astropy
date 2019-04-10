@@ -200,6 +200,9 @@ astropy.table
   Table initialization so that input ``meta`` is copied only if ``copy=True``.
   [#8404]
 
+- Added a keyword ``names`` in ``Table.as_array()``.  If provided this specifies
+  a list of column names to include for the returned structured array. [#8532]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
