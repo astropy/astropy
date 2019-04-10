@@ -16,10 +16,12 @@ though the `~astropy.nddata.CCDData` class using FITS file format:
 
 .. doctest-skip::
 
-    # Read CCD image
+    >>> # Read CCD image
     >>> ccd = CCDData.read('image.fits')
 
-    # Write back CCD image
+.. doctest-skip::
+
+    >>> # Write back CCD image
     >>> ccd.write('new_image.fits')
 
 Note the unit is stored in the ``BUNIT`` keyword in the header on saving, and is
