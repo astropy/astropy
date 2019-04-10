@@ -126,6 +126,8 @@ astropy.utils
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
+- Added ``CompositeStretch``, which inherits from ``CompositeTransform`` and
+  also ``BaseStretch`` so that it can be used with ``ImageNormalize``. [#8564]
 
 astropy.wcs
 ^^^^^^^^^^^
