@@ -51,6 +51,7 @@ astropy.io.misc
 - No warnings when reading HDF5 files with only one table and no ``path=`` argument [#8483]
 - Support serialization of Astropy tables with mixin columns in ASDF. [#8337]
 - Changed default behavior when writing HDF5 files without the ``path=`` argument [#8553]
+- Create a default table, instead of raising exception, when writing to HDF5 files without the ``path=`` argument [#8553]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
