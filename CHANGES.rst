@@ -76,6 +76,11 @@ astropy.io.registry
 - Implement ``Table`` reader and writer methods to wrap ``pandas`` I/O methods
   for CSV, Fixed width format, HTML, and JSON. [#8381]
 
+- Add ``help()`` and ``list_formats()`` methods to unified I/O ``read`` and
+  ``write`` methods. For example ``Table.read.help()`` gives help on available
+  ``Table`` read formats and ``Table.read.help('fits')`` gives detailed
+  help on the arguments for reading FITS table file. [#8255]
+
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
