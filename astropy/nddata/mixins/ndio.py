@@ -18,10 +18,10 @@ class NDDataRead(registry.UnifiedReadWrite):
       >>> from astropy.nddata import CCDData
       >>> dat = CCDData.read('image.fits')
 
-    Get help on the reader for a particular format (e.g. 'fits') using the
-    ``help()`` method::
+    Get help on the available readers for ``CCDData`` using the``help()`` method::
 
-      >>> CCDData.read.help('fits')  # Get detailed help on FITS reader
+      >>> CCDData.read.help()  # Get help reading CCDData and list supported formats
+      >>> CCDData.read.help('fits')  # Get detailed help on CCDData FITS reader
 
     See also:
 
@@ -64,10 +64,10 @@ class NDDataWrite(registry.UnifiedReadWrite):
       >>> dat = CCDData(np.zeros((12, 12)), unit='adu')  # 12x12 image of zeros
       >>> dat.write('zeros.fits')
 
-    Get help on the writer for a particular format (e.g. 'fits') using the
-    ``help()`` method::
+    Get help on the available writers for ``CCDData`` using the``help()`` method::
 
-      >>> CCDData.write.help('fits')  # Get detailed help on FITS writer
+      >>> CCDData.write.help()  # Get help writing CCDData and list supported formats
+      >>> CCDData.write.help('fits')  # Get detailed help on CCDData FITS writer
 
     See also:
 
