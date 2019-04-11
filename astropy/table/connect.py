@@ -18,10 +18,10 @@ class TableRead(registry.UnifiedReadWrite):
       >>> dat = Table.read('table.dat', format='ascii')
       >>> events = Table.read('events.fits', format='fits')
 
-    Get help on the reader for a particular format (e.g. 'fits') using the
-    ``help()`` method::
+    Get help on the available readers for ``Table`` using the``help()`` method::
 
-      >>> Table.read.help('fits')  # Get detailed help on FITS reader
+      >>> Table.read.help()  # Get help reading Table and list supported formats
+      >>> Table.read.help('fits')  # Get detailed help on Table FITS reader
 
     See also: http://docs.astropy.org/en/stable/io/unified.html
 
@@ -77,10 +77,10 @@ class TableWrite(registry.UnifiedReadWrite):
       >>> dat = Table([[1, 2], [3, 4]], names=('a', 'b'))
       >>> dat.write('table.dat', format='ascii')
 
-    Get help on the writer for a particular format (e.g. 'fits') using the
-    ``help()`` method::
+    Get help on the available writers for ``Table`` using the``help()`` method::
 
-      >>> Table.write.help('fits')  # Get detailed help on FITS writer
+      >>> Table.write.help()  # Get help writing Table and list supported formats
+      >>> Table.write.help('fits')  # Get detailed help on Table FITS writer
 
     The ``serialize_method`` argument is explained in the section on
     `Table serialization methods
