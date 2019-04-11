@@ -334,7 +334,7 @@ be available in any |skycoord| that is created using your user-defined
 frame.
 
 For examples of defining frame classes, the first place to look is
-at the source code for the frames that are included in `astropy`
+at the source code for the frames that are included in ``astropy``
 (available at ``astropy.coordinates.builtin_frames``). These are not
 "magic" in any way, and use all of the same API and features available to
 user-created frames.
@@ -409,7 +409,7 @@ useful subclasses/types of transformations are:
 * `~astropy.coordinates.StaticMatrixTransform`
 * `~astropy.coordinates.DynamicMatrixTransform`
 
-    The matrix transforms are `~astropy.coordinates.AffineTransform` 
+    The matrix transforms are `~astropy.coordinates.AffineTransform`
     transformations without a translation (i.e., a rotation). The static
     version is for the case where the matrix is independent of the frame
     attributes (e.g., the ICRS->FK5 transformation, because ICRS has no frame
