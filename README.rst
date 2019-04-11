@@ -20,24 +20,25 @@ or  `docs/install.rst <docs/install.rst>`_ in this source distribution.
 Contributing Code, Documentation, or Feedback
 ---------------------------------------------
 
-The Astropy Project is made both by and for its users, so we welcome and encourage
-contributions of many kinds. Our goal is to keep this a positive, inclusive,
-successful, and growing community, by abiding with the
+The Astropy Project is made both by and for its users, so we welcome and
+encourage contributions of many kinds. Our goal is to keep this a positive,
+inclusive, successful, and growing community by abiding with the
 `Astropy Community Code of Conduct <http://www.astropy.org/about.html#codeofconduct>`_.
 
 More detailed information on contributing to the project or submitting feedback
-can be found on the `contributions <http://www.astropy.org/contribute.html>`_ page.
-A `summary of contribution guidelines <CONTRIBUTING.md>`_ can also be used as a quick
-reference when you're ready to start writing or validating code for submission.
+can be found on the `contributions <http://www.astropy.org/contribute.html>`_
+page. A `summary of contribution guidelines <CONTRIBUTING.md>`_ can also be
+used as a quick reference when you are ready to start writing or validating
+code for submission.
 
-Supporting the project
+Supporting the Project
 ----------------------
 
 |NumFOCUS| |Donate|
 
 The Astropy Project is sponsored by NumFOCUS, a 501(c)(3) nonprofit in the
 United States. You can donate to the project by using the link above, and this
-donation will support our mission to promote sustainable high-level code base
+donation will support our mission to promote sustainable, high-level code base
 for the astronomy community, open code development, educational materials, and
 reproducible scientific research.
 
@@ -47,10 +48,10 @@ License
 Astropy is licensed under a 3-clause BSD style license - see the
 `LICENSE.rst <LICENSE.rst>`_ file.
 
-Notes for package managers
+Notes for Package Managers
 --------------------------
 
-For system packagers: Please install Astropy with the command::
+For system packagers: Please install `astropy` with the command::
 
     $ python setup.py --offline install
 
