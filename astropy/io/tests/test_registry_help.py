@@ -54,6 +54,20 @@ def test_table_write_help_hdf5():
     assert "compression : bool or str or int" in doc
 
 
+def test_list_formats():
+    """
+    Test getting list of available formats
+    """
+    out = StringIO()
+    CCDData.write.list_formats(out)
+    output = out.getvalue()
+
+    assert output == """\
+Format Read Write Auto-identify
+------ ---- ----- -------------
+  fits  Yes   Yes           Yes"""
+
+
 def test_table_write_help_fits():
     """
     Test dynamically created documentation help via the I/O registry for 'fits'.
