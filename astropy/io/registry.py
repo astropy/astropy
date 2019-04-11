@@ -686,6 +686,22 @@ class UnifiedReadWrite:
         else:
             out.write(reader_doc)
 
+    def list_formats(self, out=None):
+        """Print a list of available formats to console (or ``out`` filehandle)
+
+        out : None or file handle object
+            Output destination (default is stdout via a pager)
+        """
+        tbl = get_formats(self._cls, self._method_name.capitalize())
+        del tbl['Data class']
+
+        if out is None:
+            tbl.pprint(max_lines=-1, max_width=-1)
+        else:
+            out.write('\n'.join(tbl.pformat(max_lines=-1, max_width=-1)))
+
+        return out
+
 
 class UnifiedReadWriteMethod:
     """Descriptor class for creating read() and write() methods in unified I/O.

@@ -22,6 +22,7 @@ class NDDataRead(registry.UnifiedReadWrite):
 
       >>> CCDData.read.help()  # Get help reading CCDData and list supported formats
       >>> CCDData.read.help('fits')  # Get detailed help on CCDData FITS reader
+      >>> CCDData.read.list_formats()  # Print list of available formats
 
     See also:
 
@@ -68,6 +69,7 @@ class NDDataWrite(registry.UnifiedReadWrite):
 
       >>> CCDData.write.help()  # Get help writing CCDData and list supported formats
       >>> CCDData.write.help('fits')  # Get detailed help on CCDData FITS writer
+      >>> CCDData.write.list_formats()  # Print list of available formats
 
     See also:
 
