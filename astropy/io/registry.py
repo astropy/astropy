@@ -6,6 +6,7 @@ import pathlib
 import re
 import sys
 import inspect
+import os
 
 from collections import OrderedDict
 from operator import itemgetter
@@ -665,6 +666,7 @@ class UnifiedReadWrite:
             reader_doc = re.sub('.', '=', header)
             reader_doc += header
             reader_doc += re.sub('.', '=', header)
+            reader_doc += os.linesep
             reader_doc += inspect.cleandoc(getattr(cls, method_name).__doc__)
 
             if format:
@@ -675,6 +677,7 @@ class UnifiedReadWrite:
                 reader_doc += re.sub('.', '=', header)
                 reader_doc += header
                 reader_doc += re.sub('.', '=', header)
+                reader_doc += os.linesep
                 reader_doc += inspect.cleandoc(read_write_func.__doc__)
 
         if out is None:

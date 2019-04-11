@@ -42,7 +42,6 @@ class TableRead(registry.UnifiedReadWrite):
 
     Notes
     -----
-
     """
     def __init__(self, instance, cls):
         super().__init__(instance, cls, 'read')
