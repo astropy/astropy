@@ -780,7 +780,7 @@ class TestHeaderFunctions(FitsTestCase):
         header['FOO'] = ('BAR',)
         header['FOO2'] = (None,)
         assert header['FOO'] == 'BAR'
-        assert header['FOO2'] == ''
+        assert header['FOO2'] is None
         assert header[0] == 'BAR'
         assert header.comments[0] == ''
         assert header.comments['FOO'] == ''
@@ -790,7 +790,7 @@ class TestHeaderFunctions(FitsTestCase):
         header['FOO'] = ('BAR', 'BAZ')
         header['FOO2'] = (None, None)
         assert header['FOO'] == 'BAR'
-        assert header['FOO2'] == ''
+        assert header['FOO2'] is None
         assert header[0] == 'BAR'
         assert header.comments[0] == 'BAZ'
         assert header.comments['FOO'] == 'BAZ'
@@ -798,15 +798,44 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_header_set_value_to_none(self):
         """
-        Setting the value of a card to None should simply give that card a
-        blank value.
+        Setting the value of a card to None should simply give that card an
+        undefined value.  Undefined value should map to None.
         """
 
         header = fits.Header()
         header['FOO'] = 'BAR'
         assert header['FOO'] == 'BAR'
         header['FOO'] = None
-        assert header['FOO'] == ''
+        assert header['FOO'] is None
+
+        # Create a header that contains an undefined value and a defined
+        # value.
+        hstr = "UNDEF   = \nDEFINED = 42"
+        header = fits.Header.fromstring(hstr, sep='\n')
+
+        # Explicitly add a card with an UNDEFINED value
+        c = fits.Card("UNDEF2", fits.card.UNDEFINED)
+        header.extend([c])
+
+        # And now assign an undefined value to the header through setitem
+        header['UNDEF3'] = fits.card.UNDEFINED
+
+        assert header['DEFINED'] == 42
+        assert header['UNDEF'] is None
+        assert header['UNDEF2'] is None
+        assert header['UNDEF3'] is None
+
+        # Assign an undefined value to a new card
+        header['UNDEF4'] = None
+
+        # Overwrite an existing value with None
+        header["DEFINED"] = None
+
+        # Check that stringification of these new headers look like FITS
+        # undefined values
+        hstr = str(header)
+        for k in ("UNDEF", "UNDEF2", "UNDEF3", "UNDEF4", "DEFINED"):
+            assert "{:8s}=        ".format(k) in hstr
 
     def test_set_comment_only(self):
         header = fits.Header([('A', 'B', 'C')])
