@@ -6,7 +6,7 @@ import itertools
 import re
 import warnings
 
-from .card import Card, _pad, KEYWORD_LENGTH
+from .card import Card, _pad, KEYWORD_LENGTH, UNDEFINED
 from .file import _File
 from .util import encode_ascii, decode_ascii, fileobj_closed, fileobj_is_binary
 
@@ -147,7 +147,11 @@ class Header:
             # This is RVKC; if only the top-level keyword was specified return
             # the raw value, not the parsed out float value
             return card.rawvalue
-        return card.value
+
+        value = card.value
+        if value == UNDEFINED:
+            return None
+        return value
 
     def __setitem__(self, key, value):
         if self._set_slice(key, value, self):
@@ -162,11 +166,11 @@ class Header:
             if len(value) == 1:
                 value, comment = value[0], None
                 if value is None:
-                    value = ''
+                    value = UNDEFINED
             elif len(value) == 2:
                 value, comment = value
                 if value is None:
-                    value = ''
+                    value = UNDEFINED
                 if comment is None:
                     comment = ''
         else:
@@ -177,6 +181,8 @@ class Header:
             card = self._cards[key]
         elif isinstance(key, tuple):
             card = self._cards[self._cardindex(key)]
+        if value is None:
+            value = UNDEFINED
         if card:
             card.value = value
             if comment is not None:
