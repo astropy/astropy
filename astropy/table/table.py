@@ -1004,19 +1004,14 @@ class Table:
                show_unit=None, show_dtype=False, align=None):
         """Print a formatted string representation of the entire table.
 
-        If no value of ``max_lines`` is supplied then the height of the
-        screen terminal is used to set ``max_lines``.  If the terminal
-        height cannot be determined then the default is taken from the
-        configuration item ``astropy.conf.max_lines``.  If a negative
-        value of ``max_lines`` is supplied then there is no line limit
-        applied.
-
-        The same applies for max_width except the configuration item is
-        ``astropy.conf.max_width``.
+        This method is the same as `astropy.table.Table.pprint` except that
+        the default ``max_lines`` and ``max_width`` are both -1 so that by
+        default the entire table is printed instead of restricting to the size
+        of the screen terminal.
 
         Parameters
         ----------
-        max_lines : int
+        max_lines : int or `None`
             Maximum number of lines in table output.
 
         max_width : int or `None`
@@ -1040,19 +1035,8 @@ class Table:
             strings can be provided for alignment of tables with multiple
             columns.
         """
-        lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
-                                                    show_name=show_name, show_unit=show_unit,
-                                                    show_dtype=show_dtype, align=align)
-        if outs['show_length']:
-            lines.append('Length = {0} rows'.format(len(self)))
-
-        n_header = outs['n_header']
-
-        for i, line in enumerate(lines):
-            if i < n_header:
-                color_print(line, 'red')
-            else:
-                print(line)
+        return self.pprint(max_lines, max_width, show_name,
+               show_unit, show_dtype, align)
 
     def _make_index_row_display_table(self, index_row_name):
         if index_row_name not in self.columns:
@@ -1338,15 +1322,9 @@ class Table:
 
         """
 
-        lines, outs = self.formatter._pformat_table(
-            self, max_lines, max_width, show_name=show_name,
-            show_unit=show_unit, show_dtype=show_dtype, html=html,
-            tableid=tableid, tableclass=tableclass, align=align)
-
-        if outs['show_length']:
-            lines.append('Length = {0} rows'.format(len(self)))
-
-        return lines
+        return self.pformat(max_lines, max_width, show_name,
+                show_unit, show_dtype, html, tableid,
+                align, tableclass)
 
     def more(self, max_lines=None, max_width=None, show_name=True,
              show_unit=None, show_dtype=False):
