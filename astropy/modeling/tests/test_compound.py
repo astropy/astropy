@@ -544,3 +544,33 @@ def test_tabular_in_compound():
 def test_bounding_box():
     g = Gaussian2D() + Gaussian2D(2, .5, .1, 2, 3, 0)
     g.bounding_box = ((0,1), (0,.5))
+    y, x = np.mgrid[0:10, 0:10]
+    y = y/3.
+    x = x/3.
+    val = g(x, y, with_bounding_box=True)
+    compare = np.array([
+        [2.93738984, 2.93792011,  np.nan,  np.nan,  np.nan,
+          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
+        [2.87857153, 2.88188761,  np.nan,  np.nan,  np.nan,
+          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
+        [2.70492922, 2.71529265,  np.nan,  np.nan,  np.nan,
+          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
+        [2.45969972, 2.47912103,  np.nan,  np.nan,  np.nan,
+          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
+        [ np.nan,  np.nan,  np.nan,  np.nan,  np.nan,
+          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
+        [ np.nan,  np.nan,  np.nan,  np.nan,  np.nan,
+          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
+        [ np.nan,  np.nan,  np.nan,  np.nan,  np.nan,
+          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
+        [ np.nan,  np.nan,  np.nan,  np.nan,  np.nan,
+          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
+        [ np.nan,  np.nan,  np.nan,  np.nan,  np.nan,
+          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
+        [ np.nan,  np.nan,  np.nan,  np.nan,  np.nan,
+          np.nan,  np.nan,  np.nan,  np.nan,        np.nan]])
+    mask = ~np.isnan(val)
+    assert_allclose(val[mask], compare[mask])
+    val2 = g(x+2, y+2, with_bounding_box=True)
+    assert(np.isnan(val2).sum() == 100)
+    val3 = g(.1, .1, with_bounding_box=True)
