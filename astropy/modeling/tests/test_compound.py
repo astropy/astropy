@@ -540,3 +540,7 @@ def test_tabular_in_compound():
     x1, y1 = model(x, x)
     assert x1.ndim == 2
     assert y1.ndim == 2
+
+def test_bounding_box():
+    g = Gaussian2D() + Gaussian2D(2, .5, .1, 2, 3, 0)
+    g.bounding_box = ((0,1), (0,.5))
