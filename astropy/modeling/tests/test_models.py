@@ -14,6 +14,7 @@ from .example_models import models_1D, models_2D
 from .. import fitting, models
 from ..core import FittableModel
 from ..polynomial import PolynomialBase
+from ..models import Gaussian2D
 from ... import units as u
 from ...utils import minversion
 from ...tests.helper import assert_quantity_allclose
@@ -88,6 +89,18 @@ def test_custom_model_defaults():
 
     assert sin_model.amplitude == 4
     assert sin_model.frequency == 1
+
+def test_inconsistent_input_shapes():
+    g = Gaussian2D()
+    x = np.arange(-1., 1, .2)
+    y = x.copy()
+    # check scalar input broadcasting works
+    assert np.abs(g(x,0) - g(x, 0*x)).sum() == 0
+    # but not array broadcasting
+    x.shape = (10, 1)
+    y.shape = (1, 10)
+    with pytest.raises(ValueError):
+        g(x,y)
 
 
 def test_custom_model_bounding_box():
