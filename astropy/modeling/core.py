@@ -2378,11 +2378,16 @@ class CompoundModel(Model):
             self._user_inverse = inverse
         else:
             self._user_inverse = None
-        if op != '%' and len(left) != len(right):
+        if len(left) != len(right):
             raise ValueError(
                 'Both operands must have equal values for n_models')
         else:
             self._n_models = len(left)
+        if ((left.model_set_axis != right.model_set_axis)
+            or left.model_set_axis): # not False and not 0
+            raise ValueError("model_set_axis must be False or 0 and consistent for operands")
+        else:
+            self._model_set_axis = left.model_set_axis
         if op in ['+', '-', '*', '/', '**'] or op in SPECIAL_OPERATORS:
             if (left.n_inputs != right.n_inputs) or \
                (left.n_outputs != right.n_outputs):
@@ -2446,7 +2451,11 @@ class CompoundModel(Model):
         if self._leaflist is None:
             self._make_leaflist()
         return len(self._leaflist)
-
+        
+    @property
+    def model_set_axis(self):
+        return self._model_set_axis
+    
     @property
     def submodel_names(self):
         if self._leaflist is None:
@@ -2484,13 +2493,20 @@ class CompoundModel(Model):
         # the leaflist as a keyword input for use by model evaluation so that
         # the compound model input names can be matched to the model input
         # names.
+    
         if 'equivalencies' in kw:
             self.map_parameters()
             # Restructure to be useful for the individual model lookup
             kw['inputs_map'] = [(value[0], (value[1], key)) for
                                       key, value in self.inputs_map().items()]
-
-            #kw['inputs_map'] = self.inputs_map()
+        with_bbox = kw.pop('with_bounding_box', False)
+        fill_value = kw.pop('fill_value', np.nan)
+        # Use of bounding box for compound models requires special treatment 
+        # in selecting only valid inputs to pass along to constituent models.
+        if with_bbox:
+            # first check inputs are consistent in shape
+            input_shape = _validate_input_shapes(args, (), self._n_models, 
+                self.model_set_axis, self.standard_broadcasting)
         op = self.op
         if op != '%':
             if op != '&':
@@ -3693,13 +3709,13 @@ def _prepare_inputs_single_model(model, params, inputs, **kwargs):
 
 def _prepare_outputs_single_model(model, outputs, format_info):
     broadcasts = format_info[0]
-
     outputs = list(outputs)
-
     for idx, output in enumerate(outputs):
         broadcast_shape = broadcasts[idx]
         if broadcast_shape is not None:
             if not broadcast_shape:
+                print('broadcast_shape', broadcast_shape)
+                print('output', output)
                 # Shape is (), i.e. a scalar should be returned
                 outputs[idx] = output.item()
             else:
@@ -3837,19 +3853,24 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
     if not validate_broadcasting:
         return
 
-    try:
-        input_broadcast = check_broadcast(*all_shapes)
-    except IncompatibleShapeError as exc:
-        shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
-        arg_a = argnames[shape_a_idx]
-        arg_b = argnames[shape_b_idx]
-
+    
+    input_shape = check_consistent_shapes(*all_shapes)
+    if input_shape is None:
         raise ValueError(
-            "Model input argument {0!r} of shape {1!r} cannot "
-            "be broadcast with input {2!r} of shape {3!r}".format(
-                arg_a, shape_a, arg_b, shape_b))
+            "All inputs must have identical shapes or must be scalars")
+    # try:
+    #     input_broadcast = check_broadcast(*all_shapes)
+    # except IncompatibleShapeError as exc:
+    #     shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
+    #     arg_a = argnames[shape_a_idx]
+    #     arg_b = argnames[shape_b_idx]
 
-    return input_broadcast
+    #     raise ValueError(
+    #         "Model input argument {0!r} of shape {1!r} cannot "
+    #         "be broadcast with input {2!r} of shape {3!r}".format(
+    #             arg_a, shape_a, arg_b, shape_b))
+
+    return input_shape
 
 
 def remove_axes_from_shape(shape, axis):
@@ -3868,6 +3889,32 @@ def remove_axes_from_shape(shape, axis):
     shape = shape[axis+1:]
     return shape
 
+def check_consistent_shapes(*shapes):
+    """
+    Given shapes as arguments, check to see if all are the same (excluding
+    scalars, i.e., shape==(); if all the same, return the common shape; if
+    not, return None)
+    """
+    # remove scalars from the list
+    ashapes = [shape for shape in shapes if shape != ()]
+    if len(ashapes) == 0:
+        return ()
+    if len(ashapes) == 1:
+        return ashapes[0]
+    else:
+        rshape = ashapes[0]
+        for shape in ashapes[1:]:
+            if shape != rshape:
+                return None
+        return rshape
+
+def get_bounding_box(self):
+    try:
+        bbox = self.bounding_box
+    except NotImplementedError:
+        bbox = None
+    return bbox
+
 
 def generic_call(self, *inputs, **kwargs):
     inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
@@ -3880,66 +3927,25 @@ def generic_call(self, *inputs, **kwargs):
         parameters = self._param_sets(raw=True, units=True)
     with_bbox = kwargs.pop('with_bounding_box', False)
     fill_value = kwargs.pop('fill_value', np.nan)
-    bbox = None
-    if with_bbox:
-        try:
-            bbox = self.bounding_box
-        except NotImplementedError:
-            bbox = None
-        if self.n_inputs > 1 and bbox is not None:
-            # bounding_box is in python order -
-            # convert it to the order of the inputs
-            bbox = bbox[::-1]
-        if bbox is None:
-            outputs = self.evaluate(*chain(inputs, parameters))
-        else:
-            if self.n_inputs == 1:
-                bbox = [bbox]
-            # indices where input is outside the bbox
-            # have a value of 1 in ``nan_ind``
-            nan_ind = np.zeros(inputs[0].shape, dtype=bool)
-            for ind, inp in enumerate(inputs):
-                # Pass an ``out`` array so that ``axis_ind``
-                # is array for scalars as well.
-                axis_ind = np.zeros(inp.shape, dtype=bool)
-                axis_ind = np.logical_or(inp < bbox[ind][0],
-                                         inp > bbox[ind][1], out=axis_ind)
-                nan_ind[axis_ind] = 1
-            # get an array with indices of valid inputs
-            valid_ind = np.logical_not(nan_ind).nonzero()
-            # inputs holds only inputs within the bbox
-            args = []
-            for input in inputs:
-                if not input.shape:
-                    # shape is ()
-                    if nan_ind:
-                        outputs = [fill_value for a in args]
-                    else:
-                        args.append(input)
-                else:
-                    args.append(input[valid_ind])
-            valid_result = self.evaluate(*chain(args, parameters))
+    bbox = get_bounding_box(self)
+    if with_bbox and bbox is not None:
+        input_shape = _validate_input_shapes(
+            inputs, self.inputs, self._n_models, self.model_set_axis,
+            self.standard_broadcasting)
+        vinputs, valid_ind, allout = prepare_bounding_box_inputs(
+                                        self, input_shape, inputs, bbox)
+        if not allout:
+            valid_result = self.evaluate(*chain(vinputs, parameters))
             if self.n_outputs == 1:
                 valid_result = [valid_result]
-            # combine the valid results with the ``fill_value`` values
-            # outside the bbox
-            result = [np.zeros(inputs[0].shape) + fill_value
-                      for i in range(len(valid_result))]
-            for ind, r in enumerate(valid_result):
-                if not result[ind].shape:
-                    # shape is ()
-                    result[ind] = r
-                else:
-                    result[ind][valid_ind] = r
-            # format output
-            if self.n_outputs == 1:
-                outputs = np.asarray(result[0])
-            else:
-                outputs = [np.asarray(r) for r in result]
+            outputs = prepare_bounding_box_outputs(valid_result, valid_ind,
+                                               input_shape, fill_value)
+        else:
+            outputs = [np.zeros(input_shape) + fill_value for i in range(self.n_outputs)]
     else:
         outputs = self.evaluate(*chain(inputs, parameters))
-    if self.n_outputs == 1:
-        outputs = (outputs,)
+        if self.n_outputs == 1:
+            outputs = (outputs,)
     outputs = self.prepare_outputs(format_info, *outputs, **kwargs)
 
     outputs = self._process_output_units(inputs, outputs)
@@ -3949,6 +3955,48 @@ def generic_call(self, *inputs, **kwargs):
     else:
         return outputs
 
+def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
+    allout = False
+    if self.n_inputs > 1:
+        # bounding_box is in python order -
+        # convert it to the order of the inputs
+        bbox = bbox[::-1]
+    if self.n_inputs == 1:
+        bbox = [bbox]
+    # indices where input is outside the bbox
+    # have a value of 1 in ``nan_ind``
+    nan_ind = np.zeros(input_shape, dtype=bool)
+    for ind, inp in enumerate(inputs):
+        outside = (inp < bbox[ind][0] ) | (inp > bbox[ind][1])
+        if inp.shape:
+            nan_ind[outside] = True 
+        else:
+            nan_ind |= outside   
+            allout = True   
+    # get an array with indices of valid inputs
+    valid_ind = np.logical_not(nan_ind).nonzero()
+    if len(valid_ind[0]) == 0:
+        allout = True
+    # inputs holds only inputs within the bbox
+    args = []
+    if not allout:
+        for input in inputs:
+            if input.shape:
+                args.append(input[valid_ind])
+            else:
+                args.append(input)
+    return args, valid_ind, allout
+
+def prepare_bounding_box_outputs(valid_result, valid_ind, 
+                                input_shape, fill_value):
+    result = [np.zeros(input_shape) + fill_value
+              for vr in valid_result]
+    for ind, r in enumerate(valid_result):
+        if not result[ind].shape:
+            result[ind] = np.array(r)
+        else:
+            result[ind][valid_ind] = r
+    return result
 
 def _strip_ones(intup):
     return tuple(item for item in intup if item !=1)
