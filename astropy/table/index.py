@@ -608,11 +608,9 @@ class SlicedIndex:
 
 def get_index(table, table_copy=None, names=None):
     """
-    Inputs a table and some subset of its columns, and
-    returns an index corresponding to this subset or None
-    if no such index exists.
-
-    TODO: fix the docstring description above to be more accurate.
+    Inputs a table and some subset of its columns as table_copy.
+    List or tuple containing names of columns as names,and returns an index
+    corresponding to this subset or list or None if no such index exists.
 
     Parameters
     ----------
@@ -625,10 +623,16 @@ def get_index(table, table_copy=None, names=None):
 
     Returns
     -------
-    TODO
+    Index of columns or None
 
     """
-    # TODO: validate that one and only one of table_copy and keys is provided
+    if names is not None and table_copy is not None:
+        raise ValueError('one and only one argument from "table_copy" or'
+                         ' "names" is required')
+
+    if names is None and table_copy is None:
+        raise ValueError('one and only one argument from "table_copy" or'
+                         ' "names" is required')
 
     if names is not None:
         names = set(names)

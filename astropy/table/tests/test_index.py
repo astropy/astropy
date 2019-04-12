@@ -11,6 +11,7 @@ from astropy.table.table import QTable, Row, Table
 from astropy import units as u
 from astropy.time import Time
 from astropy.table.column import BaseColumn
+from astropy.table.index import get_index,SlicedIndex
 
 try:
     import bintrees
@@ -514,3 +515,29 @@ class TestIndex(SetupData):
             t.loc[[1, 4, 2]] = [[1, 2, 3], [4, 5, 6], [2, 3]]
         with pytest.raises(ValueError):
             t.loc[[1, 4, 2]] = [[1, 2, 3], [4, 5], [2, 3]]
+
+
+def test_get_index():
+    a = [1, 4, 5, 2, 7, 4, 45]
+    b = [2.0, 5.0, 8.2, 3.7, 4.3, 6.5, 3.3]
+    t = Table([a, b], names=('a', 'b'), meta={'name': 'first table'})
+    t.add_index(['a'])
+    # Getting the values of index using names
+    x1 = get_index(t, names=['a'])
+
+    assert isinstance(x1, SlicedIndex)
+    assert len(x1.columns) == 1
+    assert len(x1.columns[0]) == 7
+    assert x1.columns[0].info.name == 'a'
+    # Getting the vales of index using table_copy
+    x2 = get_index(t, table_copy=t[['a']])
+
+    assert isinstance(x2, SlicedIndex)
+    assert len(x2.columns) == 1
+    assert len(x2.columns[0]) == 7
+    assert x2.columns[0].info.name == 'a'
+
+    with pytest.raises(ValueError):
+        get_index(t, names=['a'], table_copy=t[['a']])
+    with pytest.raises(ValueError):
+        get_index(t, names=None, table_copy=None)
