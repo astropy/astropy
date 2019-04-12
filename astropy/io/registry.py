@@ -660,25 +660,22 @@ class UnifiedReadWrite:
         except IORegistryError as err:
             reader_doc = 'ERROR: ' + str(err)
         else:
-            # General docs
-            header = ('{}.{} general documentation\n'
-                      .format(cls.__name__, method_name))
-            reader_doc = re.sub('.', '=', header)
-            reader_doc += header
-            reader_doc += re.sub('.', '=', header)
-            reader_doc += os.linesep
-            reader_doc += inspect.cleandoc(getattr(cls, method_name).__doc__)
-
             if format:
                 # Format-specific
                 header = ("{}.{}(format='{}') documentation\n"
                           .format(cls.__name__, method_name, format))
-                reader_doc += '\n\n'
-                reader_doc += re.sub('.', '=', header)
-                reader_doc += header
-                reader_doc += re.sub('.', '=', header)
-                reader_doc += os.linesep
-                reader_doc += inspect.cleandoc(read_write_func.__doc__)
+                doc = read_write_func.__doc__
+            else:
+                # General docs
+                header = ('{}.{} general documentation\n'
+                          .format(cls.__name__, method_name))
+                doc = getattr(cls, method_name).__doc__
+
+            reader_doc = re.sub('.', '=', header)
+            reader_doc += header
+            reader_doc += re.sub('.', '=', header)
+            reader_doc += os.linesep
+            reader_doc += inspect.cleandoc(doc)
 
         if out is None:
             import pydoc
