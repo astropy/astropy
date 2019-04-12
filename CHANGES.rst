@@ -49,6 +49,12 @@ astropy.io.fits
 
 -  Optimize ``Header`` parsing. [#8428]
 
+-  Change behavior of FITS undefined value in ``Header`` such that ``None``
+   is used in Python to represent FITS undefined when using dict interface.
+   ``Undefined`` can also be assigned and is translated to ``None``.
+   Previously setting a header card value to ``None`` resulted in an
+   empty string field rather than a FITS undefined value. [#8572]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
