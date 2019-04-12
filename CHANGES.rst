@@ -104,6 +104,11 @@ astropy.table
 - Improved Table slicing performance with internal implementation changes
   related to column attribute access and certain input validation. [#8493]
 
+- Improved ``Table.sort()`` performance by removing ``self[keys]`` from code
+  which is creating deep copies of ``meta`` attribute and adding a new keyword 
+  ``names`` in ``get_index()`` to get index by using a list or tuple containing 
+  names of columns. [#8570] 
+
 astropy.tests
 ^^^^^^^^^^^^^
 
