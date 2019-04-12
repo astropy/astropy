@@ -2503,42 +2503,60 @@ class CompoundModel(Model):
         fill_value = kw.pop('fill_value', np.nan)
         # Use of bounding box for compound models requires special treatment 
         # in selecting only valid inputs to pass along to constituent models.
-        if with_bbox:
+        bbox = get_bounding_box(self)
+        if with_bbox and bbox is not None:
             # first check inputs are consistent in shape
             input_shape = _validate_input_shapes(args, (), self._n_models, 
                 self.model_set_axis, self.standard_broadcasting)
-        op = self.op
-        if op != '%':
-            if op != '&':
-                leftval = self.left(*args, **kw)
-                if op != '|':
-                    rightval = self.right(*args, **kw)
+            vinputs, valid_ind, allout = prepare_bounding_box_inputs(
+                                        self, input_shape, args, bbox)
+            if not allout:
+                valid_result = self._evaluate(*vinputs, **kw)
+                if self.n_outputs == 1:
+                    valid_result = [valid_result]
+                outputs = prepare_bounding_box_outputs(valid_result, valid_ind,
+                                                   input_shape, fill_value)
             else:
-                leftval = self.left(*(args[:self.left.n_inputs]), **kw)
-                rightval = self.right(*(args[self.left.n_inputs:]), **kw)
-            if op == '+':
-                return binary_operation(operator.add, leftval, rightval)
-            elif op == '-':
-                return binary_operation(operator.sub, leftval, rightval)
-            elif op == '*':
-                return binary_operation(operator.mul, leftval, rightval)
-            elif op == '/':
-                return binary_operation(operator.truediv, leftval, rightval)
-            elif op == '**':
-                return binary_operation(operator.pow, leftval, rightval)
-            elif op == '&':
-                if not isinstance(leftval, tuple):
-                    leftval = (leftval,)
-                if not isinstance(rightval, tuple):
-                    rightval = (rightval,)
-                return leftval + rightval
-            elif op == '|':
-                if isinstance(leftval, tuple):
-                    return self.right(*leftval, **kw)
-                else:
-                    return self.right(leftval, **kw)
-            elif op in SPECIAL_OPERATORS:
-                return binary_operation(SPECIAL_OPERATORS[op], leftval, rightval)
+                outputs = [np.zeros(input_shape) + fill_value for i in range(self.n_outputs)]
+            if self.n_outputs == 1:
+                return outputs[0]
+            else:
+                return outputs
+        else:
+            return self._evaluate(*args, **kw)
+ 
+    def _evaluate(self, *args, **kw):
+        op = self.op
+        if op != '&':
+            leftval = self.left(*args, **kw)
+            if op != '|':
+                rightval = self.right(*args, **kw)
+        else:
+            leftval = self.left(*(args[:self.left.n_inputs]), **kw)
+            rightval = self.right(*(args[self.left.n_inputs:]), **kw)
+        if op == '+':
+            return binary_operation(operator.add, leftval, rightval)
+        elif op == '-':
+            return binary_operation(operator.sub, leftval, rightval)
+        elif op == '*':
+            return binary_operation(operator.mul, leftval, rightval)
+        elif op == '/':
+            return binary_operation(operator.truediv, leftval, rightval)
+        elif op == '**':
+            return binary_operation(operator.pow, leftval, rightval)
+        elif op == '&':
+            if not isinstance(leftval, tuple):
+                leftval = (leftval,)
+            if not isinstance(rightval, tuple):
+                rightval = (rightval,)
+            return leftval + rightval
+        elif op == '|':
+            if isinstance(leftval, tuple):
+                return self.right(*leftval, **kw)
+            else:
+                return self.right(leftval, **kw)
+        elif op in SPECIAL_OPERATORS:
+            return binary_operation(SPECIAL_OPERATORS[op], leftval, rightval)
         else:
             raise ModelDefinitionError('Unrecognized operator {op}')
 
@@ -3967,6 +3985,7 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
     # have a value of 1 in ``nan_ind``
     nan_ind = np.zeros(input_shape, dtype=bool)
     for ind, inp in enumerate(inputs):
+        inp = np.array(inp)
         outside = (inp < bbox[ind][0] ) | (inp > bbox[ind][1])
         if inp.shape:
             nan_ind[outside] = True 
