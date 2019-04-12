@@ -10,9 +10,9 @@ READ_DOCSTRING = """
 
     Parameters
     ----------
-    table : str, file-like, list, pathlib.Path object
+    table : str, file-like, list, `pathlib.Path` object
         Input table as a file name, file-like object, list of strings,
-        single newline-separated string or pathlib.Path object .
+        single newline-separated string or `pathlib.Path` object .
     guess : bool
         Try to guess the table format. Defaults to None.
     format : str, `~astropy.io.ascii.BaseReader`
@@ -74,9 +74,7 @@ READ_DOCSTRING = """
             table for each chunk.  The default is to return a single stacked table
             for all the chunks.
 
-    Reader : `~astropy.io.ascii.BaseReader`
-        Reader class (DEPRECATED)
-    encoding: str
+    encoding : str
         Allow to specify encoding to read the file (default= ``None``).
 
     Returns
@@ -129,7 +127,5 @@ WRITE_DOCSTRING = """
         exists, then an exception is raised.
         This parameter is ignored when the ``output`` arg is not a string
         (e.g., a file object).
-    Writer : ``Writer``
-        Writer class (DEPRECATED).
 
     """
