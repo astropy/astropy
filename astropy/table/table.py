@@ -663,7 +663,6 @@ class Table:
         names_from_data = set()
         for row in data:
             names_from_data.update(row)
-        names_from_data = sorted(names_from_data) # probably have to do this
 
         # read cols, keep track of missing indexes and put a placeholder
         cols = {}
@@ -693,10 +692,10 @@ class Table:
 
         # prepare initialization
         if all(name is None for name in names):
-            names = names_from_data
+            names = sorted(names_from_data)
         dtype = [None for i in range(len(names_from_data))] # have to do this somehow
-        self._set_masked(bool(missing_indexes))
         self._init_from_dict(cols, names, dtype, n_cols, copy)
+        self._set_masked(bool(missing_indexes))
 
         # mask the missing values
         if missing_indexes:
