@@ -695,7 +695,6 @@ class Table:
             names = sorted(names_from_data)
         dtype = [None for i in range(len(names_from_data))] # have to do this somehow
         self._init_from_dict(cols, names, dtype, n_cols, copy)
-        self._set_masked(bool(missing_indexes))
 
         # mask the missing values
         if missing_indexes:
