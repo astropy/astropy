@@ -16,6 +16,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- New ``BarycentricMeanEcliptic``, ``HeliocentricTrueEcliptic`` and
+  ``GeocentricTrueEcliptic`` frames.
+  The ecliptic frames are no longer considered experimental. [#8394]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -250,6 +254,11 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
+
+- ``BarycentricTrueEcliptic``, ``HeliocentricTrueEcliptic`` and
+  ``GeocentricTrueEcliptic`` now use the correct transformation
+  (including nutation), whereas the new ``*MeanEcliptic`` classes
+  use the nutation-free transformation. [#8394]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
