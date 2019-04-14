@@ -15,7 +15,7 @@ from astropy import _erfa as erfa
 from .icrs import ICRS
 from .gcrs import GCRS
 from .ecliptic import (GeocentricMeanEcliptic, BarycentricMeanEcliptic, HeliocentricMeanEcliptic,
-                       GeocentricCorrectTrueEcliptic, BarycentricCorrectTrueEcliptic, HeliocentricCorrectTrueEcliptic,
+                       GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic,
                        HeliocentricEclipticIAU76, CustomBarycentricEcliptic)
 from .utils import get_jd12
 from astropy.coordinates.errors import UnitsError
@@ -145,7 +145,7 @@ def helioecliptic_to_icrs(from_coo, to_frame):
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
-                                 GCRS, GeocentricCorrectTrueEcliptic,
+                                 GCRS, GeocentricTrueEcliptic,
                                  finite_difference_frameattr_name='equinox')
 def gcrs_to_true_geoecliptic(gcrs_coo, to_frame):
     # first get us to a 0 pos/vel GCRS at the target equinox
@@ -156,7 +156,7 @@ def gcrs_to_true_geoecliptic(gcrs_coo, to_frame):
     return to_frame.realize_frame(newrepr)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GeocentricCorrectTrueEcliptic, GCRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GeocentricTrueEcliptic, GCRS)
 def true_geoecliptic_to_gcrs(from_coo, gcrs_frame):
     rmat = _true_ecliptic_rotation_matrix(from_coo.equinox)
     newrepr = from_coo.cartesian.transform(matrix_transpose(rmat))
@@ -166,18 +166,18 @@ def true_geoecliptic_to_gcrs(from_coo, gcrs_frame):
     return gcrs.transform_to(gcrs_frame)
 
 
-@frame_transform_graph.transform(DynamicMatrixTransform, ICRS, BarycentricCorrectTrueEcliptic)
+@frame_transform_graph.transform(DynamicMatrixTransform, ICRS, BarycentricTrueEcliptic)
 def icrs_to_true_baryecliptic(from_coo, to_frame):
     return _true_ecliptic_rotation_matrix(to_frame.equinox)
 
 
-@frame_transform_graph.transform(DynamicMatrixTransform, BarycentricCorrectTrueEcliptic, ICRS)
+@frame_transform_graph.transform(DynamicMatrixTransform, BarycentricTrueEcliptic, ICRS)
 def true_baryecliptic_to_icrs(from_coo, to_frame):
     return matrix_transpose(icrs_to_true_baryecliptic(to_frame, from_coo))
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
-                                 ICRS, HeliocentricCorrectTrueEcliptic,
+                                 ICRS, HeliocentricTrueEcliptic,
                                  finite_difference_frameattr_name='equinox')
 def icrs_to_true_helioecliptic(from_coo, to_frame):
     if not u.m.is_equivalent(from_coo.cartesian.x.unit):
@@ -199,7 +199,7 @@ def icrs_to_true_helioecliptic(from_coo, to_frame):
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
-                                 HeliocentricCorrectTrueEcliptic, ICRS,
+                                 HeliocentricTrueEcliptic, ICRS,
                                  finite_difference_frameattr_name='equinox')
 def true_helioecliptic_to_icrs(from_coo, to_frame):
     if not u.m.is_equivalent(from_coo.cartesian.x.unit):
