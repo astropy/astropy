@@ -1051,7 +1051,7 @@ class Table:
             if i < n_header:
                 color_print(line, 'red')
             else:
-                print(line) 
+                print(line)
 
     @format_doc(_pprint_docs)
     def pprint_all(self, max_lines=-1, max_width=-1, show_name=True,
