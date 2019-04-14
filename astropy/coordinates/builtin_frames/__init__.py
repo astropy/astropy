@@ -38,7 +38,10 @@ from .cirs import CIRS
 from .itrs import ITRS
 from .hcrs import HCRS
 from .ecliptic import (GeocentricMeanEcliptic, BarycentricMeanEcliptic,
-                       HeliocentricMeanEcliptic, BaseEclipticFrame)
+                       HeliocentricMeanEcliptic,
+                       GeocentricTrueEcliptic, BarycentricTrueEcliptic,
+                       HeliocentricTrueEcliptic,
+                       BaseEclipticFrame)
 from .skyoffset import SkyOffsetFrame
 # need to import transformations so that they get registered in the graph
 from . import icrs_fk5_transforms
@@ -58,6 +61,8 @@ __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
            'Supergalactic', 'AltAz', 'GCRS', 'CIRS', 'ITRS', 'HCRS',
            'PrecessedGeocentric', 'GeocentricMeanEcliptic',
            'BarycentricMeanEcliptic', 'HeliocentricMeanEcliptic',
+           'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
+           'HeliocentricTrueEcliptic',
            'SkyOffsetFrame', 'GalacticLSR', 'LSR',
            'BaseEclipticFrame', 'BaseRADecFrame', 'make_transform_graph_docs']
 

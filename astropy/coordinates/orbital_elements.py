@@ -10,8 +10,7 @@ from numpy.polynomial.polynomial import polyval
 
 from astropy import units as u
 from astropy import _erfa as erfa
-from . import ICRS, SkyCoord
-from .builtin_frames.ecliptic import GeocentricCorrectTrueEcliptic
+from . import ICRS, SkyCoord, GeocentricTrueEcliptic
 from .builtin_frames.utils import get_jd12
 
 __all__ = ["calc_moon"]
@@ -240,7 +239,7 @@ def calc_moon(t):
     dist = (385000.56+sumr/1000)*u.km
 
     # Meeus algorithm gives GeocentricTrueEcliptic coordinates
-    ecliptic_coo = GeocentricCorrectTrueEcliptic(lon, lat, distance=dist,
-                                                 obstime=t, equinox=t)
+    ecliptic_coo = GeocentricTrueEcliptic(lon, lat, distance=dist,
+                                          obstime=t, equinox=t)
 
     return SkyCoord(ecliptic_coo.transform_to(ICRS))
