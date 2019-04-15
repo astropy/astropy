@@ -693,7 +693,8 @@ class Table:
         # prepare initialization
         if all(name is None for name in names):
             names = sorted(names_from_data)
-        dtype = [None for i in range(len(names_from_data))] # have to do this somehow
+        if dtype == None:
+            dtype = [None for i in range(len(names_from_data))]
         self._init_from_dict(cols, names, dtype, n_cols, copy)
 
         # mask the missing values
