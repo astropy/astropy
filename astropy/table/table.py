@@ -2447,7 +2447,7 @@ class Table:
 
         # use index sorted order if possible
         if keys is not None:
-            index = get_index(self, self[keys])
+            index = get_index(self, names=keys)
             if index is not None:
                 return index.sorted_data()
 
@@ -2458,7 +2458,7 @@ class Table:
             kwargs['kind'] = kind
 
         if keys:
-            data = self[keys].as_array()
+            data = self.as_array(names=keys)
         else:
             data = self.as_array()
 
@@ -2507,7 +2507,7 @@ class Table:
             keys = [keys]
 
         indexes = self.argsort(keys)
-        sort_index = get_index(self, self[keys])
+        sort_index = get_index(self, names=keys)
         if sort_index is not None:
             # avoid inefficient relabelling of sorted index
             prev_frozen = sort_index._frozen
