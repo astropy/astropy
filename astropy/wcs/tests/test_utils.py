@@ -11,12 +11,15 @@ from astropy.time import Time
 from astropy import units as u
 
 from astropy.wcs.wcs import WCS, Sip, WCSSUB_LONGITUDE, WCSSUB_LATITUDE
-from astropy.wcs.utils import (proj_plane_pixel_scales, proj_plane_pixel_area,
-                     is_proj_plane_distorted,
-                     non_celestial_pixel_scales, wcs_to_celestial_frame,
-                     celestial_frame_to_wcs, skycoord_to_pixel,
-                     pixel_to_skycoord, custom_wcs_to_frame_mappings,
-                     custom_frame_to_wcs_mappings, add_stokes_axis_to_wcs)
+from astropy.wcs.wcsapi.fitswcs import SlicedFITSWCS
+from astropy.wcs.utils import (proj_plane_pixel_scales,
+                               is_proj_plane_distorted,
+                               non_celestial_pixel_scales,
+                               wcs_to_celestial_frame,
+                               celestial_frame_to_wcs, skycoord_to_pixel,
+                               pixel_to_skycoord, custom_wcs_to_frame_mappings,
+                               custom_frame_to_wcs_mappings,
+                               add_stokes_axis_to_wcs)
 
 
 def test_wcs_dropping():
@@ -197,20 +200,15 @@ def test_slice_fitsorder():
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.2, 0.1]))
 
 
-def test_invalid_slice():
+def test_slice_wcs():
     mywcs = WCS(naxis=2)
 
-    with pytest.raises(ValueError) as exc:
-        mywcs[0]
-    assert exc.value.args[0] == ("Cannot downsample a WCS with indexing.  Use "
-                                 "wcs.sub or wcs.dropaxis if you want to remove "
-                                 "axes.")
+    sub = mywcs[0]
+    assert isinstance(sub, SlicedFITSWCS)
 
     with pytest.raises(ValueError) as exc:
         mywcs[0, ::2]
-    assert exc.value.args[0] == ("Cannot downsample a WCS with indexing.  Use "
-                                 "wcs.sub or wcs.dropaxis if you want to remove "
-                                 "axes.")
+    assert exc.value.args[0] == "Slicing WCS with a step is not supported."
 
 
 def test_axis_names():
