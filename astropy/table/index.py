@@ -606,24 +606,47 @@ class SlicedIndex:
         return self.index.data
 
 
-def get_index(table, table_copy):
-    '''
-    Inputs a table and some subset of its columns, and
-    returns an index corresponding to this subset or None
-    if no such index exists.
+def get_index(table, table_copy=None, names=None):
+    """
+    Inputs a table and some subset of its columns as table_copy.
+    List or tuple containing names of columns as names,and returns an index
+    corresponding to this subset or list or None if no such index exists.
 
     Parameters
     ----------
     table : `Table`
         Input table
-    table_copy : `Table`
-        Subset of the columns in the table argument
-    '''
-    cols = set(table_copy.columns)
-    for column in cols:
-        for index in table[column].info.indices:
-            if set([x.info.name for x in index.columns]) == cols:
+    table_copy : `Table`, optional
+        Subset of the columns in the ``table`` argument
+    names : list, tuple, optional
+        Subset of column names in the ``table`` argument
+
+    Returns
+    -------
+    Index of columns or None
+
+    """
+    if names is not None and table_copy is not None:
+        raise ValueError('one and only one argument from "table_copy" or'
+                         ' "names" is required')
+
+    if names is None and table_copy is None:
+        raise ValueError('one and only one argument from "table_copy" or'
+                         ' "names" is required')
+
+    if names is not None:
+        names = set(names)
+    else:
+        names = set(table_copy.colnames)
+
+    if not names <= set(table.colnames):
+        raise ValueError('{} is not a subset of table columns'.format(names))
+
+    for name in names:
+        for index in table[name].info.indices:
+            if set([col.info.name for col in index.columns]) == names:
                 return index
+
     return None
 
 
