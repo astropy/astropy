@@ -122,7 +122,7 @@ def test_spectral_slice():
 
 
 def test_spectral_range():
-    
+
     wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(None), slice(4, 10)])
 
     assert wcs.pixel_n_dim == 3
@@ -235,7 +235,7 @@ WCS_SPECTRAL_CUBE_ROT.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
 
 
 def test_celestial_range_rot():
-    
+
     wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE_ROT, [Ellipsis, slice(5, 10)])
 
     assert wcs.pixel_n_dim == 3
