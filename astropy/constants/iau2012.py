@@ -7,6 +7,7 @@ for a complete listing of constants defined in Astropy.
 import numpy as np
 
 from .constant import Constant
+from .codata2010 import c
 
 # ASTRONOMICAL CONSTANTS
 
@@ -24,7 +25,6 @@ au = IAU2012('au', "Astronomical Unit", 1.49597870700e11, 'm', 0.0,
               "IAU 2012 Resolution B2", system='si')
 
 # Parsec
-
 pc = IAU2012('pc', "Parsec", au.value / np.tan(np.radians(1. / 3600.)), 'm',
               au.uncertainty / np.tan(np.radians(1. / 3600.)),
               "Derived from au", system='si')
@@ -34,6 +34,13 @@ kpc = IAU2012('kpc', "Kiloparsec",
                1000. * au.value / np.tan(np.radians(1. / 3600.)), 'm',
                1000. * au.uncertainty / np.tan(np.radians(1. / 3600.)),
                "Derived from au", system='si')
+
+# Light-year
+lyr = IAU2012('lyr', "Light-year",
+               c.value * 31.5576e6, 'm',
+               c.uncertainty * 31.5576e6,
+               "Derived from c and the IAU definition of 1 (julian) year", 
+               system='si')
 
 # Luminosity
 L_bol0 = IAU2012('L_bol0', "Luminosity for absolute bolometric magnitude 0",
