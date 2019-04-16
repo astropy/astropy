@@ -820,10 +820,16 @@ class TestHeaderFunctions(FitsTestCase):
         # And now assign an undefined value to the header through setitem
         header['UNDEF3'] = fits.card.UNDEFINED
 
+        # Tuple assignment
+        header.append(("UNDEF5", None, "Undefined value"), end=True)
+        header.append("UNDEF6")
+
         assert header['DEFINED'] == 42
         assert header['UNDEF'] is None
         assert header['UNDEF2'] is None
         assert header['UNDEF3'] is None
+        assert header['UNDEF5'] is None
+        assert header['UNDEF6'] is None
 
         # Assign an undefined value to a new card
         header['UNDEF4'] = None
@@ -831,11 +837,9 @@ class TestHeaderFunctions(FitsTestCase):
         # Overwrite an existing value with None
         header["DEFINED"] = None
 
-        # Check that stringification of these new headers look like FITS
-        # undefined values
-        hstr = str(header)
-        for k in ("UNDEF", "UNDEF2", "UNDEF3", "UNDEF4", "DEFINED"):
-            assert "{:8s}=        ".format(k) in hstr
+        # All headers now should be undefined
+        for c in header.cards:
+            assert c.value == fits.card.UNDEFINED
 
     def test_set_comment_only(self):
         header = fits.Header([('A', 'B', 'C')])
@@ -965,10 +969,10 @@ class TestHeaderFunctions(FitsTestCase):
     def test_header_fromkeys(self):
         header = fits.Header.fromkeys(['A', 'B'])
         assert 'A' in header
-        assert header['A'] == ''
+        assert header['A'] is None
         assert header.comments['A'] == ''
         assert 'B' in header
-        assert header['B'] == ''
+        assert header['B'] is None
         assert header.comments['B'] == ''
 
     def test_header_fromkeys_with_value(self):
@@ -1300,7 +1304,7 @@ class TestHeaderFunctions(FitsTestCase):
         header.append('E')
         assert len(header) == 3
         assert list(header)[-1] == 'E'
-        assert header[-1] == ''
+        assert header[-1] is None
         assert header.comments['E'] == ''
 
         # Try appending a blank--normally this can be accomplished with just

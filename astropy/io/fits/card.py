@@ -286,7 +286,10 @@ class Card(_Verify):
             self._value = self._parse_value()
             value = self._value
         else:
-            self._value = value = ''
+            if self._keyword == '':
+                self._value = value = ''
+            else:
+                self._value = value = UNDEFINED
 
         if conf.strip_header_whitespace and isinstance(value, str):
             value = value.rstrip()
@@ -301,10 +304,10 @@ class Card(_Verify):
                 'delete this card from the header or replace it.')
 
         if value is None:
-            value = ''
+            value = UNDEFINED
         oldvalue = self._value
         if oldvalue is None:
-            oldvalue = ''
+            oldvalue = UNDEFINED
 
         if not isinstance(value,
                           (str, int, float, complex, bool, Undefined,
