@@ -10,6 +10,8 @@ astropy.config
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
+- Add ``lyr`` (light-year) as a constant. [#8580]
+
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
