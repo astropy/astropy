@@ -73,8 +73,9 @@ offsets encountered in astronomy.
 
 The first piece of such functionality is the
 :meth:`~astropy.coordinates.SkyCoord.position_angle` method. This method
-computes the position angle (positive angles East of North) between one
-|skycoord| instance and another (passed as the argument)::
+computes the position angle between one
+|skycoord| instance and another (passed as the argument) following the 
+astronomy convention (positive angles East of North)::
 
     >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
