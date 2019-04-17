@@ -26,7 +26,7 @@ The recommended method of transformation is shown below::
     <SkyCoord (FK5: equinox=J2000.000): (ra, dec) in deg
         ( 229.27251463, -1.12844288)>
 
-While this appears to be attribute-style access, it is actually
+While this appears to be ordinary attribute-style access, it is actually
 syntactic sugar for the more general
 :meth:`~astropy.coordinates.SkyCoord.transform_to` method, which can
 accept either a frame name, class, or instance::

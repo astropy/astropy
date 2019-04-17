@@ -317,7 +317,7 @@ The |SkyCoord| object has a number of useful attributes which come in handy.
 By digging through these we will learn a little bit about |SkyCoord| and how it
 works.
 
-To begin (if you do not already know), one of the most important tools for
+To begin, one of the most important tools for
 learning about attributes and methods of objects is "TAB-discovery". From
 within IPython you can type an object name, the period, and then the <TAB> key
 to see what is available. This can often be faster than reading the

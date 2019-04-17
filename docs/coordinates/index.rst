@@ -26,7 +26,7 @@ for converting between common coordinate systems in a uniform way.
 Getting Started
 ===============
 
-One recommended way to use `~astropy.coordinates` is to use the |skycoord|
+The best way to start using `~astropy.coordinates` is to use the |skycoord|
 class. |skycoord| objects are instantiated by passing in positions (and
 optional velocities) with specified units and a coordinate frame. Sky positions
 are commonly passed in as `~astropy.units.Quantity` objects and the frame is
@@ -124,7 +124,7 @@ For additional information see the section on :ref:`working_with_angles`.
 Transformation
 --------------
 
-One suggested way to transform to a new coordinate frame is by accessing
+One convenient way to transform to a new coordinate frame is by accessing
 the appropriately named attribute. For instance, to get the coordinate in
 the `~astropy.coordinates.Galactic` frame use::
 
@@ -282,7 +282,7 @@ names, etc.:
     `~astropy.coordinates.SkyCoord.from_name`,
     `~astropy.coordinates.EarthLocation.of_site`, and
     `~astropy.coordinates.EarthLocation.of_address` are for convenience, and
-    hence are by design rather imprecise. If you need precise coordinates for an
+    hence are by design relatively low precision. If you need more precise coordinates for an
     object you should find the appropriate reference and input the coordinates
     manually, or use more specialized functionality like that in the `astroquery
     <http://www.astropy.org/astroquery/>`_ or `astroplan
@@ -358,7 +358,7 @@ more string-parsing capabilities.
 Separating these concepts makes it easier to extend the functionality of
 `~astropy.coordinates`. It allows representations, frames, and
 transformations to be defined or extended separately, while still
-preserving the high-level capabilities and efficiency of the |skycoord|
+preserving the high-level capabilities and ease-of-use of the |skycoord|
 class.
 
 .. topic:: Examples:

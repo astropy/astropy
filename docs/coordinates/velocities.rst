@@ -8,7 +8,7 @@ Working with Velocities in Astropy Coordinates
 Using Velocities with ``SkyCoord``
 ==================================
 
-One recommended way of getting a coordinate object with velocities is to use the
+The best way to start getting a coordinate object with velocities is to use the
 |skycoord| interface. For example, a |skycoord| to represent a star with a
 measured radial velocity but unknown proper motion and distance could be
 created as::
