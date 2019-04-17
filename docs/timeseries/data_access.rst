@@ -30,8 +30,8 @@ with two data columns - ``flux`` and ``temp``::
 
 As for |Table|, columns can be accessed by name::
 
-    >>> ts['flux']
-    <Quantity [1., 4., 5., 3., 2.] Jy>
+    >>> ts['flux']  # doctest: +FLOAT_CMP
+    <Quantity [ 1., 4., 5., 3., 2.] Jy>
     >>> ts['time']
     <Time object: scale='utc' format='isot' value=['2016-03-22T12:30:31.000' '2016-03-22T12:30:34.000'
      '2016-03-22T12:30:37.000' '2016-03-22T12:30:40.000'
@@ -50,10 +50,10 @@ and rows can be accessed by index::
 Accessing individual values can then be done either by accessing a column then a
 row, or vice-versa::
 
-    >>> ts[0]['flux']
+    >>> ts[0]['flux']  # doctest: +FLOAT_CMP
     <Quantity 1. Jy>
 
-    >>> ts['temp'][2]
+    >>> ts['temp'][2]  # doctest: +FLOAT_CMP
     <Quantity 39. K>
 
 .. _timeseries-accessing-times:
