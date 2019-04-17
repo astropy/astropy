@@ -269,7 +269,7 @@ and ``catalog``, respectively, which are separated by less than 1 arcsecond.
 
 .. _astropy-searching-coordinates:
 
-Searching Around Coordinates
+Searching around Coordinates
 ============================
 
 Closely related functionality can be used to search for *all* coordinates within
