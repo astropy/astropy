@@ -15,10 +15,48 @@ __all__ = ['TimeSeries']
 
 
 class TimeSeries(BaseTimeSeries):
+    """
+    A class to represent time series data in tabular form.
+
+    `~astropy.timeseries.TimeSeries` provides a class for representing time
+    series as a collection of values of different quantities measured at specific
+    points in time (for time series with finite time bins, see the
+    `~astropy.timeseries.BinnedTimeSeries` class).
+    `~astropy.timeseries.TimeSeries` is a sub-class of `~astropy.table.QTable`
+    and thus provides all the standard table maniplation methods available to
+    tables, but it also provides additional conveniences for dealing with time
+    series, such as a flexible initializer for setting up the times, a method
+    for folding time series, and a ``time`` attribute for easy access to the
+    time values.
+
+    See also: http://docs.astropy.org/en/stable/timeseries/
+
+    Parameters
+    ----------
+    data : numpy ndarray, dict, list, Table, or table-like object, optional
+        Data to initialize time series. This does not need to contain the times,
+        which can be provided separately, but if it does contain the times they
+        should be in a column called ``'time'`` to be automatically recognized.
+    time : `~astropy.time.Time` or iterable
+        The times at which the values are sampled - this can be either given
+        directly as a `~astropy.time.Time` array or as any iterable that
+        initializes the `~astropy.time.Time` class. If this is given, then
+        the remaining time-related arguments should not be used. This can also
+        be a scalar value if ``time_delta`` is an array or ``n_samples`` is
+        provided.
+    time_delta : `~astropy.time.TimeDelta` or `~astropy.units.Quantity`
+        The step size in time for the series. This can either be a scalar if
+        the time series is evenly sampled, or an array of values if it is not.
+    n_samples : int
+        The number of time samples for the series. This is only used if both
+        ``start_time`` and ``time_delta`` are provided and are scalar values.
+    **kwargs : dict, optional
+        Additional keyword arguments are passed to `~astropy.table.QTable`.
+    """
 
     _require_time_column = False
 
-    def __init__(self, data=None, time=None, time_delta=None, n_samples=None, **kwargs):
+    def __init__(self, data=None, *, time=None, time_delta=None, n_samples=None, **kwargs):
 
         super().__init__(data=data, **kwargs)
 
@@ -77,15 +115,13 @@ class TimeSeries(BaseTimeSeries):
 
             time = time + time_delta
 
-        else:
+        elif len(self.colnames) > 0 and len(time) != len(self):
+            raise ValueError("Length of 'time' ({0}) should match "
+                             "data length ({1})".format(len(time), n_samples))
 
-            if len(self.colnames) > 0 and len(time) != len(self):
-                raise ValueError("Length of 'time' ({0}) should match "
-                                 "data length ({1})".format(len(time), n_samples))
-
-            if time_delta is not None:
-                raise TypeError("'time_delta' should not be specified since "
-                                "'time' is an array")
+        elif time_delta is not None:
+            raise TypeError("'time_delta' should not be specified since "
+                            "'time' is an array")
 
         self.add_column(time, index=0, name='time')
 
@@ -98,7 +134,8 @@ class TimeSeries(BaseTimeSeries):
 
     def fold(self, period=None, midpoint_epoch=None):
         """
-        Return a new `~astropy.timeseries.TimeSeries` folded with a period and midpoint epoch.
+        Return a new `~astropy.timeseries.TimeSeries` folded with a period and
+        midpoint epoch.
 
         Parameters
         ----------

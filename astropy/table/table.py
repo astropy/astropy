@@ -831,7 +831,7 @@ class Table:
     @staticmethod
     def _make_table_from_cols(table, cols, verify=True, names=None):
         """
-        Make ``~astropy.table.Table`` in-place so that it represents the given list of ``cols``.
+        Make ``table`` in-place so that it represents the given list of ``cols``.
         """
         if names is None:
             names = [col.info.name for col in cols]
