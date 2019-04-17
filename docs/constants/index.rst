@@ -142,6 +142,41 @@ manager is available as follows:
     Units such as ``u.M_sun`` will use the current version of the
     corresponding constant. When using prior versions of the constants,
     quantities should be constructed with constants instead of units.
+    Alternatively, the constants versions may be set in your
+    configuration file (next section).
+
+Configuring a prior version of the constants
+============================================
+
+To ensure consistent use of a prior version of constants in other Astropy
+packages (such as ``astropy.units``) that import constants, the physical and
+astronomical constants versions may be set in your configuration file.
+For example, if you modify the configuration file to include:
+
+.. code-block:: ini
+
+    [constants]
+
+    ## Previous version of physical constants
+    physical_constants = 'codata2010'
+
+    ## Previous version of astronomical constants
+    astronomical_constants = 'iau2012'
+
+Then all other packages that import ``astropy.constants`` will self-consistently
+initialize with that prior version of constants.
+
+The versions may also be set using values referring to the version modules:
+
+.. code-block:: ini
+
+    [constants]
+
+    ## Previous version of physical constants
+    physical_constants = 'astropyconst13'
+
+    ## Previous version of astronomical constants
+    astronomical_constants = 'astropyconst13'
 
 .. note that if this section gets too long, it should be moved to a separate
    doc page - see the top of performance.inc.rst for the instructions on how to
