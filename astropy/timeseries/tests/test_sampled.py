@@ -205,7 +205,7 @@ def test_read():
 
 
 @pytest.mark.remote_data(source='astropy')
-def test_keppler_astropy():
+def test_kepler_astropy():
     filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
     timeseries = TimeSeries.read(filename, format='kepler.fits')
     assert timeseries["time"].format == 'isot'

@@ -10,7 +10,7 @@ Manipulation and analysis of time series
 Combining time series
 =====================
 
-The  :func:`~astropy.table.vstack`, and :func:`~astropy.table.hstack` functions
+The  :func:`~astropy.table.vstack` and :func:`~astropy.table.hstack` functions
 from the :mod:`astropy.table` module can be used to stack time series in
 different ways.
 

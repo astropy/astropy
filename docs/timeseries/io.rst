@@ -56,9 +56,9 @@ Let's check that the time series has been read in correctly:
 Reading other formats
 =====================
 
-At the moment only a few formats are defined in astropy itself, in part because
+At the moment only a few formats are defined in ``astropy`` itself, in part because
 there are not many well documented formats for storing time series. So in many
-cases, you will likely have to first read in your files using e.g. the more
+cases, you will likely have to first read in your files using the more
 generic |Table| class (see :ref:`read_write_tables`). In fact, the
 :meth:`TimeSeries.read <astropy.timeseries.TimeSeries.read>` and
 :meth:`BinnedTimeSeries.read <astropy.timeseries.BinnedTimeSeries.read>` methods
@@ -91,4 +91,4 @@ Alternatively, you can read in the table using your own code then construct the
 time series object as described in :ref:`timeseries-initializing`.
 
 If you have written a reader/writer for a commonly used format, please feel free
-to contribute it to astropy!
+to contribute it to ``astropy``!

@@ -20,7 +20,6 @@ Accessing data
 For the examples in this page, we will consider a simple sampled time series
 with two data columns - ``flux`` and ``temp``::
 
-    >>> from collections import OrderedDict
     >>> from astropy import units as u
     >>> from astropy.timeseries import TimeSeries
     >>> ts = TimeSeries(time='2016-03-22T12:30:31',

@@ -98,7 +98,7 @@ class TimeSeries(BaseTimeSeries):
 
     def fold(self, period=None, midpoint_epoch=None):
         """
-        Return a new TimeSeries folded with a period and midpoint epoch.
+        Return a new `~astropy.timeseries.TimeSeries` folded with a period and midpoint epoch.
 
         Parameters
         ----------
