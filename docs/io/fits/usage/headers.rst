@@ -207,6 +207,26 @@ commentary card by using the :meth:`Header.insert` method.
     Ironically, there is no comment in a commentary card, only a string
     value.
 
+Undefined values
+----------------
+
+FITS headers can have undefined values and these are represented in Python
+with the special value `None`.  `None` can be used when assigning values
+to a `~astropy.io.fits.Header` or `~astropy.io.fits.Card`.
+
+    >>> hdr = fits.Header()
+    >>> hdr['UNDEF'] = None
+    >>> hdr['UNDEF'] is None
+    True
+    >>> repr(hdr)
+    'UNDEF   =                                                                       '
+    >>> hdr.append('UNDEF2')
+    >>> hdr['UNDEF2'] is None
+    True
+    >>> hdr.append(('UNDEF3', None, 'Undefined value'))
+    >>> str(hdr.cards[-1])
+    'UNDEF3  =  / Undefined value                                                    '
+
 
 Card Images
 ===========
