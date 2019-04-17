@@ -49,7 +49,7 @@ There are no plans to support more complex evolution (e.g., non-inertial
 frames or more complex evolution), as that is out of scope for the ``astropy``
 core (although it may well be in-scope for a variety of affiliated packages).
 
-Example: Use Velocity to Compute Sky Position at Different Epochs
+Example: Use velocity to compute sky position at different epochs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In this example, we'll use *Gaia* `TGAS
