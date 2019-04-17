@@ -1349,26 +1349,26 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             # We're not a Quantity, so let's try a more general conversion.
             # Plain arrays will be converted to dimensionless in the process,
             # but anything with a unit attribute will use that.
+            as_quantity = Quantity(value)
             try:
-                _value = Quantity(value).to_value(self.unit)
-            except UnitsError as exc:
+                _value = as_quantity.to_value(self.unit)
+            except UnitsError:
                 # last chance: if this was not something with a unit
                 # and is all 0, inf, or nan, we treat it as arbitrary unit.
                 if (not hasattr(value, 'unit') and
-                        can_have_arbitrary_unit(value)):
-                    _value = value
+                        can_have_arbitrary_unit(as_quantity.value)):
+                    _value = as_quantity.value
                 else:
-                    raise exc
+                    raise
 
         if check_precision:
-            value_dtype = getattr(value, 'dtype', None)
-            if self.dtype != value_dtype:
+            # If, e.g., we are casting double to float, we want to fail if
+            # precision is lost, but let things pass if it works.
+            _value = np.array(_value, copy=False)
+            if not np.can_cast(_value.dtype, self.dtype):
                 self_dtype_array = np.array(_value, self.dtype)
-                value_dtype_array = np.array(_value, dtype=value_dtype,
-                                             copy=False)
-                if not np.all(np.logical_or(self_dtype_array ==
-                                            value_dtype_array,
-                                            np.isnan(value_dtype_array))):
+                if not np.all(np.logical_or(self_dtype_array == _value,
+                                            np.isnan(_value))):
                     raise TypeError("cannot convert value type to array type "
                                     "without precision loss")
         return _value
