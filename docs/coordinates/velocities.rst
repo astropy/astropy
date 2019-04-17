@@ -312,11 +312,11 @@ the same: the radial velocity should be essentially the same in both frames:
     plt.plot_date(time.plot_date, gcrs.radial_velocity.to(u.km/u.s))
     plt.ylabel('RV [km/s]')
 
-But this result is clearly nonsense, with values from -1000 to 1000 km/s. The
-root of the problem here is that the machine precision is not sufficient to
-compute differences of order km over distances of order kiloparsecs. Hence, the
-straightforward finite difference method will not work for this use case with
-the default values.
+But this result is nonsense, with values from -1000 to 1000 km/s instead of the
+~10 km/s we expected. The root of the problem here is that the machine
+precision is not sufficient to compute differences of order km over distances
+of order kiloparsecs. Hence, the straightforward finite difference method will
+not work for this use case with the default values.
 
 It is possible to override the timestep over which the finite difference occurs.
 For example::
