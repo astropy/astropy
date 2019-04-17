@@ -3,6 +3,8 @@
 Interfacing with the pandas package
 ***********************************
 
+.. doctest-requires:: pandas
+
 .. |Time| replace:: :class:`~astropy.time.Time`
 .. |Quantity| replace:: :class:`~astropy.units.Quantity`
 .. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
@@ -26,9 +28,7 @@ Nevertheless, there are cases where using pandas :class:`~pandas.DataFrame`
 objects might make sense, so we provide methods to easily convert to/from
 :class:`~pandas.DataFrame` objects.
 
-Let's consider a simple example starting from a :class:`~pandas.DataFrame`:
-
-.. doctest-requires:: pandas
+Let's consider a simple example starting from a :class:`~pandas.DataFrame`::
 
     >>> import pandas
     >>> import numpy as np
@@ -43,9 +43,7 @@ Let's consider a simple example starting from a :class:`~pandas.DataFrame`:
     2015-07-06  3
 
 We can convert this to an astropy |TimeSeries| using
-:meth:`~astropy.timeseries.TimeSeries.from_pandas`:
-
-.. doctest-requires:: pandas
+:meth:`~astropy.timeseries.TimeSeries.from_pandas`::
 
     >>> from astropy.timeseries import TimeSeries
     >>> ts = TimeSeries.from_pandas(df)
@@ -59,9 +57,7 @@ We can convert this to an astropy |TimeSeries| using
     2015-07-06T00:00:00.000000000     3
 
 Converting to :class:`~pandas.DataFrame` can also easily be done with
-:meth:`~astropy.timeseries.TimeSeries.to_pandas`:
-
-.. doctest-requires:: pandas
+:meth:`~astropy.timeseries.TimeSeries.to_pandas`::
 
     >>> ts['b'] = [1.2, 3.4, 5.4]
     >>> df_new = ts.to_pandas()
@@ -71,3 +67,23 @@ Converting to :class:`~pandas.DataFrame` can also easily be done with
     2015-07-04  1  1.2
     2015-07-05  2  3.4
     2015-07-06  3  5.4
+
+Missing values in the time column are supported and correctly converted to
+pandas' NaT object::
+
+    >>> ts.time[2] = np.nan
+    >>> ts
+    <TimeSeries length=3>
+                 time               a      b
+                object            int64 float64
+    ----------------------------- ----- -------
+    2015-07-04T00:00:00.000000000     1     1.2
+    2015-07-05T00:00:00.000000000     2     3.4
+                               --     3     5.4
+    >>> df_missing = ts.to_pandas()
+    >>> df_missing
+               a    b
+    time
+    2015-07-04  1  1.2
+    2015-07-05  2  3.4
+    NaT         3  5.4

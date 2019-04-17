@@ -8,13 +8,14 @@ from astropy.table import groups, QTable, Table
 from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.units import Quantity
+from astropy.utils.misc import InheritDocstrings
 
 from astropy.timeseries.core import BaseTimeSeries
 
 __all__ = ['TimeSeries']
 
 
-class TimeSeries(BaseTimeSeries):
+class TimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
     """
     A class to represent time series data in tabular form.
 
@@ -176,6 +177,7 @@ class TimeSeries(BaseTimeSeries):
         return super().__getitem__(item)
 
     def add_columns(self, *args, **kwargs):
+        # Note that the docstring is inherited from QTable
         result = super().add_columns(*args, **kwargs)
         if len(self.indices) == 0 and 'time' in self.colnames:
             self.add_index('time')

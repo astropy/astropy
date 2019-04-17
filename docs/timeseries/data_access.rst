@@ -23,20 +23,15 @@ with two data columns - ``flux`` and ``temp``::
     >>> from astropy import units as u
     >>> from astropy.timeseries import TimeSeries
     >>> ts = TimeSeries(time='2016-03-22T12:30:31',
-    ...                        time_delta=3 * u.s,
-    ...                        data={'flux': [1., 4., 5., 3., 2.],
-    ...                              'temp': [40., 41., 39., 24., 20.]},
-    ...                        names=('flux', 'temp'))
+    ...                 time_delta=3 * u.s,
+    ...                 data={'flux': [1., 4., 5., 3., 2.] * u.Jy,
+    ...                       'temp': [40., 41., 39., 24., 20.] * u.K},
+    ...                 names=('flux', 'temp'))
 
 As for |Table|, columns can be accessed by name::
 
     >>> ts['flux']
-    <Column name='flux' dtype='float64' length=5>
-    1.0
-    4.0
-    5.0
-    3.0
-    2.0
+    <Quantity [1., 4., 5., 3., 2.] Jy>
     >>> ts['time']
     <Time object: scale='utc' format='isot' value=['2016-03-22T12:30:31.000' '2016-03-22T12:30:34.000'
      '2016-03-22T12:30:37.000' '2016-03-22T12:30:40.000'
@@ -47,6 +42,7 @@ and rows can be accessed by index::
     >>> ts[0]
     <Row index=0>
               time            flux    temp
+                               Jy      K
              object         float64 float64
     ----------------------- ------- -------
     2016-03-22T12:30:31.000     1.0    40.0
@@ -55,10 +51,10 @@ Accessing individual values can then be done either by accessing a column then a
 row, or vice-versa::
 
     >>> ts[0]['flux']
-    1.0
+    <Quantity 1. Jy>
 
     >>> ts['temp'][2]
-    39.0
+    <Quantity 39. K>
 
 .. _timeseries-accessing-times:
 
@@ -112,6 +108,7 @@ We can create a new time series with just the ``flux`` column by doing::
    >>> ts['time', 'flux']
    <TimeSeries length=5>
              time            flux
+                              Jy
             object         float64
    ----------------------- -------
    2016-03-22T12:30:31.000     1.0
@@ -120,12 +117,14 @@ We can create a new time series with just the ``flux`` column by doing::
    2016-03-22T12:30:40.000     3.0
    2016-03-22T12:30:43.000     2.0
 
-And we can also create a plain |QTable| by extracting just the ``flux`` and
+Note that the new columns will be copies (not views) of the original columns.
+We can also create a plain |QTable| by extracting just the ``flux`` and
 ``temp`` columns::
 
    >>> ts['flux', 'temp']
    <QTable length=5>
      flux    temp
+       Jy      K
    float64 float64
    ------- -------
        1.0    40.0
@@ -143,6 +142,7 @@ e.g.::
    >>> ts[0:2]
    <TimeSeries length=2>
              time            flux    temp
+                              Jy      K
             object         float64 float64
    ----------------------- ------- -------
    2016-03-22T12:30:31.000     1.0    40.0
@@ -161,15 +161,17 @@ entries for a given timestamp::
    >>> ts.loc[Time('2016-03-22T12:30:31.000')]  # doctest: +SKIP
    <Row index=0>
              time            flux    temp
+                              Jy      K
             object         float64 float64
    ----------------------- ------- -------
    2016-03-22T12:30:31.000     1.0    40.0
 
 or within a time range::
 
-   >>> ts.loc[Time('2016-03-22T12:30:31'):Time('2016-03-22T12:30:40')]
+   >>> ts.loc['2016-03-22T12:30:30':'2016-03-22T12:30:41']
    <TimeSeries length=4>
              time            flux    temp
+                              Jy      K
             object         float64 float64
    ----------------------- ------- -------
    2016-03-22T12:30:31.000     1.0    40.0
@@ -177,7 +179,10 @@ or within a time range::
    2016-03-22T12:30:37.000     5.0    39.0
    2016-03-22T12:30:40.000     3.0    24.0
 
-.. TODO: make it so that Time() is not required above
+Note that in this case we didn't specify |Time| - this isn't needed if the
+string is an ISO 8601 time string. Also, as for the |QTable| and |Table| class
+``loc`` attribute, and to be consistent with `pandas
+<https://pandas.pydata.org/>`_, the last item in the ``loc`` range is inclusive.
 
 Note that the result will always be sorted by time. Similarly, the
 :attr:`~astropy.timeseries.TimeSeries.iloc` attribute can be used to fetch
@@ -187,6 +192,7 @@ entries (by time) can be accessed with::
    >>> ts.iloc[0:2]
    <TimeSeries length=2>
              time            flux    temp
+                              Jy      K
             object         float64 float64
    ----------------------- ------- -------
    2016-03-22T12:30:31.000     1.0    40.0

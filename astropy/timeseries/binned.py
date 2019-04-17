@@ -8,13 +8,14 @@ from astropy.table import groups, Table, QTable
 from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.units import Quantity
+from astropy.utils.misc import InheritDocstrings
 
 from astropy.timeseries.core import BaseTimeSeries
 
 __all__ = ['BinnedTimeSeries']
 
 
-class BinnedTimeSeries(BaseTimeSeries):
+class BinnedTimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
     """
     A class to represent binned time series data in tabular form.
 
@@ -248,7 +249,7 @@ class BinnedTimeSeries(BaseTimeSeries):
         time_bin_size_column: str, optional
             The name of the column with the size for each bin. Either this
             option or ``time_bin_end_column`` should be specified.
-        time_bin_size_unit: `astropy.units.quantity.Quantity`, optional
+        time_bin_size_unit: `astropy.units.Unit`, optional
             If ``time_bin_size_column`` is specified but does not have a unit
             set in the table, you can specify the unit manually.
         time_format: str, optional
@@ -312,8 +313,8 @@ class BinnedTimeSeries(BaseTimeSeries):
                     raise ValueError("Bin size column '{}' not found in the input data.".format(time_bin_size_column))
 
                 if time_bin_size.unit is None:
-                    if time_bin_size_unit is None or not isinstance(time_bin_size_unit, u.Quantity):
-                        raise ValueError("The bin size unit should be specified as an astropy Quantity using ``time_bin_size_unit``.")
+                    if time_bin_size_unit is None or not isinstance(time_bin_size_unit, u.UnitBase):
+                        raise ValueError("The bin size unit should be specified as an astropy Unit using ``time_bin_size_unit``.")
                     time_bin_size = time_bin_size * time_bin_size_unit
                 else:
                     time_bin_size = u.Quantity(time_bin_size)

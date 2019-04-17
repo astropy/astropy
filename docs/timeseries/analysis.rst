@@ -22,11 +22,11 @@ series cannot be combined with binned time series and vice-versa)::
     >>> from astropy import units as u
     >>> from astropy.timeseries import TimeSeries
     >>> ts_a = TimeSeries(time='2016-03-22T12:30:31',
-    ...                          time_delta=3 * u.s,
-    ...                          data={'flux': [1, 4, 5, 3, 2] * u.mJy})
+    ...                   time_delta=3 * u.s,
+    ...                   data={'flux': [1, 4, 5, 3, 2] * u.mJy})
     >>> ts_b = TimeSeries(time='2016-03-22T12:50:31',
-    ...                          time_delta=3 * u.s,
-    ...                          data={'flux': [4, 3, 1, 2, 3] * u.mJy})
+    ...                   time_delta=3 * u.s,
+    ...                   data={'flux': [4, 3, 1, 2, 3] * u.mJy})
     >>> ts_ab = vstack([ts_a, ts_b])
     >>> ts_ab
     <TimeSeries length=10>
@@ -44,6 +44,9 @@ series cannot be combined with binned time series and vice-versa)::
     2016-03-22T12:50:37.000     1.0
     2016-03-22T12:50:40.000     2.0
     2016-03-22T12:50:43.000     3.0
+
+Note that :func:`~astropy.table.vstack` does not automatically sort, nor get rid
+of duplicates - this is something you would need to do explicitly afterwards.
 
 Time series can also be combined 'horizontally' or column-wise with other tables
 using the :func:`~astropy.table.hstack` function, though these should not be
@@ -71,8 +74,8 @@ Sorting time series in-place can be done using the
 :meth:`~astropy.table.Table.sort` method, as for |Table|::
 
     >>> ts = TimeSeries(time='2016-03-22T12:30:31',
-    ...                        time_delta=3 * u.s,
-    ...                        data={'flux': [1., 4., 5., 3., 2.]})
+    ...                 time_delta=3 * u.s,
+    ...                 data={'flux': [1., 4., 5., 3., 2.]})
     >>> ts
     <TimeSeries length=5>
               time            flux
@@ -111,6 +114,7 @@ mission into 20 minute bins using a median function. First, we read in the data
 using:
 
 .. plot::
+   :include-source:
    :context: reset
    :nofigs:
 
@@ -175,6 +179,10 @@ an epoch as a :class:`~astropy.time.Time`, which defines a zero time offset:
     plt.plot(kepler_folded.time.jd, kepler_folded['sap_flux'], 'k.', markersize=1)
     plt.xlabel('Time from midpoint epoch (days)')
     plt.ylabel('SAP Flux (e-/s)')
+
+Note that in this example we happened to know the period and midpoint from a
+previous periodogram analysis - see the example in :doc:`index` for how you
+might do this.
 
 Arithmetic
 ==========
