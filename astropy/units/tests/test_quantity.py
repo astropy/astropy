@@ -1552,3 +1552,42 @@ def test_unit_class_override():
     assert type(q1) is u.Quantity
     q2 = u.Quantity(1., my_unit, subok=True)
     assert type(q2) is MyQuantity
+
+
+class QuantityMimic:
+    def __init__(self, value, unit):
+        self.value = value
+        self.unit = unit
+
+    def __array__(self):
+        return np.array(self.value)
+
+
+class QuantityMimic2(QuantityMimic):
+    def to(self, unit):
+        return u.Quantity(self.value, self.unit).to(unit)
+
+    def to_value(self, unit):
+        return u.Quantity(self.value, self.unit).to_value(unit)
+
+
+class TestQuantityMimics:
+    """Test Quantity Mimics that are not ndarray subclasses."""
+    @pytest.mark.parametrize('Mimic', (QuantityMimic, QuantityMimic2))
+    def test_mimic_input(self, Mimic):
+        value = np.arange(10.)
+        mimic = Mimic(value, u.m)
+        q = u.Quantity(mimic)
+        assert q.unit == u.m
+        assert np.all(q.value == value)
+        q2 = u.Quantity(mimic, u.cm)
+        assert q2.unit == u.cm
+        assert np.all(q2.value == 100 * value)
+
+    @pytest.mark.parametrize('Mimic', (QuantityMimic, QuantityMimic2))
+    def test_mimic_setting(self, Mimic):
+        mimic = Mimic([1., 2.], u.m)
+        q = u.Quantity(np.arange(10.), u.cm)
+        q[8:] = mimic
+        assert np.all(q[:8].value == np.arange(8.))
+        assert np.all(q[8:].value == [100., 200.])

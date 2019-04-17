@@ -116,9 +116,9 @@ astropy.table
   related to column attribute access and certain input validation. [#8493]
 
 - Improved ``Table.sort()`` performance by removing ``self[keys]`` from code
-  which is creating deep copies of ``meta`` attribute and adding a new keyword 
-  ``names`` in ``get_index()`` to get index by using a list or tuple containing 
-  names of columns. [#8570] 
+  which is creating deep copies of ``meta`` attribute and adding a new keyword
+  ``names`` in ``get_index()`` to get index by using a list or tuple containing
+  names of columns. [#8570]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -322,6 +322,10 @@ astropy.units
 - Added a ``Quantity.to_string`` method to add flexibility to the string formatting
   of quantities. It produces unadorned or LaTeX strings, and accepts two different
   sets of delimiters in the latter case: ``inline`` and ``display``. [#8313]
+
+- Ensure classes that mimic quantities by having a ``unit`` attribute and/or
+  ``to`` and ``to_value`` methods can be properly used to initialize ``Quantity``
+  or set ``Quantity`` instance items. [#8535]
 
 astropy.utils
 ^^^^^^^^^^^^^
