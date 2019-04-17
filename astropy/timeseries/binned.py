@@ -186,7 +186,7 @@ class BinnedTimeSeries(BaseTimeSeries):
 
         Parameters
         ----------
-        filename: str
+        filename : str
             File to parse.
         format : str
             File format specifier.

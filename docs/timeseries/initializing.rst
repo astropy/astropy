@@ -143,7 +143,6 @@ required)::
 Alternatively, you can create the same time series by giving an array of start
 times as well as a single end time::
 
-
     >>> ts5 = BinnedTimeSeries(time_bin_start=['2016-03-22T12:30:31',
     ...                                    '2016-03-22T12:30:34',
     ...                                    '2016-03-22T12:30:37',

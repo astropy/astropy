@@ -16,9 +16,9 @@ research are the following:
 
 * The time column is a |Time| object that supports very high precision
   representation of times, and makes it easy to convert between different
-  time scales and formats (e.g. ISO 8601 timestamps, Julian Dates, and so on).
-* The data columns can include |Quantity| objects with units
-* The |BinnedTimeSeries| class includes variable width time bins
+  time scales and formats (e.g., ISO 8601 timestamps, Julian Dates, and so on).
+* The data columns can include |Quantity| objects with units.
+* The |BinnedTimeSeries| class includes variable-width time bins.
 * There are built-in readers for common time series file formats, as well as
   the ability to define custom readers/writers.
 
