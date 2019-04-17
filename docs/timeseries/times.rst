@@ -67,8 +67,9 @@ and ``scale`` attributes::
           1458649840.0     2.0
           1458649843.0     4.0
 
-Relative times
-==============
+
+Times relative to other times
+=============================
 
 In some cases, it can be useful to use relative rather than absolute times.
 This can be done by using the |TimeDelta| class instead of the |Time| class,
@@ -88,5 +89,5 @@ for example by subtracting a reference time from an existing time object::
 
 The |TimeDelta| values can be converted to a different time unit (e.g., second) using::
 
-    >>> ts_rel.time.to('s')
+    >>> ts_rel.time.to('second')
     <Quantity [ 0.,  3.,  6.,  9., 12.] s>

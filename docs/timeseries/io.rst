@@ -29,6 +29,11 @@ file:
    from astropy.utils.data import get_pkg_data_filename
    example_data = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
 
+.. note::
+    The light curve provided here is hand-picked for example purposes.  To get
+    other Kepler light curves for science purposes using Python, see the
+    `astroquery <https://astroquery.readthedocs.io>`_ affiliated package.
+    
 This will set ``example_data`` to the filename of the downloaded file (so you can
 replace this by the filename for the file you want to read in). We can then read in
 the time series using:
@@ -88,7 +93,8 @@ See the documentation for :meth:`TimeSeries.read
 <astropy.timeseries.BinnedTimeSeries.read>` for more details.
 
 Alternatively, you can read in the table using your own code then construct the
-time series object as described in :ref:`timeseries-initializing`.
+time series object as described in :ref:`timeseries-initializing`, although then
+you cannot write out another time series in the same format.
 
 If you have written a reader/writer for a commonly used format, please feel free
 to contribute it to ``astropy``!

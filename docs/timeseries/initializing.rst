@@ -15,7 +15,7 @@ Initializing a simple time series
 
 The first type of time series that we will look at here is |TimeSeries|,
 which can be used for a time series which samples a continuous variable at
-discrete and instantaneous times. Initializing a |TimeSeries| can be done
+discrete, instantaneous times. Initializing a |TimeSeries| can be done
 in the same ways as initializing a |Table| object (see :ref:`Data Tables <astropy-table>`),
 but additional arguments related to the times should be specified.
 
@@ -272,5 +272,5 @@ method takes a dictionary where the keys are column names::
     2016-03-22T12:30:39.000               3.0     6.0
     2016-03-22T12:30:44.000               2.0     3.0
 
-If you want to be able to miss out values when adding rows, you should make
+If you want to be able to skip some values when adding rows, you should make
 sure that masking is enabled - see :ref:`timeseries-masking` for more details.

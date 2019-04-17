@@ -13,7 +13,7 @@ Time series (`astropy.timeseries`)
 
 .. warning::
 
-    `astropy.timeseries` is currently a work-in-progress, and thus it is quite
+    `astropy.timeseries` is currently a work-in-progress (new in v3.2), and thus it is quite
     possible there will be API changes in later versions of Astropy. If you have
     specific ideas for how it might be improved, please  let us know on the
     `astropy-dev mailing list`_ or at http://feedback.astropy.org .
@@ -23,12 +23,14 @@ Introduction
 
 Many different areas of astrophysics have to deal with 1D time series data,
 either sampling a continuous variable at fixed times or counting some events
-binned into time windows. The `astropy.timeseries` package therefore provides
-classes to represent and manipulate time series
+binned into time windows. To address this need, the `astropy.timeseries` 
+subpackage provides classes to represent and manipulate time series.
 
 The time series classes presented below are |QTable| sub-classes that have
 special columns to represent times using the |Time| class. Therefore, much of
-the functionality described in :ref:`astropy-table` applies here.
+the functionality described in :ref:`astropy-table` applies here. But the main
+purpose of the new classes are to provide time series-specific functionality
+above and beyond |QTable|.
 
 Getting Started
 ===============
@@ -48,6 +50,11 @@ source::
 
     >>> from astropy.utils.data import get_pkg_data_filename
     >>> filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')  # doctest: +REMOTE_DATA
+
+.. note::
+    The light curve provided here is hand-picked for example purposes.  To get
+    other Kepler light curves for science purposes using Python, see the
+    `astroquery <https://astroquery.readthedocs.io>`_ affiliated package.
 
 We can then use the |TimeSeries| class to read in this file::
 
