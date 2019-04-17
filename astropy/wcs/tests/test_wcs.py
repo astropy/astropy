@@ -1200,9 +1200,11 @@ def test_cunit():
     # Equality checking of two different cunit object having same values
     assert w1.wcs.cunit == w3.wcs.cunit
     # Inequality checking of two different cunit object having different values
-    assert w1.wcs.cunit != w2.wcs.cunit
+    assert not w1.wcs.cunit == w2.wcs.cunit
     # Inequality checking of cunit with a list of literals
-    assert w1.wcs.cunit != [1, 2, 3]
+    assert not w1.wcs.cunit == [1, 2, 3]
+    # Inequality checking with some characters
+    assert w1.wcs.cunit != ['a', 'b', 'c']
     # Comparison is not implemented TypeError will raise
     with pytest.raises(TypeError):
         w1.wcs.cunit < w2.wcs.cunit
