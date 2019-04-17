@@ -33,7 +33,7 @@ def reduceat(array, indices, function):
 def simple_downsample(time_series, time_bin_size, func=None, time_bin_start=None, n_bins=None):
     """
     Downsample a time series by binning values into bins with a fixed size,
-    using a single function
+    using a single function to combine the values in the bin.
 
     Parameters
     ----------
