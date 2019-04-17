@@ -78,6 +78,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Added new pprint_all() and pformat_all() methods to Table. These two new
+  methods print the entire table by default. [#8577]
+
 - Removed restriction of initializing a Table from a dict with copy=False. [#8541]
 
 - Improved speed of table row access by a factor of about 2-3.  Improved speed
