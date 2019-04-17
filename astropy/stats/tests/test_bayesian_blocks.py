@@ -162,3 +162,13 @@ def test_fitness_function_results():
     edges = bayesian_blocks(t, x_obs, sigma, fitness='measures',
                             gamma=gamma_sel)
     assert_allclose(edges, expected)
+
+
+def test_zero_change_points(rseed=0):
+    ''' Ensure that edges contains both endpoints when there are no change points '''
+    np.random.seed(rseed)
+    # Using the failed edge case from https://github.com/astropy/astropy/issues/8558
+    values = np.array([1, 1, 1, 1, 1, 1, 1, 1, 2])
+    bins = bayesian_blocks(values)
+    assert values.min() == bins[0]
+    assert values.max() == bins[-1]
