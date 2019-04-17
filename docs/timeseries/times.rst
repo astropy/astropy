@@ -21,7 +21,7 @@ For example, to get the times as modified Julian Dates from a simple time series
 
     >>> from astropy import units as u
     >>> from astropy.timeseries import TimeSeries
-    >>> ts = TimeSeries(time='2016-03-22T12:30:31', time_delta=3 * u.s,
+    >>> ts = TimeSeries(time_start='2016-03-22T12:30:31', time_delta=3 * u.s,
     ...                 data={'flux': [1., 3., 4., 2., 4.]})
     >>> ts.time.mjd  # doctest: +FLOAT_CMP
     array([57469.52119213, 57469.52122685, 57469.52126157, 57469.5212963 ,
@@ -33,6 +33,11 @@ or to convert the times to the Temps Atomique International (TAI) scale
     <Time object: scale='tai' format='isot' value=['2016-03-22T12:31:07.000' '2016-03-22T12:31:10.000'
      '2016-03-22T12:31:13.000' '2016-03-22T12:31:16.000'
      '2016-03-22T12:31:19.000']>
+
+To find the current time scale of the data, you can do::
+
+    >>> ts.time.scale
+    'utc'
 
 See :ref:`astropy-time` for more documentation on how to access and convert
 times.

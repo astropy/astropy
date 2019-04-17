@@ -9,7 +9,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from astropy.timeseries.sampled import TimeSeries
 from astropy.timeseries.binned import BinnedTimeSeries
 
-__all__ = ['simple_downsample']
+__all__ = ['aggregate_downsample']
 
 
 def reduceat(array, indices, function):
@@ -30,7 +30,8 @@ def reduceat(array, indices, function):
         return np.array(result)
 
 
-def simple_downsample(time_series, time_bin_size, func=None, time_bin_start=None, n_bins=None):
+def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None,
+                      n_bins=None, aggregate_func=None):
     """
     Downsample a time series by binning values into bins with a fixed size,
     using a single function to combine the values in the bin.
@@ -40,16 +41,16 @@ def simple_downsample(time_series, time_bin_size, func=None, time_bin_start=None
     time_series : :class:`~astropy.timeseries.TimeSeries`
         The time series to downsample.
     time_bin_size : `~astropy.units.Quantity`
-        The time interval for the binned time series
-    func : callable, optional
-        The function to use for combining points in the same bin. Defaults
-        to np.nanmean.
+        The time interval for the binned time series.
     time_bin_start : `~astropy.time.Time`, optional
         The start time for the binned time series. Defaults to the first
         time in the sampled time series.
     n_bins : int, optional
         The number of bins to use. Defaults to the number needed to fit all
         the original points.
+    aggregate_func : callable, optional
+        The function to use for combining points in the same bin. Defaults
+        to np.nanmean.
 
     Returns
     -------
@@ -79,8 +80,8 @@ def simple_downsample(time_series, time_bin_size, func=None, time_bin_start=None
     if n_bins is None:
         n_bins = int(np.ceil(relative_time_sec[-1] / bin_size_sec))
 
-    if func is None:
-        func = np.nanmean
+    if aggregate_func is None:
+        aggregate_func = np.nanmean
 
     # Determine the bins
     relative_bins_sec = np.cumsum(np.hstack([0, np.repeat(bin_size_sec, n_bins)]))
@@ -123,12 +124,12 @@ def simple_downsample(time_series, time_bin_size, func=None, time_bin_start=None
 
         if isinstance(values, u.Quantity):
             data = u.Quantity(np.repeat(np.nan,  n_bins), unit=values.unit)
-            data[unique_indices] = u.Quantity(reduceat(values.value, groups, func),
+            data[unique_indices] = u.Quantity(reduceat(values.value, groups, aggregate_func),
                                               values.unit, copy=False)
         else:
             data = np.ma.zeros(n_bins, dtype=values.dtype)
             data.mask = 1
-            data[unique_indices] = reduceat(values, groups, func)
+            data[unique_indices] = reduceat(values, groups, aggregate_func)
             data.mask[unique_indices] = 0
 
         binned[colname] = data

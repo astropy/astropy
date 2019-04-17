@@ -55,7 +55,7 @@ Let's check that the time series has been read in correctly:
    import matplotlib.pyplot as plt
 
    plt.plot(kepler.time.jd, kepler['sap_flux'], 'k.', markersize=1)
-   plt.xlabel('Barycentric Julian Date')
+   plt.xlabel('Julian Date')
    plt.ylabel('SAP Flux (e-/s)')
 
 Reading other formats
@@ -71,8 +71,9 @@ can do this behind the scenes - if the table cannot be read by any of the time
 series readers, these methods will try and use some of the default :class:`~astropy.table.Table`
 readers and then require users to specify the name of the important columns.
 
-For example, if you are reading in a file called :download:`sampled.csv`` where
-the time column is called ``date`` and is an ISO string, you can do::
+For example, if you are reading in a file called :download:`sampled.csv
+<sampled.csv>` where the time column is called ``Date`` and is an ISO string,
+you can do::
 
     >>> from astropy.timeseries import TimeSeries
     >>> ts = TimeSeries.read('docs/timeseries/sampled.csv', format='ascii.csv',
@@ -87,8 +88,8 @@ the time column is called ``date`` and is an ISO string, you can do::
     2008-03-20 00:00:00.000   23.99  164.63  115.04   25.78   19.01   27.04   59.61
 
 If you are reading in a binned time series from a file called
-:download:`binned.dat` and with a column ``date_start`` giving the start time
-and ``date_end`` giving the end time of each bin, you can do::
+:download:`binned.csv <binned.csv>` and with a column ``time_start`` giving the start time
+and ``bin_size`` giving the size of each bin, you can do::
 
     >>> from astropy import units as u
     >>> from astropy.timeseries import BinnedTimeSeries

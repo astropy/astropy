@@ -13,7 +13,7 @@ to use masking is to initialize a time series using the ``masked=True`` option::
 
     >>> from astropy import units as u
     >>> from astropy.timeseries import TimeSeries
-    >>> ts = TimeSeries(time='2016-03-22T12:30:31',
+    >>> ts = TimeSeries(time_start='2016-03-22T12:30:31',
     ...                 time_delta=3 * u.s,
     ...                 n_samples=5, masked=True)
 

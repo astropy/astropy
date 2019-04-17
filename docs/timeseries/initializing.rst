@@ -28,7 +28,7 @@ time series::
 
     >>> from astropy import units as u
     >>> from astropy.timeseries import TimeSeries
-    >>> ts1 = TimeSeries(time='2016-03-22T12:30:31',
+    >>> ts1 = TimeSeries(time_start='2016-03-22T12:30:31',
     ...                  time_delta=3 * u.s,
     ...                  n_samples=5)
     >>> ts1
@@ -70,7 +70,8 @@ You can also specify a vector |Time| object directly as the ``time=`` argument,
 or a vector |TimeDelta| argument or a quantity array to the ``time_delta=``
 argument.::
 
-    >>> TimeSeries(time="2011-01-01T00:00:00", time_delta=[0.1, 0.2, 0.1, 0.3, 0.2]*u.s)
+    >>> TimeSeries(time_start="2011-01-01T00:00:00",
+    ...            time_delta=[0.1, 0.2, 0.1, 0.3, 0.2]*u.s)
     <TimeSeries length=5>
               time
             object
