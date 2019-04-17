@@ -262,6 +262,79 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         """
         return False
 
+    def __str__(self):
+
+        # Overall header
+
+        s = '{0} Transformation\n\n'.format(self.__class__.__name__)
+        s += ('This transformation has {0} pixel and {1} world dimensions\n\n'
+              .format(self.pixel_n_dim, self.world_n_dim))
+        s += 'Array shape (Numpy order): {0}\n\n'.format(self.array_shape)
+
+        # Pixel dimensions table
+
+        # Find largest between header size and value length
+        pixel_dim_width = max(9, len(str(self.pixel_n_dim)))
+        pixel_siz_width = max(9, len(str(max(self.array_shape))))
+
+        s += (('{0:' + str(pixel_dim_width) + 's}').format('Pixel Dim') + '  ' +
+              ('{0:' + str(pixel_siz_width) + 's}').format('Data size') + '  ' +
+              'Units\n')
+
+        for ipix in range(self.pixel_n_dim):
+            s += (('{0:' + str(pixel_dim_width) + 'd}').format(ipix) + '  ' +
+                  ('{0:' + str(pixel_siz_width) + 'd}').format(self.pixel_shape[ipix]) + '  ' +
+                  '{0:s}'.format(str(None if self.pixel_bounds is None else self.pixel_bounds[ipix]) + '\n'))
+
+        s += '\n'
+
+        # World dimensions table
+
+        # Find largest between header size and value length
+        world_dim_width = max(9, len(str(self.world_n_dim)))
+        world_typ_width = max(13, max(len(x) for x in self.world_axis_physical_types))
+
+        s += (('{0:' + str(world_dim_width) + 's}').format('World Dim') + '  ' +
+              ('{0:' + str(world_typ_width) + 's}').format('Physical Type') + '  ' +
+               'Units\n')
+
+        for iwrl in range(self.world_n_dim):
+            s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) + '  ' +
+                  ('{0:' + str(world_typ_width) + 's}').format(self.world_axis_physical_types[iwrl]) + '  ' +
+                  '{0:s}'.format(self.world_axis_units[iwrl] + '\n'))
+
+        s += '\n'
+
+        # Axis correlation matrix
+
+        pixel_dim_width = max(3, len(str(self.world_n_dim)))
+
+        s += 'Correlation between pixel and world axes:\n\n'
+
+        s += (' ' * world_dim_width + '  ' +
+              ('{0:^' + str(self.pixel_n_dim * 5 - 2) + 's}').format('Pixel Dim') +
+              '\n')
+
+        s += (('{0:' + str(world_dim_width) + 's}').format('World Dim') +
+              ''.join(['  ' + ('{0:' + str(pixel_dim_width) + 'd}').format(ipix)
+                       for ipix in range(self.pixel_n_dim)]) +
+              '\n')
+
+        matrix = self.axis_correlation_matrix
+        matrix_str = np.empty(matrix.shape, dtype='U3')
+        matrix_str[matrix] = 'yes'
+        matrix_str[~matrix] = 'no'
+
+        for iwrl in range(self.world_n_dim):
+            s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) +
+                  ''.join(['  ' + ('{0:>' + str(pixel_dim_width) + 's}').format(matrix_str[iwrl, ipix])
+                           for ipix in range(self.pixel_n_dim)]) +
+                  '\n')
+
+        return s
+
+    __repr__ = __str__
+
 
 UCDS_FILE = os.path.join(os.path.dirname(__file__), 'data', 'ucds.txt')
 with open(UCDS_FILE) as f:
