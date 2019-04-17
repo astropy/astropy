@@ -18,6 +18,7 @@ from astropy.utils import isiterable, ShapedLikeNDArray
 from astropy.utils.console import color_print
 from astropy.utils.metadata import MetaData
 from astropy.utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
+from astropy.utils.decorators import format_doc
 
 from . import groups
 from .pprint import TableFormatter
@@ -37,6 +38,82 @@ __doctest_skip__ = ['Table.read', 'Table.write',
 
 __doctest_requires__ = {'*pandas': ['pandas']}
 
+_pprint_docs = """
+    {__doc__}
+
+    Parameters
+    ----------
+    max_lines : int or `None`
+        Maximum number of lines in table output.
+
+    max_width : int or `None`
+        Maximum character width of output.
+
+    show_name : bool
+        Include a header row for column names. Default is True.
+
+    show_unit : bool
+        Include a header row for unit.  Default is to show a row
+        for units only if one or more columns has a defined value
+        for the unit.
+
+    show_dtype : bool
+        Include a header row for column dtypes. Default is True.
+
+    align : str or list or tuple or `None`
+        Left/right alignment of columns. Default is right (None) for all
+        columns. Other allowed values are '>', '<', '^', and '0=' for
+        right, left, centered, and 0-padded, respectively. A list of
+        strings can be provided for alignment of tables with multiple
+        columns.
+    """
+
+_pformat_docs = """
+    {__doc__}
+
+    Parameters
+    ----------
+    max_lines : int or `None`
+        Maximum number of rows to output
+
+    max_width : int or `None`
+        Maximum character width of output
+
+    show_name : bool
+        Include a header row for column names. Default is True.
+
+    show_unit : bool
+        Include a header row for unit.  Default is to show a row
+        for units only if one or more columns has a defined value
+        for the unit.
+
+    show_dtype : bool
+        Include a header row for column dtypes. Default is True.
+
+    html : bool
+        Format the output as an HTML table. Default is False.
+
+    tableid : str or `None`
+        An ID tag for the table; only used if html is set.  Default is
+        "table{id}", where id is the unique integer id of the table object,
+        id(self)
+
+    align : str or list or tuple or `None`
+        Left/right alignment of columns. Default is right (None) for all
+        columns. Other allowed values are '>', '<', '^', and '0=' for
+        right, left, centered, and 0-padded, respectively. A list of
+        strings can be provided for alignment of tables with multiple
+        columns.
+
+    tableclass : str or list of str or `None`
+        CSS classes for the table; only used if html is set.  Default is
+        None.
+
+    Returns
+    -------
+    lines : list
+        Formatted table as a list of strings.
+    """
 
 class TableReplaceWarning(UserWarning):
     """
@@ -946,6 +1023,7 @@ class Table:
         # unit set).
         return has_info_class(col, MixinInfo) and not has_info_class(col, QuantityInfo)
 
+    @format_doc(_pprint_docs)
     def pprint(self, max_lines=None, max_width=None, show_name=True,
                show_unit=None, show_dtype=False, align=None):
         """Print a formatted string representation of the table.
@@ -960,31 +1038,6 @@ class Table:
         The same applies for max_width except the configuration item is
         ``astropy.conf.max_width``.
 
-        Parameters
-        ----------
-        max_lines : int
-            Maximum number of lines in table output.
-
-        max_width : int or `None`
-            Maximum character width of output.
-
-        show_name : bool
-            Include a header row for column names. Default is True.
-
-        show_unit : bool
-            Include a header row for unit.  Default is to show a row
-            for units only if one or more columns has a defined value
-            for the unit.
-
-        show_dtype : bool
-            Include a header row for column dtypes. Default is True.
-
-        align : str or list or tuple or `None`
-            Left/right alignment of columns. Default is right (None) for all
-            columns. Other allowed values are '>', '<', '^', and '0=' for
-            right, left, centered, and 0-padded, respectively. A list of
-            strings can be provided for alignment of tables with multiple
-            columns.
         """
         lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
                                                     show_name=show_name, show_unit=show_unit,
@@ -999,6 +1052,20 @@ class Table:
                 color_print(line, 'red')
             else:
                 print(line)
+
+    @format_doc(_pprint_docs)
+    def pprint_all(self, max_lines=-1, max_width=-1, show_name=True,
+               show_unit=None, show_dtype=False, align=None):
+        """Print a formatted string representation of the entire table.
+
+        This method is the same as `astropy.table.Table.pprint` except that
+        the default ``max_lines`` and ``max_width`` are both -1 so that by
+        default the entire table is printed instead of restricting to the size
+        of the screen terminal.
+
+        """
+        return self.pprint(max_lines, max_width, show_name,
+               show_unit, show_dtype, align)
 
     def _make_index_row_display_table(self, index_row_name):
         if index_row_name not in self.columns:
@@ -1152,6 +1219,7 @@ class Table:
         else:
             br.open(urljoin('file:', pathname2url(path)))
 
+    @format_doc(_pformat_docs, id="{id}")
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_unit=None, show_dtype=False, html=False, tableid=None,
                 align=None, tableclass=None):
@@ -1168,49 +1236,6 @@ class Table:
         The same applies for ``max_width`` except the configuration item  is
         ``astropy.conf.max_width``.
 
-        Parameters
-        ----------
-        max_lines : int or `None`
-            Maximum number of rows to output
-
-        max_width : int or `None`
-            Maximum character width of output
-
-        show_name : bool
-            Include a header row for column names. Default is True.
-
-        show_unit : bool
-            Include a header row for unit.  Default is to show a row
-            for units only if one or more columns has a defined value
-            for the unit.
-
-        show_dtype : bool
-            Include a header row for column dtypes. Default is True.
-
-        html : bool
-            Format the output as an HTML table. Default is False.
-
-        tableid : str or `None`
-            An ID tag for the table; only used if html is set.  Default is
-            "table{id}", where id is the unique integer id of the table object,
-            id(self)
-
-        align : str or list or tuple or `None`
-            Left/right alignment of columns. Default is right (None) for all
-            columns. Other allowed values are '>', '<', '^', and '0=' for
-            right, left, centered, and 0-padded, respectively. A list of
-            strings can be provided for alignment of tables with multiple
-            columns.
-
-        tableclass : str or list of str or `None`
-            CSS classes for the table; only used if html is set.  Default is
-            None.
-
-        Returns
-        -------
-        lines : list
-            Formatted table as a list of strings.
-
         """
 
         lines, outs = self.formatter._pformat_table(
@@ -1222,6 +1247,29 @@ class Table:
             lines.append('Length = {0} rows'.format(len(self)))
 
         return lines
+
+    @format_doc(_pformat_docs, id="{id}")
+    def pformat_all(self, max_lines=-1, max_width=-1, show_name=True,
+                show_unit=None, show_dtype=False, html=False, tableid=None,
+                align=None, tableclass=None):
+        """Return a list of lines for the formatted string representation of
+        the entire table.
+
+        If no value of ``max_lines`` is supplied then the height of the
+        screen terminal is used to set ``max_lines``.  If the terminal
+        height cannot be determined then the default is taken from the
+        configuration item ``astropy.conf.max_lines``.  If a negative
+        value of ``max_lines`` is supplied then there is no line limit
+        applied.
+
+        The same applies for ``max_width`` except the configuration item  is
+        ``astropy.conf.max_width``.
+
+        """
+
+        return self.pformat(max_lines, max_width, show_name,
+                show_unit, show_dtype, html, tableid,
+                align, tableclass)
 
     def more(self, max_lines=None, max_width=None, show_name=True,
              show_unit=None, show_dtype=False):
