@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
 from datetime import datetime
 
 import pytest
@@ -19,7 +18,7 @@ INPUT_TIME = Time(['2016-03-22T12:30:31',
                    '2016-03-22T12:30:40'])
 PLAIN_TABLE = Table([[1, 2, 11], [3, 4, 1], [1, 1, 1]], names=['a', 'b', 'c'])
 
-CSV_FILE = os.path.join(os.path.dirname(__file__), 'data', 'sampled.csv')
+CSV_FILE = get_pkg_data_filename('data/sampled.csv')
 
 
 def test_empty_initialization():

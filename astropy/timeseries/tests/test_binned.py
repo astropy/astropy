@@ -1,17 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
-
 import pytest
 from numpy.testing import assert_equal
 
 from astropy import units as u
 from astropy.time import Time, TimeDelta
+from astropy.utils.data import get_pkg_data_filename
 
 from astropy.timeseries.binned import BinnedTimeSeries
 
 
-CSV_FILE = os.path.join(os.path.dirname(__file__), 'data', 'binned.csv')
+CSV_FILE = get_pkg_data_filename('data/binned.csv')
 
 
 def test_empty_initialization():
@@ -237,12 +236,12 @@ def test_read_both_extra_bins():
 def test_read_size_no_unit():
     with pytest.raises(ValueError) as exc:
         BinnedTimeSeries.read(CSV_FILE, time_bin_start_column='time_start', time_bin_size_column='bin_size', format='csv')
-    assert exc.value.args[0] == "The bin size unit should be specified as an astropy Quantity using ``time_bin_size_unit``."
+    assert exc.value.args[0] == "The bin size unit should be specified as an astropy Unit using ``time_bin_size_unit``."
 
 
 def test_read_start_time_missing():
     with pytest.raises(ValueError) as exc:
-        BinnedTimeSeries.read(CSV_FILE, time_bin_start_column='abc', time_bin_size_column='bin_size', time_bin_size_unit=1*u.second, format='csv')
+        BinnedTimeSeries.read(CSV_FILE, time_bin_start_column='abc', time_bin_size_column='bin_size', time_bin_size_unit=u.second, format='csv')
     assert exc.value.args[0] == "Bin start time column 'abc' not found in the input data."
 
 
@@ -254,14 +253,14 @@ def test_read_end_time_missing():
 
 def test_read_size_missing():
     with pytest.raises(ValueError) as exc:
-        BinnedTimeSeries.read(CSV_FILE, time_bin_start_column='time_start', time_bin_size_column="missing", time_bin_size_unit=1*u.second, format='csv')
+        BinnedTimeSeries.read(CSV_FILE, time_bin_start_column='time_start', time_bin_size_column="missing", time_bin_size_unit=u.second, format='csv')
     assert exc.value.args[0] == "Bin size column 'missing' not found in the input data."
 
 
 def test_read_time_unit_missing():
     with pytest.raises(ValueError) as exc:
         BinnedTimeSeries.read(CSV_FILE, time_bin_start_column='time_start', time_bin_size_column="bin_size", format='csv')
-    assert exc.value.args[0] == "The bin size unit should be specified as an astropy Quantity using ``time_bin_size_unit``."
+    assert exc.value.args[0] == "The bin size unit should be specified as an astropy Unit using ``time_bin_size_unit``."
 
 
 def test_read():
@@ -274,7 +273,7 @@ def test_read():
 
     timeseries = BinnedTimeSeries.read(CSV_FILE, time_bin_start_column='time_start',
                                        time_bin_size_column='bin_size',
-                                       time_bin_size_unit=1*u.second, format='csv')
+                                       time_bin_size_unit=u.second, format='csv')
     assert timeseries.colnames == ['time_bin_start', 'time_bin_size', 'time_end', 'A', 'B', 'C', 'D', 'E', 'F']
     assert len(timeseries) == 10
     assert timeseries['B'].sum() == 1151.54

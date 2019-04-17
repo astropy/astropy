@@ -5,9 +5,10 @@ Masking values in time series
 
 .. |Table| replace:: :class:`~astropy.table.Table`
 
+.. warning:: Note that masking does not yet work for columns that have units.
+
 Masking values is done in the same way as for |Table| objects (see
-`Masking and missing values
-<http://docs.astropy.org/en/stable/table/masking.html>`_). The easiest way
+:ref:`masking_and_missing_values`. The easiest way
 to use masking is to initialize a time series using the ``masked=True`` option::
 
     >>> from astropy import units as u
@@ -48,5 +49,3 @@ and operating on columns to ignore the masked entries::
     1.0
     >>> np.ma.median(ts['flux'])
     4.0
-
-.. warning:: Note that masking does not yet work for columns that have units.

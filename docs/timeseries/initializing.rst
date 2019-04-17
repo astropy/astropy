@@ -29,8 +29,8 @@ time series::
     >>> from astropy import units as u
     >>> from astropy.timeseries import TimeSeries
     >>> ts1 = TimeSeries(time='2016-03-22T12:30:31',
-    ...                         time_delta=3 * u.s,
-    ...                         n_samples=5)
+    ...                  time_delta=3 * u.s,
+    ...                  n_samples=5)
     >>> ts1
     <TimeSeries length=5>
               time
@@ -43,9 +43,10 @@ time series::
     2016-03-22T12:30:43.000
 
 The ``time`` keyword argument can be set to anything that can be passed to the
-|Time| class (see also :ref:`Time and Dates <astropy-time>`). Note that the
-``n_samples`` argument is only needed if you are not also passing in data during
-initialization (see `Passing data during initialization`_).
+|Time| class (see also :ref:`Time and Dates <astropy-time>`) or |Time| objects
+directly. Note that the ``n_samples`` argument is only needed if you are not
+also passing in data during initialization (see `Passing data during
+initialization`_).
 
 Arbitrarily sampled time series
 -------------------------------
@@ -54,8 +55,8 @@ To construct a sampled time series with samples at arbitrary times, you can
 pass multiple times to the ``time`` argument::
 
     >>> ts2 = TimeSeries(time=['2016-03-22T12:30:31',
-    ...                               '2016-03-22T12:30:38',
-    ...                               '2016-03-22T12:34:40'])
+    ...                        '2016-03-22T12:30:38',
+    ...                        '2016-03-22T12:34:40'])
     >>> ts2
     <TimeSeries length=3>
               time
@@ -144,9 +145,9 @@ Alternatively, you can create the same time series by giving an array of start
 times as well as a single end time::
 
     >>> ts5 = BinnedTimeSeries(time_bin_start=['2016-03-22T12:30:31',
-    ...                                    '2016-03-22T12:30:34',
-    ...                                    '2016-03-22T12:30:37',
-    ...                                    '2016-03-22T12:30:39'],
+    ...                                        '2016-03-22T12:30:34',
+    ...                                        '2016-03-22T12:30:37',
+    ...                                        '2016-03-22T12:30:39'],
     ...                        time_bin_end='2016-03-22T12:30:42')
     >>> ts5  # doctest: +FLOAT_CMP
     <BinnedTimeSeries length=4>
@@ -166,8 +167,8 @@ To create a binned time series with non-contiguous bins, you can either
 specify an array of start times and bin widths::
 
     >>> ts6 = BinnedTimeSeries(time_bin_start=['2016-03-22T12:30:31',
-    ...                                    '2016-03-22T12:30:38',
-    ...                                    '2016-03-22T12:34:40'],
+    ...                                        '2016-03-22T12:30:38',
+    ...                                        '2016-03-22T12:34:40'],
     ...                        time_bin_size=[5, 100, 2]*u.s)
     >>> ts6
     <BinnedTimeSeries length=3>
@@ -183,11 +184,11 @@ Or in the most general case, you can also specify multiple times for
 ``time_bin_start`` and ``time_bin_end``::
 
     >>> ts7 = BinnedTimeSeries(time_bin_start=['2016-03-22T12:30:31',
-    ...                                    '2016-03-22T12:30:33',
-    ...                                    '2016-03-22T12:30:40'],
+    ...                                        '2016-03-22T12:30:33',
+    ...                                        '2016-03-22T12:30:40'],
     ...                        time_bin_end=['2016-03-22T12:30:32',
-    ...                                  '2016-03-22T12:30:35',
-    ...                                  '2016-03-22T12:30:41'])
+    ...                                      '2016-03-22T12:30:35',
+    ...                                      '2016-03-22T12:30:41'])
     >>> ts7  # doctest: +FLOAT_CMP
     <BinnedTimeSeries length=3>
         time_bin_start        time_bin_size
@@ -197,8 +198,6 @@ Or in the most general case, you can also specify multiple times for
     2016-03-22T12:30:31.000                1.0
     2016-03-22T12:30:33.000                2.0
     2016-03-22T12:30:40.000                1.0
-
-You can also specify vector |Time| objects directly.
 
 Adding data to the time series
 ==============================
@@ -234,9 +233,9 @@ It is also possible to pass the data during the initialization, as for
 |Table|, e.g.::
 
     >>> ts8 = BinnedTimeSeries(time_bin_start=['2016-03-22T12:30:31',
-    ...                                    '2016-03-22T12:30:34',
-    ...                                    '2016-03-22T12:30:37',
-    ...                                    '2016-03-22T12:30:39'],
+    ...                                        '2016-03-22T12:30:34',
+    ...                                        '2016-03-22T12:30:37',
+    ...                                        '2016-03-22T12:30:39'],
     ...                        time_bin_end='2016-03-22T12:30:42',
     ...                        data={'flux': [1., 4., 5., 6.] * u.mJy})
     >>> ts8  # doctest: +FLOAT_CMP

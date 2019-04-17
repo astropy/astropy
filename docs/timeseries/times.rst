@@ -22,7 +22,7 @@ For example, to get the times as modified Julian Dates from a simple time series
     >>> from astropy import units as u
     >>> from astropy.timeseries import TimeSeries
     >>> ts = TimeSeries(time='2016-03-22T12:30:31', time_delta=3 * u.s,
-    ...                        data={'flux': [1., 3., 4., 2., 4.]})
+    ...                 data={'flux': [1., 3., 4., 2., 4.]})
     >>> ts.time.mjd  # doctest: +FLOAT_CMP
     array([57469.52119213, 57469.52122685, 57469.52126157, 57469.5212963 ,
            57469.52133102])

@@ -14,30 +14,33 @@ __all__ = ["kepler_fits_reader"]
 
 def kepler_fits_reader(filename):
     """
-    This serves as the FITS reader for KEPLER or TESS files within astropy-timeseries.
+    This serves as the FITS reader for KEPLER or TESS files within
+    astropy-timeseries.
 
-    This allows reading a supported FITS file using syntax such as::
-    >>> from astropy.timeseries.sampled import TimeSeries
-    >>> timeseries = TimeSeries.read('<name of fits file>', format='kepler.fits')  # doctest: +SKIP
+    This function should generally not be called directly, and instead this
+    time series reader should be accessed with the
+    :meth:`~astropy.timeseries.TimeSeries.read` method::
+
+        >>> from astropy.timeseries import TimeSeries
+        >>> ts = TimeSeries.read('kplr33122.fits', format='kepler.fits')  # doctest: +SKIP
 
     Parameters
     ----------
-    filename: `str`, `pathlib.Path`
+    filename: `str` or `pathlib.Path`
         File to load.
 
     Returns
     -------
-    `astropy.timeseries.sampled.TimeSeries`
+    `astropy.timeseries.TimeSeries`
         Data converted into a TimeSeries.
-
     """
     hdulist = fits.open(filename)
     # Get the lightcurve HDU
-    telescop = hdulist[0].header['telescop'].lower()
+    telescope = hdulist[0].header['telescop'].lower()
 
-    if telescop == 'tess':
+    if telescope == 'tess':
         hdu = hdulist['LIGHTCURVE']
-    elif telescop == 'kepler':
+    elif telescope == 'kepler':
         hdu = hdulist[1]
     else:
         raise NotImplementedError("{} is not implemented, only KEPLER or TESS are "

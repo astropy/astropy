@@ -23,7 +23,7 @@ Introduction
 
 Many different areas of astrophysics have to deal with 1D time series data,
 either sampling a continuous variable at fixed times or counting some events
-binned into time windows. To address this need, the `astropy.timeseries` 
+binned into time windows. To address this need, the `astropy.timeseries`
 subpackage provides classes to represent and manipulate time series.
 
 The time series classes presented below are |QTable| sub-classes that have
@@ -45,15 +45,19 @@ representing time series as measurements in discrete time bins, you will likely
 be interested in the |BinnedTimeSeries| sub-class which we show in
 :ref:`using-timeseries`).
 
-To start off, we retrieve a FITS file containing a Kepler light curve for a
-source::
+To start off, we retrieve a FITS file containing a Kepler light curve for a source::
 
     >>> from astropy.utils.data import get_pkg_data_filename
     >>> filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')  # doctest: +REMOTE_DATA
 
 .. note::
-    The light curve provided here is hand-picked for example purposes.  To get
-    other Kepler light curves for science purposes using Python, see the
+    The light curve provided here is hand-picked for example purposes. For
+    more information about the Kepler FITS format, see the `Kepler Data
+    Validation Document
+    <https://exoplanetarchive.ipac.caltech.edu/docs/KeplerDV.html>`_ and the
+    Kepler Science Center `Light Curve Files
+    <https://keplerscience.arc.nasa.gov/PyKEprimerLCs.shtml>`_ documentation. To
+    get other Kepler light curves for science purposes using Python, see the
     `astroquery <https://astroquery.readthedocs.io>`_ affiliated package.
 
 We can then use the |TimeSeries| class to read in this file::
@@ -337,4 +341,7 @@ Reference/API
 =============
 
 .. automodapi:: astropy.timeseries
+   :inherited-members:
+
+.. automodapi:: astropy.timeseries.io
    :inherited-members:
