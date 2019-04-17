@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from astropy.table import QTable
+from astropy.utils.misc import InheritDocstrings
 
 __all__ = ['BaseTimeSeries']
 
 
-class BaseTimeSeries(QTable):
+class BaseTimeSeries(QTable, metaclass=InheritDocstrings):
 
     _required_columns = None
 

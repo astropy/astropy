@@ -52,7 +52,7 @@ def test_initialization_with_data():
 def test_initialize_only_data():
     with pytest.raises(TypeError) as exc:
         TimeSeries(data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
-    assert exc.value.args[0] == "'time' has not been specified"
+    assert exc.value.args[0] == "Either 'time' or 'time_start' should be specified"
 
 
 def test_initialization_with_table():
@@ -61,7 +61,7 @@ def test_initialization_with_table():
 
 
 def test_initialization_with_time_delta():
-    ts = TimeSeries(time=datetime(2018, 7, 1, 10, 10, 10),
+    ts = TimeSeries(time_start=datetime(2018, 7, 1, 10, 10, 10),
                     time_delta=TimeDelta(3, format='sec'),
                     data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
     assert_equal(ts.time.isot, ['2018-07-01T10:10:10.000',
@@ -71,14 +71,21 @@ def test_initialization_with_time_delta():
 
 def test_initialization_missing_time_delta():
     with pytest.raises(TypeError) as exc:
-        TimeSeries(time=datetime(2018, 7, 1, 10, 10, 10),
+        TimeSeries(time_start=datetime(2018, 7, 1, 10, 10, 10),
                    data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
     assert exc.value.args[0] == "'time' is scalar, so 'time_delta' is required"
 
 
+def test_initialization_invalid_time_and_time_start():
+    with pytest.raises(TypeError) as exc:
+        TimeSeries(time=INPUT_TIME, time_start=datetime(2018, 7, 1, 10, 10, 10),
+                   data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
+    assert exc.value.args[0] == "Cannot specify both 'time' and 'time_start'"
+
+
 def test_initialization_invalid_time_delta():
     with pytest.raises(TypeError) as exc:
-        TimeSeries(time=datetime(2018, 7, 1, 10, 10, 10),
+        TimeSeries(time_start=datetime(2018, 7, 1, 10, 10, 10),
                    time_delta=[1, 4, 3],
                    data=[[10, 2, 3], [4, 5, 6]], names=['a', 'b'])
     assert exc.value.args[0] == "'time_delta' should be a Quantity or a TimeDelta"

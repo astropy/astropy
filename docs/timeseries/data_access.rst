@@ -22,7 +22,7 @@ with two data columns - ``flux`` and ``temp``::
 
     >>> from astropy import units as u
     >>> from astropy.timeseries import TimeSeries
-    >>> ts = TimeSeries(time='2016-03-22T12:30:31',
+    >>> ts = TimeSeries(time_start='2016-03-22T12:30:31',
     ...                 time_delta=3 * u.s,
     ...                 data={'flux': [1., 4., 5., 3., 2.] * u.Jy,
     ...                       'temp': [40., 41., 39., 24., 20.] * u.K},

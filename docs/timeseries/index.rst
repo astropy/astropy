@@ -160,7 +160,13 @@ therefore supports the ability to convert to different time scales and formats::
     array([1.24122483e+09, 1.24122489e+09, 1.24122495e+09, ...,
            1.24206505e+09, 1.24206511e+09, 1.24206517e+09])
 
-Let's use what we've seen so far to make a plot
+We can also check what time scale the time is defined on::
+
+    >>> ts.time.scale  # doctest: +REMOTE_DATA
+    'tdb'
+
+This is the Barycentric Dynamical Time scale (see :ref:`astropy-time` for more
+details). Let's use what we've seen so far to make a plot
 
 .. plot::
    :context: reset
@@ -177,7 +183,7 @@ Let's use what we've seen so far to make a plot
 
    import matplotlib.pyplot as plt
    plt.plot(ts.time.jd, ts['sap_flux'], 'k.', markersize=1)
-   plt.xlabel('Barycentric Julian Date')
+   plt.xlabel('Julian Date')
    plt.ylabel('SAP Flux (e-/s)')
 
 It looks like there are a few transits! Let's use
@@ -250,8 +256,8 @@ the data to determine the baseline flux::
 and we can downsample the time series by binning the points into bins of equal
 time - this returns a |BinnedTimeSeries|::
 
-    >>> from astropy.timeseries import simple_downsample
-    >>> ts_binned = simple_downsample(ts_folded, 0.03 * u.day)  # doctest: +REMOTE_DATA
+    >>> from astropy.timeseries import aggregate_downsample
+    >>> ts_binned = aggregate_downsample(ts_folded, time_bin_size=0.03 * u.day)  # doctest: +REMOTE_DATA
     >>> ts_binned  # doctest: +FLOAT_CMP +REMOTE_DATA
     <BinnedTimeSeries length=74>
        time_bin_start     time_bin_size    ...    sap_flux_norm
@@ -284,8 +290,8 @@ time - this returns a |BinnedTimeSeries|::
    :context:
    :nofigs:
 
-   from astropy.timeseries import simple_downsample
-   ts_binned = simple_downsample(ts_folded, 0.03 * u.day)
+   from astropy.timeseries import aggregate_downsample
+   ts_binned = aggregate_downsample(ts_folded, time_bin_size=0.03 * u.day)
 
 Let's take a look at the final result:
 

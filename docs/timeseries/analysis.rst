@@ -21,10 +21,10 @@ series cannot be combined with binned time series and vice-versa)::
     >>> from astropy.table import vstack
     >>> from astropy import units as u
     >>> from astropy.timeseries import TimeSeries
-    >>> ts_a = TimeSeries(time='2016-03-22T12:30:31',
+    >>> ts_a = TimeSeries(time_start='2016-03-22T12:30:31',
     ...                   time_delta=3 * u.s,
     ...                   data={'flux': [1, 4, 5, 3, 2] * u.mJy})
-    >>> ts_b = TimeSeries(time='2016-03-22T12:50:31',
+    >>> ts_b = TimeSeries(time_start='2016-03-22T12:50:31',
     ...                   time_delta=3 * u.s,
     ...                   data={'flux': [4, 3, 1, 2, 3] * u.mJy})
     >>> ts_ab = vstack([ts_a, ts_b])
@@ -73,7 +73,7 @@ Sorting time series
 Sorting time series in-place can be done using the
 :meth:`~astropy.table.Table.sort` method, as for |Table|::
 
-    >>> ts = TimeSeries(time='2016-03-22T12:30:31',
+    >>> ts = TimeSeries(time_start='2016-03-22T12:30:31',
     ...                 time_delta=3 * u.s,
     ...                 data={'flux': [1., 4., 5., 3., 2.]})
     >>> ts
@@ -101,7 +101,7 @@ Sorting time series in-place can be done using the
 Resampling
 ==========
 
-We provide a :func:`~astropy.timeseries.simple_downsample` function
+We provide a :func:`~astropy.timeseries.aggregate_downsample` function
 that can be used to bin values from a time series into bins of equal time, using
 a custom function (mean, median, etc.). This operation returns a
 |BinnedTimeSeries|. Note that this is a simple function in the sense that it
@@ -133,8 +133,8 @@ downsample using:
 
     import numpy as np
     from astropy import units as u
-    from astropy.timeseries import simple_downsample
-    kepler_binned = simple_downsample(kepler, time_bin_size=20 * u.min, func=np.nanmedian)
+    from astropy.timeseries import aggregate_downsample
+    kepler_binned = aggregate_downsample(kepler, time_bin_size=20 * u.min, aggregate_func=np.nanmedian)
 
 We can take a look at the results:
 
@@ -145,7 +145,7 @@ We can take a look at the results:
     import matplotlib.pyplot as plt
     plt.plot(kepler.time.jd, kepler['sap_flux'], 'k.', markersize=1)
     plt.plot(kepler_binned.time_bin_start.jd, kepler_binned['sap_flux'], 'r-', drawstyle='steps-pre')
-    plt.xlabel('Barycentric Julian Date')
+    plt.xlabel('Julian Date')
     plt.ylabel('SAP Flux (e-/s)')
 
 Folding

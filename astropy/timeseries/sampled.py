@@ -42,22 +42,24 @@ class TimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
         The times at which the values are sampled - this can be either given
         directly as a `~astropy.time.Time` array or as any iterable that
         initializes the `~astropy.time.Time` class. If this is given, then
-        the remaining time-related arguments should not be used. This can also
-        be a scalar value if ``time_delta`` is an array or ``n_samples`` is
-        provided.
+        the remaining time-related arguments should not be used.
+    time_start : `~astropy.time.Time` or str
+        The time of the first sample in the time series. This is an alternative
+        to providing ``time`` and requires that ``time_delta`` is also provided.
     time_delta : `~astropy.time.TimeDelta` or `~astropy.units.Quantity`
         The step size in time for the series. This can either be a scalar if
         the time series is evenly sampled, or an array of values if it is not.
     n_samples : int
         The number of time samples for the series. This is only used if both
-        ``start_time`` and ``time_delta`` are provided and are scalar values.
+        ``time_start`` and ``time_delta`` are provided and are scalar values.
     **kwargs : dict, optional
         Additional keyword arguments are passed to `~astropy.table.QTable`.
     """
 
     _require_time_column = False
 
-    def __init__(self, data=None, *, time=None, time_delta=None, n_samples=None, **kwargs):
+    def __init__(self, data=None, *, time=None, time_start=None,
+                 time_delta=None, n_samples=None, **kwargs):
 
         super().__init__(data=data, **kwargs)
 
@@ -87,11 +89,16 @@ class TimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
             else:
                 raise TypeError("'time' has been given both in the table and as a keyword argument")
 
-        if time is None:
-            raise TypeError("'time' has not been specified")
+        if time is None and time_start is None:
+            raise TypeError("Either 'time' or 'time_start' should be specified")
+        elif time is not None and time_start is not None:
+            raise TypeError("Cannot specify both 'time' and 'time_start'")
 
-        if not isinstance(time, Time):
+        if time is not None and not isinstance(time, Time):
             time = Time(time)
+
+        if time_start is not None and not isinstance(time_start, Time):
+            time_start = Time(time_start)
 
         if time_delta is not None and not isinstance(time_delta, (Quantity, TimeDelta)):
             raise TypeError("'time_delta' should be a Quantity or a TimeDelta")
@@ -99,7 +106,7 @@ class TimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
         if isinstance(time_delta, TimeDelta):
             time_delta = time_delta.sec * u.s
 
-        if time.isscalar:
+        if time_start is not None:
 
             # We interpret this as meaning that time is that of the first
             # sample and that the interval is given by time_delta.
@@ -114,7 +121,7 @@ class TimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
             time_delta = np.roll(time_delta, 1)
             time_delta[0] = 0. * u.s
 
-            time = time + time_delta
+            time = time_start + time_delta
 
         elif len(self.colnames) > 0 and len(time) != len(self):
             raise ValueError("Length of 'time' ({0}) should match "
