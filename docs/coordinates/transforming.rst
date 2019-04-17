@@ -2,7 +2,7 @@
 
 .. _astropy-coordinates-transforming:
 
-Transforming Between Systems
+Transforming between Systems
 ****************************
 
 `astropy.coordinates` supports a rich system for transforming
