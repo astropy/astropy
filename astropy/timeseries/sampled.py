@@ -34,7 +34,7 @@ class TimeSeries(BaseTimeSeries):
 
     Parameters
     ----------
-    data : numpy ndarray, dict, list, Table, or table-like object, optional
+    data : numpy ndarray, dict, list, `~astropy.table.Table`, or table-like object, optional
         Data to initialize time series. This does not need to contain the times,
         which can be provided separately, but if it does contain the times they
         should be in a column called ``'time'`` to be automatically recognized.
@@ -257,15 +257,15 @@ class TimeSeries(BaseTimeSeries):
 
         Parameters
         ----------
-        filename: str
+        filename : str
             File to parse.
         format : str
             File format specifier.
-        time_column: str, optional
+        time_column : str, optional
             The name of the time column.
-        time_format: str, optional
+        time_format : str, optional
             The time format for the time column.
-        time_scale: str, optional
+        time_scale : str, optional
             The time scale for the time column.
         *args : tuple, optional
             Positional arguments passed through to the data reader.

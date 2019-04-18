@@ -26,7 +26,7 @@ def kepler_fits_reader(filename):
 
     Parameters
     ----------
-    filename: `str` or `pathlib.Path`
+    filename : `str` or `pathlib.Path`
         File to load.
 
     Returns
