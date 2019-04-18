@@ -239,7 +239,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
     path : str
         The path to which to write the table inside the HDF5 file.
         This should be relative to the input file or group.
-        If not specified, defaults to ``__astropy__``.
+        If not specified, defaults to ``__astropy__table__dataset__extnsn__``.
     compression : bool or str or int
         Whether to compress the table inside the HDF5 file. If set to `True`,
         ``'gzip'`` compression is used. If a string is specified, it should be
@@ -262,7 +262,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
     if path is None:
         # table is just an arbitrary, hardcoded string here.
-        path = '__astropy__'
+        path = '__astropy__table__dataset__extnsn__'
     elif path.endswith('/'):
         raise ValueError("table path should end with table name, not /")
 
@@ -272,11 +272,11 @@ def write_table_hdf5(table, output, path=None, compression=False,
         group, name = None, path
 
     if isinstance(output, (h5py.File, h5py.Group)):
-        if len(list(output.keys())) > 0 and name == '__astropy__':
+        if len(list(output.keys())) > 0 and name == '__astropy__table__dataset__extnsn__':
             raise ValueError("table path should always be set via the "
                              "path= argument when writing to existing "
                              "files")
-        elif name == '__astropy__':
+        elif name == '__astropy__table__dataset__extnsn__':
             warnings.warn("table path was not set via the path= argument; "
                           "using default path {}".format(path))
 
