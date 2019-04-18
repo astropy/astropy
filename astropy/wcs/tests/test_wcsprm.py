@@ -1087,13 +1087,31 @@ def test_invalid_args():
 
 # Test keywords in the Time standard
 
+
+def test_datebeg():
+    w = _wcs.Wcsprm()
+    assert w.datebeg == ''
+    w.datebeg = '2001-02-11'
+    assert w.datebeg == '2001-02-11'
+    w.datebeg = '31/12/99'
+    fix_ref = {
+        'cdfix': 'No change',
+        'cylfix': 'No change',
+        'obsfix': 'No change',
+        'datfix': "Invalid DATE-BEG format '31/12/99'",
+        'spcfix': 'No change',
+        'unitfix': 'No change',
+        'celfix': 'No change'}
+    assert w.fix() == fix_ref
+
+
 char_keys = ['timesys', 'trefpos', 'trefdir', 'plephem', 'timeunit',
-             'dateref', 'dateobs', 'datebeg', 'dateavg', 'dateend']
+             'dateref', 'dateavg', 'dateend']
+
 
 @pytest.mark.parametrize('key', char_keys)
 def test_char_keys(key):
     w = _wcs.Wcsprm()
-    # Test that this works as an iterator
     assert getattr(w, key) == ''
     setattr(w, key, "foo")
     assert getattr(w, key) == 'foo'
@@ -1110,7 +1128,6 @@ num_keys = ['mjdobs', 'mjdbeg', 'mjdend', 'jepoch',
 @pytest.mark.parametrize('key', num_keys)
 def test_num_keys(key):
     w = _wcs.Wcsprm()
-    # Test that this works as an iterator
     assert np.isnan(getattr(w, key))
     setattr(w, key, 42.0)
     assert getattr(w, key) == 42.0
@@ -1124,7 +1141,6 @@ array_keys = ['czphs', 'cperi', 'mjdref']
 @pytest.mark.parametrize('key', array_keys)
 def test_array_keys(key):
     w = _wcs.Wcsprm()
-    # Test that this works as an iterator
     attr = getattr(w, key)
     assert np.all(np.isnan(attr))
     assert attr.dtype == float
@@ -1134,4 +1150,3 @@ def test_array_keys(key):
         setattr(w, key, ["foo", "bar"])
     with pytest.raises(ValueError):
         setattr(w, key, "foo")
-
