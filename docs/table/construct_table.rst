@@ -262,7 +262,7 @@ You can also preserve the column order by using ``OrderedDict``. If the first it
   >>> from collections import OrderedDict
   >>> row1 = OrderedDict({'b': 1, 'a':0})
   >>> row2 = OrderedDict({'b': 11, 'a':10})
-  >>> rows = [row1,row2]
+  >>> rows = [row1, row2]
   >>> Table(rows=rows)  # doctest: +SKIP
   <Table length=2>
     b     a
