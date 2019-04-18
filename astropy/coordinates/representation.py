@@ -173,7 +173,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
     def __eq__(self, other):
         if not isinstance(other, BaseRepresentationOrDifferential):
-            return False
+            return NotImplemented
 
         if isinstance(other, self.__class__):
             for comp in self.components:
