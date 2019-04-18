@@ -1,25 +1,25 @@
 .. _config-0-4-transition:
 
-Configuration transition
+Configuration Transition
 ************************
 
 This document describes the changes in the configuration system in
-astropy 0.4 and how to update code to use it.
+``astropy`` 0.4 and how to update code in order to use it.
 
-For users
+For Users
 =========
 
-The config file
+The Config File
 ---------------
 
-If you never edited the configuration file in
+If you have not edited the configuration file in
 ``~/.astropy/config/astropy.cfg``, there is nothing for you to do.
-The first time you import astropy 0.4, it will automatically be
-replaced with the configuration file template for astropy 0.4.
+The first time you import ``astropy`` 0.4, it will automatically be
+replaced with the configuration file template for ``astropy`` 0.4.
 
-If you did edit the configuration file, it will be left untouched.
-However, the template for astropy 0.4 will be installed as
-``~/.astropy/config/astropy.0.4.cfg``.  You can manually compare your
+If you have edited the configuration file, it will be left untouched.
+However, the template for ``astropy`` 0.4 will be installed as
+``~/.astropy/config/astropy.0.4.cfg``. You can manually compare your
 changes to this file to determine what customizations should be
 brought over.
 
@@ -33,11 +33,11 @@ Renames
 -------
 
 The location of the configuration parameters have been simplified, so
-they always appear in a high-level subpackage of astropy, rather than
+they always appear in a high-level sub-package of ``astropy``, rather than in
 low-level file names (which were really an implementation detail that
-shouldn't have been exposed to the user).  On the Python side,
+should not have been exposed to the user). On the Python side,
 configuration items always are referenced through a ``conf`` object at
-the root of a subpackage.
+the root of a sub-package.
 
 Some configuration items that affect the results of science
 calculations have been removed as configuration parameters altogether
@@ -45,9 +45,9 @@ and converted to science state objects that must be changed from
 Python code.
 
 The following table lists all of the moves (in alphabetical order by
-original configuration file location).  The old names will continue to
-work both from Python and the configuration file for the astropy 0.4
-release cycle, and will be removed altogether in astropy 0.5.
+original configuration file location). The old names will continue to
+work both from Python and the configuration file for the ``astropy`` 0.4
+release cycle, and will be removed altogether in ``astropy`` 0.5.
 
 .. list-table:: Renamed configuration parameters
    :widths: 20 20 20 20
@@ -206,29 +206,29 @@ release cycle, and will be removed altogether in astropy 0.5.
      - ``[vo.validator] noncritical_warnings``
      - ``vo.validator.conf.noncritical_warnings``
 
-For affiliated package authors
+For Affiliated Package Authors
 ==============================
 
-For an affiliated package to support both astropy 0.3 and 0.4,
-following the astropy 0.3 config instructions should continue to work.
+For an affiliated package to support both ``astropy`` 0.3 and 0.4,
+following the ``astropy`` 0.3 config instructions should continue to work.
 Note that saving of configuration items has been removed entirely from
-astropy 0.4 without a deprecation cycle, so if saving configuration
+``astropy`` 0.4 without a deprecation cycle, so if saving configuration
 programmatically is important to your package, you may want to
 consider another method to save that state.
 
-However, by the release of astropy 0.5, the astropy 0.3 config API
-will no longer work.  The following describes how to transition an
-affiliated package written for astropy 0.3 to support astropy 0.4 and
-later.  It will not be possible to support astropy 0.3, 0.4 and 0.5
-simultaneously.  Below ``pkgname`` is the name of your affiliated
+However, by the release of ``astropy`` 0.5, the ``astropy`` 0.3 config API
+will no longer work. The following describes how to transition an
+affiliated package written for ``astropy`` 0.3 to support ``astropy`` 0.4 and
+later. It will not be possible to support ``astropy`` 0.3, 0.4 and 0.5
+simultaneously. Below ``pkgname`` is the name of your affiliated
 package.
 
 The automatic generation of configuration files from the
 ``ConfigurationItem`` objects that it finds has been removed.
 Instead, the project should include a hard-coded "template"
-configuration file in ``pkgname/pkgname.cfg``.  By convention, and to
+configuration file in ``pkgname/pkgname.cfg``. By convention, and to
 ease upgrades for end users, all of the values should be commented
-out.  For example:
+out. For example:
 
 .. code-block:: ini
 
@@ -243,7 +243,7 @@ Affiliated packages should transition to using
 `astropy.config.ConfigItem` objects as members of
 `astropy.config.ConfigNamespace` subclasses.
 
-For example, the following is an example of the astropy 0.3 and
+For example, the following is an example of the ``astropy`` 0.3 and
 earlier method to define configuration items::
 
     from astropy.config import ConfigurationItem
@@ -282,11 +282,11 @@ The above, converted to the new method, looks like::
     conf = Conf()
 
 
-Moving/renaming configuration items in Python
+Moving/Renaming Configuration Items in Python
 ---------------------------------------------
 
 ``ConfigAlias`` objects can be used when a configuration item has been
-moved from an astropy 0.3-style ``ConfigurationItem`` to an astropy
+moved from an ``astropy`` 0.3-style ``ConfigurationItem`` to an ``astropy``
 0.4-style ``ConfigItem`` inside of a ``ConfigNamespace``.
 
 In the above example, the following adds backward-compatible hooks so
@@ -297,12 +297,12 @@ work from user code::
         '0.4', 'ENABLE_RECORD_VALUED_KEYWORD_CARDS',
         'enable_record_valued_keyword_cards')
 
-Moving/renaming configuration items in the config file
+Moving/Renaming Configuration Items in the Config File
 ------------------------------------------------------
 
 If a configuration item is moved or renamed within the configuration
 file, the ``aliases`` kwarg to ``ConfigItem`` can be used so that the
-old location will continue to be used as a fallback.  For example, if
+old location will continue to be used as a fallback. For example, if
 the old location of an item was:
 
 .. code-block:: ini
@@ -310,7 +310,7 @@ the old location of an item was:
     [coordinates.name_resolve]
     sesame_url = http://somewhere.com
 
-One might want to drop the fact that that is implemented in the module
+You might want to drop the fact that this is implemented in the module
 ``name_resolve`` and just store the configuration in ``coordinates``:
 
 .. code-block:: ini
