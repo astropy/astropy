@@ -11,7 +11,7 @@ BLS_ROOT = os.path.relpath(os.path.dirname(__file__))
 
 def get_extensions():
     ext = Extension(
-        "astropy.stats.bls._impl",
+        "astropy.timeseries.bls._impl",
         sources=[
             join(BLS_ROOT, "bls.c"),
             join(BLS_ROOT, "_impl.pyx"),
