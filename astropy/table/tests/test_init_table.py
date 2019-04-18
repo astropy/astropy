@@ -501,3 +501,24 @@ def test_init_and_ref_from_dict(table_type, copy):
     else:
         assert x1[0] == -200
         assert x2[1] == -100
+
+@pytest.mark.usefixtures('table_type')
+def test_init_from_row_OrderedDict(table_type):
+        row1 = OrderedDict()
+        row1['b'] = 1
+        row1['a'] = 0
+        row2 = OrderedDict()
+        row2['b'] = 11
+        row2['a'] = 10
+        rows12 = [row1,row2]
+        row3 = dict()
+        row3['b'] = 1
+        row3['a'] = 0
+        row4 = dict()
+        row4['b'] = 11
+        row4['a'] = 10
+        rows34 = [row3,row4]
+        t1 = table_type(rows=rows12)
+        t2 = table_type(rows=rows34)
+        assert t1.colnames == ['b', 'a']
+        assert t2.colnames == ['a', 'b']
