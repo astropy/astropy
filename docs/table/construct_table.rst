@@ -259,6 +259,7 @@ Every row must have the same set of keys or a ValueError will be thrown::
 You can also preserve the column order by using ``OrderedDict``. If the first item is an 
 ``OrderedDict`` then the order is preserved:
 
+  >>> from collections import OrderedDict
   >>> row1 = OrderedDict({'b': 1, 'a':0})
   >>> row2 = OrderedDict({'b': 11, 'a':10})
   >>> rows = [row1,row2]
