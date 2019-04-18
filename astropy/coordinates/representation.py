@@ -176,10 +176,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
             return NotImplemented
 
         if isinstance(other, self.__class__):
-            for comp in self.components:
-                if np.any(getattr(self, comp) != getattr(other, comp)):
-                    return False
-            return True
+            return np.all([getattr(self, comp) != getattr(other, comp)
+                           for comp in self.components], axis=0)
         else:
             return self.to_cartesian() == other.to_cartesian()
 
