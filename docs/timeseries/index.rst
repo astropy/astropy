@@ -186,19 +186,26 @@ details). Let's use what we've seen so far to make a plot
    plt.xlabel('Julian Date')
    plt.ylabel('SAP Flux (e-/s)')
 
-It looks like there are a few transits! Let's use
-:class:`~astropy.timeseries.BoxLeastSquares` to estimate the period, using a box with
-a duration of 0.2 days::
+It looks like there are a few transits! Let's use the 'box least squares' (BLS)
+algorithm to estimate the period::
 
     >>> import numpy as np
     >>> from astropy import units as u
-    >>> from astropy.timeseries import BoxLeastSquares
-    >>> keep = ~np.isnan(ts['sap_flux'])  # doctest: +REMOTE_DATA
-    >>> periodogram = BoxLeastSquares(ts.time.jd[keep] * u.day,
-    ...                               ts['sap_flux'][keep]).autopower(0.2 * u.day)  # doctest: +REMOTE_DATA
-    >>> period = periodogram.period[np.argmax(periodogram.power)]  # doctest: +REMOTE_DATA
+    >>> periodogram = ts.periodogram('bls', 'sap_flux')
+
+Note that here ``periodogram`` is an instance of the
+:class:`~astropy.timeseries.BoxLeastSquares` class - you can read up more about
+how to work with this kind of object in :doc:`bls.rst`. To run the
+periodogram analysis, we use a box with a duration of 0.2 days::
+
+    >>> results = periodogram.autopower(0.2 * u.day)  # doctest: +REMOTE_DATA
+    >>> best = np.argmax(results.power)
+    >>> period = results.period[best]  # doctest: +REMOTE_DATA
     >>> period  # doctest: +REMOTE_DATA
     <Quantity 2.20551724 d>
+    >>> transit_time = results.transit_time[best]
+    >>> transit_time
+    <Time object: scale='tdb' format='isot' value=2009-05-02T20:51:16.338>
 
 .. plot::
    :context:
@@ -206,21 +213,22 @@ a duration of 0.2 days::
 
    import numpy as np
    from astropy import units as u
-   from astropy.timeseries import BoxLeastSquares
-   keep = ~np.isnan(ts['sap_flux'])
-   periodogram = BoxLeastSquares(ts.time.jd[keep] * u.day, ts['sap_flux'][keep]).autopower(0.2 * u.day)
-   period = periodogram.period[np.argmax(periodogram.power)]
+   periodogram = ts.periodogram('bls', 'sap_flux')
+   results = periodogram.autopower(0.2 * u.day)
+   best = np.argmax(results.power)
+   period = results.period[best]
+   transit_time = results.transit_time[best]
 
 We can now fold the time series using the period we've found above using the
 :meth:`~astropy.timeseries.TimeSeries.fold` method::
 
-    >>> ts_folded = ts.fold(period=period, midpoint_epoch='2009-05-02T07:41:40')  # doctest: +REMOTE_DATA
+    >>> ts_folded = ts.fold(period=period, midpoint_epoch=transit_time)  # doctest: +REMOTE_DATA
 
 .. plot::
    :context:
    :nofigs:
 
-   ts_folded = ts.fold(period=period, midpoint_epoch='2009-05-02T07:41:40')
+   ts_folded = ts.fold(period=period, midpoint_epoch=transit_time)
 
 Let's take a look at the folded time series:
 
@@ -260,31 +268,30 @@ time - this returns a |BinnedTimeSeries|::
     >>> ts_binned = aggregate_downsample(ts_folded, time_bin_size=0.03 * u.day)  # doctest: +REMOTE_DATA
     >>> ts_binned  # doctest: +FLOAT_CMP +REMOTE_DATA
     <BinnedTimeSeries length=74>
-       time_bin_start     time_bin_size    ...    sap_flux_norm
+       time_bin_start     time_bin_size    ...   sap_flux_norm
                                 s          ...
            object            float64       ...       float64
     ------------------- ------------------ ... ------------------
-     -1.102280667930945 2591.9999999999905 ... 1.0000542402267456
-    -1.0722806679309451             2592.0 ... 1.0000275373458862
-     -1.042280667930945 2592.0000000000095 ... 1.0000416040420532
-     -1.012280667930945             2592.0 ... 1.0000323057174683
-    -0.9822806679309449             2592.0 ... 0.9999996423721313
-     -0.952280667930945             2592.0 ... 1.0000159740447998
-     -0.922280667930945             2592.0 ...  1.000033974647522
-     -0.892280667930945 2591.9999999999986 ... 1.0000298023223877
-    -0.8622806679309449 2592.0000000000023 ... 1.0000696182250977
+    -1.1022116370482966             2592.0 ... 0.9998741745948792
+    -1.0722116370482966             2592.0 ... 0.9999074339866638
+    -1.0422116370482966             2592.0 ...  0.999972939491272
+    -1.0122116370482965             2592.0 ... 1.0000077486038208
+    -0.9822116370482965             2592.0 ... 0.9999921917915344
+    -0.9522116370482965             2592.0 ... 1.0000101327896118
+    -0.9222116370482966             2592.0 ... 1.0000121593475342
+    -0.8922116370482965             2592.0 ... 0.9999905228614807
+    -0.8622116370482965 2592.0000000000023 ... 1.0000263452529907
                     ...                ... ...                ...
-      0.817719332069055             2592.0 ... 1.0000061988830566
-      0.847719332069055             2592.0 ... 1.0000118017196655
-     0.8777193320690551  2592.000000000019 ... 0.9999964237213135
-     0.9077193320690553 2591.9999999999814 ...  0.999992311000824
-      0.937719332069055   2592.00000000002 ... 1.0000600814819336
-     0.9677193320690552  2591.999999999981 ... 1.0000065565109253
-      0.997719332069055 2592.0000000000095 ...  1.000051498413086
-     1.0277193320690552 2591.9999999999905 ... 1.0000076293945312
-      1.057719332069055             2592.0 ... 1.0000261068344116
-      1.087719332069055             2592.0 ... 0.9999687671661377
-
+     0.8177883629517035 2591.9999999999977 ... 1.0000624656677246
+     0.8477883629517035 2592.0000000000014 ... 1.0000633001327515
+     0.8777883629517035  2592.000000000019 ... 1.0000433921813965
+     0.9077883629517037 2591.9999999999814 ...  1.000024676322937
+     0.9377883629517034   2592.00000000002 ... 1.0000224113464355
+     0.9677883629517037  2591.999999999981 ... 1.0000698566436768
+     0.9977883629517035             2592.0 ... 0.9999606013298035
+     1.0277883629517035             2592.0 ... 0.9999635815620422
+     1.0577883629517035             2592.0 ... 0.9999105930328369
+     1.0877883629517036 2592.0000000000095 ... 0.9998687505722046
 
 .. plot::
    :context:
