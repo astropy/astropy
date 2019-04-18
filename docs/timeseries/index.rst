@@ -195,7 +195,7 @@ algorithm to estimate the period::
 
 Note that here ``periodogram`` is an instance of the
 :class:`~astropy.timeseries.BoxLeastSquares` class - you can read up more about
-how to work with this kind of object in :doc:`bls.rst`. To run the
+how to work with this kind of object in :doc:`bls`. To run the
 periodogram analysis, we use a box with a duration of 0.2 days::
 
     >>> results = periodogram.autopower(0.2 * u.day)  # doctest: +REMOTE_DATA
@@ -316,8 +316,6 @@ Let's take a look at the final result:
    plt.plot(ts_binned.time_bin_start.jd, ts_binned['sap_flux_norm'], 'r-', drawstyle='steps-post')
    plt.xlabel('Time (days)')
    plt.ylabel('Normalized flux')
-
-It looks like there might be a hint of a secondary transit!
 
 To learn more about the capabilities in the `astropy.timeseries` module, you can
 find links to the full documentation in the next section.
