@@ -327,6 +327,8 @@ astropy.units
   ``to`` and ``to_value`` methods can be properly used to initialize ``Quantity``
   or set ``Quantity`` instance items. [#8535]
 
+- Add support for ``<<`` to create logarithmic units.
+
 astropy.utils
 ^^^^^^^^^^^^^
 

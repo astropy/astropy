@@ -307,12 +307,6 @@ class TestQuantityCreation:
         assert q6.unit == u.Unit(not_quite_a_foot)
         assert np.all(q6.to_value(u.cm) == 30. * a6)
 
-    def test_lshift_magnitude(self):
-        mag = 1. << u.ABmag
-        assert isinstance(mag, u.Quantity)
-        assert mag.unit == u.ABmag
-        assert mag.value == 1.
-
     def test_rshift_warns(self):
         with pytest.raises(TypeError), \
                 catch_warnings() as warning_lines:
