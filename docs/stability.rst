@@ -256,7 +256,7 @@ The current planned and existing sub-packages are:
                 astropy.timeseries
             </td>
             <td align='center'>
-                <span class="mature"></span>
+                <span class="dev"></span>
             </td>
             <td>
                 New in v3.2, in heavy development.
