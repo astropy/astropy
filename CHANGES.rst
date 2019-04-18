@@ -16,6 +16,8 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Representations now have equality comparison. [#8205]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -581,8 +583,6 @@ astropy.coordinates
 
 - Added a ``directional_offset_by`` method to ``SkyCoord`` that computes a new
   coordinate given a coordinate, position angle, and angular separation [#5727]
-
-- Representations now have equality comparison. [#8205]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
