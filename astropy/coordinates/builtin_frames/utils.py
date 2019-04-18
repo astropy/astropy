@@ -19,12 +19,12 @@ from astropy.utils.exceptions import AstropyWarning
 # The UTC time scale is not properly defined prior to 1960, so Time('B1950',
 # scale='utc') will emit a warning. Instead, we use Time('B1950', scale='tai')
 # which is equivalent, but does not emit a warning.
-EQUINOX_J2000 = Time('J2000', scale='utc')
+EQUINOX_J2000 = Time('J2000', scale='tt')
 EQUINOX_B1950 = Time('B1950', scale='tai')
 
 # This is a time object that is the default "obstime" when such an attribute is
 # necessary.  Currently, we use J2000.
-DEFAULT_OBSTIME = Time('J2000', scale='utc')
+DEFAULT_OBSTIME = Time('J2000', scale='tt')
 
 PIOVER2 = np.pi / 2.
 
