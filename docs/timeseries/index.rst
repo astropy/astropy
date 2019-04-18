@@ -187,7 +187,7 @@ details). Let's use what we've seen so far to make a plot
    plt.ylabel('SAP Flux (e-/s)')
 
 It looks like there are a few transits! Let's use
-:class:`~astropy.stats.BoxLeastSquares` to estimate the period, using a box with
+:class:`~astropy.timeseries.BoxLeastSquares` to estimate the period, using a box with
 a duration of 0.2 days::
 
     >>> import numpy as np
