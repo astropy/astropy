@@ -10,11 +10,12 @@ from astropy import units as u
 from astropy.units import Quantity
 from astropy.utils.misc import InheritDocstrings
 
-from astropy.timeseries.core import BaseTimeSeries
+from astropy.timeseries.core import BaseTimeSeries, autocheck_required_columns
 
 __all__ = ['BinnedTimeSeries']
 
 
+@autocheck_required_columns
 class BinnedTimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
     """
     A class to represent binned time series data in tabular form.
@@ -67,20 +68,20 @@ class BinnedTimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
     **kwargs : dict, optional
         Additional keyword arguments are passed to `~astropy.table.QTable`.
     """
-    _require_time_column = False
+
+    _required_columns = ['time_bin_start', 'time_bin_size']
 
     def __init__(self, data=None, *, time_bin_start=None, time_bin_end=None,
                  time_bin_size=None, n_bins=None, **kwargs):
 
         super().__init__(data=data, **kwargs)
 
-        # FIXME: this is because for some operations, an empty time series needs
-        # to be created, then columns added one by one. We should check that
-        # when columns are added manually, time is added first and is of the
-        # right type.
+        # For some operations, an empty time series needs to be created, then
+        # columns added one by one. We should check that when columns are added
+        # manually, time is added first and is of the right type.
         if (data is None and time_bin_start is None and time_bin_end is None and
                 time_bin_size is None and n_bins is None):
-            self._required_columns = ['time_bin_start', 'time_bin_size']
+            self._required_columns_relax = True
             return
 
         # First if time_bin_start and time_bin_end have been given in the table data, we
@@ -90,7 +91,6 @@ class BinnedTimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
         if 'time_bin_start' in self.colnames:
             if time_bin_start is None:
                 time_bin_start = self.columns['time_bin_start']
-                self.remove_column('time_bin_start')
             else:
                 raise TypeError("'time_bin_start' has been given both in the table "
                                 "and as a keyword argument")
@@ -98,7 +98,6 @@ class BinnedTimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
         if 'time_bin_size' in self.colnames:
             if time_bin_size is None:
                 time_bin_size = self.columns['time_bin_size']
-                self.remove_column('time_bin_size')
             else:
                 raise TypeError("'time_bin_size' has been given both in the table "
                                 "and as a keyword argument")
@@ -165,13 +164,20 @@ class BinnedTimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
                     time_bin_end = times
                 time_bin_size = (time_bin_end - time_bin_start).sec * u.s
 
-        self.add_column(time_bin_start, index=0, name='time_bin_start')
-        self.add_index('time_bin_start')
-
         if time_bin_size.isscalar:
             time_bin_size = np.repeat(time_bin_size, len(self))
 
-        self.add_column(time_bin_size, index=1, name='time_bin_size')
+        with self._delay_required_column_checks():
+
+            if 'time_bin_start' in self.colnames:
+                self.remove_column('time_bin_start')
+
+            if 'time_bin_size' in self.colnames:
+                self.remove_column('time_bin_size')
+
+            self.add_column(time_bin_start, index=0, name='time_bin_start')
+            self.add_index('time_bin_start')
+            self.add_column(time_bin_size, index=1, name='time_bin_size')
 
     @property
     def time_bin_start(self):

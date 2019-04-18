@@ -6,7 +6,7 @@ import pytest
 
 from numpy.testing import assert_equal, assert_allclose
 
-from astropy.table import Table
+from astropy.table import Table, Column
 from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.utils.data import get_pkg_data_filename
@@ -31,8 +31,8 @@ def test_empty_initialization_invalid():
     ts = TimeSeries()
     with pytest.raises(ValueError) as exc:
         ts['flux'] = [1, 2, 3]
-    assert exc.value.args[0] == ("TimeSeries requires a column called "
-                                 "'time' to be set before data can be added")
+    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
+                                 "'time' as the first column but found 'flux'")
 
 
 def test_initialize_only_time():
@@ -230,3 +230,50 @@ def test_tess_astropy():
     assert timeseries["sap_flux"].unit.to_string() == 'electron / s'
     assert len(timeseries) == 19261
     assert len(timeseries.columns) == 20
+
+
+def test_required_columns():
+
+    # Test the machinery that makes sure that the required columns are present
+
+    ts = TimeSeries(time=INPUT_TIME,
+                    data=[[10, 2, 3], [4, 5, 6]],
+                    names=['a', 'b'])
+
+    # In the examples below, the operation (e.g. remove_column) is actually
+    # carried out before the checks are made, so we need to use copy() so that
+    # we don't change the main version of the time series.
+
+    # Make sure copy works fine
+    ts.copy()
+
+    with pytest.raises(ValueError) as exc:
+        ts.copy().add_column(Column([3, 4, 5], name='c'), index=0)
+    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
+                                 "'time' as the first column but found 'c'")
+
+    with pytest.raises(ValueError) as exc:
+        ts.copy().add_columns([Column([3, 4, 5], name='d'),
+                               Column([3, 4, 5], name='e')], indexes=[0, 1])
+    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
+                                 "'time' as the first column but found 'd'")
+
+    with pytest.raises(ValueError) as exc:
+        ts.copy().keep_columns(['a', 'b'])
+    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
+                                 "'time' as the first column but found 'a'")
+
+    with pytest.raises(ValueError) as exc:
+        ts.copy().remove_column('time')
+    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
+                                 "'time' as the first column but found 'a'")
+
+    with pytest.raises(ValueError) as exc:
+        ts.copy().remove_columns(['time', 'a'])
+    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
+                                 "'time' as the first column but found 'b'")
+
+    with pytest.raises(ValueError) as exc:
+        ts.copy().rename_column('time', 'banana')
+    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
+                                 "'time' as the first column but found 'banana'")
