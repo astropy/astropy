@@ -343,6 +343,15 @@ Accessing data and manipulating time series
    masking.rst
    pandas.rst
 
+Periodogram algorithms
+----------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   lombscargle.rst
+   bls.rst
+
 Reference/API
 =============
 
