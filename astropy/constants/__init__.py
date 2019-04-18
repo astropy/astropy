@@ -53,7 +53,7 @@ elif ((conf.physical_constants == 'codata2010') or
     from .astropyconst13 import codata2010 as codata
 else:
     raise ValueError('Invalid physical constants version: {}'
-                     .format(conf.astronomical_constants))
+                     .format(conf.physical_constants))
 
 if ((conf.astronomical_constants == 'iau2015') or
         (conf.astronomical_constants == 'astropyconst20')):
@@ -131,7 +131,6 @@ def set_enabled_constants(modname):
             warnings.simplefilter('ignore')
             _utils._set_c(codata, iaudata, module,
                           not_in_module_only=False, set_class=True)
-            del codata_context, iaudata_context
 
 
 # These imports are used by other astropy modules
