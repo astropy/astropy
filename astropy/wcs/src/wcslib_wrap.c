@@ -2004,8 +2004,6 @@ PyWcsprm_set_bepoch(
     PyObject* value,
     /*@unused@*/ void* closure) {
 
-  note_change(self);
-
   if (value == NULL) {
     self->x.bepoch = (double)NPY_NAN;
     return 0;
