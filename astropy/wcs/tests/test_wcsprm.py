@@ -1091,35 +1091,47 @@ char_keys = ['timesys', 'trefpos', 'trefdir', 'plephem', 'timeunit',
              'dateref', 'dateobs', 'datebeg', 'dateavg', 'dateend']
 
 @pytest.mark.parametrize('key', char_keys)
-def test_timesys(key):
+def test_char_keys(key):
     w = _wcs.Wcsprm()
     # Test that this works as an iterator
     assert getattr(w, key) == ''
+    setattr(w, key, "foo")
+    assert getattr(w, key) == 'foo'
     with pytest.raises(TypeError):
         setattr(w, key, 42)
 
 
-num_keys = ['mjdref', 'mjdobs', 'mjdbeg', 'mjdend', 'jepoch',
+num_keys = ['mjdobs', 'mjdbeg', 'mjdend', 'jepoch',
             'bepoch', 'tstart', 'tstop', 'xposure', 'timsyer',
-            'timrder', 'timedel', 'timepixr', 'timeoffs', 'telapse']
+            'timrder', 'timedel', 'timepixr', 'timeoffs',
+            'telapse', 'xposure']
 
 
 @pytest.mark.parametrize('key', num_keys)
-def test_timesys(key):
+def test_num_keys(key):
     w = _wcs.Wcsprm()
     # Test that this works as an iterator
-    assert_allclose(getattr(w, key), np.nan)
+    assert np.isnan(getattr(w, key))
+    setattr(w, key, 42.0)
+    assert getattr(w, key) == 42.0
+    delattr(w, key)
+    assert np.isnan(getattr(w, key))
     with pytest.raises(TypeError):
         setattr(w, key, "foo")
 
-array_keys = ['czphs', 'cperi']
+array_keys = ['czphs', 'cperi', 'mjdref']
 
 @pytest.mark.parametrize('key', array_keys)
-def test_timesys(key):
+def test_array_keys(key):
     w = _wcs.Wcsprm()
     # Test that this works as an iterator
-    assert_allclose(getattr(w, key), np.nan)
+    attr = getattr(w, key)
+    assert np.all(np.isnan(attr))
+    assert attr.dtype == float
+    setattr(w, key, [1., 2.])
+    assert_array_equal(getattr(w, key), [1., 2.])
     with pytest.raises(ValueError):
         setattr(w, key, ["foo", "bar"])
     with pytest.raises(ValueError):
         setattr(w, key, "foo")
+
