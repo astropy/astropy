@@ -9,3 +9,5 @@ from astropy.timeseries.sampled import *  # noqa
 from astropy.timeseries.binned import *  # noqa
 from astropy.timeseries import io  # noqa
 from astropy.timeseries.downsample import *  # noqa
+from astropy.timeseries.lombscargle import *  # noqa
+from astropy.timeseries.bls import *  # noqa

@@ -7,8 +7,8 @@ from numpy.testing import assert_allclose
 
 from astropy import units
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.stats.bls import BoxLeastSquares
-from astropy.stats.lombscargle.core import has_units
+from astropy.timeseries.bls import BoxLeastSquares
+from astropy.timeseries.lombscargle.core import has_units
 
 
 def assert_allclose_blsresults(blsresult, other, **kwargs):

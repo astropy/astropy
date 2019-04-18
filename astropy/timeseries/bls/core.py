@@ -6,7 +6,7 @@ __all__ = ["BoxLeastSquares", "BoxLeastSquaresResults"]
 import numpy as np
 
 from astropy import units
-from astropy.stats.lombscargle.core import has_units, strip_units
+from astropy.timeseries.lombscargle.core import has_units, strip_units
 
 from . import methods
 
