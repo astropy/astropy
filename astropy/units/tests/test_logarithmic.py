@@ -75,6 +75,20 @@ class TestLogUnitCreation:
         with pytest.raises(ValueError):
             lu_cls(physical_unit, u.m)
 
+    def test_lshift_magnitude(self):
+        mag = 1. << u.ABmag
+        assert isinstance(mag, u.Magnitude)
+        assert mag.unit == u.ABmag
+        assert mag.value == 1.
+        # same test for an array, which should produce a view
+        a2 = np.arange(10.)
+        q2 = a2 << u.ABmag
+        assert isinstance(q2, u.Magnitude)
+        assert q2.unit == u.ABmag
+        assert np.all(q2.value == a2)
+        a2[9] = 0.
+        assert np.all(q2.value == a2)
+
 
 def test_predefined_magnitudes():
     assert_quantity_allclose((-21.1*u.STmag).physical,
