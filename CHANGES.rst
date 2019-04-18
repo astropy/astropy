@@ -348,6 +348,10 @@ astropy.config
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
+- Add CODATA 2018 constants but not make them default because the
+  redefinition of SI units that will follow has not been implemented
+  yet. [#8595]
+
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
