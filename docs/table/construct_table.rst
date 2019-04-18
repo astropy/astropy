@@ -256,14 +256,14 @@ Every row must have the same set of keys or a ValueError will be thrown::
     ...
   ValueError: Row 0 has no value for column c
 
-You can also preserve the column order by using ``OrderedDict``. If the first item is an 
+You can also preserve the column order by using ``OrderedDict``. If the first item is an
 ``OrderedDict`` then the order is preserved:
 
   >>> from collections import OrderedDict
   >>> row1 = OrderedDict({'b': 1, 'a':0})
   >>> row2 = OrderedDict({'b': 11, 'a':10})
   >>> rows = [row1, row2]
-  >>> Table(rows=rows)  # doctest: +SKIP
+  >>> Table(rows=rows)
   <Table length=2>
     b     a
   int64 int64
@@ -587,7 +587,7 @@ for the ``data`` argument.
     key values in each dict define the column names and each row must
     have identical column names.  The ``names`` argument may be supplied
     to specify column ordering.  If it is not provided, the column order will
-    default to alphabetical. If the first item is an ``OrderedDict``, then the 
+    default to alphabetical. If the first item is an ``OrderedDict``, then the
     column order is preserved.  The ``dtype`` list may be specified, and must
     correspond to the order of output columns.  If any row's keys do no match
     the rest of the rows, a ValueError will be thrown.
