@@ -2486,6 +2486,7 @@ astropy.wcs.Wcsprm.tstart
 timeoffs = """
 ``double`` Time offset, which may be used, for example, to provide a uniform clock correction
            for times referenced to DATEREF.
+
 See also
 --------
 astropy.wcs.Wcsprm.timeoffs
