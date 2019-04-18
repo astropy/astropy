@@ -31,7 +31,7 @@ def kepler_fits_reader(filename):
 
     Returns
     -------
-    `astropy.timeseries.TimeSeries`
+    ts : `~astropy.timeseries.TimeSeries`
         Data converted into a TimeSeries.
     """
     hdulist = fits.open(filename)
