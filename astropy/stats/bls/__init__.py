@@ -10,7 +10,7 @@
 import warnings
 
 from astropy.timeseries.bls import (BoxLeastSquares as OriginalBoxLeastSquares,
-                                    BoxLeastSquaresResults)
+                                    BoxLeastSquaresResults as OriginalBoxLeastSquaresResults)
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['BoxLeastSquares', 'BoxLeastSquaresResults']
@@ -30,3 +30,12 @@ class BoxLeastSquares(OriginalBoxLeastSquares):
                       'Please import this class from the astropy.timeseries '
                       'module instead', AstropyDeprecationWarning)
         super().__init__(*args, **kwargs)
+
+
+class BoxLeastSquaresResults(OriginalBoxLeastSquaresResults):
+    """
+    The results of a BoxLeastSquares search.
+
+    This class has been deprecated and will be removed in a future version.
+    Use `~astropy.timeseries.BoxLeastSquaresResults` instead.
+    """
