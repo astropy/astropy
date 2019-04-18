@@ -9,11 +9,12 @@ from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.units import Quantity
 
-from astropy.timeseries.core import BaseTimeSeries
+from astropy.timeseries.core import BaseTimeSeries, autocheck_required_columns
 
 __all__ = ['TimeSeries']
 
 
+@autocheck_required_columns
 class TimeSeries(BaseTimeSeries):
     """
     A class to represent time series data in tabular form.
@@ -55,19 +56,18 @@ class TimeSeries(BaseTimeSeries):
         Additional keyword arguments are passed to `~astropy.table.QTable`.
     """
 
-    _require_time_column = False
+    _required_columns = ['time']
 
     def __init__(self, data=None, *, time=None, time_start=None,
                  time_delta=None, n_samples=None, **kwargs):
 
         super().__init__(data=data, **kwargs)
 
-        # FIXME: this is because for some operations, an empty time series needs
-        # to be created, then columns added one by one. We should check that
-        # when columns are added manually, time is added first and is of the
-        # right type.
-        if data is None and time is None and time_delta is None:
-            self._required_columns = ['time']
+        # For some operations, an empty time series needs to be created, then
+        # columns added one by one. We should check that when columns are added
+        # manually, time is added first and is of the right type.
+        if data is None and time is None and time_start is None and time_delta is None:
+            self._required_columns_relax = True
             return
 
         # First if time has been given in the table data, we should extract it
@@ -84,7 +84,6 @@ class TimeSeries(BaseTimeSeries):
         if 'time' in self.colnames:
             if time is None:
                 time = self.columns['time']
-                self.remove_column('time')
             else:
                 raise TypeError("'time' has been given both in the table and as a keyword argument")
 
@@ -130,7 +129,10 @@ class TimeSeries(BaseTimeSeries):
             raise TypeError("'time_delta' should not be specified since "
                             "'time' is an array")
 
-        self.add_column(time, index=0, name='time')
+        with self._delay_required_column_checks():
+            if 'time' in self.colnames:
+                self.remove_column('time')
+            self.add_column(time, index=0, name='time')
 
     @property
     def time(self):
@@ -155,7 +157,6 @@ class TimeSeries(BaseTimeSeries):
         """
 
         folded = self.copy()
-        folded.remove_column('time')
 
         if midpoint_epoch is None:
             midpoint_epoch = self.time[0]
@@ -167,7 +168,9 @@ class TimeSeries(BaseTimeSeries):
 
         folded_time = TimeDelta(relative_time_sec * u.s)
 
-        folded.add_column(folded_time, name='time', index=0)
+        with folded._delay_required_column_checks():
+            folded.remove_column('time')
+            folded.add_column(folded_time, name='time', index=0)
 
         return folded
 

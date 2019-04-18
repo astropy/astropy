@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
+
 from numpy.testing import assert_equal
 
 from astropy import units as u
@@ -41,6 +43,15 @@ class CommonTimeSeriesTests:
 
     def test_add_row(self):
         self.series.add_row(self._row)
+
+    def test_required_after_stacking(self):
+        # When stacking, we have to temporarily relax the checking of the
+        # columns in the time series, but we need to make sure that the
+        # checking works again afterwards
+        ts = vstack([self.series, self.series])
+        with pytest.raises(ValueError) as exc:
+            ts.remove_columns(ts.colnames)
+        assert 'TimeSeries object is invalid' in exc.value.args[0]
 
 
 class TestTimeSeries(CommonTimeSeriesTests):
