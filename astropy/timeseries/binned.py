@@ -247,20 +247,20 @@ class BinnedTimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
             File to parse.
         format : str
             File format specifier.
-        time_bin_start_column: str
+        time_bin_start_column : str
             The name of the column with the start time for each bin.
-        time_bin_end_column: str, optional
+        time_bin_end_column : str, optional
             The name of the column with the end time for each bin. Either this
             option or ``time_bin_size_column`` should be specified.
-        time_bin_size_column: str, optional
+        time_bin_size_column : str, optional
             The name of the column with the size for each bin. Either this
             option or ``time_bin_end_column`` should be specified.
-        time_bin_size_unit: `astropy.units.Unit`, optional
+        time_bin_size_unit : `astropy.units.Unit`, optional
             If ``time_bin_size_column`` is specified but does not have a unit
             set in the table, you can specify the unit manually.
-        time_format: str, optional
+        time_format : str, optional
             The time format for the start and end columns.
-        time_scale: str, optional
+        time_scale : str, optional
             The time scale for the start and end columns.
         *args : tuple, optional
             Positional arguments passed through to the data reader.
