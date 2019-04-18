@@ -765,31 +765,24 @@ class Table:
     def _init_from_list_of_dicts(self, data, names, dtype, n_cols, copy):
         if isinstance(data[0], OrderedDict):
             names_from_data = list(data[0].keys())
-
-            cols = {}
-            for name in names_from_data:
-                cols[name] = []
-                for i, row in enumerate(data):
-                    try:
-                        cols[name].append(row[name])
-                    except KeyError:
-                        raise ValueError('Row {0} has no value for column {1}'.format(i, name))
-            if all(name is None for name in names):
-                names = names_from_data
         else:
             names_from_data = set()
             for row in data:
                 names_from_data.update(row)
 
-            cols = {}
-            for name in names_from_data:
-                cols[name] = []
-                for i, row in enumerate(data):
-                    try:
-                        cols[name].append(row[name])
-                    except KeyError:
-                        raise ValueError('Row {0} has no value for column {1}'.format(i, name))
-            if all(name is None for name in names):
+        cols = {}
+        for name in names_from_data:
+            cols[name] = []
+            for i, row in enumerate(data):
+                try:
+                    cols[name].append(row[name])
+                except KeyError:
+                    raise ValueError('Row {0} has no value for column {1}'.format(i, name))
+
+        if all(name is None for name in names):
+            if isinstance(data[0], OrderedDict):
+                names = names_from_data
+            else:
                 names = sorted(names_from_data)
 
         self._init_from_dict(cols, names, dtype, n_cols, copy)
