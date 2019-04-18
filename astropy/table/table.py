@@ -2889,7 +2889,7 @@ class Table:
                     tbl[col.info.name] = new_col
 
             # Convert the table to one with no mixins, only Column objects.
-            encode_tbl = serialize._represent_mixins_as_columns(tbl)
+            encode_tbl = serialize.represent_mixins_as_columns(tbl)
             return encode_tbl
 
         tbl = _encode_mixins(self)
