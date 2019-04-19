@@ -279,8 +279,8 @@ composite stretch can stretch residual images with negative values:
     from astropy.visualization import ImageNormalize
 
     # Transforms normalized values [0,1] to [-1,1] before stretch and then back
-    stretch = LinearStretch(a=0.5, b=0.5) + SinhStretch() + \
-        LinearStretch(a=2, b=-1)
+    stretch = LinearStretch(slope=0.5, intercept=0.5) + SinhStretch() + \
+        LinearStretch(slope=2, intercept=-1)
 
     # Image of random Gaussian noise
     image = np.random.normal(size=(64, 64))

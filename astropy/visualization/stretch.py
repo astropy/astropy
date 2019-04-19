@@ -90,13 +90,20 @@ class LinearStretch(BaseStretch):
     The stretch is given by:
 
     .. math::
-        y = ax + b
+        y = slope x + intercept
+
+    Parameters
+    ----------
+    slope : float, optional
+        The ``slope`` parameter used in the above formula.  Default is 1.
+    intercept : float, optional
+        The ``intercept`` parameter used in the above formula.  Default is 0.
     """
 
-    def __init__(self, a=1, b=0):
+    def __init__(self, slope=1, intercept=0):
         super().__init__()
-        self.slope = a
-        self.intercept = b
+        self.slope = slope
+        self.intercept = intercept
 
     def __call__(self, values, clip=True, out=None):
         values = _prepare(values, clip=clip, out=out)
