@@ -27,7 +27,8 @@ The key distinctions between |SkyCoord| and the low-level classes
   coordinate object.
 
 - The |SkyCoord| class is more flexible with inputs to accommodate a wide
-  variety of user preferences and available data formats.
+  variety of user preferences and available data formats, whereas the frame
+  classes expect to receive Quantity-like objects with angular units.
 
 - The |SkyCoord| class has a number of convenience methods that are useful
   in typical analysis.
@@ -167,6 +168,24 @@ The following options are available for longitude and latitude:
 - List or |Quantity| array or numpy array of angle values
 - |Angle|, |Longitude|, or |Latitude| object, which can be scalar or
   array-valued
+
+.. note::
+
+    While |SkyCoord| is flexible with respect to specifying longitude and
+    latitude component inputs, the frame classes expect to receive
+    |Quantity|-like objects with angular units (i.e., |Angle| or |Quantity|).
+    For example, when specifying components, the frame classes (e.g., ``ICRS``)
+    must be created as
+
+        >>> ICRS(0 * u.deg, 0 * u.deg) # doctest: +FLOAT_CMP
+        <ICRS Coordinate: (ra, dec) in deg
+            (0., 0.)>
+
+    and other methods of flexible initialization (that work with |SkyCoord|)
+    will not work
+
+        >>> ICRS(0, 0, unit=u.deg) # doctest: +SKIP
+        UnitTypeError: Longitude instances require units equivalent to 'rad', but no unit was given.
 
 **DISTANCE**
 
