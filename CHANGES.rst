@@ -345,6 +345,11 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Added a ``PyUnitListProxy_richcmp`` method in ``UnitListProxy`` class to enable 
+  ``WCS.wcs.cunit`` equality testing. It helps to check whether the two instances of 
+  ``WCS.wcs.cunit`` are equal or not by comparing the data members of 
+  ``UnitListProxy`` class [#8480]
+
 Other Changes and Additions
 ---------------------------
 

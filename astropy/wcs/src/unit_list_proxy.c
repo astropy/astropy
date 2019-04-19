@@ -13,6 +13,7 @@
  ***************************************************************************/
 
 #define MAXSIZE 68
+#define ARRAYSIZE 72
 
 static PyTypeObject PyUnitListProxyType;
 
@@ -20,7 +21,7 @@ typedef struct {
   PyObject_HEAD
   /*@null@*/ /*@shared@*/ PyObject* pyobject;
   Py_ssize_t size;
-  char (*array)[72];
+  char (*array)[ARRAYSIZE];
   PyObject* unit_class;
 } PyUnitListProxy;
 
@@ -94,7 +95,7 @@ PyUnitListProxy_clear(
 PyUnitListProxy_New(
     /*@shared@*/ PyObject* owner,
     Py_ssize_t size,
-    char (*array)[72]) {
+    char (*array)[ARRAYSIZE]) {
 
   PyUnitListProxy* self = NULL;
   PyObject *units_module;
@@ -186,6 +187,36 @@ PyUnitListProxy_getitem(
   return result;
 }
 
+static PyObject*
+PyUnitListProxy_richcmp(
+	PyObject *a,
+	PyObject *b,
+	int op){
+  PyUnitListProxy *lhs, *rhs;
+  assert(a != NULL && b != NULL);
+  if (!PyObject_TypeCheck(a, &PyUnitListProxyType) ||
+      !PyObject_TypeCheck(b, &PyUnitListProxyType)) {
+    Py_RETURN_NOTIMPLEMENTED;
+  }
+  if (op != Py_EQ && op != Py_NE) {
+    Py_RETURN_NOTIMPLEMENTED;
+  }
+  lhs = (PyUnitListProxy *)a;
+  rhs = (PyUnitListProxy *)b;
+  int equal = PyObject_RichCompareBool(lhs->unit_class, rhs->unit_class, Py_EQ);
+  if (equal == -1) {
+    return NULL;  // Exception will be set because the rich-compare failed
+  }
+  equal = equal == 1 && !strncmp(lhs->array, rhs->array, ARRAYSIZE) && lhs->size == rhs->size;
+  if ((op == Py_EQ && equal == 1) ||
+      (op == Py_NE && equal == 0)) {
+    Py_RETURN_TRUE;
+  } 
+  else {
+    Py_RETURN_FALSE;
+  }
+}
+
 static int
 PyUnitListProxy_setitem(
     PyUnitListProxy* self,
@@ -274,7 +305,7 @@ static PyTypeObject PyUnitListProxyType = {
   0,                          /* tp_doc */
   (traverseproc)PyUnitListProxy_traverse, /* tp_traverse */
   (inquiry)PyUnitListProxy_clear, /* tp_clear */
-  0,                          /* tp_richcompare */
+  (richcmpfunc)PyUnitListProxy_richcmp, /* tp_richcompare */
   0,                          /* tp_weaklistoffset */
   0,                          /* tp_iter */
   0,                          /* tp_iternext */
@@ -298,7 +329,7 @@ set_unit_list(
     const char* propname,
     PyObject* value,
     Py_ssize_t len,
-    char (*dest)[72]) {
+    char (*dest)[ARRAYSIZE]) {
 
   PyObject*  unit  = NULL;
   PyObject*  proxy = NULL;
@@ -362,3 +393,4 @@ _setup_unit_list_proxy_type(
 
   return 0;
 }
+
