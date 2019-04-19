@@ -8,10 +8,10 @@ from asdf import yamlutil
 
 from astropy import table
 from astropy.io import fits
-from astropy.io.misc.asdf.types import AstropyAsdfType
+from astropy.io.misc.asdf.types import AstropyType, AstropyAsdfType
 
 
-class FitsType(AstropyAsdfType):
+class FitsType:
     name = 'fits/fits'
     types = ['astropy.io.fits.HDUList']
     requires = ['astropy']
@@ -82,3 +82,23 @@ class FitsType(AstropyAsdfType):
             assert_array_equal(hdua.data, hdub.data)
             for carda, cardb in zip(hdua.header.cards, hdub.header.cards):
                 assert tuple(carda) == tuple(cardb)
+
+
+class AstropyFitsType(FitsType, AstropyType):
+    """
+    This class implements ASDF serialization/deserialization that corresponds
+    to the FITS schema defined by Astropy. It will be used by default when
+    writing new HDUs to ASDF files.
+    """
+
+
+class AsdfFitsType(FitsType, AstropyAsdfType):
+    """
+    This class implements ASDF serialization/deserialization that corresponds
+    to the FITS schema defined by the ASDF Standard. It will not be used by
+    default, except when reading files that use the ASDF Standard definition
+    rather than the one defined in Astropy. It will primarily be used for
+    backwards compatibility for reading older files. In the unlikely case that
+    another ASDF implementation uses the FITS schema from the ASDF Standard,
+    this tag could also be used to read a file it generated.
+    """

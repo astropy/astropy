@@ -41,34 +41,30 @@ class TimeType(AstropyAsdfType):
 
     @classmethod
     def to_tree(cls, node, ctx):
-        format = node.format
+        fmt = node.format
 
-        if format == 'byear':
+        if fmt == 'byear':
             node = time.Time(node, format='byear_str')
 
-        elif format == 'jyear':
+        elif fmt == 'jyear':
             node = time.Time(node, format='jyear_str')
 
-        elif format in ('fits', 'datetime', 'plot_date'):
+        elif fmt in ('fits', 'datetime', 'plot_date'):
             node = time.Time(node, format='isot')
 
-        format = node.format
+        fmt = node.format
 
-        format = _astropy_format_to_asdf_format.get(format, format)
+        fmt = _astropy_format_to_asdf_format.get(fmt, fmt)
 
-        guessable_format = format in _guessable_formats
+        guessable_format = fmt in _guessable_formats
 
-        if node.scale == 'utc' and guessable_format:
-            if node.isscalar:
-                return node.value
-            else:
-                return yamlutil.custom_tree_to_tagged_tree(
-                    node.value, ctx)
+        if node.scale == 'utc' and guessable_format and node.isscalar:
+            return node.value
 
         d = {'value': yamlutil.custom_tree_to_tagged_tree(node.value, ctx)}
 
         if not guessable_format:
-            d['format'] = format
+            d['format'] = fmt
 
         if node.scale != 'utc':
             d['scale'] = node.scale
@@ -97,13 +93,13 @@ class TimeType(AstropyAsdfType):
     def from_tree(cls, node, ctx):
         if isinstance(node, (str, list, np.ndarray)):
             t = time.Time(node)
-            format = _astropy_format_to_asdf_format.get(t.format, t.format)
-            if format not in _guessable_formats:
+            fmt = _astropy_format_to_asdf_format.get(t.format, t.format)
+            if fmt not in _guessable_formats:
                 raise ValueError("Invalid time '{0}'".format(node))
             return t
 
         value = node['value']
-        format = node.get('format')
+        fmt = node.get('format')
         scale = node.get('scale')
         location = node.get('location')
         if location is not None:
@@ -116,7 +112,7 @@ class TimeType(AstropyAsdfType):
             location = EarthLocation.from_geocentric(
                 location['x'], location['y'], location['z'])
 
-        return time.Time(value, format=format, scale=scale, location=location)
+        return time.Time(value, format=fmt, scale=scale, location=location)
 
     @classmethod
     def assert_equal(cls, old, new):
