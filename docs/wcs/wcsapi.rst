@@ -251,6 +251,93 @@ We can specify that for this CTYPE, the physical type should be
     ...     wcs.world_axis_physical_types
     ['food.spam']
 
+Slicing of WCS objects
+======================
+
+A common operation when dealing with data with WCS information attached is to
+slice the WCS - this can be either to extract the WCS for a sub-region of the
+data, preserving the overall number of dimensions (e.g. a cutout from an image)
+or it can be reducing the dimensionality of the data and associated WCS (e.g.
+extracting a slice from a spectral cube).
+
+The :class:`~astropy.wcs.wcsapi.SlicedLowLevelWCS` class can be used to slice
+any WCS object that conforms to the :class:`~astropy.wcs.wcsapi.BaseLowLevelWCS`
+API. To demonstrate this, let's start off by reading in a spectral cube file::
+
+    >>> filename = get_pkg_data_filename('l1448/l1448_13co.fits')  # doctest: +REMOTE_DATA
+    >>> hdu = fits.open(filename)[0]  # doctest: +REMOTE_DATA
+    >>> wcs = WCS(hdu.header)  # doctest: +REMOTE_DATA
+
+The ``wcs`` object is an instance of :class:`~astropy.wcs.WCS` which conforms to the
+:class:`~astropy.wcs.wcsapi.BaseLowLevelWCS` API. We can then use the
+:class:`~astropy.wcs.wcsapi.SlicedLowLevelWCS` class to slice the cube::
+
+    >>> from astropy.wcs.wcsapi import SlicedLowLevelWCS
+    >>> slices = [10, slice(30, 100), slice(30, 100)]  # doctest: +REMOTE_DATA
+    >>> subwcs = SlicedLowLevelWCS(wcs, slices=slices)  # doctest: +REMOTE_DATA
+
+The ``slices`` argument takes any combination of slices, integer values, and
+ellipsis which would normally slice a Numpy array. In the above case, we are
+extracting a spectral slice, and in that slice we are extracting a sub-region
+on the sky.
+
+If you are implementing your own WCS class, you could choose to implement
+``__getitem__`` and have it internally use
+:class:`~astropy.wcs.wcsapi.SlicedLowLevelWCS`. In fact, the
+:class:`~astropy.wcs.WCS` class does this - the example above can be written
+more succinctly as::
+
+    >>> wcs[10, 30:100, 30:100]  # doctest: +REMOTE_DATA
+    SlicedFITSWCS Transformation
+    <BLANKLINE>
+    This transformation has 2 pixel and 2 world dimensions
+    <BLANKLINE>
+    Array shape (Numpy order): (70, 70)
+    <BLANKLINE>
+    Pixel Dim  Data size  Units
+            0         70  None
+            1         70  None
+    <BLANKLINE>
+    World Dim  Physical Type  Units
+            0  pos.eq.ra      deg
+            1  pos.eq.dec     deg
+    <BLANKLINE>
+    Correlation between pixel and world axes:
+    <BLANKLINE>
+               Pixel Dim
+    World Dim    0    1
+            0  yes  yes
+            1  yes  yes
+
+This slicing infrastructure is able to deal with slicing of WCS objects which
+have correlated axes - in this case, you may end up with a WCS that has a
+different number of pixel and world coordinates. For example, if we slice
+a spectral cube to extract a 1D dataset corresponding to a row in the
+image plane of a spectral slice, the final WCS will have one pixel dimension
+and two world dimensions (since both RA/Dec vary over the extracted 1D slice)::
+
+    >>> wcs[10, 40, :]
+    SlicedFITSWCS Transformation
+    <BLANKLINE>
+    This transformation has 1 pixel and 2 world dimensions
+    <BLANKLINE>
+    Array shape (Numpy order): (105,)
+    <BLANKLINE>
+    Pixel Dim  Data size  Units
+            0        105  None
+    <BLANKLINE>
+    World Dim  Physical Type  Units
+            0  pos.eq.ra      deg
+            1  pos.eq.dec     deg
+    <BLANKLINE>
+    Correlation between pixel and world axes:
+    <BLANKLINE>
+               Pixel Dim
+    World Dim    0
+            0  yes
+            1  yes
+    <BLANKLINE>
+
 Reference/API
 =============
 
