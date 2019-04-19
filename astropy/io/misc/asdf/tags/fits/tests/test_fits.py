@@ -12,6 +12,8 @@ from astropy import __minimum_asdf_version__
 asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
 from asdf.tests import helpers
 
+from ...tests.helpers import run_schema_example_test
+
 
 def test_complex_structure(tmpdir):
     with fits.open(os.path.join(
@@ -33,6 +35,21 @@ def test_fits_table(tmpdir):
     tree = {'fits': h}
 
     def check_yaml(content):
-        assert b'!core/table' in content
+        assert b'!<tag:astropy.org:astropy/table/table-1.0.0>' in content
 
     helpers.assert_roundtrip_tree(tree, tmpdir, raw_yaml_check_func=check_yaml)
+
+
+def test_backwards_compat():
+    """
+    Make sure that we can continue to read FITS HDUs that use the schema from
+    the ASDF Standard.
+
+    This test uses the examples in the fits schema from the ASDF Standard,
+    since these make no reference to Astropy's own fits definition.
+    """
+
+    def check(asdffile):
+        assert isinstance(asdffile['example'], fits.HDUList)
+
+    run_schema_example_test('stsci.edu', 'asdf', 'fits/fits', '1.0.0', check)
