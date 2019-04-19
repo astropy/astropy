@@ -260,3 +260,34 @@ to be used in scripted programs; it's better to use
     ax = fig.add_subplot(1, 1, 1)
     im = ax.imshow(image, origin='lower', norm=norm)
     fig.colorbar(im)
+
+Combining stretches and Matplotlib normalization
+================================================
+
+Stretches can also be combined with other stretches, just like transformations.
+The resulting :class:`~astropy.visualization.stretch.CompositeStretch` can be 
+used to normalize Matplotlib images like any other stretch. For example, a
+composite stretch can stretch residual images with negative values:
+
+.. plot::
+    :include-source:
+    :align: center
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy.visualization.stretch import SinhStretch, LinearStretch
+    from astropy.visualization import ImageNormalize
+
+    # Transforms normalized values [0,1] to [-1,1] before stretch and then back
+    stretch = LinearStretch(slope=0.5, intercept=0.5) + SinhStretch() + \
+        LinearStretch(slope=2, intercept=-1)
+
+    # Image of random Gaussian noise
+    image = np.random.normal(size=(64, 64))
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    # ImageNormalize normalizes values to [0,1] before applying the stretch
+    norm = ImageNormalize(stretch=stretch)
+    im = ax.imshow(image, origin='lower', norm=norm, cmap='gray',
+        vmin=-5, vmax=5)
+    fig.colorbar(im)
