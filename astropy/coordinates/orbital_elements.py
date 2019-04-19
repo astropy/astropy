@@ -240,6 +240,6 @@ def calc_moon(t):
 
     # Meeus algorithm gives GeocentricTrueEcliptic coordinates
     ecliptic_coo = GeocentricTrueEcliptic(lon, lat, distance=dist,
-                                          equinox=t)
+                                          obstime=t, equinox=t)
 
     return SkyCoord(ecliptic_coo.transform_to(ICRS))
