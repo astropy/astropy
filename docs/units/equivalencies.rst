@@ -412,12 +412,11 @@ scaling:
     >>> mag_quantity.to(u.mag, u.with_H0(H0_70))  # doctest: +FLOAT_CMP
     <Quantity 11.2254902 mag>
 
-
 Temperature Equivalency
 -----------------------
 
 The :func:`~astropy.units.temperature` equivalency allows conversion
-between the Celsius, Fahrenheit and Kelvin. For example::
+between the Celsius, Fahrenheit, and Kelvin. For example::
 
     >>> import astropy.units as u
     >>> temp_C = 0 * u.Celsius
