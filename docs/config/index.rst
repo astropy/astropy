@@ -76,7 +76,7 @@ configuration parameters. For instance, to get the default URL for
     'http://data.astropy.org/'
 
 Changing Values at Runtime
----------------------------
+--------------------------
 
 Changing the persistent state of configuration values is done by editing the
 configuration file as described above. Values can also, however, be
