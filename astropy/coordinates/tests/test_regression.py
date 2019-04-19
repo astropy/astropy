@@ -601,7 +601,7 @@ def test_regression_6697():
     """
     pint_vels = CartesianRepresentation(*(348.63632871, -212.31704928, -0.60154936), unit=u.m/u.s)
     location = EarthLocation(*(5327448.9957829, -1718665.73869569,  3051566.90295403), unit=u.m)
-    t = Time(2458036.161966612, format='jd', scale='utc')
+    t = Time(2458036.161966612, format='jd')
     obsgeopos, obsgeovel = location.get_gcrs_posvel(t)
     delta = (obsgeovel-pint_vels).norm()
     assert delta < 1*u.cm/u.s

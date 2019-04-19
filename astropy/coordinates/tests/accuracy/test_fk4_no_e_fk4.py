@@ -36,7 +36,7 @@ def test_fk4_no_e_fk4():
 
         # FK4 to FK4NoETerms
         c1 = FK4(ra=r['ra_in']*u.deg, dec=r['dec_in']*u.deg,
-                 obstime=Time(r['obstime'], scale='utc'))
+                 obstime=Time(r['obstime']))
         c2 = c1.transform_to(FK4NoETerms)
 
         # Find difference
@@ -47,7 +47,7 @@ def test_fk4_no_e_fk4():
 
         # FK4NoETerms to FK4
         c1 = FK4NoETerms(ra=r['ra_in']*u.deg, dec=r['dec_in']*u.deg,
-                         obstime=Time(r['obstime'], scale='utc'))
+                         obstime=Time(r['obstime']))
         c2 = c1.transform_to(FK4)
 
         # Find difference

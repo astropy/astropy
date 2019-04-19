@@ -357,7 +357,7 @@ def test_realizing():
     assert not i.has_data
     assert i2.has_data
 
-    f = FK5(equinox=Time('J2001', scale='utc'))
+    f = FK5(equinox=Time('J2001'))
     f2 = f.realize_frame(rep)
 
     assert not f.has_data
@@ -436,7 +436,7 @@ def test_transform():
 
     assert i2.data.__class__ != r.UnitSphericalRepresentation
 
-    f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001', scale='utc'))
+    f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001'))
     f4 = f.transform_to(FK4)
     f4_2 = f.transform_to(FK4(equinox=f.equinox))
 
@@ -451,7 +451,7 @@ def test_transform():
     assert_allclose(i.ra, i2.ra)
     assert_allclose(i.dec, i2.dec)
 
-    f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001', scale='utc'))
+    f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001'))
     f2 = f.transform_to(FK5)  # default equinox, so should be *different*
     assert f2.equinox == FK5().equinox
     with pytest.raises(AssertionError):
