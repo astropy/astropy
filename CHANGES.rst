@@ -48,10 +48,18 @@ astropy.io.misc
 
 - Implement serialization of ``SkyCoord`` in ASDF. [#8284]
 
+- No warnings when reading HDF5 files with only one table and no ``path=`` argument [#8483]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 -  Optimize ``Header`` parsing. [#8428]
+
+-  Change behavior of FITS undefined value in ``Header`` such that ``None``
+   is used in Python to represent FITS undefined when using dict interface.
+   ``Undefined`` can also be assigned and is translated to ``None``.
+   Previously setting a header card value to ``None`` resulted in an
+   empty string field rather than a FITS undefined value. [#8572]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
@@ -82,6 +90,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Added new pprint_all() and pformat_all() methods to Table. These two new
+  methods print the entire table by default. [#8577]
+
 - Removed restriction of initializing a Table from a dict with copy=False. [#8541]
 
 - Improved speed of table row access by a factor of about 2-3.  Improved speed
@@ -108,11 +119,22 @@ astropy.table
 - Improved Table slicing performance with internal implementation changes
   related to column attribute access and certain input validation. [#8493]
 
+- Improved ``Table.sort()`` performance by removing ``self[keys]`` from code
+  which is creating deep copies of ``meta`` attribute and adding a new keyword
+  ``names`` in ``get_index()`` to get index by using a list or tuple containing
+  names of columns. [#8570]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+- Added a new astropy.timeseries sub-package to represent and manipulate
+  sampled and binned time series. [#8540]
 
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
@@ -315,6 +337,10 @@ astropy.units
 - Added a ``Quantity.to_string`` method to add flexibility to the string formatting
   of quantities. It produces unadorned or LaTeX strings, and accepts two different
   sets of delimiters in the latter case: ``inline`` and ``display``. [#8313]
+
+- Ensure classes that mimic quantities by having a ``unit`` attribute and/or
+  ``to`` and ``to_value`` methods can be properly used to initialize ``Quantity``
+  or set ``Quantity`` instance items. [#8535]
 
 astropy.utils
 ^^^^^^^^^^^^^
@@ -699,6 +725,11 @@ astropy.table
 
 - Added support for stacking ``Column``, mixin column (e.g. ``Quantity``,
   ``Time``) or column-like objects. [#7674]
+
+- Expose ``represent_mixins_as_columns`` as a public function in the
+  ``astropy.table`` subpackage.  This previously-private function in the
+  ``table.serialize`` module is used to represent mixin columns in a Table as
+  one or more plain Column objects. [#7729]
 
 - Added support for inserting a row into a Table that has ``Time`` or
   ``TimeDelta`` column(s). [#7897]

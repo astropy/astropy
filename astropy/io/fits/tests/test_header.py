@@ -780,7 +780,7 @@ class TestHeaderFunctions(FitsTestCase):
         header['FOO'] = ('BAR',)
         header['FOO2'] = (None,)
         assert header['FOO'] == 'BAR'
-        assert header['FOO2'] == ''
+        assert header['FOO2'] is None
         assert header[0] == 'BAR'
         assert header.comments[0] == ''
         assert header.comments['FOO'] == ''
@@ -790,7 +790,7 @@ class TestHeaderFunctions(FitsTestCase):
         header['FOO'] = ('BAR', 'BAZ')
         header['FOO2'] = (None, None)
         assert header['FOO'] == 'BAR'
-        assert header['FOO2'] == ''
+        assert header['FOO2'] is None
         assert header[0] == 'BAR'
         assert header.comments[0] == 'BAZ'
         assert header.comments['FOO'] == 'BAZ'
@@ -798,15 +798,48 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_header_set_value_to_none(self):
         """
-        Setting the value of a card to None should simply give that card a
-        blank value.
+        Setting the value of a card to None should simply give that card an
+        undefined value.  Undefined value should map to None.
         """
 
         header = fits.Header()
         header['FOO'] = 'BAR'
         assert header['FOO'] == 'BAR'
         header['FOO'] = None
-        assert header['FOO'] == ''
+        assert header['FOO'] is None
+
+        # Create a header that contains an undefined value and a defined
+        # value.
+        hstr = "UNDEF   = \nDEFINED = 42"
+        header = fits.Header.fromstring(hstr, sep='\n')
+
+        # Explicitly add a card with an UNDEFINED value
+        c = fits.Card("UNDEF2", fits.card.UNDEFINED)
+        header.extend([c])
+
+        # And now assign an undefined value to the header through setitem
+        header['UNDEF3'] = fits.card.UNDEFINED
+
+        # Tuple assignment
+        header.append(("UNDEF5", None, "Undefined value"), end=True)
+        header.append("UNDEF6")
+
+        assert header['DEFINED'] == 42
+        assert header['UNDEF'] is None
+        assert header['UNDEF2'] is None
+        assert header['UNDEF3'] is None
+        assert header['UNDEF5'] is None
+        assert header['UNDEF6'] is None
+
+        # Assign an undefined value to a new card
+        header['UNDEF4'] = None
+
+        # Overwrite an existing value with None
+        header["DEFINED"] = None
+
+        # All headers now should be undefined
+        for c in header.cards:
+            assert c.value == fits.card.UNDEFINED
 
     def test_set_comment_only(self):
         header = fits.Header([('A', 'B', 'C')])
@@ -936,10 +969,10 @@ class TestHeaderFunctions(FitsTestCase):
     def test_header_fromkeys(self):
         header = fits.Header.fromkeys(['A', 'B'])
         assert 'A' in header
-        assert header['A'] == ''
+        assert header['A'] is None
         assert header.comments['A'] == ''
         assert 'B' in header
-        assert header['B'] == ''
+        assert header['B'] is None
         assert header.comments['B'] == ''
 
     def test_header_fromkeys_with_value(self):
@@ -1271,7 +1304,7 @@ class TestHeaderFunctions(FitsTestCase):
         header.append('E')
         assert len(header) == 3
         assert list(header)[-1] == 'E'
-        assert header[-1] == ''
+        assert header[-1] is None
         assert header.comments['E'] == ''
 
         # Try appending a blank--normally this can be accomplished with just

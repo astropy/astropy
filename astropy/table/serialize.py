@@ -120,11 +120,60 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
     mixin_cols[name] = obj_attrs
 
 
-def _represent_mixins_as_columns(tbl, exclude_classes=()):
-    """
-    Convert any mixin columns to plain Column or MaskedColumn and
-    return a new table.  Exclude any mixin columns in ``exclude_classes``,
-    which must be a tuple of classes.
+def represent_mixins_as_columns(tbl, exclude_classes=()):
+    """Represent input Table ``tbl`` using only `~astropy.table.Column`
+    or  `~astropy.table.MaskedColumn` objects.
+
+    This function represents any mixin columns like `~astropy.time.Time` in
+    ``tbl`` to one or more plain ``~astropy.table.Column`` objects and returns
+    a new Table.  A single mixin column may be split into multiple column
+    components as needed for fully representing the column.  This includes the
+    possibility of recursive splitting, as shown in the example below.  The
+    new column names are formed as ``<column_name>.<component>``, e.g.
+    ``sc.ra`` for a `~astropy.coordinates.SkyCoord` column named ``sc``.
+
+    In addition to splitting columns, this function updates the table ``meta``
+    dictionary to include a dict named ``__serialized_columns__`` which provides
+    additional information needed to construct the original mixin columns from
+    the split columns.
+
+    This function is used by astropy I/O when writing tables to ECSV, FITS,
+    HDF5 formats.
+
+    Note that if the table does not include any mixin columns then the original
+    table is returned with no update to ``meta``.
+
+    Parameters
+    ----------
+    tbl : `~astropy.table.Table` or subclass
+        Table to represent mixins as Columns
+    exclude_classes : tuple of classes
+        Exclude any mixin columns which are instannces of any classes in the tuple
+
+    Returns
+    -------
+    tbl : `~astropy.table.Table`
+        New Table with updated columns, or else the original input ``tbl``
+
+    Examples
+    --------
+    >>> from astropy.table import Table, represent_mixins_as_columns
+    >>> from astropy.time import Time
+    >>> from astropy.coordinates import SkyCoord
+
+    >>> x = [100.0, 200.0]
+    >>> obstime = Time([1999.0, 2000.0], format='jyear')
+    >>> sc = SkyCoord([1, 2], [3, 4], unit='deg', obstime=obstime)
+    >>> tbl = Table([sc, x], names=['sc', 'x'])
+    >>> represent_mixins_as_columns(tbl)
+    <Table length=2>
+     sc.ra   sc.dec sc.obstime.jd1 sc.obstime.jd2    x
+      deg     deg
+    float64 float64    float64        float64     float64
+    ------- ------- -------------- -------------- -------
+        1.0     3.0      2451180.0          -0.25   100.0
+        2.0     4.0      2451545.0            0.0   200.0
+
     """
     # Dict of metadata for serializing each column, keyed by column name.
     # Gets filled in place by _represent_mixin_as_column().

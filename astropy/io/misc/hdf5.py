@@ -116,10 +116,11 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
                                  format(path))
             elif len(arrays) > 0:
                 path = arrays[0] if path is None else path + '/' + arrays[0]
-                warnings.warn("path= was not specified but multiple tables"
-                              " are present, reading in first available"
-                              " table (path={0})".format(path),
-                              AstropyUserWarning)
+                if len(arrays) > 1:
+                    warnings.warn("path= was not specified but multiple tables"
+                                  " are present, reading in first available"
+                                  " table (path={0})".format(path),
+                                  AstropyUserWarning)
                 return read_table_hdf5(input, path=path)
 
     elif not isinstance(input, h5py.Dataset):
@@ -215,7 +216,7 @@ def _encode_mixins(tbl):
     # Convert the table to one with no mixins, only Column objects.  This adds
     # meta data which is extracted with meta.get_yaml_from_table.
     with serialize_context_as('hdf5'):
-        encode_tbl = serialize._represent_mixins_as_columns(tbl)
+        encode_tbl = serialize.represent_mixins_as_columns(tbl)
 
     return encode_tbl
 

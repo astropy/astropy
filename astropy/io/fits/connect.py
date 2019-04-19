@@ -320,7 +320,7 @@ def _encode_mixins(tbl):
     # FITS Time handling does the right thing.
 
     with serialize_context_as('fits'):
-        encode_tbl = serialize._represent_mixins_as_columns(
+        encode_tbl = serialize.represent_mixins_as_columns(
             tbl, exclude_classes=(Time,))
 
     # If the encoded table is unchanged then there were no mixins.  But if there

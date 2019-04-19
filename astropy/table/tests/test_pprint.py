@@ -258,6 +258,21 @@ class TestPprint():
             lines = self.tb.pformat(max_lines=max_lines, show_unit=False)
             assert len(lines) == max(8, min(102, max_lines))
 
+    def test_pformat_all(self, table_type):
+        """Test that all rows are printed by default"""
+        self._setup(table_type)
+        lines = self.tb.pformat_all()
+        # +3 accounts for the three header lines in this  table
+        assert len(lines) ==  BIG_WIDE_ARR.shape[0] + 3
+
+    @pytest.fixture
+    def test_pprint_all(self, table_type, capsys):
+        """Test that all rows are printed by default"""
+        self._setup(table_type)
+        self.tb.pprint_all()
+        (out, err) = capsys.readouterr()
+        # +3 accounts for the three header lines in this  table
+        assert len(out) ==  BIG_WIDE_ARR.shape[0] + 3
 
 @pytest.mark.usefixtures('table_type')
 class TestFormat():
