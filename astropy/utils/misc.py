@@ -978,6 +978,35 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
         """
         return self._apply('reshape', *args, **kwargs)
 
+    def atleast_nd(self, ndmin, *args, **kwargs):
+        """Returns an instance containing the same data with shape at
+        least as large as the requested dimensionality. The behavior is
+        analogous to the :func:`numpy.atleast_1d`, :func:`numpy.atleast_2d`,
+        and :func:`numpy.atleast_3d` functions.
+
+        Note that the same caveats regarding copying apply to this method as to
+        :meth:`reshape`.
+
+        Parameters
+        ----------
+        ndmin : int
+            The minimum dimensionality/shape length of the returned array.
+        Additional parameters are as for :meth:`reshape` (other than the leading
+        shape positional argument).
+
+        Returns
+        -------
+        ret
+            An object of the same type as this one but possibly reshaped based
+            on the requested dimensionality.
+        """
+        dimstoadd = ndmin - len(self.shape)
+        # if dimstoadd is 0 or negative - i.e., already big enough - the
+        # resulting shape is the same as the starting shape so the reshape
+        # is a no-op
+        newshape = [1]*dimstoadd + list(self.shape)
+        return self.reshape(newshape, *args, **kwargs)
+
     def ravel(self, *args, **kwargs):
         """Return an instance with the array collapsed into one dimension.
 
