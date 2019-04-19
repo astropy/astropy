@@ -108,7 +108,7 @@ def test_faux_fk5_galactic():
 
 
 def test_gcrs_diffs():
-    time = Time('J2017')
+    time = Time('2017-01-01')
     gf = GCRS(obstime=time)
     sung = get_sun(time)  # should have very little vhelio
 

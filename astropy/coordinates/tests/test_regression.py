@@ -44,6 +44,10 @@ def test_regression_5085():
     At root was the transformation of Ecliptic coordinates with
     non-scalar times.
     """
+    # Note: for regression test, we need to be sure that we use UTC for the
+    # epoch, even though more properly that should be TT; but the "expected"
+    # values were calculated using that.
+    j2000 = Time('J2000', scale='utc')
     times = Time(["2015-08-28 03:30", "2015-09-05 10:30", "2015-09-15 18:35"])
     latitudes = Latitude([3.9807075, -5.00733806, 1.69539491]*u.deg)
     longitudes = Longitude([311.79678613, 72.86626741, 199.58698226]*u.deg)
@@ -56,8 +60,8 @@ def test_regression_5085():
     decs = Latitude([-18.25190443, -17.1556676, -15.71616522]*u.deg)
     distances = u.Quantity([1.78309901, 1.710874, 1.61326649]*u.au)
     expected_result = GCRS(ra=ras, dec=decs,
-                           distance=distances, obstime="J2000").cartesian.xyz
-    actual_result = coo.transform_to(GCRS(obstime="J2000")).cartesian.xyz
+                           distance=distances, obstime=j2000).cartesian.xyz
+    actual_result = coo.transform_to(GCRS(obstime=j2000)).cartesian.xyz
     assert_quantity_allclose(expected_result, actual_result)
 
 
