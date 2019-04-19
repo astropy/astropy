@@ -219,8 +219,8 @@ astropy.stats
 ^^^^^^^^^^^^^
 
 - The ``BoxLeastSquares`` and ``LombScargle`` classes have been moved to the
-  ``astropy.timeseries`` module and will now emit a deprecation warning when
-  imported from ``astropy.stats``. [#8591]
+  ``astropy.timeseries.periodogram`` module and will now emit a deprecation
+  warning when imported from ``astropy.stats``. [#8591]
 
 astropy.table
 ^^^^^^^^^^^^^
