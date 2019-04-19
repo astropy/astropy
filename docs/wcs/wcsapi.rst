@@ -316,7 +316,7 @@ a spectral cube to extract a 1D dataset corresponding to a row in the
 image plane of a spectral slice, the final WCS will have one pixel dimension
 and two world dimensions (since both RA/Dec vary over the extracted 1D slice)::
 
-    >>> wcs[10, 40, :]
+    >>> wcs[10, 40, :]  # doctest: +REMOTE_DATA
     SlicedFITSWCS Transformation
     <BLANKLINE>
     This transformation has 1 pixel and 2 world dimensions
