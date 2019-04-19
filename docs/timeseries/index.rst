@@ -192,7 +192,7 @@ a duration of 0.2 days::
 
     >>> import numpy as np
     >>> from astropy import units as u
-    >>> from astropy.stats import BoxLeastSquares
+    >>> from astropy.timeseries import BoxLeastSquares
     >>> keep = ~np.isnan(ts['sap_flux'])  # doctest: +REMOTE_DATA
     >>> periodogram = BoxLeastSquares(ts.time.jd[keep] * u.day,
     ...                               ts['sap_flux'][keep]).autopower(0.2 * u.day)  # doctest: +REMOTE_DATA
@@ -206,7 +206,7 @@ a duration of 0.2 days::
 
    import numpy as np
    from astropy import units as u
-   from astropy.stats import BoxLeastSquares
+   from astropy.timeseries import BoxLeastSquares
    keep = ~np.isnan(ts['sap_flux'])
    periodogram = BoxLeastSquares(ts.time.jd[keep] * u.day, ts['sap_flux'][keep]).autopower(0.2 * u.day)
    period = periodogram.period[np.argmax(periodogram.power)]
