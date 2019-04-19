@@ -671,7 +671,8 @@ def test_wcs_keyword_removal_for_wcs_test_files():
     Includes regression test for #8597
     """
     from astropy.nddata.ccddata import _generate_wcs_and_update_header
-    from astropy.nddata.ccddata import _KEEP_THESE_KEYWORDS_IN_HEADER
+    from astropy.nddata.ccddata import (_KEEP_THESE_KEYWORDS_IN_HEADER,
+                                        _CDs, _PCs)
 
     keepers = set(_KEEP_THESE_KEYWORDS_IN_HEADER)
     wcs_headers = get_pkg_data_filenames('../../wcs/tests/data',
@@ -707,13 +708,10 @@ def test_wcs_keyword_removal_for_wcs_test_files():
         final_header = new_header + new_wcs_header
         final_header_set = set(final_header)
 
-        PCs = set(['PC1_1', 'PC1_2', 'PC2_1', 'PC2_2'])
-        CDs = set(['CD1_1', 'CD1_2', 'CD2_1', 'CD2_2'])
-
-        if PCs & final_header_set:
-            assert not (CDs & final_header_set)
-        elif CDs & final_header_set:
-            assert not (PCs & final_header_set)
+        if _PCs & final_header_set:
+            assert not (_CDs & final_header_set)
+        elif _CDs & final_header_set:
+            assert not (_PCs & final_header_set)
 
         # Check that the new wcs is the same as the old.
         for k, v in new_wcs_header.items():
