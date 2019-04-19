@@ -2255,9 +2255,9 @@ class Table:
 
         Parameters
         ----------
-        names: list, tuple
+        names : list, tuple
             A list or tuple of existing column names.
-        new_names: list, tuple
+        new_names : list, tuple
             A list or tuple of new column names.
 
         Examples
