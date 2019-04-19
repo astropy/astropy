@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """This module implements the base CCDData class."""
 
+import itertools
+
 import numpy as np
 
 from .compat import NDDataArray
@@ -474,6 +476,17 @@ def _generate_wcs_and_update_header(hdr):
     # so if the implementation of to_header changes in wcslib in the future
     # then the tests should catch it, and then this code will need to be
     # updated.
+
+    # We need to check for any SIP coefficients that got left behind if the
+    # header has SIP.
+    if wcs.sip is not None:
+        keyword = '{}_{}_{}'
+        polynomials = ['A', 'B', 'AP', 'BP']
+        for poly in polynomials:
+            order = wcs.sip.__getattribute__('{}_order'.format(poly.lower()))
+            for i, j in itertools.product(range(order), repeat=2):
+                new_hdr.remove(keyword.format(poly, i, j),
+                               ignore_missing=True)
 
     return (new_hdr, wcs)
 
