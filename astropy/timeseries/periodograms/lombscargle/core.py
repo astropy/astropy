@@ -152,10 +152,10 @@ class LombScargle:
     def _validate_frequency(self, frequency):
         frequency = np.asanyarray(frequency)
 
-        if has_units(self.t):
+        if has_units(self._trel):
             frequency = units.Quantity(frequency)
             try:
-                frequency = units.Quantity(frequency, unit=1./self.t.unit)
+                frequency = units.Quantity(frequency, unit=1./self._trel.unit)
             except units.UnitConversionError:
                 raise ValueError("Units of frequency not equivalent to "
                                  "units of 1/t")
@@ -167,10 +167,10 @@ class LombScargle:
     def _validate_t(self, t):
         t = np.asanyarray(t)
 
-        if has_units(self.t):
+        if has_units(self._trel):
             t = units.Quantity(t)
             try:
-                t = units.Quantity(t, unit=self.t.unit)
+                t = units.Quantity(t, unit=self._trel.unit)
             except units.UnitConversionError:
                 raise ValueError("Units of t not equivalent to "
                                  "units of input self.t")
@@ -413,7 +413,7 @@ class LombScargle:
         """
         frequency = self._validate_frequency(frequency)
         t = self._validate_t(self._as_relative_time('t', t))
-        y_fit = periodic_fit(*strip_units(self.t, self.y, self.dy),
+        y_fit = periodic_fit(*strip_units(self._trel, self.y, self.dy),
                              frequency=strip_units(frequency),
                              t_fit=strip_units(t),
                              center_data=self.center_data,
@@ -514,7 +514,7 @@ class LombScargle:
         offset
         """
         if t is None:
-            t, dy = strip_units(self.t, self.dy)
+            t, dy = strip_units(self._trel, self.dy)
         else:
             t, dy = strip_units(self._validate_t(self._as_relative_time('t', t)), None)
         return design_matrix(t, frequency, dy,
@@ -551,7 +551,7 @@ class LombScargle:
         dH = 1 if self.fit_mean or self.center_data else 0
         dK = dH + 2 * self.nterms
         dist = _statistics.cdf_single if cumulative else _statistics.pdf_single
-        return dist(power, len(self.t), self.normalization, dH=dH, dK=dK)
+        return dist(power, len(self._trel), self.normalization, dH=dH, dK=dK)
 
     def false_alarm_probability(self, power, method='baluev',
                                 samples_per_peak=5, nyquist_factor=5,
@@ -619,7 +619,7 @@ class LombScargle:
                                         return_freq_limits=True)
         return _statistics.false_alarm_probability(power,
                                                    fmax=fmax,
-                                                   t=self.t, y=self.y, dy=self.dy,
+                                                   t=self._trel, y=self.y, dy=self.dy,
                                                    normalization=self.normalization,
                                                    method=method,
                                                    method_kwds=method_kwds)

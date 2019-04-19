@@ -3,9 +3,10 @@
 
 import pytest
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_equal
 
-from astropy import units
+from astropy import units as u
+from astropy.time import Time, TimeDelta
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.timeseries.periodograms.bls import BoxLeastSquares
 from astropy.timeseries.periodograms.lombscargle.core import has_units
@@ -105,16 +106,16 @@ def test_fast_method(data, objective, offset):
 def test_input_units(data):
     t, y, dy, params = data
 
-    t_unit = units.day
-    y_unit = units.mag
+    t_unit = u.day
+    y_unit = u.mag
 
-    with pytest.raises(units.UnitConversionError):
-        BoxLeastSquares(t * t_unit, y * y_unit, dy * units.one)
-    with pytest.raises(units.UnitConversionError):
-        BoxLeastSquares(t * t_unit, y * units.one, dy * y_unit)
-    with pytest.raises(units.UnitConversionError):
+    with pytest.raises(u.UnitConversionError):
+        BoxLeastSquares(t * t_unit, y * y_unit, dy * u.one)
+    with pytest.raises(u.UnitConversionError):
+        BoxLeastSquares(t * t_unit, y * u.one, dy * y_unit)
+    with pytest.raises(u.UnitConversionError):
         BoxLeastSquares(t * t_unit, y, dy * y_unit)
-    model = BoxLeastSquares(t*t_unit, y * units.one, dy)
+    model = BoxLeastSquares(t*t_unit, y * u.one, dy)
     assert model.dy.unit == model.y.unit
     model = BoxLeastSquares(t*t_unit, y * y_unit, dy)
     assert model.dy.unit == model.y.unit
@@ -124,26 +125,26 @@ def test_input_units(data):
 
 def test_period_units(data):
     t, y, dy, params = data
-    t_unit = units.day
-    y_unit = units.mag
+    t_unit = u.day
+    y_unit = u.mag
     model = BoxLeastSquares(t * t_unit, y * y_unit, dy)
 
     p = model.autoperiod(params["duration"])
     assert p.unit == t_unit
-    p = model.autoperiod(params["duration"] * 24 * units.hour)
+    p = model.autoperiod(params["duration"] * 24 * u.hour)
     assert p.unit == t_unit
-    with pytest.raises(units.UnitConversionError):
-        model.autoperiod(params["duration"] * units.mag)
+    with pytest.raises(u.UnitConversionError):
+        model.autoperiod(params["duration"] * u.mag)
 
     p = model.autoperiod(params["duration"], minimum_period=0.5)
     assert p.unit == t_unit
-    with pytest.raises(units.UnitConversionError):
-        p = model.autoperiod(params["duration"], minimum_period=0.5*units.mag)
+    with pytest.raises(u.UnitConversionError):
+        p = model.autoperiod(params["duration"], minimum_period=0.5*u.mag)
 
     p = model.autoperiod(params["duration"], maximum_period=0.5)
     assert p.unit == t_unit
-    with pytest.raises(units.UnitConversionError):
-        p = model.autoperiod(params["duration"], maximum_period=0.5*units.mag)
+    with pytest.raises(u.UnitConversionError):
+        p = model.autoperiod(params["duration"], maximum_period=0.5*u.mag)
 
     p = model.autoperiod(params["duration"], minimum_period=0.5,
                          maximum_period=1.5)
@@ -154,8 +155,8 @@ def test_period_units(data):
 
 @pytest.mark.parametrize("method", ["fast", "slow"])
 @pytest.mark.parametrize("with_err", [True, False])
-@pytest.mark.parametrize("t_unit", [None, units.day])
-@pytest.mark.parametrize("y_unit", [None, units.mag])
+@pytest.mark.parametrize("t_unit", [None, u.day])
+@pytest.mark.parametrize("y_unit", [None, u.mag])
 @pytest.mark.parametrize("objective", ["likelihood", "snr"])
 def test_results_units(data, method, with_err, t_unit, y_unit, objective):
     t, y, dy, params = data
@@ -192,17 +193,17 @@ def test_results_units(data, method, with_err, t_unit, y_unit, objective):
     else:
         assert results.depth.unit == y_unit
         assert results.depth_err.unit == y_unit
-        assert results.depth_snr.unit == units.one
+        assert results.depth_snr.unit == u.one
 
         if dy is None:
             assert results.log_likelihood.unit == y_unit * y_unit
             if objective == "snr":
-                assert results.power.unit == units.one
+                assert results.power.unit == u.one
             else:
                 assert results.power.unit == y_unit * y_unit
         else:
-            assert results.log_likelihood.unit == units.one
-            assert results.power.unit == units.one
+            assert results.log_likelihood.unit == u.one
+            assert results.power.unit == u.one
 
 
 def test_autopower(data):
@@ -233,10 +234,10 @@ def test_model(data, with_units):
     model_true = np.dot(A, w)
 
     if with_units:
-        t = t * units.day
-        y = y * units.mag
-        dy = dy * units.mag
-        model_true = model_true * units.mag
+        t = t * u.day
+        y = y * u.mag
+        dy = dy * u.mag
+        model_true = model_true * u.mag
 
     # Compute the model using the periodogram
     pgram = BoxLeastSquares(t, y, dy)
@@ -278,14 +279,14 @@ def test_compute_stats(data, with_units, with_err):
 
     y_unit = 1
     if with_units:
-        y_unit = units.mag
-        t = t * units.day
-        y = y * units.mag
-        dy = dy * units.mag
-        params["period"] = params["period"] * units.day
-        params["duration"] = params["duration"] * units.day
-        params["transit_time"] = params["transit_time"] * units.day
-        params["depth"] = params["depth"] * units.mag
+        y_unit = u.mag
+        t = t * u.day
+        y = y * u.mag
+        dy = dy * u.mag
+        params["period"] = params["period"] * u.day
+        params["duration"] = params["duration"] * u.day
+        params["transit_time"] = params["transit_time"] * u.day
+        params["depth"] = params["depth"] * u.mag
     if not with_err:
         dy = None
 
@@ -347,3 +348,122 @@ def test_negative_times(data):
     results2.transit_time = (results2.transit_time + mu) % results2.period
 
     assert_allclose_blsresults(results1, results2)
+
+
+@pytest.mark.parametrize('timedelta', [False, True])
+def test_absolute_times(data, timedelta):
+
+    # Make sure that we handle absolute times correctly. We also check that
+    # TimeDelta works properly when timedelta is True.
+
+    # The example data uses relative times
+    t, y, dy, params = data
+
+    # FIXME: There seems to be a numerical stability issue in that if we run
+    # the algorithm with the same values but offset in time, the transit_time
+    # is not offset by a fixed amount. To avoid this issue in this test, we
+    # make sure the first time is also the smallest so that internally the
+    # values of the relative time should be the same.
+    t[0] = 0.
+
+    # Add units
+    t = t * u.day
+    y = y * u.mag
+    dy = dy * u.mag
+
+    # We now construct a set of absolute times but keeping the rest the same.
+    start = Time('2019-05-04T12:34:56')
+    trel = TimeDelta(t) if timedelta else t
+    t = trel + start
+
+    # and we set up two instances of BoxLeastSquares, one with absolute and one
+    # with relative times.
+    bls1 = BoxLeastSquares(t, y, dy)
+    bls2 = BoxLeastSquares(trel, y, dy)
+
+    results1 = bls1.autopower(0.16 * u.day)
+    results2 = bls2.autopower(0.16 * u.day)
+
+    # All the results should match except transit time which should be
+    # absolute instead of relative in the first case.
+
+    for key in results1:
+        if key == 'transit_time':
+            assert_quantity_allclose((results1[key] - start).to(u.day), results2[key])
+        elif key == 'objective':
+            assert results1[key] == results2[key]
+        else:
+            assert_allclose(results1[key], results2[key])
+
+    # Check that model evaluation works fine
+
+    model1 = bls1.model(t, 0.2 * u.day, 0.05 * u.day, Time('2019-06-04T12:34:56'))
+    model2 = bls2.model(trel, 0.2 * u.day, 0.05 * u.day, TimeDelta(1 * u.day))
+    assert_quantity_allclose(model1, model2)
+
+    # Check model validation
+
+    with pytest.raises(TypeError) as exc:
+        bls1.model(t, 0.2 * u.day, 0.05 * u.day, 1 * u.day)
+    assert exc.value.args[0] == 'transit_time was provided as a relative time but the BoxLeastSquares class was initialized with absolute times.'
+
+    with pytest.raises(TypeError) as exc:
+        bls1.model(trel, 0.2 * u.day, 0.05 * u.day, Time('2019-06-04T12:34:56'))
+    assert exc.value.args[0] == 't_model was provided as a relative time but the BoxLeastSquares class was initialized with absolute times.'
+
+    with pytest.raises(TypeError) as exc:
+        bls2.model(trel, 0.2 * u.day, 0.05 * u.day, Time('2019-06-04T12:34:56'))
+    assert exc.value.args[0] == 'transit_time was provided as an absolute time but the BoxLeastSquares class was initialized with relative times.'
+
+    with pytest.raises(TypeError) as exc:
+        bls2.model(t, 0.2 * u.day, 0.05 * u.day, 1 * u.day)
+    assert exc.value.args[0] == 't_model was provided as an absolute time but the BoxLeastSquares class was initialized with relative times.'
+
+    # Check compute_stats
+
+    stats1 = bls1.compute_stats(0.2 * u.day, 0.05 * u.day, Time('2019-06-04T12:34:56'))
+    stats2 = bls2.compute_stats(0.2 * u.day, 0.05 * u.day, 1 * u.day)
+
+    for key in stats1:
+        if key == 'transit_times':
+            assert_quantity_allclose((stats1[key] - start).to(u.day), stats2[key])
+        elif key.startswith('depth'):
+            for value1, value2 in zip(stats1[key], stats2[key]):
+                assert_quantity_allclose(value1, value2)
+        else:
+            assert_allclose(stats1[key], stats2[key])
+
+    # Check compute_stats validation
+
+    with pytest.raises(TypeError) as exc:
+        bls1.compute_stats(0.2 * u.day, 0.05 * u.day, 1 * u.day)
+    assert exc.value.args[0] == 'transit_time was provided as a relative time but the BoxLeastSquares class was initialized with absolute times.'
+
+    with pytest.raises(TypeError) as exc:
+        bls2.compute_stats(0.2 * u.day, 0.05 * u.day, Time('2019-06-04T12:34:56'))
+    assert exc.value.args[0] == 'transit_time was provided as an absolute time but the BoxLeastSquares class was initialized with relative times.'
+
+    # Check transit_mask
+
+    mask1 = bls1.transit_mask(t, 0.2 * u.day, 0.05 * u.day, Time('2019-06-04T12:34:56'))
+    mask2 = bls2.transit_mask(trel, 0.2 * u.day, 0.05 * u.day, 1 * u.day)
+
+    assert_equal(mask1, mask2)
+
+    # Check transit_mask validation
+
+    with pytest.raises(TypeError) as exc:
+        bls1.transit_mask(t, 0.2 * u.day, 0.05 * u.day, 1 * u.day)
+    assert exc.value.args[0] == 'transit_time was provided as a relative time but the BoxLeastSquares class was initialized with absolute times.'
+
+    with pytest.raises(TypeError) as exc:
+        bls1.transit_mask(trel, 0.2 * u.day, 0.05 * u.day, Time('2019-06-04T12:34:56'))
+    assert exc.value.args[0] == 't was provided as a relative time but the BoxLeastSquares class was initialized with absolute times.'
+
+    with pytest.raises(TypeError) as exc:
+        bls2.transit_mask(trel, 0.2 * u.day, 0.05 * u.day, Time('2019-06-04T12:34:56'))
+    assert exc.value.args[0] == 'transit_time was provided as an absolute time but the BoxLeastSquares class was initialized with relative times.'
+
+    with pytest.raises(TypeError) as exc:
+        bls2.transit_mask(t, 0.2 * u.day, 0.05 * u.day, 1 * u.day)
+    assert exc.value.args[0] == 't was provided as an absolute time but the BoxLeastSquares class was initialized with relative times.'

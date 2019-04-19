@@ -2,7 +2,8 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy import units
+from astropy.time import Time, TimeDelta
+from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.timeseries.periodograms.lombscargle import LombScargle
 
@@ -72,9 +73,9 @@ def test_all_methods(data, method, center_data, fit_mean,
     t, y, dy = data
     frequency = 0.8 + 0.01 * np.arange(40)
     if with_units:
-        t = t * units.day
-        y = y * units.mag
-        dy = dy * units.mag
+        t = t * u.day
+        y = y * u.mag
+        dy = dy * u.mag
         frequency = frequency / t.unit
 
     if errors == 'none':
@@ -101,7 +102,7 @@ def test_all_methods(data, method, center_data, fit_mean,
         if normalization == 'psd' and errors == 'none':
             assert P_method.unit == y.unit ** 2
         else:
-            assert P_method.unit == units.dimensionless_unscaled
+            assert P_method.unit == u.dimensionless_unscaled
     else:
         assert not hasattr(P_method, 'unit')
 
@@ -242,8 +243,8 @@ def test_output_shapes(method, shape, data):
 def test_errors_on_unit_mismatch(method, data):
     t, y, dy = data
 
-    t = t * units.second
-    y = y * units.mag
+    t = t * u.second
+    y = y * u.mag
     frequency = np.linspace(0.5, 1.5, 10)
 
     # this should fail because frequency and 1/t units do not match
@@ -263,18 +264,18 @@ def test_errors_on_unit_mismatch(method, data):
 def test_unit_conversions(data, with_error):
     t, y, dy = data
 
-    t_day = t * units.day
-    t_hour = units.Quantity(t_day, 'hour')
+    t_day = t * u.day
+    t_hour = u.Quantity(t_day, 'hour')
 
-    y_meter = y * units.meter
-    y_millimeter = units.Quantity(y_meter, 'millimeter')
+    y_meter = y * u.meter
+    y_millimeter = u.Quantity(y_meter, 'millimeter')
 
     # sanity check on inputs
     assert_quantity_allclose(t_day, t_hour)
     assert_quantity_allclose(y_meter, y_millimeter)
 
     if with_error:
-        dy = dy * units.meter
+        dy = dy * u.meter
     else:
         dy = None
 
@@ -282,8 +283,8 @@ def test_unit_conversions(data, with_error):
     freq_hour, P2 = LombScargle(t_hour, y_millimeter, dy).autopower()
 
     # Check units of frequency
-    assert freq_day.unit == 1. / units.day
-    assert freq_hour.unit == 1. / units.hour
+    assert freq_day.unit == 1. / u.day
+    assert freq_hour.unit == 1. / u.hour
 
     # Check that results match
     assert_quantity_allclose(freq_day, freq_hour)
@@ -309,18 +310,18 @@ def test_model(fit_mean, with_units, freq):
     y += params[1] * np.sin(2 * np.pi * freq * (t - params[2]))
 
     if with_units:
-        t = t * units.day
-        y = y * units.mag
-        freq = freq / units.day
+        t = t * u.day
+        y = y * u.mag
+        freq = freq / u.day
 
     ls = LombScargle(t, y, center_data=False, fit_mean=fit_mean)
     y_fit = ls.model(t, freq)
     assert_quantity_allclose(y_fit, y)
 
 
-@pytest.mark.parametrize('t_unit', [units.second, units.day])
-@pytest.mark.parametrize('frequency_unit', [units.Hz, 1. / units.second])
-@pytest.mark.parametrize('y_unit', [units.mag, units.jansky])
+@pytest.mark.parametrize('t_unit', [u.second, u.day])
+@pytest.mark.parametrize('frequency_unit', [u.Hz, 1. / u.second])
+@pytest.mark.parametrize('y_unit', [u.mag, u.jansky])
 def test_model_units_match(data, t_unit, frequency_unit, y_unit):
     t, y, dy = data
     t_fit = t[:5]
@@ -342,9 +343,9 @@ def test_model_units_mismatch(data):
     frequency = 1.0
     t_fit = t[:5]
 
-    t = t * units.second
-    t_fit = t_fit * units.second
-    y = y * units.mag
+    t = t * u.second
+    t_fit = t_fit * u.second
+    y = y * u.mag
     frequency = 1.0 / t.unit
 
     # this should fail because frequency and 1/t units do not match
@@ -389,9 +390,9 @@ def test_model_parameters(data, nterms, fit_mean, center_data,
     t, y, dy = data
     frequency = 1.5
     if with_units:
-        t = t * units.day
-        y = y * units.mag
-        dy = dy * units.mag
+        t = t * u.day
+        y = y * u.mag
+        dy = dy * u.mag
         frequency = frequency / t.unit
 
     if errors == 'none':
@@ -409,7 +410,7 @@ def test_model_parameters(data, nterms, fit_mean, center_data,
                      center_data=center_data)
     tfit = np.linspace(0, 20, 10)
     if with_units:
-        tfit = tfit * units.day
+        tfit = tfit * u.day
 
     model = ls.model(tfit, frequency)
     params = ls.model_parameters(frequency)
@@ -419,3 +420,81 @@ def test_model_parameters(data, nterms, fit_mean, center_data,
     assert len(params) == int(fit_mean) + 2 * nterms
 
     assert_quantity_allclose(offset + design.dot(params), model)
+
+
+@pytest.mark.parametrize('timedelta', [False, True])
+def test_absolute_times(data, timedelta):
+
+    # Make sure that we handle absolute times correctly. We also check that
+    # TimeDelta works properly when timedelta is True.
+
+    # The example data uses relative times
+    t, y, dy = data
+
+    # FIXME: There seems to be a numerical stability issue in that if we run
+    # the algorithm with the same values but offset in time, the transit_time
+    # is not offset by a fixed amount. To avoid this issue in this test, we
+    # make sure the first time is also the smallest so that internally the
+    # values of the relative time should be the same.
+    t[0] = 0.
+
+    # Add units
+    t = t * u.day
+    y = y * u.mag
+    dy = dy * u.mag
+
+    # We now construct a set of absolute times but keeping the rest the same
+    start = Time('2019-05-04T12:34:56')
+    trel = TimeDelta(t) if timedelta else t
+    t = trel + start
+
+    # and we set up two instances of BoxLeastSquares, one with absolute and one
+    # with relative times.
+    ls1 = LombScargle(t, y, dy)
+    ls2 = LombScargle(trel, y, dy)
+
+    kwargs = dict(samples_per_peak=6, nyquist_factor=2,
+                  minimum_frequency=2 / u.day, maximum_frequency=None)
+
+    freq1 = ls1.autofrequency(**kwargs)
+    freq2 = ls2.autofrequency(**kwargs)
+    assert_quantity_allclose(freq1, freq2)
+
+    power1 = ls1.power(freq1)
+    power2 = ls2.power(freq2)
+    assert_quantity_allclose(power1, power2)
+
+    freq1, power1 = ls1.autopower(**kwargs)
+    freq2, power2 = ls2.autopower(**kwargs)
+    assert_quantity_allclose(freq1, freq2)
+    assert_quantity_allclose(power1, power2)
+
+    model1 = ls1.model(t, 2 / u.day)
+    model2 = ls2.model(trel, 2 / u.day)
+    assert_quantity_allclose(model1, model2)
+
+    # Check model validation
+
+    with pytest.raises(TypeError) as exc:
+        ls1.model(trel, 2 / u.day)
+    assert exc.value.args[0] == 't was provided as a relative time but the BoxLeastSquares class was initialized with absolute times.'
+
+    with pytest.raises(TypeError) as exc:
+        ls2.model(t, 2 / u.day)
+    assert exc.value.args[0] == 't was provided as an absolute time but the BoxLeastSquares class was initialized with relative times.'
+
+    # Check design matrix
+
+    design1 = ls1.design_matrix(2 / u.day, t=t)
+    design2 = ls2.design_matrix(2 / u.day, t=trel)
+    assert_quantity_allclose(design1, design2)
+
+    # Check design matrix validation
+
+    with pytest.raises(TypeError) as exc:
+        ls1.design_matrix(2 / u.day, t=trel)
+    assert exc.value.args[0] == 't was provided as a relative time but the BoxLeastSquares class was initialized with absolute times.'
+
+    with pytest.raises(TypeError) as exc:
+        ls2.design_matrix(2 / u.day, t=t)
+    assert exc.value.args[0] == 't was provided as an absolute time but the BoxLeastSquares class was initialized with relative times.'
