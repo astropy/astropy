@@ -15,7 +15,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.coordinates import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS,
-                GeocentricTrueEcliptic, Longitude, Latitude, GCRS, HCRS, CIRS,
+                GeocentricMeanEcliptic, Longitude, Latitude, GCRS, HCRS, CIRS,
                 get_moon, FK4, FK4NoETerms, BaseCoordinateFrame, ITRS,
                 QuantityAttribute, UnitSphericalRepresentation,
                 SphericalRepresentation, CartesianRepresentation,
@@ -48,9 +48,9 @@ def test_regression_5085():
     latitudes = Latitude([3.9807075, -5.00733806, 1.69539491]*u.deg)
     longitudes = Longitude([311.79678613, 72.86626741, 199.58698226]*u.deg)
     distances = u.Quantity([0.00243266, 0.0025424, 0.00271296]*u.au)
-    coo = GeocentricTrueEcliptic(lat=latitudes,
+    coo = GeocentricMeanEcliptic(lat=latitudes,
                                  lon=longitudes,
-                                 distance=distances, equinox=times)
+                                 distance=distances, obstime=times, equinox=times)
     # expected result
     ras = Longitude([310.50095400, 314.67109920, 319.56507428]*u.deg)
     decs = Latitude([-18.25190443, -17.1556676, -15.71616522]*u.deg)
@@ -180,7 +180,7 @@ def test_regression_4210():
     Related PR with actual change: https://github.com/astropy/astropy/pull/4211
     """
     crd = SkyCoord(0*u.deg, 0*u.deg, distance=1*u.AU)
-    ecl = crd.geocentrictrueecliptic
+    ecl = crd.geocentricmeanecliptic
     # bug was that "lambda", which at the time was the name of the geocentric
     # ecliptic longitude, is a reserved keyword. So this just makes sure the
     # new name is are all valid

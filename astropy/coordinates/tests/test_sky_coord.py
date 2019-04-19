@@ -626,7 +626,7 @@ def test_directional_offset_by():
                 SkyCoord(np.linspace(359,0,npoints),np.linspace(-90, 90,npoints),
                          unit=u.deg, frame='icrs'),
                 SkyCoord(np.linspace(-3,3,npoints),np.linspace(-90, 90,npoints),
-                         unit=(u.rad, u.deg), frame='barycentrictrueecliptic')]:
+                         unit=(u.rad, u.deg), frame='barycentricmeanecliptic')]:
         for sc2 in [SkyCoord(5*u.deg,10*u.deg),
                     SkyCoord(np.linspace(0, 359, npoints), np.linspace(-90, 90, npoints),
                              unit=u.deg, frame='galactic')]:

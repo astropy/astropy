@@ -98,9 +98,9 @@ def test_all_arg_options(kwargs):
     [bf.FK5, 'ra', 'dec'], [bf.GCRS, 'ra', 'dec'], [bf.HCRS, 'ra', 'dec'],
     [bf.LSR, 'ra', 'dec'], [bf.CIRS, 'ra', 'dec'], [bf.Galactic, 'l', 'b'],
     [bf.AltAz, 'az', 'alt'], [bf.Supergalactic, 'sgl', 'sgb'],
-    [bf.GalacticLSR, 'l', 'b'], [bf.HeliocentricTrueEcliptic, 'lon', 'lat'],
-    [bf.GeocentricTrueEcliptic, 'lon', 'lat'],
-    [bf.BarycentricTrueEcliptic, 'lon', 'lat'],
+    [bf.GalacticLSR, 'l', 'b'], [bf.HeliocentricMeanEcliptic, 'lon', 'lat'],
+    [bf.GeocentricMeanEcliptic, 'lon', 'lat'],
+    [bf.BarycentricMeanEcliptic, 'lon', 'lat'],
     [bf.PrecessedGeocentric, 'ra', 'dec']
 ])
 def test_expected_arg_names(cls, lon, lat):
