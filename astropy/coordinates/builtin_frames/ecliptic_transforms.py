@@ -6,7 +6,10 @@ Contains the transformation functions for getting to/from ecliptic systems.
 
 from astropy import units as u
 from astropy.coordinates.baseframe import frame_transform_graph
-from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference, DynamicMatrixTransform
+from astropy.coordinates.transformations import (
+    FunctionTransformWithFiniteDifference, DynamicMatrixTransform,
+    AffineTransform,
+)
 from astropy.coordinates.matrix_utilities import (rotation_matrix,
                                 matrix_product, matrix_transpose)
 from astropy.coordinates.representation import CartesianRepresentation
@@ -117,16 +120,14 @@ def icrs_to_helioecliptic(from_coo, to_frame):
     return to_frame.realize_frame(newrepr)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
-                                 HeliocentricMeanEcliptic, ICRS,
-                                 finite_difference_frameattr_name='equinox')
+@frame_transform_graph.transform(AffineTransform,
+                                 HeliocentricMeanEcliptic, ICRS)
 def helioecliptic_to_icrs(from_coo, to_frame):
     if not u.m.is_equivalent(from_coo.cartesian.x.unit):
         raise UnitsError(_NEED_ORIGIN_HINT.format(from_coo.__class__.__name__))
 
     # first un-precess from ecliptic to ICRS orientation
     rmat = _mean_ecliptic_rotation_matrix(from_coo.equinox)
-    intermed_repr = from_coo.cartesian.transform(matrix_transpose(rmat))
 
     # now offset back to barycentric, which is the correct center for ICRS
 
@@ -136,8 +137,7 @@ def helioecliptic_to_icrs(from_coo, to_frame):
     # get barycentric sun coordinate
     bary_sun_pos = get_body_barycentric('sun', from_coo.obstime)
 
-    newrepr = intermed_repr + bary_sun_pos
-    return to_frame.realize_frame(newrepr)
+    return matrix_transpose(rmat), bary_sun_pos
 
 
 # TrueEcliptic frames
@@ -197,16 +197,14 @@ def icrs_to_true_helioecliptic(from_coo, to_frame):
     return to_frame.realize_frame(newrepr)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
-                                 HeliocentricTrueEcliptic, ICRS,
-                                 finite_difference_frameattr_name='equinox')
+@frame_transform_graph.transform(AffineTransform,
+                                 HeliocentricTrueEcliptic, ICRS)
 def true_helioecliptic_to_icrs(from_coo, to_frame):
     if not u.m.is_equivalent(from_coo.cartesian.x.unit):
         raise UnitsError(_NEED_ORIGIN_HINT.format(from_coo.__class__.__name__))
 
     # first un-precess from ecliptic to ICRS orientation
     rmat = _true_ecliptic_rotation_matrix(from_coo.equinox)
-    intermed_repr = from_coo.cartesian.transform(matrix_transpose(rmat))
 
     # now offset back to barycentric, which is the correct center for ICRS
 
@@ -216,20 +214,17 @@ def true_helioecliptic_to_icrs(from_coo, to_frame):
     # get barycentric sun coordinate
     bary_sun_pos = get_body_barycentric('sun', from_coo.obstime)
 
-    newrepr = intermed_repr + bary_sun_pos
-    return to_frame.realize_frame(newrepr)
+    return matrix_transpose(rmat), bary_sun_pos
 
 
 # Other ecliptic frames
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
-                                 HeliocentricEclipticIAU76, ICRS,
-                                 finite_difference_frameattr_name="obstime")
+@frame_transform_graph.transform(AffineTransform,
+                                 HeliocentricEclipticIAU76, ICRS)
 def ecliptic_to_iau76_icrs(from_coo, to_frame):
     # first un-precess from ecliptic to ICRS orientation
     rmat = _obliquity_only_rotation_matrix()
-    intermed_repr = from_coo.cartesian.transform(matrix_transpose(rmat))
 
     # now offset back to barycentric, which is the correct center for ICRS
     # get barycentric sun coordinate
@@ -237,8 +232,7 @@ def ecliptic_to_iau76_icrs(from_coo, to_frame):
     from astropy.coordinates.solar_system import get_body_barycentric
     bary_sun_pos = get_body_barycentric("sun", from_coo.obstime)
 
-    newrepr = intermed_repr + bary_sun_pos
-    return to_frame.realize_frame(newrepr)
+    return matrix_transpose(rmat), bary_sun_pos
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
