@@ -154,7 +154,13 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
-- updated wcslib to v 6.2 [#8592]
+- WCSLIB was updated to v 6.2.
+  This adds support for time-related WCS keywords (WCS Paper VII).
+  FITS headers containing ``Time`` axis are parsed and the axis is included in
+  the WCS object. [#8592]
+
+- The ``OBSGEO`` attribute as expanded to 6 members - ``XYZLBH``. [#8592]
+
 
 API Changes
 -----------
