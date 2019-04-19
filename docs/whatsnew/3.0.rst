@@ -226,7 +226,7 @@ heuristic based on an estimated number of independent frequencies
 computationally intensive) approach based on bootstrap resampling
 (``method='bootstrap'``). These methods are implemented for all of the available
 periodogram normalizations. Further explanation and examples are available in
-:ref:`timeseries-lombscargle`.
+:ref:`stats-lombscargle`.
 
 .. _whatsnew-3.0-ascii-chunks:
 

@@ -142,7 +142,7 @@ months of nightly observations of a simulated RR-Lyrae-type variable
     inset.set_ylabel('mag')
 
 For more information on astropy's Lomb-Scargle functionality,
-see :ref:`timeseries-lombscargle`.
+see :ref:`stats-lombscargle`.
 
 .. _whatsnew-1.2-stats:
 

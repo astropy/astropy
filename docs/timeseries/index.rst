@@ -328,8 +328,8 @@ Initializing and reading in time series
 .. toctree::
    :maxdepth: 2
 
-   initializing.rst
-   io.rst
+   initializing
+   io
 
 Accessing data and manipulating time series
 -------------------------------------------
@@ -337,11 +337,11 @@ Accessing data and manipulating time series
 .. toctree::
    :maxdepth: 2
 
-   data_access.rst
-   times.rst
-   analysis.rst
-   masking.rst
-   pandas.rst
+   data_access
+   times
+   analysis
+   masking
+   pandas
 
 Periodogram algorithms
 ----------------------
@@ -349,8 +349,8 @@ Periodogram algorithms
 .. toctree::
    :maxdepth: 2
 
-   lombscargle.rst
-   bls.rst
+   lombscargle
+   bls
 
 Reference/API
 =============

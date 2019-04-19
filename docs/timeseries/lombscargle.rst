@@ -1,4 +1,4 @@
-.. _timeseries-lombscargle:
+.. _stats-lombscargle:
 
 *************************
 Lomb-Scargle Periodograms
