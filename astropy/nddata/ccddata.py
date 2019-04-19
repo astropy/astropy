@@ -408,13 +408,14 @@ class CCDData(NDDataArray):
             self.meta[key] = value
 
 
-# This needs to be importable by the tests...
+# These need to be importable by the tests...
 _KEEP_THESE_KEYWORDS_IN_HEADER = [
     'JD-OBS',
     'MJD-OBS',
     'DATE-OBS'
 ]
-
+_PCs = set(['PC1_1', 'PC1_2', 'PC2_1', 'PC2_2'])
+_CDs = set(['CD1_1', 'CD1_2', 'CD2_1', 'CD2_2'])
 
 def _generate_wcs_and_update_header(hdr):
     """
@@ -458,14 +459,10 @@ def _generate_wcs_and_update_header(hdr):
     # Check that this does not result in an inconsistent header WCS if the WCS
     # is converted back to a header.
 
-    PCs = set(['PC1_1', 'PC1_2', 'PC2_1', 'PC2_2'])
-    CDs = set(['CD1_1', 'CD1_2', 'CD2_1', 'CD2_2'])
-
-    if (PCs & set(wcs_header)) and (CDs & set(new_hdr)):
-        # The PCi_j representation is being used by the astropy.wcs object,
+    if (_PCs & set(wcs_header)) and (_CDs & set(new_hdr)):
+        # The PCi_j representation is used by the astropy.wcs object,
         # so CDi_j keywords were not removed from new_hdr. Remove them now.
-        for cd in CDs:
-            print(cd)
+        for cd in _CDs:
             new_hdr.remove(cd, ignore_missing=True)
 
     return (new_hdr, wcs)
