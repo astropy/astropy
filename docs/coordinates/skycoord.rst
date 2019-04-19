@@ -26,9 +26,9 @@ The key distinctions between |SkyCoord| and the low-level classes
   all attributes, such a round-trip transformation will return to the same
   coordinate object.
 
-- The |SkyCoord| class is more flexible with inputs to accommodate a wide variety
-  of user preferences and available data formats, whereas the frame classes expect
-  to receive Quantity-like objects with angular units.
+- The |SkyCoord| class is more flexible with inputs to accommodate a wide
+  variety of user preferences and available data formats, whereas the frame
+  classes expect to receive Quantity-like objects with angular units.
 
 - The |SkyCoord| class has a number of convenience methods that are useful
   in typical analysis.
