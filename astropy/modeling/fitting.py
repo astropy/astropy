@@ -151,12 +151,11 @@ def fitter_unit_support(func):
                     ydata = np.asarray(y)
 
                 if z is not None:
-                    if isinstance(y, Quantity):
+                    if isinstance(z, Quantity):
                         add_back_units = True
                         zdata = z.value
                     else:
                         zdata = np.asarray(z)
-
                 # We run the fitting
                 if z is None:
                     model_new = func(self, model, xdata, ydata, **kwargs)
@@ -875,7 +874,6 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
 
         model_copy = _validate_model(model, self.supported_constraints)
         farg = (model_copy, weights, ) + _convert_input(x, y, z)
-
         if model_copy.fit_deriv is None or estimate_jacobian:
             dfunc = None
         else:
