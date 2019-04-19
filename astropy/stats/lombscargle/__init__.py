@@ -20,7 +20,7 @@ class LombScargle(TimeseriesLombScargle):
     Compute the Lomb-Scargle Periodogram.
 
     This class has been deprecated and will be removed in a future version.
-    Use `~astropy.timeseries.LombScargle` instead.
+    Use `astropy.timeseries.LombScargle` instead.
     """
 
     def __init__(self, *args, **kwargs):

@@ -21,7 +21,7 @@ class BoxLeastSquares(TimeseriesBoxLeastSquares):
     Compute the box least squares periodogram.
 
     This class has been deprecated and will be removed in a future version.
-    Use `~astropy.timeseries.BoxLeastSquares` instead.
+    Use `astropy.timeseries.BoxLeastSquares` instead.
     """
 
     def __init__(self, *args, **kwargs):
@@ -37,5 +37,5 @@ class BoxLeastSquaresResults(TimeseriesBoxLeastSquaresResults):
     The results of a BoxLeastSquares search.
 
     This class has been deprecated and will be removed in a future version.
-    Use `~astropy.timeseries.BoxLeastSquaresResults` instead.
+    Use `astropy.timeseries.BoxLeastSquaresResults` instead.
     """
