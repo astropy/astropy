@@ -263,10 +263,10 @@ You can also preserve the column order by using ``OrderedDict``. If the first it
   >>> row1 = OrderedDict({'b': 1, 'a':0})
   >>> row2 = OrderedDict({'b': 11, 'a':10})
   >>> rows = [row1, row2]
-  >>> Table(rows=rows)
+  >>> Table(rows=rows, dtype=('i4', 'i4'))
   <Table length=2>
     b     a
-  int64 int64
+  int32 int32
   ----- -----
       1     0
      11    10
