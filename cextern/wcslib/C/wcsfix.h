@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.19 - an implementation of the FITS WCS standard.
+  WCSLIB 6.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.h,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
+  $Id: wcsfix.h,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.19 - C routines that implement the FITS World Coordinate System
+* WCSLIB 6.2 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -45,10 +45,17 @@
 =   "Representations of spectral coordinates in FITS",
 =   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
 =   2006, A&A, 446, 747 (WCS Paper III)
+=
+=   "Representations of time coordinates in FITS -
+=    Time and relative dimension in space",
+=   Rots, A.H., Bunclark, P.S., Calabretta, M.R., Allen, S.L.,
+=   Manchester, R.N., & Thompson, W.T. 2015, A&A, 574, A36 (WCS Paper VII)
 *
 * Repairs effected by these routines range from the translation of
 * non-standard values for standard WCS keywords, to the repair of malformed
-* coordinate representations.
+* coordinate representations.  Some routines are also provided to check the
+* consistency of pairs of keyvalues that define the same measure in two
+* different ways, for example, as a date and an MJD.
 *
 * Non-standard keyvalues:
 * -----------------------
@@ -75,8 +82,8 @@
 *
 * Non-standard keywords:
 * ----------------------
-*   The AIPS-convention CROTAn keywords are recognized as quasi-standard and
-*   as such are accomodated by the wcsprm::crota[] and translated to
+*   The AIPS-convention CROTAn keywords are recognized as quasi-standard
+*   and as such are accomodated by wcsprm::crota[] and translated to
 *   wcsprm::pc[][] by wcsset().  These are not dealt with here, nor are any
 *   other non-standard keywords since these routines work only on the contents
 *   of a wcsprm struct and do not deal with FITS headers per se.  In
@@ -91,9 +98,15 @@
 *     CDi_ja keywords associated with a particular axis are omitted.
 *
 *   - datfix(): recast an older DATE-OBS date format in dateobs to year-2000
-*     standard form and derive mjdobs from it if not already set.
-*     Alternatively, if mjdobs is set and dateobs isn't, then derive dateobs
-*     from it.
+*     standard form.
+*
+*     Derive mjdobs from dateobs if not already set.  Alternatively, if mjdobs
+*     is set and dateobs isn't, then derive dateobs from it.  If both are set,
+*     then check consistency.  Likewise for datebeg and mjdbeg; dateavg and
+*     mjdavg; and dateend and mjdend.
+*
+*   - obsfix(): if only one half of obsgeo[] is set, then derive the other
+*     half from it.  If both halves are set, then check consistency.
 *
 *   - unitfix(): translate some commonly used but non-standard unit strings in
 *     the CUNITia keyvalues, e.g. 'DEG' -> 'deg'.
@@ -115,8 +128,8 @@
 *
 * wcsfixi() - Translate a non-standard WCS struct
 * -----------------------------------------------
-* wcsfix() applies all of the corrections handled separately by cdfix(),
-* datfix(), unitfix(), spcfix(), celfix(), and cylfix().
+* wcsfixi() applies all of the corrections handled separately by cdfix(),
+* datfix(), obsfix(), unitfix(), spcfix(), celfix(), and cylfix().
 *
 * Given:
 *   ctrl      int       Do potentially unsafe translations of non-standard
@@ -135,15 +148,15 @@
 *   stat      int [NWCSFIX]
 *                       Status returns from each of the functions.  Use the
 *                       preprocessor macros NWCSFIX to dimension this vector
-*                       and CDFIX, DATFIX, UNITFIX, SPCFIX, CELFIX, and CYLFIX
-*                       to access its elements.  A status value of -2 is set
-*                       for functions that were not invoked.
+*                       and CDFIX, DATFIX, OBSFIX, UNITFIX, SPCFIX, CELFIX,
+*                       and CYLFIX to access its elements.  A status value
+*                       of -2 is set for functions that were not invoked.
 *
 *   info      struct wcserr [NWCSFIX]
 *                       Status messages from each of the functions.  Use the
 *                       preprocessor macros NWCSFIX to dimension this vector
-*                       and CDFIX, DATFIX, UNITFIX, SPCFIX, CELFIX, and CYLFIX
-*                       to access its elements.
+*                       and CDFIX, DATFIX, OBSFIX, UNITFIX, SPCFIX, CELFIX,
+*                       and CYLFIX to access its elements.
 *
 * Function return value:
 *             int       Status return value:
@@ -174,15 +187,26 @@
 * datfix() - Translate DATE-OBS and derive MJD-OBS or vice versa
 * --------------------------------------------------------------
 * datfix() translates the old DATE-OBS date format set in wcsprm::dateobs to
-* year-2000 standard form (yyyy-mm-ddThh:mm:ss) and derives MJD-OBS from it if
-* not already set.  Alternatively, if wcsprm::mjdobs is set and
-* wcsprm::dateobs isn't, then datfix() derives wcsprm::dateobs from it.  If
-* both are set but disagree by more than half a day then status 5 is returned.
+* year-2000 standard form (yyyy-mm-ddThh:mm:ss).
+*
+* datfix() derives wcsprm::mjdobs from wcsprm::datobs if not already set.
+* Alternatively, if mjdobs is set and dateobs isn't, then it derives dateobs
+* from it.  If both are set but disagree by more than 0.001 day (86.4 seconds)
+* then status 5 is returned.  Likewise for wcsprm::datebeg and wcsprm::mjdbeg;
+* wcsprm::dateavg and wcsprm::mjdavg; and wcsprm::dateend and wcsprm::mjdend.
+*
+* If neither dateobs nor mjdobs are set, but wcsprm::jepoch (primarily) or
+* wcsprm::bepoch is, then both are derived from it.  If jepoch and/or bepoch
+* are set but disagree with dateobs or mjdobs by more than 0.000002 year
+* (63.2 seconds), an informative message is produced.
 *
 * Given and returned:
 *   wcs       struct wcsprm*
-*                       Coordinate transformation parameters.  wcsprm::dateobs
-*                       and/or wcsprm::mjdobs may be changed.
+*                       Coordinate transformation parameters.
+*                       wcsprm::dateobs and/or wcsprm::mjdobs may be changed.
+*                       wcsprm::datebeg and/or wcsprm::mjdbeg may be changed.
+*                       wcsprm::dateavg and/or wcsprm::mjdavg may be changed.
+*                       wcsprm::dateend and/or wcsprm::mjdend may be changed.
 *
 * Function return value:
 *             int       Status return value:
@@ -198,6 +222,88 @@
 *   The MJD algorithms used by datfix() are from D.A. Hatcher, 1984, QJRAS,
 *   25, 53-55, as modified by P.T. Wallace for use in SLALIB subroutines CLDJ
 *   and DJCL.
+*
+*
+* obsfix() - complete the OBSGEO-[XYZLBH] vector of observatory coordinates
+* -------------------------------------------------------------------------
+* obsfix() completes the wcsprm::obsgeo vector of observatory coordinates.
+* That is, if only the (x,y,z) Cartesian coordinate triplet or the (l,b,h)
+* geodetic coordinate triplet are set, then it derives the other triplet from
+* it.  If both triplets are set, then it checks for consistency at the level
+* of 1 metre.
+*
+* Given:
+*   ctrl      int       Flag that controls behaviour if one triplet is
+*                       defined and the other is only partially defined:
+*                         0: Reset only the undefined elements of an
+*                            incomplete coordinate triplet.
+*                         1: Reset all elements of an incomplete triplet.
+*                         2: Don't make any changes, check for consistency
+*                            only.  Returns an error if either of the two
+*                            triplets is incomplete.
+*
+* Given and returned:
+*   wcs       struct wcsprm*
+*                       Coordinate transformation parameters.
+*                       wcsprm::obsgeo may be changed.
+*
+* Function return value:
+*             int       Status return value:
+*                        -1: No change required (not an error).
+*                         0: Success.
+*                         1: Null wcsprm pointer passed.
+*                         5: Invalid parameter value.
+*
+*                       For returns > 1, a detailed error message is set in
+*                       wcsprm::err if enabled, see wcserr_enable().
+*
+* Notes:
+*   1: While the International Terrestrial Reference System (ITRS) is based
+*      solely on Cartesian coordinates, it recommends the use of the GRS80
+*      ellipsoid in converting to geodetic coordinates.  However, while WCS
+*      Paper III recommends ITRS Cartesian coordinates, Paper VII prescribes
+*      the use of the IAU(1976) ellipsoid for geodetic coordinates, and
+*      consequently that is what is used here.
+*
+*   2: For reference, parameters of commonly used global reference ellipsoids:
+*
+=          a (m)          1/f                    Standard
+=        ---------  -------------  --------------------------------
+=        6378140    298.2577        IAU(1976)
+=        6378137    298.257222101   GRS80
+=        6378137    298.257223563   WGS84
+=        6378136    298.257         IERS(1989)
+=        6378136.6  298.25642       IERS(2003,2010), IAU(2009/2012)
+*
+*      where f = (a - b) / a is the flattening, and a and b are the semi-major
+*      and semi-minor radii in metres.
+*
+*   3: The transformation from geodetic (lng,lat,hgt) to Cartesian (x,y,z) is
+*
+=        x = (n + hgt)*coslng*coslat,
+=        y = (n + hgt)*sinlng*coslat,
+=        z = (n*(1.0 - e^2) + hgt)*sinlat,
+*
+*      where the "prime vertical radius", n, is a function of latitude
+*
+=        n = a / sqrt(1 - (e*sinlat)^2),
+*
+*      and a, the equatorial radius, and e^2 = (2 - f)*f, the (first)
+*      eccentricity of the ellipsoid, are constants.  obsfix() inverts these
+*      iteratively by writing
+*
+=           x = rho*coslng*coslat,
+=           y = rho*sinlng*coslat,
+=        zeta = rho*sinlat,
+*
+*      where
+*
+=         rho = n + hgt,
+=             = sqrt(x^2 + y^2 + zeta^2),
+=        zeta = z / (1 - n*e^2/rho),
+*
+*      and iterating over the value of zeta.  Since e is small, a good first
+*      approximation is given by zeta = z.
 *
 *
 * unitfix() - Correct aberrant CUNITia keyvalues
@@ -341,17 +447,19 @@ extern "C" {
 
 #define CDFIX    0
 #define DATFIX   1
-#define UNITFIX  2
-#define SPCFIX   3
-#define CELFIX   4
-#define CYLFIX   5
-#define NWCSFIX  6
+#define OBSFIX   2
+#define UNITFIX  3
+#define SPCFIX   4
+#define CELFIX   5
+#define CYLFIX   6
+#define NWCSFIX  7
 
 extern const char *wcsfix_errmsg[];
 #define cylfix_errmsg wcsfix_errmsg
 
 enum wcsfix_errmsg_enum {
-  FIXERR_DATE_FIX         = -4, /* The date formatting has been fixed up. */
+  FIXERR_OBSGEO_FIX       = -5, /* Observatory coordinates amended. */
+  FIXERR_DATE_FIX         = -4, /* Date string reformatted. */
   FIXERR_SPC_UPDATE       = -3, /* Spectral axis type modified. */
   FIXERR_UNITS_ALIAS      = -2,	/* Units alias translation. */
   FIXERR_NO_CHANGE        = -1,	/* No change. */
@@ -383,6 +491,8 @@ int wcsfixi(int ctrl, const int naxis[], struct wcsprm *wcs, int stat[],
 int cdfix(struct wcsprm *wcs);
 
 int datfix(struct wcsprm *wcs);
+
+int obsfix(int ctrl, struct wcsprm *wcs);
 
 int unitfix(int ctrl, struct wcsprm *wcs);
 

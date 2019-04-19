@@ -1,5 +1,32 @@
 Platforms on which the installation procedures and test suite were exercised.
 
+WCSLIB version 6.1 (2018/10/19)
+-------------------------------
+
+* Dell Latitude XPS 15 9560 (Intel Core i7-7700HQ, 4 cores, 8 CPUs, x86_64)
+  KDE Neon User Edition 5.13 (over Kubuntu 18.04, (bionic))
+  uname -r (kernel version): 4.15.0-29-generic
+  gcc --version: gcc (Ubuntu 7.3.0-16ubuntu3) 7.3.0
+  gfortran --version: GNU Fortran (Ubuntu 7.3.0-16ubuntu3) 7.3.0
+
+* Dell Latitude D610 (Intel Pentium M, 1 processor, i686)
+  Debian linux 4.0 (etch)
+  uname -r (kernel version): 2.6.18-6-686
+  gcc --version: gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
+  gfortran --version: GNU Fortran 95 (GCC) 4.1.2 20061115 (prerelease)
+                      (Debian 4.1.1-21)
+
+
+WCSLIB version 5.20 (2018/10/05)
+--------------------------------
+
+* Dell Latitude XPS 15 9560 (Intel Core i7-7700HQ, 4 cores, 8 CPUs, x86_64)
+  KDE Neon User Edition 5.13 (over Kubuntu 18.04, (bionic))
+  uname -r (kernel version): 4.15.0-29-generic
+  gcc --version: gcc (Ubuntu 7.3.0-16ubuntu3) 7.3.0
+  gfortran --version: GNU Fortran (Ubuntu 7.3.0-16ubuntu3) 7.3.0
+
+
 WCSLIB version 5.19 (2018/07/27)
 --------------------------------
 
@@ -552,4 +579,4 @@ WCSLIB version 4.4 (2009/08/06)
           2004/04/23
 
 ------------------------------------------------------------------------------
-$Id: VALIDATION,v 5.19.1.1 2018/07/26 15:41:42 mcalabre Exp mcalabre $
+$Id: VALIDATION,v 6.2 2018/10/20 10:03:14 mcalabre Exp $

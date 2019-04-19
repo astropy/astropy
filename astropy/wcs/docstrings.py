@@ -2328,3 +2328,226 @@ InvalidTabularParametersError()
 
 The given tabular parameters are invalid.
 """
+
+mjdbeg = """
+``double`` Modified Julian Date corresponding to ``DATE-BEG``.
+
+``(MJD = JD - 2400000.5)``.
+
+An undefined value is represented by NaN.
+
+See also
+--------
+astropy.wcs.Wcsprm.mjdbeg
+"""
+
+mjdend = """
+``double`` Modified Julian Date corresponding to ``DATE-END``.
+
+``(MJD = JD - 2400000.5)``.
+
+An undefined value is represented by NaN.
+
+See also
+--------
+astropy.wcs.Wcsprm.mjdend
+"""
+
+mjdref = """
+``double`` Modified Julian Date corresponding to ``DATE-REF``.
+
+``(MJD = JD - 2400000.5)``.
+
+An undefined value is represented by NaN.
+
+See also
+--------
+astropy.wcs.Wcsprm.dateref
+"""
+
+bepoch = """
+``double`` Equivalent to ``DATE-OBS``.
+
+Expressed as a Besselian epoch.
+
+See also
+--------
+astropy.wcs.Wcsprm.dateobs
+"""
+
+jepoch = """
+``double`` Equivalent to ``DATE-OBS``.
+
+Expressed as a Julian epoch.
+
+See also
+--------
+astropy.wcs.Wcsprm.dateobs
+"""
+
+datebeg = """
+``string`` Date at the start of the observation.
+
+In ISO format, ``yyyy-mm-ddThh:mm:ss``.
+
+See also
+--------
+astropy.wcs.Wcsprm.datebeg
+"""
+
+dateend = """
+``string`` Date at the end of the observation.
+
+In ISO format, ``yyyy-mm-ddThh:mm:ss``.
+
+See also
+--------
+astropy.wcs.Wcsprm.dateend
+"""
+
+dateref = """
+``string`` Date of a reference epoch relative to which
+other time measurements refer.
+
+See also
+--------
+astropy.wcs.Wcsprm.dateref
+"""
+
+timesys = """
+``string`` Time scale (UTC, TAI, etc.) in which all other time-related
+auxiliary header values are recorded. Also defines the time scale for
+an image axis with CTYPEia set to 'TIME'.
+
+See also
+--------
+astropy.wcs.Wcsprm.timesys
+"""
+
+trefpos = """
+``string`` Location in space where the recorded time is valid.
+
+See also
+--------
+astropy.wcs.Wcsprm.trefpos
+"""
+
+trefdir = """
+``string`` Reference direction used in calculating a pathlength delay.
+
+See also
+--------
+astropy.wcs.Wcsprm.trefdir
+"""
+
+timeunit = """
+``string`` Time units in which the following header values are expressed:
+``TSTART``, ``TSTOP``, ``TIMEOFFS``, ``TIMSYER``, ``TIMRDER``, ``TIMEDEL``.
+
+It also provides the default value for ``CUNITia`` for time axes.
+
+See also
+--------
+astropy.wcs.Wcsprm.trefdir
+"""
+
+plephem = """
+``string`` The Solar System ephemeris used for calculating a pathlength delay.
+
+See also
+--------
+astropy.wcs.Wcsprm.plephem
+"""
+
+tstart = """
+``double`` equivalent to DATE-BEG expressed as a time in units of TIMEUNIT relative to DATEREF+TIMEOFFS.
+
+See also
+--------
+astropy.wcs.Wcsprm.tstop
+"""
+
+tstop = """
+``double`` equivalent to DATE-END expressed as a time in units of TIMEUNIT relative to DATEREF+TIMEOFFS.
+
+See also
+--------
+astropy.wcs.Wcsprm.tstart
+"""
+
+telapse = """
+``double`` equivalent to the elapsed time between DATE-BEG and DATE-END, in units of TIMEUNIT.
+
+See also
+--------
+astropy.wcs.Wcsprm.tstart
+"""
+
+timeoffs = """
+``double`` Time offset, which may be used, for example, to provide a uniform clock correction
+           for times referenced to DATEREF.
+
+See also
+--------
+astropy.wcs.Wcsprm.timeoffs
+"""
+
+timsyer = """
+``double`` the absolute error of the time values, in units of TIMEUNIT.
+
+See also
+--------
+astropy.wcs.Wcsprm.timrder
+"""
+
+timrder = """
+``double`` the accuracy of time stamps relative to each other, in units of TIMEUNIT.
+
+See also
+--------
+astropy.wcs.Wcsprm.timsyer
+"""
+
+timedel = """
+``double`` the resolution of the time stamps.
+
+See also
+--------
+astropy.wcs.Wcsprm.timedel
+"""
+
+timepixr = """
+``double`` relative position of the time stamps in binned time intervals, a value between 0.0 and 1.0.
+
+See also
+--------
+astropy.wcs.Wcsprm.timepixr
+"""
+
+obsorbit = """
+``string`` URI, URL, or name of an orbit ephemeris file giving spacecraft coordinates relating to TREFPOS.
+
+See also
+--------
+astropy.wcs.Wcsprm.trefpos
+
+"""
+xposure = """
+``double`` effective exposure time in units of TIMEUNIT.
+
+See also
+--------
+astropy.wcs.Wcsprm.timeunit
+"""
+
+czphs = """
+``double array[naxis]`` The time at the zero point of a phase axis, ``CSPHSia``.
+
+An undefined value is represented by NaN.
+"""
+
+cperi = """
+``double array[naxis]`` period of a phase axis, CPERIia.
+
+An undefined value is represented by NaN.
+"""

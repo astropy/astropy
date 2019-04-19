@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.19 - an implementation of the FITS WCS standard.
+  WCSLIB 6.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -23,7 +23,7 @@
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   Module author: Michael Droettboom
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcserr.c,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
+  $Id: wcserr.c,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
@@ -84,8 +84,13 @@ int wcserr_clear(
   struct wcserr **errp)
 
 {
-  if (*errp) free(*errp);
-  *errp = 0x0;
+  if (*errp) {
+    if ((*errp)->msg) {
+      free((*errp)->msg);
+    }
+    free(*errp);
+    *errp = 0x0;
+  }
 
   return 0;
 }
@@ -102,7 +107,8 @@ int wcserr_set(
   ...)
 
 {
-  char fmt[128];
+  char fmt[2048];
+  int  msglen;
   struct wcserr *err;
   va_list argp;
 
@@ -118,21 +124,37 @@ int wcserr_set(
       *errp = err = calloc(1, sizeof(struct wcserr));
     }
 
+    if (err == 0x0) {
+      return status;
+    }
+
     err->status   = status;
     err->function = function;
     err->file     = file;
     err->line_no  = line_no;
+    err->msg      = 0x0;
 
     /* Workaround for a compiler segv from gcc 4.2.1 in MacOSX 10.7. */
-    strncpy(fmt, format, 128);
+    strncpy(fmt, format, 2048);
 
+    /* Determine the required message buffer size. */
     va_start(argp, format);
-    vsnprintf(err->msg, WCSERR_MSG_LENGTH, fmt, argp);
+    msglen = vsnprintf(0x0, 0, fmt, argp) + 1;
     va_end(argp);
 
-  } else if (err) {
-    free(err);
-    *errp = 0x0;
+    if (msglen <= 0 || (err->msg = malloc(msglen)) == 0x0) {
+      wcserr_clear(errp);
+      return status;
+    }
+
+    /* Write the message. */
+    va_start(argp, format);
+    msglen = vsnprintf(err->msg, msglen, fmt, argp);
+    va_end(argp);
+
+    if (msglen < 0) {
+      wcserr_clear(errp);
+    }
   }
 
   return status;
@@ -145,6 +167,8 @@ int wcserr_copy(
   struct wcserr *dst)
 
 {
+  int msglen;
+
   if (src == 0x0) {
     if (dst) {
       memset(dst, 0, sizeof(struct wcserr));
@@ -154,6 +178,13 @@ int wcserr_copy(
 
   if (dst) {
     memcpy(dst, src, sizeof(struct wcserr));
+
+    if (src->msg) {
+      msglen = strlen(src->msg) + 1;
+      if ((dst->msg = malloc(msglen))) {
+        strcpy(dst->msg, src->msg);
+      }
+    }
   }
 
   return src->status;
