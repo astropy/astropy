@@ -52,6 +52,7 @@ def test_prior_config():
                 conf.reload()
 
                 import astropy.constants as const
+                importlib.reload(const.config)
                 importlib.reload(const)
 
             assert conf.physical_constants == 'codata2010'
@@ -83,6 +84,7 @@ def test_prior_config():
                 conf.reload()
 
                 import astropy.constants as const
+                importlib.reload(const.config)
                 importlib.reload(const)
 
             assert conf.physical_constants == 'astropyconst13'
@@ -107,6 +109,7 @@ def test_prior_config():
     # reset state of constants (in part to prevent failures of later tests)
     with catch_warnings():
         conf.reload()
+        importlib.reload(const.config)
         importlib.reload(const)
     assert conf.physical_constants == 'codata2014'
     h = const.h
@@ -145,6 +148,7 @@ def assert_config_outputs(physical_in, physical_out,
         with paths.set_temp_config(tmpdirname):
             with catch_warnings():
                 conf.reload()
+            importlib.reload(const.config)
             importlib.reload(const)
             assert conf.physical_constants == physical_out
             assert conf.astronomical_constants == astronomical_out
