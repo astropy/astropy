@@ -3,12 +3,12 @@
 #-----------------------------------------------------------------------------
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: configure.ac,v 5.19.1.2 2018/07/28 12:54:15 mcalabre Exp mcalabre $
+# $Id: configure.ac,v 6.2 2018/10/20 10:03:14 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB], [5.19.1], [mark@calabretta.id.au], [wcslib-5.19.1])
+AC_INIT([WCSLIB], [6.2], [mark@calabretta.id.au], [wcslib-6.2])
 AC_PREREQ([2.53])
-AC_REVISION([$Revision: 5.19.1.2 $])
+AC_REVISION([$Revision: 6.2 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 
@@ -227,6 +227,9 @@ AC_CHECK_LIB([SystemStubs], [printf\$LDBLStub], [LIBS="$LIBS -lSystemStubs"],
 # Library and installation utilities.
 #------------------------------------
 # Static library generation.
+# Ensure "non-deterministic" archives are produced during the build process.
+ar rU conftest.a > /dev/null 2>&1 && ARFLAGS="U"
+rm -f conftest.a
 AC_SUBST([ARFLAGS])
 AC_PROG_RANLIB
 
@@ -281,6 +284,11 @@ AC_SUBST([SHRLN])
 # Installation utilities.
 AC_PROG_LN_S
 AC_PROG_INSTALL
+
+# Older versions of GNU make do not have the -O option, which only facilitates
+# legibility of the output from parallel builds (make -j).
+make --help | grep '\-O' >/dev/null 2>&1 && MAKEFLAGS="-Otarget"
+AC_SUBST([MAKEFLAGS])
 
 AC_MSG_NOTICE([End of primary configuration.
 ])
@@ -509,6 +517,8 @@ AC_SUBST([INSTDIR])
 
 AC_MSG_NOTICE([End of auxiliary configuration.
 ])
+
+AC_SUBST([FLAVOUR])
 
 
 # Do it.

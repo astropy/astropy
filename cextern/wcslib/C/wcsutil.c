@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.19 - an implementation of the FITS WCS standard.
+  WCSLIB 6.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.c,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
+  $Id: wcsutil.c,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -33,7 +33,6 @@
 
 #include "wcsutil.h"
 #include "wcsmath.h"
-#include "dis.h"
 
 /*--------------------------------------------------------------------------*/
 
@@ -223,10 +222,10 @@ void wcsutil_setBit(int nelem, const int *sel, int bits, int *array)
 
 /*--------------------------------------------------------------------------*/
 
-char *wcsutil_fptr2str(void (*func)(void), char hext[19])
+char *wcsutil_fptr2str(void (*fptr)(void), char hext[19])
 
 {
-  unsigned char *p = (unsigned char *)(&func);
+  unsigned char *p = (unsigned char *)(&fptr);
   char *t = hext;
   unsigned int i;
   int *(ip[2]), j[2], le = 1, gotone = 0;
@@ -236,14 +235,14 @@ char *wcsutil_fptr2str(void (*func)(void), char hext[19])
   ip[1] = j + 1;
   if ((unsigned char *)ip[0] < (unsigned char *)ip[1]) {
     /* Little-endian, reverse it. */
-    p += sizeof(func) - 1;
+    p += sizeof(fptr) - 1;
     le = -1;
   }
 
   sprintf(t, "0x0");
   t += 2;
 
-  for (i = 0; i < sizeof(func); i++) {
+  for (i = 0; i < sizeof(fptr); i++) {
     /* Skip leading zeroes. */
     if (*p) gotone = 1;
 
@@ -359,26 +358,68 @@ int wcsutil_str2double(const char *buf, double *value)
   return sscanf(wcsutil_dot_to_locale(buf, ctmp), "%lf", value) < 1;
 }
 
-/*--------------------------------------------------------------------------*/
 
-int wcsutil_dpkey_int(const struct dpkey *dp)
-
-{
-  if (dp->type != 0) {
-    return (int)dp->value.f;
-  }
-
-  return dp->value.i;
-}
-
-/*--------------------------------------------------------------------------*/
-
-double wcsutil_dpkey_double(const struct dpkey *dp)
+int wcsutil_str2double2(const char *buf, double *value)
 
 {
-  if (dp->type == 0) {
-    return (double)dp->value.i;
+  char   *cptr, ctmp[72], *dptr, *eptr, ltmp[72];
+  int    exp = 0;
+
+  value[0] = 0.0;
+  value[1] = 0.0;
+
+  /* Get the integer part. */
+  if (sscanf(wcsutil_dot_to_locale(buf, ltmp), "%lf", value) < 1) {
+    return 1;
+  }
+  value[0] = floor(value[0]);
+
+  strcpy(ctmp, buf);
+
+  /* Look for a decimal point. */
+  dptr = strchr(ctmp, '.');
+
+  /* Look for an exponent. */
+  if ((eptr = strchr(ctmp, 'E')) == NULL) {
+    if ((eptr = strchr(ctmp, 'D')) == NULL) {
+      if ((eptr = strchr(ctmp, 'e')) == NULL) {
+        eptr = strchr(ctmp, 'd');
+      }
+    }
   }
 
-  return dp->value.f;
+  if (eptr) {
+    /* Get the exponent. */
+    if (sscanf(eptr+1, "%d", &exp) < 1) {
+      return 1;
+    }
+
+    if (!dptr) {
+      dptr = eptr;
+      eptr++;
+    }
+
+    if (dptr+exp <= ctmp) {
+      /* There is only a fractional part. */
+      return sscanf(wcsutil_dot_to_locale(buf, ctmp), "%lf", value+1) < 1;
+    } else if (eptr <= dptr+exp+1) {
+      /* There is no fractional part. */
+      return 0;
+    }
+  }
+
+  /* Get the fractional part. */
+  if (dptr) {
+    cptr = ctmp;
+    while (cptr <= dptr+exp) {
+      if ('0' < *cptr && *cptr <= '9') *cptr = '0';
+      cptr++;
+    }
+
+    if (sscanf(wcsutil_dot_to_locale(ctmp, ltmp), "%lf", value+1) < 1) {
+      return 1;
+    }
+  }
+
+  return 0;
 }

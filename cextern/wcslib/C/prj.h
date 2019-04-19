@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.19 - an implementation of the FITS WCS standard.
+  WCSLIB 6.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.h,v 5.19.1.1 2018/07/26 15:41:40 mcalabre Exp mcalabre $
+  $Id: prj.h,v 6.2 2018/10/20 10:03:13 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.19 - C routines that implement the FITS World Coordinate System
+* WCSLIB 6.2 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -712,8 +712,8 @@ int prjini(struct prjprm *prj);
 int prjfree(struct prjprm *prj);
 int prjprt(const struct prjprm *prj);
 int prjperr(const struct prjprm *prj, const char *prefix);
-int prjbchk(double tol, int nx, int ny, int spt, double phi[], double theta[],
-           int stat[]);
+int prjbchk(double tol, int nphi, int ntheta, int spt, double phi[],
+            double theta[], int stat[]);
 
 int prjset(struct prjprm *prj);
 int prjx2s(PRJX2S_ARGS);

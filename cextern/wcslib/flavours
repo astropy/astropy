@@ -12,7 +12,7 @@
 #
 # Reminder: add '-d' to FLFLAGS for debugging.
 #
-# $Id: flavours,v 5.19.1.1 2018/07/26 15:41:42 mcalabre Exp mcalabre $
+# $Id: flavours,v 6.2 2018/10/20 10:03:14 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
 # The list of FLAVOURs can be set on the command line.
@@ -45,42 +45,48 @@ ifeq "$(notdir $(shell pwd))" "utils"
   FEATURES := -D_XOPEN_SOURCE
 endif
 
+# Elide warnings about padding in foreign structs, particularly in fitsio.h.
+ifneq "$(findstring $(SUBDIR),C Fortran pgsbox)" ""
+  WPADDED := -Wpadded
+endif
+
 
 # Linux with gcc/gfortran (also works for Darwin).
 ifeq "$(FLAVOUR)" "Linux"
   F := $(FLAVOUR)
-  export CC       := gcc -std=c89 -pedantic
+  export CC       := gcc -std=c99 -pedantic
   export CPPFLAGS := $(FEATURES)
-  export CFLAGS   := -g -O0 -Wall -Wextra -Wpadded -Wno-long-long
+  export CFLAGS   := -g -O0 -Wall -Wextra -Wno-long-long $(WPADDED)
   export F77      := gfortran
   export FFLAGS   := -g -O0 -fimplicit-none -Wall -I.
-  export ARFLAGS  := U
   export LDFLAGS  :=
-         VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
-         VALGRIND += --track-origins=yes
+  ifdef VALGRIND
+    override VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
+    override VALGRIND += --track-origins=yes
+  endif
 endif
 
 ifeq "$(FLAVOUR)" "Linux8"
   F := $(FLAVOUR)
-  export CC       := gcc-8.1.0 -std=c89 -pedantic
+  export CC       := gcc-8.1.0 -std=c99 -pedantic
   export CPPFLAGS := $(FEATURES) -D_FORTIFY_SOURCE=2
-  export CFLAGS   := -g -O2 -Wall -Wextra -Wpadded -Wno-long-long
+  export CFLAGS   := -g -O2 -Wall -Wextra -Wno-long-long $(WPADDED)
   export F77      := gfortran-8.1.0
   export FFLAGS   := -g -O2 -fimplicit-none -Wall -I.
-  export ARFLAGS  := U
   export LDFLAGS  :=
   export LD_RUN_PATH := /usr/local/lib64
-         VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
-         VALGRIND += --track-origins=yes
+  ifdef VALGRIND
+    override VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
+    override VALGRIND += --track-origins=yes
+  endif
 endif
 
 ifeq "$(FLAVOUR)" "Linuxp"
   F := $(FLAVOUR)
-  export CC       := gcc -std=c89 -pedantic
+  export CC       := gcc -std=c99 -pedantic
   export CPPFLAGS := $(FEATURES)
-  export CFLAGS   := -pg -g -O -Wall -Wextra -Wpadded -Wno-long-long
+  export CFLAGS   := -pg -g -O -Wall -Wextra -Wno-long-long $(WPADDED)
   export FFLAGS   := -pg -a -g -O -fimplicit-none -Wall -I.
-  export ARFLAGS  := U
   export LDFLAGS  := -pg -g $(filter -L%, $(LDFLAGS))
   override EXTRA_CLEAN := gmon.out bb.out
 endif
@@ -89,9 +95,9 @@ endif
 # Solaris with gcc/gfortran 4.x (lynx).
 ifeq "$(FLAVOUR)" "SUN/GNU"
   F := $(FLAVOUR)
-  export CC       := gcc -std=c89
+  export CC       := gcc -std=c99
   export CPPFLAGS := $(FEATURES)
-  export CFLAGS   := -g -Wall -Wpadded -Wno-long-long
+  export CFLAGS   := -g -Wall -Wno-long-long $(WPADDED)
   export F77      := gfortran
   export FFLAGS   := -g -fimplicit-none -Wall -I.
   LD      := gcc
@@ -99,9 +105,9 @@ endif
 
 ifeq "$(FLAVOUR)" "SUN/GNU3"
   F := $(FLAVOUR)
-  export CC       := gcc-3.1.1 -std=c89
+  export CC       := gcc-3.1.1 -std=c99
   export CPPFLAGS := $(FEATURES)
-  export CFLAGS   := -g -Wall -Wpadded -Wno-long-long
+  export CFLAGS   := -g -Wall -Wno-long-long $(WPADDED)
   export F77      := g77-3.1.1
   export FFLAGS   := -g -Wimplicit -Wunused -Wno-globals -I.
   LD      := gcc-3.1.1
@@ -109,9 +115,9 @@ endif
 
 ifeq "$(FLAVOUR)" "SUN/GNUp"
   F := $(FLAVOUR)
-  export CC       := gcc -std=c89 -pedantic
+  export CC       := gcc -std=c99 -pedantic
   export CPPFLAGS := $(FEATURES)
-  export CFLAGS   := -pg -a -g -O -Wall -Wpadded -Wno-long-long
+  export CFLAGS   := -pg -a -g -O -Wall -Wno-long-long $(WPADDED)
   export FFLAGS   := -pg -a -g -O -fimplicit-none -Wall -I.
   export LDFLAGS  := -pg -a -g $(filter -L%, $(LDFLAGS))
   override EXTRA_CLEAN := gmon.out bb.out
@@ -153,9 +159,29 @@ ifeq "$(FLAVOUR)" "SUN/Quant"
   override EXTRA_CLEAN := *_pure_q*.[ao] .pure
 endif
 
+
+# Check FLAVOUR.
 ifneq "$F" "$(FLAVOUR)"
   override FLAVOUR := unrecognised
 endif
+
+# Check VALGRIND.
+ifeq "$(findstring valgrind, $(VALGRIND))" "valgrind"
+  override MODE := interactive
+else
+  # Unrecognised.
+  override VALGRIND :=
+endif
+
+# Check MODE.
+ifeq "$(MODE)" "interactive"
+  # Important not to have output batched when running the test programs.
+  MAKEFLAGS := $(filter-out -Otarget,$(MAKEFLAGS)) -Onone
+else
+  # Unrecognised.
+  override MODE :=
+endif
+
 
 # gmake uses FC in place of configure's F77.
 ifdef F77
@@ -186,6 +212,7 @@ show ::
 	-@ echo 'For code development...'
 	-@ echo '  FLAVOURS    := $(FLAVOURS)'
 	-@ echo '  FLAVOUR     := $(FLAVOUR)'
+	-@ echo '  MODE        := $(MODE)'
 	-@ echo '  VALGRIND    := $(VALGRIND)'
 	-@ echo '  EXTRA_CLEAN := $(EXTRA_CLEAN)'
 	-@ echo ''
