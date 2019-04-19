@@ -12,6 +12,10 @@ from astropy.io import registry as io_registry
 from astropy.table import Table
 from astropy import units as u
 
+# Since we reset the readers/writers below, we need to also import any sub-package
+# that defines readers/writers first
+from astropy import timeseries  # noqa
+
 _READERS_ORIGINAL = copy(_readers)
 _WRITERS_ORIGINAL = copy(_writers)
 _IDENTIFIERS_ORIGINAL = copy(_identifiers)

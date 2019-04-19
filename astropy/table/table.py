@@ -266,16 +266,17 @@ class TableColumns(OrderedDict):
 class Table:
     """A class to represent tables of heterogeneous data.
 
-    `Table` provides a class for heterogeneous tabular data, making use of a
-    `numpy` structured array internally to store the data values.  A key
-    enhancement provided by the `Table` class is the ability to easily modify
-    the structure of the table by adding or removing columns, or adding new
-    rows of data.  In addition table and column metadata are fully supported.
+    `~astropy.table.Table` provides a class for heterogeneous tabular data,
+    making use of a `numpy` structured array internally to store the data
+    values.  A key enhancement provided by the `~astropy.table.Table` class is
+    the ability to easily modify the structure of the table by adding or
+    removing columns, or adding new rows of data.  In addition table and column
+    metadata are fully supported.
 
-    `Table` differs from `~astropy.nddata.NDData` by the assumption that the
-    input data consists of columns of homogeneous data, where each column
-    has a unique identifier and may contain additional metadata such as the
-    data unit, format, and description.
+    `~astropy.table.Table` differs from `~astropy.nddata.NDData` by the
+    assumption that the input data consists of columns of homogeneous data,
+    where each column has a unique identifier and may contain additional
+    metadata such as the data unit, format, and description.
 
     See also: http://docs.astropy.org/en/stable/table/
 
@@ -2630,7 +2631,7 @@ class Table:
 
         Returns
         -------
-        out : `Table`
+        out : `~astropy.table.Table`
             Table corresponding to file contents
 
         Notes
@@ -2760,25 +2761,25 @@ class Table:
         """
         Group this table by the specified ``keys``
 
-        This effectively splits the table into groups which correspond to
-        unique values of the ``keys`` grouping object.  The output is a new
-        `TableGroups` which contains a copy of this table but sorted by row
-        according to ``keys``.
+        This effectively splits the table into groups which correspond to unique
+        values of the ``keys`` grouping object.  The output is a new
+        `~astropy.table.TableGroups` which contains a copy of this table but
+        sorted by row according to ``keys``.
 
         The ``keys`` input to `group_by` can be specified in different ways:
 
           - String or list of strings corresponding to table column name(s)
           - Numpy array (homogeneous or structured) with same length as this table
-          - `Table` with same length as this table
+          - `~astropy.table.Table` with same length as this table
 
         Parameters
         ----------
-        keys : str, list of str, numpy array, or `Table`
+        keys : str, list of str, numpy array, or `~astropy.table.Table`
             Key grouping object
 
         Returns
         -------
-        out : `Table`
+        out : `~astropy.table.Table`
             New table with groups set
         """
         return groups.table_group_by(self, keys)
@@ -2924,7 +2925,7 @@ class Table:
     @classmethod
     def from_pandas(cls, dataframe, index=False):
         """
-        Create a `Table` from a :class:`pandas.DataFrame` instance
+        Create a `~astropy.table.Table` from a :class:`pandas.DataFrame` instance
 
         In addition to converting generic numeric or string columns, this supports
         conversion of pandas Date and Time delta columns to `~astropy.time.Time`
@@ -2939,8 +2940,8 @@ class Table:
 
         Returns
         -------
-        table : `Table`
-            A `Table` (or subclass) instance
+        table : `~astropy.table.Table`
+            A `~astropy.table.Table` (or subclass) instance
 
         Raises
         ------
@@ -3039,12 +3040,12 @@ class Table:
 class QTable(Table):
     """A class to represent tables of heterogeneous data.
 
-    `QTable` provides a class for heterogeneous tabular data which can be
-    easily modified, for instance adding columns or new rows.
+    `~astropy.table.QTable` provides a class for heterogeneous tabular data
+    which can be easily modified, for instance adding columns or new rows.
 
-    The `QTable` class is identical to `Table` except that columns with an
-    associated ``unit`` attribute are converted to `~astropy.units.Quantity`
-    objects.
+    The `~astropy.table.QTable` class is identical to `~astropy.table.Table`
+    except that columns with an associated ``unit`` attribute are converted to
+    `~astropy.units.Quantity` objects.
 
     See also:
 
