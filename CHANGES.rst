@@ -630,6 +630,10 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- The default time scale for epochs like 'J2000' or 'B1975' is now "tt",
+  which is the correct one for 'J2000' and avoids leap-second warnings
+  for epochs in the far future or past. [#8600]
+
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
 

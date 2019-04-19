@@ -743,12 +743,14 @@ class TestSubFormat():
         t = Time(100.0, format='gps')
         assert t.scale == 'tai'
 
-        for date in ('J2000', '2000:001', '2000-01-01T00:00:00'):
+        for date in ('2000:001', '2000-01-01T00:00:00'):
             t = Time(date)
             assert t.scale == 'utc'
 
         t = Time(2000.1, format='byear')
-        assert t.scale == 'utc'
+        assert t.scale == 'tt'
+        t = Time('J2000')
+        assert t.scale == 'tt'
 
     def test_epoch_times(self):
         """Test time formats derived from EpochFromTime"""
