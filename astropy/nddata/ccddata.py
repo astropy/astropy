@@ -454,6 +454,20 @@ def _generate_wcs_and_update_header(hdr):
     for k in wcs_header:
         if k not in _KEEP_THESE_KEYWORDS_IN_HEADER:
             new_hdr.remove(k, ignore_missing=True)
+
+    # Check that this does not result in an inconsistent header WCS if the WCS
+    # is converted back to a header.
+
+    PCs = set(['PC1_1', 'PC1_2', 'PC2_1', 'PC2_2'])
+    CDs = set(['CD1_1', 'CD1_2', 'CD2_1', 'CD2_2'])
+
+    if (PCs & set(wcs_header)) and (CDs & set(new_hdr)):
+        # The PCi_j representation is being used by the astropy.wcs object,
+        # so CDi_j keywords were not removed from new_hdr. Remove them now.
+        for cd in CDs:
+            print(cd)
+            new_hdr.remove(cd, ignore_missing=True)
+
     return (new_hdr, wcs)
 
 
