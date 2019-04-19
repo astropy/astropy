@@ -182,7 +182,7 @@ class TimeSeries(BaseTimeSeries):
         `~astropy.timeseries.BoxLeastSquares` periodogram object. For more
         information on how to work with these objects, see the documentation for
         the `Lomb-Scargle Periodogram <http://docs.astropy.org/en/stable/stats/lombscargle.html>`_
-        and `Box least squares Periodogram` <http://docs.astropy.org/en/stable/stats/bls.html>`_
+        and `Box least squares Periodogram <http://docs.astropy.org/en/stable/stats/bls.html>`_
         respectively.
 
         Note that this method automatically gets rid of NaN values in the inputs
