@@ -140,6 +140,9 @@ astropy.timeseries
 - Added a new astropy.timeseries sub-package to represent and manipulate
   sampled and binned time series. [#8540]
 
+- The ``BoxLeastSquares`` and ``LombScargle`` classes have been moved to
+  ``astropy.timeseries.periodograms`` from ``astropy.stats``. [#8591]
+
 - Added the ability to provide absolute ``Time`` objects to the
   ``BoxLeastSquares`` and ``LombScargle`` periodogram classes. [#8599]
 

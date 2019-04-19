@@ -187,17 +187,15 @@ details). Let's use what we've seen so far to make a plot
    plt.ylabel('SAP Flux (e-/s)')
 
 It looks like there are a few transits! Let's use the
-:meth:`~astropy.timeseries.TimeSeries.periodogram` method to estimate the
+:class:`~astropy.timeseries.BoxLeastSquares` class to estimate the
 period, using the 'box least squares' (BLS) algorithm::
 
     >>> import numpy as np
     >>> from astropy import units as u
-    >>> periodogram = ts.periodogram(algorithm='bls', column='sap_flux')  # doctest: +REMOTE_DATA
+    >>> from astropy.timeseries import BoxLeastSquares
+    >>> periodogram = BoxLeastSquares.from_timeseries(ts, column='sap_flux')  # doctest: +REMOTE_DATA
 
-Note that here ``periodogram`` is an instance of the
-:class:`~astropy.timeseries.BoxLeastSquares` class - you can read up more about
-how to work with this kind of object in :doc:`bls`. To run the
-periodogram analysis, we use a box with a duration of 0.2 days::
+To run the periodogram analysis, we use a box with a duration of 0.2 days::
 
     >>> results = periodogram.autopower(0.2 * u.day)  # doctest: +REMOTE_DATA
     >>> best = np.argmax(results.power)  # doctest: +REMOTE_DATA
@@ -208,13 +206,17 @@ periodogram analysis, we use a box with a duration of 0.2 days::
     >>> transit_time  # doctest: +REMOTE_DATA
     <Time object: scale='tdb' format='isot' value=2009-05-02T20:51:16.338>
 
+For more information on available periodogram algorithms, see
+:ref:`periodogram-algorithms`
+
 .. plot::
    :context:
    :nofigs:
 
    import numpy as np
    from astropy import units as u
-   periodogram = ts.periodogram(algorithm='bls', column='sap_flux')
+   from astropy.timeseries import BoxLeastSquares
+   periodogram = BoxLeastSquares.from_timeseries(ts, column='sap_flux')
    results = periodogram.autopower(0.2 * u.day)
    best = np.argmax(results.power)
    period = results.period[best]
@@ -348,6 +350,8 @@ Accessing data and manipulating time series
    analysis
    masking
    pandas
+
+.. _periodogram-algorithms:
 
 Periodogram algorithms
 ----------------------

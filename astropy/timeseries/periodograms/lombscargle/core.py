@@ -8,6 +8,8 @@ from . import _statistics
 from astropy import units
 from astropy.time import Time, TimeDelta
 from astropy import units as u
+from astropy.timeseries.periodograms.base import BasePeriodogram
+
 
 def has_units(obj):
     return hasattr(obj, 'unit')
@@ -25,7 +27,7 @@ def strip_units(*arrs):
         return map(strip, arrs)
 
 
-class LombScargle:
+class LombScargle(BasePeriodogram):
     """Compute the Lomb-Scargle Periodogram.
 
     This implementations here are based on code presented in [1]_ and [2]_;

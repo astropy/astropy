@@ -10,6 +10,7 @@ from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms.lombscargle.core import has_units, strip_units
 from astropy import units as u
 from . import methods
+from astropy.timeseries.periodograms.base import BasePeriodogram
 
 
 def validate_unit_consistency(reference_object, input_object):
@@ -22,7 +23,7 @@ def validate_unit_consistency(reference_object, input_object):
     return input_object
 
 
-class BoxLeastSquares(object):
+class BoxLeastSquares(BasePeriodogram):
     """Compute the box least squares periodogram
 
     This method is a commonly used tool for discovering transiting exoplanets
