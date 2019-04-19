@@ -65,7 +65,7 @@ def test_write_nopath(tmpdir):
     assert np.any([str(w.message).startswith(
         "table path was not set via the path= argument")
                    for w in warns])
-    t1 = Table.read(test_file, path='__astropy__table__dataset__extnsn__')
+    t1 = Table.read(test_file, path='__astropy_table__')
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -79,7 +79,7 @@ def test_write_nopath_nonempty(tmpdir):
     with pytest.raises(ValueError) as exc:
         t1.write(test_file, append=True)
         print(Table.read(test_file,
-                         path='__astropy__table__dataset__extnsn__'))
+                         path='__astropy_table__'))
 
     assert 'table path should always be set via the path=' in exc.value.args[0]
 
