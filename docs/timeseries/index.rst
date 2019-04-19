@@ -186,12 +186,13 @@ details). Let's use what we've seen so far to make a plot
    plt.xlabel('Julian Date')
    plt.ylabel('SAP Flux (e-/s)')
 
-It looks like there are a few transits! Let's use the 'box least squares' (BLS)
-algorithm to estimate the period::
+It looks like there are a few transits! Let's use the
+:meth:`~astropy.timeseries.TimeSeries.periodogram` method to estimate the
+period, using the 'box least squares' (BLS) algorithm::
 
     >>> import numpy as np
     >>> from astropy import units as u
-    >>> periodogram = ts.periodogram('bls', 'sap_flux')
+    >>> periodogram = ts.periodogram(algorithm='bls', column='sap_flux')
 
 Note that here ``periodogram`` is an instance of the
 :class:`~astropy.timeseries.BoxLeastSquares` class - you can read up more about
@@ -213,7 +214,7 @@ periodogram analysis, we use a box with a duration of 0.2 days::
 
    import numpy as np
    from astropy import units as u
-   periodogram = ts.periodogram('bls', 'sap_flux')
+   periodogram = ts.periodogram(algorithm='bls', column='sap_flux')
    results = periodogram.autopower(0.2 * u.day)
    best = np.argmax(results.power)
    period = results.period[best]
