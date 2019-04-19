@@ -1018,6 +1018,18 @@ class TestRename(SetupData):
         assert np.all(t['c'] == np.array([1, 2, 3]))
         assert np.all(t['a'] == np.array([4, 5, 6]))
 
+    def test_rename_columns(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b, self.c])
+        t.rename_columns(('a', 'b', 'c'), ('aa', 'bb', 'cc'))
+        assert t.colnames == ['aa', 'bb', 'cc']
+        t.rename_columns(['bb', 'cc'], ['b', 'c'])
+        assert t.colnames == ['aa', 'b', 'c']
+        with pytest.raises(TypeError):
+            t.rename_columns(('aa'), ['a'])
+        with pytest.raises(ValueError):
+            t.rename_columns(['a'], ['b', 'c'])
+
 
 @pytest.mark.usefixtures('table_types')
 class TestSort():
