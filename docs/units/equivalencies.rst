@@ -294,6 +294,24 @@ and you want to know how big your pixels need to be to cover half an arcsecond::
     >>> (0.5*u.arcsec).to(u.micron, tel_platescale)  # doctest: +FLOAT_CMP
     <Quantity 18.9077335632719 micron>
 
+Temperature Equivalency
+-----------------------
+
+The :func:`~astropy.units.temperature` equivalency allows conversion
+between the Celsius, Fahrenheit, and Kelvin. For example::
+
+    >>> import astropy.units as u
+    >>> temp_C = 0 * u.Celsius
+    >>> temp_Kelvin = temp_C.to(u.K, equivalencies=u.temperature())
+    >>> temp_Kelvin  # doctest: +FLOAT_CMP
+    <Quantity 273.15 K>
+    >>> temp_F = temp_C.to(u.imperial.deg_F, equivalencies=u.temperature())
+    >>> temp_F  # doctest: +FLOAT_CMP
+    <Quantity 32. deg_F>
+
+.. note:: You can also use ``u.deg_C`` instead of ``u.Celsius``.
+
+
 Writing new equivalencies
 =========================
 
