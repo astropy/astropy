@@ -465,6 +465,16 @@ def _generate_wcs_and_update_header(hdr):
         for cd in _CDs:
             new_hdr.remove(cd, ignore_missing=True)
 
+    # The other case -- CD in the header produced by astropy.wcs -- should
+    # never happen based on [1], which computes the matrix in PC form.
+    # [1]: https://github.com/astropy/astropy/blob/1cf277926d3598dd672dd528504767c37531e8c9/cextern/wcslib/C/wcshdr.c#L596
+    #
+    # The test test_ccddata.test_wcs_keyword_removal_for_wcs_test_files() does
+    # check for the possibility that both PC and CD are present in the result
+    # so if the implementation of to_header changes in wcslib in the future
+    # then the tests should catch it, and then this code will need to be
+    # updated.
+
     return (new_hdr, wcs)
 
 
