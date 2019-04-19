@@ -34,7 +34,7 @@ def _table_group_by(table, keys):
     grouped_table : Table object with groups attr set accordingly
     """
     from .table import Table
-    from .serialize import _represent_mixins_as_columns
+    from .serialize import represent_mixins_as_columns
 
     # Pre-convert string to tuple of strings, or Table to the underlying structured array
     if isinstance(keys, str):
@@ -69,7 +69,7 @@ def _table_group_by(table, keys):
     # If there is not already an available index and table_keys is a Table then ensure
     # that all cols (including mixins) are in a form that can sorted with the code below.
     if not table_index and isinstance(table_keys, Table):
-        table_keys = _represent_mixins_as_columns(table_keys)
+        table_keys = represent_mixins_as_columns(table_keys)
 
     # Get the argsort index `idx_sort`, accounting for particulars
     try:
@@ -126,10 +126,10 @@ def column_group_by(column, keys):
     grouped_column : Column object with groups attr set accordingly
     """
     from .table import Table
-    from .serialize import _represent_mixins_as_columns
+    from .serialize import represent_mixins_as_columns
 
     if isinstance(keys, Table):
-        keys = _represent_mixins_as_columns(keys)
+        keys = represent_mixins_as_columns(keys)
         keys = keys.as_array()
 
     if not isinstance(keys, np.ndarray):

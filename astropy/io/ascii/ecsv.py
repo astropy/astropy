@@ -288,5 +288,5 @@ class Ecsv(basic.Basic):
             Output table for writing
         """
         with serialize_context_as('ecsv'):
-            out = serialize._represent_mixins_as_columns(table)
+            out = serialize.represent_mixins_as_columns(table)
         return out

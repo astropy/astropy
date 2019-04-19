@@ -14,7 +14,8 @@ the 3.1.x series of releases.
 
 In particular, this release includes:
 
-* :ref:`whatsnew-3.1-tips`
+* :ref:`whatsnew-3.2-timeseries`
+* :ref:`whatsnew-3.2-ecliptic`
 *
 
 In addition to these major changes, Astropy v3.2 includes a large number of
@@ -25,6 +26,54 @@ smaller improvements and bug fixes, which are described in the
 * xxx pull requests have been merged since v3.1
 * xxx distinct people have contributed code
 
+.. _whatsnew-3.2-timeseries:
+
+New Sub-package for Time Series
+===============================
+
+Astropy 3.2 includes a new experimental sub-package: :ref:`astropy-timeseries`.
+Currently this sub-package provides classes to represent sampled and binned
+time series as well as some basic analysis tasks.
+
+The following example shows a simple example of reading in a Kepler light curve,
+finding the period of the transits, and folding the light curve.
+
+.. plot::
+   :include-source:
+   :context: reset
+
+   import numpy as np
+   import matplotlib.pyplot as plt
+   from astropy.timeseries import TimeSeries
+   from astropy.utils.data import get_pkg_data_filename
+   from astropy import units as u
+   from astropy.stats import BoxLeastSquares
+
+   filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
+   ts = TimeSeries.read(filename, format='kepler.fits')
+
+   plt.figure(figsize=(10,5))
+
+   # Show the original light curve
+   plt.subplot(1, 2, 1)
+   plt.plot(ts.time.mjd, ts['sap_flux'], 'k.', markersize=1)
+   plt.xlabel('Barycentric Modified Julian Date')
+   plt.ylabel('SAP Flux (e-/s)')
+
+   # Find the transit period and fold the light curve
+   keep = ~np.isnan(ts['sap_flux'])
+   periodogram = BoxLeastSquares(ts.time.jd[keep] * u.day, ts['sap_flux'][keep]).autopower(0.2 * u.day)
+   period = periodogram.period[np.argmax(periodogram.power)]
+   ts_folded = ts.fold(period=period, midpoint_epoch='2009-05-02T07:41:40')
+
+   # Show the folded light curve
+   plt.subplot(1, 2, 2)
+   plt.plot(ts_folded.time.jd, ts_folded['sap_flux'], 'k.', markersize=1)
+   plt.xlabel('Time relative to epoch (days)')
+   plt.gca().get_yaxis().set_visible(False)
+
+This sub-package should be considered experimental and subject to API changes in
+the future if user feedback calls for it.
 
 .. _whatsnew-3.2-ecliptic:
 
@@ -33,7 +82,6 @@ Changes to Ecliptic Transformations
 
 Placeholder. gist is that True/Mean are now treated appropriately, but this
 might change code from older versions (no good way to do deprecation)
-
 
 
 Full change log

@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from astropy.units import (Unit, UnitBase, UnitsError, UnitTypeError,
+from astropy.units import (Unit, UnitBase, UnitsError, UnitTypeError, UnitConversionError,
                            dimensionless_unscaled, Quantity)
 
 __all__ = ['FunctionUnitBase', 'FunctionQuantity']
@@ -252,9 +252,19 @@ class FunctionUnitBase(metaclass=ABCMeta):
             return self.function_unit.to(other_function_unit, value)
 
         else:
-            # when other is not a function unit
-            return self.physical_unit.to(other, self.to_physical(value),
-                                         equivalencies)
+            try:
+                # when other is not a function unit
+                return self.physical_unit.to(other, self.to_physical(value),
+                                             equivalencies)
+            except UnitConversionError as e:
+                if self.function_unit == Unit('mag'):
+                    # One can get to raw magnitudes via math that strips the dimensions off.
+                    # Include extra information in the exception to remind users of this.
+                    msg = "Did you perhaps subtract magnitudes so the unit got lost?"
+                    e.args += (msg,)
+                    raise e
+                else:
+                    raise
 
     def is_unity(self):
         return False
