@@ -39,3 +39,10 @@ class BoxLeastSquaresResults(TimeseriesBoxLeastSquaresResults):
     This class has been deprecated and will be removed in a future version.
     Use `astropy.timeseries.BoxLeastSquaresResults` instead.
     """
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn('Importing BoxLeastSquaresResults from astropy.stats has been '
+                      'deprecated and will no longer be supported in future. '
+                      'Please import this class from the astropy.timeseries '
+                      'module instead', AstropyDeprecationWarning)
+        super().__init__(*args, **kwargs)

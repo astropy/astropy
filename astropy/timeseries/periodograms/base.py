@@ -1,3 +1,4 @@
+import abc
 import numpy as np
 from astropy.timeseries import TimeSeries, BinnedTimeSeries
 
@@ -6,8 +7,12 @@ __all__ = ['BasePeriodogram']
 
 class BasePeriodogram:
 
+    @abc.abstractmethod
+    def __init__(self, t, y, dy=None):
+        pass
+
     @classmethod
-    def from_timeseries(cls, timeseries, *, column=None, error=None, **kwargs):
+    def from_timeseries(cls, timeseries, signal_column_name=None, uncertainty=None, **kwargs):
         """
         Initialize a periodogram from a time series object.
 
@@ -17,28 +22,28 @@ class BasePeriodogram:
 
         Parameters
         ----------
-        column : str, optional
-            The name of the column containing the y values to use.
-        error : str or float or `~astropy.units.Quantity`, optional
-            The name of the column containing the y error values, or the value
-            to use for the error, if a scalar.
+        signal_column_name : str
+            The name of the column containing the signal values to use.
+        uncertainty : str or float or `~astropy.units.Quantity`, optional
+            The name of the column containing the errors on the signal, or the
+            value to use for the error, if a scalar.
         **kwargs
             Additional keyword arguments are passed to the initializer for this
             periodogram class.
         """
 
-        if column is None:
-            raise ValueError('column should be set to a valid column name')
+        if signal_column_name is None:
+            raise ValueError('signal_column_name should be set to a valid column name')
 
-        y = timeseries[column]
+        y = timeseries[signal_column_name]
         keep = ~np.isnan(y)
 
-        if isinstance(error, str):
-            dy = timeseries[error]
+        if isinstance(uncertainty, str):
+            dy = timeseries[uncertainty]
             keep &= ~np.isnan(dy)
             dy = dy[keep]
         else:
-            dy = error
+            dy = uncertainty
 
         if isinstance(timeseries, TimeSeries):
             time = timeseries.time

@@ -292,14 +292,14 @@ def test_periodogram(cls):
                     data=[[10, 2, 3], [4, 5, 6]],
                     names=['a', 'b'])
 
-    p1 = cls.from_timeseries(ts, column='a')
+    p1 = cls.from_timeseries(ts, 'a')
     assert isinstance(p1, cls)
     assert_allclose(p1.t.jd, ts.time.jd)
     assert_equal(p1.y, ts['a'])
     assert p1.dy is None
 
-    p2 = cls.from_timeseries(ts, column='a', error='b')
+    p2 = cls.from_timeseries(ts, 'a', uncertainty='b')
     assert_quantity_allclose(p2.dy, ts['b'])
 
-    p3 = cls.from_timeseries(ts, column='a', error=0.1)
+    p3 = cls.from_timeseries(ts, 'a', uncertainty=0.1)
     assert_allclose(p3.dy, 0.1)
