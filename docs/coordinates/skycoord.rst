@@ -27,7 +27,7 @@ The key distinctions between |SkyCoord| and the low-level classes
   coordinate object.
 
 - The |SkyCoord| class is more flexible with inputs to accommodate a wide variety
-  of user preferences and available data formats, whereas the frame classes expect 
+  of user preferences and available data formats, whereas the frame classes expect
   to receive Quantity-like objects with angular units.
 
 - The |SkyCoord| class has a number of convenience methods that are useful
@@ -169,6 +169,24 @@ The following options are available for longitude and latitude:
 - |Angle|, |Longitude|, or |Latitude| object, which can be scalar or
   array-valued
 
+.. note::
+
+    While |SkyCoord| is flexible with respect to specifying longitude and
+    latitude component inputs, the frame classes expect to receive
+    |Quantity|-like objects with angular units (i.e., |Angle| or |Quantity|).
+    For example, when specifying components, the frame classes (e.g., ``ICRS``)
+    must be created as
+
+        >>> ICRS(0 * u.deg, 0 * u.deg)
+        <ICRS Coordinate: (ra, dec) in deg
+            (0., 0.)>
+
+    and other methods of flexible initialization (that work with |SkyCoord|)
+    will not work
+
+        >>> ICRS(0, 0, unit=u.deg) # doctest: +SKIP
+        UnitTypeError: Longitude instances require units equivalent to 'rad', but no unit was given.
+
 **DISTANCE**
 
 The distance to the object from the frame center can be optionally specified:
@@ -223,17 +241,6 @@ versions of the class name.
 If the frame is not supplied then you will see a special ``ICRS``
 identifier.  This indicates that the frame is unspecified and operations
 that require comparing coordinates (even within that object) are not allowed.
-
-It is important to note that frame classes expect to receive Quantity-like 
-objects with angular units. For example,
-
-  >>> ra = 0
-  >>> deg = 0
-  >>> ICRS(ra, deg, unit=u.deg) # doctest: +SKIP
-  UnitTypeError: Longitude instances require units equivalent to 'rad', but no unit was given.
-  >>> ICRS(ra * u.deg, deg * u.deg)
-  <ICRS Coordinate: (ra, dec) in deg
-      (0., 0.)>
 
 **unit=UNIT**
 
