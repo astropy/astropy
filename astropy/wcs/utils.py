@@ -792,9 +792,13 @@ def fit_wcs_from_points(xp, yp, coords, mode, projection='TAN', proj_point=None,
     
     if mode == "all": 
         wcs.wcs.ctype = [x + '-SIP' for x in wcs.wcs.ctype]
+        if (order is None) or (type(order) == float):
+            raise ValueError("Must provide integer or tuple (a_order, b_order) for SIP.")
         if type(order) == int:
             a_order = b_order = order 
         elif (len(order) == 2):
+            if (type(order[0]) != int) or (type(order[1]) != int):
+                raise ValueError("Must provide integer or tuple (a_order, b_order) for SIP.")
             a_order, b_order = order
         else:
             raise ValueError("Must provide integer or tuple (a_order, b_order) for SIP.")
