@@ -187,12 +187,12 @@ details). Let's use what we've seen so far to make a plot
    plt.ylabel('SAP Flux (e-/s)')
 
 It looks like there are a few transits! Let's use
-:class:`~astropy.stats.BoxLeastSquares` to estimate the period, using a box with
+:class:`~astropy.timeseries.BoxLeastSquares` to estimate the period, using a box with
 a duration of 0.2 days::
 
     >>> import numpy as np
     >>> from astropy import units as u
-    >>> from astropy.stats import BoxLeastSquares
+    >>> from astropy.timeseries import BoxLeastSquares
     >>> keep = ~np.isnan(ts['sap_flux'])  # doctest: +REMOTE_DATA
     >>> periodogram = BoxLeastSquares(ts.time.jd[keep] * u.day,
     ...                               ts['sap_flux'][keep]).autopower(0.2 * u.day)  # doctest: +REMOTE_DATA
@@ -206,7 +206,7 @@ a duration of 0.2 days::
 
    import numpy as np
    from astropy import units as u
-   from astropy.stats import BoxLeastSquares
+   from astropy.timeseries import BoxLeastSquares
    keep = ~np.isnan(ts['sap_flux'])
    periodogram = BoxLeastSquares(ts.time.jd[keep] * u.day, ts['sap_flux'][keep]).autopower(0.2 * u.day)
    period = periodogram.period[np.argmax(periodogram.power)]
@@ -328,8 +328,8 @@ Initializing and reading in time series
 .. toctree::
    :maxdepth: 2
 
-   initializing.rst
-   io.rst
+   initializing
+   io
 
 Accessing data and manipulating time series
 -------------------------------------------
@@ -337,11 +337,20 @@ Accessing data and manipulating time series
 .. toctree::
    :maxdepth: 2
 
-   data_access.rst
-   times.rst
-   analysis.rst
-   masking.rst
-   pandas.rst
+   data_access
+   times
+   analysis
+   masking
+   pandas
+
+Periodogram algorithms
+----------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   lombscargle
+   bls
 
 Reference/API
 =============

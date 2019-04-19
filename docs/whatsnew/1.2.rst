@@ -46,7 +46,7 @@ smaller improvements and bug fixes, which are described in the
 
 Lomb-scargle periodograms
 =========================
-The new :class:`~astropy.stats.LombScargle` class implements a fast Lomb-Scargle
+The new ``astropy.stats.LombScargle`` class implements a fast Lomb-Scargle
 periodogram, useful for detecting periodic signals in noisy, unevenly-spaced
 data. For example, here is an irregular sinusoidal signal:
 

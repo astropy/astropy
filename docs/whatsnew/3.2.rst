@@ -75,6 +75,10 @@ finding the period of the transits, and folding the light curve.
 This sub-package should be considered experimental and subject to API changes in
 the future if user feedback calls for it.
 
+Note that the :class:`~astropy.timeseries.LombScargle` and
+:class:`~astropy.timeseries.BoxLeastSquares` periodogram classes have now moved
+from the :mod:`astropy.stats` to the :mod:`astropy.timeseries` module.
+
 .. _whatsnew-3.2-ecliptic:
 
 Changes to Ecliptic Transformations
