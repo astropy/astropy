@@ -32,7 +32,7 @@ RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
 C_ICRS = ICRS(RA, DEC)
 C_FK5 = C_ICRS.transform_to(FK5)
-J2001 = Time('J2001', scale='utc')
+J2001 = Time('J2001')
 
 
 def allclose(a, b, rtol=0.0, atol=None):

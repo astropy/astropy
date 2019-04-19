@@ -33,9 +33,9 @@ def test_fk4_no_e_fk5():
 
         # FK4NoETerms to FK5
         c1 = FK4NoETerms(ra=r['ra_in']*u.deg, dec=r['dec_in']*u.deg,
-                         obstime=Time(r['obstime'], scale='utc'),
-                         equinox=Time(r['equinox_fk4'], scale='utc'))
-        c2 = c1.transform_to(FK5(equinox=Time(r['equinox_fk5'], scale='utc')))
+                         obstime=Time(r['obstime']),
+                         equinox=Time(r['equinox_fk4']))
+        c2 = c1.transform_to(FK5(equinox=Time(r['equinox_fk5'])))
 
         # Find difference
         diff = angular_separation(c2.ra.radian, c2.dec.radian,
@@ -46,9 +46,9 @@ def test_fk4_no_e_fk5():
 
         # FK5 to FK4NoETerms
         c1 = FK5(ra=r['ra_in']*u.deg, dec=r['dec_in']*u.deg,
-                 equinox=Time(r['equinox_fk5'], scale='utc'))
-        fk4neframe = FK4NoETerms(obstime=Time(r['obstime'], scale='utc'),
-                                 equinox=Time(r['equinox_fk4'], scale='utc'))
+                 equinox=Time(r['equinox_fk5']))
+        fk4neframe = FK4NoETerms(obstime=Time(r['obstime']),
+                                 equinox=Time(r['equinox_fk4']))
         c2 = c1.transform_to(fk4neframe)
 
         # Find difference

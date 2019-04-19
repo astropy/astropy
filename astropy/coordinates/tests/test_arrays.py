@@ -183,8 +183,8 @@ def test_array_precession():
     """
     Ensures that FK5 coordinates as arrays precess their equinoxes
     """
-    j2000 = Time('J2000', scale='utc')
-    j1975 = Time('J1975', scale='utc')
+    j2000 = Time('J2000')
+    j1975 = Time('J1975')
 
     fk5 = FK5([1, 1.1]*u.radian, [0.5, 0.6]*u.radian)
     assert fk5.equinox.jyear == j2000.jyear
@@ -215,7 +215,7 @@ def test_array_separation():
 def test_array_indexing():
     ra = np.linspace(0, 360, 10)
     dec = np.linspace(-90, 90, 10)
-    j1975 = Time(1975, format='jyear', scale='utc')
+    j1975 = Time(1975, format='jyear')
 
     c1 = FK5(ra*u.deg, dec*u.deg, equinox=j1975)
 

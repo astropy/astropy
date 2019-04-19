@@ -195,8 +195,8 @@ def test_obstime():
     Checks to make sure observation time is
     accounted for at least in FK4 <-> ICRS transformations
     """
-    b1950 = Time('B1950', scale='utc')
-    j1975 = Time('J1975', scale='utc')
+    b1950 = Time('B1950')
+    j1975 = Time('J1975')
 
     fk4_50 = FK4(ra=1*u.deg, dec=2*u.deg, obstime=b1950)
     fk4_75 = FK4(ra=1*u.deg, dec=2*u.deg, obstime=j1975)
