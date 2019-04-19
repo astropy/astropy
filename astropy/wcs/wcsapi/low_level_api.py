@@ -279,7 +279,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
         s += (('{0:' + str(pixel_dim_width) + 's}').format('Pixel Dim') + '  ' +
               ('{0:' + str(pixel_siz_width) + 's}').format('Data size') + '  ' +
-              'Units\n')
+              'Bounds\n')
 
         for ipix in range(self.pixel_n_dim):
             s += (('{0:' + str(pixel_dim_width) + 'd}').format(ipix) + '  ' +
@@ -331,7 +331,8 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
                            for ipix in range(self.pixel_n_dim)]) +
                   '\n')
 
-        return s
+        # Make sure we get rid of the extra whitespace at the end of some lines
+        return '\n'.join([l.rstrip() for l in s.splitlines()])
 
     __repr__ = __str__
 
