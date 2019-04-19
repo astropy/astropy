@@ -20,6 +20,9 @@ astropy.coordinates
   ``GeocentricTrueEcliptic`` frames.
   The ecliptic frames are no longer considered experimental. [#8394]
 
+- Frame objects (including ``SkyCoord``) now have an `atleast_nd` method that
+  allows similar behavior as ``numpy.atleast_1d``, etc. [#8607]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -129,6 +132,9 @@ astropy.tests
 
 astropy.time
 ^^^^^^^^^^^^
+
+- ``Time`` objects now have an `atleast_nd` method that allows similar behavior
+  as ``numpy.atleast_1d``, etc. [#8607]
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
@@ -258,6 +264,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- All subclasses of ``ShapedLikeNDArray`` now have an `atleast_nd` method that
+  allows similar behavior as ``numpy.atleast_1d``, etc. [#8607]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -354,9 +363,9 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
-- Added a ``PyUnitListProxy_richcmp`` method in ``UnitListProxy`` class to enable 
-  ``WCS.wcs.cunit`` equality testing. It helps to check whether the two instances of 
-  ``WCS.wcs.cunit`` are equal or not by comparing the data members of 
+- Added a ``PyUnitListProxy_richcmp`` method in ``UnitListProxy`` class to enable
+  ``WCS.wcs.cunit`` equality testing. It helps to check whether the two instances of
+  ``WCS.wcs.cunit`` are equal or not by comparing the data members of
   ``UnitListProxy`` class [#8480]
 
 Other Changes and Additions
