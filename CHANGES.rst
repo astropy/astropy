@@ -147,7 +147,7 @@ astropy.timeseries
   ``BoxLeastSquares`` and ``LombScargle`` periodogram classes. [#8599]
 
 - Added model inspection methods (``model_parameters()``, ``design_matrix()``,
-  and ``offset()``) to ``astropy.stats.LombScargle`` class [#8397].
+  and ``offset()``) to ``astropy.timeseries.LombScargle`` class [#8397].
 
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
