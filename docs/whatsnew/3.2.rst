@@ -47,7 +47,6 @@ finding the period of the transits, and folding the light curve.
    from astropy.timeseries import TimeSeries
    from astropy.utils.data import get_pkg_data_filename
    from astropy import units as u
-   from astropy.stats import BoxLeastSquares
 
    filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
    ts = TimeSeries.read(filename, format='kepler.fits')
@@ -61,10 +60,11 @@ finding the period of the transits, and folding the light curve.
    plt.ylabel('SAP Flux (e-/s)')
 
    # Find the transit period and fold the light curve
-   keep = ~np.isnan(ts['sap_flux'])
-   periodogram = BoxLeastSquares(ts.time.jd[keep] * u.day, ts['sap_flux'][keep]).autopower(0.2 * u.day)
-   period = periodogram.period[np.argmax(periodogram.power)]
-   ts_folded = ts.fold(period=period, midpoint_epoch='2009-05-02T07:41:40')
+   periodogram = ts.periodogram(algorithm='bls', column='sap_flux')
+   results = periodogram.autopower(0.2 * u.day)
+   best = np.argmax(results.power)
+   ts_folded = ts.fold(period=results.period[best],
+                       midpoint_epoch=results.transit_time[best])
 
    # Show the folded light curve
    plt.subplot(1, 2, 2)
