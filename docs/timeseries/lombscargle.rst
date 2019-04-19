@@ -1,4 +1,4 @@
-.. _stats-lombscargle:
+.. _timeseries-lombscargle:
 
 *************************
 Lomb-Scargle Periodograms
@@ -7,7 +7,7 @@ Lomb-Scargle Periodograms
 The Lomb-Scargle Periodogram (after Lomb [1]_, and Scargle [2]_)
 is a commonly-used statistical tool designed to detect periodic signals
 in unevenly-spaced observations.
-The :class:`~astropy.stats.LombScargle` class is a unified interface to several
+The :class:`~astropy.timeseries.LombScargle` class is a unified interface to several
 implementations of the Lomb-Scargle periodogram, including a fast *O[NlogN]*
 implementation following the algorithm presented by Press & Rybicki [3]_.
 
@@ -23,7 +23,7 @@ Basic Usage
 ===========
 
 .. Note::
-   All frequencies in :class:`~astropy.stats.LombScargle` are **not** angular
+   All frequencies in :class:`~astropy.timeseries.LombScargle` are **not** angular
    frequencies, but rather frequencies of oscillation; i.e. number of
    cycles per unit time.
 
@@ -39,9 +39,9 @@ These are 100 noisy measurements taken at irregular times, with a frequency
 of 1 cycle per unit time.
 The Lomb-Scargle periodogram, evaluated at frequencies chosen
 automatically based on the input data, can be computed as follows
-using the :class:`~astropy.stats.LombScargle` class:
+using the :class:`~astropy.timeseries.LombScargle` class:
 
->>> from astropy.stats import LombScargle
+>>> from astropy.timeseries import LombScargle
 >>> frequency, power = LombScargle(t, y).autopower()
 
 Plotting the result with matplotlib gives:
@@ -51,7 +51,7 @@ Plotting the result with matplotlib gives:
 
 .. plot::
 
-    from astropy.stats import LombScargle
+    from astropy.timeseries import LombScargle
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -71,7 +71,7 @@ as we would expect from the data we constructed.
 Measurement Uncertainties
 -------------------------
 
-The :class:`~astropy.stats.LombScargle` interface can also handle data with
+The :class:`~astropy.timeseries.LombScargle` interface can also handle data with
 measurement uncertainties.
 For example, if all uncertainties are the same, you can pass a scalar:
 
@@ -90,7 +90,7 @@ deviation (not the variance).
 
 Periodograms and Units
 ----------------------
-The :class:`~astropy.stats.LombScargle` interface properly handles
+The :class:`~astropy.timeseries.LombScargle` interface properly handles
 :class:`~astropy.units.Quantity` objects with units attached,
 and will validate the inputs to make sure units are appropriate. For example:
 
@@ -111,7 +111,7 @@ see :ref:`lomb-scargle-normalization` below).
 
 Specifying the Frequency
 ------------------------
-With the :func:`~astropy.stats.LombScargle.autopower` method used above,
+With the :func:`~astropy.timeseries.LombScargle.autopower` method used above,
 a heuristic is applied to select
 a suitable frequency grid. By default, the heuristic assumes that the width of
 peaks is inversely proportional to the observation baseline, and that the
@@ -121,7 +121,7 @@ frequency", computed based on the average observation spacing.
 This heuristic is not universally useful, as the frequencies probed by
 irregularly-sampled data can be much higher than the average Nyquist frequency.
 For this reason, the heuristic can be tuned through keywords passed to the
-:func:`~astropy.stats.LombScargle.autopower` method. For example:
+:func:`~astropy.timeseries.LombScargle.autopower` method. For example:
 
 >>> frequency, power = LombScargle(t, y, dy).autopower(nyquist_factor=2)
 >>> len(frequency), frequency.min(), frequency.max()  # doctest: +FLOAT_CMP
@@ -134,7 +134,7 @@ If we increase the ``nyquist_factor``, we can probe higher frequencies:
 >>> len(frequency), frequency.min(), frequency.max()  # doctest: +FLOAT_CMP
 (2500, 0.0010189890448009111, 5.0939262349597545)
 
-Alternatively, we can use the :func:`~astropy.stats.LombScargle.power`
+Alternatively, we can use the :func:`~astropy.timeseries.LombScargle.power`
 method to evaluate the periodogram at a user-specified set of frequencies:
 
 >>> frequency = np.linspace(0.5, 1.5, 1000)
@@ -161,7 +161,7 @@ For example, imagine you chose to evaluate your periodogram at 100 points:
 
     import numpy as np
     import matplotlib.pyplot as plt
-    from astropy.stats import LombScargle
+    from astropy.timeseries import LombScargle
 
     rand = np.random.RandomState(42)
     t = 100 * rand.rand(100)
@@ -185,7 +185,7 @@ but the periodogram peak falls in the gap between the chosen grid points!
 
 A safer approach is to use the frequency heuristic to decide on the appropriate
 grid spacing to use, optionally passing a minimum and maximum frequency to
-the :func:`~astropy.stats.LombScargle.autopower` method:
+the :func:`~astropy.timeseries.LombScargle.autopower` method:
 
 >>> frequency, power = LombScargle(t, y, dy).autopower(minimum_frequency=0.1,
 ...                                                    maximum_frequency=1.9)
@@ -197,7 +197,7 @@ the :func:`~astropy.stats.LombScargle.autopower` method:
 
     import numpy as np
     import matplotlib.pyplot as plt
-    from astropy.stats import LombScargle
+    from astropy.timeseries import LombScargle
 
     rand = np.random.RandomState(42)
     t = 100 * rand.rand(100)
@@ -239,7 +239,7 @@ model to the data at each frequency, with a larger power reflecting a better
 fit. With this in mind, it is often helpful to plot the best-fit sinusoid
 over the phased data.
 
-This best-fit sinusoid can be computed using the :func:`~astropy.stats.LombScargle.model` method of the :class:`~astropy.stats.LombScargle` object:
+This best-fit sinusoid can be computed using the :func:`~astropy.timeseries.LombScargle.model` method of the :class:`~astropy.timeseries.LombScargle` object:
 
 >>> best_frequency = frequency[np.argmax(power)]
 >>> t_fit = np.linspace(0, 1)
@@ -254,7 +254,7 @@ We can then phase the data and plot the Lomb-Scargle model fit:
     import matplotlib.pyplot as plt
     plt.style.use('ggplot')
 
-    from astropy.stats import LombScargle
+    from astropy.timeseries import LombScargle
 
     rand = np.random.RandomState(42)
     t = 100 * rand.rand(100)
@@ -277,8 +277,8 @@ We can then phase the data and plot the Lomb-Scargle model fit:
            ylabel='magnitude',
            title='phased data at frequency={0:.2f}'.format(best_frequency))
 
-The best-fit model parameters can be computed with the :func:`~astropy.stats.LombScargle.model_parameters`
-method of the :class:`~astropy.stats.LombScargle` object at a given frequency:
+The best-fit model parameters can be computed with the :func:`~astropy.timeseries.LombScargle.model_parameters`
+method of the :class:`~astropy.timeseries.LombScargle` object at a given frequency:
 
 >>> theta = ls.model_parameters(best_frequency)
 >>> theta.round(2)
@@ -291,9 +291,9 @@ These parameters :math:`\vec{\theta}` are fit using the following model:
     y(t; f, \vec{\theta}) = \theta_0 + \sum_{n=1}^{\tt nterms} [\theta_{2n-1}\sin(2\pi n f t) + \theta_{2n}\cos(2\pi n f t)]
 
 The model can be constructed from these parameters by computing the associated
-:func:`~astropy.stats.LombScargle.offset`, which accounts for pre-centering of data
+:func:`~astropy.timeseries.LombScargle.offset`, which accounts for pre-centering of data
 (i.e. the ``center_data`` argument), and
-:func:`~astropy.stats.LombScargle.design_matrix`, which computes the sine and cosine
+:func:`~astropy.timeseries.LombScargle.design_matrix`, which computes the sine and cosine
 terms for you:
 
 >>> offset = ls.offset()
@@ -303,7 +303,7 @@ True
 
 Additional Arguments
 --------------------
-On initialization, :class:`~astropy.stats.LombScargle` takes a few additional
+On initialization, :class:`~astropy.timeseries.LombScargle` takes a few additional
 arguments which control the model for the data:
 
 - ``center_data`` (``True`` by default) controls whether the ``y`` values are
@@ -333,7 +333,7 @@ arguments which control the model for the data:
 Periodogram Normalizations
 ==========================
 There are several normalizations of the Lomb-Scargle periodogram found in the
-literature. :class:`~astropy.stats.LombScargle` makes four options available,
+literature. :class:`~astropy.timeseries.LombScargle` makes four options available,
 via the ``normalization`` argument: ``normalization='standard'``
 (the default), ``normalization='model'``, ``normalization='log'``,
 and ``normalization='psd'``.
@@ -352,7 +352,7 @@ of the data around the constant reference model:
    P_{standard}(f) = \frac{\chi^2_{ref} - \chi^2(f)}{\chi^2_{ref}}
 
 This form of the normalization (``normalization='standard'``) is the default
-choice used in :class:`~astropy.stats.LombScargle`.
+choice used in :class:`~astropy.timeseries.LombScargle`.
 The resulting power *P* is a dimensionless quantity that lies in the
 range *0 ≤ P ≤ 1*.
 
@@ -470,7 +470,7 @@ For example, let's simulate 60 observations of a sine wave with noise:
 
 The peak of the periodogram has a value of 0.33, but how significant is
 this peak? We can address this question using the
-:func:`~astropy.stats.LombScargle.false_alarm_probability` method:
+:func:`~astropy.timeseries.LombScargle.false_alarm_probability` method:
 
 .. doctest-requires:: scipy
 
@@ -497,7 +497,7 @@ present in the data.
 
 We might also wish to compute the required peak height to attain any given
 false alarm probability, which can be done with the
-:func:`~astropy.stats.LombScargle.false_alarm_level` method:
+:func:`~astropy.timeseries.LombScargle.false_alarm_level` method:
 
 .. doctest-requires:: scipy
 
@@ -573,7 +573,7 @@ peak heights for 100 observations with a heavily-aliased observing pattern:
     import matplotlib.pyplot as plt
     plt.style.use('ggplot')
 
-    from astropy.stats import LombScargle
+    from astropy.timeseries import LombScargle
 
     rng = np.random.RandomState(42)
 
@@ -629,7 +629,7 @@ interpreting false alarm probabilities, please refer to [11]_.
 
 Periodogram Algorithms
 ======================
-The :class:`~astropy.stats.LombScargle` class makes available
+The :class:`~astropy.timeseries.LombScargle` class makes available
 several complementary implementations of the Lomb-Scargle Periodogram,
 which can be selected using the ``method`` keyword of the Lomb-Scargle power.
 By design all methods will return the same results (some approximate),
@@ -736,7 +736,7 @@ with lightcurve shape that is more complicated than a simple sine wave:
     import matplotlib.pyplot as plt
     plt.style.use('ggplot')
 
-    from astropy.stats import LombScargle
+    from astropy.timeseries import LombScargle
 
 
     def simulated_data(N, rseed=2, period=0.41, phase=0.0):

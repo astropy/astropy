@@ -1,6 +1,6 @@
-.. module:: astropy.stats
+.. module:: astropy.timeseries
 
-.. _stats-bls:
+.. _timeseries-bls:
 
 ***********************************
 Box least squares (BLS) periodogram
@@ -118,7 +118,7 @@ computed as follows:
 
 >>> import numpy as np
 >>> import astropy.units as u
->>> from astropy.stats import BoxLeastSquares
+>>> from astropy.timeseries import BoxLeastSquares
 >>> np.random.seed(42)
 >>> t = np.random.uniform(0, 20, 2000)
 >>> y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*np.random.randn(len(t))
@@ -139,7 +139,7 @@ This result can be plotted using matplotlib:
     import numpy as np
     import astropy.units as u
     import matplotlib.pyplot as plt
-    from astropy.stats import BoxLeastSquares
+    from astropy.timeseries import BoxLeastSquares
 
     np.random.seed(42)
     t = np.random.uniform(0, 20, 2000)
@@ -173,7 +173,7 @@ To do this, call :func:`BoxLeastSquares.power` or
     import numpy as np
     import astropy.units as u
     import matplotlib.pyplot as plt
-    from astropy.stats import BoxLeastSquares
+    from astropy.timeseries import BoxLeastSquares
 
     np.random.seed(42)
     t = np.random.uniform(0, 20, 2000)
@@ -216,7 +216,7 @@ It is also possible to provide a specific period grid as follows:
     import numpy as np
     import astropy.units as u
     import matplotlib.pyplot as plt
-    from astropy.stats import BoxLeastSquares
+    from astropy.timeseries import BoxLeastSquares
 
     np.random.seed(42)
     t = np.random.uniform(0, 20, 2000)
@@ -242,7 +242,7 @@ missed.
     import numpy as np
     import astropy.units as u
     import matplotlib.pyplot as plt
-    from astropy.stats import BoxLeastSquares
+    from astropy.timeseries import BoxLeastSquares
 
     np.random.seed(42)
     t = np.random.uniform(0, 20, 2000)
@@ -284,4 +284,3 @@ Literature References
 
 .. [1] Kovacs, Zucker, & Mazeh (2002), A&A, 391, 369 (arXiv:astro-ph/0206099)
 .. [2] Hartman & Bakos (2016), Astronomy & Computing, 17, 1 (arXiv:1605.06811)
-
