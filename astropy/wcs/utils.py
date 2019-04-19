@@ -632,6 +632,8 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
     coords = cls(frame.realize_frame(data))
 
     return coords
+
+
 def _linear_transformation_fit(params, lon, lat, x, y, w_obj):
     """ Objective function for fitting linear terms."""
     pc = params[0:4]
@@ -643,6 +645,7 @@ def _linear_transformation_fit(params, lon, lat, x, y, w_obj):
     resids = np.concatenate((lon-lon2, lat-lat2))
 
     return resids
+
 
 def _sip_fit(params, lon, lat, u, v, w_obj, a_order, b_order, a_coeff_names,
              b_coeff_names):
@@ -670,6 +673,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, a_order, b_order, a_coeff_names,
         xo, yo = np.dot(cdx, np.array([u+fuv-crpix[0], v+guv-crpix[1]]))
         resids = np.concatenate((x-xo, y-yo))
         return resids
+
 
 def fit_wcs_from_points(xp, yp, coords, mode, projection='TAN', proj_point=None, order=None, inwcs=None):
     """Given a set of matched x,y pixel positions and celestial coordinates, solves for
