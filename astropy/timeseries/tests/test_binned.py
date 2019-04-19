@@ -281,9 +281,8 @@ def test_read():
     assert timeseries['B'].sum() == 1151.54
 
 
-@pytest.mark.parametrize(('algorithm', 'cls'), [('bls', BoxLeastSquares),
-                                                ('lombscargle', LombScargle)])
-def test_periodogram(algorithm, cls):
+@pytest.mark.parametrize('cls', [BoxLeastSquares, LombScargle])
+def test_periodogram(cls):
 
     # Note that we don't need to check the actual results from the periodogram
     # classes here since these are tested extensively in
@@ -292,14 +291,14 @@ def test_periodogram(algorithm, cls):
     ts = BinnedTimeSeries(time_bin_start='2016-03-22T12:30:31',
                           time_bin_size=3 * u.s, data=[[1, 4, 3], [3, 4, 3]], names=['a', 'b'])
 
-    p1 = ts.periodogram(algorithm=algorithm, column='a')
+    p1 = cls.from_timeseries(ts, column='a')
     assert isinstance(p1, cls)
     assert_allclose(p1.t.jd, ts.time_bin_center.jd)
     assert_equal(p1.y, ts['a'])
     assert p1.dy is None
 
-    p2 = ts.periodogram(algorithm=algorithm, column='a', error='b')
+    p2 = cls.from_timeseries(ts, column='a', error='b')
     assert_quantity_allclose(p2.dy, ts['b'])
 
-    p3 = ts.periodogram(algorithm=algorithm, column='a', error=0.1)
+    p3 = cls.from_timeseries(ts, column='a', error=0.1)
     assert_allclose(p3.dy, 0.1)
