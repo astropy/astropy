@@ -9,14 +9,14 @@
 
 import warnings
 
-from astropy.timeseries.bls import (BoxLeastSquares as OriginalBoxLeastSquares,
-                                    BoxLeastSquaresResults as OriginalBoxLeastSquaresResults)
+from astropy.timeseries.bls import (BoxLeastSquares as TimeseriesBoxLeastSquares,
+                                    BoxLeastSquaresResults as TimeseriesBoxLeastSquaresResults)
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['BoxLeastSquares', 'BoxLeastSquaresResults']
 
 
-class BoxLeastSquares(OriginalBoxLeastSquares):
+class BoxLeastSquares(TimeseriesBoxLeastSquares):
     """
     Compute the box least squares periodogram.
 
@@ -32,7 +32,7 @@ class BoxLeastSquares(OriginalBoxLeastSquares):
         super().__init__(*args, **kwargs)
 
 
-class BoxLeastSquaresResults(OriginalBoxLeastSquaresResults):
+class BoxLeastSquaresResults(TimeseriesBoxLeastSquaresResults):
     """
     The results of a BoxLeastSquares search.
 

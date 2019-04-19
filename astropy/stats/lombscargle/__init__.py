@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# The BoxLeastSquares periodogram functionality has been moved to
+# The LombScargle periodogram functionality has been moved to
 # astropy.timeseries.bls. The purpose of this file is to provide backward-
 # compatibility during a transition phase. We can't emit a deprecation warning
 # simply on import of this module, since the classes are imported into the
@@ -9,13 +9,13 @@
 
 import warnings
 
-from astropy.timeseries.lombscargle import LombScargle as OriginalLombScargle
+from astropy.timeseries.lombscargle import LombScargle as TimeseriesLombScargle
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['LombScargle']
 
 
-class LombScargle(OriginalLombScargle):
+class LombScargle(TimeseriesLombScargle):
     """
     Compute the Lomb-Scargle Periodogram.
 
