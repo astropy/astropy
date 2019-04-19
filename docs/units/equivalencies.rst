@@ -416,18 +416,19 @@ scaling:
 Temperature Equivalency
 -----------------------
 
-The :func:`~astropy.units.temperature` equivalency allows conversion between the Celsius, Fahrenheit and Kelvin temperature units. For example::
+The :func:`~astropy.units.temperature` equivalency allows conversion
+between the Celsius, Fahrenheit and Kelvin. For example::
 
     >>> import astropy.units as u
-    >>> temp_C = 0*u.Celsius
-    >>> temp_Kelvin = temp_C.to(u.K, equivalencies = u.temperature())
-    >>> temp_Kelvin
+    >>> temp_C = 0 * u.Celsius
+    >>> temp_Kelvin = temp_C.to(u.K, equivalencies=u.temperature())
+    >>> temp_Kelvin  # doctest: +FLOAT_CMP
     <Quantity 273.15 K>
-    >>> temp_F = temp_C.to(u.imperial.deg_F, equivalencies = u.temperature())
-    >>> temp_F    # doctest: +FLOAT_CMP
+    >>> temp_F = temp_C.to(u.imperial.deg_F, equivalencies=u.temperature())
+    >>> temp_F  # doctest: +FLOAT_CMP
     <Quantity 32. deg_F>
 
-(Note : You can also use ``u.deg_C`` instead of ``u.Celsius``)
+.. note:: You can also use ``u.deg_C`` instead of ``u.Celsius``.
 
 
 Writing new equivalencies
