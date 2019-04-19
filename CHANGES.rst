@@ -48,10 +48,14 @@ astropy.io.misc
 
 - Implement serialization of ``SkyCoord`` in ASDF. [#8284]
 
-- No warnings when reading HDF5 files with only one table and no ``path=`` argument [#8483]
 - Support serialization of Astropy tables with mixin columns in ASDF. [#8337]
-- Changed default behavior when writing HDF5 files without the ``path=`` argument [#8553]
-- Create a default table, instead of raising exception, when writing to HDF5 files without the ``path=`` argument [#8553]
+
+- No warnings when reading HDF5 files with only one table and no ``path=``
+  argument [#8483]
+
+- The HDF5 writer will now create a default table instead of raising an
+  exception when ``path=`` is not specified and when writing to empty/new HDF5
+  files. [#8553]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -370,9 +374,9 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
-- Added a ``PyUnitListProxy_richcmp`` method in ``UnitListProxy`` class to enable 
-  ``WCS.wcs.cunit`` equality testing. It helps to check whether the two instances of 
-  ``WCS.wcs.cunit`` are equal or not by comparing the data members of 
+- Added a ``PyUnitListProxy_richcmp`` method in ``UnitListProxy`` class to enable
+  ``WCS.wcs.cunit`` equality testing. It helps to check whether the two instances of
+  ``WCS.wcs.cunit`` are equal or not by comparing the data members of
   ``UnitListProxy`` class [#8480]
 
 Other Changes and Additions

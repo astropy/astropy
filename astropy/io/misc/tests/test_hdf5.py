@@ -78,8 +78,6 @@ def test_write_nopath_nonempty(tmpdir):
 
     with pytest.raises(ValueError) as exc:
         t1.write(test_file, append=True)
-        print(Table.read(test_file,
-                         path='__astropy_table__'))
 
     assert 'table path should always be set via the path=' in exc.value.args[0]
 
