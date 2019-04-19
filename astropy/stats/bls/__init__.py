@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # The BoxLeastSquares periodogram functionality has been moved to
-# astropy.timeseries.bls. The purpose of this file is to provide backward-
+# astropy.timeseries.periodograms.bls. The purpose of this file is to provide backward-
 # compatibility during a transition phase. We can't emit a deprecation warning
 # simply on import of this module, since the classes are imported into the
 # top-level astropy.stats, so instead we wrap the main class and emit a
@@ -9,7 +9,7 @@
 
 import warnings
 
-from astropy.timeseries.bls import (BoxLeastSquares as TimeseriesBoxLeastSquares,
+from astropy.timeseries.periodograms.bls import (BoxLeastSquares as TimeseriesBoxLeastSquares,
                                     BoxLeastSquaresResults as TimeseriesBoxLeastSquaresResults)
 from astropy.utils.exceptions import AstropyDeprecationWarning
 

@@ -4,7 +4,7 @@ from numpy.testing import assert_allclose
 
 from astropy import units
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.timeseries.lombscargle import LombScargle
+from astropy.timeseries.periodograms.lombscargle import LombScargle
 
 
 ALL_METHODS = LombScargle.available_methods
