@@ -253,6 +253,17 @@ The current planned and existing sub-packages are:
         </tr>
         <tr>
             <td>
+                astropy.timeseries
+            </td>
+            <td align='center'>
+                <span class="dev"></span>
+            </td>
+            <td>
+                New in v3.2, in heavy development.
+            </td>
+        </tr>
+        <tr>
+            <td>
                 astropy.units
             </td>
             <td align='center'>
