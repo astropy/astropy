@@ -14,6 +14,7 @@ the 3.1.x series of releases.
 
 In particular, this release includes:
 
+* :ref:`whatsnew-3.1-tips`
 *
 
 In addition to these major changes, Astropy v3.2 includes a large number of
@@ -23,6 +24,15 @@ smaller improvements and bug fixes, which are described in the
 * xxx issues have been closed since v3.1
 * xxx pull requests have been merged since v3.1
 * xxx distinct people have contributed code
+
+
+.. _whatsnew-3.2-ecliptic:
+
+Changes to Ecliptic Transformations
+===================================
+
+Placeholder. gist is that True/Mean are now treated appropriately, but this
+might change code from older versions (no good way to do deprecation)
 
 
 
