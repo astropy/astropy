@@ -177,7 +177,7 @@ The following options are available for longitude and latitude:
     For example, when specifying components, the frame classes (e.g., ``ICRS``)
     must be created as
 
-        >>> ICRS(0 * u.deg, 0 * u.deg)
+        >>> ICRS(0 * u.deg, 0 * u.deg) # doctest: +FLOAT_CMP
         <ICRS Coordinate: (ra, dec) in deg
             (0., 0.)>
 
