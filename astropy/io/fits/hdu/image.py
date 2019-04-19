@@ -42,24 +42,12 @@ class _ImageBaseHDU(_ValidHDU):
 
         super().__init__(data=data, header=header)
 
-        if header is not None:
-            if not isinstance(header, Header):
-                # TODO: Instead maybe try initializing a new Header object from
-                # whatever is passed in as the header--there are various types
-                # of objects that could work for this...
-                raise ValueError('header must be a Header object')
-
         if data is DELAYED:
             # Presumably if data is DELAYED then this HDU is coming from an
             # open file, and was not created in memory
             if header is None:
                 # this should never happen
                 raise ValueError('No header to setup HDU.')
-
-            # if the file is read the first time, no need to copy, and keep it
-            # unchanged
-            else:
-                self._header = header
         else:
             # TODO: Some of this card manipulation should go into the
             # PrimaryHDU and GroupsHDU subclasses

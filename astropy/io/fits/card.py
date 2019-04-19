@@ -161,7 +161,7 @@ class Card(_Verify):
         self._keyword = None
         self._value = None
         self._comment = None
-
+        self._valuestring = None
         self._image = None
 
         # This attribute is set to False when creating the card from a card
@@ -196,7 +196,6 @@ class Card(_Verify):
             self.comment = comment
 
         self._modified = False
-        self._valuestring = None
         self._valuemodified = False
 
     def __repr__(self):
@@ -283,8 +282,7 @@ class Card(_Verify):
         if self._value is not None:
             value = self._value
         elif self._valuestring is not None or self._image:
-            self._value = self._parse_value()
-            value = self._value
+            value = self._value = self._parse_value()
         else:
             if self._keyword == '':
                 self._value = value = ''
@@ -305,7 +303,14 @@ class Card(_Verify):
 
         if value is None:
             value = UNDEFINED
-        oldvalue = self._value
+
+        try:
+            oldvalue = self.value
+        except VerifyError:
+            # probably a parsing error, falling back to the internal _value
+            # which should be None. This may happen while calling _fix_value.
+            oldvalue = self._value
+
         if oldvalue is None:
             oldvalue = UNDEFINED
 
@@ -426,7 +431,7 @@ class Card(_Verify):
             self._comment = self._parse_comment()
             return self._comment
         else:
-            self.comment = ''
+            self._comment = ''
             return ''
 
     @comment.setter
@@ -445,10 +450,16 @@ class Card(_Verify):
                 raise ValueError(
                     'FITS header comments must contain standard printable '
                     'ASCII characters; {!r} contains characters not '
-                    'representable in ASCII or non-printable characters.'.format(
-                    comment))
+                    'representable in ASCII or non-printable characters.'
+                    .format(comment))
 
-        oldcomment = self._comment
+        try:
+            oldcomment = self.comment
+        except VerifyError:
+            # probably a parsing error, falling back to the internal _comment
+            # which should be None.
+            oldcomment = self._comment
+
         if oldcomment is None:
             oldcomment = ''
         if comment != oldcomment:

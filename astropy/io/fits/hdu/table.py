@@ -277,9 +277,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
         super().__init__(data=data, header=header, name=name, ver=ver)
 
-        if header is not None and not isinstance(header, Header):
-            raise ValueError('header must be a Header object.')
-
         self._uint = uint
         self._character_as_bytes = character_as_bytes
 
