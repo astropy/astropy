@@ -432,3 +432,12 @@ def test_regression():
     t_ut1_ravel = t_ut1.ravel()
     assert type(t_ut1_ravel.delta_ut1_utc) is np.ndarray
     assert t_ut1_copy.delta_ut1_utc == t_ut1.delta_ut1_utc
+
+
+def test_atleast_nd():
+    # An implicit test of the ShapedLikeNDArray atleast_nd machinery
+    t_scalar = Time('J2000')
+    t1d = t_scalar.atleast_nd(1)
+
+    assert t1d.shape == (1,)
+    assert t1d.jd[0] == t_scalar.jd

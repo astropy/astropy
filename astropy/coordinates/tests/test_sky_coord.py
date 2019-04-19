@@ -1555,3 +1555,36 @@ def test_none_differential_type():
 
     fr = MockHeliographicStonyhurst(lon=1*u.deg, lat=2*u.deg, radius=10*u.au)
     SkyCoord(0*u.deg, fr.lat, fr.radius, frame=fr) # this was the failure
+
+
+def test_reshape():
+    """
+    Test that SkyCoord objects can be reshaped sensibly
+
+    Implictly tests ShapedLikeNDArray and the lower-level frames
+    """
+    ra = np.random.randn(3, 8)*u.deg
+    dec = np.random.randn(3, 8)*u.deg
+    sc2d = SkyCoord(ra, dec, frame='icrs')
+
+    reshaped1 = sc2d.reshape(8*3)
+    reshaped3 = sc2d.reshape(3, 4, 2)
+
+    assert reshaped1.shape == (24,)
+    assert reshaped3.shape == (3, 4, 2)
+
+    assert quantity_allclose(reshaped1.cartesian.xyz.ravel(), sc2d.cartesian.xyz.ravel())
+    assert quantity_allclose(reshaped3.cartesian.xyz.ravel(), sc2d.cartesian.xyz.ravel())
+
+
+def test_ndmin():
+    """
+    Test that SkyCoord objects can be set to a minimum dimension sensibly
+
+    Implictly tests ShapedLikeNDArray and the lower-level frames
+    """
+    sc_scalar = SkyCoord(1*u.deg, 2*u.deg)
+    sc1d = sc_scalar.atleast_nd(1)
+
+    assert sc1d.shape == (1,)
+    assert quantity_allclose(sc_scalar.cartesian.xyz, sc1d.cartesian.xyz[:, 0])
