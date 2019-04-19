@@ -17,7 +17,7 @@ from .gcrs import GCRS
 from .ecliptic import (GeocentricMeanEcliptic, BarycentricMeanEcliptic, HeliocentricMeanEcliptic,
                        GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic,
                        HeliocentricEclipticIAU76, CustomBarycentricEcliptic)
-from .utils import get_jd12
+from .utils import get_jd12, EQUINOX_J2000
 from astropy.coordinates.errors import UnitsError
 
 
@@ -44,14 +44,13 @@ def _true_ecliptic_rotation_matrix(equinox):
     return matrix_product(rotation_matrix(obl, 'x'), rnpb)
 
 
-def _obliquity_only_rotation_matrix(obl=84381.448 * u.arcsec):
+def _obliquity_only_rotation_matrix(obl=erfa.obl80(EQUINOX_J2000.jd1, EQUINOX_J2000.jd2) * u.radian):
     # This code only accounts for the obliquity,
     # which can be passed explicitly.
     # The default value is the IAU 1980 value for J2000,
     # which is computed using obl80 from ERFA:
     #
-    # jd1, jd2 = get_jd12(J2000, J2000.scale)
-    # obl = _erfa.obl80(jd1, jd2) * u.radian
+    # obl = _erfa.obl80(EQUINOX_J2000.jd1, EQUINOX_J2000.jd2) * u.radian
     return rotation_matrix(obl, "x")
 
 
