@@ -3,7 +3,7 @@
 This module contains helper functions and classes for handling metadata.
 """
 
-from astropy.utils import wraps
+from functools import wraps
 
 import warnings
 
