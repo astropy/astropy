@@ -662,6 +662,36 @@ def test_wcs_keywords_removed_from_header():
     ccd = CCDData.read(data_file1, unit='count')
 
 
+def test_wcs_SIP_coefficient_keywords_removed():
+    # If SIP polynomials are present, check that no more polynomial
+    # coefficients remain in the header. See #8598
+
+    # The SIP paper is ambiguous as to whether keywords like
+    # A_0_0 can appear in the header for a 2nd order or higher
+    # polynomial. The paper clearly says that the corrections
+    # are only for quadratic or higher order, so A_0_0 and the like
+    # should be zero if they are present, but they apparently can be
+    # there (or at least astrometry.net produces them).
+
+    # astropy WCS does not write those coefficients, so they were
+    # not being removed from the header even though they are WCS-related.
+
+    data_file = get_pkg_data_filename('data/sip-wcs.fits')
+
+    # Make sure the keywords added to this file for testing are there
+    hdu = fits.open(data_file)
+
+    test_keys = ['A_0_0', 'B_0_1']
+    for key in test_keys:
+        assert key in hdu[0].header
+
+    ccd = CCDData.read(data_file)
+
+    # Now the test...the two keywords above should have been removed.
+    for key in test_keys:
+        assert key not in ccd.header
+
+
 def test_wcs_keyword_removal_for_wcs_test_files():
     """
     Test, for the WCS test files, that keyword removal works as
@@ -701,8 +731,6 @@ def test_wcs_keyword_removal_for_wcs_test_files():
         # Specifically, check that
         # 1. The combination of new_header and new_wcs does not contain
         #    both PCi_j and CDi_j keywords. See #8597.
-        # 2. If SIP polynomials are present, check that no more polynomial
-        #    coefficients remain in the header. See #8598
 
         # Check for 1
         final_header = new_header + new_wcs_header
