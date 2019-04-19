@@ -508,7 +508,7 @@ when inputting time values from strings.  The default precision is 3.  Note
 that the limit of 9 digits is driven by the way that ERFA handles fractional
 seconds.  In practice this should should not be an issue.  ::
 
-  >>> t = Time('B1950.0', scale='utc', precision=3)
+  >>> t = Time('B1950.0', precision=3)
   >>> t.byear_str
   'B1950.000'
   >>> t.precision = 0
@@ -1118,9 +1118,9 @@ of time.  Usage is most easily illustrated by examples::
   <Time object: scale='tai' format='gps' value=315576000.0>
   >>> Time(10.*u.yr, 1.*u.s, format='gps')
   <Time object: scale='tai' format='gps' value=315576001.0>
-  >>> Time(2000.*u.yr, scale='utc', format='jyear')
-  <Time object: scale='utc' format='jyear' value=2000.0>
-  >>> Time(2000.*u.yr, scale='utc', format='byear')
+  >>> Time(2000.*u.yr, format='jyear')
+  <Time object: scale='tt' format='jyear' value=2000.0>
+  >>> Time(2000.*u.yr, format='byear')
   ...                                # but not for Besselian year, which implies
   ...                                # a different time scale
   ...
