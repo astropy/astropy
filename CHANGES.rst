@@ -168,6 +168,12 @@ astropy.wcs
 
 - The ``OBSGEO`` attribute as expanded to 6 members - ``XYZLBH``. [#8592]
 
+- Added a new class ``SlicedLowLevelWCS`` in ``astropy.wcs.wcsapi`` that can be
+  used to slice any WCS that conforms to the ``BaseLowLevelWCS`` API. [#8546]
+
+- Updated implementation of ``WCS.__getitem__`` and ``WCS.slice`` to now return
+  a ``SlicedLowLevelWCS`` rather than raising an error when reducing the
+  dimensionality of the WCS. [#8546]
 
 API Changes
 -----------
