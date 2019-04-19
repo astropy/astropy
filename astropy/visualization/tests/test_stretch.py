@@ -13,6 +13,8 @@ DATA = np.array([0.00, 0.25, 0.50, 0.75, 1.00])
 
 RESULTS = {}
 RESULTS[LinearStretch()] = np.array([0.00, 0.25, 0.50, 0.75, 1.00])
+RESULTS[LinearStretch(intercept=0.5) + LinearStretch(slope=0.5)] = \
+    np.array([0.5, 0.625, 0.75, 0.875, 1.])
 RESULTS[SqrtStretch()] = np.array([0., 0.5, 0.70710678, 0.8660254, 1.])
 RESULTS[SquaredStretch()] = np.array([0., 0.0625, 0.25, 0.5625, 1.])
 RESULTS[PowerStretch(0.5)] = np.array([0., 0.5, 0.70710678, 0.8660254, 1.])
