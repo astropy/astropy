@@ -11,8 +11,9 @@ from astropy import units as u
 
 from .low_level_api import BaseLowLevelWCS
 from .high_level_api import HighLevelWCSMixin
+from .sliced_low_level_wcs import SlicedLowLevelWCS
 
-__all__ = ['custom_ctype_to_ucd_mapping', 'FITSWCSAPIMixin']
+__all__ = ['custom_ctype_to_ucd_mapping', 'SlicedFITSWCS', 'FITSWCSAPIMixin']
 
 # Mapping from CTYPE axis name to UCD1
 
@@ -105,6 +106,10 @@ class custom_ctype_to_ucd_mapping:
 
     def __exit__(self, type, value, tb):
         CTYPE_TO_UCD1_CUSTOM.remove(self.mapping)
+
+
+class SlicedFITSWCS(SlicedLowLevelWCS, HighLevelWCSMixin):
+    pass
 
 
 class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
