@@ -300,6 +300,11 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- Fixed two errors in the way ``CCDData`` handles FITS files with WCS in the
+  header. Some of the WCS keywords that should have been removed from the
+  header were not, potentially leading to FITS files with inconsistent
+  WCS. [#8602]
+
 astropy.samp
 ^^^^^^^^^^^^
 
