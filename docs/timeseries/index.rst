@@ -192,7 +192,7 @@ period, using the 'box least squares' (BLS) algorithm::
 
     >>> import numpy as np
     >>> from astropy import units as u
-    >>> periodogram = ts.periodogram(algorithm='bls', column='sap_flux')
+    >>> periodogram = ts.periodogram(algorithm='bls', column='sap_flux')  # doctest: +REMOTE_DATA
 
 Note that here ``periodogram`` is an instance of the
 :class:`~astropy.timeseries.BoxLeastSquares` class - you can read up more about
@@ -200,12 +200,12 @@ how to work with this kind of object in :doc:`bls`. To run the
 periodogram analysis, we use a box with a duration of 0.2 days::
 
     >>> results = periodogram.autopower(0.2 * u.day)  # doctest: +REMOTE_DATA
-    >>> best = np.argmax(results.power)
+    >>> best = np.argmax(results.power)  # doctest: +REMOTE_DATA
     >>> period = results.period[best]  # doctest: +REMOTE_DATA
     >>> period  # doctest: +REMOTE_DATA
     <Quantity 2.20551724 d>
-    >>> transit_time = results.transit_time[best]
-    >>> transit_time
+    >>> transit_time = results.transit_time[best]  # doctest: +REMOTE_DATA
+    >>> transit_time  # doctest: +REMOTE_DATA
     <Time object: scale='tdb' format='isot' value=2009-05-02T20:51:16.338>
 
 .. plot::
