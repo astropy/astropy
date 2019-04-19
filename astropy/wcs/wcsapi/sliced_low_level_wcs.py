@@ -146,7 +146,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
             else:
                 imin, imax = self._wcs.pixel_bounds[idx]
                 start = self._slices_pixel[idx].start
-                bounds.append([imin - start, imax - start])
+                bounds.append((imin - start, imax - start))
 
         return bounds
 
