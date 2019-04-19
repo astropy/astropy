@@ -54,12 +54,12 @@ their default values) are available as the class method
 You can access any of the attributes on a frame by using standard Python
 attribute access. Note that for cases like ``equinox``, which are time
 inputs, if you pass in any unambiguous time string, it will be converted
-into an `~astropy.time.Time` object with UTC scale (see
+into an `~astropy.time.Time` object (see
 :ref:`astropy-time-inferring-input`)::
 
     >>> f = FK5(equinox='J1975')
     >>> f.equinox
-    <Time object: scale='utc' format='jyear_str' value=J1975.000>
+    <Time object: scale='tt' format='jyear_str' value=J1975.000>
     >>> f = FK5(equinox='2011-05-15T12:13:14')
     >>> f.equinox
     <Time object: scale='utc' format='isot' value=2011-05-15T12:13:14.000>
