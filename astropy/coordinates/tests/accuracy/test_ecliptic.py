@@ -5,10 +5,12 @@ Accuracy tests for Ecliptic coordinate systems.
 
 import numpy as np
 
+import pytest
+
 from astropy.units import allclose as quantity_allclose
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from astropy.coordinates.builtin_frames import FK5, ICRS, GCRS, GeocentricMeanEcliptic, BarycentricMeanEcliptic, HeliocentricMeanEcliptic
+from astropy.coordinates.builtin_frames import FK5, ICRS, GCRS, GeocentricMeanEcliptic, BarycentricMeanEcliptic, HeliocentricMeanEcliptic, GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic, HeliocentricEclipticIAU76
 from astropy.constants import R_sun, R_earth
 
 
@@ -45,6 +47,25 @@ def test_ecliptic_heliobary():
     # this is a convenience to allow `separation` to work as expected
     helio_in_bary_frame = bary.realize_frame(helio.cartesian)
     assert bary.separation(helio_in_bary_frame) > 1*u.arcmin
+
+
+@pytest.mark.parametrize(('trueframe', 'meanframe'),
+                        [(BarycentricTrueEcliptic, BarycentricMeanEcliptic),
+                         (HeliocentricTrueEcliptic, HeliocentricMeanEcliptic),
+                         (GeocentricTrueEcliptic, GeocentricMeanEcliptic),
+                         (HeliocentricEclipticIAU76, HeliocentricMeanEcliptic)])
+def test_ecliptic_true_mean(trueframe, meanframe):
+    """
+    Check that the ecliptic true/mean transformations at least roundtrip
+    """
+    icrs = ICRS(1*u.deg, 2*u.deg, distance=1.5*R_sun)
+
+    truecoo = icrs.transform_to(trueframe)
+    meancoo = icrs.transform_to(meanframe)
+    truecoo2 = icrs.transform_to(trueframe)
+
+    assert not quantity_allclose(truecoo.cartesian.xyz, meancoo.cartesian.xyz)
+    assert quantity_allclose(truecoo.cartesian.xyz, truecoo2.cartesian.xyz)
 
 
 def test_ecl_geo():
