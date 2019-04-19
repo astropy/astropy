@@ -73,7 +73,7 @@ doc_footer_geo = """
             footer=doc_footer_geo)
 class GeocentricMeanEcliptic(BaseEclipticFrame):
     """
-    Geocentric ecliptic coordinates.  These origin of the coordinates are the
+    Geocentric mean ecliptic coordinates.  These origin of the coordinates are the
     geocenter (Earth), with the x axis pointing to the *mean* (not true) equinox
     at the time specified by the ``equinox`` attribute, and the xy-plane in the
     plane of the ecliptic for that date.
@@ -93,7 +93,7 @@ class GeocentricMeanEcliptic(BaseEclipticFrame):
             footer=doc_footer_geo)
 class GeocentricTrueEcliptic(BaseEclipticFrame):
     """
-    Geocentric ecliptic coordinates.  These origin of the coordinates are the
+    Geocentric true ecliptic coordinates.  These origin of the coordinates are the
     geocenter (Earth), with the x axis pointing to the *true* (not mean) equinox
     at the time specified by the ``equinox`` attribute, and the xy-plane in the
     plane of the ecliptic for that date.
@@ -123,7 +123,7 @@ doc_footer_bary = """
             footer=doc_footer_bary)
 class BarycentricMeanEcliptic(BaseEclipticFrame):
     """
-    Barycentric ecliptic coordinates.  These origin of the coordinates are the
+    Barycentric mean ecliptic coordinates.  These origin of the coordinates are the
     barycenter of the solar system, with the x axis pointing in the direction of
     the *mean* (not true) equinox as at the time specified by the ``equinox``
     attribute (as seen from Earth), and the xy-plane in the plane of the
@@ -139,7 +139,7 @@ class BarycentricMeanEcliptic(BaseEclipticFrame):
             footer=doc_footer_bary)
 class BarycentricTrueEcliptic(BaseEclipticFrame):
     """
-    Barycentric ecliptic coordinates.  These origin of the coordinates are the
+    Barycentric true ecliptic coordinates.  These origin of the coordinates are the
     barycenter of the solar system, with the x axis pointing in the direction of
     the *true* (not mean) equinox as at the time specified by the ``equinox``
     attribute (as seen from Earth), and the xy-plane in the plane of the
@@ -168,7 +168,7 @@ doc_footer_helio = """
             footer=doc_footer_helio)
 class HeliocentricMeanEcliptic(BaseEclipticFrame):
     """
-    Heliocentric ecliptic coordinates.  These origin of the coordinates are the
+    Heliocentric mean ecliptic coordinates.  These origin of the coordinates are the
     center of the sun, with the x axis pointing in the direction of
     the *mean* (not true) equinox as at the time specified by the ``equinox``
     attribute (as seen from Earth), and the xy-plane in the plane of the
@@ -189,7 +189,7 @@ class HeliocentricMeanEcliptic(BaseEclipticFrame):
             footer=doc_footer_helio)
 class HeliocentricTrueEcliptic(BaseEclipticFrame):
     """
-    Heliocentric ecliptic coordinates.  These origin of the coordinates are the
+    Heliocentric true ecliptic coordinates.  These origin of the coordinates are the
     center of the sun, with the x axis pointing in the direction of
     the *true* (not mean) equinox as at the time specified by the ``equinox``
     attribute (as seen from Earth), and the xy-plane in the plane of the
@@ -210,7 +210,7 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
             footer="")
 class HeliocentricEclipticIAU76(BaseEclipticFrame):
     """
-    Heliocentric ecliptic coordinates.  These origin of the coordinates are the
+    Heliocentric mean (IAU 1976) ecliptic coordinates.  These origin of the coordinates are the
     center of the sun, with the x axis pointing in the direction of
     the *mean* (not true) equinox of J2000, and the xy-plane in the plane of the
     ecliptic of J2000 (according to the IAU 1976/1980 obliquity model).
