@@ -10,11 +10,13 @@ import numpy as np
 
 from astropy.utils.misc import InheritDocstrings
 from .transform import BaseTransform
+from .transform import CompositeTransform
 
 
 __all__ = ["BaseStretch", "LinearStretch", "SqrtStretch", "PowerStretch",
            "PowerDistStretch", "SquaredStretch", "LogStretch", "AsinhStretch",
-           "SinhStretch", "HistEqStretch", "ContrastBiasStretch"]
+           "SinhStretch", "HistEqStretch", "ContrastBiasStretch",
+           "CompositeStretch"]
 
 
 def _logn(n, x, out=None):
@@ -51,6 +53,9 @@ class BaseStretch(BaseTransform, metaclass=InheritDocstrings):
     also in the range [0:1].
     """
 
+    def __add__(self, other):
+        return CompositeStretch(other, self)
+
     def __call__(self, values, clip=True, out=None):
         """
         Transform values using this stretch.
@@ -80,21 +85,38 @@ class BaseStretch(BaseTransform, metaclass=InheritDocstrings):
 
 class LinearStretch(BaseStretch):
     """
-    A linear stretch.
+    A linear stretch with a slope and offset.
 
     The stretch is given by:
 
     .. math::
-        y = x
+        y = slope x + intercept
+
+    Parameters
+    ----------
+    slope : float, optional
+        The ``slope`` parameter used in the above formula.  Default is 1.
+    intercept : float, optional
+        The ``intercept`` parameter used in the above formula.  Default is 0.
     """
 
+    def __init__(self, slope=1, intercept=0):
+        super().__init__()
+        self.slope = slope
+        self.intercept = intercept
+
     def __call__(self, values, clip=True, out=None):
-        return _prepare(values, clip=clip, out=out)
+        values = _prepare(values, clip=clip, out=out)
+        if self.slope != 1:
+            np.multiply(values, self.slope, out=values)
+        if self.intercept != 0:
+            np.add(values, self.intercept, out=values)
+        return values
 
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return LinearStretch()
+        return LinearStretch(1. / self.slope, - self.intercept / self.slope)
 
 
 class SqrtStretch(BaseStretch):
@@ -524,3 +546,20 @@ class InvertedContrastBiasStretch(BaseStretch):
     def inverse(self):
         """A stretch object that performs the inverse operation."""
         return ContrastBiasStretch(self.contrast, self.bias)
+
+
+class CompositeStretch(CompositeTransform, BaseStretch):
+    """
+    A combination of two stretches.
+
+    Parameters
+    ----------
+    stretch_1 : :class:`astropy.visualization.BaseStretch`
+        The first stretch to apply.
+    stretch_2 : :class:`astropy.visualization.BaseStretch`
+        The second stretch to apply.
+    """
+
+    def __call__(self, values, clip=True, out=None):
+        return self.transform_2(
+            self.transform_1(values, clip=clip, out=out), clip=clip, out=out)

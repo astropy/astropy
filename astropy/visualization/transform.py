@@ -38,5 +38,5 @@ class CompositeTransform(BaseTransform):
 
     @property
     def inverse(self):
-        return CompositeTransform(self.transform_2.inverse,
-                                  self.transform_1.inverse)
+        return self.__class__(self.transform_2.inverse,
+                              self.transform_1.inverse)
