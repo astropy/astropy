@@ -5,8 +5,8 @@ from copy import deepcopy
 from inspect import signature
 from itertools import islice
 import warnings
+from functools import wraps
 
-from astropy.utils import wraps
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .nddata import NDData

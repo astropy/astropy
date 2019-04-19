@@ -11,9 +11,10 @@ import warnings
 import importlib
 from collections import OrderedDict
 from importlib.util import find_spec
+from functools import wraps
 
 from astropy.config.paths import set_temp_config, set_temp_cache
-from astropy.utils import wraps, find_current_module
+from astropy.utils import find_current_module
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 __all__ = ['TestRunner', 'TestRunnerBase', 'keyword']
