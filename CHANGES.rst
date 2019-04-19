@@ -148,6 +148,10 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Deprecate ``make_function_with_signature`` in anticipation of removing it
+  in a future release and use ``functools.wraps`` instead of providing a
+  custom implementation. [#7554]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
