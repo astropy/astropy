@@ -128,11 +128,59 @@ classes provided here are specific implementations of particular schemas. Some
 of the tags in Astropy (e.g., those related to transforms) implement schemas
 that are defined by the ASDF Standard. In other cases, both the tags and
 schemas are defined within Astropy (e.g., those related to many of the
-coordinate frames).
+coordinate frames). Documentation of the individual schemas defined by Astropy
+can be found below in the :ref:`asdf_schemas` section.
 
 Not all Astropy types are currently serializable by ASDF. Attempting to write
 unsupported types to an ASDF file will lead to a ``RepresenterError``. In order
 to support new types, new tags and schemas must be created. See `Writing ASDF
 Extensions <https://asdf.readthedocs.io/en/latest/asdf/extensions.html>`_ for
 additional details.
+
+
+.. _asdf_schemas:
+
+Schemas
+=======
+
+Documentation for each of the individual ASDF schemas defined by Astropy can
+be found at the links below.
+
+Documentation for the schemas defined in the ASDF Standard can be found `here
+<https://asdf-standard.readthedocs.io/en/latest/schemas/index.html>`__.
+
+Coordinates
+-----------
+
+The following schemas are associated with Astropy types from the
+:ref:`astropy-coordinates` submodule:
+
+.. asdf-autoschemas::
+
+    coordinates/angle-1.0.0
+    coordinates/latitude-1.0.0
+    coordinates/longitude-1.0.0
+    coordinates/representation-1.0.0
+    coordinates/skycoord-1.0.0
+    coordinates/earthlocation-1.0.0
+
+Time
+----
+
+The following schemas are associated with Astropy types from the
+:ref:`astropy-time` submodule:
+
+.. asdf-autoschemas::
+
+    time/timedelta-1.0.0
+
+Units
+-----
+
+The following schemas are associated with Astropy types from the
+:ref:`astropy-units` submodule:
+
+.. asdf-autoschemas::
+
+    units/equivalency-1.0.0
 """
