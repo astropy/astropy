@@ -1,7 +1,7 @@
 .. include:: references.txt
 
 .. We call EarthLocation.of_site here first to force the downloading
-.. of sites.json so that future doctest output isn't clutted with
+.. of sites.json so that future doctest output isn't cluttered with
 .. "Downloading ... [done]". This can be removed once we have a better
 .. way of ignoring output lines based on pattern-matching, e.g.:
 .. https://github.com/astropy/pytest-doctestplus/issues/11
@@ -26,10 +26,10 @@ for converting between common coordinate systems in a uniform way.
 Getting Started
 ===============
 
-The simplest way to use `~astropy.coordinates` is to use the |skycoord|
+The best way to start using `~astropy.coordinates` is to use the |skycoord|
 class. |skycoord| objects are instantiated by passing in positions (and
-optional velocities) with specified units and a coordinate frame. Commonly sky
-positions are passed in as `~astropy.units.Quantity` objects and the frame is
+optional velocities) with specified units and a coordinate frame. Sky positions
+are commonly passed in as `~astropy.units.Quantity` objects and the frame is
 specified with the string name. As an example of creating a |skycoord| to
 represent an ICRS (Right ascension [RA], Declination [Dec]) sky position::
 
@@ -50,7 +50,7 @@ are all equivalent to the above::
     <SkyCoord (ICRS): (ra, dec) in deg
         (10.625, 41.2)>
 
-The examples above illustrate a few simple rules to follow when creating a
+The examples above illustrate a few rules to follow when creating a
 coordinate object:
 
 - Coordinate values can be provided either as unnamed positional arguments or
@@ -63,8 +63,8 @@ coordinate object:
   in the value (e.g., ``'+41d12m00s'``), or via the ``unit`` keyword.
 
 |skycoord| and all other `~astropy.coordinates` objects also support
-array coordinates.  These work the same as single-value coordinates, but
-they store multiple coordinates in a single object.  When you're going
+array coordinates. These work in the same way as single-value coordinates, but
+they store multiple coordinates in a single object. When you are going
 to apply the same operation to many different coordinates (say, from a
 catalog), this is a better choice than a list of |skycoord| objects,
 because it will be *much* faster than applying the operation to each
@@ -83,14 +83,14 @@ that contain the data, |skycoord| objects can be sliced, reshaped, etc.::
         [[(10., 41.), (11., -5.)],
          [(12., 42.), (13.,  0.)]]>
 
-Coordinate access
+Coordinate Access
 -----------------
 
 Once you have a coordinate object you can access the components of that
-coordinate (e.g., RA, Dec) and get string representations of the full
+coordinate (e.g., RA, Dec) to get string representations of the full
 coordinate.
 
-The component values are accessed using (typically lower-case) named attributes
+The component values are accessed using (typically lowercase) named attributes
 that depend on the coordinate frame (e.g., ICRS, Galactic, etc.). For the
 default, ICRS, the coordinate component names are ``ra`` and ``dec``::
 
@@ -124,8 +124,8 @@ For additional information see the section on :ref:`working_with_angles`.
 Transformation
 --------------
 
-The simplest way to transform to a new coordinate frame is by accessing
-the appropriately-named attribute.  For instance to get the coordinate in
+One convenient way to transform to a new coordinate frame is by accessing
+the appropriately named attribute. For instance, to get the coordinate in
 the `~astropy.coordinates.Galactic` frame use::
 
     >>> c_icrs = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree, frame='icrs')
@@ -147,24 +147,24 @@ method, which accepts a frame name, frame class, or frame instance::
         (10.34209135, 41.13232112)>
 
 This form of `~astropy.coordinates.SkyCoord.transform_to` also makes it
-straightforward to convert from celestial coordinates to
+possible to convert from celestial coordinates to
 `~astropy.coordinates.AltAz` coordinates, allowing the use of |skycoord|
-as a tool for planning observations.  For a more complete example of
+as a tool for planning observations. For a more complete example of
 this, see :ref:`sphx_glr_generated_examples_coordinates_plot_obs-planning.py`.
 
 Some coordinate frames such as `~astropy.coordinates.AltAz` require Earth
 rotation information (UT1-UTC offset and/or polar motion) when transforming
-to/from other frames.  These Earth rotation values are automatically downloaded
+to/from other frames. These Earth rotation values are automatically downloaded
 from the International Earth Rotation and Reference Systems (IERS) service when
-required.  See :ref:`utils-iers` for details of this process.
+required. See :ref:`utils-iers` for details of this process.
 
 Representation
 --------------
 
-So far we have been using a spherical coordinate representation in the all the
-examples, and this is the default for the built-in frames.  Frequently it is
+So far we have been using a spherical coordinate representation in all of our
+examples, and this is the default for the built-in frames. Frequently it is
 convenient to initialize or work with a coordinate using a different
-representation such as cartesian or cylindrical.  This can be done by setting
+representation such as Cartesian or Cylindrical. This can be done by setting
 the ``representation_type`` for either |skycoord| objects or low-level frame
 coordinate objects::
 
@@ -180,14 +180,14 @@ coordinate objects::
     <SkyCoord (ICRS): (rho, phi, z) in (kpc, deg, kpc)
         (2.23606798, 63.43494882, 3.)>
 
-For all the details see :ref:`astropy-skycoord-representations`.
+For all of the details see :ref:`astropy-skycoord-representations`.
 
 Distance
 --------
 
 |skycoord| and the individual frame classes also support specifying a distance
 from the frame origin. The origin depends on the particular coordinate frame;
-this can be, e.g., centered on the earth, centered on the solar system
+this can be, for example, centered on the earth, centered on the solar system
 barycenter, etc. Two angles and a distance specify a unique point in 3D space,
 which also allows converting the coordinates to a Cartesian representation::
 
@@ -208,18 +208,18 @@ they can make use of the 3D information. For example, to compute the physical,
     >>> c1.separation_3d(c2)  # doctest: +FLOAT_CMP
     <Distance 1.52286024 pc>
 
-Convenience methods
+Convenience Methods
 -------------------
 
 |skycoord| defines a number of convenience methods that support, for example,
-computing on-sky (i.e. angular) and 3D separations between two coordinates::
+computing on-sky (i.e., angular) and 3D separations between two coordinates::
 
     >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
     >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, frame='fk5')
     >>> c1.separation(c2)  # Differing frames handled correctly  # doctest: +FLOAT_CMP
     <Angle 1.40453359 deg>
 
-cross-matching catalog coordinates (detailed in
+Or cross-matching catalog coordinates (detailed in
 :ref:`astropy-coordinates-matching`)::
 
     >>> target_c = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
@@ -227,8 +227,8 @@ cross-matching catalog coordinates (detailed in
     >>> catalog_c = ... # doctest: +SKIP
     >>> idx, sep, _ = target_c.match_to_catalog_sky(catalog_c) # doctest: +SKIP
 
-The `astropy.coordinates` subpackage also provides a quick way to get
-coordinates for named objects assuming you have an active internet
+The `astropy.coordinates` sub-package also provides a quick way to get
+coordinates for named objects, assuming you have an active internet
 connection. The `~astropy.coordinates.SkyCoord.from_name` method of |skycoord|
 uses `Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates
 for a particular named object::
@@ -237,7 +237,7 @@ for a particular named object::
     <SkyCoord (ICRS): (ra, dec) in deg
         (153.1393271, 53.117343)>
 
-In some cases, the coordinates are embedded in the catalogue name of the object.
+In some cases, the coordinates are embedded in the catalog name of the object.
 For such object names, `~astropy.coordinates.SkyCoord.from_name` is able
 to parse the coordinates from the name if given the ``parse=True`` option.
 For slow connections, this may be much faster than a sesame query for the same
@@ -266,7 +266,7 @@ For arbitrary Earth addresses (e.g., not observatory sites), use the
 to this function uses Google maps to retrieve the latitude and longitude and can
 also (optionally) query Google maps to get the height of the location. As with
 Google maps, this works with fully specified addresses, location names, city
-names, and etc.:
+names, etc.:
 
 .. doctest-skip::
 
@@ -282,7 +282,7 @@ names, and etc.:
     `~astropy.coordinates.SkyCoord.from_name`,
     `~astropy.coordinates.EarthLocation.of_site`, and
     `~astropy.coordinates.EarthLocation.of_address` are for convenience, and
-    hence are by design rather simple. If you need precise coordinates for an
+    hence are by design relatively low precision. If you need more precise coordinates for an
     object you should find the appropriate reference and input the coordinates
     manually, or use more specialized functionality like that in the `astroquery
     <http://www.astropy.org/astroquery/>`_ or `astroplan
@@ -308,7 +308,7 @@ Velocities (Proper Motions and Radial Velocities)
 -------------------------------------------------
 
 In addition to positional coordinates, `~astropy.coordinates` supports storing
-and transforming velocities.  These are available both via the lower-level
+and transforming velocities. These are available both via the lower-level
 :doc:`coordinate frame classes <frames>`, and (new in v3.0) via  |skycoord|
 objects::
 
@@ -319,13 +319,14 @@ objects::
      (radial_velocity) in km / s
         ( 20.,)>
 
-.. the SKIP above in the ``sc`` line is because numpy has a subtly different output in versions < 12 - the trailing comma is missing.  If a NPY_LT_1_12 comes in to being this can switch to that.  But don't forget to *also* change this in the velocities.rst file
+.. the SKIP above in the ``sc`` line is because NumPy has a subtly different output in versions < 12 - the trailing comma is missing. If a NPY_LT_1_12 comes in to being this can switch to that. But don't forget to *also* change this in the velocities.rst file.
 
-For more details on velocity support (and limitations), see the :doc:`velocities` page.
+For more details on velocity support (and limitations), see the
+:doc:`velocities` page.
 
 .. _astropy-coordinates-overview:
 
-Overview of `astropy.coordinates` concepts
+Overview of `astropy.coordinates` Concepts
 ==========================================
 
 .. note ::
@@ -334,16 +335,15 @@ Overview of `astropy.coordinates` concepts
     justification of the design is available in `APE (Astropy Proposal for Enhancement) 5 <https://github.com/astropy/astropy- APEs/blob/master/APE5.rst>`_.
 
 Here we provide an overview of the package and associated framework.
-This background information is not necessary for simply using
-`~astropy.coordinates`, particularly if you use the |skycoord| high-
-level class, but it is helpful for more advanced usage, particularly
-creating your own frame, transformations, or representations. Another
-useful piece of background information are some
+This background information is not necessary for using `~astropy.coordinates`,
+particularly if you use the |skycoord| high-level class, but it is helpful for
+more advanced usage, particularly creating your own frame, transformations, or
+representations. Another useful piece of background information are some
 :ref:`astropy-coordinates-definitions` as they are used in
 `~astropy.coordinates`.
 
 `~astropy.coordinates` is built on a three-tiered system of objects:
-representations, frames, and a high-level class.  Representations
+representations, frames, and a high-level class. Representations
 classes are a particular way of storing a three-dimensional data point
 (or points), such as Cartesian coordinates or spherical polar
 coordinates. Frames are particular reference frames like FK5 or ICRS,
@@ -356,16 +356,16 @@ interface to these objects as well as various convenience methods and
 more string-parsing capabilities.
 
 Separating these concepts makes it easier to extend the functionality of
-`~astropy.coordinates`.  It allows representations, frames, and
+`~astropy.coordinates`. It allows representations, frames, and
 transformations to be defined or extended separately, while still
-preserving the high-level capabilities and simplicity of the |skycoord|
+preserving the high-level capabilities and ease-of-use of the |skycoord|
 class.
 
 .. topic:: Examples:
 
-    See :ref:`sphx_glr_generated_examples_coordinates_plot_obs-planning.py` for an
-    example of using the `~astropy.coordinates` functionality to prepare for an
-    observing run.
+    See :ref:`sphx_glr_generated_examples_coordinates_plot_obs-planning.py` for
+    an example of using the `~astropy.coordinates` functionality to prepare for
+    an observing run.
 
 Using `astropy.coordinates`
 ===========================
@@ -395,17 +395,16 @@ listed below.
 In addition, another resource for the capabilities of this package is the
 ``astropy.coordinates.tests.test_api_ape5`` testing file. It showcases most of
 the major capabilities of the package, and hence is a useful supplement to
-this document.  You can see it by either looking at it directly if you
-downloaded a copy of the astropy source code, or typing the following in an
-IPython session::
+this document. You can see it by either downloading a copy of the Astropy
+source code, or typing the following in an IPython session::
 
     In [1]: from astropy.coordinates.tests import test_api_ape5
     In [2]: test_api_ape5??
 
 
 .. note that if this section gets too long, it should be moved to a separate
-   doc page - see the top of performance.inc.rst for the instructions on how to do
-   that
+   doc page - see the top of performance.inc.rst for the instructions on how to
+   do that
 .. include:: performance.inc.rst
 
 .. _astropy-coordinates-seealso:
@@ -413,14 +412,14 @@ IPython session::
 See Also
 ========
 
-Some references particularly useful in understanding subtleties of the
+Some references that are particularly useful in understanding subtleties of the
 coordinate systems implemented here include:
 
 * `USNO Circular 179 <http://aa.usno.navy.mil/publications/docs/Circular_179.php>`_
     A useful guide to the IAU 2000/2003 work surrounding ICRS/IERS/CIRS and
     related problems in precision coordinate system work.
 * `Standards Of Fundamental Astronomy <http://www.iausofa.org/>`_
-    The definitive implementation of IAU-defined algorithms.  The "SOFA Tools
+    The definitive implementation of IAU-defined algorithms. The "SOFA Tools
     for Earth Attitude" document is particularly valuable for understanding
     the latest IAU standards in detail.
 * `IERS Conventions (2010) <https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn36.html>`_

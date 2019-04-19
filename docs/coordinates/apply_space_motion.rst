@@ -2,11 +2,11 @@
 
 .. _astropy-coordinates-apply-space-motion:
 
-Accounting for space motion
+Accounting for Space Motion
 ***************************
 
 The |SkyCoord| object supports updating the position of a source given its space
-motion and a time or time difference to evaluate the new position at. This is
+motion and a time at which to evaluate the new position (or a difference between the coordinate's current time and a new one). This is
 done using the :meth:`~astropy.coordinates.SkyCoord.apply_space_motion` method.
 As an example, first we'll create a |SkyCoord| object with a specified
 ``obstime``::
@@ -45,12 +45,13 @@ Or, we can specify the new time to evaluate the position at::
 If the |SkyCoord| object has no specified radial velocity (RV), the RV is
 assumed to be 0. The new position of the source is determined assuming the
 source moves in a straight line with constant velocity in an inertial frame.
-There are no plans to support more complex evolution (e.g. non-inertial
-frames or more complex evolution), as that is out of scope for the Astropy core
-(although it may well be in-scope for a variety of affiliated packages).
+There are no plans to support more complex evolution (e.g., non-inertial
+frames or more complex evolution), as that is out of scope for the ``astropy``
+core package (although it may well be in-scope for a variety of affiliated
+packages).
 
-Example: Use velocity to compute sky position at different epoch
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Example: Use velocity to compute sky position at different epochs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In this example, we'll use *Gaia* `TGAS
 <https://www.cosmos.esa.int/web/gaia/dr1>`_ astrometry for a nearby star to
@@ -98,8 +99,8 @@ above)::
     ...                    ref_epoch=2015.0,
     ...                    phot_g_mean_mag=7.657174523348196)
 
-The 2MASS data for all sources within 1 arcminute around the above position (see
-queries in Note above)::
+The 2MASS data for all sources within 1 arcminute around the above position
+(see queries in Note above)::
 
     >>> result_2mass = dict(RAJ2000=[66.421970000000002, 66.433521999999996,
     ...                              66.420564999999996, 66.485068999999996,
@@ -135,8 +136,8 @@ provided by the TGAS catalog (J2015.0)::
 
 We next create a |SkyCoord| object with the sky positions from the 2MASS
 catalog, and an `~astropy.time.Time` object for the date of the 2MASS
-observations provided in the 2MASS catalog (for the data in this region, the
-observation date is the same, so we take just the 0th value)::
+observations provided in the 2MASS catalog (for the data in this region the
+observation date is the same, so we take only the 0th value)::
 
     >>> catalog_2mass = SkyCoord(ra=result_2mass['RAJ2000'] * u.deg,
     ...                          dec=result_2mass['DEJ2000'] * u.deg)
@@ -158,8 +159,8 @@ do the cross-match (see also :ref:`astropy-coordinates-separations-matching`)::
     >>> idx # doctest: +SKIP
     array(5)
 
-The closest source it found is just 0.2818 arcseconds away and corresponds to
-row index 5 in the 2MASS catalog. We can then, e.g., compute *Gaia*-2MASS
+The closest source it found is 0.2818 arcseconds away and corresponds to
+row index 5 in the 2MASS catalog. We can then, for example, compute *Gaia*-2MASS
 colors::
 
     >>> G = result_tgas['phot_g_mean_mag']

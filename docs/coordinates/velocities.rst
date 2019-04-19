@@ -2,14 +2,14 @@
 
 .. _astropy-coordinates-velocities:
 
-Working with velocities in Astropy coordinates
+Working with Velocities in Astropy Coordinates
 **********************************************
 
-Using velocities with ``SkyCoord``
+Using Velocities with ``SkyCoord``
 ==================================
 
-The easiest way of getting a coordinate object with velocities is to use the
-|skycoord| interface.  For example, a |skycoord| to represent a star with a
+The best way to start getting a coordinate object with velocities is to use the
+|skycoord| interface. For example, a |skycoord| to represent a star with a
 measured radial velocity but unknown proper motion and distance could be
 created as::
 
@@ -26,9 +26,9 @@ created as::
 
 .. the SKIP above in the ``sc`` line is because numpy has a subtly different output in versions < 12 - the trailing comma is missing.  If a NPY_LT_1_12 comes in to being this can switch to that.  But don't forget to *also* change this in the coordinates/index.rst file
 
-|skycoord| objects created in this manner follow all the same transformation
-rules, and will correctly update their velocities when transformed to other
-frames.  For example, to determine proper motions in Galactic coordinates for
+|skycoord| objects created in this manner follow all of the same transformation
+rules and will correctly update their velocities when transformed to other
+frames. For example, to determine proper motions in Galactic coordinates for
 a star with proper motions measured in ICRS::
 
     >>> sc = SkyCoord(1*u.deg, 2*u.deg, pm_ra_cosdec=.2*u.mas/u.yr, pm_dec=.1*u.mas/u.yr)
@@ -41,22 +41,22 @@ a star with proper motions measured in ICRS::
 For more details on valid operations and limitations of velocity support in
 `astropy.coordinates` (particularly the :ref:`current accuracy limitations
 <astropy-coordinate-finite-difference-velocities>` ), see the more detailed
-discussions below of velocity support in the lower-level frame objects.  All
+discussions below of velocity support in the lower-level frame objects. All
 these same rules apply for |skycoord| objects, as they are built directly on top
 of the frame classes' velocity functionality detailed here.
 
 .. _astropy-coordinate-custom-frame-with-velocities:
 
-Creating frame objects with velocity data
+Creating Frame Objects with Velocity Data
 =========================================
 
 The coordinate frame classes support storing and transforming velocity data
-(along side the positional coordinate data). Similar to the positional data ---
-that use the ``Representation`` classes to abstract away the particular
-representation and allow re-representing from, e.g., Cartesian to Spherical
---- the velocity data makes use of ``Differential`` classes to do the
-same (for more information about the differential classes, see
-:ref:`astropy-coordinates-differentials`). Also like the positional data, the
+(alongside the positional coordinate data). Similar to the positional data that
+use the ``Representation`` classes to abstract away the particular
+representation and allow re-representing from (e.g., Cartesian to Spherical),
+the velocity data makes use of ``Differential`` classes to do the
+same. (For more information about the differential classes, see
+:ref:`astropy-coordinates-differentials`.) Also like the positional data, the
 names of the differential (velocity) components depend on the particular
 coordinate frame.
 
@@ -98,7 +98,7 @@ Like the positional data, velocity data must be passed in as
 `~astropy.units.Quantity` objects.
 
 The expected differential class can be changed to control the argument names
-that the frame expects. As mentioned above, by default the proper motions
+that the frame expects. As mentioned above, by default the proper motion
 components are expected to contain the ``cos(latitude)``, but this can be
 changed by specifying the `~astropy.coordinates.SphericalDifferential` class
 (instead of the default `~astropy.coordinates.SphericalCosLatDifferential`)::
@@ -142,7 +142,7 @@ position and velocity components. For other frames, these are just ``x,y,z`` and
 
 For any frame with velocity data with any representation, there are also
 shorthands that provide easier access to the underlying velocity data in
-commonly-needed formats. With any frame object with 3D velocity data, the 3D
+commonly needed formats. With any frame object with 3D velocity data, the 3D
 Cartesian velocity can be accessed with::
 
     >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
@@ -164,12 +164,12 @@ the radial (line-of-sight) velocity::
 
 .. _astropy-coordinate-transform-with-velocities:
 
-Transforming frames with velocities
+Transforming Frames with Velocities
 ===================================
 
 Transforming coordinate frame instances that contain velocity data to a
 different frame (which may involve both position and velocity transformations)
-is done  exactly the same way transforming position-only frame instances::
+is done exactly the same way as transforming position-only frame instances::
 
     >>> from astropy.coordinates import Galactic
     >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
@@ -184,7 +184,7 @@ However, the details of how the velocity components are transformed depends on
 the particular set of transforms required to get from the starting frame to the
 desired frame (i.e., the path taken through the frame transform graph). If all
 frames in the chain of transformations are transformed to each other via
-`~astropy.coordinates.BaseAffineTransform` subclasses (i.e. are matrix
+`~astropy.coordinates.BaseAffineTransform` subclasses (i.e., are matrix
 transformations or affine transformations), then the transformations can be
 applied explicitly to the velocity data. If this is not the case, the velocity
 transformation is computed numerically by finite-differencing the positional
@@ -216,7 +216,7 @@ on proper-motion-only data or full-space, 3D velocities::
 
 The same rotation matrix is applied to both the position vector and the velocity
 vector. Any transformation that involves a velocity offset requires all 3D
-velocity components (which typically requires specifying a distance as well),
+velocity components (which typically require specifying a distance as well),
 for example, `~astropy.coordinates.ICRS` to `~astropy.coordinates.LSR`::
 
     >>> from astropy.coordinates import LSR
@@ -235,33 +235,33 @@ for example, `~astropy.coordinates.ICRS` to `~astropy.coordinates.LSR`::
 Finite Difference Transformations
 ---------------------------------
 
-Some frame transformations  cannot be expressed as affine transformations.
+Some frame transformations cannot be expressed as affine transformations.
 For example, transformations from the `~astropy.coordinates.AltAz` frame can
-include an atmospheric dispersion correction, which is inherently non-linear.
-Additionally, some frames are simply more easily implemented as functions, even
+include an atmospheric dispersion correction, which is inherently nonlinear.
+Additionally, some frames are more conveniently implemented as functions, even
 if they can be cast as affine transformations. For these frames, a finite
-difference approach to transforming velocities is available.  Note that this
-approach is implemented such that user-defined frames can use it in the exact
-same manner as (by defining a transformation of the
+difference approach to transforming velocities is available. Note that this
+approach is implemented such that user-defined frames can use it in
+the same manner (i.e., by defining a transformation of the
 `~astropy.coordinates.FunctionTransformWithFiniteDifference` type).
 
 This finite difference approach actually combines two separate (but important)
 elements of the transformation:
 
   * Transformation of the *direction* of the velocity vector that already exists
-    in the starting frame.  That is, a frame transformation sometimes involves
-    re-orienting the coordinate frame (e.g., rotation), and the velocity vector
-    in the new frame must account for this.  The finite difference approach
+    in the starting frame. That is, a frame transformation sometimes involves
+    reorienting the coordinate frame (e.g., rotation), and the velocity vector
+    in the new frame must account for this. The finite difference approach
     models this by moving the position of the starting frame along the velocity
     vector, and computing this offset in the target frame.
-  * The "induced" velocity due to motion of the frame *itself*.  For example,
+  * The "induced" velocity due to motion of the frame *itself*. For example,
     shifting from a frame centered at the solar system barycenter to one
     centered on the Earth includes a velocity component due entirely to the
-    Earth's motion around the barycenter.  This is accounted for by computing
+    Earth's motion around the barycenter. This is accounted for by computing
     the location of the starting frame in the target frame at slightly different
-    times, and computing the difference between those.  Note that this step
+    times, and computing the difference between those. Note that this step
     depends on assuming that a particular frame attribute represents a "time"
-    of relevance for the induced velocity.  By convention this is typically the
+    of relevance for the induced velocity. By convention this is typically the
     ``obtime`` frame attribute, although it is an option that can be set when
     defining a finite difference transformation function.
 
@@ -269,8 +269,8 @@ elements of the transformation:
 However, it is important to recognize that the finite difference transformations
 have inherent limits set by the finite difference algorithm and machine
 precision. To illustrate this problem, consider the AltAz to GCRS  (i.e.,
-geocentric) transformation. Lets try to compute the radial velocity in the GCRS
-frame for something observed from the Earth at a distance of 100 AU with a
+geocentric) transformation. Let us try to compute the radial velocity in the
+GCRS frame for something observed from the Earth at a distance of 100 AU with a
 radial velocity of 10 km/s:
 
 .. plot::
@@ -296,7 +296,7 @@ radial velocity of 10 km/s:
 This seems plausible: the radial velocity should indeed be very close to 10 km/s
 because the frame does not involve a velocity shift.
 
-Now let's consider 100 *kiloparsecs* as the distance.  In this case we expect
+Now let us consider 100 *kiloparsecs* as the distance. In this case we expect
 the same: the radial velocity should be essentially the same in both frames:
 
 .. plot::
@@ -312,11 +312,11 @@ the same: the radial velocity should be essentially the same in both frames:
     plt.plot_date(time.plot_date, gcrs.radial_velocity.to(u.km/u.s))
     plt.ylabel('RV [km/s]')
 
-but this result is clearly nonsense, with values from -1000 to 1000 km/s.  The
-root of the problem here is that the machine precision is not sufficient to
-computedifferences of order km over distances of order kiloparsecs.  Hence, the
-straightforward finite difference method will not work for this use case with
-the default values.
+But this result is nonsense, with values from -1000 to 1000 km/s instead of the
+~10 km/s we expected. The root of the problem here is that the machine
+precision is not sufficient to compute differences of order km over distances
+of order kiloparsecs. Hence, the straightforward finite difference method will
+not work for this use case with the default values.
 
 It is possible to override the timestep over which the finite difference occurs.
 For example::
@@ -328,8 +328,8 @@ For example::
     >>> trans.finite_difference_dt = 1*u.second  # return to default
 
 But beware that this will *not* help in cases like the above, where the relevant
-timescales for the velocities are seconds (the velocity of the earth relative to
-a particular direction changes dramatically over the course of one year).
+timescales for the velocities are seconds. (The velocity of the Earth relative
+to a particular direction changes dramatically over the course of one year.)
 
 Future versions of Astropy will improve on this algorithm to make the results
 more numerically stable and practical for use in these (not unusual) use cases.
@@ -340,16 +340,16 @@ Radial Velocity Corrections
 ===========================
 
 Separately from the above, Astropy supports computing barycentric or
-heliocentric radial velocity corrections.  While in the future this may simply
+heliocentric radial velocity corrections. While in the future this may
 be a high-level convenience function using the framework described above, the
 current implementation is independent to ensure sufficient accuracy (see
 :ref:`astropy-coordinates-rv-corrs` and the
 `~astropy.coordinates.SkyCoord.radial_velocity_correction` API docs for
 details).
 
-An example of this is below.  It demonstrates how to compute this correction if
+An example of this is below. It demonstrates how to compute this correction if
 observing some object at a known RA and Dec from the Keck observatory at a
-particular time.  If a precision of around 3 m/s is sufficient, the computed
+particular time. If a precision of around 3 m/s is sufficient, the computed
 correction can then be added to any observed radial velocity to determine
 the final heliocentric radial velocity::
 
@@ -366,7 +366,7 @@ the final heliocentric radial velocity::
     <Quantity 20.070039 km / s>
 
 Note that there are a few different ways to specify the options for the
-correction (e.g., the location, observation time, etc).  See the
+correction (e.g., the location, observation time, etc.). See the
 `~astropy.coordinates.SkyCoord.radial_velocity_correction` docs for more
 information.
 
@@ -374,37 +374,41 @@ Precision of `~astropy.coordinates.SkyCoord.radial_velocity_correction`
 ------------------------------------------------------------------------
 
 The correction computed by `~astropy.coordinates.SkyCoord.radial_velocity_correction`
-can be added to any observed radial velocity to provide a correction that is accurate
-to a level of approximately 3 m/s. If you need more precise corrections, there are a number
-of subtleties you must be aware of.
+can be added to any observed radial velocity to provide a correction that is
+accurate to a level of approximately 3 m/s. If you need more precise
+corrections, there are a number of subtleties of which you must be aware.
 
-The first is that one should always use a barycentric correction, as the barycenter is a fixed
-point where gravity is constant. Since the heliocentre does not satisfy these conditions, corrections
-to the heliocentre are only suitable for low precision work. As a result, and
-to increase speed, the heliocentric correction in
-`~astropy.coordinates.SkyCoord.radial_velocity_correction` does not include effects such as the
-gravitational redshift due to the potential at the Earth's surface. For these reasons, the
-barycentric correction in `~astropy.coordinates.SkyCoord.radial_velocity_correction` should always
+The first is that you should always use a barycentric correction, as the
+barycenter is a fixed point where gravity is constant. Since the heliocenter
+does not satisfy these conditions, corrections to the heliocenter are only
+suitable for low precision work. As a result, and to increase speed, the
+heliocentric correction in
+`~astropy.coordinates.SkyCoord.radial_velocity_correction` does not include
+effects such as the gravitational redshift due to the potential at the Earth's
+surface. For these reasons, the barycentric correction in
+`~astropy.coordinates.SkyCoord.radial_velocity_correction` should always
 be used for high precision work.
 
-Other considerations necessary for radial velocity corrections at the cm/s level are outlined
-in `Wright & Eastmann (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_. Most important
-is that the barycentric correction is, strictly speaking, *multiplicative*, so that one should apply it
-as
+Other considerations necessary for radial velocity corrections at the cm/s
+level are outlined in `Wright & Eastmann (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_.
+Most important is that the barycentric correction is, strictly speaking,
+*multiplicative*, so that you should apply it as:
 
 .. math::
 
     v_t = v_m + v_b + \frac{v_b v_m}{c},
 
-where :math:`v_t` is the true radial velocity,  :math:`v_m` is the measured radial velocity and :math:`v_b`
-is the barycentric correction returned by `~astropy.coordinates.SkyCoord.radial_velocity_correction`.
-Failure to apply the barycentric correction in this way leads to errors of order 3 m/s.
+Where :math:`v_t` is the true radial velocity, :math:`v_m` is the measured
+radial velocity and :math:`v_b` is the barycentric correction returned by
+`~astropy.coordinates.SkyCoord.radial_velocity_correction`. Failure to apply
+the barycentric correction in this way leads to errors of order 3 m/s.
 
 The barycentric correction in `~astropy.coordinates.SkyCoord.radial_velocity_correction` is consistent
 with the `IDL implementation <http://astroutils.astronomy.ohio-state.edu/exofast/barycorr.html>`_ of
-the Wright & Eastmann (2014) paper to a level of 10 mm/s for a source at infinite distance. We do not include
-the Shapiro delay, nor any effect related to the finite distance or proper motion of the source.
-The Shapiro delay is unlikely to be important unless you seek mm/s precision, but the effects of the
-source's parallax and proper motion can be important at the cm/s level. These effects are likely to be
-added to future versions of Astropy along with velocity support for |skycoord|, but in the meantime
-see `Wright & Eastmann (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_.
+the Wright & Eastmann (2014) paper to a level of 10 mm/s for a source at
+infinite distance. We do not include the Shapiro delay, nor any effect related
+to the finite distance or proper motion of the source. The Shapiro delay is
+unlikely to be important unless you seek mm/s precision, but the effects of the
+source's parallax and proper motion can be important at the cm/s level. These
+effects are likely to be added to future versions of Astropy along with
+velocity support for |skycoord|, but in the meantime see `Wright & Eastmann (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_.

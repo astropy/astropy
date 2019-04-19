@@ -5,24 +5,24 @@
 Using and Designing Coordinate Representations
 **********************************************
 
-Points in a 3-d vector space can be represented in different ways, such as
-cartesian, spherical polar, cylindrical, and so on. These underlie the way
+Points in a 3D vector space can be represented in different ways, such as
+Cartesian, spherical polar, cylindrical, and so on. These underlie the way
 coordinate data in `astropy.coordinates` is represented, as described in the
-:ref:`astropy-coordinates-overview`. Below, we describe how one can use them on
-their own, as a way to convert between different representations, including
+:ref:`astropy-coordinates-overview`. Below, we describe how you can use them on
+their own as a way to convert between different representations, including
 ones not built-in, and to do simple vector arithmetic.
 
 The built-in representation classes are:
 
-* `~astropy.coordinates.CartesianRepresentation`: cartesian
-  coordinates ``x``, ``y``, and ``z``
+* `~astropy.coordinates.CartesianRepresentation`: Cartesian
+  coordinates ``x``, ``y``, and ``z``.
 * `~astropy.coordinates.SphericalRepresentation`: spherical
   polar coordinates represented by a longitude (``lon``), a latitude
   (``lat``), and a distance (``distance``). The latitude is a value ranging
   from -90 to 90 degrees.
 * `~astropy.coordinates.UnitSphericalRepresentation`:
   spherical polar coordinates on a unit sphere, represented by a longitude
-  (``lon``) and latitude (``lat``)
+  (``lon``) and latitude (``lat``).
 * `~astropy.coordinates.PhysicsSphericalRepresentation`:
   spherical polar coordinates, represented by an inclination (``theta``) and
   azimuthal angle (``phi``), and radius ``r``. The inclination goes from 0 to
@@ -38,7 +38,7 @@ The built-in representation classes are:
    `~astropy.coordinates.SkyCoord` objects, see the
    :ref:`astropy-skycoord-representations` section.
 
-Instantiating and converting
+Instantiating and Converting
 ============================
 
 Representation classes are instantiated with `~astropy.units.Quantity`
@@ -97,7 +97,7 @@ dimensionless sphere::
     <UnitSphericalRepresentation (lon, lat) in rad
         (1.03037683, 0.60126422)>
 
-Converting back to cartesian, the absolute scaling information has been
+Converting back to Cartesian, the absolute scaling information has been
 removed, and the points are still located on a unit sphere::
 
     >>> sph_unit = car.represent_as(UnitSphericalRepresentation)
@@ -106,7 +106,7 @@ removed, and the points are still located on a unit sphere::
         (0.42426407, 0.70710678, 0.56568542)>
 
 
-Array values and numpy array method analogs
+Array Values and NumPy Array Method Analogs
 ===========================================
 
 Array `~astropy.units.Quantity` objects can also be passed to representations,
@@ -134,21 +134,21 @@ methods as are available to `~numpy.ndarray`::
 
 .. _astropy-coordinates-representations-arithmetic:
 
-Vector arithmetic
+Vector Arithmetic
 =================
 
-Representations support basic vector arithmetic, in particular taking the norm,
-multiplying with and dividing by quantities, taking dot and cross products, as
-well as adding, subtracting, summing and taking averages of representations,
+Representations support basic vector arithmetic such as taking the norm,
+multiplying with and dividing by quantities, and taking dot and cross products,
+as well as adding, subtracting, summing and taking averages of representations,
 and multiplying with matrices.
 
 .. Note:: All arithmetic except the matrix multiplication works with
-   non-cartesian representations as well.  For taking the norm, multiplication,
-   and division this uses just the non-angular components, while for the other
-   operations the representation is converted to cartesian internally before
+   non-Cartesian representations as well. For taking the norm, multiplication,
+   and division, this uses just the non-angular components, while for the other
+   operations the representation is converted to Cartesian internally before
    the operation is done, and the result is converted back to the original
-   representation.  Hence, for optimal speed it may be best to work using
-   cartesian representations.
+   representation. Hence, for optimal speed it may be best to work using
+   Cartesian representations.
 
 To see how the operations work, consider the following examples::
 
@@ -214,11 +214,12 @@ To see how the operations work, consider the following examples::
 
 .. _astropy-coordinates-differentials:
 
-Differentials and derivatives of Representations
+Differentials and Derivatives of Representations
 ================================================
+
 In addition to positions in 3D space, coordinates also deal with proper motions
 and radial velocities, which require a way to represent differentials of
-coordinates (i.e., finite realizations) of derivatives.  To support this, the
+coordinates (i.e., finite realizations) of derivatives. To support this, the
 representations all have corresponding ``Differential`` classes, which can hold
 offsets or derivatives in terms of the components of the representation class.
 Adding such an offset to a representation means the offset is taken in the
@@ -238,9 +239,9 @@ To see how this works, consider the following::
   <CartesianRepresentation (x, y, z) in arcsec kpc / (rad yr)
       (0., 1., 0.)>
 
-Note how the conversion to cartesian can only done using a ``base``, since
+Note how the conversion to Cartesian can only be done using a ``base``, since
 otherwise the code cannot know what direction an increase in longitude
-corresponds to.  For ``lon=0``, this is in the ``y`` direction.  Now, to get
+corresponds to. For ``lon=0``, this is in the ``y`` direction. Now, to get
 the coordinates at two later times::
 
   >>> sph_coo + sph_derivative * [1., 3600*180/np.pi] * u.yr  # doctest: +FLOAT_CMP
@@ -250,7 +251,7 @@ the coordinates at two later times::
 The above shows how addition is not to longitude itself, but in the direction
 of increasing longitude: for the large shift, by the equivalent of one radian,
 the distance has increased as well (after all, a source will likely not move
-along a curve on the sky!).  This also means that the order of operations is
+along a curve on the sky!). This also means that the order of operations is
 important::
 
   >>> big_offset = SphericalDifferential(1.*u.radian, 0.*u.radian, 0.*u.kpc)
@@ -261,7 +262,7 @@ important::
   <SphericalRepresentation (lon, lat, distance) in (rad, rad, kpc)
       (1.10714872, 0., 2.23606798)>
 
-Often, one has just a proper motion or a radial velocity, but not both::
+Often, you may have just a proper motion or a radial velocity, but not both::
 
   >>> from astropy.coordinates import UnitSphericalDifferential, RadialDifferential
   >>> radvel = RadialDifferential(1000*u.km/u.s)
@@ -280,7 +281,7 @@ Often, one has just a proper motion or a radial velocity, but not both::
       (0.00239684, 0., 2.02271798)>
 
 Note in the above that the proper motion is defined strictly as a change in
-longitude, i.e., it does not include a ``cos(latitude)`` term. There are
+longitude (i.e., it does not include a ``cos(latitude)`` term). There are
 special classes where this term is included::
 
   >>> from astropy.coordinates import UnitSphericalCosLatDifferential
@@ -301,9 +302,9 @@ special classes where this term is included::
   <SphericalRepresentation (lon, lat, distance) in (rad, rad, kpc)
       (0.00969597, 1.0471772, 1.00001175)>
 
-Close inspections shows that indeed the changes are as expected.  The systems
-with and without ``cos(latitude)`` can be converted to each other, provided one
-provides the ``base`` (representation)::
+Close inspections shows that indeed the changes are as expected. The systems
+with and without ``cos(latitude)`` can be converted to each other, provided you
+supply the ``base`` (representation)::
 
   >>> usph_lat60 = sph_lat60.represent_as(UnitSphericalRepresentation)
   >>> pm_coslat2 = pm.represent_as(UnitSphericalCosLatDifferential,
@@ -317,12 +318,12 @@ provides the ``base`` (representation)::
 
 .. Note:: At present, the differential classes are generally meant to work with
    first derivatives, but they do not check the units of the inputs to enforce
-   this. Passing in 2nd derivatives, e.g., acceleration values (with
-   acceleration units), will succeed, but any transformations that occur through
+   this. Passing in second derivatives (e.g., acceleration values with
+   acceleration units) will succeed, but any transformations that occur through
    re-representation of the differential will not necessarily be correct.
 
-Attaching ``Differential``'s to ``Representation``'s
-====================================================
+Attaching ``Differential`` Objects to ``Representation`` Objects
+================================================================
 
 .. warning::
 
@@ -330,9 +331,10 @@ Attaching ``Differential``'s to ``Representation``'s
     viewed as provisional!
 
 ``Differential`` objects can be attached to ``Representation`` objects as a way
-to encapsulate related information into a single object. ``Differential``'s can
-be passed in to the initializer of any of the built-in ``Representation``
-classes. For example, to store a single velocity differential with a position::
+to encapsulate related information into a single object. ``Differential``
+objects can be passed in to the initializer of any of the built-in
+``Representation`` classes. For example, to store a single velocity
+differential with a position::
 
   >>> from astropy.coordinates import representation as r
   >>> dif = r.SphericalDifferential(d_lon=1 * u.mas/u.yr,
@@ -371,7 +373,8 @@ differentials::
   <SphericalDifferential (d_lon, d_lat, d_distance) in (mas / yr2, mas / yr2, km / s2)
       (4., 5., 6.)>
 
-``Differential`` s can also be attached to a ``Representation`` after creation::
+``Differential`` objects can also be attached to a ``Representation`` after
+creation::
 
   >>> rep = r.CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
   >>> dif = r.CartesianDifferential(*[1, 2, 3] * u.km/u.s)
@@ -381,7 +384,7 @@ differentials::
       (1., 2., 3.)
    (has differentials w.r.t.: 's')>
 
-This also works for array data as well, as long as the shape of the
+This works for array data as well, as long as the shape of the
 ``Differential`` data is the same as that of the ``Representation``::
 
   >>> xyz = np.arange(12).reshape(3, 4) * u.au
@@ -406,8 +409,8 @@ positional data to a new representation, use the ``.represent_as()``::
 
 However, by passing just the desired representation class, only the
 ``Representation`` has changed, and the differentials are dropped. To
-re-represent both the ``Representation`` and any ``Differential`` s, you must
-specify target classes for the ``Differential`` as well::
+re-represent both the ``Representation`` and any ``Differential`` objects, you
+must specify target classes for the ``Differential`` as well::
 
   >>> rep2 = rep.represent_as(r.SphericalRepresentation, r.SphericalDifferential)
   >>> rep2  # doctest: +FLOAT_CMP
@@ -425,8 +428,8 @@ specify target classes for the ``Differential`` as well::
        ( 5.55111512e-17, 0.00000000e+00, 13.37908816)]>
 
 Shape-changing operations (e.g., reshapes) are propagated to all
-``Differential`` s because they are guaranteed to have the same shape as their
-host ``Representation`` object::
+``Differential`` objects because they are guaranteed to have the same shape as
+their host ``Representation`` object::
 
   >>> rep.shape
   (4,)
@@ -448,7 +451,7 @@ This also works for slicing::
 
 Operations on representations that return `~astropy.units.Quantity` objects (as
 opposed to other ``Representation`` instances) still work, but only operate on
-the positional information, e.g.::
+the positional information, for example::
 
   >>> rep.norm()  # doctest: +FLOAT_CMP
   <Quantity [ 8.94427191, 10.34408043, 11.83215957, 13.37908816] AU>
@@ -462,9 +465,9 @@ support for some operations may be added in future versions::
   ...
   TypeError: Operation 'add' is not supported when differentials are attached to a CartesianRepresentation.
 
-If you have a ``Representation`` with attached ``Differential`` s, you can
-easily retrieve a copy of the ``Representation`` without the ``Differential`` s
-and use this ``Differential``-free object for any arithmetic operation::
+If you have a ``Representation`` with attached ``Differential`` objects, you
+can retrieve a copy of the ``Representation`` without the ``Differential``
+object and use this ``Differential``-free object for any arithmetic operation::
 
   >>> 15 * rep.without_differentials()  # doctest: +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in AU
@@ -473,24 +476,24 @@ and use this ``Differential``-free object for any arithmetic operation::
 
 .. _astropy-coordinates-create-repr:
 
-Creating your own representations
+Creating Your Own Representations
 =================================
 
 To create your own representation class, your class must inherit from the
-`~astropy.coordinates.BaseRepresentation` class.  This base has an ``__init__``
+`~astropy.coordinates.BaseRepresentation` class. This base has an ``__init__``
 method that will put all arguments components through their initializers,
 verify they can be broadcast against each other, and store the components on
-``self`` as the name prefixed with '_'.  Furthermore, through its metaclass it
+``self`` as the name prefixed with '_'. Furthermore, through its metaclass it
 provides default properties for the components so that they can be accessed
-using ``<instance>.<component>``).  For the machinery to work, the following
+using ``<instance>.<component>``. For the machinery to work, the following
 must be defined:
 
 * ``attr_classes`` class attribute (``OrderedDict``):
 
   Defines through its keys the names of the components (as well as the default
-  order), and through its values the class they should be instances of (which
-  should be `~astropy.units.Quantity` or a subclass, or anything that can
-  initialize it).
+  order), and through its values defines the class of which they should be
+  instances (which should be `~astropy.units.Quantity` or a subclass, or
+  anything that can initialize it).
 
 * ``from_cartesian`` class method:
 
@@ -511,7 +514,7 @@ must be defined:
   initializer.
 
 Once you do this, you will then automatically be able to call ``represent_as``
-to convert other representations to/from your representation class.  Your
+to convert other representations to/from your representation class. Your
 representation will also be available for use in |skycoord| and all frame
 classes.
 
@@ -522,24 +525,23 @@ probably only meaningful for subclasses of
 `~astropy.coordinates.SphericalRepresentation`, where it is assumed that it
 will be a subclass of `~astropy.coordinates.UnitSphericalRepresentation`.
 
-Finally, if you wish to use also offsets in your coordinate system, two further
-methods should be defined (please see, e.g.,
+Finally, if you wish to also use offsets in your coordinate system, two further
+methods should be defined (please see
 `~astropy.coordinates.SphericalRepresentation` for an example):
 
 * ``unit_vectors`` method:
 
-  Returns a ``dict`` with for each component a
+  Returns a ``dict`` with a
   `~astropy.coordinates.CartesianRepresentation` of unit vectors in the
   direction of each component.
 
 * ``scale_factors`` method:
 
-  Returns a ``dict`` with for each component a `~astropy.units.Quantity` with
+  Returns a ``dict`` with a `~astropy.units.Quantity` for each component with
   the appropriate physical scale factor for a unit change in that direction.
 
 And furthermore you should define a ``Differential`` class based on
-`~astropy.coordinates.BaseDifferential`. This class can be extremely simple,
-and only needs to define:
+`~astropy.coordinates.BaseDifferential`. This class only needs to define:
 
 * ``base_representation`` attribute:
 

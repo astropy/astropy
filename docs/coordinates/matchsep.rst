@@ -7,9 +7,9 @@ Separations, Offsets, Catalog Matching, and Related Functionality
 *****************************************************************
 
 `astropy.coordinates` contains commonly-used tools for comparing or
-matching coordinate objects.  Of particular importance are those for
+matching coordinate objects. Of particular importance are those for
 determining separations between coordinates and those for matching a
-coordinate (or coordinates) to a catalog.  These are mainly implemented
+coordinate (or coordinates) to a catalog. These are mainly implemented
 as methods on the coordinate objects.
 
 Separations
@@ -18,8 +18,7 @@ Separations
 The on-sky separation is easily computed with the
 :meth:`astropy.coordinates.BaseCoordinateFrame.separation` or
 :meth:`astropy.coordinates.SkyCoord.separation` methods,
-which computes the great-circle distance (*not* the small-angle
-approximation)::
+which computes the great-circle distance (*not* the small-angle approximation)::
 
     >>> import numpy as np
     >>> from astropy import units as u
@@ -31,7 +30,7 @@ approximation)::
     <Angle 20.74611448 deg>
 
 The returned object is an `~astropy.coordinates.Angle` instance, so it
-is straightforward to access the angle in any of several equivalent angular
+is possible to access the angle in any of several equivalent angular
 units::
 
     >>> sep.radian  # doctest: +FLOAT_CMP
@@ -43,9 +42,9 @@ units::
     >>> sep.arcsecond  # doctest: +FLOAT_CMP
     74686.0121137583
 
-Also note that the two input coordinates were not in the same frame -
-one is  automatically converted to match the other, ensuring that even
-though they are  in different frames, the separation is determined
+Also note that the two input coordinates were not in the same frame —
+one is automatically converted to match the other, ensuring that even
+though they are in different frames, the separation is determined
 consistently.
 
 In addition to the on-sky separation described above,
@@ -73,9 +72,10 @@ rather than the single scalar angular offset of a separation.
 offsets encountered in astronomy.
 
 The first piece of such functionality is the
-:meth:`~astropy.coordinates.SkyCoord.position_angle` method, which gives the
-conventional astronomy position angle (positive angles East of North) from one
-the |skycoord| it is called on to another given as the argument::
+:meth:`~astropy.coordinates.SkyCoord.position_angle` method. This method
+computes the position angle between one
+|skycoord| instance and another (passed as the argument) following the 
+astronomy convention (positive angles East of North)::
 
     >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
@@ -86,8 +86,8 @@ the |skycoord| it is called on to another given as the argument::
 
 The combination of :meth:`~astropy.coordinates.SkyCoord.separation` and
 :meth:`~astropy.coordinates.SkyCoord.position_angle` thus give a set of
-directional offsets. To do the inverse operation - determining the new
-"destination" coordinate given a separation and position angle - the
+directional offsets. To do the inverse operation — determining the new
+"destination" coordinate given a separation and position angle — the
 :meth:`~astropy.coordinates.SkyCoord.directional_offset_by` method is provided::
 
     >>> from astropy import units as u
@@ -99,9 +99,9 @@ directional offsets. To do the inverse operation - determining the new
     <SkyCoord (ICRS): (ra, dec) in deg
         (2.0004075, 1.99964588)>
 
-There is also a :meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to` method
-for computing angular offsets (e.g., small shifts like you might give a
-telescope operator to move from a bright star to a fainter target.)::
+There is also a :meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to`
+method for computing angular offsets (e.g., small shifts like you might give a
+telescope operator to move from a bright star to a fainter target)::
 
     >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
@@ -122,8 +122,8 @@ telescope operator to move from a bright star to a fainter target.)::
 To extend the concept of spherical offsets, `~astropy.coordinates` has
 a frame class :class:`~astropy.coordinates.builtin_frames.skyoffset.SkyOffsetFrame`
 which creates distinct frames that are centered on a specific point.
-These are known as "sky offset frames", as they are a convenient way to create
-a frame centered on an arbitrary position on the sky, suitable for computing
+These are known as "sky offset frames," as they are a convenient way to create
+a frame centered on an arbitrary position on the sky suitable for computing
 positional offsets (e.g., for astrometry)::
 
     >>> from astropy import units as u
@@ -141,8 +141,8 @@ positional offsets (e.g., for astrometry)::
 
 
 Alternatively, the convenience method
-:meth:`~astropy.coordinates.SkyCoord.skyoffset_frame` lets you create an skyoffset
-frame from an already-existing |SkyCoord|::
+:meth:`~astropy.coordinates.SkyCoord.skyoffset_frame` lets you create a sky
+offset frame from an existing |SkyCoord|::
 
     >>> center = SkyCoord(10*u.deg, 45*u.deg)
     >>> aframe = center.skyoffset_frame()
@@ -160,7 +160,7 @@ frame from an already-existing |SkyCoord|::
 
     While sky offset frames *appear* to be all the same class, this not the
     case: the sky offset frame for each different type of frame for ``origin`` is
-    actually a distinct class.  E.g., ``SkyOffsetFrame(origin=ICRS(...))``
+    actually a distinct class. E.g., ``SkyOffsetFrame(origin=ICRS(...))``
     yields an object of class ``SkyOffsetICRS``, *not* ``SkyOffsetFrame``.
     While this is not important for most uses of this class, it is important for
     things like type-checking, because something like
@@ -168,8 +168,8 @@ frame from an already-existing |SkyCoord|::
     *not* be ``True``, as it would be for most classes.
 
 This same frame is also useful as a tool for defining frames that are relative
-to a specific known object, useful for hierarchical physical systems like galaxy
-groups.  For example, objects around M31 are sometimes shown in a coordinate
+to a specific, known object useful for hierarchical physical systems like galaxy
+groups. For example, objects around M31 are sometimes shown in a coordinate
 frame aligned with standard ICRA RA/Dec, but on M31::
 
     >>> m31 = SkyCoord(10.6847083*u.deg, 41.26875*u.deg, frame='icrs')
@@ -186,7 +186,7 @@ frame aligned with standard ICRA RA/Dec, but on M31::
     Currently, distance information in the ``origin`` of a
     :class:`~astropy.coordinates.builtin_frames.skyoffset.SkyOffsetFrame` is not
     used to compute any part of the transform. The ``origin`` is only used for
-    on-sky rotation.  This may change in the future, however.
+    on-sky rotation. This may change in the future, however.
 
 
 .. _astropy-coordinates-matching:
@@ -195,9 +195,9 @@ Matching Catalogs
 =================
 
 `~astropy.coordinates` leverages the coordinate framework to make it
-straightforward to find the closest coordinates in a catalog to a desired set
+possible to find the closest coordinates in a catalog to a desired set
 of other coordinates. For example, assuming ``ra1``/``dec1`` and
-``ra2``/``dec2`` are numpy arrays loaded from some file:
+``ra2``/``dec2`` are NumPy arrays loaded from some file:
 
 .. testsetup::
     >>> ra1 = [5.3517]
@@ -220,7 +220,7 @@ Unless both source (``c``) and catalog (``catalog``) coordinates have
 associated distances, this quantity assumes that all sources are at a distance
 of 1 (dimensionless).
 
-You can also find the nearest 3d matches, different from the on-sky
+You can also find the nearest 3D matches, different from the on-sky
 separation shown above only when the coordinates were initialized with
 a ``distance``:
 
@@ -232,7 +232,7 @@ a ``distance``:
 
 Now ``idx`` are indices into ``catalog`` that are the closest objects to each
 of the coordinates in ``c``, ``d2d`` are the on-sky distances between them, and
-``d3d`` are the 3-dimensional distances.  Because coordinate objects support
+``d3d`` are the 3-dimensional distances. Because coordinate objects support
 indexing, ``idx`` enables easy access to the matched set of coordinates in
 the catalog:
 
@@ -270,10 +270,10 @@ and ``catalog``, respectively, which are separated by less than 1 arcsecond.
 
 .. _astropy-searching-coordinates:
 
-Searching Around Coordinates
+Searching around Coordinates
 ============================
 
-Closely-related functionality can be used to search for *all* coordinates within
+Closely related functionality can be used to search for *all* coordinates within
 a certain distance (either 3D distance or on-sky) of another set of coordinates.
 The ``search_around_*`` methods (and functions) provide this functionality,
 with an interface very similar to ``match_coordinates_*``:
@@ -292,7 +292,7 @@ with an interface very similar to ``match_coordinates_*``:
     True
 
 The key difference for these methods is that there can be multiple (or no)
-matches in ``catalog`` around any locations in ``c``.  Hence, indices into both
+matches in ``catalog`` around any locations in ``c``. Hence, indices into both
 ``c`` and ``catalog`` are returned instead of just indices into ``catalog``.
 These can then be indexed back into the two |skycoord| objects, or, for that
 matter, any array with the same order:
@@ -315,7 +315,7 @@ would not make sense for a scalar::
     ValueError: One of the inputs to search_around_sky is a scalar.
 
 As a result (and because the ``search_around_*`` algorithm is inefficient in
-the scalar case, anyway), the best approach for this scenario is to instead
+the scalar case), the best approach for this scenario is to instead
 use the ``separation*`` methods:
 
 ..  doctest-requires:: scipy
@@ -327,7 +327,7 @@ use the ``separation*`` methods:
 
 The resulting ``catalogmsk`` or ``catalog3dmsk`` variables are boolean arrays
 rather than arrays of indices, but in practice they usually can be used in
-the same way as ``idxcatalog`` from the above examples.  If you definitely do
+the same way as ``idxcatalog`` from the above examples. If you definitely do
 need indices instead of boolean masks, you can do:
 
 ..  doctest-requires:: scipy
