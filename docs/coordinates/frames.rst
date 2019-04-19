@@ -322,7 +322,7 @@ the way you want. As an example::
   <MyFrame Coordinate (location=None, equinox=B1950.000, obstime=B1950.000): (R, D) in rad
       (0.17453293, 0.34906585)>
   >>> c.equinox
-  <Time object: scale='utc' format='byear_str' value=B1950.000>
+  <Time object: scale='tt' format='byear_str' value=B1950.000>
 
 If you also want to support velocity data in your coordinate frame, see the
 velocities documentation at
