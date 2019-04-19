@@ -102,7 +102,7 @@ New Box Least Squares Periodogram
 Astropy now has an implementation of the :ref:`stats-bls`
 that is commonly used to detect transiting exoplanets and eclipsing
 binary star systems. The interface has been designed to match the
-`~astropy.stats.LombScargle` periodogram, and it can be used with a time series
+``astropy.stats.LombScargle`` periodogram, and it can be used with a time series
 dataset ``time``, ``flux``, and ``flux_err`` as follows::
 
   >>> from astropy import units as u

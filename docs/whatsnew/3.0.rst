@@ -217,17 +217,16 @@ argument ``character_as_bytes`` to return character columns as Numpy byte arrays
 False alarm probabilities in ``astropy.stats.LombScargle``
 ==========================================================
 
-:class:`~astropy.stats.LombScargle` now supports estimation of false alarm
-probabilities, using the
-:meth:`~astropy.stats.LombScargle.false_alarm_probability` and
-:meth:`~astropy.stats.LombScargle.false_alarm_level` methods. Supported
-approaches to false alarm estimation include a common heuristic based on an
-estimated number of independent frequencies (``method='naive'``), a more careful
-approach based on extreme value statistics (``method='baluev'``; first explored
-by Baluev (2007)), and a more accurate (but computationally intensive) approach
-based on bootstrap resampling (``method='bootstrap'``). These methods are
-implemented for all of the available periodogram normalizations. Further
-explanation and examples are available in :ref:`stats-lombscargle`.
+``astropy.stats.LombScargle`` now supports estimation of false alarm
+probabilities, using the ``false_alarm_probability`` and ``false_alarm_level``
+methods. Supported approaches to false alarm estimation include a common
+heuristic based on an estimated number of independent frequencies
+(``method='naive'``), a more careful approach based on extreme value statistics
+(``method='baluev'``; first explored by Baluev (2007)), and a more accurate (but
+computationally intensive) approach based on bootstrap resampling
+(``method='bootstrap'``). These methods are implemented for all of the available
+periodogram normalizations. Further explanation and examples are available in
+:ref:`stats-lombscargle`.
 
 .. _whatsnew-3.0-ascii-chunks:
 
