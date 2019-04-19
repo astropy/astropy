@@ -158,6 +158,10 @@ astropy.visualization
 - Added ``CompositeStretch``, which inherits from ``CompositeTransform`` and
   also ``BaseStretch`` so that it can be used with ``ImageNormalize``. [#8564]
 
+- Added a ``log_a`` argument to the ``simple_norm`` method. Similar to the
+  exposing of the ``asinh_a`` argument for ``AsinhStretch``, the new
+  ``log_a`` argument is now exposed for ``LogStretch``. [#8436]
+
 astropy.wcs
 ^^^^^^^^^^^
 
