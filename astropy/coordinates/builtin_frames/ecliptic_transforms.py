@@ -98,9 +98,8 @@ _NEED_ORIGIN_HINT = ("The input {0} coordinates do not have length units. This "
                      "function in this case because there is an origin shift.")
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
-                                 ICRS, HeliocentricMeanEcliptic,
-                                 finite_difference_frameattr_name='equinox')
+@frame_transform_graph.transform(AffineTransform,
+                                 ICRS, HeliocentricMeanEcliptic)
 def icrs_to_helioecliptic(from_coo, to_frame):
     if not u.m.is_equivalent(from_coo.cartesian.x.unit):
         raise UnitsError(_NEED_ORIGIN_HINT.format(from_coo.__class__.__name__))
@@ -110,14 +109,10 @@ def icrs_to_helioecliptic(from_coo, to_frame):
     from astropy.coordinates.solar_system import get_body_barycentric
     bary_sun_pos = get_body_barycentric('sun', to_frame.obstime)
 
-    # offset to heliocentric
-    heliocart = from_coo.cartesian - bary_sun_pos
-
     # now compute the matrix to precess to the right orientation
     rmat = _mean_ecliptic_rotation_matrix(to_frame.equinox)
 
-    newrepr = heliocart.transform(rmat)
-    return to_frame.realize_frame(newrepr)
+    return rmat, (-bary_sun_pos).transform(rmat)
 
 
 @frame_transform_graph.transform(AffineTransform,
@@ -175,9 +170,8 @@ def true_baryecliptic_to_icrs(from_coo, to_frame):
     return matrix_transpose(icrs_to_true_baryecliptic(to_frame, from_coo))
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
-                                 ICRS, HeliocentricTrueEcliptic,
-                                 finite_difference_frameattr_name='equinox')
+@frame_transform_graph.transform(AffineTransform,
+                                 ICRS, HeliocentricTrueEcliptic)
 def icrs_to_true_helioecliptic(from_coo, to_frame):
     if not u.m.is_equivalent(from_coo.cartesian.x.unit):
         raise UnitsError(_NEED_ORIGIN_HINT.format(from_coo.__class__.__name__))
@@ -187,14 +181,10 @@ def icrs_to_true_helioecliptic(from_coo, to_frame):
     from astropy.coordinates.solar_system import get_body_barycentric
     bary_sun_pos = get_body_barycentric('sun', to_frame.obstime)
 
-    # offset to heliocentric
-    heliocart = from_coo.cartesian - bary_sun_pos
-
     # now compute the matrix to precess to the right orientation
     rmat = _true_ecliptic_rotation_matrix(to_frame.equinox)
 
-    newrepr = heliocart.transform(rmat)
-    return to_frame.realize_frame(newrepr)
+    return rmat, (-bary_sun_pos).transform(rmat)
 
 
 @frame_transform_graph.transform(AffineTransform,
@@ -235,23 +225,18 @@ def ecliptic_to_iau76_icrs(from_coo, to_frame):
     return matrix_transpose(rmat), bary_sun_pos
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
-                                 ICRS, HeliocentricEclipticIAU76,
-                                 finite_difference_frameattr_name="obstime")
+@frame_transform_graph.transform(AffineTransform,
+                                 ICRS, HeliocentricEclipticIAU76)
 def icrs_to_iau76_ecliptic(from_coo, to_frame):
     # get barycentric sun coordinate
     # this goes here to avoid circular import errors
     from astropy.coordinates.solar_system import get_body_barycentric
     bary_sun_pos = get_body_barycentric("sun", to_frame.obstime)
 
-    # offset to heliocentric
-    heliocart = from_coo.cartesian - bary_sun_pos
-
     # now compute the matrix to precess to the right orientation
     rmat = _obliquity_only_rotation_matrix()
 
-    newrepr = heliocart.transform(rmat)
-    return to_frame.realize_frame(newrepr)
+    return rmat, (-bary_sun_pos).transform(rmat)
 
 
 @frame_transform_graph.transform(DynamicMatrixTransform,
