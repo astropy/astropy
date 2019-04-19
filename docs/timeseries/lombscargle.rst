@@ -23,8 +23,8 @@ Basic Usage
 ===========
 
 .. Note::
-   All frequencies in :class:`~astropy.timeseries.LombScargle` are **not** angular
-   frequencies, but rather frequencies of oscillation; i.e. number of
+   All frequencies in :class:`~astropy.timeseries.LombScargle` are **not**
+   angular frequencies, but rather frequencies of oscillation; i.e. number of
    cycles per unit time.
 
 The Lomb-Scargle periodogram is designed to detect periodic signals in
