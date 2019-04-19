@@ -1,6 +1,6 @@
 .. module:: astropy.timeseries
 
-.. _timeseries-bls:
+.. _stats-bls:
 
 ***********************************
 Box least squares (BLS) periodogram
