@@ -65,7 +65,7 @@ doc_footer_geo = """
         non-geocentric systems). Defaults to the 'J2000' equinox.
     obstime : `~astropy.time.Time`, optional
         The time at which the observation is taken.  Used for determining the
-        position of the Earth. Defaults to J2000 UTC.
+        position of the Earth. Defaults to J2000.
 """
 
 
@@ -160,7 +160,7 @@ doc_footer_helio = """
         Defaults to the 'J2000' equinox.
     obstime : `~astropy.time.Time`, optional
         The time at which the observation is taken.  Used for determining the
-        position of the Sun. Defaults to J2000 UTC.
+        position of the Sun. Defaults to J2000.
 """
 
 
