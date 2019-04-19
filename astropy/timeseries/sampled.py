@@ -174,7 +174,7 @@ class TimeSeries(BaseTimeSeries):
 
         return folded
 
-    def periodogram(self, algorithm, column, error=None, **kwargs):
+    def periodogram(self, *, algorithm=None, column=None, error=None, **kwargs):
         """
         Compute a periodogram for the time series.
 
@@ -204,6 +204,9 @@ class TimeSeries(BaseTimeSeries):
             these classes for more details.
         """
 
+        if column is None:
+            raise ValueError('column should be set to a valid column name')
+
         y = self[column]
         keep = ~np.isnan(y)
 
@@ -220,6 +223,8 @@ class TimeSeries(BaseTimeSeries):
         elif algorithm == 'lombscargle':
             from . import LombScargle
             periodogram_cls = LombScargle
+        else:
+            raise ValueError("algorithm should be either 'bls' or 'lombscargle'")
 
         return periodogram_cls(self.time[keep], y[keep], dy=dy, **kwargs)
 
