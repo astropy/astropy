@@ -218,6 +218,61 @@ class BinnedTimeSeries(BaseTimeSeries, metaclass=InheritDocstrings):
                 return out
         return super().__getitem__(item)
 
+    def periodogram(self, *, algorithm=None, column=None, error=None, **kwargs):
+        """
+        Compute a periodogram for the binned time series, using the times at the
+        center of the bins.
+
+        This is a convenience wrapper that returns a `~astropy.timeseries.LombScargle` or
+        `~astropy.timeseries.BoxLeastSquares` periodogram object. For more
+        information on how to work with these objects, see the documentation for
+        the `Lomb-Scargle Periodogram <http://docs.astropy.org/en/stable/stats/lombscargle.html>`_
+        and `Box least squares Periodogram` <http://docs.astropy.org/en/stable/stats/bls.html>`_
+        respectively.
+
+        Note that this method automatically gets rid of NaN values in the inputs
+        to the periodogram classes.
+
+        Parameters
+        ----------
+        algorithm : {'lombscargle', 'bls'}
+            The periodogram algorithm to use.
+        column : str, optional
+            The name of the column containing the y values to use.
+        error : str or float or `~astropy.units.Quantity`, optional
+            The name of the column containing the y error values, or the value
+            to use for the error, if a scalar.
+        **kwargs
+            Additional keyword arguments are passed to the
+            `~astropy.timeseries.BoxLeastSquares` or
+            `~astropy.timeseries.LombScargle` class. See the documentation for
+            these classes for more details.
+        """
+
+        if column is None:
+            raise ValueError('column should be set to a valid column name')
+
+        y = self[column]
+        keep = ~np.isnan(y)
+
+        if isinstance(error, str):
+            dy = self[error]
+            keep &= ~np.isnan(dy)
+            dy = dy[keep]
+        else:
+            dy = error
+
+        if algorithm == 'bls':
+            from . import BoxLeastSquares
+            periodogram_cls = BoxLeastSquares
+        elif algorithm == 'lombscargle':
+            from . import LombScargle
+            periodogram_cls = LombScargle
+        else:
+            raise ValueError("algorithm should be either 'bls' or 'lombscargle'")
+
+        return periodogram_cls(self.time_bin_center[keep], y[keep], dy=dy, **kwargs)
+
     @classmethod
     def read(self, filename, time_bin_start_column=None, time_bin_end_column=None,
              time_bin_size_column=None, time_bin_size_unit=None, time_format=None, time_scale=None,
