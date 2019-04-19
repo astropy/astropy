@@ -88,6 +88,20 @@ class TestLogUnitCreation:
         assert np.all(q2.value == a2)
         a2[9] = 0.
         assert np.all(q2.value == a2)
+        # a different magnitude unit
+        mag = 10. << u.STmag
+        assert isinstance(mag, u.Magnitude)
+        assert mag.unit == u.STmag
+        assert mag.value == 10.
+
+        # test in-place operation and conversion
+        mag_fnu_cgs = u.mag(u.erg/u.s/u.cm**2/u.Hz)
+        m = np.arange(10.0) * u.mag(u.Jy)
+        m2 = m << mag_fnu_cgs
+        assert np.all(m2 == m.to(mag_fnu_cgs))
+        m <<= mag_fnu_cgs
+        assert np.all(m.value == m2.value)
+        assert m.unit == mag_fnu_cgs
 
 
 def test_predefined_magnitudes():

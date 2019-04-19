@@ -2,7 +2,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
 
-from astropy.units import CompositeUnit, UnitsError, dimensionless_unscaled, photometric
+from astropy.units import (CompositeUnit, UnitsError, dimensionless_unscaled, photometric,
+                           UnitConversionError)
 from .core import FunctionUnitBase, FunctionQuantity
 from .units import dex, dB, mag
 
@@ -274,6 +275,25 @@ class LogQuantity(FunctionQuantity):
         new_unit = self.unit ** other
         new_value = self.view(np.ndarray) ** other
         return self._new_view(new_value, new_unit)
+
+    def __ilshift__(self, other):
+        try:
+            other = self._unit_class(other)
+        except (UnitConversionError, ValueError):
+            return NotImplemented
+
+        try:
+            factor = self.physical_unit.to(other.physical_unit)
+        except (UnitConversionError, ValueError):
+            # Maybe via equivalencies?  Now we do make a temporary copy.
+            try:
+                value = self._to_value(other)
+            except UnitConversionError:
+                return NotImplemented
+
+            self.view(np.ndarray)[...] = value
+        else:
+            self.view(np.ndarray)[...] += self.from_physical(factor)
 
     # Could add __mul__ and __div__ and try interpreting other as a power,
     # but this seems just too error-prone.

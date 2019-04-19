@@ -277,10 +277,10 @@ class FunctionUnitBase(metaclass=ABCMeta):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __rlshift__(self, m):
+    def __rlshift__(self, other):
         """Unit converstion operator ``<<``"""
         try:
-            return self._quantity_class(m, self, copy=False, subok=True)
+            return self._quantity_class(other, self, copy=False, subok=True)
         except Exception:
             return NotImplemented
 
