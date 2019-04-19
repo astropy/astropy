@@ -1584,7 +1584,14 @@ def test_ndmin():
     Implictly tests ShapedLikeNDArray and the lower-level frames
     """
     sc_scalar = SkyCoord(1*u.deg, 2*u.deg)
-    sc1d = sc_scalar.atleast_nd(1)
 
+    sc1d = sc_scalar.atleast_nd(1)
     assert sc1d.shape == (1,)
     assert quantity_allclose(sc_scalar.cartesian.xyz, sc1d.cartesian.xyz[:, 0])
+
+    sc2d = SkyCoord(ra=np.random.randn(3, 4)*u.deg, dec=np.random.randn(3, 4)*u.deg)
+    sc5d = sc2d.atleast_nd(5)
+    assert len(sc5d.shape) == 5
+    assert np.prod(sc2d.shape) == np.prod(sc5d.shape)
+    assert quantity_allclose(sc2d.cartesian.xyz.ravel(),
+                             sc5d.cartesian.xyz.ravel())
