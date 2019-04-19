@@ -1022,7 +1022,7 @@ class TestRename(SetupData):
         self._setup(table_types)
         t = table_types.Table([self.a, self.b, self.c])
         t.rename_columns(('a', 'b', 'c'), ('aa', 'bb', 'cc'))
-        assert t.columns.keys() == ['aa', 'bb', 'cc']
+        assert t.colnames == ['aa', 'bb', 'cc']
         t.rename_columns(['bb', 'cc'], ['b', 'c'])
         assert t.colnames == ['aa', 'b', 'c']
         with pytest.raises(TypeError):
