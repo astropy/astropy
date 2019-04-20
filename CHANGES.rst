@@ -307,6 +307,10 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- It is now possible to control the number of cores used by ``ProgressBar.map``
+  by passing a positive integer as the ``multiprocess`` keyword argument. Use
+  ``True`` to use all cores. [#8083]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
