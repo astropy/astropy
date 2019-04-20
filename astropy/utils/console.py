@@ -809,14 +809,14 @@ class ProgressBar:
             else:
                 default_step = max(int(float(len(items)) / bar._bar_length), 1)
                 chunksize = min(default_step, step)
-            if not multiprocess:
+            if not multiprocess or multiprocess < 1:
                 for i, item in enumerate(items):
                     results.append(function(item))
                     if (i % chunksize) == 0:
                         bar.update(i)
             else:
                 p = multiprocessing.Pool(
-                    processes=(multiprocess if multiprocess > 1 else None))
+                    processes=(int(multiprocess) if multiprocess is not True else None))
                 for i, result in enumerate(
                     p.imap_unordered(function, items, chunksize=chunksize)):
                     bar.update(i)
