@@ -98,8 +98,8 @@ class FunctionUnitBase(metaclass=ABCMeta):
             if (not isinstance(self._physical_unit, UnitBase) or
                 self._physical_unit.is_equivalent(
                     self._default_function_unit)):
-                raise ValueError("Unit {0} is not a physical unit."
-                                 .format(self._physical_unit))
+                raise UnitConversionError("Unit {0} is not a physical unit."
+                                          .format(self._physical_unit))
 
         if function_unit is None:
             self._function_unit = self._default_function_unit
@@ -110,12 +110,11 @@ class FunctionUnitBase(metaclass=ABCMeta):
             if function_unit.is_equivalent(self._default_function_unit):
                 self._function_unit = function_unit
             else:
-                raise ValueError("Cannot initialize '{0}' instance with "
-                                 "function unit '{1}', as it is not "
-                                 "equivalent to default function unit '{2}'."
-                                 .format(self.__class__.__name__,
-                                         function_unit,
-                                         self._default_function_unit))
+                raise UnitConversionError(
+                    "Cannot initialize '{0}' instance with function unit '{1}'"
+                    ", as it is not equivalent to default function unit '{2}'."
+                    .format(self.__class__.__name__, function_unit,
+                            self._default_function_unit))
 
     def _copy(self, physical_unit=None):
         """Copy oneself, possibly with a different physical unit."""
