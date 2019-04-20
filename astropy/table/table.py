@@ -2903,9 +2903,12 @@ class Table:
 
         tbl = _encode_mixins(self)
 
-        if any(getattr(col, 'ndim', 1) > 1 for col in tbl.columns.values()):
-            raise ValueError("Cannot convert a table with multi-dimensional "
-                             "columns to a pandas DataFrame")
+        badcols = [name for name, col in self.columns.items()
+                   if (getattr(col, 'ndim', 1) > 1)]
+        if badcols:
+            raise ValueError(
+                "Cannot convert a table with multi-dimensional columns to a "
+                "pandas DataFrame. Offending columns are: {}".format(badcols))
 
         out = OrderedDict()
 
