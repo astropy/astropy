@@ -1716,7 +1716,9 @@ class TestPandas:
 
         with pytest.raises(ValueError) as exc:
             t.to_pandas()
-        assert exc.value.args[0] == "Cannot convert a table with multi-dimensional columns to a pandas DataFrame"
+        assert (exc.value.args[0] ==
+            "Cannot convert a table with multi-dimensional columns "
+            "to a pandas DataFrame. Offending columns are: ['b']")
 
     def test_mixin_pandas(self):
         t = table.QTable()
@@ -1755,8 +1757,8 @@ class TestPandas:
         import pandas as pd
         row_index = pd.RangeIndex(0, 2, 1)
         tm_index = pd.DatetimeIndex(['1998-01-01', '2002-01-01'],
-                                                   dtype='datetime64[ns]',
-                                                   name='tm', freq=None)
+                                    dtype='datetime64[ns]',
+                                    name='tm', freq=None)
 
         tm = Time([1998, 2002], format='jyear')
         x = [1, 2]
@@ -1782,7 +1784,6 @@ class TestPandas:
         with pytest.raises(ValueError) as err:
             t.to_pandas(index='not a column')
         assert 'index must be None, False' in str(err)
-
 
     def test_mixin_pandas_masked(self):
         tm = Time([1, 2, 3], format='cxcsec')
