@@ -11,6 +11,7 @@ import re
 import textwrap
 
 from .introspection import find_current_module
+from .decorators import deprecated
 
 
 __all__ = ['make_function_with_signature']
@@ -24,6 +25,7 @@ the ASCII range and not beginning with '_' are allowed, currently.
 """
 
 
+@deprecated("3.1", "This function is no longer needed, directly use `inspect.Signature`.")
 def make_function_with_signature(func, args=(), kwargs={}, varargs=None,
                                  varkwargs=None, name=None):
     """

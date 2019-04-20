@@ -9,8 +9,8 @@ import textwrap
 import types
 import warnings
 from inspect import signature
+from functools import wraps
 
-from .codegen import make_function_with_signature
 from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
                          AstropyPendingDeprecationWarning)
 
@@ -84,7 +84,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         old_doc = textwrap.dedent(old_doc).strip('\n')
         new_doc = (('\n.. deprecated:: {since}'
                     '\n    {message}\n\n'.format(
-                    **{'since': since, 'message': message.strip()})) + old_doc)
+                     **{'since': since, 'message': message.strip()})) + old_doc)
         if not old_doc:
             # This is to prevent a spurious 'unexpected unindent' warning from
             # docutils when the original docstring was blank.
@@ -832,84 +832,6 @@ class sharedmethod(classmethod):
     @staticmethod
     def _make_method(func, instance):
         return types.MethodType(func, instance)
-
-
-def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
-          updated=functools.WRAPPER_UPDATES, exclude_args=()):
-    """
-    An alternative to `functools.wraps` which also preserves the original
-    function's call signature by way of
-    `~astropy.utils.codegen.make_function_with_signature`.
-
-    This also adds an optional ``exclude_args`` argument.  If given it should
-    be a sequence of argument names that should not be copied from the wrapped
-    function (either positional or keyword arguments).
-
-    The documentation for the original `functools.wraps` follows:
-
-    """
-
-    wrapped_args = _get_function_args(wrapped, exclude_args=exclude_args)
-
-    def wrapper(func):
-        if '__name__' in assigned:
-            name = wrapped.__name__
-        else:
-            name = func.__name__
-
-        func = make_function_with_signature(func, name=name, **wrapped_args)
-        func = functools.update_wrapper(func, wrapped, assigned=assigned,
-                                        updated=updated)
-        return func
-
-    return wrapper
-
-
-if (isinstance(wraps.__doc__, str) and
-        wraps.__doc__ is not None and functools.wraps.__doc__ is not None):
-    wraps.__doc__ += functools.wraps.__doc__
-
-
-def _get_function_args_internal(func):
-    """
-    Utility function for `wraps`.
-
-    Reads the argspec for the given function and converts it to arguments
-    for `make_function_with_signature`.
-    """
-
-    argspec = inspect.getfullargspec(func)
-
-    if argspec.defaults:
-        args = argspec.args[:-len(argspec.defaults)]
-        kwargs = zip(argspec.args[len(args):], argspec.defaults)
-    else:
-        args = argspec.args
-        kwargs = []
-
-    if argspec.kwonlyargs:
-        kwargs.extend((argname, argspec.kwonlydefaults[argname])
-                      for argname in argspec.kwonlyargs)
-
-    return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
-            'varkwargs': argspec.varkw}
-
-
-def _get_function_args(func, exclude_args=()):
-    all_args = _get_function_args_internal(func)
-
-    if exclude_args:
-        exclude_args = set(exclude_args)
-
-        for arg_type in ('args', 'kwargs'):
-            all_args[arg_type] = [arg for arg in all_args[arg_type]
-                                  if arg not in exclude_args]
-
-        for arg_type in ('varargs', 'varkwargs'):
-            if all_args[arg_type] in exclude_args:
-                all_args[arg_type] = None
-
-    return all_args
 
 
 def format_doc(docstring, *args, **kwargs):

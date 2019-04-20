@@ -2,9 +2,9 @@
 
 from types import FunctionType
 from contextlib import contextmanager
+from functools import wraps
 
 from astropy.table import QTable
-from astropy.utils import wraps
 
 __all__ = ['BaseTimeSeries', 'autocheck_required_columns']
 

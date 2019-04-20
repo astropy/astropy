@@ -3,7 +3,7 @@
 data/cache files used by Astropy should be placed.
 """
 
-from astropy.utils.decorators import wraps
+from functools import wraps
 
 import os
 import shutil
