@@ -94,14 +94,40 @@ class TestLogUnitCreation:
         assert mag.unit == u.STmag
         assert mag.value == 10.
 
+    def test_ilshift_magnitude(self):
         # test in-place operation and conversion
         mag_fnu_cgs = u.mag(u.erg/u.s/u.cm**2/u.Hz)
         m = np.arange(10.0) * u.mag(u.Jy)
+        jy = m.physical
         m2 = m << mag_fnu_cgs
         assert np.all(m2 == m.to(mag_fnu_cgs))
+        m2 = m
         m <<= mag_fnu_cgs
+        assert m is m2  # Check it was done in-place!
         assert np.all(m.value == m2.value)
         assert m.unit == mag_fnu_cgs
+        # Check it works if equivalencies are in-place.
+        with u.add_enabled_equivalencies(u.spectral_density(5500*u.AA)):
+            st = jy.to(u.ST)
+            m <<= u.STmag
+
+        assert m is m2
+        assert_quantity_allclose(m.physical, st)
+        assert m.unit == u.STmag
+
+    def test_lshift_errors(self):
+        m = np.arange(10.0) * u.mag(u.Jy)
+        with pytest.raises(u.UnitsError):
+            m << u.STmag
+
+        with pytest.raises(u.UnitsError):
+            m << u.Jy
+
+        with pytest.raises(u.UnitsError):
+            m <<= u.STmag
+
+        with pytest.raises(u.UnitsError):
+            m <<= u.Jy
 
 
 def test_predefined_magnitudes():
