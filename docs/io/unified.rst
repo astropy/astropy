@@ -8,6 +8,33 @@ For many common cases this will simplify the process of file I/O and reduce the 
 master the separate details of all the I/O packages within Astropy.  For
 details on the implementation see :ref:`io_registry`.
 
+Getting started with Image I/O
+==============================
+
+Reading and writing image data in the unified I/O interface is supported
+though the `~astropy.nddata.CCDData` class using FITS file format:
+
+.. doctest-skip::
+
+    >>> # Read CCD image
+    >>> ccd = CCDData.read('image.fits')
+
+.. doctest-skip::
+
+    >>> # Write back CCD image
+    >>> ccd.write('new_image.fits')
+
+Note the unit is stored in the ``BUNIT`` keyword in the header on saving, and is
+read from the header if it is present.
+
+Detailed help on the available keyword arguments for reading and writing
+can be obtained via the ``help()`` method as follows:
+
+.. doctest-skip::
+
+    >>> CCDData.read.help('fits')  # Get help on the CCDData FITS reader
+    >>> CCDData.writer.help('fits')  # Get help on the CCDData FITS writer
+
 Getting started with Table I/O
 ==============================
 
@@ -59,10 +86,31 @@ fine control of the way to write out certain columns, for instance
 writing an ISO format Time column as a pair of JD1 / JD2 floating
 point values (for full resolution) or as a formatted ISO date string.
 
+Getting help on readers and writers
+-----------------------------------
 
-Any additional arguments specified will depend on the format.  For examples of this see the
-section `Built-in table readers/writers`_.  This section also provides the full list of
-choices for the ``format`` argument.
+Each file format is handled by a specific reader or writer, and each of those
+functions will have its own set of arguments.  For examples of
+this see the section `Built-in table readers/writers`_.  This section also
+provides the full list of choices for the ``format`` argument.
+
+To get help on the available arguments for each format, use the ``help()``
+method of the `~astropy.table.Table.read` or `~astropy.table.Table.write`
+methods.  Each of these calls prints a long help document which is divided
+into two sections, the generic read/write documentation (common to any
+call) and the format-specific documentation.  For ASCII tables the
+format-specific documentation includes the generic `astropy.io.ascii` package
+interface and then a description of the particular ASCII subformat.
+
+In the examples below we do not show the long output:
+
+.. doctest-skip::
+
+    >>> Table.read.help('fits')
+    >>> Table.read.help('ascii')
+    >>> Table.read.help('ascii.latex')
+    >>> Table.write.help('hdf5')
+    >>> Table.write.help('csv')
 
 Command-line utility
 --------------------

@@ -12,13 +12,17 @@ from astropy.io import registry as io_registry
 from astropy.table import Table
 from astropy import units as u
 
-# Since we reset the readers/writers below, we need to also import any sub-package
-# that defines readers/writers first
+# Since we reset the readers/writers below, we need to also import any
+# sub-package that defines readers/writers first
 from astropy import timeseries  # noqa
 
-_READERS_ORIGINAL = copy(_readers)
-_WRITERS_ORIGINAL = copy(_writers)
-_IDENTIFIERS_ORIGINAL = copy(_identifiers)
+# Cache original _readers, _writers, _identifiers in setup_function
+# since tests modify them.  Important to do caching in setup_function
+# and not globally (as was the original implementation) because e.g.
+# CCDData reader/writers get registered *after* this module gets imported
+# during test collection but *before* tests (and the final teardown) get run.
+# This leaves the registry corrupted.
+ORIGINAL = {}
 
 try:
     import yaml  # pylint: disable=W0611
@@ -33,6 +37,10 @@ class TestData:
 
 
 def setup_function(function):
+    ORIGINAL['readers'] = copy(_readers)
+    ORIGINAL['writers'] = copy(_writers)
+    ORIGINAL['identifiers'] = copy(_identifiers)
+
     _readers.clear()
     _writers.clear()
     _identifiers.clear()
@@ -184,7 +192,7 @@ def test_write_noformat():
 
 def test_read_noformat_arbitrary():
     """Test that all identifier functions can accept arbitrary input"""
-    _identifiers.update(_IDENTIFIERS_ORIGINAL)
+    _identifiers.update(ORIGINAL['identifiers'])
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData.read(object())
     assert str(exc.value).startswith("Format could not be identified.")
@@ -192,7 +200,7 @@ def test_read_noformat_arbitrary():
 
 def test_read_noformat_arbitrary_file(tmpdir):
     """Tests that all identifier functions can accept arbitrary files"""
-    _readers.update(_READERS_ORIGINAL)
+    _readers.update(ORIGINAL['readers'])
     testfile = str(tmpdir.join('foo.example'))
     with open(testfile, 'w') as f:
         f.write("Hello world")
@@ -204,7 +212,7 @@ def test_read_noformat_arbitrary_file(tmpdir):
 
 def test_write_noformat_arbitrary():
     """Test that all identifier functions can accept arbitrary input"""
-    _identifiers.update(_IDENTIFIERS_ORIGINAL)
+    _identifiers.update(ORIGINAL['identifiers'])
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData().write(object())
     assert str(exc.value).startswith("Format could not be identified.")
@@ -212,7 +220,7 @@ def test_write_noformat_arbitrary():
 
 def test_write_noformat_arbitrary_file(tmpdir):
     """Tests that all identifier functions can accept arbitrary files"""
-    _writers.update(_WRITERS_ORIGINAL)
+    _writers.update(ORIGINAL['writers'])
     testfile = str(tmpdir.join('foo.example'))
 
     with pytest.raises(io_registry.IORegistryError) as exc:
@@ -384,9 +392,12 @@ def test_inherited_registration():
 
 
 def teardown_function(function):
-    _readers.update(_READERS_ORIGINAL)
-    _writers.update(_WRITERS_ORIGINAL)
-    _identifiers.update(_IDENTIFIERS_ORIGINAL)
+    _readers.clear()
+    _writers.clear()
+    _identifiers.clear()
+    _readers.update(ORIGINAL['readers'])
+    _writers.update(ORIGINAL['writers'])
+    _identifiers.update(ORIGINAL['identifiers'])
 
 
 class TestSubclass:

@@ -12,13 +12,14 @@ import numpy as np
 from numpy import ma
 
 from astropy import log
-from astropy.io import registry as io_registry
 from astropy.units import Quantity, QuantityInfo
 from astropy.utils import isiterable, ShapedLikeNDArray
 from astropy.utils.console import color_print
 from astropy.utils.metadata import MetaData
 from astropy.utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
 from astropy.utils.decorators import format_doc
+from astropy.utils.exceptions import AstropyDeprecationWarning, NoValue
+from astropy.io.registry import UnifiedReadWriteMethod
 
 from . import groups
 from .pprint import TableFormatter
@@ -26,12 +27,13 @@ from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
                      col_copy)
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
-from .info import TableInfo, serialize_method_as
+from .info import TableInfo
 from .index import Index, _IndexModeContext, get_index
+from .connect import TableRead, TableWrite
 from . import conf
 
 
-__doctest_skip__ = ['Table.read', 'Table.write',
+__doctest_skip__ = ['Table.read', 'Table.write', 'Table._read',
                     'Table.convert_bytestring_to_unicode',
                     'Table.convert_unicode_to_bytestring',
                     ]
@@ -263,6 +265,20 @@ class TableColumns(OrderedDict):
         return cols
 
 
+class TableReadWrite:
+    def __get__(self, instance, owner_cls):
+        if instance is None:
+            # This is an unbound descriptor on the class
+            info = self
+            info._parent_cls = owner_cls
+        else:
+            info = instance.__dict__.get('info')
+            if info is None:
+                info = instance.__dict__['info'] = self.__class__(bound=True)
+            info._parent = instance
+        return info
+
+
 class Table:
     """A class to represent tables of heterogeneous data.
 
@@ -313,6 +329,10 @@ class Table:
     MaskedColumn = MaskedColumn
     TableColumns = TableColumns
     TableFormatter = TableFormatter
+
+    # Unified I/O read and write methods from .connect
+    read = UnifiedReadWriteMethod(TableRead)
+    write = UnifiedReadWriteMethod(TableWrite)
 
     def as_array(self, keep_byteorder=False, names=None):
         """
@@ -2649,89 +2669,6 @@ class Table:
             col[:] = col[::-1]
         for index in self.indices:
             index.reverse()
-
-    @classmethod
-    def read(cls, *args, **kwargs):
-        """
-        Read and parse a data table and return as a Table.
-
-        This function provides the Table interface to the astropy unified I/O
-        layer.  This allows easily reading a file in many supported data formats
-        using syntax such as::
-
-          >>> from astropy.table import Table
-          >>> dat = Table.read('table.dat', format='ascii')
-          >>> events = Table.read('events.fits', format='fits')
-
-        See also: http://docs.astropy.org/en/stable/io/unified.html
-
-        Parameters
-        ----------
-        format : str
-            File format specifier.
-        *args : tuple, optional
-            Positional arguments passed through to data reader. If supplied the
-            first argument is the input filename.
-        **kwargs : dict, optional
-            Keyword arguments passed through to data reader.
-
-        Returns
-        -------
-        out : `~astropy.table.Table`
-            Table corresponding to file contents
-
-        Notes
-        -----
-        """
-        # The hanging Notes section just above is a section placeholder for
-        # import-time processing that collects available formats into an
-        # RST table and inserts at the end of the docstring.  DO NOT REMOVE.
-
-        out = io_registry.read(cls, *args, **kwargs)
-        # For some readers (e.g., ascii.ecsv), the returned `out` class is not
-        # guaranteed to be the same as the desired output `cls`.  If so,
-        # try coercing to desired class without copying (io.registry.read
-        # would normally do a copy).  The normal case here is swapping
-        # Table <=> QTable.
-        if cls is not out.__class__:
-            try:
-                out = cls(out, copy=False)
-            except Exception:
-                raise TypeError('could not convert reader output to {0} '
-                                'class.'.format(cls.__name__))
-        return out
-
-    def write(self, *args, **kwargs):
-        """Write this Table object out in the specified format.
-
-        This function provides the Table interface to the astropy unified I/O
-        layer.  This allows easily writing a file in many supported data formats
-        using syntax such as::
-
-          >>> from astropy.table import Table
-          >>> dat = Table([[1, 2], [3, 4]], names=('a', 'b'))
-          >>> dat.write('table.dat', format='ascii')
-
-        See also: http://docs.astropy.org/en/stable/io/unified.html
-
-        Parameters
-        ----------
-        format : str
-            File format specifier.
-        serialize_method : str, dict, optional
-            Serialization method specifier for columns.
-        *args : tuple, optional
-            Positional arguments passed through to data writer. If supplied the
-            first argument is the output filename.
-        **kwargs : dict, optional
-            Keyword arguments passed through to data writer.
-
-        Notes
-        -----
-        """
-        serialize_method = kwargs.pop('serialize_method', None)
-        with serialize_method_as(self, serialize_method):
-            io_registry.write(self, *args, **kwargs)
 
     def copy(self, copy_data=True):
         '''

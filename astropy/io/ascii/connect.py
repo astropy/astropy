@@ -11,36 +11,20 @@ from astropy.table import Table
 __all__ = []
 
 
-# Generic
-# =======
-
-
-def read_asciitable(filename, **kwargs):
-    from .ui import read
-    return read(filename, **kwargs)
-
-
-io_registry.register_reader('ascii', Table, read_asciitable)
-
-
-def write_asciitable(table, filename, **kwargs):
-    from .ui import write
-    return write(table, filename, **kwargs)
-
-
-io_registry.register_writer('ascii', Table, write_asciitable)
-
-
 def io_read(format, filename, **kwargs):
     from .ui import read
-    format = re.sub(r'^ascii\.', '', format)
-    return read(filename, format=format, **kwargs)
+    if format != 'ascii':
+        format = re.sub(r'^ascii\.', '', format)
+        kwargs['format'] = format
+    return read(filename, **kwargs)
 
 
 def io_write(format, table, filename, **kwargs):
     from .ui import write
-    format = re.sub(r'^ascii\.', '', format)
-    return write(table, filename, format=format, **kwargs)
+    if format != 'ascii':
+        format = re.sub(r'^ascii\.', '', format)
+        kwargs['format'] = format
+    return write(table, filename, **kwargs)
 
 
 def io_identify(suffix, origin, filepath, fileobj, *args, **kwargs):
@@ -69,25 +53,3 @@ def _get_connectors_table():
         out[colname].format = '%-{0}s'.format(width)
 
     return out
-
-
-# Specific
-# ========
-
-def read_csv(filename, **kwargs):
-    from .ui import read
-    kwargs['format'] = 'csv'
-    return read(filename, **kwargs)
-
-
-def write_csv(table, filename, **kwargs):
-    from .ui import write
-    kwargs['format'] = 'csv'
-    return write(table, filename, **kwargs)
-
-
-csv_identify = functools.partial(io_identify, '.csv')
-
-io_registry.register_reader('csv', Table, read_csv)
-io_registry.register_writer('csv', Table, write_csv)
-io_registry.register_identifier('csv', Table, csv_identify)

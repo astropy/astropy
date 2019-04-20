@@ -17,6 +17,7 @@ import operator
 import os
 import re
 import warnings
+import inspect
 
 from collections import OrderedDict
 from contextlib import suppress
@@ -29,6 +30,7 @@ from astropy.utils.exceptions import AstropyWarning
 from astropy.table import Table
 from astropy.utils.data import get_readable_fileobj
 from . import connect
+from .docs import READ_DOCSTRING, WRITE_DOCSTRING
 
 # Global dictionary mapping format arg to the corresponding Reader class
 FORMAT_CLASSES = {}
@@ -1023,10 +1025,18 @@ class MetaBaseReader(type):
 
         for io_format in io_formats:
             func = functools.partial(connect.io_read, io_format)
+            header = "ASCII reader '{}' details\n".format(io_format)
+            func.__doc__ = (inspect.cleandoc(READ_DOCSTRING).strip() + '\n\n' +
+                            header + re.sub('.', '=', header) + '\n')
+            func.__doc__ += inspect.cleandoc(cls.__doc__).strip()
             connect.io_registry.register_reader(io_format, Table, func)
 
             if dct.get('_io_registry_can_write', True):
                 func = functools.partial(connect.io_write, io_format)
+                header = "ASCII writer '{}' details\n".format(io_format)
+                func.__doc__ = (inspect.cleandoc(WRITE_DOCSTRING).strip() + '\n\n' +
+                                header + re.sub('.', '=', header) + '\n')
+                func.__doc__ += inspect.cleandoc(cls.__doc__).strip()
                 connect.io_registry.register_writer(io_format, Table, func)
 
 
