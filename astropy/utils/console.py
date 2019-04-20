@@ -714,9 +714,10 @@ class ProgressBar:
             Sequence where each element is a tuple of arguments to pass to
             *function*.
 
-        multiprocess : bool, optional
-            If `True`, use the `multiprocessing` module to distribute each
-            task to a different processor core.
+        multiprocess : bool, int, optional
+            If `True`, use the `multiprocessing` module to distribute each task
+            to a different processor core. If a number greater than 1, then use
+            that number of cores.
 
         ipython_widget : bool, optional
             If `True`, the progress bar will display as an IPython
@@ -774,9 +775,10 @@ class ProgressBar:
             Sequence where each element is a tuple of arguments to pass to
             *function*.
 
-        multiprocess : bool, optional
-            If `True`, use the `multiprocessing` module to distribute each
-            task to a different processor core.
+        multiprocess : bool, int, optional
+            If `True`, use the `multiprocessing` module to distribute each task
+            to a different processor core. If a number greater than 1, then use
+            that number of cores.
 
         ipython_widget : bool, optional
             If `True`, the progress bar will display as an IPython
@@ -807,13 +809,14 @@ class ProgressBar:
             else:
                 default_step = max(int(float(len(items)) / bar._bar_length), 1)
                 chunksize = min(default_step, step)
-            if not multiprocess:
+            if not multiprocess or multiprocess < 1:
                 for i, item in enumerate(items):
                     results.append(function(item))
                     if (i % chunksize) == 0:
                         bar.update(i)
             else:
-                p = multiprocessing.Pool()
+                p = multiprocessing.Pool(
+                    processes=(int(multiprocess) if multiprocess is not True else None))
                 for i, result in enumerate(
                     p.imap_unordered(function, items, chunksize=chunksize)):
                     bar.update(i)

@@ -4,9 +4,7 @@
 
 import io
 
-import numpy as np
 import pytest
-
 
 from . import test_progress_bar_func
 from astropy.utils import console
@@ -164,6 +162,11 @@ def test_progress_bar_map():
     result = console.ProgressBar.map(test_progress_bar_func.func,
                                      items, step=10, multiprocess=True)
     assert items == result
+
+    result1 = console.ProgressBar.map(test_progress_bar_func.func,
+                                      items, step=10, multiprocess=2)
+
+    assert items == result1
 
 
 @pytest.mark.parametrize(("seconds", "string"),
