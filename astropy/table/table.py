@@ -763,9 +763,12 @@ class Table:
                 self._set_masked(True)
 
     def _init_from_list_of_dicts(self, data, names, dtype, n_cols, copy):
-        names_from_data = set()
-        for row in data:
-            names_from_data.update(row)
+        if isinstance(data[0], OrderedDict):
+            names_from_data = list(data[0].keys())
+        else:
+            names_from_data = set()
+            for row in data:
+                names_from_data.update(row)
 
         cols = {}
         for name in names_from_data:
@@ -775,8 +778,13 @@ class Table:
                     cols[name].append(row[name])
                 except KeyError:
                     raise ValueError('Row {0} has no value for column {1}'.format(i, name))
+
         if all(name is None for name in names):
-            names = sorted(names_from_data)
+            if isinstance(data[0], OrderedDict):
+                names = names_from_data
+            else:
+                names = sorted(names_from_data)
+
         self._init_from_dict(cols, names, dtype, n_cols, copy)
         return
 

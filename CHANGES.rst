@@ -107,6 +107,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Initializing a table with ``Table(rows=...)``, if the first item is an ``OrderedDict``,
+  now preserves column order. [#8587]
+
 - Added new pprint_all() and pformat_all() methods to Table. These two new
   methods print the entire table by default. [#8577]
 
