@@ -36,6 +36,5 @@ def test_make_function_with_signature_lineno():
         # make_function_with_signature call was one
         tb_lines = traceback.format_tb(tb)
         assert '1 / 0' in tb_lines[-1]
-        assert line in tb_lines[-2] and 'line =' not in tb_lines[-2]
     else:
         pytest.fail('This should have caused an exception')

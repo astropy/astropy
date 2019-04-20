@@ -5,8 +5,8 @@ from copy import deepcopy
 from inspect import signature
 from itertools import islice
 import warnings
+from functools import wraps
 
-from astropy.utils import wraps
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .nddata import NDData
@@ -173,6 +173,7 @@ def support_nddata(_func=None, accepts=NDData,
 
         @wraps(func)
         def wrapper(data, *args, **kwargs):
+            bound_args = signature(func).bind(data, *args, **kwargs)
             unpack = isinstance(data, accepts)
             input_data = data
             ignored = []
@@ -205,7 +206,7 @@ def support_nddata(_func=None, accepts=NDData,
 
                     # Check if the property was explicitly given and issue a
                     # Warning if it is.
-                    if propmatch in kwargs:
+                    if propmatch in bound_args.arguments:
                         # If it's in the func_args it's trivial but if it was
                         # in the func_kwargs we need to compare it to the
                         # default.
@@ -221,7 +222,7 @@ def support_nddata(_func=None, accepts=NDData,
                         # NDData.
                         if (propmatch in func_args or
                                 (propmatch in func_kwargs and
-                                 (kwargs[propmatch] is not
+                                 (bound_args.arguments[propmatch] is not
                                   sig[propmatch].default))):
                             warnings.warn(
                                 "Property {0} has been passed explicitly and "

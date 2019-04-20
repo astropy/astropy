@@ -16,13 +16,14 @@ import threading
 import warnings
 import weakref
 from contextlib import contextmanager, suppress
+from functools import wraps
+
 from astropy.utils import data
 
 from distutils.version import LooseVersion
 
 import numpy as np
 
-from astropy.utils import wraps
 from astropy.utils.exceptions import AstropyUserWarning
 
 cmp = lambda a, b: (a > b) - (a < b)
