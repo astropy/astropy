@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """This module implements the base CCDData class."""
 
+import itertools
+
 import numpy as np
 
 from .compat import NDDataArray
@@ -408,13 +410,14 @@ class CCDData(NDDataArray):
             self.meta[key] = value
 
 
-# This needs to be importable by the tests...
+# These need to be importable by the tests...
 _KEEP_THESE_KEYWORDS_IN_HEADER = [
     'JD-OBS',
     'MJD-OBS',
     'DATE-OBS'
 ]
-
+_PCs = set(['PC1_1', 'PC1_2', 'PC2_1', 'PC2_2'])
+_CDs = set(['CD1_1', 'CD1_2', 'CD2_1', 'CD2_2'])
 
 def _generate_wcs_and_update_header(hdr):
     """
@@ -454,6 +457,37 @@ def _generate_wcs_and_update_header(hdr):
     for k in wcs_header:
         if k not in _KEEP_THESE_KEYWORDS_IN_HEADER:
             new_hdr.remove(k, ignore_missing=True)
+
+    # Check that this does not result in an inconsistent header WCS if the WCS
+    # is converted back to a header.
+
+    if (_PCs & set(wcs_header)) and (_CDs & set(new_hdr)):
+        # The PCi_j representation is used by the astropy.wcs object,
+        # so CDi_j keywords were not removed from new_hdr. Remove them now.
+        for cd in _CDs:
+            new_hdr.remove(cd, ignore_missing=True)
+
+    # The other case -- CD in the header produced by astropy.wcs -- should
+    # never happen based on [1], which computes the matrix in PC form.
+    # [1]: https://github.com/astropy/astropy/blob/1cf277926d3598dd672dd528504767c37531e8c9/cextern/wcslib/C/wcshdr.c#L596
+    #
+    # The test test_ccddata.test_wcs_keyword_removal_for_wcs_test_files() does
+    # check for the possibility that both PC and CD are present in the result
+    # so if the implementation of to_header changes in wcslib in the future
+    # then the tests should catch it, and then this code will need to be
+    # updated.
+
+    # We need to check for any SIP coefficients that got left behind if the
+    # header has SIP.
+    if wcs.sip is not None:
+        keyword = '{}_{}_{}'
+        polynomials = ['A', 'B', 'AP', 'BP']
+        for poly in polynomials:
+            order = wcs.sip.__getattribute__('{}_order'.format(poly.lower()))
+            for i, j in itertools.product(range(order), repeat=2):
+                new_hdr.remove(keyword.format(poly, i, j),
+                               ignore_missing=True)
+
     return (new_hdr, wcs)
 
 
