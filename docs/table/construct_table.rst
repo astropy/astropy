@@ -260,8 +260,8 @@ You can also preserve the column order by using ``OrderedDict``. If the first it
 ``OrderedDict`` then the order is preserved:
 
   >>> from collections import OrderedDict
-  >>> row1 = OrderedDict({'b': 1, 'a':0})
-  >>> row2 = OrderedDict({'b': 11, 'a':10})
+  >>> row1 = OrderedDict([('b', 1), ('a', 0)])
+  >>> row2 = OrderedDict([('b', 11), ('a', 10)])
   >>> rows = [row1, row2]
   >>> Table(rows=rows, dtype=('i4', 'i4'))
   <Table length=2>
