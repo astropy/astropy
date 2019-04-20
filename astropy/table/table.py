@@ -2538,7 +2538,7 @@ class Table:
 
         self.columns = columns
 
-    def argsort(self, keys=None, kind=None):
+    def argsort(self, keys=None, kind=None, reverse=False):
         """
         Return the indices which would sort the table according to one or
         more key columns.  This simply calls the `numpy.argsort` function on
@@ -2550,6 +2550,8 @@ class Table:
             The column name(s) to order the table by
         kind : {'quicksort', 'mergesort', 'heapsort'}, optional
             Sorting algorithm.
+        reverse : bool
+            Sort in reverse order (default=False)
 
         Returns
         -------
@@ -2577,9 +2579,14 @@ class Table:
         else:
             data = self.as_array()
 
-        return data.argsort(**kwargs)
+        idx = data.argsort(**kwargs)
 
-    def sort(self, keys=None):
+        if reverse:
+            return idx[::-1]
+
+        return idx
+
+    def sort(self, keys=None, reverse=False):
         '''
         Sort the table according to one or more keys. This operates
         on the existing table and does not return a new table.
@@ -2590,12 +2597,15 @@ class Table:
             The key(s) to order the table by. If None, use the
             primary index of the Table.
 
+        reverse : bool
+            Sort in reverse order (default=False)
+
         Examples
         --------
         Create a table with 3 columns::
 
-            >>> t = Table([['Max', 'Jo', 'John'], ['Miller','Miller','Jackson'],
-            ...         [12,15,18]], names=('firstname','name','tel'))
+            >>> t = Table([['Max', 'Jo', 'John'], ['Miller', 'Miller', 'Jackson'],
+            ...            [12, 15, 18]], names=('firstname', 'name', 'tel'))
             >>> print(t)
             firstname   name  tel
             --------- ------- ---
@@ -2605,13 +2615,23 @@ class Table:
 
         Sorting according to standard sorting rules, first 'name' then 'firstname'::
 
-            >>> t.sort(['name','firstname'])
+            >>> t.sort(['name', 'firstname'])
             >>> print(t)
             firstname   name  tel
             --------- ------- ---
                  John Jackson  18
                    Jo  Miller  15
                   Max  Miller  12
+
+        Sorting according to standard sorting rules, first 'firstname' then 'tel', in reverse order::
+
+            >>> t.sort(['firstname', 'tel'], reverse=True)
+            >>> print(t)
+            firstname   name  tel
+            --------- ------- ---
+                  Max  Miller  12
+                 John Jackson  18
+                   Jo  Miller  15
         '''
         if keys is None:
             if not self.indices:
@@ -2622,7 +2642,12 @@ class Table:
             keys = [keys]
 
         indexes = self.argsort(keys)
+
+        if reverse:
+            indexes = indexes[::-1]
+
         sort_index = get_index(self, names=keys)
+
         if sort_index is not None:
             # avoid inefficient relabelling of sorted index
             prev_frozen = sort_index._frozen
