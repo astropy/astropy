@@ -138,6 +138,9 @@ astropy.table
 - Improved Table slicing performance with internal implementation changes
   related to column attribute access and certain input validation. [#8493]
 
+- Added ``reverse`` argument to the ``sort`` and ``argsort`` methods to allow
+  sorting in reverse order. [#8528]
+
 - Improved ``Table.sort()`` performance by removing ``self[keys]`` from code
   which is creating deep copies of ``meta`` attribute and adding a new keyword
   ``names`` in ``get_index()`` to get index by using a list or tuple containing
@@ -470,7 +473,7 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Fixed slowness for certain compound models consisting of large numbers 
+- Fixed slowness for certain compound models consisting of large numbers
   of multi-input models [#8338, #8349]
 
 - Fixed bugs in fitting of compound models with units. [#8369]
