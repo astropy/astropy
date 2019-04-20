@@ -2275,3 +2275,15 @@ def test_key_values_in_as_array():
     # Comparing initialised array with sliced array using Table.as_array()
     assert np.array_equal(a, t1.as_array(names=['a', 'b']))
     assert np.array_equal(b, t1.as_array(names=['c']))
+
+
+def test_metadata_created_using_table():
+    '''Test for metadata when a Table is passed as data contains meta and
+    meta is also not none'''
+    t1 = table.Table([(2, 3), (8, 7)], names=('a', 'b'), meta={'a': 1})
+    t2 = table.Table(t1, meta={'b': 2})
+    # When copy is False
+    t3 = table.Table(t1, meta={'b': 2}, copy=False)
+    meta1 = {'a': 1, 'b': 2}
+    assert t2.meta == meta1
+    assert t3.meta == meta1

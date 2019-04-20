@@ -477,6 +477,12 @@ class Table:
                 # gets a key copy here if copy=False because later a direct object ref
                 # is used.
                 meta = data.meta if copy else data.meta.copy()
+            # If user-input meta is not None and data.meta also contains data
+            if meta is not None and data.meta:
+                if copy:
+                    meta = {**data.meta, **meta}
+                else:
+                    meta = {**data.meta.copy(), **meta}
 
             # Handle indices on input table. Copy primary key and don't copy indices
             # if the input Table is in non-copy mode.
