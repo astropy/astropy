@@ -448,7 +448,7 @@ def test_absolute_times(data, timedelta):
     trel = TimeDelta(t) if timedelta else t
     t = trel + start
 
-    # and we set up two instances of BoxLeastSquares, one with absolute and one
+    # and we set up two instances of LombScargle, one with absolute and one
     # with relative times.
     ls1 = LombScargle(t, y, dy)
     ls2 = LombScargle(trel, y, dy)
@@ -477,11 +477,15 @@ def test_absolute_times(data, timedelta):
 
     with pytest.raises(TypeError) as exc:
         ls1.model(trel, 2 / u.day)
-    assert exc.value.args[0] == 't was provided as a relative time but the BoxLeastSquares class was initialized with absolute times.'
+    assert exc.value.args[0] == ('t was provided as a relative time but the '
+                                 'LombScargle class was initialized with '
+                                 'absolute times.')
 
     with pytest.raises(TypeError) as exc:
         ls2.model(t, 2 / u.day)
-    assert exc.value.args[0] == 't was provided as an absolute time but the BoxLeastSquares class was initialized with relative times.'
+    assert exc.value.args[0] == ('t was provided as an absolute time but the '
+                                 'LombScargle class was initialized with '
+                                 'relative times.')
 
     # Check design matrix
 
@@ -493,8 +497,12 @@ def test_absolute_times(data, timedelta):
 
     with pytest.raises(TypeError) as exc:
         ls1.design_matrix(2 / u.day, t=trel)
-    assert exc.value.args[0] == 't was provided as a relative time but the BoxLeastSquares class was initialized with absolute times.'
+    assert exc.value.args[0] == ('t was provided as a relative time but the '
+                                 'LombScargle class was initialized with '
+                                 'absolute times.')
 
     with pytest.raises(TypeError) as exc:
         ls2.design_matrix(2 / u.day, t=t)
-    assert exc.value.args[0] == 't was provided as an absolute time but the BoxLeastSquares class was initialized with relative times.'
+    assert exc.value.args[0] == ('t was provided as an absolute time but the '
+                                 'LombScargle class was initialized with '
+                                 'relative times.')
