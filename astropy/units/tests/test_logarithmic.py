@@ -75,6 +75,60 @@ class TestLogUnitCreation:
         with pytest.raises(ValueError):
             lu_cls(physical_unit, u.m)
 
+    def test_lshift_magnitude(self):
+        mag = 1. << u.ABmag
+        assert isinstance(mag, u.Magnitude)
+        assert mag.unit == u.ABmag
+        assert mag.value == 1.
+        # same test for an array, which should produce a view
+        a2 = np.arange(10.)
+        q2 = a2 << u.ABmag
+        assert isinstance(q2, u.Magnitude)
+        assert q2.unit == u.ABmag
+        assert np.all(q2.value == a2)
+        a2[9] = 0.
+        assert np.all(q2.value == a2)
+        # a different magnitude unit
+        mag = 10. << u.STmag
+        assert isinstance(mag, u.Magnitude)
+        assert mag.unit == u.STmag
+        assert mag.value == 10.
+
+    def test_ilshift_magnitude(self):
+        # test in-place operation and conversion
+        mag_fnu_cgs = u.mag(u.erg/u.s/u.cm**2/u.Hz)
+        m = np.arange(10.0) * u.mag(u.Jy)
+        jy = m.physical
+        m2 = m << mag_fnu_cgs
+        assert np.all(m2 == m.to(mag_fnu_cgs))
+        m2 = m
+        m <<= mag_fnu_cgs
+        assert m is m2  # Check it was done in-place!
+        assert np.all(m.value == m2.value)
+        assert m.unit == mag_fnu_cgs
+        # Check it works if equivalencies are in-place.
+        with u.add_enabled_equivalencies(u.spectral_density(5500*u.AA)):
+            st = jy.to(u.ST)
+            m <<= u.STmag
+
+        assert m is m2
+        assert_quantity_allclose(m.physical, st)
+        assert m.unit == u.STmag
+
+    def test_lshift_errors(self):
+        m = np.arange(10.0) * u.mag(u.Jy)
+        with pytest.raises(u.UnitsError):
+            m << u.STmag
+
+        with pytest.raises(u.UnitsError):
+            m << u.Jy
+
+        with pytest.raises(u.UnitsError):
+            m <<= u.STmag
+
+        with pytest.raises(u.UnitsError):
+            m <<= u.Jy
+
 
 def test_predefined_magnitudes():
     assert_quantity_allclose((-21.1*u.STmag).physical,
