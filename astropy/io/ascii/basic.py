@@ -14,6 +14,7 @@ import re
 
 from . import core
 
+
 class BasicHeader(core.BaseHeader):
     """
     Basic table Header Reader
@@ -39,21 +40,10 @@ class BasicData(core.BaseData):
 
 
 class Basic(core.BaseReader):
-    r"""
-    Read a character-delimited table with a single header line at the top
-    followed by data lines to the end of the table.  Lines beginning with # as
-    the first non-whitespace character are comments.  This reader is highly
-    configurable.
-    ::
+    r"""Character-delimited table with a single header line at the top.
 
-        rdr = ascii.get_reader(Reader=ascii.Basic)
-        rdr.header.splitter.delimiter = ' '
-        rdr.data.splitter.delimiter = ' '
-        rdr.header.start_line = 0
-        rdr.data.start_line = 1
-        rdr.data.end_line = None
-        rdr.header.comment = r'\s*#'
-        rdr.data.comment = r'\s*#'
+    Lines beginning with a comment character (default='#') as the first
+    non-whitespace character are comments.
 
     Example table::
 
@@ -67,6 +57,7 @@ class Basic(core.BaseReader):
     """
     _format_name = 'basic'
     _description = 'Basic table with custom delimiters'
+    _io_registry_format_aliases = ['ascii']
 
     header_class = BasicHeader
     data_class = BasicData
@@ -92,14 +83,16 @@ class NoHeaderData(BasicData):
 
 
 class NoHeader(Basic):
-    """
-    Read a table with no header line.  Columns are autonamed using
-    header.auto_format which defaults to "col%d".  Otherwise this reader
-    the same as the :class:`Basic` class from which it is derived.  Example::
+    """Character-delimited table with no header line.
+
+    When reading, columns are autonamed using header.auto_format which defaults
+    to "col%d".  Otherwise this reader the same as the :class:`Basic` class
+    from which it is derived.  Example::
 
       # Table data
       1 2 "hello there"
       3 4 world
+
     """
     _format_name = 'no_header'
     _description = 'Basic table with no headers'
@@ -129,17 +122,20 @@ class CommentedHeaderHeader(BasicHeader):
 
 
 class CommentedHeader(Basic):
-    """
-    Read a file where the column names are given in a line that begins with
-    the header comment character. ``header_start`` can be used to specify the
+    """Character-delimited table with column names in a comment line.
+
+    When reading, ``header_start`` can be used to specify the
     line index of column names, and it can be a negative index (for example -1
     for the last commented line).  The default delimiter is the <space>
-    character.::
+    character.
+
+    Example::
 
       # col1 col2 col3
       # Comment line
       1 2 3
       4 5 6
+
     """
     _format_name = 'commented_header'
     _description = 'Column names in a commented line'
@@ -203,16 +199,17 @@ class TabData(BasicData):
 
 
 class Tab(Basic):
-    """
-    Read a tab-separated file.  Unlike the :class:`Basic` reader, whitespace is
-    not stripped from the beginning and end of either lines or individual column
-    values.
+    """Tab-separated table.
+
+    Unlike the :class:`Basic` reader, whitespace is not stripped from the
+    beginning and end of either lines or individual column values.
 
     Example::
 
       col1 <tab> col2 <tab> col3
       # Comment line
       1 <tab> 2 <tab> 5
+
     """
     _format_name = 'tab'
     _description = 'Basic table with tab-separated values'
@@ -247,20 +244,12 @@ class CsvData(BasicData):
 
 
 class Csv(Basic):
-    """
-    Read a CSV (comma-separated-values) file.
+    """CSV (comma-separated-values) table.
 
-    Example::
+    This file format may contain rows with fewer entries than the number of
+    columns, a situation that occurs in output from some spreadsheet editors.
+    The missing entries are marked as masked in the output table.
 
-      num,ra,dec,radius,mag
-      1,32.23222,10.1211,0.8,18.1
-      2,38.12321,-88.1321,2.2,17.0
-
-    Plain csv (comma separated value) files typically contain as many entries
-    as there are columns on each line. In contrast, common spreadsheet editors
-    stop writing if all remaining cells on a line are empty, which can lead to
-    lines where the rightmost entries are missing. This Reader can deal with
-    such files.
     Masked values (indicated by an empty '' field value when reading) are
     written out in the same way with an empty ('') field.  This is different
     from the typical default for `astropy.io.ascii` in which missing values are
@@ -271,9 +260,12 @@ class Csv(Basic):
       num,ra,dec,radius,mag
       1,32.23222,10.1211
       2,38.12321,-88.1321,2.2,17.0
+
     """
     _format_name = 'csv'
+    _io_registry_format_aliases = ['csv']
     _io_registry_can_write = True
+    _io_registry_suffix = '.csv'
     _description = 'Comma-separated-values'
 
     header_class = CsvHeader
@@ -371,15 +363,17 @@ class RdbData(TabData):
 
 
 class Rdb(Tab):
-    """
-    Read a tab-separated file with an extra line after the column definition
-    line.  The RDB format meets this definition.  Example::
+    """Tab-separated file with an extra line after the column definition line that
+    specifies either numeric (N) or string (S) data.
+
+    See: https://compbio.soe.ucsc.edu/rdb/
+
+    Example::
 
       col1 <tab> col2 <tab> col3
       N <tab> S <tab> N
       1 <tab> 2 <tab> 5
 
-    In this reader the second line is just ignored.
     """
     _format_name = 'rdb'
     _io_registry_format_aliases = ['rdb']

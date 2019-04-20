@@ -227,6 +227,14 @@ and can also be read in from a FITS file::
 Note the unit is stored in the ``BUNIT`` keyword in the header on saving, and is
 read from the header if it is present.
 
+Detailed help on the available keyword arguments for reading and writing
+can be obtained via the ``help()`` method as follows:
+
+.. doctest-skip::
+
+    >>> CCDData.read.help('fits')  # Get help on the CCDData FITS reader
+    >>> CCDData.writer.help('fits')  # Get help on the CCDData FITS writer
+
 .. _image_utilities:
 
 Image utilities

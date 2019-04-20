@@ -324,8 +324,11 @@ class IpacData(fixedwidth.FixedWidthData):
 
 
 class Ipac(basic.Basic):
-    r"""Read or write an IPAC format table.  See
-    http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
+    r"""IPAC format table.
+
+    See: http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html
+
+    Example::
 
       \\name=value
       \\ Comment

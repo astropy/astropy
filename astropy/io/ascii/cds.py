@@ -177,7 +177,10 @@ class CdsData(core.BaseData):
 
 
 class Cds(core.BaseReader):
-    """Read a CDS format table.  See http://vizier.u-strasbg.fr/doc/catstd.htx.
+    """CDS format table.
+
+    See: http://vizier.u-strasbg.fr/doc/catstd.htx
+
     Example::
 
       Table: Table name here

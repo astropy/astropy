@@ -646,13 +646,3 @@ with registry.delay_doc_updates(CCDData):
     registry.register_reader('fits', CCDData, fits_ccddata_reader)
     registry.register_writer('fits', CCDData, fits_ccddata_writer)
     registry.register_identifier('fits', CCDData, fits.connect.is_fits)
-
-try:
-    CCDData.read.__doc__ = fits_ccddata_reader.__doc__
-except AttributeError:
-    CCDData.read.__func__.__doc__ = fits_ccddata_reader.__doc__
-
-try:
-    CCDData.write.__doc__ = fits_ccddata_writer.__doc__
-except AttributeError:
-    CCDData.write.__func__.__doc__ = fits_ccddata_writer.__doc__
