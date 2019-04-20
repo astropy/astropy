@@ -60,7 +60,8 @@ finding the period of the transits, and folding the light curve.
    plt.ylabel('SAP Flux (e-/s)')
 
    # Find the transit period and fold the light curve
-   periodogram = ts.periodogram(algorithm='bls', column='sap_flux')
+   from astropy.timeseries import BoxLeastSquares
+   periodogram = BoxLeastSquares.from_timeseries(ts, 'sap_flux')
    results = periodogram.autopower(0.2 * u.day)
    best = np.argmax(results.power)
    ts_folded = ts.fold(period=results.period[best],

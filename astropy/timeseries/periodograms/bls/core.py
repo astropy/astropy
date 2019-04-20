@@ -591,8 +591,6 @@ class BoxLeastSquares(BasePeriodogram):
 
         """
 
-        # TODO: need to fix for absolute times
-
         period, duration = self._validate_period_and_duration(period, duration)
         transit_time = self._as_relative_time('transit_time', transit_time)
         t = strip_units(self._as_relative_time('t', t))
