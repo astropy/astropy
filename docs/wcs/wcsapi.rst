@@ -294,7 +294,7 @@ more succinctly as::
     <BLANKLINE>
     Array shape (Numpy order): (70, 70)
     <BLANKLINE>
-    Pixel Dim  Data size  Units
+    Pixel Dim  Data size  Bounds
             0         70  None
             1         70  None
     <BLANKLINE>
@@ -323,7 +323,7 @@ and two world dimensions (since both RA/Dec vary over the extracted 1D slice)::
     <BLANKLINE>
     Array shape (Numpy order): (105,)
     <BLANKLINE>
-    Pixel Dim  Data size  Units
+    Pixel Dim  Data size  Bounds
             0        105  None
     <BLANKLINE>
     World Dim  Physical Type  Units

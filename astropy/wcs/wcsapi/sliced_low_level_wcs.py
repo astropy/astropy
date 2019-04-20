@@ -127,7 +127,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
 
     @property
     def array_shape(self):
-        return np.broadcast_to(0, self._wcs.array_shape)[self._slices_array].shape
+        return np.broadcast_to(0, self._wcs.array_shape)[tuple(self._slices_array)].shape
 
     @property
     def pixel_shape(self):
