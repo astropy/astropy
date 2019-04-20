@@ -601,10 +601,15 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
         faster.
 
     kwargs
-        Any additional keyword arguments to be passed to
-        `astropy.io.fits.open`.
-    """
+        Additional arguments are passed to:
 
+        - `~astropy.io.fits.writeto` if the file does not exist or is empty.
+          In this case ``output_verify`` is the only possible argument.
+        - `~astropy.io.fits.open` if ``verify`` is True or if ``filename``
+          is a file object.
+        - Otherwise no additional arguments can be used.
+
+    """
     name, closed, noexist_or_empty = _stat_filename_or_fileobj(filename)
 
     if noexist_or_empty:
@@ -621,7 +626,7 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
             hdu = ImageHDU(data, header)
 
         if verify or not closed:
-            f = fitsopen(filename, mode='append')
+            f = fitsopen(filename, mode='append', **kwargs)
             try:
                 f.append(hdu)
 
