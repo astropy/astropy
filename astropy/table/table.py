@@ -480,9 +480,9 @@ class Table:
             # If user-input meta is not None and data.meta also contains data
             if meta is not None and data.meta:
                 if copy:
-                    meta = {**data.meta, **meta}
+                    meta.update(data.meta)
                 else:
-                    meta = {**data.meta.copy(), **meta}
+                    meta.update(data.meta.copy())
 
             # Handle indices on input table. Copy primary key and don't copy indices
             # if the input Table is in non-copy mode.

@@ -2284,6 +2284,6 @@ def test_metadata_created_using_table():
     t2 = table.Table(t1, meta={'b': 2})
     # When copy is False
     t3 = table.Table(t1, meta={'b': 2}, copy=False)
-    meta1 = {'a': 1, 'b': 2}
+    meta1 = {'b': 2, 'a': 1}
     assert t2.meta == meta1
     assert t3.meta == meta1
