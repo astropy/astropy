@@ -406,6 +406,43 @@ class TestSplit:
 check |= get_covered_functions(TestSplit)
 
 
+class TestUfuncReductions(BasicTestSetup):
+    def test_amax(self):
+        self.check(np.amax)
+
+    def test_amin(self):
+        self.check(np.amin)
+
+    def test_sum(self):
+        self.check(np.sum)
+
+    def test_any(self):
+        with pytest.raises(NotImplementedError):
+            np.any(self.q)
+
+    def test_all(self):
+        with pytest.raises(NotImplementedError):
+            np.all(self.q)
+
+    def test_sometrue(self):
+        with pytest.raises(NotImplementedError):
+            np.sometrue(self.q)
+
+    def test_alltrue(self):
+        with pytest.raises(NotImplementedError):
+            np.alltrue(self.q)
+
+    def test_prod(self):
+        with pytest.raises(u.UnitsError):
+            np.prod(self.q)
+
+    def test_product(self):
+        with pytest.raises(u.UnitsError):
+            np.product(self.q)
+
+
+check |= get_covered_functions(TestUfuncReductions)
+
 ufunc_like = {
     np.angle, np.around, np.round_, np.ptp, np.fix, np.i0,
     np.clip, np.sinc, np.where, np.choose, np.select,
@@ -415,17 +452,16 @@ ufunc_like = {
 }
 check |= ufunc_like
 
-ufunc_reductions = {
-    np.any, np.all, np.amax, np.amin, np.sum, np.prod, np.product,
-    np.alltrue, np.sometrue
-    }
-check |= ufunc_reductions
-
 ufunc_nanreductions = {
     np.nanmax, np.nanmin, np.nanmean, np.nanmedian, np.nansum, np.nanprod,
     np.nanpercentile, np.nanquantile, np.nanstd, np.nanvar,
     }
 check |= ufunc_nanreductions
+
+ufunc_nanaccumulations = {
+    np.nancumsum, np.nancumprod
+    }
+check |= ufunc_nanaccumulations
 
 
 class TestReductionLikeFunctions(BasicTestSetup):
@@ -518,11 +554,6 @@ ufunc_accumulations = {
     np.cumsum, np.cumprod, np.cumproduct
     }
 check |= ufunc_accumulations
-
-ufunc_accumulation_like = {
-    np.nancumsum, np.nancumprod
-    }
-check |= ufunc_accumulation_like
 
 
 class TestVariousProductFunctions:
