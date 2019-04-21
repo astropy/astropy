@@ -33,7 +33,7 @@ check = set()
 
 class BasicTestSetup:
     def setup(self):
-        self.q = np.arange(9.).reshape(3, 3) * u.m
+        self.q = np.arange(9.).reshape(3, 3) / 4. * u.m
 
     def check(self, func, *args, **kwargs):
         o = func(self.q, *args, **kwargs)
@@ -279,6 +279,14 @@ class TestSettingParts:
         assert np.all(q == expected)
 
     @pytest.mark.xfail
+    def test_copyto(self):
+        q = np.arange(3.) * u.m
+        np.place(q, [50, 0, 150] * u.cm, where=[True, False, True])
+        assert q.unit == u.m
+        expected = [50, 100, 150] * u.cm
+        assert np.all(q == expected)
+
+    @pytest.mark.xfail
     def test_fill_diagonal(self):
         q = self.q.copy()
         np.fill_diagonal(q, 25. * u.cm)
@@ -443,14 +451,155 @@ class TestUfuncReductions(BasicTestSetup):
 
 check |= get_covered_functions(TestUfuncReductions)
 
-ufunc_like = {
-    np.angle, np.around, np.round_, np.ptp, np.fix, np.i0,
-    np.clip, np.sinc, np.where, np.choose, np.select,
-    np.isneginf, np.isposinf, np.isclose, np.nan_to_num,
-    np.isreal, np.iscomplex, np.real_if_close,
-    np.tril, np.triu, np.unwrap, np.copyto,
-}
-check |= ufunc_like
+
+class TestUfuncLike(BasicTestSetup):
+    def test_ptp(self):
+        self.check(np.ptp)
+        self.check(np.ptp, axis=0)
+
+    def test_round_(self):
+        self.check(np.round_)
+
+    def test_around(self):
+        self.check(np.around)
+
+    def test_fix(self):
+        self.check(np.fix)
+
+    def test_angle(self):
+        q = np.array([1+0j, 0+1j, 1+1j, 0+0j]) * u.m
+        out = np.angle(q)
+        expected = np.angle(q.value) * u.radian
+        assert np.all(out == expected)
+
+    def test_i0(self):
+        q = np.array([0., 10., 20.]) * u.percent
+        out = np.i0(q)
+        expected = np.i0(q.to_value(u.one)) * u.one
+        assert isinstance(out, u.Quantity)
+        assert np.all(out == expected)
+        with pytest.raises(u.UnitsError):
+            np.i0(self.q)
+
+    def test_clip(self):
+        qmin = 200 * u.cm
+        qmax = [270, 280, 290] * u.cm
+        out = np.clip(self.q, qmin, qmax)
+        expected = np.clip(self.q.value, qmin.to_value(self.q.unit),
+                           qmax.to_value(self.q.unit)) * self.q.unit
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_sinc(self):
+        q = [0., 3690., -270., 690.] * u.deg
+        out = np.sinc(q)
+        expected = np.sinc(q.to_value(u.radian)) * u.one
+        assert isinstance(out, u.Quantity)
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_where(self):
+        out = np.where([True, False, True], self.q, 1. * u.km)
+        expected = np.where([True, False, True], self.q.value,
+                            1000.) * self.q.unit
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_choose(self):
+        # from np.choose docstring
+        a = np.array([0, 1]).reshape((2, 1, 1))
+        q1 = np.array([1, 2, 3]).reshape((1, 3, 1)) * u.cm
+        q2 = np.array([-1, -2, -3, -4, -5]).reshape((1, 1, 5)) * u.m
+        out = np.choose(a, (q1, q2))
+        # result is 2x3x5, res[0,:,:]=c1, res[1,:,:]=c2
+        expected = np.choose(a, (q1.value, q2.to_value(q1.unit))) * u.cm
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_select(self):
+        q = self.q
+        out = np.select([q < 0.55 * u.m, q > 1. * u.m],
+                        [q, q.to(u.cm)], default=-1. * u.km)
+        expected = np.select([q.value < 0.55, q.value > 1],
+                             [q.value, q.value], default=-1000) * u.m
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_real_if_close(self):
+        q = np.array([1+0j, 0+1j, 1+1j, 0+0j]) * u.m
+        out = np.real_if_close(q)
+        expected = np.real_if_close(q.value) * u.m
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_tril(self):
+        self.check(np.tril)
+
+    @pytest.mark.xfail
+    def test_triu(self):
+        self.check(np.triu)
+
+    @pytest.mark.xfail
+    def test_unwrap(self):
+        q = [0., 3690., -270., 690.] * u.deg
+        out = np.unwrap(q)
+        expected = np.rad2deg(q.to_value(u.rad)) * u.deg
+        assert np.allclose(out, expected, atol=1*u.urad, rtol=0)
+
+    def test_nan_to_num(self):
+        q = np.array([-np.inf, +np.inf, np.nan, 3., 4.]) * u.m
+        out = np.nan_to_num(q)
+        expected = np.nan_to_num(q.value) * q.unit
+        assert np.all(out == expected)
+
+
+check |= get_covered_functions(TestUfuncLike)
+
+
+class TestUfuncLikeTests:
+    def setup(self):
+        self.q = np.array([-np.inf, +np.inf, np.nan, 3., 4.]) * u.m
+
+    def check(self, func):
+        out = func(self.q)
+        expected = func(self.q.value)
+        assert type(out) is np.ndarray
+        assert out.dtype.kind == 'b'
+        assert np.all(out == expected)
+
+    def test_isposinf(self):
+        self.check(np.isposinf)
+
+    def test_isneginf(self):
+        self.check(np.isneginf)
+
+    def test_isreal(self):
+        self.check(np.isreal)
+        assert not np.isreal([1. + 1j]*u.m)
+
+    def test_iscomplex(self):
+        self.check(np.iscomplex)
+        assert np.iscomplex([1. + 1j]*u.m)
+
+    @pytest.mark.xfail
+    def test_isclose(self):
+        q_cm = self.q.to(u.cm)
+        out = np.isclose(self.q, q_cm, atol=1.*u.nm, rtol=0)
+        expected = np.isclose(self.q.value, q_cm.to_value(u.m),
+                              atol=1e-9, rtol=0)
+        assert type(out) is np.ndarray
+        assert out.dtype.kind == 'b'
+        assert np.all(out == expected)
+        out = np.isclose(self.q, q_cm)
+        expected = np.isclose(self.q.value, q_cm.to_value(u.m))
+        assert np.all(out == expected)
+        out = np.isclose(self.q, q_cm, equal_nan=True)
+        expected = np.isclose(self.q.value, q_cm.to_value(u.m),
+                              equal_nan=True)
+        assert np.all(out == expected)
+
+
+check |= get_covered_functions(TestUfuncLikeTests)
 
 ufunc_nanreductions = {
     np.nanmax, np.nanmin, np.nanmean, np.nanmedian, np.nansum, np.nanprod,
