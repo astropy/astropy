@@ -193,10 +193,38 @@ class TestCopyAndCreation(BasicTestSetup):
 check |= get_covered_functions(TestCopyAndCreation)
 
 
-different_views = {
-    np.diag, np.diagonal, np.compress, np.extract, np.diagflat, np.place
-    }
-check |= different_views
+class TestAccessingParts(BasicTestSetup):
+    def test_diag(self):
+        self.check(np.diag)
+
+    def test_diagonal(self):
+        self.check(np.diagonal)
+
+    def test_diagflat(self):
+        self.check(np.diagflat)
+
+    def test_compress(self):
+        o = np.compress([True, False, True], self.q, axis=0)
+        expected = np.compress([True, False, True], self.q.value,
+                               axis=0) * self.q.unit
+        assert np.all(o == expected)
+
+    def test_extract(self):
+        o = np.extract([True, False, True], self.q)
+        expected = np.extract([True, False, True],
+                              self.q.value) * self.q.unit
+        assert np.all(o == expected)
+
+    @pytest.mark.xfail
+    def test_place(self):
+        q = np.arange(3.) * u.m
+        np.place(q, [True, False, True], [50, 150] * u.cm)
+        assert q.unit == u.m
+        expected = [50, 100, 150] * u.cm
+        assert np.all(q == expected)
+
+
+check |= get_covered_functions(TestAccessingParts)
 
 joining_and_splitting = {
     np.concatenate, np.stack, np.column_stack, np.dstack, np.hstack,
