@@ -141,10 +141,25 @@ class TestShapeManipulation(BasicTestSetup):
 
 check |= get_covered_functions(TestShapeManipulation)
 
-shape_indexing = {
-    np.diag_indices_from, np.tril_indices_from, np.triu_indices_from
-    }
-check |= shape_indexing
+
+class TestIndicesFrom(BasicTestSetup):
+    def check(self, func, *args, **kwargs):
+        o = func(self.q, *args, **kwargs)
+        expected = func(self.q.value, *args, **kwargs)
+        assert len(o) == len(expected)
+        assert all(np.all(_o == _x) for _o, _x, in zip(o, expected))
+
+    def test_diag_indices_from(self):
+        self.check(np.diag_indices_from)
+
+    def test_triu_indices_from(self):
+        self.check(np.triu_indices_from)
+
+    def test_tril_indices_from(self):
+        self.check(np.tril_indices_from)
+
+
+check |= get_covered_functions(TestIndicesFrom)
 
 
 class TestRealImag(BasicTestSetup):
@@ -226,12 +241,101 @@ class TestAccessingParts(BasicTestSetup):
 
 check |= get_covered_functions(TestAccessingParts)
 
-joining_and_splitting = {
-    np.concatenate, np.stack, np.column_stack, np.dstack, np.hstack,
-    np.vstack, np.block,
-    np.split, np.array_split, np.dsplit, np.hsplit, np.vsplit,
-    np.tile, np.repeat, np.pad}
-check |= joining_and_splitting
+
+class TestRepeat(BasicTestSetup):
+    def test_tile(self):
+        self.check(np.tile, 2)
+
+    def test_repeat(self):
+        self.check(np.repeat, 2)
+
+
+check |= get_covered_functions(TestRepeat)
+
+
+class TestConcatenate:
+    def setup(self):
+        self.q1 = np.arange(6.).reshape(2, 3) * u.m
+        self.q2 = self.q1.to(u.cm)
+
+    def check(self, func, *args, **kwargs):
+        q_list = kwargs.pop('q_list', [self.q1, self.q2])
+        o = func(q_list, *args, **kwargs)
+        unit = q_list[0].unit
+        v_list = [q.to_value(unit) for q in q_list]
+        expected = func(v_list, *args, **kwargs) * unit
+        assert o.shape == expected.shape
+        assert np.all(o == expected)
+
+    @pytest.mark.xfail
+    def test_concatenate(self):
+        self.check(np.concatenate)
+
+    @pytest.mark.xfail
+    def test_stack(self):
+        self.check(np.stack)
+
+    @pytest.mark.xfail
+    def test_column_stack(self):
+        self.check(np.column_stack)
+
+    @pytest.mark.xfail
+    def test_hstack(self):
+        self.check(np.hstack)
+
+    @pytest.mark.xfail
+    def test_vstack(self):
+        self.check(np.vstack)
+
+    @pytest.mark.xfail
+    def test_dstack(self):
+        self.check(np.dstack)
+
+    @pytest.mark.xfail
+    def test_block(self):
+        self.check(np.block)
+
+    @pytest.mark.xfail
+    def test_pad(self):
+        q = np.arange(1., 6.) * u.m
+        out = np.pad(q, (2, 3), 'constant', constant_values=[0., 150.*u.cm])
+        expected = np.pad(q.value, (2, 3), 'constant',
+                          constant_values=[0., 1.5])
+        assert np.all(out == expected)
+
+
+check |= get_covered_functions(TestConcatenate)
+
+
+class TestSplit:
+    def setup(self):
+        self.q = np.arange(54.).reshape(3, 3, 6) * u.m
+
+    def check(self, func, *args, **kwargs):
+        out = func(self.q, *args, **kwargs)
+        expected = func(self.q.value, *args, **kwargs)
+        expected = [x * self.q.unit for x in expected]
+        assert len(out) == len(expected)
+        assert all(o.shape == x.shape for o, x in zip(out, expected))
+        assert all(np.all(o == x) for o, x in zip(out, expected))
+
+    def test_split(self):
+        self.check(np.split, [1])
+
+    def test_array_split(self):
+        self.check(np.array_split, 2)
+
+    def test_hsplit(self):
+        self.check(np.hsplit, [1, 4])
+
+    def test_vsplit(self):
+        self.check(np.vsplit, [1])
+
+    def test_dsplit(self):
+        self.check(np.dsplit, [1])
+
+
+check |= get_covered_functions(TestSplit)
 
 accessing_elements = {
     np.delete, np.insert, np.append, np.resize, np.trim_zeros, np.flatnonzero,
