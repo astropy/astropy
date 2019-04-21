@@ -424,6 +424,9 @@ class TestUfuncReductions(BasicTestSetup):
     def test_sum(self):
         self.check(np.sum)
 
+    def test_cumsum(self):
+        self.check(np.cumsum)
+
     def test_any(self):
         with pytest.raises(NotImplementedError):
             np.any(self.q)
@@ -447,6 +450,14 @@ class TestUfuncReductions(BasicTestSetup):
     def test_product(self):
         with pytest.raises(u.UnitsError):
             np.product(self.q)
+
+    def test_cumprod(self):
+        with pytest.raises(u.UnitsError):
+            np.cumprod(self.q)
+
+    def test_cumproduct(self):
+        with pytest.raises(u.UnitsError):
+            np.cumproduct(self.q)
 
 
 check |= get_covered_functions(TestUfuncReductions)
@@ -601,17 +612,6 @@ class TestUfuncLikeTests:
 
 check |= get_covered_functions(TestUfuncLikeTests)
 
-ufunc_nanreductions = {
-    np.nanmax, np.nanmin, np.nanmean, np.nanmedian, np.nansum, np.nanprod,
-    np.nanpercentile, np.nanquantile, np.nanstd, np.nanvar,
-    }
-check |= ufunc_nanreductions
-
-ufunc_nanaccumulations = {
-    np.nancumsum, np.nancumprod
-    }
-check |= ufunc_nanaccumulations
-
 
 class TestReductionLikeFunctions(BasicTestSetup):
     def test_average(self):
@@ -699,10 +699,61 @@ class TestReductionLikeFunctions(BasicTestSetup):
 check |= get_covered_functions(TestReductionLikeFunctions)
 
 
-ufunc_accumulations = {
-    np.cumsum, np.cumprod, np.cumproduct
-    }
-check |= ufunc_accumulations
+class TestNanFunctions(BasicTestSetup):
+    def setup(self):
+        super().setup()
+        self.q[1, 1] = np.nan
+
+    def test_nanmax(self):
+        self.check(np.nanmax)
+
+    def test_nanmin(self):
+        self.check(np.nanmin)
+
+    def test_nanmean(self):
+        self.check(np.nanmean)
+
+    def test_nanmedian(self):
+        self.check(np.nanmedian)
+
+    def test_nansum(self):
+        self.check(np.nansum)
+
+    def test_nancumsum(self):
+        self.check(np.nancumsum)
+
+    def test_nanstd(self):
+        self.check(np.nanstd)
+
+    def test_nanvar(self):
+        out = np.nanvar(self.q)
+        expected = np.nanvar(self.q.value) * self.q.unit ** 2
+        assert np.all(out == expected)
+
+    def test_nanprod(self):
+        with pytest.raises(u.UnitsError):
+            np.nanprod(self.q)
+
+    def test_nancumprod(self):
+        with pytest.raises(u.UnitsError):
+            np.nancumprod(self.q)
+
+    @pytest.mark.xfail
+    def test_nanquantile(self):
+        self.check(np.nanquantile, 0.5)
+        o = np.nanquantile(self.q, 50 * u.percent)
+        expected = np.nanquantile(self.q.value, 0.5) * u.m
+        assert np.all(o == expected)
+
+    @pytest.mark.xfail
+    def test_nanpercentile(self):
+        self.check(np.nanpercentile, 0.5)
+        o = np.nanpercentile(self.q, 0.5 * u.one)
+        expected = np.nanpercentile(self.q.value, 50) * u.m
+        assert np.all(o == expected)
+
+
+check |= get_covered_functions(TestNanFunctions)
 
 
 class TestVariousProductFunctions:
