@@ -57,13 +57,82 @@ class TestShapeInformation:
 check |= get_covered_functions(TestShapeInformation)
 
 
-shape_manipulation = {
-    np.reshape, np.ravel,
-    np.moveaxis, np.rollaxis, np.swapaxes, np.transpose,
-    np.atleast_1d, np.atleast_2d, np.atleast_3d,
-    np.expand_dims, np.squeeze,
-    np.flip, np.fliplr, np.flipud, np.rot90}
-check |= shape_manipulation
+class TestShapeManipulation:
+    def setup(self):
+        self.q = np.arange(9.).reshape(3, 3) * u.m
+
+    def check(self, func, *args, **kwargs):
+        o = func(self.q, *args, **kwargs)
+        expected = func(self.q.value, *args, **kwargs) * self.q.unit
+        assert o.shape == expected.shape
+        assert np.all(o == expected)
+
+    # Note: do not parametrize the below, since test names are used
+    # to check coverage.
+    def test_reshape(self):
+        self.check(np.reshape, (9, 1))
+
+    def test_ravel(self):
+        self.check(np.ravel)
+
+    def test_moveaxis(self):
+        self.check(np.moveaxis, 0, 1)
+
+    def test_rollaxis(self):
+        self.check(np.rollaxis, 0, 2)
+
+    def test_swapaxes(self):
+        self.check(np.swapaxes, 0, 1)
+
+    def test_transpose(self):
+        self.check(np.transpose)
+
+    def test_atleast_1d(self):
+        q = 1. * u.m
+        o, so = np.atleast_1d(q, self.q)
+        assert o.shape == (1,)
+        assert o == q
+        expected = np.atleast_1d(self.q.value) * u.m
+        assert np.all(so == expected)
+
+    def test_atleast_2d(self):
+        q = 1. * u.m
+        o, so = np.atleast_2d(q, self.q)
+        assert o.shape == (1, 1)
+        assert o == q
+        expected = np.atleast_2d(self.q.value) * u.m
+        assert np.all(so == expected)
+
+    def test_atleast_3d(self):
+        q = 1. * u.m
+        o, so = np.atleast_3d(q, self.q)
+        assert o.shape == (1, 1, 1)
+        assert o == q
+        expected = np.atleast_3d(self.q.value) * u.m
+        assert np.all(so == expected)
+
+    def test_expand_dims(self):
+        self.check(np.expand_dims, 1)
+
+    def test_squeeze(self):
+        o = np.squeeze(self.q[:, np.newaxis, :])
+        assert o.shape == (3, 3)
+        assert np.all(o == self.q)
+
+    def test_flip(self):
+        self.check(np.flip)
+
+    def test_fliplr(self):
+        self.check(np.fliplr)
+
+    def test_flipud(self):
+        self.check(np.flipud)
+
+    def test_rot90(self):
+        self.check(np.rot90)
+
+
+check |= get_covered_functions(TestShapeManipulation)
 
 shape_indexing = {
     np.diag_indices_from, np.tril_indices_from, np.triu_indices_from
