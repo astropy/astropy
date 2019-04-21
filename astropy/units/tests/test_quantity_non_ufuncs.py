@@ -142,6 +142,63 @@ class TestShapeManipulation(BasicTestSetup):
 check |= get_covered_functions(TestShapeManipulation)
 
 
+class TestArgFunctions(BasicTestSetup):
+    def check(self, func, *args, **kwargs):
+        out = func(self.q, *args, **kwargs)
+        expected = func(self.q.value, *args, *kwargs)
+        assert type(out) is type(expected)
+        if isinstance(expected, tuple):
+            assert all(np.all(o == x) for o, x in zip(out, expected))
+        else:
+            assert np.all(out == expected)
+
+    def test_argmin(self):
+        self.check(np.argmin)
+
+    def test_argmax(self):
+        self.check(np.argmax)
+
+    def test_argsort(self):
+        self.check(np.argsort)
+
+    def test_nonzero(self):
+        self.check(np.nonzero)
+
+    def test_argwhere(self):
+        self.check(np.argwhere)
+
+    @pytest.mark.xfail
+    def test_argpartition(self):
+        self.check(np.argpartition, 2)
+
+    def test_flatnonzero(self):
+        self.check(np.flatnonzero)
+
+
+check |= get_covered_functions(TestArgFunctions)
+
+
+class TestAlongAxis(BasicTestSetup):
+    def test_take_along_axis(self):
+        indices = np.expand_dims(np.argmax(self.q, axis=0), axis=0)
+        out = np.take_along_axis(self.q, indices, axis=0)
+        expected = np.take_along_axis(self.q.value, indices,
+                                      axis=0) * self.q.unit
+        assert np.all(out == expected)
+
+    def test_put_along_axis(self):
+        q = self.q.copy()
+        indices = np.expand_dims(np.argmax(self.q, axis=0), axis=0)
+        np.put_along_axis(q, indices, axis=0, values=-100 * u.cm)
+        expected = q.value.copy()
+        np.put_along_axis(expected, indices, axis=0, values=-1)
+        expected = expected * q.unit
+        assert np.all(q == expected)
+
+
+check |= get_covered_functions(TestAlongAxis)
+
+
 class TestIndicesFrom(BasicTestSetup):
     def check(self, func, *args, **kwargs):
         o = func(self.q, *args, **kwargs)
@@ -710,6 +767,16 @@ class TestNanFunctions(BasicTestSetup):
     def test_nanmin(self):
         self.check(np.nanmin)
 
+    def test_nanargmin(self):
+        out = np.nanargmin(self.q)
+        expected = np.nanargmin(self.q.value)
+        assert out == expected
+
+    def test_nanargmax(self):
+        out = np.nanargmax(self.q)
+        expected = np.nanargmax(self.q.value)
+        assert out == expected
+
     def test_nanmean(self):
         self.check(np.nanmean)
 
@@ -849,13 +916,6 @@ gufunc_like = {
     np.searchsorted
     }
 check |= gufunc_like
-
-arg_functions = {
-    np.argmax, np.argmin, np.argpartition, np.argsort, np.argwhere,
-    np.nonzero, np.flatnonzero, np.nanargmin, np.nanargmax,
-    np.take_along_axis, np.put_along_axis
-    }
-check |= arg_functions
 
 string_functions = {np.array_repr, np.array_str, np.array2string}
 check |= string_functions
