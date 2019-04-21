@@ -230,6 +230,46 @@ class TestAccessingParts(BasicTestSetup):
                               self.q.value) * self.q.unit
         assert np.all(o == expected)
 
+    def test_delete(self):
+        self.check(np.delete, slice(1, 2), 0)
+        self.check(np.delete, [0, 2], 1)
+
+    def test_trim_zeros(self):
+        q = self.q.ravel()
+        out = np.trim_zeros(q)
+        expected = np.trim_zeros(q.value) * u.m
+        assert np.all(out == expected)
+
+    def test_roll(self):
+        self.check(np.roll, 1)
+        self.check(np.roll, 1, axis=0)
+
+    def test_take(self):
+        self.check(np.take, [0, 1], axis=1)
+        self.check(np.take, 1)
+
+
+check |= get_covered_functions(TestAccessingParts)
+
+
+class TestSettingParts:
+    @pytest.mark.xfail
+    def test_put(self):
+        q = np.arange(3.) * u.m
+        assert q.unit == u.m
+        expected = self.q.value.copy()
+        np.put(expected, [0, 2], [0.5, 1.5])
+        expected = expected * u.m
+        assert np.all(q == expected)
+
+    @pytest.mark.xfail
+    def test_putmask(self):
+        q = np.arange(3.) * u.m
+        np.putmask(q, [True, False, True], [50, 0, 150] * u.cm)
+        assert q.unit == u.m
+        expected = [50, 100, 150] * u.cm
+        assert np.all(q == expected)
+
     @pytest.mark.xfail
     def test_place(self):
         q = np.arange(3.) * u.m
@@ -238,8 +278,18 @@ class TestAccessingParts(BasicTestSetup):
         expected = [50, 100, 150] * u.cm
         assert np.all(q == expected)
 
+    @pytest.mark.xfail
+    def test_fill_diagonal(self):
+        q = self.q.copy()
+        np.fill_diagonal(q, 25. * u.cm)
+        assert q.unit == u.m
+        expected = self.q.value.copy()
+        np.fill_diagonal(expected, 0.25)
+        expected = expected * u.m
+        assert np.all(q == expected)
 
-check |= get_covered_functions(TestAccessingParts)
+
+check |= get_covered_functions(TestSettingParts)
 
 
 class TestRepeat(BasicTestSetup):
@@ -296,11 +346,29 @@ class TestConcatenate:
         self.check(np.block)
 
     @pytest.mark.xfail
+    def test_append(self):
+        self.check(np.append, axis=0)
+
+    @pytest.mark.xfail
+    def test_resize(self):
+        self.check(np.resize, (4, 4))
+
+    @pytest.mark.xfail
     def test_pad(self):
         q = np.arange(1., 6.) * u.m
         out = np.pad(q, (2, 3), 'constant', constant_values=[0., 150.*u.cm])
         expected = np.pad(q.value, (2, 3), 'constant',
                           constant_values=[0., 1.5])
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_insert(self):
+        # Unit of inserted values is ignored.
+        q = np.arange(12.).reshape(6, 2) * u.m
+        out = np.insert(q, (3, 5), [50., 25.] * u.cm)
+        assert isinstance(out, u.Quantity)
+        assert out.unit == u.m
+        expected = np.insert(q.value, (3, 5), [0.5, 0.25]) * u.m
         assert np.all(out == expected)
 
 
@@ -337,11 +405,6 @@ class TestSplit:
 
 check |= get_covered_functions(TestSplit)
 
-accessing_elements = {
-    np.delete, np.insert, np.append, np.resize, np.trim_zeros, np.flatnonzero,
-    np.roll, np.put, np.putmask, np.take, np.fill_diagonal,
-    }
-check |= accessing_elements
 
 ufunc_like = {
     np.angle, np.around, np.round_, np.ptp, np.fix, np.i0,
@@ -558,7 +621,7 @@ check |= gufunc_like
 
 arg_functions = {
     np.argmax, np.argmin, np.argpartition, np.argsort, np.argwhere,
-    np.nonzero, np.nanargmin, np.nanargmax,
+    np.nonzero, np.flatnonzero, np.nanargmin, np.nanargmax,
     np.take_along_axis, np.put_along_axis
     }
 check |= arg_functions
