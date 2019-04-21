@@ -408,7 +408,9 @@ class TestArrayConversion:
         with pytest.raises(TypeError):
             q1[1] = 1.5 * u.m / u.km
 
+    def test_take_put(self):
         q1 = np.array([1, 2, 3]) * u.m / u.km
+        assert q1.take(1) == 2 * u.m / u.km
         assert all(q1.take((0, 2)) == np.array([1, 3]) * u.m / u.km)
         q1.put((1, 2), (3, 4))
         assert np.all(q1.take((1, 2)) == np.array([3000, 4000]) * q1.unit)
