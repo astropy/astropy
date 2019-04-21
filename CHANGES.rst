@@ -2078,6 +2078,9 @@ astropy.units
 
 - Fix parsing of numerical powers in FITS-compatible units. [#8251]
 
+- Fix ``take`` when one gets only a single element from a ``Quantity``,
+  ensuring it returns a ``Quantity`` rather than a scalar. [#8617]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
