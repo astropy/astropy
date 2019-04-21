@@ -30,12 +30,6 @@ all_wrapped_functions = {name: f for name, f in np.__dict__.items()
                          f is not np.printoptions}
 check = set()
 
-copying_and_creation = {
-    np.copy, np.asfarray,
-    np.empty_like, np.ones_like, np.zeros_like, np.full_like,
-    }
-check |= copying_and_creation
-
 
 class TestShapeInformation:
     def setup(self):
@@ -131,6 +125,20 @@ class TestShapeManipulation:
     def test_rot90(self):
         self.check(np.rot90)
 
+    @pytest.mark.xfail
+    def test_broadcast_to(self):
+        self.check(np.broadcast_to, (3, 3, 3))
+
+    @pytest.mark.xfail
+    def test_broadcast_arrays(self):
+        q2 = np.ones(3, 3, 3) / u.s
+        o1, o2 = np.broadcast_arrays(self.q, q2)
+        assert isinstance(o1, u.Quantity)
+        assert isinstance(o2, u.Quantity)
+        assert o1.shape == o2.shape == (3, 3, 3)
+        assert np.all(o1 == self.q)
+        assert np.all(o2 == q2)
+
 
 check |= get_covered_functions(TestShapeManipulation)
 
@@ -157,15 +165,52 @@ class TestRealImag:
 
 check |= get_covered_functions(TestRealImag)
 
+
+class TestCopyAndCreation:
+    def setup(self):
+        self.q = np.arange(9.).reshape(3, 3) * u.m
+
+    def check(self, func, *args, **kwargs):
+        o = func(self.q, *args, **kwargs)
+        expected = func(self.q.value, *args, **kwargs) * self.q.unit
+        assert o.shape == expected.shape
+        assert np.all(o == expected)
+
+    @pytest.mark.xfail
+    def test_copy(self):
+        self.check(np.copy)
+
+    @pytest.mark.xfail
+    def test_asfarray(self):
+        self.check(np.asfarray)
+
+    def test_empty_like(self):
+        o = np.empty_like(self.q)
+        assert o.shape == (3, 3)
+        assert isinstance(o, u.Quantity)
+        assert o.unit == self.q.unit
+
+    def test_zeros_like(self):
+        self.check(np.zeros_like)
+
+    def test_ones_like(self):
+        self.check(np.ones_like)
+
+    @pytest.mark.xfail
+    def test_full_like(self):
+        o = np.full_like(self.q, 0.5 * u.km)
+        expected = np.empty_like(self.q.value) * u.m
+        expected[...] = 0.5 * u.km
+        assert np.all(o == expected)
+
+
+check |= get_covered_functions(TestCopyAndCreation)
+
+
 different_views = {
     np.diag, np.diagonal, np.compress, np.extract, np.diagflat, np.place
     }
 check |= different_views
-
-broadcast_functions = {
-    np.broadcast_to, np.broadcast_arrays,
-    }
-check |= broadcast_functions
 
 joining_and_splitting = {
     np.concatenate, np.stack, np.column_stack, np.dstack, np.hstack,
