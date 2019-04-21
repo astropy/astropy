@@ -5,22 +5,29 @@ import numpy as np
 import pytest
 
 from astropy import units as u
+from astropy.utils.compat import NUMPY_LT_1_17
 
 
 def get_covered_functions(cls):
+    """Helper function to extract the numpy functions covered.
+
+    Assumes that a test is called 'test_<function_name>'.
+    """
     covered = []
     for k, v in cls.__dict__.items():
         if inspect.isfunction(v) and k.startswith('test'):
             f = k.replace('test_', '')
-            if f in all_numpy_functions:
-                covered.append(all_numpy_functions[f])
+            if f in all_wrapped_functions:
+                covered.append(all_wrapped_functions[f])
 
     return set(covered)
 
 
-all_numpy_functions = {name: f for name, f in np.__dict__.items()
-                       if callable(f) and hasattr(f, '__wrapped__') and
-                       f is not np.printoptions}
+# To get the functions that could be covered, we look for those that
+# are wrapped.  Of course, this does not give a full list pre-1.17.
+all_wrapped_functions = {name: f for name, f in np.__dict__.items()
+                         if callable(f) and hasattr(f, '__wrapped__') and
+                         f is not np.printoptions}
 check = set()
 
 copying_and_creation = {
@@ -29,20 +36,26 @@ copying_and_creation = {
     }
 check |= copying_and_creation
 
-shape_information = {
-    np.alen, np.shape, np.size, np.ndim
-    }
-check |= shape_information
 
-property_getters = {
-    np.real, np.imag
-    }
-check |= property_getters
+class TestShapeInformation:
+    def setup(self):
+        self.q = np.arange(9.).reshape(3, 3) * u.m
 
-different_views = {
-    np.diag, np.diagonal, np.compress, np.extract, np.diagflat, np.place
-    }
-check |= different_views
+    def test_alen(self):
+        assert np.alen(self.q) == 3
+
+    def test_shape(self):
+        assert np.shape(self.q) == (3, 3)
+
+    def test_size(self):
+        assert np.size(self.q) == 9
+
+    def test_ndim(self):
+        assert np.ndim(self.q) == 2
+
+
+check |= get_covered_functions(TestShapeInformation)
+
 
 shape_manipulation = {
     np.reshape, np.ravel,
@@ -56,6 +69,29 @@ shape_indexing = {
     np.diag_indices_from, np.tril_indices_from, np.triu_indices_from
     }
 check |= shape_indexing
+
+
+class TestRealImag:
+    def setup(self):
+        self.q = (np.arange(9.).reshape(3, 3) + 1j) * u.m
+
+    def test_real(self):
+        o = np.real(self.q)
+        expected = np.real(self.q.value) * self.q.unit
+        assert np.all(o == expected)
+
+    def test_imag(self):
+        o = np.imag(self.q)
+        expected = np.imag(self.q.value) * self.q.unit
+        assert np.all(o == expected)
+
+
+check |= get_covered_functions(TestRealImag)
+
+different_views = {
+    np.diag, np.diagonal, np.compress, np.extract, np.diagflat, np.place
+    }
+check |= different_views
 
 broadcast_functions = {
     np.broadcast_to, np.broadcast_arrays,
@@ -90,13 +126,11 @@ ufunc_reductions = {
     }
 check |= ufunc_reductions
 
-ufunc_reduction_like = {
-    np.quantile, np.percentile,
-    np.allclose, np.array_equal, np.array_equiv, np.count_nonzero,
+ufunc_nanreductions = {
     np.nanmax, np.nanmin, np.nanmean, np.nanmedian, np.nansum, np.nanprod,
     np.nanpercentile, np.nanquantile, np.nanstd, np.nanvar,
     }
-check |= ufunc_reduction_like
+check |= ufunc_nanreductions
 
 
 class TestReductionLikeFunctions:
@@ -131,11 +165,68 @@ class TestReductionLikeFunctions:
         expected = np.median(q1.value) * u.m
         assert np.all(o == expected)
 
+    @pytest.mark.xfail
+    def test_quantile(self):
+        q1 = np.arange(9.).reshape(3, 3) * u.m
+        o = np.quantile(q1, 0.5)
+        expected = np.quantile(q1.value, 0.5) * u.m
+        assert np.all(o == expected)
+
+    @pytest.mark.xfail
+    def test_percentile(self):
+        q1 = np.arange(9.).reshape(3, 3) * u.m
+        o = np.percentile(q1, 50)
+        expected = np.percentile(q1.value, 50) * u.m
+        assert np.all(o == expected)
+
     def test_trace(self):
         q1 = np.arange(9.).reshape(3, 3) * u.m
         o = np.trace(q1)
         expected = np.trace(q1.value) * u.m
         assert np.all(o == expected)
+
+    @pytest.mark.xfail
+    def test_count_nonzero(self):
+        q1 = np.arange(9.).reshape(3, 3) * u.m
+        o = np.count_nonzero(q1)
+        assert o == 8
+        o = np.count_nonzero(q1, axis=1)
+        # Returns integer Quantity with units of m
+        assert o == np.array([2, 3, 3])
+
+    @pytest.mark.xfail
+    def test_allclose(self):
+        q1 = np.arange(3.) * u.m
+        q2 = np.array([0., 101., 199.]) * u.cm
+        atol = 2 * u.cm
+        rtol = 1. * u.percent
+        assert np.allclose(q1, q2, atol=atol)
+        # Default atol breaks code; everything else works.
+        assert np.allclose(q1, q2, rtol=rtol)
+
+    def test_allclose_failures(self):
+        q1 = np.arange(3.) * u.m
+        q2 = np.array([0., 101., 199.]) * u.cm
+        with pytest.raises(u.UnitsError):
+            np.allclose(q1, q2, atol=2, rtol=0)
+        with pytest.raises(u.UnitsError):
+            np.allclose(q1, q2, atol=0, rtol=1. * u.s)
+
+    @pytest.mark.xfail
+    def test_array_equal(self):
+        q1 = np.arange(3.) * u.m
+        q2 = q1.to(u.cm)
+        assert np.array_equal(q1, q2)
+        q3 = q1.value * u.cm
+        assert not np.array_equal(q1, q3)
+
+    @pytest.mark.xfail
+    def test_array_equiv(self):
+        q1 = np.array([[0., 1., 2.]]*3) * u.m
+        q2 = q1[0].to(u.cm)
+        assert np.array_equiv(q1, q2)
+        q3 = q1[0].value * u.cm
+        assert not np.array_equiv(q1, q3)
 
 
 check |= get_covered_functions(TestReductionLikeFunctions)
@@ -276,7 +367,7 @@ function_functions = {
     }
 check |= function_functions
 
-financial_functions = {f for f in all_numpy_functions.values()
+financial_functions = {f for f in all_wrapped_functions.values()
                        if f in np.lib.financial.__dict__.values()}
 check |= financial_functions
 
@@ -305,11 +396,12 @@ poly_functions = {
     }
 check |= poly_functions
 
-setops_functions = {f for f in all_numpy_functions.values()
+setops_functions = {f for f in all_wrapped_functions.values()
                     if f in np.lib.arraysetops.__dict__.values()}
 check |= setops_functions
 
 
-@pytest.mark.xfail
+@pytest.mark.xfail(NUMPY_LT_1_17,
+                   reason="no __array_function__ wrapping in numpy<1.17")
 def test_completeness():
-    assert set(all_numpy_functions.values()) == check
+    assert set(all_wrapped_functions.values()) == check
