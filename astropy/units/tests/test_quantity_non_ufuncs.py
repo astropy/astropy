@@ -31,10 +31,18 @@ all_wrapped_functions = {name: f for name, f in np.__dict__.items()
 check = set()
 
 
-class TestShapeInformation:
+class BasicTestSetup:
     def setup(self):
         self.q = np.arange(9.).reshape(3, 3) * u.m
 
+    def check(self, func, *args, **kwargs):
+        o = func(self.q, *args, **kwargs)
+        expected = func(self.q.value, *args, **kwargs) * self.q.unit
+        assert o.shape == expected.shape
+        assert np.all(o == expected)
+
+
+class TestShapeInformation(BasicTestSetup):
     def test_alen(self):
         assert np.alen(self.q) == 3
 
@@ -51,16 +59,7 @@ class TestShapeInformation:
 check |= get_covered_functions(TestShapeInformation)
 
 
-class TestShapeManipulation:
-    def setup(self):
-        self.q = np.arange(9.).reshape(3, 3) * u.m
-
-    def check(self, func, *args, **kwargs):
-        o = func(self.q, *args, **kwargs)
-        expected = func(self.q.value, *args, **kwargs) * self.q.unit
-        assert o.shape == expected.shape
-        assert np.all(o == expected)
-
+class TestShapeManipulation(BasicTestSetup):
     # Note: do not parametrize the below, since test names are used
     # to check coverage.
     def test_reshape(self):
@@ -148,34 +147,21 @@ shape_indexing = {
 check |= shape_indexing
 
 
-class TestRealImag:
+class TestRealImag(BasicTestSetup):
     def setup(self):
         self.q = (np.arange(9.).reshape(3, 3) + 1j) * u.m
 
     def test_real(self):
-        o = np.real(self.q)
-        expected = np.real(self.q.value) * self.q.unit
-        assert np.all(o == expected)
+        self.check(np.real)
 
     def test_imag(self):
-        o = np.imag(self.q)
-        expected = np.imag(self.q.value) * self.q.unit
-        assert np.all(o == expected)
+        self.check(np.imag)
 
 
 check |= get_covered_functions(TestRealImag)
 
 
-class TestCopyAndCreation:
-    def setup(self):
-        self.q = np.arange(9.).reshape(3, 3) * u.m
-
-    def check(self, func, *args, **kwargs):
-        o = func(self.q, *args, **kwargs)
-        expected = func(self.q.value, *args, **kwargs) * self.q.unit
-        assert o.shape == expected.shape
-        assert np.all(o == expected)
-
+class TestCopyAndCreation(BasicTestSetup):
     @pytest.mark.xfail
     def test_copy(self):
         self.check(np.copy)
@@ -247,7 +233,7 @@ ufunc_nanreductions = {
 check |= ufunc_nanreductions
 
 
-class TestReductionLikeFunctions:
+class TestReductionLikeFunctions(BasicTestSetup):
     def test_average(self):
         q1 = np.arange(9.).reshape(3, 3) * u.m
         q2 = np.eye(3) / u.s
@@ -256,48 +242,35 @@ class TestReductionLikeFunctions:
         assert np.all(o == expected)
 
     def test_mean(self):
-        q1 = np.arange(9.).reshape(3, 3) * u.m
-        o = np.mean(q1)
-        expected = np.mean(q1.value) * u.m
-        assert np.all(o == expected)
+        self.check(np.mean)
 
     def test_std(self):
-        q1 = np.arange(9.).reshape(3, 3) * u.m
-        o = np.std(q1)
-        expected = np.std(q1.value) * u.m
-        assert np.all(o == expected)
+        self.check(np.std)
 
     def test_var(self):
-        q1 = np.arange(9.).reshape(3, 3) * u.m
-        o = np.var(q1)
-        expected = np.var(q1.value) * u.m ** 2
+        o = np.var(self.q)
+        expected = np.var(self.q.value) * self.q.unit ** 2
         assert np.all(o == expected)
 
     def test_median(self):
-        q1 = np.arange(9.).reshape(3, 3) * u.m
-        o = np.median(q1)
-        expected = np.median(q1.value) * u.m
-        assert np.all(o == expected)
+        self.check(np.median)
 
     @pytest.mark.xfail
     def test_quantile(self):
-        q1 = np.arange(9.).reshape(3, 3) * u.m
-        o = np.quantile(q1, 0.5)
-        expected = np.quantile(q1.value, 0.5) * u.m
+        self.check(np.quantile, 0.5)
+        o = np.quantile(self.q, 50 * u.percent)
+        expected = np.quantile(self.q.value, 0.5) * u.m
         assert np.all(o == expected)
 
     @pytest.mark.xfail
     def test_percentile(self):
-        q1 = np.arange(9.).reshape(3, 3) * u.m
-        o = np.percentile(q1, 50)
-        expected = np.percentile(q1.value, 50) * u.m
+        self.check(np.percentile, 0.5)
+        o = np.percentile(self.q, 0.5 * u.one)
+        expected = np.percentile(self.q.value, 50) * u.m
         assert np.all(o == expected)
 
     def test_trace(self):
-        q1 = np.arange(9.).reshape(3, 3) * u.m
-        o = np.trace(q1)
-        expected = np.trace(q1.value) * u.m
-        assert np.all(o == expected)
+        self.check(np.trace)
 
     @pytest.mark.xfail
     def test_count_nonzero(self):
