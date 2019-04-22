@@ -45,18 +45,98 @@ import re
 import subprocess as sp
 import sys
 
+from distutils import log
+from distutils.debug import DEBUG
+
+from configparser import ConfigParser, RawConfigParser
+
+import pkg_resources
+
+from setuptools import Distribution
+from setuptools.package_index import PackageIndex
+
+# This is the minimum Python version required for astropy-helpers
 __minimum_python_version__ = (3, 5)
 
+# TODO: Maybe enable checking for a specific version of astropy_helpers?
+DIST_NAME = 'astropy-helpers'
+PACKAGE_NAME = 'astropy_helpers'
+UPPER_VERSION_EXCLUSIVE = None
+
+# Defaults for other options
+DOWNLOAD_IF_NEEDED = True
+INDEX_URL = 'https://pypi.python.org/simple'
+USE_GIT = True
+OFFLINE = False
+AUTO_UPGRADE = True
+
+# A list of all the configuration options and their required types
+CFG_OPTIONS = [
+    ('auto_use', bool), ('path', str), ('download_if_needed', bool),
+    ('index_url', str), ('use_git', bool), ('offline', bool),
+    ('auto_upgrade', bool)
+]
+
+# Start off by parsing the setup.cfg file
+
+SETUP_CFG = ConfigParser()
+
+if os.path.exists('setup.cfg'):
+
+    try:
+        SETUP_CFG.read('setup.cfg')
+    except Exception as e:
+        if DEBUG:
+            raise
+
+        log.error(
+            "Error reading setup.cfg: {0!r}\n{1} will not be "
+            "automatically bootstrapped and package installation may fail."
+            "\n{2}".format(e, PACKAGE_NAME, _err_help_msg))
+
+# We used package_name in the package template for a while instead of name
+if SETUP_CFG.has_option('metadata', 'name'):
+    parent_package = SETUP_CFG.get('metadata', 'name')
+elif SETUP_CFG.has_option('metadata', 'package_name'):
+    parent_package = SETUP_CFG.get('metadata', 'package_name')
+else:
+    parent_package = None
+
+if SETUP_CFG.has_option('options', 'python_requires'):
+
+    python_requires = SETUP_CFG.get('options', 'python_requires')
+
+    # The python_requires key has a syntax that can be parsed by SpecifierSet
+    # in the packaging package. However, we don't want to have to depend on that
+    # package, so instead we can use setuptools (which bundles packaging). We
+    # have to add 'python' to parse it with Requirement.
+
+    from pkg_resources import Requirement
+    req = Requirement.parse('python' + python_requires)
+
+    # We want the Python version as a string, which we can get from the platform module
+    import platform
+    python_version = platform.python_version()
+
+    if not req.specifier.contains(python_version):
+        if parent_package is None:
+            message = "ERROR: Python {} is required by this package\n".format(req.specifier)
+        else:
+            message = "ERROR: Python {} is required by {}\n".format(req.specifier, parent_package)
+        sys.stderr.write(message)
+        sys.exit(1)
+
 if sys.version_info < __minimum_python_version__:
-    print("ERROR: Python {} or later is required by astropy-helpers".format(
-        __minimum_python_version__))
+
+    if parent_package is None:
+        message = "ERROR: Python {} or later is required by astropy-helpers\n".format(
+            __minimum_python_version__)
+    else:
+        message = "ERROR: Python {} or later is required by astropy-helpers for {}\n".format(
+            __minimum_python_version__, parent_package)
+
+    sys.stderr.write(message)
     sys.exit(1)
-
-try:
-    from ConfigParser import ConfigParser, RawConfigParser
-except ImportError:
-    from configparser import ConfigParser, RawConfigParser
-
 
 _str_types = (str, bytes)
 
@@ -65,14 +145,14 @@ _str_types = (str, bytes)
 # issues with either missing or misbehaving pacakges (including making sure
 # setuptools itself is installed):
 
-# Check that setuptools 1.0 or later is present
+# Check that setuptools 30.3 or later is present
 from distutils.version import LooseVersion
 
 try:
     import setuptools
-    assert LooseVersion(setuptools.__version__) >= LooseVersion('1.0')
+    assert LooseVersion(setuptools.__version__) >= LooseVersion('30.3')
 except (ImportError, AssertionError):
-    print("ERROR: setuptools 1.0 or later is required by astropy-helpers")
+    sys.stderr.write("ERROR: setuptools 30.3 or later is required by astropy-helpers\n")
     sys.exit(1)
 
 # typing as a dependency for 1.6.1+ Sphinx causes issues when imported after
@@ -114,36 +194,6 @@ except:
 
 
 # End compatibility imports...
-
-
-# In case it didn't successfully import before the ez_setup checks
-import pkg_resources
-
-from setuptools import Distribution
-from setuptools.package_index import PackageIndex
-
-from distutils import log
-from distutils.debug import DEBUG
-
-
-# TODO: Maybe enable checking for a specific version of astropy_helpers?
-DIST_NAME = 'astropy-helpers'
-PACKAGE_NAME = 'astropy_helpers'
-UPPER_VERSION_EXCLUSIVE = None
-
-# Defaults for other options
-DOWNLOAD_IF_NEEDED = True
-INDEX_URL = 'https://pypi.python.org/simple'
-USE_GIT = True
-OFFLINE = False
-AUTO_UPGRADE = True
-
-# A list of all the configuration options and their required types
-CFG_OPTIONS = [
-    ('auto_use', bool), ('path', str), ('download_if_needed', bool),
-    ('index_url', str), ('use_git', bool), ('offline', bool),
-    ('auto_upgrade', bool)
-]
 
 
 class _Bootstrapper(object):
@@ -215,36 +265,20 @@ class _Bootstrapper(object):
 
     @classmethod
     def parse_config(cls):
-        if not os.path.exists('setup.cfg'):
-            return {}
 
-        cfg = ConfigParser()
-
-        try:
-            cfg.read('setup.cfg')
-        except Exception as e:
-            if DEBUG:
-                raise
-
-            log.error(
-                "Error reading setup.cfg: {0!r}\n{1} will not be "
-                "automatically bootstrapped and package installation may fail."
-                "\n{2}".format(e, PACKAGE_NAME, _err_help_msg))
-            return {}
-
-        if not cfg.has_section('ah_bootstrap'):
+        if not SETUP_CFG.has_section('ah_bootstrap'):
             return {}
 
         config = {}
 
         for option, type_ in CFG_OPTIONS:
-            if not cfg.has_option('ah_bootstrap', option):
+            if not SETUP_CFG.has_option('ah_bootstrap', option):
                 continue
 
             if type_ is bool:
-                value = cfg.getboolean('ah_bootstrap', option)
+                value = SETUP_CFG.getboolean('ah_bootstrap', option)
             else:
-                value = cfg.get('ah_bootstrap', option)
+                value = SETUP_CFG.get('ah_bootstrap', option)
 
             config[option] = value
 
@@ -633,8 +667,8 @@ class _Bootstrapper(object):
         # only if the submodule is initialized.  We ignore this information for
         # now
         _git_submodule_status_re = re.compile(
-            '^(?P<status>[+-U ])(?P<commit>[0-9a-f]{40}) '
-            '(?P<submodule>\S+)( .*)?$')
+            r'^(?P<status>[+-U ])(?P<commit>[0-9a-f]{40}) '
+            r'(?P<submodule>\S+)( .*)?$')
 
         # The stdout should only contain one line--the status of the
         # requested submodule
