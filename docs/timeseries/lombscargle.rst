@@ -23,8 +23,8 @@ Basic Usage
 ===========
 
 .. Note::
-   All frequencies in :class:`~astropy.timeseries.LombScargle` are **not** angular
-   frequencies, but rather frequencies of oscillation; i.e. number of
+   All frequencies in :class:`~astropy.timeseries.LombScargle` are **not**
+   angular frequencies, but rather frequencies of oscillation; i.e. number of
    cycles per unit time.
 
 The Lomb-Scargle periodogram is designed to detect periodic signals in
@@ -55,7 +55,6 @@ Plotting the result with matplotlib gives:
 
     import numpy as np
     import matplotlib.pyplot as plt
-    plt.style.use('ggplot')
 
     rand = np.random.RandomState(42)
     t = 100 * rand.rand(100)
@@ -171,7 +170,6 @@ For example, imagine you chose to evaluate your periodogram at 100 points:
     frequency = np.linspace(0.1, 1.9, 100)
     power = LombScargle(t, y, dy).power(frequency)
 
-    plt.style.use('ggplot')
     plt.figure(figsize=(6, 4.5))
     plt.plot(frequency, power)
     plt.xlabel('frequency')
@@ -207,7 +205,6 @@ the :func:`~astropy.timeseries.LombScargle.autopower` method:
     frequency, power = LombScargle(t, y, dy).autopower(minimum_frequency=0.1,
                                                        maximum_frequency=1.9)
 
-    plt.style.use('ggplot')
     plt.figure(figsize=(6, 4.5))
     plt.plot(frequency, power)
     plt.xlabel('frequency')
@@ -252,7 +249,6 @@ We can then phase the data and plot the Lomb-Scargle model fit:
 
     import numpy as np
     import matplotlib.pyplot as plt
-    plt.style.use('ggplot')
 
     from astropy.timeseries import LombScargle
 
@@ -571,7 +567,6 @@ peak heights for 100 observations with a heavily-aliased observing pattern:
 
     import numpy as np
     import matplotlib.pyplot as plt
-    plt.style.use('ggplot')
 
     from astropy.timeseries import LombScargle
 
@@ -737,7 +732,6 @@ with lightcurve shape that is more complicated than a simple sine wave:
 
     import numpy as np
     import matplotlib.pyplot as plt
-    plt.style.use('ggplot')
 
     from astropy.timeseries import LombScargle
 

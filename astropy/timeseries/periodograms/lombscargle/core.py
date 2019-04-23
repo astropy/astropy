@@ -6,6 +6,9 @@ from .implementations import lombscargle, available_methods
 from .implementations.mle import periodic_fit, design_matrix
 from . import _statistics
 from astropy import units
+from astropy.time import Time, TimeDelta
+from astropy import units as u
+from astropy.timeseries.periodograms.base import BasePeriodogram
 
 
 def has_units(obj):
@@ -24,7 +27,7 @@ def strip_units(*arrs):
         return map(strip, arrs)
 
 
-class LombScargle:
+class LombScargle(BasePeriodogram):
     """Compute the Lomb-Scargle Periodogram.
 
     This implementations here are based on code presented in [1]_ and [2]_;
@@ -100,7 +103,28 @@ class LombScargle:
 
     def __init__(self, t, y, dy=None, fit_mean=True, center_data=True,
                  nterms=1, normalization='standard'):
-        self.t, self.y, self.dy = self._validate_inputs(t, y, dy)
+
+        # If t is a TimeDelta, convert it to a quantity. The units we convert
+        # to don't really matter since the user gets a Quantity back at the end
+        # so can convert to any units they like.
+        if isinstance(t, TimeDelta):
+            t = t.to('day')
+
+        # We want to expose self.t as being the times the user passed in, but
+        # if the times are absolute, we need to convert them to relative times
+        # internally, so we use self._trel and self._tstart for this.
+
+        self.t = t
+
+        if isinstance(self.t, Time):
+            self._tstart = self.t[0]
+            trel = (self.t - self._tstart).to(u.day)
+        else:
+            self._tstart = None
+            trel = self.t
+
+        self._trel, self.y, self.dy = self._validate_inputs(trel, y, dy)
+
         self.fit_mean = fit_mean
         self.center_data = center_data
         self.nterms = nterms
@@ -130,10 +154,10 @@ class LombScargle:
     def _validate_frequency(self, frequency):
         frequency = np.asanyarray(frequency)
 
-        if has_units(self.t):
+        if has_units(self._trel):
             frequency = units.Quantity(frequency)
             try:
-                frequency = units.Quantity(frequency, unit=1./self.t.unit)
+                frequency = units.Quantity(frequency, unit=1./self._trel.unit)
             except units.UnitConversionError:
                 raise ValueError("Units of frequency not equivalent to "
                                  "units of 1/t")
@@ -145,10 +169,10 @@ class LombScargle:
     def _validate_t(self, t):
         t = np.asanyarray(t)
 
-        if has_units(self.t):
+        if has_units(self._trel):
             t = units.Quantity(t)
             try:
-                t = units.Quantity(t, unit=self.t.unit)
+                t = units.Quantity(t, unit=self._trel.unit)
             except units.UnitConversionError:
                 raise ValueError("Units of t not equivalent to "
                                  "units of input self.t")
@@ -202,8 +226,8 @@ class LombScargle:
         frequency : ndarray or Quantity
             The heuristically-determined optimal frequency bin
         """
-        baseline = self.t.max() - self.t.min()
-        n_samples = self.t.size
+        baseline = self._trel.max() - self._trel.min()
+        n_samples = self._trel.size
 
         df = 1.0 / baseline / samples_per_peak
 
@@ -330,7 +354,7 @@ class LombScargle:
         if normalization is None:
             normalization = self.normalization
         frequency = self._validate_frequency(frequency)
-        power = lombscargle(*strip_units(self.t, self.y, self.dy),
+        power = lombscargle(*strip_units(self._trel, self.y, self.dy),
                             frequency=strip_units(frequency),
                             center_data=self.center_data,
                             fit_mean=self.fit_mean,
@@ -339,6 +363,31 @@ class LombScargle:
                             method=method, method_kwds=method_kwds,
                             assume_regular_frequency=assume_regular_frequency)
         return power * self._power_unit(normalization)
+
+    def _as_relative_time(self, name, times):
+        """
+        Convert the provided times (if absolute) to relative times using the
+        current _tstart value. If the times provided are relative, they are
+        returned without conversion (though we still do some checks).
+        """
+
+        if isinstance(times, TimeDelta):
+            times = times.to('day')
+
+        if self._tstart is None:
+            if isinstance(times, Time):
+                raise TypeError('{0} was provided as an absolute time but '
+                                'the LombScargle class was initialized '
+                                'with relative times.'.format(name))
+        else:
+            if isinstance(times, Time):
+                times = (times - self._tstart).to(u.day)
+            else:
+                raise TypeError('{0} was provided as a relative time but '
+                                'the LombScargle class was initialized '
+                                'with absolute times.'.format(name))
+
+        return times
 
     def model(self, t, frequency):
         """Compute the Lomb-Scargle model at the given frequency.
@@ -365,8 +414,8 @@ class LombScargle:
         model_parameters
         """
         frequency = self._validate_frequency(frequency)
-        t = self._validate_t(t)
-        y_fit = periodic_fit(*strip_units(self.t, self.y, self.dy),
+        t = self._validate_t(self._as_relative_time('t', t))
+        y_fit = periodic_fit(*strip_units(self._trel, self.y, self.dy),
                              frequency=strip_units(frequency),
                              t_fit=strip_units(t),
                              center_data=self.center_data,
@@ -414,8 +463,6 @@ class LombScargle:
 
         Parameters
         ----------
-        t : array_like or Quantity, length n_samples
-            times at which to compute the model
         frequency : float
             the frequency for the model
         units : bool
@@ -433,7 +480,7 @@ class LombScargle:
         offset
         """
         frequency = self._validate_frequency(frequency)
-        t, y, dy = strip_units(self.t, self.y, self.dy)
+        t, y, dy = strip_units(self._trel, self.y, self.dy)
 
         if self.center_data:
             y = y - strip_units(self.offset())
@@ -453,7 +500,7 @@ class LombScargle:
         ----------
         frequency : float
             the frequency for the model
-        t : array_like or Quantity, length n_samples
+        t : array_like or `~astropy.units.Quantity` or `~astropy.time.Time`, length n_samples
             times at which to compute the model (optional). If not specified,
             then the times and uncertainties of the input data are used
 
@@ -469,9 +516,9 @@ class LombScargle:
         offset
         """
         if t is None:
-            t, dy = strip_units(self.t, self.dy)
+            t, dy = strip_units(self._trel, self.dy)
         else:
-            t, dy = strip_units(self._validate_t(t), None)
+            t, dy = strip_units(self._validate_t(self._as_relative_time('t', t)), None)
         return design_matrix(t, frequency, dy,
                              nterms=self.nterms,
                              bias=self.fit_mean)
@@ -506,7 +553,7 @@ class LombScargle:
         dH = 1 if self.fit_mean or self.center_data else 0
         dK = dH + 2 * self.nterms
         dist = _statistics.cdf_single if cumulative else _statistics.pdf_single
-        return dist(power, len(self.t), self.normalization, dH=dH, dK=dK)
+        return dist(power, len(self._trel), self.normalization, dH=dH, dK=dK)
 
     def false_alarm_probability(self, power, method='baluev',
                                 samples_per_peak=5, nyquist_factor=5,
@@ -574,7 +621,7 @@ class LombScargle:
                                         return_freq_limits=True)
         return _statistics.false_alarm_probability(power,
                                                    fmax=fmax,
-                                                   t=self.t, y=self.y, dy=self.dy,
+                                                   t=self._trel, y=self.y, dy=self.dy,
                                                    normalization=self.normalization,
                                                    method=method,
                                                    method_kwds=method_kwds)
@@ -646,7 +693,7 @@ class LombScargle:
                                         return_freq_limits=True)
         return _statistics.false_alarm_level(false_alarm_probability,
                                              fmax=fmax,
-                                             t=self.t, y=self.y, dy=self.dy,
+                                             t=self._trel, y=self.y, dy=self.dy,
                                              normalization=self.normalization,
                                              method=method,
                                              method_kwds=method_kwds)
