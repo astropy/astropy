@@ -692,6 +692,23 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+Other Changes and Additions
+---------------------------
+
+- Update bundled expat to 2.2.6. [#8343]
+- Added a narrative style guide to the documentation for contributor reference.
+  [#8588]
+
+Installation
+^^^^^^^^^^^^
+
+- We now require setuptools 30.3.0 or later to install the core astropy
+  package. [#8240]
+
+- We now define groups of dependencies that can be installed with pip, e.g.
+  ``pip install astropy[all]`` (to install all optional dependencies). [#8198]
+
+
 
 Bug Fixes
 ---------
