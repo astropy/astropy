@@ -161,6 +161,16 @@ class TestArgFunctions(BasicTestSetup):
     def test_argsort(self):
         self.check(np.argsort)
 
+    def test_lexsort(self):
+        self.check(np.lexsort)
+
+    def test_searchsorted(self):
+        q = self.q.ravel()
+        q2 = np.array([150., 350.]) * u.cm
+        out = np.searchsorted(q, q2)
+        expected = np.searchsorted(q.value, q2.to_value(q.unit))
+        assert np.all(out == expected)
+
     def test_nonzero(self):
         self.check(np.nonzero)
 
@@ -906,16 +916,215 @@ class TestVariousProductFunctions:
 
 check |= get_covered_functions(TestVariousProductFunctions)
 
-gufunc_like = {
-    np.interp,
-    np.linspace, np.logspace, np.geomspace,
-    np.bincount, np.digitize, np.histogram, np.histogram2d, np.histogramdd,
-    np.histogram_bin_edges, np.diff, np.gradient,
-    np.cov, np.corrcoef, np.piecewise, np.convolve, np.correlate,
-    np.sort, np.sort_complex, np.lexsort, np.msort, np.partition, np.trapz,
-    np.searchsorted
-    }
-check |= gufunc_like
+
+class TestNumericalFunctions:
+    def test_trapz(self):
+        y = np.arange(9.) * u.m / u.s
+        out = np.trapz(y)
+        expected = np.trapz(y.value) * y.unit
+        assert np.all(out == expected)
+
+        dx = 10. * u.s
+        out = np.trapz(y, dx=dx)
+        expected = np.trapz(y.value, dx=dx.value) * y.unit * dx.unit
+        assert np.all(out == expected)
+
+        x = np.arange(9.) * u.s
+        out = np.trapz(y, x)
+        expected = np.trapz(y.value, x.value) * y.unit * x.unit
+        assert np.all(out == expected)
+
+    def test_diff(self):
+        # Simple diff works out of the box.
+        x = np.arange(10.) * u.m
+        out = np.diff(x)
+        expected = np.diff(x.value) * u.m
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_diff_prepend_append(self):
+        x = np.arange(10.) * u.m
+        out = np.diff(x, prepend=-12.5*u.cm, append=1*u.km)
+        expected = np.diff(x.value, prepend=-0.125, append=1000.) * x.unit
+        x = np.arange(10.) * u.m
+        out = np.diff(x, prepend=-12.5*u.cm, append=1*u.km, n=2)
+        expected = np.diff(x.value, prepend=-0.125, append=1000.,
+                           n=2) * x.unit
+        assert np.all(out == expected)
+
+    def test_gradient(self):
+        # Simple diff works out of the box.
+        x = np.arange(10.) * u.m
+        out = np.gradient(x)
+        expected = np.gradient(x.value) * u.m
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_gradient_spacing(self):
+        # Simple diff works out of the box.
+        x = np.arange(10.) * u.m
+        spacing = 10. * u.s
+        out = np.gradient(x, spacing)
+        expected = np.gradient(x.value, spacing.value) * (x.unit /
+                                                          spacing.unit)
+        assert np.all(out == expected)
+
+    def test_linspace(self):
+        # Note: linspace gets unit of end point, not superlogical.
+        out = np.linspace(1000.*u.m, 10.*u.km, 5)
+        expected = np.linspace(1, 10, 5) * u.km
+        assert np.all(out == expected)
+
+        q1 = np.arange(6.).reshape(2, 3) * u.m
+        q2 = 10000. * u.cm
+        out = np.linspace(q1, q2, 5)
+        expected = np.linspace(q1.to_value(q2.unit), q2.value, 5) * q2.unit
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_logspace(self):
+        unit = u.m / u.s**2
+        out = np.logspace(10.*u.dex(unit), 20*u.dex(unit), 10)
+        expected = np.logspace(10., 20.) * u.Jy
+        assert np.all(out == expected)
+        out = np.logspace(10.*u.STmag, 20*u.STmag, 10)
+        expected = np.logspace(10., 20., base=10.**(-0.4)) * u.ST
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_geomspace(self):
+        out = np.geomspace(1000.*u.m, 10.*u.km, 5)
+        expected = np.geomspace(1, 10, 5) * u.km
+        assert np.all(out == expected)
+
+        q1 = np.arange(6.).reshape(2, 3) * u.m
+        q2 = 10000. * u.cm
+        out = np.geomspace(q1, q2, 5)
+        expected = np.geomspace(q1.to_value(q2.unit), q2.value, 5) * q2.unit
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_interp(self):
+        x = np.array([1250., 2750.]) * u.m
+        xp = np.arange(5.) * u.km
+        yp = np.arange(5.) * u.day
+        out = np.interp(x, xp, yp)
+        expected = np.interp(x.to_value(xp.unit), xp.value, yp.value) * yp.unit
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_piecewise(self):
+        x = np.linspace(-2.5, 2.5, 6) * u.m
+        out = np.piecewise(x, [x < 0, x >= 0], [-1*u.s, 1*u.day])
+        expected = np.piecewise(x.value, [x.value < 0, x.value >= 0],
+                                [-1, 24*3600]) * u.s
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_bincount(self):
+        i = np.array([1, 1, 2, 3, 2, 4])
+        weights = np.arange(len(i)) * u.Jy
+        out = np.bincount(i, weights)
+        expected = np.bincount(i, weights.value) * weights.unit
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_digitize(self):
+        x = np.array([1500., 2500., 4500.]) * u.m
+        bins = np.arange(10.) * u.km
+        out = np.digitize(x, bins)
+        expected = np.digitize(x.to_value(bins.unit), bins.value)
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_histogram(self):
+        x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
+        out_h, out_b = np.histogram(x)
+        expected_h, expected_b = np.histogram(x.value)
+        expected_b = expected_b * x.unit
+        assert np.all(out_h == expected_h)
+        assert np.all(out_b == expected_b)
+        # Once above works, add tests with bins & weights in different units.
+
+    @pytest.mark.xfail
+    def test_histogram_bin_edges(self):
+        x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
+        out_b = np.histogram_bin_edges(x)
+        expected_b = np.histogram_bin_edges(x.value)
+        expected_b = expected_b * x.unit
+        assert np.all(out_b == expected_b)
+
+    @pytest.mark.xfail
+    def test_histogram2d(self):
+        x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
+        y = np.array([1.2, 2.2, 2.4, 3.0, 4.0]) * u.cm
+        out_h, out_bx, out_by = np.histogram2d(x, y)
+        expected_h, expected_bx, expected_by = np.histogram(x.value, y.value)
+        expected_bx = expected_bx * x.unit
+        expected_by = expected_by * y.unit
+        assert np.all(out_h == expected_h)
+        assert np.all(out_bx == expected_bx)
+        assert np.all(out_by == expected_by)
+
+    @pytest.mark.xfail
+    def test_histogramdd(self):
+        xyz = np.random.normal(size=(10, 3)) * u.m
+        out_h, out_b = np.histogramdd(xyz)
+        expected_h, expected_b = np.histogramdd(xyz.value)
+        expected_b = expected_b * xyz.unit
+        assert np.all(out_h == expected_h)
+        assert np.all(out_b == expected_b)
+
+    @pytest.mark.xfail
+    def test_correlate(self):
+        x1 = [1, 2, 3] * u.m
+        x2 = [0, 1, 0.5] * u.m
+        out = np.correlate(x1, x2)
+        expected = np.correlate(x1.value, x2.value) * u.m ** 2
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_convolve(self):
+        x1 = [1, 2, 3] * u.m
+        x2 = [0, 1, 0.5] * u.m
+        out = np.convolve(x1, x2)
+        expected = np.convolve(x1.value, x2.value) * u.m ** 2
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_cov(self):
+        # Do not see how we can use cov with Quantity
+        x = np.array([[0, 2], [1, 1], [2, 0]]).T * u.m
+        with pytest.raises(TypeError):
+            np.cov(x)
+
+    @pytest.mark.xfail
+    def test_corrcoef(self):
+        # Do not see how we can use cov with Quantity
+        x = np.array([[0, 2], [1, 1], [2, 0]]).T * u.m
+        with pytest.raises(TypeError):
+            np.corrcoef(x)
+
+
+check |= get_covered_functions(TestNumericalFunctions)
+
+
+class TestSortFunctions(BasicTestSetup):
+    def test_sort(self):
+        self.check(np.sort)
+
+    @pytest.mark.xfail
+    def test_sort_complex(self):
+        self.check(np.sort_complex)
+
+    def test_msort(self):
+        self.check(np.msort)
+
+    def test_partition(self):
+        self.check(np.partition, 2)
+
+
+check |= get_covered_functions(TestSortFunctions)
 
 string_functions = {np.array_repr, np.array_str, np.array2string}
 check |= string_functions
