@@ -312,6 +312,10 @@ class Table:
         Copy the input data. If the input is a Table the ``meta`` is always
         copied regardless of the ``copy`` parameter.
         Default is True.
+    merge_meta: bool, optional
+        Merge ``data.meta`` with ``meta``. When input is Table and contains
+        Metadata as well as ``meta`` is also passed to merge them.
+        Default is False
     rows : numpy ndarray, list of lists, optional
         Row-oriented data for table instead of ``data`` argument.
     copy_indices : bool, optional
@@ -389,8 +393,8 @@ class Table:
         return data
 
     def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, rows=None, copy_indices=True,
-                 **kwargs):
+                 meta=None, copy=True, merge_meta=False, rows=None,
+                 copy_indices=True, **kwargs):
 
         # Set up a placeholder empty table
         self._set_masked(masked)
@@ -478,7 +482,7 @@ class Table:
                 # is used.
                 meta = data.meta if copy else data.meta.copy()
             # If user-input meta is not None and data.meta also contains data
-            if meta is not None and data.meta:
+            if meta is not None and data.meta and merge_meta:
                 if copy:
                     meta.update(data.meta)
                 else:

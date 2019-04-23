@@ -2281,9 +2281,9 @@ def test_metadata_created_using_table():
     '''Test for metadata when a Table is passed as data contains meta and
     meta is also not none'''
     t1 = table.Table([(2, 3), (8, 7)], names=('a', 'b'), meta={'a': 1})
-    t2 = table.Table(t1, meta={'b': 2})
+    t2 = table.Table(t1, meta={'b': 2}, merge_meta=True)
     # When copy is False
-    t3 = table.Table(t1, meta={'b': 2}, copy=False)
+    t3 = table.Table(t1, meta={'b': 2}, copy=False, merge_meta=True)
     meta1 = {'b': 2, 'a': 1}
     assert t2.meta == meta1
     assert t3.meta == meta1
