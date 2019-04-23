@@ -101,9 +101,6 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
-- Added model inspection methods (``model_parameters()``, ``design_matrix()``,
-  and ``offset()``) to ``astropy.stats.LombScargle`` class [#8397].
-
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -160,6 +157,15 @@ astropy.timeseries
 
 - Added a new astropy.timeseries sub-package to represent and manipulate
   sampled and binned time series. [#8540]
+
+- The ``BoxLeastSquares`` and ``LombScargle`` classes have been moved to
+  ``astropy.timeseries.periodograms`` from ``astropy.stats``. [#8591]
+
+- Added the ability to provide absolute ``Time`` objects to the
+  ``BoxLeastSquares`` and ``LombScargle`` periodogram classes. [#8599]
+
+- Added model inspection methods (``model_parameters()``, ``design_matrix()``,
+  and ``offset()``) to ``astropy.timeseries.LombScargle`` class [#8397].
 
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
