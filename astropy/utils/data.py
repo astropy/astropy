@@ -203,7 +203,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # but that is not compatible with streams or urllib2.urlopen
     # objects on Python 2.x.
     if not hasattr(fileobj, 'seek'):
-        fileobj = io.BytesIO(fileobj.read())
+        fileobj = io.BufferedReader(io.BytesIO(fileobj.read()))
 
     # Now read enough bytes to look at signature
     signature = fileobj.read(4)
