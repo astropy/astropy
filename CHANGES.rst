@@ -1,3 +1,324 @@
+4.0 (unreleased)
+================
+
+New Features
+------------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+API Changes
+-----------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+Other Changes and Additions
+---------------------------
+
+- Nothing changed yet.
+
+
+
+
+3.2.1 (unreleased)
+==================
+
+Bug fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+
+Other Changes and Additions
+---------------------------
+
+
+
 3.2 (unreleased)
 ================
 
@@ -355,6 +676,9 @@ astropy.io.ascii
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
+- Fixed bug in ASDF tag that inadvertently introduced dependency on ``pytest``.
+  [#8456]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
@@ -367,8 +691,16 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fixed slowness for certain compound models consisting of large numbers
+  of multi-input models [#8338, #8349]
+
+- Fixed bugs in fitting of compound models with units. [#8369]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
+
+- Fixed bug in reading multi-extension FITS files written by earlier versions
+  of ``CCDData``. [#8534]
 
 - Fixed two errors in the way ``CCDData`` handles FITS files with WCS in the
   header. Some of the WCS keywords that should have been removed from the
@@ -393,6 +725,23 @@ astropy.tests
 
 astropy.time
 ^^^^^^^^^^^^
+
+- Fixed a number of issues to ensure a consistent output type resulting from
+  multiplication or division involving a ``TimeDelta`` instance. The output is
+  now always a ``TimeDelta`` if the result is a time unit (like u.s or u.d),
+  otherwise it will be a ``Quantity``. [#8356]
+
+- Multiplication between two ``TimeDelta`` instances is now possible, resulting
+  in a ``Quantity`` with units of time squared (division already correctly
+  resulted in a dimensionless ``Quantity``). [#8356]
+
+- Like for comparisons, addition, and subtraction of ``Time`` instances with
+  with non-time instances, multiplication and division of ``TimeDelta``
+  instances with incompatible other instances no longer immediately raise an
+  ``UnitsError`` or ``TypeError`` (depending on the other instance), but
+  rather go through the regular Python mechanism of ``TimeDelta`` returning
+  ``NotImplemented`` (which will lead to a regular ``TypeError`` unless the
+  other instance can handle ``TimeDelta``). [#8356]
 
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
@@ -424,130 +773,13 @@ astropy.wcs
   ``WCS.wcs.cunit`` are equal or not by comparing the data members of
   ``UnitListProxy`` class [#8480]
 
+
 Other Changes and Additions
 ---------------------------
 
 - Update bundled expat to 2.2.6. [#8343]
 
 - Added instructions for uploading releases to Zenodo. [#8395]
-
-Installation
-^^^^^^^^^^^^
-
-- We now require setuptools 30.3.0 or later to install the core astropy
-  package. [#8240]
-
-- We now define groups of dependencies that can be installed with pip, e.g.
-  ``pip install astropy[all]`` (to install all optional dependencies). [#8198]
-
-
-
-3.1.3 (unreleased)
-==================
-
-Bug fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-- Fixed bug in ASDF tag that inadvertently introduced dependency on ``pytest``.
-  [#8456]
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-- Fixed slowness for certain compound models consisting of large numbers
-  of multi-input models [#8338, #8349]
-
-- Fixed bugs in fitting of compound models with units. [#8369]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-- Fixed bug in reading multi-extension FITS files written by earlier versions
-  of ``CCDData``. [#8534]
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-- Fixed a number of issues to ensure a consistent output type resulting from
-  multiplication or division involving a ``TimeDelta`` instance. The output is
-  now always a ``TimeDelta`` if the result is a time unit (like u.s or u.d),
-  otherwise it will be a ``Quantity``. [#8356]
-
-- Multiplication between two ``TimeDelta`` instances is now possible, resulting
-  in a ``Quantity`` with units of time squared (division already correctly
-  resulted in a dimensionless ``Quantity``). [#8356]
-
-- Like for comparisons, addition, and subtraction of ``Time`` instances with
-  with non-time instances, multiplication and division of ``TimeDelta``
-  instances with incompatible other instances no longer immediately raise an
-  ``UnitsError`` or ``TypeError`` (depending on the other instance), but
-  rather go through the regular Python mechanism of ``TimeDelta`` returning
-  ``NotImplemented`` (which will lead to a regular ``TypeError`` unless the
-  other instance can handle ``TimeDelta``). [#8356]
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Other Changes and Additions
----------------------------
 
 - The bug fixes to the behaviour of ``TimeDelta`` for multiplcation and
   division, which ensure that the output is now always a ``TimeDelta`` if the
@@ -563,6 +795,16 @@ Other Changes and Additions
   an ``OperandTypeError``, but rather result in a ``Quantity`` with units of
   time squared (division already correctly resulted in a dimensionless
   ``Quantity``). [#8356]
+
+Installation
+^^^^^^^^^^^^
+
+- We now require setuptools 30.3.0 or later to install the core astropy
+  package. [#8240]
+
+- We now define groups of dependencies that can be installed with pip, e.g.
+  ``pip install astropy[all]`` (to install all optional dependencies). [#8198]
+
 
 
 3.1.2 (2019-02-23)
