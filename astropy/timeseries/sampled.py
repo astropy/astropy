@@ -277,6 +277,8 @@ class TimeSeries(BaseTimeSeries):
         out : `astropy.timeseries.sampled.TimeSeries`
             TimeSeries corresponding to file contents.
 
+        Notes
+        -----
         """
         try:
 
