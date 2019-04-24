@@ -222,10 +222,17 @@ try:
 
 except ImportError:
     def setup(app):
-        app.warn('The sphinx_gallery extension is not installed, so the '
-                 'gallery will not be built.  You will probably see '
-                 'additional warnings about undefined references due '
-                 'to this.')
+        msg = ('The sphinx_gallery extension is not installed, so the '
+               'gallery will not be built.  You will probably see '
+               'additional warnings about undefined references due '
+               'to this.')
+        try:
+            app.warn(msg)
+        except AttributeError:
+            # Sphinx 1.6+
+            from sphinx.util import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(msg)
 
 
 # -- Options for linkcheck output -------------------------------------------
