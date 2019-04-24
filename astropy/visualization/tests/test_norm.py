@@ -146,11 +146,24 @@ class TestImageScaling:
         ref = np.log10(1000 * DATA2SCL + 1.0) / np.log10(1001.0)
         assert_allclose(norm(DATA2), ref, atol=0, rtol=1.e-5)
 
+    def test_log_with_log_a(self):
+        """Test log10 scaling with a custom log_a."""
+        log_a = 100
+        norm = simple_norm(DATA2, stretch='log', log_a=log_a)
+        ref = np.log10(log_a * DATA2SCL + 1.0) / np.log10(log_a + 1)
+        assert_allclose(norm(DATA2), ref, atol=0, rtol=1.e-5)
+
     def test_asinh(self):
         """Test asinh scaling."""
-        a = 0.1
-        norm = simple_norm(DATA2, stretch='asinh', asinh_a=a)
-        ref = np.arcsinh(DATA2SCL / a) / np.arcsinh(1. / a)
+        norm = simple_norm(DATA2, stretch='asinh')
+        ref = np.arcsinh(10 * DATA2SCL) / np.arcsinh(10)
+        assert_allclose(norm(DATA2), ref, atol=0, rtol=1.e-5)
+
+    def test_asinh_with_asinh_a(self):
+        """Test asinh scaling with a custom asinh_a."""
+        asinh_a = 0.5
+        norm = simple_norm(DATA2, stretch='asinh', asinh_a=asinh_a)
+        ref = np.arcsinh(DATA2SCL / asinh_a) / np.arcsinh(1. / asinh_a)
         assert_allclose(norm(DATA2), ref, atol=0, rtol=1.e-5)
 
     def test_min(self):
