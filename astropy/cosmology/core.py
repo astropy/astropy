@@ -564,6 +564,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
         ------
         ValueError
           If Ob0 is None.
+
         Notes
         -----
         This does not include neutrinos, even if non-relativistic
