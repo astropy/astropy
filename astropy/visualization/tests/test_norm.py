@@ -155,9 +155,15 @@ class TestImageScaling:
 
     def test_asinh(self):
         """Test asinh scaling."""
-        a = 0.1
-        norm = simple_norm(DATA2, stretch='asinh', asinh_a=a)
-        ref = np.arcsinh(DATA2SCL / a) / np.arcsinh(1. / a)
+        norm = simple_norm(DATA2, stretch='asinh')
+        ref = np.arcsinh(10 * DATA2SCL) / np.arcsinh(10)
+        assert_allclose(norm(DATA2), ref, atol=0, rtol=1.e-5)
+
+    def test_asinh_with_asinh_a(self):
+        """Test asinh scaling with a custom asinh_a."""
+        asinh_a = 0.5
+        norm = simple_norm(DATA2, stretch='asinh', asinh_a=asinh_a)
+        ref = np.arcsinh(DATA2SCL / asinh_a) / np.arcsinh(1. / asinh_a)
         assert_allclose(norm(DATA2), ref, atol=0, rtol=1.e-5)
 
     def test_min(self):
