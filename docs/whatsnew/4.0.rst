@@ -1,0 +1,37 @@
+.. doctest-skip-all
+
+.. _whatsnew-4.0:
+
+**************************
+What's New in Astropy 4.0?
+**************************
+
+Overview
+========
+
+Astropy 4.0 is a major release that ...  since
+the 3.2.x series of releases.
+
+In particular, this release includes:
+
+*
+*
+
+In addition to these major changes, Astropy v4.0 includes a large number of
+smaller improvements and bug fixes, which are described in the
+:ref:`changelog`. By the numbers:
+
+* xxx issues have been closed since v3.2
+* xxx pull requests have been merged since v3.2
+* xxx distinct people have contributed code
+
+
+Full change log
+===============
+
+To see a detailed list of all changes in version v4.0, including changes in
+API, please see the :ref:`changelog`.
+
+
+Renamed/removed functionality
+=============================
