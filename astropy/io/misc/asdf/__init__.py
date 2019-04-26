@@ -155,14 +155,7 @@ Coordinates
 The following schemas are associated with Astropy types from the
 :ref:`astropy-coordinates` submodule:
 
-.. asdf-autoschemas::
-
-    coordinates/angle-1.0.0
-    coordinates/latitude-1.0.0
-    coordinates/longitude-1.0.0
-    coordinates/representation-1.0.0
-    coordinates/skycoord-1.0.0
-    coordinates/earthlocation-1.0.0
+* https://github.com/astropy/astropy/tree/master/astropy/io/misc/asdf/data/schemas/astropy.org/astropy/coordinates
 
 Time
 ----
@@ -170,9 +163,7 @@ Time
 The following schemas are associated with Astropy types from the
 :ref:`astropy-time` submodule:
 
-.. asdf-autoschemas::
-
-    time/timedelta-1.0.0
+* https://github.com/astropy/astropy/tree/master/astropy/io/misc/asdf/data/schemas/astropy.org/astropy/time
 
 Units
 -----
@@ -180,7 +171,6 @@ Units
 The following schemas are associated with Astropy types from the
 :ref:`astropy-units` submodule:
 
-.. asdf-autoschemas::
+* https://github.com/astropy/astropy/tree/master/astropy/io/misc/asdf/data/schemas/astropy.org/astropy/units
 
-    units/equivalency-1.0.0
 """
