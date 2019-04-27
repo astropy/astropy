@@ -278,6 +278,7 @@ astropy.modeling
 
 astropy.nddata
 ^^^^^^^^^^^^^^
+- CCDData: make possible data streaming using numpy.memmap [#8646]
 
 astropy.samp
 ^^^^^^^^^^^^
