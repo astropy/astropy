@@ -1,7 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """This module implements the base CCDData class."""
 
+import os
+import shutil
 import itertools
+from tempfile import mkdtemp, mkstemp
 
 import numpy as np
 
@@ -132,6 +135,14 @@ class CCDData(NDDataArray):
             If the unit is ``None`` or not otherwise specified it will raise a
             ``ValueError``
 
+    stream : bool
+        Enable data streaming from a disk file.
+        Default is False
+
+    cache_folder : string
+        If stream is enabled, streaming files will be saved at this folder.
+        Default is ``None``
+
     Raises
     ------
     ValueError
@@ -173,12 +184,19 @@ class CCDData(NDDataArray):
     """
 
     def __init__(self, *args, **kwd):
+        self._cache = kwd.pop('chace_folder', None)
+        stream = kwd.pop('stream', None)
+
         if 'meta' not in kwd:
             kwd['meta'] = kwd.pop('header', None)
         if 'header' in kwd:
             raise ValueError("can't have both header and meta.")
 
         super().__init__(*args, **kwd)
+
+        # Enable streaming if necessary
+        if stream:
+            self.enable_stream()
 
         # Check if a unit is set. This can be temporarly disabled by the
         # _CCDDataUnit contextmanager.
@@ -191,7 +209,15 @@ class CCDData(NDDataArray):
 
     @data.setter
     def data(self, value):
-        self._data = value
+        if self.streaming:
+            if self._data.shape != value.shape:
+                name = self._data.filename
+                self._delete_stream(self._data)
+                self._create_stream(name, value)
+            else:
+                self._data[:] = value[:]
+        else:
+            self._data = value
 
     @property
     def wcs(self):
@@ -241,6 +267,60 @@ class CCDData(NDDataArray):
             self._uncertainty.parent_nddata = self
         else:
             self._uncertainty = value
+
+    @property
+    def streaming(self):
+        return isinstance(self._data, np.memmap)
+
+    def _create_stream(self, filename, data):
+        dtype = data.dtype
+        shape = data.shape
+        stream = np.memmap(filename, mode='w+', dtype=dtype, shape=shape)
+        stream[:] = data[:]
+        return stream
+
+    def _delete_stream(self, stream):
+        data = np.array(stream[:])
+        name = stream.filename
+        del stream
+        os.remove(name)
+        return data
+
+    def enable_stream(self, filename=None, cache_folder=None):
+        """Enable CCDData file streaming usging ``numpy.memmap``.
+
+        Parameters:
+        -----------
+        filename : str or None
+            Filename to save the streamed data. If ``None`` given, a temporary
+            name in ``cache_folder`` will be created.
+            Default is ``None``.
+
+        cache_folder : str or None
+            Folder to cache the streaming files. If ``None`` given, a temporary
+            folder will be created in ``/tmp``.
+            Default is ``None``.
+        """
+        if isinstance(self._data, np.memmap):
+            return
+
+        # If is not streaming already, create stream
+        cache_folder = cache_folder or self._cache
+        cache_folder = cache_folder or mkdtemp(prefix='astropy')
+        if filename is None:
+            f = mkstemp(prefix='ccddata', suffix='.npy',
+                        dir=cache_folder)
+            filename = f[1]
+        else:
+            filename = os.path.join(cache_folder,
+                                    os.path.basename(filename))
+
+        self._data = self._create_stream(filename, self._data)
+
+    def disable_stream(self):
+        """Disable CCDData file streaming (load to memory)."""
+        if isinstance(self._data, np.memmap):
+            self._data = self._delete_stream(self._data)
 
     def to_hdu(self, hdu_mask='MASK', hdu_uncertainty='UNCERT',
                hdu_flags=None, wcs_relax=True, key_uncertainty_type='UTYPE'):
@@ -408,6 +488,15 @@ class CCDData(NDDataArray):
             self.meta[short_name] = value
         else:
             self.meta[key] = value
+
+    def __del__(self):
+        # Ensure cleaning on exit!
+        if self.streaming:
+            dirname = os.path.dirname(self._data.filename)
+            self._delete_stream(self._data)
+
+            if len(os.listdir(dirname)) == 0:
+                shutil.rmtree(dirname)
 
 
 # These need to be importable by the tests...
