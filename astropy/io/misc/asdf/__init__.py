@@ -137,40 +137,4 @@ to support new types, new tags and schemas must be created. See `Writing ASDF
 Extensions <https://asdf.readthedocs.io/en/latest/asdf/extensions.html>`_ for
 additional details.
 
-
-.. _asdf_schemas:
-
-Schemas
-=======
-
-Documentation for each of the individual ASDF schemas defined by Astropy can
-be found at the links below.
-
-Documentation for the schemas defined in the ASDF Standard can be found `here
-<https://asdf-standard.readthedocs.io/en/latest/schemas/index.html>`__.
-
-Coordinates
------------
-
-The following schemas are associated with Astropy types from the
-:ref:`astropy-coordinates` submodule:
-
-* https://github.com/astropy/astropy/tree/master/astropy/io/misc/asdf/data/schemas/astropy.org/astropy/coordinates
-
-Time
-----
-
-The following schemas are associated with Astropy types from the
-:ref:`astropy-time` submodule:
-
-* https://github.com/astropy/astropy/tree/master/astropy/io/misc/asdf/data/schemas/astropy.org/astropy/time
-
-Units
------
-
-The following schemas are associated with Astropy types from the
-:ref:`astropy-units` submodule:
-
-* https://github.com/astropy/astropy/tree/master/astropy/io/misc/asdf/data/schemas/astropy.org/astropy/units
-
 """
