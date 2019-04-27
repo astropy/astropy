@@ -210,7 +210,8 @@ class CCDData(NDDataArray):
     @data.setter
     def data(self, value):
         if self.streaming:
-            if self._data.shape != value.shape:
+            if self._data.shape != value.shape or \
+               self._data.dtype != value.dtype:
                 name = self._data.filename
                 self._delete_stream(self._data)
                 self._create_stream(name, value)
