@@ -500,6 +500,8 @@ class CCDData(NDDataArray):
             if len(os.listdir(dirname)) == 0:
                 shutil.rmtree(dirname)
 
+        super().__del__()
+
 
 # These need to be importable by the tests...
 _KEEP_THESE_KEYWORDS_IN_HEADER = [
