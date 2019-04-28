@@ -135,12 +135,13 @@ class CCDData(NDDataArray):
             If the unit is ``None`` or not otherwise specified it will raise a
             ``ValueError``
 
-    stream : bool
-        Enable data streaming from a disk file.
+    memmap : bool
+        Enable the working data to be stored in a disk file, which is acessed
+        with memory mapping.
         Default is False
 
     cache_folder : string
-        If stream is enabled, streaming files will be saved at this folder.
+        If memmap is enabled, memory map files will be saved at this folder.
         Default is ``None``
 
     Raises
@@ -185,7 +186,7 @@ class CCDData(NDDataArray):
 
     def __init__(self, *args, **kwd):
         self._cache = kwd.pop('chace_folder', None)
-        stream = kwd.pop('stream', None)
+        memmap = kwd.pop('memmap', None)
 
         if 'meta' not in kwd:
             kwd['meta'] = kwd.pop('header', None)
@@ -194,9 +195,9 @@ class CCDData(NDDataArray):
 
         super().__init__(*args, **kwd)
 
-        # Enable streaming if necessary
-        if stream:
-            self.enable_stream()
+        # Enable memmap if necessary
+        if memmap:
+            self.enable_memmap()
 
         # Check if a unit is set. This can be temporarly disabled by the
         # _CCDDataUnit contextmanager.
@@ -209,12 +210,12 @@ class CCDData(NDDataArray):
 
     @data.setter
     def data(self, value):
-        if self.streaming:
+        if self.memmaping:
             if self._data.shape != value.shape or \
                self._data.dtype != value.dtype:
                 name = self._data.filename
-                self._delete_stream(self._data)
-                self._create_stream(name, value)
+                self._delete_memmap(self._data)
+                self._create_memmap(name, value)
             else:
                 self._data[:] = value[:]
         else:
@@ -270,42 +271,42 @@ class CCDData(NDDataArray):
             self._uncertainty = value
 
     @property
-    def streaming(self):
+    def memmaping(self):
         return isinstance(self._data, np.memmap)
 
-    def _create_stream(self, filename, data):
+    def _create_memmap(self, filename, data):
         dtype = data.dtype
         shape = data.shape
-        stream = np.memmap(filename, mode='w+', dtype=dtype, shape=shape)
-        stream[:] = data[:]
-        return stream
+        memmap = np.memmap(filename, mode='w+', dtype=dtype, shape=shape)
+        memmap[:] = data[:]
+        return memmap
 
-    def _delete_stream(self, stream):
-        data = np.array(stream[:])
-        name = stream.filename
-        del stream
+    def _delete_memmap(self, memmap):
+        data = np.array(memmap[:])
+        name = memmap.filename
+        del memmap
         os.remove(name)
         return data
 
-    def enable_stream(self, filename=None, cache_folder=None):
-        """Enable CCDData file streaming usging ``numpy.memmap``.
+    def enable_memmap(self, filename=None, cache_folder=None):
+        """Enable CCDData file memmaping usging ``numpy.memmap``.
 
         Parameters:
         -----------
         filename : str or None
-            Filename to save the streamed data. If ``None`` given, a temporary
+            Filename to save the memmaped data. If ``None`` given, a temporary
             name in ``cache_folder`` will be created.
             Default is ``None``.
 
         cache_folder : str or None
-            Folder to cache the streaming files. If ``None`` given, a temporary
+            Folder to cache the memmaping files. If ``None`` given, a temporary
             folder will be created in ``/tmp``.
             Default is ``None``.
         """
         if isinstance(self._data, np.memmap):
             return
 
-        # If is not streaming already, create stream
+        # If is not memmaping already, create memmap
         cache_folder = cache_folder or self._cache
         cache_folder = cache_folder or mkdtemp(prefix='astropy')
         if filename is None:
@@ -316,12 +317,12 @@ class CCDData(NDDataArray):
             filename = os.path.join(cache_folder,
                                     os.path.basename(filename))
 
-        self._data = self._create_stream(filename, self._data)
+        self._data = self._create_memmap(filename, self._data)
 
-    def disable_stream(self):
-        """Disable CCDData file streaming (load to memory)."""
+    def disable_memmap(self):
+        """Disable CCDData file memmaping (load to memory)."""
         if isinstance(self._data, np.memmap):
-            self._data = self._delete_stream(self._data)
+            self._data = self._delete_memmap(self._data)
 
     def to_hdu(self, hdu_mask='MASK', hdu_uncertainty='UNCERT',
                hdu_flags=None, wcs_relax=True, key_uncertainty_type='UTYPE'):
@@ -492,9 +493,9 @@ class CCDData(NDDataArray):
 
     def __del__(self):
         # Ensure cleaning on exit!
-        if self.streaming:
+        if self.memmaping:
             dirname = os.path.dirname(self._data.filename)
-            self._delete_stream(self._data)
+            self._delete_memmap(self._data)
 
             if len(os.listdir(dirname)) == 0:
                 shutil.rmtree(dirname)
