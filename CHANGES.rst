@@ -2311,6 +2311,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Converting an empty table to an array using ``as_array`` method now returns
+  an empty array instead of ``None``. [#8647]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
