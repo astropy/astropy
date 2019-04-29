@@ -53,6 +53,32 @@ coordinates/skycoord-1.0.0
 .. literalinclude:: ../../astropy/io/misc/asdf/data/schemas/astropy.org/astropy/coordinates/skycoord-1.0.0.yaml
    :language: yaml
 
+FITS
+----
+
+The following schemas are associated with Astropy types from the
+:ref:`astropy-io-fits` submodule:
+
+fits/fits-1.0.0
+^^^^^^^^^^^^^^^
+
+.. literalinclude:: ../../astropy/io/misc/asdf/data/schemas/astropy.org/astropy/fits/fits-1.0.0.yaml
+   :language: yaml
+
+
+Table
+-----
+
+The following schemas are associated with Astropy types from the
+:ref:`astropy-table` submodule:
+
+table/table-1.0.0
+^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: ../../astropy/io/misc/asdf/data/schemas/astropy.org/astropy/table/table-1.0.0.yaml
+   :language: yaml
+
+
 Time
 ----
 
