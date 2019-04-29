@@ -185,7 +185,7 @@ class CCDData(NDDataArray):
     """
 
     def __init__(self, *args, **kwd):
-        self._cache = kwd.pop('chace_folder', None)
+        self._cache = kwd.pop('cache_folder', None)
         memmap = kwd.pop('memmap', None)
 
         if 'meta' not in kwd:
