@@ -837,7 +837,11 @@ class TestRemove(SetupData):
         self._setup(table_types)
         self.t.remove_columns('a')
         assert self.t.columns.keys() == []
-        assert self.t.as_array() is None
+        assert self.t.as_array().size == 0
+        # Regression test for gh-8640
+        assert not self.t
+        assert isinstance(self.t == None, np.ndarray)
+        assert (self.t == None).size == 0
 
     def test_2(self, table_types):
         self._setup(table_types)
@@ -948,7 +952,11 @@ class TestRemove(SetupData):
         self._setup(table_types)
         del self.t['a']
         assert self.t.columns.keys() == []
-        assert self.t.as_array() is None
+        assert self.t.as_array().size == 0
+        # Regression test for gh-8640
+        assert not self.t
+        assert isinstance(self.t == None, np.ndarray)
+        assert (self.t == None).size == 0
 
     def test_delitem2(self, table_types):
         self._setup(table_types)
@@ -974,7 +982,11 @@ class TestKeep(SetupData):
         t = table_types.Table([self.a, self.b])
         t.keep_columns([])
         assert t.columns.keys() == []
-        assert t.as_array() is None
+        assert t.as_array().size == 0
+        # Regression test for gh-8640
+        assert not t
+        assert isinstance(t == None, np.ndarray)
+        assert (t == None).size == 0
 
     def test_2(self, table_types):
         self._setup(table_types)
