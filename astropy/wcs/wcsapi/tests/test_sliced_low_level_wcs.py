@@ -1,7 +1,5 @@
 import pytest
 
-import numpy as np
-
 from numpy.testing import assert_equal, assert_allclose
 from astropy.wcs import WCS
 from astropy.io.fits import Header
@@ -465,9 +463,9 @@ This transformation has 3 pixel and 3 world dimensions
 Array shape (Numpy order): None
 
 Pixel Dim  Data size  Bounds
-        0  None       None
-        1  None       None
-        2  None       None
+        0       None  None
+        1       None  None
+        2       None  None
 
 World Dim  Physical Type     Units
         0  pos.galactic.lat  deg
