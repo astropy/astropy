@@ -286,8 +286,8 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
         for ipix in range(self.pixel_n_dim):
             s += (('{0:' + str(pixel_dim_width) + 'd}').format(ipix) + '  ' +
-                  ('{0:' + str(pixel_siz_width) + 's}').format(
-                      str(None if pixel_shape[ipix] is None else pixel_shape[ipix])) + '  ' +
+                  (" "*5 + str(None) if pixel_shape[ipix] is None else
+                   ('{0:' + str(pixel_siz_width) + 'd}').format(pixel_shape[ipix])) + '  ' +
                   '{0:s}'.format(str(None if self.pixel_bounds is None else self.pixel_bounds[ipix]) + '\n'))
 
         s += '\n'
