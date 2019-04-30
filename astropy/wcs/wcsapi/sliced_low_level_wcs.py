@@ -103,7 +103,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
             else:
                 world_arrays_new.append(1.)
 
-        pixel_arrays = self._wcs.world_to_pixel_values(*world_arrays_new)
+        pixel_arrays = list(self._wcs.world_to_pixel_values(*world_arrays_new))
 
         for ipixel in range(self._wcs.pixel_n_dim):
             if isinstance(self._slices_pixel[ipixel], slice) and self._slices_pixel[ipixel].start is not None:

@@ -496,8 +496,8 @@ def test_no_array_shape():
     assert_equal(wcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
 
     assert wcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
-                                                  ('freq', 0, 'value'),
-                                                  ('celestial', 0, 'spherical.lon.degree')]
+                                                ('freq', 0, 'value'),
+                                                ('celestial', 0, 'spherical.lon.degree')]
 
     assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
     assert wcs.world_axis_object_classes['celestial'][1] == ()
