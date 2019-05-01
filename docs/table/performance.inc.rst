@@ -24,3 +24,18 @@ end::
   >>> for i in range(100):
   ...    rows.append((1, 2))
   >>> t = Table(rows=rows, names=['a', 'b'])
+
+Writing a |Table| with |MaskedColumn| to ``.ecsv`` using
+:meth:`~astropy.table.Table.write` can be very slow::
+
+    >>> from astropy.table import Table
+    >>> import numpy as np
+    >>> x = np.arange(10000, dtype=float)
+    >>> tm = Table([x], masked=True)
+    >>> tm.write('tm.ecsv', overwrite=True) # doctest: +SKIP
+
+If you want to write ``.ecsv`` using :meth:`~astropy.table.Table.write`,
+then use ``serialize_method='data_mask'``.
+It uses the non-masked version of data and it is faster::
+
+    >>> tm.write('tm.ecsv', overwrite=True, serialize_method='data_mask') # doctest: +SKIP
