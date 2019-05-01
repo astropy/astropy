@@ -273,9 +273,12 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
         # Pixel dimensions table
 
+        array_shape = self.array_shape or (0,)
+        pixel_shape = self.pixel_shape or (None,) * self.pixel_n_dim
+
         # Find largest between header size and value length
         pixel_dim_width = max(9, len(str(self.pixel_n_dim)))
-        pixel_siz_width = max(9, len(str(max(self.array_shape))))
+        pixel_siz_width = max(9, len(str(max(array_shape))))
 
         s += (('{0:' + str(pixel_dim_width) + 's}').format('Pixel Dim') + '  ' +
               ('{0:' + str(pixel_siz_width) + 's}').format('Data size') + '  ' +
@@ -283,7 +286,8 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
         for ipix in range(self.pixel_n_dim):
             s += (('{0:' + str(pixel_dim_width) + 'd}').format(ipix) + '  ' +
-                  ('{0:' + str(pixel_siz_width) + 'd}').format(self.pixel_shape[ipix]) + '  ' +
+                  (" "*5 + str(None) if pixel_shape[ipix] is None else
+                   ('{0:' + str(pixel_siz_width) + 'd}').format(pixel_shape[ipix])) + '  ' +
                   '{0:s}'.format(str(None if self.pixel_bounds is None else self.pixel_bounds[ipix]) + '\n'))
 
         s += '\n'

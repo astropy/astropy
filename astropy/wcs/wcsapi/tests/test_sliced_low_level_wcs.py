@@ -1,7 +1,5 @@
 import pytest
 
-import numpy as np
-
 from numpy.testing import assert_equal, assert_allclose
 from astropy.wcs import WCS
 from astropy.io.fits import Header
@@ -434,3 +432,86 @@ def test_celestial_range_rot():
     assert_equal(wcs.pixel_bounds, [(-6, 6), (-2, 18), (5, 15)])
 
     assert str(wcs) == repr(wcs) == EXPECTED_CELESTIAL_RANGE_ROT_REPR.strip()
+
+
+HEADER_NO_SHAPE_CUBE = """
+NAXIS   = 3
+CTYPE1  = GLAT-CAR
+CTYPE2  = FREQ
+CTYPE3  = GLON-CAR
+CRVAL1  = 10
+CRVAL2  = 20
+CRVAL3  = 25
+CRPIX1  = 30
+CRPIX2  = 40
+CRPIX3  = 45
+CDELT1  = -0.1
+CDELT2  =  0.5
+CDELT3  =  0.1
+CUNIT1  = deg
+CUNIT2  = Hz
+CUNIT3  = deg
+"""
+
+WCS_NO_SHAPE_CUBE = WCS(Header.fromstring(HEADER_NO_SHAPE_CUBE, sep='\n'))
+
+EXPECTED_NO_SHAPE_REPR = """
+SlicedLowLevelWCS Transformation
+
+This transformation has 3 pixel and 3 world dimensions
+
+Array shape (Numpy order): None
+
+Pixel Dim  Data size  Bounds
+        0       None  None
+        1       None  None
+        2       None  None
+
+World Dim  Physical Type     Units
+        0  pos.galactic.lat  deg
+        1  em.freq           Hz
+        2  pos.galactic.lon  deg
+
+Correlation between pixel and world axes:
+
+             Pixel Dim
+World Dim    0    1    2
+        0  yes   no  yes
+        1   no  yes   no
+        2  yes   no  yes
+"""
+
+
+def test_no_array_shape():
+
+    wcs = SlicedLowLevelWCS(WCS_NO_SHAPE_CUBE, Ellipsis)
+
+    assert wcs.pixel_n_dim == 3
+    assert wcs.world_n_dim == 3
+    assert wcs.array_shape is None
+    assert wcs.pixel_shape is None
+    assert wcs.world_axis_physical_types == ['pos.galactic.lat', 'em.freq', 'pos.galactic.lon']
+    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
+
+    assert_equal(wcs.axis_correlation_matrix, [[True, False, True], [False, True, False], [True, False, True]])
+
+    assert wcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
+                                                ('freq', 0, 'value'),
+                                                ('celestial', 0, 'spherical.lon.degree')]
+
+    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
+    assert wcs.world_axis_object_classes['celestial'][1] == ()
+    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], Galactic)
+    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
+
+    assert wcs.world_axis_object_classes['freq'][0] is Quantity
+    assert wcs.world_axis_object_classes['freq'][1] == ()
+    assert wcs.world_axis_object_classes['freq'][2] == {'unit': 'Hz'}
+
+    assert_allclose(wcs.pixel_to_world_values(29, 39, 44), (10, 20, 25))
+    assert_allclose(wcs.array_index_to_world_values(44, 39, 29), (10, 20, 25))
+
+    assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (29., 39., 44.))
+    assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 29))
+
+    assert str(wcs) == repr(wcs) == EXPECTED_NO_SHAPE_REPR.strip()

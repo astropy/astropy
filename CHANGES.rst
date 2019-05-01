@@ -773,6 +773,8 @@ astropy.wcs
   ``WCS.wcs.cunit`` are equal or not by comparing the data members of
   ``UnitListProxy`` class [#8480]
 
+- Fixed ``SlicedLowLevelWCS`` when ``array_shape`` is ``None``. [#8649]
+
 
 Other Changes and Additions
 ---------------------------
