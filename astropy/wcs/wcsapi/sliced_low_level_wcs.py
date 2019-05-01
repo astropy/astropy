@@ -103,7 +103,7 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
             else:
                 world_arrays_new.append(1.)
 
-        pixel_arrays = self._wcs.world_to_pixel_values(*world_arrays_new)
+        pixel_arrays = list(self._wcs.world_to_pixel_values(*world_arrays_new))
 
         for ipixel in range(self._wcs.pixel_n_dim):
             if isinstance(self._slices_pixel[ipixel], slice) and self._slices_pixel[ipixel].start is not None:
@@ -127,11 +127,13 @@ class SlicedLowLevelWCS(BaseLowLevelWCS):
 
     @property
     def array_shape(self):
-        return np.broadcast_to(0, self._wcs.array_shape)[tuple(self._slices_array)].shape
+        if self._wcs.array_shape:
+            return np.broadcast_to(0, self._wcs.array_shape)[tuple(self._slices_array)].shape
 
     @property
     def pixel_shape(self):
-        return self.array_shape[::-1]
+        if self.array_shape:
+            return self.array_shape[::-1]
 
     @property
     def pixel_bounds(self):
