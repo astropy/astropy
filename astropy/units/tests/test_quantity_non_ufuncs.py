@@ -1092,6 +1092,8 @@ class TestStringFunctions(metaclass=CoverageMeta):
 
 
 class TestBitAndIndexFunctions(metaclass=CoverageMeta):
+    # Index/bit functions generally fail for floats, so the usual
+    # float quantity are safe, but the integer ones are not.
     def setup(self):
         self.q = np.arange(3) * u.m
         self.uint_q = u.Quantity(np.arange(3), 'm', dtype='u1')
@@ -1124,15 +1126,46 @@ class TestBitAndIndexFunctions(metaclass=CoverageMeta):
         with pytest.raises(TypeError):
             np.ravel_multi_index((self.uint_q,), 3)
 
+    @pytest.mark.xfail
+    def test_ix_(self):
+        with pytest.raises(TypeError):
+            np.ix_(self.q)
+        with pytest.raises(TypeError):
+            np.ix_(self.uint_q)
 
-dtype_functions = {
-    np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
-    np.iscomplexobj, np.isrealobj,
-    }
-CoverageMeta.covered |= dtype_functions
 
-mesh_functions = {np.ix_, np.meshgrid}
-CoverageMeta.covered |= mesh_functions
+class TestDtypeFunctions(NoUnitTestSetup):
+    def test_common_type(self):
+        self.check(np.common_type)
+
+    def test_result_type(self):
+        self.check(np.result_type)
+
+    def test_can_cast(self):
+        self.check(np.can_cast, self.q.dtype)
+        self.check(np.can_cast, 'f4')
+
+    def test_min_scalar_type(self):
+        out = np.min_scalar_type(self.q[0])
+        expected = np.min_scalar_type(self.q.value[0])
+        assert out == expected
+
+    def test_iscomplexobj(self):
+        self.check(np.iscomplexobj)
+
+    def test_isrealobj(self):
+        self.check(np.isrealobj)
+
+
+class TestMeshGrid(metaclass=CoverageMeta):
+    def test_meshgrid(self):
+        q1 = np.arange(3.) * u.m
+        q2 = np.arange(5.) * u.s
+        o1, o2 = np.meshgrid(q1, q2)
+        e1, e2 = np.meshgrid(q1.value, q2.value)
+        assert np.all(o1 == e1 * q1.unit)
+        assert np.all(o2 == e2 * q2.unit)
+
 
 function_functions = {
     np.apply_along_axis, np.apply_over_axes,
