@@ -1096,7 +1096,7 @@ class TestStringFunctions(metaclass=CoverageMeta):
         assert out == expected
 
 
-class TestBitFunctions(metaclass=CoverageMeta):
+class TestBitAndIndexFunctions(metaclass=CoverageMeta):
     def setup(self):
         self.q = np.arange(3) * u.m
         self.uint_q = u.Quantity(np.arange(3), 'm', dtype='u1')
@@ -1115,9 +1115,20 @@ class TestBitFunctions(metaclass=CoverageMeta):
         with pytest.raises(TypeError):
             np.unpackbits(self.uint_q)
 
+    @pytest.mark.xfail
+    def test_unravel_index(self):
+        with pytest.raises(TypeError):
+            np.unravel_index((self.q,), 3)
+        with pytest.raises(TypeError):
+            np.unravel_index((self.uint_q,), 3)
 
-index_functions = {np.ravel_multi_index, np.unravel_index}
-CoverageMeta.covered |= index_functions
+    @pytest.mark.xfail
+    def test_ravel_multi_index(self):
+        with pytest.raises(TypeError):
+            np.ravel_multi_index((self.q,), 3)
+        with pytest.raises(TypeError):
+            np.ravel_multi_index((self.uint_q,), 3)
+
 
 dtype_functions = {
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
