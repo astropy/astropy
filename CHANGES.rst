@@ -425,6 +425,7 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+
 - Initializing a table with ``Table(rows=...)``, if the first item is an ``OrderedDict``,
   now preserves column order. [#8587]
 
@@ -596,6 +597,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Converting an empty table to an array using ``as_array`` method now returns
+  an empty array instead of ``None``. [#8647]
+
 - Changed the behavior when slicing a table (either in rows or with a list of column
   names) so now the sliced output gets a light (key-only) copy of ``meta`` instead of
   a deepcopy.  Changed the ``Table.meta`` class-level descriptor so that assigning
@@ -715,6 +719,9 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
+- Fixed a bug when initializing from an empty list: ``Table([])`` no longer
+  results in a crash. [#8647]
 
 - Fixed a bug when initializing from an existing ``Table``.  In this case the
   input ``meta`` argument was being ignored.  Now the input ``meta``, if
@@ -2310,9 +2317,6 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
-
-- Converting an empty table to an array using ``as_array`` method now returns
-  an empty array instead of ``None``. [#8647]
 
 astropy.tests
 ^^^^^^^^^^^^^
