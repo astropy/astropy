@@ -1175,6 +1175,24 @@ class TestMemoryFunctions(NoUnitTestSetup):
         self.check(np.may_share_memory, self.q.value)
 
 
+class TestDatetimeFunctions(BasicTestSetup):
+    def test_busday_count(self):
+        with pytest.raises(TypeError):
+            np.busday_count(self.q, self.q)
+
+    def test_busday_offset(self):
+        with pytest.raises(TypeError):
+            np.busday_offset(self.q, self.q)
+
+    def test_datetime_as_string(self):
+        with pytest.raises(TypeError):
+            np.datetime_as_string(self.q)
+
+    def test_is_busday(self):
+        with pytest.raises(TypeError):
+            np.is_busday(self.q)
+
+
 function_functions = {
     np.apply_along_axis, np.apply_over_axes,
     }
@@ -1183,12 +1201,6 @@ CoverageMeta.covered |= function_functions
 financial_functions = {f for f in all_wrapped_functions.values()
                        if f in np.lib.financial.__dict__.values()}
 CoverageMeta.covered |= financial_functions
-
-datetime_functions = {
-    np.busday_count, np.busday_offset, np.datetime_as_string,
-    np.is_busday,
-    }
-CoverageMeta.covered |= datetime_functions.copy()
 
 deprecated_functions = {
     np.asscalar, np.rank
