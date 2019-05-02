@@ -40,11 +40,24 @@ class BasicTestSetup(metaclass=CoverageMeta):
     def setup(self):
         self.q = np.arange(9.).reshape(3, 3) / 4. * u.m
 
+
+class InvariantUnitTestSetup(BasicTestSetup):
     def check(self, func, *args, **kwargs):
         o = func(self.q, *args, **kwargs)
         expected = func(self.q.value, *args, **kwargs) * self.q.unit
         assert o.shape == expected.shape
         assert np.all(o == expected)
+
+
+class NoUnitTestSetup(BasicTestSetup):
+    def check(self, func, *args, **kwargs):
+        out = func(self.q, *args, **kwargs)
+        expected = func(self.q.value, *args, *kwargs)
+        assert type(out) is type(expected)
+        if isinstance(expected, tuple):
+            assert all(np.all(o == x) for o, x in zip(out, expected))
+        else:
+            assert np.all(out == expected)
 
 
 class TestShapeInformation(BasicTestSetup):
@@ -61,7 +74,7 @@ class TestShapeInformation(BasicTestSetup):
         assert np.ndim(self.q) == 2
 
 
-class TestShapeManipulation(BasicTestSetup):
+class TestShapeManipulation(InvariantUnitTestSetup):
     # Note: do not parametrize the below, since test names are used
     # to check coverage.
     def test_reshape(self):
@@ -141,16 +154,7 @@ class TestShapeManipulation(BasicTestSetup):
         assert np.all(o2 == q2)
 
 
-class TestArgFunctions(BasicTestSetup):
-    def check(self, func, *args, **kwargs):
-        out = func(self.q, *args, **kwargs)
-        expected = func(self.q.value, *args, *kwargs)
-        assert type(out) is type(expected)
-        if isinstance(expected, tuple):
-            assert all(np.all(o == x) for o, x in zip(out, expected))
-        else:
-            assert np.all(out == expected)
-
+class TestArgFunctions(NoUnitTestSetup):
     def test_argmin(self):
         self.check(np.argmin)
 
@@ -202,13 +206,7 @@ class TestAlongAxis(BasicTestSetup):
         assert np.all(q == expected)
 
 
-class TestIndicesFrom(BasicTestSetup):
-    def check(self, func, *args, **kwargs):
-        o = func(self.q, *args, **kwargs)
-        expected = func(self.q.value, *args, **kwargs)
-        assert len(o) == len(expected)
-        assert all(np.all(_o == _x) for _o, _x, in zip(o, expected))
-
+class TestIndicesFrom(NoUnitTestSetup):
     def test_diag_indices_from(self):
         self.check(np.diag_indices_from)
 
@@ -219,7 +217,7 @@ class TestIndicesFrom(BasicTestSetup):
         self.check(np.tril_indices_from)
 
 
-class TestRealImag(BasicTestSetup):
+class TestRealImag(InvariantUnitTestSetup):
     def setup(self):
         self.q = (np.arange(9.).reshape(3, 3) + 1j) * u.m
 
@@ -230,7 +228,7 @@ class TestRealImag(BasicTestSetup):
         self.check(np.imag)
 
 
-class TestCopyAndCreation(BasicTestSetup):
+class TestCopyAndCreation(InvariantUnitTestSetup):
     @pytest.mark.xfail
     def test_copy(self):
         self.check(np.copy)
@@ -259,7 +257,7 @@ class TestCopyAndCreation(BasicTestSetup):
         assert np.all(o == expected)
 
 
-class TestAccessingParts(BasicTestSetup):
+class TestAccessingParts(InvariantUnitTestSetup):
     def test_diag(self):
         self.check(np.diag)
 
@@ -301,13 +299,11 @@ class TestAccessingParts(BasicTestSetup):
 
 
 class TestSettingParts(metaclass=CoverageMeta):
-    @pytest.mark.xfail
     def test_put(self):
         q = np.arange(3.) * u.m
+        np.put(q, [0, 2], [50, 150] * u.cm)
         assert q.unit == u.m
-        expected = self.q.value.copy()
-        np.put(expected, [0, 2], [0.5, 1.5])
-        expected = expected * u.m
+        expected = [50, 100, 150] * u.cm
         assert np.all(q == expected)
 
     @pytest.mark.xfail
@@ -334,18 +330,17 @@ class TestSettingParts(metaclass=CoverageMeta):
         expected = [50, 100, 150] * u.cm
         assert np.all(q == expected)
 
-    @pytest.mark.xfail
     def test_fill_diagonal(self):
-        q = self.q.copy()
-        np.fill_diagonal(q, 25. * u.cm)
-        assert q.unit == u.m
-        expected = self.q.value.copy()
+        q = np.arange(9.).reshape(3, 3) * u.m
+        expected = q.value.copy()
         np.fill_diagonal(expected, 0.25)
         expected = expected * u.m
+        np.fill_diagonal(q, 25. * u.cm)
+        assert q.unit == u.m
         assert np.all(q == expected)
 
 
-class TestRepeat(BasicTestSetup):
+class TestRepeat(InvariantUnitTestSetup):
     def test_tile(self):
         self.check(np.tile, 2)
 
@@ -450,7 +445,7 @@ class TestSplit(metaclass=CoverageMeta):
         self.check(np.dsplit, [1])
 
 
-class TestUfuncReductions(BasicTestSetup):
+class TestUfuncReductions(InvariantUnitTestSetup):
     def test_amax(self):
         self.check(np.amax)
 
@@ -496,7 +491,7 @@ class TestUfuncReductions(BasicTestSetup):
             np.cumproduct(self.q)
 
 
-class TestUfuncLike(BasicTestSetup):
+class TestUfuncLike(InvariantUnitTestSetup):
     def test_ptp(self):
         self.check(np.ptp)
         self.check(np.ptp, axis=0)
@@ -640,7 +635,7 @@ class TestUfuncLikeTests(metaclass=CoverageMeta):
         assert np.all(out == expected)
 
 
-class TestReductionLikeFunctions(BasicTestSetup):
+class TestReductionLikeFunctions(InvariantUnitTestSetup):
     def test_average(self):
         q1 = np.arange(9.).reshape(3, 3) * u.m
         q2 = np.eye(3) / u.s
@@ -723,7 +718,7 @@ class TestReductionLikeFunctions(BasicTestSetup):
         assert not np.array_equiv(q1, q3)
 
 
-class TestNanFunctions(BasicTestSetup):
+class TestNanFunctions(InvariantUnitTestSetup):
     def setup(self):
         super().setup()
         self.q[1, 1] = np.nan
@@ -1057,7 +1052,7 @@ class TestNumericalFunctions(metaclass=CoverageMeta):
             np.corrcoef(x)
 
 
-class TestSortFunctions(BasicTestSetup):
+class TestSortFunctions(InvariantUnitTestSetup):
     def test_sort(self):
         self.check(np.sort)
 
