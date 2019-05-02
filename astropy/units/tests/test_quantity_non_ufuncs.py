@@ -1126,11 +1126,55 @@ class TestSortFunctions(BasicTestSetup):
 
 check |= get_covered_functions(TestSortFunctions)
 
-string_functions = {np.array_repr, np.array_str, np.array2string}
-check |= string_functions
 
-bit_functions = {np.packbits, np.unpackbits}
-check |= bit_functions
+class TestStringFunctions:
+    def setup(self):
+        self.q = np.arange(3.) * u.Jy
+
+    @pytest.mark.xfail
+    def test_array_repr(self):
+        out = np.array_repr(self.q)
+        expected = (np.array_repr(self.q.value)[:-1] +
+                    ', {!r})'.format(str(self.q.unit)))
+        assert out == expected
+
+    @pytest.mark.xfail
+    def test_array_str(self):
+        out = np.array_str(self.q)
+        expected = str(self.q)
+        assert out == expected
+
+    @pytest.mark.xfail
+    def test_array2string(self):
+        out = np.array2string(self.q)
+        expected = str(self.q)
+        assert out == expected
+
+
+check |= get_covered_functions(TestStringFunctions)
+
+
+class TestBitFunctions:
+    def setup(self):
+        self.q = np.arange(3) * u.m
+        self.uint_q = u.Quantity(np.arange(3), 'm', dtype='u1')
+
+    @pytest.mark.xfail
+    def test_packbits(self):
+        with pytest.raises(TypeError):
+            np.packbits(self.q)
+        with pytest.raises(TypeError):
+            np.packbits(self.uint_q)
+
+    @pytest.mark.xfail
+    def test_unpackbits(self):
+        with pytest.raises(TypeError):
+            np.unpackbits(self.q)
+        with pytest.raises(TypeError):
+            np.unpackbits(self.uint_q)
+
+
+check |= get_covered_functions(TestBitFunctions)
 
 index_functions = {np.ravel_multi_index, np.unravel_index}
 check |= index_functions
