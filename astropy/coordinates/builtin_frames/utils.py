@@ -16,11 +16,10 @@ from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
 
 
-# The UTC time scale is not properly defined prior to 1960, so Time('B1950',
-# scale='utc') will emit a warning. Instead, we use Time('B1950', scale='tai')
-# which is equivalent, but does not emit a warning.
+# We use tt as the time scale for this equinoxes, primarily because it is the
+# convention for J2000 (it is unclear if there is any "right answer" for B1950)
 EQUINOX_J2000 = Time('J2000', scale='tt')
-EQUINOX_B1950 = Time('B1950', scale='tai')
+EQUINOX_B1950 = Time('B1950', scale='tt')
 
 # This is a time object that is the default "obstime" when such an attribute is
 # necessary.  Currently, we use J2000.
