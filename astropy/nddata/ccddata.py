@@ -76,6 +76,58 @@ def _uncertainty_unit_equivalent_to_parent(uncertainty_type, unit, parent_unit):
                      .format(uncertainty_type))
 
 
+def _create_array_memmap(filename, data, dtype=None):
+    """Create a memory map to an array data."""
+    if data is None:
+        return
+    dtype = dtype or data.dtype
+    shape = data.shape
+    memmap = np.memmap(filename, mode='w+', dtype=dtype, shape=shape)
+    memmap[:] = data[:]
+    return memmap
+
+
+def _delete_array_memmap(memmap, read=True):
+    """Delete a memmap and read the data to a np.ndarray"""
+    if read:
+        data = np.array(memmap[:])
+    else:
+        data = None
+    name = memmap.filename
+    del memmap
+    os.remove(name)
+
+    return data
+
+
+def _setup_filename(ccddata, cache_folder=None, filename=None):
+    """Setup filename and cache folder to a CCDData"""
+    if not hasattr(ccddata, 'cache_folder'):
+        cache_folder_ccd = None
+    else:
+        cache_folder_ccd = ccddata.cache_folder
+
+    cache_folder = cache_folder_ccd or cache_folder
+    cache_folder = cache_folder or mkdtemp(prefix='ccddata')
+
+    if not hasattr(ccddata, 'cache_filename'):
+        filename_ccd = None
+    else:
+        filename_ccd = ccddata.cache_filename
+
+    filename = filename_ccd or filename
+    filename = filename or mkstemp(suffix='.npy')[1]
+    filename = os.path.basename(filename)
+
+    ccddata.cache_folder = cache_folder
+    ccddata.cache_filename = filename
+
+    if not os.path.isdir(cache_folder):
+        os.makedirs(cache_folder)
+
+    return os.path.join(cache_folder, filename)
+
+
 class CCDData(NDDataArray):
     """A class describing basic CCD data.
 
@@ -135,13 +187,18 @@ class CCDData(NDDataArray):
             If the unit is ``None`` or not otherwise specified it will raise a
             ``ValueError``
 
-    memmap : bool
+    use_memmap_backend : bool
         Enable the working data to be stored in a disk file, which is acessed
         with memory mapping.
         Default is False
 
     cache_folder : string
-        If memmap is enabled, memory map files will be saved at this folder.
+        If memmap backend is enabled, memory map files will be saved at this
+        folder.
+        Default is ``None``
+
+    cache_filename : string
+        Base name for saving the memory map files.
         Default is ``None``
 
     Raises
@@ -185,8 +242,10 @@ class CCDData(NDDataArray):
     """
 
     def __init__(self, *args, **kwd):
-        self._cache = kwd.pop('chace_folder', None)
-        memmap = kwd.pop('memmap', None)
+        self.cache_folder = kwd.pop('cache_folder', None)
+        self.cache_filename = kwd.pop('cache_filename', None)
+        self.cache_filename = os.path.basename(self.cache_filename)
+        memmap = kwd.pop('use_memmap_backend', None)
 
         if 'meta' not in kwd:
             kwd['meta'] = kwd.pop('header', None)
@@ -210,16 +269,45 @@ class CCDData(NDDataArray):
 
     @data.setter
     def data(self, value):
-        if self.memmaping:
+        if isinstance(self._data, np.memmap):
             if self._data.shape != value.shape or \
                self._data.dtype != value.dtype:
                 name = self._data.filename
-                self._delete_memmap(self._data)
-                self._create_memmap(name, value)
+                _delete_array_memmap(self._data)
+                self._data = _create_array_memmap(name, value)
             else:
                 self._data[:] = value[:]
         else:
             self._data = value
+
+    @data.deleter
+    def data(self):
+        if isinstance(self._data, np.memmap):
+            _delete_array_memmap(self._data, read=False)
+
+    @property
+    def mask(self):
+        return self._mask
+
+    @mask.setter
+    def mask(self, value):
+        if self._mask is None:
+            name = _setup_filename(self) + '.mask'
+            self._mask = _create_array_memmap(name, value, dtype=bool)
+        elif isinstance(self._mask, np.memmap):
+            if self._mask.shape != value.shape:
+                name = self._mask.filename
+                _delete_array_memmap(self._mask)
+                self._mask = _create_array_memmap(name, value, dtype=bool)
+            else:
+                self._mask[:] = value[:]
+        else:
+            self._mask = value
+
+    @mask.deleter
+    def mask(self):
+        if isinstance(self._mask, np.memmap):
+            _delete_array_memmap(self._mask, read=False)
 
     @property
     def wcs(self):
@@ -270,24 +358,6 @@ class CCDData(NDDataArray):
         else:
             self._uncertainty = value
 
-    @property
-    def memmaping(self):
-        return isinstance(self._data, np.memmap)
-
-    def _create_memmap(self, filename, data):
-        dtype = data.dtype
-        shape = data.shape
-        memmap = np.memmap(filename, mode='w+', dtype=dtype, shape=shape)
-        memmap[:] = data[:]
-        return memmap
-
-    def _delete_memmap(self, memmap):
-        data = np.array(memmap[:])
-        name = memmap.filename
-        del memmap
-        os.remove(name)
-        return data
-
     def enable_memmap(self, filename=None, cache_folder=None):
         """Enable CCDData file memmaping usging ``numpy.memmap``.
 
@@ -303,26 +373,20 @@ class CCDData(NDDataArray):
             folder will be created in ``/tmp``.
             Default is ``None``.
         """
-        if isinstance(self._data, np.memmap):
-            return
+        filename = _setup_filename(self, cache_folder, filename)
 
-        # If is not memmaping already, create memmap
-        cache_folder = cache_folder or self._cache
-        cache_folder = cache_folder or mkdtemp(prefix='astropy')
-        if filename is None:
-            f = mkstemp(prefix='ccddata', suffix='.npy',
-                        dir=cache_folder)
-            filename = f[1]
-        else:
-            filename = os.path.join(cache_folder,
-                                    os.path.basename(filename))
-
-        self._data = self._create_memmap(filename, self._data)
+        if not isinstance(self._data, np.memmap):
+            self._data = _create_array_memmap(filename + '.data', self._data)
+        if not isinstance(self._mask, np.memmap):
+            self._mask = _create_array_memmap(filename + '.mask', self._mask,
+                                              dtype=bool)
 
     def disable_memmap(self):
         """Disable CCDData file memmaping (load to memory)."""
         if isinstance(self._data, np.memmap):
-            self._data = self._delete_memmap(self._data)
+            self._data = _delete_array_memmap(self._data)
+        if isinstance(self._mask, np.memmap):
+            self._mask = _delete_array_memmap(self._mask)
 
     def to_hdu(self, hdu_mask='MASK', hdu_uncertainty='UNCERT',
                hdu_flags=None, wcs_relax=True, key_uncertainty_type='UTYPE'):
@@ -491,16 +555,16 @@ class CCDData(NDDataArray):
         else:
             self.meta[key] = value
 
+    def _clear_cache_folder(self):
+        if self.cache_folder is not None:
+            if len(os.listdir(self.cache_folder)) == 0:
+                shutil.rmtree(self.cache_folder)
+
     def __del__(self):
-        # Ensure cleaning on exit!
-        if self.memmaping:
-            dirname = os.path.dirname(self._data.filename)
-            self._delete_memmap(self._data)
-
-            if len(os.listdir(dirname)) == 0:
-                shutil.rmtree(dirname)
-
-        super().__del__()
+        # Ensure data cleaning
+        del self.data
+        del self.mask
+        self._clear_cache_folder()
 
 
 # These need to be importable by the tests...
@@ -511,6 +575,7 @@ _KEEP_THESE_KEYWORDS_IN_HEADER = [
 ]
 _PCs = set(['PC1_1', 'PC1_2', 'PC2_1', 'PC2_2'])
 _CDs = set(['CD1_1', 'CD1_2', 'CD2_1', 'CD2_2'])
+
 
 def _generate_wcs_and_update_header(hdr):
     """

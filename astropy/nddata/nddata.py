@@ -222,7 +222,7 @@ class NDData(NDDataBase):
 
         # Store the attributes
         self._data = data
-        self.mask = mask
+        self._mask = mask
         self._wcs = wcs
         self.meta = meta  # TODO: Make this call the setter sometime
         self._unit = unit
