@@ -439,7 +439,7 @@ additional attributes that are required to fully define the frame::
 
   >>> sc_fk4 = SkyCoord(1, 2, frame='fk4', unit='deg')
   >>> sc_fk4.get_frame_attr_names()
-  OrderedDict([('equinox', <Time object: scale='tai' format='byear_str' value=B1950.000>), ('obstime', None)])
+  OrderedDict([('equinox', <Time object: scale='tt' format='byear_str' value=B1950.000>), ('obstime', None)])
 
 The key values correspond to the defaults if no explicit value is provided by
 the user. This example shows that the `~astropy.coordinates.FK4` frame has two
