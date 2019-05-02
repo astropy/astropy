@@ -8,30 +8,35 @@ from astropy import units as u
 from astropy.utils.compat import NUMPY_LT_1_17
 
 
-def get_covered_functions(cls):
-    """Helper function to extract the numpy functions covered.
-
-    Assumes that a test is called 'test_<function_name>'.
-    """
-    covered = []
-    for k, v in cls.__dict__.items():
-        if inspect.isfunction(v) and k.startswith('test'):
-            f = k.replace('test_', '')
-            if f in all_wrapped_functions:
-                covered.append(all_wrapped_functions[f])
-
-    return set(covered)
-
-
 # To get the functions that could be covered, we look for those that
 # are wrapped.  Of course, this does not give a full list pre-1.17.
 all_wrapped_functions = {name: f for name, f in np.__dict__.items()
                          if callable(f) and hasattr(f, '__wrapped__') and
                          f is not np.printoptions}
-check = set()
 
 
-class BasicTestSetup:
+class CoverageMeta(type):
+    """Meta class that tracks which functions are covered by tests.
+
+    Assumes that a test is called 'test_<function_name>'.
+    """
+    covered = set()
+
+    def __new__(mcls, name, bases, members):
+        for k, v in members.items():
+            if inspect.isfunction(v) and k.startswith('test'):
+                f = k.replace('test_', '')
+                if f in all_wrapped_functions:
+                    mcls.covered.add(all_wrapped_functions[f])
+
+        return super().__new__(mcls, name, bases, members)
+
+
+class BasicTestSetup(metaclass=CoverageMeta):
+    """Test setup for functions that should not change the unit.
+
+    Also provides a default Quantity with shape (3, 3) and units of m.
+    """
     def setup(self):
         self.q = np.arange(9.).reshape(3, 3) / 4. * u.m
 
@@ -54,9 +59,6 @@ class TestShapeInformation(BasicTestSetup):
 
     def test_ndim(self):
         assert np.ndim(self.q) == 2
-
-
-check |= get_covered_functions(TestShapeInformation)
 
 
 class TestShapeManipulation(BasicTestSetup):
@@ -139,9 +141,6 @@ class TestShapeManipulation(BasicTestSetup):
         assert np.all(o2 == q2)
 
 
-check |= get_covered_functions(TestShapeManipulation)
-
-
 class TestArgFunctions(BasicTestSetup):
     def check(self, func, *args, **kwargs):
         out = func(self.q, *args, **kwargs)
@@ -185,9 +184,6 @@ class TestArgFunctions(BasicTestSetup):
         self.check(np.flatnonzero)
 
 
-check |= get_covered_functions(TestArgFunctions)
-
-
 class TestAlongAxis(BasicTestSetup):
     def test_take_along_axis(self):
         indices = np.expand_dims(np.argmax(self.q, axis=0), axis=0)
@@ -204,9 +200,6 @@ class TestAlongAxis(BasicTestSetup):
         np.put_along_axis(expected, indices, axis=0, values=-1)
         expected = expected * q.unit
         assert np.all(q == expected)
-
-
-check |= get_covered_functions(TestAlongAxis)
 
 
 class TestIndicesFrom(BasicTestSetup):
@@ -226,9 +219,6 @@ class TestIndicesFrom(BasicTestSetup):
         self.check(np.tril_indices_from)
 
 
-check |= get_covered_functions(TestIndicesFrom)
-
-
 class TestRealImag(BasicTestSetup):
     def setup(self):
         self.q = (np.arange(9.).reshape(3, 3) + 1j) * u.m
@@ -238,9 +228,6 @@ class TestRealImag(BasicTestSetup):
 
     def test_imag(self):
         self.check(np.imag)
-
-
-check |= get_covered_functions(TestRealImag)
 
 
 class TestCopyAndCreation(BasicTestSetup):
@@ -270,9 +257,6 @@ class TestCopyAndCreation(BasicTestSetup):
         expected = np.empty_like(self.q.value) * u.m
         expected[...] = 0.5 * u.km
         assert np.all(o == expected)
-
-
-check |= get_covered_functions(TestCopyAndCreation)
 
 
 class TestAccessingParts(BasicTestSetup):
@@ -316,10 +300,7 @@ class TestAccessingParts(BasicTestSetup):
         self.check(np.take, 1)
 
 
-check |= get_covered_functions(TestAccessingParts)
-
-
-class TestSettingParts:
+class TestSettingParts(metaclass=CoverageMeta):
     @pytest.mark.xfail
     def test_put(self):
         q = np.arange(3.) * u.m
@@ -364,9 +345,6 @@ class TestSettingParts:
         assert np.all(q == expected)
 
 
-check |= get_covered_functions(TestSettingParts)
-
-
 class TestRepeat(BasicTestSetup):
     def test_tile(self):
         self.check(np.tile, 2)
@@ -375,10 +353,7 @@ class TestRepeat(BasicTestSetup):
         self.check(np.repeat, 2)
 
 
-check |= get_covered_functions(TestRepeat)
-
-
-class TestConcatenate:
+class TestConcatenate(metaclass=CoverageMeta):
     def setup(self):
         self.q1 = np.arange(6.).reshape(2, 3) * u.m
         self.q2 = self.q1.to(u.cm)
@@ -447,10 +422,7 @@ class TestConcatenate:
         assert np.all(out == expected)
 
 
-check |= get_covered_functions(TestConcatenate)
-
-
-class TestSplit:
+class TestSplit(metaclass=CoverageMeta):
     def setup(self):
         self.q = np.arange(54.).reshape(3, 3, 6) * u.m
 
@@ -476,9 +448,6 @@ class TestSplit:
 
     def test_dsplit(self):
         self.check(np.dsplit, [1])
-
-
-check |= get_covered_functions(TestSplit)
 
 
 class TestUfuncReductions(BasicTestSetup):
@@ -525,9 +494,6 @@ class TestUfuncReductions(BasicTestSetup):
     def test_cumproduct(self):
         with pytest.raises(u.UnitsError):
             np.cumproduct(self.q)
-
-
-check |= get_covered_functions(TestUfuncReductions)
 
 
 class TestUfuncLike(BasicTestSetup):
@@ -631,10 +597,7 @@ class TestUfuncLike(BasicTestSetup):
         assert np.all(out == expected)
 
 
-check |= get_covered_functions(TestUfuncLike)
-
-
-class TestUfuncLikeTests:
+class TestUfuncLikeTests(metaclass=CoverageMeta):
     def setup(self):
         self.q = np.array([-np.inf, +np.inf, np.nan, 3., 4.]) * u.m
 
@@ -675,9 +638,6 @@ class TestUfuncLikeTests:
         expected = np.isclose(self.q.value, q_cm.to_value(u.m),
                               equal_nan=True)
         assert np.all(out == expected)
-
-
-check |= get_covered_functions(TestUfuncLikeTests)
 
 
 class TestReductionLikeFunctions(BasicTestSetup):
@@ -763,9 +723,6 @@ class TestReductionLikeFunctions(BasicTestSetup):
         assert not np.array_equiv(q1, q3)
 
 
-check |= get_covered_functions(TestReductionLikeFunctions)
-
-
 class TestNanFunctions(BasicTestSetup):
     def setup(self):
         super().setup()
@@ -830,10 +787,7 @@ class TestNanFunctions(BasicTestSetup):
         assert np.all(o == expected)
 
 
-check |= get_covered_functions(TestNanFunctions)
-
-
-class TestVariousProductFunctions:
+class TestVariousProductFunctions(metaclass=CoverageMeta):
     """
     Test functions that are similar to gufuncs
     """
@@ -914,10 +868,7 @@ class TestVariousProductFunctions:
         assert o[0] == ['einsum_path', (0, 1)]
 
 
-check |= get_covered_functions(TestVariousProductFunctions)
-
-
-class TestNumericalFunctions:
+class TestNumericalFunctions(metaclass=CoverageMeta):
     def test_trapz(self):
         y = np.arange(9.) * u.m / u.s
         out = np.trapz(y)
@@ -1106,9 +1057,6 @@ class TestNumericalFunctions:
             np.corrcoef(x)
 
 
-check |= get_covered_functions(TestNumericalFunctions)
-
-
 class TestSortFunctions(BasicTestSetup):
     def test_sort(self):
         self.check(np.sort)
@@ -1124,10 +1072,7 @@ class TestSortFunctions(BasicTestSetup):
         self.check(np.partition, 2)
 
 
-check |= get_covered_functions(TestSortFunctions)
-
-
-class TestStringFunctions:
+class TestStringFunctions(metaclass=CoverageMeta):
     def setup(self):
         self.q = np.arange(3.) * u.Jy
 
@@ -1151,10 +1096,7 @@ class TestStringFunctions:
         assert out == expected
 
 
-check |= get_covered_functions(TestStringFunctions)
-
-
-class TestBitFunctions:
+class TestBitFunctions(metaclass=CoverageMeta):
     def setup(self):
         self.q = np.arange(3) * u.m
         self.uint_q = u.Quantity(np.arange(3), 'm', dtype='u1')
@@ -1174,60 +1116,58 @@ class TestBitFunctions:
             np.unpackbits(self.uint_q)
 
 
-check |= get_covered_functions(TestBitFunctions)
-
 index_functions = {np.ravel_multi_index, np.unravel_index}
-check |= index_functions
+CoverageMeta.covered |= index_functions
 
 dtype_functions = {
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
     np.iscomplexobj, np.isrealobj,
     }
-check |= dtype_functions
+CoverageMeta.covered |= dtype_functions
 
 mesh_functions = {np.ix_, np.meshgrid}
-check |= mesh_functions
+CoverageMeta.covered |= mesh_functions
 
 function_functions = {
     np.apply_along_axis, np.apply_over_axes,
     }
-check |= function_functions
+CoverageMeta.covered |= function_functions
 
 financial_functions = {f for f in all_wrapped_functions.values()
                        if f in np.lib.financial.__dict__.values()}
-check |= financial_functions
+CoverageMeta.covered |= financial_functions
 
 datetime_functions = {
     np.busday_count, np.busday_offset, np.datetime_as_string,
     np.is_busday,
     }
-check |= datetime_functions.copy()
+CoverageMeta.covered |= datetime_functions.copy()
 
 deprecated_functions = {
     np.asscalar, np.rank
     }
-check |= deprecated_functions
+CoverageMeta.covered |= deprecated_functions
 
 memory_functions = {
     np.shares_memory, np.may_share_memory
     }
-check |= memory_functions
+CoverageMeta.covered |= memory_functions
 
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
-check |= io_functions
+CoverageMeta.covered |= io_functions
 
 poly_functions = {
     np.poly, np.polyadd, np.polyder, np.polydiv, np.polyfit, np.polyint,
     np.polymul, np.polysub, np.polyval, np.roots, np.vander
     }
-check |= poly_functions
+CoverageMeta.covered |= poly_functions
 
 setops_functions = {f for f in all_wrapped_functions.values()
                     if f in np.lib.arraysetops.__dict__.values()}
-check |= setops_functions
+CoverageMeta.covered |= setops_functions
 
 
 @pytest.mark.xfail(NUMPY_LT_1_17,
                    reason="no __array_function__ wrapping in numpy<1.17")
 def test_completeness():
-    assert set(all_wrapped_functions.values()) == check
+    assert set(all_wrapped_functions.values()) == CoverageMeta.covered
