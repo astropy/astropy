@@ -425,7 +425,6 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
-
 - Initializing a table with ``Table(rows=...)``, if the first item is an ``OrderedDict``,
   now preserves column order. [#8587]
 
