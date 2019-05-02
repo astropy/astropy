@@ -1167,6 +1167,14 @@ class TestMeshGrid(metaclass=CoverageMeta):
         assert np.all(o2 == e2 * q2.unit)
 
 
+class TestMemoryFunctions(NoUnitTestSetup):
+    def test_shares_memory(self):
+        self.check(np.shares_memory, self.q.value)
+
+    def test_may_share_memory(self):
+        self.check(np.may_share_memory, self.q.value)
+
+
 function_functions = {
     np.apply_along_axis, np.apply_over_axes,
     }
@@ -1186,11 +1194,6 @@ deprecated_functions = {
     np.asscalar, np.rank
     }
 CoverageMeta.covered |= deprecated_functions
-
-memory_functions = {
-    np.shares_memory, np.may_share_memory
-    }
-CoverageMeta.covered |= memory_functions
 
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
 CoverageMeta.covered |= io_functions
