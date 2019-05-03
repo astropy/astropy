@@ -360,6 +360,9 @@ astropy.io.ascii
   method.  This can make writing ECSV significantly faster if the data do not
   actually have any masked values. [#8447]
 
+- Fixed a bug that caused newlines to be incorrect when writing out ASCII tables
+  on Windows (they were ``\r\r\n`` instead of ``\r\n``). [#8659]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
