@@ -2451,11 +2451,11 @@ class CompoundModel(Model):
         if self._leaflist is None:
             self._make_leaflist()
         return len(self._leaflist)
-        
+
     @property
     def model_set_axis(self):
         return self._model_set_axis
-    
+
     @property
     def submodel_names(self):
         if self._leaflist is None:
@@ -2493,7 +2493,7 @@ class CompoundModel(Model):
         # the leaflist as a keyword input for use by model evaluation so that
         # the compound model input names can be matched to the model input
         # names.
-    
+
         if 'equivalencies' in kw:
             self.map_parameters()
             # Restructure to be useful for the individual model lookup
@@ -2501,12 +2501,12 @@ class CompoundModel(Model):
                                       key, value in self.inputs_map().items()]
         with_bbox = kw.pop('with_bounding_box', False)
         fill_value = kw.pop('fill_value', np.nan)
-        # Use of bounding box for compound models requires special treatment 
+        # Use of bounding box for compound models requires special treatment
         # in selecting only valid inputs to pass along to constituent models.
         bbox = get_bounding_box(self)
         if with_bbox and bbox is not None:
             # first check inputs are consistent in shape
-            input_shape = _validate_input_shapes(args, (), self._n_models, 
+            input_shape = _validate_input_shapes(args, (), self._n_models,
                 self.model_set_axis, self.standard_broadcasting)
             vinputs, valid_ind, allout = prepare_bounding_box_inputs(
                                         self, input_shape, args, bbox)
@@ -2524,7 +2524,7 @@ class CompoundModel(Model):
                 return outputs
         else:
             return self._evaluate(*args, **kw)
- 
+
     def _evaluate(self, *args, **kw):
         op = self.op
         if op != '&':
@@ -3732,8 +3732,6 @@ def _prepare_outputs_single_model(model, outputs, format_info):
         broadcast_shape = broadcasts[idx]
         if broadcast_shape is not None:
             if not broadcast_shape:
-                print('broadcast_shape', broadcast_shape)
-                print('output', output)
                 # Shape is (), i.e. a scalar should be returned
                 outputs[idx] = output.item()
             else:
@@ -3871,7 +3869,7 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
     if not validate_broadcasting:
         return
 
-    
+
     input_shape = check_consistent_shapes(*all_shapes)
     if input_shape is None:
         raise ValueError(
@@ -3988,10 +3986,10 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
         inp = np.array(inp)
         outside = (inp < bbox[ind][0] ) | (inp > bbox[ind][1])
         if inp.shape:
-            nan_ind[outside] = True 
+            nan_ind[outside] = True
         else:
-            nan_ind |= outside   
-            allout = True   
+            nan_ind |= outside
+            allout = True
     # get an array with indices of valid inputs
     valid_ind = np.logical_not(nan_ind).nonzero()
     if len(valid_ind[0]) == 0:
@@ -4006,7 +4004,7 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
                 args.append(input)
     return args, valid_ind, allout
 
-def prepare_bounding_box_outputs(valid_result, valid_ind, 
+def prepare_bounding_box_outputs(valid_result, valid_ind,
                                 input_shape, fill_value):
     result = [np.zeros(input_shape) + fill_value
               for vr in valid_result]
