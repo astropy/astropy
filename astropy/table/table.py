@@ -355,8 +355,9 @@ class Table:
         table_array : np.ndarray (unmasked) or np.ma.MaskedArray (masked)
             Copy of table as a numpy structured array
         """
+        empty_init = ma.empty if self.masked else np.empty
         if len(self.columns) == 0:
-            return None
+            return empty_init(0, dtype=None)
 
         sys_byteorder = ('>', '<')[sys.byteorder == 'little']
         native_order = ('=', sys_byteorder)
@@ -378,7 +379,6 @@ class Table:
 
             dtype.append(col_descr)
 
-        empty_init = ma.empty if self.masked else np.empty
         data = empty_init(len(self), dtype=dtype)
         for col in cols:
             # When assigning from one array into a field of a structured array,
@@ -880,7 +880,7 @@ class Table:
         """Initialize table from a list of Column or mixin objects"""
 
         lengths = set(len(col) for col in cols)
-        if len(lengths) != 1:
+        if len(lengths) > 1:
             raise ValueError('Inconsistent data column lengths: {0}'
                              .format(lengths))
 
