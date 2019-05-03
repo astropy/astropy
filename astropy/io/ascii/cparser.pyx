@@ -1020,7 +1020,10 @@ cdef class FastWriter:
         opened_file = False
 
         if not hasattr(output, 'write'): # output is a filename
-            output = open(output, 'w')
+            # NOTE: we need to specify newline='', otherwise the default
+            # behavior is for Python to translate \r\n (which we write because
+            # of os.linesep) into \r\r\n. Specifying newline='' disables any
+            output = open(output, 'w', newline='')
             opened_file = True # remember to close file afterwards
         writer = core.CsvWriter(output,
                                 delimiter=self.delimiter,
