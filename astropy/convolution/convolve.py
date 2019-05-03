@@ -19,7 +19,7 @@ from astropy import units as u
 from astropy.nddata import support_nddata
 from astropy.modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from astropy.modeling.core import CompoundModel
-from astropy.modeling import SPECIAL_OPERATORS
+from astropy.modeling.core import SPECIAL_OPERATORS
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 
 LIBRARY_PATH = os.path.dirname(__file__)
