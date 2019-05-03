@@ -423,7 +423,7 @@ def test_celestial_frame_to_wcs():
     mywcs = celestial_frame_to_wcs(frame, projection='CAR')
     assert tuple(mywcs.wcs.ctype) == ('TLON-CAR', 'TLAT-CAR')
     assert mywcs.wcs.radesys == 'ITRS'
-    assert mywcs.wcs.dateobs == Time('J2000').utc.isot
+    assert mywcs.wcs.dateobs == Time('J2000', scale='tt').utc.isot
 
 
 def test_celestial_frame_to_wcs_extend():
