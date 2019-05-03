@@ -750,3 +750,21 @@ def test_roundtrip_masked(fmt_name_class):
     for col, col2 in zip(t.itercols(), t2.itercols()):
         assert col.dtype.kind == col2.dtype.kind
         assert np.all(col == col2)
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_newlines(fast_writer, tmpdir):
+
+    # Regression test for https://github.com/astropy/astropy/issues/5126
+    # On windows, when writing to a filename (not e.g. StringIO), newlines were
+    # \r\r\n instead of \r\n.
+
+    filename = tmpdir.join('test').strpath
+
+    t = table.Table([['a', 'b', 'c']], names=['col'])
+    ascii.write(t, filename, fast_writer=fast_writer)
+
+    with open(filename, 'r', newline='') as f:
+        content = f.read()
+
+    assert content == os.linesep.join(['col', 'a', 'b', 'c']) + os.linesep
