@@ -1176,9 +1176,8 @@ def test_table_with_no_newline():
     assert 'No header line found' in str(err.value)
 
     table = BytesIO()
-    with pytest.raises(ValueError) as err:
-        ascii.read(table, guess=False, fast_reader=True, format='fast_basic')
-    assert 'Inconsistent data column lengths' in str(err.value)
+    t = ascii.read(table, guess=False, fast_reader=True, format='fast_basic')
+    assert not t and t.as_array().size == 0
 
     # Put a single line of column names but with no newline
     for kwargs in [dict(),
