@@ -1482,7 +1482,7 @@ class Quantity(np.ndarray):
     # Item selection and manipulation
     # repeat, sort, compress, diagonal OK
     def take(self, indices, axis=None, out=None, mode='raise'):
-        out = super().take(indices, axis=axis, out=out, mode=mode)
+        out = super(Quantity, self).take(indices, axis=axis, out=out, mode=mode)
         # For single elements, ndarray.take returns scalars; these
         # need a new view as a Quantity.
         if type(out) is not type(self):
