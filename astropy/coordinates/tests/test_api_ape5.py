@@ -164,12 +164,12 @@ def test_frame_api():
     # as keyword parameters to the frame constructor.  Where sensible, defaults are
     # used. E.g., FK5 is almost always J2000 equinox
     fk5 = FK5(UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg))
-    J2000 = time.Time('J2000', scale='utc')
+    J2000 = time.Time('J2000', scale='tt')
     fk5_2000 = FK5(UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg), equinox=J2000)
     assert fk5.equinox == fk5_2000.equinox
 
     # the information required to specify the frame is immutable
-    J2001 = time.Time('J2001', scale='utc')
+    J2001 = time.Time('J2001', scale='tt')
     with raises(AttributeError):
         fk5.equinox = J2001
 

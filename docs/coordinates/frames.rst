@@ -49,7 +49,7 @@ their default values) are available as the class method
 ``get_frame_attr_names``::
 
     >>> FK5.get_frame_attr_names()
-    OrderedDict([('equinox', <Time object: scale='utc' format='jyear_str' value=J2000.000>)])
+    OrderedDict([('equinox', <Time object: scale='tt' format='jyear_str' value=J2000.000>)])
 
 You can access any of the attributes on a frame by using standard Python
 attribute access. Note that for cases like ``equinox``, which are time

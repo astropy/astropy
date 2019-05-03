@@ -548,6 +548,9 @@ astropy.coordinates
 - ``QuantityAttribute`` no longer has a default value for ``default``.  The
   previous value of None was misleading as it always was an error. [#8450]
 
+- The default J2000 has been changed to use be January 1, 2000 12:00 TT instead
+  of UTC.  This is more in line with convention. [#8594]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 

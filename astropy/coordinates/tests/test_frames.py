@@ -796,13 +796,15 @@ def test_equivalent_frames():
     with pytest.raises(TypeError):
         assert i2.is_equivalent_frame(SkyCoord(i2))
 
-    f1 = FK5()
+    f0 = FK5()  # this J2000 is TT
+    f1 = FK5(equinox='J2000')
     f2 = FK5(1*u.deg, 2*u.deg, equinox='J2000')
     f3 = FK5(equinox='J2010')
     f4 = FK4(equinox='J2010')
 
     assert f1.is_equivalent_frame(f1)
     assert not i.is_equivalent_frame(f1)
+    assert not f0.is_equivalent_frame(f1)
     assert f1.is_equivalent_frame(f2)
     assert not f1.is_equivalent_frame(f3)
     assert not f3.is_equivalent_frame(f4)

@@ -61,7 +61,7 @@ frames use a default equinox if you do not specify one::
 
     >>> fk5c = SkyCoord('02h31m49.09s', '+89d15m50.8s', frame=FK5)
     >>> fk5c.equinox
-    <Time object: scale='utc' format='jyear_str' value=J2000.000>
+    <Time object: scale='tt' format='jyear_str' value=J2000.000>
     >>> fk5c  # doctest: +FLOAT_CMP
     <SkyCoord (FK5: equinox=J2000.000): (ra, dec) in deg
         ( 37.95454167,  89.26411111)>
