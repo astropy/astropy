@@ -804,7 +804,7 @@ def test_equivalent_frames():
 
     assert f1.is_equivalent_frame(f1)
     assert not i.is_equivalent_frame(f1)
-    assert not f0.is_equivalent_frame(f1)
+    assert f0.is_equivalent_frame(f1)
     assert f1.is_equivalent_frame(f2)
     assert not f1.is_equivalent_frame(f3)
     assert not f3.is_equivalent_frame(f4)
