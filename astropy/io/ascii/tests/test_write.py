@@ -764,7 +764,7 @@ def test_write_newlines(fast_writer, tmpdir):
     t = table.Table([['a', 'b', 'c']], names=['col'])
     ascii.write(t, filename, fast_writer=fast_writer)
 
-    with open(filename, 'r') as f:
+    with open(filename, 'r', newline='') as f:
         content = f.read()
 
-    assert content.splitlines() == ['col', 'a', 'b', 'c']
+    assert content == os.linesep.join(['col', 'a', 'b', 'c']) + os.linesep
