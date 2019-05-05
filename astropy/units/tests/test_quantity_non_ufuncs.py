@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.utils.compat import NUMPY_LT_1_17
+from astropy.utils.compat import NUMPY_LT_1_17 as NO_ARRAY_FUNCTION
 
 
 # To get the functions that could be covered, we look for those that
@@ -229,11 +229,13 @@ class TestRealImag(InvariantUnitTestSetup):
 
 
 class TestCopyAndCreation(InvariantUnitTestSetup):
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_copy(self):
         self.check(np.copy)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_asfarray(self):
         self.check(np.asfarray)
 
@@ -563,18 +565,21 @@ class TestUfuncLike(InvariantUnitTestSetup):
                              [q.value, q.value], default=-1000) * u.m
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_real_if_close(self):
         q = np.array([1+0j, 0+1j, 1+1j, 0+0j]) * u.m
         out = np.real_if_close(q)
         expected = np.real_if_close(q.value) * u.m
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_tril(self):
         self.check(np.tril)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_triu(self):
         self.check(np.triu)
 
@@ -1056,7 +1061,8 @@ class TestSortFunctions(InvariantUnitTestSetup):
     def test_sort(self):
         self.check(np.sort)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_sort_complex(self):
         self.check(np.sort_complex)
 
@@ -1221,7 +1227,7 @@ setops_functions = {f for f in all_wrapped_functions.values()
 CoverageMeta.covered |= setops_functions
 
 
-@pytest.mark.xfail(NUMPY_LT_1_17,
+@pytest.mark.xfail(NO_ARRAY_FUNCTION,
                    reason="no __array_function__ wrapping in numpy<1.17")
 def test_completeness():
     assert set(all_wrapped_functions.values()) == CoverageMeta.covered

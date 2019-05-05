@@ -1453,6 +1453,17 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
     def argmin(self, axis=None, out=None):
         return self.view(np.ndarray).argmin(axis, out=out)
 
+    _INVARIANT_FUNCTIONS = {
+        np.copy, np.asfarray, np.empty_like, np.zeros_like,
+        np.real_if_close, np.tril, np.triu,
+        np.sort_complex}
+
+    def __array_function__(self, function, types, args, kwargs):
+        wrapped = function.__wrapped__
+        if function in self._INVARIANT_FUNCTIONS:
+            return self._wrap_function(wrapped, *args[1:], **kwargs)
+        return wrapped(*args, **kwargs)
+
     # Calculation -- override ndarray methods to take into account units.
     # We use the corresponding numpy functions to evaluate the results, since
     # the methods do not always allow calling with keyword arguments.
