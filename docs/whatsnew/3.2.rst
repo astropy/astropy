@@ -87,7 +87,7 @@ Additions and changes to Ecliptic Transformations
 
 The Ecliptic frames and associated transformations in ``astropy.coordinates``
 have been updated to correctly reflect the "True" and "Mean" terminology. In
-this release there are now ``*MeanEcliptic`` frames now include precession but
+this release there are now ``*MeanEcliptic`` frames now which include precession but
 not nutation, and ``*TrueEcliptic`` frames which also include nutation.
 Additionally, new frames (``HeliocentricEclipticIAU76`` and
 ``CustomBarycentricEcliptic``) have been added with specific conventions used in
