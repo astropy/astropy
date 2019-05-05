@@ -82,11 +82,23 @@ from the :mod:`astropy.stats` to the :mod:`astropy.timeseries` module.
 
 .. _whatsnew-3.2-ecliptic:
 
-Changes to Ecliptic Transformations
-===================================
+Additions and changes to Ecliptic Transformations
+=================================================
 
-Placeholder. gist is that True/Mean are now treated appropriately, but this
-might change code from older versions (no good way to do deprecation)
+The Ecliptic frames and associated transformations in ``astropy.coordinates``
+have been updated to correctly reflect the "True" and "Mean" terminology. In
+this release there are now ``*MeanEcliptic`` frames now which include precession but
+not nutation, and ``*TrueEcliptic`` frames which also include nutation.
+Additionally, new frames (``HeliocentricEclipticIAU76`` and
+``CustomBarycentricEcliptic``) have been added with specific conventions used in
+particular fields. For more details on the motivation behind these changes, see
+`PR #8394 <https://github.com/astropy/astropy/pull/8394>`_ and the associated
+discussion.
+
+Note that this change may break some usage of the previous ``*TrueEcliptic``
+frames, as in the last few versions these had a behavior more akin to "mean"
+ecliptic frames.  In many cases it will be sufficient to simply replace this
+usage with the appropriate ``*MeanEcliptic` frames.
 
 .. _whatsnew-3.2-tt:
 
