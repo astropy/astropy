@@ -18,6 +18,8 @@ from astropy.utils.exceptions import AstropyWarning
 
 # We use tt as the time scale for this equinoxes, primarily because it is the
 # convention for J2000 (it is unclear if there is any "right answer" for B1950)
+# while #8600 makes this the default behavior, we show it here to ensure it's
+# clear which is used here
 EQUINOX_J2000 = Time('J2000', scale='tt')
 EQUINOX_B1950 = Time('B1950', scale='tt')
 

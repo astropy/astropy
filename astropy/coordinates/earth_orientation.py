@@ -16,8 +16,8 @@ from astropy import units as u
 from .matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 
 
-jd1950 = Time('B1950', scale='tai').jd
-jd2000 = Time('J2000', scale='utc').jd
+jd1950 = Time('B1950').jd
+jd2000 = Time('J2000').jd
 _asecperrad = u.radian.to(u.arcsec)
 
 
