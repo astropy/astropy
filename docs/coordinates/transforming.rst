@@ -75,8 +75,8 @@ You can also specify the equinox when you create a coordinate using a
 
     >>> from astropy.time import Time
     >>> fk5c = SkyCoord('02h31m49.09s', '+89d15m50.8s',
-    ...                 frame=FK5(equinox=Time('J1970', scale='utc')))
-    >>> fk5_2000 = FK5(equinox=Time(2000, format='jyear', scale='utc'))
+    ...                 frame=FK5(equinox=Time('J1970')))
+    >>> fk5_2000 = FK5(equinox=Time(2000, format='jyear'))
     >>> fk5c.transform_to(fk5_2000)  # doctest: +FLOAT_CMP
     <SkyCoord (FK5: equinox=2000.0): (ra, dec) in deg
         ( 48.023171,  89.38672485)>

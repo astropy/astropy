@@ -54,12 +54,12 @@ their default values) are available as the class method
 You can access any of the attributes on a frame by using standard Python
 attribute access. Note that for cases like ``equinox``, which are time
 inputs, if you pass in any unambiguous time string, it will be converted
-into an `~astropy.time.Time` object with UTC scale (see
+into an `~astropy.time.Time` object (see
 :ref:`astropy-time-inferring-input`)::
 
     >>> f = FK5(equinox='J1975')
     >>> f.equinox
-    <Time object: scale='utc' format='jyear_str' value=J1975.000>
+    <Time object: scale='tt' format='jyear_str' value=J1975.000>
     >>> f = FK5(equinox='2011-05-15T12:13:14')
     >>> f.equinox
     <Time object: scale='utc' format='isot' value=2011-05-15T12:13:14.000>
@@ -322,7 +322,7 @@ the way you want. As an example::
   <MyFrame Coordinate (location=None, equinox=B1950.000, obstime=B1950.000): (R, D) in rad
       (0.17453293, 0.34906585)>
   >>> c.equinox
-  <Time object: scale='utc' format='byear_str' value=B1950.000>
+  <Time object: scale='tt' format='byear_str' value=B1950.000>
 
 If you also want to support velocity data in your coordinate frame, see the
 velocities documentation at
