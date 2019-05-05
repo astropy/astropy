@@ -33,7 +33,7 @@ def test_galactic_fk4():
 
         # Galactic to FK4
         c1 = Galactic(l=r['lon_in']*u.deg, b=r['lat_in']*u.deg)
-        c2 = c1.transform_to(FK4(equinox=Time(r['equinox_fk4'], scale='utc')))
+        c2 = c1.transform_to(FK4(equinox=Time(r['equinox_fk4'])))
 
         # Find difference
         diff = angular_separation(c2.ra.radian, c2.dec.radian,
@@ -44,8 +44,8 @@ def test_galactic_fk4():
 
         # FK4 to Galactic
         c1 = FK4(ra=r['lon_in']*u.deg, dec=r['lat_in']*u.deg,
-                 obstime=Time(r['obstime'], scale='utc'),
-                 equinox=Time(r['equinox_fk4'], scale='utc'))
+                 obstime=Time(r['obstime']),
+                 equinox=Time(r['equinox_fk4']))
         c2 = c1.transform_to(Galactic)
 
         # Find difference

@@ -88,6 +88,20 @@ Changes to Ecliptic Transformations
 Placeholder. gist is that True/Mean are now treated appropriately, but this
 might change code from older versions (no good way to do deprecation)
 
+.. _whatsnew-3.2-tt:
+
+Default time scale for "J2000"-style strings changed to TT
+==========================================================
+
+In past versions of astropy, times specified as "equinox-style strings" - e.g.,
+``Time('J2000')`` - defaulted to the UTC scale.  This includes default equinoxes
+for FK4/FK5 coordinates. To be more consistent with commonly-accepted usage of
+terms like "J2000", this strings now default to the TT time scale. This
+difference is on the order of 60 seconds, which for e.g. equinox precession is
+typically an extremely small differences (picoarcseconds).  However, if the
+previous behavior is needed, the easiest work-around is to change any use of
+e.g., ``'J2000'`` to ``Time('J2000', scale='utc')``.
+
 
 Full change log
 ===============

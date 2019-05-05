@@ -38,7 +38,7 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     coo1 = fromsys(ra=fromcoo[0]*u.deg, dec=fromcoo[1]*u.deg, distance=m31_dist)
     coo2 = coo1.transform_to(tosys)
     if tosys is FK4:
-        coo2_prec = coo2.transform_to(FK4(equinox=Time('B1950', scale='utc')))
+        coo2_prec = coo2.transform_to(FK4(equinox=Time('B1950')))
         assert (coo2_prec.spherical.lon - tocoo[0]*u.deg) < convert_precision  # <1 arcsec
         assert (coo2_prec.spherical.lat - tocoo[1]*u.deg) < convert_precision
     else:
@@ -60,10 +60,10 @@ def test_precession():
     """
     Ensures that FK4 and FK5 coordinates precess their equinoxes
     """
-    j2000 = Time('J2000', scale='utc')
-    b1950 = Time('B1950', scale='utc')
-    j1975 = Time('J1975', scale='utc')
-    b1975 = Time('B1975', scale='utc')
+    j2000 = Time('J2000')
+    b1950 = Time('B1950')
+    j1975 = Time('J1975')
+    b1975 = Time('B1975')
 
     fk4 = FK4(ra=1*u.radian, dec=0.5*u.radian)
     assert fk4.equinox.byear == b1950.byear

@@ -164,7 +164,7 @@ def test_fk5_equinox_and_epoch_j2000_0_to_topocentric_observed():
                              lat=Angle('31.956389d'),
                              height=2093.093 * u.m)  # TODO: height correct?
 
-    obstime = Time('2010-01-01 12:00:00', scale='utc')
+    obstime = Time('2010-01-01 12:00:00')
     # relative_humidity = ?
     # obswl = ?
     altaz_frame = AltAz(obstime=obstime, location=location,

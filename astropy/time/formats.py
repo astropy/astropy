@@ -117,6 +117,8 @@ class TimeFormat(metaclass=TimeFormatMeta):
         If true then val1, val2 are jd1, jd2
     """
 
+    _default_scale = 'utc'  # As of astropy 0.4
+
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
         self.scale = scale  # validation of scale done later with _check_scale
@@ -237,11 +239,8 @@ class TimeFormat(metaclass=TimeFormatMeta):
         scales.  Provide a different error message if `None` (no value) was
         supplied.
         """
-        if hasattr(self.__class__, 'epoch_scale') and scale is None:
-            scale = self.__class__.epoch_scale
-
         if scale is None:
-            scale = 'utc'  # Default scale as of astropy 0.4
+            scale = self._default_scale
 
         if scale not in TIME_SCALES:
             raise ScaleValueError("Scale value '{0}' not in "
@@ -460,6 +459,10 @@ class TimeFromEpoch(TimeFormat):
         return self.mask_if_needed(time_from_epoch)
 
     value = property(to_value)
+
+    @property
+    def _default_scale(self):
+        return self.epoch_scale
 
 
 class TimeUnix(TimeFromEpoch):
@@ -1105,6 +1108,7 @@ class TimeEpochDate(TimeFormat):
     """
     Base class for support floating point Besselian and Julian epoch dates
     """
+    _default_scale = 'tt'  # As of astropy 3.2, this is no longer 'utc'.
 
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # validate scale.
@@ -1147,6 +1151,7 @@ class TimeEpochDateString(TimeString):
     Base class to support string Besselian and Julian epoch dates
     such as 'B1950.0' or 'J2000.0' respectively.
     """
+    _default_scale = 'tt'  # As of astropy 3.2, this is no longer 'utc'.
 
     def set_jds(self, val1, val2):
         epoch_prefix = self.epoch_prefix

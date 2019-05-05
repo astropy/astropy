@@ -49,7 +49,7 @@ def test_icrs_cirs():
     assert_allclose(inod.dec, inod2.dec)
 
     # now check that a different time yields different answers
-    cframe2 = CIRS(obstime=Time('J2005', scale='utc'))
+    cframe2 = CIRS(obstime=Time('J2005'))
     cirsnod2 = inod.transform_to(cframe2)
     assert not allclose(cirsnod.ra, cirsnod2.ra, rtol=1e-8)
     assert not allclose(cirsnod.dec, cirsnod2.dec, rtol=1e-8)
@@ -77,7 +77,7 @@ def test_icrs_cirs():
 
 ra, dec, dist = randomly_sample_sphere(200)
 icrs_coords = [ICRS(ra=ra, dec=dec), ICRS(ra=ra, dec=dec, distance=dist*u.pc)]
-gcrs_frames = [GCRS(), GCRS(obstime=Time('J2005', scale='utc'))]
+gcrs_frames = [GCRS(), GCRS(obstime=Time('J2005'))]
 
 
 @pytest.mark.parametrize('icoo', icrs_coords)
@@ -248,7 +248,7 @@ def test_gcrs_altaz():
 
     # check array times sure N-d arrays work
     times = Time(np.linspace(2456293.25, 2456657.25, 51) * u.day,
-                 format='jd', scale='utc')
+                 format='jd')
 
     loc = EarthLocation(lon=10 * u.deg, lat=80. * u.deg)
     aaframe = AltAz(obstime=times, location=loc)
@@ -266,7 +266,7 @@ def test_gcrs_altaz():
 
 @pytest.mark.remote_data
 def test_precessed_geocentric():
-    assert PrecessedGeocentric().equinox.jd == Time('J2000', scale='utc').jd
+    assert PrecessedGeocentric().equinox.jd == Time('J2000').jd
 
     gcrs_coo = GCRS(180*u.deg, 2*u.deg, distance=10000*u.km)
     pgeo_coo = gcrs_coo.transform_to(PrecessedGeocentric)
