@@ -56,8 +56,19 @@ class InvalidHDUException(Exception):
 
 def _hdu_class_from_header(cls, header):
     """
-    Used primarily by _BaseHDU.__new__ to find an appropriate HDU class to use
-    based on values in the header.  See the _BaseHDU.__new__ docstring.
+    Iterates through the subclasses of _BaseHDU and uses that class's
+    match_header() method to determine which subclass to instantiate.
+
+    It's important to be aware that the class hierarchy is traversed in a
+    depth-last order.  Each match_header() should identify an HDU type as
+    uniquely as possible.  Abstract types may choose to simply return False
+    or raise NotImplementedError to be skipped.
+
+    If any unexpected exceptions are raised while evaluating
+    match_header(), the type is taken to be _CorruptedHDU.
+
+    Used primarily by _BaseHDU._readfrom_internal and _BaseHDU._from_data to
+    find an appropriate HDU class to use based on values in the header.
     """
 
     klass = cls  # By default, if no subclasses are defined
