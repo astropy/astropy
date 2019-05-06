@@ -98,7 +98,7 @@ discussion.
 Note that this change may break some usage of the previous ``*TrueEcliptic``
 frames, as in the last few versions these had a behavior more akin to "mean"
 ecliptic frames.  In many cases it will be sufficient to simply replace this
-usage with the appropriate ``*MeanEcliptic` frames.
+usage with the appropriate ``*MeanEcliptic`` frames.
 
 .. _whatsnew-3.2-tt:
 
