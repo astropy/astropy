@@ -116,9 +116,10 @@ if SETUP_CFG.has_option('options', 'python_requires'):
 
     # We want the Python version as a string, which we can get from the platform module
     import platform
-    python_version = platform.python_version()
-
-    if not req.specifier.contains(python_version):
+    # strip off trailing '+' incase this is a dev install of python
+    python_version = platform.python_version().strip('+')
+    # allow pre-releases to count as 'new enough'
+    if not req.specifier.contains(python_version, True):
         if parent_package is None:
             message = "ERROR: Python {} is required by this package\n".format(req.specifier)
         else:
