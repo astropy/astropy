@@ -67,7 +67,7 @@ del intersphinx_mapping['astropy']
 
 # add any custom intersphinx for astropy
 intersphinx_mapping['pytest'] = ('https://docs.pytest.org/en/stable/', None)
-intersphinx_mapping['ipython'] = ('http://ipython.readthedocs.io/en/stable/', None)
+intersphinx_mapping['ipython'] = ('https://ipython.readthedocs.io/en/stable/', None)
 intersphinx_mapping['pandas'] = ('http://pandas.pydata.org/pandas-docs/stable/', None)
 intersphinx_mapping['sphinx_automodapi'] = ('https://sphinx-automodapi.readthedocs.io/en/stable/', None)
 intersphinx_mapping['packagetemplate'] = ('http://docs.astropy.org/projects/package-template/en/latest/', None)
@@ -222,10 +222,17 @@ try:
 
 except ImportError:
     def setup(app):
-        app.warn('The sphinx_gallery extension is not installed, so the '
-                 'gallery will not be built.  You will probably see '
-                 'additional warnings about undefined references due '
-                 'to this.')
+        msg = ('The sphinx_gallery extension is not installed, so the '
+               'gallery will not be built.  You will probably see '
+               'additional warnings about undefined references due '
+               'to this.')
+        try:
+            app.warn(msg)
+        except AttributeError:
+            # Sphinx 1.6+
+            from sphinx.util import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(msg)
 
 
 # -- Options for linkcheck output -------------------------------------------
