@@ -38,7 +38,7 @@ the errors and assumptions that seasoned contributors have glossed over.
 Note: This disclaimer was originally written by
 `Adrienne Lowe <https://github.com/adriennefriend>`_ for a
 `PyCon talk <https://www.youtube.com/watch?v=6Uj746j9Heo>`_, and was adapted by
-{{ cookiecutter.package_name }} based on its use in the README file for the
+Astropy based on its use in the README file for the
 `MetPy project <https://github.com/Unidata/MetPy>`_.
 
 Most contributions to Astropy are done via pull requests from GitHub users'
