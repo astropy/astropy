@@ -43,8 +43,11 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         Convert pixel coordinates to world coordinates (represented by high-level
         objects).
 
-        See `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_to_world_values` for pixel indexing and
-        ordering conventions.
+        If a single high-level object is used to represent the world
+        coordinates, it is returned as-is (not in a tuple/list), otherwise a
+        tuple of high-level objects is returned. See
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_to_world_values` for pixel
+        indexing and ordering conventions.
         """
 
     @abc.abstractmethod
@@ -53,8 +56,11 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         Convert array indices to world coordinates (represented by Astropy
         objects).
 
-        See `~astropy.wcs.wcsapi.BaseLowLevelWCS.array_index_to_world_values` for pixel indexing and
-        ordering conventions.
+        If a single high-level object is used to represent the world
+        coordinates, it is returned as-is (not in a tuple/list), otherwise a
+        tuple of high-level objects is returned. See
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.array_index_to_world_values` for
+        pixel indexing and ordering conventions.
         """
 
     @abc.abstractmethod
@@ -63,8 +69,11 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         Convert world coordinates (represented by Astropy objects) to pixel
         coordinates.
 
-        See `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_to_pixel_values` for pixel indexing and
-        ordering conventions.
+        If `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim` is ``1``, this
+        method returns a single scalar or array, otherwise a tuple of scalars or
+        arrays is returned. See
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_to_pixel_values` for pixel
+        indexing and ordering conventions.
         """
 
     @abc.abstractmethod
@@ -73,9 +82,12 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         Convert world coordinates (represented by Astropy objects) to array
         indices.
 
-        See `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_to_array_index_values` for pixel indexing
-        and ordering conventions. The indices should be returned as rounded
-        integers.
+        If `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim` is ``1``, this
+        method returns a single scalar or array, otherwise a tuple of scalars or
+        arrays is returned. See
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_to_array_index_values` for
+        pixel indexing and ordering conventions. The indices should be returned
+        as rounded integers.
         """
 
 
@@ -181,6 +193,9 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         # Compute the world coordinate values
         world = self.low_level_wcs.pixel_to_world_values(*pixel_arrays)
 
+        if self.world_n_dim == 1:
+            world = (world,)
+
         # Cache the classes and components since this may be expensive
         components = self.low_level_wcs.world_axis_object_components
         classes = self.low_level_wcs.world_axis_object_classes
@@ -218,4 +233,7 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         return self.pixel_to_world(*index_arrays[::-1])
 
     def world_to_array_index(self, *world_objects):
-        return tuple(np.round(self.world_to_pixel(*world_objects)[::-1]).astype(int).tolist())
+        if self.pixel_n_dim == 1:
+            return np.round(self.world_to_pixel(*world_objects)).astype(int)
+        else:
+            return tuple(np.round(self.world_to_pixel(*world_objects)[::-1]).astype(int).tolist())

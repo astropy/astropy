@@ -68,6 +68,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         The coordinates should be specified in the ``(x, y)`` order, where for
         an image, ``x`` is the horizontal coordinate and ``y`` is the vertical
         coordinate.
+
+        If `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim` is ``1``, this
+        method returns a single scalar or array, otherwise a tuple of scalars or
+        arrays is returned.
         """
 
     @abc.abstractmethod
@@ -79,6 +83,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         the indices should be given in ``(i, j)`` order, where for an image
         ``i`` is the row and ``j`` is the column (i.e. the opposite order to
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_to_world_values`).
+
+        If `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim` is ``1``, this
+        method returns a single scalar or array, otherwise a tuple of scalars or
+        arrays is returned.
         """
 
     @abc.abstractmethod
@@ -94,6 +102,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         coordinate, NaN can be returned.  The coordinates should be returned in
         the ``(x, y)`` order, where for an image, ``x`` is the horizontal
         coordinate and ``y`` is the vertical coordinate.
+
+        If `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim` is ``1``, this
+        method returns a single scalar or array, otherwise a tuple of scalars or
+        arrays is returned.
         """
 
     @abc.abstractmethod
@@ -106,6 +118,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         ``i`` is the row and ``j`` is the column (i.e. the opposite order to
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_to_world_values`). The indices should be
         returned as rounded integers.
+
+        If `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim` is ``1``, this
+        method returns a single scalar or array, otherwise a tuple of scalars or
+        arrays is returned.
         """
 
     @property

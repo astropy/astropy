@@ -50,21 +50,34 @@ def test_empty():
     assert_allclose(wcs.pixel_to_world_values(29), 29)
     assert_allclose(wcs.array_index_to_world_values(29), 29)
 
+    assert np.ndim(wcs.pixel_to_world_values(29)) == 0
+    assert np.ndim(wcs.array_index_to_world_values(29)) == 0
+
     assert_allclose(wcs.world_to_pixel_values(29), 29)
     assert_equal(wcs.world_to_array_index_values(29), (29,))
+
+    assert np.ndim(wcs.world_to_pixel_values(29)) == 0
+    assert np.ndim(wcs.world_to_array_index_values(29)) == 0
 
     # High-level API
 
     coord = wcs.pixel_to_world(29)
     assert_quantity_allclose(coord, 29 * u.one)
+    assert np.ndim(coord) == 0
+
+    coord = wcs.array_index_to_world(29)
+    assert_quantity_allclose(coord, 29 * u.one)
+    assert np.ndim(coord) == 0
 
     coord = 15 * u.one
 
     x = wcs.world_to_pixel(coord)
     assert_allclose(x, 15.)
+    assert np.ndim(x) == 0
 
     i = wcs.world_to_array_index(coord)
-    assert_equal(i, (15,))
+    assert_equal(i, 15)
+    assert np.ndim(i) == 0
 
 
 ###############################################################################

@@ -646,6 +646,14 @@ astropy.units
 
 - Unit equivalencies can now be introspected. [#8252]
 
+astropy.wcs
+^^^^^^^^^^^
+
+- The ``world_to_pixel``, ``world_to_array_index*``, ``pixel_to_world*`` and
+  ``array_index_to_world*`` methods now all consistently return scalars, arrays,
+  or objects not wrapped in a one-element tuple/list when only one scalar,
+  array, or object (as was previously already the case for ``WCS.pixel_to_world``
+  and ``WCS.array_index_to_world``). [#8663]
 
 astropy.utils
 ^^^^^^^^^^^^^
