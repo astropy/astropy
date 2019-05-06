@@ -362,6 +362,15 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
                         checksum=checksum)
 
     @classmethod
+    def _from_data(cls, data, header, **kwargs):
+        """
+        Instantiate the HDU object after guessing the HDU class from the
+        FITS Header.
+        """
+        klass = _hdu_class_from_header(cls, header)
+        return klass(data=data, header=header, **kwargs)
+
+    @classmethod
     def _readfrom_internal(cls, data, header=None, checksum=False,
                            ignore_missing_end=False, **kwargs):
         """
