@@ -1,17 +1,8 @@
-3.2 (unreleased)
-================
+3.2rc1 (2019-05-06)
+===================
 
 New Features
 ------------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -23,9 +14,6 @@ astropy.coordinates
 - The default time scale for epochs like 'J2000' or 'B1975' is now "tt",
   which is the correct one for 'J2000' and avoids leap-second warnings
   for epochs in the far future or past. [#8600]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
 
 astropy.extern
 ^^^^^^^^^^^^^^
@@ -93,21 +81,6 @@ astropy.io.registry
   ``Table`` read formats and ``Table.read.help('fits')`` gives detailed
   help on the arguments for reading FITS table file. [#8255]
 
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -153,12 +126,6 @@ astropy.table
   ``names`` in ``get_index()`` to get index by using a list or tuple containing
   names of columns. [#8570]
 
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
@@ -174,9 +141,6 @@ astropy.timeseries
 - Added model inspection methods (``model_parameters()``, ``design_matrix()``,
   and ``offset()``) to ``astropy.timeseries.LombScargle`` class [#8397].
 
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
@@ -186,9 +150,6 @@ astropy.units
   subclasses, but they may consider doing similarly. [#8316]  Note that this
   does not include methods that use more complicated python code such as
   ``mean``, ``std`` and ``var``. [#8370]
-
-astropy.utils
-^^^^^^^^^^^^^
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -216,17 +177,9 @@ astropy.wcs
   a ``SlicedLowLevelWCS`` rather than raising an error when reducing the
   dimensionality of the WCS. [#8546]
 
+
 API Changes
 -----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -236,12 +189,6 @@ astropy.coordinates
 
 - The default J2000 has been changed to use be January 1, 2000 12:00 TT instead
   of UTC.  This is more in line with convention. [#8594]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -254,26 +201,11 @@ astropy.io.misc
 
 - Unit equivalencies can now be serialized to ASDF. [#8252]
 
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - Composition of model classes is deprecated and will be removed in 4.0.
   Composition of model instances remain unaffected. [#8234, #8408]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -317,9 +249,6 @@ astropy.time
   which is the correct one for 'J2000' and avoids leap-second warnings
   for epochs in the far future or past. [#8600]
 
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
@@ -341,24 +270,9 @@ astropy.utils
   by passing a positive integer as the ``multiprocess`` keyword argument. Use
   ``True`` to use all cores. [#8083]
 
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -368,29 +282,11 @@ astropy.coordinates
   (including nutation), whereas the new ``*MeanEcliptic`` classes
   use the nutation-free transformation. [#8394]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
 - Fixed bug in ASDF tag that inadvertently introduced dependency on ``pytest``.
   [#8456]
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
@@ -411,12 +307,6 @@ astropy.nddata
   header were not, potentially leading to FITS files with inconsistent
   WCS. [#8602]
 
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -426,9 +316,6 @@ astropy.table
 - Fixed a bug when initializing from an existing ``Table``.  In this case the
   input ``meta`` argument was being ignored.  Now the input ``meta``, if
   supplied, will be used as the ``meta`` for the new ``Table``. [#8404]
-
-astropy.tests
-^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
@@ -450,9 +337,6 @@ astropy.time
   ``NotImplemented`` (which will lead to a regular ``TypeError`` unless the
   other instance can handle ``TimeDelta``). [#8356]
 
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
@@ -465,12 +349,6 @@ astropy.units
   or set ``Quantity`` instance items. [#8535]
 
 - Add support for ``<<`` to create logarithmic units. [#8290]
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
 
 astropy.wcs
 ^^^^^^^^^^^
