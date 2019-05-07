@@ -10,13 +10,11 @@ define their own models.
 
 import functools
 import numbers
-import types
 import operator
 
 import numpy as np
 
-from astropy import units as u
-from astropy.units import Quantity, UnitsError
+from astropy.units import Quantity
 from astropy.utils import isiterable, OrderedDescriptor
 from .utils import array_repr_oneline
 from .utils import get_inputs_and_params
