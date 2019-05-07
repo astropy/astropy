@@ -236,18 +236,21 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         return matrix
 
     def pixel_to_world_values(self, *pixel_arrays):
-        return self.all_pix2world(*pixel_arrays, 0)
+        world = self.all_pix2world(*pixel_arrays, 0)
+        return world[0] if self.world_n_dim == 1 else world
 
     def array_index_to_world_values(self, *indices):
-        return self.all_pix2world(*indices[::-1], 0)
+        world = self.all_pix2world(*indices[::-1], 0)
+        return world[0] if self.world_n_dim == 1 else world
 
     def world_to_pixel_values(self, *world_arrays):
-        return self.all_world2pix(*world_arrays, 0)
+        pixel = self.all_world2pix(*world_arrays, 0)
+        return pixel[0] if self.pixel_n_dim == 1 else pixel
 
     def world_to_array_index_values(self, *world_arrays):
         pixel_arrays = self.all_world2pix(*world_arrays, 0)[::-1]
         array_indices = tuple(np.asarray(np.floor(pixel + 0.5), dtype=np.int) for pixel in pixel_arrays)
-        return array_indices
+        return array_indices[0] if self.pixel_n_dim == 1 else array_indices
 
     @property
     def world_axis_object_components(self):
