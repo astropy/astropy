@@ -11,8 +11,8 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_equal
 
 from .example_models import models_1D, models_2D
-from astropy.models import Gaussian2D
 from astropy.modeling import fitting, models
+from astropy.modeling.models import Gaussian2D
 from astropy.modeling.core import FittableModel
 from astropy.modeling.polynomial import PolynomialBase
 from astropy import units as u
