@@ -42,7 +42,6 @@ from .utils import (combine_labels, make_binary_operator_eval,
                     ExpressionTree, AliasDict, get_inputs_and_params,
                     _BoundingBox, _combine_equivalency_dict)
 from astropy.nddata.utils import add_array, extract_array
-#from . import compound
 from .parameters import (Parameter, InputParameterError,
                          param_repr_oneline, _tofloat)
 
@@ -52,8 +51,10 @@ from collections import deque
 from astropy.utils import indent
 from .utils import combine_labels, _BoundingBox
 
+
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
            'CompoundModel', 'custom_model', 'ModelDefinitionError']
+
 
 def _model_oper(oper, **kwargs):
     """
@@ -74,6 +75,7 @@ class _CompoundModelMeta:
 class ModelDefinitionError(TypeError):
     """Used for incorrect models definitions"""
 
+<<<<<<< HEAD
 
 def _model_oper(oper, **kwargs):
     """
@@ -102,6 +104,8 @@ def _model_oper(oper, **kwargs):
 
     return _opfunc
 
+=======
+>>>>>>> pep8
 
 class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     """
@@ -142,8 +146,8 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             ('__truediv__', _model_oper('/')),
             ('__pow__', _model_oper('**')),
             ('__or__', _model_oper('|')),
-            ('__and__',_model_oper('&')),
-            ###('__mod__', _model_oper('%'))
+            ('__and__', _model_oper('&')),
+            # ('__mod__', _model_oper('%'))
         ]
         for opermethod, opercall in opermethods:
             members[opermethod] = opercall
@@ -475,10 +479,10 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     __sub__ = _model_oper('-')
     __mul__ = _model_oper('*')
     __truediv__ = _model_oper('/')
-    __pow__ =     _model_oper('**')
-    __or__ =      _model_oper('|')
-    __and__ =     _model_oper('&')
-    ###__mod__ =     _model_oper('%')
+    __pow__ = _model_oper('**')
+    __or__ = _model_oper('|')
+    __and__ = _model_oper('&')
+    # __mod__ =     _model_oper('%')
 
     # *** Other utilities ***
 
@@ -736,7 +740,7 @@ class Model(metaclass=_ModelMeta):
                     newpar = copy.deepcopy(val)
                     newpar.model = self
                     self.__dict__[parname] = newpar
-                    #newpar._validator = val._validator
+                    # newpar._validator = val._validator
         self._initialize_constraints(kwargs)
         # Remaining keyword args are either parameter values or invalid
         # Parameter values must be passed in as keyword arguments in order to
@@ -829,7 +833,7 @@ class Model(metaclass=_ModelMeta):
                 vshape = (1,)
             esize = self._param_metrics[attr]['size']
             if (np.size(value) != esize or
-                _strip_ones(vshape) != _strip_ones(eshape)):
+                    _strip_ones(vshape) != _strip_ones(eshape)):
                 raise InputParameterError(
                     "Value for parameter {0} does not match shape or size\n"
                     "expected by model ({1}, {2}) vs ({3}, {4})".format(
@@ -1062,7 +1066,7 @@ class Model(metaclass=_ModelMeta):
 
     @property
     def bounding_box(self):
-        r"""
+        """
         A `tuple` of length `n_inputs` defining the bounding box limits, or
         `None` for no bounding box.
 
@@ -1581,8 +1585,7 @@ class Model(metaclass=_ModelMeta):
 
                     if inputs[i].unit.is_equivalent(
                             input_unit,
-                            equivalencies=
-                            input_units_equivalencies[input_name]):
+                            equivalencies=input_units_equivalencies[input_name]):
 
                         # If equivalencies have been specified, we need to
                         # convert the input to the input units - this is
@@ -1932,7 +1935,7 @@ class Model(metaclass=_ModelMeta):
             self._check_param_broadcast(None)
 
         self._n_models = n_models
-        ## now validate parameters
+        # now validate parameters
         for name in params:
             param = getattr(self, name)
             if param._validator is not None:
@@ -1948,12 +1951,11 @@ class Model(metaclass=_ModelMeta):
         if value is None:
             default = param.default
             if default is None:
-                    # No value was supplied for the parameter and the
-                    # parameter does not have a default, therefore the model
-                    # is underspecified
-                    raise TypeError(
-                        "{0}.__init__() requires a value for parameter "
-                        "{1!r}".format(self.__class__.__name__, param_name))
+                # No value was supplied for the parameter and the
+                # parameter does not have a default, therefore the model
+                # is underspecified
+                raise TypeError("{0}.__init__() requires a value for parameter "
+                                "{1!r}".format(self.__class__.__name__, param_name))
             value = default
             unit = param.unit
         else:
@@ -2098,7 +2100,7 @@ class Model(metaclass=_ModelMeta):
         entirely in the near future.
         """
 
-        #param_metrics = self._param_metrics
+        # param_metrics = self._param_metrics
         values = []
         shapes = []
         for name in self.param_names:
@@ -2321,6 +2323,7 @@ SPECIAL_OPERATORS = {}
 def _add_special_operator(sop_name, sop):
     SPECIAL_OPERATORS[sop_name] = sop
 
+
 """
 This module provides an alternate implementation of compound models that
 is lighter weight than the default implementation.
@@ -2384,7 +2387,7 @@ class CompoundModel(Model):
         else:
             self._n_models = len(left)
         if ((left.model_set_axis != right.model_set_axis)
-            or left.model_set_axis): # not False and not 0
+                or left.model_set_axis):  # not False and not 0
             raise ValueError("model_set_axis must be False or 0 and consistent for operands")
         else:
             self._model_set_axis = left.model_set_axis
@@ -2498,7 +2501,7 @@ class CompoundModel(Model):
             self.map_parameters()
             # Restructure to be useful for the individual model lookup
             kw['inputs_map'] = [(value[0], (value[1], key)) for
-                                      key, value in self.inputs_map().items()]
+                                key, value in self.inputs_map().items()]
         with_bbox = kw.pop('with_bounding_box', False)
         fill_value = kw.pop('fill_value', np.nan)
         # Use of bounding box for compound models requires special treatment
@@ -2507,15 +2510,15 @@ class CompoundModel(Model):
         if with_bbox and bbox is not None:
             # first check inputs are consistent in shape
             input_shape = _validate_input_shapes(args, (), self._n_models,
-                self.model_set_axis, self.standard_broadcasting)
+                                                 self.model_set_axis, self.standard_broadcasting)
             vinputs, valid_ind, allout = prepare_bounding_box_inputs(
-                                        self, input_shape, args, bbox)
+                                         self, input_shape, args, bbox)
             if not allout:
                 valid_result = self._evaluate(*vinputs, **kw)
                 if self.n_outputs == 1:
                     valid_result = [valid_result]
                 outputs = prepare_bounding_box_outputs(valid_result, valid_ind,
-                                                   input_shape, fill_value)
+                                                       input_shape, fill_value)
             else:
                 outputs = [np.zeros(input_shape) + fill_value for i in range(self.n_outputs)]
             if self.n_outputs == 1:
@@ -2613,7 +2616,7 @@ class CompoundModel(Model):
             if stop < 0:
                 stop = len(leaflist) + stop
             # now search for matching node:
-            if stop == start: # only single value, get leaf instead in code below
+            if stop == start:  # only single value, get leaf instead in code below
                 index = start
             else:
                 for key in tdict:
@@ -2637,6 +2640,7 @@ class CompoundModel(Model):
             return leaflist[found[0]]
         else:
             raise TypeError('index must be integer, slice, or model name string')
+
     @property
     def n_inputs(self):
         return self._n_inputs
@@ -2748,7 +2752,7 @@ class CompoundModel(Model):
 
     def _format_components(self):
         return '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
-                                 for idx, m in enumerate(self._leaflist))
+                           for idx, m in enumerate(self._leaflist))
 
     def __repr__(self):
         if self._parameters_ is None:
@@ -2817,8 +2821,8 @@ class CompoundModel(Model):
         # the assumption here is reliable:
         if self.param_names is None:
             raise RuntimeError("Compound model parameter interface is not "
-                              "supported\n"
-                              "until the .map_parameters() method is called.")
+                               "supported\n"
+                               "until the .map_parameters() method is called.")
 
         self._parameters_to_array()
         start = self._param_metrics[self.param_names[0]]['slice'].start
@@ -2857,14 +2861,14 @@ class CompoundModel(Model):
         self._has_inverse = True
         self._user_inverse = invmodel
 
-    __add__ =     _model_oper('+')
-    __sub__ =     _model_oper('-')
-    __mul__ =     _model_oper('*')
+    __add__ = _model_oper('+')
+    __sub__ = _model_oper('-')
+    __mul__ = _model_oper('*')
     __truediv__ = _model_oper('/')
-    __pow__ =     _model_oper('**')
-    __or__ =      _model_oper('|')
-    __and__ =     _model_oper('&')
-    ###__mod__ =     _model_oper('%')
+    __pow__ = _model_oper('**')
+    __or__ = _model_oper('|')
+    __and__ = _model_oper('&')
+    # __mod__ =     _model_oper('%')
 
     def map_parameters(self):
         """
@@ -2984,34 +2988,34 @@ class CompoundModel(Model):
     def input_units(self):
         inputs_map = self.inputs_map()
         return {key: inputs_map[key][0].input_units[orig_key]
-            for key, (mod, orig_key) in inputs_map.items()
-                     if inputs_map[key][0].input_units is not None}
+                for key, (mod, orig_key) in inputs_map.items()
+                if inputs_map[key][0].input_units is not None}
 
     @property
     def input_units_equivalencies(self):
         inputs_map = self.inputs_map()
         return {key: inputs_map[key][0].input_units_equivalencies[orig_key]
-            for key, (mod, orig_key) in inputs_map.items()
+                for key, (mod, orig_key) in inputs_map.items()
                 if inputs_map[key][0].input_units_equivalencies is not None}
 
     @property
     def input_units_allow_dimensionless(self):
         inputs_map = self.inputs_map()
         return {key: inputs_map[key][0].input_units_allow_dimensionless[orig_key]
-            for key, (mod, orig_key) in inputs_map.items()}
+                for key, (mod, orig_key) in inputs_map.items()}
 
     @property
     def input_units_strict(self):
         inputs_map = self.inputs_map()
         return {key: inputs_map[key][0].input_units_strict[orig_key]
-            for key, (mod, orig_key) in inputs_map.items()}
+                for key, (mod, orig_key) in inputs_map.items()}
 
     @property
     def return_units(self):
         inputs_map = self.inputs_map()
         return {key: inputs_map[key][0].return_units[orig_key]
-            for key, (mod, orig_key) in inputs_map.items()
-                     if inputs_map[key][0].return_units is not None}
+                for key, (mod, orig_key) in inputs_map.items()
+                if inputs_map[key][0].return_units is not None}
 
     def outputs_map(self):
         """
@@ -3029,7 +3033,6 @@ class CompoundModel(Model):
                 else:
                     outputs_map[out] = self, out
 
-
         elif self.op == '&':
             l_inputs_map = self.left.inputs_map()
             r_outputs_map = self.right.outputs_map()
@@ -3041,12 +3044,9 @@ class CompoundModel(Model):
                         outputs_map[out] = self.left, self.left.outputs[i]
                 else:  # Get from right
                     if isinstance(self.right, CompoundModel):
-                        outputs_map[out] = r_outputs_map[self.right.outputs[i
-
-                                                   - len(self.left.outputs)]]
+                        outputs_map[out] = r_outputs_map[self.right.outputs[i - len(self.left.outputs)]]
                     else:
-                        outputs_map[out] = self.right, self.right.outputs[i
-                                                   - len(self.left.outputs)]
+                        outputs_map[out] = self.right, self.right.outputs[i - len(self.left.outputs)]
 
         else:
             if isinstance(self.left, CompoundModel):
@@ -3058,7 +3058,6 @@ class CompoundModel(Model):
                     outputs_map[out] = self.left, out
         return outputs_map
 
-
     @property
     def _constraints(self):
         return self._constraints_compound
@@ -3068,7 +3067,6 @@ class CompoundModel(Model):
         self._constraints_compound = value
 
     def _initialize_constraints(self):
-
         self._constraints = {}
         for constraint in Parameter.constraints:
             self._constraints[constraint] = {}
@@ -3391,6 +3389,7 @@ def binary_operation(binoperator, left, right):
     else:
         return binoperator(left, right)
 
+
 def make_subtree_dict(tree, nodepath, tdict, leaflist):
     '''
     Traverse a tree noting each node by a key that indicates all the
@@ -3411,6 +3410,7 @@ def make_subtree_dict(tree, nodepath, tdict, leaflist):
         make_subtree_dict(tree.right, nodepath+'r', tdict, leaflist)
         rightmostind = len(leaflist)-1
         tdict[nodepath] = (tree, leftmostind, rightmostind)
+
 
 _ORDER_OF_OPERATORS = [('|',), ('&',), ('+', '-'), ('*', '/'), ('**',)]
 OPERATOR_PRECEDENCE = {}
@@ -3745,7 +3745,7 @@ def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis_in
     reshaped = []
     pivots = []
 
-    model_set_axis_param = model.model_set_axis # needed to reshape param
+    model_set_axis_param = model.model_set_axis  # needed to reshape param
     for idx, _input in enumerate(inputs):
         max_param_shape = ()
         if n_models > 1 and model_set_axis_input is not False:
@@ -3869,7 +3869,6 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
     if not validate_broadcasting:
         return
 
-
     input_shape = check_consistent_shapes(*all_shapes)
     if input_shape is None:
         raise ValueError(
@@ -3905,6 +3904,7 @@ def remove_axes_from_shape(shape, axis):
     shape = shape[axis+1:]
     return shape
 
+
 def check_consistent_shapes(*shapes):
     """
     Given shapes as arguments, check to see if all are the same (excluding
@@ -3923,6 +3923,7 @@ def check_consistent_shapes(*shapes):
             if shape != rshape:
                 return None
         return rshape
+
 
 def get_bounding_box(self):
     try:
@@ -3955,7 +3956,7 @@ def generic_call(self, *inputs, **kwargs):
             if self.n_outputs == 1:
                 valid_result = [valid_result]
             outputs = prepare_bounding_box_outputs(valid_result, valid_ind,
-                                               input_shape, fill_value)
+                                                   input_shape, fill_value)
         else:
             outputs = [np.zeros(input_shape) + fill_value for i in range(self.n_outputs)]
     else:
@@ -3971,6 +3972,7 @@ def generic_call(self, *inputs, **kwargs):
     else:
         return outputs
 
+
 def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
     allout = False
     if self.n_inputs > 1:
@@ -3984,7 +3986,7 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
     nan_ind = np.zeros(input_shape, dtype=bool)
     for ind, inp in enumerate(inputs):
         inp = np.array(inp)
-        outside = (inp < bbox[ind][0] ) | (inp > bbox[ind][1])
+        outside = (inp < bbox[ind][0]) | (inp > bbox[ind][1])
         if inp.shape:
             nan_ind[outside] = True
         else:
@@ -4004,8 +4006,9 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
                 args.append(input)
     return args, valid_ind, allout
 
+
 def prepare_bounding_box_outputs(valid_result, valid_ind,
-                                input_shape, fill_value):
+                                 input_shape, fill_value):
     result = [np.zeros(input_shape) + fill_value
               for vr in valid_result]
     for ind, r in enumerate(valid_result):
@@ -4015,8 +4018,9 @@ def prepare_bounding_box_outputs(valid_result, valid_ind,
             result[ind][valid_ind] = r
     return result
 
+
 def _strip_ones(intup):
-    return tuple(item for item in intup if item !=1)
+    return tuple(item for item in intup if item != 1)
 
 
 copyreg.pickle(_ModelMeta, _ModelMeta.__reduce__)

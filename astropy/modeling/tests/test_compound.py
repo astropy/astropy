@@ -1,8 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
-
 import inspect
 import pytest
 import pickle
@@ -18,10 +15,10 @@ from astropy.utils import minversion
 from astropy.modeling.core import Model, ModelDefinitionError
 from astropy.modeling.parameters import Parameter
 from astropy.modeling.models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
-                      Gaussian2D, Polynomial1D, Polynomial2D,
-                      Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D,
-                      AffineTransformation2D, Identity, Mapping,
-                      Tabular1D)
+                                     Gaussian2D, Polynomial1D, Polynomial2D,
+                                     Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D,
+                                     AffineTransformation2D, Identity, Mapping,
+                                     Tabular1D)
 from ..core import CompoundModel
 
 
@@ -155,8 +152,8 @@ def test_expression_formatting():
 
     # For the purposes of this test it doesn't matter a great deal what
     # model(s) are used in the expression, I don't think
-    G = Gaussian1D(1,1,1)
-    G2 = Gaussian2D(1,2,3,4,5,6)
+    G = Gaussian1D(1, 1, 1)
+    G2 = Gaussian2D(1, 2, 3, 4, 5, 6)
 
     M = G + G
     assert M._format_expression() == '[0] + [1]'
@@ -312,15 +309,14 @@ def test_compound_with_polynomials(poly):
     assert_allclose(result, result_compound)
 
 
-
 def test_indexing_on_instance():
     """Test indexing on compound model instances."""
 
     m = Gaussian1D(1, 0, 0.1) + Const1D(2)
     assert isinstance(m[0], Gaussian1D)
     assert isinstance(m[1], Const1D)
-    #assert isinstance(m['Gaussian1D'], Gaussian1D)
-    #assert isinstance(m['Const1D'], Const1D)
+    # assert isinstance(m['Gaussian1D'], Gaussian1D)
+    # assert isinstance(m['Const1D'], Const1D)
 
     # Test parameter equivalence
     assert m[0].amplitude == 1
@@ -337,7 +333,6 @@ def test_indexing_on_instance():
     assert m[1].name == 'p'
     assert m['g'].name == 'g'
     assert m['p'].name == 'p'
-
 
     # Test negative indexing
     assert isinstance(m[-1], Polynomial1D)
@@ -367,22 +362,15 @@ class _ConstraintsTestB(Model):
         return mean
 
 
-@pytest.mark.parametrize('model',
-        [Gaussian1D(bounds={'stddev': (0, 0.3)}, fixed={'mean': True}) +
-            Gaussian1D(fixed={'mean': True})])
-def test_inherit_constraints(model):
+def test_inherit_constraints():
     """
     Various tests for copying of constraint values between compound models and
     their members.
 
-    There are two versions of this test: One where a compound model is created
-    from two model instances, and another where a compound model is created
-    from two model classes that have default constraints set on some of their
-    parameters.
-
     Regression test for https://github.com/astropy/astropy/issues/3481
     """
-
+    model = (Gaussian1D(bounds={'stddev': (0, 0.3)}, fixed={'mean': True}) +
+             Gaussian1D(fixed={'mean': True}))
     # We have to copy the model before modifying it, otherwise the test fails
     # if it is run twice in a row, because the state of the model instance
     # would be preserved from one run to the next.
@@ -446,22 +434,6 @@ def test_compound_custom_inverse():
         (model1 & poly).inverse
 
 
-@pytest.mark.parametrize('poly', [Chebyshev2D(1, 2), Polynomial2D(2), Legendre2D(1, 2),
-                                  Chebyshev1D(5), Legendre1D(5), Polynomial1D(5)])
-def test_compound_with_polynomials(poly):
-    """
-    Tests that polynomials are scaled when used in compound models.
-    Issue #3699
-    """
-    poly.parameters = [1, 2, 3, 4, 1, 2]
-    shift = Shift(3)
-    model = poly | shift
-    x, y = np.mgrid[:20, :37]
-    result_compound = model(x, y)
-    result = shift(poly(x, y))
-    assert_allclose(result, result_compound)
-
-
 @pytest.mark.skipif(str("sys.version_info < (2, 7, 3)"))
 def test_pickle_compound():
     """
@@ -510,6 +482,7 @@ def test_name():
     assert m.name == "M1"
     assert m1.name == "M1"
 
+
 def test_name_index():
     g1 = Gaussian1D(1, 1, 1)
     g2 = Gaussian1D(1, 2, 1)
@@ -532,7 +505,7 @@ def test_tabular_in_compound():
                   bounds_error=False)
     rot = Rotation2D(2)
     p = Polynomial1D(1)
-    x = np.arange(12).reshape((3,4))
+    x = np.arange(12).reshape((3, 4))
     # Create a compound model which does ot execute Tabular.__call__,
     # but model.evaluate and is followed by a Rotation2D which
     # checks the exact shapes.
@@ -541,34 +514,35 @@ def test_tabular_in_compound():
     assert x1.ndim == 2
     assert y1.ndim == 2
 
+
 def test_bounding_box():
     g = Gaussian2D() + Gaussian2D(2, .5, .1, 2, 3, 0)
-    g.bounding_box = ((0,1), (0,.5))
+    g.bounding_box = ((0, 1), (0, .5))
     y, x = np.mgrid[0:10, 0:10]
-    y = y/3.
-    x = x/3.
+    y = y / 3.
+    x = x / 3.
     val = g(x, y, with_bounding_box=True)
     compare = np.array([
-        [2.93738984, 2.93792011,  np.nan,  np.nan,  np.nan,
-          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
-        [2.87857153, 2.88188761,  np.nan,  np.nan,  np.nan,
-          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
-        [2.70492922, 2.71529265,  np.nan,  np.nan,  np.nan,
-          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
-        [2.45969972, 2.47912103,  np.nan,  np.nan,  np.nan,
-          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
-        [ np.nan,  np.nan,  np.nan,  np.nan,  np.nan,
-          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
-        [ np.nan,  np.nan,  np.nan,  np.nan,  np.nan,
-          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
-        [ np.nan,  np.nan,  np.nan,  np.nan,  np.nan,
-          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
-        [ np.nan,  np.nan,  np.nan,  np.nan,  np.nan,
-          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
-        [ np.nan,  np.nan,  np.nan,  np.nan,  np.nan,
-          np.nan,  np.nan,  np.nan,  np.nan,        np.nan],
-        [ np.nan,  np.nan,  np.nan,  np.nan,  np.nan,
-          np.nan,  np.nan,  np.nan,  np.nan,        np.nan]])
+        [2.93738984, 2.93792011, np.nan, np.nan, np.nan,
+         np.nan, np.nan, np.nan, np.nan, np.nan],
+        [2.87857153, 2.88188761, np.nan, np.nan, np.nan,
+         np.nan, np.nan, np.nan, np.nan, np.nan],
+        [2.70492922, 2.71529265, np.nan, np.nan, np.nan,
+         np.nan, np.nan, np.nan, np.nan, np.nan],
+        [2.45969972, 2.47912103, np.nan, np.nan, np.nan,
+         np.nan, np.nan, np.nan, np.nan, np.nan],
+        [np.nan, np.nan, np.nan, np.nan, np.nan,
+         np.nan, np.nan, np.nan, np.nan, np.nan],
+        [np.nan, np.nan, np.nan, np.nan, np.nan,
+         np.nan, np.nan, np.nan, np.nan, np.nan],
+        [np.nan, np.nan, np.nan, np.nan, np.nan,
+         np.nan, np.nan, np.nan, np.nan, np.nan],
+        [np.nan, np.nan, np.nan, np.nan, np.nan,
+         np.nan, np.nan, np.nan, np.nan, np.nan],
+        [np.nan, np.nan, np.nan, np.nan, np.nan,
+         np.nan, np.nan, np.nan, np.nan, np.nan],
+        [np.nan, np.nan, np.nan, np.nan, np.nan,
+         np.nan, np.nan, np.nan, np.nan, np.nan]])
     mask = ~np.isnan(val)
     assert_allclose(val[mask], compare[mask])
     val2 = g(x+2, y+2, with_bounding_box=True)
