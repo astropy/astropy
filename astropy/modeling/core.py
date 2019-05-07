@@ -1321,6 +1321,7 @@ class Model(metaclass=_ModelMeta):
         # If the model has a '_parameter_units_for_data_units' method, this
         # indicates that we have enough information to strip the units away
         # and add them back after fitting, when fitting quantities
+        ##if not isinstance(self, CompoundModel):
         return hasattr(self, '_parameter_units_for_data_units')
 
     @abc.abstractmethod
@@ -2490,6 +2491,16 @@ class CompoundModel(Model):
             if not self.right.has_inverse():
                 return False
         return True
+    """
+    def _parameter_units_for_data_units(self, input_units, output_units):
+        units_for_data = {}
+        for imodel, model in enumerate(self):
+            units_for_data_sub = model._parameter_units_for_data_units(input_units, output_units)
+            for param_sub in units_for_data_sub:
+                param = self._param_map_inverse[(imodel, param_sub)]
+                units_for_data[param] = units_for_data_sub[param_sub]
+        return units_for_data
+    """
 
     def __call__(self, *args, **kw):
         # If equivalencies are provided, necessary to map parameters and pass
@@ -2980,9 +2991,6 @@ class CompoundModel(Model):
                     inputs_map[inp] = self.left, inp
         return inputs_map
 
-    @property
-    def _supports_unit_fitting(self):
-        return False
 
     @property
     def input_units(self):
