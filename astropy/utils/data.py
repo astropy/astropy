@@ -295,6 +295,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
 
         fileobj = io.BufferedReader(fileobj)
         fileobj = io.TextIOWrapper(fileobj, encoding=encoding)
+        close_fds.append(fileobj)
 
         # Ensure that file is at the start - io.FileIO will for
         # example not always be at the start:
