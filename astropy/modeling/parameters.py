@@ -287,8 +287,7 @@ class Parameter(OrderedDescriptor):
             except IndexError:
                 raise InputParameterError(
                     "Input dimension {0} invalid for {1!r} parameter with "
-                    "dimension {2}".format(key, self.name, value.shape[0])) # likely wrong
-
+                    "dimension {2}".format(key, self.name, value.shape[0]))  # likely wrong
 
     def __repr__(self):
         args = "'{0}'".format(self._name)
@@ -315,8 +314,6 @@ class Parameter(OrderedDescriptor):
     @property
     def default(self):
         """Parameter default value"""
-
-
         return self._default
 
     @property
@@ -351,7 +348,6 @@ class Parameter(OrderedDescriptor):
         else:
             self._internal_value = np.array(self._setter(value),
                                             dtype=np.float64)
-
 
     @property
     def unit(self):
@@ -611,7 +607,6 @@ class Parameter(OrderedDescriptor):
             # to parameter 'b'
         """
 
-
         def validator(func, self=self):
             if callable(func):
                 self._validator = func
@@ -621,7 +616,6 @@ class Parameter(OrderedDescriptor):
                                  "The use of this method as a direct validator is\n"
                                  "deprecated; use the new validate method instead\n")
         return validator
-
 
     def validate(self, value):
         if self._validator is not None and self._model is not None:
@@ -676,7 +670,6 @@ class Parameter(OrderedDescriptor):
                 self.value = self._default
             else:
                 self._value = None
-
 
     @property
     def _raw_value(self):
