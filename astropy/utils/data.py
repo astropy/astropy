@@ -1008,18 +1008,22 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
             _dataurls_to_alias[conf.dataurl] = [conf.dataurl]
     try:
         if cache:
-            # We don't need to acquire the lock here, since we are only reading
-            with shelve.open(urlmapfn, flag='r') as url2hash:
-                if url_key in url2hash:
-                    return url2hash[url_key]
-                # If there is a cached copy from mirror, use it.
-                else:
-                    for cur_url in _dataurls_to_alias.get(conf.dataurl, []):
-                        if url_key.startswith(cur_url):
-                            url_mirror = url_key.replace(cur_url,
-                                                         conf.dataurl_mirror)
-                            if url_mirror in url2hash:
-                                return url2hash[url_mirror]
+            try:
+                # We don't need to acquire the lock here, since we are only reading
+                with shelve.open(urlmapfn, flag='r') as url2hash:
+                    if url_key in url2hash:
+                        return url2hash[url_key]
+                    # If there is a cached copy from mirror, use it.
+                    else:
+                        for cur_url in _dataurls_to_alias.get(conf.dataurl, []):
+                            if url_key.startswith(cur_url):
+                                url_mirror = url_key.replace(cur_url,
+                                                             conf.dataurl_mirror)
+                                if url_mirror in url2hash:
+                                    return url2hash[url_mirror]
+            except:
+                # shelve->dbm with flag='r' fails if the urlmap file does not exist.
+                pass
 
         with urllib.request.urlopen(remote_url, timeout=timeout) as remote:
             # keep a hash to rename the local file to the hashed name
@@ -1122,9 +1126,13 @@ def is_url_in_cache(url_key):
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return False
 
-    with shelve.open(urlmapfn, flag='r') as url2hash:
-        if url_key in url2hash:
-            return True
+    try:
+        with shelve.open(urlmapfn, flag='r') as url2hash:
+            if url_key in url2hash:
+                return True
+    except:
+        # shelve->dbm with flag='r' fails if the urlmap file does not exist.
+        return False
     return False
 
 
@@ -1371,5 +1379,9 @@ def get_cached_urls():
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return False
 
-    with shelve.open(urlmapfn, flag='r') as url2hash:
-        return list(url2hash.keys())
+    try:
+        with shelve.open(urlmapfn, flag='r') as url2hash:
+            return list(url2hash.keys())
+    except:
+        # shelve->dbm with flag='r' fails if the urlmap file does not exist.
+        return []
