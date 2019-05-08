@@ -19,6 +19,7 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import shelve
+import dbm
 
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
@@ -1021,7 +1022,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                                                              conf.dataurl_mirror)
                                 if url_mirror in url2hash:
                                     return url2hash[url_mirror]
-            except:
+            except dbm.error:
                 # shelve->dbm with flag='r' fails if the urlmap file does not exist.
                 pass
 
@@ -1130,7 +1131,7 @@ def is_url_in_cache(url_key):
         with shelve.open(urlmapfn, flag='r') as url2hash:
             if url_key in url2hash:
                 return True
-    except:
+    except dbm.error:
         # shelve->dbm with flag='r' fails if the urlmap file does not exist.
         return False
     return False
@@ -1382,6 +1383,6 @@ def get_cached_urls():
     try:
         with shelve.open(urlmapfn, flag='r') as url2hash:
             return list(url2hash.keys())
-    except:
+    except dbm.error:
         # shelve->dbm with flag='r' fails if the urlmap file does not exist.
         return []
