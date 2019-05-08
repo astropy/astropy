@@ -1009,7 +1009,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
     try:
         if cache:
             # We don't need to acquire the lock here, since we are only reading
-            with shelve.open(urlmapfn) as url2hash:
+            with shelve.open(urlmapfn, flag='r') as url2hash:
                 if url_key in url2hash:
                     return url2hash[url_key]
                 # If there is a cached copy from mirror, use it.
@@ -1122,7 +1122,7 @@ def is_url_in_cache(url_key):
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return False
 
-    with shelve.open(urlmapfn) as url2hash:
+    with shelve.open(urlmapfn, flag='r') as url2hash:
         if url_key in url2hash:
             return True
     return False
@@ -1371,5 +1371,5 @@ def get_cached_urls():
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return False
 
-    with shelve.open(urlmapfn) as url2hash:
+    with shelve.open(urlmapfn, flag='r') as url2hash:
         return list(url2hash.keys())
