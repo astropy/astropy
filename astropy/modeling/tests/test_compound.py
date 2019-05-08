@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import inspect
 import pytest
 import pickle
 
@@ -8,8 +7,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from numpy.testing.utils import (assert_allclose, assert_array_equal,
-                                 assert_almost_equal)
+from numpy.testing.utils import assert_allclose, assert_array_equal
 
 from astropy.utils import minversion
 from astropy.modeling.core import Model, ModelDefinitionError
@@ -17,14 +15,13 @@ from astropy.modeling.parameters import Parameter
 from astropy.modeling.models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
                                      Gaussian2D, Polynomial1D, Polynomial2D,
                                      Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D,
-                                     AffineTransformation2D, Identity, Mapping,
+                                     Identity, Mapping,
                                      Tabular1D)
 from ..core import CompoundModel
 
 
 try:
     import scipy
-    from scipy import optimize  # pylint: disable=W0611
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
