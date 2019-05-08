@@ -40,8 +40,8 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def pixel_to_world(self, *pixel_arrays):
         """
-        Convert pixel coordinates to world coordinates (represented by high-level
-        objects).
+        Convert pixel coordinates to world coordinates (represented by
+        high-level objects).
 
         If a single high-level object is used to represent the world coordinates
         (i.e.. if ``len(wcs.world_axis_object_classes) == 1``), it is returned
