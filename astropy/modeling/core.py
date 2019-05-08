@@ -1066,7 +1066,7 @@ class Model(metaclass=_ModelMeta):
 
     @property
     def bounding_box(self):
-        """
+        r"""
         A `tuple` of length `n_inputs` defining the bounding box limits, or
         `None` for no bounding box.
 
@@ -1248,18 +1248,17 @@ class Model(metaclass=_ModelMeta):
                 parameter.value = parameter.quantity.to(unit).value
                 parameter._set_unit(None, force=True)
 
-        if isinstance(model, _CompoundModel):
+        if isinstance(model, CompoundModel):
             model.strip_units_from_tree()
 
         return model
 
     def strip_units_from_tree(self):
-        for item in self._tree.traverse_inorder():
-            if isinstance(item.value, Model):
-                for parname in item.value.param_names:
-                    par = getattr(item.value, parname)
-                    par._set_unit(None, force=True)
-                    setattr(item.value, parname, par)
+        for item in self._leaflist:
+            for parname in item.param_names:
+                par = getattr(item, parname)
+                par._set_unit(None, force=True)
+                #setattr(item.value, parname, par)
 
     def with_units_from_data(self, **kwargs):
         """
@@ -2491,16 +2490,7 @@ class CompoundModel(Model):
             if not self.right.has_inverse():
                 return False
         return True
-    """
-    def _parameter_units_for_data_units(self, input_units, output_units):
-        units_for_data = {}
-        for imodel, model in enumerate(self):
-            units_for_data_sub = model._parameter_units_for_data_units(input_units, output_units)
-            for param_sub in units_for_data_sub:
-                param = self._param_map_inverse[(imodel, param_sub)]
-                units_for_data[param] = units_for_data_sub[param_sub]
-        return units_for_data
-    """
+
 
     def __call__(self, *args, **kw):
         # If equivalencies are provided, necessary to map parameters and pass
@@ -2909,6 +2899,7 @@ class CompoundModel(Model):
         if self._leaflist is None:
             self._make_leaflist()
         self._parameters_ = OrderedDict()
+        param_map = {}
         self._param_names = []
         for lindex, leaf in enumerate(self._leaflist):
             for param_name in leaf.param_names:
@@ -2917,9 +2908,13 @@ class CompoundModel(Model):
                 self.__dict__[new_param_name] = param
                 self._parameters_[new_param_name] = param
                 self._param_names.append(new_param_name)
+                param_map[new_param_name] = (lindex, param_name)
         self._param_metrics = {}
+        self._param_map =  param_map
+        self._param_map_inverse = dict((v, k) for k, v in param_map.items())
         self._initialize_slices()
         self._initialize_constraints()
+
 
     def _initialize_slices(self):
         # TODO eliminate redundant code with core here and next two methods
@@ -2956,7 +2951,7 @@ class CompoundModel(Model):
 
         elif self.op == '|':
             if isinstance(self.left, CompoundModel):
-                l_inputs_map = left.inputs_map()
+                l_inputs_map = self.left.inputs_map()
             for inp in self.inputs:
                 if isinstance(self.left, CompoundModel):
                     inputs_map[inp] = l_inputs_map[inp]
@@ -2991,14 +2986,28 @@ class CompoundModel(Model):
                     inputs_map[inp] = self.left, inp
         return inputs_map
 
+    def _parameter_units_for_data_units(self, input_units, output_units):
+        if self._leaflist is None:
+            self.map_parameters()
+        units_for_data = {}
+        print('_param_map_inverse', self._param_map_inverse)
+        for imodel, model in enumerate(self._leaflist):
+            units_for_data_leaf = model._parameter_units_for_data_units(input_units, output_units)
+            for param_leaf in units_for_data_leaf:
+                param = self._param_map_inverse[(imodel, param_leaf)]
+                units_for_data[param] = units_for_data_leaf[param_leaf]
+        return units_for_data
 
     @property
     def input_units(self):
         inputs_map = self.inputs_map()
-        return {key: inputs_map[key][0].input_units[orig_key]
+        input_units_dict = {key: inputs_map[key][0].input_units[orig_key]
                 for key, (mod, orig_key) in inputs_map.items()
                 if inputs_map[key][0].input_units is not None}
-
+        if input_units_dict:
+            return input_units_dict
+        else:
+            return None
     @property
     def input_units_equivalencies(self):
         inputs_map = self.inputs_map()
