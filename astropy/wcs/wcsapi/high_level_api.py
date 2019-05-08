@@ -43,9 +43,10 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         Convert pixel coordinates to world coordinates (represented by high-level
         objects).
 
-        If a single high-level object is used to represent the world
-        coordinates, it is returned as-is (not in a tuple/list), otherwise a
-        tuple of high-level objects is returned. See
+        If a single high-level object is used to represent the world coordinates
+        (i.e.. if ``len(wcs.world_axis_object_classes) == 1``), it is returned
+        as-is (not in a tuple/list), otherwise a tuple of high-level objects is
+        returned. See
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_to_world_values` for pixel
         indexing and ordering conventions.
         """
@@ -56,9 +57,10 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         Convert array indices to world coordinates (represented by Astropy
         objects).
 
-        If a single high-level object is used to represent the world
-        coordinates, it is returned as-is (not in a tuple/list), otherwise a
-        tuple of high-level objects is returned. See
+        If a single high-level object is used to represent the world coordinates
+        (i.e.. if ``len(wcs.world_axis_object_classes) == 1``), it is returned
+        as-is (not in a tuple/list), otherwise a tuple of high-level objects is
+        returned. See
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.array_index_to_world_values` for
         pixel indexing and ordering conventions.
         """
