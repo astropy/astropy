@@ -2818,6 +2818,12 @@ class CompoundModel(Model):
     def inverse(self, value):
         self._inverse = value
 
+    @inverse.deleter
+    def inverse(self):
+        self._has_inverse = False
+        self._user_inverse = None
+        # del self._inverse
+
     @property
     def fittable(self):
         if self._fittable is None:
