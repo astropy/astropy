@@ -698,6 +698,10 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Fixed a bug where an exception was raised when writing a table which includes
+  mixin columns (e.g. a Quantity column) and the output format was specified
+  using the ``formats`` keyword. [#8681]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
