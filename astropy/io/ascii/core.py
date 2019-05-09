@@ -835,7 +835,7 @@ class BaseData:
         """
         for col in self.cols:
             if col.info.name in self.formats:
-                col.info.format = self.formats[col.name]
+                col.info.format = self.formats[col.info.name]
 
 
 def convert_numpy(numpy_type):
