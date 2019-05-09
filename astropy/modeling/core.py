@@ -2426,8 +2426,13 @@ class CompoundModel(Model):
         elif op == '|':
             if left.n_outputs != right.n_inputs:
                 raise ModelDefinitionError(
-                    'left operand number of outputs must'
-                    'match right operand number of inputs')
+                    "Unsupported operands for |: {0} (n_inputs={1}, "
+                    "n_outputs={2}) and {3} (n_inputs={4}, n_outputs={5}); "
+                    "n_outputs for the left-hand model must match n_inputs "
+                    "for the right-hand model.".format(
+                        left.name, left.n_inputs, left.n_outputs, right.name,
+                        right.n_inputs, right.n_outputs))
+
             self.n_inputs = left.n_inputs
             self.n_outputs = right.n_outputs
             self.inputs = left.inputs
@@ -2439,7 +2444,15 @@ class CompoundModel(Model):
                                               self.left.inverse,
                                               inverse=self)
         else:
-            raise ModelDefinitionError('Illegal operator: ', self.op)
+            #raise ModelDefinitionError('Illegal operator: ', self.op)
+            raise ModelDefinitionError(
+                "Unsupported operands for {0}: {1} (n_inputs={2}, "
+                "n_outputs={3}) and {4} (n_inputs={5}, n_outputs={6}); "
+                "models must have the same n_inputs and the same "
+                "n_outputs for this operator".format(
+                    operator, left.name, left.n_inputs, left.n_outputs,
+                    right.name, right.n_inputs, right.n_outputs))
+
         if inverse is not None:
             self._inverse = inverse
             self._has_inverse = True
