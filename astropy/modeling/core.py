@@ -24,7 +24,7 @@ import warnings
 
 from collections import defaultdict, OrderedDict
 from inspect import signature
-from itertools import chain, islice
+from itertools import chain
 
 import numpy as np
 
@@ -1228,10 +1228,20 @@ class Model(metaclass=_ModelMeta):
         quantities need to define a _parameter_units_for_data_units method
         that takes the input and output units (as two dictionaries) and
         returns a dictionary giving the target units for each parameter.
+
+        For compound models this will only work when the expression only 
+        involves arithmetic operators
         """
 
+        if isinstance(self, CompoundModel):
+            self._make_opset()
+            if not self._opset.issubset(
+                set(('+', '-', '*', '/' ))):
+                raise ValueError(
+                    "Fitting a compound model without units can only be performed on"
+                    "compound models that only use arithmetic operators (i.e., not"
+                    "**, &, or |")
         model = self.copy()
-
         inputs_unit = {inp: getattr(kwargs[inp], 'unit',
                        dimensionless_unscaled)
                        for inp in self.inputs if kwargs[inp] is not None}
@@ -2372,6 +2382,7 @@ class CompoundModel(Model):
         self._bounding_box = None
         self._user_bounding_box = None
         self._leaflist = None
+        self._opset = None
         self._tdict = None
         self._parameters = None
         self._parameters_ = None
@@ -2576,6 +2587,13 @@ class CompoundModel(Model):
         make_subtree_dict(self, '', tdict, leaflist)
         self._leaflist = leaflist
         self._tdict = tdict
+
+    def _make_opset(self):
+        """
+        Determine the set of operations used in this tree
+        """
+        self._opset = set()
+        get_ops(self, self._opset)
 
     def __getattr__(self, name):
         """
@@ -2978,7 +2996,7 @@ class CompoundModel(Model):
                                                                    - len(self.left.inputs)]
         else:
             if isinstance(self.left, CompoundModel):
-                l_inputs_map = left.inputs_map()
+                l_inputs_map = self.left.inputs_map()
             for inp in self.left.inputs:
                 if isinstance(self.left, CompoundModel):
                     inputs_map[inp] = l_inputs_map[inp]
@@ -3406,6 +3424,16 @@ def binary_operation(binoperator, left, right):
     else:
         return binoperator(left, right)
 
+def get_ops(tree, opset):
+    """
+    Recursive function to collect operators used.
+    """
+    if isinstance(tree, CompoundModel):
+        opset.add(tree.op)
+        get_ops(tree.left, opset)
+        get_ops(tree.right, opset)
+    else:
+        return
 
 def make_subtree_dict(tree, nodepath, tdict, leaflist):
     '''
