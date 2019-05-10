@@ -143,6 +143,22 @@ functions for the following formats: CSV, JSON, HTML, and fixed width.
 For very large tables these may provide better performance than the built-in
 astropy table ASCII read and write functions.  For details see :ref:`table_io_pandas`.
 
+Improved help on Table read() and write() methods
+=================================================
+
+Starting from astropy version 3.2 is now possible to get detailed help for
+`~astropy.table.Table.read` and `~astropy.table.Table.write` which is
+specific to a particular data format.  This includes information about
+the format and method keywords that apply only for that format.  The
+following examples illustrate the new syntax for getting help::
+
+  >>> Table.read.help('ascii.latex')
+  >>> Table.read.help('ascii')
+  >>> Table.read.help('fits')
+  >>> Table.write.help('hdf5')
+  >>> Table.write.help('csv')
+  >>> Table.read.help()  # Generic read help
+
 Full change log
 ===============
 
