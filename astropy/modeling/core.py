@@ -1230,13 +1230,13 @@ class Model(metaclass=_ModelMeta):
         returns a dictionary giving the target units for each parameter.
 
         For compound models this will only work when the expression only 
-        involves arithmetic operators
+        involves the addition or subtraction operators.
         """
 
         if isinstance(self, CompoundModel):
             self._make_opset()
             if not self._opset.issubset(
-                set(('+', '-', '*', '/' ))):
+                set(('+', '-'))):
                 raise ValueError(
                     "Fitting a compound model without units can only be performed on"
                     "compound models that only use arithmetic operators (i.e., not"
