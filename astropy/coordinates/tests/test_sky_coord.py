@@ -1229,7 +1229,7 @@ def test_constellations_with_nameresolve():
 
     # ok, but at least some of the others do make sense...
     assert SkyCoord.from_name('Coma Cluster').get_constellation(short_name=True) == 'Com'
-    assert SkyCoord.from_name('UMa II').get_constellation() == 'Ursa Major'
+    assert SkyCoord.from_name('Orion Nebula').get_constellation() == 'Orion'
     assert SkyCoord.from_name('Triangulum Galaxy').get_constellation() == 'Triangulum'
 
 
