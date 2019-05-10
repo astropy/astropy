@@ -1,11 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-import os
-import urllib.parse
-import urllib.request
-
-import yaml
-
 import numpy as np
 
 
@@ -14,7 +8,6 @@ def run_schema_example_test(organization, standard, name, version, check_func=No
     import asdf
     from asdf.tests import helpers
     from asdf.types import format_tag
-    from asdf.resolver import default_tag_to_url_mapping
     from asdf.schema import load_schema
 
     tag = format_tag(organization, standard, version, name)
