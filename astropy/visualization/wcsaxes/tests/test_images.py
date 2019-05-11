@@ -4,6 +4,7 @@ import os
 import pytest
 import numpy as np
 
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Rectangle
 from matplotlib import rc_context
@@ -18,6 +19,9 @@ from astropy.visualization.wcsaxes import WCSAxes
 from . import datasets
 from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
 from astropy.visualization.wcsaxes.frame import EllipticalFrame
+
+# See if matplotlib is a dev version (e.g., 3.0.2+2456.g28e32c6)
+MPLDEV = '+' in matplotlib.__version__
 
 
 class BaseImageTests:
@@ -534,6 +538,9 @@ class TestBasic(BaseImageTests):
                                    savefig_kwargs={'bbox_inches': 'tight'},
                                    tolerance=0, style={})
     def test_axislabels_regression(self):
+        if MPLDEV:
+            pytest.xfail('https://github.com/astropy/astropy/issues/8678')
+
         # Regression test for a bug that meant that if tick labels were made
         # invisible with ``set_visible(False)``, they were still added to the
         # list of bounding boxes for tick labels, but with default values of 0
@@ -591,6 +598,9 @@ class TestBasic(BaseImageTests):
                                    savefig_kwargs={'bbox_inches': 'tight'},
                                    tolerance=0, style={})
     def test_patches_distortion(self, tmpdir):
+
+        if MPLDEV:
+            pytest.xfail('https://github.com/astropy/astropy/issues/8678')
 
         # Check how patches get distorted (and make sure that scatter markers
         # and SphericalCircle don't)
