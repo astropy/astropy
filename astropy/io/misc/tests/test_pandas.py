@@ -35,7 +35,10 @@ def test_read_write_format(fmt):
         pytest.skip('Missing lxml or bs4 + html5lib for HTML read/write test')
 
     pandas_fmt = 'pandas.' + fmt
-    t = Table([[1, 2, 3], [1.0, 2.5, 5.0], ['a', 'b', 'c']])
+    # Explicitly provide dtype to avoid casting 'a' to int32.
+    # See https://github.com/astropy/astropy/issues/8682
+    t = Table([[1, 2, 3], [1.0, 2.5, 5.0], ['a', 'b', 'c']],
+              dtype=(np.int64, np.float64, np.str))
     buf = StringIO()
     t.write(buf, format=pandas_fmt)
 
@@ -57,7 +60,10 @@ def test_read_fixed_width_format():
     buf = StringIO()
     buf.write(tbl)
 
-    t = Table.read(tbl, format='ascii', guess=False)
+    # Explicitly provide converters to avoid casting 'a' to int32.
+    # See https://github.com/astropy/astropy/issues/8682
+    t = Table.read(tbl, format='ascii', guess=False,
+                   converters={'a': [ascii.convert_numpy(np.int64)]})
 
     buf.seek(0)
     t2 = Table.read(buf, format='pandas.fwf')
@@ -85,6 +91,8 @@ def test_write_with_mixins():
     # Read it back
     buf.seek(0)
     qt2 = Table.read(buf, format='pandas.csv', sep=' ')
-    exp_t = ascii.read(exp)
+    # Explicitly provide converters to avoid casting 'i' to int32.
+    # See https://github.com/astropy/astropy/issues/8682
+    exp_t = ascii.read(exp, converters={'i': [ascii.convert_numpy(np.int64)]})
     assert qt2.colnames == exp_t.colnames
     assert np.all(qt2 == exp_t)
