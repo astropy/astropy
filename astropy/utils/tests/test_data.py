@@ -17,6 +17,7 @@ from astropy.utils.data import (_get_download_cache_locs, CacheMissingWarning,
 from astropy.tests.helper import raises, catch_warnings
 
 TESTURL = 'http://www.astropy.org'
+TESTLOCAL = get_pkg_data_filename(os.path.join('data', 'local.dat'))
 
 # General file object function
 
@@ -240,8 +241,7 @@ def test_local_data_obj_invalid(bad_compressed):
 
 
 def test_local_data_name():
-    fnout = get_pkg_data_filename('data/local.dat')
-    assert os.path.isfile(fnout) and fnout.endswith('local.dat')
+    assert os.path.isfile(TESTLOCAL) and TESTLOCAL.endswith('local.dat')
 
     # TODO: if in the future, the root data/ directory is added in, the below
     # test should be uncommented and the README.rst should be replaced with
@@ -477,8 +477,7 @@ def test_is_url_in_cache():
 def test_get_readable_fileobj_cleans_up_temporary_files(tmpdir, monkeypatch):
     """checks that get_readable_fileobj leaves no temporary files behind"""
     # Create a 'file://' URL pointing to a path on the local filesystem
-    local_filename = get_pkg_data_filename(os.path.join('data', 'local.dat'))
-    url = 'file://' + urllib.request.pathname2url(local_filename)
+    url = 'file://' + urllib.request.pathname2url(TESTLOCAL)
 
     # Save temporary files to a known location
     monkeypatch.setattr(tempfile, 'tempdir', str(tmpdir))
@@ -496,7 +495,24 @@ def test_get_readable_fileobj_cleans_up_temporary_files(tmpdir, monkeypatch):
 
 
 def test_path_objects_get_readable_fileobj():
-    fpath = pathlib.Path(get_pkg_data_filename(os.path.join('data', 'local.dat')))
+    fpath = pathlib.Path(TESTLOCAL)
     with get_readable_fileobj(fpath) as f:
         assert f.read().rstrip() == ('This file is used in the test_local_data_* '
                                      'testing functions\nCONTENT')
+
+
+def test_nested_get_readable_fileobj():
+    """Ensure fileobj state is as expected when get_readable_fileobj()
+    is called inside another get_readable_fileobj().
+    """
+    with get_readable_fileobj(TESTLOCAL, encoding='binary') as fileobj:
+        with get_readable_fileobj(fileobj, encoding='UTF-8') as fileobj2:
+            fileobj2.seek(1)
+        fileobj.seek(1)
+
+        # Theoretically, fileobj2 should be closed already here but it is not.
+        # See https://github.com/astropy/astropy/pull/8675.
+        # UNCOMMENT THIS WHEN PYTHON FINALLY LETS IT HAPPEN.
+        #assert fileobj2.closed
+
+    assert fileobj.closed and fileobj2.closed
