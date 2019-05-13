@@ -139,13 +139,15 @@ class TestShapeManipulation(InvariantUnitTestSetup):
     def test_rot90(self):
         self.check(np.rot90)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_broadcast_to(self):
         self.check(np.broadcast_to, (3, 3, 3))
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_broadcast_arrays(self):
-        q2 = np.ones(3, 3, 3) / u.s
+        q2 = np.ones((3, 3, 3)) / u.s
         o1, o2 = np.broadcast_arrays(self.q, q2)
         assert isinstance(o1, u.Quantity)
         assert isinstance(o2, u.Quantity)
@@ -530,13 +532,16 @@ class TestUfuncLike(InvariantUnitTestSetup):
                            qmax.to_value(self.q.unit)) * self.q.unit
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_sinc(self):
         q = [0., 3690., -270., 690.] * u.deg
         out = np.sinc(q)
         expected = np.sinc(q.to_value(u.radian)) * u.one
         assert isinstance(out, u.Quantity)
         assert np.all(out == expected)
+        with pytest.raises(u.UnitsError):
+            np.sinc(1.*u.one)
 
     @pytest.mark.xfail
     def test_where(self):
@@ -583,12 +588,17 @@ class TestUfuncLike(InvariantUnitTestSetup):
     def test_triu(self):
         self.check(np.triu)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_unwrap(self):
         q = [0., 3690., -270., 690.] * u.deg
         out = np.unwrap(q)
-        expected = np.rad2deg(q.to_value(u.rad)) * u.deg
+        expected = np.rad2deg(np.unwrap(q.to_value(u.rad))) * u.deg
         assert np.allclose(out, expected, atol=1*u.urad, rtol=0)
+        with pytest.raises(u.UnitsError):
+            np.unwrap([1., 2.]*u.m)
+        with pytest.raises(u.UnitsError):
+            np.unwrap(q, discont=1.*u.m)
 
     def test_nan_to_num(self):
         q = np.array([-np.inf, +np.inf, np.nan, 3., 4.]) * u.m
