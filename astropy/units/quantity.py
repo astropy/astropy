@@ -28,6 +28,9 @@ from astropy.utils.data_info import ParentDtypeInfo
 from astropy import config as _config
 from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
                               check_output)
+from .quantity_helper.function_helpers import (
+    INVARIANT_FUNCTIONS, DISPATCHED_FUNCTIONS)
+
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
            "QuantityInfoBase", "QuantityInfo", "allclose", "isclose"]
@@ -1453,15 +1456,12 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
     def argmin(self, axis=None, out=None):
         return self.view(np.ndarray).argmin(axis, out=out)
 
-    _INVARIANT_FUNCTIONS = {
-        np.copy, np.asfarray, np.empty_like, np.zeros_like,
-        np.real_if_close, np.tril, np.triu,
-        np.sort_complex}
-
     def __array_function__(self, function, types, args, kwargs):
         wrapped = function.__wrapped__
-        if function in self._INVARIANT_FUNCTIONS:
+        if function in INVARIANT_FUNCTIONS:
             return self._wrap_function(wrapped, *args[1:], **kwargs)
+        elif function in DISPATCHED_FUNCTIONS:
+            return DISPATCHED_FUNCTIONS[function](*args, **kwargs)
         return wrapped(*args, **kwargs)
 
     # Calculation -- override ndarray methods to take into account units.
