@@ -668,21 +668,30 @@ class TestUfuncLikeTests(metaclass=CoverageMeta):
         self.check(np.iscomplex)
         assert np.iscomplex([1. + 1j]*u.m)
 
-    @pytest.mark.xfail
     def test_isclose(self):
-        q_cm = self.q.to(u.cm)
-        out = np.isclose(self.q, q_cm, atol=1.*u.nm, rtol=0)
-        expected = np.isclose(self.q.value, q_cm.to_value(u.m),
-                              atol=1e-9, rtol=0)
+        q1 = np.arange(3.) * u.m
+        q2 = np.array([0., 102., 199.]) * u.cm
+        atol = 1.5 * u.cm
+        rtol = 1. * u.percent
+        out = np.isclose(q1, q2, atol=atol)
+        expected = np.isclose(q1.value, q2.to_value(q1.unit),
+                              atol=atol.to_value(q1.unit))
         assert type(out) is np.ndarray
         assert out.dtype.kind == 'b'
         assert np.all(out == expected)
+        out = np.isclose(q1, q2, atol=0, rtol=rtol)
+        expected = np.isclose(q1.value, q2.to_value(q1.unit),
+                              atol=0, rtol=0.01)
+        assert type(out) is np.ndarray
+        assert out.dtype.kind == 'b'
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail
+    def test_isclose_failure(self):
+        q_cm = self.q.to(u.cm)
+        # atol does not have units; TODO: should this work by default?
         out = np.isclose(self.q, q_cm)
         expected = np.isclose(self.q.value, q_cm.to_value(u.m))
-        assert np.all(out == expected)
-        out = np.isclose(self.q, q_cm, equal_nan=True)
-        expected = np.isclose(self.q.value, q_cm.to_value(u.m),
-                              equal_nan=True)
         assert np.all(out == expected)
 
 
@@ -734,19 +743,20 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         # Returns integer Quantity with units of m
         assert o == np.array([2, 3, 3])
 
-    @pytest.mark.xfail
     def test_allclose(self):
         q1 = np.arange(3.) * u.m
         q2 = np.array([0., 101., 199.]) * u.cm
         atol = 2 * u.cm
         rtol = 1. * u.percent
         assert np.allclose(q1, q2, atol=atol)
-        # Default atol breaks code; everything else works.
-        assert np.allclose(q1, q2, rtol=rtol)
+        assert np.allclose(q1, q2, atol=0., rtol=rtol)
 
     def test_allclose_failures(self):
         q1 = np.arange(3.) * u.m
         q2 = np.array([0., 101., 199.]) * u.cm
+        with pytest.raises(u.UnitsError):
+            # Default atol breaks code; TODO: should this work?
+            assert np.allclose(q1, q2)
         with pytest.raises(u.UnitsError):
             np.allclose(q1, q2, atol=2, rtol=0)
         with pytest.raises(u.UnitsError):
