@@ -16,6 +16,9 @@ In particular, this release includes:
 
 * :ref:`whatsnew-3.2-timeseries`
 * :ref:`whatsnew-3.2-ecliptic`
+* :ref:`whatsnew-3.2-table-performance`
+* :ref:`whatsnew-3.2-table-pandas`
+* :ref:`whatsnew-3.2-table-help`
 *
 
 In addition to these major changes, Astropy v3.2 includes a large number of
@@ -114,6 +117,8 @@ typically an extremely small differences (picoarcseconds).  However, if the
 previous behavior is needed, the easiest work-around is to change any use of
 e.g., ``'J2000'`` to ``Time('J2000', scale='utc')``.
 
+.. _whatsnew-3.2-table-performance:
+
 Table performance improvements and change in meta handling
 ==========================================================
 
@@ -131,6 +136,8 @@ improve performance:
   cases converting to a shallow copy.  See the change log for #8404 for details
   about the related API changes in table initialization and slicing.
 
+.. _whatsnew-3.2-table-pandas:
+
 Table I/O integration of pandas I/O functions for ASCII tables
 ==============================================================
 
@@ -142,6 +149,8 @@ convenient wrappers for the `pandas <http://pandas.pydata.org/>`_ read/write
 functions for the following formats: CSV, JSON, HTML, and fixed width.
 For very large tables these may provide better performance than the built-in
 astropy table ASCII read and write functions.  For details see :ref:`table_io_pandas`.
+
+.. _whatsnew-3.2-table-help:
 
 Improved help on Table read() and write() methods
 =================================================
