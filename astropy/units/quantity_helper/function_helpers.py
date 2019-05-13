@@ -10,17 +10,13 @@ from astropy.units.core import (
 from .helpers import _d, get_converter
 
 
-INVARIANT_FUNCTIONS = {
-        np.copy, np.asfarray, np.empty_like, np.zeros_like,
-        np.real_if_close, np.tril, np.triu,
-        np.sort_complex, np.broadcast_to}
 UNSUPPORTED_FUNCTIONS = set()
 FUNCTION_HELPERS = {}
 DISPATCHED_FUNCTIONS = {}
 
 
 def function_helper(f):
-    FUNCTION_HELPERS[getattr(np, f.__name__.replace('_helper', ''))] = f
+    FUNCTION_HELPERS[getattr(np, f.__name__)] = f
     return f
 
 
@@ -29,16 +25,35 @@ def dispatched_function(f):
     return f
 
 
-@dispatched_function
-def broadcast_arrays(*args, subok=True):
-    return np.broadcast_arrays.__wrapped__(*args, subok=subok)
+def invariant_a_helper(a, *args, **kwargs):
+    return (a.view(np.ndarray),) + args, kwargs, a.unit, None
+
+
+FUNCTION_HELPERS[np.copy] = invariant_a_helper
+FUNCTION_HELPERS[np.asfarray] = invariant_a_helper
+FUNCTION_HELPERS[np.zeros_like] = invariant_a_helper
+FUNCTION_HELPERS[np.real_if_close] = invariant_a_helper
+FUNCTION_HELPERS[np.sort_complex] = invariant_a_helper
+
+
+def invariant_m_helper(m, *args, **kwargs):
+    return (m.view(np.ndarray),) + args, kwargs, m.unit, None
+
+
+FUNCTION_HELPERS[np.tril] = invariant_m_helper
+FUNCTION_HELPERS[np.triu] = invariant_m_helper
 
 
 @function_helper
-def sinc_helper(x):
+def empty_like(prototype, *args, **kwargs):
+    return (prototype.view(np.ndarray),) + args, kwargs, prototype.unit, None
+
+
+@function_helper
+def sinc(x):
     from astropy.units.si import radian
     try:
-        x = x << radian
+        x = x.to_value(radian)
     except UnitsError:
         raise UnitTypeError("Can only apply 'sinc' function to "
                             "quantities with angle units")
@@ -62,22 +77,22 @@ def unwrap(p, discont=None, axis=-1):
 
 
 @function_helper
-def argpartition(a, kth, **kwargs):
-    return (a.value, kth), kwargs, None, None
+def argpartition(a, *args, **kwargs):
+    return (a.view(np.ndarray),) + args, kwargs, None, None
 
 
 @function_helper
-def full_like(a, fill_value, **kwargs):
+def full_like(a, fill_value, *args, **kwargs):
     unit = a.unit if kwargs.get('subok', True) else None
-    return (a.value, a._to_own_unit(fill_value)), kwargs, unit, None
+    return (a.view(np.ndarray),
+            a._to_own_unit(fill_value)) + args, kwargs, unit, None
 
 
 @function_helper
 def putmask(a, mask, values):
     from astropy.units.quantity import Quantity
     if isinstance(a, Quantity):
-        return (a.value, mask, a._to_own_unit(values)), {}, a.unit, None
-        a = a.value
+        return (a.view(np.ndarray), mask, a._to_own_unit(values)), {}, a.unit, None
     elif isinstance(values, Quantity):
         return (a, mask, values.to_value(dimensionless_unscaled)), {}, None, None
     else:
