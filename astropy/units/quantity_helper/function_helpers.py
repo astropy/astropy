@@ -138,3 +138,35 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
     return ((x.view(np.ndarray),),
             dict(copy=True, nan=nan, posinf=posinf, neginf=neginf),
             x.unit, None)
+
+
+@function_helper
+def concatenate(arrays, axis=0, out=None):
+    # TODO: make this smarter by creating an appropriately shaped
+    # empty output array and just filling it.
+    from astropy.units import Quantity
+    kwargs = {'axis': axis}
+
+    # Get unit from input if possible.
+    for a in arrays:
+        if hasattr(a, 'unit'):
+            unit = a.unit
+            break
+    else:
+        # No input has even a unit, so the only way we can have gotten
+        # here is for output to be a Quantity.  Assume all arrays are
+        # are standard ndarray and set unit to dimensionless.
+        kwargs['out'] = out.view(np.ndarray)
+        return (arrays,), kwargs, dimensionless_unscaled, out
+
+    if out is not None:
+        if isinstance(out, Quantity):
+            kwargs['out'] = out.view(np.ndarray)
+        else:
+            # TODO: for an ndarray output, we could in principle
+            # try converting all Quantity to dimensionless.
+            return NotImplemented
+
+    arrays = tuple(Quantity(a, subok=True, copy=False).to_value(unit)
+                   for a in arrays)
+    return (arrays,), kwargs, unit, out
