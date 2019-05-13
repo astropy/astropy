@@ -182,7 +182,8 @@ class TestArgFunctions(NoUnitTestSetup):
     def test_argwhere(self):
         self.check(np.argwhere)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_argpartition(self):
         self.check(np.argpartition, 2)
 
