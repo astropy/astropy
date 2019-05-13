@@ -314,13 +314,25 @@ class TestSettingParts(metaclass=CoverageMeta):
         expected = [50, 100, 150] * u.cm
         assert np.all(q == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_putmask(self):
         q = np.arange(3.) * u.m
-        np.putmask(q, [True, False, True], [50, 0, 150] * u.cm)
+        mask = [True, False, True]
+        values = [50, 0, 150] * u.cm
+        np.putmask(q, mask, values)
         assert q.unit == u.m
         expected = [50, 100, 150] * u.cm
         assert np.all(q == expected)
+        with pytest.raises(u.UnitsError):
+            np.putmask(q, mask, values.value)
+        with pytest.raises(u.UnitsError):
+            np.putmask(q.value, mask, values)
+        a = np.arange(3.)
+        values = [50, 0, 150] * u.percent
+        np.putmask(a, mask, values)
+        expected = np.array([0.5, 1., 1.5])
+        assert np.all(a == expected)
 
     @pytest.mark.xfail
     def test_place(self):
