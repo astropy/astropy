@@ -254,12 +254,15 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
     def test_ones_like(self):
         self.check(np.ones_like)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_full_like(self):
         o = np.full_like(self.q, 0.5 * u.km)
         expected = np.empty_like(self.q.value) * u.m
         expected[...] = 0.5 * u.km
         assert np.all(o == expected)
+        with pytest.raises(u.UnitsError):
+            np.full_like(self.q, 0.5 * u.s)
 
 
 class TestAccessingParts(InvariantUnitTestSetup):
