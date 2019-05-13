@@ -1,6 +1,7 @@
 import inspect
 
 import numpy as np
+from numpy.testing import assert_array_equal
 
 import pytest
 
@@ -139,16 +140,14 @@ class TestShapeManipulation(InvariantUnitTestSetup):
     def test_rot90(self):
         self.check(np.rot90)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
     def test_broadcast_to(self):
-        self.check(np.broadcast_to, (3, 3, 3))
+        # TODO: should we change the default for subok?
+        self.check(np.broadcast_to, (3, 3, 3), subok=True)
 
-    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
-                       reason="Needs __array_function__ support")
     def test_broadcast_arrays(self):
+        # TODO: should we change the default for subok?
         q2 = np.ones((3, 3, 3)) / u.s
-        o1, o2 = np.broadcast_arrays(self.q, q2)
+        o1, o2 = np.broadcast_arrays(self.q, q2, subok=True)
         assert isinstance(o1, u.Quantity)
         assert isinstance(o2, u.Quantity)
         assert o1.shape == o2.shape == (3, 3, 3)
@@ -236,20 +235,31 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
                        reason="Needs __array_function__ support")
     def test_copy(self):
         self.check(np.copy)
+        # Also as kwarg
+        copy = np.copy(a=self.q)
+        assert_array_equal(copy, self.q)
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
     def test_asfarray(self):
         self.check(np.asfarray)
+        farray = np.asfarray(a=self.q)
+        assert_array_equal(farray, self.q)
 
     def test_empty_like(self):
         o = np.empty_like(self.q)
         assert o.shape == (3, 3)
         assert isinstance(o, u.Quantity)
         assert o.unit == self.q.unit
+        o2 = np.empty_like(prototype=self.q)
+        assert o2.shape == (3, 3)
+        assert isinstance(o2, u.Quantity)
+        assert o2.unit == self.q.unit
 
     def test_zeros_like(self):
         self.check(np.zeros_like)
+        o2 = np.zeros_like(a=self.q)
+        assert_array_equal(o2, self.q * 0.)
 
     def test_ones_like(self):
         self.check(np.ones_like)

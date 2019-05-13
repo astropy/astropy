@@ -29,7 +29,7 @@ from astropy import config as _config
 from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
                               check_output)
 from .quantity_helper.function_helpers import (
-    INVARIANT_FUNCTIONS, FUNCTION_HELPERS, DISPATCHED_FUNCTIONS)
+    FUNCTION_HELPERS, DISPATCHED_FUNCTIONS)
 
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
@@ -1458,9 +1458,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
 
     def __array_function__(self, function, types, args, kwargs):
         wrapped = function.__wrapped__
-        if function in INVARIANT_FUNCTIONS:
-            return self._wrap_function(wrapped, *args[1:], **kwargs)
-        elif function in FUNCTION_HELPERS:
+        if function in FUNCTION_HELPERS:
             helper_info = FUNCTION_HELPERS[function](*args, **kwargs)
             if helper_info is NotImplemented:
                 return NotImplemented
