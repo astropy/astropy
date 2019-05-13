@@ -344,7 +344,8 @@ class TestSettingParts(metaclass=CoverageMeta):
         expected = np.array([0.5, 1., 1.5])
         assert np.all(a == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_place(self):
         q = np.arange(3.) * u.m
         np.place(q, [True, False, True], [50, 150] * u.cm)
@@ -352,10 +353,11 @@ class TestSettingParts(metaclass=CoverageMeta):
         expected = [50, 100, 150] * u.cm
         assert np.all(q == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_copyto(self):
         q = np.arange(3.) * u.m
-        np.place(q, [50, 0, 150] * u.cm, where=[True, False, True])
+        np.copyto(q, [50, 0, 150] * u.cm, where=[True, False, True])
         assert q.unit == u.m
         expected = [50, 100, 150] * u.cm
         assert np.all(q == expected)
@@ -630,6 +632,14 @@ class TestUfuncLike(InvariantUnitTestSetup):
         q = np.array([-np.inf, +np.inf, np.nan, 3., 4.]) * u.m
         out = np.nan_to_num(q)
         expected = np.nan_to_num(q.value) * q.unit
+        assert np.all(out == expected)
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
+    def test_nan_to_num_complex(self):
+        q = np.array([-np.inf, +np.inf, np.nan, 3., 4.]) * u.m
+        out = np.nan_to_num(q, nan=1.*u.km, posinf=2.*u.km, neginf=-2*u.km)
+        expected = [-2000., 2000., 1000., 3., 4.] * u.m
         assert np.all(out == expected)
 
 

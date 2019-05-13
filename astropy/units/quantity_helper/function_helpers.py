@@ -32,6 +32,7 @@ def invariant_a_helper(a, *args, **kwargs):
 FUNCTION_HELPERS[np.copy] = invariant_a_helper
 FUNCTION_HELPERS[np.asfarray] = invariant_a_helper
 FUNCTION_HELPERS[np.zeros_like] = invariant_a_helper
+FUNCTION_HELPERS[np.ones_like] = invariant_a_helper
 FUNCTION_HELPERS[np.real_if_close] = invariant_a_helper
 FUNCTION_HELPERS[np.sort_complex] = invariant_a_helper
 
@@ -92,8 +93,48 @@ def full_like(a, fill_value, *args, **kwargs):
 def putmask(a, mask, values):
     from astropy.units.quantity import Quantity
     if isinstance(a, Quantity):
-        return (a.view(np.ndarray), mask, a._to_own_unit(values)), {}, a.unit, None
+        return (a.view(np.ndarray), mask,
+                a._to_own_unit(values)), {}, a.unit, None
     elif isinstance(values, Quantity):
-        return (a, mask, values.to_value(dimensionless_unscaled)), {}, None, None
+        return (a, mask,
+                values.to_value(dimensionless_unscaled)), {}, None, None
     else:
         return NotImplemented
+
+
+@function_helper
+def place(arr, mask, vals):
+    from astropy.units.quantity import Quantity
+    if isinstance(arr, Quantity):
+        return (arr.view(np.ndarray), mask,
+                arr._to_own_unit(vals)), {}, arr.unit, None
+    elif isinstance(vals, Quantity):
+        return (arr, mask,
+                vals.to_value(dimensionless_unscaled)), {}, None, None
+    else:
+        return NotImplemented
+
+
+@function_helper
+def copyto(dst, src, *args, **kwargs):
+    from astropy.units.quantity import Quantity
+    if isinstance(dst, Quantity):
+        return ((dst.view(np.ndarray), dst._to_own_unit(src)) + args,
+                kwargs, None, None)
+    elif isinstance(src, Quantity):
+        return ((dst,  src.to_value(dimensionless_unscaled)) + args,
+                kwargs, None, None)
+    else:
+        return NotImplemented
+
+
+@function_helper
+def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
+    nan = x._to_own_unit(nan)
+    if posinf is not None:
+        posinf = x._to_own_unit(posinf)
+    if neginf is not None:
+        neginf = x._to_own_unit(neginf)
+    return ((x.view(np.ndarray),),
+            dict(copy=True, nan=nan, posinf=posinf, neginf=neginf),
+            x.unit, None)
