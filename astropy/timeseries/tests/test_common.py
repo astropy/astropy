@@ -53,6 +53,10 @@ class CommonTimeSeriesTests:
             ts.remove_columns(ts.colnames)
         assert 'TimeSeries object is invalid' in exc.value.args[0]
 
+    def test_set_unit(self):
+        # Regression test for https://github.com/astropy/astropy/issues/8642
+        self.series['a'].unit = u.m
+
 
 class TestTimeSeries(CommonTimeSeriesTests):
 

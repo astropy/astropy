@@ -1922,7 +1922,9 @@ class Table:
         if self[name].info.indices:
             raise ValueError('cannot replace a table index column')
 
-        t = self.__class__([col], names=[name])
+        # We deliberately use ``Table`` here since it should be sufficient
+        # and it is just meant as a temporary container for the column
+        t = Table([col], names=[name])
         cols = OrderedDict(self.columns)
         cols[name] = t[name]
         self._init_from_cols(cols.values())
