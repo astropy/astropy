@@ -434,7 +434,7 @@ def test_absolute_times(data, timedelta):
 
     for key in stats1:
         if key == 'transit_times':
-            assert_quantity_allclose((stats1[key] - start).to(u.day), stats2[key])
+            assert_quantity_allclose((stats1[key] - start).to(u.day), stats2[key], atol=1e-10 * u.day)
         elif key.startswith('depth'):
             for value1, value2 in zip(stats1[key], stats2[key]):
                 assert_quantity_allclose(value1, value2)
