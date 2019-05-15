@@ -81,11 +81,11 @@ def warn_or_raise(warning_class, exception_class=None, args=(), config=None,
     """
     if config is None:
         config = {}
-    if config.get('pedantic'):
+    if config.get('pedantic') == 'exception':
         if exception_class is None:
             exception_class = warning_class
         vo_raise(exception_class, args, config, pos)
-    else:
+    elif config.get('pedantic') == 'warn':
         vo_warn(warning_class, args, config, pos, stacklevel=stacklevel+1)
 
 
@@ -122,8 +122,9 @@ def vo_warn(warning_class, args=(), config=None, pos=None, stacklevel=1):
     """
     if config is None:
         config = {}
-    warning = warning_class(args, config, pos)
-    _suppressed_warning(warning, config, stacklevel=stacklevel+1)
+    if config.get('pedantic') == 'warn':
+        warning = warning_class(args, config, pos)
+        _suppressed_warning(warning, config, stacklevel=stacklevel+1)
 
 
 def warn_unknown_attrs(element, attrs, config, pos, good_attr=[], stacklevel=1):

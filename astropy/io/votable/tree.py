@@ -268,10 +268,12 @@ def check_ucd(ucd, config=None, pos=None):
                 has_colon=config.get('version_1_2_or_later', False))
         except ValueError as e:
             # This weird construction is for Python 3 compatibility
-            if config.get('pedantic'):
+            if config.get('pedantic') == 'exception':
                 vo_raise(W06, (ucd, str(e)), config, pos)
-            else:
+            elif config.get('pedantic') == 'warn':
                 vo_warn(W06, (ucd, str(e)), config, pos)
+                return False
+            else:
                 return False
     return True
 
@@ -1170,7 +1172,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         # actually contains character data.  We have to hack the field
         # to store character data, or we can't read it in.  A warning
         # will be raised when this happens.
-        if (not config.get('pedantic') and name == 'cprojection' and
+        if (config.get('pedantic') == 'warn' and name == 'cprojection' and
             ID == 'cprojection' and ucd == 'VOX:WCS_CoordProjection' and
             datatype == 'double'):
             datatype = 'char'
