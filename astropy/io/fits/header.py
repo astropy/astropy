@@ -350,12 +350,28 @@ class Header:
 
         cards = []
 
+        if not isinstance(sep, str):
+            sep = sep.decode('latin1')
+
         # If the card separator contains characters that may validly appear in
         # a card, the only way to unambiguously distinguish between cards is to
         # require that they be Card.length long.  However, if the separator
         # contains non-valid characters (namely \n) the cards may be split
         # immediately at the separator
         require_full_cardlength = set(sep).issubset(VALID_HEADER_CHARS)
+
+        if isinstance(data, bytes):
+            CONTINUE = b'CONTINUE'
+            END = b'END'
+            end_card = END_CARD.encode('ascii')
+            if not isinstance(sep, bytes):
+                sep = sep.encode('latin1')
+            join = lambda i: b''.join(i)
+        else:
+            CONTINUE = 'CONTINUE'
+            END = 'END'
+            end_card = END_CARD
+            join = lambda i: ''.join(i)
 
         # Split the header into individual cards
         idx = 0
@@ -374,17 +390,17 @@ class Header:
             idx = end_idx + len(sep)
 
             if image:
-                if next_image[:8] == 'CONTINUE':
+                if next_image[:8] == CONTINUE:
                     image.append(next_image)
                     continue
-                cards.append(Card.fromstring(''.join(image)))
+                cards.append(Card.fromstring(join(image)))
 
             if require_full_cardlength:
-                if next_image == END_CARD:
+                if next_image == end_card:
                     image = []
                     break
             else:
-                if next_image.split(sep)[0].rstrip() == 'END':
+                if next_image.split(sep)[0].rstrip() == END:
                     image = []
                     break
 
@@ -392,7 +408,7 @@ class Header:
 
         # Add the last image that was found before the end, if any
         if image:
-            cards.append(Card.fromstring(''.join(image)))
+            cards.append(Card.fromstring(join(image)))
 
         return cls._fromcards(cards)
 

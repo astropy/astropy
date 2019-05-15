@@ -2338,6 +2338,21 @@ class TestHeaderFunctions(FitsTestCase):
             else:
                 c.verify('exception')
 
+    def test_header_fromstring_bytes(self):
+        """
+        Test reading a Header from a `bytes` string.
+
+        See https://github.com/astropy/astropy/issues/8706
+        """
+
+        with open(self.data('test0.fits'), 'rb') as fobj:
+            pri_hdr_from_bytes = fits.Header.fromstring(fobj.read())
+
+        pri_hdr = fits.getheader(self.data('test0.fits'))
+        assert pri_hdr['NAXIS'] == pri_hdr_from_bytes['NAXIS']
+        assert pri_hdr == pri_hdr_from_bytes
+        assert pri_hdr.tostring() == pri_hdr_from_bytes.tostring()
+
 
 class TestRecordValuedKeywordCards(FitsTestCase):
     """
