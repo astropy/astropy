@@ -485,7 +485,7 @@ class Header:
             # Open in text mode by default to support newline handling; if a
             # binary-mode file object is passed in, the user is on their own
             # with respect to newline handling
-            fileobj = open(fileobj, 'r')
+            fileobj = open(fileobj, 'rb')
             close_file = True
 
         try:
