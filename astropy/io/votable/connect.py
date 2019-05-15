@@ -160,6 +160,59 @@ def write_table_votable(input, output, table_id=None, overwrite=False,
     table_file.to_xml(output, tabledata_format=tabledata_format)
 
 
+def _convert_coosys_to_frame(coosys):
+    if coosys.system in ('ecl_FK4', 'ecl_FK5', 'xy', 'geo_app'):
+        raise NotImplementedError('coordinate system "{}" is not well-defined '
+                                  'with respect to Astropy '
+                                  'classes'.format(coosys.system))
+    if coosys.system == 'ICRS' and (coosys.equinox is not None and
+                                    coosys.equinox != 'J2000'):
+        raise ValueError('ICRS must be in equinox J2000 or it is not ICRS!')
+
+    1/0
+
+    return frame
+
+
+def votable_meta_to_coo_frames(votablemeta):
+    """
+    Generate coordinate frame dictionaries from VOTable Table-formatted
+    metadata.
+
+
+    Parameters
+    ----------
+    votablemeta : dict
+        The thing that comes out of the VOTable ``to_meta``.
+
+    Returns
+    -------
+    frame_dict : dict
+        A dict mapping ids of coosys' to astropy frame objects. If id is absent,
+        keys are integers in order of appearence in the VOTAble.  The key ``0``
+        is always present as the first coosys (unless there are no coosys').
+    """
+    cses = []
+
+    def visit(node):
+        for cs in votablemeta['coosys']:
+            cses.append(cs)
+        if 'resource' in node:
+            visit(node['resource'])
+    visit(votablemeta)
+
+    cfs = [_convert_coosys_to_frame(cs) for cs in cses]
+
+    csdct = {}
+    for i, (cs, frame) in enumerate(zip(cses, cfs)):
+        csdct[i] = frame
+        if cs.ID is not None and hasattr(cs, 'ID'):
+            csdct[cs.ID] = frame
+    return csdct
+
+
+
+
 io_registry.register_reader('votable', Table, read_table_votable)
 io_registry.register_writer('votable', Table, write_table_votable)
 io_registry.register_identifier('votable', Table, is_votable)
