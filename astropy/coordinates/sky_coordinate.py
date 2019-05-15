@@ -13,6 +13,8 @@ from astropy.utils.data_info import MixinInfo
 from astropy.utils import ShapedLikeNDArray
 from astropy.time import Time
 
+from ..io.votable.ucd import find_column_by_ucd
+
 from .distances import Distance
 from .angles import Angle
 from .baseframe import (BaseCoordinateFrame, frame_transform_graph,
@@ -1583,7 +1585,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     # Table interactions
     @classmethod
-    def guess_from_table(cls, table, **coord_kwargs):
+    def guess_from_table(cls, table, use_vo=True, **coord_kwargs):
         r"""
         A convenience method to create and return a new `SkyCoord` from the data
         in an astropy Table.
@@ -1626,26 +1628,49 @@ class SkyCoord(ShapedLikeNDArray):
 
         comp_kwargs = {}
         for comp_name in frame.representation_component_names:
-            # this matches things like 'ra[...]'' but *not* 'rad'.
-            # note that the "_" must be in there explicitly, because
-            # "alphanumeric" usually includes underscores.
-            starts_with_comp = comp_name + r'(\W|\b|_)'
-            # this part matches stuff like 'center_ra', but *not*
-            # 'aura'
-            ends_with_comp = r'.*(\W|\b|_)' + comp_name + r'\b'
-            # the final regex ORs together the two patterns
-            rex = re.compile('(' + starts_with_comp + ')|(' + ends_with_comp + ')',
-                             re.IGNORECASE | re.UNICODE)
-
-            for col_name in table.colnames:
-                if rex.match(col_name):
-                    if comp_name in comp_kwargs:
-                        oldname = comp_kwargs[comp_name].name
-                        msg = ('Found at least two matches for  component "{0}"'
-                               ': "{1}" and "{2}". Cannot continue with this '
-                               'ambiguity.')
-                        raise ValueError(msg.format(comp_name, oldname, col_name))
-                    comp_kwargs[comp_name] = table[col_name]
+            
+            # Look for VO PM columns
+            if use_vo:
+                ra_pm_col = find_column_by_ucd(table, 'pos.pm;pos.eq.ra')
+                if ra_pm_col is not None:
+                    comp_kwargs['pm_ra_cosdec'] = ra_pm_col
+                dec_pm_col = find_column_by_ucd(table, 'pos.pm;pos.eq.dec')
+                if dec_pm_col is not None:
+                    comp_kwargs['pm_dec'] = dec_pm_col
+                
+            # Check VO column metadata first.
+            col = None
+            if use_vo:
+                
+                if comp_name == 'ra':
+                    col = find_column_by_ucd(table, 'POS_EQ_RA_MAIN')
+                elif comp_name == 'dec':
+                    col = find_column_by_ucd(table, 'POS_EQ_DEC_MAIN')
+                
+            if col is not None:
+                comp_kwargs[comp_name] = col
+            else:
+                
+                # this matches things like 'ra[...]'' but *not* 'rad'.
+                # note that the "_" must be in there explicitly, because
+                # "alphanumeric" usually includes underscores.
+                starts_with_comp = comp_name + r'(\W|\b|_)'
+                # this part matches stuff like 'center_ra', but *not*
+                # 'aura'
+                ends_with_comp = r'.*(\W|\b|_)' + comp_name + r'\b'
+                # the final regex ORs together the two patterns
+                rex = re.compile('(' + starts_with_comp + ')|(' + ends_with_comp + ')',
+                                 re.IGNORECASE | re.UNICODE)
+    
+                for col_name in table.colnames:
+                    if rex.match(col_name):
+                        if comp_name in comp_kwargs:
+                            oldname = comp_kwargs[comp_name].name
+                            msg = ('Found at least two matches for  component "{0}"'
+                                   ': "{1}" and "{2}". Cannot continue with this '
+                                   'ambiguity.')
+                            raise ValueError(msg.format(comp_name, oldname, col_name))
+                        comp_kwargs[comp_name] = table[col_name]
 
         for k, v in comp_kwargs.items():
             if k in coord_kwargs:

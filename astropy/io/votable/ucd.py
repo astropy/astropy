@@ -192,3 +192,38 @@ def check_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
     except ValueError:
         return False
     return True
+
+def find_column_by_ucd(table, ucd):
+    """
+    Given an astropy table derived from a VOTABLE, this function returns
+    the first Column object that has the given Universal Content Descriptor (UCD).
+    The name field of the returned value contains the column name and can be used
+    for accessing the values in the column.
+
+    Parameters
+    ----------
+    table : astropy.table.Table
+        Astropy Table which was created from a VOTABLE (as if by astropy_table_from_votable_response).
+    ucd : str
+        The UCD identifying the column to be found.
+
+    Returns
+    -------
+    astropy.table.Column
+        The first column found which had the given ucd.  None is no such column found.
+
+    Example
+    -------
+    col = find_column_by_ucd(my_table, 'VOX:Image_Title')
+    print ('1st row title value is:', my_table[col.name][0])
+    """
+
+    # Loop through all the columns looking for the UCD
+    for key in table.columns:
+        col = table.columns[key]
+        ucdval = col.meta.get('ucd')
+        if ucdval is not None:
+            if ucd == ucdval:
+                return col
+
+    return None
