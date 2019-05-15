@@ -22,6 +22,8 @@ from astropy.utils import data
 __all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate',
            'reset_vo_warnings']
 
+PEDANTIC_OPTIONS = ['ignore', 'warn', 'exception']
+
 
 def parse(source, columns=None, invalid='exception', pedantic=None,
           chunk_size=tree.DEFAULT_CHUNK_SIZE, table_number=None,
@@ -48,13 +50,13 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
 
             - 'mask': mask out invalid values
 
-    pedantic : bool, optional
-        When `True`, raise an error when the file violates the spec,
-        otherwise issue a warning.  Warnings may be controlled using
-        the standard Python mechanisms.  See the `warnings`
-        module in the Python standard library for more information.
-        When not provided, uses the configuration setting
-        ``astropy.io.votable.pedantic``, which defaults to False.
+    pedantic : {'ignore', 'warn', 'exception'}, optional
+        When ``'exception'``, raise an error when the file violates the spec,
+        otherwise either issue a warning (``'warn'``) or silently continue
+        (``'ignore'``). Warnings may be controlled using the standard Python
+        mechanisms.  See the `warnings` module in the Python standard library
+        for more information. When not provided, uses the configuration setting
+        ``astropy.io.votable.pedantic``, which defaults to 'ignore'.
 
     chunk_size : int, optional
         The number of rows to read before converting to an array.
@@ -112,6 +114,11 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
 
     if pedantic is None:
         pedantic = conf.pedantic
+
+    if isinstance(pedantic, bool):
+        pedantic = 'exception' if pedantic else 'warn'
+    elif pedantic not in PEDANTIC_OPTIONS:
+        raise ValueError('pedantic should be one of {0}'.format('/'.join(PEDANTIC_OPTIONS)))
 
     if datatype_mapping is None:
         datatype_mapping = {}
@@ -250,7 +257,7 @@ def validate(source, output=None, xmllint=False, filename=None):
         warnings.resetwarnings()
         warnings.simplefilter("always", exceptions.VOWarning, append=True)
         try:
-            votable = parse(content_buffer, pedantic=False, filename=filename)
+            votable = parse(content_buffer, pedantic='warn', filename=filename)
         except ValueError as e:
             lines.append(str(e))
 

@@ -25,8 +25,10 @@ class Conf(_config.ConfigNamespace):
     """
 
     pedantic = _config.ConfigItem(
-        False,
-        'When True, treat fixable violations of the VOTable spec as exceptions.',
+        'warn',
+        "Can be 'exception' (treat fixable violations of the VOTable spec as "
+        "exceptions), 'warn' (show warnings for VOTable spec violations), or "
+        "'ignore' (silently fix VOTable spec violations)",
         aliases=['astropy.io.votable.table.pedantic'])
 
 

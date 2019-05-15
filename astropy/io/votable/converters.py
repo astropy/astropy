@@ -319,7 +319,7 @@ class Char(Converter):
             self.binoutput = self._binoutput_fixed
             self._struct_format = ">{:d}s".format(self.arraysize)
 
-        if config.get('pedantic'):
+        if config.get('pedantic') == 'exception':
             self.parse = self._ascii_parse
         else:
             self.parse = self._str_parse
@@ -439,7 +439,7 @@ class Array(Converter):
         if config is None:
             config = {}
         Converter.__init__(self, field, config, pos)
-        if config.get('pedantic'):
+        if config.get('pedantic') == 'exception':
             self._splitter = self._splitter_pedantic
         else:
             self._splitter = self._splitter_lax
@@ -578,7 +578,7 @@ class NumericArray(Array):
         parts = self._splitter(value, config, pos)
         if len(parts) != self._items:
             warn_or_raise(E02, E02, (self._items, len(parts)), config, pos)
-        if config.get('pedantic'):
+        if config.get('pedantic') == 'error':
             return self.parse_parts(parts, config, pos)
         else:
             if len(parts) == self._items:
@@ -698,7 +698,7 @@ class FloatingPoint(Numeric):
             self._null_binoutput = self.binoutput(np.asarray(self.null), False)
             self.filter_array = self._filter_null
 
-        if config.get('pedantic'):
+        if config.get('pedantic') == 'exception':
             self.parse = self._parse_pedantic
         else:
             self.parse = self._parse_permissive

@@ -44,7 +44,7 @@ def is_votable(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
-def read_table_votable(input, table_id=None, use_names_over_ids=False):
+def read_table_votable(input, table_id=None, use_names_over_ids=False, pedantic=None):
     """
     Read a Table object from an VO table file
 
@@ -68,9 +68,11 @@ def read_table_votable(input, table_id=None, use_names_over_ids=False):
         are not guaranteed to be unique, this may cause some columns
         to be renamed by appending numbers to the end.  Otherwise
         (default), use the ID attributes as the column names.
+
+    
     """
     if not isinstance(input, (VOTableFile, VOTable)):
-        input = parse(input, table_id=table_id)
+        input = parse(input, table_id=table_id, pedantic=pedantic)
 
     # Parse all table objects
     table_id_mapping = dict()
