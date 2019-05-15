@@ -85,6 +85,15 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card()
         assert '' == c.keyword
 
+    def test_card_from_bytes(self):
+        """
+        Test loading a Card from a `bytes` object (assuming latin-1 encoding).
+        """
+
+        c = fits.Card.fromstring(b"ABC     = 'abc'")
+        assert c.keyword == 'ABC'
+        assert c.value == 'abc'
+
     def test_string_value_card(self):
         """Test Card constructor with string value"""
 
