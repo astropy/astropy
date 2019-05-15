@@ -485,6 +485,9 @@ class SimpleElement(Element):
     def to_xml(self, w, **kwargs):
         w.element(self._element_name,
                   attrib=w.object_attrs(self, self._attr_list))
+        
+    def to_meta(self):
+        return dict([(key, getattr(self, key)) for key in self._attr_list])
 
 
 class SimpleElementWithContent(SimpleElement):
@@ -512,6 +515,11 @@ class SimpleElementWithContent(SimpleElement):
     def to_xml(self, w, **kwargs):
         w.element(self._element_name, self._content,
                   attrib=w.object_attrs(self, self._attr_list))
+        
+    def to_meta(self):
+        d = dict([(key, getattr(self, key)) for key in self._attr_list])
+        d['_content'] = self._content
+        return d
 
     @property
     def content(self):
@@ -2851,6 +2859,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             if val is not None:
                 meta[key] = val
 
+        meta['votable'] = self._votable.to_meta()        
+
         if use_names_over_ids:
             names = [field.name for field in self.fields]
             unique_names = []
@@ -3470,6 +3480,16 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                 for element_set in element_sets:
                     for element in element_set:
                         element.to_xml(w, **kwargs)
+                        
+    def to_meta(self):
+        return {
+            'description': self.description,
+            'coosys': [coosys.to_meta() for coosys in self.coordinate_systems],
+            'info': [info.to_meta() for info in self._infos],
+            'param': [],
+            'group': [],
+            'resource': []
+        }        
 
     def iter_tables(self):
         """
