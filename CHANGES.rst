@@ -401,6 +401,9 @@ astropy.io.fits
    Previously setting a header card value to ``None`` resulted in an
    empty string field rather than a FITS undefined value. [#8572]
 
+- Allow ``Header.fromstring`` and ``Card.fromstring`` to accept ``bytes``.
+  [#8707]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
