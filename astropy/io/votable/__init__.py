@@ -24,12 +24,13 @@ class Conf(_config.ConfigNamespace):
     Configuration parameters for `astropy.io.votable`.
     """
 
-    pedantic = _config.ConfigItem(
+    verify = _config.ConfigItem(
         'ignore',
         "Can be 'exception' (treat fixable violations of the VOTable spec as "
         "exceptions), 'warn' (show warnings for VOTable spec violations), or "
         "'ignore' (silently fix VOTable spec violations)",
-        aliases=['astropy.io.votable.table.pedantic'])
+        aliases=['astropy.io.votable.table.pedantic',
+                 'astropy.io.votable.pedantic'])
 
 
 conf = Conf()

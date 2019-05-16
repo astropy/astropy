@@ -44,7 +44,7 @@ def is_votable(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
-def read_table_votable(input, table_id=None, use_names_over_ids=False, pedantic=None):
+def read_table_votable(input, table_id=None, use_names_over_ids=False, verify=None):
     """
     Read a Table object from an VO table file
 
@@ -69,10 +69,16 @@ def read_table_votable(input, table_id=None, use_names_over_ids=False, pedantic=
         to be renamed by appending numbers to the end.  Otherwise
         (default), use the ID attributes as the column names.
 
-    
+    verify : {'ignore', 'warn', 'exception'}, optional
+        When ``'exception'``, raise an error when the file violates the spec,
+        otherwise either issue a warning (``'warn'``) or silently continue
+        (``'ignore'``). Warnings may be controlled using the standard Python
+        mechanisms.  See the `warnings` module in the Python standard library
+        for more information. When not provided, uses the configuration setting
+        ``astropy.io.votable.verify``, which defaults to 'ignore'.
     """
     if not isinstance(input, (VOTableFile, VOTable)):
-        input = parse(input, table_id=table_id, pedantic=pedantic)
+        input = parse(input, table_id=table_id, verify=verify)
 
     # Parse all table objects
     table_id_mapping = dict()

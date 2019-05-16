@@ -77,15 +77,15 @@ def _suppressed_warning(warning, config, stacklevel=2):
 def warn_or_raise(warning_class, exception_class=None, args=(), config=None,
                   pos=None, stacklevel=1):
     """
-    Warn or raise an exception, depending on the pedantic setting.
+    Warn or raise an exception, depending on the verify setting.
     """
     if config is None:
         config = {}
-    if config.get('pedantic') == 'exception':
+    if config.get('verify') == 'exception':
         if exception_class is None:
             exception_class = warning_class
         vo_raise(exception_class, args, config, pos)
-    elif config.get('pedantic') == 'warn':
+    elif config.get('verify') == 'warn':
         vo_warn(warning_class, args, config, pos, stacklevel=stacklevel+1)
 
 
@@ -122,7 +122,7 @@ def vo_warn(warning_class, args=(), config=None, pos=None, stacklevel=1):
     """
     if config is None:
         config = {}
-    if config.get('pedantic') == 'warn':
+    if config.get('verify') == 'warn':
         warning = warning_class(args, config, pos)
         _suppressed_warning(warning, config, stacklevel=stacklevel+1)
 
@@ -431,8 +431,8 @@ class W09(VOTableSpecWarning):
     The VOTable specification uses the attribute name ``ID`` (with
     uppercase letters) to specify unique identifiers.  Some
     VOTable-producing tools use the more standard lowercase ``id``
-    instead.  ``vo.table`` accepts ``id`` and emits this warning when
-    not in ``pedantic`` mode.
+    instead.  ``vo.table`` accepts ``id`` and emits this warning if
+    ``verify`` is not ``'exception'``.
 
     **References**: `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`__,
@@ -488,7 +488,7 @@ class W12(VOTableChangeWarning):
     ``FIELD`` element must have either an ``ID`` or ``name`` attribute
     to derive a name from.  Strictly speaking, according to the
     VOTable schema, the ``name`` attribute is required.  However, if
-    ``name`` is not present by ``ID`` is, and *pedantic mode* is off,
+    ``name`` is not present by ``ID`` is, and ``verify`` is not ``'exception'``,
     ``vo.table`` will continue without a ``name`` defined.
 
     **References**: `1.1
@@ -537,7 +537,7 @@ class W15(VOTableSpecWarning):
     """
     The ``name`` attribute is required on every ``FIELD`` element.
     However, many VOTable files in the wild omit it and provide only
-    an ``ID`` instead.  In this case, when *pedantic mode* is off,
+    an ``ID`` instead.  In this case, when ``verify`` is not ``'exception'``
     ``vo.table`` will copy the ``name`` attribute to a new ``ID``
     attribute.
 
@@ -577,8 +577,8 @@ class W18(VOTableSpecWarning):
     The number of rows explicitly specified in the ``nrows`` attribute
     does not match the actual number of rows (``TR`` elements) present
     in the ``TABLE``.  This may indicate truncation of the file, or an
-    internal error in the tool that produced it.  If *pedantic mode*
-    is off, parsing will proceed, with the loss of some performance.
+    internal error in the tool that produced it.  If ``verify`` is not
+    ``'exception'``, parsing will proceed, with the loss of some performance.
 
     **References:** `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC10>`__,
@@ -593,8 +593,8 @@ class W18(VOTableSpecWarning):
 class W19(VOTableSpecWarning):
     """
     The column fields as defined using ``FIELD`` elements do not match
-    those in the headers of the embedded FITS file.  If *pedantic
-    mode* is off, the embedded FITS file will take precedence.
+    those in the headers of the embedded FITS file.  If ``verify`` is not
+    ``'exception'``, the embedded FITS file will take precedence.
     """
 
     message_template = (
@@ -727,9 +727,9 @@ class W29(VOTableSpecWarning):
 
 class W30(VOTableSpecWarning):
     """
-    Some VOTable files write missing floating-point values in non-standard
-    ways, such as "null" and "-".  In non-pedantic mode, any non-standard
-    floating-point literals are treated as missing values.
+    Some VOTable files write missing floating-point values in non-standard ways,
+    such as "null" and "-".  If ``verify`` is not ``'exception'``, any
+    non-standard floating-point literals are treated as missing values.
 
     **References**: `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
