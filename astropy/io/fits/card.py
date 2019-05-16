@@ -554,6 +554,13 @@ class Card(_Verify):
         """
 
         card = cls()
+        if isinstance(image, bytes):
+            # FITS supports only ASCII, but decode as latin1 and just take all
+            # bytes for now; if it results in mojibake due to e.g. UTF-8
+            # encoded data in a FITS header that's OK because it shouldn't be
+            # there in the first place
+            image = image.decode('latin1')
+
         card._image = _pad(image)
         card._verified = False
         return card
