@@ -199,3 +199,12 @@ def test_verify_options():
 
     with pytest.raises(VOWarning):
         parse(get_pkg_data_filename('data/gemini.xml'), verify='exception')
+
+    # Pending deprecated option
+
+    with catch_warnings(VOWarning) as w:
+        parse(get_pkg_data_filename('data/gemini.xml'), pedantic=False)
+    assert len(w) == 25
+
+    with pytest.raises(VOWarning):
+        parse(get_pkg_data_filename('data/gemini.xml'), pedantic=True)
