@@ -9,6 +9,8 @@ import re
 
 # LOCAL
 from astropy.utils import data
+from astropy.table import Table
+from astropy.votable.tree import Field
 
 __all__ = ['parse_ucd', 'check_ucd']
 
@@ -193,7 +195,8 @@ def check_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
         return False
     return True
 
-def find_column_by_ucd(table, ucd):
+
+def find_columns_by_ucd(table, ucd):
     """
     Given an astropy table derived from a VOTABLE, this function returns
     the first Column object that has the given Universal Content Descriptor (UCD).
@@ -202,28 +205,31 @@ def find_column_by_ucd(table, ucd):
 
     Parameters
     ----------
-    table : astropy.table.Table
-        Astropy Table which was created from a VOTABLE (as if by astropy_table_from_votable_response).
+    table : VOTable or astropy.table.Table
+        The votable or astropy table derived from a VOTable to search through
+        for all the columns with a particular UCD.
     ucd : str
         The UCD identifying the column to be found.
 
     Returns
     -------
-    astropy.table.Column
-        The first column found which had the given ucd.  None is no such column found.
-
-    Example
-    -------
-    col = find_column_by_ucd(my_table, 'VOX:Image_Title')
-    print ('1st row title value is:', my_table[col.name][0])
+    colnames : list of str
+        The list of names of the columns that has the UCD named ``ucd``. If
+        ``table`` is a VOTable, this name is the ID unless there's no ID in
+        which case it's the name.
     """
+    colnames = []
+    if isinstance(table, Table):
+        for col in table.columns:
+            ucdval = col.meta.get('ucd')
+            if ucdval is not None and ucd in ucdval:
+                colnames.append(col.name)
+    else:
+        # assume it's a VOTable
+        for elem in table.iter_fields_and_params():
+            if isinstance(elem, Field):
+                ucdval = elem.ucd
+                if ucdval is not None and ucd in ucdval:
+                    colnames.append(elem.name if elem.ID is None else elem.ID)  # THIS MIGHT BE A BAD IDEA!
 
-    # Loop through all the columns looking for the UCD
-    for key in table.columns:
-        col = table.columns[key]
-        ucdval = col.meta.get('ucd')
-        if ucdval is not None:
-            if ucd == ucdval:
-                return col
-
-    return None
+    return colnames
