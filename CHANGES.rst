@@ -112,6 +112,11 @@ astropy.io.registry
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+- Changed ``pedantic`` argument to ``verify`` and change it to have three
+  string-based options (``ignore``, ``warn``, and ``exception``) instead of just
+  being a boolean. In addition, changed default to ``ignore``, which means
+  that warnings will not be shown by default when loading VO tables. [#8715]
+
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
