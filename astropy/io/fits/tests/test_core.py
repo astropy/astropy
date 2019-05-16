@@ -650,7 +650,7 @@ class TestFileFunctions(FitsTestCase):
 
     def test_open_from_url(self):
         import urllib.request
-        file_url = "file:///" + self.data('test0.fits')
+        file_url = "file://" + self.data('test0.fits')
         with urllib.request.urlopen(file_url) as urlobj:
             with fits.open(urlobj) as fits_handle:
                 pass
