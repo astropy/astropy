@@ -82,6 +82,13 @@ Units that "cancel out" become a special unit called the
 
     >>> u.m / u.m
     Unit(dimensionless)
+    
+To create a simple :ref:`dimensionless quantity <doc_dimensionless_unit>`, 
+multiply a value by the unscaled dimensionless unit::
+
+    >>> q = 1.0 * u.dimensionless_unscaled
+    >>> q.unit
+    Unit(dimensionless)
 
 `astropy.units` is able to match compound units against the units it already
 knows about::
