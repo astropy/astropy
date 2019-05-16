@@ -11,6 +11,8 @@ from astropy.table import Table
 from astropy.table.column import BaseColumn
 from astropy.units import Quantity
 
+from astropy import coordinates
+
 
 def is_votable(origin, filepath, fileobj, *args, **kwargs):
     """
@@ -160,17 +162,23 @@ def write_table_votable(input, output, table_id=None, overwrite=False,
     table_file.to_xml(output, tabledata_format=tabledata_format)
 
 
-def _convert_coosys_to_frame(coosys):
-    if coosys.system in ('ecl_FK4', 'ecl_FK5', 'xy', 'geo_app'):
+def extract_frame_from_coosys(coosys):
+    if coosys.system == 'ICRS':
+        if coosys.equinox is not None and coosys.equinox != 'J2000':
+            raise ValueError('ICRS must be in equinox J2000 or it is not ICRS!')
+        frame = coordinates.ICRS()
+    elif coosys.system == 'eq_FK5':
+        frame = coordinates.FK5(equinox=coosys.equinox)
+    elif coosys.system == 'eq_FK4':
+        frame = coordinates.FK4(equinox=coosys.equinox, obstime=coosys.epoch)
+    elif coosys.system == 'galactic':
+        frame = coordinates.Galactic()
+    elif coosys.system == 'supergalactic':
+        frame = coordinates.Supergalactic()
+    else:
         raise NotImplementedError('coordinate system "{}" is not well-defined '
                                   'with respect to Astropy '
                                   'classes'.format(coosys.system))
-    if coosys.system == 'ICRS' and (coosys.equinox is not None and
-                                    coosys.equinox != 'J2000'):
-        raise ValueError('ICRS must be in equinox J2000 or it is not ICRS!')
-
-    1/0
-
     return frame
 
 
@@ -201,7 +209,7 @@ def votable_meta_to_coo_frames(votablemeta):
             visit(node['resource'])
     visit(votablemeta)
 
-    cfs = [_convert_coosys_to_frame(cs) for cs in cses]
+    cfs = [extract_frame_from_coosys(cs) for cs in cses]
 
     csdct = {}
     for i, (cs, frame) in enumerate(zip(cses, cfs)):
