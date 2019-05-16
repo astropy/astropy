@@ -6,11 +6,14 @@ import io
 import os
 
 import pathlib
+import pytest
 import numpy as np
 
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj
 from astropy.io.votable.table import parse, writeto
 from astropy.io.votable import tree
+from astropy.io.votable.exceptions import VOWarning
+from astropy.tests.helper import catch_warnings
 
 
 def test_table(tmpdir):
@@ -178,3 +181,21 @@ def test_empty_table():
         verify='warn')
     table = votable.get_first_table()
     astropy_table = table.to_table()  # noqa
+
+
+def test_verify_options():
+
+    with catch_warnings(VOWarning) as w:
+        parse(get_pkg_data_filename('data/gemini.xml'))  # default (ignore)
+    assert len(w) == 0
+
+    with catch_warnings(VOWarning) as w:
+        parse(get_pkg_data_filename('data/gemini.xml'), verify='ignore')
+    assert len(w) == 0
+
+    with catch_warnings(VOWarning) as w:
+        parse(get_pkg_data_filename('data/gemini.xml'), verify='warn')
+    assert len(w) == 25
+
+    with pytest.raises(VOWarning):
+        parse(get_pkg_data_filename('data/gemini.xml'), verify='exception')
