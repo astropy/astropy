@@ -122,7 +122,7 @@ def vo_warn(warning_class, args=(), config=None, pos=None, stacklevel=1):
     """
     if config is None:
         config = {}
-    if config.get('verify') == 'warn':
+    if config.get('verify') != 'ignore':
         warning = warning_class(args, config, pos)
         _suppressed_warning(warning, config, stacklevel=stacklevel+1)
 
