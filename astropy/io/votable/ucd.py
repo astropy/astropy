@@ -9,8 +9,6 @@ import re
 
 # LOCAL
 from astropy.utils import data
-from astropy.table import Table
-from astropy.votable.tree import Field
 
 __all__ = ['parse_ucd', 'check_ucd']
 
@@ -218,6 +216,10 @@ def find_columns_by_ucd(table, ucd):
         ``table`` is a VOTable, this name is the ID unless there's no ID in
         which case it's the name.
     """
+    # both imports necessary in the function due to circular imports
+    from astropy.table import Table
+    from .tree import Field
+
     colnames = []
     if isinstance(table, Table):
         for col in table.columns:

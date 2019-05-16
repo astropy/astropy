@@ -12,7 +12,6 @@ from astropy.io import registry as io_registry
 from astropy.table import Table
 from astropy.table.column import BaseColumn
 from astropy.units import Quantity
-from astropy.coordinates import SkyCoord
 
 from astropy import coordinates
 
@@ -256,7 +255,7 @@ def extract_skycoord_from_table(tab):
 
     kwargs = {'frame': main_frame}
     kwargs.update(component_quantities)
-    return SkyCoord(**kwargs)
+    return coordinates.SkyCoord(**kwargs)
 
 
 io_registry.register_reader('votable', Table, read_table_votable)
