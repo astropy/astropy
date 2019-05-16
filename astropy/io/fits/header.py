@@ -34,7 +34,8 @@ VALID_HEADER_CHARS = set(map(chr, range(0x20, 0x7F)))
 END_CARD = 'END' + ' ' * 77
 
 
-__doctest_skip__ = ['Header', 'Header.*']
+__doctest_skip__ = ['Header', 'Header.comments', 'Header.fromtextfile',
+                    'Header.totextfile', 'Header.set', 'Header.update']
 
 
 class Header:
@@ -359,7 +360,7 @@ class Header:
         to have the exact binary structure as it would appear in a FITS file,
         with the full 80 byte card length.  Rather, each "card" can end in a
         newline and does not have to be padded out to a full card length as
-        long as it "looks like" a FITS header::
+        long as it "looks like" a FITS header:
 
         >>> hdr = Header.fromstring(\"\"\"\\
         ... SIMPLE  =                    T / conforms to FITS standard
