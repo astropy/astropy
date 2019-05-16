@@ -1517,7 +1517,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         Sets the attributes of a given `astropy.table.Column` instance
         to match the information in this `Field`.
         """
-        for key in ['ucd', 'width', 'precision', 'utype', 'xtype']:
+        for key in ['ucd', 'width', 'precision', 'utype', 'xtype', 'ref', 'name', 'ID']:
             val = getattr(self, key, None)
             if val is not None:
                 column.meta[key] = val
