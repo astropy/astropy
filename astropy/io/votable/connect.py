@@ -182,7 +182,7 @@ def extract_frame_from_coosys(coosys):
     return frame
 
 
-def votable_meta_to_coo_frames(votablemeta):
+def votable_meta_to_coo_frames(votable):
     """
     Generate coordinate frame dictionaries from VOTable Table-formatted
     metadata.
@@ -190,8 +190,8 @@ def votable_meta_to_coo_frames(votablemeta):
 
     Parameters
     ----------
-    votablemeta : dict
-        The thing that comes out of the VOTable ``to_meta``.
+    votable
+        A VOTable object.
 
     Returns
     -------
@@ -200,15 +200,7 @@ def votable_meta_to_coo_frames(votablemeta):
         keys are integers in order of appearence in the VOTAble.  The key ``0``
         is always present as the first coosys (unless there are no coosys').
     """
-    cses = []
-
-    def visit(node):
-        for cs in votablemeta['coosys']:
-            cses.append(cs)
-        if 'resource' in node:
-            visit(node['resource'])
-    visit(votablemeta)
-
+    cses = list(votable.iter_coosys())
     cfs = [extract_frame_from_coosys(cs) for cs in cses]
 
     csdct = {}
