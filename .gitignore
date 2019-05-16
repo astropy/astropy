@@ -4,6 +4,7 @@
 *.o
 *.so
 *.pyd
+*.dll
 __pycache__
 
 # Ignore .c files by default to avoid including generated code. If you want to
