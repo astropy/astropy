@@ -2845,7 +2845,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         """
         from astropy.table import Table
 
-        meta = {}
+        meta = {
+            'votable': self._votable
+            }
         for key in ['ID', 'name', 'ref', 'ucd', 'utype', 'description']:
             val = getattr(self, key, None)
             if val is not None:
