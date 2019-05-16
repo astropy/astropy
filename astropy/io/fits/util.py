@@ -26,6 +26,14 @@ import numpy as np
 
 from astropy.utils.exceptions import AstropyUserWarning
 
+try:
+    # Support the Python 3.6 PathLike ABC where possible
+    from os import PathLike
+    path_like = (str, PathLike)
+except ImportError:
+    path_like = (str,)
+
+
 cmp = lambda a, b: (a > b) - (a < b)
 
 all_integer_types = (int, np.integer)
