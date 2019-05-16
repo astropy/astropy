@@ -399,12 +399,12 @@ class Header:
             END = b'END'
             end_card = END_CARD.encode('ascii')
             sep = sep.encode('latin1')
-            join = lambda i: b''.join(i)
+            empty = b''
         else:
             CONTINUE = 'CONTINUE'
             END = 'END'
             end_card = END_CARD
-            join = lambda i: ''.join(i)
+            empty = ''
 
         # Split the header into individual cards
         idx = 0
@@ -426,7 +426,7 @@ class Header:
                 if next_image[:8] == CONTINUE:
                     image.append(next_image)
                     continue
-                cards.append(Card.fromstring(join(image)))
+                cards.append(Card.fromstring(empty.join(image)))
 
             if require_full_cardlength:
                 if next_image == end_card:
@@ -441,7 +441,7 @@ class Header:
 
         # Add the last image that was found before the end, if any
         if image:
-            cards.append(Card.fromstring(join(image)))
+            cards.append(Card.fromstring(empty.join(image)))
 
         return cls._fromcards(cards)
 
