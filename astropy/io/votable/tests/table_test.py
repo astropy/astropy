@@ -17,7 +17,7 @@ def test_table(tmpdir):
     # Read the VOTABLE
     votable = parse(
         get_pkg_data_filename('data/regression.xml'),
-        pedantic=False)
+        verify='warn')
     table = votable.get_first_table()
     astropy_table = table.to_table()
 
@@ -175,6 +175,6 @@ def test_write_with_format():
 def test_empty_table():
     votable = parse(
         get_pkg_data_filename('data/empty_table.xml'),
-        pedantic=False)
+        verify='warn')
     table = votable.get_first_table()
     astropy_table = table.to_table()  # noqa
