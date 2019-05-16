@@ -222,10 +222,10 @@ def find_columns_by_ucd(table, ucd):
 
     colnames = []
     if isinstance(table, Table):
-        for col in table.columns:
+        for name, col in table.columns.items():
             ucdval = col.meta.get('ucd')
             if ucdval is not None and ucd in ucdval:
-                colnames.append(col.name)
+                colnames.append(name)
     else:
         # assume it's a VOTable
         for elem in table.iter_fields_and_params():

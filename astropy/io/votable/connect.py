@@ -241,7 +241,7 @@ def extract_skycoord_from_table(tab):
     else:
         main_frame = csdct[0]
 
-    component_names_to_ucd = _FRAME_COMPONENT_NAMES_TO_UCD[main_frame]
+    component_names_to_ucd = _FRAME_COMPONENT_NAMES_TO_UCD[main_frame.__class__]
     component_quantities = {}
     for component_name, ucd_name in component_names_to_ucd.items():
         for colname in main_colnames:
