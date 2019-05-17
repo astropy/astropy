@@ -30,7 +30,7 @@ def test_aj285677t3_votable():
 
 def test_aj285677t3_votable_2019():
 
-    tab = Table.read(get_pkg_data_filename('data/aj285677t3_votable_2019.vot'))
+    tab = Table.read(get_pkg_data_filename('data/aj285677t3_votable_2019.vot.xml'))
 
     coosys = _votable_meta_to_coo_frames(tab.meta['votable'])
 
@@ -83,11 +83,11 @@ def test_table_from_ivoa_paper():
 
 def test_vizier_gaia_main_table():
 
-    tab = Table.read(get_pkg_data_filename('data/vizier-gaia-main-table.vot'))
+    tab = Table.read(get_pkg_data_filename('data/vizier-gaia-main-table.vot.xml'))
 
     coosys = _votable_meta_to_coo_frames(tab.meta['votable'])
 
-    assert len(coosys) == 3
+    assert len(coosys) == 4  # each of the two has a name and an index
 
     assert coosys[0] is coosys['H_2015.500']
 
@@ -98,7 +98,7 @@ def test_vizier_gaia_main_table():
 
 def test_vizier_gaia_transits():
 
-    tab = Table.read(get_pkg_data_filename('data/vizier-gaia-transits.vot'))
+    tab = Table.read(get_pkg_data_filename('data/vizier-gaia-transits.vot.xml'))
 
     coosys = _votable_meta_to_coo_frames(tab.meta['votable'])
 
@@ -107,7 +107,7 @@ def test_vizier_gaia_transits():
 
 def test_vizier_panstarrs():
 
-    tab = Table.read(get_pkg_data_filename('data/vizier-panstarrs.vot'))
+    tab = Table.read(get_pkg_data_filename('data/vizier-panstarrs.vot.xml'))
 
     coosys = _votable_meta_to_coo_frames(tab.meta['votable'])
 

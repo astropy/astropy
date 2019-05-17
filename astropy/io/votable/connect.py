@@ -13,8 +13,6 @@ from astropy.table import Table
 from astropy.table.column import BaseColumn
 from astropy.units import Quantity
 
-from astropy import coordinates
-
 
 def is_votable(origin, filepath, fileobj, *args, **kwargs):
     """
@@ -165,6 +163,9 @@ def write_table_votable(input, output, table_id=None, overwrite=False,
 
 
 def extract_frame_from_coosys(coosys):
+    # import is here due to circular dependencies if it's at module level
+    from astropy import coordinates
+
     if coosys.system == 'ICRS':
         if coosys.equinox is not None and coosys.equinox != 'J2000':
             raise ValueError('ICRS must be in equinox J2000 or it is not ICRS!')
@@ -214,14 +215,16 @@ def _votable_meta_to_coo_frames(votable):
 
 
 _EQ_UCDS = {'ra': 'pos.eq.ra', 'dec': 'pos.eq.dec'}
-_FRAME_COMPONENT_NAMES_TO_UCD = {coordinates.ICRS: _EQ_UCDS,
-                                 coordinates.FK5: _EQ_UCDS,
-                                 coordinates.FK4: _EQ_UCDS,
-                                 coordinates.Galactic: {'l': 'pos.galactic.lon', 'b': 'pos.galactic.lat'},
-                                 coordinates.Supergalactic: {'sgl': 'pos.supergalactic.lon', 'sgb': 'pos.supergalactic.lat'}}
+_FRAME_COMPONENT_NAMES_TO_UCD = {'ICRS': _EQ_UCDS,
+                                 'FK5': _EQ_UCDS,
+                                 'FK4': _EQ_UCDS,
+                                 'Galactic': {'l': 'pos.galactic.lon', 'b': 'pos.galactic.lat'},
+                                 'Supergalactic': {'sgl': 'pos.supergalactic.lon', 'sgb': 'pos.supergalactic.lat'}}
 
 
 def extract_skycoord_from_table(tab):
+    from astropy.coordinates import SkyCoord
+
     votable = tab.meta['votable']
     csdct = _votable_meta_to_coo_frames(votable)
     main_colnames = find_columns_by_ucd(tab, 'meta.main')
@@ -241,7 +244,7 @@ def extract_skycoord_from_table(tab):
     else:
         main_frame = csdct[0]
 
-    component_names_to_ucd = _FRAME_COMPONENT_NAMES_TO_UCD[main_frame.__class__]
+    component_names_to_ucd = _FRAME_COMPONENT_NAMES_TO_UCD[main_frame.__class__.__name__]
     component_quantities = {}
     for component_name, ucd_name in component_names_to_ucd.items():
         for colname in main_colnames:
@@ -255,7 +258,7 @@ def extract_skycoord_from_table(tab):
 
     kwargs = {'frame': main_frame}
     kwargs.update(component_quantities)
-    return coordinates.SkyCoord(**kwargs)
+    return SkyCoord(**kwargs)
 
 
 io_registry.register_reader('votable', Table, read_table_votable)
