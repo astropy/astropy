@@ -121,7 +121,14 @@ def parse(source, columns=None, invalid='exception', verify=None,
 
     if verify is None:
         if pedantic is None:
-            verify = conf.verify
+            # Note that we need to allow verify to be booleans as strings since
+            # the configuration framework doesn't make it easy/possible to have
+            # mixed types.
+            if conf.verify.lower() in ['false', 'true']:
+                verify = conf.verify.lower() == 'true'
+            else:
+                verify = conf.verify
+
         else:
             verify = 'exception' if pedantic else 'warn'
 
