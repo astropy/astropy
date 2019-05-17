@@ -232,11 +232,7 @@ def test_verify_options(tmpdir):
 
     # And make sure the old configuration item will keep working
 
-    from astropy.config.configuration import get_config_filename
-
     with set_temp_config(tmpdir.strpath):
-
-        print(get_config_filename())
 
         with open(tmpdir.join('astropy').join('astropy.cfg').strpath, 'w') as f:
             f.write('[io.votable]\npedantic = False')
