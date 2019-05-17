@@ -109,7 +109,7 @@ jobs:
       - checkout
       - run:
           name: Install apt dependencies
-          command: apt-get install -y libfreetype6-dev libpng12-dev pkg-config
+          command: apt-get install -y libfreetype6-dev libpng12-dev pkg-config cm-super
       - run:
           name: Install Python dependencies, including developer version of Matplotlib
           command: pip3 install "pytest<3.7" pytest-mpl pytest-astropy numpy scipy git+https://github.com/matplotlib/matplotlib.git
