@@ -27,9 +27,9 @@ VERIFY_OPTIONS = ['ignore', 'warn', 'exception']
 
 
 @deprecated_renamed_argument('pedantic', 'verify', pending=True, since='4.0')
-def parse(source, columns=None, invalid='exception', pedantic=None,
+def parse(source, columns=None, invalid='exception', verify=None,
           chunk_size=tree.DEFAULT_CHUNK_SIZE, table_number=None,
-          table_id=None, filename=None, unit_format=None, verify=None,
+          table_id=None, filename=None, unit_format=None,
           datatype_mapping=None, _debug_python_based_parser=False):
     """
     Parses a VOTABLE_ xml file (or file-like object), and returns a
