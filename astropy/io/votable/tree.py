@@ -1172,7 +1172,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         # actually contains character data.  We have to hack the field
         # to store character data, or we can't read it in.  A warning
         # will be raised when this happens.
-        if (config.get('verify') == 'warn' and name == 'cprojection' and
+        if (config.get('verify') != 'exception' and name == 'cprojection' and
             ID == 'cprojection' and ucd == 'VOX:WCS_CoordProjection' and
             datatype == 'double'):
             datatype = 'char'
