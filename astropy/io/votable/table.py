@@ -122,14 +122,13 @@ def parse(source, columns=None, invalid='exception', verify=None,
         # Note that we need to allow verify to be booleans as strings since
         # the configuration framework doesn't make it easy/possible to have
         # mixed types.
-        if conf.verify.lower() in ['false', 'true']:
-            verify = conf.verify.lower() == 'true'
+        conf_verify_lowercase = conf.verify.lower()
+        if conf_verify_lowercase in ['false', 'true']:
+            verify = 'exception' if conf_verify_lowercase == 'true' else 'warn'
         else:
             verify = conf.verify
 
-    if isinstance(verify, bool):
-        verify = 'exception' if verify else 'warn'
-    elif verify not in VERIFY_OPTIONS:
+    if verify not in VERIFY_OPTIONS:
         raise ValueError('verify should be one of {0}'.format('/'.join(VERIFY_OPTIONS)))
 
     if datatype_mapping is None:

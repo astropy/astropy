@@ -578,7 +578,7 @@ class NumericArray(Array):
         parts = self._splitter(value, config, pos)
         if len(parts) != self._items:
             warn_or_raise(E02, E02, (self._items, len(parts)), config, pos)
-        if config.get('verify', 'ignore') == 'error':
+        if config.get('verify', 'ignore') == 'exception':
             return self.parse_parts(parts, config, pos)
         else:
             if len(parts) == self._items:
