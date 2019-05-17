@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.ivoa.net/xml/VOTable/v1.2"
+  xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.2 http://www.ivoa.net/xml/VOTable/v1.2">
+ <DESCRIPTION>
+   VizieR Astronomical Server vizier.u-strasbg.fr
+    Date: 2019-05-15T13:16:08 [V1.99+ (14-Oct-2013)]
+   Explanations and Statistics of UCDs:			See LINK below
+   In case of problem, please report to:	cds-question@unistra.fr
+   In this version, NULL integer columns are written as an empty string
+   &lt;TD&gt;&lt;/TD&gt;, explicitely possible from VOTable-1.3
+ </DESCRIPTION>
+<!-- VOTable description at http://www.ivoa.net/Documents/latest/VOT.html -->
+<INFO ID="VERSION" name="votable-version" value="1.99+ (14-Oct-2013)"/>
+<INFO ID="Ref" name="-ref" value="VIZ5cdc110d9e61"/>
+<INFO ID="MaxTuples" name="-out.max" value="unlimited"/>
+<INFO name="queryParameters" value="22">
+-oc.form=dec
+-out.max=unlimited
+-out.add=_r
+-out.add=_RAJ,_DEJ
+-sort=_r
+-nav=cat:J/AJ/136/2413&amp;tab:{J/AJ/136/2413/table3}&amp;key:source=J/AJ/136/2413/table3&amp;HTTPPRM:&amp;-out.max=50&amp;-out.form=HTML Table&amp;-out.add=_r&amp;-out.add=_RAJ,_DEJ&amp;-sort=_r&amp;-oc.form=sexa&amp;
+-c.eq=J2000
+-c.r=  2
+-c.u=arcmin
+-c.geom=r
+-source=J/AJ/136/2413/table3
+-order=I
+-out=SSTGLMC
+-out=RAJ2000
+-out=DEJ2000
+-out=[4.5]1
+-out=[8.0]1
+-out=[4.5]2
+-out=[8.0]2
+-out=V?
+-out=Glimpse
+Glimpse=Glimpse
+</INFO>
+
+<!--
+Execution Reports
+ -->
+
+<RESOURCE ID="yCat_51362413" name="J/AJ/136/2413">
+  <DESCRIPTION>Galactic midplane Spitzer red sources (Robitaille+, 2008)</DESCRIPTION>
+  <COOSYS ID="J2000" system="eq_FK5" equinox="J2000"/>
+  <TABLE ID="J_AJ_136_2413_table3" name="J/AJ/136/2413/table3">
+    <DESCRIPTION>Red sources from the GLIMPSE II region with photometry at two epochs</DESCRIPTION>
+    <!-- Definitions of GROUPs and FIELDs -->
+    <FIELD name="_RAJ2000" ucd="pos.eq.ra" ref="J2000" datatype="double" width="10" precision="6" unit="deg"><!-- ucd="POS_EQ_RA" -->
+      <DESCRIPTION>Right ascension (FK5, Equinox=J2000.0) (computed by VizieR, not part of the original data. The format may include more digits than the original data because of internal accuracy requirements in VizieR and across other CDS services)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="_DEJ2000" ucd="pos.eq.dec" ref="J2000" datatype="double" width="10" precision="6" unit="deg"><!-- ucd="POS_EQ_DEC" -->
+      <DESCRIPTION>Declination (FK5, Equinox=J2000.0) (computed by VizieR, not part of the original data. The format may include more digits than the original data because of internal accuracy requirements in VizieR and across other CDS services)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="SSTGLMC" ucd="meta.id;meta.main" datatype="char" arraysize="17"><!-- ucd="ID_MAIN:1" -->
+      <DESCRIPTION>GLIMPSE source name (GLLL.llll+BB.bbbb)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="RAJ2000" ucd="pos.eq.ra;meta.main" ref="J2000" datatype="double" width="8" precision="4" unit="deg"><!-- ucd="POS_EQ_RA_MAIN" -->
+      <DESCRIPTION>Right Ascension in decimal degrees (J2000) (G1)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="DEJ2000" ucd="pos.eq.dec;meta.main" ref="J2000" datatype="double" width="8" precision="4" unit="deg"><!-- ucd="POS_EQ_DEC_MAIN" -->
+      <DESCRIPTION>Declination in decimal degrees (J2000) (G1)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="[4.5]1" ucd="phot.mag;em.IR.4-8um" datatype="float" width="5" precision="2" unit="mag"><!-- ucd="PHOT_IR_4.2" -->
+      <DESCRIPTION>First epoch 4.5um band magnitude</DESCRIPTION>
+    </FIELD>
+    <FIELD name="[8.0]1" ucd="phot.flux.density;em.IR.8-15um" datatype="float" width="5" precision="2" unit="mag"><!-- ucd="PHOT_FLUX_IR_9" -->
+      <DESCRIPTION>First epoch 8.0um band magnitude</DESCRIPTION>
+    </FIELD>
+    <FIELD name="[4.5]2" ucd="phot.mag;em.IR.4-8um" datatype="float" width="5" precision="2" unit="mag"><!-- ucd="PHOT_IR_4.2" -->
+      <DESCRIPTION>? Second epoch 4.5um band magnitude</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="[8.0]2" ucd="phot.flux.density;em.IR.8-15um" datatype="float" width="5" precision="2" unit="mag"><!-- ucd="PHOT_FLUX_IR_9" -->
+      <DESCRIPTION>? Second epoch 8.0um band magnitude</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="V?" ucd="meta.code;src.var" datatype="char" arraysize="1"><!-- ucd="CODE_VARIAB" -->
+      <DESCRIPTION>[Y/N] Variablity flag (2)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="Glimpse" ucd="meta.ref.url" datatype="char" arraysize="7*"><!-- ucd="DATA_LINK" -->
+      <DESCRIPTION>GLIMPSE photometry</DESCRIPTION>
+    </FIELD>
+<DATA><TABLEDATA>
+<TR><TD>265.299200</TD><TD>-28.332100</TD><TD>G000.0046+01.1431</TD><TD>265.2992</TD><TD>-28.3321</TD><TD>6.67</TD><TD>5.04</TD><TD>6.89</TD><TD>5.22</TD><TD>N</TD><TD>Glimpse</TD></TR>
+</TABLEDATA></DATA>
+</TABLE>
+
+<INFO name="Warning" value="No center provided++++"/>
+<INFO name="Warning" value="increase the precision for computed column 7"/>
+<INFO name="Warning" value="increase the precision for computed column 7"/>
+</RESOURCE>
+</VOTABLE>

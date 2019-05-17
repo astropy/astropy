@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ivoa.net/xml/VOTable/VOTable/v1.1">
+  <COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
+  <DESCRIPTION>VOTable generated from the original AAS Journal Machine Readable Table</DESCRIPTION>
+  <RESOURCE ID="aj285677t3_votable">
+   <DESCRIPTION>Intrinsically Red Sources observed by Spitzer in the Galactic Mid-Plane  (Robitaille T.P. et al.)</DESCRIPTION>
+<LINK href="http://dx.doi.org/10.1088/0004-6256/136/6/2413"/>
+   <TABLE ID="aj285677t3">
+    <DESCRIPTION>Red sources from the GLIMPSE II region with photometry at two epochs</DESCRIPTION>
+    <FIELD name="Name" ID="col1" ucd="meta.id;meta.main" datatype="char" arraysize="25*" unit="---">
+     <DESCRIPTION>GLIMPSE source name</DESCRIPTION>
+    </FIELD>
+    <FIELD name="GLON" ID="col2" ucd="pos.galactic.lon" datatype="float" width="8" precision="4" unit="deg">
+     <DESCRIPTION>Galatic longitude (1) These coordinates are set to the average position of the source at 
+          4.5 and at 8.0 microns, as in Table 2. </DESCRIPTION>
+    </FIELD>
+    <FIELD name="GLAT" ID="col3" ucd="pos.galactic.lat" datatype="float" width="7" precision="4" unit="deg">
+     <DESCRIPTION>Galatic latitude (1) These coordinates are set to the average position of the source at 
+          4.5 and at 8.0 microns, as in Table 2. </DESCRIPTION>
+    </FIELD>
+    <FIELD name="RAdeg" ID="col4" ucd="pos.eq.ra" datatype="float" width="8" precision="4" unit="deg">
+     <DESCRIPTION>Right Ascension in decimal degrees (J2000) (1) These coordinates are set to the average position of the source at 
+          4.5 and at 8.0 microns, as in Table 2. </DESCRIPTION>
+    </FIELD>
+    <FIELD name="DEdeg" ID="col5" ucd="pos.eq.dec" datatype="float" width="8" precision="4" unit="deg">
+     <DESCRIPTION>Declination in decimal degrees (J2000) (1) These coordinates are set to the average position of the source at 
+          4.5 and at 8.0 microns, as in Table 2. </DESCRIPTION>
+    </FIELD>
+    <FIELD name="4.5mag1" ID="col6" ucd="phot.mag;em.IR.4-8um" datatype="float" width="5" precision="2" unit="mag">
+     <DESCRIPTION>First epoch 4.5 micron band magnitude</DESCRIPTION>
+    </FIELD>
+    <FIELD name="8.0mag1" ID="col7" ucd="phot.mag;em.IR.4-8um" datatype="float" width="4" precision="2" unit="mag">
+     <DESCRIPTION>First epoch 8.0 micron band magnitude</DESCRIPTION>
+    </FIELD>
+    <FIELD name="4.5mag2" ID="col8" ucd="phot.mag;em.IR.4-8um" datatype="float" width="5" precision="2" unit="mag">
+     <DESCRIPTION>? Second epoch 4.5 micron band magnitude</DESCRIPTION>
+    </FIELD>
+    <FIELD name="8.0mag2" ID="col9" ucd="phot.mag;em.IR.4-8um" datatype="float" width="4" precision="2" unit="mag">
+     <DESCRIPTION>? Second epoch 8.0 micron band magnitude</DESCRIPTION>
+    </FIELD>
+    <FIELD name="Var?" ID="col10" ucd="meta.code;src.var" datatype="char" arraysize="1*" unit="---">
+     <DESCRIPTION>Variablity flag (2) 
+    Y = The magnitudes for the two epochs differ by at least 0.3 mag at either 
+        (or both) 4.5 microns or 8.0 microns. 
+    N = Not variable.</DESCRIPTION>
+    </FIELD>
+    <DATA>
+      <TABLEDATA>
+         <TR><TD>SSTGLMC G000.0046+01.1431</TD><TD>  0.0046</TD><TD> 1.1432</TD><TD>265.2992</TD><TD>-28.3321</TD><TD> 6.67</TD><TD>5.04</TD><TD> 6.89</TD><TD>5.22</TD><TD>N</TD></TR> 
+      </TABLEDATA>
+    </DATA>
+   </TABLE>
+  </RESOURCE>
+</VOTABLE>

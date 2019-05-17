@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.ivoa.net/xml/VOTable/v1.4"
+  xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.4 http://www.ivoa.net/xml/VOTable/v1.4">
+ <DESCRIPTION>
+   VizieR Astronomical Server cdsarc.u-strasbg.fr
+    Date: 2019-05-15T13:33:29 [V1.99+ (14-Oct-2013)]
+   Explanations and Statistics of UCDs:			See LINK below
+   In case of problem, please report to:	cds-question@unistra.fr
+   In this version, NULL integer columns are written as an empty string
+   &lt;TD&gt;&lt;/TD&gt;, explicitely possible from VOTable-1.3
+ </DESCRIPTION>
+<!-- VOTable description at http://www.ivoa.net/Documents/latest/VOT.html -->
+<INFO ID="VERSION" name="votable-version" value="1.99+ (14-Oct-2013)"/>
+<INFO ID="Ref" name="-ref" value="VOTx11794"/>
+<INFO ID="MaxTuples" name="-out.max" value="5"/>
+<INFO name="queryParameters" value="3">
+-oc.form=D.
+-source=II/349
+-out.max=5
+</INFO>
+
+<!--
+Execution Reports
+ -->
+<INFO ID="Target" name="-c" value="000.000000+00.000000,rm=2.">
+Constraint -out.max=5</INFO>
+
+<RESOURCE ID="yCat_2349" name="II/349">
+  <DESCRIPTION>The Pan-STARRS release 1 (PS1) Survey - DR1 (Chambers+, 2016)</DESCRIPTION>
+  <COOSYS ID="J2000" system="eq_FK5" equinox="J2000"/>
+  <TIMESYS ID="time_1" refposition="UNKNOWN" timeorigin="2400000.500000" timescale="UNKNOWN"/>
+  <TABLE ID="II_349_ps1" name="II/349/ps1">
+    <DESCRIPTION>Pan-STARRS DR1 catalogue, output (on a total of 1,919,106,885 sources)</DESCRIPTION>
+<!-- Pan-STARRS DR1 catalogue (\originalcolumnnames) -->
+
+    <!-- RowName: -c=\htarg{${$poseq}}&-c.rs=0.004 -->
+    <TIMESYS ID="time_2" refposition="UNKNOWN" timeorigin="2400000.500000" timescale="UNKNOWN"/>
+    <GROUP name='time-group' ref='time_2'>
+      <FIELDref ref="_tab1_10">Epoch</FIELDref>
+    </GROUP>
+    <!-- Definitions of GROUPs and FIELDs -->
+    <FIELD name="RAJ2000" ucd="pos.eq.ra;meta.main" ref="J2000" datatype="double" width="13" precision="9" unit="deg"><!-- ucd="POS_EQ_RA_MAIN" -->
+      <DESCRIPTION>Right ascension (J2000) (weighted mean) at epoch "Epoch" (raMean) (1)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="DEJ2000" ucd="pos.eq.dec;meta.main" ref="J2000" datatype="double" width="13" precision="9" unit="deg"><!-- ucd="POS_EQ_DEC_MAIN" -->
+      <DESCRIPTION>Declination (J2000) (weighted mean) at epoch "Epoch" (decMean) (1)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="objID" ucd="meta.id;meta.main" datatype="long" width="18"><!-- ucd="ID_MAIN" -->
+      <DESCRIPTION>Unique object identifier (objID)</DESCRIPTION>
+      <LINK href="http://cdsarc.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/349/ps1&amp;-c=${+RAJ2000}${+DEJ2000}&amp;-c.eq=J2000.000&amp;-c.rs=0.004"/>
+    </FIELD>
+    <FIELD name="f_objID" ucd="meta.code" datatype="long" width="10"><!-- ucd="CODE_MISC" -->
+      <DESCRIPTION>Information flag bitmask indicating details of the photometry (objInfoFlag) (2)</DESCRIPTION>
+<!-- Information flag bitmask indicating details of the photometry (objInfoFlag) (2) \pFile{_640x550}{II/349/flags.htx}{(Binary flag explanations)} -->
+
+
+<!-- No link in: \showFlag{${$cat}/flags}{${}} -->
+    </FIELD>
+    <FIELD name="Qual" ucd="meta.code.qual" datatype="short" width="3"><!-- ucd="CODE_QUALITY" -->
+      <DESCRIPTION>Subset of objInfoFlag denoting whether this object is real or a likely false positive (qualityFlag) (3)</DESCRIPTION>
+<!-- Subset of objInfoFlag denoting whether this object is real or a likely false positive (qualityFlag) (3) \pFile{_640x550}{II/349/qflags.htx}{(Binary flag explanations)} -->
+
+
+<!-- No link in: \showFlag{${$cat}/qflags}{${}} -->
+    </FIELD>
+    <FIELD name="e_RAJ2000" ucd="stat.error;pos.eq.ra" datatype="double" width="12" precision="4" unit="arcsec"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Right ascension standard deviation from single epoch detections (raMeanErr)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_DEJ2000" ucd="stat.error;pos.eq.dec" datatype="double" width="12" precision="4" unit="arcsec"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Declination standard deviation from single epoch detections (decMeanErr)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="Epoch" ucd="time.epoch" ref="J2000" id="_tab1_10" datatype="double" width="15" precision="9" unit="d"><!-- ucd="TIME_EPOCH" -->
+      <DESCRIPTION>? Modified Julian Date (MJD) of the mean epoch (epochMean)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="Ns" ucd="meta.number" datatype="short" width="2"><!-- ucd="NUMBER" -->
+      <DESCRIPTION>[0/50] Number of stack detections (nStackDetections)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="Nd" ucd="meta.number" datatype="short" width="3"><!-- ucd="NUMBER" -->
+      <DESCRIPTION>[3/369] Number of single epoch detections in all filters (nDetections)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="gmag" ucd="phot.mag;em.opt.B" datatype="double" width="8" precision="4" unit="mag"><!-- ucd="PHOT_SDSS_G" -->
+      <DESCRIPTION>[-33/33]? Mean PSF AB magnitude from g filter (4866{AA}) detections (gMeanPSFMag)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_gmag" ucd="stat.error;phot.mag;em.opt.B" datatype="float" width="7" precision="4" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>[0/0.5]? Error in gmag (gMeanPSFMagErr)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="gKmag" ucd="phot.mag;em.opt.B" datatype="double" width="7" precision="4" unit="mag"><!-- ucd="PHOT_SDSS_G" -->
+      <DESCRIPTION>? Mean Kron (1980) AB magnitude from g filter detections (gMeanKronMag)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_gKmag" ucd="stat.error;phot.mag" datatype="float" width="7" precision="4" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Error in gKmag (gMeanKronMagErr)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="gFlags" ucd="meta.code" datatype="int" width="8"><!-- ucd="CODE_MISC" -->
+      <DESCRIPTION>Information flag bitmask for mean object from g filter detections (gFlags) (4)</DESCRIPTION>
+<!-- Information flag bitmask for mean object from g filter detections (gFlags) (4) \pFile{_640x550}{II/349/fflags.htx}{(Binary flag explanations)} -->
+
+
+<!-- No link in: \showFlag{${$cat}/fflags}{${}} -->
+    </FIELD>
+    <FIELD name="rmag" ucd="phot.mag;em.opt.R" datatype="double" width="7" precision="4" unit="mag"><!-- ucd="PHOT_SDSS_R" -->
+      <DESCRIPTION>[-6/30]? Mean PSF AB magnitude from r filter (6215{AA}) detections (rMeanPSFMag)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_rmag" ucd="stat.error;phot.mag;em.opt.R" datatype="float" width="7" precision="4" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>[0/0.5]? Error in rmag (rMeanPSFMagErr)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="rKmag" ucd="phot.mag;em.opt.R" datatype="double" width="7" precision="4" unit="mag"><!-- ucd="PHOT_SDSS_R" -->
+      <DESCRIPTION>? Mean Kron (1980) AB magnitude from r filter detections (rMeanKronMag)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_rKmag" ucd="stat.error;phot.mag" datatype="float" width="7" precision="4" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Error in rKmag (rMeanKronMagErr)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="rFlags" ucd="meta.code" datatype="int" width="8"><!-- ucd="CODE_MISC" -->
+      <DESCRIPTION>Information flag bitmask for mean object from r filter detections (rFlags) (4)</DESCRIPTION>
+<!-- Information flag bitmask for mean object from r filter detections (rFlags) (4) \pFile{_640x550}{II/349/fflags.htx}{(Binary flag explanations)} -->
+
+
+<!-- No link in: \showFlag{${$cat}/fflags}{${}} -->
+    </FIELD>
+    <FIELD name="imag" ucd="phot.mag;em.opt.I" datatype="double" width="7" precision="4" unit="mag"><!-- ucd="PHOT_SDSS_I" -->
+      <DESCRIPTION>[-5/30]? Mean PSF AB magnitude from i filter (7545{AA}) detections (iMeanPSFMag)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_imag" ucd="stat.error;phot.mag;em.opt.I" datatype="float" width="7" precision="4" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>[0/0.5]? Error in imag (iMeanPSFMagErr)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="iKmag" ucd="phot.mag;em.opt.I" datatype="double" width="7" precision="4" unit="mag"><!-- ucd="PHOT_SDSS_I" -->
+      <DESCRIPTION>? Mean Kron (1980) AB magnitude from i filter detections (iMeanKronMag)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_iKmag" ucd="stat.error;phot.mag" datatype="float" width="7" precision="4" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Error in zKmag (iMeanKronMagErr)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="iFlags" ucd="meta.code" datatype="int" width="8"><!-- ucd="CODE_MISC" -->
+      <DESCRIPTION>Information flag bitmask for mean object from i filter detections (iFlags) (4)</DESCRIPTION>
+<!-- Information flag bitmask for mean object from i filter detections (iFlags) (4) \pFile{_640x550}{II/349/fflags.htx}{(Binary flag explanations)} -->
+
+
+<!-- No link in: \showFlag{${$cat}/fflags}{${}} -->
+    </FIELD>
+    <FIELD name="zmag" ucd="phot.mag;em.opt.I" datatype="double" width="7" precision="4" unit="mag"><!-- ucd="PHOT_SDSS_Z" -->
+      <DESCRIPTION>[-5/29]? Mean PSF AB magnitude from z filter (8679{AA}) detections (zMeanPSFMag)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_zmag" ucd="stat.error;phot.mag;em.opt.I" datatype="float" width="7" precision="4" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>[0/0.5]? Error in zmag (zMeanPSFMagErr)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="zKmag" ucd="phot.mag;em.opt.I" datatype="double" width="7" precision="4" unit="mag"><!-- ucd="PHOT_SDSS_Z" -->
+      <DESCRIPTION>? Mean Kron (1980) AB magnitude from z filter detections (zMeanKronMag)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_zKmag" ucd="stat.error;phot.mag" datatype="float" width="7" precision="4" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Error in zKmag (zMeanKronMagErr)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="zFlags" ucd="meta.code" datatype="int" width="8"><!-- ucd="CODE_MISC" -->
+      <DESCRIPTION>Information flag bitmask for mean object from z filter detections (zFlags) (4)</DESCRIPTION>
+<!-- Information flag bitmask for mean object from z filter detections (zFlags) (4) \pFile{_640x550}{II/349/fflags.htx}{(Binary flag explanations)} -->
+
+
+<!-- No link in: \showFlag{${$cat}/fflags}{${}} -->
+    </FIELD>
+    <FIELD name="ymag" ucd="phot.mag;em.IR.J" datatype="double" width="7" precision="4" unit="mag"><!-- ucd="PHOT_MAG_Y" -->
+      <DESCRIPTION>[-5/29]? Mean PSF AB magnitude from y filter (9633{AA}) detections (yMeanPSFMag)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_ymag" ucd="stat.error;phot.mag;em.IR.J" datatype="float" width="7" precision="4" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>[0/0.5]? Error in ymag (yMeanPSFMagErr)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="yKmag" ucd="phot.mag;em.IR.J" datatype="double" width="7" precision="4" unit="mag"><!-- ucd="PHOT_MAG_Y" -->
+      <DESCRIPTION>? Mean Kron (1980) AB magnitude from y filter detections (yMeanKronMag)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_yKmag" ucd="stat.error;phot.mag" datatype="float" width="7" precision="4" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Error in gKmag (yMeanKronMagErr)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="yFlags" ucd="meta.code" datatype="int" width="8"><!-- ucd="CODE_MISC" -->
+      <DESCRIPTION>Information flag bitmask for mean object from y filter detections (yFlags) (4)</DESCRIPTION>
+<!-- Information flag bitmask for mean object from y filter detections (yFlags) (4) \pFile{_640x550}{II/349/fflags.htx}{(Binary flag explanations)} -->
+
+
+<!-- No link in: \showFlag{${$cat}/fflags}{${}} -->
+    </FIELD>
+<DATA><TABLEDATA>
+<TR><TD>000.021456770</TD><TD>-00.023792070</TD><TD>107970000214501916</TD><TD>503635968</TD><TD>60</TD><TD>0.0057</TD><TD>0.0033</TD><TD>55973.332708330</TD><TD>5</TD><TD>84</TD><TD>20.1092</TD><TD>0.0235</TD><TD></TD><TD></TD><TD>115000</TD><TD>19.0356</TD><TD>0.0072</TD><TD></TD><TD></TD><TD>115000</TD><TD>18.5420</TD><TD>0.0077</TD><TD></TD><TD></TD><TD>115000</TD><TD>18.3088</TD><TD>0.0077</TD><TD></TD><TD></TD><TD>115000</TD><TD>18.1524</TD><TD>0.0137</TD><TD></TD><TD></TD><TD>115000</TD></TR>
+</TABLEDATA></DATA>
+</TABLE>
+<INFO name="matches" value="5">matching records</INFO>
+
+<INFO name="Warning" value="connection: 19 free, 0 closed, 0 opend"/>
+<INFO name="Warning" value="No alternative matching in '{-c ${-c} -c.rm ${-c.rm} }'"/>
+<INFO name="Warning" value="Missing '-c' argument (Target position and geometry)"/>
+<INFO name="Warning" value="limit the query to 5"/>
+<INFO name="Warning" value="an error occured on a large catalog(close)"/>
+<INFO name="Warning" value="Constraint added: -c=0+0"/>
+<INFO name="Warning" value="(patch vizier 20171220) accept several mainpos to add _V column"/>
+<INFO name="Warning" value="(patch vizier 20171220) accept several mainpos to add _V column"/>
+<INFO name="Warning" value="truncated result (maxtup=5)"/><INFO name="QUERY_STATUS" value="OVERFLOW">truncated result (maxtup=5)</INFO>
+
+</RESOURCE>
+</VOTABLE>

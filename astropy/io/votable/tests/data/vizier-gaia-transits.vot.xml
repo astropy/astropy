@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.ivoa.net/xml/VOTable/v1.4"
+  xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.4 http://www.ivoa.net/xml/VOTable/v1.4">
+ <DESCRIPTION>
+   VizieR Astronomical Server cdsarc.u-strasbg.fr
+    Date: 2019-05-15T13:34:17 [V1.99+ (14-Oct-2013)]
+   Explanations and Statistics of UCDs:			See LINK below
+   In case of problem, please report to:	cds-question@unistra.fr
+   In this version, NULL integer columns are written as an empty string
+   &lt;TD&gt;&lt;/TD&gt;, explicitely possible from VOTable-1.3
+ </DESCRIPTION>
+<!-- VOTable description at http://www.ivoa.net/Documents/latest/VOT.html -->
+<INFO ID="VERSION" name="votable-version" value="1.99+ (14-Oct-2013)"/>
+<INFO ID="Ref" name="-ref" value="VOTx12780"/>
+<INFO ID="MaxTuples" name="-out.max" value="5"/>
+<INFO name="queryParameters" value="3">
+-oc.form=D.
+-source=I/345/transits
+-out.max=5
+</INFO>
+
+<!--
+Execution Reports
+ -->
+
+<RESOURCE ID="yCat_1345" name="I/345">
+  <DESCRIPTION>Gaia DR2 (Gaia Collaboration, 2018)</DESCRIPTION>
+  <TIMESYS ID="time_1" refposition="BARYCENTER" timeorigin="2455197.500000" timescale="TCB"/>
+  <TABLE ID="I_345_transits" name="I/345/transits">
+    <DESCRIPTION>Calibrated FoV transit photometry for CU5, consolidated and provided by CU7 for variable stars in Gaia DR2 (epoch_photometry, part 2)</DESCRIPTION>
+<!-- Calibrated FoV transit photometry for CU5, consolidated and provided by CU7 for variable stars in Gaia DR2 (epoch_photometry, part 2) (\originalcolumnnames) -->
+
+    <GROUP name='time-group' ref='time_1'>
+      <FIELDref ref="_tab13_3">TimeG</FIELDref>
+      <FIELDref ref="_tab13_4">FG</FIELDref>
+      <FIELDref ref="_tab13_5">e_FG</FIELDref>
+      <FIELDref ref="_tab13_7">Gmag</FIELDref>
+      <FIELDref ref="_tab13_8">e_Gmag</FIELDref>
+    </GROUP>
+    <GROUP name='time-group' ref='time_1'>
+      <FIELDref ref="_tab13_9">TimeBP</FIELDref>
+      <FIELDref ref="_tab13_10">FBP</FIELDref>
+      <FIELDref ref="_tab13_11">e_FBP</FIELDref>
+      <FIELDref ref="_tab13_13">BPmag</FIELDref>
+      <FIELDref ref="_tab13_14">e_BPmag</FIELDref>
+    </GROUP>
+    <GROUP name='time-group' ref='time_1'>
+      <FIELDref ref="_tab13_15">TimeRP</FIELDref>
+      <FIELDref ref="_tab13_16">FRP</FIELDref>
+      <FIELDref ref="_tab13_17">e_FRP</FIELDref>
+      <FIELDref ref="_tab13_19">RPmag</FIELDref>
+      <FIELDref ref="_tab13_20">e_RPmag</FIELDref>
+    </GROUP>
+    <!-- Definitions of GROUPs and FIELDs -->
+    <FIELD name="recno" ucd="meta.record" datatype="long" width="10" type="hidden"><!-- ucd="RECORD" -->
+      <DESCRIPTION>Record number assigned by the VizieR team. Should Not be used for identification.</DESCRIPTION>
+      <LINK href="http://cdsarc.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=I/345/transits&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="Source" ucd="meta.id;meta.main" datatype="long" width="19"><!-- ucd="ID_MAIN" -->
+      <DESCRIPTION>Source Identifier (source_id) (G2)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="TransitID" ucd="meta.id" datatype="long" width="17"><!-- ucd="ID_NUMBER" -->
+      <DESCRIPTION>Transit Identifier as defined in JP-011 and received by DPCI from IDT (transit_id)</DESCRIPTION>
+      <LINK href="http://cdsarc.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=I/345/transits&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="TimeG" ucd="time.epoch" ref="time_1" id="_tab13_3" datatype="double" width="13" precision="8" unit="d"><!-- ucd="TIME_DATE" -->
+      <DESCRIPTION>? Transit averaged G band observation time (JD-2455197.5) (g_transit_time) (1)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="FG" ucd="phot.flux;stat.mean;em.opt" id="_tab13_4" datatype="double" width="15" precision="E8" unit="e-/s"><!-- ucd="PHOT_FLUX_OPTICAL" -->
+      <DESCRIPTION>? Transit averaged G band flux (g_transit_flux) (2)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_FG" ucd="stat.error;phot.flux;stat.mean" id="_tab13_5" datatype="double" width="15" precision="E8" unit="e-/s"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Error on the transit averaged G band flux (g_transit_flux_error)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="Gmag" ucd="phot.mag;stat.mean;em.opt" id="_tab13_7" datatype="double" width="9" precision="6" unit="mag"><!-- ucd="PHOT_MAG_OPTICAL" -->
+      <DESCRIPTION>? Transit averaged G band magnitude (converted from transit averaged G band flux) (g_transit_mag)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_Gmag" ucd="stat.error;phot.mag;em.opt.B" id="_tab13_8" datatype="double" width="9" precision="6" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Error on transit averaged G band magnitude, added by CDS (g_transit_mag_error)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="TimeBP" ucd="time.epoch" ref="time_1" id="_tab13_9" datatype="double" width="13" precision="8" unit="d"><!-- ucd="TIME_DATE" -->
+      <DESCRIPTION>? BP CCD transit observation time (JD-2455197.5) (bp_obs_time) (1)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="FBP" ucd="phot.flux;stat.mean;em.opt.B" id="_tab13_10" datatype="double" width="15" precision="E8" unit="e-/s"><!-- ucd="PHOT_FLUX_B" -->
+      <DESCRIPTION>? BP band flux (bp_flux)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_FBP" ucd="stat.error;phot.flux;stat.mean" id="_tab13_11" datatype="double" width="15" precision="E8" unit="e-/s"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Error on the BP band flux (bp_flux_error)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="BPmag" ucd="phot.mag;stat.mean;em.opt.B" id="_tab13_13" datatype="double" width="9" precision="6" unit="mag"><!-- ucd="PHOT_MAG_B" -->
+      <DESCRIPTION>? BP band magnitude (converted from BP band flux) (bp_mag)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_BPmag" ucd="stat.error;phot.mag;stat.mean" id="_tab13_14" datatype="double" width="12" precision="E5" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Error on the BP band magnitude, added by CDS (bp_mag_error)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="TimeRP" ucd="time.epoch" ref="time_1" id="_tab13_15" datatype="double" width="13" precision="8" unit="d"><!-- ucd="TIME_DATE" -->
+      <DESCRIPTION>? RP CCD transit observation time (JD-2455197.5) (rp_obs_time) (1)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="FRP" ucd="phot.flux.density;em.opt.R" id="_tab13_16" datatype="double" width="15" precision="E8" unit="e-/s"><!-- ucd="PHOT_FLUX_R" -->
+      <DESCRIPTION>? RP band flux (rp_flux)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_FRP" ucd="stat.error;phot.flux;stat.mean" id="_tab13_17" datatype="double" width="15" precision="E8" unit="e-/s"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Error on the RP band flux (rp_flux_error)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="RPmag" ucd="phot.mag;stat.mean;em.opt.R" id="_tab13_19" datatype="double" width="9" precision="6" unit="mag"><!-- ucd="PHOT_MAG_R" -->
+      <DESCRIPTION>? RP band magnitude (converted from RP band flux) (rp_mag)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_RPmag" ucd="stat.error;phot.mag;stat.mean" id="_tab13_20" datatype="double" width="12" precision="E5" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Error on the RP band magnitude, added by CDS (rp_mag_error)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="VarGr" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+      <DESCRIPTION>[0/1]? Average G transit photometry rejected by variability processing (variability_flag_g_reject) (3) [NULL integer written as an empty string]</DESCRIPTION>
+      <VALUES null="255" />
+      <LINK href="http://cdsarc.u-strasbg.fr/viz-bin/VizieR?-6N&amp;-info=XML&amp;-out.add=.&amp;&amp;lt;&amp;quot;Note&amp;quot;&amp;catid=1345&amp;notid=60&amp;-out.emph=${VarGr}"/>
+    </FIELD>
+    <FIELD name="VarBPr" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+      <DESCRIPTION>[0/1]? Average BP transit photometry rejected by variability processing (variability_flag_bp_reject) (3) [NULL integer written as an empty string]</DESCRIPTION>
+      <VALUES null="255" />
+      <LINK href="http://cdsarc.u-strasbg.fr/viz-bin/VizieR?-6N&amp;-info=XML&amp;-out.add=.&amp;&amp;lt;&amp;quot;Note&amp;quot;&amp;catid=1345&amp;notid=60&amp;-out.emph=${VarBPr}"/>
+    </FIELD>
+    <FIELD name="VarRPr" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+      <DESCRIPTION>[0/1]? Average RP transit photometry rejected by variability processing (variability_flag_rp_reject) (3) [NULL integer written as an empty string]</DESCRIPTION>
+      <VALUES null="255" />
+      <LINK href="http://cdsarc.u-strasbg.fr/viz-bin/VizieR?-6N&amp;-info=XML&amp;-out.add=.&amp;&amp;lt;&amp;quot;Note&amp;quot;&amp;catid=1345&amp;notid=60&amp;-out.emph=${VarRPr}"/>
+    </FIELD>
+<DATA><TABLEDATA>
+<TR><TD>9999999999</TD><TD>4063240341422308480</TD><TD>49314380314466136</TD><TD>2288.67094626</TD><TD>4.39436217e+03</TD><TD>6.53234132e+01</TD><TD>16.581126</TD><TD>0.016140</TD><TD>2288.67126082</TD><TD>2.12186335e+03</TD><TD>6.34469065e+01</TD><TD>17.034595</TD><TD>3.24650e-02</TD><TD>2288.67134877</TD><TD>5.08013161e+03</TD><TD>7.43645444e+01</TD><TD>15.497233</TD><TD>1.58930e-02</TD><TD>0</TD><TD>0</TD><TD>0</TD></TR>
+<TR><TD>9999999999</TD><TD>4063240341422308480</TD><TD>49318472601875108</TD><TD>2288.74496035</TD><TD>4.20002447e+03</TD><TD>7.13153864e+00</TD><TD>16.630236</TD><TD>0.001844</TD><TD>2288.74527519</TD><TD>2.01399844e+03</TD><TD>5.13499629e+01</TD><TD>17.091240</TD><TD>2.76830e-02</TD><TD>2288.74536219</TD><TD>4.90821366e+03</TD><TD>7.46302280e+01</TD><TD>15.534611</TD><TD>1.65090e-02</TD><TD>0</TD><TD>0</TD><TD>0</TD></TR>
+</TABLEDATA></DATA>
+</TABLE>
+<INFO name="matches" value="5">matching records</INFO>
+
+<INFO name="Warning" value="Too large value for recno (2645699854336)[13,10], table: I/345/transits (=&gt; 9999999999)"/>
+<INFO name="Warning" value="Too large value for recno (2650001731438)[13,10], table: I/345/transits (=&gt; 9999999999)"/>
+<INFO name="Warning" value="Too large value for recno (2654289788928)[13,10], table: I/345/transits (=&gt; 9999999999)"/>
+<INFO name="Warning" value="Too large value for recno (2658584756224)[13,10], table: I/345/transits (=&gt; 9999999999)"/>
+<INFO name="Warning" value="Too large value for recno (2662879723520)[13,10], table: I/345/transits (=&gt; 9999999999)"/>
+<INFO name="Warning" value="truncated result (maxtup=5)"/><INFO name="QUERY_STATUS" value="OVERFLOW">truncated result (maxtup=5)</INFO>
+
+</RESOURCE>
+</VOTABLE>

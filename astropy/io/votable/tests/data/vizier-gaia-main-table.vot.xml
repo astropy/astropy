@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.ivoa.net/xml/VOTable/v1.2"
+  xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.2 http://www.ivoa.net/xml/VOTable/v1.2">
+ <DESCRIPTION>
+   VizieR Astronomical Server vizier.u-strasbg.fr
+    Date: 2019-05-15T13:41:52 [V1.99+ (14-Oct-2013)]
+   Explanations and Statistics of UCDs:			See LINK below
+   In case of problem, please report to:	cds-question@unistra.fr
+   In this version, NULL integer columns are written as an empty string
+   &lt;TD&gt;&lt;/TD&gt;, explicitely possible from VOTable-1.3
+ </DESCRIPTION>
+<!-- VOTable description at http://www.ivoa.net/Documents/latest/VOT.html -->
+<INFO ID="VERSION" name="votable-version" value="1.99+ (14-Oct-2013)"/>
+<INFO ID="Ref" name="-ref" value="VIZ5cdc17145d68"/>
+<INFO ID="MaxTuples" name="-out.max" value="50"/>
+<INFO name="queryParameters" value="45">
+-oc.form=dec
+-out.max=50
+-out.add=_r
+-out.add=_RAJ,_DEJ
+-sort=_r
+-nav=cat:I/345&amp;tab:{I/345/gaia2}&amp;key:source=I/345/gaia2&amp;HTTPPRM:&amp;-out.max=50&amp;-out.form=HTML Table&amp;-out.add=_r&amp;-out.add=_RAJ,_DEJ&amp;-sort=_r&amp;-oc.form=sexa&amp;
+-c.eq=J2000
+-c.r=  2
+-c.u=arcmin
+-c.geom=r
+-source=I/345/gaia2
+-order=I
+-out.orig=standard
+-out=RA_ICRS
+-out=e_RA_ICRS
+-out=DE_ICRS
+-out=e_DE_ICRS
+-out=Source
+-out=Plx
+-out=e_Plx
+-out=pmRA
+-out=e_pmRA
+-out=pmDE
+-out=e_pmDE
+-out=Dup
+-out=FG
+-out=e_FG
+-out=Gmag
+-out=e_Gmag
+-out=FBP
+-out=e_FBP
+-out=BPmag
+-out=e_BPmag
+-out=FRP
+-out=e_FRP
+-out=RPmag
+-out=e_RPmag
+-out=BP-RP
+-out=RV
+-out=e_RV
+-out=Teff
+-out=AG
+-out=E(BP-RP)
+-out=Rad
+-out=Lum
+</INFO>
+
+<!--
+Execution Reports
+ -->
+
+<RESOURCE ID="yCat_1345" name="I/345">
+  <DESCRIPTION>Gaia DR2 (Gaia Collaboration, 2018)</DESCRIPTION>
+  <COOSYS ID="H_2015.500" system="ICRS" epoch="2015.500"/>
+  <COOSYS ID="J2000" system="eq_FK5" equinox="J2000"/>
+  <TABLE ID="I_345_gaia2" name="I/345/gaia2">
+    <DESCRIPTION>GaiaSource DR2 data</DESCRIPTION>
+<!-- Gaia data release 2 (Gaia DR2). \inputViz{gaiadr2.intro.htx} (\originalcolumnnames) -->
+
+    <!-- Definitions of GROUPs and FIELDs -->
+    <FIELD name="_RAJ2000" ucd="pos.eq.ra" ref="J2000" datatype="double" width="17" precision="13" unit="deg"><!-- ucd="POS_EQ_RA" -->
+      <DESCRIPTION>Right ascension (FK5, Equinox=J2000.0) at Epoch=J2000, proper motions taken into account </DESCRIPTION>
+    </FIELD>
+    <FIELD name="_DEJ2000" ucd="pos.eq.dec" ref="J2000" datatype="double" width="17" precision="13" unit="deg"><!-- ucd="POS_EQ_DEC" -->
+      <DESCRIPTION>Declination (FK5, Equinox=J2000.0) at Epoch=J2000, proper motions taken into account </DESCRIPTION>
+    </FIELD>
+    <FIELD name="RA_ICRS" ucd="pos.eq.ra;meta.main" ref="H_2015.500" datatype="double" width="15" precision="11" unit="deg"><!-- ucd="POS_EQ_RA_MAIN" -->
+      <DESCRIPTION>Barycentric right ascension (ICRS) at Ep=2015.5 (ra)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="e_RA_ICRS" ucd="stat.error;pos.eq.ra" datatype="double" width="7" precision="4" unit="mas"><!-- ucd="ERROR" -->
+      <DESCRIPTION>Standard error of right ascension (e_RA*cosDE) (ra_error)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="DE_ICRS" ucd="pos.eq.dec;meta.main" ref="H_2015.500" datatype="double" width="15" precision="11" unit="deg"><!-- ucd="POS_EQ_DEC_MAIN" -->
+      <DESCRIPTION>Barycentric declination (ICRS) at Ep=2015.5 (dec)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="e_DE_ICRS" ucd="stat.error;pos.eq.dec" datatype="double" width="7" precision="4" unit="mas"><!-- ucd="ERROR" -->
+      <DESCRIPTION>Standard error of declination (dec_error)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="Source" ucd="meta.id;meta.main" datatype="long" width="19"><!-- ucd="ID_MAIN" -->
+      <DESCRIPTION>Unique source identifier (unique within a particular Data Release) (source_id) (G2)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="Plx" ucd="pos.parallax" datatype="double" width="10" precision="4" unit="mas"><!-- ucd="POS_PARLX_TRIG" -->
+      <DESCRIPTION>? Absolute stellar parallax (parallax)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_Plx" ucd="stat.error;pos.parallax" datatype="float" width="7" precision="4" unit="mas"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Standard error of parallax (parallax_error)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="pmRA" ucd="pos.pm;pos.eq.ra" ref="H_2015.500" datatype="double" width="9" precision="3" unit="mas/yr"><!-- ucd="POS_EQ_PMRA" -->
+      <DESCRIPTION>? Proper motion in right ascension direction (pmRA*cosDE) (pmra) (3)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_pmRA" ucd="stat.error;pos.pm;pos.eq.ra" datatype="float" width="6" precision="3" unit="mas/yr"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Standard error of proper motion in right ascension direction (pmra_error)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="pmDE" ucd="pos.pm;pos.eq.dec" ref="H_2015.500" datatype="double" width="9" precision="3" unit="mas/yr"><!-- ucd="POS_EQ_PMDEC" -->
+      <DESCRIPTION>? Proper motion in declination direction (pmdec) (4)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_pmDE" ucd="stat.error;pos.pm;pos.eq.dec" datatype="float" width="6" precision="3" unit="mas/yr"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Standard error of proper motion in declination direction (pmdec_error)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="Dup" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+      <DESCRIPTION>[0/1] Source with duplicate sources (duplicated_source) (21)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="FG" ucd="phot.flux;stat.mean;em.opt" datatype="float" width="11" precision="E4" unit="e-/s"><!-- ucd="PHOT_FLUX_OPTICAL" -->
+      <DESCRIPTION>G-band mean flux (phot_g_mean_flux)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="e_FG" ucd="stat.error;phot.flux;stat.mean" datatype="float" width="11" precision="E4" unit="e-/s"><!-- ucd="ERROR" -->
+      <DESCRIPTION>Error on G-band mean flux (phot_g_mean_flux_error)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="Gmag" ucd="phot.mag;stat.mean;em.opt" datatype="double" width="7" precision="4" unit="mag"><!-- ucd="PHOT_MAG_OPTICAL" -->
+      <DESCRIPTION>G-band mean magnitude (Vega) (phot_g_mean_mag) (23)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="e_Gmag" ucd="stat.error;phot.mag;stat.mean" datatype="double" width="6" precision="4" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>Standard error of G-band mean magnitude (Vega) (added by CDS) (phot_g_mean_mag_error) (37)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="FBP" ucd="phot.flux;stat.mean;em.opt.B" datatype="float" width="11" precision="E4" unit="e-/s"><!-- ucd="PHOT_FLUX_B" -->
+      <DESCRIPTION>? Mean flux in the integrated BP band (phot_bp_mean_flux)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_FBP" ucd="stat.error;phot.flux;stat.mean" datatype="float" width="11" precision="E4" unit="e-/s"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Error on the integrated BP mean flux (phot_bp_mean_flux_error) (25)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="BPmag" ucd="phot.mag;stat.mean;em.opt.B" datatype="double" width="7" precision="4" unit="mag"><!-- ucd="PHOT_MAG_B" -->
+      <DESCRIPTION>? Integrated BP mean magnitude (Vega) (phot_bp_mean_mag) (26)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_BPmag" ucd="stat.error;phot.mag;stat.mean" datatype="double" width="6" precision="4" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Standard error of BP mean magnitude (Vega) (added by CDS) (phot_bp_mean_mag_error) (37)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="FRP" ucd="phot.flux.density;em.opt.R" datatype="float" width="11" precision="E4" unit="e-/s"><!-- ucd="PHOT_FLUX_R" -->
+      <DESCRIPTION>? Mean flux in the integrated RP band (phot_rp_mean_flux)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_FRP" ucd="stat.error;phot.flux;stat.mean" datatype="float" width="11" precision="E4" unit="e-/s"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Error on the integrated RP mean flux (phot_rp_mean_flux_error) (28)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="RPmag" ucd="phot.mag;stat.mean;em.opt.R" datatype="double" width="7" precision="4" unit="mag"><!-- ucd="PHOT_MAG_R" -->
+      <DESCRIPTION>? Integrated RP mean magnitude (Vega) (phot_rp_mean_mag) (29)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_RPmag" ucd="stat.error;phot.mag;stat.mean" datatype="double" width="6" precision="4" unit="mag"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Standard error of RP mean magnitude (Vega) (added by CDS) (phot_rp_mean_mag_error) (37)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="BP-RP" ucd="phot.color;em.opt.B;em.opt.R" datatype="double" width="7" precision="4" unit="mag"><!-- ucd="PHOT_CI_B-R" -->
+      <DESCRIPTION>? BP-RP colour (photBpMeanMag-photRMeanMag) (bp_rp)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="RV" ucd="spect.dopplerVeloc.opt;pos.barycenter" datatype="double" width="7" precision="2" unit="km/s"><!-- ucd="VELOC_BARYCENTER" -->
+      <DESCRIPTION>? Spectroscopic radial velocity in the solar barycentric reference frame (radial_velocity)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="e_RV" ucd="stat.error;spect.dopplerVeloc.opt;pos.barycenter" datatype="float" width="5" precision="2" unit="km/s"><!-- ucd="ERROR" -->
+      <DESCRIPTION>? Radial velocity error (radial_velocity_error) (30)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="Teff" ucd="phys.temperature.effective" datatype="double" width="7" precision="2" unit="K"><!-- ucd="PHYS_TEMP_EFFEC" -->
+      <DESCRIPTION>? Stellar effective temperature (estimate from Apsis-Priam) (teff_val)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="AG" ucd="phys.absorption.gal" datatype="float" width="7" precision="4" unit="mag"><!-- ucd="PHOT_EXTINCTION_ISM" -->
+      <DESCRIPTION>? Estimate of extinction in the G band from Apsis-Priam (a_g_val)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="E(BP-RP)" ucd="phot.color.excess" datatype="float" width="7" precision="4" unit="mag"><!-- ucd="PHOT_COLOR_EXCESS" -->
+      <DESCRIPTION>? Estimate of redenning E(BP-RP) from Apsis-Priam (e_bp_min_rp_val)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="Rad" ucd="phys.size.radius" datatype="float" width="6" precision="2" unit="solRad"><!-- ucd="PHYS_SIZE_RADIUS_GENERAL" -->
+      <DESCRIPTION>? Estimate of radius from Apsis-FLAME (radius_val)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="Lum" ucd="phys.luminosity" datatype="double" width="9" precision="3" unit="solLum"><!-- ucd="PHYS_LUMINOSITY_GENERAL" -->
+      <DESCRIPTION>? Esimate of luminosity from Apsis-FLAME (lum_val)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+<DATA><TABLEDATA>
+<TR><TD>277.8219212033231</TD><TD>-30.2143132255539</TD><TD>277.82188316092</TD><TD>0.6290</TD><TD>-30.21433593885</TD><TD>0.6154</TD><TD>4047779906511434112</TD><TD>0.6320</TD><TD>0.6682</TD><TD>-7.635</TD><TD>1.223</TD><TD>-5.275</TD><TD>0.996</TD><TD>0</TD><TD>2.5315e+02</TD><TD>1.5120e+00</TD><TD>19.6799</TD><TD>0.0065</TD><TD>2.1823e+02</TD><TD>2.2351e+01</TD><TD>19.5041</TD><TD>0.1112</TD><TD>1.8864e+02</TD><TD>2.3906e+01</TD><TD>19.0728</TD><TD>0.1376</TD><TD>0.4313</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+</TABLEDATA></DATA>
+</TABLE>
+
+<INFO name="Warning" value="No center provided++++"/>
+<INFO name="Warning" value="increase the precision for computed column 14"/>
+<INFO name="Warning" value="increase the precision for computed column 14"/>
+<INFO name="Warning" value="truncated result (maxtup=50)"/><INFO name="QUERY_STATUS" value="OVERFLOW">truncated result (maxtup=50)</INFO>
+
+</RESOURCE>
+</VOTABLE>
