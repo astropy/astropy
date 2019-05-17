@@ -81,11 +81,14 @@ def warn_or_raise(warning_class, exception_class=None, args=(), config=None,
     """
     if config is None:
         config = {}
-    if config.get('verify') == 'exception':
+    # NOTE: the default here is deliberately warn rather than ignore, since
+    # one would expect that calling warn_or_raise without config should not
+    # silence the warnings.
+    if config.get('verify', 'warn') == 'exception':
         if exception_class is None:
             exception_class = warning_class
         vo_raise(exception_class, args, config, pos)
-    elif config.get('verify') == 'warn':
+    elif config.get('verify', 'warn') == 'warn':
         vo_warn(warning_class, args, config, pos, stacklevel=stacklevel+1)
 
 
@@ -122,7 +125,10 @@ def vo_warn(warning_class, args=(), config=None, pos=None, stacklevel=1):
     """
     if config is None:
         config = {}
-    if config.get('verify', 'ignore') != 'ignore':
+    # NOTE: the default here is deliberately warn rather than ignore, since
+    # one would expect that calling warn_or_raise without config should not
+    # silence the warnings.
+    if config.get('verify', 'warn') != 'ignore':
         warning = warning_class(args, config, pos)
         _suppressed_warning(warning, config, stacklevel=stacklevel+1)
 
