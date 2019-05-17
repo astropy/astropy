@@ -10,6 +10,7 @@ from .ucd import find_columns_by_ucd
 
 from astropy.io import registry as io_registry
 from astropy.table import Table
+from astropy.time import Time
 from astropy.table.column import BaseColumn
 from astropy.units import Quantity
 
@@ -163,17 +164,50 @@ def write_table_votable(input, output, table_id=None, overwrite=False,
 
 
 def extract_frame_from_coosys(coosys):
+    """
+    Convert the representation of a VOTable COOSYS into an Astropy coordinate
+    frame.
+
+    Parameters
+    ----------
+    coosys : astropy.io.votable.tree.CooSys
+        The COOSYS to be transformed into a frame
+
+    Returns
+    -------
+    frame : astropy coordinate frame
+        The frame object (without data) corresponding to this ``coosys``. Note
+        that it may have an ``epoch`` attribute which is non-standard for
+        coordinate frames, but contains a `~astropy.time.Time` object based on
+        the ``epoch`` in the ``coosys``.  This is not called ``obstime`` because
+        it is ambiguous whether the VOTable standard for ``epoch`` matches the
+        concept astropy uses for ``obstime``, and therefore it is left to the
+        user to interpret.
+
+    """
     # import is here due to circular dependencies if it's at module level
     from astropy import coordinates
 
+    def jify_times(etime):
+        if etime is not None and etime[0].isdigit():
+            etime = 'J' + etime
+        return etime
+
+    equinox = jify_times(coosys.equinox)
+    epoch = jify_times(coosys.epoch)
+
     if coosys.system == 'ICRS':
-        if coosys.equinox is not None and coosys.equinox != 'J2000':
+        if equinox is not None and equinox != 'J2000':
             raise ValueError('ICRS must be in equinox J2000 or it is not ICRS!')
         frame = coordinates.ICRS()
     elif coosys.system == 'eq_FK5':
-        frame = coordinates.FK5(equinox=coosys.equinox)
+        frame = coordinates.FK5(equinox=equinox)
     elif coosys.system == 'eq_FK4':
-        frame = coordinates.FK4(equinox=coosys.equinox, obstime=coosys.epoch)
+        # The VOTable standard (as of 1.4) is ambiuguous about this... but the
+        # VO STC standard does *not* have an epoch.  So it's a reasonable
+        # guess that the equinox is also meant to be used as the time for the
+        # FK4 e-terms
+        frame = coordinates.FK4(equinox=equinox, obstime=equinox)
     elif coosys.system == 'galactic':
         frame = coordinates.Galactic()
     elif coosys.system == 'supergalactic':
@@ -182,6 +216,12 @@ def extract_frame_from_coosys(coosys):
         raise NotImplementedError('coordinate system "{}" is not well-defined '
                                   'with respect to Astropy '
                                   'classes'.format(coosys.system))
+
+    # we use epoch instead of obstime because it is ambiguous what the VOTable
+    # epoch means.  It is *not* the same as obstime for e.g. FK4... So we just
+    # leave the name as-is and leave it to the user to decide
+    frame.epoch = None if epoch is None else Time(epoch)
+
     return frame
 
 
