@@ -1,11 +1,11 @@
-import os
+import pytest
 from numpy.testing import assert_allclose
 
 from astropy.coordinates import FK5, ICRS
 from astropy.table import Table
 from astropy.utils.data import get_pkg_data_filename
 
-from ..connect import _votable_meta_to_coo_frames
+from ..connect import _votable_meta_to_coo_frames, extract_skycoord_from_table
 
 DATA = 'data'
 
@@ -27,9 +27,11 @@ def test_aj285677t3_votable():
     assert isinstance(coosys['J2000'], FK5)
     assert_allclose(coosys['J2000'].equinox.jyear, 2000)
 
+    sc = extract_skycoord_from_table(tab)
+    assert len(sc) == len(tab)
+
 
 def test_aj285677t3_votable_2019():
-
     tab = Table.read(get_pkg_data_filename('data/aj285677t3_votable_2019.vot.xml'))
 
     coosys = _votable_meta_to_coo_frames(tab.meta['votable'])
@@ -41,9 +43,11 @@ def test_aj285677t3_votable_2019():
     assert isinstance(coosys['J2000'], FK5)
     assert_allclose(coosys['J2000'].equinox.jyear, 2000)
 
+    sc = extract_skycoord_from_table(tab)
+    assert len(sc) == len(tab)
+
 
 def test_gaia():
-
     tab = Table.read(get_pkg_data_filename('data/gaia.vot'))
 
     coosys = _votable_meta_to_coo_frames(tab.meta['votable'])
@@ -54,9 +58,11 @@ def test_gaia():
 
     assert isinstance(coosys['GAIADR2'], ICRS)
 
+    sc = extract_skycoord_from_table(tab)
+    assert len(sc) == len(tab)
+
 
 def test_simbad():
-
     tab = Table.read(get_pkg_data_filename('data/simbad.xml'))
 
     coosys = _votable_meta_to_coo_frames(tab.meta['votable'])
@@ -67,9 +73,11 @@ def test_simbad():
 
     assert isinstance(coosys['COOSYS'], ICRS)
 
+    sc = extract_skycoord_from_table(tab)
+    assert len(sc) == len(tab)
+
 
 def test_table_from_ivoa_paper():
-
     tab = Table.read(get_pkg_data_filename('data/table_from_paper.vot'))
 
     coosys = _votable_meta_to_coo_frames(tab.meta['votable'])
@@ -80,9 +88,11 @@ def test_table_from_ivoa_paper():
 
     assert isinstance(coosys['system'], ICRS)
 
+    sc = extract_skycoord_from_table(tab)
+    assert len(sc) == len(tab)
+
 
 def test_vizier_gaia_main_table():
-
     tab = Table.read(get_pkg_data_filename('data/vizier-gaia-main-table.vot.xml'))
 
     coosys = _votable_meta_to_coo_frames(tab.meta['votable'])
@@ -95,18 +105,21 @@ def test_vizier_gaia_main_table():
     assert isinstance(coosys['J2000'], FK5)
     assert_allclose(coosys['J2000'].equinox.jyear, 2000)
 
+    sc = extract_skycoord_from_table(tab)
+    assert len(sc) == len(tab)
+
 
 def test_vizier_gaia_transits():
-
     tab = Table.read(get_pkg_data_filename('data/vizier-gaia-transits.vot.xml'))
 
     coosys = _votable_meta_to_coo_frames(tab.meta['votable'])
 
     assert len(coosys) == 0
+    with pytest.raises(ValueError):
+        extract_skycoord_from_table(tab)
 
 
 def test_vizier_panstarrs():
-
     tab = Table.read(get_pkg_data_filename('data/vizier-panstarrs.vot.xml'))
 
     coosys = _votable_meta_to_coo_frames(tab.meta['votable'])
@@ -117,3 +130,6 @@ def test_vizier_panstarrs():
 
     assert isinstance(coosys['J2000'], FK5)
     assert_allclose(coosys['J2000'].equinox.jyear, 2000)
+
+    sc = extract_skycoord_from_table(tab)
+    assert len(sc) == len(tab)

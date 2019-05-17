@@ -278,7 +278,7 @@ def extract_skycoord_from_table(tab):
         raise ValueError('The meta.main columns in this table do not have the '
                          'metadata to identify the coordinate data.')
 
-    if maincolpos0.meta['ref'] is not None:
+    if 'ref' in maincolpos0.meta and maincolpos0.meta['ref'] is not None:
         ref = maincolpos0.meta['ref']
         main_frame = csdct[ref]
     else:
