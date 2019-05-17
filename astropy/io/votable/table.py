@@ -52,11 +52,6 @@ def parse(source, columns=None, invalid='exception', verify=None,
 
             - 'mask': mask out invalid values
 
-    pedantic : bool, optional
-        This is now an alias for ``verify='warn'`` (if ``pedantic`` is `False`)
-        or ``verify='exception'`` (if ``pedantic`` is `True`). The ``pedantic``
-        option will be deprecated in future.
-
     verify : {'ignore', 'warn', 'exception'}, optional
         When ``'exception'``, raise an error when the file violates the spec,
         otherwise either issue a warning (``'warn'``) or silently continue
