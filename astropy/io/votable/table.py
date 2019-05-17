@@ -60,6 +60,10 @@ def parse(source, columns=None, invalid='exception', verify=None,
         for more information. When not provided, uses the configuration setting
         ``astropy.io.votable.verify``, which defaults to 'ignore'.
 
+        .. versionchanged:: 4.0
+           ``verify`` replaces the ``pedantic`` argument, which will be
+           deprecated in future.
+
     chunk_size : int, optional
         The number of rows to read before converting to an array.
         Higher numbers are likely to be faster, but will consume more
