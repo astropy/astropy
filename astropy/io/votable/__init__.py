@@ -28,7 +28,7 @@ class Conf(_config.ConfigNamespace):
         'ignore',
         "Can be 'exception' (treat fixable violations of the VOTable spec as "
         "exceptions), 'warn' (show warnings for VOTable spec violations), or "
-        "'ignore' (silently fix VOTable spec violations)",
+        "'ignore' (silently ignore VOTable spec violations)",
         aliases=['astropy.io.votable.table.pedantic',
                  'astropy.io.votable.pedantic'])
 

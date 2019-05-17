@@ -24,9 +24,9 @@ Exceptions
 
 .. note::
 
-    This is a list of many of the fatal exceptions emitted by astropy.io.votable
+    This is a list of many of the fatal exceptions emitted by ``astropy.io.votable``
     when the file does not conform to spec.  Other exceptions may be
-    raised due to unforeseen cases or bugs in astropy.io.votable itself.
+    raised due to unforeseen cases or bugs in ``astropy.io.votable`` itself.
 
 {exceptions}
 """
@@ -84,11 +84,12 @@ def warn_or_raise(warning_class, exception_class=None, args=(), config=None,
     # NOTE: the default here is deliberately warn rather than ignore, since
     # one would expect that calling warn_or_raise without config should not
     # silence the warnings.
-    if config.get('verify', 'warn') == 'exception':
+    config_value = config.get('verify', 'warn')
+    if config_value == 'exception':
         if exception_class is None:
             exception_class = warning_class
         vo_raise(exception_class, args, config, pos)
-    elif config.get('verify', 'warn') == 'warn':
+    elif config_value == 'warn':
         vo_warn(warning_class, args, config, pos, stacklevel=stacklevel+1)
 
 
@@ -660,8 +661,8 @@ class W23(IOWarning):
 class W24(VOWarning, FutureWarning):
     """
     The VO catalog database retrieved from the www is designed for a
-    newer version of astropy.io.votable.  This may cause problems or limited
-    features performing service queries.  Consider upgrading astropy.io.votable
+    newer version of ``astropy.io.votable``.  This may cause problems or limited
+    features performing service queries.  Consider upgrading ``astropy.io.votable``
     to the latest version.
     """
 
@@ -847,7 +848,7 @@ class W36(VOTableSpecWarning):
 class W37(UnimplementedWarning):
     """
     The 3 datatypes defined in the VOTable specification and supported by
-    astropy.io.votable are ``TABLEDATA``, ``BINARY`` and ``FITS``.
+    ``astropy.io.votable`` are ``TABLEDATA``, ``BINARY`` and ``FITS``.
 
     **References:** `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:data>`__,

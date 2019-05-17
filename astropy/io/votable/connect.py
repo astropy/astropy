@@ -75,7 +75,7 @@ def read_table_votable(input, table_id=None, use_names_over_ids=False, verify=No
         (``'ignore'``). Warnings may be controlled using the standard Python
         mechanisms.  See the `warnings` module in the Python standard library
         for more information. When not provided, uses the configuration setting
-        ``astropy.io.votable.verify``, which defaults to 'ignore'.
+        ``astropy.io.votable.verify``, which defaults to ``'ignore'``.
     """
     if not isinstance(input, (VOTableFile, VOTable)):
         input = parse(input, table_id=table_id, verify=verify)
