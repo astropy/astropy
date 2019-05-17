@@ -122,7 +122,7 @@ def vo_warn(warning_class, args=(), config=None, pos=None, stacklevel=1):
     """
     if config is None:
         config = {}
-    if config.get('verify') != 'ignore':
+    if config.get('verify', 'ignore') != 'ignore':
         warning = warning_class(args, config, pos)
         _suppressed_warning(warning, config, stacklevel=stacklevel+1)
 
@@ -432,7 +432,7 @@ class W09(VOTableSpecWarning):
     uppercase letters) to specify unique identifiers.  Some
     VOTable-producing tools use the more standard lowercase ``id``
     instead.  ``vo.table`` accepts ``id`` and emits this warning if
-    ``verify`` is not ``'exception'``.
+    ``verify`` is ``'warn'``.
 
     **References**: `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`__,
