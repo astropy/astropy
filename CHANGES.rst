@@ -836,6 +836,9 @@ Other Changes and Additions
   time squared (division already correctly resulted in a dimensionless
   ``Quantity``). [#8356]
 
+- Made running the tests insensitive to local user configuration when running
+  the tests in parallel mode or directly with pytest. [#8727]
+
 Installation
 ^^^^^^^^^^^^
 
