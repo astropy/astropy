@@ -14,7 +14,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Write configuration items to standard location to make sure they are ignored
+          name: Write configuration items to standard location to make sure they are ignored in parallel mode
           command: |
               mkdir -p $HOME/.astropy/config/
               printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
