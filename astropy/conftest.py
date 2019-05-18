@@ -47,9 +47,9 @@ def pytest_configure(config):
         matplotlib.rcdefaults()
 
     # Make sure we use temporary directories for the config and cache
-    # so that the tests are insensitive to local configuration. We set this
-    # here and not in the test runner to make sure that it works even in e.g.
-    # parallel mode.
+    # so that the tests are insensitive to local configuration. Note that this
+    # is also set in the test runner, but we need to also set it here for
+    # things to work properly in parallel mode
 
     os.environ['XDG_CONFIG_HOME'] = tempfile.mkdtemp('astropy_config')
     os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
