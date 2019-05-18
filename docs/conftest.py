@@ -8,10 +8,6 @@
 import os
 import tempfile
 
-pytest_plugins = [
-    'astropy.tests.plugins.display',
-]
-
 # Make sure we use temporary directories for the config and cache
 # so that the tests are insensitive to local configuration.
 
