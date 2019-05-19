@@ -38,7 +38,7 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl --mpl-results-path=$PWD/results"
+          command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
       - store_artifacts:
           path: results
 
@@ -49,7 +49,7 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl --mpl-results-path=$PWD/results"
+          command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
       - store_artifacts:
           path: results
 
@@ -60,7 +60,7 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl --mpl-results-path=$PWD/results"
+          command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
       - store_artifacts:
           path: results
 
@@ -71,7 +71,7 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl --mpl-results-path=$PWD/results"
+          command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
       - store_artifacts:
           path: results
 
@@ -88,7 +88,7 @@ jobs:
           command: pip3 install "pytest<3.7" pytest-mpl pytest-astropy numpy scipy git+https://github.com/matplotlib/matplotlib.git
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl --mpl-results-path=$PWD/results"
+          command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
       - store_artifacts:
           path: results
 
