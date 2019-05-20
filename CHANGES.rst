@@ -288,6 +288,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fix the conversion of bytes values to Python ``str`` with ``Table.tolist``.
+  [#8739]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
