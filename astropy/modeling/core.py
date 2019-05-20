@@ -72,7 +72,7 @@ def _model_oper(oper, **kwargs):
         # Deprecation is for https://github.com/astropy/astropy/issues/8234
         if not (isinstance(left, Model) and isinstance(right, Model)):
             warnings.warn(
-                'Composition of model classes will be removed in 4.0'
+                'Composition of model classes will be removed in 4.0 '
                 '(but composition of model instances is not affected)',
                 AstropyDeprecationWarning)
 
