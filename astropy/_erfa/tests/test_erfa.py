@@ -2,16 +2,8 @@
 
 import numpy as np
 
-from astropy._erfa import core as erfa, ufunc as erfa_ufunc
+from astropy._erfa import core as erfa
 from astropy.tests.helper import catch_warnings
-from astropy.utils.compat import NUMPY_LT_1_16
-
-
-def test_output_dim_3_signature():
-    if NUMPY_LT_1_16:
-        assert erfa_ufunc.c2i00a.signature == "(),()->(d3, d3)"
-    else:
-        assert erfa_ufunc.c2i00a.signature == "(),()->(3, 3)"
 
 
 def test_erfa_wrapper():
