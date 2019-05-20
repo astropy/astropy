@@ -429,17 +429,14 @@ example, to create the following compound model:
     import matplotlib.pyplot as plt
     from astropy.modeling.models import RedshiftScaleFactor, Gaussian1D
 
-    class RedshiftedGaussian(RedshiftScaleFactor | Gaussian1D(1, 0.75, 0.1)):
-        """Evaluates a Gaussian with optional redshift applied to the input."""
-
     x = np.linspace(0, 1.2, 100)
-    g0 = RedshiftedGaussian(z_0=0)
+    g0 = RedshiftScaleFactor(0) | Gaussian1D(1, 0.75, 0.1)
 
     plt.figure(figsize=(8, 5))
     plt.plot(x, g0(x), 'g--', label='$z=0$')
 
     for z in (0.2, 0.4, 0.6):
-        g = RedshiftedGaussian(z_0=z)
+        g = RedshiftScaleFactor(z) | Gaussian1D(1, 0.75, 0.1)
         plt.plot(x, g(x), color=plt.cm.OrRd(z),
                  label='$z={0}$'.format(z))
 
@@ -506,15 +503,12 @@ example:
     import matplotlib.pyplot as plt
     from astropy.modeling.models import Rotation2D, Gaussian2D
 
-    class RotatedGaussian(Rotation2D | Gaussian2D(1, 0, 0, 0.1, 0.3)):
-        """A Gaussian2D composed with a coordinate rotation."""
-
     x, y = np.mgrid[-1:1:0.01, -1:1:0.01]
 
     plt.figure(figsize=(8, 2.5))
 
     for idx, theta in enumerate((0, 45, 90)):
-        g = RotatedGaussian(theta)
+        g = Rotation2D(theta) | Gaussian2D(1, 0, 0, 0.1, 0.3)
         plt.subplot(1, 3, idx + 1)
         plt.imshow(g(x, y), origin='lower')
         plt.xticks([])
