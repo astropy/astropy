@@ -105,6 +105,15 @@ For all the following examples it is assumed that the table has been created as 
        9.000  10  11
       12.000  13  14
 
+.. Note::
+
+   In the example above the ``format``, ``unit``, and ``description`` attributes
+   of the `~astropy.table.Column` were set directly.  For :ref:`mixin_columns` like
+   `~astropy.units.Quantity` you must set via the ``info`` attribute, for example
+   ``t['a'].info.format = "%6.3f"``.  One can use the ``info`` attribute with
+   `~astropy.table.Column` objects as well, so the general solution that works
+   with any table column is to set via the ``info`` attribute.  See
+   :ref:`mixin_attributes` for more information.
 
 .. _table-summary-information:
 
@@ -470,9 +479,9 @@ ways, for an enhanced viewing experience::
   >>> t1['long column name 2'] = [4, 5, 6]
   >>> t1['long column name 3'] = [7, 8, 9]
   >>> t1['long column name 4'] = [700000, 800000, 900000]
-  >>> t1['long column name 2'].format = '<'
-  >>> t1['long column name 3'].format = '0='
-  >>> t1['long column name 4'].format = '^'
+  >>> t1['long column name 2'].info.format = '<'
+  >>> t1['long column name 3'].info.format = '0='
+  >>> t1['long column name 4'].info.format = '^'
   >>> t1.pprint()
    long column name 1 long column name 2 long column name 3 long column name 4
   ------------------ ------------------ ------------------ ------------------
