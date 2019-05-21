@@ -760,6 +760,12 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         return value
 
+    def tolist(self):
+        if self.dtype.kind == 'S':
+            return np.chararray.decode(self, encoding='utf-8').tolist()
+        else:
+            return super().tolist()
+
 
 class Column(BaseColumn):
     """Define a data column for use in a Table object.
