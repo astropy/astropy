@@ -65,11 +65,11 @@ few terms where there have been points of confusion:
   distinction is either irrelevant or clear from context.  But a distinction
   will be made where necessary.
 
-- A *compound model* can be created by combining two or more existing models--
-  be they model *instances* or *classes*, and can be models that come with
-  Astropy, :doc:`user defined models <new>`, or other compound models--using
-  Python expressions consisting of one or more of the supported binary
-  operators.
+- A *compound model* can be created by combining two or more existing model instances
+  which can be models that come with Astropy, :doc:`user defined models <new>`, or
+  other compound models--using Python expressions consisting of one or more of the s
+  upported binary operators. The combination of model classes is deprecated and will
+  be removed in version 4.0.
 
 - In some places the term *composite model* is used interchangeably with
   *compound model*. However, this document uses the
@@ -86,63 +86,46 @@ As discussed in the :ref:`introduction to compound models
 <compound-models-intro>`, the only way, currently, to create compound models is
 to combine existing single models and/or compound models using expressions in
 Python with the binary operators ``+``, ``-``, ``*``, ``/``, ``**``, ``|``,
-and ``&``, each of which is discussed in the following sections.  The operands
-used in these expressions may be model *classes*, or model *instances*.  In
-other words, any object for which either ``isinstance(obj, Model)`` or
-``issubclass(obj, Model)`` is `True`.
+and ``&``, each of which is discussed in the following sections.
 
 
-.. _compound-model-classes:
+.. warning:: Creating compound models by combining classes is deprecated and will be removed in v 4.0.
 
-Compound model classes
-----------------------
+The result of combining two models is a model instance::
 
-We start by demonstrating how new compound model *classes* can be created
-by combining other classes.  This is more advanced usage, but it's useful to
-understand that this is what's going on under the hood in the more basic usage
-of :ref:`compound model instances <compound-model-instances>`.
+    >>> two_gaussians = Gaussian1D(1.1, 0.1, 0.2) + Gaussian1D(2.5, 0.5, 0.1)
+    >>> two_gaussians  # doctest: +FLOAT_CMP
+    <CompoundModel...(amplitude_0=1.1, mean_0=0.1, stddev_0=0.2, amplitude_1=2.5, mean_1=0.5, stddev_1=0.1)>
 
-When all models involved in the expression are classes, the result of the
-expression is, itself, a class (remember, classes in Python are themselves also
-objects just like strings and integers or model instances)::
+This expression creates a new model instance that is ready to be used for evaluation::
 
-    >>> TwoGaussians = Gaussian1D + Gaussian1D
-    >>> from astropy.modeling import Model
-    >>> isinstance(TwoGaussians, Model)
-    False
-    >>> issubclass(TwoGaussians, Model)
-    True
+    >>> two_gaussians(0.2)  # doctest: +FLOAT_CMP
+    0.9985190841886609
 
-When we inspect the variable ``TwoGaussians`` by printing its representation at
-the command prompt we can get some more information about it::
+The ``print`` command provides more information about this object::
 
-    >>> TwoGaussians
-    <class '__main__.CompoundModel...'>
-    Name: CompoundModel...
+    >>> print(two_gaussians)
+    Model: CompoundModel...
     Inputs: ('x',)
     Outputs: ('y',)
-    Fittable parameters: ('amplitude_0', 'mean_0', 'stddev_0', 'amplitude_1', 'mean_1', 'stddev_1')
+    Model set size: 1
     Expression: [0] + [1]
     Components:
-        [0]: <class 'astropy.modeling.functional_models.Gaussian1D'>
-        Name: Gaussian1D
-        Inputs: ('x',)
-        Outputs: ('y',)
-        Fittable parameters: ('amplitude', 'mean', 'stddev')
+        [0]: <Gaussian1D(amplitude=1.1, mean=0.1, stddev=0.2)>
     <BLANKLINE>
-        [1]: <class 'astropy.modeling.functional_models.Gaussian1D'>
-        Name: Gaussian1D
-        Inputs: ('x',)
-        Outputs: ('y',)
-        Fittable parameters: ('amplitude', 'mean', 'stddev')
+        [1]: <Gaussian1D(amplitude=2.5, mean=0.5, stddev=0.1)>
+    Parameters:
+        amplitude_0 mean_0 stddev_0 amplitude_1 mean_1 stddev_1
+        ----------- ------ -------- ----------- ------ --------
+                1.1    0.1      0.2         2.5    0.5      0.1
 
-There are a number of things to point out here:  This model class has six
-fittable parameters.  How parameters are handled is discussed further in the
+There are a number of things to point out here:  This model has six
+fittable parameters. How parameters are handled is discussed further in the
 section on :ref:`compound-model-parameters`.  We also see that there is a
 listing of the *expression* that was used to create this compound model, which
 in this case is summarized as ``[0] + [1]``.  The ``[0]`` and ``[1]`` refer to
 the first and second components of the model listed next (in this case both
-components are the `~astropy.modeling.functional_models.Gaussian1D` class).
+components are the `~astropy.modeling.functional_models.Gaussian1D` objects).
 
 Each component of a compound model is a single, non-compound model.  This is
 the case even when including an existing compound model in a new expression.
@@ -151,42 +134,31 @@ expression represented by that compound model is extended.  An expression
 involving two or more compound models results in a new expression that is the
 concatenation of all involved models' expressions::
 
-    >>> FourGaussians = TwoGaussians + TwoGaussians
-    >>> FourGaussians
-    <class '__main__.CompoundModel...'>
-    Name: CompoundModel...
+    >>> four_gaussians = two_gaussians + two_gaussians
+    >>> print(four_gaussians)
+    Model: CompoundModel...
     Inputs: ('x',)
     Outputs: ('y',)
-    Fittable parameters: ('amplitude_0', 'mean_0', 'stddev_0', ..., 'amplitude_3', 'mean_3', 'stddev_3')
+    Model set size: 1
     Expression: [0] + [1] + [2] + [3]
     Components:
-        [0]: <class 'astropy.modeling.functional_models.Gaussian1D'>
-        Name: Gaussian1D
-        Inputs: ('x',)
-        Outputs: ('y',)
-        Fittable parameters: ('amplitude', 'mean', 'stddev')
-        ...
-        [3]: <class 'astropy.modeling.functional_models.Gaussian1D'>
-        Name: Gaussian1D
-        Inputs: ('x',)
-        Outputs: ('y',)
-        Fittable parameters: ('amplitude', 'mean', 'stddev')
-
-In a future version it may be possible to "freeze" a compound model, so that
-from the user's perspective it is treated as a single model.  However, as this
-is the default behavior it is good to be aware of.
-
-One is also able to get the number of components (also known as submodels) in
-a compound model by accessing the method ``n_submodels``::
-
-    >>> FourGaussians.n_submodels()
-    4
+        [0]: <Gaussian1D(amplitude=1.1, mean=0.1, stddev=0.2)>
+    <BLANKLINE>
+        [1]: <Gaussian1D(amplitude=2.5, mean=0.5, stddev=0.1)>
+    <BLANKLINE>
+        [2]: <Gaussian1D(amplitude=1.1, mean=0.1, stddev=0.2)>
+    <BLANKLINE>
+        [3]: <Gaussian1D(amplitude=2.5, mean=0.5, stddev=0.1)>
+    Parameters:
+        amplitude_0 mean_0 stddev_0 amplitude_1 ... stddev_2 amplitude_3 mean_3 stddev_3
+        ----------- ------ -------- ----------- ... -------- ----------- ------ --------
+                1.1    0.1      0.2         2.5 ...      0.2         2.5    0.5      0.1
 
 
 Model names
 -----------
 
-In the last two examples another notable feature of the generated compound
+In the above two examples another notable feature of the generated compound
 model classes is that the class name, as displayed when printing the class at
 the command prompt, is not "TwoGaussians", "FourGaussians", etc.  Instead it is
 a generated name consisting of "CompoundModel" followed by an essentially
@@ -194,159 +166,26 @@ arbitrary integer that is chosen simply so that every compound model has a
 unique default name.  This is a limitation at present, due to the limitation
 that it is not generally possible in Python when an object is created by an
 expression for it to "know" the name of the variable it will be assigned to, if
-any.  It may be possible in the future to work around this in limited cases,
-but for now there are a couple workarounds for creating compound model classes
-with friendlier names.  The first is to use the
-`Model.rename <astropy.modeling.Model.rename>` class method on the result of
-the model expression::
-
-    >>> TwoGaussians = (Gaussian1D + Gaussian1D).rename('TwoGaussians')
-    >>> TwoGaussians
-    <class '__main__.TwoGaussians'>
-    Name: TwoGaussians (CompoundModel...)
-    ...
-
-This actually takes the generated compound model and creates a light subclass
-of it with the desired name.  This does not impose any additional overhead.  An
-alternative syntax, which is equivalent to what
-`~astropy.modeling.Model.rename` is doing, is to directly use the model
-expression as the base class of a new class::
-
-    >>> class TwoGaussians(Gaussian1D + Gaussian1D):
-    ...     """A superposition of two Gaussians."""
-    ...
-    >>> TwoGaussians
-    <class '__main__.TwoGaussians'>
-    Name: TwoGaussians (CompoundModel...)
-    ...
-
-Because the result of the expression ``Gaussian1D + Gaussian1D`` *is* a class,
-it can be used directly in the standard class declaration syntax
-``class ClassName(Base):`` as the base.  This syntax also has the advantage of
-allowing a docstring to be assigned to the new class.  In future versions it
-may be possible to customize other aspects of compound model classes in this
-way.  Single model classes can also be given custom names by using
-`~astropy.modeling.Model.rename`, and model instances can be given names as
-well.  This can be used to good effect, for example as shown in the section on
-:ref:`compound-model-indexing`.
-
-
-.. _compound-model-instances:
-
-Compound models with model instances
-------------------------------------
-
-So far we have seen how to create compound model *classes* from expressions
-involving other model classes.  This is the most "generic" way to create new
-models from existing models.  However, many may find it more useful most of the
-time, especially when providing an initial guess to a fitter, to create a new
-model from a combination of model *instances* with already defined parameter
-values.  This can also be done and works mostly the same way::
-
-    >>> both_gaussians = Gaussian1D(1, 0, 0.2) + Gaussian1D(2.5, 0.5, 0.1)
-    >>> both_gaussians  # doctest: +FLOAT_CMP
-    <CompoundModel...(amplitude_0=1.0, mean_0=0.0, stddev_0=0.2, amplitude_1=2.5, mean_1=0.5, stddev_1=0.1)>
-
-Unlike when a model was created from model classes, this expression does not
-directly return a new class; instead it creates a model instance that is ready
-to be used for evaluation::
-
-    >>> both_gaussians(0.2)  # doctest: +FLOAT_CMP
-    0.6343031510582392
-
-In this case it is possible to directly assign a name to the compound model instance
+any.
+It is possible to directly assign a name to the compound model instance
 by using the `Model.name <astropy.modeling.Model.name>` attribute.
 
-    >>> both_gaussians.name = "BothGaussians"
-    >>> print(both_gaussians)  # doctest: +SKIP
-    Model: CompoundModel6
-    Name: BothGaussians
+    >>> two_gaussians.name = "TwoGaussians"
+    >>> print(two_gaussians)  # doctest: +SKIP
+    Model: CompoundModel...
+    Name: TwoGaussians
     Inputs: ('x',)
     Outputs: ('y',)
     Model set size: 1
     Expression: [0] + [1]
     Components:
-        [0]: <Gaussian1D(amplitude=1.0, mean=0.0, stddev=0.2)>
+        [0]: <Gaussian1D(amplitude=1.1, mean=0.1, stddev=0.2)>
+        <BLANKLINE>
         [1]: <Gaussian1D(amplitude=2.5, mean=0.5, stddev=0.1)>
     Parameters:
         amplitude_0 mean_0 stddev_0 amplitude_1 mean_1 stddev_1
         ----------- ------ -------- ----------- ------ --------
-                1.0    0.0      0.2         2.5    0.5      0.1
-
-This was found to be much more convenient and natural, in this case, than
-returning a class.  It is worth understanding that the way this works under the
-hood is to create the compound class, and then immediately instantiate it with
-the already known parameter values.  We can see this by checking the type of
-``both_gaussians``::
-
-    >>> type(both_gaussians)  # doctest: +FLOAT_CMP
-    <class '__main__.CompoundModel...'>
-    Name: CompoundModel...
-    Inputs: ('x',)
-    Outputs: ('y',)
-    Fittable parameters: ('amplitude_0', 'mean_0', 'stddev_0', 'amplitude_1', 'mean_1', 'stddev_1')
-    Expression: [0] + [1]
-    Components:
-        [0]: <Gaussian1D(amplitude=1., mean=0., stddev=0.2)>
-    <BLANKLINE>
-        [1]: <Gaussian1D(amplitude=2.5, mean=0.5, stddev=0.1)>
-
-It is also possible, and sometimes useful, to make a compound model from a
-combination of classes *and* instances in the same expression::
-
-    >>> from astropy.modeling.models import Linear1D, Sine1D
-    >>> MyModel = Linear1D + Sine1D(amplitude=1, frequency=1, phase=0)
-    >>> MyModel  # doctest: +FLOAT_CMP
-    <class '__main__.CompoundModel...'>
-    Name: CompoundModel...
-    Inputs: ('x',)
-    Outputs: ('y',)
-    Fittable parameters: ('slope_0', 'intercept_0', 'amplitude_1', 'frequency_1', 'phase_1')
-    Expression: [0] + [1]
-    Components:
-        [0]: <class 'astropy.modeling.functional_models.Linear1D'>
-        Name: Linear1D
-        Inputs: ('x',)
-        Outputs: ('y',)
-        Fittable parameters: ('slope', 'intercept')
-    <BLANKLINE>
-        [1]: <Sine1D(amplitude=1., frequency=1., phase=0.)>
-
-In this case the result is always a class.  However (and this is not
-immediately obvious by the representation) the difference is that the
-``amplitude`` and ``frequency`` parameters for the
-`~astropy.modeling.functional_models.Sine1D` part of the model are
-"baked into" the class as default values for those parameters.  So it is
-possible to instantiate one of these models by specifying just the ``slope``
-and ``intercept`` parameters for the
-`~astropy.modeling.functional_models.Linear1D` part of the model::
-
-    >>> my_model = MyModel(1, 0)
-    >>> my_model(0.25)  # doctest: +FLOAT_CMP
-    1.25
-
-This does not prevent the other parameters from being overridden, however::
-
-    >>> my_model = MyModel(slope_0=1, intercept_0=0, frequency_1=2)
-    >>> my_model(0.125)  # doctest: +FLOAT_CMP
-    1.125
-
-In fact, this is currently the only way to use a `polynomial
-<astropy.modeling.polynomial>` model in a compound model, because the design of
-the polynomial models is currently such that they must be instantiated in order
-to specify their polynomial degree.  Because the polynomials are already
-designed so that their coefficients all default to zero, this "limitation"
-should not have any practical drawbacks.
-
-.. note::
-
-    There is currently a caveat in the example of combining model classes and
-    instances, which is that the parameter values of model *instances* are only
-    treated as defaults if the expression is written in such a way that all
-    model instances are to the right of all model classes.  This limitation
-    will be lifted in a later version--in particular, Python 3 offers a lot
-    more flexibility with respect to how function arguments are handled.
-
+                1.1    0.1      0.2         2.5    0.5      0.1
 
 Operators
 =========
@@ -508,7 +347,7 @@ example:
     plt.figure(figsize=(8, 2.5))
 
     for idx, theta in enumerate((0, 45, 90)):
-        g = Rotation2D(theta) | Gaussian2D(1, 0, 0, 0.1, 0.3)
+        g = RotatedGaussian(theta) | Gaussian2D(1, 0, 0, 0.1, 0.3)
         plt.subplot(1, 3, idx + 1)
         plt.imshow(g(x, y), origin='lower')
         plt.xticks([])
@@ -526,7 +365,7 @@ Normally it is not possible to compose, say, a model with two outputs and a
 function of only one input::
 
     >>> from astropy.modeling.models import Rotation2D
-    >>> Rotation2D | Gaussian1D  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> Rotation2D() | Gaussian1D()  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     ModelDefinitionError: Unsupported operands for |: Rotation2D (n_inputs=2, n_outputs=2) and Gaussian1D (n_inputs=1, n_outputs=1); n_outputs for the left-hand model must match n_inputs for the right-hand model.
@@ -638,27 +477,27 @@ expression that defined the model, from left to right, regardless of the order
 of operations.  For example::
 
     >>> from astropy.modeling.models import Const1D
-    >>> A = Const1D.rename('A')
-    >>> B = Const1D.rename('B')
-    >>> C = Const1D.rename('C')
+    >>> A = Const1D(1.1, name='A')
+    >>> B = Const1D(2.1, name='B')
+    >>> C = Const1D(3.1, name='C')
     >>> M = A + B * C
-    >>> M
-    <class '__main__.CompoundModel...'>
-    Name: CompoundModel...
-    ...
+    >>> print(M)
+    Model: CompoundModel...
+    Inputs: ('x',)
+    Outputs: ('y',)
+    Model set size: 1
     Expression: [0] + [1] * [2]
     Components:
-        [0]: <class '__main__.A'>
-        Name: A (Const1D)
-        ...
+        [0]: <Const1D(amplitude=1.1, name='A')>
     <BLANKLINE>
-        [1]: <class '__main__.B'>
-        Name: B (Const1D)
-        ...
+        [1]: <Const1D(amplitude=2.1, name='B')>
     <BLANKLINE>
-        [2]: <class '__main__.C'>
-        Name: C (Const1D)
-        ...
+        [2]: <Const1D(amplitude=3.1, name='C')>
+    Parameters:
+        amplitude_0 amplitude_1 amplitude_2
+        ----------- ----------- -----------
+                1.1         2.1         3.1
+
 
 In this example the expression is evaluated ``(B * C) + A``--that is, the
 multiplication is evaluated before the addition per usual arithmetic rules.
@@ -674,11 +513,7 @@ indexing notation on it.  Following from the above example, ``M[1]`` should
 return the model ``B``::
 
     >>> M[1]
-    <class '__main__.B'>
-    Name: B (Const1D)
-    Inputs: ('x',)
-    Outputs: ('y',)
-    Fittable parameters: ('amplitude',)
+    <Const1D(amplitude=2.1, name='B')>
 
 We can also take a *slice* of the compound model.  This returns a new compound
 model that evaluates the *subexpression* involving the models selected by the
@@ -688,90 +523,70 @@ The start point is inclusive and the end point is exclusive.  So a slice like
 *operators* between them).  So the resulting model evaluates just the
 subexpression ``B * C``::
 
-    >>> M[1:]
-    <class 'astropy.modeling.utils.CompoundModel...'>
-    Name: CompoundModel...
+    >>> print(M[1:])
+    Model: CompoundModel...
     Inputs: ('x',)
     Outputs: ('y',)
-    Fittable parameters: ('amplitude_1', 'amplitude_2')
+    Model set size: 1
     Expression: [0] * [1]
     Components:
-        [0]: <class '__main__.B'>
-        Name: B (Const1D)
-        ...
+        [0]: <Const1D(amplitude=2.1, name='B')>
     <BLANKLINE>
-        [1]: <class '__main__.C'>
-        Name: C (Const1D)
-        ...
+        [1]: <Const1D(amplitude=3.1, name='C')>
+    Parameters:
+        amplitude_1 amplitude_2
+        ----------- -----------
+                2.1         3.1
 
-The new compound model for the subexpression can be instantiated and evaluated
+The new compound model for the subexpression can be evaluated
 like any other::
 
-    >>> m = M[1:](2, 3)
-    >>> m  # doctest: +FLOAT_CMP
-    <CompoundModel...(amplitude_1=2., amplitude_2=3.)>
-    >>> m(0)
-    6.0
+    >>> M[1:](0)  # doctest: +FLOAT_CMP
+    6.51
 
 Although the model ``M`` was composed entirely of ``Const1D`` models in this
 example, it was useful to give each component a unique name (``A``, ``B``,
 ``C``) in order to differentiate between them.  This can also be used for
 indexing and slicing::
 
-    >>> M['B']
-    <class '__main__.B'>
-    Name: B (Const1D)
+    >>> print(M['B'])
+    Model: Const1D
+    Name: B
     Inputs: ('x',)
     Outputs: ('y',)
-    Fittable parameters: ('amplitude',)
+    Model set size: 1
+    Parameters:
+        amplitude
+        ---------
+              2.1
+
 
 In this case ``M['B']`` is equivalent to ``M[1]``.  But by using the name we do
 not have to worry about what index that component is in (this becomes
 especially useful when combining multiple compound models).  A current
 limitation, however, is that each component of a compound model must have a
 unique name--if some components have duplicate names then they can only be
-accessed by their integer index.  This may improve in a future release.
+accessed by their integer index.
 
 Slicing also works with names.  When using names the start and end points are
 *both inclusive*::
 
-    >>> M['B':'C']
-    <class 'astropy.modeling.utils.CompoundModel...'>
-    ...
+    >>> print(M['B':'C'])
+    Model: CompoundModel...
+    Inputs: ('x',)
+    Outputs: ('y',)
+    Model set size: 1
     Expression: [0] * [1]
     Components:
-        [0]: <class '__main__.B'>
-        Name: B (Const1D)
-        ...
+        [0]: <Const1D(amplitude=2.1, name='B')>
     <BLANKLINE>
-        [1]: <class '__main__.C'>
-        Name: C (Const1D)
-        ...
+        [1]: <Const1D(amplitude=3.1, name='C')>
+    Parameters:
+        amplitude_1 amplitude_2
+        ----------- -----------
+                2.1         3.1
 
 So in this case ``M['B':'C']`` is equivalent to ``M[1:3]``.
-
-All of the above applies equally well to compound models composed of model
-instances.  Individual model instances can be given a name by passing in the
-``name=`` argument when instantiating them.  These names are used in the same was
-as class names were in the class-based examples::
-
-    >>> a = Const1D(amplitude=1, name='A')
-    >>> b = Const1D(amplitude=2, name='B')
-    >>> c = Const1D(amplitude=3, name='C')
-    >>> m = a + b * c
-
-Because this model is composed entirely of constants it doesn't matter what
-input we pass in, so 0 is used without loss of generality::
-
-    >>> m(0)
-    7.0
-    >>> m[1:](0)  # b * c
-    6.0
-    >>> m['A':'B'](0)  # a + b
-    3.0
-    >>> m['B':'C'](0)  # b * c, again
-    6.0
-
 
 .. _compound-model-parameters:
 
@@ -802,14 +617,14 @@ belongs to.  For example::
 
     >>> Gaussian1D.param_names
     ('amplitude', 'mean', 'stddev')
-    >>> (Gaussian1D + Gaussian1D).param_names
+    >>> (Gaussian1D() + Gaussian1D()).param_names
     ('amplitude_0', 'mean_0', 'stddev_0', 'amplitude_1', 'mean_1', 'stddev_1')
 
 For consistency's sake, this scheme is followed even if not all of the
 components have overlapping parameter names::
 
     >>> from astropy.modeling.models import RedshiftScaleFactor
-    >>> (RedshiftScaleFactor | (Gaussian1D + Gaussian1D)).param_names
+    >>> (RedshiftScaleFactor() | (Gaussian1D() + Gaussian1D())).param_names
     ('z_0', 'amplitude_1', 'mean_1', 'stddev_1', 'amplitude_2', 'mean_2',
     'stddev_2')
 
@@ -823,6 +638,7 @@ are still tied back to the compound model::
 
     >>> a = Gaussian1D(1, 0, 0.2, name='A')
     >>> b = Gaussian1D(2.5, 0.5, 0.1, name='B')
+    >>> m = a + b
     >>> m.amplitude_0
     Parameter('amplitude_0', value=1.0)
 
