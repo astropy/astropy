@@ -374,6 +374,8 @@ astropy.table
 
 - Removed the non-public method ``astropy.table.np_utils.recarray_fromrecords``.
   [#9165]
+- Accessing variable length columns from VO table no longer returns bytes
+  string type. [#????]
 
 astropy.tests
 ^^^^^^^^^^^^^

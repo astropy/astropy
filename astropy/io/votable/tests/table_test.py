@@ -31,7 +31,7 @@ def test_table(tmpdir):
     t = votable2.get_first_table()
 
     field_types = [
-        ('string_test', {'datatype': 'char', 'arraysize': '*'}),
+        ('string_test', {'datatype': 'unicodeChar', 'arraysize': '*'}),
         ('string_test_2', {'datatype': 'char', 'arraysize': '10'}),
         ('unicode_test', {'datatype': 'unicodeChar', 'arraysize': '*'}),
         ('fixed_unicode_test', {'datatype': 'unicodeChar', 'arraysize': '10'}),
@@ -63,7 +63,7 @@ def test_table(tmpdir):
     for field, type in zip(t.fields, field_types):
         name, d = type
         assert field.ID == name
-        assert field.datatype == d['datatype']
+        assert field.datatype == d['datatype'], '{} expected {} but get {}'.format(name, d['datatype'], field.datatype)  # noqa
         if 'arraysize' in d:
             assert field.arraysize == d['arraysize']
 

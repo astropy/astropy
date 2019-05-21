@@ -57,7 +57,8 @@ cdef inline object base_getitem(object self, object item, item_getter getitem):
     value = getitem(self, item)
 
     try:
-        if value.dtype.char == 'S' and not value.shape:
+        if (isinstance(value, bytes) or
+                (value.dtype.char == 'S' and not value.shape)):
             value = value.decode('utf-8', errors='replace')
     except AttributeError:
         pass
