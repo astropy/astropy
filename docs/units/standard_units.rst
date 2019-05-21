@@ -162,7 +162,24 @@ For example::
    Unit(dimensionless with a scale of 1000.0)
    >>> (u.km / u.m).decompose() == u.dimensionless_unscaled
    False
+   
+As an example of why you might want to create a scaled dimensionless
+quantity, say you will be doing many calculations with some big
+unitless number, ``big_unitless_num = 20000000  # 20 million``,
+but you want all of your answers to be in multiples of a million. This
+can be done by simply dividing ``big_unitless_num`` by ``1e6``, but this
+requires you to remember that this scaling factor has been applied,
+which may be difficult to do after many calculations. Instead, create
+a scaled dimensionless quantity by multiplying a value by ``Unit(scale)``
+to keep track of the scaling factor, e.g.::
 
+   >>> scale = 1e6
+   >>> big_unitless_num = 20 * u.Unit(scale)  # 20 million
+
+   >>> some_measurement = 5.0 * u.cm
+   >>> some_measurement * big_unitless_num  # doctest: +FLOAT_CMP
+   <Quantity 100. 1e+06 cm>
+     
 To determine if a unit is dimensionless (but regardless of the scale),
 use the `~astropy.units.core.UnitBase.physical_type` property::
 
