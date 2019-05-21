@@ -128,7 +128,7 @@ then a formatted version appears::
 
 If you do not like the format of a particular column, you can change it::
 
-  >>> t['b'].format = '7.3f'
+  >>> t['b'].info.format = '7.3f'
   >>> print(t)
    a     b     c
          s
