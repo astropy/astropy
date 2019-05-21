@@ -133,6 +133,8 @@ You can easily convert |Table| to |QTable| and vice-versa::
    ordinary `~astropy.table.Table` then it gets converted to an ordinary
    `~astropy.table.Column` with the corresponding ``unit`` attribute.
 
+.. _mixin_attributes:
+
 Mixin Attributes
 ================
 
