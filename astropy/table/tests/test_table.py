@@ -2287,3 +2287,24 @@ def test_key_values_in_as_array():
     # Comparing initialised array with sliced array using Table.as_array()
     assert np.array_equal(a, t1.as_array(names=['a', 'b']))
     assert np.array_equal(b, t1.as_array(names=['c']))
+
+
+def test_tolist():
+    t = table.Table([[1, 2, 3], [1.1, 2.2, 3.3], [b'foo', b'bar', b'hello']],
+                    names=('a', 'b', 'c'))
+    assert t['a'].tolist() == [1, 2, 3]
+    assert_array_equal(t['b'].tolist(), [1.1, 2.2, 3.3])
+    assert t['c'].tolist() == ['foo', 'bar', 'hello']
+
+    assert isinstance(t['a'].tolist()[0], int)
+    assert isinstance(t['b'].tolist()[0], float)
+    assert isinstance(t['c'].tolist()[0], str)
+
+    t = table.Table([[[1, 2], [3, 4]],
+                     [[b'foo', b'bar'], [b'hello', b'world']]],
+                    names=('a', 'c'))
+
+    assert t['a'].tolist() == [[1, 2], [3, 4]]
+    assert t['c'].tolist() == [['foo', 'bar'], ['hello', 'world']]
+    assert isinstance(t['a'].tolist()[0][0], int)
+    assert isinstance(t['c'].tolist()[0][0], str)
