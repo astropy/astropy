@@ -22,7 +22,7 @@ def test_table(tmpdir):
     # Read the VOTABLE
     votable = parse(
         get_pkg_data_filename('data/regression.xml'),
-        verify='warn')
+        verify='ignore')
     table = votable.get_first_table()
     astropy_table = table.to_table()
 
@@ -180,7 +180,7 @@ def test_write_with_format():
 def test_empty_table():
     votable = parse(
         get_pkg_data_filename('data/empty_table.xml'),
-        verify='warn')
+        verify='ignore')
     table = votable.get_first_table()
     astropy_table = table.to_table()  # noqa
 
@@ -213,7 +213,7 @@ class TestVerifyOptions:
     # Make sure the pedantic option still works for now (pending deprecation)
 
     def test_pedantic_false(self):
-        with catch_warnings(VOWarning) as w:
+        with catch_warnings(VOWarning, AstropyDeprecationWarning) as w:
             parse(get_pkg_data_filename('data/gemini.xml'), pedantic=False)
         assert len(w) == 25
         # Make sure we don't yet emit a deprecation warning
@@ -253,7 +253,7 @@ class TestVerifyOptions:
 
             reload_config('astropy.io.votable')
 
-            with catch_warnings(VOWarning) as w:
+            with catch_warnings(VOWarning, AstropyDeprecationWarning) as w:
                 parse(get_pkg_data_filename('data/gemini.xml'))
             assert len(w) == 25
             # Make sure we don't yet emit a deprecation warning
