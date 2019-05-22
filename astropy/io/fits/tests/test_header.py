@@ -1026,10 +1026,10 @@ class TestHeaderFunctions(FitsTestCase):
             assert a == b
 
     def test_header_keys(self):
-        hdul = fits.open(self.data('arange.fits'))
-        assert (list(hdul[0].header) ==
-                ['SIMPLE', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2', 'NAXIS3',
-                 'EXTEND'])
+        with fits.open(self.data('arange.fits')) as hdul:
+            assert (list(hdul[0].header) ==
+                    ['SIMPLE', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2', 'NAXIS3',
+                    'EXTEND'])
 
     def test_header_list_like_pop(self):
         header = fits.Header([('A', 'B'), ('C', 'D'), ('E', 'F'),
@@ -1548,8 +1548,9 @@ class TestHeaderFunctions(FitsTestCase):
         assert str(header.cards[2]).rstrip() == 'HISTORY ' + longval[72:]
 
     def test_totxtfile(self):
-        hdul = fits.open(self.data('test0.fits'))
-        hdul[0].header.totextfile(self.temp('header.txt'))
+        with fits.open(self.data('test0.fits')) as hdul:
+            hdul[0].header.totextfile(self.temp('header.txt'))
+
         hdu = fits.ImageHDU()
         hdu.header.update({'MYKEY': 'FOO'})
         hdu.header.extend(hdu.header.fromtextfile(self.temp('header.txt')),
@@ -1558,8 +1559,9 @@ class TestHeaderFunctions(FitsTestCase):
         # Write the hdu out and read it back in again--it should be recognized
         # as a PrimaryHDU
         hdu.writeto(self.temp('test.fits'), output_verify='ignore')
-        assert isinstance(fits.open(self.temp('test.fits'))[0],
-                          fits.PrimaryHDU)
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert isinstance(hdul[0], fits.PrimaryHDU)
 
         hdu = fits.ImageHDU()
         hdu.header.update({'MYKEY': 'FOO'})
@@ -1572,9 +1574,10 @@ class TestHeaderFunctions(FitsTestCase):
         with ignore_warnings():
             hdu.writeto(self.temp('test.fits'), output_verify='ignore',
                         overwrite=True)
-        hdul2 = fits.open(self.temp('test.fits'))
-        assert len(hdul2) == 2
-        assert 'MYKEY' in hdul2[1].header
+
+        with fits.open(self.temp('test.fits')) as hdul2:
+            assert len(hdul2) == 2
+            assert 'MYKEY' in hdul2[1].header
 
     def test_header_fromtextfile(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/122
@@ -2761,10 +2764,12 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         assert "NAXIS   =" in output
         assert "NAXIS1  =" in output
         assert "NAXIS2  =" in output
+        hf.close()
 
         # Can an extension by specified by the EXTNAME+EXTVER keywords?
         hf = fitsheader.HeaderFormatter(self.data('test0.fits'))
         assert "EXTNAME = 'SCI" in hf.parse(extensions=['SCI,2'])
+        hf.close()
 
         # Can we print the original header before decompression?
         hf = fitsheader.HeaderFormatter(self.data('comp.fits'))
@@ -2772,23 +2777,25 @@ class TestRecordValuedKeywordCards(FitsTestCase):
                                               compressed=False)
         assert "XTENSION= 'BINTABLE" in hf.parse(extensions=[1],
                                                  compressed=True)
+        hf.close()
 
     def test_fitsheader_table_feature(self):
         """Tests the `--table` feature of the `fitsheader` script."""
         from astropy.io import fits
         from astropy.io.fits.scripts import fitsheader
         test_filename = self.data('zerowidth.fits')
-        fitsobj = fits.open(test_filename)
+
         formatter = fitsheader.TableHeaderFormatter(test_filename)
 
-        # Does the table contain the expected number of rows?
-        mytable = formatter.parse([0])
-        assert len(mytable) == len(fitsobj[0].header)
-        # Repeat the above test when multiple HDUs are requested
-        mytable = formatter.parse(extensions=['AIPS FQ', 2, "4"])
-        assert len(mytable) == (len(fitsobj['AIPS FQ'].header)
-                                + len(fitsobj[2].header)
-                                + len(fitsobj[4].header))
+        with fits.open(test_filename) as fitsobj:
+            # Does the table contain the expected number of rows?
+            mytable = formatter.parse([0])
+            assert len(mytable) == len(fitsobj[0].header)
+            # Repeat the above test when multiple HDUs are requested
+            mytable = formatter.parse(extensions=['AIPS FQ', 2, "4"])
+            assert len(mytable) == (len(fitsobj['AIPS FQ'].header)
+                                    + len(fitsobj[2].header)
+                                    + len(fitsobj[4].header))
 
         # Can we recover the filename and extension name from the table?
         mytable = formatter.parse(extensions=['AIPS FQ'])
@@ -2811,6 +2818,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         mytable = formatter.parse(extensions=['AIPS FQ'],
                                   keywords=['DOES_NOT_EXIST'])
         assert mytable is None
+        formatter.close()
 
     @pytest.mark.parametrize('mode', ['wb', 'wb+', 'ab', 'ab+'])
     def test_hdu_writeto_mode(self, mode):
