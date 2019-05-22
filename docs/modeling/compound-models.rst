@@ -347,7 +347,7 @@ example:
     plt.figure(figsize=(8, 2.5))
 
     for idx, theta in enumerate((0, 45, 90)):
-        g = RotatedGaussian(theta) | Gaussian2D(1, 0, 0, 0.1, 0.3)
+        g = Rotation2D(theta) | Gaussian2D(1, 0, 0, 0.1, 0.3)
         plt.subplot(1, 3, idx + 1)
         plt.imshow(g(x, y), origin='lower')
         plt.xticks([])
