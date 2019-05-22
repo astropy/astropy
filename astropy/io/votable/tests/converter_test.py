@@ -91,7 +91,7 @@ def test_float_mask():
 
 
 def test_float_mask_permissive():
-    config = {'verify': 'warn'}
+    config = {'verify': 'ignore'}
     field = tree.Field(
         None, name='c', datatype='float',
         config=config)
