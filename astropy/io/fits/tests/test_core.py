@@ -313,8 +313,11 @@ class TestCore(FitsTestCase):
         the convenience functions.
         """
         filename = self.data('test0.fits')
+
         hl, ext = _getext(filename, 'readonly', 1)
         assert ext == 1
+        hl.close()
+
         pytest.raises(ValueError, _getext, filename, 'readonly',
                       1, 2)
         pytest.raises(ValueError, _getext, filename, 'readonly',
@@ -323,10 +326,15 @@ class TestCore(FitsTestCase):
                       'sci', 'sci')
         pytest.raises(TypeError, _getext, filename, 'readonly',
                       1, 2, 3)
+
         hl, ext = _getext(filename, 'readonly', ext=1)
         assert ext == 1
+        hl.close()
+
         hl, ext = _getext(filename, 'readonly', ext=('sci', 2))
         assert ext == ('sci', 2)
+        hl.close()
+
         pytest.raises(TypeError, _getext, filename, 'readonly',
                       1, ext=('sci', 2), extver=3)
         pytest.raises(TypeError, _getext, filename, 'readonly',
@@ -334,13 +342,21 @@ class TestCore(FitsTestCase):
 
         hl, ext = _getext(filename, 'readonly', 'sci')
         assert ext == ('sci', 1)
+        hl.close()
+
         hl, ext = _getext(filename, 'readonly', 'sci', 1)
         assert ext == ('sci', 1)
+        hl.close()
+
         hl, ext = _getext(filename, 'readonly', ('sci', 1))
         assert ext == ('sci', 1)
+        hl.close()
+
         hl, ext = _getext(filename, 'readonly', 'sci',
                           extver=1, do_not_scale_image_data=True)
         assert ext == ('sci', 1)
+        hl.close()
+
         pytest.raises(TypeError, _getext, filename, 'readonly',
                       'sci', ext=1)
         pytest.raises(TypeError, _getext, filename, 'readonly',
@@ -348,13 +364,15 @@ class TestCore(FitsTestCase):
 
         hl, ext = _getext(filename, 'readonly', extname='sci')
         assert ext == ('sci', 1)
+        hl.close()
+
         hl, ext = _getext(filename, 'readonly', extname='sci',
                           extver=1)
         assert ext == ('sci', 1)
+        hl.close()
+
         pytest.raises(TypeError, _getext, filename, 'readonly',
                       extver=1)
-
-        hl.close()  # Close file handler
 
     def test_extension_name_case_sensitive(self):
         """
@@ -1361,8 +1379,9 @@ class TestStreamingFunctions(FitsTestCase):
 
     def test_error_if_memmap_impossible(self):
         pth = self.data('blank.fits')
-        with pytest.raises(ValueError):
-            fits.open(pth, memmap=True)[0].data
+        with fits.open(pth, memmap=True) as hdul:
+            with pytest.raises(ValueError):
+                hdul[0].data
 
         # However, it should not fail if do_not_scale_image_data was used:
         # See https://github.com/astropy/astropy/issues/3766
