@@ -89,7 +89,7 @@ Python with the binary operators ``+``, ``-``, ``*``, ``/``, ``**``, ``|``,
 and ``&``, each of which is discussed in the following sections.
 
 
-.. warning:: Creating compound models by combining classes is deprecated and will be removed in v 4.0.
+.. warning:: Creating compound models by combining classes is deprecated and will be removed in v4.0.
 
 The result of combining two models is a model instance::
 
