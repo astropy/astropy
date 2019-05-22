@@ -102,7 +102,7 @@ This expression creates a new model instance that is ready to be used for evalua
     >>> two_gaussians(0.2)  # doctest: +FLOAT_CMP
     0.9985190841886609
 
-The ``print`` command provides more information about this object::
+The ``print`` function provides more information about this object::
 
     >>> print(two_gaussians)
     Model: CompoundModel...
