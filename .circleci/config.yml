@@ -14,6 +14,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Write configuration items to standard location to make sure they are ignored in parallel mode
+          command: |
+              mkdir -p $HOME/.astropy/config/
+              printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
+      - run:
           name: Install dependencies for Python 3.5
           command: /opt/python/cp35-cp35m/bin/pip install numpy scipy pytest pytest-astropy pytest-xdist Cython jinja2
       - run:
