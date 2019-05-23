@@ -17,13 +17,17 @@ from . import exceptions
 from . import tree
 from astropy.utils.xml import iterparser
 from astropy.utils import data
-
+from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate',
            'reset_vo_warnings']
 
+VERIFY_OPTIONS = ['ignore', 'warn', 'exception']
 
-def parse(source, columns=None, invalid='exception', pedantic=None,
+
+@deprecated_renamed_argument('pedantic', 'verify', pending=True, since='4.0')
+def parse(source, columns=None, invalid='exception', verify=None,
           chunk_size=tree.DEFAULT_CHUNK_SIZE, table_number=None,
           table_id=None, filename=None, unit_format=None,
           datatype_mapping=None, _debug_python_based_parser=False):
@@ -48,13 +52,17 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
 
             - 'mask': mask out invalid values
 
-    pedantic : bool, optional
-        When `True`, raise an error when the file violates the spec,
-        otherwise issue a warning.  Warnings may be controlled using
-        the standard Python mechanisms.  See the `warnings`
-        module in the Python standard library for more information.
-        When not provided, uses the configuration setting
-        ``astropy.io.votable.pedantic``, which defaults to False.
+    verify : {'ignore', 'warn', 'exception'}, optional
+        When ``'exception'``, raise an error when the file violates the spec,
+        otherwise either issue a warning (``'warn'``) or silently continue
+        (``'ignore'``). Warnings may be controlled using the standard Python
+        mechanisms.  See the `warnings` module in the Python standard library
+        for more information. When not provided, uses the configuration setting
+        ``astropy.io.votable.verify``, which defaults to 'ignore'.
+
+        .. versionchanged:: 4.0
+           ``verify`` replaces the ``pedantic`` argument, which will be
+           deprecated in future.
 
     chunk_size : int, optional
         The number of rows to read before converting to an array.
@@ -110,8 +118,30 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         raise ValueError("accepted values of ``invalid`` are: "
                          "``'exception'`` or ``'mask'``.")
 
-    if pedantic is None:
-        pedantic = conf.pedantic
+    if verify is None:
+
+        # NOTE: since the pedantic argument isn't fully deprecated yet, we need
+        # to catch the deprecation warning that occurs when accessing the
+        # configuration item, but only if it is for the pedantic option in the
+        # [io.votable] section.
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore",
+                                    r"Config parameter \'pedantic\' in section \[io.votable\]",
+                                    AstropyDeprecationWarning)
+            conf_verify_lowercase = conf.verify.lower()
+
+        # We need to allow verify to be booleans as strings since the
+        # configuration framework doesn't make it easy/possible to have mixed
+        # types.
+        if conf_verify_lowercase in ['false', 'true']:
+            verify = conf_verify_lowercase == 'true'
+        else:
+            verify = conf_verify_lowercase
+
+    if isinstance(verify, bool):
+        verify = 'exception' if verify else 'warn'
+    elif verify not in VERIFY_OPTIONS:
+        raise ValueError('verify should be one of {0}'.format('/'.join(VERIFY_OPTIONS)))
 
     if datatype_mapping is None:
         datatype_mapping = {}
@@ -119,7 +149,7 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
     config = {
         'columns': columns,
         'invalid': invalid,
-        'pedantic': pedantic,
+        'verify': verify,
         'chunk_size': chunk_size,
         'table_number': table_number,
         'filename': filename,
@@ -250,7 +280,7 @@ def validate(source, output=None, xmllint=False, filename=None):
         warnings.resetwarnings()
         warnings.simplefilter("always", exceptions.VOWarning, append=True)
         try:
-            votable = parse(content_buffer, pedantic=False, filename=filename)
+            votable = parse(content_buffer, verify='warn', filename=filename)
         except ValueError as e:
             lines.append(str(e))
 
