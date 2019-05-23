@@ -166,31 +166,34 @@ def converters_and_unit(function, method, *args):
         converters, result_unit = ufunc_helper(function, *units)
 
         if any(converter is False for converter in converters):
-            # for two-argument ufuncs with a quantity and a non-quantity,
+            # for multi-argument ufuncs with a quantity and a non-quantity,
             # the quantity normally needs to be dimensionless, *except*
             # if the non-quantity can have arbitrary unit, i.e., when it
             # is all zero, infinity or NaN.  In that case, the non-quantity
             # can just have the unit of the quantity
             # (this allows, e.g., `q > 0.` independent of unit)
-            maybe_arbitrary_arg = args[converters.index(False)]
             try:
-                if can_have_arbitrary_unit(maybe_arbitrary_arg):
-                    converters = [None, None]
-                else:
-                    raise UnitConversionError(
-                        "Can only apply '{0}' function to "
-                        "dimensionless quantities when other "
-                        "argument is not a quantity (unless the "
-                        "latter is all zero/infinity/nan)"
-                        .format(function.__name__))
+                # Don't fold this loop in the test above: this rare case
+                # should not make the common case slower.
+                for i, converter in enumerate(converters):
+                    if converter is not False:
+                        continue
+                    if can_have_arbitrary_unit(args[i]):
+                        converters[i] = None
+                    else:
+                        raise UnitConversionError(
+                            "Can only apply '{0}' function to "
+                            "dimensionless quantities when other "
+                            "argument is not a quantity (unless the "
+                            "latter is all zero/infinity/nan)"
+                            .format(function.__name__))
             except TypeError:
                 # _can_have_arbitrary_unit failed: arg could not be compared
                 # with zero or checked to be finite. Then, ufunc will fail too.
                 raise TypeError("Unsupported operand type(s) for ufunc {0}: "
-                                "'{1}' and '{2}'"
-                                .format(function.__name__,
-                                        args[0].__class__.__name__,
-                                        args[1].__class__.__name__))
+                                "'{1}'".format(function.__name__,
+                                               ','.join([arg.__class__.__name__
+                                                         for arg in args])))
 
         # In the case of np.power and np.float_power, the unit itself needs to
         # be modified by an amount that depends on one of the input values,
