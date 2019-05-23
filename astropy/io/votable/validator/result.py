@@ -163,7 +163,7 @@ class Result:
         with open(path, 'rb') as input:
             with warnings.catch_warnings(record=True) as warning_lines:
                 try:
-                    t = table.parse(input, pedantic=False, filename=path)
+                    t = table.parse(input, verify='warn', filename=path)
                 except (ValueError, TypeError, ExpatError) as e:
                     lines.append(str(e))
                     nexceptions += 1

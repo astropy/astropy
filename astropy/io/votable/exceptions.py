@@ -24,9 +24,9 @@ Exceptions
 
 .. note::
 
-    This is a list of many of the fatal exceptions emitted by vo.table
+    This is a list of many of the fatal exceptions emitted by ``astropy.io.votable``
     when the file does not conform to spec.  Other exceptions may be
-    raised due to unforeseen cases or bugs in vo.table itself.
+    raised due to unforeseen cases or bugs in ``astropy.io.votable`` itself.
 
 {exceptions}
 """
@@ -77,15 +77,19 @@ def _suppressed_warning(warning, config, stacklevel=2):
 def warn_or_raise(warning_class, exception_class=None, args=(), config=None,
                   pos=None, stacklevel=1):
     """
-    Warn or raise an exception, depending on the pedantic setting.
+    Warn or raise an exception, depending on the verify setting.
     """
     if config is None:
         config = {}
-    if config.get('pedantic'):
+    # NOTE: the default here is deliberately warn rather than ignore, since
+    # one would expect that calling warn_or_raise without config should not
+    # silence the warnings.
+    config_value = config.get('verify', 'warn')
+    if config_value == 'exception':
         if exception_class is None:
             exception_class = warning_class
         vo_raise(exception_class, args, config, pos)
-    else:
+    elif config_value == 'warn':
         vo_warn(warning_class, args, config, pos, stacklevel=stacklevel+1)
 
 
@@ -122,8 +126,12 @@ def vo_warn(warning_class, args=(), config=None, pos=None, stacklevel=1):
     """
     if config is None:
         config = {}
-    warning = warning_class(args, config, pos)
-    _suppressed_warning(warning, config, stacklevel=stacklevel+1)
+    # NOTE: the default here is deliberately warn rather than ignore, since
+    # one would expect that calling warn_or_raise without config should not
+    # silence the warnings.
+    if config.get('verify', 'warn') != 'ignore':
+        warning = warning_class(args, config, pos)
+        _suppressed_warning(warning, config, stacklevel=stacklevel+1)
 
 
 def warn_unknown_attrs(element, attrs, config, pos, good_attr=[], stacklevel=1):
@@ -249,10 +257,10 @@ class W01(VOTableSpecWarning):
         encoded as multiple numbers separated by whitespace.
 
     Many VOTable files in the wild use commas as a separator instead,
-    and ``vo.table`` supports this convention when not in
+    and ``astropy.io.votable`` supports this convention when not in
     :ref:`pedantic-mode`.
 
-    ``vo.table`` always outputs files using only spaces, regardless of
+    ``astropy.io.votable`` always outputs files using only spaces, regardless of
     how they were input.
 
     **References**: `1.1
@@ -280,7 +288,7 @@ class W02(VOTableSpecWarning):
 
     However, this is in conflict with the XML standard, which says
     colons may not be used.  VOTable 1.1's own schema does not allow a
-    colon here.  Therefore, ``vo.table`` disallows the colon.
+    colon here.  Therefore, ``astropy.io.votable`` disallows the colon.
 
     VOTable 1.2 corrects this error in the specification.
 
@@ -323,7 +331,7 @@ class W03(VOTableChangeWarning):
         ``name`` attributes of ``FIELD``, ``PARAM`` and optional
         ``GROUP`` elements should be all different.
 
-    Since ``vo.table`` requires a unique identifier for each of its
+    Since ``astropy.io.votable`` requires a unique identifier for each of its
     columns, ``ID`` is used for the column name when present.
     However, when ``ID`` is not present, (since it is not required by
     the specification) ``name`` is used instead.  However, ``name``
@@ -415,7 +423,7 @@ class W07(VOTableSpecWarning):
 
 class W08(VOTableSpecWarning):
     """
-    To avoid local-dependent number parsing differences, ``vo.table``
+    To avoid local-dependent number parsing differences, ``astropy.io.votable``
     may require a string or unicode string where a numeric type may
     make more sense.
     """
@@ -430,8 +438,8 @@ class W09(VOTableSpecWarning):
     The VOTable specification uses the attribute name ``ID`` (with
     uppercase letters) to specify unique identifiers.  Some
     VOTable-producing tools use the more standard lowercase ``id``
-    instead.  ``vo.table`` accepts ``id`` and emits this warning when
-    not in ``pedantic`` mode.
+    instead. ``astropy.io.votable`` accepts ``id`` and emits this warning if
+    ``verify`` is ``'warn'``.
 
     **References**: `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`__,
@@ -449,7 +457,7 @@ class W10(VOTableSpecWarning):
     against the VOTable schema (with a tool such as `xmllint
     <http://xmlsoft.org/xmllint.html>`__.  If the file validates
     against the schema, and you still receive this warning, this may
-    indicate a bug in ``vo.table``.
+    indicate a bug in ``astropy.io.votable``.
 
     **References**: `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`__,
@@ -468,7 +476,7 @@ class W11(VOTableSpecWarning):
     <http://aladin.u-strasbg.fr/glu/>`__.  New files should
     specify a ``glu:`` protocol using the ``href`` attribute.
 
-    Since ``vo.table`` does not currently support GLU references, it
+    Since ``astropy.io.votable`` does not currently support GLU references, it
     likewise does not automatically convert the ``gref`` attribute to
     the new form.
 
@@ -487,8 +495,8 @@ class W12(VOTableChangeWarning):
     ``FIELD`` element must have either an ``ID`` or ``name`` attribute
     to derive a name from.  Strictly speaking, according to the
     VOTable schema, the ``name`` attribute is required.  However, if
-    ``name`` is not present by ``ID`` is, and *pedantic mode* is off,
-    ``vo.table`` will continue without a ``name`` defined.
+    ``name`` is not present by ``ID`` is, and ``verify`` is not ``'exception'``,
+    ``astropy.io.votable`` will continue without a ``name`` defined.
 
     **References**: `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`__,
@@ -536,8 +544,8 @@ class W15(VOTableSpecWarning):
     """
     The ``name`` attribute is required on every ``FIELD`` element.
     However, many VOTable files in the wild omit it and provide only
-    an ``ID`` instead.  In this case, when *pedantic mode* is off,
-    ``vo.table`` will copy the ``name`` attribute to a new ``ID``
+    an ``ID`` instead.  In this case, when ``verify`` is not ``'exception'``
+    ``astropy.io.votable`` will copy the ``name`` attribute to a new ``ID``
     attribute.
 
     **References**: `1.1
@@ -576,8 +584,8 @@ class W18(VOTableSpecWarning):
     The number of rows explicitly specified in the ``nrows`` attribute
     does not match the actual number of rows (``TR`` elements) present
     in the ``TABLE``.  This may indicate truncation of the file, or an
-    internal error in the tool that produced it.  If *pedantic mode*
-    is off, parsing will proceed, with the loss of some performance.
+    internal error in the tool that produced it.  If ``verify`` is not
+    ``'exception'``, parsing will proceed, with the loss of some performance.
 
     **References:** `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC10>`__,
@@ -592,8 +600,8 @@ class W18(VOTableSpecWarning):
 class W19(VOTableSpecWarning):
     """
     The column fields as defined using ``FIELD`` elements do not match
-    those in the headers of the embedded FITS file.  If *pedantic
-    mode* is off, the embedded FITS file will take precedence.
+    those in the headers of the embedded FITS file.  If ``verify`` is not
+    ``'exception'``, the embedded FITS file will take precedence.
     """
 
     message_template = (
@@ -613,12 +621,12 @@ class W20(VOTableSpecWarning):
 
 class W21(UnimplementedWarning):
     """
-    Unknown issues may arise using ``vo.table`` with VOTable files
+    Unknown issues may arise using ``astropy.io.votable`` with VOTable files
     from a version other than 1.1, 1.2 or 1.3.
     """
 
     message_template = (
-        'vo.table is designed for VOTable version 1.1, 1.2 and 1.3, but ' +
+        'astropy.io.votable is designed for VOTable version 1.1, 1.2 and 1.3, but ' +
         'this file is {}')
     default_args = ('x',)
 
@@ -653,12 +661,12 @@ class W23(IOWarning):
 class W24(VOWarning, FutureWarning):
     """
     The VO catalog database retrieved from the www is designed for a
-    newer version of vo.table.  This may cause problems or limited
-    features performing service queries.  Consider upgrading vo.table
+    newer version of ``astropy.io.votable``.  This may cause problems or limited
+    features performing service queries.  Consider upgrading ``astropy.io.votable``
     to the latest version.
     """
 
-    message_template = "The VO catalog database is for a later version of vo.table"
+    message_template = "The VO catalog database is for a later version of astropy.io.votable"
 
 
 class W25(IOWarning):
@@ -726,9 +734,9 @@ class W29(VOTableSpecWarning):
 
 class W30(VOTableSpecWarning):
     """
-    Some VOTable files write missing floating-point values in non-standard
-    ways, such as "null" and "-".  In non-pedantic mode, any non-standard
-    floating-point literals are treated as missing values.
+    Some VOTable files write missing floating-point values in non-standard ways,
+    such as "null" and "-".  If ``verify`` is not ``'exception'``, any
+    non-standard floating-point literals are treated as missing values.
 
     **References**: `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
@@ -840,7 +848,7 @@ class W36(VOTableSpecWarning):
 class W37(UnimplementedWarning):
     """
     The 3 datatypes defined in the VOTable specification and supported by
-    vo.table are ``TABLEDATA``, ``BINARY`` and ``FITS``.
+    ``astropy.io.votable`` are ``TABLEDATA``, ``BINARY`` and ``FITS``.
 
     **References:** `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:data>`__,

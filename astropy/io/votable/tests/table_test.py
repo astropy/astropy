@@ -6,18 +6,21 @@ import io
 import os
 
 import pathlib
+import pytest
 import numpy as np
 
+from astropy.config import set_temp_config, reload_config
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj
 from astropy.io.votable.table import parse, writeto
-from astropy.io.votable import tree
+from astropy.io.votable import tree, conf
+from astropy.io.votable.exceptions import VOWarning
+from astropy.tests.helper import catch_warnings
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_table(tmpdir):
     # Read the VOTABLE
-    votable = parse(
-        get_pkg_data_filename('data/regression.xml'),
-        pedantic=False)
+    votable = parse(get_pkg_data_filename('data/regression.xml'))
     table = votable.get_first_table()
     astropy_table = table.to_table()
 
@@ -173,8 +176,93 @@ def test_write_with_format():
 
 
 def test_empty_table():
-    votable = parse(
-        get_pkg_data_filename('data/empty_table.xml'),
-        pedantic=False)
+    votable = parse(get_pkg_data_filename('data/empty_table.xml'))
     table = votable.get_first_table()
     astropy_table = table.to_table()  # noqa
+
+
+class TestVerifyOptions:
+
+    # Start off by checking the default (ignore)
+
+    def test_default(self):
+        with catch_warnings(VOWarning) as w:
+            parse(get_pkg_data_filename('data/gemini.xml'))
+        assert len(w) == 0
+
+    # Then try the various explicit options
+
+    def test_verify_ignore(self):
+        with catch_warnings(VOWarning) as w:
+            parse(get_pkg_data_filename('data/gemini.xml'), verify='ignore')
+        assert len(w) == 0
+
+    def test_verify_warn(self):
+        with catch_warnings(VOWarning) as w:
+            parse(get_pkg_data_filename('data/gemini.xml'), verify='warn')
+        assert len(w) == 25
+
+    def test_verify_exception(self):
+        with pytest.raises(VOWarning):
+            parse(get_pkg_data_filename('data/gemini.xml'), verify='exception')
+
+    # Make sure the pedantic option still works for now (pending deprecation)
+
+    def test_pedantic_false(self):
+        with catch_warnings(VOWarning, AstropyDeprecationWarning) as w:
+            parse(get_pkg_data_filename('data/gemini.xml'), pedantic=False)
+        assert len(w) == 25
+        # Make sure we don't yet emit a deprecation warning
+        assert not any(isinstance(x.category, AstropyDeprecationWarning) for x in w)
+
+    def test_pedantic_true(self):
+        with pytest.raises(VOWarning):
+            parse(get_pkg_data_filename('data/gemini.xml'), pedantic=True)
+
+    # Make sure that the default behavior can be set via configuration items
+
+    def test_conf_verify_ignore(self):
+        with conf.set_temp('verify', 'ignore'):
+            with catch_warnings(VOWarning) as w:
+                parse(get_pkg_data_filename('data/gemini.xml'))
+            assert len(w) == 0
+
+    def test_conf_verify_warn(self):
+        with conf.set_temp('verify', 'warn'):
+            with catch_warnings(VOWarning) as w:
+                parse(get_pkg_data_filename('data/gemini.xml'))
+            assert len(w) == 25
+
+    def test_conf_verify_exception(self):
+        with conf.set_temp('verify', 'exception'):
+            with pytest.raises(VOWarning):
+                parse(get_pkg_data_filename('data/gemini.xml'))
+
+    # And make sure the old configuration item will keep working
+
+    def test_conf_pedantic_false(self, tmpdir):
+
+        with set_temp_config(tmpdir.strpath):
+
+            with open(tmpdir.join('astropy').join('astropy.cfg').strpath, 'w') as f:
+                f.write('[io.votable]\npedantic = False')
+
+            reload_config('astropy.io.votable')
+
+            with catch_warnings(VOWarning, AstropyDeprecationWarning) as w:
+                parse(get_pkg_data_filename('data/gemini.xml'))
+            assert len(w) == 25
+            # Make sure we don't yet emit a deprecation warning
+            assert not any(isinstance(x.category, AstropyDeprecationWarning) for x in w)
+
+    def test_conf_pedantic_true(self, tmpdir):
+
+        with set_temp_config(tmpdir.strpath):
+
+            with open(tmpdir.join('astropy').join('astropy.cfg').strpath, 'w') as f:
+                f.write('[io.votable]\npedantic = True')
+
+            reload_config('astropy.io.votable')
+
+            with pytest.raises(VOWarning):
+                parse(get_pkg_data_filename('data/gemini.xml'))

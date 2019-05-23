@@ -24,7 +24,7 @@ def test_reraise():
 
 
 def test_parse_vowarning():
-    config = {'pedantic': True,
+    config = {'verify': 'exception',
               'filename': 'foo.xml'}
     pos = (42, 64)
     with catch_warnings(exceptions.W47) as w:
