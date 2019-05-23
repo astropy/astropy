@@ -296,6 +296,39 @@ def helper_divmod(f, unit1, unit2):
     return converters, (dimensionless_unscaled, result_unit)
 
 
+def helper_clip(f, unit1, unit2, unit3):
+    # Treat the array being clipped as primary.
+    converters = [None]
+    if unit1 is None:
+        result_unit = dimensionless_unscaled
+        try:
+            converters += [(None if unit is None else
+                            get_converter(unit, dimensionless_unscaled))
+                           for unit in (unit2, unit3)]
+        except UnitsError:
+            raise UnitConversionError(
+                "Can only apply '{0}' function to quantities with "
+                "compatible dimensions".format(f.__name__))
+
+    else:
+        result_unit = unit1
+        for unit in unit2, unit3:
+            try:
+                converter = get_converter(_d(unit), result_unit)
+            except UnitsError:
+                if unit is None:
+                    # special case: OK if unitless number is zero, inf, nan
+                    converters.append(False)
+                else:
+                    raise UnitConversionError(
+                        "Can only apply '{0}' function to quantities with "
+                        "compatible dimensions".format(f.__name__))
+            else:
+                converters.append(converter)
+
+    return converters, result_unit
+
+
 # list of ufuncs:
 # http://docs.scipy.org/doc/numpy/reference/ufuncs.html#available-ufuncs
 
@@ -407,3 +440,6 @@ UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
 UFUNC_HELPERS[np.heaviside] = helper_heaviside
 UFUNC_HELPERS[np.float_power] = helper_power
 UFUNC_HELPERS[np.divmod] = helper_divmod
+# Check for clip ufunc; note that np.clip is a wrapper function, not the ufunc.
+if isinstance(getattr(np.core.umath, 'clip', None), np.ufunc):
+    UFUNC_HELPERS[np.core.umath.clip] = helper_clip
