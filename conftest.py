@@ -18,3 +18,8 @@ os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
 
 os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
 os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
+
+# Note that we don't need to change the environment variables back or remove
+# them after testing, because they are only changed for the duration of the
+# Python process, and this configuration only matters if running pytest
+# directly, not from e.g. an IPython session.
