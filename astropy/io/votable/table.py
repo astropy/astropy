@@ -126,7 +126,7 @@ def parse(source, columns=None, invalid='exception', verify=None,
         # [io.votable] section.
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore",
-                                    "Config parameter \'pedantic\' in section \[io.votable\]",
+                                    r"Config parameter \'pedantic\' in section \[io.votable\]",
                                     AstropyDeprecationWarning)
             conf_verify_lowercase = conf.verify.lower()
 
