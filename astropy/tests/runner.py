@@ -224,8 +224,13 @@ class TestRunnerBase:
         else:
             plugins = []
 
-        # override the config locations to not make a new directory nor use
-        # existing cache or config
+        # Override the config locations to not make a new directory nor use
+        # existing cache or config. Note that we need to do this here in
+        # addition to in conftest.py - for users running tests interactively
+        # in e.g. IPython, conftest.py would get read in too late, so we need
+        # to do it here - but at the same time the code here doesn't work when
+        # running tests in parallel mode because this uses subprocesses which
+        # don't know about the temporary config/cache.
         astropy_config = tempfile.mkdtemp('astropy_config')
         astropy_cache = tempfile.mkdtemp('astropy_cache')
 
