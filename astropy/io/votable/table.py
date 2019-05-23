@@ -18,7 +18,7 @@ from . import tree
 from astropy.utils.xml import iterparser
 from astropy.utils import data
 from astropy.utils.decorators import deprecated_renamed_argument
-
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate',
            'reset_vo_warnings']
@@ -119,14 +119,24 @@ def parse(source, columns=None, invalid='exception', verify=None,
                          "``'exception'`` or ``'mask'``.")
 
     if verify is None:
-        # Note that we need to allow verify to be booleans as strings since
-        # the configuration framework doesn't make it easy/possible to have
-        # mixed types.
-        conf_verify_lowercase = conf.verify.lower()
+
+        # NOTE: since the pedantic argument isn't fully deprecated yet, we need
+        # to catch the deprecation warning that occurs when accessing the
+        # configuration item, but only if it is for the pedantic option in the
+        # [io.votable] section.
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore",
+                                    "Config parameter \'pedantic\' in section \[io.votable\]",
+                                    AstropyDeprecationWarning)
+            conf_verify_lowercase = conf.verify.lower()
+
+        # We need to allow verify to be booleans as strings since the
+        # configuration framework doesn't make it easy/possible to have mixed
+        # types.
         if conf_verify_lowercase in ['false', 'true']:
             verify = conf_verify_lowercase == 'true'
         else:
-            verify = conf.verify
+            verify = conf_verify_lowercase
 
     if isinstance(verify, bool):
         verify = 'exception' if verify else 'warn'
