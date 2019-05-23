@@ -20,7 +20,7 @@ from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitConversionError, UnitTypeError)
 from .utils import is_effectively_unity
 from .format.latex import Latex
-from astropy.utils.compat import NUMPY_LT_1_14, NUMPY_LT_1_16
+from astropy.utils.compat import NUMPY_LT_1_14, NUMPY_LT_1_16, NUMPY_LT_1_17
 from astropy.utils.compat.misc import override__dir__
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.misc import isiterable, InheritDocstrings
@@ -455,9 +455,10 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             kwargs['out'] = (out_array,) if function.nout == 1 else out_array
 
         # Same for inputs, but here also convert if necessary.
-        arrays = [(converter(input_.value) if converter else
-                   getattr(input_, 'value', input_))
-                  for input_, converter in zip(inputs, converters)]
+        arrays = []
+        for input_, converter in zip(inputs, converters):
+            input_ = getattr(input_, 'value', input_)
+            arrays.append(converter(input_) if converter else input_)
 
         # Call our superclass's __array_ufunc__
         result = super().__array_ufunc__(function, method, *arrays, **kwargs)
@@ -1502,9 +1503,10 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         result = function(*args, **kwargs)
         return self._result_as_quantity(result, unit, out)
 
-    def clip(self, a_min, a_max, out=None):
-        return self._wrap_function(np.clip, self._to_own_unit(a_min),
-                                   self._to_own_unit(a_max), out=out)
+    if NUMPY_LT_1_17:
+        def clip(self, a_min, a_max, out=None):
+            return self._wrap_function(np.clip, self._to_own_unit(a_min),
+                                       self._to_own_unit(a_max), out=out)
 
     def trace(self, offset=0, axis1=0, axis2=1, dtype=None, out=None):
         return self._wrap_function(np.trace, offset, axis1, axis2, dtype,
