@@ -283,12 +283,7 @@ The resulting object ``g1_plus_2`` is itself a new model.  Evaluating, say,
     >>> g1_plus_2(0.25) == g1(0.25) + g2(0.25)
     True
 
-This model can be further combined with other models in new expressions.  It is
-also possible to define entire new model *classes* using arithmetic expressions
-of other model classes.  This allows general compound models to be created
-without specifying any parameter values up front.  This more advanced usage is
-explained in more detail in the :ref:`compound model documentation
-<compound-model-classes>`.
+This model can be further combined with other models in new expressions.
 
 These new compound models can also be fitted to data, like most other models
 (though this currently requires one of the non-linear fitters):
@@ -397,8 +392,8 @@ Using `astropy.modeling`
    algorithms
    units
 
-.. note that if this section gets too long, it should be moved to a separate 
-   doc page - see the top of performance.inc.rst for the instructions on how to do 
+.. note that if this section gets too long, it should be moved to a separate
+   doc page - see the top of performance.inc.rst for the instructions on how to do
    that
 .. include:: performance.inc.rst
 
