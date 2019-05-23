@@ -51,6 +51,9 @@ def pytest_configure(config):
     # is also set in the test runner, but we need to also set it here for
     # things to work properly in parallel mode
 
+    builtins._xdg_config_home_orig = os.environ.get('XDG_CONFIG_HOME')
+    builtins._xdg_cache_home_orig = os.environ.get('XDG_CACHE_HOME')
+
     os.environ['XDG_CONFIG_HOME'] = tempfile.mkdtemp('astropy_config')
     os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
 
@@ -65,8 +68,15 @@ def pytest_unconfigure(config):
         matplotlib.rcParams.update(matplotlibrc_cache)
         matplotlibrc_cache.clear()
 
-    os.environ.pop('XDG_CONFIG_HOME')
-    os.environ.pop('XDG_CACHE_HOME')
+    if builtins._xdg_config_home_orig is None:
+        os.environ.pop('XDG_CONFIG_HOME')
+    else:
+        os.environ['XDG_CONFIG_HOME'] = builtins._xdg_config_home_orig
+
+    if builtins._xdg_cache_home_orig is None:
+        os.environ.pop('XDG_CACHE_HOME')
+    else:
+        os.environ['XDG_CACHE_HOME'] = builtins._xdg_cache_home_orig
 
 
 PYTEST_HEADER_MODULES['Cython'] = 'cython'
