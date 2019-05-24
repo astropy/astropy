@@ -93,7 +93,7 @@ sigma_T = CODATA2018('sigma_T', "Thomson scattering cross-section",
 
 # Formula taken from NIST wall chart.
 b_wien = CODATA2018('b_wien', 'Wien wavelength displacement law constant',
-                    h.value * c.value / (k_B.value * 4.965114231), 'm K',
+                    h.value * c.value / (k_B.value * 4.965114231744276), 'm K',
                     0.0, system='si')
 
 # CGS constants.
