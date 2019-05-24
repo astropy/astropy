@@ -13,7 +13,7 @@ from astropy.config import set_temp_config, reload_config
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj
 from astropy.io.votable.table import parse, writeto
 from astropy.io.votable import tree, conf
-from astropy.io.votable.exceptions import VOWarning
+from astropy.io.votable.exceptions import VOWarning, W39
 from astropy.tests.helper import catch_warnings
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -67,7 +67,9 @@ def test_table(tmpdir):
         if 'arraysize' in d:
             assert field.arraysize == d['arraysize']
 
-    writeto(votable2, os.path.join(str(tmpdir), "through_table.xml"))
+    # W39: Bit values can not be masked
+    with pytest.warns(W39):
+        writeto(votable2, os.path.join(str(tmpdir), "through_table.xml"))
 
 
 def test_read_through_table_interface(tmpdir):
@@ -82,7 +84,10 @@ def test_read_through_table_interface(tmpdir):
     assert t['float'].format is None
 
     fn = os.path.join(str(tmpdir), "table_interface.xml")
-    t.write(fn, table_id='FOO', format='votable')
+
+    # W39: Bit values can not be masked
+    with pytest.warns(W39):
+        t.write(fn, table_id='FOO', format='votable')
 
     with open(fn, 'rb') as fd:
         t2 = Table.read(fd, format='votable', table_id='FOO')
