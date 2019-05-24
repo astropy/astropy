@@ -75,6 +75,7 @@ class TestST():
                '2012-07-01 12:00:00'], scale='utc')
     t2 = Time(t1, location=('120d', '10d'))
 
+    @pytest.mark.remote_data
     def test_gmst(self):
         """Compare Greenwich Mean Sidereal Time with what was found earlier
         """
@@ -84,6 +85,7 @@ class TestST():
         gmst = self.t1.sidereal_time('mean', 'greenwich')
         assert allclose_hours(gmst.value, gmst_compare)
 
+    @pytest.mark.remote_data
     def test_gst(self):
         """Compare Greenwich Apparent Sidereal Time with what was found earlier
         """
@@ -93,18 +95,21 @@ class TestST():
         gst = self.t1.sidereal_time('apparent', 'greenwich')
         assert allclose_hours(gst.value, gst_compare)
 
+    @pytest.mark.remote_data
     def test_gmst_gst_close(self):
         """Check that Mean and Apparent are within a few seconds."""
         gmst = self.t1.sidereal_time('mean', 'greenwich')
         gst = self.t1.sidereal_time('apparent', 'greenwich')
         assert within_2_seconds(gst.value, gmst.value)
 
+    @pytest.mark.remote_data
     def test_gmst_independent_of_self_location(self):
         """Check that Greenwich time does not depend on self.location"""
         gmst1 = self.t1.sidereal_time('mean', 'greenwich')
         gmst2 = self.t2.sidereal_time('mean', 'greenwich')
         assert allclose_hours(gmst1.value, gmst2.value)
 
+    @pytest.mark.remote_data
     @pytest.mark.parametrize('kind', ('mean', 'apparent'))
     def test_lst(self, kind):
         """Compare Local Sidereal Time with what was found earlier,
@@ -138,6 +143,7 @@ class TestModelInterpretation():
     """Check that models are different, and that wrong models are recognized"""
     t = Time(['2012-06-30 12:00:00'], scale='utc', location=('120d', '10d'))
 
+    @pytest.mark.remote_data
     @pytest.mark.parametrize('kind', ('mean', 'apparent'))
     def test_model_uniqueness(self, kind):
         """Check models give different answers, yet are close."""

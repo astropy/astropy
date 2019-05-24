@@ -10,7 +10,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from astropy.tests.helper import catch_warnings, pytest
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, ErfaWarning
 from astropy.utils import isiterable
 from astropy.time import Time, ScaleValueError, STANDARD_TIME_SCALES, TimeString, TimezoneInfo
 from astropy.coordinates import EarthLocation
@@ -313,6 +313,7 @@ class TestBasic():
         assert t5.location.shape == t5.shape
         assert t5.tdb.shape == t5.shape
 
+    @pytest.mark.remote_data
     def test_all_scale_transforms(self):
         """Test that standard scale transforms work.  Does not test correctness,
         except reversibility [#2074]. Also tests that standard scales can't be
@@ -487,7 +488,8 @@ class TestBasic():
         with pytest.raises(ValueError):
             Time(np.nan, format='jd', scale='utc')
         with pytest.raises(ValueError):
-            Time('2000-01-02T03:04:05(TAI)', scale='utc')
+            with pytest.warns(AstropyDeprecationWarning):
+                Time('2000-01-02T03:04:05(TAI)', scale='utc')
         with pytest.raises(ValueError):
             Time('2000-01-02T03:04:05(TAI')
         with pytest.raises(ValueError):
@@ -500,7 +502,8 @@ class TestBasic():
             # Start with a day without a leap second and note rollover
             yyyy_mm = '{:04d}-{:02d}'.format(year, month)
             yyyy_mm_dd = '{:04d}-{:02d}-{:02d}'.format(year, month, day)
-            t1 = Time(yyyy_mm + '-01 23:59:60.0', scale='utc')
+            with pytest.warns(ErfaWarning):
+                t1 = Time(yyyy_mm + '-01 23:59:60.0', scale='utc')
             assert t1.iso == yyyy_mm + '-02 00:00:00.000'
 
             # Leap second is different
@@ -518,7 +521,8 @@ class TestBasic():
             else:
                 yyyy_mm_dd_plus1 = '{:04d}-01-01'.format(year+1)
 
-            t1 = Time(yyyy_mm_dd + ' 23:59:61.0', scale='utc')
+            with pytest.warns(ErfaWarning):
+                t1 = Time(yyyy_mm_dd + ' 23:59:61.0', scale='utc')
             assert t1.iso == yyyy_mm_dd_plus1 + ' 00:00:00.000'
 
             # Delta time gives 2 seconds here as expected
@@ -937,11 +941,14 @@ def test_decimalyear():
 
 def test_fits_year0():
     t = Time(1721425.5, format='jd')
-    assert t.fits == '0001-01-01T00:00:00.000'
+    with pytest.warns(ErfaWarning):
+        assert t.fits == '0001-01-01T00:00:00.000'
     t = Time(1721425.5 - 366., format='jd')
-    assert t.fits == '+00000-01-01T00:00:00.000'
+    with pytest.warns(ErfaWarning):
+        assert t.fits == '+00000-01-01T00:00:00.000'
     t = Time(1721425.5 - 366. - 365., format='jd')
-    assert t.fits == '-00001-01-01T00:00:00.000'
+    with pytest.warns(ErfaWarning):
+        assert t.fits == '-00001-01-01T00:00:00.000'
 
 
 def test_fits_year10000():
@@ -991,8 +998,9 @@ def test_TimeFormat_scale():
     attributes (delta_ut1_utc here), preventing conversion to unix, cxc"""
     t = Time('1900-01-01', scale='ut1')
     t.delta_ut1_utc = 0.0
-    t.unix
-    assert t.unix == t.utc.unix
+    with pytest.warns(ErfaWarning):
+        t.unix
+        assert t.unix == t.utc.unix
 
 
 @pytest.mark.remote_data
@@ -1516,8 +1524,9 @@ def test_strptime_leapsecond():
 
 
 def test_strptime_3_digit_year():
-    time_obj1 = Time('0995-12-31T00:00:00', format='isot')
-    time_obj2 = Time.strptime('0995-Dec-31 00:00:00', '%Y-%b-%d %H:%M:%S')
+    with pytest.warns(ErfaWarning):
+        time_obj1 = Time('0995-12-31T00:00:00', format='isot')
+        time_obj2 = Time.strptime('0995-Dec-31 00:00:00', '%Y-%b-%d %H:%M:%S')
 
     assert time_obj1 == time_obj2
 

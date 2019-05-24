@@ -122,6 +122,7 @@ def test_precision_epoch():
     assert allclose_sec(dt.sec, np.round(dt.sec))
 
 
+@pytest.mark.remote_data
 def test_leap_seconds_rounded_correctly():
     """Regression tests against #2083, where a leap second was rounded
     incorrectly by the underlying ERFA routine."""
