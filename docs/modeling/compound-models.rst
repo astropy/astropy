@@ -100,7 +100,7 @@ example:
 Normally it is not possible to compose, say, a model with two outputs and a
 function of only one input::
 
-    >>> from astropy.modeling.models import Rotation2D
+    >>> from astropy.modeling.models import Rotation2D, Gaussian1D
     >>> Rotation2D() | Gaussian1D()  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
