@@ -89,19 +89,7 @@ def _model_oper(oper, **kwargs):
     # Note: Originally this used functools.partial, but that won't work when
     # used in the class definition of _CompoundModelMeta since
     # _CompoundModelMeta has not been defined yet.
-
-    def _opfunc(left, right):
-        # Deprecation is for https://github.com/astropy/astropy/issues/8234
-        if not (isinstance(left, Model) and isinstance(right, Model)):
-            warnings.warn(
-                'Composition of model classes will be removed in 4.0 '
-                '(but composition of model instances is not affected)',
-                AstropyDeprecationWarning)
-
-        # Perform an arithmetic operation on two models.
-        return _CompoundModelMeta._from_operator(oper, left, right, **kwargs)
-
-    return _opfunc
+    return lambda left, right: CompoundModel(oper, left, right, **kwargs)
 
 
 class _ModelMeta(InheritDocstrings, abc.ABCMeta):
