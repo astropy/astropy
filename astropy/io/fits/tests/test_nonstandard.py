@@ -64,3 +64,6 @@ class TestNonstandardHdus(FitsTestCase):
         assert (hdul[2].data == wrapped[2].data).all()
         assert (hdul[3].data == wrapped[3].data).all()
         assert (hdul[4].data == wrapped[4].data).all()
+
+        hdul_orig.close()
+        hdul.close()

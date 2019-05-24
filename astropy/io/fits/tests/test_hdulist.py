@@ -21,22 +21,19 @@ from . import FitsTestCase
 
 class TestHDUListFunctions(FitsTestCase):
     def test_update_name(self):
-        hdul = fits.open(self.data('o4sp040b0_raw.fits'))
-        hdul[4].name = 'Jim'
-        hdul[4].ver = 9
-        assert hdul[('JIM', 9)].header['extname'] == 'JIM'
+        with fits.open(self.data('o4sp040b0_raw.fits')) as hdul:
+            hdul[4].name = 'Jim'
+            hdul[4].ver = 9
+            assert hdul[('JIM', 9)].header['extname'] == 'JIM'
 
     def test_hdu_file_bytes(self):
-        hdul = fits.open(self.data('checksum.fits'))
-        res = hdul[0].filebytes()
-        assert res == 11520
-        res = hdul[1].filebytes()
-        assert res == 8640
+        with fits.open(self.data('checksum.fits')) as hdul:
+            res = hdul[0].filebytes()
+            assert res == 11520
+            res = hdul[1].filebytes()
+            assert res == 8640
 
     def test_hdulist_file_info(self):
-        hdul = fits.open(self.data('checksum.fits'))
-        res = hdul.fileinfo(0)
-
         def test_fileinfo(**kwargs):
             assert res['datSpan'] == kwargs.get('datSpan', 2880)
             assert res['resized'] == kwargs.get('resized', False)
@@ -45,20 +42,23 @@ class TestHDUListFunctions(FitsTestCase):
             assert res['hdrLoc'] == kwargs.get('hdrLoc', 0)
             assert res['filemode'] == 'readonly'
 
-        res = hdul.fileinfo(1)
-        test_fileinfo(datLoc=17280, hdrLoc=11520)
+        with fits.open(self.data('checksum.fits')) as hdul:
+            res = hdul.fileinfo(0)
 
-        hdu = fits.ImageHDU(data=hdul[0].data)
-        hdul.insert(1, hdu)
+            res = hdul.fileinfo(1)
+            test_fileinfo(datLoc=17280, hdrLoc=11520)
 
-        res = hdul.fileinfo(0)
-        test_fileinfo(resized=True)
+            hdu = fits.ImageHDU(data=hdul[0].data)
+            hdul.insert(1, hdu)
 
-        res = hdul.fileinfo(1)
-        test_fileinfo(datSpan=None, resized=True, datLoc=None, hdrLoc=None)
+            res = hdul.fileinfo(0)
+            test_fileinfo(resized=True)
 
-        res = hdul.fileinfo(2)
-        test_fileinfo(resized=1, datLoc=17280, hdrLoc=11520)
+            res = hdul.fileinfo(1)
+            test_fileinfo(datSpan=None, resized=True, datLoc=None, hdrLoc=None)
+
+            res = hdul.fileinfo(2)
+            test_fileinfo(resized=1, datLoc=17280, hdrLoc=11520)
 
     def test_create_from_multiple_primary(self):
         """
@@ -101,14 +101,14 @@ class TestHDUListFunctions(FitsTestCase):
         """Tests appending a Simple Table ExtensionHDU to a empty HDUList."""
 
         hdul = fits.HDUList()
-        hdul1 = fits.open(self.data('tb.fits'))
-        hdul.append(hdul1[1])
-        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
-                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+        with fits.open(self.data('tb.fits')) as hdul1:
+            hdul.append(hdul1[1])
+            info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
+                    (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
-        assert hdul.info(output=False) == info
+            assert hdul.info(output=False) == info
 
-        hdul.writeto(self.temp('test-append.fits'))
+            hdul.writeto(self.temp('test-append.fits'))
 
         assert fits.info(self.temp('test-append.fits'), output=False) == info
 
@@ -131,32 +131,32 @@ class TestHDUListFunctions(FitsTestCase):
     def test_append_primary_to_non_empty_list(self):
         """Tests appending a Simple PrimaryHDU to a non-empty HDUList."""
 
-        hdul = fits.open(self.data('arange.fits'))
-        hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
-        hdul.append(hdu)
+        with fits.open(self.data('arange.fits')) as hdul:
+            hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
+            hdul.append(hdu)
 
-        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 7, (11, 10, 7), 'int32', ''),
-                (1, '', 1, 'ImageHDU', 6, (100,), 'int32', '')]
+            info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 7, (11, 10, 7), 'int32', ''),
+                    (1, '', 1, 'ImageHDU', 6, (100,), 'int32', '')]
 
-        assert hdul.info(output=False) == info
+            assert hdul.info(output=False) == info
 
-        hdul.writeto(self.temp('test-append.fits'))
+            hdul.writeto(self.temp('test-append.fits'))
 
         assert fits.info(self.temp('test-append.fits'), output=False) == info
 
     def test_append_extension_to_non_empty_list(self):
         """Tests appending a Simple ExtensionHDU to a non-empty HDUList."""
 
-        hdul = fits.open(self.data('tb.fits'))
-        hdul.append(hdul[1])
+        with fits.open(self.data('tb.fits')) as hdul:
+            hdul.append(hdul[1])
 
-        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 11, (), '', ''),
-                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
-                (2, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+            info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 11, (), '', ''),
+                    (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
+                    (2, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
-        assert hdul.info(output=False) == info
+            assert hdul.info(output=False) == info
 
-        hdul.writeto(self.temp('test-append.fits'))
+            hdul.writeto(self.temp('test-append.fits'))
 
         assert fits.info(self.temp('test-append.fits'), output=False) == info
 
@@ -203,15 +203,15 @@ class TestHDUListFunctions(FitsTestCase):
         """Tests inserting a Simple Table ExtensionHDU to a empty HDUList."""
 
         hdul = fits.HDUList()
-        hdul1 = fits.open(self.data('tb.fits'))
-        hdul.insert(0, hdul1[1])
+        with fits.open(self.data('tb.fits')) as hdul1:
+            hdul.insert(0, hdul1[1])
 
-        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
-                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+            info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
+                    (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
-        assert hdul.info(output=False) == info
+            assert hdul.info(output=False) == info
 
-        hdul.writeto(self.temp('test-insert.fits'))
+            hdul.writeto(self.temp('test-insert.fits'))
 
         assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
@@ -234,32 +234,32 @@ class TestHDUListFunctions(FitsTestCase):
     def test_insert_primary_to_non_empty_list(self):
         """Tests inserting a Simple PrimaryHDU to a non-empty HDUList."""
 
-        hdul = fits.open(self.data('arange.fits'))
-        hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
-        hdul.insert(1, hdu)
+        with fits.open(self.data('arange.fits')) as hdul:
+            hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
+            hdul.insert(1, hdu)
 
-        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 7, (11, 10, 7), 'int32', ''),
-                (1, '', 1, 'ImageHDU', 6, (100,), 'int32', '')]
+            info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 7, (11, 10, 7), 'int32', ''),
+                    (1, '', 1, 'ImageHDU', 6, (100,), 'int32', '')]
 
-        assert hdul.info(output=False) == info
+            assert hdul.info(output=False) == info
 
-        hdul.writeto(self.temp('test-insert.fits'))
+            hdul.writeto(self.temp('test-insert.fits'))
 
         assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
     def test_insert_extension_to_non_empty_list(self):
         """Tests inserting a Simple ExtensionHDU to a non-empty HDUList."""
 
-        hdul = fits.open(self.data('tb.fits'))
-        hdul.insert(1, hdul[1])
+        with fits.open(self.data('tb.fits')) as hdul:
+            hdul.insert(1, hdul[1])
 
-        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 11, (), '', ''),
-                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
-                (2, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+            info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 11, (), '', ''),
+                    (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
+                    (2, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
-        assert hdul.info(output=False) == info
+            assert hdul.info(output=False) == info
 
-        hdul.writeto(self.temp('test-insert.fits'))
+            hdul.writeto(self.temp('test-insert.fits'))
 
         assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
@@ -300,17 +300,17 @@ class TestHDUListFunctions(FitsTestCase):
 
     def test_insert_extension_to_primary_in_non_empty_list(self):
         # Tests inserting a Simple ExtensionHDU to a non-empty HDUList.
-        hdul = fits.open(self.data('tb.fits'))
-        hdul.insert(0, hdul[1])
+        with fits.open(self.data('tb.fits')) as hdul:
+            hdul.insert(0, hdul[1])
 
-        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
-                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
-                (2, '', 1, 'ImageHDU', 12, (), '', ''),
-                (3, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+            info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
+                    (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
+                    (2, '', 1, 'ImageHDU', 12, (), '', ''),
+                    (3, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
-        assert hdul.info(output=False) == info
+            assert hdul.info(output=False) == info
 
-        hdul.writeto(self.temp('test-insert.fits'))
+            hdul.writeto(self.temp('test-insert.fits'))
 
         assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
@@ -320,25 +320,25 @@ class TestHDUListFunctions(FitsTestCase):
         as the primary HDU.
         """
 
-        hdul = fits.open(self.data('tb.fits'))
-        hdu = fits.ImageHDU(np.arange(100, dtype=np.int32))
-        hdul.insert(0, hdu)
+        with fits.open(self.data('tb.fits')) as hdul:
+            hdu = fits.ImageHDU(np.arange(100, dtype=np.int32))
+            hdul.insert(0, hdu)
 
-        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', ''),
-                (1, '', 1, 'ImageHDU', 12, (), '', ''),
-                (2, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+            info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', ''),
+                    (1, '', 1, 'ImageHDU', 12, (), '', ''),
+                    (2, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
-        assert hdul.info(output=False) == info
+            assert hdul.info(output=False) == info
 
-        hdul.writeto(self.temp('test-insert.fits'))
+            hdul.writeto(self.temp('test-insert.fits'))
 
         assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
     def test_filename(self):
         """Tests the HDUList filename method."""
 
-        hdul = fits.open(self.data('tb.fits'))
-        name = hdul.filename()
+        with fits.open(self.data('tb.fits')) as hdul:
+            name = hdul.filename()
         assert name == self.data('tb.fits')
 
     def test_file_like(self):
@@ -421,11 +421,11 @@ class TestHDUListFunctions(FitsTestCase):
         ticket:48).
         """
 
-        f = fits.open(self.data('test0.fits'))
-        hdul = fits.HDUList()
-        hdul.append(f[0].copy())
-        hdu = fits.ImageHDU(header=f[1].header)
-        hdul.append(hdu)
+        with fits.open(self.data('test0.fits')) as f:
+            hdul = fits.HDUList()
+            hdul.append(f[0].copy())
+            hdu = fits.ImageHDU(header=f[1].header)
+            hdul.append(hdu)
 
         assert hdul[1].header['EXTNAME'] == 'SCI'
         assert hdul[1].header['EXTVER'] == 1
@@ -497,6 +497,7 @@ class TestHDUListFunctions(FitsTestCase):
         assert hdu[0].header['NAXIS1'] == 11
         assert hdu[0].header['NAXIS2'] == 10
         assert hdu[0].header['NAXIS3'] == 7
+        hdu.close()
 
     def test_fix_wellformed_naxisj(self):
         """
@@ -520,6 +521,7 @@ class TestHDUListFunctions(FitsTestCase):
         assert hdu[0].header['NAXIS1'] == 768
         assert hdu[0].header['NAXIS2'] == 64
         assert hdu[0].header['NAXIS3'] == 8
+        hdu.close()
 
     def test_new_hdulist_extend_keyword(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/114
@@ -538,15 +540,16 @@ class TestHDUListFunctions(FitsTestCase):
 
     def test_replace_memmaped_array(self):
         # Copy the original before we modify it
-        hdul = fits.open(self.data('test0.fits'))
-        hdul.writeto(self.temp('temp.fits'))
+        with fits.open(self.data('test0.fits')) as hdul:
+            hdul.writeto(self.temp('temp.fits'))
 
         hdul = fits.open(self.temp('temp.fits'), mode='update', memmap=True)
         old_data = hdul[1].data.copy()
         hdul[1].data = hdul[1].data + 1
         hdul.close()
-        hdul = fits.open(self.temp('temp.fits'), memmap=True)
-        assert ((old_data + 1) == hdul[1].data).all()
+
+        with fits.open(self.temp('temp.fits'), memmap=True) as hdul:
+            assert ((old_data + 1) == hdul[1].data).all()
 
     def test_open_file_with_end_padding(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/106
@@ -554,10 +557,11 @@ class TestHDUListFunctions(FitsTestCase):
         Open files with end padding bytes.
         """
 
-        hdul = fits.open(self.data('test0.fits'),
-                         do_not_scale_image_data=True)
-        info = hdul.info(output=False)
-        hdul.writeto(self.temp('temp.fits'))
+        with fits.open(self.data('test0.fits'),
+                       do_not_scale_image_data=True) as hdul:
+            info = hdul.info(output=False)
+            hdul.writeto(self.temp('temp.fits'))
+
         with open(self.temp('temp.fits'), 'ab') as f:
             f.seek(0, os.SEEK_END)
             f.write(b'\0' * 2880)
@@ -860,19 +864,19 @@ class TestHDUListFunctions(FitsTestCase):
 
         Regression test for https://github.com/astropy/astropy/issues/3060
         """
-        hdulist = fits.open(self.data('o4sp040b0_raw.fits'))
-        hdulist.append(fits.ImageHDU(name='a'))
+        with fits.open(self.data('o4sp040b0_raw.fits')) as hdulist:
+            hdulist.append(fits.ImageHDU(name='a'))
 
-        assert 'a' in hdulist
-        assert 'A' in hdulist
-        assert ('a', 1) in hdulist
-        assert ('A', 1) in hdulist
-        assert 'b' not in hdulist
-        assert ('a', 2) not in hdulist
-        assert ('b', 1) not in hdulist
-        assert ('b', 2) not in hdulist
-        assert hdulist[0] in hdulist
-        assert fits.ImageHDU() not in hdulist
+            assert 'a' in hdulist
+            assert 'A' in hdulist
+            assert ('a', 1) in hdulist
+            assert ('A', 1) in hdulist
+            assert 'b' not in hdulist
+            assert ('a', 2) not in hdulist
+            assert ('b', 1) not in hdulist
+            assert ('b', 2) not in hdulist
+            assert hdulist[0] in hdulist
+            assert fits.ImageHDU() not in hdulist
 
     def test_overwrite_vs_clobber(self):
         hdulist = fits.HDUList([fits.PrimaryHDU()])
@@ -935,6 +939,7 @@ class TestHDUListFunctions(FitsTestCase):
         # omitted.
         read_exts = [ext for ext in f[1:4] if ext.header['EXTNAME'] == 'SCI']
         assert len(read_exts) == 2
+        f.close()
 
     def test_proper_error_raised_on_non_fits_file_with_unicode(self):
         """
@@ -1005,34 +1010,35 @@ class TestHDUListFunctions(FitsTestCase):
 
     def test_pop_with_lazy_load(self):
         filename = self.data('checksum.fits')
-        hdul = fits.open(filename)
-        # Try popping the hdulist before doing anything else. This makes sure
-        # that https://github.com/astropy/astropy/issues/7185 is fixed.
-        hdu = hdul.pop()
-        assert len(hdul) == 1
+
+        with fits.open(filename) as hdul:
+            # Try popping the hdulist before doing anything else. This makes sure
+            # that https://github.com/astropy/astropy/issues/7185 is fixed.
+            hdu = hdul.pop()
+            assert len(hdul) == 1
 
         # Read the file again and try popping from the beginning
-        hdul2 = fits.open(filename)
-        hdu2 = hdul2.pop(0)
-        assert len(hdul2) == 1
+        with fits.open(filename) as hdul2:
+            hdu2 = hdul2.pop(0)
+            assert len(hdul2) == 1
 
         # Just a sanity check
-        hdul3 = fits.open(filename)
-        assert len(hdul3) == 2
-        assert hdul3[0].header == hdu2.header
-        assert hdul3[1].header == hdu.header
+        with fits.open(filename) as hdul3:
+            assert len(hdul3) == 2
+            assert hdul3[0].header == hdu2.header
+            assert hdul3[1].header == hdu.header
 
     def test_pop_extname(self):
-        hdul = fits.open(self.data('o4sp040b0_raw.fits'))
-        assert len(hdul) == 7
-        hdu1 = hdul[1]
-        hdu4 = hdul[4]
-        hdu_popped = hdul.pop(('SCI', 2))
-        assert len(hdul) == 6
-        assert hdu_popped is hdu4
-        hdu_popped = hdul.pop('SCI')
-        assert len(hdul) == 5
-        assert hdu_popped is hdu1
+        with fits.open(self.data('o4sp040b0_raw.fits')) as hdul:
+            assert len(hdul) == 7
+            hdu1 = hdul[1]
+            hdu4 = hdul[4]
+            hdu_popped = hdul.pop(('SCI', 2))
+            assert len(hdul) == 6
+            assert hdu_popped is hdu4
+            hdu_popped = hdul.pop('SCI')
+            assert len(hdul) == 5
+            assert hdu_popped is hdu1
 
     def test_write_hdulist_to_stream(self):
         """
