@@ -42,6 +42,7 @@ class TestTimeUT1():
 
         tnow.ut1
 
+    @pytest.mark.remote_data
     def test_ut1_to_utc(self):
         """Also test the reverse, around the leap second
         (round-trip test closes #2077)"""
@@ -58,6 +59,7 @@ class TestTimeUT1():
         t_back = t.utc.ut1
         assert allclose_jd(t.jd, t_back.jd)
 
+    @pytest.mark.remote_data
     def test_delta_ut1_utc(self):
         """Accessing delta_ut1_utc should try to get it from IERS
         (closes #1924 partially)"""

@@ -420,6 +420,7 @@ class TestArithmetic():
             assert np.all(self.t0.sort(-1)[:, :, -1] == self.t0.max(-1))
 
 
+@pytest.mark.remote_data
 def test_regression():
     # For #5225, where a time with a single-element delta_ut1_utc could not
     # be copied, flattened, or ravelled. (For copy, it is in test_basic.)

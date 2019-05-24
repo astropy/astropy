@@ -9,7 +9,8 @@ import pytest
 from datetime import timedelta
 
 from astropy.time import (Time, TimeDelta, OperandTypeError, ScaleValueError,
-                TIME_SCALES, STANDARD_TIME_SCALES, TIME_DELTA_SCALES)
+                          TIME_SCALES, STANDARD_TIME_SCALES, TIME_DELTA_SCALES)
+from astropy.utils.exceptions import ErfaWarning
 from astropy import units as u
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
@@ -79,15 +80,18 @@ class TestTimeDelta():
         dt = TimeDelta(100.0, format='jd')
         dt2 = TimeDelta([100.0, 200.0], format='jd')
 
-        out = t + dt
+        with pytest.warns(ErfaWarning):
+            out = t + dt
         assert allclose_jd(out.mjd, 100.0)
         assert out.isscalar
 
-        out = t + dt2
+        with pytest.warns(ErfaWarning):
+            out = t + dt2
         assert allclose_jd(out.mjd, [100.0, 200.0])
         assert not out.isscalar
 
-        out = t2 + dt
+        with pytest.warns(ErfaWarning):
+            out = t2 + dt
         assert allclose_jd(out.mjd, [100.0, 101.0])
         assert not out.isscalar
 
@@ -100,15 +104,18 @@ class TestTimeDelta():
         assert not out.isscalar
 
         # Reverse the argument order
-        out = dt + t
+        with pytest.warns(ErfaWarning):
+            out = dt + t
         assert allclose_jd(out.mjd, 100.0)
         assert out.isscalar
 
-        out = dt2 + t
+        with pytest.warns(ErfaWarning):
+            out = dt2 + t
         assert allclose_jd(out.mjd, [100.0, 200.0])
         assert not out.isscalar
 
-        out = dt + t2
+        with pytest.warns(ErfaWarning):
+            out = dt + t2
         assert allclose_jd(out.mjd, [100.0, 101.0])
         assert not out.isscalar
 
@@ -124,15 +131,18 @@ class TestTimeDelta():
         dt = TimeDelta(100.0, format='jd')
         dt2 = TimeDelta([100.0, 200.0], format='jd')
 
-        out = t - dt
+        with pytest.warns(ErfaWarning):
+            out = t - dt
         assert allclose_jd(out.mjd, -100.0)
         assert out.isscalar
 
-        out = t - dt2
+        with pytest.warns(ErfaWarning):
+            out = t - dt2
         assert allclose_jd(out.mjd, [-100.0, -200.0])
         assert not out.isscalar
 
-        out = t2 - dt
+        with pytest.warns(ErfaWarning):
+            out = t2 - dt
         assert allclose_jd(out.mjd, [-100.0, -99.0])
         assert not out.isscalar
 
@@ -195,6 +205,7 @@ class TestTimeDelta():
         with pytest.raises(TypeError):
             self.dt * object()
 
+    @pytest.mark.remote_data
     def test_keep_properties(self):
         # closes #1924 (partially)
         dt = TimeDelta(1000., format='sec')
@@ -276,6 +287,7 @@ class TestTimeDeltaScales():
         with pytest.raises(ScaleValueError):
             TimeDelta([0., 1., 10.], format='sec', scale='utc')
 
+    @pytest.mark.remote_data
     @pytest.mark.parametrize(('scale1', 'scale2'),
                              list(itertools.product(STANDARD_TIME_SCALES,
                                                     STANDARD_TIME_SCALES)))
