@@ -56,8 +56,11 @@ class TestFitsTime(FitsTestCase):
         with pytest.warns(AstropyUserWarning, match='Time Column "b" has no '
                           'specified location, but global Time Position is present'):
             t.write(self.temp('time.fits'), format='fits', overwrite=True)
-        tm = table_types.read(self.temp('time.fits'), format='fits',
-                              astropy_native=True)
+
+        with pytest.warns(fits.verify.VerifyWarning,
+                          match='Invalid keyword for column 2'):
+            tm = table_types.read(self.temp('time.fits'), format='fits',
+                                  astropy_native=True)
 
         assert (tm['a'].location == t['a'].location).all()
         assert tm['b'].location == t['b'].location
@@ -184,8 +187,11 @@ class TestFitsTime(FitsTestCase):
         # Test for default write behavior (full precision) and read it
         # back using native astropy objects; thus, ensure its round-trip
         t.write(self.temp('time.fits'), format='fits', overwrite=True)
-        tm = table_types.read(self.temp('time.fits'), format='fits',
-                              astropy_native=True)
+
+        with pytest.warns(fits.verify.VerifyWarning,
+                          match='Invalid keyword for column 1'):
+            tm = table_types.read(self.temp('time.fits'), format='fits',
+                                  astropy_native=True)
 
         # Test DATE
         assert isinstance(tm.meta['DATE'], Time)
@@ -204,8 +210,11 @@ class TestFitsTime(FitsTestCase):
         t.meta['TIMESYS'] = 'ET'
 
         t.write(self.temp('time.fits'), format='fits', overwrite=True)
-        tm = table_types.read(self.temp('time.fits'), format='fits',
-                              astropy_native=True)
+
+        with pytest.warns(fits.verify.VerifyWarning,
+                          match='Invalid keyword for column 1'):
+            tm = table_types.read(self.temp('time.fits'), format='fits',
+                                  astropy_native=True)
 
         # Test DATE
         assert isinstance(tm.meta['DATE'], Time)
