@@ -1034,7 +1034,7 @@ def _getext(filename, mode, *args, ext=None, extname=None, extver=None,
 def _makehdu(data, header):
     if header is None:
         header = Header()
-    hdu = _BaseHDU(data, header)
+    hdu = _BaseHDU._from_data(data, header)
     if hdu.__class__ in (_BaseHDU, _ValidHDU):
         # The HDU type was unrecognized, possibly due to a
         # nonexistent/incomplete header

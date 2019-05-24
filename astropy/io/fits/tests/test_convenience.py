@@ -187,3 +187,17 @@ class TestConvenience(FitsTestCase):
         append_file = tmpdir.join('append.fits')
         with append_file.open(mode) as handle:
             fits.append(filename=handle, data=np.ones((4, 4)))
+
+    def test_append_with_header(self):
+        """
+        Test fits.append with a fits Header, which triggers detection of the
+        HDU class. Regression test for
+        https://github.com/astropy/astropy/issues/8660
+        """
+        testfile = self.temp('test_append_1.fits')
+        with fits.open(self.data('test0.fits')) as hdus:
+            for hdu in hdus:
+                fits.append(testfile, hdu.data, hdu.header, checksum=True)
+
+        with fits.open(testfile, checksum=True) as hdus:
+            assert len(hdus) == 5
