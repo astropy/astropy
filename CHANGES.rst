@@ -322,6 +322,8 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+- Ensure we call numpy equality functions in a way that reduces the number
+  of ``DeprecationWarning``. [#8755]
 
 
 3.2 (unreleased)

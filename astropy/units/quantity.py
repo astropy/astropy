@@ -836,16 +836,15 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         else:
             return value
 
-    # Equality (return False if units do not match) needs to be handled
-    # explicitly for numpy >=1.9, since it no longer traps errors.
+    # Equality needs to be handled explicitly as ndarray.__eq__ gives
+    # DeprecationWarnings on any error, which is distracting.  On the other
+    # hand, for structured arrays, the ufunc does not work, so we do use
+    # __eq__ and live with the warnings.
     def __eq__(self, other):
         try:
-            try:
+            if self.dtype.kind == 'V':
                 return super().__eq__(other)
-            except DeprecationWarning:
-                # We treat the DeprecationWarning separately, since it may
-                # mask another Exception.  But we do not want to just use
-                # np.equal, since super's __eq__ treats recarrays correctly.
+            else:
                 return np.equal(self, other)
         except UnitsError:
             return False
@@ -854,9 +853,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
 
     def __ne__(self, other):
         try:
-            try:
+            if self.dtype.kind == 'V':
                 return super().__ne__(other)
-            except DeprecationWarning:
+            else:
                 return np.not_equal(self, other)
         except UnitsError:
             return True
