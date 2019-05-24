@@ -797,11 +797,51 @@ def test_cgs():
 class TestQuantityComparison:
 
     def test_quantity_equality(self):
-        assert u.Quantity(1000, unit='m') == u.Quantity(1, unit='km')
-        assert not (u.Quantity(1, unit='m') == u.Quantity(1, unit='km'))
-        # for ==, !=, return False, True if units do not match
-        assert (u.Quantity(1100, unit=u.m) != u.Quantity(1, unit=u.s)) is True
-        assert (u.Quantity(1100, unit=u.m) == u.Quantity(1, unit=u.s)) is False
+        with catch_warnings(DeprecationWarning) as w:
+            assert u.Quantity(1000, unit='m') == u.Quantity(1, unit='km')
+            assert not (u.Quantity(1, unit='m') == u.Quantity(1, unit='km'))
+            # for ==, !=, return False, True if units do not match
+            assert (u.Quantity(1100, unit=u.m) != u.Quantity(1, unit=u.s)) is True
+            assert (u.Quantity(1100, unit=u.m) == u.Quantity(1, unit=u.s)) is False
+            assert (u.Quantity(0, unit=u.m) == u.Quantity(0, unit=u.s)) is False
+            # But allow comparison with 0, +/-inf if latter unitless
+            assert u.Quantity(0, u.m) == 0.
+            assert u.Quantity(1, u.m) != 0.
+            assert u.Quantity(1, u.m) != np.inf
+            assert u.Quantity(np.inf, u.m) == np.inf
+        assert len(w) == 0
+
+    def test_quantity_equality_array(self):
+        with catch_warnings(DeprecationWarning) as w:
+            a = u.Quantity([0., 1., 1000.], u.m)
+            b = u.Quantity(1., u.km)
+            eq = a == b
+            ne = a != b
+            assert np.all(eq == [False, False, True])
+            assert np.all(eq != ne)
+            # For mismatched units, we should just get True, False
+            c = u.Quantity(1., u.s)
+            eq = a == c
+            ne = a != c
+            assert eq is False
+            assert ne is True
+            # Constants are treated as dimensionless, so False too.
+            eq = a == 1.
+            ne = a != 1.
+            assert eq is False
+            assert ne is True
+            # But 0 can have any units, so we can compare.
+            eq = a == 0
+            ne = a != 0
+            assert np.all(eq == [True, False, False])
+            assert np.all(eq != ne)
+            # But we do not extend that to arrays; they should have the same unit.
+            d = np.array([0, 1., 1000.])
+            eq = a == d
+            ne = a != d
+            assert eq is False
+            assert ne is True
+        assert len(w) == 0
 
     def test_quantity_comparison(self):
         assert u.Quantity(1100, unit=u.meter) > u.Quantity(1, unit=u.kilometer)
