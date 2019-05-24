@@ -1229,7 +1229,7 @@ class Model(metaclass=_ModelMeta):
         that takes the input and output units (as two dictionaries) and
         returns a dictionary giving the target units for each parameter.
 
-        For compound models this will only work when the expression only 
+        For compound models this will only work when the expression only
         involves the addition or subtraction operators.
         """
 
@@ -1239,8 +1239,8 @@ class Model(metaclass=_ModelMeta):
                 set(('+', '-'))):
                 raise ValueError(
                     "Fitting a compound model without units can only be performed on"
-                    "compound models that only use arithmetic operators (i.e., not"
-                    "**, &, or |")
+                    "compound models that only use the arithmetic operators + and -")
+
         model = self.copy()
         inputs_unit = {inp: getattr(kwargs[inp], 'unit',
                        dimensionless_unscaled)
