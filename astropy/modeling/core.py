@@ -75,7 +75,6 @@ class _CompoundModelMeta:
 class ModelDefinitionError(TypeError):
     """Used for incorrect models definitions"""
 
-<<<<<<< HEAD
 
 def _model_oper(oper, **kwargs):
     """
@@ -104,8 +103,6 @@ def _model_oper(oper, **kwargs):
 
     return _opfunc
 
-=======
->>>>>>> pep8
 
 class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     """
