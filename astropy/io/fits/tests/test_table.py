@@ -491,8 +491,8 @@ class TestTableFunctions(FitsTestCase):
         Tests creating a new FITS_rec object from a multi-field ndarray.
         """
 
-        h = fits.open(self.data('tb.fits'))
-        data = h[1].data
+        with fits.open(self.data('tb.fits')) as h:
+            data = h[1].data
         new_data = np.array([(3, 'qwe', 4.5, False)], dtype=data.dtype)
         appended = np.append(data, new_data).view(fits.FITS_rec)
         assert repr(appended).startswith('FITS_rec(')
@@ -1929,14 +1929,14 @@ class TestTableFunctions(FitsTestCase):
     def test_tdim_of_size_one(self):
         """Regression test for https://github.com/astropy/astropy/pull/3580"""
 
-        hdulist = fits.open(self.data('tdim.fits'))
-        assert hdulist[1].data['V_mag'].shape == (3, 1, 1)
+        with fits.open(self.data('tdim.fits')) as hdulist:
+            assert hdulist[1].data['V_mag'].shape == (3, 1, 1)
 
     def test_slicing(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/52"""
 
-        f = fits.open(self.data('table.fits'))
-        data = f[1].data
+        with fits.open(self.data('table.fits')) as f:
+            data = f[1].data
         targets = data.field('target')
         s = data[:]
         assert (s.field('target') == targets).all()
@@ -1953,8 +1953,8 @@ class TestTableFunctions(FitsTestCase):
     def test_array_slicing(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/55"""
 
-        f = fits.open(self.data('table.fits'))
-        data = f[1].data
+        with fits.open(self.data('table.fits')) as f:
+            data = f[1].data
         s1 = data[data['target'] == 'NGC1001']
         s2 = data[np.where(data['target'] == 'NGC1001')]
         s3 = data[[0]]
@@ -1989,8 +1989,8 @@ class TestTableFunctions(FitsTestCase):
         Regression test for a crash when slicing readonly memmap'd tables.
         """
 
-        f = fits.open(self.data('table.fits'), mode='readonly')
-        data = f[1].data
+        with fits.open(self.data('table.fits'), mode='readonly') as f:
+            data = f[1].data
         s1 = data[data['target'] == 'NGC1001']
         s2 = data[np.where(data['target'] == 'NGC1001')]
         s3 = data[[0]]
@@ -2021,6 +2021,8 @@ class TestTableFunctions(FitsTestCase):
 
         # Double check that the headers are equivalent
         assert str(tbhdu.header) == str(new_tbhdu.header)
+
+        hdul.close()
 
     def test_dump_load_array_colums(self):
         """
@@ -2302,6 +2304,8 @@ class TestTableFunctions(FitsTestCase):
 
         with fits.open(self.temp('test.fits')) as hdul2:
             assert comparerecords(hdul[1].data, hdul2[1].data)
+
+        hdul.close()
 
     def test_bintable_to_asciitable(self):
         """Tests initializing a TableHDU with the data from a BinTableHDU."""
@@ -2586,12 +2590,12 @@ class TestTableFunctions(FitsTestCase):
         assert S[1].data['c1'] == 2
 
         # Read and change value in memory
-        X = fits.open(self.temp("a.fits"))
-        X[1].data['c1'][0] = 10
-        assert X[1].data['c1'][0] == 10
+        with fits.open(self.temp("a.fits")) as X:
+            X[1].data['c1'][0] = 10
+            assert X[1].data['c1'][0] == 10
 
-        # Write back to file
-        X.writeto(self.temp("b.fits"))
+            # Write back to file
+            X.writeto(self.temp("b.fits"))
 
         # Now check the file
         with fits.open(self.temp("b.fits")) as hdul:
@@ -3158,7 +3162,6 @@ def test_regression_scalar_indexing():
     assert all(a == b for a, b in zip(x1a, x1b))
 
 
-
 def test_new_column_attributes_preserved(tmpdir):
 
     # Regression test for https://github.com/astropy/astropy/issues/7145
@@ -3239,7 +3242,8 @@ def test_new_column_attributes_preserved(tmpdir):
 
     # Make sure we don't emit a warning in this case
     with pytest.warns(None) as warning_list:
-        hdu2 = fits.open(filename)[1]
+        with fits.open(filename) as hdul:
+            hdu2 = hdul[1]
     assert len(warning_list) == 0
 
     # Check that column attributes are now correctly set

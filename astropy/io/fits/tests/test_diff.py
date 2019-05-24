@@ -355,10 +355,11 @@ class TestDiff(FitsTestCase):
         data = np.arange(100.0).reshape(10, 10)
         hdu = fits.CompImageHDU(data=data)
         hdu.writeto(self.temp('test.fits'))
-        hdula = fits.open(self.temp('test.fits'))
-        hdulb = fits.open(self.temp('test.fits'))
-        diff = FITSDiff(hdula, hdulb)
-        assert diff.identical
+
+        with fits.open(self.temp('test.fits')) as hdula, \
+                fits.open(self.temp('test.fits')) as hdulb:
+            diff = FITSDiff(hdula, hdulb)
+            assert diff.identical
 
     def test_different_dimensions(self):
         ia = np.arange(100).reshape(10, 10)
