@@ -311,6 +311,10 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Add support for the ``clip`` ufunc, which in numpy 1.17 is used to implement
+  ``np.clip``.  As part of that, remove the ``Quantity.clip`` method under
+  numpy 1.17. [#8747]
+
 astropy.utils
 ^^^^^^^^^^^^^
 

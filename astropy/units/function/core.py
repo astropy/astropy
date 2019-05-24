@@ -683,3 +683,7 @@ class FunctionQuantity(Quantity):
 
     def cumsum(self, axis=None, dtype=None, out=None):
         return self._wrap_function(np.cumsum, axis, dtype, out=out)
+
+    def clip(self, a_min, a_max, out=None):
+        return self._wrap_function(np.clip, self._to_own_unit(a_min),
+                                   self._to_own_unit(a_max), out=out)
