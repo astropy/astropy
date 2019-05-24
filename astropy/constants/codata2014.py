@@ -77,7 +77,7 @@ muB = CODATA2014('muB', "Bohr magneton", 927.4009994e-26,
                  'J/T', 0.00002e-26, system='si')
 
 alpha = CODATA2014('alpha', "Fine-structure constant", 7.2973525664e-3,
-                 '', 0.0000000017e-3, system='si')
+                   '', 0.0000000017e-3, system='si')
 
 atm = CODATA2014('atm', "Standard atmosphere", 101325,
                  'Pa', 0.0, system='si')
@@ -90,7 +90,7 @@ sigma_T = CODATA2014('sigma_T', "Thomson scattering cross-section",
                      system='si')
 
 b_wien = CODATA2014('b_wien', 'Wien wavelength displacement law constant',
-                    2.8977729e-3, 'm K', 00.0000017e-3, system='si')
+                    2.8977729e-3, 'm K', 0.0000017e-3, system='si')
 
 # cgs constants
 # Only constants that cannot be converted directly from S.I. are defined here.
@@ -102,4 +102,4 @@ e_emu = EMCODATA2014(e.abbrev, e.name, e.value / 10, 'abC',
                      e.uncertainty / 10, system='emu')
 
 e_gauss = EMCODATA2014(e.abbrev, e.name, e.value * c.value * 10.0,
-                     'Fr', e.uncertainty * c.value * 10.0, system='gauss')
+                       'Fr', e.uncertainty * c.value * 10.0, system='gauss')
