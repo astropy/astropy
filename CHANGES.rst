@@ -257,6 +257,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Representations with ``float32`` coordinates can now be transformed,
+  although the output will always be ``float64``. [#8759]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
