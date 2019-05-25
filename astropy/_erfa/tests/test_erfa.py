@@ -230,3 +230,11 @@ def test_structs():
     ri, di = erfa.atciqz(2.71, 0.174, am[0])
     np.testing.assert_allclose(ri, 2.709994899247599271)
     np.testing.assert_allclose(di, 0.1728740720983623469)
+
+
+def test_float32_input():
+    # Regression test for gh-8615
+    xyz = np.array([[1, 0, 0], [0.9, 0.1, 0]])
+    out64 = erfa.p2s(xyz)
+    out32 = erfa.p2s(xyz.astype('f4'))
+    np.testing.assert_allclose(out32, out64, rtol=1.e-5)

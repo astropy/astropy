@@ -590,7 +590,7 @@ fail:
  * have fixed dimensions.
  *
  * Rather than just go for our type resolver, we check here whether
- * any double input with core dimensions has dimension equal to 3.  Here,
+ * any non-void input with core dimensions has dimension equal to 3.  Here,
  * we already know that all core dimensions are equal, so we have to check
  * only one.
  */
@@ -605,7 +605,7 @@ static int ErfaUFuncD3CheckTypeResolver(PyUFuncObject *ufunc,
     for (i = 0; i < ufunc->nin; i++) {
         if (ufunc->core_num_dims[i]) {
             PyArrayObject *op = operands[i];
-            if (PyArray_DESCR(op)->type_num == NPY_DOUBLE) {
+            if (PyArray_DESCR(op)->type_num != NPY_VOID) {
                 /* last dimension is should always be 3 */
                 int last_dim = PyArray_DIMS(op)[PyArray_NDIM(op)-1];
                 if (last_dim != 3) {
