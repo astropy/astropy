@@ -230,12 +230,14 @@ Documentation vs. Tutorials vs. Guides
 Documentation
 ~~~~~~~~~~~~~
 Tone: academic and slightly more formal.
+
 * Use up style capitalization in section headings.
 * Do not use contractions.
 
 Tutorials
 ~~~~~~~~~
 Tone: academic but less formal and more friendly.
+
 * Use up style capitalization in introductory/template headings, switch to down
   style capitalization for learning/example section headings.
 * Section headings should use the imperative mood to form a command or request
@@ -245,6 +247,7 @@ Tone: academic but less formal and more friendly.
 Guides
 ~~~~~~
 Tone: academic but less formal and more friendly.
+
 * Use up style capitalization in introductory/template headings, switch to down
   style capitalization for learning/example section headings.
 * Contractions can be used as long as the tense is clear.
