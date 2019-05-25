@@ -60,7 +60,7 @@ sigma_sb = CODATA2018(
 e = EMCODATA2018('e', 'Electron charge', 1.602176634e-19,
                  'C', 0.0, system='si')
 
-eps0 = EMCODATA2018('eps0', 'Electric constant', 8.8541878128e-12,
+eps0 = EMCODATA2018('eps0', 'Vacuum electric permittivity', 8.8541878128e-12,
                     'F/m', 0.0000000013e-12, system='si')
 
 N_A = CODATA2018('N_A', "Avogadro's number", 6.02214076e23,
@@ -84,7 +84,7 @@ alpha = CODATA2018('alpha', "Fine-structure constant", 7.2973525693e-3,
 atm = CODATA2018('atm', "Standard atmosphere", 101325,
                  'Pa', 0.0, system='si')
 
-mu0 = CODATA2018('mu0', "Magnetic constant", 1.25663706212e-6,
+mu0 = CODATA2018('mu0', "Vacuum magnetic permeability", 1.25663706212e-6,
                  'N/A2', 0.00000000019e-6, system='si')
 
 sigma_T = CODATA2018('sigma_T', "Thomson scattering cross-section",
@@ -92,6 +92,8 @@ sigma_T = CODATA2018('sigma_T', "Thomson scattering cross-section",
                      system='si')
 
 # Formula taken from NIST wall chart.
+# The numerical factor is from a numerical solution to the equation for the
+# maximum. See https://en.wikipedia.org/wiki/Wien%27s_displacement_law
 b_wien = CODATA2018('b_wien', 'Wien wavelength displacement law constant',
                     h.value * c.value / (k_B.value * 4.965114231744276), 'm K',
                     0.0, system='si')
