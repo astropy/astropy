@@ -646,3 +646,18 @@ def test_regression_8276():
         finally:
             baseframe.frame_transform_graph = old_transform_graph
     assert "missing 1 required positional argument: 'default'" in str(excinfo.value)
+
+
+def test_regression_8615():
+    # note this is a "higher-level" symptom of the problem
+    # _erfa/tests/test_erfa:test_float32_input is testing for, but is kept here
+    # due to being a more practical version of the issue.
+
+    crf = CartesianRepresentation(np.array([3, 0, 4], dtype=float) * u.pc)
+    srf = SphericalRepresentation.from_cartesian(crf)  # does not error in 8615
+
+    cr = CartesianRepresentation(np.array([3, 0, 4], dtype='f4') * u.pc)
+    sr = SphericalRepresentation.from_cartesian(cr)  # errors in 8615
+
+    assert_quantity_allclose(sr.distance, 5 * u.pc)
+    assert_quantity_allclose(srf.distance, 5 * u.pc)
