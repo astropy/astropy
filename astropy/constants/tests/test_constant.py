@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-
 import copy
 
 import pytest
 
 from astropy.constants import Constant
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import Quantity as Q
 
 
@@ -37,7 +36,7 @@ def test_h():
     assert abs(h.cgs.value - 6.626e-27) < 1e-31
 
     # make sure it has the necessary attributes and they're not blank
-    assert h.uncertainty
+    assert h.uncertainty == 0  # CODATA 2018 set h to exact value
     assert h.name
     assert h.reference
     assert h.unit
@@ -65,7 +64,11 @@ def test_e():
     assert isinstance(e.gauss, Q)
     assert isinstance(e.esu, Q)
 
-    assert e.si * E == Q(100, 'eV/m')
+    # We cannot use == comparison because:
+    # e.si * E = <Quantity 1.60217663e-17 C V / m>
+    # (e.si * E).to(u.eV / u.m) = <Quantity 100.00000082 eV / m>
+    assert_quantity_allclose(e.si * E, Q(100, 'eV/m'))
+
     assert e.gauss * E == Q(e.gauss.value * E.value, 'Fr V/m')
     assert e.esu * E == Q(e.esu.value * E.value, 'Fr V/m')
 

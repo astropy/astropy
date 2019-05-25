@@ -161,7 +161,10 @@ def test_context_manager():
     with const.set_enabled_constants('astropyconst13'):
         assert const.h.value == 6.62606957e-34  # CODATA2010
 
-    assert const.h.value == 6.626070040e-34  # CODATA2014
+    with const.set_enabled_constants('astropyconst20'):
+        assert const.h.value == 6.626070040e-34  # CODATA2014
+
+    assert const.h.value == 6.62607015e-34  # CODATA2018
 
     with pytest.raises(ImportError):
         with const.set_enabled_constants('notreal'):

@@ -26,9 +26,9 @@ del units
 from .constant import Constant, EMConstant  # noqa
 from . import si  # noqa
 from . import cgs  # noqa
-from .config import codata, iaudata
+from .config import codata, iaudata  # noqa
 
-from . import utils as _utils
+from . import utils as _utils  # noqa
 
 # for updating the constants module docstring
 _lines = [
@@ -61,7 +61,7 @@ def set_enabled_constants(modname):
 
     Parameters
     ----------
-    modname : {'astropyconst13'}
+    modname : {'astropyconst13', 'astropyconst20'}
         Name of the module containing an older version.
 
     """

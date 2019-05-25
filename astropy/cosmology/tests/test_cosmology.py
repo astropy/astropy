@@ -11,7 +11,7 @@ from astropy.utils.compat import NUMPY_LT_1_14
 from astropy import units as u
 
 try:
-    import scipy  # pylint: disable=W0611
+    import scipy  # pylint: disable=W0611  # noqa
 except ImportError:
     HAS_SCIPY = False
 else:
@@ -1088,13 +1088,13 @@ def test_critical_density():
     #  units by default; see the comment at the top of core.py
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     assert allclose(tcos.critical_density0,
-                    9.309668456020899e-30 * u.g / u.cm**3)
+                    9.309361588325364e-30 * u.g / u.cm**3)
     assert allclose(tcos.critical_density0,
                     tcos.critical_density(0))
     assert allclose(tcos.critical_density([1, 5]),
-                    [2.70352772e-29, 5.53739080e-28] * u.g / u.cm**3)
+                    [2.70343861e-29, 5.53720827e-28] * u.g / u.cm**3)
     assert allclose(tcos.critical_density([1., 5.]),
-                    [2.70352772e-29, 5.53739080e-28] * u.g / u.cm**3)
+                    [2.70343861e-29, 5.53720827e-28] * u.g / u.cm**3)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
