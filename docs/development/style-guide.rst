@@ -1,3 +1,5 @@
+.. _astropy-style-guide:
+
 ******************************************************************
 Astropy Narrative Style Guide: A Writing Resource for Contributors
 ******************************************************************
@@ -158,14 +160,18 @@ Hyphenation above).
 
 En dashes (– longer) should be used for number ranges (dates, times, pages) or
 to replace the words “to” or “through,” without spaces around the dash.
-Examples:
+
+Examples
+--------
 * See chapters 14–18
 * We’ve blocked off March 2019–May 2019 to develop a new version.
 
 Em dashes (— longest) can be used in place of commas, parentheses, or colons to
 set off amplifying or explanatory elements. In Astropy materials, follow AP
 style, which calls for spaces on either side of each em dash.
-Examples:
+
+Examples
+--------
 * Several types of input angles — array, scalar, tuple, string — can be used in
   the creation of an Angle object.
 * The creation of an Angle object supports a variety of input angle types —
