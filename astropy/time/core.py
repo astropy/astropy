@@ -2157,6 +2157,10 @@ class TimeDelta(Time):
         return u.Quantity(self._time.jd1 + self._time.jd2,
                           u.day).to(*args, **kwargs)
 
+    def to_value(self, *args, **kwargs):
+        return u.Quantity(self._time.jd1 + self._time.jd2,
+                          u.day).to_value(*args, **kwargs)
+
     def _make_value_equivalent(self, item, value):
         """Coerce setitem value into an equivalent TimeDelta object"""
         if not isinstance(value, TimeDelta):
