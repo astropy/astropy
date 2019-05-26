@@ -15,6 +15,14 @@ allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
 dt_tiny = TimeDelta(2. ** -52, format='jd')
 
 
+def test_abs_jd2_always_less_than_half():
+    """Make jd2 approach +/-0.5, and check that it doesn't go over."""
+    t1 = Time(2400000.5, [-2**-52, +2**-52], format='jd')
+    assert np.all(abs(t1.jd2) < 0.5)
+    t2 = Time(2400000., [0.5-2**-52, 0.5+2**-52], format='jd')
+    assert np.all(abs(t2.jd2) < 0.5)
+
+
 def test_addition():
     """Check that an addition at the limit of precision (2^-52) is seen"""
     t = Time(2455555., 0.5, format='jd', scale='utc')

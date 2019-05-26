@@ -49,6 +49,12 @@ def day_frac(val1, val2, factor=None, divisor=None):
     day = np.round(sum12)
     extra, frac = two_sum(sum12, -day)
     frac += extra + err12
+    # Our fraction can now have gotten >0.5 or <-0.5, which means we would
+    # loose one bit of precision. So, correct for that.
+    excess = np.round(frac)
+    day += excess
+    extra, frac = two_sum(sum12, -day)
+    frac += extra + err12
     return day, frac
 
 
