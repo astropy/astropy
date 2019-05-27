@@ -2153,13 +2153,58 @@ class TimeDelta(Time):
         # since other has already had a chance to look at us.
         return other / self.to(u.day)
 
-    def to(self, *args, **kwargs):
-        return u.Quantity(self._time.jd1 + self._time.jd2,
-                          u.day).to(*args, **kwargs)
+    def to(self, unit, equivalencies=[]):
+        """
+        Convert to a quantity in the specified unit.
 
-    def to_value(self, *args, **kwargs):
+        Parameters
+        ----------
+        unit : `~astropy.units.UnitBase` instance, str
+            The unit to convert to.
+        equivalencies : list of equivalence pairs, optional
+            A list of equivalence pairs to try if the units are not directly
+            convertible (see :ref:`unit_equivalencies`). If `None`, no
+            equivalencies will be applied at all, not even any set globallyq
+            or within a context.
+
+        Returns
+        -------
+        quantity : `~astropy.units.Quantity`
+            The quantity in the units specified.
+
+        See also
+        --------
+        to_value : get the numerical value in a given unit.
+        """
         return u.Quantity(self._time.jd1 + self._time.jd2,
-                          u.day).to_value(*args, **kwargs)
+                          u.day).to(unit, equivalencies=equivalencies)
+
+    def to_value(self, unit, equivalencies=[]):
+        """
+        The numerical value in the specified unit.
+
+        Parameters
+        ----------
+        unit : `~astropy.units.UnitBase` instance or str, optional
+            The unit in which the value should be given.
+        equivalencies : list of equivalence pairs, optional
+            A list of equivalence pairs to try if the units are not directly
+            convertible (see :ref:`unit_equivalencies`). If `None`, no
+            equivalencies will be applied at all, not even any set globally
+            or within a context.
+
+        Returns
+        -------
+        value : `~numpy.ndarray` or scalar
+            The value in the units specified.
+
+        See also
+        --------
+        to : Convert to a `~astropy.units.Quantity` instance in a given unit.
+        value : The time value in the current format.
+        """
+        return u.Quantity(self._time.jd1 + self._time.jd2,
+                          u.day).to_value(unit, equivalencies=equivalencies)
 
     def _make_value_equivalent(self, item, value):
         """Coerce setitem value into an equivalent TimeDelta object"""
