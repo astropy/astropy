@@ -24,6 +24,9 @@ Examples
   coordinate — for example, RA or Dec — to get string representations of the
   full coordinate.
 
+For general use and scientific terms, use the full term instead of the
+abbreviation, for example, write out white dwarf instead of WD, etc.
+
 Capitalization
 ==============
 
