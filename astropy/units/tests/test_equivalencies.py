@@ -681,10 +681,8 @@ def test_temperature():
 def test_temperature_energy():
     x = 1000 * u.K
     y = (x * constants.k_B).to(u.keV)
-    assert_allclose(
-        x.to_value(u.keV, u.temperature_energy()), y.value, rtol=1e-6)
-    assert_allclose(
-        y.to_value(u.K, u.temperature_energy()), x.value, rtol=1e-6)
+    assert_allclose(x.to_value(u.keV, u.temperature_energy()), y.value)
+    assert_allclose(y.to_value(u.K, u.temperature_energy()), x.value)
 
 
 def test_molar_mass_amu():
