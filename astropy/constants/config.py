@@ -4,24 +4,30 @@ Configures the codata and iaudata used, possibly using user configuration.
 """
 # Note: doing this in __init__ causes import problems with units,
 # as si.py and cgs.py have to import the result.
-from . import conf
+from astropy import physical_constants, astronomical_constants
 
-if ((conf.physical_constants == 'codata2014') or
-        (conf.physical_constants == 'astropyconst20')):
-    from . import codata2014 as codata
-elif ((conf.physical_constants == 'codata2010') or
-        (conf.physical_constants == 'astropyconst13')):
+if ((physical_constants.get() == 'codata2018') or
+        (physical_constants.get() == 'astropyconst40')):
+    from . import codata2018 as codata
+elif ((physical_constants.get() == 'codata2014') or
+        (physical_constants.get() == 'astropyconst20')):
+    from .astropyconst20 import codata2014 as codata  # noqa
+elif ((physical_constants.get() == 'codata2010') or
+        (physical_constants.get() == 'astropyconst13')):
     from .astropyconst13 import codata2010 as codata  # noqa
 else:
+    # ScienceState validates values so this should never happen
     raise ValueError('Invalid physical constants version: {}'
-                     .format(conf.physical_constants))
+                     .format(physical_constants.get()))
 
-if ((conf.astronomical_constants == 'iau2015') or
-        (conf.astronomical_constants == 'astropyconst20')):
+if ((astronomical_constants.get() == 'iau2015') or
+        (astronomical_constants.get() == 'astropyconst40') or
+        (astronomical_constants.get() == 'astropyconst20')):
     from . import iau2015 as iaudata
-elif ((conf.astronomical_constants == 'iau2012') or
-        (conf.astronomical_constants == 'astropyconst13')):
+elif ((astronomical_constants.get() == 'iau2012') or
+        (astronomical_constants.get() == 'astropyconst13')):
     from .astropyconst13 import iau2012 as iaudata  # noqa
 else:
+    # ScienceState validates values so this should never happen
     raise ValueError('Invalid astronomical constants version: {}'
-                     .format(conf.astronomical_constants))
+                     .format(astronomical_constants.get()))
