@@ -142,41 +142,34 @@ manager is available as follows:
     Units such as ``u.M_sun`` will use the current version of the
     corresponding constant. When using prior versions of the constants,
     quantities should be constructed with constants instead of units.
-    Alternatively, the constants versions may be set in your
-    configuration file (next section).
+    Alternatively, the constants versions may be set via ScienceState
+    classes (see next section).
 
-Configuring a prior version of the constants
-============================================
+Setting a prior version of the constants
+========================================
 
 To ensure consistent use of a prior version of constants in other Astropy
 packages (such as ``astropy.units``) that import constants, the physical and
-astronomical constants versions may be set in your configuration file.
-For example, if you modify the configuration file to include:
+astronomical constants versions may be set via ScienceState classes.
+These must be set before the first import of either ``constants`` or ``units.``
+For example, you can use the CODATA2010 physical constants and the
+IAU 2012 astronomical constants:
 
-.. code-block:: ini
-
-    [constants]
-
-    ## Previous version of physical constants
-    physical_constants = 'codata2010'
-
-    ## Previous version of astronomical constants
-    astronomical_constants = 'iau2012'
+    >>> from astropy import physical_constants, astronomical_constants
+    >>> physical_constants.set('codata2010')
+    >>> astronomical_constants.set('iau2012')
 
 Then all other packages that import ``astropy.constants`` will self-consistently
 initialize with that prior version of constants.
 
 The versions may also be set using values referring to the version modules:
 
-.. code-block:: ini
+    >>> from astropy import physical_constants, astronomical_constants
+    >>> physical_constants.set('astropyconst13')
+    >>> astronomical_constants.set('astropyconst13')
 
-    [constants]
-
-    ## Previous version of physical constants
-    physical_constants = 'astropyconst13'
-
-    ## Previous version of astronomical constants
-    astronomical_constants = 'astropyconst13'
+If either ``constants`` or ``units`` have already been imported, a
+``RuntimeError`` will be raised.
 
 .. note that if this section gets too long, it should be moved to a separate
    doc page - see the top of performance.inc.rst for the instructions on how to
