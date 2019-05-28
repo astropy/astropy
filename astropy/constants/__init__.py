@@ -25,33 +25,6 @@ try:
 except ImportError:
     pass
 
-import astropy.config as _config
-
-
-# Note: this definition has to happen before the following imports!
-class Conf(_config.ConfigNamespace):
-    """
-    Configuration parameters for `astropy.constants`.
-    """
-    # NOTE: Update this when default changes.
-    physical_constants = _config.ConfigItem(
-        'codata2014',
-        'Version of physical constants to use.')
-    astronomical_constants = _config.ConfigItem(
-        'iau2015',
-        'Version of astronomical constants to use.')
-
-
-conf = Conf()
-
-# Hack to make circular imports with units work
-try:
-    from astropy import units
-    del units
-except ImportError:
-    pass
-
-
 # These imports are used by other astropy modules
 from .constant import Constant, EMConstant  # noqa
 from . import si  # noqa
