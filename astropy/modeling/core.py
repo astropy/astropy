@@ -4069,6 +4069,3 @@ def prepare_bounding_box_outputs(valid_result, valid_ind,
 
 def _strip_ones(intup):
     return tuple(item for item in intup if item != 1)
-
-
-copyreg.pickle(_ModelMeta, _ModelMeta.__reduce__)
