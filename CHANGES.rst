@@ -58,6 +58,9 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- ``TimeDelta`` gained a ``to_value`` method, so that it becomes easier to
+  use it wherever a ``Quantity`` with units of time could be used. [#8762]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 

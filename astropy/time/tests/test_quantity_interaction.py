@@ -127,9 +127,13 @@ class TestTimeDeltaQuantity():
         q = 500.25*u.day
         dt = TimeDelta(q)
         assert dt.to(u.day) == q
+        assert dt.to_value(u.day) == q.value
         assert dt.to(u.second).value == q.to_value(u.second)
+        assert dt.to_value(u.second) == q.to_value(u.second)
         with pytest.raises(u.UnitsError):
             dt.to(u.m)
+        with pytest.raises(u.UnitsError):
+            dt.to_value(u.m)
 
     def test_valid_quantity_operations1(self):
         """Check adding/substracting/comparing a time-valued quantity works
