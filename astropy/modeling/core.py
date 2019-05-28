@@ -1268,7 +1268,6 @@ class Model(metaclass=_ModelMeta):
             for parname in item.param_names:
                 par = getattr(item, parname)
                 par._set_unit(None, force=True)
-                #setattr(item.value, parname, par)
 
     def with_units_from_data(self, **kwargs):
         """
