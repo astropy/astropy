@@ -11,8 +11,19 @@ allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
 allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52 * 24 * 3600)  # 20 ps atol
 
+tiny = 2. ** -52
+dt_tiny = TimeDelta(tiny, format='jd')
 
-dt_tiny = TimeDelta(2. ** -52, format='jd')
+
+def test_abs_jd2_always_less_than_half():
+    """Make jd2 approach +/-0.5, and check that it doesn't go over."""
+    t1 = Time(2400000.5, [-tiny, +tiny], format='jd')
+    assert np.all(t1.jd1 % 1 == 0)
+    assert np.all(abs(t1.jd2) < 0.5)
+    t2 = Time(2400000., [[0.5-tiny, 0.5+tiny],
+                         [-0.5-tiny, -0.5+tiny]], format='jd')
+    assert np.all(t2.jd1 % 1 == 0)
+    assert np.all(abs(t2.jd2) < 0.5)
 
 
 def test_addition():
@@ -77,13 +88,12 @@ def test_iso_init():
     assert allclose_jd2(dt.jd2, 13. / 24. + 1e-8 / 86400. - 1.0)
 
 
-def test_jd1_is_mult_of_half_or_one():
+def test_jd1_is_mult_of_one():
     """
-    Check that jd1 is a multiple of 0.5 (note the difference from when Time is created
-    with a format like 'jd' or 'cxcsec', where jd1 is a multiple of 1.0).
+    Check that jd1 is a multiple of 1.
     """
     t1 = Time('2000:001:00:00:00.00000001', scale='tai')
-    assert np.round(t1.jd1 * 2) == t1.jd1 * 2
+    assert np.round(t1.jd1) == t1.jd1
     t1 = Time(1.23456789, 12345678.90123456, format='jd', scale='tai')
     assert np.round(t1.jd1) == t1.jd1
 

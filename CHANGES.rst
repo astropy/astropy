@@ -308,6 +308,9 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Corrected small rounding errors that could cause the ``jd2`` values in
+  ``Time`` to fall outside the range of -0.5 to 0.5. [#8763]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
