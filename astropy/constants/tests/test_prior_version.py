@@ -5,6 +5,7 @@ import copy
 import pytest
 
 from astropy.constants import Constant
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import Quantity as Q
 
 
@@ -59,7 +60,10 @@ def test_e():
     assert isinstance(e.gauss, Q)
     assert isinstance(e.esu, Q)
 
-    assert e.si * E == Q(100, 'eV/m')
+    # Cannot use == comparison here because conversion to eV
+    # uses constants.si.e value that can vary over time.
+    assert_quantity_allclose(e.si * E, Q(100, 'eV/m'))
+
     assert e.gauss * E == Q(e.gauss.value * E.value, 'Fr V/m')
     assert e.esu * E == Q(e.esu.value * E.value, 'Fr V/m')
 
