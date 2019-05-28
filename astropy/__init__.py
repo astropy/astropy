@@ -164,7 +164,7 @@ class physical_constants(ScienceState):
     """
     The version of physical constants to use
     """
-    _value = 'codata2018'
+    _value = 'codata2014'
 
     allowed_versions = ('codata2018', 'codata2014', 'codata2010',
                         'astropyconst40', 'astropyconst20', 'astropyconst13')
