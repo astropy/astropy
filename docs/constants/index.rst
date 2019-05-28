@@ -156,8 +156,8 @@ For example, you can use the CODATA2010 physical constants and the
 IAU 2012 astronomical constants:
 
     >>> from astropy import physical_constants, astronomical_constants
-    >>> physical_constants.set('codata2010')
-    >>> astronomical_constants.set('iau2012')
+    >>> physical_constants.set('codata2010')  # doctest: +SKIP
+    >>> astronomical_constants.set('iau2012')  # doctest: +SKIP
 
 Then all other packages that import ``astropy.constants`` will self-consistently
 initialize with that prior version of constants.
@@ -165,8 +165,8 @@ initialize with that prior version of constants.
 The versions may also be set using values referring to the version modules:
 
     >>> from astropy import physical_constants, astronomical_constants
-    >>> physical_constants.set('astropyconst13')
-    >>> astronomical_constants.set('astropyconst13')
+    >>> physical_constants.set('astropyconst13')  # doctest: +SKIP
+    >>> astronomical_constants.set('astropyconst13')  # doctest: +SKIP
 
 If either ``constants`` or ``units`` have already been imported, a
 ``RuntimeError`` will be raised.
