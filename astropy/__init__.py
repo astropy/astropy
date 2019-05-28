@@ -157,6 +157,54 @@ class Conf(_config.ConfigNamespace):
 
 conf = Conf()
 
+
+# Define a ScienceState for constants and units
+from .utils.state import ScienceState
+class physical_constants(ScienceState):
+    """
+    The version of physical constants to use
+    """
+    _value = 'codata2018'
+
+    @classmethod
+    def validate(cls, value):
+        if value not in ('codata2018', 'codata2014', 'codata2015'):
+            raise ValueError('Must be one of codata2018, codata2014, ' +
+                             'codata2010')
+        return value
+
+    @classmethod
+    def set(cls, value):
+        """
+        Set the current physical constants value.
+        """
+        import sys
+        if 'astropy.units' in sys.modules:
+            raise RuntimeError('astropy.units is already imported')
+        if 'astropy.constants' in sys.modules:
+            raise RuntimeError('astropy.constants is already imported')
+
+        class _Context:
+            def __init__(self, parent, value):
+                self._value = value
+                self._parent = parent
+
+            def __enter__(self):
+                pass
+
+            def __exit__(self, type, value, tb):
+                self._parent._value = self._value
+
+            def __repr__(self):
+                return ('<ScienceState {0}: {1!r}>'
+                        .format(self._parent.__name__, self._parent._value))
+
+        ctx = _Context(cls, cls._value)
+        value = cls.validate(value)
+        cls._value = value
+        return ctx
+
+
 # Create the test() function
 from .tests.runner import TestRunner
 test = TestRunner.make_test_runner_in(__path__[0])
@@ -320,7 +368,7 @@ def online_help(query):
 
 __dir_inc__ = ['__version__', '__githash__', '__minimum_numpy_version__',
                '__bibtex__', 'test', 'log', 'find_api_page', 'online_help',
-               'online_docs_root', 'conf']
+               'online_docs_root', 'conf', 'physical_constants']
 
 
 from types import ModuleType as __module_type__
