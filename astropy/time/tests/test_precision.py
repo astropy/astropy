@@ -88,13 +88,12 @@ def test_iso_init():
     assert allclose_jd2(dt.jd2, 13. / 24. + 1e-8 / 86400. - 1.0)
 
 
-def test_jd1_is_mult_of_half_or_one():
+def test_jd1_is_mult_of_one():
     """
-    Check that jd1 is a multiple of 0.5 (note the difference from when Time is created
-    with a format like 'jd' or 'cxcsec', where jd1 is a multiple of 1.0).
+    Check that jd1 is a multiple of 1.
     """
     t1 = Time('2000:001:00:00:00.00000001', scale='tai')
-    assert np.round(t1.jd1 * 2) == t1.jd1 * 2
+    assert np.round(t1.jd1) == t1.jd1
     t1 = Time(1.23456789, 12345678.90123456, format='jd', scale='tai')
     assert np.round(t1.jd1) == t1.jd1
 
