@@ -11,15 +11,18 @@ allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
 allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52 * 24 * 3600)  # 20 ps atol
 
-
-dt_tiny = TimeDelta(2. ** -52, format='jd')
+tiny = 2. ** -52
+dt_tiny = TimeDelta(tiny, format='jd')
 
 
 def test_abs_jd2_always_less_than_half():
     """Make jd2 approach +/-0.5, and check that it doesn't go over."""
-    t1 = Time(2400000.5, [-2**-52, +2**-52], format='jd')
+    t1 = Time(2400000.5, [-tiny, +tiny], format='jd')
+    assert np.all(t1.jd1 % 1 == 0)
     assert np.all(abs(t1.jd2) < 0.5)
-    t2 = Time(2400000., [0.5-2**-52, 0.5+2**-52], format='jd')
+    t2 = Time(2400000., [[0.5-tiny, 0.5+tiny],
+                         [-0.5-tiny, -0.5+tiny]], format='jd')
+    assert np.all(t2.jd1 % 1 == 0)
     assert np.all(abs(t2.jd2) < 0.5)
 
 

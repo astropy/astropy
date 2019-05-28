@@ -12,14 +12,24 @@ from astropy import units as u
 
 
 def day_frac(val1, val2, factor=None, divisor=None):
-    """
-    Return the sum of ``val1`` and ``val2`` as two float64s, an integer part
-    and the fractional remainder.  If ``factor`` is given, then multiply the
-    sum by it.  If ``divisor`` is given, then divide the sum by it.
+    """Return the sum of ``val1`` and ``val2`` as two float64s.
+
+    The returned floats are an integer part and the fractional remainder,
+    with the latter guaranteed to be within -0.5 and 0.5 (inclusive on
+    either side, as the integer is rounded to even).
 
     The arithmetic is all done with exact floating point operations so no
-    precision is lost to rounding error.  This routine assumes the sum is less
-    than about 1e16, otherwise the ``frac`` part will be greater than 1.0.
+    precision is lost to rounding error.  It is assumed the sum is less
+    than about 1e16, otherwise the remainder will be greater than 1.0.
+
+    Parameters
+    ----------
+    val1, val2 : array of float
+        Values to be summed.
+    factor : float, optional
+        If given, multiply the sum by it.
+    divisor : float, optional
+        If given, divide the sum by it.
 
     Returns
     -------
