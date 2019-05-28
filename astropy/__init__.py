@@ -166,11 +166,13 @@ class physical_constants(ScienceState):
     """
     _value = 'codata2018'
 
+    allowed_versions = ('codata2018', 'codata2014', 'codata2010',
+                        'astropyconst40', 'astropyconst20', 'astropyconst13')
+
     @classmethod
     def validate(cls, value):
-        if value not in ('codata2018', 'codata2014', 'codata2015'):
-            raise ValueError('Must be one of codata2018, codata2014, ' +
-                             'codata2010')
+        if value not in cls.allowed_versions:
+            raise ValueError('Must be one of {}'.format(cls.allowed_versions))
         return value
 
     @classmethod
@@ -203,6 +205,22 @@ class physical_constants(ScienceState):
         value = cls.validate(value)
         cls._value = value
         return ctx
+
+
+class astronomical_constants(physical_constants):
+    """
+    The version of physical constants to use
+    """
+    _value = 'iau2015'
+
+    allowed_versions = ('iau2015', 'iau2012',
+                        'astropyconst40', 'astropyconst20', 'astropyconst13')
+
+    @classmethod
+    def validate(cls, value):
+        if value not in cls.allowed_versions:
+            raise ValueError('Must be one of {}'.format(cls.allowed_versions))
+        return value
 
 
 # Create the test() function
@@ -368,7 +386,8 @@ def online_help(query):
 
 __dir_inc__ = ['__version__', '__githash__', '__minimum_numpy_version__',
                '__bibtex__', 'test', 'log', 'find_api_page', 'online_help',
-               'online_docs_root', 'conf', 'physical_constants']
+               'online_docs_root', 'conf', 'physical_constants',
+               'astronomical_constants']
 
 
 from types import ModuleType as __module_type__
