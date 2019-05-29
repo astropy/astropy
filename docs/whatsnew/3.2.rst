@@ -206,6 +206,12 @@ The :class:`~astropy.timeseries.LombScargle` and
 :class:`~astropy.timeseries.BoxLeastSquares` periodogram classes have now moved
 from the :mod:`astropy.stats` to the :mod:`astropy.timeseries` module.
 
+The previously deprecated ``astropy.tests.pytest_plugins`` module has been
+removed. The variables ``PYTEST_HEADER_MODULES`` and ``TESTED_VERSIONS`` should
+instead be imported from ``astropy.tests.plugins.display``, and the function
+``enable_deprecations_as_exceptions`` should be imported from
+``astropy.tests.helper``.
+
 Full change log
 ===============
 
