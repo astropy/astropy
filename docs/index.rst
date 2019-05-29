@@ -138,6 +138,7 @@ as a whole, see :doc:`development/vision`.
    development/when_to_rebase
    development/codeguide
    development/docguide
+   development/style-guide
    development/testguide
    development/scripts
    development/building

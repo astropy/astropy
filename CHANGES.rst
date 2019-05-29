@@ -698,7 +698,6 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
-
 Bug Fixes
 ---------
 
@@ -862,6 +861,9 @@ Other Changes and Additions
 
 - Made running the tests insensitive to local user configuration when running
   the tests in parallel mode or directly with pytest. [#8727]
+
+- Added a narrative style guide to the documentation for contributor reference.
+  [#8588]
 
 Installation
 ^^^^^^^^^^^^
