@@ -1522,7 +1522,8 @@ def test_strptime_leapsecond():
 
 def test_strptime_3_digit_year():
     time_obj1 = Time('0995-12-31T00:00:00', format='isot', scale='tai')
-    time_obj2 = Time.strptime('0995-Dec-31 00:00:00', '%Y-%b-%d %H:%M:%S')
+    time_obj2 = Time.strptime('0995-Dec-31 00:00:00', '%Y-%b-%d %H:%M:%S',
+                              scale='tai')
 
     assert time_obj1 == time_obj2
 
