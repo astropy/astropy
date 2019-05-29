@@ -4,6 +4,7 @@ import pytest
 from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord, solar_system_ephemeris
 from astropy.time import Time, TimeDelta
+from astropy.utils import iers
 
 try:
     import jplephem  # pylint: disable=W0611  # noqa
@@ -13,8 +14,7 @@ else:
     HAS_JPLEPHEM = True
 
 
-@pytest.mark.remote_data
-class TestHelioBaryCentric():
+class TestHelioBaryCentric:
     """
     Verify time offsets to the solar system barycentre and the heliocentre.
     Uses the WHT observing site.
@@ -23,6 +23,15 @@ class TestHelioBaryCentric():
     routines.  They agree to an independent SLALIB based implementation
     to 20 microseconds.
     """
+    @classmethod
+    def setup_class(cls):
+        cls.orig_auto_download = iers.conf.auto_download
+        iers.conf.auto_download = False
+
+    @classmethod
+    def teardown_class(cls):
+        iers.conf.auto_download = cls.orig_auto_download
+
     def setup(self):
         wht = EarthLocation(342.12*u.deg, 28.758333333333333*u.deg, 2327*u.m)
         self.obstime = Time("2013-02-02T23:00", location=wht)
@@ -56,6 +65,7 @@ class TestHelioBaryCentric():
         assert bval_arr[0]-bval1 < 1. * u.us
         assert bval_arr[1]-bval2 < 1. * u.us
 
+    @pytest.mark.remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     def test_ephemerides(self):
         bval1 = self.obstime.light_travel_time(self.star, 'barycentric')

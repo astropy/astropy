@@ -19,10 +19,10 @@ else:
     HAS_IERS_A = True
 
 
-class TestTimeUT1():
+@pytest.mark.remote_data
+class TestTimeUT1:
     """Test Time.ut1 using IERS tables"""
 
-    @pytest.mark.remote_data
     def test_utc_to_ut1(self):
         "Test conversion of UTC to UT1, making sure to include a leap second"""
         t = Time(['2012-06-30 12:00:00', '2012-06-30 23:59:59',
@@ -42,7 +42,6 @@ class TestTimeUT1():
 
         tnow.ut1
 
-    @pytest.mark.remote_data
     def test_ut1_to_utc(self):
         """Also test the reverse, around the leap second
         (round-trip test closes #2077)"""
@@ -59,7 +58,6 @@ class TestTimeUT1():
         t_back = t.utc.ut1
         assert allclose_jd(t.jd, t_back.jd)
 
-    @pytest.mark.remote_data
     def test_delta_ut1_utc(self):
         """Accessing delta_ut1_utc should try to get it from IERS
         (closes #1924 partially)"""
@@ -72,7 +70,7 @@ class TestTimeUT1():
 
 
 @pytest.mark.skipif('not HAS_IERS_A')
-class TestTimeUT1_IERSA():
+class TestTimeUT1_IERSA:
     def test_ut1_iers_A(self):
         tnow = Time.now()
         iers_a = iers.IERS_A.open()
@@ -83,7 +81,7 @@ class TestTimeUT1_IERSA():
 
 
 @pytest.mark.remote_data
-class TestTimeUT1_IERS_Auto():
+class TestTimeUT1_IERS_Auto:
     def test_ut1_iers_auto(self):
         tnow = Time.now()
         iers_a = iers.IERS_Auto.open()

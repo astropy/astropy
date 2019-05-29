@@ -10,7 +10,7 @@ from datetime import timedelta
 
 from astropy.time import (Time, TimeDelta, OperandTypeError, ScaleValueError,
                           TIME_SCALES, STANDARD_TIME_SCALES, TIME_DELTA_SCALES)
-from astropy.utils.exceptions import ErfaWarning
+from astropy.utils import iers
 from astropy import units as u
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
@@ -18,9 +18,20 @@ allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52)  # 20 ps atol
 allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52 * 24 * 3600)  # 20 ps atol
+orig_auto_download = iers.conf.auto_download
 
 
-class TestTimeDelta():
+def setup_module(module):
+    """Use offline IERS table only."""
+    iers.conf.auto_download = False
+
+
+def teardown_module(module):
+    """Restore original setting."""
+    iers.conf.auto_download = orig_auto_download
+
+
+class TestTimeDelta:
     """Test TimeDelta class"""
 
     def setup(self):
@@ -75,23 +86,20 @@ class TestTimeDelta():
     def test_add_vector(self):
         """Check time arithmetic as well as properly keeping track of whether
         a time is a scalar or a vector"""
-        t = Time(0.0, format='mjd', scale='utc')
-        t2 = Time([0.0, 1.0], format='mjd', scale='utc')
+        t = Time(0.0, format='mjd', scale='tai')
+        t2 = Time([0.0, 1.0], format='mjd', scale='tai')
         dt = TimeDelta(100.0, format='jd')
         dt2 = TimeDelta([100.0, 200.0], format='jd')
 
-        with pytest.warns(ErfaWarning):
-            out = t + dt
+        out = t + dt
         assert allclose_jd(out.mjd, 100.0)
         assert out.isscalar
 
-        with pytest.warns(ErfaWarning):
-            out = t + dt2
+        out = t + dt2
         assert allclose_jd(out.mjd, [100.0, 200.0])
         assert not out.isscalar
 
-        with pytest.warns(ErfaWarning):
-            out = t2 + dt
+        out = t2 + dt
         assert allclose_jd(out.mjd, [100.0, 101.0])
         assert not out.isscalar
 
@@ -104,18 +112,15 @@ class TestTimeDelta():
         assert not out.isscalar
 
         # Reverse the argument order
-        with pytest.warns(ErfaWarning):
-            out = dt + t
+        out = dt + t
         assert allclose_jd(out.mjd, 100.0)
         assert out.isscalar
 
-        with pytest.warns(ErfaWarning):
-            out = dt2 + t
+        out = dt2 + t
         assert allclose_jd(out.mjd, [100.0, 200.0])
         assert not out.isscalar
 
-        with pytest.warns(ErfaWarning):
-            out = dt + t2
+        out = dt + t2
         assert allclose_jd(out.mjd, [100.0, 101.0])
         assert not out.isscalar
 
@@ -126,23 +131,20 @@ class TestTimeDelta():
     def test_sub_vector(self):
         """Check time arithmetic as well as properly keeping track of whether
         a time is a scalar or a vector"""
-        t = Time(0.0, format='mjd', scale='utc')
-        t2 = Time([0.0, 1.0], format='mjd', scale='utc')
+        t = Time(0.0, format='mjd', scale='tai')
+        t2 = Time([0.0, 1.0], format='mjd', scale='tai')
         dt = TimeDelta(100.0, format='jd')
         dt2 = TimeDelta([100.0, 200.0], format='jd')
 
-        with pytest.warns(ErfaWarning):
-            out = t - dt
+        out = t - dt
         assert allclose_jd(out.mjd, -100.0)
         assert out.isscalar
 
-        with pytest.warns(ErfaWarning):
-            out = t - dt2
+        out = t - dt2
         assert allclose_jd(out.mjd, [-100.0, -200.0])
         assert not out.isscalar
 
-        with pytest.warns(ErfaWarning):
-            out = t2 - dt
+        out = t2 - dt
         assert allclose_jd(out.mjd, [-100.0, -99.0])
         assert not out.isscalar
 
@@ -205,7 +207,6 @@ class TestTimeDelta():
         with pytest.raises(TypeError):
             self.dt * object()
 
-    @pytest.mark.remote_data
     def test_keep_properties(self):
         # closes #1924 (partially)
         dt = TimeDelta(1000., format='sec')
@@ -267,7 +268,7 @@ class TestTimeDelta():
         assert dt.format == 'datetime'
 
 
-class TestTimeDeltaScales():
+class TestTimeDeltaScales:
     """Test scale conversion for Time Delta.
     Go through @taldcroft's list of expected behavior from #1932"""
 
@@ -287,7 +288,6 @@ class TestTimeDeltaScales():
         with pytest.raises(ScaleValueError):
             TimeDelta([0., 1., 10.], format='sec', scale='utc')
 
-    @pytest.mark.remote_data
     @pytest.mark.parametrize(('scale1', 'scale2'),
                              list(itertools.product(STANDARD_TIME_SCALES,
                                                     STANDARD_TIME_SCALES)))
