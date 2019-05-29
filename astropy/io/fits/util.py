@@ -765,7 +765,7 @@ def _words_group(input, strlen):
     words = []
     nblanks = input.count(' ')
     nmax = max(nblanks, len(input) // strlen + 1)
-    arr = np.frombuffer((input + ' ').encode('utf8'), dtype=(bytes, 1))
+    arr = np.frombuffer((input + ' ').encode('utf8'), dtype='S1')
 
     # locations of the blanks
     blank_loc = np.nonzero(arr == b' ')[0]
@@ -902,7 +902,7 @@ def _rstrip_inplace(array):
     # View the array as appropriate integers. The last dimension will
     # equal the number of characters in each string.
     bpc = 1 if dt.kind == 'S' else 4
-    dt_int = "{0}{1}u{2}".format(dt.itemsize // bpc, dt.byteorder, bpc)
+    dt_int = "({0},){1}u{2}".format(dt.itemsize // bpc, dt.byteorder, bpc)
     b = array.view(dt_int, np.ndarray)
     # For optimal speed, work in chunks of the internal ufunc buffer size.
     bufsize = np.getbufsize()
