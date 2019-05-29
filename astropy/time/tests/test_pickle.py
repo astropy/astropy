@@ -6,7 +6,7 @@ import numpy as np
 from astropy.time import Time
 
 
-class TestPickle():
+class TestPickle:
     """Basic pickle test of time"""
 
     def test_pickle(self):

@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 
 from astropy.time import Time, TimeDelta
+from astropy.utils import iers
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
@@ -33,7 +34,8 @@ def test_addition():
     t_dt = t + dt_tiny
     assert t_dt.jd1 == t.jd1 and t_dt.jd2 != t.jd2
 
-    # Check that the addition is exactly reversed by the corresponding subtraction
+    # Check that the addition is exactly reversed by the corresponding
+    # subtraction
     t2 = t_dt - dt_tiny
     assert t2.jd1 == t.jd1 and t2.jd2 == t.jd2
 
@@ -62,8 +64,9 @@ def test_init_variations():
 
 def test_precision_exceeds_64bit():
     """
-    Check that Time object really holds more precision than float64 by looking at the
-    (naively) summed 64-bit result and asserting equality at the bit level.
+    Check that Time object really holds more precision than float64 by looking
+    at the (naively) summed 64-bit result and asserting equality at the
+    bit level.
     """
     t1 = Time(1.23456789e11, format='cxcsec')
     t2 = t1 + dt_tiny
@@ -101,9 +104,9 @@ def test_jd1_is_mult_of_one():
 @pytest.mark.xfail
 def test_precision_neg():
     """
-    Check precision when jd1 is negative.  Currently fails because ERFA routines use a
-    test like jd1 > jd2 to decide which component to update.  Should be
-    abs(jd1) > abs(jd2).
+    Check precision when jd1 is negative.  Currently fails because ERFA
+    routines use a test like jd1 > jd2 to decide which component to update.
+    Should be abs(jd1) > abs(jd2).
     """
     t1 = Time(-100000.123456, format='jd', scale='tt')
     assert np.round(t1.jd1) == t1.jd1
@@ -122,12 +125,12 @@ def test_precision_epoch():
     assert allclose_sec(dt.sec, np.round(dt.sec))
 
 
-@pytest.mark.remote_data
 def test_leap_seconds_rounded_correctly():
     """Regression tests against #2083, where a leap second was rounded
     incorrectly by the underlying ERFA routine."""
-    t = Time(['2012-06-30 23:59:59.413',
-              '2012-07-01 00:00:00.413'], scale='ut1', precision=3).utc
-    assert np.all(t.iso == np.array(['2012-06-30 23:59:60.000',
-                                     '2012-07-01 00:00:00.000']))
+    with iers.conf.set_temp('auto_download', False):
+        t = Time(['2012-06-30 23:59:59.413',
+                  '2012-07-01 00:00:00.413'], scale='ut1', precision=3).utc
+        assert np.all(t.iso == np.array(['2012-06-30 23:59:60.000',
+                                         '2012-07-01 00:00:00.000']))
     # with the bug, both yielded '2012-06-30 23:59:60.000'
