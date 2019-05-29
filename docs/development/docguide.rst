@@ -25,6 +25,8 @@ This section describes the standards for documentation format affiliated
 packages that must follow for consideration of integration into the core
 module, as well as the standard Astropy docstring format.
 
+* All documentation text should follow the :ref:`astropy-style-guide`.
+
 * All documentation should be written use the Sphinx documentation tool.
 
 * The template package will provide a recommended general structure for
