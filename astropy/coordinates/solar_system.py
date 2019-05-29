@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from collections import OrderedDict
 
 import numpy as np
+import os.path
 
 from .sky_coordinate import SkyCoord
 from astropy.utils.data import download_file
@@ -82,6 +83,7 @@ class solar_system_ephemeris(ScienceState):
     - 'de430' or 'de432s': short-cuts for recent JPL dynamical models.
     - 'jpl': Alias for the default JPL ephemeris (currently, 'de430').
     - URL: (str) The url to a SPK ephemeris in SPICE binary (.bsp) format.
+    - PATH: (str) File path to a SPK ephemeris in SPICE binary (.bsp) format.
     - `None`: Ensure an Exception is raised without an explicit ephemeris.
 
     The default is 'builtin', which uses the ``epv00`` and ``plan94``
@@ -149,25 +151,29 @@ def _get_kernel(value):
     if value is None or value.lower() == 'builtin':
         return None
 
-    if value.lower() == 'jpl':
-        value = DEFAULT_JPL_EPHEMERIS
-
-    if value.lower() in ('de430', 'de432s'):
-        value = ('http://naif.jpl.nasa.gov/pub/naif/generic_kernels'
-                 '/spk/planets/{:s}.bsp'.format(value.lower()))
-    else:
-        try:
-            urlparse(value)
-        except Exception:
-            raise ValueError('{} was not one of the standard strings and '
-                             'could not be parsed as a URL'.format(value))
-
     try:
         from jplephem.spk import SPK
     except ImportError:
         raise ImportError("Solar system JPL ephemeris calculations require "
                           "the jplephem package "
                           "(https://pypi.python.org/pypi/jplephem)")
+
+    if value.lower() == 'jpl':
+        value = DEFAULT_JPL_EPHEMERIS
+
+    elif value.lower() in ('de430', 'de432s'):
+        value = ('http://naif.jpl.nasa.gov/pub/naif/generic_kernels'
+                 '/spk/planets/{:s}.bsp'.format(value.lower()))
+
+    elif os.path.isfile(value):
+        return SPK.open(value)
+
+    else:
+        try:
+            urlparse(value)
+        except Exception:
+            raise ValueError('{} was not one of the standard strings and '
+                             'could not be parsed as a file path or URL'.format(value))
 
     return SPK.open(download_file(value, cache=True))
 
