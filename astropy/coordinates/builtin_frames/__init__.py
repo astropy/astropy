@@ -60,7 +60,8 @@ __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
            'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
            'HeliocentricTrueEcliptic',
            'SkyOffsetFrame', 'GalacticLSR', 'LSR',
-           'BaseEclipticFrame', 'BaseRADecFrame', 'make_transform_graph_docs']
+           'BaseEclipticFrame', 'BaseRADecFrame', 'make_transform_graph_docs',
+           'HeliocentricEclipticIAU76', 'CustomBarycentricEcliptic']
 
 
 def make_transform_graph_docs(transform_graph):

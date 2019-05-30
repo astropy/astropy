@@ -19,7 +19,6 @@ In particular, this release includes:
 * :ref:`whatsnew-3.2-table-performance`
 * :ref:`whatsnew-3.2-table-pandas`
 * :ref:`whatsnew-3.2-table-help`
-*
 
 In addition to these major changes, Astropy v3.2 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -81,22 +80,31 @@ the future if user feedback calls for it.
 
 Note that the :class:`~astropy.timeseries.LombScargle` and
 :class:`~astropy.timeseries.BoxLeastSquares` periodogram classes have now moved
-from the :mod:`astropy.stats` to the :mod:`astropy.timeseries` module.
+from the :mod:`astropy.stats` to the :mod:`astropy.timeseries` module. These
+classes have been improved and can now take absolute times as an alternative
+to relative times.
+
+Finally, the :class:`~astropy.timeseries.LombScargle` class now includes a
+:func:`~astropy.timeseries.LombScargle.model_parameters` method  to make it easier to
+compute the best-fit parameters for a given frequency, as well as
+:func:`~astropy.timeseries.LombScargle.design_matrix` and
+:func:`~astropy.timeseries.LombScargle.offset` to inspect the model further.
 
 .. _whatsnew-3.2-ecliptic:
 
 Additions and changes to Ecliptic Transformations
 =================================================
 
-The Ecliptic frames and associated transformations in ``astropy.coordinates``
+The Ecliptic frames and associated transformations in
+:ref:`astropy.coordinates <astropy-coordinates>`
 have been updated to correctly reflect the "True" and "Mean" terminology. In
 this release there are now ``*MeanEcliptic`` frames now which include precession but
 not nutation, and ``*TrueEcliptic`` frames which also include nutation.
-Additionally, new frames (``HeliocentricEclipticIAU76`` and
-``CustomBarycentricEcliptic``) have been added with specific conventions used in
-particular fields. For more details on the motivation behind these changes, see
-`PR #8394 <https://github.com/astropy/astropy/pull/8394>`_ and the associated
-discussion.
+Additionally, new frames (`~astropy.coordinates.HeliocentricEclipticIAU76` and
+`~astropy.coordinates.CustomBarycentricEcliptic`) have been added with specific
+conventions used in particular fields. For more details on the motivation behind
+these changes, see `PR #8394 <https://github.com/astropy/astropy/pull/8394>`_
+and the associated discussion.
 
 Note that this change may break some usage of the previous ``*TrueEcliptic``
 frames, as in the last few versions these had a behavior more akin to "mean"
@@ -150,6 +158,22 @@ functions for the following formats: CSV, JSON, HTML, and fixed width.
 For very large tables these may provide better performance than the built-in
 astropy table ASCII read and write functions.  For details see :ref:`table_io_pandas`.
 
+.. _whatsnew-3.2-asdf:
+
+Support for ASDF readers/writers for Table class
+================================================
+
+If the `asdf <https://pypi.org/project/asdf/>`__ package is installed,
+`~astropy.table.Table` can be read from and written to
+`ASDF <https://asdf-standard.readthedocs.io/en/latest/>`__ files, using e.g.::
+
+    from astropy.table import Table
+    tab = Table.read('data.asdf')
+
+and::
+
+    tab.write('table.asdf')
+
 .. _whatsnew-3.2-table-help:
 
 Improved help on Table read() and write() methods
@@ -168,12 +192,28 @@ following examples illustrate the new syntax for getting help::
   >>> Table.write.help('csv')
   >>> Table.read.help()  # Generic read help
 
+Deprecated/Renamed/Removed functionality
+========================================
+
+The bundled version of the `six <https://pypi.org/project/six/>`_ package in
+the ``astropy.extern.six`` sub-package is now deprecated. You should instead
+make use of the `six`_ package directly.
+
+Composition of model *classes* (as opposed to instances) is now deprecated
+and will be removed in the v4.0 release.
+
+The :class:`~astropy.timeseries.LombScargle` and
+:class:`~astropy.timeseries.BoxLeastSquares` periodogram classes have now moved
+from the :mod:`astropy.stats` to the :mod:`astropy.timeseries` module.
+
+The previously deprecated ``astropy.tests.pytest_plugins`` module has been
+removed. The variables ``PYTEST_HEADER_MODULES`` and ``TESTED_VERSIONS`` should
+instead be imported from ``astropy.tests.plugins.display``, and the function
+``enable_deprecations_as_exceptions`` should be imported from
+``astropy.tests.helper``.
+
 Full change log
 ===============
 
 To see a detailed list of all changes in version v3.2, including changes in
 API, please see the :ref:`changelog`.
-
-
-Renamed/removed functionality
-=============================
