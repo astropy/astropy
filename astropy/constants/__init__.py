@@ -19,13 +19,10 @@ from contextlib import contextmanager
 from astropy.utils import find_current_module
 
 # Hack to make circular imports with units work
-try:
-    from astropy import units
-    del units
-except ImportError:
-    pass
+from astropy import units
+del units
 
-# These imports are used by other astropy modules
+# These lines import some namespaces into the top level
 from .constant import Constant, EMConstant  # noqa
 from . import si  # noqa
 from . import cgs  # noqa
@@ -43,7 +40,7 @@ _lines = [
 
 # Catch warnings about "already has a definition in the None system"
 with warnings.catch_warnings():
-    warnings.simplefilter('ignore')
+    warnings.filterwarnings('ignore', 'Constant .*already has a definition')
     _utils._set_c(codata, iaudata, inspect.getmodule(inspect.currentframe()),
                   not_in_module_only=False, doclines=_lines, set_class=True)
 
@@ -77,8 +74,8 @@ def set_enabled_constants(modname):
 
     # NOTE: Update this whenever versions are added.
     if modname == 'astropyconst13':
-        from .astropyconst13 import codata2010 as codata_context
-        from .astropyconst13 import iau2012 as iaudata_context
+        from .astropyconst13 import codata as codata_context
+        from .astropyconst13 import iaudata as iaudata_context
     else:
         raise ValueError(
             'Context manager does not currently handle {}'.format(modname))
@@ -87,7 +84,8 @@ def set_enabled_constants(modname):
 
     # Ignore warnings about "Constant xxx already has a definition..."
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
+        warnings.filterwarnings('ignore',
+                                'Constant .*already has a definition')
         _utils._set_c(codata_context, iaudata_context, module,
                       not_in_module_only=False, set_class=True)
 
@@ -95,7 +93,8 @@ def set_enabled_constants(modname):
         yield
     finally:
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.filterwarnings('ignore',
+                                    'Constant .*already has a definition')
             _utils._set_c(codata, iaudata, module,
                           not_in_module_only=False, set_class=True)
 
