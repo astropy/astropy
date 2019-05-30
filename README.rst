@@ -42,6 +42,8 @@ donation will support our mission to promote sustainable, high-level code base
 for the astronomy community, open code development, educational materials, and
 reproducible scientific research.
 
+*Show us the money!*
+
 License
 -------
 
