@@ -1,3 +1,4 @@
+import importlib
 import sys
 import pytest
 
@@ -17,7 +18,12 @@ def clean_sys_modules():
     assert 'astropy.constants' not in sys.modules  # Sanity check.
     yield
     import astropy.units
+    importlib.reload(astropy.units)
     import astropy.constants
+    importlib.reload(astropy.units)
+    import astropy.units.equivalencies
+    import astropy.units.imperial
+    import astropy.units.deprecated
 
 
 @pytest.mark.usefixtures('clean_sys_modules')
