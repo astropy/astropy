@@ -158,29 +158,27 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
-# Define a ScienceState for constants and units
+# Define a base ScienceState for configuring constants and units
 from .utils.state import ScienceState
-class physical_constants(ScienceState):
+class base_constants_version(ScienceState):
     """
-    The version of physical constants to use
+    Base class for the real version-setters below
     """
-    _value = 'codata2014'
+    _value = 'test'
 
-    _versions = dict(codata2018='codata2018', codata2014='codata2014',
-                     codata2010='codata2010', astropyconst40='codata2018',
-                     astropyconst20='codata2014', astropyconst13='codata2010')
+    _versions = dict(test='test')
 
     @classmethod
     def validate(cls, value):
         if value not in cls._versions:
             raise ValueError('Must be one of {}'
-                             .format(cls._versions.keys()))
-        return cls._versions.get(value)
+                             .format(list(cls._versions.keys())))
+        return cls._versions[value]
 
     @classmethod
     def set(cls, value):
         """
-        Set the current physical constants value.
+        Set the current constants value.
         """
         import sys
         if 'astropy.units' in sys.modules:
@@ -209,10 +207,23 @@ class physical_constants(ScienceState):
         return ctx
 
 
-class astronomical_constants(physical_constants):
+class physical_constants(base_constants_version):
     """
     The version of physical constants to use
     """
+    # Maintainers: update when new constants are added
+    _value = 'codata2014'
+
+    _versions = dict(codata2018='codata2018', codata2014='codata2014',
+                     codata2010='codata2010', astropyconst40='codata2018',
+                     astropyconst20='codata2014', astropyconst13='codata2010')
+
+
+class astronomical_constants(base_constants_version):
+    """
+    The version of astronomical constants to use
+    """
+    # Maintainers: update when new constants are added
     _value = 'iau2015'
 
     _versions = dict(iau2015='iau2015', iau2012='iau2012',
