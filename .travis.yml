@@ -79,77 +79,78 @@ matrix:
     include:
         # Try MacOS X. Use a slightly old numpy version to help test against
         # all supported numpy versions.
-        - os: osx
-          stage: Cron tests
-          env: SETUP_CMD='test --remote-data=astropy'
-               CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang"
-               PIP_DEPENDENCIES="scikit-image jplephem $ASDF_PIP_DEP"
-               CCOMPILER=clang
-               EVENT_TYPE='cron'
+        # - os: osx
+        #   stage: Cron tests
+        #   env: SETUP_CMD='test --remote-data=astropy'
+        #        CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang"
+        #        PIP_DEPENDENCIES="scikit-image jplephem $ASDF_PIP_DEP"
+        #        CCOMPILER=clang
+        #        EVENT_TYPE='cron'
 
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
         # versions of Python, we can vary Python and Numpy versions at the same
         # time.
         # Run this test using native pytest
-        - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.13
-               INSTALL_CMD='python setup.py build_ext --inplace'
-               PIP_DEPENDENCIES='pytest-astropy'
-               TEST_CMD='pytest --open-files --doctest-rst'
-               PYTEST_VERSION=3.7
-          script:
-            - $INSTALL_CMD
-            - $TEST_CMD
+        # - os: linux
+        #   env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.13
+        #        INSTALL_CMD='python setup.py build_ext --inplace'
+        #        PIP_DEPENDENCIES='pytest-astropy'
+        #        TEST_CMD='pytest --open-files --doctest-rst'
+        #        PYTEST_VERSION=3.7
+        #   script:
+        #     - $INSTALL_CMD
+        #     - $TEST_CMD
 
         # Now try with all optional dependencies. We also include the --readonly
         # flag to make sure no files are being written to the temporary install
         # location during testing. We also use this build to make sure that the
         # dependencies get correctly installed with pip.
-        - os: linux
-          env: SETUP_CMD='test --remote-data=astropy --readonly'
-               LC_CTYPE=C.ascii LC_ALL=C
-               PYTEST_VERSION=4.4
-               PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
-               INSTALL_WITH_PIP=True
-               EXTRAS_INSTALL="test,all"
+        # - os: linux
+        #   env: SETUP_CMD='test --remote-data=astropy --readonly'
+        #        LC_CTYPE=C.ascii LC_ALL=C
+        #        PYTEST_VERSION=4.4
+        #        PIP_DEPENDENCIES="" CONDA_DEPENDENCIES=""
+        #        INSTALL_WITH_PIP=True
+        #        EXTRAS_INSTALL="test,all"
 
-        - os: linux
-          stage: Initial tests
-          env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="scikit-image $ASDF_PIP_DEP"
-               SETUP_CMD='test -a "--durations=50"'
-          compiler: clang
+        # - os: linux
+        #   stage: Initial tests
+        #   env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+        #        PIP_DEPENDENCIES="scikit-image $ASDF_PIP_DEP"
+        #        SETUP_CMD='test -a "--durations=50"'
+        #   compiler: clang
 
         # Full tests with coverage checks.
-        - os: linux
-          env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="scikit-image codecov objgraph jplephem bintrees sortedcontainers $ASDF_PIP_DEP"
-               LC_CTYPE=C.ascii LC_ALL=C
-               CFLAGS='--coverage -fno-inline-functions -O0'
-               MATPLOTLIB_VERSION=2.0
-               EVENT_TYPE='push pull_request cron'
+        # - os: linux
+        #   env: SETUP_CMD='test --coverage --remote-data=astropy --readonly'
+        #        CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+        #        PIP_DEPENDENCIES="scikit-image codecov objgraph jplephem bintrees sortedcontainers $ASDF_PIP_DEP"
+        #        LC_CTYPE=C.ascii LC_ALL=C
+        #        CFLAGS='--coverage -fno-inline-functions -O0'
+        #        MATPLOTLIB_VERSION=2.0
+        #        EVENT_TYPE='push pull_request cron'
 
         # Try pre-release version of Numpy without optional dependencies
-        - os: linux
-          env: NUMPY_VERSION=prerelease
-               EVENT_TYPE='push pull_request cron'
+        # - os: linux
+        #   env: NUMPY_VERSION=prerelease
+        #        EVENT_TYPE='push pull_request cron'
 
         # Do a PEP8/pyflakes test with flake8
-        - os: linux
-          stage: Initial tests
-          env: MAIN_CMD="flake8 astropy --count $FLAKE8_OPT" SETUP_CMD=''
+        # - os: linux
+        #   stage: Initial tests
+        #   env: MAIN_CMD="flake8 astropy --count $FLAKE8_OPT" SETUP_CMD=''
 
         # Try developer version of Numpy with optional dependencies and also
         # run all remote tests. Since both cases will be potentially
         # unstable, we combine them into a single unstable build that we can
         # mark as an allowed failure below.
         - os: linux
+          stage: Initial tests
           env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
                CONDA_DEPENDENCIES=''
                PIP_DEPENDENCIES=$DEV_PIP_DEP
-               MATPLOTLIB_VERSION=dev
+               MATPLOTLIB_VERSION=special
 
         # We check numpy-dev also in a job that only runs from cron, so that
         # we can spot issues sooner. We do not use remote data here, since
@@ -172,12 +173,12 @@ matrix:
                INSTALL_WITH_PIP=True
                EXTRAS_INSTALL="docs,all"
 
-    allow_failures:
-      - os: linux
-        env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
-             CONDA_DEPENDENCIES=''
-             PIP_DEPENDENCIES=$DEV_PIP_DEP
-             MATPLOTLIB_VERSION=dev
+    # allow_failures:
+    #   - os: linux
+    #     env: PYTHON_VERSION=3.7 NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
+    #          CONDA_DEPENDENCIES=''
+    #          PIP_DEPENDENCIES=$DEV_PIP_DEP
+    #          MATPLOTLIB_VERSION=dev
 
 before_install:
 
@@ -205,6 +206,9 @@ install:
         else
           pip install -e .[$EXTRAS_INSTALL];
         fi
+      fi
+    - if [[ $MATPLOTLIB_VERSION == special ]]; then
+        pip install git+https://github.com/anntzer/matplotlib.git@hasinclude#egg=matplotlib --upgrade --no-deps
       fi
 
 script:
