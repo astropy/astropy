@@ -166,14 +166,16 @@ class physical_constants(ScienceState):
     """
     _value = 'codata2014'
 
-    allowed_versions = ('codata2018', 'codata2014', 'codata2010',
-                        'astropyconst40', 'astropyconst20', 'astropyconst13')
+    _versions = dict(codata2018='codata2018', codata2014='codata2014',
+                     codata2010='codata2010', astropyconst40='codata2018',
+                     astropyconst20='codata2014', astropyconst13='codata2010')
 
     @classmethod
     def validate(cls, value):
-        if value not in cls.allowed_versions:
-            raise ValueError('Must be one of {}'.format(cls.allowed_versions))
-        return value
+        if value not in cls._versions:
+            raise ValueError('Must be one of {}'
+                             .format(cls._versions.keys()))
+        return cls._versions.get(value)
 
     @classmethod
     def set(cls, value):
@@ -213,14 +215,9 @@ class astronomical_constants(physical_constants):
     """
     _value = 'iau2015'
 
-    allowed_versions = ('iau2015', 'iau2012',
-                        'astropyconst40', 'astropyconst20', 'astropyconst13')
-
-    @classmethod
-    def validate(cls, value):
-        if value not in cls.allowed_versions:
-            raise ValueError('Must be one of {}'.format(cls.allowed_versions))
-        return value
+    _versions = dict(iau2015='iau2015', iau2012='iau2012',
+                     astropyconst40='iau2015', astropyconst20='iau2015',
+                     astropyconst13='iau2012')
 
 
 # Create the test() function
