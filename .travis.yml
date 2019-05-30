@@ -208,7 +208,7 @@ install:
         fi
       fi
     - if [[ $MATPLOTLIB_VERSION == special ]]; then
-        pip install git+https://github.com/anntzer/matplotlib.git@hasinclude#egg=matplotlib --upgrade --no-deps
+        pip install git+https://github.com/anntzer/matplotlib.git@hasinclude#egg=matplotlib --upgrade --no-deps;
       fi
 
 script:
