@@ -171,13 +171,13 @@ class TestTableInit(SetupData):
     """Initializing a table"""
 
     def test_mask_true_if_any_input_masked(self):
-        """Masking is True if any input is masked"""
+        """Masking is always False if initial masked arg is not True"""
         t = Table([self.ca, self.a])
-        assert t.masked is True
+        assert t.masked is False  # True before astropy 4.0
         t = Table([self.ca])
         assert t.masked is False
         t = Table([self.ca, ma.array([1, 2, 3])])
-        assert t.masked is True
+        assert t.masked is False  # True before astropy 4.0
 
     def test_mask_false_if_no_input_masked(self):
         """Masking not true if not (requested or input requires mask)"""

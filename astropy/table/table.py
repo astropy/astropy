@@ -355,7 +355,8 @@ class Table:
         table_array : np.ndarray (unmasked) or np.ma.MaskedArray (masked)
             Copy of table as a numpy structured array
         """
-        empty_init = ma.empty if self.masked else np.empty
+        masked = any(isinstance(col, MaskedColumn) for col in self.itercols())
+        empty_init = ma.empty if masked else np.empty
         if len(self.columns) == 0:
             return empty_init(0, dtype=None)
 
@@ -540,8 +541,8 @@ class Table:
             self.meta = deepcopy(meta) if copy else meta
 
         # Whatever happens above, the masked property should be set to a boolean
-        if type(self.masked) is not bool:
-            raise TypeError("masked property has not been set to True or False")
+        if self.masked not in (None, True, False):
+            raise TypeError("masked property must be None, True or False")
 
     def __getstate__(self):
         columns = OrderedDict((key, col if isinstance(col, BaseColumn) else col_copy(col))
@@ -737,7 +738,9 @@ class Table:
         # array([(0, 0), (0, 0)],
         #       dtype=[('a', '<i8'), ('b', '<i8')])
 
-        return self.as_array().data if self.masked else self.as_array()
+        masked = any(isinstance(col, MaskedColumn) for col in self.itercols())
+
+        return self.as_array().data if masked else self.as_array()
 
     def _check_names_dtype(self, names, dtype, n_cols):
         """Make sure that names and dtype are both iterable and have
@@ -751,16 +754,6 @@ class Table:
             raise ValueError(
                 'Arguments "names" and "dtype" must match number of columns'
                 .format(inp_str))
-
-    def _set_masked_from_cols(self, cols):
-        if self.masked is None:
-            if any(isinstance(col, (MaskedColumn, ma.MaskedArray)) for col in cols):
-                self._set_masked(True)
-            else:
-                self._set_masked(False)
-        elif not self.masked:
-            if any(np.any(col.mask) for col in cols if isinstance(col, (MaskedColumn, ma.MaskedArray))):
-                self._set_masked(True)
 
     def _init_from_list_of_dicts(self, data, names, dtype, n_cols, copy):
         names_from_data = set()
@@ -798,9 +791,6 @@ class Table:
         if data and all(isinstance(row, dict) for row in data):
             self._init_from_list_of_dicts(data, names, dtype, n_cols, copy)
             return
-
-        # Set self.masked appropriately, then get class to create column instances.
-        self._set_masked_from_cols(data)
 
         cols = []
         def_names = _auto_names(n_cols)
@@ -844,9 +834,6 @@ class Table:
         cols = ([data[name] for name in data_names] if struct else
                 [data[:, i] for i in range(n_cols)])
 
-        # Set self.masked appropriately, then get class to create column instances.
-        self._set_masked_from_cols(cols)
-
         if copy:
             self._init_from_list(cols, names, dtype, n_cols, copy)
         else:
@@ -867,12 +854,12 @@ class Table:
 
     def _convert_col_for_table(self, col):
         """
-        Make sure that all Column objects have correct class for this type of
+        Make sure that all Column objects have correct base class for this type of
         Table.  For a base Table this most commonly means setting to
         MaskedColumn if the table is masked.  Table subclasses like QTable
         override this method.
         """
-        if col.__class__ is not self.ColumnClass and isinstance(col, Column):
+        if isinstance(col, Column) and not isinstance(col, self.ColumnClass):
             col = self.ColumnClass(col)  # copy attributes and reference data
         return col
 
@@ -883,9 +870,6 @@ class Table:
         if len(lengths) > 1:
             raise ValueError('Inconsistent data column lengths: {0}'
                              .format(lengths))
-
-        # Set the table masking
-        self._set_masked_from_cols(cols)
 
         # Make sure that all Column-based objects have correct class.  For
         # plain Table this is self.ColumnClass, but for instance QTable will
@@ -1514,27 +1498,12 @@ class Table:
         masked : bool
             State of table masking (`True` or `False`)
         """
-        if hasattr(self, '_masked'):
-            # The only allowed change is from None to False or True, or False to True
-            if self._masked is None and masked in [False, True]:
-                self._masked = masked
-            elif self._masked is False and masked is True:
-                log.info("Upgrading Table to masked Table. Use Table.filled() to convert to unmasked table.")
-                self._masked = masked
-            elif self._masked is masked:
-                raise Exception("Masked attribute is already set to {0}".format(masked))
-            else:
-                raise Exception("Cannot change masked attribute to {0} once it is set to {1}"
-                                .format(masked, self._masked))
+        if masked in [True, False, None]:
+            self._masked = masked
         else:
-            if masked in [True, False, None]:
-                self._masked = masked
-            else:
-                raise ValueError("masked should be one of True, False, None")
-        if self._masked:
-            self._column_class = self.MaskedColumn
-        else:
-            self._column_class = self.Column
+            raise ValueError("masked should be one of True, False, None")
+
+        self._column_class = self.MaskedColumn if self._masked else self.Column
 
     @property
     def ColumnClass(self):
