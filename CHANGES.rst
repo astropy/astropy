@@ -17,7 +17,7 @@ astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
  - Changed ``coordinates.solar_system_ephemeris`` to also accept local files
-   as input. The ephemeris can not be selected by either keyword (e.g. 'jpl',
+   as input. The ephemeris can now be selected by either keyword (e.g. 'jpl',
    'de430'), URL or file path. [#8767]
 
 astropy.cosmology
