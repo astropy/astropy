@@ -337,6 +337,9 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Do not attempt to delete repeated distortion keywords multiple times when
+  loading distortions with ``_read_distortion_kw`` and
+  ``_read_det2im_kw``. [#8777]
 
 
 Other Changes and Additions
