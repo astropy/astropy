@@ -161,7 +161,7 @@ def _get_kernel(value):
     if value.lower() == 'jpl':
         value = DEFAULT_JPL_EPHEMERIS
 
-    elif value.lower() in ('de430', 'de432s'):
+    if value.lower() in ('de430', 'de432s'):
         value = ('http://naif.jpl.nasa.gov/pub/naif/generic_kernels'
                  '/spk/planets/{:s}.bsp'.format(value.lower()))
 
