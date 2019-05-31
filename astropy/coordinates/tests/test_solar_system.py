@@ -1,6 +1,7 @@
 
 import pytest
 import numpy as np
+from urllib.error import HTTPError
 
 from astropy.time import Time
 from astropy import units as u
@@ -14,6 +15,7 @@ from astropy.coordinates.solar_system import (get_body, get_moon, BODY_NAME_TO_K
 from astropy.coordinates.funcs import get_sun
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import allclose as quantity_allclose
+from astropy.utils.data import download_file
 
 try:
     import jplephem  # pylint: disable=W0611
@@ -362,3 +364,48 @@ def test_barycentric_velocity_consistency(body, pos_tol, vel_tol):
     dp, dv = get_body_barycentric_posvel(body, t, ephemeris='de432s')
     assert_quantity_allclose(ep.xyz, dp.xyz, atol=pos_tol)
     assert_quantity_allclose(ev.xyz, dv.xyz, atol=vel_tol)
+
+
+@pytest.mark.remote_data
+@pytest.mark.skipif('not HAS_JPLEPHEM')
+@pytest.mark.parametrize('time', (Time('1960-01-12 00:00'),
+                                  Time('1980-03-25 00:00'),
+                                  Time('2010-10-13 00:00')))
+def test_url_or_file_ephemeris(time):
+    # URL for ephemeris de432s used for testing:
+    url = 'http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de432s.bsp'
+
+    # Pass the ephemeris directly as a URL.
+    coord_by_url = get_body('earth', time, ephemeris=url)
+
+    # Translate the URL to the cached location on the filesystem.
+    # Since we just used the url above, it should already have been downloaded.
+    filepath = download_file(url, cache=True)
+
+    # Get the coordinates using the file path directly:
+    coord_by_filepath = get_body('earth', time, ephemeris=filepath)
+
+    # Using the URL or filepath should give exactly the same results:
+    assert_quantity_allclose(coord_by_url.ra, coord_by_filepath.ra)
+    assert_quantity_allclose(coord_by_url.dec, coord_by_filepath.dec)
+    assert_quantity_allclose(coord_by_url.distance, coord_by_filepath.distance)
+
+
+@pytest.mark.remote_data
+@pytest.mark.skipif('not HAS_JPLEPHEM')
+def test_url_ephemeris_wrong_input():
+    # Try loading a non-existing URL:
+    time = Time('1960-01-12 00:00')
+    with pytest.raises(HTTPError):
+        get_body('earth', time, ephemeris='http://data.astropy.org/path/to/nonexisting/file.bsp')
+
+
+@pytest.mark.skipif('not HAS_JPLEPHEM')
+def test_file_ephemeris_wrong_input():
+    time = Time('1960-01-12 00:00')
+    # Try loading a non-existing file:
+    with pytest.raises(ValueError):
+        get_body('earth', time, ephemeris='/path/to/nonexisting/file.bsp')
+    # Try loading a file that does exist, but is not an ephemeris file:
+    with pytest.raises(ValueError):
+        get_body('earth', time, ephemeris=__file__)
