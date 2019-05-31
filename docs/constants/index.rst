@@ -118,9 +118,57 @@ Union (IAU) are collected in modules with names like ``iau2012`` or ``iau2015``:
       Reference = IAU 2015 Resolution B 3
 
 The astronomical and physical constants are combined into modules with
-names like ``astropyconst13`` and ``astropyconst20``. To temporarily set
-constants to an older version (e.g., for regression testing), a context
-manager is available as follows:
+names like ``astropyconst13`` and ``astropyconst20`` for different versions.
+However, importing these prior version modules directly will lead to
+inconsistencies with other subpackages that have already imported
+`astropy.constants`. Notably, `astropy.units` will have already used
+the default version of constants. When using prior versions of the constants
+in this manner, quantities should be constructed with constants instead of units.
+
+To ensure consistent use of a prior version of constants in other Astropy
+packages (such as `astropy.units`) that import constants, the physical and
+astronomical constants versions should be set via ScienceState classes.
+These must be set before the first import of either `astropy.constants` or
+`astropy.units`.  For example, you can use the CODATA2010 physical constants and the
+IAU 2012 astronomical constants:
+
+    >>> from astropy import physical_constants, astronomical_constants
+    >>> physical_constants.set('codata2010')  # doctest: +SKIP
+    <ScienceState physical_constants: 'codata2010'>
+    >>> physical_constants.get()  # doctest: +SKIP
+    'codata2010'
+    >>> astronomical_constants.set('iau2012')  # doctest: +SKIP
+    <ScienceState astronomical_constants: 'iau2012'>
+    >>> astronomical_constants.get()  # doctest: +SKIP
+    'iau2012'
+
+Then all other packages that import `astropy.constants` will self-consistently
+initialize with that prior version of constants.
+
+The versions may also be set using values referring to the version modules:
+
+    >>> from astropy import physical_constants, astronomical_constants
+    >>> physical_constants.set('astropyconst13')  # doctest: +SKIP
+    <ScienceState physical_constants: 'codata2010'>
+    >>> physical_constants.get()  # doctest: +SKIP
+    'codata2010'
+    >>> astronomical_constants.set('astropyconst13')  # doctest: +SKIP
+    <ScienceState astronomical_constants: 'iau2012'>
+    >>> astronomical_constants.get()  # doctest: +SKIP
+    'iau2012'
+
+If either `astropy.constants` or `astropy.units` have already been imported, a
+``RuntimeError`` will be raised.
+
+    >>> import astropy.units
+    >>> from astropy import physical_constants, astronomical_constants
+    >>> astronomical_constants.set('astropyconst13')
+    Traceback (most recent call last):
+        ...
+    RuntimeError: astropy.units is already imported
+
+To temporarily set constants to an older version (e.g.,
+for regression testing), a context manager is available, as follows:
 
     >>> from astropy import constants as const
     >>> with const.set_enabled_constants('astropyconst13'):
@@ -137,39 +185,10 @@ manager is available as follows:
       Unit  = J s
       Reference = CODATA 2014
 
-.. warning::
+The context manager may be used at any time in a Python session, but it
+uses the prior version only for `astropy.constants`, and not for any
+other subpackage such as `astropy.units`.
 
-    Units such as ``u.M_sun`` will use the current version of the
-    corresponding constant. When using prior versions of the constants,
-    quantities should be constructed with constants instead of units.
-    Alternatively, the constants versions may be set via ScienceState
-    classes (see next section).
-
-Setting a prior version of the constants
-========================================
-
-To ensure consistent use of a prior version of constants in other Astropy
-packages (such as ``astropy.units``) that import constants, the physical and
-astronomical constants versions may be set via ScienceState classes.
-These must be set before the first import of either ``constants`` or ``units.``
-For example, you can use the CODATA2010 physical constants and the
-IAU 2012 astronomical constants:
-
-    >>> from astropy import physical_constants, astronomical_constants
-    >>> physical_constants.set('codata2010')  # doctest: +SKIP
-    >>> astronomical_constants.set('iau2012')  # doctest: +SKIP
-
-Then all other packages that import ``astropy.constants`` will self-consistently
-initialize with that prior version of constants.
-
-The versions may also be set using values referring to the version modules:
-
-    >>> from astropy import physical_constants, astronomical_constants
-    >>> physical_constants.set('astropyconst13')  # doctest: +SKIP
-    >>> astronomical_constants.set('astropyconst13')  # doctest: +SKIP
-
-If either ``constants`` or ``units`` have already been imported, a
-``RuntimeError`` will be raised.
 
 .. note that if this section gets too long, it should be moved to a separate
    doc page - see the top of performance.inc.rst for the instructions on how to
