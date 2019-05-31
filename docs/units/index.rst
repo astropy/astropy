@@ -165,6 +165,7 @@ Using `astropy.units`
    logarithmic_units
    format
    equivalencies
+   constants_versions
    conversion
 
 See Also
