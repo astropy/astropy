@@ -25,7 +25,7 @@ def get_ticklabels(axis):
 # for standard ISO formatting. This is a way to check both the locator and
 # formatter code.
 
-CASES = [
+RANGE_CASES = [
 
     # Interval of many years
     (('2014-03-22T12:30:30.9', '2077-03-22T12:30:32.1'),
@@ -95,13 +95,14 @@ CASES = [
 
 
 @pytest.mark.skipif('not HAS_PLT')
-@pytest.mark.parametrize(('interval', 'expected'), CASES)
+@pytest.mark.parametrize(('interval', 'expected'), RANGE_CASES)
 def test_formatter_locator(interval, expected):
 
     # Check that the ticks and labels returned for the above cases are correct.
 
     with time_support():
-        ax = plt.subplot(1, 1, 1)
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
         ax.set_xlim(Time(interval[0]), Time(interval[1]))
         assert get_ticklabels(ax.xaxis) == expected
 
@@ -111,7 +112,8 @@ def test_simplify():
     # Check the behavior of the simplify option
 
     with time_support(simplify=False, format='isot'):
-        ax = plt.subplot(1, 1, 1)
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
         ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
         assert get_ticklabels(ax.xaxis) == ['2020-01-01T00:00:00.000',
                                             '2040-01-01T00:00:00.000',
@@ -119,8 +121,50 @@ def test_simplify():
 
     for format in ['iso', 'isot', 'fits']:
         with time_support(simplify=True, format=format):
-            ax = plt.subplot(1, 1, 1)
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1)
             ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
             assert get_ticklabels(ax.xaxis) == ['2020-01-01',
                                                 '2040-01-01',
                                                 '2060-01-01']
+
+
+def test_simplify():
+
+    # Check the behavior of the simplify option
+
+    with time_support(simplify=False, format='isot'):
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+        assert get_ticklabels(ax.xaxis) == ['2020-01-01T00:00:00.000',
+                                            '2040-01-01T00:00:00.000',
+                                            '2060-01-01T00:00:00.000']
+
+    for format in ['iso', 'isot', 'fits']:
+        print(format)
+        with time_support(simplify=True, format=format):
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1)
+            ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+            assert get_ticklabels(ax.xaxis) == ['2020-01-01',
+                                                '2040-01-01',
+                                                '2060-01-01']
+
+
+def test_decimal_formats():
+
+    # Check that labels look sensible if using a decimal format
+
+    with time_support(format='jd'):
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+        assert get_ticklabels(ax.xaxis) == ['2452000', '2458000', '2464000',
+                                            '2470000', '2476000', '2482000']
+
+    with time_support(format='jyear'):
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+        assert get_ticklabels(ax.xaxis) == ['2000', '2020', '2040', '2060', '2080']

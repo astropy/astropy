@@ -165,7 +165,7 @@ class AstropyTimeFormatter(ScalarFormatter):
             formatted = getattr(times, self._converter.format)
             if self._converter.simplify:
                 if all([x.endswith('00:00:00.000') for x in formatted]):
-                    split = 'T' if self._converter.format == 'isot' else ' '
+                    split = ' ' if self._converter.format == 'iso' else 'T'
                     formatted = [x.split(split)[0] for x in formatted]
             return formatted
         else:
@@ -175,15 +175,15 @@ class AstropyTimeFormatter(ScalarFormatter):
 class MplTimeConverter(units.ConversionInterface):
 
     def __init__(self, scale=None, format=None, simplify=None):
-
         super().__init__()
-
         self.format = format
         self.scale = scale
         self.simplify = simplify
 
     def convert(self, value, unit, axis):
-        'Convert a Time value to a scalar or array'
+        """
+        Convert a Time value to a scalar or array.
+        """
         scaled = getattr(value, self.scale)
         if self.format in YMDHMS_FORMATS:
             return scaled.mjd
@@ -191,8 +191,10 @@ class MplTimeConverter(units.ConversionInterface):
             return getattr(scaled, self.format)
 
     def axisinfo(self, unit, axis):
-        'Return major and minor tick locators and formatters'
-        if unit != 'date':
+        """
+        Return major and minor tick locators and formatters.
+        """
+        if unit != 'astropy_time':
             return None
         majloc = AstropyTimeLocator(self)
         majfmt = AstropyTimeFormatter(self)
@@ -201,5 +203,7 @@ class MplTimeConverter(units.ConversionInterface):
 
     @staticmethod
     def default_units(x, axis):
-        'Return the default unit for x or None'
-        return 'date'
+        """
+        Return the default unit for x or None
+        """
+        return 'astropy_time'
