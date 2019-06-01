@@ -389,7 +389,7 @@ class Table:
 
         return data
 
-    def __init__(self, data=None, masked=None, names=None, dtype=None,
+    def __init__(self, data=None, masked=False, names=None, dtype=None,
                  meta=None, copy=True, rows=None, copy_indices=True,
                  **kwargs):
 
@@ -802,10 +802,21 @@ class Table:
                     not self._add_as_mixin_column(col)):
                 col = col.view(NdarrayMixin)
 
-            if isinstance(col, (Column, MaskedColumn)):
-                col = self.ColumnClass(name=(name or col.info.name or def_name),
-                                       data=col, dtype=dtype,
-                                       copy=copy, copy_indices=self._init_indices)
+            if isinstance(col, Column):
+                # If col is a subclass of self.ColumnClass, then "upgrade" to ColumnClass,
+                # otherwise just use the original class.  The most common case is a
+                # table with masked=True and ColumnClass=MaskedColumn.  Then a Column
+                # gets upgraded to MaskedColumn, but the converse (pre-4.0) behavior
+                # of downgrading from MaskedColumn to Column (for non-masked table)
+                # does not happen.
+                if issubclass(self.ColumnClass, col.__class__):
+                    col_cls = self.ColumnClass
+                else:
+                    col_cls = col.__class__
+
+                col = col_cls(name=(name or col.info.name or def_name),
+                              data=col, dtype=dtype,
+                              copy=copy, copy_indices=self._init_indices)
             elif self._add_as_mixin_column(col):
                 # Copy the mixin column attributes if they exist since the copy below
                 # may not get this attribute.
