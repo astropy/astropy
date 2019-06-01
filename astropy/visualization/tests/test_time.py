@@ -16,21 +16,6 @@ from astropy.time import Time
 from astropy.visualization.time import time_support
 
 
-#
-# converter = AstropyTimeConverter(format='mjd')
-# units.registry[Time] = converter
-#
-# times = Time(['2016-03-22T12:30:31', '2016-03-22T12:30:38', '2016-03-22T12:34:40'])
-#
-# converter.format = 'iso'
-#
-# fig = plt.figure()
-# ax = fig.add_subplot(1, 1, 1)
-# ax.plot(times, [2, 3, 5])
-# fig.savefig('test_times.pdf')
-# print([x.get_text() for x in ax.xaxis.get_ticklabels()])
-
-
 def get_ticklabels(axis):
     axis.figure.canvas.draw()
     return [x.get_text() for x in axis.get_ticklabels()]
@@ -113,9 +98,29 @@ CASES = [
 @pytest.mark.parametrize(('interval', 'expected'), CASES)
 def test_formatter_locator(interval, expected):
 
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
+    # Check that the ticks and labels returned for the above cases are correct.
 
     with time_support():
+        ax = plt.subplot(1, 1, 1)
         ax.set_xlim(Time(interval[0]), Time(interval[1]))
         assert get_ticklabels(ax.xaxis) == expected
+
+
+def test_simplify():
+
+    # Check the behavior of the simplify option
+
+    with time_support(simplify=False, format='isot'):
+        ax = plt.subplot(1, 1, 1)
+        ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+        assert get_ticklabels(ax.xaxis) == ['2020-01-01T00:00:00.000',
+                                            '2040-01-01T00:00:00.000',
+                                            '2060-01-01T00:00:00.000']
+
+    for format in ['iso', 'isot', 'fits']:
+        with time_support(simplify=True, format=format):
+            ax = plt.subplot(1, 1, 1)
+            ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+            assert get_ticklabels(ax.xaxis) == ['2020-01-01',
+                                                '2040-01-01',
+                                                '2060-01-01']
