@@ -215,6 +215,8 @@ class TestAddColumn:
         assert t.masked
         t.add_column(MaskedColumn(name='b', data=[4, 5, 6], mask=[1, 0, 1]))
         assert t.masked
+        assert isinstance(t['a'], MaskedColumn)
+        assert isinstance(t['b'], MaskedColumn)
         assert np.all(t['a'] == np.array([1, 2, 3]))
         assert np.all(t['a'].mask == np.array([0, 1, 0], bool))
         assert np.all(t['b'] == np.array([4, 5, 6]))
@@ -226,9 +228,11 @@ class TestAddColumn:
         t.add_column(Column(name='a', data=[1, 2, 3]))
         assert not t.masked
         t.add_column(MaskedColumn(name='b', data=[4, 5, 6], mask=[1, 0, 1]))
-        assert t.masked
+        assert not t.masked  # Changed in 4.0, table no longer auto-upgrades
+        assert isinstance(t['a'], Column)  # Was MaskedColumn before 4.0
+        assert isinstance(t['b'], MaskedColumn)
         assert np.all(t['a'] == np.array([1, 2, 3]))
-        assert np.all(t['a'].mask == np.array([0, 0, 0], bool))
+        assert not hasattr(t['a'], 'mask')
         assert np.all(t['b'] == np.array([4, 5, 6]))
         assert np.all(t['b'].mask == np.array([1, 0, 1], bool))
 
@@ -239,6 +243,8 @@ class TestAddColumn:
         assert t.masked
         t.add_column(MaskedColumn(name='b', data=[4, 5, 6], mask=[1, 0, 1]))
         assert t.masked
+        assert isinstance(t['a'], MaskedColumn)
+        assert isinstance(t['b'], MaskedColumn)
         assert np.all(t['a'] == np.array([1, 2, 3]))
         assert np.all(t['a'].mask == np.array([0, 0, 0], bool))
         assert np.all(t['b'] == np.array([4, 5, 6]))
