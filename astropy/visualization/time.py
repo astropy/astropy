@@ -5,10 +5,11 @@ import numpy as np
 
 import matplotlib.units as units
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 from astropy.time import Time
 from astropy import units as u
-from astropy.visualization.wcsaxes.utils import select_step_hour
+from astropy.visualization.wcsaxes.utils import select_step_hour, select_step_scalar
 
 from matplotlib.ticker import MaxNLocator, ScalarFormatter
 
@@ -63,17 +64,62 @@ class AstropyTimeLocator(MaxNLocator):
 
             vrange = vmax - vmin
 
-            if vrange > 366:   # greater than a year
+            if vrange > 31:  # greater than a month
 
-                # We need to be careful here since not all years have the
-                # same length
+                # We need to be careful here since not all years and months have
+                # the same length
 
-                pass
+                # Start off by converting the values from the range to
+                # datetime objects, so that we can easily extract the year and
+                # month.
 
-            elif vrange > 31:  # greater than a month
+                tmin = Time(vmin, scale=self._converter.scale, format='mjd').datetime
+                tmax = Time(vmax, scale=self._converter.scale, format='mjd').datetime
 
-                # We need to be careful here since not all months have the
-                # same length
+                # Find the range of years
+                ymin = tmin.year
+                ymax = tmax.year
+
+                if ymax > ymin + 1:  # greater than a year
+
+                    # Find the step we want to use
+                    ystep = int(select_step_scalar(max(1, (ymax - ymin) / 3)))
+
+                    ymin = ystep * (ymin // ystep)
+
+                    # Generate the years for these steps
+                    times = []
+                    for year in range(ymin, ymax + 1, ystep):
+                        times.append(datetime(year=year, month=1, day=1))
+
+                else:  # greater than a month but less than a year
+
+                    mmin = tmin.month
+                    mmax = tmax.month + 12 * (ymax - ymin)
+
+                    mstep = int(select_step_scalar(max(1, (mmax - mmin) / 3)))
+
+                    mmin = mstep * max(1, mmin // mstep)
+
+                    # Generate the months for these steps
+                    times = []
+                    for month in range(mmin, mmax + 1, mstep):
+                        times.append(datetime(year=ymin + month // 12,
+                                              month=month % 12, day=1))
+
+                # Convert back to MJD
+                values = Time(times, scale=self._converter.scale).mjd
+
+                # Get rid of values outside of the input interval
+                values = values[(values >= vmin) & (values <= vmax)]
+
+
+                return values
+
+
+
+
+
 
                 pass
 
