@@ -45,10 +45,7 @@ def time_support(scale='utc', format='isot', simplify=True):
         If possible, simplify labels, e.g. by removing 00:00:00.000 times from
         ISO strings if all labels fall on that time.
     """
-    converter = MplTimeConverter(scale=scale, format=format, simplify=simplify)
-    units.registry[Time] = converter
-    yield converter
-    units.registry.pop(Time)
+    return MplTimeConverter(scale=scale, format=format, simplify=simplify)
 
 
 class AstropyTimeLocator(MaxNLocator):
@@ -175,10 +172,25 @@ class AstropyTimeFormatter(ScalarFormatter):
 class MplTimeConverter(units.ConversionInterface):
 
     def __init__(self, scale=None, format=None, simplify=None):
+
         super().__init__()
+
         self.format = format
         self.scale = scale
         self.simplify = simplify
+
+        if Time not in units.registry:
+            units.registry[Time] = self
+            self._remove = True
+        else:
+            self._remove = False
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, type, value, tb):
+            if self._remove:
+                del units.registry[Time]
 
     def convert(self, value, unit, axis):
         """
