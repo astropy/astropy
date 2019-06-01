@@ -113,85 +113,11 @@ Comparing quantities
     >>> u.isclose([1, 2] * u.m, [100, 20] * u.cm)  # doctest: +SKIP
     array([ True, False])
 
-.. _plotting-quantities:
-
 Plotting quantities
 ===================
 
-|quantity| objects can be conveniently plotted using matplotlib.  This
-feature needs to be explicitly turned on:
-
-.. doctest-requires:: matplotlib
-
-    >>> from astropy.visualization import quantity_support
-    >>> quantity_support()  # doctest: +IGNORE_OUTPUT
-    <astropy.visualization.units.MplQuantityConverter ...>
-
-Then |quantity| objects can be passed to matplotlib plotting
-functions.  The axis labels are automatically labeled with the unit of
-the quantity:
-
-.. doctest-requires:: matplotlib
-
-    >>> from matplotlib import pyplot as plt
-    >>> plt.figure(figsize=(5,3))
-    <...>
-    >>> plt.plot([1, 2, 3] * u.m)
-    [...]
-
-.. plot::
-
-    from astropy import units as u
-    from astropy.visualization import quantity_support
-    quantity_support()
-    from matplotlib import pyplot as plt
-    plt.figure(figsize=(5,3))
-    plt.plot([1, 2, 3] * u.m)
-
-Quantities are automatically converted to the first unit set on a
-particular axis, so in the following, the y-axis remains in ``m`` even
-though the second line is given in ``cm``:
-
-.. doctest-requires:: matplotlib
-
-    >>> plt.plot([1, 2, 3] * u.cm)
-    [...]
-
-.. plot::
-
-    from astropy import units as u
-    from astropy.visualization import quantity_support
-    quantity_support()
-    from matplotlib import pyplot as plt
-    plt.figure(figsize=(5,3))
-    plt.plot([1, 2, 3] * u.m)
-    plt.plot([1, 2, 3] * u.cm)
-
-Plotting a quantity with an incompatible unit will raise an exception.
-For example, calling ``plt.plot([1, 2, 3] * u.kg)`` (mass unit) to overplot
-on the plot above that is displaying length units.
-
-To make sure unit support is turned off afterward, you can use
-`~astropy.visualization.quantity_support` with a ``with`` statement:
-
-.. doctest-requires:: matplotlib
-
-    >>> from astropy.visualization import quantity_support
-    >>> from matplotlib import pyplot as plt
-    >>> with quantity_support():
-    ...     plt.figure(figsize=(5,3))
-    ...     plt.plot([1, 2, 3] * u.m)
-    <...>
-    [...]
-
-.. plot::
-
-    from astropy import units as u
-    from astropy.visualization import quantity_support
-    from matplotlib import pyplot as plt
-    with quantity_support():
-        plt.figure(figsize=(5,3))
-        plt.plot([1, 2, 3] * u.m)
+|quantity| objects can be conveniently plotted using matplotlib - see
+:ref:`plotting-quantities` for more details.
 
 Arithmetic
 ==========
