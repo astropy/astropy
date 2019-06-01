@@ -4,7 +4,6 @@
 import numpy as np
 
 import matplotlib.units as units
-import matplotlib.pyplot as plt
 from datetime import datetime
 
 from astropy.time import Time
@@ -18,7 +17,7 @@ __all__ = ['time_support']
 YMDHMS_FORMATS = ('fits', 'iso', 'isot')
 
 
-def time_support(scale='utc', format='isot'):
+def time_support(scale='utc', format='isot', simplify=True):
     """
     Enable support for plotting `astropy.time.Time` instances in
     matplotlib.
@@ -39,9 +38,11 @@ def time_support(scale='utc', format='isot'):
         The time format to use for the times on the axis
     scale : str, optional
         The time scale to use for the times on the axis
-
+    simplify : bool, optional
+        If possible, simplify labels, e.g. by removing 00:00:00.000 times from
+        ISO strings if all labels fall on that time.
     """
-    return MplTimeConverter(scale=scale, format=format)
+    return MplTimeConverter(scale=scale, format=format, simplify=simplify)
 
 
 class AstropyTimeLocator(MaxNLocator):
@@ -113,15 +114,7 @@ class AstropyTimeLocator(MaxNLocator):
                 # Get rid of values outside of the input interval
                 values = values[(values >= vmin) & (values <= vmax)]
 
-
                 return values
-
-
-
-
-
-
-                pass
 
             elif vrange > 1:  # greater than a day
 
@@ -163,19 +156,24 @@ class AstropyTimeFormatter(ScalarFormatter):
             if len(values) == 0:
                 return []
             times = Time(values, format='mjd', scale=self._converter.scale)
-            return getattr(times, self._converter.format)
+            formatted = getattr(times, self._converter.format)
+            if all([x.endswith('00:00:00.000') for x in formatted]):
+                split = 'T' if self._converter.format == 'isot' else ' '
+                formatted = [x.split(split)[0] for x in formatted]
+            return formatted
         else:
             return super().format_ticks(values)
 
 
 class MplTimeConverter(units.ConversionInterface):
 
-    def __init__(self, scale=None, format=None):
+    def __init__(self, scale=None, format=None, simplify=True):
 
         super().__init__()
 
-        self._format = format
-        self._scale = scale
+        self.format = format
+        self.scale = scale
+        self.simplify = simplify
 
         if Time not in units.registry:
             units.registry[Time] = self
@@ -189,22 +187,6 @@ class MplTimeConverter(units.ConversionInterface):
     def __exit__(self, type, value, tb):
         if self._remove:
             del units.registry[Time]
-
-    @property
-    def format(self):
-        return self._format
-
-    @format.setter
-    def format(self, value):
-        self._format = value
-
-    @property
-    def scale(self):
-        return self._scale
-
-    @scale.setter
-    def scale(self, value):
-        self._scale = value
 
     def convert(self, value, unit, axis):
         'Convert a Time value to a scalar or array'
