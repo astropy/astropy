@@ -19,6 +19,7 @@ Using `astropy.visualization`
 .. toctree::
    :maxdepth: 2
 
+   matplotlib_integration.rst
    wcsaxes/index.rst
    normalization.rst
    histogram.rst
