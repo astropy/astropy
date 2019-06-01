@@ -142,7 +142,6 @@ def test_simplify():
                                             '2060-01-01T00:00:00.000']
 
     for format in ['iso', 'isot', 'fits']:
-        print(format)
         with time_support(simplify=True, format=format):
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
