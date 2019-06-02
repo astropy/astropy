@@ -115,15 +115,10 @@ class AstropyTimeLocator(MaxNLocator):
                 # Convert back to MJD
                 values = Time(times, scale=self._converter.scale).mjd
 
-                # Get rid of values outside of the input interval
-                values = values[(values >= vmin) & (values <= vmax)]
-
-                return values
-
             elif vrange > 1:  # greater than a day
 
                 self.set_params(steps=[1, 2, 5, 10])
-                return super().tick_values(vmin, vmax)
+                values = super().tick_values(vmin, vmax)
 
             else:
 
@@ -136,11 +131,16 @@ class AstropyTimeLocator(MaxNLocator):
                 # Determine tick locations
                 imin = np.ceil(vmin / dv)
                 imax = np.floor(vmax / dv)
-                return np.arange(imin, imax + 1, dtype=int) * dv
+                values = np.arange(imin, imax + 1, dtype=int) * dv
 
         else:
 
-            return super().tick_values(vmin, vmax)
+            values = super().tick_values(vmin, vmax)
+
+        # Get rid of values outside of the input interval
+        values = values[(values >= vmin) & (values <= vmax)]
+
+        return values
 
     def __call__(self):
         vmin, vmax = self.axis.get_view_interval()
