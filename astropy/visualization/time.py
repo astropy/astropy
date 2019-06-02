@@ -240,4 +240,5 @@ class MplTimeConverter(units.ConversionInterface):
         majloc = AstropyTimeLocator(self)
         majfmt = AstropyTimeFormatter(self)
         return units.AxisInfo(majfmt=majfmt,
-                              majloc=majloc)
+                              majloc=majloc,
+                              label=f'Time ({self.scale})')
