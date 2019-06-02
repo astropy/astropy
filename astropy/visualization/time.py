@@ -16,6 +16,7 @@ __all__ = ['time_support']
 
 UNSUPPORTED_FORMATS = ('datetime', 'datetime64')
 YMDHMS_FORMATS = ('fits', 'iso', 'isot', 'yday')
+STR_FORMATS = YMDHMS_FORMATS + ('byear_str', 'jyear_str')
 
 
 def time_support(scale=None, format=None, simplify=True):
@@ -154,6 +155,13 @@ class AstropyTimeFormatter(ScalarFormatter):
         self.set_useOffset(False)
         self.set_scientific(False)
 
+    def __call__(self, value, pos=None):
+        # Needed for Matplotlib <3.1
+        if self._converter.format in STR_FORMATS:
+            return self.format_ticks([value])[0]
+        else:
+            return super().__call__(value, pos=pos)
+
     def format_ticks(self, values):
         if len(values) == 0:
             return []
@@ -241,4 +249,4 @@ class MplTimeConverter(units.ConversionInterface):
         majfmt = AstropyTimeFormatter(self)
         return units.AxisInfo(majfmt=majfmt,
                               majloc=majloc,
-                              label=f'Time ({self.scale})')
+                              label='Time ({0})'.format(self.scale))
