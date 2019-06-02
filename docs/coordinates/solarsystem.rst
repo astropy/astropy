@@ -44,6 +44,52 @@ without the need to download a large ephemerides file)::
 Above, we used ``solar_system_ephemeris`` as a context, which sets the default
 ephemeris while in the ``with`` clause, and resets it at the end.
 
+.. note::
+  The algorithm is due to J.L. Simon, P. Bretagnon, J. Chapront,
+  M. Chapront-Touze, G. Francou and J. Laskar (Bureau des
+  Longitudes, Paris, France).  From comparisons with JPL
+  ephemeris DE102, they quote the maximum errors
+  over the interval 1800-2050 below. Please also note that the position of the Earth is calculated with a more accurate routine than the rest of the planets. For more details see `cextern/erfa/plan94.c <https://github.com/astropy/astropy/blob/master/cextern/erfa/plan94.c>`_
+
+.. list-table::
+
+  * - 
+    - L (arcsec)
+    - B (arcsec)
+    - R (km)
+  * - Mercury
+    - 4
+    - 1
+    - 300
+  * - Venus
+    - 5
+    - 1
+    - 800
+  * - EMB
+    - 6
+    - 1
+    - 1000
+  * - Mars
+    - 17
+    - 1
+    - 7700
+  * - Jupiter
+    - 71
+    - 5
+    - 76000
+  * - Saturn
+    - 81
+    - 13
+    - 267000
+  * - Uranus
+    - 86
+    - 7
+    - 712000
+  * - Neptune
+    - 11
+    - 1
+    - 253000
+
 To get more precise positions, you could use the ``de430`` ephemeris mentioned
 above, but between 1950 and 2050 you could also opt for the ``de432s``
 ephemeris, which is stored in a smaller, ~10 MB, file (which will be
