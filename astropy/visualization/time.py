@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from contextlib import contextmanager
-
 import numpy as np
 
 import matplotlib.units as units
@@ -19,7 +17,6 @@ __all__ = ['time_support']
 YMDHMS_FORMATS = ('fits', 'iso', 'isot')
 
 
-@contextmanager
 def time_support(scale='utc', format='isot', simplify=True):
     """
     Enable support for plotting `astropy.time.Time` instances in
@@ -185,12 +182,12 @@ class MplTimeConverter(units.ConversionInterface):
         else:
             self._remove = False
 
-        def __enter__(self):
-            return self
+    def __enter__(self):
+        return self
 
-        def __exit__(self, type, value, tb):
-            if self._remove:
-                del units.registry[Time]
+    def __exit__(self, type, value, tb):
+        if self._remove:
+            del units.registry[Time]
 
     def convert(self, value, unit, axis):
         """
