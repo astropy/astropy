@@ -14,7 +14,8 @@ from matplotlib.ticker import MaxNLocator, ScalarFormatter
 
 __all__ = ['time_support']
 
-YMDHMS_FORMATS = ('fits', 'iso', 'isot')
+UNSUPPORTED_FORMATS = ('datetime', 'datetime64')
+YMDHMS_FORMATS = ('fits', 'iso', 'isot', 'yday')
 
 
 def time_support(scale='utc', format='isot', simplify=True):
@@ -65,7 +66,7 @@ class AstropyTimeLocator(MaxNLocator):
 
             vrange = vmax - vmin
 
-            if vrange > 31:  # greater than a month
+            if (self._converter.format != 'yday' and vrange > 31) or vrange > 366:  # greater than a month
 
                 # We need to be careful here since not all years and months have
                 # the same length
@@ -152,16 +153,24 @@ class AstropyTimeFormatter(ScalarFormatter):
         self.set_scientific(False)
 
     def format_ticks(self, values):
+        if len(values) == 0:
+            return []
         if self._converter.format in YMDHMS_FORMATS:
-            if len(values) == 0:
-                return []
             times = Time(values, format='mjd', scale=self._converter.scale)
             formatted = getattr(times, self._converter.format)
             if self._converter.simplify:
-                if all([x.endswith('00:00:00.000') for x in formatted]):
-                    split = ' ' if self._converter.format == 'iso' else 'T'
-                    formatted = [x.split(split)[0] for x in formatted]
+                if self._converter.format in ('fits', 'iso', 'isot'):
+                    if all([x.endswith('00:00:00.000') for x in formatted]):
+                        split = ' ' if self._converter.format == 'iso' else 'T'
+                        formatted = [x.split(split)[0] for x in formatted]
+                elif self._converter.format == 'yday':
+                    if all([x.endswith(':001:00:00:00.000') for x in formatted]):
+                        formatted = [x.split(':', 1)[0] for x in formatted]
             return formatted
+        elif self._converter.format == 'byear_str':
+            return Time(values, format='byear', scale=self._converter.scale).byear_str
+        elif self._converter.format == 'jyear_str':
+            return Time(values, format='jyear', scale=self._converter.scale).jyear_str
         else:
             return super().format_ticks(values)
 
@@ -182,6 +191,16 @@ class MplTimeConverter(units.ConversionInterface):
         else:
             self._remove = False
 
+    @property
+    def format(self):
+        return self._format
+
+    @format.setter
+    def format(self, value):
+        if value in UNSUPPORTED_FORMATS:
+            raise ValueError('time_support does not support format={0}'.format(value))
+        self._format = value
+
     def __enter__(self):
         return self
 
@@ -196,6 +215,10 @@ class MplTimeConverter(units.ConversionInterface):
         scaled = getattr(value, self.scale)
         if self.format in YMDHMS_FORMATS:
             return scaled.mjd
+        elif self.format == 'byear_str':
+            return scaled.byear
+        elif self.format == 'jyear_str':
+            return scaled.jyear
         else:
             return getattr(scaled, self.format)
 
