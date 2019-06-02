@@ -1856,7 +1856,8 @@ class TestPandas:
 
         for name, column in t.columns.items():
             assert np.all(column.data == t2[name].data)
-            assert np.all(column.mask == t2[name].mask)
+            if hasattr(t2[name], 'mask'):
+                assert np.all(column.mask == t2[name].mask)
             # Masked integer type comes back as float.  Nothing we can do about this.
             if column.dtype.kind == 'i':
                 if np.any(column.mask):
@@ -1942,7 +1943,7 @@ class Test__Astropy_Table__():
     def test_simple_1(self):
         """Make a SimpleTable and convert to Table, QTable with copy=False, True"""
         for table_cls in (table.Table, table.QTable):
-            col_c_class = u.Quantity if table_cls is table.QTable else table.MaskedColumn
+            col_c_class = u.Quantity if table_cls is table.QTable else table.Column
             for cpy in (False, True):
                 st = self.SimpleTable()
                 # Test putting in a non-native kwarg `extra_meta` to Table initializer
@@ -1954,7 +1955,7 @@ class Test__Astropy_Table__():
                 vals = t['c'].value if table_cls is table.QTable else t['c']
                 assert np.all(st.columns[2].value == vals)
 
-                assert isinstance(t['a'], table.MaskedColumn)
+                assert isinstance(t['a'], table.Column)
                 assert isinstance(t['b'], table.MaskedColumn)
                 assert isinstance(t['c'], col_c_class)
                 assert t['c'].unit is u.m
