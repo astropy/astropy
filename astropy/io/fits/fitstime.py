@@ -259,13 +259,20 @@ def _verify_column_info(column_info, global_info):
     # considered.
     elif global_info['TREFPOS'] == 'TOPOCENTER':
 
-        column_info['location'] = global_info['location']
-        if column_info['location'] is None:
+        if global_info['location'] is None:
             warnings.warn(
                 'Time column reference position "TRPOSn" is not specified. The '
                 'default value for it is "TOPOCENTER", but due to unspecified '
                 'observatory position, reference position will be ignored.',
                 AstropyUserWarning)
+        else:
+            warnings.warn(
+                'Time column reference position "TRPOSn" is not specified. The '
+                'default value for it is "TOPOCENTER", and the observatory position '
+                'has been specified. However, for supporting column-specific location, '
+                'reference position will be ignored for this column.',
+                AstropyUserWarning)
+        column_info['location'] = None
     else:
         column_info['location'] = None
 
@@ -541,6 +548,7 @@ def time_to_fits(table):
 
         # Time column reference position
         if getattr(col, 'location') is None:
+            coord_meta[col.info.name]['time_ref_pos'] = None
             if location is not None:
                 warnings.warn(
                     'Time Column "{}" has no specified location, but global Time '

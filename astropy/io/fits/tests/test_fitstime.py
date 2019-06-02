@@ -57,10 +57,15 @@ class TestFitsTime(FitsTestCase):
                           'specified location, but global Time Position is present'):
             t.write(self.temp('time.fits'), format='fits', overwrite=True)
 
-        with pytest.warns(fits.verify.VerifyWarning,
-                          match='Invalid keyword for column 2'):
+        # Check that a blank value for the "TRPOSn" keyword is not generated
+        hdr = fits.getheader(self.temp('time.fits'), 1)
+        assert hdr.get('TRPOS2', None) is None
+        
+        with pytest.warns(AstropyUserWarning, match='Time column reference position '
+                          '"TRPOSn" is not specified. The default value for it is '
+                          '"TOPOCENTER", and the observatory position has been specified.'):
             tm = table_types.read(self.temp('time.fits'), format='fits',
-                                  astropy_native=True)
+                              astropy_native=True)
 
         assert (tm['a'].location == t['a'].location).all()
         assert tm['b'].location == t['b'].location
@@ -170,6 +175,7 @@ class TestFitsTime(FitsTestCase):
             assert coord_info[colname]['coord_unit'] == 'd'
 
         assert coord_info['a']['time_ref_pos'] == 'TOPOCENTER'
+        assert coord_info['b']['time_ref_pos'] == None
 
         assert len(hdr) == 0
 
@@ -188,8 +194,10 @@ class TestFitsTime(FitsTestCase):
         # back using native astropy objects; thus, ensure its round-trip
         t.write(self.temp('time.fits'), format='fits', overwrite=True)
 
-        with pytest.warns(fits.verify.VerifyWarning,
-                          match='Invalid keyword for column 1'):
+        with pytest.warns(AstropyUserWarning, match='Time column reference '
+                          'position "TRPOSn" is not specified. The default '
+                          'value for it is "TOPOCENTER", but due to unspecified '
+                          'observatory position, reference position will be ignored.'):
             tm = table_types.read(self.temp('time.fits'), format='fits',
                                   astropy_native=True)
 
@@ -211,8 +219,10 @@ class TestFitsTime(FitsTestCase):
 
         t.write(self.temp('time.fits'), format='fits', overwrite=True)
 
-        with pytest.warns(fits.verify.VerifyWarning,
-                          match='Invalid keyword for column 1'):
+        with pytest.warns(AstropyUserWarning, match='Time column reference '
+                          'position "TRPOSn" is not specified. The default value '
+                          'for it is "TOPOCENTER", but due to unspecified observatory '
+                          'position, reference position will be ignored.'):
             tm = table_types.read(self.temp('time.fits'), format='fits',
                                   astropy_native=True)
 
