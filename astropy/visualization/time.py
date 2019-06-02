@@ -18,7 +18,7 @@ UNSUPPORTED_FORMATS = ('datetime', 'datetime64')
 YMDHMS_FORMATS = ('fits', 'iso', 'isot', 'yday')
 
 
-def time_support(scale='utc', format='isot', simplify=True):
+def time_support(scale=None, format=None, simplify=True):
     """
     Enable support for plotting `astropy.time.Time` instances in
     matplotlib.
@@ -36,9 +36,11 @@ def time_support(scale='utc', format='isot', simplify=True):
     Parameters
     ----------
     format : str, optional
-        The time format to use for the times on the axis
+        The time format to use for the times on the axis. If not specified,
+        the format of the first Time object passed to Matplotlib is used.
     scale : str, optional
-        The time scale to use for the times on the axis
+        The time scale to use for the times on the axis. If not specified,
+        the scale of the first Time object passed to Matplotlib is used.
     simplify : bool, optional
         If possible, simplify labels, e.g. by removing 00:00:00.000 times from
         ISO strings if all labels fall on that time.
@@ -208,6 +210,15 @@ class MplTimeConverter(units.ConversionInterface):
         if self._remove:
             del units.registry[Time]
 
+    def default_units(self, x, axis):
+        if isinstance(x, tuple):
+            x = x[0]
+        if self.format is None:
+            self.format = x.format
+        if self.scale is None:
+            self.scale = x.scale
+        return 'astropy_time'
+
     def convert(self, value, unit, axis):
         """
         Convert a Time value to a scalar or array.
@@ -226,16 +237,7 @@ class MplTimeConverter(units.ConversionInterface):
         """
         Return major and minor tick locators and formatters.
         """
-        if unit != 'astropy_time':
-            return None
         majloc = AstropyTimeLocator(self)
         majfmt = AstropyTimeFormatter(self)
         return units.AxisInfo(majfmt=majfmt,
                               majloc=majloc)
-
-    @staticmethod
-    def default_units(x, axis):
-        """
-        Return the default unit for x or None
-        """
-        return 'astropy_time'

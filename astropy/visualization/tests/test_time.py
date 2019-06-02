@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import io
-
 import pytest
 
 try:
@@ -107,28 +105,6 @@ def test_formatter_locator(interval, expected):
         assert get_ticklabels(ax.xaxis) == expected
 
 
-def test_simplify():
-
-    # Check the behavior of the simplify option
-
-    with time_support(simplify=False, format='isot'):
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
-        ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
-        assert get_ticklabels(ax.xaxis) == ['2020-01-01T00:00:00.000',
-                                            '2040-01-01T00:00:00.000',
-                                            '2060-01-01T00:00:00.000']
-
-    for format in ['iso', 'isot', 'fits']:
-        with time_support(simplify=True, format=format):
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1)
-            ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
-            assert get_ticklabels(ax.xaxis) == ['2020-01-01',
-                                                '2040-01-01',
-                                                '2060-01-01']
-
-
 FORMAT_CASES = [
   ('byear', ['2000', '2020', '2040', '2060', '2080']),
   ('byear_str', ['B2000.000', 'B2020.000', 'B2040.000', 'B2060.000', 'B2080.000']),
@@ -150,10 +126,22 @@ FORMAT_CASES = [
 
 @pytest.mark.parametrize(('format', 'expected'), FORMAT_CASES)
 def test_formats(format, expected):
+    # Check that the locators/formatters work fine for all time formats
     with time_support(format=format, simplify=False):
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
         ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+        assert get_ticklabels(ax.xaxis) == expected
+
+
+@pytest.mark.parametrize(('format', 'expected'), FORMAT_CASES)
+def test_auto_formats(format, expected):
+    # Check that the format/scale is taken from the first time used.
+    with time_support(simplify=False):
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.set_xlim(Time(Time('2014-03-22T12:30:30.9'), format=format),
+                    Time('2077-03-22T12:30:32.1'))
         assert get_ticklabels(ax.xaxis) == expected
 
 
@@ -167,6 +155,7 @@ FORMAT_CASES_SIMPLIFY = [
 
 @pytest.mark.parametrize(('format', 'expected'), FORMAT_CASES_SIMPLIFY)
 def test_formats_simplify(format, expected):
+    # Check the use of the simplify= option
     with time_support(format=format, simplify=True):
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
