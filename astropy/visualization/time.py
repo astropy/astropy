@@ -131,7 +131,7 @@ def time_support(scale=None, format=None, simplify=True):
                     # Determine tick locations
                     imin = np.ceil(vmin / dv)
                     imax = np.floor(vmax / dv)
-                    values = np.arange(imin, imax + 1, dtype=int) * dv
+                    values = np.arange(imin, imax + 1, dtype=np.int64) * dv
 
             else:
 
