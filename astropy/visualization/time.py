@@ -7,7 +7,6 @@ from datetime import datetime
 
 from astropy.time import Time
 from astropy import units as u
-from astropy.visualization.wcsaxes.utils import select_step_hour, select_step_scalar
 
 __all__ = ['time_support']
 
@@ -48,6 +47,7 @@ def time_support(scale=None, format=None, simplify=True):
 
     import matplotlib.units as units
     from matplotlib.ticker import MaxNLocator, ScalarFormatter
+    from astropy.visualization.wcsaxes.utils import select_step_hour, select_step_scalar
 
     class AstropyTimeLocator(MaxNLocator):
 
