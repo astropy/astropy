@@ -161,3 +161,14 @@ def test_formats_simplify(format, expected):
         ax = fig.add_subplot(1, 1, 1)
         ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
         assert get_ticklabels(ax.xaxis) == expected
+
+
+def test_plot():
+    # Make sure that plot() works properly
+    with time_support():
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+        ax.plot(Time(['2015-03-22T12:30:30.9',
+                      '2018-03-22T12:30:30.9',
+                      '2021-03-22T12:30:30.9']))
