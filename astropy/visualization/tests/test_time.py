@@ -3,12 +3,9 @@
 
 import pytest
 
-try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    HAS_PLT = False
-else:
-    HAS_PLT = True
+pytest.importorskip('matplotlib')  # noqa
+
+import matplotlib.pyplot as plt
 
 from astropy.time import Time
 from astropy.visualization.time import time_support
@@ -90,7 +87,6 @@ RANGE_CASES = [
 ]
 
 
-@pytest.mark.skipif('not HAS_PLT')
 @pytest.mark.parametrize(('interval', 'expected'), RANGE_CASES)
 def test_formatter_locator(interval, expected):
 
