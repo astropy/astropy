@@ -1,5 +1,3 @@
-.. _quantity:
-
 Plotting Astropy objects in Matplotlib
 **************************************
 

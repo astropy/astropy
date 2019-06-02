@@ -129,41 +129,46 @@ def test_simplify():
                                                 '2060-01-01']
 
 
-def test_simplify():
+FORMAT_CASES = [
+  ('byear', ['2000', '2020', '2040', '2060', '2080']),
+  ('byear_str', ['B2000.000', 'B2020.000', 'B2040.000', 'B2060.000', 'B2080.000']),
+  ('cxcsec', ['500000000', '1000000000', '1500000000', '2000000000', '2500000000', '3000000000']),
+  ('decimalyear', ['2000', '2020', '2040', '2060', '2080']),
+  ('fits', ['2020-01-01T00:00:00.000', '2040-01-01T00:00:00.000', '2060-01-01T00:00:00.000']),
+  ('gps', ['1000000000', '1500000000', '2000000000', '2500000000', '3000000000', '3500000000']),
+  ('iso', ['2020-01-01 00:00:00.000', '2040-01-01 00:00:00.000', '2060-01-01 00:00:00.000']),
+  ('isot', ['2020-01-01T00:00:00.000', '2040-01-01T00:00:00.000', '2060-01-01T00:00:00.000']),
+  ('jd', ['2452000', '2458000', '2464000', '2470000', '2476000', '2482000']),
+  ('jyear', ['2000', '2020', '2040', '2060', '2080']),
+  ('jyear_str', ['J2000.000', 'J2020.000', 'J2040.000', 'J2060.000', 'J2080.000']),
+  ('mjd', ['54000', '60000', '66000', '72000', '78000', '84000']),
+  ('plot_date', ['732000', '738000', '744000', '750000', '756000', '762000']),
+  ('unix', ['1000000000', '1500000000', '2000000000', '2500000000', '3000000000', '3500000000']),
+  ('yday', ['2020:001:00:00:00.000', '2040:001:00:00:00.000', '2060:001:00:00:00.000']),
+]
 
-    # Check the behavior of the simplify option
 
-    with time_support(simplify=False, format='isot'):
+@pytest.mark.parametrize(('format', 'expected'), FORMAT_CASES)
+def test_formats(format, expected):
+    with time_support(format=format, simplify=False):
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
         ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
-        assert get_ticklabels(ax.xaxis) == ['2020-01-01T00:00:00.000',
-                                            '2040-01-01T00:00:00.000',
-                                            '2060-01-01T00:00:00.000']
-
-    for format in ['iso', 'isot', 'fits']:
-        with time_support(simplify=True, format=format):
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1)
-            ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
-            assert get_ticklabels(ax.xaxis) == ['2020-01-01',
-                                                '2040-01-01',
-                                                '2060-01-01']
+        assert get_ticklabels(ax.xaxis) == expected
 
 
-def test_decimal_formats():
+FORMAT_CASES_SIMPLIFY = [
+  ('fits', ['2020-01-01', '2040-01-01', '2060-01-01']),
+  ('iso', ['2020-01-01', '2040-01-01', '2060-01-01']),
+  ('isot', ['2020-01-01', '2040-01-01', '2060-01-01']),
+  ('yday', ['2020', '2040', '2060']),
+]
 
-    # Check that labels look sensible if using a decimal format
 
-    with time_support(format='jd'):
+@pytest.mark.parametrize(('format', 'expected'), FORMAT_CASES_SIMPLIFY)
+def test_formats_simplify(format, expected):
+    with time_support(format=format, simplify=True):
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
         ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
-        assert get_ticklabels(ax.xaxis) == ['2452000', '2458000', '2464000',
-                                            '2470000', '2476000', '2482000']
-
-    with time_support(format='jyear'):
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
-        ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
-        assert get_ticklabels(ax.xaxis) == ['2000', '2020', '2040', '2060', '2080']
+        assert get_ticklabels(ax.xaxis) == expected
