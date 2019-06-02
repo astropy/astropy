@@ -355,7 +355,7 @@ class Table:
         table_array : np.ndarray (unmasked) or np.ma.MaskedArray (masked)
             Copy of table as a numpy structured array
         """
-        masked = any(isinstance(col, MaskedColumn) for col in self.itercols())
+        masked = self.masked or any(isinstance(col, MaskedColumn) for col in self.itercols())
         empty_init = ma.empty if masked else np.empty
         if len(self.columns) == 0:
             return empty_init(0, dtype=None)
