@@ -104,8 +104,6 @@ controlled by passing arguments to ``time_support``:
    from matplotlib import pyplot as plt
    from astropy.time import Time
    from astropy.visualization import time_support
-   from matplotlib.units import registry
-   registry.pop(Time)
 
 .. plot::
    :include-source:
