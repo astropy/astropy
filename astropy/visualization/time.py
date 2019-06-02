@@ -231,6 +231,11 @@ class MplTimeConverter(units.ConversionInterface):
         """
         Convert a Time value to a scalar or array.
         """
+
+        # For Matplotlib < 2.2
+        if not isinstance(value, Time):
+            return value
+
         scaled = getattr(value, self.scale)
         if self.format in YMDHMS_FORMATS:
             return scaled.mjd
