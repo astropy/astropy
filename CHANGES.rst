@@ -453,6 +453,8 @@ astropy.io.fits
 - Allow ``Header.fromstring`` and ``Card.fromstring`` to accept ``bytes``.
   [#8707]
 
+- Invalid TRPOS<n> keyword is not generated for FITS time column. [#8784]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
