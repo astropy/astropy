@@ -92,8 +92,9 @@ using the |time| class:
     plt.figure(figsize=(5,3))
     plt.plot(Time([58000, 59000, 62000], format='mjd'), [1.2, 3.3, 2.3])
 
-By default, times are shown in UTC and in the ISO format, but this can be
-controlled by passing arguments to ``time_support``:
+By default, the format and scale used for the plots is taken from the first time
+that Matplotlib encounters for a particular Axes instance. The format and scale
+can also be explicitly controlled by passing arguments to ``time_support``:
 
 .. plot::
    :nofigs:
