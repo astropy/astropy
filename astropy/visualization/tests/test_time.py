@@ -132,6 +132,7 @@ def test_formats(format, expected):
         ax = fig.add_subplot(1, 1, 1)
         ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
         assert get_ticklabels(ax.xaxis) == expected
+        ax.get_xlabel() == f'Time ({format})'
 
 
 @pytest.mark.parametrize(('format', 'expected'), FORMAT_CASES)
