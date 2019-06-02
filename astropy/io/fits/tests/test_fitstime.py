@@ -65,7 +65,7 @@ class TestFitsTime(FitsTestCase):
                           '"TRPOSn" is not specified. The default value for it is '
                           '"TOPOCENTER", and the observatory position has been specified.'):
             tm = table_types.read(self.temp('time.fits'), format='fits',
-                              astropy_native=True)
+                                  astropy_native=True)
 
         assert (tm['a'].location == t['a'].location).all()
         assert tm['b'].location == t['b'].location
