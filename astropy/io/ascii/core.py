@@ -985,7 +985,8 @@ class TableOutputter(BaseOutputter):
         # FloatType) for each col.
         self._convert_vals(cols)
 
-        t_cols = [numpy.ma.MaskedArray(x.data, mask=x.mask) if hasattr(x, 'mask')
+        t_cols = [numpy.ma.MaskedArray(x.data, mask=x.mask)
+                  if hasattr(x, 'mask') and numpy.any(x.mask)
                   else x.data for x in cols]
         out = Table(t_cols, names=[x.name for x in cols], meta=meta['table'])
 
