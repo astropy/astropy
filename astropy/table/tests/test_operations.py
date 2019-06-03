@@ -452,8 +452,7 @@ class TestJoin():
 
         assert np.all(t12['b'].mask == [[True, False],
                                         [False, False]])
-        assert np.all(t12['c'].mask == [[False, False],
-                                        [False, False]])
+        assert not hasattr(t12['c'], 'mask')
 
         t12 = table.join(t1, t2, join_type='outer')
         assert np.all(t12['b'].mask == [[True, False],
@@ -1408,11 +1407,11 @@ def test_stack_columns():
 
     t = table.hstack([mc, q])
     assert t.__class__ is table.QTable
-    assert t.masked is True
+    assert t.masked is False
 
     t = table.hstack([c, mc])
     assert t.__class__ is table.Table
-    assert t.masked is True
+    assert t.masked is False
 
     t = table.vstack([q, q])
     assert t.__class__ is table.QTable
