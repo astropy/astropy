@@ -241,9 +241,7 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-- Nothing changed yet.
-
-
+- Matplotlib 2.1 and later is now required. [#8787]
 
 
 3.2.1 (unreleased)

@@ -37,18 +37,9 @@ jobs:
           name: Run tests for Python 3.7
           command: PYTHONHASHSEED=42 /opt/python/cp37-cp37m/bin/python setup.py test --parallel=4 -a "--durations=50"
 
-  image-tests-mpl202:
-    docker:
-      - image: astropy/image-tests-py35-mpl202:1.4
-    steps:
-      - checkout
-      - run:
-          name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
-
   image-tests-mpl212:
     docker:
-      - image: astropy/image-tests-py35-mpl212:1.4
+      - image: astropy/image-tests-py36-mpl212:1.5
     steps:
       - checkout
       - run:
@@ -57,16 +48,25 @@ jobs:
 
   image-tests-mpl222:
     docker:
-      - image: astropy/image-tests-py35-mpl222:1.4
+      - image: astropy/image-tests-py36-mpl222:1.5
     steps:
       - checkout
       - run:
           name: Run tests
           command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
 
-  image-tests-mpl300:
+  image-tests-mpl302:
     docker:
-      - image: astropy/image-tests-py35-mpl300:1.4
+      - image: astropy/image-tests-py36-mpl302:1.5
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+
+  image-tests-mpl310:
+    docker:
+      - image: astropy/image-tests-py36-mpl310:1.5
     steps:
       - checkout
       - run:
@@ -75,12 +75,12 @@ jobs:
 
   image-tests-mpldev:
     docker:
-      - image: astropy/image-tests-py36-base:1.1
+      - image: astropy/image-tests-py36-base:1.2
     steps:
       - checkout
       - run:
-          name: Install apt dependencies
-          command: apt-get install -y libfreetype6-dev libpng12-dev pkg-config cm-super
+          name: Install C++ compiler
+          command: apt install -y g++
       - run:
           name: Install Python dependencies, including developer version of Matplotlib
           command: pip3 install "pytest<3.7" pytest-mpl pytest-astropy numpy scipy git+https://github.com/matplotlib/matplotlib.git
@@ -129,10 +129,10 @@ workflows:
       - egg-info-37
       - html-docs
       - 32bit
-      - image-tests-mpl202
       - image-tests-mpl212
       - image-tests-mpl222
-      - image-tests-mpl300
+      - image-tests-mpl302
+      - image-tests-mpl310
       - image-tests-mpldev
 
 notify:
