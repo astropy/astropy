@@ -211,10 +211,12 @@ def test_guess_all_files():
 def test_daophot_indef():
     """Test that INDEF is correctly interpreted as a missing value"""
     table = ascii.read('data/daophot2.dat', Reader=ascii.Daophot)
-    for colname in table.colnames:
-        # Three columns have all INDEF values and are masked
-        mask_value = colname in ('OTIME', 'MAG', 'MERR', 'XAIRMASS')
-        assert np.all(table[colname].mask == mask_value)
+    for col in table.itercols():
+        # Four columns have all INDEF values and are masked, rest are normal Column
+        if col.name in ('OTIME', 'MAG', 'MERR', 'XAIRMASS'):
+            assert np.all(col.mask)
+        else:
+            assert not hasattr(col, 'mask')
 
 
 def test_daophot_types():
@@ -489,7 +491,7 @@ def test_masking_Cds():
     data = ascii.read(f,
                            **testfile['opts'])
     assert_true(data['AK'].mask[0])
-    assert_true(not data['Fit'].mask[0])
+    assert not hasattr(data['Fit'], 'mask')
 
 
 def test_null_Ipac():
