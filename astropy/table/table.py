@@ -817,6 +817,7 @@ class Table:
                 col = col_cls(name=(name or col.info.name or def_name),
                               data=col, dtype=dtype,
                               copy=copy, copy_indices=self._init_indices)
+
             elif self._add_as_mixin_column(col):
                 # Copy the mixin column attributes if they exist since the copy below
                 # may not get this attribute.
@@ -824,9 +825,21 @@ class Table:
                     col = col_copy(col, copy_indices=self._init_indices)
 
                 col.info.name = name or col.info.name or def_name
+
+            elif isinstance(col, np.ma.MaskedArray):
+                # Require that col_cls be a subclass of MaskedColumn, remembering
+                # that ColumnClass could be a user-defined subclass (though more-likely
+                # could be MaskedColumn).
+                col_cls = (self.ColumnClass
+                           if issubclass(self.ColumnClass, self.MaskedColumn)
+                           else self.MaskedColumn)
+                col = col_cls(name=(name or def_name), data=col, dtype=dtype,
+                              copy=copy, copy_indices=self._init_indices)
+
             elif isinstance(col, np.ndarray) or isiterable(col):
                 col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype,
                                        copy=copy, copy_indices=self._init_indices)
+
             else:
                 raise ValueError('Elements in list initialization must be '
                                  'either Column or list-like')
@@ -845,17 +858,7 @@ class Table:
         cols = ([data[name] for name in data_names] if struct else
                 [data[:, i] for i in range(n_cols)])
 
-        if copy:
-            self._init_from_list(cols, names, dtype, n_cols, copy)
-        else:
-            dtype = [(name, col.dtype, col.shape[1:]) for name, col in zip(names, cols)]
-            newdata = data.view(dtype).ravel()
-            columns = self.TableColumns()
-
-            for name in names:
-                columns[name] = self.ColumnClass(name=name, data=newdata[name])
-                columns[name].info.parent_table = self
-            self.columns = columns
+        self._init_from_list(cols, names, dtype, n_cols, copy)
 
     def _init_from_dict(self, data, names, dtype, n_cols, copy):
         """Initialize table from a dictionary of columns"""
