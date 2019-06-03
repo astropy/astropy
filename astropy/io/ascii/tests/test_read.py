@@ -546,7 +546,7 @@ def test_default_missing(fast_reader):
                        '1,3,,',
                        '2, , 4.0 , ss '])
     dat = ascii.read(table, fast_reader=fast_reader)
-    assert dat.masked is True
+    assert dat.masked is False
     assert dat.pformat() == [' a   b   c   d ',
                              '--- --- --- ---',
                              '  1   3  --  --',
@@ -566,7 +566,7 @@ def test_default_missing(fast_reader):
                        '  1   3        ',
                        '  2     4.0  ss'])
     dat = ascii.read(table, Reader=ascii.FixedWidthTwoLine)
-    assert dat.masked is True
+    assert dat.masked is False
     assert dat.pformat() == [' a   b   c   d ',
                              '--- --- --- ---',
                              '  1   3  --  --',
