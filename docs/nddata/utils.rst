@@ -357,8 +357,12 @@ saved to a new FITS file with the updated WCS for the cutout region.
    :language: python
 
 
-Reference/API
-=============
-
-.. automodapi:: astropy.nddata.utils
-    :no-inheritance-diagram:
+# Temporarily only list the API reference in the index page, this can be
+# turn back on once https://github.com/astropy/sphinx-automodapi/issues/82 is
+# addressed and released.
+#Reference/API
+#=============
+#
+#.. automodapi:: astropy.nddata.utils
+#    :noindex:
+#    :no-inheritance-diagram:
