@@ -1,5 +1,3 @@
-.. module:: astropy.timeseries
-
 .. _stats-bls:
 
 ***********************************
