@@ -464,7 +464,7 @@ def test_fill_values_exclude_names(fast_reader):
 
 def check_fill_values(data):
     """compare array column by column with expectation """
-    assert_true((data['a'].mask == [False, False]).all())
+    assert not hasattr(data['a'], 'mask')
     assert_true((data['a'] == ['1', 'a']).all())
     assert_true((data['b'].mask == [False, True]).all())
     # Check that masked value is "do not care" in comparison
