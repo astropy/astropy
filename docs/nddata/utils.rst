@@ -343,8 +343,9 @@ position, and ``wcs`` object from above to create a cutout with size
     cutout = Cutout2D(data, position, size, wcs=wcs)
     plt.imshow(cutout.data, origin='lower')
 
-Reference/API
-=============
-
-.. automodapi:: astropy.nddata.utils
-    :no-inheritance-diagram:
+#Reference/API
+#=============
+#
+#.. automodapi:: astropy.nddata.utils
+#    :noindex:
+#    :no-inheritance-diagram:
