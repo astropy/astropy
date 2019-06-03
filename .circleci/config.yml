@@ -79,6 +79,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install C++ compiler
+          command: apt install -y g++
+      - run:
           name: Install Python dependencies, including developer version of Matplotlib
           command: pip3 install "pytest<3.7" pytest-mpl pytest-astropy numpy scipy git+https://github.com/matplotlib/matplotlib.git
       - run:
