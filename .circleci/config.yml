@@ -75,7 +75,7 @@ jobs:
 
   image-tests-mpldev:
     docker:
-      - image: astropy/image-tests-py36-base:1.2
+      - image: astropy/image-tests-py37-base:1.2
     steps:
       - checkout
       - run:
