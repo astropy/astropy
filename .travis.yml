@@ -128,7 +128,7 @@ matrix:
                PIP_DEPENDENCIES="scikit-image codecov objgraph jplephem bintrees sortedcontainers $ASDF_PIP_DEP"
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='--coverage -fno-inline-functions -O0'
-               MATPLOTLIB_VERSION=2.0
+               MATPLOTLIB_VERSION=2.1
                EVENT_TYPE='push pull_request cron'
 
         # Try pre-release version of Numpy without optional dependencies
