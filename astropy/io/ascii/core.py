@@ -985,15 +985,11 @@ class TableOutputter(BaseOutputter):
         # FloatType) for each col.
         self._convert_vals(cols)
 
-        # If there are any values that were filled and tagged with a mask bit then this
-        # will be a masked table.  Otherwise use a plain table.
-        masked = any(hasattr(col, 'mask') and numpy.any(col.mask) for col in cols)
+        t_cols = [numpy.ma.MaskedArray(x.data, mask=x.mask) if hasattr(x, 'mask')
+                  else x.data for x in cols]
+        out = Table(t_cols, names=[x.name for x in cols], meta=meta['table'])
 
-        out = Table([x.data for x in cols], names=[x.name for x in cols], masked=masked,
-                    meta=meta['table'])
         for col, out_col in zip(cols, out.columns.values()):
-            if masked and hasattr(col, 'mask'):
-                out_col.data.mask = col.mask
             for attr in ('format', 'unit', 'description'):
                 if hasattr(col, attr):
                     setattr(out_col, attr, getattr(col, attr))
