@@ -556,8 +556,10 @@ class Table:
     @property
     def mask(self):
         # Dynamic view of available masks
-        if self.masked:
-            mask_table = Table([col.mask for col in self.columns.values()],
+        if (self.masked or
+                any(hasattr(col, 'mask') for col in self.itercols())):
+            mask_table = Table([getattr(col, 'mask', FalseArray(col.shape))
+                                for col in self.itercols()],
                                names=self.colnames, copy=False)
 
             # Set hidden attribute to force inplace setitem so that code like
