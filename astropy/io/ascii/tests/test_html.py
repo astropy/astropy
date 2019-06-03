@@ -105,7 +105,7 @@ def test_missing_data():
                 '<tr><td>1</td></tr>',
                 '</table>']
     dat = Table.read(table_in, format='ascii.html')
-    assert dat.masked is True
+    assert dat.masked is False
     assert np.all(dat['A'].mask == [True, False])
     assert dat['A'].dtype.kind == 'i'
 
@@ -116,7 +116,7 @@ def test_missing_data():
                 '<tr><td>1</td></tr>',
                 '</table>']
     dat = Table.read(table_in, format='ascii.html', fill_values=[('...', '0')])
-    assert dat.masked is True
+    assert dat.masked is False
     assert np.all(dat['A'].mask == [True, False])
     assert dat['A'].dtype.kind == 'i'
 
