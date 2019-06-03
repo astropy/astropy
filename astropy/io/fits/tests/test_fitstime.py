@@ -60,7 +60,7 @@ class TestFitsTime(FitsTestCase):
         # Check that a blank value for the "TRPOSn" keyword is not generated
         hdr = fits.getheader(self.temp('time.fits'), 1)
         assert hdr.get('TRPOS2', None) is None
-        
+
         with pytest.warns(AstropyUserWarning, match='Time column reference position '
                           '"TRPOSn" is not specified. The default value for it is '
                           '"TOPOCENTER", and the observatory position has been specified.'):
