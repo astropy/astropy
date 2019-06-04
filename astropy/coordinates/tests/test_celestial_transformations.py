@@ -290,3 +290,21 @@ def test_lsr_sanity():
     gal_icrs = vel.transform_to(Galactic).cartesian.xyz
     assert allclose(gal_icrs.to(u.km/u.s, u.dimensionless_angles()),
                     -lsr.v_bary.d_xyz)
+
+
+def test_hcrs_icrs_differentials():
+    # Arbitrary numbers
+    hcrs = HCRS(ra=8.67*u.deg, dec=53.09*u.deg, distance=117*u.pc,
+                pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr,
+                radial_velocity=23.42*u.km/u.s)
+    icrs = hcrs.transform_to(ICRS)
+
+    # The position and velocity should not change much
+    assert allclose(hcrs.cartesian.xyz, icrs.cartesian.xyz, rtol=1e-8)
+    assert allclose(hcrs.velocity.d_xyz, icrs.velocity.d_xyz, rtol=1e-2)
+
+    hcrs2 = icrs.transform_to(HCRS)
+
+    # The values should round trip
+    assert allclose(hcrs.cartesian.xyz, hcrs2.cartesian.xyz, rtol=1e-12)
+    assert allclose(hcrs.velocity.d_xyz, hcrs2.velocity.d_xyz, rtol=1e-12)
