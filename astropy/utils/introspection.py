@@ -5,6 +5,7 @@
 
 import inspect
 import re
+import os
 import sys
 import types
 import pkgutil
@@ -280,27 +281,27 @@ def _get_module_from_frame(frm):
     if mod is not None:
         return mod
 
-    # Check to see if we're importing from a zip file
-    if '__file__' in frm.f_globals and '__name__' in frm.f_globals:
-        # First ensure that __file__ is available in globals; this is cheap to
-        # check to bail out immediately if this fails
-        loader = pkgutil.get_loader(frm.f_globals['__name__'])
-        filename = frm.f_globals['__file__']
-        if isinstance(loader, zipimport.zipimporter):
-            # Using __file__ from the frame's globals and getting it into the
-            # form of an absolute path name (absolute for the zip file that is)
-            # with .py at the end works pretty well for looking up the module
-            # using the same means as inspect.getmodule
-            if filename[-4:].lower() in ('.pyc', '.pyo'):
-                filename = filename[:-4] + '.py'
-            filename = os.path.realpath(os.path.abspath(filename))
-            if filename in inspect.modulesbyfile:
-                return sys.modules.get(inspect.modulesbyfile[filename])
+    # Check to see if we're importing from a bundle file. First ensure that
+    # __file__ is available in globals; this is cheap to check to bail out
+    # immediately if this fails
 
-    # Otherwise there are still some even trickier things that might be
-    # possible to track down the module, but we'll leave those out unless we
-    # find a case where it's really necessary.  So return None if the module is
-    # not found.
+    if '__file__' in frm.f_globals and '__name__' in frm.f_globals:
+
+        filename = frm.f_globals['__file__']
+
+        # Using __file__ from the frame's globals and getting it into the form
+        # of an absolute path name with .py at the end works pretty well for
+        # looking up the module using the same means as inspect.getmodule
+
+        if filename[-4:].lower() in ('.pyc', '.pyo'):
+            filename = filename[:-4] + '.py'
+        filename = os.path.realpath(os.path.abspath(filename))
+        if filename in inspect.modulesbyfile:
+            return sys.modules.get(inspect.modulesbyfile[filename])
+
+    # Otherwise there are still some even trickier things that might be possible
+    # to track down the module, but we'll leave those out unless we find a case
+    # where it's really necessary.  So return None if the module is not found.
     return None
 
 
