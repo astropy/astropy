@@ -407,7 +407,7 @@ def test_no_home():
 
     retcode = subprocess.check_call(
         [sys.executable, '-c', 'import astropy'],
-        env=env)
+        env=env, timeout=5)
 
     assert retcode == 0
 
