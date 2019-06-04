@@ -11,11 +11,11 @@ from astropy.io import fits
 from astropy import units as u
 from astropy.table import Table
 from astropy.io.fits import printdiff
+from astropy.io.fits.connect import REMOVE_KEYWORDS
 from astropy.tests.helper import catch_warnings
 from astropy.utils.exceptions import AstropyUserWarning
 
 from . import FitsTestCase
-from ..connect import REMOVE_KEYWORDS
 
 
 class TestConvenience(FitsTestCase):
