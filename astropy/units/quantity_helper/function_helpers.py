@@ -193,7 +193,7 @@ def select(condlist, choicelist, default=0):
 
 @function_helper
 def append(arr, values, *args, **kwargs):
-    from astropy.units import Quantity, dimensionless_unscaled
+    from astropy.units import Quantity
     if isinstance(arr, Quantity):
         return (arr.view(np.ndarray),
                 arr._to_own_unit(values)) + args, kwargs, arr.unit, None
@@ -250,3 +250,47 @@ def where(condition, *args):
     else:
         unit = getattr(one, 'unit', dimensionless_unscaled)
         return (condition, one, two.to_value(unit)), {}, unit, None
+
+
+def _qp_helper(a, q, *args, q_unit=dimensionless_unscaled, **kwargs):
+    if len(args) > 2:
+        out = args[1]
+        args = args[:1] + args[2:]
+    else:
+        out = kwargs.pop('out', None)
+
+    from astropy.units import Quantity
+    if isinstance(q, Quantity):
+        q = q.to_value(q_unit)
+
+    if isinstance(a, Quantity):
+        unit = a.unit
+        a = a.value
+    else:
+        unit = getattr(a, 'unit', dimensionless_unscaled)
+
+    if out is not None:
+        if isinstance(out, Quantity):
+            kwargs['out'] = out.view(np.ndarray)
+        else:
+            # TODO: for an ndarray output, we could in principle
+            # try converting all Quantity to dimensionless.
+            return NotImplemented
+
+    return (a, q) + args, kwargs, unit, out
+
+
+@function_helper
+def quantile(a, q, *args, **kwargs):
+    return _qp_helper(a, q, *args, **kwargs)
+
+
+@function_helper
+def percentile(a, q, *args, **kwargs):
+    from astropy.units import percent
+    return _qp_helper(a, q, *args, q_unit=percent, **kwargs)
+
+
+@function_helper
+def count_nonzero(a, *args, **kwargs):
+    return (a.value,) + args, kwargs, None, None
