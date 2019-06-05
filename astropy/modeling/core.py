@@ -802,6 +802,8 @@ class Model(metaclass=_ModelMeta):
                     else:
                         args.append(input[valid_ind])
                 valid_result = self.evaluate(*chain(args, parameters))
+                valid_result_unit = getattr(valid_result, 'unit', None)
+
                 if self.n_outputs == 1:
                     valid_result = [valid_result]
                 # combine the valid results with the ``fill_value`` values
@@ -818,6 +820,10 @@ class Model(metaclass=_ModelMeta):
                     outputs = np.asarray(result[0])
                 else:
                     outputs = [np.asarray(r) for r in result]
+                # If the valid results is a quantity, ensure unit information
+                #  is retained.
+                if valid_result_unit is not None:
+                    outputs = Quantity(outputs, valid_result_unit)
         else:
             outputs = self.evaluate(*chain(inputs, parameters))
         if self.n_outputs == 1:

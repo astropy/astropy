@@ -8,6 +8,7 @@ from numpy.testing import assert_allclose
 from astropy.modeling.core import Model, custom_model
 from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
+import astropy.units as u
 
 
 class NonFittableModel(Model):
@@ -380,3 +381,12 @@ def test_compound_deepcopy():
     assert id(model._submodels[0]) != id(new_model._submodels[0])
     assert id(model._submodels[1]) != id(new_model._submodels[1])
     assert id(model._submodels[2]) != id(new_model._submodels[2])
+
+
+def test_units_with_bounding_box():
+    points = np.arange(10, 20)
+    table = np.arange(10) * u.Angstrom
+    t = models.Tabular1D(points, lookup_table=table)
+
+    assert isinstance(t(10), u.Quantity)
+    assert isinstance(t(10, with_bounding_box=True), u.Quantity)
