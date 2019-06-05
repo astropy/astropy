@@ -11,24 +11,24 @@ Introduction
 
 `astropy.constants` contains a number of physical constants useful in
 Astronomy. Constants are `~astropy.units.Quantity` objects with
-additional meta-data describing their provenance and uncertainties.
+additional metadata describing their provenance and uncertainties.
 
 Getting Started
 ===============
 
-To use the constants in S.I. units, you can import the constants directly from
-the `astropy.constants` sub-package::
+To use the constants in International System of Units (SI units), you can
+import the constants directly from the `astropy.constants` sub-package::
 
     >>> from astropy.constants import G
 
-or, if you want to avoid having to explicitly import all the constants you
-need, you can simply do:
+Or, if you want to avoid having to explicitly import all of the constants you
+need, you can do:
 
     >>> from astropy import constants as const
 
-and then subsequently use for example ``const.G``. Constants are fully-fledged
-`~astropy.units.Quantity` objects, so you can easily convert them to
-different units for example::
+and then subsequently use, for example, ``const.G``. Constants are fully-fledged
+`~astropy.units.Quantity` objects, so you can conveniently convert them to
+different units. For example::
 
     >>> print(const.c)
       Name   = Speed of light in vacuum
@@ -43,7 +43,7 @@ different units for example::
     >>> print(const.c.to('pc/yr'))  # doctest: +FLOAT_CMP
     0.306601393788 pc / yr
 
-and you can use them in conjunction with unit and other non-constant
+You can then use them in conjunction with unit and other nonconstant
 `~astropy.units.Quantity` objects::
 
     >>> from astropy import units as u
@@ -51,12 +51,13 @@ and you can use them in conjunction with unit and other non-constant
     >>> print(F.to(u.N))  # doctest: +FLOAT_CMP
     0.3675671602160826 N
 
-It is possible to convert most constants to cgs using e.g.::
+It is possible to convert most constants to Centimeter-Gram-Second (CGS) units
+using, for example::
 
     >>> const.c.cgs  # doctest: +FLOAT_CMP
     <Quantity   2.99792458e+10 cm / s>
 
-However, some constants are defined with different physical dimensions in cgs
+However, some constants are defined with different physical dimensions in CGS
 and cannot be directly converted. Because of this ambiguity, such constants
 cannot be used in expressions without specifying a system::
 
@@ -71,11 +72,11 @@ cannot be used in expressions without specifying a system::
 
 .. _astropy-constants-prior:
 
-Collections of constants (and prior versions)
+Collections of Constants (and Prior Versions)
 =============================================
 
 Constants are organized into version modules. The constants for
-Astropy 1.3 can be accessed in the ``astropyconst13`` module.
+``astropy`` 1.3 can be accessed in the ``astropyconst13`` module.
 For example:
 
     >>> from astropy.constants import astropyconst13 as const
@@ -97,8 +98,8 @@ Physical CODATA constants are in modules with names like ``codata2010`` or
       Unit  = J s
       Reference = CODATA 2010
 
-Astronomical constants defined (primarily) by the IAU are collected in
-modules with names like ``iau2012`` or ``iau2015``:
+Astronomical constants defined (primarily) by the International Astronomical
+Union (IAU) are collected in modules with names like ``iau2012`` or ``iau2015``:
 
     >>> from astropy.constants import iau2012 as const
     >>> print(const.L_sun)
@@ -119,7 +120,7 @@ modules with names like ``iau2012`` or ``iau2015``:
 The astronomical and physical constants are combined into modules with
 names like ``astropyconst13`` and ``astropyconst20``. To temporarily set
 constants to an older version (e.g., for regression testing), a context
-manager is available, as follows:
+manager is available as follows:
 
     >>> from astropy import constants as const
     >>> with const.set_enabled_constants('astropyconst13'):
@@ -143,8 +144,8 @@ manager is available, as follows:
     quantities should be constructed with constants instead of units.
 
 .. note that if this section gets too long, it should be moved to a separate
-   doc page - see the top of performance.inc.rst for the instructions on how to do
-   that
+   doc page - see the top of performance.inc.rst for the instructions on how to
+   do that
 .. include:: performance.inc.rst
 
 Reference/API
