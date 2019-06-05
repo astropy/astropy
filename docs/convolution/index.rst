@@ -1,20 +1,20 @@
 .. _astropy_convolve:
 
 *************************************************
-Convolution and filtering (`astropy.convolution`)
+Convolution and Filtering (`astropy.convolution`)
 *************************************************
 
 Introduction
 ============
 
-`astropy.convolution` provides convolution functions and kernels that offers
-improvements compared to the scipy `scipy.ndimage` convolution routines,
+`astropy.convolution` provides convolution functions and kernels that offer
+improvements compared to the SciPy `scipy.ndimage` convolution routines,
 including:
 
 * Proper treatment of NaN values (ignoring them during convolution and
   replacing NaN pixels with interpolated values)
 
-* A single function for 1-D, 2-D, and 3-D convolution
+* A single function for 1D, 2D, and 3D convolution
 
 * Improved options for the treatment of edges
 
@@ -22,9 +22,9 @@ including:
 
 * Built-in kernels that are commonly used in Astronomy
 
-The following thumbnails show the difference between Scipy's and
-Astropy's convolve functions on an Astronomical image that contains NaN
-values. Scipy's function essentially returns NaN for all pixels that are
+The following thumbnails show the difference between ``scipy`` and
+``astropy`` convolve functions on an astronomical image that contains NaN
+values. ``scipy``'s function essentially returns NaN for all pixels that are
 within a kernel of any NaN value, which is often not the desired result.
 
 .. plot::
@@ -47,7 +47,7 @@ within a kernel of any NaN value, which is often not the desired result.
     hdu = fits.open(filename)[0]
 
     # Scale the file to have reasonable numbers
-    # (this is mostly so that colorbars don't have too many digits)
+    # (this is mostly so that colorbars do not have too many digits)
     # Also, we crop it so you can see individual pixels
     img = hdu.data[50:90, 60:100] * 1e5
 
@@ -56,7 +56,7 @@ within a kernel of any NaN value, which is often not the desired result.
     # brightest pixels to NaN to simulate a "saturated" data set
     img[img > 2e1] = np.nan
 
-    # We also create a copy of the data and set those NaNs to zero.  We'll
+    # We also create a copy of the data and set those NaNs to zero.  We will
     # use this for the scipy convolution
     img_zerod = img.copy()
     img_zerod[np.isnan(img)] = 0
@@ -136,10 +136,10 @@ within a kernel of any NaN value, which is often not the desired result.
 The following sections describe how to make use of the convolution functions,
 and how to use built-in convolution kernels:
 
-Getting started
+Getting Started
 ===============
 
-Two convolution functions are provided.  They are imported as::
+Two convolution functions are provided. They are imported as::
 
     from astropy.convolution import convolve, convolve_fft
 
@@ -148,19 +148,18 @@ and are both used as::
     result = convolve(image, kernel)
     result = convolve_fft(image, kernel)
 
-:func:`~astropy.convolution.convolve` is implemented as a
-direct convolution algorithm, while
-:func:`~astropy.convolution.convolve_fft` uses a fast Fourier
-transform (FFT). Thus, the former is better for small kernels, while the latter
+:func:`~astropy.convolution.convolve` is implemented as a direct convolution
+algorithm, while :func:`~astropy.convolution.convolve_fft` uses a Fast Fourier
+Transform (FFT). Thus, the former is better for small kernels, while the latter
 is much more efficient for larger kernels.
 
-For example, to convolve a 1-d dataset with a user-specified kernel, you can do::
+For example, to convolve a 1D dataset with a user-specified kernel, you can do::
 
     >>> from astropy.convolution import convolve
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])  # doctest: +FLOAT_CMP
     array([1.4, 3.6, 5. , 5.6, 5.6, 6.8, 6.2])
 
-Notice that the end points are set to zero - by default, points that are too
+Notice that the end points are set to zero — by default, points that are too
 close to the boundary to have a convolved value calculated are set to zero.
 However, the :func:`~astropy.convolution.convolve` function allows for a
 ``boundary`` argument that can be used to specify alternate behaviors. For
@@ -176,7 +175,8 @@ The values at the end are computed assuming that any value below the first
 point is ``1``, and any value above the last point is ``8``. For a more
 detailed discussion of boundary treatment, see :doc:`using`.
 
-This module also includes built-in kernels that can be imported as e.g.::
+This module also includes built-in kernels that can be imported as, for
+example::
 
     >>> from astropy.convolution import Gaussian1DKernel
 
@@ -184,7 +184,8 @@ To use a kernel, first create a specific instance of the kernel::
 
     >>> gauss = Gaussian1DKernel(stddev=2)
 
-``gauss`` is not an array, but a kernel object. The underlying array can be retrieved with::
+``gauss`` is not an array, but a kernel object. The underlying array can be
+retrieved with::
 
     >>> gauss.array  # doctest: +FLOAT_CMP
     array([6.69151129e-05, 4.36341348e-04, 2.21592421e-03,
@@ -225,10 +226,11 @@ The kernel can then be used directly when calling
     plt.show()
 
 
-Using astropy's convolution to replace bad data
------------------------------------------------
-Astropy's convolution methods can be used to replace bad data with values
-interpolated from their neighbors.  Kernel-based interpolation is useful for
+Using ``astropy``'s Convolution to Replace Bad Data
+---------------------------------------------------
+
+``astropy``'s convolution methods can be used to replace bad data with values
+interpolated from their neighbors. Kernel-based interpolation is useful for
 handling images with a few bad pixels or for interpolating sparsely sampled
 images.
 
@@ -239,23 +241,23 @@ The interpolation tool is implemented and used as::
 
 Some contexts in which you might want to use kernel-based interpolation include:
 
- * images with saturated pixels.  Generally, these are the highest-intensity
+ * Images with saturated pixels. Generally, these are the highest-intensity
    regions in the imaged area, and the interpolated values are not reliable,
-   but this can be useful for display purposes
- * images with flagged pixels, e.g., with a few small regions affected by cosmic
-   rays or other spurious signals that require those pixels to be flagged out.
+   but this can be useful for display purposes.
+ * Images with flagged pixels (e.g., a few small regions affected by cosmic
+   rays or other spurious signals that require those pixels to be flagged out).
    If the affected region is small enough, the resulting interpolation will have
-   a small effect on source statistics and may allow for robust source finding
-   algorithms to be run on the resulting data
- * sparsely sampled images such as those constructed with single-pixel
-   detectors.  Such images will only have a few discrete points sampled across
+   a small effect on source statistics and may allow for robust source-finding
+   algorithms to be run on the resulting data.
+ * Sparsely sampled images such as those constructed with single-pixel
+   detectors. Such images will only have a few discrete points sampled across
    the imaged area, but an approximation of the extended sky emission can still
    be constructed.
 
 .. note::
     Care must be taken to ensure that the kernel is large enough to completely
-    cover potential contiguous regions of ``NaN`` values.
-    An ``AstropyUserWarning`` is raised if ``NaN`` values are detected post
+    cover potential contiguous regions of NaN values.
+    An ``AstropyUserWarning`` is raised if NaN values are detected post-
     convolution, in which case the kernel size should be increased.
 
 The script below shows an example of kernel interpolation to fill in
@@ -314,9 +316,9 @@ flagged-out pixels:
    ax2.set_yticklabels([])
 
 This script shows the power of this technique for reconstructing images from
-sparse sampling.  Note that the image is not perfect - the pointlike sources
-are sometimes missed - but the extended structure is very well recovered (by
-eye).
+sparse sampling. Note that the image is not perfect: the pointlike sources
+are sometimes missed, but the extended structure is very well recovered by
+eye.
 
 .. plot::
    :context:
@@ -380,14 +382,14 @@ eye).
 
 .. _astropy_convolve_compat:
 
-A note on backward compatibility (pre v2.0)
+A Note on Backward Compatibility (pre v2.0)
 -------------------------------------------
 
-The behavior of astropy's direct convolution
-(:func:`~astropy.convolution.convolve`) changed in version 2.0.  Generally, the
-old version is undesirable.  However, to recover the behavior of the old
-(astropy version <2.0) direct convolution function, you can interpolate and
-then convolve, e.g.:
+The behavior of ``astropy``'s direct convolution
+(:func:`~astropy.convolution.convolve`) changed in version 2.0. Generally, the
+old version is undesirable. However, to recover the behavior of the old
+(``astropy`` version <2.0) direct convolution function, you can interpolate and
+then convolve, for example:
 
 .. code-block:: python
 
@@ -397,11 +399,11 @@ then convolve, e.g.:
 
 Note that the default behavior of both `~astropy.convolution.convolve` and
 `~astropy.convolution.convolve_fft` is to perform *normalized convolution* and
-interpolate NaNs during that process.  The example given in this note, and what
-was previously done only in direct convolution in old versions of astropy, does
-a two-step process: first, it replaces the NaNs with their interpolated values
-while leaving all non-NaN values unchanged, then it convolves the resulting
-image with the specified kernel.
+interpolate NaNs during that process. The example given in this note, and what
+was previously done only in direct convolution in old versions of ``astropy``
+now does a two-step process: first, it replaces the NaNs with their
+interpolated values while leaving all non-NaN values unchanged, then it
+convolves the resulting image with the specified kernel.
 
 Using `astropy.convolution`
 ===========================
@@ -413,9 +415,9 @@ Using `astropy.convolution`
    kernels.rst
    non_normalized_kernels.rst
 
-.. note that if this section gets too long, it should be moved to a separate 
-   doc page - see the top of performance.inc.rst for the instructions on how to do
-   that
+.. note that if this section gets too long, it should be moved to a separate
+   doc page - see the top of performance.inc.rst for the instructions on how to
+   do that
 .. include:: performance.inc.rst
 
 Reference/API
