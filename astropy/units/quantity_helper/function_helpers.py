@@ -294,3 +294,25 @@ def percentile(a, q, *args, **kwargs):
 @function_helper
 def count_nonzero(a, *args, **kwargs):
     return (a.value,) + args, kwargs, None, None
+
+
+def one_two(one, two):
+    from astropy.units import Quantity
+    if isinstance(one, Quantity):
+        return one.value, one._to_own_unit(two), one.unit
+
+    else:
+        unit = getattr(one, 'unit', dimensionless_unscaled)
+        return one, two.to_value(unit), unit
+
+
+@function_helper
+def array_equal(a1, a2):
+    a1, a2, unit = one_two(a1, a2)
+    return (a1, a2), {}, None, None
+
+
+@function_helper
+def array_equiv(a1, a2):
+    a1, a2, unit = one_two(a1, a2)
+    return (a1, a2), {}, None, None

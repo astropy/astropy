@@ -798,7 +798,8 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.allclose(q1, q2, atol=0, rtol=1. * u.s)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_array_equal(self):
         q1 = np.arange(3.) * u.m
         q2 = q1.to(u.cm)
@@ -806,7 +807,8 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         q3 = q1.value * u.cm
         assert not np.array_equal(q1, q3)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_array_equiv(self):
         q1 = np.array([[0., 1., 2.]]*3) * u.m
         q2 = q1[0].to(u.cm)
