@@ -744,14 +744,20 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
     def test_median(self):
         self.check(np.median)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_quantile(self):
         self.check(np.quantile, 0.5)
         o = np.quantile(self.q, 50 * u.percent)
         expected = np.quantile(self.q.value, 0.5) * u.m
         assert np.all(o == expected)
+        # For ndarray input, we return a Quantity.
+        o2 = np.quantile(self.q.value, 50 * u.percent)
+        assert o2.unit == u.dimensionless_unscaled
+        assert np.all(o2 == expected.value)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_percentile(self):
         self.check(np.percentile, 0.5)
         o = np.percentile(self.q, 0.5 * u.one)
@@ -761,14 +767,17 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
     def test_trace(self):
         self.check(np.trace)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_count_nonzero(self):
         q1 = np.arange(9.).reshape(3, 3) * u.m
         o = np.count_nonzero(q1)
+        assert type(o) is not u.Quantity
         assert o == 8
         o = np.count_nonzero(q1, axis=1)
         # Returns integer Quantity with units of m
-        assert o == np.array([2, 3, 3])
+        assert type(o) is np.ndarray
+        assert np.all(o == np.array([2, 3, 3]))
 
     def test_allclose(self):
         q1 = np.arange(3.) * u.m
