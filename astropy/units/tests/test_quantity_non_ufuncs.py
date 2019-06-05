@@ -379,6 +379,11 @@ class TestRepeat(InvariantUnitTestSetup):
     def test_repeat(self):
         self.check(np.repeat, 2)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
+    def test_resize(self):
+        self.check(np.resize, (4, 4))
+
 
 class TestConcatenate(metaclass=CoverageMeta):
     def setup(self):
@@ -429,30 +434,42 @@ class TestConcatenate(metaclass=CoverageMeta):
     def test_block(self):
         self.check(np.block)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_append(self):
-        self.check(np.append, axis=0)
-
-    @pytest.mark.xfail
-    def test_resize(self):
-        self.check(np.resize, (4, 4))
-
-    @pytest.mark.xfail
-    def test_pad(self):
-        q = np.arange(1., 6.) * u.m
-        out = np.pad(q, (2, 3), 'constant', constant_values=[0., 150.*u.cm])
-        expected = np.pad(q.value, (2, 3), 'constant',
-                          constant_values=[0., 1.5])
+        out = np.append(self.q1, self.q2, axis=0)
+        assert out.unit == self.q1.unit
+        expected = np.append(self.q1.value, self.q2.to_value(self.q1.unit),
+                             axis=0) * self.q1.unit
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_insert(self):
         # Unit of inserted values is ignored.
         q = np.arange(12.).reshape(6, 2) * u.m
         out = np.insert(q, (3, 5), [50., 25.] * u.cm)
         assert isinstance(out, u.Quantity)
-        assert out.unit == u.m
+        assert out.unit == q.unit
         expected = np.insert(q.value, (3, 5), [0.5, 0.25]) * u.m
+        assert np.all(out == expected)
+
+        with pytest.raises(TypeError):
+            np.insert(q, 3 * u.cm, 50. * u.cm)
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
+    def test_pad(self):
+        q = np.arange(1., 6.) * u.m
+        out = np.pad(q, (2, 3), 'constant', constant_values=(0., 150.*u.cm))
+        assert out.unit == q.unit
+        expected = np.pad(q.value, (2, 3), 'constant',
+                          constant_values=(0., 1.5)) * q.unit
+        assert np.all(out == expected)
+        out = np.pad(q, (2, 3), 'linear_ramp', end_values=(25.*u.cm, 0.))
+        assert out.unit == q.unit
+        expected = np.pad(q.value, (2, 3), 'linear_ramp',
+                          end_values=(0.25, 0.)) * q.unit
         assert np.all(out == expected)
 
 
