@@ -35,6 +35,7 @@ FUNCTION_HELPERS[np.zeros_like] = invariant_a_helper
 FUNCTION_HELPERS[np.ones_like] = invariant_a_helper
 FUNCTION_HELPERS[np.real_if_close] = invariant_a_helper
 FUNCTION_HELPERS[np.sort_complex] = invariant_a_helper
+FUNCTION_HELPERS[np.resize] = invariant_a_helper
 
 
 def invariant_m_helper(m, *args, **kwargs):
@@ -91,7 +92,7 @@ def full_like(a, fill_value, *args, **kwargs):
 
 @function_helper
 def putmask(a, mask, values):
-    from astropy.units.quantity import Quantity
+    from astropy.units import Quantity
     if isinstance(a, Quantity):
         return (a.view(np.ndarray), mask,
                 a._to_own_unit(values)), {}, a.unit, None
@@ -104,7 +105,7 @@ def putmask(a, mask, values):
 
 @function_helper
 def place(arr, mask, vals):
-    from astropy.units.quantity import Quantity
+    from astropy.units import Quantity
     if isinstance(arr, Quantity):
         return (arr.view(np.ndarray), mask,
                 arr._to_own_unit(vals)), {}, arr.unit, None
@@ -117,7 +118,7 @@ def place(arr, mask, vals):
 
 @function_helper
 def copyto(dst, src, *args, **kwargs):
-    from astropy.units.quantity import Quantity
+    from astropy.units import Quantity
     if isinstance(dst, Quantity):
         return ((dst.view(np.ndarray), dst._to_own_unit(src)) + args,
                 kwargs, None, None)
@@ -170,3 +171,49 @@ def concatenate(arrays, axis=0, out=None):
     arrays = tuple(Quantity(a, subok=True, copy=False).to_value(unit)
                    for a in arrays)
     return (arrays,), kwargs, unit, out
+
+
+@function_helper
+def append(arr, values, *args, **kwargs):
+    from astropy.units import Quantity, dimensionless_unscaled
+    if isinstance(arr, Quantity):
+        return (arr.view(np.ndarray),
+                arr._to_own_unit(values)) + args, kwargs, arr.unit, None
+    else:  # values must be Quantity
+        unit = getattr(arr, 'unit', dimensionless_unscaled)
+        return (arr, values.to_value(unit)) + args, kwargs, unit, None
+
+
+@function_helper
+def insert(arr, obj, values, *args, **kwargs):
+    from astropy.units import Quantity, dimensionless_unscaled
+
+    if isinstance(obj, Quantity):
+        return NotImplemented
+
+    if isinstance(arr, Quantity):
+        return (arr.view(np.ndarray), obj,
+                arr._to_own_unit(values)) + args, kwargs, arr.unit, None
+    else:  # values must be Quantity
+        unit = getattr(arr, 'unit', dimensionless_unscaled)
+        return (arr, obj, values.to_value(unit)) + args, kwargs, unit, None
+
+
+@function_helper
+def pad(array, pad_width, mode='constant', **kwargs):
+    # pad dispatches only on array, so that must be a Quantity.
+    for key in 'constant_values', 'end_values':
+        value = kwargs.pop(key, None)
+        if value is None:
+            continue
+        if not isinstance(value, tuple):
+            value = (value,)
+
+        new_value = []
+        for v in value:
+            new_value.append(
+                tuple(array._to_own_unit(_v) for _v in v)
+                if isinstance(v, tuple) else array._to_own_unit(v))
+        kwargs[key] = new_value
+
+    return (array, pad_width, mode), kwargs, array.unit, None
