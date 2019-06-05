@@ -141,24 +141,21 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
             x.unit, None)
 
 
-@function_helper
-def concatenate(arrays, axis=0, out=None):
-    # TODO: make this smarter by creating an appropriately shaped
-    # empty output array and just filling it.
-    from astropy.units import Quantity
-    kwargs = {'axis': axis}
-
+def _iterable_helper(arrays, out=None, **kwargs):
     # Get unit from input if possible.
+    from astropy.units import Quantity
+
     for a in arrays:
         if hasattr(a, 'unit'):
             unit = a.unit
+            arrays = tuple(Quantity(_a, subok=True, copy=False).to_value(unit)
+                           for _a in arrays)
             break
     else:
         # No input has even a unit, so the only way we can have gotten
         # here is for output to be a Quantity.  Assume all arrays are
         # are standard ndarray and set unit to dimensionless.
-        kwargs['out'] = out.view(np.ndarray)
-        return (arrays,), kwargs, dimensionless_unscaled, out
+        unit = dimensionless_unscaled
 
     if out is not None:
         if isinstance(out, Quantity):
@@ -168,9 +165,30 @@ def concatenate(arrays, axis=0, out=None):
             # try converting all Quantity to dimensionless.
             return NotImplemented
 
-    arrays = tuple(Quantity(a, subok=True, copy=False).to_value(unit)
-                   for a in arrays)
+    return arrays, unit, out, kwargs
+
+
+@function_helper
+def concatenate(arrays, axis=0, out=None):
+    # TODO: make this smarter by creating an appropriately shaped
+    # empty output array and just filling it.
+    arrays, unit, out, kwargs = _iterable_helper(arrays, out,
+                                                 axis=axis)
     return (arrays,), kwargs, unit, out
+
+
+@function_helper
+def choose(a, choices, out=None, **kwargs):
+    choices, unit, out, kwargs = _iterable_helper(choices, out, **kwargs)
+    return (a, choices,), kwargs, unit, out
+
+
+@function_helper
+def select(condlist, choicelist, default=0):
+    choicelist, unit, _, _ = _iterable_helper(choicelist, None)
+    if default != 0:
+        default = (1 * unit)._to_own_unit(default)
+    return (condlist, choicelist, default), {}, unit, None
 
 
 @function_helper
@@ -217,3 +235,18 @@ def pad(array, pad_width, mode='constant', **kwargs):
         kwargs[key] = new_value
 
     return (array, pad_width, mode), kwargs, array.unit, None
+
+
+@function_helper
+def where(condition, *args):
+    from astropy.units import Quantity
+    if isinstance(condition, Quantity) or len(args) != 2:
+        return NotImplemented
+
+    one, two = args
+    if isinstance(one, Quantity):
+        return ((condition, one.value, one._to_own_unit(args[1])), {},
+                one.unit, None)
+    else:
+        unit = getattr(one, 'unit', dimensionless_unscaled)
+        return (condition, one, two.to_value(unit)), {}, unit, None

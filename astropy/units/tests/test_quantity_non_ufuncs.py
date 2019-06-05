@@ -595,14 +595,16 @@ class TestUfuncLike(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.sinc(1.*u.one)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_where(self):
         out = np.where([True, False, True], self.q, 1. * u.km)
         expected = np.where([True, False, True], self.q.value,
                             1000.) * self.q.unit
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_choose(self):
         # from np.choose docstring
         a = np.array([0, 1]).reshape((2, 1, 1))
@@ -613,7 +615,8 @@ class TestUfuncLike(InvariantUnitTestSetup):
         expected = np.choose(a, (q1.value, q2.to_value(q1.unit))) * u.cm
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_select(self):
         q = self.q
         out = np.select([q < 0.55 * u.m, q > 1. * u.m],
