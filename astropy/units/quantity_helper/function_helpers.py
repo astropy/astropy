@@ -508,3 +508,24 @@ def gradient(f, *varargs, **kwargs):
         units = units[0]
 
     return (f.value,) + varargs, kwargs, units, None
+
+
+@function_helper
+def logspace(start, stop, *args, **kwargs):
+    from astropy.units import LogQuantity, dex
+    if (not isinstance(start, LogQuantity) or
+            not isinstance(stop, LogQuantity)):
+        raise NotImplementedError
+
+    # Get unit from end point as for linspace.
+    stop = stop.to(dex(stop.unit.physical_unit))
+    start = start.to(stop.unit)
+    unit = stop.unit.physical_unit
+    return (start.value, stop.value) + args, kwargs, unit, None
+
+
+@function_helper
+def geomspace(start, stop, *args, **kwargs):
+    # Get unit from end point as for linspace.
+    (stop, start), unit = _quantities2arrays(stop, start)
+    return (start, stop) + args, kwargs, unit, None

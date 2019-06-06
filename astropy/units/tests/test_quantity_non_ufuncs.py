@@ -972,7 +972,7 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
         assert o[0] == ['einsum_path', (0, 1)]
 
 
-class TestNumericalFunctions(metaclass=CoverageMeta):
+class TestIntDiffFunctions(metaclass=CoverageMeta):
     def test_trapz(self):
         y = np.arange(9.) * u.m / u.s
         out = np.trapz(y)
@@ -1040,6 +1040,8 @@ class TestNumericalFunctions(metaclass=CoverageMeta):
         dfdy2 = np.gradient(f, y, axis=1)
         assert np.all(dfdy2 == exp_dfdy)
 
+
+class TestSpaceFunctions(metaclass=CoverageMeta):
     def test_linspace(self):
         # Note: linspace gets unit of end point, not superlogical.
         out = np.linspace(1000.*u.m, 10.*u.km, 5)
@@ -1052,28 +1054,32 @@ class TestNumericalFunctions(metaclass=CoverageMeta):
         expected = np.linspace(q1.to_value(q2.unit), q2.value, 5) * q2.unit
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_logspace(self):
         unit = u.m / u.s**2
         out = np.logspace(10.*u.dex(unit), 20*u.dex(unit), 10)
-        expected = np.logspace(10., 20.) * u.Jy
+        expected = np.logspace(10., 20., 10) * unit
         assert np.all(out == expected)
         out = np.logspace(10.*u.STmag, 20*u.STmag, 10)
-        expected = np.logspace(10., 20., base=10.**(-0.4)) * u.ST
-        assert np.all(out == expected)
+        expected = np.logspace(10., 20., 10, base=10.**(-0.4)) * u.ST
+        assert u.allclose(out, expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_geomspace(self):
         out = np.geomspace(1000.*u.m, 10.*u.km, 5)
         expected = np.geomspace(1, 10, 5) * u.km
         assert np.all(out == expected)
 
-        q1 = np.arange(6.).reshape(2, 3) * u.m
+        q1 = np.arange(1., 7.).reshape(2, 3) * u.m
         q2 = 10000. * u.cm
         out = np.geomspace(q1, q2, 5)
         expected = np.geomspace(q1.to_value(q2.unit), q2.value, 5) * q2.unit
         assert np.all(out == expected)
 
+
+class TestInterpolationFunctions(metaclass=CoverageMeta):
     @pytest.mark.xfail
     def test_interp(self):
         x = np.array([1250., 2750.]) * u.m
