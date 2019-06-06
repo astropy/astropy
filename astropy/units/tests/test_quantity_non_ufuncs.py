@@ -866,14 +866,16 @@ class TestNanFunctions(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.nancumprod(self.q)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_nanquantile(self):
         self.check(np.nanquantile, 0.5)
         o = np.nanquantile(self.q, 50 * u.percent)
         expected = np.nanquantile(self.q.value, 0.5) * u.m
         assert np.all(o == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_nanpercentile(self):
         self.check(np.nanpercentile, 0.5)
         o = np.nanpercentile(self.q, 0.5 * u.one)

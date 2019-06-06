@@ -1459,8 +1459,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
     def __array_function__(self, function, types, args, kwargs):
         wrapped = function.__wrapped__
         if function in FUNCTION_HELPERS:
-            helper_info = FUNCTION_HELPERS[function](*args, **kwargs)
-            if helper_info is NotImplemented:
+            try:
+                helper_info = FUNCTION_HELPERS[function](*args, **kwargs)
+            except NotImplementedError:
                 return NotImplemented
 
             args, kwargs, unit, out = helper_info
