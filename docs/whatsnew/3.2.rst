@@ -9,11 +9,12 @@ What's New in Astropy 3.2?
 Overview
 ========
 
-Astropy 3.2 is a major release that adds significant new functionality since the 3.1.x series of releases. 
+Astropy 3.2 is a major release that adds significant new functionality since the 3.1.x series of releases.
 
 In particular, this release includes:
 
 * :ref:`whatsnew-3.2-timeseries`
+* :ref:`whatsnew-3.2-codata`
 * :ref:`whatsnew-3.2-ecliptic`
 * :ref:`whatsnew-3.2-table-performance`
 * :ref:`whatsnew-3.2-table-pandas`
@@ -88,6 +89,35 @@ Finally, the :class:`~astropy.timeseries.LombScargle` class now includes a
 compute the best-fit parameters for a given frequency, as well as
 :func:`~astropy.timeseries.LombScargle.design_matrix` and
 :func:`~astropy.timeseries.LombScargle.offset` to inspect the model further.
+
+
+.. _whatsnew-3.2-codata:
+
+New SI/CODATA 2018 Constants
+============================
+
+The new redefinition of the SI system and its base units came into force on May
+20, 2019.  Accompanying that redefinition was a new set of physical constants
+(CODATA2018).  Astropy v3.2 contains these new CODATA2018 phsical constants,
+which contain in particular quite different uncertainties due to the
+redefinition. E.g.,::
+
+    >>> from astropy import constants
+    >>> from astropy.constants import codata2018
+    >>> constants.m_e
+    <<class 'astropy.constants.codata2014.CODATA2014'> name='Electron mass' value=9.10938356e-31 uncertainty=1.1e-38 unit='kg' reference='CODATA 2014'>
+    >>> constants.m_e.uncertainty, codata2018.m_e.uncertainty
+    (1.1e-38, 2.8e-40)
+    >>> constants.mu0.uncertainty, codata2018.mu0.uncertainty
+    (0.0, 1.9e-16)
+
+While CODATA2018 will not be the default in astropy v3.2, a future version will
+transition to the new values (with units similarly matched where relevant).
+
+For more background on the values and measurements of these constants see `the CODATA web site <http://www.codata.org/committees-and-groups/fundamental-physical-constants>`_,
+or see
+`the wikipedia article on the new SI system <https://en.wikipedia.org/wiki/2019_redefinition_of_the_SI_base_units>`_ for a
+more accessible description of the revised system.
 
 .. _whatsnew-3.2-ecliptic:
 
