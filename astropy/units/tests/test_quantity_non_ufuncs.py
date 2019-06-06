@@ -1080,7 +1080,8 @@ class TestSpaceFunctions(metaclass=CoverageMeta):
 
 
 class TestInterpolationFunctions(metaclass=CoverageMeta):
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_interp(self):
         x = np.array([1250., 2750.]) * u.m
         xp = np.arange(5.) * u.km
@@ -1091,6 +1092,8 @@ class TestInterpolationFunctions(metaclass=CoverageMeta):
 
     @pytest.mark.xfail
     def test_piecewise(self):
+        # TODO: this needs a proper own implementation to take care of the
+        # unit of the output of possible functions.
         x = np.linspace(-2.5, 2.5, 6) * u.m
         out = np.piecewise(x, [x < 0, x >= 0], [-1*u.s, 1*u.day])
         expected = np.piecewise(x.value, [x.value < 0, x.value >= 0],
