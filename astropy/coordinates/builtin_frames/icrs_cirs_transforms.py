@@ -11,7 +11,7 @@ from astropy import units as u
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference, AffineTransform
 from astropy.coordinates.representation import (SphericalRepresentation, CartesianRepresentation,
-                              UnitSphericalRepresentation)
+                              UnitSphericalRepresentation, CartesianDifferential)
 from astropy import _erfa as erfa
 
 from .icrs import ICRS
@@ -290,6 +290,7 @@ def hcrs_to_icrs(hcrs_coo, icrs_frame):
         from astropy.coordinates.solar_system import get_body_barycentric_posvel
         bary_sun_pos, bary_sun_vel = get_body_barycentric_posvel('sun',
                                                                  hcrs_coo.obstime)
+        bary_sun_vel = bary_sun_vel.represent_as(CartesianDifferential)
         bary_sun_pos = bary_sun_pos.with_differentials(bary_sun_vel)
 
     else:
@@ -310,7 +311,9 @@ def icrs_to_hcrs(icrs_coo, hcrs_frame):
         from astropy.coordinates.solar_system import get_body_barycentric_posvel
         bary_sun_pos, bary_sun_vel = get_body_barycentric_posvel('sun',
                                                                  hcrs_frame.obstime)
-        bary_sun_pos = -bary_sun_pos.with_differentials(-bary_sun_vel)
+        bary_sun_pos = -bary_sun_pos
+        bary_sun_vel = -bary_sun_vel.represent_as(CartesianDifferential)
+        bary_sun_pos = bary_sun_pos.with_differentials(bary_sun_vel)
 
     else:
         from astropy.coordinates.solar_system import get_body_barycentric
