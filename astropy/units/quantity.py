@@ -29,7 +29,7 @@ from astropy import config as _config
 from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
                               check_output)
 from .quantity_helper.function_helpers import (
-    FUNCTION_HELPERS, DISPATCHED_FUNCTIONS)
+    FUNCTION_HELPERS, DISPATCHED_FUNCTIONS, UNSUPPORTED_FUNCTIONS)
 
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
@@ -1457,7 +1457,6 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         return self.view(np.ndarray).argmin(axis, out=out)
 
     def __array_function__(self, function, types, args, kwargs):
-        wrapped = function.__wrapped__
         if function in FUNCTION_HELPERS:
             try:
                 helper_info = FUNCTION_HELPERS[function](*args, **kwargs)
@@ -1473,7 +1472,10 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             return self._result_as_quantity(result, unit, out=out)
         elif function in DISPATCHED_FUNCTIONS:
             return DISPATCHED_FUNCTIONS[function](*args, **kwargs)
-        return wrapped(*args, **kwargs)
+        elif function in UNSUPPORTED_FUNCTIONS:
+            return NotImplemented
+
+        return function.__wrapped__(*args, **kwargs)
 
     # Calculation -- override ndarray methods to take into account units.
     # We use the corresponding numpy functions to evaluate the results, since
