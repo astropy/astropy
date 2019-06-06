@@ -293,7 +293,8 @@ def test_lsr_sanity():
 
 
 def test_hcrs_icrs_differentials():
-    # Arbitrary numbers
+    # Regression to ensure that we can transform velocities from HCRS to LSR.
+    # Numbers taken from the original issue, gh-6835.
     hcrs = HCRS(ra=8.67*u.deg, dec=53.09*u.deg, distance=117*u.pc,
                 pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr,
                 radial_velocity=23.42*u.km/u.s)
