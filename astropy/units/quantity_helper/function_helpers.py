@@ -14,7 +14,8 @@ from .helpers import _d, get_converter
 
 
 UNSUPPORTED_FUNCTIONS = {np.packbits, np.unpackbits, np.unravel_index,
-                         np.ravel_multi_index, np.ix_}
+                         np.ravel_multi_index, np.ix_, np.cov,
+                         np.corrcoef}
 FUNCTION_HELPERS = {}
 DISPATCHED_FUNCTIONS = {}
 
@@ -145,7 +146,17 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
             x.unit, None)
 
 
-def _as_quantity(*args):
+def _as_quantity(a):
+    from astropy.units import Quantity
+
+    try:
+        return Quantity(a, copy=False, subok=True)
+    except Exception:
+        # If we cannot convert to Quantity, we should just bail.
+        raise NotImplementedError
+
+
+def _as_quantities(*args):
     from astropy.units import Quantity
 
     try:
@@ -156,8 +167,8 @@ def _as_quantity(*args):
         raise NotImplementedError
 
 
-def _quantity2array(*args):
-    qs = _as_quantity(*args)
+def _quantities2arrays(*args):
+    qs = _as_quantities(*args)
     unit = qs[0].unit
     # Allow any units error to be raised.
     arrays = tuple(q.to_value(unit) for q in qs)
@@ -178,7 +189,7 @@ def _iterable_helper(*args, out=None, **kwargs):
     if not args:
         return args, kwargs, None if out is None else out.unit, out
 
-    arrays, unit = _quantity2array(*args)
+    arrays, unit = _quantities2arrays(*args)
     return arrays, kwargs, unit, out
 
 
@@ -311,20 +322,20 @@ def count_nonzero(a, *args, **kwargs):
 
 @function_helper
 def array_equal(a1, a2):
-    args, unit = _quantity2array(a1, a2)
+    args, unit = _quantities2arrays(a1, a2)
     return args, {}, None, None
 
 
 @function_helper
 def array_equiv(a1, a2):
-    args, unit = _quantity2array(a1, a2)
+    args, unit = _quantities2arrays(a1, a2)
     return args, {}, None, None
 
 
 def _dot_like(a, b, out=None):
     from astropy.units import Quantity
 
-    a, b = _as_quantity(a, b)
+    a, b = _as_quantities(a, b)
     unit = a.unit * b.unit
     if out is not None:
         if not isinstance(out, Quantity):
@@ -339,7 +350,7 @@ FUNCTION_HELPERS[np.outer] = _dot_like
 
 
 def _cross_like(a, b, *args, **kwargs):
-    a, b = _as_quantity(a, b)
+    a, b = _as_quantities(a, b)
     unit = a.unit * b.unit
     return (a.view(np.ndarray), b.view(np.ndarray)) + args, kwargs, unit, None
 
@@ -349,6 +360,8 @@ FUNCTION_HELPERS[np.inner] = _cross_like
 FUNCTION_HELPERS[np.vdot] = _cross_like
 FUNCTION_HELPERS[np.tensordot] = _cross_like
 FUNCTION_HELPERS[np.kron] = _cross_like
+FUNCTION_HELPERS[np.correlate] = _cross_like
+FUNCTION_HELPERS[np.convolve] = _cross_like
 
 
 @function_helper
@@ -365,8 +378,95 @@ def einsum(subscripts, *operands, out=None, **kwargs):
         else:
             kwargs['out'] = out.view(np.ndarray)
 
-    qs = _as_quantity(*operands)
+    qs = _as_quantities(*operands)
     unit = reduce(operator.mul, (q.unit for q in qs),
                   dimensionless_unscaled)
     arrays = tuple(q.view(np.ndarray) for q in qs)
     return (subscripts,) + arrays, kwargs, unit, out
+
+
+@function_helper
+def bincount(x, weights=None, minlength=0):
+    from astropy.units import Quantity
+    if isinstance(x, Quantity):
+        return None
+    return (x, weights.value, minlength), {}, weights.unit, None
+
+
+@function_helper
+def digitize(x, bins, *args, **kwargs):
+    arrays, unit = _quantities2arrays(x, bins)
+    return arrays + args, kwargs, None, None
+
+
+def _check_bins(bins, unit):
+    check = _as_quantity(bins)
+    if check.ndim > 0:
+        return check.to_value(unit)
+    else:
+        return bins
+
+
+@function_helper
+def histogram(a, bins=10, range=None, normed=None, weights=None,
+              density=None):
+    if weights is not None:
+        weights = _as_quantity(weights)
+        unit = weights.unit
+        weights = weights.value
+    else:
+        unit = None
+
+    a = _as_quantity(a)
+    if not isinstance(bins, str):
+        bins = _check_bins(bins, a.unit)
+
+    if density or normed:
+        unit = (unit or 1) / a.unit
+
+    return ((a.value, bins, range, normed, weights, density), {},
+            (unit, a.unit), None)
+
+
+@function_helper
+def histogram_bin_edges(a, bins=10, range=None, weights=None):
+    # weights is currently unused
+    a = _as_quantity(a)
+    if not isinstance(bins, str):
+        bins = _check_bins(bins, a.unit)
+
+    return (a.value, bins, range, weights), {}, a.unit, None
+
+
+@function_helper
+def histogram2d(x, y, bins=10, range=None, normed=None, weights=None,
+                density=None):
+
+    if weights is not None:
+        weights = _as_quantity(weights)
+        unit = weights.unit
+        weights = weights.value
+    else:
+        unit = None
+
+    x, y = _as_quantities(x, y)
+    if not isinstance(bins, str):
+        try:
+            n = len(bins)
+        except TypeError:
+            pass
+        else:
+            if n == 2:
+                bins = tuple(_check_bins(b, unit) for (b, unit) in
+                             zip(bins, (x.unit, y.unit)))
+            elif n == 1:
+                return NotImplementedError
+            else:
+                bins = _check_bins(bins, x.unit)
+                y = y.to(x.unit)
+
+    if density or normed:
+        unit = (unit or 1) / x.unit / y.unit
+
+    return ((x.value, y.value, bins, range, normed, weights, density), {},
+            (unit, x.unit, y.unit), None)
