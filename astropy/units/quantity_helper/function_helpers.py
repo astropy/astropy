@@ -100,7 +100,7 @@ def putmask(a, mask, values):
         return (a, mask,
                 values.to_value(dimensionless_unscaled)), {}, None, None
     else:
-        return NotImplemented
+        raise NotImplementedError
 
 
 @function_helper
@@ -113,7 +113,7 @@ def place(arr, mask, vals):
         return (arr, mask,
                 vals.to_value(dimensionless_unscaled)), {}, None, None
     else:
-        return NotImplemented
+        raise NotImplementedError
 
 
 @function_helper
@@ -126,7 +126,7 @@ def copyto(dst, src, *args, **kwargs):
         return ((dst,  src.to_value(dimensionless_unscaled)) + args,
                 kwargs, None, None)
     else:
-        return NotImplemented
+        raise NotImplementedError
 
 
 @function_helper
@@ -141,21 +141,24 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
             x.unit, None)
 
 
-def _iterable_helper(arrays, out=None, **kwargs):
-    # Get unit from input if possible.
+def _quantity2array(*args):
     from astropy.units import Quantity
 
-    for a in arrays:
-        if hasattr(a, 'unit'):
-            unit = a.unit
-            arrays = tuple(Quantity(_a, subok=True, copy=False).to_value(unit)
-                           for _a in arrays)
-            break
-    else:
-        # No input has even a unit, so the only way we can have gotten
-        # here is for output to be a Quantity.  Assume all arrays are
-        # are standard ndarray and set unit to dimensionless.
-        unit = dimensionless_unscaled
+    try:
+        qs = tuple(Quantity(a, copy=False, subok=True)
+                   for a in args)
+    except Exception:
+        # If we cannot convert to Quantity, we should just bail.
+        raise NotImplementedError
+
+    # Allow any units error to be raised.
+    unit = qs[0].unit
+    arrays = tuple(q.to_value(unit) for q in qs)
+    return arrays, unit
+
+
+def _iterable_helper(*args, out=None, **kwargs):
+    from astropy.units import Quantity
 
     if out is not None:
         if isinstance(out, Quantity):
@@ -163,32 +166,35 @@ def _iterable_helper(arrays, out=None, **kwargs):
         else:
             # TODO: for an ndarray output, we could in principle
             # try converting all Quantity to dimensionless.
-            return NotImplemented
+            raise NotImplementedError
 
-    return arrays, unit, out, kwargs
+    if not args:
+        return args, kwargs, None if out is None else out.unit, out
+
+    arrays, unit = _quantity2array(*args)
+    return arrays, kwargs, unit, out
 
 
 @function_helper
 def concatenate(arrays, axis=0, out=None):
     # TODO: make this smarter by creating an appropriately shaped
     # empty output array and just filling it.
-    arrays, unit, out, kwargs = _iterable_helper(arrays, out,
-                                                 axis=axis)
+    arrays, kwargs, unit, out = _iterable_helper(*arrays, out=out, axis=axis)
     return (arrays,), kwargs, unit, out
 
 
 @function_helper
 def choose(a, choices, out=None, **kwargs):
-    choices, unit, out, kwargs = _iterable_helper(choices, out, **kwargs)
+    choices, kwargs, unit, out = _iterable_helper(*choices, out=out, **kwargs)
     return (a, choices,), kwargs, unit, out
 
 
 @function_helper
 def select(condlist, choicelist, default=0):
-    choicelist, unit, _, _ = _iterable_helper(choicelist, None)
+    choicelist, kwargs, unit, out = _iterable_helper(*choicelist)
     if default != 0:
         default = (1 * unit)._to_own_unit(default)
-    return (condlist, choicelist, default), {}, unit, None
+    return (condlist, choicelist, default), kwargs, unit, out
 
 
 @function_helper
@@ -207,7 +213,7 @@ def insert(arr, obj, values, *args, **kwargs):
     from astropy.units import Quantity, dimensionless_unscaled
 
     if isinstance(obj, Quantity):
-        return NotImplemented
+        raise NotImplementedError
 
     if isinstance(arr, Quantity):
         return (arr.view(np.ndarray), obj,
@@ -234,14 +240,14 @@ def pad(array, pad_width, mode='constant', **kwargs):
                 if isinstance(v, tuple) else array._to_own_unit(v))
         kwargs[key] = new_value
 
-    return (array, pad_width, mode), kwargs, array.unit, None
+    return (array.view(np.ndarray), pad_width, mode), kwargs, array.unit, None
 
 
 @function_helper
 def where(condition, *args):
     from astropy.units import Quantity
     if isinstance(condition, Quantity) or len(args) != 2:
-        return NotImplemented
+        raise NotImplementedError
 
     one, two = args
     if isinstance(one, Quantity):
@@ -252,7 +258,8 @@ def where(condition, *args):
         return (condition, one, two.to_value(unit)), {}, unit, None
 
 
-def _qp_helper(a, q, *args, q_unit=dimensionless_unscaled, **kwargs):
+@function_helper
+def quantile(a, q, *args, q_unit=dimensionless_unscaled, **kwargs):
     if len(args) > 2:
         out = args[1]
         args = args[:1] + args[2:]
@@ -275,20 +282,19 @@ def _qp_helper(a, q, *args, q_unit=dimensionless_unscaled, **kwargs):
         else:
             # TODO: for an ndarray output, we could in principle
             # try converting all Quantity to dimensionless.
-            return NotImplemented
+            raise NotImplementedError
 
     return (a, q) + args, kwargs, unit, out
 
 
 @function_helper
-def quantile(a, q, *args, **kwargs):
-    return _qp_helper(a, q, *args, **kwargs)
-
-
-@function_helper
 def percentile(a, q, *args, **kwargs):
     from astropy.units import percent
-    return _qp_helper(a, q, *args, q_unit=percent, **kwargs)
+    return quantile(a, q, *args, q_unit=percent, **kwargs)
+
+
+FUNCTION_HELPERS[np.nanquantile] = quantile
+FUNCTION_HELPERS[np.nanpercentile] = percentile
 
 
 @function_helper
@@ -296,23 +302,13 @@ def count_nonzero(a, *args, **kwargs):
     return (a.value,) + args, kwargs, None, None
 
 
-def one_two(one, two):
-    from astropy.units import Quantity
-    if isinstance(one, Quantity):
-        return one.value, one._to_own_unit(two), one.unit
-
-    else:
-        unit = getattr(one, 'unit', dimensionless_unscaled)
-        return one, two.to_value(unit), unit
-
-
 @function_helper
 def array_equal(a1, a2):
-    a1, a2, unit = one_two(a1, a2)
-    return (a1, a2), {}, None, None
+    args, unit = _quantity2array(a1, a2)
+    return args, {}, None, None
 
 
 @function_helper
 def array_equiv(a1, a2):
-    a1, a2, unit = one_two(a1, a2)
-    return (a1, a2), {}, None, None
+    args, unit = _quantity2array(a1, a2)
+    return args, {}, None, None
