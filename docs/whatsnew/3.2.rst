@@ -135,6 +135,37 @@ conventions used in particular fields. For more details on the motivation behind
 these changes, see `PR #8394 <https://github.com/astropy/astropy/pull/8394>`_
 and the associated discussion.
 
+As an example, this shows the evolution of the ecliptic origin for the true and
+mean barycentric ecliptic frames over the course of a year:
+
+
+.. plot::
+    :include-source:
+    :context: reset
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from astropy import units as u
+    from astropy.time import Time
+    from astropy.coordinates import BarycentricMeanEcliptic, BarycentricTrueEcliptic, ICRS
+
+    t = Time('J2018') + np.linspace(-1, 0, 1000)*u.year
+
+    bme_origin = BarycentricMeanEcliptic([0]*len(t)*u.deg, [0]*len(t)*u.deg, equinox=t)
+    bte_origin = BarycentricTrueEcliptic([0]*len(t)*u.deg, [0]*len(t)*u.deg, equinox=t)
+
+    im = bme_origin.transform_to(ICRS())
+    it = bte_origin.transform_to(ICRS())
+
+    plt.plot(t.jyear, im.ra.wrap_at(180*u.deg).deg, label='BarycentricMeanEcliptic')
+    plt.plot(t.jyear, it.ra.wrap_at(180*u.deg).deg, label='BarycentricTrueEcliptic')
+
+    plt.xlabel('J-year')
+    plt.ylabel('ICRS R.A. of ecliptic origin')
+    plt.legend(loc=0)
+
+
 Note that this change may break some usage of the previous ``*TrueEcliptic``
 frames, as in the last few versions these had a behavior more akin to "mean"
 ecliptic frames.  In many cases it will be sufficient to simply replace this
