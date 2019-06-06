@@ -1,16 +1,16 @@
-*************************************
-Convolving with un-normalized kernels
-*************************************
+************************************
+Convolving with Unnormalized Kernels
+************************************
 
 There are some tasks, such as source finding, where you want to apply a filter
 with a kernel that is not normalized.
 
-For data that are well-behaved (contain no missing or infinite values), this is
-easy and can be done in one step::
+For data that are well-behaved (contain no missing or infinite values), this
+can be done in one step::
 
     convolve(image, kernel)
 
-For example, we can try to run a commonly-used peak enhancing kernel:
+For example, we can try to run a commonly used peak enhancing kernel:
 
 .. plot::
    :context: reset
@@ -51,8 +51,8 @@ For example, we can try to run a commonly-used peak enhancing kernel:
                     interpolation='nearest', cmap='viridis')
 
 If you have an image with missing values (NaNs), you have to replace them with
-real values first.  Often, the best way to do this is to replace the NaN values
-with interpolated values.  In the example below, we use a Gaussian kernel
+real values first. Often, the best way to do this is to replace the NaN values
+with interpolated values. In the example below, we use a Gaussian kernel
 with a size similar to that of our peak-finding kernel to replace the bad data
 before applying the peak-finding kernel.
 
