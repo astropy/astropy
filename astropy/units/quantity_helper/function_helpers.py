@@ -529,3 +529,17 @@ def geomspace(start, stop, *args, **kwargs):
     # Get unit from end point as for linspace.
     (stop, start), unit = _quantities2arrays(stop, start)
     return (start, stop) + args, kwargs, unit, None
+
+
+@function_helper
+def interp(x, xp, fp, *args, **kwargs):
+    from astropy.units import Quantity
+
+    (x, xp), _ = _quantities2arrays(x, xp)
+    if isinstance(fp, Quantity):
+        unit = fp.unit
+        fp = fp.value
+    else:
+        unit = None
+
+    return (x, xp, fp) + args, kwargs, unit, None
