@@ -203,7 +203,10 @@ cdef class CParser:
                   fill_include_names=None,
                   fill_exclude_names=None,
                   fill_extra_cols=0,
-                  fast_reader=True):
+                  fast_reader=None):
+
+        if fast_reader is None:
+          fast_reader = {}
 
         # Handle fast_reader parameter
         expchar = fast_reader.pop('exponent_style', 'E').upper()
@@ -811,13 +814,15 @@ cdef class CParser:
 
     def __reduce__(self):
         cdef bytes source_ptr = self.source_ptr if self.source_ptr else b''
+        fast_reader = dict(expchar=chr(self.tokenizer.expchar),
+                           use_fast_converter=self.tokenizer.use_fast_converter,
+                           parallel=False)
         return (_copy_cparser, (source_ptr, self.source_bytes, self.use_cols, self.fill_names,
                                 self.fill_values, self.tokenizer.strip_whitespace_lines,
                                 self.tokenizer.strip_whitespace_fields,
                                 dict(delimiter=chr(self.tokenizer.delimiter),
                                 comment=chr(self.tokenizer.comment),
                                 quotechar=chr(self.tokenizer.quotechar),
-                                expchar=chr(self.tokenizer.expchar),
                                 header_start=self.header_start,
                                 data_start=self.data_start,
                                 data_end=self.data_end,
@@ -828,8 +833,7 @@ cdef class CParser:
                                 fill_include_names=self.fill_include_names,
                                 fill_exclude_names=self.fill_exclude_names,
                                 fill_extra_cols=self.tokenizer.fill_extra_cols,
-                                use_fast_converter=self.tokenizer.use_fast_converter,
-                                parallel=False)))
+                                fast_reader=fast_reader)))
 
 def _copy_cparser(bytes src_ptr, bytes source_bytes, use_cols, fill_names, fill_values,
                   strip_whitespace_lines, strip_whitespace_fields, kwargs):
