@@ -2,6 +2,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Helpers for overriding numpy functions for Quantity."""
 
+from functools import reduce
+import operator
+
 import numpy as np
 
 from astropy.units.core import (
@@ -10,7 +13,8 @@ from astropy.units.core import (
 from .helpers import _d, get_converter
 
 
-UNSUPPORTED_FUNCTIONS = set()
+UNSUPPORTED_FUNCTIONS = {np.packbits, np.unpackbits, np.unravel_index,
+                         np.ravel_multi_index, np.ix_}
 FUNCTION_HELPERS = {}
 DISPATCHED_FUNCTIONS = {}
 
@@ -345,3 +349,24 @@ FUNCTION_HELPERS[np.inner] = _cross_like
 FUNCTION_HELPERS[np.vdot] = _cross_like
 FUNCTION_HELPERS[np.tensordot] = _cross_like
 FUNCTION_HELPERS[np.kron] = _cross_like
+
+
+@function_helper
+def einsum(subscripts, *operands, out=None, **kwargs):
+    from astropy.units import Quantity
+
+    if not isinstance(subscripts, str):
+        raise ValueError('only "subscripts" string mode supported for einsum.')
+
+    if out is not None:
+        if not isinstance(out, Quantity):
+            raise NotImplementedError
+
+        else:
+            kwargs['out'] = out.view(np.ndarray)
+
+    qs = _as_quantity(*operands)
+    unit = reduce(operator.mul, (q.unit for q in qs),
+                  dimensionless_unscaled)
+    arrays = tuple(q.view(np.ndarray) for q in qs)
+    return (subscripts,) + arrays, kwargs, unit, out

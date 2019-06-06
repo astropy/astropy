@@ -948,7 +948,8 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
         expected = np.kron(q1.value, q2.value) * u.m / u.s
         assert np.all(o == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_einsum(self):
         q1 = np.arange(9.).reshape(3, 3) * u.m
         o = np.einsum('...i', q1)
@@ -1207,35 +1208,40 @@ class TestBitAndIndexFunctions(metaclass=CoverageMeta):
         self.q = np.arange(3) * u.m
         self.uint_q = u.Quantity(np.arange(3), 'm', dtype='u1')
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_packbits(self):
         with pytest.raises(TypeError):
             np.packbits(self.q)
         with pytest.raises(TypeError):
             np.packbits(self.uint_q)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_unpackbits(self):
         with pytest.raises(TypeError):
             np.unpackbits(self.q)
         with pytest.raises(TypeError):
             np.unpackbits(self.uint_q)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_unravel_index(self):
         with pytest.raises(TypeError):
-            np.unravel_index((self.q,), 3)
+            np.unravel_index(self.q, 3)
         with pytest.raises(TypeError):
-            np.unravel_index((self.uint_q,), 3)
+            np.unravel_index(self.uint_q, 3)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_ravel_multi_index(self):
         with pytest.raises(TypeError):
             np.ravel_multi_index((self.q,), 3)
         with pytest.raises(TypeError):
             np.ravel_multi_index((self.uint_q,), 3)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_ix_(self):
         with pytest.raises(TypeError):
             np.ix_(self.q)
