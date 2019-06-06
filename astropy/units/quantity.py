@@ -498,12 +498,13 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         out : `~astropy.units.Quantity`
            With units set.
         """
-        if isinstance(result, tuple):
+        if isinstance(result, (tuple, list)):
             if out is None:
                 out = (None,) * len(result)
-            return tuple(self._result_as_quantity(result_, unit_, out_)
-                         for (result_, unit_, out_) in
-                         zip(result, unit, out))
+            return result.__class__(
+                self._result_as_quantity(result_, unit_, out_)
+                for (result_, unit_, out_) in
+                zip(result, unit, out))
 
         if out is None:
             # View the result array as a Quantity with the proper unit.

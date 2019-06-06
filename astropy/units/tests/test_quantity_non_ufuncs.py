@@ -996,7 +996,8 @@ class TestNumericalFunctions(metaclass=CoverageMeta):
         expected = np.diff(x.value) * u.m
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_diff_prepend_append(self):
         x = np.arange(10.) * u.m
         out = np.diff(x, prepend=-12.5*u.cm, append=1*u.km)
@@ -1008,21 +1009,36 @@ class TestNumericalFunctions(metaclass=CoverageMeta):
         assert np.all(out == expected)
 
     def test_gradient(self):
-        # Simple diff works out of the box.
+        # Simple gradient works out of the box.
         x = np.arange(10.) * u.m
         out = np.gradient(x)
         expected = np.gradient(x.value) * u.m
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_gradient_spacing(self):
-        # Simple diff works out of the box.
+        # Simple gradient works out of the box.
         x = np.arange(10.) * u.m
         spacing = 10. * u.s
         out = np.gradient(x, spacing)
         expected = np.gradient(x.value, spacing.value) * (x.unit /
                                                           spacing.unit)
         assert np.all(out == expected)
+        f = np.array([[1, 2, 6], [3, 4, 5]]) * u.m
+        dx = 2. * u.s
+        y = [1., 1.5, 3.5] * u.GHz
+        dfdx, dfdy = np.gradient(f, dx, y)
+        exp_dfdx, exp_dfdy = np.gradient(f.value, dx.value, y.value)
+        exp_dfdx = exp_dfdx * f.unit / dx.unit
+        exp_dfdy = exp_dfdy * f.unit / y.unit
+        assert np.all(dfdx == exp_dfdx)
+        assert np.all(dfdy == exp_dfdy)
+
+        dfdx2 = np.gradient(f, dx, axis=0)
+        assert np.all(dfdx2 == exp_dfdx)
+        dfdy2 = np.gradient(f, y, axis=1)
+        assert np.all(dfdy2 == exp_dfdy)
 
     def test_linspace(self):
         # Note: linspace gets unit of end point, not superlogical.

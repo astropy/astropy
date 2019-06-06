@@ -470,3 +470,41 @@ def histogram2d(x, y, bins=10, range=None, normed=None, weights=None,
 
     return ((x.value, y.value, bins, range, normed, weights, density), {},
             (unit, x.unit, y.unit), None)
+
+
+@function_helper
+def diff(a, n=1, axis=-1, prepend=np._NoValue, append=np._NoValue):
+    a = _as_quantity(a)
+    if prepend is not np._NoValue:
+        prepend = _as_quantity(prepend).to_value(a.unit)
+    if append is not np._NoValue:
+        append = _as_quantity(append).to_value(a.unit)
+    return (a.value, n, axis, prepend, append), {}, a.unit, None
+
+
+@function_helper
+def gradient(f, *varargs, **kwargs):
+    f = _as_quantity(f)
+    axis = kwargs.get('axis', None)
+    if axis is None:
+        n_axis = f.ndim
+    elif isinstance(axis, tuple):
+        n_axis = len(axis)
+    else:
+        n_axis = 1
+
+    if varargs:
+        varargs = _as_quantities(*varargs)
+        if len(varargs) == 1 and n_axis > 1:
+            varargs = varargs * n_axis
+
+    if varargs:
+        units = [f.unit / q.unit for q in varargs]
+        varargs = tuple(q.value for q in varargs)
+    else:
+        units = [f.unit] * n_axis
+
+    if len(units) == 1:
+        units = units[0]
+
+    return (f.value,) + varargs, kwargs, units, None
