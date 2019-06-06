@@ -9,8 +9,7 @@ What's New in Astropy 3.2?
 Overview
 ========
 
-Astropy 3.2 is a major release that ...  since
-the 3.1.x series of releases.
+Astropy 3.2 is a major release that adds significant new functionality since the 3.1.x series of releases. 
 
 In particular, this release includes:
 
