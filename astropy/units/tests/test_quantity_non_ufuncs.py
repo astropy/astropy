@@ -1075,7 +1075,10 @@ class TestNumericalFunctions(metaclass=CoverageMeta):
                                 [-1, 24*3600]) * u.s
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
+
+class TestHistogramFunctions(metaclass=CoverageMeta):
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_bincount(self):
         i = np.array([1, 1, 2, 3, 2, 4])
         weights = np.arange(len(i)) * u.Jy
@@ -1083,7 +1086,8 @@ class TestNumericalFunctions(metaclass=CoverageMeta):
         expected = np.bincount(i, weights.value) * weights.unit
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_digitize(self):
         x = np.array([1500., 2500., 4500.]) * u.m
         bins = np.arange(10.) * u.km
@@ -1091,38 +1095,115 @@ class TestNumericalFunctions(metaclass=CoverageMeta):
         expected = np.digitize(x.to_value(bins.unit), bins.value)
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_histogram(self):
         x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
         out_h, out_b = np.histogram(x)
+        assert type(out_h) is np.ndarray
+        assert isinstance(out_b, u.Quantity)
         expected_h, expected_b = np.histogram(x.value)
         expected_b = expected_b * x.unit
         assert np.all(out_h == expected_h)
         assert np.all(out_b == expected_b)
-        # Once above works, add tests with bins & weights in different units.
+        # With bins
+        out2_h, out2_b = np.histogram(x, [125, 200] * u.cm)
+        assert type(out2_h) is np.ndarray
+        assert isinstance(out2_b, u.Quantity)
+        expected2_h, expected2_b = np.histogram(x.value, [1.25, 2.])
+        expected2_b = expected2_b * x.unit
+        assert np.all(out2_h == expected2_h)
+        assert np.all(out2_b == expected2_b)
+        # With density
+        out2d_h, out2d_b = np.histogram(x, [125, 200] * u.cm, density=True)
+        assert isinstance(out2d_h, u.Quantity)
+        assert isinstance(out2d_b, u.Quantity)
+        expected2d_h, expected2d_b = np.histogram(x.value, [1.25, 2.],
+                                                  density=True)
+        expected2d_h = expected2d_h / x.unit
+        expected2d_b = expected2d_b * x.unit
+        assert np.all(out2d_h == expected2d_h)
+        assert np.all(out2d_b == expected2d_b)
+        # With bins and weights
+        weights = np.arange(len(x)) / u.s
+        out3_h, out3_b = np.histogram(x, [125, 200] * u.cm, weights=weights)
+        assert isinstance(out3_h, u.Quantity)
+        assert isinstance(out3_b, u.Quantity)
+        expected3_h, expected3_b = np.histogram(x.value, [1.25, 2.],
+                                                weights=weights.value)
+        expected3_h = expected3_h * weights.unit
+        expected3_b = expected3_b * x.unit
+        assert np.all(out3_h == expected3_h)
+        assert np.all(out3_b == expected3_b)
+        out3d_h, out3d_b = np.histogram(x, [125, 200] * u.cm, weights=weights,
+                                        density=True)
+        assert isinstance(out3_h, u.Quantity)
+        assert isinstance(out3_b, u.Quantity)
+        expected3d_h, expected3d_b = np.histogram(x.value, [1.25, 2.],
+                                                  weights=weights.value,
+                                                  density=True)
+        expected3d_h = expected3d_h * weights.unit / x.unit
+        expected3d_b = expected3d_b * x.unit
+        assert np.all(out3_h == expected3_h)
+        assert np.all(out3_b == expected3_b)
 
-    @pytest.mark.xfail
+        with pytest.raises(u.UnitsError):
+            np.histogram(x, [125, 200] * u.s)
+
+        with pytest.raises(u.UnitsError):
+            np.histogram(x, [125, 200])
+
+        with pytest.raises(u.UnitsError):
+            np.histogram(x.value, [125, 200] * u.s)
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_histogram_bin_edges(self):
         x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
         out_b = np.histogram_bin_edges(x)
-        expected_b = np.histogram_bin_edges(x.value)
-        expected_b = expected_b * x.unit
+        expected_b = np.histogram_bin_edges(x.value) * x.unit
         assert np.all(out_b == expected_b)
+        # With bins
+        out2_b = np.histogram_bin_edges(x, [125, 200] * u.cm)
+        expected2_b = np.histogram_bin_edges(x.value, [1.25, 2.]) * x.unit
+        assert np.all(out2_b == expected2_b)
+        with pytest.raises(u.UnitsError):
+            np.histogram_bin_edges(x, [125, 200] * u.s)
 
-    @pytest.mark.xfail
+        with pytest.raises(u.UnitsError):
+            np.histogram_bin_edges(x, [125, 200])
+
+        with pytest.raises(u.UnitsError):
+            np.histogram_bin_edges(x.value, [125, 200] * u.s)
+
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_histogram2d(self):
+        # TODO: add test cases for passing in bins
         x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
         y = np.array([1.2, 2.2, 2.4, 3.0, 4.0]) * u.cm
         out_h, out_bx, out_by = np.histogram2d(x, y)
-        expected_h, expected_bx, expected_by = np.histogram(x.value, y.value)
+        expected_h, expected_bx, expected_by = np.histogram2d(x.value, y.value)
         expected_bx = expected_bx * x.unit
         expected_by = expected_by * y.unit
         assert np.all(out_h == expected_h)
         assert np.all(out_bx == expected_bx)
         assert np.all(out_by == expected_by)
+        outd_h, outd_bx, outd_by = np.histogram2d(x, y, density=True)
+        expectedd_h, expectedd_bx, expectedd_by = np.histogram2d(
+            x.value, y.value, density=True)
+        expectedd_h = expectedd_h / x.unit / y.unit
+        expectedd_bx = expectedd_bx * x.unit
+        expectedd_by = expectedd_by * y.unit
+        assert np.all(outd_h == expectedd_h)
+        assert np.all(outd_bx == expectedd_bx)
+        assert np.all(outd_by == expectedd_by)
 
     @pytest.mark.xfail
     def test_histogramdd(self):
+        # Postponing given various forms of passing in data, which
+        # are not all dispatched correctly anyway:
+        # https://github.com/numpy/numpy/issues/13728
         xyz = np.random.normal(size=(10, 3)) * u.m
         out_h, out_b = np.histogramdd(xyz)
         expected_h, expected_b = np.histogramdd(xyz.value)
@@ -1130,7 +1211,8 @@ class TestNumericalFunctions(metaclass=CoverageMeta):
         assert np.all(out_h == expected_h)
         assert np.all(out_b == expected_b)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_correlate(self):
         x1 = [1, 2, 3] * u.m
         x2 = [0, 1, 0.5] * u.m
@@ -1138,7 +1220,8 @@ class TestNumericalFunctions(metaclass=CoverageMeta):
         expected = np.correlate(x1.value, x2.value) * u.m ** 2
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_convolve(self):
         x1 = [1, 2, 3] * u.m
         x2 = [0, 1, 0.5] * u.m
@@ -1146,14 +1229,16 @@ class TestNumericalFunctions(metaclass=CoverageMeta):
         expected = np.convolve(x1.value, x2.value) * u.m ** 2
         assert np.all(out == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_cov(self):
         # Do not see how we can use cov with Quantity
         x = np.array([[0, 2], [1, 1], [2, 0]]).T * u.m
         with pytest.raises(TypeError):
             np.cov(x)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_corrcoef(self):
         # Do not see how we can use cov with Quantity
         x = np.array([[0, 2], [1, 1], [2, 0]]).T * u.m
@@ -1178,8 +1263,17 @@ class TestSortFunctions(InvariantUnitTestSetup):
 
 
 class TestStringFunctions(metaclass=CoverageMeta):
+    # For all these functions, we could change it to work on Quantity,
+    # but it would mean deviating from the docstring.  Not clear whether
+    # that is worth it.
     def setup(self):
         self.q = np.arange(3.) * u.Jy
+
+    @pytest.mark.xfail
+    def test_array2string(self):
+        out = np.array2string(self.q)
+        expected = str(self.q)
+        assert out == expected
 
     @pytest.mark.xfail
     def test_array_repr(self):
@@ -1191,12 +1285,6 @@ class TestStringFunctions(metaclass=CoverageMeta):
     @pytest.mark.xfail
     def test_array_str(self):
         out = np.array_str(self.q)
-        expected = str(self.q)
-        assert out == expected
-
-    @pytest.mark.xfail
-    def test_array2string(self):
-        out = np.array2string(self.q)
         expected = str(self.q)
         assert out == expected
 
