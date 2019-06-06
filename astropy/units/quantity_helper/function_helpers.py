@@ -141,18 +141,21 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
             x.unit, None)
 
 
-def _quantity2array(*args):
+def _as_quantity(*args):
     from astropy.units import Quantity
 
     try:
-        qs = tuple(Quantity(a, copy=False, subok=True)
-                   for a in args)
+        return tuple(Quantity(a, copy=False, subok=True)
+                     for a in args)
     except Exception:
         # If we cannot convert to Quantity, we should just bail.
         raise NotImplementedError
 
-    # Allow any units error to be raised.
+
+def _quantity2array(*args):
+    qs = _as_quantity(*args)
     unit = qs[0].unit
+    # Allow any units error to be raised.
     arrays = tuple(q.to_value(unit) for q in qs)
     return arrays, unit
 
@@ -312,3 +315,33 @@ def array_equal(a1, a2):
 def array_equiv(a1, a2):
     args, unit = _quantity2array(a1, a2)
     return args, {}, None, None
+
+
+def _dot_like(a, b, out=None):
+    from astropy.units import Quantity
+
+    a, b = _as_quantity(a, b)
+    unit = a.unit * b.unit
+    if out is not None:
+        if not isinstance(out, Quantity):
+            raise NotImplementedError
+        return tuple(x.view(np.ndarray) for x in (a, b, out)), {}, unit, out
+    else:
+        return (a.view(np.ndarray), b.view(np.ndarray)), {}, unit, None
+
+
+FUNCTION_HELPERS[np.dot] = _dot_like
+FUNCTION_HELPERS[np.outer] = _dot_like
+
+
+def _cross_like(a, b, *args, **kwargs):
+    a, b = _as_quantity(a, b)
+    unit = a.unit * b.unit
+    return (a.view(np.ndarray), b.view(np.ndarray)) + args, kwargs, unit, None
+
+
+FUNCTION_HELPERS[np.cross] = _cross_like
+FUNCTION_HELPERS[np.inner] = _cross_like
+FUNCTION_HELPERS[np.vdot] = _cross_like
+FUNCTION_HELPERS[np.tensordot] = _cross_like
+FUNCTION_HELPERS[np.kron] = _cross_like

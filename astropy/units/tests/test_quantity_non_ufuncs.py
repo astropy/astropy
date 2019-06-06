@@ -887,7 +887,8 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
     """
     Test functions that are similar to gufuncs
     """
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_cross(self):
         q1 = np.arange(6.).reshape(2, 3) * u.m
         q2 = np.array([4., 5., 6.]) / u.s
@@ -895,35 +896,40 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
         expected = np.cross(q1.value, q2.value) * u.m / u.s
         assert np.all(o == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_outer(self):
         q1 = np.array([1, 2, 3]) * u.m
         q2 = np.array([1, 2]) / u.s
         o = np.outer(q1, q2)
         assert np.all(o == np.array([[1, 2], [2, 4], [3, 6]]) * u.m / u.s)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_inner(self):
         q1 = np.array([1, 2, 3]) * u.m
         q2 = np.array([4, 5, 6]) / u.s
         o = np.inner(q1, q2)
         assert o == 32 * u.m / u.s
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_dot(self):
         q1 = np.array([1., 2., 3.]) * u.m
         q2 = np.array([4., 5., 6.]) / u.s
         o = np.dot(q1, q2)
         assert o == 32. * u.m / u.s
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_vdot(self):
         q1 = np.array([1j, 2j, 3j]) * u.m
         q2 = np.array([4j, 5j, 6j]) / u.s
         o = np.vdot(q1, q2)
         assert o == (32. + 0j) * u.m / u.s
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_tensordot(self):
         # From the docstring example
         a = np.arange(60.).reshape(3, 4, 5) * u.m
@@ -933,7 +939,8 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
                                 axes=([1, 0], [0, 1])) * u.m / u.s
         assert np.all(c == expected)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_kron(self):
         q1 = np.eye(2) * u.m
         q2 = np.ones(2) / u.s
