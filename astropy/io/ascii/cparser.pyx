@@ -818,7 +818,7 @@ cdef class CParser:
                            use_fast_converter=self.tokenizer.use_fast_converter,
                            parallel=False)
         return (_copy_cparser, (source_ptr, self.source_bytes, self.use_cols, self.fill_names,
-                                self.fill_values, self.tokenizer.strip_whitespace_lines,
+                                self.fill_values, self.fill_empty, self.tokenizer.strip_whitespace_lines,
                                 self.tokenizer.strip_whitespace_fields,
                                 dict(delimiter=chr(self.tokenizer.delimiter),
                                 comment=chr(self.tokenizer.comment),
@@ -836,11 +836,12 @@ cdef class CParser:
                                 fast_reader=fast_reader)))
 
 def _copy_cparser(bytes src_ptr, bytes source_bytes, use_cols, fill_names, fill_values,
-                  strip_whitespace_lines, strip_whitespace_fields, kwargs):
+                  fill_empty, strip_whitespace_lines, strip_whitespace_fields, kwargs):
     parser = CParser(None, strip_whitespace_lines, strip_whitespace_fields, **kwargs)
     parser.use_cols = use_cols
     parser.fill_names = fill_names
     parser.fill_values = fill_values
+    parser.fill_empty = fill_empty
 
     if src_ptr:
         parser.tokenizer.source = src_ptr
