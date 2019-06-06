@@ -2340,6 +2340,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Fixed bug that prevented using differentials with HCRS<->ICRS
+  transformations. [#8794]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
