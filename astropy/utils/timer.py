@@ -4,7 +4,8 @@
 # STDLIB
 import time
 import warnings
-from collections import Iterable, OrderedDict
+from collections import OrderedDict
+from collections.abc import Iterable
 from functools import partial, wraps
 
 # THIRD-PARTY
