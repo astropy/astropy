@@ -219,16 +219,3 @@ supported as logarithmic units.  For instance::
           <http://adsabs.harvard.edu/abs/1995PASP..107.1065H>`_
 .. [OG83] Oke, J.B., & Gunn, J. E., 1983, `ApJ 266, 713
 	  <http://adsabs.harvard.edu/abs/1983ApJ...266..713O>`_
-
-
-# Temporarily only list the API reference in the index page, this can be
-# turn back on once https://github.com/astropy/sphinx-automodapi/issues/82 is
-# addressed and released.
-#Reference/API
-#=============
-#.. automodapi:: astropy.units.function.logarithmic
-#   :noindex:
-#   :include-all-objects:
-#
-#.. automodapi:: astropy.units.photometric
-#   :noindex:
