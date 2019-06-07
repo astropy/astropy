@@ -1,29 +1,8 @@
-2.0.13 (unreleased)
+2.0.13 (2019-06-08)
 ===================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -37,20 +16,11 @@ astropy.io.misc
 - Explicitly set PyYAML default flow style to None to ensure consistent
   astropy YAML output for PyYAML version 5.1 and later. [#8500]
 
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
 - Block floating-point columns from using repr format when converted to Table
   [#8358]
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -58,38 +28,11 @@ astropy.stats
 - Fixed issue in ``bayesian_blocks`` when called with the ``ncp_prior``
   keyword. [#8339]
 
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
-- Fix parsing of numerical powers in FITS-compatible units. [#8251]
-
 - Fix ``take`` when one gets only a single element from a ``Quantity``,
   ensuring it returns a ``Quantity`` rather than a scalar. [#8617]
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Other Changes and Additions
----------------------------
 
 
 
