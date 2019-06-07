@@ -331,15 +331,6 @@ class TestQuantityStatsFuncs:
         assert np.all(q1.ediff1d() == np.array([1., 2., 6.]) * u.m)
         assert np.all(np.ediff1d(q1) == np.array([1., 2., 6.]) * u.m)
 
-    @pytest.mark.xfail
-    def test_dot_func(self):
-
-        q1 = np.array([1., 2., 4., 10.]) * u.m
-        q2 = np.array([3., 4., 5., 6.]) * u.s
-        q3 = np.dot(q1, q2)
-        assert q3.value == np.dot(q1.value, q2.value)
-        assert q3.unit == u.m * u.s
-
     def test_dot_meth(self):
 
         q1 = np.array([1., 2., 4., 10.]) * u.m

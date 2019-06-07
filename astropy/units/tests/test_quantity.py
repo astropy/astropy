@@ -1558,29 +1558,6 @@ class TestSpecificTypeQuantity:
         assert type(res2) is u.Quantity
 
 
-@pytest.mark.skipif('not HAS_MATPLOTLIB')
-@pytest.mark.xfail('MATPLOTLIB_LT_15')
-class TestQuantityMatplotlib:
-    """Test if passing matplotlib quantities works.
-
-    TODO: create PNG output and check against reference image
-          once `astropy.wcsaxes` is merged, which provides
-          the machinery for this.
-
-    See https://github.com/astropy/astropy/issues/1881
-    See https://github.com/astropy/astropy/pull/2139
-    """
-
-    def test_plot(self):
-        data = u.Quantity([4, 5, 6], 's')
-        plt.plot(data)
-
-    def test_scatter(self):
-        x = u.Quantity([4, 5, 6], 'second')
-        y = [1, 3, 4] * u.m
-        plt.scatter(x, y)
-
-
 def test_unit_class_override():
     class MyQuantity(u.Quantity):
         pass
