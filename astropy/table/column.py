@@ -1106,7 +1106,7 @@ class MaskedColumnInfo(ColumnInfo):
         return out
 
 
-class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
+class MaskedColumn(ma.MaskedArray, Column, _MaskedColumnGetitemShim):
     """Define a masked data column for use in a Table object.
 
     Parameters
@@ -1211,7 +1211,6 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
                                unit=unit, format=format, description=description,
                                meta=meta, copy=copy, copy_indices=copy_indices)
         self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
-
         # Note: do not set fill_value in the MaskedArray constructor because this does not
         # go through the fill_value workarounds.
         if fill_value is None and getattr(data, 'fill_value', None) is not None:
@@ -1227,6 +1226,9 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             index.replace_col(self_data, self)
 
         return self
+
+    def __repr__(self):
+        return self._base_repr_(html=False)
 
     @property
     def fill_value(self):
@@ -1257,10 +1259,12 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
     @property
     def data(self):
-        out = self.view(ma.MaskedArray)
-        # The following is necessary because of a bug in Numpy, which was
-        # fixed in numpy/numpy#2703. The fix should be included in Numpy 1.8.0.
-        out.fill_value = self.fill_value
+        baseclass = self._baseclass
+        try:
+            self._baseclass = np.ndarray
+            out = self.view(ma.MaskedArray)
+        finally:
+            self._baseclass = baseclass
         return out
 
     def filled(self, fill_value=None):
@@ -1386,6 +1390,48 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore', MaskedArrayFutureWarning)
                 ma.MaskedArray.__setitem__(self, index, value)
+
+    def _make_compare(oper):
+        """
+        Make comparison methods which encode the ``other`` object to utf-8
+        in the case of a bytestring dtype for Py3+.
+        """
+        swapped_oper = {'__eq__': '__eq__',
+                        '__ne__': '__ne__',
+                        '__gt__': '__lt__',
+                        '__lt__': '__gt__',
+                        '__ge__': '__le__',
+                        '__le__': '__ge__'}[oper]
+
+        def _compare(self, other):
+            op = oper  # copy enclosed ref to allow swap below
+
+            # Special case to work around #6838.  Other combinations work OK,
+            # see tests.test_column.test_unicode_sandwich_compare().  In this
+            # case just swap self and other.
+            #
+            # This is related to an issue in numpy that was addressed in np 1.13.
+            # However that fix does not make this problem go away, but maybe
+            # future numpy versions will do so.  NUMPY_LT_1_13 to get the
+            # attention of future maintainers to check (by deleting or versioning
+            # the if block below).  See #6899 discussion.
+            if (isinstance(self, MaskedColumn) and self.dtype.kind == 'U' and
+                    isinstance(other, MaskedColumn) and other.dtype.kind == 'S'):
+                self, other = other, self
+                op = swapped_oper
+
+            if self.dtype.char == 'S':
+                other = self._encode_str(other)
+            return getattr(self.data, op)(other)
+
+        return _compare
+
+    __eq__ = _make_compare('__eq__')
+    __ne__ = _make_compare('__ne__')
+    __gt__ = _make_compare('__gt__')
+    __lt__ = _make_compare('__lt__')
+    __ge__ = _make_compare('__ge__')
+    __le__ = _make_compare('__le__')
 
     # We do this to make the methods show up in the API docs
     name = BaseColumn.name
