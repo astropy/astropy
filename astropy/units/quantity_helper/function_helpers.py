@@ -16,20 +16,19 @@ which has an associated `set` or `dict`:
 4. UNSUPPORTED_FUNCTIONS (set), if the function does not make sense.
 
 For the FUNCTION_HELPERS `dict`, the value is a function that does the
-unit conversion.  It should take the same arguments as the numpy function
-would (though one can use ``*args`` and ``**kwargs`` as desired and return
-a tuple of ``args, kwargs, unit, out``, where ``args`` and ``kwargs``
-will be passed on to the numpy implementation, ``unit`` is a possible
-unit of the result (`None` if it should not be converted to Quantity),
-and ``out`` is a possible output Quantity passed in, which will be
-filled in-place.
+unit conversion.  It should take the same arguments as the numpy
+function would (though one can use ``*args`` and ``**kwargs``) and
+return a tuple of ``args, kwargs, unit, out``, where ``args`` and
+``kwargs`` will be will be passed on to the numpy implementation,
+``unit`` is a possible unit of the result (`None` if it should not be
+converted to Quantity), and ``out`` is a possible output Quantity passed
+in, which will be filled in-place.
 
 For the DISPATCHED_FUNCTIONS `dict`, the value is a function that
-implements the numpy functionality for Quantity input. Internally,
-it will typically not call the actual numpy implementation.
+implements the numpy functionality for Quantity input.
 """
 
-from functools import reduce
+import functools
 import operator
 
 import numpy as np
@@ -37,6 +36,7 @@ import numpy as np
 from astropy.units.core import (
     UnitsError, UnitTypeError, dimensionless_unscaled)
 from astropy.utils.compat import NUMPY_LT_1_17
+from astropy.utils import isiterable
 
 
 if NUMPY_LT_1_17:
@@ -135,42 +135,49 @@ IGNORED_FUNCTIONS = {
 UNSUPPORTED_FUNCTIONS |= IGNORED_FUNCTIONS
 
 
-def function_helper(f):
-    """Decorator for adding a helper to a numpy function.
+class FunctionAssigner:
+    def __init__(self, assignments):
+        self.assignments = assignments
 
-    The function should have the same name as the numpy function it helps.
-    """
-    FUNCTION_HELPERS[getattr(np, f.__name__)] = f
-    return f
+    def __call__(self, f=None, helps=None):
+        """Add a helper to a numpy function.
+
+        Normally used as a decorator.
+
+        If ``helps`` is given, it should be the numpy function helped (or an
+        iterable of numpy functions helped).
+
+        If ``helps`` is not given, it is assumed the function helped is the
+        numpy function with the same name as the decorated function.
+        """
+        if f is not None:
+            if helps is None:
+                helps = getattr(np, f.__name__)
+            if not isiterable(helps):
+                helps = (helps,)
+            for h in helps:
+                self.assignments[h] = f
+            return f
+        elif helps is not None:
+            return functools.partial(self.__call__, helps=helps)
+        else:
+            raise ValueError("function_helper requires at least one argument.")
 
 
-def dispatched_function(f):
-    """Decorator for adding an override for a numpy function.
+function_helper = FunctionAssigner(FUNCTION_HELPERS)
 
-    The function should have the same name as the corresponding numpy
-    function.
-    """
-    DISPATCHED_FUNCTIONS[getattr(np, f.__name__)] = f
-    return f
+dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
 
 
+@function_helper(helps={np.copy, np.asfarray, np.real_if_close,
+                        np.sort_complex, np.resize})
 def invariant_a_helper(a, *args, **kwargs):
     return (a.view(np.ndarray),) + args, kwargs, a.unit, None
 
 
-FUNCTION_HELPERS[np.copy] = invariant_a_helper
-FUNCTION_HELPERS[np.asfarray] = invariant_a_helper
-FUNCTION_HELPERS[np.real_if_close] = invariant_a_helper
-FUNCTION_HELPERS[np.sort_complex] = invariant_a_helper
-FUNCTION_HELPERS[np.resize] = invariant_a_helper
-
-
+@function_helper(helps={np.tril, np.triu})
 def invariant_m_helper(m, *args, **kwargs):
     return (m.view(np.ndarray),) + args, kwargs, m.unit, None
-
-
-FUNCTION_HELPERS[np.tril] = invariant_m_helper
-FUNCTION_HELPERS[np.triu] = invariant_m_helper
 
 
 # Not really logical to allow ones_like (what is the point of it?),
@@ -402,6 +409,9 @@ def where(condition, *args):
         return (condition, one, two.to_value(unit)), {}, unit, None
 
 
+# Quantile was only introduced in numpy 1.15.
+@function_helper(helps=({np.quantile, np.nanquantile}
+                        if hasattr(np, 'quantile') else ()))
 def quantile(a, q, *args, q_unit=dimensionless_unscaled, **kwargs):
     if len(args) > 2:
         out = args[1]
@@ -430,19 +440,10 @@ def quantile(a, q, *args, q_unit=dimensionless_unscaled, **kwargs):
     return (a, q) + args, kwargs, unit, out
 
 
-if hasattr(np, 'quantile'):
-    # Quantile was only introduced in numpy 1.15.
-    FUNCTION_HELPERS[np.quantile] = quantile
-    FUNCTION_HELPERS[np.nanquantile] = quantile
-
-
-@function_helper
+@function_helper(helps={np.percentile, np.nanpercentile})
 def percentile(a, q, *args, **kwargs):
     from astropy.units import percent
     return quantile(a, q, *args, q_unit=percent, **kwargs)
-
-
-FUNCTION_HELPERS[np.nanpercentile] = percentile
 
 
 @function_helper
@@ -462,7 +463,8 @@ def array_equiv(a1, a2):
     return args, {}, None, None
 
 
-def _dot_like(a, b, out=None):
+@function_helper(helps={np.dot, np.outer})
+def dot_like(a, b, out=None):
     from astropy.units import Quantity
 
     a, b = _as_quantities(a, b)
@@ -475,23 +477,12 @@ def _dot_like(a, b, out=None):
         return (a.view(np.ndarray), b.view(np.ndarray)), {}, unit, None
 
 
-FUNCTION_HELPERS[np.dot] = _dot_like
-FUNCTION_HELPERS[np.outer] = _dot_like
-
-
-def _cross_like(a, b, *args, **kwargs):
+@function_helper(helps={np.cross, np.inner, np.vdot, np.tensordot, np.kron,
+                        np.correlate, np.convolve})
+def cross_like(a, b, *args, **kwargs):
     a, b = _as_quantities(a, b)
     unit = a.unit * b.unit
     return (a.view(np.ndarray), b.view(np.ndarray)) + args, kwargs, unit, None
-
-
-FUNCTION_HELPERS[np.cross] = _cross_like
-FUNCTION_HELPERS[np.inner] = _cross_like
-FUNCTION_HELPERS[np.vdot] = _cross_like
-FUNCTION_HELPERS[np.tensordot] = _cross_like
-FUNCTION_HELPERS[np.kron] = _cross_like
-FUNCTION_HELPERS[np.correlate] = _cross_like
-FUNCTION_HELPERS[np.convolve] = _cross_like
 
 
 @function_helper
@@ -509,8 +500,8 @@ def einsum(subscripts, *operands, out=None, **kwargs):
             kwargs['out'] = out.view(np.ndarray)
 
     qs = _as_quantities(*operands)
-    unit = reduce(operator.mul, (q.unit for q in qs),
-                  dimensionless_unscaled)
+    unit = functools.reduce(operator.mul, (q.unit for q in qs),
+                            dimensionless_unscaled)
     arrays = tuple(q.view(np.ndarray) for q in qs)
     return (subscripts,) + arrays, kwargs, unit, out
 
