@@ -1,6 +1,33 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Helpers for overriding numpy functions for Quantity."""
+"""Helpers for overriding numpy functions.
+
+We override numpy functions in `~astropy.units.Quantity.__array_function__`.
+In this module, the numpy functions are split in four groups, each of
+which has an associated `set` or `dict`:
+
+1. SUBCLASS_SAFE_FUNCTIONS (set), if the numpy implementation
+   supports Quantity; we pass on to ndarray.__array_function__.
+2. FUNCTION_HELPERS (dict), if the numpy implementation is usable
+   after converting quantities to arrays with suitable units,
+   and possibly setting units on the result.
+3. DISPATCHED_FUNCTIONS (dict), if the function makes sense but
+   requires a Quantity-specific implementation
+4. UNSUPPORTED_FUNCTIONS (set), if the function does not make sense.
+
+For the FUNCTION_HELPERS `dict`, the value is a function that does the
+unit conversion.  It should take the same arguments as the numpy function
+would (though one can use ``*args`` and ``**kwargs`` as desired and return
+a tuple of ``args, kwargs, unit, out``, where ``args`` and ``kwargs``
+will be passed on to the numpy implementation, ``unit`` is a possible
+unit of the result (`None` if it should not be converted to Quantity),
+and ``out`` is a possible output Quantity passed in, which will be
+filled in-place.
+
+For the DISPATCHED_FUNCTIONS `dict`, the value is a function that
+implements the numpy functionality for Quantity input. Internally,
+it will typically not call the actual numpy implementation.
+"""
 
 from functools import reduce
 import operator
@@ -18,13 +45,21 @@ if NUMPY_LT_1_17:
     ARRAY_FUNCTION_ENABLED = (hasattr(np.core, 'overrides') and
                               np.core.overrides.ENABLE_ARRAY_FUNCTION)
 else:
-    # in 1.17, overrides are enabled by default, but it is still possible to
+    # In 1.17, overrides are enabled by default, but it is still possible to
     # turn them off using an environment variable.  We use getattr since it
-    # is planned to remove that possibility in later later versions.
+    # is planned to remove that possibility in later numpy versions.
     ARRAY_FUNCTION_ENABLED = getattr(np.core.overrides,
                                      'ENABLE_ARRAY_FUNCTION', True)
+SUBCLASS_SAFE_FUNCTIONS = set()
+"""Functions with implementations supporting subclasses like Quantity."""
+FUNCTION_HELPERS = {}
+"""Functions with implementations usable with proper unit conversion."""
+DISPATCHED_FUNCTIONS = {}
+"""Functions for which we provide our own implementation."""
+UNSUPPORTED_FUNCTIONS = set()
+"""Functions that cannot sensibly be used with quantities."""
 
-SUBCLASS_SAFE_FUNCTIONS = {
+SUBCLASS_SAFE_FUNCTIONS |= {
     np.alen, np.shape, np.size, np.ndim,
     np.reshape, np.ravel, np.moveaxis, np.rollaxis, np.swapaxes,
     np.transpose, np.atleast_1d, np.atleast_2d, np.atleast_3d,
@@ -53,38 +88,68 @@ SUBCLASS_SAFE_FUNCTIONS = {
     np.sort, np.msort, np.partition, np.meshgrid,
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
     np.iscomplexobj, np.isrealobj,
-    np.shares_memory, np.may_share_memory,
-}
-# Implemented as methods that return NotImplementedError
+    np.shares_memory, np.may_share_memory}
+
+# Implemented as methods that currently return NotImplementedError.
 # TODO: move to UNSUPPORTED? Would raise TypeError instead.
 SUBCLASS_SAFE_FUNCTIONS |= {
     np.all, np.any, np.sometrue, np.alltrue}
 
-# Subclass safe, but possibly better if overridden or with different
-# default arguments.
+# Subclass safe, but possibly better if overridden (e.g., with different
+# default arguments for isclose, allclose).
 # TODO: decide on desired behaviour.
 SUBCLASS_SAFE_FUNCTIONS |= {
     np.isclose, np.allclose,
     np.array2string, np.array_repr, np.array_str}
 
-UNSUPPORTED_FUNCTIONS = {
+# TODO: could be supported but need work & thought.
+UNSUPPORTED_FUNCTIONS |= {
+    np.histogramdd, np.piecewise,
+    np.apply_along_axis, np.apply_over_axes}
+
+# Nonsensical for quantities.
+UNSUPPORTED_FUNCTIONS |= {
     np.packbits, np.unpackbits, np.unravel_index,
     np.ravel_multi_index, np.ix_, np.cov, np.corrcoef,
     np.busday_count, np.busday_offset, np.datetime_as_string,
     np.is_busday}
-# TODO: the following can be supported but need work & thought.
-UNSUPPORTED_FUNCTIONS |= {
-    np.histogramdd, np.piecewise}
-FUNCTION_HELPERS = {}
-DISPATCHED_FUNCTIONS = {}
+
+# The following are not just unsupported, but so unlikely to be thought
+# to be supported that we ignore them in testing.  (Kept in a separate
+# variable so that we can check consistency in the test routine -
+# test_quantity_non_ufuncs.py)
+IGNORED_FUNCTIONS = {
+    # Deprecated
+    np.rank, np.asscalar,
+    # I/O - useless for Quantity, since no way to store the unit.
+    np.save, np.savez, np.savetxt, np.savez_compressed,
+    # Polynomials
+    np.poly, np.polyadd, np.polyder, np.polydiv, np.polyfit, np.polyint,
+    np.polymul, np.polysub, np.polyval, np.roots, np.vander,
+    # setops
+    np.ediff1d, np.in1d, np.intersect1d, np.isin, np.setdiff1d,
+    np.setxor1d, np.union1d, np.unique,
+    # financial
+    np.fv, np.ipmt, np.irr, np.mirr, np.nper, np.npv, np.pmt, np.ppmt,
+    np.pv, np.rate}
+UNSUPPORTED_FUNCTIONS |= IGNORED_FUNCTIONS
 
 
 def function_helper(f):
+    """Decorator for adding a helper to a numpy function.
+
+    The function should have the same name as the numpy function it helps.
+    """
     FUNCTION_HELPERS[getattr(np, f.__name__)] = f
     return f
 
 
 def dispatched_function(f):
+    """Decorator for adding an override for a numpy function.
+
+    The function should have the same name as the corresponding numpy
+    function.
+    """
     DISPATCHED_FUNCTIONS[getattr(np, f.__name__)] = f
     return f
 
@@ -108,21 +173,13 @@ FUNCTION_HELPERS[np.tril] = invariant_m_helper
 FUNCTION_HELPERS[np.triu] = invariant_m_helper
 
 
-@function_helper
-def empty_like(prototype, *args, **kwargs):
-    subok = args[2] if len(args) > 2 else kwargs.pop('subok', True)
-    unit = prototype.unit if subok else None
-    return (prototype.view(np.ndarray),) + args, kwargs, unit, None
-
-
-@function_helper
-def zeros_like(a, *args, **kwargs):
-    return empty_like(a, *args, **kwargs)
-
-
+# Not really logical to allow ones_like (what is the point of it?),
+# but keeping it since it used to work without __array_function__.
 @function_helper
 def ones_like(a, *args, **kwargs):
-    return empty_like(a, *args, **kwargs)
+    subok = args[2] if len(args) > 2 else kwargs.pop('subok', True)
+    unit = a.unit if subok else None
+    return (a.view(np.ndarray),) + args, kwargs, unit, None
 
 
 @function_helper
