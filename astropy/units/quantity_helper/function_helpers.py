@@ -8,9 +8,21 @@ import operator
 import numpy as np
 
 from astropy.units.core import (
-    UnitsError, UnitConversionError, UnitTypeError,
-    dimensionless_unscaled, get_current_unit_registry)
-from .helpers import _d, get_converter
+    UnitsError, UnitTypeError, dimensionless_unscaled)
+from astropy.utils.compat import NUMPY_LT_1_17
+
+
+if NUMPY_LT_1_17:
+    # pre 1.16, overrides.py did not exist; in 1.16, it existed, but
+    # __array_function__ overrides were turned off by default.
+    ARRAY_FUNCTION_ENABLED = (hasattr(np.core, 'overrides') and
+                              np.core.overrides.ENABLE_ARRAY_FUNCTION)
+else:
+    # in 1.17, overrides are enabled by default, but it is still possible to
+    # turn them off using an environment variable.  We use getattr since it
+    # is planned to remove that possibility in later later versions.
+    ARRAY_FUNCTION_ENABLED = getattr(np.core.overrides,
+                                     'ENABLE_ARRAY_FUNCTION', True)
 
 
 UNSUPPORTED_FUNCTIONS = {np.packbits, np.unpackbits, np.unravel_index,
@@ -276,7 +288,6 @@ def where(condition, *args):
         return (condition, one, two.to_value(unit)), {}, unit, None
 
 
-@function_helper
 def quantile(a, q, *args, q_unit=dimensionless_unscaled, **kwargs):
     if len(args) > 2:
         out = args[1]
@@ -305,13 +316,18 @@ def quantile(a, q, *args, q_unit=dimensionless_unscaled, **kwargs):
     return (a, q) + args, kwargs, unit, out
 
 
+if hasattr(np, 'quantile'):
+    # Quantile was only introduced in numpy 1.15.
+    FUNCTION_HELPERS[np.quantile] = quantile
+    FUNCTION_HELPERS[np.nanquantile] = quantile
+
+
 @function_helper
 def percentile(a, q, *args, **kwargs):
     from astropy.units import percent
     return quantile(a, q, *args, q_unit=percent, **kwargs)
 
 
-FUNCTION_HELPERS[np.nanquantile] = quantile
 FUNCTION_HELPERS[np.nanpercentile] = percentile
 
 
