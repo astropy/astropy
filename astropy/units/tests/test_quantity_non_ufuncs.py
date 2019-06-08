@@ -6,7 +6,11 @@ from numpy.testing import assert_array_equal
 import pytest
 
 from astropy import units as u
-from astropy.utils.compat import NUMPY_LT_1_17 as NO_ARRAY_FUNCTION
+from astropy.units.quantity_helper.function_helpers import (
+    ARRAY_FUNCTION_ENABLED)
+
+
+NO_ARRAY_FUNCTION = not ARRAY_FUNCTION_ENABLED
 
 
 # To get the functions that could be covered, we look for those that
