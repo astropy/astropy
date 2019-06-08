@@ -1012,11 +1012,22 @@ class TestIntDiffFunctions(metaclass=CoverageMeta):
         x = np.arange(10.) * u.m
         out = np.diff(x, prepend=-12.5*u.cm, append=1*u.km)
         expected = np.diff(x.value, prepend=-0.125, append=1000.) * x.unit
+        assert np.all(out == expected)
         x = np.arange(10.) * u.m
         out = np.diff(x, prepend=-12.5*u.cm, append=1*u.km, n=2)
         expected = np.diff(x.value, prepend=-0.125, append=1000.,
                            n=2) * x.unit
         assert np.all(out == expected)
+
+    def test_ediff1d(self):
+        # ediff1d works always as it calls the Quantity method.
+        x = np.arange(10.) * u.m
+        out = np.ediff1d(x)
+        expected = np.ediff1d(x.value) * u.m
+        assert np.all(out == expected)
+        out2 = np.ediff1d(x, to_begin=-12.5*u.cm, to_end=1*u.km)
+        expected2 = np.ediff1d(x.value, to_begin=-0.125, to_end=1000.) * x.unit
+        assert np.all(out2 == expected2)
 
     def test_gradient(self):
         # Simple gradient works out of the box.
@@ -1455,7 +1466,8 @@ poly_functions = {
 untested_functions |= poly_functions
 
 setops_functions = {f for f in all_wrapped_functions.values()
-                    if f in np.lib.arraysetops.__dict__.values()}
+                    if (f in np.lib.arraysetops.__dict__.values() and
+                        f is not np.ediff1d)}
 untested_functions |= setops_functions
 
 
