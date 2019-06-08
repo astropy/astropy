@@ -90,9 +90,12 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.iscomplexobj, np.isrealobj,
     np.shares_memory, np.may_share_memory}
 
-# Implemented as methods that currently return NotImplementedError.
-# TODO: move to UNSUPPORTED? Would raise TypeError instead.
+# Implemented as methods on Quantity:
+# np.ediff1d is from setops, but we support it anyway; the others
+# currently return NotImplementedError.
+# TODO: move latter to UNSUPPORTED? Would raise TypeError instead.
 SUBCLASS_SAFE_FUNCTIONS |= {
+    np.ediff1d,
     np.all, np.any, np.sometrue, np.alltrue}
 
 # Subclass safe, but possibly better if overridden (e.g., with different
@@ -127,7 +130,7 @@ IGNORED_FUNCTIONS = {
     np.poly, np.polyadd, np.polyder, np.polydiv, np.polyfit, np.polyint,
     np.polymul, np.polysub, np.polyval, np.roots, np.vander,
     # setops
-    np.ediff1d, np.in1d, np.intersect1d, np.isin, np.setdiff1d,
+    np.in1d, np.intersect1d, np.isin, np.setdiff1d,
     np.setxor1d, np.union1d, np.unique,
     # financial
     np.fv, np.ipmt, np.irr, np.mirr, np.nper, np.npv, np.pmt, np.ppmt,
