@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+import itertools
 import inspect
 
 import numpy as np
@@ -8,7 +10,7 @@ import pytest
 from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
     ARRAY_FUNCTION_ENABLED, SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS,
-    FUNCTION_HELPERS, DISPATCHED_FUNCTIONS)
+    FUNCTION_HELPERS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS)
 
 
 NO_ARRAY_FUNCTION = not ARRAY_FUNCTION_ENABLED
@@ -1429,12 +1431,11 @@ class TestDatetimeFunctions(BasicTestSetup):
             np.is_busday(self.q)
 
 
-untested_functions = set()
-function_functions = {
+should_be_tested_functions = {
     np.apply_along_axis, np.apply_over_axes,
     }
-untested_functions |= function_functions
 
+untested_functions = set()
 financial_functions = {f for f in all_wrapped_functions.values()
                        if f in np.lib.financial.__dict__.values()}
 untested_functions |= financial_functions
@@ -1461,12 +1462,27 @@ untested_functions |= setops_functions
 @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                    reason="no __array_function__ wrapping in numpy<1.17")
 def test_testing_completeness():
-    assert all_wrapped - untested_functions == CoverageMeta.covered
+    assert not CoverageMeta.covered.intersection(untested_functions)
+    assert all_wrapped == (CoverageMeta.covered |
+                           should_be_tested_functions |
+                           untested_functions)
 
 
-def test_function_helpers_completeness():
-    included_in_helpers = (SUBCLASS_SAFE_FUNCTIONS |
-                           UNSUPPORTED_FUNCTIONS |
-                           set(FUNCTION_HELPERS.keys()) |
-                           set(DISPATCHED_FUNCTIONS.keys()))
-    assert all_wrapped - untested_functions == included_in_helpers
+class TestFunctionHelpersCompleteness:
+    @pytest.mark.parametrize('one, two', itertools.combinations(
+        (SUBCLASS_SAFE_FUNCTIONS,
+         UNSUPPORTED_FUNCTIONS,
+         set(FUNCTION_HELPERS.keys()),
+         set(DISPATCHED_FUNCTIONS.keys())), 2))
+    def test_no_duplicates(self, one, two):
+        assert not one.intersection(two)
+
+    def test_all_included(self):
+        included_in_helpers = (SUBCLASS_SAFE_FUNCTIONS |
+                               UNSUPPORTED_FUNCTIONS |
+                               set(FUNCTION_HELPERS.keys()) |
+                               set(DISPATCHED_FUNCTIONS.keys()))
+        assert all_wrapped == included_in_helpers
+
+    def test_ignored_are_untested(self):
+        assert IGNORED_FUNCTIONS == untested_functions
