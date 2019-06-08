@@ -7,7 +7,8 @@ import pytest
 
 from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
-    ARRAY_FUNCTION_ENABLED)
+    ARRAY_FUNCTION_ENABLED, SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS,
+    FUNCTION_HELPERS, DISPATCHED_FUNCTIONS)
 
 
 NO_ARRAY_FUNCTION = not ARRAY_FUNCTION_ENABLED
@@ -18,6 +19,7 @@ NO_ARRAY_FUNCTION = not ARRAY_FUNCTION_ENABLED
 all_wrapped_functions = {name: f for name, f in np.__dict__.items()
                          if callable(f) and hasattr(f, '__wrapped__') and
                          f is not np.printoptions}
+all_wrapped = set(all_wrapped_functions.values())
 
 
 class CoverageMeta(type):
@@ -1427,35 +1429,44 @@ class TestDatetimeFunctions(BasicTestSetup):
             np.is_busday(self.q)
 
 
+untested_functions = set()
 function_functions = {
     np.apply_along_axis, np.apply_over_axes,
     }
-CoverageMeta.covered |= function_functions
+untested_functions |= function_functions
 
 financial_functions = {f for f in all_wrapped_functions.values()
                        if f in np.lib.financial.__dict__.values()}
-CoverageMeta.covered |= financial_functions
+untested_functions |= financial_functions
 
 deprecated_functions = {
     np.asscalar, np.rank
     }
-CoverageMeta.covered |= deprecated_functions
+untested_functions |= deprecated_functions
 
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
-CoverageMeta.covered |= io_functions
+untested_functions |= io_functions
 
 poly_functions = {
     np.poly, np.polyadd, np.polyder, np.polydiv, np.polyfit, np.polyint,
     np.polymul, np.polysub, np.polyval, np.roots, np.vander
     }
-CoverageMeta.covered |= poly_functions
+untested_functions |= poly_functions
 
 setops_functions = {f for f in all_wrapped_functions.values()
                     if f in np.lib.arraysetops.__dict__.values()}
-CoverageMeta.covered |= setops_functions
+untested_functions |= setops_functions
 
 
 @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                    reason="no __array_function__ wrapping in numpy<1.17")
-def test_completeness():
-    assert set(all_wrapped_functions.values()) == CoverageMeta.covered
+def test_testing_completeness():
+    assert all_wrapped - untested_functions == CoverageMeta.covered
+
+
+def test_function_helpers_completeness():
+    included_in_helpers = (SUBCLASS_SAFE_FUNCTIONS |
+                           UNSUPPORTED_FUNCTIONS |
+                           set(FUNCTION_HELPERS.keys()) |
+                           set(DISPATCHED_FUNCTIONS.keys()))
+    assert all_wrapped - untested_functions == included_in_helpers
