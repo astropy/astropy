@@ -24,10 +24,57 @@ else:
     ARRAY_FUNCTION_ENABLED = getattr(np.core.overrides,
                                      'ENABLE_ARRAY_FUNCTION', True)
 
+SUBCLASS_SAFE_FUNCTIONS = {
+    np.alen, np.shape, np.size, np.ndim,
+    np.reshape, np.ravel, np.moveaxis, np.rollaxis, np.swapaxes,
+    np.transpose, np.atleast_1d, np.atleast_2d, np.atleast_3d,
+    np.expand_dims, np.squeeze, np.broadcast_to, np.broadcast_arrays,
+    np.flip, np.fliplr, np.flipud, np.rot90,
+    np.argmin, np.argmax, np.argsort, np.lexsort, np.searchsorted,
+    np.nonzero, np.argwhere, np.flatnonzero,
+    np.take_along_axis, np.put_along_axis,
+    np.diag_indices_from, np.triu_indices_from, np.tril_indices_from,
+    np.real, np.imag, np.diag, np.diagonal, np.diagflat,
+    np.empty_like, np.zeros_like,
+    np.compress, np.extract, np.delete, np.trim_zeros, np.roll, np.take,
+    np.put, np.fill_diagonal, np.tile, np.repeat,
+    np.split, np.array_split, np.hsplit, np.vsplit, np.dsplit,
+    np.stack, np.column_stack, np.hstack, np.vstack, np.dstack, np.block,
+    np.amax, np.amin, np.ptp, np.sum, np.cumsum,
+    np.prod, np.product, np.cumprod, np.cumproduct,
+    np.round, np.around,
+    np.fix, np.angle, np.i0, np.clip,
+    np.isposinf, np.isneginf, np.isreal, np.iscomplex,
+    np.average, np.mean, np.std, np.var, np.median, np.trace,
+    np.nanmax, np.nanmin, np.nanargmin, np.nanargmax, np.nanmean,
+    np.nanmedian, np.nansum, np.nancumsum, np.nanstd, np.nanvar,
+    np.nanprod, np.nancumprod,
+    np.einsum_path, np.trapz, np.linspace,
+    np.sort, np.msort, np.partition, np.meshgrid,
+    np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
+    np.iscomplexobj, np.isrealobj,
+    np.shares_memory, np.may_share_memory,
+}
+# Implemented as methods that return NotImplementedError
+# TODO: move to UNSUPPORTED? Would raise TypeError instead.
+SUBCLASS_SAFE_FUNCTIONS |= {
+    np.all, np.any, np.sometrue, np.alltrue}
 
-UNSUPPORTED_FUNCTIONS = {np.packbits, np.unpackbits, np.unravel_index,
-                         np.ravel_multi_index, np.ix_, np.cov,
-                         np.corrcoef}
+# Subclass safe, but possibly better if overridden or with different
+# default arguments.
+# TODO: decide on desired behaviour.
+SUBCLASS_SAFE_FUNCTIONS |= {
+    np.isclose, np.allclose,
+    np.array2string, np.array_repr, np.array_str}
+
+UNSUPPORTED_FUNCTIONS = {
+    np.packbits, np.unpackbits, np.unravel_index,
+    np.ravel_multi_index, np.ix_, np.cov, np.corrcoef,
+    np.busday_count, np.busday_offset, np.datetime_as_string,
+    np.is_busday}
+# TODO: the following can be supported but need work & thought.
+UNSUPPORTED_FUNCTIONS |= {
+    np.histogramdd, np.piecewise}
 FUNCTION_HELPERS = {}
 DISPATCHED_FUNCTIONS = {}
 

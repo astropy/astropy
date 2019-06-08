@@ -29,7 +29,8 @@ from astropy import config as _config
 from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
                               check_output)
 from .quantity_helper.function_helpers import (
-    FUNCTION_HELPERS, DISPATCHED_FUNCTIONS, UNSUPPORTED_FUNCTIONS)
+    SUBCLASS_SAFE_FUNCTIONS, FUNCTION_HELPERS, DISPATCHED_FUNCTIONS,
+    UNSUPPORTED_FUNCTIONS)
 
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
@@ -1458,6 +1459,48 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         return self.view(np.ndarray).argmin(axis, out=out)
 
     def __array_function__(self, function, types, args, kwargs):
+        """Wrap numpy functions, taking care of units.
+
+        Parameters
+        ----------
+        function : callable
+            Numpy function to wrap
+        types : iterable of classes
+            Classes that provide an ``__array_function__`` override. Can
+            in principle be used to interact with other classes. Below,
+            mostly passed on to `~numpy.ndarray`, which can only interact
+            with subclasses.
+        args : tuple
+            Positional arguments provided in the function call.
+        kwargs : dict
+            Keyword arguments provided in the function call.
+
+        Returns
+        -------
+        result: `~astropy.units.Quantity`, `~numpy.ndarray`
+            As appropriate for the function.  If the function is not
+            supported, `NotImplemented` is returned, which will lead to
+            a `TypeError` unless another argument overrode the function.
+
+        Raises
+        ------
+        ~astropy.units.UnitsError
+            If operands have incompatible units.
+        """
+        # A function should be in one of the following sets of dicts:
+        # 1. SUBCLASS_SAFE_FUNCTIONS (set), if the numpy implementation
+        #    supports Quantity; we pass on to ndarray.__array_function__.
+        # 2. FUNCTION_HELPERS (dict), if the numpy implementation is usable
+        #    after converting quantities to arrays with suitable units,
+        #    and possibly setting units on the result.
+        # 3. DISPATCHED_FUNCTIONS (dict), if the function makes sense but
+        #    requires a Quantity-specific implementation
+        # 4. UNSUPPORTED_FUNCTIONS (set), if the function does not make sense.
+        # For now, since we may not yet have complete coverage, if a
+        # function is in none of the above, we simply call the numpy
+        # implementation.
+        if function in SUBCLASS_SAFE_FUNCTIONS:
+            return super().__array_function__(function, types, args, kwargs)
         if function in FUNCTION_HELPERS:
             try:
                 helper_info = FUNCTION_HELPERS[function](*args, **kwargs)
