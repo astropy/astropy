@@ -48,8 +48,6 @@ def invariant_a_helper(a, *args, **kwargs):
 
 FUNCTION_HELPERS[np.copy] = invariant_a_helper
 FUNCTION_HELPERS[np.asfarray] = invariant_a_helper
-FUNCTION_HELPERS[np.zeros_like] = invariant_a_helper
-FUNCTION_HELPERS[np.ones_like] = invariant_a_helper
 FUNCTION_HELPERS[np.real_if_close] = invariant_a_helper
 FUNCTION_HELPERS[np.sort_complex] = invariant_a_helper
 FUNCTION_HELPERS[np.resize] = invariant_a_helper
@@ -65,7 +63,19 @@ FUNCTION_HELPERS[np.triu] = invariant_m_helper
 
 @function_helper
 def empty_like(prototype, *args, **kwargs):
-    return (prototype.view(np.ndarray),) + args, kwargs, prototype.unit, None
+    subok = args[2] if len(args) > 2 else kwargs.pop('subok', True)
+    unit = prototype.unit if subok else None
+    return (prototype.view(np.ndarray),) + args, kwargs, unit, None
+
+
+@function_helper
+def zeros_like(a, *args, **kwargs):
+    return empty_like(a, *args, **kwargs)
+
+
+@function_helper
+def ones_like(a, *args, **kwargs):
+    return empty_like(a, *args, **kwargs)
 
 
 @function_helper

@@ -259,6 +259,8 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         assert o2.shape == (3, 3)
         assert isinstance(o2, u.Quantity)
         assert o2.unit == self.q.unit
+        o3 = np.empty_like(self.q, subok=False)
+        assert type(o3) is np.ndarray
 
     def test_zeros_like(self):
         self.check(np.zeros_like)
