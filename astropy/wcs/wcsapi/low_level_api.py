@@ -324,7 +324,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
                 s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) + '  ' +
                       ('{0:' + str(world_typ_width) + 's}').format(self.world_axis_physical_types[iwrl]) + '  ' +
                       '{0:s}'.format(self.world_axis_units[iwrl] + '\n'))
-
+            else:
+                s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) + '  ' +
+                      ('{0:' + str(world_typ_width) + 's}').format('None') + '  ' +
+                      '{0:s}'.format('unknown' + '\n'))
         s += '\n'
 
         # Axis correlation matrix
