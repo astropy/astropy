@@ -6,7 +6,8 @@ Masking and missing values
 **************************
 
 The `astropy.table` package provides support for masking and missing
-values in a table by wrapping the ``numpy.ma`` masked array package.
+values in a table by using the ``numpy.ma`` masked array package to
+define masked columns and by supporting :ref:`mixin_columns` that provide masking.
 This allows handling tables with missing or invalid entries in much
 the same manner as for standard (unmasked) tables.  It
 is useful to be familiar with the `masked array
@@ -14,13 +15,18 @@ is useful to be familiar with the `masked array
 documentation when using masked tables within `astropy.table`.
 
 In a nutshell, the concept is to define a boolean mask that mirrors
-the structure of the table data array.  Wherever a mask value is
+the structure of a column data array.  Wherever a mask value is
 `True`, the corresponding entry is considered to be missing or invalid.
 Operations involving column or row access and slicing are unchanged.
 The key difference is that arithmetic or reduction operations involving
 columns or column slices follow the rules for `operations
 on masked arrays
 <https://docs.scipy.org/doc/numpy/reference/maskedarray.generic.html#operations-on-masked-arrays>`_.
+
+.. Important:: Changes in astropy 4.0
+
+   In astropy 4.0 the behavior of masked tables was changed in a way that
+   could impact program functionality.  See :ref:`table-masked-4.0` for details.
 
 .. Note::
 
@@ -56,7 +62,7 @@ available for a masked table.
   >>> a = MaskedColumn([1, 2], name='a', mask=[False, True], dtype='i4')
   >>> b = Column([3, 4], name='b', dtype='i8')
   >>> Table([a, b])
-  <Table masked=True length=2>
+  <Table length=2>
     a     b
   int32 int64
   ----- -----
@@ -84,9 +90,15 @@ Notice that masked entries in the table output are shown as ``--``.
   >>> t = Table([[1, 2]], names=['a'])
   >>> b = MaskedColumn([3, 4], mask=[True, False])
   >>> t['b'] = b
+
+Prior to astropy 4.0, adding the first |MaskedColumn| resulted in
+converting the entire table to be masked, which meant converting every existing
+|Column| to |MaskedColumn|.  An informational warning
+was issued::
+
   INFO: Upgrading Table to masked Table. Use Table.filled() to convert to unmasked table. [astropy.table.table]
 
-Note the INFO message because the underlying type of the table is modified in this operation.
+In astropy 4.0 and later, existing columns are not changed.
 
 **Add a new row to an existing table and specify a mask argument**
 
@@ -94,12 +106,14 @@ Note the INFO message because the underlying type of the table is modified in th
   >>> b = Column([3, 4], name='b')
   >>> t = Table([a, b])
   >>> t.add_row([3, 6], mask=[True, False])
-  INFO: Upgrading Table to masked Table. Use Table.filled() to convert to unmasked table. [astropy.table.table]
 
 **Convert an existing table to a masked table**
 
   >>> t = Table([[1, 2], ['x', 'y']])  # standard (unmasked) table
-  >>> t = Table(t, masked=True)  # convert to masked table
+  >>> t = Table(t, masked=True, copy=False)  # convert to masked table
+
+This operation will convert every |Column| to |MaskedColumn| and ensure that any
+subsequently added columns are masked.
 
 Table access
 ============
@@ -126,8 +140,7 @@ invalid data.
 Mask
 ----
 
-The actual mask for the table as a whole or a single column can be
-viewed and modified via the ``mask`` attribute::
+The mask for a column can be viewed and modified via the ``mask`` attribute::
 
   >>> t = Table([(1, 2), (3, 4)], names=('a', 'b'), masked=True)
   >>> t['a'].mask = [False, True]  # Modify column mask (boolean array)
@@ -197,3 +210,94 @@ attribute.
   ---- ----
      1 1000
   1000    4
+
+.. _table-masked-4.0:
+
+Masking change in astropy 4.0
+=============================
+
+In astropy 4.0 a change was introduced in the behavior of |Table| that impacts the
+handling of masked columns.
+
+Prior to 4.0, in order to include one or more |MaskedColumn| columns in a table, it was
+required that *every* column be masked, even those with no missing or masked data.  This
+was holdover from the original implementation of |Table| that used a numpy structured
+array as the underlying container for the column data.  Since astropy 1.0 the |Table|
+object is simply an ordered dictionary of columns (:ref:`table_implementation_details`)
+and there is no requirement that column types be homogenous.
+
+Staring with 4.0, a |Table| can contain both |Column| and |MaskedColumn| columns, and
+by default the column type is determined solely by the data for each column.
+
+The details of this change are discussed in the sections below.
+
+.. Note::
+
+   For most applications we now recommend using the default |Table| behavior with
+   ``masked=False`` to allow heterogenous column types.
+
+Meaning of the ``masked`` table attribute
+-----------------------------------------
+
+The |Table| object has a ``masked`` attribute which determines the table behavior when
+adding a new column.  If ``masked=True`` then non-mixin columns or data are always
+converted to |MaskedColumn|, and mixin columns have a ``mask`` attribute added if
+necessary.  With ``masked=False`` then each column is added based on the type or contents
+of the data.  The name ``masked`` for the table-level attribute is largely a legacy of
+the original (pre-1.0) implementation using numpy structured arrays where the entire table
+was required to be either masked or not masked.
+
+The behavior associated with the ``masked`` attribute has *not changed* in version 4.0.
+What *has* changed is that from 4.0 onward a table with ``masked=False`` might contain
+|MaskedColumn| columns.
+
+It is important to recognize that the ``masked`` attribute for a table does not imply
+whether any of the column data are actually masked.  One can have ``dat.masked == True``
+but not have any masked elements in any table colum.  The only guarantee in that case is
+that every column has a `mask` attribute.
+
+A final implication is that the term "masked table" should be reserved for the narrow and
+less-common case of a table created with ``masked=True``.  In most cases one does not need
+to think about "masked" or "unmasked" at the table level, but instead focus on the
+individual columns.
+
+Auto-upgrade to masked
+----------------------
+
+Prior to version 4.0, adding a |MaskedColumn| or a new row with masked elements to an
+unmasked table (with ``masked=False``) would convert the table to masked, which means
+setting ``masked=True`` and automatically "upgrading" other columns to be masked.  In many
+cases this upgrade of the other columns was unnecessary and an annoyance.
+
+Starting with 4.0, new columns are added using the column type which is appropriate for
+the data.  For instance, if a numpy masked array is added, then that will turn into a
+|MaskedColumn|, but no other columns will be affected and the ``masked`` attribute will
+remain as ``False``.
+
+A common implication of this change is that tables with masked data that are read with
+`~astropy.table.Table.read` will always have ``masked=False``, and some of the columns may
+be |Column| objects.  Prior to 4.0 this case would have returned a table with
+``masked=True`` and all |MaskedColumn| columns.  An example is in the next section.
+
+Recovering the pre-4.0 behavior
+-------------------------------
+
+For code that requires every existing or newly-added column to be masked, it is now
+required to explicitly specify `masked=True` when creating the table.  Previously the
+table would be auto-upgraded to use |MaskedColumn| for all columns as soon as the first
+masked column was added.  If the table already exists (e.g. after using
+`~astropy.table.Table.read` to read a data file), then one needs to make a new table:
+
+.. doctest-skip::
+
+  >> dat = Table.read('data.fits')
+  >> dat = Table(dat, masked=True, copy=False)  # Convert to masked table
+  >> dat['new_column'] = [1, 2, 3, 4, 5]  # Will be added as a MaskedColumn
+
+For most applications this should not be necessary, and the preferred idiom is the more
+explicit version below:
+
+.. doctest-skip::
+
+  >> dat = Table.read('data.fits')
+  >> dat['new_column'] = MaskedColumn([1, 2, 3, 4, 5])
