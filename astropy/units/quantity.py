@@ -1501,7 +1501,8 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         # implementation.
         if function in SUBCLASS_SAFE_FUNCTIONS:
             return super().__array_function__(function, types, args, kwargs)
-        if function in FUNCTION_HELPERS:
+
+        elif function in FUNCTION_HELPERS:
             try:
                 helper_info = FUNCTION_HELPERS[function](*args, **kwargs)
             except NotImplementedError:
@@ -1514,12 +1515,20 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                 return result
 
             return self._result_as_quantity(result, unit, out=out)
+
         elif function in DISPATCHED_FUNCTIONS:
             return DISPATCHED_FUNCTIONS[function](*args, **kwargs)
+
         elif function in UNSUPPORTED_FUNCTIONS:
             return NotImplemented
 
-        return function.__wrapped__(*args, **kwargs)
+        else:
+            warnings.warn("function '{}' is not known to Quantity. Will "
+                          "run it anyway, but please raise an issue at "
+                          "https://github.com/astropy/astropy/issues."
+                          .format(function.__name__))
+
+            return super().__array_function__(function, types, args, kwargs)
 
     # Calculation -- override ndarray methods to take into account units.
     # We use the corresponding numpy functions to evaluate the results, since
