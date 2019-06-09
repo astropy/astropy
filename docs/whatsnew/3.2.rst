@@ -9,7 +9,8 @@ What's New in Astropy 3.2?
 Overview
 ========
 
-Astropy 3.2 is a major release that adds significant new functionality since the 3.1.x series of releases.
+Astropy 3.2 is a major release that adds significant new functionality
+since the 3.1.x series of releases.
 
 In particular, this release includes:
 
@@ -24,9 +25,11 @@ In addition to these major changes, Astropy v3.2 includes a large number of
 smaller improvements and bug fixes, which are described in the
 :ref:`changelog`. By the numbers:
 
-* xxx issues have been closed since v3.1
-* xxx pull requests have been merged since v3.1
-* xxx distinct people have contributed code
+* 551 issues have been closed since v3.1
+* 256 pull requests have been merged since v3.1
+* 67 distinct people have contributed to this release, 24 of which are first
+  time contributors to Astropy
+
 
 .. _whatsnew-3.2-timeseries:
 
@@ -279,3 +282,80 @@ Full change log
 
 To see a detailed list of all changes in version v3.2, including changes in
 API, please see the :ref:`changelog`.
+
+Contributors to the v3.2 release
+================================
+
+.. hlist::
+  :columns: 4
+
+  *    Adam Ginsburg
+  *    Adrian Price-Whelan
+  *    Alex Conley
+  *    Alex Drlica-Wagner  *
+  *    Antony Lee
+  *    Benjamin Alan Weaver
+  *    Benjamin Roulston  *
+  *    Benjamin Winkel  *
+  *    Brigitta Sipocz
+  *    Bruno Oliveira
+  *    Christoph Deil
+  *    Clément Robert  *
+  *    Dan Foreman-Mackey
+  *    Dan Taranu  *
+  *    Daniel D'Avella
+  *    David Shupe
+  *    David Stansby
+  *    Devin Crichton
+  *    Erik M. Bray
+  *    Erik Tollerud
+  *    Francesco Montanari  *
+  *    Frédéric Chapoton  *
+  *    Hans Moritz Günther
+  *    Himanshu Pathak  *
+  *    Jake VanderPlas
+  *    James Davies
+  *    James Noss
+  *    Jane Rigby  *
+  *    Jani Šumak
+  *    Javier Pascual Granado  *
+  *    John Parejko
+  *    Johnny Greco
+  *    Joseph Schlitz
+  *    Juan Luis Cano Rodríguez
+  *    Kris Stern  *
+  *    Larry Bradley
+  *    Lauren Glattly  *
+  *    Leo Singer
+  *    Lisa Martin  *
+  *    Marten van Kerkwijk
+  *    Matteo Bachetti
+  *    Matthew Craig
+  *    Michael Seifert
+  *    Nabil Freij  *
+  *    Nadia Dencheva
+  *    Nicholas Saunders  *
+  *    Noah Zuckman  *
+  *    Ole Streicher
+  *    Perry Greenfield
+  *    Pey Lian Lim
+  *    Rohit Kapoor  *
+  *    Samuel Brice  *
+  *    Simon Conseil
+  *    Steve Crawford
+  *    Stuart Mumford
+  *    Sudheesh Singanamalla
+  *    T. Carl Beery  *
+  *    Thomas Robitaille
+  *    Tim Jenness
+  *    Tim Plummer  *
+  *    Tito Dal Canton  *
+  *    Tom Aldcroft
+  *    Vishnunarayan K I
+  *    Yannick Copin
+  *    Yash Kumar  *
+  *    disha  *
+  *    shilpi_jc  *
+
+
+Where a * indicates their first contribution to Astropy.
