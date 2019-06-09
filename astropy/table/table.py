@@ -355,7 +355,7 @@ class Table:
         table_array : np.ndarray (unmasked) or np.ma.MaskedArray (masked)
             Copy of table as a numpy structured array
         """
-        masked = self.masked or any(isinstance(col, MaskedColumn) for col in self.itercols())
+        masked = self.masked or self.has_masked_columns or self.has_masked_values
         empty_init = ma.empty if masked else np.empty
         if len(self.columns) == 0:
             return empty_init(0, dtype=None)
@@ -367,7 +367,7 @@ class Table:
 
         cols = self.columns.values()
 
-        if names != None:
+        if names is not None:
             cols = [col for col in cols if col.info.name in names]
 
         for col in cols:
@@ -556,8 +556,7 @@ class Table:
     @property
     def mask(self):
         # Dynamic view of available masks
-        if (self.masked or
-                any(hasattr(col, 'mask') for col in self.itercols())):
+        if self.masked or self.has_masked_columns or self.has_masked_values:
             mask_table = Table([getattr(col, 'mask', FalseArray(col.shape))
                                 for col in self.itercols()],
                                names=self.colnames, copy=False)
@@ -600,10 +599,11 @@ class Table:
         filled_table : Table
             New table with masked values filled
         """
-        if self.masked:
+        if self.masked or self.has_masked_columns or self.has_masked_values:
             # Get new columns with masked values filled, then create Table with those
             # new cols (copy=False) but deepcopy the meta.
-            data = [col.filled(fill_value) for col in self.columns.values()]
+            data = [col.filled(fill_value) if hasattr(col, 'filled') else col
+                    for col in self.itercols()]
             return self.__class__(data, meta=deepcopy(self.meta), copy=False)
         else:
             # Return copy of the original object.
@@ -740,9 +740,8 @@ class Table:
         # array([(0, 0), (0, 0)],
         #       dtype=[('a', '<i8'), ('b', '<i8')])
 
-        masked = any(isinstance(col, MaskedColumn) for col in self.itercols())
-
-        return self.as_array().data if masked else self.as_array()
+        out = self.as_array()
+        return out.data if isinstance(out, np.ma.MaskedArray) else out
 
     def _check_names_dtype(self, names, dtype, n_cols):
         """Make sure that names and dtype are both iterable and have
@@ -1042,6 +1041,29 @@ class Table:
         subclasses).
         """
         return any(has_info_class(col, MixinInfo) for col in self.columns.values())
+
+    @property
+    def has_masked_columns(self):
+        """True if table has any ``MaskedColumn`` columns.
+
+        This does not check for mixin columns that may have masked values, use the
+        ``has_masked_values`` property in that case.
+
+        """
+        return any(isinstance(col, MaskedColumn) for col in self.itercols())
+
+    @property
+    def has_masked_values(self):
+        """True if column in the table has values which are masked.
+
+        This may be relatively slow for large tables as it requires checking the mask
+        values of each column.
+        """
+        for col in self.itercols():
+            if hasattr(col, 'mask') and np.any(col.mask):
+                return True
+        else:
+            return False
 
     def _add_as_mixin_column(self, col):
         """
