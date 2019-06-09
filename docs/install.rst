@@ -362,7 +362,8 @@ Building documentation
 Building the documentation requires the Astropy source code and some additional
 packages:
 
-    - `Sphinx <http://sphinx.pocoo.org>`_ (and its dependencies) 1.0 or later
+    - `Sphinx <http://sphinx.pocoo.org>`_ (and its dependencies) 1.0 or
+      later but earlier than 2.1.
 
     - `Graphviz <http://www.graphviz.org>`_
 
