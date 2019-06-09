@@ -515,3 +515,90 @@ def test_no_array_shape():
     assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 29))
 
     assert str(wcs) == repr(wcs) == EXPECTED_NO_SHAPE_REPR.strip()
+
+
+# Testing the WCS object having some physical types as None/Unknown
+HEADER_SPECTRAL_CUBE_NONE_TYPES = {
+        'CTYPE1': 'GLAT-CAR',
+        'CUNIT1': 'deg',
+        'CDELT1': -0.1,
+        'CRPIX1': 30,
+        'CRVAL1': 10,
+        'NAXIS1': 10,
+        'CTYPE2': '',
+        'CUNIT2': 'Hz',
+        'CDELT2':  0.5,
+        'CRPIX2': 40,
+        'CRVAL2': 20,
+        'NAXIS2': 20,
+        'CTYPE3': 'GLON-CAR',
+        'CUNIT3': 'deg',
+        'CDELT3':  0.1,
+        'CRPIX3': 45,
+        'CRVAL3': 25,
+        'NAXIS3': 30
+}
+
+WCS_SPECTRAL_CUBE_NONE_TYPES = WCS(header=HEADER_SPECTRAL_CUBE_NONE_TYPES)
+WCS_SPECTRAL_CUBE_NONE_TYPES.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
+
+
+EXPECTED_ELLIPSIS_REPR_NONE_TYPES = """
+SlicedLowLevelWCS Transformation
+
+This transformation has 3 pixel and 3 world dimensions
+
+Array shape (Numpy order): (30, 20, 10)
+
+Pixel Dim  Data size  Bounds
+        0         10  (-1, 11)
+        1         20  (-2, 18)
+        2         30  (5, 15)
+
+World Dim  Physical Type     Units
+        0  pos.galactic.lat  deg
+        1  None              unknown
+        2  pos.galactic.lon  deg
+
+Correlation between pixel and world axes:
+
+             Pixel Dim
+World Dim    0    1    2
+        0  yes   no  yes
+        1   no  yes   no
+        2  yes   no  yes
+"""
+
+
+def test_ellipsis_none_types():
+
+    wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE_NONE_TYPES, Ellipsis)
+
+    assert wcs.pixel_n_dim == 3
+    assert wcs.world_n_dim == 3
+    assert wcs.array_shape == (30, 20, 10)
+    assert wcs.pixel_shape == (10, 20, 30)
+    assert wcs.world_axis_physical_types == ['pos.galactic.lat', None, 'pos.galactic.lon']
+    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
+
+    assert_equal(wcs.axis_correlation_matrix, [[True, False, True],
+                                               [False, True, False], [True, False, True]])
+
+    assert wcs.world_axis_object_components == [('celestial', 1, 'spherical.lat.degree'),
+                                                  ('world', 0, 'value'),
+                                                  ('celestial', 0, 'spherical.lon.degree')]
+
+    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
+    assert wcs.world_axis_object_classes['celestial'][1] == ()
+    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], Galactic)
+    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
+
+    assert_allclose(wcs.pixel_to_world_values(29, 39, 44), (10, 20, 25))
+    assert_allclose(wcs.array_index_to_world_values(44, 39, 29), (10, 20, 25))
+
+    assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (29., 39., 44.))
+    assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 29))
+
+    assert_equal(wcs.pixel_bounds, [(-1, 11), (-2, 18), (5, 15)])
+
+    assert str(wcs) == repr(wcs) == EXPECTED_ELLIPSIS_REPR_NONE_TYPES.strip()
