@@ -502,6 +502,7 @@ class IERS_A(IERS):
         # Read in as a regular Table, including possible masked columns.
         # Columns will be filled and converted to Quantity in cls.__init__.
         iers_a = Table.read(file, format='cds', readme=readme)
+        iers_a = Table(iers_a, masked=True, copy=False)
 
         # Combine the A and B data for UT1-UTC and PM columns
         table = cls._combine_a_b_columns(iers_a)
