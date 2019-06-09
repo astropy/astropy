@@ -240,50 +240,56 @@ Meaning of the ``masked`` table attribute
 -----------------------------------------
 
 The |Table| object has a ``masked`` attribute which determines the table behavior when
-adding a new column.  If ``masked=True`` then non-mixin columns or data are always
-converted to |MaskedColumn|, and mixin columns have a ``mask`` attribute added if
-necessary.  With ``masked=False`` then each column is added based on the type or contents
-of the data.  The name ``masked`` for the table-level attribute is largely a legacy of
-the original (pre-1.0) implementation using numpy structured arrays where the entire table
-was required to be either masked or not masked.
+adding a new column:
+
+- ``masked=True`` : non-mixin columns or data are always converted to |MaskedColumn|, and
+  mixin columns have a ``mask`` attribute added if necessary.
+- ``masked=False`` : each column is added based on the type or contents of the data.
 
 The behavior associated with the ``masked`` attribute has *not changed* in version 4.0.
-What *has* changed is that from 4.0 onward a table with ``masked=False`` might contain
+What has changed is that from 4.0 onward a table with ``masked=False`` might contain
 |MaskedColumn| columns.
 
 It is important to recognize that the ``masked`` attribute for a table does not imply
-whether any of the column data are actually masked.  One can have ``dat.masked == True``
-but not have any masked elements in any table colum.  The only guarantee in that case is
-that every column has a `mask` attribute.
+whether any of the column data are actually masked.  A table can have ``masked=True`` but
+not have any masked elements in any table column.  Starting with version 4.0 there are two
+table properties which give more useful information about masking:
 
-A final implication is that the term "masked table" should be reserved for the narrow and
-less-common case of a table created with ``masked=True``.  In most cases one does not need
-to think about "masked" or "unmasked" at the table level, but instead focus on the
+- ``has_masked_columns`` : table has at least one |MaskedColumn| column.  This does *not*
+  check if any data values are actually masked.
+- ``has_masked_values`` : table has one or more column data values which are masked.
+  This may be relatively slow for large tables as it requires checking the mask
+  values of each column.
+
+Starting with version 4.0 the term "masked table" should be reserved for the narrow and
+less-common case of a table created with ``masked=True``.  In most cases there should be
+no need worry about "masked" or "unmasked" at the table level, but instead focus on the
 individual columns.
 
 Auto-upgrade to masked
 ----------------------
 
-Prior to version 4.0, adding a |MaskedColumn| or a new row with masked elements to an
-unmasked table (with ``masked=False``) would convert the table to masked, which means
-setting ``masked=True`` and automatically "upgrading" other columns to be masked.  In many
-cases this upgrade of the other columns was unnecessary and an annoyance.
+Prior to version 4.0, adding a |MaskedColumn| or a new row with masked elements to a table
+with ``masked=False`` would set ``masked=True`` and automatically "upgrade" other
+columns to be masked.  In many cases this upgrade of the other columns was unnecessary and
+an annoyance.
 
 Starting with 4.0, new columns are added using the column type which is appropriate for
 the data.  For instance, if a numpy masked array is added, then that will turn into a
 |MaskedColumn|, but no other columns will be affected and the ``masked`` attribute will
 remain as ``False``.
 
-A common implication of this change is that tables with masked data that are read with
-`~astropy.table.Table.read` will always have ``masked=False``, and some of the columns may
-be |Column| objects.  Prior to 4.0 this case would have returned a table with
-``masked=True`` and all |MaskedColumn| columns.  An example is in the next section.
+A commonly-encountered implication of this change is that tables read with
+`~astropy.table.Table.read` will *always* have ``masked=False``, and only columns with
+masked values will be |MaskedColumn|.  Prior to 4.0 if the input table had any masked
+values then the returned table would have ``masked=True`` and all |MaskedColumn| columns.
+An example is in the next section.
 
 Recovering the pre-4.0 behavior
 -------------------------------
 
 For code that requires every existing or newly-added column to be masked, it is now
-required to explicitly specify `masked=True` when creating the table.  Previously the
+required to explicitly specify ``masked=True`` when creating the table.  Previously the
 table would be auto-upgraded to use |MaskedColumn| for all columns as soon as the first
 masked column was added.  If the table already exists (e.g. after using
 `~astropy.table.Table.read` to read a data file), then one needs to make a new table:
