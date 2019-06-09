@@ -11,6 +11,7 @@ from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
     ARRAY_FUNCTION_ENABLED, SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS,
     FUNCTION_HELPERS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS)
+from astropy.utils.compat import NUMPY_LT_1_15
 
 
 NO_ARRAY_FUNCTION = not ARRAY_FUNCTION_ENABLED
@@ -20,7 +21,7 @@ NO_ARRAY_FUNCTION = not ARRAY_FUNCTION_ENABLED
 # are wrapped.  Of course, this does not give a full list pre-1.17.
 all_wrapped_functions = {name: f for name, f in np.__dict__.items()
                          if callable(f) and hasattr(f, '__wrapped__') and
-                         f is not np.printoptions}
+                         (NUMPY_LT_1_15 or f is not np.printoptions)}
 all_wrapped = set(all_wrapped_functions.values())
 
 
@@ -1489,6 +1490,8 @@ class TestFunctionHelpersCompleteness:
     def test_no_duplicates(self, one, two):
         assert not one.intersection(two)
 
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="no __array_function__ wrapping in numpy<1.17")
     def test_all_included(self):
         included_in_helpers = (SUBCLASS_SAFE_FUNCTIONS |
                                UNSUPPORTED_FUNCTIONS |
@@ -1496,5 +1499,8 @@ class TestFunctionHelpersCompleteness:
                                set(DISPATCHED_FUNCTIONS.keys()))
         assert all_wrapped == included_in_helpers
 
+    # untested_function is created using all_wrapped_functions
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="no __array_function__ wrapping in numpy<1.17")
     def test_ignored_are_untested(self):
         assert IGNORED_FUNCTIONS == untested_functions

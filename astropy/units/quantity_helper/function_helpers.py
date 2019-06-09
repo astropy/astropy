@@ -35,7 +35,7 @@ import numpy as np
 
 from astropy.units.core import (
     UnitsError, UnitTypeError, dimensionless_unscaled)
-from astropy.utils.compat import NUMPY_LT_1_17
+from astropy.utils.compat import NUMPY_LT_1_17, NUMPY_LT_1_15
 from astropy.utils import isiterable
 
 
@@ -67,7 +67,6 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.flip, np.fliplr, np.flipud, np.rot90,
     np.argmin, np.argmax, np.argsort, np.lexsort, np.searchsorted,
     np.nonzero, np.argwhere, np.flatnonzero,
-    np.take_along_axis, np.put_along_axis,
     np.diag_indices_from, np.triu_indices_from, np.tril_indices_from,
     np.real, np.imag, np.diag, np.diagonal, np.diagflat,
     np.empty_like, np.zeros_like,
@@ -89,6 +88,10 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
     np.iscomplexobj, np.isrealobj,
     np.shares_memory, np.may_share_memory}
+
+if not NUMPY_LT_1_15:
+    SUBCLASS_SAFE_FUNCTIONS |= {np.take_along_axis, np.put_along_axis}
+
 
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
@@ -414,7 +417,7 @@ def where(condition, *args):
 
 # Quantile was only introduced in numpy 1.15.
 @function_helper(helps=({np.quantile, np.nanquantile}
-                        if hasattr(np, 'quantile') else ()))
+                        if not NUMPY_LT_1_15 else ()))
 def quantile(a, q, *args, q_unit=dimensionless_unscaled, **kwargs):
     if len(args) > 2:
         out = args[1]
@@ -553,7 +556,7 @@ def histogram(a, bins=10, range=None, normed=None, weights=None,
 
 
 # histogram_bin_edges was only introduced in numpy 1.15.
-@function_helper(helps=getattr(np, 'histogram_bin_edges', ()))
+@function_helper(helps=np.histogram_bin_edges if not NUMPY_LT_1_15 else ())
 def histogram_bin_edges(a, bins=10, range=None, weights=None):
     # weights is currently unused
     a = _as_quantity(a)
