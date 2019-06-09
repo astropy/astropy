@@ -44,7 +44,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         high-level objects).
 
         If a single high-level object is used to represent the world coordinates
-        (i.e.. if ``len(wcs.world_axis_object_classes) == 1``), it is returned
+        (i.e., if ``len(wcs.world_axis_object_classes) == 1``), it is returned
         as-is (not in a tuple/list), otherwise a tuple of high-level objects is
         returned. See
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_to_world_values` for pixel
@@ -58,7 +58,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         objects).
 
         If a single high-level object is used to represent the world coordinates
-        (i.e.. if ``len(wcs.world_axis_object_classes) == 1``), it is returned
+        (i.e., if ``len(wcs.world_axis_object_classes) == 1``), it is returned
         as-is (not in a tuple/list), otherwise a tuple of high-level objects is
         returned. See
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.array_index_to_world_values` for
