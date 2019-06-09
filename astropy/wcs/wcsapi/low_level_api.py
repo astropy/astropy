@@ -319,7 +319,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
                'Units\n')
 
         for iwrl in range(self.world_n_dim):
-            
+
             if self.world_axis_physical_types[iwrl] is not None:
                 s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) + '  ' +
                       ('{0:' + str(world_typ_width) + 's}').format(self.world_axis_physical_types[iwrl]) + '  ' +
