@@ -31,6 +31,7 @@ Core Package Contributors
 * Andreas Baumbach
 * Chris Beaumont
 * Stefan Becker
+* T. Carl Beery
 * Daniel Bell
 * Elijah Bernstein-Cooper
 * Kristin Berry
@@ -53,12 +54,15 @@ Core Package Contributors
 * Eli Bressert
 * Matthew Brett
 * Hannes Breytenbach
+* Samuel Brice
 * Hugo Buddelmeijer
 * Doug Burke
 * Giorgio Calderone
+* Tito Dal Canton
 * Mihai Cara
 * Patti Carroll
 * Mabry Cervin
+* Frédéric Chapoton
 * Pritish Chakraborty
 * Sourabh Cheedella
 * Alex Conley
@@ -86,6 +90,7 @@ Core Package Contributors
 * Jörg Dietrich
 * Axel Donath
 * Bili Dong
+* Alex Drlica-Wagner
 * Michael Droettboom
 * Zach Edwards
 * Jonathan Eisenhamer
@@ -95,14 +100,17 @@ Core Package Contributors
 * Tyler Finethy
 * Jonathan Foster
 * Ryan Fox
+* Nabil Freij
 * Lehman Garrison
 * Simon Gibbons
 * Adam Ginsburg
+* Lauren Glattly
 * Christoph Gohlke
 * Danny Goldstein
 * Ralf Gommers
 * Karl Gordon
 * J. Goutin
+* Javier Pascual Granado
 * Johnny Greco
 * Perry Greenfield
 * Dylan Gregersen
@@ -132,6 +140,7 @@ Core Package Contributors
 * VSN Reddy Janga
 * Eric Jeschke
 * Graham Kanarek
+* Rohit Kapoor
 * Anirudh Katipally
 * Sarah Kendrew
 * Marten van Kerkwijk
@@ -147,6 +156,7 @@ Core Package Contributors
 * Roban Hultman Kramer
 * Aniket Kulkarni
 * Amit Kumar
+* Yash Kumar
 * Arie Kurniawan
 * Arne de Laat
 * Antony Lee
@@ -159,6 +169,7 @@ Core Package Contributors
 * Joe Lyman
 * Jerry Ma
 * Duncan Macleod
+* Lisa Martin
 * Michele Mastropietro
 * Jeffrey McBeth
 * Mike McCarty
@@ -167,6 +178,7 @@ Core Package Contributors
 * Aaron Meisner
 * Mikhail Minin
 * Serge Montagnac
+* Francesco Montanari
 * José Sabater Montes
 * Francesco Montesano
 * Brett Morris
@@ -200,11 +212,13 @@ Core Package Contributors
 * Neil Parley
 * Sergio Pascual
 * Pratik Patel
+* Himanshu Pathak
 * Aarya Patil
 * Rohit Patil
 * Sushobhana Patra
 * Molly Peeples
 * Ray Plante
+* Tim Plummer
 * Adele Plunkett
 * Orion Poplawski
 * Joanna Power
@@ -213,13 +227,18 @@ Core Package Contributors
 * J. Xavier Prochaska
 * David Pérez-Suárez
 * Tanuj Rastogi
+* Jane Rigby
+* Clément Robert
 * Thomas Robitaille
 * Juan Luis Cano Rodríguez
 * Evert Rol
+* Benjamin Roulston
 * Alex Rudy
 * Joseph Ryan
 * Saurav Sachidanand
 * Eloy Salinas
+* Esteban Pardo Sánchez
+* Nicholas Saunders
 * Gerrit Schellenberger
 * Michael Seifert
 * Srikrishna Sekhar
@@ -240,12 +259,13 @@ Core Package Contributors
 * Megan Sosey
 * Shantanu Srivastava
 * David Stansby
+* Kris Stern
 * Ole Streicher
 * Matej Stuchlik
 * Bernardo Sulzbach
 * Jonas Große Sundrup
 * Vatsala Swaroop
-* Esteban Pardo Sánchez
+* Dan Taranu
 * James Taylor
 * Jeff Taylor
 * Mark Taylor
@@ -268,10 +288,12 @@ Core Package Contributors
 * Laura Watkins
 * Benjamin Alan Weaver
 * Jonathan Whitmore
+* Benjamin Winkel
 * Julien Woillez
 * Michael Wood-Vasey
 * Maneesh Yadav
 * Víctor Zabalza
+* Noah Zuckman
 
 
 Other Credits
