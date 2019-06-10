@@ -96,8 +96,8 @@ compute the best-fit parameters for a given frequency, as well as
 New SI/CODATA 2018 Constants
 ============================
 
-The new redefinition of the SI system and its base units came into force on May
-20, 2019.  Accompanying that redefinition was a new set of physical constants
+The new redefinition of the SI system and its base units came into force on
+2019-05-20.  Accompanying that redefinition was a new set of physical constants
 (CODATA2018).  Astropy v3.2 contains these new CODATA2018 phsical constants,
 which contain in particular quite different uncertainties due to the
 redefinition. E.g.,::
