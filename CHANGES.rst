@@ -262,9 +262,6 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
-- Representations with ``float32`` coordinates can now be transformed,
-  although the output will always be ``float64``. [#8759]
-
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -301,17 +298,11 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
-- Fix the conversion of bytes values to Python ``str`` with ``Table.tolist``.
-  [#8739]
-
 astropy.tests
 ^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
-
-- Corrected small rounding errors that could cause the ``jd2`` values in
-  ``Time`` to fall outside the range of -0.5 to 0.5. [#8763]
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
@@ -322,10 +313,6 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
-- Add support for the ``clip`` ufunc, which in numpy 1.17 is used to implement
-  ``np.clip``.  As part of that, remove the ``Quantity.clip`` method under
-  numpy 1.17. [#8747]
-
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -335,26 +322,18 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
-- Do not attempt to delete repeated distortion keywords multiple times when
-  loading distortions with ``_read_distortion_kw`` and
-  ``_read_det2im_kw``. [#8777]
-
 
 Other Changes and Additions
 ---------------------------
 
-- Ensure we call numpy equality functions in a way that reduces the number
-  of ``DeprecationWarning``. [#8755]
 
 
-3.2 (unreleased)
+
+3.2 (2019-06-10)
 ================
 
 New Features
 ------------
-
-astropy.config
-^^^^^^^^^^^^^^
 
 astropy.constants
 ^^^^^^^^^^^^^^^^^
@@ -362,9 +341,6 @@ astropy.constants
 - Add CODATA 2018 constants but not make them default because the
   redefinition of SI units that will follow has not been implemented
   yet. [#8595]
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -376,9 +352,6 @@ astropy.coordinates
 - The default time scale for epochs like 'J2000' or 'B1975' is now "tt",
   which is the correct one for 'J2000' and avoids leap-second warnings
   for epochs in the far future or past. [#8600]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
 
 astropy.extern
 ^^^^^^^^^^^^^^
@@ -449,21 +422,6 @@ astropy.io.registry
   ``Table`` read formats and ``Table.read.help('fits')`` gives detailed
   help on the arguments for reading FITS table file. [#8255]
 
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -485,8 +443,9 @@ astropy.table
   columns.  ``Time`` and ``TimeDelta`` columns get converted to
   corresponding pandas date or time delta types.  The ``DataFrame``
   index is now handled in the conversion methods. [#8247]
-- Added ``rename_columns`` method to rename multiple columns in one call. [#5159, #8070]
 
+- Added ``rename_columns`` method to rename multiple columns in one call.
+  [#5159, #8070]
 
 - Improved Table performance by reducing unnecessary calls to copy and deepcopy,
   especially as related to the table and column ``meta`` attributes.  Changed the
@@ -509,11 +468,10 @@ astropy.table
   ``names`` in ``get_index()`` to get index by using a list or tuple containing
   names of columns. [#8570]
 
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
+- Expose ``represent_mixins_as_columns`` as a public function in the
+  ``astropy.table`` subpackage.  This previously-private function in the
+  ``table.serialize`` module is used to represent mixin columns in a Table as
+  one or more plain Column objects. [#7729]
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
@@ -530,9 +488,6 @@ astropy.timeseries
 - Added model inspection methods (``model_parameters()``, ``design_matrix()``,
   and ``offset()``) to ``astropy.timeseries.LombScargle`` class [#8397].
 
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
@@ -542,9 +497,6 @@ astropy.units
   subclasses, but they may consider doing similarly. [#8316]  Note that this
   does not include methods that use more complicated python code such as
   ``mean``, ``std`` and ``var``. [#8370]
-
-astropy.utils
-^^^^^^^^^^^^^
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -572,17 +524,9 @@ astropy.wcs
   a ``SlicedLowLevelWCS`` rather than raising an error when reducing the
   dimensionality of the WCS. [#8546]
 
+
 API Changes
 -----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -592,12 +536,6 @@ astropy.coordinates
 
 - The default J2000 has been changed to use be January 1, 2000 12:00 TT instead
   of UTC.  This is more in line with convention. [#8594]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -610,26 +548,11 @@ astropy.io.misc
 
 - Unit equivalencies can now be serialized to ASDF. [#8252]
 
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - Composition of model classes is deprecated and will be removed in 4.0.
   Composition of model instances remain unaffected. [#8234, #8408]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -673,9 +596,6 @@ astropy.time
   which is the correct one for 'J2000' and avoids leap-second warnings
   for epochs in the far future or past. [#8600]
 
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
@@ -697,23 +617,9 @@ astropy.utils
   by passing a positive integer as the ``multiprocess`` keyword argument. Use
   ``True`` to use all cores. [#8083]
 
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -723,11 +629,11 @@ astropy.coordinates
   (including nutation), whereas the new ``*MeanEcliptic`` classes
   use the nutation-free transformation. [#8394]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
+- Representations with ``float32`` coordinates can now be transformed,
+  although the output will always be ``float64``. [#8759]
 
-astropy.extern
-^^^^^^^^^^^^^^
+- Fixed bug that prevented using differentials with HCRS<->ICRS
+  transformations. [#8794]
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -741,15 +647,6 @@ astropy.io.misc
 
 - Fixed bug in ASDF tag that inadvertently introduced dependency on ``pytest``.
   [#8456]
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
@@ -770,12 +667,6 @@ astropy.nddata
   header were not, potentially leading to FITS files with inconsistent
   WCS. [#8602]
 
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -786,8 +677,8 @@ astropy.table
   input ``meta`` argument was being ignored.  Now the input ``meta``, if
   supplied, will be used as the ``meta`` for the new ``Table``. [#8404]
 
-astropy.tests
-^^^^^^^^^^^^^
+- Fix the conversion of bytes values to Python ``str`` with ``Table.tolist``.
+  [#8739]
 
 astropy.time
 ^^^^^^^^^^^^
@@ -809,8 +700,8 @@ astropy.time
   ``NotImplemented`` (which will lead to a regular ``TypeError`` unless the
   other instance can handle ``TimeDelta``). [#8356]
 
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
+- Corrected small rounding errors that could cause the ``jd2`` values in
+  ``Time`` to fall outside the range of -0.5 to 0.5. [#8763]
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -825,11 +716,11 @@ astropy.units
 
 - Add support for ``<<`` to create logarithmic units. [#8290]
 
-astropy.utils
-^^^^^^^^^^^^^
+- Add support for the ``clip`` ufunc, which in numpy 1.17 is used to implement
+  ``np.clip``.  As part of that, remove the ``Quantity.clip`` method under
+  numpy 1.17. [#8747]
 
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
+- Fix parsing of numerical powers in FITS-compatible units. [#8251]
 
 astropy.wcs
 ^^^^^^^^^^^
@@ -840,6 +731,10 @@ astropy.wcs
   ``UnitListProxy`` class [#8480]
 
 - Fixed ``SlicedLowLevelWCS`` when ``array_shape`` is ``None``. [#8649]
+
+- Do not attempt to delete repeated distortion keywords multiple times when
+  loading distortions with ``_read_distortion_kw`` and
+  ``_read_det2im_kw``. [#8777]
 
 
 Other Changes and Additions
@@ -869,6 +764,9 @@ Other Changes and Additions
 
 - Added a narrative style guide to the documentation for contributor reference.
   [#8588]
+
+- Ensure we call numpy equality functions in a way that reduces the number
+  of ``DeprecationWarning``. [#8755]
 
 Installation
 ^^^^^^^^^^^^
@@ -1121,11 +1019,6 @@ astropy.table
 
 - Added support for stacking ``Column``, mixin column (e.g. ``Quantity``,
   ``Time``) or column-like objects. [#7674]
-
-- Expose ``represent_mixins_as_columns`` as a public function in the
-  ``astropy.table`` subpackage.  This previously-private function in the
-  ``table.serialize`` module is used to represent mixin columns in a Table as
-  one or more plain Column objects. [#7729]
 
 - Added support for inserting a row into a Table that has ``Time`` or
   ``TimeDelta`` column(s). [#7897]
@@ -2322,7 +2215,7 @@ Other Changes and Additions
 
 
 
-2.0.13 (unreleased)
+2.0.14 (unreleased)
 ===================
 
 Bug Fixes
@@ -2340,9 +2233,6 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
-- Fixed bug that prevented using differentials with HCRS<->ICRS
-  transformations. [#8794]
-
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -2354,24 +2244,15 @@ astropy.io.ascii
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
-- Fixed bug in ``ColDefs._init_from_array()`` that caused unsigned datatypes
-  with the opposite endianess as the host architecture to fail the
-  TestColumnFunctions.test_coldefs_init_from_array unit test. [#8460]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
-
-- Explicitly set PyYAML default flow style to None to ensure consistent
-  astropy YAML output for PyYAML version 5.1 and later. [#8500]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
-
-- Block floating-point columns from using repr format when converted to Table
-  [#8358]
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
@@ -2381,9 +2262,6 @@ astropy.nddata
 
 astropy.stats
 ^^^^^^^^^^^^^
-
-- Fixed issue in ``bayesian_blocks`` when called with the ``ncp_prior``
-  keyword. [#8339]
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -2396,11 +2274,6 @@ astropy.time
 
 astropy.units
 ^^^^^^^^^^^^^
-
-- Fix parsing of numerical powers in FITS-compatible units. [#8251]
-
-- Fix ``take`` when one gets only a single element from a ``Quantity``,
-  ensuring it returns a ``Quantity`` rather than a scalar. [#8617]
 
 astropy.utils
 ^^^^^^^^^^^^^
@@ -2417,6 +2290,45 @@ astropy.wcs
 
 Other Changes and Additions
 ---------------------------
+
+
+
+
+2.0.13 (2019-06-08)
+===================
+
+Bug Fixes
+---------
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+- Fixed bug in ``ColDefs._init_from_array()`` that caused unsigned datatypes
+  with the opposite endianess as the host architecture to fail the
+  TestColumnFunctions.test_coldefs_init_from_array unit test. [#8460]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Explicitly set PyYAML default flow style to None to ensure consistent
+  astropy YAML output for PyYAML version 5.1 and later. [#8500]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Block floating-point columns from using repr format when converted to Table
+  [#8358]
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- Fixed issue in ``bayesian_blocks`` when called with the ``ncp_prior``
+  keyword. [#8339]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Fix ``take`` when one gets only a single element from a ``Quantity``,
+  ensuring it returns a ``Quantity`` rather than a scalar. [#8617]
 
 
 
