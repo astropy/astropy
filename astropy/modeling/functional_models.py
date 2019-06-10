@@ -2266,7 +2266,7 @@ class Moffat1D(Fittable1DModel):
         Derivation of the formula is available in
         `this notebook by Yoonsoo Bach <http://nbviewer.jupyter.org/github/ysbach/AO_2017/blob/master/04_Ground_Based_Concept.ipynb#1.2.-Moffat>`_.
         """
-        return 2.0 * self.gamma * np.sqrt(2.0 ** (1.0 / self.alpha) - 1.0)
+        return 2.0 * np.abs(self.gamma) * np.sqrt(2.0 ** (1.0 / self.alpha) - 1.0)
 
     @staticmethod
     def evaluate(x, amplitude, x_0, gamma, alpha):
@@ -2343,7 +2343,7 @@ class Moffat2D(Fittable2DModel):
         Derivation of the formula is available in
         `this notebook by Yoonsoo Bach <http://nbviewer.jupyter.org/github/ysbach/AO_2017/blob/master/04_Ground_Based_Concept.ipynb#1.2.-Moffat>`_.
         """
-        return 2.0 * self.gamma * np.sqrt(2.0 ** (1.0 / self.alpha) - 1.0)
+        return 2.0 * np.abs(self.gamma) * np.sqrt(2.0 ** (1.0 / self.alpha) - 1.0)
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, gamma, alpha):
