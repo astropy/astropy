@@ -145,6 +145,8 @@ mean barycentric ecliptic frames over the course of a year:
 
     import numpy as np
     import matplotlib.pyplot as plt
+    from astropy.visualization import quantity_support
+    quantity_support()
 
     from astropy import units as u
     from astropy.time import Time
@@ -158,11 +160,11 @@ mean barycentric ecliptic frames over the course of a year:
     im = bme_origin.transform_to(ICRS())
     it = bte_origin.transform_to(ICRS())
 
-    plt.plot(t.jyear, im.ra.wrap_at(180*u.deg).deg, label='BarycentricMeanEcliptic')
-    plt.plot(t.jyear, it.ra.wrap_at(180*u.deg).deg, label='BarycentricTrueEcliptic')
+    plt.plot(t.jyear, im.ra.wrap_at(180*u.deg), label='BarycentricMeanEcliptic')
+    plt.plot(t.jyear, it.ra.wrap_at(180*u.deg), label='BarycentricTrueEcliptic')
 
-    plt.xlabel('J-year')
-    plt.ylabel('ICRS R.A. of ecliptic origin')
+    plt.xlabel('Julian year')
+    plt.ylabel('ICRS R.A. of ecliptic origin [{}]'.format(im.ra.unit))
     plt.legend(loc=0)
 
 
