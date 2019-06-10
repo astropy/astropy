@@ -43,6 +43,8 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+- ``Moffat1D.fwhm`` and ``Moffat2D.fwhm`` will return a positive  value when
+  ``gamma`` is negative. [#8801, #8815]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
