@@ -1506,6 +1506,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             try:
                 helper_info = FUNCTION_HELPERS[function](*args, **kwargs)
             except NotImplementedError:
+                # We return NotImplemented, which is proper, even though
+                # if an ndarray is also present, it gets a chance as well
+                # and may just coerce us to object.
                 return NotImplemented
 
             args, kwargs, unit, out = helper_info
