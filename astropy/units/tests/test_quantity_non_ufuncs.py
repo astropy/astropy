@@ -372,6 +372,12 @@ class TestSettingParts(metaclass=CoverageMeta):
         expected = [50, 100, 150] * u.cm
         assert np.all(q == expected)
 
+        a = np.arange(3.)
+        np.place(a, [True, False, True], [50, 150] * u.percent)
+        assert type(a) is np.ndarray
+        expected = np.array([0.5, 1., 1.5])
+        assert np.all(a == expected)
+
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
     def test_copyto(self):
@@ -380,6 +386,12 @@ class TestSettingParts(metaclass=CoverageMeta):
         assert q.unit == u.m
         expected = [50, 100, 150] * u.cm
         assert np.all(q == expected)
+
+        a = np.arange(3.)
+        np.copyto(a, [50, 0, 150] * u.percent, where=[True, False, True])
+        assert type(a) is np.ndarray
+        expected = np.array([0.5, 1., 1.5])
+        assert np.all(a == expected)
 
     def test_fill_diagonal(self):
         q = np.arange(9.).reshape(3, 3) * u.m
@@ -422,6 +434,18 @@ class TestConcatenate(metaclass=CoverageMeta):
                        reason="Needs __array_function__ support")
     def test_concatenate(self):
         self.check(np.concatenate)
+        self.check(np.concatenate, axis=1)
+
+        out = np.empty((4, 3)) * u.dimensionless_unscaled
+        result = np.concatenate([self.q1, self.q2], out=out)
+        assert out is result
+        assert out.unit == self.q1.unit
+        expected = np.concatenate(
+            [self.q1.value, self.q2.to_value(self.q1.unit)]) * self.q1.unit
+        assert np.all(result == expected)
+
+        with pytest.raises(TypeError):
+            np.concatenate([self.q1, object()])
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
@@ -462,6 +486,13 @@ class TestConcatenate(metaclass=CoverageMeta):
                              axis=0) * self.q1.unit
         assert np.all(out == expected)
 
+        a = np.arange(3.)
+        result = np.append(a, 50. * u.percent)
+        assert isinstance(result, u.Quantity)
+        assert result.unit == u.dimensionless_unscaled
+        expected = np.append(a, 0.5) * u.dimensionless_unscaled
+        assert np.all(result == expected)
+
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
     def test_insert(self):
@@ -472,6 +503,13 @@ class TestConcatenate(metaclass=CoverageMeta):
         assert out.unit == q.unit
         expected = np.insert(q.value, (3, 5), [0.5, 0.25]) * u.m
         assert np.all(out == expected)
+
+        a = np.arange(3.)
+        result = np.insert(a, (2,), 50. * u.percent)
+        assert isinstance(result, u.Quantity)
+        assert result.unit == u.dimensionless_unscaled
+        expected = np.insert(a, (2,), 0.5) * u.dimensionless_unscaled
+        assert np.all(result == expected)
 
         with pytest.raises(TypeError):
             np.insert(q, 3 * u.cm, 50. * u.cm)
@@ -485,11 +523,16 @@ class TestConcatenate(metaclass=CoverageMeta):
         expected = np.pad(q.value, (2, 3), 'constant',
                           constant_values=(0., 1.5)) * q.unit
         assert np.all(out == expected)
-        out = np.pad(q, (2, 3), 'linear_ramp', end_values=(25.*u.cm, 0.))
-        assert out.unit == q.unit
-        expected = np.pad(q.value, (2, 3), 'linear_ramp',
-                          end_values=(0.25, 0.)) * q.unit
-        assert np.all(out == expected)
+        out2 = np.pad(q, (2, 3), 'constant', constant_values=150.*u.cm)
+        assert out2.unit == q.unit
+        expected2 = np.pad(q.value, (2, 3), 'constant',
+                           constant_values=1.5) * q.unit
+        assert np.all(out2 == expected2)
+        out3 = np.pad(q, (2, 3), 'linear_ramp', end_values=(25.*u.cm, 0.))
+        assert out3.unit == q.unit
+        expected3 = np.pad(q.value, (2, 3), 'linear_ramp',
+                           end_values=(0.25, 0.)) * q.unit
+        assert np.all(out3 == expected3)
 
 
 class TestSplit(metaclass=CoverageMeta):
@@ -776,6 +819,14 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         o2 = np.quantile(self.q.value, 50 * u.percent)
         assert o2.unit == u.dimensionless_unscaled
         assert np.all(o2 == expected.value)
+        o3 = 0 * o2
+        result = np.quantile(self.q, 50 * u.percent, out=o3)
+        assert result is o3
+        assert np.all(o3 == expected)
+        o4 = 0 * o2
+        result = np.quantile(self.q, 50 * u.percent, None, o4)
+        assert result is o4
+        assert np.all(o4 == expected)
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
@@ -926,6 +977,14 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
         o = np.outer(q1, q2)
         assert np.all(o == np.array([[1, 2], [2, 4], [3, 6]]) * u.m / u.s)
 
+        o2 = 0 * o
+        result = np.outer(q1, q2, out=o2)
+        assert result is o2
+        assert np.all(o2 == o)
+
+        with pytest.raises(TypeError):
+            np.outer(q1, q2, out=object())
+
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
     def test_inner(self):
@@ -980,8 +1039,12 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
         expected = np.einsum('ii', q1.value) * u.m
         assert np.all(o == expected)
         q2 = np.eye(3) / u.s
-        o = np.einsum('ij,jk', q1, q2)
-        assert np.all(o == q1 / u.s)
+        o2 = np.einsum('ij,jk', q1, q2)
+        assert np.all(o2 == q1 / u.s)
+        o3 = 0 * o2
+        result = np.einsum('ij,jk', q1, q2, out=o3)
+        assert result is o3
+        assert np.all(o3 == o2)
 
     def test_einsum_path(self):
         q1 = np.arange(9.).reshape(3, 3) * u.m
@@ -1031,6 +1094,9 @@ class TestIntDiffFunctions(metaclass=CoverageMeta):
                            n=2) * x.unit
         assert np.all(out == expected)
 
+        with pytest.raises(TypeError):
+            np.diff(x, prepend=object())
+
     def test_ediff1d(self):
         # ediff1d works always as it calls the Quantity method.
         x = np.arange(10.) * u.m
@@ -1070,7 +1136,7 @@ class TestIntDiffFunctions(metaclass=CoverageMeta):
 
         dfdx2 = np.gradient(f, dx, axis=0)
         assert np.all(dfdx2 == exp_dfdx)
-        dfdy2 = np.gradient(f, y, axis=1)
+        dfdy2 = np.gradient(f, y, axis=(1,))
         assert np.all(dfdy2 == exp_dfdy)
 
 
@@ -1125,6 +1191,10 @@ class TestInterpolationFunctions(metaclass=CoverageMeta):
         expected = np.interp(x.to_value(xp.unit), xp.value, yp.value) * yp.unit
         assert np.all(out == expected)
 
+        out = np.interp(x, xp, yp.value)
+        assert type(out) is np.ndarray
+        assert np.all(out == expected.value)
+
     @pytest.mark.xfail
     def test_piecewise(self):
         # TODO: this needs a proper own implementation to take care of the
@@ -1145,6 +1215,9 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         out = np.bincount(i, weights)
         expected = np.bincount(i, weights.value) * weights.unit
         assert np.all(out == expected)
+
+        with pytest.raises(TypeError):
+            np.bincount(weights)
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
@@ -1258,6 +1331,16 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         assert np.all(outd_h == expectedd_h)
         assert np.all(outd_bx == expectedd_bx)
         assert np.all(outd_by == expectedd_by)
+        weights = np.arange(1., 6.) * u.g
+        outw_h, outw_bx, outw_by = np.histogram2d(x, y, weights=weights)
+        expected_h, expected_bx, expected_by = np.histogram2d(
+            x.value, y.value, weights=weights.value)
+        expected_h = expected_h * weights.unit
+        expected_bx = expected_bx * x.unit
+        expected_by = expected_by * y.unit
+        assert np.all(out_h == expected_h)
+        assert np.all(out_bx == expected_bx)
+        assert np.all(out_by == expected_by)
 
     @pytest.mark.xfail
     def test_histogramdd(self):

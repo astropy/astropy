@@ -39,7 +39,7 @@ from astropy.utils.compat import NUMPY_LT_1_17, NUMPY_LT_1_15
 from astropy.utils import isiterable
 
 
-if NUMPY_LT_1_17:
+if NUMPY_LT_1_17:  # pragma: no cover
     # pre 1.16, overrides.py did not exist; in 1.16, it existed, but
     # __array_function__ overrides were turned off by default.
     ARRAY_FUNCTION_ENABLED = (hasattr(np.core, 'overrides') and
@@ -166,7 +166,7 @@ class FunctionAssigner:
             return f
         elif helps is not None:
             return functools.partial(self.__call__, helps=helps)
-        else:
+        else:  # pragma: no cover
             raise ValueError("function_helper requires at least one argument.")
 
 
@@ -286,6 +286,7 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
 
 
 def _as_quantity(a):
+    """Convert argument to a Quantity (or raise NotImplementedError)."""
     from astropy.units import Quantity
 
     try:
@@ -296,6 +297,7 @@ def _as_quantity(a):
 
 
 def _as_quantities(*args):
+    """Convert arguments to Quantity (or raise NotImplentedError)."""
     from astropy.units import Quantity
 
     try:
@@ -307,6 +309,7 @@ def _as_quantities(*args):
 
 
 def _quantities2arrays(*args):
+    """Convert to Quantities with the unit of the first argument."""
     qs = _as_quantities(*args)
     unit = qs[0].unit
     # Allow any units error to be raised.
@@ -315,6 +318,7 @@ def _quantities2arrays(*args):
 
 
 def _iterable_helper(*args, out=None, **kwargs):
+    """Convert arguments to Quantity, and treat possible 'out'."""
     from astropy.units import Quantity
 
     if out is not None:
@@ -324,9 +328,6 @@ def _iterable_helper(*args, out=None, **kwargs):
             # TODO: for an ndarray output, we could in principle
             # try converting all Quantity to dimensionless.
             raise NotImplementedError
-
-    if not args:
-        return args, kwargs, None if out is None else out.unit, out
 
     arrays, unit = _quantities2arrays(*args)
     return arrays, kwargs, unit, out
@@ -356,28 +357,19 @@ def select(condlist, choicelist, default=0):
 
 @function_helper
 def append(arr, values, *args, **kwargs):
-    from astropy.units import Quantity
-    if isinstance(arr, Quantity):
-        return (arr.view(np.ndarray),
-                arr._to_own_unit(values)) + args, kwargs, arr.unit, None
-    else:  # values must be Quantity
-        unit = getattr(arr, 'unit', dimensionless_unscaled)
-        return (arr, values.to_value(unit)) + args, kwargs, unit, None
+    arrays, unit = _quantities2arrays(arr, values)
+    return arrays + args, kwargs, unit, None
 
 
 @function_helper
 def insert(arr, obj, values, *args, **kwargs):
-    from astropy.units import Quantity, dimensionless_unscaled
+    from astropy.units import Quantity
 
     if isinstance(obj, Quantity):
         raise NotImplementedError
 
-    if isinstance(arr, Quantity):
-        return (arr.view(np.ndarray), obj,
-                arr._to_own_unit(values)) + args, kwargs, arr.unit, None
-    else:  # values must be Quantity
-        unit = getattr(arr, 'unit', dimensionless_unscaled)
-        return (arr, obj, values.to_value(unit)) + args, kwargs, unit, None
+    (arr, values), unit = _quantities2arrays(arr, values)
+    return (arr, obj, values) + args, kwargs, unit, None
 
 
 @function_helper
@@ -406,20 +398,15 @@ def where(condition, *args):
     if isinstance(condition, Quantity) or len(args) != 2:
         raise NotImplementedError
 
-    one, two = args
-    if isinstance(one, Quantity):
-        return ((condition, one.value, one._to_own_unit(args[1])), {},
-                one.unit, None)
-    else:
-        unit = getattr(one, 'unit', dimensionless_unscaled)
-        return (condition, one, two.to_value(unit)), {}, unit, None
+    args, unit = _quantities2arrays(*args)
+    return (condition,) + args, {}, unit, None
 
 
 # Quantile was only introduced in numpy 1.15.
 @function_helper(helps=({np.quantile, np.nanquantile}
                         if not NUMPY_LT_1_15 else ()))
-def quantile(a, q, *args, q_unit=dimensionless_unscaled, **kwargs):
-    if len(args) > 2:
+def quantile(a, q, *args, _q_unit=dimensionless_unscaled, **kwargs):
+    if len(args) >= 2:
         out = args[1]
         args = args[:1] + args[2:]
     else:
@@ -427,21 +414,9 @@ def quantile(a, q, *args, q_unit=dimensionless_unscaled, **kwargs):
 
     from astropy.units import Quantity
     if isinstance(q, Quantity):
-        q = q.to_value(q_unit)
+        q = q.to_value(_q_unit)
 
-    if isinstance(a, Quantity):
-        unit = a.unit
-        a = a.value
-    else:
-        unit = getattr(a, 'unit', dimensionless_unscaled)
-
-    if out is not None:
-        if isinstance(out, Quantity):
-            kwargs['out'] = out.view(np.ndarray)
-        else:
-            # TODO: for an ndarray output, we could in principle
-            # try converting all Quantity to dimensionless.
-            raise NotImplementedError
+    (a,), kwargs, unit, out = _iterable_helper(a, out=out, **kwargs)
 
     return (a, q) + args, kwargs, unit, out
 
@@ -449,7 +424,7 @@ def quantile(a, q, *args, q_unit=dimensionless_unscaled, **kwargs):
 @function_helper(helps={np.percentile, np.nanpercentile})
 def percentile(a, q, *args, **kwargs):
     from astropy.units import percent
-    return quantile(a, q, *args, q_unit=percent, **kwargs)
+    return quantile(a, q, *args, _q_unit=percent, **kwargs)
 
 
 @function_helper
@@ -516,7 +491,7 @@ def einsum(subscripts, *operands, out=None, **kwargs):
 def bincount(x, weights=None, minlength=0):
     from astropy.units import Quantity
     if isinstance(x, Quantity):
-        return None
+        raise NotImplementedError
     return (x, weights.value, minlength), {}, weights.unit, None
 
 
