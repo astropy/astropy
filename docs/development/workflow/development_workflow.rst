@@ -371,8 +371,8 @@ Add a changelog entry
 
 Add an entry to the file ``CHANGES.rst`` briefly describing the change you
 made. Include the pull request number, too at the end of the entry. An
-example entry, for the changes which fixed
-`issue 1845 <https://github.com/astropy/astropy/pull/1845>`_, is::
+example entry, for the changes in
+`PR 1845 <https://github.com/astropy/astropy/pull/1845>`_, is::
 
   - ``astropy.wcs.Wcs.printwcs`` will no longer warn that ``cdelt`` is
     being ignored when none was present in the FITS file. [#1845]
