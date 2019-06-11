@@ -736,6 +736,9 @@ astropy.wcs
   loading distortions with ``_read_distortion_kw`` and
   ``_read_det2im_kw``. [#8777]
 
+- Added ``None`` to be displayed as a ``world_axis_physical_types`` in
+  the ``WCS`` repr, as ``None`` values are now supported in ``APE14``. [#8811]
+
 
 Other Changes and Additions
 ---------------------------
