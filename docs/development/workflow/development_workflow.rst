@@ -506,8 +506,8 @@ applying only that patch.
 Many of us find that is it actually easiest to squash using rebase. In particular,
 you can rebase and squash within the existing branch using::
 
-  git fetch upstream
-  git rebase -i upstream/master
+  git fetch astropy
+  git rebase -i astropy/master
 
 The last command will open an editor with all your commits, allowing you to
 squash several commits together, rename them, etc. Helpfully, the file you are
