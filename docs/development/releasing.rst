@@ -31,20 +31,20 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. (Only for major versions) Make sure to update the "What's new"
    section with the stats on the number of issues, PRs, and contributors.  For
-   the first two, the `astropy-tools repository`_ script ``gh_issuereport.py``
+   the first two, the `astropy-procedures repository`_ script ``gh_issuereport.py``
    can provide the numbers since the last major release.  For the final one, you
    will likely need to update the Astropy ``.mailmap`` file, as there are often
    contributors who are not careful about using the same e-mail address for
    every commit.  The easiest way to do this is to run the command
    ``git shortlog -n -s -e`` to see the list of all contributors and their email
-   addresses.  Look for any mis-named entries or duplicates, and add them to the
+   addresses.  Look for any misnamed entries or duplicates, and add them to the
    ``.mailmap`` file (matched to the appropriate canonical name/email address.)
-   Once you have finished this, you can could the number of lines in
+   Once you have finished this, you can count the number of lines in
    ``git shortlog -s`` to get the final contributor count.
 
 #. Also be sure to update the ``docs/credits.rst`` file to include any new
    contributors.  This can come from the above step, or the ``author_lists.py``
-   script in the `astropy-tools repository`_ mostly automates this.  (This
+   script in the `astropy-procedures repository`_ mostly automates this.  (This
    step is only required on major releases, but can be done for bugfix releases
    as time allows.)
 
@@ -211,7 +211,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Also update the ``CHANGES.rst`` file with a new section for the next version.
    You will likely want to use the ``add_to_changelog.py`` script in the
-   `astropy-tools repository`_ for this.  Then add and commit::
+   `astropy-procedures repository`_ for this.  Then add and commit::
 
       <use your favorite editor on CHANGES.rst>
       $ git add CHANGES.rst
@@ -359,7 +359,7 @@ The procedure for this is straightforward:
 
 #. Update the ``CHANGES.rst`` file with a new section at the very top for the
    next major version.  You will likely want to use the ``add_to_changelog.py``
-   script in the `astropy-tools repository`_ for this. Then add and commit those
+   script in the `astropy-procedures repository`_ for this. Then add and commit those
    changes::
 
       <use your favorite editor on CHANGES.rst>
@@ -548,7 +548,7 @@ right version number).
    the process of backporting.  See :ref:`changelog-format` for more details.
 
 To aid this process, there are a series of related scripts in the
-`astropy-tools repository`_, in the ``pr_consistency`` directory.  These scripts
+`astropy-procedures repository`_, in the ``pr_consistency`` directory.  These scripts
 essentially check that the above two conditions are met. Detailed documentation
 for these scripts is given in their repository, but here we summarize the basic
 workflow.  Run the scripts in order (they are numbered 1.<something>.py,
@@ -825,7 +825,7 @@ that for you.  You can delete this tag by doing::
 .. _astropy core repository: https://github.com/astropy/astropy
 .. _signed tags: http://git-scm.com/book/en/Git-Basics-Tagging#Signed-Tags
 .. _cython: http://www.cython.org/
-.. _astropy-tools repository: https://github.com/astropy/astropy-tools
+.. _astropy-procedures repository: https://github.com/astropy/astropy-procedures
 .. _Anaconda: https://conda.io/docs/
 .. _astropy-helpers repository: https://github.com/astropy/astropy-helpers
 .. _twine: https://packaging.python.org/key_projects/#twine
