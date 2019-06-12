@@ -1191,12 +1191,16 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
                 copy=False, copy_indices=True):
 
         if mask is None:
-            # Issue #7399 with fix #7422.  Passing mask=None to ma.MaskedArray
-            # is extremely slow (~3 seconds for 1e7 elements), while mask=False
-            # gets quickly broadcast to the expected bool array of False.
-            mask = getattr(data, 'mask', False)
-            if mask is not False:
-                mask = np.array(mask, copy=copy)
+            # If mask is None then we need to determine the mask (if any) from the data.
+            # The naive method is looking for a mask attribute on data, but this can fail,
+            # see #8816.  Instead use ``MaskedArray`` to do the work.
+            mask = ma.MaskedArray(data).mask
+            if mask is np.ma.nomask:
+                # Handle odd-ball issue with np.ma.nomask (numpy #13758), and see below.
+                mask = False
+            elif copy:
+                mask = mask.copy()
+
         elif mask is np.ma.nomask:
             # Force the creation of a full mask array as nomask is tricky to
             # use and will fail in an unexpected manner when setting a value
