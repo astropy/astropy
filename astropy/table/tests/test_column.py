@@ -349,6 +349,12 @@ class TestColumn():
             assert np.all(c1.data.data == [0, 100, 1, 2])
             assert np.all(c1.data.mask == [False, mask, True, False])
 
+    def test_masked_multidim_as_list(self):
+        data = np.ma.MaskedArray([1, 2], mask=[True, False])
+        c = table.MaskedColumn([data])
+        assert c.shape == (1, 2)
+        assert np.all(c[0].mask == [True, False])
+
     def test_insert_masked_multidim(self):
         c = table.MaskedColumn([[1, 2],
                                 [3, 4]], name='a', dtype=int)
