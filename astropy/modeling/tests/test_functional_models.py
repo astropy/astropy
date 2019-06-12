@@ -3,7 +3,7 @@
 
 import pytest
 import numpy as np
-from numpy.testing import assert_allclose, assert_array_equal
+from numpy.testing import assert_allclose, assert_array_equal, assert_array_less
 
 from astropy.modeling import models, InputParameterError
 from astropy.coordinates import Angle
@@ -117,12 +117,14 @@ def test_Gaussian2D_invalid_inputs():
         models.Gaussian2D(theta=0, cov_matrix=cov_matrix)
 
 
-def test_moffat_fwhm():
+@pytest.mark.parametrize('gamma', (10, -10))
+def test_moffat_fwhm(gamma):
     ans = 34.641016151377542
-    kwargs = {'gamma': 10, 'alpha': 0.5}
+    kwargs = {'gamma': gamma, 'alpha': 0.5}
     m1 = models.Moffat1D(**kwargs)
     m2 = models.Moffat2D(**kwargs)
     assert_allclose([m1.fwhm, m2.fwhm], ans)
+    assert_array_less(0, [m1.fwhm, m2.fwhm])
 
 
 def test_RedshiftScaleFactor():
