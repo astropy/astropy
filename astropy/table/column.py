@@ -1194,17 +1194,12 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             # If mask is None then we need to determine the mask (if any) from the data.
             # The naive method is looking for a mask attribute on data, but this can fail,
             # see #8816.  Instead use ``MaskedArray`` to do the work.
-            data_ma = ma.MaskedArray(data)
-            mask = data_ma.mask.copy() if copy else data_ma.mask
-
-            # Deal with this craziness: Passing mask as a numpy bool gives a different
-            # result from a Python bool.
-            # >>> np.ma.MaskedArray([1,2], mask=np.bool_(False)).mask
-            # False
-            # >>> np.ma.MaskedArray([1,2], mask=False).mask
-            # array([False, False])
-            if isinstance(mask, np.bool_):
-                mask = mask.item()
+            mask = ma.MaskedArray(data).mask
+            if mask is np.ma.nomask:
+                # Handle odd-ball issue with np.ma.nomask (numpy #13758), and see below.
+                mask = False
+            elif copy:
+                mask = mask.copy()
 
         elif mask is np.ma.nomask:
             # Force the creation of a full mask array as nomask is tricky to
