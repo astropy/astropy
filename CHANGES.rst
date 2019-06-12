@@ -298,6 +298,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fix a problem where mask was dropped when creating a ``MaskedColumn``
+  from a list of ``MaskedArray`` objects. [#8826]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
