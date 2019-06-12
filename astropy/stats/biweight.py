@@ -12,7 +12,7 @@ __all__ = ['biweight_location', 'biweight_scale', 'biweight_midvariance',
            'biweight_midcovariance', 'biweight_midcorrelation']
 
 
-def biweight_location(data, c=6.0, M=None, axis=None):
+def biweight_location(data, c=6.0, M=None, axis=None, ignore_nan=False):
     r"""
     Compute the biweight location.
 
@@ -55,6 +55,8 @@ def biweight_location(data, c=6.0, M=None, axis=None):
         The axis or axes along which the biweight locations are
         computed.  If `None` (default), then the biweight location of
         the flattened input array will be computed.
+    ignore_nan : bool, optional
+        Whether to ignore NaN values in the input ``data``.
 
     Returns
     -------
@@ -86,10 +88,17 @@ def biweight_location(data, c=6.0, M=None, axis=None):
     -0.0175741540445
     """
 
+    if ignore_nan:
+        median_func = np.nanmedian
+        sum_func = np.nansum
+    else:
+        median_func = np.median
+        sum_func = np.sum
+
     data = np.asanyarray(data).astype(np.float64)
 
     if M is None:
-        M = np.median(data, axis=axis)
+        M = median_func(data, axis=axis)
     if axis is not None:
         M = _expand_dims(M, axis=axis)  # NUMPY_LT_1_18
 
@@ -97,29 +106,29 @@ def biweight_location(data, c=6.0, M=None, axis=None):
     d = data - M
 
     # set up the weighting
-    mad = median_absolute_deviation(data, axis=axis)
+    mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
     if axis is None and mad == 0.:
         return M  # return median if data is a constant array
 
     if axis is not None:
         mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
-        const_mask = (mad == 0.)
-        mad[const_mask] = 1.  # prevent divide by zero
+        mad[mad == 0] = 1.  # prevent divide by zero
 
     u = d / (c * mad)
 
     # now remove the outlier points
-    mask = (np.abs(u) >= 1)
+    mask = np.abs(u) >= 1
     u = (1 - u ** 2) ** 2
     u[mask] = 0
 
     # along the input axis if data is constant, d will be zero, thus
     # the median value will be returned along that axis
-    return M.squeeze() + (d * u).sum(axis=axis) / u.sum(axis=axis)
+    return M.squeeze() + sum_func(d * u, axis=axis) / sum_func(u, axis=axis)
 
 
-def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False):
+def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False,
+                   ignore_nan=False):
     r"""
     Compute the biweight scale.
 
@@ -190,6 +199,8 @@ def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False):
         the non-rejected values), which results in a value closer to the
         true standard deviation for small sample sizes or for a large
         number of rejected values.
+    ignore_nan : bool, optional
+        Whether to ignore NaN values in the input ``data``.
 
     Returns
     -------
@@ -223,11 +234,12 @@ def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False):
 
     return np.sqrt(
         biweight_midvariance(data, c=c, M=M, axis=axis,
-                             modify_sample_size=modify_sample_size))
+                             modify_sample_size=modify_sample_size,
+                             ignore_nan=ignore_nan))
 
 
 def biweight_midvariance(data, c=9.0, M=None, axis=None,
-                         modify_sample_size=False):
+                         modify_sample_size=False, ignore_nan=False):
     r"""
     Compute the biweight midvariance.
 
@@ -297,6 +309,8 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
         includes only the non-rejected values), which results in a value
         closer to the true variance for small sample sizes or for a
         large number of rejected values.
+    ignore_nan : bool, optional
+        Whether to ignore NaN values in the input ``data``.
 
     Returns
     -------
@@ -328,10 +342,17 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     0.97362869104
     """
 
+    if ignore_nan:
+        median_func = np.nanmedian
+        sum_func = np.nansum
+    else:
+        median_func = np.median
+        sum_func = np.sum
+
     data = np.asanyarray(data).astype(np.float64)
 
     if M is None:
-        M = np.median(data, axis=axis)
+        M = median_func(data, axis=axis)
     if axis is not None:
         M = _expand_dims(M, axis=axis)  # NUMPY_LT_1_18
 
@@ -339,15 +360,14 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     d = data - M
 
     # set up the weighting
-    mad = median_absolute_deviation(data, axis=axis)
+    mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
     if axis is None and mad == 0.:
         return 0.  # return zero if data is a constant array
 
     if axis is not None:
         mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
-        const_mask = (mad == 0.)
-        mad[const_mask] = 1.  # prevent divide by zero
+        mad[mad == 0] = 1.  # prevent divide by zero
 
     u = d / (c * mad)
 
@@ -355,22 +375,21 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     mask = np.abs(u) < 1
     u = u ** 2
 
+    nanmask = np.ones(data.shape)
+    if ignore_nan:
+        nanmask[np.isnan(data)] = 0
+
     if modify_sample_size:
-        n = mask.sum(axis=axis)
+        n = sum_func(mask, axis=axis)
     else:
-        if axis is None:
-            n = data.size
-        elif type(axis) in (tuple, list):
-            n = np.prod([data.shape[i] for i in axis])
-        else:  # axis is int
-            n = data.shape[axis]
+        n = np.sum(nanmask, axis=axis)
 
     f1 = d * d * (1. - u)**4
     f1[~mask] = 0.
-    f1 = f1.sum(axis=axis)
+    f1 = sum_func(f1, axis=axis)
     f2 = (1. - u) * (1. - 5.*u)
     f2[~mask] = 0.
-    f2 = np.abs(f2.sum(axis=axis))**2
+    f2 = np.abs(np.sum(f2, axis=axis))**2
 
     return n * f1 / f2
 
@@ -542,9 +561,7 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
 
     # set up the weighting
     mad = median_absolute_deviation(data, axis=1)
-
-    const_mask = (mad == 0.)
-    mad[const_mask] = 1.  # prevent divide by zero
+    mad[mad == 0] = 1.  # prevent divide by zero
 
     u = (d.T / (c * mad)).T
 
