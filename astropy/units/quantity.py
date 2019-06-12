@@ -1526,10 +1526,11 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             return NotImplemented
 
         else:
-            warnings.warn("function '{}' is not known to Quantity. Will "
-                          "run it anyway, but please raise an issue at "
-                          "https://github.com/astropy/astropy/issues."
-                          .format(function.__name__))
+            warnings.warn("function '{}' is not known to astropy's Quantity. "
+                          "Will run it anyway, hoping it will treat ndarray "
+                          "subclasses correctly. Please raise an issue at "
+                          "https://github.com/astropy/astropy/issues. "
+                          .format(function.__name__), AstropyWarning)
 
             return super().__array_function__(function, types, args, kwargs)
 
