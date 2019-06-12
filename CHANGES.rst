@@ -298,9 +298,6 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
-- Fix the conversion of bytes values to Python ``str`` with ``Table.tolist``.
-  [#8739]
-
 - Fix a problem where mask was dropped when creating a ``MaskedColumn``
   from a list of ``MaskedArray`` objects. [#8826]
 
