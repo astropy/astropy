@@ -186,8 +186,11 @@ def invariant_m_helper(m, *args, **kwargs):
     return (m.view(np.ndarray),) + args, kwargs, m.unit, None
 
 
-# Not really logical to allow ones_like (what is the point of it?),
-# but keeping it since it used to work without __array_function__.
+# Note that ones_like does *not* work by default (unlike zeros_like) since if
+# one creates an empty array with a unit, one cannot just fill it with unity.
+# Indeed, in this respect, it is a bit of an odd function for Quantity. On the
+# other hand, it matches the idea that a unit is the same as the quantity with
+# that unit and value of 1. Also, it used to work without __array_function__.
 @function_helper
 def ones_like(a, *args, **kwargs):
     subok = args[2] if len(args) > 2 else kwargs.pop('subok', True)
