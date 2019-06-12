@@ -37,9 +37,9 @@ packages that use the full bugfix/maintenance branch approach.)
    contributors who are not careful about using the same e-mail address for
    every commit.  The easiest way to do this is to run the command
    ``git shortlog -n -s -e`` to see the list of all contributors and their email
-   addresses.  Look for any mis-named entries or duplicates, and add them to the
+   addresses.  Look for any misnamed entries or duplicates, and add them to the
    ``.mailmap`` file (matched to the appropriate canonical name/email address.)
-   Once you have finished this, you can could the number of lines in
+   Once you have finished this, you can count the number of lines in
    ``git shortlog -s`` to get the final contributor count.
 
 #. Also be sure to update the ``docs/credits.rst`` file to include any new
