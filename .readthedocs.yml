@@ -3,17 +3,17 @@ version: 2
 build:
   image: latest
 
-# Install special pinning for RTD first, if any.
-# Then install regular dependencies.
+# Install regular dependencies.
+# Then, install special pinning for RTD.
 python:
   version: 3.6
   install:
-    - requirements: docs/rtd_requirements.txt
     - method: pip
       path: .
       extra_requirements:
         - docs
         - all
+    - requirements: docs/rtd_requirements.txt
 
 submodules:
   include: all
