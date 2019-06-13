@@ -7,9 +7,7 @@ making use of astropy's test runner).
 import os
 import builtins
 import tempfile
-from importlib.util import find_spec
 
-import astropy
 from astropy.tests.plugins.display import PYTEST_HEADER_MODULES
 from astropy.tests.helper import enable_deprecations_as_exceptions
 
@@ -19,12 +17,6 @@ except ImportError:
     HAS_MATPLOTLIB = False
 else:
     HAS_MATPLOTLIB = True
-
-if find_spec('asdf') is not None:
-    from asdf import __version__ as asdf_version
-    if asdf_version >= astropy.__minimum_asdf_version__:
-        pytest_plugins = ['asdf.tests.schema_tester']
-        PYTEST_HEADER_MODULES['Asdf'] = 'asdf'
 
 enable_deprecations_as_exceptions(
     include_astropy_deprecations=False,
