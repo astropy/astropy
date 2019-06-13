@@ -1124,6 +1124,9 @@ class Header:
 
         if other is None:
             pass
+        elif isinstance(other, Header):
+            for card in other.cards:
+                self._update(card)
         elif hasattr(other, 'items'):
             for k, v in other.items():
                 update_from_dict(k, v)
