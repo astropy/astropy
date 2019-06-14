@@ -1590,10 +1590,9 @@ class TestHeaderFunctions(FitsTestCase):
     def test_fromfile(self):
         """Regression test for https://github.com/astropy/astropy/issues/8711
         """
-        filename = self.temp('test.fits')
-        hdu = fits.HDUList(fits.PrimaryHDU(1))
-        hdu.writeto(filename)
-        fits.Header.fromfile(filename)
+        filename = self.data('scale.fits')
+        hdr = fits.Header.fromfile(filename)
+        assert hdr['DATASET'] == '2MASS'
 
     def test_header_fromtextfile(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/122
