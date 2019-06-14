@@ -8,7 +8,8 @@ import warnings
 
 from .card import Card, _pad, KEYWORD_LENGTH, UNDEFINED
 from .file import _File
-from .util import encode_ascii, decode_ascii, fileobj_closed, fileobj_is_binary
+from .util import (encode_ascii, decode_ascii, fileobj_closed,
+                   fileobj_is_binary, path_like)
 from ._utils import parse_header
 
 from astropy.utils import isiterable
@@ -481,11 +482,20 @@ class Header:
         """
 
         close_file = False
-        if isinstance(fileobj, str):
-            # Open in text mode by default to support newline handling; if a
-            # binary-mode file object is passed in, the user is on their own
-            # with respect to newline handling
-            fileobj = open(fileobj, 'r')
+
+        if isinstance(fileobj, path_like):
+            # If sep is non-empty we are trying to read a header printed to a
+            # text file, so open in text mode by default to support newline
+            # handling; if a binary-mode file object is passed in, the user is
+            # then on their own w.r.t. newline handling.
+            #
+            # Otherwise assume we are reading from an actual FITS file and open
+            # in binary mode.
+            if sep:
+                fileobj = open(fileobj, 'r', encoding='latin1')
+            else:
+                fileobj = open(fileobj, 'rb')
+
             close_file = True
 
         try:
