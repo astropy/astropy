@@ -97,6 +97,7 @@ def test_quantity_subclass():
         assert plt.gca().yaxis.get_units() == u.kg
 
 
+@pytest.mark.skipif('not HAS_PLT')
 def test_nested():
 
     with quantity_support():
