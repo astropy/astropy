@@ -39,6 +39,11 @@ astropy.coordinates
   parameter sets will be added to this object periodically to keep up with
   ever-improved measurements of the solar position and motion. [#9346]
 
+- Coordinate frame classes can now have multiple aliases by assigning a list
+  of aliases to the class variable ``name``.  Any of the aliases can be used
+  for attribute-style access or as the target of ``tranform_to()`` calls.
+  [#8834]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
