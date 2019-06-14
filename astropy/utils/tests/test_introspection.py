@@ -2,6 +2,7 @@
 
 # namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple
+from unittest import mock
 
 import pytest
 
@@ -73,3 +74,19 @@ def test_minversion():
         assert minversion(test_module, version)
     for version in bad_versions:
         assert not minversion(test_module, version)
+
+
+def test_find_current_module_bundle():
+    """
+    Tests that the `find_current_module` function would work if used inside
+    an application bundle. Since we can't test this directly, we test what
+    would happen if inspect.getmodule returned `None`, which is what happens
+    inside PyInstaller and py2app bundles.
+    """
+    with mock.patch('inspect.getmodule', return_value=None):
+        mod1 = 'astropy.utils.introspection'
+        mod2 = 'astropy.utils.tests.test_introspection'
+        mod3 = 'astropy.utils.tests.test_introspection'
+        assert find_current_module(0).__name__ == mod1
+        assert find_current_module(1).__name__ == mod2
+        assert find_current_module(0, True).__name__ == mod3
