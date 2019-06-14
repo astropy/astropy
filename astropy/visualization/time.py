@@ -195,11 +195,11 @@ def time_support(scale=None, format=None, simplify=True):
             self.scale = scale
             self.simplify = simplify
 
-            if Time not in units.registry:
-                units.registry[Time] = self
-                self._remove = True
-            else:
-                self._remove = False
+            # Keep track of original converter in case the context manager is
+            # used in a nested way.
+            self._original_converter = units.registry.get(Time)
+
+            units.registry[Time] = self
 
         @property
         def format(self):
@@ -215,8 +215,10 @@ def time_support(scale=None, format=None, simplify=True):
             return self
 
         def __exit__(self, type, value, tb):
-            if self._remove:
+            if self._original_converter is None:
                 del units.registry[Time]
+            else:
+                units.registry[Time] = self._original_converter
 
         def default_units(self, x, axis):
             if isinstance(x, tuple):

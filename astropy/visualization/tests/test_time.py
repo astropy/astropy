@@ -168,3 +168,22 @@ def test_plot():
         ax.plot(Time(['2015-03-22T12:30:30.9',
                       '2018-03-22T12:30:30.9',
                       '2021-03-22T12:30:30.9']))
+
+
+def test_nested():
+
+    with time_support(format='iso', simplify=False):
+
+        with time_support(format='yday', simplify=True):
+
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1)
+            ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+            assert get_ticklabels(ax.xaxis) == ['2020', '2040', '2060']
+
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.set_xlim(Time('2014-03-22T12:30:30.9'), Time('2077-03-22T12:30:32.1'))
+        assert get_ticklabels(ax.xaxis) == ['2020-01-01 00:00:00.000',
+                                            '2040-01-01 00:00:00.000',
+                                            '2060-01-01 00:00:00.000']
