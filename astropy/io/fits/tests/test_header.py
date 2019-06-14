@@ -1587,6 +1587,13 @@ class TestHeaderFunctions(FitsTestCase):
             assert len(hdul2) == 2
             assert 'MYKEY' in hdul2[1].header
 
+    def test_fromfile(self):
+        """Regression test for https://github.com/astropy/astropy/issues/8711
+        """
+        filename = self.data('scale.fits')
+        hdr = fits.Header.fromfile(filename)
+        assert hdr['DATASET'] == '2MASS'
+
     def test_header_fromtextfile(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/122
 
