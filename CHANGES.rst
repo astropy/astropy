@@ -2011,6 +2011,8 @@ astropy.io.fits
 - Fix ``Header.update`` which was dropping the comments when passed
   a ``Header`` object. [#8840]
 
+- Fix ``Header.fromfile`` to work on FITS files. [#8713]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
