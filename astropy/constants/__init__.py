@@ -66,6 +66,7 @@ def set_enabled_constants(modname):
 
     # Re-import here because these were deleted from namespace on init.
     import warnings
+    from astropy.utils import find_current_module
     from . import utils as _utils
 
     # NOTE: Update this when default changes.
