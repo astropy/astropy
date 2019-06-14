@@ -503,3 +503,26 @@ def test_static_matrix_combine_paths():
 
     for t_ in [t1, t2, t3, t4]:
         t_.unregister(frame_transform_graph)
+
+
+def test_multiple_aliases():
+    from astropy.coordinates.baseframe import BaseCoordinateFrame
+
+    # Define a frame with multiple aliases
+    class MultipleAliasesFrame(BaseCoordinateFrame):
+        name = ['alias_1', 'alias_2']
+        default_representation = r.SphericalRepresentation
+
+    # Register a transform
+    graph = t.TransformGraph()
+    tfun = lambda c, f: f.__class__(lon=c.lon, lat=c.lat)
+    ftrans = t.FunctionTransform(tfun, MultipleAliasesFrame, MultipleAliasesFrame,
+                                 register_graph=graph)
+
+    # Test that both aliases have been added to the transform graph
+    assert graph.lookup_name('alias_1') == MultipleAliasesFrame
+    assert graph.lookup_name('alias_2') == MultipleAliasesFrame
+
+    # Test that both aliases appear in the graphviz DOT format output
+    dotstr = graph.to_dot_graph()
+    assert '`alias_1`\\n`alias_2`' in dotstr

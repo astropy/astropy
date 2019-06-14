@@ -21,6 +21,7 @@ from astropy.coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                                  BaseCoordinateFrame, Attribute,
                                  frame_transform_graph, RepresentationMapping)
 from astropy.coordinates import Latitude, EarthLocation
+from astropy.coordinates.transformations import FunctionTransform
 from astropy.time import Time
 from astropy.utils import minversion, isiterable
 from astropy.units import allclose as quantity_allclose
@@ -1551,3 +1552,31 @@ def test_none_differential_type():
 
     fr = MockHeliographicStonyhurst(lon=1*u.deg, lat=2*u.deg, radius=10*u.au)
     SkyCoord(0*u.deg, fr.lat, fr.radius, frame=fr) # this was the failure
+
+
+def test_multiple_aliases():
+    # Define a frame with multiple aliases
+    class MultipleAliasesFrame(BaseCoordinateFrame):
+        name = ['alias_1', 'alias_2']
+        default_representation = SphericalRepresentation
+
+    # Register a transform, which adds the aliases to the transform graph
+    tfun = lambda c, f: f.__class__(lon=c.lon, lat=c.lat)
+    ftrans = FunctionTransform(tfun, MultipleAliasesFrame, MultipleAliasesFrame,
+                               register_graph=frame_transform_graph)
+
+    coord = SkyCoord(lon=1*u.deg, lat=2*u.deg, frame=MultipleAliasesFrame)
+
+    # Test attribute-style access returns self (not a copy)
+    assert coord.alias_1 is coord
+    assert coord.alias_2 is coord
+
+    # Test for aliases in __dir__()
+    assert 'alias_1' in coord.__dir__()
+    assert 'alias_2' in coord.__dir__()
+
+    # Test transform_to() calls
+    assert isinstance(coord.transform_to('alias_1').frame, MultipleAliasesFrame)
+    assert isinstance(coord.transform_to('alias_2').frame, MultipleAliasesFrame)
+
+    ftrans.unregister(frame_transform_graph)
