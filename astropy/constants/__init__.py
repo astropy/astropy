@@ -13,8 +13,9 @@ A typical use case might be::
     <Quantity 0.510998927603161 MeV>
 
 """
-import inspect
 from contextlib import contextmanager
+
+from astropy.utils import find_current_module
 
 # Hack to make circular imports with units work
 try:
@@ -38,7 +39,7 @@ _lines = [
 ]
 
 # NOTE: Update this when default changes.
-_utils._set_c(codata2014, iau2015, inspect.getmodule(inspect.currentframe()),
+_utils._set_c(codata2014, iau2015, find_current_module(),
               not_in_module_only=True, doclines=_lines, set_class=True)
 
 _lines.append(_lines[1])
@@ -64,8 +65,8 @@ def set_enabled_constants(modname):
     """
 
     # Re-import here because these were deleted from namespace on init.
-    import inspect
     import warnings
+    from astropy.utils import find_current_module
     from . import utils as _utils
 
     # NOTE: Update this when default changes.
@@ -76,7 +77,7 @@ def set_enabled_constants(modname):
         raise ValueError(
             'Context manager does not currently handle {}'.format(modname))
 
-    module = inspect.getmodule(inspect.currentframe())
+    module = find_current_module()
 
     # Ignore warnings about "Constant xxx already has a definition..."
     with warnings.catch_warnings():
@@ -95,7 +96,7 @@ def set_enabled_constants(modname):
 
 
 # Clean up namespace
-del inspect
+del find_current_module
 del contextmanager
 del _utils
 del _lines
