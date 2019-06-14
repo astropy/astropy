@@ -2436,6 +2436,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Fix ``find_current_module`` so that it works properly if astropy is being used
+  inside a bundle such as that produced by PyInstaller. [#8845]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
