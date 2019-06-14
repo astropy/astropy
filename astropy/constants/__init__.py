@@ -16,6 +16,8 @@ A typical use case might be::
 import inspect
 from contextlib import contextmanager
 
+from astropy.utils import find_current_module
+
 # Hack to make circular imports with units work
 try:
     from astropy import units
@@ -38,7 +40,7 @@ _lines = [
 ]
 
 # NOTE: Update this when default changes.
-_utils._set_c(codata2014, iau2015, inspect.getmodule(inspect.currentframe()),
+_utils._set_c(codata2014, iau2015, find_current_module(),
               not_in_module_only=True, doclines=_lines, set_class=True)
 
 _lines.append(_lines[1])
@@ -76,7 +78,7 @@ def set_enabled_constants(modname):
         raise ValueError(
             'Context manager does not currently handle {}'.format(modname))
 
-    module = inspect.getmodule(inspect.currentframe())
+    module = find_current_module()
 
     # Ignore warnings about "Constant xxx already has a definition..."
     with warnings.catch_warnings():
