@@ -3,12 +3,12 @@
 Astronomical and physics constants for Astropy v2.0.  See :mod:`astropy.constants`
 for a complete listing of constants defined in Astropy.
 """
-import inspect
+from astropy.utils import find_current_module
 from . import utils as _utils
 from . import codata2014, iau2015
 
-_utils._set_c(codata2014, iau2015, inspect.getmodule(inspect.currentframe()))
+_utils._set_c(codata2014, iau2015, find_current_module())
 
 # Clean up namespace
-del inspect
+del find_current_module
 del _utils
