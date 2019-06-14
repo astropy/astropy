@@ -35,9 +35,21 @@ def quantity_support(format='latex_inline'):
 
     """
     from .. import units as u
+    # import Angle just so we have a more or less complete list of Quantity
+    # subclasses loaded - matplotlib needs them all separately!
+    # NOTE: in matplotlib >=3.2, subclasses will be recognized automatically,
+    # and once that becomes our minimum version, we can remove this,
+    # adding just u.Quantity itself to the registry.
+    from ..coordinates import Angle  # noqa
 
     from matplotlib import units
     from matplotlib import ticker
+
+    # Get all subclass for Quantity, since matplotlib checks on class,
+    # not subclass.
+    def all_issubclass(cls):
+        return {cls}.union(
+            [s for c in cls.__subclasses__() for s in all_issubclass(c)])
 
     def rad_fn(x, pos=None):
         n = int((x / np.pi) * 2.0 + 0.25)
@@ -53,12 +65,13 @@ def quantity_support(format='latex_inline'):
             return '{0}π/2'.format(n)
 
     class MplQuantityConverter(units.ConversionInterface):
+
+        _all_issubclass_quantity = all_issubclass(u.Quantity)
+
         def __init__(self):
-            if u.Quantity not in units.registry:
-                units.registry[u.Quantity] = self
-                self._remove = True
-            else:
-                self._remove = False
+            self._remove = u.Quantity not in units.registry
+            for cls in self._all_issubclass_quantity:
+                units.registry[cls] = self
 
         @staticmethod
         def axisinfo(unit, axis):
@@ -98,6 +111,7 @@ def quantity_support(format='latex_inline'):
 
         def __exit__(self, type, value, tb):
             if self._remove:
-                del units.registry[u.Quantity]
+                for cls in self._all_issubclass_quantity:
+                    del units.registry[cls]
 
     return MplQuantityConverter()
