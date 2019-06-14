@@ -1397,7 +1397,7 @@ def test_quantity_from_table():
     This also generically checks the use of *anything* with a `unit` attribute
     passed into Quantity
     """
-    from... table import Table
+    from astropy.table import Table
 
     t = Table(data=[np.arange(5), np.arange(5)], names=['a', 'b'])
     t['a'].unit = u.kpc
