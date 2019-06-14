@@ -31,6 +31,9 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Avoid reporting a warning with ``BinTableHDU.from_columns`` with keywords that
+  are not provided by the user.  [#8838]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 

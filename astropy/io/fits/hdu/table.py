@@ -324,7 +324,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 # warning for at least one major version.
                 if header is not None:
                     future_ignore = set()
-                    for keyword in self._header.keys():
+                    for keyword in header.keys():
                         match = TDEF_RE.match(keyword)
                         try:
                             base_keyword = match.group('label')
