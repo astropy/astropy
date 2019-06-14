@@ -312,17 +312,22 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
         # Find largest between header size and value length
         world_dim_width = max(9, len(str(self.world_n_dim)))
-        world_typ_width = max(13, max(len(x) for x in self.world_axis_physical_types))
+        world_typ_width = max(13, max(len(x) if x is not None else 0 for x in self.world_axis_physical_types))
 
         s += (('{0:' + str(world_dim_width) + 's}').format('World Dim') + '  ' +
               ('{0:' + str(world_typ_width) + 's}').format('Physical Type') + '  ' +
                'Units\n')
 
         for iwrl in range(self.world_n_dim):
-            s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) + '  ' +
-                  ('{0:' + str(world_typ_width) + 's}').format(self.world_axis_physical_types[iwrl]) + '  ' +
-                  '{0:s}'.format(self.world_axis_units[iwrl] + '\n'))
 
+            if self.world_axis_physical_types[iwrl] is not None:
+                s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) + '  ' +
+                      ('{0:' + str(world_typ_width) + 's}').format(self.world_axis_physical_types[iwrl]) + '  ' +
+                      '{0:s}'.format(self.world_axis_units[iwrl] + '\n'))
+            else:
+                s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) + '  ' +
+                      ('{0:' + str(world_typ_width) + 's}').format('None') + '  ' +
+                      '{0:s}'.format('unknown' + '\n'))
         s += '\n'
 
         # Axis correlation matrix
