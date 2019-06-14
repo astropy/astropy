@@ -217,11 +217,19 @@ class TestHeaderFunctions(FitsTestCase):
         header = fits.Header()
         header.update({'FOO': ('BAR', 'BAZ')})
         header.update(FakeHeader([('A', 1), ('B', 2, 'comment')]))
+
         assert set(header.keys()) == {'FOO', 'A', 'B'}
         assert header.comments['B'] == 'comment'
 
+        # test that comments are preserved
+        tmphdr = fits.Header()
+        tmphdr['HELLO'] = (1, 'this is a comment')
+        header.update(tmphdr)
+        assert set(header.keys()) == {'FOO', 'A', 'B', 'HELLO'}
+        assert header.comments['HELLO'] == 'this is a comment'
+
         header.update(NAXIS1=100, NAXIS2=100)
-        assert set(header.keys()) == {'FOO', 'A', 'B', 'NAXIS1', 'NAXIS2'}
+        assert set(header.keys()) == {'FOO', 'A', 'B', 'HELLO', 'NAXIS1', 'NAXIS2'}
         assert set(header.values()) == {'BAR', 1, 2, 100, 100}
 
     def test_update_comment(self):

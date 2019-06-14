@@ -28,6 +28,9 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Fix ``Header.update`` which was dropping the comments when passed
+  a ``Header`` object. [#8840]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
