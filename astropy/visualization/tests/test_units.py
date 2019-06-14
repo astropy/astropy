@@ -13,6 +13,7 @@ else:
     HAS_PLT = True
 
 from astropy import units as u
+from astropy.coordinates import Angle
 from astropy.visualization.units import quantity_support
 
 
@@ -75,3 +76,22 @@ def test_incompatible_units():
             plt.plot([105, 210, 315] * u.kg)
 
     plt.clf()
+
+
+@pytest.mark.skipif('not HAS_PLT')
+def test_quantity_subclass():
+    """Check that subclasses are recognized.
+
+    This sadly is not done by matplotlib.units itself, though
+    there is a PR to change it:
+    https://github.com/matplotlib/matplotlib/pull/13536
+    """
+    plt.figure()
+
+    with quantity_support():
+        plt.scatter(Angle([1, 2, 3], u.deg), [3, 4, 5] * u.kg)
+        plt.scatter([105, 210, 315] * u.arcsec, [3050, 3025, 3010] * u.g)
+        plt.plot(Angle([105, 210, 315], u.arcsec), [3050, 3025, 3010] * u.g)
+
+        assert plt.gca().xaxis.get_units() == u.deg
+        assert plt.gca().yaxis.get_units() == u.kg
