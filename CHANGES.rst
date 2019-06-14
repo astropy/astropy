@@ -74,6 +74,9 @@ astropy.visualization
   does not detect subclasses in its ``units`` framework. With this,
   ``Angle`` and other subclasses work correctly. [#8818]
 
+- Fixed ``quantity_support`` to work properly if multiple context managers
+  are nested. [#8844]
+
 astropy.vo
 ^^^^^^^^^^
 

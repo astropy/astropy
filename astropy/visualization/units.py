@@ -69,8 +69,13 @@ def quantity_support(format='latex_inline'):
         _all_issubclass_quantity = all_issubclass(u.Quantity)
 
         def __init__(self):
-            self._remove = u.Quantity not in units.registry
+
+            # Keep track of original converter in case the context manager is
+            # used in a nested way.
+            self._original_converter = {}
+
             for cls in self._all_issubclass_quantity:
+                self._original_converter[cls] = units.registry.get(cls)
                 units.registry[cls] = self
 
         @staticmethod
@@ -110,8 +115,10 @@ def quantity_support(format='latex_inline'):
             return self
 
         def __exit__(self, type, value, tb):
-            if self._remove:
-                for cls in self._all_issubclass_quantity:
+            for cls in self._all_issubclass_quantity:
+                if self._original_converter[cls] is None:
                     del units.registry[cls]
+                else:
+                    units.registry[cls] = self._original_converter[cls]
 
     return MplQuantityConverter()

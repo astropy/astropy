@@ -98,3 +98,25 @@ def test_quantity_subclass():
 
         assert plt.gca().xaxis.get_units() == u.deg
         assert plt.gca().yaxis.get_units() == u.kg
+
+
+@pytest.mark.skipif('not HAS_PLT')
+def test_nested():
+
+    with quantity_support():
+
+        with quantity_support():
+
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1)
+            ax.scatter(Angle([1, 2, 3], u.deg), [3, 4, 5] * u.kg)
+
+            assert ax.xaxis.get_units() == u.deg
+            assert ax.yaxis.get_units() == u.kg
+
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.scatter(Angle([1, 2, 3], u.arcsec), [3, 4, 5] * u.pc)
+
+        assert ax.xaxis.get_units() == u.arcsec
+        assert ax.yaxis.get_units() == u.pc
