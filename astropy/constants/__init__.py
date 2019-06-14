@@ -13,7 +13,6 @@ A typical use case might be::
     <Quantity 0.510998927603161 MeV>
 
 """
-import inspect
 from contextlib import contextmanager
 
 from astropy.utils import find_current_module
@@ -66,7 +65,6 @@ def set_enabled_constants(modname):
     """
 
     # Re-import here because these were deleted from namespace on init.
-    import inspect
     import warnings
     from . import utils as _utils
 
@@ -97,7 +95,7 @@ def set_enabled_constants(modname):
 
 
 # Clean up namespace
-del inspect
+del find_current_module
 del contextmanager
 del _utils
 del _lines
