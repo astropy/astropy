@@ -8,9 +8,7 @@ import re
 import os
 import sys
 import types
-import pkgutil
 import importlib
-import zipimport
 from distutils.version import LooseVersion
 
 __all__ = ['resolve_name', 'minversion', 'find_current_module',
