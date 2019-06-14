@@ -340,9 +340,7 @@ class TestFitsTime(FitsTestCase):
                  ('OBSGEO-Z', 4077985)]
 
         # Explicitly create a FITS Binary Table
-        with pytest.warns(AstropyDeprecationWarning, match='should be set via '
-                          'the Column objects: TCTYPn, TRPOSn'):
-            bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
         tm = table_types.read(self.temp('time.fits'), astropy_native=True)
@@ -356,9 +354,7 @@ class TestFitsTime(FitsTestCase):
         cards = [('OBSGEO-L', 0), ('OBSGEO-B', 0), ('OBSGEO-H', 0)]
 
         # Explicitly create a FITS Binary Table
-        with pytest.warns(AstropyDeprecationWarning, match='should be set via '
-                          'the Column objects: TCTYPn, TRPOSn'):
-            bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
         tm = table_types.read(self.temp('time.fits'), astropy_native=True)
@@ -382,9 +378,7 @@ class TestFitsTime(FitsTestCase):
 
         cards = [('OBSGEO-L', 0), ('OBSGEO-B', 0), ('OBSGEO-H', 0)]
 
-        with pytest.warns(AstropyDeprecationWarning, match='should be set via '
-                          'the Column objects: TCTYPn, TCUNIn, TRPOSn'):
-            bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
         with catch_warnings() as w:
