@@ -2293,6 +2293,10 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Fixed ``quantity_support`` to work around the fact that matplotlib
+  does not detect subclasses in its ``units`` framework. With this,
+  ``Angle`` and other subclasses work correctly. [#8818]
+
 astropy.vo
 ^^^^^^^^^^
 
