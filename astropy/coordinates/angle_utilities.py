@@ -787,14 +787,16 @@ def offset_by(lon, lat, posang, distance):
 
     A = Angle(np.arctan2(xsin_A, xcos_A), u.radian)
     # Treat the poles as if they are infinitesimally far from pole but at given lon
-    # The +0*xsin_A is to broadcast a scalar to vector as necessary
-    w_pole = np.argwhere((sin_c + 0*xsin_A) < 1e-12)
-    if len(w_pole) > 0:
+    small_sin_c = sin_c < 1e-12
+    if small_sin_c.any():
         # For south pole (cos_c = -1), A = posang; for North pole, A=180 deg - posang
         A_pole = (90*u.deg + cos_c*(90*u.deg-Angle(posang, u.radian))).to(u.rad)
-        try:
-            A[w_pole] = A_pole[w_pole]
-        except TypeError as e: # scalar
+        if A.shape:
+            # broadcast to ensure the shape is like that of A, which is also
+            # affected by the (possible) shapes of lat, posang, and distance.
+            small_sin_c = np.broadcast_to(small_sin_c, A.shape)
+            A[small_sin_c] = A_pole[small_sin_c]
+        else:
             A = A_pole
 
     outlon = (Angle(lon, u.radian) + A).wrap_at(360.0*u.deg).to(u.deg)
