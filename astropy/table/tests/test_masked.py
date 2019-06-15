@@ -8,6 +8,7 @@ import numpy as np
 import numpy.ma as ma
 
 from astropy.table import Column, MaskedColumn, Table, QTable
+from astropy.table.column import BaseColumn
 from astropy.tests.helper import catch_warnings
 from astropy.time import Time
 import astropy.units as u
@@ -499,3 +500,46 @@ def test_masked_column_with_unit_in_qtable():
     assert len(w) == 1
     assert "dropping mask in Quantity column 'c'"
     assert isinstance(t['b'], u.Quantity)
+
+
+def test_masked_column_data_attribute_is_plain_masked_array():
+    c = MaskedColumn([1, 2], mask=[False, True])
+    c_data = c.data
+    assert type(c_data) is np.ma.MaskedArray
+    assert type(c_data.data) is np.ndarray
+
+
+def test_mask_slicing_count_array_finalize():
+    """Check that we don't finalize MaskedColumn too often.
+
+    Regression test for gh-6721.
+    """
+    # Create a new BaseColumn class that counts how often
+    # ``__array_finalize__`` is called.
+    class MyBaseColumn(BaseColumn):
+        counter = 0
+
+        def __array_finalize__(self, obj):
+            super().__array_finalize__(obj)
+            MyBaseColumn.counter += 1
+
+    # Base a new MaskedColumn class on it.  The normal MaskedColumn
+    # hardcodes the initialization to BaseColumn, so we exchange that.
+    class MyMaskedColumn(MaskedColumn, Column, MyBaseColumn):
+        def __new__(cls, *args, **kwargs):
+            self = super().__new__(cls, *args, **kwargs)
+            self._baseclass = MyBaseColumn
+            return self
+
+    # Creation really needs 2 finalizations (once for the BaseColumn
+    # call inside ``__new__`` and once when the view as a MaskedColumn
+    # is taken), but since the first is hardcoded, we do not capture it
+    # and thus the count is only 1.
+    c = MyMaskedColumn([1, 2], mask=[False, True])
+    assert MyBaseColumn.counter == 1
+    # slicing should need only one ``__array_finalize__`` (used to be 3).
+    c0 = c[:]
+    assert MyBaseColumn.counter == 2
+    # repr should need none (used to be 2!!)
+    repr(c0)
+    assert MyBaseColumn.counter == 2

@@ -64,6 +64,9 @@ astropy.table
 - Improved the implementation of ``Table.replace_column()`` to provide
   a speed-up of 5-10 times for wide tables. [#8902]
 
+- ``MaskedColumn.data`` will now return a plain ``MaskedArray`` rather than
+  the previous (unintended) ``masked_BaseColumn``. [#8855]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

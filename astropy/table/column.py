@@ -1272,10 +1272,12 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
     @property
     def data(self):
-        out = self.view(ma.MaskedArray)
-        # The following is necessary because of a bug in Numpy, which was
-        # fixed in numpy/numpy#2703. The fix should be included in Numpy 1.8.0.
-        out.fill_value = self.fill_value
+        """The plain MaskedArray data held by this column."""
+        out = self.view(np.ma.MaskedArray)
+        # By default, a MaskedArray view will set the _baseclass to be the
+        # same as that of our own class, i.e., BaseColumn.  Since we want
+        # to return a plain MaskedArray, we reset the baseclass accordingly.
+        out._baseclass = np.ndarray
         return out
 
     def filled(self, fill_value=None):
