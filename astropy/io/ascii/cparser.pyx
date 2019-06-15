@@ -814,7 +814,7 @@ cdef class CParser:
 
     def __reduce__(self):
         cdef bytes source_ptr = self.source_ptr if self.source_ptr else b''
-        fast_reader = dict(expchar=chr(self.tokenizer.expchar),
+        fast_reader = dict(exponent_style=chr(self.tokenizer.expchar),
                            use_fast_converter=self.tokenizer.use_fast_converter,
                            parallel=False)
         return (_copy_cparser, (source_ptr, self.source_bytes, self.use_cols, self.fill_names,
