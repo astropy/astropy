@@ -1,32 +1,8 @@
-3.2.1 (unreleased)
+3.2.1 (2019-06-14)
 ==================
 
 Bug fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -34,61 +10,16 @@ astropy.io.fits
 - Avoid reporting a warning with ``BinTableHDU.from_columns`` with keywords that
   are not provided by the user.  [#8838]
 
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
+- Fix ``Header.fromfile`` to work on FITS files. [#8713]
 
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
+- Fix reading of empty ``BinTableHDU`` when stored in a gzip-compressed file.
+  [#8848]
 
 astropy.table
 ^^^^^^^^^^^^^
 
 - Fix a problem where mask was dropped when creating a ``MaskedColumn``
   from a list of ``MaskedArray`` objects. [#8826]
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-- Fixed a bug that prevented ``EarthLocation`` from being initialized with
-  numpy >=1.17. [#8849]
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Other Changes and Additions
----------------------------
-
 
 
 
@@ -1981,32 +1912,11 @@ Other Changes and Additions
 
 
 
-2.0.14 (unreleased)
+2.0.14 (2019-06-14)
 ===================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -2014,45 +1924,17 @@ astropy.io.fits
 - Fix ``Header.update`` which was dropping the comments when passed
   a ``Header`` object. [#8840]
 
-- Fix ``Header.fromfile`` to work on FITS files. [#8713]
-- Fix reading of empty ``BinTableHDU`` when stored in a gzip-compressed file.
-  [#8848]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - ``Moffat1D.fwhm`` and ``Moffat2D.fwhm`` will return a positive value when
   ``gamma`` is negative. [#8801, #8815]
 
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
-astropy.utils
-^^^^^^^^^^^^^
+- Fixed a bug that prevented ``EarthLocation`` from being initialized with
+  numpy >=1.17. [#8849]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -2063,18 +1945,6 @@ astropy.visualization
 
 - Fixed ``quantity_support`` to work properly if multiple context managers
   are nested. [#8844]
-
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Other Changes and Additions
----------------------------
-
-
 
 
 2.0.13 (2019-06-08)
