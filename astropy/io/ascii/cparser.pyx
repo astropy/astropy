@@ -444,9 +444,15 @@ cdef class CParser:
         chunkindices.append(source_len)
         cdef list processes = []
 
+        # FIXME: In Python 3.8, multiprocessing defaults to 'spawn' instead of
+        # 'fork' but this currently causes issues for the code here, so we
+        # explicitly use 'fork'. See https://github.com/astropy/astropy/issues/8851
+        # for more details.
+        ctx = multiprocessing.get_context('fork')
+
         # Create and start N parallel processes to read the N chunks
         for i in range(N):
-            process = multiprocessing.Process(target=_read_chunk, args=(self,
+            process = ctx.Process(target=_read_chunk, args=(self,
                 chunkindices[i], chunkindices[i + 1],
                 try_int, try_float, try_string, queue, reconvert_queue, i))
             processes.append(process)
