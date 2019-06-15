@@ -179,8 +179,10 @@ class TimeFormat(metaclass=TimeFormatMeta):
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
         # val1 cannot contain nan, but val2 can contain nan
-        ok1 = val1.dtype == np.double and np.all(np.isfinite(val1))
-        ok2 = val2 is None or (val2.dtype == np.double and not np.any(np.isinf(val2)))
+        ok1 = (val1.dtype == np.double and np.all(np.isfinite(val1)) or
+               val1.size == 0)
+        ok2 = val2 is None or (val2.dtype == np.double and
+                               not np.any(np.isinf(val2))) or val2.size == 0
         if not (ok1 and ok2):
             raise TypeError('Input values for {} class must be finite doubles'
                             .format(self.name))
@@ -620,7 +622,7 @@ class TimeDatetime(TimeUnique):
         # Iterate through the datetime objects, getting year, month, etc.
         iterator = np.nditer([val1, None, None, None, None, None, None],
                              flags=['refs_ok', 'zerosize_ok'],
-                             op_dtypes=[object] + 5*[np.intc] + [np.double])
+                             op_dtypes=[None] + 5*[np.intc] + [np.double])
         for val, iy, im, id, ihr, imin, dsec in iterator:
             dt = val.item()
 
@@ -671,7 +673,7 @@ class TimeDatetime(TimeUnique):
         ifracs = ihmsfs['f']
         iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
                              flags=['refs_ok', 'zerosize_ok'],
-                             op_dtypes=7*[iys.dtype] + [object])
+                             op_dtypes=7*[None] + [object])
 
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
             if isec >= 60:
@@ -752,7 +754,7 @@ class TimeString(TimeUnique):
 
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for these classes
-        if val1.dtype.kind not in ('S', 'U'):
+        if val1.dtype.kind not in ('S', 'U') and val1.size:
             raise TypeError('Input values for {} class must be strings'
                             .format(self.name))
         return val1, None
@@ -809,7 +811,7 @@ class TimeString(TimeUnique):
                      lambda x: str(x.item(), encoding='ascii'))
         iterator = np.nditer([val1, None, None, None, None, None, None],
                              flags=['zerosize_ok'],
-                             op_dtypes=[val1.dtype] + 5*[np.intc] + [np.double])
+                             op_dtypes=[None] + 5*[np.intc] + [np.double])
         for val, iy, im, id, ihr, imin, dsec in iterator:
             val = to_string(val)
             iy[...], im[...], id[...], ihr[...], imin[...], dsec[...] = (
@@ -982,8 +984,12 @@ class TimeDatetime64(TimeISOT):
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class`
         if not val1.dtype.kind == 'M':
-            raise TypeError('Input values for {} class must be '
-                            'datetime64 objects'.format(self.name))
+            if val1.size > 0:
+                raise TypeError('Input values for {} class must be '
+                                'datetime64 objects'.format(self.name))
+            else:
+                val1 = np.array([], 'datetime64[D]')
+
         return val1, None
 
     def set_jds(self, val1, val2):
@@ -1101,7 +1107,7 @@ class TimeFITS(TimeString):
             # If we have times before year 0 or after year 9999, we can
             # output only in a "long" format, using signed 5-digit years.
             jd = self.jd1 + self.jd2
-            if jd.min() < 1721425.5 or jd.max() >= 5373484.5:
+            if jd.size and (jd.min() < 1721425.5 or jd.max() >= 5373484.5):
                 self.out_subfmt = 'long' + self.out_subfmt
         return super().value
 
@@ -1260,7 +1266,7 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
         self._check_scale(self._scale)  # Validate scale.
         iterator = np.nditer([val1, None],
                              flags=['refs_ok', 'zerosize_ok'],
-                             op_dtypes=[object] + [np.double])
+                             op_dtypes=[None] + [np.double])
 
         for val, sec in iterator:
             sec[...] = val.item().total_seconds()
@@ -1272,7 +1278,7 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
     def value(self):
         iterator = np.nditer([self.jd1 + self.jd2, None],
                              flags=['refs_ok', 'zerosize_ok'],
-                             op_dtypes=[self.jd1.dtype] + [object])
+                             op_dtypes=[None] + [object])
 
         for jd, out in iterator:
             out[...] = datetime.timedelta(days=jd.item())
