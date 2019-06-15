@@ -41,7 +41,7 @@ _lines = [
 # Catch warnings about "already has a definition in the None system"
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Constant .*already has a definition')
-    _utils._set_c(codata, iaudata, inspect.getmodule(inspect.currentframe()),
+    _utils._set_c(codata, iaudata, find_current_module(),
                   not_in_module_only=False, doclines=_lines, set_class=True)
 
 _lines.append(_lines[1])
@@ -67,18 +67,19 @@ def set_enabled_constants(modname):
     """
 
     # Re-import here because these were deleted from namespace on init.
+    import importlib
     import warnings
     from astropy.utils import find_current_module
-
     from . import utils as _utils
 
-    # NOTE: Update this whenever versions are added.
-    if modname == 'astropyconst13':
-        from .astropyconst13 import codata as codata_context
-        from .astropyconst13 import iaudata as iaudata_context
-    else:
-        raise ValueError(
-            'Context manager does not currently handle {}'.format(modname))
+    try:
+        modmodule = importlib.import_module('.constants.' + modname, 'astropy')
+        codata_context = modmodule.codata
+        iaudata_context = modmodule.iaudata
+    except ImportError as exc:
+        exc.args += ('Context manager does not currently handle {}'
+                     .format(modname),)
+        raise
 
     module = find_current_module()
 
