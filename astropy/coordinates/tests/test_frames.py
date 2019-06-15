@@ -584,6 +584,7 @@ def test_representation():
     # Create some representation objects.
     icrs_cart = icrs.cartesian
     icrs_spher = icrs.spherical
+    icrs_cyl = icrs.cylindrical
 
     # Testing when `_representation` set to `CartesianRepresentation`.
     icrs.representation_type = r.CartesianRepresentation
@@ -625,7 +626,16 @@ def test_representation():
     icrs.representation_type = 'cylindrical'
 
     assert icrs.representation_type is r.CylindricalRepresentation
+    assert icrs_cyl.rho == icrs.rho
+    assert icrs_cyl.phi == icrs.phi
+    assert icrs_cyl.z == icrs.z
     assert icrs.data == data
+
+    # Testing that an ICRS object in CylindricalRepresentation must not have spherical attributes.
+    for attr in ('ra', 'dec', 'distance'):
+        with pytest.raises(AttributeError) as err:
+            getattr(icrs, attr)
+        assert 'object has no attribute' in str(err)
 
     with pytest.raises(ValueError) as err:
         icrs.representation_type = 'WRONG'
@@ -686,6 +696,10 @@ def test_shorthand_representations():
     rep = rep.with_differentials(dif)
 
     icrs = ICRS(rep)
+
+    cyl = icrs.cylindrical
+    assert isinstance(cyl, r.CylindricalRepresentation)
+    assert isinstance(cyl.differentials['s'], r.CylindricalDifferential)
 
     sph = icrs.spherical
     assert isinstance(sph, r.SphericalRepresentation)
