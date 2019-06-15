@@ -3271,3 +3271,19 @@ def test_new_column_attributes_preserved(tmpdir):
 
     assert hdu2.header['RA'] == 1.5
     assert hdu2.header['DEC'] == 3.0
+
+
+def test_empty_table(tmpdir):
+    ofile = str(tmpdir.join('emptytable.fits'))
+    hdu = fits.BinTableHDU(header=None, data=None, name='TEST')
+    hdu.writeto(ofile)
+
+    with fits.open(ofile) as hdul:
+        assert hdul['TEST'].data.size == 0
+
+    ofile = str(tmpdir.join('emptytable.fits.gz'))
+    hdu = fits.BinTableHDU(header=None, data=None, name='TEST')
+    hdu.writeto(ofile, overwrite=True)
+
+    with fits.open(ofile) as hdul:
+        assert hdul['TEST'].data.size == 0

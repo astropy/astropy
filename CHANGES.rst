@@ -2012,6 +2012,8 @@ astropy.io.fits
   a ``Header`` object. [#8840]
 
 - Fix ``Header.fromfile`` to work on FITS files. [#8713]
+- Fix reading of empty ``BinTableHDU`` when stored in a gzip-compressed file.
+  [#8848]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
