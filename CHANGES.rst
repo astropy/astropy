@@ -244,7 +244,7 @@ Other Changes and Additions
 - Matplotlib 2.1 and later is now required. [#8787]
 
 
-3.2.1 (unreleased)
+3.2.2 (unreleased)
 ==================
 
 Bug fixes
@@ -277,9 +277,6 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
-- Avoid reporting a warning with ``BinTableHDU.from_columns`` with keywords that
-  are not provided by the user.  [#8838]
-
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
@@ -301,9 +298,6 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
-- Fix a problem where mask was dropped when creating a ``MaskedColumn``
-  from a list of ``MaskedArray`` objects. [#8826]
-
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -319,9 +313,6 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
-- Fixed a bug that prevented ``EarthLocation`` from being initialized with
-  numpy >=1.17. [#8849]
-
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -335,6 +326,29 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+
+3.2.1 (2019-06-14)
+==================
+
+Bug fixes
+---------
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Avoid reporting a warning with ``BinTableHDU.from_columns`` with keywords that
+  are not provided by the user.  [#8838]
+
+- Fix ``Header.fromfile`` to work on FITS files. [#8713]
+
+- Fix reading of empty ``BinTableHDU`` when stored in a gzip-compressed file.
+  [#8848]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fix a problem where mask was dropped when creating a ``MaskedColumn``
+  from a list of ``MaskedArray`` objects. [#8826]
 
 
 
@@ -2227,7 +2241,7 @@ Other Changes and Additions
 
 
 
-2.0.14 (unreleased)
+2.0.15 (unreleased)
 ===================
 
 Bug Fixes
@@ -2257,13 +2271,6 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
-- Fix ``Header.update`` which was dropping the comments when passed
-  a ``Header`` object. [#8840]
-
-- Fix ``Header.fromfile`` to work on FITS files. [#8713]
-- Fix reading of empty ``BinTableHDU`` when stored in a gzip-compressed file.
-  [#8848]
-
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -2275,9 +2282,6 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
-
-- ``Moffat1D.fwhm`` and ``Moffat2D.fwhm`` will return a positive value when
-  ``gamma`` is negative. [#8801, #8815]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
@@ -2303,13 +2307,6 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-- Fixed ``quantity_support`` to work around the fact that matplotlib
-  does not detect subclasses in its ``units`` framework. With this,
-  ``Angle`` and other subclasses work correctly. [#8818]
-
-- Fixed ``quantity_support`` to work properly if multiple context managers
-  are nested. [#8844]
-
 astropy.vo
 ^^^^^^^^^^
 
@@ -2321,6 +2318,40 @@ Other Changes and Additions
 ---------------------------
 
 
+
+2.0.14 (2019-06-14)
+===================
+
+Bug Fixes
+---------
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix ``Header.update`` which was dropping the comments when passed
+  a ``Header`` object. [#8840]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- ``Moffat1D.fwhm`` and ``Moffat2D.fwhm`` will return a positive value when
+  ``gamma`` is negative. [#8801, #8815]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Fixed a bug that prevented ``EarthLocation`` from being initialized with
+  numpy >=1.17. [#8849]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed ``quantity_support`` to work around the fact that matplotlib
+  does not detect subclasses in its ``units`` framework. With this,
+  ``Angle`` and other subclasses work correctly. [#8818]
+
+- Fixed ``quantity_support`` to work properly if multiple context managers
+  are nested. [#8844]
 
 
 2.0.13 (2019-06-08)
