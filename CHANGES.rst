@@ -1,29 +1,8 @@
-2.0.14 (unreleased)
+2.0.14 (2019-06-14)
 ===================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -31,41 +10,12 @@ astropy.io.fits
 - Fix ``Header.update`` which was dropping the comments when passed
   a ``Header`` object. [#8840]
 
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - ``Moffat1D.fwhm`` and ``Moffat2D.fwhm`` will return a positive value when
   ``gamma`` is negative. [#8801, #8815]
 
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
 astropy.units
 ^^^^^^^^^^^^^
 
@@ -81,18 +31,6 @@ astropy.visualization
 
 - Fixed ``quantity_support`` to work properly if multiple context managers
   are nested. [#8844]
-
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Other Changes and Additions
----------------------------
-
-
 
 
 2.0.13 (2019-06-08)
