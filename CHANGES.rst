@@ -2271,6 +2271,10 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Make sure that the fast reader, when used in parallel mode, uses the
+  'fork' method for multiprocessing, regardless of the global default.
+  [#8852]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
