@@ -302,7 +302,8 @@ class Quantity(np.ndarray):
                 if not copy:
                     return value
 
-                if not np.can_cast(np.float32, value.dtype):
+                if not (np.can_cast(np.float32, value.dtype) or
+                        value.dtype.fields):
                     dtype = np.float
 
             return np.array(value, dtype=dtype, copy=copy, order=order,
@@ -382,7 +383,8 @@ class Quantity(np.ndarray):
                             "Numpy numeric type.")
 
         # by default, cast any integer, boolean, etc., to float
-        if dtype is None and (not np.can_cast(np.float32, value.dtype)
+        if dtype is None and (not (np.can_cast(np.float32, value.dtype)
+                                   or value.dtype.fields)
                               or value.dtype.kind == 'O'):
             value = value.astype(np.float)
 
