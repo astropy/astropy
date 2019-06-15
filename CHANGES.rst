@@ -73,6 +73,9 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Fixed a bug that prevented ``EarthLocation`` from being initialized with
+  numpy >=1.17. [#8849]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
