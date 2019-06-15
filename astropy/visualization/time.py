@@ -17,7 +17,7 @@ YMDHMS_FORMATS = ('fits', 'iso', 'isot', 'yday')
 STR_FORMATS = YMDHMS_FORMATS + ('byear_str', 'jyear_str')
 
 
-def time_support(scale=None, format=None, simplify=True):
+def time_support(*, scale=None, format=None, simplify=True):
     """
     Enable support for plotting `astropy.time.Time` instances in
     matplotlib.
@@ -34,12 +34,12 @@ def time_support(scale=None, format=None, simplify=True):
 
     Parameters
     ----------
-    format : str, optional
-        The time format to use for the times on the axis. If not specified,
-        the format of the first Time object passed to Matplotlib is used.
     scale : str, optional
         The time scale to use for the times on the axis. If not specified,
         the scale of the first Time object passed to Matplotlib is used.
+    format : str, optional
+        The time format to use for the times on the axis. If not specified,
+        the format of the first Time object passed to Matplotlib is used.
     simplify : bool, optional
         If possible, simplify labels, e.g. by removing 00:00:00.000 times from
         ISO strings if all labels fall on that time.
