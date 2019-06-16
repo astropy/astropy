@@ -881,6 +881,7 @@ def _read_chunk(CParser self, start, end, try_int,
         delete_tokenizer(chunk_tokenizer)
         queue.pop()
         queue.put((None, e, i))
+        return
 
     reconvert_cols = reconvert_queue.get()
     for col in reconvert_cols:
