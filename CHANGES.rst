@@ -274,6 +274,10 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Fixed the fast reader when used in parallel and with the multiprocessing
+  'spawn' method (which is the default on MacOS X with Python 3.8 and later).
+  [#8853]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
