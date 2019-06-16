@@ -157,6 +157,80 @@ class Conf(_config.ConfigNamespace):
 
 conf = Conf()
 
+
+# Define a base ScienceState for configuring constants and units
+from .utils.state import ScienceState
+class base_constants_version(ScienceState):
+    """
+    Base class for the real version-setters below
+    """
+    _value = 'test'
+
+    _versions = dict(test='test')
+
+    @classmethod
+    def validate(cls, value):
+        if value not in cls._versions:
+            raise ValueError('Must be one of {}'
+                             .format(list(cls._versions.keys())))
+        return cls._versions[value]
+
+    @classmethod
+    def set(cls, value):
+        """
+        Set the current constants value.
+        """
+        import sys
+        if 'astropy.units' in sys.modules:
+            raise RuntimeError('astropy.units is already imported')
+        if 'astropy.constants' in sys.modules:
+            raise RuntimeError('astropy.constants is already imported')
+
+        class _Context:
+            def __init__(self, parent, value):
+                self._value = value
+                self._parent = parent
+
+            def __enter__(self):
+                pass
+
+            def __exit__(self, type, value, tb):
+                self._parent._value = self._value
+
+            def __repr__(self):
+                return ('<ScienceState {0}: {1!r}>'
+                        .format(self._parent.__name__, self._parent._value))
+
+        ctx = _Context(cls, cls._value)
+        value = cls.validate(value)
+        cls._value = value
+        return ctx
+
+
+class physical_constants(base_constants_version):
+    """
+    The version of physical constants to use
+    """
+    # Maintainers: update when new constants are added
+    _value = 'codata2014'
+
+    _versions = dict(codata2018='codata2018', codata2014='codata2014',
+                     codata2010='codata2010', astropyconst40='codata2018',
+                     astropyconst20='codata2014', astropyconst13='codata2010')
+
+
+class astronomical_constants(base_constants_version):
+    """
+    The version of astronomical constants to use
+    """
+    # Maintainers: update when new constants are added
+    _value = 'iau2015'
+
+    _versions = dict(iau2015='iau2015', iau2012='iau2012',
+                     astropyconst40='iau2015', astropyconst20='iau2015',
+                     astropyconst13='iau2012')
+
+
 # Create the test() function
 from .tests.runner import TestRunner
 test = TestRunner.make_test_runner_in(__path__[0])
@@ -320,7 +394,8 @@ def online_help(query):
 
 __dir_inc__ = ['__version__', '__githash__', '__minimum_numpy_version__',
                '__bibtex__', 'test', 'log', 'find_api_page', 'online_help',
-               'online_docs_root', 'conf']
+               'online_docs_root', 'conf', 'physical_constants',
+               'astronomical_constants']
 
 
 from types import ModuleType as __module_type__

@@ -13,21 +13,21 @@ A typical use case might be::
     <Quantity 0.510998927603161 MeV>
 
 """
+import warnings
 from contextlib import contextmanager
 
 from astropy.utils import find_current_module
 
 # Hack to make circular imports with units work
-try:
-    from astropy import units
-    del units
-except ImportError:
-    pass
+from astropy import units
+del units
 
+# These lines import some namespaces into the top level
 from .constant import Constant, EMConstant  # noqa
 from . import si  # noqa
 from . import cgs  # noqa
-from . import codata2014, iau2015  # noqa
+from .config import codata, iaudata
+
 from . import utils as _utils
 
 # for updating the constants module docstring
@@ -38,9 +38,11 @@ _lines = [
     '========== ============== ================ =========================',
 ]
 
-# NOTE: Update this when default changes.
-_utils._set_c(codata2014, iau2015, find_current_module(),
-              not_in_module_only=True, doclines=_lines, set_class=True)
+# Catch warnings about "already has a definition in the None system"
+with warnings.catch_warnings():
+    warnings.filterwarnings('ignore', 'Constant .*already has a definition')
+    _utils._set_c(codata, iaudata, find_current_module(),
+                  not_in_module_only=False, doclines=_lines, set_class=True)
 
 _lines.append(_lines[1])
 
@@ -65,38 +67,42 @@ def set_enabled_constants(modname):
     """
 
     # Re-import here because these were deleted from namespace on init.
+    import importlib
     import warnings
     from astropy.utils import find_current_module
     from . import utils as _utils
 
-    # NOTE: Update this when default changes.
-    if modname == 'astropyconst13':
-        from .astropyconst13 import codata2010 as codata
-        from .astropyconst13 import iau2012 as iaudata
-    else:
-        raise ValueError(
-            'Context manager does not currently handle {}'.format(modname))
+    try:
+        modmodule = importlib.import_module('.constants.' + modname, 'astropy')
+        codata_context = modmodule.codata
+        iaudata_context = modmodule.iaudata
+    except ImportError as exc:
+        exc.args += ('Context manager does not currently handle {}'
+                     .format(modname),)
+        raise
 
     module = find_current_module()
 
     # Ignore warnings about "Constant xxx already has a definition..."
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        _utils._set_c(codata, iaudata, module,
+        warnings.filterwarnings('ignore',
+                                'Constant .*already has a definition')
+        _utils._set_c(codata_context, iaudata_context, module,
                       not_in_module_only=False, set_class=True)
 
     try:
         yield
     finally:
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            # NOTE: Update this when default changes.
-            _utils._set_c(codata2014, iau2015, module,
+            warnings.filterwarnings('ignore',
+                                    'Constant .*already has a definition')
+            _utils._set_c(codata, iaudata, module,
                           not_in_module_only=False, set_class=True)
 
 
 # Clean up namespace
 del find_current_module
+del warnings
 del contextmanager
 del _utils
 del _lines
