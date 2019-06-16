@@ -163,6 +163,6 @@ def test_context_manager():
 
     assert const.h.value == 6.626070040e-34  # CODATA2014
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ImportError):
         with const.set_enabled_constants('notreal'):
             const.h

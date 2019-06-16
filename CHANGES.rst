@@ -10,6 +10,9 @@ astropy.config
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
+- The version of constants can be specified via ScienceState in a way
+  that ``constants`` and ``units`` will be consistent. [#8517]
+
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 

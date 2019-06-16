@@ -7,7 +7,11 @@ from astropy.utils import find_current_module
 from . import utils as _utils
 from . import codata2014, iau2015
 
-_utils._set_c(codata2014, iau2015, find_current_module())
+
+codata = codata2014
+iaudata = iau2015
+
+_utils._set_c(codata, iaudata, find_current_module())
 
 # Clean up namespace
 del find_current_module

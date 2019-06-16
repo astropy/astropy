@@ -8,7 +8,10 @@ from astropy.utils import find_current_module
 from . import utils as _utils
 from . import codata2010, iau2012
 
-_utils._set_c(codata2010, iau2012, find_current_module())
+codata = codata2010
+iaudata = iau2012
+
+_utils._set_c(codata, iaudata, find_current_module())
 
 # Clean up namespace
 del find_current_module
