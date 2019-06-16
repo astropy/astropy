@@ -813,11 +813,11 @@ cdef class CParser:
         return self.header_names
 
     def __reduce__(self):
-        cdef bytes source_ptr = self.source_ptr if self.source_ptr else b''
+        cdef bytes source = self.source_ptr if self.source_ptr else self.source_bytes
         fast_reader = dict(exponent_style=chr(self.tokenizer.expchar),
                            use_fast_converter=self.tokenizer.use_fast_converter,
                            parallel=False)
-        return (_copy_cparser, (source_ptr, self.source_bytes, self.use_cols, self.fill_names,
+        return (_copy_cparser, (source, self.use_cols, self.fill_names,
                                 self.fill_values, self.fill_empty, self.tokenizer.strip_whitespace_lines,
                                 self.tokenizer.strip_whitespace_fields,
                                 dict(delimiter=chr(self.tokenizer.delimiter),
@@ -835,20 +835,19 @@ cdef class CParser:
                                 fill_extra_cols=self.tokenizer.fill_extra_cols,
                                 fast_reader=fast_reader)))
 
-def _copy_cparser(bytes src_ptr, bytes source_bytes, use_cols, fill_names, fill_values,
+def _copy_cparser(bytes source, use_cols, fill_names, fill_values,
                   fill_empty, strip_whitespace_lines, strip_whitespace_fields, kwargs):
+
     parser = CParser(None, strip_whitespace_lines, strip_whitespace_fields, **kwargs)
+
     parser.use_cols = use_cols
     parser.fill_names = fill_names
     parser.fill_values = fill_values
     parser.fill_empty = fill_empty
 
-    if src_ptr:
-        parser.tokenizer.source = src_ptr
-    else:
-        parser.tokenizer.source = source_bytes
-        parser.tokenizer.source_len = <size_t>len(source_bytes)
-        parser.source_bytes = source_bytes
+    parser.tokenizer.source = source
+    parser.tokenizer.source_len = <size_t>len(source)
+    parser.source_bytes = source
 
     return parser
 
