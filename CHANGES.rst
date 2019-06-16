@@ -83,6 +83,9 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Added a new ``time_support`` context manager/function for making it easy to
+  plot and format ``Time`` objects in Matplotlib. [#8782]
+
 astropy.wcs
 ^^^^^^^^^^^
 
