@@ -847,6 +847,9 @@ def _copy_cparser(bytes src_ptr, bytes source_bytes, use_cols, fill_names, fill_
         parser.tokenizer.source = src_ptr
     else:
         parser.tokenizer.source = source_bytes
+        parser.tokenizer.source_len = <size_t>len(source_bytes)
+        parser.source_bytes = source_bytes
+
     return parser
 
 
