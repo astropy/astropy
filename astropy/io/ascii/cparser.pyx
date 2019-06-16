@@ -889,6 +889,12 @@ def _read_chunk(CParser self, start, end, try_int,
     delete_tokenizer(chunk_tokenizer)
     reconvert_queue.put(reconvert_cols) # return to the queue for other processes
 
+    # Since we already deallocated the tokenizer above, we should make sure we
+    # set self.tokenizer to NULL to avoid deallocating the tokenizer again
+    # inside __dealloc__.
+    self.tokenizer = NULL
+
+
 cdef class FastWriter:
     """
     A fast Cython writing class for writing tables
