@@ -873,6 +873,7 @@ def _read_chunk(CParser self, start, end, try_int,
                                       try_int, try_float, try_string, -1)
         except Exception as e:
             delete_tokenizer(chunk_tokenizer)
+            self.tokenizer = NULL  # prevent another de-allocation in __dalloc__
             queue.put((None, e, i))
             return
 
@@ -881,6 +882,7 @@ def _read_chunk(CParser self, start, end, try_int,
     except Queue.Full as e:
         # hopefully this shouldn't happen
         delete_tokenizer(chunk_tokenizer)
+        self.tokenizer = NULL  # prevent another de-allocation in __dalloc__
         queue.pop()
         queue.put((None, e, i))
         return
@@ -889,12 +891,8 @@ def _read_chunk(CParser self, start, end, try_int,
     for col in reconvert_cols:
         queue.put((self._convert_str(chunk_tokenizer, col, -1), i, col))
     delete_tokenizer(chunk_tokenizer)
+    self.tokenizer = NULL  # prevent another de-allocation in __dalloc__
     reconvert_queue.put(reconvert_cols) # return to the queue for other processes
-
-    # Since we already deallocated the tokenizer above, we should make sure we
-    # set self.tokenizer to NULL to avoid deallocating the tokenizer again
-    # inside __dealloc__.
-    self.tokenizer = NULL
 
 
 cdef class FastWriter:
