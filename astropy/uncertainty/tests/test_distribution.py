@@ -316,3 +316,12 @@ def test_array_repr_latex():
 
     distr = Distribution(arr)
     assert distr._repr_latex_() is None
+
+
+def test_to():
+    distr = Distribution(np.random.randn(2, 100)*u.km)
+    distrm = distr.to(u.m)
+
+    assert distr.unit == u.km
+    assert distrm.unit == u.m
+    assert_quantity_allclose(distr.pdf_mean, distrm.pdf_mean)
