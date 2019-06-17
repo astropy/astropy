@@ -203,7 +203,10 @@ cdef class CParser:
                   fill_include_names=None,
                   fill_exclude_names=None,
                   fill_extra_cols=0,
-                  fast_reader=True):
+                  fast_reader=None):
+
+        if fast_reader is None:
+          fast_reader = {}
 
         # Handle fast_reader parameter
         expchar = fast_reader.pop('exponent_style', 'E').upper()
@@ -221,8 +224,6 @@ cdef class CParser:
 
         if fast_reader:
             raise core.FastOptionsError("Invalid parameter in fast_reader dict")
-        if parallel and os.name == 'nt':
-            raise NotImplementedError("Multiprocessing is not yet supported on Windows")
 
         if comment is None:
             comment = '\x00' # tokenizer ignores all comments if comment='\x00'
@@ -810,14 +811,16 @@ cdef class CParser:
         return self.header_names
 
     def __reduce__(self):
-        cdef bytes source_ptr = self.source_ptr if self.source_ptr else b''
-        return (_copy_cparser, (source_ptr, self.source_bytes, self.use_cols, self.fill_names,
-                                self.fill_values, self.tokenizer.strip_whitespace_lines,
+        cdef bytes source = self.source_ptr if self.source_ptr else self.source_bytes
+        fast_reader = dict(exponent_style=chr(self.tokenizer.expchar),
+                           use_fast_converter=self.tokenizer.use_fast_converter,
+                           parallel=False)
+        return (_copy_cparser, (source, self.use_cols, self.fill_names,
+                                self.fill_values, self.fill_empty, self.tokenizer.strip_whitespace_lines,
                                 self.tokenizer.strip_whitespace_fields,
                                 dict(delimiter=chr(self.tokenizer.delimiter),
                                 comment=chr(self.tokenizer.comment),
                                 quotechar=chr(self.tokenizer.quotechar),
-                                expchar=chr(self.tokenizer.expchar),
                                 header_start=self.header_start,
                                 data_start=self.data_start,
                                 data_end=self.data_end,
@@ -828,20 +831,22 @@ cdef class CParser:
                                 fill_include_names=self.fill_include_names,
                                 fill_exclude_names=self.fill_exclude_names,
                                 fill_extra_cols=self.tokenizer.fill_extra_cols,
-                                use_fast_converter=self.tokenizer.use_fast_converter,
-                                parallel=False)))
+                                fast_reader=fast_reader)))
 
-def _copy_cparser(bytes src_ptr, bytes source_bytes, use_cols, fill_names, fill_values,
-                  strip_whitespace_lines, strip_whitespace_fields, kwargs):
+def _copy_cparser(bytes source, use_cols, fill_names, fill_values,
+                  fill_empty, strip_whitespace_lines, strip_whitespace_fields, kwargs):
+
     parser = CParser(None, strip_whitespace_lines, strip_whitespace_fields, **kwargs)
+
     parser.use_cols = use_cols
     parser.fill_names = fill_names
     parser.fill_values = fill_values
+    parser.fill_empty = fill_empty
 
-    if src_ptr:
-        parser.tokenizer.source = src_ptr
-    else:
-        parser.tokenizer.source = source_bytes
+    parser.tokenizer.source = source
+    parser.tokenizer.source_len = <size_t>len(source)
+    parser.source_bytes = source
+
     return parser
 
 
@@ -866,6 +871,7 @@ def _read_chunk(CParser self, start, end, try_int,
                                       try_int, try_float, try_string, -1)
         except Exception as e:
             delete_tokenizer(chunk_tokenizer)
+            self.tokenizer = NULL  # prevent another de-allocation in __dalloc__
             queue.put((None, e, i))
             return
 
@@ -874,14 +880,18 @@ def _read_chunk(CParser self, start, end, try_int,
     except Queue.Full as e:
         # hopefully this shouldn't happen
         delete_tokenizer(chunk_tokenizer)
+        self.tokenizer = NULL  # prevent another de-allocation in __dalloc__
         queue.pop()
         queue.put((None, e, i))
+        return
 
     reconvert_cols = reconvert_queue.get()
     for col in reconvert_cols:
         queue.put((self._convert_str(chunk_tokenizer, col, -1), i, col))
     delete_tokenizer(chunk_tokenizer)
+    self.tokenizer = NULL  # prevent another de-allocation in __dalloc__
     reconvert_queue.put(reconvert_cols) # return to the queue for other processes
+
 
 cdef class FastWriter:
     """
