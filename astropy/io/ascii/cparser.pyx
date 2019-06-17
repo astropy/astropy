@@ -224,8 +224,6 @@ cdef class CParser:
 
         if fast_reader:
             raise core.FastOptionsError("Invalid parameter in fast_reader dict")
-        if parallel and os.name == 'nt':
-            raise NotImplementedError("Multiprocessing is not yet supported on Windows")
 
         if comment is None:
             comment = '\x00' # tokenizer ignores all comments if comment='\x00'
