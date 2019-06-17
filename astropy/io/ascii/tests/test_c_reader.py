@@ -72,8 +72,6 @@ def _read(tmpdir, table, Reader=None, format=None, parallel=False, check_meta=Fa
     if parallel:
         if TRAVIS:
             pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
-        elif os.name == 'nt':
-            pytest.xfail("Multiprocessing is currently unsupported on Windows")
         t6 = ascii.read(table, format=format, guess=False, fast_reader={
             'parallel': True}, **kwargs)
         assert_table_equal(t1, t6, check_meta=check_meta)
@@ -1030,9 +1028,7 @@ def test_read_big_table2(tmpdir):
 # fast_reader configurations: False| 'use_fast_converter'=False|True
 @pytest.mark.parametrize('fast_reader', [False, dict(use_fast_converter=False),
                                          dict(use_fast_converter=True)])
-# Catch Windows environment since we cannot use _read() with custom fast_reader
-@pytest.mark.parametrize("parallel", [False,
-    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows"))])
+@pytest.mark.parametrize("parallel", [False, True])
 def test_data_out_of_range(parallel, fast_reader, guess):
     """
     Numbers with exponents beyond float64 range (|~4.94e-324 to 1.7977e+308|)
@@ -1089,11 +1085,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
 
 
 @pytest.mark.parametrize("guess", [True, False])
-# catch Windows environment since we cannot use _read() with custom fast_reader
-@pytest.mark.parametrize("parallel", [
-    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
-    False])
-
+@pytest.mark.parametrize("parallel", [False, True])
 def test_int_out_of_range(parallel, guess):
     """
     Integer numbers outside int range shall be returned as string columns
@@ -1131,10 +1123,7 @@ def test_int_out_of_range(parallel, guess):
 
 
 @pytest.mark.parametrize("guess", [True, False])
-@pytest.mark.parametrize("parallel", [
-    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
-    False])
-
+@pytest.mark.parametrize("parallel", [False, True])
 def test_fortran_reader(parallel, guess):
     """
     Make sure that ascii.read() can read Fortran-style exponential notation
@@ -1178,9 +1167,7 @@ def test_fortran_reader(parallel, guess):
 
 
 @pytest.mark.parametrize("guess", [True, False])
-@pytest.mark.parametrize("parallel", [
-    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
-    False])
+@pytest.mark.parametrize("parallel", [False, True])
 def test_fortran_invalid_exp(parallel, guess):
     """
     Test Fortran-style exponential notation in the fast_reader with invalid
@@ -1348,9 +1335,6 @@ def test_read_empty_basic_table_with_comments(fast_reader):
     # comment 2
     col1 col2
     """
-    if os.name == 'nt' and fast_reader and fast_reader.get('parallel'):
-        pytest.xfail("Multiprocessing is currently unsupported on Windows")
-
     t = ascii.read(dat, fast_reader=fast_reader)
     assert t.meta['comments'] == ['comment 1', 'comment 2']
     assert len(t) == 0
