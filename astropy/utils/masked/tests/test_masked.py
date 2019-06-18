@@ -240,31 +240,40 @@ class MaskedUfuncTests(MaskedArraySetup):
         assert_array_equal(ma_mb.data, expected_data)
         assert_array_equal(ma_mb.mask, expected_mask)
 
-    @pytest.mark.parametrize('ufunc', (np.add, np.subtract))
-    @pytest.mark.parametrize('axis', (0, 1))
-    def test_reduce_filled_zero(self, ufunc, axis):
-        # axis=None for np.add tested indirectly by test_sum below.
-        reduction = getattr(ufunc, 'reduce')
-        ma_reduce = reduction(self.ma, axis=axis)
-        expected_data = reduction(self.a * (1 - self.ma.mask),
-                                  axis=axis)
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_add_reduce(self, axis):
+        ma_reduce = np.add.reduce(self.ma, axis=axis)
+        filled = self.ma.data * (1. - self.ma.mask)
+        expected_data = np.sum(filled, axis=axis)
         expected_mask = np.logical_and.reduce(self.ma.mask, axis=axis)
         assert_array_equal(ma_reduce.data, expected_data)
         assert_array_equal(ma_reduce.mask, expected_mask)
 
     @pytest.mark.parametrize('axis', (0, 1, None))
-    def test_sum_method(self, axis):
-        ma_sum = self.ma.sum(axis)
-        filled = self.ma.data * (1. - self.ma.mask)
-        expected_data = filled.sum(axis)
-        assert_array_equal(ma_sum.data, expected_data)
-        assert not np.any(ma_sum.mask)
+    def test_minimum_reduce(self, axis):
+        ma_reduce = np.minimum.reduce(self.ma, axis=axis)
+        filled = self.a.copy()
+        filled[self.mask_a] = self.a.max()
+        expected_data = np.min(filled, axis=axis)
+        expected_mask = np.logical_and.reduce(self.ma.mask, axis=axis)
+        assert_array_equal(ma_reduce.data, expected_data)
+        assert_array_equal(ma_reduce.mask, expected_mask)
+
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_maximum_reduce(self, axis):
+        ma_reduce = np.maximum.reduce(self.ma, axis=axis)
+        filled = self.a.copy()
+        filled[self.mask_a] = self.a.min()
+        expected_data = np.max(filled, axis=axis)
+        expected_mask = np.logical_and.reduce(self.ma.mask, axis=axis)
+        assert_array_equal(ma_reduce.data, expected_data)
+        assert_array_equal(ma_reduce.mask, expected_mask)
 
 
 class TestMaskedArrayUfuncs(MaskedUfuncTests, ArraySetup):
     @pytest.mark.parametrize('axis', (0, 1, None))
-    def test_reduce_filled_one(self, axis):
-        ma_reduce = np.prod(self.ma, axis=axis)
+    def test_multiply_reduce(self, axis):
+        ma_reduce = np.multiply.reduce(self.ma, axis=axis)
         filled = self.a.copy()
         filled[self.mask_a] = 1
         expected_data = np.prod(filled, axis=axis)
@@ -281,28 +290,37 @@ class TestMaskedLongitudeUfuncs(MaskedUfuncTests, LongitudeSetup):
     pass
 
 
-class TestMaskedArrayMinMax(MaskedArraySetup):
+class TestMaskedArrayMethods(MaskedArraySetup):
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_sum_method(self, axis):
+        ma_sum = self.ma.sum(axis)
+        filled = self.ma.data * (1. - self.ma.mask)
+        expected_data = filled.sum(axis)
+        assert_array_equal(ma_sum.data, expected_data)
+        assert not np.any(ma_sum.mask)
+
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_min(self, axis):
-        ma_sum = self.ma.min(axis)
+        ma_min = self.ma.min(axis)
         filled = self.a.copy()
         filled[self.mask_a] = self.a.max()
         expected_data = filled.min(axis)
-        assert_array_equal(ma_sum.data, expected_data)
-        assert not np.any(ma_sum.mask)
+        assert_array_equal(ma_min.data, expected_data)
+        assert not np.any(ma_min.mask)
 
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_max(self, axis):
-        ma_sum = self.ma.max(axis)
+        ma_max = self.ma.max(axis)
         filled = self.a.copy()
         filled[self.mask_a] = self.a.min()
         expected_data = filled.max(axis)
-        assert_array_equal(ma_sum.data, expected_data)
-        assert not np.any(ma_sum.mask)
+        assert_array_equal(ma_max.data, expected_data)
+        assert not np.any(ma_max.mask)
 
 
-class TestMaskedQuantityMinMax(TestMaskedArrayMinMax, QuantitySetup):
+class TestMaskedQuantityMethods(TestMaskedArrayMethods, QuantitySetup):
     pass
 
 
-# Note: Longtitude doesn't work, as one cannot set elements to +/-inf.
+class TestMaskedLongitudeMethods(TestMaskedArrayMethods, LongitudeSetup):
+    pass
