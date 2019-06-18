@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import operator
+
 import numpy as np
 from numpy.testing import assert_array_equal
 
@@ -206,14 +208,27 @@ class TestMaskedLongitudeItems(TestMaskedArrayItems, LongitudeSetup):
     pass
 
 
-class MaskedUfuncTests(MaskedArraySetup):
-    def test_add(self):
-        mapmb = self.ma + self.mb
-        expected_data = self.a + self.b
+class TestMaskedArrayOperators(MaskedArraySetup):
+    @pytest.mark.parametrize('op', (operator.add, operator.sub))
+    def test_add_subtract(self, op):
+        mapmb = op(self.ma, self.mb)
+        expected_data = op(self.a, self.b)
         expected_mask = (self.ma.mask | self.mb.mask)
+        # Note: assert_array_equal also checks type, i.e., that, e.g.,
+        # Longitude decays into an Angle.
         assert_array_equal(mapmb.data, expected_data)
         assert_array_equal(mapmb.mask, expected_mask)
 
+
+class TestMaskedQuantityOperators(TestMaskedArrayOperators, QuantitySetup):
+    pass
+
+
+class TestMaskedLongitudeOperators(TestMaskedArrayOperators, LongitudeSetup):
+    pass
+
+
+class MaskedUfuncTests(MaskedArraySetup):
     @pytest.mark.parametrize('ufunc', (np.add, np.subtract, np.divide,
                                        np.arctan2))
     def test_2op_ufunc(self, ufunc):
@@ -238,7 +253,7 @@ class MaskedUfuncTests(MaskedArraySetup):
         assert_array_equal(ma_reduce.mask, expected_mask)
 
     @pytest.mark.parametrize('axis', (0, 1, None))
-    def test_sum(self, axis):
+    def test_sum_method(self, axis):
         ma_sum = self.ma.sum(axis)
         filled = self.ma.data * (1. - self.ma.mask)
         expected_data = filled.sum(axis)
