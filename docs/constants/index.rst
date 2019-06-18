@@ -127,8 +127,8 @@ the default version of constants. When using prior versions of the constants
 in this manner, quantities should be constructed with constants instead of units.
 
 To ensure consistent use of a prior version of constants in other Astropy
-packages (such as `astropy.units`) that import constants, the physical and
-astronomical constants versions should be set via ScienceState classes.
+packages (such as `astropy.units`) that import ``constants``, the physical and
+astronomical constants versions should be set via ``ScienceState`` classes.
 These must be set before the first import of either `astropy.constants` or
 `astropy.units`.  For example, you can use the CODATA2010 physical constants and the
 IAU 2012 astronomical constants:
@@ -157,6 +157,8 @@ The versions may also be set using values referring to the version modules:
     <ScienceState astronomical_constants: 'iau2012'>
     >>> astronomical_constants.get()  # doctest: +SKIP
     'iau2012'
+
+.. The doctest should not be skipped, ideally. See https://github.com/astropy/astropy/issues/8781
 
 If either `astropy.constants` or `astropy.units` have already been imported, a
 ``RuntimeError`` will be raised.
