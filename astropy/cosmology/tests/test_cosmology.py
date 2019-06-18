@@ -8,6 +8,7 @@ import numpy as np
 from astropy.cosmology import core, funcs
 from astropy.units import allclose
 from astropy.utils.compat import NUMPY_LT_1_14
+from astropy import constants as const
 from astropy import units as u
 
 try:
@@ -1087,14 +1088,17 @@ def test_critical_density():
     # These tests will fail if astropy.const starts returning non-mks
     #  units by default; see the comment at the top of core.py
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
+    fac = (const.G / const.codata2014.G).to(u.dimensionless_unscaled).value
     assert allclose(tcos.critical_density0,
-                    9.309361588325364e-30 * u.g / u.cm**3)
+                    9.309668456020899e-30 * fac * (u.g / u.cm**3))
     assert allclose(tcos.critical_density0,
                     tcos.critical_density(0))
-    assert allclose(tcos.critical_density([1, 5]),
-                    [2.70343861e-29, 5.53720827e-28] * u.g / u.cm**3)
-    assert allclose(tcos.critical_density([1., 5.]),
-                    [2.70343861e-29, 5.53720827e-28] * u.g / u.cm**3)
+    assert allclose(
+        tcos.critical_density([1, 5]),
+        [2.70352772e-29 * fac, 5.53739080e-28 * fac] * (u.g / u.cm**3))
+    assert allclose(
+        tcos.critical_density([1., 5.]),
+        [2.70352772e-29 * fac, 5.53739080e-28 * fac] * (u.g / u.cm**3))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

@@ -12,6 +12,7 @@ astropy.constants
 
 - The version of constants can be specified via ScienceState in a way
   that ``constants`` and ``units`` will be consistent. [#8517]
+
 - Default constants now use CODATA 2018 and IAU 2015 definitions. [#8761]
 
 astropy.convolution
