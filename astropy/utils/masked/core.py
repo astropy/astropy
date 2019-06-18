@@ -12,13 +12,6 @@ import numpy as np
 __all__ = ['Masked']
 
 
-REDUCTION_FILL_VALUES = {
-    np.subtract: 0,
-    np.minimum: np.ma.minimum_fill_value,
-    np.maximum: np.ma.maximum_fill_value}
-"""For ufuncs without an identity but where reduction makes sense."""
-
-
 # Note: at present, cannot directly use ShapedLikeNDArray, because of
 # metaclass problems.
 # TODO: split this off in misc.py
@@ -115,21 +108,22 @@ class Masked:
     """A scalar value or array of values with associated mask.
 
     This object will take its exact type from whatever the contents are.
-    In general this is expected to be an `~astropy.units.Quantity` or
-    `numpy.ndarray`, although anything compatible with `numpy.asanyarray` is
-    possible.
 
     Parameters
     ----------
     data : array-like
-        The data for which a mask is to be added.  If this is an array,
-        the result will be a view of the original data.
+        The data for which a mask is to be added.  The result will be a
+        a subclass of the type of ``data``.
     mask : array-like of bool, optional
         The initial mask to assign.  If not given, taken from the data.
-        A view is used if possible, i.e., if no broadcasting or type conversion
-        is needed.
+
     """
     _generated_subclasses = {}
+
+    _REDUCTION_HELPERS = {
+        np.minimum: lambda ma: np.max(ma.data),
+        np.maximum: lambda ma: np.min(ma.data)}
+    """For ufuncs without an identity but where reduction makes sense."""
 
     def __new__(cls, data, mask=None):
         data, data_mask = cls._data_mask(data)
@@ -142,20 +136,18 @@ class Masked:
             raise NotImplementedError("cannot deal with structured dtype.")
 
         data_cls = type(data)
-        if not issubclass(data_cls, Masked):
+        masked_cls = cls._generated_subclasses.get(data_cls, None)
+        if masked_cls is None:
             # Make sure first letter is uppercase, but note that we can't use
             # str.capitalize since that converts the rest of the name to lowercase.
+            new_name = (cls.__name__ +
+                        data_cls.__name__[0].upper() + data_cls.__name__[1:])
+            masked_cls = type(new_name,
+                              (cls, NDArrayShapeMethods, data_cls), {})
+            cls._generated_subclasses[data_cls] = masked_cls
 
-            new_cls = cls._generated_subclasses.get(data_cls, None)
-            if new_cls is None:
-                new_name = (cls.__name__ +
-                            data_cls.__name__[0].upper() + data_cls.__name__[1:])
-                new_cls = type(new_name, (cls, NDArrayShapeMethods, data_cls),
-                               {'_data_cls': data_cls})
-                cls._generated_subclasses[data_cls] = new_cls
-
-        self = data.view(new_cls)
-        self._data_cls = data_cls
+        self = data.view(masked_cls)
+        self._data = data
         self.mask = mask
         return self
 
@@ -166,10 +158,6 @@ class Masked:
             data = getattr(data, 'data', data)
 
         return data, mask
-
-    @property
-    def data(self):
-        return self.view(self._data_cls)
 
     @property
     def mask(self):
@@ -185,7 +173,7 @@ class Masked:
         ma = np.asanyarray(mask, dtype='?')
         if ma.shape != self.shape:
             # This will fail (correctly) if not broadcastable.
-            self._mask = np.zeros(self.shape, dtype='?')
+            self._mask = np.empty(self.shape, dtype='?')
             self._mask[...] = ma
         elif ma is mask:
             # Use a view so that shape setting does not propagate.
@@ -193,10 +181,18 @@ class Masked:
         else:
             self._mask = ma
 
+    # TODO: should this have a more unique name? E.g., unmask?
+    # Then, fill_value=None could indicate to not fill.
     def filled(self, fill_value):
         result = self.data.copy()
         result[self.mask] = fill_value
         return result
+
+    # TODO: should this have a more unique name? E.g., unmasked?
+    # (could just be unmasked = property(unmask) with above)
+    @property
+    def data(self):
+        return self._data
 
     def _apply(self, method, *args, **kwargs):
         # For use with NDArrayShapeMethods.
@@ -211,8 +207,8 @@ class Masked:
 
     def __setitem__(self, item, value):
         value, mask = self._data_mask(value)
-        self.data[item] = value
-        self.mask[item] = mask
+        self._data[item] = value
+        self._mask[item] = mask
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         out = kwargs.pop('out', None)
@@ -239,19 +235,37 @@ class Masked:
                 mask = False
 
         elif method == 'reduce':
-
             if isinstance(inputs[0], Masked):
-                fill_value = REDUCTION_FILL_VALUES.get(ufunc, ufunc.identity)
-                if fill_value is None:
-                    return NotImplemented
-                elif callable(fill_value):
-                    fill_value = fill_value(inputs[0])
-
+                initial = kwargs.pop('initial', None)
+                # Calculate mask *without* a possible initial kwarg
+                # (but passing on axis and where arguments, etc.).
                 mask = np.logical_and.reduce(inputs[0].mask, **kwargs)
-                converted = inputs[0].filled(fill_value)
-            else:
+                converted = inputs[0].data
+                # But use it for real reduction (or provide it, as needed).
+                if initial is None:
+                    if ufunc.identity is None:
+                        helper = self._REDUCTION_HELPERS.get(ufunc, None)
+                        if helper:
+                            kwargs['initial'] = helper(inputs[0])
+                        else:
+                            return NotImplemented
+                else:
+                    kwargs['initial'] = initial
+
+                # Use where to take into account the mask.
+                where = ~self._mask
+                if 'where' in kwargs:
+                    # In-place in our inverted mask to ensure shape is OK.
+                    where &= kwargs['where']
+
+                kwargs['where'] = where
+
+            elif 'out' in kwargs and isinstance(kwargs['out'][0], Masked):
                 mask = False
                 converted = inputs[0]
+            else:
+                return NotImplemented
+
             result = getattr(ufunc, method)(converted, **kwargs)
 
         elif method in {'accumulate', 'reduceat'}:
