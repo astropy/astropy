@@ -160,6 +160,12 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- For consistency with ``ndarray``, scalar ``Quantity.value`` will now return
+  a numpy scalar rather than a python one.  This should help keep track of
+  precision better, but may lead to unexpected results for the rare cases
+  where numpy scalars behave differently than python ones (e.g., taking the
+  square root of a negative number). [#8876]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
