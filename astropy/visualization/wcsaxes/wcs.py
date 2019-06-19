@@ -1,7 +1,5 @@
 # Functions/classes for WCSAxes related to astropy.wcs.WCSLIB
 
-from collections import defaultdict
-
 import numpy as np
 
 from ... import units as u
@@ -9,7 +7,8 @@ from ...wcs import WCS
 from ...wcs.utils import wcs_to_celestial_frame
 from .transforms import CurvedTransform
 
-__all__ = ['transform_coord_meta_from_wcs']
+__all__ = ['transform_coord_meta_from_wcs', 'WCSWorld2PixelTransform',
+           'WCSPixel2WorldTransform']
 
 IDENTITY = WCS(naxis=2)
 IDENTITY.wcs.ctype = ["X", "Y"]
