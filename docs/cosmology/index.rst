@@ -277,7 +277,6 @@ used cases; the former assumes a flat universe, the latter allows
 for spatial curvature. `~astropy.cosmology.FlatwCDM` and
 `~astropy.cosmology.wCDM` assume a constant dark
 energy equation of state parameterized by :math:`w_{0}`.
-
 Two forms of a variable dark energy equation of state are provided: the simple
 first order linear expansion :math:`w(z) = w_{0} + w_{z} z` by
 `~astropy.cosmology.w0wzCDM`, as well as the common CPL form by
@@ -308,7 +307,6 @@ cosmological classes, are ``Tcmb0`` (the temperature of the cosmic microwave
 background at z=0), ``Neff`` (the effective number of neutrino species), and
 ``m_nu`` (the rest mass of the neutrino species). ``Tcmb0`` and ``m_nu`` should
 be expressed as unit Quantities.
-
 All three have standard default values — 0 K, 3.04, and 0 eV, respectively.
 (The reason that ``Neff`` is not 3 has to do primarily with a small bump in the
 neutrino energy spectrum due to electron-positron annihilation, but is also
@@ -365,7 +363,7 @@ Universe) but setting ``Neff`` to 0::
   array([0., 0., 0.])
 
 The number of neutrino species is assumed to be the floor of ``Neff``,
-which in the default case is three. Therefore, if non-zero neutrino masses
+which in the default case is ``Neff=3``. Therefore, if non-zero neutrino masses
 are desired, then three masses should be provided. However, if only one
 value is provided, all of the species are assumed to have the same mass.
 ``Neff`` is assumed to be shared equally between each species.
