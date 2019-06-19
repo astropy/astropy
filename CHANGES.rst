@@ -268,6 +268,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Fix concatenation of representations for cases where the units were different.
+  [#8877]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
