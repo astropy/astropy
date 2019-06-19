@@ -15,7 +15,6 @@ from matplotlib.transforms import Transform
 
 from astropy import units as u
 from astropy.coordinates import (SkyCoord, frame_transform_graph,
-                                 SphericalRepresentation,
                                  UnitSphericalRepresentation,
                                  BaseCoordinateFrame)
 

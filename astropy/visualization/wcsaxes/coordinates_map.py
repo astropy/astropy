@@ -43,9 +43,7 @@ class CoordinatesMap:
     def __init__(self, axes, transform=None, coord_meta=None,
                  frame_class=RectangularFrame, previous_frame_path=None):
 
-        # Keep track of parent axes and WCS
         self._axes = axes
-
         self._transform = transform
 
         self.frame = frame_class(axes, self._transform, path=previous_frame_path)
@@ -56,7 +54,7 @@ class CoordinatesMap:
 
         for coord_index in range(len(coord_meta['type'])):
 
-            # Extract coordinate metadata from WCS object or transform
+            # Extract coordinate metadata
             coord_type = coord_meta['type'][coord_index]
             coord_wrap = coord_meta['wrap'][coord_index]
             coord_unit = coord_meta['unit'][coord_index]
