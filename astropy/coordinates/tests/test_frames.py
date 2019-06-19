@@ -903,3 +903,25 @@ def test_representation_with_multiple_differentials():
     # check warning is raised for a scalar
     with pytest.raises(ValueError):
         ICRS(rep)
+
+
+def test_component_names_repr():
+    from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping
+
+    # Frame class with new component names that includes a name swap
+    class NameChangeFrame(BaseCoordinateFrame):
+        default_representation = r.PhysicsSphericalRepresentation
+
+        frame_specific_representation_info = {
+            r.PhysicsSphericalRepresentation: [
+                RepresentationMapping('phi', 'theta', u.deg),
+                RepresentationMapping('theta', 'phi', u.arcsec),
+                RepresentationMapping('r', 'JUSTONCE', u.AU)]
+        }
+    frame = NameChangeFrame(0*u.deg, 0*u.arcsec, 0*u.AU)
+
+    # Check for the new names in the Frame repr
+    assert "(theta, phi, JUSTONCE)" in repr(frame)
+
+    # Check that the letter "r" has not been replaced more than once in the Frame repr
+    assert repr(frame).count("JUSTONCE") == 1

@@ -16,6 +16,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug where the string representation of a ``BaseCoordinateFrame``
+  object could become garbled under specific circumstances when the frame
+  defines custom component names via ``RepresentationMapping``. [#8869]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
