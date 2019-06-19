@@ -1524,3 +1524,13 @@ def test_distance_warning(recwarn):
     # second check is because the "originating" ValueError says the above,
     # while the representation one includes the below
     assert 'you must explicitly pass' in str(excinfo.value)
+
+
+def test_dtype_preservation_in_indexing():
+    # Regression test for issue
+    xyz = np.array([[1, 0, 0], [0.9, 0.1, 0]], dtype='f4')
+    cr = CartesianRepresentation(xyz, xyz_axis=-1, unit="km")
+    assert cr.xyz.dtype == xyz.dtype
+    cr0 = cr[0]
+    # This used to fail.
+    assert cr0.xyz.dtype == xyz.dtype
