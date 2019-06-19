@@ -1367,8 +1367,18 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             data = self.represent_as(rep_cls, dif_cls, in_frame_units=True)
 
             data_repr = repr(data)
-            for nmpref, nmrepr in self.representation_component_names.items():
-                data_repr = data_repr.replace(nmrepr, nmpref)
+            # Generate the list of component names out of the repr string
+            part1, _, remainder = data_repr.partition('(')
+            if remainder != '':
+                comp_str, _, part2 = remainder.partition(')')
+                comp_names = comp_str.split(', ')
+                # Swap in frame-specific component names
+                invnames = dict([(nmrepr, nmpref) for nmpref, nmrepr
+                                 in self.representation_component_names.items()])
+                for i, name in enumerate(comp_names):
+                    comp_names[i] = invnames.get(name, name)
+                # Reassemble the repr string
+                data_repr = part1 + '(' + ', '.join(comp_names) + ')' + part2
 
         else:
             data = self.data
