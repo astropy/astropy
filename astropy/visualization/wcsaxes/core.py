@@ -17,7 +17,7 @@ from .transforms import CoordinateTransform
 from .coordinates_map import CoordinatesMap
 from .utils import get_coord_meta, transform_contour_set_inplace
 from .frame import EllipticalFrame, RectangularFrame
-from .wcs import transform_coord_meta_from_wcs, IDENTITY
+from .fitswcs import transform_coord_meta_from_wcs, IDENTITY
 
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
