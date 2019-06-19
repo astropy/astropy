@@ -33,18 +33,18 @@ Quantities are subclassed from NumPy's `~numpy.ndarray` and in some NumPy
 operations (and in SciPy operations using NumPy internally) the subclass is
 ignored, which means that either a plain array is returned, or a
 `~astropy.units.quantity.Quantity` without units.
-E.g.::
+E.g., prior to astropy 4.0 and numpy 1.17::
 
     >>> import astropy.units as u
     >>> import numpy as np
     >>> q = u.Quantity(np.arange(10.), u.m)
-    >>> np.dot(q,q) # doctest: +FLOAT_CMP
+    >>> np.dot(q,q) # doctest: +SKIP
     285.0
-    >>> np.hstack((q,q)) # doctest: +FLOAT_CMP
+    >>> np.hstack((q,q)) # doctest: +SKIP
     <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
                6., 7., 8., 9.] (Unit not initialised)>
 
-::
+And for all versions::
 
     >>> ratio = (3600 * u.s) / (1 * u.h)
     >>> ratio # doctest: +FLOAT_CMP
@@ -66,7 +66,8 @@ Workarounds are available for some cases. For the above::
     <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
                6., 7., 8., 9.] m>
 
-An incomplete list of specific functions which are known to exhibit this behavior follows:
+An incomplete list of specific functions which are known to exhibit
+this behavior (prior to astropy 4.0 and numpy 1.17) follows:
 
 * `numpy.dot`
 * `numpy.hstack`, `numpy.vstack`, ``numpy.c_``, ``numpy.r_``, `numpy.append`
