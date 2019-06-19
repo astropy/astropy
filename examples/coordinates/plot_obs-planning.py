@@ -33,13 +33,14 @@ package.
 # you're free at 11:00 pm local time, and you want to know if it will be up.
 # Astropy can answer that.
 #
-# Make print work the same in all versions of Python, set up numpy,
-# matplotlib, and use a nicer set of plot parameters:
+# Import numpy and matplotlib. For the latter, use a nicer set of plot
+# parameters and set up support for plotting/converting quantities.
 
 import numpy as np
 import matplotlib.pyplot as plt
-from astropy.visualization import astropy_mpl_style
+from astropy.visualization import astropy_mpl_style, quantity_support
 plt.style.use(astropy_mpl_style)
+quantity_support()
 
 
 ##############################################################################
@@ -140,15 +141,15 @@ plt.plot(delta_midnight, moonaltazs_July12_to_13.alt, color=[0.75]*3, ls='--', l
 plt.scatter(delta_midnight, m33altazs_July12_to_13.alt,
             c=m33altazs_July12_to_13.az, label='M33', lw=0, s=8,
             cmap='viridis')
-plt.fill_between(delta_midnight.to('hr').value, 0, 90,
+plt.fill_between(delta_midnight, 0*u.deg, 90*u.deg,
                  sunaltazs_July12_to_13.alt < -0*u.deg, color='0.5', zorder=0)
-plt.fill_between(delta_midnight.to('hr').value, 0, 90,
+plt.fill_between(delta_midnight, 0*u.deg, 90*u.deg,
                  sunaltazs_July12_to_13.alt < -18*u.deg, color='k', zorder=0)
 plt.colorbar().set_label('Azimuth [deg]')
 plt.legend(loc='upper left')
-plt.xlim(-12, 12)
-plt.xticks(np.arange(13)*2 -12)
-plt.ylim(0, 90)
+plt.xlim(-12*u.hour, 12*u.hour)
+plt.xticks((np.arange(13)*2-12)*u.hour)
+plt.ylim(0*u.deg, 90*u.deg)
 plt.xlabel('Hours from EDT Midnight')
 plt.ylabel('Altitude [deg]')
 plt.show()

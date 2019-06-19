@@ -200,10 +200,9 @@ This method is also useful for more complicated arithmetic:
 Numpy functions
 ===============
 
-|quantity| objects are actually full Numpy arrays (the |quantity|
-object class inherits from and extends the ``numpy.ndarray`` class), and
-we have tried to ensure that most Numpy functions behave properly with
-quantities:
+|quantity| objects are actually full Numpy arrays (the |quantity| class
+inherits from and extends :class:`numpy.ndarray`), and we have tried to ensure
+that Numpy functions behave properly with quantities:
 
     >>> q = np.array([1., 2., 3., 4.]) * u.m / u.s
     >>> np.mean(q)
@@ -211,7 +210,7 @@ quantities:
     >>> np.std(q)  # doctest: +FLOAT_CMP
     <Quantity 1.11803399 m / s>
 
-including functions that only accept specific units such as angles:
+This includes functions that only accept specific units such as angles:
 
     >>> q = 30. * u.deg
     >>> np.sin(q)  # doctest: +FLOAT_CMP
@@ -225,7 +224,16 @@ or dimensionless quantities:
     >>> np.exp(-h * nu / (k_B * T))  # doctest: +FLOAT_CMP
     <Quantity 0.99521225>
 
-(see `Dimensionless quantities`_ for more details).
+(see `Dimensionless quantities`_ below for more details).
+
+.. note:: With numpy versions older than 1.17, a number of mostly
+          non-arithmetic functions have :ref:`known issues <quantity_issues>`,
+          either ignoring the unit (e.g., ``np.dot``) or not reinitializing it
+          properly (e.g., ``np.hstack``).  This propagates to more complex
+          functions such as ``np.linalg.norm``.
+
+          Support for functions from other packages, such as ``scipy``, is
+          more incomplete (contributions to improve this welcomed!).
 
 Dimensionless quantities
 ========================
@@ -428,21 +436,6 @@ It can also be used for in-place conversion::
     >>> a  # doctest: +FLOAT_CMP
     array([-100.,  100.,  200.,  300.,  400.])
 
-Known issues with conversion to numpy arrays
-============================================
-
-Since |quantity| objects are Numpy arrays, we are not able to ensure
-that only dimensionless quantities are converted to Numpy arrays:
-
-    >>> np.array([1, 2, 3] * u.m)  # doctest: +FLOAT_CMP
-    array([1., 2., 3.])
-
-Similarly, while most numpy functions work properly, a few have :ref:`known
-issues <quantity_issues>`, either ignoring the unit (e.g., ``np.dot``) or
-not reinitializing it properly (e.g., ``np.hstack``).  This propagates to
-more complex functions such as ``np.linalg.norm`` and
-``scipy.integrate.odeint``.
-
 Subclassing Quantity
 ====================
 
@@ -465,4 +458,7 @@ Another method that is meant to be overridden by subclasses, one specific to
 called to decide which type of subclass to return, based on the unit of the
 quantity that is to be created.  It is used, e.g., in
 :class:`~astropy.coordinates.Angle` to return a |quantity| if a calculation
-returns a unit other than an angular one.
+returns a unit other than an angular one.  The implementation of this is via
+:class:`~astropy.units.SpecificTypeQuantity`, which more generally allows one
+to construct |quantity| subclasses that have methods that are useful only for
+a specific physical type.

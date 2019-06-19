@@ -28,6 +28,10 @@ from astropy.utils.data_info import ParentDtypeInfo
 from astropy import config as _config
 from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
                               check_output)
+from .quantity_helper.function_helpers import (
+    SUBCLASS_SAFE_FUNCTIONS, FUNCTION_HELPERS, DISPATCHED_FUNCTIONS,
+    UNSUPPORTED_FUNCTIONS)
+
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
            "QuantityInfoBase", "QuantityInfo", "allclose", "isclose"]
@@ -497,12 +501,13 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         out : `~astropy.units.Quantity`
            With units set.
         """
-        if isinstance(result, tuple):
+        if isinstance(result, (tuple, list)):
             if out is None:
                 out = (None,) * len(result)
-            return tuple(self._result_as_quantity(result_, unit_, out_)
-                         for (result_, unit_, out_) in
-                         zip(result, unit, out))
+            return result.__class__(
+                self._result_as_quantity(result_, unit_, out_)
+                for (result_, unit_, out_) in
+                zip(result, unit, out))
 
         if out is None:
             # View the result array as a Quantity with the proper unit.
@@ -1454,6 +1459,82 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
 
     def argmin(self, axis=None, out=None):
         return self.view(np.ndarray).argmin(axis, out=out)
+
+    def __array_function__(self, function, types, args, kwargs):
+        """Wrap numpy functions, taking care of units.
+
+        Parameters
+        ----------
+        function : callable
+            Numpy function to wrap
+        types : iterable of classes
+            Classes that provide an ``__array_function__`` override. Can
+            in principle be used to interact with other classes. Below,
+            mostly passed on to `~numpy.ndarray`, which can only interact
+            with subclasses.
+        args : tuple
+            Positional arguments provided in the function call.
+        kwargs : dict
+            Keyword arguments provided in the function call.
+
+        Returns
+        -------
+        result: `~astropy.units.Quantity`, `~numpy.ndarray`
+            As appropriate for the function.  If the function is not
+            supported, `NotImplemented` is returned, which will lead to
+            a `TypeError` unless another argument overrode the function.
+
+        Raises
+        ------
+        ~astropy.units.UnitsError
+            If operands have incompatible units.
+        """
+        # A function should be in one of the following sets of dicts:
+        # 1. SUBCLASS_SAFE_FUNCTIONS (set), if the numpy implementation
+        #    supports Quantity; we pass on to ndarray.__array_function__.
+        # 2. FUNCTION_HELPERS (dict), if the numpy implementation is usable
+        #    after converting quantities to arrays with suitable units,
+        #    and possibly setting units on the result.
+        # 3. DISPATCHED_FUNCTIONS (dict), if the function makes sense but
+        #    requires a Quantity-specific implementation
+        # 4. UNSUPPORTED_FUNCTIONS (set), if the function does not make sense.
+        # For now, since we may not yet have complete coverage, if a
+        # function is in none of the above, we simply call the numpy
+        # implementation.
+        if function in SUBCLASS_SAFE_FUNCTIONS:
+            return super().__array_function__(function, types, args, kwargs)
+
+        elif function in FUNCTION_HELPERS:
+            try:
+                helper_info = FUNCTION_HELPERS[function](*args, **kwargs)
+            except NotImplementedError:
+                # We return NotImplemented, which is proper, even though
+                # if an ndarray is also present, it gets a chance as well
+                # and may just coerce us to object.
+                return NotImplemented
+
+            args, kwargs, unit, out = helper_info
+
+            result = super().__array_function__(function, types, args, kwargs)
+            if unit is None or result is None or result is NotImplemented:
+                return result
+
+            return self._result_as_quantity(result, unit, out=out)
+
+        elif function in DISPATCHED_FUNCTIONS:
+            return DISPATCHED_FUNCTIONS[function](*args, **kwargs)
+
+        elif function in UNSUPPORTED_FUNCTIONS:
+            return NotImplemented
+
+        else:
+            warnings.warn("function '{}' is not known to astropy's Quantity. "
+                          "Will run it anyway, hoping it will treat ndarray "
+                          "subclasses correctly. Please raise an issue at "
+                          "https://github.com/astropy/astropy/issues. "
+                          .format(function.__name__), AstropyWarning)
+
+            return super().__array_function__(function, types, args, kwargs)
 
     # Calculation -- override ndarray methods to take into account units.
     # We use the corresponding numpy functions to evaluate the results, since

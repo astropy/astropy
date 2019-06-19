@@ -77,6 +77,11 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- For numpy 1.17 and later, the new ``__array_function__`` protocol is used to
+  ensure that all top-level numpy functions interact properly with
+  ``Quantity``, preserving units also in operations like ``np.concatenate``.
+  [#8808]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
