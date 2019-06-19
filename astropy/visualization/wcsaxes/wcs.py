@@ -42,11 +42,14 @@ def transform_coord_meta_from_wcs(wcs, slice=None):
             format_unit = u.hourangle
         elif ctype[:4] == 'HPLN':
             coord_type = 'longitude'
-            format_unit = u.hourangle
+            format_unit = u.arcsec
             coord_wrap = 180.
         elif ctype[:4] == 'HPLT':
             coord_type = 'latitude'
-            format_unit = u.hourangle
+            format_unit = u.arcsec
+        elif ctype[:4] == 'HGLN':
+            coord_type = 'latitude'
+            coord_wrap = 180.
         elif ctype[1:4] == 'LON' or ctype[2:4] == 'LN':
             coord_type = 'longitude'
         elif ctype[:4] == 'DEC-' or ctype[1:4] == 'LAT' or ctype[2:4] == 'LT':
