@@ -2063,6 +2063,9 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- ``Quantity`` now preserves the ``dtype`` for anything that is floating
+  point, including ``float16``. [#8872]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
