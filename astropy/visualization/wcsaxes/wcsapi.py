@@ -47,7 +47,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
         m = m[:,::-1]
 
     for i, spine_name in enumerate(frame_class.spine_names[:2]):
-        pos = np.nonzero(m[:, (i + 1) % 2])[0]
+        pos = np.nonzero(m[:, i % 2])[0]
         if len(pos) > 0:
             coord_meta['default_position'][pos[0]] = frame_class.spine_names[i]
             m[pos[0], :] = 0
@@ -61,23 +61,26 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
         coord_wrap = None
         format_unit = axis_unit
 
+        coord_type = 'scalar'
+
         if axis_phys_type is not None:
-            if "pos." in axis_phys_type:
-                if "lon" in axis_phys_type:
+            axis_phys_type_split = axis_phys_type.split('.')
+            if "pos" in axis_phys_type_split:
+                if "lon" in axis_phys_type_split:
                     coord_type = "longitude"
-                if "lat" in axis_phys_type:
+                if "lat" in axis_phys_type_split:
                     coord_type = "latitude"
-                if "ra" in axis_phys_type:
+                if "ra" in axis_phys_type_split:
                     coord_type = "longitude"
                     format_unit = u.hourangle
-                if "dec" in axis_phys_type:
+                if "dec" in axis_phys_type_split:
                     coord_type = "latitude"
-                if "alt" in axis_phys_type:
+                if "alt" in axis_phys_type_split:
                     coord_type = "longitude"
-                if "az" in axis_phys_type:
+                if "az" in axis_phys_type_split:
                     coord_type = "latitude"
                 # Yes that's right pos.bodyrc.long is a thing.
-                if "long" in axis_phys_type:
+                if "long" in axis_phys_type_split:
                     coord_type = "longitude"
 
             if "pos.helioprojective.lon" in axis_phys_type:
@@ -85,8 +88,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
                 format_unit = u.arcsec
             if "pos.helioprojective.lat" in axis_phys_type:
                 format_unit = u.arcsec
-        else:
-            coord_type = 'scalar'
+
 
         coord_meta['type'].append(coord_type)
         coord_meta['wrap'].append(coord_wrap)
@@ -201,10 +203,11 @@ class WCSPixel2WorldTransform(CurvedTransform):
             
         # At the moment, one has to manually check that the transformation
         # round-trips, otherwise it should be considered invalid.
-        # pixel_check = self.wcs.wcs_world2pix(world, 1)
+        # pixel_check = self.wcs.pixel_to_world_values(*world)
         # with np.errstate(invalid='ignore'):
-        #     invalid = np.any(np.abs(pixel_check - pixel_full) > 1., axis=1)
-        # world[invalid] = np.nan
+        #     for ipix in range(len(pixel)):
+        #         invalid = np.any(np.abs(pixel_check[ipix] - pixel[ipix]) > 1., axis=1)
+        #     world[invalid] = np.nan
 
         world = np.array(world).T
 
