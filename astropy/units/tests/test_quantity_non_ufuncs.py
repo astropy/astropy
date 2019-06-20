@@ -1326,9 +1326,9 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
     def test_histogram2d(self):
-        # TODO: add test cases for passing in bins
         x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
         y = np.array([1.2, 2.2, 2.4, 3.0, 4.0]) * u.cm
+        # Basic tests with X, Y
         out_h, out_bx, out_by = np.histogram2d(x, y)
         expected_h, expected_bx, expected_by = np.histogram2d(x.value, y.value)
         expected_bx = expected_bx * x.unit
@@ -1336,6 +1336,7 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         assert_array_equal(out_h, expected_h)
         assert_array_equal(out_bx, expected_bx)
         assert_array_equal(out_by, expected_by)
+        # Check units with density.
         outd_h, outd_bx, outd_by = np.histogram2d(x, y, density=True)
         expectedd_h, expectedd_bx, expectedd_by = np.histogram2d(
             x.value, y.value, density=True)
@@ -1345,6 +1346,7 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         assert_array_equal(outd_h, expectedd_h)
         assert_array_equal(outd_bx, expectedd_bx)
         assert_array_equal(outd_by, expectedd_by)
+        # Check units with weights
         weights = np.arange(1., 6.) * u.g
         outw_h, outw_bx, outw_by = np.histogram2d(x, y, weights=weights)
         expectedw_h, expectedw_bx, expectedw_by = np.histogram2d(
@@ -1355,18 +1357,86 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         assert_array_equal(outw_h, expectedw_h)
         assert_array_equal(outw_bx, expectedw_bx)
         assert_array_equal(outw_by, expectedw_by)
+        # Check quantity bin sizes.
+        inb_y = [0, 0.025, 1.] * u.m
+        outb_h, outb_bx, outb_by = np.histogram2d(x, y, [5, inb_y])
+        expectedb_h, expectedb_bx, expectedb_by = np.histogram2d(
+            x.value, y.value, [5, np.array([0, 2.5, 100.])])
+        expectedb_bx = expectedb_bx * x.unit
+        expectedb_by = expectedb_by * y.unit
+        assert_array_equal(outb_h, expectedb_h)
+        assert_array_equal(outb_bx, expectedb_bx)
+        assert_array_equal(outb_by, expectedb_by)
+        # Check we dispatch on bin sizes.
+        inb2_y = [0, 250, 10000.] * u.percent
+        outb2_h, outb2_bx, outb2_by = np.histogram2d(
+            x.value, y.value, [5, inb2_y])
+        expectedb2_h, expectedb2_bx, expectedb2_by = np.histogram2d(
+            x.value, y.value, [5, np.array([0, 2.5, 100.])])
+        expectedb2_bx = expectedb2_bx * u.dimensionless_unscaled
+        expectedb2_by = expectedb2_by * u.dimensionless_unscaled
+        assert_array_equal(outb2_h, expectedb2_h)
+        assert_array_equal(outb2_bx, expectedb2_bx)
+        assert_array_equal(outb2_by, expectedb2_by)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(NO_ARRAY_FUNCTION,
+                       reason="Needs __array_function__ support")
     def test_histogramdd(self):
-        # Postponing given various forms of passing in data, which
-        # are not all dispatched correctly anyway:
-        # https://github.com/numpy/numpy/issues/13728
         xyz = np.random.normal(size=(10, 3)) * u.m
-        out_h, out_b = np.histogramdd(xyz)
-        expected_h, expected_b = np.histogramdd(xyz.value)
-        expected_b = expected_b * xyz.unit
-        assert np.all(out_h == expected_h)
-        assert np.all(out_b == expected_b)
+        outdd_h, outdd_b = np.histogramdd(xyz)
+        expecteddd_h, expecteddd_b = np.histogramdd(xyz.value)
+        expecteddd_b = [b * xyz.unit for b in expecteddd_b]
+        assert_array_equal(outdd_h, expecteddd_h)
+        for o, e in zip(outdd_b, expecteddd_b):
+            assert_array_equal(o, e)
+        # Bit tired, so just copying the tests from histogram2d above.
+        # Note that these test the histogramdd override, so useful.
+        # Basic tests with X, Y
+        x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
+        y = np.array([1.2, 2.2, 2.4, 3.0, 4.0]) * u.cm
+        out_h, out_b = np.histogramdd((x, y))
+        expected_h, expected_b = np.histogramdd((x.value, y.value))
+        expected_b = [b * u for b, u in zip(expected_b, (x.unit, y.unit))]
+        assert_array_equal(out_h, expected_h)
+        for o, e in zip(out_b, expected_b):
+            assert_array_equal(o, e)
+        # Check units with density.
+        outd_h, outd_b = np.histogramdd((x, y), density=True)
+        expectedd_h, expectedd_b = np.histogramdd(
+            (x.value, y.value), density=True)
+        expectedd_h = expectedd_h / x.unit / y.unit
+        expectedd_b = [b * u for b, u in zip(expectedd_b, (x.unit, y.unit))]
+        assert_array_equal(outd_h, expectedd_h)
+        for o, e in zip(outd_b, expectedd_b):
+            assert_array_equal(o, e)
+        # Check units with weights
+        weights = np.arange(1., 6.) * u.g
+        outw_h, outw_b = np.histogramdd((x, y), weights=weights)
+        expectedw_h, expectedw_b = np.histogramdd(
+            (x.value, y.value), weights=weights.value)
+        expectedw_h = expectedw_h * weights.unit
+        expectedw_b = [b * u for b, u in zip(expectedw_b, (x.unit, y.unit))]
+        assert_array_equal(outw_h, expectedw_h)
+        for o, e in zip(outw_b, expectedw_b):
+            assert_array_equal(o, e)
+        # Check quantity bin sizes.
+        inb_y = [0, 0.025, 1.] * u.m
+        outb_h, outb_b = np.histogramdd((x, y), [5, inb_y])
+        expectedb_h, expectedb_b = np.histogramdd(
+            (x.value, y.value), [5, np.array([0, 2.5, 100.])])
+        expectedb_b = [b * u for b, u in zip(expectedb_b, (x.unit, y.unit))]
+        assert_array_equal(outb_h, expectedb_h)
+        for o, e in zip(outb_b, expectedb_b):
+            assert_array_equal(o, e)
+        # Check we dispatch on bin sizes.
+        inb2_y = [0, 250, 10000.] * u.percent
+        outb2_h, outb2_b = np.histogramdd((x.value, y.value), [5, inb2_y])
+        expectedb2_h, expectedb2_b = np.histogramdd(
+            (x.value, y.value), [5, np.array([0, 2.5, 100.])])
+        expectedb2_b = [e * u.dimensionless_unscaled for e in expectedb2_b]
+        assert_array_equal(outb2_h, expectedb2_h)
+        for o, e in zip(outb2_b, expectedb2_b):
+            assert_array_equal(o, e)
 
     @pytest.mark.xfail(NO_ARRAY_FUNCTION,
                        reason="Needs __array_function__ support")
