@@ -18,7 +18,8 @@ from astropy.coordinates import (SkyCoord, frame_transform_graph,
                                  UnitSphericalRepresentation,
                                  BaseCoordinateFrame)
 
-__all__ = ['CurvedTransform', 'CoordinateTransform']
+__all__ = ['CurvedTransform', 'CoordinateTransform',
+           'World2PixelTransform', 'Pixel2WorldTransform']
 
 
 class CurvedTransform(Transform, metaclass=abc.ABCMeta):
@@ -126,3 +127,70 @@ class CoordinateTransform(CurvedTransform):
         Return the inverse of the transform
         """
         return CoordinateTransform(self._output_system_name, self._input_system_name)
+
+
+class World2PixelTransform(CurvedTransform, metaclass=abc.ABCMeta):
+    """
+    Base transformation from world to pixel coordinates
+    """
+
+    has_inverse = True
+    frame_in = None
+
+    @property
+    @abc.abstractmethod
+    def input_dims(self):
+        """
+        The number of input world dimensions
+        """
+
+    @abc.abstractmethod
+    def transform(self, world):
+        """
+        Transform world to pixel coordinates. You should pass in a NxM array
+        where N is the number of points to transform, and M is the number of
+        dimensions. This then returns the (x, y) pixel coordinates
+        as a Nx2 array.
+        """
+
+    def transform_non_affine(self, pixel):
+        return self.transform(pixel)
+
+    @abc.abstractmethod
+    def inverted(self):
+        """
+        Return the inverse of the transform
+        """
+
+
+class Pixel2WorldTransform(CurvedTransform, metaclass=abc.ABCMeta):
+    """
+    Base transformation from pixel to world coordinates
+    """
+
+    has_inverse = True
+    frame_out = None
+
+    @property
+    @abc.abstractmethod
+    def output_dims(self):
+        """
+        The number of output world dimensions
+        """
+
+    @abc.abstractmethod
+    def transform(self, pixel):
+        """
+        Transform pixel to world coordinates. You should pass in a Nx2 array
+        of (x, y) pixel coordinates to transform to world coordinates. This
+        will then return an NxM array where M is the number of dimensions.
+        """
+
+    def transform_non_affine(self, pixel):
+        return self.transform(pixel)
+
+    @abc.abstractmethod
+    def inverted(self):
+        """
+        Return the inverse of the transform
+        """

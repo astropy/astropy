@@ -2,10 +2,11 @@
 
 import numpy as np
 
-from ... import units as u
-from ...wcs import WCS
-from ...wcs.utils import wcs_to_celestial_frame
-from .transforms import CurvedTransform
+from astropy import units as u
+from astropy.wcs import WCS
+from astropy.wcs.utils import wcs_to_celestial_frame
+
+from .transforms import Pixel2WorldTransform, World2PixelTransform
 
 __all__ = ['transform_coord_meta_from_wcs', 'WCSWorld2PixelTransform',
            'WCSPixel2WorldTransform']
@@ -27,7 +28,6 @@ def transform_coord_meta_from_wcs(wcs, slice=None):
     coord_meta['wrap'] = []
     coord_meta['unit'] = []
     coord_meta['format_unit'] = []
-    coord_meta['naxis'] = wcs.wcs.naxis
 
     for coord_index in range(wcs.wcs.naxis):
 
@@ -66,13 +66,10 @@ def transform_coord_meta_from_wcs(wcs, slice=None):
     return transform, coord_meta
 
 
-class WCSWorld2PixelTransform(CurvedTransform):
+class WCSWorld2PixelTransform(World2PixelTransform):
     """
     WCS transformation from world to pixel coordinates
     """
-
-    has_inverse = True
-    frame_in = None
 
     def __init__(self, wcs, slice=None):
         super().__init__()
@@ -101,12 +98,6 @@ class WCSWorld2PixelTransform(CurvedTransform):
         return self.wcs.wcs.naxis
 
     def transform(self, world):
-        """
-        Transform world to pixel coordinates. You should pass in a NxM array
-        where N is the number of points to transform, and M is the number of
-        dimensions in the WCS. This then returns the (x, y) pixel coordinates
-        as a Nx2 array.
-        """
 
         if world.shape[1] != self.wcs.wcs.naxis:
             raise ValueError("Second dimension of input values should "
@@ -122,22 +113,14 @@ class WCSWorld2PixelTransform(CurvedTransform):
         else:
             return pixel[:, (self.x_index, self.y_index)]
 
-    transform_non_affine = transform
-
     def inverted(self):
-        """
-        Return the inverse of the transform
-        """
         return WCSPixel2WorldTransform(self.wcs, slice=self.slice)
 
 
-class WCSPixel2WorldTransform(CurvedTransform):
+class WCSPixel2WorldTransform(Pixel2WorldTransform):
     """
     WCS transformation from pixel to world coordinates
     """
-
-    has_inverse = True
-    frame_out = None
 
     def __init__(self, wcs, slice=None):
         super().__init__()
@@ -158,12 +141,6 @@ class WCSPixel2WorldTransform(CurvedTransform):
         return self.wcs.wcs.naxis
 
     def transform(self, pixel):
-        """
-        Transform pixel to world coordinates. You should pass in a Nx2 array
-        of (x, y) pixel coordinates to transform to world coordinates. This
-        will then return an NxM array where M is the number of dimensions in
-        the WCS
-        """
 
         if self.slice is None:
             pixel_full = pixel.copy()
@@ -194,10 +171,5 @@ class WCSPixel2WorldTransform(CurvedTransform):
 
         return world
 
-    transform_non_affine = transform
-
     def inverted(self):
-        """
-        Return the inverse of the transform
-        """
         return WCSWorld2PixelTransform(self.wcs, slice=self.slice)
