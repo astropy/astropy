@@ -114,7 +114,6 @@ SUBCLASS_SAFE_FUNCTIONS |= {
 
 # TODO: could be supported but need work & thought.
 UNSUPPORTED_FUNCTIONS |= {
-    np.histogramdd,
     np.apply_along_axis, np.apply_over_axes}
 
 # Nonsensical for quantities.
@@ -639,8 +638,8 @@ def histogram2d(x, y, bins=10, range=None, normed=None, weights=None,
             pass
         else:
             if n == 2:
-                bins = tuple(_check_bins(b, unit) for (b, unit) in
-                             zip(bins, (x.unit, y.unit)))
+                bins = [_check_bins(b, unit)
+                        for (b, unit) in zip(bins, (x.unit, y.unit))]
             elif n == 1:
                 return NotImplementedError
             else:
@@ -652,6 +651,52 @@ def histogram2d(x, y, bins=10, range=None, normed=None, weights=None,
 
     return ((x.value, y.value, bins, range, normed, weights, density), {},
             (unit, x.unit, y.unit), None)
+
+
+@function_helper
+def histogramdd(sample, bins=10, range=None, normed=None, weights=None,
+                density=None):
+    if weights is not None:
+        weights = _as_quantity(weights)
+        unit = weights.unit
+        weights = weights.value
+    else:
+        unit = None
+
+    try:
+        # Sample is an ND-array.
+        _, D = sample.shape
+    except (AttributeError, ValueError):
+        # Sample is a sequence of 1D arrays.
+        sample = _as_quantities(*sample)
+        sample_units = [s.unit for s in sample]
+        sample = [s.value for s in sample]
+        D = len(sample)
+    else:
+        sample = _as_quantity(sample)
+        sample_units = [sample.unit] * D
+
+    try:
+        M = len(bins)
+    except TypeError:
+        # bins should be an integer
+        from astropy.units import Quantity
+
+        if isinstance(bins, Quantity):
+            raise NotImplementedError
+    else:
+        if M != D:
+            raise ValueError(
+                'The dimension of bins must be equal to the dimension of the '
+                ' sample x.')
+        bins = [_check_bins(b, unit)
+                for (b, unit) in zip(bins, sample_units)]
+
+    if density or normed:
+        unit = functools.reduce(operator.truediv, sample_units, (unit or 1))
+
+    return ((sample, bins, range, normed, weights, density), {},
+            (unit, sample_units), None)
 
 
 @function_helper
