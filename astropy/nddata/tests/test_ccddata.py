@@ -302,8 +302,8 @@ def test_mult_div_overload(operand, with_uncertainty,
     ccd_data = create_ccd_data()
     if with_uncertainty:
         ccd_data.uncertainty = StdDevUncertainty(np.ones_like(ccd_data))
-    method = ccd_data.__getattribute__(operation)
-    np_method = np.__getattribute__(operation)
+    method = getattr(ccd_data, operation)
+    np_method = getattr(np, operation)
     result = method(operand)
     assert result is not ccd_data
     assert isinstance(result, CCDData)
@@ -353,8 +353,8 @@ def test_add_sub_overload(operand, expect_failure, with_uncertainty,
     ccd_data = create_ccd_data()
     if with_uncertainty:
         ccd_data.uncertainty = StdDevUncertainty(np.ones_like(ccd_data))
-    method = ccd_data.__getattribute__(operation)
-    np_method = np.__getattribute__(operation)
+    method = getattr(ccd_data, operation)
+    np_method = getattr(np, operation)
     if expect_failure:
         with pytest.raises(expect_failure):
             result = method(operand)
@@ -788,7 +788,7 @@ def test_wcs_arithmetic_ccd(operation):
     ccd_data = create_ccd_data()
     ccd_data2 = ccd_data.copy()
     ccd_data.wcs = 5
-    method = ccd_data.__getattribute__(operation)
+    method = getattr(ccd_data, operation)
     result = method(ccd_data2)
     assert result.wcs == ccd_data.wcs
     assert ccd_data2.wcs is None
@@ -837,7 +837,7 @@ def test_mask_arithmetic_ccd(operation):
     ccd_data = create_ccd_data()
     ccd_data2 = ccd_data.copy()
     ccd_data.mask = (ccd_data.data > 0)
-    method = ccd_data.__getattribute__(operation)
+    method = getattr(ccd_data, operation)
     result = method(ccd_data2)
     np.testing.assert_equal(result.mask, ccd_data.mask)
 
