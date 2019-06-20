@@ -32,7 +32,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
 
     invert_xy = False
     if aslice is not None:
-        wcs_slice = list(aslice) 
+        wcs_slice = list(aslice)
         wcs_slice[wcs_slice.index("x")] = slice(None)
         wcs_slice[wcs_slice.index("y")] = slice(None)
         wcs = SlicedLowLevelWCS(wcs, wcs_slice[::-1])
@@ -103,7 +103,7 @@ def wcsapi_to_celestial_frame(wcs):
     for cls, args, kwargs in wcs.world_axis_object_classes.values():
         if cls is SkyCoord:
             return kwargs.get('frame', ICRS())
-    
+
 
 class WCSWorld2PixelTransform(CurvedTransform):
     """
@@ -165,6 +165,8 @@ class WCSPixel2WorldTransform(CurvedTransform):
     WCS transformation from pixel to world coordinates
     """
 
+    has_inverse = True
+
     def __init__(self, wcs, invert_xy=False):
 
         super().__init__()
@@ -200,7 +202,7 @@ class WCSPixel2WorldTransform(CurvedTransform):
             world = np.zeros((0, self.wcs.world_n_dim))
         else:
             world = self.wcs.pixel_to_world_values(*pixel)
-            
+
         # At the moment, one has to manually check that the transformation
         # round-trips, otherwise it should be considered invalid.
         # pixel_check = self.wcs.pixel_to_world_values(*world)
