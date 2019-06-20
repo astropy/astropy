@@ -25,7 +25,9 @@ converted to Quantity), and ``out`` is a possible output Quantity passed
 in, which will be filled in-place.
 
 For the DISPATCHED_FUNCTIONS `dict`, the value is a function that
-implements the numpy functionality for Quantity input.
+implements the numpy functionality for Quantity input. It should return
+a tuple of ``result, unit, out``, where ``result`` is a plain array
+with the result, and ``unit`` and ``out`` are as above.
 """
 
 import functools
@@ -215,14 +217,11 @@ def unwrap(p, discont=None, axis=-1):
     if discont is None:
         discont = np.pi << radian
 
-    try:
-        p = p << radian
-        discont = discont.to_value(radian)
-    except UnitsError:
-        raise UnitTypeError("Can only apply 'unwrap' function to "
-                            "quantities with angle units")
-
-    return p._wrap_function(np.unwrap.__wrapped__, discont, axis=axis)
+    p, discont = _as_quantities(p, discont)
+    result = np.unwrap.__wrapped__(p.to_value(radian),
+                                   discont.to_value(radian), axis=axis)
+    result = radian.to(p.unit, result)
+    return result, p.unit, None
 
 
 @function_helper

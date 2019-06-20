@@ -712,7 +712,8 @@ class TestUfuncLike(InvariantUnitTestSetup):
     def test_unwrap(self):
         q = [0., 3690., -270., 690.] * u.deg
         out = np.unwrap(q)
-        expected = np.rad2deg(np.unwrap(q.to_value(u.rad))) * u.deg
+        expected = (np.unwrap(q.to_value(u.rad)) * u.rad).to(q.unit)
+        assert out.unit == expected.unit
         assert np.allclose(out, expected, atol=1*u.urad, rtol=0)
         with pytest.raises(u.UnitsError):
             np.unwrap([1., 2.]*u.m)
