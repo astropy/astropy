@@ -20,8 +20,6 @@ from .distances import Distance
 from astropy._erfa import ufunc as erfa_ufunc
 from astropy.utils import ShapedLikeNDArray, classproperty
 
-from astropy.utils import deprecated_attribute
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import InheritDocstrings
 from astropy.utils.compat import NUMPY_LT_1_14
 
@@ -62,16 +60,6 @@ def get_reprdiff_cls_hash():
 def _invalidate_reprdiff_cls_hash():
     global _REPRDIFF_HASH
     _REPRDIFF_HASH = None
-
-
-# recommended_units deprecation message; if the attribute is removed later,
-# also remove its use in BaseFrame._get_representation_info.
-_recommended_units_deprecation = """
-The 'recommended_units' attribute is deprecated since 3.0 and may be removed
-in a future version. Its main use, of representing angles in degrees in frames,
-is now done automatically in frames. Further overrides are discouraged but can
-be done using a frame's ``frame_specific_representation_info``.
-"""
 
 
 def _array2string(values, prefix=''):
@@ -484,9 +472,6 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
     class, one should also define ``unit_vectors`` and ``scale_factors``
     methods (see those methods for details).
     """
-
-    recommended_units = deprecated_attribute('recommended_units', since='3.0')
-    _recommended_units = {}
 
     def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
@@ -2020,9 +2005,6 @@ class BaseDifferential(BaseRepresentationOrDifferential,
     and all classes set to `~astropy.units.Quantity`, plus properties to access
     those, and a default ``__init__`` for initialization.
     """
-
-    recommended_units = deprecated_attribute('recommended_units', since='3.0')
-    _recommended_units = {}
 
     @classmethod
     def _check_base(cls, base):
