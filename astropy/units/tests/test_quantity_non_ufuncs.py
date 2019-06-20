@@ -1333,18 +1333,18 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         expected_h, expected_bx, expected_by = np.histogram2d(x.value, y.value)
         expected_bx = expected_bx * x.unit
         expected_by = expected_by * y.unit
-        assert np.all(out_h == expected_h)
-        assert np.all(out_bx == expected_bx)
-        assert np.all(out_by == expected_by)
+        assert_array_equal(out_h, expected_h)
+        assert_array_equal(out_bx, expected_bx)
+        assert_array_equal(out_by, expected_by)
         outd_h, outd_bx, outd_by = np.histogram2d(x, y, density=True)
         expectedd_h, expectedd_bx, expectedd_by = np.histogram2d(
             x.value, y.value, density=True)
         expectedd_h = expectedd_h / x.unit / y.unit
         expectedd_bx = expectedd_bx * x.unit
         expectedd_by = expectedd_by * y.unit
-        assert np.all(outd_h == expectedd_h)
-        assert np.all(outd_bx == expectedd_bx)
-        assert np.all(outd_by == expectedd_by)
+        assert_array_equal(outd_h, expectedd_h)
+        assert_array_equal(outd_bx, expectedd_bx)
+        assert_array_equal(outd_by, expectedd_by)
         weights = np.arange(1., 6.) * u.g
         outw_h, outw_bx, outw_by = np.histogram2d(x, y, weights=weights)
         expectedw_h, expectedw_bx, expectedw_by = np.histogram2d(
@@ -1352,9 +1352,9 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         expectedw_h = expectedw_h * weights.unit
         expectedw_bx = expectedw_bx * x.unit
         expectedw_by = expectedw_by * y.unit
-        assert np.all(outw_h == expectedw_h)
-        assert np.all(outw_bx == expectedw_bx)
-        assert np.all(outw_by == expectedw_by)
+        assert_array_equal(outw_h, expectedw_h)
+        assert_array_equal(outw_bx, expectedw_bx)
+        assert_array_equal(outw_by, expectedw_by)
 
     @pytest.mark.xfail
     def test_histogramdd(self):

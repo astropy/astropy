@@ -396,7 +396,7 @@ def piecewise(x, condlist, funclist, *args, **kw):
         condlist = [condlist]
 
     if any(isinstance(c, Quantity) for c in condlist):
-        raise TypeError("cannot have quantity in condlist.")
+        raise NotImplementedError
 
     condlist = np.array(condlist, dtype=bool)
     n = len(condlist)
