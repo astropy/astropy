@@ -7,7 +7,7 @@ from astropy import units as u
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import SlicedLowLevelWCS
 
-from .frame import EllipticalFrame
+from .frame import RectangularFrame, EllipticalFrame
 from .transforms import CurvedTransform
 
 __all__ = ['transform_coord_meta_from_wcs', 'WCSWorld2PixelTransform',
@@ -23,6 +23,9 @@ IDENTITY.wcs.cdelt = [1., 1.]
 
 
 def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
+
+    is_fits_wcs = isinstance(wcs, WCS)
+
     coord_meta = {}
     coord_meta['name'] = []
     coord_meta['type'] = []
@@ -36,21 +39,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
         wcs_slice[wcs_slice.index("x")] = slice(None)
         wcs_slice[wcs_slice.index("y")] = slice(None)
         wcs = SlicedLowLevelWCS(wcs, wcs_slice[::-1])
-
-        invert_xy = aslice.index('x') < aslice.index('y')
-
-
-    coord_meta['default_position'] = [''] * wcs.world_n_dim
-
-    m = wcs.axis_correlation_matrix.copy()
-    if invert_xy:
-        m = m[:,::-1]
-
-    for i, spine_name in enumerate(frame_class.spine_names[:2]):
-        pos = np.nonzero(m[:, i % 2])[0]
-        if len(pos) > 0:
-            coord_meta['default_position'][pos[0]] = frame_class.spine_names[i]
-            m[pos[0], :] = 0
+        invert_xy = aslice.index('x') > aslice.index('y')
 
     transform = WCSPixel2WorldTransform(wcs, invert_xy=invert_xy)
 
@@ -93,7 +82,43 @@ def transform_coord_meta_from_wcs(wcs, frame_class, aslice=None):
         coord_meta['wrap'].append(coord_wrap)
         coord_meta['format_unit'].append(format_unit)
         coord_meta['unit'].append(axis_unit)
-        coord_meta['name'].append(axis_type or '')
+
+        # For FITS-WCS, for backward-compatibility, we need to make sure that we
+        # provide aliases based on CTYPE for the name.
+        if is_fits_wcs:
+            if isinstance(wcs, WCS):
+                alias = wcs.wcs.ctype[idx][:4].replace('-', '').lower()
+            else:  # SlicedLowLevelWCS
+                alias = wcs._wcs.wcs.ctype[wcs._world_keep[idx]][:4].replace('-', '').lower()
+            name = (axis_type, alias) if axis_type else alias
+        else:
+            name = axis_type or ''
+
+        coord_meta['name'].append(name)
+
+    coord_meta['default_position'] = [''] * wcs.world_n_dim
+
+    m = wcs.axis_correlation_matrix.copy()
+    if invert_xy:
+        m = m[:,::-1]
+
+    if frame_class is RectangularFrame:
+
+        for i, spine_name in enumerate('bltr'):
+            pos = np.nonzero(m[:, i % 2])[0]
+            if len(pos) > 0:
+                coord_meta['default_position'][pos[0]] = spine_name
+                m[pos[0], :] = 0
+
+    elif frame_class is EllipticalFrame:
+
+        if 'longitude' in coord_meta['type']:
+            lon_idx = coord_meta['type'].index('longitude')
+            coord_meta['default_position'][lon_idx] = 'h'
+
+        if 'latitude' in coord_meta['type']:
+            lat_idx = coord_meta['type'].index('latitude')
+            coord_meta['default_position'][lat_idx] = 'c'
 
     return transform, coord_meta
 
@@ -152,6 +177,8 @@ class WCSWorld2PixelTransform(CurvedTransform):
 
         return pixel
 
+    transform_non_affine = transform
+
     def inverted(self):
         """
         Return the inverse of the transform
@@ -204,11 +231,13 @@ class WCSPixel2WorldTransform(CurvedTransform):
 
         # At the moment, one has to manually check that the transformation
         # round-trips, otherwise it should be considered invalid.
-        # pixel_check = self.wcs.pixel_to_world_values(*world)
-        # with np.errstate(invalid='ignore'):
-        #     for ipix in range(len(pixel)):
-        #         invalid = np.any(np.abs(pixel_check[ipix] - pixel[ipix]) > 1., axis=1)
-        #     world[invalid] = np.nan
+        pixel_check = self.wcs.pixel_to_world_values(*world)
+        with np.errstate(invalid='ignore'):
+            invalid = np.zeros(len(pixel[0]), dtype=bool)
+            for ipix in range(len(pixel)):
+                invalid |= np.abs(pixel_check[ipix] - pixel[ipix]) > 1.
+            for iwrl in range(len(world)):
+                world[iwrl][invalid] = np.nan
 
         world = np.array(world).T
 

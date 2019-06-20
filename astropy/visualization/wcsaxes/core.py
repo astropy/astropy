@@ -473,7 +473,7 @@ class WCSAxes(Axes):
         # Here we can't use get_transform because that deals with
         # pixel-to-pixel transformations when passing a WCS object.
         if isinstance(frame, WCS):
-            transform, coord_meta = transform_coord_meta_from_wcs(frame)
+            transform, coord_meta = transform_coord_meta_from_wcs(frame, self.frame_class)
         else:
             transform = self._get_transform_no_transdata(frame)
 
@@ -536,7 +536,7 @@ class WCSAxes(Axes):
 
         if isinstance(frame, WCS):
 
-            transform, coord_meta = transform_coord_meta_from_wcs(frame)
+            transform, coord_meta = transform_coord_meta_from_wcs(frame, self.frame_class)
             transform_world2pixel = transform.inverted()
 
             if self._transform_pixel2world.frame_out == transform_world2pixel.frame_in:
@@ -703,10 +703,12 @@ class WCSAxes(Axes):
 
         elif axis in ('x', 'y'):
 
+            spine = 'b' if axis == 'x' else 'l'
+
             if self.frame_class is RectangularFrame:
-                for coord_index in range(len(self.slices)):
-                    if self.slices[coord_index] == axis:
-                        self.coords[coord_index].tick_params(**kwargs)
+                for coord in self.coords:
+                    if spine in coord.axislabels.get_visible_axes():
+                        coord.tick_params(**kwargs)
 
 
 # In the following, we put the generated subplot class in a temporary class and
