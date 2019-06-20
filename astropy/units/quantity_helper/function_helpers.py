@@ -75,7 +75,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.compress, np.extract, np.delete, np.trim_zeros, np.roll, np.take,
     np.put, np.fill_diagonal, np.tile, np.repeat,
     np.split, np.array_split, np.hsplit, np.vsplit, np.dsplit,
-    np.stack, np.column_stack, np.hstack, np.vstack, np.dstack, np.block,
+    np.stack, np.column_stack, np.hstack, np.vstack, np.dstack,
     np.amax, np.amin, np.ptp, np.sum, np.cumsum,
     np.prod, np.product, np.cumprod, np.cumproduct,
     np.round, np.around,
@@ -341,6 +341,32 @@ def concatenate(arrays, axis=0, out=None):
     # empty output array and just filling it.
     arrays, kwargs, unit, out = _iterable_helper(*arrays, out=out, axis=axis)
     return (arrays,), kwargs, unit, out
+
+
+@dispatched_function
+def block(arrays):
+    # We need to override block since the numpy implementation can take two
+    # different paths, one for concatenation, one for creating a large empty
+    # result array in which parts are set.  Each assumes array input and
+    # cannot be used directly.  Since it would be very costly to inspect all
+    # arrays and then turn them back into a nested list, we just copy here the
+    # second implementation, np.core.shape_base._block_slicing, since it is
+    # shortest and easiest.
+    (arrays, list_ndim, result_ndim,
+     final_size) = np.core.shape_base._block_setup(arrays)
+    shape, slices, arrays = np.core.shape_base._block_info_recursion(
+        arrays, list_ndim, result_ndim)
+    # Here, one line of difference!
+    arrays, unit = _quantities2arrays(*arrays)
+    # Back to _block_slicing
+    dtype = np.result_type(*[arr.dtype for arr in arrays])
+    F_order = all(arr.flags['F_CONTIGUOUS'] for arr in arrays)
+    C_order = all(arr.flags['C_CONTIGUOUS'] for arr in arrays)
+    order = 'F' if F_order and not C_order else 'C'
+    result = np.empty(shape=shape, dtype=dtype, order=order)
+    for the_slice, arr in zip(slices, arrays):
+        result[(Ellipsis,) + the_slice] = arr
+    return result, unit, None
 
 
 @function_helper
