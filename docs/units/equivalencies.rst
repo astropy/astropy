@@ -244,21 +244,6 @@ You can also convert between ``Jy/beam`` and ``K`` by specifying the beam area::
     >>> (1*u.Jy/u.beam).to(u.K, u.brightness_temperature(freq, beam_area=omega_B))  # doctest: +FLOAT_CMP
     <Quantity 19.553932298231704 K>
 
-Finally, there is an equivalency that allows you to convert from Jansky to Kelvin.
-In this case, the Jansky unit is *implicitly* Jansky/beam.  Because of the implicit
-assumed per beam unit, this approach is deprecated.::
-
-    >>> import numpy as np
-    >>> beam_fwhm = 50*u.arcsec
-    >>> fwhm_to_sigma = 1. / (8 * np.log(2))**0.5
-    >>> beam_sigma = beam_fwhm * fwhm_to_sigma
-    >>> omega_B = 2 * np.pi * beam_sigma**2
-    >>> freq = 5 * u.GHz
-    >>> # DEPRECATED
-    >>> (1*u.Jy).to(u.K, u.brightness_temperature(freq, beam_area=omega_B))  # doctest: +FLOAT_CMP
-    <Quantity 19.553932298231704 K>
-
-
 Beam Equivalency
 ----------------
 
